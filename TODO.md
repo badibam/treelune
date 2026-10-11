@@ -33,7 +33,6 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 - Guide automatiser 1/4 "avec ses ieces jointes" est maladroit étant donné que justement non, on ne oeit pas ajouter de pièce jointe au seed.
 - Guide : lorsque clavier ouvert : il faut replier la barre du bas sinon ça comprime l'éditeur bizarrement.
 - Guide brancher une ia 3/5 bof à reprendre. Et fournisseur > limites pour économiser, par ailleurd.
-- Le post text s'affiche même en l'absence d'actions. Je pense que c'est nouveau. Mais à vérifier. Est ce souhaitable ?
 - Au coin d'un cadre on ne voit pas le point de notif (ex icone tuto) en mode rétro. Augmenter la taille du point bleu en retro ?
 
 ## À passer sur le téléphone

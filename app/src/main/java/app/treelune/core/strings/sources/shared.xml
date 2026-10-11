@@ -1133,7 +1133,7 @@
     <string name="ai_schema_field_validation_request_desc">Optional validation request (Boolean, only together with action_commands)</string>
     <string name="ai_schema_field_data_commands_desc">Data request commands (mutually exclusive with action_commands and communication_module)</string>
     <string name="ai_schema_field_action_commands_desc">Action commands to run (mutually exclusive with data_commands and communication_module)</string>
-    <string name="ai_schema_field_posttext_desc">Text to show after the actions, once they all succeed; without actions, shown at once after pre_text</string>
+    <string name="ai_schema_field_posttext_desc">Only with action_commands: text shown after the actions, once they all succeed. Without actions, leave it out and put everything in pre_text</string>
     <string name="ai_schema_field_keep_control_desc">Keep control after the actions succeed, to chain further actions. In that case you will still see what the commands of the current message returned (successes, failures, ids of the created objects, and so on). Useful for multi-step sequences with intermediate system feedback.</string>
     <string name="ai_schema_field_communication_module_desc">A question to the user as a list of fields, with the schema communication_module (mutually exclusive with data_commands and action_commands)</string>
 
