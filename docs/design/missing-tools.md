@@ -7,7 +7,7 @@ Conception commencée le 2026-09-27, après la refonte des champs (`docs/DATA.md
 - **Liste** : livrée (`docs/TOOLS.md`).
 - **Objectif** : un outil (section plus bas).
 - **Calcul** n'est pas un outil mais les variables du cœur (plus bas). **Graphique** est un outil, une vue (sa sortie s'affiche), qui lit la sélection d'entrées et les variables.
-- **Alerte** : probablement pas un outil, mais un cas des événements du cœur (`NOTES.md`, « Events ») — à confirmer.
+- **Alerte** : probablement pas un outil, mais un cas des événements du cœur (`TODO.md`, « Events du cœur ») — à confirmer.
 - **Données structurées** et **questionnaire** : deux outils distincts, même si leurs entrées ne portent l'une et l'autre que des champs déclarés par l'utilisateur.
 
 ## La lecture du cœur
