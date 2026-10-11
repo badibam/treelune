@@ -527,7 +527,7 @@ object DefaultTheme : ThemeContract {
         state: ComponentState,
         value: TextFieldValue,
         onChange: (TextFieldValue) -> Unit,
-        placeholder: String,
+        placeholder: String?,
         fieldModifier: FieldModifier
     ) {
         val isError = state == ComponentState.ERROR
@@ -544,7 +544,7 @@ object DefaultTheme : ThemeContract {
         OutlinedTextField(
             value = value,
             onValueChange = filteredOnChange,
-            placeholder = { androidx.compose.material3.Text(placeholder) },
+            placeholder = placeholder?.let { { androidx.compose.material3.Text(it) } },
             isError = isError,
             readOnly = isReadOnly,
             enabled = state != ComponentState.DISABLED,
@@ -1199,7 +1199,8 @@ object DefaultTheme : ThemeContract {
                     state = state,
                     value = value,
                     onChange = onChange,
-                    placeholder = label,
+                    // The label inside the empty field only when it is not above it
+                    placeholder = label.takeUnless { labelAbove },
                     fieldModifier = fieldModifier
                 )
             }

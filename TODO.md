@@ -37,7 +37,6 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 
 ## Bugs du téléphone
 
-- Signaler un bug : « Ce qui s'est passé (facultatif) » s'affiche deux fois, en libellé au-dessus du champ et en texte d'attente dedans.
 - Le Guide : les chapitres de Prise en main propres à un outil ont tous l'icône clé à molette, pas celle de leur type d'outil.
 - Réglages › Interface : un thème choisi, vu, enregistré, et l'ancien revient ; une seconde fois, ça tient (2026-10-09, pas reproduit, peut-être dans la release). Au prochain cas, lire dans le journal les lignes « Theme applied » : laquelle a remis l'ancien (STORED, PREVIEW, LEFT_UNSAVED).
 
