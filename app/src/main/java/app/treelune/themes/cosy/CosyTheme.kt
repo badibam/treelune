@@ -87,7 +87,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog as WindowDialog
 import app.treelune.R
 import app.treelune.core.ui.horizontalPick
 import app.treelune.core.ai.data.MessageSender
@@ -1389,7 +1388,7 @@ object CosyTheme : ThemeContract {
     /** A window over the screen, swelling in: a tile on its shadow, its content, its actions under it. */
     @Composable
     private fun DialogFrame(onDismiss: () -> Unit, actions: @Composable RowScope.() -> Unit, content: @Composable ColumnScope.() -> Unit) {
-        WindowDialog(onDismissRequest = onDismiss) {
+        app.treelune.core.ui.components.FloatingDialog(onDismissRequest = onDismiss, margin = cosySize().dp(16f)) {
             SwellIn {
                 val size = cosySize()
                 val c = cosyColors

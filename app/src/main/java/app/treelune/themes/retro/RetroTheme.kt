@@ -82,7 +82,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.window.Dialog as WindowDialog
 import app.treelune.R
 import app.treelune.core.ai.data.MessageSender
 import app.treelune.core.icons.IconSource
@@ -1276,8 +1275,8 @@ object RetroTheme : ThemeContract {
     /** A window over the screen: a frame across, its content, its actions under it. */
     @Composable
     private fun DialogFrame(onDismiss: () -> Unit, actions: @Composable RowScope.() -> Unit, content: @Composable ColumnScope.() -> Unit) {
-        WindowDialog(onDismissRequest = onDismiss) {
-            val grid = retroGrid()
+        val grid = retroGrid()
+        app.treelune.core.ui.components.FloatingDialog(onDismissRequest = onDismiss, margin = grid.cells(1)) {
             Framed(modifier = Modifier.fillMaxWidth()) {
                 Column(verticalArrangement = Arrangement.spacedBy(grid.cells(1))) {
                     Column(modifier = Modifier.weight(1f, fill = false), verticalArrangement = Arrangement.spacedBy(grid.cells(1)), content = content)

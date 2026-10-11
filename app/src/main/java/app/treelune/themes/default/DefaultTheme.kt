@@ -1019,44 +1019,46 @@ object DefaultTheme : ThemeContract {
             DialogType.INFO -> s.shared("action_ok") to null
         }
         
-        AlertDialog(
-            onDismissRequest = onCancel,
-            text = { Box(modifier = Modifier.scrollEndSound()) { content() } },
-            confirmButton = if (confirmText != null) {
-                {
-                    androidx.compose.material3.Button(
-                        onClick = onConfirm,
-                        enabled = confirmEnabled,
-                        colors = if (type == DialogType.DANGER) {
-                            ButtonDefaults.buttonColors(
-                                containerColor = CurrentTheme.getCurrentColorScheme().error,
-                                contentColor = CurrentTheme.getCurrentColorScheme().onError
-                            )
-                        } else {
-                            ButtonDefaults.buttonColors(
-                                containerColor = CurrentTheme.getCurrentColorScheme().primary,
-                                contentColor = CurrentTheme.getCurrentColorScheme().onPrimary
-                            )
-                        },
-                        shape = ButtonTextShape
+        // Material's alert dialog drawn in a window that keeps itself clear of the keyboard
+        app.treelune.core.ui.components.FloatingDialog(onDismissRequest = onCancel, margin = 24.dp) {
+            androidx.compose.material3.Surface(
+                modifier = Modifier.widthIn(min = 280.dp, max = 560.dp),
+                shape = androidx.compose.material3.AlertDialogDefaults.shape,
+                color = androidx.compose.material3.AlertDialogDefaults.containerColor,
+                tonalElevation = androidx.compose.material3.AlertDialogDefaults.TonalElevation
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Box(modifier = Modifier.weight(1f, fill = false).scrollEndSound()) { content() }
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        androidx.compose.material3.Text(confirmText)
+                        if (cancelText != null) TextButton(onClick = onCancel, shape = ButtonTextShape) {
+                            androidx.compose.material3.Text(cancelText)
+                        }
+                        if (confirmText != null) androidx.compose.material3.Button(
+                            onClick = onConfirm,
+                            enabled = confirmEnabled,
+                            colors = if (type == DialogType.DANGER) {
+                                ButtonDefaults.buttonColors(
+                                    containerColor = CurrentTheme.getCurrentColorScheme().error,
+                                    contentColor = CurrentTheme.getCurrentColorScheme().onError
+                                )
+                            } else {
+                                ButtonDefaults.buttonColors(
+                                    containerColor = CurrentTheme.getCurrentColorScheme().primary,
+                                    contentColor = CurrentTheme.getCurrentColorScheme().onPrimary
+                                )
+                            },
+                            shape = ButtonTextShape
+                        ) {
+                            androidx.compose.material3.Text(confirmText)
+                        }
                     }
                 }
-            } else {
-                {}
-            },
-            dismissButton = if (cancelText != null) {
-                {
-                    TextButton(
-                        onClick = onCancel,
-                        shape = ButtonTextShape
-                    ) {
-                        androidx.compose.material3.Text(cancelText)
-                    }
-                }
-            } else null
-        )
+            }
+        }
     }
     
     // =====================================
