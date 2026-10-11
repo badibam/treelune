@@ -205,7 +205,7 @@ object FieldTypeSettings {
      * beside the value's settings. Whoever declares such a value adds it when its values share
      * a unit; a value whose unit changes from one entry to the next records it with the entry.
      */
-    fun unit(text: (String) -> String) = label("unit", "field_config_unit", text)
+    private fun unit(text: (String) -> String) = label("unit", "field_config_unit", text)
 
     private fun flag(name: String, labelKey: String, descriptionKey: String, text: (String) -> String) =
         field(name, labelKey, FieldType.BOOLEAN, text, default = false, description = descriptionKey)

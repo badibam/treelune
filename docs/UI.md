@@ -97,6 +97,8 @@ UI.ActionButton supporte requireConfirmation avec message personnalisable.
 
 **UI.ConfirmDialog** - Dialog modal de confirmation avec title, message, confirmText/cancelText optionnels, onConfirm et onDismiss.
 
+**FloatingDialog** - La fenêtre où un thème pose son cadre de dialogue (`UI.Dialog`) : elle couvre l'écran, centre le cadre dans ce que laissent les barres et le clavier, à la marge que donne le thème, et tient le clavier elle-même (Android n'en fait rien) : le cadre se réduit au-dessus, le défilement du champ garde le curseur en vue. Un toucher autour du cadre ferme.
+
 ## Champs de Texte et Saisie
 
 ### Extensions FieldType
