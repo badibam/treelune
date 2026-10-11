@@ -75,6 +75,12 @@ class RetroColors(val numbers: PaletteNumbers) {
      */
     fun icon(color: TagColor, surface: Surface): Lch = Lch(surface.success.l, numbers.statusChroma, TAG_HUES.getValue(color))
 
+    /**
+     * The palette's own hue at the tags' lightness and chroma, which read on any ground: what
+     * the hue shift's slider shows of a shift, the grounds being too grey to tell one from another.
+     */
+    val hueSample: Lch = Lch(numbers.tagLightness, numbers.tagChroma, numbers.hue)
+
     /** A tag's name on its colour: dark letters on a light tag, light ones on a dark tag. */
     val tagText: Lch =
         if (numbers.tagLightness >= 0.6f) Lch(0.25f, STRONG_CHROMA, numbers.hue)

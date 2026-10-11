@@ -37,13 +37,32 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 
 ## Bugs du téléphone
 
-- Thème rétro, Réglages › Interface : la bande de la teinte est presque noire, là où le cosy montre ses couleurs.
 - La config de l'accueil (Réglages › Écran principal) : son titre est coupé (« Configuration de l'écran princi… ») et aligné à gauche, quand les autres pages le centrent.
 - Signaler un bug : « Ce qui s'est passé (facultatif) » s'affiche deux fois, en libellé au-dessus du champ et en texte d'attente dedans.
 - Le Guide : les chapitres de Prise en main propres à un outil ont tous l'icône clé à molette, pas celle de leur type d'outil.
 - Réglages › Interface : un thème choisi, vu, enregistré, et l'ancien revient ; une seconde fois, ça tient (2026-10-09, pas reproduit, peut-être dans la release). Au prochain cas, lire dans le journal les lignes « Theme applied » : laquelle a remis l'ancien (STORED, PREVIEW, LEFT_UNSAVED).
 
 - Le contrôle des README (`scripts/make_readme.py --check`, dans `./run test`) compte les langues par les dossiers `res/values-xx`, que le build génère et que git ignore : sur une copie neuve du dépôt (un worktree), il échoue avant le premier build. Les compter par les sources de textes (`shared-xx.xml`).
+- Rerour de la part d'un ami : automation planifiée ne s'est pas déclenchée. De mon côté je n'en ai pas d'active donc c'est peit etre un pb global
+- La partie accès des automations se s'étend pas, le bas se compresse dès qu'on e' ajoute une, faisant s'effondrer le bouton. Par ailleurs, ce n'est pas approproé de voir tout ce texte sur le meme ecran, je serais d'avis d'avoir juste un bouton qui ouvre un menu spécifique. Ton avis ?
+- Choix des couleurs d'icone: si manque de place affiche quand meme 5 par ligne ce qui ne fonctionne pas. C'est le même pb que les biutons qui ne se wrappent pas sur plisieirs lignes. Trouvons une manière propre de gérer ça dans toute l'app.
+- Dans une tuile de journal : "il y a ..." se coit attribuer tout l'esoace, le titre est couoé en conséquence... Il fait trouver une aitre façon de gérer ça... Discutons des options
+- Sur l'accueil : le titre de l'app pourrait être dans l'entête entre les boutons
+- Guide : il faidrait aussi présenter et bien disti guer le mode disxussion récirrente = automation qu on utilise comme seed de discussion (bouton bulle) plutôt que automation (bouton play)
+- Dans notes (mais vérifier cas similaires ailleurs) : quand ecran de la note en cours de frappe dépasse la hauteur de l'écran : la fenetre est replacée bord hait en hait de l'écran, ce qui fait que le texte qu'on tape se retrouve derrière le clavier. Mais ça ne se produit pas à chaque fois. La plupart du temps ça fonctionne bien : dernière ligbe au dessus du clavier.
+- En mode 1 colonne, theme retro (peut être pas seulement ce thème) : il y a des marges trop grandes sur les bords, qui font perdre de la place. Également pour les fenetre flottantes : c'est trop étroit. Et aussi : par exemple dans notes : items ordonables: trop pei de l'espace est attribué au texte, trop est attribué à la colonne de réordre. Et dans automation encore pire : ordonner d'un côté, supprimer de l'aitre, il reste très peu de place pour le texte. Il faidrait décider d'u'e politique et notamment vérifier tous les écrans, en particulier dans les cas les moins favorables par ex: thème retro en taille de texte 1.
+- Dans questionnaire en mode 1 colonne : les 2 boutons (remplir maintenant et avec l'ia) restent sur la même ligne même s'il n'y a pas la place. Il fait vérifier tous les cas analogues et avoir un pattern propre pour gérer ça.
+- Guide : Échecs sur automation. Regarde l'exécution qui a été faite il y a des pb. Par ailleurs, chat tournait dans le vide après création de variable, regarde aussi les data. Du coup automation ne s'est pas lancée ce qui est normal, mais c'est déroutant pour quelqu'un qui découvre. Il faut prévoir ce cas...
+- En mode 1 colonne on perd trop de place sir les bords
+- Automation/automatisation/autre: en fr, choisir et unoformiser
+- Guide automation : elle a été créée sans texte et ça passe. Il faidrait une étape pour ça
+- Automation devrai orendre pa rdefaut le fournisseur actif
+- Guide automatiser 1/4 "avec ses ieces jointes" est maladroit étant donné que justement non, on ne oeit pas ajouter de pièce jointe au seed.
+- L'outil de verres d'eai ne marche pas : 1 verre d eau enregistré malgré 0.5 en config pour le 1/2 verre.
+- Guide : lorsque clavier ouvert : il faut replier la barre du bas sinon ça comprime l'éditeur bizarrement.
+- Guide brancher une ia 3/5 bof à reprendre. Et fournisseur > limites pour économiser, par ailleurd.
+- Le post text s'affiche même en l'absence d'actions. Je pense que c'est nouveau. Mais à vérifier. Est ce souhaitable ?
+- Au coin d'un cadre on ne voit pas le point de notif (ex icone tuto) en mode rétro. Augmenter la taille du point bleu en retro ?
 
 ## En attente d'un déclencheur
 

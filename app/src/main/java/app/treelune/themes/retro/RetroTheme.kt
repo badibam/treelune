@@ -985,13 +985,13 @@ object RetroTheme : ThemeContract {
         val s = retroSurface
         val mode = CurrentTheme.paletteMode
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-            // A block per cell inside a frame of one pixel, each the frames' ground at the shift
+            // A block per cell inside a frame of one pixel, each the palette's hue at the shift
             // under its middle
             val cells = ((constraints.maxWidth - grid.px(2)) / grid.cellPx).coerceAtLeast(1)
             val colors = remember(mode, shifts, cells) {
                 List(cells) { i ->
                     val shift = shifts.first + ((i + 0.5f) / cells * (shifts.last - shifts.first)).roundToInt()
-                    RetroPalettes.colors(mode, shift).panel.ground.srgb
+                    RetroPalettes.colors(mode, shift).hueSample.srgb
                 }
             }
             val chosen = (app.treelune.core.ui.RangePick.fractionOf(value, shifts) * cells).toInt().coerceAtMost(cells - 1)
