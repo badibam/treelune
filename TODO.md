@@ -30,7 +30,7 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 - Guide : Échecs sur automation. Regarde l'exécution qui a été faite il y a des pb. Par ailleurs, chat tournait dans le vide après création de variable, regarde aussi les data. Du coup automation ne s'est pas lancée ce qui est normal, mais c'est déroutant pour quelqu'un qui découvre. Il faut prévoir ce cas...
 - En mode 1 colonne on perd trop de place sir les bords
 - Automation/automatisation/autre: en fr, choisir et unoformiser
-- Guide automation : elle a été créée sans texte et ça passe. Il faidrait une étape pour ça
+- Guide automation : une étape pour écrire le message de l'automation (une automation au message vide ne s'enregistre plus et ne se lance plus).
 - Guide automatiser 1/4 "avec ses ieces jointes" est maladroit étant donné que justement non, on ne oeit pas ajouter de pièce jointe au seed.
 - Guide : lorsque clavier ouvert : il faut replier la barre du bas sinon ça comprime l'éditeur bizarrement.
 - Guide brancher une ia 3/5 bof à reprendre. Et fournisseur > limites pour économiser, par ailleurd.

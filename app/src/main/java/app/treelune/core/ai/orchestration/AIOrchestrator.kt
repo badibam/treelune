@@ -682,6 +682,13 @@ object AIOrchestrator {
      * @param automationId Automation to execute
      * @param scheduledFor Scheduled execution timestamp (MANUAL: click time, SCHEDULED: planned time)
      */
+    /** Whether an automation's starting message ([seedSessionId]'s) says nothing (RichMessage.isEmpty). */
+    suspend fun isSeedEmpty(seedSessionId: String): Boolean =
+        isSeedEmpty(aiDao.getMessagesForSession(seedSessionId).filter { it.sender == app.treelune.core.ai.data.MessageSender.USER })
+
+    private fun isSeedEmpty(userMessages: List<app.treelune.core.ai.database.SessionMessageEntity>): Boolean =
+        userMessages.all { message -> message.richContentJson?.let { app.treelune.core.ai.data.RichMessage.fromJson(it) }?.isEmpty != false }
+
     suspend fun executeAutomation(automationId: String, scheduledFor: Long) {
         LogManager.aiSession("executeAutomation called: $automationId", "INFO")
 
@@ -702,6 +709,11 @@ object AIOrchestrator {
 
             if (userMessages.isEmpty()) {
                 LogManager.aiSession("No USER messages in SEED session: $seedSessionId", "ERROR")
+                return
+            }
+            // An empty message would leave the AI to make up what to do: not run
+            if (isSeedEmpty(userMessages)) {
+                LogManager.aiSession("Automation $automationId not run: its message is empty", "WARN")
                 return
             }
 

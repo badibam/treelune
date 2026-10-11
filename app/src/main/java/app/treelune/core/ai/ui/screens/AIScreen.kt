@@ -758,6 +758,10 @@ private fun SeedMode(
                     onRefresh = {
                         scope.launch {
                             try {
+                                if (app.treelune.core.ai.data.RichMessage(segments).isEmpty) {
+                                    errorMessage = s.shared("automation_message_empty")
+                                    return@launch
+                                }
                                 // Check if we have a USER message ID
                                 if (userMessageId == null) {
                                     errorMessage = s.shared("ai_error_message_not_found").format(session.id)
@@ -795,6 +799,11 @@ private fun SeedMode(
                     onSave = {
                         scope.launch {
                             try {
+                                // An empty message would leave the AI to make up what to do
+                                if (app.treelune.core.ai.data.RichMessage(segments).isEmpty) {
+                                    errorMessage = s.shared("automation_message_empty")
+                                    return@launch
+                                }
                                 // Step 1: Refresh message (update DB + reload)
                                 if (userMessageId != null) {
                                     val richMessage = app.treelune.core.ai.data.RichMessage(segments)

@@ -1658,6 +1658,8 @@
     <string name="background_restricted_text">Android may stop Treelune while it is closed. Then what is planned may not go: scheduled automations, messages, lists\' due dates, questionnaires\' and sessions\' invitations, goals\' ends of period. Allow it to run in the background to be sure.</string>
     <string name="background_restricted_open">Allow in the background</string>
     <string name="background_restricted_later">Later</string>
+    <string name="automation_message_empty">Write the message the AI receives at each run</string>
+    <string name="automation_message_empty_run">This automation has no message yet: write the one the AI receives at each run first</string>
     <string name="bug_report_purpose">A report on what went wrong, read before it goes, sent through the app of your choice</string>
     <string name="bug_report_description">What happened (optional)</string>
     <string name="bug_report_cleaning">Below, exactly what will be sent. Identifiers and quoted texts are replaced; the rest may still name something of yours: read it before sending.</string>

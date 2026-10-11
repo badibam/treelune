@@ -575,6 +575,7 @@ class AutomationService(private val context: Context) : ExecutableService {
         // Verify automation exists
         val entity = dao.getAutomationById(automationId)
             ?: return OperationResult.error(s.shared("error_automation_not_found"))
+        if (AIOrchestrator.isSeedEmpty(entity.seedSessionId)) return OperationResult.error(s.shared("automation_message_empty_run"))
 
         // Delegate to AIOrchestrator V2
         // V2 handles session creation, trigger, and scheduling internally

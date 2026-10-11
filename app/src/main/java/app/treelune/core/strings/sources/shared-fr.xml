@@ -1658,6 +1658,8 @@
     <string name="background_restricted_text">Android peut arrêter Treelune quand elle est fermée. Ce qui est planifié peut alors ne pas partir : automations planifiées, messages, échéances des listes, invitations des questionnaires et des séances, fins de période des objectifs. Autorisez-la en arrière-plan pour en être sûr.</string>
     <string name="background_restricted_open">Autoriser en arrière-plan</string>
     <string name="background_restricted_later">Plus tard</string>
+    <string name="automation_message_empty">Écrivez le message que l\'IA recevra à chaque exécution</string>
+    <string name="automation_message_empty_run">Cette automation n\'a pas encore de message : écrivez d\'abord celui que l\'IA recevra à chaque exécution</string>
     <string name="bug_report_purpose">Un rapport sur ce qui n\'a pas marché, relu avant de partir, envoyé par l\'app de votre choix</string>
     <string name="bug_report_description">Ce qui s\'est passé (facultatif)</string>
     <string name="bug_report_cleaning">Ci-dessous, exactement ce qui sera envoyé. Les identifiants et les textes cités sont remplacés ; le reste peut encore nommer quelque chose de vous : relisez avant d\'envoyer.</string>
