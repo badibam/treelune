@@ -1,23 +1,38 @@
 # TODO
 
-Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en est le registre. Une ligne par item : ce qu'il faut faire, et ce qui le débloque. Les sections suivent l'état de l'item : ce qu'attend la release, les bugs, ce qu'attend le téléphone, ce qu'attend du code, ce qu'attend une décision, ce qu'attend un déclencheur. Les pistes brutes arrivent dans `NOTES.md` et se trient ici.
+Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en est le registre. Une ligne par item : ce qu'il faut faire, et ce qui le débloque. Les deux premières sections suivent l'ordre de travail : la release, puis ce qui la suit ; les autres suivent l'état de l'item : les bugs, ce qu'attend le téléphone, ce qu'attend du code, ce qu'attend une décision, ce qu'attend un déclencheur. Les pistes brutes arrivent dans `NOTES.md` et se trient ici.
 
 ## Release F-Droid
 
 - La recette F-Droid (`scripts/fdroid/app.treelune.yml`) essayée dans l'image de build de F-Droid : la démarche, les deux commandes et les inconnues sont dans `docs/design/fdroid-compliance.md`, « La recette, essayée chez nous ».
 - La reproductibilité : construire la release deux fois depuis deux clones du tag, à deux chemins différents, et comparer les APK.
-- La fiche fastlane (`docs/design/fdroid-compliance.md`) : en-US `title`, `short_description`, `full_description`, `changelogs/29.txt`, `images/icon.png`, `images/featureGraphic.png` ; les captures d'écran, à faire sur le téléphone, servent aussi au README (`fastlane/metadata/android/en-US/images/phoneScreenshots/`, leur place marquée dans `README.md` et `README.fr.md`), l'icône de l'app en tête.
+- La fiche fastlane (`docs/design/fdroid-compliance.md`) : en-US `title`, `short_description`, `full_description`, `changelogs/<versionCode>.txt`, `images/icon.png`, `images/featureGraphic.png` ; les captures d'écran, à faire sur le téléphone, servent aussi au README (`fastlane/metadata/android/en-US/images/phoneScreenshots/`, leur place marquée dans `README.md` et `README.fr.md`), l'icône de l'app en tête.
 - Les anti-features : `NonFreeNet` (Anthropic, OpenAI, DeepSeek, le serveur de connexion de Tailscale) ; à trancher pour la liste de prix LiteLLM que `ModelPriceManager` lit sur GitHub.
-- La version 0.7.0 (versionCode 29), taguée sur un arbre propre, ses notes de version écrites et validées avant de publier ; la mise à jour 0.6.0 → 0.7.0 passée sur le téléphone, avec ses données, nouvelles migrations comprises.
+- La version soumise, taguée sur un arbre propre, ses notes de version écrites et validées avant de publier ; la mise à jour depuis la 0.6.0 installée passée sur le téléphone avec ses données (une base neuve ne passe aucune migration, une mise à jour les passe toutes, nouvelles comprises).
+- La signature : si F-Droid signe l'app de sa propre clé, un APK installé depuis GitHub ne peut plus se mettre à jour par F-Droid ; un build reproductible lui fait publier l'APK signé de la nôtre (`Binaries`, `AllowedAPKSigningKeys` dans la recette).
+
+À régler avant de soumettre :
+
+- Ce que la campagne 1 a trouvé dans l'app (`docs/design/bench-campaign-1.md`, « Ce qui ne vient pas des modèles ») : `completed` absent du schéma de réponse forcé, qu'une automation demande pourtant ; une lecture de variable au début d'un jour qui vaut 0, que le prompt ne signale pas ; une écriture dans un outil inexistant qui reçoit une erreur de `SchemaNotation` ; « Failed to parse custom field » brut de `ToolInstanceService`.
+- L'importeur propose en champ nouveau une colonne qui nomme un champ que `tool_data` n'écrit pas (`state.*`, `created_at`) : il doit demander au service ce qui s'écrit, et écarter le reste en le disant.
+- Les chapitres de Prise en main du Guide (`docs/design/user-journey.md`, « Prise en main ») : des ébauches, à écrire ensemble en séance dédiée, avec les premiers sujets d'Approfondissement, partie cachée tant qu'elle est vide — Organiser couvre aussi les groupes d'outils d'une zone ; puis élaguer la spec, ses garanties devenant des tests.
+
+## Juste après la release
+
+- Une réponse coupée par la limite de longueur (`OpenAICompatibleExtensions.kt`, `finish_reason` « length ») garde son texte et ses tokens, aujourd'hui jetés, ce qui montre gratuit un appel facturé ; à trancher : le texte montré dans la session avec l'erreur, ou seulement gardé en base. Puis rejouer les scénarios coupés du banc en supprimant leur `verdict.json`.
+- L'export des entrées d'un outil (`docs/design/export.md`) : le dossier choisi dans les réglages, l'opération `exports.csv`, « Exporter… » sur l'écran d'un outil, l'action `EXPORT_DATA` de l'IA.
+- Copier une note dans le presse-papier.
+- Copier un message de l'IA ne copie que son texte (`ChatComponents`, `preText`) : ses commandes manquent.
+- Les boutons du haut d'un outil changent de hauteur selon le nombre de lignes de son titre.
+- Le titre de l'écran de config d'un outil, écrit par chaque écran : le rendre commun, le nom de l'outil et son type.
+- La phrase de date et d'heure envoyée à l'IA (`ai_prompt_current_datetime`) ne dit pas qu'elle est écrite par le système, et non par l'utilisateur.
+- Les boutons copier / coller sur un texte sélectionné sont ceux d'Android, hors du thème (la barre d'outils du texte, `TextToolbar` en Compose).
 
 ## Bugs
 
 - Réglages › Interface : un thème choisi, vu, enregistré, et l'ancien revient ; une seconde fois, ça tient (2026-10-09, pas reproduit, peut-être dans la release). Au prochain cas, lire dans le journal les lignes « Theme applied » : laquelle a remis l'ancien (STORED, PREVIEW, LEFT_UNSAVED).
 - Une automation planifiée de mon frère s'est lancée une fois, pas le lendemain ; l'exécution du jour 1 est « Finished » (fermée, elle ne bloque rien) et l'app était en « Non restreinte ». Son téléphone est un Xiaomi (HyperOS, Redmi Note 13 Pro, Android 15) : piste principale, le « Démarrage automatique » de Xiaomi, désactivé par défaut hors Play Store, sans lequel une alarme ne relance pas une app tuée, et son économiseur de batterie, distinct de la liste blanche d'Android. Lui faire activer les deux ; confirmé, l'avertissement d'arrière-plan (`BackgroundRestriction`) dit ces deux réglages sur un Xiaomi, même en « Non restreinte ». Le journal ne garde qu'environ 24 minutes : une trace des réveils du planificateur qui survive, à concevoir.
 - Une automation IA lancée par l'alarme du planificateur (`SchedulerAlarm`), app fermée : Android ne garde l'app éveillée que le temps du tick (50 s au plus), un tour d'IA peut être coupé. Un service au premier plan, du type de `McpAccessService`, allumé quand un tour commence et éteint quand l'IA n'a plus rien à faire ou attend une validation, sa notification nommant l'automation ; lire d'abord où la machine à états dit « tour en cours » et « en attente ».
-- Ce que la campagne 1 a trouvé dans l'app (`docs/design/bench-campaign-1.md`, « Ce qui ne vient pas des modèles ») : `completed` absent du schéma de réponse forcé, qu'une automation demande pourtant ; une lecture de variable au début d'un jour qui vaut 0, que le prompt ne signale pas ; une écriture dans un outil inexistant qui reçoit une erreur de `SchemaNotation` ; « Failed to parse custom field » brut de `ToolInstanceService`.
-- Une réponse coupée par la limite de longueur (`OpenAICompatibleExtensions.kt`, `finish_reason` « length ») garde son texte et ses tokens, aujourd'hui jetés, ce qui montre gratuit un appel facturé ; à trancher : le texte montré dans la session avec l'erreur, ou seulement gardé en base. Puis rejouer les scénarios coupés du banc en supprimant leur `verdict.json`.
-- L'importeur propose en champ nouveau une colonne qui nomme un champ que `tool_data` n'écrit pas (`state.*`, `created_at`) : il doit demander au service ce qui s'écrit, et écarter le reste en le disant.
 - Thème rétro, Suivi : le texte « il y a… » est coupé alors qu'il y a la place pour deux lignes.
 - La partie accès des automations se s'étend pas, le bas se compresse dès qu'on e' ajoute une, faisant s'effondrer le bouton. Par ailleurs, ce n'est pas approproé de voir tout ce texte sur le meme ecran, je serais d'avis d'avoir juste un bouton qui ouvre un menu spécifique. Ton avis ?
 - Choix des couleurs d'icone: si manque de place affiche quand meme 5 par ligne ce qui ne fonctionne pas. C'est le même pb que les biutons qui ne se wrappent pas sur plisieirs lignes. Trouvons une manière propre de gérer ça dans toute l'app.
@@ -61,8 +76,6 @@ Une spec existe dans `docs/design/`.
 
 - Les conditions typées à l'écriture (`docs/design/typed-conditions.md`) : le type de chaque côté d'une condition connu sans lire de données, les constantes de l'IA traduites à l'entrée, la vérification au service, et le refus d'un changement dont dépend une condition ailleurs.
 - L'historique des écritures et leur annulation (`docs/design/undo-history.md`) : un pas par opération demandée de l'extérieur, la ligne entière avant et après, écrite par une seule classe que garde un script, 30 jours, le service `history` ouvert à l'IA, son écran.
-- L'export des entrées d'un outil (`docs/design/export.md`) : le dossier choisi dans les réglages, l'opération `exports.csv`, « Exporter… » sur l'écran d'un outil, l'action `EXPORT_DATA` de l'IA.
-- Les chapitres de Prise en main du Guide (`docs/design/user-journey.md`, « Prise en main ») : des ébauches, à écrire ensemble en séance dédiée, avec les premiers sujets d'Approfondissement, partie cachée tant qu'elle est vide — Organiser couvre aussi les groupes d'outils d'une zone ; puis élaguer la spec, ses garanties devenant des tests.
 - Modèles libres (`docs/design/local-models.md`) : le banc est en place et rodé ; la campagne 1 a tourné le 2026-10-04 (190 scénarios en 5 h 15, 1,35 $ comptés hors réponses coupées, tableau dans `bench-results/2026-10-04_1326/summary.md`), ses échecs relus dans `docs/design/bench-campaign-1.md` ; les niveaux de prompt se décident après les corrections de l'app qu'elle a trouvées (Bugs) et une campagne rejouée.
 
 ## À concevoir
@@ -72,21 +85,15 @@ Une idée sans spec : elle demande une décision avant du code.
 ### IA et automations
 
 - Le connecteur MCP : sans session, rien n'oblige le client à lire le schéma d'un outil avant d'y écrire (la consigne seule, `ai_chunk_validation_strategy`) ; l'imposer demande de retenir, par connexion, les schémas envoyés.
-- La phrase de date et d'heure envoyée à l'IA (`ai_prompt_current_datetime`) ne dit pas qu'elle est écrite par le système, et non par l'utilisateur.
 - Le prochain envoi se calcule de deux façons : à la volée pour une automation (`AutomationScheduler`), stocké en base et remis à jour à chaque envoi pour Messages — en garder une.
-- Copier un message de l'IA ne copie que son texte (`ChatComponents`, `preText`) : ses commandes manquent.
 
 ### Outils et champs
 
 - Des modèles d'outils prédéfinis et paramétrables (« Série de questions » suivie d'un « Avis de l'IA »…).
 - Un type de Suivi « étiquette », qui ne note qu'une étiquette.
-- Copier une note dans le presse-papier.
 
 ### Interface
 
-- Les boutons copier / coller sur un texte sélectionné sont ceux d'Android, hors du thème (la barre d'outils du texte, `TextToolbar` en Compose).
-- Le titre de l'écran de config d'un outil, écrit par chaque écran : le rendre commun, le nom de l'outil et son type.
-- Les boutons du haut d'un outil changent de hauteur selon le nombre de lignes de son titre.
 - Une texture au choix pour l'affichage de chaque outil.
 - Les onglets de Messages, à remplacer par un classement par thèmes.
 
