@@ -1,6 +1,7 @@
 package app.treelune.core.ai.database
 
 import androidx.room.*
+import app.treelune.core.ai.data.SessionEndReason
 
 /**
  * DAO for AI sessions and messages
@@ -226,14 +227,14 @@ interface AIDao {
 
     /**
      * Get ALL incomplete automation sessions (for any automation, enabled or disabled)
-     * Returns sessions with endReason IN (null, 'NETWORK_ERROR', 'SUSPENDED') that are not active
+     * Returns the sessions not active, with no end reason or a resumable one (SessionEndReason.resumable)
      * Used by scheduler to detect all sessions to resume (crash, network timeout, suspended by CHAT)
      * Ordered by scheduledExecutionTime ASC (oldest first)
      */
     @Query("""
         SELECT * FROM ai_sessions
         WHERE type = 'AUTOMATION'
-          AND (end_reason IS NULL OR end_reason IN ('NETWORK_ERROR', 'SUSPENDED'))
+          AND (end_reason IS NULL OR end_reason IN ${SessionEndReason.RESUMABLE_SQL})
           AND is_active = 0
         ORDER BY scheduled_execution_time ASC
     """)
@@ -241,14 +242,14 @@ interface AIDao {
 
     /**
      * Get incomplete automation session for a specific automation
-     * Returns sessions with endReason IN (null, 'NETWORK_ERROR', 'SUSPENDED') that are not active
+     * Returns the sessions not active, with no end reason or a resumable one (SessionEndReason.resumable)
      * Used by scheduler to detect sessions to resume (crash, network timeout)
      */
     @Query("""
         SELECT * FROM ai_sessions
         WHERE automation_id = :automationId
           AND type = 'AUTOMATION'
-          AND (end_reason IS NULL OR end_reason IN ('NETWORK_ERROR', 'SUSPENDED'))
+          AND (end_reason IS NULL OR end_reason IN ${SessionEndReason.RESUMABLE_SQL})
           AND is_active = 0
         ORDER BY scheduled_execution_time DESC
         LIMIT 1
@@ -256,15 +257,16 @@ interface AIDao {
     suspend fun getIncompleteAutomationSession(automationId: String): AISessionEntity?
 
     /**
-     * Get last completed automation session for a specific automation
-     * Returns sessions with endReason IN ('COMPLETED', 'CANCELLED', 'TIMEOUT', 'ERROR')
+     * Get last completed automation session for a specific automation: one with an end reason
+     * that is not resumable, the exact opposite of the incomplete ones, so that no reason falls
+     * between the two (an occurrence run again, or never taken up)
      * Used by scheduler to calculate next expected execution time
      */
     @Query("""
         SELECT * FROM ai_sessions
         WHERE automation_id = :automationId
           AND type = 'AUTOMATION'
-          AND end_reason IN ('COMPLETED', 'CANCELLED', 'TIMEOUT', 'ERROR')
+          AND end_reason IS NOT NULL AND end_reason NOT IN ${SessionEndReason.RESUMABLE_SQL}
         ORDER BY scheduled_execution_time DESC
         LIMIT 1
     """)

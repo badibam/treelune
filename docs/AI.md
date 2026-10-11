@@ -365,12 +365,13 @@ Détection automatique sessions orphelines par AutomationScheduler :
 **Erreur imprévue dans un tour** : une exception qui sort de la boucle d'états ou d'un de ses travaux (appel IA, actions, relance) arrête le tour sans tuer l'app (`stopRoundOnError`) : un CHAT revient au repos, sa session ouverte, l'erreur dite dans ses messages hors prompt ; une AUTOMATION se termine en erreur.
 
 ### SessionEndReason
-Raison d'arrêt session (audit + logique reprise) :
+Raison d'arrêt session (audit + logique reprise). Une AUTOMATION se reprend sans raison ou pour une raison de `SessionEndReason.resumable` (`SUSPENDED`, `NETWORK_ERROR`) ; toute autre raison clôt son occurrence, que l'AutomationScheduler compte comme faite et ne relance pas — les deux requêtes de `AIDao` sont l'exact contraire l'une de l'autre :
 - **COMPLETED** : IA a terminé (completed=true)
 - **LIMIT_REACHED** : Limite maxAutonomousRoundtrips atteinte
 - **ERROR** : Erreur provider/système
 - **TIMEOUT** : Watchdog inactivité sans attente réseau
 - **CANCELLED** : User STOP (ne reprend pas)
+- **INTERRUPTED** : app fermée pendant les actions (ne reprend pas, une action serait faite deux fois)
 - **SUSPENDED** : Éviction système (reprend plus tard)
 - **NETWORK_ERROR** : Échec réseau (reprend avec retry)
 - **null** : Crash/interruption (reprend)

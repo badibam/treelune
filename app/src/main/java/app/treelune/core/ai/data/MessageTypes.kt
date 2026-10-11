@@ -42,7 +42,17 @@ enum class SessionEndReason {
     CANCELLED,       // User clicked stop (or CHAT evicted by AUTOMATION)
     INTERRUPTED,     // Legacy/alias for null (crash detected as orphan)
     NETWORK_ERROR,   // Timeout with network flag active (to resume)
-    SUSPENDED        // To resume later
+    SUSPENDED;       // To resume later
+
+    companion object {
+        /**
+         * The reasons an automation session is taken up again for (AutomationScheduler); every
+         * other reason ends its occurrence, which the scheduler then counts as done. The SQL list
+         * is what the queries read (AIDao), a constant so that an annotation can carry it.
+         */
+        val resumable = setOf(NETWORK_ERROR, SUSPENDED)
+        const val RESUMABLE_SQL = "('NETWORK_ERROR', 'SUSPENDED')"
+    }
 }
 
 /**
