@@ -1791,12 +1791,15 @@ class AIEventProcessor(
 
     /**
      * [block] under the access mask of the automation whose AI the session runs (AccessScope:
-     * the coordinator refuses what goes beyond it), as it is; a chat's AI is held to none. An
+     * the coordinator refuses what goes beyond it), as it is; a chat's AI is held to none. The
+     * automation is the one the session's row names, written when the session was created. An
      * automation that cannot be read reaches nothing: its commands are refused, saying so.
      */
     private suspend fun <T> withinAccess(state: AIState, block: suspend () -> T): T {
         if (state.sessionType != SessionType.AUTOMATION) return block()
-        val automation = state.automationId?.let { app.treelune.core.database.AppDatabase.getDatabase(context).aiDao().getAutomationById(it) }
+        val aiDao = app.treelune.core.database.AppDatabase.getDatabase(context).aiDao()
+        val automationId = state.sessionId?.let { aiDao.getSession(it) }?.automationId
+        val automation = automationId?.let { aiDao.getAutomationById(it) }
         val mask = automation?.let {
             try {
                 app.treelune.core.access.AccessMask.fromJson(it.accessJson)

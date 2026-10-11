@@ -48,7 +48,6 @@ fun ExecutionDetailScreen(
             sessionId = sessionId,
             phase = Phase.CLOSED,
             sessionType = null,
-            automationId = null,
             totalRoundtrips = 0,
             lastEventTime = 0L,
             lastUserInteractionTime = 0L,

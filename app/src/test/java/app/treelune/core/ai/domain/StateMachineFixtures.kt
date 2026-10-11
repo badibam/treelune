@@ -53,7 +53,6 @@ internal fun automationAt(
     sessionId = "automation-session",
     phase = phase,
     sessionType = SessionType.AUTOMATION,
-    automationId = "automation-under-test",
     totalRoundtrips = roundtrips,
     sessionCreatedAt = T0,
     lastEventTime = T0,

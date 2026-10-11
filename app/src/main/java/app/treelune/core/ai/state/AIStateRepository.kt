@@ -214,7 +214,6 @@ class AIStateRepository(
             sessionId = entity.id,
             phase = Phase.valueOf(entity.phase),
             sessionType = entity.type,
-            automationId = entity.automationId,
             totalRoundtrips = entity.totalRoundtrips,
             lastEventTime = entity.lastEventTime,
             lastUserInteractionTime = entity.lastUserInteractionTime,
