@@ -1,0 +1,34 @@
+Categories:
+  - Productivity
+License: GPL-3.0-or-later
+SourceCode: https://github.com/badibam/treelune
+IssueTracker: https://github.com/badibam/treelune/issues
+
+AutoName: Treelune
+
+RepoType: git
+Repo: https://github.com/badibam/treelune.git
+
+Builds:
+  - versionName: 0.6.0
+    versionCode: 28
+    commit: v0.6.0
+    subdir: app
+    sudo:
+      - apt-get update
+      - apt-get install -y golang-go
+    gradle:
+      - yes
+    srclibs:
+      - go@go1.27.2
+    prebuild: echo "go.dir=$$go$$" >> ../local.properties
+    build:
+      - pushd $$go$$/src
+      - ./make.bash
+      - popd
+    ndk: 30.0.16248370
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: 0.6.0
+CurrentVersionCode: 28

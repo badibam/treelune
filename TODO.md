@@ -4,7 +4,7 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 
 ## Release F-Droid
 
-- La recette F-Droid (`tmp/fdroid/app.treelune.yml`, lancée par `tmp/fdroid/build_in_container.sh` dans l'image `fdroidserver:buildserver-trixie`, `fdroiddata` cloné dans `~/fdroid-test`, hors du disque NTFS) : la faire passer `fdroid lint`, le scanner et `fdroid build`. Inconnues : le Go de Debian assez récent pour compiler Go 1.27.2 (sinon `trixie-backports`, comme Tailscale), le NDK 30 connu de fdroidserver. `web-client-prebuilt` n'entre pas dans la bibliothèque Android (`go list -deps`) : le supprimer dans la recette si le scanner le signale.
+- La recette F-Droid (`scripts/fdroid/app.treelune.yml`) essayée dans l'image de build de F-Droid : la démarche, les deux commandes et les inconnues sont dans `docs/design/fdroid-compliance.md`, « La recette, essayée chez nous ».
 - La reproductibilité : construire la release deux fois depuis deux clones du tag, à deux chemins différents, et comparer les APK.
 - La fiche fastlane (`docs/design/fdroid-compliance.md`) : en-US `title`, `short_description`, `full_description`, `changelogs/29.txt`, `images/icon.png`, `images/featureGraphic.png` ; les captures d'écran, à faire sur le téléphone, servent aussi au README (`fastlane/metadata/android/en-US/images/phoneScreenshots/`, leur place marquée dans `README.md` et `README.fr.md`), l'icône de l'app en tête.
 - Les anti-features : `NonFreeNet` (Anthropic, OpenAI, DeepSeek, le serveur de connexion de Tailscale) ; à trancher pour la liste de prix LiteLLM que `ModelPriceManager` lit sur GitHub.
