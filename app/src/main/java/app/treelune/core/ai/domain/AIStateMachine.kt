@@ -35,6 +35,17 @@ object AIStateMachine {
         limits: SessionLimits,
         currentTime: Long
     ): AIState {
+        // An event that belongs to a phase is late or doubled outside of it: the round it
+        // answers has moved on, and taking it would start a call or a step over again
+        val expected = expectedPhases(event)
+        if (expected != null && state.phase !in expected) {
+            LogManager.aiSession(
+                "${event::class.simpleName} ignored: it belongs to ${expected.joinToString()}, the session is at ${state.phase}",
+                "WARN"
+            )
+            return state
+        }
+
         val next = when (event) {
             // ==================== Session Lifecycle ====================
 
@@ -364,6 +375,19 @@ object AIStateMachine {
         }
 
         return stopIfOutOfRoundtrips(next, limits, currentTime)
+    }
+
+    /**
+     * The phases in which [event] is awaited, for the events a step of the round sends when it
+     * ends; null for the others, taken in any phase.
+     */
+    fun expectedPhases(event: AIEvent): Set<Phase>? = when (event) {
+        is AIEvent.AIResponseReceived -> setOf(Phase.CALLING_AI)
+        is AIEvent.AIResponseParsed -> setOf(Phase.PARSING_AI_RESPONSE)
+        is AIEvent.ContinuationReady -> setOf(Phase.PREPARING_CONTINUATION)
+        is AIEvent.RetryScheduled -> setOf(Phase.RETRYING_AFTER_FORMAT_ERROR, Phase.RETRYING_AFTER_ACTION_FAILURE)
+        is AIEvent.NetworkRetryScheduled -> setOf(Phase.WAITING_NETWORK_RETRY)
+        else -> null
     }
 
     /**

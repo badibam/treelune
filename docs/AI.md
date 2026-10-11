@@ -386,6 +386,8 @@ Raison d'arrêt session (audit + logique reprise). Une AUTOMATION se reprend san
 3. `AIStateRepository.updateState()` → sync memory + DB atomique
 4. Side effects selon event (appels DB, network, coordinator)
 
+Un événement qui clôt une étape du tour (réponse reçue, réponse lue, suite prête, relance) n'est pris que dans la phase de cette étape (`AIStateMachine.expectedPhases`) : en retard ou en double, il est ignoré avec un avertissement au journal, au lieu de relancer un appel.
+
 **Boucles autonomes** : Gérées par compteur `totalRoundtrips` dans `AIState` et limites `AILimitsConfig`. Machine à états incrémente automatiquement le compteur.
 
 ### Flow logique principal
