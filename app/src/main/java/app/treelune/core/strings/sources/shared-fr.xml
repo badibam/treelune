@@ -1713,8 +1713,7 @@
     <string name="label_tool_group">Groupe d\'outils</string>
     <string name="label_tool_groups">Groupes d\'outils</string>
     <string name="label_zone_groups">Groupes de zones</string>
-    <string name="label_main_screen_config">Configuration de l\'écran principal</string>
-    <string name="message_zone_groups_description">Organisez vos zones en groupes pour faciliter la navigation dans l\'écran principal</string>
+    <string name="message_zone_groups_description">Organisez vos zones en groupes pour faciliter la navigation sur l\'accueil</string>
     <string name="label_ungrouped">Hors groupe</string>
     <string name="label_zones">Zones</string>
     <string name="label_tools_and_automations">Outils et automations</string>

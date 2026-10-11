@@ -224,7 +224,7 @@ object AppSettings {
             AppSettingCategories.FORMAT -> s.shared("settings_format_subtitle")
             AppSettingCategories.AI_LIMITS -> s.shared("settings_ai_limits")
             AppSettingCategories.VALIDATION_CONFIG -> s.shared("settings_validation")
-            AppSettingCategories.MAIN_SCREEN -> s.shared("label_main_screen_config")
+            AppSettingCategories.MAIN_SCREEN -> s.shared("nav_home_config")
             AppSettingCategories.DEMO -> s.shared("settings_demo")
             AppSettingCategories.UI -> s.shared("settings_ui")
             AppSettingCategories.EXTERNAL_ACCESS -> s.shared("settings_external_access")

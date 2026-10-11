@@ -1713,8 +1713,7 @@
     <string name="label_tool_group">Tool group</string>
     <string name="label_tool_groups">Tool groups</string>
     <string name="label_zone_groups">Zone groups</string>
-    <string name="label_main_screen_config">Configuration of the main screen</string>
-    <string name="message_zone_groups_description">Organise your zones into groups to make the main screen easier to navigate</string>
+    <string name="message_zone_groups_description">Organise your zones into groups to make the home screen easier to navigate</string>
     <string name="label_ungrouped">Ungrouped</string>
     <string name="label_zones">Zones</string>
     <string name="label_tools_and_automations">Tools and automations</string>
