@@ -1654,9 +1654,9 @@
     <!-- Logs Screen -->
     <string name="settings_logs">Logs d'erreurs</string>
     <string name="settings_bug_report">Signaler un bug</string>
-    <string name="background_restricted_title">L\'app est restreinte en arrière-plan</string>
-    <string name="background_restricted_text">Android arrête Treelune quand elle est fermée. Tant que c\'est le cas, ce qui est planifié peut ne pas partir : automations planifiées, messages, échéances des listes, invitations des questionnaires et des séances, fins de période des objectifs. Pour lever la restriction, dans les réglages de l\'app : Batterie, puis Non restreinte ou Optimisée.</string>
-    <string name="background_restricted_open">Ouvrir les réglages</string>
+    <string name="background_restricted_title">L\'app peut être arrêtée en arrière-plan</string>
+    <string name="background_restricted_text">Android peut arrêter Treelune quand elle est fermée. Ce qui est planifié peut alors ne pas partir : automations planifiées, messages, échéances des listes, invitations des questionnaires et des séances, fins de période des objectifs. Autorisez-la en arrière-plan pour en être sûr.</string>
+    <string name="background_restricted_open">Autoriser en arrière-plan</string>
     <string name="background_restricted_later">Plus tard</string>
     <string name="bug_report_purpose">Un rapport sur ce qui n\'a pas marché, relu avant de partir, envoyé par l\'app de votre choix</string>
     <string name="bug_report_description">Ce qui s\'est passé (facultatif)</string>

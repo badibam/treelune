@@ -22,7 +22,7 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
-    <!-- Lets the user waive battery optimisation, so background notifications still fire -->
+    <!-- Asks Android to let the app run unrestricted in the background, so what is planned goes while it is closed (BackgroundRestriction) -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <application
