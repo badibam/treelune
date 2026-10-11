@@ -33,21 +33,30 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 - Réglages › Interface : un thème choisi, vu, enregistré, et l'ancien revient ; une seconde fois, ça tient (2026-10-09, pas reproduit, peut-être dans la release). Au prochain cas, lire dans le journal les lignes « Theme applied » : laquelle a remis l'ancien (STORED, PREVIEW, LEFT_UNSAVED).
 - Une automation planifiée de mon frère s'est lancée une fois, pas le lendemain ; l'exécution du jour 1 est « Finished » (fermée, elle ne bloque rien) et l'app était en « Non restreinte ». Son téléphone est un Xiaomi (HyperOS, Redmi Note 13 Pro, Android 15) : piste principale, le « Démarrage automatique » de Xiaomi, désactivé par défaut hors Play Store, sans lequel une alarme ne relance pas une app tuée, et son économiseur de batterie, distinct de la liste blanche d'Android. Lui faire activer les deux ; confirmé, l'avertissement d'arrière-plan (`BackgroundRestriction`) dit ces deux réglages sur un Xiaomi, même en « Non restreinte ». Le journal ne garde qu'environ 24 minutes : une trace des réveils du planificateur qui survive, à concevoir.
 - Une automation IA lancée par l'alarme du planificateur (`SchedulerAlarm`), app fermée : Android ne garde l'app éveillée que le temps du tick (50 s au plus), un tour d'IA peut être coupé. Un service au premier plan, du type de `McpAccessService`, allumé quand un tour commence et éteint quand l'IA n'a plus rien à faire ou attend une validation, sa notification nommant l'automation ; lire d'abord où la machine à états dit « tour en cours » et « en attente ».
-- Thème rétro, Suivi : le texte « il y a… » est coupé alors qu'il y a la place pour deux lignes.
-- La partie accès des automations se s'étend pas, le bas se compresse dès qu'on e' ajoute une, faisant s'effondrer le bouton. Par ailleurs, ce n'est pas approproé de voir tout ce texte sur le meme ecran, je serais d'avis d'avoir juste un bouton qui ouvre un menu spécifique. Ton avis ?
-- Choix des couleurs d'icone: si manque de place affiche quand meme 5 par ligne ce qui ne fonctionne pas. C'est le même pb que les biutons qui ne se wrappent pas sur plisieirs lignes. Trouvons une manière propre de gérer ça dans toute l'app.
-- Dans une tuile de journal : "il y a ..." se coit attribuer tout l'esoace, le titre est couoé en conséquence... Il fait trouver une aitre façon de gérer ça... Discutons des options
-- Sur l'accueil : le titre de l'app pourrait être dans l'entête entre les boutons
-- Guide : il faidrait aussi présenter et bien disti guer le mode disxussion récirrente = automation qu on utilise comme seed de discussion (bouton bulle) plutôt que automation (bouton play)
-- En mode 1 colonne, theme retro (peut être pas seulement ce thème) : il y a des marges trop grandes sur les bords, qui font perdre de la place. Également pour les fenetre flottantes : c'est trop étroit. Et aussi : par exemple dans notes : items ordonables: trop pei de l'espace est attribué au texte, trop est attribué à la colonne de réordre. Et dans automation encore pire : ordonner d'un côté, supprimer de l'aitre, il reste très peu de place pour le texte. Il faidrait décider d'u'e politique et notamment vérifier tous les écrans, en particulier dans les cas les moins favorables par ex: thème retro en taille de texte 1.
-- Dans questionnaire en mode 1 colonne : les 2 boutons (remplir maintenant et avec l'ia) restent sur la même ligne même s'il n'y a pas la place. Il fait vérifier tous les cas analogues et avoir un pattern propre pour gérer ça.
-- En mode 1 colonne on perd trop de place sir les bords
-- Automation/automatisation/autre: en fr, choisir et unoformiser
-- Guide automation : une étape pour écrire le message de l'automation (une automation au message vide ne s'enregistre plus et ne se lance plus).
-- Guide automatiser 1/4 "avec ses ieces jointes" est maladroit étant donné que justement non, on ne oeit pas ajouter de pièce jointe au seed.
-- Guide : lorsque clavier ouvert : il faut replier la barre du bas sinon ça comprime l'éditeur bizarrement.
-- Guide brancher une ia 3/5 bof à reprendre. Et fournisseur > limites pour économiser, par ailleurd.
-- Au coin d'un cadre on ne voit pas le point de notif (ex icone tuto) en mode rétro. Augmenter la taille du point bleu en retro ?
+
+### Bloc 1 — la place à l'écran : des règles pour toute l'app
+
+Décider une règle par problème, puis passer tous les écrans, dans le cas le moins favorable (thème rétro, taille d'interface la plus grande, mode une colonne).
+
+- Ce qui ne passe pas à la ligne quand la place manque : les couleurs d'icône restent à 5 par ligne ; les deux boutons du Questionnaire en une colonne (« Remplir maintenant », « Avec l'IA ») restent côte à côte. Une façon unique de faire, et les autres cas analogues.
+- Les marges en mode une colonne : trop grandes sur les bords, en rétro au moins. Les fenêtres flottantes ont déjà pris presque toute la largeur (`FloatingDialog`, une case de marge en rétro, 2026-10-11) : à juger avec le reste.
+- La place du texte face aux poignées : dans une liste qu'on réordonne (Notes), la colonne de la poignée prend trop ; dans les accès d'une automation, poignée d'un côté et suppression de l'autre, il reste très peu pour le texte.
+- « il y a… » face au titre : dans une tuile de Journal, il prend toute la place et coupe le titre ; dans le Suivi en rétro, il est coupé alors qu'il a la place de deux lignes. Options à discuter.
+
+### Bloc 2 — le Guide et les textes
+
+- « Automation », « automatisation » : choisir un mot en français, et l'employer partout.
+- Guide, Automatiser : une étape pour écrire le message de l'automation (une automation au message vide ne s'enregistre plus et ne se lance plus).
+- Guide, Automatiser 1/4 : « avec ses pièces jointes » est faux, on ne peut pas joindre de fichier au message d'une automation.
+- Guide : présenter et bien distinguer la discussion récurrente, une automation dont on se sert comme départ de conversation (bouton bulle), de l'automation qu'on lance (bouton lecture).
+- Guide, Brancher une IA 3/5 : à reprendre ; et y dire, ou ailleurs, Fournisseur › Limites pour économiser.
+- Guide, clavier ouvert : la barre du bas reste, et l'éditeur est écrasé ; la replier tant que le clavier est là.
+
+### Petites décisions
+
+- Accueil : le titre de l'app dans l'en-tête, entre les boutons.
+- Rétro : le point de notification (l'icône du Guide, par exemple) ne se voit pas au coin d'un cadre ; le grossir ?
+- Les accès d'une automation, sur l'écran de son message : la liste ne s'étend pas, le bas se tasse dès qu'on en ajoute un et le bouton s'écrase ; et tout ce texte sur le même écran est de trop. Avis à donner : un bouton qui ouvre un écran à part.
 
 ## À passer sur le téléphone
 
@@ -67,6 +76,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - La validation et les accès de l'IA (`docs/design/validation.md`) : les trois niveaux et les cases de session (migration 69), `UPDATE_APP_CONFIG`, le masque des automations (migration 70), la validation du connecteur par notification et son masque par client (migration 71) — section Validation.
 - Le serveur MCP (`docs/design/mcp-server.md`, `core/mcp`, migration 60) ; le relais (projet `relay`) est en ligne sur `https://relay.badibam.fr` depuis le 2026-10-05, Claude s'y est branché comme connecteur depuis le téléphone ; l'hébergement tient une requête 120 s, `RelayLoop.WAIT_SECONDS` = 20 reste en dessous : la section « Accès externe ».
 - L'accès externe par Tailscale Funnel (`docs/design/funnel-access.md`) : sa section (migration 68), puis élaguer aussi `funnel-poc.md`.
+- Ce qui a changé le 2026-10-11, vu en debug seulement ou pas du tout : la migration 73 (le compteur devient numérique) sur la release et ses données, l'avertissement d'arrière-plan sur une installation neuve, les automations et leurs accès, une fenêtre flottante longue dans le cosy (Mise à jour et démarrage, Automations, Réglages et affichage).
 - Les réglages de réflexion de chaque fournisseur, en envoyant une requête : Claude (Sonnet 5.5 sans réflexion par `between_tools`, Opus 5.5 sans « Sans réflexion », Haiku 4.5 sans effort), OpenAI (un modèle à `none`, un modèle qu'aucun fait ne couvre), DeepSeek (effort obligatoire, sans réflexion) ; le changement de modèle qui vide les deux réglages, l'enregistrement d'une combinaison refusée.
 
 ## Conçu, à coder

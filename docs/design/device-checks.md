@@ -16,6 +16,7 @@ Ce que la suite de tests ne voit pas : les écrans, les migrations sur une vraie
 - Après la migration 72 (secrets scellés) : l'IA répond avec le fournisseur actif, sans ressaisir sa clé ; l'écran du fournisseur montre la clé masquée, en place ; l'accès par relais s'ouvre comme avant. Importer une sauvegarde faite avant : les clés marchent toujours.
 - Une sauvegarde faite après la migration 72, importée après avoir désinstallé puis réinstallé l'app (la clé du Keystore change) : l'écran du fournisseur dit que la clé ne s'ouvre pas et la montre vide ; un message à l'IA est refusé en le disant ; la clé ressaisie, tout repart.
 - Après la migration 73 (le compteur devient numérique) : l'outil de verres d'eau est un Suivi numérique, ses raccourcis « Verre » et « − Verre » (et le demi-verre, s'il existait) saisissent chacun sa valeur d'un toucher, en « verres » ; ses entrées passées s'affichent avec leur unité.
+- Installation neuve, app en « Optimisée » : après l'écran de bienvenue du Guide, un seul dialogue (« L'app peut être arrêtée en arrière-plan »), son bouton ouvre la demande d'Android ; acceptée, il ne revient plus ; « Plus tard », il ne revient pas au démarrage suivant, la carte reste en tête de Réglages.
 - Après la migration 65 : un questionnaire passé avec l'IA avant la mise à jour compte comme rempli sur la tuile (« dernière réponse ») comme dans l'écran ; le journal dit combien d'entrées sans statut sont devenues remplies.
 - Demander à l'IA un message à une heure donnée dans un outil Messages : elle l'écrit avec le statut « pending », le message paraît parmi ceux à venir et part à son heure. Lui demander d'ajouter une tentative à un Objectif : refusé, l'IA active l'objectif à la place.
 - App quittée et téléphone verrouillé depuis plus d'une heure : un message de l'outil Messages prévu à une heure donnée arrive dans les 10 minutes qui suivent, sans ouvrir l'app ; de même après un redémarrage du téléphone, sans l'avoir ouverte depuis.
@@ -125,6 +126,7 @@ Vu le 2026-10-09 : l'inscription par la page de connexion, « Activer Funnel » 
 - Le journal de l'app montre les messages « External access: » du nœud (URL de connexion, Funnel ouvert, adresse publiée), et `files/tailscale/tailscale.log` le journal technique, sans dépasser deux fichiers d'1 Mo.
 
 ## Automations
+- Une automation lancée à la main, puis une planifiée, lisent et écrivent les outils de leur masque d'accès (plus de « Une automation qui n'existe plus n'a pas l'accès ») ; une automation au message vide ne s'enregistre pas et ne se lance pas, le refus dit.
 
 - Rattrapage après la mise à jour : une automation programmée « sans limite » le reste, une fenêtre de 3 heures se relit « jusqu'à un délai » de 3 h. Dans l'éditeur : sans choix, l'enregistrement est refusé ; « jusqu'à un délai » demande la durée ; retirer la planification puis enregistrer retire aussi le rattrapage.
 - Rattrapage réel : automation programmée, app fermée plusieurs jours. Voir quelle session est reprise et ce que montre l'écran d'historique ; une donnée de la date prévue est écrite avec un timestamp ISO explicite.
@@ -173,6 +175,7 @@ Vu le 2026-10-09 : l'inscription par la page de connexion, « Activer Funnel » 
 - Liste avec des éléments cochés : activer « Un élément coché est supprimé aussitôt », enregistrer : le dialogue dit combien d'entrées seront supprimées ; confirmer : les cochés ont disparu, les autres gardent leur ordre ; annuler : rien n'a bougé.
 
 ## Réglages et affichage
+- Une fenêtre flottante longue (une note de quarante lignes) dans le thème cosy : elle tient au-dessus du clavier, ses boutons visibles, la ligne tapée en vue.
 
 - Config en pages (Séance, Objectif, Graphique) : sur une sous-page, ni Enregistrer ni Annuler, la flèche de retour seule ; de retour à la page principale, les boutons reviennent et le brouillon est intact.
 - Un Objectif dont le critère a une condition sans opérateur, ou une étape de Séance sans nom : sa ligne dit « À compléter ou corriger », et chaque ligne au-dessus jusqu'à la page principale ; le réglage rempli, les marques disparaissent. La ligne d'un critère montre sa condition en phrase (« Valeur saisie > 5 »).
