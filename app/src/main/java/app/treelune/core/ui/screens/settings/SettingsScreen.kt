@@ -13,7 +13,8 @@ import app.treelune.core.ui.*
 import app.treelune.core.ui.components.GridLayout
 
 /**
- * The app's settings: four sections, App, AI, Data and System,
+ * The app's settings: four sections, App, AI, Data and System, under a card while Android
+ * restricts the app in the background (BackgroundRestrictionCard),
  * each a grid of tiles, an icon and a name, two cells wide. A tile opens its screen through
  * [onOpen], by its id; what the screen is for is said at its top, not on the tile.
  */
@@ -34,6 +35,8 @@ fun SettingsScreen(onBack: () -> Unit, onOpen: (String) -> Unit) {
             leftButton = ButtonAction.BACK,
             onLeftClick = onBack
         )
+        // While Android restricts the app in the background: what it stops, the way to the setting
+        app.treelune.core.ui.components.BackgroundRestrictionCard()
         SECTIONS.forEach { (title, entries) ->
             UI.Card(type = CardType.SECTION_HEADER) {
                 Box(modifier = Modifier.fillMaxWidth().padding(UI.Space.M)) {

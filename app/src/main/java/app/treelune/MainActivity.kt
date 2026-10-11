@@ -175,6 +175,8 @@ class MainActivity : ComponentActivity() {
                                 MainScreen(openToolId = openToolId, onToolOpened = { openToolId = null })
                                 // A request for external access waiting for its code, over any screen
                                 app.treelune.core.mcp.ui.McpApprovalDialog()
+                                // Android restricting the app in the background, told once each time it begins
+                                app.treelune.core.ui.components.BackgroundRestrictionDialog()
                             }
                         }
                     }

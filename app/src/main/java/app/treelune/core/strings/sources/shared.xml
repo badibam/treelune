@@ -1654,6 +1654,10 @@
     <!-- Logs Screen -->
     <string name="settings_logs">Error logs</string>
     <string name="settings_bug_report">Report a bug</string>
+    <string name="background_restricted_title">The app is restricted in the background</string>
+    <string name="background_restricted_text">Android stops Treelune while it is closed. Until that changes, what is planned may not go: scheduled automations, messages, lists\' due dates, questionnaires\' and sessions\' invitations, goals\' ends of period. To lift it, in the app\'s settings: Battery, then Unrestricted or Optimized.</string>
+    <string name="background_restricted_open">Open the settings</string>
+    <string name="background_restricted_later">Later</string>
     <string name="bug_report_purpose">A report on what went wrong, read before it goes, sent through the app of your choice</string>
     <string name="bug_report_description">What happened (optional)</string>
     <string name="bug_report_cleaning">Below, exactly what will be sent. Identifiers and quoted texts are replaced; the rest may still name something of yours: read it before sending.</string>
