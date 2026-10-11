@@ -34,7 +34,7 @@ THEME_REGISTRY = SOURCES / "core" / "themes" / "ThemeScanner.kt"
 PROVIDER_REGISTRY = SOURCES / "core" / "ai" / "providers" / "AIProviderRegistry.kt"
 PROVIDERS = SOURCES / "core" / "ai" / "providers"
 GRADLE = ROOT / "app" / "build.gradle.kts"
-RESOURCES = ROOT / "app" / "src" / "main" / "res"
+STRING_SOURCES = SOURCES / "core" / "strings" / "sources"
 
 # A README and the language its strings are read in: the suffix of the strings file.
 READMES = {
@@ -111,8 +111,8 @@ def status(suffix):
     version = re.search(r'versionName = "([^"]+)"', gradle).group(1)
     min_sdk = int(re.search(r"minSdk = (\d+)", gradle).group(1))
     words = WORDS[suffix]
-    # English is the default resources' language; every values-xx folder adds one.
-    codes = ["en"] + sorted(p.name.split("-")[1] for p in RESOURCES.glob("values-??"))
+    # English is the default strings' language; every shared-xx.xml adds one.
+    codes = ["en"] + sorted(p.stem.split("-")[1] for p in STRING_SOURCES.glob("shared-??.xml"))
     languages = ", ".join(words["lang"][code] for code in codes)
     return [
         f"- {words['version']} {version}",

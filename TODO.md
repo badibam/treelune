@@ -39,7 +39,6 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 
 - Réglages › Interface : un thème choisi, vu, enregistré, et l'ancien revient ; une seconde fois, ça tient (2026-10-09, pas reproduit, peut-être dans la release). Au prochain cas, lire dans le journal les lignes « Theme applied » : laquelle a remis l'ancien (STORED, PREVIEW, LEFT_UNSAVED).
 
-- Le contrôle des README (`scripts/make_readme.py --check`, dans `./run test`) compte les langues par les dossiers `res/values-xx`, que le build génère et que git ignore : sur une copie neuve du dépôt (un worktree), il échoue avant le premier build. Les compter par les sources de textes (`shared-xx.xml`).
 - Rerour de la part d'un ami : automation planifiée ne s'est pas déclenchée. De mon côté je n'en ai pas d'active donc c'est peit etre un pb global
 - La partie accès des automations se s'étend pas, le bas se compresse dès qu'on e' ajoute une, faisant s'effondrer le bouton. Par ailleurs, ce n'est pas approproé de voir tout ce texte sur le meme ecran, je serais d'avis d'avoir juste un bouton qui ouvre un menu spécifique. Ton avis ?
 - Choix des couleurs d'icone: si manque de place affiche quand meme 5 par ligne ce qui ne fonctionne pas. C'est le même pb que les biutons qui ne se wrappent pas sur plisieirs lignes. Trouvons une manière propre de gérer ça dans toute l'app.
