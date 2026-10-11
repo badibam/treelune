@@ -37,7 +37,6 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 
 ## Bugs du téléphone
 
-- Le Guide : les chapitres de Prise en main propres à un outil ont tous l'icône clé à molette, pas celle de leur type d'outil.
 - Réglages › Interface : un thème choisi, vu, enregistré, et l'ancien revient ; une seconde fois, ça tient (2026-10-09, pas reproduit, peut-être dans la release). Au prochain cas, lire dans le journal les lignes « Theme applied » : laquelle a remis l'ancien (STORED, PREVIEW, LEFT_UNSAVED).
 
 - Le contrôle des README (`scripts/make_readme.py --check`, dans `./run test`) compte les langues par les dossiers `res/values-xx`, que le build génère et que git ignore : sur une copie neuve du dépôt (un worktree), il échoue avant le premier build. Les compter par les sources de textes (`shared-xx.xml`).

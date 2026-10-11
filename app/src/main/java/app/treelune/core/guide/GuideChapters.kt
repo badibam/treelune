@@ -105,8 +105,9 @@ object GuideChapters {
     fun all(context: Context): List<GuideChapter> = loaded ?: synchronized(this) {
         loaded ?: run {
             val declared = parse(context.assets.open(ASSET).bufferedReader(Charsets.UTF_8).use { it.readText() })
-            val tools = ToolTypeManager.getAllToolTypes().keys.map { tooltype ->
-                GuideChapter("tool_$tooltype", GuidePart.GETTING_STARTED, "wrench", 3, emptyList(), toolType = tooltype)
+            // A tool type's chapter under the icon a new tool of that type takes
+            val tools = ToolTypeManager.getAllToolTypes().map { (tooltype, type) ->
+                GuideChapter("tool_$tooltype", GuidePart.GETTING_STARTED, type.getDefaultIconName(), 3, emptyList(), toolType = tooltype)
             }
             val at = declared.indexOfFirst { it.id == TOOLS_AFTER }
             require(at >= 0) { "The Guide has no chapter '$TOOLS_AFTER' for the tools' chapters to follow" }
