@@ -52,7 +52,6 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 - En mode 1 colonne on perd trop de place sir les bords
 - Automation/automatisation/autre: en fr, choisir et unoformiser
 - Guide automation : elle a été créée sans texte et ça passe. Il faidrait une étape pour ça
-- Automation devrai orendre pa rdefaut le fournisseur actif
 - Guide automatiser 1/4 "avec ses ieces jointes" est maladroit étant donné que justement non, on ne oeit pas ajouter de pièce jointe au seed.
 - L'outil de verres d'eai ne marche pas : 1 verre d eau enregistré malgré 0.5 en config pour le 1/2 verre.
 - Guide : lorsque clavier ouvert : il faut replier la barre du bas sinon ça comprime l'éditeur bizarrement.

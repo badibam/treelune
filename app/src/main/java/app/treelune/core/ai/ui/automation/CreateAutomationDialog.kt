@@ -116,9 +116,10 @@ fun CreateAutomationDialog(
                     provider["is_configured"] as? Boolean ?: false
                 }
 
-                // Auto-select first provider if available
-                if (providers.isNotEmpty() && selectedProvider == null) {
-                    settings = org.json.JSONObject(settings.toString()).put("provider_id", providers.first()["id"] as String)
+                // A new automation takes the active provider; none active, none chosen, to be picked
+                val active = providers.firstOrNull { it["is_active"] as? Boolean ?: false }
+                if (active != null && selectedProvider == null) {
+                    settings = org.json.JSONObject(settings.toString()).put("provider_id", active["id"] as String)
                 }
             }
         } catch (e: Exception) {
