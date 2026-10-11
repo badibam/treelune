@@ -102,4 +102,4 @@ La documentation technique commence à [`docs/reference.md`](docs/reference.md).
 
 ## Licence
 
-[GPL-3.0](LICENSE)
+[GPL-3.0-or-later](LICENSE) : version 3 de la GNU General Public License, ou toute version ultérieure.
