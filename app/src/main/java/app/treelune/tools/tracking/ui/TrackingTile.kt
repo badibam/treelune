@@ -42,7 +42,7 @@ private data class LastEntry(val name: String, val timestamp: Long, val value: A
  *
  * The summary is its last entry: the one whose stopwatch runs, its name, its time going and a
  * stop button; otherwise the most recent, its value and the time since, with two buttons: the
- * same entry again now (same name, value and unit; a counter's same step, an occurrence alone,
+ * same entry again now (same name, value and unit; an occurrence alone,
  * a timer started again; the user's fields at their default values) and the entry dialog
  * prefilled with its name and value.
  *
@@ -156,7 +156,7 @@ fun rememberTrackingTile(tool: ToolInstance): ToolTile {
 private fun Line(content: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit) =
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(UI.Space.XS), verticalAlignment = Alignment.CenterVertically, content = content)
 
-/** The same entry as [last], now: a timer starts again, a counter adds its step again. */
+/** The same entry as [last], now: a timer starts again. */
 private fun again(actions: TrackingActions, last: LastEntry) = when (actions.kind) {
     TrackingKind.TIMER -> actions.start(last.name)
     TrackingKind.OCCURRENCE -> actions.quickSave(last.name, null, null)

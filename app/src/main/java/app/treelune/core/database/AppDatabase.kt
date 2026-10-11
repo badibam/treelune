@@ -103,7 +103,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 72
+        const val VERSION = 73
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -1724,6 +1724,47 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** The counter tracking tools made numeric (CounterAtV73), their entries given the counter's unit. */
+        private val MIGRATION_72_73 = object : Migration(72, 73) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                val units = mutableMapOf<String, String>()
+                var tools = 0
+                database.query("SELECT id, config_json FROM tool_instances WHERE tooltype = 'tracking'").use { cursor ->
+                    while (cursor.moveToNext()) {
+                        val id = cursor.getString(0)
+                        // A config that cannot be read stays as it was and is logged
+                        try {
+                            val config = org.json.JSONObject(cursor.getString(1))
+                            val next = app.treelune.core.versioning.CounterAtV73.config("tracking", config)
+                            if (next === config) continue
+                            app.treelune.core.versioning.CounterAtV73.counterUnit("tracking", config)?.let { units[id] = it }
+                            database.execSQL("UPDATE tool_instances SET config_json = ? WHERE id = ?", arrayOf<Any?>(next.toString(), id))
+                            tools++
+                        } catch (e: Exception) {
+                            LogManager.database("MIGRATION 72->73: config of tool $id left as it was: ${e.message}", "ERROR", e)
+                        }
+                    }
+                }
+                var entries = 0
+                units.forEach { (toolId, unit) ->
+                    database.query("SELECT id, data FROM tool_data WHERE tool_instance_id = ?", arrayOf<Any?>(toolId)).use { cursor ->
+                        while (cursor.moveToNext()) {
+                            val id = cursor.getString(0)
+                            // An entry that cannot be read stays as it was and is logged
+                            try {
+                                val data = app.treelune.core.versioning.CounterAtV73.entryData(org.json.JSONObject(cursor.getString(1)), unit)
+                                database.execSQL("UPDATE tool_data SET data = ? WHERE id = ?", arrayOf<Any?>(data.toString(), id))
+                                entries++
+                            } catch (e: Exception) {
+                                LogManager.database("MIGRATION 72->73: entry $id left as it was: ${e.message}", "ERROR", e)
+                            }
+                        }
+                    }
+                }
+                LogManager.database("MIGRATION 72->73: $tools counter(s) made numeric, $entries entry(ies) given their unit", "INFO")
+            }
+        }
+
         /**
          * The secret settings sealed (SecretsAtV72): every AI provider's API key, the relay's secret.
          * A config that cannot be read stays as it is; reading it then fails with the reason.
@@ -2671,7 +2712,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_68_69,
                     MIGRATION_69_70,
                     MIGRATION_70_71,
-                    MIGRATION_71_72
+                    MIGRATION_71_72,
+                    MIGRATION_72_73
                     // Add future migrations here (minimum supported version: 9)
                 )
                 .addCallback(object : RoomDatabase.Callback() {

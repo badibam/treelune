@@ -347,8 +347,10 @@ def config_coffee(run):
     new = run.after.execute(
         "SELECT id, tooltype, config_json FROM tool_instances WHERE zone_id = 'demo-kitchen' AND id NOT LIKE 'demo-%'"
     ).fetchall()
+    def counts_cups(config):
+        return config.get("type") == "numeric" and any(item.get("value") == 1 for item in config.get("items", []))
     fitting = [i for i, tooltype, config in new
-               if tooltype == "tracking" and json.loads(config).get("type") == "counter" and "cafe" in norm(json.loads(config).get("name", ""))]
+               if tooltype == "tracking" and counts_cups(json.loads(config)) and "cafe" in norm(json.loads(config).get("name", ""))]
     if len(fitting) != 1 or len(new) != 1:
         run.fail(f"tools added in Cuisine: {[(t, json.loads(c).get('name'), json.loads(c).get('type')) for _, t, c in new]}")
     run.hold_still(lambda t, i: t == "tool_instances" and i in {n[0] for n in new})

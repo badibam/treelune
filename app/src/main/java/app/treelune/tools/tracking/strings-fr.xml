@@ -18,7 +18,6 @@
     <string name="config_option_boolean">Oui/Non (boolean)</string>
     <string name="config_option_timer">Timer (timer)</string>
     <string name="config_option_choice">Choix (choice)</string>
-    <string name="config_option_counter">Compteur (counter)</string>
     <string name="config_option_occurrence">Occurrence (occurrence)</string>
     
     <!-- CONFIG - Sections -->
@@ -73,7 +72,6 @@
     <string name="schema_config_timer_display_name">Configuration de suivi (chronomètre)</string>
     <string name="schema_config_choice_display_name">Configuration de suivi (choix)</string>
     <string name="schema_config_scale_display_name">Configuration de suivi (échelle)</string>
-    <string name="schema_config_counter_display_name">Configuration de suivi (compteur)</string>
     <string name="schema_config_boolean_display_name">Configuration de suivi (oui/non)</string>
     <string name="schema_config_text_display_name">Configuration de suivi (texte)</string>
 
@@ -82,7 +80,6 @@
     <string name="schema_config_timer_description">Schéma de configuration du suivi chronomètre</string>
     <string name="schema_config_choice_description">Schéma de configuration du suivi choix</string>
     <string name="schema_config_scale_description">Schéma de configuration du suivi échelle</string>
-    <string name="schema_config_counter_description">Schéma de configuration du suivi compteur</string>
     <string name="schema_config_boolean_description">Schéma de configuration du suivi oui/non</string>
     <string name="schema_config_text_description">Schéma de configuration du suivi texte</string>
 
@@ -94,9 +91,8 @@
     <string name="schema_config_units">Unités possibles d\'une valeur ; chaque entrée enregistre l\'une d\'elles</string>
     <string name="schema_config_items">Raccourcis, proposés pour une saisie rapide</string>
     <string name="schema_config_item_name">Nom du raccourci, donné aux entrées qu\'il crée</string>
-    <string name="schema_config_item_value">Valeur que le raccourci saisit (pour un compteur, la quantité ajoutée ou retirée ; 1 si absente)</string>
+    <string name="schema_config_item_value">Valeur que le raccourci saisit d\'un toucher ; sans elle, le toucher ouvre la saisie</string>
     <string name="schema_config_item_unit">Unité de la valeur que saisit le raccourci, l\'une des unités</string>
-    <string name="schema_config_counter_allow_decrement">Si le compte peut descendre autant que monter</string>
     
     <!-- SCHEMAS DATA - Display names for schema identification -->
     <string name="schema_data_display_name">Entrée de suivi</string>
@@ -106,7 +102,6 @@
     <string name="field_value">Valeur</string>
     <string name="field_units">Unités</string>
     <string name="field_items">Raccourcis</string>
-    <string name="field_allow_decrement">Permettre de retirer</string>
 
     <!-- SCHEMAS DATA - Descriptions for schema identification -->
 

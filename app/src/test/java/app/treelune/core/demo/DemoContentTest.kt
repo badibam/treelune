@@ -104,7 +104,7 @@ class DemoContentTest {
         val content = read()
         assertEquals(setOf("tracking", "goal", "chart", "journal", "list", "messages", "notes", "questionnaire", "structured", "sequence"),
             content.tools.map { it.getString("tooltype") }.toSet())
-        assertEquals(setOf("numeric", "counter", "scale", "choice", "boolean", "text", "timer", "occurrence"),
+        assertEquals(setOf("numeric", "scale", "choice", "boolean", "text", "timer", "occurrence"),
             content.tools.filter { it.getString("tooltype") == "tracking" }.map { it.getJSONObject("config").getString("type") }.toSet())
         assertEquals(DisplayMode.entries.map { it.name }.toSet(),
             content.tools.map { it.getJSONObject("config").getString("display_mode") }.toSet())

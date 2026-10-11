@@ -20,7 +20,7 @@ class NumericPrecisionTest {
         assertEquals(0.35, NumericPrecision.round(0.345, numeric(2)))
     }
 
-    /** With no decimals, a whole number: a counter never stores 2.5. */
+    /** With no decimals, a whole number: never 2.5. */
     @Test
     fun noDecimalsIsAWholeNumber() {
         assertEquals(3L, NumericPrecision.round(2.5, numeric(0)))

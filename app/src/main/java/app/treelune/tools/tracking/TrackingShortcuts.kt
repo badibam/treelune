@@ -4,9 +4,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * A shortcut of a tracking tool: a name given to the entries it creates, and for a numeric or
- * counter tool the value it enters (for a counter, the amount added or taken away) and for a
- * numeric one its unit.
+ * A shortcut of a tracking tool: a name given to the entries it creates, and for a numeric tool
+ * the value it enters and its unit.
  */
 data class TrackingShortcut(
     val name: String,
@@ -15,8 +14,8 @@ data class TrackingShortcut(
 )
 
 /**
- * What a tracking tool's config says beyond its field settings: its shortcuts, its units, and
- * whether a counter can go down. Read the same way by every screen.
+ * What a tracking tool's config says beyond its field settings: its shortcuts and its units.
+ * Read the same way by every screen.
  */
 object TrackingConfig {
 
@@ -37,13 +36,6 @@ object TrackingConfig {
         val units = config.optJSONArray("units") ?: return emptyList()
         return (0 until units.length()).map { units.getString(it) }
     }
-
-    /** Whether a counter's shortcuts also take away; they do unless the config says otherwise. */
-    fun allowsDecrement(config: JSONObject, context: android.content.Context): Boolean =
-        app.treelune.core.tools.ToolConfigSettings.read(TrackingToolType, config, context).boolean("allow_decrement")
-
-    /** The amount a counter shortcut adds or takes away: its value, 1 when it has none. */
-    fun counterStep(shortcut: TrackingShortcut): Int = shortcut.value?.toInt()?.takeIf { it != 0 }?.let { Math.abs(it) } ?: 1
 
     /** [config] with [shortcut] appended to its shortcuts. */
     fun withShortcut(config: JSONObject, shortcut: TrackingShortcut): JSONObject {

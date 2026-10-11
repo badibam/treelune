@@ -53,7 +53,6 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 - Automation/automatisation/autre: en fr, choisir et unoformiser
 - Guide automation : elle a été créée sans texte et ça passe. Il faidrait une étape pour ça
 - Guide automatiser 1/4 "avec ses ieces jointes" est maladroit étant donné que justement non, on ne oeit pas ajouter de pièce jointe au seed.
-- L'outil de verres d'eai ne marche pas : 1 verre d eau enregistré malgré 0.5 en config pour le 1/2 verre.
 - Guide : lorsque clavier ouvert : il faut replier la barre du bas sinon ça comprime l'éditeur bizarrement.
 - Guide brancher une ia 3/5 bof à reprendre. Et fournisseur > limites pour économiser, par ailleurd.
 - Le post text s'affiche même en l'absence d'actions. Je pense que c'est nouveau. Mais à vérifier. Est ce souhaitable ?

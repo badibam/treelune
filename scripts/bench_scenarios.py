@@ -24,7 +24,7 @@ SCENARIOS = {
     "auto_review": {"kind": "automation", "automation_id": "demo-auto-weekly-review"},
     # Configuration
     "config_km_target": {"kind": "chat", "message": "Monte mon objectif kilométrique à 25"},
-    "config_coffee": {"kind": "chat", "message": "Crée un suivi \"Café\" en compteur dans Cuisine"},
+    "config_coffee": {"kind": "chat", "message": "Crée un suivi \"Café\" dans Cuisine, une tasse par toucher"},
     "config_elevation": {"kind": "chat", "message": "Ajoute un champ Dénivelé, en mètres, aux Sorties"},
     "config_trail": {"kind": "chat", "message": "Ajoute \"trail\" aux types de sortie"},
     "config_reading_zone": {"kind": "chat", "message": "Crée une zone Lecture avec un suivi des pages lues et un graphique des pages par semaine"},

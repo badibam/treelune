@@ -32,7 +32,6 @@ import org.json.JSONObject
  * fields are filled in the entry dialog.
  *
  * - numeric: a shortcut with a value enters it at once, one without opens the dialog
- * - counter: + and - enter the shortcut's step (or its negative)
  * - yes/no: one button per answer
  * - timer: start and stop; the start is kept in the entry's state, so a running stopwatch
  *   survives the app being killed, and starting one stops the one running in the same tool
@@ -96,7 +95,6 @@ fun TrackingQuickEntry(
                 // The dialog opened on the shortcut, to change its value or its fields first
                 val edits = when (actions.kind) {
                     TrackingKind.NUMERIC -> shortcut.value
-                    TrackingKind.COUNTER -> TrackingConfig.counterStep(shortcut)
                     TrackingKind.BOOLEAN, TrackingKind.OCCURRENCE -> null
                     else -> return@ShortcutRow
                 }

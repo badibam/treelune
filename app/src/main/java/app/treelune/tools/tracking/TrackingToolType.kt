@@ -51,12 +51,10 @@ object TrackingToolType : ToolTypeContract {
 
     /**
      * A tracking tool's settings: what it follows ("type"), and for that type
-     * - value: the settings of the entries' main field, those of its field type (FieldTypeSettings),
-     *   and for a counter the unit it counts in;
+     * - value: the settings of the entries' main field, those of its field type (FieldTypeSettings);
      * - units: the units a numeric value can be in;
-     * - items: the shortcuts, each a name, and for a numeric or counter tool the value it enters
-     *   (and for a numeric one its unit, one of the units);
-     * - allow_decrement: whether a counter's shortcuts also take away.
+     * - items: the shortcuts, each a name, and for a numeric tool the value it enters and its
+     *   unit, one of the units.
      */
     override fun getConfigSettings(context: Context): List<SettingNode> {
         val s = Strings.`for`(tool = "tracking", context = context)
@@ -73,7 +71,7 @@ object TrackingToolType : ToolTypeContract {
             cases = TrackingKind.entries.associate { kind ->
                 val item = listOfNotNull(
                     field("name", shared.shared("label_name"), s.tool("schema_config_item_name"), FieldType.TEXT, required = true, config = short),
-                    if (kind == TrackingKind.NUMERIC || kind == TrackingKind.COUNTER)
+                    if (kind == TrackingKind.NUMERIC)
                         field("value", s.tool("field_value"), s.tool("schema_config_item_value"), FieldType.NUMERIC, config = mapOf("decimals" to 2))
                     else null,
                     if (kind == TrackingKind.NUMERIC)
@@ -82,22 +80,16 @@ object TrackingToolType : ToolTypeContract {
                 )
                 kind.key to listOfNotNull(
                     // A number needs its decimals, a scale its bounds and a choice its options:
-                    // their value settings are required. A counter counts one thing, named by its
-                    // unit; a numeric entry takes its own unit from "units".
+                    // their value settings are required. A numeric entry takes its unit from "units".
                     kind.valueType?.let { valueType ->
                         SettingNode.Group("value", s.tool("schema_config_value"),
-                            listOfNotNull(if (kind == TrackingKind.COUNTER) FieldTypeSettings.unit(shared::shared) else null) +
-                                FieldTypeSettings.configNodes(valueType, shared::shared),
+                            FieldTypeSettings.configNodes(valueType, shared::shared),
                             required = kind == TrackingKind.NUMERIC || kind == TrackingKind.SCALE || kind == TrackingKind.CHOICE)
                     },
                     if (kind == TrackingKind.NUMERIC)
                         SettingNode.ListOf("units", s.tool("field_units"),
                             SettingNode.Item.Value(FieldDefinition("unit", s.tool("field_unit"), s.tool("schema_config_units"), FieldType.TEXT, false, short)),
                             distinct = true)
-                    else null,
-                    if (kind == TrackingKind.COUNTER)
-                        field("allow_decrement", s.tool("field_allow_decrement"), s.tool("schema_config_counter_allow_decrement"),
-                            FieldType.BOOLEAN, default = true)
                     else null,
                     SettingNode.ListOf("items", s.tool("field_items"), SettingNode.Item.Of(item),
                         summary = item.map { it.definition.name })
@@ -123,10 +115,7 @@ object TrackingToolType : ToolTypeContract {
         val valueType = kind.valueType
             ?: return EntryFields(name = CoreFieldUsage.REQUIRED, timestamp = CoreFieldUsage.OPTIONAL)
 
-        val valueConfig = (config.optJSONObject("value")?.toFieldConfig() ?: emptyMap()).let {
-            // A counter counts presses: whole numbers only
-            if (kind == TrackingKind.COUNTER) it + ("decimals" to 0) else it
-        }
+        val valueConfig = config.optJSONObject("value")?.toFieldConfig() ?: emptyMap()
         val fields = mutableListOf(
             FixedField(
                 FieldDefinition(
@@ -231,7 +220,6 @@ object TrackingToolType : ToolTypeContract {
             "unit" -> s.tool("field_unit")
             "units" -> s.tool("field_units")
             "items" -> s.tool("field_items")
-            "allow_decrement" -> s.tool("field_allow_decrement")
             else -> s.tool("field_unknown")
         }
     }

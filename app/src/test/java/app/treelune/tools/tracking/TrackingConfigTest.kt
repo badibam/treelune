@@ -41,13 +41,6 @@ class TrackingConfigTest {
         assertEquals(2, TrackingConfig.shortcuts(config).size)
     }
 
-    /** A counter step is a positive amount; the buttons give the sign. */
-    @Test
-    fun counterStep_isOneWithoutValue_andPositive() {
-        assertEquals(1, TrackingConfig.counterStep(TrackingShortcut("Glass")))
-        assertEquals(2, TrackingConfig.counterStep(TrackingShortcut("Glass", -2)))
-    }
-
     /** An occurrence, or a timer before it stops, writes no value at all rather than a null. */
     @Test
     fun entryData_leavesOutWhatIsAbsent() {

@@ -18,7 +18,6 @@
     <string name="config_option_boolean">Yes/No (boolean)</string>
     <string name="config_option_timer">Timer (timer)</string>
     <string name="config_option_choice">Choice (choice)</string>
-    <string name="config_option_counter">Counter (counter)</string>
     <string name="config_option_occurrence">Occurrence (occurrence)</string>
     
     <!-- CONFIG - Sections -->
@@ -73,7 +72,6 @@
     <string name="schema_config_timer_display_name">Tracking configuration (timer)</string>
     <string name="schema_config_choice_display_name">Tracking configuration (choice)</string>
     <string name="schema_config_scale_display_name">Tracking configuration (scale)</string>
-    <string name="schema_config_counter_display_name">Tracking configuration (counter)</string>
     <string name="schema_config_boolean_display_name">Tracking configuration (yes/no)</string>
     <string name="schema_config_text_display_name">Tracking configuration (text)</string>
 
@@ -82,7 +80,6 @@
     <string name="schema_config_timer_description">Configuration schema for timer tracking</string>
     <string name="schema_config_choice_description">Configuration schema for choice tracking</string>
     <string name="schema_config_scale_description">Configuration schema for scale tracking</string>
-    <string name="schema_config_counter_description">Configuration schema for counter tracking</string>
     <string name="schema_config_boolean_description">Configuration schema for yes/no tracking</string>
     <string name="schema_config_text_description">Configuration schema for text tracking</string>
 
@@ -94,9 +91,8 @@
     <string name="schema_config_units">Units a value can be in; each entry records one of them</string>
     <string name="schema_config_items">Shortcuts, offered for quick entry</string>
     <string name="schema_config_item_name">Name of the shortcut, given to the entries it creates</string>
-    <string name="schema_config_item_value">Value the shortcut enters (for a counter, the amount added or taken away; 1 if absent)</string>
+    <string name="schema_config_item_value">Value the shortcut enters at a touch; without one, the touch opens the entry dialog</string>
     <string name="schema_config_item_unit">Unit of the value the shortcut enters, one of the units</string>
-    <string name="schema_config_counter_allow_decrement">Whether the count can go down as well as up</string>
     
     <!-- SCHEMAS DATA - Display names for schema identification -->
     <string name="schema_data_display_name">Tracking entry</string>
@@ -106,7 +102,6 @@
     <string name="field_value">Value</string>
     <string name="field_units">Units</string>
     <string name="field_items">Shortcuts</string>
-    <string name="field_allow_decrement">Allow taking away</string>
 
     <!-- SCHEMAS DATA - Descriptions for schema identification -->
 

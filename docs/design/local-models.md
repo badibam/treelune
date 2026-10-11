@@ -58,7 +58,7 @@ En français, l'émulateur réglé en français : la démo prend la langue du t�
 ### Configuration (CHAT)
 
 1. « Monte mon objectif kilométrique à 25 » — `objectif_km_demo` vaut 25, les critères de l'Objectif intacts.
-2. « Crée un suivi "Café" en compteur dans Cuisine » — un Suivi compteur nommé Café dans Cuisine.
+2. « Crée un suivi "Café" dans Cuisine, une tasse par toucher » — un Suivi numérique nommé Café dans Cuisine, un raccourci qui saisit 1.
 3. « Ajoute un champ Dénivelé, en mètres, aux Sorties » — un champ numérique en m ; les autres champs et les entrées intacts.
 4. « Ajoute "trail" aux types de sortie » — une option de plus au choix Type ; les autres et les entrées qui les portent intactes.
 5. « Crée une zone Lecture avec un suivi des pages lues et un graphique des pages par semaine » — une zone, un suivi numérique, un graphique en barres par semaine qui le lit.

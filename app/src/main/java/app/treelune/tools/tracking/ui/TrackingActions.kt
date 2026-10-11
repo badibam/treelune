@@ -194,7 +194,7 @@ class TrackingActions internal constructor(
 
     private suspend fun addShortcut(entry: TrackingEntryDraft) {
         // A shortcut keeps a value only where it enters one at once
-        val keepsValue = kind == TrackingKind.NUMERIC || kind == TrackingKind.COUNTER
+        val keepsValue = kind == TrackingKind.NUMERIC
         val shortcut = TrackingShortcut(
             name = entry.name,
             value = if (keepsValue) entry.value as? Number else null,
@@ -282,11 +282,6 @@ fun ShortcutButtons(actions: TrackingActions, shortcut: TrackingShortcut, runnin
             TrackingKind.NUMERIC -> QuickButton(ButtonAction.ADD, enabled) {
                 if (shortcut.value != null) actions.quickSave(shortcut.name, shortcut.value, shortcut.unit, timestamp)
                 else actions.openDialog(shortcut.name, null, shortcut.unit, nameEditable = false, offerShortcut = false, timestamp = timestamp)
-            }
-            TrackingKind.COUNTER -> {
-                val step = TrackingConfig.counterStep(shortcut)
-                TextButton("+$step", enabled) { actions.quickSave(shortcut.name, step, null, timestamp) }
-                if (TrackingConfig.allowsDecrement(actions.config, context)) TextButton("-$step", enabled) { actions.quickSave(shortcut.name, -step, null, timestamp) }
             }
             TrackingKind.BOOLEAN -> {
                 val labels = actions.valueField?.config

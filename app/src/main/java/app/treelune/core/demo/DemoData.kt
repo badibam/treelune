@@ -265,7 +265,7 @@ class DemoData(private val now: Long, private val zone: ZoneId, private val hand
             val count = between(6, 8)
             for (i in 0 until count) {
                 val time = at(date, 8, 0) + (i * 13 * HOUR / count) + between(0, 30) * MINUTE
-                if (past(time)) glasses.add(entry("demo-e-water-${n++}", text("water_entry_name"), time, json("value" to 1)))
+                if (past(time)) glasses.add(entry("demo-e-water-${n++}", text("water_entry_name"), time, json("value" to 1, "unit" to text("water_unit"))))
             }
         }
         return glasses

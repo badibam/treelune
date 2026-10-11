@@ -1004,18 +1004,25 @@
         "icon_color": "BLUE",
         "display_mode": "MINIMAL",
         "group": "@kitchen_group_meals",
-        "type": "counter",
+        "type": "numeric",
         "value": {
-          "unit": "@water_unit",
-          "decimals": 0
+          "decimals": 1
         },
+        "units": [
+          "@water_unit"
+        ],
         "items": [
           {
             "name": "@water_entry_name",
-            "value": 1
+            "value": 1,
+            "unit": "@water_unit"
+          },
+          {
+            "name": "@water_half_entry_name",
+            "value": 0.5,
+            "unit": "@water_unit"
           }
-        ],
-        "allow_decrement": true
+        ]
       },
       "grid_x": 0,
       "grid_y": 4

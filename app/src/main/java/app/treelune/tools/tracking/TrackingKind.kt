@@ -7,13 +7,11 @@ import org.json.JSONObject
  * What a tracking tool follows, as its config's "type" says. It decides the field type of the
  * entries' main field, "value", and the quick way the tool offers to create an entry.
  *
- * A counter is a whole NUMERIC value entered with +/- buttons, one entry per press; a timer is a
- * DURATION entered with a stopwatch. An occurrence has no value at all: the entry is the fact
+ * A timer is a DURATION entered with a stopwatch. An occurrence has no value at all: the entry is the fact
  * that something happened, its name and its moment.
  */
 enum class TrackingKind(val key: String, val valueType: FieldType?) {
     NUMERIC("numeric", FieldType.NUMERIC),
-    COUNTER("counter", FieldType.NUMERIC),
     SCALE("scale", FieldType.SCALE),
     CHOICE("choice", FieldType.CHOICE),
     BOOLEAN("boolean", FieldType.BOOLEAN),
