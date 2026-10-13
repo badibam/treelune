@@ -15,7 +15,7 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 
 - Ce que la campagne 1 a trouvé dans l'app (`docs/design/bench-campaign-1.md`, « Ce qui ne vient pas des modèles ») : `completed` absent du schéma de réponse forcé, qu'une automation demande pourtant ; une lecture de variable au début d'un jour qui vaut 0, que le prompt ne signale pas ; une écriture dans un outil inexistant qui reçoit une erreur de `SchemaNotation` ; « Failed to parse custom field » brut de `ToolInstanceService`.
 - L'importeur propose en champ nouveau une colonne qui nomme un champ que `tool_data` n'écrit pas (`state.*`, `created_at`) : il doit demander au service ce qui s'écrit, et écarter le reste en le disant.
-- Les chapitres de Prise en main du Guide (`docs/design/user-journey.md`, « Prise en main ») : des ébauches, à écrire ensemble en séance dédiée, avec les premiers sujets d'Approfondissement, partie cachée tant qu'elle est vide — Organiser couvre aussi les groupes d'outils d'une zone ; puis élaguer la spec, ses garanties devenant des tests.
+- Les chapitres de Prise en main du Guide (`docs/design/user-journey.md`, « Prise en main ») : des ébauches, à écrire ensemble en séance dédiée, chacun nommant tout ce que montrent ses écrans, et le contrôle de ses réglages (`covers`, même section) codé avec eux, avec les premiers sujets d'Approfondissement, partie cachée tant qu'elle est vide — Organiser couvre aussi les groupes d'outils d'une zone ; puis élaguer la spec, ses garanties devenant des tests.
 
 ## Juste après la release
 
@@ -126,7 +126,6 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 - Il faudrait piur sélectionner/copier davantage de textes dans l'app. Soit via fonction comme chat ia, via clic, soit via selection android, selon les xas. On passe en revue.
 - Fenêtre dédition de aitomation, dès que trop grande, les boutons du bas disparaissent
 - Tri par valeur de champ au choix dans liste notes etc
-- Guide : remarque : tous les tutos de la 2eme série doivent mentionner tous les réglages, critère : 1 bouton = 1 mention. C'est à concevoir proprement
 - Appui long sir message système : ne copie pas / pas tout le message ?
 - Limite trop courte pour sequence dans seance, on va repasser sur tiutes les limites de texte au sein de l'app
 - Quand clavier ouvert : il faidraot toujours avoir au moins la taille du clavier en + en bas de page, de façon à pouvoir affocher jusqu au bas de page.

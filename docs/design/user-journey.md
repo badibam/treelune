@@ -103,7 +103,7 @@ Le contenu des tutoriels 2 à 4 s'écrit à leur construction : il nomme des éc
 
 Un chapitre par sujet, lu dans l'ordre qu'on veut, tutoriel facultatif :
 
-- **Configurer un outil**, en tête, en tutoriel, sans IA : la configuration ouverte par un appui long, l'icône, sa couleur et le mode d'affichage, un champ supplémentaire rempli dans une entrée, puis ce que la validation et « Toujours envoyer » changent pour l'IA.
+- **Configurer un outil**, juste après les outils en un coup d'œil, en tutoriel, sans IA : la configuration ouverte par un appui long, l'icône, sa couleur et le mode d'affichage, un champ supplémentaire rempli dans une entrée, puis ce que la validation et « Toujours envoyer » changent pour l'IA.
 
 - Organiser : groupes de zones sur l'accueil, groupes d'outils dans une zone, disposition des tuiles — le même geste à deux niveaux, dans un seul chapitre.
 - Les outils en un coup d'œil, en tête de Prise en main : chaque type avec son icône, son nom et sa `tagline`, un appui ouvrant son chapitre ; en intro, le conseil de regarder ce que le bon outil prévoit avant d'en assembler plusieurs. Généré, sans texte à tenir à la main.
@@ -116,6 +116,12 @@ Un chapitre par sujet, lu dans l'ordre qu'on veut, tutoriel facultatif :
 - Quand ça coince : journaux, rapport de bug.
 
 Leur contenu s'écrit à leur construction.
+
+Un chapitre de Prise en main nomme tout ce que montrent les écrans qu'il couvre : un bouton, une mention. La Découverte, un parcours, reste courte et n'y est pas tenue.
+
+- Les réglages d'un formulaire (la config d'un outil, les Réglages, un fournisseur d'IA) sont déclarés (`SettingNode`), donc vérifiés : le chapitre déclare les formulaires qu'il couvre (`"covers"` dans `chapters.json`), et `scripts/check_guide.py` refuse un réglage de ces formulaires dont le libellé n'apparaît dans aucun de ses textes, dans chaque langue. Un réglage ajouté casse `./run test` tant que le Guide n'en parle pas.
+- Les boutons d'un écran ne sont déclarés nulle part : en écrivant le chapitre, on passe l'écran bouton par bouton.
+- Le contrôle se code avec les premiers chapitres écrits.
 
 ## L'enchaînement
 
