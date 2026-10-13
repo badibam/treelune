@@ -165,7 +165,7 @@ Pattern LaunchedEffect pour afficher et reset automatiquement les messages d'err
 
 **UI.FormField** - Champ standard avec label, value, onChange, fieldType, required, state, readonly et onClick optionnel. Le thème n'a qu'un champ de texte, qui reçoit un `TextFieldValue` (le texte, sa sélection, sa composition) : la forme sur une chaîne garde le curseur elle-même, la forme sur un `TextFieldValue` le laisse à l'appelant, pour insérer là où il se trouve (l'éditeur de formule).
 
-**UI.FormSelection** - Sélections avec label, options, selected, onSelect et required.
+**UI.FormSelection** - Sélections avec label, options, selected, onSelect et required. Un champ CHOICE à une réponse de plus de 30 options (les fuseaux, les langues) a une recherche au-dessus de sa liste, qui la restreint à ce qui contient le texte tapé (`FieldInputRenderer`).
 
 **UI.SectionedSelection** - La même sélection rangée en sections, le titre de chacune dessiné sans se choisir, une option choisie par sa position ; chaque option peut avoir l'icône d'une zone ou d'un outil dans sa couleur (`OptionIcon`), dessinée devant elle et devant la valeur choisie (`ZoneChoice`).
 

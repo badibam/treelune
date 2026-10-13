@@ -37,8 +37,35 @@ object AppSettings {
     val AI_DATA_AUTOMATION_RANGE = IntProgression.fromClosedRange(10_000, 500_000, 10_000)
 
     private val WEEK_DAYS = listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
-    private val TIMEZONES = listOf("Europe/Paris", "UTC", "America/New_York", "America/Los_Angeles", "Asia/Tokyo", "Asia/Shanghai", "Australia/Sydney")
-    private val LOCALES = listOf("fr-FR", "en-US", "en-GB", "de-DE", "es-ES", "it-IT", "ja-JP", "zh-CN")
+    /** The regions of the time zones offered, those of a place ("Europe/Lisbon"), not the old aliases ("US/Pacific", "EST"). */
+    private val ZONE_REGIONS = Regex("^(Africa|America|Antarctica|Asia|Atlantic|Australia|Europe|Indian|Pacific)/.+")
+
+    /**
+     * Every time zone the phone's data knows by its place, and UTC, each shown with its offset now
+     * ("Europe/Lisbon (UTC+01:00)"): the list follows the zone updates Android receives.
+     */
+    fun timezones(): Pair<List<String>, Map<String, String>> {
+        val now = java.time.Instant.ofEpochMilli(System.currentTimeMillis())
+        val ids = java.time.ZoneId.getAvailableZoneIds().filter { ZONE_REGIONS.matches(it) }.sorted() + "UTC"
+        return ids to ids.associateWith { id ->
+            val offset = java.time.ZoneId.of(id).rules.getOffset(now)
+            "$id (UTC${if (offset == java.time.ZoneOffset.UTC) "" else offset.id})"
+        }
+    }
+
+    /**
+     * Every language of a country the phone knows ("pt-PT"), named in itself ("Português (Portugal)"),
+     * by that name.
+     */
+    fun locales(): Pair<List<String>, Map<String, String>> {
+        val locales = java.util.Locale.getAvailableLocales()
+            .filter { it.language.isNotEmpty() && it.country.length == 2 && it.script.isEmpty() && it.variant.isEmpty() }
+            .distinctBy { it.toLanguageTag() }
+        val labels = locales.associate { locale ->
+            locale.toLanguageTag() to "${locale.getDisplayName(locale).replaceFirstChar { it.titlecase(locale) }} — ${locale.toLanguageTag()}"
+        }
+        return labels.keys.sortedBy { labels.getValue(it).lowercase() } to labels
+    }
     private val DATE_PATTERNS = listOf("dd/MM/yyyy", "MM/dd/yyyy", "yyyy-MM-dd")
 
     /** The categories a settings screen edits, each with its declaration. */
@@ -108,10 +135,10 @@ object AppSettings {
             AppSettingCategories.FORMAT -> listOf(
                 // Absent, the time zone and the locale are the phone's
                 SettingNode.Section(text("settings_format_timezone"), listOf(
-                    choice("timezone_override", text("app_config_format_timezone_override"), text("app_config_schema_format_timezone_override"), TIMEZONES)
+                    timezones().let { (zones, labels) -> choice("timezone_override", text("app_config_format_timezone_override"), text("app_config_schema_format_timezone_override"), zones, labels) }
                 )),
                 SettingNode.Section(text("settings_format_locale_section"), listOf(
-                    choice("locale_override", text("app_config_format_locale_override"), text("app_config_schema_format_locale_override"), LOCALES)
+                    locales().let { (locales, labels) -> choice("locale_override", text("app_config_format_locale_override"), text("app_config_schema_format_locale_override"), locales, labels) }
                 )),
                 SettingNode.Section(text("settings_format_display_section"), listOf(
                     // Absent, the phone's habit

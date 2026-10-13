@@ -571,6 +571,9 @@ private fun loadFieldDefinitionsFromConfig(
     return fields
 }
 
+/** From how many options a single choice offers a search above its list. */
+private const val CHOICE_SEARCH_FROM = 30
+
 /**
  * Input for a CHOICE field, by shape: a selection for one option, checkboxes for several, the
  * options with up and down buttons for a ranking. An open choice adds a box to type a value the
@@ -600,9 +603,19 @@ private fun ChoiceInput(
                 // Shown by their labels; an optional choice offers "none" first, which empties it
                 val none = s.shared("field_choice_none")
                 val byLabel = options.associateBy { settings.labelOf(it) }
+                // A long list (the time zones) is narrowed by what is typed above it
+                var query by rememberSaveable(fieldDef.name) { mutableStateOf("") }
+                if (byLabel.size > CHOICE_SEARCH_FROM) UI.FormField(
+                    label = s.shared("field_choice_search"),
+                    value = query,
+                    onChange = { query = it },
+                    fieldType = UIFieldType.SEARCH,
+                    required = false
+                )
+                val shown = byLabel.keys.filter { query.isBlank() || it.contains(query.trim(), ignoreCase = true) }
                 UI.FormSelection(
                     label = fieldDef.displayName,
-                    options = (if (required) emptyList() else listOf(none)) + byLabel.keys,
+                    options = (if (required) emptyList() else listOf(none)) + shown,
                     selected = value?.toString()?.let { settings.labelOf(it) } ?: (if (required) "" else none),
                     onSelect = { label -> onChange(byLabel[label]) },
                     required = required
