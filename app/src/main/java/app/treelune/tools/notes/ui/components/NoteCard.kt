@@ -142,6 +142,17 @@ fun NoteCard(
                         }
                     )
 
+                    // The note as text: its title, when titles are shown, then its content
+                    UI.ActionButton(
+                        action = ButtonAction.COPY,
+                        display = ButtonDisplay.ICON,
+                        size = Size.S,
+                        onClick = {
+                            onContextMenuChanged(false)
+                            UI.copy(context, listOfNotNull(title, note.content.trim().takeIf { it.isNotEmpty() }).joinToString("\n\n"))
+                        }
+                    )
+
                     UI.ActionButton(
                         action = ButtonAction.DELETE,
                         display = ButtonDisplay.ICON,

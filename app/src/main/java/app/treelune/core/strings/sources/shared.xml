@@ -37,6 +37,7 @@
     <string name="action_select">Select</string>
     <string name="action_up">Move up</string>
     <string name="action_down">Move down</string>
+    <string name="action_copy">Copy</string>
     <string name="action_left">Previous</string>
     <string name="action_right">Next</string>
     <string name="action_ai_chat">AI assistant</string>
@@ -538,7 +539,7 @@
     <string name="message_no_tools_in_zone">No tool in this zone</string>
     <string name="message_no_items_in_group">No item in this group</string>
     <string name="error_tooltype_not_found">Tool type \'%1$s\' not found</string>
-    <string name="message_copied">Message copied</string>
+    <string name="text_copied">Copied</string>
     <string name="duplicate_success_tool">Tool duplicated successfully</string>
     <string name="duplicate_success_automation">Routine duplicated successfully</string>
     <string name="duplicate_no_tools">No tool available to duplicate</string>

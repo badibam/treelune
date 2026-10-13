@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import app.treelune.core.bugreport.BugReport
 import app.treelune.core.strings.Strings
 import app.treelune.core.ui.ButtonAction
+import app.treelune.core.ui.ButtonDisplay
 import app.treelune.core.ui.ButtonType
 import app.treelune.core.ui.CardType
 import app.treelune.core.ui.FieldType
@@ -70,9 +71,11 @@ fun BugReportScreen(onBack: () -> Unit) {
             UI.Button(type = ButtonType.PRIMARY, onClick = { report?.let { share(context, it, s.shared("bug_report_subject").format(app.treelune.BuildConfig.VERSION_NAME), s.shared("bug_report_send")) } }) {
                 UI.Text(s.shared("bug_report_send"), TextType.LABEL)
             }
+            // The report to paste elsewhere than the share sheet offers
+            report?.let { text -> UI.ActionButton(action = ButtonAction.COPY, display = ButtonDisplay.LABEL, onClick = { UI.copy(context, text) }) }
             UI.Card(type = CardType.DEFAULT, size = Size.M) {
                 Column(modifier = Modifier.fillMaxWidth().padding(UI.Space.L)) {
-                    UI.Text(report ?: s.shared("message_loading"), TextType.CAPTION)
+                    UI.Text(report ?: s.shared("message_loading"), TextType.CAPTION, selectable = report != null)
                 }
             }
         }

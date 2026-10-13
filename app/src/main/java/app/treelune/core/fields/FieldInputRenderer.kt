@@ -431,7 +431,8 @@ fun CustomFieldsDisplay(
     val s = Strings.`for`(context = context)
 
     when (layout) {
-        FieldsLayout.EXPANDED -> Column(
+        // An entry read on its own, nothing on it reacting to a touch: its values can be selected
+        FieldsLayout.EXPANDED -> UI.Selectable { Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(UI.Space.M)
         ) {
@@ -441,7 +442,7 @@ fun CustomFieldsDisplay(
                     FieldValue(field, values[field.name], context)
                 }
             }
-        }
+        } }
 
         FieldsLayout.LINE -> Column(
             modifier = Modifier.fillMaxWidth(),

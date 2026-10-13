@@ -301,18 +301,20 @@ private fun LogEntryCard(log: LogEntry, s: app.treelune.core.strings.StringsCont
                 )
             }
 
-            // Message
-            UI.Text(
-                text = log.message,
-                type = TextType.BODY
-            )
-
-            // Throwable (if any)
-            log.throwableMessage?.let { throwable ->
-                UI.Text(
-                    text = throwable,
-                    type = TextType.CAPTION
-                )
+            // Message and throwable, selectable: a line is often pasted into a bug report
+            UI.Selectable {
+                Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+                    UI.Text(
+                        text = log.message,
+                        type = TextType.BODY
+                    )
+                    log.throwableMessage?.let { throwable ->
+                        UI.Text(
+                            text = throwable,
+                            type = TextType.CAPTION
+                        )
+                    }
+                }
             }
         }
     }

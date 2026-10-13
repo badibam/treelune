@@ -121,15 +121,35 @@ object UI {
     // DISPLAY
     // =====================================
     
+    /**
+     * A text, in the theme's look. [selectable] lets Android's selection take a part of it: for a
+     * text the user or the AI wrote, shown read only, outside anything a touch or a long press
+     * acts on (that gesture would be the selection's) — never the app's own words.
+     */
     @Composable
     fun Text(
         text: String,
         type: TextType,
         fillMaxWidth: Boolean = false,
         textAlign: TextAlign? = null,
-        maxLines: Int = Int.MAX_VALUE
+        maxLines: Int = Int.MAX_VALUE,
+        selectable: Boolean = false
     ) {
-        CurrentTheme.current.Text(text, type, fillMaxWidth, textAlign, maxLines)
+        if (selectable) Selectable { CurrentTheme.current.Text(text, type, fillMaxWidth, textAlign, maxLines) }
+        else CurrentTheme.current.Text(text, type, fillMaxWidth, textAlign, maxLines)
+    }
+
+    /** [content] whose texts Android's selection can take, as one: the rule of [Text]'s selectable. */
+    @Composable
+    fun Selectable(content: @Composable () -> Unit) {
+        androidx.compose.foundation.text.selection.SelectionContainer { content() }
+    }
+
+    /** [text] put in the clipboard, said by a toast: the one way the app copies. */
+    fun copy(context: Context, text: String) {
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Treelune", text))
+        Toast(context, app.treelune.core.strings.Strings.`for`(context = context).shared("text_copied"), Duration.SHORT)
     }
     
     /**
