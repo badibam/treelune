@@ -405,8 +405,17 @@ object RetroTheme : ThemeContract {
 
     @Composable
     override fun DragHandle() {
-        Box(modifier = Modifier.padding(retroGrid().cells(1))) {
+        // As wide as the grip, a cell above and under it: the text beside it keeps the width
+        Box(modifier = Modifier.padding(vertical = retroGrid().cells(1))) {
             CompositionLocalProvider(LocalRetroInk provides retroSurface.dim.srgb) { NamedIcon("grip-vertical", null) }
+        }
+    }
+
+    /** The grip on its own row of the grid, centred: as high as the icon. */
+    @Composable
+    override fun DragBar() {
+        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            CompositionLocalProvider(LocalRetroInk provides retroSurface.dim.srgb) { NamedIcon("grip-horizontal", null) }
         }
     }
 

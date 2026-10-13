@@ -282,7 +282,7 @@ fun NotesScreen(
                                 onContextMenuChanged = { showMenu ->
                                     contextMenuNoteId = if (showMenu) note.id else null
                                 },
-                                dragHandle = { DragHandle() },
+                                dragHandle = { DragBar(null) },
                                 onAddAbove = {
                                     openCreateDialog(note.position)
                                 },

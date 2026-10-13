@@ -62,25 +62,27 @@ fun AccessCard(title: String, help: String, access: AccessMask, onChange: (Acces
             // What it reads all the same: the tools sent to every AI, the user's own choice
             UI.Text(s.shared("access_always_sent"), TextType.CAPTION)
 
+            // Each thing on two floors: its name across the width with the way to take it out,
+            // then its level, a field never sharing the name's line
             access.grants.forEachIndexed { index, grant ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(UI.Space.S),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val kind = s.shared(if (grant.target.kind == ReferenceKind.ZONE) "ai_enrichment_pointer_zone" else "ai_enrichment_pointer_tool")
-                    val name = rememberReferenceName(grant.target, context) ?: s.shared("tools_loading")
-                    Box(modifier = Modifier.weight(1f)) { UI.Text("$kind · $name", TextType.BODY) }
-                    Box(modifier = Modifier.weight(1f)) {
-                        FieldInput(levels, grant.level.key, { chosen ->
-                            (chosen as? String)?.let { key ->
-                                onChange(access.copy(grants = access.grants.mapIndexed { i, g -> if (i == index) g.copy(level = AccessLevel.of(key)) else g }))
-                            }
-                        }, context, required = true)
+                Column(verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(UI.Space.S),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        val kind = s.shared(if (grant.target.kind == ReferenceKind.ZONE) "ai_enrichment_pointer_zone" else "ai_enrichment_pointer_tool")
+                        val name = rememberReferenceName(grant.target, context) ?: s.shared("tools_loading")
+                        Box(modifier = Modifier.weight(1f)) { UI.Text("$kind · $name", TextType.BODY) }
+                        UI.ActionButton(action = ButtonAction.DELETE, display = ButtonDisplay.ICON, size = Size.S, onClick = {
+                            onChange(access.copy(grants = access.grants.filterIndexed { i, _ -> i != index }))
+                        })
                     }
-                    UI.ActionButton(action = ButtonAction.DELETE, display = ButtonDisplay.ICON, size = Size.S, onClick = {
-                        onChange(access.copy(grants = access.grants.filterIndexed { i, _ -> i != index }))
-                    })
+                    FieldInput(levels, grant.level.key, { chosen ->
+                        (chosen as? String)?.let { key ->
+                            onChange(access.copy(grants = access.grants.mapIndexed { i, g -> if (i == index) g.copy(level = AccessLevel.of(key)) else g }))
+                        }
+                    }, context, required = true)
                 }
             }
 

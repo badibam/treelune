@@ -1,5 +1,7 @@
 package app.treelune.core.ui.components
 
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Row
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
@@ -45,11 +47,23 @@ import androidx.compose.ui.zIndex
 import app.treelune.core.strings.Strings
 import app.treelune.core.themes.CurrentTheme
 
-/** What an item of a [ReorderableColumn] can place in its content. */
+/**
+ * What an item of a [ReorderableColumn] can place in its content: the grip it is dragged by,
+ * drawn by the theme, moving it in its own list only, never in an outer one. An item of one line
+ * takes the side grip; an item of several lines, the band across its top, which leaves its
+ * text the width.
+ */
 interface ReorderItemScope {
-    /** The grip the item is dragged by, drawn by the theme; its own list only, never an outer one. */
+    /** The grip at the side of an item of one line, as wide as its icon. */
     @Composable
     fun DragHandle()
+
+    /**
+     * The band across the top of an item of several lines, the whole of it a grip but [end],
+     * placed at its end (a block's deletion).
+     */
+    @Composable
+    fun DragBar(end: (@Composable () -> Unit)?)
 }
 
 /**
@@ -181,44 +195,50 @@ fun <T> ReorderableColumn(
                 )
 
                 var handleCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
+                // What makes a grip of the theme's drawing: the drag, and moving up or down for accessibility
+                val grip = Modifier
+                    .onGloballyPositioned { handleCoordinates = it }
+                    .semantics {
+                        customActions = listOfNotNull(
+                            CustomAccessibilityAction(s.shared("action_up")) { move(index, index - 1); true }
+                                .takeIf { index > 0 },
+                            CustomAccessibilityAction(s.shared("action_down")) { move(index, index + 1); true }
+                                .takeIf { index < shown.size - 1 }
+                        )
+                    }
+                    .pointerInput(Unit) {
+                        fun rootY(position: Offset) = handleCoordinates?.localToRoot(position)?.y ?: 0f
+                        detectDragGestures(
+                            onDragStart = { position ->
+                                fingerInRoot = rootY(position)
+                                grabInItem = fingerInRoot - columnTopInRoot - (tops[currentIndex] ?: 0f)
+                                dragged = currentIndex
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                            },
+                            onDrag = { change, _ ->
+                                change.consume()
+                                fingerInRoot = rootY(change.position)
+                            },
+                            onDragEnd = {
+                                val from = currentIndex
+                                val to = targetOf(from)
+                                dragged = null
+                                move(from, to)
+                            },
+                            onDragCancel = { dragged = null }
+                        )
+                    }
                 val scope = object : ReorderItemScope {
                     @Composable
                     override fun DragHandle() {
-                        Box(
-                            modifier = Modifier
-                                .onGloballyPositioned { handleCoordinates = it }
-                                .semantics {
-                                    customActions = listOfNotNull(
-                                        CustomAccessibilityAction(s.shared("action_up")) { move(index, index - 1); true }
-                                            .takeIf { index > 0 },
-                                        CustomAccessibilityAction(s.shared("action_down")) { move(index, index + 1); true }
-                                            .takeIf { index < shown.size - 1 }
-                                    )
-                                }
-                                .pointerInput(Unit) {
-                                    fun rootY(position: Offset) = handleCoordinates?.localToRoot(position)?.y ?: 0f
-                                    detectDragGestures(
-                                        onDragStart = { position ->
-                                            fingerInRoot = rootY(position)
-                                            grabInItem = fingerInRoot - columnTopInRoot - (tops[currentIndex] ?: 0f)
-                                            dragged = currentIndex
-                                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        },
-                                        onDrag = { change, _ ->
-                                            change.consume()
-                                            fingerInRoot = rootY(change.position)
-                                        },
-                                        onDragEnd = {
-                                            val from = currentIndex
-                                            val to = targetOf(from)
-                                            dragged = null
-                                            move(from, to)
-                                        },
-                                        onDragCancel = { dragged = null }
-                                    )
-                                }
-                        ) {
-                            CurrentTheme.current.DragHandle()
+                        Box(modifier = grip) { CurrentTheme.current.DragHandle() }
+                    }
+
+                    @Composable
+                    override fun DragBar(end: (@Composable () -> Unit)?) {
+                        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Box(modifier = Modifier.weight(1f).then(grip)) { CurrentTheme.current.DragBar() }
+                            end?.invoke()
                         }
                     }
                 }

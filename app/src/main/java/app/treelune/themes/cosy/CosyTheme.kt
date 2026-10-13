@@ -389,8 +389,16 @@ object CosyTheme : ThemeContract {
 
     @Composable
     override fun DragHandle() {
-        Box(modifier = Modifier.padding(cosySize().dp(8f))) {
+        // As wide as the grip, a finger's height: the text beside it keeps the width
+        Box(modifier = Modifier.padding(vertical = cosySize().dp(12f))) {
             NamedIcon("grip-vertical", null, cosySize().icon, cosyColors.dim.srgb)
+        }
+    }
+
+    @Composable
+    override fun DragBar() {
+        Box(modifier = Modifier.fillMaxWidth().padding(vertical = cosySize().dp(2f)), contentAlignment = Alignment.Center) {
+            NamedIcon("grip-horizontal", null, cosySize().icon, cosyColors.dim.srgb)
         }
     }
 

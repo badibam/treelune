@@ -772,15 +772,31 @@ object DefaultTheme : ThemeContract {
         val iconResource = requireNotNull(app.treelune.core.icons.Icons.drawable(context, "grip-vertical")) {
             "No drawable for the icon grip-vertical"
         }
-        // Padded to a finger's width: the grip is small, the place it is taken by is not
+        // As wide as the grip, a finger's height: the text beside it keeps the width
         Icon(
             painter = painterResource(iconResource),
             contentDescription = null,
             modifier = Modifier
-                .padding(8.dp)
+                .padding(vertical = 14.dp)
                 .size(20.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
+    }
+
+    @Composable
+    override fun DragBar() {
+        val context = LocalContext.current
+        val iconResource = requireNotNull(app.treelune.core.icons.Icons.drawable(context, "grip-horizontal")) {
+            "No drawable for the icon grip-horizontal"
+        }
+        Box(modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp), contentAlignment = Alignment.Center) {
+            Icon(
+                painter = painterResource(iconResource),
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 
     @Composable
