@@ -13,7 +13,6 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 
 À régler avant de soumettre :
 
-- Ce que la campagne 1 a trouvé dans l'app (`docs/design/bench-campaign-1.md`, « Ce qui ne vient pas des modèles ») : `completed` absent du schéma de réponse forcé, qu'une automation demande pourtant ; une lecture de variable au début d'un jour qui vaut 0, que le prompt ne signale pas ; une écriture dans un outil inexistant qui reçoit une erreur de `SchemaNotation` ; « Failed to parse custom field » brut de `ToolInstanceService`.
 - L'importeur propose en champ nouveau une colonne qui nomme un champ que `tool_data` n'écrit pas (`state.*`, `created_at`) : il doit demander au service ce qui s'écrit, et écarter le reste en le disant.
 - Les chapitres de Prise en main du Guide (`docs/design/user-journey.md`, « Prise en main ») : des ébauches, à écrire ensemble en séance dédiée, chacun nommant tout ce que montrent ses écrans, et le contrôle de ses réglages (`covers`, même section) codé avec eux, avec les premiers sujets d'Approfondissement, partie cachée tant qu'elle est vide — Organiser couvre aussi les groupes d'outils d'une zone ; puis élaguer la spec, ses garanties devenant des tests.
 
@@ -31,7 +30,6 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 ## Bugs
 
 - Réglages › Interface : un thème choisi, vu, enregistré, et l'ancien revient ; une seconde fois, ça tient (2026-10-09, pas reproduit, peut-être dans la release). Au prochain cas, lire dans le journal les lignes « Theme applied » : laquelle a remis l'ancien (STORED, PREVIEW, LEFT_UNSAVED).
-- Une automation IA lancée par l'alarme du planificateur (`SchedulerAlarm`), app fermée : Android ne garde l'app éveillée que le temps du tick (50 s au plus), un tour d'IA peut être coupé. Un service au premier plan, du type de `McpAccessService`, allumé quand un tour commence et éteint quand l'IA n'a plus rien à faire ou attend une validation, sa notification nommant l'automation ; lire d'abord où la machine à états dit « tour en cours » et « en attente ».
 
 ### Bloc 1 — la place à l'écran : des règles pour toute l'app
 
@@ -71,6 +69,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - Le serveur MCP (`docs/design/mcp-server.md`, `core/mcp`, migration 60) ; le relais (projet `relay`) est en ligne sur `https://relay.badibam.fr` depuis le 2026-10-05, Claude s'y est branché comme connecteur depuis le téléphone ; l'hébergement tient une requête 120 s, `RelayLoop.WAIT_SECONDS` = 20 reste en dessous : la section « Accès externe ».
 - L'accès externe par Tailscale Funnel (`docs/design/funnel-access.md`) : sa section (migration 68), puis élaguer aussi `funnel-poc.md`.
 - Ce qui a changé le 2026-10-11, vu en debug seulement ou pas du tout : la migration 73 (le compteur devient numérique) sur la release et ses données, l'avertissement d'arrière-plan sur une installation neuve, les automations et leurs accès, une fenêtre flottante longue dans le cosy (Mise à jour et démarrage, Automations, Réglages et affichage).
+- Ce qui a changé le 2026-10-13 (branche ai-runtime) : une routine lancée app fermée et sa notification (Automations) ; la réflexion d'une conversation, la migration 74, ses cases de validation gardées, une écriture dans un outil qui n'existe pas, un champ sans nom affiché (Chat IA).
 - Les réglages de réflexion de chaque fournisseur, en envoyant une requête : Claude (Sonnet 5.5 sans réflexion par `between_tools`, Opus 5.5 sans « Sans réflexion », Haiku 4.5 sans effort), OpenAI (un modèle à `none`, un modèle qu'aucun fait ne couvre), DeepSeek (effort obligatoire, sans réflexion) ; le changement de modèle qui vide les deux réglages, l'enregistrement d'une combinaison refusée.
 
 ## Conçu, à coder
@@ -79,7 +78,7 @@ Une spec existe dans `docs/design/`.
 
 - Les conditions typées à l'écriture (`docs/design/typed-conditions.md`) : le type de chaque côté d'une condition connu sans lire de données, les constantes de l'IA traduites à l'entrée, la vérification au service, et le refus d'un changement dont dépend une condition ailleurs.
 - L'historique des écritures et leur annulation (`docs/design/undo-history.md`) : un pas par opération demandée de l'extérieur, la ligne entière avant et après, écrite par une seule classe que garde un script, 30 jours, le service `history` ouvert à l'IA, son écran.
-- Modèles libres (`docs/design/local-models.md`) : le banc est en place et rodé ; la campagne 1 a tourné le 2026-10-04 (190 scénarios en 5 h 15, 1,35 $ comptés hors réponses coupées, tableau dans `bench-results/2026-10-04_1326/summary.md`), ses échecs relus dans `docs/design/bench-campaign-1.md` ; les niveaux de prompt se décident après les corrections de l'app qu'elle a trouvées (Bugs) et une campagne rejouée.
+- Modèles libres (`docs/design/local-models.md`) : le banc est en place et rodé ; la campagne 1 a tourné le 2026-10-04 (190 scénarios en 5 h 15, 1,35 $ comptés hors réponses coupées, tableau dans `bench-results/2026-10-04_1326/summary.md`), ses échecs relus dans `docs/design/bench-campaign-1.md` ; les corrections de l'app qu'elle a trouvées sont faites (2026-10-13) : les niveaux de prompt se décident après une campagne rejouée.
 
 ## À concevoir
 
@@ -130,7 +129,6 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 - Limite trop courte pour sequence dans seance, on va repasser sur tiutes les limites de texte au sein de l'app
 - Quand clavier ouvert : il faidraot toujours avoir au moins la taille du clavier en + en bas de page, de façon à pouvoir affocher jusqu au bas de page.
 - Pb fudeau horaire : pas d'option qui convienne par exemple pour le portugal
-- Réglage de thinking et effort en cours de conv
 
 ## En attente d'un déclencheur
 
