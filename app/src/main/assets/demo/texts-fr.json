@@ -102,7 +102,7 @@
   "chart_kcal_name": "Calories du jour",
   "chart_kcal_description": "Les calories de chaque jour, calculées par kcal_jour_demo, en barres rouges au-dessus de objectif_calorique_demo, tracé en pointillés.",
   "shopping_name": "Courses",
-  "shopping_description": "Ce qui manque au placard. L'automation « Menu de la semaine » y ajoute ce que demandent les repas prévus.",
+  "shopping_description": "Ce qui manque au placard. L'automatisation « Menu de la semaine » y ajoute ce que demandent les repas prévus.",
   "recipes_name": "Recettes",
   "recipes_description": "Des notes libres, dans l'ordre qu'on leur donne : les recettes qui reviennent.",
   "hours_project_identity": "Identité visuelle",
