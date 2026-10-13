@@ -1764,6 +1764,9 @@ class AIEventProcessor(
      * Deleting needs no schema: it reads no value. The schemas are stored whatever their size —
      * the threshold guards the user's data, and a schema refused would leave the AI stuck.
      *
+     * A schema that cannot be read (a tool that does not exist, most often) refuses the writes
+     * as a command error, in the service's words: nothing is done, and the AI corrects them.
+     *
      * @return true when the writes were held back, so the caller must not carry on
      */
     private suspend fun holdWritesForSchemas(sessionId: String, message: AIMessage): Boolean {
@@ -1772,7 +1775,31 @@ class AIEventProcessor(
             .mapNotNull { it.params["tool_instance_id"] as? String }
         if (writtenTools.isEmpty()) return false
 
-        val systemMessage = commandExecutor.schemaRequiredForWrites(writtenTools, sessionId) ?: return false
+        val systemMessage = try {
+            commandExecutor.schemaRequiredForWrites(writtenTools, sessionId) ?: return false
+        } catch (e: CommandExecutor.UnreadableSchema) {
+            LogManager.aiSession("Writes refused: ${e.message}", "WARN")
+            val s = app.treelune.core.strings.Strings.`for`(context = context)
+            messageRepository.storeMessage(sessionId, SessionMessage(
+                id = java.util.UUID.randomUUID().toString(),
+                timestamp = System.currentTimeMillis(),
+                sender = MessageSender.SYSTEM,
+                richContent = null,
+                textContent = null,
+                aiMessage = null,
+                aiMessageJson = null,
+                systemMessage = app.treelune.core.ai.data.SystemMessage(
+                    type = SystemMessageType.FORMAT_ERROR,
+                    commandResults = emptyList(),
+                    summary = s.shared("ai_command_error_shown"),
+                    formattedData = s.shared("ai_error_command_transformation").format(e.reason)
+                ),
+                executionMetadata = null,
+                excludeFromPrompt = false
+            ))
+            emit(AIEvent.ParseErrorOccurred(e.message ?: "unreadable schema"))
+            return true
+        }
         messageRepository.storeMessage(sessionId, SessionMessage(
             id = java.util.UUID.randomUUID().toString(),
             timestamp = System.currentTimeMillis(),

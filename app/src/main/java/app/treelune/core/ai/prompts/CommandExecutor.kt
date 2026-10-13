@@ -996,7 +996,7 @@ class CommandExecutor(private val context: Context) {
      * in [knownSchemas], fetched: the schemas a command on those tools waits on.
      *
      * @throws UnreadableSchema when one of them cannot be read: the commands waiting on it go no
-     *   further, and the reason reaches the model (a parse error for writes, which it answers
+     *   further, and the reason reaches the model (a command error for writes, which it answers
      *   by correcting them; a system error for queries)
      */
     private suspend fun missingEntrySchemas(
@@ -1028,8 +1028,8 @@ class CommandExecutor(private val context: Context) {
         return missingSchemas
     }
 
-    /** The entries schema of the tool [toolInstanceId] could not be read, for [reason]. */
-    class UnreadableSchema(toolInstanceId: String, reason: String) :
+    /** The entries schema of the tool [toolInstanceId] could not be read, for [reason] (the service's words). */
+    class UnreadableSchema(val toolInstanceId: String, val reason: String) :
         IllegalStateException("Cannot read the entries schema of tool $toolInstanceId: $reason")
 
     /**

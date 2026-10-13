@@ -67,7 +67,9 @@ class SchemaService(private val context: Context) : ExecutableService {
         LogManager.service("SchemaService.get() called with tooltype='$tooltype', toolInstanceId='$toolInstanceId', id='$schemaId'")
 
         val schema = when {
+            // A tool that does not exist is said so, rather than taken for a schema missing
             toolInstanceId.isNotEmpty() -> entrySchema(toolInstanceId)
+                ?: return OperationResult.error(s.shared("service_error_schema_tool_not_found").format(toolInstanceId))
             tooltype.isNotEmpty() -> configSchema(tooltype)
             schemaId.isNotEmpty() -> getSystemSchema(schemaId)
             else -> return OperationResult.error(s.shared("service_error_schema_target_missing"))
@@ -98,7 +100,8 @@ class SchemaService(private val context: Context) : ExecutableService {
         app.treelune.core.database.AppDatabase.getDatabase(context).toolInstanceDao().getToolInstanceById(toolInstanceId)?.tooltype
 
     /**
-     * The schema of the entries of the tool [toolInstanceId], from its current config.
+     * The schema of the entries of the tool [toolInstanceId], from its current config; null when
+     * there is no such tool.
      *
      * @throws IllegalStateException when the tool's config or fields cannot be read: an error
      *   for the caller, not a schema that does not exist

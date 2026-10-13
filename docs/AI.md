@@ -420,6 +420,7 @@ Event DataQueriesExecuted:
 Event SchemaRequired (écritures sur un outil dont l'IA n'a pas reçu le schéma des entrées dans la session) :
   → émis par parseAIResponse, avant la validation : rien n'est exécuté ni soumis à l'utilisateur
   → message SCHEMA_REQUIRED avec les schémas manquants, transition CALLING_AI
+  → un schéma illisible (un outil qui n'existe pas) refuse les écritures comme une commande erronée, dans les mots du service : ParseErrorOccurred
 
 Event DataConfirmationRequested (CHAT, données au-delà du seuil):
   → transition WAITING_DATA_CONFIRMATION
