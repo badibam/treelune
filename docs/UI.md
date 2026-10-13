@@ -195,6 +195,8 @@ Pattern LaunchedEffect pour afficher et reset automatiquement les messages d'err
 
 **ButtonRow** - Toute rangée de boutons : côte à côte s'ils tiennent tous à leur largeur, sinon chacun sur sa ligne en pleine largeur, dans l'ordre donné (le principal d'abord) — jamais une partie seulement renvoyée à la ligne. `UI.FormActions` en est la version centrée. Un bouton s'étire en lisant `LocalButtonFill`, que chaque thème honore. Un texte ne partage pas la ligne de ses boutons : il passe au-dessus.
 
+**ChoiceGrid** - Des choix d'une même taille (couleurs, icônes) : autant de colonnes que la largeur en tient à la taille d'une case d'exemple, chaque ligne partagée à parts égales ; jamais un nombre par ligne écrit dans un écran. Des éléments de tailles différentes (pastilles, valeurs) passent à la ligne par `FlowRow`.
+
 ### Pattern State/Controller
 **RecordingController** - Logique métier expose `StateFlow<RecordingState>` observable. Actions via méthodes (start, pause, resume, validate).
 
