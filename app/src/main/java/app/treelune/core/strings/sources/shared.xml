@@ -1990,4 +1990,5 @@
     <string name="nav_chat">Conversation</string>
     <string name="automation_run_channel">Routines running</string>
     <string name="automation_run_notification_text">Routine running</string>
+    <string name="ai_schema_field_completed_desc">AUTOMATION only: true once the whole work is finished, never after an intermediate step. Not used in a CHAT.</string>
 </resources>
