@@ -1049,8 +1049,15 @@ private fun ChatHeader(
     var showStopConfirmation by rememberSaveable { mutableStateOf(false) }
     var showSettingsMenu by rememberSaveable { mutableStateOf(false) }
     var showSessionSettings by rememberSaveable { mutableStateOf(false) }
-    // What the session adds to the protections, as last saved from its settings
+    // What the session adds to the protections, as stored: the active session reaches this
+    // header built from the AI's state alone, without its settings
     var validation by remember(session.id) { mutableStateOf(session.validation) }
+    LaunchedEffect(session.id) {
+        val result = app.treelune.core.coordinator.Coordinator(context).processUserAction("ai_sessions.get_session", mapOf("session_id" to session.id))
+        val stored = result.data?.get("session") as? Map<*, *>
+        if (result.status == CommandStatus.SUCCESS && stored != null) validation = SessionValidation.fromMap(stored)
+        else LogManager.aiUI("ChatHeader: session ${session.id} not read: ${result.error}", "ERROR")
+    }
 
     // Stop confirmation dialog
     if (showStopConfirmation) {
