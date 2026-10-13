@@ -37,6 +37,15 @@ object SessionSlotPolicy {
     const val AUTOMATION_GLOBAL_TIMEOUT = 600_000L
 
     /**
+     * How long an automation closed for the network (AIStateMachine.AUTOMATION_NETWORK_WAIT_LIMIT)
+     * stays closed before it is resumed. Taken up at once, it would wait and close again in a
+     * loop. Half the interval of the scheduler's alarm (SchedulerAlarm.INTERVAL), which rings at
+     * any moment of the session's life: the full interval would let the first ring after the
+     * closing fall short of it, and the automation wait for the next one.
+     */
+    const val NETWORK_RESUME_PAUSE = app.treelune.core.scheduling.SchedulerAlarm.INTERVAL / 2
+
+    /**
      * Decide what to do with a session that asks to run.
      *
      * Either the slot is free and it starts, or it is taken and the answer depends on who
@@ -286,6 +295,16 @@ object SessionSlotPolicy {
 
         return totalTime - downTime
     }
+
+    /**
+     * Whether an incomplete automation session can be resumed now: always, except one closed for
+     * the network less than [NETWORK_RESUME_PAUSE] ago.
+     *
+     * @param endReason The session's end reason, null when it was cut without one
+     * @param closedAt When the session last changed, its closing for a closed one
+     */
+    fun resumableNow(endReason: SessionEndReason?, closedAt: Long, currentTime: Long): Boolean =
+        endReason != SessionEndReason.NETWORK_ERROR || currentTime - closedAt >= NETWORK_RESUME_PAUSE
 }
 
 /**

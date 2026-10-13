@@ -336,7 +336,7 @@ La recherche de la prochaine occurrence démarre au plus tôt à `maintenant −
 
 **Continuation automatique** : Après succès actions, AUTOMATION continue automatiquement (pas de keepControl requis).
 
-**Réseau** : Retry infini avec delay 30s si offline. Phase `WAITING_NETWORK_RETRY` (watchdog ne timeout pas).
+**Réseau** : nouvel essai toutes les 30 s, phase `WAITING_NETWORK_RETRY` (le watchdog ne la compte pas). Après 2 min d'attente en tout (`AIStateMachine.AUTOMATION_NETWORK_WAIT_LIMIT`), la session se ferme en `NETWORK_ERROR`, pour ne pas garder le téléphone éveillé tant que le réseau manque ; le planificateur la reprend 5 min après au plus tôt (`SessionSlotPolicy.NETWORK_RESUME_PAUSE`) et ne lance pas d'autre occurrence de la même automation entre-temps.
 
 **Communication modules** : Interdits pour AUTOMATION (validationRequest, communicationModule ignorés).
 
@@ -355,7 +355,7 @@ La recherche de la prochaine occurrence démarre au plus tôt à `maintenant −
 ### Reprise sessions
 Détection automatique sessions orphelines par AutomationScheduler :
 - **endReason null** : Crash/interruption → une AUTOMATION reprend de façon transparente, sauf pendant des actions ; un CHAT coupé en plein tour est interrompu (ci-dessous)
-- **NETWORK_ERROR** : Échec réseau → reprise avec retry
+- **NETWORK_ERROR** : 2 min sans réseau → reprise après une pause de 5 min
 - **SUSPENDED** : Éviction système → reprise quand slot libre
 
 **Transparence** : Pas de message système, IA ne sait pas qu'elle reprend (continue naturellement).
@@ -373,7 +373,7 @@ Raison d'arrêt session (audit + logique reprise). Une AUTOMATION se reprend san
 - **CANCELLED** : User STOP (ne reprend pas)
 - **INTERRUPTED** : app fermée pendant les actions (ne reprend pas, une action serait faite deux fois)
 - **SUSPENDED** : Éviction système (reprend plus tard)
-- **NETWORK_ERROR** : Échec réseau (reprend avec retry)
+- **NETWORK_ERROR** : 2 min sans réseau (reprend après sa pause)
 - **null** : Crash/interruption (reprend)
 
 ## 7. Event loop et boucles autonomes
