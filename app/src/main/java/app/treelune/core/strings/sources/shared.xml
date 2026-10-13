@@ -1988,4 +1988,17 @@
     <string name="nav_execution">Execution</string>
     <string name="nav_seed">Starting message</string>
     <string name="nav_chat">Conversation</string>
+    <string name="automation_run_channel">Routines running</string>
+    <string name="automation_run_notification_text">Routine running</string>
+    <string name="ai_schema_field_completed_desc">AUTOMATION only: true once the whole work is finished, never after an intermediate step. Not used in a CHAT.</string>
+    <string name="service_error_schema_tool_not_found">No tool has the id \'%1$s\'.</string>
+    <string name="session_reasoning_title">Reasoning</string>
+    <string name="session_reasoning_follow_provider">As set for the AI provider</string>
+    <string name="session_reasoning_help">Applies to the rest of this conversation, in place of the AI provider\'s setting.</string>
+    <string name="session_reasoning_summary">Reasoning: %1$s</string>
+    <string name="session_reasoning_summary_provider">as set for the provider</string>
+    <string name="session_reasoning_summary_off">no thinking, effort %1$s</string>
+    <string name="session_reasoning_summary_effort">effort %1$s</string>
+    <string name="session_reasoning_error">Failed to change the reasoning</string>
+    <string name="ai_session_reasoning_refused_shown">The reasoning set for this conversation does not suit the AI\'s current model: change it in the conversation\'s settings.</string>
 </resources>

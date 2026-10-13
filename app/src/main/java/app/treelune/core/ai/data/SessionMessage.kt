@@ -73,6 +73,7 @@ data class AISession(
     val name: String,
     val type: SessionType,         // CHAT, AUTOMATION, SEED
     val validation: SessionValidation = SessionValidation(),
+    val reasoning: SessionReasoning? = null,     // null: its provider's config
     val waitingStateJson: String? = null,        // Persisted waiting state for app closure (null = no waiting)
     val automationId: String? = null,            // null for CHAT/SEED, automation ID for AUTOMATION
     val scheduledExecutionTime: Long? = null,    // For AUTOMATION: scheduled trigger time (not actual exec time)
@@ -104,6 +105,36 @@ data class SessionValidation(val app: Boolean = false, val zones: Boolean = fals
 
         /** The three from a session as the service hands it back; one missing throws. */
         fun fromMap(map: Map<*, *>) = SessionValidation(map[KEY_APP] as Boolean, map[KEY_ZONES] as Boolean, map[KEY_DATA] as Boolean)
+    }
+}
+
+/**
+ * The reasoning a conversation asks of its model, in place of its provider's config
+ * (ReasoningSettings): thinking off or not, and an effort, null for the model's default. A
+ * session without one follows its provider's config. Checked against the model at each call
+ * (AIProvider.configError): a provider changed since can refuse it, and the call is then refused.
+ */
+data class SessionReasoning(val thinkingOff: Boolean, val effort: String?) {
+
+    /** [config], a provider's, with these settings in place of its own. */
+    fun applyTo(config: org.json.JSONObject): org.json.JSONObject = org.json.JSONObject(config.toString()).apply {
+        if (thinkingOff) put(KEY_THINKING_OFF, true) else remove(KEY_THINKING_OFF)
+        if (effort != null) put(KEY_EFFORT, effort) else remove(KEY_EFFORT)
+    }
+
+    /** The two, under the keys a session is read and written with. */
+    fun toMap(): Map<String, Any?> = mapOf(KEY_THINKING_OFF to thinkingOff, KEY_EFFORT to effort)
+
+    companion object {
+        /** The key a session carries it under; null there, the provider's config is followed. */
+        const val KEY = "reasoning"
+        // The keys of a provider's config (ReasoningSettings)
+        const val KEY_THINKING_OFF = "thinking_off"
+        const val KEY_EFFORT = "effort"
+
+        /** The reasoning of a session as the service hands it back, or null when it follows its provider. */
+        fun fromMap(map: Map<*, *>?): SessionReasoning? =
+            map?.let { SessionReasoning(it[KEY_THINKING_OFF] as Boolean, it[KEY_EFFORT] as? String) }
     }
 }
 

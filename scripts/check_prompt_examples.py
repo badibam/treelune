@@ -7,14 +7,17 @@ promise it makes can stop being true without anything saying so. That has happen
 it announced an ISO timestamp while the schema declared a number, and it still taught a
 field type that a migration removed.
 
-This reads the prompt's JSON examples and asks five questions of them:
+This reads the prompt's JSON examples and asks six questions of them:
 
   1. does every example parse as JSON;
   2. does every custom field type it names still exist in FieldType;
   3. does every key the core's entry fields declare carry a value of the declared type;
   4. does every object carry the fields its schema requires;
   5. does every icon it names exist -- the icon index is the app's, so a name the model would
-     copy from an example is a name the app accepts.
+     copy from an example is a name the app accepts;
+  6. does every key of a response exist in the response schema -- a model forced to that
+     schema (OutputForcing.SCHEMA) cannot write a key it lacks, whatever the prompt asks:
+     `completed`, which ends an automation, was missing.
 
 Question 3 compares against the shape the *model* is given, not the stored one. A property
 the schema marks `"format": "epoch-millis"` is stored as a number and handed to the model as
@@ -155,6 +158,14 @@ def required_lists(path, name):
     return [keys for _, keys in sorted(found, key=lambda item: item[0])]
 
 
+def top_properties(path, name):
+    """The keys of the top-level `properties` of the schema built by `name`."""
+    body = function_body(path, name)
+    first = re.search(r'^(\s*)"properties"\s*:\s*\{', body, re.M)
+    indent = len(first.group(1)) + 2
+    return {key for spaces, key in re.findall(r'^(\s*)"(\w+)"\s*:', body, re.M) if len(spaces) == indent}
+
+
 def fenced_examples(text):
     """Every fenced ```json block of the prompt, whole, parsed -- or None when it elides.
 
@@ -176,9 +187,10 @@ def missing(obj, required, supplied=()):
 
 
 def required_problems(example, schemas):
-    """Every object of one whole example that lacks a field its schema requires."""
+    """Every object of one whole example that lacks a field its schema requires, and every
+    response that carries a key its schema does not have."""
     problems = []
-    response_required, data_required = schemas
+    response_required, data_required, response_keys_allowed = schemas
 
     def at(path, key):
         return f"{path}.{key}" if path else key
@@ -199,6 +211,9 @@ def required_problems(example, schemas):
             keys = missing(value, response_required)
             if keys:
                 report(path, "response", keys)
+            unknown = sorted(value.keys() - response_keys_allowed)
+            if unknown:
+                problems.append(f"response at {path or 'top level'} has {', '.join(unknown)}, absent from the response schema")
 
         params = value.get("params")
         if isinstance(params, dict):
@@ -274,6 +289,7 @@ def main():
     schemas = (
         required_lists(MESSAGE_SCHEMAS, "getAIMessageResponseSchemaContent")[0],
         entry_required(),
+        top_properties(MESSAGE_SCHEMAS, "getAIMessageResponseSchemaContent"),
     )
     whole_count = 0
     elided_count = 0

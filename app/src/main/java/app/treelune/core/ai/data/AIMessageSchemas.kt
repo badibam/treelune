@@ -48,6 +48,8 @@ object AIMessageSchemas {
      * - Mutual exclusivity between dataCommands, actionCommands, communicationModule
      * - validationRequest only valid with actionCommands
      * - postText shown after the actions succeed, or at once without actions
+     * - completed, the end of an AUTOMATION, present for every session type: a model forced to
+     *   this schema could not end one otherwise (AIStateMachine ignores it in a CHAT)
      */
     private fun getAIMessageResponseSchemaContent(context: Context): String {
         val s = Strings.`for`(context = context)
@@ -117,6 +119,10 @@ object AIMessageSchemas {
               "type": "object",
               "required": ["fields"],
               "description": "${s.shared("ai_schema_field_communication_module_desc")}"
+            },
+            "completed": {
+              "type": "boolean",
+              "description": "${s.shared("ai_schema_field_completed_desc")}"
             }
           },
           "additionalProperties": false

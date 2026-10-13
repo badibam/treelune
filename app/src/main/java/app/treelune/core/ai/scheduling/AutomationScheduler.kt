@@ -79,7 +79,8 @@ class AutomationScheduler(private val context: Context) {
      * Returns Resume/Create/None based on enabled automations and their states
      *
      * Logic:
-     * 1. Check ALL incomplete sessions (any automation, even disabled) → RESUME
+     * 1. Check ALL incomplete sessions (any automation, even disabled) → RESUME, unless closed
+     *    for the network less than SessionSlotPolicy.NETWORK_RESUME_PAUSE ago
      * 2. For each enabled automation WITH schedule (without incomplete session):
      *    - Calculate next execution time from last completed → CREATE if time passed
      * 3. Sort all candidates by scheduledTime ASC (oldest first)
@@ -101,6 +102,10 @@ class AutomationScheduler(private val context: Context) {
                 "DEBUG"
             )
 
+            // Automations whose incomplete session is closed for the network and still in its
+            // pause: neither resumed nor run anew meanwhile
+            val pausedAutomations = mutableSetOf<String>()
+
             for (incompleteSession in incompleteSessions) {
                 // scheduledExecutionTime must not be null for AUTOMATION sessions
                 if (incompleteSession.scheduledExecutionTime == null) {
@@ -117,6 +122,16 @@ class AutomationScheduler(private val context: Context) {
                         "AutomationScheduler: Skipping incomplete session ${incompleteSession.id} - automationId is null (data error)",
                         "ERROR"
                     )
+                    continue
+                }
+
+                val endReason = incompleteSession.endReason?.let { app.treelune.core.ai.data.SessionEndReason.valueOf(it) }
+                if (!SessionSlotPolicy.resumableNow(endReason, incompleteSession.lastEventTime, System.currentTimeMillis())) {
+                    LogManager.aiSession(
+                        "AutomationScheduler: Incomplete session ${incompleteSession.id} closed for the network, resumed after its pause",
+                        "DEBUG"
+                    )
+                    pausedAutomations.add(automationId)
                     continue
                 }
 
@@ -143,7 +158,7 @@ class AutomationScheduler(private val context: Context) {
                 LogManager.aiSession("AutomationScheduler: No enabled automations", "DEBUG")
             }
 
-            val automationsWithIncomplete = candidates.map { it.automationId }.toSet()
+            val automationsWithIncomplete = candidates.map { it.automationId }.toSet() + pausedAutomations
             val automationsWithSchedule = allEnabledAutomations
                 .filter { !it.scheduleJson.isNullOrEmpty() && !automationsWithIncomplete.contains(it.id) }
 

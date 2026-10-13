@@ -282,4 +282,21 @@ class SessionSlotPolicyTest {
             SessionSlotPolicy.shouldTimeout(resumed, hasWaitingAutomations = false, currentTime = currentTime)
         )
     }
+
+    // ==================== Resuming an automation ====================
+
+    /** One closed for the network waits out its pause, so it does not wait and close again in a loop. */
+    @Test
+    fun closedForTheNetwork_resumesAfterItsPause() {
+        val closedAt = T0
+        assertFalse(SessionSlotPolicy.resumableNow(SessionEndReason.NETWORK_ERROR, closedAt, closedAt + SessionSlotPolicy.NETWORK_RESUME_PAUSE - 1))
+        assertTrue(SessionSlotPolicy.resumableNow(SessionEndReason.NETWORK_ERROR, closedAt, closedAt + SessionSlotPolicy.NETWORK_RESUME_PAUSE))
+    }
+
+    /** One cut without a reason, or suspended for a conversation, is taken up at once. */
+    @Test
+    fun cutOrSuspended_resumesAtOnce() {
+        assertTrue(SessionSlotPolicy.resumableNow(null, T0, T0))
+        assertTrue(SessionSlotPolicy.resumableNow(SessionEndReason.SUSPENDED, T0, T0))
+    }
 }

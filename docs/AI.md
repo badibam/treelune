@@ -336,7 +336,9 @@ La recherche de la prochaine occurrence démarre au plus tôt à `maintenant −
 
 **Continuation automatique** : Après succès actions, AUTOMATION continue automatiquement (pas de keepControl requis).
 
-**Réseau** : Retry infini avec delay 30s si offline. Phase `WAITING_NETWORK_RETRY` (watchdog ne timeout pas).
+**Tenue en vie** : tant qu'une AUTOMATION est active (phase ni `IDLE` ni `CLOSED`), `AutomationRun`, qui suit l'état depuis `AIOrchestrator.initialize`, tient le service au premier plan `AutomationRunService` et un verrou de veille partiel : l'alarme du planificateur ne garde l'app éveillée que pour son tick (50 s au plus). Sa notification nomme la routine. Il s'éteint 2 s après la fin de la session, une routine qui suit aussitôt le reprenant : Android refuse de le redémarrer depuis l'arrière-plan hors du moment de l'alarme. Une routine lancée par le battement interne de l'app une fois l'app quittée n'a pas ce droit : le refus est écrit au journal, le tour continue sans protection.
+
+**Réseau** : nouvel essai toutes les 30 s, phase `WAITING_NETWORK_RETRY` (le watchdog ne la compte pas). Après 2 min d'attente en tout (`AIStateMachine.AUTOMATION_NETWORK_WAIT_LIMIT`), la session se ferme en `NETWORK_ERROR`, pour ne pas garder le téléphone éveillé tant que le réseau manque ; le planificateur la reprend 5 min après au plus tôt (`SessionSlotPolicy.NETWORK_RESUME_PAUSE`) et ne lance pas d'autre occurrence de la même automation entre-temps.
 
 **Communication modules** : Interdits pour AUTOMATION (validationRequest, communicationModule ignorés).
 
@@ -355,7 +357,7 @@ La recherche de la prochaine occurrence démarre au plus tôt à `maintenant −
 ### Reprise sessions
 Détection automatique sessions orphelines par AutomationScheduler :
 - **endReason null** : Crash/interruption → une AUTOMATION reprend de façon transparente, sauf pendant des actions ; un CHAT coupé en plein tour est interrompu (ci-dessous)
-- **NETWORK_ERROR** : Échec réseau → reprise avec retry
+- **NETWORK_ERROR** : 2 min sans réseau → reprise après une pause de 5 min
 - **SUSPENDED** : Éviction système → reprise quand slot libre
 
 **Transparence** : Pas de message système, IA ne sait pas qu'elle reprend (continue naturellement).
@@ -373,7 +375,7 @@ Raison d'arrêt session (audit + logique reprise). Une AUTOMATION se reprend san
 - **CANCELLED** : User STOP (ne reprend pas)
 - **INTERRUPTED** : app fermée pendant les actions (ne reprend pas, une action serait faite deux fois)
 - **SUSPENDED** : Éviction système (reprend plus tard)
-- **NETWORK_ERROR** : Échec réseau (reprend avec retry)
+- **NETWORK_ERROR** : 2 min sans réseau (reprend après sa pause)
 - **null** : Crash/interruption (reprend)
 
 ## 7. Event loop et boucles autonomes
@@ -418,6 +420,7 @@ Event DataQueriesExecuted:
 Event SchemaRequired (écritures sur un outil dont l'IA n'a pas reçu le schéma des entrées dans la session) :
   → émis par parseAIResponse, avant la validation : rien n'est exécuté ni soumis à l'utilisateur
   → message SCHEMA_REQUIRED avec les schémas manquants, transition CALLING_AI
+  → un schéma illisible (un outil qui n'existe pas) refuse les écritures comme une commande erronée, dans les mots du service : ParseErrorOccurred
 
 Event DataConfirmationRequested (CHAT, données au-delà du seuil):
   → transition WAITING_DATA_CONFIRMATION
@@ -647,6 +650,8 @@ DeepSeek passe par `ClaudeProviderCore` sur son endpoint `/anthropic` (`Messages
 
 ### Configuration
 Configurations gérées par `AIProviderConfigService`, providers découverts via `AIProviderRegistry`, `AIClient` utilise coordinator (pas d'accès DB direct).
+
+**Réflexion d'une conversation** : une conversation peut demander sa propre réflexion (`SessionReasoning` : réflexion désactivée ou non, effort), réglée dans ses paramètres (`ai_sessions.update_reasoning`, colonnes `reasoning_*` de `ai_sessions`, migration 74) parmi ce que le modèle du fournisseur actif propose (`AIClient.modelReasoning`, la liste du fournisseur). Sans elle, la config du fournisseur s'applique. Elle remplace les deux réglages de la config à l'envoi (`SessionReasoning.applyTo`), pour la suite de la conversation. Avant chaque appel, `AIClient.reasoningRefusal` la soumet à `AIProvider.configError` : un modèle qui ne la prend plus (fournisseur ou modèle changé depuis) refuse l'appel, message à l'appui, jamais de remplacement silencieux. Les routines suivent toujours la config de leur fournisseur.
 
 ## 12. Communication modules
 

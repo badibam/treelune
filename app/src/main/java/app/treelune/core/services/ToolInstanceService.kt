@@ -127,6 +127,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         // there protects values already stored under the old key, and a tool being created
         // has none. The interface takes that route, assigning names in its editor.
         // A setting left out takes its declared default, as in the screen that creates a tool
+        fieldsRefusal(configJson)?.let { return OperationResult.error(it) }
         val namedConfigJson = ToolTypeManager.getToolType(toolType)?.let { type ->
             type.completeConfig(app.treelune.core.tools.ToolConfigSettings.withDefaults(type, JSONObject(assignMissingFieldNames(configJson)), context), null).toString()
         } ?: assignMissingFieldNames(configJson)
@@ -966,6 +967,24 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
     }
 
     /**
+     * Why the user's fields of [configJson] (extra_fields) cannot be read, or null: each checked
+     * against the schema of a field definition, before anything parses them. Parsed first, a
+     * field without its display_name failed on an exception the caller got raw, naming neither
+     * the field nor what to correct.
+     */
+    private fun fieldsRefusal(configJson: String): String? {
+        val fields = JSONObject(configJson).opt("extra_fields") ?: return null
+        val schema = app.treelune.core.validation.Schema(
+            id = "extra_fields", displayName = s.shared("custom_fields_list"), description = "",
+            category = app.treelune.core.validation.SchemaCategory.FIELD_TYPE,
+            content = JSONObject().put("type", "object").put("properties", JSONObject().put("extra_fields",
+                JSONObject().put("type", "array").put("items", JSONObject(app.treelune.core.fields.settings.FieldTypeSchemas.anyDefinition(context))))).toString()
+        )
+        val checked = SchemaValidator.validate(schema, mapOf("extra_fields" to JsonUtils.toValue(fields)), context)
+        return if (checked.isValid) null else checked.errorMessage ?: s.shared("message_validation_error_simple")
+    }
+
+    /**
      * assignNames on the raw config of a tool being created, returning the config to store.
      *
      * A config with no custom_fields comes back untouched, so the caller can run this over
@@ -1015,6 +1034,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             if (newFieldsArray == null || newFieldsArray.length() == 0) {
                 return OperationResult.success(mapOf("processed_config" to newConfigJson))
             }
+            fieldsRefusal(newConfigJson)?.let { return OperationResult.error(it) }
 
             // Parse field definitions
             val oldFields = if (oldFieldsArray != null) {

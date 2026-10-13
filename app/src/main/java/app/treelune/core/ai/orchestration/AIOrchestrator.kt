@@ -249,6 +249,9 @@ object AIOrchestrator {
         // Start event processor
         eventProcessor.initialize()
 
+        // A routine running keeps the app awake until it is done
+        AutomationRun.follow(this.context, stateRepository.state, aiDao, orchestratorScope)
+
         initialized = true
         LogManager.aiSession("AIOrchestrator V2 initialized", "INFO")
     }

@@ -212,7 +212,8 @@ sealed class AIEvent {
      * Network error occurred while calling AI.
      *
      * CHAT: Stop immediately, no retry.
-     * AUTOMATION: Infinite retry with 30s delay.
+     * AUTOMATION: Retry every 30s, closing as NETWORK_ERROR (resumed later) after
+     * AIStateMachine.AUTOMATION_NETWORK_WAIT_LIMIT of waiting.
      *
      * @param attempt Retry attempt number (0 = first failure)
      */

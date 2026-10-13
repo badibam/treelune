@@ -310,7 +310,7 @@ Lists the variables: named values the app computes from the entries each time th
 - `zone_id` (string, optional): the variables of that zone alone]]></string>
     <string name="ai_command_reading"><![CDATA[### READING
 
-Reads a variable\'s value at one or several instants, each of its terms read relative to that instant.
+Reads a variable\'s value at one or several instants, each of its terms read relative to that instant: its relative dates, `NOW` included, are that instant\'s. A daily total (from the `START` of the day to `NOW`) read at the `START` of yesterday covers nothing yet and gives 0; read at the `END` of yesterday, it gives the whole day. The terms of each variable, with their periods, are given by VARIABLES.
 
 **Parameters**:
 

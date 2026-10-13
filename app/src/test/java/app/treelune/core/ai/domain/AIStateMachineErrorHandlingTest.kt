@@ -149,6 +149,34 @@ class AIStateMachineErrorHandlingTest {
         assertEquals(1, state.totalRoundtrips)
     }
 
+    /**
+     * An AUTOMATION stops waiting once its outages add up to the limit, and closes resumable:
+     * kept going, it would hold the phone awake for as long as the network stays away.
+     */
+    @Test
+    fun anAutomationOfflineTooLong_closesResumable() {
+        var state = automationAt(Phase.CALLING_AI)
+        var now = T1
+        // Thirty-second retries that keep failing, the way scheduleNetworkRetry drives them
+        while (state.phase != Phase.CLOSED) {
+            state = AIStateMachine.transition(state, AIEvent.NetworkErrorOccurred(0), testLimits, now)
+            now += 30_000L
+            state = AIStateMachine.transition(state, AIEvent.NetworkRetryScheduled, testLimits, now)
+        }
+
+        assertEquals(SessionEndReason.NETWORK_ERROR, state.endReason)
+        assertEquals(AIStateMachine.AUTOMATION_NETWORK_WAIT_LIMIT, now - T1)
+    }
+
+    /** Below the limit, the retry goes out as before. */
+    @Test
+    fun anAutomationOfflineBelowTheLimit_callsAgain() {
+        val offline = AIStateMachine.transition(automationAt(Phase.CALLING_AI), AIEvent.NetworkErrorOccurred(0), testLimits, T1)
+        val state = AIStateMachine.transition(offline, AIEvent.NetworkRetryScheduled, testLimits, T1 + AIStateMachine.AUTOMATION_NETWORK_WAIT_LIMIT - 1)
+
+        assertEquals(Phase.CALLING_AI, state.phase)
+    }
+
     // ==================== What the timeout sees ====================
 
     /**

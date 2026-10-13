@@ -18,6 +18,9 @@ import app.treelune.core.utils.LogManager
  */
 object AIStateMachine {
 
+    /** How long an AUTOMATION waits for the network, outages added up, before it closes to be resumed later */
+    const val AUTOMATION_NETWORK_WAIT_LIMIT = 120_000L
+
     /**
      * Process an event and return the new state.
      *
@@ -325,13 +328,28 @@ object AIStateMachine {
 
             is AIEvent.NetworkRetryScheduled -> {
                 // Transition from WAITING_NETWORK_RETRY to CALLING_AI
-                // (network retry scheduled, will check again after delay)
-                state.copy(
-                    phase = Phase.CALLING_AI,
-                    networkDownTime = state.networkDownTime + state.currentOutage(currentTime),
-                    networkLostAt = 0L,
-                    lastEventTime = currentTime
-                )
+                // (network retry scheduled, will check again after delay).
+                // An AUTOMATION that has waited AUTOMATION_NETWORK_WAIT_LIMIT in all closes
+                // instead, resumable: kept running, it would keep the phone awake for as long
+                // as the network stays away; the scheduler takes it up
+                // again after SessionSlotPolicy.NETWORK_RESUME_PAUSE.
+                val downTime = state.networkDownTime + state.currentOutage(currentTime)
+                if (state.sessionType == SessionType.AUTOMATION && downTime >= AUTOMATION_NETWORK_WAIT_LIMIT) {
+                    state.copy(
+                        phase = Phase.CLOSED,
+                        endReason = SessionEndReason.NETWORK_ERROR,
+                        networkDownTime = downTime,
+                        networkLostAt = 0L,
+                        lastEventTime = currentTime
+                    )
+                } else {
+                    state.copy(
+                        phase = Phase.CALLING_AI,
+                        networkDownTime = downTime,
+                        networkLostAt = 0L,
+                        lastEventTime = currentTime
+                    )
+                }
             }
 
             is AIEvent.NetworkAvailable -> {

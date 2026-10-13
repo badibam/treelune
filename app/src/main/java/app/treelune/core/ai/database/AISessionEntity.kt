@@ -34,6 +34,9 @@ data class AISessionEntity(
     @ColumnInfo(name = "validate_app") val validateApp: Boolean = false,
     @ColumnInfo(name = "validate_zones") val validateZones: Boolean = false,
     @ColumnInfo(name = "validate_data") val validateData: Boolean = false,  // Session-level validation toggle
+    /** The reasoning this conversation asks of its model (SessionReasoning); null thinking_off, its provider's config. */
+    @ColumnInfo(name = "reasoning_thinking_off") val reasoningThinkingOff: Boolean? = null,
+    @ColumnInfo(name = "reasoning_effort") val reasoningEffort: String? = null,
 
     // ==================== Event-Driven State (V2) ====================
 
@@ -89,3 +92,7 @@ class AITypeConverters {
     @TypeConverter
     fun toSessionType(value: String): SessionType = SessionType.valueOf(value)
 }
+
+/** The reasoning this session asks of its model, or null when it follows its provider's config. */
+fun AISessionEntity.reasoning(): app.treelune.core.ai.data.SessionReasoning? =
+    reasoningThinkingOff?.let { app.treelune.core.ai.data.SessionReasoning(it, reasoningEffort) }

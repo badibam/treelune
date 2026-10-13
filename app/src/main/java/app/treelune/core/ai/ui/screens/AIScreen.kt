@@ -102,6 +102,7 @@ fun AIScreen(
                             name = sessionData["name"] as String,
                             type = SessionType.valueOf(sessionData["type"] as String),
                             validation = SessionValidation.fromMap(sessionData),
+                            reasoning = SessionReasoning.fromMap(sessionData[SessionReasoning.KEY] as? Map<*, *>),
                             waitingStateJson = sessionData["waiting_state_json"] as? String,
                             automationId = sessionData["automation_id"] as? String,
                             scheduledExecutionTime = (sessionData["scheduled_execution_time"] as? Number)?.toLong(),
@@ -1049,8 +1050,19 @@ private fun ChatHeader(
     var showStopConfirmation by rememberSaveable { mutableStateOf(false) }
     var showSettingsMenu by rememberSaveable { mutableStateOf(false) }
     var showSessionSettings by rememberSaveable { mutableStateOf(false) }
-    // What the session adds to the protections, as last saved from its settings
+    // What the session adds to the protections, as stored: the active session reaches this
+    // header built from the AI's state alone, without its settings
     var validation by remember(session.id) { mutableStateOf(session.validation) }
+    // The reasoning it asks of its model, null for its provider's (SessionReasoning)
+    var reasoning by remember(session.id) { mutableStateOf(session.reasoning) }
+    LaunchedEffect(session.id) {
+        val result = app.treelune.core.coordinator.Coordinator(context).processUserAction("ai_sessions.get_session", mapOf("session_id" to session.id))
+        val stored = result.data?.get("session") as? Map<*, *>
+        if (result.status == CommandStatus.SUCCESS && stored != null) {
+            validation = SessionValidation.fromMap(stored)
+            reasoning = SessionReasoning.fromMap(stored[SessionReasoning.KEY] as? Map<*, *>)
+        } else LogManager.aiUI("ChatHeader: session ${session.id} not read: ${result.error}", "ERROR")
+    }
 
     // Stop confirmation dialog
     if (showStopConfirmation) {
@@ -1082,6 +1094,7 @@ private fun ChatHeader(
     if (showSettingsMenu) {
         app.treelune.core.ai.ui.chat.SettingsMenuDialog(
             session = session,
+            reasoning = reasoning,
             onDismiss = { showSettingsMenu = false },
             onShowCosts = {
                 showSettingsMenu = false
@@ -1101,6 +1114,7 @@ private fun ChatHeader(
 
         app.treelune.core.ai.ui.chat.SessionSettingsDialog(
             validation = validation,
+            reasoning = reasoning,
             onDismiss = { showSessionSettings = false },
             onValidationChange = { chosen ->
                 scope.launch {
@@ -1113,6 +1127,21 @@ private fun ChatHeader(
                         LogManager.aiUI("Session validation updated: $chosen", "INFO")
                     } else {
                         UI.Toast(context, result.error ?: s.shared("ai_error_toggle_validation"), Duration.LONG)
+                    }
+                }
+            },
+            onReasoningChange = { chosen ->
+                scope.launch {
+                    val result = coordinator.processUserAction(
+                        "ai_sessions.update_reasoning",
+                        mapOf("session_id" to session.id, SessionReasoning.KEY to chosen?.toMap())
+                    )
+                    // Refused, the setting stays as it was, and the provider's words say why
+                    if (result.status == CommandStatus.SUCCESS) {
+                        reasoning = chosen
+                        LogManager.aiUI("Session reasoning updated: $chosen", "INFO")
+                    } else {
+                        UI.Toast(context, result.error ?: s.shared("session_reasoning_error"), Duration.LONG)
                     }
                 }
             }
