@@ -1,6 +1,8 @@
 package app.treelune.core.services
 
 import app.treelune.core.fields.EntryFields
+import app.treelune.core.fields.CoreFields
+import app.treelune.core.fields.toJson
 import app.treelune.core.fields.EntryStart
 import android.content.Context
 import androidx.room.withTransaction
@@ -69,6 +71,7 @@ class ToolDataService(private val context: Context) : ExecutableService {
                 "delete" -> deleteEntry(params, token)
                 "get" -> getEntries(params, token)       // Standard REST GET
                 "values" -> getValues(params, token)     // The values a text field holds, to pick one in a filter
+                "writable" -> getWritable(params, token) // The fields a caller fills, and those the app writes
                 "get_single" -> getSingleEntry(params, token)  // GET single entry by ID
                 "delete_all" -> deleteAllEntries(params, token)  // POST /tool_data/delete_all
                 "batch_create" -> batchCreateEntries(params, token)  // Batch create multiple entries
@@ -599,6 +602,45 @@ class ToolDataService(private val context: Context) : ExecutableService {
         val query = EntryFilters.values(toolInstanceId, path, params.optInt("limit", VALUES_LIMIT))
         val values = getToolDataDao().distinctValues(SimpleSQLiteQuery(query.clause, query.args.toTypedArray()))
         return OperationResult.success(mapOf("values" to values))
+    }
+
+    /**
+     * The fields of a tool's entries a caller fills, and those the app writes itself. Filled: the
+     * name and the date where the tool has them, the data fields but those its schema marks
+     * system-managed (dropped from any write that is not the app's), the user's fields. Written by
+     * the app: created_at, updated_at, those data fields, the state. An import asks it to tell a
+     * column it can fill from one that names a field it cannot.
+     *
+     * Params: tool_instance_id. Answer: `written` (path → field), `not_written` (path → display name).
+     */
+    private suspend fun getWritable(params: JSONObject, token: CancellationToken): OperationResult {
+        if (token.isCancelled) return OperationResult.cancelled()
+        val toolInstanceId = params.optString("tool_instance_id")
+        if (toolInstanceId.isEmpty()) return OperationResult.error(s.shared("service_error_missing_tool_instance_id"))
+        val target = when (val loaded = loadWriteTarget(toolInstanceId)) {
+            is WriteTarget.Refused -> return OperationResult.error(loaded.error)
+            is WriteTarget.Ready -> loaded
+        }
+        val declared = target.entryFields ?: EntryFields()
+        val appManaged = SystemManagedFields.inData(target.schema.content)
+        val text: (String) -> String = { s.shared(it) }
+
+        val written = buildMap<String, FieldDefinition> {
+            if (declared.name != CoreFieldUsage.ABSENT) put("name", CoreFields.name(text, declared.nameUnique))
+            if (declared.timestamp != CoreFieldUsage.ABSENT) put("timestamp", CoreFields.timestamp(text))
+            declared.data.filter { it.definition.name !in appManaged }.forEach { put("data.${it.definition.name}", it.definition) }
+            target.userFields.forEach { put("extra.${it.name}", it) }
+        }
+        val notWritten = buildMap<String, String> {
+            put("created_at", CoreFields.createdAt(text).displayName)
+            put("updated_at", CoreFields.updatedAt(text).displayName)
+            declared.data.filter { it.definition.name in appManaged }.forEach { put("data.${it.definition.name}", it.definition.displayName) }
+            declared.state.forEach { put("state.${it.definition.name}", it.definition.displayName) }
+        }
+        return OperationResult.success(mapOf(
+            "written" to written.mapValues { JsonUtils.toMap(it.value.toJson()) },
+            "not_written" to notWritten
+        ))
     }
 
     private suspend fun getSingleEntry(params: JSONObject, token: CancellationToken): OperationResult {

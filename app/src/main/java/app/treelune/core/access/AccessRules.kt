@@ -33,7 +33,7 @@ interface AccessLookups {
  */
 object AccessRules {
 
-    private val TOOL_DATA_READS = setOf("get", "values", "get_single")
+    private val TOOL_DATA_READS = setOf("get", "values", "get_single", "writable")
     private val TOOL_DATA_WRITES = setOf("create", "update", "delete", "batch_create", "batch_update", "batch_delete", "start_duration", "stop_duration", "delete_all")
 
     /** What [resource].[operation] reaches with [params]. */

@@ -42,7 +42,7 @@ class ImportTest {
     @Test
     fun `a single unambiguous day settles day and month for the whole column`() {
         val table = ImportTable(listOf("jour"), listOf(listOf("03/04/2026"), listOf("28/09/2026")))
-        val proposal = ImportPlanner.detect(table, emptyMap(), uniqueName = false, zone).single()
+        val proposal = ImportPlanner.detect(table, emptyMap(), emptyMap(), uniqueName = false, zone).single()
         assertEquals(Writing.DAY_MONTH_YEAR, proposal.declaration.writing)
         assertEquals(FieldType.DATE, proposal.declaration.newField?.type)
         assertEquals("28/09/2026" to "2026-09-28", proposal.example)
@@ -51,7 +51,7 @@ class ImportTest {
     @Test
     fun `two writings that read everything differently are left to choose`() {
         val table = ImportTable(listOf("jour"), listOf(listOf("03/04/2026"), listOf("05/06/2026")))
-        val proposal = ImportPlanner.detect(table, emptyMap(), uniqueName = false, zone).single()
+        val proposal = ImportPlanner.detect(table, emptyMap(), emptyMap(), uniqueName = false, zone).single()
         assertNull(proposal.declaration.writing)
         assertTrue(Writing.DAY_MONTH_YEAR in proposal.ambiguous && Writing.MONTH_DAY_YEAR in proposal.ambiguous)
     }
@@ -60,7 +60,7 @@ class ImportTest {
     fun `the name is the key where names are unique, a known field is filled, a header can fix a type`() {
         val table = ImportTable(listOf("Nom", "kcal_100g", "portion [NUMERIC]"), listOf(listOf("pomme", "52", "1"), listOf("pain", "250", "2")))
         val fields = mapOf("name" to field("name", FieldType.TEXT).copy(displayName = "Nom"), "extra.kcal_100g" to field("kcal_100g", FieldType.NUMERIC))
-        val proposals = ImportPlanner.detect(table, fields, uniqueName = true, zone)
+        val proposals = ImportPlanner.detect(table, fields, emptyMap(), uniqueName = true, zone)
         assertEquals(ColumnTarget.KEY, proposals[0].declaration.target)
         assertEquals("extra.kcal_100g", proposals[1].declaration.field)
         assertEquals(FieldType.NUMERIC, proposals[2].declaration.newField?.type)
@@ -68,9 +68,36 @@ class ImportTest {
     }
 
     @Test
+    fun `a column naming a field the app writes itself is left out and said, never proposed as a new field`() {
+        val table = ImportTable(listOf("created_at", "Course"), listOf(listOf("2026-10-01", "a")))
+        val notWritten = mapOf("created_at" to "Created", "state.running" to "Course")
+        val proposals = ImportPlanner.detect(table, emptyMap(), notWritten, uniqueName = false, zone)
+        assertEquals(ColumnTarget.IGNORE, proposals[0].declaration.target)
+        assertEquals("created_at", proposals[0].appWritten)
+        assertEquals("state.running", proposals[1].appWritten)
+    }
+
+    @Test
+    fun `a field the tool writes wins over one the app writes of the same name`() {
+        val table = ImportTable(listOf("date"), listOf(listOf("2026-10-01")))
+        val proposal = ImportPlanner.detect(table, mapOf("timestamp" to field("timestamp", FieldType.DATETIME).copy(displayName = "Date")),
+            mapOf("state.date" to "Date"), uniqueName = false, zone).single()
+        assertEquals(ColumnTarget.FIELD, proposal.declaration.target)
+        assertNull(proposal.appWritten)
+    }
+
+    @Test
+    fun `a new field named as a field the app writes itself is refused`() {
+        val table = ImportTable(listOf("c"), emptyList())
+        val declaration = ColumnDeclaration("c", ColumnTarget.NEW, newField = field("", FieldType.TEXT).copy(displayName = "created_at"), writing = Writing.TEXT)
+        val missing = ImportPlanner.missing(table, listOf(declaration), emptyMap(), mapOf("created_at" to "Created"), uniqueName = false, nameRequired = false) { it }
+        assertTrue(missing.contains("import_missing_app_written"))
+    }
+
+    @Test
     fun `a declaration misses nothing, or says what it misses`() {
         val table = ImportTable(listOf("a", "b"), emptyList())
-        val missing = ImportPlanner.missing(table, listOf(ColumnDeclaration("a", ColumnTarget.KEY)), emptyMap(), uniqueName = false, nameRequired = false) { "$it %1\$s" }
+        val missing = ImportPlanner.missing(table, listOf(ColumnDeclaration("a", ColumnTarget.KEY)), emptyMap(), emptyMap(), uniqueName = false, nameRequired = false) { "$it %1\$s" }
         assertTrue(missing.contains("import_missing_column b"))
         assertTrue(missing.contains("import_missing_key a"))
     }
@@ -80,7 +107,7 @@ class ImportTest {
         val table = ImportTable(listOf("a"), emptyList())
         val ignored = listOf(ColumnDeclaration("a", ColumnTarget.IGNORE))
         fun missing(declarations: List<ColumnDeclaration>, uniqueName: Boolean, nameRequired: Boolean) =
-            ImportPlanner.missing(table, declarations, emptyMap(), uniqueName, nameRequired) { it }
+            ImportPlanner.missing(table, declarations, emptyMap(), emptyMap(), uniqueName, nameRequired) { it }
         assertTrue(missing(ignored, uniqueName = true, nameRequired = true).contains("import_missing_name_key"))
         assertTrue(missing(ignored, uniqueName = false, nameRequired = true).contains("import_missing_name_field"))
         assertFalse(missing(listOf(ColumnDeclaration("a", ColumnTarget.KEY)), uniqueName = true, nameRequired = true).any { it.startsWith("import_missing_name") })

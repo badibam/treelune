@@ -1297,6 +1297,7 @@
     <string name="import_missing_one_key">une seule colonne clé au plus</string>
     <string name="import_missing_name_key">aucune colonne ne donne le nom, obligatoire dans cet outil : déclarer comme clé la colonne qui le porte</string>
     <string name="import_missing_name_field">aucune colonne ne donne le nom, obligatoire dans cet outil : déclarer comme champ name la colonne qui le porte</string>
+    <string name="import_missing_app_written">colonne « %1$s » : un champ nouveau ne peut pas s\'appeler « %2$s », un champ que l\'app écrit elle-même</string>
     <string name="batch_refused_all">Les %1$s entrées refusées : %2$s</string>
     <string name="batch_refusal_reason">%1$s (%2$s, entrées %3$s)</string>
     <string name="batch_refusal_more"> ; et %1$s autres raisons</string>
@@ -1319,6 +1320,7 @@
     <string name="import_unreadable">ne se lit pas</string>
     <string name="import_ambiguous">Plusieurs écritures lisent cette colonne différemment : choisissez-en une.</string>
     <string name="import_unreadable_lines">Ces lignes seraient refusées : %1$s</string>
+    <string name="import_app_written">Nomme « %1$s », un champ que l\'app écrit elle-même : colonne écartée</string>
     <string name="import_report">%1$s créée(s), %2$s mise(s) à jour, %3$s refusée(s)</string>
     <string name="import_report_line">Ligne %1$s : %2$s</string>
     <string name="import_writing_text">Texte</string>

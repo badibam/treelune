@@ -1297,6 +1297,7 @@
     <string name="import_missing_one_key">one key column at most</string>
     <string name="import_missing_name_key">no column gives the name, which this tool requires: declare the column that holds it as the key</string>
     <string name="import_missing_name_field">no column gives the name, which this tool requires: declare the column that holds it as the field name</string>
+    <string name="import_missing_app_written">column "%1$s": a new field cannot be named "%2$s", a field the app writes itself</string>
     <string name="batch_refused_all">All %1$s entries refused: %2$s</string>
     <string name="batch_refusal_reason">%1$s (%2$s, entries %3$s)</string>
     <string name="batch_refusal_more">; and %1$s other reasons</string>
@@ -1319,6 +1320,7 @@
     <string name="import_unreadable">does not read</string>
     <string name="import_ambiguous">Several writings read this column differently: choose one.</string>
     <string name="import_unreadable_lines">These lines would be refused: %1$s</string>
+    <string name="import_app_written">Names "%1$s", a field the app writes itself: left out</string>
     <string name="import_report">%1$s created, %2$s updated, %3$s refused</string>
     <string name="import_report_line">Line %1$s: %2$s</string>
     <string name="import_writing_text">Text</string>

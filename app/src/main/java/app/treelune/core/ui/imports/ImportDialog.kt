@@ -19,12 +19,12 @@ import androidx.compose.ui.platform.LocalContext
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.fields.FieldType
-import app.treelune.core.fields.ToolFields
 import app.treelune.core.ui.selectors.FieldPick
 import app.treelune.core.ui.selectors.FieldPicker
 import app.treelune.core.imports.CellRead
 import app.treelune.core.imports.ImportPlanner
 import app.treelune.core.imports.ImportTable
+import app.treelune.core.imports.ImportTargets
 import app.treelune.core.imports.Writing
 import app.treelune.core.strings.Strings
 import app.treelune.core.ui.CardType
@@ -58,15 +58,16 @@ fun ImportDialog(toolInstanceId: String, csv: String, onDismiss: () -> Unit) {
     var lines by rememberSaveable { mutableStateOf(0) }
     var report by rememberSaveable { mutableStateOf<String?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
-    var fields by remember { mutableStateOf<Map<String, app.treelune.core.fields.FieldDefinition>>(emptyMap()) }
+    // What a column may fill, and what the app writes itself, as tool_data says
+    var targets by remember { mutableStateOf(ImportTargets(emptyMap(), emptyMap())) }
     // How the tool takes a name, from the detection, to check the declaration as it changes
     var uniqueName by rememberSaveable { mutableStateOf(false) }
     var nameRequired by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(toolInstanceId) {
-        fields = try {
-            ToolFields.filterable(toolInstanceId, context, s).filterKeys { !it.startsWith("state.") && it != "created_at" && it != "updated_at" }
-        } catch (e: IllegalStateException) { error = e.message; emptyMap() }
+        targets = try {
+            ImportTargets.read(coordinator, toolInstanceId)
+        } catch (e: IllegalStateException) { error = e.message; ImportTargets(emptyMap(), emptyMap()) }
         if (columns != null) return@LaunchedEffect
         val result = coordinator.processUserAction("imports.detect", mapOf("tool_instance_id" to toolInstanceId, "csv" to csv))
         if (result.isSuccess) {
@@ -81,7 +82,7 @@ fun ImportDialog(toolInstanceId: String, csv: String, onDismiss: () -> Unit) {
     fun declaration(): JSONArray {
         val declared = JSONArray(columns!!)
         return JSONArray((0 until declared.length()).map { i ->
-            JSONObject(declared.getJSONObject(i).toString()).apply { remove("ambiguous"); remove("example"); remove("unreadable_lines") }
+            JSONObject(declared.getJSONObject(i).toString()).apply { remove("ambiguous"); remove("example"); remove("unreadable_lines"); remove("app_written") }
         })
     }
 
@@ -90,7 +91,7 @@ fun ImportDialog(toolInstanceId: String, csv: String, onDismiss: () -> Unit) {
         val clean = declaration()
         val table = ImportTable((0 until clean.length()).map { clean.getJSONObject(it).getString("column") }, emptyList())
         try {
-            ImportPlanner.missing(table, ImportPlanner.declarationsOf(clean), fields, uniqueName, nameRequired) { s.shared(it) }
+            ImportPlanner.missing(table, ImportPlanner.declarationsOf(clean), targets.fields, targets.notWritten, uniqueName, nameRequired) { s.shared(it) }
         } catch (e: Exception) { listOf(e.message ?: "") }
     } ?: emptyList()
 
@@ -122,7 +123,7 @@ fun ImportDialog(toolInstanceId: String, csv: String, onDismiss: () -> Unit) {
                     missing.forEach { UI.Text(it, TextType.WARNING) }
                     val array = JSONArray(columns!!)
                     for (i in 0 until array.length()) {
-                        ColumnEditor(array.getJSONObject(i), fields, zone, s) { changed ->
+                        ColumnEditor(array.getJSONObject(i), targets.fields, zone, s) { changed ->
                             columns = JSONArray(columns!!).put(i, changed).toString()
                         }
                     }
@@ -211,6 +212,10 @@ private fun ColumnEditor(column: JSONObject, fields: Map<String, app.treelune.co
             }
             column.optJSONArray("ambiguous")?.takeIf { it.length() > 0 && column.optString("writing").isEmpty() }?.let {
                 UI.Text(s.shared("import_ambiguous"), TextType.WARNING)
+            }
+            // A column naming a field the app writes itself: left out, and why, while it stays so
+            column.optJSONObject("app_written")?.takeIf { column.getString("target") == "IGNORE" }?.let { field ->
+                UI.Text(s.shared("import_app_written").format(field.optString("display_name")), TextType.CAPTION)
             }
             column.optJSONArray("unreadable_lines")?.takeIf { it.length() > 0 }?.let { lines ->
                 UI.Text(s.shared("import_unreadable_lines").format((0 until lines.length()).joinToString(", ") { lines.get(it).toString() }), TextType.WARNING)
