@@ -1298,7 +1298,7 @@ The flow stops, the user has their answer.]]></string>
 - Communication modules and `validation_request` are allowed
 - No `completed` flag: the user decides when it ends
 
-**AUTOMATION**: a scheduled run on its own.
+**AUTOMATION**: a scheduled run on its own; the user's screen calls it a routine.
 - Communication modules and `validation_request` are **forbidden**: nobody is there to answer
 - You **must** send `"completed": true` to finish
 - `pre_text` stays required, `post_text` optional]]></string>

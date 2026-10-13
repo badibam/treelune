@@ -42,7 +42,7 @@ The AI has the same moves as you: it reads your tools, adds entries to them, cre
 - You talk to it in a conversation, attaching a tool or a zone in one gesture, over the period you care about.
 - You can require it to show what it is about to do and wait for your approval before any change: for the whole app, a zone, a tool or a conversation.
 - When it lacks some information, it asks you as a field to fill in.
-- An **automation** has it work on its own, on a schedule: "every Sunday evening, sum up my week".
+- A **routine** has it work on its own, on a schedule: "every Sunday evening, sum up my week".
 - Claude can also plug into the app from outside, as a connector, and work on your tools from claude.ai.
 
 You bring your own API key, from one of these providers:
@@ -67,12 +67,12 @@ You lay out each zone's tiles as you like, choose each tool's icon and colour, a
 
 Download the latest version's APK from the [releases page](https://github.com/badibam/treelune/releases), or build the app from source (see below). It is not on F-Droid yet.
 
-On first launch, a **demo** is waiting: twelve weeks in the life of Camille, who trains for a half marathon, works freelance, cooks and grows things on her balcony. It shows what the app looks like once built. The **Guide** (the book at the top of the home screen) then takes you step by step: the demo, your first zone, your first tool, then the AI and automations.
+On first launch, a **demo** is waiting: twelve weeks in the life of Camille, who trains for a half marathon, works freelance, cooks and grows things on her balcony. It shows what the app looks like once built. The **Guide** (the book at the top of the home screen) then takes you step by step: the demo, your first zone, your first tool, then the AI and routines.
 
 ## Your data
 
 - Everything is stored on your phone. No account, no telemetry, no ads.
-- Nothing goes to an AI unless you asked for it: when you write to it, or when an automation you scheduled runs. What goes then is sent only to the provider you chose, with your key, which is stored encrypted on the phone.
+- Nothing goes to an AI unless you asked for it: when you write to it, or when a routine you scheduled runs. What goes then is sent only to the provider you chose, with your key, which is stored encrypted on the phone.
 - To show what exchanges cost, the app downloads a public list of model prices (LiteLLM, on GitHub). It sends nothing.
 - The connector, when enabled, goes through an HTTPS relay whose address you give, or through Tailscale Funnel with your own Tailscale account.
 - You back up and restore everything as one file, and import a CSV table into a tool.
