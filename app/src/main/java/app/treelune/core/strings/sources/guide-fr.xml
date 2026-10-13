@@ -89,7 +89,7 @@
     <string name="guide_connect_ai_2_goal">Réglez un fournisseur avec votre clé</string>
     <string name="guide_connect_ai_2_text">Touchez un fournisseur, collez la clé d\'API créée sur son site, choisissez un modèle, enregistrez. La clé reste sur votre téléphone et ne part que chez ce fournisseur.</string>
     <string name="guide_connect_ai_3_goal">Ce que coûte un échange</string>
-    <string name="guide_connect_ai_3_text">Chaque échange avec l\'IA est payé au fournisseur, par votre clé. La conversation montre ce que chacun a coûté. Réglages › Limites IA borne jusqu\'où l\'IA va seule.</string>
+    <string name="guide_connect_ai_3_text">Chaque échange est payé au fournisseur, par ta clé : la conversation montre ce que chacun a coûté. Pour dépenser moins, la config du fournisseur offre trois leviers : un modèle plus petit, moins de réflexion, des réponses plus courtes (la limite de tokens). Réglages › Limites IA fixe combien d\'appels l\'IA peut enchaîner seule avant de te rendre la main.</string>
     <string name="guide_connect_ai_4_goal">Demandez-lui une vue d\'ensemble</string>
     <string name="guide_connect_ai_4_text">Ouvrez la conversation (la bulle) et demandez à l\'IA ce qu\'elle voit de votre app. Inutile de joindre quoi que ce soit : elle connaît déjà vos zones et vos outils, et va lire elle-même les entrées dont elle a besoin. Puis Suivant.</string>
     <string name="guide_connect_ai_5_goal">Parlez-lui de votre outil avec un pointeur</string>

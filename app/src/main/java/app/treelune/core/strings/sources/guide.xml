@@ -89,7 +89,7 @@
     <string name="guide_connect_ai_2_goal">Set up a provider with your key</string>
     <string name="guide_connect_ai_2_text">Touch a provider, paste the API key you created on its site, choose a model, save. The key stays on your phone and goes only to that provider.</string>
     <string name="guide_connect_ai_3_goal">What an exchange costs</string>
-    <string name="guide_connect_ai_3_text">Each exchange with the AI is paid to the provider, by your key. The conversation shows what each one cost. Settings › AI limits caps how far the AI goes alone.</string>
+    <string name="guide_connect_ai_3_text">Each exchange is paid to the provider, with your key: the conversation shows what each one cost. To spend less, the provider\'s config offers three levers: a smaller model, less reasoning, shorter answers (the token limit). Settings › AI limits sets how many calls the AI may chain on its own before handing back to you.</string>
     <string name="guide_connect_ai_4_goal">Ask it for an overview</string>
     <string name="guide_connect_ai_4_text">Open the conversation (the speech bubble) and ask the AI what it sees of your app. No need to attach anything: it already knows your zones and tools, and reads the entries it needs on its own. Then Next.</string>
     <string name="guide_connect_ai_5_goal">Tell it about your tool with a pointer</string>

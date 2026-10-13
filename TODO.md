@@ -44,7 +44,6 @@ Décider une règle par problème, puis passer tous les écrans, dans le cas le 
 
 ### Bloc 2 — le Guide et les textes
 
-- Guide, Brancher une IA 3/5 : à reprendre ; et y dire, ou ailleurs, Fournisseur › Limites pour économiser.
 - Guide, clavier ouvert : la barre du bas reste, et l'éditeur est écrasé ; la replier tant que le clavier est là.
 
 ### Petites décisions
