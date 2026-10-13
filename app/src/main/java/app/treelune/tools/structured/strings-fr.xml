@@ -7,7 +7,7 @@
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
     <string name="usage">Pour des fiches aux champs qu\'on choisit, chacune retrouvée par son nom : aliments et leurs calories, livres, plantes, contacts.\nDéjà prévu : les autres outils peuvent pointer vers une fiche par son nom (un repas qui nomme ses aliments) ; l\'import d\'un tableau.\nPas pour : ce qui se note dans le temps (Suivi, Journal).</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
-    <string name="tagline">Des fiches faites de vos champs, retrouvées par leur nom : aliments, livres, plantes</string>
+    <string name="tagline">Des fiches faites de tes champs, retrouvées par leur nom : aliments, livres, plantes</string>
 
     <!-- Setting -->
     <string name="field_table_columns">Colonnes du tableau</string>

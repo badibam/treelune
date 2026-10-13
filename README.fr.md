@@ -21,11 +21,11 @@ Vous rangez votre vie en **zones** (Santé, Travail, Cuisine…), et dans chaque
 - **Notes** — Des notes, chacune avec son titre, rangées là où elles servent
 - **Journal** — Un carnet daté, écrit ou dicté
 - **Messages** — Des rappels et des notifications, une fois ou selon un planning
-- **Liste** — Ce qui reste à faire, coché au fur et à mesure, avec des échéances si vous voulez
-- **Données structurées** — Des fiches faites de vos champs, retrouvées par leur nom : aliments, livres, plantes
-- **Objectif** — Un objectif jugé chaque jour, semaine ou mois sur les critères que vous fixez, lus dans vos entrées
-- **Questionnaire** — Des questions posées une par écran, quand vous voulez ou à heures prévues
-- **Graphique** — Vos entrées et vos chiffres dessinés en courbes, barres, camemberts ou calendriers
+- **Liste** — Ce qui reste à faire, coché au fur et à mesure, avec des échéances si tu veux
+- **Données structurées** — Des fiches faites de tes champs, retrouvées par leur nom : aliments, livres, plantes
+- **Objectif** — Un objectif jugé chaque jour, semaine ou mois sur les critères que tu fixes, lus dans tes entrées
+- **Questionnaire** — Des questions posées une par écran, quand tu veux ou à heures prévues
+- **Graphique** — Tes entrées et tes chiffres dessinés en courbes, barres, camemberts ou calendriers
 - **Séance** — Des étapes préparées à l'avance, suivies à l'écran avec un minuteur et un signal à chaque changement : un entraînement, une recette
 <!-- /tools -->
 
@@ -58,7 +58,7 @@ ou chez tout service qui parle comme l'API d'OpenAI (Ollama, LM Studio, OpenRout
 Vous disposez les tuiles de chaque zone comme vous voulez, vous choisissez l'icône et la couleur de chaque outil, et l'apparence de toute l'app :
 
 <!-- themes -->
-- **Par défaut** — Clair et sobre, dans la teinte de votre choix
+- **Par défaut** — Clair et sobre, dans la teinte de ton choix
 - **Rétro** — Du pixel art : des pixels entiers, une police dessinée, des icônes en pixels, ses propres sons
 - **Cosy** — Comme un téléphone dans un jeu doux : rond et dodu, tout rebondit, ses propres sons
 <!-- /themes -->

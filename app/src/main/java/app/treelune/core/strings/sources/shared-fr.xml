@@ -111,7 +111,7 @@
 
     <!-- AI Interface - Session Management -->
     <string name="ai_session_stop_title">Arrêter la session</string>
-    <string name="ai_session_stop_message">Voulez-vous arrêter cette session ? La session pourra être récupérée et reprise via l\'historique des sessions.</string>
+    <string name="ai_session_stop_message">Veux-tu arrêter cette session ? La session pourra être récupérée et reprise via l\'historique des sessions.</string>
     <string name="ai_chat_new">Nouveau chat</string>
     <string name="ai_chat_start_conversation">Commencer une conversation...</string>
     <string name="ai_session_default_name">Chat Session</string>
@@ -131,7 +131,7 @@
     <string name="ai_status_interrupting">Interruption en cours...</string>
 
     <!-- AI Messages - Display -->
-    <string name="ai_sender_user">Vous</string>
+    <string name="ai_sender_user">Toi</string>
     <string name="ai_sender_ai">IA</string>
     <string name="ai_sender_system">Système</string>
     <string name="ai_message_enrichments_count">Enrichissements: %1$d</string>
@@ -140,18 +140,18 @@
     <string name="ai_validation_title">Validation requise</string>
     <string name="ai_validation_status">Statut</string>
     <string name="ai_module_validation_title">Confirmation</string>
-    <string name="ai_module_cancelled">Vous avez annulé la question de l\'IA</string>
+    <string name="ai_module_cancelled">Tu as annulé la question de l\'IA</string>
     <string name="ai_module_response_prefix">Réponse :</string>
     <string name="ai_module_free_reply">Répondre par un message</string>
-    <string name="ai_module_free_reply_hint">Écrivez votre réponse en bas : l\'envoyer remplace ce formulaire.</string>
+    <string name="ai_module_free_reply_hint">Écris ta réponse en bas : l\'envoyer remplace ce formulaire.</string>
     <string name="ai_module_missing">Il manque : %s</string>
     <string name="ai_response_refused">Réponse refusée : le message suivant dit pourquoi.</string>
     <string name="ai_error_empty_answer_retried">L\'IA a répondu sans texte : la demande lui est renvoyée, une fois.</string>
-    <string name="ai_error_empty_answer_again">L\'IA a répondu sans texte une seconde fois : renvoyez votre message pour réessayer.</string>
+    <string name="ai_error_empty_answer_again">L\'IA a répondu sans texte une seconde fois : renvoie ton message pour réessayer.</string>
     <string name="ai_module_add_note">Ajouter une précision</string>
     <string name="ai_module_note">Précision</string>
     <string name="ai_module_note_prefix">Précision de l\'utilisateur :</string>
-    <string name="ai_module_replaced_by_message">Vous avez répondu à la question de l\'IA par un message</string>
+    <string name="ai_module_replaced_by_message">Tu as répondu à la question de l\'IA par un message</string>
     <string name="ai_module_question_title">Question</string>
     <string name="ai_module_confirmed">Confirmé</string>
     <string name="ai_module_fields">Champs</string>
@@ -254,12 +254,12 @@
     <string name="ai_schema_required_shown">L\'IA reçoit d\'abord le format des outils qu\'elle veut lire, puis refait sa demande.</string>
     <string name="ai_schema_required_for_writes_shown">Les écritures de l\'IA n\'ont pas été faites : elle reçoit d\'abord le format des outils visés, puis les renverra.</string>
     <string name="ai_schema_always_send_shown">L\'IA reçoit le format des outils toujours envoyés.</string>
-    <string name="ai_system_data_refused_by_user_shown">Données non envoyées à l\'IA : vous avez refusé ses %1$d caractères. Elle peut demander moins, ou vous demander ce qu\'il faut.</string>
+    <string name="ai_system_data_refused_by_user_shown">Données non envoyées à l\'IA : tu as refusé ses %1$d caractères. Elle peut demander moins, ou te demander ce qu\'il faut.</string>
     <string name="ai_system_data_too_large_automation_shown">Données non envoyées à l\'IA : %1$d caractères, au-delà du seuil des routines (%2$d). Elle peut demander moins.</string>
     <string name="ai_completion_confirmation_shown">L\'IA dit avoir terminé : l\'app lui demande de le confirmer.</string>
     <string name="ai_automation_no_commands_shown">L\'IA a répondu sans rien lire ni faire : l\'app lui rappelle qu\'une routine doit agir, ou dire qu\'elle a fini.</string>
     <string name="ai_failure_config_shown">Le fournisseur d\'IA refuse la demande telle qu\'elle est réglée (clé, modèle ou compte) : à revoir dans Réglages › Fournisseurs IA.</string>
-    <string name="ai_failure_refused_shown">Le fournisseur d\'IA refuse la demande pour l\'instant (trop de demandes, surcharge ou crédit épuisé) : réessayez plus tard.</string>
+    <string name="ai_failure_refused_shown">Le fournisseur d\'IA refuse la demande pour l\'instant (trop de demandes, surcharge ou crédit épuisé) : réessaie plus tard.</string>
     <string name="ai_failure_network_shown">Pas de réseau : la demande partira quand il reviendra.</string>
     <string name="ai_failure_app_shown">L\'appel à l\'IA a échoué sur une erreur de l\'app.</string>
     <string name="ai_provider_not_ready_shown">Aucun fournisseur d\'IA utilisable : à régler dans Réglages › Fournisseurs IA.</string>
@@ -424,7 +424,7 @@
 
     <!-- AI Round Interruption -->
     <string name="ai_round_interrupted">Réponse de l\'IA interrompue</string>
-    <string name="ai_round_failed">L\'échange avec l\'IA s\'est arrêté sur une erreur de l\'app : la discussion reste ouverte, vous pouvez renvoyer votre message.</string>
+    <string name="ai_round_failed">L\'échange avec l\'IA s\'est arrêté sur une erreur de l\'app : la discussion reste ouverte, tu peux renvoyer ton message.</string>
     <string name="ai_actions_stopped">Actions arrêtées pendant leur exécution : celles terminées avant l\'arrêt ont eu lieu, celle en cours a été abandonnée, les suivantes n\'ont pas eu lieu. Vérifier ce qui existe avant de les relancer.</string>
     <string name="ai_actions_cut_by_app_closing">Actions coupées par la fermeture de l\'app pendant leur exécution : celles terminées avant ont eu lieu, celle en cours a été abandonnée, les suivantes n\'ont pas eu lieu. Vérifier ce qui existe avant de les relancer.</string>
     <string name="ai_call_cut_after_sending">La requête était déjà partie quand elle a été coupée : son coût est inconnu</string>
@@ -498,7 +498,7 @@
     <string name="settings_count">%1$s : %2$s</string>
     <string name="settings_phrase_filters">Filtres : %1$s</string>
     <string name="settings_phrase_between">et</string>
-    <string name="settings_leave_unsaved">Quitter sans enregistrer ? Vos changements seront perdus.</string>
+    <string name="settings_leave_unsaved">Quitter sans enregistrer ? Tes changements seront perdus.</string>
     <string name="field_label_inline">%1$s :</string>
     <string name="tag_color_red">Rouge</string>
     <string name="tag_color_orange">Orange</string>
@@ -547,8 +547,8 @@
 
     <!-- Confirmation messages -->
     <string name="confirm_action">Confirmer cette action ?</string>
-    <string name="confirm_delete">Voulez-vous vraiment supprimer cet élément ? Cette action est irréversible.</string>
-    <string name="confirm_reset">Voulez-vous réinitialiser la configuration ? Les données actuelles seront perdues.</string>
+    <string name="confirm_delete">Veux-tu vraiment supprimer cet élément ? Cette action est irréversible.</string>
+    <string name="confirm_reset">Veux-tu réinitialiser la configuration ? Les données actuelles seront perdues.</string>
 
     <!-- The one date input (InstantPicker) and its period -->
     <string name="period_from">Depuis</string>
@@ -759,7 +759,7 @@
     <string name="tools_config_dialog_categories">Catégories</string>
     <string name="tools_config_dialog_search">Rechercher (en anglais)</string>
     <string name="tools_config_dialog_results">%1$d icône(s)</string>
-    <string name="tools_config_dialog_results_truncated">%1$d affichées sur %2$d : précisez la recherche</string>
+    <string name="tools_config_dialog_results_truncated">%1$d affichées sur %2$d : précise la recherche</string>
     <string name="tools_config_dialog_no_result">Aucune icône ne correspond</string>
     <string name="tools_config_dialog_all_categories">Toutes les catégories</string>
         
@@ -777,7 +777,7 @@
     <string name="tools_base_schema_config_icon_color">Couleur de l\'icône de l\'outil, parmi RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, PURPLE, PINK ; null ou absente pour une icône neutre. Chaque thème la dessine à sa façon</string>
     <string name="tools_base_schema_config_always_send">Toujours envoyer les données à l\'IA (Level 2)</string>
     <string name="tools_base_schema_config_show_field_labels">Si les champs de l\'utilisateur montrent leur nom à côté de leur valeur, partout où ils s\'affichent</string>
-    <string name="tools_base_schema_config_validate_data">L\'IA de la conversation et du connecteur demande votre accord avant d\'ajouter, modifier ou supprimer une entrée de cet outil. Réglable seulement dans l\'app. Une routine ne demande jamais.</string>
+    <string name="tools_base_schema_config_validate_data">L\'IA de la conversation et du connecteur demande ton accord avant d\'ajouter, modifier ou supprimer une entrée de cet outil. Réglable seulement dans l\'app. Une routine ne demande jamais.</string>
 
     <!-- Tools BASE SCHEMA DATA - Descriptions communes pour validation des données -->
     <string name="tools_base_schema_data_id">Identifiant de l\'entrée, posé par le système</string>
@@ -785,7 +785,7 @@
     <string name="tools_base_schema_data_tooltype">Type de l\'outil auquel appartient l\'entrée, posé par le système</string>
     <string name="tools_base_schema_data_name">Nom de l\'entrée</string>
     <string name="tools_base_schema_data_name_unique">Le nom de l\'entrée, unique dans l\'outil (sans compter la casse ni les espaces autour) : c\'est par lui qu\'on la retrouve</string>
-    <string name="service_error_name_taken">Une autre entrée de cet outil s\'appelle déjà « %1$s » (id %2$s) : les noms y sont uniques. Modifiez cette entrée plutôt que d\'en ajouter une seconde.</string>
+    <string name="service_error_name_taken">Une autre entrée de cet outil s\'appelle déjà « %1$s » (id %2$s) : les noms y sont uniques. Modifie cette entrée plutôt que d\'en ajouter une seconde.</string>
     <string name="tools_base_schema_data_timestamp">Moment auquel se rapporte l\'entrée ; maintenant s\'il est omis, et peut être dans le passé</string>
     <string name="tools_base_schema_data_created_at">Date de création de l\'entrée, posée par le système</string>
     <string name="tools_base_schema_data_updated_at">Date de dernière modification de l\'entrée, posée par le système</string>
@@ -956,9 +956,9 @@
     <string name="settings_ai_always_send_help">Les outils marqués « toujours envoyer » partent avec chaque message à l\'IA. Au-delà de cette taille à eux tous, un chat te demande une fois par session s\'il faut les envoyer ; une routine, ou une IA extérieure à l\'app, n\'en reçoit que la liste et peut les lire au besoin.</string>
 
     <string name="settings_validation">Validation IA</string>
-    <string name="settings_validation_description">Ce que l\'IA doit vous demander avant de le modifier</string>
+    <string name="settings_validation_description">Ce que l\'IA doit te demander avant de le modifier</string>
     <string name="app_config_validate_app">Protéger l\'accueil</string>
-    <string name="app_config_validate_app_help">L\'IA de la conversation et du connecteur demande votre accord avant de créer, modifier ou supprimer une zone, ou de changer les groupes de l\'accueil. Une routine ne demande jamais.</string>
+    <string name="app_config_validate_app_help">L\'IA de la conversation et du connecteur demande ton accord avant de créer, modifier ou supprimer une zone, ou de changer les groupes de l\'accueil. Une routine ne demande jamais.</string>
 
     <string name="settings_ui">Interface utilisateur</string>
     <string name="settings_ui_description">Configurer l\'apparence et le comportement de l\'interface</string>
@@ -976,7 +976,7 @@
     <string name="settings_ui_one_column">Une colonne</string>
     <string name="settings_ui_one_column_help">Les tuiles l\'une sous l\'autre, chaque moitié de l\'écran prenant toute sa largeur, pour un écran étroit. Les flèches du mode d\'édition déplacent alors une tuile dans la colonne, et la section est rangée de nouveau dans cet ordre : sa disposition sur la grille n\'est pas gardée.</string>
     <string name="settings_ui_sounds">Sons de l\'interface</string>
-    <string name="settings_ui_sounds_help">Les sons que le thème joue quand vous touchez l\'écran. Le thème par défaut n\'en a pas.</string>
+    <string name="settings_ui_sounds_help">Les sons que le thème joue quand tu touches l\'écran. Le thème par défaut n\'en a pas.</string>
 
     <string name="settings_data">Gestion des données</string>
     <string name="settings_data_description">Configurer la sauvegarde, l\'export et l\'import des données</string>
@@ -1012,7 +1012,7 @@
     <string name="ai_provider_claude_api_key">Clé API Claude</string>
     <string name="ai_provider_model">Modèle</string>
     <string name="ai_provider_claude_max_tokens">Limite de tokens</string>
-    <string name="ai_provider_claude_help">Obtenez votre clé API sur console.anthropic.com</string>
+    <string name="ai_provider_claude_help">Obtiens ta clé API sur console.anthropic.com</string>
     <string name="ai_provider_claude_schema_api_key">Clé API d\'authentification Anthropic</string>
     <string name="ai_provider_claude_schema_model">Modèle Claude à utiliser</string>
     <string name="ai_provider_claude_schema_max_tokens">Limite maximale de tokens pour les réponses</string>
@@ -1035,11 +1035,11 @@
     <string name="ai_provider_error_effort_with_thinking_off">Sans réflexion, un effort de raisonnement doit être choisi</string>
     <string name="ai_provider_error_effort_not_allowed">Sans réflexion, ce modèle n\'accepte que ces efforts : %1$s</string>
     <string name="ai_provider_error_effort_unknown">%1$s n\'a pas de niveau d\'effort %2$s</string>
-    <string name="ai_provider_error_effort_required">Choisissez un effort de raisonnement : le défaut de ce modèle n\'est pas connu</string>
+    <string name="ai_provider_error_effort_required">Choisis un effort de raisonnement : le défaut de ce modèle n\'est pas connu</string>
 
     <!-- AI PROVIDERS - DeepSeek specific (shares the Claude screen, only vendor texts differ) -->
     <string name="ai_provider_deepseek_api_key">Clé API DeepSeek</string>
-    <string name="ai_provider_deepseek_help">Obtenez votre clé API sur platform.deepseek.com</string>
+    <string name="ai_provider_deepseek_help">Obtiens ta clé API sur platform.deepseek.com</string>
     <string name="ai_provider_deepseek_schema_api_key">Clé API d\'authentification DeepSeek</string>
     <string name="ai_provider_deepseek_schema_model">Modèle DeepSeek à utiliser</string>
 
@@ -1048,12 +1048,12 @@
     <string name="ai_provider_openai_model">Modèle</string>
     <string name="ai_provider_openai_temperature">Température</string>
     <string name="ai_provider_openai_max_output_tokens">Limite de tokens de sortie</string>
-    <string name="ai_provider_openai_help">Obtenez votre clé API sur platform.openai.com</string>
+    <string name="ai_provider_openai_help">Obtiens ta clé API sur platform.openai.com</string>
     <string name="ai_provider_openai_schema_api_key">Clé API d\'authentification OpenAI</string>
     <string name="ai_provider_openai_schema_model">Modèle OpenAI à utiliser</string>
     <string name="ai_provider_openai_schema_temperature">Température d\'échantillonnage (0.0 à 2.0)</string>
     <string name="ai_provider_openai_schema_max_output_tokens">Limite maximale de tokens pour les réponses</string>
-    <string name="ai_provider_fill_in_first">Renseignez d\'abord : %1$s</string>
+    <string name="ai_provider_fill_in_first">Renseigne d\'abord : %1$s</string>
     <string name="ai_provider_compatible_base_url">Adresse du serveur</string>
     <string name="ai_provider_compatible_schema_base_url">Adresse de base de l\'API compatible OpenAI du serveur, en https seulement (ex. https://openrouter.ai/api/v1)</string>
     <string name="ai_provider_compatible_api_key">Clé API (si le serveur en demande une)</string>
@@ -1065,15 +1065,15 @@
     <string name="ai_provider_compatible_output_forcing_none">Aucun</string>
     <string name="ai_provider_compatible_output_forcing_json">JSON valide</string>
     <string name="ai_provider_compatible_output_forcing_schema">Schéma exact</string>
-    <string name="ai_provider_compatible_help">Tout serveur qui parle l\'API Chat Completions d\'OpenAI : Ollama, llama.cpp, vLLM, LM Studio, OpenRouter. L\'adresse s\'arrête avant /chat/completions, le plus souvent sur /v1 (Ollama : https://&lt;hôte&gt;/v1). En https seulement : le http enverrait vos données en clair. Un serveur à la maison obtient un certificat par tailscale serve ou un proxy inverse comme Caddy.</string>
+    <string name="ai_provider_compatible_help">Tout serveur qui parle l\'API Chat Completions d\'OpenAI : Ollama, llama.cpp, vLLM, LM Studio, OpenRouter. L\'adresse s\'arrête avant /chat/completions, le plus souvent sur /v1 (Ollama : https://&lt;hôte&gt;/v1). En https seulement : le http enverrait tes données en clair. Un serveur à la maison obtient un certificat par tailscale serve ou un proxy inverse comme Caddy.</string>
     <string name="ai_provider_compatible_output_forcing_help">Forçage de la sortie : le serveur tient le modèle à un JSON valide, ou au schéma exact de la réponse. Les petits modèles en ont le plus besoin ; un serveur qui n\'accepte pas le niveau choisi répond par une erreur.</string>
-    <string name="ai_provider_compatible_https_required">L\'adresse du serveur doit commencer par https:// : le http enverrait vos données en clair</string>
+    <string name="ai_provider_compatible_https_required">L\'adresse du serveur doit commencer par https:// : le http enverrait tes données en clair</string>
 
     <!-- AI ERRORS - Provider related (additional) -->
-    <string name="ai_error_no_provider_configured">Aucun fournisseur IA configuré. Veuillez configurer un fournisseur dans les paramètres.</string>
+    <string name="ai_error_no_provider_configured">Aucun fournisseur IA configuré. Configure un fournisseur dans les paramètres.</string>
     <string name="ai_error_provider_not_found">Fournisseur introuvable: %1$s</string>
     <string name="ai_error_provider_not_configured">Provider %1$s non configuré</string>
-    <string name="ai_error_provider_secret_unreadable">La clé d\'API de %1$s ne s\'ouvre pas sur ce téléphone : elle a été enregistrée sur un autre (une sauvegarde restaurée). Saisissez-la à nouveau dans les réglages du fournisseur.</string>
+    <string name="ai_error_provider_secret_unreadable">La clé d\'API de %1$s ne s\'ouvre pas sur ce téléphone : elle a été enregistrée sur un autre (une sauvegarde restaurée). Saisis-la à nouveau dans les réglages du fournisseur.</string>
     <string name="ai_error_cannot_delete_active_provider">Impossible de supprimer le provider actif</string>
     <string name="ai_error_schema_not_found">Schéma de validation introuvable</string>
     <string name="ai_error_invalid_json">JSON invalide: %1$s</string>
@@ -1091,7 +1091,7 @@
     <string name="ai_network_unavailable">Pas de connexion réseau</string>
     <string name="ai_session_queued">Session en attente (position %1$d)</string>
     <string name="ai_session_queued_priority">Session en attente prioritaire</string>
-    <string name="ai_automation_running">Routine en cours, veuillez patienter</string>
+    <string name="ai_automation_running">Routine en cours, patiente</string>
 
     <!-- Floating Chat - States -->
     <string name="ai_chat_no_active_session">Aucune session active</string>
@@ -1102,8 +1102,8 @@
     <string name="ai_chat_creating_session">Création de la session...</string>
 
     <!-- Chat options dialog (during automation) -->
-    <string name="ai_chat_options_dialog_title">Que souhaitez-vous faire ?</string>
-    <string name="ai_chat_options_dialog_description">La routine est toujours en cours. Choisissez votre action :</string>
+    <string name="ai_chat_options_dialog_title">Que souhaites-tu faire ?</string>
+    <string name="ai_chat_options_dialog_description">La routine est toujours en cours. Choisis ton action :</string>
     <string name="ai_chat_option_interrupt_title">Interrompre et discuter</string>
     <string name="ai_chat_option_interrupt_description">Pause la routine et commence un chat immédiat</string>
     <string name="ai_chat_option_after_title">Discuter après</string>
@@ -1120,7 +1120,7 @@
     <string name="ai_limit_format_errors_reached">Limite d'erreurs de format atteinte</string>
     <string name="ai_limit_data_queries_reached">Limite d'itérations de requêtes de données atteinte</string>
     <string name="ai_limit_action_retries_reached">Limite de tentatives d'actions atteinte</string>
-    <string name="ai_limit_total_roundtrips_reached">L\'IA s\'arrête : elle a enchaîné sans vous autant d\'échanges que le permet Réglages › Limites IA. Envoyez un message pour qu\'elle continue.</string>
+    <string name="ai_limit_total_roundtrips_reached">L\'IA s\'arrête : elle a enchaîné sans toi autant d\'échanges que le permet Réglages › Limites IA. Envoie un message pour qu\'elle continue.</string>
 
     <!-- AI AUTOMATION - Messages for autonomous executions -->
     <string name="ai_automation_continue_reminder">Continue jusqu'à ce que la tâche demandée soit complétée. Lorsque tu as terminé, utilise le flag \"completed\": true dans ta réponse.</string>
@@ -1189,8 +1189,8 @@
     <string name="reference_kind_variable">Variable</string>
     <string name="field_reading_reference">Désigne : %1$s, écrit {"kind", "id"}.</string>
     <string name="field_reading_reference_tools">Seulement les entrées des outils %1$s.</string>
-    <string name="field_validation_reference_kinds">Choisissez au moins une chose que le champ peut désigner.</string>
-    <string name="field_validation_reference_tool_instances">Les outils de la liste ne servent qu\'aux entrées : cochez Entrée.</string>
+    <string name="field_validation_reference_kinds">Choisis au moins une chose que le champ peut désigner.</string>
+    <string name="field_validation_reference_tool_instances">Les outils de la liste ne servent qu\'aux entrées : coche Entrée.</string>
     <string name="field_value_reference_invalid">Pas une référence : %1$s. Attendu {"kind": "ENTRY", "id": "..."}, sans id pour l\'app.</string>
     <string name="field_value_reference_kind">Désigne un %1$s, que ce champ n\'accepte pas (il accepte %2$s).</string>
     <string name="field_value_reference_not_found">Rien de la sorte %1$s n\'a l\'id %2$s.</string>
@@ -1199,13 +1199,13 @@
     <string name="field_reference_pick">Choisir</string>
     <string name="field_reference_search">Rechercher</string>
     <string name="filter_value_reference">une référence {"kind", "id"}</string>
-    <string name="service_error_references_missing">Donnez les références à nommer dans "references" : une liste de {"kind", "id"}.</string>
+    <string name="service_error_references_missing">Donne les références à nommer dans "references" : une liste de {"kind", "id"}.</string>
     <string name="action_verbalize_references_names">Lecture des noms des choses liées</string>
     <string name="action_verbalize_references_choices">Liste de ce qu\'un lien peut désigner</string>
     <string name="file_error_not_text">%1$s n\'est pas un fichier texte : seul du texte se joint (CSV, texte brut, Markdown, JSON).</string>
     <string name="image_error_not_read">Cette image n\'a pas pu être lue : %1$s</string>
-    <string name="ai_image_error_model_does_not_read">Ce modèle ne lit pas les images : retirez-les du message, ou choisissez un modèle qui les lit.</string>
-    <string name="ai_image_error_model_unknown">Rien ne dit si ce modèle lit les images, elles ne partent donc pas : rouvrez la config du fournisseur et enregistrez-la, ou choisissez un autre modèle.</string>
+    <string name="ai_image_error_model_does_not_read">Ce modèle ne lit pas les images : retire-les du message, ou choisis un modèle qui les lit.</string>
+    <string name="ai_image_error_model_unknown">Rien ne dit si ce modèle lit les images, elles ne partent donc pas : rouvre la config du fournisseur et enregistre-la, ou choisis un autre modèle.</string>
     <string name="ai_image_error_too_many">Cette conversation compte %1$d images ; une requête en porte %2$d au plus.</string>
     <string name="ai_image_error_missing">Le fichier d\'une image de cette conversation est introuvable : elle ne peut pas partir.</string>
     <string name="file_error_not_found">Aucun fichier joint n\'a l\'id %1$s.</string>
@@ -1246,7 +1246,7 @@
     <string name="variable_error_not_found">Aucune variable n\'a l\'id %1$s.</string>
     <string name="variable_error_name">« %1$s » ne peut pas être un nom dans une formule : une lettre ou _, puis lettres, chiffres ou _.</string>
     <string name="variable_error_name_taken">Une variable s\'appelle déjà %1$s : les noms sont uniques dans l\'app.</string>
-    <string name="variable_error_term_name">Le terme %1$s porte le nom d\'une variable : nommez-le autrement, ou écrivez la variable dans la formule.</string>
+    <string name="variable_error_term_name">Le terme %1$s porte le nom d\'une variable : nomme-le autrement, ou écris la variable dans la formule.</string>
     <string name="variable_error_formula">La formule ne se lit pas au caractère %1$d : %2$s %3$s</string>
     <string name="variable_error_formula_missing">Une variable formule demande sa "formula".</string>
     <string name="variable_error_unknown_names">Inconnu dans la formule : %1$s. Connus : %2$s.</string>
@@ -1317,7 +1317,7 @@
     <string name="import_type">Type</string>
     <string name="import_writing">Écrit en</string>
     <string name="import_unreadable">ne se lit pas</string>
-    <string name="import_ambiguous">Plusieurs écritures lisent cette colonne différemment : choisissez-en une.</string>
+    <string name="import_ambiguous">Plusieurs écritures lisent cette colonne différemment : choisis-en une.</string>
     <string name="import_unreadable_lines">Ces lignes seraient refusées : %1$s</string>
     <string name="import_report">%1$s créée(s), %2$s mise(s) à jour, %3$s refusée(s)</string>
     <string name="import_report_line">Ligne %1$s : %2$s</string>
@@ -1355,7 +1355,7 @@
     <string name="variable_kind_formula">Formule</string>
     <string name="variable_kind_constant">Constante</string>
     <string name="variable_formula">Formule</string>
-    <string name="variable_unknown_names">Inconnu : %1$s. Ajoutez un terme, ou nommez une variable existante.</string>
+    <string name="variable_unknown_names">Inconnu : %1$s. Ajoute un terme, ou nomme une variable existante.</string>
     <string name="variable_terms">Termes</string>
     <string name="variable_add_term">Ajouter un terme</string>
     <string name="variable_term_name">Nom</string>
@@ -1655,14 +1655,14 @@
     <string name="settings_logs">Logs d'erreurs</string>
     <string name="settings_bug_report">Signaler un bug</string>
     <string name="background_restricted_title">L\'app peut être arrêtée en arrière-plan</string>
-    <string name="background_restricted_text">Android peut arrêter Treelune quand elle est fermée. Ce qui est planifié peut alors ne pas partir : routines planifiées, messages, échéances des listes, invitations des questionnaires et des séances, fins de période des objectifs. Autorisez-la en arrière-plan pour en être sûr.</string>
+    <string name="background_restricted_text">Android peut arrêter Treelune quand elle est fermée. Ce qui est planifié peut alors ne pas partir : routines planifiées, messages, échéances des listes, invitations des questionnaires et des séances, fins de période des objectifs. Autorise-la en arrière-plan pour en être sûr.</string>
     <string name="background_restricted_open">Autoriser en arrière-plan</string>
     <string name="background_restricted_later">Plus tard</string>
-    <string name="automation_message_empty">Écrivez le message que l\'IA recevra à chaque exécution</string>
-    <string name="automation_message_empty_run">Cette routine n\'a pas encore de message : écrivez d\'abord celui que l\'IA recevra à chaque exécution</string>
-    <string name="bug_report_purpose">Un rapport sur ce qui n\'a pas marché, relu avant de partir, envoyé par l\'app de votre choix</string>
+    <string name="automation_message_empty">Écris le message que l\'IA recevra à chaque exécution</string>
+    <string name="automation_message_empty_run">Cette routine n\'a pas encore de message : écris d\'abord celui que l\'IA recevra à chaque exécution</string>
+    <string name="bug_report_purpose">Un rapport sur ce qui n\'a pas marché, relu avant de partir, envoyé par l\'app de ton choix</string>
     <string name="bug_report_description">Ce qui s\'est passé (facultatif)</string>
-    <string name="bug_report_cleaning">Ci-dessous, exactement ce qui sera envoyé. Les identifiants et les textes cités sont remplacés ; le reste peut encore nommer quelque chose de vous : relisez avant d\'envoyer.</string>
+    <string name="bug_report_cleaning">Ci-dessous, exactement ce qui sera envoyé. Les identifiants et les textes cités sont remplacés ; le reste peut encore nommer quelque chose de toi : relis avant d\'envoyer.</string>
     <string name="bug_report_send">Envoyer le rapport</string>
     <string name="bug_report_subject">Rapport de bug Treelune %1$s</string>
     <string name="crash_notice_title">L\'app s\'est arrêtée</string>
@@ -1719,7 +1719,7 @@
     <string name="label_tool_group">Groupe d\'outils</string>
     <string name="label_tool_groups">Groupes d\'outils</string>
     <string name="label_zone_groups">Groupes de zones</string>
-    <string name="message_zone_groups_description">Organisez vos zones en groupes pour faciliter la navigation sur l\'accueil</string>
+    <string name="message_zone_groups_description">Organise tes zones en groupes pour faciliter la navigation sur l\'accueil</string>
     <string name="label_ungrouped">Hors groupe</string>
     <string name="label_zones">Zones</string>
     <string name="label_tools_and_automations">Outils et routines</string>
@@ -1728,7 +1728,7 @@
     <string name="message_no_zone_groups">Aucun groupe de zones défini</string>
     <string name="message_no_zones_in_group">Aucune zone dans ce groupe</string>
     <string name="message_no_ungrouped_zones">Aucune zone hors groupe</string>
-    <string name="dialog_add_tool_or_automation_title">Que voulez-vous ajouter ?</string>
+    <string name="dialog_add_tool_or_automation_title">Que veux-tu ajouter ?</string>
     <string name="action_add_tool">Créer un outil</string>
     <string name="action_add_automation">Créer une routine</string>
 
@@ -1736,7 +1736,7 @@
     <string name="tools_base_schema_config_group">Groupe d\'organisation de l\'outil</string>
     <string name="zone_schema_tool_groups">Liste des groupes d\'outils disponibles dans cette zone</string>
     <string name="label_zone_validate">Protéger le contenu de cette zone</string>
-    <string name="zone_schema_validate">L\'IA de la conversation et du connecteur demande votre accord avant de créer, modifier ou supprimer un outil de cette zone, ses groupes d\'outils, ses routines ou ses variables. Réglable seulement dans l\'app. Une routine ne demande jamais.</string>
+    <string name="zone_schema_validate">L\'IA de la conversation et du connecteur demande ton accord avant de créer, modifier ou supprimer un outil de cette zone, ses groupes d\'outils, ses routines ou ses variables. Réglable seulement dans l\'app. Une routine ne demande jamais.</string>
     <string name="zone_schema_display_mode">Comment la zone s\'affiche sur l\'accueil : ICON (son icône), MINIMAL (icône et nom), LINE (sa description à côté), CONDENSED (sa description dessous) ; il donne les cases que la zone occupe</string>
     <string name="zone_schema_icon_color">Couleur de l\'icône de la zone, parmi RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, PURPLE, PINK ; null ou absente pour une icône neutre. Les outils de la zone ne la prennent pas</string>
     <string name="zone_schema_group">Groupe d\'organisation de la zone</string>
@@ -1831,7 +1831,7 @@
     <string name="label_ai_provider">Fournisseur IA</string>
     <string name="label_yes">Oui</string>
     <string name="label_with_default">%1$s (par défaut : %2$s)</string>
-    <string name="setting_field_of_tool_first">choisissez d\'abord l\'outil</string>
+    <string name="setting_field_of_tool_first">choisis d\'abord l\'outil</string>
     <string name="label_on">On</string>
     <string name="label_off">Off</string>
     <string name="label_no">Non</string>
@@ -1844,7 +1844,7 @@
     <string name="error_validation_required">Champ obligatoire</string>
     <string name="error_param_name_required">Le nom est obligatoire</string>
     <string name="error_load_failed">Échec du chargement</string>
-    <string name="secrets_unreadable">%1$s ne s\'ouvre pas sur ce téléphone : enregistré sur un autre (une sauvegarde restaurée). Saisissez-le à nouveau.</string>
+    <string name="secrets_unreadable">%1$s ne s\'ouvre pas sur ce téléphone : enregistré sur un autre (une sauvegarde restaurée). Saisis-le à nouveau.</string>
     <string name="error_load_data_failed">Impossible de charger les données</string>
     <string name="error_update_failed">Échec de la mise à jour</string>
     <string name="error_rename_failed">Échec du renommage</string>
@@ -1863,7 +1863,7 @@
     <string name="tools_config_error_zone_update">Impossible de déplacer l\'outil dans cette zone</string>
     <!-- Demo -->
     <string name="demo_remove_now">Supprimer la démo</string>
-    <string name="demo_remove_confirm">Supprimer les zones de démo et tout ce qu\'elles contiennent, ce que vous y avez ajouté compris ? Le réglage ci-dessus reste tel quel : activé, la prochaine mise à jour réinstalle la démo.</string>
+    <string name="demo_remove_confirm">Supprimer les zones de démo et tout ce qu\'elles contiennent, ce que tu y as ajouté compris ? Le réglage ci-dessus reste tel quel : activé, la prochaine mise à jour réinstalle la démo.</string>
     <string name="demo_removed">Démo supprimée</string>
     <string name="demo_phase_zones">Zones</string>
     <string name="demo_phase_tools">Outils : %1$s / %2$s</string>
@@ -1892,23 +1892,23 @@
     <string name="settings_demo">Démo</string>
     <string name="settings_demo_description">Un groupe de zones de démonstration, réinstallé à chaque mise à jour</string>
     <string name="settings_demo_install_on_update">Installer la démo à chaque mise à jour</string>
-    <string name="settings_demo_install_on_update_help">Activé, la démo est réinstallée à chaque mise à jour ; désactivé, elle est laissée telle quelle. Ce que vous ajoutez à la démo disparaît à chaque réinstallation.</string>
+    <string name="settings_demo_install_on_update_help">Activé, la démo est réinstallée à chaque mise à jour ; désactivé, elle est laissée telle quelle. Ce que tu ajoutes à la démo disparaît à chaque réinstallation.</string>
 
     <!-- External access (MCP): the authorization page a client opens -->
     <string name="mcp_authorize_title">Accès à Treelune</string>
-    <string name="mcp_authorize_instruction">%1$s demande à lire et écrire dans votre app Treelune. Pour l\'autoriser, tapez ce code sur votre téléphone :</string>
+    <string name="mcp_authorize_instruction">%1$s demande à lire et écrire dans ton app Treelune. Pour l\'autoriser, tape ce code sur ton téléphone :</string>
     <string name="mcp_authorize_waiting">En attente du code sur le téléphone…</string>
     <string name="mcp_authorize_approved">Accès autorisé. Retour en cours…</string>
     <string name="mcp_authorize_refused">Accès refusé.</string>
-    <string name="mcp_authorize_expired">La demande a expiré : recommencez depuis le client.</string>
-    <string name="mcp_authorize_busy">Une autre demande attend déjà sur le téléphone. Réessayez dans quelques minutes.</string>
+    <string name="mcp_authorize_expired">La demande a expiré : recommence depuis le client.</string>
+    <string name="mcp_authorize_busy">Une autre demande attend déjà sur le téléphone. Réessaie dans quelques minutes.</string>
     <string name="mcp_authorize_invalid">Cette demande ne peut pas être acceptée : %1$s</string>
 
     <!-- External access (MCP): settings, the access, the phone's approval -->
     <string name="settings_external_access">Accès externe</string>
     <string name="settings_external_access_description">Laisser une IA extérieure lire et écrire dans l\'app, par Tailscale ou par un relais</string>
     <string name="settings_external_access_mode">Chemin d\'accès</string>
-    <string name="settings_external_access_mode_help">Tailscale : l\'app publie elle-même son adresse, avec un compte Tailscale gratuit. Relais : par un relais que vous hébergez.</string>
+    <string name="settings_external_access_mode_help">Tailscale : l\'app publie elle-même son adresse, avec un compte Tailscale gratuit. Relais : par un relais que tu héberges.</string>
     <string name="settings_external_access_mode_tailscale">Tailscale</string>
     <string name="settings_external_access_mode_relay">Relais</string>
     <string name="settings_external_access_relay_url">Adresse du relais</string>
@@ -1921,29 +1921,29 @@
     <string name="external_access_state_open">Ouvert. Se ferme seul après 30 minutes sans appel.</string>
     <string name="external_access_state_open_last">Ouvert, dernier appel %1$s. Se ferme seul après 30 minutes sans appel.</string>
     <string name="external_access_state_failed">Fermé après un échec : %1$s</string>
-    <string name="external_access_no_relay">Donnez d\'abord l\'adresse du relais (https) et son secret.</string>
-    <string name="external_access_secret_unreadable">Le secret du relais ne s\'ouvre pas sur ce téléphone : il a été enregistré sur un autre (une sauvegarde restaurée). Saisissez-le à nouveau.</string>
-    <string name="external_access_tailscale_unavailable">Tailscale n\'est pas disponible pour le processeur de ce téléphone : choisissez le relais.</string>
+    <string name="external_access_no_relay">Donne d\'abord l\'adresse du relais (https) et son secret.</string>
+    <string name="external_access_secret_unreadable">Le secret du relais ne s\'ouvre pas sur ce téléphone : il a été enregistré sur un autre (une sauvegarde restaurée). Saisis-le à nouveau.</string>
+    <string name="external_access_tailscale_unavailable">Tailscale n\'est pas disponible pour le processeur de ce téléphone : choisis le relais.</string>
     <string name="settings_external_access_relay_section">Relais</string>
     <string name="external_access_preparing">Démarrage de Tailscale…</string>
-    <string name="external_access_needs_login">L\'app n\'est pas encore connectée à un compte Tailscale. La connexion crée le compte si vous n\'en avez pas.</string>
+    <string name="external_access_needs_login">L\'app n\'est pas encore connectée à un compte Tailscale. La connexion crée le compte si tu n\'en as pas.</string>
     <string name="external_access_login">Connecter l\'app à Tailscale</string>
-    <string name="external_access_funnel_off">Funnel est désactivé sur votre compte Tailscale. Activez-le en un clic sur la page de Tailscale : l\'accès s\'ouvrira seul une fois Funnel actif.</string>
+    <string name="external_access_funnel_off">Funnel est désactivé sur ton compte Tailscale. Active-le en un clic sur la page de Tailscale : l\'accès s\'ouvrira seul une fois Funnel actif.</string>
     <string name="external_access_enable_funnel">Activer Funnel</string>
-    <string name="external_access_https_missing">Votre compte Tailscale doit délivrer des certificats HTTPS : dans sa console, page DNS, activez HTTPS Certificates. L\'accès s\'ouvrira seul une fois activé.</string>
+    <string name="external_access_https_missing">Ton compte Tailscale doit délivrer des certificats HTTPS : dans sa console, page DNS, active HTTPS Certificates. L\'accès s\'ouvrira seul une fois activé.</string>
     <string name="external_access_open_dns">Ouvrir la page DNS</string>
-    <string name="external_access_funnel_missing">Votre compte Tailscale doit permettre Funnel : dans sa console, politique d\'accès en JSON, ajoutez ce bloc au premier niveau et enregistrez. L\'accès s\'ouvrira seul une fois enregistré.</string>
+    <string name="external_access_funnel_missing">Ton compte Tailscale doit permettre Funnel : dans sa console, politique d\'accès en JSON, ajoute ce bloc au premier niveau et enregistre. L\'accès s\'ouvrira seul une fois enregistré.</string>
     <string name="external_access_copy_policy">Copier le bloc</string>
     <string name="external_access_policy_copied">Bloc copié</string>
     <string name="external_access_open_policy">Ouvrir la politique d\'accès</string>
-    <string name="external_access_publishing">L\'adresse est en cours de publication par Tailscale, quelques minutes la première fois. Ne l\'ajoutez dans le client qu\'une fois prête : essayée trop tôt, le client peut ne pas la trouver pendant cinq minutes de plus.</string>
-    <string name="external_access_published">Adresse prête : ajoutez-la dans le client.</string>
+    <string name="external_access_publishing">L\'adresse est en cours de publication par Tailscale, quelques minutes la première fois. Ne l\'ajoute dans le client qu\'une fois prête : essayée trop tôt, le client peut ne pas la trouver pendant cinq minutes de plus.</string>
+    <string name="external_access_published">Adresse prête : ajoute-la dans le client.</string>
     <string name="external_access_first_call">Le premier appel attend le certificat, une quarantaine de secondes.</string>
     <string name="external_access_tailscale_logout">Déconnecter de Tailscale</string>
-    <string name="external_access_tailscale_logout_confirm">Retirer l\'app de votre compte Tailscale ? Son adresse cessera de fonctionner, et la prochaine ouverture redemandera la connexion.</string>
+    <string name="external_access_tailscale_logout_confirm">Retirer l\'app de ton compte Tailscale ? Son adresse cessera de fonctionner, et la prochaine ouverture redemandera la connexion.</string>
     <string name="external_access_tailscale_logout_done">Déconnecté de Tailscale</string>
-    <string name="external_access_tailscale_logout_failed">Déconnecté ici, mais Tailscale n\'a pas pu être prévenu (%s) : retirez l\'appareil « treelune » de votre console.</string>
-    <string name="external_access_relay_refused">le relais ne reconnaît pas l\'app : vérifiez son adresse et son secret.</string>
+    <string name="external_access_tailscale_logout_failed">Déconnecté ici, mais Tailscale n\'a pas pu être prévenu (%s) : retire l\'appareil « treelune » de ta console.</string>
+    <string name="external_access_relay_refused">le relais ne reconnaît pas l\'app : vérifie son adresse et son secret.</string>
     <string name="external_access_mcp_address">Adresse à donner à l\'IA extérieure : %1$s</string>
     <string name="external_access_clients">Clients autorisés</string>
     <string name="external_access_clients_none">Aucun pour l\'instant.</string>
@@ -1958,17 +1958,17 @@
     <string name="external_access_tile">Accès externe</string>
     <string name="external_access_client_access">Accès</string>
     <string name="external_access_client_access_title">Accès de %1$s</string>
-    <string name="external_access_client_access_help">Vide : il peut tout faire. Sinon, il ne touche qu\'à ce qui est listé. Une écriture attend quand même votre accord là où une protection la garde.</string>
-    <string name="external_access_approval_title">%1$s demande votre accord</string>
+    <string name="external_access_client_access_help">Vide : il peut tout faire. Sinon, il ne touche qu\'à ce qui est listé. Une écriture attend quand même ton accord là où une protection la garde.</string>
+    <string name="external_access_approval_title">%1$s demande ton accord</string>
     <string name="external_access_approval_line">%1$s (%2$s)</string>
     <string name="external_access_approval_allow">Accepter</string>
     <string name="external_access_approval_refuse">Refuser</string>
     <string name="external_access_approval_refused">L\'utilisateur a refusé cette action dans l\'app : rien n\'a été fait.</string>
-    <string name="external_access_approval_no_answer">L\'utilisateur n\'a pas répondu dans l\'app en %1$d s : rien n\'a été fait. Redemandez quand il le pourra.</string>
+    <string name="external_access_approval_no_answer">L\'utilisateur n\'a pas répondu dans l\'app en %1$d s : rien n\'a été fait. Redemande quand il le pourra.</string>
     <string name="external_access_request_title">Demande d\'accès</string>
-    <string name="external_access_request_text">%1$s demande l\'accès. Tapez le code que sa page affiche.</string>
+    <string name="external_access_request_text">%1$s demande l\'accès. Tape le code que sa page affiche.</string>
     <string name="external_access_request_declared">Déclaré par le client : son nom, %1$s ; la réponse part vers %2$s. Rien ne prouve ni l\'un ni l\'autre.</string>
-    <string name="external_access_request_not_me">Si vous n\'avez pas lancé cette demande, refusez-la.</string>
+    <string name="external_access_request_not_me">Si tu n\'as pas lancé cette demande, refuse-la.</string>
     <string name="external_access_request_code">Code affiché sur la page</string>
     <string name="external_access_request_allow">Autoriser</string>
     <string name="external_access_request_refuse">Refuser</string>
@@ -2000,5 +2000,5 @@
     <string name="session_reasoning_summary_off">sans réflexion, effort %1$s</string>
     <string name="session_reasoning_summary_effort">effort %1$s</string>
     <string name="session_reasoning_error">Échec du changement de la réflexion</string>
-    <string name="ai_session_reasoning_refused_shown">La réflexion réglée pour cette conversation ne convient pas au modèle actuel de l\'IA : changez-la dans les paramètres de la conversation.</string>
+    <string name="ai_session_reasoning_refused_shown">La réflexion réglée pour cette conversation ne convient pas au modèle actuel de l\'IA : change-la dans les paramètres de la conversation.</string>
 </resources>

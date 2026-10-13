@@ -5,7 +5,7 @@
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
     <string name="usage">Pour des questions toujours les mêmes, posées une par écran, auxquelles on répond quand on veut ou à heures prévues : un bilan du soir, un point chaque semaine.\nDéjà prévu : son propre planning d\'invitations, avec une notification ; une réponse seul ou avec l\'IA, qui part d\'un message préparé ; une invitation laissée sans réponse reste visible comme ignorée.\nPas pour : une seule valeur notée vite (Suivi).</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
-    <string name="tagline">Des questions posées une par écran, quand vous voulez ou à heures prévues</string>
+    <string name="tagline">Des questions posées une par écran, quand tu veux ou à heures prévues</string>
     <string name="field_schedule">Invitations</string>
     <string name="field_enabled">Actif</string>
     <string name="schema_enabled">Arrêté, aucune invitation n\'est créée</string>
@@ -38,7 +38,7 @@
     <string name="history">Historique</string>
     <string name="history_empty">Pas encore rempli</string>
     <string name="passing_title">Question %1$d / %2$d</string>
-    <string name="no_question">Ce questionnaire n\'a pas encore de question : ajoutez des champs dans ses réglages</string>
+    <string name="no_question">Ce questionnaire n\'a pas encore de question : ajoute des champs dans ses réglages</string>
     <string name="action_previous">Précédente</string>
     <string name="action_next">Suivante</string>
     <string name="action_finish">Terminer</string>
