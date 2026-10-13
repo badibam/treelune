@@ -103,7 +103,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 73
+        const val VERSION = 74
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -1725,6 +1725,15 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /** The counter tracking tools made numeric (CounterAtV73), their entries given the counter's unit. */
+        /** A conversation's own reasoning (SessionReasoning): two columns, empty, every session following its provider as before. */
+        private val MIGRATION_73_74 = object : Migration(73, 74) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE ai_sessions ADD COLUMN reasoning_thinking_off INTEGER")
+                database.execSQL("ALTER TABLE ai_sessions ADD COLUMN reasoning_effort TEXT")
+                LogManager.database("MIGRATION 73->74: sessions given their own reasoning, none set", "INFO")
+            }
+        }
+
         private val MIGRATION_72_73 = object : Migration(72, 73) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 val units = mutableMapOf<String, String>()
@@ -2713,7 +2722,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_69_70,
                     MIGRATION_70_71,
                     MIGRATION_71_72,
-                    MIGRATION_72_73
+                    MIGRATION_72_73,
+                    MIGRATION_73_74
                     // Add future migrations here (minimum supported version: 9)
                 )
                 .addCallback(object : RoomDatabase.Callback() {

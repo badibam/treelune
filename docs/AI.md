@@ -651,6 +651,8 @@ DeepSeek passe par `ClaudeProviderCore` sur son endpoint `/anthropic` (`Messages
 ### Configuration
 Configurations gérées par `AIProviderConfigService`, providers découverts via `AIProviderRegistry`, `AIClient` utilise coordinator (pas d'accès DB direct).
 
+**Réflexion d'une conversation** : une conversation peut demander sa propre réflexion (`SessionReasoning` : réflexion désactivée ou non, effort), réglée dans ses paramètres (`ai_sessions.update_reasoning`, colonnes `reasoning_*` de `ai_sessions`, migration 74) parmi ce que le modèle du fournisseur actif propose (`AIClient.modelReasoning`, la liste du fournisseur). Sans elle, la config du fournisseur s'applique. Elle remplace les deux réglages de la config à l'envoi (`SessionReasoning.applyTo`), pour la suite de la conversation. Avant chaque appel, `AIClient.reasoningRefusal` la soumet à `AIProvider.configError` : un modèle qui ne la prend plus (fournisseur ou modèle changé depuis) refuse l'appel, message à l'appui, jamais de remplacement silencieux. Les routines suivent toujours la config de leur fournisseur.
+
 ## 12. Communication modules
 
 ### Structure

@@ -1992,4 +1992,13 @@
     <string name="automation_run_notification_text">Routine en cours</string>
     <string name="ai_schema_field_completed_desc">AUTOMATION seulement : true une fois tout le travail terminé, jamais après une étape intermédiaire. Sans usage dans un CHAT.</string>
     <string name="service_error_schema_tool_not_found">Aucun outil n\'a l\'id \'%1$s\'.</string>
+    <string name="session_reasoning_title">Réflexion</string>
+    <string name="session_reasoning_follow_provider">Comme réglée pour le fournisseur d\'IA</string>
+    <string name="session_reasoning_help">Vaut pour la suite de cette conversation, à la place du réglage du fournisseur d\'IA.</string>
+    <string name="session_reasoning_summary">Réflexion : %1$s</string>
+    <string name="session_reasoning_summary_provider">comme réglée pour le fournisseur</string>
+    <string name="session_reasoning_summary_off">sans réflexion, effort %1$s</string>
+    <string name="session_reasoning_summary_effort">effort %1$s</string>
+    <string name="session_reasoning_error">Échec du changement de la réflexion</string>
+    <string name="ai_session_reasoning_refused_shown">La réflexion réglée pour cette conversation ne convient pas au modèle actuel de l\'IA : changez-la dans les paramètres de la conversation.</string>
 </resources>

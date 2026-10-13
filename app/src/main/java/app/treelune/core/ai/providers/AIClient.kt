@@ -36,9 +36,11 @@ class AIClient(private val context: Context) {
      *
      * @param promptData The raw prompt data (L1-L3 + messages)
      * @param providerId Optional provider ID to use. If null, uses active provider (for CHAT). For AUTOMATION, this should be the automation's configured provider.
+     * @param reasoning The conversation's own reasoning, sent in place of the config's; checked
+     *   before by the caller ([reasoningRefusal]); null, the config's
      * @return AIResponse with raw JSON string (not parsed)
      */
-    suspend fun query(promptData: PromptData, providerId: String? = null): AIResponse {
+    suspend fun query(promptData: PromptData, providerId: String? = null, reasoning: SessionReasoning? = null): AIResponse {
         LogManager.aiService("AIClient.query() called with PromptData: ${promptData.sessionMessages.size} messages, providerId: $providerId", "DEBUG")
 
         return withContext(Dispatchers.IO) {
@@ -158,7 +160,8 @@ class AIClient(private val context: Context) {
 
                 // Send query to provider with PromptData
                 LogManager.aiService("Sending PromptData to ${provider.getDisplayName()}", "DEBUG")
-                val aiResponse = provider.query(promptData, providerConfig)
+                val sentConfig = reasoning?.applyTo(JSONObject(providerConfig))?.toString() ?: providerConfig
+                val aiResponse = provider.query(promptData, sentConfig)
 
                 LogManager.aiService("Received response from ${provider.getDisplayName()}: success=${aiResponse.success}", "DEBUG")
 
@@ -202,6 +205,42 @@ class AIClient(private val context: Context) {
     }
 
     /**
+     * Why [reasoning] cannot go with the model of [providerId] (the active provider when null), in
+     * the provider's words (AIProvider.configError on its config with [reasoning] in place), or
+     * null when it can. Null too without a provider and config to ask: a call then fails on that.
+     */
+    suspend fun reasoningRefusal(reasoning: SessionReasoning, providerId: String? = null): String? {
+        val (provider, config) = providerAndConfig(providerId) ?: return null
+        return provider.configError(reasoning.applyTo(config), context)
+    }
+
+    /**
+     * What the model of [providerId] (the active provider when null) lets a conversation set of
+     * its reasoning, its provider listing it (a network call, as the provider's config screen).
+     */
+    suspend fun modelReasoning(providerId: String? = null): ModelReasoning {
+        val (provider, config) = providerAndConfig(providerId)
+            ?: return ModelReasoning(null, null, null, s.shared("ai_error_no_provider_configured"))
+        val ownSetting = SessionReasoning(config.optBoolean(SessionReasoning.KEY_THINKING_OFF), config.optString(SessionReasoning.KEY_EFFORT).ifBlank { null })
+        val model = config.optString("model").ifBlank { null }
+            ?: return ModelReasoning(null, null, ownSetting, s.shared("ai_error_provider_not_configured").format(provider.getDisplayName()))
+        val listed = provider.listModels(config)
+        listed.error?.let { return ModelReasoning(model, null, ownSetting, s.shared("ai_provider_fetch_error").format(it)) }
+        return ModelReasoning(model, listed.models.find { it.id == model }?.reasoning, ownSetting, null)
+    }
+
+    /** The provider of [providerId] (the active one when null) and its stored config, or null when either is missing. */
+    private suspend fun providerAndConfig(providerId: String?): Pair<AIProvider, JSONObject>? {
+        val id = providerId ?: getActiveProviderId() ?: return null
+        val provider = providerRegistry.getProvider(id) ?: return null
+        val result = coordinator.processUserAction("ai_provider_config.get", mapOf("provider_id" to id))
+        if (!result.isSuccess) return null
+        @Suppress("UNCHECKED_CAST")
+        val config = (result.data?.get("config") as? Map<String, Any?>)?.let { JsonUtils.toJSONObject(it) } ?: return null
+        return provider to config
+    }
+
+    /**
      * Get active provider ID via coordinator
      */
     suspend fun getActiveProviderId(): String? {
@@ -214,6 +253,12 @@ class AIClient(private val context: Context) {
         }
     }
 }
+
+/**
+ * What a conversation may set of its model's reasoning: the model, what it offers (null: nothing,
+ * or not listed), the provider's own setting (null without a config), and why it could not be known.
+ */
+data class ModelReasoning(val model: String?, val reasoning: Reasoning?, val providerSetting: SessionReasoning?, val error: String?)
 
 /**
  * Information about an AI provider

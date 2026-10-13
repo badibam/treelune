@@ -219,6 +219,8 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("validate_app", session.validateApp)
                                 put("validate_zones", session.validateZones)
                                 put("validate_data", session.validateData)
+                                put("reasoning_thinking_off", session.reasoningThinkingOff ?: JSONObject.NULL)
+                                put("reasoning_effort", session.reasoningEffort ?: JSONObject.NULL)
                                 put("phase", session.phase)
                                 put("total_roundtrips", session.totalRoundtrips)
                                 put("last_event_time", session.lastEventTime)
@@ -689,6 +691,9 @@ class BackupService(private val context: Context) : ExecutableService {
                         validateApp = item.getBoolean("validate_app"),
                         validateZones = item.getBoolean("validate_zones"),
                         validateData = item.getBoolean("validate_data"),
+                        // A backup made before version 74 has none: its sessions follow their provider
+                        reasoningThinkingOff = if (item.isNull("reasoning_thinking_off")) null else item.getBoolean("reasoning_thinking_off"),
+                        reasoningEffort = if (item.isNull("reasoning_effort")) null else item.getString("reasoning_effort"),
                         phase = item.getString("phase"),
                         totalRoundtrips = item.getInt("total_roundtrips"),
                         lastEventTime = item.getLong("last_event_time"),

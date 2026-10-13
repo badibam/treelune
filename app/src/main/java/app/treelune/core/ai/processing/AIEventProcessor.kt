@@ -2,6 +2,7 @@ package app.treelune.core.ai.processing
 
 import android.content.Context
 import app.treelune.core.ai.data.*
+import app.treelune.core.ai.database.reasoning
 import app.treelune.core.ai.domain.*
 import app.treelune.core.ai.providers.AIClient
 import app.treelune.core.ai.providers.AIFailure
@@ -688,6 +689,32 @@ class AIEventProcessor(
                 null
             }
 
+            // The reasoning the conversation asks of its model, refused before any call when the
+            // model in use does not take it: changed since, it is the user's to set again
+            val reasoning = app.treelune.core.database.AppDatabase.getDatabase(context).aiDao().getSession(sessionId)?.reasoning()
+            reasoning?.let { aiClient.reasoningRefusal(it, providerId) }?.let { refusal ->
+                LogManager.aiSession("callAI: the session's reasoning refused: $refusal", "WARN")
+                messageRepository.storeMessage(sessionId, SessionMessage(
+                    id = java.util.UUID.randomUUID().toString(),
+                    timestamp = System.currentTimeMillis(),
+                    sender = MessageSender.SYSTEM,
+                    richContent = null,
+                    textContent = null,
+                    aiMessage = null,
+                    aiMessageJson = null,
+                    systemMessage = app.treelune.core.ai.data.SystemMessage(
+                        type = SystemMessageType.PROVIDER_ERROR,
+                        commandResults = emptyList(),
+                        summary = s.shared("ai_session_reasoning_refused_shown"),
+                        formattedData = refusal
+                    ),
+                    executionMetadata = null,
+                    excludeFromPrompt = true
+                ))
+                emit(AIEvent.ProviderErrorOccurred(refusal))
+                return
+            }
+
             // 3. The tools sent always, above their threshold, wait for the user's choice in a CHAT
             if (holdForAlwaysSend(state, sessionId)) return
 
@@ -730,7 +757,7 @@ class AIEventProcessor(
 
             // Call AI provider with determined providerId
             LogManager.aiSession("callAI: Calling AI provider (providerId: $providerId)", "DEBUG")
-            val response = withContext(requestSent) { aiClient.query(promptData, providerId) }
+            val response = withContext(requestSent) { aiClient.query(promptData, providerId, reasoning) }
 
             // Stop and Interrupt cancel this call, but a response can land in the instant between
             // the answer and the cancellation: the session must still be the one that asked

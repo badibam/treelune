@@ -361,6 +361,7 @@ fun ChatInterruptButton() {
 @Composable
 fun SettingsMenuDialog(
     session: AISession?,
+    reasoning: SessionReasoning?,
     onDismiss: () -> Unit,
     onShowCosts: () -> Unit,
     onShowSessionSettings: () -> Unit
@@ -405,14 +406,28 @@ fun SettingsMenuDialog(
                     type = ButtonType.DEFAULT,
                     onClick = onShowSessionSettings
                 ) {
-                    UI.Text(
-                        text = s.shared("ai_settings_session"),
-                        type = TextType.BODY
-                    )
+                    Column {
+                        UI.Text(
+                            text = s.shared("ai_settings_session"),
+                            type = TextType.BODY
+                        )
+                        // The reasoning in use, without opening them
+                        UI.Text(
+                            text = s.shared("session_reasoning_summary").format(reasoningSummary(reasoning, s)),
+                            type = TextType.CAPTION
+                        )
+                    }
                 }
             }
         }
     }
+}
+
+/** [reasoning] in a few words: the provider's, or thinking off and the effort. */
+private fun reasoningSummary(reasoning: SessionReasoning?, s: app.treelune.core.strings.StringsContext): String {
+    if (reasoning == null) return s.shared("session_reasoning_summary_provider")
+    val effort = reasoning.effort ?: s.shared("ai_provider_effort_default")
+    return s.shared(if (reasoning.thinkingOff) "session_reasoning_summary_off" else "session_reasoning_summary_effort").format(effort)
 }
 
 /**
@@ -421,8 +436,10 @@ fun SettingsMenuDialog(
 @Composable
 fun SessionSettingsDialog(
     validation: SessionValidation,
+    reasoning: SessionReasoning?,
     onDismiss: () -> Unit,
-    onValidationChange: (SessionValidation) -> Unit
+    onValidationChange: (SessionValidation) -> Unit,
+    onReasoningChange: (SessionReasoning?) -> Unit
 ) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
@@ -468,8 +485,69 @@ fun SessionSettingsDialog(
                     UI.Checkbox(checked = validation.data, onCheckedChange = { onValidationChange(validation.copy(data = it)) }, label = s.shared("session_validation_data"))
                     UI.Text(text = s.shared("session_validation_help"), type = TextType.CAPTION)
                 }
+
+                SessionReasoningSettings(reasoning, onReasoningChange)
             }
         }
+    }
+}
+
+/**
+ * The reasoning this conversation asks of its model: its provider's setting, or its own among
+ * what the model offers, listed by its provider (AIClient.modelReasoning) as the provider's
+ * config screen lists it. The choices follow that screen's: thinking off takes an effort among
+ * those it accepts, never the model's default.
+ */
+@Composable
+private fun SessionReasoningSettings(reasoning: SessionReasoning?, onReasoningChange: (SessionReasoning?) -> Unit) {
+    val context = LocalContext.current
+    val s = remember { Strings.`for`(context = context) }
+    var model by remember { mutableStateOf<app.treelune.core.ai.providers.ModelReasoning?>(null) }
+    LaunchedEffect(Unit) { model = app.treelune.core.ai.providers.AIClient(context).modelReasoning() }
+
+    Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+        UI.Text(text = s.shared("session_reasoning_title"), type = TextType.HEADING)
+        val known = model
+        val offered = known?.reasoning
+        when {
+            known == null -> UI.Text(s.shared("ai_provider_fetching_models"), TextType.CAPTION)
+            known.error != null -> UI.Text(known.error, TextType.CAPTION)
+            offered == null -> UI.Text(s.shared("ai_provider_no_reasoning"), TextType.CAPTION)
+            else -> {
+                UI.Switch(
+                    checked = reasoning == null,
+                    // Its own setting starts from the provider's
+                    onCheckedChange = { follow -> onReasoningChange(if (follow) null else known.providerSetting ?: SessionReasoning(false, null)) },
+                    label = s.shared("session_reasoning_follow_provider")
+                )
+                if (reasoning != null) {
+                    offered.thinkingOff?.let { off ->
+                        UI.Switch(
+                            checked = reasoning.thinkingOff,
+                            // An effort thinking off does not accept goes with the switch
+                            onCheckedChange = { checked ->
+                                val kept = reasoning.effort?.takeIf { !checked || off.efforts == null || it in off.efforts }
+                                onReasoningChange(SessionReasoning(checked, kept))
+                            },
+                            label = s.shared("ai_provider_thinking_off")
+                        )
+                    }
+                    if (offered.efforts.isNotEmpty()) {
+                        val levels = if (reasoning.thinkingOff) offered.thinkingOff?.efforts ?: offered.efforts else offered.efforts
+                        val required = reasoning.thinkingOff || offered.effortRequired
+                        val byDefault = s.shared("ai_provider_effort_default")
+                        UI.FormSelection(
+                            label = s.shared("ai_provider_effort"),
+                            options = if (required) levels else listOf(byDefault) + levels,
+                            selected = reasoning.effort ?: if (required) "" else byDefault,
+                            onSelect = { chosen -> onReasoningChange(reasoning.copy(effort = chosen.takeIf { it != byDefault })) },
+                            required = required
+                        )
+                    }
+                }
+            }
+        }
+        UI.Text(text = s.shared("session_reasoning_help"), type = TextType.CAPTION)
     }
 }
 

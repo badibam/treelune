@@ -7,6 +7,7 @@ import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.AppDatabase
 import app.treelune.core.ai.database.AISessionEntity
+import app.treelune.core.ai.database.reasoning
 import app.treelune.core.ai.database.SessionMessageEntity
 import app.treelune.core.coordinator.CancellationToken
 import app.treelune.core.services.ExecutableService
@@ -70,6 +71,8 @@ class AISessionService(private val context: Context) : ExecutableService {
 
                 // What the session adds to the protections, written whole
                 "update_validation" -> updateValidation(params, token)
+                // The reasoning it asks of its model, or its provider's config again
+                "update_reasoning" -> updateReasoning(params, token)
 
                 // Session state updates (V2 - managed by AIStateRepository)
                 "set_end_reason" -> setEndReason(params, token)
@@ -194,6 +197,7 @@ class AISessionService(private val context: Context) : ExecutableService {
                     SessionValidation.KEY_APP to sessionEntity.validateApp,
                     SessionValidation.KEY_ZONES to sessionEntity.validateZones,
                     SessionValidation.KEY_DATA to sessionEntity.validateData,
+                    SessionReasoning.KEY to sessionEntity.reasoning()?.toMap(),
                     "automation_id" to sessionEntity.automationId,
                     "scheduled_execution_time" to sessionEntity.scheduledExecutionTime,
                     "provider_id" to sessionEntity.providerId,
@@ -487,6 +491,7 @@ class AISessionService(private val context: Context) : ExecutableService {
                     SessionValidation.KEY_APP to activeSessionEntity.validateApp,
                     SessionValidation.KEY_ZONES to activeSessionEntity.validateZones,
                     SessionValidation.KEY_DATA to activeSessionEntity.validateData,
+                    SessionReasoning.KEY to activeSessionEntity.reasoning()?.toMap(),
                     "provider_id" to activeSessionEntity.providerId,
                     "provider_session_id" to activeSessionEntity.providerSessionId,
                     "created_at" to activeSessionEntity.createdAt,
@@ -852,6 +857,37 @@ class AISessionService(private val context: Context) : ExecutableService {
             LogManager.aiSession("Failed to toggle validation for session $sessionId: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("ai_error_toggle_validation"))
         }
+    }
+
+    /**
+     * Sets the reasoning a conversation asks of its model (SessionReasoning): `reasoning` with
+     * `thinking_off` and `effort` (null, the model's default), or null to follow its provider's
+     * config again. Refused, in the provider's words, when the active provider's model does not
+     * take it.
+     */
+    private suspend fun updateReasoning(params: JSONObject, token: CancellationToken): OperationResult {
+        if (token.isCancelled) return OperationResult.cancelled()
+
+        val sessionId = params.optString("session_id").takeIf { it.isNotEmpty() }
+            ?: return OperationResult.error(s.shared("ai_error_param_session_id_required"))
+        val reasoning = params.optJSONObject(SessionReasoning.KEY)?.let {
+            if (!it.has(SessionReasoning.KEY_THINKING_OFF)) {
+                return OperationResult.error(s.shared("ai_error_param_missing").format(SessionReasoning.KEY_THINKING_OFF))
+            }
+            SessionReasoning(
+                it.getBoolean(SessionReasoning.KEY_THINKING_OFF),
+                if (it.isNull(SessionReasoning.KEY_EFFORT)) null else it.getString(SessionReasoning.KEY_EFFORT)
+            )
+        }
+
+        val dao = AppDatabase.getDatabase(context).aiDao()
+        val session = dao.getSession(sessionId)
+            ?: return OperationResult.error(s.shared("ai_error_session_not_found").format(sessionId))
+        reasoning?.let { app.treelune.core.ai.providers.AIClient(context).reasoningRefusal(it) }?.let { return OperationResult.error(it) }
+
+        dao.updateSession(session.copy(reasoningThinkingOff = reasoning?.thinkingOff, reasoningEffort = reasoning?.effort))
+        LogManager.aiSession("Reasoning of session $sessionId now ${reasoning ?: "its provider's"}", "INFO")
+        return OperationResult.success(buildMap { put("session_id", sessionId); reasoning?.let { put(SessionReasoning.KEY, it.toMap()) } })
     }
 
     /**
