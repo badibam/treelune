@@ -122,7 +122,6 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 
 ## Bugs du téléphone
 
-- Guide : aussi tour d'horozon des outils pour donner aperçu des usages et conseil d'utiliser les outils pour ce pour quoi ils ont ete prévus
 - Saivegarde auto des données avec roulement 1h 1j 1s 1m
 - Il faudrait piur sélectionner/copier davantage de textes dans l'app. Soit via fonction comme chat ia, via clic, soit via selection android, selon les xas. On passe en revue.
 - Fenêtre dédition de aitomation, dès que trop grande, les boutons du bas disparaissent

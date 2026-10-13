@@ -14,6 +14,9 @@
     <string name="guide_state_progress">%1$d/%2$d · reprendre</string>
     <string name="guide_state_done">Fait</string>
     <string name="guide_state_stub">À écrire</string>
+    <string name="guide_state_read">À lire</string>
+    <string name="guide_tools_title">Les outils en un coup d\'œil</string>
+    <string name="guide_tools_intro">Chaque outil fait déjà beaucoup de lui-même : avant d\'en assembler plusieurs, regarde ce que le bon outil prévoit. Touche un outil pour lire à quoi il sert, ce qu\'il fait déjà et ce pour quoi il n\'est pas fait.</string>
     <string name="guide_stub">Ce chapitre reste à écrire.</string>
     <string name="guide_do_interactive">Faire en interactif</string>
     <string name="guide_resume">Reprendre</string>

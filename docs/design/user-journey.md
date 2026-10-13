@@ -106,7 +106,8 @@ Un chapitre par sujet, lu dans l'ordre qu'on veut, tutoriel facultatif :
 - **Configurer un outil**, en tête, en tutoriel, sans IA : la configuration ouverte par un appui long, l'icône, sa couleur et le mode d'affichage, un champ supplémentaire rempli dans une entrée, puis ce que la validation et « Toujours envoyer » changent pour l'IA.
 
 - Organiser : groupes de zones sur l'accueil, groupes d'outils dans une zone, disposition des tuiles — le même geste à deux niveaux, dans un seul chapitre.
-- Les outils : un chapitre par type, fourni par le type d'outil dans son dossier (`tools/<type>/`), à côté de ses textes, et découvert comme l'outil l'est ; un nouvel outil arrive avec son chapitre.
+- Les outils en un coup d'œil, en tête de Prise en main : chaque type avec son icône, son nom et sa `tagline`, un appui ouvrant son chapitre ; en intro, le conseil de regarder ce que le bon outil prévoit avant d'en assembler plusieurs. Généré, sans texte à tenir à la main.
+- Les outils : un chapitre par type, fourni par le type d'outil dans son dossier (`tools/<type>/`), à côté de ses textes, et découvert comme l'outil l'est ; un nouvel outil arrive avec son chapitre. Son texte est l'`usage` du type (à quoi il sert, ce qu'il fait déjà, pas pour), le même que lit l'IA.
 - Relier : variables, lectures, pointeurs.
 - Parler à l'IA : le pointeur, les questions et validations, le coût.
 - Apparence : thèmes, palettes, couleurs des icônes.
@@ -135,7 +136,7 @@ Dans les réglages de l'app : pour chaque chapitre, l'étape en cours ou « fait
 
 ## Où ça vit
 
-- Les chapitres : `assets/guide/chapters.json`, une étape par objet (sorte, adresse du lieu, opération attendue avec son origine et ses paramètres, ce qu'elle garde). « Hors démo » n'a pas de forme à lui : une étape vise la zone créée à l'étape d'avant (`{zone}`), jamais une zone de la démo. Un chapitre par type d'outil s'ajoute après « Organiser », tiré du nom et de la `tagline` de l'outil.
+- Les chapitres : `assets/guide/chapters.json`, une étape par objet (sorte, adresse du lieu, opération attendue avec son origine et ses paramètres, ce qu'elle garde). « Hors démo » n'a pas de forme à lui : une étape vise la zone créée à l'étape d'avant (`{zone}`), jamais une zone de la démo. Un chapitre par type d'outil s'ajoute après « Organiser », tiré du nom, de la `tagline` et de l'`usage` de l'outil ; « Les outils en un coup d'œil » s'ajoute en tête de Prise en main.
 - Les textes : `core/strings/sources/guide.xml` et `guide-fr.xml`, nommés d'après le chapitre et l'étape.
 - Le moteur : `core/guide/Guide.kt`, qui écoute les opérations réussies demandées de l'extérieur (`PassedOperations`, émises par le coordinateur) et la pile ; la progression dans la catégorie de réglages `guide`.
 - Le contrôle : `scripts/check_guide.py`, dans `./run test`.

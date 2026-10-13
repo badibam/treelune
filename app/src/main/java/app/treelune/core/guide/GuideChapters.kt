@@ -57,7 +57,9 @@ data class GuideStep(
  * A chapter of the Guide. A chapter with steps is a tutorial, done on the app itself; one
  * without is read. A chapter with no steps and no text yet is a stub.
  *
- * @property toolType Set for a tool type's reference chapter, whose name and line are the tool's
+ * @property toolType Set for a tool type's reference chapter, whose name and line are the tool's,
+ *   and whose text is its usage (what it is for, what it already does, what it is not for)
+ * @property overview The tools at a glance: each tool type's line, opening its chapter
  */
 data class GuideChapter(
     val id: String,
@@ -65,9 +67,16 @@ data class GuideChapter(
     val icon: String,
     val minutes: Int,
     val steps: List<GuideStep>,
-    val toolType: String? = null
+    val toolType: String? = null,
+    val overview: Boolean = false
 ) {
     val isTutorial: Boolean get() = steps.isNotEmpty()
+
+    /** Still to be written: neither steps nor a text of its own. */
+    val isStub: Boolean get() = steps.isEmpty() && toolType == null && !overview
+
+    /** A read chapter's text: a tool type's usage. */
+    fun body(context: Context): String? = toolType?.let { ToolTypeManager.getToolType(it)?.getUsage(context) }
 
     /** A chapter needs the demo when one of its steps is about it: read from the steps, never declared. */
     val usesDemo: Boolean get() = steps.any { it.usesDemo }
@@ -89,9 +98,9 @@ data class GuideChapter(
 const val DEMO_PREFIX = "demo-"
 
 /**
- * The Guide's chapters, in their order: those of `assets/guide/chapters.json`, and after
- * « organize » one per tool type, from the tool type's own name and line, so that a tool type
- * comes with its chapter.
+ * The Guide's chapters, in their order: those of `assets/guide/chapters.json`, the tools at a
+ * glance at the head of « Getting started », and after « organize » one per tool type, from the
+ * tool type's own name, line and usage, so that a tool type comes with its chapter.
  */
 object GuideChapters {
 
@@ -99,6 +108,9 @@ object GuideChapters {
 
     /** The chapter after which the tool types' chapters come. */
     private const val TOOLS_AFTER = "organize"
+
+    /** The tools at a glance, whose title and introduction are guide_tools_title and guide_tools_intro. */
+    const val OVERVIEW = "tools"
 
     @Volatile private var loaded: List<GuideChapter>? = null
 
@@ -111,7 +123,11 @@ object GuideChapters {
             }
             val at = declared.indexOfFirst { it.id == TOOLS_AFTER }
             require(at >= 0) { "The Guide has no chapter '$TOOLS_AFTER' for the tools' chapters to follow" }
-            (declared.take(at + 1) + tools + declared.drop(at + 1)).also { loaded = it }
+            val withTools = declared.take(at + 1) + tools + declared.drop(at + 1)
+            // Where one wonders which tool to take: before configuring one
+            val head = withTools.indexOfFirst { it.part == GuidePart.GETTING_STARTED }
+            val overview = GuideChapter(OVERVIEW, GuidePart.GETTING_STARTED, "shapes", 2, emptyList(), overview = true)
+            (withTools.take(head) + overview + withTools.drop(head)).also { loaded = it }
         }
     }
 

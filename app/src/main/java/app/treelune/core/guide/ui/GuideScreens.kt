@@ -122,8 +122,9 @@ private fun state(chapter: GuideChapter): String {
     val s = remember { Strings.`for`(context = context) }
     val at = Guide.progress?.of(chapter.id)
     return when {
-        // A chapter without steps is still to be written (docs/design/user-journey.md, « Référence »)
-        !chapter.isTutorial -> s.shared("guide_state_stub")
+        // A chapter without steps nor text is still to be written (docs/design/user-journey.md, « Référence »)
+        chapter.isStub -> s.shared("guide_state_stub")
+        !chapter.isTutorial -> s.shared("guide_state_read")
         at?.done == true -> s.shared("guide_state_done")
         at != null && chapter.isTutorial -> s.shared("guide_state_progress").format(at.step + 1, chapter.steps.size)
         else -> s.shared("guide_state_todo")
@@ -151,8 +152,13 @@ fun ChapterScreen(id: String, demoInstalled: Boolean) {
         UI.PageHeader(title = title, icon = chapter.icon, leftButton = ButtonAction.BACK, onLeftClick = { Navigator.pop() })
         Column(modifier = Modifier.padding(horizontal = UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
             UI.Text(chapter.intro(context), TextType.BODY)
-            if (!chapter.isTutorial) {
+            if (chapter.isStub) {
                 UI.Text(s.shared("guide_stub"), TextType.CAPTION)
+                return@Column
+            }
+            if (!chapter.isTutorial) {
+                chapter.body(context)?.let { UI.Text(it, TextType.BODY) }
+                if (chapter.overview) GuideChapters.all(context).filter { it.toolType != null }.forEach { ToolLine(it) }
                 return@Column
             }
             if (chapter.usesDemo && !demoInstalled) DemoMissingLine()
@@ -186,6 +192,25 @@ fun ChapterScreen(id: String, demoInstalled: Boolean) {
                 }
             }
             chapter.outro(context)?.let { UI.Text(it, TextType.BODY) }
+        }
+    }
+}
+
+/** A tool type in the tools at a glance: its icon, its name and its line, opening its chapter. */
+@Composable
+private fun ToolLine(chapter: GuideChapter) {
+    val context = LocalContext.current
+    UI.Card(type = CardType.DEFAULT) {
+        Row(
+            modifier = Modifier.fillMaxWidth().clickable { Navigator.push(Place.Chapter(chapter.id)) }.padding(UI.Space.M),
+            horizontalArrangement = Arrangement.spacedBy(UI.Space.M),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            UI.Icon(chapter.icon)
+            Column(modifier = Modifier.weight(1f)) {
+                UI.Text(chapter.title(context), TextType.STRONG, maxLines = 2)
+                UI.Text(chapter.intro(context), TextType.CAPTION)
+            }
         }
     }
 }
