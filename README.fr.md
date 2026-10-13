@@ -42,7 +42,7 @@ L'IA dispose des mêmes gestes que vous : elle lit vos outils, y ajoute des entr
 - Vous lui parlez dans une conversation, en lui joignant d'un geste un outil ou une zone, sur la période qui vous intéresse.
 - Vous pouvez exiger qu'elle vous montre ce qu'elle va faire et attende votre accord avant toute modification : pour toute l'app, une zone, un outil ou une conversation.
 - Quand il lui manque une information, elle vous pose la question sous forme de champ à remplir.
-- Une **automation** la fait travailler seule, sur un planning : « chaque dimanche soir, fais-moi le bilan de la semaine ».
+- Une **automatisation** la fait travailler seule, sur un planning : « chaque dimanche soir, fais-moi le bilan de la semaine ».
 - Claude peut aussi se brancher à l'app depuis l'extérieur, comme connecteur, et travailler sur vos outils depuis claude.ai.
 
 Vous apportez votre propre clé d'API, chez l'un de ces fournisseurs :
@@ -67,12 +67,12 @@ Vous disposez les tuiles de chaque zone comme vous voulez, vous choisissez l'ic�
 
 Téléchargez l'APK de la dernière version sur la [page des releases](https://github.com/badibam/treelune/releases), ou construisez l'app depuis les sources (voir plus bas). Elle n'est pas encore sur F-Droid.
 
-Au premier lancement, une **démo** vous attend : douze semaines de la vie de Camille, qui prépare un semi-marathon, travaille en indépendante, cuisine et jardine sur son balcon. Elle montre à quoi ressemble l'app une fois construite. Le **Guide** (le livre en haut de l'accueil) vous emmène ensuite pas à pas : la démo, votre première zone, votre premier outil, puis l'IA et les automations.
+Au premier lancement, une **démo** vous attend : douze semaines de la vie de Camille, qui prépare un semi-marathon, travaille en indépendante, cuisine et jardine sur son balcon. Elle montre à quoi ressemble l'app une fois construite. Le **Guide** (le livre en haut de l'accueil) vous emmène ensuite pas à pas : la démo, votre première zone, votre premier outil, puis l'IA et les automatisations.
 
 ## Vos données
 
 - Tout est enregistré sur votre téléphone. Aucun compte, aucune télémétrie, aucune publicité.
-- Rien ne part vers une IA sans que vous l'ayez demandé : quand vous lui écrivez, ou quand une automation que vous avez programmée tourne. Ce qui part alors va au seul fournisseur que vous avez choisi, avec votre clé, gardée chiffrée sur le téléphone.
+- Rien ne part vers une IA sans que vous l'ayez demandé : quand vous lui écrivez, ou quand une automatisation que vous avez programmée tourne. Ce qui part alors va au seul fournisseur que vous avez choisi, avec votre clé, gardée chiffrée sur le téléphone.
 - Pour afficher le coût des échanges, l'app télécharge une liste publique des prix des modèles (LiteLLM, sur GitHub). Elle n'envoie rien.
 - Le connecteur, s'il est activé, passe par un relais HTTPS dont vous donnez l'adresse, ou par Tailscale Funnel avec votre propre compte Tailscale.
 - Vous sauvegardez et restaurez tout en un fichier, vous importez un tableau CSV dans un outil.

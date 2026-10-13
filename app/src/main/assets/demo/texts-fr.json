@@ -73,7 +73,7 @@
   "chart_mood_calendar_name": "Calendrier de l'humeur",
   "chart_mood_calendar_description": "L'humeur de chaque jour en couleur, une colonne par semaine et une ligne par jour de la semaine.",
   "course_notebook_name": "Carnet d'entraînement",
-  "course_notebook_description": "Le bilan de chaque semaine, écrit par l'automation « Bilan de la semaine » à partir des sorties, du sommeil et de l'objectif.",
+  "course_notebook_description": "Le bilan de chaque semaine, écrit par l'automatisation « Bilan de la semaine » à partir des sorties, du sommeil et de l'objectif.",
   "foods_field_kcal": "kcal / 100 g",
   "foods_field_protein": "Protéines / 100 g",
   "foods_field_carbs": "Glucides / 100 g",

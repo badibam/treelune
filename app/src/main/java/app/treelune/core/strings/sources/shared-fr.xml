@@ -48,7 +48,7 @@
     <string name="action_view">Voir</string>
     <string name="action_duplicate">Dupliquer</string>
     <string name="action_duplicate_tool">Dupliquer un outil</string>
-    <string name="action_duplicate_automation">Dupliquer une automation</string>
+    <string name="action_duplicate_automation">Dupliquer une automatisation</string>
 
     <!-- AI Interface - Composer and Enrichments -->
     <string name="ai_composer_placeholder">Écris ton message...</string>
@@ -240,9 +240,9 @@
     <string name="automation_catch_up_every_occurrence">Chacune</string>
     <string name="automation_catch_up_latest_only">La plus récente</string>
     <string name="automation_catch_up_required">Indique jusqu\'où rattraper une exécution manquée avant d\'enregistrer.</string>
-    <string name="automation_dialog_edit_hint">Modifie le nom, le fournisseur, le groupe et la zone de l\'automation.</string>
-    <string name="automation_dialog_create_hint">Une fois créée, le message et la planification de l\'automation se règlent dans son éditeur.</string>
-    <string name="automation_catch_up_without_schedule">Une automation sans planification n\'a rien à rattraper : ses réglages de rattrapage vont avec une planification.</string>
+    <string name="automation_dialog_edit_hint">Modifie le nom, le fournisseur, le groupe et la zone de l\'automatisation.</string>
+    <string name="automation_dialog_create_hint">Une fois créée, le message et la planification de l\'automatisation se règlent dans son éditeur.</string>
+    <string name="automation_catch_up_without_schedule">Une automatisation sans planification n\'a rien à rattraper : ses réglages de rattrapage vont avec une planification.</string>
     <string name="automation_catch_up_limited">Jusqu\'à un délai</string>
     <string name="automation_catch_up_delay">Délai</string>
     <string name="automation_is_enabled">Activée</string>
@@ -255,9 +255,9 @@
     <string name="ai_schema_required_for_writes_shown">Les écritures de l\'IA n\'ont pas été faites : elle reçoit d\'abord le format des outils visés, puis les renverra.</string>
     <string name="ai_schema_always_send_shown">L\'IA reçoit le format des outils toujours envoyés.</string>
     <string name="ai_system_data_refused_by_user_shown">Données non envoyées à l\'IA : vous avez refusé ses %1$d caractères. Elle peut demander moins, ou vous demander ce qu\'il faut.</string>
-    <string name="ai_system_data_too_large_automation_shown">Données non envoyées à l\'IA : %1$d caractères, au-delà du seuil des automations (%2$d). Elle peut demander moins.</string>
+    <string name="ai_system_data_too_large_automation_shown">Données non envoyées à l\'IA : %1$d caractères, au-delà du seuil des automatisations (%2$d). Elle peut demander moins.</string>
     <string name="ai_completion_confirmation_shown">L\'IA dit avoir terminé : l\'app lui demande de le confirmer.</string>
-    <string name="ai_automation_no_commands_shown">L\'IA a répondu sans rien lire ni faire : l\'app lui rappelle qu\'une automation doit agir, ou dire qu\'elle a fini.</string>
+    <string name="ai_automation_no_commands_shown">L\'IA a répondu sans rien lire ni faire : l\'app lui rappelle qu\'une automatisation doit agir, ou dire qu\'elle a fini.</string>
     <string name="ai_failure_config_shown">Le fournisseur d\'IA refuse la demande telle qu\'elle est réglée (clé, modèle ou compte) : à revoir dans Réglages › Fournisseurs IA.</string>
     <string name="ai_failure_refused_shown">Le fournisseur d\'IA refuse la demande pour l\'instant (trop de demandes, surcharge ou crédit épuisé) : réessayez plus tard.</string>
     <string name="ai_failure_network_shown">Pas de réseau : la demande partira quand il reviendra.</string>
@@ -374,7 +374,7 @@
     <string name="ai_error_network_unavailable">Réseau indisponible</string>
     <string name="ai_error_network_timeout_retries">Timeout réseau après %1$d tentatives: %2$s</string>
     <string name="ai_error_response_lost">Requête envoyée, réponse perdue : son coût est inconnu</string>
-    <string name="ai_error_session_timeout_automation">Durée maximale de session automation dépassée (%1$d min), arrêt forcé</string>
+    <string name="ai_error_session_timeout_automation">Durée maximale de session automatisation dépassée (%1$d min), arrêt forcé</string>
     <string name="ai_error_timeout">Délai dépassé</string>
     <string name="ai_error_limit_reached">Limite atteinte</string>
     <string name="ai_error_missing_required_field">Champ obligatoire manquant: %1$s</string>
@@ -390,7 +390,7 @@
     <string name="ai_phase_waiting_validation">Validation requise</string>
     <string name="ai_phase_waiting_communication">En attente de réponse</string>
     <string name="ai_phase_waiting_data_confirmation">En attente de ta décision sur les données</string>
-    <string name="ai_system_data_too_large_automation">Données non envoyées : %1$d caractères, au-delà du seuil des automations de %2$d. Resserre la requête (moins de champs, une période plus courte) ou découpe ce qui est vraiment nécessaire.</string>
+    <string name="ai_system_data_too_large_automation">Données non envoyées : %1$d caractères, au-delà du seuil des automatisations de %2$d. Resserre la requête (moins de champs, une période plus courte) ou découpe ce qui est vraiment nécessaire.</string>
     <string name="ai_system_data_refused_by_user">Données non envoyées : l\'utilisateur a refusé %1$d caractères de données. Resserre la requête (moins de champs, une période plus courte) ou demande-lui ce qui est nécessaire.</string>
     <string name="ai_system_result_cut">[… %1$s caractères non envoyés]</string>
     <string name="ai_posttext_not_shown">Ton post_text n\'a pas été montré : les actions n\'ont pas toutes réussi.</string>
@@ -540,9 +540,9 @@
     <string name="error_tooltype_not_found">Type d'outil '%1$s' introuvable</string>
     <string name="message_copied">Message copié</string>
     <string name="duplicate_success_tool">Outil dupliqué avec succès</string>
-    <string name="duplicate_success_automation">Automation dupliquée avec succès</string>
+    <string name="duplicate_success_automation">Automatisation dupliquée avec succès</string>
     <string name="duplicate_no_tools">Aucun outil disponible à dupliquer</string>
-    <string name="duplicate_no_automations">Aucune automation disponible à dupliquer</string>
+    <string name="duplicate_no_automations">Aucune automatisation disponible à dupliquer</string>
     <string name="duplicate_error">Erreur lors de la duplication: %1$s</string>
 
     <!-- Confirmation messages -->
@@ -777,7 +777,7 @@
     <string name="tools_base_schema_config_icon_color">Couleur de l\'icône de l\'outil, parmi RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, PURPLE, PINK ; null ou absente pour une icône neutre. Chaque thème la dessine à sa façon</string>
     <string name="tools_base_schema_config_always_send">Toujours envoyer les données à l\'IA (Level 2)</string>
     <string name="tools_base_schema_config_show_field_labels">Si les champs de l\'utilisateur montrent leur nom à côté de leur valeur, partout où ils s\'affichent</string>
-    <string name="tools_base_schema_config_validate_data">L\'IA de la conversation et du connecteur demande votre accord avant d\'ajouter, modifier ou supprimer une entrée de cet outil. Réglable seulement dans l\'app. Une automation ne demande jamais.</string>
+    <string name="tools_base_schema_config_validate_data">L\'IA de la conversation et du connecteur demande votre accord avant d\'ajouter, modifier ou supprimer une entrée de cet outil. Réglable seulement dans l\'app. Une automatisation ne demande jamais.</string>
 
     <!-- Tools BASE SCHEMA DATA - Descriptions communes pour validation des données -->
     <string name="tools_base_schema_data_id">Identifiant de l\'entrée, posé par le système</string>
@@ -828,7 +828,7 @@
 
     <!-- DUPLICATE SELECTOR - Duplication navigation -->
     <string name="duplicate_selector_title_tool">Sélectionner l\'outil à dupliquer</string>
-    <string name="duplicate_selector_title_automation">Sélectionner l\'automation à dupliquer</string>
+    <string name="duplicate_selector_title_automation">Sélectionner l\'automatisation à dupliquer</string>
     <string name="duplicate_select_zone">Sélectionner la zone</string>
     <string name="duplicate_select_instance">Sélectionner l\'instance</string>
 
@@ -945,20 +945,20 @@
     <string name="settings_ai_limits">Limites IA</string>
     <string name="settings_ai_limits_description">Configurer les limites des boucles autonomes de l\'IA</string>
     <string name="app_config_ai_limits_chat">Appels IA d\'affilée, chat</string>
-    <string name="app_config_ai_limits_automation">Appels IA par automation</string>
+    <string name="app_config_ai_limits_automation">Appels IA par automatisation</string>
     <string name="settings_ai_limits_chat_help">Compté depuis ton dernier message : au-delà, l\'IA s\'arrête et te rend la main.</string>
-    <string name="settings_ai_limits_automation_help">Compté sur toute la session, puisque personne n\'intervient : au-delà, l\'automation se termine.</string>
+    <string name="settings_ai_limits_automation_help">Compté sur toute la session, puisque personne n\'intervient : au-delà, l\'automatisation se termine.</string>
     <string name="app_config_ai_data_chat">Taille des données avant confirmation, chat (caractères)</string>
-    <string name="app_config_ai_data_automation">Taille des données admise, automation (caractères)</string>
+    <string name="app_config_ai_data_automation">Taille des données admise, automatisation (caractères)</string>
     <string name="settings_ai_data_chat_help">Au-delà, les données demandées, par tes pointeurs ou par l\'IA, attendent que tu les envoies ou les refuses.</string>
     <string name="settings_ai_data_automation_help">Au-delà, les données ne partent pas : l\'IA est invitée à resserrer sa demande. Visible dans l\'historique d\'exécution.</string>
     <string name="app_config_ai_always_send">Taille des outils toujours envoyés avant confirmation (caractères)</string>
-    <string name="settings_ai_always_send_help">Les outils marqués « toujours envoyer » partent avec chaque message à l\'IA. Au-delà de cette taille à eux tous, un chat te demande une fois par session s\'il faut les envoyer ; une automation, ou une IA extérieure à l\'app, n\'en reçoit que la liste et peut les lire au besoin.</string>
+    <string name="settings_ai_always_send_help">Les outils marqués « toujours envoyer » partent avec chaque message à l\'IA. Au-delà de cette taille à eux tous, un chat te demande une fois par session s\'il faut les envoyer ; une automatisation, ou une IA extérieure à l\'app, n\'en reçoit que la liste et peut les lire au besoin.</string>
 
     <string name="settings_validation">Validation IA</string>
     <string name="settings_validation_description">Ce que l\'IA doit vous demander avant de le modifier</string>
     <string name="app_config_validate_app">Protéger l\'accueil</string>
-    <string name="app_config_validate_app_help">L\'IA de la conversation et du connecteur demande votre accord avant de créer, modifier ou supprimer une zone, ou de changer les groupes de l\'accueil. Une automation ne demande jamais.</string>
+    <string name="app_config_validate_app_help">L\'IA de la conversation et du connecteur demande votre accord avant de créer, modifier ou supprimer une zone, ou de changer les groupes de l\'accueil. Une automatisation ne demande jamais.</string>
 
     <string name="settings_ui">Interface utilisateur</string>
     <string name="settings_ui_description">Configurer l\'apparence et le comportement de l\'interface</string>
@@ -1091,23 +1091,23 @@
     <string name="ai_network_unavailable">Pas de connexion réseau</string>
     <string name="ai_session_queued">Session en attente (position %1$d)</string>
     <string name="ai_session_queued_priority">Session en attente prioritaire</string>
-    <string name="ai_automation_running">Automation en cours, veuillez patienter</string>
+    <string name="ai_automation_running">Automatisation en cours, veuillez patienter</string>
 
     <!-- Floating Chat - States -->
     <string name="ai_chat_no_active_session">Aucune session active</string>
     <string name="ai_chat_start_button">Démarrer un chat</string>
-    <string name="ai_chat_queued_message">Session chat en attente, l\'automation va bientôt se terminer...</string>
+    <string name="ai_chat_queued_message">Session chat en attente, l\'automatisation va bientôt se terminer...</string>
     <string name="ai_chat_after_button">Chat après</string>
     <string name="ai_chat_interrupt_and_chat_button">Interrompre et chatter</string>
     <string name="ai_chat_creating_session">Création de la session...</string>
 
     <!-- Chat options dialog (during automation) -->
     <string name="ai_chat_options_dialog_title">Que souhaitez-vous faire ?</string>
-    <string name="ai_chat_options_dialog_description">L\'automation est toujours en cours. Choisissez votre action :</string>
+    <string name="ai_chat_options_dialog_description">L\'automatisation est toujours en cours. Choisissez votre action :</string>
     <string name="ai_chat_option_interrupt_title">Interrompre et discuter</string>
-    <string name="ai_chat_option_interrupt_description">Pause l\'automation et commence un chat immédiat</string>
+    <string name="ai_chat_option_interrupt_description">Pause l\'automatisation et commence un chat immédiat</string>
     <string name="ai_chat_option_after_title">Discuter après</string>
-    <string name="ai_chat_option_after_description">L\'automation continue, chat accessible après</string>
+    <string name="ai_chat_option_after_description">L\'automatisation continue, chat accessible après</string>
 
     <!-- Automation Queue Status -->
     <string name="ai_automation_queued_badge">En attente dans la file (position %1$d)</string>
@@ -1469,7 +1469,7 @@
     <string name="automation_seed_message_label">Message actuel</string>
     <string name="automation_enrichments_label">Enrichissements</string>
     <string name="automation_no_message">Aucun message configuré</string>
-    <string name="automation_none_configured">Aucune automation configurée</string>
+    <string name="automation_none_configured">Aucune automatisation configurée</string>
     <string name="automation_triggers_none">Aucun déclencheur</string>
     <string name="automation_triggers_count">%1$d déclencheur(s)</string>
     <string name="automation_triggers_config_title">Configuration déclencheurs</string>
@@ -1539,7 +1539,7 @@
     <string name="schedule_pattern_WeeklyCustom">Hebdomadaire (moments personnalisés)</string>
     <string name="schedule_pattern_YearlyRecurrent">Annuel (dates récurrentes)</string>
     <string name="schedule_pattern_SpecificDates">Dates spécifiques</string>
-    <string name="schedule_no_schedule_message">Cette automation ne sera exécutée que manuellement.</string>
+    <string name="schedule_no_schedule_message">Cette automatisation ne sera exécutée que manuellement.</string>
 
     <!-- SCHEDULE CONFIG - Field labels -->
     <string name="schedule_time_label">Heure %1$d</string>
@@ -1628,7 +1628,7 @@
     <string name="month_short_12">Déc</string>
 
     <!-- AI Guidance Messages (for PREPARING_CONTINUATION phase) -->
-    <string name="ai_automation_no_commands_guidance">Tu es en mode automation, tes réponses doivent contenir des requêtes de données ou des actions. Si tu as terminé, utilise le flag \'completed\'.</string>
+    <string name="ai_automation_no_commands_guidance">Tu es en mode automatisation, tes réponses doivent contenir des requêtes de données ou des actions. Si tu as terminé, utilise le flag \'completed\'.</string>
     <string name="ai_completion_confirmation_required">Le flag \'completed\' signifie que TOUTE la demande initiale est terminée, pas juste une étape. Si c\'était bien ton intention, renvoie un message avec \'completed: true\'. Sinon, continue ton travail.</string>
 
     <!-- Provider Configuration -->
@@ -1655,11 +1655,11 @@
     <string name="settings_logs">Logs d'erreurs</string>
     <string name="settings_bug_report">Signaler un bug</string>
     <string name="background_restricted_title">L\'app peut être arrêtée en arrière-plan</string>
-    <string name="background_restricted_text">Android peut arrêter Treelune quand elle est fermée. Ce qui est planifié peut alors ne pas partir : automations planifiées, messages, échéances des listes, invitations des questionnaires et des séances, fins de période des objectifs. Autorisez-la en arrière-plan pour en être sûr.</string>
+    <string name="background_restricted_text">Android peut arrêter Treelune quand elle est fermée. Ce qui est planifié peut alors ne pas partir : automatisations planifiées, messages, échéances des listes, invitations des questionnaires et des séances, fins de période des objectifs. Autorisez-la en arrière-plan pour en être sûr.</string>
     <string name="background_restricted_open">Autoriser en arrière-plan</string>
     <string name="background_restricted_later">Plus tard</string>
     <string name="automation_message_empty">Écrivez le message que l\'IA recevra à chaque exécution</string>
-    <string name="automation_message_empty_run">Cette automation n\'a pas encore de message : écrivez d\'abord celui que l\'IA recevra à chaque exécution</string>
+    <string name="automation_message_empty_run">Cette automatisation n\'a pas encore de message : écrivez d\'abord celui que l\'IA recevra à chaque exécution</string>
     <string name="bug_report_purpose">Un rapport sur ce qui n\'a pas marché, relu avant de partir, envoyé par l\'app de votre choix</string>
     <string name="bug_report_description">Ce qui s\'est passé (facultatif)</string>
     <string name="bug_report_cleaning">Ci-dessous, exactement ce qui sera envoyé. Les identifiants et les textes cités sont remplacés ; le reste peut encore nommer quelque chose de vous : relisez avant d\'envoyer.</string>
@@ -1722,7 +1722,7 @@
     <string name="message_zone_groups_description">Organisez vos zones en groupes pour faciliter la navigation sur l\'accueil</string>
     <string name="label_ungrouped">Hors groupe</string>
     <string name="label_zones">Zones</string>
-    <string name="label_tools_and_automations">Outils et automations</string>
+    <string name="label_tools_and_automations">Outils et automatisations</string>
     <string name="dialog_edit_group">Modifier le groupe</string>
     <string name="dialog_create_group">Créer un groupe</string>
     <string name="message_no_zone_groups">Aucun groupe de zones défini</string>
@@ -1730,13 +1730,13 @@
     <string name="message_no_ungrouped_zones">Aucune zone hors groupe</string>
     <string name="dialog_add_tool_or_automation_title">Que voulez-vous ajouter ?</string>
     <string name="action_add_tool">Créer un outil</string>
-    <string name="action_add_automation">Créer une automation</string>
+    <string name="action_add_automation">Créer une automatisation</string>
 
     <!-- Groups - Schemas descriptions -->
     <string name="tools_base_schema_config_group">Groupe d\'organisation de l\'outil</string>
     <string name="zone_schema_tool_groups">Liste des groupes d\'outils disponibles dans cette zone</string>
     <string name="label_zone_validate">Protéger le contenu de cette zone</string>
-    <string name="zone_schema_validate">L\'IA de la conversation et du connecteur demande votre accord avant de créer, modifier ou supprimer un outil de cette zone, ses groupes d\'outils, ses automations ou ses variables. Réglable seulement dans l\'app. Une automation ne demande jamais.</string>
+    <string name="zone_schema_validate">L\'IA de la conversation et du connecteur demande votre accord avant de créer, modifier ou supprimer un outil de cette zone, ses groupes d\'outils, ses automatisations ou ses variables. Réglable seulement dans l\'app. Une automatisation ne demande jamais.</string>
     <string name="zone_schema_display_mode">Comment la zone s\'affiche sur l\'accueil : ICON (son icône), MINIMAL (icône et nom), LINE (sa description à côté), CONDENSED (sa description dessous) ; il donne les cases que la zone occupe</string>
     <string name="zone_schema_icon_color">Couleur de l\'icône de la zone, parmi RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, PURPLE, PINK ; null ou absente pour une icône neutre. Les outils de la zone ne la prennent pas</string>
     <string name="zone_schema_group">Groupe d\'organisation de la zone</string>
@@ -1801,8 +1801,8 @@
     <string name="service_error_icons_param_not_list">\'%1$s\' est une liste de chaînes</string>
     <string name="service_error_icons_unknown_category">Catégorie d\'icônes inconnue : \'%1$s\'. ICONS sans paramètre liste les catégories</string>
     <string name="service_error_icon_unknown">Icône inconnue : \'%1$s\'. La commande ICONS cherche les icônes par mot et par catégorie</string>
-    <string name="automation_unknown">Une automation qui n\'existe plus</string>
-    <string name="automation_access_title">Accès de cette automation</string>
+    <string name="automation_unknown">Une automatisation qui n\'existe plus</string>
+    <string name="automation_access_title">Accès de cette automatisation</string>
     <string name="automation_access_help">Vide : elle peut tout faire. Sinon, elle ne touche qu\'à ce qui est listé.</string>
     <string name="access_always_sent">Les outils marqués « Toujours envoyer à l\'IA » qui ne sont pas présents dans la liste des autorisations lui parviennent quand même, en lecture.</string>
     <string name="access_add">Ajouter une zone ou un outil</string>
@@ -1869,7 +1869,7 @@
     <string name="demo_phase_tools">Outils : %1$s / %2$s</string>
     <string name="demo_phase_entries">Entrées : %1$s / %2$s</string>
     <string name="demo_phase_goals">Objectifs</string>
-    <string name="demo_phase_automations">Automations</string>
+    <string name="demo_phase_automations">Automatisations</string>
     <string name="demo_error_refused">La démo n\'a pas pu être construite : %1$s</string>
     <string name="service_error_id_not_given">Un identifiant est attribué par l\'app, il ne peut pas être donné : %1$s</string>
     <string name="copy_name">%1$s (copie)</string>
@@ -1984,7 +1984,7 @@
     <string name="nav_new_tool">Nouvel outil</string>
     <string name="nav_variable">Variable</string>
     <string name="nav_new_variable">Nouvelle variable</string>
-    <string name="nav_automation">Automation</string>
+    <string name="nav_automation">Automatisation</string>
     <string name="nav_execution">Exécution</string>
     <string name="nav_seed">Message de départ</string>
     <string name="nav_chat">Conversation</string>
