@@ -176,7 +176,7 @@ fun SequenceScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigu
     val running = loaded.firstOrNull { it.run != null }
 
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).chatButtonSpace().padding(UI.Space.L),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).chatButtonSpace().padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         UI.PageHeader(

@@ -125,7 +125,7 @@ fun CreateZoneScreen(
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
-            .padding(UI.Space.XL),
+            .padding(vertical = UI.Space.XL),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         UI.Text(

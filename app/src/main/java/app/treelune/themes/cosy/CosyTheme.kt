@@ -201,6 +201,7 @@ object CosyTheme : ThemeContract {
             Spacing.M -> 12f
             Spacing.L -> 16f
             Spacing.XL -> 24f
+            Spacing.EDGE -> 8f
         }
     )
 
@@ -1388,7 +1389,7 @@ object CosyTheme : ThemeContract {
     /** A window over the screen, swelling in: a tile on its shadow, its content, its actions under it. */
     @Composable
     private fun DialogFrame(onDismiss: () -> Unit, actions: @Composable RowScope.() -> Unit, content: @Composable ColumnScope.() -> Unit) {
-        app.treelune.core.ui.components.FloatingDialog(onDismissRequest = onDismiss, margin = cosySize().dp(16f)) {
+        app.treelune.core.ui.components.FloatingDialog(onDismissRequest = onDismiss, margin = spacing(Spacing.EDGE)) {
             SwellIn {
                 val size = cosySize()
                 val c = cosyColors

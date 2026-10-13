@@ -97,7 +97,7 @@ fun GuideScreen() {
 private fun ChapterLine(chapter: GuideChapter, number: Int?) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
-    Box(modifier = Modifier.padding(horizontal = UI.Space.L)) {
+    Box(modifier = Modifier) {
         UI.Card(type = CardType.DEFAULT) {
             Row(
                 modifier = Modifier.fillMaxWidth().clickable { Navigator.push(Place.Chapter(chapter.id)) }.padding(UI.Space.M),
@@ -149,7 +149,7 @@ fun ChapterScreen(id: String, demoInstalled: Boolean) {
         verticalArrangement = Arrangement.spacedBy(UI.Space.M)
     ) {
         UI.PageHeader(title = title, icon = chapter.icon, leftButton = ButtonAction.BACK, onLeftClick = { Navigator.pop() })
-        Column(modifier = Modifier.padding(horizontal = UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
+        Column(modifier = Modifier, verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
             UI.Text(chapter.intro(context), TextType.BODY)
             if (!chapter.isTutorial) {
                 UI.Text(s.shared("guide_stub"), TextType.CAPTION)
@@ -221,7 +221,7 @@ fun WelcomeScreen(demoInstalled: Boolean) {
     val s = remember { Strings.`for`(context = context) }
     val first = remember { GuideChapters.journey(context).first() }
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(UI.Space.XL),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = UI.Space.EDGE, vertical = UI.Space.XL),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

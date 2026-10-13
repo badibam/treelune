@@ -112,7 +112,7 @@ fun GoalScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureCl
     val history = loaded.filter { it.status in GoalToolType.Status.LOCKED }.sortedByDescending { it.start }
 
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).chatButtonSpace().padding(UI.Space.L),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).chatButtonSpace().padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         UI.PageHeader(

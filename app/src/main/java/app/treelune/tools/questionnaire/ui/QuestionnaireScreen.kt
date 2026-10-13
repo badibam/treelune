@@ -161,7 +161,7 @@ fun QuestionnaireScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onCo
     val history = loaded.filter { it.status != QuestionnaireToolType.Status.TO_FILL }.sortedByDescending { it.timestamp }
 
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).chatButtonSpace().padding(UI.Space.L),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).chatButtonSpace().padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         UI.PageHeader(
@@ -247,7 +247,7 @@ private fun Passing(
     val context = LocalContext.current
     var answers by rememberSaveable(stateSaver = app.treelune.core.ui.FieldValuesSaver) { mutableStateOf(entry?.answers ?: emptyMap()) }
     var index by rememberSaveable { mutableIntStateOf(questions.indexOfFirst { entry?.answers?.get(it.name) == null }.coerceAtLeast(0)) }
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).chatButtonSpace().padding(UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.L)) {
+    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).chatButtonSpace().padding(vertical = UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.L)) {
         UI.PageHeader(title = s.tool("passing_title").format(index + 1, questions.size), leftButton = ButtonAction.BACK, onLeftClick = onCancel)
         if (questions.isEmpty()) { UI.Text(s.tool("no_question"), TextType.CAPTION); return@Column }
         val question = questions[index]

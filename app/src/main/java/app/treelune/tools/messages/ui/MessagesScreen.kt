@@ -137,7 +137,7 @@ fun MessagesScreen(
 
     val settings = app.treelune.core.tools.ToolConfigSettings.read(app.treelune.tools.messages.MessageToolType, config, context)
     Column(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.padding(UI.Space.L)) {
+        Column(modifier = Modifier.padding(vertical = UI.Space.L)) {
             UI.PageHeader(
                 title = settings.string("name")!!,
                 subtitle = settings.string("description")?.takeIf { it.isNotBlank() },
@@ -249,7 +249,7 @@ private fun ReceivedTab(
         modifier = Modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState()).chatButtonSpace()
-            .padding(UI.Space.L),
+            .padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         UI.FormSelection(
@@ -400,7 +400,7 @@ private fun UpcomingTab(
         modifier = Modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState()).chatButtonSpace()
-            .padding(UI.Space.L),
+            .padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         val shown = occurrences

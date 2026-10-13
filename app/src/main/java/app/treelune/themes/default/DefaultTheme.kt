@@ -120,6 +120,7 @@ object DefaultTheme : ThemeContract {
         app.treelune.core.ui.Spacing.M -> 12.dp
         app.treelune.core.ui.Spacing.L -> 16.dp
         app.treelune.core.ui.Spacing.XL -> 24.dp
+        app.treelune.core.ui.Spacing.EDGE -> 8.dp
     }
 
 
@@ -1020,7 +1021,7 @@ object DefaultTheme : ThemeContract {
         }
         
         // Material's alert dialog drawn in a window that keeps itself clear of the keyboard
-        app.treelune.core.ui.components.FloatingDialog(onDismissRequest = onCancel, margin = 24.dp) {
+        app.treelune.core.ui.components.FloatingDialog(onDismissRequest = onCancel, margin = spacing(app.treelune.core.ui.Spacing.EDGE)) {
             androidx.compose.material3.Surface(
                 modifier = Modifier.widthIn(min = 280.dp, max = 560.dp),
                 shape = androidx.compose.material3.AlertDialogDefaults.shape,

@@ -685,7 +685,7 @@ private fun SeedMode(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .padding(UI.Space.L)
+                .padding(vertical = UI.Space.L)
         ) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(UI.Space.M)
@@ -1348,7 +1348,7 @@ fun ChatMessageList(
 
     LazyColumn(
         state = listState,
-        modifier = modifier.padding(UI.Space.L),
+        modifier = modifier.padding(horizontal = UI.Space.EDGE, vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.M)
     ) {
         if (messages.isEmpty()) {

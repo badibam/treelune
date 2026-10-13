@@ -9,10 +9,10 @@ Guide des patterns et composants UI pour maintenir cohérence et simplicité.
 **Métier** : Composants spécialisés (ZoneCard, ToolCard)
 
 ### Layout Standard
-Column avec fillMaxWidth, padding vertical `UI.Space.L` et espacement automatique entre éléments.
+Column avec fillMaxWidth, padding vertical `UI.Space.L` et espacement automatique entre éléments. Un écran ne pose aucune marge sur les côtés : la marge de bord (`UI.Space.EDGE`, la plus petite que le thème permette, 1 case en rétro, 8 dp ailleurs) est donnée une fois par `MainScreen` autour du lieu affiché, et c'est aussi celle d'une fenêtre flottante (`FloatingDialog`).
 
 ### Espacements
-Un écran n'écrit jamais un espacement en dp : il le nomme, `UI.Space.XS`, `S`, `M`, `L` ou `XL`, et le thème en donne la taille (`ThemeContract.spacing`) — 4, 8, 12, 16 et 24 dp pour le thème par défaut, des cellules entières pour le thème rétro. Sont des espacements les arguments de `padding()`, `Arrangement.spacedBy()` et `PaddingValues()`, la hauteur ou la largeur d'un `Spacer`, et un argument `spacing =` ; `scripts/check_spacing.py` refuse un dp à ces endroits, hors du code des thèmes. Une taille (d'icône, de bloc) n'est pas un espacement.
+Un écran n'écrit jamais un espacement en dp : il le nomme, `UI.Space.XS`, `S`, `M`, `L`, `XL` ou `EDGE`, et le thème en donne la taille (`ThemeContract.spacing`) — 4, 8, 12, 16 et 24 dp pour le thème par défaut, des cellules entières pour le thème rétro. Sont des espacements les arguments de `padding()`, `Arrangement.spacedBy()` et `PaddingValues()`, la hauteur ou la largeur d'un `Spacer`, et un argument `spacing =` ; `scripts/check_spacing.py` refuse un dp à ces endroits, hors du code des thèmes. Une taille (d'icône, de bloc) n'est pas un espacement.
 
 ### Sons de l'interface
 Un composant `UI.*` envoie un signal de la liste fermée `UISignal` (confirmer, entrer, revenir, ouvrir, fermer, cocher, cran, bout de liste, refus) ; le thème dit quel son y répond (`ThemeContract.sound`, null pour le silence) et `UISounds` le joue sur une seule piste, si le réglage « Sons de l'interface » (catégorie `ui`) est activé. Un écran ne joue jamais de son lui-même. Un élément désactivé reçoit encore le toucher, pour le seul son de refus. Le bout d'une liste s'entend à la racine de chaque fenêtre (`Modifier.scrollEndSound()`), jamais liste par liste : une nouvelle fenêtre de dialogue faite à la main le pose à sa racine.
@@ -276,7 +276,6 @@ Trois thèmes, inscrits dans `ThemeScanner` : le défaut (Material), le rétro (
 - **Entre sections** : spacedBy(UI.Space.L)
 - **Vertical screens** : padding(vertical = UI.Space.L)
 - **Cards internes** : padding(UI.Space.L)
-- **Sections hors cards** : padding(horizontal = UI.Space.L)
 
 ## Pattern Loading/Error Standard
 

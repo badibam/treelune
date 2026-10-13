@@ -37,10 +37,12 @@ enum class Size {
 /**
  * The spaces of a screen, from the smallest to the largest: the gaps between elements, the
  * margins inside a container, the blanks. Screens name one (UI.Space) and the theme gives its
- * size, so that a retro theme can make each a whole number of cells.
+ * size, so that a retro theme can make each a whole number of cells. EDGE is the margin between
+ * a page's content and the sides of the screen, the same on every page and floating window:
+ * kept as small as the theme allows, the content having the width.
  */
 enum class Spacing {
-    XS, S, M, L, XL
+    XS, S, M, L, XL, EDGE
 }
 
 /**

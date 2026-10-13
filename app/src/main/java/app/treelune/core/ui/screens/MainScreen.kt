@@ -131,10 +131,14 @@ fun MainScreen(openToolId: String? = null, onToolOpened: () -> Unit = {}) {
     }
     Column(modifier = Modifier.fillMaxSize()) {
         Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-            key(base.address) {
-                holder.SaveableStateProvider(base.address) {
-                    CompositionLocalProvider(LocalBreadcrumb provides breadcrumb) {
-                        PlaceScreen(base, zones, demoInstalled)
+            // Every place the same margin from the sides of the screen, given here once: a
+            // place's screen sets none of its own
+            Box(modifier = Modifier.fillMaxSize().padding(horizontal = UI.Space.EDGE)) {
+                key(base.address) {
+                    holder.SaveableStateProvider(base.address) {
+                        CompositionLocalProvider(LocalBreadcrumb provides breadcrumb) {
+                            PlaceScreen(base, zones, demoInstalled)
+                        }
                     }
                 }
             }

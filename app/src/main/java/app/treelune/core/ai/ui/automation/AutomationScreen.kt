@@ -299,7 +299,7 @@ fun AutomationScreen(
         Row(
             horizontalArrangement = Arrangement.spacedBy(UI.Space.L),
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = UI.Space.L)
+            modifier = Modifier.fillMaxWidth()
         ) {
             // Period filter dropdown
             Box(modifier = Modifier.weight(1f)) {
@@ -413,7 +413,7 @@ fun AutomationScreen(
         // Execution list
         if (sessions.isNotEmpty()) {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = UI.Space.L),
+                modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(UI.Space.M)
             ) {
                 sessions.forEach { session ->

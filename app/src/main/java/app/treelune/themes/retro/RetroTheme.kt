@@ -203,11 +203,11 @@ object RetroTheme : ThemeContract {
     @Composable
     override fun tileFrame(displayMode: DisplayMode): Dp = retroGrid().cells(1)
 
-    /** Every space a whole number of cells: the three small ones one cell, then two, then three. */
+    /** Every space a whole number of cells: the three small ones and the page's edge one cell, then two, then three. */
     @Composable
     override fun spacing(spacing: Spacing): Dp = retroGrid().cells(
         when (spacing) {
-            Spacing.XS, Spacing.S, Spacing.M -> 1
+            Spacing.XS, Spacing.S, Spacing.M, Spacing.EDGE -> 1
             Spacing.L -> 2
             Spacing.XL -> 3
         }
@@ -1276,7 +1276,7 @@ object RetroTheme : ThemeContract {
     @Composable
     private fun DialogFrame(onDismiss: () -> Unit, actions: @Composable RowScope.() -> Unit, content: @Composable ColumnScope.() -> Unit) {
         val grid = retroGrid()
-        app.treelune.core.ui.components.FloatingDialog(onDismissRequest = onDismiss, margin = grid.cells(1)) {
+        app.treelune.core.ui.components.FloatingDialog(onDismissRequest = onDismiss, margin = spacing(Spacing.EDGE)) {
             Framed(modifier = Modifier.fillMaxWidth()) {
                 Column(verticalArrangement = Arrangement.spacedBy(grid.cells(1))) {
                     Column(modifier = Modifier.weight(1f, fill = false), verticalArrangement = Arrangement.spacedBy(grid.cells(1)), content = content)

@@ -142,7 +142,7 @@ fun ListScreen(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState()).chatButtonSpace()
-            .padding(UI.Space.L),
+            .padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         UI.PageHeader(

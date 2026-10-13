@@ -204,7 +204,7 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         // The chat's button floats at the bottom: room for it after the last row
-        contentPadding = PaddingValues(start = UI.Space.L, top = UI.Space.L, end = UI.Space.L, bottom = UI.Space.L + app.treelune.core.ui.chatButtonEnd()),
+        contentPadding = PaddingValues(top = UI.Space.L, bottom = UI.Space.L + app.treelune.core.ui.chatButtonEnd()),
         verticalArrangement = Arrangement.spacedBy(UI.Space.M)
     ) {
         item { UI.PageHeader(

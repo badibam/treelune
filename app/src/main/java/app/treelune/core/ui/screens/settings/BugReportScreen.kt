@@ -105,7 +105,7 @@ fun CrashNoticeScreen(crashTimestamp: Long, onContinue: () -> Unit) {
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(UI.Space.L),
+        modifier = Modifier.fillMaxSize().padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.M)
     ) {
         UI.PageHeader(title = s.shared("crash_notice_title"))
