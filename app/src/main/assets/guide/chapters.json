@@ -52,14 +52,17 @@
       "id": "automate",
       "part": "discovery",
       "icon": "calendar-clock",
-      "minutes": 10,
+      "minutes": 12,
       "steps": [
         {"kind": "read"},
         {"kind": "do",
           "await": {"operation": "automations.create", "origin": "USER"}, "keep": {"automation": "automation_id", "zone": "zone_id"}},
         {"kind": "do", "target": "zone/{zone}",
+          "await": {"operation": "automations.update", "origin": "USER", "params": {"automation_id": "{automation}"}}},
+        {"kind": "do", "target": "zone/{zone}",
           "await": {"operation": "automations.execute_manual", "origin": "USER", "params": {"automation_id": "{automation}"}}},
-        {"kind": "read", "target": "automation/{automation}/{zone}"}
+        {"kind": "read", "target": "automation/{automation}/{zone}"},
+        {"kind": "read", "target": "zone/{zone}"}
       ]
     },
     {

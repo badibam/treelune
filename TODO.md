@@ -44,9 +44,6 @@ Décider une règle par problème, puis passer tous les écrans, dans le cas le 
 
 ### Bloc 2 — le Guide et les textes
 
-- Guide, Automatiser : une étape pour écrire le message de l'automation (une automation au message vide ne s'enregistre plus et ne se lance plus).
-- Guide, Automatiser 1/4 : « avec ses pièces jointes » est faux, on ne peut pas joindre de fichier au message d'une automation.
-- Guide : présenter et bien distinguer la discussion récurrente, une automation dont on se sert comme départ de conversation (bouton bulle), de l'automation qu'on lance (bouton lecture).
 - Guide, Brancher une IA 3/5 : à reprendre ; et y dire, ou ailleurs, Fournisseur › Limites pour économiser.
 - Guide, clavier ouvert : la barre du bas reste, et l'éditeur est écrasé ; la replier tant que le clavier est là.
 
