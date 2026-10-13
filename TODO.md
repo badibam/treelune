@@ -31,7 +31,6 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 ## Bugs
 
 - Réglages › Interface : un thème choisi, vu, enregistré, et l'ancien revient ; une seconde fois, ça tient (2026-10-09, pas reproduit, peut-être dans la release). Au prochain cas, lire dans le journal les lignes « Theme applied » : laquelle a remis l'ancien (STORED, PREVIEW, LEFT_UNSAVED).
-- Une automation planifiée de mon frère s'est lancée une fois, pas le lendemain ; l'exécution du jour 1 est « Finished » (fermée, elle ne bloque rien) et l'app était en « Non restreinte ». Son téléphone est un Xiaomi (HyperOS, Redmi Note 13 Pro, Android 15) : piste principale, le « Démarrage automatique » de Xiaomi, désactivé par défaut hors Play Store, sans lequel une alarme ne relance pas une app tuée, et son économiseur de batterie, distinct de la liste blanche d'Android. Lui faire activer les deux ; confirmé, l'avertissement d'arrière-plan (`BackgroundRestriction`) dit ces deux réglages sur un Xiaomi, même en « Non restreinte ». Le journal ne garde qu'environ 24 minutes : une trace des réveils du planificateur qui survive, à concevoir.
 - Une automation IA lancée par l'alarme du planificateur (`SchedulerAlarm`), app fermée : Android ne garde l'app éveillée que le temps du tick (50 s au plus), un tour d'IA peut être coupé. Un service au premier plan, du type de `McpAccessService`, allumé quand un tour commence et éteint quand l'IA n'a plus rien à faire ou attend une validation, sa notification nommant l'automation ; lire d'abord où la machine à états dit « tour en cours » et « en attente ».
 
 ### Bloc 1 — la place à l'écran : des règles pour toute l'app
@@ -125,6 +124,22 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 - Des conversions JSON → valeurs refaites sur place au lieu de `JsonUtils` : au moins `toValueMap` (`MessagesScreen`), `jsonToValue` (`StateSavers`), `toFieldConfigValue` (`FieldDefinition`) — compter le reste avant de les ramener.
 - `SessionCostDisplay` formate coûts et tokens par ses propres fonctions, à côté de `AIFormatUtils`, qui fait la même chose pour les exécutions.
 - `shared.xml` (~1 900 lignes) à découper en plusieurs fichiers.
+
+## Bugs du téléphone
+
+- Guide : aussi tour d'horozon des outils pour donner aperçu des usages et conseil d'utiliser les outils pour ce pour quoi ils ont ete prévus
+- Saivegarde auto des données avec roulement 1h 1j 1s 1m
+- Dans config de champ de type refere'ce : clarifier dans l'ui les 2 réglages... C'est confusant là. Par ailleirs est-ce clair dans le prompt ?
+- Il faudrait piur sélectionner/copier davantage de textes dans l'app. Soit via fonction comme chat ia, via clic, soit via selection android, selon les xas. On passe en revue.
+- Fenêtre dédition de aitomation, dès que trop grande, les boutons du bas disparaissent
+- Tri par valeur de champ au choix dans liste notes etc
+- Guide : remarque : tous les tutos de la 2eme série doivent mentionner tous les réglages, critère : 1 bouton = 1 mention. C'est à concevoir proprement
+- Appui long sir message système : ne copie pas / pas tout le message ?
+- Limite trop courte pour sequence dans seance, on va repasser sur tiutes les limites de texte au sein de l'app
+- Il ay a eu une confudion de l'oa, qui voulaot utiliser seance + message (pour notif) + tracking (pour durée) alors que le besoin etait juste une notif de seance qui ouvre la seance, avec enregostrement de la durée. On va refaire le tour des descriptions des tooltypes que l'ia voit, pour clarifier les usages/possibilités (à faire ensemble)
+- Quand clavier ouvert : il faidraot toujours avoir au moins la taille du clavier en + en bas de page, de façon à pouvoir affocher jusqu au bas de page.
+- Pb fudeau horaire : pas d'option qui convienne par exemple pour le portugal
+- Réglage de thinking et effort en cours de conv
 
 ## En attente d'un déclencheur
 
