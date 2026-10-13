@@ -41,7 +41,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 ```
 
-**Rationale** : Le scroll garantit que tout le contenu reste accessible sur tous les appareils, quelle que soit la taille de l'écran, la quantité de contenu affichée, ou la présence du clavier.
+**Rationale** : Le scroll garantit que tout le contenu reste accessible sur tous les appareils, quelle que soit la taille de l'écran, la quantité de contenu affichée, ou la présence du clavier. Le clavier ouvert, la fenêtre se réduit à ce qu'il laisse (`adjustResize`, sur l'activité) : une page défile jusqu'à son bas au-dessus de lui. Ce qui tient fixe en bas de l'écran monterait avec, donc s'efface tant qu'il est ouvert (`keyboardOpen()`) : la bande du Guide, le bouton de la conversation.
 
 **Exceptions** : Seuls les conteneurs avec LazyColumn/LazyRow (qui ont leur propre scroll natif) sont exemptés.
 

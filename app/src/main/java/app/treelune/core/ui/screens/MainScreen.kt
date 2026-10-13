@@ -142,8 +142,9 @@ fun MainScreen(openToolId: String? = null, onToolOpened: () -> Unit = {}) {
                     }
                 }
             }
-            // The chat's button, floating over the places one reads, measured for the room they leave it
-            if (base.chatButton && Navigator.top != Place.Chat && !ChatButton.hidden) {
+            // The chat's button, floating over the places one reads, measured for the room they leave
+            // it; gone while the keyboard is open, over which it would float
+            if (base.chatButton && Navigator.top != Place.Chat && !ChatButton.hidden && !app.treelune.core.ui.keyboardOpen()) {
                 val density = androidx.compose.ui.platform.LocalDensity.current
                 Box(modifier = Modifier.align(Alignment.BottomEnd).padding(UI.Space.L)
                     .onSizeChanged { ChatButton.height = with(density) { it.height.toDp() } }) {
