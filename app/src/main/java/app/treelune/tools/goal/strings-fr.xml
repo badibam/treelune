@@ -5,7 +5,7 @@
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
     <string name="usage">Pour un but jugé par période (jour, semaine, mois) ou une seule fois, selon des critères qu\'on fixe : « 3 sorties de course par semaine », « moins de 2 000 kcal par jour ».\n## Déjà prévu\n- Des critères lus dans les entrées des autres outils ou remplis à la main\n- Des sous-objectifs, dont certains essentiels\n- Une notification quand une tentative est à valider\n- Le résultat gelé une fois validé\n## Pas pour\n- Noter les valeurs elles-mêmes (Suivi, ou l\'outil qui les tient)</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
-    <string name="tagline">Un objectif jugé chaque jour, semaine ou mois sur les critères que vous fixez, lus dans vos entrées</string>
+    <string name="tagline">Un objectif jugé chaque jour, semaine ou mois sur les critères que tu fixes, lus dans tes entrées</string>
     <string name="section_definition">Ce qu\'il demande</string>
     <string name="section_time">Quand</string>
     <string name="field_criteria">Critères</string>
@@ -48,7 +48,7 @@
     <string name="field_validated_at">Validée le</string>
     <string name="field_reopened_at">Rouverte le</string>
     <string name="field_notified">Prévenu</string>
-    <string name="validated_by_user">par vous</string>
+    <string name="validated_by_user">par toi</string>
     <string name="validated_by_external">par une IA extérieure</string>
     <string name="validated_by_ai">par l\'IA</string>
     <string name="field_attempt">Tentative</string>
@@ -57,7 +57,7 @@
     <string name="verbalize_validate">Validation d\'une tentative</string>
     <string name="verbalize_reopen">Réouverture d\'une tentative</string>
     <string name="verbalize_evaluate">Lecture d\'une tentative</string>
-    <string name="error_locked">Cette tentative est validée ou expirée : rouvrez-la pour la modifier.</string>
+    <string name="error_locked">Cette tentative est validée ou expirée : rouvre-la pour la modifier.</string>
     <string name="error_not_locked">Cette tentative n\'est pas validée : rien à rouvrir.</string>
     <string name="error_validate_origin">Seule une personne ou une IA valide une tentative.</string>
     <string name="error_verdict_unknown">Le verdict ne peut pas encore se calculer : %1$s</string>

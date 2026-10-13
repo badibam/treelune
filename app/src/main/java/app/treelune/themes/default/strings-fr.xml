@@ -2,5 +2,5 @@
 <resources>
     <string name="name">Par défaut</string>
     <!-- What the theme looks like, said to the user: the README -->
-    <string name="tagline">Clair et sobre, dans la teinte de votre choix</string>
+    <string name="tagline">Clair et sobre, dans la teinte de ton choix</string>
 </resources>
