@@ -2,7 +2,8 @@
 <resources>
     <!-- Strings of the session tooltype (sequence) -->
     <string name="display_name">Session</string>
-    <string name="description">Steps prepared ahead, then done following the screen: a timer or « Done » per step, a signal at each change</string>
+    <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
+    <string name="usage">For something done step by step while following the screen: a workout, a recipe, stretching. Each step ends on a timer or on « Done », with a sound, a vibration or a voice at each change.\nAlready built in: its own schedule, which sends a notification and prepares the session at each planned time; each session done is kept as an entry with its duration and the steps done or skipped; a planned session never done shows as missed.\nNot for: a reminder with nothing to follow (Messages); a value noted alone (Tracking).</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Steps prepared ahead, then followed on screen with a timer and a signal at each change: a workout, a recipe</string>
     <string name="section_steps">Steps</string>

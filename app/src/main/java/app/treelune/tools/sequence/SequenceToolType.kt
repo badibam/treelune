@@ -84,7 +84,7 @@ object SequenceToolType : ToolTypeContract {
         mapOf("options" to ChoiceSettings.storedOptions(values, values.associateWith(labels), emptyMap()))
 
     override fun getDisplayName(context: Context): String = s(context).tool("display_name")
-    override fun getDescription(context: Context): String = s(context).tool("description")
+    override fun getUsage(context: Context): String = s(context).tool("usage")
     override fun getDefaultDisplayMode(): String = "LINE"
     override fun getDefaultShowFieldLabels(): Boolean = true
     override fun getDefaultIconName(): String = "timer"

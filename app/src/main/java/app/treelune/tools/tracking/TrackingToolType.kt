@@ -39,9 +39,9 @@ object TrackingToolType : ToolTypeContract {
         return s.tool("display_name")
     }
 
-    override fun getDescription(context: Context): String {
+    override fun getUsage(context: Context): String {
         val s = Strings.`for`(tool = "tracking", context = context)
-        return s.tool("description")
+        return s.tool("usage")
     }
 
     override fun getDefaultDisplayMode(): String = "LINE"

@@ -2,7 +2,8 @@
 <resources>
     <!-- Strings of the questionnaire tooltype -->
     <string name="display_name">Questionnaire</string>
-    <string name="description">Des questions posées une par écran, à la demande ou à heures prévues, par vous ou avec l\'IA</string>
+    <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
+    <string name="usage">Pour des questions toujours les mêmes, posées une par écran, auxquelles on répond quand on veut ou à heures prévues : un bilan du soir, un point chaque semaine.\nDéjà prévu : son propre planning d\'invitations, avec une notification ; une réponse seul ou avec l\'IA, qui part d\'un message préparé ; une invitation laissée sans réponse reste visible comme ignorée.\nPas pour : une seule valeur notée vite (Suivi).</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Des questions posées une par écran, quand vous voulez ou à heures prévues</string>
     <string name="field_schedule">Invitations</string>

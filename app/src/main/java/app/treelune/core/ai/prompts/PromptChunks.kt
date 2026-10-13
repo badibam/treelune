@@ -295,9 +295,16 @@ object PromptChunks {
             .format(named.joinToString("\n") { "- `$it`" })
     }
 
-    /** The tool types, each with its description. */
+    /**
+     * The tool types, each with its usage and what only the AI needs besides. Read in English
+     * whatever the app's language, as the rest of the prompt: the usages are translated for the
+     * Guide, which shows them to the user.
+     */
     private fun buildTooltypesList(context: Context): String {
         val s = Strings.`for`(context = context)
+        val english = context.createConfigurationContext(
+            android.content.res.Configuration(context.resources.configuration).apply { setLocale(java.util.Locale.ENGLISH) }
+        )
         val sb = StringBuilder()
 
         sb.appendLine(s.shared("ai_chunk_tooltypes_header"))
@@ -306,7 +313,8 @@ object PromptChunks {
         val allToolTypes = ToolTypeManager.getAllToolTypes()
         for ((name, toolType) in allToolTypes) {
             sb.appendLine("### $name")
-            sb.appendLine(toolType.getDescription(context))
+            sb.appendLine(toolType.getUsage(english))
+            toolType.getAIDetail(english)?.let { sb.appendLine(it) }
             sb.appendLine()
         }
 

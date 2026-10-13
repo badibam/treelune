@@ -4,7 +4,8 @@
 
     <!-- Metadata -->
     <string name="display_name">Notes</string>
-    <string name="description">Quick and simple note taking with flexible organisation</string>
+    <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
+    <string name="usage">For keeping texts one finds again and reworks, each under its title: ideas, procedures, memos.\nAlready built in: a free order, set by hand.\nNot for: what is dated (Journal); what is checked off (List); sheets with the same fields (Structured data).</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Notes, each with its title, kept where they belong</string>
 

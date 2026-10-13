@@ -4,7 +4,8 @@
 
     <!-- Métadonnées -->
     <string name="display_name">Notes</string>
-    <string name="description">Prise de notes simple et rapide avec organisation flexible</string>
+    <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
+    <string name="usage">Pour garder des textes qu\'on retrouve et qu\'on retouche, chacun sous son titre : idées, procédures, mémos.\nDéjà prévu : un ordre libre, réglé à la main.\nPas pour : ce qui est daté (Journal) ; ce qu\'on coche (Liste) ; des fiches aux mêmes champs (Données structurées).</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Des notes, chacune avec son titre, rangées là où elles servent</string>
 

@@ -131,7 +131,7 @@ object ToolConfigSettings {
         return Schema(
             id = id,
             displayName = toolType.getDisplayName(context),
-            description = toolType.getDescription(context),
+            description = toolType.getUsage(context),
             category = SchemaCategory.TOOL_CONFIG,
             content = SettingsSchemaGenerator.generate(nodes(toolType, context), s::shared).toString()
         )

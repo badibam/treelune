@@ -4,7 +4,8 @@
 
     <!-- Metadata -->
     <string name="display_name">List</string>
-    <string name="description">What is left to do, checked off as it is done: shopping, tasks, a checklist</string>
+    <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
+    <string name="usage">For what is left to do, checked off when done: shopping, tasks, a checklist.\nAlready built in: a due date per item when turned on, with a notification when it comes and the item waiting until it is checked; or a checked item removed at once (shopping).\nNot for: a reminder that comes back at a fixed rhythm (Messages).</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">What is left to do, checked off as it is done, with due dates if you want</string>
 

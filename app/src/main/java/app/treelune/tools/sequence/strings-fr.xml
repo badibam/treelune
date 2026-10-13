@@ -2,7 +2,8 @@
 <resources>
     <!-- Strings of the session tooltype (sequence) -->
     <string name="display_name">Séance</string>
-    <string name="description">Des étapes préparées à l\'avance, puis faites en suivant l\'écran : un minuteur ou « Fait » par étape, un signal à chaque changement</string>
+    <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
+    <string name="usage">Pour ce qui se fait étape par étape en suivant l\'écran : un entraînement, une recette, des étirements. Chaque étape finit sur un minuteur ou sur « Fait », avec un son, une vibration ou une voix à chaque changement.\nDéjà prévu : son propre planning, qui envoie une notification et prépare la séance à chaque heure prévue ; chaque séance faite est gardée, avec sa durée et les étapes faites ou sautées ; une séance prévue jamais faite se voit comme manquée.\nPas pour : un rappel sans rien à suivre (Messages) ; une valeur notée seule (Suivi).</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Des étapes préparées à l\'avance, suivies à l\'écran avec un minuteur et un signal à chaque changement : un entraînement, une recette</string>
     <string name="section_steps">Déroulé</string>

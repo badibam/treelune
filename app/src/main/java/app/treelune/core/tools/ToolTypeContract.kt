@@ -29,10 +29,14 @@ interface ToolTypeContract {
     fun getDisplayName(context: Context): String
 
     /**
-     * Description of this tool type explaining its purpose and usage
+     * What this tool type is for, what it already does on its own and what it is not for: one
+     * text, read by the AI in its prompt (always in English) and shown by the Guide.
      * @param context Android context for string resource access
      */
-    fun getDescription(context: Context): String
+    fun getUsage(context: Context): String
+
+    /** What only the AI needs besides the usage, written after it in the prompt; none for most types. */
+    fun getAIDetail(context: Context): String? = null
 
     /** The display mode a new tool of this type is shown in, in its zone. */
     fun getDefaultDisplayMode(): String

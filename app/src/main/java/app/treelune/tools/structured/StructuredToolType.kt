@@ -32,8 +32,8 @@ object StructuredToolType : ToolTypeContract {
     override fun getDisplayName(context: Context): String =
         Strings.`for`(tool = "structured", context = context).tool("display_name")
 
-    override fun getDescription(context: Context): String =
-        Strings.`for`(tool = "structured", context = context).tool("description")
+    override fun getUsage(context: Context): String =
+        Strings.`for`(tool = "structured", context = context).tool("usage")
 
     override fun getDefaultDisplayMode(): String = "LINE"
 

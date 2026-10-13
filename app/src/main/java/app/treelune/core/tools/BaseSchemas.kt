@@ -55,7 +55,7 @@ object BaseSchemas {
         app.treelune.core.validation.Schema(
             id = "entries:$toolInstanceId",
             displayName = toolType.getDisplayName(context),
-            description = toolType.getDescription(context),
+            description = toolType.getUsage(context),
             category = app.treelune.core.validation.SchemaCategory.TOOL_DATA,
             content = getEntrySchema(toolType, toolInstanceId, context)
         )

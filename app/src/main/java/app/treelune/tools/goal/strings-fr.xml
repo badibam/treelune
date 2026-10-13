@@ -2,7 +2,8 @@
 <resources>
     <!-- Strings of the goal tooltype -->
     <string name="display_name">Objectif</string>
-    <string name="description">Un objectif jugé par le compte de ses critères, une tentative par période : lus dans vos entrées ou saisis, validés en réussite ou en échec</string>
+    <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
+    <string name="usage">Pour un but jugé par période (jour, semaine, mois) ou une seule fois, selon des critères qu\'on fixe : « 3 sorties de course par semaine », « moins de 2 000 kcal par jour ».\nDéjà prévu : des critères lus dans les entrées des autres outils ou remplis à la main ; des sous-objectifs, dont certains essentiels ; une notification quand une tentative est à valider ; le résultat gelé une fois validé.\nPas pour : noter les valeurs elles-mêmes (Suivi, ou l\'outil qui les tient).</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Un objectif jugé chaque jour, semaine ou mois sur les critères que vous fixez, lus dans vos entrées</string>
     <string name="section_definition">Ce qu\'il demande</string>

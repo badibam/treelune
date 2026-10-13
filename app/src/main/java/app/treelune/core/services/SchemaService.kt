@@ -110,7 +110,7 @@ class SchemaService(private val context: Context) : ExecutableService {
         return Schema(
             id = "${tool.tooltype}_data",
             displayName = toolType.getDisplayName(context),
-            description = toolType.getDescription(context),
+            description = toolType.getUsage(context),
             category = SchemaCategory.TOOL_DATA,
             content = BaseSchemas.getEntrySchemaOrThrow(toolType, JSONObject(tool.config_json), toolInstanceId, context)
         )

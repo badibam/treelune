@@ -135,7 +135,6 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 - Guide : remarque : tous les tutos de la 2eme série doivent mentionner tous les réglages, critère : 1 bouton = 1 mention. C'est à concevoir proprement
 - Appui long sir message système : ne copie pas / pas tout le message ?
 - Limite trop courte pour sequence dans seance, on va repasser sur tiutes les limites de texte au sein de l'app
-- Il ay a eu une confudion de l'oa, qui voulaot utiliser seance + message (pour notif) + tracking (pour durée) alors que le besoin etait juste une notif de seance qui ouvre la seance, avec enregostrement de la durée. On va refaire le tour des descriptions des tooltypes que l'ia voit, pour clarifier les usages/possibilités (à faire ensemble)
 - Quand clavier ouvert : il faidraot toujours avoir au moins la taille du clavier en + en bas de page, de façon à pouvoir affocher jusqu au bas de page.
 - Pb fudeau horaire : pas d'option qui convienne par exemple pour le portugal
 - Réglage de thinking et effort en cours de conv
