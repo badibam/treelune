@@ -88,7 +88,7 @@ object NotesToolType : ToolTypeContract {
                         description = s.tool("schema_data_content"),
                         type = FieldType.TEXT,
                         alwaysVisible = false,
-                        config = mapOf("length" to TextLength.LONG.name)
+                        config = mapOf("length" to TextLength.UNLIMITED.name)
                     ),
                     required = true
                 )

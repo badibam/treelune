@@ -120,29 +120,15 @@ Les constantes suivantes sont référencées dans les schémas JSON :
 
 ### Cohérence Schéma/UI - RÈGLE CRITIQUE
 
-**Principe** : La limite UI (FieldType) DOIT correspondre à la limite schéma (maxLength).
+**Principe** : La limite UI (FieldType) DOIT correspondre à la limite schéma (maxLength). Un champ ne refuse jamais ce qu'on tape ou colle : `UI.FormField` garde le texte trop long, en montre le compte sous le champ à partir de 80 % de la limite (`FieldInput.COUNT_FROM`), passe le champ en erreur au-delà, et c'est la vérification de ce qui s'enregistre (le schéma, le service) qui refuse, en le disant.
 
 **Cas d'usage** :
-- **Contenu transcrit** (Journal, etc.) : `TEXT_UNLIMITED` UI + pas de maxLength schéma
-- **Notes textuelles** : `TEXT_LONG` UI + `maxLength: LONG_LENGTH` schéma
-- **Messages IA** : `TEXT_UNLIMITED` UI (pas de schéma pour le moment)
-- **Tracking TEXT** : `TEXT_LONG` UI + `maxLength: LONG_LENGTH` schéma
+- **Contenu écrit** (Journal, note) : `TEXT_UNLIMITED` UI + pas de maxLength schéma
+- **Contenu d'un Message** (une notification) : `TEXT_LONG` UI + `maxLength: LONG_LENGTH` schéma
+- **Consigne** (étape de Séance) : `TEXT_LONG`
 - **Noms/labels** : `TEXT` UI + `maxLength: SHORT_LENGTH` schéma
 - **Descriptions** : `TEXT_MEDIUM` UI + `maxLength: MEDIUM_LENGTH` schéma
-
-**Vérification** :
-```kotlin
-// Schéma (ToolType)
-"field": {
-    "type": "string",
-    "maxLength": ${FieldLimits.LONG_LENGTH} // Doit correspondre
-}
-
-// UI (ConfigScreen)
-UI.FormField(
-    fieldType = FieldType.TEXT_LONG // Doit correspondre au schéma
-)
-```
+- **Champ texte de l'utilisateur** : illimité par défaut, ou la longueur qu'il choisit
 
 **INTERDIT** : Une limite UI plus restrictive que le schéma (ex: TEXT_MEDIUM pour un schéma LONG_LENGTH).
 
