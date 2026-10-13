@@ -82,7 +82,21 @@
     },
     {"id": "organize", "part": "getting_started", "icon": "layout-grid", "minutes": 3, "steps": []},
     {"id": "connect", "part": "getting_started", "icon": "link", "minutes": 5, "steps": []},
-    {"id": "talk_to_ai", "part": "getting_started", "icon": "message-circle", "minutes": 5, "steps": []},
+    {
+      "id": "talk_to_ai",
+      "part": "getting_started",
+      "icon": "message-circle",
+      "minutes": 8,
+      "steps": [
+        {"kind": "read", "target": "chat"},
+        {"kind": "read", "target": "chat"},
+        {"kind": "read", "target": "chat"},
+        {"kind": "read", "target": "chat"},
+        {"kind": "do", "target": "chat",
+          "await": {"operation": "ai_sessions.update_validation", "origin": "USER"}},
+        {"kind": "read", "target": "chat"}
+      ]
+    },
     {"id": "appearance", "part": "getting_started", "icon": "palette", "minutes": 2, "steps": []},
     {"id": "your_data", "part": "getting_started", "icon": "database", "minutes": 3, "steps": []},
     {"id": "external_access", "part": "getting_started", "icon": "cable", "minutes": 5, "steps": []},
