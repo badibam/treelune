@@ -1988,4 +1988,6 @@
     <string name="nav_execution">Exécution</string>
     <string name="nav_seed">Message de départ</string>
     <string name="nav_chat">Conversation</string>
+    <string name="automation_access_all">Accès : tout</string>
+    <string name="automation_access_count">Accès : %1$d</string>
 </resources>
