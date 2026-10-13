@@ -68,8 +68,8 @@ class AISessionService(private val context: Context) : ExecutableService {
                 // Cost calculation
                 "get_cost" -> getSessionCost(params, token)
 
-                // Validation toggle
-                "toggle_validation" -> toggleValidation(params, token)
+                // What the session adds to the protections, written whole
+                "update_validation" -> updateValidation(params, token)
 
                 // Session state updates (V2 - managed by AIStateRepository)
                 "set_end_reason" -> setEndReason(params, token)
@@ -819,7 +819,7 @@ class AISessionService(private val context: Context) : ExecutableService {
      * What the session [session_id] adds to the protections: the three given (SessionValidation),
      * written whole.
      */
-    private suspend fun toggleValidation(params: JSONObject, token: CancellationToken): OperationResult {
+    private suspend fun updateValidation(params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
 
         val sessionId = params.optString("session_id").takeIf { it.isNotEmpty() }
