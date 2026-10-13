@@ -64,6 +64,9 @@ sealed class SettingNode {
      *   it is closed, in the order shown: a form shows every element closed, one line of these
      *   values, and opens it on demand. Required for such a list, and each name is a setting
      *   stored in the element itself: a value, or a list of values, shown joined.
+     * @property shownWith The option of a setting beside it the list serves: the form shows the
+     *   list only while that option is chosen, or while the list still holds elements, to be
+     *   emptied. The screen's alone: the schema and the service know nothing of it
      */
     data class ListOf(
         val name: String,
@@ -73,7 +76,8 @@ sealed class SettingNode {
         val minItems: Int = 0,
         val distinct: Boolean = false,
         val fieldDefinitions: Boolean = false,
-        val summary: List<String> = emptyList()
+        val summary: List<String> = emptyList(),
+        val shownWith: ShownWith? = null
     ) : SettingNode() {
         init {
             if (item is Item.Of) {
@@ -86,6 +90,18 @@ sealed class SettingNode {
             } else {
                 require(summary.isEmpty()) { "The list '$name' has single values for elements: they are their own summary" }
             }
+        }
+    }
+
+    /**
+     * An option of the setting [setting], beside the node that names it: chosen when the setting
+     * holds it, as its value or among its values when it takes several.
+     */
+    data class ShownWith(val setting: String, val option: String) {
+        fun isChosenIn(config: org.json.JSONObject): Boolean = when (val value = config.opt(setting)) {
+            is org.json.JSONArray -> (0 until value.length()).any { value.opt(it)?.toString() == option }
+            null, org.json.JSONObject.NULL -> false
+            else -> value.toString() == option
         }
     }
 

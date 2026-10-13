@@ -1178,10 +1178,10 @@
     <string name="field_type_reference_display_name">Référence</string>
     <string name="field_type_reference_description">Un lien vers une autre chose de l\'app (une entrée, un outil, une zone), affiché sous son nom actuel</string>
     <string name="field_type_reference_kinds_description">Ce qu\'une valeur peut désigner : APP, ZONE, TOOL_INSTANCE, ENTRY, VARIABLE, une ou plusieurs</string>
-    <string name="field_type_reference_tool_instances_description">Avec ENTRY, seulement les entrées de ces outils ; n\'importe quelle entrée si la liste est vide</string>
-    <string name="field_config_reference_target">Ce qu\'elle désigne</string>
-    <string name="field_config_reference_kinds">Sortes de choses</string>
-    <string name="field_config_reference_tool_instances">Seulement les entrées de ces outils</string>
+    <string name="field_type_reference_tool_instances_description">Avec ENTRY, seulement les entrées de ces outils ; n\'importe quelle entrée si la liste est vide. Un repas qui nomme ses aliments : ENTRY, avec l\'outil des aliments</string>
+    <string name="field_config_reference_target">Cible</string>
+    <string name="field_config_reference_kinds">Peut désigner</string>
+    <string name="field_config_reference_tool_instances">Entrées de ces outils seulement (toutes si vide)</string>
     <string name="reference_kind_app">L\'app</string>
     <string name="reference_kind_zone">Zone</string>
     <string name="reference_kind_tool_instance">Outil</string>
@@ -1189,8 +1189,8 @@
     <string name="reference_kind_variable">Variable</string>
     <string name="field_reading_reference">Désigne : %1$s, écrit {"kind", "id"}.</string>
     <string name="field_reading_reference_tools">Seulement les entrées des outils %1$s.</string>
-    <string name="field_validation_reference_kinds">Une référence dit ce qu\'elle peut désigner : au moins une sorte parmi APP, ZONE, TOOL_INSTANCE, ENTRY, VARIABLE.</string>
-    <string name="field_validation_reference_tool_instances">Les outils auxquels une référence se limite ne valent que pour des entrées : ajoutez ENTRY à ce qu\'elle peut désigner.</string>
+    <string name="field_validation_reference_kinds">Choisissez au moins une chose que le champ peut désigner.</string>
+    <string name="field_validation_reference_tool_instances">Les outils de la liste ne servent qu\'aux entrées : cochez Entrée.</string>
     <string name="field_value_reference_invalid">Pas une référence : %1$s. Attendu {"kind": "ENTRY", "id": "..."}, sans id pour l\'app.</string>
     <string name="field_value_reference_kind">Désigne un %1$s, que ce champ n\'accepte pas (il accepte %2$s).</string>
     <string name="field_value_reference_not_found">Rien de la sorte %1$s n\'a l\'id %2$s.</string>

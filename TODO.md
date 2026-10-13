@@ -128,7 +128,6 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 
 - Guide : aussi tour d'horozon des outils pour donner aperçu des usages et conseil d'utiliser les outils pour ce pour quoi ils ont ete prévus
 - Saivegarde auto des données avec roulement 1h 1j 1s 1m
-- Dans config de champ de type refere'ce : clarifier dans l'ui les 2 réglages... C'est confusant là. Par ailleirs est-ce clair dans le prompt ?
 - Il faudrait piur sélectionner/copier davantage de textes dans l'app. Soit via fonction comme chat ia, via clic, soit via selection android, selon les xas. On passe en revue.
 - Fenêtre dédition de aitomation, dès que trop grande, les boutons du bas disparaissent
 - Tri par valeur de champ au choix dans liste notes etc

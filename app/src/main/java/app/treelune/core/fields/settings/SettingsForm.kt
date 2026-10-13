@@ -571,7 +571,8 @@ private fun NodeForm(
             }
         }
 
-        is SettingNode.ListOf -> {
+        is SettingNode.ListOf -> if (node.shownWith == null || node.shownWith.isChosenIn(config) ||
+            (config.optJSONArray(node.name)?.length() ?: 0) > 0) {
             val editor = editors[node.name]
             if (editor != null) editor.Edit(config.optJSONArray(node.name)) { set(node.name, it) }
             else Titled(node.label) {

@@ -165,7 +165,8 @@ object FieldTypeSettings {
                         type = FieldType.REFERENCE, alwaysVisible = false,
                         config = mapOf(ReferenceTarget.TARGET to mapOf(ReferenceTarget.KINDS to listOf(ReferenceKind.TOOL_INSTANCE.name)))
                     )),
-                    distinct = true
+                    distinct = true,
+                    shownWith = SettingNode.ShownWith(ReferenceTarget.KINDS, ReferenceKind.ENTRY.name)
                 )
             ), required = true)
         )

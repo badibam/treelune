@@ -1178,10 +1178,10 @@
     <string name="field_type_reference_display_name">Reference</string>
     <string name="field_type_reference_description">A link to another thing of the app (an entry, a tool, a zone), shown by its current name</string>
     <string name="field_type_reference_kinds_description">What a value may point to: APP, ZONE, TOOL_INSTANCE, ENTRY, VARIABLE, one or several</string>
-    <string name="field_type_reference_tool_instances_description">With ENTRY, only the entries of these tools; any entry when left empty</string>
-    <string name="field_config_reference_target">What it points to</string>
-    <string name="field_config_reference_kinds">Kinds of thing</string>
-    <string name="field_config_reference_tool_instances">Only the entries of these tools</string>
+    <string name="field_type_reference_tool_instances_description">With ENTRY, only the entries of these tools; any entry when left empty. A meal naming its foods: ENTRY, with the foods\' tool</string>
+    <string name="field_config_reference_target">Target</string>
+    <string name="field_config_reference_kinds">Can point to</string>
+    <string name="field_config_reference_tool_instances">Entries of these tools only (all when empty)</string>
     <string name="reference_kind_app">The app</string>
     <string name="reference_kind_zone">Zone</string>
     <string name="reference_kind_tool_instance">Tool</string>
@@ -1189,8 +1189,8 @@
     <string name="reference_kind_variable">Variable</string>
     <string name="field_reading_reference">Points to: %1$s, written {"kind", "id"}.</string>
     <string name="field_reading_reference_tools">Only the entries of the tools %1$s.</string>
-    <string name="field_validation_reference_kinds">A reference says what it can point to: at least one of APP, ZONE, TOOL_INSTANCE, ENTRY, VARIABLE.</string>
-    <string name="field_validation_reference_tool_instances">The tools a reference is restricted to only apply to entries: add ENTRY to what it can point to.</string>
+    <string name="field_validation_reference_kinds">Choose at least one thing the field can point to.</string>
+    <string name="field_validation_reference_tool_instances">The tools of the list are for entries only: check Entry.</string>
     <string name="field_value_reference_invalid">Not a reference: %1$s. Expected {"kind": "ENTRY", "id": "..."}, with no id for the app.</string>
     <string name="field_value_reference_kind">Points to a %1$s, which this field does not take (it takes %2$s).</string>
     <string name="field_value_reference_not_found">Nothing of kind %1$s has the id %2$s.</string>
