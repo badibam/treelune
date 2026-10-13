@@ -700,6 +700,7 @@
     <string name="field_choice_rank">%1$s. %2$s</string>
     <string name="field_choice_none">None</string>
     <string name="field_choice_search">Search the list</string>
+    <string name="field_length_count">%1$d / %2$d</string>
     <string name="field_choice_new_value">New option</string>
     <string name="field_config_option_value">Option</string>
     <string name="field_config_option_label">Label shown</string>

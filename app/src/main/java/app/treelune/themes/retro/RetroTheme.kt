@@ -790,7 +790,7 @@ object RetroTheme : ThemeContract {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         BasicTextField(
                             value = value,
-                            onValueChange = FieldInput.limited(fieldType, onChange),
+                            onValueChange = onChange,
                             readOnly = state == ComponentState.READONLY,
                             enabled = state != ComponentState.DISABLED,
                             textStyle = grid.text.copy(color = (if (state == ComponentState.ERROR) s.error else s.ink).srgb),

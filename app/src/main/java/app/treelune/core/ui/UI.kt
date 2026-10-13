@@ -409,7 +409,14 @@ object UI {
         )
     }
 
-    /** A text input whose caller holds the cursor too: to insert where it stands. */
+    /**
+     * A text input whose caller holds the cursor too: to insert where it stands.
+     *
+     * A text longer than its field type takes (FieldInput.maxLength), typed or pasted, is kept:
+     * the count shows under the field from [FieldInput.COUNT_FROM] of the limit, and past it the
+     * field is in error, the save refused by the check of what is saved. The field always sits in
+     * the same column, so the count appearing does not take the focus away.
+     */
     @Composable
     fun FormField(
         label: String,
@@ -423,19 +430,31 @@ object UI {
         contentDescription: String? = null,
         fieldModifier: FieldModifier = FieldModifier(),
         labelAbove: Boolean = true
-    ) = CurrentTheme.current.FormField(
-        label = label,
-        value = value,
-        onChange = onChange,
-        fieldType = fieldType,
-        state = state,
-        readonly = readonly,
-        onClick = onClick,
-        contentDescription = contentDescription,
-        required = required,
-        fieldModifier = fieldModifier,
-        labelAbove = labelAbove
-    )
+    ) {
+        val max = FieldInput.maxLength(fieldType)
+        val length = value.text.length
+        val counted = !readonly && max < Int.MAX_VALUE && length >= max * FieldInput.COUNT_FROM
+        val over = !readonly && length > max
+        Column(verticalArrangement = Arrangement.spacedBy(Space.XS)) {
+            CurrentTheme.current.FormField(
+                label = label,
+                value = value,
+                onChange = onChange,
+                fieldType = fieldType,
+                state = if (over) ComponentState.ERROR else state,
+                readonly = readonly,
+                onClick = onClick,
+                contentDescription = contentDescription,
+                required = required,
+                fieldModifier = fieldModifier,
+                labelAbove = labelAbove
+            )
+            if (counted) {
+                val s = app.treelune.core.strings.Strings.`for`(context = androidx.compose.ui.platform.LocalContext.current)
+                Text(s.shared("field_length_count").format(length, max), if (over) TextType.ERROR else TextType.CAPTION, fillMaxWidth = true, textAlign = TextAlign.End)
+            }
+        }
+    }
     
     @Composable
     fun FormSelection(

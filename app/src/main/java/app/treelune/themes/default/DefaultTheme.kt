@@ -533,9 +533,8 @@ object DefaultTheme : ThemeContract {
         val isError = state == ComponentState.ERROR
         val isReadOnly = state == ComponentState.READONLY
         
-        // The keyboard and the length come from the field type (FieldInput)
+        // The keyboard comes from the field type (FieldInput); its length is counted by UI.FormField
         val keyboardOptions = app.treelune.core.ui.FieldInput.keyboardOptions(fieldType)
-        val filteredOnChange = app.treelune.core.ui.FieldInput.limited(fieldType, onChange)
 
         // A password is masked, and shown while the eye is on
         val isPassword = fieldType == FieldType.PASSWORD
@@ -543,7 +542,7 @@ object DefaultTheme : ThemeContract {
 
         OutlinedTextField(
             value = value,
-            onValueChange = filteredOnChange,
+            onValueChange = onChange,
             placeholder = placeholder?.let { { androidx.compose.material3.Text(it) } },
             isError = isError,
             readOnly = isReadOnly,
