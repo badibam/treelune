@@ -1988,4 +1988,6 @@
     <string name="nav_execution">Exécution</string>
     <string name="nav_seed">Message de départ</string>
     <string name="nav_chat">Conversation</string>
+    <string name="automation_run_channel">Routines en cours</string>
+    <string name="automation_run_notification_text">Routine en cours</string>
 </resources>

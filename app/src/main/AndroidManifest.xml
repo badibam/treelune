@@ -87,6 +87,11 @@
             android:name=".core.mcp.McpAccessService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
+        <!-- A routine running (AutomationRunService): its round, with no screen open -->
+        <service
+            android:name=".core.ai.orchestration.AutomationRunService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
         <service
             android:name=".core.mcp.McpTileService"
             android:exported="true"

@@ -133,6 +133,7 @@ Vu le 2026-10-09 : l'inscription par la page de connexion, « Activer Funnel » 
 - Créer une automation planifiée : sa prochaine exécution s'affiche sur sa carte. La fenêtre de rattrapage se saisit dans l'éditeur.
 - Seuil de données bas : le refus apparaît dans l'historique d'exécution, et l'IA resserre sa requête.
 - Lancer une automation, couper le réseau pendant l'appel, puis Stop : la session se ferme tout de suite. Sans Stop, elle attend le réseau si l'appel n'était pas parti, ou s'arrête avec « Requête envoyée, réponse perdue » et un coût en « ≥ » sur sa carte.
+- Routine planifiée qui demande plusieurs lectures et écritures, app fermée (glissée hors des récentes), écran éteint : à l'alarme, une notification « Routine en cours » à son nom apparaît, la routine va au bout (son historique), la notification disparaît. Pas de ligne « AutomationRun: the service could not start » au journal. Réseau coupé pendant qu'elle tourne : elle se ferme après 2 min, la notification part, et elle reprend à une alarme suivante une fois le réseau revenu.
 - La tuile d'une automation dans sa zone : son nom lisible sur une ligne, et à côté deux petits boutons « On » / « Off », toucher le bouton choisi ne change rien, basculer ne fait pas clignoter l'écran ; les jours et les mois d'une planification sont des cases à cocher.
 
 ## Outils et saisie

@@ -336,6 +336,8 @@ La recherche de la prochaine occurrence démarre au plus tôt à `maintenant −
 
 **Continuation automatique** : Après succès actions, AUTOMATION continue automatiquement (pas de keepControl requis).
 
+**Tenue en vie** : tant qu'une AUTOMATION est active (phase ni `IDLE` ni `CLOSED`), `AutomationRun`, qui suit l'état depuis `AIOrchestrator.initialize`, tient le service au premier plan `AutomationRunService` et un verrou de veille partiel : l'alarme du planificateur ne garde l'app éveillée que pour son tick (50 s au plus). Sa notification nomme la routine. Il s'éteint 2 s après la fin de la session, une routine qui suit aussitôt le reprenant : Android refuse de le redémarrer depuis l'arrière-plan hors du moment de l'alarme. Une routine lancée par le battement interne de l'app une fois l'app quittée n'a pas ce droit : le refus est écrit au journal, le tour continue sans protection.
+
 **Réseau** : nouvel essai toutes les 30 s, phase `WAITING_NETWORK_RETRY` (le watchdog ne la compte pas). Après 2 min d'attente en tout (`AIStateMachine.AUTOMATION_NETWORK_WAIT_LIMIT`), la session se ferme en `NETWORK_ERROR`, pour ne pas garder le téléphone éveillé tant que le réseau manque ; le planificateur la reprend 5 min après au plus tôt (`SessionSlotPolicy.NETWORK_RESUME_PAUSE`) et ne lance pas d'autre occurrence de la même automation entre-temps.
 
 **Communication modules** : Interdits pour AUTOMATION (validationRequest, communicationModule ignorés).
