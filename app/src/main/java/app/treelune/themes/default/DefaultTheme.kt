@@ -1,5 +1,6 @@
 package app.treelune.themes.default
 
+import app.treelune.core.ui.components.LocalButtonFill
 import app.treelune.core.ui.sound.scrollEndSound
 
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -384,7 +385,8 @@ object DefaultTheme : ThemeContract {
         ) {
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.padding(config.padding)
+                // Filling (LocalButtonFill), the button takes the width it is given
+                modifier = Modifier.let { if (LocalButtonFill.current) it.fillMaxWidth() else it }.padding(config.padding)
             ) {
                 CompositionLocalProvider(LocalDefaultInk provides ink) { content() }
             }
@@ -1274,18 +1276,6 @@ object DefaultTheme : ThemeContract {
                 }
             }
         }
-    }
-    
-    @Composable
-    override fun FormActions(
-        content: @Composable RowScope.() -> Unit
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
-            verticalAlignment = Alignment.CenterVertically,
-            content = content
-        )
     }
     
     @Composable

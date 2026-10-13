@@ -432,11 +432,6 @@ interface ThemeContract {
     )
     
     @Composable
-    fun FormActions(
-        content: @Composable RowScope.() -> Unit
-    )
-    
-    @Composable
     fun Checkbox(
         checked: Boolean,
         onCheckedChange: (Boolean) -> Unit,

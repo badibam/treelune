@@ -422,11 +422,7 @@ fun HistoryScreen(
                 }
 
                 // Actions
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                app.treelune.core.ui.components.ButtonRow(align = Alignment.End) {
                     UI.ActionButton(
                         action = ButtonAction.CANCEL,
                         display = ButtonDisplay.LABEL,
@@ -436,8 +432,6 @@ fun HistoryScreen(
                             selectedSessionId = null
                         }
                     )
-
-                    Spacer(modifier = Modifier.width(UI.Space.S))
 
                     UI.ActionButton(
                         action = ButtonAction.SAVE,

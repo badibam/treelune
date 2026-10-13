@@ -85,50 +85,38 @@ fun CommunicationModuleCard(
                     )
                 }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(UI.Space.S),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        UI.ActionButton(
-                            action = ButtonAction.CANCEL,
-                            display = ButtonDisplay.LABEL,
-                            size = Size.M,
-                            onClick = onCancel
-                        )
-                    }
-                    Box(modifier = Modifier.weight(1f)) {
-                        UI.ActionButton(
-                            action = ButtonAction.CONFIRM,
-                            display = ButtonDisplay.LABEL,
-                            size = Size.M,
-                            onClick = {
-                                val check = CommunicationModules.checkAnswer(module, answer, context)
-                                if (!check.isValid) {
-                                    val missing = module.fields.filter { it.required && isEmptyValue(answer.opt(it.definition.name)) }
-                                    refusal = if (missing.isNotEmpty()) {
-                                        s.shared("ai_module_missing").format(missing.joinToString(", ") { it.definition.displayName })
-                                    } else check.errorMessage
-                                    return@ActionButton
-                                }
-                                onResponse(
-                                    if (module.fields.isEmpty()) CONFIRMED
-                                    else CommunicationModules.answerForModel(module, answer, context).toString(),
-                                    note?.trim()?.takeIf { it.isNotEmpty() }
-                                )
+                app.treelune.core.ui.components.ButtonRow(align = Alignment.CenterHorizontally) {
+                    UI.ActionButton(
+                        action = ButtonAction.CANCEL,
+                        display = ButtonDisplay.LABEL,
+                        size = Size.M,
+                        onClick = onCancel
+                    )
+                    UI.ActionButton(
+                        action = ButtonAction.CONFIRM,
+                        display = ButtonDisplay.LABEL,
+                        size = Size.M,
+                        onClick = {
+                            val check = CommunicationModules.checkAnswer(module, answer, context)
+                            if (!check.isValid) {
+                                val missing = module.fields.filter { it.required && isEmptyValue(answer.opt(it.definition.name)) }
+                                refusal = if (missing.isNotEmpty()) {
+                                    s.shared("ai_module_missing").format(missing.joinToString(", ") { it.definition.displayName })
+                                } else check.errorMessage
+                                return@ActionButton
                             }
-                        )
-                    }
+                            onResponse(
+                                if (module.fields.isEmpty()) CONFIRMED
+                                else CommunicationModules.answerForModel(module, answer, context).toString(),
+                                note?.trim()?.takeIf { it.isNotEmpty() }
+                            )
+                        }
+                    )
                 }
                 refusal?.let { UI.Text(text = it, type = TextType.ERROR) }
 
                 // The other ways to answer
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(UI.Space.S),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                app.treelune.core.ui.components.ButtonRow {
                     if (note == null) {
                         UI.Button(type = ButtonType.DEFAULT, size = Size.S, onClick = { note = "" }) {
                             UI.Text(text = s.shared("ai_module_add_note"), type = TextType.CAPTION)

@@ -247,7 +247,7 @@ private fun AttemptCard(
             (loaded["sub_goals"] as? Map<*, *>)?.forEach { (name, subMet) ->
                 UI.Text("$name · " + s.tool("met_${(subMet as String).lowercase()}"), TextType.CAPTION)
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.M)) {
+            app.treelune.core.ui.components.ButtonRow {
                 if (!locked) UI.Button(type = ButtonType.PRIMARY, onClick = onValidate) { UI.Text(s.tool("action_validate"), TextType.LABEL) }
                 else UI.Button(type = ButtonType.SECONDARY, onClick = onReopen) { UI.Text(s.tool("action_reopen"), TextType.LABEL) }
             }

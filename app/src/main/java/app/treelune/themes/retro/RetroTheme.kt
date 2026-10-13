@@ -1,5 +1,6 @@
 package app.treelune.themes.retro
 
+import app.treelune.core.ui.components.LocalButtonFill
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
@@ -223,7 +224,7 @@ object RetroTheme : ThemeContract {
         Pressable(onClick = onClick, enabled = enabled) { pressed ->
             TouchRoom {
                 Framed(compact = true, minRows = touchRows, pressed = pressed, off = !enabled) {
-                    CompositionLocalProvider(LocalRetroInk provides buttonInk(type, enabled)) { content() }
+                    ButtonContent { CompositionLocalProvider(LocalRetroInk provides buttonInk(type, enabled)) { content() } }
                 }
             }
         }
@@ -262,7 +263,7 @@ object RetroTheme : ThemeContract {
                 IconFrame(action.iconName, label, ink, retroGrid().touch, down, off = !enabled)
             } else {
                 TouchRoom {
-                    Framed(compact = true, minRows = touchRows, pressed = down, off = !enabled) { Line(label, retroGrid().text, ink) }
+                    Framed(compact = true, minRows = touchRows, pressed = down, off = !enabled) { ButtonContent { Line(label, retroGrid().text, ink) } }
                 }
             }
         }
@@ -871,16 +872,6 @@ object RetroTheme : ThemeContract {
         }
     }
 
-    @Composable
-    override fun FormActions(content: @Composable RowScope.() -> Unit) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(retroGrid().cells(1), Alignment.CenterHorizontally),
-            verticalAlignment = Alignment.CenterVertically,
-            content = content
-        )
-    }
-
     /** Symbols of the font, no frame: the check between brackets, or the brackets empty. */
     @Composable
     override fun Checkbox(checked: Boolean, onCheckedChange: (Boolean) -> Unit, label: String?) {
@@ -1179,6 +1170,13 @@ object RetroTheme : ThemeContract {
      */
     private val touchRows: Int
         @Composable get() = retroGrid().touch
+
+    /** A button's content in its frame: filling (LocalButtonFill), the frame takes the width it is given, the content centred. */
+    @Composable
+    private fun ButtonContent(content: @Composable () -> Unit) {
+        if (LocalButtonFill.current) Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { content() }
+        else content()
+    }
 
     /** A target a finger can take: at least a finger's target tall, the frame centred in the empty rows. */
     @Composable

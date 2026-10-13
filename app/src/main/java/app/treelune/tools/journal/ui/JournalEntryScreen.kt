@@ -434,18 +434,12 @@ fun JournalEntryScreen(
             }
 
             // Action buttons in consultation mode (aligned right)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            app.treelune.core.ui.components.ButtonRow(align = Alignment.End) {
                 UI.ActionButton(
                     action = ButtonAction.EDIT,
                     display = ButtonDisplay.LABEL,
                     onClick = { isEditing = true }
                 )
-
-                Spacer(modifier = Modifier.width(UI.Space.S))
 
                 UI.ActionButton(
                     action = ButtonAction.DELETE,

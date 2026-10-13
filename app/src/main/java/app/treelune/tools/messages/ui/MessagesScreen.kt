@@ -348,7 +348,7 @@ private fun ReceivedCard(
 
             // Only something that actually went out can be read or filed away
             if (occurrence.status == "sent") {
-                Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+                app.treelune.core.ui.components.ButtonRow {
                     UI.Button(type = ButtonType.DEFAULT, size = Size.S, onClick = onToggleRead) {
                         UI.Text(
                             if (occurrence.read) s.tool("action_mark_unread") else s.tool("action_mark_read"),

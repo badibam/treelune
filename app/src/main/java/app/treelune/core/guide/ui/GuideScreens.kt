@@ -157,7 +157,7 @@ fun ChapterScreen(id: String, demoInstalled: Boolean) {
             }
             if (chapter.usesDemo && !demoInstalled) DemoMissingLine()
             // Doing it: from where it stands, or again once done
-            Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+            app.treelune.core.ui.components.ButtonRow {
                 if (at?.done != true) {
                     UI.Button(type = ButtonType.PRIMARY, state = if (inProgress && Guide.progress?.bandHidden != true) ComponentState.DISABLED else ComponentState.NORMAL,
                         onClick = { Guide.begin(chapter, demoInstalled); Navigator.pop() }) {

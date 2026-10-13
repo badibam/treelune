@@ -168,14 +168,13 @@ fun ExternalAccessSettingsScreen(onBack: () -> Unit) {
                 UI.Text(s.shared("external_access_clients"), TextType.SUBTITLE)
                 if (clients.isEmpty()) UI.Text(s.shared("external_access_clients_none"), TextType.CAPTION)
                 for (client in clients) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
-                        androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.weight(1f)) {
-                            UI.Text(s.shared("external_access_client_line").format(
-                                client.name,
-                                DateUtils.formatDateForDisplay(client.createdAt),
-                                client.lastUsedAt?.let { DateUtils.formatFullDateTime(it) } ?: s.shared("external_access_client_never")
-                            ), TextType.BODY)
-                        }
+                    // The client's line across the width, its buttons under it
+                    UI.Text(s.shared("external_access_client_line").format(
+                        client.name,
+                        DateUtils.formatDateForDisplay(client.createdAt),
+                        client.lastUsedAt?.let { DateUtils.formatFullDateTime(it) } ?: s.shared("external_access_client_never")
+                    ), TextType.BODY)
+                    app.treelune.core.ui.components.ButtonRow {
                         UI.Button(type = ButtonType.DEFAULT, onClick = {
                             scope.launch {
                                 accessDraft = app.treelune.core.mcp.McpClientAccess.read(context, client.id)

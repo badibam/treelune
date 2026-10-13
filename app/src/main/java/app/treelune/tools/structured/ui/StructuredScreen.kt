@@ -267,7 +267,7 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
         } else if (editing) { item { Column(verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
             UI.FormField(label = s.shared("label_name"), value = draftName, onChange = { draftName = it }, fieldType = FieldType.TEXT, required = true)
             CustomFieldsInput(customFieldsMetadata = fields, values = draftExtra, onValuesChange = { draftExtra = it }, context = context, newEntry = openId == "")
-            Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.M)) {
+            app.treelune.core.ui.components.ButtonRow {
                 UI.Button(type = ButtonType.PRIMARY, state = if (draftName.isNotBlank()) app.treelune.core.ui.ComponentState.NORMAL else app.treelune.core.ui.ComponentState.DISABLED, onClick = {
                     val extra = draftExtra.filterValues { it != null }
                     val params = mutableMapOf<String, Any>("tool_instance_id" to toolInstanceId, "name" to draftName.trim(), "data" to emptyMap<String, Any>())

@@ -76,7 +76,7 @@ fun GuideBand() {
                         here -> UI.Text(s.shared("guide_band_here"), TextType.CAPTION)
                         gestures != null -> UI.Text(s.shared("guide_band_from_here").format(GuidePath.sentence(gestures, s.shared("guide_path_then"))), TextType.CAPTION)
                     }
-                    Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+                    app.treelune.core.ui.components.ButtonRow {
                         if (step.kind == StepKind.READ) {
                             val ready = target == null || here
                             UI.Button(type = ButtonType.PRIMARY, state = if (ready) app.treelune.core.ui.ComponentState.NORMAL else app.treelune.core.ui.ComponentState.DISABLED, onClick = { Guide.next() }) {

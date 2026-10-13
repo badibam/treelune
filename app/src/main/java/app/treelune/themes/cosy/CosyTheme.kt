@@ -1,5 +1,6 @@
 package app.treelune.themes.cosy
 
+import app.treelune.core.ui.components.LocalButtonFill
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
@@ -882,16 +883,6 @@ object CosyTheme : ThemeContract {
         }
     }
 
-    @Composable
-    override fun FormActions(content: @Composable RowScope.() -> Unit) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(cosySize().dp(10f), Alignment.CenterHorizontally),
-            verticalAlignment = Alignment.CenterVertically,
-            content = content
-        )
-    }
-
     /** A round: hollow when empty, full of the main colour with a check when checked. */
     @Composable
     override fun Checkbox(checked: Boolean, onCheckedChange: (Boolean) -> Unit, label: String?) {
@@ -1289,7 +1280,9 @@ object CosyTheme : ThemeContract {
             pressed = pressed
         ) {
             Box(
-                modifier = Modifier.heightIn(min = size.touch - size.buttonDepth).widthIn(min = size.touch).padding(horizontal = size.dp(18f)),
+                // Filling (LocalButtonFill), the pill takes the width it is given
+                modifier = Modifier.let { if (LocalButtonFill.current) it.fillMaxWidth() else it }
+                    .heightIn(min = size.touch - size.buttonDepth).widthIn(min = size.touch).padding(horizontal = size.dp(18f)),
                 contentAlignment = Alignment.Center
             ) {
                 CompositionLocalProvider(LocalCosyInk provides ink) { content() }
