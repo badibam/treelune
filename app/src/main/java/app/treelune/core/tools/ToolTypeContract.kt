@@ -38,6 +38,14 @@ interface ToolTypeContract {
     /** What only the AI needs besides the usage, written after it in the prompt; none for most types. */
     fun getAIDetail(context: Context): String? = null
 
+    /**
+     * The Guide's chapter on this type, beside its usage, in the Guide's markup (GuideMarkup):
+     * every setting of its own config, and every button of its screen, one mention each
+     * (docs/design/user-journey.md, « Prise en main »). None until written.
+     */
+    fun getGuideConfig(context: Context): String? = null
+    fun getGuideScreen(context: Context): String? = null
+
     /** The display mode a new tool of this type is shown in, in its zone. */
     fun getDefaultDisplayMode(): String
 

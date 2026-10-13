@@ -78,6 +78,10 @@ data class GuideChapter(
     /** A read chapter's text: a tool type's usage. */
     fun body(context: Context): String? = toolType?.let { ToolTypeManager.getToolType(it)?.getUsage(context) }
 
+    /** A tool type's chapter's parts after its usage: its config, its screen; each absent until written. */
+    fun toolConfig(context: Context): String? = toolType?.let { ToolTypeManager.getToolType(it)?.getGuideConfig(context) }
+    fun toolScreen(context: Context): String? = toolType?.let { ToolTypeManager.getToolType(it)?.getGuideScreen(context) }
+
     /** A chapter needs the demo when one of its steps is about it: read from the steps, never declared. */
     val usesDemo: Boolean get() = steps.any { it.usesDemo }
 

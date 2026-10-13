@@ -5,7 +5,7 @@
     <!-- Métadonnées -->
     <string name="display_name">Messages</string>
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
-    <string name="usage">Pour les rappels et les notifications, une fois ou selon un rythme : prendre un médicament, appeler quelqu\'un chaque mois.\nDéjà prévu : un planning ; chaque envoi préparé à l\'avance, qu\'on peut donc écrire avant qu\'il parte ; une priorité ; un délai au-delà duquel un envoi qui n\'est pas parti expire.\nPas pour : une tâche à cocher une fois (Liste, avec échéance) ; une séance ou un questionnaire planifiés, qui préviennent eux-mêmes.</string>
+    <string name="usage">Pour les rappels et les notifications, une fois ou selon un rythme : prendre un médicament, appeler quelqu\'un chaque mois.\n## Déjà prévu\n- Un planning\n- Chaque envoi préparé à l\'avance, qu\'on peut donc écrire avant qu\'il parte\n- Une priorité\n- Un délai au-delà duquel un envoi qui n\'est pas parti expire\n## Pas pour\n- Une tâche à cocher une fois (Liste, avec échéance)\n- Une séance ou un questionnaire planifiés, qui préviennent eux-mêmes</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Des rappels et des notifications, une fois ou selon un planning</string>
 

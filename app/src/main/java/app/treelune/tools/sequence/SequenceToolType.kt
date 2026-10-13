@@ -85,6 +85,8 @@ object SequenceToolType : ToolTypeContract {
 
     override fun getDisplayName(context: Context): String = s(context).tool("display_name")
     override fun getUsage(context: Context): String = s(context).tool("usage")
+    override fun getGuideConfig(context: Context): String = s(context).tool("guide_config")
+    override fun getGuideScreen(context: Context): String = s(context).tool("guide_screen")
     override fun getDefaultDisplayMode(): String = "LINE"
     override fun getDefaultShowFieldLabels(): Boolean = true
     override fun getDefaultIconName(): String = "timer"

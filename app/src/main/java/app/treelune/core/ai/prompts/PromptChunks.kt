@@ -313,7 +313,8 @@ object PromptChunks {
         val allToolTypes = ToolTypeManager.getAllToolTypes()
         for ((name, toolType) in allToolTypes) {
             sb.appendLine("### $name")
-            sb.appendLine(toolType.getUsage(english))
+            // The usage's subtitles go under the type's own heading
+            sb.appendLine(toolType.getUsage(english).replace(Regex("(?m)^## "), "#### "))
             toolType.getAIDetail(english)?.let { sb.appendLine(it) }
             sb.appendLine()
         }

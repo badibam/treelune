@@ -5,7 +5,7 @@
     <!-- Métadonnées -->
     <string name="display_name">Liste</string>
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
-    <string name="usage">Pour ce qui reste à faire, coché quand c\'est fait : courses, tâches, une check-list.\nDéjà prévu : une échéance par élément si on l\'active, avec une notification quand elle arrive et l\'élément qui attend tant qu\'il n\'est pas coché ; ou un élément coché qui disparaît aussitôt (les courses).\nPas pour : un rappel qui revient à rythme fixe (Messages).</string>
+    <string name="usage">Pour ce qui reste à faire, coché quand c\'est fait : courses, tâches, une check-list.\n## Déjà prévu\n- Une échéance par élément si on l\'active, avec une notification quand elle arrive et l\'élément qui attend tant qu\'il n\'est pas coché\n- Ou un élément coché qui disparaît aussitôt (les courses)\n## Pas pour\n- Un rappel qui revient à rythme fixe (Messages)</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Ce qui reste à faire, coché au fur et à mesure, avec des échéances si vous voulez</string>
 

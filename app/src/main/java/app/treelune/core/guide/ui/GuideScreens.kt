@@ -157,7 +157,9 @@ fun ChapterScreen(id: String, demoInstalled: Boolean) {
                 return@Column
             }
             if (!chapter.isTutorial) {
-                chapter.body(context)?.let { UI.Text(it, TextType.BODY) }
+                chapter.body(context)?.let { GuideText(it) }
+                chapter.toolConfig(context)?.let { Part(s.shared("guide_tool_config")); GuideText(it) }
+                chapter.toolScreen(context)?.let { Part(s.shared("guide_tool_screen")); GuideText(it) }
                 if (chapter.overview) GuideChapters.all(context).filter { it.toolType != null }.forEach { ToolLine(it) }
                 return@Column
             }
@@ -176,13 +178,11 @@ fun ChapterScreen(id: String, demoInstalled: Boolean) {
                     }
                 }
             }
-            UI.Card(type = CardType.SECTION_HEADER) {
-                Box(modifier = Modifier.fillMaxWidth().padding(UI.Space.M)) { UI.Text(s.shared("guide_steps"), TextType.HEADING) }
-            }
+            Part(s.shared("guide_steps"))
             chapter.steps.forEach { step ->
                 Column(verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
                     UI.Text(s.shared("guide_step_number").format(step.number) + " " + chapter.goal(context, step), TextType.STRONG)
-                    UI.Text(chapter.text(context, step), TextType.BODY)
+                    GuideText(chapter.text(context, step))
                     // The way from the home screen, for a place known without the steps before
                     Guide.target(chapter, step)?.let { place ->
                         LaunchedEffect(place) { names(context, place) }
@@ -191,8 +191,16 @@ fun ChapterScreen(id: String, demoInstalled: Boolean) {
                     }
                 }
             }
-            chapter.outro(context)?.let { UI.Text(it, TextType.BODY) }
+            chapter.outro(context)?.let { GuideText(it) }
         }
+    }
+}
+
+/** The title of a part of a chapter: its steps, a tool's config, its screen. */
+@Composable
+private fun Part(title: String) {
+    UI.Card(type = CardType.SECTION_HEADER) {
+        Box(modifier = Modifier.fillMaxWidth().padding(UI.Space.M)) { UI.Text(title, TextType.HEADING) }
     }
 }
 

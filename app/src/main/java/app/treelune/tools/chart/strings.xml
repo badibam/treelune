@@ -3,7 +3,7 @@
     <!-- Strings of the chart tooltype -->
     <string name="display_name">Chart</string>
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
-    <string name="usage">For seeing other tools\' entries and variables as lines, bars, pies or calendars.\nAlready built in: it keeps nothing itself; it reads its sources at each display, over the period chosen.\nNot for: computing or storing a total (a variable or a Goal does).</string>
+    <string name="usage">For seeing other tools\' entries and variables as lines, bars, pies or calendars.\n## Already built in\n- It keeps nothing itself\n- It reads its sources at each display, over the period chosen\n## Not for\n- Computing or storing a total (a variable or a Goal does)</string>
     <!-- What only the AI needs besides its usage: the chart's spec -->
     <string name="ai_detail">A chart of other tools\' entries and of variables, drawn and never computed: a subset of Vega-Lite (layer, vconcat, hconcat, concat, facet, repeat; marks line, point, bar, area, text, arc, tick, rect; encoding channels) whose data come from a source per layer, never written in the config: a tool\'s entries, or a grid reading variables and field readings at each step of the displayed period. A total per day is a grid column, never an aggregate. Colors are palette names. Keeps no entries of its own.</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->

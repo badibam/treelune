@@ -5,7 +5,7 @@
     <!-- Métadonnées -->
     <string name="display_name">Journal</string>
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
-    <string name="usage">Pour écrire ce qui se passe, daté : un journal de bord, des réflexions, le compte rendu d\'une journée.\nDéjà prévu : chaque entrée est datée, et la liste est triée par date.\nPas pour : une valeur à suivre dans le temps (Suivi) ; un texte qu\'on retouche sans date (Notes).</string>
+    <string name="usage">Pour écrire ce qui se passe, daté : un journal de bord, des réflexions, le compte rendu d\'une journée.\n## Déjà prévu\n- Chaque entrée est datée, et la liste est triée par date\n## Pas pour\n- Une valeur à suivre dans le temps (Suivi)\n- Un texte qu\'on retouche sans date (Notes)</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Un carnet daté, écrit ou dicté</string>
 
