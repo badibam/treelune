@@ -44,7 +44,6 @@ Décider une règle par problème, puis passer tous les écrans, dans le cas le 
 
 ### Bloc 2 — le Guide et les textes
 
-- « Automation », « automatisation » : choisir un mot en français, et l'employer partout.
 - Guide, Automatiser : une étape pour écrire le message de l'automation (une automation au message vide ne s'enregistre plus et ne se lance plus).
 - Guide, Automatiser 1/4 : « avec ses pièces jointes » est faux, on ne peut pas joindre de fichier au message d'une automation.
 - Guide : présenter et bien distinguer la discussion récurrente, une automation dont on se sert comme départ de conversation (bouton bulle), de l'automation qu'on lance (bouton lecture).
