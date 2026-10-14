@@ -16,6 +16,7 @@ import org.json.JSONObject
 enum class GuidePart(val key: String, val ordered: Boolean) {
     DISCOVERY("discovery", true),
     GETTING_STARTED("getting_started", false),
+    TOOLS("tools", false),
     DEEPER("deeper", false)
 }
 
@@ -103,15 +104,12 @@ const val DEMO_PREFIX = "demo-"
 
 /**
  * The Guide's chapters, in their order: those of `assets/guide/chapters.json`, the tools at a
- * glance at the head of « Getting started », and after « organize » one per tool type, from the
- * tool type's own name, line and usage, so that a tool type comes with its chapter.
+ * glance at the head of « Getting started », and in a part of their own one per tool type, from
+ * the tool type's own name, line, usage and texts, so that a tool type comes with its chapter.
  */
 object GuideChapters {
 
     private const val ASSET = "guide/chapters.json"
-
-    /** The chapter after which the tool types' chapters come. */
-    private const val TOOLS_AFTER = "organize"
 
     /** The tools at a glance, whose title and introduction are guide_tools_title and guide_tools_intro. */
     const val OVERVIEW = "tools"
@@ -123,15 +121,13 @@ object GuideChapters {
             val declared = parse(context.assets.open(ASSET).bufferedReader(Charsets.UTF_8).use { it.readText() })
             // A tool type's chapter under the icon a new tool of that type takes
             val tools = ToolTypeManager.getAllToolTypes().map { (tooltype, type) ->
-                GuideChapter("tool_$tooltype", GuidePart.GETTING_STARTED, type.getDefaultIconName(), 3, emptyList(), toolType = tooltype)
+                GuideChapter("tool_$tooltype", GuidePart.TOOLS, type.getDefaultIconName(), 3, emptyList(), toolType = tooltype)
             }
-            val at = declared.indexOfFirst { it.id == TOOLS_AFTER }
-            require(at >= 0) { "The Guide has no chapter '$TOOLS_AFTER' for the tools' chapters to follow" }
-            val withTools = declared.take(at + 1) + tools + declared.drop(at + 1)
             // Where one wonders which tool to take: before configuring one
-            val head = withTools.indexOfFirst { it.part == GuidePart.GETTING_STARTED }
+            val head = declared.indexOfFirst { it.part == GuidePart.GETTING_STARTED }
             val overview = GuideChapter(OVERVIEW, GuidePart.GETTING_STARTED, "shapes", 2, emptyList(), overview = true)
-            (withTools.take(head) + overview + withTools.drop(head)).also { loaded = it }
+            // The tools' chapters together in their own part, which the page shows in its order
+            (declared.take(head) + overview + declared.drop(head) + tools).also { loaded = it }
         }
     }
 

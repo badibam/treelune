@@ -55,7 +55,7 @@ fun GuideScreen() {
     val chapters = remember { GuideChapters.all(context) }
     val scroll = rememberScrollState()
     // Where the journey ends: the first part read in any order
-    val afterJourney = GuidePart.entries.first { !it.ordered }
+    val afterJourney = GuidePart.GETTING_STARTED
     var afterJourneyAt by remember { mutableStateOf<Int?>(null) }
     // Opened there once, after the journey
     LaunchedEffect(afterJourneyAt) {

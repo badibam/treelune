@@ -7,6 +7,8 @@
     <string name="guide_part_discovery_help">Dans l\'ordre : la démo, ton premier outil, une IA pour travailler avec toi, puis la faire travailler sur un planning.</string>
     <string name="guide_part_getting_started">Prise en main</string>
     <string name="guide_part_getting_started_help">Dans l\'ordre que tu veux : chaque fonction, pour t\'en servir vraiment.</string>
+    <string name="guide_part_tools">Les outils</string>
+    <string name="guide_part_tools_help">Chaque outil, à quoi il sert, sa config et son écran.</string>
     <string name="guide_part_deeper">Approfondissement</string>
     <string name="guide_part_deeper_help">Les subtilités, au besoin.</string>
     <string name="guide_minutes">%1$d min</string>

@@ -7,6 +7,8 @@
     <string name="guide_part_discovery_help">In this order: the demo, your first tool, an AI to work with, then letting it work on a schedule.</string>
     <string name="guide_part_getting_started">Getting started</string>
     <string name="guide_part_getting_started_help">In the order you like: each feature, to use it for real.</string>
+    <string name="guide_part_tools">The tools</string>
+    <string name="guide_part_tools_help">Each tool, what it is for, its settings and its screen.</string>
     <string name="guide_part_deeper">Going further</string>
     <string name="guide_part_deeper_help">The subtleties, when you need them.</string>
     <string name="guide_minutes">%1$d min</string>
