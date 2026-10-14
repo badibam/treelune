@@ -2,11 +2,11 @@
 
 # Treelune
 
-**Keep track of what matters to you — workouts, meals, tasks, mood — with tools you put together yourself, and an AI that can read them, fill them in and set them up with you.**
+**Keep track of what matters — workouts, meals, tasks, mood — with tools you put together yourself, and an AI that can read them, fill them in and set them up with you.**
 
-Your meals add up to the day's calories, which a goal compares to your target and a chart draws: the tools feed each other.
+For example, you note your meals, and the app adds up the day's calories, compares them to a target and draws them in a chart. Each tool can read the others.
 
-An Android app, free and open source, with no account and no ads. Your data stays on your phone.
+A free and open source Android app, with no account and no ads. The data stays on the phone.
 
 <!-- Screenshots: the home screen, a demo zone, a chart, a conversation with the AI, kept in fastlane/metadata/android/en-US/images/phoneScreenshots/ -->
 
@@ -14,7 +14,7 @@ An Android app, free and open source, with no account and no ads. Your data stay
 
 ### Note
 
-You sort your life into **zones** (Health, Work, Kitchen…), and in each zone you place the **tools** you need:
+You sort your life into **zones** (Health, Work, Kitchen…), and in each zone you place the **tools** you need. Whatever you note in a tool, a weigh-in, a meal, a journal page, is one of its **entries**. The tool types:
 
 <!-- tools -->
 - **Tracking** — Numbers, ratings, choices or timed durations, noted as they come: weight, sleep, mood, glasses of water
@@ -33,17 +33,17 @@ Each tool can be set up: its fields, its units, its reminders, how it shows on t
 
 ### Connect
 
-A tool can read the others. A **variable** draws a figure from your entries (the day's calories, the week's kilometres); a Goal compares it to its target, a Chart draws it, the AI reads it. An entry can **point** to another one: a meal to the food's sheet, a harvest to its plant.
+A **variable** is a figure worked out from the entries, such as the day's calories or the week's kilometres. A Goal compares it to its target, a Chart draws it, the AI reads it. An entry can also **point** to another one, a meal to the food's sheet, a harvest to its plant.
 
 ### With an AI
 
-The AI has the same moves as you: it reads your tools, adds entries to them, creates new ones, sets them up.
+The AI has the same moves as you: it reads the tools, adds entries to them, creates new ones and sets them up.
 
 - You talk to it in a conversation, attaching a tool or a zone in one gesture, over the period you care about.
-- You can require it to show what it is about to do and wait for your approval before any change: for the whole app, a zone, a tool or a conversation.
+- Before any change, you can require it to show what it is about to do and wait for your approval, for the whole app, a zone, a tool or a conversation.
 - When it lacks some information, it asks you as a field to fill in.
-- A **routine** has it work on its own, on a schedule: "every Sunday evening, sum up my week".
-- Claude can also plug into the app from outside, as a connector, and work on your tools from claude.ai.
+- With a **routine**, it works on its own, on a schedule: “every Sunday evening, sum up my week”. It can create routines too.
+- Claude can also plug into the app from outside, as a connector, and work on the tools from claude.ai.
 
 You bring your own API key, from one of these providers:
 
@@ -51,7 +51,7 @@ You bring your own API key, from one of these providers:
 **Claude**, **OpenAI**, **DeepSeek**
 <!-- /providers -->
 
-or from any service that speaks OpenAI's API (Ollama, LM Studio, OpenRouter…). The app shows what each exchange costs you.
+or from any service that speaks OpenAI's API (Ollama, LM Studio, OpenRouter…). The app shows what each exchange costs.
 
 ### Your way
 
@@ -67,22 +67,22 @@ You lay out each zone's tiles as you like, choose each tool's icon and colour, a
 
 Download the latest version's APK from the [releases page](https://github.com/badibam/treelune/releases), or build the app from source (see below). It is not on F-Droid yet.
 
-On first launch, a **demo** is waiting: twelve weeks in the life of Camille, who trains for a half marathon, works freelance, cooks and grows things on her balcony. It shows what the app looks like once built. The **Guide** (the book at the top of the home screen) then takes you step by step: the demo, your first zone, your first tool, then the AI and routines.
+On first launch, a **demo** is waiting: twelve weeks in the life of Camille, who trains for a half marathon, works freelance, cooks and grows things on her balcony. There you see what the app looks like once built. Then the **Guide** (the book at the top of the home screen) is followed step by step: the demo, a first zone, a first tool, then the AI and routines.
 
 ## Your data
 
-- Everything is stored on your phone. No account, no telemetry, no ads.
-- Nothing goes to an AI unless you asked for it: when you write to it, or when a routine you scheduled runs. What goes then is sent only to the provider you chose, with your key, which is stored encrypted on the phone.
+- Everything is stored on the phone. No account, no telemetry, no ads.
+- Nothing goes to an AI unless you asked for it: when you write to it, or when a scheduled routine runs. What goes then is sent only to the chosen provider, with your key, which is stored encrypted on the phone.
 - To show what exchanges cost, the app downloads a public list of model prices (LiteLLM, on GitHub). It sends nothing.
-- The connector, when enabled, goes through an HTTPS relay whose address you give, or through Tailscale Funnel with your own Tailscale account.
-- You back up and restore everything as one file, and import a CSV table into a tool.
+- Once the connector is enabled, its exchanges go through an HTTPS relay whose address you give, or through Tailscale Funnel with your own Tailscale account.
+- Everything is backed up and restored as one file, which the app copies after each change into a chosen folder.
 
 ## Project status
 
-In active development: the app is used every day, but anything may still change, the shape of the data included — keep backups.
+The app is in active development. It is used every day, but anything may still change, the shape of the data included. Keep backups.
 
 <!-- status -->
-- Version 0.6.0
+- Version 0.7.0
 - Android 8.0 or later
 - Languages: English, French
 <!-- /status -->
@@ -102,4 +102,4 @@ The technical documentation starts at [`docs/reference.md`](docs/reference.md). 
 
 ## Licence
 
-[GPL-3.0-or-later](LICENSE): version 3 of the GNU General Public License, or any later version.
+[GPL-3.0-or-later](LICENSE), that is version 3 of the GNU General Public License, or any later version.
