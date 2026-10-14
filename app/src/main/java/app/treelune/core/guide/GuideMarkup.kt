@@ -15,7 +15,7 @@ sealed class GuideBlock {
 }
 
 /**
- * The markup of the Guide's texts (docs/design/user-journey.md, « Les textes »), a small part of
+ * The markup of the Guide's texts (docs/design/user-journey.md, « Où ça vit »), a small part of
  * Markdown: `## ` begins a subtitle, `- ` a line of a list, and `{name}` right after it the Lucide
  * icon of that name. Every other line is a paragraph; empty lines only separate. A tool type's
  * usage is written in it too, which the AI reads as Markdown. scripts/check_guide.py keeps every

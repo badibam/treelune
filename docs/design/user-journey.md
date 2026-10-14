@@ -1,6 +1,6 @@
 # Le parcours de l'utilisateur — conception
 
-Conçu le 2026-10-08. Ce que voit une personne qui découvre l'app, du README à ses premiers outils, puis à l'IA et aux automations. Le public visé : une personne curieuse qui arrive par F-Droid ou GitHub, à l'aise avec un téléphone, pas développeuse, sans clé d'API. L'IA rend l'app fluide et fait partie du parcours, mais elle n'est pas demandée avant d'avoir quelque chose à lui confier.
+Conçu le 2026-10-08. Ce que voit une personne qui découvre l'app, du README à ses premiers outils, puis à l'IA et aux routines. Le public visé : une personne curieuse qui arrive par F-Droid ou GitHub, à l'aise avec un téléphone, pas développeuse, sans clé d'API. L'IA rend l'app fluide et fait partie du parcours, mais elle n'est pas demandée avant d'avoir quelque chose à lui confier.
 
 ## La promesse
 
@@ -19,7 +19,7 @@ L'IA qui agit avec les mêmes gestes que l'utilisateur, ce qui distingue l'app, 
   2. Trois ou quatre captures côte à côte : l'accueil, une zone de la démo, un graphique, une conversation avec l'IA.
   3. Ce que vous pouvez faire, en quatre blocs courts : Noter (les types d'outils, une ligne chacun), Relier (variables, objectifs, graphiques), Avec une IA (elle lit, remplit, règle, demande votre accord, tourne sur un planning ; votre clé ; Claude branché de l'extérieur par le connecteur), À votre goût (zones, disposition, thèmes).
   4. Commencer : installer, puis la démo et le Guide au premier lancement.
-  5. Vos données : tout reste sur le téléphone, rien ne part sauf vers le fournisseur d'IA choisi quand on lui parle ou qu'une automation tourne, aucune télémétrie, sauvegarde et export.
+  5. Vos données : tout reste sur le téléphone, rien ne part sauf vers le fournisseur d'IA choisi quand on lui parle ou qu'une routine tourne, aucune télémétrie, sauvegarde et export.
   6. État du projet : version, développement actif, Android minimal, langues.
   7. Pour les développeurs : un paragraphe, le lien vers `docs/reference.md`, `./run`.
   8. Licence : GPL-3.0.
@@ -86,7 +86,7 @@ Une étape s'écrit en données, pas en code. Un contrôle de `./run test` véri
 1. **Premiers pas**, sans IA.
 2. **Brancher une IA** : choisir un fournisseur, coller sa clé, demander une vue d'ensemble sans rien joindre, puis désigner son outil par un pointeur en simple mention, chaque geste nommé (la cible, la zone, l'outil, Confirmer).
 3. **Construire avec l'IA** : lui faire créer un outil, valider ce qu'elle propose, la laisser relier deux outils (une variable, un Objectif).
-4. **Automatiser** : une automation planifiée (« chaque dimanche, le bilan de la semaine »), puis lire son exécution.
+4. **Les routines** : ses deux usages, la lancer (l'IA seule) ou en discuter (la bulle) ; la créer, écrire son message (étape qui attend l'enregistrement de l'éditeur, refusé sans message), la lancer, lire son exécution, puis la bulle.
 
 Le contenu des tutoriels 2 à 4 s'écrit à leur construction : il nomme des écrans que la pile n'a pas encore.
 
@@ -143,13 +143,14 @@ Dans les réglages de l'app : pour chaque chapitre, l'étape en cours ou « fait
 ## Où ça vit
 
 - Les chapitres : `assets/guide/chapters.json`, une étape par objet (sorte, adresse du lieu, opération attendue avec son origine et ses paramètres, ce qu'elle garde). « Hors démo » n'a pas de forme à lui : une étape vise la zone créée à l'étape d'avant (`{zone}`), jamais une zone de la démo. Un chapitre par type d'outil s'ajoute dans la partie Les outils, tiré du nom, de la `tagline`, de l'`usage` et des textes du Guide de l'outil ; « Les outils en un coup d'œil » s'ajoute en tête de Prise en main.
-- Les textes : `core/strings/sources/guide.xml` et `guide-fr.xml`, nommés d'après le chapitre et l'étape.
+- Les textes : `core/strings/sources/guide.xml` et `guide-fr.xml`, nommés d'après le chapitre et l'étape ; ceux d'un chapitre d'outil, `usage`, `guide_config` et `guide_screen`, dans les textes de l'outil.
+- Leur mise en forme (`GuideMarkup`, affichée par `GuideText`), un bout de Markdown : `## ` un sous-titre, `- ` une ligne de liste, `{nom}` en tête d'une ligne de liste l'icône Lucide du bouton qu'elle nomme, jamais ailleurs ; des phrases courtes sous des sous-titres plutôt que des blocs. `scripts/check_guide.py` la vérifie. Les parties d'un chapitre (étapes, config, écran) sont des tuiles de titre avec leur icône.
 - Le moteur : `core/guide/Guide.kt`, qui écoute les opérations réussies demandées de l'extérieur (`PassedOperations`, émises par le coordinateur) et la pile ; la progression dans la catégorie de réglages `guide`.
 - Le contrôle : `scripts/check_guide.py`, dans `./run test`.
 
 ## Ce qui reste ouvert
 
-- Le contenu des chapitres de Prise en main, et les sujets d'Approfondissement (formules et variables, conditions et filtres, validation et accès de l'IA, champs et leur migration…) : des ébauches (titre et une ligne), à écrire ensemble dans une séance dédiée ; un chapitre sans étape s'affiche « À écrire ».
+- Le contenu des chapitres de Prise en main (Parler à l'IA et les chapitres d'outils sont écrits), et les sujets d'Approfondissement (formules et variables, conditions et filtres, validation et accès de l'IA, champs et leur migration…) : des ébauches (titre et une ligne), à écrire ensemble dans une séance dédiée ; un chapitre sans étape s'affiche « À écrire ».
 - Ce qui marque « fait » un chapitre sans étape à faire (ouvert, ou lu jusqu'au bout).
 - Un message envoyé à l'IA ne passe pas par le dispatcher (`AIOrchestrator.sendMessage` le range lui-même) : l'étape « demandez-lui son avis » de Brancher une IA se lit, au lieu d'attendre l'envoi.
 - Le dialogue « la démo n'est pas installée » : le fermer sans choisir (retour, toucher à côté) saute les étapes de la démo, comme son bouton.
