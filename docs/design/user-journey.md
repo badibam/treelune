@@ -42,6 +42,18 @@ Pas de diaporama, rien sur l'IA.
 - Une **étape** : un but, une explication, un écran cible, ce qu'elle attend.
 - Le **chemin** : les gestes qui mènent à l'écran cible, depuis l'écran ouvert (bande) ou depuis l'accueil (Guide).
 
+## La langue
+
+Le Guide s'adresse à quelqu'un qui découvre l'app, pas à qui connaît son code : rien du registre de la doc interne et des commits.
+
+- Une phrase, une idée, avec un verbe et une personne pour sujet (toi, l'IA). Jamais une chose qui agit : ni « la routine garde un message », ni « le message ouvre une conversation », ni « la bulle ouvre », mais « tu prépares un message », « touche la bulle pour commencer une conversation ».
+- Le pourquoi avant le comment : à quoi ça te sert, puis où toucher. Nommer un bouton se fait dans une phrase qui dit pourquoi le toucher.
+- Les deux-points annoncent une liste ou un exemple, jamais une moitié de phrase ; pas de point-virgule.
+- Un mot de l'app (entrée, zone, pointeur, tentative) s'explique à sa première apparition, puis reste le même : « configuration », pas « config ».
+- Pas de précision contre un malentendu que le lecteur n'a pas encore.
+- Pas de formule répétée (« Puis Suivant. ») : le bouton se voit.
+- Les guillemets de chaque langue : « » en français, “ ” en anglais.
+
 ## Le départ d'un tutoriel
 
 Un tutoriel qui commence à sa première étape (de l'écran d'accueil, d'une fin de tutoriel, d'un chapitre, de « Recommencer ») ouvre un dialogue : son titre, son introduction, et la bande montrée (« elle donne l'étape à faire, et se déplie d'un toucher pour l'expliquer »). « C'est parti » ; « Plus tard » masque le tutoriel et dit où il attend. Une reprise ne l'ouvre pas.
