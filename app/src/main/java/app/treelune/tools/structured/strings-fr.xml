@@ -6,6 +6,9 @@
     <string name="display_name">Données structurées</string>
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
     <string name="usage">Pour des fiches aux champs qu\'on choisit, chacune retrouvée par son nom : aliments et leurs calories, livres, plantes, contacts.\n## Ce qu\'il fait\n- Les autres outils peuvent pointer vers une fiche par son nom (un repas qui nomme ses aliments)\n- L\'import d\'un tableau\n## Pas fait pour\n- Ce qui se note dans le temps (Suivi, Journal)</string>
+    <!-- The Guide's chapter, beside the usage: every setting of the config, every button of the screen (GuideMarkup) -->
+    <string name="guide_config">## Les fiches\nUne fiche a un nom, et les champs de l\'outil, ajoutés dans ses réglages communs.\n\n## Le tableau\n- Colonnes du tableau : combien de champs il montre après le nom</string>
+    <string name="guide_screen">## Le tableau\n- Rechercher par nom\n- Filtres\nTouche le titre d\'une colonne pour trier par elle ; touche-le encore pour inverser.\n- {plus} Nouvelle fiche\n- Importer un fichier : un tableau CSV, une ligne par fiche\n\n## Une fiche\nTouche une ligne pour l\'ouvrir.\n- {chevron-left} La fiche d\'avant\n- {chevron-right} Celle d\'après\n- Modifier\n- {trash} La supprime</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Des fiches faites de tes champs, retrouvées par leur nom : aliments, livres, plantes</string>
 

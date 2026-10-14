@@ -6,6 +6,9 @@
     <string name="display_name">List</string>
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
     <string name="usage">For what is left to do, checked off when done: shopping, tasks, a checklist.\n## What it does\n- A due date per item when turned on, with a notification when it comes and the item waiting until it is checked\n- Or a checked item removed at once (shopping)\n## Not made for\n- A reminder that comes back at a fixed rhythm (Messages)</string>
+    <!-- The Guide's chapter, beside the usage: every setting of the config, every button of the screen (GuideMarkup) -->
+    <string name="guide_config">## The items\n- A checked item is removed at once: for a list whose done items have nothing left to say, shopping\n- Due dates: an item may have a due date, notified when it comes\n- Short items in the tile: one line each, twice as many items shown</string>
+    <string name="guide_screen">## The list\n- {plus} Adds an item\nCheck an item when it is done: it goes down, greyed, under those left.\nTouch its text to change it, or to give it a due date.\nDrag it by its handle to put it elsewhere.\nA late item says so, and waits to be checked.\n\n## The checked items\n- Uncheck all: the list starts again, for next week\'s shopping\n- {trash} Deletes an item</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">What is left to do, checked off as it is done, with due dates if you want</string>
 

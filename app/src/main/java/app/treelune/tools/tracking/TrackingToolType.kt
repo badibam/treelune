@@ -39,6 +39,8 @@ object TrackingToolType : ToolTypeContract {
         return s.tool("display_name")
     }
 
+    override fun getGuideConfig(context: Context): String = Strings.`for`(tool = "tracking", context = context).tool("guide_config")
+    override fun getGuideScreen(context: Context): String = Strings.`for`(tool = "tracking", context = context).tool("guide_screen")
     override fun getUsage(context: Context): String {
         val s = Strings.`for`(tool = "tracking", context = context)
         return s.tool("usage")

@@ -6,6 +6,9 @@
     <string name="display_name">Notes</string>
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
     <string name="usage">Pour garder des textes qu\'on retrouve et qu\'on retouche, chacun sous son titre : idées, procédures, mémos.\n## Ce qu\'il fait\n- Un ordre libre, réglé à la main\n## Pas fait pour\n- Ce qui est daté (Journal)\n- Ce qu\'on coche (Liste)\n- Des fiches aux mêmes champs (Données structurées)</string>
+    <!-- The Guide's chapter, beside the usage: every setting of the config, every button of the screen (GuideMarkup) -->
+    <string name="guide_config">## Les titres\n- Titres : chaque note peut avoir un titre, au-dessus de son texte</string>
+    <string name="guide_screen">## Les notes\n- {plus} Crée une note\nTouche une note pour la modifier.\nFais-la glisser par la bande de son haut pour la ranger ailleurs.\n\n## Appui long sur une note\n- {plus} Ajoute une note au-dessus\n- {copy} Copie son titre et son texte\n- {trash} La supprime</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Des notes, chacune avec son titre, rangées là où elles servent</string>
 

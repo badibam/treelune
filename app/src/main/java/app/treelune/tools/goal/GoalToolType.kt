@@ -73,6 +73,8 @@ object GoalToolType : ToolTypeContract {
     private fun s(context: Context) = Strings.`for`(tool = "goal", context = context)
 
     override fun getDisplayName(context: Context): String = s(context).tool("display_name")
+    override fun getGuideConfig(context: Context): String = Strings.`for`(tool = "goal", context = context).tool("guide_config")
+    override fun getGuideScreen(context: Context): String = Strings.`for`(tool = "goal", context = context).tool("guide_screen")
     override fun getUsage(context: Context): String = s(context).tool("usage")
     override fun getDefaultDisplayMode(): String = "LINE"
     override fun getDefaultShowFieldLabels(): Boolean = true

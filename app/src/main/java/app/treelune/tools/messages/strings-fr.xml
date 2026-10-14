@@ -6,6 +6,9 @@
     <string name="display_name">Messages</string>
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
     <string name="usage">Pour les rappels et les notifications, une fois ou selon un rythme : prendre un médicament, appeler quelqu\'un chaque mois.\n## Ce qu\'il fait\n- Un planning\n- Chaque envoi préparé à l\'avance, qu\'on peut donc écrire avant qu\'il parte\n- Une priorité\n- Un délai au-delà duquel un envoi qui n\'est pas parti expire\n## Pas fait pour\n- Une tâche à cocher une fois (Liste, avec échéance)\n- Une séance ou un questionnaire planifiés, qui préviennent eux-mêmes</string>
+    <!-- The Guide's chapter, beside the usage: every setting of the config, every button of the screen (GuideMarkup) -->
+    <string name="guide_config">## La partie commune\n- Titre commun, Corps commun : sur chaque notification, avant ce que porte l\'envoi lui-même\n\n## Le canal\n- Priorité : normale, haute (s\'affiche par-dessus), ou basse (silencieuse)\n- Notifications externes : passer par les notifications d\'Android\n- Actif : décoché, plus rien ne part\n\n## La récurrence\n- Planning : quand les envois partent\n- Créées à l\'avance : combien de temps avant, pour pouvoir les écrire\n- Fenêtre de validité : passé ce délai, un envoi qui n\'est pas parti expire au lieu de partir</string>
+    <string name="guide_screen">## À venir\nLes envois prévus, chacun à sa date.\n- {pencil} Prépare un envoi : ce que tu écris s\'ajoute à la partie commune\n- {trash} Supprime un envoi à venir\n\n## Reçus\nLes envois partis, filtrés : non lus, lus, archivés, non parvenus.\n- Marquer comme lu, ou comme non lu\n- Archiver, et Désarchiver</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Des rappels et des notifications, une fois ou selon un planning</string>
 

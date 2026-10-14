@@ -6,6 +6,9 @@
     <string name="display_name">Messages</string>
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
     <string name="usage">For reminders and notifications, once or on a rhythm: taking a medicine, calling someone every month.\n## What it does\n- A schedule\n- Each sending prepared ahead, so it can be written before it goes\n- A priority\n- A delay past which a sending that has not gone out expires\n## Not made for\n- A task to check off once (List, with a due date)\n- A planned session or questionnaire, which notify by themselves</string>
+    <!-- The Guide's chapter, beside the usage: every setting of the config, every button of the screen (GuideMarkup) -->
+    <string name="guide_config">## The common part\n- Common title, Common body: on each notification, before what the sending itself carries\n\n## The channel\n- Priority: normal, high (shown on top), or low (silent)\n- External notifications: go through Android\'s notifications\n- Active: unchecked, nothing goes out any more\n\n## The recurrence\n- Schedule: when the sendings go\n- Created ahead: how long before, to be able to write them\n- Validity window: past this delay, a sending that has not gone out expires instead</string>
+    <string name="guide_screen">## Upcoming\nThe planned sendings, each on its date.\n- {pencil} Prepares a sending: what you write adds to the common part\n- {trash} Deletes an upcoming sending\n\n## Received\nThe sendings gone, filtered: unread, read, archived, not delivered.\n- Mark as read, or as unread\n- Archive, and Unarchive</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Reminders and notifications, once or on a schedule</string>
 
