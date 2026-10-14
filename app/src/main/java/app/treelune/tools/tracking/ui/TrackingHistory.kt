@@ -10,7 +10,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import app.treelune.core.ui.*
 import app.treelune.core.database.entities.ToolDataEntity
 import app.treelune.tools.tracking.ui.components.TrackingEntryDialog
@@ -46,8 +45,8 @@ private fun createCurrentPeriod(type: PeriodType): Period {
 }
 
 /**
- * Responsive table display for tracking data history with CRUD operations
- * Shows chronological list of entries with edit/delete functionality
+ * The history of a Tracking tool: its entries over a chosen period, one card each, newest first,
+ * each one edited or deleted from its card.
  */
 @Composable
 fun TrackingHistory(
@@ -373,51 +372,15 @@ fun TrackingHistory(
             }
         }
         
-        // Table header
-        if (trackingData.isNotEmpty()) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = UI.Space.S),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Date header (weight=3f)
-                Box(
-                    modifier = Modifier.weight(3f).padding(UI.Space.S)
-                ) {
-                    UI.Text(s.shared("label_date"), TextType.CAPTION)
-                }
-                
-                // Name header (weight=3f)
-                Box(
-                    modifier = Modifier.weight(3f).padding(UI.Space.S)
-                ) {
-                    UI.Text(s.shared("label_name"), TextType.CAPTION)
-                }
-                
-                // Value header (weight=3f)
-                Box(
-                    modifier = Modifier.weight(3f).padding(UI.Space.S)
-                ) {
-                    UI.Text(s.tool("usage_label_value"), TextType.CAPTION)
-                }
-                
-                // Actions headers (weight=1f chaque)
-                Box(
-                    modifier = Modifier.weight(2f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    UI.CenteredText(s.shared("label_actions"), TextType.CAPTION)
-                }
-            }
-        }
-        
-        // Data table - limit items and make it non-scrollable (parent page is scrollable)
+        // One card per entry, not scrollable on its own (the page scrolls)
         Column(
-            verticalArrangement = Arrangement.spacedBy(UI.Space.XS)
+            verticalArrangement = Arrangement.spacedBy(UI.Space.M)
         ) {
             trackingData.forEach { entry ->
-                TrackingHistoryRow(
+                TrackingHistoryCard(
                     entry = entry,
                     valueField = valueField,
+                    config = toolConfig,
                     onEdit = {
                         editingEntryId = entry.id
                         showEditDialog = true
@@ -470,60 +433,74 @@ fun TrackingHistory(
 }
 
 /**
- * Individual table row for tracking data: its moment, its name, and its value drawn by the
- * value's field type, with its unit. A running stopwatch shows the time so far.
+ * One entry of the history as a card: its name and its value drawn by the value's field type,
+ * with its unit (a running stopwatch shows the time so far); its moment, small; the user's fields;
+ * then edit and delete. Every text wraps across the card's whole width, never cut.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun TrackingHistoryRow(
+private fun TrackingHistoryCard(
     entry: ToolDataEntity,
     valueField: FieldDefinition?,
+    config: JSONObject?,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
     val context = LocalContext.current
     val data = remember(entry.data) { JSONObject(entry.data) }
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = UI.Space.XS),
-        horizontalArrangement = Arrangement.spacedBy(UI.Space.S),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(modifier = Modifier.weight(3f).padding(UI.Space.S)) {
+    UI.Card(type = CardType.DEFAULT) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(UI.Space.M),
+            verticalArrangement = Arrangement.spacedBy(UI.Space.XS)
+        ) {
+            // The name, then the value on the same line while it fits, below it otherwise
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(UI.Space.S),
+                verticalArrangement = Arrangement.spacedBy(UI.Space.XS),
+                itemVerticalAlignment = Alignment.CenterVertically
+            ) {
+                entry.name?.takeIf { it.isNotBlank() }?.let { UI.Text(text = it, type = TextType.SUBTITLE) }
+                if (valueField != null) {
+                    val state = entry.state?.let { JSONObject(it) }
+                    val stored = data.opt("value")?.let { if (it is org.json.JSONArray) JsonUtils.toList(it) else it }
+                    val isRunning = RunningDurations.startedAt(state, FieldContainer.DATA, "value") != null
+                    val shown = if (isRunning) {
+                        RunningDurations.currentValue((stored as? Number)?.toLong(), state, FieldContainer.DATA, "value", System.currentTimeMillis())
+                    } else stored
+                    FieldValue(valueField, shown, context)
+                    data.optString("unit").takeIf { it.isNotEmpty() }?.let { UI.Text(it, TextType.CAPTION) }
+                    if (isRunning) UI.Text(Strings.`for`(tool = "tracking", context = context).tool("usage_timer_running"), TextType.CAPTION)
+                }
+            }
+
             UI.Text(
                 text = app.treelune.core.utils.DateTimeFormatter.formatForDisplay(entry.timestamp ?: entry.createdAt, context),
-                type = TextType.BODY
+                type = TextType.CAPTION
             )
-        }
 
-        Box(modifier = Modifier.weight(3f).padding(UI.Space.S)) {
-            UI.Text(text = entry.name ?: "", type = TextType.BODY)
-        }
-
-        Column(modifier = Modifier.weight(3f).padding(UI.Space.S)) {
-            if (valueField != null) {
-                val state = entry.state?.let { JSONObject(it) }
-                val stored = data.opt("value")?.let { if (it is org.json.JSONArray) JsonUtils.toList(it) else it }
-                val isRunning = RunningDurations.startedAt(state, FieldContainer.DATA, "value") != null
-                val shown = if (isRunning) {
-                    RunningDurations.currentValue((stored as? Number)?.toLong(), state, FieldContainer.DATA, "value", System.currentTimeMillis())
-                } else stored
-                FieldValue(valueField, shown, context)
-                data.optString("unit").takeIf { it.isNotEmpty() }?.let { UI.Text(it, TextType.CAPTION) }
-                if (isRunning) UI.Text(Strings.`for`(tool = "tracking", context = context).tool("usage_timer_running"), TextType.CAPTION)
+            if (config != null) {
+                app.treelune.core.fields.CustomFieldsDisplay(
+                    toolType = TrackingToolType,
+                    config = config,
+                    values = entry.extra?.let { JsonUtils.toMap(JSONObject(it)) } ?: emptyMap(),
+                    layout = app.treelune.core.fields.FieldsLayout.COMPACT,
+                    context = context
+                )
             }
-        }
 
-        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-            UI.ActionButton(action = ButtonAction.EDIT, display = ButtonDisplay.ICON, size = Size.S, onClick = onEdit)
-        }
-
-        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-            UI.ActionButton(
-                action = ButtonAction.DELETE,
-                display = ButtonDisplay.ICON,
-                size = Size.S,
-                requireConfirmation = true,
-                onClick = onDelete
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(UI.Space.S, Alignment.End)
+            ) {
+                UI.ActionButton(action = ButtonAction.EDIT, display = ButtonDisplay.ICON, size = Size.S, onClick = onEdit)
+                UI.ActionButton(
+                    action = ButtonAction.DELETE,
+                    display = ButtonDisplay.ICON,
+                    size = Size.S,
+                    requireConfirmation = true,
+                    onClick = onDelete
+                )
+            }
         }
     }
 }

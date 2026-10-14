@@ -60,7 +60,6 @@
     <string name="usage_entry_saved">Entrée sauvegardée</string>
     <string name="tile_no_entry">Aucune entrée</string>
     <string name="usage_no_entries">Aucune entrée enregistrée</string>
-    <string name="usage_label_value">Valeur</string>
     <string name="usage_custom_date">Date personnalisée</string>
     <string name="usage_current_time">Date = maintenant</string>
     <string name="usage_timer_running">En cours</string>

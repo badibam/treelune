@@ -480,7 +480,6 @@
     <string name="label_name">Name</string>
     <string name="label_created_at">Created</string>
     <string name="label_updated_at">Modified</string>
-    <string name="label_actions">Actions</string>
     <string name="label_configuration">Configuration</string>
     <string name="session_validation_title">Also ask for my approval on</string>
     <string name="session_validation_app">The home screen and the zones</string>
