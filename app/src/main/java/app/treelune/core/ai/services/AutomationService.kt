@@ -181,6 +181,8 @@ class AutomationService(private val context: Context) : ExecutableService {
             dao.insertAutomation(entity)
         }
 
+        // A zone shown reads its routines again, whoever created this one
+        app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
         LogManager.service("Successfully created automation: $automationId", "INFO")
 
         return OperationResult.success(mapOf(
@@ -286,11 +288,8 @@ class AutomationService(private val context: Context) : ExecutableService {
             dao.updateAutomation(updatedEntity)
         }
 
-        // Notify UI of automation change in affected zones
-        if (newZoneId != null && newZoneId != entity.zoneId) {
-            app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
-            LogManager.service("Automation $automationId moved from zone ${entity.zoneId} to $newZoneId", "DEBUG")
-        }
+        // A zone shown reads its routines again: their name, their state, their place
+        app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
 
         LogManager.service("Successfully updated automation: $automationId", "INFO")
 
@@ -422,6 +421,7 @@ class AutomationService(private val context: Context) : ExecutableService {
             ?: return OperationResult.error(s.shared("error_automation_not_found"))
 
         dao.deleteAutomationById(automationId)
+        app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
 
         LogManager.service("Successfully deleted automation: $automationId", "INFO")
 
