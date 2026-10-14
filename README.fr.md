@@ -17,9 +17,9 @@ Application Android, libre, sans compte ni publicité. Vos données restent sur 
 Vous rangez votre vie en **zones** (Santé, Travail, Cuisine…), et dans chaque zone vous posez les **outils** dont vous avez besoin :
 
 <!-- tools -->
-- **Suivi** — Des chiffres, des notes, des choix, des chronos ou des mémos vocaux, notés au fil des jours : poids, sommeil, humeur, séances
+- **Suivi** — Des chiffres, des notes sur une échelle, des choix ou des durées chronométrées, notés au fil des jours : poids, sommeil, humeur, verres d'eau
 - **Notes** — Des notes, chacune avec son titre, rangées là où elles servent
-- **Journal** — Un carnet daté, écrit ou dicté
+- **Journal** — Un carnet daté, pour raconter ses journées
 - **Messages** — Des rappels et des notifications, une fois ou selon un planning
 - **Liste** — Ce qui reste à faire, coché au fur et à mesure, avec des échéances si tu veux
 - **Données structurées** — Des fiches faites de tes champs, retrouvées par leur nom : aliments, livres, plantes

@@ -10,7 +10,7 @@
     <string name="guide_config">## The type\nThe value\'s type is chosen at creation and does not change: number, scale, choice, yes or no, text, stopwatch, or a mere occurrence. Its settings depend on it, for example bounds, decimals or options.\n\n## The units\n- Units: those a value may take (kg, lb…)\n\n## The shortcuts\nWith a shortcut, an entry is noted in a single touch.\n- Name: the name of the entries the shortcut notes\n- Value: noted in one touch, or to be entered if empty\n- Unit: one of the tool\'s units</string>
     <string name="guide_screen">## Noting\n- {plus} Notes a shortcut\'s value, or opens the entry form\n- {pencil} Opens a shortcut\'s full entry form\n- {play} Starts a shortcut\'s stopwatch\n- {square} Stops it\nA free entry can become a shortcut, with “Add to shortcuts”. The entry is dated now, unless you choose a “Custom date”.\n\n## On the tile\n- {repeat} Notes the last entry again\n- {pencil} Changes it\n\n## The history\nIt can be filtered by period (hour, day, week…), and you choose how many entries it shows.\n- {refresh-cw} Reloads\n- {pencil} Changes an entry\n- {trash} Deletes it</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
-    <string name="tagline">Numbers, ratings, choices, timers or voice notes, noted as they come: weight, sleep, mood, workouts</string>
+    <string name="tagline">Numbers, ratings, choices or timed durations, noted as they come: weight, sleep, mood, glasses of water</string>
 
     <!-- CONFIG - Labels of specific settings -->
     <string name="config_label_tracking_type">Tracking type</string>

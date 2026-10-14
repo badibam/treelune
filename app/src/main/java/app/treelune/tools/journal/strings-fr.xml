@@ -10,7 +10,7 @@
     <string name="guide_config">## L\'ordre\n- Ordre de tri : les entrées les plus récentes en haut, ou les plus anciennes</string>
     <string name="guide_screen">## Écrire\n- {plus} Crée une entrée\nUne entrée a une date, une heure, un titre et un texte. Touche la date ou l\'heure pour les changer.\n\n## Une entrée\n- {pencil} La modifie\n- {check} L\'enregistre\n- {copy} Copie son texte\n- {trash} La supprime</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
-    <string name="tagline">Un carnet daté, écrit ou dicté</string>
+    <string name="tagline">Un carnet daté, pour raconter ses journées</string>
 
     <!-- SCHEMAS - Display names for schema identification -->
     <string name="schema_config_display_name">Configuration Journal</string>

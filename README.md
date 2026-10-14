@@ -17,9 +17,9 @@ An Android app, free and open source, with no account and no ads. Your data stay
 You sort your life into **zones** (Health, Work, Kitchen…), and in each zone you place the **tools** you need:
 
 <!-- tools -->
-- **Tracking** — Numbers, ratings, choices, timers or voice notes, noted as they come: weight, sleep, mood, workouts
+- **Tracking** — Numbers, ratings, choices or timed durations, noted as they come: weight, sleep, mood, glasses of water
 - **Notes** — Notes, each with its title, kept where they belong
-- **Journal** — A dated diary, written or spoken
+- **Journal** — A dated diary, for writing about your days
 - **Messages** — Reminders and notifications, once or on a schedule
 - **List** — What is left to do, checked off as it is done, with due dates if you want
 - **Structured data** — Sheets of your own fields, each found by its name: foods, books, plants

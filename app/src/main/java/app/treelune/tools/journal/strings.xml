@@ -10,7 +10,7 @@
     <string name="guide_config">## The order\n- Sort order: the newest entries at the top, or the oldest</string>
     <string name="guide_screen">## Writing\n- {plus} Creates an entry\nAn entry has a date, a time, a title and a text. Touch the date or the time to change them.\n\n## An entry\n- {pencil} Changes it\n- {check} Saves it\n- {copy} Copies its text\n- {trash} Deletes it</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
-    <string name="tagline">A dated diary, written or spoken</string>
+    <string name="tagline">A dated diary, for writing about your days</string>
 
     <!-- SCHEMAS - Display names for schema identification -->
     <string name="schema_config_display_name">Journal configuration</string>
