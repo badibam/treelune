@@ -210,7 +210,14 @@
     <string name="guide_external_access_4_goal">Autorise une IA extérieure</string>
     <string name="guide_external_access_4_text">Dans l\'IA extérieure, ajoute un connecteur avec cette adresse. Une page s\'ouvre avec un code, et le téléphone affiche une notification. Tape le code sur le téléphone et touche Autoriser, ou Refuser si la demande ne vient pas de toi.\n\nL\'IA apparaît ensuite dans Clients autorisés, avec la date de son dernier usage.\n- Accès : ce qu\'elle peut toucher. Vide, elle peut tout faire, sinon seulement ce qui est listé.\n- Révoquer : lui retire l\'accès. Pour revenir, elle devra être autorisée de nouveau, avec un nouveau code.</string>
     <string name="guide_when_stuck_title">Quand ça coince</string>
-    <string name="guide_when_stuck_intro">Les journaux, le rapport de bug.</string>
+    <string name="guide_when_stuck_intro">Quand quelque chose ne marche pas, l\'app aide à comprendre pourquoi et à le signaler. Tout se trouve dans les Réglages : Signaler un bug, et Logs d\'erreurs.</string>
+    <string name="guide_when_stuck_outro">Tu sais signaler un problème et lire ce que l\'app a noté. Un rapport bien relu aide à le corriger vite.</string>
+    <string name="guide_when_stuck_1_goal">Signale un bug</string>
+    <string name="guide_when_stuck_1_text">Dans Réglages › Signaler un bug, l\'app prépare un rapport : la version de l\'app et du téléphone, le dernier arrêt de l\'app s\'il y en a eu un, et les erreurs des deux dernières heures.\n\nDécris ce qui s\'est passé dans le champ « Ce qui s\'est passé », si tu veux. L\'écran montre ensuite exactement ce qui partira. Les identifiants et le contenu de tes outils sont masqués.\n\n« Envoyer le rapport » ouvre le menu de partage d\'Android, où tu choisis l\'app et le destinataire, par exemple une issue du projet sur GitHub. Le bouton de copie, en haut, copie le rapport.</string>
+    <string name="guide_when_stuck_2_goal">Quand l\'app s\'est arrêtée</string>
+    <string name="guide_when_stuck_2_text">Si l\'app s\'arrête d\'un coup, elle le dit au lancement suivant, avec l\'écran « L\'app s\'est arrêtée ».\n- Voir le rapport : ouvre le rapport, qui contient cet arrêt\n- Continuer : démarre l\'app normalement\nLe rapport garde cet arrêt jusqu\'au suivant, donc tu peux aussi l\'envoyer plus tard.</string>
+    <string name="guide_when_stuck_3_goal">Lis les journaux</string>
+    <string name="guide_when_stuck_3_text">Dans Réglages › Logs d\'erreurs, tu lis ce que l\'app a noté pendant qu\'elle tournait, les lignes les plus récentes en haut.\n- Niveau minimum : n\'affiche que les lignes Au moins de ce niveau, de Debug à Error\n- Tag (vide = tous) : n\'affiche qu\'une catégorie de lignes\n- De : la période lue, de quelques minutes à Toujours\nL\'app ne garde que ses lignes les plus récentes : lis-les peu après le problème.</string>
     <string name="guide_setting_welcome_seen">Écran du premier lancement vu</string>
     <string name="guide_setting_band_hidden">Bande du tutoriel masquée</string>
     <string name="guide_setting_current">Tutoriel en cours</string>

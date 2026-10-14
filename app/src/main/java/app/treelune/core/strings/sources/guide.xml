@@ -210,7 +210,14 @@
     <string name="guide_external_access_4_goal">Authorize an outside AI</string>
     <string name="guide_external_access_4_text">In the outside AI, add a connector with this address. A page opens with a code, and the phone shows a notification. Type the code on the phone and touch Allow, or Refuse if the request is not yours.\n\nThe AI then shows in Authorized clients, with the date it was last used.\n- Access: what it may touch. Empty, it can do everything, otherwise only what is listed.\n- Revoke: takes its access away. To come back, it will have to be authorized again, with a new code.</string>
     <string name="guide_when_stuck_title">When something goes wrong</string>
-    <string name="guide_when_stuck_intro">The logs, the bug report.</string>
+    <string name="guide_when_stuck_intro">When something does not work, the app helps you understand why and report it. Everything is in the Settings: Report a bug, and Error logs.</string>
+    <string name="guide_when_stuck_outro">You know how to report a problem and read what the app noted. A report read over carefully helps get it fixed quickly.</string>
+    <string name="guide_when_stuck_1_goal">Report a bug</string>
+    <string name="guide_when_stuck_1_text">In Settings › Report a bug, the app prepares a report: the versions of the app and the phone, the app\'s last stop if there was one, and the errors of the last two hours.\n\nDescribe what happened in the field “What happened”, if you like. The screen then shows exactly what will go. Ids and the content of your tools are masked.\n\n“Send the report” opens Android\'s share menu, where you choose the app and the recipient, for example an issue on the project\'s GitHub. The copy button, at the top, copies the report.</string>
+    <string name="guide_when_stuck_2_goal">When the app stopped</string>
+    <string name="guide_when_stuck_2_text">If the app stops suddenly, it says so at the next launch, with the screen “The app stopped”.\n- See the report: opens the report, which holds this stop\n- Continue: starts the app as usual\nThe report keeps this stop until the next one, so you can also send it later.</string>
+    <string name="guide_when_stuck_3_goal">Read the logs</string>
+    <string name="guide_when_stuck_3_text">In Settings › Error logs, you read what the app noted while it ran, the most recent lines at the top.\n- Minimum level: shows only the lines At least of that level, from Debug to Error\n- Tag (empty = all): shows only one category of lines\n- From: the period read, from a few minutes to Always\nThe app keeps only its most recent lines: read them soon after the problem.</string>
     <string name="guide_setting_welcome_seen">First-launch screen seen</string>
     <string name="guide_setting_band_hidden">Tutorial band hidden</string>
     <string name="guide_setting_current">Tutorial in progress</string>

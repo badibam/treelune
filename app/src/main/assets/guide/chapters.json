@@ -163,6 +163,16 @@
         {"kind": "read", "target": "settings/external_access"}
       ]
     },
-    {"id": "when_stuck", "part": "getting_started", "icon": "life-buoy", "minutes": 2, "steps": []}
+    {
+      "id": "when_stuck",
+      "part": "getting_started",
+      "icon": "life-buoy",
+      "minutes": 3,
+      "steps": [
+        {"kind": "read", "target": "settings/bug_report"},
+        {"kind": "read"},
+        {"kind": "read", "target": "settings/logs"}
+      ]
+    }
   ]
 }
