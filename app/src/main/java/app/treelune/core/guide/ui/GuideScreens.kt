@@ -196,9 +196,18 @@ fun ChapterScreen(id: String, demoInstalled: Boolean) {
     }
 }
 
-/** The tile titling a part of a chapter, behind its icon: its steps, a tool's config, its screen. */
+/**
+ * The tile titling a part of a chapter, behind its icon: its steps, a tool's config, its screen.
+ * Set apart from the chapter's column spacing, more from what ends the part before than from
+ * what it opens.
+ */
 @Composable
 private fun Part(icon: String, title: String) {
+    Box(modifier = Modifier.padding(top = UI.Space.L, bottom = UI.Space.XS)) { PartTile(icon, title) }
+}
+
+@Composable
+private fun PartTile(icon: String, title: String) {
     UI.Card(type = CardType.DEFAULT) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(UI.Space.M),
