@@ -73,7 +73,7 @@
     <string name="guide_demo_removal_warning">Ces tutoriels utilisent la démo : %1$s. Sans elle, leurs étapes dans la démo seront sautées. Tu pourras la réinstaller à tout moment depuis Réglages › Démo.</string>
     <string name="guide_first_steps_title">Premiers pas</string>
     <string name="guide_first_steps_intro">Un tour dans la démo, puis ta propre zone et ton premier outil. Pas besoin d\'IA.</string>
-    <string name="guide_first_steps_outro">Tu as une zone à toi et un outil qui garde tes entrées. Ensuite : une IA pour travailler avec toi.</string>
+    <string name="guide_first_steps_outro">Tu as une zone à toi et un outil qui garde tes entrées. Pour choisir les suivants, « Les outils en un coup d\'œil » présente chacun dans Prise en main. Ensuite : une IA pour travailler avec toi.</string>
     <string name="guide_first_steps_1_goal">Ouvre la zone Course</string>
     <string name="guide_first_steps_1_text">La démo suit Camille, qui prépare un semi-marathon. Une zone, c\'est un domaine de la vie : ici, la course. Ses outils sont rangés par groupes : Entraînement, Corps, Analyse.</string>
     <string name="guide_first_steps_2_goal">Ajoute une sortie dans Sorties</string>

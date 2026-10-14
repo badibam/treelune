@@ -73,7 +73,7 @@
     <string name="guide_demo_removal_warning">These tutorials use the demo: %1$s. Without it, their steps in the demo are skipped. You can reinstall it at any time from Settings › Demo.</string>
     <string name="guide_first_steps_title">First steps</string>
     <string name="guide_first_steps_intro">A look at the demo, then your own zone and your first tool. No AI needed.</string>
-    <string name="guide_first_steps_outro">You have a zone of your own and a tool that keeps your entries. Next: an AI to work with you.</string>
+    <string name="guide_first_steps_outro">You have a zone of your own and a tool that keeps your entries. To choose the next ones, « The tools at a glance » presents each in Getting started. Next: an AI to work with you.</string>
     <string name="guide_first_steps_1_goal">Open the zone Running</string>
     <string name="guide_first_steps_1_text">The demo follows Camille, who trains for a half marathon. A zone is one area of a life: here, running. Its tools are sorted in groups: Training, Body, Analysis.</string>
     <string name="guide_first_steps_2_goal">Add a run in Runs</string>
