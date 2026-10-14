@@ -3,7 +3,7 @@
     <!-- Strings of the chart tooltype -->
     <string name="display_name">Graphique</string>
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
-    <string name="usage">Pour voir les entrées des autres outils et les variables en courbes, barres, camemberts ou calendriers.\n## Déjà prévu\n- Il ne garde rien lui-même\n- Il lit ses sources à chaque affichage, sur la période choisie\n## Pas pour\n- Calculer ou stocker un total (une variable ou un Objectif le font)</string>
+    <string name="usage">Pour voir les entrées des autres outils et les variables en courbes, barres, camemberts ou calendriers.\n## Ce qu\'il fait\n- Il ne garde rien lui-même\n- Il lit ses sources à chaque affichage, sur la période choisie\n## Pas fait pour\n- Calculer ou stocker un total (une variable ou un Objectif le font)</string>
     <!-- What only the AI needs besides its usage: the chart's spec -->
     <string name="ai_detail">Un graphique des entrées d\'autres outils et des variables, dessiné et jamais calculé : un sous-ensemble de Vega-Lite (layer, vconcat, hconcat, concat, facet, repeat ; marques line, point, bar, area, text, arc, tick, rect ; canaux d\'encoding) dont les données viennent d\'une source par couche, jamais écrites dans la config : les entrées d\'un outil, ou une grille qui lit des variables et des lectures de champ à chaque pas de la période affichée. Un total par jour est une colonne de grille, jamais une agrégation. Les couleurs sont des noms de la palette. Ne garde pas d\'entrées à lui.</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->

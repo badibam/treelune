@@ -5,7 +5,7 @@
     <!-- Metadata -->
     <string name="display_name">Données structurées</string>
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
-    <string name="usage">Pour des fiches aux champs qu\'on choisit, chacune retrouvée par son nom : aliments et leurs calories, livres, plantes, contacts.\n## Déjà prévu\n- Les autres outils peuvent pointer vers une fiche par son nom (un repas qui nomme ses aliments)\n- L\'import d\'un tableau\n## Pas pour\n- Ce qui se note dans le temps (Suivi, Journal)</string>
+    <string name="usage">Pour des fiches aux champs qu\'on choisit, chacune retrouvée par son nom : aliments et leurs calories, livres, plantes, contacts.\n## Ce qu\'il fait\n- Les autres outils peuvent pointer vers une fiche par son nom (un repas qui nomme ses aliments)\n- L\'import d\'un tableau\n## Pas fait pour\n- Ce qui se note dans le temps (Suivi, Journal)</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Des fiches faites de tes champs, retrouvées par leur nom : aliments, livres, plantes</string>
 

@@ -5,7 +5,7 @@
     <!-- Metadata -->
     <string name="display_name">Tracking</string>
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
-    <string name="usage">For noting as they come things that are measured or observed: weight, sleep, mood, glasses of water. Each entry is a number, a rating on a scale, a choice, a yes or no, a short text, a timed duration or a mere occurrence.\n## Already built in\n- Shortcuts that note a value in one touch\n- A stopwatch that gives the duration\n## Not for\n- A text one develops (Journal, Notes)\n- A reminder (Messages)</string>
+    <string name="usage">For noting as they come things that are measured or observed: weight, sleep, mood, glasses of water. Each entry is a number, a rating on a scale, a choice, a yes or no, a short text, a timed duration or a mere occurrence.\n## What it does\n- Shortcuts that note a value in one touch\n- A stopwatch that gives the duration\n## Not made for\n- A text one develops (Journal, Notes)\n- A reminder (Messages)</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Numbers, ratings, choices, timers or voice notes, noted as they come: weight, sleep, mood, workouts</string>
 

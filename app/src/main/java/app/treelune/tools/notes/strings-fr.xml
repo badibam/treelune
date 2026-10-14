@@ -5,7 +5,7 @@
     <!-- Métadonnées -->
     <string name="display_name">Notes</string>
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
-    <string name="usage">Pour garder des textes qu\'on retrouve et qu\'on retouche, chacun sous son titre : idées, procédures, mémos.\n## Déjà prévu\n- Un ordre libre, réglé à la main\n## Pas pour\n- Ce qui est daté (Journal)\n- Ce qu\'on coche (Liste)\n- Des fiches aux mêmes champs (Données structurées)</string>
+    <string name="usage">Pour garder des textes qu\'on retrouve et qu\'on retouche, chacun sous son titre : idées, procédures, mémos.\n## Ce qu\'il fait\n- Un ordre libre, réglé à la main\n## Pas fait pour\n- Ce qui est daté (Journal)\n- Ce qu\'on coche (Liste)\n- Des fiches aux mêmes champs (Données structurées)</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Des notes, chacune avec son titre, rangées là où elles servent</string>
 

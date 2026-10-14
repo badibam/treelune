@@ -5,7 +5,7 @@
     <!-- Metadata -->
     <string name="display_name">Structured data</string>
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
-    <string name="usage">For sheets with fields one chooses, each found by its name: foods and their calories, books, plants, contacts.\n## Already built in\n- Other tools can point to a sheet by its name (a meal naming its foods)\n- Importing a table\n## Not for\n- What is noted over time (Tracking, Journal)</string>
+    <string name="usage">For sheets with fields one chooses, each found by its name: foods and their calories, books, plants, contacts.\n## What it does\n- Other tools can point to a sheet by its name (a meal naming its foods)\n- Importing a table\n## Not made for\n- What is noted over time (Tracking, Journal)</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Sheets of your own fields, each found by its name: foods, books, plants</string>
 

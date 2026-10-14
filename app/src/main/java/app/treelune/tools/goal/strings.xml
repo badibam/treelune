@@ -3,7 +3,7 @@
     <!-- Strings of the goal tooltype -->
     <string name="display_name">Goal</string>
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
-    <string name="usage">For an aim judged by period (day, week, month) or once, by criteria one sets: « 3 runs a week », « under 2,000 kcal a day ».\n## Already built in\n- Criteria read from other tools\' entries or filled in by hand\n- Sub-goals, some of them essential\n- A notification when an attempt is to be validated\n- The result frozen once validated\n## Not for\n- Noting the values themselves (Tracking, or the tool that holds them)</string>
+    <string name="usage">For an aim judged by period (day, week, month) or once, by criteria one sets: « 3 runs a week », « under 2,000 kcal a day ».\n## What it does\n- Criteria read from other tools\' entries or filled in by hand\n- Sub-goals, some of them essential\n- A notification when an attempt is to be validated\n- The result frozen once validated\n## Not made for\n- Noting the values themselves (Tracking, or the tool that holds them)</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">A goal judged each day, week or month by the criteria you set, read from your entries</string>
     <string name="section_definition">What it asks</string>
