@@ -158,8 +158,8 @@ fun ChapterScreen(id: String, demoInstalled: Boolean) {
             }
             if (!chapter.isTutorial) {
                 chapter.body(context)?.let { GuideText(it) }
-                chapter.toolConfig(context)?.let { Part(s.shared("guide_tool_config")); GuideText(it) }
-                chapter.toolScreen(context)?.let { Part(s.shared("guide_tool_screen")); GuideText(it) }
+                chapter.toolConfig(context)?.let { Part("settings", s.shared("guide_tool_config")); GuideText(it) }
+                chapter.toolScreen(context)?.let { Part("smartphone", s.shared("guide_tool_screen")); GuideText(it) }
                 if (chapter.overview) GuideChapters.all(context).filter { it.toolType != null }.forEach { ToolLine(it) }
                 return@Column
             }
@@ -178,7 +178,7 @@ fun ChapterScreen(id: String, demoInstalled: Boolean) {
                     }
                 }
             }
-            Part(s.shared("guide_steps"))
+            Part("list-ordered", s.shared("guide_steps"))
             chapter.steps.forEach { step ->
                 Column(verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
                     UI.Text(s.shared("guide_step_number").format(step.number) + " " + chapter.goal(context, step), TextType.STRONG)
@@ -196,11 +196,18 @@ fun ChapterScreen(id: String, demoInstalled: Boolean) {
     }
 }
 
-/** The title of a part of a chapter: its steps, a tool's config, its screen. */
+/** The tile titling a part of a chapter, behind its icon: its steps, a tool's config, its screen. */
 @Composable
-private fun Part(title: String) {
-    UI.Card(type = CardType.SECTION_HEADER) {
-        Box(modifier = Modifier.fillMaxWidth().padding(UI.Space.M)) { UI.Text(title, TextType.HEADING) }
+private fun Part(icon: String, title: String) {
+    UI.Card(type = CardType.DEFAULT) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(UI.Space.M),
+            horizontalArrangement = Arrangement.spacedBy(UI.Space.M),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            UI.Icon(icon)
+            UI.Text(title, TextType.HEADING)
+        }
     }
 }
 

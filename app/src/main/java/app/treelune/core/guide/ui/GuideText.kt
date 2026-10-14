@@ -27,9 +27,10 @@ fun GuideText(text: String, type: TextType = TextType.BODY) {
     Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
         blocks.forEachIndexed { i, block ->
             when (block) {
-                // A subtitle stands apart from what comes before it
+                // A subtitle stands apart from what comes before it. STRONG, ranked under HEADING in
+                // every theme, so that it stays under the chapter's part titles (SUBTITLE has no rank)
                 is GuideBlock.Heading -> Box(modifier = if (i > 0) Modifier.padding(top = UI.Space.S) else Modifier) {
-                    UI.Text(block.text, TextType.SUBTITLE)
+                    UI.Text(block.text, TextType.STRONG)
                 }
                 is GuideBlock.Paragraph -> UI.Text(block.text, type)
                 is GuideBlock.Item -> Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S), verticalAlignment = Alignment.Top) {
