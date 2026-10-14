@@ -54,6 +54,7 @@ FORMS = {
     "home_config": (CORE / "config" / "AppSettings.kt", r"AppSettingCategories\.MAIN_SCREEN -> listOf"),
     "zone_config": (CORE / "schemas" / "ZoneSettings.kt", r"fun nodes\(context: Context\): List<SettingNode> "),
     "ui_settings": (CORE / "config" / "AppSettings.kt", r"AppSettingCategories\.UI -> "),
+    "external_access": (CORE / "config" / "AppSettings.kt", r"AppSettingCategories\.EXTERNAL_ACCESS -> listOf"),
 }
 SHARED = {"English": CORE / "strings" / "sources" / "shared.xml", "French": CORE / "strings" / "sources" / "shared-fr.xml"}
 # A setting's label, the text given right after its name: FieldDefinition("name", s.shared("label")…),
