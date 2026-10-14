@@ -80,7 +80,24 @@
         {"kind": "read"}
       ]
     },
-    {"id": "organize", "part": "getting_started", "icon": "layout-grid", "minutes": 3, "steps": []},
+    {
+      "id": "organize",
+      "part": "getting_started",
+      "icon": "layout-grid",
+      "minutes": 6,
+      "covers": ["home_config", "zone_config"],
+      "steps": [
+        {"kind": "read"},
+        {"kind": "do", "target": "home_config",
+          "await": {"operation": "app_config.set", "origin": "USER", "params": {"category": "main_screen"}}},
+        {"kind": "do", "target": "home",
+          "await": {"operation": "zones.update", "origin": "USER"}, "keep": {"zone": "zone_id"}},
+        {"kind": "do", "target": "home",
+          "await": {"operation": "zones.place", "origin": "USER"}},
+        {"kind": "read", "target": "zone_config/{zone}"},
+        {"kind": "read", "target": "zone/{zone}"}
+      ]
+    },
     {"id": "connect", "part": "getting_started", "icon": "link", "minutes": 5, "steps": []},
     {
       "id": "talk_to_ai",

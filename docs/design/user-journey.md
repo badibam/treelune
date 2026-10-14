@@ -134,7 +134,7 @@ Un chapitre de Prise en main nomme tout ce que montrent les écrans qu'il couvre
 
 - Les réglages d'un formulaire (la config d'un outil, les Réglages, un fournisseur d'IA) sont déclarés (`SettingNode`), donc vérifiés : le chapitre déclare les formulaires qu'il couvre (`"covers"` dans `chapters.json`), et `scripts/check_guide.py` refuse un réglage de ces formulaires dont le libellé n'apparaît dans aucun de ses textes, dans chaque langue. Un réglage ajouté casse `./run test` tant que le Guide n'en parle pas.
 - Les boutons d'un écran ne sont déclarés nulle part : en écrivant le chapitre, on passe l'écran bouton par bouton.
-- Le contrôle se code avec les premiers chapitres écrits.
+- Un formulaire qu'un chapitre peut couvrir est nommé dans `FORMS` (`scripts/check_guide.py`) : son fichier, et l'endroit où commence sa déclaration ; un libellé s'y lit à sa place, juste après le nom du réglage. Un formulaire nouveau s'y ajoute avec le premier chapitre qui le couvre.
 
 ## L'enchaînement
 

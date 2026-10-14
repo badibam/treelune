@@ -16,7 +16,11 @@ each chapter and step:
   the demo rewritten, a tutorial would send the user to a place that is not there;
 - the Guide's texts, and the tool types' texts it shows (usage, guide_config, guide_screen), keep
   to its markup (GuideMarkup): an icon only as `{name}` at the head of a list line, a name of the
-  icon vocabulary (assets/icons/index.json), and no brace anywhere else.
+  icon vocabulary (assets/icons/index.json), and no brace anywhere else;
+- a chapter that covers a form ("covers", a name of FORMS) names each of its settings: the label of
+  every setting the form declares appears in the chapter's texts, in each language. The labels are
+  read from the form's declaration (its SettingNode list), a setting added there breaking the check
+  until the chapter speaks of it.
 
 Usage:
     ./scripts/check_guide.py
@@ -44,6 +48,18 @@ TOOLS = CORE.parent / "tools"
 TOOL_TEXTS = ("usage", "guide_config", "guide_screen")
 LIST_ICON = re.compile(r"^- \{([a-z0-9-]+)\} ")
 
+# The forms a chapter may cover: the file declaring its settings, and where the declaration begins,
+# right before the bracket that opens it
+FORMS = {
+    "home_config": (CORE / "config" / "AppSettings.kt", r"AppSettingCategories\.MAIN_SCREEN -> listOf"),
+    "zone_config": (CORE / "schemas" / "ZoneSettings.kt", r"fun nodes\(context: Context\): List<SettingNode> "),
+}
+SHARED = {"English": CORE / "strings" / "sources" / "shared.xml", "French": CORE / "strings" / "sources" / "shared-fr.xml"}
+# A setting's label, the text given right after its name: FieldDefinition("name", s.shared("label")…),
+# SettingNode.ListOf("name", text("label")…), and ZoneSettings' field("name", "label"…)
+LABEL_CALL = re.compile(r'\b\w+\(\s*(?:"[^"]*"|[A-Za-z_][\w.]*)\s*,\s*(?:s\.shared|text)\("([a-z0-9_]+)"\)')
+LABEL_RAW = re.compile(r'\bfield\(\s*"[^"]+"\s*,\s*"([a-z0-9_]+)"')
+
 
 def markup_problems(where, text, icons):
     """What breaks the Guide's markup in one text, as its XML source writes it."""
@@ -57,6 +73,40 @@ def markup_problems(where, text, icons):
         if "{" in rest or "}" in rest:
             found.append(f"{where}: a brace outside the head of a list line: « {line} »")
     return found
+
+
+def declaration(path, start):
+    """The text of a form's declaration: from the bracket after [start] to the one closing it."""
+    source = path.read_text(encoding="utf-8")
+    found = re.search(start, source)
+    if not found:
+        return None
+    opening = found.end()
+    close = {"(": ")", "{": "}"}[source[opening]]
+    depth, i, quoted = 0, opening, False
+    while i < len(source):
+        c = source[i]
+        if quoted:
+            if c == "\\":
+                i += 1
+            elif c == '"':
+                quoted = False
+        elif c == '"':
+            quoted = True
+        elif c == source[opening]:
+            depth += 1
+        elif c == close:
+            depth -= 1
+            if depth == 0:
+                return source[opening:i + 1]
+        i += 1
+    return None
+
+
+def strings(path):
+    """Each text of a strings file by its key, as the screen shows it."""
+    return {k: v.replace("\\'", "'").replace('\\"', '"') for k, v in
+            re.findall(r'<string name="([^"]+)">(.*?)</string>', path.read_text(encoding="utf-8"), re.S)}
 
 
 def services():
@@ -87,8 +137,29 @@ def main():
             if path in TEXTS.values() or key in TOOL_TEXTS:
                 problems += markup_problems(f"{path.relative_to(ROOT)} {key}", text, icons)
 
+    shared = {lang: strings(path) for lang, path in SHARED.items()}
+    guide = {lang: strings(path) for lang, path in TEXTS.items()}
     for chapter in chapters:
         cid = chapter["id"]
+        for form in chapter.get("covers", []):
+            if form not in FORMS:
+                problems.append(f"{cid}: no form '{form}' to cover")
+                continue
+            body = declaration(*FORMS[form])
+            if body is None:
+                problems.append(f"{cid}: the declaration of '{form}' is not found where FORMS says")
+                continue
+            labels = LABEL_CALL.findall(body) + LABEL_RAW.findall(body)
+            if not labels:
+                problems.append(f"{cid}: no setting read in the declaration of '{form}'")
+            for lang in TEXTS:
+                said = " ".join(v for k, v in guide[lang].items() if k.startswith(f"guide_{cid}_")).casefold()
+                for key in labels:
+                    label = shared[lang].get(key)
+                    if label is None:
+                        problems.append(f"{cid}: no {lang} text '{key}' for a setting of '{form}'")
+                    elif label.casefold() not in said:
+                        problems.append(f"{cid}: '{form}' setting « {label} » named in no {lang} text of the chapter")
         keys = [f"guide_{cid}_title", f"guide_{cid}_intro"]
         kept = set()
         for n, step in enumerate(chapter["steps"], start=1):
