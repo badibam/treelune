@@ -642,6 +642,15 @@ class CommandExecutor(private val context: Context) {
                         else -> ""
                     }
                 }
+                "automations" -> when (command.operation) {
+                    "config" -> "Configuration for routine '${resolveAutomationName(command.params["automation_id"] as? String)}'"
+                    "list" -> "Routines in zone '${resolveZoneName(command.params["zone_id"] as String)}'"
+                    else -> "All routines"
+                }
+                "ai_sessions" -> when (command.operation) {
+                    "list_sessions_for_automation" -> "Runs of routine '${resolveAutomationName(command.params["automation_id"] as? String)}'"
+                    else -> "Run ${command.params["session_id"]}, its messages as its AI received them"
+                }
                 "icons" -> when (command.operation) {
                     "overview" -> "Icons: overview"
                     else -> {
@@ -683,6 +692,13 @@ class CommandExecutor(private val context: Context) {
             LogManager.aiPrompt("Error resolving tool instance name: ${e.message}", "WARN", e)
             "unknown tool"
         }
+    }
+
+    /** The name of routine [automationId], its id when it cannot be read. */
+    private suspend fun resolveAutomationName(automationId: String?): String {
+        automationId ?: return "unknown routine"
+        val result = coordinator.processUserAction("automations.get", mapOf("automation_id" to automationId))
+        return (result.data?.get("automation") as? Map<*, *>)?.get("name") as? String ?: automationId
     }
 
     /**
@@ -774,6 +790,26 @@ class CommandExecutor(private val context: Context) {
                 // A variable's terms: the fixed bounds of their periods in ISO 8601
                 (data["variables"] as? List<*>)?.let { list -> reordered["variables"] = list.map { variableForModel(it, timezone) } }
                 data["variable"]?.let { reordered["variable"] = variableForModel(it, timezone)!! }
+            }
+            // A routine's config, in the form the model writes it back (AutomationSchemas); the
+            // routines of a list each in a line: what they are, never their message
+            "automations" -> {
+                if (command.operation == "config") {
+                    val schema = JSONObject(AutomationSchemas.config(context).content)
+                    return JSONObject(ModelValues.toModel(data, schema, timezone) as Map<*, *>).toString(2)
+                }
+                (data["automations"] as? List<*>)?.let { list -> reordered["automations"] = list.map { AutomationSchemas.listed(it as Map<*, *>, s) } }
+                data["zone_id"]?.let { reordered["zone_id"] = it }
+                return JSONObject(reordered as Map<*, *>).toString(2)
+            }
+            // A routine's runs, by their declared schema; one run, the text its AI read
+            "ai_sessions" -> {
+                if (command.operation == "run_history") return data["messages"] as String
+                val runs = (data["sessions"] as List<*>).map { run -> (run as Map<*, *>).filterKeys { it in AutomationSchemas.RUN_KEYS } }
+                val schema = JSONObject(AutomationSchemas.runs(context).content)
+                reordered["runs"] = (ModelValues.toModel(mapOf("runs" to runs), schema, timezone) as Map<*, *>)["runs"]!!
+                data["pagination"]?.let { reordered["pagination"] = it }
+                return JSONObject(reordered as Map<*, *>).toString(2)
             }
             "zones" -> {
                 // List or single zone

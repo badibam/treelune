@@ -246,6 +246,9 @@ class AICommandProcessor(private val context: Context) {
                 isActionCommand = true
             )
 
+            // Routine actions: its config written as AUTOMATION_CONFIG reads it, in the stored form
+            "CREATE_AUTOMATION", "UPDATE_AUTOMATION", "DELETE_AUTOMATION" -> automationCommand(command, stored = true)
+
             // An import of a joined file, following the AI's declaration: the file read by the service itself
             "IMPORT_DATA" -> importCommand(command)
             "UPDATE_APP_CONFIG" -> appConfigCommand(command)
@@ -343,6 +346,7 @@ class AICommandProcessor(private val context: Context) {
                 isActionCommand = true
             )
 
+            "CREATE_AUTOMATION", "UPDATE_AUTOMATION", "DELETE_AUTOMATION" -> automationCommand(command, stored = false)
             "IMPORT_DATA" -> importCommand(command)
             "UPDATE_APP_CONFIG" -> appConfigCommand(command)
 
@@ -351,6 +355,37 @@ class AICommandProcessor(private val context: Context) {
                 null
             }
         }
+    }
+
+    /**
+     * A routine action as the automations service takes it: its settings among its params, beside
+     * the zone, the access and the message (AutomationService). With [stored], the instants and
+     * durations the model writes in ISO 8601 turned into milliseconds, by the routine's config
+     * schema (AutomationSchemas) -- a schedule's dates, a pointer's fixed period bounds.
+     *
+     * @throws IllegalArgumentException on a date or a duration that does not read, or settings that are not an object
+     */
+    private fun automationCommand(command: DataCommand, stored: Boolean): ExecutableCommand {
+        val config = command.params.filterKeys { it in setOf("zone_id", "settings", "message", "access") }
+        val schema = JSONObject(app.treelune.core.ai.data.AutomationSchemas.config(context).content)
+        @Suppress("UNCHECKED_CAST")
+        val written = if (!stored) config else ModelValues.fromModel(config, schema, AppConfigManager.getDateTimeConfig().getZoneId()) as Map<String, Any?>
+        val settings = when (val given = written["settings"]) {
+            null -> emptyMap()
+            is Map<*, *> -> given.entries.associate { (key, value) -> key.toString() to value }
+            else -> throw IllegalArgumentException(s.shared("ai_error_param_type").format("settings", "object"))
+        }
+        // A setting the routine does not have is refused rather than dropped: the service reads
+        // the ones it knows, and the AI would believe the others set
+        val known = schema.getJSONObject("properties").getJSONObject("settings").getJSONObject("properties").keys().asSequence().toList()
+        (settings.keys - known.toSet()).firstOrNull()?.let { throw IllegalArgumentException(s.shared("service_error_param_unknown").format(it, known.joinToString(", "))) }
+        return ExecutableCommand(
+            resource = "automations",
+            operation = command.type.substringBefore('_').lowercase(),
+            params = settings + written.filterKeys { it != "settings" } +
+                listOfNotNull(command.params["automation_id"]?.let { "automation_id" to it }),
+            isActionCommand = true
+        )
     }
 
     /**

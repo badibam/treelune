@@ -100,9 +100,11 @@ class AccessTest {
     fun aZoneReadGivesItsRoutinesAndTheirRunsToReadAndAZoneFullGivesThemToWrite() {
         val read = AccessMask(listOf(zone("health", AccessLevel.READ)))
         assertNull(refusal(read, "automations", "get", mapOf("automation_id" to "weekly")))
-        assertNull(refusal(read, "automations", "run", mapOf("run_id" to "r1")))
+        assertNull(refusal(read, "ai_sessions", "run_history", mapOf("session_id" to "r1")))
         assertNull(refusal(read, "automations", "list_all", emptyMap()))
-        assertNotNull(refusal(read, "automations", "runs", mapOf("automation_id" to "watering")))
+        assertNotNull(refusal(read, "ai_sessions", "list_sessions_for_automation", mapOf("automation_id" to "watering")))
+        // Any other session
+        assertNotNull(refusal(read, "ai_sessions", "get_session", mapOf("session_id" to "r1")))
         // A zone used writes its tools, not its routines
         val used = AccessMask(listOf(zone("health", AccessLevel.USE)))
         assertNotNull(refusal(used, "automations", "create", mapOf("zone_id" to "health")))
@@ -112,7 +114,7 @@ class AccessTest {
         assertNull(refusal(full, "automations", "delete", mapOf("automation_id" to "weekly")))
         // A routine moved into a zone out of reach, a run of an unknown routine
         assertNotNull(refusal(full, "automations", "update", mapOf("automation_id" to "weekly", "zone_id" to "garden")))
-        assertNotNull(refusal(full, "automations", "run", mapOf("run_id" to "r9")))
+        assertNotNull(refusal(full, "ai_sessions", "run_history", mapOf("session_id" to "r9")))
         // What the screens alone do
         assertNotNull(refusal(full, "automations", "execute_manual", mapOf("automation_id" to "weekly")))
     }

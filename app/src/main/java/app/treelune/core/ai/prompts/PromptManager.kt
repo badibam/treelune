@@ -4,12 +4,14 @@ import app.treelune.core.utils.JsonUtils
 import android.content.Context
 import app.treelune.core.ai.data.*
 import app.treelune.core.ai.processing.UserCommandProcessor
+import app.treelune.core.ai.providers.toPromptText
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.strings.Strings
 import app.treelune.core.tools.ToolTypeManager
 import app.treelune.core.utils.AppConfigManager
 import app.treelune.core.utils.LogManager
+import org.json.JSONObject
 
 /**
  * Singleton PromptManager implementing 3-level prompt system
@@ -90,9 +92,83 @@ object PromptManager {
         val messagesData = sessionResult.data?.get("messages") as? List<*> ?: emptyList<Any>()
         val allMessages = parseSessionMessages(messagesData)
 
-        // 6. Filter out messages excluded from prompt:
-        //    - NETWORK_ERROR, SESSION_TIMEOUT, INTERRUPTED, and PROVIDER_ERROR (audit only)
-        //    - excludeFromPrompt=true (UI-only messages like postText success)
+        // 6-7. The messages as the AI reads them
+        val promptMessages = promptMessages(allMessages, context)
+
+        LogManager.aiPrompt("Prompt data built: L1=${estimateTokens(level1Content)} tokens, L2=${estimateTokens(level2Content)} tokens, L3=${estimateTokens(level3Content)} tokens, ${promptMessages.size} messages", "INFO")
+
+        return PromptData(
+            level1Content = level1Content,
+            level2Content = level2Content,
+            level3Content = level3Content,
+            sessionMessages = promptMessages,
+            scheduledExecutionTime = if (sessionType == SessionType.AUTOMATION) {
+                sessionData["scheduled_execution_time"] as? Long
+            } else {
+                null
+            }
+        )
+    }
+
+    /**
+     * A routine's run [sessionId] as its AI received it (AUTOMATION_RUN), one message after the
+     * other, each under who sent it: the routine's message as the prompt writes it, the AI's
+     * answers in the JSON it wrote, the app's results. The data the starting message's pointers
+     * attached is not repeated: they name what they designate, which may be read again.
+     *
+     * @param onlyFailures Only the app's messages telling a failure, each after the answer that
+     *   led to it
+     * @throws IllegalArgumentException when [sessionId] is not a routine's run
+     */
+    suspend fun runHistory(context: Context, sessionId: String, onlyFailures: Boolean): String {
+        val s = Strings.`for`(context = context)
+        val result = Coordinator(context).processUserAction("ai_sessions.get_session", mapOf("session_id" to sessionId))
+        val session = result.data?.get("session") as? Map<*, *>
+            ?: throw IllegalArgumentException(result.error ?: s.shared("ai_error_session_not_found").format(sessionId))
+        if (session["type"] != SessionType.AUTOMATION.name) throw IllegalArgumentException(s.shared("ai_error_not_a_run").format(sessionId))
+        val all = parseSessionMessages(result.data?.get("messages") as? List<*> ?: emptyList<Any>())
+
+        // What a user message's pointers attached: the data that comes right after it
+        val attached = all.indices.filter { i ->
+            i > 0 && all[i].systemMessage?.type == SystemMessageType.DATA_ADDED && all[i - 1].sender == MessageSender.USER &&
+                all[i - 1].richContent?.segments?.any { it is MessageSegment.EnrichmentBlock } == true
+        }.map { all[it].id }.toSet()
+        val shown = promptMessages(all, context).map { message ->
+            if (message.id !in attached) message
+            else message.copy(systemMessage = message.systemMessage!!.copy(summary = s.shared("ai_run_pointer_data"), commandResults = emptyList(), formattedData = null))
+        }
+
+        val kept = if (!onlyFailures) shown else shown.flatMapIndexed { i, message ->
+            if (!tellsAFailure(message)) emptyList()
+            else listOfNotNull(shown.getOrNull(i - 1)?.takeIf { it.sender == MessageSender.AI }, message)
+        }.distinct()
+        if (kept.isEmpty()) return s.shared(if (onlyFailures) "ai_run_no_failure" else "ai_run_no_message")
+
+        return kept.joinToString("\n\n") { message ->
+            val text = when {
+                message.systemMessage != null -> message.systemMessage.toPromptText()
+                message.sender == MessageSender.AI -> message.aiMessageJson ?: message.textContent ?: ""
+                else -> message.promptParts?.filterIsInstance<PromptPart.Text>()?.joinToString("\n") { it.text } ?: message.textContent ?: ""
+            }
+            s.shared("ai_run_sender_${message.sender.name.lowercase()}") + "\n" + text.trim()
+        }
+    }
+
+    /** Whether [message] is the app telling a failure: a command failed, an answer did not read, data was refused, the limit reached. */
+    private fun tellsAFailure(message: SessionMessage): Boolean {
+        val system = message.systemMessage ?: return false
+        return system.type in setOf(SystemMessageType.FORMAT_ERROR, SystemMessageType.DATA_REFUSED, SystemMessageType.LIMIT_REACHED) ||
+            system.commandResults.any { it.status == CommandStatus.FAILED }
+    }
+
+    /**
+     * The messages of a session as its AI reads them, the provider turning them into its own
+     * request: those kept out of the prompt left out, a user message in text, its pointers naming
+     * their targets as they are now.
+     */
+    private suspend fun promptMessages(allMessages: List<SessionMessage>, context: Context): List<SessionMessage> {
+        // Out of the prompt: NETWORK_ERROR, SESSION_TIMEOUT, INTERRUPTED and PROVIDER_ERROR (audit
+        // only), and what is shown alone (excludeFromPrompt, a postText)
         val sessionMessages = allMessages.filter { message ->
             val type = message.systemMessage?.type
             val isSystemError = type == SystemMessageType.NETWORK_ERROR ||
@@ -107,12 +183,12 @@ object PromptManager {
             LogManager.aiPrompt("Filtered $filtered messages from prompt", "DEBUG")
         }
 
-        // 7. A user message reaches the AI as text, its pointers naming their targets as they are
-        //    now, with their ids: a message only stores what the user chose (EnrichmentText). One
-        //    with images reaches it in parts, each image where the user put it
+        // A user message reaches the AI as text, its pointers naming their targets as they are
+        // now, with their ids: a message only stores what the user chose (EnrichmentText). One
+        // with images reaches it in parts, each image where the user put it
         val enrichmentText = app.treelune.core.ai.enrichments.EnrichmentText.load(context,
             app.treelune.core.ai.enrichments.EnrichmentText.blocksOf(sessionMessages.mapNotNull { it.richContent }))
-        val promptMessages = sessionMessages.map { message ->
+        return sessionMessages.map { message ->
             message.richContent?.let { rich ->
                 val parts = enrichmentText.promptParts(rich)
                 if (parts.none { it is app.treelune.core.ai.data.PromptPart.Image })
@@ -126,20 +202,6 @@ object PromptManager {
                 }
                 ?: message
         }
-
-        LogManager.aiPrompt("Prompt data built: L1=${estimateTokens(level1Content)} tokens, L2=${estimateTokens(level2Content)} tokens, L3=${estimateTokens(level3Content)} tokens, ${sessionMessages.size} messages", "INFO")
-
-        return PromptData(
-            level1Content = level1Content,
-            level2Content = level2Content,
-            level3Content = level3Content,
-            sessionMessages = promptMessages,
-            scheduledExecutionTime = if (sessionType == SessionType.AUTOMATION) {
-                sessionData["scheduled_execution_time"] as? Long
-            } else {
-                null
-            }
-        )
     }
 
     /**
@@ -417,7 +479,7 @@ object PromptManager {
         formatSnapshotContent(generateAppStateSnapshot(context), context)
 
     /**
-     * Generate APP_STATE snapshot (zones + tool instances)
+     * Generate APP_STATE snapshot (zones + tool instances + routines)
      * Called once on first message to capture initial state
      *
      * @return JSON string containing snapshot with timestamp
@@ -462,6 +524,14 @@ object PromptManager {
             }
         }
 
+        // The routines, each in a line (AutomationSchemas.listed)
+        val s = Strings.`for`(context = context)
+        val result3 = coordinator.processUserAction(executable[3].resource + "." + executable[3].operation, executable[3].params)
+        val automationsArray = org.json.JSONArray()
+        (result3.data?.get("automations") as? List<*> ?: emptyList<Any>()).forEach { automation ->
+            automationsArray.put(JSONObject(AutomationSchemas.listed(automation as Map<*, *>, s)))
+        }
+
         // The groups a zone may hold, in their order on the home screen
         val zoneGroups = org.json.JSONArray(app.treelune.core.services.AppConfigService(context).getZoneGroups())
 
@@ -470,6 +540,7 @@ object PromptManager {
             put("zone_groups", zoneGroups)
             put("zones", zonesArray)
             put("tool_instances", toolInstancesArray)
+            put("automations", automationsArray)
         }
 
         return snapshot.toString()
@@ -519,6 +590,15 @@ object PromptManager {
         sb.appendLine("```json")
         sb.appendLine(toolInstances.toString(2))
         sb.appendLine("```")
+        // A snapshot stored before the routines were part of it has none to show
+        snapshotObj.optJSONArray("automations")?.let { automations ->
+            sb.appendLine()
+            sb.appendLine("### ${s.shared("ai_prompt_level3_automations_title")}")
+            sb.appendLine()
+            sb.appendLine("```json")
+            sb.appendLine(automations.toString(2))
+            sb.appendLine("```")
+        }
 
         return sb.toString()
     }

@@ -318,6 +318,8 @@
     <!-- AI Errors - Session Management -->
     <string name="ai_error_create_session">Failed to create the session: %1$s</string>
     <string name="ai_error_session_not_found">Session not found: %1$s</string>
+    <string name="ai_error_not_a_run">%1$s is not a routine\'s run</string>
+    <string name="ai_error_run_messages">messages is « all » or « errors », not « %1$s »</string>
     <string name="ai_error_load_session">Failed to load the session: %1$s</string>
     <string name="ai_error_check_session">Failed to check the session</string>
     <string name="ai_error_stop_session">Failed to stop the session</string>
@@ -914,6 +916,7 @@
     <string name="ai_prompt_level3_zone_groups_title">Zone groups of the home screen</string>
     <string name="ai_prompt_level3_zones_title">Zones</string>
     <string name="ai_prompt_level3_tools_title">Tool instances</string>
+    <string name="ai_prompt_level3_automations_title">Routines</string>
     <string name="ai_prompt_current_datetime">Current date and time: %1$s</string>
     <string name="ai_prompt_scheduled_datetime">Date planned for this run: %1$s. Relative data (yesterday, this week) is resolved against that date, not against the current time. What you do or say stays in the present. If you write a piece of data that belongs to the planned date rather than to today, pass its timestamp explicitly: with no timestamp, the entry is dated from the moment this run happens.</string>
 
@@ -1299,6 +1302,13 @@
     <string name="action_verbalize_variables_delete">Deleting the variable %1$s</string>
     <string name="action_verbalize_variables_evaluate">Reading the variable %1$s</string>
     <string name="action_verbalize_variables_read">Reading the variables</string>
+    <string name="action_verbalize_automations_create">Creating the routine %1$s</string>
+    <string name="action_verbalize_automations_update">Changing the routine %1$s</string>
+    <string name="action_verbalize_automations_delete">Deleting the routine %1$s</string>
+    <string name="action_verbalize_automations_config">Reading the routine %1$s</string>
+    <string name="action_verbalize_automations_list">Reading the routines</string>
+    <string name="action_verbalize_runs_list">Reading the runs of the routine %1$s</string>
+    <string name="action_verbalize_run_history">Reading a run of the routine %1$s</string>
     <string name="import_error_file">The file does not read: %1$s</string>
     <string name="import_file_empty">the file is empty</string>
     <string name="import_file_quote_open">a quote is left open</string>
@@ -1485,6 +1495,7 @@
 
     <!-- AUTOMATIONS - General -->
     <string name="automation_display_name">Routine</string>
+    <string name="automation_runs_display_name">Runs of a routine</string>
     <string name="automation_message_placeholder">Start message of the routine...</string>
     <string name="automation_none_configured">No routine configured</string>
     <string name="automation_triggers_none">No trigger</string>

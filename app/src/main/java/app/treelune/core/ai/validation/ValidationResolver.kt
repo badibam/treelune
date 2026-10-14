@@ -16,7 +16,7 @@ import app.treelune.core.utils.LogManager
  *
  * Three levels, each guarding what it holds directly, nothing by default:
  * - the app (validation_config): the zones and the home screen's groups;
- * - a zone (its `validate`): its tools, their configs included, its tool groups, its variables;
+ * - a zone (its `validate`): its tools, their configs included, its tool groups, its variables, its routines;
  * - a tool (its `validate_data`): its entries.
  *
  * The session adds to them (SessionValidation: a level extended to all its objects), and the AI
@@ -120,6 +120,13 @@ class ValidationResolver(private val context: Context) {
             }
             "CREATE_VARIABLE" -> zoneReason(params["zone_id"] as? String ?: error(s.shared("validation_reason_no_target")), levels)
             "UPDATE_VARIABLE", "DELETE_VARIABLE" -> zoneReason(variableZone(params["variable_id"] as? String ?: error(s.shared("validation_reason_no_target"))), levels)
+            // A zone's routines, as its tools: one moved changes the zone it goes to as well
+            "CREATE_AUTOMATION" -> zoneReason(params["zone_id"] as? String ?: error(s.shared("validation_reason_no_target")), levels)
+            "UPDATE_AUTOMATION", "DELETE_AUTOMATION" -> {
+                val zoneId = automationZone(params["automation_id"] as? String ?: error(s.shared("validation_reason_no_target")))
+                val target = (params["zone_id"] as? String)?.takeIf { it != zoneId }
+                zoneReason(zoneId, levels) ?: target?.let { zoneReason(it, levels) }
+            }
 
             // A tool's level: its entries, whatever writes them -- a stopwatch, an import, the
             // tool type's own operations
@@ -163,6 +170,10 @@ class ValidationResolver(private val context: Context) {
     /** The zone variable [variableId] is in. */
     private suspend fun variableZone(variableId: String): String =
         read("variables.get", mapOf("variable_id" to variableId), "variable")["zone_id"] as? String ?: error("variable $variableId without its zone")
+
+    /** The zone routine [automationId] is in. */
+    private suspend fun automationZone(automationId: String): String =
+        read("automations.get", mapOf("automation_id" to automationId), "automation")["zone_id"] as? String ?: error("routine $automationId without its zone")
 
     /** The tool an action names. */
     private fun toolId(action: DataCommand): String =

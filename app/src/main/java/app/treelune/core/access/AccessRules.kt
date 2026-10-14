@@ -85,12 +85,17 @@ object AccessRules {
             // A zone's routines are written by who reaches the zone in full, as its own settings are
             "automations" -> when (operation) {
                 "list", "list_all" -> listOf(Reach.Free)
-                "get", "runs" -> listOf(automationAt(AccessLevel.READ))
-                "run" -> listOf(text("run_id")?.let { Reach.Run(it, AccessLevel.READ) } ?: Reach.Unknown("$resource.$operation"))
+                "get" -> listOf(automationAt(AccessLevel.READ))
                 "create" -> listOf(zoneAt("zone_id", AccessLevel.FULL))
                 // A routine moved goes into the zone it is moved to
                 "update" -> listOfNotNull(automationAt(AccessLevel.FULL), text("zone_id")?.let { Reach.Zone(it, AccessLevel.FULL) })
                 "delete" -> listOf(automationAt(AccessLevel.FULL))
+                else -> listOf(Reach.Unknown("$resource.$operation"))
+            }
+            // A routine's runs, read as the routine is; every other session is the screens'
+            "ai_sessions" -> when (operation) {
+                "list_sessions_for_automation" -> listOf(automationAt(AccessLevel.READ))
+                "run_history" -> listOf(text("session_id")?.let { Reach.Run(it, AccessLevel.READ) } ?: Reach.Unknown("$resource.$operation"))
                 else -> listOf(Reach.Unknown("$resource.$operation"))
             }
             "readings" -> listOf(text("variable")?.let { Reach.Variable(it, true, AccessLevel.READ) } ?: Reach.Unknown("$resource.$operation"))

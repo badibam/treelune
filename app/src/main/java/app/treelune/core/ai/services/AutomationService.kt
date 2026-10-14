@@ -726,11 +726,19 @@ class AutomationService(private val context: Context) : ExecutableService {
         "access" to app.treelune.core.utils.JsonUtils.toList(entity.accessJson)
     ) + app.treelune.core.utils.JsonUtils.toMap(settingsOf(entity))
 
-    /**
-     * Verbalize automation operations (not exposed to AI typically)
-     */
+    /** An operation said in words, its routine by its name: what a validation card and a result line show. */
     override suspend fun verbalize(operation: String, params: JSONObject, context: Context): String {
         val s = Strings.`for`(context = context)
-        return s.shared("action_verbalize_unknown")
+        val name = params.optString("name").ifEmpty { null }
+            ?: params.optString("automation_id").takeIf { it.isNotEmpty() }?.let { dao.getAutomationById(it)?.name ?: it }
+            ?: ""
+        return when (operation) {
+            "create" -> s.shared("action_verbalize_automations_create").format(name)
+            "update" -> s.shared("action_verbalize_automations_update").format(name)
+            "delete" -> s.shared("action_verbalize_automations_delete").format(name)
+            "config", "get" -> s.shared("action_verbalize_automations_config").format(name)
+            "list", "list_all" -> s.shared("action_verbalize_automations_list")
+            else -> s.shared("action_verbalize_unknown")
+        }
     }
 }

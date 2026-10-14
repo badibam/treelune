@@ -80,6 +80,22 @@ object CommandTransformer {
                         params = command.params.filterKeys { it == "zone_id" }.mapValues { it.value!! }
                     )
                     "READING" -> transformReadingCommand(command, s, reference)
+                    "AUTOMATIONS" -> ExecutableCommand(
+                        resource = "automations",
+                        operation = if (command.params["zone_id"] is String) "list" else "list_all",
+                        params = command.params.filterKeys { it == "zone_id" }.mapValues { it.value!! }
+                    )
+                    // A null, an id missing, is said by the loop as invalid params
+                    "AUTOMATION_CONFIG" -> (command.params["id"] as? String)?.let { id ->
+                        ExecutableCommand(resource = "automations", operation = "config", params = mapOf("automation_id" to id))
+                    }
+                    "AUTOMATION_RUNS" -> transformAutomationRunsCommand(command, s, reference)
+                    "AUTOMATION_RUN" -> (command.params["id"] as? String)?.let { id ->
+                        ExecutableCommand(resource = "ai_sessions", operation = "run_history", params = buildMap {
+                            put("session_id", id)
+                            (command.params["messages"] as? String)?.let { put("messages", it) }
+                        })
+                    }
                     "FILE" -> transformFileCommand(command)
                     "IMPORT_PLAN" -> transformImportPlanCommand(command)
                     // The settings of a category the service opens to the AI (AppSettings.OPEN_TO_AI)
@@ -127,7 +143,7 @@ object CommandTransformer {
      * Use include_config parameter to include full configuration.
      */
     private fun transformAppStateCommand(command: DataCommand): List<ExecutableCommand> {
-        LogManager.aiPrompt("transformAppStateCommand() - generating zones.list + tools.list_all + variables.list_all", "VERBOSE")
+        LogManager.aiPrompt("transformAppStateCommand() - generating zones.list + tools.list_all + variables.list_all + automations.list_all", "VERBOSE")
 
         // Read include_config parameter (default false for minimal snapshot)
         val includeConfig = command.params["include_config"] as? Boolean ?: false
@@ -145,6 +161,11 @@ object CommandTransformer {
             ),
             ExecutableCommand(
                 resource = "variables",
+                operation = "list_all",
+                params = emptyMap()
+            ),
+            ExecutableCommand(
+                resource = "automations",
                 operation = "list_all",
                 params = emptyMap()
             )
@@ -167,6 +188,23 @@ object CommandTransformer {
             }
         }
         return ExecutableCommand(resource = "readings", operation = "read", params = mapOf("variable" to name, "at" to at))
+    }
+
+    /**
+     * A routine's runs, the most recent first: `automation_id`, `period` on when each started
+     * (bounds in ISO 8601 or relative to [reference]), `limit`, 10 when left out.
+     */
+    private fun transformAutomationRunsCommand(command: DataCommand, s: StringsContext, reference: Long): ExecutableCommand? {
+        val automationId = command.params["automation_id"] as? String ?: return null
+        val resolver = TimeResolver.at(reference)
+        @Suppress("UNCHECKED_CAST")
+        val period = (command.params["period"] as? Map<String, Any?>)?.let { EntryPeriod.fromJson(JsonUtils.toJSONObject(it)) { key -> s.shared(key) } }
+        return ExecutableCommand(resource = "ai_sessions", operation = "list_sessions_for_automation", params = buildMap {
+            put("automation_id", automationId)
+            (command.params["limit"] as? Number)?.let { put("limit", it.toInt()) }
+            period?.start?.let { put("start_time", resolver.instant(it)) }
+            period?.end?.let { put("end_time", resolver.instant(it)) }
+        })
     }
 
     /** What an import of a joined file would do, column by column: the file read by the service itself. */
