@@ -25,10 +25,12 @@ class GuideTest {
         val journey = chapters.takeWhile { it.part.ordered }
         assertEquals(listOf("first_steps", "connect_ai", "build_with_ai", "automate"), journey.map { it.id })
         assertTrue(journey.all { it.part == GuidePart.DISCOVERY })
-        // Getting started next, Configure a tool first; going further has no chapter yet, and is not shown
+        // Getting started next, Configure a tool first, then going further, each of its chapters a text to read
         val rest = chapters.drop(journey.size)
         assertEquals("configure_tool", rest.first().id)
-        assertTrue(rest.all { it.part == GuidePart.GETTING_STARTED })
+        val gettingStarted = rest.takeWhile { it.part == GuidePart.GETTING_STARTED }
+        val deeper = rest.drop(gettingStarted.size)
+        assertTrue(deeper.all { it.part == GuidePart.DEEPER && it.text && it.steps.isEmpty() && !it.isStub })
     }
 
     @Test

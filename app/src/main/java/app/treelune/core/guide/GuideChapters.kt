@@ -61,6 +61,8 @@ data class GuideStep(
  * @property toolType Set for a tool type's reference chapter, whose name and line are the tool's,
  *   and whose text is its usage (what it is for, what it already does, what it is not for)
  * @property overview The tools at a glance: each tool type's line, opening its chapter
+ * @property text Set for a read chapter written in the Guide's own texts, its body
+ *   `guide_<chapter>_body`: a subject going further
  */
 data class GuideChapter(
     val id: String,
@@ -69,15 +71,17 @@ data class GuideChapter(
     val minutes: Int,
     val steps: List<GuideStep>,
     val toolType: String? = null,
-    val overview: Boolean = false
+    val overview: Boolean = false,
+    val text: Boolean = false
 ) {
     val isTutorial: Boolean get() = steps.isNotEmpty()
 
     /** Still to be written: neither steps nor a text of its own. */
-    val isStub: Boolean get() = steps.isEmpty() && toolType == null && !overview
+    val isStub: Boolean get() = steps.isEmpty() && toolType == null && !overview && !text
 
-    /** A read chapter's text: a tool type's usage. */
+    /** A read chapter's text: a tool type's usage, or the chapter's own body. */
     fun body(context: Context): String? = toolType?.let { ToolTypeManager.getToolType(it)?.getUsage(context) }
+        ?: if (text) Strings.`for`(context = context).shared("guide_${id}_body") else null
 
     /** A tool type's chapter's parts after its usage: its config, its screen; each absent until written. */
     fun toolConfig(context: Context): String? = toolType?.let { ToolTypeManager.getToolType(it)?.getGuideConfig(context) }
@@ -148,6 +152,7 @@ object GuideChapters {
                 part = GuidePart.valueOf(c.getString("part").uppercase()),
                 icon = c.getString("icon"),
                 minutes = c.getInt("minutes"),
+                text = c.optBoolean("text", false),
                 steps = (0 until steps.length()).map { n ->
                     val st = steps.getJSONObject(n)
                     GuideStep(

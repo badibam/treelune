@@ -10,7 +10,8 @@ each chapter and step:
 - an origin is a Source;
 - a place's address begins with a kind Place.of reads, a name in braces kept by an earlier step;
 - every text the Guide reads by name exists in English and in French (guide.xml, guide-fr.xml):
-  a chapter's title and introduction, a tutorial's end, each step's goal and explanation;
+  a chapter's title and introduction, a tutorial's end, each step's goal and explanation, a read
+  chapter's body ("text": true);
 - every demo id a step names, in its place or in what it waits for, is a zone or a tool the demo
   installs (assets/demo/structure.json), and a tool's place names the zone the demo puts it in:
   the demo rewritten, a tutorial would send the user to a place that is not there;
@@ -201,6 +202,10 @@ def main():
             kept |= set(step.get("keep", {}).keys())
         if chapter["steps"]:
             keys.append(f"guide_{cid}_outro")
+        if chapter.get("text"):
+            if chapter["steps"]:
+                problems.append(f"{cid}: a read chapter has no steps")
+            keys.append(f"guide_{cid}_body")
         for lang, have in texts.items():
             for key in keys:
                 if key not in have:

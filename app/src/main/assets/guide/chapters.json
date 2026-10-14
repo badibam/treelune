@@ -173,6 +173,7 @@
         {"kind": "read"},
         {"kind": "read", "target": "settings/logs"}
       ]
-    }
+    },
+    {"id": "relative_dates", "part": "deeper", "icon": "calendar-range", "minutes": 3, "text": true, "steps": []}
   ]
 }
