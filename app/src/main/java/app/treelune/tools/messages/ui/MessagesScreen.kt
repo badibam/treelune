@@ -171,6 +171,7 @@ fun MessagesScreen(
             0 -> ReceivedTab(
                 toolInstanceId = toolInstanceId,
                 coordinator = coordinator,
+                config = config,
                 refreshTrigger = refreshTrigger,
                 openId = openEntryId,
                 onError = { errorMessage = it }
@@ -178,6 +179,7 @@ fun MessagesScreen(
             1 -> UpcomingTab(
                 toolInstanceId = toolInstanceId,
                 coordinator = coordinator,
+                config = config,
                 refreshTrigger = refreshTrigger,
                 onError = { errorMessage = it }
             )
@@ -195,6 +197,7 @@ private enum class ReceivedFilter { UNREAD, READ, ARCHIVED, NOT_DELIVERED }
 private fun ReceivedTab(
     toolInstanceId: String,
     coordinator: Coordinator,
+    config: JSONObject,
     refreshTrigger: Int,
     openId: String?,
     onError: (String) -> Unit
@@ -280,6 +283,7 @@ private fun ReceivedTab(
         opened?.let { occurrence ->
             ReceivedCard(
                 occurrence = occurrence,
+                config = config,
                 s = s,
                 onToggleRead = { scope.launch { updateFlags(context, coordinator, occurrence, read = !occurrence.read, onError = onError) } },
                 onToggleArchived = { scope.launch { updateFlags(context, coordinator, occurrence, archived = !occurrence.archived, onError = onError) } }
@@ -299,6 +303,7 @@ private fun ReceivedTab(
         } else shown.forEach { occurrence ->
             ReceivedCard(
                 occurrence = occurrence,
+                config = config,
                 s = s,
                 onToggleRead = {
                     scope.launch {
@@ -318,6 +323,7 @@ private fun ReceivedTab(
 @Composable
 private fun ReceivedCard(
     occurrence: Occurrence,
+    config: JSONObject,
     s: StringsContext,
     onToggleRead: () -> Unit,
     onToggleArchived: () -> Unit
@@ -331,6 +337,7 @@ private fun ReceivedCard(
             // What was sent, read only: a part of it can be selected
             UI.Text(occurrence.displayTitle, TextType.SUBTITLE, selectable = true)
             occurrence.displayContent?.let { UI.Text(it, TextType.BODY, selectable = true) }
+            OccurrenceFields(occurrence, config)
 
             // Each badge states a fact the history would otherwise lose
             val badges = buildList {
@@ -368,6 +375,18 @@ private fun ReceivedCard(
     }
 }
 
+/** The user's fields of an occurrence, under its text, two per line as in a card. */
+@Composable
+private fun OccurrenceFields(occurrence: Occurrence, config: JSONObject) {
+    app.treelune.core.fields.CustomFieldsDisplay(
+        toolType = app.treelune.tools.messages.MessageToolType,
+        config = config,
+        values = occurrence.extra,
+        layout = app.treelune.core.fields.FieldsLayout.COMPACT,
+        context = LocalContext.current
+    )
+}
+
 // ========================================
 // Upcoming: what has been laid out ahead
 // ========================================
@@ -376,6 +395,7 @@ private fun ReceivedCard(
 private fun UpcomingTab(
     toolInstanceId: String,
     coordinator: Coordinator,
+    config: JSONObject,
     refreshTrigger: Int,
     onError: (String) -> Unit
 ) {
@@ -429,6 +449,7 @@ private fun UpcomingTab(
                         occurrence.ownTitle?.let { UI.Text(it, TextType.SUBTITLE, selectable = true) }
                         occurrence.ownContent?.let { UI.Text(it, TextType.BODY, selectable = true) }
                     }
+                    OccurrenceFields(occurrence, config)
 
                     Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
                         UI.ActionButton(

@@ -60,7 +60,6 @@
     <string name="usage_entry_saved">Entry saved</string>
     <string name="tile_no_entry">No entry yet</string>
     <string name="usage_no_entries">No entry recorded</string>
-    <string name="usage_label_value">Value</string>
     <string name="usage_custom_date">Custom date</string>
     <string name="usage_current_time">Date = now</string>
     <string name="usage_timer_running">Running</string>
