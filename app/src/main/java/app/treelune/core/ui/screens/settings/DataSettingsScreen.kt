@@ -101,6 +101,48 @@ fun DataSettingsScreen(
         }
     }
 
+    // The automatic backup: where it stands, read again after each change
+    var autoState by remember { mutableStateOf<app.treelune.core.backup.AutoBackup.State?>(null) }
+    var autoRead by remember { mutableStateOf(0) }
+    LaunchedEffect(autoRead) {
+        autoState = try {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { app.treelune.core.backup.AutoBackup.state(context) }
+        } catch (e: Exception) { errorMessage = e.message; null }
+    }
+    /** The data settings written whole, [folder] and [on], then read again. */
+    fun saveAuto(folder: android.net.Uri?, on: Boolean) = scope.launch {
+        val settings = buildMap<String, Any> {
+            folder?.let { put(app.treelune.core.config.AppSettings.DATA_FOLDER, it.toString()) }
+            put(app.treelune.core.config.AppSettings.DATA_AUTO_BACKUP, on)
+        }
+        val result = coordinator.processUserAction("app_config.set", mapOf("category" to app.treelune.core.database.entities.AppSettingCategories.DATA, "settings" to settings))
+        if (result.status != CommandStatus.SUCCESS) errorMessage = result.error
+        autoRead++
+    }
+    val folderOf: (app.treelune.core.backup.AutoBackup.State?) -> android.net.Uri? = { state ->
+        when (state) {
+            is app.treelune.core.backup.AutoBackup.State.Ready -> state.folder
+            is app.treelune.core.backup.AutoBackup.State.Lost -> state.folder
+            is app.treelune.core.backup.AutoBackup.State.Off -> state.folder
+            else -> null
+        }
+    }
+    // A folder chosen once: Android gives the app a lasting right to write in it, the one before given back
+    val folderLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+        try {
+            context.contentResolver.takePersistableUriPermission(uri, flags)
+        } catch (e: SecurityException) {
+            errorMessage = s.shared("auto_backup_folder_refused")
+            return@rememberLauncherForActivityResult
+        }
+        folderOf(autoState)?.takeIf { it != uri }?.let { old ->
+            try { context.contentResolver.releasePersistableUriPermission(old, flags) } catch (_: SecurityException) {}
+        }
+        saveAuto(uri, autoState !is app.treelune.core.backup.AutoBackup.State.Off)
+    }
+
     // SAF launcher for import (pick document)
     val importLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
@@ -141,6 +183,47 @@ fun DataSettingsScreen(
                     text = s.shared("message_loading"),
                     type = TextType.BODY
                 )
+            }
+        }
+
+        // The automatic backup: its folder, on or off, its last copy
+        UI.Card(type = CardType.DEFAULT) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(UI.Space.L),
+                verticalArrangement = Arrangement.spacedBy(UI.Space.S)
+            ) {
+                UI.Text(text = s.shared("auto_backup_title"), type = TextType.SUBTITLE)
+                val state = autoState
+                val folder = folderOf(state)
+                UI.Text(
+                    text = when (state) {
+                        null -> s.shared("message_loading")
+                        app.treelune.core.backup.AutoBackup.State.NoFolder -> s.shared("auto_backup_no_folder")
+                        is app.treelune.core.backup.AutoBackup.State.Off -> s.shared("auto_backup_off")
+                        is app.treelune.core.backup.AutoBackup.State.Lost -> s.shared("auto_backup_lost_content")
+                        is app.treelune.core.backup.AutoBackup.State.Ready -> state.copies.values.maxOfOrNull { it.at }
+                            ?.let { s.shared("auto_backup_last").format(app.treelune.core.utils.FormatUtils.formatRelativeTimePast(it, context)) }
+                            ?: s.shared("auto_backup_none_yet")
+                    },
+                    type = TextType.CAPTION
+                )
+                // The folder by its path on the phone ("Documents/Treelune")
+                folder?.let { UI.Text(s.shared("auto_backup_folder").format(android.provider.DocumentsContract.getTreeDocumentId(it).substringAfter(':')), TextType.CAPTION) }
+                if (folder != null) UI.BooleanField(
+                    label = s.shared("settings_data_auto_backup"),
+                    value = state !is app.treelune.core.backup.AutoBackup.State.Off,
+                    onValueChange = { on -> saveAuto(folder, on) }
+                )
+                UI.Button(
+                    type = if (folder == null || state is app.treelune.core.backup.AutoBackup.State.Lost) ButtonType.PRIMARY else ButtonType.DEFAULT,
+                    size = Size.M,
+                    state = if (state == null) ComponentState.DISABLED else ComponentState.NORMAL,
+                    onClick = { folderLauncher.launch(folder) }
+                ) {
+                    UI.Text(text = s.shared(if (folder == null) "auto_backup_choose_folder" else "auto_backup_change_folder"), type = TextType.BODY)
+                }
             }
         }
 

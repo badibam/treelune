@@ -48,6 +48,8 @@ object AppSettingsDefaults {
         AppSettingCategories.GUIDE -> JSONObject().put(AppSettings.GUIDE_WELCOME_SEEN, false)
             .put(AppSettings.GUIDE_BAND_HIDDEN, false)
             .put(AppSettings.GUIDE_CHAPTERS, JSONArray()).toString()
+        // No folder until the user chooses one; the automatic backup on as soon as there is one
+        AppSettingCategories.DATA -> JSONObject().put(AppSettings.DATA_AUTO_BACKUP, true).toString()
         else -> throw IllegalArgumentException("No defaults for settings category '$category'")
     }
 

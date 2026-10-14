@@ -77,7 +77,8 @@ object AppSettings {
         AppSettingCategories.DEMO,
         AppSettingCategories.UI,
         AppSettingCategories.EXTERNAL_ACCESS,
-        AppSettingCategories.GUIDE
+        AppSettingCategories.GUIDE,
+        AppSettingCategories.DATA
     )
 
     /**
@@ -92,6 +93,15 @@ object AppSettings {
     const val GUIDE_BAND_HIDDEN = "band_hidden"
     const val GUIDE_CURRENT = "current"
     const val GUIDE_CHAPTERS = "chapters"
+
+    /**
+     * The folder of the phone chosen once (Android's document tree, its address), where the app
+     * writes without asking; absent while none is chosen. Its right is this phone's: restored
+     * elsewhere, the address stays and the folder is to choose again.
+     */
+    const val DATA_FOLDER = "folder"
+    /** Whether the automatic backup writes into that folder (AutoBackup) */
+    const val DATA_AUTO_BACKUP = "auto_backup"
 
     /** How an outside AI reaches the app: through its own Tailscale node, or through a relay (docs/design/funnel-access.md). */
     const val ACCESS_MODE = "access_mode"
@@ -210,6 +220,11 @@ object AppSettings {
                     )), required = true, summary = listOf("name"))
                 )), required = true, summary = listOf("id"))
             )
+            AppSettingCategories.DATA -> listOf(
+                // Chosen in Android's folder picker, never typed
+                field(DATA_FOLDER, text("settings_data_folder"), null, FieldType.TEXT, config = mapOf("length" to TextLength.UNLIMITED.name)),
+                field(DATA_AUTO_BACKUP, text("settings_data_auto_backup"), text("settings_data_auto_backup_help"), FieldType.BOOLEAN, required = true)
+            )
             AppSettingCategories.DEMO -> listOf(
                 field(app.treelune.core.demo.DemoStartup.INSTALL_ON_UPDATE, text("settings_demo_install_on_update"),
                     text("settings_demo_install_on_update_help"), FieldType.BOOLEAN, required = true)
@@ -256,6 +271,7 @@ object AppSettings {
             AppSettingCategories.UI -> s.shared("settings_ui")
             AppSettingCategories.EXTERNAL_ACCESS -> s.shared("settings_external_access")
             AppSettingCategories.GUIDE -> s.shared("guide_title")
+            AppSettingCategories.DATA -> s.shared("settings_data")
             else -> throw IllegalArgumentException("No declaration for settings category '$category'")
         }
     }
@@ -271,6 +287,7 @@ object AppSettings {
             AppSettingCategories.UI -> s.shared("settings_ui_description")
             AppSettingCategories.EXTERNAL_ACCESS -> s.shared("settings_external_access_description")
             AppSettingCategories.GUIDE -> s.shared("guide_description")
+            AppSettingCategories.DATA -> s.shared("settings_data_description")
             else -> null
         }
     }

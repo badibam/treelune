@@ -92,6 +92,7 @@ object CoreScheduler {
      * Execution order:
      * 1. AI scheduling (core functionality, high priority)
      * 2. Tool scheduling (discovery via ToolTypeManager)
+     * 3. The automatic backup (AutoBackup)
      *
      * Error handling: Each component logs errors independently,
      * one failure doesn't block others.
@@ -133,6 +134,13 @@ object CoreScheduler {
 
         } catch (e: Exception) {
             LogManager.service("CoreScheduler: Tool scheduling error: ${e.message}", "ERROR", e)
+        }
+
+        try {
+            // 3. The automatic backup, last: the tick's other work is due at its minute, a copy within the hour
+            app.treelune.core.backup.AutoBackup.tick(context)
+        } catch (e: Exception) {
+            LogManager.service("CoreScheduler: automatic backup error: ${e.message}", "ERROR", e)
         }
 
     }

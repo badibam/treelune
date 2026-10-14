@@ -29,7 +29,6 @@ object AppSettingCategories {
     const val EXTERNAL_ACCESS = "external_access"
     /** The Guide's progress: the first-launch screen seen, each chapter's step (docs/design/user-journey.md) */
     const val GUIDE = "guide"
-
-    // Future categories:
-    // const val DATA = "data"
+    /** The phone's folder the app writes its backups into, and the automatic backup (docs/DATA.md, « Sauvegarde automatique ») */
+    const val DATA = "data"
 }

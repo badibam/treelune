@@ -983,6 +983,21 @@
 
     <string name="settings_data">Data management</string>
     <string name="settings_data_description">Configure the backup, the export and the import of the data</string>
+    <string name="settings_data_folder">Backup folder</string>
+    <string name="settings_data_auto_backup">Automatic backup</string>
+    <string name="settings_data_auto_backup_help">A copy of all the data in the folder chosen, at most once an hour and only when the data changed; four copies kept: the last hour, day, week and month.</string>
+    <string name="auto_backup_title">Automatic backup</string>
+    <string name="auto_backup_no_folder">Choose a folder of the phone: the app writes a copy of all the data there at most once an hour, when the data changed, and keeps four copies, the last hour, day, week and month. A folder that a sync app follows keeps them off the phone too.</string>
+    <string name="auto_backup_off">Off: no copy is written.</string>
+    <string name="auto_backup_last">Last copy: %1$s</string>
+    <string name="auto_backup_none_yet">No copy yet: the first one comes within ten minutes.</string>
+    <string name="auto_backup_folder">Folder: %1$s</string>
+    <string name="auto_backup_choose_folder">Choose the folder</string>
+    <string name="auto_backup_change_folder">Change the folder</string>
+    <string name="auto_backup_folder_refused">Android does not let the app keep writing in this folder: choose another one.</string>
+    <string name="auto_backup_lost_title">Automatic backup stopped</string>
+    <string name="auto_backup_lost_content">The app can no longer write in the backup folder: choose it again in Settings › Data.</string>
+    <string name="auto_backup_error_write">The copy %1$s could not be written in the backup folder</string>
 
     <!-- SETTINGS - Stub placeholders -->
 
@@ -1890,6 +1905,7 @@
     <string name="action_verbalize_backup_export">Data export</string>
     <string name="action_verbalize_backup_import">Backup restore</string>
     <string name="action_verbalize_backup_reset">Data reset</string>
+    <string name="action_verbalize_backup_auto">Automatic backup</string>
     <string name="long_operation_busy">%1$s is running: try again once it is done.</string>
     <string name="long_operation_done">%1$s: done</string>
     <string name="long_operation_failed">%1$s: failed. %2$s</string>

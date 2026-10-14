@@ -191,6 +191,10 @@ private fun transformTrackingConfig(json: JSONObject, version: Int): JSONObject 
 
 **En DB** : JSONs purs sans metadata (version dans fichiers export uniquement)
 
+### Sauvegarde automatique
+
+Le zip de l'export, écrit sans rien demander dans un dossier du téléphone choisi une fois dans Réglages › Données (`OpenDocumentTree`, droit d'écriture durable gardé par Android ; catégorie de réglages `data`, `folder` et `auto_backup`). Le tour du planificateur (`CoreScheduler.tick`, toutes les 10 minutes, app fermée comprise) demande à `AutoBackup` : une copie est due quand celle de l'heure manque ou a une heure ; elle est l'opération longue `backup.auto`, jamais à côté d'un import, de la démo ou d'un export, et ne s'écrit que si les données diffèrent de la dernière copie (empreinte SHA-256 de `data`, gardée sur le téléphone dans `files/auto_backup.json`, hors de la base que la copie porterait). Quatre fichiers, `treelune_auto_<heure|jour|semaine|mois>_<date>.zip` (en anglais : `hour`, `day`, `week`, `month`) : la nouvelle copie prend l'heure, et l'ancienne descend d'un cran quand le cran du dessous a dépassé sa durée (un jour, une semaine, trente jours), sinon elle s'efface (`AutoBackupRotation`) ; l'état se lit dans les noms du dossier, rien d'autre n'est gardé. La nouvelle copie s'écrit avant le roulement : un échec en route laisse le dossier tel qu'il était. Un dossier dont le droit est perdu (désinstallation, dossier déplacé, sauvegarde restaurée sur un autre téléphone) arrête les copies, le dit dans Réglages et par une notification, une fois.
+
 ### Règles de développement
 
 **Versioning** :
