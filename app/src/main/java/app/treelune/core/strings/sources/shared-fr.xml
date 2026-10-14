@@ -1829,6 +1829,11 @@
     <string name="access_choice_full">Complète</string>
     <string name="access_levels">Lecture : lire. Utilisation : écrire ses entrées ; dans une zone, créer et changer ses outils et variables. Complète : et ses propres réglages.</string>
     <string name="automation_access_unreadable">L\'accès ne se lit pas : %1$s</string>
+    <string name="automation_message_unreadable">Le message ne se lit pas : une liste de blocs est attendue, pas %1$s</string>
+    <string name="automation_message_block_unreadable">Le bloc %1$d du message ne se lit pas : %2$s</string>
+    <string name="automation_message_block_type">Le bloc %1$d du message est de type « %2$s » : le message d\'une routine ne tient que du texte et des pointeurs</string>
+    <string name="automation_seed_missing">Le message de la routine « %1$s » est introuvable</string>
+    <string name="ai_error_seed_with_routine">La session du message d\'une routine se crée avec la routine elle-même</string>
     <string name="access_level_read">lecture</string>
     <string name="access_level_use">utilisation</string>
     <string name="access_level_full">complète</string>

@@ -19,10 +19,8 @@ import kotlinx.coroutines.launch
  *
  * Flow CREATE (automation == null):
  * 1. User fills name + provider
- * 2. On confirm:
- *    - Create SEED session (empty message)
- *    - Create automation linking to SEED session
- *    - Return seedSessionId for navigation to SEED editor
+ * 2. On confirm: create the automation, which makes its SEED session with an empty message,
+ *    and return seedSessionId for navigation to SEED editor
  *
  * Flow EDIT (automation != null):
  * 1. Pre-fill name + provider from existing automation
@@ -200,38 +198,11 @@ fun CreateAutomationDialog(
                         onSuccess(seedSessionId)
 
                     } else {
-                        // CREATE MODE: Original logic
-                        // Step 1: Create SEED session
-                        val sessionName = "$name (${zoneName})"
-                        val createSessionResult = coordinator.processUserAction(
-                            "ai_sessions.create_session",
-                            mapOf(
-                                "name" to sessionName,
-                                "type" to "SEED",
-                                "provider_id" to selectedProvider!!
-                            )
-                        )
-
-                        if (createSessionResult.status != CommandStatus.SUCCESS) {
-                            errorMessage = createSessionResult.error ?: s.shared("ai_error_create_session").format("")
-                            LogManager.aiUI("Failed to create SEED session: ${createSessionResult.error}", "ERROR")
-                            return@launch
-                        }
-
-                        val seedSessionId = createSessionResult.data?.get("session_id") as? String
-                        if (seedSessionId == null) {
-                            errorMessage = s.shared("ai_error_create_session").format("No session ID returned")
-                            LogManager.aiUI("No session ID returned from create", "ERROR")
-                            return@launch
-                        }
-
-                        LogManager.aiUI("Created SEED session: $seedSessionId", "DEBUG")
-
-                        // Step 2: Create automation
+                        // CREATE MODE: the routine, with its seed session and its message still
+                        // empty, written by the editor it opens next
                         val createParams = mutableMapOf<String, Any>(
                             "name" to name,
                             "zone_id" to zoneId,
-                            "seed_session_id" to seedSessionId,
                             "provider_id" to selectedProvider!!,
                             "is_enabled" to true
                         )
@@ -242,12 +213,11 @@ fun CreateAutomationDialog(
                         if (createAutomationResult.status != CommandStatus.SUCCESS) {
                             errorMessage = createAutomationResult.error ?: s.shared("service_error_automation").format("")
                             LogManager.aiUI("Failed to create automation: ${createAutomationResult.error}", "ERROR")
-                            // TODO: Cleanup SEED session if automation creation fails
                             return@launch
                         }
 
-                        val automationId = createAutomationResult.data?.get("automation_id") as? String
-                        LogManager.aiUI("Created automation: $automationId", "INFO")
+                        val seedSessionId = createAutomationResult.data!!["seed_session_id"] as String
+                        LogManager.aiUI("Created automation: ${createAutomationResult.data["automation_id"]}", "INFO")
 
                         // Success - navigate to SEED editor
                         onSuccess(seedSessionId)

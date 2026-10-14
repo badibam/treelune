@@ -98,6 +98,9 @@ class AISessionService(private val context: Context) : ExecutableService {
         val providerId = params.optString("provider_id").takeIf { it.isNotEmpty() }
             ?: return OperationResult.error(s.shared("ai_error_param_provider_id_required"))
 
+        // A seed session is made with its routine and its message, by automations.create
+        if (type == SessionType.SEED.name) return OperationResult.error(s.shared("ai_error_seed_with_routine"))
+
         LogManager.aiSession("Creating AI session: name=$name, type=$type, providerId=$providerId", "DEBUG")
 
         // The app's own demo gives its ids; every other caller gets one made here
@@ -127,32 +130,6 @@ class AISessionService(private val context: Context) : ExecutableService {
             database.aiDao().insertSession(sessionEntity)
 
             LogManager.aiSession("Successfully created session: $sessionId", "INFO")
-
-            // For SEED sessions, create an empty USER message as template placeholder
-            if (type == "SEED") {
-                val emptyRichMessage = RichMessage(segments = emptyList())
-
-                val messageEntity = SessionMessageEntity(
-                    id = UUID.randomUUID().toString(),
-                    sessionId = sessionId,
-                    timestamp = now,
-                    sender = MessageSender.USER,
-                    richContentJson = emptyRichMessage.toJson(),
-                    textContent = null,
-                    aiMessageJson = null,
-                    aiMessageParsedJson = null,
-                    systemMessageJson = null,
-                    executionMetadataJson = null,
-                    excludeFromPrompt = false,
-                    inputTokens = 0,
-                    cacheWriteTokens = 0,
-                    cacheReadTokens = 0,
-                    outputTokens = 0
-                )
-
-                database.aiDao().insertMessage(messageEntity)
-                LogManager.aiSession("Created empty USER message for SEED session: $sessionId", "DEBUG")
-            }
 
             return OperationResult.success(mapOf(
                 "session_id" to sessionId,
