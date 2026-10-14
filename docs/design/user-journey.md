@@ -123,12 +123,12 @@ Un chapitre par sujet, lu dans l'ordre qu'on veut, tutoriel facultatif :
 - Les outils, dans leur propre partie après Prise en main : un chapitre par type, fourni par le type d'outil dans son dossier (`tools/<type>/`), à côté de ses textes, et découvert comme l'outil l'est ; un nouvel outil arrive avec son chapitre. Son texte est l'`usage` du type (à quoi il sert, ce qu'il fait déjà, pas pour), le même que lit l'IA.
 - Relier : variables, lectures, pointeurs.
 - Parler à l'IA : le pointeur, les questions et validations, le coût.
-- Apparence : thèmes, palettes, couleurs des icônes.
-- Vos données : sauvegarde et restauration, import, export.
+- Apparence : l'écran Interface utilisateur seul (thème, mode, teinte, taille, une colonne, sons) ; la couleur d'une icône se règle dans la configuration de sa zone ou de son outil.
+- Tes données : l'écran Gestion des données seul (sauvegarde automatique, export, restauration, réinitialisation) ; l'import d'un tableau appartient au chapitre des Données structurées.
 - Accès externe : le connecteur.
 - Quand ça coince : journaux, rapport de bug.
 
-Leur contenu s'écrit à leur construction.
+Un chapitre de Prise en main couvre son écran et rien d'autre : ce qu'un autre écran montre va dans le chapitre de cet écran.
 
 Un chapitre de Prise en main nomme tout ce que montrent les écrans qu'il couvre : un bouton, une mention. La Découverte, un parcours, reste courte et n'y est pas tenue.
 
@@ -164,7 +164,7 @@ Dans les réglages de l'app : pour chaque chapitre, l'étape en cours ou « fait
 
 ## Ce qui reste ouvert
 
-- Le contenu des chapitres de Prise en main (Parler à l'IA et les chapitres d'outils sont écrits), et les sujets d'Approfondissement (formules et variables, conditions et filtres, validation et accès de l'IA, champs et leur migration…) : des ébauches (titre et une ligne), à écrire ensemble dans une séance dédiée ; un chapitre sans étape s'affiche « À écrire ».
+- Les sujets d'Approfondissement suivants (formules et variables, conditions et filtres, champs et leur migration…), après les dates relatives, les protections et les types de champs.
 - Ce qui marque « fait » un chapitre sans étape à faire (ouvert, ou lu jusqu'au bout).
 - Un message envoyé à l'IA ne passe pas par le dispatcher (`AIOrchestrator.sendMessage` le range lui-même) : l'étape « demandez-lui son avis » de Brancher une IA se lit, au lieu d'attendre l'envoi.
 - Le dialogue « la démo n'est pas installée » : le fermer sans choisir (retour, toucher à côté) saute les étapes de la démo, comme son bouton.
