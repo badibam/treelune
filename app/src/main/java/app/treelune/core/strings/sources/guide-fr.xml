@@ -185,7 +185,12 @@
     <string name="guide_talk_to_ai_6_goal">Réflexion et coûts</string>
     <string name="guide_talk_to_ai_6_text">Dans les mêmes paramètres, « Réflexion » règle combien l\'IA réfléchit avant de répondre, pour cette conversation seulement. Plus elle réfléchit, plus c\'est lent et cher.\n\n« Coûts » détaille ce que la conversation a coûté : ce qui est parti, ce qui est revenu, et ce qui a été relu depuis le cache, moins cher parce que déjà envoyé.</string>
     <string name="guide_appearance_title">Apparence</string>
-    <string name="guide_appearance_intro">Thèmes, palettes, couleurs des icônes.</string>
+    <string name="guide_appearance_intro">L\'écran Interface utilisateur, dans les Réglages, règle l\'allure de toute l\'app : son thème, son mode clair ou sombre, sa teinte, sa disposition et sa taille.</string>
+    <string name="guide_appearance_outro">L\'app a maintenant l\'allure que tu veux. Tout se rechange au même endroit, dans Réglages › Interface utilisateur.</string>
+    <string name="guide_appearance_1_goal">Choisis un thème</string>
+    <string name="guide_appearance_1_text">Dans Réglages › Interface utilisateur, le Thème décide de la façon dont l\'app est dessinée : ses formes, ses lettres, ses icônes. Par défaut est clair et sobre, Cosy est rond et rebondit, Rétro est en pixel art.\n\nUn thème choisi s\'applique tout de suite, pour le voir. Enregistre pour le garder : si tu quittes l\'écran sans enregistrer, l\'app revient au thème d\'avant.\n\nAvec le Mode, l\'app passe en Clair, en Sombre, ou Comme le téléphone, en suivant ses changements.</string>
+    <string name="guide_appearance_2_goal">Ajuste l\'affichage</string>
+    <string name="guide_appearance_2_text">Quatre autres réglages ajustent l\'affichage.\n- Teinte : fait tourner les couleurs du thème sur le cercle des couleurs, degré par degré. À 0, le thème garde les siennes. Les couleurs des états et des tags ne changent pas.\n- Taille de l\'interface : agrandit l\'interface par crans, dans les thèmes dessinés au pixel comme Rétro, qui ignorent la taille de texte d\'Android\n- Une colonne : les tuiles l\'une sous l\'autre, pour un écran étroit. Les flèches du mode disposition déplacent alors une tuile dans la colonne.\n- Sons de l\'interface : les sons que le thème joue quand tu touches l\'écran. Le thème Par défaut n\'en a pas.</string>
     <string name="guide_your_data_title">Tes données</string>
     <string name="guide_your_data_intro">Sauvegarde et restauration, import, export.</string>
     <string name="guide_external_access_title">Accès externe</string>

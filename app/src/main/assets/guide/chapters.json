@@ -128,7 +128,18 @@
         {"kind": "read", "target": "chat"}
       ]
     },
-    {"id": "appearance", "part": "getting_started", "icon": "palette", "minutes": 2, "steps": []},
+    {
+      "id": "appearance",
+      "part": "getting_started",
+      "icon": "palette",
+      "minutes": 3,
+      "covers": ["ui_settings"],
+      "steps": [
+        {"kind": "do", "target": "settings/ui",
+          "await": {"operation": "app_config.set", "origin": "USER", "params": {"category": "ui"}}},
+        {"kind": "read", "target": "settings/ui"}
+      ]
+    },
     {"id": "your_data", "part": "getting_started", "icon": "database", "minutes": 3, "steps": []},
     {"id": "external_access", "part": "getting_started", "icon": "cable", "minutes": 5, "steps": []},
     {"id": "when_stuck", "part": "getting_started", "icon": "life-buoy", "minutes": 2, "steps": []}

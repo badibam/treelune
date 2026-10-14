@@ -185,7 +185,12 @@
     <string name="guide_talk_to_ai_6_goal">Reasoning and costs</string>
     <string name="guide_talk_to_ai_6_text">In the same settings, “Reasoning” sets how much the AI thinks before answering, for this conversation only. The more it thinks, the slower and dearer it is.\n\n“Costs” details what the conversation cost: what went out, what came back, and what was read again from the cache, cheaper because already sent.</string>
     <string name="guide_appearance_title">Appearance</string>
-    <string name="guide_appearance_intro">Themes, palettes, the colours of icons.</string>
+    <string name="guide_appearance_intro">The User interface screen, in the Settings, sets how the whole app looks: its theme, its light or dark mode, its hue, its layout and its size.</string>
+    <string name="guide_appearance_outro">The app now looks the way you want. Everything can be changed again in the same place, in Settings › User interface.</string>
+    <string name="guide_appearance_1_goal">Choose a theme</string>
+    <string name="guide_appearance_1_text">In Settings › User interface, the Theme decides how the app is drawn: its shapes, its letters, its icons. Default is clear and sober, Cosy is round and bouncy, Retro is pixel art.\n\nA theme you choose applies at once, so you can see it. Save to keep it: if you leave the screen without saving, the app goes back to the theme it had.\n\nWith the Mode, the app turns Light, Dark, or As the phone, following its changes.</string>
+    <string name="guide_appearance_2_goal">Adjust the display</string>
+    <string name="guide_appearance_2_text">Four more settings adjust the display.\n- Hue: turns the theme\'s colours round the colour wheel, by degree. At 0, the theme keeps its own. The colours of states and tags stay as they are.\n- Interface size: makes the interface larger by steps, in the themes drawn pixel by pixel like Retro, which ignore Android\'s text size\n- One column: the tiles one under the other, for a narrow screen. The arrows of the layout mode then move a tile up or down the column.\n- Interface sounds: the sounds the theme plays when you touch the screen. The Default theme has none.</string>
     <string name="guide_your_data_title">Your data</string>
     <string name="guide_your_data_intro">Backup and restore, import, export.</string>
     <string name="guide_external_access_title">External access</string>

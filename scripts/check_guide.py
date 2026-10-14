@@ -53,6 +53,7 @@ LIST_ICON = re.compile(r"^- \{([a-z0-9-]+)\} ")
 FORMS = {
     "home_config": (CORE / "config" / "AppSettings.kt", r"AppSettingCategories\.MAIN_SCREEN -> listOf"),
     "zone_config": (CORE / "schemas" / "ZoneSettings.kt", r"fun nodes\(context: Context\): List<SettingNode> "),
+    "ui_settings": (CORE / "config" / "AppSettings.kt", r"AppSettingCategories\.UI -> "),
 }
 SHARED = {"English": CORE / "strings" / "sources" / "shared.xml", "French": CORE / "strings" / "sources" / "shared-fr.xml"}
 # A setting's label, the text given right after its name: FieldDefinition("name", s.shared("label")…),
