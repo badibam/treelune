@@ -13,15 +13,12 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 
 À régler avant de soumettre :
 
-- L'importeur propose en champ nouveau une colonne qui nomme un champ que `tool_data` n'écrit pas (`state.*`, `created_at`) : il doit demander au service ce qui s'écrit, et écarter le reste en le disant.
 - Les chapitres de Prise en main du Guide (`docs/design/user-journey.md`, « Prise en main ») : des ébauches, à écrire ensemble en séance dédiée, chacun nommant tout ce que montrent ses écrans, et le contrôle de ses réglages (`covers`, même section) codé avec eux, avec les premiers sujets d'Approfondissement, partie cachée tant qu'elle est vide — Organiser couvre aussi les groupes d'outils d'une zone ; puis élaguer la spec, ses garanties devenant des tests.
 
 ## Juste après la release
 
 - Une réponse coupée par la limite de longueur (`OpenAICompatibleExtensions.kt`, `finish_reason` « length ») garde son texte et ses tokens, aujourd'hui jetés, ce qui montre gratuit un appel facturé ; à trancher : le texte montré dans la session avec l'erreur, ou seulement gardé en base. Puis rejouer les scénarios coupés du banc en supprimant leur `verdict.json`.
 - L'export des entrées d'un outil (`docs/design/export.md`) : le dossier choisi dans les réglages, l'opération `exports.csv`, « Exporter… » sur l'écran d'un outil, l'action `EXPORT_DATA` de l'IA.
-- Copier une note dans le presse-papier.
-- Copier un message de l'IA ne copie que son texte (`ChatComponents`, `preText`) : ses commandes manquent.
 - Les boutons du haut d'un outil changent de hauteur selon le nombre de lignes de son titre.
 - Le titre de l'écran de config d'un outil, écrit par chaque écran : le rendre commun, le nom de l'outil et son type.
 - La phrase de date et d'heure envoyée à l'IA (`ai_prompt_current_datetime`) ne dit pas qu'elle est écrite par le système, et non par l'utilisateur.
@@ -52,6 +49,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - L'accès externe par Tailscale Funnel (`docs/design/funnel-access.md`) : sa section (migration 68), puis élaguer aussi `funnel-poc.md`.
 - Ce qui a changé le 2026-10-11, vu en debug seulement ou pas du tout : la migration 73 (le compteur devient numérique) sur la release et ses données, l'avertissement d'arrière-plan sur une installation neuve, les automations et leurs accès, une fenêtre flottante longue dans le cosy (Mise à jour et démarrage, Automations, Réglages et affichage).
 - Ce qui a changé le 2026-10-13 (branche ai-runtime) : une routine lancée app fermée et sa notification (Automations) ; la réflexion d'une conversation, la migration 74, ses cases de validation gardées, une écriture dans un outil qui n'existe pas, un champ sans nom affiché (Chat IA).
+- Ce qui a changé le 2026-10-14 (branche data-text) : copier et sélectionner, le compteur des champs et les nouvelles limites, les fuseaux et les langues, les colonnes écartées de l'import, la sauvegarde automatique et sa marque ; la durée d'une copie, à lire dans le journal (« Auto backup: … written in N ms ») : au-delà de 50 s app fermée, la faire tourner sous le service au premier plan des routines (dernière section de la recette).
 - Les réglages de réflexion de chaque fournisseur, en envoyant une requête : Claude (Sonnet 5.5 sans réflexion par `between_tools`, Opus 5.5 sans « Sans réflexion », Haiku 4.5 sans effort), OpenAI (un modèle à `none`, un modèle qu'aucun fait ne couvre), DeepSeek (effort obligatoire, sans réflexion) ; le changement de modèle qui vide les deux réglages, l'enregistrement d'une combinaison refusée.
 
 ## Conçu, à coder
@@ -75,6 +73,7 @@ Une idée sans spec : elle demande une décision avant du code.
 
 - Des modèles d'outils prédéfinis et paramétrables (« Série de questions » suivie d'un « Avis de l'IA »…).
 - Un type de Suivi « étiquette », qui ne note qu'une étiquette.
+- Trier Notes, Liste, Journal et Données structurées par un champ (un Tri = un Champ et un sens, brique à faire de celui de Données structurées) : ranger une fois, l'ordre manuel réécrit après confirmation, ou un réglage de l'outil, manuel ou trié — à trancher.
 
 ### Interface
 
@@ -104,12 +103,6 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 
 ## Bugs du téléphone
 
-- Saivegarde auto des données avec roulement 1h 1j 1s 1m
-- Il faudrait piur sélectionner/copier davantage de textes dans l'app. Soit via fonction comme chat ia, via clic, soit via selection android, selon les xas. On passe en revue.
-- Tri par valeur de champ au choix dans liste notes etc
-- Appui long sir message système : ne copie pas / pas tout le message ?
-- Limite trop courte pour sequence dans seance, on va repasser sur tiutes les limites de texte au sein de l'app
-- Pb fudeau horaire : pas d'option qui convienne par exemple pour le portugal
 
 ## En attente d'un déclencheur
 
