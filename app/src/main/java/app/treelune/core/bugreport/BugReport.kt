@@ -35,6 +35,9 @@ class ReportCleaner {
  */
 object BugReport {
 
+    /** Where the report goes when sent to the developer, written in the mail as its recipient. */
+    const val DEVELOPER_EMAIL = "treelune@proton.me"
+
     /** How far back the log lines go. */
     const val WINDOW_MILLIS = 2 * 60 * 60_000L
 

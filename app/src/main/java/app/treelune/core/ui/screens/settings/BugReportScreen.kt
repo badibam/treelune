@@ -26,6 +26,7 @@ import app.treelune.core.ui.ButtonAction
 import app.treelune.core.ui.ButtonDisplay
 import app.treelune.core.ui.ButtonType
 import app.treelune.core.ui.CardType
+import app.treelune.core.ui.Duration
 import app.treelune.core.ui.FieldType
 import app.treelune.core.ui.Size
 import app.treelune.core.ui.TextType
@@ -33,7 +34,8 @@ import app.treelune.core.ui.UI
 
 /**
  * The bug report (docs/design/bug-report.md): a free text the user writes, then the report
- * exactly as it will go, then the share menu. What is shown is what is sent: both are
+ * exactly as it will go, sent by mail to the developer or through the share menu to wherever
+ * the user chooses. What is shown is what is sent: both are
  * [BugReport.Sources.text] of the same sources and the same free text.
  */
 @Composable
@@ -68,8 +70,14 @@ fun BugReportScreen(onBack: () -> Unit) {
                 required = false
             )
             UI.Text(s.shared("bug_report_cleaning"), TextType.CAPTION)
-            UI.Button(type = ButtonType.PRIMARY, onClick = { report?.let { share(context, it, s.shared("bug_report_subject").format(app.treelune.BuildConfig.VERSION_NAME), s.shared("bug_report_send")) } }) {
-                UI.Text(s.shared("bug_report_send"), TextType.LABEL)
+            val subject = s.shared("bug_report_subject").format(app.treelune.BuildConfig.VERSION_NAME)
+            UI.Button(type = ButtonType.PRIMARY, onClick = {
+                report?.let { if (!mail(context, it, subject)) UI.Toast(context, s.shared("bug_report_no_mail_app"), Duration.LONG) }
+            }) {
+                UI.Text(s.shared("bug_report_send_developer"), TextType.LABEL)
+            }
+            UI.Button(type = ButtonType.DEFAULT, onClick = { report?.let { share(context, it, subject, s.shared("bug_report_share")) } }) {
+                UI.Text(s.shared("bug_report_share"), TextType.LABEL)
             }
             // The report to paste elsewhere than the share sheet offers
             report?.let { text -> UI.ActionButton(action = ButtonAction.COPY, display = ButtonDisplay.LABEL, onClick = { UI.copy(context, text) }) }
@@ -79,6 +87,25 @@ fun BugReportScreen(onBack: () -> Unit) {
                 }
             }
         }
+    }
+}
+
+/**
+ * [text] written in a mail to [BugReport.DEVELOPER_EMAIL] under [subject], in the mail app the
+ * phone opens for a mailto address; false when it has none.
+ */
+private fun mail(context: Context, text: String, subject: String): Boolean {
+    val send = Intent(Intent.ACTION_SENDTO).apply {
+        data = android.net.Uri.parse("mailto:")
+        putExtra(Intent.EXTRA_EMAIL, arrayOf(BugReport.DEVELOPER_EMAIL))
+        putExtra(Intent.EXTRA_SUBJECT, subject)
+        putExtra(Intent.EXTRA_TEXT, text)
+    }
+    return try {
+        context.startActivity(send)
+        true
+    } catch (e: android.content.ActivityNotFoundException) {
+        false
     }
 }
 

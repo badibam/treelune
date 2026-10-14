@@ -1687,10 +1687,12 @@
     <string name="background_restricted_later">Plus tard</string>
     <string name="automation_message_empty">Écris le message que l\'IA recevra à chaque exécution</string>
     <string name="automation_message_empty_run">Cette routine n\'a pas encore de message : écris d\'abord celui que l\'IA recevra à chaque exécution</string>
-    <string name="bug_report_purpose">Un rapport sur ce qui n\'a pas marché, relu avant de partir, envoyé par l\'app de ton choix</string>
+    <string name="bug_report_purpose">Un rapport sur ce qui n\'a pas marché, relu avant de partir, envoyé par e-mail au développeur ou par l\'app de ton choix</string>
     <string name="bug_report_description">Ce qui s\'est passé (facultatif)</string>
     <string name="bug_report_cleaning">Ci-dessous, exactement ce qui sera envoyé. Les identifiants et les textes cités sont remplacés ; le reste peut encore nommer quelque chose de toi : relis avant d\'envoyer.</string>
-    <string name="bug_report_send">Envoyer le rapport</string>
+    <string name="bug_report_send_developer">Envoyer au développeur</string>
+    <string name="bug_report_share">Partager…</string>
+    <string name="bug_report_no_mail_app">Aucune app d\'e-mail sur ce téléphone : partage plutôt le rapport</string>
     <string name="bug_report_subject">Rapport de bug Treelune %1$s</string>
     <string name="crash_notice_title">L\'app s\'est arrêtée</string>
     <string name="crash_notice_text">L\'app s\'est arrêtée le %1$s. Un rapport peut être envoyé, relu avant de partir.</string>
