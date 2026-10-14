@@ -1466,9 +1466,6 @@
     <!-- AUTOMATIONS - General -->
     <string name="automation_display_name">Routine</string>
     <string name="automation_message_placeholder">Message de démarrage de la routine...</string>
-    <string name="automation_seed_message_label">Message actuel</string>
-    <string name="automation_enrichments_label">Enrichissements</string>
-    <string name="automation_no_message">Aucun message configuré</string>
     <string name="automation_none_configured">Aucune routine configurée</string>
     <string name="automation_triggers_none">Aucun déclencheur</string>
     <string name="automation_triggers_count">%1$d déclencheur(s)</string>

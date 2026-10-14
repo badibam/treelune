@@ -31,29 +31,11 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 
 - Réglages › Interface : un thème choisi, vu, enregistré, et l'ancien revient ; une seconde fois, ça tient (2026-10-09, pas reproduit, peut-être dans la release). Au prochain cas, lire dans le journal les lignes « Theme applied » : laquelle a remis l'ancien (STORED, PREVIEW, LEFT_UNSAVED).
 
-### Bloc 1 — la place à l'écran : des règles pour toute l'app
-
-Décider une règle par problème, puis passer tous les écrans, dans le cas le moins favorable (thème rétro, taille d'interface la plus grande, mode une colonne).
-
-- Ce qui ne passe pas à la ligne quand la place manque : les couleurs d'icône restent à 5 par ligne ; les deux boutons du Questionnaire en une colonne (« Remplir maintenant », « Avec l'IA ») restent côte à côte. Une façon unique de faire, et les autres cas analogues.
-- Les marges en mode une colonne : trop grandes sur les bords, en rétro au moins. Les fenêtres flottantes ont déjà pris presque toute la largeur (`FloatingDialog`, une case de marge en rétro, 2026-10-11) : à juger avec le reste.
-- La place du texte face aux poignées : dans une liste qu'on réordonne (Notes), la colonne de la poignée prend trop ; dans les accès d'une automation, poignée d'un côté et suppression de l'autre, il reste très peu pour le texte.
-- « il y a… » face au titre : dans une tuile de Journal, il prend toute la place et coupe le titre ; dans le Suivi en rétro, il est coupé alors qu'il a la place de deux lignes. Options à discuter.
-
-### Bloc 2 — le Guide et les textes
-
-- Guide, clavier ouvert : la barre du bas reste, et l'éditeur est écrasé ; la replier tant que le clavier est là.
-
-### Petites décisions
-
-- Accueil : le titre de l'app dans l'en-tête, entre les boutons.
-- Rétro : le point de notification (l'icône du Guide, par exemple) ne se voit pas au coin d'un cadre ; le grossir ?
-- Les accès d'une automation, sur l'écran de son message : la liste ne s'étend pas, le bas se tasse dès qu'on en ajoute un et le bouton s'écrase ; et tout ce texte sur le même écran est de trop. Avis à donner : un bouton qui ouvre un écran à part.
-
 ## À passer sur le téléphone
 
 Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/design/device-checks.md` (la recette, classée par écran) ; passé, sa spec s'élague, ses garanties devenant des tests.
 
+- La place à l'écran (2026-10-14) : marge de bord unique, rangées de boutons, grille de choix, clavier, poignées, dates des tuiles, point d'attente du rétro, page du message d'une routine (Réglages et affichage, Automations).
 - Les outils manquants (sélection du cœur, RÉFÉRENCE, lecture du cœur, variables, Données structurées et import, Objectif, Questionnaire, Graphique) : puis élaguer de `docs/design/missing-tools.md` ce qui est codé.
 - Le thème rétro (`docs/design/retro-theme.md`), vu le 2026-10-01 (écran d'une zone, palette pâle, marges reprises) : le parcourir écran par écran, les graduations en pointillé de ses graphiques et le damier du mode d'édition de la grille compris, puis ce que la spec garde dans « Ce qui reste ouvert ».
 - Le thème cosy (`docs/design/cosy-theme.md`, maquettes liées dedans) : l'essayer, puis ce que la spec garde dans « Ce qui reste ouvert », le banc des palettes d'abord.
@@ -123,11 +105,9 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 
 - Saivegarde auto des données avec roulement 1h 1j 1s 1m
 - Il faudrait piur sélectionner/copier davantage de textes dans l'app. Soit via fonction comme chat ia, via clic, soit via selection android, selon les xas. On passe en revue.
-- Fenêtre dédition de aitomation, dès que trop grande, les boutons du bas disparaissent
 - Tri par valeur de champ au choix dans liste notes etc
 - Appui long sir message système : ne copie pas / pas tout le message ?
 - Limite trop courte pour sequence dans seance, on va repasser sur tiutes les limites de texte au sein de l'app
-- Quand clavier ouvert : il faidraot toujours avoir au moins la taille du clavier en + en bas de page, de façon à pouvoir affocher jusqu au bas de page.
 - Pb fudeau horaire : pas d'option qui convienne par exemple pour le portugal
 
 ## En attente d'un déclencheur
