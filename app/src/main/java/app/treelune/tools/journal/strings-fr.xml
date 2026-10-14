@@ -5,10 +5,10 @@
     <!-- Métadonnées -->
     <string name="display_name">Journal</string>
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
-    <string name="usage">Pour écrire ce qui se passe, daté : un journal de bord, des réflexions, le compte rendu d\'une journée.\n## Ce qu\'il fait\n- Chaque entrée est datée, et la liste est triée par date\n## Pas fait pour\n- Une valeur à suivre dans le temps (Suivi)\n- Un texte qu\'on retouche sans date (Notes)</string>
+    <string name="usage">Pour raconter ce qui se passe, avec la date : un journal de bord, des réflexions, le récit d\'une journée.\n## Ce qu\'il fait\n- Chaque entrée est datée, et la liste suit l\'ordre des dates\n## Pas fait pour\n- Une valeur à suivre dans le temps (Suivi)\n- Un texte qu\'on retouche, sans date (Notes)</string>
     <!-- The Guide's chapter, beside the usage: every setting of the config, every button of the screen (GuideMarkup) -->
-    <string name="guide_config">## L\'ordre\n- Ordre de tri : les plus récentes en haut, ou les plus anciennes</string>
-    <string name="guide_screen">## Écrire\n- {plus} Crée une entrée\nUne entrée a une date et une heure, un titre et son texte.\nTouche la date ou l\'heure pour les changer.\n\n## Une entrée\n- {pencil} La modifie\n- {check} L\'enregistre\n- {copy} Copie son texte\n- {trash} La supprime</string>
+    <string name="guide_config">## L\'ordre\n- Ordre de tri : les entrées les plus récentes en haut, ou les plus anciennes</string>
+    <string name="guide_screen">## Écrire\n- {plus} Crée une entrée\nUne entrée a une date, une heure, un titre et un texte. Touche la date ou l\'heure pour les changer.\n\n## Une entrée\n- {pencil} La modifie\n- {check} L\'enregistre\n- {copy} Copie son texte\n- {trash} La supprime</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Un carnet daté, écrit ou dicté</string>
 
