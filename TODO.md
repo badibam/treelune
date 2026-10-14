@@ -13,7 +13,7 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 
 À régler avant de soumettre :
 
-- Les chapitres de Prise en main du Guide (`docs/design/user-journey.md`, « Prise en main ») encore à écrire : Relier, Organiser, Apparence, Quand ça coince, Accès externe, Tes données, au format des chapitres écrits (Parler à l'IA, les outils : phrases courtes, sous-titres, icônes des boutons), chacun nommant tout ce que montrent ses écrans ; le contrôle de leurs réglages (`covers`, même section) codé avec le premier qui couvre un formulaire ; puis les premiers sujets d'Approfondissement, partie cachée tant qu'elle est vide.
+- Les premiers sujets d'Approfondissement du Guide (`docs/design/user-journey.md`), partie cachée tant qu'elle est vide, écrits dans la langue du Guide (même spec, « La langue »).
 
 ## Juste après la release
 
