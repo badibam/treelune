@@ -1837,6 +1837,8 @@
     <string name="access_target_app">the home screen and the creation of zones</string>
     <string name="access_target_zone">the zone « %1$s »</string>
     <string name="access_target_tool">the tool « %1$s »</string>
+    <string name="access_widening">%1$s cannot give a routine « %3$s » access to %2$s, beyond its own access</string>
+    <string name="access_widening_open">%1$s cannot give a routine access to everything: list what it reaches, within its own access</string>
     <string name="service_error_protection_user_only">« %1$s » can only be changed in the app, by the user</string>
     <string name="service_error_icon_color_unknown">Unknown icon colour: \'%1$s\'. One of %2$s, or null for none</string>
     <string name="action_verbalize_icons_overview">Overview of the icons</string>

@@ -1837,6 +1837,8 @@
     <string name="access_target_app">l\'accueil et la création de zones</string>
     <string name="access_target_zone">la zone « %1$s »</string>
     <string name="access_target_tool">l\'outil « %1$s »</string>
+    <string name="access_widening">%1$s ne peut pas donner à une routine l\'accès « %3$s » à %2$s, hors de son propre accès</string>
+    <string name="access_widening_open">%1$s ne peut pas donner à une routine l\'accès à tout : liste ce qu\'elle atteint, dans son propre accès</string>
     <string name="service_error_protection_user_only">« %1$s » ne se change que dans l\'app, par l\'utilisateur</string>
     <string name="service_error_icon_color_unknown">Couleur d\'icône inconnue : \'%1$s\'. Une parmi %2$s, ou null pour aucune</string>
     <string name="action_verbalize_icons_overview">Vue d\'ensemble des icônes</string>

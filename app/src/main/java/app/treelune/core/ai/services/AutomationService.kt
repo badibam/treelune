@@ -224,21 +224,24 @@ class AutomationService(private val context: Context) : ExecutableService {
 
     /**
      * The access [params] give (`access`, a list of `{"target": {"kind", "id"}, "level"}`,
-     * AccessMask), [stored] when they give none. It is a person's to change (Protections): what
-     * the AI may reach is not the AI's to widen.
+     * AccessMask), [stored] when they give none. An AI held to a mask (AccessScope: a routine's, a
+     * connector client's) leaves a routine no wider than its own, whether it gives the access or
+     * keeps it: a routine it writes runs with it, and would reach what the AI writing it cannot.
      */
     private suspend fun accessGiven(params: JSONObject, stored: String): Given {
-        if (!params.has("access")) return Given.Kept(stored)
-        val given = params.optJSONArray("access") ?: return Given.Refused(s.shared("automation_access_unreadable").format(params.opt("access")))
-        val mask = try {
-            app.treelune.core.access.AccessMask.fromJson(given.toString())
-        } catch (e: Exception) {
-            return Given.Refused(s.shared("automation_access_unreadable").format(e.message ?: ""))
+        val mask = if (!params.has("access")) app.treelune.core.access.AccessMask.fromJson(stored) else {
+            val given = params.optJSONArray("access") ?: return Given.Refused(s.shared("automation_access_unreadable").format(params.opt("access")))
+            try {
+                app.treelune.core.access.AccessMask.fromJson(given.toString())
+            } catch (e: Exception) {
+                return Given.Refused(s.shared("automation_access_unreadable").format(e.message ?: ""))
+            }
         }
-        val json = mask.toJson().toString()
-        app.treelune.core.coordinator.Protections.refusal(s.shared("automation_access_title"), false, json != app.treelune.core.access.AccessMask.fromJson(stored).toJson().toString(), s)
-            ?.let { return Given.Refused(it) }
-        return Given.Kept(json)
+        kotlin.coroutines.coroutineContext[app.treelune.core.access.AccessScope]?.let { scope ->
+            app.treelune.core.access.AccessRules.widening(mask, scope.mask, scope.holder,
+                app.treelune.core.access.DatabaseAccessLookups(context), s::shared)?.let { return Given.Refused(it) }
+        }
+        return Given.Kept(mask.toJson().toString())
     }
 
     /**
