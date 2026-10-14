@@ -98,7 +98,21 @@
         {"kind": "read", "target": "zone/{zone}"}
       ]
     },
-    {"id": "connect", "part": "getting_started", "icon": "link", "minutes": 5, "steps": []},
+    {
+      "id": "connect",
+      "part": "getting_started",
+      "icon": "link",
+      "minutes": 8,
+      "steps": [
+        {"kind": "read"},
+        {"kind": "do",
+          "await": {"operation": "variables.create", "origin": "USER"}, "keep": {"zone": "zone_id"}},
+        {"kind": "do", "target": "zone/{zone}",
+          "await": {"operation": "variables.create", "origin": "USER"}},
+        {"kind": "read", "target": "zone/{zone}"},
+        {"kind": "read"}
+      ]
+    },
     {
       "id": "talk_to_ai",
       "part": "getting_started",
