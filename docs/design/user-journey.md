@@ -46,7 +46,8 @@ Pas de diaporama, rien sur l'IA.
 
 Le Guide s'adresse à quelqu'un qui découvre l'app, pas à qui connaît son code : rien du registre de la doc interne et des commits.
 
-- Une phrase, une idée, avec un verbe et une personne pour sujet (toi, l'IA). Jamais une chose qui agit : ni « la routine garde un message », ni « le message ouvre une conversation », ni « la bulle ouvre », mais « tu prépares un message », « touche la bulle pour commencer une conversation ».
+- Une phrase, une idée, avec un vrai verbe. Jamais une chose qui agit à la place de quelqu'un : ni « la routine garde un message », ni « le message ouvre une conversation », mais « un message se prépare une fois », « touche la bulle pour commencer une conversation ».
+- Pas d'avalanche de tu, ton, ta, tes : un article suffit quand on sait de qui il s'agit (« une première zone », « la liste »), et « on » ou une tournure passive allègent.
 - Le pourquoi avant le comment : à quoi ça te sert, puis où toucher. Nommer un bouton se fait dans une phrase qui dit pourquoi le toucher.
 - Les deux-points annoncent une liste ou un exemple, jamais une moitié de phrase ; pas de point-virgule.
 - Un mot de l'app (entrée, zone, pointeur, tentative) s'explique à sa première apparition, puis reste le même : « configuration », pas « config ».
