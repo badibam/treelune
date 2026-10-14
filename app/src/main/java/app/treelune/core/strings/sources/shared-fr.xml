@@ -2001,4 +2001,9 @@
     <string name="session_reasoning_summary_effort">effort %1$s</string>
     <string name="session_reasoning_error">Échec du changement de la réflexion</string>
     <string name="ai_session_reasoning_refused_shown">La réflexion réglée pour cette conversation ne convient pas au modèle actuel de l\'IA : change-la dans les paramètres de la conversation.</string>
+    <string name="automation_access_all">Accès : tout</string>
+    <string name="automation_access_count">Accès : %1$d</string>
+    <string name="time_short_minutes">%1$d min</string>
+    <string name="time_short_hours">%1$d h</string>
+    <string name="time_short_days">%1$d j</string>
 </resources>

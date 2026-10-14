@@ -648,7 +648,7 @@ private fun DataConfirmationCard(
                 text = s.shared("ai_data_confirmation_text").format(dataChars, maxDataChars),
                 type = TextType.BODY
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+            app.treelune.core.ui.components.ButtonRow {
                 UI.Button(type = ButtonType.PRIMARY, size = Size.M, onClick = onSend) {
                     UI.Text(text = s.shared("ai_data_confirmation_send"), type = TextType.BODY)
                 }

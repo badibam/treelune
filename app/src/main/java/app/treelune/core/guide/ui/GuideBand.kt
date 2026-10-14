@@ -35,7 +35,8 @@ import app.treelune.core.ui.UI
  * The band of the tutorial in progress, under every screen and in the chat. Folded, two lines and
  * an arrow: the tutorial's title, then « 2/6 · its step ». Unfolded, the step's explanation, the
  * way to its place from the screen on display, Next on a step to read, and hiding the tutorial.
- * No button takes the user to the place: the gestures are theirs to make.
+ * No button takes the user to the place: the gestures are theirs to make. It goes while the
+ * keyboard is open.
  */
 @Composable
 fun GuideBand() {
@@ -45,6 +46,8 @@ fun GuideBand() {
     if (!progress.welcomeSeen || progress.bandHidden) return
     val (chapter, step) = Guide.current ?: return
     var open by rememberSaveable { mutableStateOf(false) }
+    // Gone while the keyboard is open, the screen's room going to what is typed (keyboardOpen)
+    if (app.treelune.core.ui.keyboardOpen()) return
 
     val target = Guide.target(chapter, step)
     // The names of the places on the way: a tool not visited yet is read once
@@ -76,7 +79,7 @@ fun GuideBand() {
                         here -> UI.Text(s.shared("guide_band_here"), TextType.CAPTION)
                         gestures != null -> UI.Text(s.shared("guide_band_from_here").format(GuidePath.sentence(gestures, s.shared("guide_path_then"))), TextType.CAPTION)
                     }
-                    Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+                    app.treelune.core.ui.components.ButtonRow {
                         if (step.kind == StepKind.READ) {
                             val ready = target == null || here
                             UI.Button(type = ButtonType.PRIMARY, state = if (ready) app.treelune.core.ui.ComponentState.NORMAL else app.treelune.core.ui.ComponentState.DISABLED, onClick = { Guide.next() }) {

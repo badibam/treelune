@@ -2001,4 +2001,9 @@
     <string name="session_reasoning_summary_effort">effort %1$s</string>
     <string name="session_reasoning_error">Failed to change the reasoning</string>
     <string name="ai_session_reasoning_refused_shown">The reasoning set for this conversation does not suit the AI\'s current model: change it in the conversation\'s settings.</string>
+    <string name="automation_access_all">Access: all</string>
+    <string name="automation_access_count">Access: %1$d</string>
+    <string name="time_short_minutes">%1$d min</string>
+    <string name="time_short_hours">%1$d h</string>
+    <string name="time_short_days">%1$d d</string>
 </resources>

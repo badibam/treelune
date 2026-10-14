@@ -274,7 +274,7 @@ fun UI.RichComposer(
                         update(deletion.blocks)
                         activeBlockId = deletion.activeId
                     },
-                    handle = { DragHandle() }
+                    bar = { end -> DragBar(end) }
                 ) {
                     when (val segment = block.segment) {
                         is MessageSegment.Text -> TextBlockContent(
@@ -405,15 +405,16 @@ private data class EnrichmentDialogState(
 )
 
 /**
- * The frame every block shares, whatever its type: the handle it is dragged by, its content,
- * and its delete button; highlighted when active, activated when touched.
+ * The frame every block shares, whatever its type: a band across its top, the grip it is dragged
+ * by with its delete button at the end ([bar], given that button), then its content across the
+ * whole width; highlighted when active, activated when touched.
  */
 @Composable
 private fun BlockCard(
     isActive: Boolean,
     onActivate: () -> Unit,
     onDelete: () -> Unit,
-    handle: @Composable () -> Unit,
+    bar: @Composable (end: @Composable () -> Unit) -> Unit,
     content: @Composable () -> Unit
 ) {
     Box(
@@ -425,21 +426,20 @@ private fun BlockCard(
             type = CardType.DEFAULT,
             highlight = isActive
         ) {
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(UI.Space.S),
-                horizontalArrangement = Arrangement.spacedBy(UI.Space.S),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(start = UI.Space.S, end = UI.Space.S, bottom = UI.Space.S)
             ) {
-                handle()
-                Box(modifier = Modifier.weight(1f)) { content() }
-                UI.ActionButton(
-                    action = ButtonAction.DELETE,
-                    display = ButtonDisplay.ICON,
-                    size = Size.S,
-                    onClick = onDelete
-                )
+                bar {
+                    UI.ActionButton(
+                        action = ButtonAction.DELETE,
+                        display = ButtonDisplay.ICON,
+                        size = Size.S,
+                        onClick = onDelete
+                    )
+                }
+                content()
             }
         }
     }

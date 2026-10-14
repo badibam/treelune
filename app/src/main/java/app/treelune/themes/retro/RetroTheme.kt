@@ -1,5 +1,6 @@
 package app.treelune.themes.retro
 
+import app.treelune.core.ui.components.LocalButtonFill
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
@@ -203,11 +204,11 @@ object RetroTheme : ThemeContract {
     @Composable
     override fun tileFrame(displayMode: DisplayMode): Dp = retroGrid().cells(1)
 
-    /** Every space a whole number of cells: the three small ones one cell, then two, then three. */
+    /** Every space a whole number of cells: the three small ones and the page's edge one cell, then two, then three. */
     @Composable
     override fun spacing(spacing: Spacing): Dp = retroGrid().cells(
         when (spacing) {
-            Spacing.XS, Spacing.S, Spacing.M -> 1
+            Spacing.XS, Spacing.S, Spacing.M, Spacing.EDGE -> 1
             Spacing.L -> 2
             Spacing.XL -> 3
         }
@@ -223,7 +224,7 @@ object RetroTheme : ThemeContract {
         Pressable(onClick = onClick, enabled = enabled) { pressed ->
             TouchRoom {
                 Framed(compact = true, minRows = touchRows, pressed = pressed, off = !enabled) {
-                    CompositionLocalProvider(LocalRetroInk provides buttonInk(type, enabled)) { content() }
+                    ButtonContent { CompositionLocalProvider(LocalRetroInk provides buttonInk(type, enabled)) { content() } }
                 }
             }
         }
@@ -262,7 +263,7 @@ object RetroTheme : ThemeContract {
                 IconFrame(action.iconName, label, ink, retroGrid().touch, down, off = !enabled)
             } else {
                 TouchRoom {
-                    Framed(compact = true, minRows = touchRows, pressed = down, off = !enabled) { Line(label, retroGrid().text, ink) }
+                    Framed(compact = true, minRows = touchRows, pressed = down, off = !enabled) { ButtonContent { Line(label, retroGrid().text, ink) } }
                 }
             }
         }
@@ -404,8 +405,17 @@ object RetroTheme : ThemeContract {
 
     @Composable
     override fun DragHandle() {
-        Box(modifier = Modifier.padding(retroGrid().cells(1))) {
+        // As wide as the grip, a cell above and under it: the text beside it keeps the width
+        Box(modifier = Modifier.padding(vertical = retroGrid().cells(1))) {
             CompositionLocalProvider(LocalRetroInk provides retroSurface.dim.srgb) { NamedIcon("grip-vertical", null) }
+        }
+    }
+
+    /** The grip on its own row of the grid, centred: as high as the icon. */
+    @Composable
+    override fun DragBar() {
+        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            CompositionLocalProvider(LocalRetroInk provides retroSurface.dim.srgb) { NamedIcon("grip-horizontal", null) }
         }
     }
 
@@ -637,10 +647,16 @@ object RetroTheme : ThemeContract {
     override fun ZoneCardContainer(onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
         Tile(onClick, onLongClick, content)
 
-    /** A dot of four pixels in the info colour. */
+    /**
+     * A dot of six pixels in the info colour, ringed by a pixel of the ground it stands on: at the
+     * corner of a frame, the ring cuts the frame's line, which the dot would otherwise melt into.
+     */
     @Composable
     override fun WaitingMark() {
-        Box(modifier = Modifier.size(retroGrid().dp(4)).background(retroSurface.info.srgb))
+        val grid = retroGrid()
+        Box(modifier = Modifier.background(retroSurface.ground.srgb).padding(grid.dp(1))) {
+            Box(modifier = Modifier.size(grid.dp(6)).background(retroSurface.info.srgb))
+        }
     }
 
     /**
@@ -869,16 +885,6 @@ object RetroTheme : ThemeContract {
                 }
             }
         }
-    }
-
-    @Composable
-    override fun FormActions(content: @Composable RowScope.() -> Unit) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(retroGrid().cells(1), Alignment.CenterHorizontally),
-            verticalAlignment = Alignment.CenterVertically,
-            content = content
-        )
     }
 
     /** Symbols of the font, no frame: the check between brackets, or the brackets empty. */
@@ -1180,6 +1186,13 @@ object RetroTheme : ThemeContract {
     private val touchRows: Int
         @Composable get() = retroGrid().touch
 
+    /** A button's content in its frame: filling (LocalButtonFill), the frame takes the width it is given, the content centred. */
+    @Composable
+    private fun ButtonContent(content: @Composable () -> Unit) {
+        if (LocalButtonFill.current) Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { content() }
+        else content()
+    }
+
     /** A target a finger can take: at least a finger's target tall, the frame centred in the empty rows. */
     @Composable
     private fun TouchRoom(content: @Composable () -> Unit) {
@@ -1276,7 +1289,7 @@ object RetroTheme : ThemeContract {
     @Composable
     private fun DialogFrame(onDismiss: () -> Unit, actions: @Composable RowScope.() -> Unit, content: @Composable ColumnScope.() -> Unit) {
         val grid = retroGrid()
-        app.treelune.core.ui.components.FloatingDialog(onDismissRequest = onDismiss, margin = grid.cells(1)) {
+        app.treelune.core.ui.components.FloatingDialog(onDismissRequest = onDismiss, margin = spacing(Spacing.EDGE)) {
             Framed(modifier = Modifier.fillMaxWidth()) {
                 Column(verticalArrangement = Arrangement.spacedBy(grid.cells(1))) {
                     Column(modifier = Modifier.weight(1f, fill = false), verticalArrangement = Arrangement.spacedBy(grid.cells(1)), content = content)

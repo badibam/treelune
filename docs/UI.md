@@ -9,10 +9,10 @@ Guide des patterns et composants UI pour maintenir cohérence et simplicité.
 **Métier** : Composants spécialisés (ZoneCard, ToolCard)
 
 ### Layout Standard
-Column avec fillMaxWidth, padding vertical `UI.Space.L` et espacement automatique entre éléments.
+Column avec fillMaxWidth, padding vertical `UI.Space.L` et espacement automatique entre éléments. Un écran ne pose aucune marge sur les côtés : la marge de bord (`UI.Space.EDGE`, la plus petite que le thème permette, 1 case en rétro, 8 dp ailleurs) est donnée une fois par `MainScreen` autour du lieu affiché, et c'est aussi celle d'une fenêtre flottante (`FloatingDialog`).
 
 ### Espacements
-Un écran n'écrit jamais un espacement en dp : il le nomme, `UI.Space.XS`, `S`, `M`, `L` ou `XL`, et le thème en donne la taille (`ThemeContract.spacing`) — 4, 8, 12, 16 et 24 dp pour le thème par défaut, des cellules entières pour le thème rétro. Sont des espacements les arguments de `padding()`, `Arrangement.spacedBy()` et `PaddingValues()`, la hauteur ou la largeur d'un `Spacer`, et un argument `spacing =` ; `scripts/check_spacing.py` refuse un dp à ces endroits, hors du code des thèmes. Une taille (d'icône, de bloc) n'est pas un espacement.
+Un écran n'écrit jamais un espacement en dp : il le nomme, `UI.Space.XS`, `S`, `M`, `L`, `XL` ou `EDGE`, et le thème en donne la taille (`ThemeContract.spacing`) — 4, 8, 12, 16 et 24 dp pour le thème par défaut, des cellules entières pour le thème rétro. Sont des espacements les arguments de `padding()`, `Arrangement.spacedBy()` et `PaddingValues()`, la hauteur ou la largeur d'un `Spacer`, et un argument `spacing =` ; `scripts/check_spacing.py` refuse un dp à ces endroits, hors du code des thèmes. Une taille (d'icône, de bloc) n'est pas un espacement.
 
 ### Sons de l'interface
 Un composant `UI.*` envoie un signal de la liste fermée `UISignal` (confirmer, entrer, revenir, ouvrir, fermer, cocher, cran, bout de liste, refus) ; le thème dit quel son y répond (`ThemeContract.sound`, null pour le silence) et `UISounds` le joue sur une seule piste, si le réglage « Sons de l'interface » (catégorie `ui`) est activé. Un écran ne joue jamais de son lui-même. Un élément désactivé reçoit encore le toucher, pour le seul son de refus. Le bout d'une liste s'entend à la racine de chaque fenêtre (`Modifier.scrollEndSound()`), jamais liste par liste : une nouvelle fenêtre de dialogue faite à la main le pose à sa racine.
@@ -41,7 +41,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 ```
 
-**Rationale** : Le scroll garantit que tout le contenu reste accessible sur tous les appareils, quelle que soit la taille de l'écran, la quantité de contenu affichée, ou la présence du clavier.
+**Rationale** : Le scroll garantit que tout le contenu reste accessible sur tous les appareils, quelle que soit la taille de l'écran, la quantité de contenu affichée, ou la présence du clavier. Le clavier ouvert, la fenêtre se réduit à ce qu'il laisse (`adjustResize`, sur l'activité) : une page défile jusqu'à son bas au-dessus de lui. Ce qui tient fixe en bas de l'écran monterait avec, donc s'efface tant qu'il est ouvert (`keyboardOpen()`) : la bande du Guide, le bouton de la conversation.
 
 **Exceptions** : Seuls les conteneurs avec LazyColumn/LazyRow (qui ont leur propre scroll natif) sont exemptés.
 
@@ -193,6 +193,10 @@ Pattern LaunchedEffect pour afficher et reset automatiquement les messages d'err
 
 **UI.FormActions** - Container standardisé pour boutons de formulaire avec ActionButton (SAVE, CANCEL, DELETE conditionnel).
 
+**ButtonRow** - Toute rangée de boutons : côte à côte s'ils tiennent tous à leur largeur, sinon chacun sur sa ligne en pleine largeur, dans l'ordre donné (le principal d'abord) — jamais une partie seulement renvoyée à la ligne. `UI.FormActions` en est la version centrée. Un bouton s'étire en lisant `LocalButtonFill`, que chaque thème honore. Un texte ne partage pas la ligne de ses boutons : il passe au-dessus.
+
+**ChoiceGrid** - Des choix d'une même taille (couleurs, icônes) : autant de colonnes que la largeur en tient à la taille d'une case d'exemple, chaque ligne partagée à parts égales ; jamais un nombre par ligne écrit dans un écran. Des éléments de tailles différentes (pastilles, valeurs) passent à la ligne par `FlowRow`.
+
 ### Pattern State/Controller
 **RecordingController** - Logique métier expose `StateFlow<RecordingState>` observable. Actions via méthodes (start, pause, resume, validate).
 
@@ -276,7 +280,6 @@ Trois thèmes, inscrits dans `ThemeScanner` : le défaut (Material), le rétro (
 - **Entre sections** : spacedBy(UI.Space.L)
 - **Vertical screens** : padding(vertical = UI.Space.L)
 - **Cards internes** : padding(UI.Space.L)
-- **Sections hors cards** : padding(horizontal = UI.Space.L)
 
 ## Pattern Loading/Error Standard
 

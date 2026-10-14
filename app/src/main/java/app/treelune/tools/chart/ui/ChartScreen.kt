@@ -67,7 +67,7 @@ fun ChartScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureC
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(UI.Space.L).verticalScroll(rememberScrollState()).chatButtonSpace(),
+        modifier = Modifier.fillMaxSize().padding(vertical = UI.Space.L).verticalScroll(rememberScrollState()).chatButtonSpace(),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         val loaded = config

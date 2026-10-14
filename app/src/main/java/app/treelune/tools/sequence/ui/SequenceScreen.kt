@@ -176,7 +176,7 @@ fun SequenceScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigu
     val running = loaded.firstOrNull { it.run != null }
 
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).chatButtonSpace().padding(UI.Space.L),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).chatButtonSpace().padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         UI.PageHeader(
@@ -249,7 +249,7 @@ private fun Running(id: String, run: SequenceRun, s: StringsContext, gesture: (S
 @Composable
 private fun Interrupted(s: StringsContext, onResume: () -> Unit, onStop: () -> Unit) {
     UI.Text(s.tool("interrupted"), TextType.BODY)
-    Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.M)) {
+    app.treelune.core.ui.components.ButtonRow {
         UI.Button(type = ButtonType.PRIMARY, onClick = onResume) { UI.Text(s.tool("action_resume_interrupted"), TextType.LABEL) }
         UI.Button(type = ButtonType.SECONDARY, onClick = onStop) { UI.Text(s.tool("action_stop"), TextType.LABEL) }
     }
@@ -274,8 +274,9 @@ private fun Idle(config: JSONObject, entries: List<SequenceEntry>, s: StringsCon
             UI.Button(type = ButtonType.DEFAULT, onClick = { call(SequenceService.IGNORE_ALL, emptyMap()) {} }) { UI.Text(s.tool("action_ignore_all"), TextType.LABEL) }
         }
         planned.forEach { entry ->
-            Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
-                UI.Text(DateTimeFormatter.formatForDisplay(entry.timestamp, context), TextType.BODY)
+            // The date across the width, its buttons under it
+            UI.Text(DateTimeFormatter.formatForDisplay(entry.timestamp, context), TextType.BODY)
+            app.treelune.core.ui.components.ButtonRow {
                 UI.Button(type = ButtonType.SECONDARY, onClick = { call(SequenceService.COMPLETE, mapOf("id" to entry.id)) {} }) { UI.Text(s.tool("action_mark_done"), TextType.LABEL) }
                 UI.Button(type = ButtonType.DEFAULT, onClick = { call(SequenceService.IGNORE, mapOf("id" to entry.id)) {} }) { UI.Text(s.tool("action_ignore"), TextType.LABEL) }
             }

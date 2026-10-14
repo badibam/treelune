@@ -1,5 +1,6 @@
 package app.treelune.themes.default
 
+import app.treelune.core.ui.components.LocalButtonFill
 import app.treelune.core.ui.sound.scrollEndSound
 
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -120,6 +121,7 @@ object DefaultTheme : ThemeContract {
         app.treelune.core.ui.Spacing.M -> 12.dp
         app.treelune.core.ui.Spacing.L -> 16.dp
         app.treelune.core.ui.Spacing.XL -> 24.dp
+        app.treelune.core.ui.Spacing.EDGE -> 8.dp
     }
 
 
@@ -383,7 +385,8 @@ object DefaultTheme : ThemeContract {
         ) {
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.padding(config.padding)
+                // Filling (LocalButtonFill), the button takes the width it is given
+                modifier = Modifier.let { if (LocalButtonFill.current) it.fillMaxWidth() else it }.padding(config.padding)
             ) {
                 CompositionLocalProvider(LocalDefaultInk provides ink) { content() }
             }
@@ -769,15 +772,31 @@ object DefaultTheme : ThemeContract {
         val iconResource = requireNotNull(app.treelune.core.icons.Icons.drawable(context, "grip-vertical")) {
             "No drawable for the icon grip-vertical"
         }
-        // Padded to a finger's width: the grip is small, the place it is taken by is not
+        // As wide as the grip, a finger's height: the text beside it keeps the width
         Icon(
             painter = painterResource(iconResource),
             contentDescription = null,
             modifier = Modifier
-                .padding(8.dp)
+                .padding(vertical = 14.dp)
                 .size(20.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
+    }
+
+    @Composable
+    override fun DragBar() {
+        val context = LocalContext.current
+        val iconResource = requireNotNull(app.treelune.core.icons.Icons.drawable(context, "grip-horizontal")) {
+            "No drawable for the icon grip-horizontal"
+        }
+        Box(modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp), contentAlignment = Alignment.Center) {
+            Icon(
+                painter = painterResource(iconResource),
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 
     @Composable
@@ -1020,7 +1039,7 @@ object DefaultTheme : ThemeContract {
         }
         
         // Material's alert dialog drawn in a window that keeps itself clear of the keyboard
-        app.treelune.core.ui.components.FloatingDialog(onDismissRequest = onCancel, margin = 24.dp) {
+        app.treelune.core.ui.components.FloatingDialog(onDismissRequest = onCancel, margin = spacing(app.treelune.core.ui.Spacing.EDGE)) {
             androidx.compose.material3.Surface(
                 modifier = Modifier.widthIn(min = 280.dp, max = 560.dp),
                 shape = androidx.compose.material3.AlertDialogDefaults.shape,
@@ -1273,18 +1292,6 @@ object DefaultTheme : ThemeContract {
                 }
             }
         }
-    }
-    
-    @Composable
-    override fun FormActions(
-        content: @Composable RowScope.() -> Unit
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
-            verticalAlignment = Alignment.CenterVertically,
-            content = content
-        )
     }
     
     @Composable

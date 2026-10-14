@@ -28,7 +28,7 @@ fun NoteCard(
     contextMenuNoteId: String? = null,
     onNoteClick: () -> Unit = {}, // Opens edit dialog
     onContextMenuChanged: (Boolean) -> Unit = {},
-    dragHandle: (@Composable () -> Unit)? = null, // The grip the note is reordered by
+    dragHandle: (@Composable () -> Unit)? = null, // The band across its top it is reordered by
     onAddAbove: () -> Unit = {},
     onDelete: () -> Unit = {}
 ) {
@@ -42,10 +42,12 @@ fun NoteCard(
 
     UI.Card(type = CardType.DEFAULT) {
         Box {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            // The grip across the top, the text under it taking the whole width
+            Column {
+                dragHandle?.invoke()
                 Column(
                     modifier = Modifier
-                        .weight(1f)
+                        .fillMaxWidth()
                         .let { modifier ->
                             if (isPlaceholder) {
                                 modifier.clickable { onAddAbove() } // Placeholder click creates note
@@ -64,7 +66,8 @@ fun NoteCard(
                                 )
                             }
                         }
-                        .padding(UI.Space.L)
+                        // The band stands in the place of the top margin
+                        .padding(start = UI.Space.L, end = UI.Space.L, bottom = UI.Space.L, top = if (dragHandle != null) 0.dp else UI.Space.L)
                 ) {
                     // Content display logic
                     when {
@@ -120,8 +123,6 @@ fun NoteCard(
                         }
                     }
                 }
-
-                dragHandle?.invoke()
             }
 
             // Context menu overlay

@@ -94,7 +94,7 @@ fun rememberMessagesTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolT
                         message.displayTitle,
                         modifier = Modifier.clickable { open(EntryToOpen.Existing(message.id)) },
                         type = if (message.read) TextType.CAPTION else TextType.STRONG,
-                        trailing = { UI.Text(FormatUtils.formatRelativeTimePast(message.dueAt, context), TextType.CAPTION, maxLines = 1) }
+                        trailing = { UI.Text(FormatUtils.formatRelativeTimeShort(message.dueAt, context), TextType.CAPTION, maxLines = 1) }
                     )
                 }
             }

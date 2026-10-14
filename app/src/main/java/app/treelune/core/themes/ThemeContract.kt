@@ -207,11 +207,20 @@ interface ThemeContract {
     fun Divider()
 
     /**
-     * The grip an item of a reorderable list is dragged by. Only its look: the gesture is the
-     * core's (`ReorderableColumn`), which wraps it.
+     * The grip at the side of an item of one line of a reorderable list. Only its look: the
+     * gesture is the core's (`ReorderableColumn`), which wraps it. As wide as its icon, the text
+     * beside it keeping the width; the finger's room is taken in height.
      */
     @Composable
     fun DragHandle()
+
+    /**
+     * The band across the top of an item of several lines of a reorderable list (a note, a block
+     * of a message), all of it a grip: a horizontal grip centred, as thin as the theme allows.
+     * Only its look, filling the width it is given: the gesture is the core's.
+     */
+    @Composable
+    fun DragBar()
 
     /**
      * An item of a reorderable list, [lifted] while it is being dragged. Only its look: where it
@@ -429,11 +438,6 @@ interface ThemeContract {
         shown: String,
         onSelect: (Int) -> Unit,
         required: Boolean
-    )
-    
-    @Composable
-    fun FormActions(
-        content: @Composable RowScope.() -> Unit
     )
     
     @Composable

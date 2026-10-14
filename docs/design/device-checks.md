@@ -128,6 +128,7 @@ Vu le 2026-10-09 : l'inscription par la page de connexion, « Activer Funnel » 
 - Le journal de l'app montre les messages « External access: » du nœud (URL de connexion, Funnel ouvert, adresse publiée), et `files/tailscale/tailscale.log` le journal technique, sans dépasser deux fichiers d'1 Mo.
 
 ## Automations
+- Le message d'une routine : la page défile d'un bloc jusqu'à Enregistrer et Annuler, même avec un long message et des accès ; trois boutons Planning, Déclencheurs, Accès qui se résument ; le rattrapage sous le planning, dans sa fenêtre, gardé seulement à la confirmation ; les accès dans leur fenêtre, chaque nom sur toute la largeur, le niveau dessous ; Enregistrer écrit le message et les réglages (rouvrir la routine).
 - Une automation lancée à la main, puis une planifiée, lisent et écrivent les outils de leur masque d'accès (plus de « Une automation qui n'existe plus n'a pas l'accès ») ; une automation au message vide ne s'enregistre pas et ne se lance pas, le refus dit.
 
 - Rattrapage après la mise à jour : une automation programmée « sans limite » le reste, une fenêtre de 3 heures se relit « jusqu'à un délai » de 3 h. Dans l'éditeur : sans choix, l'enregistrement est refusé ; « jusqu'à un délai » demande la durée ; retirer la planification puis enregistrer retire aussi le rattrapage.
@@ -178,6 +179,10 @@ Vu le 2026-10-09 : l'inscription par la page de connexion, « Activer Funnel » 
 - Liste avec des éléments cochés : activer « Un élément coché est supprimé aussitôt », enregistrer : le dialogue dit combien d'entrées seront supprimées ; confirmer : les cochés ont disparu, les autres gardent leur ordre ; annuler : rien n'a bougé.
 
 ## Réglages et affichage
+- La place à l'écran, en rétro à la plus grande taille, en une colonne, puis dans les deux autres thèmes : chaque écran (zone, outils, réglages, Guide, routine) à la même marge des bords, la plus petite, et une fenêtre flottante alignée sur elle ; les boutons d'un formulaire côte à côte s'ils tiennent, sinon chacun sur sa ligne en pleine largeur, le texte centré (Questionnaire en une colonne : « Remplir maintenant », « Avec l'IA ») ; les couleurs d'une icône et la grille d'icônes passent à la ligne sans s'écraser.
+- Clavier ouvert dans un champ en bas d'une page longue (config d'un outil, Réglages) : la page défile jusqu'à son bas au-dessus du clavier ; le bouton de conversation et la bande du Guide disparaissent tant qu'il est ouvert et reviennent à sa fermeture ; dans le Guide en cours, l'éditeur n'est plus écrasé.
+- Tuiles : une tuile de Journal à titre long montre « 12 j » à côté du titre, entier ; la tuile de Suivi en rétro montre sa date entière. Rétro : le point d'attente sur le livre du Guide se détache du cadre.
+- Notes et blocs d'un message de routine : une bande de prise en haut de chaque carte, toute sa largeur prend le doigt ; le texte va d'un bord à l'autre ; la suppression d'un bloc au bout de sa bande. Liste : la poignée de côté plus étroite se prend toujours.
 - Une fenêtre flottante longue (une note de quarante lignes) dans le thème cosy : elle tient au-dessus du clavier, ses boutons visibles, la ligne tapée en vue.
 
 - Config en pages (Séance, Objectif, Graphique) : sur une sous-page, ni Enregistrer ni Annuler, la flèche de retour seule ; de retour à la page principale, les boutons reviennent et le brouillon est intact.

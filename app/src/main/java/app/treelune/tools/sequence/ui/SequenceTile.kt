@@ -73,14 +73,14 @@ fun rememberSequenceTile(tool: ToolInstance): ToolTile {
                 val last = loaded.filter { it.status == SequenceToolType.Status.DONE || it.status == SequenceToolType.Status.STOPPED }.maxByOrNull { it.timestamp }
                 val (first, second) = when {
                     running != null -> running.current.name to stepClock(running, now)
-                    planned != null -> s.tool("tile_planned") to FormatUtils.formatRelativeTimePast(planned.timestamp, context)
+                    planned != null -> s.tool("tile_planned") to FormatUtils.formatRelativeTimeShort(planned.timestamp, context)
                     else -> {
                         val next = (StoredSchedule.of(config) as? StoredSchedule.Readable)
                             ?.takeIf { config.optBoolean(SequenceToolType.ENABLED, true) }
                             ?.let { ScheduleCalculator.calculateNextExecution(it.schedule.pattern, System.currentTimeMillis()) }
                         when {
                             next != null -> s.tool("tile_next") to DateTimeFormatter.formatForDisplay(next, context)
-                            last != null -> s.tool("tile_last") to FormatUtils.formatRelativeTimePast(last.timestamp, context)
+                            last != null -> s.tool("tile_last") to FormatUtils.formatRelativeTimeShort(last.timestamp, context)
                             else -> s.tool("history_empty") to ""
                         }
                     }

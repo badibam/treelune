@@ -1,5 +1,6 @@
 package app.treelune.themes.cosy
 
+import app.treelune.core.ui.components.LocalButtonFill
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
@@ -201,6 +202,7 @@ object CosyTheme : ThemeContract {
             Spacing.M -> 12f
             Spacing.L -> 16f
             Spacing.XL -> 24f
+            Spacing.EDGE -> 8f
         }
     )
 
@@ -387,8 +389,16 @@ object CosyTheme : ThemeContract {
 
     @Composable
     override fun DragHandle() {
-        Box(modifier = Modifier.padding(cosySize().dp(8f))) {
+        // As wide as the grip, a finger's height: the text beside it keeps the width
+        Box(modifier = Modifier.padding(vertical = cosySize().dp(12f))) {
             NamedIcon("grip-vertical", null, cosySize().icon, cosyColors.dim.srgb)
+        }
+    }
+
+    @Composable
+    override fun DragBar() {
+        Box(modifier = Modifier.fillMaxWidth().padding(vertical = cosySize().dp(2f)), contentAlignment = Alignment.Center) {
+            NamedIcon("grip-horizontal", null, cosySize().icon, cosyColors.dim.srgb)
         }
     }
 
@@ -881,16 +891,6 @@ object CosyTheme : ThemeContract {
         }
     }
 
-    @Composable
-    override fun FormActions(content: @Composable RowScope.() -> Unit) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(cosySize().dp(10f), Alignment.CenterHorizontally),
-            verticalAlignment = Alignment.CenterVertically,
-            content = content
-        )
-    }
-
     /** A round: hollow when empty, full of the main colour with a check when checked. */
     @Composable
     override fun Checkbox(checked: Boolean, onCheckedChange: (Boolean) -> Unit, label: String?) {
@@ -1288,7 +1288,9 @@ object CosyTheme : ThemeContract {
             pressed = pressed
         ) {
             Box(
-                modifier = Modifier.heightIn(min = size.touch - size.buttonDepth).widthIn(min = size.touch).padding(horizontal = size.dp(18f)),
+                // Filling (LocalButtonFill), the pill takes the width it is given
+                modifier = Modifier.let { if (LocalButtonFill.current) it.fillMaxWidth() else it }
+                    .heightIn(min = size.touch - size.buttonDepth).widthIn(min = size.touch).padding(horizontal = size.dp(18f)),
                 contentAlignment = Alignment.Center
             ) {
                 CompositionLocalProvider(LocalCosyInk provides ink) { content() }
@@ -1388,7 +1390,7 @@ object CosyTheme : ThemeContract {
     /** A window over the screen, swelling in: a tile on its shadow, its content, its actions under it. */
     @Composable
     private fun DialogFrame(onDismiss: () -> Unit, actions: @Composable RowScope.() -> Unit, content: @Composable ColumnScope.() -> Unit) {
-        app.treelune.core.ui.components.FloatingDialog(onDismissRequest = onDismiss, margin = cosySize().dp(16f)) {
+        app.treelune.core.ui.components.FloatingDialog(onDismissRequest = onDismiss, margin = spacing(Spacing.EDGE)) {
             SwellIn {
                 val size = cosySize()
                 val c = cosyColors

@@ -137,7 +137,7 @@ fun MessagesScreen(
 
     val settings = app.treelune.core.tools.ToolConfigSettings.read(app.treelune.tools.messages.MessageToolType, config, context)
     Column(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.padding(UI.Space.L)) {
+        Column(modifier = Modifier.padding(vertical = UI.Space.L)) {
             UI.PageHeader(
                 title = settings.string("name")!!,
                 subtitle = settings.string("description")?.takeIf { it.isNotBlank() },
@@ -249,7 +249,7 @@ private fun ReceivedTab(
         modifier = Modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState()).chatButtonSpace()
-            .padding(UI.Space.L),
+            .padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         UI.FormSelection(
@@ -348,7 +348,7 @@ private fun ReceivedCard(
 
             // Only something that actually went out can be read or filed away
             if (occurrence.status == "sent") {
-                Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+                app.treelune.core.ui.components.ButtonRow {
                     UI.Button(type = ButtonType.DEFAULT, size = Size.S, onClick = onToggleRead) {
                         UI.Text(
                             if (occurrence.read) s.tool("action_mark_unread") else s.tool("action_mark_read"),
@@ -400,7 +400,7 @@ private fun UpcomingTab(
         modifier = Modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState()).chatButtonSpace()
-            .padding(UI.Space.L),
+            .padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         val shown = occurrences

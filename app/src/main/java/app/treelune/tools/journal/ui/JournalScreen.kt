@@ -230,7 +230,7 @@ fun JournalScreen(
                 val toolDescription = settings.string("description").orEmpty()
 
                 Column(
-                    modifier = Modifier.padding(horizontal = UI.Space.L)
+                    modifier = Modifier
                 ) {
                     UI.PageHeader(
                         title = toolName,
@@ -251,8 +251,7 @@ fun JournalScreen(
                     // Empty state
                     Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = UI.Space.L),
+                            .fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(UI.Space.S),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -269,8 +268,7 @@ fun JournalScreen(
                     // Entries list
                     Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = UI.Space.L),
+                            .fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
                     ) {
                         entries.forEach { entry ->

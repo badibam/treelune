@@ -55,6 +55,8 @@ object UI {
         val M: Dp @Composable get() = CurrentTheme.current.spacing(Spacing.M)
         val L: Dp @Composable get() = CurrentTheme.current.spacing(Spacing.L)
         val XL: Dp @Composable get() = CurrentTheme.current.spacing(Spacing.XL)
+        /** The margin between a page's content and the sides of the screen (Spacing.EDGE). */
+        val EDGE: Dp @Composable get() = CurrentTheme.current.spacing(Spacing.EDGE)
     }
 
     // =====================================
@@ -480,10 +482,11 @@ object UI {
         required = required
     )
     
+    /** A form's actions, centred under it: side by side when they hold, else one under the other (ButtonRow). */
     @Composable
     fun FormActions(
-        content: @Composable RowScope.() -> Unit
-    ) = CurrentTheme.current.FormActions(content)
+        content: @Composable () -> Unit
+    ) = app.treelune.core.ui.components.ButtonRow(align = Alignment.CenterHorizontally, content = content)
     
     @Composable
     fun Checkbox(

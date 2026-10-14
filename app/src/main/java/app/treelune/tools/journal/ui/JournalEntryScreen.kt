@@ -258,7 +258,7 @@ fun JournalEntryScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(UI.Space.L)
+                .padding(vertical = UI.Space.L)
         ) {
             UI.Text(s.tool("loading_entry"), TextType.BODY)
         }
@@ -270,7 +270,7 @@ fun JournalEntryScreen(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(UI.Space.L),
+            .padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         // Header (no right button - EDIT moved to bottom actions)
@@ -434,18 +434,12 @@ fun JournalEntryScreen(
             }
 
             // Action buttons in consultation mode (aligned right)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            app.treelune.core.ui.components.ButtonRow(align = Alignment.End) {
                 UI.ActionButton(
                     action = ButtonAction.EDIT,
                     display = ButtonDisplay.LABEL,
                     onClick = { isEditing = true }
                 )
-
-                Spacer(modifier = Modifier.width(UI.Space.S))
 
                 UI.ActionButton(
                     action = ButtonAction.DELETE,

@@ -1,5 +1,7 @@
 package app.treelune.core.ai.ui.screens
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import app.treelune.core.ui.MessageSegmentsSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.foundation.clickable
@@ -391,8 +393,8 @@ private fun SeedMode(
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     // Editor states
-    var segments by rememberSaveable(stateSaver = MessageSegmentsSaver) { mutableStateOf<List<MessageSegment>>(emptyList()) } // Composer editing (local temp state)
-    var displaySegments by remember { mutableStateOf<List<MessageSegment>>(emptyList()) } // Display from DB (source of truth)
+    // The message as edited, read once from the session (after a rotation it keeps the edits)
+    var segments by rememberSaveable(stateSaver = MessageSegmentsSaver) { mutableStateOf<List<MessageSegment>>(emptyList()) }
     var scheduleConfig by remember { mutableStateOf<app.treelune.core.utils.ScheduleConfig?>(null) }
     // What the automation does about missed runs, as its declaration describes it
     // (AutomationSettings.catchUpNodes): edited while a schedule is set, sent with it
@@ -402,13 +404,15 @@ private fun SeedMode(
     var access by remember { mutableStateOf(app.treelune.core.access.AccessMask()) }
     var userMessageId by remember { mutableStateOf<String?>(null) } // ID of the USER message in SEED session
 
-    // Track if session needs reload after refresh
-    var sessionReloadTrigger by remember { mutableStateOf(0) }
     var composerLoaded by rememberSaveable { mutableStateOf(false) }
 
     // Dialogs
     var showScheduleEditor by rememberSaveable { mutableStateOf(false) }
     var showTriggersEditor by rememberSaveable { mutableStateOf(false) }
+    var showAccessEditor by rememberSaveable { mutableStateOf(false) }
+    // What the schedule's and the access' windows edit, kept until they are confirmed
+    var catchUpDraft by remember { mutableStateOf(org.json.JSONObject()) }
+    var accessDraft by remember { mutableStateOf(app.treelune.core.access.AccessMask()) }
     var showEditAutomation by rememberSaveable { mutableStateOf(false) }
     var showDeleteConfirmation by rememberSaveable { mutableStateOf(false) }
 
@@ -449,8 +453,8 @@ private fun SeedMode(
         }
     }
 
-    // Load segments from DB (display state = source of truth)
-    LaunchedEffect(session.id, sessionReloadTrigger) {
+    // The message, from the session's USER message
+    LaunchedEffect(session.id) {
         try {
             val result = coordinator.processUserAction("ai_sessions.get_session", mapOf("session_id" to session.id))
             if (result.status == CommandStatus.SUCCESS) {
@@ -469,15 +473,12 @@ private fun SeedMode(
                     emptyList()
                 }
 
-                // Update both display (from DB) and composer (for editing). The composer is only
-                // filled on first load or an explicit reload: after a rotation it keeps the edits.
-                displaySegments = loadedSegments
-                if (!composerLoaded || sessionReloadTrigger > 0) {
+                if (!composerLoaded) {
                     segments = loadedSegments
                     composerLoaded = true
                 }
 
-                LogManager.aiUI("SeedMode loaded segments from DB: ${displaySegments.size} segments, messageId=$userMessageId", "DEBUG")
+                LogManager.aiUI("SeedMode loaded segments from DB: ${loadedSegments.size} segments, messageId=$userMessageId", "DEBUG")
             }
         } catch (e: Exception) {
             LogManager.aiUI("Failed to reload segments: ${e.message}", "ERROR", e)
@@ -544,15 +545,44 @@ private fun SeedMode(
 
     // Schedule editor dialog
     if (showScheduleEditor) {
+        // What is done of missed runs belongs with the schedule: edited under it, while one is chosen
         app.treelune.core.fields.settings.ScheduleConfigEditor(
             existingConfig = scheduleConfig,
             onDismiss = { showScheduleEditor = false },
             onConfirm = { newSchedule ->
                 scheduleConfig = newSchedule
+                catchUp = catchUpDraft
                 showScheduleEditor = false
                 LogManager.aiUI("SeedMode: Schedule configured", "DEBUG")
+            },
+            scheduled = {
+                UI.Text(s.shared("automation_catch_up_title"), TextType.SUBTITLE)
+                app.treelune.core.fields.settings.SettingsForm(
+                    remember { app.treelune.core.ai.data.AutomationSettings.catchUpNodes(context) },
+                    catchUpDraft, { catchUpDraft = it }, context
+                )
             }
         )
+    }
+
+    // What its AI may reach, everything while nothing is listed
+    if (showAccessEditor) {
+        UI.Dialog(
+            type = DialogType.EDIT,
+            onConfirm = {
+                access = accessDraft
+                showAccessEditor = false
+            },
+            onCancel = { showAccessEditor = false }
+        ) {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                app.treelune.core.access.ui.AccessCard(
+                    s.shared("automation_access_title"),
+                    s.shared("automation_access_help"),
+                    accessDraft, { accessDraft = it }
+                )
+            }
+        }
     }
 
     // Triggers editor dialog (stub)
@@ -665,11 +695,10 @@ private fun SeedMode(
         }
     }
 
-    // Main editor
+    // The page: the header, then the editor, scrolling as a whole down to its buttons
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Header
         SeedHeader(
             title = automation!!.name,
             onClose = onClose,
@@ -681,100 +710,41 @@ private fun SeedMode(
             }
         )
 
-        // Message display area (read-only, shows current message)
-        Box(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
                 .weight(1f)
-                .padding(UI.Space.L)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(vertical = UI.Space.L)
         ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(UI.Space.M)
-            ) {
-                UI.Text(
-                    text = s.shared("automation_seed_message_label"),
-                    type = TextType.SUBTITLE
-                )
-
-                // Show current message preview (from DB state)
-                if (displaySegments.isNotEmpty()) {
-                    val textContent = displaySegments.filterIsInstance<MessageSegment.Text>()
-                        .joinToString("") { it.content }
-                    val enrichmentBlocks = displaySegments.filterIsInstance<MessageSegment.EnrichmentBlock>()
-
-                    if (textContent.isNotEmpty()) {
-                        UI.Card(type = CardType.DEFAULT) {
-                            Box(modifier = Modifier.padding(UI.Space.M)) {
-                                UI.Text(
-                                    text = textContent,
-                                    type = TextType.BODY
-                                )
+            app.treelune.core.ai.ui.automation.AutomationEditor(
+                segments = segments,
+                onSegmentsChange = { segments = it },
+                scheduleConfig = scheduleConfig,
+                onConfigureSchedule = {
+                    catchUpDraft = catchUp
+                    showScheduleEditor = true
+                },
+                triggersCount = triggersCount,
+                onConfigureTriggers = { showTriggersEditor = true },
+                access = access,
+                onConfigureAccess = {
+                    accessDraft = access
+                    showAccessEditor = true
+                },
+                onSave = {
+                    scope.launch {
+                        try {
+                            // An empty message would leave the AI to make up what to do
+                            if (app.treelune.core.ai.data.RichMessage(segments).isEmpty) {
+                                errorMessage = s.shared("automation_message_empty")
+                                return@launch
                             }
-                        }
-                    }
-
-                    if (enrichmentBlocks.isNotEmpty()) {
-                        Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
-                            UI.Text(
-                                text = s.shared("automation_enrichments_label"),
-                                type = TextType.LABEL
-                            )
-                            enrichmentBlocks.forEach { block ->
-                                UI.Card(type = CardType.DEFAULT) {
-                                    Row(
-                                        modifier = Modifier.padding(UI.Space.M),
-                                        horizontalArrangement = Arrangement.spacedBy(UI.Space.S)
-                                    ) {
-                                        UI.Icon(iconName = block.type.iconName, size = 20.dp)
-                                        UI.Text(text = app.treelune.core.ai.ui.components.rememberDisplayText(block), type = TextType.BODY)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    UI.Text(
-                        text = s.shared("automation_no_message"),
-                        type = TextType.CAPTION
-                    )
-                }
-            }
-        }
-
-        // Editor footer with composer and config buttons
-        UI.Card(type = CardType.DEFAULT) {
-            Column(modifier = Modifier.padding(UI.Space.L)) {
-                app.treelune.core.ai.ui.automation.AutomationEditorFooter(
-                    automation = automation,
-                    segments = segments,
-                    onSegmentsChange = { segments = it },
-                    scheduleConfig = scheduleConfig,
-                    onConfigureSchedule = { showScheduleEditor = true },
-                    catchUp = catchUp,
-                    onCatchUpChange = { catchUp = it },
-                    triggersCount = triggersCount,
-                    onConfigureTriggers = { showTriggersEditor = true },
-                    access = access,
-                    onAccessChange = { access = it },
-                    onRefresh = {
-                        scope.launch {
-                            try {
-                                if (app.treelune.core.ai.data.RichMessage(segments).isEmpty) {
-                                    errorMessage = s.shared("automation_message_empty")
-                                    return@launch
-                                }
-                                // Check if we have a USER message ID
-                                if (userMessageId == null) {
-                                    errorMessage = s.shared("ai_error_message_not_found").format(session.id)
-                                    LogManager.aiUI("SeedMode: No USER message ID available", "ERROR")
-                                    return@launch
-                                }
-
-                                // Build RichMessage from segments
+                            // Step 1: the message
+                            if (userMessageId != null) {
                                 val richMessage = app.treelune.core.ai.data.RichMessage(segments)
 
-                                // Update message in DB
-                                val updateResult = coordinator.processUserAction(
+                                val updateMsgResult = coordinator.processUserAction(
                                     "ai_sessions.update_message",
                                     mapOf(
                                         "message_id" to userMessageId!!,
@@ -782,77 +752,41 @@ private fun SeedMode(
                                     )
                                 )
 
-                                if (updateResult.status == CommandStatus.SUCCESS) {
-                                    // Trigger reload of segments from DB
-                                    sessionReloadTrigger++
-                                    UI.Toast(context, s.shared("automation_saved_success"), Duration.SHORT)
-                                    LogManager.aiUI("SeedMode: Message refreshed successfully", "INFO")
-                                } else {
-                                    errorMessage = updateResult.error ?: s.shared("automation_save_failed")
-                                    LogManager.aiUI("SeedMode: Refresh failed: ${updateResult.error}", "ERROR")
-                                }
-                            } catch (e: Exception) {
-                                errorMessage = s.shared("automation_save_failed")
-                                LogManager.aiUI("SeedMode: Refresh exception: ${e.message}", "ERROR", e)
-                            }
-                        }
-                    },
-                    onSave = {
-                        scope.launch {
-                            try {
-                                // An empty message would leave the AI to make up what to do
-                                if (app.treelune.core.ai.data.RichMessage(segments).isEmpty) {
-                                    errorMessage = s.shared("automation_message_empty")
+                                if (updateMsgResult.status != CommandStatus.SUCCESS) {
+                                    errorMessage = updateMsgResult.error ?: s.shared("automation_save_failed")
                                     return@launch
                                 }
-                                // Step 1: Refresh message (update DB + reload)
-                                if (userMessageId != null) {
-                                    val richMessage = app.treelune.core.ai.data.RichMessage(segments)
-
-                                    val updateMsgResult = coordinator.processUserAction(
-                                        "ai_sessions.update_message",
-                                        mapOf(
-                                            "message_id" to userMessageId!!,
-                                            "rich_content_json" to richMessage.toJson()
-                                        )
-                                    )
-
-                                    if (updateMsgResult.status != CommandStatus.SUCCESS) {
-                                        errorMessage = updateMsgResult.error ?: s.shared("automation_save_failed")
-                                        return@launch
-                                    }
-                                }
-
-                                // Step 2: Update automation config (schedule, triggers)
-                                val updateParams = mutableMapOf<String, Any>(
-                                    "automation_id" to automation!!.id
-                                )
-                                // Both sent every time: null removes them, and the catch-up
-                                // settings exist with a schedule only
-                                updateParams["schedule"] = scheduleConfig?.let {
-                                    org.json.JSONObject(kotlinx.serialization.json.Json.encodeToString(app.treelune.core.utils.ScheduleConfig.serializer(), it))
-                                } ?: org.json.JSONObject.NULL
-                                updateParams["catch_up"] = if (scheduleConfig != null) catchUp else org.json.JSONObject.NULL
-                                updateParams["access"] = access.toJson()
-
-                                val result = coordinator.processUserAction("automations.update", updateParams)
-                                if (result.status == CommandStatus.SUCCESS) {
-                                    UI.Toast(context, s.shared("automation_saved_success"), Duration.SHORT)
-                                    LogManager.aiUI("SeedMode: Automation saved successfully", "INFO")
-                                    onClose()
-                                } else {
-                                    errorMessage = result.error ?: s.shared("automation_save_failed")
-                                    LogManager.aiUI("SeedMode: Save failed: ${result.error}", "ERROR")
-                                }
-                            } catch (e: Exception) {
-                                errorMessage = s.shared("automation_save_failed")
-                                LogManager.aiUI("SeedMode: Save exception: ${e.message}", "ERROR", e)
                             }
+
+                            // Step 2: the settings (schedule, catch-up, access)
+                            val updateParams = mutableMapOf<String, Any>(
+                                "automation_id" to automation!!.id
+                            )
+                            // Both sent every time: null removes them, and the catch-up
+                            // settings exist with a schedule only
+                            updateParams["schedule"] = scheduleConfig?.let {
+                                org.json.JSONObject(kotlinx.serialization.json.Json.encodeToString(app.treelune.core.utils.ScheduleConfig.serializer(), it))
+                            } ?: org.json.JSONObject.NULL
+                            updateParams["catch_up"] = if (scheduleConfig != null) catchUp else org.json.JSONObject.NULL
+                            updateParams["access"] = access.toJson()
+
+                            val result = coordinator.processUserAction("automations.update", updateParams)
+                            if (result.status == CommandStatus.SUCCESS) {
+                                UI.Toast(context, s.shared("automation_saved_success"), Duration.SHORT)
+                                LogManager.aiUI("SeedMode: Automation saved successfully", "INFO")
+                                onClose()
+                            } else {
+                                errorMessage = result.error ?: s.shared("automation_save_failed")
+                                LogManager.aiUI("SeedMode: Save failed: ${result.error}", "ERROR")
+                            }
+                        } catch (e: Exception) {
+                            errorMessage = s.shared("automation_save_failed")
+                            LogManager.aiUI("SeedMode: Save exception: ${e.message}", "ERROR", e)
                         }
-                    },
-                    onCancel = onClose
-                )
-            }
+                    }
+                },
+                onCancel = onClose
+            )
         }
     }
 
@@ -1377,7 +1311,7 @@ fun ChatMessageList(
 
     LazyColumn(
         state = listState,
-        modifier = modifier.padding(UI.Space.L),
+        modifier = modifier.padding(horizontal = UI.Space.EDGE, vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.M)
     ) {
         if (messages.isEmpty()) {

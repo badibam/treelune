@@ -324,6 +324,8 @@ Quand l'app n'a pas tourné à l'heure prévue, les réglages `catch_up` d'une a
 
 Les réglages d'une automation (nom, fournisseur, groupe, activation, planification, rattrapage) sont déclarés dans `AutomationSettings` ; `AutomationService` vérifie toute écriture contre le schéma généré, et `Automation.fromResult` est le seul lecteur de ses résultats.
 
+L'écran du message d'une routine (`AutomationEditor`, le mode SEED d'`AIScreen`) défile d'un bloc : le message, puis un bouton par réglage qui le résume et ouvre sa fenêtre — la planification avec le rattrapage dessous, les déclencheurs, les accès —, puis Enregistrer, qui écrit le message et les réglages ensemble.
+
 La recherche de la prochaine occurrence démarre au plus tôt à `maintenant − fenêtre` (`AutomationScheduler.searchStart`). La plus récente due se trouve par dichotomie sur le départ de la recherche (`lastDueOccurrence`) : le calculateur ne répond que « la première après cet instant », et cette réponse ne décroît jamais quand l'instant grandit.
 
 **Résolution temporelle** : une session AUTOMATION résout ses dates relatives, `{"relative": "NOW"}` compris, sur son `scheduledExecutionTime`, pas sur l'horloge — sinon toutes les exécutions de rattrapage lisent le même jour. L'instant est choisi par `AIEventProcessor.periodReference()` et traverse `UserCommandProcessor`/`AICommandProcessor` jusqu'à `CommandTransformer`. `resolveRelativePeriod` l'exige, sans valeur par défaut. Le prompt porte les deux dates (cf. §8) : les données lues sont ancrées sur la date prévue, ce que l'IA fait reste au présent.

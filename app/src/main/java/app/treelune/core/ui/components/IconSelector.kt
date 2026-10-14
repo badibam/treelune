@@ -21,11 +21,8 @@ import app.treelune.core.strings.StringsContext
 /** Icons shown for one search across all categories; a category shows all of its own. */
 private const val SEARCH_RESULTS_SHOWN = 60
 
-/** Icons per row of the picker's grids. */
-private const val ICONS_PER_ROW = 3
-
-/** Choices per row of the icon colour's: none and the eight colours on two rows. */
-private const val COLORS_PER_ROW = 5
+/** The icon whose cell sets the width of every cell of the picker's grids: a name of eight letters, longer ones wrapping. */
+private const val ICON_SAMPLE = "calendar"
 
 /** The icon a colour is shown on while the thing has none. */
 private const val COLOR_SAMPLE_ICON = "circle"
@@ -47,24 +44,15 @@ fun IconColorSelector(current: String?, iconName: String, onChange: (String?) ->
     val choices = listOf<String?>(null) + IconColor.NAMES
     Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
         UI.Text(s.shared("label_icon_color"), TextType.LABEL)
-        choices.chunked(COLORS_PER_ROW).forEach { row ->
-            // The row shared in equal parts, as the icon grid's are
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
-                row.forEach { name ->
-                    Box(modifier = Modifier.weight(1f)) {
-                        UI.Button(
-                            type = if (current == name) ButtonType.PRIMARY else ButtonType.DEFAULT,
-                            size = Size.S,
-                            onClick = { onChange(name) }
-                        ) {
-                            Box(modifier = Modifier.fillMaxWidth().padding(UI.Space.XS), contentAlignment = Alignment.Center) {
-                                UI.ItemIcon(iconName = shown, color = IconColor.of(name), size = 20.dp)
-                            }
-                        }
-                    }
-                }
-                repeat(COLORS_PER_ROW - row.size) {
-                    Spacer(modifier = Modifier.weight(1f))
+        // As many colours on a row as hold at their own width (ChoiceGrid)
+        ChoiceGrid(choices, sample = null) { name ->
+            UI.Button(
+                type = if (current == name) ButtonType.PRIMARY else ButtonType.DEFAULT,
+                size = Size.S,
+                onClick = { onChange(name) }
+            ) {
+                Box(modifier = Modifier.padding(UI.Space.XS)) {
+                    UI.ItemIcon(iconName = shown, color = IconColor.of(name), size = 20.dp)
                 }
             }
         }
@@ -233,39 +221,25 @@ private fun IconGrid(
         UI.Text(s.shared("tools_config_dialog_no_result"), TextType.CAPTION)
         return
     }
-    names.chunked(ICONS_PER_ROW).forEach { row ->
-        // The row shared in equal parts, each button filling its own: whatever a theme adds
-        // around a button (a frame's border, a margin) is taken from its part, never past the row
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(UI.Space.S)
+    // As many icons on a row as hold with a name of eight letters (ChoiceGrid)
+    ChoiceGrid(names, sample = ICON_SAMPLE) { name ->
+        UI.Button(
+            type = if (current == name) ButtonType.PRIMARY else ButtonType.DEFAULT,
+            // The smallest padding a text button has: the name needs the width
+            size = Size.S,
+            onClick = { onPick(name) }
         ) {
-            row.forEach { name ->
-                Box(modifier = Modifier.weight(1f)) {
-                    UI.Button(
-                        type = if (current == name) ButtonType.PRIMARY else ButtonType.DEFAULT,
-                        // The smallest padding a text button has: the name needs the width
-                        size = Size.S,
-                        onClick = { onPick(name) }
-                    ) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth().height(64.dp).padding(UI.Space.XS),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            UI.Icon(iconName = name, size = 28.dp)
-                            UI.Text(
-                                text = name,
-                                type = TextType.CAPTION,
-                                fillMaxWidth = true,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
-                }
-            }
-            repeat(ICONS_PER_ROW - row.size) {
-                Spacer(modifier = Modifier.weight(1f))
+            Column(
+                modifier = Modifier.heightIn(min = 64.dp).padding(UI.Space.XS),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                UI.Icon(iconName = name, size = 28.dp)
+                UI.Text(
+                    text = name,
+                    type = TextType.CAPTION,
+                    textAlign = TextAlign.Center
+                )
             }
         }
     }

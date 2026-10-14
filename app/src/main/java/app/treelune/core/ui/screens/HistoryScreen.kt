@@ -203,7 +203,7 @@ fun HistoryScreen(
         )
 
         // Search bar
-        Box(modifier = Modifier.fillMaxWidth().padding(horizontal = UI.Space.L)) {
+        Box(modifier = Modifier.fillMaxWidth()) {
             UI.FormField(
                 required = false,
                 label = s.shared("history_search_placeholder"),
@@ -217,7 +217,7 @@ fun HistoryScreen(
         Row(
             horizontalArrangement = Arrangement.spacedBy(UI.Space.L),
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = UI.Space.L)
+            modifier = Modifier.fillMaxWidth()
         ) {
             // Period filter dropdown
             Box(modifier = Modifier.weight(1f)) {
@@ -328,7 +328,7 @@ fun HistoryScreen(
         // Session list
         if (sessions.isNotEmpty()) {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = UI.Space.L),
+                modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(UI.Space.M)
             ) {
                 sessions.forEach { session ->
@@ -422,11 +422,7 @@ fun HistoryScreen(
                 }
 
                 // Actions
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                app.treelune.core.ui.components.ButtonRow(align = Alignment.End) {
                     UI.ActionButton(
                         action = ButtonAction.CANCEL,
                         display = ButtonDisplay.LABEL,
@@ -436,8 +432,6 @@ fun HistoryScreen(
                             selectedSessionId = null
                         }
                     )
-
-                    Spacer(modifier = Modifier.width(UI.Space.S))
 
                     UI.ActionButton(
                         action = ButtonAction.SAVE,

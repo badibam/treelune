@@ -158,7 +158,7 @@ fun ToolConfigScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(UI.Space.L)
+            .padding(vertical = UI.Space.L)
             .verticalScroll(scroll),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {

@@ -214,7 +214,7 @@ fun NotesScreen(
                 val toolDescription = settings.string("description").orEmpty()
 
                 Column(
-                    modifier = Modifier.padding(horizontal = UI.Space.L)
+                    modifier = Modifier
                 ) {
                     UI.PageHeader(
                         title = toolName,
@@ -235,8 +235,7 @@ fun NotesScreen(
                     // Empty state - show placeholder
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = UI.Space.L),
+                            .fillMaxWidth(),
                         contentAlignment = Alignment.Center
                     ) {
                         NoteCard(
@@ -255,8 +254,7 @@ fun NotesScreen(
                     // Notes list with simplified logic
                     Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = UI.Space.L),
+                            .fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
                     ) {
                         // All existing notes. The service keeps the order: a note written at the
@@ -284,7 +282,7 @@ fun NotesScreen(
                                 onContextMenuChanged = { showMenu ->
                                     contextMenuNoteId = if (showMenu) note.id else null
                                 },
-                                dragHandle = { DragHandle() },
+                                dragHandle = { DragBar(null) },
                                 onAddAbove = {
                                     openCreateDialog(note.position)
                                 },

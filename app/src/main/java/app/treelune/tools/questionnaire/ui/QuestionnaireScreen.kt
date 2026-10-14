@@ -1,5 +1,6 @@
 package app.treelune.tools.questionnaire.ui
 
+import app.treelune.core.ui.components.ButtonRow
 import app.treelune.core.ui.chatButtonSpace
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -161,7 +162,7 @@ fun QuestionnaireScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onCo
     val history = loaded.filter { it.status != QuestionnaireToolType.Status.TO_FILL }.sortedByDescending { it.timestamp }
 
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).chatButtonSpace().padding(UI.Space.L),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).chatButtonSpace().padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         UI.PageHeader(
@@ -202,7 +203,7 @@ fun QuestionnaireScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onCo
                     UI.Card(type = CardType.DEFAULT) {
                         Column(modifier = Modifier.padding(UI.Space.M), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
                             UI.Text(title(entry), TextType.BODY)
-                            Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+                            ButtonRow {
                                 UI.Button(type = ButtonType.PRIMARY, onClick = { passing = entry.id }) { UI.Text(s.tool("action_fill"), TextType.LABEL) }
                                 UI.Button(type = ButtonType.SECONDARY, onClick = { withAi(entry) }) { UI.Text(s.tool("action_with_ai"), TextType.LABEL) }
                                 UI.Button(type = ButtonType.DEFAULT, onClick = {
@@ -212,7 +213,7 @@ fun QuestionnaireScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onCo
                         }
                     }
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.M)) {
+                ButtonRow {
                     UI.Button(type = ButtonType.PRIMARY, onClick = { passing = "" }) { UI.Text(s.tool("action_fill_now"), TextType.LABEL) }
                     UI.Button(type = ButtonType.SECONDARY, onClick = { withAi(null) }) { UI.Text(s.tool("action_with_ai"), TextType.LABEL) }
                 }
@@ -247,13 +248,13 @@ private fun Passing(
     val context = LocalContext.current
     var answers by rememberSaveable(stateSaver = app.treelune.core.ui.FieldValuesSaver) { mutableStateOf(entry?.answers ?: emptyMap()) }
     var index by rememberSaveable { mutableIntStateOf(questions.indexOfFirst { entry?.answers?.get(it.name) == null }.coerceAtLeast(0)) }
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).chatButtonSpace().padding(UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.L)) {
+    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).chatButtonSpace().padding(vertical = UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.L)) {
         UI.PageHeader(title = s.tool("passing_title").format(index + 1, questions.size), leftButton = ButtonAction.BACK, onLeftClick = onCancel)
         if (questions.isEmpty()) { UI.Text(s.tool("no_question"), TextType.CAPTION); return@Column }
         val question = questions[index]
         question.description?.let { UI.Text(it, TextType.CAPTION) }
         FieldInput(question, answers[question.name], { answers = answers + (question.name to it) }, context, required = false)
-        Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.M)) {
+        app.treelune.core.ui.components.ButtonRow {
             if (index > 0) UI.Button(type = ButtonType.SECONDARY, onClick = { index-- }) { UI.Text(s.tool("action_previous"), TextType.LABEL) }
             val last = index == questions.size - 1
             UI.Button(type = ButtonType.PRIMARY, onClick = {
@@ -277,7 +278,7 @@ private fun EntryView(entry: QuestionnaireEntry, title: String, config: JSONObje
         UI.Button(type = ButtonType.PRIMARY, onClick = { draft = entry.answers; editing = true }) { UI.Text(s.tool("action_edit"), TextType.LABEL) }
     } else {
         CustomFieldsInput(customFieldsMetadata = questions, values = draft, onValuesChange = { draft = it }, context = context)
-        Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.M)) {
+        app.treelune.core.ui.components.ButtonRow {
             UI.Button(type = ButtonType.PRIMARY, onClick = { onSave(questions.associate { it.name to draft[it.name] }); editing = false }) { UI.Text(s.shared("action_save"), TextType.LABEL) }
             UI.Button(type = ButtonType.SECONDARY, onClick = { editing = false }) { UI.Text(s.shared("action_cancel"), TextType.LABEL) }
         }

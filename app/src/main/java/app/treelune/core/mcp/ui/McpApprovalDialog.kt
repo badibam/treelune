@@ -62,7 +62,7 @@ fun McpApprovalDialog() {
                 required = true
             )
             wrong?.let { UI.Text(s.shared("external_access_request_wrong").format(it), TextType.CAPTION) }
-            Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+            app.treelune.core.ui.components.ButtonRow {
                 UI.Button(type = ButtonType.DEFAULT, onClick = { ended(oauth.refuse(waiting.requestId)) }) {
                     UI.Text(s.shared("external_access_request_refuse"), TextType.LABEL)
                 }

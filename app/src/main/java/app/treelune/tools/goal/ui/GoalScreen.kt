@@ -112,7 +112,7 @@ fun GoalScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureCl
     val history = loaded.filter { it.status in GoalToolType.Status.LOCKED }.sortedByDescending { it.start }
 
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).chatButtonSpace().padding(UI.Space.L),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).chatButtonSpace().padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         UI.PageHeader(
@@ -247,7 +247,7 @@ private fun AttemptCard(
             (loaded["sub_goals"] as? Map<*, *>)?.forEach { (name, subMet) ->
                 UI.Text("$name · " + s.tool("met_${(subMet as String).lowercase()}"), TextType.CAPTION)
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.M)) {
+            app.treelune.core.ui.components.ButtonRow {
                 if (!locked) UI.Button(type = ButtonType.PRIMARY, onClick = onValidate) { UI.Text(s.tool("action_validate"), TextType.LABEL) }
                 else UI.Button(type = ButtonType.SECONDARY, onClick = onReopen) { UI.Text(s.tool("action_reopen"), TextType.LABEL) }
             }

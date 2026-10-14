@@ -82,14 +82,14 @@ fun rememberQuestionnaireTile(tool: ToolInstance): ToolTile {
             override fun Summary() {
                 val loaded = passings ?: return
                 val (first, second) = if (loaded.toFill.isNotEmpty()) {
-                    s.tool("tile_to_fill").format(loaded.toFill.size.toString()) to FormatUtils.formatRelativeTimePast(loaded.toFill.first(), context)
+                    s.tool("tile_to_fill").format(loaded.toFill.size.toString()) to FormatUtils.formatRelativeTimeShort(loaded.toFill.first(), context)
                 } else {
                     val next = (StoredSchedule.of(config) as? StoredSchedule.Readable)
                         ?.takeIf { config.optBoolean("enabled", true) }
                         ?.let { ScheduleCalculator.calculateNextExecution(it.schedule.pattern, System.currentTimeMillis()) }
                     s.tool("tile_up_to_date") to when {
                         next != null -> s.tool("tile_next").format(DateTimeFormatter.formatForDisplay(next, context))
-                        loaded.lastFilled != null -> s.tool("tile_last").format(FormatUtils.formatRelativeTimePast(loaded.lastFilled.timestamp, context))
+                        loaded.lastFilled != null -> s.tool("tile_last").format(FormatUtils.formatRelativeTimeShort(loaded.lastFilled.timestamp, context))
                         else -> s.tool("history_empty")
                     }
                 }
