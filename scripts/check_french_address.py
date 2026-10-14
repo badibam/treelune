@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Check that the app's French texts address the user as tu.
 
-The app's French texts (every `*-fr.xml` string source and the demo's `texts-fr.json`) address
-the user as tu. README.fr.md, which speaks to whoever discovers the app, keeps vous, and so do
-the English texts. A vous, votre or vos that slips back into a French text shows on a French
+The app's French texts (every `*-fr.xml` string source and the demo's `texts-fr.json`) and
+README.fr.md, which shows the tools' and themes' taglines among its own sentences, address the
+user as tu. A vous, votre or vos that slips back into a French text shows on a French
 phone and nowhere else: not in a compile, not in a test run, not in an English screen. Nothing
 would say so -- this check is the only net.
 
-The check reads every French string source and the demo's French texts, and refuses the three
+The check reads every French string source, the demo's French texts and the French README, and refuses the three
 words as whole words, whatever their case. The exceptions below are the only allowed ones, each
 with its reason; adding one is a decision that lives here.
 
@@ -23,6 +23,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SOURCES = ROOT / "app" / "src" / "main" / "java" / "app" / "treelune"
 DEMO = ROOT / "app" / "src" / "main" / "assets" / "demo" / "texts-fr.json"
+README = ROOT / "README.fr.md"
 
 STRING = re.compile(r'<string\s+name="([^"]+)"[^>]*>(.*?)</string>', re.DOTALL)
 FORBIDDEN = re.compile(r"\b(vous|votre|vos)\b", re.IGNORECASE)
@@ -47,7 +48,11 @@ EXCEPTED_KEYS = {
 
 
 def texts_of(path):
-    """Return {key: text} for one source file, XML strings or a JSON object of strings."""
+    """Return {key: text} for one source file: XML strings, a JSON object of strings, or a
+    Markdown file whose lines are keyed by their number."""
+    if path.suffix == ".md":
+        lines = path.read_text(encoding="utf-8").splitlines()
+        return {f"line {number}": line for number, line in enumerate(lines, start=1)}
     if path.suffix == ".json":
         data = json.loads(path.read_text(encoding="utf-8"))
         return {key: value for key, value in data.items() if isinstance(value, str)}
@@ -56,7 +61,7 @@ def texts_of(path):
 
 def main():
     problems = []
-    files = sorted(SOURCES.rglob("*-fr.xml")) + [DEMO]
+    files = sorted(SOURCES.rglob("*-fr.xml")) + [DEMO, README]
 
     for path in files:
         excepted = EXCEPTED_KEYS.get(path.name, {})

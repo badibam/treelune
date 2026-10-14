@@ -6,8 +6,8 @@ Conçu le 2026-10-08. Ce que voit une personne qui découvre l'app, du README à
 
 Elle ouvre le README, la fiche F-Droid et l'écran d'accueil, dans cet ordre :
 
-1. Suivez ce qui compte pour vous (sport, repas, tâches, humeur) avec des outils que vous assemblez vous-même, et une IA qui peut les lire, les remplir et les régler avec vous.
-2. L'exemple : vos repas calculent vos calories, qu'un objectif juge et qu'un graphique dessine.
+1. Suis ce qui compte (sport, repas, tâches, humeur) avec des outils que tu assembles toi-même, et une IA qui peut les lire, les remplir et les régler avec toi.
+2. L'exemple : tu notes tes repas, et l'app en tire les calories du jour, les compare à une cible et les dessine en graphique.
 
 L'IA qui agit avec les mêmes gestes que l'utilisateur, ce qui distingue l'app, vient ensuite : en tête, elle ne parle qu'à qui a déjà compris le reste.
 
@@ -17,9 +17,9 @@ L'IA qui agit avec les mêmes gestes que l'utilisateur, ce qui distingue l'app, 
 - Plan, dans l'ordre des questions de qui découvre l'app :
   1. En-tête : icône, nom, la promesse et son exemple.
   2. Trois ou quatre captures côte à côte : l'accueil, une zone de la démo, un graphique, une conversation avec l'IA.
-  3. Ce que vous pouvez faire, en quatre blocs courts : Noter (les types d'outils, une ligne chacun), Relier (variables, objectifs, graphiques), Avec une IA (elle lit, remplit, règle, demande votre accord, tourne sur un planning ; votre clé ; Claude branché de l'extérieur par le connecteur), À votre goût (zones, disposition, thèmes).
+  3. Ce que tu peux faire, en quatre blocs courts : Noter (les types d'outils, une ligne chacun), Relier (variables, objectifs, graphiques), Avec une IA (elle lit, remplit, règle, demande ton accord, tourne sur un planning ; ta clé ; Claude branché de l'extérieur par le connecteur), À ton goût (zones, disposition, thèmes).
   4. Commencer : installer, puis la démo et le Guide au premier lancement.
-  5. Vos données : tout reste sur le téléphone, rien ne part sauf vers le fournisseur d'IA choisi quand on lui parle ou qu'une routine tourne, aucune télémétrie, sauvegarde et export.
+  5. Tes données : tout reste sur le téléphone, rien ne part sauf vers le fournisseur d'IA choisi quand on lui parle ou qu'une routine tourne, aucune télémétrie, sauvegarde et export.
   6. État du projet : version, développement actif, Android minimal, langues.
   7. Pour les développeurs : un paragraphe, le lien vers `docs/reference.md`, `./run`.
   8. Licence : GPL-3.0.
@@ -44,16 +44,7 @@ Pas de diaporama, rien sur l'IA.
 
 ## La langue
 
-Le Guide s'adresse à quelqu'un qui découvre l'app, pas à qui connaît son code : rien du registre de la doc interne et des commits.
-
-- Une phrase, une idée, avec un vrai verbe. Jamais une chose qui agit à la place de quelqu'un : ni « la routine garde un message », ni « le message ouvre une conversation », mais « un message se prépare une fois », « touche la bulle pour commencer une conversation ».
-- Pas d'avalanche de tu, ton, ta, tes : un article suffit quand on sait de qui il s'agit (« une première zone », « la liste »), et « on » ou une tournure passive allègent.
-- Le pourquoi avant le comment : à quoi ça te sert, puis où toucher. Nommer un bouton se fait dans une phrase qui dit pourquoi le toucher.
-- Les deux-points annoncent une liste ou un exemple, jamais une moitié de phrase ; pas de point-virgule.
-- Un mot de l'app (entrée, zone, pointeur, tentative) s'explique à sa première apparition, puis reste le même : « configuration », pas « config ».
-- Pas de précision contre un malentendu que le lecteur n'a pas encore.
-- Pas de formule répétée (« Puis Suivant. ») : le bouton se voit.
-- Les guillemets de chaque langue : « » en français, “ ” en anglais.
+Celle de tout texte lu par l'utilisateur : `docs/WRITING.md`.
 
 ## Le départ d'un tutoriel
 
@@ -64,7 +55,7 @@ Un tutoriel qui commence à sa première étape (de l'écran d'accueil, d'une fi
 Posée au-dessus de tous les écrans, en bas, à la place que tient `LongOperationBar` pour une opération longue.
 
 - Repliée, deux lignes et une flèche : le titre du tutoriel ; « 2/6 · Ajoutez une sortie dans le Suivi ». La flèche dit qu'elle se déplie ; toute la bande se touche.
-- Dépliée, en plus : l'explication de l'étape ; le chemin depuis l'écran ouvert (« D'ici : ouvrez la zone Course », ou « Vous êtes dans Cuisine : revenez à l'accueil ») ; « Masquer le tutoriel ».
+- Dépliée, en plus : l'explication de l'étape ; le chemin depuis l'écran ouvert (« D'ici : ouvre la zone Course », ou « Tu es dans Cuisine : reviens à l'accueil ») ; « Masquer le tutoriel ».
 - Pas de bouton qui emmène à l'écran : la personne fait les gestes elle-même. Un bouton introuvable à l'usage pourra clignoter, au cas par cas.
 - Une étape faite se coche, la suivante prend sa place.
 
