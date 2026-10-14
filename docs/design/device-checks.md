@@ -286,3 +286,12 @@ Vu le 2026-10-09 : l'inscription par la page de connexion, « Activer Funnel » 
 - Ajouter une entrée au suivi que lit le graphique, revenir : le graphique l'a prise. Recréer l'écran : le graphique se redessine à l'identique.
 - Thème rétro : les graduations en pointillé d'un pixel sur deux, les axes pleins.
 
+
+## Copier, limites, fuseau, import, sauvegarde automatique (branche data-text, 2026-10-14)
+
+- Conversation : un appui simple sur une bulle ne copie plus ; un appui long copie, avec une vibration. Message de l'IA à module : son texte puis ses questions ; en attente de validation : ses actions ; message système : résumé, lignes ✓/✗, détails. Les boutons et « Détails » dans la bulle répondent toujours à l'appui simple.
+- Notes : appui long, « Copier » dans le menu. Journal, une entrée lue : « Copier », et un passage du contenu se sélectionne. Rapport de bug : « Copier ». Messages, Réglages › Journaux, la fiche d'une entrée (Données structurées, Questionnaire) : le texte se sélectionne ; dans une liste, l'appui long reste celui de la liste.
+- Un nom (60) : coller un texte de 100 caractères le garde, le compteur « 100 / 60 » en erreur, l'enregistrement refusé avec la raison ; le compteur apparaît à 48. Une note de 3 000 caractères s'enregistre ; une consigne de Séance de 1 000 aussi.
+- Réglages › Formats : le fuseau propose Europe/Lisbon avec son décalage, la recherche au-dessus de la liste la trouve en tapant « lisb » ; la langue propose « Português (Portugal) ». Le temps d'ouverture de la liste, en rétro surtout.
+- Import d'un CSV dont une colonne s'appelle `created_at` : proposée « Écartée », la phrase dessous ; la mettre en « Un nouveau champ » : refusé dans ce qui manque ; la mettre sur la date : elle remplit la date.
+- Sauvegarde automatique : choisir un dossier (`Documents/Treelune`), la carte dit « Aucune copie encore » puis, dans les dix minutes, « Dernière copie : … » et le fichier `treelune_auto_hour_….zip` paraît dans Fichiers ; rien de changé pendant une heure : pas de nouvelle copie ; une écriture, une heure plus tard : l'ancienne devient `day`. Relever dans Réglages › Journaux la ligne « Auto backup: … written in N ms » : au-delà de 50 000 ms app fermée, la copie est coupée (il faudra le service au premier plan). L'interrupteur sur Off : plus de copie. Désinstaller puis restaurer : « Dossier inaccessible » dans la carte, une notification une fois ; rechoisir le dossier relance les copies. Le fichier `hour` se restaure par « Importer ».
