@@ -192,7 +192,12 @@
     <string name="guide_appearance_2_goal">Adjust the display</string>
     <string name="guide_appearance_2_text">Four more settings adjust the display.\n- Hue: turns the theme\'s colours round the colour wheel, by degree. At 0, the theme keeps its own. The colours of states and tags stay as they are.\n- Interface size: makes the interface larger by steps, in the themes drawn pixel by pixel like Retro, which ignore Android\'s text size\n- One column: the tiles one under the other, for a narrow screen. The arrows of the layout mode then move a tile up or down the column.\n- Interface sounds: the sounds the theme plays when you touch the screen. The Default theme has none.</string>
     <string name="guide_your_data_title">Your data</string>
-    <string name="guide_your_data_intro">Backup and restore, import, export.</string>
+    <string name="guide_your_data_intro">Your data stays on the phone. In Settings › Data management, you keep it safe, restore it, or start again from scratch.</string>
+    <string name="guide_your_data_outro">Your data is safe, and you know how to restore it. Everything is set in Settings › Data management.</string>
+    <string name="guide_your_data_1_goal">Turn on the automatic backup</string>
+    <string name="guide_your_data_1_text">In Settings › Data management, the Automatic backup keeps a copy of all the data in a folder of the phone. Touch “Choose the folder” and pick one.\n\nA copy is written at most once an hour, only when the data changed. The app keeps four of them: the last hour, the last day, the last week and the last month. If a sync app follows that folder, the copies are also kept off the phone.\n\nThe Automatic backup switch stops it or starts it again, and “Change the folder” lets you pick another one.</string>
+    <string name="guide_your_data_2_goal">Export, restore or erase</string>
+    <string name="guide_your_data_2_text">The same screen is also where everything is exported, restored or erased.\n- Export all the data: writes a full backup to a file, where you choose\n- Import a backup file: replaces all the current data with the file\'s, then restarts the app\n- Reset all the data: deletes everything, for good, then restarts the app\nThe app asks for confirmation before importing or resetting. A copy from the automatic backup is a backup file like any other, imported the same way.</string>
     <string name="guide_external_access_title">External access</string>
     <string name="guide_external_access_intro">Plugging Claude into the app from outside, as a connector.</string>
     <string name="guide_when_stuck_title">When something goes wrong</string>
