@@ -158,7 +158,7 @@ fun ChapterScreen(id: String, demoInstalled: Boolean) {
             }
             if (!chapter.isTutorial) {
                 chapter.body(context)?.let { GuideText(it) }
-                chapter.toolConfig(context)?.let { Part("settings", s.shared("guide_tool_config")); GuideText(it) }
+                chapter.toolConfig(context)?.let { Part("settings", s.shared("guide_tool_config")); GuideText(s.shared("guide_tool_config_open") + "\n" + it) }
                 chapter.toolScreen(context)?.let { Part("smartphone", s.shared("guide_tool_screen")); GuideText(it) }
                 if (chapter.overview) GuideChapters.all(context).filter { it.toolType != null }.forEach { ToolLine(it) }
                 return@Column

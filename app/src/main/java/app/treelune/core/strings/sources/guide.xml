@@ -18,6 +18,7 @@
     <string name="guide_tools_title">The tools at a glance</string>
     <string name="guide_tools_intro">Each tool already does a lot on its own: before putting several together, look at what the right one provides. Touch a tool to read what it is for, what it already does and what it is not for.</string>
     <string name="guide_tool_config">Its settings</string>
+    <string name="guide_tool_config_open">- {settings} The gear of its screen, or a long press on its tile, opens it</string>
     <string name="guide_tool_screen">Its screen</string>
     <string name="guide_stub">This chapter is still to be written.</string>
     <string name="guide_do_interactive">Do it on the app</string>
