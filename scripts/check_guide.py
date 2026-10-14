@@ -13,7 +13,10 @@ each chapter and step:
   a chapter's title and introduction, a tutorial's end, each step's goal and explanation;
 - every demo id a step names, in its place or in what it waits for, is a zone or a tool the demo
   installs (assets/demo/structure.json), and a tool's place names the zone the demo puts it in:
-  the demo rewritten, a tutorial would send the user to a place that is not there.
+  the demo rewritten, a tutorial would send the user to a place that is not there;
+- the Guide's texts, and the tool types' texts it shows (usage, guide_config, guide_screen), keep
+  to its markup (GuideMarkup): an icon only as `{name}` at the head of a list line, a name of the
+  icon vocabulary (assets/icons/index.json), and no brace anywhere else.
 
 Usage:
     ./scripts/check_guide.py
@@ -36,6 +39,24 @@ DEMO = ROOT / "app" / "src" / "main" / "assets" / "demo" / "structure.json"
 DEMO_ID = re.compile(r"demo-[a-z0-9-]+")
 
 KEPT = re.compile(r"\{([a-z_]+)\}")
+ICONS = ROOT / "app" / "src" / "main" / "assets" / "icons" / "index.json"
+TOOLS = CORE.parent / "tools"
+TOOL_TEXTS = ("usage", "guide_config", "guide_screen")
+LIST_ICON = re.compile(r"^- \{([a-z0-9-]+)\} ")
+
+
+def markup_problems(where, text, icons):
+    """What breaks the Guide's markup in one text, as its XML source writes it."""
+    found = []
+    for line in text.replace("\\n", "\n").split("\n"):
+        line = line.strip()
+        head = LIST_ICON.match(line)
+        if head and head.group(1) not in icons:
+            found.append(f"{where}: no icon '{head.group(1)}'")
+        rest = line[head.end():] if head else line
+        if "{" in rest or "}" in rest:
+            found.append(f"{where}: a brace outside the head of a list line: « {line} »")
+    return found
 
 
 def services():
@@ -58,6 +79,13 @@ def main():
     demo_zones = {z["id"] for z in demo["zones"]}
     demo_tools = {t["id"]: t["zone_id"] for t in demo["tools"]}
     problems = []
+
+    icons = {icon["name"] for icon in json.loads(ICONS.read_text(encoding="utf-8"))["icons"]}
+    sources = list(TEXTS.values()) + sorted(TOOLS.glob("*/strings*.xml"))
+    for path in sources:
+        for key, text in re.findall(r'<string name="([^"]+)">(.*?)</string>', path.read_text(encoding="utf-8"), re.S):
+            if path in TEXTS.values() or key in TOOL_TEXTS:
+                problems += markup_problems(f"{path.relative_to(ROOT)} {key}", text, icons)
 
     for chapter in chapters:
         cid = chapter["id"]
