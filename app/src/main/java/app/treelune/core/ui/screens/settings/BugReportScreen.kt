@@ -26,7 +26,6 @@ import app.treelune.core.ui.ButtonAction
 import app.treelune.core.ui.ButtonDisplay
 import app.treelune.core.ui.ButtonType
 import app.treelune.core.ui.CardType
-import app.treelune.core.ui.Duration
 import app.treelune.core.ui.FieldType
 import app.treelune.core.ui.Size
 import app.treelune.core.ui.TextType
@@ -44,6 +43,8 @@ fun BugReportScreen(onBack: () -> Unit) {
     val s = remember { Strings.`for`(context = context) }
     var description by rememberSaveable { mutableStateOf("") }
     var sources by remember { mutableStateOf<BugReport.Sources?>(null) }
+    // No mail app opened for the developer's address: the screen says to copy and where to send
+    var noMailApp by rememberSaveable { mutableStateOf(false) }
 
     // Read once on opening: the lines written while the screen is open (its own) are not taken
     LaunchedEffect(Unit) { sources = BugReport.read(context) }
@@ -71,10 +72,12 @@ fun BugReportScreen(onBack: () -> Unit) {
             )
             UI.Text(s.shared("bug_report_cleaning"), TextType.CAPTION)
             val subject = s.shared("bug_report_subject").format(app.treelune.BuildConfig.VERSION_NAME)
-            UI.Button(type = ButtonType.PRIMARY, onClick = {
-                report?.let { if (!mail(context, it, subject)) UI.Toast(context, s.shared("bug_report_no_mail_app"), Duration.LONG) }
-            }) {
-                UI.Text(s.shared("bug_report_send_developer"), TextType.LABEL)
+            if (noMailApp) {
+                UI.Text(s.shared("bug_report_no_mail_app").format(BugReport.DEVELOPER_EMAIL), TextType.BODY, selectable = true)
+            } else {
+                UI.Button(type = ButtonType.PRIMARY, onClick = { report?.let { if (!mail(context, it, subject)) noMailApp = true } }) {
+                    UI.Text(s.shared("bug_report_send_developer"), TextType.LABEL)
+                }
             }
             UI.Button(type = ButtonType.DEFAULT, onClick = { report?.let { share(context, it, subject, s.shared("bug_report_share")) } }) {
                 UI.Text(s.shared("bug_report_share"), TextType.LABEL)

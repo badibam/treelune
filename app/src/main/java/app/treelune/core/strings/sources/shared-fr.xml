@@ -1692,7 +1692,7 @@
     <string name="bug_report_cleaning">Ci-dessous, exactement ce qui sera envoyé. Les identifiants et les textes cités sont remplacés ; le reste peut encore nommer quelque chose de toi : relis avant d\'envoyer.</string>
     <string name="bug_report_send_developer">Envoyer au développeur</string>
     <string name="bug_report_share">Partager…</string>
-    <string name="bug_report_no_mail_app">Aucune app d\'e-mail sur ce téléphone : partage plutôt le rapport</string>
+    <string name="bug_report_no_mail_app">Aucune app d\'e-mail sur ce téléphone : copie le rapport et envoie-le à %1$s</string>
     <string name="bug_report_subject">Rapport de bug Treelune %1$s</string>
     <string name="crash_notice_title">L\'app s\'est arrêtée</string>
     <string name="crash_notice_text">L\'app s\'est arrêtée le %1$s. Un rapport peut être envoyé, relu avant de partir.</string>

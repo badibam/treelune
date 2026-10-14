@@ -45,7 +45,7 @@ Ouvert depuis l'écran d'après plantage, ou à la demande par la tuile « Signa
 - En haut, le champ libre « Ce qui s'est passé », facultatif.
 - Puis le rapport, en texte brut, défilant, exactement ce qui part — champ libre compris, mis à jour quand on l'écrit.
 - La phrase sur le nettoyage.
-- **Envoyer au développeur** : l'app d'e-mail du téléphone (`ACTION_SENDTO`, `mailto:`), le destinataire `treelune@proton.me` (`BugReport.DEVELOPER_EMAIL`), le sujet « Rapport de bug Treelune <version> » et le rapport en texte déjà écrits ; sans app d'e-mail, un message invite à partager.
+- **Envoyer au développeur** : l'app d'e-mail du téléphone (`ACTION_SENDTO`, `mailto:`), le destinataire `treelune@proton.me` (`BugReport.DEVELOPER_EMAIL`), le sujet « Rapport de bug Treelune <version> » et le rapport en texte déjà écrits ; sans app d'e-mail, le bouton laisse place à la phrase qui dit de copier le rapport et de l'envoyer à cette adresse.
 - **Partager…** : le menu de partage d'Android (`ACTION_SEND`, `text/plain`), même sujet, même texte, sans destinataire : la personne choisit l'app et le destinataire.
 
 Pas de retrait ligne par ligne : on envoie ou non, et on coupe au besoin dans l'app qui reçoit.
