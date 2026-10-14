@@ -85,6 +85,10 @@ private val NullableEnrichmentDialogStateSaver: Saver<EnrichmentDialogState?, St
  *   with the session; with none, none can be joined. The block says when the model does not
  *   read images, and the message is refused while it holds one then.
  * The rules live in [ComposerBlocks]; this composable shows the blocks and wires the gestures.
+ *
+ * [boundedBlocks]: the blocks scroll in a third of the screen, under the controls that stay in
+ * view (a conversation's composer); false, they take the height they need and the page around
+ * scrolls them with the rest (a routine's editor).
  */
 @Composable
 fun UI.RichComposer(
@@ -99,6 +103,7 @@ fun UI.RichComposer(
     modifier: Modifier = Modifier,
     sessionType: SessionType = SessionType.CHAT,
     sessionId: String? = null,
+    boundedBlocks: Boolean = true,
     statusContent: (@Composable () -> Unit)? = null
 ) {
     val context = LocalContext.current
@@ -252,12 +257,14 @@ fun UI.RichComposer(
             }
         }
 
-        // Blocks area with scroll and max height (1/3 screen)
+        // The blocks: their own scroll in a third of the screen, or their full height
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = maxBlocksHeight)
-                .verticalScroll(blocksScrollState)
+            modifier = if (boundedBlocks) {
+                Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = maxBlocksHeight)
+                    .verticalScroll(blocksScrollState)
+            } else Modifier.fillMaxWidth()
         ) {
             UI.ReorderableColumn(
                 items = blocks,

@@ -51,7 +51,9 @@ fun AutomationEditor(
             placeholder = s.shared("automation_message_placeholder"),
             showEnrichmentButtons = true,
             showSendButton = false,
-            sessionType = SessionType.SEED
+            sessionType = SessionType.SEED,
+            // The page scrolls as a whole: the message takes the height it needs
+            boundedBlocks = false
         )
 
         // The settings, each summed up on its button
