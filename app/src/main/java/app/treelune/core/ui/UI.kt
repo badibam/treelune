@@ -732,7 +732,9 @@ object UI {
         /** More buttons after the left one: the Guide's book on the home screen. */
         afterLeft: (@Composable () -> Unit)? = null,
         /** The app's mark beside the title, the home screen's (ThemeContract.PageHeader). */
-        appMark: Boolean = false
+        appMark: Boolean = false,
+        /** The left button marked (WaitingMark): something to look at behind it, the settings of the home screen. */
+        leftMarked: Boolean = false
     ) {
         // The phone's back key does what the header's back button does. Only the screen on
         // display is composed, so its header is the one that answers. The sound of going back
@@ -749,7 +751,12 @@ object UI {
                 horizontalArrangement = Arrangement.spacedBy(Space.XS),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                leftButton?.let { ActionButton(action = it, display = ButtonDisplay.ICON, onClick = onLeftClick ?: {}) }
+                leftButton?.let {
+                    Box {
+                        ActionButton(action = it, display = ButtonDisplay.ICON, onClick = onLeftClick ?: {})
+                        if (leftMarked) Box(modifier = Modifier.align(Alignment.TopEnd)) { WaitingMark() }
+                    }
+                }
                 afterLeft?.invoke()
                 Box(modifier = Modifier.weight(1f)) { breadcrumb?.let { app.treelune.core.navigation.BreadcrumbLine(it) } }
                 rightButton?.let { ActionButton(action = it, display = ButtonDisplay.ICON, onClick = onRightClick ?: {}) }

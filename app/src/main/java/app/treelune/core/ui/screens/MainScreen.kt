@@ -386,6 +386,8 @@ private fun rememberZones(onError: (String) -> Unit): ZonesState {
 private fun HomeScreen(zones: ZonesState) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
+    // Whether the settings button is marked, read each time the home screen shows
+    LaunchedEffect(Unit) { app.treelune.core.backup.AutoBackup.refresh(context) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val zoneGroups = zones.groups
 
@@ -416,6 +418,8 @@ private fun HomeScreen(zones: ZonesState) {
                 icon = null,
                 appMark = true,
                 leftButton = ButtonAction.SETTINGS,
+                // Marked while Settings › Data has something to look at (the automatic backup)
+                leftMarked = app.treelune.core.backup.AutoBackup.pending,
                 rightButton = ButtonAction.CONFIGURE,
                 onLeftClick = { Navigator.push(Place.Settings) },
                 onRightClick = { Navigator.push(Place.HomeConfig) },

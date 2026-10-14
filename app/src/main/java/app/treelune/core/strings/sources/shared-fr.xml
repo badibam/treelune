@@ -986,6 +986,7 @@
     <string name="settings_data_folder">Dossier des sauvegardes</string>
     <string name="settings_data_auto_backup">Sauvegarde automatique</string>
     <string name="settings_data_auto_backup_help">Une copie de toutes les données dans le dossier choisi, au plus une fois par heure et seulement si les données ont changé ; quatre copies gardées : la dernière heure, le dernier jour, la dernière semaine et le dernier mois.</string>
+    <string name="settings_data_seen">Cas de la sauvegarde automatique vu</string>
     <string name="auto_backup_title">Sauvegarde automatique</string>
     <string name="auto_backup_no_folder">Choisissez un dossier du téléphone : l\'app y écrit une copie de toutes les données au plus une fois par heure, quand les données ont changé, et garde quatre copies : la dernière heure, le dernier jour, la dernière semaine et le dernier mois. Un dossier que suit une app de synchronisation les garde aussi hors du téléphone.</string>
     <string name="auto_backup_off">Arrêtée : aucune copie n\'est écrite.</string>
@@ -995,7 +996,6 @@
     <string name="auto_backup_choose_folder">Choisir le dossier</string>
     <string name="auto_backup_change_folder">Changer de dossier</string>
     <string name="auto_backup_folder_refused">Android ne laisse pas l\'app écrire durablement dans ce dossier : choisissez-en un autre.</string>
-    <string name="auto_backup_lost_title">Sauvegarde automatique arrêtée</string>
     <string name="auto_backup_lost_content">L\'app ne peut plus écrire dans le dossier des sauvegardes : choisissez-le de nouveau dans Réglages › Données.</string>
     <string name="auto_backup_error_write">La copie %1$s n\'a pas pu s\'écrire dans le dossier des sauvegardes</string>
 

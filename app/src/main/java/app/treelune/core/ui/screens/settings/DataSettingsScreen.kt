@@ -106,7 +106,11 @@ fun DataSettingsScreen(
     var autoRead by remember { mutableStateOf(0) }
     LaunchedEffect(autoRead) {
         autoState = try {
-            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { app.treelune.core.backup.AutoBackup.state(context) }
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                // The screen shows the case: it is seen, the marks on the way here go
+                app.treelune.core.backup.AutoBackup.seen(context)
+                app.treelune.core.backup.AutoBackup.state(context)
+            }
         } catch (e: Exception) { errorMessage = e.message; null }
     }
     /** The data settings written whole, [folder] and [on], then read again. */

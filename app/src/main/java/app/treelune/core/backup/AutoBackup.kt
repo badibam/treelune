@@ -3,12 +3,14 @@ package app.treelune.core.backup
 import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import app.treelune.core.backup.AutoBackupRotation.Slot
 import app.treelune.core.config.AppSettings
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.entities.AppSettingCategories
-import app.treelune.core.strings.Strings
 import app.treelune.core.utils.AppConfigManager
 import app.treelune.core.utils.JsonUtils
 import app.treelune.core.utils.LogManager
@@ -24,6 +26,10 @@ import java.io.File
  * beside an import, the demo or a manual export. What the folder holds is read from its files'
  * names: no state of the rolling is kept but the hash of the last data copied, on this phone
  * ([STORE], outside the database, which a backup would carry and the copy would change).
+ *
+ * No folder chosen, or the folder lost, is something to look at in Settings › Data: [pending]
+ * marks the way there (the settings button of the home screen, the Data tile) until the screen
+ * is opened ([seen]), the case seen kept in AppSettings.DATA_SEEN; another case marks it again.
  */
 object AutoBackup {
 
@@ -42,20 +48,57 @@ object AutoBackup {
         data class Ready(val folder: Uri, val copies: Map<Slot, Copy>) : State
     }
 
-    /** This phone's note of the last copy: the hash of its data, and whether a lost folder was said. */
+    /** This phone's note of the last copy: the hash of its data. */
     private const val STORE = "auto_backup.json"
     private const val DATA_HASH = "data_hash"
-    private const val LOST_SAID = "lost_said"
 
-    /** The notification of a lost folder, one at a time. */
-    private const val LOST_NOTIFICATION_ID = 7301
+    /** Whether Settings › Data has something not yet looked at: no folder chosen, or the folder lost. */
+    var pending by mutableStateOf(false)
+        private set
+
+    /** The data settings as stored. */
+    private suspend fun settings(context: Context): JSONObject {
+        val result = Coordinator(context).processUserAction("app_config.get", mapOf("category" to AppSettingCategories.DATA))
+        @Suppress("UNCHECKED_CAST")
+        return (result.data?.get("settings") as? Map<String, Any?>)?.let { JsonUtils.toJSONObject(it) }
+            ?: throw IllegalStateException(result.error ?: "data settings unread")
+    }
+
+    /** The case to look at in [settings], by a key that changes when the case does; null when there is none. */
+    private fun attention(context: Context, settings: JSONObject): String? {
+        val folder = settings.optString(AppSettings.DATA_FOLDER).takeIf { it.isNotEmpty() } ?: return "no_folder"
+        if (!settings.optBoolean(AppSettings.DATA_AUTO_BACKUP, true)) return null
+        return if (writable(context, Uri.parse(folder))) null else "lost:$folder"
+    }
+
+    /** [pending] read again: the case to look at, unless it is the one seen. */
+    suspend fun refresh(context: Context) {
+        pending = try {
+            val settings = settings(context)
+            attention(context, settings)?.let { it != settings.optString(AppSettings.DATA_SEEN) } ?: false
+        } catch (e: Exception) {
+            LogManager.service("AutoBackup: the mark not read: ${e.message}", "WARN")
+            false
+        }
+    }
+
+    /** Settings › Data opened: its case is seen, and the mark goes. */
+    suspend fun seen(context: Context) {
+        val settings = settings(context)
+        val case = attention(context, settings)
+        if (case != null && case != settings.optString(AppSettings.DATA_SEEN)) {
+            val result = Coordinator(context).processUserAction("app_config.set", mapOf(
+                "category" to AppSettingCategories.DATA,
+                "settings" to JsonUtils.toMap(settings.put(AppSettings.DATA_SEEN, case))
+            ))
+            if (!result.isSuccess) LogManager.service("AutoBackup: the case seen not written: ${result.error}", "WARN")
+        }
+        pending = false
+    }
 
     /** Where the automatic backup stands, from the settings and the folder's files. */
     suspend fun state(context: Context): State {
-        val result = Coordinator(context).processUserAction("app_config.get", mapOf("category" to AppSettingCategories.DATA))
-        @Suppress("UNCHECKED_CAST")
-        val settings = (result.data?.get("settings") as? Map<String, Any?>)?.let { JsonUtils.toJSONObject(it) }
-            ?: throw IllegalStateException(result.error ?: "data settings unread")
+        val settings = settings(context)
         val folder = settings.optString(AppSettings.DATA_FOLDER).takeIf { it.isNotEmpty() }?.let { Uri.parse(it) } ?: return State.NoFolder
         if (!settings.optBoolean(AppSettings.DATA_AUTO_BACKUP, true)) return State.Off(folder)
         if (!writable(context, folder)) return State.Lost(folder)
@@ -71,29 +114,16 @@ object AutoBackup {
         context.contentResolver.persistedUriPermissions.any { it.uri == folder && it.isWritePermission }
 
     /**
-     * The scheduler's turn: a copy when one is due, the lost folder said once. Cheap when nothing
-     * is due: the settings and the folder's names are read, nothing else.
+     * The scheduler's turn: a copy when one is due. Cheap when nothing is due: the settings and
+     * the folder's names are read, nothing else. A folder lost is marked ([refresh]), not notified.
      */
     suspend fun tick(context: Context) {
-        when (val state = state(context)) {
-            is State.Ready -> {
-                note(context) { it.remove(LOST_SAID) }
-                if (!AutoBackupRotation.due(System.currentTimeMillis(), state.copies.mapValues { it.value.at })) return
-                val result = Coordinator(context).processScheduledTask("backup.auto")
-                if (!result.isSuccess) LogManager.service("AutoBackup: no copy: ${result.error}", "WARN")
-            }
-            is State.Lost -> if (!read(context).optBoolean(LOST_SAID)) {
-                val s = Strings.`for`(context = context)
-                val sent = Coordinator(context).processScheduledTask("notifications.send", mapOf(
-                    "title" to s.shared("auto_backup_lost_title"),
-                    "content" to s.shared("auto_backup_lost_content"),
-                    "priority" to "default",
-                    "notification_id" to LOST_NOTIFICATION_ID
-                ))
-                if (sent.isSuccess) note(context) { it.put(LOST_SAID, true) }
-            }
-            State.NoFolder, is State.Off -> {}
+        val state = state(context)
+        if (state is State.Ready && AutoBackupRotation.due(System.currentTimeMillis(), state.copies.mapValues { it.value.at })) {
+            val result = Coordinator(context).processScheduledTask("backup.auto")
+            if (!result.isSuccess) LogManager.service("AutoBackup: no copy: ${result.error}", "WARN")
         }
+        refresh(context)
     }
 
     /** The copies of the rolling in [folder], by slot; any other file of it left alone. */

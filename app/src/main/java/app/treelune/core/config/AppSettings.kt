@@ -102,6 +102,8 @@ object AppSettings {
     const val DATA_FOLDER = "folder"
     /** Whether the automatic backup writes into that folder (AutoBackup) */
     const val DATA_AUTO_BACKUP = "auto_backup"
+    /** The case of the automatic backup last looked at in Settings › Data (AutoBackup.seen) */
+    const val DATA_SEEN = "seen"
 
     /** How an outside AI reaches the app: through its own Tailscale node, or through a relay (docs/design/funnel-access.md). */
     const val ACCESS_MODE = "access_mode"
@@ -223,7 +225,9 @@ object AppSettings {
             AppSettingCategories.DATA -> listOf(
                 // Chosen in Android's folder picker, never typed
                 field(DATA_FOLDER, text("settings_data_folder"), null, FieldType.TEXT, config = mapOf("length" to TextLength.UNLIMITED.name)),
-                field(DATA_AUTO_BACKUP, text("settings_data_auto_backup"), text("settings_data_auto_backup_help"), FieldType.BOOLEAN, required = true)
+                field(DATA_AUTO_BACKUP, text("settings_data_auto_backup"), text("settings_data_auto_backup_help"), FieldType.BOOLEAN, required = true),
+                // Written by the screen that showed it, never entered
+                field(DATA_SEEN, text("settings_data_seen"), null, FieldType.TEXT, config = mapOf("length" to TextLength.UNLIMITED.name))
             )
             AppSettingCategories.DEMO -> listOf(
                 field(app.treelune.core.demo.DemoStartup.INSTALL_ON_UPDATE, text("settings_demo_install_on_update"),
