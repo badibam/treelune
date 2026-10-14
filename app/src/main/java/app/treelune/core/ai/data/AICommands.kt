@@ -99,6 +99,10 @@ object AICommands {
         query("APP_STATE"),
         query("VARIABLES", p("zone_id", "string")),
         query("READING", p("variable", "string", true), p("at", "array", true)),
+        query("AUTOMATIONS", p("zone_id", "string")),
+        query("AUTOMATION_CONFIG", p("id", "string", true)),
+        query("AUTOMATION_RUNS", p("automation_id", "string", true), p("period", "object"), p("limit", "integer")),
+        query("AUTOMATION_RUN", p("id", "string", true), p("messages", "string")),
         query("FILE", p("id", "string", true), p("start_line", "integer"), p("lines", "integer")),
         query("IMPORT_PLAN", p("file", "string", true), p("tool_instance_id", "string", true)),
         query("CURRENT_DATETIME"),
@@ -131,6 +135,10 @@ object AICommands {
         action("UPDATE_VARIABLE",
             p("variable_id", "string", true), p("name", "string"), p("definition", "object"), p("group", "string"), p("zone_id", "string")),
         action("DELETE_VARIABLE", p("variable_id", "string", true)),
+        action("CREATE_AUTOMATION", p("zone_id", "string", true), p("settings", "object", true), p("message", "array", true), p("access", "array")),
+        action("UPDATE_AUTOMATION",
+            p("automation_id", "string", true), p("zone_id", "string"), p("settings", "object"), p("message", "array"), p("access", "array")),
+        action("DELETE_AUTOMATION", p("automation_id", "string", true)),
         action("IMPORT_DATA", p("file", "string", true), p("tool_instance_id", "string", true), p("columns", "array", true)),
         action("UPDATE_APP_CONFIG", p("category", "string", true), p("settings", "object", true), p("renames", "object"))
     )

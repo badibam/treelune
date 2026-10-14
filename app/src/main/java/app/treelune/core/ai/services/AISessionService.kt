@@ -3,6 +3,7 @@ package app.treelune.core.ai.services
 import android.content.Context
 import app.treelune.core.ai.data.*
 import app.treelune.core.ai.database.AIDao
+import app.treelune.core.ai.prompts.PromptManager
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.AppDatabase
@@ -50,6 +51,7 @@ class AISessionService(private val context: Context) : ExecutableService {
                 "stop_active_session" -> stopActiveSession(params, token)
                 "list_sessions" -> listSessions(params, token)
                 "list_sessions_for_automation" -> listSessionsForAutomation(params, token)
+                "run_history" -> runHistory(params, token)
                 "update_session" -> updateSession(params, token)
                 "delete_session" -> deleteSession(params, token)
                 "set_active_session" -> setActiveSession(params, token)
@@ -98,6 +100,9 @@ class AISessionService(private val context: Context) : ExecutableService {
         val providerId = params.optString("provider_id").takeIf { it.isNotEmpty() }
             ?: return OperationResult.error(s.shared("ai_error_param_provider_id_required"))
 
+        // A seed session is made with its routine and its message, by automations.create
+        if (type == SessionType.SEED.name) return OperationResult.error(s.shared("ai_error_seed_with_routine"))
+
         LogManager.aiSession("Creating AI session: name=$name, type=$type, providerId=$providerId", "DEBUG")
 
         // The app's own demo gives its ids; every other caller gets one made here
@@ -127,32 +132,6 @@ class AISessionService(private val context: Context) : ExecutableService {
             database.aiDao().insertSession(sessionEntity)
 
             LogManager.aiSession("Successfully created session: $sessionId", "INFO")
-
-            // For SEED sessions, create an empty USER message as template placeholder
-            if (type == "SEED") {
-                val emptyRichMessage = RichMessage(segments = emptyList())
-
-                val messageEntity = SessionMessageEntity(
-                    id = UUID.randomUUID().toString(),
-                    sessionId = sessionId,
-                    timestamp = now,
-                    sender = MessageSender.USER,
-                    richContentJson = emptyRichMessage.toJson(),
-                    textContent = null,
-                    aiMessageJson = null,
-                    aiMessageParsedJson = null,
-                    systemMessageJson = null,
-                    executionMetadataJson = null,
-                    excludeFromPrompt = false,
-                    inputTokens = 0,
-                    cacheWriteTokens = 0,
-                    cacheReadTokens = 0,
-                    outputTokens = 0
-                )
-
-                database.aiDao().insertMessage(messageEntity)
-                LogManager.aiSession("Created empty USER message for SEED session: $sessionId", "DEBUG")
-            }
 
             return OperationResult.success(mapOf(
                 "session_id" to sessionId,
@@ -259,6 +238,26 @@ class AISessionService(private val context: Context) : ExecutableService {
         } catch (e: Exception) {
             LogManager.aiSession("Failed to list sessions: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("ai_error_list_sessions").format(e.message ?: ""))
+        }
+    }
+
+    /**
+     * A routine's run as its AI received it (PromptManager.runHistory): "session_id", and
+     * "messages", "all" or "errors" for the failures alone.
+     */
+    private suspend fun runHistory(params: JSONObject, token: CancellationToken): OperationResult {
+        if (token.isCancelled) return OperationResult.cancelled()
+        val sessionId = params.optString("session_id").takeIf { it.isNotEmpty() }
+            ?: return OperationResult.error(s.shared("ai_error_param_session_id_required"))
+        val onlyFailures = when (val messages = params.optString("messages", "all")) {
+            "all" -> false
+            "errors" -> true
+            else -> return OperationResult.error(s.shared("ai_error_run_messages").format(messages))
+        }
+        return try {
+            OperationResult.success(mapOf("session_id" to sessionId, "messages" to PromptManager.runHistory(context, sessionId, onlyFailures)))
+        } catch (e: IllegalArgumentException) {
+            OperationResult.error(e.message ?: sessionId)
         }
     }
 
@@ -1126,8 +1125,17 @@ class AISessionService(private val context: Context) : ExecutableService {
      * Verbalize AI session operation
      * AI session management is typically not exposed to AI actions
      */
+    /** A routine's runs and one of them read, by the routine's name; nothing else is the AI's. */
     override suspend fun verbalize(operation: String, params: JSONObject, context: Context): String {
         val s = Strings.`for`(context = context)
-        return s.shared("action_verbalize_unknown")
+        val dao = AppDatabase.getDatabase(context).aiDao()
+        return when (operation) {
+            "list_sessions_for_automation" -> s.shared("action_verbalize_runs_list")
+                .format(params.optString("automation_id").let { dao.getAutomationById(it)?.name ?: it })
+            "run_history" -> s.shared("action_verbalize_run_history").format(params.optString("session_id").let { id ->
+                dao.getSession(id)?.automationId?.let { dao.getAutomationById(it)?.name } ?: id
+            })
+            else -> s.shared("action_verbalize_unknown")
+        }
     }
 }

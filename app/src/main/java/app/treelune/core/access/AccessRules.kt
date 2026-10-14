@@ -2,6 +2,7 @@ package app.treelune.core.access
 
 import android.content.Context
 import app.treelune.core.database.AppDatabase
+import app.treelune.core.selection.ReferenceKind
 
 /** What an operation reaches, and how far it goes there. */
 sealed class Reach {
@@ -13,6 +14,10 @@ sealed class Reach {
     data class Tool(val id: String, val level: AccessLevel) : Reach()
     /** A variable, by its id or by its name, held by its zone */
     data class Variable(val idOrName: String, val byName: Boolean, val level: AccessLevel) : Reach()
+    /** A routine, held by its zone */
+    data class Automation(val id: String, val level: AccessLevel) : Reach()
+    /** A routine's run, held by the zone of its routine */
+    data class Run(val id: String, val level: AccessLevel) : Reach()
     /** An operation these rules do not know: refused under a mask, rather than let through */
     data class Unknown(val action: String) : Reach()
 }
@@ -21,6 +26,9 @@ sealed class Reach {
 interface AccessLookups {
     suspend fun toolZone(toolId: String): String?
     suspend fun variableZone(idOrName: String, byName: Boolean): String?
+    suspend fun automationZone(automationId: String): String?
+    /** The routine run [runId] belongs to. */
+    suspend fun runAutomation(runId: String): String?
     suspend fun zoneName(zoneId: String): String?
     suspend fun toolName(toolId: String): String?
     /** Whether [resource] is a tool type, whose service runs the type's own operations on a tool. */
@@ -43,6 +51,7 @@ object AccessRules {
         fun toolAt(level: AccessLevel) = tool?.let { Reach.Tool(it, level) } ?: Reach.Unknown("$resource.$operation")
         fun zoneAt(key: String, level: AccessLevel) = text(key)?.let { Reach.Zone(it, level) } ?: Reach.Unknown("$resource.$operation")
         fun variableAt(level: AccessLevel) = text("variable_id")?.let { Reach.Variable(it, false, level) } ?: Reach.Unknown("$resource.$operation")
+        fun automationAt(level: AccessLevel) = text("automation_id")?.let { Reach.Automation(it, level) } ?: Reach.Unknown("$resource.$operation")
         return when (resource) {
             "tool_data" -> when (operation) {
                 in TOOL_DATA_READS -> listOf(toolAt(AccessLevel.READ))
@@ -73,6 +82,22 @@ object AccessRules {
                 "delete" -> listOf(variableAt(AccessLevel.USE))
                 else -> listOf(Reach.Unknown("$resource.$operation"))
             }
+            // A zone's routines are written by who reaches the zone in full, as its own settings are
+            "automations" -> when (operation) {
+                "list", "list_all" -> listOf(Reach.Free)
+                "get" -> listOf(automationAt(AccessLevel.READ))
+                "create" -> listOf(zoneAt("zone_id", AccessLevel.FULL))
+                // A routine moved goes into the zone it is moved to
+                "update" -> listOfNotNull(automationAt(AccessLevel.FULL), text("zone_id")?.let { Reach.Zone(it, AccessLevel.FULL) })
+                "delete" -> listOf(automationAt(AccessLevel.FULL))
+                else -> listOf(Reach.Unknown("$resource.$operation"))
+            }
+            // A routine's runs, read as the routine is; every other session is the screens'
+            "ai_sessions" -> when (operation) {
+                "list_sessions_for_automation" -> listOf(automationAt(AccessLevel.READ))
+                "run_history" -> listOf(text("session_id")?.let { Reach.Run(it, AccessLevel.READ) } ?: Reach.Unknown("$resource.$operation"))
+                else -> listOf(Reach.Unknown("$resource.$operation"))
+            }
             "readings" -> listOf(text("variable")?.let { Reach.Variable(it, true, AccessLevel.READ) } ?: Reach.Unknown("$resource.$operation"))
             "app_config" -> if (operation == "get_current_datetime") listOf(Reach.Free) else listOf(Reach.App)
             "imports" -> when (operation) {
@@ -97,6 +122,12 @@ object AccessRules {
         fun refused(what: String, level: AccessLevel?) =
             if (level == null) text("access_refused_unknown").format(holder, what)
             else text("access_refused").format(holder, what, level(level))
+        // A routine, or a run by [what], held by the zone of [automationId]
+        suspend fun automationRefusal(what: String, automationId: String?, level: AccessLevel): String? {
+            val zoneId = automationId?.let { lookups.automationZone(it) } ?: return refused(what, level)
+            val held = mask.zone(zoneId)
+            return if (held == null || held < level) refused(zone(zoneId, lookups, text), level) else null
+        }
         for (reach in reaches) {
             when (reach) {
                 Reach.Free -> Unit
@@ -114,6 +145,31 @@ object AccessRules {
                     if ((mask.zone(zoneId) ?: return refused(zone(zoneId, lookups, text), reach.level)) < reach.level)
                         return refused(zone(zoneId, lookups, text), reach.level)
                 }
+                is Reach.Automation -> automationRefusal(reach.id, reach.id, reach.level)?.let { return it }
+                is Reach.Run -> automationRefusal(reach.id, lookups.runAutomation(reach.id), reach.level)?.let { return it }
+            }
+        }
+        return null
+    }
+
+    /**
+     * Why [given], the access an AI writes for a routine, is wider than [holder], the mask of the
+     * AI writing it; null when it is not or when [holder] reaches everything. Each grant is held
+     * to what [holder] gives its target, a tool's zone included; a [given] that lists nothing
+     * reaches everything, wider than any mask with limits.
+     */
+    suspend fun widening(given: AccessMask, holder: AccessMask, holderName: String, lookups: AccessLookups, text: (String) -> String): String? {
+        if (holder.open) return null
+        if (given.open) return text("access_widening_open").format(holderName)
+        for (grant in given.grants) {
+            val id = grant.target.id!!
+            val held = when (grant.target.kind) {
+                ReferenceKind.ZONE -> holder.zone(id)
+                else -> lookups.toolZone(id)?.let { holder.tool(id, it) }
+            }
+            if (held == null || held < grant.level) {
+                val what = if (grant.target.kind == ReferenceKind.ZONE) zone(id, lookups, text) else tool(id, lookups, text)
+                return text("access_widening").format(holderName, what, text("access_level_${grant.level.key}"))
             }
         }
         return null
@@ -135,6 +191,10 @@ class DatabaseAccessLookups(context: Context) : AccessLookups {
     override suspend fun variableZone(idOrName: String, byName: Boolean) =
         if (byName) database.variableDao().getAll().firstOrNull { it.name == idOrName }?.zoneId
         else database.variableDao().getById(idOrName)?.zoneId
+
+    override suspend fun automationZone(automationId: String) = database.aiDao().getAutomationById(automationId)?.zoneId
+
+    override suspend fun runAutomation(runId: String) = database.aiDao().getSession(runId)?.automationId
 
     override suspend fun zoneName(zoneId: String) = database.zoneDao().getZoneById(zoneId)?.name
 

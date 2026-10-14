@@ -290,6 +290,11 @@ Une seule session active à la fois (CHAT ou AUTOMATION). `AISessionScheduler` g
 ### Concept
 Sessions AUTOMATION créées depuis template SEED (message user + enrichments). À chaque déclenchement : copie messages SEED → nouvelle session AUTOMATION → activation.
 
+`automations.create` écrit la routine, sa session SEED et son message dans une même transaction, ou rien ; le message est donné en blocs (`AutomationMessage` : texte et pointeurs), vide quand l'écran l'écrit ensuite. `ai_sessions.create_session` refuse une session SEED seule.
+
+### L'IA et les routines
+L'IA lit, crée, modifie et supprime les routines, et lit leurs exécutions (`AUTOMATIONS`, `AUTOMATION_CONFIG`, `AUTOMATION_RUNS`, `AUTOMATION_RUN`, `CREATE_AUTOMATION`, `UPDATE_AUTOMATION`, `DELETE_AUTOMATION`) ; elle ne lance pas une routine. Sa config s'écrit dans la forme où elle se lit (`AutomationSchemas`, schéma `automation_config`) : `zone_id`, `settings`, `access`, `message` en blocs ; les instants et durées y passent en ISO par ce schéma (`ModelValues`), ceux des exécutions par le schéma `automation_runs`. Une exécution se relit telle que son IA l'a reçue (`PromptManager.runHistory`), les données jointes au départ remplacées par la mention de leurs pointeurs. Les routines comptent au niveau de validation de leur zone ; sous un masque, elles s'écrivent avec la zone en `full`, et le masque qu'une IA donne à une routine, ou lui laisse, n'est jamais plus large que le sien (`AccessRules.widening`). `APP_STATE` et l'instantané du niveau 3 les portent en une ligne chacune (`AutomationSchemas.listed`), sans leur message.
+
 ### Déclenchement
 **ExecutionTrigger** distingue origine :
 - **MANUAL** : User clique Execute → `executeAutomation(id)` → queue si slot occupé

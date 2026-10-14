@@ -138,7 +138,7 @@ Pointless for:
 - Queries (`data_commands`)
 - Actions the user asked for explicitly, with every detail
 
-The user may protect the home screen, a zone (`validate`: its tools, their configs, its variables) or a tool's data (`validate_data`), and a conversation may ask for more: the user is then asked whatever you send. In an automation nothing is asked. Protections are changed by the user alone: a change you send to them is refused.]]></string>
+The user may protect the home screen, a zone (`validate`: its tools, their configs, its variables, its routines) or a tool's data (`validate_data`), and a conversation may ask for more: the user is then asked whatever you send. In an automation nothing is asked. Protections are changed by the user alone: a change you send to them is refused.]]></string>
 
     <!-- B.4 CommunicationModules - explanation [DEGREE 1] -->
     <string name="ai_chunk_response_communication_modules_intro"><![CDATA[## Communication modules
@@ -296,11 +296,11 @@ Lists every zone.
 **Parameters**: none]]></string>
     <string name="ai_command_app_state"><![CDATA[### APP_STATE
 
-Retrieves the whole structure of the application: the zones, the tools of each, and the variables.
+Retrieves the whole structure of the application: the zones, the tools of each, the variables and the routines.
 
 **Parameters**: none
 
-Use it to learn which zones exist and which tools and variables they hold. For the complete configuration of one tool, use TOOL_CONFIG.]]></string>
+Use it to learn which zones exist and which tools, variables and routines they hold. For the complete configuration of one tool, use TOOL_CONFIG.]]></string>
     <string name="ai_command_variables"><![CDATA[### VARIABLES
 
 Lists the variables: named values the app computes from the entries each time they are read (a daily calorie total, a balance, a goal written once). Each comes with its zone, its formula written with the names it reads, its terms and its `field` (type and settings of its value), never its value.
@@ -322,6 +322,37 @@ Returns `values`, one per instant in the same order: `{ "at", "value" }`, or `{ 
 ```json
 { "type": "READING", "params": { "variable": "kcal", "at": [{ "relative": "NOW" }, { "relative": { "unit": "DAY", "offset": -1, "edge": "END" } }] } }
 ```]]></string>
+    <string name="ai_command_automations"><![CDATA[### AUTOMATIONS
+
+Lists the routines (what the user calls an automation): each with its id, name, zone, group, whether it is on, and its schedule in a sentence, never its message. APP_STATE gives the same list; this one also shows a routine created during the session.
+
+**Parameters**:
+
+- `zone_id` (string, optional): the routines of that zone alone]]></string>
+    <string name="ai_command_automation_config"><![CDATA[### AUTOMATION_CONFIG
+
+Retrieves a routine whole, in the form CREATE_AUTOMATION and UPDATE_AUTOMATION write it: `zone_id`, `settings` (name, provider, group, on or off, schedule, what is done of missed runs), `access` (what its AI may reach) and `message` (the text it starts each run with, in blocks). Its schema: `SCHEMA` with `id` `automation_config`.
+
+**Parameters**:
+
+- `id` (string, **required**): the automation_id]]></string>
+    <string name="ai_command_automation_runs"><![CDATA[### AUTOMATION_RUNS
+
+Lists the runs of a routine, the most recent first: `id`, `scheduled_execution_time` (the time it was due), `created_at` (the time it started), `end_reason` (`COMPLETED`, `LIMIT_REACHED`, `TIMEOUT`, `ERROR`, `CANCELLED`, `NETWORK_ERROR`, `SUSPENDED`; none while it runs or after the app stopped), `total_roundtrips`, `total_cost` in dollars (a lower bound when `cost_is_lower_bound`). Its schema: `SCHEMA` with `id` `automation_runs`.
+
+**Parameters**:
+
+- `automation_id` (string, **required**)
+- `period` (object, optional): on when the runs started, as in TOOL_DATA
+- `limit` (integer, optional): how many, 10 by default]]></string>
+    <string name="ai_command_automation_run"><![CDATA[### AUTOMATION_RUN
+
+Retrieves one run as its AI received it, message after message: the routine\'s message, the answers of its AI in their JSON, the app\'s results. The data the message\'s pointers attached at the start is not repeated: read again what they name if you need it. Use it to see why a run failed before changing the routine.
+
+**Parameters**:
+
+- `id` (string, **required**): the run\'s id, from AUTOMATION_RUNS
+- `messages` (string, optional): `all` (the default), or `errors`: only the app\'s messages telling a failure, each after the answer that led to it]]></string>
     <string name="ai_command_file"><![CDATA[### FILE
 
 Reads a file the user joined to a message, by lines.
@@ -583,6 +614,58 @@ Deletes a variable. A formula naming it no longer computes.
 **Parameters**:
 
 - `variable_id` (string, **required**)]]></string>
+    <string name="ai_command_create_automation"><![CDATA[### CREATE_AUTOMATION
+
+Creates a routine in a zone: a message the app sends to an AI on its own, on a schedule or when the user starts it. You cannot start one yourself.
+
+**Parameters**:
+
+- `zone_id` (string, **required**)
+- `settings` (object, **required**): `name` and `provider_id` (one of the AI providers) required; `group` (one of the zone\'s tool groups), `is_enabled` (`true` by default), `schedule` (left out, it runs when the user starts it) and `catch_up` (with a schedule and only with it: `limit`, `limited` with its `window`, a duration, or `unlimited`; `dismiss_older_instances`, `true` to run only the latest of the runs missed)
+- `message` (array, **required**): its blocks, in order, `{"type": "text", "text": "..."}` and `{"type": "pointer", "pointer": {"selection": {...}, "attach": {"config": false, "entries": true}}}`. A pointer\'s selection is the one a chart\'s config holds, with a `period` whose relative dates are those of the run\'s scheduled time; `attach` says whether the target\'s config and its entries go with the message. No file, no image
+- `access` (array, optional): what its AI may reach, `[{"target": {"kind": "ZONE", "id": "..."}, "level": "read"}]`, kinds `ZONE` and `TOOL_INSTANCE`, levels `read`, `use`, `full`. Empty or left out, everything; when your own access is listed, it is refused, and you give only what you reach yourself
+
+The whole shape: `SCHEMA` with `id` `automation_config`.
+
+```json
+{
+  "type": "CREATE_AUTOMATION",
+  "params": {
+    "zone_id": "zone_food",
+    "settings": {
+      "name": "Weekly meals",
+      "provider_id": "claude",
+      "schedule": { "pattern": { "type": "WeeklySimple", "days_of_week": [1], "time": "07:00" } },
+      "catch_up": { "limit": "limited", "window": "PT12H", "dismiss_older_instances": true }
+    },
+    "message": [
+      { "type": "text", "text": "Sum up last week\'s meals in three lines: " },
+      { "type": "pointer", "pointer": { "selection": { "target": { "kind": "TOOL_INSTANCE", "id": "tracking_meals_123" }, "period": { "start": { "relative": { "unit": "WEEK", "offset": -1, "edge": "START" } }, "end": { "relative": { "unit": "WEEK", "offset": -1, "edge": "END" } } } }, "attach": { "config": false, "entries": true } } }
+    ],
+    "access": [{ "target": { "kind": "ZONE", "id": "zone_food" }, "level": "read" }]
+  }
+}
+```]]></string>
+    <string name="ai_command_update_automation"><![CDATA[### UPDATE_AUTOMATION
+
+Changes a routine, turns it on or off (`settings`, `{"is_enabled": false}`), or moves it to another zone. Only what you give changes: in `settings`, each setting given replaces its value and `null` removes it (a schedule removed takes `catch_up` with it); `message` and `access` given replace the whole of theirs.
+
+**Parameters**:
+
+- `automation_id` (string, **required**)
+- `zone_id` (string, optional): the zone to move it to; its group stays behind unless `settings` names one of the new zone\'s
+- `settings` (object, optional)
+- `message` (array, optional): the **whole** message, read first with AUTOMATION_CONFIG
+- `access` (array, optional): the **whole** access, held to your own as in CREATE_AUTOMATION. When your own access is listed, a routine reaching more than you cannot be changed by you at all
+
+A routine that changes its own message or schedule does it with no one to read it: do so only when its message asks for it.]]></string>
+    <string name="ai_command_delete_automation"><![CDATA[### DELETE_AUTOMATION
+
+Deletes a routine.
+
+**Parameters**:
+
+- `automation_id` (string, **required**)]]></string>
     <string name="ai_command_import_data"><![CDATA[### IMPORT_DATA
 
 Imports a joined file into a tool, following a complete declaration: the new fields are created in the order of the columns, then each line is written, an entry found by its name updated when the tool\'s names are unique, the others created. A cell that does not read refuses its line alone; a name twice in the file refuses the whole import. The answer counts the lines created, updated and refused, each refusal with its reason.
@@ -606,7 +689,7 @@ Changes the settings of a category open to you, written **whole**: read them fir
     <!-- An automation's access (AccessMask), in Level 2 when it is set -->
     <string name="ai_prompt_access_intro"><![CDATA[## Your access
 
-The user set what you reach. Anything not listed is refused, creating a zone and the home screen's settings included. `read`: the zone or the tool, its entries, a zone's variables. `use`: and written, a tool's entries, a zone's tools and variables created, changed, deleted. `full`: and its own settings. A zone at `use` or `full` gives its tools `full`, a zone at `read` gives them `read`.]]></string>
+The user set what you reach. Anything not listed is refused, creating a zone and the home screen's settings included. `read`: the zone or the tool, its entries, a zone's variables. `use`: and written, a tool's entries, a zone's tools and variables created, changed, deleted. `full`: and its own settings and its routines, created, changed, deleted. A zone at `use` or `full` gives its tools `full`, a zone at `read` gives them `read`.]]></string>
     <string name="ai_prompt_access_always_sent">The tools sent always, in Level 2, reach you as context even when they are not listed: read them, but a write to one not listed is refused.</string>
     <string name="ai_prompt_access_zone">- zone %1$s (`%2$s`): `%3$s`</string>
     <string name="ai_prompt_access_tool">- tool %1$s (`%2$s`): `%3$s`</string>
@@ -1323,6 +1406,13 @@ Every tool type can also take custom fields, be filled in by the AI, and be read
     <!-- MCP SERVER: what an AI outside the app reads (docs/design/mcp-server.md) -->
     <!-- ================================================================ -->
 
+    <!-- A routine's run read back (AUTOMATION_RUN): who sent each message, and what it leaves out -->
+    <string name="ai_run_sender_user">[routine message]</string>
+    <string name="ai_run_sender_ai">[its AI]</string>
+    <string name="ai_run_sender_system">[app]</string>
+    <string name="ai_run_pointer_data">The data the pointers of the message above attached, not repeated here: read again what they name if you need it.</string>
+    <string name="ai_run_no_failure">No failure in this run.</string>
+    <string name="ai_run_no_message">This run has no message.</string>
     <string name="ai_mcp_app_context_description"><![CDATA[What the app is and holds now: its zones, tools and their ids, the data always shared, how fields, schemas and dates work. Call it once, at the start of a conversation, before any other tool: it hands out the context_token they require. Afterwards, read what changed with the other read tools, not with this one.]]></string>
     <string name="ai_mcp_context_token_description"><![CDATA[The token app_context handed out in this conversation.]]></string>
     <string name="ai_mcp_context_token_missing"><![CDATA[Refused: no valid context_token. Call app_context first: it describes the app, gives the ids every command needs, and hands out the token to pass to every other tool. A token is valid 24 hours.]]></string>

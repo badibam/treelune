@@ -110,8 +110,8 @@ class DemoService(private val context: Context) : ExecutableService {
     }
 
     /**
-     * The automations, off — on, an automation calls the AI at the user's cost: each one's seed
-     * session, its message the instruction, then the automation on it; none has a past. Their provider is the first one configured, or the first there is when
+     * The automations, off — on, an automation calls the AI at the user's cost: each one with its
+     * seed session, its message the instruction; none has a past. Their provider is the first one configured, or the first there is when
      * none is: switching one on then says the provider is not configured.
      */
     private suspend fun automate(content: DemoContent) {
@@ -121,14 +121,8 @@ class DemoService(private val context: Context) : ExecutableService {
         val providers = run("ai_provider_config.list", JSONObject())["providers"] as List<Map<String, Any?>>
         val provider = (providers.firstOrNull { it["is_configured"] == true } ?: providers.first())["id"] as String
         for (automation in content.automations) {
-            val seed = automation.getString("seed_session_id")
-            run("ai_sessions.create_session", JSONObject().put("id", seed).put("name", automation.getString("name")).put("type", "SEED").put("provider_id", provider))
-            @Suppress("UNCHECKED_CAST")
-            val message = (run("ai_sessions.list_messages", JSONObject().put("session_id", seed))["messages"] as List<Map<String, Any?>>).single()
-            run("ai_sessions.update_message", JSONObject()
-                .put("message_id", message["id"])
-                .put("rich_content_json", app.treelune.core.ai.data.RichMessage(listOf(app.treelune.core.ai.data.MessageSegment.Text(automation.getString("seed")))).toJson()))
-            run("automations.create", JSONObject(automation.toString()).apply { remove("seed") }.put("provider_id", provider))
+            val message = org.json.JSONArray().put(JSONObject().put("type", app.treelune.core.ai.data.AutomationMessage.TEXT).put("text", automation.getString("seed")))
+            run("automations.create", JSONObject(automation.toString()).apply { remove("seed") }.put("provider_id", provider).put("message", message))
         }
     }
 

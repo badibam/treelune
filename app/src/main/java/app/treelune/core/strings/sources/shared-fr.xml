@@ -318,6 +318,8 @@
     <!-- AI Errors - Session Management -->
     <string name="ai_error_create_session">Échec de la création de session: %1$s</string>
     <string name="ai_error_session_not_found">Session introuvable: %1$s</string>
+    <string name="ai_error_not_a_run">%1$s n\'est pas une exécution de routine</string>
+    <string name="ai_error_run_messages">messages vaut « all » ou « errors », pas « %1$s »</string>
     <string name="ai_error_load_session">Échec du chargement de session: %1$s</string>
     <string name="ai_error_check_session">Échec de la vérification de session</string>
     <string name="ai_error_stop_session">Échec de l\'arrêt de session</string>
@@ -913,6 +915,7 @@
     <string name="ai_prompt_level3_zone_groups_title">Groupes de zones de l\'accueil</string>
     <string name="ai_prompt_level3_zones_title">Zones</string>
     <string name="ai_prompt_level3_tools_title">Instances d\'outils</string>
+    <string name="ai_prompt_level3_automations_title">Routines</string>
     <string name="ai_prompt_current_datetime">Date et heure actuelles : %1$s</string>
     <string name="ai_prompt_scheduled_datetime">Date prévue pour cette exécution : %1$s. Les données relatives (hier, cette semaine) sont résolues sur cette date, pas sur l\'heure actuelle. Ce que tu fais ou dis reste au présent. Si tu écris une donnée qui appartient à la date prévue plutôt qu\'à aujourd\'hui, passe son timestamp explicitement : sans timestamp, l\'entrée est datée du moment où cette exécution tourne.</string>
 
@@ -1298,6 +1301,13 @@
     <string name="action_verbalize_variables_delete">Suppression de la variable %1$s</string>
     <string name="action_verbalize_variables_evaluate">Lecture de la variable %1$s</string>
     <string name="action_verbalize_variables_read">Lecture des variables</string>
+    <string name="action_verbalize_automations_create">Création de la routine %1$s</string>
+    <string name="action_verbalize_automations_update">Modification de la routine %1$s</string>
+    <string name="action_verbalize_automations_delete">Suppression de la routine %1$s</string>
+    <string name="action_verbalize_automations_config">Lecture de la routine %1$s</string>
+    <string name="action_verbalize_automations_list">Lecture des routines</string>
+    <string name="action_verbalize_runs_list">Lecture des exécutions de la routine %1$s</string>
+    <string name="action_verbalize_run_history">Lecture d\'une exécution de la routine %1$s</string>
     <string name="import_error_file">Le fichier ne se lit pas : %1$s</string>
     <string name="import_file_empty">le fichier est vide</string>
     <string name="import_file_quote_open">un guillemet n\'est pas refermé</string>
@@ -1484,6 +1494,7 @@
 
     <!-- AUTOMATIONS - General -->
     <string name="automation_display_name">Routine</string>
+    <string name="automation_runs_display_name">Exécutions d\'une routine</string>
     <string name="automation_message_placeholder">Message de démarrage de la routine...</string>
     <string name="automation_none_configured">Aucune routine configurée</string>
     <string name="automation_triggers_none">Aucun déclencheur</string>
@@ -1828,6 +1839,11 @@
     <string name="access_choice_full">Complète</string>
     <string name="access_levels">Lecture : lire. Utilisation : écrire ses entrées ; dans une zone, créer et changer ses outils et variables. Complète : et ses propres réglages.</string>
     <string name="automation_access_unreadable">L\'accès ne se lit pas : %1$s</string>
+    <string name="automation_message_unreadable">Le message ne se lit pas : une liste de blocs est attendue, pas %1$s</string>
+    <string name="automation_message_block_unreadable">Le bloc %1$d du message ne se lit pas : %2$s</string>
+    <string name="automation_message_block_type">Le bloc %1$d du message est de type « %2$s » : le message d\'une routine ne tient que du texte et des pointeurs</string>
+    <string name="automation_seed_missing">Le message de la routine « %1$s » est introuvable</string>
+    <string name="ai_error_seed_with_routine">La session du message d\'une routine se crée avec la routine elle-même</string>
     <string name="access_level_read">lecture</string>
     <string name="access_level_use">utilisation</string>
     <string name="access_level_full">complète</string>
@@ -1836,6 +1852,8 @@
     <string name="access_target_app">l\'accueil et la création de zones</string>
     <string name="access_target_zone">la zone « %1$s »</string>
     <string name="access_target_tool">l\'outil « %1$s »</string>
+    <string name="access_widening">%1$s ne peut pas donner à une routine l\'accès « %3$s » à %2$s, hors de son propre accès</string>
+    <string name="access_widening_open">%1$s ne peut pas donner à une routine l\'accès à tout : liste ce qu\'elle atteint, dans son propre accès</string>
     <string name="service_error_protection_user_only">« %1$s » ne se change que dans l\'app, par l\'utilisateur</string>
     <string name="service_error_icon_color_unknown">Couleur d\'icône inconnue : \'%1$s\'. Une parmi %2$s, ou null pour aucune</string>
     <string name="action_verbalize_icons_overview">Vue d\'ensemble des icônes</string>

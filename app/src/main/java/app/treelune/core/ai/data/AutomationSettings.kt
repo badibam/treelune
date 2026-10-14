@@ -27,7 +27,7 @@ object AutomationSettings {
     const val LIMITED = "limited"
     const val UNLIMITED = "unlimited"
 
-    const val SCHEMA_ID = "automation_config"
+    const val SCHEMA_ID = "automation_settings"
 
     /**
      * What a scheduled automation does about the runs it missed, stored under "catch_up": the

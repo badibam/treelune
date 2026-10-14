@@ -2,7 +2,14 @@ package app.treelune.core.ai.services
 
 import android.content.Context
 import app.treelune.core.ai.data.Automation
+import app.treelune.core.ai.data.AutomationMessage
 import app.treelune.core.ai.data.AutomationSettings
+import app.treelune.core.ai.data.MessageSender
+import app.treelune.core.ai.data.RichMessage
+import app.treelune.core.ai.data.SessionType
+import app.treelune.core.ai.database.AISessionEntity
+import app.treelune.core.ai.database.SessionMessageEntity
+import androidx.room.withTransaction
 import app.treelune.core.fields.settings.SettingValues
 import app.treelune.core.ai.database.AutomationEntity
 import app.treelune.core.ai.orchestration.AIOrchestrator
@@ -32,7 +39,8 @@ import java.util.*
  * Service for automation CRUD operations
  *
  * Operations:
- * - create, update, delete, get
+ * - create (with its seed session and message), update, delete, get
+ * - config: its settings, access and message as they are written
  * - list (by zone), list_all
  * - enable, disable
  * - execute_manual (triggers manual execution via AIOrchestrator)
@@ -46,9 +54,8 @@ class AutomationService(private val context: Context) : ExecutableService {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     // Access common database
-    private val dao by lazy {
-        AppDatabase.getDatabase(context).aiDao()
-    }
+    private val database by lazy { AppDatabase.getDatabase(context) }
+    private val dao by lazy { database.aiDao() }
 
     override suspend fun execute(
         operation: String,
@@ -67,6 +74,7 @@ class AutomationService(private val context: Context) : ExecutableService {
                 "duplicate" -> duplicateAutomation(params, token)
                 "get" -> getAutomation(params, token)
                 "get_by_seed_session" -> getAutomationBySeedSession(params, token)
+                "config" -> getConfig(params, token)
                 "list" -> listAutomations(params, token)
                 "list_all" -> listAllAutomations(token)
                 "enable" -> setEnabled(params, token, true)
@@ -95,29 +103,39 @@ class AutomationService(private val context: Context) : ExecutableService {
     }
 
     /**
-     * Create new automation
+     * Create new automation, with its seed session and the message in it, in one transaction: all
+     * three, or none.
      *
      * Its settings (AutomationSettings) are given as their declaration describes them: "schedule"
-     * an object, "catch_up" an object with the schedule and only with it.
+     * an object, "catch_up" an object with the schedule and only with it. Its message, "message",
+     * is given in blocks (AutomationMessage), empty when left out: the screen writes it afterwards.
      */
     private suspend fun createAutomation(params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
 
         val zoneId = params.optString("zone_id").takeIf { it.isNotEmpty() }
             ?: return OperationResult.error(s.shared("error_param_zone_id_required"))
-        val seedSessionId = params.optString("seed_session_id").takeIf { it.isNotEmpty() }
-            ?: return OperationResult.error(s.shared("error_param_seed_session_required"))
+        val message = when (val read = messageGiven(params)) {
+            is MessageGiven.Refused -> return OperationResult.error(read.message)
+            is MessageGiven.Read -> read.message
+            MessageGiven.None -> RichMessage(emptyList())
+        }
 
         // Parse trigger IDs
         val triggerIdsArray = params.optJSONArray("trigger_ids") ?: JSONArray()
         val triggerIds = (0 until triggerIdsArray.length()).map { triggerIdsArray.getString(it) }
 
-        // The app's own demo gives its ids; every other caller gets one made here
+        // The app's own demo gives its ids, its seed session's too; every other caller gets them made here
         val automationId = when (val given = app.treelune.core.coordinator.GivenId.read(params)) {
             app.treelune.core.coordinator.GivenId.Read.None -> UUID.randomUUID().toString()
             is app.treelune.core.coordinator.GivenId.Read.Accepted -> given.id
             is app.treelune.core.coordinator.GivenId.Read.Refused -> return OperationResult.error(s.shared("service_error_id_not_given").format(given.id))
         }
+        val seedSessionId = params.optString("seed_session_id").takeIf { it.isNotEmpty() }?.let { given ->
+            if (!app.treelune.core.coordinator.GivenId.isAccepted(given, app.treelune.core.coordinator.currentOrigin()))
+                return OperationResult.error(s.shared("service_error_id_not_given").format(given))
+            given
+        } ?: UUID.randomUUID().toString()
         val now = System.currentTimeMillis()
 
         val entity = withSettings(AutomationEntity(
@@ -145,16 +163,73 @@ class AutomationService(private val context: Context) : ExecutableService {
         groupRefusal(entity.group, zoneId)?.let { return OperationResult.error(it) }
 
         LogManager.service("Creating automation: name=${entity.name}, zoneId=$zoneId", "DEBUG")
-        dao.insertAutomation(entity)
+        database.withTransaction {
+            // A seed session is never run nor active: it holds the message each run starts from
+            dao.insertSession(AISessionEntity(
+                id = seedSessionId,
+                name = entity.name,
+                type = SessionType.SEED,
+                automationId = null,
+                scheduledExecutionTime = null,
+                providerId = entity.providerId,
+                providerSessionId = "",
+                createdAt = now,
+                lastActivity = now,
+                isActive = false
+            ))
+            dao.insertMessage(seedMessage(seedSessionId, message, now))
+            dao.insertAutomation(entity)
+        }
 
+        // A zone shown reads its routines again, whoever created this one
+        app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
         LogManager.service("Successfully created automation: $automationId", "INFO")
 
         return OperationResult.success(mapOf(
             "automation_id" to automationId,
             "name" to entity.name,
             "zone_id" to zoneId,
+            "seed_session_id" to seedSessionId,
             "created_at" to now
         ))
+    }
+
+    /** The one USER message of seed session [sessionId], holding [message]. */
+    private fun seedMessage(sessionId: String, message: RichMessage, now: Long) = SessionMessageEntity(
+        id = UUID.randomUUID().toString(),
+        sessionId = sessionId,
+        timestamp = now,
+        sender = MessageSender.USER,
+        richContentJson = message.toJson(),
+        textContent = null,
+        aiMessageJson = null,
+        aiMessageParsedJson = null,
+        systemMessageJson = null,
+        executionMetadataJson = null,
+        excludeFromPrompt = false,
+        inputTokens = 0,
+        cacheWriteTokens = 0,
+        cacheReadTokens = 0,
+        outputTokens = 0
+    )
+
+    /** A routine's message as given: none, read, or refused with the reason. */
+    private sealed class MessageGiven {
+        object None : MessageGiven()
+        data class Read(val message: RichMessage) : MessageGiven()
+        data class Refused(val message: String) : MessageGiven()
+    }
+
+    /** The message [params] give under "message", in blocks (AutomationMessage). */
+    private fun messageGiven(params: JSONObject): MessageGiven {
+        if (!params.has("message")) return MessageGiven.None
+        val blocks = params.optJSONArray("message")
+            ?: return MessageGiven.Refused(s.shared("automation_message_unreadable").format(params.opt("message")))
+        return try {
+            MessageGiven.Read(AutomationMessage.fromBlocks(blocks, s::shared))
+        } catch (e: IllegalArgumentException) {
+            MessageGiven.Refused(e.message ?: s.shared("automation_message_unreadable").format(blocks))
+        }
     }
 
     /**
@@ -189,6 +264,11 @@ class AutomationService(private val context: Context) : ExecutableService {
             is Given.Refused -> return OperationResult.error(access.message)
             is Given.Kept -> access.json
         }
+        val message = when (val read = messageGiven(params)) {
+            is MessageGiven.Refused -> return OperationResult.error(read.message)
+            is MessageGiven.Read -> read.message
+            MessageGiven.None -> null
+        }
 
         val updatedEntity = withSettings(entity.copy(
             zoneId = newZoneId ?: entity.zoneId,
@@ -198,13 +278,18 @@ class AutomationService(private val context: Context) : ExecutableService {
         ), settings).getOrElse { return OperationResult.error(it.message ?: s.shared("message_validation_error_simple")) }
         groupRefusal(updatedEntity.group, updatedEntity.zoneId)?.let { return OperationResult.error(it) }
 
-        dao.updateAutomation(updatedEntity)
-
-        // Notify UI of automation change in affected zones
-        if (newZoneId != null && newZoneId != entity.zoneId) {
-            app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
-            LogManager.service("Automation $automationId moved from zone ${entity.zoneId} to $newZoneId", "DEBUG")
+        // The message replaces the one of its seed session, with the settings or not at all
+        val seed = message?.let {
+            dao.getMessagesForSession(entity.seedSessionId).firstOrNull { it.sender == MessageSender.USER }
+                ?: return OperationResult.error(s.shared("automation_seed_missing").format(entity.name))
         }
+        database.withTransaction {
+            if (message != null && seed != null) dao.updateMessage(seed.copy(richContentJson = message.toJson()))
+            dao.updateAutomation(updatedEntity)
+        }
+
+        // A zone shown reads its routines again: their name, their state, their place
+        app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
 
         LogManager.service("Successfully updated automation: $automationId", "INFO")
 
@@ -224,21 +309,24 @@ class AutomationService(private val context: Context) : ExecutableService {
 
     /**
      * The access [params] give (`access`, a list of `{"target": {"kind", "id"}, "level"}`,
-     * AccessMask), [stored] when they give none. It is a person's to change (Protections): what
-     * the AI may reach is not the AI's to widen.
+     * AccessMask), [stored] when they give none. An AI held to a mask (AccessScope: a routine's, a
+     * connector client's) leaves a routine no wider than its own, whether it gives the access or
+     * keeps it: a routine it writes runs with it, and would reach what the AI writing it cannot.
      */
     private suspend fun accessGiven(params: JSONObject, stored: String): Given {
-        if (!params.has("access")) return Given.Kept(stored)
-        val given = params.optJSONArray("access") ?: return Given.Refused(s.shared("automation_access_unreadable").format(params.opt("access")))
-        val mask = try {
-            app.treelune.core.access.AccessMask.fromJson(given.toString())
-        } catch (e: Exception) {
-            return Given.Refused(s.shared("automation_access_unreadable").format(e.message ?: ""))
+        val mask = if (!params.has("access")) app.treelune.core.access.AccessMask.fromJson(stored) else {
+            val given = params.optJSONArray("access") ?: return Given.Refused(s.shared("automation_access_unreadable").format(params.opt("access")))
+            try {
+                app.treelune.core.access.AccessMask.fromJson(given.toString())
+            } catch (e: Exception) {
+                return Given.Refused(s.shared("automation_access_unreadable").format(e.message ?: ""))
+            }
         }
-        val json = mask.toJson().toString()
-        app.treelune.core.coordinator.Protections.refusal(s.shared("automation_access_title"), false, json != app.treelune.core.access.AccessMask.fromJson(stored).toJson().toString(), s)
-            ?.let { return Given.Refused(it) }
-        return Given.Kept(json)
+        kotlin.coroutines.coroutineContext[app.treelune.core.access.AccessScope]?.let { scope ->
+            app.treelune.core.access.AccessRules.widening(mask, scope.mask, scope.holder,
+                app.treelune.core.access.DatabaseAccessLookups(context), s::shared)?.let { return Given.Refused(it) }
+        }
+        return Given.Kept(mask.toJson().toString())
     }
 
     /**
@@ -333,6 +421,7 @@ class AutomationService(private val context: Context) : ExecutableService {
             ?: return OperationResult.error(s.shared("error_automation_not_found"))
 
         dao.deleteAutomationById(automationId)
+        app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
 
         LogManager.service("Successfully deleted automation: $automationId", "INFO")
 
@@ -475,6 +564,31 @@ class AutomationService(private val context: Context) : ExecutableService {
     }
 
     /**
+     * A routine as it is written: its zone, its settings (AutomationSettings), its access and its
+     * message in blocks (AutomationMessage), each in the form create and update take.
+     */
+    private suspend fun getConfig(params: JSONObject, token: CancellationToken): OperationResult {
+        if (token.isCancelled) return OperationResult.cancelled()
+
+        val automationId = params.optString("automation_id").takeIf { it.isNotEmpty() }
+            ?: return OperationResult.error(s.shared("error_param_automation_id_required"))
+        val entity = dao.getAutomationById(automationId)
+            ?: return OperationResult.error(s.shared("error_automation_not_found"))
+        val seed = dao.getMessagesForSession(entity.seedSessionId).firstOrNull { it.sender == MessageSender.USER }
+            ?: return OperationResult.error(s.shared("automation_seed_missing").format(entity.name))
+        val message = seed.richContentJson?.let { RichMessage.fromJson(it) }
+            ?: return OperationResult.error(s.shared("automation_seed_missing").format(entity.name))
+
+        return OperationResult.success(mapOf(
+            "automation_id" to entity.id,
+            "zone_id" to entity.zoneId,
+            "settings" to app.treelune.core.utils.JsonUtils.toMap(settingsOf(entity)),
+            "access" to app.treelune.core.utils.JsonUtils.toList(entity.accessJson),
+            "message" to app.treelune.core.utils.JsonUtils.toList(AutomationMessage.toBlocks(message))
+        ))
+    }
+
+    /**
      * Get automation by seed session ID
      * Useful for SEED editor to load associated automation
      */
@@ -612,11 +726,19 @@ class AutomationService(private val context: Context) : ExecutableService {
         "access" to app.treelune.core.utils.JsonUtils.toList(entity.accessJson)
     ) + app.treelune.core.utils.JsonUtils.toMap(settingsOf(entity))
 
-    /**
-     * Verbalize automation operations (not exposed to AI typically)
-     */
+    /** An operation said in words, its routine by its name: what a validation card and a result line show. */
     override suspend fun verbalize(operation: String, params: JSONObject, context: Context): String {
         val s = Strings.`for`(context = context)
-        return s.shared("action_verbalize_unknown")
+        val name = params.optString("name").ifEmpty { null }
+            ?: params.optString("automation_id").takeIf { it.isNotEmpty() }?.let { dao.getAutomationById(it)?.name ?: it }
+            ?: ""
+        return when (operation) {
+            "create" -> s.shared("action_verbalize_automations_create").format(name)
+            "update" -> s.shared("action_verbalize_automations_update").format(name)
+            "delete" -> s.shared("action_verbalize_automations_delete").format(name)
+            "config", "get" -> s.shared("action_verbalize_automations_config").format(name)
+            "list", "list_all" -> s.shared("action_verbalize_automations_list")
+            else -> s.shared("action_verbalize_unknown")
+        }
     }
 }
