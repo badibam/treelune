@@ -197,12 +197,16 @@ class AppConfigService(private val context: Context) : ExecutableService {
     }
 
     /**
-     * Why [category] is closed to the caller, null when it is open: a person and the app reach
-     * every category, the AI and an AI outside the app those of AppSettings.OPEN_TO_AI alone.
+     * Why [category] is closed to the caller, null when it is open: a person and the app, its
+     * scheduled tasks included (the automatic backup reads the data settings), reach every
+     * category; the AI and an AI outside the app those of AppSettings.OPEN_TO_AI alone.
      */
     private suspend fun closedRefusal(category: String): String? =
-        if (category in AppSettings.OPEN_TO_AI || app.treelune.core.coordinator.Protections.byAPerson()) null
+        if (category in AppSettings.OPEN_TO_AI || app.treelune.core.coordinator.currentOrigin() !in BY_AN_AI) null
         else s.shared("service_error_category_closed").format(category, AppSettings.OPEN_TO_AI.joinToString(", "))
+
+    /** The origins a category closed to the AI refuses. */
+    private val BY_AN_AI = setOf(app.treelune.core.coordinator.Source.AI, app.treelune.core.coordinator.Source.EXTERNAL)
 
     /**
      * Verbalize AppConfig operation
