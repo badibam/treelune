@@ -175,6 +175,7 @@
       ]
     },
     {"id": "relative_dates", "part": "deeper", "icon": "calendar-range", "minutes": 3, "text": true, "steps": []},
-    {"id": "protections", "part": "deeper", "icon": "shield", "minutes": 4, "text": true, "steps": []}
+    {"id": "protections", "part": "deeper", "icon": "shield", "minutes": 4, "text": true, "steps": []},
+    {"id": "field_types", "part": "deeper", "icon": "list-tree", "minutes": 4, "text": true, "steps": []}
   ]
 }
