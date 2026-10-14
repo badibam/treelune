@@ -647,10 +647,16 @@ object RetroTheme : ThemeContract {
     override fun ZoneCardContainer(onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
         Tile(onClick, onLongClick, content)
 
-    /** A dot of four pixels in the info colour. */
+    /**
+     * A dot of six pixels in the info colour, ringed by a pixel of the ground it stands on: at the
+     * corner of a frame, the ring cuts the frame's line, which the dot would otherwise melt into.
+     */
     @Composable
     override fun WaitingMark() {
-        Box(modifier = Modifier.size(retroGrid().dp(4)).background(retroSurface.info.srgb))
+        val grid = retroGrid()
+        Box(modifier = Modifier.background(retroSurface.ground.srgb).padding(grid.dp(1))) {
+            Box(modifier = Modifier.size(grid.dp(6)).background(retroSurface.info.srgb))
+        }
     }
 
     /**
