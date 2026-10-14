@@ -406,16 +406,18 @@ fun JournalEntryScreen(
                         type = TextType.CAPTION
                     )
 
-                    // Title
+                    // Title and content, written by the user: a part of them can be selected
                     UI.Text(
                         text = title.ifBlank { s.tool("placeholder_untitled") },
-                        type = TextType.SUBTITLE
+                        type = TextType.SUBTITLE,
+                        selectable = title.isNotBlank()
                     )
 
                     // Full content (no truncation)
                     UI.Text(
                         text = content,
-                        type = TextType.BODY
+                        type = TextType.BODY,
+                        selectable = true
                     )
 
                     // Custom fields display (if any)
@@ -435,6 +437,16 @@ fun JournalEntryScreen(
 
             // Action buttons in consultation mode (aligned right)
             app.treelune.core.ui.components.ButtonRow(align = Alignment.End) {
+                // The entry as text: its date, its title, its content
+                UI.ActionButton(
+                    action = ButtonAction.COPY,
+                    display = ButtonDisplay.LABEL,
+                    onClick = {
+                        UI.copy(context, listOf(DateFormatUtils.formatJournalDate(timestamp, context), title, content)
+                            .filter { it.isNotBlank() }.joinToString("\n\n"))
+                    }
+                )
+
                 UI.ActionButton(
                     action = ButtonAction.EDIT,
                     display = ButtonDisplay.LABEL,

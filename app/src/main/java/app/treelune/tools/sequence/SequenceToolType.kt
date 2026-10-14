@@ -146,7 +146,7 @@ object SequenceToolType : ToolTypeContract {
         val duration = listOf(SettingNode.Field(field(SequencePlan.DURATION, text("field_step_duration"), FieldType.DURATION), required = true))
         return listOfNotNull(
             SettingNode.Field(field(SequencePlan.NAME, text("field_step_name"), FieldType.TEXT, config = mapOf("length" to TextLength.SHORT.name)), required = true),
-            SettingNode.Field(field(SequencePlan.INSTRUCTION, text("field_instruction"), FieldType.TEXT, text("schema_instruction"), mapOf("length" to TextLength.MEDIUM.name))),
+            SettingNode.Field(field(SequencePlan.INSTRUCTION, text("field_instruction"), FieldType.TEXT, text("schema_instruction"), mapOf("length" to TextLength.LONG.name))),
             SettingNode.Variant(
                 selector = SettingNode.Field(field(SequencePlan.END, text("field_end"), FieldType.CHOICE, text("schema_end"),
                     choice(StepEnd.KEYS) { text("end_$it") }), required = true, default = StepEnd.MANUAL.key),

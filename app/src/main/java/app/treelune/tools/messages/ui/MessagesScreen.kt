@@ -328,8 +328,9 @@ private fun ReceivedCard(
             verticalArrangement = Arrangement.spacedBy(UI.Space.S)
         ) {
             UI.Text(formatMoment(occurrence.dueAt), TextType.CAPTION)
-            UI.Text(occurrence.displayTitle, TextType.SUBTITLE)
-            occurrence.displayContent?.let { UI.Text(it, TextType.BODY) }
+            // What was sent, read only: a part of it can be selected
+            UI.Text(occurrence.displayTitle, TextType.SUBTITLE, selectable = true)
+            occurrence.displayContent?.let { UI.Text(it, TextType.BODY, selectable = true) }
 
             // Each badge states a fact the history would otherwise lose
             val badges = buildList {
@@ -425,8 +426,8 @@ private fun UpcomingTab(
                     if (ownParts.isEmpty()) {
                         UI.Text(s.tool("occurrence_nothing_written"), TextType.CAPTION)
                     } else {
-                        occurrence.ownTitle?.let { UI.Text(it, TextType.SUBTITLE) }
-                        occurrence.ownContent?.let { UI.Text(it, TextType.BODY) }
+                        occurrence.ownTitle?.let { UI.Text(it, TextType.SUBTITLE, selectable = true) }
+                        occurrence.ownContent?.let { UI.Text(it, TextType.BODY, selectable = true) }
                     }
 
                     Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {

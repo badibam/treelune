@@ -207,7 +207,7 @@ fun EditNoteDialog(
                     value = content,
                     onChange = { content = it },
                     required = true,
-                    fieldType = FieldType.TEXT_LONG,
+                    fieldType = FieldType.TEXT_UNLIMITED,
                     fieldModifier = FieldModifier.withFocus(focusRequester)
                 )
 

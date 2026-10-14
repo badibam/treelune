@@ -120,29 +120,15 @@ Les constantes suivantes sont référencées dans les schémas JSON :
 
 ### Cohérence Schéma/UI - RÈGLE CRITIQUE
 
-**Principe** : La limite UI (FieldType) DOIT correspondre à la limite schéma (maxLength).
+**Principe** : La limite UI (FieldType) DOIT correspondre à la limite schéma (maxLength). Un champ ne refuse jamais ce qu'on tape ou colle : `UI.FormField` garde le texte trop long, en montre le compte sous le champ à partir de 80 % de la limite (`FieldInput.COUNT_FROM`), passe le champ en erreur au-delà, et c'est la vérification de ce qui s'enregistre (le schéma, le service) qui refuse, en le disant.
 
 **Cas d'usage** :
-- **Contenu transcrit** (Journal, etc.) : `TEXT_UNLIMITED` UI + pas de maxLength schéma
-- **Notes textuelles** : `TEXT_LONG` UI + `maxLength: LONG_LENGTH` schéma
-- **Messages IA** : `TEXT_UNLIMITED` UI (pas de schéma pour le moment)
-- **Tracking TEXT** : `TEXT_LONG` UI + `maxLength: LONG_LENGTH` schéma
+- **Contenu écrit** (Journal, note) : `TEXT_UNLIMITED` UI + pas de maxLength schéma
+- **Contenu d'un Message** (une notification) : `TEXT_LONG` UI + `maxLength: LONG_LENGTH` schéma
+- **Consigne** (étape de Séance) : `TEXT_LONG`
 - **Noms/labels** : `TEXT` UI + `maxLength: SHORT_LENGTH` schéma
 - **Descriptions** : `TEXT_MEDIUM` UI + `maxLength: MEDIUM_LENGTH` schéma
-
-**Vérification** :
-```kotlin
-// Schéma (ToolType)
-"field": {
-    "type": "string",
-    "maxLength": ${FieldLimits.LONG_LENGTH} // Doit correspondre
-}
-
-// UI (ConfigScreen)
-UI.FormField(
-    fieldType = FieldType.TEXT_LONG // Doit correspondre au schéma
-)
-```
+- **Champ texte de l'utilisateur** : illimité par défaut, ou la longueur qu'il choisit
 
 **INTERDIT** : Une limite UI plus restrictive que le schéma (ex: TEXT_MEDIUM pour un schéma LONG_LENGTH).
 
@@ -165,7 +151,9 @@ Pattern LaunchedEffect pour afficher et reset automatiquement les messages d'err
 
 **UI.FormField** - Champ standard avec label, value, onChange, fieldType, required, state, readonly et onClick optionnel. Le thème n'a qu'un champ de texte, qui reçoit un `TextFieldValue` (le texte, sa sélection, sa composition) : la forme sur une chaîne garde le curseur elle-même, la forme sur un `TextFieldValue` le laisse à l'appelant, pour insérer là où il se trouve (l'éditeur de formule).
 
-**UI.FormSelection** - Sélections avec label, options, selected, onSelect et required.
+**Copier et sélectionner** - Un texte écrit par l'utilisateur ou par l'IA, en lecture seule et hors d'une zone qui réagit au toucher, est sélectionnable (`UI.Text(selectable = true)`, `UI.Selectable` pour un bloc ; les champs d'une entrée en `FieldsLayout.EXPANDED` le sont d'office) ; jamais un texte de l'app. Là où l'appui long sert déjà, on copie l'objet entier par `UI.copy` : une bulle de conversation par appui long (ce qu'elle montre, en mots), une note par « Copier » dans son menu, une entrée de Journal et le rapport de bug par un bouton `ButtonAction.COPY`.
+
+**UI.FormSelection** - Sélections avec label, options, selected, onSelect et required. Un champ CHOICE à une réponse de plus de 30 options (les fuseaux, les langues) a une recherche au-dessus de sa liste, qui la restreint à ce qui contient le texte tapé (`FieldInputRenderer`).
 
 **UI.SectionedSelection** - La même sélection rangée en sections, le titre de chacune dessiné sans se choisir, une option choisie par sa position ; chaque option peut avoir l'icône d'une zone ou d'un outil dans sa couleur (`OptionIcon`), dessinée devant elle et devant la valeur choisie (`ZoneChoice`).
 

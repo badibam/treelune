@@ -50,6 +50,8 @@ import app.treelune.core.ai.data.LegacyCatchUp
  *
  * Operations:
  * - export: `uri`: the backup of all data written there
+ * - auto: the automatic backup's copy (AutoBackup), into the folder chosen, rolled; none when the
+ *   data did not change since the last one. Answer: `written`
  * - import: `uri`: data restored from a backup there (with version migrations): a zip, or the
  *   `.json` of the backups made before images, still readable
  * - reset: Wipe all data and restore defaults
@@ -67,7 +69,7 @@ class BackupService(private val context: Context) : ExecutableService {
     }
 
     /** Both read or rewrite the whole base: never with another, the demo or an import. */
-    override val longOperations = setOf("export", "import")
+    override val longOperations = setOf("export", "import", "auto")
 
     override suspend fun execute(
         operation: String,
@@ -77,6 +79,7 @@ class BackupService(private val context: Context) : ExecutableService {
         return withContext(Dispatchers.IO) {
             when (operation) {
                 "export" -> performExport(params.optString("uri"), token)
+                "auto" -> performAuto(token)
                 "import" -> performImport(params.optString("uri"), token)
                 "reset" -> performReset(token)
                 else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
@@ -88,12 +91,79 @@ class BackupService(private val context: Context) : ExecutableService {
     private suspend fun performExport(uri: String, token: CancellationToken): OperationResult {
         return try {
             LogManager.service("Starting backup export")
+            if (token.isCancelled) return OperationResult.error("Operation cancelled")
+            val built = build(token) ?: return OperationResult.error("Operation cancelled")
+            val output = context.contentResolver.openOutputStream(android.net.Uri.parse(uri))
+                ?: return OperationResult.error(s.shared("backup_export_failed"))
+            if (!writeZip(output, built, token)) return OperationResult.error("Operation cancelled")
+            LogManager.service("Backup export completed successfully: ${built.images.size + built.missing} images, ${built.missing} without their file")
 
-            // Check cancellation
-            if (token.isCancelled) {
-                return OperationResult.error("Operation cancelled")
+            OperationResult.success(mapOf("missing_images" to built.missing))
+
+        } catch (e: Exception) {
+            LogManager.service("Backup export failed: ${e.message}", "ERROR", e)
+            OperationResult.error("Export failed: ${e.message}")
+        }
+    }
+
+    /**
+     * The automatic backup's copy: when one is due in a folder still writable, the backup built,
+     * and written only if its data differ from the last copy's. The new copy is written first,
+     * under the hour's name; the older ones roll after (AutoBackupRotation), so a copy that fails
+     * midway leaves the folder as it was, its half-written file removed.
+     */
+    private suspend fun performAuto(token: CancellationToken): OperationResult {
+        val state = app.treelune.core.backup.AutoBackup.state(context) as? app.treelune.core.backup.AutoBackup.State.Ready
+            ?: return OperationResult.success(mapOf("written" to false))
+        val now = System.currentTimeMillis()
+        val existing = state.copies.mapValues { it.value.at }
+        if (!app.treelune.core.backup.AutoBackupRotation.due(now, existing)) return OperationResult.success(mapOf("written" to false))
+
+        val built = build(token) ?: return OperationResult.cancelled()
+        val hash = java.security.MessageDigest.getInstance("SHA-256")
+            .digest(built.json.getJSONObject("data").toString().toByteArray(Charsets.UTF_8))
+            .joinToString("") { "%02x".format(it) }
+        if (hash == app.treelune.core.backup.AutoBackup.lastHash(context)) return OperationResult.success(mapOf("written" to false))
+
+        val resolver = context.contentResolver
+        val zone = app.treelune.core.utils.AppConfigManager.getDateTimeConfig().getZoneId()
+        val parent = android.provider.DocumentsContract.buildDocumentUriUsingTree(state.folder, android.provider.DocumentsContract.getTreeDocumentId(state.folder))
+        val name = app.treelune.core.backup.AutoBackupRotation.name(app.treelune.core.backup.AutoBackupRotation.Slot.HOUR, now, zone)
+        val document = android.provider.DocumentsContract.createDocument(resolver, parent, "application/zip", name)
+            ?: return OperationResult.error(s.shared("auto_backup_error_write").format(name))
+        val written = try {
+            writeZip(resolver.openOutputStream(document) ?: throw IllegalStateException(name), built, token)
+        } catch (e: Exception) {
+            android.provider.DocumentsContract.deleteDocument(resolver, document)
+            LogManager.service("Auto backup: $name not written: ${e.message}", "ERROR", e)
+            return OperationResult.error(s.shared("auto_backup_error_write").format(name))
+        }
+        if (!written) {
+            android.provider.DocumentsContract.deleteDocument(resolver, document)
+            return OperationResult.cancelled()
+        }
+
+        // The older copies roll, each going down or out, from the bottom up
+        app.treelune.core.backup.AutoBackupRotation.plan(now, existing).forEach { step ->
+            when (step) {
+                is app.treelune.core.backup.AutoBackupRotation.Step.Delete ->
+                    android.provider.DocumentsContract.deleteDocument(resolver, state.copies.getValue(step.slot).document)
+                is app.treelune.core.backup.AutoBackupRotation.Step.MoveDown -> {
+                    val copy = state.copies.getValue(step.from)
+                    android.provider.DocumentsContract.renameDocument(resolver, copy.document, app.treelune.core.backup.AutoBackupRotation.name(step.to, copy.at, zone))
+                }
             }
+        }
+        app.treelune.core.backup.AutoBackup.copied(context, hash)
+        LogManager.service("Auto backup: $name written in ${System.currentTimeMillis() - now} ms, ${built.images.size} images")
+        return OperationResult.success(mapOf("written" to true))
+    }
 
+    /** A backup ready to write: its JSON, the images whose files go beside it, how many had none. */
+    private class Built(val json: JSONObject, val images: List<app.treelune.core.ai.database.AttachedImageEntity>, val missing: Int)
+
+    /** Every table read into a backup's JSON, the images listed; null when [token] stops it. */
+    private suspend fun build(token: CancellationToken): Built? {
             // Query all tables in dependency order
             val appSettings = database.appSettingsCategoryDao().getAllSettings()
             val zones = database.zoneDao().getAllZones()
@@ -119,9 +189,7 @@ class BackupService(private val context: Context) : ExecutableService {
             missingImages.forEach { LogManager.service("Backup export: the file of image ${it.id} (session ${it.sessionId}) is missing", "WARN") }
 
             // Check cancellation before building JSON
-            if (token.isCancelled) {
-                return OperationResult.error("Operation cancelled")
-            }
+            if (token.isCancelled) return null
 
             // Build JSON structure
             val backupJson = JSONObject().apply {
@@ -363,29 +431,24 @@ class BackupService(private val context: Context) : ExecutableService {
                 })
             }
 
-            val jsonString = backupJson.toString(2) // Pretty print with 2-space indent
+            return Built(backupJson, attachedImages - missingImages.toSet(), missingImages.size)
+    }
 
-            val output = context.contentResolver.openOutputStream(android.net.Uri.parse(uri))
-                ?: return OperationResult.error(s.shared("backup_export_failed"))
-            java.util.zip.ZipOutputStream(output.buffered()).use { zip ->
-                zip.putNextEntry(java.util.zip.ZipEntry(BACKUP_JSON))
-                zip.write(jsonString.toByteArray(Charsets.UTF_8))
+    /** [built] written to [output] as a backup zip, closed after; false when [token] stopped it midway. */
+    private fun writeZip(output: java.io.OutputStream, built: Built, token: CancellationToken): Boolean {
+        val jsonString = built.json.toString(2) // Pretty print with 2-space indent
+        java.util.zip.ZipOutputStream(output.buffered()).use { zip ->
+            zip.putNextEntry(java.util.zip.ZipEntry(BACKUP_JSON))
+            zip.write(jsonString.toByteArray(Charsets.UTF_8))
+            zip.closeEntry()
+            for (image in built.images) {
+                if (token.isCancelled) return false
+                zip.putNextEntry(java.util.zip.ZipEntry("$IMAGES_DIR${image.id}.jpg"))
+                AttachedImages.file(context, image.id).inputStream().use { it.copyTo(zip) }
                 zip.closeEntry()
-                for (image in attachedImages - missingImages.toSet()) {
-                    if (token.isCancelled) return OperationResult.error("Operation cancelled")
-                    zip.putNextEntry(java.util.zip.ZipEntry("$IMAGES_DIR${image.id}.jpg"))
-                    AttachedImages.file(context, image.id).inputStream().use { it.copyTo(zip) }
-                    zip.closeEntry()
-                }
             }
-            LogManager.service("Backup export completed successfully: ${attachedImages.size} images, ${missingImages.size} without their file")
-
-            OperationResult.success(mapOf("missing_images" to missingImages.size))
-
-        } catch (e: Exception) {
-            LogManager.service("Backup export failed: ${e.message}", "ERROR", e)
-            OperationResult.error("Export failed: ${e.message}")
         }
+        return true
     }
 
     /**

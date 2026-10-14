@@ -10,7 +10,6 @@ import app.treelune.core.database.AppDatabase
 import androidx.room.withTransaction
 import app.treelune.core.fields.CoreFieldUsage
 import app.treelune.core.fields.CoreFields
-import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.ToolFields
 import app.treelune.core.fields.toFieldDefinitions
 import app.treelune.core.fields.toJson
@@ -18,6 +17,7 @@ import app.treelune.core.imports.ColumnTarget
 import app.treelune.core.imports.CsvReader
 import app.treelune.core.imports.ImportPlanner
 import app.treelune.core.imports.ImportTable
+import app.treelune.core.imports.ImportTargets
 import app.treelune.core.strings.Strings
 import app.treelune.core.tools.ToolTypeManager
 import app.treelune.core.utils.AppConfigManager
@@ -71,33 +71,35 @@ class ImportService(private val context: Context) : ExecutableService {
         val entryFields = toolType.getEntryFields(config, context)
         val uniqueName = entryFields.nameUnique
         val nameRequired = entryFields.name == CoreFieldUsage.REQUIRED
-        // What a column may fill: the name, the date, the tool type's fields and the user's — not
-        // a field the app alone writes (a goal attempt's copy), which a file has nothing to say in;
-        // the lines are written from inside this operation, where the service would keep it
-        val appWritten = entryFields.data.filter { it.systemWritten }.map { "data.${it.definition.name}" }.toSet()
-        val fields = ToolFields.filterable(toolInstanceId, context, s).filterKeys { !it.startsWith("state.") && it != "created_at" && it != "updated_at" && it !in appWritten }
+        // What a column may fill, and the fields the app writes itself, as tool_data says it writes them
+        val targets = try {
+            ImportTargets.read(coordinator, toolInstanceId)
+        } catch (e: IllegalStateException) {
+            return OperationResult.error(e.message ?: "")
+        }
         val zone = AppConfigManager.getDateTimeConfig().getZoneId()
 
         return when (operation) {
             "detect" -> {
-                val proposals = ImportPlanner.detect(table, fields, uniqueName, zone)
+                val proposals = ImportPlanner.detect(table, targets.fields, targets.notWritten, uniqueName, zone)
                 OperationResult.success(mapOf(
                     "columns" to proposals.map { proposal ->
                         JsonUtils.toMap(proposal.declaration.toJson()) + mapOf(
                             "ambiguous" to proposal.ambiguous.map { it.name },
                             "example" to proposal.example?.let { (cell, read) -> mapOf("cell" to cell, "read" to read) },
-                            "unreadable_lines" to proposal.unreadable
+                            "unreadable_lines" to proposal.unreadable,
+                            "app_written" to proposal.appWritten?.let { mapOf("path" to it, "display_name" to targets.notWritten[it]) }
                         )
                     },
                     "lines" to table.rows.size,
                     // What the proposal still lacks, said as apply would refuse it, before anyone declares
-                    "missing" to ImportPlanner.missing(table, proposals.map { it.declaration }, fields, uniqueName, nameRequired) { s.shared(it) },
+                    "missing" to ImportPlanner.missing(table, proposals.map { it.declaration }, targets.fields, targets.notWritten, uniqueName, nameRequired) { s.shared(it) },
                     // How the tool takes a name, for a screen that checks its declaration as it changes
                     "unique_name" to uniqueName,
                     "name_required" to nameRequired
                 ))
             }
-            "apply" -> apply(toolInstanceId, config, table, params.optJSONArray("columns") ?: JSONArray(), fields, uniqueName, nameRequired, zone)
+            "apply" -> apply(toolInstanceId, config, table, params.optJSONArray("columns") ?: JSONArray(), targets, uniqueName, nameRequired, zone)
             else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
         }
     }
@@ -107,7 +109,7 @@ class ImportService(private val context: Context) : ExecutableService {
         config: JSONObject,
         table: ImportTable,
         columns: JSONArray,
-        fields: Map<String, FieldDefinition>,
+        targets: ImportTargets,
         uniqueName: Boolean,
         nameRequired: Boolean,
         zone: java.time.ZoneId
@@ -117,7 +119,7 @@ class ImportService(private val context: Context) : ExecutableService {
         } catch (e: Exception) {
             return OperationResult.error(s.shared("import_error_declaration").format(e.message ?: ""))
         }
-        ImportPlanner.missing(table, declarations, fields, uniqueName, nameRequired) { s.shared(it) }.takeIf { it.isNotEmpty() }
+        ImportPlanner.missing(table, declarations, targets.fields, targets.notWritten, uniqueName, nameRequired) { s.shared(it) }.takeIf { it.isNotEmpty() }
             ?.let { return OperationResult.error(s.shared("import_error_declaration").format(it.joinToString("; "))) }
         ImportPlanner.duplicateKeys(table, declarations).takeIf { it.isNotEmpty() }
             ?.let { return OperationResult.error(s.shared("import_error_duplicate_keys").format(it.joinToString(", "))) }

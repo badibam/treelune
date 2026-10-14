@@ -342,7 +342,7 @@ Proposes how to import a joined file (a CSV) into a tool: what IMPORT_DATA will 
 - `file` (string, **required**): the file\'s id
 - `tool_instance_id` (string, **required**): the tool to import into
 
-Returns `lines` (the file\'s line count) and `columns`, one per column of the file: its `column` (its header), its proposed `target` — `KEY` (the entry\'s name, which recognises an entry already there), `FIELD` (an existing field, its path in `field`: `"extra.kcal"`, `"timestamp"`), `NEW` (a field to create, defined in `new_field` as a custom field is) or `IGNORE` —, its `writing` (how its cells are written: `DECIMAL_COMMA`, `DAY_MONTH_YEAR`…), an `example` read, the `ambiguous` writings you must choose between, and the `unreadable_lines`. Start from it, fix what is wrong or ambiguous, and send it to IMPORT_DATA.]]></string>
+Returns `lines` (the file\'s line count) and `columns`, one per column of the file: its `column` (its header), its proposed `target` — `KEY` (the entry\'s name, which recognises an entry already there), `FIELD` (an existing field, its path in `field`: `"extra.kcal"`, `"timestamp"`), `NEW` (a field to create, defined in `new_field` as a custom field is) or `IGNORE` —, its `writing` (how its cells are written: `DECIMAL_COMMA`, `DAY_MONTH_YEAR`…), an `example` read, the `ambiguous` writings you must choose between, the `unreadable_lines`, and `app_written` when the column names a field the app writes itself (`created_at`, the state…), which leaves it out: send it elsewhere (to `timestamp`, say) or leave it out, never as a new field of that name. Start from it, fix what is wrong or ambiguous, and send it to IMPORT_DATA.]]></string>
     <string name="ai_command_current_datetime"><![CDATA[### CURRENT_DATETIME
 
 Retrieves the current date and time.
@@ -591,7 +591,7 @@ Imports a joined file into a tool, following a complete declaration: the new fie
 
 - `file` (string, **required**): the file\'s id
 - `tool_instance_id` (string, **required**)
-- `columns` (array, **required**): one declaration per column of the file, in their order, as IMPORT_PLAN returns them (without `example`, `ambiguous` and `unreadable_lines`), each ambiguity settled
+- `columns` (array, **required**): one declaration per column of the file, in their order, as IMPORT_PLAN returns them (without `example`, `ambiguous`, `unreadable_lines` and `app_written`), each ambiguity settled
 
 A new table for a file: CREATE_TOOL first, then IMPORT_PLAN and IMPORT_DATA at the next turn, with the id it returned.]]></string>
     <string name="ai_command_update_app_config"><![CDATA[### UPDATE_APP_CONFIG

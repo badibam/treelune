@@ -4,7 +4,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
 import app.treelune.core.validation.FieldLimits
 
 /**
@@ -77,9 +76,6 @@ object FieldInput {
         FieldType.NUMERIC, FieldType.EMAIL, FieldType.PASSWORD, FieldType.SEARCH -> FieldLimits.UNLIMITED_LENGTH
     }
 
-    /** [onChange], refusing a value longer than a field of [fieldType] takes. */
-    fun limited(fieldType: FieldType, onChange: (TextFieldValue) -> Unit): (TextFieldValue) -> Unit {
-        val max = maxLength(fieldType)
-        return if (max < Int.MAX_VALUE) { value -> if (value.text.length <= max) onChange(value) } else onChange
-    }
+    /** From which share of its limit a field shows how long its text is. */
+    const val COUNT_FROM = 0.8
 }

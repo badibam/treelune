@@ -37,8 +37,35 @@ object AppSettings {
     val AI_DATA_AUTOMATION_RANGE = IntProgression.fromClosedRange(10_000, 500_000, 10_000)
 
     private val WEEK_DAYS = listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
-    private val TIMEZONES = listOf("Europe/Paris", "UTC", "America/New_York", "America/Los_Angeles", "Asia/Tokyo", "Asia/Shanghai", "Australia/Sydney")
-    private val LOCALES = listOf("fr-FR", "en-US", "en-GB", "de-DE", "es-ES", "it-IT", "ja-JP", "zh-CN")
+    /** The regions of the time zones offered, those of a place ("Europe/Lisbon"), not the old aliases ("US/Pacific", "EST"). */
+    private val ZONE_REGIONS = Regex("^(Africa|America|Antarctica|Asia|Atlantic|Australia|Europe|Indian|Pacific)/.+")
+
+    /**
+     * Every time zone the phone's data knows by its place, and UTC, each shown with its offset now
+     * ("Europe/Lisbon (UTC+01:00)"): the list follows the zone updates Android receives.
+     */
+    fun timezones(): Pair<List<String>, Map<String, String>> {
+        val now = java.time.Instant.ofEpochMilli(System.currentTimeMillis())
+        val ids = java.time.ZoneId.getAvailableZoneIds().filter { ZONE_REGIONS.matches(it) }.sorted() + "UTC"
+        return ids to ids.associateWith { id ->
+            val offset = java.time.ZoneId.of(id).rules.getOffset(now)
+            "$id (UTC${if (offset == java.time.ZoneOffset.UTC) "" else offset.id})"
+        }
+    }
+
+    /**
+     * Every language of a country the phone knows ("pt-PT"), named in itself ("Português (Portugal)"),
+     * by that name.
+     */
+    fun locales(): Pair<List<String>, Map<String, String>> {
+        val locales = java.util.Locale.getAvailableLocales()
+            .filter { it.language.isNotEmpty() && it.country.length == 2 && it.script.isEmpty() && it.variant.isEmpty() }
+            .distinctBy { it.toLanguageTag() }
+        val labels = locales.associate { locale ->
+            locale.toLanguageTag() to "${locale.getDisplayName(locale).replaceFirstChar { it.titlecase(locale) }} — ${locale.toLanguageTag()}"
+        }
+        return labels.keys.sortedBy { labels.getValue(it).lowercase() } to labels
+    }
     private val DATE_PATTERNS = listOf("dd/MM/yyyy", "MM/dd/yyyy", "yyyy-MM-dd")
 
     /** The categories a settings screen edits, each with its declaration. */
@@ -50,7 +77,8 @@ object AppSettings {
         AppSettingCategories.DEMO,
         AppSettingCategories.UI,
         AppSettingCategories.EXTERNAL_ACCESS,
-        AppSettingCategories.GUIDE
+        AppSettingCategories.GUIDE,
+        AppSettingCategories.DATA
     )
 
     /**
@@ -65,6 +93,17 @@ object AppSettings {
     const val GUIDE_BAND_HIDDEN = "band_hidden"
     const val GUIDE_CURRENT = "current"
     const val GUIDE_CHAPTERS = "chapters"
+
+    /**
+     * The folder of the phone chosen once (Android's document tree, its address), where the app
+     * writes without asking; absent while none is chosen. Its right is this phone's: restored
+     * elsewhere, the address stays and the folder is to choose again.
+     */
+    const val DATA_FOLDER = "folder"
+    /** Whether the automatic backup writes into that folder (AutoBackup) */
+    const val DATA_AUTO_BACKUP = "auto_backup"
+    /** The case of the automatic backup last looked at in Settings › Data (AutoBackup.seen) */
+    const val DATA_SEEN = "seen"
 
     /** How an outside AI reaches the app: through its own Tailscale node, or through a relay (docs/design/funnel-access.md). */
     const val ACCESS_MODE = "access_mode"
@@ -108,10 +147,10 @@ object AppSettings {
             AppSettingCategories.FORMAT -> listOf(
                 // Absent, the time zone and the locale are the phone's
                 SettingNode.Section(text("settings_format_timezone"), listOf(
-                    choice("timezone_override", text("app_config_format_timezone_override"), text("app_config_schema_format_timezone_override"), TIMEZONES)
+                    timezones().let { (zones, labels) -> choice("timezone_override", text("app_config_format_timezone_override"), text("app_config_schema_format_timezone_override"), zones, labels) }
                 )),
                 SettingNode.Section(text("settings_format_locale_section"), listOf(
-                    choice("locale_override", text("app_config_format_locale_override"), text("app_config_schema_format_locale_override"), LOCALES)
+                    locales().let { (locales, labels) -> choice("locale_override", text("app_config_format_locale_override"), text("app_config_schema_format_locale_override"), locales, labels) }
                 )),
                 SettingNode.Section(text("settings_format_display_section"), listOf(
                     // Absent, the phone's habit
@@ -183,6 +222,13 @@ object AppSettings {
                     )), required = true, summary = listOf("name"))
                 )), required = true, summary = listOf("id"))
             )
+            AppSettingCategories.DATA -> listOf(
+                // Chosen in Android's folder picker, never typed
+                field(DATA_FOLDER, text("settings_data_folder"), null, FieldType.TEXT, config = mapOf("length" to TextLength.UNLIMITED.name)),
+                field(DATA_AUTO_BACKUP, text("settings_data_auto_backup"), text("settings_data_auto_backup_help"), FieldType.BOOLEAN, required = true),
+                // Written by the screen that showed it, never entered
+                field(DATA_SEEN, text("settings_data_seen"), null, FieldType.TEXT, config = mapOf("length" to TextLength.UNLIMITED.name))
+            )
             AppSettingCategories.DEMO -> listOf(
                 field(app.treelune.core.demo.DemoStartup.INSTALL_ON_UPDATE, text("settings_demo_install_on_update"),
                     text("settings_demo_install_on_update_help"), FieldType.BOOLEAN, required = true)
@@ -229,6 +275,7 @@ object AppSettings {
             AppSettingCategories.UI -> s.shared("settings_ui")
             AppSettingCategories.EXTERNAL_ACCESS -> s.shared("settings_external_access")
             AppSettingCategories.GUIDE -> s.shared("guide_title")
+            AppSettingCategories.DATA -> s.shared("settings_data")
             else -> throw IllegalArgumentException("No declaration for settings category '$category'")
         }
     }
@@ -244,6 +291,7 @@ object AppSettings {
             AppSettingCategories.UI -> s.shared("settings_ui_description")
             AppSettingCategories.EXTERNAL_ACCESS -> s.shared("settings_external_access_description")
             AppSettingCategories.GUIDE -> s.shared("guide_description")
+            AppSettingCategories.DATA -> s.shared("settings_data_description")
             else -> null
         }
     }

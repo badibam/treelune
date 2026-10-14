@@ -794,7 +794,7 @@ object CosyTheme : ThemeContract {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         BasicTextField(
                             value = value,
-                            onValueChange = FieldInput.limited(fieldType, onChange),
+                            onValueChange = onChange,
                             readOnly = state == ComponentState.READONLY,
                             enabled = state != ComponentState.DISABLED,
                             textStyle = size.body.copy(color = (if (state == ComponentState.ERROR) c.error else c.ink).srgb),

@@ -37,6 +37,7 @@
     <string name="action_select">Select</string>
     <string name="action_up">Move up</string>
     <string name="action_down">Move down</string>
+    <string name="action_copy">Copy</string>
     <string name="action_left">Previous</string>
     <string name="action_right">Next</string>
     <string name="action_ai_chat">AI assistant</string>
@@ -538,7 +539,7 @@
     <string name="message_no_tools_in_zone">No tool in this zone</string>
     <string name="message_no_items_in_group">No item in this group</string>
     <string name="error_tooltype_not_found">Tool type \'%1$s\' not found</string>
-    <string name="message_copied">Message copied</string>
+    <string name="text_copied">Copied</string>
     <string name="duplicate_success_tool">Tool duplicated successfully</string>
     <string name="duplicate_success_automation">Routine duplicated successfully</string>
     <string name="duplicate_no_tools">No tool available to duplicate</string>
@@ -699,6 +700,8 @@
     <string name="field_config_open">Open (a new value is added to the options)</string>
     <string name="field_choice_rank">%1$s. %2$s</string>
     <string name="field_choice_none">None</string>
+    <string name="field_choice_search">Search the list</string>
+    <string name="field_length_count">%1$d / %2$d</string>
     <string name="field_choice_new_value">New option</string>
     <string name="field_config_option_value">Option</string>
     <string name="field_config_option_label">Label shown</string>
@@ -980,6 +983,21 @@
 
     <string name="settings_data">Data management</string>
     <string name="settings_data_description">Configure the backup, the export and the import of the data</string>
+    <string name="settings_data_folder">Backup folder</string>
+    <string name="settings_data_auto_backup">Automatic backup</string>
+    <string name="settings_data_auto_backup_help">A copy of all the data in the folder chosen, at most once an hour and only when the data changed; four copies kept: the last hour, day, week and month.</string>
+    <string name="settings_data_seen">Automatic backup case seen</string>
+    <string name="auto_backup_title">Automatic backup</string>
+    <string name="auto_backup_no_folder">Choose a folder of the phone: the app writes a copy of all the data there at most once an hour, when the data changed, and keeps four copies, the last hour, day, week and month. A folder that a sync app follows keeps them off the phone too.</string>
+    <string name="auto_backup_off">Off: no copy is written.</string>
+    <string name="auto_backup_last">Last copy: %1$s</string>
+    <string name="auto_backup_none_yet">No copy yet: the first one comes within ten minutes.</string>
+    <string name="auto_backup_folder">Folder: %1$s</string>
+    <string name="auto_backup_choose_folder">Choose the folder</string>
+    <string name="auto_backup_change_folder">Change the folder</string>
+    <string name="auto_backup_folder_refused">Android does not let the app keep writing in this folder: choose another one.</string>
+    <string name="auto_backup_lost_content">The app can no longer write in the backup folder: choose it again in Settings › Data.</string>
+    <string name="auto_backup_error_write">The copy %1$s could not be written in the backup folder</string>
 
     <!-- SETTINGS - Stub placeholders -->
 
@@ -1297,6 +1315,7 @@
     <string name="import_missing_one_key">one key column at most</string>
     <string name="import_missing_name_key">no column gives the name, which this tool requires: declare the column that holds it as the key</string>
     <string name="import_missing_name_field">no column gives the name, which this tool requires: declare the column that holds it as the field name</string>
+    <string name="import_missing_app_written">column "%1$s": a new field cannot be named "%2$s", a field the app writes itself</string>
     <string name="batch_refused_all">All %1$s entries refused: %2$s</string>
     <string name="batch_refusal_reason">%1$s (%2$s, entries %3$s)</string>
     <string name="batch_refusal_more">; and %1$s other reasons</string>
@@ -1319,6 +1338,7 @@
     <string name="import_unreadable">does not read</string>
     <string name="import_ambiguous">Several writings read this column differently: choose one.</string>
     <string name="import_unreadable_lines">These lines would be refused: %1$s</string>
+    <string name="import_app_written">Names "%1$s", a field the app writes itself: left out</string>
     <string name="import_report">%1$s created, %2$s updated, %3$s refused</string>
     <string name="import_report_line">Line %1$s: %2$s</string>
     <string name="import_writing_text">Text</string>
@@ -1882,6 +1902,7 @@
     <string name="action_verbalize_backup_export">Data export</string>
     <string name="action_verbalize_backup_import">Backup restore</string>
     <string name="action_verbalize_backup_reset">Data reset</string>
+    <string name="action_verbalize_backup_auto">Automatic backup</string>
     <string name="long_operation_busy">%1$s is running: try again once it is done.</string>
     <string name="long_operation_done">%1$s: done</string>
     <string name="long_operation_failed">%1$s: failed. %2$s</string>

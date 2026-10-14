@@ -123,15 +123,35 @@ object UI {
     // DISPLAY
     // =====================================
     
+    /**
+     * A text, in the theme's look. [selectable] lets Android's selection take a part of it: for a
+     * text the user or the AI wrote, shown read only, outside anything a touch or a long press
+     * acts on (that gesture would be the selection's) — never the app's own words.
+     */
     @Composable
     fun Text(
         text: String,
         type: TextType,
         fillMaxWidth: Boolean = false,
         textAlign: TextAlign? = null,
-        maxLines: Int = Int.MAX_VALUE
+        maxLines: Int = Int.MAX_VALUE,
+        selectable: Boolean = false
     ) {
-        CurrentTheme.current.Text(text, type, fillMaxWidth, textAlign, maxLines)
+        if (selectable) Selectable { CurrentTheme.current.Text(text, type, fillMaxWidth, textAlign, maxLines) }
+        else CurrentTheme.current.Text(text, type, fillMaxWidth, textAlign, maxLines)
+    }
+
+    /** [content] whose texts Android's selection can take, as one: the rule of [Text]'s selectable. */
+    @Composable
+    fun Selectable(content: @Composable () -> Unit) {
+        androidx.compose.foundation.text.selection.SelectionContainer { content() }
+    }
+
+    /** [text] put in the clipboard, said by a toast: the one way the app copies. */
+    fun copy(context: Context, text: String) {
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Treelune", text))
+        Toast(context, app.treelune.core.strings.Strings.`for`(context = context).shared("text_copied"), Duration.SHORT)
     }
     
     /**
@@ -411,7 +431,14 @@ object UI {
         )
     }
 
-    /** A text input whose caller holds the cursor too: to insert where it stands. */
+    /**
+     * A text input whose caller holds the cursor too: to insert where it stands.
+     *
+     * A text longer than its field type takes (FieldInput.maxLength), typed or pasted, is kept:
+     * the count shows under the field from [FieldInput.COUNT_FROM] of the limit, and past it the
+     * field is in error, the save refused by the check of what is saved. The field always sits in
+     * the same column, so the count appearing does not take the focus away.
+     */
     @Composable
     fun FormField(
         label: String,
@@ -425,19 +452,31 @@ object UI {
         contentDescription: String? = null,
         fieldModifier: FieldModifier = FieldModifier(),
         labelAbove: Boolean = true
-    ) = CurrentTheme.current.FormField(
-        label = label,
-        value = value,
-        onChange = onChange,
-        fieldType = fieldType,
-        state = state,
-        readonly = readonly,
-        onClick = onClick,
-        contentDescription = contentDescription,
-        required = required,
-        fieldModifier = fieldModifier,
-        labelAbove = labelAbove
-    )
+    ) {
+        val max = FieldInput.maxLength(fieldType)
+        val length = value.text.length
+        val counted = !readonly && max < Int.MAX_VALUE && length >= max * FieldInput.COUNT_FROM
+        val over = !readonly && length > max
+        Column(verticalArrangement = Arrangement.spacedBy(Space.XS)) {
+            CurrentTheme.current.FormField(
+                label = label,
+                value = value,
+                onChange = onChange,
+                fieldType = fieldType,
+                state = if (over) ComponentState.ERROR else state,
+                readonly = readonly,
+                onClick = onClick,
+                contentDescription = contentDescription,
+                required = required,
+                fieldModifier = fieldModifier,
+                labelAbove = labelAbove
+            )
+            if (counted) {
+                val s = app.treelune.core.strings.Strings.`for`(context = androidx.compose.ui.platform.LocalContext.current)
+                Text(s.shared("field_length_count").format(length, max), if (over) TextType.ERROR else TextType.CAPTION, fillMaxWidth = true, textAlign = TextAlign.End)
+            }
+        }
+    }
     
     @Composable
     fun FormSelection(
@@ -696,7 +735,9 @@ object UI {
         /** More buttons after the left one: the Guide's book on the home screen. */
         afterLeft: (@Composable () -> Unit)? = null,
         /** The app's mark beside the title, the home screen's (ThemeContract.PageHeader). */
-        appMark: Boolean = false
+        appMark: Boolean = false,
+        /** The left button marked (WaitingMark): something to look at behind it, the settings of the home screen. */
+        leftMarked: Boolean = false
     ) {
         // The phone's back key does what the header's back button does. Only the screen on
         // display is composed, so its header is the one that answers. The sound of going back
@@ -713,7 +754,12 @@ object UI {
                 horizontalArrangement = Arrangement.spacedBy(Space.XS),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                leftButton?.let { ActionButton(action = it, display = ButtonDisplay.ICON, onClick = onLeftClick ?: {}) }
+                leftButton?.let {
+                    Box {
+                        ActionButton(action = it, display = ButtonDisplay.ICON, onClick = onLeftClick ?: {})
+                        if (leftMarked) Box(modifier = Modifier.align(Alignment.TopEnd)) { WaitingMark() }
+                    }
+                }
                 afterLeft?.invoke()
                 Box(modifier = Modifier.weight(1f)) { breadcrumb?.let { app.treelune.core.navigation.BreadcrumbLine(it) } }
                 rightButton?.let { ActionButton(action = it, display = ButtonDisplay.ICON, onClick = onRightClick ?: {}) }

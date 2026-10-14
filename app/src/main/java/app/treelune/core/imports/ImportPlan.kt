@@ -54,7 +54,9 @@ data class ColumnProposal(
     /** A cell and what the writing reads in it, chosen to show the reading */
     val example: Pair<String, Any?>? = null,
     /** The lines (from 1, after the header) whose cell the writing does not read */
-    val unreadable: List<Int> = emptyList()
+    val unreadable: List<Int> = emptyList(),
+    /** The path of the field the column names that the app writes itself, which left it out */
+    val appWritten: String? = null
 )
 
 /** One line to write: its name when it has one, and its values by path, a new field's by its column. */
@@ -85,23 +87,27 @@ object ImportPlanner {
      * the name as the key when the tool finds its entries by it, a column naming a field of the
      * tool that field, any other a new field of the type and writing that read all its cells.
      *
+     * A column naming a field the app writes itself is left out, the field said: made a new
+     * field, it would be a field of the user under the name of the app's.
+     *
      * @param fields The tool's fields a column may fill, by path
+     * @param notWritten The tool's fields the app writes itself, their display name by path
      * @param uniqueName Whether the tool finds an entry by its name (the key)
      */
-    fun detect(table: ImportTable, fields: Map<String, FieldDefinition>, uniqueName: Boolean, zone: ZoneId): List<ColumnProposal> =
+    fun detect(table: ImportTable, fields: Map<String, FieldDefinition>, notWritten: Map<String, String>, uniqueName: Boolean, zone: ZoneId): List<ColumnProposal> =
         table.columns.mapIndexed { index, header ->
             val cells = table.cells(index)
             val typed = TYPED_HEADER.matchEntire(header)
             val label = typed?.groupValues?.get(1)?.trim() ?: header
             val fixedType = typed?.groupValues?.get(2)?.let { t -> FieldType.entries.firstOrNull { it.name == t } }
-            val existing = fields.entries.firstOrNull { (path, field) ->
-                path.substringAfter('.').equals(label, ignoreCase = true) || field.displayName.equals(label, ignoreCase = true)
-            }
+            val existing = fields.entries.firstOrNull { (path, field) -> names(label, path, field.displayName) }
+            val appWritten = notWritten.entries.firstOrNull { (path, name) -> names(label, path, name) }?.key
             when {
                 existing?.key == "name" && uniqueName -> ColumnProposal(ColumnDeclaration(header, ColumnTarget.KEY), example = cells.firstOrNull { it.isNotBlank() }?.let { it to it })
                 existing != null -> propose(header, cells, listOf(existing.value.type), zone) { writing ->
                     ColumnDeclaration(header, ColumnTarget.FIELD, field = existing.key, writing = writing)
                 }
+                appWritten != null -> ColumnProposal(ColumnDeclaration(header, ColumnTarget.IGNORE), appWritten = appWritten)
                 else -> propose(header, cells, fixedType?.let { listOf(it) } ?: DETECTION_ORDER, zone) { writing ->
                     val type = writing?.type ?: fixedType ?: FieldType.TEXT
                     ColumnDeclaration(header, ColumnTarget.NEW, newField = FieldDefinition(
@@ -111,6 +117,10 @@ object ImportPlanner {
                 }
             }
         }
+
+    /** Whether a column headed [label] names the field at [path] shown as [displayName]: its key or its name, the case aside. */
+    private fun names(label: String, path: String, displayName: String): Boolean =
+        path.substringAfter('.').equals(label, ignoreCase = true) || displayName.equals(label, ignoreCase = true)
 
     /** The first type of [types] some writing reads every cell of; the writing, or none when several disagree. */
     private fun propose(header: String, cells: List<String>, types: List<FieldType>, zone: ZoneId, declare: (Writing?) -> ColumnDeclaration): ColumnProposal {
@@ -156,9 +166,10 @@ object ImportPlanner {
     /**
      * What is missing from [declarations] to import [table], in words ([text], the shared strings):
      * a column not declared, a field or a writing not said, a key where names do not find entries,
-     * no column for the name where the tool requires one ([nameRequired]). Empty when complete.
+     * no column for the name where the tool requires one ([nameRequired]), a new field named as a
+     * field the app writes itself ([notWritten]). Empty when complete.
      */
-    fun missing(table: ImportTable, declarations: List<ColumnDeclaration>, fields: Map<String, FieldDefinition>, uniqueName: Boolean, nameRequired: Boolean, text: (String) -> String): List<String> = buildList {
+    fun missing(table: ImportTable, declarations: List<ColumnDeclaration>, fields: Map<String, FieldDefinition>, notWritten: Map<String, String>, uniqueName: Boolean, nameRequired: Boolean, text: (String) -> String): List<String> = buildList {
         val declared = declarations.associateBy { it.column }
         table.columns.filter { it !in declared }.forEach { add(text("import_missing_column").format(it)) }
         declarations.filter { it.column !in table.columns }.forEach { add(text("import_missing_in_file").format(it.column)) }
@@ -172,6 +183,8 @@ object ImportPlanner {
                 }
                 ColumnTarget.NEW -> when {
                     d.newField == null -> add(text("import_missing_new_field").format(d.column))
+                    notWritten.any { (path, name) -> names(d.newField.displayName, path, name) } ->
+                        add(text("import_missing_app_written").format(d.column, d.newField.displayName))
                     d.writing == null || d.writing.type != d.newField.type -> add(text("import_missing_writing").format(d.column, d.newField.type.name, Writing.of(d.newField.type).joinToString(", ")))
                 }
                 ColumnTarget.IGNORE -> {}

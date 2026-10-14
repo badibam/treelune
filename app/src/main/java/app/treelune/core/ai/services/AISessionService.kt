@@ -1035,9 +1035,9 @@ class AISessionService(private val context: Context) : ExecutableService {
         val name = params.optString("name").takeIf { it.isNotEmpty() }
             ?: return OperationResult.error(s.shared("ai_error_param_name_required"))
 
-        // Validate name length (max 60 chars as per FieldType.TEXT)
-        if (name.length > 60) {
-            return OperationResult.error(s.shared("error_validation_maxlength").format("60"))
+        // A name is as long as any other name of the app
+        if (name.length > app.treelune.core.validation.FieldLimits.SHORT_LENGTH) {
+            return OperationResult.error(s.shared("error_validation_maxlength").format(app.treelune.core.validation.FieldLimits.SHORT_LENGTH.toString()))
         }
 
         LogManager.aiSession("Renaming session $sessionId to: $name", "DEBUG")

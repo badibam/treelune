@@ -37,6 +37,7 @@
     <string name="action_select">Sélectionner</string>
     <string name="action_up">Monter</string>
     <string name="action_down">Descendre</string>
+    <string name="action_copy">Copier</string>
     <string name="action_left">Précédent</string>
     <string name="action_right">Suivant</string>
     <string name="action_ai_chat">Assistant IA</string>
@@ -538,7 +539,7 @@
     <string name="message_no_tools_in_zone">Aucun outil dans cette zone</string>
     <string name="message_no_items_in_group">Aucun élément dans ce groupe</string>
     <string name="error_tooltype_not_found">Type d'outil '%1$s' introuvable</string>
-    <string name="message_copied">Message copié</string>
+    <string name="text_copied">Copié</string>
     <string name="duplicate_success_tool">Outil dupliqué avec succès</string>
     <string name="duplicate_success_automation">Routine dupliquée avec succès</string>
     <string name="duplicate_no_tools">Aucun outil disponible à dupliquer</string>
@@ -699,6 +700,8 @@
     <string name="field_config_open">Ouvert (une valeur nouvelle rejoint les options)</string>
     <string name="field_choice_rank">%1$s. %2$s</string>
     <string name="field_choice_none">Aucun</string>
+    <string name="field_choice_search">Chercher dans la liste</string>
+    <string name="field_length_count">%1$d / %2$d</string>
     <string name="field_choice_new_value">Nouvelle option</string>
     <string name="field_config_option_value">Option</string>
     <string name="field_config_option_label">Libellé affiché</string>
@@ -980,6 +983,21 @@
 
     <string name="settings_data">Gestion des données</string>
     <string name="settings_data_description">Configurer la sauvegarde, l\'export et l\'import des données</string>
+    <string name="settings_data_folder">Dossier des sauvegardes</string>
+    <string name="settings_data_auto_backup">Sauvegarde automatique</string>
+    <string name="settings_data_auto_backup_help">Une copie de toutes les données dans le dossier choisi, au plus une fois par heure et seulement si les données ont changé ; quatre copies gardées : la dernière heure, le dernier jour, la dernière semaine et le dernier mois.</string>
+    <string name="settings_data_seen">Cas de la sauvegarde automatique vu</string>
+    <string name="auto_backup_title">Sauvegarde automatique</string>
+    <string name="auto_backup_no_folder">Choisissez un dossier du téléphone : l\'app y écrit une copie de toutes les données au plus une fois par heure, quand les données ont changé, et garde quatre copies : la dernière heure, le dernier jour, la dernière semaine et le dernier mois. Un dossier que suit une app de synchronisation les garde aussi hors du téléphone.</string>
+    <string name="auto_backup_off">Arrêtée : aucune copie n\'est écrite.</string>
+    <string name="auto_backup_last">Dernière copie : %1$s</string>
+    <string name="auto_backup_none_yet">Aucune copie encore : la première vient dans les dix minutes.</string>
+    <string name="auto_backup_folder">Dossier : %1$s</string>
+    <string name="auto_backup_choose_folder">Choisir le dossier</string>
+    <string name="auto_backup_change_folder">Changer de dossier</string>
+    <string name="auto_backup_folder_refused">Android ne laisse pas l\'app écrire durablement dans ce dossier : choisissez-en un autre.</string>
+    <string name="auto_backup_lost_content">L\'app ne peut plus écrire dans le dossier des sauvegardes : choisissez-le de nouveau dans Réglages › Données.</string>
+    <string name="auto_backup_error_write">La copie %1$s n\'a pas pu s\'écrire dans le dossier des sauvegardes</string>
 
     <!-- SETTINGS - Stub placeholders -->
 
@@ -1297,6 +1315,7 @@
     <string name="import_missing_one_key">une seule colonne clé au plus</string>
     <string name="import_missing_name_key">aucune colonne ne donne le nom, obligatoire dans cet outil : déclarer comme clé la colonne qui le porte</string>
     <string name="import_missing_name_field">aucune colonne ne donne le nom, obligatoire dans cet outil : déclarer comme champ name la colonne qui le porte</string>
+    <string name="import_missing_app_written">colonne « %1$s » : un champ nouveau ne peut pas s\'appeler « %2$s », un champ que l\'app écrit elle-même</string>
     <string name="batch_refused_all">Les %1$s entrées refusées : %2$s</string>
     <string name="batch_refusal_reason">%1$s (%2$s, entrées %3$s)</string>
     <string name="batch_refusal_more"> ; et %1$s autres raisons</string>
@@ -1319,6 +1338,7 @@
     <string name="import_unreadable">ne se lit pas</string>
     <string name="import_ambiguous">Plusieurs écritures lisent cette colonne différemment : choisis-en une.</string>
     <string name="import_unreadable_lines">Ces lignes seraient refusées : %1$s</string>
+    <string name="import_app_written">Nomme « %1$s », un champ que l\'app écrit elle-même : colonne écartée</string>
     <string name="import_report">%1$s créée(s), %2$s mise(s) à jour, %3$s refusée(s)</string>
     <string name="import_report_line">Ligne %1$s : %2$s</string>
     <string name="import_writing_text">Texte</string>
@@ -1882,6 +1902,7 @@
     <string name="action_verbalize_backup_export">Export des données</string>
     <string name="action_verbalize_backup_import">Restauration d\'une sauvegarde</string>
     <string name="action_verbalize_backup_reset">Réinitialisation des données</string>
+    <string name="action_verbalize_backup_auto">Sauvegarde automatique</string>
     <string name="long_operation_busy">%1$s en cours : réessayer une fois fini.</string>
     <string name="long_operation_done">%1$s : terminé</string>
     <string name="long_operation_failed">%1$s : échec. %2$s</string>

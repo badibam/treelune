@@ -1,9 +1,8 @@
 package app.treelune.core.ai.ui.chat
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,7 +28,7 @@ import kotlinx.coroutines.launch
  * Individual message bubble - themed UI.MessageBubble
  *
  * V2: Uses aiState.waitingContext for inline validation/communication display
- * Click on message copies content to clipboard
+ * A long press copies what the bubble shows, in words (copyText); a touch does nothing of it
  *
  * @param previousAIMessage Optional previous AI message for displaying communication module question with response
  * @param freeReply Whether the user chose to answer the pending module by message
@@ -47,26 +46,17 @@ fun ChatMessageBubble(
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
 
-    // Extract text content for clipboard copy
     // A user message's blocks name their targets as they are now
     val richText = message.richContent?.let { app.treelune.core.ai.ui.components.rememberDisplayText(it) }
-    val textToCopy = remember(message, richText) {
-        when {
-            richText != null -> richText
-            message.textContent != null -> message.textContent
-            message.aiMessage != null -> message.aiMessage.preText
-            message.systemMessage != null -> message.systemMessage.summary
-            else -> ""
-        }
-    }
-
-    // Copy to clipboard handler
-    val onMessageClick = {
-        if (textToCopy.isNotEmpty()) {
-            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            val clip = ClipData.newPlainText("AI Message", textToCopy)
-            clipboard.setPrimaryClip(clip)
-            UI.Toast(context, s.shared("message_copied"), Duration.SHORT)
+    // The actions waiting for the user's validation, shown under the last AI message
+    val waitingActions = (aiState.waitingContext as? app.treelune.core.ai.domain.WaitingContext.Validation)
+        ?.takeIf { isLastAIMessage }?.validationContext?.verbalizedActions.orEmpty()
+    val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
+    val onMessageLongPress = {
+        val text = copyText(message, richText, waitingActions, s)
+        if (text.isNotEmpty()) {
+            haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+            UI.copy(context, text)
         }
     }
 
@@ -81,9 +71,9 @@ fun ChatMessageBubble(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = alignment
     ) {
-        // Delegate to themed MessageBubble for appearance
-        // Add clickable modifier for copy functionality
-        Box(modifier = Modifier.clickable { onMessageClick() }) {
+        // Delegate to themed MessageBubble for appearance; a long press anywhere on it copies it,
+        // a touch going on to what is inside (a button, the details)
+        Box(modifier = Modifier.pointerInput(message.id) { detectTapGestures(onLongPress = { onMessageLongPress() }) }) {
             UI.MessageBubble(sender = message.sender) {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(UI.Space.S)
@@ -609,6 +599,46 @@ fun SessionStatsDialog(
  * A system message's [details], folded under a "Details" line that a touch opens and closes; kept
  * open per message across a recreation.
  */
+/**
+ * What a bubble shows, as text to paste elsewhere: the user's message; the AI's text, the
+ * questions of its module and the actions waiting for validation ([waitingActions]); a system
+ * message's summary, its command lines (✓ or ✗, what was done, what came back, the error) and
+ * its details. The entries an action wrote, shown by their fields, are not copied.
+ */
+private fun copyText(
+    message: SessionMessage,
+    richText: String?,
+    waitingActions: List<app.treelune.core.ai.validation.VerbalizedAction>,
+    s: app.treelune.core.strings.StringsContext
+): String = buildList {
+    when {
+        richText != null -> add(richText)
+        message.textContent != null -> add(message.textContent)
+        message.aiMessage != null -> {
+            add(message.aiMessage.preText)
+            message.aiMessage.communicationModule?.let { module ->
+                add((listOf(s.shared(if (module.fields.isEmpty()) "ai_module_validation_title" else "ai_module_question_title")) +
+                    module.fields.map { "- ${it.definition.displayName}" }).joinToString("\n"))
+            }
+            if (waitingActions.isNotEmpty()) add(waitingActions.joinToString("\n") { "- ${it.description}" })
+        }
+        message.sender == MessageSender.AI -> add(s.shared("ai_response_refused"))
+        message.systemMessage != null -> {
+            add(message.systemMessage.summary)
+            message.systemMessage.commandResults.takeIf { it.isNotEmpty() }?.let { results ->
+                add(results.joinToString("\n") { result ->
+                    listOfNotNull(
+                        (if (result.status == CommandStatus.SUCCESS) "✓ " else "✗ ") + (result.details ?: result.command),
+                        result.data?.takeIf { result.isActionCommand && it.isNotEmpty() }?.entries?.joinToString(", ") { (k, v) -> "$k: $v" }?.let { "  $it" },
+                        result.error?.let { "  " + s.shared("ai_error_label").format(it) }
+                    ).joinToString("\n")
+                })
+            }
+            message.systemMessage.details?.let { add(it) }
+        }
+    }
+}.filter { it.isNotBlank() }.joinToString("\n\n")
+
 @Composable
 private fun SystemDetails(messageId: String, details: String) {
     val context = LocalContext.current
