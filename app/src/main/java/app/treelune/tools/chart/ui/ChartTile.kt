@@ -143,5 +143,5 @@ private fun lastValue(read: ChartReading.Drawn, s: StringsContext, context: Cont
 /** When a value stands: a grid's step by its date, an entry relative to now. */
 private fun whenText(layer: Layer, at: Long, s: StringsContext, context: Context): String = when (val source = layer.source) {
     is Source.Grid -> DateUtils.format(at, s.tool(if (source.step == PeriodType.HOUR) "format_hour" else "format_day"))
-    is Source.Entries -> FormatUtils.formatRelativeTimePast(at, context)
+    is Source.Entries -> FormatUtils.formatRelativeTimeShort(at, context)
 }

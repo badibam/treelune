@@ -90,7 +90,7 @@ fun rememberJournalTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTi
                     TileLine(
                         entry.title,
                         modifier = Modifier.clickable { open(EntryToOpen.Existing(entry.id)) },
-                        trailing = { UI.Text(FormatUtils.formatRelativeTimePast(entry.timestamp, context), TextType.CAPTION, maxLines = 1) }
+                        trailing = { UI.Text(FormatUtils.formatRelativeTimeShort(entry.timestamp, context), TextType.CAPTION, maxLines = 1) }
                     )
                 }
             }

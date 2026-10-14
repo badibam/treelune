@@ -116,4 +116,23 @@ object FormatUtils {
             else -> s.shared("time_ago_seconds").format(seconds)
         }
     }
+
+    /**
+     * The short form of [formatRelativeTimePast], for a tile, where it stands beside a title it
+     * must not crowd: "12 d", "3 h", "5 min", "now" — the date being past, "ago" says nothing more.
+     */
+    fun formatRelativeTimeShort(timestamp: Long, context: Context): String {
+        val s = Strings.`for`(context = context)
+        val diffMs = System.currentTimeMillis() - timestamp
+        if (diffMs <= 0) return s.shared("time_now")
+        val minutes = diffMs / 60_000
+        val hours = minutes / 60
+        val days = hours / 24
+        return when {
+            days > 0 -> s.shared("time_short_days").format(days)
+            hours > 0 -> s.shared("time_short_hours").format(hours)
+            minutes > 0 -> s.shared("time_short_minutes").format(minutes)
+            else -> s.shared("time_now")
+        }
+    }
 }

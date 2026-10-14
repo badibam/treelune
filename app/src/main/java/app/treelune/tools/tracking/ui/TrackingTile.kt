@@ -106,7 +106,8 @@ fun rememberTrackingTile(tool: ToolInstance): ToolTile {
                             UI.Text(shown.joinToString(" "), TextType.BODY, maxLines = 1)
                             Line {
                                 Box(modifier = Modifier.weight(1f)) {
-                                    UI.Text(FormatUtils.formatRelativeTimePast(last.timestamp, context), TextType.CAPTION, maxLines = 1)
+                                    // Beside two buttons as tall as a finger: room for two lines
+                                    UI.Text(FormatUtils.formatRelativeTimeShort(last.timestamp, context), TextType.CAPTION, maxLines = 2)
                                 }
                                 QuickButton(ButtonAction.REPEAT, !actions.isSaving) { again(actions, last) }
                                 QuickButton(ButtonAction.EDIT, !actions.isSaving) {
