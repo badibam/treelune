@@ -117,7 +117,7 @@
     <string name="guide_build_with_ai_intro">Décris ce que tu veux suivre, et l\'IA crée les outils. Tout ce qu\'elle fait reste visible, et modifiable ensuite.</string>
     <string name="guide_build_with_ai_outro">L\'IA a construit un outil et une variable avec toi. Il reste à la faire travailler seule, selon un planning.</string>
     <string name="guide_build_with_ai_1_goal">Ce que l\'IA sait faire</string>
-    <string name="guide_build_with_ai_1_text">L\'IA crée et règle des outils, ajoute des entrées et écrit des variables, comme tu le ferais. Quand une information lui manque, elle pose la question avec un champ à remplir.</string>
+    <string name="guide_build_with_ai_1_text">L\'IA crée et règle des outils, ajoute des entrées, écrit des variables et prépare des routines, comme tu le ferais. Quand une information lui manque, elle pose la question avec un champ à remplir.</string>
     <string name="guide_build_with_ai_2_goal">Demande à l\'IA de créer un outil</string>
     <string name="guide_build_with_ai_2_text">Dans la conversation, ajoute un pointeur vers la zone et décris ce que tu veux suivre, par exemple « un suivi de l\'eau que je bois, en verres ». Laisse l\'IA créer l\'outil, sinon l\'étape ne se valide pas.</string>
     <string name="guide_build_with_ai_3_goal">Regarde l\'outil qu\'elle a fait</string>
@@ -130,7 +130,7 @@
     <string name="guide_automate_intro">Avec une routine, un message pour l\'IA se prépare une fois et se réutilise à volonté.</string>
     <string name="guide_automate_outro">La routine est prête. L\'IA la traitera selon son planning, et tu peux la lancer ou en discuter à tout moment. La suite se trouve dans la Prise en main, à lire dans n\'importe quel ordre.</string>
     <string name="guide_automate_1_goal">Ce qu\'est une routine</string>
-    <string name="guide_automate_1_text">Le message d\'une routine sert de deux façons.\n\nL\'IA peut le traiter seule. Elle lit les outils, y écrit si le message le demande, et le résultat se lit plus tard. Avec un planning, elle s\'en charge d\'elle-même, par exemple chaque dimanche soir.\n\nOn peut aussi s\'en servir pour commencer une conversation avec l\'IA, pratique pour une discussion qui revient souvent, comme « faisons le point sur ma semaine ».</string>
+    <string name="guide_automate_1_text">Le message d\'une routine sert de deux façons.\n\nL\'IA peut le traiter seule. Elle lit les outils, y écrit si le message le demande, et le résultat se lit plus tard. Avec un planning, elle s\'en charge d\'elle-même, par exemple chaque dimanche soir.\n\nOn peut aussi s\'en servir pour commencer une conversation avec l\'IA, pratique pour une discussion qui revient souvent, comme « faisons le point sur ma semaine ».\n\nL\'IA peut aussi créer ou modifier une routine pour toi. Demande-lui par exemple « prépare une routine qui fait le bilan de mes repas chaque soir ».</string>
     <string name="guide_automate_2_goal">Crée une routine dans une zone</string>
     <string name="guide_automate_2_text">Une routine se range dans une zone, comme un outil. Dans la zone, touche le + d\'une section, choisis « Routine » et donne-lui un nom.</string>
     <string name="guide_automate_3_goal">Écris son message</string>

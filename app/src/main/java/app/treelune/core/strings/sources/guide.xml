@@ -117,7 +117,7 @@
     <string name="guide_build_with_ai_intro">Describe what you want to follow, and the AI creates the tools. Everything it does stays visible, and can be changed afterwards.</string>
     <string name="guide_build_with_ai_outro">The AI built a tool and a variable with you. What remains is to have it work on its own, on a schedule.</string>
     <string name="guide_build_with_ai_1_goal">What the AI can do</string>
-    <string name="guide_build_with_ai_1_text">The AI creates and sets up tools, adds entries and writes variables, as you would. When a piece of information is missing, it asks with a field to fill in.</string>
+    <string name="guide_build_with_ai_1_text">The AI creates and sets up tools, adds entries, writes variables and prepares routines, as you would. When a piece of information is missing, it asks with a field to fill in.</string>
     <string name="guide_build_with_ai_2_goal">Ask the AI to create a tool</string>
     <string name="guide_build_with_ai_2_text">In the conversation, add a pointer to the zone and describe what you want to follow, for example “a tracker of the water I drink, in glasses”. Let the AI create the tool, or the step won\'t be marked done.</string>
     <string name="guide_build_with_ai_3_goal">Look at the tool it made</string>
@@ -130,7 +130,7 @@
     <string name="guide_automate_intro">With a routine, a message for the AI is prepared once and used again as often as you like.</string>
     <string name="guide_automate_outro">The routine is ready. The AI will handle it on its schedule, and you can run it or talk it over at any time. The rest is in Getting started, to read in any order.</string>
     <string name="guide_automate_1_goal">What a routine is</string>
-    <string name="guide_automate_1_text">A routine\'s message serves in two ways.\n\nThe AI can handle it on its own. It reads the tools, writes in them if the message asks for it, and the result is there to read later. With a schedule, it takes care of it by itself, every Sunday evening for example.\n\nIt can also be used to start a conversation with the AI, handy for a talk that comes back often, like “let\'s look back on my week”.</string>
+    <string name="guide_automate_1_text">A routine\'s message serves in two ways.\n\nThe AI can handle it on its own. It reads the tools, writes in them if the message asks for it, and the result is there to read later. With a schedule, it takes care of it by itself, every Sunday evening for example.\n\nIt can also be used to start a conversation with the AI, handy for a talk that comes back often, like “let\'s look back on my week”.\n\nThe AI can also create or change a routine for you. Ask it for example “set up a routine that sums up my meals every evening”.</string>
     <string name="guide_automate_2_goal">Create a routine in a zone</string>
     <string name="guide_automate_2_text">A routine belongs to a zone, like a tool. In the zone, touch the + of a section, choose “Routine” and give it a name.</string>
     <string name="guide_automate_3_goal">Write its message</string>
