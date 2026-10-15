@@ -515,12 +515,15 @@ def task_release():
         return 1
     print(f"Signing with the key named by {SIGNING}.", flush=True)
     code = gradle_env(keys, "assembleRelease")
-    if code == 0:
-        apk = release_apk()
-        if apk is not None:
-            subprocess.run(["./verify_signature.sh", str(apk)],
-                           cwd=ROOT / "scripts", check=False)
-    return code
+    if code != 0:
+        return code
+    apk = release_apk()
+    if apk is None:
+        print("No release APK was produced.", file=sys.stderr)
+        return 1
+    # The verdict counts: an APK that does not verify is one no phone will install.
+    return subprocess.run(["./verify_signature.sh", str(apk)],
+                          cwd=ROOT / "scripts", check=False).returncode
 
 
 def release_apk():

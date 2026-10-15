@@ -8,7 +8,7 @@ On passe à la version $1
 
 **Séquence complète :**
 
-1. **Build release** : Tester sur device réel avec `./gradlew assembleRelease` timeout:10min
+1. **Build release** : Tester sur device réel avec `./run release` timeout:10min — jamais `./gradlew assembleRelease` nu : sans les variables de la clé, Gradle sort un APK non signé, sans erreur, qu'Android refuse d'installer ; `./run release` charge la clé, refuse sans elle, et échoue si la signature ne se vérifie pas.
 2. Si OK, **modifier les versions** dans `app/build.gradle.kts` :
    - Incrémenter `versionCode`
    - Mettre à jour `versionName` (actuel → "$1")
@@ -21,7 +21,7 @@ On passe à la version $1
    - Créer fichier temporaire `release-notes-$1.txt`
    - Style : précis, simple, sans emoji, sans mentionner claude. Uniquement changements depuis dernière version.
    - Présenter pour correction avant release
-8. **Build release** : à nouveau timeout:10min, depuis le tag et un arbre propre — vérifier que `git status --porcelain` ne liste aucun fichier suivi modifié et que `git describe --exact-match --tags` rend `v$1`, sinon s'arrêter : ce qui n'est pas dans le tag ne doit pas être dans l'APK.
+8. **Build release** : à nouveau `./run release` timeout:10min, depuis le tag et un arbre propre — vérifier que `git status --porcelain` ne liste aucun fichier suivi modifié et que `git describe --exact-match --tags` rend `v$1`, sinon s'arrêter : ce qui n'est pas dans le tag ne doit pas être dans l'APK.
 9. **Release GitHub** :
    - Utiliser `gh release create v$1` timeout:10min
    - Ajouter notes de version (fichier corrigé)
