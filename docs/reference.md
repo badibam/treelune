@@ -42,7 +42,7 @@ Application Android native (Kotlin + Jetpack Compose, persistance Room) : un ass
 - `docs/AI.md` — système IA : machine à états, sessions, prompts, automations, providers.
 - `docs/design/user-journey.md` — le parcours de l'utilisateur : le README, le premier lancement, la bande de tutoriel et le Guide (`core/guide`, ses chapitres dans `assets/guide/chapters.json`, ses textes dans `guide.xml` et `guide-fr.xml`, sa progression dans la catégorie de réglages `guide`).
 - `docs/design/` — conception transitoire, écrite pour être implémentée puis élaguée. Le code et les commits deviennent le registre.
-- `docs/theme-tracks.html` — les registres de thème maquettés sur le même écran d'une zone, en aperçus qu'un clic agrandit, à ouvrir dans un navigateur ; à relire avant de proposer ou concevoir un thème (`docs/THEMES.md`, « Le déroulé »). Première série (2026-10-06) : Carnet, Monochrome / e-ink, Terminal, Cosy (retenu), Cartes à jouer, Menu de JRPG, Arcade néon, HUD de science-fiction. Deuxième série (2026-10-08) : Suisse, Encre et lavis, Instruments, Risographie, Signalétique de métro, Mac 1-bit, Plan d'architecte, Papier découpé.
+- `docs/theme-tracks.html` — les registres de thème maquettés sur le même écran d'une zone, en aperçus qu'un clic agrandit, à ouvrir dans un navigateur ; à relire avant de proposer ou concevoir un thème (`docs/THEMES.md`, « Le déroulé »). Cosy est retenu ; en attente : Carnet, Monochrome / e-ink, Terminal, Cartes à jouer, Menu de JRPG, Arcade néon, HUD de science-fiction, Suisse, Encre et lavis, Instruments, Risographie, Signalétique de métro, Mac 1-bit, Plan d'architecte, Papier découpé.
 
 ## Icônes
 

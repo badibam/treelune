@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=Shippori+Mincho:wght@400;700&family=Oswald:wght@500;600&family=Share+Tech+Mono&family=Rubik+Mono+One&family=Space+Mono:wght@400;700&family=Overpass:wght@500;700;800&family=Pixelify+Sans:wght@400;600&family=Architects+Daughter&family=IBM+Plex+Mono:wght@400;500&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&display=swap" rel="stylesheet">
 <style>
-/* Fonts of the first series, embedded so that it opens without the network */
+/* Fonts of some tracks, embedded so that it opens without the network */
 @font-face {
   font-family: 'Caveat';
   font-style: normal;
@@ -289,8 +289,7 @@ body { margin: 0; padding: 32px 24px 64px; }
 .page-head { max-width: 860px; margin-bottom: 8px; }
 .page-head h1 { margin: 0 0 6px; font-size: 26px; }
 .page-head p { margin: 0; color: #55534e; }
-.series h2 { font-size: 17px; margin: 32px 0 14px; }
-.series h2 small { font-weight: 400; color: #6b6964; }
+.series { margin-top: 32px; }
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 24px 20px; }
 .card { margin: 0; position: relative; display: flex; flex-direction: column; gap: 8px; }
 .thumb { width: 164px; height: 354px; overflow: hidden; border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: transform .12s, box-shadow .12s; }
@@ -622,7 +621,6 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
 </header>
 
 <section class="series">
-  <h2>Première série <small>2026-10-06, d'où est sorti le cosy</small></h2>
   <div class="cards">
 <figure class="card" data-index="0">
 <div class="thumb" inert><div class="scaler">
@@ -719,7 +717,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
   </button>
 </div>
 </div></div>
-<figcaption><span class="card-name">Carnet</span> <span class="card-badge ">écarté</span><span class="card-desc">Papier ligné, écriture à la main, tuiles tracées au stylo, une courbe à main levée.</span></figcaption>
+<figcaption><span class="card-name">Carnet</span> <span class="card-badge ">en attente</span><span class="card-desc">Papier ligné, écriture à la main, tuiles tracées au stylo, une courbe à main levée.</span></figcaption>
 <button class="open" aria-label="Agrandir Carnet"></button>
 </figure>
 <figure class="card" data-index="1">
@@ -824,7 +822,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
   </button>
 </div>
 </div></div>
-<figcaption><span class="card-name">Monochrome / e-ink</span> <span class="card-badge ">écarté</span><span class="card-desc">Noir et blanc pur pour une liseuse, des hachures à la place des gris.</span></figcaption>
+<figcaption><span class="card-name">Monochrome / e-ink</span> <span class="card-badge ">en attente</span><span class="card-desc">Noir et blanc pur pour une liseuse, des hachures à la place des gris.</span></figcaption>
 <button class="open" aria-label="Agrandir Monochrome / e-ink"></button>
 </figure>
 <figure class="card" data-index="2">
@@ -907,7 +905,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
   <button aria-label="Ouvrir la conversation avec l'IA" style="position: absolute; right: 16px; bottom: 24px; height: 52px; padding: 0 16px; background: #ffb000; border: none; color: #0c0b08; font-family: inherit; font-size: 16px; font-weight: 600">&gt;_ ia</button>
 </div>
 </div></div>
-<figcaption><span class="card-name">Terminal</span> <span class="card-badge ">écarté</span><span class="card-desc">Texte monospace ambre sur noir, le chemin de la zone en titre, des cases [ ] et [x].</span></figcaption>
+<figcaption><span class="card-name">Terminal</span> <span class="card-badge ">en attente</span><span class="card-desc">Texte monospace ambre sur noir, le chemin de la zone en titre, des cases [ ] et [x].</span></figcaption>
 <button class="open" aria-label="Agrandir Terminal"></button>
 </figure>
 <figure class="card" data-index="3">
@@ -1111,7 +1109,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
   </button>
 </div>
 </div></div>
-<figcaption><span class="card-name">Cartes à jouer</span> <span class="card-badge ">écarté</span><span class="card-desc">Un tapis vert, des cartes crème à liseré, des titres gravés.</span></figcaption>
+<figcaption><span class="card-name">Cartes à jouer</span> <span class="card-badge ">en attente</span><span class="card-desc">Un tapis vert, des cartes crème à liseré, des titres gravés.</span></figcaption>
 <button class="open" aria-label="Agrandir Cartes à jouer"></button>
 </figure>
 <figure class="card" data-index="5">
@@ -1207,7 +1205,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
   </button>
 </div>
 </div></div>
-<figcaption><span class="card-name">Menu de JRPG</span> <span class="card-badge ">écarté</span><span class="card-desc">Des fenêtres bleues à bord blanc, un curseur en main, des quantités ×2.</span></figcaption>
+<figcaption><span class="card-name">Menu de JRPG</span> <span class="card-badge ">en attente</span><span class="card-desc">Des fenêtres bleues à bord blanc, un curseur en main, des quantités ×2.</span></figcaption>
 <button class="open" aria-label="Agrandir Menu de JRPG"></button>
 </figure>
 <figure class="card" data-index="6">
@@ -1309,7 +1307,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
   <div style="position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 3px)"></div>
 </div>
 </div></div>
-<figcaption><span class="card-name">Arcade néon</span> <span class="card-badge ">écarté</span><span class="card-desc">Des néons cyan et rose sur la nuit, une grille en perspective.</span></figcaption>
+<figcaption><span class="card-name">Arcade néon</span> <span class="card-badge ">en attente</span><span class="card-desc">Des néons cyan et rose sur la nuit, une grille en perspective.</span></figcaption>
 <button class="open" aria-label="Agrandir Arcade néon"></button>
 </figure>
 <figure class="card" data-index="7">
@@ -1437,15 +1435,9 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
   </button>
 </div>
 </div></div>
-<figcaption><span class="card-name">HUD de science-fiction</span> <span class="card-badge ">écarté</span><span class="card-desc">Des traits fins cyan sur bleu nuit, des coins coupés, une jauge circulaire.</span></figcaption>
+<figcaption><span class="card-name">HUD de science-fiction</span> <span class="card-badge ">en attente</span><span class="card-desc">Des traits fins cyan sur bleu nuit, des coins coupés, une jauge circulaire.</span></figcaption>
 <button class="open" aria-label="Agrandir HUD de science-fiction"></button>
 </figure>
-  </div>
-</section>
-
-<section class="series">
-  <h2>Deuxième série <small>2026-10-08</small></h2>
-  <div class="cards">
 <figure class="card" data-index="8">
 <div class="thumb" inert><div class="scaler">
 <section class="phone t-swiss" aria-label="Thème suisse">
@@ -1475,7 +1467,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
   <button class="fab" aria-label="Ouvrir la conversation avec l'IA"><svg width="30" height="30" viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/></svg></button>
 </section>
 </div></div>
-<figcaption><span class="card-name">Suisse</span> <span class="card-badge ">piste</span><span class="card-desc">Une grille stricte, noir et blanc et un seul rouge, ni ombre ni arrondi : les chiffres en vedette.</span></figcaption>
+<figcaption><span class="card-name">Suisse</span> <span class="card-badge ">en attente</span><span class="card-desc">Une grille stricte, noir et blanc et un seul rouge, ni ombre ni arrondi : les chiffres en vedette.</span></figcaption>
 <button class="open" aria-label="Agrandir Suisse"></button>
 </figure>
 <figure class="card" data-index="9">
@@ -1507,7 +1499,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
   <button class="fab" aria-label="Ouvrir la conversation avec l'IA"><svg width="30" height="30" viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/></svg></button>
 </section>
 </div></div>
-<figcaption><span class="card-name">Encre et lavis</span> <span class="card-badge ">piste</span><span class="card-desc">Papier crème, encre noire et rouge de sceau, beaucoup de vide ; le seul thème calme.</span></figcaption>
+<figcaption><span class="card-name">Encre et lavis</span> <span class="card-badge ">en attente</span><span class="card-desc">Papier crème, encre noire et rouge de sceau, beaucoup de vide ; le seul thème calme.</span></figcaption>
 <button class="open" aria-label="Agrandir Encre et lavis"></button>
 </figure>
 <figure class="card" data-index="10">
@@ -1539,7 +1531,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
   <button class="fab" aria-label="Ouvrir la conversation avec l'IA"><svg width="30" height="30" viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/></svg></button>
 </section>
 </div></div>
-<figcaption><span class="card-name">Instruments</span> <span class="card-badge ">piste</span><span class="card-desc">Un panneau noir vissé, des chiffres d&#x27;afficheur, des voyants pour les cases, un cadran à aiguille pour la jauge.</span></figcaption>
+<figcaption><span class="card-name">Instruments</span> <span class="card-badge ">en attente</span><span class="card-desc">Un panneau noir vissé, des chiffres d&#x27;afficheur, des voyants pour les cases, un cadran à aiguille pour la jauge.</span></figcaption>
 <button class="open" aria-label="Agrandir Instruments"></button>
 </figure>
 <figure class="card" data-index="11">
@@ -1571,7 +1563,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
   <button class="fab" aria-label="Ouvrir la conversation avec l'IA"><svg width="30" height="30" viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/></svg></button>
 </section>
 </div></div>
-<figcaption><span class="card-name">Risographie</span> <span class="card-badge ">piste</span><span class="card-desc">Deux encres fluo, rose et bleu, imprimées un peu décalées ; les à-plats en trame de points.</span></figcaption>
+<figcaption><span class="card-name">Risographie</span> <span class="card-badge ">en attente</span><span class="card-desc">Deux encres fluo, rose et bleu, imprimées un peu décalées ; les à-plats en trame de points.</span></figcaption>
 <button class="open" aria-label="Agrandir Risographie"></button>
 </figure>
 <figure class="card" data-index="12">
@@ -1603,7 +1595,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
   <button class="fab" aria-label="Ouvrir la conversation avec l'IA"><svg width="30" height="30" viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/></svg></button>
 </section>
 </div></div>
-<figcaption><span class="card-name">Signalétique de métro</span> <span class="card-badge ">piste</span><span class="card-desc">Chaque outil est une ligne dans la couleur de son icône, numérotée ; la zone est une station.</span></figcaption>
+<figcaption><span class="card-name">Signalétique de métro</span> <span class="card-badge ">en attente</span><span class="card-desc">Chaque outil est une ligne dans la couleur de son icône, numérotée ; la zone est une station.</span></figcaption>
 <button class="open" aria-label="Agrandir Signalétique de métro"></button>
 </figure>
 <figure class="card" data-index="13">
@@ -1635,7 +1627,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
   <button class="fab" aria-label="Ouvrir la conversation avec l'IA"><svg width="30" height="30" viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/></svg></button>
 </section>
 </div></div>
-<figcaption><span class="card-name">Mac 1-bit</span> <span class="card-badge ">piste</span><span class="card-desc">Chaque tuile est une fenêtre à barre rayée ; les gris sont des trames de pixels noirs et blancs.</span></figcaption>
+<figcaption><span class="card-name">Mac 1-bit</span> <span class="card-badge ">en attente</span><span class="card-desc">Chaque tuile est une fenêtre à barre rayée ; les gris sont des trames de pixels noirs et blancs.</span></figcaption>
 <button class="open" aria-label="Agrandir Mac 1-bit"></button>
 </figure>
 <figure class="card" data-index="14">
@@ -1667,7 +1659,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
   <button class="fab" aria-label="Ouvrir la conversation avec l'IA"><svg width="30" height="30" viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/></svg></button>
 </section>
 </div></div>
-<figcaption><span class="card-name">Plan d&#x27;architecte</span> <span class="card-badge ">piste</span><span class="card-desc">Des traits blancs sur un quadrillage bleu, des hachures, des cotes, un triangle de révision pour l&#x27;attente.</span></figcaption>
+<figcaption><span class="card-name">Plan d&#x27;architecte</span> <span class="card-badge ">en attente</span><span class="card-desc">Des traits blancs sur un quadrillage bleu, des hachures, des cotes, un triangle de révision pour l&#x27;attente.</span></figcaption>
 <button class="open" aria-label="Agrandir Plan d&#x27;architecte"></button>
 </figure>
 <figure class="card" data-index="15">
@@ -1699,7 +1691,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
   <button class="fab" aria-label="Ouvrir la conversation avec l'IA"><svg width="30" height="30" viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/></svg></button>
 </section>
 </div></div>
-<figcaption><span class="card-name">Papier découpé</span> <span class="card-badge ">piste</span><span class="card-desc">Des feuilles de couleur découpées aux ciseaux, posées de travers sur du kraft.</span></figcaption>
+<figcaption><span class="card-name">Papier découpé</span> <span class="card-badge ">en attente</span><span class="card-desc">Des feuilles de couleur découpées aux ciseaux, posées de travers sur du kraft.</span></figcaption>
 <button class="open" aria-label="Agrandir Papier découpé"></button>
 </figure>
   </div>
