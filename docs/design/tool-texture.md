@@ -1,6 +1,6 @@
 # Les textures d'outil et de zone — conception
 
-Conçu le 2026-10-16, rien n'est codé. Le code attend la fusion de la branche `theme-recipe`, qui modifie aussi `ThemeContract`. Une zone et un outil peuvent poser un motif discret sur le fond de leur tuile, pour qu'on les reconnaisse d'un coup d'œil dans une grille. Maquette, à ouvrir dans un navigateur : `docs/design/tool-texture-mockup.html` (les trois thèmes, les seize choix, la couleur d'icône et les deux intensités ; motifs dessinés au jugé, intensités non égalisées).
+Conçu et codé le 2026-10-16, sur la branche `theme-recipe` fusionnée ; rien n'a tourné sur un téléphone (`device-checks.md`), et les tons sont un premier jet à régler au banc. Une zone et un outil peuvent poser un motif discret sur le fond de leur tuile, pour qu'on les reconnaisse d'un coup d'œil dans une grille. Maquette, à ouvrir dans un navigateur : `docs/design/tool-texture-mockup.html` (les trois thèmes, les seize choix, la couleur d'icône et les deux intensités ; motifs dessinés au jugé, intensités non égalisées).
 
 ## Ce qu'est une texture
 
@@ -29,37 +29,39 @@ Une brique `Texture` (sur le modèle de `IconColor`) liste quinze noms, sait les
 
 Le cœur ne connaît que les noms ; **chaque thème dessine les quinze**, chacun à sa manière : traits fins dans le défaut, pixels pleins sur sa grille dans le rétro, formes rondes et dodues dans le cosy. Le choix est stocké sans dépendre du thème et survit à un changement de thème. Écarté : un dessin du cœur avec les seules couleurs du thème (il ne tomberait pas sur la grille du rétro), une liste propre à chaque thème (le choix ne survivrait pas au changement de thème, et il faudrait un motif de remplacement).
 
-- **Un motif est une cellule SVG**, un petit carreau répété sur la surface : `themes/<thème>/textures/<nom en minuscules>.svg`, un fichier par nom et par thème, un seul format pour tous les thèmes.
+- **Un motif est une cellule SVG**, un petit carreau répété sur la surface : `resources/app/treelune/themes/<thème>/textures/<nom en minuscules>.svg`, un fichier par nom et par thème, un seul format pour tous les thèmes (`TextureCell` : `viewBox` en unités entières depuis 0 0, des `<path>`, `<rect>` et `<circle>`, un trait s'il a un `stroke-width`, plein sinon ; tout autre élément est refusé).
   - Défaut et cosy : des tracés libres, pleins ou en trait, courbes comprises. Le thème lit les tracés (`PathParser`), dessine la cellule une fois à la couleur voulue, et la répète (`ImageShader` en `TileMode.Repeated`).
   - Rétro : des `<rect>` pleins à coordonnées entières, une unité par pixel de dessin, comme ses icônes (`themes/retro/icons/`). La cellule se dessine à un pixel de dessin par unité puis s'agrandit d'un facteur entier, sans lissage.
 - **`ICON` n'a pas de fichier** : sa cellule est l'icône de la chose posée deux fois en quinconce (une rangée sur deux décalée d'une demi-cellule), petite ; le dessin en pixels dans le rétro, à facteur entier, l'icône Lucide ailleurs.
-- **Le ton** : pour chaque motif, deux nombres dans `palettes.json` du thème, un par intensité (voir « L'intensité »), à côté des autres nombres de la palette. Un ton est un écart de clarté par rapport à la surface où le motif est posé (la tuile, le bandeau). Avec une couleur d'icône (`icon_color`), le motif prend la teinte de cette couleur à cette clarté ; sans couleur, la teinte de la surface. Jamais de transparence : le rétro reste en tons pleins, comme ses autres dessins.
-- **Le contrat** : une fonction de `ThemeContract` reçoit le nom, l'icône de la chose, sa `TagColor` ou `null`, et la surface (tuile ou bandeau), et rend de quoi en peindre le fond. Le cœur passe la texture à `ToolCardContainer`, à `ZoneCardContainer` et à `PageHeader`, comme il leur passe la couleur d'icône.
+- **Le ton** : pour chaque motif, deux nombres par mode dans `textures.json` du thème (à côté de son `palettes.json`, le thème par défaut n'en ayant pas), un par intensité (voir « L'intensité »), et la saturation d'un motif teinté (`TextureTones`). Un ton est un écart de clarté par rapport à la surface où le motif est posé (la tuile, le bandeau). Avec une couleur d'icône (`icon_color`), le motif prend la teinte de cette couleur à cette clarté ; sans couleur, la teinte de la surface. Jamais de transparence : le rétro reste en tons pleins, comme ses autres dessins.
+- **Le contrat** : `ToolCardContainer`, `ZoneCardContainer` et `PageHeader` reçoivent la texture de la chose (`ItemTexture` : le motif, l'icône, la `TagColor` ou `null`), comme la couleur d'icône, et la posent à l'intérieur de leur propre cadre. Le peintre est commun (`rememberTextureBrush`) : chaque thème lui donne la couleur de la surface et sa façon de poser (`TextureStyle` : la taille d'une unité, en pixels entiers ou lissée, la taille de l'icône d'`ICON` et l'air autour).
+- **L'en-tête, thème par thème** : le défaut et le rétro n'ont pas de bandeau ; une page texturée y gagne une bande de toute la largeur sur le fond de l'écran, de l'air au-dessus et au-dessous du titre. Le cosy pose le motif sur sa pilule de la couleur principale. Une page sans texture ne change pas.
 
 ## L'intensité
 
 - À réglage égal, les motifs ne se voient pas pareil (un damier couvre la moitié de la surface, des points quelques pour cent) : **chaque thème donne un ton par motif**, réglé pour que tous se voient autant.
-- **Un banc** les montre côte à côte, par thème, par intensité, sur la tuile et sur le bandeau, sans couleur et dans chaque couleur d'icône : celui des thèmes (`./run themes`). C'est une page HTML ; elle lit **les mêmes fichiers** que l'app (les cellules SVG, les tons de `palettes.json`), si bien qu'un motif réglé au banc est dessiné tel quel par l'app.
+- **Un banc** les montre côte à côte, par thème et par mode, aux deux intensités, sur la tuile ou sur l'en-tête, sans couleur et dans une couleur d'icône choisie : `themes/texture-bench.html`, ouvert par `./run themes`. Il lit **les mêmes fichiers** que l'app (les cellules SVG, `textures.json`) et les surfaces aux sources de chaque thème (le `palettes.json` du rétro et du cosy, le banc des couleurs du défaut), et enregistre les tons dans `textures.json` (`POST /textures/<id>`).
 - **Un réglage de l'app, et un seul** : Réglages › Interface, à côté de la teinte, une clé `texture_intensity` à deux valeurs, `SUBTLE` (discrète, par défaut) et `MARKED` (marquée), lue dans `Appearance` ; son écran montre quelques tuiles texturées. Deux crans et pas un curseur : le rétro n'a que des tons pleins, et le banc égalise chaque cran. Pas d'intensité par outil, qui ferait ressortir certaines tuiles plus que d'autres.
-- La clé manque dans les réglages existants, et `Appearance.from` rend `null` quand une clé manque : la migration qui ajoute la colonne des zones écrit aussi `SUBTLE` dans les réglages d'interface.
+- La clé manque dans les réglages existants, et `Appearance.from` rend `null` quand une clé manque : la migration 74 → 75, qui ajoute la colonne des zones, écrit aussi `SUBTLE` dans les réglages d'interface (`UiTextureIntensityAtV75`, que l'import d'une sauvegarde passe aussi).
 
 ## Où elle vit
 
 - **Outil** : une clé `texture` de sa config, à côté de `icon_name` et `icon_color`, dans le schéma de config commun à tous les types (`ToolConfigSettings`) : une liste fermée des quinze noms. `null` ou vide, la clé est retirée. Pas de migration.
-- **Zone** : une colonne `texture` de `Zone`, à côté de `icon_color` (prochaine migration ; l'import d'une sauvegarde la lit absente comme `null`) ; un champ de `ZoneSettings`.
+- **Zone** : une colonne `texture` de `Zone`, à côté de `icon_color` (migration 74 → 75 ; l'import d'une sauvegarde la lit absente comme `null`) ; un champ de `ZoneSettings`.
 - Un outil sans texture ne prend pas celle de sa zone : l'héritage peindrait tous les outils de la zone pareil, quand la texture sert à les distinguer.
 
 ## Le choix
 
-- **À l'écran** : dans la config d'une zone et dans celle d'un outil, sous le choix de la couleur d'icône (`IconColorSelector`), un sélecteur de texture offre les seize choix en 4 × 4, « aucune » d'abord, chacun montrant la tuile de la chose telle que le thème la dessine avec ce motif, dans sa couleur d'icône et à l'intensité réglée ; le choix en cours marqué.
-- **`ICON` et l'icône** : la combinaison « sans icône + `ICON` » n'existe jamais. À l'écran, la case `ICON` n'est pas offerte tant que la chose n'a pas d'icône, et retirer l'icône remet la texture à « aucune » dans le formulaire, sous les yeux de l'utilisateur, avant l'enregistrement. Le service la refuse, d'où qu'elle vienne. Jamais de « aucune » dessinée à la place d'un `ICON` sans icône : ce serait un repli.
+- **À l'écran** : dans la config d'une zone et dans celle d'un outil, sous le choix de la couleur d'icône (`IconColorSelector`), `TextureSelector` offre les seize choix, « Sans texture » d'abord, autant par rangée que la largeur en tient (`ChoiceGrid`), chacun une petite tuile de la chose telle que le thème la dessine avec ce motif (son `ToolCardContainer`), dans sa couleur d'icône et à l'intensité réglée, son nom dessous ; le choix en cours marqué d'une coche devant son nom.
+- **`ICON` et l'icône** : la combinaison « sans icône + `ICON` » n'existe jamais. À l'écran, la case `ICON` n'est pas offerte tant que la zone n'a pas d'icône ; l'écran ne sait pas retirer une icône, seulement en choisir une autre. Un outil a toujours une icône : la sienne, ou celle de son type qu'il montre sans. Le service refuse la combinaison, d'où qu'elle vienne. Jamais de « aucune » dessinée à la place d'un `ICON` sans icône : ce serait un repli.
 - **Par l'IA** : CREATE_ZONE et UPDATE_ZONE prennent `texture` ; un outil la reçoit dans sa config. `null` retire la texture. Un nom inconnu, ou `ICON` sur une chose sans icône (une écriture qui retire l'icône en gardant `ICON` comprise), est refusé par le service, avec la liste des noms valides ou la raison. L'aperçu de l'app n'en dit rien, et le prompt ne pousse pas l'IA à en poser d'elle-même : c'est un choix de goût, qu'elle fait quand on le lui demande. Le réglage d'intensité lui reste fermé : il est dans l'apparence, hors des catégories de `AppSettings.OPEN_TO_AI`.
 - Le Guide en parle là où il parle de la couleur d'icône.
 
 ## Tests
 
-- `TextureTest` : les quinze noms dans leur ordre, un nom inconnu ou en minuscules refusé, « aucune » acceptée.
-- Chaque thème a une cellule pour chacun des quatorze noms qui ont un fichier, et rien d'autre dans son dossier `textures/` ; une cellule du rétro n'a que des `<rect>` pleins à coordonnées entières.
-- Chaque thème a deux tons pour chacun des quinze noms dans `palettes.json`, et le banc lit ceux du thème (sur le modèle de `DefaultColorsBenchTest`).
+- `TextureTest` : les quinze noms dans leur ordre, un nom inconnu ou en minuscules refusé, « aucune » acceptée, `ICON` refusé sans icône.
+- `TextureCellTest` : chaque thème a une cellule pour chacun des quatorze noms qui ont un fichier, et rien d'autre dans son dossier `textures/`, chacune lue par le chemin de l'app ; une cellule du rétro n'a que des `<rect>` pleins à coordonnées entières ; une cellule fautive est refusée.
+- `UiTextureIntensityAtV75Test` : les réglages d'interface gagnent l'intensité, discrète.
+- `TextureTonesTest` : chaque thème a deux tons pour chacun des quinze noms dans les deux modes, le marqué plus loin de sa surface que le discret ; un motif va vers l'encre de sa surface. Le banc lit `textures.json` lui-même : rien à tenir égal.
 - Le refus de « sans icône + `ICON` » et d'un nom inconnu par les services de zone et d'outil.
 - La migration, l'import et le rendu passent par la recette sur l'appareil, avec `CHECKER` en mode d'édition de la grille dans le rétro.
