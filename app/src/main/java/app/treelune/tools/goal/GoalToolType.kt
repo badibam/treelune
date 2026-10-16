@@ -227,6 +227,22 @@ object GoalToolType : ToolTypeContract {
     fun validationOpened(before: JSONObject, after: JSONObject): Boolean =
         before.optBoolean(AI_NO_VALIDATION, false) && !after.optBoolean(AI_NO_VALIDATION, false)
 
+    /**
+     * The validation closed to the AI, and each entered criterion read-only for it, kept where
+     * [after] leaves the setting out; a criterion is the same by its key, in a sub-goal or not.
+     */
+    override fun keepClosedToAi(before: JSONObject, after: JSONObject): JSONObject {
+        val kept = JSONObject(after.toString())
+        if (!kept.has(AI_NO_VALIDATION) && before.optBoolean(AI_NO_VALIDATION, false)) kept.put(AI_NO_VALIDATION, true)
+        val objects = app.treelune.core.fields.AiReadOnly::objects
+        fun criteria(config: JSONObject) = objects(config.optJSONArray("criteria")) +
+            objects(config.optJSONArray("sub_goals")).flatMap { objects(it.optJSONArray("criteria")) }
+        val entered = { criterion: JSONObject -> criterion.optJSONObject(Criterion.ENTERED) }
+        val marked = app.treelune.core.fields.AiReadOnly.markedIds(criteria(before), id = "key", locate = entered)
+        app.treelune.core.fields.AiReadOnly.keepMarks(criteria(kept), marked, id = "key", locate = entered)
+        return kept
+    }
+
     /** Closing the validation to the AI is anyone's, opening it again a person's. */
     override fun refuseConfigChange(before: JSONObject, after: JSONObject, byAPerson: Boolean, context: Context): String? =
         if (byAPerson || !validationOpened(before, after)) null

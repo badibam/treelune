@@ -36,6 +36,26 @@ class GoalAiValidationTest {
         assertFalse(GoalToolType.validationOpened(open, open))
     }
 
+    /**
+     * A goal config written whole by the AI without the settings keeps them: the validation closed,
+     * an entered criterion's mark, in a sub-goal too. Sent open, they are left to be refused.
+     */
+    @Test
+    fun whatIsLeftOutStaysClosed() {
+        val before = JSONObject("""{"ai_no_validation":true,
+            "criteria":[{"key":"c_sleep","name":"Sommeil","field":{"type":"DURATION","ai_read_only":true}}],
+            "sub_goals":[{"name":"Corps","criteria":[{"key":"c_walk","name":"Marche","field":{"type":"BOOLEAN","ai_read_only":true}}]}]}""")
+        val leftOut = GoalToolType.keepClosedToAi(before, JSONObject("""{
+            "criteria":[{"key":"c_sleep","name":"Sommeil la nuit","field":{"type":"DURATION"}}],
+            "sub_goals":[{"name":"Corps","criteria":[{"key":"c_walk","name":"Marche","field":{"type":"BOOLEAN"}}]}]}"""))
+        assertTrue(leftOut.getBoolean(GoalToolType.AI_NO_VALIDATION))
+        assertTrue(leftOut.getJSONArray("criteria").getJSONObject(0).getJSONObject("field").getBoolean("ai_read_only"))
+        assertTrue(leftOut.getJSONArray("sub_goals").getJSONObject(0).getJSONArray("criteria").getJSONObject(0).getJSONObject("field").getBoolean("ai_read_only"))
+
+        val sentOpen = GoalToolType.keepClosedToAi(before, JSONObject().put(GoalToolType.AI_NO_VALIDATION, false))
+        assertTrue(GoalToolType.validationOpened(before, sentOpen))
+    }
+
     /** An entered criterion marked read-only for the AI gives its attempt's field the mark. */
     @Test
     fun anEnteredCriterionCarriesItsMark() {

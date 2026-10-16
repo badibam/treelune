@@ -65,6 +65,26 @@ class AiReadOnlyTest {
         assertEquals(emptyList<FieldDefinition>(), AiReadOnly.unmarked(listOf(mood), listOf(mood)))
     }
 
+    /**
+     * A config written whole by the AI keeps the mark of a field it sent without the key, as it was;
+     * a mark sent false is not put back, so that unmarking it is refused.
+     */
+    @Test
+    fun aMarkLeftOutIsKept() {
+        val before = AiReadOnly.objects(org.json.JSONArray(listOf(mood.toJson(), notes.toJson())))
+        val after = AiReadOnly.objects(org.json.JSONArray("""[
+            { "name": "mood", "display_name": "Feeling", "type": "TEXT" },
+            { "name": "notes", "display_name": "Notes", "type": "TEXT" }]"""))
+        AiReadOnly.keepMarks(after, AiReadOnly.markedIds(before))
+        assertTrue(after[0].getBoolean(AI_READ_ONLY))
+        assertFalse(after[1].has(AI_READ_ONLY))
+
+        val sentFalse = AiReadOnly.objects(org.json.JSONArray("""[{ "name": "mood", "display_name": "Mood", "type": "TEXT", "ai_read_only": false }]"""))
+        AiReadOnly.keepMarks(sentFalse, AiReadOnly.markedIds(before))
+        assertFalse(sentFalse[0].getBoolean(AI_READ_ONLY))
+        assertEquals(listOf(mood), AiReadOnly.unmarked(listOf(mood), sentFalse.map { it.toFieldDefinition() }))
+    }
+
     /** The mark is stored with the definition, and a definition stored before it reads unmarked. */
     @Test
     fun theMarkIsStored() {

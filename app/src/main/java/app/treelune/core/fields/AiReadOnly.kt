@@ -1,6 +1,7 @@
 package app.treelune.core.fields
 
 import app.treelune.core.coordinator.Source
+import org.json.JSONArray
 import org.json.JSONObject
 
 /**
@@ -29,6 +30,27 @@ object AiReadOnly {
         val now = after.associateBy { it.name }
         return before.filter { it.aiReadOnly && now[it.name]?.aiReadOnly == false }
     }
+
+    /**
+     * The ids of the definitions among [definitions] that are marked. [id] is the key that names a
+     * definition; [locate] finds the object that holds its mark: the definition itself, or a goal's
+     * criterion's entered field.
+     */
+    fun markedIds(definitions: List<JSONObject>, id: String = "name", locate: (JSONObject) -> JSONObject? = { it }): Set<String> =
+        definitions.filter { locate(it)?.optBoolean(AI_READ_ONLY, false) == true }.map { it.optString(id) }.toSet()
+
+    /**
+     * Marks again, in place, each of [definitions] whose id is in [marked] and that was sent without
+     * the key: a config the AI rewrites whole to change something else keeps what it left out. A
+     * mark sent false stays false, for unmarked to refuse.
+     */
+    fun keepMarks(definitions: List<JSONObject>, marked: Set<String>, id: String = "name", locate: (JSONObject) -> JSONObject? = { it }) {
+        definitions.filter { it.optString(id) in marked }
+            .forEach { definition -> locate(definition)?.takeIf { !it.has(AI_READ_ONLY) }?.put(AI_READ_ONLY, true) }
+    }
+
+    /** The objects of [array], the ones it holds and not copies. */
+    fun objects(array: JSONArray?): List<JSONObject> = array?.let { a -> (0 until a.length()).map { a.getJSONObject(it) } } ?: emptyList()
 
     /** [fields] named for a message, each between quotes. */
     fun named(fields: List<FieldDefinition>): String = fields.joinToString(", ") { "« ${it.displayName} »" }

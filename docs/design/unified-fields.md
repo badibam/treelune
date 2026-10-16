@@ -13,7 +13,7 @@ Une valeur que la personne saisit et que l'IA lit sans l'écrire. La validation 
 - Un réglage de champ, `ai_read_only` (« Lecture seule pour l'IA »), décoché par défaut : sur un champ de l'utilisateur, après « Toujours afficher », et sur le champ saisi d'un critère d'Objectif, une fois son type choisi. Une question que pose l'IA (module de communication) ne l'a pas.
 - Refusé à l'IA en conversation, à une routine et au connecteur (origine `AI` ou `EXTERNAL`, appel relayé par l'app compris : un import lancé par l'IA écrit en son nom) ; le reste de l'app l'écrit (import de la personne, démo). `ToolDataService` refuse la commande entière qui le contient, valeur effacée par `null` comprise, chronomètre lancé ou arrêté aussi, avec une erreur qui nomme les champs et demande de renvoyer sans eux (`AiReadOnly`).
 - Le schéma que lit l'IA porte `"ai_read_only": true`, rendu « entered by the user, read only: never sent ».
-- Cocher est permis à tous ; décocher un champ gardé sous le même nom, à une personne seulement (`tools.update`) : l'IA pourrait sinon décocher, écrire, recocher. Supprimer le champ reste une perte de données que la protection fait confirmer.
+- Cocher est permis à tous ; décocher un champ gardé sous le même nom, à une personne seulement (`tools.update`) : l'IA pourrait sinon décocher, écrire, recocher. Une config réécrite en entier par l'IA sans la clé garde la case, comme « Protéger les données enregistrées » ; seule une case envoyée décochée est refusée. Supprimer le champ reste une perte de données que la protection fait confirmer.
 - Le verdict d'un Objectif n'est pas un champ : il se ferme par un réglage de l'Objectif (`missing-tools.md`, « Validation fermée à l'IA »), même règle d'origine, même règle pour le décocher.
 
 ## Ouvert
