@@ -96,6 +96,9 @@ class ZoneService(private val context: Context) : ExecutableService {
         val validate = params.optBoolean("validate", false)
         app.treelune.core.coordinator.Protections.refusal(s.shared("label_zone_validate"), false, validate, s)?.let { return OperationResult.error(it) }
 
+        val identityId = params.givenText("identity_id")
+        identityRefusal(identityId)?.let { return OperationResult.error(it) }
+
         if (token.isCancelled) return OperationResult.cancelled()
 
         val placing = Zone(
@@ -110,7 +113,8 @@ class ZoneService(private val context: Context) : ExecutableService {
             grid_y = 0,
             tool_groups = toolGroupsJson,
             group = group,
-            validate = validate
+            validate = validate,
+            identity_id = identityId
         )
         checkZone(placing)?.let { return OperationResult.error(it) }
 
@@ -159,6 +163,19 @@ class ZoneService(private val context: Context) : ExecutableService {
         return StoredIcon.Kept(stored, renamedFrom = given.takeIf { it != stored })
     }
 
+    /** A zone's identity is one that exists, or none. */
+    private suspend fun identityRefusal(identityId: String?): String? =
+        if (identityId == null || database.identityDao().getById(identityId) != null) null
+        else s.shared("identity_error_not_found").format(identityId)
+
+    /** The identity [zone] names, by id and name, for the screen and the AI. */
+    private suspend fun identityOf(zone: Zone, into: MutableMap<String, Any?>) {
+        val id = zone.identity_id ?: return
+        into["identity_id"] = id
+        // One deleted in a way the service refuses would read here as named by its id alone
+        into["identity_name"] = database.identityDao().getById(id)?.name
+    }
+
     /** An icon colour is one of IconColor.NAMES, or none: any other name is refused with them. */
     private fun iconColorRefusal(given: String?): String? =
         if (IconColor.accepts(given)) null
@@ -179,6 +196,7 @@ class ZoneService(private val context: Context) : ExecutableService {
             zone.icon_color?.let { put(IconColor.KEY, it) }
             zone.texture?.let { put(Texture.KEY, it) }
             zone.group?.let { put("group", it) }
+            zone.identity_id?.let { put("identity_id", it) }
             put("display_mode", zone.display_mode)
             zone.tool_groups?.let { put("tool_groups", JsonUtils.toList(it)) }
             put("validate", zone.validate)
@@ -306,6 +324,9 @@ class ZoneService(private val context: Context) : ExecutableService {
         val displayMode = if (params.has("display_mode")) params.givenText("display_mode") ?: existingZone.display_mode else existingZone.display_mode
         val validate = if (params.has("validate")) params.optBoolean("validate") else existingZone.validate
         app.treelune.core.coordinator.Protections.refusal(s.shared("label_zone_validate"), existingZone.validate, validate, s)?.let { return OperationResult.error(it) }
+        val identityId = if (params.has("identity_id")) params.givenText("identity_id") else existingZone.identity_id
+        // Only an identity that changes is checked: a zone saved again keeps the one it has
+        if (identityId != existingZone.identity_id) identityRefusal(identityId)?.let { return OperationResult.error(it) }
         val updatedZone = existingZone.copy(
             name = name,
             description = description,
@@ -316,6 +337,7 @@ class ZoneService(private val context: Context) : ExecutableService {
             tool_groups = toolGroupsJson,
             group = group,
             validate = validate,
+            identity_id = identityId,
             updated_at = System.currentTimeMillis()
         )
 
@@ -437,6 +459,7 @@ class ZoneService(private val context: Context) : ExecutableService {
         if (zone.group != null) {
             zoneMap["group"] = zone.group
         }
+        identityOf(zone, zoneMap)
 
         return OperationResult.success(mapOf("zone" to zoneMap))
     }
@@ -474,6 +497,7 @@ class ZoneService(private val context: Context) : ExecutableService {
             if (zone.group != null) {
                 zoneMap["group"] = zone.group
             }
+            identityOf(zone, zoneMap)
 
             // Its place on the home screen, for the screen: the AI neither sees nor changes places
             if (params.optBoolean("include_position", false)) {

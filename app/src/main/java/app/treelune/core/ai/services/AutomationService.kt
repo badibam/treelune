@@ -162,6 +162,9 @@ class AutomationService(private val context: Context) : ExecutableService {
             }
         ), settingsGiven(params, null)).getOrElse { return OperationResult.error(it.message ?: s.shared("message_validation_error_simple")) }
         groupRefusal(entity.group, zoneId)?.let { return OperationResult.error(it) }
+        // Given, null for the app's own AI: never taken from the zone without the caller saying so
+        if (!params.has(AutomationSettings.IDENTITY_ID)) return OperationResult.error(s.shared("automation_identity_required"))
+        identityRefusal(entity.identityId)?.let { return OperationResult.error(it) }
 
         LogManager.service("Creating automation: name=${entity.name}, zoneId=$zoneId", "DEBUG")
         database.withTransaction {
@@ -278,6 +281,8 @@ class AutomationService(private val context: Context) : ExecutableService {
             updatedAt = System.currentTimeMillis()
         ), settings).getOrElse { return OperationResult.error(it.message ?: s.shared("message_validation_error_simple")) }
         groupRefusal(updatedEntity.group, updatedEntity.zoneId)?.let { return OperationResult.error(it) }
+        // Only an identity that changes is checked: a routine saved again keeps the one it has
+        if (updatedEntity.identityId != entity.identityId) identityRefusal(updatedEntity.identityId)?.let { return OperationResult.error(it) }
 
         // The message replaces the one of its seed session, with the settings or not at all
         val seed = message?.let {
@@ -330,6 +335,11 @@ class AutomationService(private val context: Context) : ExecutableService {
         return Given.Kept(mask.toJson().toString())
     }
 
+    /** Why [identityId] cannot be an automation's identity: one that does not exist. */
+    private suspend fun identityRefusal(identityId: String?): String? =
+        if (identityId == null || AppDatabase.getDatabase(context).identityDao().getById(identityId) != null) null
+        else s.shared("identity_error_not_found").format(identityId)
+
     /**
      * Why [group] cannot be held by an automation of the zone [zoneId], whose tool groups it
      * names; null when it can (none, or one of them).
@@ -344,6 +354,7 @@ class AutomationService(private val context: Context) : ExecutableService {
     private fun settingsOf(entity: AutomationEntity): JSONObject = JSONObject().apply {
         put("name", entity.name)
         put("provider_id", entity.providerId)
+        entity.identityId?.let { put(AutomationSettings.IDENTITY_ID, it) }
         entity.group?.let { put("group", it) }
         put("is_enabled", entity.isEnabled)
         put("notify_end", entity.notifyEnd)
@@ -363,7 +374,7 @@ class AutomationService(private val context: Context) : ExecutableService {
      */
     private fun settingsGiven(params: JSONObject, stored: JSONObject?): JSONObject {
         val settings = stored?.let { JSONObject(it.toString()) } ?: JSONObject()
-        listOf("name", "provider_id", "group", "is_enabled", "notify_end", "schedule", "catch_up").forEach { key ->
+        listOf("name", "provider_id", AutomationSettings.IDENTITY_ID, "group", "is_enabled", "notify_end", "schedule", "catch_up").forEach { key ->
             if (!params.has(key)) return@forEach
             if (params.isNull(key)) settings.remove(key) else settings.put(key, params.get(key))
         }
@@ -398,6 +409,7 @@ class AutomationService(private val context: Context) : ExecutableService {
         return Result.success(entity.copy(
             name = settings.getString("name"),
             providerId = settings.getString("provider_id"),
+            identityId = settings.optString(AutomationSettings.IDENTITY_ID).takeIf { it.isNotEmpty() },
             group = settings.optString("group").takeIf { it.isNotEmpty() },
             isEnabled = SettingValues(AutomationSettings.nodes(context), settings).boolean("is_enabled"),
             notifyEnd = SettingValues(AutomationSettings.nodes(context), settings).string("notify_end")

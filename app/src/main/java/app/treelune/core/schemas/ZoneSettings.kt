@@ -51,6 +51,8 @@ object ZoneSettings {
             ),
             // One of the zone groups of the main screen
             field("group", "label_zone_group", FieldType.TEXT, TextLength.SHORT),
+            // The identity its tile opens a conversation with; checked to exist by the service
+            field("identity_id", "label_zone_identity", FieldType.TEXT, TextLength.SHORT),
             // How its tile shows on the main screen, which gives the cells it takes
             SettingNode.Field(
                 FieldDefinition("display_mode", s.shared("tools_config_label_display_mode"), s.shared("zone_schema_display_mode"), FieldType.CHOICE, false,

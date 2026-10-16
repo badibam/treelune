@@ -535,6 +535,7 @@ Creates a zone.
 - `group` (string, optional): one of the zone groups of the home screen
 - `display_mode` (string, optional): how its tile shows on the home screen, `LINE` when left out
 - `tool_groups` (array, optional): the groups its tools are sorted into
+- `identity_id` (string, optional): the identity its tile opens a conversation with (IDENTITIES); none when left out
 
 **Validation schema**:
 {{SCHEMA:zone_config}}]]></string>
@@ -554,6 +555,7 @@ Changes a zone. Only what you give changes; `null` empties a field, except the n
 - `display_mode` (string, optional)
 - `tool_groups` (array, optional): the **whole** list, which replaces the old one. A group still held by a tool, an automation or a variable cannot be removed
 - `renames` (object, optional): the tool groups renamed in `tool_groups`, `{"tool_groups": {"former name": "new name"}}`: what holds a former name takes the new one
+- `identity_id` (string, optional): `null` removes it
 
 The zone is held to the schema given with CREATE_ZONE.]]></string>
     <string name="ai_command_delete_zone"><![CDATA[### DELETE_ZONE

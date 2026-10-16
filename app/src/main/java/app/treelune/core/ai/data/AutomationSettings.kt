@@ -39,6 +39,12 @@ object AutomationSettings {
     const val SCHEMA_ID = "automation_settings"
 
     /**
+     * The identity setting's key. A creation gives it, null for the app's own AI: the screen
+     * shows it preselected with the zone's, and an AI, which sees no preselection, says it.
+     */
+    const val IDENTITY_ID = "identity_id"
+
+    /**
      * What a scheduled automation does about the runs it missed, stored under "catch_up": the
      * choice is required, with no default -- an hour and several weeks are equally common --, and a
      * limited catch-up says its delay.
@@ -73,6 +79,9 @@ object AutomationSettings {
             SettingNode.Field(FieldDefinition("provider_id", s.shared("label_ai_provider"), null, FieldType.CHOICE, false,
                 mapOf("options" to ChoiceSettings.storedOptions(providers.map { it.getProviderId() },
                     providers.associate { it.getProviderId() to it.getDisplayName() }))), required = true),
+            // The identity its runs speak as, absent for the app's own AI; checked to exist by the service
+            SettingNode.Field(FieldDefinition(IDENTITY_ID, s.shared("label_identity"), null, FieldType.TEXT, false,
+                mapOf("length" to TextLength.SHORT.name))),
             // One of the tool groups of the automation's zone
             SettingNode.Field(FieldDefinition("group", s.shared("label_group"), null, FieldType.TEXT, false,
                 mapOf("length" to TextLength.SHORT.name))),

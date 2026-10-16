@@ -2128,4 +2128,10 @@
     <string name="action_verbalize_identity_update">Modification de l'identité « %1$s »</string>
     <string name="action_verbalize_identity_delete">Suppression de l'identité « %1$s »</string>
     <string name="action_verbalize_identity_import">Import d'une identité</string>
+    <string name="label_zone_identity">Identité</string>
+    <string name="zone_schema_identity_id">L'identité avec laquelle sa tuile ouvre une conversation : son id (IDENTITIES)</string>
+    <string name="label_identity">Identité</string>
+    <string name="automation_identity_required">Une nouvelle routine dit en tant que quelle identité elle parle : identity_id, null pour l'IA de l'app</string>
+    <string name="identity_session_not_chat">Seule une conversation choisit son identité : l'exécution d'une routine parle comme sa routine</string>
+    <string name="identity_session_fixed">Qui parle est fixé au premier message : ouvre une autre conversation pour parler à quelqu'un d'autre</string>
 </resources>

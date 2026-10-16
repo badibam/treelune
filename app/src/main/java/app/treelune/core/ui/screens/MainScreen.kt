@@ -79,8 +79,8 @@ fun MainScreen(openToolId: String? = null, onToolOpened: () -> Unit = {}, openPl
 
     // A chat asked for from any screen, with its content, laid over that screen
     LaunchedEffect(Unit) {
-        app.treelune.core.ai.orchestration.ChatRequests.requests.collect { prefill ->
-            app.treelune.core.ai.orchestration.AIOrchestrator.startNewChatSession(prefill)
+        app.treelune.core.ai.orchestration.ChatRequests.requests.collect { request ->
+            app.treelune.core.ai.orchestration.AIOrchestrator.startNewChatSession(request.prefill, request.identityId)
             if (Navigator.top != Place.Chat) Navigator.push(Place.Chat)
         }
     }

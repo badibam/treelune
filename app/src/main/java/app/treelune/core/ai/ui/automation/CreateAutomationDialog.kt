@@ -209,6 +209,7 @@ fun CreateAutomationDialog(
                             "is_enabled" to true
                         )
                         selectedGroup?.let { createParams["group"] = it }
+                        createParams[app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID] = org.json.JSONObject.NULL
                         settings.optString("notify_end").ifEmpty { null }?.let { createParams["notify_end"] = it }
 
                         val createAutomationResult = coordinator.processUserAction("automations.create", createParams)

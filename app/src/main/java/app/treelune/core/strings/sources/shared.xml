@@ -2128,4 +2128,10 @@
     <string name="action_verbalize_identity_update">Changing the identity "%1$s"</string>
     <string name="action_verbalize_identity_delete">Deleting the identity "%1$s"</string>
     <string name="action_verbalize_identity_import">Importing an identity</string>
+    <string name="label_zone_identity">Identity</string>
+    <string name="zone_schema_identity_id">The identity its tile opens a conversation with: its id (IDENTITIES)</string>
+    <string name="label_identity">Identity</string>
+    <string name="automation_identity_required">A new routine says which identity it speaks as: identity_id, null for the app's own AI</string>
+    <string name="identity_session_not_chat">Only a conversation chooses its identity: a routine's run speaks as its routine</string>
+    <string name="identity_session_fixed">Who speaks is fixed at the first message: open another conversation to talk to someone else</string>
 </resources>
