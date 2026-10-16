@@ -59,6 +59,7 @@ Une spec existe dans `docs/design/`.
 - Les conditions typées à l'écriture (`docs/design/typed-conditions.md`) : le type de chaque côté d'une condition connu sans lire de données, les constantes de l'IA traduites à l'entrée, la vérification au service, et le refus d'un changement dont dépend une condition ailleurs.
 - L'historique des écritures et leur annulation (`docs/design/undo-history.md`) : un pas par opération demandée de l'extérieur, la ligne entière avant et après, écrite par une seule classe que garde un script, 30 jours, le service `history` ouvert à l'IA, son écran.
 - Modèles libres (`docs/design/local-models.md`) : le banc est en place et rodé ; la campagne 1 a tourné le 2026-10-04 (190 scénarios en 5 h 15, 1,35 $ comptés hors réponses coupées, tableau dans `bench-results/2026-10-04_1326/summary.md`), ses échecs relus dans `docs/design/bench-campaign-1.md` ; les corrections de l'app qu'elle a trouvées sont faites (2026-10-13) : les niveaux de prompt se décident après une campagne rejouée.
+- Les textures d'outil et de zone (`docs/design/tool-texture.md`) : quinze motifs nommés par le cœur, une cellule SVG par motif dans chaque thème, deux tons par motif réglés au banc, le réglage d'intensité, la clé de config d'un outil et la colonne de `Zone`, le sélecteur, l'IA — après la fusion de `theme-recipe`, qui modifie aussi `ThemeContract`.
 
 ## À concevoir
 
@@ -77,7 +78,6 @@ Une idée sans spec : elle demande une décision avant du code.
 
 ### Interface
 
-- Une texture au choix pour l'affichage de chaque outil.
 - Les onglets de Messages, à remplacer par un classement par thèmes.
 
 ### Events du cœur
