@@ -103,7 +103,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 74
+        const val VERSION = 75
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -1725,6 +1725,32 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /** The counter tracking tools made numeric (CounterAtV73), their entries given the counter's unit. */
+        /**
+         * Textures (docs/design/tool-texture.md): a zone's column, empty, and the interface
+         * settings' intensity, subtle (UiTextureIntensityAtV75). A tool's texture is a key of its
+         * config, absent until chosen.
+         */
+        private val MIGRATION_74_75 = object : Migration(74, 75) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE zones ADD COLUMN texture TEXT")
+                database.query("SELECT settings FROM app_settings_categories WHERE category = ?", arrayOf<Any?>(app.treelune.core.database.entities.AppSettingCategories.UI)).use { cursor ->
+                    if (!cursor.moveToFirst()) {
+                        LogManager.database("MIGRATION 74->75: zones.texture added; no interface settings stored, the defaults are written on first read", "INFO")
+                        return
+                    }
+                    // Settings that cannot be read stay as they are; reading them then fails with the reason
+                    try {
+                        val settings = app.treelune.core.versioning.UiTextureIntensityAtV75.rewrite(app.treelune.core.database.entities.AppSettingCategories.UI, org.json.JSONObject(cursor.getString(0)))
+                        database.execSQL("UPDATE app_settings_categories SET settings = ? WHERE category = ?", arrayOf<Any?>(settings.toString(), app.treelune.core.database.entities.AppSettingCategories.UI))
+                    } catch (e: Exception) {
+                        LogManager.database("MIGRATION 74->75: zones.texture added; interface settings left as they were: ${e.message}", "ERROR", e)
+                        return
+                    }
+                }
+                LogManager.database("MIGRATION 74->75: zones.texture added, interface settings gain texture_intensity, subtle", "INFO")
+            }
+        }
+
         /** A conversation's own reasoning (SessionReasoning): two columns, empty, every session following its provider as before. */
         private val MIGRATION_73_74 = object : Migration(73, 74) {
             override fun migrate(database: SupportSQLiteDatabase) {
@@ -2723,7 +2749,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_70_71,
                     MIGRATION_71_72,
                     MIGRATION_72_73,
-                    MIGRATION_73_74
+                    MIGRATION_73_74,
+                    MIGRATION_74_75
                     // Add future migrations here (minimum supported version: 9)
                 )
                 .addCallback(object : RoomDatabase.Callback() {

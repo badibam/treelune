@@ -242,6 +242,7 @@ fun ZoneScreen(zone: Zone) {
             subtitle = zone.description?.takeIf { it.isNotBlank() },
             icon = zone.icon_name,
             iconColor = app.treelune.core.themes.IconColor.of(zone.icon_color),
+            texture = app.treelune.core.themes.Texture.of(zone.texture),
             leftButton = ButtonAction.BACK,
             rightButton = ButtonAction.CONFIGURE,
             onLeftClick = leave,

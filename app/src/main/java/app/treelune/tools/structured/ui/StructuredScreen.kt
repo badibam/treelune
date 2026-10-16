@@ -212,6 +212,7 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
             subtitle = settings.string("description")?.takeIf { it.isNotBlank() && openId == null },
             icon = settings.string("icon_name"),
             iconColor = app.treelune.core.themes.IconColor.of(settings.string(app.treelune.core.themes.IconColor.KEY)),
+            texture = app.treelune.core.themes.Texture.of(settings.string(app.treelune.core.themes.Texture.KEY)),
             leftButton = ButtonAction.BACK,
             rightButton = if (openId == null) ButtonAction.CONFIGURE else null,
             onLeftClick = { if (openId != null) close() else onNavigateBack() },

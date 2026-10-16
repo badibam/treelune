@@ -120,6 +120,7 @@ fun GoalScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureCl
             subtitle = settings.string("description")?.takeIf { it.isNotBlank() },
             icon = settings.string("icon_name"),
             iconColor = app.treelune.core.themes.IconColor.of(settings.string(app.treelune.core.themes.IconColor.KEY)),
+            texture = app.treelune.core.themes.Texture.of(settings.string(app.treelune.core.themes.Texture.KEY)),
             leftButton = ButtonAction.BACK,
             rightButton = ButtonAction.CONFIGURE,
             onLeftClick = { if (openId != null) openId = null else onNavigateBack() },

@@ -21,6 +21,9 @@ object Oklch {
         return color(l, c, h + degrees, color.alpha)
     }
 
+    /** [color] as lightness, chroma and hue: what a colour a theme codes in sRGB is in a palette's terms. */
+    fun toLch(color: Color): Lch = lch(color).let { (l, c, h) -> Lch(l, c, ((h % 360f) + 360f) % 360f) }
+
     private fun lch(color: Color): Triple<Float, Float, Float> {
         val r = linear(color.red); val g = linear(color.green); val b = linear(color.blue)
         val l = cbrt(0.4122214708f * r + 0.5363325363f * g + 0.0514459929f * b)

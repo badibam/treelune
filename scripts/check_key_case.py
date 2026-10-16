@@ -30,7 +30,7 @@ BASELINE = Path(__file__).resolve().parent / "key_case_baseline.txt"
 # camelCase strings are history, not keys anything reads.
 EXCLUDED = {"core/versioning/KeyCaseRenames.kt"}
 
-# JSON Schema, Vega-Lite, MCP and Tailscale keywords. Not ours to rename, so not violations.
+# JSON Schema, Vega-Lite, MCP, Tailscale and SVG keywords. Not ours to rename, so not violations.
 FOREIGN = {
     "additionalProperties", "allOf", "anyOf", "contentEncoding", "contentMediaType",
     "exclusiveMaximum", "exclusiveMinimum", "maxItems", "maxLength", "maxProperties",
@@ -42,6 +42,8 @@ FOREIGN = {
     "protocolVersion", "serverInfo", "inputSchema", "readOnlyHint", "isError",
     # Tailscale's, in the access policy block the external access screen gives to copy
     "nodeAttrs",
+    # SVG's, in a theme's cell of a motif (TextureCell)
+    "viewBox",
 }
 
 # A string literal holding a single identifier with an inner capital: "toolInstanceId".

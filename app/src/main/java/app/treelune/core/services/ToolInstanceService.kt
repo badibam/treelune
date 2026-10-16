@@ -1,6 +1,7 @@
 package app.treelune.core.services
 
 import app.treelune.core.themes.IconColor
+import app.treelune.core.themes.Texture
 import android.content.Context
 import app.treelune.core.tools.ToolTypeManager
 import app.treelune.core.validation.SchemaValidator
@@ -133,7 +134,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         } ?: assignMissingFieldNames(configJson)
 
         iconColorRefusal(namedConfigJson)?.let { return OperationResult.error(it) }
-        val iconCheck = checkIconName(withoutEmptyIconColor(namedConfigJson))
+        textureRefusal(namedConfigJson, toolType)?.let { return OperationResult.error(it) }
+        val iconCheck = checkIconName(withoutEmpty(withoutEmptyIconColor(namedConfigJson), Texture.KEY))
         val storedConfigJson = when (iconCheck) {
             is IconCheck.Refused -> return OperationResult.error(iconCheck.message)
             is IconCheck.Kept -> iconCheck.configJson
@@ -219,7 +221,9 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         }
         if (configJson.isNotBlank()) {
             iconColorRefusal(configJson)?.let { return OperationResult.error(it) }
-            configJson = withoutEmptyIconColor(configJson)
+            // Checked against the icon the tool will have: removing the icon of an ICON texture is refused too
+            textureRefusal(configJson, existingTool.tooltype)?.let { return OperationResult.error(it) }
+            configJson = withoutEmpty(withoutEmptyIconColor(configJson), Texture.KEY)
             ToolTypeManager.getToolType(existingTool.tooltype)?.let { type ->
                 configJson = type.completeConfig(JSONObject(configJson), JSONObject(existingTool.config_json)).toString()
             }
@@ -949,6 +953,26 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         val given = if (config.isNull(IconColor.KEY)) null else config.optString(IconColor.KEY).trim()
         return if (IconColor.accepts(given)) null
         else s.shared("service_error_icon_color_unknown").format(given, IconColor.NAMES.joinToString(", "))
+    }
+
+    /**
+     * A config's texture is one of Texture.NAMES, or none, and ICON only with an icon to repeat:
+     * its own, or the type's that a tool without one shows (ToolConfigSettings).
+     */
+    private fun textureRefusal(configJson: String, toolType: String): String? {
+        val config = JSONObject(configJson)
+        val given = if (config.isNull(Texture.KEY)) null else config.optString(Texture.KEY).trim()
+        val icon = config.optString("icon_name").ifBlank { ToolTypeManager.getToolType(toolType)?.getDefaultIconName().orEmpty() }
+        return Texture.refusal(given, icon, s::shared)
+    }
+
+    /** The config without [key] when it is given as null or empty, which is how a command removes a setting. */
+    private fun withoutEmpty(configJson: String, key: String): String {
+        val config = JSONObject(configJson)
+        if (!config.has(key)) return configJson
+        if (!config.isNull(key) && config.optString(key).isNotBlank()) return configJson
+        config.remove(key)
+        return config.toString()
     }
 
     /** The config without its icon colour when it is given as null or empty, which is how a command removes it. */

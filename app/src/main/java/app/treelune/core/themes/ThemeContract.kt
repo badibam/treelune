@@ -338,9 +338,13 @@ interface ThemeContract {
     @Composable
     fun HeaderBar(content: @Composable RowScope.() -> Unit)
 
-    /** A zone's tile, filling the cells the home screen's grid gives it, as a tool's does. */
+    /**
+     * A zone's tile, filling the cells the home screen's grid gives it, as a tool's does; its
+     * [texture] laid inside its frame, behind its content (docs/design/tool-texture.md), none when null.
+     */
     @Composable
     fun ZoneCardContainer(
+        texture: ItemTexture?,
         onClick: () -> Unit,
         onLongClick: () -> Unit,
         content: @Composable () -> Unit
@@ -368,11 +372,14 @@ interface ThemeContract {
 
     /**
      * A tool's tile, filling the cells the grid gives it (ToolGrid): the theme draws its frame
-     * and the space between tiles inside them, never a size of its own.
+     * and the space between tiles inside them, never a size of its own. Its [texture] is laid
+     * inside the frame, behind the content, at the theme's tone of it on the tile
+     * (rememberTextureBrush), none when null.
      */
     @Composable
     fun ToolCardContainer(
         displayMode: DisplayMode,
+        texture: ItemTexture?,
         onClick: () -> Unit,
         onLongClick: () -> Unit,
         content: @Composable () -> Unit
@@ -389,6 +396,11 @@ interface ThemeContract {
         icon: String?,
         /** The icon's colour, for a zone's or a tool's page; null for a neutral icon. */
         iconColor: TagColor?,
+        /**
+         * The motif of a zone's or a tool's page, laid across the header's width behind its
+         * title (docs/design/tool-texture.md), as on its tile; null for none.
+         */
+        texture: ItemTexture?,
         /**
          * The app's mark in place of [icon], the home screen's: its launcher icon drawn the
          * theme's way, in the launcher's colours whatever the palette (LauncherMark, or the
