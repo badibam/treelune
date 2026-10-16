@@ -46,6 +46,8 @@ object CommunicationModules {
                 )
                 // Whether an empty field shows in a tool's history: nothing to say in a question
                 "always_visible" -> null
+                // A question is asked by the AI and answered by the person: none of its fields is the AI's to write
+                app.treelune.core.fields.AI_READ_ONLY -> null
                 else -> node
             }
         } + SettingNode.Field(

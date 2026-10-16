@@ -1,5 +1,6 @@
 package app.treelune.core.services
 
+import app.treelune.core.fields.AiReadOnly
 import app.treelune.core.themes.IconColor
 import android.content.Context
 import app.treelune.core.tools.ToolTypeManager
@@ -233,6 +234,10 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             app.treelune.core.coordinator.Protections.refusal(s.shared("tools_config_label_data_validation"), protectedBefore,
                 JSONObject(configJson).optBoolean(app.treelune.core.tools.ToolConfigSettings.VALIDATE_DATA, false), s)?.let { return OperationResult.error(it) }
             checkConfig(existingTool.tooltype, configJson)?.let { return OperationResult.error(it) }
+            // What is closed to the AI and left out of a config written whole by anyone else is
+            // kept, as the data protection is; only a setting sent open is refused below
+            if (!app.treelune.core.coordinator.Protections.byAPerson()) configJson = keepClosedToAi(existingTool, JSONObject(configJson)).toString()
+            closedToAiRefusal(existingTool, JSONObject(configJson))?.let { return OperationResult.error(it) }
             // A config sent without its display mode keeps the one the tool had
             configJson = withDisplayMode(configJson, JSONObject(existingTool.config_json).getString("display_mode"))
             ToolTypeManager.getToolType(existingTool.tooltype)?.refuseConfig(JSONObject(configJson), context)?.let { return OperationResult.error(it) }
@@ -305,6 +310,33 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             "updated_at" to updatedTool.updated_at
         ) + iconCheck.report() + (migration?.let { report(it) } ?: emptyMap())
             + (emptiedGroup?.let { mapOf("group_emptied" to it) } ?: emptyMap()))
+    }
+
+    /**
+     * The refusal of [newConfig] for [tool] when it opens to the AI what [tool] closes to it, and
+     * the caller is not a person: a field the AI only reads unmarked (AiReadOnly), kept under the
+     * same name, or what the tool type closes (refuseConfigChange). Closing is anyone's.
+     */
+    private suspend fun closedToAiRefusal(tool: ToolInstance, newConfig: JSONObject): String? {
+        // Expects a config whose left-out settings were kept (keepClosedToAi)
+        val byAPerson = app.treelune.core.coordinator.Protections.byAPerson()
+        val toolType = ToolTypeManager.getToolType(tool.tooltype) ?: return null
+        val oldConfig = JSONObject(tool.config_json)
+        if (!byAPerson) {
+            fun data(config: JSONObject) = toolType.getEntryFields(config, context).data.map { it.definition }
+            fun extra(config: JSONObject) = config.optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList()
+            val unmarked = AiReadOnly.unmarked(data(oldConfig), data(newConfig)) + AiReadOnly.unmarked(extra(oldConfig), extra(newConfig))
+            if (unmarked.isNotEmpty()) return s.shared("service_error_ai_read_only_unmarked").format(AiReadOnly.named(unmarked))
+        }
+        return toolType.refuseConfigChange(oldConfig, newConfig, byAPerson, context)
+    }
+
+    /** [newConfig] with the marks of [tool]'s fields and its tool type's closed settings it leaves out, kept (AiReadOnly.keepMarks). */
+    private fun keepClosedToAi(tool: ToolInstance, newConfig: JSONObject): JSONObject {
+        val oldConfig = JSONObject(tool.config_json)
+        val kept = ToolTypeManager.getToolType(tool.tooltype)?.keepClosedToAi(oldConfig, newConfig) ?: JSONObject(newConfig.toString())
+        AiReadOnly.keepMarks(AiReadOnly.objects(kept.optJSONArray("extra_fields")), AiReadOnly.markedIds(AiReadOnly.objects(oldConfig.optJSONArray("extra_fields"))))
+        return kept
     }
 
     /** The values given for fields a config change makes required, or why they are refused. */

@@ -229,6 +229,22 @@ interface ToolTypeContract {
     suspend fun refuseConfig(config: JSONObject, context: Context): String? = null
 
     /**
+     * Why [after] may not replace [before], or null when it may, for a change [byAPerson] or not:
+     * a setting that closes something to the AI, which only a person opens again (a goal's
+     * validation closed to the AI). ToolInstanceService asks it on every update, once the config
+     * is complete.
+     */
+    fun refuseConfigChange(before: JSONObject, after: JSONObject, byAPerson: Boolean, context: Context): String? = null
+
+    /**
+     * [after] with what [before] closes to the AI and [after] leaves out kept as it was: a config
+     * written whole by a caller that is not a person, which left the setting out without meaning
+     * to open it (a goal's validation, its entered criteria). ToolInstanceService asks it on every
+     * update that is not a person's, before refuseConfigChange.
+     */
+    fun keepClosedToAi(before: JSONObject, after: JSONObject): JSONObject = after
+
+    /**
      * Get scheduler instance for this tool type.
      *
      * Discovery pattern: CoreScheduler discovers schedulers via ToolTypeManager,

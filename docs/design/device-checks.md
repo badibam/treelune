@@ -328,3 +328,11 @@ Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la po
 - Demander à l'IA de resserrer une échelle (conversation) : la carte de validation dit les comptes, même dans une zone non protégée ; refusée, rien ne change ; acceptée, les valeurs hors bornes partent. « Protéger les données passées » décoché : l'IA est refusée et doit renvoyer avec `confirm_migration`. Par le connecteur : la notification d'accord. Une routine qui le fait : passe si son accès le permet.
 - Objectif : valider une tentative, changer un critère (seuil, critère retiré), rouvrir la tentative : elle est jugée selon ses anciens critères, la valeur saisie du critère retiré toujours là ; revalidée, son jugement aussi.
 - Une séance notée « Faite » sans l'écran : ses étapes toutes faites, sans temps ; une séance finie avant ce changement se corrige toujours par ses comptes.
+
+## Lecture seule pour l'IA (branche user-only, `docs/design/unified-fields.md`)
+
+- La case « Lecture seule pour l'IA » : sur un champ ajouté à un Journal, après « Toujours afficher » ; sur un critère saisi d'Objectif, une fois le type choisi, absente d'un critère lu ; « Validation fermée à l'IA » dans la section Temps de l'Objectif. Cochée, enregistrée, la config rouverte : toujours cochée ; changer la case ne demande aucune confirmation.
+- Le champ coché se remplit toujours à l'écran. Demander à l'IA, en conversation, de le remplir : refusé, elle dit que le champ lui est fermé, rien n'est écrit, pas même le reste de l'entrée. Lui demander de décocher la case : refusé ; de la cocher sur un autre champ : fait.
+- Un Objectif fermé à l'IA : elle dit où en est la tentative, mais « valide-la » et « rouvre-la » sont refusés ; validée et rouverte à l'écran, sans changement.
+- Par le connecteur, et par une routine qui écrit ce champ : refusé, l'erreur dans la réponse du connecteur, dans l'historique d'exécution de la routine.
+

@@ -691,6 +691,8 @@
     <string name="custom_fields_description">Description (optional)</string>
     <string name="custom_fields_type">Field type</string>
     <string name="custom_fields_always_visible">Always show (even when empty)</string>
+    <string name="field_ai_read_only">Read-only for the AI</string>
+    <string name="field_ai_read_only_description">The AI reads it but never writes it: not in a chat, not by a routine, not through the connector.</string>
 
     <!-- Custom Fields Configuration - Field-specific config labels -->
     <string name="field_config_section_title">Field configuration</string>
@@ -1881,6 +1883,8 @@
     <string name="access_widening">%1$s cannot give a routine « %3$s » access to %2$s, beyond its own access</string>
     <string name="access_widening_open">%1$s cannot give a routine access to everything: list what it reaches, within its own access</string>
     <string name="service_error_protection_user_only">« %1$s » can only be changed in the app, by the user</string>
+    <string name="service_error_ai_read_only">Read-only for the AI: %1$s. The AI reads these fields but never writes them, the user enters them. Nothing was written: send the command again without them.</string>
+    <string name="service_error_ai_read_only_unmarked">« Read-only for the AI » can only be lifted from %1$s in the app, by the user. Nothing was changed: send the config again with these fields still marked.</string>
     <string name="service_error_icon_color_unknown">Unknown icon colour: \'%1$s\'. One of %2$s, or null for none</string>
     <string name="action_verbalize_icons_overview">Overview of the icons</string>
     <string name="action_verbalize_icons_search">Search of the icons</string>

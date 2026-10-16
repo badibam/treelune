@@ -691,6 +691,8 @@
     <string name="custom_fields_description">Description (optionnel)</string>
     <string name="custom_fields_type">Type de champ</string>
     <string name="custom_fields_always_visible">Toujours afficher (même si vide)</string>
+    <string name="field_ai_read_only">Lecture seule pour l\'IA</string>
+    <string name="field_ai_read_only_description">L\'IA le lit, mais ne l\'écrit jamais : ni en conversation, ni par une routine, ni par le connecteur.</string>
 
     <!-- Custom Fields Configuration - Field-specific config labels -->
     <string name="field_config_section_title">Configuration du champ</string>
@@ -1881,6 +1883,8 @@
     <string name="access_widening">%1$s ne peut pas donner à une routine l\'accès « %3$s » à %2$s, hors de son propre accès</string>
     <string name="access_widening_open">%1$s ne peut pas donner à une routine l\'accès à tout : liste ce qu\'elle atteint, dans son propre accès</string>
     <string name="service_error_protection_user_only">« %1$s » ne se change que dans l\'app, par l\'utilisateur</string>
+    <string name="service_error_ai_read_only">Lecture seule pour l\'IA : %1$s. L\'IA lit ces champs mais ne les écrit jamais, l\'utilisateur les remplit. Rien n\'a été écrit : renvoie la commande sans eux.</string>
+    <string name="service_error_ai_read_only_unmarked">« Lecture seule pour l\'IA » ne se retire de %1$s que dans l\'app, par l\'utilisateur. Rien n\'a été changé : renvoie la config avec ces champs toujours marqués.</string>
     <string name="service_error_icon_color_unknown">Couleur d\'icône inconnue : \'%1$s\'. Une parmi %2$s, ou null pour aucune</string>
     <string name="action_verbalize_icons_overview">Vue d\'ensemble des icônes</string>
     <string name="action_verbalize_icons_search">Recherche d\'icônes</string>

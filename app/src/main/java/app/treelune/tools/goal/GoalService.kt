@@ -32,6 +32,9 @@ import org.json.JSONObject
  *   call's origin: a person or the AI, never a scheduler) and when; refused while a value is missing
  * - reopen: `id` — a validated or expired attempt back to be validated, which stays in its history
  *
+ * A goal that closes its validation to the AI (GoalToolType.AI_NO_VALIDATION) refuses validate and
+ * reopen to the AI, a routine and an AI come through the MCP server; evaluate stays open to them.
+ *
  * An attempt still open follows the goal's current definition; a locked one keeps the copy it was
  * judged by, and so does a reopened one: reopening judges it again by the rules it had, never by
  * the goal's current ones (docs/design/config-change.md).
@@ -181,6 +184,7 @@ class GoalService(private val context: Context) : ExecutableService {
     private suspend fun validate(attempt: Attempt): OperationResult {
         val origin = currentOrigin()
         if (origin != Source.USER && origin != Source.AI && origin != Source.EXTERNAL) return OperationResult.error(s.tool("error_validate_origin"))
+        if (GoalToolType.closedToAi(attempt.config, origin)) return OperationResult.error(s.tool("error_ai_no_validation"))
         if (attempt.locked) return OperationResult.error(s.tool("error_locked"))
         val judgement = judgementMap(attempt)
         if (judgement["verdict"] == Met.UNKNOWN.name) {
@@ -211,6 +215,7 @@ class GoalService(private val context: Context) : ExecutableService {
     private suspend fun reopen(attempt: Attempt): OperationResult {
         val origin = currentOrigin()
         if (origin != Source.USER && origin != Source.AI && origin != Source.EXTERNAL) return OperationResult.error(s.tool("error_validate_origin"))
+        if (GoalToolType.closedToAi(attempt.config, origin)) return OperationResult.error(s.tool("error_ai_no_validation"))
         if (!attempt.locked) return OperationResult.error(s.tool("error_not_locked"))
         val dao = AppDatabase.getDatabase(context).toolDataDao()
         val entity = dao.getById(attempt.id) ?: return OperationResult.error(s.shared("service_error_entry_not_found").format(attempt.id))
