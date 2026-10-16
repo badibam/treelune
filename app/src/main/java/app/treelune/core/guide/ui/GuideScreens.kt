@@ -78,11 +78,12 @@ fun GuideScreen() {
                 modifier = Modifier.fillMaxWidth().let { m -> if (part == afterJourney) m.onGloballyPositioned { afterJourneyAt = it.positionInParent().y.toInt() } else m },
                 verticalArrangement = Arrangement.spacedBy(UI.Space.S)
             ) {
+                // A part's title and its presentation are read: selectable, nothing else answering their touch
                 UI.Card(type = CardType.SECTION_HEADER) {
-                    Column(modifier = Modifier.fillMaxWidth().padding(UI.Space.M)) {
+                    UI.Selectable { Column(modifier = Modifier.fillMaxWidth().padding(UI.Space.M)) {
                         UI.Text(s.shared("guide_part_$key"), TextType.HEADING)
                         UI.Text(s.shared("guide_part_${key}_help"), TextType.CAPTION)
-                    }
+                    } }
                 }
                 chapters.filter { it.part == part }.forEachIndexed { i, chapter ->
                     ChapterLine(chapter, number = if (part.ordered) i + 1 else null)
