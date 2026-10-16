@@ -92,7 +92,7 @@ fun GuideScreen() {
     }
 }
 
-/** A chapter's line: the same in every part, numbered in the ordered ones. */
+/** A chapter's line: the same in every part, numbered in the ordered ones; a tool's gives the tool's line where the others give their length. */
 @Composable
 private fun ChapterLine(chapter: GuideChapter, number: Int?) {
     val context = LocalContext.current
@@ -107,7 +107,8 @@ private fun ChapterLine(chapter: GuideChapter, number: Int?) {
                 UI.Icon(chapter.icon)
                 Column(modifier = Modifier.weight(1f)) {
                     UI.Text((number?.let { s.shared("guide_step_number").format(it) + " " } ?: "") + chapter.title(context), TextType.STRONG, maxLines = 2)
-                    UI.Text(s.shared("guide_minutes").format(chapter.minutes), TextType.CAPTION)
+                    // A tool's chapter says what the tool is for, which makes its part the tools at a glance
+                    UI.Text(if (chapter.toolType != null) chapter.intro(context) else s.shared("guide_minutes").format(chapter.minutes), TextType.CAPTION)
                 }
                 UI.Text(state(chapter), TextType.CAPTION, maxLines = 1)
             }
@@ -160,7 +161,6 @@ fun ChapterScreen(id: String, demoInstalled: Boolean) {
                 chapter.body(context)?.let { GuideText(it) }
                 chapter.toolConfig(context)?.let { Part("settings", s.shared("guide_tool_config")); GuideText(s.shared("guide_tool_config_open") + "\n" + it) }
                 chapter.toolScreen(context)?.let { Part("smartphone", s.shared("guide_tool_screen")); GuideText(it) }
-                if (chapter.overview) GuideChapters.all(context).filter { it.toolType != null }.forEach { ToolLine(it) }
                 return@Column
             }
             if (chapter.usesDemo && !demoInstalled) DemoMissingLine()
@@ -216,25 +216,6 @@ private fun PartTile(icon: String, title: String) {
         ) {
             UI.Icon(icon)
             UI.Text(title, TextType.HEADING)
-        }
-    }
-}
-
-/** A tool type in the tools at a glance: its icon, its name and its line, opening its chapter. */
-@Composable
-private fun ToolLine(chapter: GuideChapter) {
-    val context = LocalContext.current
-    UI.Card(type = CardType.DEFAULT) {
-        Row(
-            modifier = Modifier.fillMaxWidth().clickable { Navigator.push(Place.Chapter(chapter.id)) }.padding(UI.Space.M),
-            horizontalArrangement = Arrangement.spacedBy(UI.Space.M),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            UI.Icon(chapter.icon)
-            Column(modifier = Modifier.weight(1f)) {
-                UI.Text(chapter.title(context), TextType.STRONG, maxLines = 2)
-                UI.Text(chapter.intro(context), TextType.CAPTION)
-            }
         }
     }
 }

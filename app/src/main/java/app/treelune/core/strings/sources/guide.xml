@@ -8,7 +8,7 @@
     <string name="guide_part_getting_started">Getting started</string>
     <string name="guide_part_getting_started_help">One feature per chapter, to read in any order.</string>
     <string name="guide_part_tools">The tools</string>
-    <string name="guide_part_tools_help">One chapter per tool: what it is for, its configuration and its screen.</string>
+    <string name="guide_part_tools_help">Before putting several tools together, check whether a single one already provides what you need. Touch a tool to read what it is for, its configuration and its screen.</string>
     <string name="guide_part_deeper">Going further</string>
     <string name="guide_part_deeper_help">The details, to read when needed.</string>
     <string name="guide_minutes">%1$d min</string>
@@ -17,8 +17,6 @@
     <string name="guide_state_done">Done</string>
     <string name="guide_state_stub">To be written</string>
     <string name="guide_state_read">To read</string>
-    <string name="guide_tools_title">The tools at a glance</string>
-    <string name="guide_tools_intro">Before putting several tools together, check whether a single one already provides what you need. Touch a tool to read what it is for, what it already does and what it is not made for.</string>
     <string name="guide_tool_config">Its settings</string>
     <string name="guide_tool_config_open">- {settings} To open it, touch the gear of its screen, or press and hold its tile</string>
     <string name="guide_tool_screen">Its screen</string>
@@ -76,7 +74,7 @@
     <string name="guide_demo_removal_warning">These tutorials use the demo: %1$s. Without it, their steps in the demo are skipped. You can reinstall it at any time from Settings › Demo.</string>
     <string name="guide_first_steps_title">First steps</string>
     <string name="guide_first_steps_intro">After a look around the demo, you create a first zone and a first tool, with no AI needed.</string>
-    <string name="guide_first_steps_outro">You now have a zone and a tool to note entries in. To choose the next ones, read “The tools at a glance”, at the start of Getting started. What remains is to connect an AI.</string>
+    <string name="guide_first_steps_outro">You now have a zone and a tool to note entries in. To choose the next ones, look through the “The tools” part of the Guide. What remains is to connect an AI.</string>
     <string name="guide_first_steps_1_goal">Open the zone Running</string>
     <string name="guide_first_steps_1_text">The demo follows Camille, who is training for a half marathon. Camille sorts life into zones, one per area, and running is one of them. In each zone, Camille notes what matters with tools, sorted here into three groups: Training, Body and Analysis.</string>
     <string name="guide_first_steps_2_goal">Add a run in Runs</string>

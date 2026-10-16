@@ -60,7 +60,6 @@ data class GuideStep(
  *
  * @property toolType Set for a tool type's reference chapter, whose name and line are the tool's,
  *   and whose text is its usage (what it is for, what it already does, what it is not for)
- * @property overview The tools at a glance: each tool type's line, opening its chapter
  * @property text Set for a read chapter written in the Guide's own texts, its body
  *   `guide_<chapter>_body`: a subject going further
  */
@@ -71,13 +70,12 @@ data class GuideChapter(
     val minutes: Int,
     val steps: List<GuideStep>,
     val toolType: String? = null,
-    val overview: Boolean = false,
     val text: Boolean = false
 ) {
     val isTutorial: Boolean get() = steps.isNotEmpty()
 
     /** Still to be written: neither steps nor a text of its own. */
-    val isStub: Boolean get() = steps.isEmpty() && toolType == null && !overview && !text
+    val isStub: Boolean get() = steps.isEmpty() && toolType == null && !text
 
     /** A read chapter's text: a tool type's usage, or the chapter's own body. */
     fun body(context: Context): String? = toolType?.let { ToolTypeManager.getToolType(it)?.getUsage(context) }
@@ -107,16 +105,14 @@ data class GuideChapter(
 const val DEMO_PREFIX = "demo-"
 
 /**
- * The Guide's chapters, in their order: those of `assets/guide/chapters.json`, the tools at a
- * glance at the head of « Getting started », and in a part of their own one per tool type, from
- * the tool type's own name, line, usage and texts, so that a tool type comes with its chapter.
+ * The Guide's chapters, in their order: those of `assets/guide/chapters.json`, then in a part of
+ * their own one per tool type, from the tool type's own name, line, usage and texts, so that a
+ * tool type comes with its chapter. That part, each line with the tool's line, is the tools at a
+ * glance.
  */
 object GuideChapters {
 
     private const val ASSET = "guide/chapters.json"
-
-    /** The tools at a glance, whose title and introduction are guide_tools_title and guide_tools_intro. */
-    const val OVERVIEW = "tools"
 
     @Volatile private var loaded: List<GuideChapter>? = null
 
@@ -127,11 +123,8 @@ object GuideChapters {
             val tools = ToolTypeManager.getAllToolTypes().map { (tooltype, type) ->
                 GuideChapter("tool_$tooltype", GuidePart.TOOLS, type.getDefaultIconName(), 3, emptyList(), toolType = tooltype)
             }
-            // Where one wonders which tool to take: before configuring one
-            val head = declared.indexOfFirst { it.part == GuidePart.GETTING_STARTED }
-            val overview = GuideChapter(OVERVIEW, GuidePart.GETTING_STARTED, "shapes", 2, emptyList(), overview = true)
             // The tools' chapters together in their own part, which the page shows in its order
-            (declared.take(head) + overview + declared.drop(head) + tools).also { loaded = it }
+            (declared + tools).also { loaded = it }
         }
     }
 

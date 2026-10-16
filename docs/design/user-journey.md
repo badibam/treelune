@@ -107,11 +107,10 @@ Le contenu des tutoriels 2 à 4 s'écrit à leur construction : il nomme des éc
 
 Un chapitre par sujet, lu dans l'ordre qu'on veut, tutoriel facultatif :
 
-- **Configurer un outil**, juste après les outils en un coup d'œil, en tutoriel, sans IA : la configuration ouverte par un appui long, l'icône, sa couleur et le mode d'affichage, un champ supplémentaire rempli dans une entrée, puis ce que la validation et « Toujours envoyer » changent pour l'IA.
+- **Configurer un outil**, en tête de Prise en main, en tutoriel, sans IA : la configuration ouverte par un appui long, l'icône, sa couleur et le mode d'affichage, un champ supplémentaire rempli dans une entrée, puis ce que la validation et « Toujours envoyer » changent pour l'IA.
 
 - Organiser : groupes de zones sur l'accueil, groupes d'outils dans une zone, disposition des tuiles — le même geste à deux niveaux, dans un seul chapitre.
-- Les outils en un coup d'œil, en tête de Prise en main : chaque type avec son icône, son nom et sa `tagline`, un appui ouvrant son chapitre ; en intro, le conseil de regarder ce que le bon outil prévoit avant d'en assembler plusieurs. Généré, sans texte à tenir à la main.
-- Les outils, dans leur propre partie après Prise en main : un chapitre par type, fourni par le type d'outil dans son dossier (`tools/<type>/`), à côté de ses textes, et découvert comme l'outil l'est ; un nouvel outil arrive avec son chapitre. Son texte est l'`usage` du type (à quoi il sert, ce qu'il fait déjà, pas pour), le même que lit l'IA.
+- Les outils, dans leur propre partie après Prise en main, qui est aussi le coup d'œil sur les outils : chaque ligne donne la `tagline` du type sous son nom, et la partie a pour sous-titre le conseil de regarder ce que le bon outil prévoit avant d'en assembler plusieurs. Un chapitre par type, fourni par le type d'outil dans son dossier (`tools/<type>/`), à côté de ses textes, et découvert comme l'outil l'est ; un nouvel outil arrive avec son chapitre. Son texte est l'`usage` du type (à quoi il sert, ce qu'il fait déjà, pas pour), le même que lit l'IA.
 - Relier : variables, lectures, pointeurs.
 - Parler à l'IA : le pointeur, les questions et validations, le coût.
 - Apparence : l'écran Interface utilisateur seul (thème, mode, teinte, taille, une colonne, sons) ; la couleur d'une icône se règle dans la configuration de sa zone ou de son outil.

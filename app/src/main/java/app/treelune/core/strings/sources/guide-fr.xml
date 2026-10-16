@@ -8,7 +8,7 @@
     <string name="guide_part_getting_started">Prise en main</string>
     <string name="guide_part_getting_started_help">Une fonction par chapitre, à lire dans l\'ordre que tu veux.</string>
     <string name="guide_part_tools">Les outils</string>
-    <string name="guide_part_tools_help">Un chapitre par outil : à quoi il sert, sa configuration et son écran.</string>
+    <string name="guide_part_tools_help">Avant d\'assembler plusieurs outils, regarde si un seul ne prévoit pas déjà ce qu\'il te faut. Touche un outil pour lire à quoi il sert, sa configuration et son écran.</string>
     <string name="guide_part_deeper">Approfondissement</string>
     <string name="guide_part_deeper_help">Les détails, à lire au besoin.</string>
     <string name="guide_minutes">%1$d min</string>
@@ -17,8 +17,6 @@
     <string name="guide_state_done">Fait</string>
     <string name="guide_state_stub">À écrire</string>
     <string name="guide_state_read">À lire</string>
-    <string name="guide_tools_title">Les outils en un coup d\'œil</string>
-    <string name="guide_tools_intro">Avant d\'assembler plusieurs outils, regarde si un seul ne prévoit pas déjà ce qu\'il te faut. Touche un outil pour lire à quoi il sert, ce qu\'il fait déjà et ce pour quoi il n\'est pas fait.</string>
     <string name="guide_tool_config">Sa config</string>
     <string name="guide_tool_config_open">- {settings} Pour l\'ouvrir, touche l\'engrenage de son écran, ou fais un appui long sur sa tuile</string>
     <string name="guide_tool_screen">Son écran</string>
@@ -76,7 +74,7 @@
     <string name="guide_demo_removal_warning">Ces tutoriels utilisent la démo : %1$s. Sans elle, leurs étapes dans la démo seront sautées. Tu pourras la réinstaller à tout moment depuis Réglages › Démo.</string>
     <string name="guide_first_steps_title">Premiers pas</string>
     <string name="guide_first_steps_intro">Après un tour dans la démo, tu crées une première zone et un premier outil, sans avoir besoin d\'IA.</string>
-    <string name="guide_first_steps_outro">Tu as maintenant une zone et un outil où noter des entrées. Pour choisir les suivants, lis « Les outils en un coup d\'œil », au début de la Prise en main. Il reste à brancher une IA.</string>
+    <string name="guide_first_steps_outro">Tu as maintenant une zone et un outil où noter des entrées. Pour choisir les suivants, parcours la partie « Les outils » du Guide. Il reste à brancher une IA.</string>
     <string name="guide_first_steps_1_goal">Ouvre la zone Course</string>
     <string name="guide_first_steps_1_text">La démo suit Camille, qui prépare un semi-marathon. Camille range sa vie en zones, une par domaine, et la course en est une. Dans chaque zone, Camille note ce qui compte avec des outils, rangés ici en trois groupes : Entraînement, Corps et Analyse.</string>
     <string name="guide_first_steps_2_goal">Ajoute une sortie dans Sorties</string>
