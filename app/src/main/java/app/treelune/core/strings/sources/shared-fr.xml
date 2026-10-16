@@ -1973,7 +1973,7 @@
     <string name="external_access_copy_policy">Copier le bloc</string>
     <string name="external_access_policy_copied">Bloc copié</string>
     <string name="external_access_open_policy">Ouvrir la politique d\'accès</string>
-    <string name="external_access_publishing">L\'adresse est en cours de publication par Tailscale, quelques minutes la première fois. Ne l\'ajoute dans le client qu\'une fois prête : essayée trop tôt, le client peut ne pas la trouver pendant cinq minutes de plus.</string>
+    <string name="external_access_publishing">L\'adresse est en cours de publication par Tailscale, quelques minutes la première fois ; cet écran dit dès qu\'elle est prête. Ne l\'ajoute dans le client qu\'à ce moment-là : essayée trop tôt, le client peut ne pas la trouver pendant cinq minutes de plus.</string>
     <string name="external_access_published">Adresse prête : ajoute-la dans le client.</string>
     <string name="external_access_first_call">Le premier appel attend le certificat, une quarantaine de secondes.</string>
     <string name="external_access_tailscale_logout">Déconnecter de Tailscale</string>
