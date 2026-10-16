@@ -374,11 +374,20 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             entryInstance = { instances[it] }
         )
         // What the tool type's own rules remove under the new config, deleted with the rest
-        val removed = toolType.entriesRemovedByConfig(JSONObject(newConfigJson), entries, context)
+        val previous = JSONObject(tool.config_json)
+        val next = JSONObject(newConfigJson)
+        val removed = toolType.entriesRemovedByConfig(previous, next, entries, context)
             .filter { entry -> plan.deleted.none { it.id == entry.id } }
-        if (removed.isEmpty()) return plan
         val removedIds = removed.map { it.id }.toSet()
-        return plan.copy(updated = plan.updated.filter { it.id !in removedIds }, deleted = plan.deleted + removed)
+        val fieldsDone = plan.copy(updated = plan.updated.filter { it.id !in removedIds }, deleted = plan.deleted + removed)
+
+        // Then what its own rules change, on the entries as the change of fields leaves them
+        val deletedIds = fieldsDone.deleted.map { it.id }.toSet()
+        val byFields = fieldsDone.updated.associateBy { it.id }
+        val kept = entries.filter { it.id !in deletedIds }.map { byFields[it.id] ?: it }
+        val changed = toolType.entriesUpdatedByConfig(previous, next, kept, context).associateBy { it.id }
+        if (changed.isEmpty()) return fieldsDone
+        return fieldsDone.copy(updated = fieldsDone.updated.filter { it.id !in changed } + changed.values)
     }
 
     /**

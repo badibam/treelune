@@ -100,7 +100,7 @@ object ListToolType : ToolTypeContract {
     }
 
     /** Set to remove what is checked, a list removes the items checked before it was. */
-    override fun entriesRemovedByConfig(config: JSONObject, entries: List<ToolDataEntity>, context: Context): List<ToolDataEntity> =
+    override fun entriesRemovedByConfig(previous: JSONObject, config: JSONObject, entries: List<ToolDataEntity>, context: Context): List<ToolDataEntity> =
         if (!app.treelune.core.tools.ToolConfigSettings.read(this, config, context).boolean(REMOVE_WHEN_CHECKED)) emptyList()
         else entries.filter { ListItems.isChecked(it.state) }
 
