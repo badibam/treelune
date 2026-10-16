@@ -115,7 +115,7 @@
     <string name="schema_complete_timestamp">Quand elle a été faite : obligatoire pour une séance qui n\'était pas prévue ; pour une séance prévue, son heure prévue si absent</string>
     <string name="schema_complete_duration">Combien de temps elle a duré, si on le sait</string>
     <string name="operation_complete">Marque faite une séance faite sans suivre l\'écran, toutes ses étapes comptées faites : une séance prévue (id), ou une séance qui n\'était pas prévue, à l\'heure donnée</string>
-    <string name="operation_correct">Corrige une séance finie : son heure, sa durée, ses étapes faites, sautées et non atteintes, chacune gardée si absente ; les trois comptes font le nombre d\'étapes de la séance, et son état les suit</string>
+    <string name="operation_correct">Corrige une séance finie : son heure, sa durée, et l\'état de chaque étape (step_statuses) pour une séance qui garde ses étapes, ses étapes faites, sautées et non atteintes pour une autre, chaque valeur gardée si absente ; les comptes font le nombre d\'étapes de la séance, et son état les suit</string>
     <string name="verbalize_complete">Séance marquée faite</string>
     <string name="verbalize_correct">Séance corrigée</string>
     <string name="error_complete_without_time">Une séance qui n\'était pas prévue demande l\'heure où elle a été faite</string>
@@ -125,4 +125,15 @@
     <string name="action_mark_done">Faite</string>
     <string name="correct_total">Faites, sautées et non atteintes font %1$d étapes</string>
     <string name="start_refused">Une séance ne se crée pas directement : en marquer une faite par l\'opération complete (TOOL_OPERATION), une prévue ou une à l\'heure donnée ; l\'app planifie les autres.</string>
+    <string name="field_kept_steps">Étapes de la séance</string>
+    <string name="schema_kept_steps">Les étapes de la séance telles qu\'elles se sont déroulées, recopiées à sa fin : une liste JSON, chacune avec name, status (done, skipped, not_done) et time, son temps en millisecondes, absent pour une étape non atteinte ou une séance notée sans l\'écran</string>
+    <string name="field_step_statuses">États des étapes</string>
+    <string name="field_step_status">État</string>
+    <string name="schema_step_statuses">Pour une séance qui garde ses étapes : l\'état de chacune, dans l\'ordre, autant que d\'étapes ; les comptes en découlent</string>
+    <string name="step_status_done">Faite</string>
+    <string name="step_status_skipped">Sautée</string>
+    <string name="step_status_not_done">Non faite</string>
+    <string name="error_counts_kept_steps">Cette séance garde ses étapes : corrige-la par step_statuses, l\'état de chaque étape, et non par ses comptes</string>
+    <string name="error_step_statuses">step_statuses donne l\'état de chaque étape, dans l\'ordre : %1$d états, chacun done, skipped ou not_done</string>
+    <string name="error_no_kept_steps">Cette séance ne garde pas ses étapes, finie avant qu\'elles soient gardées : corrige ses comptes</string>
 </resources>

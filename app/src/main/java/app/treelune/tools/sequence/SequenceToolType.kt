@@ -74,6 +74,10 @@ object SequenceToolType : ToolTypeContract {
     const val STEPS_DONE = "steps_done"
     const val STEPS_SKIPPED = "steps_skipped"
     const val STEPS_NOT_DONE = "steps_not_done"
+    /** The steps a finished session keeps, a JSON list (SequenceSteps) */
+    const val KEPT_STEPS = "steps"
+    /** The correction of a session that keeps its steps: their states, one a step */
+    const val STEP_STATUSES = "step_statuses"
 
     private fun s(context: Context) = Strings.`for`(tool = "sequence", context = context)
 
@@ -174,7 +178,8 @@ object SequenceToolType : ToolTypeContract {
                 data(PAUSED, FieldType.DURATION),
                 data(STEPS_DONE, FieldType.NUMERIC, count),
                 data(STEPS_SKIPPED, FieldType.NUMERIC, count),
-                data(STEPS_NOT_DONE, FieldType.NUMERIC, count)
+                data(STEPS_NOT_DONE, FieldType.NUMERIC, count),
+                FixedField(field(KEPT_STEPS, s.tool("field_kept_steps"), FieldType.TEXT, s.tool("schema_kept_steps"), mapOf("length" to TextLength.UNLIMITED.name)), systemWritten = true)
             ),
             state = listOf(
                 StateField(field(STATUS, s.tool("field_status"), FieldType.CHOICE, s.tool("schema_status"), choice(Status.ALL) { s.tool("status_$it") }), filterable = true),
@@ -209,7 +214,10 @@ object SequenceToolType : ToolTypeContract {
                 SettingNode.Field(field(DURATION, s.tool("field_duration"), FieldType.DURATION)),
                 SettingNode.Field(field(STEPS_DONE, s.tool("field_steps_done"), FieldType.NUMERIC, config = count)),
                 SettingNode.Field(field(STEPS_SKIPPED, s.tool("field_steps_skipped"), FieldType.NUMERIC, config = count)),
-                SettingNode.Field(field(STEPS_NOT_DONE, s.tool("field_steps_not_done"), FieldType.NUMERIC, config = count))
+                SettingNode.Field(field(STEPS_NOT_DONE, s.tool("field_steps_not_done"), FieldType.NUMERIC, config = count)),
+                // A session that keeps its steps is corrected step by step, its counts following
+                SettingNode.ListOf(STEP_STATUSES, s.tool("field_step_statuses"), SettingNode.Item.Value(field("status", s.tool("field_step_status"), FieldType.CHOICE,
+                    s.tool("schema_step_statuses"), choice(SequenceSteps.STATUSES) { s.tool("step_status_$it") })))
             )),
             ToolOperation(SequenceService.IGNORE, s.tool("operation_ignore"), listOf(id)),
             ToolOperation(SequenceService.IGNORE_ALL, s.tool("operation_ignore_all"), emptyList())

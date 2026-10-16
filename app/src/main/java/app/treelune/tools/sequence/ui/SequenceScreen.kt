@@ -53,6 +53,7 @@ import app.treelune.tools.sequence.SequencePlan
 import app.treelune.tools.sequence.SequenceLive
 import app.treelune.tools.sequence.SequenceRun
 import app.treelune.tools.sequence.SequenceService
+import app.treelune.tools.sequence.SequenceSteps
 import app.treelune.tools.sequence.SequenceToolType
 import app.treelune.tools.sequence.StepEnd
 import kotlinx.coroutines.delay
@@ -69,7 +70,9 @@ data class SequenceEntry(
     val stepsDone: Int?,
     val stepsSkipped: Int?,
     val stepsNotDone: Int?,
-    val run: SequenceRun?
+    val run: SequenceRun?,
+    /** The steps it keeps once over, null for one finished before they were kept */
+    val steps: List<SequenceSteps.Kept>? = null
 ) {
     /** The steps of the session, once it is over: done, skipped and not reached together. */
     val stepsTotal: Int? get() = if (stepsDone != null && stepsSkipped != null && stepsNotDone != null) stepsDone + stepsSkipped + stepsNotDone else null
@@ -90,7 +93,8 @@ internal fun sequenceEntries(result: Map<String, Any?>?): List<SequenceEntry> =
             stepsSkipped = count(SequenceToolType.STEPS_SKIPPED),
             stepsNotDone = count(SequenceToolType.STEPS_NOT_DONE),
             run = (state?.get(SequenceToolType.RUN) as? String)?.takeIf { it.isNotEmpty() && state[SequenceToolType.STATUS] == SequenceToolType.Status.RUNNING }
-                ?.let { SequenceRun.fromJson(JSONObject(it)) }
+                ?.let { SequenceRun.fromJson(JSONObject(it)) },
+            steps = SequenceSteps.read(data?.get(SequenceToolType.KEPT_STEPS) as? String)
         )
     }
 
@@ -115,7 +119,7 @@ internal fun stepClock(run: SequenceRun, now: Long): String {
 }
 
 /** The rounds of the blocks around a step: « Intervals 2 / 8 ». */
-internal fun roundsText(step: PlannedStep): String = step.rounds.joinToString(" · ") { "${it.block} ${it.round} / ${it.of}" }
+internal fun roundsText(step: PlannedStep): String = SequenceSteps.roundsOf(step).orEmpty()
 
 /**
  * A session's screen (docs/design/sequence-tool.md, « L'écran »).
@@ -328,14 +332,19 @@ private fun StepLines(elements: JSONArray?, depth: Int, s: StringsContext) {
 }
 
 /**
- * A session over, read and corrected: its time, its length, its steps done, skipped and not
- * reached, its state following the counts as the service sets it (SequenceCorrection).
+ * A session over, read and corrected: its time, its length, and its steps, each with its state
+ * for one that keeps them, their counts for one that does not; its state following them as the
+ * service sets it (SequenceSteps, SequenceCorrection).
  */
 @Composable
 private fun SessionView(entry: SequenceEntry, s: StringsContext, onSave: (Map<String, Any?>) -> Unit) {
     val context = LocalContext.current
     var at by rememberSaveable(entry.id) { mutableStateOf<Any?>(entry.timestamp) }
     var duration by rememberSaveable(entry.id) { mutableStateOf<Any?>(entry.duration) }
+    entry.steps?.let { kept ->
+        KeptStepsView(kept, at, { at = it }, duration, { duration = it }, s, entry.id, onSave)
+        return
+    }
     var done by rememberSaveable(entry.id) { mutableStateOf<Any?>(entry.stepsDone) }
     var skipped by rememberSaveable(entry.id) { mutableStateOf<Any?>(entry.stepsSkipped) }
     var notDone by rememberSaveable(entry.id) { mutableStateOf<Any?>(entry.stepsNotDone) }
@@ -357,6 +366,42 @@ private fun SessionView(entry: SequenceEntry, s: StringsContext, onSave: (Map<St
             SequenceToolType.STEPS_SKIPPED to skipped,
             SequenceToolType.STEPS_NOT_DONE to notDone
         ))
+    }) { UI.Text(s.shared("action_save"), TextType.LABEL) }
+}
+
+/**
+ * A session that keeps its steps, corrected step by step: each step's name and time, and its
+ * state to choose; the counts follow from them.
+ */
+@Composable
+private fun KeptStepsView(
+    kept: List<SequenceSteps.Kept>,
+    at: Any?, onAt: (Any?) -> Unit,
+    duration: Any?, onDuration: (Any?) -> Unit,
+    s: StringsContext, id: String,
+    onSave: (Map<String, Any?>) -> Unit
+) {
+    val context = LocalContext.current
+    // The states, one a step, joined to be kept across a recreation
+    var statuses by rememberSaveable(id) { mutableStateOf(kept.joinToString(",") { it.status }) }
+    val chosen = statuses.split(",")
+    fun field(name: String, type: FieldType, config: Map<String, Any>? = null) = FieldDefinition(name, s.tool("field_$name"), null, type, false, config)
+    val state = FieldDefinition("status", s.tool("field_step_status"), null, FieldType.CHOICE, false,
+        mapOf("options" to app.treelune.core.fields.ChoiceSettings.storedOptions(SequenceSteps.STATUSES, SequenceSteps.STATUSES.associateWith { s.tool("step_status_$it") })))
+    val counts = SequenceSteps.counts(kept.mapIndexed { i, step -> step.copy(status = chosen.getOrElse(i) { step.status }) })
+    UI.Text(s.tool("status_${counts.status}"), TextType.SUBTITLE)
+    FieldInput(field("when", FieldType.DATETIME), at, onAt, context, required = true)
+    FieldInput(field(SequenceToolType.DURATION, FieldType.DURATION), duration, onDuration, context)
+    // One line a step: its name, its round, its time as the label of its state
+    kept.forEachIndexed { i, step ->
+        FieldInput(state.copy(name = "status_$i", displayName = listOfNotNull(step.name, step.rounds, step.time?.let { clockText(it) }).joinToString(" · ")),
+            chosen.getOrElse(i) { step.status }, { value ->
+                val status = value as? String ?: return@FieldInput
+                statuses = chosen.mapIndexed { j, current -> if (j == i) status else current }.joinToString(",")
+            }, context)
+    }
+    UI.Button(type = ButtonType.PRIMARY, onClick = {
+        onSave(mapOf("timestamp" to at, SequenceToolType.DURATION to duration, SequenceToolType.STEP_STATUSES to chosen))
     }) { UI.Text(s.shared("action_save"), TextType.LABEL) }
 }
 

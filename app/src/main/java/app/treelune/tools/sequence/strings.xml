@@ -115,7 +115,7 @@
     <string name="schema_complete_timestamp">When it was done: required for a session that was not planned; for a planned one, its planned time when left out</string>
     <string name="schema_complete_duration">How long it lasted, if known</string>
     <string name="operation_complete">Marks a session done without following the screen, all its steps counted done: a planned one (id), or one that was not planned, at the time given</string>
-    <string name="operation_correct">Corrects a session over: its time, its length, its steps done, skipped and not reached, each kept when left out; the three counts add up to the session\'s steps, and its state follows them</string>
+    <string name="operation_correct">Corrects a session over: its time, its length, and the state of each step (step_statuses) for a session that keeps its steps, its steps done, skipped and not reached for another, each value kept when left out; the counts add up to the session\'s steps, and its state follows them</string>
     <string name="verbalize_complete">Session marked done</string>
     <string name="verbalize_correct">Session corrected</string>
     <string name="error_complete_without_time">A session that was not planned needs the time it was done</string>
@@ -125,4 +125,15 @@
     <string name="action_mark_done">Done</string>
     <string name="correct_total">Done, skipped and not reached add up to %1$d steps</string>
     <string name="start_refused">A session is not created directly: mark one done with the operation complete (TOOL_OPERATION), a planned one or one at the time given; the app plans the others.</string>
+    <string name="field_kept_steps">Session steps</string>
+    <string name="schema_kept_steps">The session\'s steps as they ran, copied when it ended: a JSON list, each with name, status (done, skipped, not_done) and time, its time in milliseconds, absent for a step not reached or a session noted without the screen</string>
+    <string name="field_step_statuses">Step states</string>
+    <string name="field_step_status">State</string>
+    <string name="schema_step_statuses">For a session that keeps its steps: the state of each, in order, as many as there are steps; the counts follow from them</string>
+    <string name="step_status_done">Done</string>
+    <string name="step_status_skipped">Skipped</string>
+    <string name="step_status_not_done">Not done</string>
+    <string name="error_counts_kept_steps">This session keeps its steps: correct it with step_statuses, the state of each step, not with its counts</string>
+    <string name="error_step_statuses">step_statuses gives the state of each step, in order: %1$d states, each done, skipped or not_done</string>
+    <string name="error_no_kept_steps">This session does not keep its steps, finished before they were kept: correct its counts</string>
 </resources>

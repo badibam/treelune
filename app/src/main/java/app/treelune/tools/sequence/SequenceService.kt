@@ -21,7 +21,8 @@ import org.json.JSONObject
  * - complete: `id`, `timestamp`, `duration` — a session done without following the screen, all
  *   its steps counted done: the planned one `id`, at its planned time unless `timestamp` is given;
  *   without `id`, one that was not planned, at `timestamp`, then required
- * - correct: `id`, `timestamp`, `duration`, `steps_done`, `steps_skipped`, `steps_not_done` — a
+ * - correct: `id`, `timestamp`, `duration`, and `step_statuses` for a session that keeps its steps
+ *   (SequenceSteps), `steps_done`, `steps_skipped`, `steps_not_done` for one that does not — a
  *   session over corrected, each value kept when not given; its counts add up to its steps, its
  *   state follows them
  * - ignore: `id` — a planned session left undone, which stays in the history
@@ -131,7 +132,9 @@ class SequenceService(private val context: Context) : ExecutableService {
                         SequenceToolType.PAUSED to step.pauses,
                         SequenceToolType.STEPS_DONE to step.run.count(Outcome.DONE),
                         SequenceToolType.STEPS_SKIPPED to step.run.count(Outcome.SKIPPED),
-                        SequenceToolType.STEPS_NOT_DONE to step.notDone
+                        SequenceToolType.STEPS_NOT_DONE to step.notDone,
+                        // Its steps as they ran, which a later change of the tool's steps leaves
+                        SequenceToolType.KEPT_STEPS to SequenceSteps.toJson(SequenceSteps.of(step))
                     ),
                     "state" to mapOf(
                         SequenceToolType.STATUS to status,
@@ -163,7 +166,8 @@ class SequenceService(private val context: Context) : ExecutableService {
         val data = mutableMapOf<String, Any>(
             SequenceToolType.STEPS_DONE to steps.size,
             SequenceToolType.STEPS_SKIPPED to 0,
-            SequenceToolType.STEPS_NOT_DONE to 0
+            SequenceToolType.STEPS_NOT_DONE to 0,
+            SequenceToolType.KEPT_STEPS to SequenceSteps.toJson(SequenceSteps.allDone(steps))
         )
         (params.opt(SequenceToolType.DURATION) as? Number)?.let { data[SequenceToolType.DURATION] = it.toLong() }
         val state = mapOf(SequenceToolType.STATUS to SequenceToolType.Status.DONE)
@@ -191,8 +195,30 @@ class SequenceService(private val context: Context) : ExecutableService {
         val entry = entryOf(id) ?: return OperationResult.error(s.shared("service_error_entry_not_found").format(id))
         if (statusOf(entry) !in setOf(SequenceToolType.Status.DONE, SequenceToolType.Status.STOPPED)) return OperationResult.error(s.tool("error_not_over"))
         val stored = JSONObject(entry.data)
-        fun count(key: String) = if (stored.has(key)) stored.getInt(key) else throw IllegalStateException("session $id without $key")
         fun given(key: String) = (params.opt(key) as? Number)?.toInt()
+        val countsGiven = listOf(SequenceToolType.STEPS_DONE, SequenceToolType.STEPS_SKIPPED, SequenceToolType.STEPS_NOT_DONE).any { params.has(it) }
+        val statuses = params.optJSONArray(SequenceToolType.STEP_STATUSES)?.let { a -> (0 until a.length()).map { a.getString(it) } }
+        // A session that keeps its steps: corrected step by step, its counts following
+        val kept = SequenceSteps.read(stored.optString(SequenceToolType.KEPT_STEPS).takeIf { it.isNotEmpty() })
+        if (kept != null) {
+            if (countsGiven) return OperationResult.error(s.tool("error_counts_kept_steps"))
+            val steps = statuses?.let { SequenceSteps.corrected(kept, it) ?: return OperationResult.error(s.tool("error_step_statuses").format(kept.size)) } ?: kept
+            val counts = SequenceSteps.counts(steps)
+            val data = mutableMapOf<String, Any>(
+                SequenceToolType.STEPS_DONE to counts.done,
+                SequenceToolType.STEPS_SKIPPED to counts.skipped,
+                SequenceToolType.STEPS_NOT_DONE to counts.notDone,
+                SequenceToolType.KEPT_STEPS to SequenceSteps.toJson(steps)
+            )
+            (params.opt(SequenceToolType.DURATION) as? Number)?.let { data[SequenceToolType.DURATION] = it.toLong() }
+            val result = coordinator.processUserAction("tool_data.update", buildMap {
+                put("id", id); put("data", data); put("state", mapOf(SequenceToolType.STATUS to counts.status))
+                (params.opt("timestamp") as? Number)?.let { put("timestamp", it.toLong()) }
+            })
+            return if (result.isSuccess) OperationResult.success(mapOf("id" to id, "status" to counts.status)) else OperationResult.error(result.error ?: "")
+        }
+        if (statuses != null) return OperationResult.error(s.tool("error_no_kept_steps"))
+        fun count(key: String) = if (stored.has(key)) stored.getInt(key) else throw IllegalStateException("session $id without $key")
         val current = StepCounts(count(SequenceToolType.STEPS_DONE), count(SequenceToolType.STEPS_SKIPPED), count(SequenceToolType.STEPS_NOT_DONE))
         val counts = when (val corrected = SequenceCorrection.apply(current,
             given(SequenceToolType.STEPS_DONE), given(SequenceToolType.STEPS_SKIPPED), given(SequenceToolType.STEPS_NOT_DONE))) {
