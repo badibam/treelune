@@ -350,7 +350,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             extra = config.optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList()
         )
         val old = fieldsOf(JSONObject(tool.config_json))
-        val entries = database.toolDataDao().getByToolInstance(tool.id)
+        // An entry that keeps its past (a goal's closed attempt) is left as it is
+        val entries = database.toolDataDao().getByToolInstance(tool.id).filterNot { toolType.keepsItsPast(it, context) }
         // The tool instance of each entry the entries' references designate, for a field that
         // narrows the tools it takes
         val dataReferences = old.data.map { it.definition }.filter { it.type == FieldType.REFERENCE }

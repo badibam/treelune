@@ -215,6 +215,10 @@ object GoalToolType : ToolTypeContract {
     override fun refuseChange(entry: ToolDataEntity, context: Context): String? =
         s(context).tool("error_locked").takeIf { statusOf(entry) in Status.LOCKED }
 
+    /** A locked attempt, and a reopened one, judged by its copy: a change of the goal leaves their values. */
+    override fun keepsItsPast(entry: ToolDataEntity, context: Context): Boolean =
+        statusOf(entry) in Status.LOCKED || entry.state?.takeIf { it.isNotBlank() }?.let { JSONObject(it).has(REOPENED_AT) } == true
+
     fun statusOf(entry: ToolDataEntity): String? = entry.state?.takeIf { it.isNotBlank() }?.let { JSONObject(it).optString(STATUS) }
 
     /** An attempt to validate waits. */

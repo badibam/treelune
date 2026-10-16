@@ -33,7 +33,8 @@ import org.json.JSONObject
  * - reopen: `id` — a validated or expired attempt back to be validated, which stays in its history
  *
  * An attempt still open follows the goal's current definition; a locked one keeps the copy it was
- * judged by.
+ * judged by, and so does a reopened one: reopening judges it again by the rules it had, never by
+ * the goal's current ones (docs/design/config-change.md).
  */
 class GoalService(private val context: Context) : ExecutableService {
 
@@ -69,6 +70,10 @@ class GoalService(private val context: Context) : ExecutableService {
         val status: String get() = state.optString(GoalToolType.STATUS)
         val periodEnd: Long? get() = (state.opt(GoalToolType.PERIOD_END) as? Number)?.toLong()
         val locked: Boolean get() = status in GoalToolType.Status.LOCKED
+        /** Reopened once: judged by its copy from then on */
+        val reopened: Boolean get() = state.has(GoalToolType.REOPENED_AT)
+        /** Its copy of the definition, when it keeps one */
+        val copy: String? get() = data.optString(GoalToolType.DEFINITION).takeIf { it.isNotEmpty() }
     }
 
     private suspend fun loadAttempt(id: String): Attempt? {
@@ -84,15 +89,15 @@ class GoalService(private val context: Context) : ExecutableService {
     }
 
     /**
-     * The definition an attempt is judged by: the goal's while it is open, its own copy once locked.
+     * The definition an attempt is judged by: the goal's while it is open, its own copy once locked
+     * or reopened.
      *
-     * @throws IllegalStateException for a locked attempt without its copy, which an attempt opened
-     *         before the copy was kept may be: judged by no definition, it would say nothing true
+     * @throws IllegalStateException for a locked or reopened attempt without its copy, which an
+     *         attempt opened before the copy was kept may be: judged by no definition, it would say
+     *         nothing true
      */
     private fun definitionOf(attempt: Attempt): GoalDefinition =
-        if (attempt.locked) GoalDefinition.of(JSONObject(
-            attempt.data.optString(GoalToolType.DEFINITION).takeIf { it.isNotEmpty() } ?: throw IllegalStateException(s.tool("error_no_definition"))
-        ))
+        if (attempt.locked || attempt.reopened) GoalDefinition.of(JSONObject(attempt.copy ?: throw IllegalStateException(s.tool("error_no_definition"))))
         else GoalDefinition.of(attempt.config)
 
     /** The instant a read criterion is read at: the end of the period, now while it runs. */
@@ -187,8 +192,8 @@ class GoalService(private val context: Context) : ExecutableService {
         val now = System.currentTimeMillis()
         val result = coordinator.processUserAction("tool_data.update", mapOf(
             "id" to attempt.id,
-            // The definition it was judged by, frozen with it
-            "data" to mapOf(GoalToolType.DEFINITION to GoalDefinition.copyOf(attempt.config).toString()),
+            // The definition it was judged by, frozen with it: a reopened attempt's own copy
+            "data" to mapOf(GoalToolType.DEFINITION to (attempt.copy.takeIf { attempt.reopened } ?: GoalDefinition.copyOf(attempt.config).toString())),
             "state" to mapOf(
                 GoalToolType.STATUS to status,
                 GoalToolType.JUDGEMENT to JsonUtils.toJSONObject(judgement.filterKeys { it != "frozen" && it != "status" }).toString(),

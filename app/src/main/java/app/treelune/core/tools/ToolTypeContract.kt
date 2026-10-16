@@ -201,6 +201,13 @@ interface ToolTypeContract {
     fun refuseChange(entry: ToolDataEntity, context: Context): String? = null
 
     /**
+     * Whether [entry] keeps the values it was judged or made with when the config changes
+     * (docs/design/config-change.md): a change of config leaves it as it is. By default, an entry
+     * no ordinary write may change; a goal's reopened attempt too, which keeps its copy.
+     */
+    fun keepsItsPast(entry: ToolDataEntity, context: Context): Boolean = refuseChange(entry, context) != null
+
+    /**
      * Whether a tool of this type keeps entries of its own. One that shows others' (a chart) has
      * none: no fields of the user's in its config, and every write of an entry is refused.
      */
