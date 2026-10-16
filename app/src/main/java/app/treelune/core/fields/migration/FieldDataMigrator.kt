@@ -32,16 +32,23 @@ object FieldDataMigrator {
 
             when (strategy) {
                 MigrationStrategy.STRIP_FIELD -> {
-                    // Remove the field from the entry, whatever made the strategy apply: the
-                    // field being deleted or changing type, a scale whose range no longer means
-                    // the same thing, a choice that changed between one value and a list.
+                    // Remove the field from the entry: the field deleted, or its type changed
                     when (change) {
                         is FieldChange.Removed -> result.remove(change.name)
                         is FieldChange.TypeChanged -> result.remove(change.name)
-                        is FieldChange.ScaleRangeChanged -> result.remove(change.name)
-                        is FieldChange.ChoiceShapeChanged -> result.remove(change.name)
                         else -> {} // Strategy mismatch, should not happen
                     }
+                }
+
+                MigrationStrategy.CONVERT -> {
+                    val name = when (change) {
+                        is FieldChange.ScaleRangeChanged -> change.name
+                        is FieldChange.ChoiceShapeChanged -> change.name
+                        else -> return@forEach // Strategy mismatch, should not happen
+                    }
+                    val value = result[name] ?: return@forEach
+                    val converted = convert(change, value)
+                    if (converted == null) result.remove(name) else result[name] = converted
                 }
 
                 MigrationStrategy.STRIP_FIELD_IF_VALUE -> {
@@ -95,5 +102,28 @@ object FieldDataMigrator {
         }
 
         return result
+    }
+
+    /** [value] in the field's new form after [change], or null when that form cannot take it. */
+    private fun convert(change: FieldChange, value: Any): Any? = when (change) {
+        is FieldChange.ScaleRangeChanged -> (value as? Number)?.toDouble()
+            ?.takeIf { it >= change.newMin.toDouble() && it <= change.newMax.toDouble() }?.let { value }
+        is FieldChange.ChoiceShapeChanged -> when {
+            !change.oldShape.isList && change.newShape.isList -> listOf(value)
+            change.oldShape.isList && !change.newShape.isList -> (value as? List<*>)?.singleOrNull()
+            else -> value
+        }
+        else -> value
+    }
+
+    /**
+     * Whether a value kept through [change] is read under another meaning: a scale's value between
+     * other bounds, a set of answers read as a ranking.
+     */
+    internal fun reinterprets(change: FieldChange): Boolean = when (change) {
+        is FieldChange.ScaleRangeChanged -> true
+        is FieldChange.ChoiceShapeChanged -> change.oldShape == app.treelune.core.fields.ChoiceShape.MULTIPLE &&
+            change.newShape == app.treelune.core.fields.ChoiceShape.ORDERED
+        else -> false
     }
 }

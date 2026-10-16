@@ -379,8 +379,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
     }
 
     /**
-     * The refusal of [plan], or null when it can be applied: values it removes and entries it
-     * deletes need [confirmed] (the screen asks the user, the AI says so explicitly), and an entry
+     * The refusal of [plan], or null when it can be applied: values it removes, entries it deletes
+     * and values it reads otherwise need [confirmed] (docs/design/config-change.md), and an entry
      * left without the value of a field now required is never stored: the caller gives one in
      * "fill_values".
      *
@@ -391,9 +391,9 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             val fields = plan.missing.entries.joinToString(", ") { (field, count) -> "data.$field ($count)" }
             return OperationResult.error(s.shared("service_error_migration_missing_values").format(fields), report(plan))
         }
-        if (plan.losesData && !confirmed) {
+        if (plan.touchesPast && !confirmed) {
             return OperationResult.error(
-                s.shared("service_error_migration_unconfirmed").format(plan.removedValues, plan.deleted.size),
+                s.shared("service_error_migration_unconfirmed").format(plan.removedValues, plan.deleted.size, plan.reinterpreted),
                 report(plan)
             )
         }
@@ -405,7 +405,9 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         "removed_values" to plan.removedValues,
         "deleted_entries" to plan.deleted.size,
         "filled_values" to plan.filledValues,
-        "missing_values" to mapOf("data" to plan.missing)
+        "missing_values" to mapOf("data" to plan.missing),
+        "reinterpreted_values" to plan.reinterpreted,
+        "changed_meaning" to plan.changedMeaning
     ))
 
     /** Writes [plan] to the entries of [tool], inside the caller's transaction. */

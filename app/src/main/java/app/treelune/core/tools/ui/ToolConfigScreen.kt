@@ -35,7 +35,9 @@ import app.treelune.core.ui.components.IconSelector
 import app.treelune.core.ui.rememberLoadOnce
 import app.treelune.core.utils.JsonUtils
 import kotlinx.coroutines.launch
+import org.json.JSONArray
 import org.json.JSONObject
+import app.treelune.core.ui.ButtonType
 
 /**
  * The config screen of any tool (docs/DATA.md): the form of its
@@ -74,7 +76,8 @@ fun ToolConfigScreen(
     var currentZoneId by rememberSaveable { mutableStateOf(zoneId) }
     var isSaving by remember { mutableStateOf(false) }
     // What the change costs, once the service refused it for that: values removed, entries deleted
-    var pendingMigration by rememberSaveable { mutableStateOf<Pair<Int, Int>?>(null) }
+    // What the save would do to the recorded entries, as the service counted it (its "migration")
+    var pendingMigration by rememberSaveable { mutableStateOf<String?>(null) }
     // The fields the change makes required, with the number of entries without a value for each,
     // once the service refused it for that; and the values the user gives them
     var pendingFill by rememberSaveable { mutableStateOf<Map<String, Int>?>(null) }
@@ -127,8 +130,7 @@ fun ToolConfigScreen(
                 // Refused for values the user can give: asked for them
                 missing.isNotEmpty() -> pendingFill = missing
                 // Refused for what it loses, and for nothing else: the user decides
-                migration != null && !confirmed ->
-                    pendingMigration = ((migration["removed_values"] as Number).toInt()) to ((migration["deleted_entries"] as Number).toInt())
+                migration != null && !confirmed -> pendingMigration = JsonUtils.toJSONObject(migration.entries.associate { it.key.toString() to it.value }).toString()
                 else -> UI.Toast(context, result.error ?: s.shared("tools_config_error_save"), Duration.LONG)
             }
         }
@@ -248,16 +250,50 @@ fun ToolConfigScreen(
         }
     }
 
-    pendingMigration?.let { (removedValues, deletedEntries) ->
-        UI.ConfirmDialog(
-            title = s.shared("migration_confirm_title"),
-            message = s.shared("migration_confirm_counts").format(removedValues, deletedEntries),
+    pendingMigration?.let { json ->
+        val migration = remember(json) { JSONObject(json) }
+        // The user's fields whose meaning changes, and the names the former ones would take
+        val changedMeaning = remember(json) { migration.optJSONArray("changed_meaning")?.let { a -> (0 until a.length()).map { a.getString(it) } }.orEmpty() }
+        val before = remember(asLoaded) { asLoaded?.let { JSONObject(it).optJSONArray("extra_fields") } ?: JSONArray() }
+        val today = remember { app.treelune.core.utils.DateUtils.formatDateForDisplay(System.currentTimeMillis()) }
+        fun keptName(name: String) = s.shared("migration_kept_name").format(name, today)
+        val keptNames = changedMeaning.mapNotNull { key ->
+            (0 until before.length()).map { before.getJSONObject(it) }.firstOrNull { it.optString("name") == key }?.optString("display_name")?.let { "« ${keptName(it)} »" }
+        }
+        UI.Dialog(
+            type = app.treelune.core.ui.DialogType.CONFIRM,
             onConfirm = {
                 pendingMigration = null
                 save(confirmed = true)
             },
-            onDismiss = { pendingMigration = null }
-        )
+            onCancel = { pendingMigration = null }
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
+                UI.Text(s.shared("migration_confirm_title"), TextType.SUBTITLE)
+                // Only what it does: each count that is not zero
+                val removed = migration.optInt("removed_values")
+                val deleted = migration.optInt("deleted_entries")
+                val parts = listOfNotNull(
+                    removed.takeIf { it > 0 }?.let { s.shared("migration_part_removed").format(it) },
+                    deleted.takeIf { it > 0 }?.let { s.shared("migration_part_deleted").format(it) },
+                    migration.optInt("reinterpreted_values").takeIf { it > 0 }?.let { s.shared("migration_part_reinterpreted").format(it) }
+                )
+                UI.Text(s.shared("migration_confirm_counts").format(parts.joinToString(", ")) +
+                    (if (removed + deleted > 0) " " + s.shared("migration_lost_for_good") else ""), TextType.BODY)
+                // A change of meaning can leave the past alone: the edited field takes a new key
+                if (keptNames.isNotEmpty()) {
+                    UI.Text(s.shared("migration_new_field_offer").format(keptNames.joinToString(", ")), TextType.BODY)
+                    UI.Button(type = ButtonType.DEFAULT, onClick = {
+                        pendingMigration = null
+                        config = JSONObject(config.toString()).put("extra_fields",
+                            app.treelune.core.fields.migration.NewFieldInstead.apply(before, config.optJSONArray("extra_fields") ?: JSONArray(), changedMeaning, ::keptName))
+                        save(confirmed = false)
+                    }) {
+                        UI.Text(s.shared("migration_new_field"), TextType.LABEL)
+                    }
+                }
+            }
+        }
     }
 }
 

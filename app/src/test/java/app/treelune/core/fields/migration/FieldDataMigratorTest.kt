@@ -41,29 +41,44 @@ class FieldDataMigratorTest {
         assertEquals(75, result["weight"])
     }
 
-    /**
-     * A scale's range is its unit: a 3 out of 10 is not a 3 out of 5, so every value goes, and
-     * not only the ones outside the new range. This is what the dialog has always announced.
-     */
+    /** A scale's bounds changed: a value inside the new ones stays, read between them; one outside goes. */
     @Test
-    fun aScaleWhoseRangeChangedLosesEveryValue() {
-        val result = migrate(
-            mapOf("energy" to 3),
-            FieldChange.ScaleRangeChanged("energy", 0, 10, 0, 5) to MigrationStrategy.STRIP_FIELD
-        )
+    fun aScaleKeepsTheValuesItsNewBoundsHold() {
+        val change = FieldChange.ScaleRangeChanged("energy", 0, 10, 0, 5) to MigrationStrategy.CONVERT
 
-        assertFalse("a value inside the new range goes too", result.containsKey("energy"))
+        assertEquals(3, migrate(mapOf("energy" to 3), change)["energy"])
+        assertFalse("a value past the new bounds goes", migrate(mapOf("energy" to 8), change).containsKey("energy"))
     }
 
-    /** One value or a list of them are different shapes, so what was stored cannot be read. */
+    /** One answer becomes a list of one: nothing is lost. */
     @Test
-    fun aChoiceThatChangedBetweenOneAndSeveralLosesItsValue() {
+    fun oneAnswerBecomesAListOfOne() {
         val result = migrate(
             mapOf("tags" to "urgent"),
-            FieldChange.ChoiceShapeChanged("tags", ChoiceShape.SINGLE, ChoiceShape.MULTIPLE) to MigrationStrategy.STRIP_FIELD
+            FieldChange.ChoiceShapeChanged("tags", ChoiceShape.SINGLE, ChoiceShape.MULTIPLE) to MigrationStrategy.CONVERT
         )
 
-        assertFalse(result.containsKey("tags"))
+        assertEquals(listOf("urgent"), result["tags"])
+    }
+
+    /** Several answers become one only where there was one; a longer list cannot choose, and goes. */
+    @Test
+    fun severalAnswersBecomeOneOnlyWhereThereWasOne() {
+        val change = FieldChange.ChoiceShapeChanged("tags", ChoiceShape.MULTIPLE, ChoiceShape.SINGLE) to MigrationStrategy.CONVERT
+
+        assertEquals("urgent", migrate(mapOf("tags" to listOf("urgent")), change)["tags"])
+        assertFalse(migrate(mapOf("tags" to listOf("urgent", "work")), change).containsKey("tags"))
+    }
+
+    /** A list stays a list, between several answers and a ranking. */
+    @Test
+    fun aListStaysAList() {
+        val result = migrate(
+            mapOf("tags" to listOf("b", "a")),
+            FieldChange.ChoiceShapeChanged("tags", ChoiceShape.MULTIPLE, ChoiceShape.ORDERED) to MigrationStrategy.CONVERT
+        )
+
+        assertEquals(listOf("b", "a"), result["tags"])
     }
 
     /** A removed option only concerns the entries that used it. */
@@ -111,7 +126,7 @@ class FieldDataMigratorTest {
     fun anEntryWithoutTheFieldIsUntouched() {
         val result = migrate(
             mapOf("weight" to 75),
-            FieldChange.ScaleRangeChanged("energy", 0, 10, 0, 5) to MigrationStrategy.STRIP_FIELD
+            FieldChange.ScaleRangeChanged("energy", 0, 10, 0, 5) to MigrationStrategy.CONVERT
         )
 
         assertEquals(1, result.size)

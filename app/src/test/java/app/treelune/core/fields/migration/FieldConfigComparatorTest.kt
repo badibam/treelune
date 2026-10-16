@@ -150,9 +150,9 @@ class FieldConfigComparatorTest {
 
     // ==================== Scales and choices ====================
 
-    /** Moving a scale's bounds drops its recorded values, which may now sit outside them. */
+    /** Moving a scale's bounds converts its values: those the new bounds hold stay. */
     @Test
-    fun changingAScalesRange_stripsTheField() {
+    fun changingAScalesRange_convertsTheField() {
         val changes = FieldConfigComparator.compare(
             oldFields = listOf(scale("energy", 1, 10)),
             newFields = listOf(scale("energy", 1, 5))
@@ -161,12 +161,12 @@ class FieldConfigComparatorTest {
         val ranged = changes.single() as FieldChange.ScaleRangeChanged
         assertEquals(10, ranged.oldMax)
         assertEquals(5, ranged.newMax)
-        assertEquals(MigrationStrategy.STRIP_FIELD, strategyFor(ranged))
+        assertEquals(MigrationStrategy.CONVERT, strategyFor(ranged))
     }
 
-    /** Switching a choice between one answer and several changes the shape of what is stored. */
+    /** Switching a choice between one answer and several converts what is stored. */
     @Test
-    fun switchingAChoiceToMultiple_stripsTheField() {
+    fun switchingAChoiceToMultiple_convertsTheField() {
         val changes = FieldConfigComparator.compare(
             oldFields = listOf(choice("tags", listOf("work", "home"), multiple = false)),
             newFields = listOf(choice("tags", listOf("work", "home"), multiple = true))
@@ -175,12 +175,12 @@ class FieldConfigComparatorTest {
         val switched = changes.single() as FieldChange.ChoiceShapeChanged
         assertEquals(ChoiceShape.SINGLE, switched.oldShape)
         assertEquals(ChoiceShape.MULTIPLE, switched.newShape)
-        assertEquals(MigrationStrategy.STRIP_FIELD, strategyFor(switched))
+        assertEquals(MigrationStrategy.CONVERT, strategyFor(switched))
     }
 
-    /** A set of options turned into a ranking would claim an order nobody chose. */
+    /** A set of options turned into a ranking stays a list, read otherwise: the user agrees to it or takes a new field. */
     @Test
-    fun switchingAChoiceToOrdered_stripsTheField() {
+    fun switchingAChoiceToOrdered_convertsTheField() {
         val changes = FieldConfigComparator.compare(
             oldFields = listOf(choice("tags", listOf("work", "home"), multiple = true)),
             newFields = listOf(field("tags", FieldType.CHOICE, config = mapOf("options" to ChoiceSettings.storedOptions(listOf("work", "home")), "ordered" to true)))
@@ -188,7 +188,7 @@ class FieldConfigComparatorTest {
 
         val switched = changes.single() as FieldChange.ChoiceShapeChanged
         assertEquals(ChoiceShape.ORDERED, switched.newShape)
-        assertEquals(MigrationStrategy.STRIP_FIELD, strategyFor(switched))
+        assertEquals(MigrationStrategy.CONVERT, strategyFor(switched))
     }
 
     /** Dropping an option only affects the entries that had chosen it. */

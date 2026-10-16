@@ -127,6 +127,38 @@ class EntryMigrationTest {
         assertEquals(1, plan.removedValues)
     }
 
+    /**
+     * A scale's bounds changed: the value inside them kept and counted as read otherwise, the one
+     * outside removed; the field is offered a new field instead.
+     */
+    @Test
+    fun aScaleBoundsChangeKeepsWhatFitsAndCountsIt() {
+        val plan = EntryMigration.plan(
+            old = fields(extra = listOf(field("energy", FieldType.SCALE, mapOf("min" to 0, "max" to 10)))),
+            new = fields(extra = listOf(field("energy", FieldType.SCALE, mapOf("min" to 0, "max" to 5)))),
+            entries = listOf(entry("a", extra = """{"energy":3}"""), entry("b", extra = """{"energy":8}"""))
+        )
+
+        assertEquals(1, plan.reinterpreted)
+        assertEquals(1, plan.removedValues)
+        assertEquals(listOf("energy"), plan.changedMeaning)
+        assertTrue(plan.touchesPast)
+    }
+
+    /** One answer becoming a list of one is written, touches nothing recorded, and asks nothing. */
+    @Test
+    fun oneAnswerToSeveralIsWrittenWithoutAsking() {
+        val single = ChoiceSettings.storedOptions(listOf("x", "y"))
+        val plan = EntryMigration.plan(
+            old = fields(extra = listOf(field("tags", FieldType.CHOICE, mapOf("options" to single)))),
+            new = fields(extra = listOf(field("tags", FieldType.CHOICE, mapOf("options" to single, "multiple" to true)))),
+            entries = listOf(entry("a", extra = """{"tags":"x"}"""))
+        )
+
+        assertEquals("""{"tags":["x"]}""", plan.updated.single().extra)
+        assertFalse(plan.touchesPast)
+    }
+
     /** Retitling a field changes no entry. */
     @Test
     fun aCosmeticChangeTouchesNothing() {

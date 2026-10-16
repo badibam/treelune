@@ -11,6 +11,7 @@ package app.treelune.core.fields.migration
  * - Removed → STRIP_FIELD (remove from all entries)
  * - TypeChanged → STRIP_FIELD (a value of the former type means nothing to the new one)
  * - ChoiceOptionsRemoved → STRIP_FIELD_IF_VALUE (conditional removal)
+ * - ScaleRangeChanged, ChoiceShapeChanged → CONVERT (kept where the new form takes the value)
  * - CosmeticChange → NONE (no migration needed)
  *
  * Architecture:
@@ -45,13 +46,11 @@ object MigrationPolicy {
                 // Remove field only from entries using removed options
                 is FieldChange.ChoiceOptionsRemoved -> MigrationStrategy.STRIP_FIELD_IF_VALUE
 
-                // Remove field from all entries when SCALE range changes
-                // (existing values may be outside new range)
-                is FieldChange.ScaleRangeChanged -> MigrationStrategy.STRIP_FIELD
+                // A value inside the new bounds stays, read between them; one outside goes
+                is FieldChange.ScaleRangeChanged -> MigrationStrategy.CONVERT
 
-                // Remove field from all entries when CHOICE multiple flag changes
-                // (data structure incompatible: String vs List<String>)
-                is FieldChange.ChoiceShapeChanged -> MigrationStrategy.STRIP_FIELD
+                // One answer and a list of them convert where nothing is lost
+                is FieldChange.ChoiceShapeChanged -> MigrationStrategy.CONVERT
 
                 // No action needed for cosmetic changes
                 is FieldChange.CosmeticChange -> MigrationStrategy.NONE

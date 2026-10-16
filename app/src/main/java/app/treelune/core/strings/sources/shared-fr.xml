@@ -1485,11 +1485,18 @@
 
     <!-- CUSTOM FIELDS - Migration -->
     <string name="migration_confirm_title">Confirmation des changements</string>
-    <string name="migration_confirm_counts">Cette modification retire %1$d valeur(s) des entrées enregistrées, et supprime %2$d entrée(s) restée(s) sans valeur obligatoire. C\'est irréversible.</string>
+    <string name="migration_confirm_counts">Cette modification touche les entrées déjà enregistrées : %1$s.</string>
+    <string name="migration_part_removed">%1$d valeur(s) retirée(s)</string>
+    <string name="migration_part_deleted">%1$d entrée(s) supprimée(s) faute de valeur obligatoire</string>
+    <string name="migration_part_reinterpreted">%1$d valeur(s) gardée(s) mais lue(s) autrement (nouvelles bornes, ordre)</string>
+    <string name="migration_lost_for_good">Ce qui est retiré ou supprimé ne revient pas.</string>
+    <string name="migration_new_field_offer">Pour ne rien toucher, crée plutôt un nouveau champ : l\'ancien garde ses valeurs, renommé %1$s.</string>
+    <string name="migration_new_field">Créer un nouveau champ</string>
+    <string name="migration_kept_name">%1$s (avant le %2$s)</string>
     <string name="migration_fill_title">Valeurs à donner</string>
     <string name="migration_fill_message">%1$d entrée(s) n\'ont pas de valeur pour %2$s, que cette modification rend obligatoire. Donne la valeur qu\'elles prennent, ou annule.</string>
     <string name="tools_config_error_not_found">Outil introuvable</string>
-    <string name="service_error_migration_unconfirmed">Cette modification retire %1$d valeur(s) des entrées de cet outil et supprime %2$d entrée(s) restée(s) sans valeur obligatoire. Renvoie-la avec "confirm_migration": true pour l\'appliquer.</string>
+    <string name="service_error_migration_unconfirmed">Cette modification retire %1$d valeur(s) des entrées de cet outil, supprime %2$d entrée(s) restée(s) sans valeur obligatoire et relit autrement %3$d valeur(s) gardée(s) (nouvelles bornes, ordre). Renvoie-la avec "confirm_migration": true pour l\'appliquer.</string>
     <string name="service_error_migration_missing_values">Des entrées n\'ont pas de valeur pour un champ que cette modification rend obligatoire : %1$s. Donne la valeur qu\'elles prennent dans "fill_values": {"data": {"champ": valeur}}.</string>
     <string name="service_error_migration_fill_unknown">"fill_values" nomme %1$s, qui n\'est pas un champ obligatoire de "data" dans cette config</string>
 

@@ -14,6 +14,7 @@ package app.treelune.core.fields.migration
  * - NONE: No action needed (cosmetic changes, field additions)
  * - STRIP_FIELD: Remove field from all entries (field deletion)
  * - STRIP_FIELD_IF_VALUE: Conditional removal (removed CHOICE options)
+ * - CONVERT: The value rewritten into the field's new form, removed when it cannot be
  */
 enum class MigrationStrategy {
     /**
@@ -58,5 +59,16 @@ enum class MigrationStrategy {
      * Before: {"extra": {"tags": ["work", "urgent", "review"]}}
      * After:  {"extra": {}} (if "urgent" was removed and is in the list)
      */
-    STRIP_FIELD_IF_VALUE
+    STRIP_FIELD_IF_VALUE,
+
+    /**
+     * The value kept in the field's new form, removed only when it cannot take it
+     * (docs/design/config-change.md).
+     *
+     * Applied to:
+     * - FieldChange.ScaleRangeChanged: a value inside the new bounds kept, read between them
+     * - FieldChange.ChoiceShapeChanged: one answer becomes a list of one; a list of one becomes its
+     *   answer, a longer one goes; a list stays a list
+     */
+    CONVERT
 }

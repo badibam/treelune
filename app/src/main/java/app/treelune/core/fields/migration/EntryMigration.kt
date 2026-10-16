@@ -33,16 +33,24 @@ object EntryMigration {
      * @property removedValues The values removed from the kept entries
      * @property filledValues The values given to kept entries for a field now required
      * @property missing For each field of "data" now required and given no value, the entries without one
+     * @property reinterpreted The values kept but read under another meaning (a scale's other bounds)
+     * @property changedMeaning The user's fields whose values a change of meaning touches (its type,
+     *   a scale's bounds, the number of answers of a choice): those a new field can take instead
      */
     data class Plan(
         val updated: List<ToolDataEntity>,
         val deleted: List<ToolDataEntity>,
         val removedValues: Int,
         val filledValues: Int,
-        val missing: Map<String, Int>
+        val missing: Map<String, Int>,
+        val reinterpreted: Int = 0,
+        val changedMeaning: List<String> = emptyList()
     ) {
-        /** Whether applying it loses something recorded: only an explicit agreement lets it through. */
+        /** Whether applying it loses something recorded. */
         val losesData: Boolean get() = removedValues > 0 || deleted.isNotEmpty()
+
+        /** Whether it touches what is recorded, lost or read otherwise: only an explicit agreement lets it through. */
+        val touchesPast: Boolean get() = losesData || reinterpreted > 0
     }
 
     /**
@@ -66,6 +74,9 @@ object EntryMigration {
         val deleted = mutableListOf<ToolDataEntity>()
         var removedValues = 0
         var filledValues = 0
+        var reinterpreted = 0
+        val meaningChanges = extraChanges.filter { it is FieldChange.TypeChanged || it is FieldChange.ScaleRangeChanged || it is FieldChange.ChoiceShapeChanged }
+        val changedMeaning = mutableSetOf<String>()
         val missing = mutableMapOf<String, Int>()
 
         entries.forEach { entry ->
@@ -87,6 +98,10 @@ object EntryMigration {
                 return@forEach
             }
             removedValues += removedData.size + removedExtra.size
+            // A value kept through a change that reads it otherwise
+            reinterpreted += (dataChanges.filter { FieldDataMigrator.reinterprets(it) }.count { change -> change.fieldName.let { newData[it] != null } } +
+                extraChanges.filter { FieldDataMigrator.reinterprets(it) }.count { change -> change.fieldName.let { newExtra[it] != null } })
+            meaningChanges.mapNotNull { it.fieldName }.filter { extra[it] != null }.forEach { changedMeaning += it }
 
             var filled = false
             required.filter { name -> newData[name] == null && startedAt(newState, FieldContainer.DATA, name) == null }
@@ -101,7 +116,8 @@ object EntryMigration {
                     }
                 }
 
-            if (removedData.isNotEmpty() || removedExtra.isNotEmpty() || filled) {
+            // A value converted to the field's new form is a change too
+            if (removedData.isNotEmpty() || removedExtra.isNotEmpty() || filled || newData != data || newExtra != extra) {
                 updated.add(entry.copy(
                     data = JsonUtils.toJSONObject(newData).toString(),
                     extra = newExtra.takeIf { it.isNotEmpty() }?.let { JsonUtils.toJSONObject(it).toString() },
@@ -110,7 +126,7 @@ object EntryMigration {
             }
         }
 
-        return Plan(updated, deleted, removedValues, filledValues, missing)
+        return Plan(updated, deleted, removedValues, filledValues, missing, reinterpreted, changedMeaning.toList())
     }
 
     /**
