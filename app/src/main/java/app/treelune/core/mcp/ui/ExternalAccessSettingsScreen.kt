@@ -118,7 +118,7 @@ fun ExternalAccessSettingsScreen(onBack: () -> Unit) {
     AppSettingsScreen(
         category = AppSettingCategories.EXTERNAL_ACCESS,
         onBack = onBack,
-        below = {
+        below = { draft ->
             Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
                 when (val current = state) {
                     McpAccess.State.Closed -> UI.Text(s.shared("external_access_state_closed"), TextType.BODY)
@@ -145,12 +145,10 @@ fun ExternalAccessSettingsScreen(onBack: () -> Unit) {
                         UI.Text(s.shared("external_access_close"), TextType.LABEL)
                     }
                 } else {
+                    // The way in chosen above, saved first if it changed; what it lacks (a relay, a
+                    // secret sealed on another phone) McpAccess.run says, as the access's failure
                     UI.Button(type = ButtonType.PRIMARY, onClick = {
-                        scope.launch {
-                            if (McpAccess.mode(context) == AppSettings.ACCESS_MODE_RELAY && McpAccess.relay(context) == null) {
-                                UI.Toast(context, s.shared("external_access_no_relay"), app.treelune.core.ui.Duration.LONG)
-                            } else McpAccess.open(context)
-                        }
+                        scope.launch { if (draft.saveIfChanged()) McpAccess.open(context) }
                     }) {
                         UI.Text(s.shared("external_access_open"), TextType.LABEL)
                     }

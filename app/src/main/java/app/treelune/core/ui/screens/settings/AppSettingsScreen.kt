@@ -43,13 +43,14 @@ import org.json.JSONObject
  * the service, which checks it and says what it refuses. The interface's look is shown as it is
  * chosen, before it is saved.
  *
- * @param below What a category shows under its form, beside its settings
+ * @param below What a category shows under its form, beside its settings; an action there that
+ *   depends on the settings saves the form first (SettingsDraft), so it acts on what it shows
  */
 @Composable
 fun AppSettingsScreen(
     category: String,
     onBack: () -> Unit,
-    below: @Composable () -> Unit = {}
+    below: @Composable (SettingsDraft) -> Unit = {}
 ) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
@@ -116,20 +117,38 @@ fun AppSettingsScreen(
             .associate { it.definition.name to HueShiftEditor(it) }
     }
 
+    /** The form written through the service, which becomes what is stored; false when refused, said by a toast. */
+    suspend fun write(): Boolean {
+        val renames = if (category != AppSettingCategories.MAIN_SCREEN) emptyMap()
+            else mapOf("zone_groups" to origins.renames("zone_groups", settings.optJSONArray("zone_groups")))
+        val result = coordinator.processUserAction("app_config.set", mapOf("category" to category, "settings" to JsonUtils.toMap(settings), "renames" to renames))
+        if (!result.isSuccess) {
+            UI.Toast(context, result.error ?: s.shared("error_operation_failed"), Duration.LONG)
+            return false
+        }
+        stored = JSONObject(settings.toString())
+        return true
+    }
+
     fun save() {
         isSaving = true
         scope.launch {
-            val renames = if (category != AppSettingCategories.MAIN_SCREEN) emptyMap()
-                else mapOf("zone_groups" to origins.renames("zone_groups", settings.optJSONArray("zone_groups")))
-            val result = coordinator.processUserAction("app_config.set", mapOf("category" to category, "settings" to JsonUtils.toMap(settings), "renames" to renames))
+            val written = write()
             isSaving = false
-            if (result.isSuccess) {
+            if (written) {
                 saved = true
                 UI.Toast(context, s.shared("settings_saved"), Duration.SHORT)
                 onBack()
-            } else {
-                UI.Toast(context, result.error ?: s.shared("error_operation_failed"), Duration.LONG)
             }
+        }
+    }
+
+    // Compared as maps: a variant switched back rebuilds the object in another key order
+    val draft = SettingsDraft {
+        when {
+            load != LoadState.LOADED -> false
+            JsonUtils.toMap(settings) == JsonUtils.toMap(stored) -> true
+            else -> write().also { if (it) UI.Toast(context, s.shared("settings_saved"), Duration.SHORT) }
         }
     }
 
@@ -158,7 +177,7 @@ fun AppSettingsScreen(
             }
         }
 
-        below()
+        below(draft)
 
         // The actions on the root page alone: under it, the back arrow goes up (SettingsPages)
         if (pages.atRoot) UI.FormActions {
@@ -166,6 +185,16 @@ fun AppSettingsScreen(
             UI.ActionButton(action = ButtonAction.CANCEL, onClick = onBack)
         }
     }
+}
+
+/**
+ * The form of a settings screen as [AppSettingsScreen]'s `below` reaches it: an action there that
+ * depends on the settings (opening the external access, for one) acts on those the form shows,
+ * not on those stored before the person changed them.
+ */
+class SettingsDraft(private val saveChanged: suspend () -> Boolean) {
+    /** The form saved if it differs from what is stored, the screen left open; false when not loaded yet or refused, a refusal said by a toast. */
+    suspend fun saveIfChanged(): Boolean = saveChanged()
 }
 
 /** The hue shift chosen on the theme's slider of the colours each shift gives (HueSlider). */

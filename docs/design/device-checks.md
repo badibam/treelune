@@ -121,6 +121,7 @@ Avec le relais en place (son projet), son adresse et son secret dans Réglages �
 Vu le 2026-10-09 : l'inscription par la page de connexion, « Activer Funnel » sur un compte où HTTPS et le droit `funnel` étaient retirés, l'accès ouvert seul ensuite, la publication de l'adresse attendue à l'écran, claude.ai branché sur l'adresse. Reste :
 
 - Après la migration 68 : avec un relais réglé, Réglages › Accès externe montre « Relais » choisi, sa section affichée, et l'accès s'ouvre comme avant.
+- En relais, une sauvegarde restaurée (secret illisible) : choisir Tailscale et toucher « Ouvrir » sans enregistrer : « Réglages enregistrés », puis l'étape Tailscale ; rouvrir l'écran, Tailscale est choisi. Revenir à Relais, toucher « Ouvrir » : l'écran dit que le secret a été saisi sur un autre téléphone.
 - Un membre d'un compte qui ne peut pas activer Funnel : les étapes à la main s'affichent (HTTPS et la page DNS, le bloc à copier et l'éditeur de la politique d'accès), et l'accès s'ouvre seul une fois le compte réglé par son administrateur.
 - Fermer, rouvrir : l'adresse revient en quelques secondes, sans connexion ni attente de certificat. 30 minutes sans appel : fermé seul, l'adresse ne répond plus. La tuile ferme l'accès aussi pendant une étape d'attente.
 - Passer du Wi-Fi à la 4G, accès ouvert : un appel passe encore dans la minute.
