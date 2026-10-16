@@ -48,10 +48,12 @@ import app.treelune.core.utils.LogManager
  *
  * @param openToolId A tool to open, on its oldest entry that waits, the way its tile opens it: the
  *   one a touched notification is about; [onToolOpened] once it is opened
+ * @param openPlace The address of a place to open, the one a touched notification is about (a
+ *   routine's run); [onPlaceOpened] once it is opened
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MainScreen(openToolId: String? = null, onToolOpened: () -> Unit = {}) {
+fun MainScreen(openToolId: String? = null, onToolOpened: () -> Unit = {}, openPlace: String? = null, onPlaceOpened: () -> Unit = {}) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     val coordinator = remember { Coordinator(context) }
@@ -96,6 +98,12 @@ fun MainScreen(openToolId: String? = null, onToolOpened: () -> Unit = {}) {
         val entryId = (waiting.data?.get("oldest") as? Map<*, *>)?.get(toolId) as? String
         Navigator.open(Place.Tool(toolId, zoneId), entryId?.let { EntryToOpen.Existing(it) })
         onToolOpened()
+    }
+    // The place a notification asked for
+    LaunchedEffect(openPlace) {
+        val address = openPlace ?: return@LaunchedEffect
+        Navigator.open(Place.of(address))
+        onPlaceOpened()
     }
     // A tool asked for from any screen, on one of its entries
     LaunchedEffect(Unit) {

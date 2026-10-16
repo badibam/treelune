@@ -82,6 +82,7 @@ class AISessionService(private val context: Context) : ExecutableService {
 
                 // What waits for the user (docs/design/waiting-sources.md)
                 "seen" -> markSeen(params, token)
+                "end_run" -> endRun(params, token)
                 "chat_waiting" -> OperationResult.success(mapOf("waits" to aiDao.chatWaits()))
 
                 // SEED pre-fill management
@@ -907,6 +908,33 @@ class AISessionService(private val context: Context) : ExecutableService {
         aiDao.updateSeenAt(sessionId, System.currentTimeMillis())
         app.treelune.core.utils.DataChangeNotifier.notifyAISessionsChanged(session.automationId)
         return OperationResult.success(mapOf("session_id" to sessionId))
+    }
+
+    /**
+     * A routine's run over (RunEnd): its summary kept, and seen at once when its routine does not
+     * signal it ([params] `problem`, as RunEnd judged it; AutomationSettings.NOTIFY_*). Gives
+     * whether it waits, with the routine and zone a notification opens it in.
+     */
+    private suspend fun endRun(params: JSONObject, token: CancellationToken): OperationResult {
+        if (token.isCancelled) return OperationResult.cancelled()
+        val sessionId = params.optString("session_id").takeIf { it.isNotEmpty() }
+            ?: return OperationResult.error(s.shared("ai_error_param_session_id_required"))
+        val session = aiDao.getSession(sessionId)
+            ?: return OperationResult.error(s.shared("ai_error_session_not_found").format(sessionId))
+        val automation = session.automationId?.let { aiDao.getAutomationById(it) }
+            ?: return OperationResult.error(s.shared("error_automation_not_found"))
+        if (!params.has("problem")) return OperationResult.error("Parameter 'problem' is required")
+        val waits = app.treelune.core.ai.orchestration.RunEnd.waits(automation.notifyEnd, params.getBoolean("problem"))
+        val summary = params.optString("summary").takeIf { it.isNotEmpty() }
+        aiDao.updateSession(session.copy(summary = summary, seenAt = if (waits) null else System.currentTimeMillis()))
+        app.treelune.core.utils.DataChangeNotifier.notifyAISessionsChanged(automation.id)
+        LogManager.aiSession("Run $sessionId of ${automation.id} over, ${if (waits) "waiting" else "seen"}, ${if (summary == null) "no summary" else "its summary kept"}", "INFO")
+        return OperationResult.success(mapOf(
+            "waits" to waits,
+            "automation_id" to automation.id,
+            "automation_name" to automation.name,
+            "zone_id" to automation.zoneId
+        ))
     }
 
     /**

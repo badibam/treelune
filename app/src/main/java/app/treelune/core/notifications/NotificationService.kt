@@ -101,6 +101,8 @@ class NotificationService(private val context: Context) : ExecutableService {
             val content = params.optString("content", null)
             // The tool it is about, opened on its oldest entry that waits when it is touched
             val toolInstanceId = params.optString("tool_instance_id").takeIf { it.isNotEmpty() }
+            // Or the place it is about, by its address (Place.address): a routine's run
+            val place = params.optString("place").takeIf { it.isNotEmpty() }
             val iconName = params.optString("icon_name").ifEmpty { APP_ICON }
             val icon = Icons.lucideDrawable(context, iconName)
             if (icon == null) {
@@ -125,6 +127,7 @@ class NotificationService(private val context: Context) : ExecutableService {
                 content = content,
                 icon = icon,
                 toolInstanceId = toolInstanceId,
+                place = place,
                 requestCode = notificationId
             )
 
@@ -152,6 +155,7 @@ class NotificationService(private val context: Context) : ExecutableService {
      * @param content Notification body (optional)
      * @param icon The small icon's drawable, of which the status bar keeps the silhouette
      * @param toolInstanceId The tool the app opens when it is touched, null for the app alone
+     * @param place The address of the place the app opens when it is touched, instead of a tool
      * @param requestCode Its own, so that two notifications keep their own tool
      * @return NotificationCompat.Builder configured notification
      */
@@ -161,12 +165,14 @@ class NotificationService(private val context: Context) : ExecutableService {
         content: String?,
         icon: Int,
         toolInstanceId: String?,
+        place: String?,
         requestCode: Int
     ): NotificationCompat.Builder {
         // Create intent to open app when notification clicked
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             toolInstanceId?.let { putExtra(MainActivity.EXTRA_TOOL_INSTANCE_ID, it) }
+            place?.let { putExtra(MainActivity.EXTRA_PLACE, it) }
         }
 
         val pendingIntent = PendingIntent.getActivity(

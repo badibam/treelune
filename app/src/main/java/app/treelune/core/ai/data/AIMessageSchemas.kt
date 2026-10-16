@@ -49,7 +49,8 @@ object AIMessageSchemas {
      * - validationRequest only valid with actionCommands
      * - postText shown after the actions succeed, or at once without actions
      * - completed, the end of an AUTOMATION, present for every session type: a model forced to
-     *   this schema could not end one otherwise (AIStateMachine ignores it in a CHAT)
+     *   this schema could not end one otherwise (AIStateMachine ignores it in a CHAT); summary,
+     *   which comes with the completed that confirms it (RunEnd keeps it), the same way
      */
     private fun getAIMessageResponseSchemaContent(context: Context): String {
         val s = Strings.`for`(context = context)
@@ -123,6 +124,11 @@ object AIMessageSchemas {
             "completed": {
               "type": "boolean",
               "description": "${s.shared("ai_schema_field_completed_desc")}"
+            },
+            "summary": {
+              "type": "string",
+              "minLength": 1,
+              "description": "${s.shared("ai_schema_field_summary_desc")}"
             }
           },
           "additionalProperties": false

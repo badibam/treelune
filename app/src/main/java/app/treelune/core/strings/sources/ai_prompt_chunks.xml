@@ -63,6 +63,18 @@ The `"completed": true` flag means the WHOLE automation is finished.
 
 - All the data collected AND analysed AND the report created → **YES**
 
+### The summary of the run:
+
+The app asks you to confirm a first `"completed": true`. The answer that confirms carries `summary` as well: for the user, in a few sentences, what you did during this run and why, saying what deserves their attention (something unusual, a write you could not make). The user reads it at the top of the run, beside the app's own count of what was written; keep track of what matters as you go.
+
+```json
+{
+  "pre_text": "Confirmed: the whole request is done.",
+  "completed": true,
+  "summary": "I logged this morning's weight, 72.4 kg, and updated the weekly average. It is the third rise in a row."
+}
+```
+
 ### Network interruptions and errors:
 
 If you hit network problems or technical errors, carry on working normally.

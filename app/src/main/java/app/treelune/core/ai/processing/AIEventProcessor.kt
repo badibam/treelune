@@ -1226,6 +1226,9 @@ class AIEventProcessor(
                 ContinuationReason.COMPLETION_CONFIRMATION_REQUIRED -> Triple(
                     SystemMessageType.COMPLETED_CONFIRMATION, s.shared("ai_completion_confirmation_shown"), s.shared("ai_completion_confirmation_required")
                 )
+                ContinuationReason.SUMMARY_REQUIRED -> Triple(
+                    SystemMessageType.COMPLETED_CONFIRMATION, s.shared("ai_summary_required_shown"), s.shared("ai_summary_required")
+                )
             }
 
             LogManager.aiSession("prepareContinuation: Creating guidance message for reason: $reason", "DEBUG")
@@ -1739,6 +1742,11 @@ class AIEventProcessor(
             }
         }
 
+        // A routine's run over for good: its summary kept, and whether it waits for the user (RunEnd)
+        if (state.sessionType == SessionType.AUTOMATION && endReason !in SessionEndReason.resumable) {
+            app.treelune.core.ai.orchestration.RunEnd.end(context, sessionId, endReason, messageRepository.loadMessages(sessionId))
+        }
+
         // Clear message cache
         messageRepository.clearCache(sessionId)
 
@@ -1748,6 +1756,8 @@ class AIEventProcessor(
 
         // Force state to idle
         stateRepository.forceIdle()
+        // No longer active: a chat that waited no longer does (ChatWaiting)
+        app.treelune.core.utils.DataChangeNotifier.notifyAISessionsChanged(null)
 
         // Note: processNextSessionActivation() is now called in handleStateChange(Phase.CLOSED)
         // after this function completes, ensuring endReason is persisted before scheduler checks DB

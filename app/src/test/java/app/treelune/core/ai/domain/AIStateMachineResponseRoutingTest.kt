@@ -40,16 +40,53 @@ class AIStateMachineResponseRoutingTest {
         assertTrue(state.awaitingCompletionConfirmation)
     }
 
-    /** The second claim, with the flag already set, is the one that ends the session. */
+    /** The second claim, with the flag already set and the run's summary, ends the session. */
     @Test
     fun automationClaimingCompletionTwice_windsTheSessionDown() {
+        val state = parsed(
+            automationAt(Phase.PARSING_AI_RESPONSE, awaitingCompletionConfirmation = true),
+            aiMessage(completed = true, summary = "Logged the weight.")
+        )
+
+        assertEquals(Phase.AWAITING_SESSION_CLOSURE, state.phase)
+        assertEquals(false, state.awaitingCompletionConfirmation)
+    }
+
+    /** A confirmation without the run's summary is sent back once, asking for it. */
+    @Test
+    fun automationConfirmingWithoutSummary_isAskedForItOnce() {
         val state = parsed(
             automationAt(Phase.PARSING_AI_RESPONSE, awaitingCompletionConfirmation = true),
             aiMessage(completed = true)
         )
 
+        assertEquals(Phase.PREPARING_CONTINUATION, state.phase)
+        assertEquals(ContinuationReason.SUMMARY_REQUIRED, state.continuationReason)
+        assertTrue(state.summaryReminded)
+        assertTrue(state.awaitingCompletionConfirmation)
+    }
+
+    /** Reminded once, a confirmation still without summary ends the session without one. */
+    @Test
+    fun automationConfirmingWithoutSummaryAfterTheReminder_windsTheSessionDown() {
+        val state = parsed(
+            automationAt(Phase.PARSING_AI_RESPONSE, awaitingCompletionConfirmation = true, summaryReminded = true),
+            aiMessage(completed = true)
+        )
+
         assertEquals(Phase.AWAITING_SESSION_CLOSURE, state.phase)
-        assertEquals(false, state.awaitingCompletionConfirmation)
+    }
+
+    /** A new confirmation asked clears the reminder: each confirmation may be reminded once. */
+    @Test
+    fun automationClaimingCompletionAgain_clearsTheReminder() {
+        val state = parsed(
+            automationAt(Phase.PARSING_AI_RESPONSE, summaryReminded = true),
+            aiMessage(completed = true)
+        )
+
+        assertEquals(ContinuationReason.COMPLETION_CONFIRMATION_REQUIRED, state.continuationReason)
+        assertEquals(false, state.summaryReminded)
     }
 
     /**
