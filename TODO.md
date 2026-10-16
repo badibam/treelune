@@ -22,7 +22,7 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 ## Bugs
 
 - Réglages › Interface : un thème choisi, vu, enregistré, et l'ancien revient ; une seconde fois, ça tient (2026-10-09, pas reproduit, peut-être dans la release). Au prochain cas, lire dans le journal les lignes « Theme applied » : laquelle a remis l'ancien (STORED, PREVIEW, LEFT_UNSAVED).
-- À vérifier : un schéma déjà reçu dans la session n'est plus renvoyé (`CommandExecutor`, clé seule, résultat `CACHED`) ; un outil dont l'IA change la config en session change de schéma d'entrées, et une seconde demande lui rendrait « déjà dans cette session » sur l'ancien — sauf si le résultat de la modification lui donne déjà le nouveau.
+- Le schéma des entrées d'un outil, une fois envoyé dans une session, n'est plus renvoyé après un changement de sa config, par l'IA ou à l'écran : `CommandExecutor` le reconnaît à `entries:<id>` seul et rend `CACHED`, le résultat de `tools.update` ne porte pas le nouveau ; l'IA écrit d'après l'ancien, le service refuse. Une empreinte du schéma dans la clé (`entries:<id>:<hash>`) couvre les deux cas ; le nouveau schéma dans le résultat de la modification, celui de l'IA seul.
 
 ## À passer sur le téléphone
 
