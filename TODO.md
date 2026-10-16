@@ -108,7 +108,6 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 - Encore différence de marge en thème retro entre tuiles d'outils et tuiles d'automatique par exemple
 - encore des textes non sélectionnables sans raison. Par exemple : dans textes de guide
 - "Copier" de journal n'inclut pas les chamos suppl car pas encore de repr textuelles des valeurs de champs. Il faut metrre ça en place.
-- Tuile de variable ne se collapse pas proprement quand manque de place horizontale
 - Guide : Les outils en un coup d'oeil : pas besoin de section : plutôt metrre ke texte direct dans la tuile de chaque outil.
 
 ## En attente d'un déclencheur

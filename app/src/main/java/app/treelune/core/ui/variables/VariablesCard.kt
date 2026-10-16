@@ -3,6 +3,8 @@ package app.treelune.core.ui.variables
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -44,6 +46,7 @@ data class VariableRow(val id: String, val name: String, val group: String?, val
  * or why it has none. The values are read again when an entry of a tool they read changes, or a
  * variable does. Touching a line opens the variable.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun VariablesCard(variables: List<VariableRow>, onOpen: (String) -> Unit) {
     if (variables.isEmpty()) return
@@ -81,12 +84,16 @@ fun VariablesCard(variables: List<VariableRow>, onOpen: (String) -> Unit) {
     UI.Card(type = CardType.DEFAULT) {
         Column(modifier = Modifier.padding(UI.Space.M), verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
             variables.forEach { variable ->
-                Row(
+                // The value beside the name while both fit, under it otherwise: each keeps the
+                // width, nothing squeezed; the dot stays with the name, never starting a line
+                FlowRow(
                     modifier = Modifier.fillMaxWidth().clickable { onOpen(variable.id) },
                     horizontalArrangement = Arrangement.spacedBy(UI.Space.S)
                 ) {
-                    UI.Text(text = variable.name, type = TextType.LABEL)
-                    UI.Text(text = "·", type = TextType.CAPTION)
+                    Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+                        UI.Text(text = variable.name, type = TextType.LABEL)
+                        UI.Text(text = "·", type = TextType.CAPTION)
+                    }
                     UI.Text(text = shown[variable.id] ?: s.shared("tools_loading"), type = TextType.BODY)
                 }
             }
