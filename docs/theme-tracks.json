@@ -1,0 +1,79 @@
+{
+  "tracks": {
+    "ink": {
+      "ai_note": 8,
+      "ai_reason": "Le seul thème calme, sans équivalent parmi ceux qu'on a.",
+      "user_note": null
+    },
+    "swiss": {
+      "ai_note": 8,
+      "ai_reason": "Les chiffres en avant, ce qui sert les outils de suivi ; sans ombres ni arrondis, simple à coder.",
+      "user_note": null
+    },
+    "metro": {
+      "ai_note": 7,
+      "ai_reason": "Une vraie idée : chaque outil est une ligne de la couleur de son icône, qui existe déjà.",
+      "user_note": null
+    },
+    "instruments": {
+      "ai_note": 7,
+      "ai_reason": "Très fort pour les graphiques et les jauges ; les cadrans à aiguille demandent du travail.",
+      "user_note": null
+    },
+    "eink": {
+      "ai_note": 6,
+      "ai_reason": "Utile pour une liseuse, un usage qu'aucun thème ne couvre.",
+      "user_note": null
+    },
+    "notebook": {
+      "ai_note": 6,
+      "ai_reason": "Chaleureux, mais l'écriture à la main se lit mal sur une longue liste.",
+      "user_note": null
+    },
+    "blueprint": {
+      "ai_note": 6,
+      "ai_reason": "Original, mais les traits blancs sur bleu fatiguent à la longue.",
+      "user_note": null
+    },
+    "terminal": {
+      "ai_note": 6,
+      "ai_reason": "Peu coûteux à coder, mais proche du rétro.",
+      "user_note": null
+    },
+    "riso": {
+      "ai_note": 5,
+      "ai_reason": "Joli en aperçu ; deux encres fluo, c'est trop pour tous les jours.",
+      "user_note": null
+    },
+    "cut_paper": {
+      "ai_note": 5,
+      "ai_reason": "Trop proche du cosy : des pièces posées, en relief.",
+      "user_note": null
+    },
+    "mac": {
+      "ai_note": 5,
+      "ai_reason": "Recoupe le rétro : des pixels, des trames.",
+      "user_note": null
+    },
+    "jrpg": {
+      "ai_note": 5,
+      "ai_reason": "Recoupe aussi le rétro.",
+      "user_note": null
+    },
+    "playing_cards": {
+      "ai_note": 4,
+      "ai_reason": "Un décor plus qu'une manière de lire les données.",
+      "user_note": null
+    },
+    "neon": {
+      "ai_note": 4,
+      "ai_reason": "Fatigant, peu lisible.",
+      "user_note": null
+    },
+    "scifi_hud": {
+      "ai_note": 4,
+      "ai_reason": "Des traits fins sur fond sombre, encore moins lisible.",
+      "user_note": null
+    }
+  }
+}

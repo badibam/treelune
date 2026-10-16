@@ -64,6 +64,9 @@ FONT_COPY_CHECK = ROOT / "scripts" / "check_font_copy.py"
 PALETTES = ROOT / "app" / "src" / "main" / "resources" / "app" / "treelune" / "themes"
 THEME_SOURCES = ROOT / "app" / "src" / "main" / "java" / "app" / "treelune" / "themes"
 THEME_BENCHES = ROOT / "app" / "src" / "main" / "java" / "app" / "treelune" / "themes" / "bench.html"
+# The theme tracks mocked up on one page, and the notes that rank them, written back by that page.
+THEME_TRACKS = ROOT / "docs" / "theme-tracks.html"
+THEME_TRACK_NOTES = ROOT / "docs" / "theme-tracks.json"
 
 # And on spaces: a space a screen writes in dp looks right in the default theme and falls
 # between two cells in the retro one, so every space is named (UI.Space) and the theme sizes it.
@@ -655,13 +658,24 @@ def task_bugs():
 
 
 def task_themes():
-    """Serve the themes' benches and open their page; Ctrl+C stops the server.
+    """Serve the themes' benches and open their page; Ctrl+C stops the server."""
+    return serve_themes(THEME_BENCHES)
+
+
+def task_tracks():
+    """Serve the theme tracks' page, where the user notes them, and open it; Ctrl+C stops the server."""
+    return serve_themes(THEME_TRACKS)
+
+
+def serve_themes(page):
+    """Serve the repository for the themes' pages and open one of them.
 
     The benches read the fonts, Lucide's icons, a theme's palettes.json and the sound library from
     the repository, which a page opened from the disk may not do, and save back through here the
-    only three files this server writes: a theme's palettes.json (POST /palettes/<id>), its
+    only files this server writes: a theme's palettes.json (POST /palettes/<id>), its
     textures.json (POST /textures/<id>) and its sounds-choice.json (POST /sounds/<id>), for a
-    theme whose folder exists, each replaced whole so that a save cut short leaves the old file.
+    theme whose folder exists; the tracks' page saves their notes (POST /tracks). Each file is
+    replaced whole so that a save cut short leaves the old one.
     """
     import http.server
     import json
@@ -679,6 +693,10 @@ def task_themes():
         if not isinstance(document.get("signals"), dict) or not isinstance(document.get("families"), list):
             raise ValueError("no signals or families")
 
+    def tracks(document):
+        if not isinstance(document.get("tracks"), dict):
+            raise ValueError("no tracks")
+
     # What a POST may write: its path's kind, the file it writes for a theme, and what its body must hold.
     SAVES = {
         "palettes": (lambda theme: PALETTES / theme / "palettes.json", palettes),
@@ -693,17 +711,21 @@ def task_themes():
         def do_POST(self):
             # Read whole first: a request answered before its body is read leaves the client writing into a closed socket.
             body = self.rfile.read(int(self.headers.get("Content-Length", 0))).decode("utf-8")
-            match = re.fullmatch(r"/(palettes|textures|sounds)/([a-z][a-z0-9_]*)", self.path)
-            if not match or not (THEME_SOURCES / match.group(2)).is_dir():
-                self.send_error(404)
-                return
-            target_of, valid = SAVES[match.group(1)]
-            target = target_of(match.group(2))
+            if self.path == "/tracks":
+                kind, target, valid = "tracks", THEME_TRACK_NOTES, tracks
+            else:
+                match = re.fullmatch(r"/(palettes|textures|sounds)/([a-z][a-z0-9_]*)", self.path)
+                if not match or not (THEME_SOURCES / match.group(2)).is_dir():
+                    self.send_error(404)
+                    return
+                kind = match.group(1)
+                target_of, valid = SAVES[kind]
+                target = target_of(match.group(2))
             try:
                 document = json.loads(body)
                 valid(document)
             except ValueError as error:
-                self.send_error(400, f"not a {match.group(1)} document: {error}")
+                self.send_error(400, f"not a {kind} document: {error}")
                 return
             target.parent.mkdir(parents=True, exist_ok=True)
             partial = target.with_suffix(".json.part")
@@ -717,7 +739,7 @@ def task_themes():
             pass
 
     server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Bench)
-    url = f"http://127.0.0.1:{server.server_port}/{THEME_BENCHES.relative_to(ROOT)}"
+    url = f"http://127.0.0.1:{server.server_port}/{page.relative_to(ROOT)}"
     print(f"{url}\nCtrl+C to stop.")
     subprocess.Popen(["xdg-open", url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
@@ -741,6 +763,7 @@ ACTIONS = {
     "bench": task_bench,
     "bugs": task_bugs,
     "themes": task_themes,
+    "tracks": task_tracks,
     "clean": task_clean,
 }
 
@@ -759,6 +782,7 @@ LABELS = {
     "bench": "bench      free models played on the app's scenarios, on the emulator",
     "bugs": "bugs       the bugs noted on the phone (Dev › Treelune) into TODO.md, then deleted there",
     "themes": "themes     the themes' benches: their colours, their palettes and their sounds set and saved",
+    "tracks": "tracks     the theme tracks mocked up, noted and ranked in the order they will be made",
     "clean": "clean      drop build outputs",
 }
 
@@ -804,7 +828,7 @@ def menu():
     choices += [Separator("Release")]
     choices += [Choice(LABELS[k], k) for k in ("release", "install-release", "provider-facts")]
     choices += [Separator("Theme")]
-    choices += [Choice(LABELS["themes"], "themes")]
+    choices += [Choice(LABELS[k], k) for k in ("themes", "tracks")]
     choices += [Separator(""), Choice(LABELS["clean"], "clean")]
     choices += [Choice("quit", _QUIT)]
 

@@ -318,6 +318,22 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
 .close { position: fixed; top: 14px; right: 14px; }
 .count { color: #a9a69d; font-size: 12px; }
 
+/* The notes: the AI's on each track waiting, the user's beside it, the rank they give */
+.card-notes { display: block; font-size: 12px; color: #55534e; margin-top: 4px; }
+.card-notes b { color: #1f1e1d; }
+.card-rank { font-size: 11px; color: #fff; background: #2f6fd1; border-radius: 999px; padding: 0 7px; margin-right: 4px; }
+.rate { display: flex; flex-direction: column; align-items: center; gap: 6px; max-width: 760px; text-align: center; }
+.rate[hidden] { display: none; }
+.rate-ai { color: #cfccc3; font-size: 13px; }
+.rate-ai b { color: #f4f2ec; }
+.rate-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.rate-row button { width: 34px; height: 34px; border-radius: 8px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); color: #f4f2ec; font: 600 14px system-ui, sans-serif; cursor: pointer; }
+.rate-row button:hover { background: rgba(255,255,255,.22); }
+.rate-row button.on { background: #2f6fd1; border-color: #2f6fd1; }
+.rate-row button.ai { box-shadow: inset 0 -3px 0 #e0b34a; }
+.save-state { color: #a9a69d; font-size: 12px; min-height: 1em; }
+.save-state.failed { color: #ff8a7a; }
+
 /* The same zone screen in every track: only the theme's rules below change it */
 .phone { width: 390px; height: 844px; position: relative; overflow: hidden; box-sizing: border-box; border-radius: 28px; box-shadow: 0 1px 3px rgba(0,0,0,.18); }
 .phone * { box-sizing: border-box; }
@@ -618,11 +634,12 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
 <header class="page-head">
   <h1>Pistes de thème</h1>
   <p>Le même écran, la zone Santé, dessiné dans chaque registre essayé. Cliquer un aperçu pour l'agrandir ; ← et → passent à la piste voisine, Échap ferme.</p>
+  <p>Chaque piste en attente porte la note de l'IA et la tienne, sur 10 ; la plus haute passe en tête, c'est l'ordre d'implémentation. Noter se fait sur l'aperçu agrandi, par un clic ou les touches 1 à 9 et 0 pour 10, la page ouverte par <code>./run tracks</code>, qui enregistre dans <code>docs/theme-tracks.json</code> ; le nouvel ordre s'applique en fermant l'aperçu.</p>
 </header>
 
 <section class="series">
   <div class="cards">
-<figure class="card" data-index="0">
+<figure class="card" data-track="notebook">
 <div class="thumb" inert><div class="scaler">
 <div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; overflow: hidden; background-color: #f5efe0; background-image: repeating-linear-gradient(to bottom, transparent 0 27px, #cdd8e6 27px 28px); font-family: 'Crimson Pro', Georgia, serif; color: #1f2a44">
   <div style="position: absolute; top: 0; bottom: 0; left: 30px; width: 1.5px; background: #d98a8a"></div>
@@ -720,7 +737,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
 <figcaption><span class="card-name">Carnet</span> <span class="card-badge ">en attente</span><span class="card-desc">Papier ligné, écriture à la main, tuiles tracées au stylo, une courbe à main levée.</span></figcaption>
 <button class="open" aria-label="Agrandir Carnet"></button>
 </figure>
-<figure class="card" data-index="1">
+<figure class="card" data-track="eink">
 <div class="thumb" inert><div class="scaler">
 <div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; overflow: hidden; background: #ffffff; font-family: 'Atkinson Hyperlegible', sans-serif; color: #000000">
   <svg width="0" height="0" style="position: absolute">
@@ -825,7 +842,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
 <figcaption><span class="card-name">Monochrome / e-ink</span> <span class="card-badge ">en attente</span><span class="card-desc">Noir et blanc pur pour une liseuse, des hachures à la place des gris.</span></figcaption>
 <button class="open" aria-label="Agrandir Monochrome / e-ink"></button>
 </figure>
-<figure class="card" data-index="2">
+<figure class="card" data-track="terminal">
 <div class="thumb" inert><div class="scaler">
 <div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; overflow: hidden; background: #0c0b08; font-family: 'IBM Plex Mono', monospace; color: #ffb000; font-size: 14px; text-shadow: 0 0 6px rgba(255, 176, 0, 0.35)">
 
@@ -908,7 +925,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
 <figcaption><span class="card-name">Terminal</span> <span class="card-badge ">en attente</span><span class="card-desc">Texte monospace ambre sur noir, le chemin de la zone en titre, des cases [ ] et [x].</span></figcaption>
 <button class="open" aria-label="Agrandir Terminal"></button>
 </figure>
-<figure class="card" data-index="3">
+<figure class="card" data-track="cosy">
 <div class="thumb" inert><div class="scaler">
 <div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; overflow: hidden; background-color: #f1e8cf; background-image: radial-gradient(#e6d9b5 2px, transparent 2.5px); background-size: 22px 22px; font-family: 'Baloo 2', sans-serif; color: #5a4632">
 
@@ -1011,7 +1028,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
 <figcaption><span class="card-name">Cosy</span> <span class="card-badge kept">retenu</span><span class="card-desc">Rond et dodu, chaque pièce posée sur son ombre pleine.</span></figcaption>
 <button class="open" aria-label="Agrandir Cosy"></button>
 </figure>
-<figure class="card" data-index="4">
+<figure class="card" data-track="playing_cards">
 <div class="thumb" inert><div class="scaler">
 <div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; overflow: hidden; background: radial-gradient(ellipse at 50% 35%, #3d7356 0%, #2a5540 55%, #1b3a2b 100%); font-family: 'Alegreya', Georgia, serif; color: #2b1d10">
 
@@ -1112,7 +1129,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
 <figcaption><span class="card-name">Cartes à jouer</span> <span class="card-badge ">en attente</span><span class="card-desc">Un tapis vert, des cartes crème à liseré, des titres gravés.</span></figcaption>
 <button class="open" aria-label="Agrandir Cartes à jouer"></button>
 </figure>
-<figure class="card" data-index="5">
+<figure class="card" data-track="jrpg">
 <div class="thumb" inert><div class="scaler">
 <div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; overflow: hidden; background: radial-gradient(ellipse at 50% 20%, #26305e 0%, #0d1028 70%); font-family: 'Philosopher', sans-serif; color: #ffffff; text-shadow: 2px 2px 0 #000">
 
@@ -1208,7 +1225,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
 <figcaption><span class="card-name">Menu de JRPG</span> <span class="card-badge ">en attente</span><span class="card-desc">Des fenêtres bleues à bord blanc, un curseur en main, des quantités ×2.</span></figcaption>
 <button class="open" aria-label="Agrandir Menu de JRPG"></button>
 </figure>
-<figure class="card" data-index="6">
+<figure class="card" data-track="neon">
 <div class="thumb" inert><div class="scaler">
 <div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; overflow: hidden; background: linear-gradient(#0f0620 0%, #1d0838 70%, #34104f 100%); font-family: 'Chakra Petch', sans-serif; color: #f4eaff">
   <div style="position: absolute; left: -200px; right: -200px; bottom: -120px; height: 360px; background-image: linear-gradient(rgba(255, 63, 164, 0.5) 1.5px, transparent 1.5px), linear-gradient(90deg, rgba(255, 63, 164, 0.5) 1.5px, transparent 1.5px); background-size: 40px 40px; transform: perspective(260px) rotateX(62deg); transform-origin: 50% 0"></div>
@@ -1310,7 +1327,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
 <figcaption><span class="card-name">Arcade néon</span> <span class="card-badge ">en attente</span><span class="card-desc">Des néons cyan et rose sur la nuit, une grille en perspective.</span></figcaption>
 <button class="open" aria-label="Agrandir Arcade néon"></button>
 </figure>
-<figure class="card" data-index="7">
+<figure class="card" data-track="scifi_hud">
 <div class="thumb" inert><div class="scaler">
 <div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; overflow: hidden; background: radial-gradient(ellipse at 50% 0%, #0f2a3a 0%, #061018 65%); font-family: 'Rajdhani', sans-serif; color: #d8f6ff">
   <div style="position: absolute; inset: 0; background-image: linear-gradient(rgba(94, 230, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(94, 230, 255, 0.05) 1px, transparent 1px); background-size: 20px 20px"></div>
@@ -1438,7 +1455,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
 <figcaption><span class="card-name">HUD de science-fiction</span> <span class="card-badge ">en attente</span><span class="card-desc">Des traits fins cyan sur bleu nuit, des coins coupés, une jauge circulaire.</span></figcaption>
 <button class="open" aria-label="Agrandir HUD de science-fiction"></button>
 </figure>
-<figure class="card" data-index="8">
+<figure class="card" data-track="swiss">
 <div class="thumb" inert><div class="scaler">
 <section class="phone t-swiss" aria-label="Thème suisse">
 <header class="bar">
@@ -1470,7 +1487,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
 <figcaption><span class="card-name">Suisse</span> <span class="card-badge ">en attente</span><span class="card-desc">Une grille stricte, noir et blanc et un seul rouge, ni ombre ni arrondi : les chiffres en vedette.</span></figcaption>
 <button class="open" aria-label="Agrandir Suisse"></button>
 </figure>
-<figure class="card" data-index="9">
+<figure class="card" data-track="ink">
 <div class="thumb" inert><div class="scaler">
 <section class="phone t-ink" aria-label="Thème encre et lavis">
 <header class="bar">
@@ -1502,7 +1519,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
 <figcaption><span class="card-name">Encre et lavis</span> <span class="card-badge ">en attente</span><span class="card-desc">Papier crème, encre noire et rouge de sceau, beaucoup de vide ; le seul thème calme.</span></figcaption>
 <button class="open" aria-label="Agrandir Encre et lavis"></button>
 </figure>
-<figure class="card" data-index="10">
+<figure class="card" data-track="instruments">
 <div class="thumb" inert><div class="scaler">
 <section class="phone t-gauge" aria-label="Thème instruments">
 <header class="bar">
@@ -1534,7 +1551,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
 <figcaption><span class="card-name">Instruments</span> <span class="card-badge ">en attente</span><span class="card-desc">Un panneau noir vissé, des chiffres d&#x27;afficheur, des voyants pour les cases, un cadran à aiguille pour la jauge.</span></figcaption>
 <button class="open" aria-label="Agrandir Instruments"></button>
 </figure>
-<figure class="card" data-index="11">
+<figure class="card" data-track="riso">
 <div class="thumb" inert><div class="scaler">
 <section class="phone t-riso" aria-label="Thème risographie">
 <header class="bar">
@@ -1566,7 +1583,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
 <figcaption><span class="card-name">Risographie</span> <span class="card-badge ">en attente</span><span class="card-desc">Deux encres fluo, rose et bleu, imprimées un peu décalées ; les à-plats en trame de points.</span></figcaption>
 <button class="open" aria-label="Agrandir Risographie"></button>
 </figure>
-<figure class="card" data-index="12">
+<figure class="card" data-track="metro">
 <div class="thumb" inert><div class="scaler">
 <section class="phone t-metro" aria-label="Thème signalétique de métro">
 <header class="bar">
@@ -1598,7 +1615,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
 <figcaption><span class="card-name">Signalétique de métro</span> <span class="card-badge ">en attente</span><span class="card-desc">Chaque outil est une ligne dans la couleur de son icône, numérotée ; la zone est une station.</span></figcaption>
 <button class="open" aria-label="Agrandir Signalétique de métro"></button>
 </figure>
-<figure class="card" data-index="13">
+<figure class="card" data-track="mac">
 <div class="thumb" inert><div class="scaler">
 <section class="phone t-mac" aria-label="Thème Mac 1-bit">
 <header class="bar">
@@ -1630,7 +1647,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
 <figcaption><span class="card-name">Mac 1-bit</span> <span class="card-badge ">en attente</span><span class="card-desc">Chaque tuile est une fenêtre à barre rayée ; les gris sont des trames de pixels noirs et blancs.</span></figcaption>
 <button class="open" aria-label="Agrandir Mac 1-bit"></button>
 </figure>
-<figure class="card" data-index="14">
+<figure class="card" data-track="blueprint">
 <div class="thumb" inert><div class="scaler">
 <section class="phone t-blue" aria-label="Thème plan d'architecte">
 <header class="bar">
@@ -1662,7 +1679,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
 <figcaption><span class="card-name">Plan d&#x27;architecte</span> <span class="card-badge ">en attente</span><span class="card-desc">Des traits blancs sur un quadrillage bleu, des hachures, des cotes, un triangle de révision pour l&#x27;attente.</span></figcaption>
 <button class="open" aria-label="Agrandir Plan d&#x27;architecte"></button>
 </figure>
-<figure class="card" data-index="15">
+<figure class="card" data-track="cut_paper">
 <div class="thumb" inert><div class="scaler">
 <section class="phone t-paper" aria-label="Thème papier découpé">
 <header class="bar">
@@ -1700,6 +1717,11 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
 <dialog id="zoom" aria-label="Piste agrandie">
   <div class="zoom">
     <div class="zoom-head"><span class="card-name"></span><span class="card-badge"></span><span class="card-desc"></span></div>
+    <div class="rate" hidden>
+      <div class="rate-ai"></div>
+      <div class="rate-row"><span>Ta note</span></div>
+      <div class="save-state"></div>
+    </div>
     <div class="zoom-row">
       <button class="nav prev" aria-label="Piste précédente">←</button>
       <div class="stage"></div>
@@ -1711,7 +1733,8 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
 </dialog>
 
 <script>
-  const cards = [...document.querySelectorAll('.card')];
+  const grid = document.querySelector('.cards');
+  let cards = [...grid.querySelectorAll('.card')];
   const dialog = document.getElementById('zoom');
   const stage = dialog.querySelector('.stage');
   let current = 0;
@@ -1732,10 +1755,96 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
     zoomBadge.textContent = badge.textContent;
     zoomBadge.className = badge.className;
     dialog.querySelector('.count').textContent = (current + 1) + ' / ' + cards.length;
+    showRating(card.dataset.track);
     if (!dialog.open) dialog.showModal();
   }
 
-  cards.forEach((card, i) => card.querySelector('.open').addEventListener('click', () => show(i)));
+  // The notes live in docs/theme-tracks.json: the AI's note and its reason, the user's note, for each track waiting.
+  // ./run tracks serves this page with it and saves it back (POST /tracks); opened from the disk, the page shows no notes.
+  let notes = null;
+  const rate = dialog.querySelector('.rate');
+  const rateRow = rate.querySelector('.rate-row');
+  const saveState = rate.querySelector('.save-state');
+  for (let n = 1; n <= 10; n++) {
+    const button = document.createElement('button');
+    button.textContent = n;
+    button.addEventListener('click', () => setNote(n));
+    rateRow.append(button);
+  }
+
+  function showRating(track) {
+    const entry = notes && notes.tracks[track];
+    rate.hidden = !entry;
+    if (!entry) return;
+    rate.querySelector('.rate-ai').innerHTML = '<b>IA ' + entry.ai_note + '</b> · ';
+    rate.querySelector('.rate-ai').append(entry.ai_reason);
+    rateRow.querySelectorAll('button').forEach((button, i) => {
+      button.classList.toggle('on', entry.user_note === i + 1);
+      button.classList.toggle('ai', entry.ai_note === i + 1);
+    });
+    saveState.textContent = '';
+  }
+
+  async function setNote(n) {
+    const entry = notes && notes.tracks[cards[current].dataset.track];
+    if (!entry) return;
+    entry.user_note = entry.user_note === n ? null : n;
+    showRating(cards[current].dataset.track);
+    try {
+      const answer = await fetch('/tracks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(notes) });
+      if (!answer.ok) throw new Error(answer.status + ' ' + answer.statusText);
+      saveState.className = 'save-state';
+      saveState.textContent = 'Enregistré';
+    } catch (error) {
+      saveState.className = 'save-state failed';
+      saveState.textContent = 'Non enregistré : ' + error.message;
+    }
+  }
+
+  // The retained tracks first, then the waiting ones by the user's note, the AI's breaking a tie, unnoted ones last;
+  // each card says its notes, and its rank once the user has noted it.
+  function arrange() {
+    if (!notes) return;
+    const original = new Map(cards.map(card => [card, Number(card.dataset.order)]));
+    const key = card => {
+      const entry = notes.tracks[card.dataset.track];
+      return entry ? [1, -(entry.user_note ?? -1), -entry.ai_note] : [0, 0, 0];
+    };
+    cards.sort((a, b) => {
+      const ka = key(a), kb = key(b);
+      for (let i = 0; i < 3; i++) if (ka[i] !== kb[i]) return ka[i] - kb[i];
+      return original.get(a) - original.get(b);
+    });
+    let rank = 0;
+    for (const card of cards) {
+      grid.append(card);
+      const entry = notes.tracks[card.dataset.track];
+      const caption = card.querySelector('figcaption');
+      caption.querySelector('.card-rank')?.remove();
+      caption.querySelector('.card-notes')?.remove();
+      if (!entry) continue;
+      if (entry.user_note != null) {
+        const badge = document.createElement('span');
+        badge.className = 'card-rank';
+        badge.textContent = 'n° ' + ++rank;
+        caption.prepend(badge);
+      }
+      const line = document.createElement('span');
+      line.className = 'card-notes';
+      line.innerHTML = 'IA <b>' + entry.ai_note + '</b> · toi <b>' + (entry.user_note ?? '–') + '</b>';
+      caption.append(line);
+    }
+  }
+
+  cards.forEach((card, i) => {
+    card.dataset.order = i;
+    card.querySelector('.open').addEventListener('click', () => show(cards.indexOf(card)));
+  });
+  dialog.addEventListener('close', arrange);
+  fetch('theme-tracks.json', { cache: 'no-store' })
+    .then(answer => answer.ok ? answer.json() : null)
+    .then(loaded => { notes = loaded; arrange(); })
+    .catch(() => {});
   dialog.querySelector('.prev').addEventListener('click', () => show(current - 1));
   dialog.querySelector('.next').addEventListener('click', () => show(current + 1));
   dialog.querySelector('.close').addEventListener('click', () => dialog.close());
@@ -1745,6 +1854,7 @@ dialog::backdrop { background: rgba(22,21,19,.82); }
     if (!dialog.open) return;
     if (e.key === 'ArrowLeft') show(current - 1);
     if (e.key === 'ArrowRight') show(current + 1);
+    if (/^[0-9]$/.test(e.key)) setNote(e.key === '0' ? 10 : Number(e.key));
   });
   window.addEventListener('resize', () => { if (dialog.open) show(current); });
 </script>
