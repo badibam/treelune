@@ -105,6 +105,7 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 
 ## Bugs du téléphone
 
+- La page d'un champ dans le formulaire de config d'un outil s'intitule « Ressenti · SCALE » : le type y est écrit par son nom technique, pas par son libellé (« Échelle »), vu le 2026-10-16.
 
 ## En attente d'un déclencheur
 
