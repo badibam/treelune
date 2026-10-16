@@ -88,6 +88,7 @@ import app.treelune.core.ai.data.MessageSender
 import app.treelune.core.icons.IconSource
 import app.treelune.core.icons.Icons
 import app.treelune.core.strings.Strings
+import app.treelune.core.themes.SelectionAction
 import app.treelune.core.themes.PaletteMode
 import app.treelune.core.themes.CurrentTheme
 import app.treelune.core.themes.TagColor
@@ -421,6 +422,33 @@ object RetroTheme : ThemeContract {
     @Composable
     override fun ReorderItem(lifted: Boolean, content: @Composable () -> Unit) {
         CompositionLocalProvider(LocalRetroLifted provides lifted) { content() }
+    }
+
+    /**
+     * A panel, as the snackbar's: its words side by side a finger's target tall, a cell apart and
+     * without a frame each, going to a second line when they do not hold on one; a word pressed is
+     * inverted, the ink filling its place and the word in the panel's ground.
+     */
+    @Composable
+    override fun SelectionBar(actions: List<SelectionAction>) {
+        val grid = retroGrid()
+        val panel = retroColors.panel
+        Framed {
+            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(grid.cells(1))) {
+                for (action in actions) {
+                    Pressable(onClick = action.onClick) { pressed ->
+                        Box(
+                            modifier = Modifier
+                                .heightIn(min = grid.cells(touchRows))
+                                .background(if (pressed) panel.ink.srgb else Color.Transparent),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Line(action.label, grid.text, (if (pressed) panel.ground else panel.ink).srgb)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     override fun getTagColor(color: TagColor, mode: PaletteMode): Color = RetroPalettes.colors(mode, 0).tag(color).srgb

@@ -1,5 +1,8 @@
 package app.treelune.themes.cosy
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import app.treelune.core.ui.components.LocalButtonFill
 import android.content.Context
 import android.os.Handler
@@ -94,6 +97,7 @@ import app.treelune.core.ai.data.MessageSender
 import app.treelune.core.icons.IconSource
 import app.treelune.core.icons.Icons
 import app.treelune.core.strings.Strings
+import app.treelune.core.themes.SelectionAction
 import app.treelune.core.themes.CurrentTheme
 import app.treelune.core.themes.PaletteMode
 import app.treelune.core.themes.TagColor
@@ -405,6 +409,40 @@ object CosyTheme : ThemeContract {
     /** Lifted, an item grows a little and tilts; put down, it springs back to its place. */
     @Composable
     override fun ReorderItem(lifted: Boolean, content: @Composable () -> Unit) = Lifted(lifted, content)
+
+    /**
+     * A tile on its shadow, its words side by side a finger's target tall, going to a second line
+     * when they do not hold on one; a word touched sinks the whole bar, which springs back.
+     */
+    @Composable
+    override fun SelectionBar(actions: List<SelectionAction>) {
+        val size = cosySize()
+        val c = cosyColors
+        val source = remember { MutableInteractionSource() }
+        val pressed by source.collectIsPressedAsState()
+        Raised(
+            shape = RoundedCornerShape(size.tileRadius),
+            fill = c.tile.srgb,
+            shadow = c.shadow.srgb,
+            depth = size.tileDepth,
+            pressed = pressed,
+            padding = size.dp(6f)
+        ) {
+            androidx.compose.foundation.layout.FlowRow {
+                for (action in actions) {
+                    Box(
+                        modifier = Modifier
+                            .heightIn(min = size.touch)
+                            .clickable(interactionSource = source, indication = null, onClick = action.onClick)
+                            .padding(horizontal = size.dp(12f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Line(action.label, size.button, c.ink.srgb, maxLines = 1)
+                    }
+                }
+            }
+        }
+    }
 
     override fun getTagColor(color: TagColor, mode: PaletteMode): Color = CosyPalettes.colors(mode, 0).tag(color).srgb
 

@@ -1,0 +1,77 @@
+{
+  "_about": "The retro theme's sound choice, written by the sound bench (./run themes) and read by scripts/theme_sounds.py (docs/THEMES.md): Saylune's choices, reconstructed on 2026-10-16 from the files they made.",
+  "gain_db": -10,
+  "families": [
+    "Interface Sounds · click",
+    "Interface Sounds · tick",
+    "Interface Sounds · error",
+    "UI Audio · switch",
+    "UI Audio · rollover"
+  ],
+  "signals": {
+    "confirm": {
+      "choice": "Interface Sounds · click_004",
+      "offset_db": 0,
+      "shortlist": [
+        "Interface Sounds · click_004"
+      ]
+    },
+    "enter": {
+      "choice": "Interface Sounds · click_003",
+      "offset_db": 0,
+      "shortlist": [
+        "Interface Sounds · click_003"
+      ]
+    },
+    "back": {
+      "choice": "Interface Sounds · click_002",
+      "offset_db": 0,
+      "shortlist": [
+        "Interface Sounds · click_002"
+      ]
+    },
+    "open": {
+      "choice": "UI Audio · switch5",
+      "offset_db": 0,
+      "shortlist": [
+        "UI Audio · switch5"
+      ]
+    },
+    "close": {
+      "choice": "UI Audio · switch2",
+      "offset_db": 0,
+      "shortlist": [
+        "UI Audio · switch2"
+      ]
+    },
+    "toggle": {
+      "choice": "UI Audio · switch7",
+      "offset_db": 0,
+      "shortlist": [
+        "UI Audio · switch7"
+      ]
+    },
+    "step": {
+      "choice": "Interface Sounds · tick_001",
+      "offset_db": 0,
+      "shortlist": [
+        "Interface Sounds · tick_001"
+      ]
+    },
+    "scroll_end": {
+      "choice": "UI Audio · rollover6",
+      "offset_db": 0,
+      "shortlist": [
+        "UI Audio · rollover6"
+      ]
+    },
+    "refuse": {
+      "choice": "Interface Sounds · error_008",
+      "offset_db": 0,
+      "shortlist": [
+        "Interface Sounds · error_008"
+      ]
+    }
+  },
+  "recipes": {}
+}
