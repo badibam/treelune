@@ -98,6 +98,21 @@ object CommandTransformer {
                     }
                     "FILE" -> transformFileCommand(command)
                     "IMPORT_PLAN" -> transformImportPlanCommand(command)
+                    // The identities (docs/design/incarnations.md): a null, an id missing, is said by the loop as invalid params
+                    "IDENTITIES" -> ExecutableCommand(resource = "identities", operation = "list", params = emptyMap())
+                    "IDENTITY" -> (command.params["id"] as? String)?.let { id ->
+                        ExecutableCommand(resource = "identities", operation = "read", params = buildMap {
+                            put("identity_id", id)
+                            (command.params["language"] as? String)?.let { put("language", it) }
+                        })
+                    }
+                    "IDENTITY_RESOURCE" -> (command.params["id"] as? String)?.let { id ->
+                        ExecutableCommand(resource = "identities", operation = "read_resource", params = buildMap {
+                            put("identity_id", id)
+                            put("key", command.params["key"] as? String ?: return@let null)
+                            (command.params["language"] as? String)?.let { put("language", it) }
+                        })
+                    }
                     // The settings of a category the service opens to the AI (AppSettings.OPEN_TO_AI)
                     "APP_CONFIG" -> ExecutableCommand(
                         resource = "app_config",

@@ -23,7 +23,7 @@ Le premier export, `stan-prokopenko`, est publié le 2026-10-16 (`format` 1, `en
 - **Tout s'édite à la main**, dans l'écran de l'identité, et une identité peut naître sans export. Un import garde l'`id` de personae ; une identité écrite à la main reçoit le sien.
 - Une identité écrite à la main demande un nom et une langue ; voix, esprit et portrait sont facultatifs, et un morceau vide ne part pas dans le prompt.
 - Chaque morceau importé garde son adresse personae comme origine, montrée sur l'écran de l'identité ; une retouche l'efface.
-- **Édition en texte brut seul, lecture mise en forme.** Le lecteur du Guide (`GuideMarkup` : `##`, `- `, `{icône}`) ne connaît ni `#`, ni le gras, ni l'italique : il s'étend, et devient le seul lecteur de l'app (Guide, usage d'un outil, identités).
+- **Édition en texte brut seul, lecture mise en forme.** Le lecteur du Guide (`GuideMarkup`) lit aussi les titres `#` à `###` et les listes `* `, et devient le seul lecteur de l'app (Guide, usage d'un outil, identités). Le gras et l'italique sont lus et leurs marques retirées : les thèmes ne dessinent qu'un texte simple (`ThemeContract.Text`), les dessiner demande de l'étendre dans les trois thèmes.
 - **L'icône** se prend dans le vocabulaire Lucide, avec une couleur (`icon_color`), comme une zone ou un outil ; par défaut, `user-round`.
 - L'écran de l'identité montre la taille de chaque ressource du bagage.
 
@@ -42,8 +42,8 @@ Le premier export, `stan-prokopenko`, est publié le 2026-10-16 (`format` 1, `en
 
 ## Où elle intervient
 
-- **Associée à une zone**, dans les réglages de la zone : une identité au plus par zone ; une identité peut servir dans plusieurs zones. `identity_id` est dans la config de la zone : l'IA l'écrit comme le reste de cette config, sous le niveau de validation de la zone.
-- **La tuile d'identité**, en haut de la zone : l'icône de l'identité, son nom, et un bouton qui ouvre une nouvelle conversation avec elle. C'est le geste qui ouvre déjà une conversation depuis une zone (`ChatRequests.open`), avec ses règles : une conversation active est arrêtée et reste dans l'historique ; une routine qui tourne fait demander s'il faut l'interrompre. L'ouverture ne joint pas les données de la zone : un pointeur s'ajoute d'un geste.
+- **Associée à une zone**, dans les réglages de la zone : une identité au plus par zone ; une identité peut servir dans plusieurs zones. `identity_id` est dans la config de la zone : l'IA l'écrit comme le reste de cette config, au niveau de validation de l'app, qui garde les réglages d'une zone.
+- **La tuile d'identité**, en haut de la zone : l'icône de l'identité, son nom, et un bouton qui ouvre une nouvelle conversation avec elle. C'est le geste qui ouvre déjà une conversation depuis une zone (`ChatRequests.open`), avec ses règles (`AIOrchestrator.startNewChatSession`) : une conversation active est arrêtée et reste dans l'historique ; une routine qui tourne est suspendue, et reprend quand la place se libère. L'ouverture ne joint pas les données de la zone : un pointeur s'ajoute d'un geste.
 - **Le bouton de conversation flottant ne change pas** : il ouvre la session active, ou propose d'en démarrer une.
 - **La puce de la barre du chat**, à droite des enrichissements, montre l'identité de la session. Avant le premier message, elle propose toutes les identités existantes et l'IA ordinaire ; une conversation ouverte par la tuile arrive avec la sienne. Après, elle se voit mais ne change plus, et la toucher dit qu'une autre conversation change d'interlocuteur.
 - **L'identité se fixe au premier message** d'une session. Ce qui se fixe, c'est qui parle, pas une version : une identité modifiée ou réimportée vaut dès le tour suivant, dans les sessions en cours aussi.
@@ -70,7 +70,7 @@ Le premier export, `stan-prokopenko`, est publié le 2026-10-16 (`format` 1, `en
 - La voix, l'esprit et le portrait, toujours, dans la langue choisie, au L1, juste après le rôle de l'IA, avec la consigne des deux rôles. Le L1 ne change pas au cours d'une session : chez Claude, ils prennent son point de cache (l'app pose déjà les quatre permis, `ClaudeExtensions`).
 - La liste du bagage : clé, titre et description de chaque ressource.
 - Le prompt étant reconstruit de la base à chaque appel, chaque morceau y est une fois, remplacé quand il change.
-- À mesurer sur la première session avec une identité : les tokens d'un tour, en cache ou non — la mesure que personae attend pour décider de versions compactes.
+- À mesurer sur la première session avec une identité : les tokens d'un tour, en cache ou non (les statistiques de la session ; la taille du L1 dans la ligne « Prompt data built » du journal) — la mesure que personae attend pour décider de versions compactes.
 
 ## Le bagage
 
@@ -82,7 +82,7 @@ Un service `identities`, ouvert à toute IA : l'IA intégrée, en session ou en 
 
 - **Lire** : la liste des identités ; une identité (voix, esprit, portrait, liste du bagage) ; une ressource du bagage par sa clé. La langue se donne en paramètre ; absente, c'est celle de l'identité, et le résultat dit laquelle il a lue.
 - **Modifier** : créer une identité ; remplacer un morceau entier (une voix, une ressource) ; ajouter ou retirer une ressource ; changer le nom, l'icône, la langue. Jamais un bout de texte : l'IA renvoie le morceau entier.
-- **Validation** : au niveau de l'app (`validate_app`, avec les zones et les groupes de l'accueil). Par le connecteur, une écriture gardée attend l'accord par notification (`McpApprovals`) ; une routine sous un masque ne les atteint pas, `AccessRules` refusant ce qu'il ne sait pas placer.
+- **Validation** : au niveau de l'app (`validate_app`, avec les zones et les groupes de l'accueil). Par le connecteur, une écriture gardée attend l'accord par notification (`McpApprovals`). Sous un masque d'accès (une routine, un client du connecteur), la lecture reste libre, pour qu'une routine incarnée lise son bagage, et l'écriture est refusée, comme celle de l'app (`AccessRules`).
 - **Sans limite de taille en conversation** : la limite a été posée pour les données des outils, dont la taille ne se connaît pas d'avance ; celle d'une identité se lit sur son écran, et un morceau trop long se coupe ou se retire à la main. Par le connecteur, une lecture d'identité suit la règle commune des lectures (`McpReads`, `docs/AI.md`, « Seuil de taille des données ») : au-delà du seuil, elle part en tranches.
 - **Un même texte n'est envoyé qu'une fois par session**, comme un schéma (`CommandExecutor`, résultat `CACHED`) : une seconde demande sur une clé dont le texte n'a pas changé répond « déjà dans cette session » ; un texte changé depuis (par l'IA ou à l'écran) est renvoyé en entier, le résultat disant qu'il remplace la lecture précédente. Un changement fait à l'écran n'est pas signalé de lui-même : l'IA relit quand on le lui dit. Le connecteur, sans session, n'a pas ce garde.
 - Une modification par l'IA compte comme une retouche à la main : une réimportation la nomme parmi les pertes.

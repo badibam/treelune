@@ -11,10 +11,13 @@ import kotlinx.coroutines.flow.asSharedFlow
  * main screen, which holds the chat, opens it (AIOrchestrator.startNewChatSession).
  */
 object ChatRequests {
-    private val _requests = MutableSharedFlow<List<MessageSegment>>(extraBufferCapacity = 1)
-    val requests: SharedFlow<List<MessageSegment>> = _requests.asSharedFlow()
+    /** A chat asked for: what its composer holds, and the identity it speaks as (null for the app's own AI). */
+    data class Request(val prefill: List<MessageSegment>, val identityId: String? = null)
 
-    fun open(prefill: List<MessageSegment>) {
-        _requests.tryEmit(prefill)
+    private val _requests = MutableSharedFlow<Request>(extraBufferCapacity = 1)
+    val requests: SharedFlow<Request> = _requests.asSharedFlow()
+
+    fun open(prefill: List<MessageSegment>, identityId: String? = null) {
+        _requests.tryEmit(Request(prefill, identityId))
     }
 }

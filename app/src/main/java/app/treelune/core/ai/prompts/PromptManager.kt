@@ -53,6 +53,13 @@ object PromptManager {
         // 2. Build Level 1 (DOC + limits) using PromptChunks
         LogManager.aiPrompt("Building Level 1 (DOC)", "DEBUG")
 
+        // The identity it speaks as, as it is now: one changed or reimported speaks from this turn.
+        // One deleted leaves the session unable to go on, said rather than answered without it
+        val identity = (sessionData["identity_id"] as? String)?.let { id ->
+            app.treelune.core.database.AppDatabase.getDatabase(context).identityDao().getById(id)?.toIdentity()
+                ?: throw IllegalStateException(Strings.`for`(context = context).shared("identity_session_gone"))
+        }
+
         // Generate complete documentation with PromptChunks (schemas included via placeholders)
         val level1Content = PromptChunks.buildLevel1StaticDoc(
             context = context,
@@ -61,7 +68,8 @@ object PromptManager {
                 includeDegree1 = true,
                 includeDegree2 = true,
                 includeDegree3 = false
-            )
+            ),
+            identity = identity
         )
 
         // 3. Build Level 2 (USER DATA - always_send tools), with what an automation's AI may
@@ -535,12 +543,20 @@ object PromptManager {
         // The groups a zone may hold, in their order on the home screen
         val zoneGroups = org.json.JSONArray(app.treelune.core.services.AppConfigService(context).getZoneGroups())
 
+        // The identities, each by its id, name and the language it speaks, never their texts
+        val identities = org.json.JSONArray().apply {
+            app.treelune.core.database.AppDatabase.getDatabase(context).identityDao().getAll().forEach {
+                put(JSONObject().put("id", it.id).put("name", it.name).put("language", it.language))
+            }
+        }
+
         val snapshot = org.json.JSONObject().apply {
             put("timestamp", timestamp)
             put("zone_groups", zoneGroups)
             put("zones", zonesArray)
             put("tool_instances", toolInstancesArray)
             put("automations", automationsArray)
+            put("identities", identities)
         }
 
         return snapshot.toString()
@@ -597,6 +613,15 @@ object PromptManager {
             sb.appendLine()
             sb.appendLine("```json")
             sb.appendLine(automations.toString(2))
+            sb.appendLine("```")
+        }
+        // A snapshot stored before the identities were part of it has none to show
+        snapshotObj.optJSONArray("identities")?.let { identities ->
+            sb.appendLine()
+            sb.appendLine("### ${s.shared("ai_prompt_level3_identities_title")}")
+            sb.appendLine()
+            sb.appendLine("```json")
+            sb.appendLine(identities.toString(2))
             sb.appendLine("```")
         }
 

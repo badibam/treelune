@@ -117,7 +117,8 @@ object PromptChunks {
     suspend fun buildLevel1StaticDoc(
         context: Context,
         sessionType: SessionType,
-        config: ChunkConfig = ChunkConfig()
+        config: ChunkConfig = ChunkConfig(),
+        identity: app.treelune.core.identities.Identity? = null
     ): String {
         val sb = StringBuilder()
 
@@ -128,6 +129,13 @@ object PromptChunks {
             val content = chunk.builder(context, sessionType)
             if (content.isNotEmpty()) {
                 sb.appendLine(content)
+                sb.appendLine()
+            }
+            // Who speaks, right after the AI's role: the L1 does not change in a session, so
+            // the identity's texts share its cache
+            if (chunk.id == "intro_role" && identity != null) {
+                val s = Strings.`for`(context = context)
+                sb.appendLine(app.treelune.core.identities.IdentityPrompt.block(identity, s::shared))
                 sb.appendLine()
             }
         }

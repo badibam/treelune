@@ -104,7 +104,9 @@ fun UI.RichComposer(
     sessionType: SessionType = SessionType.CHAT,
     sessionId: String? = null,
     boundedBlocks: Boolean = true,
-    statusContent: (@Composable () -> Unit)? = null
+    statusContent: (@Composable () -> Unit)? = null,
+    /** What closes the row of enrichments, at its right end: a conversation's identity chip */
+    trailingControl: (@Composable () -> Unit)? = null
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -375,6 +377,11 @@ fun UI.RichComposer(
                     text = "+ ${s.shared("ai_composer_add_text")}",
                     type = TextType.BODY
                 )
+            }
+
+            if (trailingControl != null) {
+                Spacer(modifier = Modifier.weight(1f))
+                trailingControl()
             }
         }
     }

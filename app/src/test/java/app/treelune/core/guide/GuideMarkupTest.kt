@@ -30,4 +30,18 @@ class GuideMarkupTest {
     fun `a line without its space after the mark is a paragraph`() {
         assertEquals(listOf(GuideBlock.Paragraph("##Title"), GuideBlock.Paragraph("-dash")), GuideMarkup.parse("##Title\n-dash"))
     }
+
+    @Test
+    fun `an identity's Markdown reads with its heading levels and star lists, emphasis taken off`() {
+        val text = "# Voix\n### Consigne\n* **Registre.** Oral *très* relâché, 4*5 = 20\n- a_b_c"
+        assertEquals(
+            listOf(
+                GuideBlock.Heading("Voix"),
+                GuideBlock.Heading("Consigne"),
+                GuideBlock.Item("Registre. Oral très relâché, 4*5 = 20", null),
+                GuideBlock.Item("a_b_c", null)
+            ),
+            GuideMarkup.parse(text)
+        )
+    }
 }

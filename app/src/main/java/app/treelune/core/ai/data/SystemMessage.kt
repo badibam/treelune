@@ -11,7 +11,12 @@ data class SystemMessage(
     val type: SystemMessageType,
     val commandResults: List<CommandResult>,  // Metadata (success/failure per command)
     val summary: String,                       // Human-readable summary for UI display
-    val formattedData: String? = null         // Complete JSON results for prompt inclusion
+    val formattedData: String? = null,        // Complete JSON results for prompt inclusion
+    /**
+     * The characters of [formattedData] left out of the session's data threshold (identity
+     * reads, PromptCommandResult.sizeExempt): weighed when the data is stored, never stored itself
+     */
+    val exemptChars: Int = 0
 ) {
     /**
      * What the chat folds under "Details", below the summary: the text written for the AI, or the

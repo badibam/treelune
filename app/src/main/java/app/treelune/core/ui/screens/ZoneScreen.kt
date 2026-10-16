@@ -249,6 +249,10 @@ fun ZoneScreen(zone: Zone) {
             onRightClick = { Navigator.push(Place.ZoneConfig(zone.id)) }
         )
 
+        // The identity its tile opens a conversation with, under its header
+        val identities = app.treelune.core.identities.ui.rememberIdentities()
+        identities?.firstOrNull { it.id == zone.identity_id }?.let { app.treelune.core.identities.ui.IdentityTile(it) }
+
         // Display sections by group
         if (!loadedOnce) {
             UI.Text(

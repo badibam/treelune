@@ -122,7 +122,7 @@ class DemoService(private val context: Context) : ExecutableService {
         val provider = (providers.firstOrNull { it["is_configured"] == true } ?: providers.first())["id"] as String
         for (automation in content.automations) {
             val message = org.json.JSONArray().put(JSONObject().put("type", app.treelune.core.ai.data.AutomationMessage.TEXT).put("text", automation.getString("seed")))
-            run("automations.create", JSONObject(automation.toString()).apply { remove("seed") }.put("provider_id", provider).put("message", message))
+            run("automations.create", JSONObject(automation.toString()).apply { remove("seed") }.put("provider_id", provider).put(app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID, JSONObject.NULL).put("message", message))
         }
     }
 

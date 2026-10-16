@@ -337,7 +337,8 @@ object AIOrchestrator {
      *
      * @return The created session ID
      */
-    private suspend fun createNewChatSession(): String {
+    /** A new CHAT session, speaking as identity [identityId] (null for the app's own AI) until its first message fixes it. */
+    private suspend fun createNewChatSession(identityId: String? = null): String {
         val newSessionId = java.util.UUID.randomUUID().toString()
         val now = System.currentTimeMillis()
 
@@ -360,7 +361,8 @@ object AIOrchestrator {
             createdAt = now,
             lastActivity = now,
             isActive = false, // Will be activated by SessionActivationRequested
-            endReason = null
+            endReason = null,
+            identityId = identityId
         )
 
         aiDao.insertSession(session)
@@ -469,13 +471,13 @@ object AIOrchestrator {
      * Note: AUTOMATION sessions will be resumed automatically by the scheduler
      * when the slot becomes free again (after CHAT ends or becomes inactive).
      */
-    suspend fun startNewChatSession(prefill: List<MessageSegment> = emptyList()) {
+    suspend fun startNewChatSession(prefill: List<MessageSegment> = emptyList(), identityId: String? = null) {
         LogManager.aiSession("startNewChatSession called (prefill=${prefill.size} segments)", "INFO")
 
         val currentState = stateRepository.state.value
 
         // Step 1: Create NEW CHAT session (always creates, never reuses), its composer prefilled
-        val sessionId = createNewChatSession()
+        val sessionId = createNewChatSession(identityId)
         if (prefill.isNotEmpty()) saveDraftMessage(sessionId, prefill)
 
         // Step 2: Request activation via scheduler (will enqueue if slot occupied)
@@ -739,7 +741,9 @@ object AIOrchestrator {
                 createdAt = now,
                 lastActivity = now,
                 isActive = false, // Will be activated by SessionActivationRequested
-                endReason = null
+                endReason = null,
+                // Its routine's identity as it is at the run: one changed later speaks at the next
+                identityId = automation.identityId
             )
 
             aiDao.insertSession(session)

@@ -1,5 +1,6 @@
 package app.treelune.core.ai.prompts
 
+import app.treelune.core.identities.IdentityPrompt
 import app.treelune.core.utils.JsonUtils
 import android.content.Context
 import app.treelune.core.ai.data.*
@@ -23,8 +24,17 @@ import org.json.JSONObject
  */
 data class PromptCommandResult(
     val dataTitle: String,         // Title/header for data section in prompt
-    val formattedData: String      // JSON formatted data for prompt
+    val formattedData: String,     // JSON formatted data for prompt
+    /**
+     * Whether it is left out of the session's data threshold: an identity read, whose size is
+     * known and shown on the identity's screen (docs/design/incarnations.md, « Le bagage »)
+     */
+    val sizeExempt: Boolean = false
 )
+
+/** The characters of [toPromptSection] that come from results left out of the data threshold. */
+fun List<PromptCommandResult>.exemptChars(): Int =
+    filter { it.sizeExempt }.sumOf { "# ${it.dataTitle}\n${it.formattedData}".length + 2 }
 
 /**
  * The results of one batch as the section the model reads: a heading and the data under it.
@@ -68,6 +78,19 @@ class CommandExecutor(private val context: Context) {
      * of a tool are one schema per tool ("entries:<id>"), since its user's fields are in it; any
      * other schema is told by its name ("tracking_config", "zone_config").
      */
+    /**
+     * What an identity read is known by in a session, for it to be read once: the identity,
+     * the language asked (none for its own) and, for a resource, its key. Null for any other
+     * command.
+     */
+    private fun identityReadKey(command: ExecutableCommand): String? {
+        if (command.resource != "identities" || command.operation !in setOf("read", "read_resource")) return null
+        val id = command.params["identity_id"] as? String ?: return null
+        val language = command.params["language"] as? String ?: ""
+        return if (command.operation == "read") "identity:$id:$language"
+        else "identity_resource:$id:$language:${command.params["key"] as? String ?: return null}"
+    }
+
     private fun schemaKey(schemaId: String?, toolInstanceId: String?): String? =
         toolInstanceId?.let { "entries:$it" } ?: schemaId
 
@@ -186,6 +209,24 @@ class CommandExecutor(private val context: Context) {
                         currentBatchSchemas.add(deduplicationKey)
                     }
                 }
+            }
+
+            // An identity or one of its resources is read once in a session, as a schema is
+            identityReadKey(command)?.takeIf { sessionId != null }?.let { key ->
+                if (key in historicalSchemas || key in currentBatchSchemas) {
+                    promptResults.add(PromptCommandResult("", ""))
+                    commandResults.add(app.treelune.core.ai.data.CommandResult(
+                        command = "${command.resource}.${command.operation}",
+                        status = CommandStatus.CACHED,
+                        details = s.shared("ai_identity_already_read"),
+                        data = null,
+                        error = null,
+                        isActionCommand = false
+                    ))
+                    successCount++
+                    continue
+                }
+                currentBatchSchemas.add(key)
             }
 
             // Execute command normally (not a duplicate or not a schema)
@@ -328,7 +369,9 @@ class CommandExecutor(private val context: Context) {
                     val storedData = if (command.isActionCommand) {
                         filterActionResultData(command.operation, data)
                     } else {
-                        filterQueryResultData(command.resource, data)
+                        // An identity read keeps what tells it was read in the session
+                        identityReadKey(command)?.let { mapOf("read_key" to it) }
+                            ?: filterQueryResultData(command.resource, data)
                     }
 
                     LogManager.aiPrompt("Command succeeded", "DEBUG")
@@ -342,7 +385,7 @@ class CommandExecutor(private val context: Context) {
                     )
                     LogManager.aiPrompt("Created CommandResult: command=$commandString, isActionCommand=${cmdResult.isActionCommand}, data=${cmdResult.data}", "DEBUG")
                     return@withContext InternalCommandResult(
-                        promptResult = PromptCommandResult(dataTitle, formattedData),
+                        promptResult = PromptCommandResult(dataTitle, formattedData, sizeExempt = identityReadKey(command) != null),
                         commandResult = cmdResult
                     )
                 } else {
@@ -609,6 +652,7 @@ class CommandExecutor(private val context: Context) {
                     val schemaId = data["schema_id"] as? String ?: "unknown"
                     "Schema: $schemaId"
                 }
+                "identities" -> IdentityPrompt.title(command.operation, data)
                 "tools" -> {
                     when (command.operation) {
                         "get" -> {
@@ -729,6 +773,9 @@ class CommandExecutor(private val context: Context) {
     private fun formatResultData(command: ExecutableCommand, data: Map<String, Any>): String {
         val reordered = mutableMapOf<String, Any>()
         val timezone = AppConfigManager.getDateTimeConfig().getZoneId()
+
+        // An identity is read as its texts are written, never as escaped JSON
+        if (command.resource == "identities") IdentityPrompt.forModel(command.operation, data)?.let { return it }
 
         // A schema is read in its notation, not as the JSON the app validates against
         (data["content"] as? String)?.takeIf { command.resource == "schemas" }?.let { content ->
@@ -1105,6 +1152,12 @@ class CommandExecutor(private val context: Context) {
                     // Check all command results in this system message
                     for ((cmdIndex, commandResult) in systemMessage.commandResults.withIndex()) {
                         LogManager.aiPrompt("  Result $cmdIndex: command=${commandResult.command}, status=${commandResult.status}, hasData=${commandResult.data != null}", "VERBOSE")
+
+                        // An identity read: its key, read once in the session
+                        if (commandResult.command in setOf("identities.read", "identities.read_resource") &&
+                            commandResult.status == app.treelune.core.ai.data.CommandStatus.SUCCESS) {
+                            (commandResult.data?.get("read_key") as? String)?.let { schemaKeys.add(it) }
+                        }
 
                         // Look for successful schema.get commands
                         if (commandResult.command == "schemas.get" &&

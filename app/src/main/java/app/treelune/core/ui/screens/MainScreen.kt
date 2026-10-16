@@ -79,8 +79,8 @@ fun MainScreen(openToolId: String? = null, onToolOpened: () -> Unit = {}, openPl
 
     // A chat asked for from any screen, with its content, laid over that screen
     LaunchedEffect(Unit) {
-        app.treelune.core.ai.orchestration.ChatRequests.requests.collect { prefill ->
-            app.treelune.core.ai.orchestration.AIOrchestrator.startNewChatSession(prefill)
+        app.treelune.core.ai.orchestration.ChatRequests.requests.collect { request ->
+            app.treelune.core.ai.orchestration.AIOrchestrator.startNewChatSession(request.prefill, request.identityId)
             if (Navigator.top != Place.Chat) Navigator.push(Place.Chat)
         }
     }
@@ -238,6 +238,7 @@ private fun PlaceScreen(place: Place, zones: ZonesState, demoInstalled: Boolean)
             name(s.shared("settings_${place.id}"))
             when (place.id) {
                 "ai_providers" -> AIProvidersScreen(onBack = back)
+                "identities" -> app.treelune.core.identities.ui.IdentitiesScreen(onBack = back)
                 "format" -> AppSettingsScreen(category = AppSettingCategories.FORMAT, onBack = back)
                 "ai_limits" -> AppSettingsScreen(category = AppSettingCategories.AI_LIMITS, onBack = back)
                 "validation" -> AppSettingsScreen(category = AppSettingCategories.VALIDATION_CONFIG, onBack = back)
@@ -607,5 +608,6 @@ private fun zoneFrom(map: Map<String, Any?>): Zone = Zone(
     updated_at = (map["updated_at"] as Number).toLong(),
     tool_groups = (map["tool_groups"] as? List<*>)?.let { JsonUtils.toJSONArray(it).toString() },
     group = map["group"] as? String,
-    validate = map["validate"] as Boolean
+    validate = map["validate"] as Boolean,
+    identity_id = map["identity_id"] as? String
 )

@@ -15,25 +15,33 @@ sealed class GuideBlock {
 }
 
 /**
- * The markup of the Guide's texts (docs/design/user-journey.md, « Où ça vit »), a small part of
- * Markdown: `## ` begins a subtitle, `- ` a line of a list, and `{name}` right after it the Lucide
- * icon of that name. Every other line is a paragraph; empty lines only separate. A tool type's
- * usage is written in it too, which the AI reads as Markdown. scripts/check_guide.py keeps every
- * icon named an icon of the vocabulary, and braces anywhere else out.
+ * The markup of the app's texts, a small part of Markdown, read by one reader for the Guide, a
+ * tool type's usage and an identity's texts (docs/design/incarnations.md): `#`, `##` or `### `
+ * begins a subtitle, `- ` or `* ` a line of a list, and `{name}` right after it the Lucide icon of
+ * that name. Every other line is a paragraph; empty lines only separate. Emphasis (`**bold**`,
+ * `*italic*`) is read and its marks taken off: the themes draw plain text. A tool type's usage is
+ * written in it too, which the AI reads as Markdown. scripts/check_guide.py keeps every icon named
+ * an icon of the vocabulary, and braces anywhere else out.
  */
 object GuideMarkup {
 
     private val ICON = Regex("""^\{([a-z0-9-]+)\}\s*""")
+    private val HEADING = Regex("""^#{1,3} """)
+    private val BOLD = Regex("""\*\*(\S(?:.*?\S)?)\*\*""")
+    private val ITALIC = Regex("""(?<![\w*])\*(\S(?:.*?\S)?)\*(?![\w*])""")
 
     fun parse(text: String): List<GuideBlock> = text.lines().map { it.trim() }.filter { it.isNotEmpty() }.map { line ->
         when {
-            line.startsWith("## ") -> GuideBlock.Heading(line.removePrefix("## ").trim())
-            line.startsWith("- ") -> {
-                val rest = line.removePrefix("- ").trim()
+            HEADING.containsMatchIn(line) -> GuideBlock.Heading(plain(line.replaceFirst(HEADING, "").trim()))
+            line.startsWith("- ") || line.startsWith("* ") -> {
+                val rest = line.substring(2).trim()
                 val icon = ICON.find(rest)
-                GuideBlock.Item(icon?.let { rest.substring(it.range.last + 1) } ?: rest, icon?.groupValues?.get(1))
+                GuideBlock.Item(plain(icon?.let { rest.substring(it.range.last + 1) } ?: rest), icon?.groupValues?.get(1))
             }
-            else -> GuideBlock.Paragraph(line)
+            else -> GuideBlock.Paragraph(plain(line))
         }
     }
+
+    /** [line] without its emphasis marks. */
+    private fun plain(line: String): String = line.replace(BOLD, "$1").replace(ITALIC, "$1")
 }

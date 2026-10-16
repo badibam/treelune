@@ -535,6 +535,7 @@ Creates a zone.
 - `group` (string, optional): one of the zone groups of the home screen
 - `display_mode` (string, optional): how its tile shows on the home screen, `LINE` when left out
 - `tool_groups` (array, optional): the groups its tools are sorted into
+- `identity_id` (string, optional): the identity its tile opens a conversation with (IDENTITIES); none when left out
 
 **Validation schema**:
 {{SCHEMA:zone_config}}]]></string>
@@ -554,6 +555,7 @@ Changes a zone. Only what you give changes; `null` empties a field, except the n
 - `display_mode` (string, optional)
 - `tool_groups` (array, optional): the **whole** list, which replaces the old one. A group still held by a tool, an automation or a variable cannot be removed
 - `renames` (object, optional): the tool groups renamed in `tool_groups`, `{"tool_groups": {"former name": "new name"}}`: what holds a former name takes the new one
+- `identity_id` (string, optional): `null` removes it
 
 The zone is held to the schema given with CREATE_ZONE.]]></string>
     <string name="ai_command_delete_zone"><![CDATA[### DELETE_ZONE
@@ -635,7 +637,7 @@ Creates a routine in a zone: a message the app sends to an AI on its own, on a s
 **Parameters**:
 
 - `zone_id` (string, **required**)
-- `settings` (object, **required**): `name` and `provider_id` (one of the AI providers) required; `group` (one of the zone\'s tool groups), `is_enabled` (`true` by default), `schedule` (left out, it runs when the user starts it) and `catch_up` (with a schedule and only with it: `limit`, `limited` with its `window`, a duration, or `unlimited`; `dismiss_older_instances`, `true` to run only the latest of the runs missed)
+- `settings` (object, **required**): `name` and `provider_id` (one of the AI providers) required; `identity_id` required too, the identity its runs speak as (IDENTITIES), `null` for none: say it even when the zone has one, never take it for granted; `group` (one of the zone\'s tool groups), `is_enabled` (`true` by default), `schedule` (left out, it runs when the user starts it) and `catch_up` (with a schedule and only with it: `limit`, `limited` with its `window`, a duration, or `unlimited`; `dismiss_older_instances`, `true` to run only the latest of the runs missed)
 - `message` (array, **required**): its blocks, in order, `{"type": "text", "text": "..."}` and `{"type": "pointer", "pointer": {"selection": {...}, "attach": {"config": false, "entries": true}}}`. A pointer\'s selection is the one a chart\'s config holds, with a `period` whose relative dates are those of the run\'s scheduled time; `attach` says whether the target\'s config and its entries go with the message. No file, no image
 - `access` (array, optional): what its AI may reach, `[{"target": {"kind": "ZONE", "id": "..."}, "level": "read"}]`, kinds `ZONE` and `TOOL_INSTANCE`, levels `read`, `use`, `full`. Empty or left out, everything; when your own access is listed, it is refused, and you give only what you reach yourself
 
@@ -649,6 +651,7 @@ The whole shape: `SCHEMA` with `id` `automation_config`.
     "settings": {
       "name": "Weekly meals",
       "provider_id": "claude",
+      "identity_id": null,
       "schedule": { "pattern": { "type": "WeeklySimple", "days_of_week": [1], "time": "07:00" } },
       "catch_up": { "limit": "limited", "window": "PT12H", "dismiss_older_instances": true }
     },
@@ -1434,4 +1437,70 @@ Every tool type can also take custom fields, be filled in by the AI, and be read
     <string name="ai_mcp_context_intro"><![CDATA[# The app
 
 A personal life management application. Each of its commands is one of your tools, named by the command in lower case: an example written `{ "type": "SCHEMA", "params": { ... } }` is a call of the tool `schema` with those parameters. What a tool does and takes is in its own description.]]></string>
+
+    <!-- Identities (docs/design/incarnations.md): the commands, and the L1 section of a session speaking as one -->
+    <string name="ai_command_identities"><![CDATA[### IDENTITIES
+
+Lists the identities the app's AI may speak as: each one's `id`, `name`, the `language` it speaks and the `languages` it holds.]]></string>
+    <string name="ai_command_identity"><![CDATA[### IDENTITY
+
+Reads an identity: its voice, its mind and its portrait in one language, and its bagage listed (each resource's key, title, description and size). Read once in a session.
+
+**Parameters**:
+
+- `id` (string, **required**)
+- `language` (string, optional): one of its `languages`; the one it speaks when left out]]></string>
+    <string name="ai_command_identity_resource"><![CDATA[### IDENTITY_RESOURCE
+
+Reads one resource of an identity's bagage, whole. Read once in a session: ask for it when you need it, not before.
+
+**Parameters**:
+
+- `id` (string, **required**)
+- `key` (string, **required**): as IDENTITY lists it
+- `language` (string, optional): the one it speaks when left out]]></string>
+    <string name="ai_command_create_identity"><![CDATA[### CREATE_IDENTITY
+
+Creates an identity, empty: its texts are written with UPDATE_IDENTITY. An identity from personae is imported by the user, not created.
+
+**Parameters**:
+
+- `name` (string, **required**)
+- `language` (string, **required**): the language it speaks, a code (`fr`, `en`)
+- `icon_name` (string, optional): `user-round` when left out
+- `icon_color` (string, optional)]]></string>
+    <string name="ai_command_update_identity"><![CDATA[### UPDATE_IDENTITY
+
+Changes an identity. Only what you give changes. A text is written whole, never in part: read it first (IDENTITY, IDENTITY_RESOURCE).
+
+**Parameters**:
+
+- `identity_id` (string, **required**)
+- `name` (string, optional)
+- `icon_name` (string, optional)
+- `icon_color` (string, optional): `null` makes the icon neutral
+- `language` (string, optional): the language it speaks; one it does not hold yet is added, empty
+- `section` (string, optional): the language the texts below are written in; the one it speaks when left out
+- `voice` (string, optional): a text to imitate, its register; `""` removes it
+- `mind` (string, optional): its way of thinking; `""` removes it
+- `portrait` (string, optional): facts about the person; `""` removes it
+- `resources` (object, optional): by key, `{"title", "description", "content"}` to write a resource whole (a new key adds one), `null` to remove it; the `description` says when to call it up]]></string>
+    <string name="ai_command_delete_identity"><![CDATA[### DELETE_IDENTITY
+
+Deletes an identity. Refused while a zone or a routine names it, the refusal naming them.
+
+**Parameters**:
+
+- `identity_id` (string, **required**)]]></string>
+    <string name="ai_identity_block"><![CDATA[## Who speaks in this session: %1$s
+
+In this session, everything the user reads is written by %1$s: your `pre_text` and `post_text`, the questions of a communication module, and the text you write into entries (a note, a journal). Write them as %1$s would, in the voice below, from the mind below, as the one the portrait describes, in the language `%2$s`.
+
+You remain the app's AI for everything else: the JSON, the commands, the validations, the forms. The app's structure stays neutral, readable anywhere in the app without %1$s: the names and descriptions of zones, tools and fields, and a routine's message, which is an instruction to the AI, are written plainly.]]></string>
+    <string name="ai_identity_piece_voice">Voice</string>
+    <string name="ai_identity_piece_mind">Mind</string>
+    <string name="ai_identity_piece_portrait">Portrait</string>
+    <string name="ai_identity_bagage_title">Bagage</string>
+    <string name="ai_identity_bagage"><![CDATA[Resources %1$s may read when they need one, with IDENTITY_RESOURCE (`id`: `%2$s`, `key`), each once in the session:]]></string>
+    <string name="ai_identity_bagage_none">None.</string>
 </resources>

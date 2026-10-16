@@ -77,6 +77,8 @@ class AISessionService(private val context: Context) : ExecutableService {
                 "update_validation" -> updateValidation(params, token)
                 // The reasoning it asks of its model, or its provider's config again
                 "update_reasoning" -> updateReasoning(params, token)
+                // Who it speaks as, until its first message fixes it
+                "set_identity" -> setIdentity(params)
 
                 // Session state updates (V2 - managed by AIStateRepository)
                 "set_end_reason" -> setEndReason(params, token)
@@ -96,7 +98,25 @@ class AISessionService(private val context: Context) : ExecutableService {
         }
     }
 
-    // TODO: Implement all CRUD operations
+    /**
+     * The identity a CHAT session speaks as: `session_id`, `identity_id` (null for the app's own
+     * AI). Refused once the user has sent a message: from there it is fixed, another conversation
+     * changing who speaks (docs/design/incarnations.md).
+     */
+    private suspend fun setIdentity(params: JSONObject): OperationResult {
+        val sessionId = params.optString("session_id").takeIf { it.isNotEmpty() }
+            ?: return OperationResult.error(s.shared("ai_error_param_session_id_required"))
+        val session = aiDao.getSession(sessionId) ?: return OperationResult.error(s.shared("ai_error_session_not_found").format(sessionId))
+        if (session.type != SessionType.CHAT) return OperationResult.error(s.shared("identity_session_not_chat"))
+        if (aiDao.getMessagesForSession(sessionId).any { it.sender == app.treelune.core.ai.data.MessageSender.USER })
+            return OperationResult.error(s.shared("identity_session_fixed"))
+        val identityId = params.optString("identity_id").takeIf { it.isNotEmpty() && !params.isNull("identity_id") }
+        if (identityId != null && AppDatabase.getDatabase(context).identityDao().getById(identityId) == null)
+            return OperationResult.error(s.shared("identity_error_not_found").format(identityId))
+        aiDao.updateSession(session.copy(identityId = identityId))
+        return OperationResult.success(mapOf("session_id" to sessionId, "identity_id" to (identityId ?: JSONObject.NULL)))
+    }
+
     private suspend fun createSession(params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
 
@@ -120,9 +140,14 @@ class AISessionService(private val context: Context) : ExecutableService {
         }
         val now = System.currentTimeMillis()
 
+        val identityId = params.optString("identity_id").takeIf { it.isNotEmpty() && !params.isNull("identity_id") }
+        if (identityId != null && AppDatabase.getDatabase(context).identityDao().getById(identityId) == null)
+            return OperationResult.error(s.shared("identity_error_not_found").format(identityId))
+
         val sessionEntity = AISessionEntity(
             id = sessionId,
             name = name,
+            identityId = identityId,
             type = SessionType.valueOf(type),
             automationId = params.optString("automation_id").takeIf { it.isNotEmpty() }, // null for CHAT
             scheduledExecutionTime = if (params.has("scheduled_execution_time")) params.getLong("scheduled_execution_time") else null,
@@ -193,6 +218,7 @@ class AISessionService(private val context: Context) : ExecutableService {
                     "is_active" to sessionEntity.isActive,
                     "end_reason" to sessionEntity.endReason,
                     "summary" to sessionEntity.summary,
+                    "identity_id" to sessionEntity.identityId,
                     // Frozen at the first call: PromptManager builds L3 from it, and a snapshot
                     // rebuilt on each call changes the prompt right after L1, where the
                     // provider's cache then stops

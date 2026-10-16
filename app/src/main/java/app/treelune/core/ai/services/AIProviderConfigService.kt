@@ -240,6 +240,12 @@ class AIProviderConfigService(private val context: Context) : ExecutableService 
                 return OperationResult.error(s.shared("ai_error_provider_not_configured").format(providerId))
             }
 
+            // Refused while a routine runs on it, naming them: changed by hand first
+            app.treelune.core.services.InUse.provider(database, providerId).refusal(config.displayName, s)?.let { refusal ->
+                LogManager.aiService("Provider $providerId still used: $refusal", "INFO")
+                return OperationResult.error(refusal)
+            }
+
             // If provider is active, deactivate it first
             if (config.isActive) {
                 LogManager.aiService("Provider is active, deactivating before deletion: $providerId", "INFO")

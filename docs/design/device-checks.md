@@ -355,3 +355,17 @@ Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la po
 - La même réglée « En cas de problème », qui finit bien : ni notification ni point. Réglée « Jamais » : rien, le résumé lisible dans l'exécution.
 - Dans l'exécution, sous « Détails » : la confirmation demandée avec le résumé ; une IA qui confirme sans résumé reçoit le rappel une fois.
 - La fenêtre de la routine (Configurer) montre « Me signaler la fin » ; changé et enregistré, il tient à la réouverture.
+
+## Les incarnations (branche incarnations, `docs/design/incarnations.md`)
+
+- Après la migration 77 : l'app démarre, rien ne change ; une sauvegarde faite avant s'importe, sans identité ; une sauvegarde faite après rend les identités, et l'identité des zones, des routines et des conversations.
+- Réglages › Identités › Importer, avec `personae/exports/stan-prokopenko.json` copié sur le téléphone : la fenêtre dit Stan Prokopenko, publiée le 2026-10-16, en `en` et `fr`, la langue de l'app présélectionnée ; importée, sa tuile paraît. Un fichier qui n'est pas un export (une sauvegarde de l'app) est refusé en disant le champ en cause.
+- L'écran de l'identité : Voix, Esprit, Portrait mis en forme (titres, listes, sans astérisques), leur taille et « de personae » ; « Textes en » change de langue ; le Bagage, quatre ressources, chacune se lit et se replie. Un long texte se lit et se modifie sans ralentir.
+- Modifier la voix, enregistrer : « écrit dans l'app » ; réimporter le fichier : la confirmation nomme `fr · voice` parmi les retouches perdues, et confirmée, la voix revient. Choisir une autre icône et une couleur, enregistrer : la tuile les montre.
+- Nouvelle identité (un nom, `fr`) : son écran, rien d'écrit ; y ajouter une ressource : sa clé tirée du titre.
+- Config d'une zone : Identité, Stan Prokopenko ; la zone montre sa tuile sous l'en-tête, son bouton ouvre une conversation neuve, la puce à droite du composeur à son icône. Envoyer « Comment tu dessines une main ? » : la réponse dans sa voix, en français ; la puce ne change plus (un toucher le dit). Dans le journal, la ligne « Prompt data built » donne la taille du L1 ; dans les statistiques de la session, les tokens du premier tour puis du second, mis en cache ou non : c'est la mesure que personae attend.
+- Dans cette conversation, « lis ton lexique » : la ressource arrive sans fenêtre d'accord, malgré ses 12 000 caractères et plus ; la redemander : « déjà dans cette session ». Lui demander une note : son texte dans sa voix, le nom de l'outil neutre.
+- Une conversation ouverte par le bouton flottant : la puce sur l'IA de l'app ; avant le premier message, la toucher et choisir Stan Prokopenko.
+- Une routine créée dans la zone : Identité présélectionnée sur Stan Prokopenko ; lancée, son exécution parle dans sa voix. Demander à l'IA de créer une routine sans dire qui parle : elle donne `identity_id` (refusée sinon, en le disant).
+- Supprimer Stan Prokopenko tant que la zone ou la routine le nomme : refusé, en les nommant. Les retirer, supprimer : la conversation passée se relit, son composeur remplacé par la raison. Supprimer un fournisseur d'IA qu'une routine utilise : refusé de même.
+- Par le connecteur : IDENTITY et IDENTITY_RESOURCE au-delà du seuil arrivent en tranches, chacune disant où reprendre ; UPDATE_IDENTITY attend l'accord par notification quand le niveau de l'app est protégé.

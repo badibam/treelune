@@ -9,6 +9,7 @@ import app.treelune.core.ai.providers.AIFailure
 import app.treelune.core.ai.providers.aiFailureOf
 import app.treelune.core.ai.prompts.CommandExecutor
 import app.treelune.core.ai.prompts.toPromptSection
+import app.treelune.core.ai.prompts.exemptChars
 import app.treelune.core.ai.prompts.PromptManager
 import app.treelune.core.ai.state.AIMessageRepository
 import app.treelune.core.ai.state.AIStateRepository
@@ -565,7 +566,8 @@ class AIEventProcessor(
             if (result.systemMessage.commandResults.isNotEmpty()) {
                 val formattedData = result.promptResults.toPromptSection()
                 val systemMessageWithData = result.systemMessage.copy(
-                    formattedData = formattedData
+                    formattedData = formattedData,
+                    exemptChars = result.promptResults.exemptChars()
                 )
 
                 // DEBUG: Log schema.get results being stored
@@ -1419,7 +1421,7 @@ class AIEventProcessor(
             // For SCHEMA_REQUIRED: keep original formattedData (promptResults is empty)
             val systemMessageWithData = if (result.promptResults.isNotEmpty()) {
                 val formattedData = result.promptResults.toPromptSection()
-                result.systemMessage.copy(formattedData = formattedData)
+                result.systemMessage.copy(formattedData = formattedData, exemptChars = result.promptResults.exemptChars())
             } else {
                 // Keep original formattedData (already set in CommandExecutor for SCHEMA_REQUIRED)
                 result.systemMessage
@@ -1950,7 +1952,8 @@ class AIEventProcessor(
      * @return true when the flow now waits for the user, so the caller must not carry on
      */
     private suspend fun storeDataWithinThreshold(state: AIState, sessionId: String, message: SessionMessage): Boolean {
-        val dataChars = message.systemMessage?.formattedData?.length ?: 0
+        // An identity read is not weighed: its size is known, shown on the identity's screen
+        val dataChars = (message.systemMessage?.formattedData?.length ?: 0) - (message.systemMessage?.exemptChars ?: 0)
         val sessionType = state.sessionType ?: SessionType.CHAT
         val maxDataChars = AppConfigManager.getAILimits().getLimitsForSessionType(sessionType).maxDataChars
 

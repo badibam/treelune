@@ -61,6 +61,7 @@ fun CreateZoneScreen(
                 zone.tool_groups?.let { put("tool_groups", JSONArray(it)) }
                 put("display_mode", zone.display_mode)
                 put("validate", zone.validate)
+                zone.identity_id?.let { put("identity_id", it) }
             }
             (existingZone?.group ?: preSelectedGroup)?.let { put("group", it) }
         })
@@ -75,7 +76,17 @@ fun CreateZoneScreen(
         }
     }
 
+    // The identities its tile may open a conversation with
+    val identities = app.treelune.core.identities.ui.rememberIdentities()
+
     val editors = mapOf(
+        "identity_id" to object : SettingEditor {
+            @Composable
+            override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
+                app.treelune.core.identities.ui.IdentitySelector(identities = identities.orEmpty(), selected = value as? String,
+                    onSelect = { onChange(it) }, label = s.shared("label_zone_identity"), noneLabel = s.shared("label_none"))
+            }
+        },
         "icon_name" to object : SettingEditor {
             @Composable
             override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
@@ -116,7 +127,7 @@ fun CreateZoneScreen(
             val result = if (existingZone != null) {
                 // Every setting is sent: an absent one is sent as null, which empties it
                 val params = mutableMapOf<String, Any?>("zone_id" to existingZone.id)
-                listOf("name", "description", "icon_name", app.treelune.core.themes.IconColor.KEY, app.treelune.core.themes.Texture.KEY, "group", "tool_groups", "display_mode", "validate").forEach { params[it] = given[it] ?: JSONObject.NULL }
+                listOf("name", "description", "icon_name", app.treelune.core.themes.IconColor.KEY, app.treelune.core.themes.Texture.KEY, "group", "tool_groups", "display_mode", "validate", "identity_id").forEach { params[it] = given[it] ?: JSONObject.NULL }
                 params["renames"] = mapOf("tool_groups" to origins.renames("tool_groups", settings.optJSONArray("tool_groups")))
                 coordinator.processUserAction("zones.update", params)
             } else {

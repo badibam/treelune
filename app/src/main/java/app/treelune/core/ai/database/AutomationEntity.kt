@@ -46,5 +46,8 @@ data class AutomationEntity(
     @ColumnInfo(name = "access_json") val accessJson: String = "[]",
 
     /** When its run waits for the user (AutomationSettings.NOTIFY_*): always, on a problem, never */
-    @ColumnInfo(name = "notify_end") val notifyEnd: String = app.treelune.core.ai.data.AutomationSettings.NOTIFY_ALWAYS
+    @ColumnInfo(name = "notify_end") val notifyEnd: String = app.treelune.core.ai.data.AutomationSettings.NOTIFY_ALWAYS,
+
+    /** The identity its runs speak as (docs/design/incarnations.md); null for the app's own AI */
+    @ColumnInfo(name = "identity_id") val identityId: String? = null
 )
