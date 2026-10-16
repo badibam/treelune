@@ -43,18 +43,18 @@ Une série vit dans la config et produit des entrées réelles : ses occurrences
   "all_day_reminders": [{"relative": {"unit": "DAY", "offset": -1, "edge": {"at": "18:00"}}}],
   "series": [
     { "key": "kine", "name": "Kiné", "schedule": { "...": "ScheduleConfig, chaque mardi 18:00" },
-      "duration": 2700000, "fields": { "lieu": "Cabinet Dupont" } },
+      "duration": 2700000 },
     { "key": "lea", "name": "Anniversaire de Léa", "schedule": { "...": "chaque année le 12 mai" },
       "all_day": true, "days": 1 }
   ]
 }
 ```
 
-- **Une série** : `key`, donnée à sa création et gardée ensuite (`completeConfig`, comme la clé d'un critère d'Objectif) ; `name`, le nom de ses occurrences ; `schedule`, la Planification (`ScheduleSettings.group`) ; `duration`, ou `all_day` et `days` ; `fields`, les valeurs de ses occurrences pour les champs de l'utilisateur. Pas de fin à elle : la Planification sait les dates précises, et ses limites sont les siennes (« toutes les 2 semaines » attend l'item de `TODO.md` sur la brique de planning).
+- **Une série** : `key`, donnée à sa création et gardée ensuite (`completeConfig`, comme la clé d'un critère d'Objectif) ; `name`, le nom de ses occurrences ; `schedule`, la Planification (`ScheduleSettings.group`) ; `duration`, ou `all_day` et `days`. Pas de valeurs pour les champs de l'utilisateur : leur forme dépend de l'outil, qu'une config ne sait pas déclarer (`TODO.md`) ; une occurrence naît sans elles, et se remplit comme tout événement. Pas de fin à elle : la Planification sait les dates précises, et ses limites sont les siennes (« toutes les 2 semaines » attend l'item de `TODO.md` sur la brique de planning).
 - **Le planificateur crée les occurrences 90 jours devant, et toujours au moins la prochaine** (l'anniversaire dans 8 mois existe déjà). Il ne crée que celles qui viennent après la dernière occurrence de la série déjà en base, comme le Questionnaire : une occurrence déplacée garde sa place, une retirée n'est pas recréée. Une occurrence porte `state.series`.
 - **Une occurrence se modifie seule** : son heure, sa durée, ses champs ; elle s'annule ou se retire. Elle ne se supprime pas : le service refuse la suppression d'une entrée qui porte `state.series` (`refuseChange`), en renvoyant à `agenda.remove`. Une suppression ferait revenir la dernière occurrence au passage suivant du planificateur ; retirer garde l'entrée, et donc la mémoire.
 - **Le planning d'une série change** : ses occurrences futures, quelles qu'elles soient (déplacées, annulées, retirées, annotées), sont supprimées et recréées sur le nouveau planning, après confirmation (« Les 12 occurrences à venir seront recréées ; ce que tu y as changé sera perdu »). Elles passent par les entrées qu'une config supprime (`entriesRemovedByConfig`, `confirm_migration`), que le comptage à blanc (`tools.update dry_run`) compte. Le passé ne bouge jamais.
-- **Le reste d'une série change** (nom, durée, journée entière, `fields`) : le changement descend sur ses occurrences futures, sur chaque valeur qui est encore l'ancienne valeur de la série ; une valeur changée à la main reste. Sans confirmation : rien ne se perd. Aucune marque « retouchée » : on compare à la config précédente.
+- **Le reste d'une série change** (nom, durée, journée entière) : le changement descend sur ses occurrences futures, sur chaque valeur qui est encore l'ancienne valeur de la série ; une valeur changée à la main reste. Sans confirmation : rien ne se perd. Aucune marque « retouchée » : on compare à la config précédente.
 - **Supprimer une série** supprime ses occurrences futures, après confirmation, et garde les passées.
 
 ## Les rappels
@@ -99,7 +99,7 @@ L'Agenda en est le premier usage ; Messages, les routines et les échéances de 
 - **En haut, le type de période** (`PeriodFilterType`), réduit à « À venir » (par défaut), Jour, Semaine, Mois ; « À venir » montre les événements en cours puis futurs, sans fin ni flèches ; Jour, Semaine et Mois ont les flèches et le calendrier au toucher du libellé (`SinglePeriodSelector`), qui mènent aussi au passé.
 - **La liste, groupée par jour** (« Aujourd'hui », « Demain », « jeudi 23 octobre »), le début de journée de l'app (`dayStartHour`) compris, sauf pour une journée entière, rangée à son jour de calendrier. Une ligne : l'heure ou « Journée », le nom, la durée en petit (« 14 h – 14 h 45 »), les champs de l'utilisateur en compact ; en cours mis en avant, annulé barré, une icône de répétition sur une occurrence de série. Une journée entière de plusieurs jours apparaît à chacun de ses jours. « Retirées (n) », replié en bas, celles de la période affichée, chacune avec « Remettre ».
 - **Pas de vue calendrier** (grille du mois) : la liste par jour répond à « qu'est-ce que j'ai ».
-- **« Nouvel événement »** ouvre la fiche : nom, date et heure, ou « Journée entière » et le nombre de jours, durée, puis les champs de l'utilisateur. **« Se répète »**, coché, montre la Planification : l'enregistrement crée alors une série dans la config, et le planificateur ses occurrences. Rien n'est écrit avant « Enregistrer ».
+- **« Nouvel événement »** ouvre la fiche : nom, date et heure, ou « Journée entière » et le nombre de jours, durée, puis les champs de l'utilisateur. **« Se répète »**, coché, montre la Planification et cache les champs de l'utilisateur : l'enregistrement crée alors une série dans la config, et le planificateur ses occurrences. Rien n'est écrit avant « Enregistrer ».
 - **Un événement touché** ouvre sa fiche, modifiable, avec « Annuler » (ou « Rétablir ») et « Supprimer » ; sur une occurrence de série, « Retirer » à la place de « Supprimer », et « Modifier la série », qui ouvre la même fiche sur la série ; un planning changé demande la confirmation des occurrences recréées.
 
 ## La tuile
