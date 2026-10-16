@@ -2065,6 +2065,12 @@
     <string name="external_access_approval_refuse">Refuse</string>
     <string name="external_access_approval_refused">The user refused this action in the app: nothing was done.</string>
     <string name="external_access_approval_no_answer">The user did not answer in the app within %1$d s: nothing was done. Ask again when they can.</string>
+    <string name="ai_mcp_text_from">Where the slice of a read starts, in characters (0 by default). A read too long for one answer comes in slices: each one says where it lies and the text_from of the next one.</string>
+    <string name="ai_mcp_read_entries_refused">Entries not sent: %1$d characters, above the connector\'s threshold of %2$d. Entries are sent whole or not at all: ask for less (fewer fields, a shorter period, filters, pages with limit and page) or read a value computed in the app. A single entry still too long is read in slices: limit 1 and text_from.</string>
+    <string name="ai_mcp_read_entries_not_sliced">text_from only reads a single entry (limit 1): entries are sent whole or not at all.</string>
+    <string name="ai_mcp_read_outside">text_from %1$d is outside this read, which holds %2$d characters.</string>
+    <string name="ai_mcp_read_slice">[Characters %1$d to %2$d of %3$d. The rest: the same call with text_from %4$d.]</string>
+    <string name="ai_mcp_read_last_slice">[Characters %1$d to %2$d of %3$d: the end of this read.]</string>
     <string name="external_access_request_title">Request for access</string>
     <string name="external_access_request_text">%1$s asks for access. Type the code its page shows.</string>
     <string name="external_access_request_declared">Declared by the client: its name, %1$s; the answer goes to %2$s. Nothing proves either.</string>

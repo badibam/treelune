@@ -2065,6 +2065,12 @@
     <string name="external_access_approval_refuse">Refuser</string>
     <string name="external_access_approval_refused">L\'utilisateur a refusé cette action dans l\'app : rien n\'a été fait.</string>
     <string name="external_access_approval_no_answer">L\'utilisateur n\'a pas répondu dans l\'app en %1$d s : rien n\'a été fait. Redemande quand il le pourra.</string>
+    <string name="ai_mcp_text_from">Où commence la tranche d\'une lecture, en caractères (0 par défaut). Une lecture trop longue pour une seule réponse arrive en tranches : chacune dit où elle se trouve et le text_from de la suivante.</string>
+    <string name="ai_mcp_read_entries_refused">Entrées non envoyées : %1$d caractères, au-delà du seuil du connecteur de %2$d. Les entrées partent entières ou pas du tout : demande moins (moins de champs, une période plus courte, des filtres, des pages par limit et page) ou lis une valeur calculée dans l\'app. Une seule entrée encore trop longue se lit par tranches : limit 1 et text_from.</string>
+    <string name="ai_mcp_read_entries_not_sliced">text_from ne lit qu\'une seule entrée (limit 1) : les entrées partent entières ou pas du tout.</string>
+    <string name="ai_mcp_read_outside">text_from %1$d est hors de cette lecture, qui compte %2$d caractères.</string>
+    <string name="ai_mcp_read_slice">[Caractères %1$d à %2$d sur %3$d. La suite : le même appel avec text_from %4$d.]</string>
+    <string name="ai_mcp_read_last_slice">[Caractères %1$d à %2$d sur %3$d : la fin de cette lecture.]</string>
     <string name="external_access_request_title">Demande d\'accès</string>
     <string name="external_access_request_text">%1$s demande l\'accès. Tape le code que sa page affiche.</string>
     <string name="external_access_request_declared">Déclaré par le client : son nom, %1$s ; la réponse part vers %2$s. Rien ne prouve ni l\'un ni l\'autre.</string>
