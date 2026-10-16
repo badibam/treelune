@@ -55,6 +55,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 
 Une spec existe dans `docs/design/`.
 
+- Ce qu'un changement de config fait au passé (`docs/design/config-change.md`) : les comptes et le choix d'un nouveau champ, les bornes et le passage une vers plusieurs réponses sans tout effacer, la validation des changements de l'IA qui touchent le passé, la copie gardée d'une tentative rouverte, les étapes d'une séance finie.
 - Les conditions typées à l'écriture (`docs/design/typed-conditions.md`) : le type de chaque côté d'une condition connu sans lire de données, les constantes de l'IA traduites à l'entrée, la vérification au service, et le refus d'un changement dont dépend une condition ailleurs.
 - L'historique des écritures et leur annulation (`docs/design/undo-history.md`) : un pas par opération demandée de l'extérieur, la ligne entière avant et après, écrite par une seule classe que garde un script, 30 jours, le service `history` ouvert à l'IA, son écran.
 - Modèles libres (`docs/design/local-models.md`) : le banc est en place et rodé ; la campagne 1 a tourné le 2026-10-04 (190 scénarios en 5 h 15, 1,35 $ comptés hors réponses coupées, tableau dans `bench-results/2026-10-04_1326/summary.md`), ses échecs relus dans `docs/design/bench-campaign-1.md` ; les corrections de l'app qu'elle a trouvées sont faites (2026-10-13) : les niveaux de prompt se décident après une campagne rejouée.
@@ -108,7 +109,6 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 - encore des textes non sélectionnables sans raison. Par exemple : dans textes de guide
 - "Copier" de journal n'inclut pas les chamos suppl car pas encore de repr textuelles des valeurs de champs. Il faut metrre ça en place.
 - Tuile de variable ne se collapse pas proprement quand manque de place horizontale
-- Revoir logique dans suivi : changement de config entraine t elle changemzbt dans les données ? Par ex suppr de champs supplémentaire -> de toute façons plus accessible dans data car sélecteurs utilisent config ? Idem pour questionnaire, mais dans ce cas le choix inverse a été fait ?? Discutons en c'est un point important. Même question pour journal par exemple : on piurrait perdre des infos passées si on change de champs supplémentaires.... Peser pour et contre des différentes approches possibles. Au début du projet on avait dit : données immuables. Mais la question est devenue + complexe. Autre exemple: retirer une option de choix supprime cette option dans les données passées.... C'est discutable...
 - Guide : Les outils en un coup d'oeil : pas besoin de section : plutôt metrre ke texte direct dans la tuile de chaque outil.
 
 ## En attente d'un déclencheur
