@@ -788,14 +788,12 @@ object DefaultTheme : ThemeContract {
         val iconResource = requireNotNull(app.treelune.core.icons.Icons.drawable(context, "grip-horizontal")) {
             "No drawable for the icon grip-horizontal"
         }
-        Box(modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp), contentAlignment = Alignment.Center) {
-            Icon(
-                painter = painterResource(iconResource),
-                contentDescription = null,
-                modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        Icon(
+            painter = painterResource(iconResource),
+            contentDescription = null,
+            modifier = Modifier.padding(vertical = 2.dp).size(20.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 
     @Composable

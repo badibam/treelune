@@ -215,9 +215,10 @@ interface ThemeContract {
     fun DragHandle()
 
     /**
-     * The band across the top of an item of several lines of a reorderable list (a note, a block
-     * of a message), all of it a grip: a horizontal grip centred, as thin as the theme allows.
-     * Only its look, filling the width it is given: the gesture is the core's.
+     * The grip across the top of an item of several lines of a reorderable list (a note, a block
+     * of a message): a horizontal grip, as thin as the theme allows. Only its look, as wide as its
+     * icon: the core centres it in the band and takes the finger's room around it, the rest of the
+     * band left to the scroll, which a grip across the width took for a drag.
      */
     @Composable
     fun DragBar()

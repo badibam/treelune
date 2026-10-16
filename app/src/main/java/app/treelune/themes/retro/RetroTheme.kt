@@ -411,12 +411,10 @@ object RetroTheme : ThemeContract {
         }
     }
 
-    /** The grip on its own row of the grid, centred: as high as the icon. */
+    /** The grip on its own row of the grid: as high as the icon. */
     @Composable
     override fun DragBar() {
-        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            CompositionLocalProvider(LocalRetroInk provides retroSurface.dim.srgb) { NamedIcon("grip-horizontal", null) }
-        }
+        CompositionLocalProvider(LocalRetroInk provides retroSurface.dim.srgb) { NamedIcon("grip-horizontal", null) }
     }
 
     /** Lifted, an item's frames swap their tones: no shadow, no scale, nothing between two pixels. */

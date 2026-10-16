@@ -11,6 +11,8 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
@@ -51,7 +53,8 @@ import app.treelune.core.themes.CurrentTheme
  * What an item of a [ReorderableColumn] can place in its content: the grip it is dragged by,
  * drawn by the theme, moving it in its own list only, never in an outer one. An item of one line
  * takes the side grip; an item of several lines, the band across its top, which leaves its
- * text the width.
+ * text the width. Either grip is the icon and the finger's room around it alone: a vertical
+ * swipe elsewhere scrolls.
  */
 interface ReorderItemScope {
     /** The grip at the side of an item of one line, as wide as its icon. */
@@ -59,8 +62,8 @@ interface ReorderItemScope {
     fun DragHandle()
 
     /**
-     * The band across the top of an item of several lines, the whole of it a grip but [end],
-     * placed at its end (a block's deletion).
+     * The band across the top of an item of several lines, its grip centred, [end] placed at its
+     * end (a block's deletion).
      */
     @Composable
     fun DragBar(end: (@Composable () -> Unit)?)
@@ -237,7 +240,10 @@ fun <T> ReorderableColumn(
                     @Composable
                     override fun DragBar(end: (@Composable () -> Unit)?) {
                         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            Box(modifier = Modifier.weight(1f).then(grip)) { CurrentTheme.current.DragBar() }
+                            Spacer(modifier = Modifier.weight(1f))
+                            // The finger's room on each side of the icon, inside the grip
+                            Box(modifier = grip.padding(horizontal = app.treelune.core.ui.UI.Space.XL)) { CurrentTheme.current.DragBar() }
+                            Spacer(modifier = Modifier.weight(1f))
                             end?.invoke()
                         }
                     }

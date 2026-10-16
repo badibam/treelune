@@ -397,7 +397,7 @@ object CosyTheme : ThemeContract {
 
     @Composable
     override fun DragBar() {
-        Box(modifier = Modifier.fillMaxWidth().padding(vertical = cosySize().dp(2f)), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.padding(vertical = cosySize().dp(2f))) {
             NamedIcon("grip-horizontal", null, cosySize().icon, cosyColors.dim.srgb)
         }
     }
