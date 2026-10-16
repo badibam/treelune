@@ -41,6 +41,10 @@ Chaque ligne porte une décision au seuil ; « comme le thème par défaut » en
 12. **Le registre sonore** : le caractère des sons, leur choix se faisant à part.
 13. **Les textes du thème** : son nom, sa phrase (`tagline`, lue par le README) et les noms de ses palettes, en anglais et en français.
 
+## Ajouter une pièce au contrat
+
+Une pièce nouvelle (la barre d'un texte sélectionné, par exemple) se décide pour chaque thème existant avant d'être codée, comme une ligne de la liste ci-dessus : sa ligne dans la spec du thème (`docs/design/<id>-theme.md`, et pour le thème par défaut, qui n'en a pas, dans le commentaire de la pièce), la ligne de la liste des décisions, et celle de la passe sur le téléphone. Le cœur garde ce que la pièce contient, où elle se place et quand ; le thème n'a que son allure. Le banc d'un thème qui a une planche des composants (le rétro) la dessine aussi. Une pièce qu'Android dessinait jusque-là (une barre, un sélecteur) se remplace par ce que Compose laisse fournir publiquement : ce qu'il garde interne reste à Android, et la ligne de la spec le dit.
+
 ## Les fichiers d'un thème
 
 Tout est dans `themes/<id>/` (sous `app/src/main/java/app/treelune/`), sauf ce qu'Android veut ailleurs.

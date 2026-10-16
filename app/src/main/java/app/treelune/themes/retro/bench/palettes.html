@@ -451,6 +451,21 @@ function drawSheet(P) {
     x += (word.length + 3) * CELL;
   });
   y += 3 * CELL;
+
+  // The bar over a selected text: a panel, its words a cell apart without a frame each, the
+  // pressed one inverted (the ink filling its place, the word in the panel's ground).
+  const barWords = ["Copier", "Coller", "Couper"];
+  const barWidth = barWords.reduce((sum, w) => sum + w.length, 0) + barWords.length + 1;
+  frame(0, y, barWidth, 2, c.panel_border_outer, c.panel_border_inner, c.panel_ground);
+  x = CELL;
+  barWords.forEach((word, i) => {
+    if (i === 1) {
+      px(x, y + BORDER, word.length * CELL, 2 * CELL - 2 * BORDER, c.panel_ink);
+      text(word, x, y + BORDER + 12, c.panel_ground);
+    } else text(word, x, y + BORDER + 12, c.panel_ink);
+    x += (word.length + 1) * CELL;
+  });
+  y += 3 * CELL;
   divider(0, y, span, c.screen_border_outer, c.screen_border_inner);
   y += 2 * CELL;
 

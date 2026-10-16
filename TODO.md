@@ -18,7 +18,6 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 - Les boutons du haut d'un outil changent de hauteur selon le nombre de lignes de son titre.
 - Le titre de l'écran de config d'un outil, écrit par chaque écran : le rendre commun, le nom de l'outil et son type.
 - La phrase de date et d'heure envoyée à l'IA (`ai_prompt_current_datetime`) ne dit pas qu'elle est écrite par le système, et non par l'utilisateur.
-- Les boutons copier / coller sur un texte sélectionné sont ceux d'Android, hors du thème (la barre d'outils du texte, `TextToolbar` en Compose).
 
 ## Bugs
 
@@ -49,6 +48,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - Ce qui a changé le 2026-10-14 sur develop : « routine » à l'écran dans les deux langues ; la page du message d'une routine, ses blocs à leur hauteur entière, la page défilant d'un bloc (un bloc déplacé par sa poignée au-delà de l'écran compris) ; la config d'un champ référence (Cible, Peut désigner, la liste d'outils seulement avec Entrée) ; le Guide, les chapitres Les routines (six étapes, celle du message attend l'enregistrement) et Parler à l'IA (l'étape des cases d'accord), « Les outils en un coup d'œil », la partie Les outils et ses dix chapitres (textes mis en forme, tuiles de titre de partie, dans les trois thèmes) ; le Guide réécrit dans sa langue, les tutoriels nouveaux de Prise en main (Organiser, Relier, Apparence : chaque étape se valide-t-elle par le bon geste, et seulement par lui), les chapitres lus (Tes données, Accès externe, Quand ça coince) et la partie Approfondissement.
 - Les champs de l'utilisateur dans le Suivi et Messages (`docs/design/custom-fields-display.md`, branche custom-fields) : l'historique du Suivi en cartes, les champs sous le texte d'un message (Outils et saisie) ; passé, élaguer la spec.
 - L'IA et les routines (branche ai-routines) : leur création par l'écran et la démo, celle de l'IA en conversation, une routine qui en crée une sous son masque, la lecture d'une exécution ratée, le connecteur (section « L'IA et les routines »).
+- La barre d'un texte sélectionné dessinée par le thème (branche theme-recipe) : sa ligne de la section « Copier, limites, fuseau… » de la recette.
 - Les bugs du téléphone du 2026-10-16 et le changement de config (`docs/design/config-change.md`) : la dernière section de la recette ; passé, élaguer la spec.
 - Les réglages de réflexion de chaque fournisseur, en envoyant une requête : Claude (Sonnet 5.5 sans réflexion par `between_tools`, Opus 5.5 sans « Sans réflexion », Haiku 4.5 sans effort), OpenAI (un modèle à `none`, un modèle qu'aucun fait ne couvre), DeepSeek (effort obligatoire, sans réflexion) ; le changement de modèle qui vide les deux réglages, l'enregistrement d'une combinaison refusée.
 
