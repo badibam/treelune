@@ -336,3 +336,11 @@ Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la po
 - Un Objectif fermé à l'IA : elle dit où en est la tentative, mais « valide-la » et « rouvre-la » sont refusés ; validée et rouverte à l'écran, sans changement.
 - Par le connecteur, et par une routine qui écrit ce champ : refusé, l'erreur dans la réponse du connecteur, dans l'historique d'exécution de la routine.
 
+## Les textures (`docs/design/tool-texture.md`, branche tool-texture)
+
+- Après la migration 75 : l'app démarre, rien ne change à l'écran ; Réglages › Interface montre Textures sur « Discrètes » ; une sauvegarde faite avant s'importe, ses zones sans texture.
+- Config d'un outil, puis d'une zone : sous la couleur de l'icône, la grille des textures, chaque choix une petite tuile de la chose dans sa couleur, son nom dessous, le choix marqué d'une coche ; une zone sans icône n'offre pas « Son icône ». Une texture choisie se voit sur la tuile après l'enregistrement, et en tête de la page de la chose.
+- Dans les trois thèmes, aux deux modes, une zone dont les tuiles portent chacune un motif, sans et avec couleur d'icône : chacune se reconnaît, aucune ne gêne la lecture de son nom ni de son résumé (un Graphique compris), et les quinze se voient à peu près autant ; puis Textures sur « Marquées ». Ce qui ne va pas se règle au banc des textures (`./run themes`).
+- L'en-tête d'une page texturée : la bande du défaut et du rétro, la pilule du cosy ; le titre se lit.
+- Rétro : un motif tombe sur les pixels du thème, sans flou, aux crans de taille 0 et 3 ; en mode d'édition de la grille, une tuile `CHECKER` mise à l'écart se distingue encore du damier.
+- Par l'IA : « Mets des vagues sur la zone Santé et l'icône en fond sur le Poids » — UPDATE_ZONE prend `texture`, l'outil la reçoit dans sa config ; « en papier » est refusé avec les quinze noms ; « retire l'icône de la zone Santé » quand elle porte `ICON` est refusé en disant pourquoi.

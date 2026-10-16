@@ -9,7 +9,7 @@ Un thème dessine l'app : chaque composant visuel de `UI.*` passe par lui (`core
 - Un thème a des couleurs claires et sombres (`PaletteMode`). L'utilisateur choisit dans Réglages › Interface le thème, le mode (clair, sombre, ou comme le téléphone, suivi quand il change), la teinte (un décalage de 0 à 359° qui tourne toutes les couleurs du thème sur le cercle OKLCH, leur clarté et leur saturation gardées, sauf celles des états et des tags : `Appearance.hueShift`, `Oklch`, `HueShiftTest`) et le cran de taille (0 à 3, qu'un thème au pixel applique à son facteur entier, vers le haut seulement). `AppConfigManager` les applique à `CurrentTheme` (`Appearance`) à chaque lecture des réglages, et chaque application s'écrit au journal avec sa raison (« Theme applied »).
 - L'écran montre chaque choix aussitôt fait et revient à l'apparence enregistrée si on le quitte sans enregistrer. Pour que l'écran en cours survive au changement de thème, `MainActivity` déplace le contenu de l'app d'un cadre d'écran (`FullScreen`) à l'autre sans le recréer (`movableContentOf`) : un `FullScreen` ne compose donc jamais son contenu à part (pas de `BoxWithConstraints`, dont le contenu déplacé ne suivrait plus le thème), et aucun champ ne garde le focus pendant le déplacement.
 - La grille des tuiles prend du thème la largeur d'une case (`gridCellPx`), la hauteur d'une rangée (`gridRowPx`, la largeur dans le thème par défaut) et l'écart entre deux colonnes et deux rangées (`gridColumnGapPx`, `gridRowGapPx`, nuls dans le thème par défaut, qui garde l'écart dans ses tuiles).
-- Les bancs s'ouvrent par `./run themes` (`themes/bench.html`) : celui du rétro règle et enregistre ses deux palettes, celui du défaut montre ses couleurs à tout décalage, recopiées de `DefaultTheme` et tenues à elles par `DefaultColorsBenchTest`, et la planche d'écoute choisit les sons de chaque thème (« Les sons »).
+- Les bancs s'ouvrent par `./run themes` (`themes/bench.html`) : celui du rétro règle et enregistre ses deux palettes, celui du défaut montre ses couleurs à tout décalage, recopiées de `DefaultTheme` et tenues à elles par `DefaultColorsBenchTest`, celui des textures règle et enregistre les tons des motifs de chaque thème, et la planche d'écoute choisit les sons de chaque thème (« Les sons »).
 
 ## Le déroulé
 
@@ -33,7 +33,7 @@ Chaque ligne porte une décision au seuil ; « comme le thème par défaut » en
 4. **Les palettes** : claire et sombre, une poignée de nombres OKLCH dont tout dérive ; les contrastes visés (4,5 pour chaque encre sur son fond, la secondaire comprise, et pour les couleurs d'état) ; les tags à luminosité et saturation communes ; ce que tourne la teinte.
 5. **La géométrie** : la grille des tuiles (case, rangée, écarts), les espacements nommés et la marge de bord (`UI.Space`, `EDGE`), la cible du doigt (48 dp au plus près), l'unité de dessin (`drawingUnit`).
 6. **La taille** : la taille de texte d'Android suivie ou non, et ce que fait chaque cran de 0 à 3.
-7. **Les composants**, une ligne par famille du contrat : cadres (carte, tuile, dialogue, fenêtre flottante, bulle, carte d'interaction) ; boutons (normal, désactivé, activé, flottant) ; saisie (champ, sélection, case, interrupteur, oui/non, curseur, jauge, teinte, onglets) ; repères (tag, séparateur, poignées, marques d'attente et de chrono, icône colorée) ; attente (chargement, IA qui réfléchit) ; messages (toast, snackbar) ; sélecteurs de date et d'heure ; en-tête de page et marque de l'app ; la barre d'un texte sélectionné.
+7. **Les composants**, une ligne par famille du contrat : cadres (carte, tuile, dialogue, fenêtre flottante, bulle, carte d'interaction) ; boutons (normal, désactivé, activé, flottant) ; saisie (champ, sélection, case, interrupteur, oui/non, curseur, jauge, teinte, onglets) ; repères (tag, séparateur, poignées, marques d'attente et de chrono, icône colorée, textures de tuile et d'en-tête) ; attente (chargement, IA qui réfléchit) ; messages (toast, snackbar) ; sélecteurs de date et d'heure ; en-tête de page et marque de l'app ; la barre d'un texte sélectionné.
 8. **Le toucher et le mouvement** : l'élément pressé, une apparition, l'élément soulevé, et les animations coupées dans Android.
 9. **Les icônes** : Lucide (`LUCIDE`), ou les siennes (`OWN`), avec leur script de conversion et leur fichier de retouches.
 10. **Les graphiques** : dessinés par le thème, ou ceux du défaut (`DefaultDrawing`).
@@ -55,6 +55,7 @@ Tout est dans `themes/<id>/` (sous `app/src/main/java/app/treelune/`), sauf ce q
 | `<Id>Palette.kt` | les couleurs dérivées des nombres, dans les deux modes et à toute teinte | à la main |
 | `resources/app/treelune/themes/<id>/palettes.json` | les nombres des palettes, leur seule source | le banc, qui les enregistre |
 | `bench/` | le banc : l'écran d'une zone et une planche des composants à la résolution d'un téléphone, dans la police du thème, les deux modes, la teinte essayée sans être enregistrée | à la main, lié depuis `themes/bench.html` |
+| `resources/app/treelune/themes/<id>/textures/*.svg`, `textures.json` | une cellule SVG par motif de texture (`ICON` à part), et les tons de chacun par mode et par intensité | les cellules à la main, les tons au banc des textures (`texture-bench.html`), qui les enregistre |
 | `strings.xml`, `strings-fr.xml` | `name`, `tagline`, les noms des palettes | à la main |
 | `icons/` (thème `OWN`) | un SVG par icône Lucide, toutes | un script (`pixelize_icons.py` pour le pixel), plus les retouches à la main |
 | `res/font/<police>_*.ttf`, `assets/fonts/<police>/` | la police et sa licence | un script depuis `third_party/` ou un projet voisin |
@@ -73,6 +74,7 @@ Tout est dans `themes/<id>/` (sous `app/src/main/java/app/treelune/`), sauf ce q
 | Le tutoiement dans les textes français | `check_french_address.py` |
 | Un thème `OWN` a toutes les icônes de Lucide | `generate_icons.py`, qui refuse un thème incomplet |
 | La copie de la police à jour | `check_font_copy.py` (Cartouche) ; le script de la police (Baloo 2) |
+| Une cellule de chaque motif de texture, rien d'autre dans le dossier, en pixels entiers pour un thème au pixel ; les deux tons de chaque motif dans les deux modes | `TextureCellTest`, `TextureTonesTest` (la liste des thèmes y est écrite) |
 | Les contrastes des palettes | `<Id>PaletteTest`, à écrire avec le thème |
 | Les couleurs d'un banc d'aperçu égales à celles du code | un test comme `DefaultColorsBenchTest`, si le banc recopie au lieu de lire `palettes.json` |
 | Chaque son branché sur son signal, aucun fichier oublié | `ThemeSoundsTest` |
@@ -116,7 +118,7 @@ Chacun a coûté un aller-retour sur l'appareil ; le code des trois thèmes les 
 Un parcours fixe, sur l'app remplie par la démo, d'abord dans les pires cas : les deux modes et une teinte décalée ; le plus grand cran de taille avec la taille de texte d'Android au maximum ; « une colonne » ; une fois les animations coupées dans Android. Les sons activés tout du long.
 
 1. L'accueil : la marque de l'app, les tuiles de zone, le bouton flottant, le mode d'édition de la grille.
-2. Une zone : des tuiles de chaque affichage (icône, ligne, compact, étendu, plein), les cartes des variables et des routines.
+2. Une zone : des tuiles de chaque affichage (icône, ligne, compact, étendu, plein), les cartes des variables et des routines ; des tuiles texturées, chaque motif, sans et avec couleur d'icône, aux deux intensités, et l'en-tête d'une page texturée.
 3. Un outil de chaque type, son écran et sa config en pages ; un Graphique.
 4. Les fenêtres : une confirmation, une fenêtre flottante longue au clavier ouvert, les sélecteurs de date et d'heure, un toast et une snackbar.
 5. Le chat : les bulles, l'IA qui réfléchit, une carte de validation, le champ au clavier.

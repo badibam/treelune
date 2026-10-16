@@ -1,5 +1,6 @@
 package app.treelune.themes.retro
 
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Composable
@@ -73,6 +74,8 @@ internal fun Framed(
     fillContent: Boolean = false,
     filled: Boolean = false,
     off: Boolean = false,
+    /** A motif laid inside the frame, over its fill, from the panel's corner (docs/design/tool-texture.md); none when null. */
+    texture: androidx.compose.ui.graphics.Brush? = null,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val grid = retroGrid()
@@ -108,6 +111,12 @@ internal fun Framed(
         onDrawBehind {
             drawRect(fill, topLeft = origin + Offset(border.toFloat(), border.toFloat()),
                 size = Size(columns * tile - 2f * border, height - 2f * border))
+            // The motif's cells counted from the panel's corner, on whole drawing pixels
+            texture?.let { brush ->
+                translate(left = origin.x + border, top = origin.y + border) {
+                    drawRect(brush, size = Size(columns * tile - 2f * border, height - 2f * border))
+                }
+            }
             // A piece fills the eleven rows above its baseline: the row's cell ends there.
             fun draw(both: List<androidx.compose.ui.text.TextLayoutResult>, bottom: Int) {
                 for (layout in both) drawText(layout, topLeft = origin + Offset(0f, bottom - layout.firstBaseline))

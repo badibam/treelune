@@ -1,6 +1,7 @@
 package app.treelune.core.ui
 
 import app.treelune.core.themes.IconColor
+import app.treelune.core.themes.ItemTexture
 import app.treelune.core.themes.TagColor
 import app.treelune.core.ui.sound.UISignal
 import app.treelune.core.ui.sound.rememberUISound
@@ -703,7 +704,7 @@ object UI {
         fun Header() = TileHeader(zone.icon_name, IconColor.of(zone.icon_color), zone.name, waiting, running, TextType.HEADING)
         @Composable
         fun Description() = zone.description?.let { Text(it, TextType.BODY, maxLines = 2) }
-        CurrentTheme.current.ZoneCardContainer(onClick = onClick, onLongClick = onLongClick) {
+        CurrentTheme.current.ZoneCardContainer(texture = ItemTexture.of(zone.texture, zone.icon_name, IconColor.of(zone.icon_color)), onClick = onClick, onLongClick = onLongClick) {
             when (mode) {
                 DisplayMode.ICON -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     TileIcon(zone.icon_name, IconColor.of(zone.icon_color), waiting, running)
@@ -733,6 +734,8 @@ object UI {
         subtitle: String? = null,
         icon: String? = null,
         iconColor: TagColor? = null,
+        /** The motif of a zone's or a tool's page, drawn with [icon] and [iconColor] (docs/design/tool-texture.md); null for none. */
+        texture: app.treelune.core.themes.Texture? = null,
         leftButton: ButtonAction? = null,
         rightButton: ButtonAction? = null,
         onLeftClick: (() -> Unit)? = null,
@@ -771,7 +774,7 @@ object UI {
             }
         }
         // A page's title and description are read: selectable, nothing else answering their touch
-        Selectable { CurrentTheme.current.PageHeader(title, subtitle, icon, iconColor, appMark) }
+        Selectable { CurrentTheme.current.PageHeader(title, subtitle, icon, iconColor, texture?.let { ItemTexture(it, icon, iconColor) }, appMark) }
     }
     
     /** The header of a tool's tile: its icon with its marks, and its name. */
@@ -808,8 +811,10 @@ object UI {
         val running = LocalRunning.current.tool(tool.id)
         val toolType = requireNotNull(ToolTypeManager.getToolType(tool.tooltype)) { "No tool type '${tool.tooltype}' for tool ${tool.id}" }
         val tile = toolType.rememberTile(tool, onOpenEntry)
+        val toolSettings = app.treelune.core.tools.ToolConfigSettings.read(tool.tooltype, JSONObject(tool.config_json), context)
         CurrentTheme.current.ToolCardContainer(
             displayMode = displayMode,
+            texture = ItemTexture.of(toolSettings.string(app.treelune.core.themes.Texture.KEY), toolSettings.string("icon_name"), IconColor.of(toolSettings.string(IconColor.KEY))),
             onClick = onClick,
             onLongClick = onLongClick
         ) {

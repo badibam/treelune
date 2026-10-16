@@ -44,6 +44,11 @@ object ZoneSettings {
                 FieldDefinition(app.treelune.core.themes.IconColor.KEY, s.shared("label_icon_color"), s.shared("zone_schema_icon_color"), FieldType.CHOICE, false,
                     mapOf("options" to app.treelune.core.themes.IconColor.options(s::shared)))
             ),
+            // A motif's name, or none; checked with its names, and ICON with the icon, by the service
+            SettingNode.Field(
+                FieldDefinition(app.treelune.core.themes.Texture.KEY, s.shared("label_texture"), s.shared("zone_schema_texture"), FieldType.CHOICE, false,
+                    mapOf("options" to app.treelune.core.themes.Texture.options(s::shared)))
+            ),
             // One of the zone groups of the main screen
             field("group", "label_zone_group", FieldType.TEXT, TextLength.SHORT),
             // How its tile shows on the main screen, which gives the cells it takes

@@ -659,9 +659,9 @@ def task_themes():
 
     The benches read the fonts, Lucide's icons, a theme's palettes.json and the sound library from
     the repository, which a page opened from the disk may not do, and save back through here the
-    only two files this server writes: a theme's palettes.json (POST /palettes/<id>) and its
-    sounds-choice.json (POST /sounds/<id>), for a theme whose folder exists, each replaced whole
-    so that a save cut short leaves the old file.
+    only three files this server writes: a theme's palettes.json (POST /palettes/<id>), its
+    textures.json (POST /textures/<id>) and its sounds-choice.json (POST /sounds/<id>), for a
+    theme whose folder exists, each replaced whole so that a save cut short leaves the old file.
     """
     import http.server
     import json
@@ -671,6 +671,10 @@ def task_themes():
         if not isinstance(document.get("palettes"), list):
             raise ValueError("no palettes list")
 
+    def textures(document):
+        if not isinstance(document.get("modes"), dict):
+            raise ValueError("no modes")
+
     def sounds(document):
         if not isinstance(document.get("signals"), dict) or not isinstance(document.get("families"), list):
             raise ValueError("no signals or families")
@@ -678,6 +682,7 @@ def task_themes():
     # What a POST may write: its path's kind, the file it writes for a theme, and what its body must hold.
     SAVES = {
         "palettes": (lambda theme: PALETTES / theme / "palettes.json", palettes),
+        "textures": (lambda theme: PALETTES / theme / "textures.json", textures),
         "sounds": (lambda theme: THEME_SOURCES / theme / "sounds-choice.json", sounds),
     }
 
@@ -688,7 +693,7 @@ def task_themes():
         def do_POST(self):
             # Read whole first: a request answered before its body is read leaves the client writing into a closed socket.
             body = self.rfile.read(int(self.headers.get("Content-Length", 0))).decode("utf-8")
-            match = re.fullmatch(r"/(palettes|sounds)/([a-z][a-z0-9_]*)", self.path)
+            match = re.fullmatch(r"/(palettes|textures|sounds)/([a-z][a-z0-9_]*)", self.path)
             if not match or not (THEME_SOURCES / match.group(2)).is_dir():
                 self.send_error(404)
                 return

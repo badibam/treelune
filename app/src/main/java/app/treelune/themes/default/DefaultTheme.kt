@@ -1,5 +1,6 @@
 package app.treelune.themes.default
 
+import app.treelune.core.themes.texture
 import app.treelune.core.ui.components.LocalButtonFill
 import app.treelune.core.ui.sound.scrollEndSound
 
@@ -1021,6 +1022,16 @@ object DefaultTheme : ThemeContract {
     private const val ITEM_BADGE_SCALE = 1.5f
 
     /**
+     * How the motifs are laid (docs/design/tool-texture.md): a cell's unit is a dp, smoothed; an
+     * ICON motif's icon twelve units, fourteen around it.
+     */
+    @Composable
+    private fun textureStyle(): app.treelune.core.themes.TextureStyle {
+        val unit = with(androidx.compose.ui.platform.LocalDensity.current) { 1.dp.toPx() }
+        return app.treelune.core.themes.TextureStyle(unitPx = unit, pixel = false, iconUnits = 12, iconGapUnits = 14)
+    }
+
+    /**
      * The deep tone of a tag's hue an item's icon takes: its ink on the tag's colour in the light
      * palette (OKLCH lightness 0.42, chroma 0.11), its badge in the dark one (0.36, 0.06).
      */
@@ -1107,10 +1118,12 @@ object DefaultTheme : ThemeContract {
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
     override fun ZoneCardContainer(
+        texture: app.treelune.core.themes.ItemTexture?,
         onClick: () -> Unit,
         onLongClick: () -> Unit,
         content: @Composable () -> Unit
     ) {
+        val brush = app.treelune.core.themes.rememberTextureBrush(texture, CurrentTheme.getCurrentColorScheme().surface, textureStyle())
         // Theme defines ONLY appearance: borders, colors, shadows, etc.
         androidx.compose.material3.Card(
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
@@ -1128,9 +1141,12 @@ object DefaultTheme : ThemeContract {
                     onLongClick = onLongClick
                 )
         ) {
-            // Le contenu vient de UI.ZoneCard()
-            Box(modifier = Modifier.padding(12.dp)) {
-                content()
+            // Le contenu vient de UI.ZoneCard(), over the texture, which fills the card the card clips
+            Box {
+                Box(modifier = Modifier.matchParentSize().texture(brush, androidx.compose.ui.graphics.RectangleShape))
+                Box(modifier = Modifier.padding(12.dp)) {
+                    content()
+                }
             }
         }
     }
@@ -1161,10 +1177,12 @@ object DefaultTheme : ThemeContract {
     @Composable
     override fun ToolCardContainer(
         displayMode: DisplayMode,
+        texture: app.treelune.core.themes.ItemTexture?,
         onClick: () -> Unit,
         onLongClick: () -> Unit,
         content: @Composable () -> Unit
     ) {
+        val brush = app.treelune.core.themes.rememberTextureBrush(texture, CurrentTheme.getCurrentColorScheme().surface, textureStyle())
         // The grid gives the tile its cells; the space between tiles is taken inside them
         val cardModifier = Modifier.fillMaxSize().padding(4.dp)
 
@@ -1182,9 +1200,12 @@ object DefaultTheme : ThemeContract {
                 onLongClick = onLongClick
             )
         ) {
-            // Le contenu vient de UI.ToolCard()
-            Box(modifier = Modifier.padding(cardPadding)) {
-                content()
+            // Le contenu vient de UI.ToolCard(), over the texture, which fills the card the card clips
+            Box {
+                Box(modifier = Modifier.matchParentSize().texture(brush, androidx.compose.ui.graphics.RectangleShape))
+                Box(modifier = Modifier.padding(cardPadding)) {
+                    content()
+                }
             }
         }
     }
@@ -1624,11 +1645,15 @@ object DefaultTheme : ThemeContract {
         subtitle: String?,
         icon: String?,
         iconColor: app.treelune.core.themes.TagColor?,
+        texture: app.treelune.core.themes.ItemTexture?,
         appMark: Boolean
     ) {
+        // A textured page's motif in a band across the width, on the screen's ground, the title in it with air above and below
+        val brush = app.treelune.core.themes.rememberTextureBrush(texture, CurrentTheme.getCurrentColorScheme().background, textureStyle())
         // The title centered across the width
         Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxWidth().texture(brush, androidx.compose.ui.graphics.RectangleShape)
+                .padding(horizontal = 16.dp, vertical = if (brush != null) 12.dp else 0.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Line 1: Icon + Title

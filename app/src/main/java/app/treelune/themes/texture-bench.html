@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Banc des textures</title>
+<!--
+  The texture bench (docs/design/tool-texture.md), served by `./run themes`: every motif of a
+  theme side by side, without and with an icon colour, subtle and marked, on a tile or on a page
+  header, so that all show alike. It reads what the app reads: the theme's cells
+  (resources/app/treelune/themes/<id>/textures/*.svg) and its tones (textures.json), and saves the
+  tones back there (POST /textures/<id>). A motif is coloured as TextureTones.Mode.motifColor does:
+  the surface's OKLCH lightness moved toward its ink by the tone, at the surface's chroma and hue,
+  or at the icon colour's hue and the mode's tag chroma.
+
+  The surfaces come from the theme's own sources: the retro's derived colours in its palettes.json,
+  the cosy's numbers in its palettes.json (with CosyPalette's tag hues), the default theme's
+  colours from its colour bench (default/bench/colors.html), which DefaultColorsBenchTest holds to
+  DefaultTheme.kt.
+-->
+<style>
+  :root { --ground: #f4f1ec; --ink: #2b2620; --dim: #6b6358; --line: #d8d0c4; --accent: #2f6fb0; }
+  @media (prefers-color-scheme: dark) { :root { --ground: #1e1a16; --ink: #ece6dc; --dim: #a59c8f; --line: #3a332b; --accent: #8db8ea; } }
+  body { margin: 0; background: var(--ground); color: var(--ink); font: 14px/1.4 system-ui, sans-serif; }
+  header { position: sticky; top: 0; z-index: 2; background: var(--ground); border-bottom: 1px solid var(--line); padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; }
+  header h1 { font-size: 16px; margin: 0; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .seg button { font: inherit; background: none; color: inherit; border: 0; padding: 4px 10px; cursor: pointer; }
+  .seg button + button { border-left: 1px solid var(--line); }
+  .seg button[aria-pressed="true"] { color: var(--accent); font-weight: 600; background: color-mix(in srgb, var(--accent) 12%, transparent); }
+  #status { color: var(--dim); }
+  #save { font: inherit; padding: 4px 12px; border-radius: 6px; border: 1px solid var(--accent); background: none; color: var(--accent); cursor: pointer; }
+  #save[disabled] { opacity: .4; cursor: default; }
+  main { padding: 16px; display: grid; gap: 6px; }
+  .row { display: grid; grid-template-columns: 110px repeat(4, 120px) 1fr; gap: 10px; align-items: center; }
+  .row.head { color: var(--dim); font-size: 12px; position: sticky; top: 52px; background: var(--ground); padding: 4px 0; z-index: 1; }
+  .name { font-weight: 600; }
+  .tile { height: 64px; border-radius: 8px; image-rendering: pixelated; }
+  .tones { display: grid; grid-template-columns: auto 1fr 3.5em; gap: 4px 8px; align-items: center; font-size: 12px; color: var(--dim); }
+  .tones input[type=range] { width: 100%; }
+  .tones output { font-variant-numeric: tabular-nums; color: var(--ink); }
+  .chroma { display: flex; gap: 8px; align-items: center; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Textures</h1>
+  <span class="seg" id="theme"></span>
+  <span class="seg" id="mode"></span>
+  <span class="seg" id="surface"></span>
+  <span class="chroma">couleur <select id="tag"></select> chroma <input id="tag-chroma" type="range" min="0" max="0.15" step="0.005"><output id="tag-chroma-out"></output></span>
+  <button id="save" disabled>Enregistrer</button>
+  <span id="status"></span>
+</header>
+<main id="main"></main>
+<script src="retro/bench/palette-derive.js"></script>
+<script>
+"use strict";
+const ROOT = "/app/src/main/resources/app/treelune/themes";
+const THEMES = { default: "Par défaut", cosy: "Cosy", retro: "Rétro" };
+const NAMES = ["LINES", "DIAGONALS", "GRID", "ZIGZAG", "WAVES", "DOTS", "CROSSES", "STARS", "RINGS", "DIAMONDS", "CONFETTI", "CHECKER", "BRICKS", "SCALES", "ICON"];
+const TAGS = ["RED", "ORANGE", "YELLOW", "GREEN", "TEAL", "BLUE", "PURPLE", "PINK"];
+// Screen pixels a cell's unit takes here: a dp is about a CSS pixel; a retro drawing pixel, two
+const UNIT = { default: 1, cosy: 1, retro: 2 };
+// The ICON motif's icon and the room around it, in units, as each theme's textureStyle() gives them
+const ICON_CELL = { default: [12, 14], cosy: [14, 16], retro: [22, 10] };
+// CosyPalette.TAG_HUES
+const COSY_TAG_HUES = { RED: 25, ORANGE: 55, YELLOW: 95, GREEN: 145, TEAL: 185, BLUE: 230, PURPLE: 300, PINK: 355 };
+const S = { theme: "default", mode: "LIGHT", surface: "TILE", tag: "BLUE", docs: {}, cells: {}, surfaces: {}, dirty: false };
+
+// ---- OKLCH, as core/themes/Oklch.kt and Lch.kt ----
+function toLinear(c) { return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+function hexToLch(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(v => toLinear(v / 255));
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  const L = 0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s;
+  const A = 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s;
+  const B = 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s;
+  return [L, Math.hypot(A, B), ((Math.atan2(B, A) * 180 / Math.PI) % 360 + 360) % 360];
+}
+const lchHex = (lch) => PaletteDerive.hex(lch);
+
+/** The motif's colour on [surfaceHex], as TextureTones.Mode.motifColor. */
+function motifColor(surfaceHex, tagHex, tone, tagChroma) {
+  const [L, C, H] = hexToLch(surfaceHex);
+  const toward = L > 0.5 ? -1 : 1;
+  const hue = tagHex ? hexToLch(tagHex)[2] : null;
+  return lchHex([L + toward * tone, hue == null ? C : tagChroma, hue == null ? H : hue]);
+}
+
+// ---- The surfaces and tag colours of each theme, from its own sources ----
+async function loadSurfaces() {
+  const retro = (await (await fetch(`${ROOT}/retro/palettes.json`, { cache: "no-store" })).json()).palettes;
+  const cosy = (await (await fetch(`${ROOT}/cosy/palettes.json`, { cache: "no-store" })).json()).palettes;
+  const colors = await (await fetch("default/bench/colors.html", { cache: "no-store" })).text();
+  const grab = (name) => new Function(`return ${colors.match(new RegExp(`const ${name} = (\\{[\\s\\S]*?\\n\\});`))[1]}`)();
+  const LIGHT = grab("LIGHT"), DARK = grab("DARK"), ITEM_ICONS = grab("ITEM_ICONS");
+  const out = { default: {}, cosy: {}, retro: {} };
+  // The default theme: a tile on the surface, a header on the screen's background; a tag its badge's colour (getTagColor)
+  for (const [mode, c] of [["LIGHT", LIGHT], ["DARK", DARK]]) {
+    const tags = {};
+    for (const t of TAGS) tags[t] = mode === "LIGHT" ? ITEM_ICONS.LIGHT[t][0] : ITEM_ICONS.DARK[t][1];
+    out.default[mode] = { TILE: c.surface, HEADER: c.background, tags };
+  }
+  // The retro: a tile inside a frame, on the panel's ground; a header on the screen's
+  for (const p of retro) {
+    const d = p.derived, tags = {};
+    for (const t of TAGS) tags[t] = d[`tag_${t.toLowerCase()}`];
+    out.retro[p.mode] = { TILE: d.panel_ground, HEADER: d.screen_ground, tags };
+  }
+  // The cosy: a tile's face, a header's pill of the main colour (CosyColors.tile, accent)
+  for (const p of cosy) {
+    const n = p.numbers, tags = {};
+    for (const t of TAGS) tags[t] = lchHex([n.tag_lightness, n.tag_chroma, COSY_TAG_HUES[t]]);
+    out.cosy[p.mode] = { TILE: lchHex([n.tile_lightness, n.tile_chroma, n.hue]), HEADER: lchHex([n.accent_lightness, n.accent_chroma, n.hue + n.accent_turn]), tags };
+  }
+  S.surfaces = out;
+}
+
+// ---- The cells, as TextureCell reads them ----
+function parseCell(svgText) {
+  const doc = new DOMParser().parseFromString(svgText, "image/svg+xml");
+  const svg = doc.documentElement;
+  const [, , w, h] = svg.getAttribute("viewBox").trim().split(/\s+/).map(Number);
+  const shapes = [...svg.querySelectorAll("path, rect, circle")].map(el => {
+    const sw = el.getAttribute("stroke-width");
+    const round = el.getAttribute("stroke-linecap") === "round";
+    let path = new Path2D();
+    if (el.tagName === "path") path = new Path2D(el.getAttribute("d"));
+    else if (el.tagName === "rect") {
+      const a = (k, d = 0) => Number(el.getAttribute(k) ?? d);
+      const rx = a("rx");
+      if (rx > 0) path.roundRect(a("x"), a("y"), a("width"), a("height"), rx); else path.rect(a("x"), a("y"), a("width"), a("height"));
+    } else path.arc(Number(el.getAttribute("cx")), Number(el.getAttribute("cy")), Number(el.getAttribute("r")), 0, Math.PI * 2);
+    return { path, stroke: sw == null ? null : Number(sw), round };
+  });
+  return { w, h, shapes };
+}
+async function loadCells(theme) {
+  if (S.cells[theme]) return;
+  const cells = {};
+  for (const n of NAMES.filter(n => n !== "ICON")) {
+    cells[n] = parseCell(await (await fetch(`${ROOT}/${theme}/textures/${n.toLowerCase()}.svg`, { cache: "no-store" })).text());
+  }
+  // The ICON motif's icon: Lucide's, or the retro's own pixels
+  const src = theme === "retro" ? "retro/icons/heart.svg" : "/third_party/lucide/icons/heart.svg";
+  const text = await (await fetch(src)).text();
+  cells.ICON = { icon: text };
+  S.cells[theme] = cells;
+}
+
+/** A data URL of [theme]'s cell of [name] in [color], repeated by the tile's background. */
+async function cellUrl(theme, name, color) {
+  const unit = UNIT[theme], pixel = theme === "retro";
+  const cell = S.cells[theme][name];
+  const canvas = document.createElement("canvas");
+  if (name === "ICON") {
+    const [iconUnits, gapUnits] = ICON_CELL[theme];
+    const icon = iconUnits * unit, gap = gapUnits * unit, side = Math.round(2 * (icon + gap));
+    canvas.width = canvas.height = side;
+    const g = canvas.getContext("2d");
+    g.imageSmoothingEnabled = !pixel;
+    const svg = cell.icon.replace(/currentColor/g, color);
+    const img = new Image();
+    img.src = "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+    await img.decode();
+    for (const p of [gap / 2, side / 2 + gap / 2]) g.drawImage(img, Math.floor(p), Math.floor(p), icon, icon);
+    return [canvas.toDataURL(), side, side];
+  }
+  const width = Math.max(1, Math.round(cell.w * unit)), height = Math.max(1, Math.round(cell.h * unit));
+  canvas.width = width; canvas.height = height;
+  const g = canvas.getContext("2d");
+  g.imageSmoothingEnabled = !pixel;
+  const draw = (dx, dy) => {
+    g.save(); g.translate(dx, dy); g.scale(width / cell.w, height / cell.h);
+    for (const s of cell.shapes) {
+      if (s.stroke == null) { g.fillStyle = color; g.fill(s.path); }
+      else { g.strokeStyle = color; g.lineWidth = s.stroke; g.lineCap = s.round ? "round" : "butt"; g.stroke(s.path); }
+    }
+    g.restore();
+  };
+  for (const dx of [-width, 0, width]) for (const dy of [-height, 0, height]) draw(dx, dy);
+  return [canvas.toDataURL(), width, height];
+}
+
+// ---- The page ----
+function seg(id, values, key) {
+  const el = document.getElementById(id);
+  el.innerHTML = Object.entries(values).map(([v, label]) => `<button data-v="${v}" aria-pressed="${S[key] === v}">${label}</button>`).join("");
+  el.onclick = async (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    S[key] = b.dataset.v;
+    el.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
+    await render();
+  };
+}
+function setDirty(dirty, text) {
+  S.dirty = dirty;
+  document.getElementById("save").disabled = !dirty;
+  document.getElementById("status").textContent = text;
+}
+async function loadDoc(theme) {
+  if (S.docs[theme]) return;
+  S.docs[theme] = await (await fetch(`${ROOT}/${theme}/textures.json`, { cache: "no-store" })).json();
+}
+
+async function render() {
+  await loadDoc(S.theme); await loadCells(S.theme);
+  const doc = S.docs[S.theme].modes[S.mode];
+  const surfaces = S.surfaces[S.theme][S.mode];
+  const ground = surfaces[S.surface];
+  const tagHex = surfaces.tags[S.tag];
+  const chroma = document.getElementById("tag-chroma");
+  chroma.value = doc.tag_chroma; document.getElementById("tag-chroma-out").textContent = doc.tag_chroma.toFixed(3);
+  const main = document.getElementById("main");
+  main.innerHTML = `<div class="row head"><span>motif</span><span>discrète</span><span>discrète, ${S.tag.toLowerCase()}</span><span>marquée</span><span>marquée, ${S.tag.toLowerCase()}</span><span>tons</span></div>`;
+  for (const name of NAMES) {
+    const row = document.createElement("div"); row.className = "row";
+    row.innerHTML = `<span class="name">${name}</span>`;
+    for (const intensity of ["SUBTLE", "MARKED"]) for (const tagged of [false, true]) {
+      const tile = document.createElement("div"); tile.className = "tile";
+      const color = motifColor(ground, tagged ? tagHex : null, doc.tones[name][intensity], doc.tag_chroma);
+      const [url, w, h] = await cellUrl(S.theme, name, color);
+      tile.style.background = `url(${url}) 0 0 / ${w}px ${h}px repeat, ${ground}`;
+      row.appendChild(tile);
+    }
+    const tones = document.createElement("div"); tones.className = "tones";
+    for (const intensity of ["SUBTLE", "MARKED"]) {
+      const v = doc.tones[name][intensity];
+      tones.insertAdjacentHTML("beforeend", `<span>${intensity === "SUBTLE" ? "discrète" : "marquée"}</span><input type="range" min="0" max="0.25" step="0.005" value="${v}" data-name="${name}" data-intensity="${intensity}"><output>${v.toFixed(3)}</output>`);
+    }
+    tones.oninput = (e) => {
+      const input = e.target; if (input.type !== "range") return;
+      doc.tones[input.dataset.name][input.dataset.intensity] = Number(input.value);
+      input.nextElementSibling.textContent = Number(input.value).toFixed(3);
+      setDirty(true, "modifié, non enregistré");
+    };
+    tones.onchange = () => render();
+    row.appendChild(tones);
+    main.appendChild(row);
+  }
+}
+
+document.getElementById("tag-chroma").oninput = (e) => {
+  S.docs[S.theme].modes[S.mode].tag_chroma = Number(e.target.value);
+  document.getElementById("tag-chroma-out").textContent = Number(e.target.value).toFixed(3);
+  setDirty(true, "modifié, non enregistré");
+};
+document.getElementById("tag-chroma").onchange = () => render();
+document.getElementById("tag").innerHTML = TAGS.map(t => `<option ${t === S.tag ? "selected" : ""}>${t}</option>`).join("");
+document.getElementById("tag").onchange = (e) => { S.tag = e.target.value; render(); };
+document.getElementById("save").onclick = async () => {
+  try {
+    const r = await fetch(`/textures/${S.theme}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(S.docs[S.theme]) });
+    if (!r.ok) throw new Error(r.status + " " + r.statusText);
+    setDirty(false, `enregistré dans ${S.theme}/textures.json`);
+  } catch (e) { setDirty(true, "échec de l'enregistrement : " + e.message); }
+};
+window.addEventListener("beforeunload", (e) => { if (S.dirty) e.preventDefault(); });
+
+(async () => {
+  try { await loadSurfaces(); }
+  catch (e) { setDirty(false, "sources illisibles : ouvrir le banc par ./run themes (" + e.message + ")"); return; }
+  seg("theme", THEMES, "theme");
+  seg("mode", { LIGHT: "clair", DARK: "sombre" }, "mode");
+  seg("surface", { TILE: "tuile", HEADER: "en-tête" }, "surface");
+  // A theme switched with changes unsaved keeps them in memory; one save writes the theme shown
+  await render();
+  setDirty(false, "lu depuis textures.json");
+})();
+</script>
+</body>
+</html>

@@ -82,6 +82,8 @@ internal fun Raised(
     padding: Dp = 0.dp,
     /** The content's own size within the piece: filling it, for a tile the grid sizes. */
     contentModifier: Modifier = Modifier,
+    /** A motif laid on the face, over its fill (docs/design/tool-texture.md); none when null. */
+    texture: androidx.compose.ui.graphics.Brush? = null,
     content: @Composable BoxScope.() -> Unit
 ) {
     // 0 at rest, 1 sunk to the bottom of the shadow; under 0 while it springs past its place
@@ -103,6 +105,7 @@ internal fun Raised(
                 .graphicsLayer { translationY = sink.value * depth.toPx() }
                 .clip(shape)
                 .background(fill)
+                .let { m -> if (texture != null) m.background(texture) else m }
                 .let { m -> if (border != null) m.border(borderWidth, border, shape) else m }
         )
         Box(

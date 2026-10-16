@@ -38,6 +38,9 @@ object ToolConfigSettings {
                 // A tag's name, or none for a neutral icon; checked with its names by the service
                 field(app.treelune.core.themes.IconColor.KEY, text("label_icon_color"), FieldType.CHOICE, text("tools_base_schema_config_icon_color"),
                     config = mapOf("options" to app.treelune.core.themes.IconColor.options(text))),
+                // A motif's name, or none; checked with its names, and ICON with the icon, by the service
+                field(app.treelune.core.themes.Texture.KEY, text("label_texture"), FieldType.CHOICE, text("tools_base_schema_config_texture"),
+                    config = mapOf("options" to app.treelune.core.themes.Texture.options(text))),
                 field("display_mode", text("tools_config_label_display_mode"), FieldType.CHOICE, text("tools_base_schema_config_display_mode"),
                     default = toolType.getDefaultDisplayMode(),
                     config = choice(DISPLAY_MODES, DISPLAY_MODES.associateWith { text("tools_config_display_${it.lowercase()}") })),
