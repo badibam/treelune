@@ -72,9 +72,20 @@ Le premier export, `stan-prokopenko`, est publié le 2026-10-16 (`format` 1, `en
 
 ## Le bagage
 
-- Une commande de lecture par clé, ouverte à la seule session qui a une identité, sur cette identité et sa langue.
-- **Sans limite de taille** : la limite d'une conversation (`chat_max_data_chars`, 15 000 par défaut) a été posée pour les données des outils, dont la taille ne se connaît pas d'avance ; celle d'une ressource se lit sur l'écran de l'identité, et une ressource trop longue se coupe ou se retire à la main.
-- **Une lecture par session et par clé**, comme un schéma (`CommandExecutor`, résultat `CACHED`) : une seconde demande répond « déjà dans cette session ». Une ressource modifiée en cours de session garde dans celle-ci le texte déjà lu.
+Il se lit par les commandes de l'identité (« L'identité pour l'IA »), sans réserve à la session de l'identité ; la liste du prompt donne les clés.
+
+## L'identité pour l'IA
+
+Un service `identities`, ouvert à toute IA : l'IA intégrée, en session ou en routine, l'identité incarnée ou non, et une IA extérieure par le connecteur MCP (un outil par commande, comme les autres).
+
+- **Lire** : la liste des identités ; une identité (voix, esprit, portrait, liste du bagage) ; une ressource du bagage par sa clé. La langue se donne en paramètre ; absente, c'est celle de l'identité, et le résultat dit laquelle il a lue.
+- **Modifier** : créer une identité ; remplacer un morceau entier (une voix, une ressource) ; ajouter ou retirer une ressource ; changer le nom, l'icône, la langue. Jamais un bout de texte : l'IA renvoie le morceau entier.
+- **Validation** : au niveau de l'app (`validate_app`, avec les zones et les groupes de l'accueil). Par le connecteur, une écriture gardée attend l'accord par notification (`McpApprovals`) ; une routine sous un masque ne les atteint pas, `AccessRules` refusant ce qu'il ne sait pas placer.
+- **Sans limite de taille**, en conversation comme par le connecteur (qui coupe aujourd'hui toute lecture à `chat_max_data_chars`, 15 000 par défaut, `AppMcpBackend.call`) : la limite a été posée pour les données des outils, dont la taille ne se connaît pas d'avance ; celle d'une identité se lit sur son écran, et un morceau trop long se coupe ou se retire à la main.
+- **Une lecture par session et par clé**, comme un schéma (`CommandExecutor`, résultat `CACHED`) : une seconde demande répond « déjà dans cette session ». Un morceau modifié en cours de session garde dans celle-ci le texte déjà lu. Le connecteur, sans session, n'a pas ce garde.
+- Une modification par l'IA compte comme une retouche à la main : une réimportation la nomme parmi les pertes.
+- `app_context`, le contexte de l'app que lit le connecteur, porte la liste des identités et l'identité de chaque zone, comme l'instantané de l'app que lit l'IA intégrée.
+- Par le connecteur, l'IA extérieure peut incarner une identité qu'elle lit : la consigne des deux rôles part avec la lecture, mais l'app ne peut pas l'y tenir.
 
 ## Suppression
 
