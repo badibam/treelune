@@ -40,6 +40,7 @@ object FieldValueSchema {
         field.defaultValue?.let { schema.put("default", JSONObject.wrap(it)) }
         val description = listOfNotNull(reading(field, text), field.description).joinToString(" ")
         if (description.isNotEmpty()) schema.put("description", description)
+        if (field.aiReadOnly) schema.put(AI_READ_ONLY, true)
         return schema
     }
 

@@ -20,13 +20,16 @@ enum class AppearanceMode { LIGHT, DARK, SYSTEM }
  *   that say something whatever the hue (states, tags): 0 shows the theme's own colours
  * @property oneColumn The grids shown in one column, a half of the screen taking its whole width
  *   (Grid.oneColumn), for a narrow screen; the places stored stay those of the grid
+ * @property textureIntensity How strongly the motifs of tiles and page headers show
+ *   (docs/design/tool-texture.md), for the whole app
  */
 data class Appearance(
     val theme: String,
     val mode: AppearanceMode,
     val hueShift: Int,
     val sizeStep: Int,
-    val oneColumn: Boolean
+    val oneColumn: Boolean,
+    val textureIntensity: TextureIntensity
 ) {
     companion object {
         /** The look [settings] choose, the interface settings as stored or as being edited; null while a choice is missing. */
@@ -34,8 +37,9 @@ data class Appearance(
             val theme = settings.optString(AppSettings.UI_THEME).ifEmpty { return null }
             val mode = settings.optString(AppSettings.UI_MODE).ifEmpty { return null }
             if (!settings.has(AppSettings.UI_HUE_SHIFT) || !settings.has(AppSettings.UI_SIZE_STEP) || !settings.has(AppSettings.UI_ONE_COLUMN)) return null
+            val intensity = settings.optString(AppSettings.UI_TEXTURE_INTENSITY).ifEmpty { return null }
             return Appearance(theme, AppearanceMode.valueOf(mode), settings.getInt(AppSettings.UI_HUE_SHIFT), settings.getInt(AppSettings.UI_SIZE_STEP),
-                settings.getBoolean(AppSettings.UI_ONE_COLUMN))
+                settings.getBoolean(AppSettings.UI_ONE_COLUMN), TextureIntensity.valueOf(intensity))
         }
     }
 }

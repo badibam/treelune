@@ -300,6 +300,7 @@ Vu le 2026-10-09 : l'inscription par la page de connexion, « Activer Funnel » 
 ## Copier, limites, fuseau, import, sauvegarde automatique (branche data-text, 2026-10-14)
 
 - Conversation : un appui simple sur une bulle ne copie plus ; un appui long copie, avec une vibration. Message de l'IA à module : son texte puis ses questions ; en attente de validation : ses actions ; message système : résumé, lignes ✓/✗, détails. Les boutons et « Détails » dans la bulle répondent toujours à l'appui simple.
+- La barre d'un texte sélectionné, dans les trois thèmes et les deux modes : un passage d'une note lue, d'une erreur, d'un titre de page, du Guide, puis d'un champ (au clavier ouvert, le curseur et le clavier restent) et d'un champ dans une fenêtre flottante. La barre du thème et jamais celle d'Android ; au-dessus de la sélection, dessous quand elle touche le haut ; Copier, Coller, Couper, Tout sélectionner dans la langue de l'app ; une appli de traduction installée ajoute son action ; tout tient à la ligne sur un écran étroit ; un toucher hors de la barre la ferme. Rétro : le mot pressé s'inverse ; cosy : la barre s'enfonce.
 - Notes : appui long, « Copier » dans le menu. Journal, une entrée lue : « Copier », et un passage du contenu se sélectionne. Rapport de bug : « Copier ». Messages, Réglages › Journaux, la fiche d'une entrée (Données structurées, Questionnaire) : le texte se sélectionne ; dans une liste, l'appui long reste celui de la liste.
 - Un nom (60) : coller un texte de 100 caractères le garde, le compteur « 100 / 60 » en erreur, l'enregistrement refusé avec la raison ; le compteur apparaît à 48. Une note de 3 000 caractères s'enregistre ; une consigne de Séance de 1 000 aussi.
 - Réglages › Formats : le fuseau propose Europe/Lisbon avec son décalage, la recherche au-dessus de la liste la trouve en tapant « lisb » ; la langue propose « Português (Portugal) ». Le temps d'ouverture de la liste, en rétro surtout.
@@ -328,9 +329,25 @@ Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la po
 - Objectif : valider une tentative, changer un critère (seuil, critère retiré), rouvrir la tentative : elle est jugée selon ses anciens critères, la valeur saisie du critère retiré toujours là ; revalidée, son jugement aussi.
 - Une séance notée « Faite » sans l'écran : ses étapes toutes faites, sans temps ; une séance finie avant ce changement se corrige toujours par ses comptes.
 
+## Lecture seule pour l'IA (branche user-only, `docs/design/unified-fields.md`)
+
+- La case « Lecture seule pour l'IA » : sur un champ ajouté à un Journal, après « Toujours afficher » ; sur un critère saisi d'Objectif, une fois le type choisi, absente d'un critère lu ; « Validation fermée à l'IA » dans la section Temps de l'Objectif. Cochée, enregistrée, la config rouverte : toujours cochée ; changer la case ne demande aucune confirmation.
+- Le champ coché se remplit toujours à l'écran. Demander à l'IA, en conversation, de le remplir : refusé, elle dit que le champ lui est fermé, rien n'est écrit, pas même le reste de l'entrée. Lui demander de décocher la case : refusé ; de la cocher sur un autre champ : fait.
+- Un Objectif fermé à l'IA : elle dit où en est la tentative, mais « valide-la » et « rouvre-la » sont refusés ; validée et rouverte à l'écran, sans changement.
+- Par le connecteur, et par une routine qui écrit ce champ : refusé, l'erreur dans la réponse du connecteur, dans l'historique d'exécution de la routine.
+
+## Les textures (`docs/design/tool-texture.md`, branche tool-texture)
+
+- Après la migration 75 : l'app démarre, rien ne change à l'écran ; Réglages › Interface montre Textures sur « Discrètes » ; une sauvegarde faite avant s'importe, ses zones sans texture.
+- Config d'un outil, puis d'une zone : sous la couleur de l'icône, la grille des textures, chaque choix une petite tuile de la chose dans sa couleur, son nom dessous, le choix marqué d'une coche ; une zone sans icône n'offre pas « Son icône ». Une texture choisie se voit sur la tuile après l'enregistrement, et en tête de la page de la chose.
+- Dans les trois thèmes, aux deux modes, une zone dont les tuiles portent chacune un motif, sans et avec couleur d'icône : chacune se reconnaît, aucune ne gêne la lecture de son nom ni de son résumé (un Graphique compris), et les quinze se voient à peu près autant ; puis Textures sur « Marquées ». Ce qui ne va pas se règle au banc des textures (`./run themes`).
+- L'en-tête d'une page texturée : la bande du défaut et du rétro, la pilule du cosy ; le titre se lit.
+- Rétro : un motif tombe sur les pixels du thème, sans flou, aux crans de taille 0 et 3 ; en mode d'édition de la grille, une tuile `CHECKER` mise à l'écart se distingue encore du damier.
+- Par l'IA : « Mets des vagues sur la zone Santé et l'icône en fond sur le Poids » — UPDATE_ZONE prend `texture`, l'outil la reçoit dans sa config ; « en papier » est refusé avec les quinze noms ; « retire l'icône de la zone Santé » quand elle porte `ICON` est refusé en disant pourquoi.
+
 ## Les sources de l'attente (branche waiting-sources, `docs/design/waiting-sources.md`)
 
-- Après la migration 75 : aucun point nouveau sur le bouton flottant, les zones ni les routines ; Réglages et le Guide marqués comme avant, s'ils l'étaient.
+- Après la migration 76 : aucun point nouveau sur le bouton flottant, les zones ni les routines ; Réglages et le Guide marqués comme avant, s'ils l'étaient.
 - Écrire à l'IA, fermer la conversation avant sa réponse : le point paraît sur le bouton flottant quand elle répond ; ouvrir la conversation l'efface. Rester dans la conversation pendant la réponse : aucun point en la fermant.
 - Envoyer un message, passer l'app en arrière-plan pendant la réponse, revenir sur la conversation ouverte : pas de point ensuite. Revenir sur un autre écran : le point est là.
 - Une routine lancée à la main, réglée « Toujours » : à sa fin, une notification au nom de la routine avec le début du résumé ; la toucher ouvre l'exécution, le résumé et la ligne de faits en tête. Avant de la toucher : le point sur la tuile de la zone, la carte de la routine et sa ligne dans l'historique, la première phrase du résumé sous sa date ; ouverte, les trois points s'effacent.

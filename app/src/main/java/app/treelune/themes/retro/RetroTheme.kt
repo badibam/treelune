@@ -1,5 +1,6 @@
 package app.treelune.themes.retro
 
+import app.treelune.core.themes.texture
 import app.treelune.core.ui.components.LocalButtonFill
 import android.content.Context
 import android.os.Handler
@@ -88,6 +89,7 @@ import app.treelune.core.ai.data.MessageSender
 import app.treelune.core.icons.IconSource
 import app.treelune.core.icons.Icons
 import app.treelune.core.strings.Strings
+import app.treelune.core.themes.SelectionAction
 import app.treelune.core.themes.PaletteMode
 import app.treelune.core.themes.CurrentTheme
 import app.treelune.core.themes.TagColor
@@ -423,6 +425,33 @@ object RetroTheme : ThemeContract {
         CompositionLocalProvider(LocalRetroLifted provides lifted) { content() }
     }
 
+    /**
+     * A panel, as the snackbar's: its words side by side a finger's target tall, a cell apart and
+     * without a frame each, going to a second line when they do not hold on one; a word pressed is
+     * inverted, the ink filling its place and the word in the panel's ground.
+     */
+    @Composable
+    override fun SelectionBar(actions: List<SelectionAction>) {
+        val grid = retroGrid()
+        val panel = retroColors.panel
+        Framed {
+            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(grid.cells(1))) {
+                for (action in actions) {
+                    Pressable(onClick = action.onClick) { pressed ->
+                        Box(
+                            modifier = Modifier
+                                .heightIn(min = grid.cells(touchRows))
+                                .background(if (pressed) panel.ink.srgb else Color.Transparent),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Line(action.label, grid.text, (if (pressed) panel.ground else panel.ink).srgb)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     override fun getTagColor(color: TagColor, mode: PaletteMode): Color = RetroPalettes.colors(mode, 0).tag(color).srgb
 
     // =====================================
@@ -642,8 +671,8 @@ object RetroTheme : ThemeContract {
     }
 
     @Composable
-    override fun ZoneCardContainer(onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
-        Tile(onClick, onLongClick, content)
+    override fun ZoneCardContainer(texture: app.treelune.core.themes.ItemTexture?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
+        Tile(texture, onClick, onLongClick, content)
 
     /**
      * A dot of six pixels in the info colour, ringed by a pixel of the ground it stands on: at the
@@ -727,16 +756,26 @@ object RetroTheme : ThemeContract {
     }
 
     @Composable
-    override fun ToolCardContainer(displayMode: DisplayMode, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
-        Tile(onClick, onLongClick, content)
+    override fun ToolCardContainer(displayMode: DisplayMode, texture: app.treelune.core.themes.ItemTexture?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
+        Tile(texture, onClick, onLongClick, content)
 
-    /** A tile: a frame filling the cells the grid gives it; its content a cell in from the frame's edge. */
+    /** A tile: a frame filling the cells the grid gives it, its motif inside; its content a cell in from the frame's edge. */
     @Composable
-    private fun Tile(onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) {
+    private fun Tile(texture: app.treelune.core.themes.ItemTexture?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) {
+        val brush = app.treelune.core.themes.rememberTextureBrush(texture, retroColors.panel.ground.srgb, textureStyle())
         Pressable(onClick = onClick, onLongClick = onLongClick, modifier = Modifier.fillMaxSize()) { pressed ->
-            Framed(modifier = Modifier.fillMaxSize(), pressed = pressed, fillContent = true) { content() }
+            Framed(modifier = Modifier.fillMaxSize(), pressed = pressed, fillContent = true, texture = brush) { content() }
         }
     }
+
+    /**
+     * How the motifs are laid (docs/design/tool-texture.md): a cell's unit is a drawing pixel,
+     * never smoothed, every cell of whole pixels (TextureCellsTest); an ICON motif's icon in its own
+     * pixels, an icon's box, ten pixels around it.
+     */
+    @Composable
+    private fun textureStyle(): app.treelune.core.themes.TextureStyle =
+        app.treelune.core.themes.TextureStyle(unitPx = retroGrid().scale.toFloat(), pixel = true, iconUnits = RetroGrid.ICON, iconGapUnits = 10)
 
     @Composable
     override fun PageHeader(
@@ -744,11 +783,18 @@ object RetroTheme : ThemeContract {
         subtitle: String?,
         icon: String?,
         iconColor: app.treelune.core.themes.TagColor?,
+        texture: app.treelune.core.themes.ItemTexture?,
         appMark: Boolean
     ) {
         val grid = retroGrid()
+        // A textured page's motif in a band across the width, on the screen's ground, a cell of air above and below the title
+        val brush = app.treelune.core.themes.rememberTextureBrush(texture, retroColors.screen.ground.srgb, textureStyle())
         // Across the width
-        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            modifier = Modifier.fillMaxWidth().texture(brush, androidx.compose.ui.graphics.RectangleShape)
+                .padding(vertical = if (brush != null) grid.cells(1) else androidx.compose.ui.unit.Dp(0f)),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             // The page's icon and title a size up, as a heading is (HEADING)
             val up = retroGridUp()
             Row(horizontalArrangement = Arrangement.spacedBy(grid.cells(1)), verticalAlignment = Alignment.CenterVertically) {

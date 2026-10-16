@@ -39,7 +39,8 @@ object AppSettingsDefaults {
             .put(AppSettings.UI_MODE, app.treelune.core.themes.AppearanceMode.SYSTEM.name)
             .put(AppSettings.UI_HUE_SHIFT, 0)
             .put(AppSettings.UI_SIZE_STEP, 0)
-            .put(AppSettings.UI_ONE_COLUMN, false).toString()
+            .put(AppSettings.UI_ONE_COLUMN, false)
+            .put(AppSettings.UI_TEXTURE_INTENSITY, app.treelune.core.themes.TextureIntensity.SUBTLE.name).toString()
         // Through the app's own Tailscale node, which needs no server, where its library exists (arm64);
         // the relay elsewhere. No relay until the user gives one
         AppSettingCategories.EXTERNAL_ACCESS -> JSONObject().put(AppSettings.ACCESS_MODE,

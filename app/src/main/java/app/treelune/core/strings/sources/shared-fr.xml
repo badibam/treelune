@@ -483,6 +483,31 @@
     <string name="label_description">Description</string>
     <string name="label_icon">Icône</string>
     <string name="label_icon_color">Couleur de l\'icône</string>
+    <string name="label_texture">Texture</string>
+    <string name="texture_lines">Rayures</string>
+    <string name="texture_diagonals">Biais</string>
+    <string name="texture_grid">Quadrillage</string>
+    <string name="texture_zigzag">Chevrons</string>
+    <string name="texture_waves">Vagues</string>
+    <string name="texture_dots">Points</string>
+    <string name="texture_crosses">Croix</string>
+    <string name="texture_stars">Étoiles</string>
+    <string name="texture_rings">Anneaux</string>
+    <string name="texture_diamonds">Losanges</string>
+    <string name="texture_confetti">Confettis</string>
+    <string name="texture_checker">Damier</string>
+    <string name="texture_bricks">Briques</string>
+    <string name="texture_scales">Écailles</string>
+    <string name="texture_icon">Son icône</string>
+    <string name="texture_none">Sans texture</string>
+    <string name="tools_base_schema_config_texture">Motif posé sur la tuile de l\'outil et en tête de sa page, parmi LINES, DIAGONALS, GRID, ZIGZAG, WAVES, DOTS, CROSSES, STARS, RINGS, DIAMONDS, CONFETTI, CHECKER, BRICKS, SCALES, ICON (ICON répète l\'icône de l\'outil) ; null ou absent pour aucun. Chaque thème le dessine à sa façon. Une affaire de goût : le poser quand la personne le demande</string>
+    <string name="zone_schema_texture">Motif posé sur la tuile de la zone et en tête de sa page, parmi LINES, DIAGONALS, GRID, ZIGZAG, WAVES, DOTS, CROSSES, STARS, RINGS, DIAMONDS, CONFETTI, CHECKER, BRICKS, SCALES, ICON (ICON répète l\'icône de la zone, et en demande une) ; null ou absent pour aucun. Les outils de la zone ne le prennent pas. Une affaire de goût : le poser quand la personne le demande</string>
+    <string name="service_error_texture_unknown">Texture inconnue : \'%1$s\'. Une parmi %2$s, ou null pour aucune</string>
+    <string name="service_error_texture_icon_without_icon">La texture ICON répète l\'icône, et il n\'y en aurait plus : garde une icône, ou retire la texture ou choisis-en une autre</string>
+    <string name="settings_ui_texture_intensity">Textures</string>
+    <string name="settings_ui_texture_intensity_help">La force des motifs choisis pour les zones et les outils, sur leurs tuiles et en tête de leurs pages.</string>
+    <string name="settings_ui_texture_intensity_subtle">Discrètes</string>
+    <string name="settings_ui_texture_intensity_marked">Marquées</string>
     <string name="label_page_info">Page %1$d sur %2$d</string>
     <string name="label_disabled">Désactivé</string>
     <string name="label_field_generic">Champ</string>
@@ -551,6 +576,12 @@
     <string name="message_no_items_in_group">Aucun élément dans ce groupe</string>
     <string name="error_tooltype_not_found">Type d'outil '%1$s' introuvable</string>
     <string name="text_copied">Copié</string>
+    <!-- The bar over a selected text (SelectionMenu) -->
+    <string name="text_selection_cut">Couper</string>
+    <string name="text_selection_copy">Copier</string>
+    <string name="text_selection_paste">Coller</string>
+    <string name="text_selection_select_all">Tout sélectionner</string>
+    <string name="text_selection_autofill">Saisie automatique</string>
     <string name="duplicate_success_tool">Outil dupliqué avec succès</string>
     <string name="duplicate_success_automation">Routine dupliquée avec succès</string>
     <string name="duplicate_no_tools">Aucun outil disponible à dupliquer</string>
@@ -694,6 +725,8 @@
     <string name="custom_fields_description">Description (optionnel)</string>
     <string name="custom_fields_type">Type de champ</string>
     <string name="custom_fields_always_visible">Toujours afficher (même si vide)</string>
+    <string name="field_ai_read_only">Lecture seule pour l\'IA</string>
+    <string name="field_ai_read_only_description">L\'IA le lit, mais ne l\'écrit jamais : ni en conversation, ni par une routine, ni par le connecteur.</string>
 
     <!-- Custom Fields Configuration - Field-specific config labels -->
     <string name="field_config_section_title">Configuration du champ</string>
@@ -1885,6 +1918,8 @@
     <string name="access_widening">%1$s ne peut pas donner à une routine l\'accès « %3$s » à %2$s, hors de son propre accès</string>
     <string name="access_widening_open">%1$s ne peut pas donner à une routine l\'accès à tout : liste ce qu\'elle atteint, dans son propre accès</string>
     <string name="service_error_protection_user_only">« %1$s » ne se change que dans l\'app, par l\'utilisateur</string>
+    <string name="service_error_ai_read_only">Lecture seule pour l\'IA : %1$s. L\'IA lit ces champs mais ne les écrit jamais, l\'utilisateur les remplit. Rien n\'a été écrit : renvoie la commande sans eux.</string>
+    <string name="service_error_ai_read_only_unmarked">« Lecture seule pour l\'IA » ne se retire de %1$s que dans l\'app, par l\'utilisateur. Rien n\'a été changé : renvoie la config avec ces champs toujours marqués.</string>
     <string name="service_error_icon_color_unknown">Couleur d\'icône inconnue : \'%1$s\'. Une parmi %2$s, ou null pour aucune</string>
     <string name="action_verbalize_icons_overview">Vue d\'ensemble des icônes</string>
     <string name="action_verbalize_icons_search">Recherche d\'icônes</string>

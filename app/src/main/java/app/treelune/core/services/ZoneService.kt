@@ -1,6 +1,7 @@
 package app.treelune.core.services
 
 import app.treelune.core.themes.IconColor
+import app.treelune.core.themes.Texture
 import app.treelune.core.utils.JsonUtils
 import android.content.Context
 import app.treelune.core.icons.Icons
@@ -78,6 +79,9 @@ class ZoneService(private val context: Context) : ExecutableService {
         val iconColor = params.givenText(IconColor.KEY)
         iconColorRefusal(iconColor)?.let { return OperationResult.error(it) }
 
+        val texture = params.givenText(Texture.KEY)
+        Texture.refusal(texture, icon.name, s::shared)?.let { return OperationResult.error(it) }
+
         // Parse tool_groups if provided (checked with the rest, checkZone)
         val toolGroupsJson = if (params.has("tool_groups")) {
             params.optJSONArray("tool_groups")?.toString()
@@ -100,6 +104,7 @@ class ZoneService(private val context: Context) : ExecutableService {
             description = description,
             icon_name = icon.name,
             icon_color = iconColor,
+            texture = texture,
             display_mode = params.givenText("display_mode") ?: "LINE",
             grid_x = 0,
             grid_y = 0,
@@ -172,6 +177,7 @@ class ZoneService(private val context: Context) : ExecutableService {
             zone.description?.let { put("description", it) }
             zone.icon_name?.let { put("icon_name", it) }
             zone.icon_color?.let { put(IconColor.KEY, it) }
+            zone.texture?.let { put(Texture.KEY, it) }
             zone.group?.let { put("group", it) }
             put("display_mode", zone.display_mode)
             zone.tool_groups?.let { put("tool_groups", JsonUtils.toList(it)) }
@@ -293,6 +299,10 @@ class ZoneService(private val context: Context) : ExecutableService {
         val iconColor = if (params.has(IconColor.KEY)) params.givenText(IconColor.KEY) else existingZone.icon_color
         iconColorRefusal(iconColor)?.let { return OperationResult.error(it) }
 
+        // Checked against the icon the zone will have: removing the icon of an ICON texture is refused too
+        val texture = if (params.has(Texture.KEY)) params.givenText(Texture.KEY) else existingZone.texture
+        Texture.refusal(texture, icon.name, s::shared)?.let { return OperationResult.error(it) }
+
         val displayMode = if (params.has("display_mode")) params.givenText("display_mode") ?: existingZone.display_mode else existingZone.display_mode
         val validate = if (params.has("validate")) params.optBoolean("validate") else existingZone.validate
         app.treelune.core.coordinator.Protections.refusal(s.shared("label_zone_validate"), existingZone.validate, validate, s)?.let { return OperationResult.error(it) }
@@ -301,6 +311,7 @@ class ZoneService(private val context: Context) : ExecutableService {
             description = description,
             icon_name = icon.name,
             icon_color = iconColor,
+            texture = texture,
             display_mode = displayMode,
             tool_groups = toolGroupsJson,
             group = group,
@@ -410,6 +421,7 @@ class ZoneService(private val context: Context) : ExecutableService {
             "description" to zone.description,
             "icon_name" to zone.icon_name,
             IconColor.KEY to zone.icon_color,
+            Texture.KEY to zone.texture,
             "display_mode" to zone.display_mode,
             "validate" to zone.validate,
             "created_at" to zone.created_at,
@@ -446,6 +458,7 @@ class ZoneService(private val context: Context) : ExecutableService {
                 "description" to zone.description,
                 "icon_name" to zone.icon_name,
                 IconColor.KEY to zone.icon_color,
+                Texture.KEY to zone.texture,
                 "display_mode" to zone.display_mode,
                 "validate" to zone.validate,
                 "created_at" to zone.created_at,

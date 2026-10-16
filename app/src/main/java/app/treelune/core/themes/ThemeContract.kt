@@ -231,6 +231,16 @@ interface ThemeContract {
     fun ReorderItem(lifted: Boolean, content: @Composable () -> Unit)
 
     /**
+     * The bar over a selected text, in place of Android's: its [actions] side by side, each a
+     * word a touch runs (copy, paste, cut, select all, and what Android adds for the text). Only
+     * its look, in a window of its own over the screen: what it holds, where it stands and when it
+     * shows are the core's (SelectionMenu). It stands out from whatever lies under it, and each
+     * action is a target for the finger.
+     */
+    @Composable
+    fun SelectionBar(actions: List<SelectionAction>)
+
+    /**
      * The actual color a tag color name takes in [mode], for the swatches a color is chosen from.
      * Every name of TagColor has one in both modes; a hue shift leaves it as it is, its hue being
      * its meaning.
@@ -328,9 +338,13 @@ interface ThemeContract {
     @Composable
     fun HeaderBar(content: @Composable RowScope.() -> Unit)
 
-    /** A zone's tile, filling the cells the home screen's grid gives it, as a tool's does. */
+    /**
+     * A zone's tile, filling the cells the home screen's grid gives it, as a tool's does; its
+     * [texture] laid inside its frame, behind its content (docs/design/tool-texture.md), none when null.
+     */
     @Composable
     fun ZoneCardContainer(
+        texture: ItemTexture?,
         onClick: () -> Unit,
         onLongClick: () -> Unit,
         content: @Composable () -> Unit
@@ -358,11 +372,14 @@ interface ThemeContract {
 
     /**
      * A tool's tile, filling the cells the grid gives it (ToolGrid): the theme draws its frame
-     * and the space between tiles inside them, never a size of its own.
+     * and the space between tiles inside them, never a size of its own. Its [texture] is laid
+     * inside the frame, behind the content, at the theme's tone of it on the tile
+     * (rememberTextureBrush), none when null.
      */
     @Composable
     fun ToolCardContainer(
         displayMode: DisplayMode,
+        texture: ItemTexture?,
         onClick: () -> Unit,
         onLongClick: () -> Unit,
         content: @Composable () -> Unit
@@ -379,6 +396,11 @@ interface ThemeContract {
         icon: String?,
         /** The icon's colour, for a zone's or a tool's page; null for a neutral icon. */
         iconColor: TagColor?,
+        /**
+         * The motif of a zone's or a tool's page, laid across the header's width behind its
+         * title (docs/design/tool-texture.md), as on its tile; null for none.
+         */
+        texture: ItemTexture?,
         /**
          * The app's mark in place of [icon], the home screen's: its launcher icon drawn the
          * theme's way, in the launcher's colours whatever the palette (LauncherMark, or the

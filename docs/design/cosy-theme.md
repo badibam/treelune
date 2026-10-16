@@ -2,7 +2,7 @@
 
 Conçu à partir du 2026-10-06. Un troisième thème, à côté du défaut et du rétro : l'app comme un téléphone dans un jeu doux (Animal Crossing, Stardew Valley). Tout est rond et dodu, et c'est le seul thème dont le mouvement est un ressort : là où le rétro saute d'une cellule, le cosy s'écrase et rebondit.
 
-Maquettes (écran d'une zone, à côté des autres pistes de thème écartées) : `docs/theme-tracks.html`, carte « Cosy ».
+Maquettes (écran d'une zone, à côté des autres pistes de thème, en attente) : `docs/theme-tracks.html`, carte « Cosy ».
 
 ## Le registre, d'après la maquette
 
@@ -21,6 +21,8 @@ Maquettes (écran d'une zone, à côté des autres pistes de thème écartées) 
 - **Deux palettes, à la méthode du rétro** : la claire de la maquette (fond sable, tuiles crème, vert feuille) et une nuit d'été (fond bleu nuit profond, tuiles bleu ardoise sur leur ombre plus sombre, encre crème, le vert, les pastels et l'orange éclaircis comme des lampions) ; pas de brun, qui est déjà la nuit du rétro. Chacune est une poignée de nombres en OKLCH dont tout dérive, que le réglage « Teinte » tourne, états et tags gardés, et qui se règlent au banc (`./run themes`) (2026-10-06).
 - **Le mouvement est un ressort** (2026-10-06). Au toucher, un élément s'enfonce dans son ombre, qui disparaît sous lui ; au lâcher, il remonte sur un ressort qui dépasse un peu sa place puis s'y pose, en un quart de seconde environ. Une fenêtre (dialogue, chat) arrive un peu plus petite et en fondu, puis gonfle jusqu'à sa taille avec le même dépassement ; elle se ferme d'un coup. Une tuile soulevée en mode d'édition grossit un peu, penche de quelques degrés, son ombre s'allonge ; posée, elle rebondit à sa place. Les autres tuiles s'effacent à demi pendant ce temps, laissant voir les cases dessous (`GridTile`). Un bloc qui se déplie glisse, sans rebond. Les animations coupées dans Android, tout arrive à sa place d'un coup.
 - **Les sons viennent de Kenney** (CC0, crédités dans `sounds.json` comme ceux du rétro), choisis à l'oreille sur une planche d'écoute de tout Kenney (2026-10-06) : confirmer `drop_004`, entrer `select_008`, revenir `select_007`, ouvrir `maximize_001`, fermer `minimize_001`, cocher `select_001`, le cran `tick_001`, le bout d'une liste `bong_001`, le refus `error_006`, tous d'Interface Sounds. Leur niveau : 13 dB sous les originaux de Kenney, 3 sous le rétro, à ajuster à l'oreille sur le téléphone. Les familles retenues pour une retouche : back, bong, click, drop, error, maximize, minimize, pluck, select, switch, tick et toggle d'Interface Sounds ; click, rollover et switch d'UI Audio.
+- **La barre d'un texte sélectionné** (2026-10-16) : une tuile crème sur son ombre pleine, ses mots en Baloo à la hauteur d'une cible, à la ligne quand ils ne tiennent pas ; un mot touché enfonce toute la barre, qui rebondit.
+- **Les textures** (`docs/design/tool-texture.md`, 2026-10-16) : des formes rondes et dodues, traits épais à bouts ronds, une cellule de dp qui grandit avec le cran de taille, posée sur la face de la tuile, sous son ombre, et sur la pilule de la couleur principale de l'en-tête d'une page texturée, au ton du motif sur ce vert. `DOTS` est à gros points posés en quinconce, autrement que les petits points du fond de l'écran.
 - **La taille** (2026-10-06) : la taille de texte d'Android est suivie, pour le texte seul ; le cran (0 à 3) agrandit tout ensemble, texte, marges, arrondis, ombres et icônes, par ×1, ×1,12, ×1,25 et ×1,4, le cran 0 étant la maquette.
 
 ## Ce qui est codé

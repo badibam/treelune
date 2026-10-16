@@ -221,6 +221,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("description", zone.description)
                                 put("icon_name", zone.icon_name)
                                 put("icon_color", zone.icon_color)
+                                put("texture", zone.texture)
                                 put("active", zone.active)
                                 put("display_mode", zone.display_mode)
                                 put("validate", zone.validate)
@@ -670,6 +671,8 @@ class BackupService(private val context: Context) : ExecutableService {
                         icon_name = item.optString("icon_name", null),
                         // Absent from a backup made before version 63: a neutral icon
                         icon_color = item.optString("icon_color", null),
+                        // Absent from a backup made before version 75: no texture
+                        texture = item.optString("texture", null),
                         active = item.optBoolean("active", true),
                         display_mode = item.getString("display_mode"),
                         grid_x = item.getInt("grid_x"),
@@ -772,7 +775,7 @@ class BackupService(private val context: Context) : ExecutableService {
                         lastActivity = item.getLong("last_activity"),
                         isActive = item.getBoolean("is_active"),
                         endReason = item.optString("end_reason", null),
-                        // A backup made before version 75 has neither: its sessions seen at their
+                        // A backup made before version 76 has neither: its sessions seen at their
                         // last activity, as the migration does; present and null, a run that waits
                         seenAt = if (!item.has("seen_at")) item.getLong("last_activity") else if (item.isNull("seen_at")) null else item.getLong("seen_at"),
                         summary = if (item.isNull("summary")) null else item.getString("summary"),
@@ -840,7 +843,7 @@ class BackupService(private val context: Context) : ExecutableService {
                         group = item.optString("group", null),
                         // Absent from a backup made before version 70: an automation reaching everything
                         accessJson = item.optString("access_json", "[]"),
-                        // Absent from a backup made before version 75: every run signalled, as the migration does
+                        // Absent from a backup made before version 76: every run signalled, as the migration does
                         notifyEnd = item.optString("notify_end", app.treelune.core.ai.data.AutomationSettings.NOTIFY_ALWAYS)
                     )
                 )

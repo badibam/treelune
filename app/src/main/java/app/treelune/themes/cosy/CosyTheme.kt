@@ -1,5 +1,8 @@
 package app.treelune.themes.cosy
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import app.treelune.core.ui.components.LocalButtonFill
 import android.content.Context
 import android.os.Handler
@@ -94,6 +97,7 @@ import app.treelune.core.ai.data.MessageSender
 import app.treelune.core.icons.IconSource
 import app.treelune.core.icons.Icons
 import app.treelune.core.strings.Strings
+import app.treelune.core.themes.SelectionAction
 import app.treelune.core.themes.CurrentTheme
 import app.treelune.core.themes.PaletteMode
 import app.treelune.core.themes.TagColor
@@ -406,6 +410,40 @@ object CosyTheme : ThemeContract {
     @Composable
     override fun ReorderItem(lifted: Boolean, content: @Composable () -> Unit) = Lifted(lifted, content)
 
+    /**
+     * A tile on its shadow, its words side by side a finger's target tall, going to a second line
+     * when they do not hold on one; a word touched sinks the whole bar, which springs back.
+     */
+    @Composable
+    override fun SelectionBar(actions: List<SelectionAction>) {
+        val size = cosySize()
+        val c = cosyColors
+        val source = remember { MutableInteractionSource() }
+        val pressed by source.collectIsPressedAsState()
+        Raised(
+            shape = RoundedCornerShape(size.tileRadius),
+            fill = c.tile.srgb,
+            shadow = c.shadow.srgb,
+            depth = size.tileDepth,
+            pressed = pressed,
+            padding = size.dp(6f)
+        ) {
+            androidx.compose.foundation.layout.FlowRow {
+                for (action in actions) {
+                    Box(
+                        modifier = Modifier
+                            .heightIn(min = size.touch)
+                            .clickable(interactionSource = source, indication = null, onClick = action.onClick)
+                            .padding(horizontal = size.dp(12f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Line(action.label, size.button, c.ink.srgb, maxLines = 1)
+                    }
+                }
+            }
+        }
+    }
+
     override fun getTagColor(color: TagColor, mode: PaletteMode): Color = CosyPalettes.colors(mode, 0).tag(color).srgb
 
     // =====================================
@@ -643,8 +681,8 @@ object CosyTheme : ThemeContract {
     }
 
     @Composable
-    override fun ZoneCardContainer(onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
-        Tile(DisplayMode.CONDENSED, onClick, onLongClick, content)
+    override fun ZoneCardContainer(texture: app.treelune.core.themes.ItemTexture?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
+        Tile(DisplayMode.CONDENSED, texture, onClick, onLongClick, content)
 
     /** An orange bubble with an exclamation mark, on its own small shadow. */
     @Composable
@@ -700,20 +738,21 @@ object CosyTheme : ThemeContract {
     }
 
     @Composable
-    override fun ToolCardContainer(displayMode: DisplayMode, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
-        Tile(displayMode, onClick, onLongClick, content)
+    override fun ToolCardContainer(displayMode: DisplayMode, texture: app.treelune.core.themes.ItemTexture?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
+        Tile(displayMode, texture, onClick, onLongClick, content)
 
-    /** A tile filling the cells the grid gives it, on its shadow; its content padded in. */
+    /** A tile filling the cells the grid gives it, on its shadow, its motif on its face; its content padded in. */
     @Composable
-    private fun Tile(displayMode: DisplayMode, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) {
+    private fun Tile(displayMode: DisplayMode, texture: app.treelune.core.themes.ItemTexture?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) {
         val size = cosySize()
         val c = cosyColors
+        val brush = app.treelune.core.themes.rememberTextureBrush(texture, c.tile.srgb, textureStyle())
         Pressable(onClick = onClick, onLongClick = onLongClick, modifier = Modifier.fillMaxSize()) { pressed ->
             Raised(
                 modifier = Modifier.fillMaxSize(),
                 shape = RoundedCornerShape(size.tileRadius), fill = c.tile.srgb, shadow = c.shadow.srgb,
                 depth = if (LocalCosyLifted.current) size.tileDepth * 2 else size.tileDepth,
-                pressed = pressed, padding = tileFrame(displayMode), contentModifier = Modifier.fillMaxSize()
+                pressed = pressed, padding = tileFrame(displayMode), contentModifier = Modifier.fillMaxSize(), texture = brush
             ) {
                 CompositionLocalProvider(LocalCosyLayer provides CosyLayer.TILE) { content() }
             }
@@ -727,12 +766,15 @@ object CosyTheme : ThemeContract {
         subtitle: String?,
         icon: String?,
         iconColor: TagColor?,
+        texture: app.treelune.core.themes.ItemTexture?,
         appMark: Boolean
     ) {
         val size = cosySize()
         val c = cosyColors
+        // A textured page's motif on the pill, at its tone on the main colour
+        val brush = app.treelune.core.themes.rememberTextureBrush(texture, c.accent.srgb, textureStyle())
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = size.dp(8f)), horizontalAlignment = Alignment.CenterHorizontally) {
-            Raised(shape = CircleShape, fill = c.accent.srgb, shadow = c.accentShadow.srgb, depth = size.buttonDepth, padding = size.dp(2f)) {
+            Raised(shape = CircleShape, fill = c.accent.srgb, shadow = c.accentShadow.srgb, depth = size.buttonDepth, padding = size.dp(2f), texture = brush) {
                 Row(
                     modifier = Modifier.padding(horizontal = size.dp(20f)),
                     horizontalArrangement = Arrangement.spacedBy(size.dp(8f)),
@@ -1456,6 +1498,17 @@ object CosyTheme : ThemeContract {
 
     private const val MAX_GRID_DP = 480
     private const val ITEM_ROUND = 1.5f
+
+    /**
+     * How the motifs are laid (docs/design/tool-texture.md): a cell's unit a dp at the size step,
+     * smoothed, so a motif grows with everything else; an ICON motif's icon fourteen units,
+     * sixteen around it.
+     */
+    @Composable
+    private fun textureStyle(): app.treelune.core.themes.TextureStyle {
+        val unit = with(androidx.compose.ui.platform.LocalDensity.current) { cosySize().dp(1f).toPx() }
+        return app.treelune.core.themes.TextureStyle(unitPx = unit, pixel = false, iconUnits = 14, iconGapUnits = 16)
+    }
     private const val ASIDE_ALPHA = 0.4f
     private const val TOAST_SHORT_MS = 2000L
     private const val TOAST_LONG_MS = 3500L

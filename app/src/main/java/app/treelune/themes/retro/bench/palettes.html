@@ -99,7 +99,7 @@ dd{margin:0;font-variant-numeric:tabular-nums;text-align:right}
 "use strict";
 const D = window.PaletteDerive;
 const PALETTES_URL = "/app/src/main/resources/app/treelune/themes/retro/palettes.json";
-const SAVE_URL = "/palettes";
+const SAVE_URL = "/palettes/retro";
 const LUCIDE_URL = (name) => "/third_party/lucide/icons/" + name + ".svg";
 
 /** The font's cell: eleven drawing pixels across, and a frame piece's height. */
@@ -449,6 +449,21 @@ function drawSheet(P) {
       text(word, x + CELL, y + BORDER + 12, c.panel_strong);
     } else text(word, x + CELL, y + BORDER + 12, c.screen_dim, true);
     x += (word.length + 3) * CELL;
+  });
+  y += 3 * CELL;
+
+  // The bar over a selected text: a panel, its words a cell apart without a frame each, the
+  // pressed one inverted (the ink filling its place, the word in the panel's ground).
+  const barWords = ["Copier", "Coller", "Couper"];
+  const barWidth = barWords.reduce((sum, w) => sum + w.length, 0) + barWords.length + 1;
+  frame(0, y, barWidth, 2, c.panel_border_outer, c.panel_border_inner, c.panel_ground);
+  x = CELL;
+  barWords.forEach((word, i) => {
+    if (i === 1) {
+      px(x, y + BORDER, word.length * CELL, 2 * CELL - 2 * BORDER, c.panel_ink);
+      text(word, x, y + BORDER + 12, c.panel_ground);
+    } else text(word, x, y + BORDER + 12, c.panel_ink);
+    x += (word.length + 1) * CELL;
   });
   y += 3 * CELL;
   divider(0, y, span, c.screen_border_outer, c.screen_border_inner);

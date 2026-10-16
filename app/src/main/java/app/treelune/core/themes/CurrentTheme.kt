@@ -44,6 +44,10 @@ object CurrentTheme {
     var oneColumn: Boolean by mutableStateOf(false)
         private set
 
+    /** How strongly the motifs of tiles and page headers show (Appearance.textureIntensity). */
+    var textureIntensity: TextureIntensity by mutableStateOf(TextureIntensity.SUBTLE)
+        private set
+
     /** The mode shown, the phone's resolved. */
     val paletteMode: PaletteMode
         get() = when (mode) {
@@ -84,6 +88,7 @@ object CurrentTheme {
         mode = appearance.mode
         sizeStep = appearance.sizeStep
         oneColumn = appearance.oneColumn
+        textureIntensity = appearance.textureIntensity
     }
 
     /** Every theme, by id. */

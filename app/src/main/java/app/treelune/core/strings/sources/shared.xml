@@ -483,6 +483,31 @@
     <string name="label_description">Description</string>
     <string name="label_icon">Icon</string>
     <string name="label_icon_color">Icon colour</string>
+    <string name="label_texture">Texture</string>
+    <string name="texture_lines">Stripes</string>
+    <string name="texture_diagonals">Diagonals</string>
+    <string name="texture_grid">Grid</string>
+    <string name="texture_zigzag">Zigzag</string>
+    <string name="texture_waves">Waves</string>
+    <string name="texture_dots">Dots</string>
+    <string name="texture_crosses">Crosses</string>
+    <string name="texture_stars">Stars</string>
+    <string name="texture_rings">Rings</string>
+    <string name="texture_diamonds">Diamonds</string>
+    <string name="texture_confetti">Confetti</string>
+    <string name="texture_checker">Checks</string>
+    <string name="texture_bricks">Bricks</string>
+    <string name="texture_scales">Scales</string>
+    <string name="texture_icon">Its icon</string>
+    <string name="texture_none">No texture</string>
+    <string name="tools_base_schema_config_texture">Motif laid on the tool\'s tile and at the top of its page, one of LINES, DIAGONALS, GRID, ZIGZAG, WAVES, DOTS, CROSSES, STARS, RINGS, DIAMONDS, CONFETTI, CHECKER, BRICKS, SCALES, ICON (ICON repeats the tool\'s icon); null or absent for none. Each theme draws it its own way. A matter of taste: set it when the person asks</string>
+    <string name="zone_schema_texture">Motif laid on the zone\'s tile and at the top of its page, one of LINES, DIAGONALS, GRID, ZIGZAG, WAVES, DOTS, CROSSES, STARS, RINGS, DIAMONDS, CONFETTI, CHECKER, BRICKS, SCALES, ICON (ICON repeats the zone\'s icon, and needs one); null or absent for none. A zone\'s tools do not take it. A matter of taste: set it when the person asks</string>
+    <string name="service_error_texture_unknown">Unknown texture: \'%1$s\'. One of %2$s, or null for none</string>
+    <string name="service_error_texture_icon_without_icon">The ICON texture repeats the icon, and there would be none: keep an icon, or remove the texture or choose another</string>
+    <string name="settings_ui_texture_intensity">Textures</string>
+    <string name="settings_ui_texture_intensity_help">How strongly the motifs chosen for zones and tools show on their tiles and at the top of their pages.</string>
+    <string name="settings_ui_texture_intensity_subtle">Subtle</string>
+    <string name="settings_ui_texture_intensity_marked">Marked</string>
     <string name="label_page_info">Page %1$d of %2$d</string>
     <string name="label_disabled">Disabled</string>
     <string name="label_field_generic">Field</string>
@@ -551,6 +576,12 @@
     <string name="message_no_items_in_group">No item in this group</string>
     <string name="error_tooltype_not_found">Tool type \'%1$s\' not found</string>
     <string name="text_copied">Copied</string>
+    <!-- The bar over a selected text (SelectionMenu) -->
+    <string name="text_selection_cut">Cut</string>
+    <string name="text_selection_copy">Copy</string>
+    <string name="text_selection_paste">Paste</string>
+    <string name="text_selection_select_all">Select all</string>
+    <string name="text_selection_autofill">Autofill</string>
     <string name="duplicate_success_tool">Tool duplicated successfully</string>
     <string name="duplicate_success_automation">Routine duplicated successfully</string>
     <string name="duplicate_no_tools">No tool available to duplicate</string>
@@ -694,6 +725,8 @@
     <string name="custom_fields_description">Description (optional)</string>
     <string name="custom_fields_type">Field type</string>
     <string name="custom_fields_always_visible">Always show (even when empty)</string>
+    <string name="field_ai_read_only">Read-only for the AI</string>
+    <string name="field_ai_read_only_description">The AI reads it but never writes it: not in a chat, not by a routine, not through the connector.</string>
 
     <!-- Custom Fields Configuration - Field-specific config labels -->
     <string name="field_config_section_title">Field configuration</string>
@@ -1885,6 +1918,8 @@
     <string name="access_widening">%1$s cannot give a routine « %3$s » access to %2$s, beyond its own access</string>
     <string name="access_widening_open">%1$s cannot give a routine access to everything: list what it reaches, within its own access</string>
     <string name="service_error_protection_user_only">« %1$s » can only be changed in the app, by the user</string>
+    <string name="service_error_ai_read_only">Read-only for the AI: %1$s. The AI reads these fields but never writes them, the user enters them. Nothing was written: send the command again without them.</string>
+    <string name="service_error_ai_read_only_unmarked">« Read-only for the AI » can only be lifted from %1$s in the app, by the user. Nothing was changed: send the config again with these fields still marked.</string>
     <string name="service_error_icon_color_unknown">Unknown icon colour: \'%1$s\'. One of %2$s, or null for none</string>
     <string name="action_verbalize_icons_overview">Overview of the icons</string>
     <string name="action_verbalize_icons_search">Search of the icons</string>

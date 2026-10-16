@@ -58,9 +58,11 @@ STRING_KEYS_CHECK = ROOT / "scripts" / "check_string_keys.py"
 # where a glyph drawn after the copy would otherwise never reach the app.
 FONT_COPY_CHECK = ROOT / "scripts" / "check_font_copy.py"
 
-# The retro theme's palettes: the numbers the theme derives its colours from, set by eye on its
-# bench, which writes them back; the themes' benches open from one page.
-PALETTES = ROOT / "app" / "src" / "main" / "resources" / "app" / "treelune" / "themes" / "retro" / "palettes.json"
+# A theme's palettes: the numbers the theme derives its colours from, set by eye on its bench,
+# which writes them back; a theme's sound choice, written back by the sound bench; the themes'
+# benches open from one page.
+PALETTES = ROOT / "app" / "src" / "main" / "resources" / "app" / "treelune" / "themes"
+THEME_SOURCES = ROOT / "app" / "src" / "main" / "java" / "app" / "treelune" / "themes"
 THEME_BENCHES = ROOT / "app" / "src" / "main" / "java" / "app" / "treelune" / "themes" / "bench.html"
 
 # And on spaces: a space a screen writes in dp looks right in the default theme and falls
@@ -87,6 +89,10 @@ GO_VENDOR_CHECK = ROOT / "scripts" / "vendor_go.py"
 # back in shows on a French phone with nothing else to fail -- neither the compile nor the
 # tests read the translations for register.
 FRENCH_ADDRESS_CHECK = ROOT / "scripts" / "check_french_address.py"
+
+# And on the themes' sounds: what a theme plays, its credits and its sound choice agree, and every
+# sound comes from a source whose licence the app takes; a file swapped by hand would not say so.
+THEME_SOUNDS = ROOT / "scripts" / "theme_sounds.py"
 
 
 def gradle(*args):
@@ -407,6 +413,15 @@ def french_address_check():
     return process.returncode
 
 
+def theme_sounds_check():
+    """Report a theme whose sounds, credits and sound choice disagree.
+
+    Returns the script's exit code, 0 when they agree.
+    """
+    process = subprocess.run([sys.executable, str(THEME_SOUNDS), "check"], cwd=ROOT)
+    return process.returncode
+
+
 def task_test():
     """Run the unit tests and say how many ran, after checking the naming rule.
 
@@ -416,7 +431,7 @@ def task_test():
     each case here is a check that would otherwise mean installing the build on a phone
     and reproducing the situation by hand.
 
-    The key-case, prompt, locale, timezone, string-key, font-copy, spacing, README, Guide, chat-room, Go-vendor and French-address checks come first and cost a fraction of a second. They
+    The key-case, prompt, locale, timezone, string-key, font-copy, spacing, README, Guide, chat-room, Go-vendor, French-address and theme-sound checks come first and cost a fraction of a second. They
     are not tests -- they read the sources rather than running them -- but they answer the
     same question: is this tree fit to commit.
     """
@@ -432,6 +447,7 @@ def task_test():
     chat_space = chat_space_check()
     go_vendor = go_vendor_check()
     french_address = french_address_check()
+    theme_sounds = theme_sounds_check()
     # Noted before the run, so that results left by the run before cannot be read as this
     # one's. A filesystem timestamp can lag by a second, hence the margin.
     started = time.time() - 1
@@ -442,7 +458,7 @@ def task_test():
     # gradle skipped the task because nothing had changed. Otherwise there is no answer.
     if tally is None or (not tally[3] and code != 0):
         print("no results from this run -- it did not get as far as the tests")
-        return code or key_case or prompt or locales or timezones or string_keys or font_copy or spacing or readme or guide or chat_space or go_vendor or french_address or 1
+        return code or key_case or prompt or locales or timezones or string_keys or font_copy or spacing or readme or guide or chat_space or go_vendor or french_address or theme_sounds or 1
 
     tests, failures, errors, fresh = tally
     bad = failures + errors
@@ -452,10 +468,10 @@ def task_test():
         print(f"report: {TEST_REPORT}")
     # The checks print first, and a green test count below them reads as a verdict. Say
     # again, last, that the tree is not fit to commit.
-    failed_checks = sum(1 for c in (key_case, prompt, locales, timezones, string_keys, font_copy, spacing, readme, guide, chat_space, go_vendor, french_address) if c)
+    failed_checks = sum(1 for c in (key_case, prompt, locales, timezones, string_keys, font_copy, spacing, readme, guide, chat_space, go_vendor, french_address, theme_sounds) if c)
     if failed_checks:
         print(f"{failed_checks} source check(s) failed -- see above")
-    return code or key_case or prompt or locales or timezones or string_keys or font_copy or spacing or readme or guide or chat_space or go_vendor or french_address
+    return code or key_case or prompt or locales or timezones or string_keys or font_copy or spacing or readme or guide or chat_space or go_vendor or french_address or theme_sounds
 
 
 def task_strings():
@@ -641,33 +657,59 @@ def task_bugs():
 def task_themes():
     """Serve the themes' benches and open their page; Ctrl+C stops the server.
 
-    The retro theme's bench reads the fonts, Lucide's icons and palettes.json from the repository, which a
-    page opened from the disk may not do, and saves palettes.json back through here: the one
-    path this server writes, replaced whole so that a save cut short leaves the old file.
+    The benches read the fonts, Lucide's icons, a theme's palettes.json and the sound library from
+    the repository, which a page opened from the disk may not do, and save back through here the
+    only three files this server writes: a theme's palettes.json (POST /palettes/<id>), its
+    textures.json (POST /textures/<id>) and its sounds-choice.json (POST /sounds/<id>), for a
+    theme whose folder exists, each replaced whole so that a save cut short leaves the old file.
     """
     import http.server
     import json
+    import re
+
+    def palettes(document):
+        if not isinstance(document.get("palettes"), list):
+            raise ValueError("no palettes list")
+
+    def textures(document):
+        if not isinstance(document.get("modes"), dict):
+            raise ValueError("no modes")
+
+    def sounds(document):
+        if not isinstance(document.get("signals"), dict) or not isinstance(document.get("families"), list):
+            raise ValueError("no signals or families")
+
+    # What a POST may write: its path's kind, the file it writes for a theme, and what its body must hold.
+    SAVES = {
+        "palettes": (lambda theme: PALETTES / theme / "palettes.json", palettes),
+        "textures": (lambda theme: PALETTES / theme / "textures.json", textures),
+        "sounds": (lambda theme: THEME_SOURCES / theme / "sounds-choice.json", sounds),
+    }
 
     class Bench(http.server.SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, directory=str(ROOT), **kwargs)
 
         def do_POST(self):
-            if self.path != "/palettes":
+            # Read whole first: a request answered before its body is read leaves the client writing into a closed socket.
+            body = self.rfile.read(int(self.headers.get("Content-Length", 0))).decode("utf-8")
+            match = re.fullmatch(r"/(palettes|textures|sounds)/([a-z][a-z0-9_]*)", self.path)
+            if not match or not (THEME_SOURCES / match.group(2)).is_dir():
                 self.send_error(404)
                 return
-            body = self.rfile.read(int(self.headers.get("Content-Length", 0))).decode("utf-8")
+            target_of, valid = SAVES[match.group(1)]
+            target = target_of(match.group(2))
             try:
                 document = json.loads(body)
-                if not isinstance(document.get("palettes"), list):
-                    raise ValueError("no palettes list")
+                valid(document)
             except ValueError as error:
-                self.send_error(400, f"not a palettes document: {error}")
+                self.send_error(400, f"not a {match.group(1)} document: {error}")
                 return
-            partial = PALETTES.with_suffix(".json.part")
+            target.parent.mkdir(parents=True, exist_ok=True)
+            partial = target.with_suffix(".json.part")
             partial.write_text(json.dumps(document, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-            os.replace(partial, PALETTES)
-            print(f"saved {PALETTES.relative_to(ROOT)}")
+            os.replace(partial, target)
+            print(f"saved {target.relative_to(ROOT)}")
             self.send_response(204)
             self.end_headers()
 
@@ -716,7 +758,7 @@ LABELS = {
     "db": "db         back up or restore the device database",
     "bench": "bench      free models played on the app's scenarios, on the emulator",
     "bugs": "bugs       the bugs noted on the phone (Dev › Treelune) into TODO.md, then deleted there",
-    "themes": "themes     the themes' benches: their colours, the retro palettes set and saved",
+    "themes": "themes     the themes' benches: their colours, their palettes and their sounds set and saved",
     "clean": "clean      drop build outputs",
 }
 

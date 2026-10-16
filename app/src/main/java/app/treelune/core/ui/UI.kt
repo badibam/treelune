@@ -1,6 +1,7 @@
 package app.treelune.core.ui
 
 import app.treelune.core.themes.IconColor
+import app.treelune.core.themes.ItemTexture
 import app.treelune.core.themes.TagColor
 import app.treelune.core.ui.sound.UISignal
 import app.treelune.core.ui.sound.rememberUISound
@@ -142,10 +143,13 @@ object UI {
         else CurrentTheme.current.Text(text, type, fillMaxWidth, textAlign, maxLines)
     }
 
-    /** [content] whose texts Android's selection can take, as one: the rule of [Text]'s selectable. */
+    /**
+     * [content] whose texts Android's selection can take, as one: the rule of [Text]'s selectable.
+     * A selection shows the theme's bar (SelectionMenu).
+     */
     @Composable
     fun Selectable(content: @Composable () -> Unit) {
-        androidx.compose.foundation.text.selection.SelectionContainer { content() }
+        SelectionMenu { androidx.compose.foundation.text.selection.SelectionContainer { content() } }
     }
 
     /** [text] put in the clipboard, said by a toast: the one way the app copies. */
@@ -459,7 +463,8 @@ object UI {
         val counted = !readonly && max < Int.MAX_VALUE && length >= max * FieldInput.COUNT_FROM
         val over = !readonly && length > max
         Column(verticalArrangement = Arrangement.spacedBy(Space.XS)) {
-            CurrentTheme.current.FormField(
+            // A selection in the field shows the theme's bar
+            SelectionMenu { CurrentTheme.current.FormField(
                 label = label,
                 value = value,
                 onChange = onChange,
@@ -471,7 +476,7 @@ object UI {
                 required = required,
                 fieldModifier = fieldModifier,
                 labelAbove = labelAbove
-            )
+            ) }
             if (counted) {
                 val s = app.treelune.core.strings.Strings.`for`(context = androidx.compose.ui.platform.LocalContext.current)
                 Text(s.shared("field_length_count").format(length, max), if (over) TextType.ERROR else TextType.CAPTION, fillMaxWidth = true, textAlign = TextAlign.End)
@@ -699,7 +704,7 @@ object UI {
         fun Header() = TileHeader(zone.icon_name, IconColor.of(zone.icon_color), zone.name, waiting, running, TextType.HEADING)
         @Composable
         fun Description() = zone.description?.let { Text(it, TextType.BODY, maxLines = 2) }
-        CurrentTheme.current.ZoneCardContainer(onClick = onClick, onLongClick = onLongClick) {
+        CurrentTheme.current.ZoneCardContainer(texture = ItemTexture.of(zone.texture, zone.icon_name, IconColor.of(zone.icon_color)), onClick = onClick, onLongClick = onLongClick) {
             when (mode) {
                 DisplayMode.ICON -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     TileIcon(zone.icon_name, IconColor.of(zone.icon_color), waiting, running)
@@ -729,6 +734,8 @@ object UI {
         subtitle: String? = null,
         icon: String? = null,
         iconColor: TagColor? = null,
+        /** The motif of a zone's or a tool's page, drawn with [icon] and [iconColor] (docs/design/tool-texture.md); null for none. */
+        texture: app.treelune.core.themes.Texture? = null,
         leftButton: ButtonAction? = null,
         rightButton: ButtonAction? = null,
         onLeftClick: (() -> Unit)? = null,
@@ -767,7 +774,7 @@ object UI {
             }
         }
         // A page's title and description are read: selectable, nothing else answering their touch
-        Selectable { CurrentTheme.current.PageHeader(title, subtitle, icon, iconColor, appMark) }
+        Selectable { CurrentTheme.current.PageHeader(title, subtitle, icon, iconColor, texture?.let { ItemTexture(it, icon, iconColor) }, appMark) }
     }
     
     /** The header of a tool's tile: its icon with its marks, and its name. */
@@ -804,8 +811,10 @@ object UI {
         val running = LocalRunning.current.tool(tool.id)
         val toolType = requireNotNull(ToolTypeManager.getToolType(tool.tooltype)) { "No tool type '${tool.tooltype}' for tool ${tool.id}" }
         val tile = toolType.rememberTile(tool, onOpenEntry)
+        val toolSettings = app.treelune.core.tools.ToolConfigSettings.read(tool.tooltype, JSONObject(tool.config_json), context)
         CurrentTheme.current.ToolCardContainer(
             displayMode = displayMode,
+            texture = ItemTexture.of(toolSettings.string(app.treelune.core.themes.Texture.KEY), toolSettings.string("icon_name"), IconColor.of(toolSettings.string(IconColor.KEY))),
             onClick = onClick,
             onLongClick = onLongClick
         ) {

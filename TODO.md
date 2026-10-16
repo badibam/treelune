@@ -18,11 +18,11 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 - Les boutons du haut d'un outil changent de hauteur selon le nombre de lignes de son titre.
 - Le titre de l'écran de config d'un outil, écrit par chaque écran : le rendre commun, le nom de l'outil et son type.
 - La phrase de date et d'heure envoyée à l'IA (`ai_prompt_current_datetime`) ne dit pas qu'elle est écrite par le système, et non par l'utilisateur.
-- Les boutons copier / coller sur un texte sélectionné sont ceux d'Android, hors du thème (la barre d'outils du texte, `TextToolbar` en Compose).
 
 ## Bugs
 
 - Réglages › Interface : un thème choisi, vu, enregistré, et l'ancien revient ; une seconde fois, ça tient (2026-10-09, pas reproduit, peut-être dans la release). Au prochain cas, lire dans le journal les lignes « Theme applied » : laquelle a remis l'ancien (STORED, PREVIEW, LEFT_UNSAVED).
+- À vérifier : un schéma déjà reçu dans la session n'est plus renvoyé (`CommandExecutor`, clé seule, résultat `CACHED`) ; un outil dont l'IA change la config en session change de schéma d'entrées, et une seconde demande lui rendrait « déjà dans cette session » sur l'ancien — sauf si le résultat de la modification lui donne déjà le nouveau.
 
 ## À passer sur le téléphone
 
@@ -49,9 +49,12 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - Ce qui a changé le 2026-10-14 sur develop : « routine » à l'écran dans les deux langues ; la page du message d'une routine, ses blocs à leur hauteur entière, la page défilant d'un bloc (un bloc déplacé par sa poignée au-delà de l'écran compris) ; la config d'un champ référence (Cible, Peut désigner, la liste d'outils seulement avec Entrée) ; le Guide, les chapitres Les routines (six étapes, celle du message attend l'enregistrement) et Parler à l'IA (l'étape des cases d'accord), « Les outils en un coup d'œil », la partie Les outils et ses dix chapitres (textes mis en forme, tuiles de titre de partie, dans les trois thèmes) ; le Guide réécrit dans sa langue, les tutoriels nouveaux de Prise en main (Organiser, Relier, Apparence : chaque étape se valide-t-elle par le bon geste, et seulement par lui), les chapitres lus (Tes données, Accès externe, Quand ça coince) et la partie Approfondissement.
 - Les champs de l'utilisateur dans le Suivi et Messages (`docs/design/custom-fields-display.md`, branche custom-fields) : l'historique du Suivi en cartes, les champs sous le texte d'un message (Outils et saisie) ; passé, élaguer la spec.
 - L'IA et les routines (branche ai-routines) : leur création par l'écran et la démo, celle de l'IA en conversation, une routine qui en crée une sous son masque, la lecture d'une exécution ratée, le connecteur (section « L'IA et les routines »).
+- La barre d'un texte sélectionné dessinée par le thème (branche theme-recipe) : sa ligne de la section « Copier, limites, fuseau… » de la recette.
 - Les bugs du téléphone du 2026-10-16 et le changement de config (`docs/design/config-change.md`) : la dernière section de la recette ; passé, élaguer la spec.
-- Les sources de l'attente (`docs/design/waiting-sources.md`, branche waiting-sources) : migration 75, la conversation marquée sur le bouton flottant, le résumé d'une routine, sa notification et ses points, le réglage « Me signaler la fin » (section du même nom) ; passé, élaguer la spec.
+- Les sources de l'attente (`docs/design/waiting-sources.md`, branche waiting-sources) : migration 76, la conversation marquée sur le bouton flottant, le résumé d'une routine, sa notification et ses points, le réglage « Me signaler la fin » (section du même nom) ; passé, élaguer la spec.
 - Les réglages de réflexion de chaque fournisseur, en envoyant une requête : Claude (Sonnet 5.5 sans réflexion par `between_tools`, Opus 5.5 sans « Sans réflexion », Haiku 4.5 sans effort), OpenAI (un modèle à `none`, un modèle qu'aucun fait ne couvre), DeepSeek (effort obligatoire, sans réflexion) ; le changement de modèle qui vide les deux réglages, l'enregistrement d'une combinaison refusée.
+- La lecture seule pour l'IA (`docs/design/unified-fields.md`, branche user-only) : un champ et un critère saisi fermés à l'IA, la validation d'un Objectif fermée à l'IA : la section « Lecture seule pour l'IA » de la recette ; passé, la section de la spec part dans `docs/DATA.md`.
+- Les textures d'outil et de zone (`docs/design/tool-texture.md`, branche tool-texture) : les tons réglés d'abord au banc des textures (`./run themes`), dans les trois thèmes et les deux modes, puis la section « Les textures » de la recette ; passé, élaguer la spec.
 
 ## Conçu, à coder
 
@@ -78,7 +81,6 @@ Une idée sans spec : elle demande une décision avant du code.
 
 ### Interface
 
-- Une texture au choix pour l'affichage de chaque outil.
 - Les onglets de Messages, à remplacer par un classement par thèmes.
 
 ### Events du cœur
@@ -106,12 +108,26 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 
 ## Bugs du téléphone
 
-- La page d'un champ dans le formulaire de config d'un outil s'intitule « Ressenti · SCALE » : le type y est écrit par son nom technique, pas par son libellé (« Échelle »), vu le 2026-10-16.
 
 ## En attente d'un déclencheur
 
+- Un filtre qui compare un champ à une variable ou à une lecture (« kcal > objectif_calorique ») : `EntryFilters.parse` le refuse, `ConditionPicker` n'offre qu'une valeur écrite — quand un pointeur ou une variable en a besoin ; le terme se lit alors une fois à la référence du contexte (`TermReader`).
+
+
+- D'autres sources de l'attente (`docs/BRICKS.md`) : un message de l'IA arrivé dans une session pendant qu'on était ailleurs, signalé par exemple sur le bouton de conversation — à concevoir.
+- Choisir une entrée précise comme cible du pointeur dans son sélecteur (conçu dans `docs/design/pointer.md` : étiquette par type d'outil, liste, relecture de l'entrée) — si le besoin apparaît : un pointeur peut désigner une entrée (le Questionnaire en pose un), mais seule l'app le fait. La cible APP attend que l'IA sache lire les réglages de l'app.
+- Une lecture du connecteur MCP au-delà du seuil de données de la conversation est coupée (`AppMcpBackend.call`, `withinChars`), sans qu'on puisse l'autoriser en entier comme dans la conversation : une demande d'accord par notification, comme pour les écritures (`McpApprovals`) — si la coupure gêne à l'usage.
+- Le nombre d'entrées en attente sur la tuile, au lieu du point (`WaitingMark`, décidé « pour le moment » le 2026-09-29) — si le point ne suffit pas.
+- Un outil Agenda, pour des événements qui ont une heure et passent d'eux-mêmes (un rendez-vous), distinct d'un élément de liste à échéance qu'on coche — à concevoir au premier événement qu'on voudra noter dans l'app.
+- Outil jamais livré : l'Alerte, laissée pour plus tard (outil ou event du cœur, sans doute une lecture et une condition).
+- L'automation directe : des commandes que l'app exécute elle-même, sans IA. Premier usage connu, le relevé (une écriture qui accepte une valeur lue à l'exécution : un Suivi qui garde un chiffre de Calcul, `docs/design/missing-tools.md`) ; à concevoir avec les events du cœur (« À concevoir › Events du cœur ») et l'Alerte, qu'elle croise, et à trancher : la date de l'entrée écrite, le doublon d'une exécution relancée.
+- Des outils sur l'accueil : une tuile de zone qui montre les résumés de certains de ses outils, ou des raccourcis vers eux selon la place qu'elle a — à discuter : lesquels, dans quel ordre, un outil montré à deux endroits.
+- Les incarnations (`docs/design/incarnations.md`, identités de personae) — au premier export publié par personae.
+
+------
+
 - Un appel à l'IA relancé sans raison : les effets d'une phase (`AIEventProcessor.handleStateChange`, l'appel en `CALLING_AI`) se rejouent à chaque nouvel état, pas seulement à chaque changement de phase ; un événement qui ne change qu'un champ pendant l'appel en relance un, la requête déjà partie pouvant être facturée. Deux réponses identiques à une même demande le 2026-10-09 ; les gardes de phase (`AIStateMachine.expectedPhases`) en limitent l'effet — à mesurer dans le journal (« ignored: it belongs to ») au prochain doublon.
-- Faire monter dans le module de sagesse `android` le pilotage du téléphone par adb pour la recette (captures réduites, toucher par le texte de l'écran, frappe mot par mot ; `tmp/phone_ui.sh`, gardé sur cette machine seulement) — au prochain `/update push android` fait pour autre chose.
+- Faire monter dans le module de sagesse `android` le pilotage du téléphone par adb pour la recette (captures réduites, toucher par le texte de l'écran, frappe mot par mot ; `scripts/phone_ui.sh`) — au prochain `/update push android` fait pour autre chose.
 - Le correctif de la route `cert/` sous Android est proposé à Tailscale (ticket #21719, PR #21720) : fusionné, monter à la version qui le porte, retirer la correction de `scripts/vendor_go.py` et son contrôle de `./run test` ; refusé, la garder et noter pourquoi dans `docs/design/funnel-poc.md`.
 - Des écrans encore ouverts à l'intérieur d'un lieu, hors de la pile des lieux (`Place`, `docs/UI.md`) : la config d'un fournisseur d'IA, les pages d'un formulaire de config (`SettingsForm`), les écrans internes d'un outil (fiche, historique), l'historique des conversations — à passer en lieux quand un tutoriel, une notification ou un pointeur doit les viser.
 - Revenir à une zone la relit (ses outils, ses variables) : ce que l'écran garde par `remember` ne survit pas à son passage sous un autre lieu — si le rechargement se voit.
@@ -119,25 +135,14 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 - Le sens « out » : l'app qui confie une tâche lourde à une IA extérieure (Claude Code, par exemple) et en reprend le résultat, comme une commande différée — une fois le serveur MCP en place, par lequel la tâche lira et écrira, et vérifié ce que chaque service permet pour lancer une tâche par une requête.
 - Le graphique Calories de Panorama (74 lignes) se lit en 0,75 s à l'ouverture de l'outil, 0,9 à 1,2 s à celle de la zone (2026-10-01, version debug, une fiche lue une fois par calcul) ; sa mise en page prend 15 à 19 ms. Restent 181 appels aux services : par jour, deux lectures des repas (60) et la lecture de l'outil qui donne leurs champs (`ToolFields.filterable`, `tools.get`) à chacune — si ça gêne encore.
 - L'ouverture d'une zone bloque encore l'écran ~1 s la première fois après le démarrage (version debug, 2026-10-01 : 6 graphiques, 18 tuiles) — à décomposer si ça gêne.
-- Choisir une entrée précise comme cible du pointeur dans son sélecteur (conçu dans `docs/design/pointer.md` : étiquette par type d'outil, liste, relecture de l'entrée) — si le besoin apparaît : un pointeur peut désigner une entrée (le Questionnaire en pose un), mais seule l'app le fait. La cible APP attend que l'IA sache lire les réglages de l'app.
 - Défilement saccadé à la réouverture d'une longue session CHAT — à mesurer (recompositions de la liste, défilements automatiques successifs).
-- Une lecture du connecteur MCP au-delà du seuil de données de la conversation est coupée (`AppMcpBackend.call`, `withinChars`), sans qu'on puisse l'autoriser en entier comme dans la conversation : une demande d'accord par notification, comme pour les écritures (`McpApprovals`) — si la coupure gêne à l'usage.
 - Seuil de taille des données par automation — quand une automation légitime montre un `DATA_REFUSED` dans son historique d'exécution ; la valeur globale deviendra la valeur par défaut.
-- Marquer les lignes que les migrations 13→14 et 14→15 n'ont pas su transformer, et le dire une fois au démarrage (jamais les supprimer) — si des lignes `MIGRATION` apparaissent en « Error » dans l'écran des journaux.
-- Un filtre qui compare un champ à une variable ou à une lecture (« kcal > objectif_calorique ») : `EntryFilters.parse` le refuse, `ConditionPicker` n'offre qu'une valeur écrite — quand un pointeur ou une variable en a besoin ; le terme se lit alors une fois à la référence du contexte (`TermReader`).
-- Le nombre d'entrées en attente sur la tuile, au lieu du point (`WaitingMark`, décidé « pour le moment » le 2026-09-29) — si le point ne suffit pas.
 - Joindre un fichier ou une image au message de départ d'une automation : son composeur n'a pas toujours de session, à laquelle un fichier joint et une image appartiennent.
 - La brique de planning ne sait pas dire « tous les N jours / N semaines à partir d'une date », ni plusieurs jours d'un mois (« le 1er et le 15 ») — au premier rythme qu'on ne peut pas saisir.
 - Une chose répétée dont on veut savoir qu'elle est faite (un médicament chaque jour) demande deux gestes : lire le message, cocher le suivi — un bouton « Fait » sur le message qui écrit dans un suivi (avec les automations directes), ou un type Rappels avec un champ planning par entrée ; quand ce double geste pèse.
-- Un outil Agenda, pour des événements qui ont une heure et passent d'eux-mêmes (un rendez-vous), distinct d'un élément de liste à échéance qu'on coche — à concevoir au premier événement qu'on voudra noter dans l'app.
-- Outil jamais livré : l'Alerte, laissée pour plus tard (outil ou event du cœur, sans doute une lecture et une condition).
-- L'automation directe : des commandes que l'app exécute elle-même, sans IA. Premier usage connu, le relevé (une écriture qui accepte une valeur lue à l'exécution : un Suivi qui garde un chiffre de Calcul, `docs/design/missing-tools.md`) ; à concevoir avec les events du cœur (« À concevoir › Events du cœur ») et l'Alerte, qu'elle croise, et à trancher : la date de l'entrée écrite, le doublon d'une exécution relancée.
-- Des outils sur l'accueil : une tuile de zone qui montre les résumés de certains de ses outils, ou des raccourcis vers eux selon la place qu'elle a — à discuter : lesquels, dans quel ordre, un outil montré à deux endroits.
-- Les incarnations (`docs/design/incarnations.md`, identités de personae) — au premier export publié par personae.
 - Supprimer un fournisseur d'IA ne regarde ni les automations ni les sessions qui le nomment (`AIProviderConfigService.deleteProviderConfig`) : refuser tant qu'une automation l'utilise, en la nommant ; une session passée reste lisible mais ne peut plus continuer, message à l'appui — avec les identités incarnées, qui demandent le même contrôle, écrit une fois pour les deux.
 - Un calcul lourd en trois temps (lire, calculer longtemps sans bloquer les autres opérations, écrire), le résultat rendu à l'écran qui l'a lancé et arrêté si cet écran se ferme — au premier calcul qui fige l'app. Les écritures longues ont leur place unique (`LongOperation`) ; un calcul n'a rien à y faire, son résultat ne servant qu'à son écran.
 - Arrêter une opération longue en cours (un bouton dans la bande de `LongOperation`) — quand un import lancé par erreur gênera ; l'import ne regarde aujourd'hui sa demande d'arrêt qu'au début.
 - Streaming des réponses IA (Claude et OpenAI), avec le TCP keep-alive — quand des messages « requête envoyée, réponse perdue » s'accumulent dans les sessions : le réseau coupe les connexions restées silencieuses pendant la génération.
 - Le journal de l'app ne garde que ses ~12 000 dernières lignes, 24 minutes d'usage le 2026-10-01 (VERBOSE 7 562 dont 3 782 « Service result » du coordinateur, DEBUG 2 439) : les lignes utiles, migrations comprises, en sortent avant d'être lues. Réduire ce que VERBOSE et DEBUG écrivent, ou ne garder qu'eux en rotation courte.
 - La mémoire d'un import grandit avec son fichier : le texte entier, toutes ses cellules (`CsvReader.read`), le plan de toutes les lignes et leurs fiches sont tenus ensemble — l'écriture va au service par tranches de 500 lignes, mais toutes les fiches sont construites avant ; 64 659 lignes (5 Mo) ont atteint 276 Mo de tas Java pour une limite de 256 Mo le 2026-10-01, en 3 min 19 s. À lire au fil de l'eau et construire chaque tranche au moment de l'écrire, dans la même transaction (le contrôle des doublons sur les seules clés), puis l'écran d'une table qui charge toutes ses fiches — au premier import qui plante, ou à une limite de mémoire plus basse.
-- Le réglage « réservé à l'utilisateur » (`unified-fields.md`, Ouvert) couvre deux cas à séparer : une valeur saisie (champ de l'utilisateur, champ saisi d'un critère d'Objectif), écrite par `tool_data`, prend un réglage de champ `user_only` que le service vérifie par l'origine (`currentOrigin()`) et que le schéma de l'IA marque non modifiable ; le verdict d'un Objectif, calculé par `goal.validate`, n'est pas un champ et se réserve par un réglage de l'Objectif vérifié dans `goal.validate` et `goal.reopen` — la phrase de `missing-tools.md` qui l'envoie au réglage de champ est à corriger. Laissé de côté le 2026-10-01.

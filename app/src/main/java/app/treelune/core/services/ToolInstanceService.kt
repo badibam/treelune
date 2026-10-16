@@ -1,6 +1,8 @@
 package app.treelune.core.services
 
+import app.treelune.core.fields.AiReadOnly
 import app.treelune.core.themes.IconColor
+import app.treelune.core.themes.Texture
 import android.content.Context
 import app.treelune.core.tools.ToolTypeManager
 import app.treelune.core.validation.SchemaValidator
@@ -133,7 +135,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         } ?: assignMissingFieldNames(configJson)
 
         iconColorRefusal(namedConfigJson)?.let { return OperationResult.error(it) }
-        val iconCheck = checkIconName(withoutEmptyIconColor(namedConfigJson))
+        textureRefusal(namedConfigJson, toolType)?.let { return OperationResult.error(it) }
+        val iconCheck = checkIconName(withoutEmpty(withoutEmptyIconColor(namedConfigJson), Texture.KEY))
         val storedConfigJson = when (iconCheck) {
             is IconCheck.Refused -> return OperationResult.error(iconCheck.message)
             is IconCheck.Kept -> iconCheck.configJson
@@ -219,7 +222,9 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         }
         if (configJson.isNotBlank()) {
             iconColorRefusal(configJson)?.let { return OperationResult.error(it) }
-            configJson = withoutEmptyIconColor(configJson)
+            // Checked against the icon the tool will have: removing the icon of an ICON texture is refused too
+            textureRefusal(configJson, existingTool.tooltype)?.let { return OperationResult.error(it) }
+            configJson = withoutEmpty(withoutEmptyIconColor(configJson), Texture.KEY)
             ToolTypeManager.getToolType(existingTool.tooltype)?.let { type ->
                 configJson = type.completeConfig(JSONObject(configJson), JSONObject(existingTool.config_json)).toString()
             }
@@ -233,6 +238,10 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             app.treelune.core.coordinator.Protections.refusal(s.shared("tools_config_label_data_validation"), protectedBefore,
                 JSONObject(configJson).optBoolean(app.treelune.core.tools.ToolConfigSettings.VALIDATE_DATA, false), s)?.let { return OperationResult.error(it) }
             checkConfig(existingTool.tooltype, configJson)?.let { return OperationResult.error(it) }
+            // What is closed to the AI and left out of a config written whole by anyone else is
+            // kept, as the data protection is; only a setting sent open is refused below
+            if (!app.treelune.core.coordinator.Protections.byAPerson()) configJson = keepClosedToAi(existingTool, JSONObject(configJson)).toString()
+            closedToAiRefusal(existingTool, JSONObject(configJson))?.let { return OperationResult.error(it) }
             // A config sent without its display mode keeps the one the tool had
             configJson = withDisplayMode(configJson, JSONObject(existingTool.config_json).getString("display_mode"))
             ToolTypeManager.getToolType(existingTool.tooltype)?.refuseConfig(JSONObject(configJson), context)?.let { return OperationResult.error(it) }
@@ -305,6 +314,33 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             "updated_at" to updatedTool.updated_at
         ) + iconCheck.report() + (migration?.let { report(it) } ?: emptyMap())
             + (emptiedGroup?.let { mapOf("group_emptied" to it) } ?: emptyMap()))
+    }
+
+    /**
+     * The refusal of [newConfig] for [tool] when it opens to the AI what [tool] closes to it, and
+     * the caller is not a person: a field the AI only reads unmarked (AiReadOnly), kept under the
+     * same name, or what the tool type closes (refuseConfigChange). Closing is anyone's.
+     */
+    private suspend fun closedToAiRefusal(tool: ToolInstance, newConfig: JSONObject): String? {
+        // Expects a config whose left-out settings were kept (keepClosedToAi)
+        val byAPerson = app.treelune.core.coordinator.Protections.byAPerson()
+        val toolType = ToolTypeManager.getToolType(tool.tooltype) ?: return null
+        val oldConfig = JSONObject(tool.config_json)
+        if (!byAPerson) {
+            fun data(config: JSONObject) = toolType.getEntryFields(config, context).data.map { it.definition }
+            fun extra(config: JSONObject) = config.optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList()
+            val unmarked = AiReadOnly.unmarked(data(oldConfig), data(newConfig)) + AiReadOnly.unmarked(extra(oldConfig), extra(newConfig))
+            if (unmarked.isNotEmpty()) return s.shared("service_error_ai_read_only_unmarked").format(AiReadOnly.named(unmarked))
+        }
+        return toolType.refuseConfigChange(oldConfig, newConfig, byAPerson, context)
+    }
+
+    /** [newConfig] with the marks of [tool]'s fields and its tool type's closed settings it leaves out, kept (AiReadOnly.keepMarks). */
+    private fun keepClosedToAi(tool: ToolInstance, newConfig: JSONObject): JSONObject {
+        val oldConfig = JSONObject(tool.config_json)
+        val kept = ToolTypeManager.getToolType(tool.tooltype)?.keepClosedToAi(oldConfig, newConfig) ?: JSONObject(newConfig.toString())
+        AiReadOnly.keepMarks(AiReadOnly.objects(kept.optJSONArray("extra_fields")), AiReadOnly.markedIds(AiReadOnly.objects(oldConfig.optJSONArray("extra_fields"))))
+        return kept
     }
 
     /** The values given for fields a config change makes required, or why they are refused. */
@@ -949,6 +985,26 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         val given = if (config.isNull(IconColor.KEY)) null else config.optString(IconColor.KEY).trim()
         return if (IconColor.accepts(given)) null
         else s.shared("service_error_icon_color_unknown").format(given, IconColor.NAMES.joinToString(", "))
+    }
+
+    /**
+     * A config's texture is one of Texture.NAMES, or none, and ICON only with an icon to repeat:
+     * its own, or the type's that a tool without one shows (ToolConfigSettings).
+     */
+    private fun textureRefusal(configJson: String, toolType: String): String? {
+        val config = JSONObject(configJson)
+        val given = if (config.isNull(Texture.KEY)) null else config.optString(Texture.KEY).trim()
+        val icon = config.optString("icon_name").ifBlank { ToolTypeManager.getToolType(toolType)?.getDefaultIconName().orEmpty() }
+        return Texture.refusal(given, icon, s::shared)
+    }
+
+    /** The config without [key] when it is given as null or empty, which is how a command removes a setting. */
+    private fun withoutEmpty(configJson: String, key: String): String {
+        val config = JSONObject(configJson)
+        if (!config.has(key)) return configJson
+        if (!config.isNull(key) && config.optString(key).isNotBlank()) return configJson
+        config.remove(key)
+        return config.toString()
     }
 
     /** The config without its icon colour when it is given as null or empty, which is how a command removes it. */

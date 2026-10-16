@@ -34,6 +34,8 @@
     <string name="schema_expiry_delay">Combien de temps une tentative attend d\'être validée avant d\'expirer, ce qui n\'est pas un échec</string>
     <string name="field_notify">Prévenir</string>
     <string name="schema_notify">Une notification quand une tentative est à valider, une seule fois</string>
+    <string name="field_ai_no_validation">Validation fermée à l\'IA</string>
+    <string name="schema_ai_no_validation">L\'IA voit où en est la tentative, mais ne la valide ni ne la rouvre</string>
     <string name="field_definition">Définition</string>
     <string name="schema_definition">La copie de l\'objectif qui a jugé la tentative, écrite par l\'app</string>
     <string name="field_status">État</string>
@@ -55,14 +57,15 @@
     <string name="validated_by_external">par une IA extérieure</string>
     <string name="validated_by_ai">par l\'IA</string>
     <string name="field_attempt">Tentative</string>
-    <string name="operation_validate">Valide une tentative : calcule et fige son verdict et les valeurs lues. Refusé tant qu\'un critère n\'a pas de valeur</string>
-    <string name="operation_reopen">Rouvre une tentative validée ou expirée, pour la corriger ; cela reste dans son historique</string>
+    <string name="operation_validate">Valide une tentative : calcule et fige son verdict et les valeurs lues. Refusé tant qu\'un critère n\'a pas de valeur, et à l\'IA quand l\'objectif lui ferme sa validation</string>
+    <string name="operation_reopen">Rouvre une tentative validée ou expirée, pour la corriger ; cela reste dans son historique. Refusé à l\'IA quand l\'objectif lui ferme sa validation</string>
     <string name="verbalize_validate">Validation d\'une tentative</string>
     <string name="verbalize_reopen">Réouverture d\'une tentative</string>
     <string name="verbalize_evaluate">Lecture d\'une tentative</string>
     <string name="error_locked">Cette tentative est validée ou expirée : rouvre-la pour la modifier.</string>
     <string name="error_not_locked">Cette tentative n\'est pas validée : rien à rouvrir.</string>
     <string name="error_validate_origin">Seule une personne ou une IA valide une tentative.</string>
+    <string name="error_ai_no_validation">La validation de cet objectif est fermée à l\'IA : seul l\'utilisateur valide ou rouvre une tentative, dans l\'app. Où elle en est se lit toujours (evaluate).</string>
     <string name="error_verdict_unknown">Le verdict ne peut pas encore se calculer : %1$s</string>
     <string name="notification_to_validate">Une tentative est à valider</string>
     <string name="no_attempt">Aucune tentative en cours</string>

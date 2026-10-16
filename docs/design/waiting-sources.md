@@ -48,7 +48,7 @@ Un réglage par routine, dans `AutomationSettings` : `always`, `on_problem`, `ne
 
 ## Ce qui change dans le stockage
 
-La migration suivante (75 au 2026-10-16) ajoute à `ai_sessions` `seen_at` (instant, nullable) et `summary` (texte, nullable), et le réglage de fin aux routines existantes. Les sessions passées reçoivent `seen_at` à leur dernière activité : aucune ne se met à attendre après la mise à jour. La sauvegarde et l'import portent les deux colonnes.
+La migration 76 ajoute à `ai_sessions` `seen_at` (instant, nullable) et `summary` (texte, nullable), et le réglage de fin aux routines existantes. Les sessions passées reçoivent `seen_at` à leur dernière activité : aucune ne se met à attendre après la mise à jour. La sauvegarde et l'import portent les deux colonnes.
 
 ## Pistes, non décidées
 

@@ -599,6 +599,7 @@ private fun zoneFrom(map: Map<String, Any?>): Zone = Zone(
     description = map["description"] as? String,
     icon_name = map["icon_name"] as? String,
     icon_color = map["icon_color"] as? String,
+    texture = map[app.treelune.core.themes.Texture.KEY] as? String,
     display_mode = map["display_mode"] as String,
     grid_x = (map["grid_x"] as Number).toInt(),
     grid_y = (map["grid_y"] as Number).toInt(),

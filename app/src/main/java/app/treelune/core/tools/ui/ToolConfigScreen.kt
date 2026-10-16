@@ -153,6 +153,8 @@ fun ToolConfigScreen(
     val editors = mapOf(
         "icon_name" to iconEditor(toolType.getSuggestedIcons(), toolType.getDefaultIconName(), app.treelune.core.themes.IconColor.of(config.optString(app.treelune.core.themes.IconColor.KEY))),
         app.treelune.core.themes.IconColor.KEY to iconColorEditor(config.optString("icon_name").ifBlank { toolType.getDefaultIconName() }),
+        app.treelune.core.themes.Texture.KEY to textureEditor(config.optString("icon_name").ifBlank { toolType.getDefaultIconName() },
+            config.optString(app.treelune.core.themes.IconColor.KEY).ifBlank { null }),
         "group" to groupEditor(groups, s.shared("label_group"))
     )
 
@@ -310,6 +312,14 @@ private fun iconColorEditor(iconName: String) = object : SettingEditor {
     @Composable
     override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
         app.treelune.core.ui.components.IconColorSelector(current = value as? String, iconName = iconName, onChange = { onChange(it) })
+    }
+}
+
+/** The texture, each choice a small tile of the tool with [iconName] in [iconColor]. */
+private fun textureEditor(iconName: String, iconColor: String?) = object : SettingEditor {
+    @Composable
+    override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
+        app.treelune.core.ui.components.TextureSelector(current = value as? String, iconName = iconName, iconColor = iconColor, onChange = { onChange(it) })
     }
 }
 

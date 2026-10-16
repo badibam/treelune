@@ -1,5 +1,6 @@
 package app.treelune.core.fields.settings
 
+import app.treelune.core.fields.AI_READ_ONLY
 import app.treelune.core.fields.ChoiceSettings
 import app.treelune.core.fields.DurationForm
 import app.treelune.core.fields.DurationUnit
@@ -40,6 +41,7 @@ object FieldTypeSettings {
         field("description", "custom_fields_description", FieldType.TEXT, text, config = mapOf("length" to TextLength.MEDIUM.name)),
         field("always_visible", "custom_fields_always_visible", FieldType.BOOLEAN, text, default = false,
             description = "field_type_schema_always_visible_description"),
+        aiReadOnly(text),
         SettingNode.Variant(
             selector = field("type", "custom_fields_type", FieldType.CHOICE, text, required = true,
                 description = "field_type_schema_type_description",
@@ -63,14 +65,22 @@ object FieldTypeSettings {
     }
 
     /**
+     * Whether the AI only reads the field (FieldDefinition.aiReadOnly), for a field a person
+     * enters: the AI's writes that hold it are refused, the rest of the app's are not.
+     */
+    private fun aiReadOnly(text: (String) -> String) = field(AI_READ_ONLY, "field_ai_read_only", FieldType.BOOLEAN, text,
+        default = false, description = "field_ai_read_only_description")
+
+    /**
      * A value declared apart from a tool's fields, `{"type", "config"}`: its type among [types],
-     * and that type's settings. A goal's entered criterion is one.
+     * that type's settings, and whether the AI only reads it, once a type is chosen. A goal's
+     * entered criterion is one.
      */
     fun valueNodes(text: (String) -> String, types: List<FieldType>): List<SettingNode> = listOf(
         SettingNode.Variant(
             selector = field("type", "custom_fields_type", FieldType.CHOICE, text, required = true,
                 config = choice(types.map { it.name }, types.associate { it.name to text("field_type_${it.name.lowercase()}_display_name") })),
-            cases = types.associate { type -> type.name to listOfNotNull(configGroup(type, text)) }
+            cases = types.associate { type -> type.name to listOfNotNull(configGroup(type, text), aiReadOnly(text)) }
         )
     )
 

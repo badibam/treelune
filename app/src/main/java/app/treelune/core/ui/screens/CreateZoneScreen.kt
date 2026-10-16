@@ -57,6 +57,7 @@ fun CreateZoneScreen(
                 zone.description?.let { put("description", it) }
                 zone.icon_name?.let { put("icon_name", it) }
                 zone.icon_color?.let { put(app.treelune.core.themes.IconColor.KEY, it) }
+                zone.texture?.let { put(app.treelune.core.themes.Texture.KEY, it) }
                 zone.tool_groups?.let { put("tool_groups", JSONArray(it)) }
                 put("display_mode", zone.display_mode)
                 put("validate", zone.validate)
@@ -89,6 +90,13 @@ fun CreateZoneScreen(
                 app.treelune.core.ui.components.IconColorSelector(current = value as? String, iconName = settings.optString("icon_name"), onChange = { onChange(it) })
             }
         },
+        app.treelune.core.themes.Texture.KEY to object : SettingEditor {
+            @Composable
+            override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
+                app.treelune.core.ui.components.TextureSelector(current = value as? String, iconName = settings.optString("icon_name"),
+                    iconColor = settings.optString(app.treelune.core.themes.IconColor.KEY).ifBlank { null }, onChange = { onChange(it) })
+            }
+        },
         "group" to object : SettingEditor {
             @Composable
             override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
@@ -108,7 +116,7 @@ fun CreateZoneScreen(
             val result = if (existingZone != null) {
                 // Every setting is sent: an absent one is sent as null, which empties it
                 val params = mutableMapOf<String, Any?>("zone_id" to existingZone.id)
-                listOf("name", "description", "icon_name", app.treelune.core.themes.IconColor.KEY, "group", "tool_groups", "display_mode", "validate").forEach { params[it] = given[it] ?: JSONObject.NULL }
+                listOf("name", "description", "icon_name", app.treelune.core.themes.IconColor.KEY, app.treelune.core.themes.Texture.KEY, "group", "tool_groups", "display_mode", "validate").forEach { params[it] = given[it] ?: JSONObject.NULL }
                 params["renames"] = mapOf("tool_groups" to origins.renames("tool_groups", settings.optJSONArray("tool_groups")))
                 coordinator.processUserAction("zones.update", params)
             } else {
