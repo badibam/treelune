@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import app.treelune.core.fields.FieldValue
+import app.treelune.core.fields.formatValue
 import app.treelune.core.strings.Strings
 import app.treelune.core.utils.JsonUtils
 import app.treelune.core.ui.ButtonAction
@@ -189,7 +190,7 @@ private data class Page(val nodes: List<SettingNode>, val config: JSONObject, va
  * The pages [trail] goes through from [nodes] over [config], as far as they still exist: an
  * element removed, a group whose variant was switched away, end it there.
  */
-private fun pagesOf(nodes: List<SettingNode>, config: JSONObject, trail: List<Step>): List<Page> {
+private fun pagesOf(nodes: List<SettingNode>, config: JSONObject, trail: List<Step>, context: Context): List<Page> {
     val pages = mutableListOf<Page>()
     var level = nodes
     var current = config
@@ -201,7 +202,7 @@ private fun pagesOf(nodes: List<SettingNode>, config: JSONObject, trail: List<St
                 val element = current.optJSONArray(list.name)?.opt(step.index) as? JSONObject
                 val shape = list.item as? SettingNode.Item.Of
                 if (element == null || shape == null) null
-                else Page(shape.nodes, element, summaryText(list, element, step.index))
+                else Page(shape.nodes, element, summaryText(list, shape.nodes, element, step.index, context))
             }
         } ?: break
         pages += page
@@ -263,7 +264,7 @@ fun SettingsForm(
     root: (@Composable () -> Unit)? = null
 ) {
     var trail by pages::trail
-    val reached = pagesOf(nodes, config, trail)
+    val reached = pagesOf(nodes, config, trail, context)
     // A page that no longer exists (its element removed by the AI, its variant switched) gives
     // way to the deepest one still there
     if (reached.size < trail.size) androidx.compose.runtime.SideEffect { trail = trail.take(reached.size) }
@@ -822,15 +823,17 @@ private fun Summary(summary: List<String>, nodes: List<SettingNode>, element: JS
 }
 
 /**
- * The name of an element in the path: its [SettingNode.ListOf.summary] values as text, or the
- * list's label and its position when they are empty.
+ * The name of an element in the path: its [SettingNode.ListOf.summary] values as text, each written
+ * by its field (a choice by its option's label, not its stored value), or the list's label and its
+ * position when they are empty.
  */
-private fun summaryText(list: SettingNode.ListOf, element: JSONObject, index: Int): String {
+private fun summaryText(list: SettingNode.ListOf, nodes: List<SettingNode>, element: JSONObject, index: Int, context: Context): String {
     val shown = list.summary.mapNotNull { key ->
         when (val value = JsonUtils.toValue(element.opt(key)?.takeIf { it != JSONObject.NULL })) {
             null -> null
-            is List<*> -> value.joinToString(", ").takeIf { it.isNotEmpty() }
-            else -> value.toString().takeIf { it.isNotEmpty() }
+            // A list of values is written one element at a time by the field its elements share
+            is List<*> -> value.joinToString(", ") { requireNotNull(nodes.storedValues(key)).formatValue(it, context) }.takeIf { it.isNotEmpty() }
+            else -> value.toString().takeIf { it.isNotEmpty() }?.let { requireNotNull(nodes.storedField(key)).formatValue(value, context) }
         }
     }
     return shown.joinToString(" · ").ifEmpty { "${list.label} ${index + 1}" }
