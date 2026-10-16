@@ -129,6 +129,18 @@
       ]
     },
     {
+      "id": "identities",
+      "part": "getting_started",
+      "icon": "user-round",
+      "minutes": 5,
+      "steps": [
+        {"kind": "read"},
+        {"kind": "read", "target": "settings/identities"},
+        {"kind": "read", "target": "settings/identities"},
+        {"kind": "read"}
+      ]
+    },
+    {
       "id": "appearance",
       "part": "getting_started",
       "icon": "palette",
