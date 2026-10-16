@@ -98,7 +98,14 @@ data class AIState(
      * second completed=true actually completes the session.
      * Reset to false if AI sends anything other than completed=true.
      */
-    val awaitingCompletionConfirmation: Boolean = false
+    val awaitingCompletionConfirmation: Boolean = false,
+
+    /**
+     * Whether the AI was asked once more for the summary its confirmation lacked (AUTOMATION
+     * only); cleared each time a confirmation is asked. A second confirmation without it closes
+     * the session with no summary.
+     */
+    val summaryReminded: Boolean = false
 ) {
     /**
      * Calculate current inactivity duration in milliseconds.

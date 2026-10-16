@@ -248,6 +248,10 @@
     <string name="automation_catch_up_limited">Up to a delay</string>
     <string name="automation_catch_up_delay">Delay</string>
     <string name="automation_is_enabled">Enabled</string>
+    <string name="automation_notify_end">Tell me when it ends</string>
+    <string name="automation_notify_end_always">Always</string>
+    <string name="automation_notify_end_on_problem">When something goes wrong</string>
+    <string name="automation_notify_end_never">Never</string>
     <string name="automation_schedule">Schedule</string>
 
     <!-- AI Errors - Command transformation -->
@@ -258,7 +262,11 @@
     <string name="ai_schema_always_send_shown">The AI gets the format of the tools always sent.</string>
     <string name="ai_system_data_refused_by_user_shown">Data not sent to the AI: you refused its %1$d characters. It can ask for less, or ask you what is needed.</string>
     <string name="ai_system_data_too_large_automation_shown">Data not sent to the AI: %1$d characters, above the routines\' threshold (%2$d). It can ask for less.</string>
-    <string name="ai_completion_confirmation_shown">The AI says it is done: the app asks it to confirm.</string>
+    <string name="ai_completion_confirmation_shown">The AI says it is done: the app asks it to confirm, with its summary of the run.</string>
+    <string name="run_facts_writes">Writes done: %1$d · refused or failed: %2$d</string>
+    <string name="run_facts_with_end">%1$s · %2$s</string>
+    <string name="run_summary_none">The AI gave no summary of this run.</string>
+    <string name="ai_summary_required_shown">The AI confirmed without a summary: the app asks for it once more.</string>
     <string name="ai_automation_no_commands_shown">The AI answered without reading or doing anything: the app reminds it that a routine has to act, or say it is done.</string>
     <string name="ai_failure_config_shown">The AI provider refuses the request as it is set up (key, model or account): see Settings › AI providers.</string>
     <string name="ai_failure_refused_shown">The AI provider refuses the request for now (too many requests, overload or credit used up): try again later.</string>
@@ -373,6 +381,7 @@
     <string name="action_verbalize_zones_place">Move zones in their group</string>
     <string name="action_verbalize_tools_place">Move tools in their group</string>
     <string name="action_verbalize_tools_waiting">Count what waits in the tools</string>
+    <string name="action_verbalize_automations_waiting">Count the routines\' runs not yet read</string>
 
     <!-- AI Errors - Network and System -->
     <string name="ai_error_network_unavailable">Network unavailable</string>
@@ -1707,7 +1716,8 @@
 
     <!-- AI Guidance Messages (for PREPARING_CONTINUATION phase) -->
     <string name="ai_automation_no_commands_guidance">You are in routine mode, your answers must contain data requests or actions. If you are done, use the \'completed\' flag.</string>
-    <string name="ai_completion_confirmation_required">The \'completed\' flag means the WHOLE initial request is finished, not just one step. If that was indeed what you meant, send a message back with \'completed: true\'. Otherwise, carry on with your work.</string>
+    <string name="ai_completion_confirmation_required">The \'completed\' flag means the WHOLE initial request is finished, not just one step. If that was indeed what you meant, send a message back with \'completed: true\' and \'summary\': for the user, in a few sentences, what you did during this run and why, saying what deserves their attention. Otherwise, carry on with your work.</string>
+    <string name="ai_summary_required">Your confirmation has no \'summary\'. Send \'completed: true\' again with \'summary\': for the user, in a few sentences, what you did during this run and why, saying what deserves their attention.</string>
 
     <!-- Provider Configuration -->
     <string name="error_provider_not_configured">Provider not configured: %1$s</string>
@@ -2081,6 +2091,7 @@
     <string name="automation_run_channel">Routines running</string>
     <string name="automation_run_notification_text">Routine running</string>
     <string name="ai_schema_field_completed_desc">AUTOMATION only: true once the whole work is finished, never after an intermediate step. Not used in a CHAT.</string>
+    <string name="ai_schema_field_summary_desc">AUTOMATION only, with completed when the app asks you to confirm: for the user, what you did during this run and why, in a few sentences.</string>
     <string name="service_error_schema_tool_not_found">No tool has the id \'%1$s\'.</string>
     <string name="session_reasoning_title">Reasoning</string>
     <string name="session_reasoning_follow_provider">As set for the AI provider</string>

@@ -48,10 +48,12 @@ import app.treelune.core.utils.LogManager
  *
  * @param openToolId A tool to open, on its oldest entry that waits, the way its tile opens it: the
  *   one a touched notification is about; [onToolOpened] once it is opened
+ * @param openPlace The address of a place to open, the one a touched notification is about (a
+ *   routine's run); [onPlaceOpened] once it is opened
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MainScreen(openToolId: String? = null, onToolOpened: () -> Unit = {}) {
+fun MainScreen(openToolId: String? = null, onToolOpened: () -> Unit = {}, openPlace: String? = null, onPlaceOpened: () -> Unit = {}) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     val coordinator = remember { Coordinator(context) }
@@ -66,6 +68,14 @@ fun MainScreen(openToolId: String? = null, onToolOpened: () -> Unit = {}) {
     // The demo is there while one of its zones is
     val demoInstalled = zones.list.any { it.id.startsWith(app.treelune.core.guide.DEMO_PREFIX) }
     LaunchedEffect(Unit) { app.treelune.core.guide.Guide.start(context) }
+
+    // Whether the chat waits, read at start and whenever a session changes (ChatWaiting)
+    LaunchedEffect(Unit) {
+        app.treelune.core.ai.orchestration.ChatWaiting.refresh(context)
+        app.treelune.core.utils.DataChangeNotifier.changes.collect {
+            if (it is app.treelune.core.utils.DataChangeEvent.AISessionsChanged) app.treelune.core.ai.orchestration.ChatWaiting.refresh(context)
+        }
+    }
 
     // A chat asked for from any screen, with its content, laid over that screen
     LaunchedEffect(Unit) {
@@ -88,6 +98,12 @@ fun MainScreen(openToolId: String? = null, onToolOpened: () -> Unit = {}) {
         val entryId = (waiting.data?.get("oldest") as? Map<*, *>)?.get(toolId) as? String
         Navigator.open(Place.Tool(toolId, zoneId), entryId?.let { EntryToOpen.Existing(it) })
         onToolOpened()
+    }
+    // The place a notification asked for
+    LaunchedEffect(openPlace) {
+        val address = openPlace ?: return@LaunchedEffect
+        Navigator.open(Place.of(address))
+        onPlaceOpened()
     }
     // A tool asked for from any screen, on one of its entries
     LaunchedEffect(Unit) {
@@ -149,6 +165,8 @@ fun MainScreen(openToolId: String? = null, onToolOpened: () -> Unit = {}) {
                 Box(modifier = Modifier.align(Alignment.BottomEnd).padding(UI.Space.L)
                     .onSizeChanged { ChatButton.height = with(density) { it.height.toDp() } }) {
                     UI.FloatingButton(action = ButtonAction.AI_CHAT, onClick = { Navigator.push(Place.Chat) })
+                    // Marked while the chat has an AI message not shown yet
+                    if (app.treelune.core.ui.waiting(app.treelune.core.ui.WaitingSource.CHAT)) Box(modifier = Modifier.align(Alignment.TopEnd)) { UI.WaitingMark() }
                 }
             }
         }
@@ -393,7 +411,6 @@ private fun HomeScreen(zones: ZonesState) {
     val s = remember { Strings.`for`(context = context) }
     // Whether the settings button is marked, read each time the home screen shows
     LaunchedEffect(Unit) { app.treelune.core.backup.AutoBackup.refresh(context) }
-    val backupPending by app.treelune.core.backup.AutoBackup.pending.collectAsState()
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val zoneGroups = zones.groups
 
@@ -425,7 +442,7 @@ private fun HomeScreen(zones: ZonesState) {
                 appMark = true,
                 leftButton = ButtonAction.SETTINGS,
                 // Marked while Settings › Data has something to look at (the automatic backup)
-                leftMarked = backupPending,
+                leftMarked = app.treelune.core.ui.waiting(app.treelune.core.ui.WaitingSource.BACKUP),
                 rightButton = ButtonAction.CONFIGURE,
                 onLeftClick = { Navigator.push(Place.Settings) },
                 onRightClick = { Navigator.push(Place.HomeConfig) },
@@ -433,7 +450,7 @@ private fun HomeScreen(zones: ZonesState) {
                 afterLeft = {
                     Box {
                         UI.ActionButton(action = ButtonAction.GUIDE, display = ButtonDisplay.ICON) { Navigator.push(Place.Guide) }
-                        if (app.treelune.core.guide.Guide.pending) Box(modifier = Modifier.align(Alignment.TopEnd)) { UI.WaitingMark() }
+                        if (app.treelune.core.ui.waiting(app.treelune.core.ui.WaitingSource.GUIDE)) Box(modifier = Modifier.align(Alignment.TopEnd)) { UI.WaitingMark() }
                     }
                 }
             )

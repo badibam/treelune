@@ -29,6 +29,7 @@ import app.treelune.core.utils.FormatUtils
  * - Total roundtrips
  * - Token usage (formatted)
  * - Cost (formatted)
+ * - The first sentence of its summary, and the mark of a run not yet read
  * - VIEW button for detail navigation
  *
  * Layout: 2 columns with data rows, VIEW button at bottom
@@ -48,6 +49,8 @@ fun ExecutionCard(
     cost: Double,
     costIsLowerBound: Boolean,
     livePhase: Phase? = null, // Real-time phase from AIState if this session is active
+    summary: String? = null,  // What its AI said of the run, its first sentence shown
+    waits: Boolean = false,   // Over and not yet read: marked
     onViewClick: () -> Unit
 ) {
     val context = LocalContext.current
@@ -73,8 +76,13 @@ fun ExecutionCard(
                 horizontalArrangement = Arrangement.spacedBy(UI.Space.S),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Left column: Scheduled execution time
-                Box(modifier = Modifier.weight(1f)) {
+                // Left column: Scheduled execution time, marked while the run waits to be read
+                Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(UI.Space.S),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (waits) UI.WaitingMark()
                     UI.Text(
                         text = if (scheduledExecutionTime != null) {
                             "${s.shared("automation_scheduled_label")}: ${app.treelune.core.utils.DateTimeFormatter.formatForDisplay(scheduledExecutionTime, context)}"
@@ -116,6 +124,9 @@ fun ExecutionCard(
                     )
                 }
             }
+
+            // The summary's first sentence, to know the run without opening it
+            summary?.let { UI.Text(text = firstSentence(it), type = TextType.BODY) }
 
             UI.Divider()
 
@@ -183,4 +194,10 @@ fun ExecutionCard(
             }
         }
     }
+}
+
+/** The first sentence of [text]: up to its first full stop, question or exclamation mark, or line end. */
+internal fun firstSentence(text: String): String {
+    val end = Regex("""[.!?](\s|$)|\n""").find(text.trim())?.range?.first ?: return text.trim()
+    return text.trim().substring(0, end + 1).trim()
 }

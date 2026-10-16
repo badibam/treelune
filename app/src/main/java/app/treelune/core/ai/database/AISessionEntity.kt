@@ -69,6 +69,16 @@ data class AISessionEntity(
     @ColumnInfo(name = "end_reason") val endReason: String? = null,          // SessionEndReason as string (null = crash/incomplete)
 
     /**
+     * When the user last saw this session (docs/design/waiting-sources.md): a chat shown on
+     * screen, a routine's run opened. A chat waits while an AI message is newer; a routine's run
+     * waits while it has none.
+     */
+    @ColumnInfo(name = "seen_at") val seenAt: Long? = null,
+
+    /** What a routine's AI said of its run, asked at its completion confirmation; null otherwise. */
+    val summary: String? = null,
+
+    /**
      * APP_STATE snapshot JSON taken at first user message
      * Used for cache stability - includes zones + tool instances (minimal, without config_json)
      * Format: {"timestamp": Long, "zones": [...], "tool_instances": [...]}
@@ -92,6 +102,11 @@ class AITypeConverters {
     @TypeConverter
     fun toSessionType(value: String): SessionType = SessionType.valueOf(value)
 }
+
+/** Whether this is a routine's run that waits for the user: the rule of AIDao.getWaitingRuns, for one run. */
+fun AISessionEntity.runWaits(): Boolean =
+    type == SessionType.AUTOMATION && seenAt == null &&
+        endReason != null && app.treelune.core.ai.data.SessionEndReason.valueOf(endReason) !in app.treelune.core.ai.data.SessionEndReason.resumable
 
 /** The reasoning this session asks of its model, or null when it follows its provider's config. */
 fun AISessionEntity.reasoning(): app.treelune.core.ai.data.SessionReasoning? =

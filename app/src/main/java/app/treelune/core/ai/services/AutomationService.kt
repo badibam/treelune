@@ -77,6 +77,7 @@ class AutomationService(private val context: Context) : ExecutableService {
                 "config" -> getConfig(params, token)
                 "list" -> listAutomations(params, token)
                 "list_all" -> listAllAutomations(token)
+                "waiting" -> waiting(params)
                 "enable" -> setEnabled(params, token, true)
                 "disable" -> setEnabled(params, token, false)
                 "execute_manual" -> executeManual(params, token)
@@ -345,6 +346,7 @@ class AutomationService(private val context: Context) : ExecutableService {
         put("provider_id", entity.providerId)
         entity.group?.let { put("group", it) }
         put("is_enabled", entity.isEnabled)
+        put("notify_end", entity.notifyEnd)
         entity.scheduleJson?.let { put("schedule", JSONObject(it)) }
         entity.catchUp?.let { limit ->
             put("catch_up", JSONObject().apply {
@@ -361,7 +363,7 @@ class AutomationService(private val context: Context) : ExecutableService {
      */
     private fun settingsGiven(params: JSONObject, stored: JSONObject?): JSONObject {
         val settings = stored?.let { JSONObject(it.toString()) } ?: JSONObject()
-        listOf("name", "provider_id", "group", "is_enabled", "schedule", "catch_up").forEach { key ->
+        listOf("name", "provider_id", "group", "is_enabled", "notify_end", "schedule", "catch_up").forEach { key ->
             if (!params.has(key)) return@forEach
             if (params.isNull(key)) settings.remove(key) else settings.put(key, params.get(key))
         }
@@ -398,6 +400,8 @@ class AutomationService(private val context: Context) : ExecutableService {
             providerId = settings.getString("provider_id"),
             group = settings.optString("group").takeIf { it.isNotEmpty() },
             isEnabled = SettingValues(AutomationSettings.nodes(context), settings).boolean("is_enabled"),
+            notifyEnd = SettingValues(AutomationSettings.nodes(context), settings).string("notify_end")
+                ?: error("Setting 'notify_end' has neither a value nor a default"),
             scheduleJson = scheduleJson,
             catchUp = catchUp?.getString("limit"),
             catchUpWindow = catchUp?.takeIf { it.has("window") }?.getLong("window"),
@@ -711,6 +715,21 @@ class AutomationService(private val context: Context) : ExecutableService {
     }
 
     /**
+     * What waits for the user among the routines (docs/design/waiting-sources.md): how many runs
+     * of each routine are over and not yet seen, the routines of `zone_id` or all of them, and the
+     * sum by zone; the first form of the waiting brick, beside tools.waiting.
+     */
+    private suspend fun waiting(params: JSONObject): OperationResult {
+        val zoneId = params.optString("zone_id").takeIf { it.isNotEmpty() }
+        val automations = (if (zoneId != null) dao.getAutomationsByZone(zoneId) else dao.getAllAutomations()).associateBy { it.id }
+        val counts = dao.getWaitingRuns().mapNotNull { it.automationId?.takeIf { id -> id in automations } }.groupingBy { it }.eachCount()
+        return OperationResult.success(mapOf(
+            "automations" to counts,
+            "zones" to counts.entries.groupBy { automations.getValue(it.key).zoneId }.mapValues { (_, inZone) -> inZone.sumOf { it.value } }
+        ))
+    }
+
+    /**
      * An automation as a result gives it: what locates it and its history, then its settings in
      * the form their declaration describes (settingsOf). Automation.fromResult reads it back.
      */
@@ -738,6 +757,7 @@ class AutomationService(private val context: Context) : ExecutableService {
             "delete" -> s.shared("action_verbalize_automations_delete").format(name)
             "config", "get" -> s.shared("action_verbalize_automations_config").format(name)
             "list", "list_all" -> s.shared("action_verbalize_automations_list")
+            "waiting" -> s.shared("action_verbalize_automations_waiting")
             else -> s.shared("action_verbalize_unknown")
         }
     }

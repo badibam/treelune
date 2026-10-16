@@ -455,6 +455,7 @@ object AIStateMachine {
                 return state.copy(
                     phase = Phase.EXECUTING_ACTIONS,
                     awaitingCompletionConfirmation = true, // Store flag to handle after actions
+                    summaryReminded = false,
                     lastEventTime = currentTime
                 )
             }
@@ -469,21 +470,31 @@ object AIStateMachine {
                     phase = Phase.PREPARING_CONTINUATION,
                     continuationReason = ContinuationReason.COMPLETION_CONFIRMATION_REQUIRED,
                     awaitingCompletionConfirmation = true,
+                    summaryReminded = false,
                     lastEventTime = currentTime
                 )
             }
 
             // Neither actions nor queries: direct confirmation logic
             return if (!state.awaitingCompletionConfirmation) {
-                // First completed=true - ask for confirmation
+                // First completed=true - ask for confirmation, with the run's summary
                 state.copy(
                     phase = Phase.PREPARING_CONTINUATION,
                     continuationReason = ContinuationReason.COMPLETION_CONFIRMATION_REQUIRED,
                     awaitingCompletionConfirmation = true,
+                    summaryReminded = false,
+                    lastEventTime = currentTime
+                )
+            } else if (message.summary == null && !state.summaryReminded) {
+                // Confirmed without its summary - asked for it once more
+                state.copy(
+                    phase = Phase.PREPARING_CONTINUATION,
+                    continuationReason = ContinuationReason.SUMMARY_REQUIRED,
+                    summaryReminded = true,
                     lastEventTime = currentTime
                 )
             } else {
-                // Second completed=true - actually complete the session
+                // Second completed=true, with its summary or after the reminder - actually complete the session
                 state.copy(
                     phase = Phase.AWAITING_SESSION_CLOSURE,
                     awaitingCompletionConfirmation = false, // Reset flag

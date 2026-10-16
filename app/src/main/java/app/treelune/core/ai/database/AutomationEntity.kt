@@ -43,5 +43,8 @@ data class AutomationEntity(
     val group: String? = null,
 
     /** What its AI may reach, AccessMask's stored form; an empty list reaches everything */
-    @ColumnInfo(name = "access_json") val accessJson: String = "[]"
+    @ColumnInfo(name = "access_json") val accessJson: String = "[]",
+
+    /** When its run waits for the user (AutomationSettings.NOTIFY_*): always, on a problem, never */
+    @ColumnInfo(name = "notify_end") val notifyEnd: String = app.treelune.core.ai.data.AutomationSettings.NOTIFY_ALWAYS
 )

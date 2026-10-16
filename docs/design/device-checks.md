@@ -344,3 +344,13 @@ Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la po
 - L'en-tête d'une page texturée : la bande du défaut et du rétro, la pilule du cosy ; le titre se lit.
 - Rétro : un motif tombe sur les pixels du thème, sans flou, aux crans de taille 0 et 3 ; en mode d'édition de la grille, une tuile `CHECKER` mise à l'écart se distingue encore du damier.
 - Par l'IA : « Mets des vagues sur la zone Santé et l'icône en fond sur le Poids » — UPDATE_ZONE prend `texture`, l'outil la reçoit dans sa config ; « en papier » est refusé avec les quinze noms ; « retire l'icône de la zone Santé » quand elle porte `ICON` est refusé en disant pourquoi.
+
+## Les sources de l'attente (branche waiting-sources, `docs/design/waiting-sources.md`)
+
+- Après la migration 76 : aucun point nouveau sur le bouton flottant, les zones ni les routines ; Réglages et le Guide marqués comme avant, s'ils l'étaient.
+- Écrire à l'IA, fermer la conversation avant sa réponse : le point paraît sur le bouton flottant quand elle répond ; ouvrir la conversation l'efface. Rester dans la conversation pendant la réponse : aucun point en la fermant.
+- Envoyer un message, passer l'app en arrière-plan pendant la réponse, revenir sur la conversation ouverte : pas de point ensuite. Revenir sur un autre écran : le point est là.
+- Une routine lancée à la main, réglée « Toujours » : à sa fin, une notification au nom de la routine avec le début du résumé ; la toucher ouvre l'exécution, le résumé et la ligne de faits en tête. Avant de la toucher : le point sur la tuile de la zone, la carte de la routine et sa ligne dans l'historique, la première phrase du résumé sous sa date ; ouverte, les trois points s'effacent.
+- La même réglée « En cas de problème », qui finit bien : ni notification ni point. Réglée « Jamais » : rien, le résumé lisible dans l'exécution.
+- Dans l'exécution, sous « Détails » : la confirmation demandée avec le résumé ; une IA qui confirme sans résumé reçoit le rappel une fois.
+- La fenêtre de la routine (Configurer) montre « Me signaler la fin » ; changé et enregistré, il tient à la réouverture.

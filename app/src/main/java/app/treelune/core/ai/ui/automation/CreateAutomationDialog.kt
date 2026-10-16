@@ -15,7 +15,7 @@ import app.treelune.core.utils.LogManager
 import kotlinx.coroutines.launch
 
 /**
- * CreateAutomationDialog - Create or edit automation (name + provider)
+ * CreateAutomationDialog - Create or edit automation (name, provider, group, end signal)
  *
  * Flow CREATE (automation == null):
  * 1. User fills name + provider
@@ -50,13 +50,14 @@ fun CreateAutomationDialog(
     val isEditMode = automation != null
 
     // Form states - initialize with existing values in EDIT mode
-    // Name, provider and group, as the automation's declaration describes them (AutomationSettings)
+    // Name, provider, group and end signal, as the automation's declaration describes them (AutomationSettings)
     var settings by rememberSaveable(stateSaver = app.treelune.core.ui.JsonObjectSaver) {
         mutableStateOf(org.json.JSONObject().apply {
             if (isEditMode) {
                 (automation?.get("name") as? String)?.let { put("name", it) }
                 (automation?.get("provider_id") as? String)?.let { put("provider_id", it) }
                 (automation?.get("group") as? String)?.let { put("group", it) }
+                (automation?.get("notify_end") as? String)?.let { put("notify_end", it) }
             } else {
                 preSelectedGroup?.let { put("group", it) }
             }
@@ -67,7 +68,7 @@ fun CreateAutomationDialog(
     val selectedGroup = settings.optString("group").ifEmpty { null }
     val settingsNodes = remember {
         app.treelune.core.ai.data.AutomationSettings.nodes(context).filter { node ->
-            node is app.treelune.core.fields.settings.SettingNode.Field && node.definition.name in setOf("name", "provider_id", "group")
+            node is app.treelune.core.fields.settings.SettingNode.Field && node.definition.name in setOf("name", "provider_id", "group", "notify_end")
         }
     }
     var selectedZoneId by rememberSaveable {
@@ -163,7 +164,8 @@ fun CreateAutomationDialog(
                             "automation_id" to automationId,
                             "name" to name,
                             "provider_id" to selectedProvider!!,
-                            "group" to (selectedGroup ?: org.json.JSONObject.NULL)
+                            "group" to (selectedGroup ?: org.json.JSONObject.NULL),
+                            "notify_end" to (settings.optString("notify_end").ifEmpty { null } ?: org.json.JSONObject.NULL)
                         )
                         // Add zone_id if changed
                         if (selectedZoneId != currentZoneId) {
@@ -207,6 +209,7 @@ fun CreateAutomationDialog(
                             "is_enabled" to true
                         )
                         selectedGroup?.let { createParams["group"] = it }
+                        settings.optString("notify_end").ifEmpty { null }?.let { createParams["notify_end"] = it }
 
                         val createAutomationResult = coordinator.processUserAction("automations.create", createParams)
 
@@ -248,7 +251,7 @@ fun CreateAutomationDialog(
                 type = TextType.TITLE
             )
 
-            // Name, provider among the configured ones, group among the zone's
+            // Name, provider among the configured ones, group among the zone's, which runs wait to be read
             app.treelune.core.fields.settings.SettingsForm(settingsNodes, settings, { settings = it }, context, mapOf(
                 "provider_id" to object : app.treelune.core.fields.settings.SettingEditor {
                     @Composable

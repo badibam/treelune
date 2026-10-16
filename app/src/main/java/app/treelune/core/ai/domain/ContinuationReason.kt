@@ -22,5 +22,10 @@ enum class ContinuationReason {
      * AI sent completed=true flag for the first time.
      * Need to ask AI to confirm this means ALL work is done (double confirmation).
      */
-    COMPLETION_CONFIRMATION_REQUIRED
+    COMPLETION_CONFIRMATION_REQUIRED,
+
+    /**
+     * AI confirmed completed=true without the summary of its run: asked for it once more.
+     */
+    SUMMARY_REQUIRED
 }

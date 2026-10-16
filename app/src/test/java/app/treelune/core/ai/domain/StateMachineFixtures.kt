@@ -48,7 +48,8 @@ internal fun automationAt(
     phase: Phase,
     roundtrips: Int = 0,
     waitingContext: WaitingContext? = null,
-    awaitingCompletionConfirmation: Boolean = false
+    awaitingCompletionConfirmation: Boolean = false,
+    summaryReminded: Boolean = false
 ) = AIState(
     sessionId = "automation-session",
     phase = phase,
@@ -58,7 +59,8 @@ internal fun automationAt(
     lastEventTime = T0,
     lastUserInteractionTime = T0,
     waitingContext = waitingContext,
-    awaitingCompletionConfirmation = awaitingCompletionConfirmation
+    awaitingCompletionConfirmation = awaitingCompletionConfirmation,
+    summaryReminded = summaryReminded
 )
 
 /**
@@ -73,7 +75,8 @@ internal fun aiMessage(
     communicationModule: CommunicationModule? = null,
     completed: Boolean? = null,
     keepControl: Boolean? = null,
-    validationRequest: Boolean? = null
+    validationRequest: Boolean? = null,
+    summary: String? = null
 ) = AIMessage(
     preText = "some analysis",
     validationRequest = validationRequest,
@@ -82,7 +85,8 @@ internal fun aiMessage(
     postText = null,
     keepControl = keepControl,
     communicationModule = communicationModule,
-    completed = completed
+    completed = completed,
+    summary = summary
 )
 
 /** One command. The routing looks at whether the list is empty, never at what is inside. */

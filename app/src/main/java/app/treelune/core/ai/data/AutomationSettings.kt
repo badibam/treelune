@@ -15,8 +15,8 @@ import app.treelune.core.validation.SchemaCategory
 
 /**
  * An automation's settings, declared with the fields (docs/DATA.md): its name,
- * the provider it runs with, its group, whether it is on, its schedule, and what it does about
- * the runs it missed. Not its zone (its place), its seed session (its message) nor its history.
+ * the provider it runs with, its group, whether it is on, which of its runs wait for the user,
+ * its schedule, and what it does about the runs it missed. Not its zone (its place), its seed session (its message) nor its history.
  *
  * AutomationService checks every write against the schema generated from here, on the settings
  * as they are about to be stored.
@@ -26,6 +26,15 @@ object AutomationSettings {
     /** Catch-up choices: missed runs are caught up to a delay, or whatever their delay. */
     const val LIMITED = "limited"
     const val UNLIMITED = "unlimited"
+
+    /**
+     * When a run waits for the user to read it (docs/design/waiting-sources.md), stored under
+     * "notify_end": every run, a run with a problem (NOTIFY_ON_PROBLEM, RunEnd.problem), none. Its
+     * summary is kept whatever the choice.
+     */
+    const val NOTIFY_ALWAYS = "always"
+    const val NOTIFY_ON_PROBLEM = "on_problem"
+    const val NOTIFY_NEVER = "never"
 
     const val SCHEMA_ID = "automation_settings"
 
@@ -68,6 +77,12 @@ object AutomationSettings {
             SettingNode.Field(FieldDefinition("group", s.shared("label_group"), null, FieldType.TEXT, false,
                 mapOf("length" to TextLength.SHORT.name))),
             SettingNode.Field(FieldDefinition("is_enabled", s.shared("automation_is_enabled"), null, FieldType.BOOLEAN, false, null), default = true),
+            // A new routine's runs all wait: one wants to see what a routine just made does
+            SettingNode.Field(FieldDefinition("notify_end", s.shared("automation_notify_end"), null, FieldType.CHOICE, false,
+                mapOf("options" to ChoiceSettings.storedOptions(listOf(NOTIFY_ALWAYS, NOTIFY_ON_PROBLEM, NOTIFY_NEVER), mapOf(
+                    NOTIFY_ALWAYS to s.shared("automation_notify_end_always"),
+                    NOTIFY_ON_PROBLEM to s.shared("automation_notify_end_on_problem"),
+                    NOTIFY_NEVER to s.shared("automation_notify_end_never"))))), default = NOTIFY_ALWAYS),
             // Absent: the automation runs on demand only
             ScheduleSettings.group(s.shared("automation_schedule"), s::shared),
             // Present with the schedule, and only with it (AutomationService)

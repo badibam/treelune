@@ -103,7 +103,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 75
+        const val VERSION = 76
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -1724,7 +1724,6 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        /** The counter tracking tools made numeric (CounterAtV73), their entries given the counter's unit. */
         /**
          * Textures (docs/design/tool-texture.md): a zone's column, empty, and the interface
          * settings' intensity, subtle (UiTextureIntensityAtV75). A tool's texture is a key of its
@@ -1751,6 +1750,22 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * What waits for the user among the sessions (docs/design/waiting-sources.md): when each
+         * was last seen, a routine's summary, and whether a routine signals its end. Every past
+         * session seen at its last activity, every routine signalling its end: nothing starts
+         * waiting with the update.
+         */
+        private val MIGRATION_75_76 = object : Migration(75, 76) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE ai_sessions ADD COLUMN seen_at INTEGER")
+                database.execSQL("ALTER TABLE ai_sessions ADD COLUMN summary TEXT")
+                database.execSQL("UPDATE ai_sessions SET seen_at = last_activity")
+                database.execSQL("ALTER TABLE automations ADD COLUMN notify_end TEXT NOT NULL DEFAULT 'always'")
+                LogManager.database("MIGRATION 75->76: sessions seen at their last activity, routines signalling their end", "INFO")
+            }
+        }
+
         /** A conversation's own reasoning (SessionReasoning): two columns, empty, every session following its provider as before. */
         private val MIGRATION_73_74 = object : Migration(73, 74) {
             override fun migrate(database: SupportSQLiteDatabase) {
@@ -1760,6 +1775,7 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** The counter tracking tools made numeric (CounterAtV73), their entries given the counter's unit. */
         private val MIGRATION_72_73 = object : Migration(72, 73) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 val units = mutableMapOf<String, String>()
@@ -2750,7 +2766,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_71_72,
                     MIGRATION_72_73,
                     MIGRATION_73_74,
-                    MIGRATION_74_75
+                    MIGRATION_74_75,
+                    MIGRATION_75_76
                     // Add future migrations here (minimum supported version: 9)
                 )
                 .addCallback(object : RoomDatabase.Callback() {

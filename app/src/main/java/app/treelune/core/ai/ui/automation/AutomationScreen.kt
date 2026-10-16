@@ -189,7 +189,9 @@ fun AutomationScreen(
                             totalRoundtrips = sessionMap["total_roundtrips"] as? Int ?: 0,
                             totalTokens = sessionMap["total_tokens"] as? Int ?: 0,
                             cost = sessionMap["total_cost"] as? Double ?: 0.0,
-                            costIsLowerBound = sessionMap["cost_is_lower_bound"] as? Boolean ?: false
+                            costIsLowerBound = sessionMap["cost_is_lower_bound"] as? Boolean ?: false,
+                            summary = sessionMap["summary"] as? String,
+                            waits = sessionMap["waits"] as Boolean
                         )
                     }
 
@@ -436,6 +438,8 @@ fun AutomationScreen(
                         cost = session.cost,
                         costIsLowerBound = session.costIsLowerBound,
                         livePhase = livePhase,
+                        summary = session.summary,
+                        waits = session.waits,
                         onViewClick = { onNavigateToExecution(session.sessionId) }
                     )
                 }
@@ -466,5 +470,7 @@ data class ExecutionSummary(
     val totalRoundtrips: Int,
     val totalTokens: Int,
     val cost: Double,
-    val costIsLowerBound: Boolean // Some calls have an unknown cost: cost only covers the others
+    val costIsLowerBound: Boolean, // Some calls have an unknown cost: cost only covers the others
+    val summary: String?,          // What its AI said of the run (RunEnd)
+    val waits: Boolean             // Over and not yet read (docs/design/waiting-sources.md)
 )

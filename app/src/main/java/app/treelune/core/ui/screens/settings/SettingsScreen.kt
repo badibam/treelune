@@ -24,7 +24,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpen: (String) -> Unit) {
     val s = remember { Strings.`for`(context = context) }
     // The Data tile marked as the home screen's settings button is
     LaunchedEffect(Unit) { app.treelune.core.backup.AutoBackup.refresh(context) }
-    val backupPending by app.treelune.core.backup.AutoBackup.pending.collectAsState()
+    val backupPending = app.treelune.core.ui.waiting(app.treelune.core.ui.WaitingSource.BACKUP)
 
     Column(
         modifier = Modifier
