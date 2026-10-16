@@ -265,6 +265,7 @@
     <string name="ai_completion_confirmation_shown">L\'IA dit avoir terminé : l\'app lui demande de le confirmer, avec son résumé de l\'exécution.</string>
     <string name="run_facts_writes">Écritures faites : %1$d · refusées ou échouées : %2$d</string>
     <string name="run_facts_with_end">%1$s · %2$s</string>
+    <string name="run_summary_none">L\'IA n\'a pas donné de résumé de cette exécution.</string>
     <string name="ai_summary_required_shown">L\'IA a confirmé sans résumé : l\'app le lui redemande une fois.</string>
     <string name="ai_automation_no_commands_shown">L\'IA a répondu sans rien lire ni faire : l\'app lui rappelle qu\'une routine doit agir, ou dire qu\'elle a fini.</string>
     <string name="ai_failure_config_shown">Le fournisseur d\'IA refuse la demande telle qu\'elle est réglée (clé, modèle ou compte) : à revoir dans Réglages › Fournisseurs IA.</string>
@@ -380,6 +381,7 @@
     <string name="action_verbalize_zones_place">Déplacement de zones dans leur groupe</string>
     <string name="action_verbalize_tools_place">Déplacement d\'outils dans leur groupe</string>
     <string name="action_verbalize_tools_waiting">Compte de ce qui attend dans les outils</string>
+    <string name="action_verbalize_automations_waiting">Compte des exécutions de routines pas encore lues</string>
 
     <!-- AI Errors - Network and System -->
     <string name="ai_error_network_unavailable">Réseau indisponible</string>

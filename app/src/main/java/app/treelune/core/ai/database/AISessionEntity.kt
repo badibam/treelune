@@ -103,6 +103,11 @@ class AITypeConverters {
     fun toSessionType(value: String): SessionType = SessionType.valueOf(value)
 }
 
+/** Whether this is a routine's run that waits for the user: the rule of AIDao.getWaitingRuns, for one run. */
+fun AISessionEntity.runWaits(): Boolean =
+    type == SessionType.AUTOMATION && seenAt == null &&
+        endReason != null && app.treelune.core.ai.data.SessionEndReason.valueOf(endReason) !in app.treelune.core.ai.data.SessionEndReason.resumable
+
 /** The reasoning this session asks of its model, or null when it follows its provider's config. */
 fun AISessionEntity.reasoning(): app.treelune.core.ai.data.SessionReasoning? =
     reasoningThinkingOff?.let { app.treelune.core.ai.data.SessionReasoning(it, reasoningEffort) }

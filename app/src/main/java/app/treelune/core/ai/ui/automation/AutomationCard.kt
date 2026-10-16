@@ -98,12 +98,17 @@ fun AutomationCard(
                 horizontalArrangement = Arrangement.spacedBy(UI.Space.M),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Name
-                Box(modifier = Modifier.weight(1f)) {
+                // Name, marked while one of its runs waits to be read (automations.waiting)
+                Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(UI.Space.S),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     UI.Text(
                         text = automation.name,
                         type = TextType.SUBTITLE
                     )
+                    if (app.treelune.core.ui.LocalWaiting.current.automation(automation.id)) UI.WaitingMark()
                 }
 
                 // Enabled toggle

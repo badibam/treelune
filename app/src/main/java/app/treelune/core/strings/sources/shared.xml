@@ -265,6 +265,7 @@
     <string name="ai_completion_confirmation_shown">The AI says it is done: the app asks it to confirm, with its summary of the run.</string>
     <string name="run_facts_writes">Writes done: %1$d · refused or failed: %2$d</string>
     <string name="run_facts_with_end">%1$s · %2$s</string>
+    <string name="run_summary_none">The AI gave no summary of this run.</string>
     <string name="ai_summary_required_shown">The AI confirmed without a summary: the app asks for it once more.</string>
     <string name="ai_automation_no_commands_shown">The AI answered without reading or doing anything: the app reminds it that a routine has to act, or say it is done.</string>
     <string name="ai_failure_config_shown">The AI provider refuses the request as it is set up (key, model or account): see Settings › AI providers.</string>
@@ -380,6 +381,7 @@
     <string name="action_verbalize_zones_place">Move zones in their group</string>
     <string name="action_verbalize_tools_place">Move tools in their group</string>
     <string name="action_verbalize_tools_waiting">Count what waits in the tools</string>
+    <string name="action_verbalize_automations_waiting">Count the routines\' runs not yet read</string>
 
     <!-- AI Errors - Network and System -->
     <string name="ai_error_network_unavailable">Network unavailable</string>

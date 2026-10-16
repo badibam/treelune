@@ -84,7 +84,7 @@ object AccessRules {
             }
             // A zone's routines are written by who reaches the zone in full, as its own settings are
             "automations" -> when (operation) {
-                "list", "list_all" -> listOf(Reach.Free)
+                "list", "list_all", "waiting" -> listOf(Reach.Free)
                 "get" -> listOf(automationAt(AccessLevel.READ))
                 "create" -> listOf(zoneAt("zone_id", AccessLevel.FULL))
                 // A routine moved goes into the zone it is moved to

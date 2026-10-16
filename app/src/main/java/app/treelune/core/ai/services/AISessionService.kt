@@ -9,6 +9,7 @@ import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.AppDatabase
 import app.treelune.core.ai.database.AISessionEntity
 import app.treelune.core.ai.database.reasoning
+import app.treelune.core.ai.database.runWaits
 import app.treelune.core.ai.database.SessionMessageEntity
 import app.treelune.core.coordinator.CancellationToken
 import app.treelune.core.services.ExecutableService
@@ -190,6 +191,8 @@ class AISessionService(private val context: Context) : ExecutableService {
                     "created_at" to sessionEntity.createdAt,
                     "last_activity" to sessionEntity.lastActivity,
                     "is_active" to sessionEntity.isActive,
+                    "end_reason" to sessionEntity.endReason,
+                    "summary" to sessionEntity.summary,
                     // Frozen at the first call: PromptManager builds L3 from it, and a snapshot
                     // rebuilt on each call changes the prompt right after L1, where the
                     // provider's cache then stops
@@ -327,6 +330,8 @@ class AISessionService(private val context: Context) : ExecutableService {
                     "is_active" to session.isActive,
                     "phase" to session.phase,
                     "end_reason" to session.endReason,
+                    "summary" to session.summary,
+                    "waits" to session.runWaits(),
                     "total_roundtrips" to session.totalRoundtrips,
                     "total_tokens" to cost.totalTokens,
                     "total_cost" to cost.totalCost,

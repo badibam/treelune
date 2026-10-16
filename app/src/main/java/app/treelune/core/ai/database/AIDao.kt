@@ -61,6 +61,17 @@ interface AIDao {
     @Query("UPDATE ai_sessions SET seen_at = :at WHERE id = :sessionId")
     suspend fun updateSeenAt(sessionId: String, at: Long?)
 
+    /**
+     * A routine's runs that wait for the user (docs/design/waiting-sources.md): over for good,
+     * not yet seen. AISessionEntity.runWaits says the same of one run.
+     */
+    @Query("""
+        SELECT * FROM ai_sessions
+        WHERE type = 'AUTOMATION' AND seen_at IS NULL
+          AND end_reason IS NOT NULL AND end_reason NOT IN ${SessionEndReason.RESUMABLE_SQL}
+    """)
+    suspend fun getWaitingRuns(): List<AISessionEntity>
+
     /** Whether the active chat has an AI message newer than when it was last seen. */
     @Query("""
         SELECT EXISTS(SELECT 1 FROM ai_sessions s JOIN session_messages m ON m.session_id = s.id

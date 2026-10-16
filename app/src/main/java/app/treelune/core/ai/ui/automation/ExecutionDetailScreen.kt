@@ -20,6 +20,7 @@ import app.treelune.core.ui.*
  *
  * Shows:
  * - Page header with BACK button
+ * - Once the run is over, its summary by its AI and the app's facts beside it (RunEnd)
  * - Full conversation history in read-only mode
  * - All messages displayed with ChatMessageBubble
  *
@@ -29,7 +30,10 @@ import app.treelune.core.ui.*
  * - No validation/communication module interactions
  * - Messages displayed for audit and transparency
  *
- * Usage: Accessed from ExecutionCard VIEW button in AutomationScreen
+ * Opening it reads the run: it no longer waits (docs/design/waiting-sources.md).
+ *
+ * Usage: Accessed from ExecutionCard VIEW button in AutomationScreen, and from the notification
+ * of a run that waits
  */
 @Composable
 fun ExecutionDetailScreen(
@@ -41,6 +45,21 @@ fun ExecutionDetailScreen(
 
     // Observe messages for this session
     val messages by AIOrchestrator.observeMessages(sessionId).collectAsState(initial = emptyList())
+
+    // How the run ended and what its AI said of it, read once on opening; opening reads it
+    var end by remember(sessionId) { mutableStateOf<Pair<app.treelune.core.ai.data.SessionEndReason?, String?>?>(null) }
+    LaunchedEffect(sessionId) {
+        val coordinator = app.treelune.core.coordinator.Coordinator(context)
+        val result = coordinator.processUserAction("ai_sessions.get_session", mapOf("session_id" to sessionId))
+        val session = result.data?.get("session") as? Map<*, *>
+        if (session == null) {
+            app.treelune.core.utils.LogManager.aiUI("ExecutionDetailScreen: run $sessionId not read: ${result.error}", "ERROR")
+            return@LaunchedEffect
+        }
+        end = (session["end_reason"] as String?)?.let { app.treelune.core.ai.data.SessionEndReason.valueOf(it) } to session["summary"] as String?
+        val seen = coordinator.processUserAction("ai_sessions.seen", mapOf("session_id" to sessionId))
+        if (seen.status != app.treelune.core.commands.CommandStatus.SUCCESS) app.treelune.core.utils.LogManager.aiUI("ExecutionDetailScreen: run $sessionId not marked read: ${seen.error}", "ERROR")
+    }
 
     // Create a static AIState for read-only display (IDLE, no interactions)
     val readOnlyAIState = remember {
@@ -76,6 +95,23 @@ fun ExecutionDetailScreen(
             contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = app.treelune.core.ui.chatButtonEnd()),
             verticalArrangement = Arrangement.spacedBy(UI.Space.M)
         ) {
+            // Over: the summary first, then what the app counted; nothing while it runs
+            end?.takeIf { (reason, _) -> reason != null && reason !in app.treelune.core.ai.data.SessionEndReason.resumable }?.let { (reason, summary) ->
+                item(key = "run_end") {
+                    UI.Card(type = CardType.DEFAULT) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth().padding(UI.Space.M),
+                            verticalArrangement = Arrangement.spacedBy(UI.Space.S)
+                        ) {
+                            UI.Text(text = summary ?: s.shared("run_summary_none"), type = TextType.BODY)
+                            UI.Text(
+                                text = app.treelune.core.ai.orchestration.RunEnd.line(app.treelune.core.ai.orchestration.RunEnd.facts(messages, reason), s),
+                                type = TextType.CAPTION
+                            )
+                        }
+                    }
+                }
+            }
             itemsIndexed(messages) { index, message ->
                 // Determine if this is the last AI message (for styling)
                 val isLastAI = message.sender == MessageSender.AI &&

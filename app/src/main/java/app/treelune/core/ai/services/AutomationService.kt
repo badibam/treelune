@@ -77,6 +77,7 @@ class AutomationService(private val context: Context) : ExecutableService {
                 "config" -> getConfig(params, token)
                 "list" -> listAutomations(params, token)
                 "list_all" -> listAllAutomations(token)
+                "waiting" -> waiting(params)
                 "enable" -> setEnabled(params, token, true)
                 "disable" -> setEnabled(params, token, false)
                 "execute_manual" -> executeManual(params, token)
@@ -714,6 +715,21 @@ class AutomationService(private val context: Context) : ExecutableService {
     }
 
     /**
+     * What waits for the user among the routines (docs/design/waiting-sources.md): how many runs
+     * of each routine are over and not yet seen, the routines of `zone_id` or all of them, and the
+     * sum by zone; the first form of the waiting brick, beside tools.waiting.
+     */
+    private suspend fun waiting(params: JSONObject): OperationResult {
+        val zoneId = params.optString("zone_id").takeIf { it.isNotEmpty() }
+        val automations = (if (zoneId != null) dao.getAutomationsByZone(zoneId) else dao.getAllAutomations()).associateBy { it.id }
+        val counts = dao.getWaitingRuns().mapNotNull { it.automationId?.takeIf { id -> id in automations } }.groupingBy { it }.eachCount()
+        return OperationResult.success(mapOf(
+            "automations" to counts,
+            "zones" to counts.entries.groupBy { automations.getValue(it.key).zoneId }.mapValues { (_, inZone) -> inZone.sumOf { it.value } }
+        ))
+    }
+
+    /**
      * An automation as a result gives it: what locates it and its history, then its settings in
      * the form their declaration describes (settingsOf). Automation.fromResult reads it back.
      */
@@ -741,6 +757,7 @@ class AutomationService(private val context: Context) : ExecutableService {
             "delete" -> s.shared("action_verbalize_automations_delete").format(name)
             "config", "get" -> s.shared("action_verbalize_automations_config").format(name)
             "list", "list_all" -> s.shared("action_verbalize_automations_list")
+            "waiting" -> s.shared("action_verbalize_automations_waiting")
             else -> s.shared("action_verbalize_unknown")
         }
     }
