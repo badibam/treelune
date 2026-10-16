@@ -26,6 +26,7 @@ import app.treelune.core.ui.DisplayMode
 import app.treelune.core.ui.GridTileState
 import app.treelune.core.ui.UI
 import org.json.JSONObject
+import kotlin.math.roundToInt
 
 /**
  * A group section in edit mode: its tiles at the [places] of the move in progress, [selectedId]
@@ -149,6 +150,29 @@ fun GridLayout(stored: List<Grid.Tile>, grows: List<Boolean>, edit: GridEdit?, i
                 tilePlaceables.forEachIndexed { i, placeable ->
                     placeable.place(left(tiles[i].column), rowTops[tiles[i].row])
                 }
+            }
+        }
+    }
+}
+
+/**
+ * [content] as wide as a grid of tiles in the same width and centred as it is: the cards set under
+ * a zone's grid (its variables, its routines) keep to the tiles' edges. A theme on whole pixels
+ * (the retro) spans its grid over whole cells, inside the width; elsewhere the grid fills it.
+ */
+@Composable
+fun GridWide(content: @Composable () -> Unit) {
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val cellPx = CurrentTheme.current.gridCellPx(constraints.maxWidth)
+        val gap = CurrentTheme.current.gridColumnGapPx()
+        val width = (Grid.COLUMNS * cellPx + (Grid.COLUMNS - 1) * gap).coerceAtMost(constraints.maxWidth)
+        Layout(content = content) { measurables, constraints ->
+            val placeables = measurables.map { it.measure(Constraints(minWidth = width, maxWidth = width, maxHeight = constraints.maxHeight)) }
+            // Placed as the grid's Box places it (Alignment.TopCenter), to the same pixel
+            val left = ((constraints.maxWidth - width) / 2f).roundToInt()
+            layout(constraints.maxWidth, placeables.sumOf { it.height }) {
+                var top = 0
+                placeables.forEach { it.place(left, top); top += it.height }
             }
         }
     }

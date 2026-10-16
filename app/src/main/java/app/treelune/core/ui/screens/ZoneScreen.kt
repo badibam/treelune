@@ -727,18 +727,18 @@ private fun GroupSection(
     SectionGrid(groupName, groupTools, editor, onToolClick, onToolLongClick, onOpenEntry)
 
     // The group's variables, in one compact card
-    app.treelune.core.ui.components.Faded(editor.anyEditing) { app.treelune.core.ui.variables.VariablesCard(variables, onOpenVariable) }
+    app.treelune.core.ui.components.GridWide { app.treelune.core.ui.components.Faded(editor.anyEditing) { app.treelune.core.ui.variables.VariablesCard(variables, onOpenVariable) } }
 
     // Display automations in this group
     groupAutomations.forEach { automation ->
-        app.treelune.core.ui.components.Faded(editor.anyEditing) { app.treelune.core.ai.ui.automation.AutomationCard(
+        app.treelune.core.ui.components.GridWide { app.treelune.core.ui.components.Faded(editor.anyEditing) { app.treelune.core.ai.ui.automation.AutomationCard(
             automation = automation,
             onEdit = { onAutomationEdit(automation) },
             onTest = { onAutomationTest(automation) },
             onView = { onAutomationView(automation) },
             onToggleEnabled = { enabled -> onAutomationToggle(automation, enabled) },
             onStartChat = { onAutomationStartChat?.invoke(automation.seedSessionId) }
-        ) }
+        ) } }
     }
 
     // Empty state if no tools/automations in this group (only when list is not showing)
@@ -916,18 +916,18 @@ private fun UngroupedSection(
     SectionGrid("", toolInstances, editor, onToolClick, onToolLongClick, onOpenEntry)
 
     // The ungrouped variables, in one compact card
-    app.treelune.core.ui.components.Faded(editor.anyEditing) { app.treelune.core.ui.variables.VariablesCard(variables, onOpenVariable) }
+    app.treelune.core.ui.components.GridWide { app.treelune.core.ui.components.Faded(editor.anyEditing) { app.treelune.core.ui.variables.VariablesCard(variables, onOpenVariable) } }
 
     // Display ungrouped automations
     automations.forEach { automation ->
-        app.treelune.core.ui.components.Faded(editor.anyEditing) { app.treelune.core.ai.ui.automation.AutomationCard(
+        app.treelune.core.ui.components.GridWide { app.treelune.core.ui.components.Faded(editor.anyEditing) { app.treelune.core.ai.ui.automation.AutomationCard(
             automation = automation,
             onEdit = { onAutomationEdit(automation) },
             onTest = { onAutomationTest(automation) },
             onView = { onAutomationView(automation) },
             onToggleEnabled = { enabled -> onAutomationToggle(automation, enabled) },
             onStartChat = { onAutomationStartChat?.invoke(automation.seedSessionId) }
-        ) }
+        ) } }
     }
 
     // Empty state (only when list is not showing)
