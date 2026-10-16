@@ -27,9 +27,11 @@ Ce qui n'en est pas : une chose à faire avant un moment (la Liste et son éché
   - `all_day` (oui/non) : le `timestamp` est alors minuit du jour dans le fuseau de l'app (`DateTimeConfig.getZoneId()`), et la durée se compte en jours, `days` (1 par défaut), une journée ne faisant pas toujours 24 h. `duration` et `days` ne vont jamais ensemble.
 - **Les autres champs** sont ceux de l'utilisateur (« Lieu », « Avec qui »), qu'il déclare lui-même : aucun préréglage, le type n'en sachant rien. Ils s'affichent comme dans la Liste, en compact sous le nom (`CustomFieldsDisplay`).
 - **`state`**, écrit par les opérations et le planificateur seuls, jamais par l'écriture ordinaire :
-  - `status` : `planned` pour un événement normal, `cancelled` (annulé : visible, barré, sans rappel), `removed` (retiré : invisible du planning, de la tuile et des rappels ; occurrence de série seulement). Toujours présent, il est le statut de départ du cœur (`EntryStart`) : un événement se crée `planned`, et seules les opérations de l'outil et l'app changent ce statut ;
+  - `status` : `planned` pour un événement normal, `cancelled` (annulé : visible, son nom précédé de « Annulé · », sans rappel), `removed` (retiré : invisible du planning, de la tuile et des rappels ; occurrence de série seulement). Toujours présent, il est le statut de départ du cœur (`EntryStart`) : un événement se crée `planned`, et seules les opérations de l'outil et l'app changent ce statut ;
   - `series` : la clé de la série qui l'a créé, absente pour un événement isolé ;
-  - `reminded` : les heures des rappels déjà envoyés, effacées quand le début de l'événement change.
+  - `series_at` : l'heure de sa série pour laquelle l'occurrence a été donnée, d'où la série compte la suivante (une occurrence déplacée la garde ; celle d'une journée entière, qui commence à minuit, garde l'heure du planning) ;
+  - `reminded_until` et `reminded_for` : le dernier rappel envoyé, tous ceux d'avant l'étant, et le début pour lequel ils l'ont été ; un début déplacé efface les deux (`settleEntries`).
+- **Une journée entière n'a pas de durée, un événement à heure pas de jours** : le service refuse l'un avec l'autre (`refuseEntry`, un refus du type d'outil sur l'entrée entière), en création comme en modification.
 - **Aucun statut fait / pas fait** : à venir, en cours ou passé se lit à l'horloge.
 - **Sa fin** : le début plus `duration` ; la fin de son dernier jour pour une journée entière ; son début pour un événement sans durée.
 
@@ -51,8 +53,8 @@ Une série vit dans la config et produit des entrées réelles : ses occurrences
 ```
 
 - **Une série** : `key`, donnée à sa création et gardée ensuite (`completeConfig`, comme la clé d'un critère d'Objectif) ; `name`, le nom de ses occurrences ; `schedule`, la Planification (`ScheduleSettings.group`) ; `duration`, ou `all_day` et `days`. Pas de valeurs pour les champs de l'utilisateur : leur forme dépend de l'outil, qu'une config ne sait pas déclarer (`TODO.md`) ; une occurrence naît sans elles, et se remplit comme tout événement. Pas de fin à elle : la Planification sait les dates précises, et ses limites sont les siennes (« toutes les 2 semaines » attend l'item de `TODO.md` sur la brique de planning).
-- **Le planificateur crée les occurrences 90 jours devant, et toujours au moins la prochaine** (l'anniversaire dans 8 mois existe déjà). Il ne crée que celles qui viennent après la dernière occurrence de la série déjà en base, comme le Questionnaire : une occurrence déplacée garde sa place, une retirée n'est pas recréée. Une occurrence porte `state.series`.
-- **Une occurrence se modifie seule** : son heure, sa durée, ses champs ; elle s'annule ou se retire. Elle ne se supprime pas : le service refuse la suppression d'une entrée qui porte `state.series` (`refuseChange`), en renvoyant à `agenda.remove`. Une suppression ferait revenir la dernière occurrence au passage suivant du planificateur ; retirer garde l'entrée, et donc la mémoire.
+- **Le planificateur crée les occurrences 90 jours devant, et toujours au moins la prochaine** (l'anniversaire dans 8 mois existe déjà). Il ne crée que celles qui viennent après la dernière déjà donnée (`series_at`), jamais avant maintenant : une occurrence déplacée garde sa place, une retirée n'est pas recréée. Une occurrence porte `state.series` et `state.series_at`.
+- **Une occurrence se modifie seule** : son heure, sa durée, ses champs ; elle s'annule ou se retire. Elle ne se supprime pas : le service refuse la suppression d'une entrée qui porte `state.series` (`refuseDelete`, un refus du type d'outil qui n'empêche pas la modification), en renvoyant à `agenda.remove`. Une suppression ferait revenir la dernière occurrence au passage suivant du planificateur ; retirer garde l'entrée, et donc la mémoire.
 - **Le planning d'une série change** : ses occurrences futures, quelles qu'elles soient (déplacées, annulées, retirées, annotées), sont supprimées et recréées sur le nouveau planning, après confirmation (« Les 12 occurrences à venir seront recréées ; ce que tu y as changé sera perdu »). Elles passent par les entrées qu'une config supprime (`entriesRemovedByConfig`, `confirm_migration`), que le comptage à blanc (`tools.update dry_run`) compte. Le passé ne bouge jamais.
 - **Le reste d'une série change** (nom, durée, journée entière) : le changement descend sur ses occurrences futures, sur chaque valeur qui est encore l'ancienne valeur de la série ; une valeur changée à la main reste. Sans confirmation : rien ne se perd. Aucune marque « retouchée » : on compare à la config précédente.
 - **Supprimer une série** supprime ses occurrences futures, après confirmation, et garde les passées.
@@ -62,7 +64,8 @@ Une série vit dans la config et produit des entrées réelles : ses occurrences
 - **Réglés dans la config seulement** : `reminders` pour les événements à heure, `all_day_reminders` pour les journées entières, deux listes d'Instants relatifs au début de l'événement (section suivante). Ni une série ni un événement n'en portent : des rappels différents, c'est un autre Agenda.
 - **Une notification par rappel**, à son heure, par `notifications.send`, l'icône de l'outil ; la toucher ouvre la fiche de l'événement. Un événement annulé ou retiré n'en envoie pas.
 - **Un rappel manqué** (téléphone éteint, app arrêtée) part en retard tant que l'événement n'est pas terminé : téléphone allumé à 8 h, l'anniversaire du jour se rappelle. Après sa fin, il est abandonné.
-- **Ce qui est parti** se note dans `state.reminded`. Un rappel ajouté à la config après coup, dont l'heure est passée, part tout de suite si l'événement n'est pas terminé.
+- **Ce qui est parti** se note dans `state.reminded_until` : le dernier rappel envoyé. Les rappels dus ensemble partent en une notification. Un rappel ajouté à la config après coup part s'il tombe après le dernier envoyé ; avant lui, il est tenu pour envoyé.
+- **La notification ouvre la fiche de l'événement** : `notifications.send` prend `entry_id`, et l'app ouvre l'outil sur cette entrée plutôt que sur la plus ancienne qui attend.
 - **Les events du cœur n'y sont pour rien** : l'Agenda ne les attend pas. Le jour où ils existent (`TODO.md`, « Events du cœur »), « un événement commence » en sera une source, à laquelle une routine pourra s'accrocher.
 
 ## L'Instant étendu
@@ -84,7 +87,7 @@ App fermée, le planificateur ne se réveille que toutes les 10 min (`SchedulerA
 - **Sa limite** : en veille profonde, Android ne fait sonner les alarmes `setExactAndAllowWhileIdle` d'une app qu'environ toutes les 9 minutes ; un rappel qui suit de près une autre sonnerie peut arriver jusqu'à ~9 min en retard. Non mesuré : à essayer sur le téléphone, posé à plat écran éteint, deux rappels à 3 min d'écart, chaque notification à l'heure ou non.
 - **Le repli, si la mesure montre des retards** : `setAlarmClock` pour les seuls rappels, exacte sans limite, mais qu'Android montre comme un réveil (une icône d'horloge dans la barre d'état, « Prochaine alarme » sur l'écran de verrouillage).
 
-L'Agenda en est le premier usage ; Messages, les routines et les échéances de Liste en profitent sans changer.
+L'Agenda en est le premier usage ; Messages, les routines et les échéances de Liste le prendront en disant leur prochaine action.
 
 ## Les opérations
 
@@ -97,7 +100,7 @@ L'Agenda en est le premier usage ; Messages, les routines et les échéances de 
 ## L'écran
 
 - **En haut, le type de période** (`PeriodFilterType`), réduit à « À venir » (par défaut), Jour, Semaine, Mois ; « À venir » montre les événements en cours puis futurs, sans fin ni flèches ; Jour, Semaine et Mois ont les flèches et le calendrier au toucher du libellé (`SinglePeriodSelector`), qui mènent aussi au passé.
-- **La liste, groupée par jour** (« Aujourd'hui », « Demain », « jeudi 23 octobre »), le début de journée de l'app (`dayStartHour`) compris, sauf pour une journée entière, rangée à son jour de calendrier. Une ligne : l'heure ou « Journée », le nom, la durée en petit (« 14 h – 14 h 45 »), les champs de l'utilisateur en compact ; en cours mis en avant, annulé barré, une icône de répétition sur une occurrence de série. Une journée entière de plusieurs jours apparaît à chacun de ses jours. « Retirées (n) », replié en bas, celles de la période affichée, chacune avec « Remettre ».
+- **La liste, groupée par jour** (« Aujourd'hui », « Demain », « jeudi 23 octobre »), le début de journée de l'app (`dayStartHour`) compris, sauf pour une journée entière, rangée à son jour de calendrier. Une ligne : l'heure ou « Journée », le nom, la durée en petit (« 14 h – 14 h 45 »), les champs de l'utilisateur en compact ; en cours mis en avant, annulé précédé de « Annulé · », une icône de répétition sur une occurrence de série. Une journée entière de plusieurs jours apparaît à chacun de ses jours. « Retirées (n) », replié en bas, celles de la période affichée, chacune avec « Rétablir ».
 - **Pas de vue calendrier** (grille du mois) : la liste par jour répond à « qu'est-ce que j'ai ».
 - **« Nouvel événement »** ouvre la fiche : nom, date et heure, ou « Journée entière » et le nombre de jours, durée, puis les champs de l'utilisateur. **« Se répète »**, coché, montre la Planification et cache les champs de l'utilisateur : l'enregistrement crée alors une série dans la config, et le planificateur ses occurrences. Rien n'est écrit avant « Enregistrer ».
 - **Un événement touché** ouvre sa fiche, modifiable, avec « Annuler » (ou « Rétablir ») et « Supprimer » ; sur une occurrence de série, « Retirer » à la place de « Supprimer », et « Modifier la série », qui ouvre la même fiche sur la série ; un planning changé demande la confirmation des occurrences recréées.
@@ -105,7 +108,7 @@ L'Agenda en est le premier usage ; Messages, les routines et les échéances de 
 ## La tuile
 
 - **Le résumé** : le prochain événement ou celui en cours, son nom et son moment en relatif (« dans 2 h », « demain 14 h », « jeu. 23 », « en cours ») ; « Rien à venir » sinon.
-- **Le corps** : les événements à venir, un par `TileLine` : le moment à gauche (« 14:30 » aujourd'hui, « Dem. », « Jeu. 23 »), le nom au milieu, les champs de l'utilisateur en seconde ligne discrète ; un annulé barré, un retiré absent. EXTENDED, ce que tient sa rangée ; SQUARE, ses trois rangées ; FULL, les 7 prochains jours.
+- **Le corps** : les événements à venir, un par `TileLine` : le moment à gauche (« 14:30 » aujourd'hui, « Dem. », « Jeu. 23 »), le nom au milieu, les champs de l'utilisateur en seconde ligne discrète ; un annulé précédé de « Annulé · », un retiré absent. EXTENDED, ce que tient sa rangée ; SQUARE, ses trois rangées ; FULL, les 7 prochains jours.
 - Un événement touché ouvre sa fiche (`EntryToOpen`) ; ailleurs, l'outil.
 
 ## L'IA
