@@ -73,6 +73,7 @@ Une idée sans spec : elle demande une décision avant du code.
 
 - Des modèles d'outils prédéfinis et paramétrables (« Série de questions » suivie d'un « Avis de l'IA »…).
 - Un type de Suivi « étiquette », qui ne note qu'une étiquette.
+- La section « Quand » de la config d'un Objectif montre ensemble Début, Échéance et Récurrence, alors qu'avec une récurrence `GoalScheduler` ignore Début et Échéance sans le dire : un choix « Une fois » / « Récurrent » en tête, puis les seuls réglages qui comptent (réglage conditionnel du formulaire, `settings-pages.md`).
 - Trier Notes, Liste, Journal et Données structurées par un champ (un Tri = un Champ et un sens, brique à faire de celui de Données structurées) : ranger une fois, l'ordre manuel réécrit après confirmation, ou un réglage de l'outil, manuel ou trié — à trancher.
 
 ### Interface
