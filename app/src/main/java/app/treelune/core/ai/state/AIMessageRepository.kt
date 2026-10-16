@@ -47,6 +47,9 @@ class AIMessageRepository(
             // Update cache
             updateCache(sessionId, message)
 
+            // An AI message may make its chat wait for the user (ChatWaiting)
+            if (message.sender == app.treelune.core.ai.data.MessageSender.AI) app.treelune.core.utils.DataChangeNotifier.notifyAISessionsChanged()
+
             LogManager.aiSession(
                 "Message stored: session=$sessionId, sender=${message.sender}, id=${message.id}",
                 "DEBUG"

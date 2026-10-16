@@ -227,6 +227,9 @@ private fun ChatMode(
     val s = remember { Strings.`for`(context = context) }
     val scope = rememberCoroutineScope()
 
+    // On screen, the chat is seen: its AI messages no longer mark the chat's button
+    app.treelune.core.ai.orchestration.ChatSeen(session.id)
+
     // Local states
     var segments by remember { mutableStateOf<List<MessageSegment>>(emptyList()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }

@@ -36,6 +36,7 @@ import java.util.*
 class AISessionService(private val context: Context) : ExecutableService {
 
     private val s = Strings.`for`(context = context)
+    private val aiDao: AIDao get() = AppDatabase.getDatabase(context).aiDao()
 
     override suspend fun execute(operation: String, params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
@@ -78,6 +79,10 @@ class AISessionService(private val context: Context) : ExecutableService {
 
                 // Session state updates (V2 - managed by AIStateRepository)
                 "set_end_reason" -> setEndReason(params, token)
+
+                // What waits for the user (docs/design/waiting-sources.md)
+                "seen" -> markSeen(params, token)
+                "chat_waiting" -> OperationResult.success(mapOf("waits" to aiDao.chatWaits()))
 
                 // SEED pre-fill management
 
@@ -887,6 +892,21 @@ class AISessionService(private val context: Context) : ExecutableService {
         dao.updateSession(session.copy(reasoningThinkingOff = reasoning?.thinkingOff, reasoningEffort = reasoning?.effort))
         LogManager.aiSession("Reasoning of session $sessionId now ${reasoning ?: "its provider's"}", "INFO")
         return OperationResult.success(buildMap { put("session_id", sessionId); reasoning?.let { put(SessionReasoning.KEY, it.toMap()) } })
+    }
+
+    /**
+     * The session [params] name seen by the user now: a chat shown on screen, a routine's run
+     * opened. A routine's run no longer waits, and its zone and routine are told.
+     */
+    private suspend fun markSeen(params: JSONObject, token: CancellationToken): OperationResult {
+        if (token.isCancelled) return OperationResult.cancelled()
+        val sessionId = params.optString("session_id").takeIf { it.isNotEmpty() }
+            ?: return OperationResult.error(s.shared("ai_error_param_session_id_required"))
+        val session = aiDao.getSession(sessionId)
+            ?: return OperationResult.error(s.shared("ai_error_session_not_found").format(sessionId))
+        aiDao.updateSeenAt(sessionId, System.currentTimeMillis())
+        app.treelune.core.utils.DataChangeNotifier.notifyAISessionsChanged(session.automationId)
+        return OperationResult.success(mapOf("session_id" to sessionId))
     }
 
     /**

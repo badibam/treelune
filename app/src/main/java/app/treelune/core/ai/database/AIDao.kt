@@ -44,6 +44,30 @@ interface AIDao {
     @Query("UPDATE ai_sessions SET app_state_snapshot = :snapshot WHERE id = :sessionId")
     suspend fun updateAppStateSnapshot(sessionId: String, snapshot: String)
 
+    /**
+     * The state AIStateRepository keeps of a session, written alone: a whole row written back
+     * would undo what was written beside it meanwhile (seen_at, the chat shown).
+     */
+    @Query("""
+        UPDATE ai_sessions SET phase = :phase, total_roundtrips = :totalRoundtrips, last_event_time = :lastEventTime,
+            last_user_interaction_time = :lastUserInteractionTime, last_activity = :lastActivity, is_active = :isActive,
+            end_reason = :endReason
+        WHERE id = :sessionId
+    """)
+    suspend fun updateSessionState(sessionId: String, phase: String, totalRoundtrips: Int, lastEventTime: Long,
+        lastUserInteractionTime: Long, lastActivity: Long, isActive: Boolean, endReason: String?)
+
+    /** The session seen by the user at [at] (docs/design/waiting-sources.md). */
+    @Query("UPDATE ai_sessions SET seen_at = :at WHERE id = :sessionId")
+    suspend fun updateSeenAt(sessionId: String, at: Long?)
+
+    /** Whether the active chat has an AI message newer than when it was last seen. */
+    @Query("""
+        SELECT EXISTS(SELECT 1 FROM ai_sessions s JOIN session_messages m ON m.session_id = s.id
+            WHERE s.is_active = 1 AND s.type = 'CHAT' AND m.sender = 'AI' AND m.timestamp > COALESCE(s.seen_at, 0))
+    """)
+    suspend fun chatWaits(): Boolean
+
     @Delete
     suspend fun deleteSession(session: AISessionEntity)
 

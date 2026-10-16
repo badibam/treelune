@@ -181,8 +181,9 @@ class AIStateRepository(
                     )
                 }
 
-                // Update entity with new state values
-                val updatedEntity = existingSession.copy(
+                // The state's columns alone, the rest of the row left as it stands
+                aiDao.updateSessionState(
+                    sessionId = sessionId,
                     phase = state.phase.name,
                     totalRoundtrips = state.totalRoundtrips,
                     lastEventTime = state.lastEventTime,
@@ -191,8 +192,6 @@ class AIStateRepository(
                     isActive = shouldBeActive,
                     endReason = if (state.phase == Phase.CLOSED) state.endReason?.name else existingSession.endReason
                 )
-
-                aiDao.updateSession(updatedEntity)
 
             } catch (e: Exception) {
                 LogManager.aiSession(
