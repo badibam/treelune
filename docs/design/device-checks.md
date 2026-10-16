@@ -314,3 +314,16 @@ Vu le 2026-10-09 : l'inscription par la page de connexion, « Activer Funnel » 
 - Une routine à l'accès limité à une zone en `full`, dont le message demande de créer une routine : créée avec un accès dans le sien, refusée avec un accès vide ou plus large, la raison dans son historique.
 - « Pourquoi ma routine a raté hier ? » : l'IA lit ses exécutions (heures en ISO, raison de fin, coût), puis une exécution, les erreurs seules, et répond depuis ce qu'elle a lu.
 - Par le connecteur MCP : `automations` et `automation_config` répondent ; une création sur une zone hors du masque du client est refusée.
+
+## Les bugs du téléphone du 2026-10-16 et le changement de config (`docs/design/config-change.md`)
+
+Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la poignée d'une note limitée à son icône, les cartes d'une zone à la largeur de la grille en rétro, le coup d'œil sur les outils dans l'accueil du Guide, la sélection d'un texte du Guide, les bornes d'une échelle resserrées (comptes, nouveau champ), une séance arrêtée qui garde ses étapes et sa correction étape par étape. Reste :
+
+- La carte des variables d'une zone avec un nom long : la valeur passe sous le nom, rien ne se coupe.
+- Changer de thème depuis Réglages › Interface, revenir à l'accueil : pas de plantage (la marque de sauvegarde automatique).
+- Copier une entrée de Journal et une note qui ont des champs ajoutés (une échelle, un choix de moins de 8 options, un classement, une référence) : les lignes « Nom : valeur » après le texte, une échelle en barre, un choix parmi ses options, une référence par son nom, un champ vide absent.
+- Un choix à une réponse passé à plusieurs : enregistré sans rien demander, chaque entrée garde sa réponse. Plusieurs vers une : seules les entrées à plusieurs réponses perdent la valeur, comptées.
+- Le type de valeur d'un Suivi changé : les entrées supprimées, comptées dans la fenêtre.
+- Demander à l'IA de resserrer une échelle (conversation) : la carte de validation dit les comptes, même dans une zone non protégée ; refusée, rien ne change ; acceptée, les valeurs hors bornes partent. « Protéger les données passées » décoché : l'IA est refusée et doit renvoyer avec `confirm_migration`. Par le connecteur : la notification d'accord. Une routine qui le fait : passe si son accès le permet.
+- Objectif : valider une tentative, changer un critère (seuil, critère retiré), rouvrir la tentative : elle est jugée selon ses anciens critères, la valeur saisie du critère retiré toujours là ; revalidée, son jugement aussi.
+- Une séance notée « Faite » sans l'écran : ses étapes toutes faites, sans temps ; une séance finie avant ce changement se corrige toujours par ses comptes.
