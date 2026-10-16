@@ -2141,6 +2141,7 @@
     <string name="identity_session_not_chat">Only a conversation chooses its identity: a routine's run speaks as its routine</string>
     <string name="identity_session_fixed">Who speaks is fixed at the first message: open another conversation to talk to someone else</string>
     <string name="ai_identity_already_read">Already read in this session: it is in the messages above</string>
+    <string name="ai_read_replaces">This text has changed since you read it earlier in this session: it replaces that earlier read.</string>
     <string name="ai_prompt_level3_identities_title">Identities</string>
     <string name="identity_session_gone">This conversation's identity was deleted: it can be read, and can no longer go on</string>
     <string name="label_none">None</string>

@@ -66,39 +66,17 @@ data class CommandExecutionResult(
  * - Format results as JSON with metadata first for prompt inclusion
  * - Generate SystemMessage with aggregate results for conversation history
  * - Track success/failure status for each command
- * - Deduplicate schema queries across session history and within current batch
+ * - Send a read once in a session (SessionReads): a schema, an identity, a resource of its
+ *   bagage, its text not sent again while unchanged, sent again whole when it changed
  */
 class CommandExecutor(private val context: Context) {
 
     private val coordinator = Coordinator(context)
     private val s = Strings.`for`(context = context)
 
-    /**
-     * What tells two schemas apart, for not sending the model one it already has: the entries
-     * of a tool are one schema per tool ("entries:<id>"), since its user's fields are in it; any
-     * other schema is told by its name ("tracking_config", "zone_config").
-     */
-    /**
-     * What an identity read is known by in a session, for it to be read once: the identity,
-     * the language asked (none for its own) and, for a resource, its key. Null for any other
-     * command.
-     */
-    private fun identityReadKey(command: ExecutableCommand): String? {
-        if (command.resource != "identities" || command.operation !in setOf("read", "read_resource")) return null
-        val id = command.params["identity_id"] as? String ?: return null
-        val language = command.params["language"] as? String ?: ""
-        return if (command.operation == "read") "identity:$id:$language"
-        else "identity_resource:$id:$language:${command.params["key"] as? String ?: return null}"
-    }
-
-    private fun schemaKey(schemaId: String?, toolInstanceId: String?): String? =
-        toolInstanceId?.let { "entries:$it" } ?: schemaId
-
-    /** [schemaKey] of the schema a schemas.get command asks for, by what it names. */
-    private fun requestedSchemaKey(params: Map<String, Any?>): String? {
-        val tooltype = params["tooltype"] as? String
-        return schemaKey(params["id"] as? String ?: tooltype?.let { "${it}_config" }, params["tool_instance_id"] as? String)
-    }
+    /** What [command] reads, when it is sent once in a session (SessionReads). */
+    private fun readTarget(command: ExecutableCommand): String? =
+        SessionReads.target(command.resource, command.operation, command.params)
 
     /**
      * Execute commands and return complete result with prompt data + SystemMessage
@@ -106,7 +84,7 @@ class CommandExecutor(private val context: Context) {
      * @param commands The commands to execute
      * @param messageType Type of SystemMessage (DATA_ADDED or ACTIONS_EXECUTED)
      * @param level The level name for logging purposes
-     * @param sessionId Session ID for schema deduplication (null = no deduplication)
+     * @param sessionId Session ID whose reads are sent once (null = every read sent)
      * @param origin Who the commands come from: the AI's, the user's pointers, the app's prompt
      * @return CommandExecutionResult with prompt data and system message
      */
@@ -119,28 +97,22 @@ class CommandExecutor(private val context: Context) {
     ): CommandExecutionResult {
         LogManager.aiPrompt("CommandExecutor executing ${commands.size} commands for $level (sessionId=$sessionId)", "DEBUG")
 
-        // Load historical schemas if sessionId provided (for deduplication)
-        val historicalSchemas = if (sessionId != null) {
-            loadHistoricalSchemas(sessionId)
-        } else {
-            emptySet()
-        }
-        LogManager.aiPrompt("Loaded ${historicalSchemas.size} historical schemas for deduplication", "DEBUG")
+        // The texts the model holds, by target: those of the session, then those of this batch
+        val sent = if (sessionId != null) loadSentReads(sessionId) else emptyMap()
+        val sentInBatch = mutableMapOf<String, String>()
 
-        // Track schemas executed in current batch (for intra-batch deduplication)
-        val currentBatchSchemas = mutableSetOf<String>()
-
-        // A query waits on the entries schema of the tool it reads, unless a SCHEMA command of
-        // the same batch asks for it. Those keys are only looked at here: the batch tracker
-        // fills as the SCHEMA commands run, so that they run rather than being taken as cached.
+        // A query waits on the entries schema of the tool it reads, as the model last received
+        // it, unless a SCHEMA command of the same batch asks for it
         if (sessionId != null) {
+            val askedInBatch = commands
+                .filter { it.resource == "schemas" && it.operation == "get" }
+                .mapNotNull { readTarget(it) }
+                .toSet()
             val queriedTools = commands
                 .filter { it.resource == "tool_data" && it.operation == "get" }
                 .mapNotNull { it.params["tool_instance_id"] as? String ?: it.params["id"] as? String }
-            val askedInBatch = commands
-                .filter { it.resource == "schemas" && it.operation == "get" }
-                .mapNotNull { requestedSchemaKey(it.params) }
-            val missingSchemas = missingEntrySchemas(queriedTools, historicalSchemas + askedInBatch)
+                .filter { SessionReads.entriesSchemaTarget(it) !in askedInBatch }
+            val missingSchemas = missingEntrySchemas(queriedTools, sent)
 
             if (missingSchemas.isNotEmpty()) {
                 LogManager.aiPrompt("Schema verification failed: ${missingSchemas.size} schemas missing", "WARN")
@@ -171,66 +143,37 @@ class CommandExecutor(private val context: Context) {
         for ((index, command) in commands.withIndex()) {
             LogManager.aiPrompt("Executing command ${index + 1}/${commands.size}: ${command.resource}.${command.operation}", "DEBUG")
 
-            // Check for schema deduplication BEFORE execution
-            if (command.resource == "schemas" && command.operation == "get" && sessionId != null) {
-                val deduplicationKey = requestedSchemaKey(command.params)
+            // A read sent once is run all the same: only its text tells whether it changed
+            val target = sessionId?.let { readTarget(command) }
+            var result = executeCommand(command, origin)
 
-                if (deduplicationKey != null) {
-
-                    // Check inter-message deduplication (historical)
-                    val isDuplicatedFromHistory = deduplicationKey in historicalSchemas
-
-                    // Check intra-message deduplication (current batch)
-                    val isDuplicatedInBatch = deduplicationKey in currentBatchSchemas
-
-                    if (isDuplicatedFromHistory || isDuplicatedInBatch) {
-                        // Schema already retrieved - create CACHED result
-                        LogManager.aiPrompt("Schema $deduplicationKey already included - creating CACHED result", "DEBUG")
-
-                        val cachedResult = InternalCommandResult(
-                            promptResult = PromptCommandResult("", ""),  // No prompt data for cached
-                            commandResult = app.treelune.core.ai.data.CommandResult(
-                                command = "${command.resource}.${command.operation}",
-                                status = CommandStatus.CACHED,
-                                details = s.shared("ai_schema_already_included").format(deduplicationKey),
-                                data = null,
-                                error = null,
-                                isActionCommand = false  // schemas.get is a query
-                            )
-                        )
-
-                        promptResults.add(cachedResult.promptResult)
-                        commandResults.add(cachedResult.commandResult)
+            val fingerprint = result?.commandResult?.takeIf { it.status == CommandStatus.SUCCESS }
+                ?.data?.get(SessionReads.FINGERPRINT) as? String
+            if (target != null && fingerprint != null) {
+                val outcome = SessionReads.outcome(sentInBatch[target] ?: sent[target], fingerprint)
+                LogManager.aiPrompt("Read $target: $outcome", "DEBUG")
+                sentInBatch[target] = fingerprint
+                when (outcome) {
+                    SessionReads.Outcome.SAME -> {
+                        promptResults.add(PromptCommandResult("", ""))
+                        commandResults.add(app.treelune.core.ai.data.CommandResult(
+                            command = "${command.resource}.${command.operation}",
+                            status = CommandStatus.CACHED,
+                            details = if (command.resource == "schemas") s.shared("ai_schema_already_included").format(target)
+                                else s.shared("ai_identity_already_read"),
+                            data = null,
+                            error = null,
+                            isActionCommand = false
+                        ))
                         successCount++
-                        LogManager.aiPrompt("Command ${index + 1} cached (schema $deduplicationKey)", "DEBUG")
-                        continue  // Skip execution, move to next command
-                    } else {
-                        // Not a duplicate - will execute normally, add to current batch tracker
-                        currentBatchSchemas.add(deduplicationKey)
+                        continue
                     }
-                }
-            }
-
-            // An identity or one of its resources is read once in a session, as a schema is
-            identityReadKey(command)?.takeIf { sessionId != null }?.let { key ->
-                if (key in historicalSchemas || key in currentBatchSchemas) {
-                    promptResults.add(PromptCommandResult("", ""))
-                    commandResults.add(app.treelune.core.ai.data.CommandResult(
-                        command = "${command.resource}.${command.operation}",
-                        status = CommandStatus.CACHED,
-                        details = s.shared("ai_identity_already_read"),
-                        data = null,
-                        error = null,
-                        isActionCommand = false
+                    SessionReads.Outcome.CHANGED -> result = result!!.copy(promptResult = result.promptResult.copy(
+                        formattedData = s.shared("ai_read_replaces") + "\n\n" + result.promptResult.formattedData
                     ))
-                    successCount++
-                    continue
+                    SessionReads.Outcome.NEW -> {}
                 }
-                currentBatchSchemas.add(key)
             }
-
-            // Execute command normally (not a duplicate or not a schema)
-            val result = executeCommand(command, origin)
 
             if (result != null) {
                 promptResults.add(result.promptResult)
@@ -365,13 +308,16 @@ class CommandExecutor(private val context: Context) {
                     // Store data appropriately based on command type:
                     // - Actions: filter to minimal data (ID, name)
                     // - Queries: filter to essential metadata (exclude large content fields like schema.content)
-                    //   Keeps only what's needed for deduplication (e.g., schema_id) to avoid DB bloat
+                    // - A read sent once: its target and its text's fingerprint besides, for the
+                    //   session to know what the model holds; an identity read nothing else
+                    val target = readTarget(command)
                     val storedData = if (command.isActionCommand) {
                         filterActionResultData(command.operation, data)
+                    } else if (target != null) {
+                        val kept = if (command.resource == "identities") emptyMap() else filterQueryResultData(command.resource, data) ?: emptyMap()
+                        kept + mapOf(SessionReads.TARGET to target, SessionReads.FINGERPRINT to SessionReads.fingerprint(formattedData))
                     } else {
-                        // An identity read keeps what tells it was read in the session
-                        identityReadKey(command)?.let { mapOf("read_key" to it) }
-                            ?: filterQueryResultData(command.resource, data)
+                        filterQueryResultData(command.resource, data)
                     }
 
                     LogManager.aiPrompt("Command succeeded", "DEBUG")
@@ -385,7 +331,7 @@ class CommandExecutor(private val context: Context) {
                     )
                     LogManager.aiPrompt("Created CommandResult: command=$commandString, isActionCommand=${cmdResult.isActionCommand}, data=${cmdResult.data}", "DEBUG")
                     return@withContext InternalCommandResult(
-                        promptResult = PromptCommandResult(dataTitle, formattedData, sizeExempt = identityReadKey(command) != null),
+                        promptResult = PromptCommandResult(dataTitle, formattedData, sizeExempt = command.resource == "identities" && target != null),
                         commandResult = cmdResult
                     )
                 } else {
@@ -779,7 +725,7 @@ class CommandExecutor(private val context: Context) {
 
         // A schema is read in its notation, not as the JSON the app validates against
         (data["content"] as? String)?.takeIf { command.resource == "schemas" }?.let { content ->
-            return "schema_id: ${data["schema_id"]}\n" + schemaForModel(content) + operationsForModel(data["tooltype"] as? String)
+            return schemaText(data["schema_id"], content, data["tooltype"] as? String)
         }
 
         // Extract metadata keys first based on command type
@@ -996,8 +942,14 @@ class CommandExecutor(private val context: Context) {
         val schemaId: String,
         val toolInstanceId: String,
         val schemaContent: String,  // Full JSON schema content
-        val tooltype: String?       // Whose operations come with the schema
+        val tooltype: String?,      // Whose operations come with the schema
+        val fingerprint: String,    // Of its text, as a SCHEMA command's result reads (schemaText)
+        val replacesEarlier: Boolean // The model received another version of it in the session
     )
+
+    /** A schema as the model reads it: its id, its notation, its tooltype's operations. */
+    private fun schemaText(schemaId: Any?, content: String, tooltype: String?): String =
+        "schema_id: $schemaId\n" + schemaForModel(content) + operationsForModel(tooltype)
 
     /**
      * The SCHEMA_REQUIRED message for the AI's writes: the entries schemas of the tools among
@@ -1008,7 +960,7 @@ class CommandExecutor(private val context: Context) {
      * schema tells it. The caller checks before the user is asked to validate the writes.
      */
     suspend fun schemaRequiredForWrites(toolInstanceIds: Collection<String>, sessionId: String): SystemMessage? {
-        val missingSchemas = missingEntrySchemas(toolInstanceIds, loadHistoricalSchemas(sessionId))
+        val missingSchemas = missingEntrySchemas(toolInstanceIds, loadSentReads(sessionId))
         if (missingSchemas.isEmpty()) return null
         LogManager.aiPrompt("Writes held back: ${missingSchemas.size} entries schemas missing", "WARN")
         return schemaRequiredMessage(missingSchemas, "ai_schema_required_for_writes_shown", "ai_schema_required_for_writes_summary")
@@ -1021,7 +973,7 @@ class CommandExecutor(private val context: Context) {
      * data, and the model's queries and writes on them find their schema in the session.
      */
     suspend fun schemasForAlwaysSent(toolInstanceIds: Collection<String>, sessionId: String): SystemMessage? {
-        val missingSchemas = missingEntrySchemas(toolInstanceIds, loadHistoricalSchemas(sessionId))
+        val missingSchemas = missingEntrySchemas(toolInstanceIds, loadSentReads(sessionId))
         if (missingSchemas.isEmpty()) return null
         LogManager.aiPrompt("Tools sent always: ${missingSchemas.size} entries schemas brought into the session", "INFO")
         return schemaRequiredMessage(missingSchemas, "ai_schema_always_send_shown", "ai_schema_always_send_summary")
@@ -1043,6 +995,7 @@ class CommandExecutor(private val context: Context) {
         for (schema in missingSchemas) {
             schemasText.appendLine("## Schema: ${schema.schemaId}")
             schemasText.appendLine("Tool Instance: ${schema.toolInstanceId}")
+            if (schema.replacesEarlier) schemasText.appendLine(s.shared("ai_read_replaces"))
             schemasText.appendLine()
             schemasText.appendLine(schemaForModel(schema.schemaContent) + operationsForModel(schema.tooltype))
             schemasText.appendLine()
@@ -1059,7 +1012,9 @@ class CommandExecutor(private val context: Context) {
                 details = schemaService.verbalize("get", params, context),
                 data = mapOf(
                     "schema_id" to schema.schemaId,
-                    "tool_instance_id" to schema.toolInstanceId
+                    "tool_instance_id" to schema.toolInstanceId,
+                    SessionReads.TARGET to SessionReads.entriesSchemaTarget(schema.toolInstanceId),
+                    SessionReads.FINGERPRINT to schema.fingerprint
                 ),
                 error = null,
                 isActionCommand = false
@@ -1075,8 +1030,9 @@ class CommandExecutor(private val context: Context) {
     }
 
     /**
-     * The entries schemas of the tools among [toolInstanceIds] whose key ("entries:<id>") is not
-     * in [knownSchemas], fetched: the schemas a command on those tools waits on.
+     * The entries schemas of the tools among [toolInstanceIds] the model does not hold as they
+     * are now: never received in the session, or received in another version ([sent], the
+     * fingerprints it last received by target). Each is read, for its text to be compared.
      *
      * @throws UnreadableSchema when one of them cannot be read: the commands waiting on it go no
      *   further, and the reason reaches the model (a command error for writes, which it answers
@@ -1084,27 +1040,32 @@ class CommandExecutor(private val context: Context) {
      */
     private suspend fun missingEntrySchemas(
         toolInstanceIds: Collection<String>,
-        knownSchemas: Set<String>
+        sent: Map<String, String>
     ): List<MissingSchemaInfo> {
         val missingSchemas = mutableListOf<MissingSchemaInfo>()
 
         for (toolInstanceId in toolInstanceIds.distinct()) {
             // The entries schema of this tool, its user's fields included
-            val deduplicationKey = "entries:$toolInstanceId"
-            val isAvailable = deduplicationKey in knownSchemas
-            LogManager.aiPrompt("Schema availability for $deduplicationKey: $isAvailable", "DEBUG")
-            if (isAvailable) continue
-
+            val target = SessionReads.entriesSchemaTarget(toolInstanceId)
             val schemaResult = coordinator.processUserAction("schemas.get", mapOf("tool_instance_id" to toolInstanceId))
             val schemaContent = (schemaResult.data?.get("content") as? String)?.takeIf { it.isNotEmpty() }
             if (!schemaResult.isSuccess || schemaContent == null) {
                 throw UnreadableSchema(toolInstanceId, schemaResult.error ?: "no content")
             }
+            val schemaId = schemaResult.data?.get("schema_id") as? String ?: target
+            val tooltype = schemaResult.data?.get("tooltype") as? String
+            val fingerprint = SessionReads.fingerprint(schemaText(schemaId, schemaContent, tooltype))
+            val outcome = SessionReads.outcome(sent[target], fingerprint)
+            LogManager.aiPrompt("Schema $target held by the model: $outcome", "DEBUG")
+            if (outcome == SessionReads.Outcome.SAME) continue
+
             missingSchemas.add(MissingSchemaInfo(
-                schemaId = schemaResult.data?.get("schema_id") as? String ?: deduplicationKey,
+                schemaId = schemaId,
                 toolInstanceId = toolInstanceId,
                 schemaContent = schemaContent,
-                tooltype = schemaResult.data?.get("tooltype") as? String
+                tooltype = tooltype,
+                fingerprint = fingerprint,
+                replacesEarlier = outcome == SessionReads.Outcome.CHANGED
             ))
         }
 
@@ -1115,75 +1076,17 @@ class CommandExecutor(private val context: Context) {
     class UnreadableSchema(val toolInstanceId: String, val reason: String) :
         IllegalStateException("Cannot read the entries schema of tool $toolInstanceId: $reason")
 
-    /**
-     * Load historical schema deduplication keys from previous messages in the session
-     * Returns Set of deduplication keys that have been successfully retrieved before
-     *
-     * For config schemas: returns schema_id only
-     * For data/execution schemas: returns "schema_id:toolInstanceId" (composite key)
-     *
-     * Scans all SystemMessages with type DATA_ADDED and extracts schema_id + toolInstanceId from
-     * CommandResults where command == "schemas.get" and status == SUCCESS
-     */
-    private suspend fun loadHistoricalSchemas(sessionId: String): Set<String> {
+    /** The fingerprints the model last received in [sessionId], by target (SessionReads.sent). */
+    private suspend fun loadSentReads(sessionId: String): Map<String, String> {
         return try {
             // Create repository locally to access message history
             val appDatabase = app.treelune.core.database.AppDatabase.getDatabase(context)
-            val aiDao = appDatabase.aiDao()
-            val messageRepository = app.treelune.core.ai.state.AIMessageRepository(aiDao)
-
-            val messages = messageRepository.loadMessages(sessionId)
-            val schemaKeys = mutableSetOf<String>()
-
-            LogManager.aiPrompt("loadHistoricalSchemas: Found ${messages.size} messages in session", "DEBUG")
-
-            for ((index, message) in messages.withIndex()) {
-                LogManager.aiPrompt("Message $index: sender=${message.sender}, hasSystemMessage=${message.systemMessage != null}", "VERBOSE")
-
-                // Check SystemMessages with DATA_ADDED or SCHEMA_REQUIRED type
-                val systemMessage = message.systemMessage
-                val relevantTypes = listOf(
-                    app.treelune.core.ai.data.SystemMessageType.DATA_ADDED,
-                    app.treelune.core.ai.data.SystemMessageType.SCHEMA_REQUIRED
-                )
-                if (systemMessage != null && systemMessage.type in relevantTypes) {
-                    LogManager.aiPrompt("Found ${systemMessage.type} message with ${systemMessage.commandResults.size} results", "VERBOSE")
-
-                    // Check all command results in this system message
-                    for ((cmdIndex, commandResult) in systemMessage.commandResults.withIndex()) {
-                        LogManager.aiPrompt("  Result $cmdIndex: command=${commandResult.command}, status=${commandResult.status}, hasData=${commandResult.data != null}", "VERBOSE")
-
-                        // An identity read: its key, read once in the session
-                        if (commandResult.command in setOf("identities.read", "identities.read_resource") &&
-                            commandResult.status == app.treelune.core.ai.data.CommandStatus.SUCCESS) {
-                            (commandResult.data?.get("read_key") as? String)?.let { schemaKeys.add(it) }
-                        }
-
-                        // Look for successful schema.get commands
-                        if (commandResult.command == "schemas.get" &&
-                            commandResult.status == app.treelune.core.ai.data.CommandStatus.SUCCESS) {
-                            // Extract schema_id and toolInstanceId from result data
-                            val schemaId = commandResult.data?.get("schema_id") as? String
-                            val toolInstanceId = commandResult.data?.get("tool_instance_id") as? String
-                            LogManager.aiPrompt("    schema.get found, schema_id=$schemaId, toolInstanceId=$toolInstanceId, data keys=${commandResult.data?.keys}", "DEBUG")
-
-                            val deduplicationKey = schemaKey(schemaId, toolInstanceId)
-                            if (deduplicationKey != null) {
-                                schemaKeys.add(deduplicationKey)
-                                LogManager.aiPrompt("Found historical schema: $deduplicationKey", "VERBOSE")
-                            } else {
-                                LogManager.aiPrompt("schema.get returned no schema_id, data keys=${commandResult.data?.keys}", "WARN")
-                            }
-                        }
-                    }
-                }
-            }
-
-            LogManager.aiPrompt("Loaded ${schemaKeys.size} historical schema keys from session $sessionId", "DEBUG")
-            schemaKeys
+            val messageRepository = app.treelune.core.ai.state.AIMessageRepository(appDatabase.aiDao())
+            SessionReads.sent(messageRepository.loadMessages(sessionId))
+                .also { LogManager.aiPrompt("Loaded ${it.size} reads sent in session $sessionId", "DEBUG") }
         } catch (e: Exception) {
-            LogManager.aiPrompt("Failed to load historical schemas: ${e.message}", "WARN", e)
-            emptySet()
+            LogManager.aiPrompt("Failed to load the reads sent in session $sessionId: ${e.message}", "WARN", e)
+            emptyMap()
         }
     }
 }
