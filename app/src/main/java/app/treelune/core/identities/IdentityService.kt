@@ -27,11 +27,11 @@ import java.util.UUID
  *   it does not hold yet is given an empty section), and in `section` (its language when not
  *   given) any of `voice`, `mind`, `portrait` (a text; empty removes it) and `resources` (by key,
  *   `{title, description, content}` to write one whole, null to remove it). A text written here
- *   loses its personae address: a reimport names it among the retouches it loses.
+ *   is no longer as its file gave it: a reimport names it among the retouches it loses.
  * - delete: `identity_id`; refused while a zone or a routine names it (InUse)
- * - import_preview: `text`, a personae export; what it holds, and what replacing the identity of
- *   its id would lose
- * - import: `text`, `language` (one of the export's); replaces the identity of its id whole, its
+ * - import_preview: `text`, an identity file (docs/IDENTITY_FILE.md); what it holds, and what
+ *   replacing the identity of its id would lose
+ * - import: `text`, `language` (one of the file's); replaces the identity of its id whole, its
  *   icon kept, or creates it
  */
 class IdentityService(private val context: Context) : ExecutableService {
@@ -86,7 +86,8 @@ class IdentityService(private val context: Context) : ExecutableService {
         IconColor.KEY to identity.iconColor,
         "language" to identity.language,
         "languages" to identity.languages.keys.toList(),
-        "published_at" to identity.publishedAt
+        "published_at" to identity.publishedAt,
+        "imported_at" to identity.importedAt
     )
 
     private suspend fun get(params: JSONObject): OperationResult {
@@ -94,10 +95,10 @@ class IdentityService(private val context: Context) : ExecutableService {
         return OperationResult.success(mapOf("identity" to (summary(identity) + mapOf(
             "sections" to identity.languages.mapValues { (_, section) ->
                 mapOf(
-                    "pieces" to section.pieces().mapValues { (_, piece) -> mapOf("content" to piece.content, "address" to piece.address).present() },
+                    "pieces" to section.pieces().mapValues { (_, piece) -> mapOf("content" to piece.content, "imported" to piece.imported) },
                     "resources" to section.resources.map { (key, resource) -> mapOf(
                         "key" to key, "title" to resource.title, "description" to resource.description,
-                        "content" to resource.content, "address" to resource.address).present() }
+                        "content" to resource.content, "imported" to resource.imported) }
                 )
             },
             "retouched" to identity.retouched(),
@@ -146,6 +147,7 @@ class IdentityService(private val context: Context) : ExecutableService {
             language = language,
             languages = mapOf(language to IdentityLanguage()),
             publishedAt = null,
+            importedAt = null,
             createdAt = now, updatedAt = now
         )
         dao.upsert(IdentityEntity.of(identity))
@@ -172,7 +174,7 @@ class IdentityService(private val context: Context) : ExecutableService {
             params.optJSONObject("resources")?.let { given ->
                 val resources = section.resources.toMutableMap()
                 given.keys().forEach { key ->
-                    if (key.isBlank() || key.length > MAX_KEY) throw Refused(s.shared("identity_error_resource_key").format(key, MAX_KEY))
+                    if (key.isBlank() || key.length > Identity.MAX_KEY) throw Refused(s.shared("identity_error_resource_key").format(key, Identity.MAX_KEY))
                     if (given.isNull(key)) {
                         resources.remove(key) ?: throw Refused(s.shared("identity_error_resource").format(key, existing.name, code, section.resources.keys.joinToString(", ").ifEmpty { "-" }))
                     } else {
@@ -208,18 +210,18 @@ class IdentityService(private val context: Context) : ExecutableService {
         return OperationResult.success(mapOf("identity_id" to identity.id, "name" to identity.name))
     }
 
-    /** The export in [params]' `text`, read or refused with its reason. */
-    private fun export(params: JSONObject): PersonaeExport.Read {
+    /** The identity file in [params]' `text`, read or refused with its reason. */
+    private fun file(params: JSONObject): IdentityFile.Read {
         val text = params.optString("text").takeIf { it.isNotEmpty() } ?: throw Refused(s.shared("identity_error_param").format("text"))
         return try {
-            PersonaeExport.read(text)
-        } catch (e: PersonaeExport.Refused) {
+            IdentityFile.read(text)
+        } catch (e: IdentityFile.Refused) {
             throw Refused(s.shared(e.key).format(*e.args))
         }
     }
 
     private suspend fun importPreview(params: JSONObject): OperationResult {
-        val read = export(params)
+        val read = file(params)
         val existing = dao.getById(read.id)?.toIdentity()
         return OperationResult.success(mapOf<String, Any?>(
             "id" to read.id,
@@ -229,9 +231,10 @@ class IdentityService(private val context: Context) : ExecutableService {
             "existing" to existing?.let { mapOf(
                 "name" to it.name,
                 "published_at" to it.publishedAt,
+                "imported_at" to it.importedAt,
                 "language" to it.language,
-                // An export older than the one in place is said, not refused: it is the way back
-                "older" to (it.publishedAt != null && read.publishedAt < it.publishedAt),
+                // A file older than the one in place is said, not refused: it is the way back
+                "older" to (it.publishedAt != null && read.publishedAt != null && read.publishedAt < it.publishedAt),
                 "languages_gained" to (read.languages.keys - it.languages.keys).toList(),
                 "languages_lost" to (it.languages.keys - read.languages.keys).toList(),
                 "retouched" to it.retouched()
@@ -240,7 +243,7 @@ class IdentityService(private val context: Context) : ExecutableService {
     }
 
     private suspend fun import(params: JSONObject): OperationResult {
-        val read = export(params)
+        val read = file(params)
         val language = params.optString("language").takeIf { it.isNotEmpty() } ?: throw Refused(s.shared("identity_error_param").format("language"))
         if (language !in read.languages) throw Refused(s.shared("identity_error_language").format(language, read.name, read.languages.keys.joinToString(", ")))
         val existing = dao.getById(read.id)?.toIdentity()
@@ -253,6 +256,7 @@ class IdentityService(private val context: Context) : ExecutableService {
             language = language,
             languages = read.languages,
             publishedAt = read.publishedAt,
+            importedAt = now,
             createdAt = existing?.createdAt ?: now,
             updatedAt = now
         )
@@ -263,13 +267,13 @@ class IdentityService(private val context: Context) : ExecutableService {
 
     private fun name(params: JSONObject): String? =
         params.optString("name").trim().takeIf { it.isNotEmpty() }?.also {
-            if (it.length > MAX_NAME) throw Refused(s.shared("identity_error_name_length").format(MAX_NAME))
+            if (it.length > Identity.MAX_NAME) throw Refused(s.shared("identity_error_name_length").format(Identity.MAX_NAME))
         }
 
     /** A language code (`fr`, `en`, `pt-BR`), or null when none is given. */
     private fun language(given: String): String? {
         if (given.isEmpty()) return null
-        if (!LANGUAGE.matches(given)) throw Refused(s.shared("identity_error_language_code").format(given))
+        if (!Identity.LANGUAGE.matches(given)) throw Refused(s.shared("identity_error_language_code").format(given))
         return given
     }
 
@@ -299,9 +303,4 @@ class IdentityService(private val context: Context) : ExecutableService {
         }
     }
 
-    companion object {
-        const val MAX_NAME = 100
-        const val MAX_KEY = 120
-        private val LANGUAGE = Regex("[a-z]{2,3}(-[A-Z]{2})?")
-    }
 }

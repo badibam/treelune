@@ -21,7 +21,7 @@ class IdentityPromptTest {
     }
 
     private fun identity(fr: IdentityLanguage) = Identity("jung", "Jung", Identity.DEFAULT_ICON, null, "fr",
-        mapOf("fr" to fr, "en" to IdentityLanguage(IdentityPiece("english voice"))), "2026-10-16", 0, 0)
+        mapOf("fr" to fr, "en" to IdentityLanguage(IdentityPiece("english voice"))), "2026-10-16", 0, 0, 0)
 
     @Test
     fun `the block holds the spoken language's texts and lists the bagage without its content`() {

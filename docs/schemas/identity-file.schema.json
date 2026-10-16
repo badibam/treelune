@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/badibam/treelune/main/docs/schemas/identity-file.schema.json",
+  "title": "Treelune identity file, format 2",
+  "description": "One identity Treelune's AI can speak as, in one or several languages (docs/IDENTITY_FILE.md).",
+  "type": "object",
+  "required": ["format", "id", "name", "languages"],
+  "properties": {
+    "format": { "const": 2 },
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+    "name": { "type": "string", "minLength": 1, "maxLength": 100, "pattern": "\\S" },
+    "published_at": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+    "languages": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "pattern": "^[a-z]{2,3}(-[A-Z]{2})?$" },
+      "additionalProperties": { "$ref": "#/definitions/language" }
+    }
+  },
+  "definitions": {
+    "text": { "type": "string", "minLength": 1, "pattern": "\\S" },
+    "piece": {
+      "type": "object",
+      "required": ["content"],
+      "properties": { "content": { "$ref": "#/definitions/text" } }
+    },
+    "language": {
+      "type": "object",
+      "anyOf": [
+        { "required": ["voice"] },
+        { "required": ["mind"] },
+        { "required": ["portrait"] }
+      ],
+      "properties": {
+        "voice": { "$ref": "#/definitions/piece" },
+        "mind": { "$ref": "#/definitions/piece" },
+        "portrait": { "$ref": "#/definitions/piece" },
+        "resources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["key", "title", "description", "content"],
+            "properties": {
+              "key": { "type": "string", "minLength": 1, "maxLength": 120, "pattern": "\\S" },
+              "title": { "$ref": "#/definitions/text" },
+              "description": { "$ref": "#/definitions/text" },
+              "content": { "$ref": "#/definitions/text" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

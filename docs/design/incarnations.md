@@ -1,28 +1,21 @@
 # Les incarnations — conception
 
-Conçu le 2026-09-27, repassé le 2026-10-16 contre le format d'export de personae, figé depuis. Une incarnation, c'est l'IA de l'app qui parle en tant que quelqu'un : Jung pour l'analyse des rêves, par exemple. Une identité dit **qui** parle ; l'app décide **où** et **comment**.
+Conçu le 2026-09-27 ; le fichier d'identité devenu un format public le 2026-10-17. Une incarnation, c'est l'IA de l'app qui parle en tant que quelqu'un : Jung pour l'analyse des rêves, par exemple. Une identité dit **qui** parle ; l'app décide **où** et **comment**.
 
 ## Le format lu
 
-Le projet personae (`/mnt/data/OUTILS/personae/docs/reference.md`, « Fichiers ») publie un fichier JSON par identité, `exports/<id>.json` :
-
-- `format`, un entier, 1 au 2026-10-16 : il monte à chaque changement de structure qu'un lecteur doit connaître, et ne bouge pas pour un champ ou un morceau facultatif ajouté ;
-- `id` (stable, jamais changé après la première publication), `nom`, `distribuable`, `publie_le` (une date au jour, `2026-10-16`), et `langues.<langue>`, une section par langue, qui se suffit ;
-- dans une section : `voix`, `esprit`, `portrait`, chacun `{adresse, contenu}` ; `bagage`, indexé par une clé (`1/lexique@Stan Prokopenko`), chaque ressource `{adresse, titre, description, contenu}` ;
-- une ressource absente dans une langue est omise de cette langue : le bagage peut différer d'une langue à l'autre.
+Le fichier d'identité est un format public de l'app, décrit dans `docs/IDENTITY_FILE.md` avec son schéma JSON (`docs/schemas/identity-file.schema.json`), au `format` 2 depuis le 2026-10-17 : n'importe quel producteur l'écrit, et l'app n'en connaît aucun. personae en est un : son export au `format` 1 (clés françaises, une adresse par morceau, `distribuable`) n'est plus lu, et il doit passer au 2 pour s'importer.
 
 Le texte est du Markdown : la voix française de Stan Prokopenko a des titres `#` et `##`, du gras, de l'italique, des listes.
 
-Le premier export, `stan-prokopenko`, est publié le 2026-10-16 (`format` 1, `en` et `fr`, les quatre ressources du bagage dans les deux). Tailles mesurées le même jour (`./run status` de personae) : voix, esprit et portrait font ~30 000 caractères en `en`, ~32 000 en `fr` ; une ressource du bagage, de 12 209 à 21 671.
-
-`distribuable` ne change rien ici : personae ne demande de refuser une identité non marquée qu'au projet qui la distribue, et l'app n'en livre aucune — c'est l'utilisateur qui l'apporte.
+Tailles du premier export de personae, `stan-prokopenko` (2026-10-16, `en` et `fr`, quatre ressources dans les deux), mesurées le même jour : voix, esprit et portrait font ~30 000 caractères en `en`, ~32 000 en `fr` ; une ressource, de 12 209 à 21 671.
 
 ## L'identité, un objet de l'app
 
-- Une identité est un objet de l'app, que l'import remplit : un `id`, un nom, une icône et sa couleur, une langue, et pour chaque langue la voix, l'esprit, le portrait et le bagage. L'app garde l'export entier, toutes ses langues.
-- **Tout s'édite à la main**, dans l'écran de l'identité, et une identité peut naître sans export. Un import garde l'`id` de personae ; une identité écrite à la main reçoit le sien.
+- Une identité est un objet de l'app, que l'import remplit : un `id`, un nom, une icône et sa couleur, une langue, et pour chaque langue la voix, l'esprit, le portrait et le bagage. L'app garde le fichier entier, toutes ses langues.
+- **Tout s'édite à la main**, dans l'écran de l'identité, et une identité peut naître sans fichier. Un import garde l'`id` du fichier ; une identité écrite à la main reçoit le sien.
 - Une identité écrite à la main demande un nom et une langue ; voix, esprit et portrait sont facultatifs, et un morceau vide ne part pas dans le prompt.
-- Chaque morceau importé garde son adresse personae comme origine, montrée sur l'écran de l'identité ; une retouche l'efface.
+- Chaque morceau importé est marqué comme tel (`imported`), et l'écran dit « importé » ; une retouche efface la marque. L'identité garde le moment de son dernier import (`imported_at`), d'où les retouches se comptent.
 - **Édition en texte brut seul, lecture mise en forme.** Le lecteur du Guide (`GuideMarkup`) lit aussi les titres `#` à `###` et les listes `* `, et devient le seul lecteur de l'app (Guide, usage d'un outil, identités). Le gras et l'italique sont lus et leurs marques retirées : les thèmes ne dessinent qu'un texte simple (`ThemeContract.Text`), les dessiner demande de l'étendre dans les trois thèmes.
 - **L'icône** se prend dans le vocabulaire Lucide, avec une couleur (`icon_color`), comme une zone ou un outil ; par défaut, `user-round`.
 - L'écran de l'identité montre la taille de chaque ressource du bagage.
@@ -30,13 +23,13 @@ Le premier export, `stan-prokopenko`, est publié le 2026-10-16 (`format` 1, `en
 ## L'import
 
 - Dans les réglages de l'app, et nulle part ailleurs.
-- Un fichier retrouve l'identité déjà là par son `id`. Avant de remplacer, l'app montre les deux `publie_le`, les langues gagnées ou perdues, et nomme les morceaux retouchés à la main qui seront perdus ; l'utilisateur confirme. Un fichier plus ancien est signalé, pas refusé : c'est le retour en arrière.
+- Un fichier retrouve l'identité déjà là par son `id`. Avant de remplacer, l'app montre les deux `published_at` quand les fichiers les donnent, les langues gagnées ou perdues, et nomme les morceaux retouchés à la main qui seront perdus ; l'utilisateur confirme. Un fichier plus ancien est signalé, pas refusé : c'est le retour en arrière.
 - **Une réimportation remplace tout**, sans fusion morceau par morceau.
-- Un `format` que l'app ne connaît pas est refusé, en le disant. Au `format` connu, un champ attendu absent ou d'un autre type est refusé, le champ en cause nommé ; un champ en plus est ignoré, puisque personae en ajoute sans monter `format`. Jamais d'import partiel.
+- Un `format` que l'app ne connaît pas est refusé, en le disant. Au `format` connu, un champ attendu absent ou d'un autre type est refusé, le champ en cause nommé ; un champ en plus est ignoré, un producteur pouvant en ajouter sans monter `format`. Jamais d'import partiel.
 
 ## La langue
 
-- Un réglage par identité, parmi les langues de l'export : choisi à l'import, la langue de l'app présélectionnée si l'export l'a, l'utilisateur confirmant. Un export d'une seule langue la donne, et l'écran le dit.
+- Un réglage par identité, parmi les langues du fichier : choisi à l'import, la langue de l'app présélectionnée si le fichier l'a, l'utilisateur confirmant. Un fichier d'une seule langue la donne, et l'écran le dit.
 - Une réimportation qui perd la langue choisie le dit dans sa confirmation et en fait choisir une autre ; jamais de changement en silence.
 - Le bagage de la session est celui de la langue choisie : une ressource absente dans cette langue n'existe pas pour elle.
 

@@ -1463,7 +1463,7 @@ Reads one resource of an identity's bagage, whole. Read once in a session: ask f
 - `language` (string, optional): the one it speaks when left out]]></string>
     <string name="ai_command_create_identity"><![CDATA[### CREATE_IDENTITY
 
-Creates an identity, empty: its texts are written with UPDATE_IDENTITY. An identity from personae is imported by the user, not created.
+Creates an identity, empty: its texts are written with UPDATE_IDENTITY. An identity from an identity file is imported by the user, not created.
 
 **Parameters**:
 

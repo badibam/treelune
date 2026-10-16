@@ -12,8 +12,8 @@ import org.json.JSONObject
 /**
  * An identity as stored (Identity): its texts, every language's, in one JSON column.
  *
- * @property languagesJson `{"<language>": {"voice"?, "mind"?, "portrait"?: {"content", "address"},
- *   "resources": [{"key", "title", "description", "content", "address"}]}}`
+ * @property languagesJson `{"<language>": {"voice"?, "mind"?, "portrait"?: {"content", "imported"},
+ *   "resources": [{"key", "title", "description", "content", "imported"}]}}`
  */
 @Entity(tableName = "identities")
 data class IdentityEntity(
@@ -24,16 +24,17 @@ data class IdentityEntity(
     val language: String,
     @ColumnInfo(name = "languages_json") val languagesJson: String,
     @ColumnInfo(name = "published_at") val publishedAt: String?,
+    @ColumnInfo(name = "imported_at") val importedAt: Long?,
     @ColumnInfo(name = "created_at") val createdAt: Long,
     @ColumnInfo(name = "updated_at") val updatedAt: Long
 ) {
     fun toIdentity() = Identity(id, name, iconName, iconColor, language,
-        Identity.languagesFromJson(JSONObject(languagesJson)), publishedAt, createdAt, updatedAt)
+        Identity.languagesFromJson(JSONObject(languagesJson)), publishedAt, importedAt, createdAt, updatedAt)
 
     companion object {
         fun of(identity: Identity) = IdentityEntity(identity.id, identity.name, identity.iconName, identity.iconColor,
             identity.language, Identity.languagesToJson(identity.languages).toString(), identity.publishedAt,
-            identity.createdAt, identity.updatedAt)
+            identity.importedAt, identity.createdAt, identity.updatedAt)
     }
 }
 

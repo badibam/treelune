@@ -42,7 +42,7 @@ import kotlinx.coroutines.launch
 
 /**
  * Settings › Identities (docs/design/incarnations.md): the identities the app's AI may speak as,
- * each opened on its own screen; a personae export imported after a preview of what it replaces;
+ * each opened on its own screen; an identity file imported after a preview of what it replaces;
  * a new identity written in the app from a name and a language.
  */
 @Composable
@@ -175,10 +175,16 @@ private fun ImportDialog(preview: Map<*, *>, onDismiss: () -> Unit, onConfirm: (
     UI.Dialog(type = DialogType.CONFIRM, confirmEnabled = language != null, onConfirm = { language?.let(onConfirm) }, onCancel = onDismiss) {
         Column(verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
             UI.Text(s.shared("identity_import_title").format(preview["name"] as String), TextType.TITLE)
-            UI.Text(s.shared("identity_import_published").format(preview["published_at"] as String, languages.joinToString(", ")), TextType.BODY)
+            val published = preview["published_at"] as? String
+            UI.Text(if (published != null) s.shared("identity_import_published").format(published, languages.joinToString(", "))
+                else s.shared("identity_import_languages").format(languages.joinToString(", ")), TextType.BODY)
             if (existing != null) {
-                val published = existing["published_at"] as? String
-                UI.Text(if (published != null) s.shared("identity_import_replaces").format(published) else s.shared("identity_import_replaces_written"), TextType.BODY)
+                val publishedBefore = existing["published_at"] as? String
+                UI.Text(when {
+                    publishedBefore != null -> s.shared("identity_import_replaces").format(publishedBefore)
+                    existing["imported_at"] != null -> s.shared("identity_import_replaces_imported")
+                    else -> s.shared("identity_import_replaces_written")
+                }, TextType.BODY)
                 if (existing["older"] == true) UI.Text(s.shared("identity_import_older"), TextType.WARNING)
                 (existing["languages_gained"] as? List<*>)?.takeIf { it.isNotEmpty() }?.let { UI.Text(s.shared("identity_import_gained").format(it.joinToString(", ")), TextType.BODY) }
                 (existing["languages_lost"] as? List<*>)?.takeIf { it.isNotEmpty() }?.let { UI.Text(s.shared("identity_import_lost").format(it.joinToString(", ")), TextType.WARNING) }
@@ -295,7 +301,7 @@ private fun IdentityScreen(id: String, onBack: () -> Unit) {
                     if (piece == null) UI.Text(s.shared("identity_piece_empty"), TextType.CAPTION)
                     else {
                         val content = piece["content"] as String
-                        UI.Text(origin(s, content.length, piece["address"] as? String), TextType.CAPTION)
+                        UI.Text(origin(s, content.length, piece["imported"] == true), TextType.CAPTION)
                         GuideText(content)
                     }
                     UI.FormActions { UI.ActionButton(action = ButtonAction.EDIT, onClick = { editingPiece = key }) }
@@ -329,10 +335,9 @@ private fun IdentityScreen(id: String, onBack: () -> Unit) {
     }
 }
 
-/** A text's size and where it comes from: personae's address, or the app. */
-private fun origin(s: app.treelune.core.strings.StringsContext, chars: Int, address: String?): String =
-    s.shared("identity_size").format(chars) + " · " +
-        (address?.let { s.shared("identity_origin_personae").format(it) } ?: s.shared("identity_origin_app"))
+/** A text's size and where it comes from: as an identity file gave it, or written in the app. */
+private fun origin(s: app.treelune.core.strings.StringsContext, chars: Int, imported: Boolean): String =
+    s.shared("identity_size").format(chars) + " · " + s.shared(if (imported) "identity_origin_imported" else "identity_origin_app")
 
 /** A resource: its title, size, origin and description; its content shown on demand, laid out. */
 @Composable
@@ -344,7 +349,7 @@ private fun ResourceCard(resource: Map<*, *>, onEdit: () -> Unit, onDelete: () -
     UI.Card(type = CardType.DEFAULT) {
         Column(modifier = Modifier.fillMaxWidth().padding(UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
             UI.Text(resource["title"] as String, TextType.SUBTITLE)
-            UI.Text(origin(s, content.length, resource["address"] as? String), TextType.CAPTION)
+            UI.Text(origin(s, content.length, resource["imported"] == true), TextType.CAPTION)
             UI.Text(resource["description"] as String, TextType.BODY, selectable = true)
             if (open) GuideText(content)
             UI.FormActions {

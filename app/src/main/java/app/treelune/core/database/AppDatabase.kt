@@ -105,7 +105,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 77
+        const val VERSION = 78
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -1782,6 +1782,30 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * The identity file a public format (docs/IDENTITY_FILE.md): each identity remembers when
+         * it was imported, and each of its texts whether it is as its file gave it, rather than
+         * the address its producer gave (IdentitiesAtV78).
+         */
+        private val MIGRATION_77_78 = object : Migration(77, 78) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE identities ADD COLUMN imported_at INTEGER")
+                val cursor = database.query("SELECT id, languages_json, published_at, updated_at FROM identities")
+                var count = 0
+                cursor.use {
+                    while (it.moveToNext()) {
+                        val publishedAt = if (it.isNull(2)) null else it.getString(2)
+                        database.execSQL("UPDATE identities SET languages_json = ?, imported_at = ? WHERE id = ?", arrayOf<Any?>(
+                            app.treelune.core.versioning.IdentitiesAtV78.languages(it.getString(1)),
+                            app.treelune.core.versioning.IdentitiesAtV78.importedAt(publishedAt, it.getLong(3)),
+                            it.getString(0)))
+                        count++
+                    }
+                }
+                LogManager.database("MIGRATION 77->78: $count identities given their import's mark, the addresses dropped", "INFO")
+            }
+        }
+
         /** A conversation's own reasoning (SessionReasoning): two columns, empty, every session following its provider as before. */
         private val MIGRATION_73_74 = object : Migration(73, 74) {
             override fun migrate(database: SupportSQLiteDatabase) {
@@ -2784,7 +2808,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_73_74,
                     MIGRATION_74_75,
                     MIGRATION_75_76,
-                    MIGRATION_76_77
+                    MIGRATION_76_77,
+                    MIGRATION_77_78
                     // Add future migrations here (minimum supported version: 9)
                 )
                 .addCallback(object : RoomDatabase.Callback() {

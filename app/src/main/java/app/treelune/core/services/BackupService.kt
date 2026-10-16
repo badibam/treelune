@@ -414,6 +414,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("language", identity.language)
                                 put("languages_json", identity.languagesJson)
                                 put("published_at", identity.publishedAt ?: JSONObject.NULL)
+                                put("imported_at", identity.importedAt ?: JSONObject.NULL)
                                 put("created_at", identity.createdAt)
                                 put("updated_at", identity.updatedAt)
                             })
@@ -890,6 +891,7 @@ class BackupService(private val context: Context) : ExecutableService {
                         language = item.getString("language"),
                         languagesJson = item.getString("languages_json"),
                         publishedAt = item.nullableString("published_at"),
+                        importedAt = if (item.isNull("imported_at")) null else item.getLong("imported_at"),
                         createdAt = item.getLong("created_at"),
                         updatedAt = item.getLong("updated_at")
                     )
@@ -1094,6 +1096,9 @@ class BackupService(private val context: Context) : ExecutableService {
             }
             if (fromVersion < 73 && toVersion >= 73) {
                 app.treelune.core.versioning.CounterAtV73.backup(data)
+            }
+            if (fromVersion < 78 && toVersion >= 78) {
+                app.treelune.core.versioning.IdentitiesAtV78.backup(data)
             }
 
             // Transform app settings
