@@ -1,5 +1,5 @@
 {
-  "_about": "The cosy theme's interface sounds, one per UISignal, from Kenney's Interface Sounds, chosen by ear on a listening board of every Kenney sound (docs/design/cosy-theme.md), converted to FLAC 13 dB under the originals; their source and licence, checked when added.",
+  "_about": "The cosy theme's interface sounds, one per UISignal chosen, made by scripts/theme_sounds.py from sounds-choice.json beside this file (docs/THEMES.md); their source and licence.",
   "sounds": {
     "res/raw/cosy_confirm.flac": {
       "title": "Interface Sounds · drop_004",
