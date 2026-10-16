@@ -151,6 +151,21 @@ object CoreScheduler {
     }
 
     /**
+     * Runs the scheduler of the tool type [tooltype] now, as the scheduler, rather than at the
+     * next tick, then sets the alarm again: what a screen just wrote is acted on at once (a new
+     * series of a calendar given its occurrences). Nothing for a tool type without a scheduler.
+     */
+    suspend fun runTool(tooltype: String) = kotlinx.coroutines.withContext(app.treelune.core.coordinator.Origin(app.treelune.core.coordinator.Source.SCHEDULER)) {
+        val scheduler = ToolTypeManager.getToolType(tooltype)?.getScheduler() ?: return@withContext
+        try {
+            scheduler.checkScheduled(context)
+        } catch (e: Exception) {
+            LogManager.service("CoreScheduler: scheduler of tool type '$tooltype' run at once failed: ${e.message}", "ERROR", e)
+        }
+        armForNextAction()
+    }
+
+    /**
      * Sets the alarm for the soonest of the tool schedulers' next actions (ToolScheduler.nextAction),
      * within its usual interval. A scheduler that fails to say is logged and left out.
      */
