@@ -59,7 +59,7 @@ Une spec existe dans `docs/design/`.
 - Les conditions typées à l'écriture (`docs/design/typed-conditions.md`) : le type de chaque côté d'une condition connu sans lire de données, les constantes de l'IA traduites à l'entrée, la vérification au service, et le refus d'un changement dont dépend une condition ailleurs.
 - L'historique des écritures et leur annulation (`docs/design/undo-history.md`) : un pas par opération demandée de l'extérieur, la ligne entière avant et après, écrite par une seule classe que garde un script, 30 jours, le service `history` ouvert à l'IA, son écran.
 - Modèles libres (`docs/design/local-models.md`) : le banc est en place et rodé ; la campagne 1 a tourné le 2026-10-04 (190 scénarios en 5 h 15, 1,35 $ comptés hors réponses coupées, tableau dans `bench-results/2026-10-04_1326/summary.md`), ses échecs relus dans `docs/design/bench-campaign-1.md` ; les corrections de l'app qu'elle a trouvées sont faites (2026-10-13) : les niveaux de prompt se décident après une campagne rejouée.
-- Les incarnations (`docs/design/incarnations.md`, identités de personae) : l'identité objet de l'app, éditable, sa tuile dans la zone, la puce du chat, les routines, le prompt, le bagage, et le contrôle de suppression partagé avec les fournisseurs d'IA ; l'import attend le champ `format` et un premier export de personae.
+- Les incarnations (`docs/design/incarnations.md`, identités de personae) : l'identité objet de l'app, éditable, sa tuile dans la zone, la puce du chat, les routines, le prompt, le bagage, et le contrôle de suppression partagé avec les fournisseurs d'IA, et l'import du premier export (`personae/exports/stan-prokopenko.json`, publié le 2026-10-16).
 
 ## À concevoir
 

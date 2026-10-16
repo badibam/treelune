@@ -6,13 +6,14 @@ Conçu le 2026-09-27, repassé le 2026-10-16 contre le format d'export de person
 
 Le projet personae (`/mnt/data/OUTILS/personae/docs/reference.md`, « Fichiers ») publie un fichier JSON par identité, `exports/<id>.json` :
 
+- `format`, un entier, 1 au 2026-10-16 : il monte à chaque changement de structure qu'un lecteur doit connaître, et ne bouge pas pour un champ ou un morceau facultatif ajouté ;
 - `id` (stable, jamais changé après la première publication), `nom`, `distribuable`, `publie_le` (une date au jour, `2026-10-16`), et `langues.<langue>`, une section par langue, qui se suffit ;
 - dans une section : `voix`, `esprit`, `portrait`, chacun `{adresse, contenu}` ; `bagage`, indexé par une clé (`1/lexique@Stan Prokopenko`), chaque ressource `{adresse, titre, description, contenu}` ;
 - une ressource absente dans une langue est omise de cette langue : le bagage peut différer d'une langue à l'autre.
 
 Le texte est du Markdown : la voix française de Stan Prokopenko a des titres `#` et `##`, du gras, de l'italique, des listes.
 
-Tailles mesurées le 2026-10-16 (`./run status` de personae, stan-prokopenko, rien de publié) : voix, esprit et portrait font ~30 000 caractères en `en`, ~32 000 en `fr` ; une ressource du bagage, de 12 209 à 21 671.
+Le premier export, `stan-prokopenko`, est publié le 2026-10-16 (`format` 1, `en` et `fr`, les quatre ressources du bagage dans les deux). Tailles mesurées le même jour (`./run status` de personae) : voix, esprit et portrait font ~30 000 caractères en `en`, ~32 000 en `fr` ; une ressource du bagage, de 12 209 à 21 671.
 
 `distribuable` ne change rien ici : personae ne demande de refuser une identité non marquée qu'au projet qui la distribue, et l'app n'en livre aucune — c'est l'utilisateur qui l'apporte.
 
@@ -29,7 +30,7 @@ Tailles mesurées le 2026-10-16 (`./run status` de personae, stan-prokopenko, ri
 - Dans les réglages de l'app, et nulle part ailleurs.
 - Un fichier retrouve l'identité déjà là par son `id`. Avant de remplacer, l'app montre les deux `publie_le`, les langues gagnées ou perdues, et nomme les morceaux retouchés à la main qui seront perdus ; l'utilisateur confirme. Un fichier plus ancien est signalé, pas refusé : c'est le retour en arrière.
 - **Une réimportation remplace tout**, sans fusion morceau par morceau.
-- Un fichier dont la structure ne correspond pas est refusé, le champ en cause nommé ; jamais d'import partiel. Le `format` de l'export (« Ce qui attend personae ») dit la structure attendue ; un `format` inconnu est refusé.
+- Un `format` que l'app ne connaît pas est refusé, en le disant. Au `format` connu, un champ attendu absent ou d'un autre type est refusé, le champ en cause nommé ; un champ en plus est ignoré, puisque personae en ajoute sans monter `format`. Jamais d'import partiel.
 
 ## La langue
 
@@ -80,9 +81,6 @@ Tailles mesurées le 2026-10-16 (`./run status` de personae, stan-prokopenko, ri
 - Un seul contrôle, partagé avec les fournisseurs d'IA (`AIProviderConfigService.deleteProviderConfig`, qui ne regarde rien aujourd'hui) : la suppression est **refusée tant qu'une zone ou une routine la nomme**, en les listant. Chacun déclare ses champs ; la zone ne compte que pour l'identité. Pas de suppression en cascade.
 - **Une session passée** dont l'identité ou le fournisseur n'existe plus reste lisible ; sa barre du chat est remplacée par le message qui dit pourquoi, et on n'y écrit plus. Jamais de reprise sans voix.
 
-## Ce qui attend personae
+## Ce qui reste à mesurer
 
-- **Un champ `format` à la racine de l'export**, demandé le 2026-10-16 : un entier, 1 aujourd'hui, monté à chaque changement de structure qu'un lecteur doit connaître (les versions compactes de « Poids », par exemple). L'import l'attend.
-- **Un premier export publié** (aucun au 2026-10-16 : pas de dossier `exports/`, une seule fiche, stan-prokopenko) : pour essayer l'import sur un vrai fichier, et la mesure d'un tour.
-
-Le reste se code sans export : une identité écrite à la main suffit.
+- Le coût d'un tour avec une identité, en cache ou non, sur la première session : personae n'en publiera de versions compactes qu'après, et n'a pas tranché qui les produirait (mediatheque ou personae). Elles monteront `format`.
