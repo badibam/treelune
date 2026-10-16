@@ -1270,7 +1270,8 @@ class ToolDataService(private val context: Context) : ExecutableService {
                 }
             }
         }
-        return null
+        // What only the tool type knows across its fields (a whole day has no duration)
+        return ToolTypeManager.getToolType(target.tool.tooltype)?.refuseEntry(data, state.orEmpty(), context)
     }
 
     /**

@@ -59,6 +59,7 @@ Interface principale avec méthodes pour :
 - **Règle entre entrées** : settleEntries() (défaut : rien à changer), voir plus bas
 - **Sans entrées** : keepsEntries() (défaut : oui) ; un outil qui montre les entrées des autres (le Graphique) n'en garde aucune : pas de champs de l'utilisateur dans sa config, et toute écriture d'une entrée est refusée
 - **Contrôle de la config** : refuseConfig() (défaut : rien), ce que seule la lecture de l'app dit au-delà du schéma (une colonne qu'aucune source ne donne), demandé à chaque création et modification ; getRowFields() (défaut : aucun), les champs des lignes que décrit la config là où un réglage les nomme (`RowFields`)
+- **Entrée** : refuseEntry() (défaut : rien), ce qu'une entrée ne peut pas porter au-delà de chaque champ (une journée entière avec une durée), demandé à chaque création et modification
 - **Suppression** : refuseDelete() (défaut : rien), ce qui ne se supprime pas par l'écriture ordinaire mais se modifie (une occurrence de série d'un Agenda, qui se retire)
 - **Validation** : validateData() (délègue à SchemaValidator)
 

@@ -216,6 +216,13 @@ interface ToolTypeContract {
     fun refuseChange(entry: ToolDataEntity, context: Context): String? = null
 
     /**
+     * Why an entry holding [data] and [state] may not be stored, beyond what each field says on
+     * its own, or null when it may: a calendar's whole-day event has days, not a duration.
+     * ToolDataService asks it on every create and update, the entry as it will be stored.
+     */
+    fun refuseEntry(data: Map<String, Any?>, state: Map<String, Any?>, context: Context): String? = null
+
+    /**
      * Why [entry] may not be deleted by an ordinary write, though it may change, or null when it
      * may: a calendar's occurrence of a series is removed by its own operation, a deletion making
      * the series give it again. ToolDataService asks it before every delete, after refuseChange.
