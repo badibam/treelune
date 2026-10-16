@@ -32,6 +32,8 @@ data class Automation(
     val dismissOlderInstances: Boolean = false,
     val providerId: String,                 // AI provider to use for execution
     val isEnabled: Boolean,
+    /** Which of its runs wait for the user (AutomationSettings.NOTIFY_*) */
+    val notifyEnd: String = AutomationSettings.NOTIFY_ALWAYS,
     val group: String? = null,              // Group within zone (null = ungrouped)
     val createdAt: Long,
     val updatedAt: Long,                    // Last modification timestamp (used to skip missed executions after disable)
@@ -65,6 +67,7 @@ data class Automation(
                 dismissOlderInstances = catchUp?.get("dismiss_older_instances") as Boolean? ?: false,
                 providerId = map["provider_id"] as String,
                 isEnabled = map["is_enabled"] as Boolean,
+                notifyEnd = map["notify_end"] as String,
                 group = map["group"] as String?,
                 createdAt = (map["created_at"] as Number).toLong(),
                 updatedAt = (map["updated_at"] as Number).toLong(),

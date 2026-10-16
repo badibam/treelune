@@ -69,6 +69,16 @@ data class AISessionEntity(
     @ColumnInfo(name = "end_reason") val endReason: String? = null,          // SessionEndReason as string (null = crash/incomplete)
 
     /**
+     * When the user last saw this session (docs/design/waiting-sources.md): a chat shown on
+     * screen, a routine's run opened. A chat waits while an AI message is newer; a routine's run
+     * waits while it has none.
+     */
+    @ColumnInfo(name = "seen_at") val seenAt: Long? = null,
+
+    /** What a routine's AI said of its run, asked at its completion confirmation; null otherwise. */
+    val summary: String? = null,
+
+    /**
      * APP_STATE snapshot JSON taken at first user message
      * Used for cache stability - includes zones + tool instances (minimal, without config_json)
      * Format: {"timestamp": Long, "zones": [...], "tool_instances": [...]}

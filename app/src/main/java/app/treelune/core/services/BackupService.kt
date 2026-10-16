@@ -301,6 +301,8 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("last_activity", session.lastActivity)
                                 put("is_active", session.isActive)
                                 put("end_reason", session.endReason)
+                                put("seen_at", session.seenAt ?: JSONObject.NULL)
+                                put("summary", session.summary ?: JSONObject.NULL)
                                 if (session.appStateSnapshot != null) {
                                     put("app_state_snapshot", session.appStateSnapshot)
                                 }
@@ -372,6 +374,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("last_execution_id", automation.lastExecutionId)
                                 put("execution_history_json", automation.executionHistoryJson)
                                 put("access_json", automation.accessJson)
+                                put("notify_end", automation.notifyEnd)
                                 if (automation.group != null) {
                                     put("group", automation.group)
                                 }
@@ -769,6 +772,10 @@ class BackupService(private val context: Context) : ExecutableService {
                         lastActivity = item.getLong("last_activity"),
                         isActive = item.getBoolean("is_active"),
                         endReason = item.optString("end_reason", null),
+                        // A backup made before version 75 has neither: its sessions seen at their
+                        // last activity, as the migration does; present and null, a run that waits
+                        seenAt = if (!item.has("seen_at")) item.getLong("last_activity") else if (item.isNull("seen_at")) null else item.getLong("seen_at"),
+                        summary = if (item.isNull("summary")) null else item.getString("summary"),
                         appStateSnapshot = item.optString("app_state_snapshot", null)
                     )
                 )
@@ -832,7 +839,9 @@ class BackupService(private val context: Context) : ExecutableService {
                         executionHistoryJson = item.optString("execution_history_json", "[]"),
                         group = item.optString("group", null),
                         // Absent from a backup made before version 70: an automation reaching everything
-                        accessJson = item.optString("access_json", "[]")
+                        accessJson = item.optString("access_json", "[]"),
+                        // Absent from a backup made before version 75: every run signalled, as the migration does
+                        notifyEnd = item.optString("notify_end", app.treelune.core.ai.data.AutomationSettings.NOTIFY_ALWAYS)
                     )
                 )
             }

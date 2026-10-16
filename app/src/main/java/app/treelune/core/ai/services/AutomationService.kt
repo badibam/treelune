@@ -345,6 +345,7 @@ class AutomationService(private val context: Context) : ExecutableService {
         put("provider_id", entity.providerId)
         entity.group?.let { put("group", it) }
         put("is_enabled", entity.isEnabled)
+        put("notify_end", entity.notifyEnd)
         entity.scheduleJson?.let { put("schedule", JSONObject(it)) }
         entity.catchUp?.let { limit ->
             put("catch_up", JSONObject().apply {
@@ -361,7 +362,7 @@ class AutomationService(private val context: Context) : ExecutableService {
      */
     private fun settingsGiven(params: JSONObject, stored: JSONObject?): JSONObject {
         val settings = stored?.let { JSONObject(it.toString()) } ?: JSONObject()
-        listOf("name", "provider_id", "group", "is_enabled", "schedule", "catch_up").forEach { key ->
+        listOf("name", "provider_id", "group", "is_enabled", "notify_end", "schedule", "catch_up").forEach { key ->
             if (!params.has(key)) return@forEach
             if (params.isNull(key)) settings.remove(key) else settings.put(key, params.get(key))
         }
@@ -398,6 +399,8 @@ class AutomationService(private val context: Context) : ExecutableService {
             providerId = settings.getString("provider_id"),
             group = settings.optString("group").takeIf { it.isNotEmpty() },
             isEnabled = SettingValues(AutomationSettings.nodes(context), settings).boolean("is_enabled"),
+            notifyEnd = SettingValues(AutomationSettings.nodes(context), settings).string("notify_end")
+                ?: error("Setting 'notify_end' has neither a value nor a default"),
             scheduleJson = scheduleJson,
             catchUp = catchUp?.getString("limit"),
             catchUpWindow = catchUp?.takeIf { it.has("window") }?.getLong("window"),

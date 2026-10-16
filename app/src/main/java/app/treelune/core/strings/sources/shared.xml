@@ -248,6 +248,10 @@
     <string name="automation_catch_up_limited">Up to a delay</string>
     <string name="automation_catch_up_delay">Delay</string>
     <string name="automation_is_enabled">Enabled</string>
+    <string name="automation_notify_end">Tell me when it ends</string>
+    <string name="automation_notify_end_always">Always</string>
+    <string name="automation_notify_end_on_problem">When something goes wrong</string>
+    <string name="automation_notify_end_never">Never</string>
     <string name="automation_schedule">Schedule</string>
 
     <!-- AI Errors - Command transformation -->

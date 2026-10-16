@@ -248,6 +248,10 @@
     <string name="automation_catch_up_limited">Jusqu\'à un délai</string>
     <string name="automation_catch_up_delay">Délai</string>
     <string name="automation_is_enabled">Activée</string>
+    <string name="automation_notify_end">Me signaler la fin</string>
+    <string name="automation_notify_end_always">Toujours</string>
+    <string name="automation_notify_end_on_problem">En cas de problème</string>
+    <string name="automation_notify_end_never">Jamais</string>
     <string name="automation_schedule">Planification</string>
 
     <!-- AI Errors - Command transformation -->
