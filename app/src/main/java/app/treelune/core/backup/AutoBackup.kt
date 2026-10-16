@@ -3,9 +3,8 @@ package app.treelune.core.backup
 import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import app.treelune.core.backup.AutoBackupRotation.Slot
 import app.treelune.core.config.AppSettings
 import app.treelune.core.coordinator.Coordinator
@@ -52,9 +51,13 @@ object AutoBackup {
     private const val STORE = "auto_backup.json"
     private const val DATA_HASH = "data_hash"
 
-    /** Whether Settings › Data has something not yet looked at: no folder chosen, or the folder lost. */
-    var pending by mutableStateOf(false)
-        private set
+    private val _pending = MutableStateFlow(false)
+    /**
+     * Whether Settings › Data has something not yet looked at: no folder chosen, or the folder lost.
+     * A flow, not a Compose state: a state held by this object would be made on its first touch,
+     * which may fall in a recomposition, and read from another snapshot it throws.
+     */
+    val pending: StateFlow<Boolean> = _pending
 
     /** The data settings as stored. */
     private suspend fun settings(context: Context): JSONObject {
@@ -73,7 +76,7 @@ object AutoBackup {
 
     /** [pending] read again: the case to look at, unless it is the one seen. */
     suspend fun refresh(context: Context) {
-        pending = try {
+        _pending.value = try {
             val settings = settings(context)
             attention(context, settings)?.let { it != settings.optString(AppSettings.DATA_SEEN) } ?: false
         } catch (e: Exception) {
@@ -93,7 +96,7 @@ object AutoBackup {
             ))
             if (!result.isSuccess) LogManager.service("AutoBackup: the case seen not written: ${result.error}", "WARN")
         }
-        pending = false
+        _pending.value = false
     }
 
     /** Where the automatic backup stands, from the settings and the folder's files. */

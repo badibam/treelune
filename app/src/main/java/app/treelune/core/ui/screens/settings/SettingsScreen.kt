@@ -24,6 +24,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpen: (String) -> Unit) {
     val s = remember { Strings.`for`(context = context) }
     // The Data tile marked as the home screen's settings button is
     LaunchedEffect(Unit) { app.treelune.core.backup.AutoBackup.refresh(context) }
+    val backupPending by app.treelune.core.backup.AutoBackup.pending.collectAsState()
 
     Column(
         modifier = Modifier
@@ -53,7 +54,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpen: (String) -> Unit) {
             ) { i ->
                 val entry = entries[i]
                 CurrentTheme.current.ZoneCardContainer(onClick = { onOpen(entry.id) }, onLongClick = {}) {
-                    UI.TileHeader(entry.icon, null, s.shared(entry.label), waiting = entry.id == "data" && app.treelune.core.backup.AutoBackup.pending, running = false, textType = TextType.HEADING)
+                    UI.TileHeader(entry.icon, null, s.shared(entry.label), waiting = entry.id == "data" && backupPending, running = false, textType = TextType.HEADING)
                 }
             }
         }
