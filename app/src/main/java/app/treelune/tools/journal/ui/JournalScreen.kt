@@ -246,6 +246,11 @@ fun JournalScreen(
 
                 Spacer(modifier = Modifier.height(UI.Space.L))
 
+                // In the page, not floating: the chat's button floats at the bottom right (ChatButton)
+                UI.ActionButton(action = ButtonAction.ADD, display = ButtonDisplay.ICON, onClick = { coroutineScope.launch { createEntry() } })
+
+                Spacer(modifier = Modifier.height(UI.Space.L))
+
                 // Entries list or empty state
                 if (entries.isEmpty()) {
                     // Empty state
@@ -289,23 +294,6 @@ fun JournalScreen(
                         }
                     }
                 }
-            }
-        }
-
-        // Floating action button for creating new entry
-        if (!isLoading && toolInstance != null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(UI.Space.L),
-                contentAlignment = Alignment.BottomEnd
-            ) {
-                UI.ActionButton(
-                    action = ButtonAction.ADD,
-                    display = ButtonDisplay.ICON,
-                    size = Size.XL,
-                    onClick = { coroutineScope.launch { createEntry() } }
-                )
             }
         }
     }
