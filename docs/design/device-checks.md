@@ -289,6 +289,19 @@ Vu le 2026-10-09 : l'inscription par la page de connexion, « Activer Funnel » 
 - L'écran de la séance en cours et la tuile, dans les trois thèmes.
 - La démo : Fractionné dans Course, groupe Entraînement, sous Sorties ; son historique, une séance par jeudi de fractionné, dont une « Arrêtée » et une avec une étape sautée ; le jeudi à 18 h 30, une séance prévue ; « Commencer » enchaîne ses 17 étapes, la voix les annonçant.
 
+## Agenda (`docs/design/agenda-tool.md`, branche agenda)
+
+- Créer un Agenda ; « + » : un événement jeudi 14 h 30, 45 min. Il apparaît sous « Jeudi … » dans « À venir », « 14:30 – 15:15 » sous son nom ; la tuile : « Dentiste · jeu. 23 14:30 », sa ligne dans le corps. Jour, Semaine, Mois : les flèches et le calendrier mènent au passé, l'événement passé y est.
+- « Journée entière » sur 3 jours : la saisie passe à un jour et un nombre de jours ; l'événement apparaît à chacun de ses jours, en tête du jour, « Journée ».
+- « Se répète » chaque mardi 18 h : les champs supplémentaires disparaissent ; des occurrences sur 90 jours apparaissent aussitôt l'enregistrement (une série créée par l'IA ou par la roue dentée aussi), chacune avec l'icône de répétition. Une occurrence : « Retirer » la fait passer sous « Retirées (1) », « Rétablir » la remet ; « Supprimer » n'y est pas.
+- « Modifier la série » : changer la durée, enregistrer sans confirmation ; les occurrences restées à l'ancienne durée la prennent, celle réglée à la main garde la sienne. Changer le jour : la confirmation compte les occurrences à venir ; acceptée, elles reviennent sur le nouveau jour, le passé intact.
+- Annuler un événement : « Annulé · Dentiste », dans l'écran et la tuile, sans rappel ; « Rétablir ».
+- Réglages › Rappels : « 15 min avant » (Minute, −15, Même moment) ; « Rappels des journées entières » : « La veille, 18:00 » (Jour, −1, À une heure). Un événement dans 20 min : la notification part à l'heure, app fermée, écran éteint, téléphone posé à plat ; la toucher ouvre la fiche de l'événement. Deux rappels à 3 min d'écart : le second à l'heure, ou son retard noté (`docs/design/agenda-tool.md`, « Le réveil précis »).
+- Téléphone éteint pendant un rappel, rallumé avant la fin de l'événement : le rappel part ; rallumé après : rien.
+- Déplacer un événement déjà rappelé à plus tard : son rappel repart à la nouvelle heure.
+- L'IA crée un événement (status planned), en annule un, retire une occurrence ; supprimer une occurrence est refusé et le message renvoie à agenda.remove ; changer le jour d'une série demande d'abord à la personne.
+- L'écran et la tuile, dans les trois thèmes.
+
 ## Graphique
 
 - Créer un Graphique à la main : « Une vue », une couche « Une grille de pas », pas « Jour », période « Il y a 29 jours, début » → « Le moment même » ; une colonne `kcal` lisant une variable ; marque « Barres », x : « Pas », y : `kcal`. Enregistrer : trente barres, les jours sans valeur en trou hachuré ; toucher un trou : sa cause et les entrées à corriger, dont chacune ouvre son outil.

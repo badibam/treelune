@@ -9,6 +9,7 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.ZoneId
 
 /**
@@ -88,5 +89,49 @@ class TimePointTest {
     fun `the field's type decides between a day and an instant`() {
         assertEquals("2026-09-15", resolver.resolve(yesterdayStart, FieldType.DATE))
         assertEquals(at(2026, 9, 15, 4, 0), resolver.resolve(yesterdayStart, FieldType.DATETIME))
+    }
+
+    @Test
+    fun `a shift reads from its object, and writes back the same`() {
+        val same = """{"relative":{"unit":"MINUTE","offset":-15,"edge":"SAME"}}"""
+        assertEquals(TimePoint.Shift(ShiftUnit.MINUTE, -15), read(same))
+        assertEquals(JSONObject(same).toString(), TimePoint.Shift(ShiftUnit.MINUTE, -15).toJson().toString())
+        val at = """{"relative":{"unit":"DAY","offset":-1,"edge":{"at":"18:00"}}}"""
+        assertEquals(TimePoint.Shift(ShiftUnit.DAY, -1, LocalTime.of(18, 0)), read(at))
+        assertEquals(JSONObject(at).toString(), TimePoint.Shift(ShiftUnit.DAY, -1, LocalTime.of(18, 0)).toJson().toString())
+    }
+
+    @Test
+    fun `a minute stands on no edge, and an hour of the day goes with the day alone`() {
+        assertThrows(IllegalArgumentException::class.java) { read("""{"relative":{"unit":"MINUTE","offset":-15,"edge":"START"}}""") }
+        assertThrows(IllegalArgumentException::class.java) { read("""{"relative":{"unit":"WEEK","offset":-1,"edge":{"at":"18:00"}}}""") }
+        assertThrows(IllegalArgumentException::class.java) { read("""{"relative":{"unit":"DAY","offset":-1,"edge":{"at":"6pm"}}}""") }
+        assertThrows(IllegalArgumentException::class.java) { read("""{"relative":{"unit":"DAY","offset":-1,"edge":{}}}""") }
+    }
+
+    @Test
+    fun `a shift keeps its place in the unit, the start of the day playing no part`() {
+        assertEquals(at(2026, 9, 16, 14, 45), resolver.instant(TimePoint.Shift(ShiftUnit.MINUTE, -15)))
+        assertEquals(at(2026, 9, 16, 14, 0), resolver.instant(TimePoint.Shift(ShiftUnit.HOUR, -1)))
+        assertEquals(at(2026, 9, 15, 15, 0), resolver.instant(TimePoint.Shift(ShiftUnit.DAY, -1)))
+        assertEquals(at(2026, 9, 9, 15, 0), resolver.instant(TimePoint.Shift(ShiftUnit.WEEK, -1)))
+        assertEquals(at(2026, 8, 16, 15, 0), resolver.instant(TimePoint.Shift(ShiftUnit.MONTH, -1)))
+        assertEquals(at(2025, 9, 16, 15, 0), resolver.instant(TimePoint.Shift(ShiftUnit.YEAR, -1)))
+        assertEquals("2026-09-15", resolver.day(TimePoint.Shift(ShiftUnit.DAY, -1)))
+    }
+
+    @Test
+    fun `an hour of the day is that hour of the day moved, before the day starts included`() {
+        assertEquals(at(2026, 9, 15, 18, 0), resolver.instant(TimePoint.Shift(ShiftUnit.DAY, -1, LocalTime.of(18, 0))))
+        assertEquals(at(2026, 9, 16, 2, 0), resolver.instant(TimePoint.Shift(ShiftUnit.DAY, 0, LocalTime.of(2, 0))))
+    }
+
+    @Test
+    fun `the day before keeps its time across a change of hour, and a month too short its last day`() {
+        // Sunday 2026-10-25 the clocks go back: the day before at 14:30 is 25 hours earlier
+        val afterChange = TimeResolver(at(2026, 10, 25, 14, 30), zone, 4, "MONDAY")
+        assertEquals(at(2026, 10, 24, 14, 30), afterChange.instant(TimePoint.Shift(ShiftUnit.DAY, -1)))
+        val endOfMarch = TimeResolver(at(2026, 3, 31, 9, 0), zone, 4, "MONDAY")
+        assertEquals(at(2026, 2, 28, 9, 0), endOfMarch.instant(TimePoint.Shift(ShiftUnit.MONTH, -1)))
     }
 }

@@ -8,6 +8,7 @@ import app.treelune.tools.list.ListToolType
 import app.treelune.tools.structured.StructuredToolType
 import app.treelune.tools.goal.GoalToolType
 import app.treelune.tools.questionnaire.QuestionnaireToolType
+import app.treelune.tools.agenda.AgendaToolType
 import app.treelune.tools.chart.ChartToolType
 import app.treelune.tools.sequence.SequenceToolType
 
@@ -28,7 +29,8 @@ object ToolTypeScanner {
             "goal" to GoalToolType,
             "questionnaire" to QuestionnaireToolType,
             "chart" to ChartToolType,
-            "sequence" to SequenceToolType
+            "sequence" to SequenceToolType,
+            "agenda" to AgendaToolType
         )
     }
 }

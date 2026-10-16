@@ -192,6 +192,22 @@ sealed class SettingNode {
         val required: Boolean = false
     ) : SettingNode()
 
+    /**
+     * A list of instants stored under [name] (the Instant brick, docs/BRICKS.md), each relative
+     * to the moment [reference] names and nothing else — no fixed date, no limit: `[{"relative":
+     * {"unit": "HOUR", "offset": -1, "edge": "SAME"}}, …]`. A relative date may keep its place in
+     * its unit (TimePoint.Shift): the reminders of an event, against its start. Drawn by
+     * InstantPicker, one per element.
+     *
+     * @property reference The name of the moment its instants are relative to
+     */
+    data class Instants(
+        val name: String,
+        val label: String,
+        val reference: String,
+        val required: Boolean = false
+    ) : SettingNode()
+
     /** Settings shown together on the screen; nothing of it is stored. */
     data class Section(
         val label: String,
@@ -212,7 +228,7 @@ fun List<SettingNode>.storedField(name: String): FieldDefinition? {
                 ?: node.cases.values.firstNotNullOfOrNull { it.storedField(name) }
             is SettingNode.Section -> node.nodes.storedField(name)
             is SettingNode.Group, is SettingNode.ListOf, is SettingNode.Condition,
-            is SettingNode.Term, is SettingNode.Selection, is SettingNode.Period -> null
+            is SettingNode.Term, is SettingNode.Selection, is SettingNode.Period, is SettingNode.Instants -> null
         }
         if (found != null) return found
     }
@@ -254,6 +270,7 @@ fun List<SettingNode>.labelOf(name: String): String? {
             is SettingNode.Term -> node.label.takeIf { node.name == name }
             is SettingNode.Selection -> node.label.takeIf { node.name == name }
             is SettingNode.Period -> node.label.takeIf { node.name == name }
+            is SettingNode.Instants -> node.label.takeIf { node.name == name }
         }
         if (found != null) return found
     }

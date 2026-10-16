@@ -53,6 +53,9 @@ object DateUtils {
         return displayTimeFormatter.format(zonedDateTime)
     }
 
+    /** A time of day as the display shows times (HH:mm). */
+    fun formatTimeOfDay(time: java.time.LocalTime): String = displayTimeFormatter.format(time)
+
     /**
      * Format timestamp for full date-time display (dd/MM/yy HH:mm)
      */

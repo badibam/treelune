@@ -8,6 +8,7 @@ import app.treelune.core.utils.AppConfigManager
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 
 /**
  * What a relative date resolves against: the reference its context gives (an automation's
@@ -31,6 +32,28 @@ data class TimeResolver(
             val start = resolveRelativePeriod(RelativePeriod(point.offset, point.unit), reference, dayStartHour, weekStartDay, zone)
             if (point.edge == Edge.START) start.timestamp else getPeriodEndTimestamp(start, dayStartHour, weekStartDay, zone)
         }
+        is TimePoint.Shift -> shifted(point)
+    }
+
+    /**
+     * [point] on the calendar of the zone: the reference moved by its units, its time of day kept
+     * across a change of hour (the day before at 14:30 is 14:30, not 24 hours before), or the day
+     * moved and set at its hour. The start of a day the user set plays no part: a shift keeps its
+     * place, it stands on no edge.
+     */
+    private fun shifted(point: TimePoint.Shift): Long {
+        val from = Instant.ofEpochMilli(reference).atZone(zone)
+        val at = point.at
+        if (at != null) return from.toLocalDate().plusDays(point.offset.toLong()).atTime(at).atZone(zone).toInstant().toEpochMilli()
+        val unit = when (point.unit) {
+            ShiftUnit.MINUTE -> ChronoUnit.MINUTES
+            ShiftUnit.HOUR -> ChronoUnit.HOURS
+            ShiftUnit.DAY -> ChronoUnit.DAYS
+            ShiftUnit.WEEK -> ChronoUnit.WEEKS
+            ShiftUnit.MONTH -> ChronoUnit.MONTHS
+            ShiftUnit.YEAR -> ChronoUnit.YEARS
+        }
+        return from.plus(point.offset.toLong(), unit).toInstant().toEpochMilli()
     }
 
     /**
@@ -51,6 +74,7 @@ data class TimeResolver(
                 maxOf(first, dayOf(next.timestamp).minusDays(1)).toString()
             }
         }
+        is TimePoint.Shift -> dayOf(shifted(point)).toString()
     }
 
     /** [point] in the stored form of a field of [type]: a day for a DATE, milliseconds otherwise. */

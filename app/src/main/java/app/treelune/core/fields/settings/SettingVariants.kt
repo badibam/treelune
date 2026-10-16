@@ -45,6 +45,7 @@ object SettingVariants {
                     is SettingNode.Term -> config.optJSONObject(node.name)?.let { kept.put(node.name, it) }
                     is SettingNode.Selection -> config.optJSONObject(node.name)?.let { kept.put(node.name, it) }
                     is SettingNode.Period -> config.optJSONObject(node.name)?.let { kept.put(node.name, it) }
+                    is SettingNode.Instants -> config.optJSONArray(node.name)?.let { kept.put(node.name, it) }
                     is SettingNode.Section -> Unit
                 }
             }

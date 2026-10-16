@@ -220,6 +220,7 @@
     <string name="term_schema_reading">{\"reading\": {\"selection\", \"field\"?, \"reduction\"}}, a field of a tool reduced across its entries, counted without a field; its selection\'s period is relative to the instant read, and without one it reads the period the context gives</string>
     <string name="selection_schema_description">Entries of one tool: {\"target\": {\"kind\": \"TOOL_INSTANCE\", \"id\"}, \"filters\"?: [conditions on each entry], \"fields\"?: [paths kept]}; its period is given elsewhere.</string>
     <string name="period_schema_description">A period, {\"start\"?, \"end\"?}, both inclusive, a bound absent for no limit: a fixed instant, or a relative date, {\"relative\": {\"unit\": \"DAY\", \"offset\": -29, \"edge\": \"START\"}} or {\"relative\": \"NOW\"}.</string>
+    <string name="instants_schema_description">Instants, each a relative date against the moment the setting says, never a fixed one: {\"relative\": {\"unit\": \"HOUR\", \"offset\": -1, \"edge\": \"SAME\"}} for an hour before, {\"relative\": {\"unit\": \"MINUTE\", \"offset\": -15, \"edge\": \"SAME\"}}, {\"relative\": {\"unit\": \"DAY\", \"offset\": -1, \"edge\": {\"at\": \"18:00\"}}} for the day before at 18:00, {\"relative\": \"NOW\"} for the moment itself.</string>
     <string name="service_error_filter_unknown_field">Filter on \'%1$s\': the entries of this tool have no such field to filter on. Fields: %2$s</string>
     <string name="service_error_values_not_text">'%1$s' is not a text field: only a text has values to offer</string>
     <string name="service_error_filter_operator">Filter on \'%1$s\': the condition \'%2$s\' does not apply to a %3$s field. Conditions: %4$s</string>
@@ -306,7 +307,7 @@
     <string name="ai_error_period_invalid_iso">Unreadable ISO 8601 date: %1$s. Expected format: 2025-11-23T09:00:00+01:00</string>
     <string name="ai_error_date_unreadable">Unreadable date: %1$s. Accepted: a day (2026-09-15), or a relative date ({"relative": {"unit": "DAY", "offset": -1, "edge": "START"}}, or {"relative": "NOW"}).</string>
     <string name="ai_error_period_unknown_type">Unknown period type: %1$s. Accepted types: %2$s</string>
-    <string name="error_relative_date_invalid">Unreadable relative date: %1$s. Expected: {"relative": {"unit": "DAY", "offset": -1, "edge": "START"}} (edge START or END), or {"relative": "NOW"}</string>
+    <string name="error_relative_date_invalid">Unreadable relative date: %1$s. Expected: {"relative": {"unit": "DAY", "offset": -1, "edge": "START"}} (edge START or END; SAME, or {"at": "18:00"} by the DAY, to keep the place in the unit, MINUTE included), or {"relative": "NOW"}</string>
 
     <!-- AI Data Types - Enrichment descriptions -->
     <string name="ai_data_zone">zone data</string>
@@ -605,6 +606,16 @@
     <string name="instant_edge">Moment</string>
     <string name="instant_edge_start">Start</string>
     <string name="instant_edge_end">End</string>
+    <string name="instant_edge_same">Same moment</string>
+    <string name="instant_edge_at">At a time</string>
+    <string name="instant_at_time">Time</string>
+    <string name="instant_shift_same">%1$s, at the same moment</string>
+    <string name="instant_shift_at">%1$s at %2$s</string>
+    <string name="period_type_minute">Minute</string>
+    <string name="period_relative_one_minute_before">1 minute before</string>
+    <string name="period_relative_one_minute_after">1 minute after</string>
+    <string name="period_relative_minutes_before">%1$d minutes before</string>
+    <string name="period_relative_minutes_after">%1$d minutes after</string>
     <string name="instant_reference">Relative to: %1$s</string>
     <string name="instant_resolved">That is: %1$s</string>
     <string name="instant_reference_reading">the instant read</string>

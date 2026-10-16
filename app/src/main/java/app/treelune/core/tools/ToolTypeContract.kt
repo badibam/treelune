@@ -171,11 +171,26 @@ interface ToolTypeContract {
 
     /**
      * The entries [config] removes among those recorded ([entries]), beyond what its fields
-     * lose: a list set to remove what is checked removes the items already checked. They join
+     * lose: a list set to remove what is checked removes the items already checked; a calendar
+     * whose series changes its schedule, the occurrences to come, to be made again. They join
      * the entries a config change deletes (ToolInstanceService.planMigration), so nothing goes
      * before the user or the AI agrees to it (confirm_migration).
+     *
+     * @param previous The config as stored, before the change
      */
-    fun entriesRemovedByConfig(config: JSONObject, entries: List<ToolDataEntity>, context: Context): List<ToolDataEntity> = emptyList()
+    fun entriesRemovedByConfig(previous: JSONObject, config: JSONObject, entries: List<ToolDataEntity>, context: Context): List<ToolDataEntity> = emptyList()
+
+    /**
+     * The entries whose content [config] changes, beyond what its fields do to them, written with
+     * the config in one transaction (ToolInstanceService.planMigration): a calendar's series hands
+     * its new duration to the occurrences to come that still had the former one. Nothing is lost
+     * by such a change, which asks for no agreement; one that loses something is a removal.
+     *
+     * @param previous The config as stored, before the change
+     * @param entries The entries as the change of fields leaves them, those it removes left out
+     * @return The entries changed, each whole; empty when the config changes none
+     */
+    fun entriesUpdatedByConfig(previous: JSONObject, config: JSONObject, entries: List<ToolDataEntity>, context: Context): List<ToolDataEntity> = emptyList()
 
     /**
      * [config] completed with what only this tool type writes, on every create and update of an
@@ -199,6 +214,20 @@ interface ToolTypeContract {
      * asks it before every update and delete, whoever the caller.
      */
     fun refuseChange(entry: ToolDataEntity, context: Context): String? = null
+
+    /**
+     * Why an entry holding [data] and [state] may not be stored, beyond what each field says on
+     * its own, or null when it may: a calendar's whole-day event has days, not a duration.
+     * ToolDataService asks it on every create and update, the entry as it will be stored.
+     */
+    fun refuseEntry(data: Map<String, Any?>, state: Map<String, Any?>, context: Context): String? = null
+
+    /**
+     * Why [entry] may not be deleted by an ordinary write, though it may change, or null when it
+     * may: a calendar's occurrence of a series is removed by its own operation, a deletion making
+     * the series give it again. ToolDataService asks it before every delete, after refuseChange.
+     */
+    fun refuseDelete(entry: ToolDataEntity, context: Context): String? = null
 
     /**
      * Whether [entry] keeps the values it was judged or made with when the config changes

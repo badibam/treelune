@@ -161,6 +161,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
 
         // Notify UI of tools change in this zone
         DataChangeNotifier.notifyToolsChanged(zoneId)
+        // What its config schedules, done now rather than at the next tick
+        app.treelune.core.scheduling.CoreScheduler.runTool(context, toolType)
 
         return OperationResult.success(mapOf(
             "tool_instance_id" to newToolInstance.id,
@@ -307,6 +309,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             // Only config changed - notify current zone
             DataChangeNotifier.notifyToolsChanged(updatedTool.zone_id)
         }
+        // What a changed config schedules (a calendar's series remade), done now rather than at the next tick
+        if (configJson.isNotBlank()) app.treelune.core.scheduling.CoreScheduler.runTool(context, updatedTool.tooltype)
 
         return OperationResult.success(mapOf(
             "tool_instance_id" to updatedTool.id,
@@ -410,11 +414,20 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             entryInstance = { instances[it] }
         )
         // What the tool type's own rules remove under the new config, deleted with the rest
-        val removed = toolType.entriesRemovedByConfig(JSONObject(newConfigJson), entries, context)
+        val previous = JSONObject(tool.config_json)
+        val next = JSONObject(newConfigJson)
+        val removed = toolType.entriesRemovedByConfig(previous, next, entries, context)
             .filter { entry -> plan.deleted.none { it.id == entry.id } }
-        if (removed.isEmpty()) return plan
         val removedIds = removed.map { it.id }.toSet()
-        return plan.copy(updated = plan.updated.filter { it.id !in removedIds }, deleted = plan.deleted + removed)
+        val fieldsDone = plan.copy(updated = plan.updated.filter { it.id !in removedIds }, deleted = plan.deleted + removed)
+
+        // Then what its own rules change, on the entries as the change of fields leaves them
+        val deletedIds = fieldsDone.deleted.map { it.id }.toSet()
+        val byFields = fieldsDone.updated.associateBy { it.id }
+        val kept = entries.filter { it.id !in deletedIds }.map { byFields[it.id] ?: it }
+        val changed = toolType.entriesUpdatedByConfig(previous, next, kept, context).associateBy { it.id }
+        if (changed.isEmpty()) return fieldsDone
+        return fieldsDone.copy(updated = fieldsDone.updated.filter { it.id !in changed } + changed.values)
     }
 
     /**

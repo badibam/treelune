@@ -74,6 +74,8 @@ class NotificationService(private val context: Context) : ExecutableService {
      * - notification_id: Int? (for updating/replacing notifications, auto-generated if null)
      * - icon_name: String? (a Lucide name, the icon of the tool that sends; the app's own,
      *   APP_ICON, when nothing sends on a tool's behalf). Lucide's drawing whatever the theme.
+     * - tool_instance_id: String? (the tool opened when it is touched, on its oldest entry that waits)
+     * - entry_id: String? (with tool_instance_id, the entry it is opened on instead: an event's reminder)
      *
      * Returns:
      * - success: true with notification_id
@@ -103,6 +105,8 @@ class NotificationService(private val context: Context) : ExecutableService {
             val toolInstanceId = params.optString("tool_instance_id").takeIf { it.isNotEmpty() }
             // Or the place it is about, by its address (Place.address): a routine's run
             val place = params.optString("place").takeIf { it.isNotEmpty() }
+            // The entry it is about, opened in that tool rather than the oldest that waits
+            val entryId = params.optString("entry_id").takeIf { it.isNotEmpty() && toolInstanceId != null }
             val iconName = params.optString("icon_name").ifEmpty { APP_ICON }
             val icon = Icons.lucideDrawable(context, iconName)
             if (icon == null) {
@@ -128,6 +132,7 @@ class NotificationService(private val context: Context) : ExecutableService {
                 icon = icon,
                 toolInstanceId = toolInstanceId,
                 place = place,
+                entryId = entryId,
                 requestCode = notificationId
             )
 
@@ -156,6 +161,7 @@ class NotificationService(private val context: Context) : ExecutableService {
      * @param icon The small icon's drawable, of which the status bar keeps the silhouette
      * @param toolInstanceId The tool the app opens when it is touched, null for the app alone
      * @param place The address of the place the app opens when it is touched, instead of a tool
+     * @param entryId The entry of that tool it opens on, null for its oldest that waits
      * @param requestCode Its own, so that two notifications keep their own tool
      * @return NotificationCompat.Builder configured notification
      */
@@ -166,6 +172,7 @@ class NotificationService(private val context: Context) : ExecutableService {
         icon: Int,
         toolInstanceId: String?,
         place: String?,
+        entryId: String?,
         requestCode: Int
     ): NotificationCompat.Builder {
         // Create intent to open app when notification clicked
@@ -173,6 +180,7 @@ class NotificationService(private val context: Context) : ExecutableService {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             toolInstanceId?.let { putExtra(MainActivity.EXTRA_TOOL_INSTANCE_ID, it) }
             place?.let { putExtra(MainActivity.EXTRA_PLACE, it) }
+            entryId?.let { putExtra(MainActivity.EXTRA_ENTRY_ID, it) }
         }
 
         val pendingIntent = PendingIntent.getActivity(

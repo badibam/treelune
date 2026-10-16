@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Strings of the agenda tooltype -->
+    <string name="display_name">Calendar</string>
+    <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
+    <string name="usage">For what takes place at a time and passes by itself: an appointment, a call at 11:00, a birthday, days off. An entry is an event: its name, its start (the entry\'s date), a duration or, for whole days, a number of days.\n## What it does\n- Series that come back (the physio every Tuesday), each giving its occurrences ahead\n- Reminders before an event, set once for the calendar\n- An event cancelled stays visible; an occurrence of a series is removed rather than deleted\n## Not made for\n- Something to do before a moment, checked once done (a List with due dates)\n- A reminder with no event (Messages)\n- Something repeated you want to know is done (Tracking)</string>
+    <!-- What only the AI reads -->
+    <string name="ai_detail">An event is created with state {\"status\": \"planned\"}; it is cancelled, removed (an occurrence of a series only) and planned again by the calendar\'s operations cancel, remove and restore, never by an ordinary write. An occurrence of a series is not deleted: remove it. A series is in the config (series: name, schedule, duration, or all_day with days); changing its schedule deletes and gives again its occurrences to come, which asks the person first. Reminders are relative instants against an event\'s start, in the config only.</string>
+    <!-- The Guide's chapter, beside the usage: every setting of the config, every button of the screen (GuideMarkup) -->
+    <string name="guide_config">## Reminders\n- Reminders: when you are reminded of an event at a time, before its start: 15 minutes before, the day before at 18:00\n- Whole day reminders: the same for an event that takes whole days\n\n## Series\n- Series: the events that come back, each with its name, its schedule, and a duration or whole days. They are made and changed from the calendar\'s screen too</string>
+    <string name="guide_screen">## What it shows\n- Upcoming: the events going on and to come, day by day\n- Day, Week, Month: one of them, with its arrows to move and its calendar\n\n## An event\n- +: a new event, or a series with Repeats\n- Cancel: it stays, marked cancelled, without reminders\n- Remove: an occurrence of a series taken off; it comes back from Removed\n- Edit series: changes every occurrence to come</string>
+    <!-- What the tool is for, said to the user: the README and the Guide -->
+    <string name="tagline">Appointments and events at a time, which pass by themselves, with reminders</string>
+    <string name="section_reminders">Reminders</string>
+    <string name="section_series">Series</string>
+    <string name="field_reminders">Reminders</string>
+    <string name="field_all_day_reminders">Whole day reminders</string>
+    <string name="reference_event_start">the start of the event</string>
+    <string name="field_series">Series</string>
+    <string name="schema_series">The key of the series that gave this occurrence, absent for an event of its own; written by the app</string>
+    <string name="schema_series_key">Given by the app when the series is created, sent back unchanged</string>
+    <string name="field_name">Name</string>
+    <string name="schema_series_name">The name of its occurrences</string>
+    <string name="field_series_schedule">Repeats</string>
+    <string name="field_all_day">All day</string>
+    <string name="schema_all_day">A whole day, or several: it lasts days, not a duration; its date is midnight of its first day</string>
+    <string name="field_duration">Duration</string>
+    <string name="schema_duration">How long an event at a time lasts; none for a moment</string>
+    <string name="field_days">Days</string>
+    <string name="schema_days">How many days a whole day event lasts, 1 or more</string>
+    <string name="field_start">Start</string>
+    <string name="field_start_day">Day</string>
+    <string name="field_status">State</string>
+    <string name="schema_status">planned, cancelled or removed; an event is created planned, the calendar\'s operations change it</string>
+    <string name="status_planned">Planned</string>
+    <string name="status_cancelled">Cancelled</string>
+    <string name="status_removed">Removed</string>
+    <string name="field_series_at">Time of its series</string>
+    <string name="schema_series_at">The time of its series this occurrence was given for; written by the app</string>
+    <string name="field_reminded_until">Reminded until</string>
+    <string name="schema_reminded_until">The latest reminder sent; written by the app</string>
+    <string name="field_reminded_for">Reminded for</string>
+    <string name="schema_reminded_for">The start the reminders were sent for; written by the app</string>
+    <string name="field_event">Event</string>
+    <string name="field_repeats">Repeats</string>
+    <string name="operation_cancel">Cancels an event: it stays, marked cancelled, without reminders</string>
+    <string name="operation_remove">Removes an occurrence of a series from the calendar, kept so that the series does not give it again; an event of its own is deleted instead</string>
+    <string name="operation_restore">Plans again an event cancelled or removed</string>
+    <string name="verbalize_cancel">Cancelling an event</string>
+    <string name="verbalize_remove">Removing an occurrence</string>
+    <string name="verbalize_restore">Planning an event again</string>
+    <string name="error_all_day_duration">A whole day event lasts days (days), not a duration: send one or the other</string>
+    <string name="error_days_without_all_day">Days (days) go with a whole day event (all_day): an event at a time has a duration</string>
+    <string name="error_series_all_day_duration">The series « %1$s » takes whole days: it lasts days, not a duration</string>
+    <string name="error_series_days_without_all_day">The series « %1$s » is at a time: it has a duration, not days</string>
+    <string name="error_reminder_not_relative">A reminder is relative to the start of the event, never a fixed date</string>
+    <string name="error_delete_occurrence">An occurrence of a series is not deleted, its series would give it again: remove it (agenda.remove)</string>
+    <string name="error_remove_single">Only an occurrence of a series is removed; an event of its own is deleted</string>
+    <string name="error_not_an_event">%1$s is not an event of a calendar</string>
+    <string name="view_upcoming">Upcoming</string>
+    <string name="view_day">Day</string>
+    <string name="view_week">Week</string>
+    <string name="view_month">Month</string>
+    <string name="upcoming_empty">Nothing coming</string>
+    <string name="period_empty">Nothing in this period</string>
+    <string name="day_today">Today</string>
+    <string name="day_tomorrow">Tomorrow</string>
+    <string name="day_tomorrow_short">Tom.</string>
+    <string name="day_yesterday">Yesterday</string>
+    <string name="all_day_short">All day</string>
+    <string name="length_days">%1$d days</string>
+    <string name="length_range">%1$s – %2$s</string>
+    <string name="ongoing">Going on</string>
+    <string name="cancelled_name">Cancelled · %1$s</string>
+    <string name="removed_title">Removed (%1$d)</string>
+    <string name="new_event_title">New event</string>
+    <string name="edit_event_title">Event</string>
+    <string name="edit_series_title">Series</string>
+    <string name="action_cancel_event">Cancel the event</string>
+    <string name="action_restore">Restore</string>
+    <string name="action_remove">Remove</string>
+    <string name="action_edit_series">Edit the series</string>
+    <string name="delete_event_confirm">Delete « %1$s »?</string>
+    <string name="delete_series_confirm">Delete the series « %1$s »? Its occurrences to come go with it, the past ones stay.</string>
+    <string name="series_change_confirm">The %1$d occurrences to come will be made again: what you changed in them will be lost.</string>
+    <string name="moment_at">%1$s, %2$s</string>
+    <string name="moment_range">%1$s, %2$s – %3$s</string>
+    <string name="moment_all_day">%1$s, all day</string>
+    <string name="moment_days">%1$s, %2$d days</string>
+    <string name="tile_next">%1$s · %2$s</string>
+    <string name="tile_nothing">Nothing coming</string>
+    <string name="in_minutes">in %1$d min</string>
+    <string name="in_hours">in %1$d h</string>
+    <string name="series_delete_count">The %1$d occurrences to come of this series will be deleted, the past ones stay.</string>
+</resources>

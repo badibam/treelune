@@ -49,6 +49,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - Les champs de l'utilisateur dans le Suivi et Messages (`docs/design/custom-fields-display.md`, branche custom-fields) : l'historique du Suivi en cartes, les champs sous le texte d'un message (Outils et saisie) ; passé, élaguer la spec.
 - L'IA et les routines (branche ai-routines) : leur création par l'écran et la démo, celle de l'IA en conversation, une routine qui en crée une sous son masque, la lecture d'une exécution ratée, le connecteur (section « L'IA et les routines »).
 - La barre d'un texte sélectionné dessinée par le thème (branche theme-recipe) : sa ligne de la section « Copier, limites, fuseau… » de la recette.
+- L'outil Agenda (`docs/design/agenda-tool.md`, branche agenda) : l'Instant étendu dans un formulaire, les séries, les rappels app fermée et le réveil précis (section « Agenda ») ; passé, élaguer la spec.
 - Les bugs du téléphone du 2026-10-16 et le changement de config (`docs/design/config-change.md`) : la dernière section de la recette ; passé, élaguer la spec.
 - Les sources de l'attente (`docs/design/waiting-sources.md`, branche waiting-sources) : migration 76, la conversation marquée sur le bouton flottant, le résumé d'une routine, sa notification et ses points, le réglage « Me signaler la fin » (section du même nom) ; passé, élaguer la spec.
 - Les réglages de réflexion de chaque fournisseur, en envoyant une requête : Claude (Sonnet 5.5 sans réflexion par `between_tools`, Opus 5.5 sans « Sans réflexion », Haiku 4.5 sans effort), OpenAI (un modèle à `none`, un modèle qu'aucun fait ne couvre), DeepSeek (effort obligatoire, sans réflexion) ; le changement de modèle qui vide les deux réglages, l'enregistrement d'une combinaison refusée.
@@ -80,6 +81,7 @@ Une idée sans spec : elle demande une décision avant du code.
 
 - Des modèles d'outils prédéfinis et paramétrables (« Série de questions » suivie d'un « Avis de l'IA »…).
 - Un type de Suivi « étiquette », qui ne note qu'une étiquette.
+- La section « Quand » de la config d'un Objectif montre ensemble Début, Échéance et Récurrence, alors qu'avec une récurrence `GoalScheduler` ignore Début et Échéance sans le dire : un choix « Une fois » / « Récurrent » en tête, puis les seuls réglages qui comptent (réglage conditionnel du formulaire, `settings-pages.md`).
 - Trier Notes, Liste, Journal et Données structurées par un champ (un Tri = un Champ et un sens, brique à faire de celui de Données structurées) : ranger une fois, l'ordre manuel réécrit après confirmation, ou un réglage de l'outil, manuel ou trié — à trancher.
 
 ### Interface
@@ -89,7 +91,7 @@ Une idée sans spec : elle demande une décision avant du code.
 
 ### Events du cœur
 
-- Un système d'events du cœur, intégré au planificateur, avec une section par zone : un lien entre outils qui passe par le cœur (par une automation, par exemple). Déclencheurs d'une exécution : `SCHEDULE`, `MANUAL`, `EVENT` — revoir ceux des automations (ce qui est un déclencheur y est traité de façon inégale). Un event peut naître du planning d'un outil, et nomme l'outil qui l'a déclenché pour qu'on y aille en un geste ; des events système, sur le même modèle. Les constantes sont à penser avec. L'Alerte et l'automation directe le croisent.
+- Un système d'events du cœur, intégré au planificateur, avec une section par zone : un lien entre outils qui passe par le cœur (par une automation, par exemple). Déclencheurs d'une exécution : `SCHEDULE`, `MANUAL`, `EVENT` — revoir ceux des automations (ce qui est un déclencheur y est traité de façon inégale). Un event peut naître du planning d'un outil, et nomme l'outil qui l'a déclenché pour qu'on y aille en un geste ; des events système, sur le même modèle. Les constantes sont à penser avec. L'Agenda en donne une première source, « un événement commence » (`docs/design/agenda-tool.md`). L'Alerte et l'automation directe le croisent.
 
 ### Documentation
 
@@ -122,7 +124,7 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 - Choisir une entrée précise comme cible du pointeur dans son sélecteur (conçu dans `docs/design/pointer.md` : étiquette par type d'outil, liste, relecture de l'entrée) — si le besoin apparaît : un pointeur peut désigner une entrée (le Questionnaire en pose un), mais seule l'app le fait. La cible APP attend que l'IA sache lire les réglages de l'app.
 - Lire un long texte du connecteur MCP par section (le sommaire de ses titres `##`, puis une section par son titre), en plus des tranches — si l'IA lit mal un bagage d'identité en tranches.
 - Le nombre d'entrées en attente sur la tuile, au lieu du point (`WaitingMark`, décidé « pour le moment » le 2026-09-29) — si le point ne suffit pas.
-- Un outil Agenda, pour des événements qui ont une heure et passent d'eux-mêmes (un rendez-vous), distinct d'un élément de liste à échéance qu'on coche — à concevoir au premier événement qu'on voudra noter dans l'app.
+- Les valeurs des champs de l'utilisateur dans une série d'Agenda (« Kiné, Lieu : Cabinet Dupont »), recopiées dans chaque occurrence : une brique du cœur, des valeurs pour les champs de l'utilisateur d'un outil, déclarée dans une config (schéma, saisie dans le formulaire, conversion pour l'IA des types qu'elle ne connaît pas d'avance) — quand remplir chaque occurrence pèsera.
 - Outil jamais livré : l'Alerte, laissée pour plus tard (outil ou event du cœur, sans doute une lecture et une condition).
 - L'automation directe : des commandes que l'app exécute elle-même, sans IA. Premier usage connu, le relevé (une écriture qui accepte une valeur lue à l'exécution : un Suivi qui garde un chiffre de Calcul, `docs/design/missing-tools.md`) ; à concevoir avec les events du cœur (« À concevoir › Events du cœur ») et l'Alerte, qu'elle croise, et à trancher : la date de l'entrée écrite, le doublon d'une exécution relancée.
 - Des outils sur l'accueil : une tuile de zone qui montre les résumés de certains de ses outils, ou des raccourcis vers eux selon la place qu'elle a — à discuter : lesquels, dans quel ordre, un outil montré à deux endroits.

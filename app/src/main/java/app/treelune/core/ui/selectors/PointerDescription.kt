@@ -101,6 +101,7 @@ object PointerDescription {
     private fun relative(point: TimePoint, s: StringsContext): String = when (point) {
         TimePoint.Now -> s.shared("instant_mode_reference").lowercase()
         is TimePoint.Relative -> side(generateRelativePeriodLabel(RelativePeriod(point.offset, point.unit), s), point.edge == Edge.END, s)
+        is TimePoint.Shift -> app.treelune.core.ui.components.shiftLabel(point, s).replaceFirstChar { it.lowercase() }
         is TimePoint.Fixed -> (point.value as? Number)?.let { DateUtils.formatFullDateTime(it.toLong()) } ?: point.value.toString()
     }
 

@@ -40,17 +40,24 @@ class MainActivity : ComponentActivity() {
 
         /** The place a notification opens, by its address (Place.address): a routine's run. */
         const val EXTRA_PLACE = "place"
+        /** With a tool, the entry a notification is about, opened in it */
+        const val EXTRA_ENTRY_ID = "entry_id"
     }
 
     /** The tool asked for by the notification that opened the app, until the screens have opened it. */
     private var openToolId by androidx.compose.runtime.mutableStateOf<String?>(null)
+    /** The entry of that tool the notification is about, null for its oldest that waits. */
+    private var openEntryId by androidx.compose.runtime.mutableStateOf<String?>(null)
 
     /** The place asked for by the notification that opened the app, until the screens have opened it. */
     private var openPlace by androidx.compose.runtime.mutableStateOf<String?>(null)
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        intent.getStringExtra(EXTRA_TOOL_INSTANCE_ID)?.let { openToolId = it }
+        intent.getStringExtra(EXTRA_TOOL_INSTANCE_ID)?.let {
+            openEntryId = intent.getStringExtra(EXTRA_ENTRY_ID)
+            openToolId = it
+        }
         intent.getStringExtra(EXTRA_PLACE)?.let { openPlace = it }
     }
 
@@ -67,6 +74,7 @@ class MainActivity : ComponentActivity() {
         if (savedInstanceState == null) {
             openToolId = intent.getStringExtra(EXTRA_TOOL_INSTANCE_ID)
             openPlace = intent.getStringExtra(EXTRA_PLACE)
+            openEntryId = intent.getStringExtra(EXTRA_ENTRY_ID)
         }
 
         // The phone's dark theme setting from the first frame on
@@ -176,7 +184,7 @@ class MainActivity : ComponentActivity() {
                         androidx.compose.foundation.layout.Column(androidx.compose.ui.Modifier.fillMaxSize().scrollEndSound()) {
                             app.treelune.core.ui.components.LongOperationBar()
                             androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.weight(1f)) {
-                                MainScreen(openToolId = openToolId, onToolOpened = { openToolId = null }, openPlace = openPlace, onPlaceOpened = { openPlace = null })
+                                MainScreen(openToolId = openToolId, openEntryId = openEntryId, onToolOpened = { openToolId = null; openEntryId = null }, openPlace = openPlace, onPlaceOpened = { openPlace = null })
                                 // A request for external access waiting for its code, over any screen
                                 app.treelune.core.mcp.ui.McpApprovalDialog()
                                 // Android restricting the app in the background, told once each time it begins
