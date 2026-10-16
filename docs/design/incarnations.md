@@ -21,6 +21,8 @@ Le premier export, `stan-prokopenko`, est publié le 2026-10-16 (`format` 1, `en
 
 - Une identité est un objet de l'app, que l'import remplit : un `id`, un nom, une icône et sa couleur, une langue, et pour chaque langue la voix, l'esprit, le portrait et le bagage. L'app garde l'export entier, toutes ses langues.
 - **Tout s'édite à la main**, dans l'écran de l'identité, et une identité peut naître sans export. Un import garde l'`id` de personae ; une identité écrite à la main reçoit le sien.
+- Une identité écrite à la main demande un nom et une langue ; voix, esprit et portrait sont facultatifs, et un morceau vide ne part pas dans le prompt.
+- Chaque morceau importé garde son adresse personae comme origine, montrée sur l'écran de l'identité ; une retouche l'efface.
 - **Édition en texte brut seul, lecture mise en forme.** Le lecteur du Guide (`GuideMarkup` : `##`, `- `, `{icône}`) ne connaît ni `#`, ni le gras, ni l'italique : il s'étend, et devient le seul lecteur de l'app (Guide, usage d'un outil, identités).
 - **L'icône** se prend dans le vocabulaire Lucide, avec une couleur (`icon_color`), comme une zone ou un outil ; par défaut, `user-round`.
 - L'écran de l'identité montre la taille de chaque ressource du bagage.
@@ -40,7 +42,7 @@ Le premier export, `stan-prokopenko`, est publié le 2026-10-16 (`format` 1, `en
 
 ## Où elle intervient
 
-- **Associée à une zone**, dans les réglages de la zone : une identité au plus par zone ; une identité peut servir dans plusieurs zones.
+- **Associée à une zone**, dans les réglages de la zone : une identité au plus par zone ; une identité peut servir dans plusieurs zones. `identity_id` est dans la config de la zone : l'IA l'écrit comme le reste de cette config, sous le niveau de validation de la zone.
 - **La tuile d'identité**, en haut de la zone : l'icône de l'identité, son nom, et un bouton qui ouvre une nouvelle conversation avec elle. C'est le geste qui ouvre déjà une conversation depuis une zone (`ChatRequests.open`), avec ses règles : une conversation active est arrêtée et reste dans l'historique ; une routine qui tourne fait demander s'il faut l'interrompre. L'ouverture ne joint pas les données de la zone : un pointeur s'ajoute d'un geste.
 - **Le bouton de conversation flottant ne change pas** : il ouvre la session active, ou propose d'en démarrer une.
 - **La puce de la barre du chat**, à droite des enrichissements, montre l'identité de la session. Avant le premier message, elle propose toutes les identités existantes et l'IA ordinaire ; une conversation ouverte par la tuile arrive avec la sienne. Après, elle se voit mais ne change plus, et la toucher dit qu'une autre conversation change d'interlocuteur.
@@ -95,3 +97,4 @@ Un service `identities`, ouvert à toute IA : l'IA intégrée, en session ou en 
 ## Ce qui reste à mesurer
 
 - Le coût d'un tour avec une identité, en cache ou non, sur la première session : personae n'en publiera de versions compactes qu'après, et n'a pas tranché qui les produirait (mediatheque ou personae). Elles monteront `format`.
+- Le reste se vérifie sur le téléphone : la recette (`docs/design/device-checks.md`) prend une section des incarnations, la mesure du coût d'un tour comprise ; un chapitre du Guide les présente.
