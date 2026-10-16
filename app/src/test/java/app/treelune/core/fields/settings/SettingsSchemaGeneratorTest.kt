@@ -139,6 +139,22 @@ class SettingsSchemaGeneratorTest {
         app.treelune.core.ai.prompts.SchemaNotation.render(SchemaModelView.forModel(generated, ZoneId.of("Europe/Paris")))
     }
 
+    /** Reminders: relative instants only, the shifted ones included, which reach the model as they are. */
+    @Test
+    fun aListOfInstantsTakesRelativeDatesOnly() {
+        val instants = listOf(SettingNode.Instants("reminders", "reminders", "start"))
+        val generated = SettingsSchemaGenerator.generate(instants, text)
+        val validator = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7).getSchema(generated.toString())
+        fun valid(config: String) = validator.validate(mapper.readTree(config)).isEmpty()
+        val stored = """{"reminders": [{"relative": {"unit": "MINUTE", "offset": -15, "edge": "SAME"}}, {"relative": {"unit": "DAY", "offset": -1, "edge": {"at": "18:00"}}}]}"""
+        assertTrue(valid(stored))
+        assertTrue(valid("""{"reminders": []}"""))
+        assertFalse(valid("""{"reminders": [1790000000000]}"""))
+        assertFalse(valid("""{"reminders": [{"at": "18:00"}]}"""))
+        val zone = ZoneId.of("Europe/Paris")
+        assertEquals(JSONObject(stored).toString(), (ModelValues.toModel(JSONObject(stored), generated, zone) as JSONObject).toString())
+    }
+
     @Test
     fun aPeriodsFixedBoundIsAnInstantToTheModelAndARelativeOneStaysAsItIs() {
         val generated = SettingsSchemaGenerator.generate(bricks, text)

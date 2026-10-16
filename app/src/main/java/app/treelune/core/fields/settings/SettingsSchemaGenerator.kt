@@ -78,6 +78,7 @@ object SettingsSchemaGenerator {
                 is SettingNode.Term -> Triple(node.name, node.required, termSchema(node, text))
                 is SettingNode.Selection -> Triple(node.name, node.required, selectionSchema(node, text))
                 is SettingNode.Period -> Triple(node.name, node.required, periodSchema(node, text))
+                is SettingNode.Instants -> Triple(node.name, node.required, instantsSchema(node, text))
                 is SettingNode.Variant, is SettingNode.Section -> error("flattened before")
             }
             check(!properties.has(name)) { "Setting '$name' is declared twice in one object" }
@@ -202,6 +203,17 @@ object SettingsSchemaGenerator {
             .put("properties", JSONObject().put("start", bound()).put("end", bound()))
             .put("additionalProperties", false)
     }
+
+    /** A list of instants, each a relative date only: no fixed date to write in ISO 8601. */
+    private fun instantsSchema(node: SettingNode.Instants, text: (String) -> String): JSONObject = JSONObject()
+        .put("type", "array")
+        .put("title", node.label)
+        .put("description", text("instants_schema_description"))
+        .put("items", JSONObject()
+            .put("type", "object")
+            .put("properties", JSONObject().put(app.treelune.core.selection.TimePoint.RELATIVE, JSONObject()))
+            .put("required", JSONArray().put(app.treelune.core.selection.TimePoint.RELATIVE))
+            .put("additionalProperties", false))
 
     /** The nodes stored in one object: sections opened, since they store nothing of their own. */
     internal fun flatten(nodes: List<SettingNode>): List<SettingNode> = nodes.flatMap { node ->

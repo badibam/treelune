@@ -1078,6 +1078,8 @@ A period's bound, or a filter's constant on a moment (`timestamp`, a DATETIME fi
 
 **2. Now**: `{"relative": "NOW"}`, this exact instant (or today, for a day)
 
+**Keeping its place**, where a setting asks for an instant against a moment of its own (an event's reminders, against its start): `"edge": "SAME"`, the same moment so many units away, without standing on an edge — `{"relative": {"unit": "MINUTE", "offset": -15, "edge": "SAME"}}` is 15 minutes before, `{"unit": "DAY", "offset": -1, "edge": "SAME"}` the day before at the same time; `MINUTE` takes no other edge. By the day, an hour of it: `{"relative": {"unit": "DAY", "offset": -1, "edge": {"at": "18:00"}}}`, the day before at 18:00
+
 **3. Fixed**: an ISO 8601 moment with its offset, or a day `"2025-11-23"`
 
 A relative date is a point, the edge it says; the condition compares with that point. The whole of yesterday is a period from its START to its END. The forms mix. They read back as you write them, in the pointers and variables you are shown.]]></string>

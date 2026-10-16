@@ -220,6 +220,7 @@
     <string name="term_schema_reading">{\"reading\": {\"selection\", \"field\"?, \"reduction\"}}, un champ d\'un outil réduit sur ses entrées, compté sans champ ; la période de sa sélection est relative à l\'instant lu, et sans période elle lit celle que donne le contexte</string>
     <string name="selection_schema_description">Des entrées d\'un outil : {\"target\": {\"kind\": \"TOOL_INSTANCE\", \"id\"}, \"filters\"?: [conditions sur chaque entrée], \"fields\"?: [chemins gardés]} ; sa période est donnée ailleurs.</string>
     <string name="period_schema_description">Une période, {\"start\"?, \"end\"?}, bornes comprises, une borne absente pour sans limite : un instant fixe, ou une date relative, {\"relative\": {\"unit\": \"DAY\", \"offset\": -29, \"edge\": \"START\"}} ou {\"relative\": \"NOW\"}.</string>
+    <string name="instants_schema_description">Des instants, chacun une date relative au moment que dit le réglage, jamais une date fixe : {\"relative\": {\"unit\": \"HOUR\", \"offset\": -1, \"edge\": \"SAME\"}} pour une heure avant, {\"relative\": {\"unit\": \"MINUTE\", \"offset\": -15, \"edge\": \"SAME\"}}, {\"relative\": {\"unit\": \"DAY\", \"offset\": -1, \"edge\": {\"at\": \"18:00\"}}} pour la veille à 18:00, {\"relative\": \"NOW\"} pour le moment même.</string>
     <string name="service_error_filter_unknown_field">Filtre sur \'%1$s\' : les entrées de cet outil n\'ont pas ce champ à filtrer. Champs : %2$s</string>
     <string name="service_error_values_not_text">« %1$s » n\'est pas un champ texte : seul un texte a des valeurs à proposer</string>
     <string name="service_error_filter_operator">Filtre sur \'%1$s\' : la condition \'%2$s\' ne s\'applique pas à un champ %3$s. Conditions : %4$s</string>
@@ -298,7 +299,7 @@
     <string name="ai_error_period_invalid_iso">Date ISO 8601 illisible : %1$s. Format attendu : 2025-11-23T09:00:00+01:00</string>
     <string name="ai_error_date_unreadable">Date illisible : %1$s. Formats acceptés : un jour (2026-09-15), ou une date relative ({"relative": {"unit": "DAY", "offset": -1, "edge": "START"}}, ou {"relative": "NOW"}).</string>
     <string name="ai_error_period_unknown_type">Type de période inconnu : %1$s. Types acceptés : %2$s</string>
-    <string name="error_relative_date_invalid">Date relative illisible : %1$s. Attendu : {"relative": {"unit": "DAY", "offset": -1, "edge": "START"}} (edge START ou END), ou {"relative": "NOW"}</string>
+    <string name="error_relative_date_invalid">Date relative illisible : %1$s. Attendu : {"relative": {"unit": "DAY", "offset": -1, "edge": "START"}} (edge START ou END ; SAME, ou {"at": "18:00"} avec DAY, pour garder la place dans l\'unité, MINUTE comprise), ou {"relative": "NOW"}</string>
 
     <!-- AI Data Types - Enrichment descriptions -->
     <string name="ai_data_zone">données zone</string>
@@ -565,6 +566,16 @@
     <string name="instant_edge">Moment</string>
     <string name="instant_edge_start">Début</string>
     <string name="instant_edge_end">Fin</string>
+    <string name="instant_edge_same">Même moment</string>
+    <string name="instant_edge_at">À une heure</string>
+    <string name="instant_at_time">Heure</string>
+    <string name="instant_shift_same">%1$s, au même moment</string>
+    <string name="instant_shift_at">%1$s à %2$s</string>
+    <string name="period_type_minute">Minute</string>
+    <string name="period_relative_one_minute_before">1 minute avant</string>
+    <string name="period_relative_one_minute_after">1 minute après</string>
+    <string name="period_relative_minutes_before">%1$d minutes avant</string>
+    <string name="period_relative_minutes_after">%1$d minutes après</string>
     <string name="instant_reference">Par rapport à : %1$s</string>
     <string name="instant_resolved">Soit : %1$s</string>
     <string name="instant_reference_reading">l\'instant lu</string>

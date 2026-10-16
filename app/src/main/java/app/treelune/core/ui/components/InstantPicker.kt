@@ -9,6 +9,7 @@ import androidx.compose.ui.platform.LocalContext
 import app.treelune.core.fields.FieldType
 import app.treelune.core.selection.Edge
 import app.treelune.core.selection.EntryPeriod
+import app.treelune.core.selection.ShiftUnit
 import app.treelune.core.selection.TimePoint
 import app.treelune.core.selection.TimeResolver
 import app.treelune.core.strings.Strings
@@ -20,9 +21,21 @@ import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
 import app.treelune.core.utils.DateUtils
 import app.treelune.core.ui.FieldType as UIFieldType
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 /** The four ways an instant is chosen. */
 private enum class InstantMode { CUSTOM, RELATIVE, NOW, NONE }
+
+/**
+ * Where a relative date stands in its unit: an edge of the period (TimePoint.Relative), or its
+ * place kept, the same moment or an hour of the day (TimePoint.Shift).
+ */
+private enum class Moment { START, END, SAME, AT }
+
+/** A time of day as a shift stores it. */
+private val STORED_TIME = DateTimeFormatter.ofPattern("HH:mm")
 
 /**
  * The one input of a date or an instant in the app (docs/design/missing-tools.md, « Le temps
@@ -44,6 +57,9 @@ private enum class InstantMode { CUSTOM, RELATIVE, NOW, NONE }
  * @param edge The moment a relative date starts with: the start for a period's start, the end for its end
  * @param allowNone Whether "no limit" is offered, for a bound
  * @param required Whether the value must be answered; an optional one chosen can be emptied
+ * @param shifts Whether a relative date may keep its place in its unit (the same moment, the
+ *        minute, an hour of the day: TimePoint.Shift), for an instant against a moment of its own (a reminder)
+ * @param relativeOnly Whether a relative date is the only choice: no custom date, no now
  */
 @Composable
 fun InstantPicker(
@@ -54,34 +70,52 @@ fun InstantPicker(
     hasReference: Boolean,
     edge: Edge = Edge.START,
     allowNone: Boolean = false,
-    required: Boolean = false
+    required: Boolean = false,
+    shifts: Boolean = false,
+    relativeOnly: Boolean = false
 ) {
     require(precision == FieldType.DATE || precision == FieldType.DATETIME) { "an instant is a DATE or a DATETIME, not $precision" }
+    require(!shifts || precision == FieldType.DATETIME) { "a shift keeps a time, which a day has not" }
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
-    // An hour is no unit for a day
-    val units = if (precision == FieldType.DATE) PeriodType.entries - PeriodType.HOUR else PeriodType.entries
-
+    // An hour is no unit for a day; the minute keeps its place, and comes only with shifts
+    val units = buildList {
+        if (shifts) add(ShiftUnit.MINUTE.name)
+        addAll((if (precision == FieldType.DATE) PeriodType.entries - PeriodType.HOUR else PeriodType.entries).map { it.name })
+    }
     // The mode and the relative date are the picker's own: without a reference, what is stored
     // is a fixed date, which no longer says how it was chosen
     var mode by rememberSaveable {
         mutableStateOf(when (value) {
-            is TimePoint.Relative -> InstantMode.RELATIVE
-            TimePoint.Now -> InstantMode.NOW
-            null -> if (allowNone) InstantMode.NONE else InstantMode.CUSTOM
-            is TimePoint.Fixed -> InstantMode.CUSTOM
+            is TimePoint.Relative, is TimePoint.Shift -> InstantMode.RELATIVE
+            TimePoint.Now -> if (relativeOnly) InstantMode.RELATIVE else InstantMode.NOW
+            null -> if (relativeOnly) InstantMode.RELATIVE else if (allowNone) InstantMode.NONE else InstantMode.CUSTOM
+            is TimePoint.Fixed -> if (relativeOnly) InstantMode.RELATIVE else InstantMode.CUSTOM
         })
     }
-    val initial = value as? TimePoint.Relative
-    var unit by rememberSaveable { mutableStateOf(initial?.unit ?: PeriodType.DAY) }
-    var offset by rememberSaveable { mutableStateOf(initial?.offset ?: 0) }
-    var moment by rememberSaveable { mutableStateOf(initial?.edge ?: edge) }
+    val relative = value as? TimePoint.Relative
+    val shift = value as? TimePoint.Shift
+    var unit by rememberSaveable { mutableStateOf(relative?.unit?.name ?: shift?.unit?.name ?: PeriodType.DAY.name) }
+    var offset by rememberSaveable { mutableStateOf(relative?.offset ?: shift?.offset ?: 0) }
+    var moment by rememberSaveable {
+        mutableStateOf(when {
+            relative != null -> if (relative.edge == Edge.START) Moment.START else Moment.END
+            shift != null -> if (shift.at != null) Moment.AT else Moment.SAME
+            else -> if (edge == Edge.START) Moment.START else Moment.END
+        })
+    }
+    var atTime by rememberSaveable { mutableStateOf(shift?.at?.format(STORED_TIME) ?: "09:00") }
 
     /** [point] as stored: as it is with a reference, resolved against the clock without one. */
     fun emit(point: TimePoint?) = onChange(
         if (point == null || hasReference || point is TimePoint.Fixed) point else atClock(point, precision)
     )
-    fun emitRelative() = emit(TimePoint.Relative(unit, offset, moment))
+    fun emitRelative() = emit(when (moment) {
+        Moment.START -> TimePoint.Relative(PeriodType.valueOf(unit), offset, Edge.START)
+        Moment.END -> TimePoint.Relative(PeriodType.valueOf(unit), offset, Edge.END)
+        Moment.SAME -> TimePoint.Shift(ShiftUnit.valueOf(unit), offset)
+        Moment.AT -> TimePoint.Shift(ShiftUnit.DAY, offset, LocalTime.parse(atTime, STORED_TIME))
+    })
 
     val modes = buildList {
         add(InstantMode.CUSTOM to s.shared("instant_mode_custom"))
@@ -91,7 +125,8 @@ fun InstantPicker(
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
-        UI.FormSelection(
+        if (relativeOnly) { if (label.isNotEmpty()) UI.FieldLabel(label, required) }
+        else UI.FormSelection(
             label = label,
             options = modes.map { it.second },
             selected = modes.first { it.first == mode }.second,
@@ -111,10 +146,18 @@ fun InstantPicker(
         when (mode) {
             InstantMode.CUSTOM -> CustomDate(value as? TimePoint.Fixed, precision, clearable = !required && !allowNone, onChange = onChange)
             InstantMode.RELATIVE -> {
-                RelativeDate(unit, offset, moment, units, s,
-                    onUnit = { unit = it; offset = 0; emitRelative() },
+                RelativeDate(unit, offset, moment, atTime, units, shifts, s,
+                    onUnit = {
+                        unit = it
+                        offset = 0
+                        // The minute has no edge, an hour of the day goes with the day alone
+                        if (it == ShiftUnit.MINUTE.name) moment = Moment.SAME
+                        else if (moment == Moment.AT && it != ShiftUnit.DAY.name) moment = Moment.SAME
+                        emitRelative()
+                    },
                     onOffset = { offset = it; emitRelative() },
-                    onMoment = { moment = it; emitRelative() }
+                    onMoment = { moment = it; emitRelative() },
+                    onTime = { atTime = it; emitRelative() }
                 )
                 if (!hasReference) Resolved(value, precision, s)
             }
@@ -180,36 +223,99 @@ private fun Resolved(value: TimePoint?, precision: FieldType, s: StringsContext)
     UI.Text(text = s.shared("instant_resolved").format(shown(fixed, precision)), type = TextType.CAPTION)
 }
 
-/** A unit, an offset stepped by arrows ("the day before"), and the moment of that period. */
+/**
+ * A unit, an offset stepped by arrows ("the day before"), and where it stands in that unit: the
+ * start or the end of the period, or, with [shifts], the same moment or an hour of the day.
+ */
 @Composable
 private fun RelativeDate(
-    unit: PeriodType,
+    unit: String,
     offset: Int,
-    moment: Edge,
-    units: List<PeriodType>,
+    moment: Moment,
+    atTime: String,
+    units: List<String>,
+    shifts: Boolean,
     s: StringsContext,
-    onUnit: (PeriodType) -> Unit,
+    onUnit: (String) -> Unit,
     onOffset: (Int) -> Unit,
-    onMoment: (Edge) -> Unit
+    onMoment: (Moment) -> Unit,
+    onTime: (String) -> Unit
 ) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         UI.ActionButton(action = ButtonAction.LEFT, display = ButtonDisplay.ICON, size = Size.M, onClick = { onOffset(offset - 1) })
         Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-            UI.Text(text = generateRelativePeriodLabel(RelativePeriod(offset, unit), s), type = TextType.BODY)
+            UI.Text(text = offsetLabel(unit, offset, s), type = TextType.BODY)
         }
         UI.ActionButton(action = ButtonAction.RIGHT, display = ButtonDisplay.ICON, size = Size.M, onClick = { onOffset(offset + 1) })
     }
     Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
-        fun unitLabel(u: PeriodType) = s.shared("period_type_${u.name.lowercase()}")
+        fun unitLabel(u: String) = s.shared("period_type_${u.lowercase()}")
         Box(modifier = Modifier.weight(1f)) {
             UI.FormSelection(label = s.shared("instant_unit"), options = units.map(::unitLabel), selected = unitLabel(unit),
                 onSelect = { l -> onUnit(units.first { unitLabel(it) == l }) }, required = true)
         }
-        val moments = listOf(Edge.START to s.shared("instant_edge_start"), Edge.END to s.shared("instant_edge_end"))
+        val moments = buildList {
+            if (unit != ShiftUnit.MINUTE.name) {
+                add(Moment.START to s.shared("instant_edge_start"))
+                add(Moment.END to s.shared("instant_edge_end"))
+            }
+            if (shifts) {
+                add(Moment.SAME to s.shared("instant_edge_same"))
+                if (unit == ShiftUnit.DAY.name) add(Moment.AT to s.shared("instant_edge_at"))
+            }
+        }
         Box(modifier = Modifier.weight(1f)) {
             UI.FormSelection(label = s.shared("instant_edge"), options = moments.map { it.second }, selected = moments.first { it.first == moment }.second,
                 onSelect = { l -> onMoment(moments.first { it.second == l }.first) }, required = true)
         }
+    }
+    if (moment == Moment.AT) TimeOfDay(atTime, s, onTime)
+}
+
+/** The hour of the day a shift by the day stands at, picked on the clock. */
+@Composable
+private fun TimeOfDay(atTime: String, s: StringsContext, onTime: (String) -> Unit) {
+    var showTimePicker by rememberSaveable { mutableStateOf(false) }
+    val time = LocalTime.parse(atTime, STORED_TIME)
+    UI.FormField(label = s.shared("instant_at_time"), value = DateUtils.formatTimeOfDay(time), onChange = {}, fieldType = UIFieldType.TEXT,
+        required = true, readonly = true, onClick = { showTimePicker = true })
+    if (showTimePicker) {
+        UI.TimePicker(
+            selectedTime = atTime,
+            onTimeSelected = { picked ->
+                // The clock answers "HH:mm"; an answer that does not read leaves the time as it was
+                try { onTime(LocalTime.parse(picked, STORED_TIME).format(STORED_TIME)) } catch (e: DateTimeParseException) { }
+                showTimePicker = false
+            },
+            onDismiss = { showTimePicker = false }
+        )
+    }
+}
+
+/** [offset] [unit]s in words ("the day before", "15 minutes before"), the minute included. */
+private fun offsetLabel(unit: String, offset: Int, s: StringsContext): String {
+    if (unit != ShiftUnit.MINUTE.name) return generateRelativePeriodLabel(RelativePeriod(offset, PeriodType.valueOf(unit)), s)
+    return when {
+        offset == 0 -> s.shared("instant_mode_reference")
+        offset == -1 -> s.shared("period_relative_one_minute_before")
+        offset == 1 -> s.shared("period_relative_one_minute_after")
+        offset < 0 -> s.shared("period_relative_minutes_before").format(-offset)
+        else -> s.shared("period_relative_minutes_after").format(offset)
+    }
+}
+
+/**
+ * A shift in words, against its reference: "15 minutes before", "1 hour before" (the minute and
+ * the hour keep their place by themselves), "the day before, at the same moment", "the day before at 18:00".
+ */
+fun shiftLabel(point: TimePoint.Shift, s: StringsContext): String {
+    val at = point.at
+    if (at == null && point.offset == 0) return s.shared("instant_mode_reference")
+    val offset = offsetLabel(point.unit.name, point.offset, s)
+    return when {
+        at != null -> s.shared("instant_shift_at").format(offset, DateUtils.formatTimeOfDay(at))
+        point.unit == ShiftUnit.MINUTE || point.unit == ShiftUnit.HOUR -> offset
+        else -> s.shared("instant_shift_same").format(offset)
     }
 }
 

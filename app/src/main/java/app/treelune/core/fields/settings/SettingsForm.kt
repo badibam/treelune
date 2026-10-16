@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -163,7 +164,7 @@ private fun List<SettingNode>.isPage(): Boolean = any { node ->
         is SettingNode.Selection, is SettingNode.Condition -> true
         is SettingNode.Section -> node.nodes.isPage()
         is SettingNode.Variant -> node.cases.values.any { it.isPage() }
-        is SettingNode.Field, is SettingNode.Period -> false
+        is SettingNode.Field, is SettingNode.Period, is SettingNode.Instants -> false
     }
 }
 
@@ -656,6 +657,50 @@ private fun NodeForm(
                     app.treelune.core.fields.FieldType.DATETIME, node.reference)
             }
         }
+
+        is SettingNode.Instants -> InstantsForm(node, config.optJSONArray(node.name) ?: JSONArray(), { set(node.name, it) }, context)
+    }
+}
+
+/**
+ * A list of instants relative to the reference the node names, named once above them: one
+ * InstantPicker per element, each with its removal, and the addition of one more, an hour before
+ * at first. An element that does not read shows as it is, for the service to name it.
+ */
+@Composable
+private fun InstantsForm(node: SettingNode.Instants, items: JSONArray, onChange: (JSONArray) -> Unit, context: Context) {
+    val s = Strings.`for`(context = context)
+    val values = (0 until items.length()).map { items.get(it) }
+    fun publish(next: List<Any>) = onChange(JSONArray(next))
+    Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+        UI.FieldLabel(node.label, node.required)
+        UI.Text(text = s.shared("instant_reference").format(node.reference), type = TextType.CAPTION)
+        values.forEachIndexed { index, raw ->
+            val point = try { app.treelune.core.selection.TimePoint.read(raw) { key -> s.shared(key) } } catch (e: IllegalArgumentException) { null }
+            Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+                Box(modifier = Modifier.weight(1f)) {
+                    if (point == null) UI.Text(text = raw.toString(), type = TextType.BODY)
+                    // Keyed by position and content: a removal above gives the picker below its own value back
+                    else key(index, raw.toString()) {
+                        app.treelune.core.ui.components.InstantPicker(
+                            label = "",
+                            value = point,
+                            onChange = { changed -> changed?.let { publish(values.toMutableList().also { it[index] = changed.toJson() }) } },
+                            precision = app.treelune.core.fields.FieldType.DATETIME,
+                            hasReference = true,
+                            required = true,
+                            shifts = true,
+                            relativeOnly = true
+                        )
+                    }
+                }
+                UI.ActionButton(action = ButtonAction.DELETE, display = ButtonDisplay.ICON, size = Size.S,
+                    onClick = { publish(values.filterIndexed { i, _ -> i != index }) })
+            }
+        }
+        UI.ActionButton(action = ButtonAction.ADD, display = ButtonDisplay.LABEL, onClick = {
+            publish(values + app.treelune.core.selection.TimePoint.Shift(app.treelune.core.selection.ShiftUnit.HOUR, -1).toJson())
+        })
     }
 }
 
