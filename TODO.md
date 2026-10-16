@@ -104,6 +104,15 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 
 ## Bugs du téléphone
 
+- Encore différence de marge en thème retro entre tuiles d'outils et tuiles d'automatique par exemple
+- encore des textes non sélectionnables sans raison. Par exemple : dans textes de guide
+- "Copier" de journal n'inclut pas les chamos suppl car pas encore de repr textuelles des valeurs de champs. Il faut metrre ça en place.
+- Tuile de variable ne se collapse pas proprement quand manque de place horizontale
+- Plus de bouton dans ecran de journal pour écrire une noyvelle entrée ?
+- Revoir logique dans suivi : changement de config entraine t elle changemzbt dans les données ? Par ex suppr de champs supplémentaire -> de toute façons plus accessible dans data car sélecteurs utilisent config ? Idem pour questionnaire, mais dans ce cas le choix inverse a été fait ?? Discutons en c'est un point important. Même question pour journal par exemple : on piurrait perdre des infos passées si on change de champs supplémentaires.... Peser pour et contre des différentes approches possibles. Au début du projet on avait dit : données immuables. Mais la question est devenue + complexe. Autre exemple: retirer une option de choix supprime cette option dans les données passées.... C'est discutable...
+- Poignée pour réordonner : sensible sur toute la largeur donc se declenche au swipe sans le vouloir. Plitôt : limiter à l'élément.
+- Guide : Les outils en un coup d'oeil : pas besoin de section : plutôt metrre ke texte direct dans la tuile de chaque outil.
+- Sur nouvelle install accès toalscale : demande quand meme adresse du relais
 
 ## En attente d'un déclencheur
 
