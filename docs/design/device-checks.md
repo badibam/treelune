@@ -369,3 +369,10 @@ Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la po
 - Une routine créée dans la zone : Identité présélectionnée sur Stan Prokopenko ; lancée, son exécution parle dans sa voix. Demander à l'IA de créer une routine sans dire qui parle : elle donne `identity_id` (refusée sinon, en le disant).
 - Supprimer Stan Prokopenko tant que la zone ou la routine le nomme : refusé, en les nommant. Les retirer, supprimer : la conversation passée se relit, son composeur remplacé par la raison. Supprimer un fournisseur d'IA qu'une routine utilise : refusé de même.
 - Par le connecteur : IDENTITY et IDENTITY_RESOURCE au-delà du seuil arrivent en tranches, chacune disant où reprendre ; UPDATE_IDENTITY attend l'accord par notification quand le niveau de l'app est protégé.
+
+## Les lectures envoyées une fois par session (branche read-once, `SessionReads`)
+
+- Dans une conversation, faire lire à l'IA le schéma d'un outil, puis le redemander : « déjà inclus ». Lui faire ajouter un champ à la config de l'outil, puis écrire une entrée qui le remplit : le nouveau schéma arrive, précédé de « il remplace », et l'entrée passe.
+- Même conversation : ajouter un champ à l'écran, revenir, demander une entrée : le schéma revient avant l'écriture, « il remplace », et l'entrée porte le champ.
+- Une conversation avec une identité : « lis ton lexique », modifier la ressource à l'écran, « relis ton lexique » : le nouveau texte, « il remplace » ; la redemander : « déjà dans cette session ».
+- Une conversation commencée avant cette version : un schéma déjà lu y repart une fois en entier, puis « déjà inclus ».
