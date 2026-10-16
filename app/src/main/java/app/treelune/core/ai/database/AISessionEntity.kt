@@ -84,7 +84,13 @@ data class AISessionEntity(
      * Format: {"timestamp": Long, "zones": [...], "tool_instances": [...]}
      * null = not yet captured (before first message)
      */
-    @ColumnInfo(name = "app_state_snapshot") val appStateSnapshot: String? = null
+    @ColumnInfo(name = "app_state_snapshot") val appStateSnapshot: String? = null,
+
+    /**
+     * The identity it speaks as (docs/design/incarnations.md), fixed at its first message; null
+     * for the app's own AI.
+     */
+    @ColumnInfo(name = "identity_id") val identityId: String? = null
 )
 
 /**

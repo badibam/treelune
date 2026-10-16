@@ -1,5 +1,6 @@
 package app.treelune.core.coordinator
 
+import app.treelune.core.identities.IdentityService
 import android.content.Context
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.services.ZoneService
@@ -40,6 +41,7 @@ class ServiceRegistry(private val context: Context) {
         "references" to ::ReferenceService,
         "readings" to ::ReadingService,
         "variables" to ::VariableService,
+        "identities" to ::IdentityService,
         "imports" to ::ImportService,
         "files" to ::FileService,
         "ai_sessions" to ::AISessionService,

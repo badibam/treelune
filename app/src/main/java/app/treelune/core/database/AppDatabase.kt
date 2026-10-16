@@ -75,7 +75,8 @@ import app.treelune.core.ai.data.LegacyCatchUp
         AttachedFileEntity::class,
         AttachedImageEntity::class,
         app.treelune.core.mcp.McpClientEntity::class,
-        app.treelune.core.mcp.McpTokenEntity::class
+        app.treelune.core.mcp.McpTokenEntity::class,
+        app.treelune.core.identities.IdentityEntity::class
         // Note: Tool entities will be added dynamically
         // via build system and ToolTypeRegistry
     ],
@@ -97,13 +98,14 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun attachedFileDao(): AttachedFileDao
     abstract fun attachedImageDao(): AttachedImageDao
     abstract fun mcpDao(): app.treelune.core.mcp.McpDao
+    abstract fun identityDao(): app.treelune.core.identities.IdentityDao
 
     companion object {
         /**
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 76
+        const val VERSION = 77
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -1766,6 +1768,20 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * Incarnations (docs/design/incarnations.md): the identities' table, empty, and the
+         * identity of a zone, a routine and a session, none: everything speaks as before.
+         */
+        private val MIGRATION_76_77 = object : Migration(76, 77) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("CREATE TABLE IF NOT EXISTS `identities` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `icon_name` TEXT NOT NULL, `icon_color` TEXT, `language` TEXT NOT NULL, `languages_json` TEXT NOT NULL, `published_at` TEXT, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`id`))")
+                database.execSQL("ALTER TABLE zones ADD COLUMN identity_id TEXT")
+                database.execSQL("ALTER TABLE automations ADD COLUMN identity_id TEXT")
+                database.execSQL("ALTER TABLE ai_sessions ADD COLUMN identity_id TEXT")
+                LogManager.database("MIGRATION 76->77: identities added, none; zones, routines and sessions without one", "INFO")
+            }
+        }
+
         /** A conversation's own reasoning (SessionReasoning): two columns, empty, every session following its provider as before. */
         private val MIGRATION_73_74 = object : Migration(73, 74) {
             override fun migrate(database: SupportSQLiteDatabase) {
@@ -2767,7 +2783,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_72_73,
                     MIGRATION_73_74,
                     MIGRATION_74_75,
-                    MIGRATION_75_76
+                    MIGRATION_75_76,
+                    MIGRATION_76_77
                     // Add future migrations here (minimum supported version: 9)
                 )
                 .addCallback(object : RoomDatabase.Callback() {

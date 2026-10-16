@@ -80,6 +80,12 @@ object DataChangeNotifier {
         _changes.tryEmit(DataChangeEvent.VariablesChanged)
     }
 
+    /** Notify that the identities have changed (created, updated, imported, deleted): their screens reread them. */
+    fun notifyIdentitiesChanged() {
+        LogManager.coordination("DataChangeNotifier: identities changed", "DEBUG")
+        _changes.tryEmit(DataChangeEvent.IdentitiesChanged)
+    }
+
     /**
      * Notify app configuration changed
      * Triggers settings screens reload
@@ -131,6 +137,9 @@ sealed class DataChangeEvent {
 
     /** Variables have changed, in any zone */
     object VariablesChanged : DataChangeEvent()
+
+    /** The identities have changed */
+    object IdentitiesChanged : DataChangeEvent()
 
     /**
      * AI sessions have changed (created, updated, completed)

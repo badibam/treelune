@@ -179,6 +179,7 @@ class BackupService(private val context: Context) : ExecutableService {
             val aiProviderConfigs = database.aiDao().getAllProviderConfigs()
             val automations = database.aiDao().getAllAutomations()
             val variables = database.variableDao().getAll()
+            val identities = database.identityDao().getAll()
             // The files joined to messages, with their session
             val attachedFiles = aiSessions.flatMap { database.attachedFileDao().getForSession(it.id) }
             // The images joined to messages: their rows in the JSON, their files beside it. An
@@ -235,6 +236,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 if (zone.group != null) {
                                     put("group", zone.group)
                                 }
+                                put("identity_id", zone.identity_id ?: JSONObject.NULL)
                             })
                         }
                     })
@@ -304,6 +306,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("end_reason", session.endReason)
                                 put("seen_at", session.seenAt ?: JSONObject.NULL)
                                 put("summary", session.summary ?: JSONObject.NULL)
+                                put("identity_id", session.identityId ?: JSONObject.NULL)
                                 if (session.appStateSnapshot != null) {
                                     put("app_state_snapshot", session.appStateSnapshot)
                                 }
@@ -376,6 +379,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("execution_history_json", automation.executionHistoryJson)
                                 put("access_json", automation.accessJson)
                                 put("notify_end", automation.notifyEnd)
+                                put("identity_id", automation.identityId ?: JSONObject.NULL)
                                 if (automation.group != null) {
                                     put("group", automation.group)
                                 }
@@ -395,6 +399,23 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("definition_json", variable.definitionJson)
                                 put("created_at", variable.createdAt)
                                 put("updated_at", variable.updatedAt)
+                            })
+                        }
+                    })
+
+                    // Identities
+                    put("identities", JSONArray().apply {
+                        identities.forEach { identity ->
+                            put(JSONObject().apply {
+                                put("id", identity.id)
+                                put("name", identity.name)
+                                put("icon_name", identity.iconName)
+                                put("icon_color", identity.iconColor ?: JSONObject.NULL)
+                                put("language", identity.language)
+                                put("languages_json", identity.languagesJson)
+                                put("published_at", identity.publishedAt ?: JSONObject.NULL)
+                                put("created_at", identity.createdAt)
+                                put("updated_at", identity.updatedAt)
                             })
                         }
                     })
@@ -682,7 +703,9 @@ class BackupService(private val context: Context) : ExecutableService {
                         tool_groups = item.optString("tool_groups", null),
                         group = item.optString("group", null),
                         // Given to a backup made before version 69 by ValidationAtV69
-                        validate = item.getBoolean("validate")
+                        validate = item.getBoolean("validate"),
+                        // Absent from a backup made before version 77: no identity, as the migration does
+                        identity_id = item.nullableString("identity_id")
                     )
                 )
             }
@@ -779,6 +802,8 @@ class BackupService(private val context: Context) : ExecutableService {
                         // last activity, as the migration does; present and null, a run that waits
                         seenAt = if (!item.has("seen_at")) item.getLong("last_activity") else if (item.isNull("seen_at")) null else item.getLong("seen_at"),
                         summary = if (item.isNull("summary")) null else item.getString("summary"),
+                        // Absent from a backup made before version 77: the app's own AI, as the migration does
+                        identityId = item.nullableString("identity_id"),
                         appStateSnapshot = item.optString("app_state_snapshot", null)
                     )
                 )
@@ -844,7 +869,29 @@ class BackupService(private val context: Context) : ExecutableService {
                         // Absent from a backup made before version 70: an automation reaching everything
                         accessJson = item.optString("access_json", "[]"),
                         // Absent from a backup made before version 76: every run signalled, as the migration does
-                        notifyEnd = item.optString("notify_end", app.treelune.core.ai.data.AutomationSettings.NOTIFY_ALWAYS)
+                        notifyEnd = item.optString("notify_end", app.treelune.core.ai.data.AutomationSettings.NOTIFY_ALWAYS),
+                        // Absent from a backup made before version 77: the app's own AI, as the migration does
+                        identityId = item.nullableString("identity_id")
+                    )
+                )
+            }
+        }
+
+        // Identities; absent before v77
+        data.optJSONArray("identities")?.let { array ->
+            for (i in 0 until array.length()) {
+                val item = array.getJSONObject(i)
+                database.identityDao().upsert(
+                    app.treelune.core.identities.IdentityEntity(
+                        id = item.getString("id"),
+                        name = item.getString("name"),
+                        iconName = item.getString("icon_name"),
+                        iconColor = item.nullableString("icon_color"),
+                        language = item.getString("language"),
+                        languagesJson = item.getString("languages_json"),
+                        publishedAt = item.nullableString("published_at"),
+                        createdAt = item.getLong("created_at"),
+                        updatedAt = item.getLong("updated_at")
                     )
                 )
             }
@@ -1120,6 +1167,10 @@ class BackupService(private val context: Context) : ExecutableService {
         }
     }
 }
+
+/** The text under [key], or null when absent or null. */
+private fun JSONObject.nullableString(key: String): String? =
+    if (has(key) && !isNull(key)) getString(key) else null
 
 /** A price stored in a backup, or null when absent: an unknown price, never 0. */
 private fun JSONObject.optPrice(key: String): Double? =

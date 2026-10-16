@@ -2107,4 +2107,25 @@
     <string name="time_short_minutes">%1$d min</string>
     <string name="time_short_hours">%1$d h</string>
     <string name="time_short_days">%1$d d</string>
+
+    <!-- Identities (docs/design/incarnations.md) -->
+    <string name="identity_error_param">Identity: the parameter %1$s is required</string>
+    <string name="identity_error_not_found">No identity has the id %1$s</string>
+    <string name="identity_error_language">The language %1$s is not one of %2$s's (%3$s)</string>
+    <string name="identity_error_language_code">%1$s is not a language code (fr, en, pt-BR)</string>
+    <string name="identity_error_resource">%2$s has no resource %1$s in %3$s; its resources: %4$s</string>
+    <string name="identity_error_resource_key">A resource key is between 1 and %2$d characters: %1$s</string>
+    <string name="identity_error_resource_form">The resource %1$s is written whole: title, description and content, none of them empty</string>
+    <string name="identity_error_name_length">An identity's name is at most %1$d characters</string>
+    <string name="identity_import_not_json">This file is not a personae export: it does not read as JSON (%1$s)</string>
+    <string name="identity_import_field">This export does not read: %1$s is missing, empty or of another type</string>
+    <string name="identity_import_format">This export is in format %1$d, and the app reads format %2$d: update the app</string>
+    <string name="identity_import_no_language">This export holds no language</string>
+    <string name="in_use_zones">zones: %1$s</string>
+    <string name="in_use_routines">routines: %1$s</string>
+    <string name="in_use_refused">%1$s is still used (%2$s): change these first</string>
+    <string name="action_verbalize_identity_create">Creating the identity "%1$s"</string>
+    <string name="action_verbalize_identity_update">Changing the identity "%1$s"</string>
+    <string name="action_verbalize_identity_delete">Deleting the identity "%1$s"</string>
+    <string name="action_verbalize_identity_import">Importing an identity</string>
 </resources>
