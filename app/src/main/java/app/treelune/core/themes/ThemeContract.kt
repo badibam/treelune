@@ -231,6 +231,16 @@ interface ThemeContract {
     fun ReorderItem(lifted: Boolean, content: @Composable () -> Unit)
 
     /**
+     * The bar over a selected text, in place of Android's: its [actions] side by side, each a
+     * word a touch runs (copy, paste, cut, select all, and what Android adds for the text). Only
+     * its look, in a window of its own over the screen: what it holds, where it stands and when it
+     * shows are the core's (SelectionMenu). It stands out from whatever lies under it, and each
+     * action is a target for the finger.
+     */
+    @Composable
+    fun SelectionBar(actions: List<SelectionAction>)
+
+    /**
      * The actual color a tag color name takes in [mode], for the swatches a color is chosen from.
      * Every name of TagColor has one in both modes; a hue shift leaves it as it is, its hue being
      * its meaning.

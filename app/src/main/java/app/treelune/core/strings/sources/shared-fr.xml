@@ -542,6 +542,12 @@
     <string name="message_no_items_in_group">Aucun élément dans ce groupe</string>
     <string name="error_tooltype_not_found">Type d'outil '%1$s' introuvable</string>
     <string name="text_copied">Copié</string>
+    <!-- The bar over a selected text (SelectionMenu) -->
+    <string name="text_selection_cut">Couper</string>
+    <string name="text_selection_copy">Copier</string>
+    <string name="text_selection_paste">Coller</string>
+    <string name="text_selection_select_all">Tout sélectionner</string>
+    <string name="text_selection_autofill">Saisie automatique</string>
     <string name="duplicate_success_tool">Outil dupliqué avec succès</string>
     <string name="duplicate_success_automation">Routine dupliquée avec succès</string>
     <string name="duplicate_no_tools">Aucun outil disponible à dupliquer</string>
