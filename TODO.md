@@ -88,6 +88,8 @@ Une idée sans spec : elle demande une décision avant du code.
 
 - Un système d'events du cœur, intégré au planificateur, avec une section par zone : un lien entre outils qui passe par le cœur (par une automation, par exemple). Déclencheurs d'une exécution : `SCHEDULE`, `MANUAL`, `EVENT` — revoir ceux des automations (ce qui est un déclencheur y est traité de façon inégale). Un event peut naître du planning d'un outil, et nomme l'outil qui l'a déclenché pour qu'on y aille en un geste ; des events système, sur le même modèle. Les constantes sont à penser avec. L'Alerte et l'automation directe le croisent.
 
+- Dessiner le gras et l'italique des textes lus (identités, Guide) : le lecteur (`GuideMarkup`) retire leurs marques, les thèmes ne dessinant qu'un texte simple (`ThemeContract.Text`) ; l'étendre à un texte mis en forme dans les trois thèmes, la police du rétro comprise.
+
 ### Documentation
 
 - Traduire la doc en anglais.
