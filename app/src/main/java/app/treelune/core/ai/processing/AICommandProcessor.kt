@@ -252,7 +252,7 @@ class AICommandProcessor(private val context: Context) {
             // An import of a joined file, following the AI's declaration: the file read by the service itself
             "IMPORT_DATA" -> importCommand(command)
             "UPDATE_APP_CONFIG" -> appConfigCommand(command)
-            "CREATE_IDENTITY", "UPDATE_IDENTITY", "DELETE_IDENTITY" -> ExecutableCommand(
+            "CREATE_IDENTITY", "UPDATE_IDENTITY", "DELETE_IDENTITY", "IMPORT_IDENTITY" -> ExecutableCommand(
                 resource = "identities",
                 operation = command.type.substringBefore('_').lowercase(),
                 params = command.params,
@@ -355,7 +355,7 @@ class AICommandProcessor(private val context: Context) {
             "CREATE_AUTOMATION", "UPDATE_AUTOMATION", "DELETE_AUTOMATION" -> automationCommand(command, stored = false)
             "IMPORT_DATA" -> importCommand(command)
             "UPDATE_APP_CONFIG" -> appConfigCommand(command)
-            "CREATE_IDENTITY", "UPDATE_IDENTITY", "DELETE_IDENTITY" -> ExecutableCommand(
+            "CREATE_IDENTITY", "UPDATE_IDENTITY", "DELETE_IDENTITY", "IMPORT_IDENTITY" -> ExecutableCommand(
                 resource = "identities",
                 operation = command.type.substringBefore('_').lowercase(),
                 params = command.params,

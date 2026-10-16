@@ -2,7 +2,7 @@
 
 An identity is a character Treelune's AI can speak as: its voice (how it speaks), its mind (how it thinks), its portrait (who it is), and its resources, texts it reads when it needs them (a vocabulary, a list of references). The AI still does the work in the app; the identity gives its answers their voice.
 
-An identity file holds one identity, in one or several languages. Anyone can write one, by hand or with a tool of their own: the app imports it in Settings › Identities › Import, whoever made it. This document is the whole contract. Its JSON Schema is [`schemas/identity-file.schema.json`](schemas/identity-file.schema.json), to check a file before sharing it.
+An identity file holds one identity, in one or several languages. Anyone can write one, by hand or with a tool of their own: the app imports it in Settings › Identities › Import, whoever made it. An AI working in the app through its MCP connector imports it too, with the tool `import_identity` (the file's text, the language it speaks, and `replace: true` to replace an identity already there), under the access and the protections the person set for that connector. This document is the whole contract. Its JSON Schema is [`schemas/identity-file.schema.json`](schemas/identity-file.schema.json), to check a file before sharing it.
 
 ## An example
 

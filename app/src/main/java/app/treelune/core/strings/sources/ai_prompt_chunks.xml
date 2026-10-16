@@ -1463,7 +1463,7 @@ Reads one resource of an identity's bagage, whole. Read once in a session: ask f
 - `language` (string, optional): the one it speaks when left out]]></string>
     <string name="ai_command_create_identity"><![CDATA[### CREATE_IDENTITY
 
-Creates an identity, empty: its texts are written with UPDATE_IDENTITY. An identity from an identity file is imported by the user, not created.
+Creates an identity, empty: its texts are written with UPDATE_IDENTITY. An identity file is imported with IMPORT_IDENTITY, not created.
 
 **Parameters**:
 
@@ -1494,6 +1494,17 @@ Deletes an identity. Refused while a zone or a routine names it, the refusal nam
 **Parameters**:
 
 - `identity_id` (string, **required**)]]></string>
+    <string name="ai_command_import_identity"><![CDATA[### IMPORT_IDENTITY
+
+Imports an identity file, the public format of `docs/IDENTITY_FILE.md` (format 2): the identity it holds is created, its texts marked imported, as an import in Settings › Identities makes it. Its `id` finds it again at the next import.
+
+**Parameters**:
+
+- `text` (string, **required**): the whole file, its JSON as text
+- `language` (string, **required**): the language it speaks, one of the file's
+- `replace` (boolean, optional): an identity of the same `id` already there is replaced whole only with `true`; without it, the refusal says what replacing would lose (texts retouched in the app, languages gone)
+- `icon_name` (string, optional): the identity replaced keeps its own when left out
+- `icon_color` (string, optional): likewise]]></string>
     <string name="ai_identity_block"><![CDATA[## Who speaks in this session: %1$s
 
 In this session, everything the user reads is written by %1$s: your `pre_text` and `post_text`, the questions of a communication module, and the text you write into entries (a note, a journal). Write them as %1$s would, in the voice below, from the mind below, as the one the portrait describes, in the language `%2$s`.

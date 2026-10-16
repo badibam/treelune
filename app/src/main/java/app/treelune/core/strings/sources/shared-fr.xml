@@ -2139,6 +2139,7 @@
     <string name="identity_import_format">Ce fichier est au format %1$d, et l'app lit le format %2$d</string>
     <string name="identity_import_no_language">Ce fichier ne contient aucune langue</string>
     <string name="identity_import_no_text">Ce fichier ne contient aucun texte en %1$s : une langue a au moins une voix, un esprit ou un portrait</string>
+    <string name="identity_import_replace_needed">L'identité %1$s est déjà là : l'importer la remplace en entier, avec replace: true. Perdu alors (textes retouchés, langues retirées) : %2$s</string>
     <string name="in_use_zones">zones : %1$s</string>
     <string name="in_use_routines">routines : %1$s</string>
     <string name="in_use_refused">%1$s sert encore (%2$s) : change-les d'abord</string>

@@ -150,7 +150,9 @@ object AICommands {
             p("identity_id", "string", true), p("name", "string"), p("icon_name", "string"), p("icon_color", "string"),
             p("language", "string"), p("section", "string"), p("voice", "string"), p("mind", "string"), p("portrait", "string"),
             p("resources", "object")),
-        action("DELETE_IDENTITY", p("identity_id", "string", true))
+        action("DELETE_IDENTITY", p("identity_id", "string", true)),
+        action("IMPORT_IDENTITY", p("text", "string", true), p("language", "string", true), p("replace", "boolean"),
+            p("icon_name", "string"), p("icon_color", "string"))
     )
 
     private val byType = ALL.associateBy { it.type }

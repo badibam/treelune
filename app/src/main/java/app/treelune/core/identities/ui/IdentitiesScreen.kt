@@ -113,7 +113,7 @@ fun IdentitiesScreen(onBack: () -> Unit) {
     importing?.let { (text, preview) ->
         ImportDialog(preview, onDismiss = { importing = null }) { language ->
             scope.launch {
-                val result = coordinator.processUserAction("identities.import", mapOf("text" to text, "language" to language))
+                val result = coordinator.processUserAction("identities.import", mapOf("text" to text, "language" to language, "replace" to true))
                 if (result.isSuccess) {
                     importing = null
                     UI.Toast(context, s.shared("identity_import_done"), Duration.SHORT)

@@ -2139,6 +2139,7 @@
     <string name="identity_import_format">This file is in format %1$d, and the app reads format %2$d</string>
     <string name="identity_import_no_language">This file holds no language</string>
     <string name="identity_import_no_text">This file holds no text in %1$s: a language has at least a voice, a mind or a portrait</string>
+    <string name="identity_import_replace_needed">The identity %1$s is already there: importing replaces it whole, with replace: true. Lost then (retouched texts, languages gone): %2$s</string>
     <string name="in_use_zones">zones: %1$s</string>
     <string name="in_use_routines">routines: %1$s</string>
     <string name="in_use_refused">%1$s is still used (%2$s): change these first</string>

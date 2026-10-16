@@ -31,8 +31,9 @@ import java.util.UUID
  * - delete: `identity_id`; refused while a zone or a routine names it (InUse)
  * - import_preview: `text`, an identity file (docs/IDENTITY_FILE.md); what it holds, and what
  *   replacing the identity of its id would lose
- * - import: `text`, `language` (one of the file's); replaces the identity of its id whole, its
- *   icon kept, or creates it
+ * - import: `text`, `language` (one of the file's), `replace`; creates the identity, or replaces
+ *   the one of its id whole, its icon kept — only with `replace`, the refusal saying otherwise what
+ *   replacing loses, as the screen's confirmation does
  */
 class IdentityService(private val context: Context) : ExecutableService {
 
@@ -247,6 +248,10 @@ class IdentityService(private val context: Context) : ExecutableService {
         val language = params.optString("language").takeIf { it.isNotEmpty() } ?: throw Refused(s.shared("identity_error_param").format("language"))
         if (language !in read.languages) throw Refused(s.shared("identity_error_language").format(language, read.name, read.languages.keys.joinToString(", ")))
         val existing = dao.getById(read.id)?.toIdentity()
+        if (existing != null && !params.optBoolean("replace", false)) {
+            val lost = (existing.retouched() + (existing.languages.keys - read.languages.keys)).joinToString(", ").ifEmpty { "-" }
+            throw Refused(s.shared("identity_import_replace_needed").format(existing.name, lost))
+        }
         val now = System.currentTimeMillis()
         val identity = Identity(
             id = read.id,

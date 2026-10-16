@@ -105,7 +105,7 @@ class ValidationResolver(private val context: Context) {
             // The app's level: the zones and the home screen's groups. A zone's tool groups are its own content.
             "CREATE_ZONE", "DELETE_ZONE", "UPDATE_APP_CONFIG" -> appReason(levels)
             // The identities are the app's, as its zones
-            "CREATE_IDENTITY", "UPDATE_IDENTITY", "DELETE_IDENTITY" -> appReason(levels)
+            "CREATE_IDENTITY", "UPDATE_IDENTITY", "DELETE_IDENTITY", "IMPORT_IDENTITY" -> appReason(levels)
             "UPDATE_ZONE" -> {
                 val zoneId = params["zone_id"] as? String ?: error(s.shared("validation_reason_no_target"))
                 val content = setOf("zone_id", "tool_groups", "renames")

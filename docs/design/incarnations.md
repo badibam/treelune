@@ -22,7 +22,7 @@ Tailles du premier export de personae, `stan-prokopenko` (2026-10-16, `en` et `f
 
 ## L'import
 
-- Dans les réglages de l'app, et nulle part ailleurs.
+- Dans les réglages de l'app, ou par la commande `IMPORT_IDENTITY` (l'IA de l'app, un client du connecteur), qui passe par le même lecteur et demande `replace: true` pour remplacer une identité déjà là, le refus disant sinon ce qui serait perdu ; écrire une identité est une action du niveau de l'app, sous son accès et sa protection.
 - Un fichier retrouve l'identité déjà là par son `id`. Avant de remplacer, l'app montre les deux `published_at` quand les fichiers les donnent, les langues gagnées ou perdues, et nomme les morceaux retouchés à la main qui seront perdus ; l'utilisateur confirme. Un fichier plus ancien est signalé, pas refusé : c'est le retour en arrière.
 - **Une réimportation remplace tout**, sans fusion morceau par morceau.
 - Un `format` que l'app ne connaît pas est refusé, en le disant. Au `format` connu, un champ attendu absent ou d'un autre type est refusé, le champ en cause nommé ; un champ en plus est ignoré, un producteur pouvant en ajouter sans monter `format`. Jamais d'import partiel.
