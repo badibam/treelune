@@ -30,7 +30,7 @@ object SchemaNotation {
     private val WRITTEN = setOf(
         "type", "properties", "required", "title", "description", "default", "enum", "const",
         "oneOf", "items", "minimum", "maximum", "minLength", "maxLength", "minItems", "maxItems",
-        "uniqueItems", "multipleOf", "pattern", "format", "system_managed", SettingsSchemaGenerator.SECRET, FIELD_DEFINITIONS
+        "uniqueItems", "multipleOf", "pattern", "format", "system_managed", app.treelune.core.fields.AI_READ_ONLY, SettingsSchemaGenerator.SECRET, FIELD_DEFINITIONS
     )
 
     /** Implied by the legend: only the keys listed are accepted. */
@@ -165,6 +165,7 @@ object SchemaNotation {
         // write when nothing else is meant, since its absence is refused
         schema.opt("default")?.let { bits += (if (required) "suggested " else "default ") + if (it is String) "\"$it\"" else it.toString() }
         if (schema.optBoolean("system_managed")) bits += "written by the app, never sent"
+        if (schema.optBoolean(app.treelune.core.fields.AI_READ_ONLY)) bits += "entered by the user, read only: never sent"
         if (schema.optBoolean("secret")) bits += "secret, never shown"
         return if (bits.isEmpty()) "" else " [${bits.joinToString(", ")}]"
     }

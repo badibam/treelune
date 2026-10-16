@@ -35,7 +35,8 @@ data class Criterion(
         FieldDefinition(
             name = key, displayName = name, description = instructions,
             type = FieldType.valueOf(declared.getString("type")), alwaysVisible = true,
-            config = declared.optJSONObject("config")?.toFieldConfig()
+            config = declared.optJSONObject("config")?.toFieldConfig(),
+            aiReadOnly = declared.optBoolean(app.treelune.core.fields.AI_READ_ONLY, false)
         )
     }
 

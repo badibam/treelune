@@ -63,6 +63,9 @@ object GoalToolType : ToolTypeContract {
     /** The data key of the definition's copy, a JSON text. */
     const val DEFINITION = "definition"
 
+    /** The setting that closes validating and reopening an attempt to the AI. */
+    const val AI_NO_VALIDATION = "ai_no_validation"
+
     /** The types a value entered in an attempt takes: those a condition compares. */
     private val ENTERED_TYPES = listOf(FieldType.BOOLEAN, FieldType.NUMERIC, FieldType.SCALE, FieldType.DURATION,
         FieldType.CHOICE, FieldType.TEXT, FieldType.DATE, FieldType.TIME)
@@ -83,7 +86,7 @@ object GoalToolType : ToolTypeContract {
 
     /** The settings and fields a validation error may name, by their key. */
     private val LABELS = setOf(
-        "criteria", "sub_goals", "at_least", "start", "deadline", "schedule", "duration", "enabled", "expiry_delay", "notify",
+        "criteria", "sub_goals", "at_least", "start", "deadline", "schedule", "duration", "enabled", "expiry_delay", "notify", AI_NO_VALIDATION,
         "essential", Criterion.ENTERED, Criterion.CONDITION, "instructions",
         DEFINITION, STATUS, PERIOD_END, JUDGEMENT, VALIDATED_BY, VALIDATED_AT, REOPENED_AT, NOTIFIED
     )
@@ -140,7 +143,8 @@ object GoalToolType : ToolTypeContract {
                 SettingNode.Field(field("duration", s.tool("field_duration"), FieldType.DURATION, s.tool("schema_duration"))),
                 SettingNode.Field(field("enabled", s.tool("field_enabled"), FieldType.BOOLEAN, s.tool("schema_enabled")), required = true, default = true),
                 SettingNode.Field(field("expiry_delay", s.tool("field_expiry_delay"), FieldType.DURATION, s.tool("schema_expiry_delay")), required = true, default = DEFAULT_EXPIRY),
-                SettingNode.Field(field("notify", s.tool("field_notify"), FieldType.BOOLEAN, s.tool("schema_notify")), required = true, default = true)
+                SettingNode.Field(field("notify", s.tool("field_notify"), FieldType.BOOLEAN, s.tool("schema_notify")), required = true, default = true),
+                SettingNode.Field(field(AI_NO_VALIDATION, s.tool("field_$AI_NO_VALIDATION"), FieldType.BOOLEAN, s.tool("schema_$AI_NO_VALIDATION")), default = false)
             ))
         )
     }
@@ -210,6 +214,23 @@ object GoalToolType : ToolTypeContract {
         }
         return completed
     }
+
+    /**
+     * Whether validating or reopening an attempt of the goal of [config] is refused to a call of
+     * [origin]: the AI, a routine or an AI come through the MCP server, when the goal closes its
+     * validation to the AI. Reading where an attempt stands (evaluate) stays open.
+     */
+    fun closedToAi(config: JSONObject, origin: app.treelune.core.coordinator.Source): Boolean =
+        config.optBoolean(AI_NO_VALIDATION, false) && app.treelune.core.fields.AiReadOnly.refuses(origin)
+
+    /** Whether [after] opens to the AI the validation [before] closes to it. */
+    fun validationOpened(before: JSONObject, after: JSONObject): Boolean =
+        before.optBoolean(AI_NO_VALIDATION, false) && !after.optBoolean(AI_NO_VALIDATION, false)
+
+    /** Closing the validation to the AI is anyone's, opening it again a person's. */
+    override fun refuseConfigChange(before: JSONObject, after: JSONObject, byAPerson: Boolean, context: Context): String? =
+        if (byAPerson || !validationOpened(before, after)) null
+        else s(context).shared("service_error_protection_user_only").format(s(context).tool("field_$AI_NO_VALIDATION"))
 
     /** A validated or expired attempt is locked: only its own operation, reopening it, changes it. */
     override fun refuseChange(entry: ToolDataEntity, context: Context): String? =

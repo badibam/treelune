@@ -34,6 +34,8 @@
     <string name="schema_expiry_delay">How long an attempt waits to be validated before it expires, which is not a failure</string>
     <string name="field_notify">Notify</string>
     <string name="schema_notify">A notification when an attempt is to be validated, once</string>
+    <string name="field_ai_no_validation">Validation closed to the AI</string>
+    <string name="schema_ai_no_validation">The AI sees where an attempt stands, but neither validates nor reopens it</string>
     <string name="field_definition">Definition</string>
     <string name="schema_definition">The copy of the goal an attempt was judged by, written by the app</string>
     <string name="field_status">Status</string>
@@ -55,14 +57,15 @@
     <string name="validated_by_external">by an outside AI</string>
     <string name="validated_by_ai">by the AI</string>
     <string name="field_attempt">Attempt</string>
-    <string name="operation_validate">Validates an attempt: computes and freezes its verdict and the values read. Refused while a criterion has no value</string>
-    <string name="operation_reopen">Reopens a validated or expired attempt, to correct it; it stays in its history</string>
+    <string name="operation_validate">Validates an attempt: computes and freezes its verdict and the values read. Refused while a criterion has no value, and to the AI when the goal closes its validation to it</string>
+    <string name="operation_reopen">Reopens a validated or expired attempt, to correct it; it stays in its history. Refused to the AI when the goal closes its validation to it</string>
     <string name="verbalize_validate">Validating an attempt</string>
     <string name="verbalize_reopen">Reopening an attempt</string>
     <string name="verbalize_evaluate">Reading an attempt</string>
     <string name="error_locked">This attempt is validated or expired: reopen it to change it.</string>
     <string name="error_not_locked">This attempt is not validated: there is nothing to reopen.</string>
     <string name="error_validate_origin">Only a person or an AI validates an attempt.</string>
+    <string name="error_ai_no_validation">This goal\'s validation is closed to the AI: only the user validates or reopens an attempt, in the app. Where it stands can still be read (evaluate).</string>
     <string name="error_verdict_unknown">The verdict cannot be computed yet: %1$s</string>
     <string name="notification_to_validate">An attempt is to be validated</string>
     <string name="no_attempt">No attempt in progress</string>

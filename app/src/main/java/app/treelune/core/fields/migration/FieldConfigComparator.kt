@@ -143,7 +143,7 @@ object FieldConfigComparator {
                 }
             }
 
-            // Check for cosmetic changes only (display_name, description, always_visible)
+            // Check for cosmetic changes only (display_name, description, always_visible, ai_read_only)
             if (isCosmeticChange(oldField, newField)) {
                 changes.add(FieldChange.CosmeticChange(name))
             }
@@ -224,6 +224,7 @@ object FieldConfigComparator {
      * - displayName
      * - description
      * - alwaysVisible
+     * - aiReadOnly (who writes it, not what it holds)
      *
      * Non-cosmetic properties (affect data structure/validation):
      * - name (identifier, cannot change)
@@ -241,7 +242,8 @@ object FieldConfigComparator {
         // Check if cosmetic properties changed
         val cosmeticChanged = oldField.displayName != newField.displayName ||
                 oldField.description != newField.description ||
-                oldField.alwaysVisible != newField.alwaysVisible
+                oldField.alwaysVisible != newField.alwaysVisible ||
+                oldField.aiReadOnly != newField.aiReadOnly
 
         // Check if structural properties unchanged
         val structuralUnchanged = oldField.name == newField.name &&

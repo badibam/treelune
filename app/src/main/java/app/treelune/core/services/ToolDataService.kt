@@ -1,6 +1,7 @@
 package app.treelune.core.services
 
 import app.treelune.core.fields.EntryFields
+import app.treelune.core.fields.AiReadOnly
 import app.treelune.core.fields.CoreFields
 import app.treelune.core.fields.toJson
 import app.treelune.core.fields.EntryStart
@@ -110,6 +111,7 @@ class ToolDataService(private val context: Context) : ExecutableService {
             is WriteTarget.Refused -> return OperationResult.error(loaded.error)
             is WriteTarget.Ready -> loaded
         }
+        aiReadOnlyRefusal(target, params.optJSONObject("data"), params.optJSONObject("extra"))?.let { return OperationResult.error(it) }
         // System-managed at the root of an entry: taken from the tool, never from the caller
         val tooltype = target.tool.tooltype
 
@@ -358,6 +360,7 @@ class ToolDataService(private val context: Context) : ExecutableService {
             is WriteTarget.Refused -> return OperationResult.error(loaded.error)
             is WriteTarget.Ready -> loaded
         }
+        aiReadOnlyRefusal(target, params.optJSONObject("data"), params.optJSONObject("extra"))?.let { return OperationResult.error(it) }
 
         // Payloads arrive in milliseconds from every caller, so they are stored as they come.
         // Fields the schema marks system-managed are the app's to produce: kept from the app
@@ -963,6 +966,7 @@ class ToolDataService(private val context: Context) : ExecutableService {
         if (token.isCancelled) return OperationResult.cancelled()
         val located = locateDuration(params) ?: return OperationResult.error(durationError(params))
         val (entity, target, container, field) = located
+        durationAiReadOnlyRefusal(target, container, field)?.let { return OperationResult.error(it) }
         if (RunningDurations.startedAt(entity.state?.let { JSONObject(it) }, container, field) != null) {
             return OperationResult.error(s.shared("service_error_duration_running").format(field))
         }
@@ -983,6 +987,7 @@ class ToolDataService(private val context: Context) : ExecutableService {
         if (token.isCancelled) return OperationResult.cancelled()
         val located = locateDuration(params) ?: return OperationResult.error(durationError(params))
         val (entity, target, container, field) = located
+        durationAiReadOnlyRefusal(target, container, field)?.let { return OperationResult.error(it) }
         val state = entity.state?.let { JSONObject(it) }
         if (RunningDurations.startedAt(state, container, field) == null) {
             return OperationResult.error(s.shared("service_error_duration_not_running").format(field))
@@ -1028,6 +1033,12 @@ class ToolDataService(private val context: Context) : ExecutableService {
         }
         if (fields.none { it.name == field && it.type == FieldType.DURATION }) return null
         return LocatedDuration(entity, target, container, field)
+    }
+
+    /** The refusal of a start or a stop of the AI on a field it only reads (AiReadOnly). */
+    private suspend fun durationAiReadOnlyRefusal(target: WriteTarget.Ready, container: FieldContainer, field: String): String? {
+        val touched = JSONObject().put(field, true)
+        return aiReadOnlyRefusal(target, touched.takeIf { container == FieldContainer.DATA }, touched.takeIf { container == FieldContainer.EXTRA })
     }
 
     private fun durationError(params: JSONObject): String =
@@ -1222,6 +1233,17 @@ class ToolDataService(private val context: Context) : ExecutableService {
 
     /** The fields the tool type declares in the entries' data, for [target]'s config. */
     private fun declaredFields(target: WriteTarget.Ready): List<FieldDefinition> = target.declaredFields
+
+    /**
+     * The refusal of a write of the AI, a routine or an AI come through the MCP server that holds
+     * fields the AI only reads (AiReadOnly), in [data] or [extra]; null for any other write. The
+     * whole write is refused: written without them, the AI would take its values for recorded.
+     */
+    private suspend fun aiReadOnlyRefusal(target: WriteTarget.Ready, data: JSONObject?, extra: JSONObject?): String? {
+        if (!AiReadOnly.refuses(app.treelune.core.coordinator.currentOrigin())) return null
+        val held = AiReadOnly.held(data, declaredFields(target)) + AiReadOnly.held(extra, userFields(target))
+        return if (held.isEmpty()) null else s.shared("service_error_ai_read_only").format(AiReadOnly.named(held))
+    }
 
     /** The user's fields of [target], from its config's extra_fields. */
     private fun userFields(target: WriteTarget.Ready): List<FieldDefinition> = target.userFields

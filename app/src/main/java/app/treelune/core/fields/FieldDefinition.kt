@@ -22,6 +22,8 @@ import org.json.JSONObject
  * @property defaultValue A value of this field, in its stored form, suggested for a new entry:
  *   the form prefills it, a quick action applies it, the AI reads it in the schema. Never written
  *   by the service on its own: an absent value means "no answer" (docs/DATA.md)
+ * @property aiReadOnly Whether the AI only reads it: a write of the AI, a routine or an AI come
+ *   through the MCP server that holds it is refused (AiReadOnly); the rest of the app writes it
  */
 data class FieldDefinition(
     val name: String,
@@ -30,8 +32,12 @@ data class FieldDefinition(
     val type: FieldType,
     val alwaysVisible: Boolean,
     val config: Map<String, Any>?,
-    val defaultValue: Any? = null
+    val defaultValue: Any? = null,
+    val aiReadOnly: Boolean = false
 )
+
+/** The key of FieldDefinition.aiReadOnly, in a field's definition and in the schema of its value. */
+const val AI_READ_ONLY = "ai_read_only"
 
 /**
  * Converts this FieldDefinition to a JSONObject for storage/transmission.
@@ -53,6 +59,7 @@ fun FieldDefinition.toJson(): JSONObject {
             put("config", JSONObject(config))
         }
         defaultValue?.let { put("default_value", JSONObject.wrap(it)) }
+        if (aiReadOnly) put(AI_READ_ONLY, true)
     }
 }
 
@@ -76,7 +83,8 @@ fun JSONObject.toFieldDefinition(): FieldDefinition {
             },
             alwaysVisible = optBoolean("always_visible", false),
             config = optJSONObject("config")?.toFieldConfig(),
-            defaultValue = app.treelune.core.utils.JsonUtils.toValue(opt("default_value")?.takeIf { it != JSONObject.NULL })
+            defaultValue = app.treelune.core.utils.JsonUtils.toValue(opt("default_value")?.takeIf { it != JSONObject.NULL }),
+            aiReadOnly = optBoolean(AI_READ_ONLY, false)
         )
     } catch (e: ValidationException) {
         throw e
