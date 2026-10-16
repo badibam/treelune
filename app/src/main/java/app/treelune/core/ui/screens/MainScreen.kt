@@ -607,5 +607,6 @@ private fun zoneFrom(map: Map<String, Any?>): Zone = Zone(
     updated_at = (map["updated_at"] as Number).toLong(),
     tool_groups = (map["tool_groups"] as? List<*>)?.let { JsonUtils.toJSONArray(it).toString() },
     group = map["group"] as? String,
-    validate = map["validate"] as Boolean
+    validate = map["validate"] as Boolean,
+    identity_id = map["identity_id"] as? String
 )

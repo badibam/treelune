@@ -291,6 +291,28 @@ private fun ChatMode(
     }
     val composerEnabled = isComposerEnabled || (freeReply && aiState.phase == Phase.WAITING_COMMUNICATION_RESPONSE)
 
+    // Who it speaks as, fixed at its first message, and whether it can still go on: a session
+    // whose identity or provider is gone stays readable, its composer replaced by why
+    val identities = app.treelune.core.identities.ui.rememberIdentities()
+    val coordinator = remember { app.treelune.core.coordinator.Coordinator(context) }
+    var identityId by remember(session.id) { mutableStateOf<String?>(null) }
+    var fixed by remember(session.id) { mutableStateOf(true) }
+    var stopped by remember(session.id) { mutableStateOf<String?>(null) }
+    LaunchedEffect(session.id, aiState.phase, identities) {
+        val result = coordinator.processUserAction("ai_sessions.get_session", mapOf("session_id" to session.id))
+        val data = result.data?.get("session") as? Map<*, *> ?: return@LaunchedEffect
+        identityId = data["identity_id"] as? String
+        fixed = (result.data?.get("messages") as? List<*>).orEmpty().any { (it as Map<*, *>)["sender"] == MessageSender.USER.name }
+        val providerId = data["provider_id"] as String
+        val providerKept = coordinator.processUserAction("ai_provider_config.get", mapOf("provider_id" to providerId)).status == CommandStatus.SUCCESS
+        stopped = when {
+            identities != null && identityId != null && identities.none { it.id == identityId } -> s.shared("identity_session_gone")
+            // A conversation not begun says a missing provider when its first message is sent
+            fixed && !providerKept -> s.shared("ai_session_provider_gone")
+            else -> null
+        }
+    }
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -331,8 +353,12 @@ private fun ChatMode(
             )
         }
 
-        // Composer
-        UI.Card(type = CardType.DEFAULT) {
+        // Composer, or why the session cannot go on
+        if (stopped != null) UI.Card(type = CardType.DEFAULT) {
+            Box(modifier = Modifier.fillMaxWidth().padding(UI.Space.L)) {
+                UI.Text(text = stopped!!, type = TextType.BODY)
+            }
+        } else UI.Card(type = CardType.DEFAULT) {
             Column(
                 modifier = Modifier.padding(UI.Space.L)
             ) {
@@ -361,6 +387,16 @@ private fun ChatMode(
                             sessionType = session.type,
                             context = context
                         )
+                    },
+                    trailingControl = {
+                        app.treelune.core.identities.ui.IdentityChip(identities.orEmpty(), identityId, fixed) { chosen ->
+                            scope.launch {
+                                val result = coordinator.processUserAction("ai_sessions.set_identity",
+                                    mapOf("session_id" to session.id, "identity_id" to (chosen ?: org.json.JSONObject.NULL)))
+                                if (result.status == CommandStatus.SUCCESS) identityId = chosen
+                                else errorMessage = result.error
+                            }
+                        }
                     }
                 )
             }
@@ -623,7 +659,8 @@ private fun SeedMode(
                     "provider_id" to currentAutomation.providerId,
                     "seed_session_id" to currentAutomation.seedSessionId,
                     "notify_end" to currentAutomation.notifyEnd
-                ) + listOfNotNull(currentAutomation.group?.let { "group" to it }),
+                ) + listOfNotNull(currentAutomation.group?.let { "group" to it },
+                    currentAutomation.identityId?.let { app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID to it }),
                 onDismiss = { showEditAutomation = false },
                 onSuccess = { _ ->
                     showEditAutomation = false

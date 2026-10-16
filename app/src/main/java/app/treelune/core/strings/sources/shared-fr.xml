@@ -2137,4 +2137,7 @@
     <string name="ai_identity_already_read">Déjà lu dans cette session : c'est dans les messages plus haut</string>
     <string name="ai_prompt_level3_identities_title">Identités</string>
     <string name="identity_session_gone">L'identité de cette conversation a été supprimée : elle se relit, mais ne peut plus continuer</string>
+    <string name="label_none">Aucune</string>
+    <string name="identity_app_ai">L'IA de l'app</string>
+    <string name="ai_session_provider_gone">Le fournisseur d'IA de cette conversation a été retiré : elle se relit, mais ne peut plus continuer</string>
 </resources>

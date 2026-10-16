@@ -58,6 +58,7 @@ fun CreateAutomationDialog(
                 (automation?.get("provider_id") as? String)?.let { put("provider_id", it) }
                 (automation?.get("group") as? String)?.let { put("group", it) }
                 (automation?.get("notify_end") as? String)?.let { put("notify_end", it) }
+                (automation?.get(app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID) as? String)?.let { put(app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID, it) }
             } else {
                 preSelectedGroup?.let { put("group", it) }
             }
@@ -68,7 +69,7 @@ fun CreateAutomationDialog(
     val selectedGroup = settings.optString("group").ifEmpty { null }
     val settingsNodes = remember {
         app.treelune.core.ai.data.AutomationSettings.nodes(context).filter { node ->
-            node is app.treelune.core.fields.settings.SettingNode.Field && node.definition.name in setOf("name", "provider_id", "group", "notify_end")
+            node is app.treelune.core.fields.settings.SettingNode.Field && node.definition.name in setOf("name", "provider_id", app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID, "group", "notify_end")
         }
     }
     var selectedZoneId by rememberSaveable {
@@ -77,6 +78,10 @@ fun CreateAutomationDialog(
             else zoneId
         )
     }
+
+    // The identities its runs may speak as; a new routine starts with its zone's, shown preselected
+    val identities = app.treelune.core.identities.ui.rememberIdentities()
+    var identityPreselected by rememberSaveable { mutableStateOf(isEditMode) }
 
     // Load zone tool_groups (updates when selectedZoneId changes)
     var zoneToolGroups by remember { mutableStateOf<List<String>>(emptyList()) }
@@ -88,6 +93,12 @@ fun CreateAutomationDialog(
                 zoneToolGroups = (zoneData?.get("tool_groups") as? List<*>)
                     ?.mapNotNull { it as? String }
                     ?: emptyList()
+                if (!identityPreselected) {
+                    identityPreselected = true
+                    (zoneData?.get("identity_id") as? String)?.let {
+                        settings = org.json.JSONObject(settings.toString()).put(app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID, it)
+                    }
+                }
             }
         } catch (e: Exception) {
             LogManager.aiUI("Failed to load zone tool_groups: ${e.message}", "ERROR", e)
@@ -165,7 +176,8 @@ fun CreateAutomationDialog(
                             "name" to name,
                             "provider_id" to selectedProvider!!,
                             "group" to (selectedGroup ?: org.json.JSONObject.NULL),
-                            "notify_end" to (settings.optString("notify_end").ifEmpty { null } ?: org.json.JSONObject.NULL)
+                            "notify_end" to (settings.optString("notify_end").ifEmpty { null } ?: org.json.JSONObject.NULL),
+                            app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID to (settings.optString(app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID).ifEmpty { null } ?: org.json.JSONObject.NULL)
                         )
                         // Add zone_id if changed
                         if (selectedZoneId != currentZoneId) {
@@ -209,7 +221,8 @@ fun CreateAutomationDialog(
                             "is_enabled" to true
                         )
                         selectedGroup?.let { createParams["group"] = it }
-                        createParams[app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID] = org.json.JSONObject.NULL
+                        createParams[app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID] =
+                            settings.optString(app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID).ifEmpty { null } ?: org.json.JSONObject.NULL
                         settings.optString("notify_end").ifEmpty { null }?.let { createParams["notify_end"] = it }
 
                         val createAutomationResult = coordinator.processUserAction("automations.create", createParams)
@@ -271,6 +284,13 @@ fun CreateAutomationDialog(
                                 )
                             }
                         }
+                    }
+                },
+                app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID to object : app.treelune.core.fields.settings.SettingEditor {
+                    @Composable
+                    override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
+                        app.treelune.core.identities.ui.IdentitySelector(identities = identities.orEmpty(), selected = value as? String,
+                            onSelect = { onChange(it) }, label = s.shared("label_identity"), noneLabel = s.shared("identity_app_ai"))
                     }
                 },
                 "group" to object : app.treelune.core.fields.settings.SettingEditor {
