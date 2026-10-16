@@ -700,6 +700,14 @@
     <string name="field_config_ordered">Classement (les options dans un ordre choisi)</string>
     <string name="field_config_open">Ouvert (une valeur nouvelle rejoint les options)</string>
     <string name="field_choice_rank">%1$s. %2$s</string>
+    <string name="entry_text_field">%1$s : %2$s</string>
+    <string name="field_scale_line">%1$s : %2$s</string>
+    <string name="field_choice_marked_one">(x) %1$s</string>
+    <string name="field_choice_unmarked_one">( ) %1$s</string>
+    <string name="field_choice_marked_many">[x] %1$s</string>
+    <string name="field_choice_unmarked_many">[ ] %1$s</string>
+    <string name="field_time_am">AM</string>
+    <string name="field_time_pm">PM</string>
     <string name="field_choice_none">Aucun</string>
     <string name="field_choice_search">Chercher dans la liste</string>
     <string name="field_length_count">%1$d / %2$d</string>

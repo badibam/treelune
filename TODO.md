@@ -105,7 +105,6 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 
 ## Bugs du téléphone
 
-- "Copier" de journal n'inclut pas les chamos suppl car pas encore de repr textuelles des valeurs de champs. Il faut metrre ça en place.
 
 ## En attente d'un déclencheur
 

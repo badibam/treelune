@@ -161,6 +161,71 @@ fun FieldDefinition.formatValue(value: Any?, context: Context): String {
 }
 
 /**
+ * A value written out whole, to be read as text away from the app (an entry copied): what
+ * [formatValue] writes, but a scale drawn as a gauge between its bounds and a choice among its
+ * options. [formatValue] stays the short form, for a tile, a chart, a line.
+ *
+ * - a scale: `7 : (Bad) 0 [=======|---] 10 (Good)`, the gauge ten marks long;
+ * - a choice of a few fixed options: every option, the chosen ones marked, `(x)` for one answer,
+ *   `[x]` for several; past [DESCRIBED_OPTIONS] options, or for an open choice whose options grow
+ *   without end, the answers alone;
+ * - a ranking: the options in the order chosen, numbered.
+ */
+fun FieldDefinition.describeValue(value: Any?, context: Context): String {
+    val s = Strings.`for`(context = context)
+    if (value == null) return s.shared("label_no_value")
+    return when (type) {
+        FieldType.SCALE -> describeScale(value, config, s) ?: formatValue(value, context)
+        FieldType.CHOICE -> describeChoice(value, config, s) ?: formatValue(value, context)
+        else -> formatValue(value, context)
+    }
+}
+
+/** A choice's options all written out up to this many; past it, the answers alone. */
+const val DESCRIBED_OPTIONS = 8
+
+/** The marks of the gauge: filled up to the value, the value, empty after it. */
+private const val GAUGE_MARKS = 10
+
+/** A scale's value with its gauge, null for a value or a config that cannot draw one. */
+private fun describeScale(value: Any?, config: Map<String, Any>?, s: StringsContext): String? {
+    val number = (value as? Number)?.toDouble() ?: return null
+    val min = (config?.get("min") as? Number)?.toDouble() ?: return null
+    val max = (config?.get("max") as? Number)?.toDouble() ?: return null
+    if (max <= min) return null
+    val step = (config["step"] as? Number)?.toDouble() ?: 1.0
+    val decimals = app.treelune.core.ui.SliderSteps.decimals(min, step)
+    fun shown(n: Double) = String.format(java.util.Locale.getDefault(), "%.${decimals}f", n)
+    val line = listOfNotNull(
+        (config["min_label"] as? String)?.let { "($it)" }, shown(min), scaleGauge(number, min, max), shown(max),
+        (config["max_label"] as? String)?.let { "($it)" }
+    ).joinToString(" ")
+    return s.shared("field_scale_line").format(shown(number), line)
+}
+
+/**
+ * The gauge of [number] between [min] and [max]: filled up to it, the value marked, empty after,
+ * ten marks long whatever the scale, a value outside the bounds at the nearest end. A drawing,
+ * not words: the same in every language.
+ */
+internal fun scaleGauge(number: Double, min: Double, max: Double): String {
+    val filled = Math.round((number - min) / (max - min) * GAUGE_MARKS).toInt().coerceIn(0, GAUGE_MARKS)
+    return "[" + "=".repeat(filled) + "|" + "-".repeat(GAUGE_MARKS - filled) + "]"
+}
+
+/** A choice among its options, null when its answers alone are written (formatValue). */
+private fun describeChoice(value: Any?, config: Map<String, Any>?, s: StringsContext): String? {
+    val settings = ChoiceSettings.fromConfig(config)
+    if (settings.shape == ChoiceShape.ORDERED || settings.open || settings.options.size > DESCRIBED_OPTIONS) return null
+    val chosen = if (settings.shape.isList) (value as? List<*>)?.map { it.toString() } ?: return null else listOf(value.toString())
+    val (marked, unmarked) = if (settings.shape.isList) "field_choice_marked_many" to "field_choice_unmarked_many"
+                             else "field_choice_marked_one" to "field_choice_unmarked_one"
+    // An answer no longer among the options still shows, after them
+    val options = settings.options + chosen.filter { it !in settings.options }
+    return options.joinToString("  ") { option -> s.shared(if (option in chosen) marked else unmarked).format(settings.labelOf(option)) }
+}
+
+/**
  * Format NUMERIC value with exactly its decimals (72 with 2 decimals is 72.00) and its unit
  */
 private fun formatNumericValue(value: Any?, config: Map<String, Any>?, s: StringsContext): String {
@@ -201,8 +266,8 @@ private fun formatScaleValue(value: Any?, config: Map<String, Any>?, s: StringsC
 }
 
 /**
- * Format CHOICE value (one option, or a list of them in the order stored, which for a ranking
- * is the order chosen)
+ * Format CHOICE value (one option, or a list of them in the order stored; a ranking numbered in
+ * the order chosen)
  */
 private fun formatChoiceValue(value: Any?, config: Map<String, Any>?, s: StringsContext): String {
     val settings = ChoiceSettings.fromConfig(config)
@@ -210,6 +275,8 @@ private fun formatChoiceValue(value: Any?, config: Map<String, Any>?, s: Strings
         val list = value as? List<*>
         if (list.isNullOrEmpty()) {
             s.shared("label_no_value")
+        } else if (settings.shape == ChoiceShape.ORDERED) {
+            list.mapIndexed { i, option -> s.shared("field_choice_rank").format((i + 1).toString(), settings.labelOf(option.toString())) }.joinToString(", ")
         } else {
             list.joinToString(", ") { settings.labelOf(it.toString()) }
         }
@@ -286,7 +353,7 @@ private fun formatTimeValue(value: Any?, config: Map<String, Any>?, s: StringsCo
                 val hour24 = parts[0].toInt()
                 val minute = parts[1]
 
-                val period = if (hour24 < 12) "AM" else "PM"
+                val period = s.shared(if (hour24 < 12) "field_time_am" else "field_time_pm")
                 val hour12 = when {
                     hour24 == 0 -> 12
                     hour24 <= 12 -> hour24
@@ -327,7 +394,7 @@ private fun formatDateTimeValue(value: Any?, config: Map<String, Any>?, s: Strin
 
     val hour24 = timeParts[0].toInt()
     val minute = timeParts[1]
-    val period = if (hour24 < 12) "AM" else "PM"
+    val period = s.shared(if (hour24 < 12) "field_time_am" else "field_time_pm")
     val hour12 = when {
         hour24 == 0 -> 12
         hour24 <= 12 -> hour24

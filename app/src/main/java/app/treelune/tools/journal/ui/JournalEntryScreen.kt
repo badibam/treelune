@@ -437,13 +437,15 @@ fun JournalEntryScreen(
 
             // Action buttons in consultation mode (aligned right)
             app.treelune.core.ui.components.ButtonRow(align = Alignment.End) {
-                // The entry as text: its date, its title, its content
+                // The entry as text: its date, its title, its content, then the user's fields
                 UI.ActionButton(
                     action = ButtonAction.COPY,
                     display = ButtonDisplay.LABEL,
                     onClick = {
-                        UI.copy(context, listOf(DateFormatUtils.formatJournalDate(timestamp, context), title, content)
-                            .filter { it.isNotBlank() }.joinToString("\n\n"))
+                        coroutineScope.launch {
+                            UI.copy(context, app.treelune.core.fields.EntryText.of(
+                                listOf(DateFormatUtils.formatJournalDate(timestamp, context), title, content), toolConfig, customFieldsValues, context))
+                        }
                     }
                 )
 

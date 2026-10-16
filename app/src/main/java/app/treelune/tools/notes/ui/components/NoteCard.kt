@@ -1,5 +1,6 @@
 package app.treelune.tools.notes.ui.components
 
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -34,6 +35,7 @@ fun NoteCard(
 ) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(tool = "notes", context = context) }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
 
     // Determine card states
     val isPlaceholder = note == null
@@ -143,14 +145,14 @@ fun NoteCard(
                         }
                     )
 
-                    // The note as text: its title, when titles are shown, then its content
+                    // The note as text: its title, when titles are shown, its content, then the user's fields
                     UI.ActionButton(
                         action = ButtonAction.COPY,
                         display = ButtonDisplay.ICON,
                         size = Size.S,
                         onClick = {
                             onContextMenuChanged(false)
-                            UI.copy(context, listOfNotNull(title, note.content.trim().takeIf { it.isNotEmpty() }).joinToString("\n\n"))
+                            scope.launch { UI.copy(context, app.treelune.core.fields.EntryText.of(listOf(title, note.content), config, note.extra, context)) }
                         }
                     )
 
