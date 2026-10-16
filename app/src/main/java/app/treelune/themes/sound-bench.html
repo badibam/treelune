@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sons d'un thème</title>
+<!--
+  The sound bench of a theme (?theme=<id>), served by `./run themes` (docs/THEMES.md, Les sons).
+  It plays the library scripts/theme_sounds.py downloaded (tmp/sound-library/catalogue.json) and
+  edits the theme's sounds-choice.json, saved through the server: first the families kept for the
+  theme, then for each signal a shortlist and the one chosen, at the theme's gain and the signal's
+  offset, as the app will play them. The sounds each theme plays now are there to compare.
+-->
+<style>
+  :root { --ground: #f4f1ec; --panel: #fffdf9; --ink: #2b2620; --dim: #6b6358; --line: #d8d0c4; --on: #3d7a4a; --onink: #fff; --pick: #e3f0e3; }
+  @media (prefers-color-scheme: dark) { :root { --ground: #1e1a16; --panel: #29241f; --ink: #ece6dc; --dim: #a59c8f; --line: #3a332b; --on: #6fae7b; --onink: #10200f; --pick: #263a28; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ground); color: var(--ink); font: 15px/1.45 system-ui, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 16px 16px 80px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 17px; margin: 20px 0 6px; }
+  p.lead { margin: 0 0 10px; color: var(--dim); }
+  .bar { position: sticky; top: 0; z-index: 2; background: var(--ground); padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 6px; }
+  button { font: inherit; color: inherit; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 3px 10px; cursor: pointer; }
+  button.on { background: var(--on); border-color: var(--on); color: var(--onink); }
+  button.play { width: 30px; padding: 3px 0; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 2px 4px; }
+  .chip.chosen { border-color: var(--on); background: var(--pick); }
+  .group { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; margin: 8px 0; padding: 6px 10px; }
+  .group header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .group header b { flex: 1; min-width: 160px; }
+  .dim { color: var(--dim); font-size: 13px; }
+  .items { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 0 2px; }
+  input[type=search] { font: inherit; color: inherit; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; min-width: 180px; }
+  input[type=number] { width: 60px; font: inherit; color: inherit; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+  #status { color: var(--dim); }
+</style>
+</head>
+<body>
+<main>
+  <h1 id="title">Sons d'un thème</h1>
+  <p class="lead">1. <b>Familles</b> : retenir celles qui vont au thème (▶ enchaîne une famille). 2. <b>Un signal</b> : dans les familles retenues, ▶ écoute, le nom ajoute à la présélection ; dans la présélection, ★ choisit, ✕ retire, le décalage en dB ne vaut que pour ce signal. Tout s'entend au gain du thème, comme dans l'app. « Enregistrer » écrit sounds-choice.json ; puis <code>scripts/theme_sounds.py make &lt;id&gt;</code>.</p>
+  <div class="bar">
+    <div class="row" id="tabs"></div>
+    <div class="row" id="short"></div>
+    <div class="row">
+      <label>Gain du thème <input id="gain" type="range" min="-30" max="0" step="1"> <span id="gainLabel"></span></label>
+      <input id="q" type="search" placeholder="Filtrer (click, glass…)" aria-label="Filtrer les sons">
+      <label><input id="allFamilies" type="checkbox"> toutes les familles</label>
+      <button id="save">Enregistrer</button> <span id="status"></span>
+    </div>
+  </div>
+  <div id="body"></div>
+</main>
+<script>
+const THEME = new URLSearchParams(location.search).get("theme");
+const ROOT = "/";
+const CHOICE_URL = `${ROOT}app/src/main/java/app/treelune/themes/${THEME}/sounds-choice.json`;
+const S = { cat: null, doc: null, tab: "families", q: "", all: false };
+const $ = id => document.getElementById(id);
+const el = (tag, props = {}, ...kids) => { const e = Object.assign(document.createElement(tag), props); e.append(...kids); return e; };
+
+let player = null;
+function play(file, db) {
+  if (player) player.pause();
+  player = new Audio(ROOT + file);
+  player.volume = Math.min(1, Math.pow(10, db / 20));
+  player.play();
+  return player;
+}
+const gain = () => Number(S.doc.gain_db ?? 0);
+const signalOf = s => (S.doc.signals[s] ??= { choice: null, offset_db: 0, shortlist: [] });
+const byId = id => S.cat.sounds.find(x => x.id === id);
+const playId = (id, sig) => { const x = byId(id); if (x) play(x.file, gain() + (sig ? Number(signalOf(sig).offset_db || 0) : 0)); };
+async function playAll(items) {
+  for (const x of items) { await new Promise(done => { const a = play(x.file, gain()); a.onended = done; a.onerror = done; }); }
+}
+
+function families() {
+  const groups = new Map();
+  for (const x of S.cat.sounds) {
+    if (x.theme && x.theme !== THEME) continue;
+    const key = x.theme ? x.family : `${x.source} · ${x.family}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(x);
+  }
+  return groups;
+}
+const kept = key => S.doc.families.includes(key);
+
+function renderTabs() {
+  const tabs = $("tabs"); tabs.replaceChildren();
+  const tab = (key, label) => tabs.append(el("button", { className: S.tab === key ? "on" : "", textContent: label, onclick: () => { S.tab = key; render(); } }));
+  tab("families", `Familles (${S.doc.families.length})`);
+  for (const s of S.cat.signals) tab(s, `${s}${signalOf(s).choice ? " ★" : ""}`);
+}
+
+function renderShort() {
+  const box = $("short"); box.replaceChildren();
+  if (S.tab === "families") return;
+  const sig = signalOf(S.tab);
+  const now = S.cat.current?.[S.tab] ?? {};
+  for (const [theme, file] of Object.entries(now)) {
+    box.append(el("span", { className: "chip" }, el("button", { className: "play", textContent: "▶", onclick: () => play(file, 0) }), `${theme} actuel`));
+  }
+  for (const id of sig.shortlist) {
+    const chip = el("span", { className: "chip" + (sig.choice === id ? " chosen" : "") },
+      el("button", { className: "play", textContent: "▶", onclick: () => playId(id, S.tab) }),
+      id,
+      el("button", { textContent: "★", title: "Choisir", onclick: () => { sig.choice = id; render(); } }),
+      el("button", { textContent: "✕", title: "Retirer", onclick: () => { sig.shortlist = sig.shortlist.filter(x => x !== id); if (sig.choice === id) sig.choice = null; render(); } }));
+    box.append(chip);
+  }
+  const offset = el("input", { type: "number", step: 1, value: sig.offset_db || 0, onchange: e => { sig.offset_db = Number(e.target.value); } });
+  box.append(el("label", {}, "décalage ", offset, " dB"));
+}
+
+function renderBody() {
+  const body = $("body"); body.replaceChildren();
+  const q = S.q.toLowerCase();
+  for (const [key, items] of families()) {
+    if (S.tab !== "families" && !S.all && !kept(key)) continue;
+    const shown = items.filter(x => !q || x.id.toLowerCase().includes(q));
+    if (!shown.length) continue;
+    const group = el("div", { className: "group" });
+    const head = el("header", {}, el("b", { textContent: key }), el("span", { className: "dim", textContent: `${items.length} son${items.length > 1 ? "s" : ""}` }),
+      el("button", { textContent: "▶ tout", onclick: () => playAll(shown) }));
+    if (S.tab === "families") {
+      head.append(el("button", { className: kept(key) ? "on" : "", textContent: kept(key) ? "retenue" : "retenir",
+        onclick: () => { S.doc.families = kept(key) ? S.doc.families.filter(f => f !== key) : [...S.doc.families, key]; render(); } }));
+    }
+    group.append(head);
+    const list = el("div", { className: "items" });
+    for (const x of shown) {
+      const sig = S.tab === "families" ? null : signalOf(S.tab);
+      const chip = el("span", { className: "chip" + (sig?.shortlist.includes(x.id) ? " chosen" : "") },
+        el("button", { className: "play", textContent: "▶", onclick: () => play(x.file, gain()) }),
+        sig ? el("button", { textContent: x.id.split(" · ").pop(), title: "Ajouter à la présélection",
+          onclick: () => { if (!sig.shortlist.includes(x.id)) sig.shortlist.push(x.id); render(); } })
+            : x.id.split(" · ").pop(),
+        el("span", { className: "dim", textContent: `${x.seconds.toFixed(2)} s` }));
+      list.append(chip);
+    }
+    group.append(list);
+    body.append(group);
+  }
+}
+
+function render() {
+  $("gain").value = gain();
+  $("gainLabel").textContent = `${gain()} dB`;
+  renderTabs(); renderShort(); renderBody();
+}
+
+$("gain").oninput = e => { S.doc.gain_db = Number(e.target.value); $("gainLabel").textContent = `${gain()} dB`; };
+$("q").oninput = e => { S.q = e.target.value; renderBody(); };
+$("allFamilies").onchange = e => { S.all = e.target.checked; renderBody(); };
+$("save").onclick = async () => {
+  const r = await fetch(`/sounds/${THEME}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(S.doc) });
+  $("status").textContent = r.ok ? "enregistré" : `refusé : ${r.status} ${r.statusText}`;
+};
+
+(async () => {
+  if (!THEME) { $("body").textContent = "Ouvrir avec ?theme=<id>."; return; }
+  $("title").textContent = `Sons du thème ${THEME}`;
+  const cat = await fetch(`${ROOT}tmp/sound-library/catalogue.json`, { cache: "no-store" });
+  if (!cat.ok) { $("body").textContent = "Pas de bibliothèque : lancer scripts/theme_sounds.py library."; return; }
+  S.cat = await cat.json();
+  const doc = await fetch(CHOICE_URL, { cache: "no-store" });
+  S.doc = doc.ok ? await doc.json() : { gain_db: -10, families: [], signals: {}, recipes: {} };
+  render();
+})();
+</script>
+</body>
+</html>

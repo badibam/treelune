@@ -542,6 +542,12 @@
     <string name="message_no_items_in_group">No item in this group</string>
     <string name="error_tooltype_not_found">Tool type \'%1$s\' not found</string>
     <string name="text_copied">Copied</string>
+    <!-- The bar over a selected text (SelectionMenu) -->
+    <string name="text_selection_cut">Cut</string>
+    <string name="text_selection_copy">Copy</string>
+    <string name="text_selection_paste">Paste</string>
+    <string name="text_selection_select_all">Select all</string>
+    <string name="text_selection_autofill">Autofill</string>
     <string name="duplicate_success_tool">Tool duplicated successfully</string>
     <string name="duplicate_success_automation">Routine duplicated successfully</string>
     <string name="duplicate_no_tools">No tool available to duplicate</string>

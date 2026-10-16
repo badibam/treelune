@@ -43,6 +43,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
+import app.treelune.core.themes.SelectionAction
 import app.treelune.core.themes.ThemeContract
 import app.treelune.core.themes.PaletteMode
 import app.treelune.core.themes.CurrentTheme
@@ -810,6 +811,28 @@ object DefaultTheme : ThemeContract {
             }
         ) {
             content()
+        }
+    }
+
+    /**
+     * Android's bar in the theme's colours: a raised surface, its actions text buttons in the main
+     * colour, going to a second line rather than hiding some behind a menu.
+     */
+    @Composable
+    override fun SelectionBar(actions: List<SelectionAction>) {
+        val scheme = CurrentTheme.getCurrentColorScheme()
+        androidx.compose.material3.Surface(
+            shape = RoundedCornerShape(8.dp),
+            color = scheme.surfaceContainerHigh,
+            shadowElevation = 6.dp
+        ) {
+            androidx.compose.foundation.layout.FlowRow(modifier = Modifier.padding(horizontal = 4.dp)) {
+                for (action in actions) {
+                    TextButton(onClick = action.onClick, shape = ButtonTextShape, modifier = Modifier.heightIn(min = 48.dp)) {
+                        androidx.compose.material3.Text(action.label, color = scheme.primary)
+                    }
+                }
+            }
         }
     }
 

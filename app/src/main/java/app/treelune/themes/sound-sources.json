@@ -1,0 +1,65 @@
+{
+  "_about": "Where the themes' interface sounds are looked for (docs/THEMES.md, Les sons). scripts/sound_library.py downloads each source into tmp/sound-library/, checks its archive against sha256 and lists its sounds in the catalogue the sound bench plays; a sound's id is '<title> · <file name without extension>', the title its credit in a theme's sounds.json. family says how its sounds group on the bench: 'stem', the file name without its trailing number (click_004 → click); 'folder', the folder it lies in. Only CC0 1.0 and CC BY 4.0 are taken: free for F-Droid, CC BY asking only the credit sounds.json gives.",
+  "sources": [
+    {
+      "title": "Interface Sounds",
+      "author": "Kenney",
+      "licence": "CC0 1.0",
+      "page": "https://kenney.nl/assets/interface-sounds",
+      "archive": "https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip",
+      "sha256": "f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232",
+      "audio": "Audio/",
+      "family": "stem"
+    },
+    {
+      "title": "UI Audio",
+      "author": "Kenney",
+      "licence": "CC0 1.0",
+      "page": "https://kenney.nl/assets/ui-audio",
+      "archive": "https://kenney.nl/media/pages/assets/ui-audio/490d233f68-1677590494/kenney_ui-audio.zip",
+      "sha256": "946fc23a63d535d693eb31b2eabb80c8c28d6351e2186b344ceb71b2cb1d5eb6",
+      "audio": "Audio/",
+      "family": "stem"
+    },
+    {
+      "title": "Impact Sounds",
+      "author": "Kenney",
+      "licence": "CC0 1.0",
+      "page": "https://kenney.nl/assets/impact-sounds",
+      "archive": "https://kenney.nl/media/pages/assets/impact-sounds/87b4ddecda-1677589768/kenney_impact-sounds.zip",
+      "sha256": "029d734af1582474edf3a694d1b0cebc97c1c152f2f39fa34d4c2bafc5de77f8",
+      "audio": "Audio/",
+      "family": "stem"
+    },
+    {
+      "title": "Digital Audio",
+      "author": "Kenney",
+      "licence": "CC0 1.0",
+      "page": "https://kenney.nl/assets/digital-audio",
+      "archive": "https://kenney.nl/media/pages/assets/digital-audio/216eac4753-1677590265/kenney_digital-audio.zip",
+      "sha256": "24e6ce28b76a6d8c89cff4d331e0965ff5c3de8a73c612028e9d363cc64e4f06",
+      "audio": "Audio/",
+      "family": "stem"
+    },
+    {
+      "title": "RPG Audio",
+      "author": "Kenney",
+      "licence": "CC0 1.0",
+      "page": "https://kenney.nl/assets/rpg-audio",
+      "archive": "https://kenney.nl/media/pages/assets/rpg-audio/8e99002d76-1677590336/kenney_rpg-audio.zip",
+      "sha256": "6dbeaf8544da958d8f2adcb4a4a4b76c1ade34a05f8ab9edccd327da7375f38b",
+      "audio": "Audio/",
+      "family": "stem"
+    },
+    {
+      "title": "Music Jingles",
+      "author": "Kenney",
+      "licence": "CC0 1.0",
+      "page": "https://kenney.nl/assets/music-jingles",
+      "archive": "https://kenney.nl/media/pages/assets/music-jingles/f37e530b9e-1677590399/kenney_music-jingles.zip",
+      "sha256": "b729ba57959bd58793d2c5cafa348aaf2655d354f3da35ec4729e03ec77197b8",
+      "audio": "Audio/",
+      "family": "folder"
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "_about": "The cosy theme's sound choice, written by the sound bench (./run themes) and read by scripts/theme_sounds.py (docs/THEMES.md): chosen by ear on 2026-10-06, reconstructed on 2026-10-16 from the files made then.",
+  "gain_db": -13,
+  "families": [
+    "Interface Sounds · back",
+    "Interface Sounds · bong",
+    "Interface Sounds · click",
+    "Interface Sounds · drop",
+    "Interface Sounds · error",
+    "Interface Sounds · maximize",
+    "Interface Sounds · minimize",
+    "Interface Sounds · pluck",
+    "Interface Sounds · select",
+    "Interface Sounds · switch",
+    "Interface Sounds · tick",
+    "Interface Sounds · toggle",
+    "UI Audio · click",
+    "UI Audio · rollover",
+    "UI Audio · switch"
+  ],
+  "signals": {
+    "confirm": {
+      "choice": "Interface Sounds · drop_004",
+      "offset_db": 0,
+      "shortlist": [
+        "Interface Sounds · drop_004"
+      ]
+    },
+    "enter": {
+      "choice": "Interface Sounds · select_008",
+      "offset_db": 0,
+      "shortlist": [
+        "Interface Sounds · select_008"
+      ]
+    },
+    "back": {
+      "choice": "Interface Sounds · select_007",
+      "offset_db": 0,
+      "shortlist": [
+        "Interface Sounds · select_007"
+      ]
+    },
+    "open": {
+      "choice": "Interface Sounds · maximize_001",
+      "offset_db": 0,
+      "shortlist": [
+        "Interface Sounds · maximize_001"
+      ]
+    },
+    "close": {
+      "choice": "Interface Sounds · minimize_001",
+      "offset_db": 0,
+      "shortlist": [
+        "Interface Sounds · minimize_001"
+      ]
+    },
+    "toggle": {
+      "choice": "Interface Sounds · select_001",
+      "offset_db": 0,
+      "shortlist": [
+        "Interface Sounds · select_001"
+      ]
+    },
+    "step": {
+      "choice": "Interface Sounds · tick_001",
+      "offset_db": 0,
+      "shortlist": [
+        "Interface Sounds · tick_001"
+      ]
+    },
+    "scroll_end": {
+      "choice": "Interface Sounds · bong_001",
+      "offset_db": 0,
+      "shortlist": [
+        "Interface Sounds · bong_001"
+      ]
+    },
+    "refuse": {
+      "choice": "Interface Sounds · error_006",
+      "offset_db": 0,
+      "shortlist": [
+        "Interface Sounds · error_006"
+      ]
+    }
+  },
+  "recipes": {}
+}

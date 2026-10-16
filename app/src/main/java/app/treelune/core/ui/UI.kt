@@ -142,10 +142,13 @@ object UI {
         else CurrentTheme.current.Text(text, type, fillMaxWidth, textAlign, maxLines)
     }
 
-    /** [content] whose texts Android's selection can take, as one: the rule of [Text]'s selectable. */
+    /**
+     * [content] whose texts Android's selection can take, as one: the rule of [Text]'s selectable.
+     * A selection shows the theme's bar (SelectionMenu).
+     */
     @Composable
     fun Selectable(content: @Composable () -> Unit) {
-        androidx.compose.foundation.text.selection.SelectionContainer { content() }
+        SelectionMenu { androidx.compose.foundation.text.selection.SelectionContainer { content() } }
     }
 
     /** [text] put in the clipboard, said by a toast: the one way the app copies. */
@@ -459,7 +462,8 @@ object UI {
         val counted = !readonly && max < Int.MAX_VALUE && length >= max * FieldInput.COUNT_FROM
         val over = !readonly && length > max
         Column(verticalArrangement = Arrangement.spacedBy(Space.XS)) {
-            CurrentTheme.current.FormField(
+            // A selection in the field shows the theme's bar
+            SelectionMenu { CurrentTheme.current.FormField(
                 label = label,
                 value = value,
                 onChange = onChange,
@@ -471,7 +475,7 @@ object UI {
                 required = required,
                 fieldModifier = fieldModifier,
                 labelAbove = labelAbove
-            )
+            ) }
             if (counted) {
                 val s = app.treelune.core.strings.Strings.`for`(context = androidx.compose.ui.platform.LocalContext.current)
                 Text(s.shared("field_length_count").format(length, max), if (over) TextType.ERROR else TextType.CAPTION, fillMaxWidth = true, textAlign = TextAlign.End)

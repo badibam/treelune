@@ -1,5 +1,5 @@
 {
-  "_about": "The retro theme's interface sounds, one per UISignal, taken from Saylune's bank as it ships them (FLAC, 10 dB under Kenney's originals); their source and licence, checked when added (pixel-ui).",
+  "_about": "The retro theme's interface sounds, one per UISignal chosen, made by scripts/theme_sounds.py from sounds-choice.json beside this file (docs/THEMES.md); their source and licence.",
   "sounds": {
     "res/raw/retro_confirm.flac": {
       "title": "Interface Sounds · click_004",
