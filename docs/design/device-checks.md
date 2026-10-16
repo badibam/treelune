@@ -327,3 +327,13 @@ Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la po
 - Demander à l'IA de resserrer une échelle (conversation) : la carte de validation dit les comptes, même dans une zone non protégée ; refusée, rien ne change ; acceptée, les valeurs hors bornes partent. « Protéger les données passées » décoché : l'IA est refusée et doit renvoyer avec `confirm_migration`. Par le connecteur : la notification d'accord. Une routine qui le fait : passe si son accès le permet.
 - Objectif : valider une tentative, changer un critère (seuil, critère retiré), rouvrir la tentative : elle est jugée selon ses anciens critères, la valeur saisie du critère retiré toujours là ; revalidée, son jugement aussi.
 - Une séance notée « Faite » sans l'écran : ses étapes toutes faites, sans temps ; une séance finie avant ce changement se corrige toujours par ses comptes.
+
+## Les sources de l'attente (branche waiting-sources, `docs/design/waiting-sources.md`)
+
+- Après la migration 75 : aucun point nouveau sur le bouton flottant, les zones ni les routines ; Réglages et le Guide marqués comme avant, s'ils l'étaient.
+- Écrire à l'IA, fermer la conversation avant sa réponse : le point paraît sur le bouton flottant quand elle répond ; ouvrir la conversation l'efface. Rester dans la conversation pendant la réponse : aucun point en la fermant.
+- Envoyer un message, passer l'app en arrière-plan pendant la réponse, revenir sur la conversation ouverte : pas de point ensuite. Revenir sur un autre écran : le point est là.
+- Une routine lancée à la main, réglée « Toujours » : à sa fin, une notification au nom de la routine avec le début du résumé ; la toucher ouvre l'exécution, le résumé et la ligne de faits en tête. Avant de la toucher : le point sur la tuile de la zone, la carte de la routine et sa ligne dans l'historique, la première phrase du résumé sous sa date ; ouverte, les trois points s'effacent.
+- La même réglée « En cas de problème », qui finit bien : ni notification ni point. Réglée « Jamais » : rien, le résumé lisible dans l'exécution.
+- Dans l'exécution, sous « Détails » : la confirmation demandée avec le résumé ; une IA qui confirme sans résumé reçoit le rappel une fois.
+- La fenêtre de la routine (Configurer) montre « Me signaler la fin » ; changé et enregistré, il tient à la réouverture.

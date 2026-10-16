@@ -50,6 +50,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - Les champs de l'utilisateur dans le Suivi et Messages (`docs/design/custom-fields-display.md`, branche custom-fields) : l'historique du Suivi en cartes, les champs sous le texte d'un message (Outils et saisie) ; passé, élaguer la spec.
 - L'IA et les routines (branche ai-routines) : leur création par l'écran et la démo, celle de l'IA en conversation, une routine qui en crée une sous son masque, la lecture d'une exécution ratée, le connecteur (section « L'IA et les routines »).
 - Les bugs du téléphone du 2026-10-16 et le changement de config (`docs/design/config-change.md`) : la dernière section de la recette ; passé, élaguer la spec.
+- Les sources de l'attente (`docs/design/waiting-sources.md`, branche waiting-sources) : migration 75, la conversation marquée sur le bouton flottant, le résumé d'une routine, sa notification et ses points, le réglage « Me signaler la fin » (section du même nom) ; passé, élaguer la spec.
 - Les réglages de réflexion de chaque fournisseur, en envoyant une requête : Claude (Sonnet 5.5 sans réflexion par `between_tools`, Opus 5.5 sans « Sans réflexion », Haiku 4.5 sans effort), OpenAI (un modèle à `none`, un modèle qu'aucun fait ne couvre), DeepSeek (effort obligatoire, sans réflexion) ; le changement de modèle qui vide les deux réglages, l'enregistrement d'une combinaison refusée.
 
 ## Conçu, à coder
@@ -58,7 +59,6 @@ Une spec existe dans `docs/design/`.
 
 - Les conditions typées à l'écriture (`docs/design/typed-conditions.md`) : le type de chaque côté d'une condition connu sans lire de données, les constantes de l'IA traduites à l'entrée, la vérification au service, et le refus d'un changement dont dépend une condition ailleurs.
 - L'historique des écritures et leur annulation (`docs/design/undo-history.md`) : un pas par opération demandée de l'extérieur, la ligne entière avant et après, écrite par une seule classe que garde un script, 30 jours, le service `history` ouvert à l'IA, son écran.
-- Les sources de l'attente (`docs/design/waiting-sources.md`) : la brique en deux formes (dans une zone, unique dans l'app), la sauvegarde et le Guide ramenés dedans ; la conversation active marquée sur le bouton flottant jusqu'à être affichée ; le résumé d'une routine demandé à la confirmation de fin, la ligne de faits de l'app, le réglage « Me signaler la fin », le point et la notification d'une exécution non lue ; migration de `seen_at` et `summary`.
 - Modèles libres (`docs/design/local-models.md`) : le banc est en place et rodé ; la campagne 1 a tourné le 2026-10-04 (190 scénarios en 5 h 15, 1,35 $ comptés hors réponses coupées, tableau dans `bench-results/2026-10-04_1326/summary.md`), ses échecs relus dans `docs/design/bench-campaign-1.md` ; les corrections de l'app qu'elle a trouvées sont faites (2026-10-13) : les niveaux de prompt se décident après une campagne rejouée.
 
 ## À concevoir

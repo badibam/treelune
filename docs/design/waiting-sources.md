@@ -31,7 +31,7 @@ Aujourd'hui (`AIStateMachine`), un premier `completed: true` sans commande fait 
 
 ### Les faits, à côté du récit
 
-Sous le résumé, une ligne écrite par l'app depuis les messages de la session : les écritures par outil, les refus, les erreurs, et la raison de fin quand ce n'est pas `COMPLETED`. Recalculée à l'affichage, jamais stockée. L'IA raconte, l'app atteste ; un écart entre les deux se voit.
+Sous le résumé, une ligne écrite par l'app depuis les messages de la session : les écritures faites, celles refusées ou échouées, et la raison de fin quand ce n'est pas `COMPLETED` (`RunEnd.facts`). Recalculée à l'affichage, jamais stockée. Le détail par outil est écarté au codage : le résultat d'une commande ne nomme pas son outil, il faudrait le rapprocher de la commande de l'IA. L'IA raconte, l'app atteste ; un écart entre les deux se voit.
 
 ### Le réglage « Me signaler la fin »
 
@@ -60,3 +60,7 @@ Des idées proposées pendant la conception pour éprouver le modèle, sans déc
 - Ce qu'une IA extérieure a écrit par le connecteur pendant l'absence, une fois l'historique des écritures en place (`undo-history.md`, forme 2).
 
 Ne sont pas des sources : la demande d'accord du connecteur (90 s, dans sa notification) et l'écran d'après plantage (il s'impose au lancement).
+
+## Ouvert
+
+- Une session de routine restée en `AWAITING_SESSION_CLOSURE` à la fermeture de l'app est close au démarrage (`AIStateRepository.initializeFromDb`) sans passer par `RunEnd` : son résumé n'est pas gardé et elle attend quel que soit le réglage.
