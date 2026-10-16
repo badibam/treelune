@@ -22,6 +22,7 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 ## Bugs
 
 - Réglages › Interface : un thème choisi, vu, enregistré, et l'ancien revient ; une seconde fois, ça tient (2026-10-09, pas reproduit, peut-être dans la release). Au prochain cas, lire dans le journal les lignes « Theme applied » : laquelle a remis l'ancien (STORED, PREVIEW, LEFT_UNSAVED).
+- À vérifier : un schéma déjà reçu dans la session n'est plus renvoyé (`CommandExecutor`, clé seule, résultat `CACHED`) ; un outil dont l'IA change la config en session change de schéma d'entrées, et une seconde demande lui rendrait « déjà dans cette session » sur l'ancien — sauf si le résultat de la modification lui donne déjà le nouveau.
 
 ## À passer sur le téléphone
 
