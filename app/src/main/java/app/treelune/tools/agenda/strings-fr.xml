@@ -87,4 +87,5 @@
     <string name="tile_nothing">Rien à venir</string>
     <string name="in_minutes">dans %1$d min</string>
     <string name="in_hours">dans %1$d h</string>
+    <string name="series_delete_count">Les %1$d occurrences à venir de cette série seront supprimées, les passées restent.</string>
 </resources>

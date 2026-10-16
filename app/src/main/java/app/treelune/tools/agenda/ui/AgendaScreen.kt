@@ -100,6 +100,7 @@ fun AgendaScreen(
     // A series change the service counted, waiting for its agreement: the config to send, and how many occurrences go
     var pendingConfig by rememberSaveable(stateSaver = app.treelune.core.ui.NullableJsonObjectSaver) { mutableStateOf<JSONObject?>(null) }
     var pendingCount by rememberSaveable { mutableIntStateOf(0) }
+    var pendingDeletes by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(toolInstanceId, configVersion) {
         val result = coordinator.processUserAction("tools.get", mapOf("tool_instance_id" to toolInstanceId))
@@ -154,18 +155,17 @@ fun AgendaScreen(
      * it. A change that deletes occurrences to come is refused until agreed to: the count waits
      * for it.
      */
-    fun saveSeries(change: (JSONArray) -> JSONArray, confirmed: Boolean = false, onDone: () -> Unit = {}) {
+    fun saveSeries(change: (JSONArray) -> JSONArray, deletes: Boolean = false, onDone: () -> Unit = {}) {
         val next = JSONObject(loadedConfig.toString()).put(AgendaToolType.SERIES_LIST, change(loadedConfig.optJSONArray(AgendaToolType.SERIES_LIST) ?: JSONArray()))
         scope.launch {
             val result = coordinator.processUserAction("tools.update", buildMap {
                 put("tool_instance_id", toolInstanceId)
                 put("config", next)
-                if (confirmed) put("confirm_migration", true)
             })
             val deleted = ((result.data?.get("migration") as? Map<*, *>)?.get("deleted_entries") as? Number)?.toInt() ?: 0
             when {
                 result.isSuccess -> onDone()
-                !confirmed && deleted > 0 -> { pendingConfig = next; pendingCount = deleted; onDone() }
+                deleted > 0 -> { pendingConfig = next; pendingCount = deleted; pendingDeletes = deletes; onDone() }
                 else -> errorMessage = result.error ?: s.shared("message_error_simple")
             }
         }
@@ -303,7 +303,7 @@ fun AgendaScreen(
             onSave = { draft, schedule ->
                 saveSeries({ list -> replaced(list, openSeries.key) { seriesJson(openSeries.key, draft, schedule) } }) { openSeriesKey = null }
             },
-            onDelete = { saveSeries({ list -> replaced(list, openSeries.key) { null } }) { openSeriesKey = null } },
+            onDelete = { saveSeries({ list -> replaced(list, openSeries.key) { null } }, deletes = true) { openSeriesKey = null } },
             onCancel = { openSeriesKey = null }
         )
     }
@@ -320,7 +320,7 @@ fun AgendaScreen(
             },
             onCancel = { pendingConfig = null }
         ) {
-            UI.Text(s.tool("series_change_confirm").format(pendingCount), TextType.BODY)
+            UI.Text(s.tool(if (pendingDeletes) "series_delete_count" else "series_change_confirm").format(pendingCount), TextType.BODY)
         }
     }
 }

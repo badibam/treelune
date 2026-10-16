@@ -91,4 +91,5 @@
     <string name="tile_nothing">Nothing coming</string>
     <string name="in_minutes">in %1$d min</string>
     <string name="in_hours">in %1$d h</string>
+    <string name="series_delete_count">The %1$d occurrences to come of this series will be deleted, the past ones stay.</string>
 </resources>
