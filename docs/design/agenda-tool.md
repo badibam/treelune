@@ -77,7 +77,14 @@ Un rappel est un Instant relatif, la brique de `docs/BRICKS.md`, que le contexte
 
 ## Le réveil précis
 
-App fermée, le planificateur ne se réveille que toutes les 10 min (`SchedulerAlarm`) : « 15 min avant » pourrait arriver 5 min avant. Un planificateur d'outil (`ToolScheduler`) dit l'heure de sa prochaine action, et le cœur arme l'alarme exacte au plus tôt entre le prochain tic et cette heure (`USE_EXACT_ALARM`, déjà déclarée). L'Agenda en est le premier usage ; Messages, les routines et les échéances de Liste peuvent le prendre ensuite.
+App fermée, le planificateur ne se réveille que toutes les 10 min (`SchedulerAlarm`) : « 15 min avant » pourrait arriver 5 min avant.
+
+- **La même alarme, avancée** : `ToolScheduler` gagne une méthode facultative, l'heure de la prochaine action de l'outil (aucune par défaut) ; l'Agenda y répond par son prochain rappel non envoyé. À chaque tic, le cœur arme l'alarme au plus tôt entre « dans 10 min » et la plus proche de ces heures. Pas de seconde alarme, rien de neuf au manifeste.
+- **Réarmée à chaque tic**, celui de la minute app ouverte compris, et non plus à sa seule sonnerie : un événement ajouté à l'écran est connu de l'alarme avant que l'app se ferme.
+- **Sa limite** : en veille profonde, Android ne fait sonner les alarmes `setExactAndAllowWhileIdle` d'une app qu'environ toutes les 9 minutes ; un rappel qui suit de près une autre sonnerie peut arriver jusqu'à ~9 min en retard. Non mesuré : à essayer sur le téléphone, posé à plat écran éteint, deux rappels à 3 min d'écart, chaque notification à l'heure ou non.
+- **Le repli, si la mesure montre des retards** : `setAlarmClock` pour les seuls rappels, exacte sans limite, mais qu'Android montre comme un réveil (une icône d'horloge dans la barre d'état, « Prochaine alarme » sur l'écran de verrouillage).
+
+L'Agenda en est le premier usage ; Messages, les routines et les échéances de Liste en profitent sans changer.
 
 ## Les opérations
 
