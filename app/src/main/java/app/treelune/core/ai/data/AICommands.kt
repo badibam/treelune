@@ -109,6 +109,9 @@ object AICommands {
         query("SCHEMA", p("tooltype", "string"), p("tool_instance_id", "string"), p("id", "string")),
         query("ICONS", p("categories", "array"), p("query", "array")),
         query("APP_CONFIG", p("category", "string", true)),
+        query("IDENTITIES"),
+        query("IDENTITY", p("id", "string", true), p("language", "string")),
+        query("IDENTITY_RESOURCE", p("id", "string", true), p("key", "string", true), p("language", "string")),
 
         action("CREATE_DATA", p("tool_instance_id", "string", true), p("entries", "array", true), writesEntries = true),
         action("UPDATE_DATA", p("tool_instance_id", "string", true), p("entries", "array", true), writesEntries = true),
@@ -141,7 +144,13 @@ object AICommands {
             p("automation_id", "string", true), p("zone_id", "string"), p("settings", "object"), p("message", "array"), p("access", "array")),
         action("DELETE_AUTOMATION", p("automation_id", "string", true)),
         action("IMPORT_DATA", p("file", "string", true), p("tool_instance_id", "string", true), p("columns", "array", true)),
-        action("UPDATE_APP_CONFIG", p("category", "string", true), p("settings", "object", true), p("renames", "object"))
+        action("UPDATE_APP_CONFIG", p("category", "string", true), p("settings", "object", true), p("renames", "object")),
+        action("CREATE_IDENTITY", p("name", "string", true), p("language", "string", true), p("icon_name", "string"), p("icon_color", "string")),
+        action("UPDATE_IDENTITY",
+            p("identity_id", "string", true), p("name", "string"), p("icon_name", "string"), p("icon_color", "string"),
+            p("language", "string"), p("section", "string"), p("voice", "string"), p("mind", "string"), p("portrait", "string"),
+            p("resources", "object")),
+        action("DELETE_IDENTITY", p("identity_id", "string", true))
     )
 
     private val byType = ALL.associateBy { it.type }

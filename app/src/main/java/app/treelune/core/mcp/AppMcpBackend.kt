@@ -13,6 +13,7 @@ import app.treelune.core.ai.prompts.CommandExecutor
 import app.treelune.core.ai.prompts.PromptChunks
 import app.treelune.core.ai.prompts.PromptManager
 import app.treelune.core.ai.prompts.toPromptSection
+import app.treelune.core.ai.prompts.exemptChars
 import app.treelune.core.ai.providers.toPromptText
 import app.treelune.core.coordinator.Source
 import app.treelune.core.strings.Strings
@@ -92,9 +93,10 @@ class AppMcpBackend(private val context: Context) : McpBackend {
         }
         // A query's data is in its results, as the built-in AI's session puts it in the message
         val message = executed.systemMessage.let { message ->
-            executed.promptResults.toPromptSection().takeIf { it.isNotEmpty() }?.let { message.copy(formattedData = it) } ?: message
+            executed.promptResults.toPromptSection().takeIf { it.isNotEmpty() }?.let { message.copy(formattedData = it, exemptChars = executed.promptResults.exemptChars()) } ?: message
         }
-        val held = message.withinChars(AppConfigManager.getAILimits().getLimitsForSessionType(SessionType.CHAT).maxDataChars) {
+        // An identity read is not weighed, as in a conversation: its size is known
+        val held = message.withinChars(AppConfigManager.getAILimits().getLimitsForSessionType(SessionType.CHAT).maxDataChars + message.exemptChars) {
             s.shared("ai_system_result_cut").format(it)
         }
         return McpToolResult(held.toPromptText(), isError = message.commandResults.any { it.status == CommandStatus.FAILED })
