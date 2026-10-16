@@ -164,8 +164,7 @@ fun AgendaScreen(
             })
             val deleted = ((result.data?.get("migration") as? Map<*, *>)?.get("deleted_entries") as? Number)?.toInt() ?: 0
             when {
-                // The series' occurrences given now, not at the next tick
-                result.isSuccess -> { onDone(); app.treelune.core.scheduling.CoreScheduler.runTool("agenda") }
+                result.isSuccess -> onDone()
                 deleted > 0 -> { pendingConfig = next; pendingCount = deleted; pendingDeletes = deletes; onDone() }
                 else -> errorMessage = result.error ?: s.shared("message_error_simple")
             }
@@ -317,7 +316,7 @@ fun AgendaScreen(
                 pendingConfig = null
                 write({
                     coordinator.processUserAction("tools.update", mapOf("tool_instance_id" to toolInstanceId, "config" to next, "confirm_migration" to true))
-                }) { scope.launch { app.treelune.core.scheduling.CoreScheduler.runTool("agenda") } }
+                })
             },
             onCancel = { pendingConfig = null }
         ) {

@@ -139,7 +139,7 @@ object CoreScheduler {
 
         // The alarm set again after every tick, the minute's included: what the screen added while
         // the app was open is known to it before the app closes
-        armForNextAction()
+        armForNextAction(context)
 
         try {
             // 3. The automatic backup, last: the tick's other work is due at its minute, a copy within the hour
@@ -152,33 +152,37 @@ object CoreScheduler {
 
     /**
      * Runs the scheduler of the tool type [tooltype] now, as the scheduler, rather than at the
-     * next tick, then sets the alarm again: what a screen just wrote is acted on at once (a new
-     * series of a calendar given its occurrences). Nothing for a tool type without a scheduler.
+     * next tick, then sets the alarm again: a tool's config just created or changed is acted on
+     * at once (ToolInstanceService), a schedule given its first occurrences. Nothing for a tool
+     * type without a scheduler. [appContext] is given, the scheduler's own not being set yet
+     * where no tick ran.
      */
-    suspend fun runTool(tooltype: String) = kotlinx.coroutines.withContext(app.treelune.core.coordinator.Origin(app.treelune.core.coordinator.Source.SCHEDULER)) {
-        val scheduler = ToolTypeManager.getToolType(tooltype)?.getScheduler() ?: return@withContext
-        try {
-            scheduler.checkScheduled(context)
-        } catch (e: Exception) {
-            LogManager.service("CoreScheduler: scheduler of tool type '$tooltype' run at once failed: ${e.message}", "ERROR", e)
+    suspend fun runTool(appContext: Context, tooltype: String) {
+        val scheduler = ToolTypeManager.getToolType(tooltype)?.getScheduler() ?: return
+        kotlinx.coroutines.withContext(app.treelune.core.coordinator.Origin(app.treelune.core.coordinator.Source.SCHEDULER)) {
+            try {
+                scheduler.checkScheduled(appContext)
+            } catch (e: Exception) {
+                LogManager.service("CoreScheduler: scheduler of tool type '$tooltype' run at once failed: ${e.message}", "ERROR", e)
+            }
+            armForNextAction(appContext)
         }
-        armForNextAction()
     }
 
     /**
      * Sets the alarm for the soonest of the tool schedulers' next actions (ToolScheduler.nextAction),
      * within its usual interval. A scheduler that fails to say is logged and left out.
      */
-    private suspend fun armForNextAction() {
+    private suspend fun armForNextAction(appContext: Context) {
         val next = ToolTypeManager.getAllToolTypes().mapNotNull { (toolTypeName, toolType) ->
             try {
-                toolType.getScheduler()?.nextAction(context)
+                toolType.getScheduler()?.nextAction(appContext)
             } catch (e: Exception) {
                 LogManager.service("CoreScheduler: next action of tool type '$toolTypeName' unknown: ${e.message}", "ERROR", e)
                 null
             }
         }.filter { it > System.currentTimeMillis() }.minOrNull()
-        SchedulerAlarm.arm(context, next)
+        SchedulerAlarm.arm(appContext, next)
     }
 
     /**

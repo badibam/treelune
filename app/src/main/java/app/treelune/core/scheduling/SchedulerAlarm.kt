@@ -22,7 +22,7 @@ import kotlinx.coroutines.withTimeout
  *
  * Android lets an app's while-idle alarms ring at most about every 9 minutes when the phone
  * sleeps deeply: [INTERVAL] stays above. A next action brought forward is bound by the same rule:
- * one that follows another ring closely may come up to that much late (docs/design/agenda-tool.md).
+ * one that follows another ring closely may come up to that much late.
  */
 object SchedulerAlarm {
 

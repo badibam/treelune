@@ -158,6 +158,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
 
         // Notify UI of tools change in this zone
         DataChangeNotifier.notifyToolsChanged(zoneId)
+        // What its config schedules, done now rather than at the next tick
+        app.treelune.core.scheduling.CoreScheduler.runTool(context, toolType)
 
         return OperationResult.success(mapOf(
             "tool_instance_id" to newToolInstance.id,
@@ -298,6 +300,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             // Only config changed - notify current zone
             DataChangeNotifier.notifyToolsChanged(updatedTool.zone_id)
         }
+        // What a changed config schedules (a calendar's series remade), done now rather than at the next tick
+        if (configJson.isNotBlank()) app.treelune.core.scheduling.CoreScheduler.runTool(context, updatedTool.tooltype)
 
         return OperationResult.success(mapOf(
             "tool_instance_id" to updatedTool.id,
