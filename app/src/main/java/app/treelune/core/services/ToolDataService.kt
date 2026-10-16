@@ -447,7 +447,9 @@ class ToolDataService(private val context: Context) : ExecutableService {
         // Verify entry exists before deletion (CRITICAL: AI must know if entry doesn't exist)
         val entity = dao.getById(entryId)
             ?: return OperationResult.error(s.shared("service_error_entry_not_found").format(entryId))
-        ToolTypeManager.getToolType(entity.tooltype)?.refuseChange(entity, context)?.let { return OperationResult.error(it) }
+        ToolTypeManager.getToolType(entity.tooltype)?.let { type ->
+            (type.refuseChange(entity, context) ?: type.refuseDelete(entity, context))?.let { return OperationResult.error(it) }
+        }
 
         storeSettled(entity.tooltype, { dao.getByToolInstance(entity.toolInstanceId).filter { it.id != entryId } }, null) {
             dao.deleteById(entryId)

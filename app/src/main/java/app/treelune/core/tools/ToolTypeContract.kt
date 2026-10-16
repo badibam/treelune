@@ -216,6 +216,13 @@ interface ToolTypeContract {
     fun refuseChange(entry: ToolDataEntity, context: Context): String? = null
 
     /**
+     * Why [entry] may not be deleted by an ordinary write, though it may change, or null when it
+     * may: a calendar's occurrence of a series is removed by its own operation, a deletion making
+     * the series give it again. ToolDataService asks it before every delete, after refuseChange.
+     */
+    fun refuseDelete(entry: ToolDataEntity, context: Context): String? = null
+
+    /**
      * Whether [entry] keeps the values it was judged or made with when the config changes
      * (docs/design/config-change.md): a change of config leaves it as it is. By default, an entry
      * no ordinary write may change; a goal's reopened attempt too, which keeps its copy.
