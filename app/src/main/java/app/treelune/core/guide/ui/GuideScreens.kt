@@ -152,7 +152,7 @@ fun ChapterScreen(id: String, demoInstalled: Boolean) {
     ) {
         UI.PageHeader(title = title, icon = chapter.icon, leftButton = ButtonAction.BACK, onLeftClick = { Navigator.pop() })
         Column(modifier = Modifier, verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
-            UI.Text(chapter.intro(context), TextType.BODY)
+            UI.Text(chapter.intro(context), TextType.BODY, selectable = true)
             if (chapter.isStub) {
                 UI.Text(s.shared("guide_stub"), TextType.CAPTION)
                 return@Column
@@ -181,7 +181,7 @@ fun ChapterScreen(id: String, demoInstalled: Boolean) {
             Part("list-ordered", s.shared("guide_steps"))
             chapter.steps.forEach { step ->
                 Column(verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
-                    UI.Text(s.shared("guide_step_number").format(step.number) + " " + chapter.goal(context, step), TextType.STRONG)
+                    UI.Text(s.shared("guide_step_number").format(step.number) + " " + chapter.goal(context, step), TextType.STRONG, selectable = true)
                     GuideText(chapter.text(context, step))
                     // The way from the home screen, for a place known without the steps before
                     Guide.target(chapter, step)?.let { place ->

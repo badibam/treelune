@@ -74,7 +74,8 @@ fun GuideBand() {
                     UI.Icon(if (open) "chevron-down" else "chevron-up", contentDescription = s.shared(if (open) "guide_band_collapse" else "guide_band_expand"))
                 }
                 if (open) {
-                    GuideText(chapter.text(context, step))
+                    // The band opens and closes at a touch anywhere on it
+                    GuideText(chapter.text(context, step), selectable = false)
                     when {
                         here -> UI.Text(s.shared("guide_band_here"), TextType.CAPTION)
                         gestures != null -> UI.Text(s.shared("guide_band_from_here").format(GuidePath.sentence(gestures, s.shared("guide_path_then"))), TextType.CAPTION)

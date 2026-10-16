@@ -19,12 +19,13 @@ private const val LIST_MARK = "dot"
 
 /**
  * A Guide text drawn from its markup (GuideMarkup): subtitles, paragraphs, and lines of a list,
- * each behind the icon of the button it names, or a dot.
+ * each behind the icon of the button it names, or a dot. [selectable] but where a touch acts on it.
  */
 @Composable
-fun GuideText(text: String, type: TextType = TextType.BODY) {
+fun GuideText(text: String, type: TextType = TextType.BODY, selectable: Boolean = true) {
     val blocks = remember(text) { GuideMarkup.parse(text) }
-    Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+    // Read, so selectable, one selection across its paragraphs; not where a touch acts on it (the band)
+    val body: @Composable () -> Unit = { Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
         blocks.forEachIndexed { i, block ->
             when (block) {
                 // A subtitle stands apart from what comes before it. STRONG, ranked under HEADING in
@@ -39,5 +40,6 @@ fun GuideText(text: String, type: TextType = TextType.BODY) {
                 }
             }
         }
-    }
+    } }
+    if (selectable) UI.Selectable(body) else body()
 }

@@ -138,7 +138,7 @@ fun ExternalAccessSettingsScreen(onBack: () -> Unit) {
                             null -> {}
                         }
                     }
-                    is McpAccess.State.Failed -> UI.Text(s.shared("external_access_state_failed").format(current.message), TextType.BODY)
+                    is McpAccess.State.Failed -> UI.Text(s.shared("external_access_state_failed").format(current.message), TextType.BODY, selectable = true)
                 }
                 if (state is McpAccess.State.Open || state is McpAccess.State.Preparing) {
                     UI.Button(type = ButtonType.DEFAULT, onClick = { McpAccess.close(context) }) {
@@ -155,7 +155,8 @@ fun ExternalAccessSettingsScreen(onBack: () -> Unit) {
                 }
                 // The address to give: the node's once it is up, the relay's as set
                 val address = (state as? McpAccess.State.Open)?.address ?: relay.takeIf { mode == AppSettings.ACCESS_MODE_RELAY }
-                address?.let { UI.Text(s.shared("external_access_mcp_address").format(it + McpHttp.MCP_PATH), TextType.CAPTION) }
+                // The address to copy into the client
+                address?.let { UI.Text(s.shared("external_access_mcp_address").format(it + McpHttp.MCP_PATH), TextType.CAPTION, selectable = true) }
                 if (mode == AppSettings.ACCESS_MODE_TAILSCALE && (state is McpAccess.State.Closed || state is McpAccess.State.Failed)
                     && TailscaleNode.dir(context).resolve("state").exists()) {
                     UI.Button(type = ButtonType.DANGER, onClick = { loggingOut = true }) {

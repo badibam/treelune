@@ -125,8 +125,9 @@ object UI {
     
     /**
      * A text, in the theme's look. [selectable] lets Android's selection take a part of it: for a
-     * text the user or the AI wrote, shown read only, outside anything a touch or a long press
-     * acts on (that gesture would be the selection's) — never the app's own words.
+     * text one reads, whoever wrote it (the user, the AI, the app), outside anything a touch or a
+     * long press acts on (that gesture would be the selection's). An error or a warning always is:
+     * it is read, and copied to be asked about.
      */
     @Composable
     fun Text(
@@ -137,7 +138,7 @@ object UI {
         maxLines: Int = Int.MAX_VALUE,
         selectable: Boolean = false
     ) {
-        if (selectable) Selectable { CurrentTheme.current.Text(text, type, fillMaxWidth, textAlign, maxLines) }
+        if (selectable || type == TextType.ERROR || type == TextType.WARNING) Selectable { CurrentTheme.current.Text(text, type, fillMaxWidth, textAlign, maxLines) }
         else CurrentTheme.current.Text(text, type, fillMaxWidth, textAlign, maxLines)
     }
 
@@ -765,7 +766,8 @@ object UI {
                 rightButton?.let { ActionButton(action = it, display = ButtonDisplay.ICON, onClick = onRightClick ?: {}) }
             }
         }
-        CurrentTheme.current.PageHeader(title, subtitle, icon, iconColor, appMark)
+        // A page's title and description are read: selectable, nothing else answering their touch
+        Selectable { CurrentTheme.current.PageHeader(title, subtitle, icon, iconColor, appMark) }
     }
     
     /** The header of a tool's tile: its icon with its marks, and its name. */
