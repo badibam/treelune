@@ -176,6 +176,7 @@
 
     <!-- Validation reasons -->
     <string name="validation_reason_app">The home screen is protected</string>
+    <string name="validation_reason_past_data">The config changes entries already recorded: %1$d value(s) removed, %2$d entry(ies) deleted, %3$d value(s) read differently.</string>
     <string name="validation_reason_zone">The zone « %1$s » is protected</string>
     <string name="validation_reason_tool">The data of « %1$s » is protected</string>
     <string name="validation_reason_session">This conversation asks for it</string>
@@ -972,6 +973,8 @@
     <string name="settings_validation_description">What the AI asks you before changing it</string>
     <string name="app_config_validate_app">Protect the home screen</string>
     <string name="app_config_validate_app_help">The AI of the conversation and of the connector asks for your approval before creating, changing or deleting a zone, or changing the home screen\'s groups. A routine never asks.</string>
+    <string name="app_config_validate_past_data">Protect recorded data</string>
+    <string name="app_config_validate_past_data_help">The AI of the chat and of the connector asks for your approval before changing a tool\'s config in a way that removes, deletes or reads differently values already recorded, whatever its zone\'s protection. A routine does it if its access allows it.</string>
 
     <string name="settings_ui">User interface</string>
     <string name="settings_ui_description">Configure the look and the behaviour of the interface</string>
@@ -1496,7 +1499,7 @@
     <string name="migration_fill_title">Values needed</string>
     <string name="migration_fill_message">%1$d entr(ies) have no value for %2$s, which this change makes required. Give the value they take, or cancel.</string>
     <string name="tools_config_error_not_found">Tool not found</string>
-    <string name="service_error_migration_unconfirmed">This change removes %1$d value(s) from this tool\'s entries, deletes %2$d entry(ies) left without a required value, and reads %3$d kept value(s) differently (new bounds, order). Send it again with "confirm_migration": true to apply it.</string>
+    <string name="service_error_migration_unconfirmed">This change removes %1$d value(s) from this tool\'s entries, deletes %2$d entry(ies) left without a required value, and reads %3$d kept value(s) differently (new bounds, order). Tell the user, and send it again with "confirm_migration": true once they agree.</string>
     <string name="service_error_migration_missing_values">Entries have no value for a field this change makes required: %1$s. Give the value they take in "fill_values": {"data": {"field": value}}.</string>
     <string name="service_error_migration_fill_unknown">"fill_values" names %1$s, which is not a required field of "data" in this config</string>
 

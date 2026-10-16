@@ -26,6 +26,7 @@ Rien n'est validé ni masqué par défaut : on protège ce qui est sensible.
 - Un seul interrupteur par niveau, désactivé par défaut. Chacun ne garde que ce que son niveau contient directement : protéger une zone ne protège pas les données de ses outils.
 - La config d'un outil est gardée par sa zone : la modifier change la structure de la zone, comme y créer un outil.
 - La décision suit l'objet touché : une écriture est validée si le niveau qui le contient est protégé.
+- À part des niveaux, « Protéger les données passées » (Réglages › Validation, activé par défaut) : un changement de config qui retire, supprime ou relit autrement des valeurs enregistrées demande l'accord, quelle que soit la protection de la zone ; ses comptes viennent d'un essai à blanc du changement (`tools.update` avec `dry_run`) ; une routine le fait si son masque le permet (`docs/design/config-change.md`).
 
 ### Dans une conversation
 

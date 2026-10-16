@@ -498,10 +498,10 @@ Changes the configuration of a tool, or moves it to another zone.
 - `tool_instance_id` (string, **required**)
 - `config` (object, optional): the **whole** new configuration, which replaces the old one: read it with TOOL_CONFIG, change what you mean to, send it all back
 - `zone_id` (string, optional): the zone to move the tool to; its group stays behind, unless `config` names one of the new zone's tool groups
-- `confirm_migration` (boolean, optional): `true` to agree to what the change erases in the entries
+- `confirm_migration` (boolean, optional): `true` to agree to what the change does to the recorded entries; needed only while the protection of recorded data is off
 - `fill_values` (object, optional): the values to give the entries a change leaves without a required value, `{"data": {"value": 3}}`
 
-A change that erases values or entries is **refused** with what it would lose: tell the user, and send it again with `"confirm_migration": true` only once they agree. A refusal naming `missing_values` is sent again with `fill_values`.]]></string>
+A change that removes values, deletes entries or reads kept values differently (a scale's values between other bounds, answers read as a ranking) touches the recorded entries. With the protection of recorded data on, the default, the app asks the user before applying it, with the counts: send the change as it is. With it off, the change is **refused** with its counts: tell the user, and send it again with `"confirm_migration": true` only once they agree. A refusal naming `missing_values` is sent again with `fill_values`.]]></string>
     <string name="ai_command_delete_tool"><![CDATA[### DELETE_TOOL
 
 Deletes a tool and its entries.
@@ -963,9 +963,9 @@ Changes the mood alone: the name, the timestamp, the value and the other extra f
 }
 ```
 
-### Example 5: a change the user has agreed to lose data for
+### Example 5: a change the user has agreed to, the protection of recorded data off
 
-The mood scale goes from 1-5 to 1-10: every mood recorded loses its meaning. A first UPDATE_TOOL was refused with `"removed_values": 42`; the user agreed.
+The mood scale goes from 1-5 to 1-10: every mood recorded is kept, read on the new scale. A first UPDATE_TOOL was refused with `"reinterpreted_values": 42`; the user agreed.
 
 ```json
 {

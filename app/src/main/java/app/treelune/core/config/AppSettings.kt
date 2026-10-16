@@ -180,7 +180,9 @@ object AppSettings {
             )
             // The app's level alone: a zone and a tool carry theirs in their own settings
             AppSettingCategories.VALIDATION_CONFIG -> listOf(
-                field(ValidationConfig.KEY_APP, text("app_config_validate_app"), text("app_config_validate_app_help"), FieldType.BOOLEAN, required = true)
+                field(ValidationConfig.KEY_APP, text("app_config_validate_app"), text("app_config_validate_app_help"), FieldType.BOOLEAN, required = true),
+                SettingNode.Field(FieldDefinition(ValidationConfig.KEY_PAST_DATA, text("app_config_validate_past_data"), text("app_config_validate_past_data_help"),
+                    FieldType.BOOLEAN, false, null), default = ValidationConfig.PAST_DATA_DEFAULT)
             )
             AppSettingCategories.MAIN_SCREEN -> listOf(
                 SettingNode.ListOf("zone_groups", text("label_zone_groups"),

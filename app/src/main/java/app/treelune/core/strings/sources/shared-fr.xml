@@ -176,6 +176,7 @@
 
     <!-- Validation reasons -->
     <string name="validation_reason_app">L\'accueil est protégé</string>
+    <string name="validation_reason_past_data">La config change des entrées déjà enregistrées : %1$d valeur(s) retirée(s), %2$d entrée(s) supprimée(s), %3$d valeur(s) relue(s) autrement.</string>
     <string name="validation_reason_zone">La zone « %1$s » est protégée</string>
     <string name="validation_reason_tool">Les données de « %1$s » sont protégées</string>
     <string name="validation_reason_session">Cette conversation le demande</string>
@@ -972,6 +973,8 @@
     <string name="settings_validation_description">Ce que l\'IA doit te demander avant de le modifier</string>
     <string name="app_config_validate_app">Protéger l\'accueil</string>
     <string name="app_config_validate_app_help">L\'IA de la conversation et du connecteur demande ton accord avant de créer, modifier ou supprimer une zone, ou de changer les groupes de l\'accueil. Une routine ne demande jamais.</string>
+    <string name="app_config_validate_past_data">Protéger les données passées</string>
+    <string name="app_config_validate_past_data_help">L\'IA de la conversation et du connecteur demande ton accord avant de changer la config d\'un outil d\'une façon qui retire, supprime ou relit autrement des valeurs déjà enregistrées, quelle que soit la protection de sa zone. Une routine le fait si son accès le lui permet.</string>
 
     <string name="settings_ui">Interface utilisateur</string>
     <string name="settings_ui_description">Configurer l\'apparence et le comportement de l\'interface</string>
@@ -1496,7 +1499,7 @@
     <string name="migration_fill_title">Valeurs à donner</string>
     <string name="migration_fill_message">%1$d entrée(s) n\'ont pas de valeur pour %2$s, que cette modification rend obligatoire. Donne la valeur qu\'elles prennent, ou annule.</string>
     <string name="tools_config_error_not_found">Outil introuvable</string>
-    <string name="service_error_migration_unconfirmed">Cette modification retire %1$d valeur(s) des entrées de cet outil, supprime %2$d entrée(s) restée(s) sans valeur obligatoire et relit autrement %3$d valeur(s) gardée(s) (nouvelles bornes, ordre). Renvoie-la avec "confirm_migration": true pour l\'appliquer.</string>
+    <string name="service_error_migration_unconfirmed">Cette modification retire %1$d valeur(s) des entrées de cet outil, supprime %2$d entrée(s) restée(s) sans valeur obligatoire et relit autrement %3$d valeur(s) gardée(s) (nouvelles bornes, ordre). Dis-le à l\'utilisateur, et renvoie-la avec "confirm_migration": true une fois qu\'il est d\'accord.</string>
     <string name="service_error_migration_missing_values">Des entrées n\'ont pas de valeur pour un champ que cette modification rend obligatoire : %1$s. Donne la valeur qu\'elles prennent dans "fill_values": {"data": {"champ": valeur}}.</string>
     <string name="service_error_migration_fill_unknown">"fill_values" nomme %1$s, qui n\'est pas un champ obligatoire de "data" dans cette config</string>
 

@@ -90,15 +90,26 @@ data class DateTimeConfig(
  * setting; nothing is validated by default.
  */
 data class ValidationConfig(
-    val validateApp: Boolean = false
+    val validateApp: Boolean = false,
+    /** A config change of the AI that touches recorded values asks first (docs/design/config-change.md) */
+    val validatePastData: Boolean = PAST_DATA_DEFAULT
 ) {
     /** The validation_config settings as stored in the database */
-    fun toSettingsJson(): String = org.json.JSONObject().put(KEY_APP, validateApp).toString()
+    fun toSettingsJson(): String = org.json.JSONObject().put(KEY_APP, validateApp).put(KEY_PAST_DATA, validatePastData).toString()
 
     companion object {
         const val KEY_APP = "validate_app"
+        const val KEY_PAST_DATA = "validate_past_data"
+        /** Its declared default (AppSettings), which its absence means: on */
+        const val PAST_DATA_DEFAULT = true
 
-        /** Read the stored validation_config settings; a missing key throws rather than silently meaning "no validation". */
-        fun fromSettingsJson(settings: org.json.JSONObject) = ValidationConfig(validateApp = settings.getBoolean(KEY_APP))
+        /**
+         * Read the stored validation_config settings; a missing validate_app throws rather than
+         * silently meaning "no validation", a missing validate_past_data is its declared default.
+         */
+        fun fromSettingsJson(settings: org.json.JSONObject) = ValidationConfig(
+            validateApp = settings.getBoolean(KEY_APP),
+            validatePastData = if (settings.has(KEY_PAST_DATA)) settings.getBoolean(KEY_PAST_DATA) else PAST_DATA_DEFAULT
+        )
     }
 }

@@ -6,6 +6,7 @@ import app.treelune.core.ai.data.SessionValidation
 import app.treelune.core.commands.CommandStatus
 import app.treelune.core.config.ValidationConfig
 import app.treelune.core.coordinator.Coordinator
+import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.services.AppConfigService
 import app.treelune.core.strings.Strings
 import app.treelune.core.utils.LogManager
@@ -116,7 +117,9 @@ class ValidationResolver(private val context: Context) {
                 val zoneId = toolZone(toolId(action))
                 // A tool moved to another zone changes that zone's content too
                 val target = (params["zone_id"] as? String)?.takeIf { it != zoneId }
-                zoneReason(zoneId, levels) ?: target?.let { zoneReason(it, levels) }
+                // A config that touches recorded values asks, whatever the zone's protection
+                (if (action.type == "UPDATE_TOOL") pastDataReason(action, levels) else null)
+                    ?: zoneReason(zoneId, levels) ?: target?.let { zoneReason(it, levels) }
             }
             "CREATE_VARIABLE" -> zoneReason(params["zone_id"] as? String ?: error(s.shared("validation_reason_no_target")), levels)
             "UPDATE_VARIABLE", "DELETE_VARIABLE" -> zoneReason(variableZone(params["variable_id"] as? String ?: error(s.shared("validation_reason_no_target"))), levels)
@@ -136,6 +139,25 @@ class ValidationResolver(private val context: Context) {
             // An action this resolver does not know is asked rather than let through
             else -> s.shared("validation_reason_unknown").format(action.type)
         }
+    }
+
+    /**
+     * Why a config change waits for approval for what it does to the recorded entries, null when
+     * it touches none of them or the protection is off: its counts, read by a dry run of the
+     * change (docs/design/config-change.md).
+     */
+    private suspend fun pastDataReason(action: DataCommand, levels: Levels): String? {
+        if (!levels.app.validatePastData || action.params["config"] == null) return null
+        val result = coordinator.processUserAction("tools.update", action.params + mapOf("dry_run" to true))
+        // A change refused for another reason is refused at its execution, saying why
+        if (!result.isSuccess) return null
+        val migration = result.data?.get("migration") as? Map<*, *> ?: return null
+        fun count(key: String) = (migration[key] as? Number)?.toInt() ?: 0
+        val removed = count("removed_values")
+        val deleted = count("deleted_entries")
+        val reinterpreted = count("reinterpreted_values")
+        if (removed + deleted + reinterpreted == 0) return null
+        return s.shared("validation_reason_past_data").format(removed, deleted, reinterpreted)
     }
 
     private fun appReason(levels: Levels): String? = when {

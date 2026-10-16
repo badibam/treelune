@@ -245,10 +245,13 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
                 is Fill.Refused -> return OperationResult.error(given.message)
                 is Fill.Values -> given.values
             }
-            planMigration(existingTool, configJson, fill).also { plan ->
-                refuseMigration(plan, params.optBoolean("confirm_migration", false))?.let { return it }
-            }
+            val plan = planMigration(existingTool, configJson, fill)
+            // A dry run says what the change would do, writing nothing (ValidationResolver)
+            if (params.optBoolean("dry_run", false)) return OperationResult.success(report(plan))
+            refuseMigration(plan, migrationAgreed(params))?.let { return it }
+            plan
         } else null
+        if (params.optBoolean("dry_run", false)) return OperationResult.success(report(EntryMigration.Plan(emptyList(), emptyList(), 0, 0, emptyMap())))
 
         // Store old zone_id for notification
         val oldZoneId = existingTool.zone_id
@@ -398,6 +401,23 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             )
         }
         return null
+    }
+
+    /**
+     * Whether the change's effect on the recorded entries is agreed to. A person says so with
+     * "confirm_migration" (the screen's confirmation). An AI's own word counts only while the
+     * protection of recorded data is off: with it on (Réglages › Validation), an AI's change
+     * reaches here past ValidationResolver, which asked the person whenever the change touches
+     * the past (in a chat, through the connector), or from a routine, which its access lets do it
+     * (docs/design/config-change.md).
+     */
+    private suspend fun migrationAgreed(params: JSONObject): Boolean {
+        val asked = params.optBoolean("confirm_migration", false)
+        return when (app.treelune.core.coordinator.currentOrigin()) {
+            app.treelune.core.coordinator.Source.AI, app.treelune.core.coordinator.Source.EXTERNAL ->
+                app.treelune.core.services.AppConfigService(context).getValidationConfig().validatePastData || asked
+            else -> asked
+        }
     }
 
     /** What a migration does, under "migration" in a result. */
