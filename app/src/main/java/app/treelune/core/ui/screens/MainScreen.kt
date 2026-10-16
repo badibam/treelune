@@ -238,6 +238,7 @@ private fun PlaceScreen(place: Place, zones: ZonesState, demoInstalled: Boolean)
             name(s.shared("settings_${place.id}"))
             when (place.id) {
                 "ai_providers" -> AIProvidersScreen(onBack = back)
+                "identities" -> app.treelune.core.identities.ui.IdentitiesScreen(onBack = back)
                 "format" -> AppSettingsScreen(category = AppSettingCategories.FORMAT, onBack = back)
                 "ai_limits" -> AppSettingsScreen(category = AppSettingCategories.AI_LIMITS, onBack = back)
                 "validation" -> AppSettingsScreen(category = AppSettingCategories.VALIDATION_CONFIG, onBack = back)
