@@ -72,6 +72,7 @@ Une idée sans spec : elle demande une décision avant du code.
 ### IA et automations
 
 - Le connecteur MCP : sans session, rien n'oblige le client à lire le schéma d'un outil avant d'y écrire (la consigne seule, `ai_chunk_validation_strategy`) ; l'imposer demande de retenir, par connexion, les schémas envoyés.
+- Les lectures du connecteur MCP, coupées aujourd'hui au seuil de la conversation (`AppMcpBackend.call`, `withinChars`, 15 000 caractères), au milieu d'une entrée s'il le faut. Décidé le 2026-10-16 : une lecture est entière ou refusée, jamais coupée ; le refus dit sa taille et comment lire moins (champs, période, `limit`/`page`, une lecture qui calcule dans l'app) ; un texte plus long que le seuil (un champ, une ressource du bagage) se lit par tranches, l'IA donnant le point de départ, l'app remplissant jusqu'au seuil et rendant la taille totale et la reprise, coupée à une fin de paragraphe. Plus d'exemption pour les identités ni de demande d'accord par notification pour une lecture. Reste à trancher : un seuil propre au connecteur, réglé par client à côté de son masque (migration 71).
 - Le prochain envoi se calcule de deux façons : à la volée pour une automation (`AutomationScheduler`), stocké en base et remis à jour à chaque envoi pour Messages — en garder une.
 
 ### Outils et champs
@@ -117,7 +118,7 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 
 - D'autres sources de l'attente (`docs/BRICKS.md`) : un message de l'IA arrivé dans une session pendant qu'on était ailleurs, signalé par exemple sur le bouton de conversation — à concevoir.
 - Choisir une entrée précise comme cible du pointeur dans son sélecteur (conçu dans `docs/design/pointer.md` : étiquette par type d'outil, liste, relecture de l'entrée) — si le besoin apparaît : un pointeur peut désigner une entrée (le Questionnaire en pose un), mais seule l'app le fait. La cible APP attend que l'IA sache lire les réglages de l'app.
-- Une lecture du connecteur MCP au-delà du seuil de données de la conversation est coupée (`AppMcpBackend.call`, `withinChars`), sans qu'on puisse l'autoriser en entier comme dans la conversation : une demande d'accord par notification, comme pour les écritures (`McpApprovals`) — si la coupure gêne à l'usage.
+- Lire un long texte du connecteur MCP par section (le sommaire de ses titres `##`, puis une section par son titre), en plus des tranches — si l'IA lit mal un bagage d'identité en tranches.
 - Le nombre d'entrées en attente sur la tuile, au lieu du point (`WaitingMark`, décidé « pour le moment » le 2026-09-29) — si le point ne suffit pas.
 - Un outil Agenda, pour des événements qui ont une heure et passent d'eux-mêmes (un rendez-vous), distinct d'un élément de liste à échéance qu'on coche — à concevoir au premier événement qu'on voudra noter dans l'app.
 - Outil jamais livré : l'Alerte, laissée pour plus tard (outil ou event du cœur, sans doute une lecture et une condition).
