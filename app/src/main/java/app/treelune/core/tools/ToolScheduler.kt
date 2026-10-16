@@ -17,7 +17,8 @@ import android.content.Context
  * - Any tool needing periodic background execution
  *
  * Scheduling lifecycle:
- * 1. CoreScheduler.tick() called every 1 min (app-open) or 15 min (app-closed)
+ * 1. CoreScheduler.tick() called every 1 min (app-open) or 10 min (app-closed), sooner when a
+ *    scheduler's next action (nextAction) comes before
  * 2. CoreScheduler discovers all tools via ToolTypeManager.getAllToolTypes()
  * 3. For each tool with getScheduler() != null, calls checkScheduled()
  * 4. Tool scheduler performs its periodic checks and actions
@@ -40,4 +41,12 @@ interface ToolScheduler {
      * @param context Android context for accessing services and resources
      */
     suspend fun checkScheduled(context: Context)
+
+    /**
+     * The instant of this scheduler's next action, when it knows it and wants it on time (an
+     * event's reminder): the core wakes the app then, rather than at its next 10-minute ring
+     * (SchedulerAlarm). Null, the default, leaves the tick at its own pace. Asked after every
+     * tick, once checkScheduled has run; an instant not after now is ignored.
+     */
+    suspend fun nextAction(context: Context): Long? = null
 }

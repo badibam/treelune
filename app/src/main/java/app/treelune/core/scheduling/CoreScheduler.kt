@@ -19,7 +19,8 @@ import kotlinx.coroutines.launch
  *
  * Heartbeat mechanism:
  * - 1 minute coroutine (app-open, high reactivity)
- * - 10 minute exact alarm (SchedulerAlarm), which also rings while the phone sleeps
+ * - 10 minute exact alarm (SchedulerAlarm), which also rings while the phone sleeps, set again
+ *   after every tick, sooner when a tool scheduler's next action comes before
  *
  * Discovery pattern:
  * - No hardcoded dependencies on specific tools
@@ -136,6 +137,10 @@ object CoreScheduler {
             LogManager.service("CoreScheduler: Tool scheduling error: ${e.message}", "ERROR", e)
         }
 
+        // The alarm set again after every tick, the minute's included: what the screen added while
+        // the app was open is known to it before the app closes
+        armForNextAction()
+
         try {
             // 3. The automatic backup, last: the tick's other work is due at its minute, a copy within the hour
             app.treelune.core.backup.AutoBackup.tick(context)
@@ -143,6 +148,22 @@ object CoreScheduler {
             LogManager.service("CoreScheduler: automatic backup error: ${e.message}", "ERROR", e)
         }
 
+    }
+
+    /**
+     * Sets the alarm for the soonest of the tool schedulers' next actions (ToolScheduler.nextAction),
+     * within its usual interval. A scheduler that fails to say is logged and left out.
+     */
+    private suspend fun armForNextAction() {
+        val next = ToolTypeManager.getAllToolTypes().mapNotNull { (toolTypeName, toolType) ->
+            try {
+                toolType.getScheduler()?.nextAction(context)
+            } catch (e: Exception) {
+                LogManager.service("CoreScheduler: next action of tool type '$toolTypeName' unknown: ${e.message}", "ERROR", e)
+                null
+            }
+        }.filter { it > System.currentTimeMillis() }.minOrNull()
+        SchedulerAlarm.arm(context, next)
     }
 
     /**

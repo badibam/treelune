@@ -16,11 +16,13 @@ import kotlinx.coroutines.withTimeout
 /**
  * What wakes the app to run the scheduler's tick when no screen is open, the phone asleep
  * included: an exact alarm allowed while idle, [INTERVAL] from now, set again each time it rings,
- * when the phone restarts and when the app is updated. The tick looks at what is due at that
- * moment, so nothing needs to be known in advance.
+ * when the phone restarts and when the app is updated, and after every tick, sooner when a tool's
+ * next action comes before (ToolScheduler.nextAction: an event's reminder). The tick looks at
+ * what is due at that moment.
  *
  * Android lets an app's while-idle alarms ring at most about every 9 minutes when the phone
- * sleeps deeply: [INTERVAL] stays above.
+ * sleeps deeply: [INTERVAL] stays above. A next action brought forward is bound by the same rule:
+ * one that follows another ring closely may come up to that much late (docs/design/agenda-tool.md).
  */
 object SchedulerAlarm {
 
@@ -28,13 +30,18 @@ object SchedulerAlarm {
 
     const val ACTION_TICK = "app.treelune.action.SCHEDULER_TICK"
 
-    /** Sets the next ring [INTERVAL] from now, replacing the one set before. */
-    fun arm(context: Context) {
+    /**
+     * Sets the next ring [INTERVAL] from now, or at [at] when it comes sooner, replacing the one
+     * set before. An [at] not after now is ignored: a ring at once would loop.
+     */
+    fun arm(context: Context, at: Long? = null) {
+        val untilAt = at?.let { it - System.currentTimeMillis() }?.takeIf { it > 0 }
+        val delay = minOf(untilAt ?: INTERVAL, INTERVAL)
         val alarms = context.getSystemService(AlarmManager::class.java)
         val intent = Intent(context, SchedulerAlarmReceiver::class.java).setAction(ACTION_TICK)
         val pending = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         try {
-            alarms.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + INTERVAL, pending)
+            alarms.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + delay, pending)
         } catch (e: SecurityException) {
             // USE_EXACT_ALARM is granted at install from Android 13, SCHEDULE_EXACT_ALARM by
             // default before: a refusal means the phone took it away, and nothing wakes the app
