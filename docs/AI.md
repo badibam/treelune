@@ -479,6 +479,7 @@ Event NetworkErrorOccurred:
 - Outils toujours envoyés au-delà de leur propre seuil : même attente et même carte, avant l'appel à l'IA, le choix valant pour la session (`ALWAYS_SEND_AWAITING_CONFIRMATION`, puis `ALWAYS_SEND_ACCEPTED` ou `ALWAYS_SEND_REFUSED`, hors prompt).
 - AUTOMATION au-delà : les données ne sont pas stockées ; un message `DATA_REFUSED` part à l'IA avec la taille, le seuil et les requêtes concernées, et reste visible dans l'historique d'exécution.
 - Résultats d'actions : ils partent sans rien demander, l'action étant faite ; au-delà du même seuil, `withinChars` les coupe là où la place finit (résumé et résultats entiers d'abord, dans l'ordre), avec le nombre de caractères non envoyés.
+- Lectures du connecteur MCP, contre `chat_max_data_chars` (`McpReads`) : entières ou refusées, jamais coupées. Une lecture d'entrées au-delà est refusée, le refus disant sa taille et comment demander moins ; toute autre lecture, et une entrée seule (`limit` 1), part en tranches : chaque outil de lecture du connecteur prend `text_from`, où la tranche commence, l'app remplissant jusqu'au seuil et coupant à une fin de paragraphe, de ligne ou de mot ; la tranche dit où elle se trouve dans le tout et le `text_from` de la suivante.
 - Les données des outils « toujours envoyer » (niveau 2) ne sont pas mesurées : c'est un choix de configuration de l'utilisateur.
 
 ## 8. Gestion réseau et erreurs

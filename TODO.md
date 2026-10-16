@@ -54,6 +54,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - Les sources de l'attente (`docs/design/waiting-sources.md`, branche waiting-sources) : migration 76, la conversation marquée sur le bouton flottant, le résumé d'une routine, sa notification et ses points, le réglage « Me signaler la fin » (section du même nom) ; passé, élaguer la spec.
 - Les réglages de réflexion de chaque fournisseur, en envoyant une requête : Claude (Sonnet 5.5 sans réflexion par `between_tools`, Opus 5.5 sans « Sans réflexion », Haiku 4.5 sans effort), OpenAI (un modèle à `none`, un modèle qu'aucun fait ne couvre), DeepSeek (effort obligatoire, sans réflexion) ; le changement de modèle qui vide les deux réglages, l'enregistrement d'une combinaison refusée.
 - La lecture seule pour l'IA (`docs/design/unified-fields.md`, branche user-only) : un champ et un critère saisi fermés à l'IA, la validation d'un Objectif fermée à l'IA : la section « Lecture seule pour l'IA » de la recette ; passé, la section de la spec part dans `docs/DATA.md`.
+- Les lectures du connecteur entières, refusées ou en tranches (`McpReads`, branche mcp-reads) : sa ligne « Seuil de données à 5 000 » de la section « Accès externe (serveur MCP) ».
 - Les textures d'outil et de zone (`docs/design/tool-texture.md`, branche tool-texture) : les tons réglés d'abord au banc des textures (`./run themes`), dans les trois thèmes et les deux modes, puis la section « Les textures » de la recette ; passé, élaguer la spec.
 
 ## Conçu, à coder
@@ -72,7 +73,7 @@ Une idée sans spec : elle demande une décision avant du code.
 ### IA et automations
 
 - Le connecteur MCP : sans session, rien n'oblige le client à lire le schéma d'un outil avant d'y écrire (la consigne seule, `ai_chunk_validation_strategy`) ; l'imposer demande de retenir, par connexion, les schémas envoyés.
-- Les lectures du connecteur MCP, coupées aujourd'hui au seuil de la conversation (`AppMcpBackend.call`, `withinChars`, 15 000 caractères), au milieu d'une entrée s'il le faut. Décidé le 2026-10-16 : une lecture est entière ou refusée, jamais coupée ; le refus dit sa taille et comment lire moins (champs, période, `limit`/`page`, une lecture qui calcule dans l'app) ; un texte plus long que le seuil (un champ, une ressource du bagage) se lit par tranches, l'IA donnant le point de départ, l'app remplissant jusqu'au seuil et rendant la taille totale et la reprise, coupée à une fin de paragraphe. Plus d'exemption pour les identités ni de demande d'accord par notification pour une lecture. Reste à trancher : un seuil propre au connecteur, réglé par client à côté de son masque (migration 71).
+- Les lectures du connecteur MCP se tiennent au seuil de la conversation (`chat_max_data_chars`, `McpReads`) : un seuil propre au connecteur, réglé par client à côté de son masque (migration 71), la limite de réponse de chaque client étant la sienne — à trancher.
 - Le prochain envoi se calcule de deux façons : à la volée pour une automation (`AutomationScheduler`), stocké en base et remis à jour à chaque envoi pour Messages — en garder une.
 
 ### Outils et champs
