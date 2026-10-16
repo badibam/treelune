@@ -121,13 +121,6 @@ L'Agenda en est le premier usage ; Messages, les routines et les échéances de 
 
 L'Agenda n'attend jamais rien : pas de point sur la tuile (`getWaiting` vide), un événement en cours n'est pas une attente.
 
-## L'ordre
-
-1. L'Instant étendu (`SAME`, l'heure comme bord, `MINUTE`), sa forme au prompt de l'IA et dans `docs/BRICKS.md`.
-2. Le réveil précis au cœur.
-3. Ce que le changement d'une config fait aux entrées : `entriesRemovedByConfig` prend aussi la config précédente (le planning d'une série a-t-il changé) ; une méthode nouvelle du type d'outil réécrit des entrées au changement de config, dans la même transaction (le reste d'une série qui descend).
-4. L'outil : type, service et opérations, planificateur (occurrences et rappels), écran, tuile, textes et Guide.
-
 ## Hors de cette spec
 
 - Une vue calendrier (grille du mois).

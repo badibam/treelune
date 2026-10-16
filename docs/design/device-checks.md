@@ -301,6 +301,7 @@ Vu le 2026-10-09 : l'inscription par la page de connexion, « Activer Funnel » 
 - Déplacer un événement déjà rappelé à plus tard : son rappel repart à la nouvelle heure.
 - L'IA crée un événement (status planned), en annule un, retire une occurrence ; supprimer une occurrence est refusé et le message renvoie à agenda.remove ; changer le jour d'une série demande d'abord à la personne.
 - L'écran et la tuile, dans les trois thèmes.
+- Installer la démo : chaque outil planifié créé fait tourner aussitôt le planificateur de son type (`CoreScheduler.runTool`) ; noter la durée de l'installation, à comparer avec celle d'avant la fusion de la branche agenda.
 
 ## Graphique
 
