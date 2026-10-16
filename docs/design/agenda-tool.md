@@ -25,9 +25,9 @@ Ce qui n'en est pas : une chose à faire avant un moment (la Liste et son éché
 - **`data`**, déclaré par le type :
   - `duration` (`duration-millis`), facultative : sans elle l'événement est un moment, avec elle un créneau. Une durée plutôt qu'une heure de fin : déplacer un rendez-vous garde sa durée vraie.
   - `all_day` (oui/non) : le `timestamp` est alors minuit du jour dans le fuseau de l'app (`DateTimeConfig.getZoneId()`), et la durée se compte en jours, `days` (1 par défaut), une journée ne faisant pas toujours 24 h. `duration` et `days` ne vont jamais ensemble.
-- **Les autres champs** sont ceux de l'utilisateur. Une config neuve arrive avec « Lieu » (texte court) déclaré, retirable comme tout champ ; le type n'en fait rien de plus.
+- **Les autres champs** sont ceux de l'utilisateur (« Lieu », « Avec qui »), qu'il déclare lui-même : aucun préréglage, le type n'en sachant rien. Ils s'affichent comme dans la Liste, en compact sous le nom (`CustomFieldsDisplay`).
 - **`state`**, écrit par les opérations et le planificateur seuls, jamais par l'écriture ordinaire :
-  - `status` : absent pour un événement normal, `cancelled` (annulé : visible, barré, sans rappel), `removed` (retiré : invisible du planning, de la tuile et des rappels ; occurrence de série seulement) ;
+  - `status` : `planned` pour un événement normal, `cancelled` (annulé : visible, barré, sans rappel), `removed` (retiré : invisible du planning, de la tuile et des rappels ; occurrence de série seulement). Toujours présent, il est le statut de départ du cœur (`EntryStart`) : un événement se crée `planned`, et seules les opérations de l'outil et l'app changent ce statut ;
   - `series` : la clé de la série qui l'a créé, absente pour un événement isolé ;
   - `reminded` : les heures des rappels déjà envoyés, effacées quand le début de l'événement change.
 - **Aucun statut fait / pas fait** : à venir, en cours ou passé se lit à l'horloge.
@@ -97,7 +97,7 @@ L'Agenda en est le premier usage ; Messages, les routines et les échéances de 
 ## L'écran
 
 - **En haut, le type de période** (`PeriodFilterType`), réduit à « À venir » (par défaut), Jour, Semaine, Mois ; « À venir » montre les événements en cours puis futurs, sans fin ni flèches ; Jour, Semaine et Mois ont les flèches et le calendrier au toucher du libellé (`SinglePeriodSelector`), qui mènent aussi au passé.
-- **La liste, groupée par jour** (« Aujourd'hui », « Demain », « jeudi 23 octobre »), le début de journée de l'app (`dayStartHour`) compris, sauf pour une journée entière, rangée à son jour de calendrier. Une ligne : l'heure ou « Journée », le nom, la durée en petit (« 14 h – 14 h 45 »), le lieu s'il y en a un ; en cours mis en avant, annulé barré, une icône de répétition sur une occurrence de série. Une journée entière de plusieurs jours apparaît à chacun de ses jours. « Retirées (n) », replié en bas, celles de la période affichée, chacune avec « Remettre ».
+- **La liste, groupée par jour** (« Aujourd'hui », « Demain », « jeudi 23 octobre »), le début de journée de l'app (`dayStartHour`) compris, sauf pour une journée entière, rangée à son jour de calendrier. Une ligne : l'heure ou « Journée », le nom, la durée en petit (« 14 h – 14 h 45 »), les champs de l'utilisateur en compact ; en cours mis en avant, annulé barré, une icône de répétition sur une occurrence de série. Une journée entière de plusieurs jours apparaît à chacun de ses jours. « Retirées (n) », replié en bas, celles de la période affichée, chacune avec « Remettre ».
 - **Pas de vue calendrier** (grille du mois) : la liste par jour répond à « qu'est-ce que j'ai ».
 - **« Nouvel événement »** ouvre la fiche : nom, date et heure, ou « Journée entière » et le nombre de jours, durée, puis les champs de l'utilisateur. **« Se répète »**, coché, montre la Planification : l'enregistrement crée alors une série dans la config, et le planificateur ses occurrences. Rien n'est écrit avant « Enregistrer ».
 - **Un événement touché** ouvre sa fiche, modifiable, avec « Annuler » (ou « Rétablir ») et « Supprimer » ; sur une occurrence de série, « Retirer » à la place de « Supprimer », et « Modifier la série », qui ouvre la même fiche sur la série ; un planning changé demande la confirmation des occurrences recréées.
@@ -105,7 +105,7 @@ L'Agenda en est le premier usage ; Messages, les routines et les échéances de 
 ## La tuile
 
 - **Le résumé** : le prochain événement ou celui en cours, son nom et son moment en relatif (« dans 2 h », « demain 14 h », « jeu. 23 », « en cours ») ; « Rien à venir » sinon.
-- **Le corps** : les événements à venir, un par `TileLine` : le moment à gauche (« 14:30 » aujourd'hui, « Dem. », « Jeu. 23 »), le nom au milieu, le lieu en seconde ligne discrète ; un annulé barré, un retiré absent. EXTENDED, ce que tient sa rangée ; SQUARE, ses trois rangées ; FULL, les 7 prochains jours.
+- **Le corps** : les événements à venir, un par `TileLine` : le moment à gauche (« 14:30 » aujourd'hui, « Dem. », « Jeu. 23 »), le nom au milieu, les champs de l'utilisateur en seconde ligne discrète ; un annulé barré, un retiré absent. EXTENDED, ce que tient sa rangée ; SQUARE, ses trois rangées ; FULL, les 7 prochains jours.
 - Un événement touché ouvre sa fiche (`EntryToOpen`) ; ailleurs, l'outil.
 
 ## L'IA
