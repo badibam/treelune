@@ -1614,9 +1614,9 @@
                 "transform": [
                   {
                     "fold": [
-                      "Studio Brume",
-                      "Librairie Le Rameau",
-                      "Mairie de Villeurbanne"
+                      "@chart_hours_col_brume",
+                      "@chart_hours_col_rameau",
+                      "@chart_hours_col_villeurbanne"
                     ],
                     "as": [
                       "client",
@@ -1646,7 +1646,7 @@
                 "step": "week",
                 "columns": [
                   {
-                    "name": "Studio Brume",
+                    "name": "@chart_hours_col_brume",
                     "term": {
                       "reading": {
                         "selection": {
@@ -1672,7 +1672,7 @@
                     }
                   },
                   {
-                    "name": "Librairie Le Rameau",
+                    "name": "@chart_hours_col_rameau",
                     "term": {
                       "reading": {
                         "selection": {
@@ -1698,7 +1698,7 @@
                     }
                   },
                   {
-                    "name": "Mairie de Villeurbanne",
+                    "name": "@chart_hours_col_villeurbanne",
                     "term": {
                       "reading": {
                         "selection": {
@@ -1735,10 +1735,10 @@
                 "transform": [
                   {
                     "fold": [
-                      "@hours_project_identity",
-                      "@hours_project_website",
-                      "@hours_project_poster",
-                      "@hours_project_admin"
+                      "@chart_hours_col_identity",
+                      "@chart_hours_col_website",
+                      "@chart_hours_col_poster",
+                      "@chart_hours_col_admin"
                     ],
                     "as": [
                       "project",
@@ -1763,7 +1763,7 @@
                 "step": "year",
                 "columns": [
                   {
-                    "name": "@hours_project_identity",
+                    "name": "@chart_hours_col_identity",
                     "term": {
                       "reading": {
                         "selection": {
@@ -1789,7 +1789,7 @@
                     }
                   },
                   {
-                    "name": "@hours_project_website",
+                    "name": "@chart_hours_col_website",
                     "term": {
                       "reading": {
                         "selection": {
@@ -1815,7 +1815,7 @@
                     }
                   },
                   {
-                    "name": "@hours_project_poster",
+                    "name": "@chart_hours_col_poster",
                     "term": {
                       "reading": {
                         "selection": {
@@ -1841,7 +1841,7 @@
                     }
                   },
                   {
-                    "name": "@hours_project_admin",
+                    "name": "@chart_hours_col_admin",
                     "term": {
                       "reading": {
                         "selection": {

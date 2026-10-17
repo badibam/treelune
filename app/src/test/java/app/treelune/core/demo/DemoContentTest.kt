@@ -182,6 +182,23 @@ class DemoContentTest {
     }
 
     @Test
+    fun `a chart's columns are named as the chart takes them, in each language, and each one folded is one of its layer`() {
+        for (language in languages) {
+            fun layers(value: Any?): List<JSONObject> = when (value) {
+                is JSONObject -> (if (value.has("columns") && value.has("mark")) listOf(value) else emptyList()) + value.keys().asSequence().flatMap { layers(value.get(it)) }
+                is JSONArray -> (0 until value.length()).flatMap { layers(value.get(it)) }
+                else -> emptyList()
+            }
+            read(language).tools.filter { it.getString("tooltype") == "chart" }.flatMap { layers(it.getJSONObject("config")) }.forEach { layer ->
+                val names = layer.getJSONArray("columns").let { c -> (0 until c.length()).map { c.getJSONObject(it).getString("name") } }
+                names.forEach { assertTrue("$language: $it", app.treelune.core.services.VariableService.NAME.matches(it)) }
+                layer.optJSONArray("transform")?.let { t -> (0 until t.length()).mapNotNull { t.getJSONObject(it).optJSONArray("fold") } }
+                    ?.forEach { fold -> (0 until fold.length()).forEach { assertTrue("$language: ${fold.getString(it)}", fold.getString(it) in names) } }
+            }
+        }
+    }
+
+    @Test
     fun `a field whose type has no settings carries no config`() {
         read().tools.forEach { tool ->
             val fields = tool.getJSONObject("config").optJSONArray("extra_fields") ?: return@forEach
