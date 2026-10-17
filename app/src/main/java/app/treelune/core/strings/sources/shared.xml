@@ -53,7 +53,6 @@
 
     <!-- AI Interface - Composer and Enrichments -->
     <string name="ai_composer_placeholder">Write your message...</string>
-    <string name="ai_composer_add_text">Text</string>
     <string name="ai_image_block">Image</string>
     <string name="ai_image_missing">The file of this image is missing</string>
     <string name="ai_image_no_camera">No camera app on this phone takes a photo for another app</string>
@@ -1226,7 +1225,6 @@
     <string name="ai_network_unavailable">No network connection</string>
     <string name="ai_session_queued">Session waiting (position %1$d)</string>
     <string name="ai_session_queued_priority">Priority session waiting</string>
-    <string name="ai_automation_running">Routine running, please wait</string>
 
     <!-- Floating Chat - States -->
     <string name="ai_chat_no_active_session">No active session</string>
@@ -1355,6 +1353,7 @@
     <string name="action_attach">Join a file</string>
     <string name="action_pointer">Point at a zone or a tool</string>
     <string name="action_photo">Photo</string>
+    <string name="action_text">Add a text</string>
     <string name="action_gallery">Gallery</string>
     <string name="action_arrange">Arrange</string>
     <string name="grid_leave_title">Leave the zone?</string>

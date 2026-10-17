@@ -53,7 +53,6 @@
 
     <!-- AI Interface - Composer and Enrichments -->
     <string name="ai_composer_placeholder">Écris ton message...</string>
-    <string name="ai_composer_add_text">Texte</string>
     <string name="ai_image_block">Image</string>
     <string name="ai_image_missing">Le fichier de cette image est introuvable</string>
     <string name="ai_image_no_camera">Aucune application de ce téléphone ne prend de photo pour une autre</string>
@@ -1226,7 +1225,6 @@
     <string name="ai_network_unavailable">Pas de connexion réseau</string>
     <string name="ai_session_queued">Session en attente (position %1$d)</string>
     <string name="ai_session_queued_priority">Session en attente prioritaire</string>
-    <string name="ai_automation_running">Routine en cours, patiente</string>
 
     <!-- Floating Chat - States -->
     <string name="ai_chat_no_active_session">Aucune session active</string>
@@ -1355,6 +1353,7 @@
     <string name="action_attach">Joindre un fichier</string>
     <string name="action_pointer">Désigner une zone ou un outil</string>
     <string name="action_photo">Photo</string>
+    <string name="action_text">Ajouter un texte</string>
     <string name="action_gallery">Galerie</string>
     <string name="action_arrange">Disposer</string>
     <string name="grid_leave_title">Quitter la zone ?</string>

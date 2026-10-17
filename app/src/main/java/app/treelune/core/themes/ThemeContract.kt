@@ -129,6 +129,8 @@ interface ThemeContract {
         confirmMessage: String?,
         /** Shown as switched on while what it opens lasts (a group's edit mode), switched off by a press again */
         active: Boolean = false,
+        /** The icon drawn instead of the action's, by its name: who speaks in a conversation (IdentityChip) */
+        icon: String? = null,
         onClick: () -> Unit
     )
     

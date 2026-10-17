@@ -88,11 +88,12 @@ object UI {
         requireConfirmation: Boolean = false,  // Automatic confirmation dialog
         confirmMessage: String? = null,        // Custom message (null = default message)
         active: Boolean = false,               // Switched on while what it opens lasts
+        icon: String? = null,                  // Drawn instead of the action's icon
         onClick: () -> Unit
     ) {
         val sound = rememberUISound()
         RefusedWhenDisabled(enabled) {
-            CurrentTheme.current.ActionButton(action, display, size, type, enabled, requireConfirmation, confirmMessage, active,
+            CurrentTheme.current.ActionButton(action, display, size, type, enabled, requireConfirmation, confirmMessage, active, icon,
                 { action.signal()?.let(sound); onClick() })
         }
     }

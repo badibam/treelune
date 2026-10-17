@@ -125,8 +125,8 @@ fun IdentityTile(identity: IdentityChoice) {
 }
 
 /**
- * The chip of a conversation's composer, right of its enrichments: the identity it speaks as
- * (its icon; the chat's for the app's own AI). Before the first message [fixed] is false and a
+ * The button of a conversation's header bar, first of its buttons: the identity it speaks as
+ * (its icon, drawn as every icon button; the identities' own, a figure, for the app's AI). Before the first message [fixed] is false and a
  * touch opens the choice among [identities] and the app's AI; after it, a touch says that another
  * conversation changes who speaks.
  */
@@ -136,17 +136,16 @@ fun IdentityChip(identities: List<IdentityChoice>, selected: String?, fixed: Boo
     val s = remember { app.treelune.core.strings.Strings.`for`(context = context) }
     var choosing by remember { mutableStateOf(false) }
     val identity = identities.firstOrNull { it.id == selected }
-    UI.Button(
-        type = app.treelune.core.ui.ButtonType.DEFAULT,
+    UI.ActionButton(
+        action = ButtonAction.IDENTITY,
+        display = app.treelune.core.ui.ButtonDisplay.ICON,
         size = app.treelune.core.ui.Size.M,
+        icon = identity?.iconName,
         onClick = {
             if (fixed) UI.Toast(context, s.shared("identity_session_fixed"), app.treelune.core.ui.Duration.LONG)
             else choosing = true
         }
-    ) {
-        if (identity != null) UI.ItemIcon(identity.iconName, IconColor.of(identity.iconColor))
-        else UI.Icon(ButtonAction.AI_CHAT.iconName, contentDescription = s.shared("identity_app_ai"))
-    }
+    )
     if (choosing) {
         var chosen by remember { mutableStateOf(selected) }
         UI.Dialog(

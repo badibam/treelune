@@ -21,7 +21,7 @@ import app.treelune.core.ui.UI
  * Status bar displaying current AI session phase.
  *
  * Shows user-friendly phase label based on current phase and session type.
- * Displayed at bottom of AIScreen for constant visibility.
+ * Displayed over a chat's composer, and at the bottom of a routine's run, for constant visibility.
  *
  * Architecture: Event-Driven State Machine (V2)
  * - Observes phase from AIState
@@ -39,10 +39,9 @@ fun SessionStatusBar(
     // Get status text based on phase and session type
     val statusText = getStatusText(phase, sessionType, s)
 
+    // The height its text takes, wrapped whole rather than cut
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = UI.Space.S, horizontal = UI.Space.S),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = UI.Space.S),
         contentAlignment = Alignment.Center
     ) {
         Row(

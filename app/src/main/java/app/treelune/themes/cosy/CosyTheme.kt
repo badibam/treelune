@@ -256,6 +256,7 @@ object CosyTheme : ThemeContract {
         requireConfirmation: Boolean,
         confirmMessage: String?,
         active: Boolean,
+        icon: String?,
         onClick: () -> Unit
     ) {
         var confirming by rememberSaveable { mutableStateOf(false) }
@@ -263,7 +264,7 @@ object CosyTheme : ThemeContract {
         val buttonType = if (active) ButtonType.PRIMARY else type ?: action.defaultType()
         Pressable(onClick = { if (requireConfirmation) confirming = true else onClick() }, enabled = enabled) { pressed ->
             if (display == ButtonDisplay.ICON) {
-                RoundButton(action.iconName, label, buttonType, enabled, pressed)
+                RoundButton((icon ?: action.iconName), label, buttonType, enabled, pressed)
             } else {
                 Pill(buttonType, enabled, pressed) { Line(label, cosySize().button, LocalCosyInk.current ?: cosyColors.ink.srgb, maxLines = 1) }
             }

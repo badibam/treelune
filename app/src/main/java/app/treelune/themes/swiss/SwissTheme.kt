@@ -239,6 +239,7 @@ object SwissTheme : ThemeContract {
         requireConfirmation: Boolean,
         confirmMessage: String?,
         active: Boolean,
+        icon: String?,
         onClick: () -> Unit
     ) {
         var confirming by rememberSaveable { mutableStateOf(false) }
@@ -246,7 +247,7 @@ object SwissTheme : ThemeContract {
         val buttonType = type ?: action.defaultType()
         Pressable(onClick = { if (requireConfirmation) confirming = true else onClick() }, enabled = enabled) { pressed ->
             if (display == ButtonDisplay.ICON) {
-                IconSquare(action.iconName, label, buttonType, enabled, pressed, active)
+                IconSquare((icon ?: action.iconName), label, buttonType, enabled, pressed, active)
             } else {
                 // Switched on, a button is a block of ink, as the main one
                 Block(if (active) ButtonType.PRIMARY else buttonType, enabled, pressed) { Word(label) }

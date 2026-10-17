@@ -31,30 +31,6 @@ import app.treelune.core.utils.LogManager
 import kotlinx.coroutines.launch
 
 /**
- * Helper function to map Phase enum to localized UI string.
- */
-private fun getPhaseLabel(phase: Phase, s: app.treelune.core.strings.StringsContext): String {
-    return when (phase) {
-        Phase.IDLE -> s.shared("ai_phase_idle")
-        Phase.EXECUTING_ENRICHMENTS -> s.shared("ai_phase_executing_enrichments")
-        Phase.CALLING_AI -> s.shared("ai_phase_calling_ai")
-        Phase.PARSING_AI_RESPONSE -> s.shared("ai_phase_parsing")
-        Phase.PREPARING_CONTINUATION -> s.shared("ai_phase_preparing_continuation")
-        Phase.EXECUTING_DATA_QUERIES -> s.shared("ai_phase_executing_queries")
-        Phase.EXECUTING_ACTIONS -> s.shared("ai_phase_executing_actions")
-        Phase.WAITING_VALIDATION -> s.shared("ai_phase_waiting_validation")
-        Phase.WAITING_COMMUNICATION_RESPONSE -> s.shared("ai_phase_waiting_communication")
-        Phase.WAITING_DATA_CONFIRMATION -> s.shared("ai_phase_waiting_data_confirmation")
-        Phase.WAITING_NETWORK_RETRY -> s.shared("ai_phase_waiting_network")
-        Phase.RETRYING_AFTER_FORMAT_ERROR,
-        Phase.RETRYING_AFTER_ACTION_FAILURE -> s.shared("ai_phase_retrying")
-        Phase.INTERRUPTED -> s.shared("ai_phase_interrupted")
-        Phase.AWAITING_SESSION_CLOSURE -> s.shared("ai_phase_awaiting_closure")
-        Phase.CLOSED -> s.shared("ai_phase_completed")
-    }
-}
-
-/**
  * AI Screen - Unified interface for all session types (CHAT, SEED, AUTOMATION)
  *
  * Architecture:
@@ -321,13 +297,22 @@ private fun ChatMode(
         // Header
         ChatHeader(
             session = session,
-            phase = aiState.phase,
             onClose = onClose,
             onOpenHistory = onOpenHistory,
             onShowStats = { showStats = true },
             onStopSession = {
                 scope.launch {
                     AIOrchestrator.stopActiveSession()
+                }
+            },
+            identity = {
+                app.treelune.core.identities.ui.IdentityChip(identities.orEmpty(), identityId, fixed) { chosen ->
+                    scope.launch {
+                        val result = coordinator.processUserAction("ai_sessions.set_identity",
+                            mapOf("session_id" to session.id, "identity_id" to (chosen ?: org.json.JSONObject.NULL)))
+                        if (result.status == CommandStatus.SUCCESS) identityId = chosen
+                        else errorMessage = result.error
+                    }
                 }
             }
         )
@@ -383,22 +368,11 @@ private fun ChatMode(
                     sessionId = session.id,
                     enabled = composerEnabled,
                     statusContent = {
-                        // Status bar inline with Send button
                         SessionStatusBar(
                             phase = aiState.phase,
                             sessionType = session.type,
                             context = context
                         )
-                    },
-                    trailingControl = {
-                        app.treelune.core.identities.ui.IdentityChip(identities.orEmpty(), identityId, fixed) { chosen ->
-                            scope.launch {
-                                val result = coordinator.processUserAction("ai_sessions.set_identity",
-                                    mapOf("session_id" to session.id, "identity_id" to (chosen ?: org.json.JSONObject.NULL)))
-                                if (result.status == CommandStatus.SUCCESS) identityId = chosen
-                                else errorMessage = result.error
-                            }
-                        }
                     }
                 )
             }
@@ -1010,16 +984,17 @@ private fun ChatOptionsDialog(
 }
 
 /**
- * Chat header - Session controls, validation toggle, stats
+ * Chat header - Session controls, validation toggle, stats. Its buttons in order: [identity]
+ * (who speaks), the history, the settings, stop, close.
  */
 @Composable
 private fun ChatHeader(
     session: AISession,
-    phase: Phase,
     onClose: () -> Unit,
     onOpenHistory: (() -> Unit)?,
     onShowStats: () -> Unit,
-    onStopSession: () -> Unit
+    onStopSession: () -> Unit,
+    identity: @Composable () -> Unit
 ) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
@@ -1140,19 +1115,11 @@ private fun ChatHeader(
         )
     }
 
-    // Header row
-    UI.HeaderBar {
-        // Title with phase status
-        Column(modifier = Modifier.weight(1f)) {
-            UI.Text(
-                text = session.name,
-                type = TextType.TITLE
-            )
-            UI.Text(
-                text = getPhaseLabel(phase, s),
-                type = TextType.CAPTION
-            )
-        }
+    // Header row; the phase is said over the composer (SessionStatusBar)
+    TitledHeaderBar(session.name) {
+
+        // Who speaks: its identity, the app's AI otherwise
+        identity()
 
         // The past chats, to resume one
         onOpenHistory?.let {
@@ -1164,20 +1131,20 @@ private fun ChatHeader(
             )
         }
 
-        // Stop button
-        UI.ActionButton(
-            action = ButtonAction.STOP,
-            display = ButtonDisplay.ICON,
-            size = Size.M,
-            onClick = { showStopConfirmation = true }
-        )
-
         // Settings button
         UI.ActionButton(
             action = ButtonAction.CONFIGURE,
             display = ButtonDisplay.ICON,
             size = Size.M,
             onClick = { showSettingsMenu = true }
+        )
+
+        // Stop button
+        UI.ActionButton(
+            action = ButtonAction.STOP,
+            display = ButtonDisplay.ICON,
+            size = Size.M,
+            onClick = { showStopConfirmation = true }
         )
 
         // Close button
@@ -1187,6 +1154,25 @@ private fun ChatHeader(
             size = Size.M,
             onClick = onClose
         )
+    }
+}
+
+/**
+ * The band at the top of a session's view: its buttons in a row at the right, its [title] on the
+ * line under them, cut to that line, so that the buttons keep their room at any size.
+ */
+@Composable
+private fun TitledHeaderBar(title: String, buttons: @Composable RowScope.() -> Unit) {
+    UI.HeaderBar {
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(UI.Space.S, Alignment.End),
+                verticalAlignment = Alignment.CenterVertically,
+                content = buttons
+            )
+            UI.Text(text = title, type = TextType.TITLE, maxLines = 1)
+        }
     }
 }
 
@@ -1201,14 +1187,7 @@ private fun SeedHeader(
     onConfigureAutomation: () -> Unit,
     onDeleteAutomation: () -> Unit
 ) {
-    UI.HeaderBar {
-        // Title
-        Box(modifier = Modifier.weight(1f)) {
-            UI.Text(
-                text = title,
-                type = TextType.TITLE
-            )
-        }
+    TitledHeaderBar(title) {
 
         // Delete button
         UI.ActionButton(
@@ -1250,16 +1229,15 @@ private fun AutomationHeader(
     onStop: () -> Unit
 ) {
     val context = LocalContext.current
-    val s = remember { Strings.`for`(context = context) }
+    // The routine's name once read; that it runs is said at the bottom (SessionStatusBar)
+    var title by remember(session.id) { mutableStateOf(session.name) }
+    LaunchedEffect(session.automationId) {
+        val id = session.automationId ?: return@LaunchedEffect
+        val result = app.treelune.core.coordinator.Coordinator(context).processUserAction("automations.get", mapOf("automation_id" to id))
+        ((result.data?.get("automation") as? Map<*, *>)?.get("name") as? String)?.let { title = it }
+    }
 
-    UI.HeaderBar {
-        // Title
-        Column(modifier = Modifier.weight(1f)) {
-            UI.Text(
-                text = s.shared("ai_automation_running"),
-                type = TextType.TITLE
-            )
-        }
+    TitledHeaderBar(title) {
 
         // The past chats, to resume one
         onOpenHistory?.let {

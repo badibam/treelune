@@ -104,9 +104,7 @@ fun UI.RichComposer(
     sessionType: SessionType = SessionType.CHAT,
     sessionId: String? = null,
     boundedBlocks: Boolean = true,
-    statusContent: (@Composable () -> Unit)? = null,
-    /** What closes the row of enrichments, at its right end: a conversation's identity chip */
-    trailingControl: (@Composable () -> Unit)? = null
+    statusContent: (@Composable () -> Unit)? = null
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -215,49 +213,9 @@ fun UI.RichComposer(
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
 
-        // Controls row: Status (if provided) + Send button
-        // Placed at top so it stays visible when keyboard appears
-        if (showSendButton || statusContent != null) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Status content on the left (if provided)
-                if (statusContent != null) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        statusContent()
-                    }
-                } else {
-                    Spacer(modifier = Modifier.weight(1f))
-                }
-
-                // Send button on the right
-                if (showSendButton) {
-                    UI.Button(
-                        type = ButtonType.PRIMARY,
-                        size = Size.M,
-                        state = if (enabled) ComponentState.NORMAL else ComponentState.DISABLED,
-                        onClick = {
-                            // Hide keyboard when sending message
-                            keyboardController?.hide()
-
-                            LogManager.aiEnrichment("RichComposer Send button clicked with ${blocks.size} blocks")
-                            // A message with images waits for a model that reads them
-                            val imageCount = blocks.count { it.segment is MessageSegment.Image }
-                            val refusal = app.treelune.core.ai.providers.ImageInput.refusal(imageCount, readsImages) { s.shared(it) }
-                            if (refusal != null) UI.Toast(context, refusal, Duration.LONG)
-                            else onSend(RichMessage(ComposerBlocks.toSegments(blocks)))
-                        }
-                    ) {
-                        UI.Text(
-                            text = s.shared("action_send"),
-                            type = TextType.BODY
-                        )
-                    }
-                }
-            }
-        }
+        // The status, over the blocks so that it stays in view when the keyboard appears: the
+        // height its text takes, no more
+        statusContent?.invoke()
 
         // The blocks: their own scroll in a third of the screen, or their full height
         Column(
@@ -323,6 +281,18 @@ fun UI.RichComposer(
             horizontalArrangement = Arrangement.spacedBy(UI.Space.S),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Add Text button: a new text block after the active one, which takes the focus
+            UI.ActionButton(
+                action = ButtonAction.TEXT,
+                display = ButtonDisplay.ICON,
+                size = Size.M,
+                onClick = {
+                    val newBlock = ComposerBlock(MessageSegment.Text(""))
+                    add(newBlock)
+                    focusBlockId = newBlock.id
+                }
+            )
+
             // Enrichment buttons (if enabled)
             if (showEnrichmentButtons) {
                 offeredTypes.forEach { type ->
@@ -363,25 +333,26 @@ fun UI.RichComposer(
                 )
             }
 
-            // Add Text button: a new text block after the active one, which takes the focus
-            UI.Button(
-                type = ButtonType.DEFAULT,
-                size = Size.M,
-                onClick = {
-                    val newBlock = ComposerBlock(MessageSegment.Text(""))
-                    add(newBlock)
-                    focusBlockId = newBlock.id
-                }
-            ) {
-                UI.Text(
-                    text = "+ ${s.shared("ai_composer_add_text")}",
-                    type = TextType.BODY
-                )
-            }
-
-            if (trailingControl != null) {
+            // Send, at the right end, in the main colour
+            if (showSendButton) {
                 Spacer(modifier = Modifier.weight(1f))
-                trailingControl()
+                UI.ActionButton(
+                    action = ButtonAction.SEND,
+                    display = ButtonDisplay.ICON,
+                    size = Size.M,
+                    enabled = enabled,
+                    onClick = {
+                        // Hide keyboard when sending message
+                        keyboardController?.hide()
+
+                        LogManager.aiEnrichment("RichComposer Send button clicked with ${blocks.size} blocks")
+                        // A message with images waits for a model that reads them
+                        val imageCount = blocks.count { it.segment is MessageSegment.Image }
+                        val refusal = app.treelune.core.ai.providers.ImageInput.refusal(imageCount, readsImages) { s.shared(it) }
+                        if (refusal != null) UI.Toast(context, refusal, Duration.LONG)
+                        else onSend(RichMessage(ComposerBlocks.toSegments(blocks)))
+                    }
+                )
             }
         }
     }

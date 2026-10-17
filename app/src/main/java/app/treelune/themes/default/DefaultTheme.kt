@@ -417,6 +417,7 @@ object DefaultTheme : ThemeContract {
         requireConfirmation: Boolean,
         confirmMessage: String?,
         active: Boolean,
+        icon: String?,
         onClick: () -> Unit
     ) {
         // État du dialogue de confirmation
@@ -443,8 +444,8 @@ object DefaultTheme : ThemeContract {
                 // Every action's icon is in the index (ButtonAction's test), so a missing
                 // drawable is a broken build, not a case to draw around.
                 val context = LocalContext.current
-                val iconResource = requireNotNull(app.treelune.core.icons.Icons.drawable(context, action.iconName)) {
-                    "No drawable for the icon ${action.iconName} of $action"
+                val iconResource = requireNotNull(app.treelune.core.icons.Icons.drawable(context, (icon ?: action.iconName))) {
+                    "No drawable for the icon ${(icon ?: action.iconName)} of $action"
                 }
                 // No tint given: the icon takes the button's content colour, as its text would
                 Icon(

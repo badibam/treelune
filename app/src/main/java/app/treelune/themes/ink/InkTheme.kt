@@ -235,6 +235,7 @@ object InkTheme : ThemeContract {
         requireConfirmation: Boolean,
         confirmMessage: String?,
         active: Boolean,
+        icon: String?,
         onClick: () -> Unit
     ) {
         var confirming by rememberSaveable { mutableStateOf(false) }
@@ -242,7 +243,7 @@ object InkTheme : ThemeContract {
         val buttonType = type ?: action.defaultType()
         Pressable(onClick = { if (requireConfirmation) confirming = true else onClick() }, enabled = enabled) { pressed ->
             if (display == ButtonDisplay.ICON) {
-                IconButton(action.iconName, label, buttonType, enabled, pressed, active)
+                IconButton((icon ?: action.iconName), label, buttonType, enabled, pressed, active)
             } else {
                 // Switched on, a button is a stroke full of ink, as the main one
                 ButtonFace(if (active) ButtonType.PRIMARY else buttonType, enabled, pressed) { Word(label) }

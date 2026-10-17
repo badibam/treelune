@@ -254,6 +254,7 @@ object RetroTheme : ThemeContract {
         requireConfirmation: Boolean,
         confirmMessage: String?,
         active: Boolean,
+        icon: String?,
         onClick: () -> Unit
     ) {
         var confirming by rememberSaveable { mutableStateOf(false) }
@@ -263,7 +264,7 @@ object RetroTheme : ThemeContract {
             // Switched on, it stays pressed: the two tones swapped while what it opens lasts
             val down = pressed || active
             if (display == ButtonDisplay.ICON) {
-                IconFrame(action.iconName, label, ink, retroGrid().touch, down, off = !enabled)
+                IconFrame((icon ?: action.iconName), label, ink, retroGrid().touch, down, off = !enabled)
             } else {
                 TouchRoom {
                     Framed(compact = true, minRows = touchRows, pressed = down, off = !enabled) { ButtonContent { Line(label, retroGrid().text, ink) } }

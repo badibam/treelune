@@ -11,13 +11,13 @@ import androidx.compose.runtime.Composable
 fun ButtonAction.defaultType(): ButtonType {
     return when (this) {
         // PRIMARY: Actions critiques/importantes
-        ButtonAction.SAVE, ButtonAction.CREATE, ButtonAction.ADD, ButtonAction.CONFIGURE, ButtonAction.SELECT, ButtonAction.EDIT, ButtonAction.UPDATE, ButtonAction.CONFIRM, ButtonAction.AI_CHAT, ButtonAction.START, ButtonAction.ATTACH, ButtonAction.POINTER, ButtonAction.PHOTO, ButtonAction.GALLERY, ButtonAction.REPEAT, ButtonAction.SETTINGS -> ButtonType.PRIMARY
+        ButtonAction.SAVE, ButtonAction.CREATE, ButtonAction.ADD, ButtonAction.CONFIGURE, ButtonAction.SELECT, ButtonAction.EDIT, ButtonAction.UPDATE, ButtonAction.CONFIRM, ButtonAction.AI_CHAT, ButtonAction.START, ButtonAction.ATTACH, ButtonAction.POINTER, ButtonAction.TEXT, ButtonAction.SEND, ButtonAction.PHOTO, ButtonAction.GALLERY, ButtonAction.REPEAT, ButtonAction.SETTINGS -> ButtonType.PRIMARY
 
         // DANGER: destructive actions, behind a confirmation
         ButtonAction.DELETE, ButtonAction.STOP -> ButtonType.DANGER
 
         // DEFAULT: Actions neutres/navigation standard
-        ButtonAction.CANCEL, ButtonAction.BACK, ButtonAction.REFRESH, ButtonAction.RESET, ButtonAction.LEFT, ButtonAction.RIGHT, ButtonAction.UP, ButtonAction.DOWN, ButtonAction.ARRANGE, ButtonAction.INTERRUPT, ButtonAction.PAUSE, ButtonAction.RESUME, ButtonAction.VIEW, ButtonAction.HISTORY, ButtonAction.GUIDE, ButtonAction.COPY -> ButtonType.DEFAULT
+        ButtonAction.CANCEL, ButtonAction.BACK, ButtonAction.REFRESH, ButtonAction.RESET, ButtonAction.LEFT, ButtonAction.RIGHT, ButtonAction.UP, ButtonAction.DOWN, ButtonAction.ARRANGE, ButtonAction.INTERRUPT, ButtonAction.PAUSE, ButtonAction.RESUME, ButtonAction.VIEW, ButtonAction.HISTORY, ButtonAction.GUIDE, ButtonAction.COPY, ButtonAction.IDENTITY -> ButtonType.DEFAULT
     }
 }
 
@@ -53,6 +53,7 @@ fun ButtonAction.label(): String {
         ButtonAction.VIEW -> s.shared("action_view")
         ButtonAction.ATTACH -> s.shared("action_attach")
         ButtonAction.PHOTO -> s.shared("action_photo")
+        ButtonAction.TEXT -> s.shared("action_text")
         ButtonAction.GALLERY -> s.shared("action_gallery")
         ButtonAction.REPEAT -> s.shared("action_repeat")
         ButtonAction.ARRANGE -> s.shared("action_arrange")
@@ -62,6 +63,8 @@ fun ButtonAction.label(): String {
         ButtonAction.HISTORY -> s.shared("settings_history")
         ButtonAction.GUIDE -> s.shared("guide_title")
         ButtonAction.COPY -> s.shared("action_copy")
+        ButtonAction.IDENTITY -> s.shared("label_identity")
+        ButtonAction.SEND -> s.shared("action_send")
     }
 }
 
