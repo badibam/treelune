@@ -127,8 +127,8 @@ fun IdentityTile(identity: IdentityChoice) {
 /**
  * The button of a conversation's header bar, first of its buttons: the identity it speaks as
  * (its icon, drawn as every icon button; the identities' own, a figure, for the app's AI). Before the first message [fixed] is false and a
- * touch opens the choice among [identities] and the app's AI; after it, a touch says that another
- * conversation changes who speaks.
+ * touch opens the choice among [identities] and the app's AI; after it, a touch shows who speaks,
+ * read only, and that another conversation changes it.
  */
 @Composable
 fun IdentityChip(identities: List<IdentityChoice>, selected: String?, fixed: Boolean, onSelect: (String?) -> Unit) {
@@ -141,12 +141,25 @@ fun IdentityChip(identities: List<IdentityChoice>, selected: String?, fixed: Boo
         display = app.treelune.core.ui.ButtonDisplay.ICON,
         size = app.treelune.core.ui.Size.M,
         icon = identity?.iconName,
-        onClick = {
-            if (fixed) UI.Toast(context, s.shared("identity_session_fixed"), app.treelune.core.ui.Duration.LONG)
-            else choosing = true
-        }
+        onClick = { choosing = true }
     )
-    if (choosing) {
+    if (choosing && fixed) {
+        UI.Dialog(
+            type = app.treelune.core.ui.DialogType.INFO,
+            onConfirm = { choosing = false },
+            onCancel = { choosing = false }
+        ) {
+            androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+                UI.Text(text = s.shared("label_identity"), type = TextType.LABEL)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(UI.Space.M)) {
+                    UI.ItemIcon(identity?.iconName ?: ButtonAction.IDENTITY.iconName, IconColor.of(identity?.iconColor))
+                    // One gone since shows as its id, as the selector shows it
+                    UI.Text(text = identity?.name ?: selected ?: s.shared("identity_app_ai"), type = TextType.BODY)
+                }
+                UI.Text(text = s.shared("identity_session_fixed"), type = TextType.CAPTION)
+            }
+        }
+    } else if (choosing) {
         var chosen by remember { mutableStateOf(selected) }
         UI.Dialog(
             type = app.treelune.core.ui.DialogType.CONFIRM,
