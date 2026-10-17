@@ -66,7 +66,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 
 Une spec existe dans `docs/design/`.
 
-- Les conditions typées à l'écriture (`docs/design/typed-conditions.md`) : le type de chaque côté d'une condition connu sans lire de données, les constantes de l'IA traduites à l'entrée, la vérification au service, et le refus d'un changement dont dépend une condition ailleurs.
+- Les conditions typées à l'écriture (`docs/design/typed-conditions.md`) : le type de chaque côté d'une condition connu sans lire de données, les constantes de l'IA traduites à l'entrée, et la vérification au service.
 - L'historique des écritures et leur annulation (`docs/design/undo-history.md`) : un pas par opération demandée de l'extérieur, la ligne entière avant et après, écrite par une seule classe que garde un script, 30 jours, le service `history` ouvert à l'IA, son écran.
 - Modèles libres (`docs/design/local-models.md`) : le banc est en place et rodé ; la campagne 1 a tourné le 2026-10-04 (190 scénarios en 5 h 15, 1,35 $ comptés hors réponses coupées, tableau dans `bench-results/2026-10-04_1326/summary.md`), ses échecs relus dans `docs/design/bench-campaign-1.md` ; les corrections de l'app qu'elle a trouvées sont faites (2026-10-13) : les niveaux de prompt se décident après une campagne rejouée.
 
@@ -85,12 +85,12 @@ Une idée sans spec : elle demande une décision avant du code.
 - Des modèles d'outils prédéfinis et paramétrables (« Série de questions » suivie d'un « Avis de l'IA »…).
 - Un type de Suivi « étiquette », qui ne note qu'une étiquette.
 - La section « Quand » de la config d'un Objectif montre ensemble Début, Échéance et Récurrence, alors qu'avec une récurrence `GoalScheduler` ignore Début et Échéance sans le dire : un choix « Une fois » / « Récurrent » en tête, puis les seuls réglages qui comptent (réglage conditionnel du formulaire, `settings-pages.md`).
+- Un outil changé dont dépend une condition ailleurs (le Graphique filtre sur « moment = déjeuner », l'option « déjeuner » est retirée du Repas, ou le champ « moment » renommé) : refuser le changement en nommant les outils concernés, ou reporter un renommage dans les conditions, que `ListOrigins` sait distinguer d'une suppression — à trancher ; il faut savoir quelles configs et quelles variables visent un outil.
 - Trier Notes, Liste, Journal et Données structurées par un champ (un Tri = un Champ et un sens, brique à faire de celui de Données structurées) : ranger une fois, l'ordre manuel réécrit après confirmation, ou un réglage de l'outil, manuel ou trié — à trancher.
 
 ### Interface
 
 - Les thèmes Encre et lavis, puis Signalétique de métro (les suivants du classement de `docs/theme-tracks.json`, Suisse fait) : la recette de `docs/THEMES.md`, de l'étape 0, le banc de Suisse et ses pièces plates pour départ d'Encre.
-- Les onglets de Messages, à remplacer par un classement par thèmes.
 - Dessiner le gras et l'italique des textes lus (identités, Guide) : le lecteur (`GuideMarkup`) retire leurs marques, les thèmes ne dessinant qu'un texte simple (`ThemeContract.Text`) ; l'étendre à un texte mis en forme dans les trois thèmes, la police du rétro comprise.
 
 ### Events du cœur
