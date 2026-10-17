@@ -47,6 +47,7 @@ class McpHttpTest {
 
     private val oauth = OAuthServer(store, prompt, { clock })
     private var calls = 0
+    private val logged = mutableListOf<String>()
     private val backend = object : McpBackend {
         override suspend fun tools() = emptyList<McpTool>()
         override suspend fun appContext(caller: McpCaller) = "APP"
@@ -54,7 +55,7 @@ class McpHttpTest {
         override fun dateLine() = "NOW"
         override fun text(key: String) = if (key == "ai_mcp_context_token_line") "%1\$s" else key
     }
-    private val http = McpHttp(BASE, oauth, McpServer(backend, ContextTokens("k".toByteArray(), { clock }), "1"), { key -> if (key == "mcp_authorize_instruction" || key == "mcp_authorize_invalid") "$key %1\$s" else key }) { calls++ }
+    private val http = McpHttp(BASE, oauth, McpServer(backend, ContextTokens("k".toByteArray(), { clock }), "1"), { key -> if (key == "mcp_authorize_instruction" || key == "mcp_authorize_invalid") "$key %1\$s" else key }, log = { logged += it }) { calls++ }
 
     private val callback = "https://client.example/callback"
     private val verifier = "a-verifier-long-enough-for-pkce-0123456789abcdef"
@@ -267,4 +268,18 @@ class McpHttpTest {
     companion object {
         const val BASE = "https://relay.example/treelune"
     }
+
+    @Test
+    fun `every request is logged by its method, path and answer, never its query or body`() {
+        val clientId = register().getString("client_id")
+        openPage("unknown")
+        request("GET", "/nowhere", "secret=1")
+
+        assertTrue(logged.any { it.startsWith("client $clientId registered as \"Claude\"") })
+        assertTrue("POST /register -> 201" in logged)
+        assertTrue("GET /authorize -> 400" in logged)
+        assertTrue("GET /nowhere -> 404" in logged)
+        assertTrue(logged.none { "secret=1" in it || "redirect_uris" in it || "code_challenge" in it })
+    }
+
 }

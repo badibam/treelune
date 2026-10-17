@@ -72,13 +72,32 @@ class McpHttp(
     private val oauth: OAuthServer,
     private val mcp: McpServer,
     private val text: (String) -> String,
-    /** Where each request for tokens goes, granted or refused and why: never a token */
+    /**
+     * Where each request goes, its method, path and answer, and what a registration or a request
+     * for tokens did and why: never a query, a body or a token
+     */
     private val log: (String) -> Unit = {},
     private val onCall: () -> Unit = {}
 ) {
     private val resource get() = "$base$MCP_PATH"
 
-    suspend fun handle(request: HttpRequest): HttpResponse = try {
+    /**
+     * Answers [request], and logs one line of it: without it, a client failing before it asks for
+     * tokens (its registration, the descriptions it reads first) leaves nothing on the phone.
+     */
+    suspend fun handle(request: HttpRequest): HttpResponse {
+        val response = route(request)
+        val error = if (response.status >= 400) response.oauthError()?.let { " ($it)" } ?: "" else ""
+        log("${request.method} ${request.path} -> ${response.status}$error")
+        return response
+    }
+
+    /** The OAuth error a response carries, as "error: description"; null when it carries none. */
+    private fun HttpResponse.oauthError(): String? = runCatching {
+        JSONObject(text).takeIf { it.has("error") }?.let { "${it.getString("error")}: ${it.optString("error_description")}" }
+    }.getOrNull()
+
+    private suspend fun route(request: HttpRequest): HttpResponse = try {
         when {
             request.path.startsWith("/.well-known/oauth-protected-resource") -> HttpResponse.json(200, JSONObject()
                 .put("resource", resource)
@@ -107,6 +126,7 @@ class McpHttp(
         val body = JSONObject(request.text())
         val uris = body.optJSONArray("redirect_uris")?.let { a -> (0 until a.length()).map { a.getString(it) } } ?: emptyList()
         val (client, secret) = oauth.register(body.optString("client_name").takeIf { it.isNotEmpty() }, uris, body.optString("token_endpoint_auth_method").takeIf { it.isNotEmpty() })
+        log("client ${client.id} registered as \"${client.name}\", ${if (secret == null) "public" else "with a secret"}")
         return HttpResponse.json(201, JSONObject()
             .put("client_id", client.id)
             .apply { secret?.let { put("client_secret", it).put("client_secret_expires_at", 0) } }
