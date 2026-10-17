@@ -401,3 +401,14 @@ Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la po
 - La sauvegarde automatique, dossier choisi, données inchangées depuis plus d'une heure : la carte « Sauvegarde automatique » paraît une fois, puis plus avant une heure, et non plus à chaque minute ; dans le journal, une seule lecture de la base par heure. Une donnée changée : la copie s'écrit au tour de l'heure suivant.
 - Accès externe ouvert, par Tailscale puis par le relais : « Fermer l'accès » touché, l'écran dit aussitôt « Fermeture de l'accès… » avec la roue, sans bouton, jusqu'à « Fermé » ; la tuile des réglages rapides s'éteint aussitôt, et la touchée pendant la fermeture ne rouvre rien. Même chose depuis la notification.
 - Liste : un appui long sur un élément, coché ou non, dit « copié » ; collé ailleurs, son nom puis ses champs remplis, un par ligne. Un toucher l'ouvre toujours, sa poignée le déplace toujours.
+
+## Les fournisseurs créés (branche ai-providers, `docs/design/ai-providers.md`)
+
+- La mise à jour depuis la 0.7.0 avec ses données (migration 79) : Réglages › Fournisseurs IA ne montre que les fournisseurs configurés avant, sous leur nom d'avant, l'actif marqué « Par défaut » ; une routine qui nommait une variante jamais configurée dit « Sans fournisseur d'IA », éteinte ; les conversations passées se relisent, leurs coûts gardés.
+- Liste vide (installation neuve) : la phrase sur ce qu'est un fournisseur et « Ajouter un fournisseur » ; le choix des quatre sortes, chacune sa ligne ; Autre serveur : le formulaire, nom prérempli « Autre serveur », « Prix » sur « Liste LiteLLM », « Réglés à la main » montre les trois cases ; enregistré, il est par défaut.
+- Un deuxième fournisseur du même nom : refusé en le disant. Dupliquer : « … (copie) », la clé recopiée ; « Mettre par défaut » déplace la marque.
+- Supprimer un fournisseur qu'une routine nomme : refusé, la routine nommée. Supprimer le défaut quand un autre reste : la fenêtre demande lequel le remplace ; le dernier supprimé : une nouvelle conversation dit d'en ajouter un.
+- Une conversation nouvelle : son premier message part chez le défaut ; ses paramètres montrent ce fournisseur au-dessus de la réflexion ; en choisir un autre : le message suivant y part, la réflexion propre de la conversation retirée. Changer le défaut ne change pas une conversation commencée.
+- Une routine nouvelle : le défaut présélectionné ; sans aucun fournisseur, elle se crée éteinte, et l'activer ou la lancer est refusé en disant d'en choisir un. Demander à l'IA de créer une routine : elle donne un `provider_id` de la liste, ou `null`.
+- Un serveur à soi aux prix à 0 : la conversation montre un coût de 0, plus « coût inconnu » ; un prix d'entrée en cache vide alors que le serveur en rapporte : coût inconnu.
+- Le Guide, « Brancher une IA » : l'étape « Ajoute un fournisseur » se valide à l'enregistrement d'un fournisseur nouveau, et seulement là.

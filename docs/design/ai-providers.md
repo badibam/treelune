@@ -11,7 +11,7 @@ Conçu le 2026-10-17. Aujourd'hui, huit fournisseurs sont écrits en dur (`AIPro
 
 ## Qui sert quel fournisseur
 
-- **Un fournisseur par défaut**, en place de l'actif. Une conversation nouvelle le prend et le garde jusqu'au bout (`provider_id` de la session, aujourd'hui noté mais pas lu : chaque appel prend l'actif du moment). Changer le défaut ne touche pas aux conversations ouvertes.
+- **Un fournisseur par défaut**, en place de l'actif ; le premier créé le devient. Une conversation nouvelle le prend à son premier appel et le garde jusqu'au bout (`provider_id` de la session). Changer le défaut ne touche pas aux conversations commencées.
 - **Une conversation change le sien** dans ses paramètres, au-dessus de sa réflexion ; le changer remet sa réflexion à celle du nouveau fournisseur.
 - **Une routine** garde le sien. Il est facultatif : sans lui, elle existe mais ne s'active ni ne se lance, refus à l'appui, et sa tuile le montre. Le formulaire d'une routine nouvelle est prérempli avec le défaut ; la démo pose ses routines avec le défaut s'il y en a un, sans fournisseur sinon ; une routine que l'IA crée sans fournisseur reste sans, et le résultat de sa commande le dit.
 - **Les replis disparaissent** : `"claude"` noté par `AIOrchestrator.createNewChatSession` sans fournisseur actif, un identifiant qui n'existe pas ; l'actif pris par `AIEventProcessor` quand la session d'une routine ne se lit pas. Sans fournisseur, une conversation se refuse en disant d'en régler un ; une routine dont la session ne se lit pas échoue.
@@ -31,11 +31,12 @@ Conçu le 2026-10-17. Aujourd'hui, huit fournisseurs sont écrits en dur (`AIPro
 
 - **Réglages › Fournisseurs d'IA** (`AIProvidersScreen`) : une carte par fournisseur créé (nom, modèle, sorte, marque du défaut) ; la toucher ouvre sa config, en bas de laquelle « Dupliquer », « Supprimer », « Par défaut ».
 - **« Ajouter un fournisseur »** ouvre le choix des quatre sortes, une tuile chacune avec ce qu'elle est (« Autre serveur : Ollama, LM Studio, OpenRouter, tout serveur qui parle l'API Chat Completions »), puis le formulaire. Liste vide : une phrase sur ce qu'est un fournisseur et le bouton.
-- **Le Guide**, chapitre « Brancher une IA » : « Ajoute un fournisseur », « Choisis sa sorte et colle ta clé » ; la clé dite facultative pour un serveur à soi.
+- **Le Guide**, chapitre « Brancher une IA » : une étape « Ajoute un fournisseur » (le choix de la sorte n'a pas d'opération qui validerait une étape à lui), qui attend `ai_provider_config.create` ; la clé dite facultative pour un serveur à soi, le défaut nommé, et le coût d'un serveur à soi mis à 0.
 
 ## Ce qui change ailleurs
 
-- **La base** : `ai_provider_configs` passe d'une ligne par identifiant fixe à une ligne par fournisseur créé : un identifiant tiré au hasard, la sorte, le nom, la marque du défaut, la config. Migration : chaque config réglée devient un fournisseur sous son nom d'aujourd'hui (« Claude », « Claude (économique) »…), clé et réglages gardés, l'actif devenant le défaut ; les sortes jamais réglées disparaissent. Les routines et les sessions gardent leur lien. Les configs ne sont pas dans la sauvegarde.
+- **La base** : `ai_provider_configs` passe d'une ligne par identifiant fixe à une ligne par fournisseur créé : un identifiant tiré au hasard, la sorte, le nom, la marque du défaut, la config. Migration : chaque config réglée devient un fournisseur sous son nom d'aujourd'hui (« Claude », « Claude (économique) »…), clé et réglages gardés, l'actif devenant le défaut ; les sortes jamais réglées disparaissent. Les routines et les sessions gardent leur lien ; une routine qui nommait une variante jamais configurée reste sans fournisseur, éteinte. Une sauvegarde d'avant porte les huit identifiants : son import la convertit de même (`ProvidersAtV79.backup`). Numéro 79 : la branche goal-recurrence en prend un aussi, celle qui fusionne la seconde renumérote.
 - **Les noms à l'écran** : ceux des sortes passent par les textes traduits ; « (économique) », écrit en dur en français dans chaque fournisseur, disparaît avec les variantes.
 - **Le choix d'une routine** (`AutomationSettings`) offre les fournisseurs créés, non plus les huit.
 - **Le banc** (`BenchScenario`) crée son fournisseur Autre serveur au lieu de régler `compatible_standard`.
+- **L'IA** lit les fournisseurs dans l'état de l'app (L3 : id, nom, sorte, défaut), pour donner son `provider_id` à une routine qu'elle crée.
