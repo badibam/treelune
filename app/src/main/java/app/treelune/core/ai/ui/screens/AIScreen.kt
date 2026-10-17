@@ -347,7 +347,7 @@ private fun ChatMode(
             }
         } else UI.Card(type = CardType.DEFAULT) {
             Column(
-                modifier = Modifier.padding(UI.Space.L)
+                modifier = Modifier.padding(UI.Space.S)
             ) {
                 UI.RichComposer(
                     segments = segments,

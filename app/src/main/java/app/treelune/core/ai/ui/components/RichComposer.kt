@@ -208,9 +208,11 @@ fun UI.RichComposer(
 
     val blocksScrollState = rememberScrollState()
 
+    // Close-set: each nesting (the composer's card, a block's, its field) keeps its own frame,
+    // and the air between them is the least that parts them
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(UI.Space.L)
+        verticalArrangement = Arrangement.spacedBy(UI.Space.S)
     ) {
 
         // The status, over the blocks so that it stays in view when the keyboard appears: the
@@ -229,7 +231,7 @@ fun UI.RichComposer(
             UI.ReorderableColumn(
                 items = blocks,
                 key = { it.id },
-                spacing = UI.Space.L,
+                spacing = UI.Space.S,
                 onMove = { from, to -> update(ComposerBlocks.move(blocks, from, to)) }
             ) { _, block ->
                 BlockCard(
@@ -414,7 +416,7 @@ private fun BlockCard(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = UI.Space.S, end = UI.Space.S, bottom = UI.Space.S)
+                    .padding(start = UI.Space.XS, end = UI.Space.XS, bottom = UI.Space.XS)
             ) {
                 bar {
                     UI.ActionButton(
