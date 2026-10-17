@@ -116,6 +116,12 @@ class AIClient(private val context: Context) {
         val ownSetting = SessionReasoning(config.optBoolean(SessionReasoning.KEY_THINKING_OFF), config.optString(SessionReasoning.KEY_EFFORT).ifBlank { null })
         val model = config.optString("model").ifBlank { null }
             ?: return ModelReasoning(null, null, ownSetting, s.shared("ai_error_provider_not_configured").format(data["name"]))
+        // A key sealed on another phone, left out of the config: said as such, as a call says it
+        if ((data[app.treelune.core.secrets.SecretSettings.UNREADABLE] as? List<*>).orEmpty().isNotEmpty())
+            return ModelReasoning(model, null, ownSetting, s.shared("ai_error_provider_secret_unreadable").format(data["name"]))
+        // What listing the models needs (its key), missing: the kind would not list them
+        if (provider.modelListingSettings().any { config.optString(it).isBlank() })
+            return ModelReasoning(model, null, ownSetting, s.shared("ai_error_provider_not_configured").format(data["name"]))
         val listed = provider.listModels(config)
         listed.error?.let { return ModelReasoning(model, null, ownSetting, s.shared("ai_provider_fetch_error").format(it)) }
         return ModelReasoning(model, listed.models.find { it.id == model }?.reasoning, ownSetting, null)
