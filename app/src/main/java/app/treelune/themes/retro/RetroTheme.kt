@@ -111,6 +111,7 @@ import app.treelune.core.ui.SliderSteps
 import app.treelune.core.ui.Spacing
 import app.treelune.core.ui.StatusColor
 import app.treelune.core.ui.TextType
+import app.treelune.core.ui.Emphasis
 import app.treelune.core.ui.confirmMessage
 import app.treelune.core.ui.defaultType
 import app.treelune.core.ui.label
@@ -304,7 +305,7 @@ object RetroTheme : ThemeContract {
      * though larger than the screen's others and off the cells.
      */
     @Composable
-    override fun Text(text: String, type: TextType, fillMaxWidth: Boolean, textAlign: TextAlign?, maxLines: Int) {
+    override fun Text(text: AnnotatedString, type: TextType, fillMaxWidth: Boolean, textAlign: TextAlign?, maxLines: Int) {
         val grid = retroGrid()
         val s = retroSurface
         val override = LocalRetroInk.current
@@ -317,6 +318,17 @@ object RetroTheme : ThemeContract {
             TextType.WARNING -> grid.text to s.warning.srgb
         }
         Line(text, style, ink, if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier, textAlign, maxLines)
+    }
+
+    /**
+     * Cartouche has no bold: a bold run is written in the strong ink, as STRONG is. It has no
+     * italic yet either, and a slant drawn by Android would put the pixels off the grid: an italic
+     * run stays upright until Cartouche has its own (cartouche-font, docs/design/italic.md).
+     */
+    @Composable
+    override fun emphasis(emphasis: Emphasis): SpanStyle = when (emphasis) {
+        Emphasis.BOLD -> SpanStyle(color = retroSurface.strong.srgb)
+        Emphasis.ITALIC -> SpanStyle()
     }
 
     /**
@@ -1198,7 +1210,12 @@ object RetroTheme : ThemeContract {
      * column, is split between syllables with a hyphen, by the system's rules for the language.
      */
     @Composable
-    private fun Line(text: String, style: TextStyle, color: Color, modifier: Modifier = Modifier, align: TextAlign? = null, maxLines: Int = Int.MAX_VALUE) {
+    private fun Line(text: String, style: TextStyle, color: Color, modifier: Modifier = Modifier, align: TextAlign? = null, maxLines: Int = Int.MAX_VALUE) =
+        Line(AnnotatedString(text), style, color, modifier, align, maxLines)
+
+    /** The same, its runs keeping their emphasis. */
+    @Composable
+    private fun Line(text: AnnotatedString, style: TextStyle, color: Color, modifier: Modifier = Modifier, align: TextAlign? = null, maxLines: Int = Int.MAX_VALUE) {
         BasicText(
             text = text,
             modifier = modifier,

@@ -403,6 +403,11 @@ Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la po
 - Accès externe ouvert, par Tailscale puis par le relais : « Fermer l'accès » touché, l'écran dit aussitôt « Fermeture de l'accès… » avec la roue, sans bouton, jusqu'à « Fermé » ; la tuile des réglages rapides s'éteint aussitôt, et la touchée pendant la fermeture ne rouvre rien. Même chose depuis la notification.
 - Liste : un appui long sur un élément, coché ou non, dit « copié » ; collé ailleurs, son nom puis ses champs remplis, un par ligne. Un toucher l'ouvre toujours, sa poignée le déplace toujours.
 
+## Le gras et l'italique d'un texte lu (branche text-emphasis)
+
+- Une identité en Markdown (`**gras**`, `*italique*`, `***les deux***`, un gras dans un titre `##`), puis le Guide, dans les cinq thèmes et les deux modes : le gras et l'italique se voient sans casser la ligne ; défaut, suisse et encre en vrai italique, cosy penché par Android (la pente de la planche du 2026-10-17), rétro le gras à l'encre vive et l'italique droit ; un titre de section du suisse reste en capitales.
+- Un passage sélectionné qui traverse un gras se copie sans ses marques.
+
 ## Les conditions typées à l'écriture (branche typed-conditions, `docs/design/typed-conditions.md`)
 
 - Dans une conversation : « crée un Objectif sommeil moyen d'au moins 7 h sur Sommeil » ; la config de l'Objectif, rouverte à l'écran, montre 7 h, et la tentative se juge sans erreur. Redemander en exigeant « écris 25200000 » : refusé, le message dit d'écrire « PT7H », et l'IA corrige.
