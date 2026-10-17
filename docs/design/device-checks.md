@@ -262,6 +262,7 @@ Vu le 2026-10-09 : l'inscription par la page de connexion, « Activer Funnel » 
 - Une tentative validée : la modifier par l'IA est refusé ; « Rouvrir » la remet à valider et garde la date de réouverture.
 - Renommer un critère saisi : sa valeur reste ; le supprimer puis le recréer : la confirmation de la config compte la valeur retirée.
 - Un objectif récurrent quotidien : une tentative par jour ; à la fin de la période, une notification et l'onglet « En cours (1) », la tentative à valider au-dessus de celle du jour ; sans validation, expirée après le délai. Arrêté, plus aucune ne s'ouvre.
+- La section « Quand » d'un nouvel Objectif ne montre d'abord que Répétition, sans choix fait : enregistrer est refusé, la ligne marquée « À compléter ou corriger ». « Une fois » montre Début et Échéance ; « Récurrent », Récurrence (obligatoire) et Durée ; passer de l'un à l'autre retire les réglages de l'autre. Migration 79, sur la release et ses données : un objectif qui avait une récurrence est « Récurrent », sans Début ni Échéance ; un objectif ponctuel qui avait une Durée sans Échéance a pour Échéance son début plus cette durée, sa tentative en cours inchangée.
 - Faire valider par l'IA : « par l'IA ».
 
 ## Questionnaire

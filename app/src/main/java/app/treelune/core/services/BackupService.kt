@@ -1103,6 +1103,9 @@ class BackupService(private val context: Context) : ExecutableService {
             if (fromVersion < 78 && toVersion >= 78) {
                 app.treelune.core.versioning.IdentitiesAtV78.backup(data)
             }
+            if (fromVersion < 79 && toVersion >= 79) {
+                app.treelune.core.versioning.GoalTimingAtV79.backup(data)
+            }
 
             // Transform app settings
             data.optJSONArray("app_settings_categories")?.let { array ->
