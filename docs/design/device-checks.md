@@ -401,3 +401,9 @@ Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la po
 - La sauvegarde automatique, dossier choisi, données inchangées depuis plus d'une heure : la carte « Sauvegarde automatique » paraît une fois, puis plus avant une heure, et non plus à chaque minute ; dans le journal, une seule lecture de la base par heure. Une donnée changée : la copie s'écrit au tour de l'heure suivant.
 - Accès externe ouvert, par Tailscale puis par le relais : « Fermer l'accès » touché, l'écran dit aussitôt « Fermeture de l'accès… » avec la roue, sans bouton, jusqu'à « Fermé » ; la tuile des réglages rapides s'éteint aussitôt, et la touchée pendant la fermeture ne rouvre rien. Même chose depuis la notification.
 - Liste : un appui long sur un élément, coché ou non, dit « copié » ; collé ailleurs, son nom puis ses champs remplis, un par ligne. Un toucher l'ouvre toujours, sa poignée le déplace toujours.
+
+## Les conditions typées à l'écriture (branche typed-conditions, `docs/design/typed-conditions.md`)
+
+- Dans une conversation : « crée un Objectif sommeil moyen d'au moins 7 h sur Sommeil » ; la config de l'Objectif, rouverte à l'écran, montre 7 h, et la tentative se juge sans erreur. Redemander en exigeant « écris 25200000 » : refusé, le message dit d'écrire « PT7H », et l'IA corrige.
+- Graphique « Repas par moment » : demander à l'IA un filtre « moment = déjeuner » : refusé, le message dit que `=` ne compare pas un choix et donne `in` ; puis un filtre sur « déjeunner » : refusé, le message dit d'ajouter l'option d'abord.
+- À l'écran, une condition d'Objectif ou de Graphique enregistrée comme avant : rien ne change ; la config d'un Graphique dont un filtre vise un champ supprimé de son outil : l'enregistrement est refusé et nomme la condition.

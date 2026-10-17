@@ -23,7 +23,10 @@ Une condition (`{"left", "op", "right"}`, `docs/BRICKS.md`) n'a de type que par 
 - **Un changement de l'outil visé dont dépend une condition ailleurs** (un champ supprimé ou renommé, une option retirée) n'est pas traité ici : la condition échoue à la lecture avec son message. Mis à part le 2026-10-17, à concevoir seul (`TODO.md`).
 - **Les configs déjà enregistrées** qui ne passeraient pas la vérification restent telles quelles : elles échouent à la lecture avec leur message, et leur prochaine modification est refusée tant qu'elles ne sont pas corrigées.
 
-## À voir en implémentant
+## Où c'est codé
 
-- Ce qui existe déjà : le type d'une variable est dans sa définition (`definition.field`, écrit ou déduit) ; le type d'une lecture sans données est calculé par `VariableService.deduce` (un compte est un nombre, sinon le champ visé), à sortir dans la brique Terme ; la traduction des constantes de l'IA selon le champ d'en face est faite par `FilterValues.toStored`, pour les filtres d'une lecture de l'IA seulement.
-- Le prompt de l'IA : redire qu'une constante s'écrit dans le format de l'IA quel que soit l'endroit, durée comprise, et retirer ce que la conversation du 2026-09-29 a montré de contradictoire (l'IA a fini par écrire 25200000).
+- `TermFields` : le type d'un terme sans lire de données, que le service des variables partage.
+- `ConfigConditions` : le parcours ; `RowFields` répond au service comme au formulaire.
+- `ConditionCheck` : les quatre refus, appelés par `ToolInstanceService` après le contrôle propre au type d'outil, qui nomme mieux une config illisible ; il remplace celui des conditions de `ChartCheck`.
+- `ConditionValues` : la traduction des constantes de l'IA, dans `AICommandProcessor.configToStoredForm`. Les filtres d'une requête de l'IA (`FilterValues`) acceptent toujours des millisecondes face à un instant.
+- Le prompt et les descriptions des schémas de config disent qu'une constante s'écrit dans le format de l'IA, jamais en millisecondes.
