@@ -25,5 +25,5 @@ Une condition (`{"left", "op", "right"}`, `docs/BRICKS.md`) n'a de type que par 
 
 ## À voir en implémentant
 
-- Les variables : où leur type est déclaré, et si le parcours doit aussi couvrir le terme d'une variable (une lecture et ses filtres).
+- Ce qui existe déjà : le type d'une variable est dans sa définition (`definition.field`, écrit ou déduit) ; le type d'une lecture sans données est calculé par `VariableService.deduce` (un compte est un nombre, sinon le champ visé), à sortir dans la brique Terme ; la traduction des constantes de l'IA selon le champ d'en face est faite par `FilterValues.toStored`, pour les filtres d'une lecture de l'IA seulement.
 - Le prompt de l'IA : redire qu'une constante s'écrit dans le format de l'IA quel que soit l'endroit, durée comprise, et retirer ce que la conversation du 2026-09-29 a montré de contradictoire (l'IA a fini par écrire 25200000).
