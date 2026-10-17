@@ -245,27 +245,42 @@ internal fun Modifier.gouache(color: Color, seed: Int, reach: Float = 0.66f): Mo
 }
 
 /**
- * A round thing's shape as a dab of paint, never a circle: the [blob] of [seed] fitted to its box
- * (a button, a check, a knob, a day of the calendar).
+ * A round thing's shape as a disc painted by hand, never a compass circle: round, its edge a little
+ * uneven and a little oval, as [HAND_ROUND] waves it (a button, a check, a knob, a day of the
+ * calendar), the draw of [seed].
  */
 internal class BlobShape(private val seed: Int) : Shape {
     override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline =
-        Outline.Generic(blob(Offset(size.width / 2, size.height / 2), min(size.width, size.height) * 0.48f, seed))
+        Outline.Generic(blob(Offset(size.width / 2, size.height / 2), min(size.width, size.height) * 0.49f, seed, HAND_ROUND, squashing = 0.06f))
 }
 
-/** A closed blob round [center], [radius] about, its lobes and its squash drawn from [seed]. */
-internal fun blob(center: Offset, radius: Float, seed: Int): Path {
+/** A dab's waves round its edge, (waves round, part of the radius): a few wide lobes. */
+internal val DAB = listOf(2 to 0.07f, 3 to 0.05f, 5 to 0.03f)
+
+/** A disc painted by hand: a faint oval, a slight lopsidedness, and a fine tremor of the hand. */
+internal val HAND_ROUND = listOf(2 to 0.018f, 3 to 0.012f, 7 to 0.006f, 11 to 0.004f)
+
+/**
+ * A closed blob round [center], [radius] about: its edge [waves] (each a number of waves round it and
+ * its part of the radius), squashed by up to [squashing] along an axis turned at random, all drawn
+ * from [seed].
+ */
+internal fun blob(center: Offset, radius: Float, seed: Int, waves: List<Pair<Int, Float>> = DAB, squashing: Float = 0.14f): Path {
     val random = java.util.Random(seed.toLong())
-    // Three waves round the edge, the slowest the widest, each at its own phase
-    val waves = listOf(2 to 0.07f, 3 to 0.05f, 5 to 0.03f).map { (k, a) -> Triple(k, a, random.nextFloat() * 2 * Math.PI.toFloat()) }
-    val squash = 1f + (random.nextFloat() - 0.5f) * 0.14f
-    val points = 48
+    // The waves round the edge, each at its own phase
+    val phased = waves.map { (k, a) -> Triple(k, a, random.nextFloat() * 2 * Math.PI.toFloat()) }
+    val squash = 1f + (random.nextFloat() - 0.5f) * squashing
+    val axis = random.nextFloat() * Math.PI.toFloat()
+    val points = 96
     return Path().apply {
         for (i in 0..points) {
             val t = (i % points) * 2 * Math.PI.toFloat() / points
-            val r = radius * (1f + waves.sumOf { (k, a, p) -> (a * kotlin.math.sin(k * t + p)).toDouble() }.toFloat())
-            val x = center.x + r * squash * kotlin.math.cos(t)
-            val y = center.y + r / squash * kotlin.math.sin(t)
+            val r = radius * (1f + phased.sumOf { (k, a, p) -> (a * kotlin.math.sin(k * t + p)).toDouble() }.toFloat())
+            // Squashed along the turned axis: stretched along it, narrowed across it
+            val u = r * squash * kotlin.math.cos(t - axis)
+            val v = r / squash * kotlin.math.sin(t - axis)
+            val x = center.x + u * kotlin.math.cos(axis) - v * kotlin.math.sin(axis)
+            val y = center.y + u * kotlin.math.sin(axis) + v * kotlin.math.cos(axis)
             if (i == 0) moveTo(x, y) else lineTo(x, y)
         }
         close()
