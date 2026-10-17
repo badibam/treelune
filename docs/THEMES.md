@@ -21,7 +21,7 @@ Un thème dessine l'app : chaque composant visuel de `UI.*` passe par lui (`core
 
 Les sons se cherchent en parallèle, sans rien bloquer : le thème part muet (`sound()` rend null), et ses sons arrivent quand ils sont choisis.
 
-L'IA propose, une question à la fois et avec son avis ; elle fabrique de quoi juger (maquette, banc, planche d'écoute, captures) et calcule ce qui se mesure (contrastes, couverture de la police, licences). L'utilisateur tranche tout ce qui se voit ou s'entend : l'IA ne voit pas le téléphone et n'entend rien, elle ne valide jamais une couleur ni un son.
+L'IA propose toutes les lignes de la liste d'un coup, chacune avec sa décision proposée et ce qui la fonde ; l'utilisateur répond en une fois, ne revenant que sur les lignes qu'il change. Elle fabrique de quoi juger (maquette, banc, planche d'écoute, captures) et calcule ce qui se mesure (contrastes, couverture de la police, licences). L'utilisateur tranche tout ce qui se voit ou s'entend : l'IA ne voit pas le téléphone et n'entend rien, elle ne valide jamais une couleur ni un son.
 
 ## Les décisions avant le code
 
