@@ -6,8 +6,9 @@
 <title>Banc des textures</title>
 <!--
   The texture bench (docs/design/tool-texture.md), served by `./run themes`: every motif of a
-  theme side by side, without and with an icon colour, subtle and marked, on a tile or on a page
-  header, so that all show alike. It reads what the app reads: the theme's cells
+  theme side by side, without and with an icon colour, subtle and marked, on a tile or on the
+  whole ground of a page (its header, a section's title and a short line on the motif, cards over
+  it), so that all show alike and the page still reads. It reads what the app reads: the theme's cells
   (resources/app/treelune/themes/<id>/textures/*.svg) and its tones (textures.json), and saves the
   tones back there (POST /textures/<id>). A motif is coloured as TextureTones.Mode.motifColor does:
   the surface's OKLCH lightness moved toward its ink by the tone, at the surface's chroma and hue,
@@ -36,6 +37,9 @@
   .row.head { color: var(--dim); font-size: 12px; position: sticky; top: 52px; background: var(--ground); padding: 4px 0; z-index: 1; }
   .name { font-weight: 600; }
   .tile { height: 64px; border-radius: 8px; image-rendering: pixelated; }
+  .page { height: 150px; image-rendering: pixelated; padding: 8px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px; font-size: 11px; overflow: hidden; }
+  .page .title { font-size: 14px; font-weight: 700; text-align: center; }
+  .page .card { border-radius: 6px; padding: 4px 6px; line-height: 1.3; }
   .tones { display: grid; grid-template-columns: auto 1fr 3.5em; gap: 4px 8px; align-items: center; font-size: 12px; color: var(--dim); }
   .tones input[type=range] { width: 100%; }
   .tones output { font-variant-numeric: tabular-nums; color: var(--ink); }
@@ -99,23 +103,27 @@ async function loadSurfaces() {
   const grab = (name) => new Function(`return ${colors.match(new RegExp(`const ${name} = (\\{[\\s\\S]*?\\n\\});`))[1]}`)();
   const LIGHT = grab("LIGHT"), DARK = grab("DARK"), ITEM_ICONS = grab("ITEM_ICONS");
   const out = { default: {}, cosy: {}, retro: {} };
-  // The default theme: a tile on the surface, a header on the screen's background; a tag its badge's colour (getTagColor)
+  // Each theme's TILE (a tile's surface), PAGE (the screen's ground, as PageGround lays it), CARD
+  // (an entry's card on the page) and the INK of the texts on both.
+  // The default theme: a tile on the surface, the page on the surface FullScreen paints, a card
+  // the surface too (raised by its shadow); a tag its badge's colour (getTagColor)
   for (const [mode, c] of [["LIGHT", LIGHT], ["DARK", DARK]]) {
     const tags = {};
     for (const t of TAGS) tags[t] = mode === "LIGHT" ? ITEM_ICONS.LIGHT[t][0] : ITEM_ICONS.DARK[t][1];
-    out.default[mode] = { TILE: c.surface, HEADER: c.background, tags };
+    out.default[mode] = { TILE: c.surface, PAGE: c.surface, CARD: c.surface, INK: c.onSurface, tags };
   }
-  // The retro: a tile inside a frame, on the panel's ground; a header on the screen's
+  // The retro: a tile inside a frame, on the panel's ground, as a card; the page on the screen's
   for (const p of retro) {
     const d = p.derived, tags = {};
     for (const t of TAGS) tags[t] = d[`tag_${t.toLowerCase()}`];
-    out.retro[p.mode] = { TILE: d.panel_ground, HEADER: d.screen_ground, tags };
+    out.retro[p.mode] = { TILE: d.panel_ground, PAGE: d.screen_ground, CARD: d.panel_ground, INK: d.screen_ink, tags };
   }
-  // The cosy: a tile's face, a header's pill of the main colour (CosyColors.tile, accent)
+  // The cosy: a tile's face, as a card; the page on the sand (CosyColors.tile, ground, ink)
   for (const p of cosy) {
     const n = p.numbers, tags = {};
     for (const t of TAGS) tags[t] = lchHex([n.tag_lightness, n.tag_chroma, COSY_TAG_HUES[t]]);
-    out.cosy[p.mode] = { TILE: lchHex([n.tile_lightness, n.tile_chroma, n.hue]), HEADER: lchHex([n.accent_lightness, n.accent_chroma, n.hue + n.accent_turn]), tags };
+    const tile = lchHex([n.tile_lightness, n.tile_chroma, n.hue]);
+    out.cosy[p.mode] = { TILE: tile, PAGE: lchHex([n.ground_lightness, n.ground_chroma, n.hue]), CARD: tile, INK: lchHex([n.ink_lightness, n.ink_chroma, n.hue + n.ink_turn]), tags };
   }
   S.surfaces = out;
 }
@@ -221,10 +229,17 @@ async function render() {
     const row = document.createElement("div"); row.className = "row";
     row.innerHTML = `<span class="name">${name}</span>`;
     for (const intensity of ["SUBTLE", "MARKED"]) for (const tagged of [false, true]) {
-      const tile = document.createElement("div"); tile.className = "tile";
+      const page = S.surface === "PAGE";
+      const tile = document.createElement("div"); tile.className = page ? "page" : "tile";
       const color = motifColor(ground, tagged ? tagHex : null, doc.tones[name][intensity], doc.tag_chroma);
       const [url, w, h] = await cellUrl(S.theme, name, color);
       tile.style.background = `url(${url}) 0 0 / ${w}px ${h}px repeat, ${ground}`;
+      // A page: its header and a section's title on the motif, then cards, full, over it
+      if (page) {
+        tile.style.color = surfaces.INK;
+        const card = `<div class="card" style="background:${surfaces.CARD}">Une entrée, sa ligne de texte, puis une autre.</div>`;
+        tile.innerHTML = `<div class="title">Santé</div><div>Cette semaine</div>${card}${card}<div>Rien d'autre</div>`;
+      }
       row.appendChild(tile);
     }
     const tones = document.createElement("div"); tones.className = "tones";
@@ -266,7 +281,7 @@ window.addEventListener("beforeunload", (e) => { if (S.dirty) e.preventDefault()
   catch (e) { setDirty(false, "sources illisibles : ouvrir le banc par ./run themes (" + e.message + ")"); return; }
   seg("theme", THEMES, "theme");
   seg("mode", { LIGHT: "clair", DARK: "sombre" }, "mode");
-  seg("surface", { TILE: "tuile", HEADER: "en-tête" }, "surface");
+  seg("surface", { TILE: "tuile", PAGE: "page" }, "surface");
   // A theme switched with changes unsaved keeps them in memory; one save writes the theme shown
   await render();
   setDirty(false, "lu depuis textures.json");
