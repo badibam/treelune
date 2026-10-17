@@ -59,6 +59,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - La texture sur tout le fond de la page et le choix de la couleur et de la texture sur une page du formulaire (branche texture-background, 2026-10-17) : la vue « page » du banc des textures (`./run themes`) d'abord, puis les lignes de la section « Les textures » de la recette qui parlent du fond de page et des pages de choix.
 - Les lectures envoyées une fois par session (`SessionReads`, branche read-once) : la section du même nom de la recette.
 - Le thème suisse (`docs/design/swiss-theme.md`, branche swiss-theme) : la passe sur le téléphone de `docs/THEMES.md`, puis ce que la spec garde dans « Ce qui reste ouvert ».
+- Le thème encre et lavis (`docs/design/ink-theme.md`, branche theme-ink) : la passe sur le téléphone de `docs/THEMES.md`, les icônes au pinceau d'abord (leur coût à l'ouverture d'une page, celles qui se bouchent), puis ce que la spec garde dans « Ce qui reste ouvert ».
 - Les incarnations (`docs/design/incarnations.md`, branche incarnations) : la dernière section de la recette, l'identité de Stan Prokopenko importée et le coût d'un tour mesuré pour personae ; passé, élaguer la spec. L'import attend que personae exporte au format 2 du fichier d'identité (`docs/IDENTITY_FILE.md`), le format 1 n'étant plus lu.
 - Les bugs du téléphone du 2026-10-17 : la section du même nom de la recette.
 
@@ -89,7 +90,7 @@ Une idée sans spec : elle demande une décision avant du code.
 
 ### Interface
 
-- Les thèmes Encre et lavis, puis Signalétique de métro (les suivants du classement de `docs/theme-tracks.json`, Suisse fait) : la recette de `docs/THEMES.md`, de l'étape 0, le banc de Suisse et ses pièces plates pour départ d'Encre.
+- Le thème Signalétique de métro (le suivant du classement de `docs/theme-tracks.json`, Suisse et Encre et lavis faits) : la recette de `docs/THEMES.md`, de l'étape 0.
 - Lucide redessiné à leur manière pour le cosy et le suisse, comme le pinceau d'Encre et lavis (`docs/design/ink-theme.md`, ligne 9), un trait à chacun : une fois la brique du cœur qui lit les tracés d'une icône codée et tenue sur le téléphone avec Encre.
 - Les onglets de Messages, à remplacer par un classement par thèmes.
 - Dessiner le gras et l'italique des textes lus (identités, Guide) : le lecteur (`GuideMarkup`) retire leurs marques, les thèmes ne dessinant qu'un texte simple (`ThemeContract.Text`) ; l'étendre à un texte mis en forme dans les trois thèmes, la police du rétro comprise.
