@@ -33,6 +33,10 @@ import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.addOutline
+import androidx.compose.ui.graphics.asAndroidPath
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.clipRect
@@ -162,6 +166,54 @@ internal fun DrawScope.drawSpreadToEdges(color: Color, center: Offset, box: Size
                 drawCircle(Brush.radialGradient(*stops, center = center, radius = rx), radius = rx, center = center, blendMode = blendMode)
             }
         }
+    }
+}
+
+/**
+ * A card's wash in [color]: full under the whole card, so that no motif runs under its text, its
+ * edge [shape]'s wavering a little, and fading past it over [feather], ink soaking into the paper
+ * round it. The fade is rings of the same edge, each wider and as faint, so that the closer to the
+ * card, the more of them lie over the paper.
+ */
+internal fun Modifier.cardWash(color: Color, shape: Shape, feather: Float, seed: Int): Modifier = drawWithCache {
+    // The edge walked once per size, not at every frame
+    val outline = shape.createOutline(size, layoutDirection, this)
+    val edge = wavering(Path().apply { addOutline(outline) }, amplitude = feather * 0.25f, step = feather * 0.75f, seed = seed)
+    val rings = (FEATHER_RINGS downTo 1).map { Stroke(width = 2 * feather * it / FEATHER_RINGS, join = StrokeJoin.Round) }
+    onDrawBehind {
+        rings.forEach { drawPath(edge, color.copy(alpha = color.alpha * FEATHER_ALPHA), style = it) }
+        drawPath(edge, color)
+    }
+}
+
+private const val FEATHER_RINGS = 6
+private const val FEATHER_ALPHA = 0.22f
+
+/**
+ * [path]'s outline wavering along its normal by up to [amplitude], walked a point every [step]:
+ * two waves of their own lengths and phases, drawn from [seed], so that a straight side is never
+ * ruled.
+ */
+internal fun wavering(path: Path, amplitude: Float, step: Float, seed: Int): Path {
+    val measure = android.graphics.PathMeasure(path.asAndroidPath(), true)
+    val length = measure.length
+    if (length <= 0f || step <= 0f) return path
+    val random = java.util.Random(seed.toLong())
+    val waves = List(2) { Triple(length / (3f + random.nextInt(4)), random.nextFloat() * 2 * Math.PI.toFloat(), if (it == 0) 0.65f else 0.35f) }
+    val count = (length / step).toInt().coerceAtLeast(8)
+    val at = FloatArray(2)
+    val tangent = FloatArray(2)
+    return Path().apply {
+        for (i in 0 until count) {
+            val d = length * i / count
+            measure.getPosTan(d, at, tangent)
+            val shift = amplitude * waves.sumOf { (wave, phase, part) -> (part * kotlin.math.sin(2 * Math.PI * d / wave + phase)) }.toFloat()
+            // Along the normal, either way as the waves swing
+            val x = at[0] - tangent[1] * shift
+            val y = at[1] + tangent[0] * shift
+            if (i == 0) moveTo(x, y) else lineTo(x, y)
+        }
+        close()
     }
 }
 

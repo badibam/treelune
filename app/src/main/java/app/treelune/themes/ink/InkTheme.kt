@@ -293,8 +293,8 @@ object InkTheme : ThemeContract {
     }
 
     /**
-     * A card is a pale wash, full, so that a page's motif never runs under its text; a
-     * highlighted one a step darker. A section's header is its content over a stroke of the brush,
+     * A card is a pale wash, full under it, so that a page's motif never runs under its text, its
+     * edge wavering and fading into the paper round it (cardWash); a highlighted one a step darker. A section's header is its content over a stroke of the brush,
      * as a group of tiles' title, on the motif.
      */
     @Composable
@@ -308,7 +308,7 @@ object InkTheme : ThemeContract {
             }
             CardType.DEFAULT -> Box(
                 modifier = Modifier.fillMaxWidth()
-                    .background(if (highlight) c.pressedWash else c.cardWash, pebble(s, 10f, 14f, 12f, 9f))
+                    .cardWash(if (highlight) c.pressedWash else c.cardWash, pebble(s, 10f, 14f, 12f, 9f), with(LocalDensity.current) { s.dp(CARD_FEATHER).toPx() }, CARD_SEED)
                     .padding(horizontal = s.dp(16f), vertical = s.dp(10f))
             ) { content() }
         }
@@ -1521,6 +1521,10 @@ object InkTheme : ThemeContract {
     /** A tile's air above and below its content, and at its sides, in dp. */
     private const val TILE_PAD = 8f
     private const val TILE_SIDE = 14f
+
+    /** How far a card's wash fades past its edge, in dp, and the draw its edge wavers by. */
+    private const val CARD_FEATHER = 6f
+    private const val CARD_SEED = 7
 
     /** The brush's width under a group's title, and at the top of a window, in dp. */
     private const val GROUP_RULE = 2.6f
