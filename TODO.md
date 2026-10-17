@@ -69,7 +69,7 @@ Une spec existe dans `docs/design/`.
 
 - Les conditions typées à l'écriture (`docs/design/typed-conditions.md`) : le type de chaque côté d'une condition connu sans lire de données, les constantes de l'IA traduites à l'entrée, la vérification au service, et le refus d'un changement dont dépend une condition ailleurs.
 - L'historique des écritures et leur annulation (`docs/design/undo-history.md`) : un pas par opération demandée de l'extérieur, la ligne entière avant et après, écrite par une seule classe que garde un script, 30 jours, le service `history` ouvert à l'IA, son écran.
-- Modèles libres (`docs/design/local-models.md`) : le banc est en place et rodé ; la campagne 1 a tourné le 2026-10-04 (190 scénarios en 5 h 15, 1,35 $ comptés hors réponses coupées, tableau dans `bench-results/2026-10-04_1326/summary.md`), ses échecs relus dans `docs/design/bench-campaign-1.md` ; les corrections de l'app qu'elle a trouvées sont faites (2026-10-13) : les niveaux de prompt se décident après une campagne rejouée.
+- Modèles libres (`docs/design/local-models.md`) : le banc est en place et rodé ; la campagne 1 a tourné le 2026-10-04 (190 scénarios en 5 h 15, 1,35 $ comptés hors réponses coupées, tableau dans `bench-results/2026-10-04_1326/summary.md`), ses échecs relus dans `docs/design/bench-campaign-1.md` ; les corrections de l'app qu'elle a trouvées sont faites (2026-10-13) : les niveaux de prompt se décident après une campagne rejouée. La relecture de ses jeux par un juge (2026-10-17, même document) : gemma sans forçage 15 réussis et bons sur 19, deepseek 18, gpt-oss 10 et 11 ; avant la campagne 2, des contrôles des chiffres que le banc ne lit pas (heures du Point du matin, moyennes du Bilan), puis gemma, gpt-oss et deepseek aux deux niveaux, qwen une fois les réponses coupées gardées.
 
 ## À concevoir
 
@@ -79,6 +79,7 @@ Une idée sans spec : elle demande une décision avant du code.
 
 - Le connecteur MCP : sans session, rien n'oblige le client à lire le schéma d'un outil avant d'y écrire (la consigne seule, `ai_chunk_validation_strategy`) ; l'imposer demande de retenir, par connexion, les schémas envoyés.
 - Les lectures du connecteur MCP se tiennent au seuil de la conversation (`chat_max_data_chars`, `McpReads`) : un seuil propre au connecteur, réglé par client à côté de son masque (migration 71), la limite de réponse de chaque client étant la sienne — à trancher.
+- Une question posée par l'IA dans une routine (`communication_module`) est ignorée sans le lui dire (`AIStateMachine`) : la refuser comme une erreur de format, que l'IA corrige, ou la garder pour l'utilisateur dans le compte rendu de l'exécution — à trancher. La relecture de la campagne 1 en a vu chez gemma et gpt-oss (`docs/design/bench-campaign-1.md`).
 - Le prochain envoi se calcule de deux façons : à la volée pour une automation (`AutomationScheduler`), stocké en base et remis à jour à chaque envoi pour Messages — en garder une.
 
 ### Outils et champs
