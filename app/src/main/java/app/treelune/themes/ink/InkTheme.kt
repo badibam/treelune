@@ -707,7 +707,7 @@ object InkTheme : ThemeContract {
 
     /**
      * A tile filling the cells the grid gives it: a wash of irregular edge, dense at its heart and
-     * fading towards its edge, no outline, bleeding into half the gaps around it; its motif within
+     * gone at its edge in every direction, no outline, bleeding into half the gaps around it; its motif within
      * the same edge. An icon's tile has no
      * wash at rest, its icon alone on the paper. Pressed or lifted, the wash darkens a step.
      */
