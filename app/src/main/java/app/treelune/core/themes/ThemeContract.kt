@@ -412,7 +412,7 @@ interface ThemeContract {
          * The app's mark in place of [icon], the home screen's: its launcher icon drawn the
          * theme's way, in the launcher's colours whatever the palette (LauncherMark, or the
          * theme's own drawing of it), or its monochrome layer in the theme's ink for a theme
-         * whose register has no room for the launcher's blue (the Swiss one).
+         * whose register has no room for the launcher's blue (the Swiss one, the ink one).
          */
         appMark: Boolean
     )

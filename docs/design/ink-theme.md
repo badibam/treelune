@@ -47,6 +47,22 @@ Toutes les lignes du 2026-10-17, dans l'ordre de la liste de `docs/THEMES.md`.
 12. **Le registre sonore** : feutré, un pinceau sur le papier, une page qu'on tourne, un bois léger ; à chercher dans les sons d'impact doux et les « drop » de Kenney. Le thème part muet.
 13. **Les textes** : nom « Encre et lavis » / « Ink and wash » ; phrase « Comme un lavis à l'encre : un papier crème, l'encre noire et un seul rouge de sceau, beaucoup de vide » / « Like an ink wash painting: cream paper, black ink and a single seal red, plenty of empty space ». Pas de nom de palette.
 
+## Ce qui est codé
+
+`themes/ink/` : la palette (`InkPalette`, ses nombres dans `palettes.json`, réglés au banc), les tailles et la police par cran (`InkSize`), le pinceau (`InkBrush`), l'élément pressé, le fondu, l'élément soulevé, la forme du lavis, l'icône au pinceau et le sceau (`InkPieces`), les graphiques (`InkDrawing`), chaque composant du contrat (`InkTheme`), les cellules des textures (`textures/`, des touches du même pinceau en formes pleines). La lecture des tracés d'une icône est une brique du cœur, `core/icons/IconStrokes`. `InkPaletteTest` tient les contrastes des deux palettes à chaque décalage de 15°, sur le papier et sur les lavis. Choisi dans Réglages › Interface, sous le nom « Encre et lavis ».
+
+Ce que le code a précisé des décisions :
+- Une icône, aux coins vifs, est tamponnée en disques une fois par icône et par taille dans un masque gardé en mémoire, puis teintée ; un trait lisse (filet, souligné, rond, galet, ensō, barre d'un graphique) est un seul contour autour de ses largeurs, redessiné sans coût. Les parties pleines d'une icône (une dizaine d'icônes de Lucide) sont remplies.
+- Une fenêtre se ferme d'un coup, comme dans les autres thèmes : la fenêtre flottante, commune à tous, quitte l'écran dès qu'on la ferme, et un fondu de sortie demanderait au cœur de la garder le temps du fondu.
+- La forme irrégulière d'une tuile est la même pour toutes, étirée à sa taille.
+- Dans un graphique, seule une barre plus haute qu'une fois et demie sa largeur est un trait de pinceau ; un autre bloc (une case de carte de chaleur) est un lavis aux coins doux.
+- La tuile d'une icône seule n'a pas de lavis au repos : son icône seule sur le papier, la couleur de l'icône en tache autour d'elle.
+- Les tons des textures sont ceux du suisse, eux-mêmes repris du thème par défaut.
+
 ## Ce qui reste ouvert
 
+- Rien n'a tourné sur un téléphone : le thème entier s'y juge, la passe de `docs/THEMES.md` d'abord, le coût des icônes au pinceau (une page pleine d'icônes à sa première ouverture) et les icônes qui se bouchent compris.
+- Le nom d'une tuile reste centré par le cœur (`UI.TileHeader`), comme le veut la maquette.
+- Les tons des textures, à régler au banc des textures (`./run themes`).
+- Les sons, à la planche d'écoute.
 - Une fois redessiné Lucide tenu sur le téléphone (coût, icônes qui se bouchent) : la troisième façon de la ligne 9 de la recette, `docs/THEMES.md`.
