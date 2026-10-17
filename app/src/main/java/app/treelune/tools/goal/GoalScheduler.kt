@@ -18,10 +18,10 @@ import org.json.JSONObject
  *    criterion forgotten is caught up rather than turned into a false failure. One notification
  *    tells it, once, unless the goal says not to.
  * 2. An attempt left to validate past the goal's delay expires, which is not a failure.
- * 3. A goal switched on opens its attempt: a one-off goal once, from its start; a recurring one at
- *    the last occurrence of its schedule that came, the ones in between not caught up. Its period
- *    lasts the goal's duration, or until the next occurrence. An attempt to validate does not hold
- *    the next one back: periods would slide.
+ * 3. A goal switched on opens its attempt, as its recurrence says: a goal set once opens one, from
+ *    its start to its deadline; a recurring one opens one at the last occurrence of its schedule
+ *    that came, the ones in between not caught up, lasting the goal's duration, or until the next
+ *    occurrence. An attempt to validate does not hold the next one back: periods would slide.
  */
 object GoalScheduler : ToolScheduler {
 
@@ -87,35 +87,45 @@ object GoalScheduler : ToolScheduler {
 
         // 3: the attempt to open, if any
         if (!config.optBoolean("enabled", true)) return
-        val duration = (config.opt("duration") as? Number)?.toLong()
-        val opening: Pair<Long, Long?>? = when (val stored = StoredSchedule.of(config)) {
-            is StoredSchedule.Unreadable -> {
-                LogManager.service("GoalScheduler: schedule of goal $id unreadable (${stored.cause}), nothing opened", "ERROR")
-                null
-            }
-            StoredSchedule.None -> {
+        val opening: Pair<Long, Long?>? = when (val recurrence = config.optString(GoalToolType.RECURRENCE)) {
+            GoalToolType.Recurrence.ONCE -> {
                 val start = (config.opt("start") as? Number)?.toLong() ?: ((tool["created_at"] as? Number)?.toLong() ?: now)
-                if (attempts.isEmpty() && start <= now) start to ((config.opt("deadline") as? Number)?.toLong() ?: duration?.let { start + it })
+                if (attempts.isEmpty() && start <= now) start to (config.opt("deadline") as? Number)?.toLong()
                 else null
             }
-            is StoredSchedule.Readable -> {
-                val schedule = stored.schedule
-                val latest = attempts.maxOfOrNull { it.start }
-                // The last occurrence that came since the last attempt (since the goal was made, for the first)
-                var cursor = latest ?: ((tool["created_at"] as? Number)?.toLong() ?: now)
-                var due: Long? = null
-                var steps = 0
-                while (steps++ < MAX_STEPS) {
-                    val next = ScheduleCalculator.calculateNextExecution(schedule.pattern, cursor) ?: break
-                    if (next > now || next <= cursor) break
-                    due = next
-                    cursor = next
+            GoalToolType.Recurrence.RECURRING -> when (val stored = StoredSchedule.of(config)) {
+                is StoredSchedule.Unreadable -> {
+                    LogManager.service("GoalScheduler: schedule of goal $id unreadable (${stored.cause}), nothing opened", "ERROR")
+                    null
                 }
-                due?.takeIf { d -> attempts.none { it.start == d } }?.let { start ->
-                    val end = duration?.let { start + it }
-                        ?: ScheduleCalculator.calculateNextExecution(schedule.pattern, start)?.let { it - 1 }
-                    start to end
+                StoredSchedule.None -> {
+                    LogManager.service("GoalScheduler: recurring goal $id has no schedule, nothing opened", "ERROR")
+                    null
                 }
+                is StoredSchedule.Readable -> {
+                    val schedule = stored.schedule
+                    val duration = (config.opt("duration") as? Number)?.toLong()
+                    val latest = attempts.maxOfOrNull { it.start }
+                    // The last occurrence that came since the last attempt (since the goal was made, for the first)
+                    var cursor = latest ?: ((tool["created_at"] as? Number)?.toLong() ?: now)
+                    var due: Long? = null
+                    var steps = 0
+                    while (steps++ < MAX_STEPS) {
+                        val next = ScheduleCalculator.calculateNextExecution(schedule.pattern, cursor) ?: break
+                        if (next > now || next <= cursor) break
+                        due = next
+                        cursor = next
+                    }
+                    due?.takeIf { d -> attempts.none { it.start == d } }?.let { start ->
+                        val end = duration?.let { start + it }
+                            ?: ScheduleCalculator.calculateNextExecution(schedule.pattern, start)?.let { it - 1 }
+                        start to end
+                    }
+                }
+            }
+            else -> {
+                LogManager.service("GoalScheduler: goal $id says neither once nor recurring ('$recurrence'), nothing opened", "ERROR")
+                null
             }
         }
         opening?.let { (start, end) ->
