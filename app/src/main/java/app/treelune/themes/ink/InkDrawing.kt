@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -16,7 +17,6 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
@@ -32,9 +32,8 @@ import app.treelune.core.drawing.TextAnchor
 import app.treelune.core.drawing.TextBaseline
 
 /**
- * The ink theme's drawings (docs/design/ink-theme.md, line 10): a bar taller than wide is a
- * vertical stroke of the brush, drawn downwards and as wide as the bar; any other block a wash of
- * soft corners; surfaces are thin washes, lines have round ends and joins, labels are in
+ * The ink theme's drawings (docs/design/ink-theme.md, line 10): a block (a bar, a cell) is a wash
+ * filling exactly its value, its top corners soft; surfaces are thin washes, lines have round ends and joins, labels are in
  * Literata. The colours the user gives a chart's series are kept, in the palette's tag colours:
  * they are the user's data. The inks go to the ink, the secondary ink and a track's wash; what is
  * missing is hatched faintly.
@@ -123,26 +122,23 @@ internal object InkDrawing {
     }
 
     /**
-     * A block: a bar taller than wide is one downward stroke of the brush, as wide as the bar;
-     * anything else a wash of soft corners.
+     * A block, a bar or a cell: a wash filling exactly its value, its top corners soft and a
+     * little uneven, as a touch of the brush leaves them, its bottom ones nearly square on the axis.
      */
     private fun DrawScope.drawBlock(shape: DrawShape.Box, color: Color) {
         val r = shape.rect
         val w = r.right - r.left
         val h = r.bottom - r.top
         if (w <= 0f || h <= 0f) return
-        if (h > w * TALL) {
-            val traced = InkBrush.trace(InkBrush.Shape.VBAR, w, h, w)
-            translate(r.left, r.top) {
-                traced.forEach { (stroke, widths) ->
-                    drawPath(InkBrush.outline(stroke, widths, w, 1f), color, alpha = shape.opacity * InkBrush.RIM_ALPHA)
-                    drawPath(InkBrush.outline(stroke, widths, w, InkBrush.CORE), color, alpha = shape.opacity)
-                }
-            }
-        } else {
-            val corner = minOf(w, h) * 0.25f
-            drawRoundRect(color, Offset(r.left, r.top), Size(w, h), CornerRadius(corner, corner), alpha = shape.opacity * BLOCK_ALPHA)
-        }
+        val soft = minOf(minOf(w, h) * 0.3f, 6f * density)
+        val edge = RoundRect(
+            r.left, r.top, r.right, r.bottom,
+            topLeftCornerRadius = CornerRadius(soft * 1.2f, soft * 1.2f),
+            topRightCornerRadius = CornerRadius(soft * 0.8f, soft * 0.8f),
+            bottomRightCornerRadius = CornerRadius(soft * 0.2f, soft * 0.2f),
+            bottomLeftCornerRadius = CornerRadius(soft * 0.2f, soft * 0.2f),
+        )
+        drawPath(Path().apply { addRoundRect(edge) }, color, alpha = shape.opacity * BLOCK_ALPHA)
     }
 
     /** What is missing: hatched faintly in its colour, never a value. */
@@ -174,9 +170,6 @@ internal object InkDrawing {
             }
         }
     }
-
-    /** A bar taller than this times its width is a stroke of the brush. */
-    private const val TALL = 1.5f
 
     /** A surface's wash, a block's: thin enough to see through. */
     private const val SURFACE_ALPHA = 0.35f
