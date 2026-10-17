@@ -142,10 +142,11 @@ class DemoContentTest {
         // Textures, on a zone and on a tool, the icon as a motif among them
         assertTrue(content.zones.any { it.has("texture") })
         assertTrue(configs().any { it.optString("texture") == "ICON" } && configs().any { it.has("texture") && it.optString("texture") != "ICON" })
-        // The three protections, and a tool always sent
+        // The three protections; no tool always sent, which would put the demo's data in every
+        // prompt of whoever installs it (docs/design/user-journey.md, La démo)
         assertTrue(content.zones.any { it.optBoolean("validate") })
         assertTrue(configs().any { it.optBoolean("validate_data") })
-        assertTrue(configs().any { it.optBoolean("always_send") })
+        assertTrue(configs().none { it.optBoolean("always_send") })
         // A field read-only for the AI, and a choice of each kind: coloured, multiple and open, ordered
         assertTrue(fields().any { it.optBoolean("ai_read_only") })
         val choices = fields().filter { it.getString("type") == "CHOICE" }.map { it.getJSONObject("config") }

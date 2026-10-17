@@ -34,6 +34,7 @@ Personne pour confirmer : le Level 2 dit les outils non envoyés, comme après u
 
 - La décision (`PromptManager.alwaysSendOutcome`) : sous le seuil, envoyés quel que soit le type de session ; au-delà, une discussion sans choix demande, une discussion suit le choix fait, une automation et une IA extérieure reçoivent la liste.
 - La migration 63 → 64 et l'import d'une sauvegarde : le seuil ajouté à 15 000, une valeur déjà là gardée.
+- La démo n'en marque aucun (`DemoContentTest`) : l'installer ne charge pas chaque prompt de ses données (`docs/design/user-journey.md`, La démo).
 - La lecture des outils marqués et l'arrêt sur une config illisible passent par la base : ils sont vérifiés sur l'appareil, la suite de tests n'ayant pas de base.
 
 ## Sur l'appareil

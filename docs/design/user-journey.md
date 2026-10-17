@@ -138,6 +138,7 @@ Un chapitre de Prise en main nomme tout ce que montrent les écrans qu'il couvre
 - Le dialogue qui la supprime nomme les tutoriels qui l'utilisent, dit que leurs étapes dans la démo seront sautées, et qu'elle se réinstalle depuis Réglages › Démo.
 - Dans le Guide, tant qu'elle est absente, un chapitre qui en a besoin porte « Demande la démo » et « Réinstaller ».
 - Un chapitre a besoin de la démo si une de ses étapes vise un écran ou un outil de la démo : déduit, jamais déclaré.
+- Aucun outil de la démo n'est marqué « Toujours envoyer à l'IA » (`always_send`) : ses données partiraient dans chaque prompt de qui l'installe, à ses frais et sans qu'il l'ait choisi. Le réglage se montre dans un tutoriel, sur un outil de l'utilisateur. `DemoContentTest` le vérifie (décidé le 2026-10-17).
 
 ## La progression
 

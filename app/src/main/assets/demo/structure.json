@@ -1535,8 +1535,7 @@
         "icon_color": "BLUE",
         "display_mode": "EXTENDED",
         "remove_when_checked": false,
-        "due_dates": true,
-        "always_send": true
+        "due_dates": true
       },
       "grid_x": 0,
       "grid_y": 4
