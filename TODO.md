@@ -79,6 +79,7 @@ Une idée sans spec : elle demande une décision avant du code.
 - Le connecteur MCP : sans session, rien n'oblige le client à lire le schéma d'un outil avant d'y écrire (la consigne seule, `ai_chunk_validation_strategy`) ; l'imposer demande de retenir, par connexion, les schémas envoyés.
 - Les lectures du connecteur MCP se tiennent au seuil de la conversation (`chat_max_data_chars`, `McpReads`) : un seuil propre au connecteur, réglé par client à côté de son masque (migration 71), la limite de réponse de chaque client étant la sienne — à trancher.
 - Le prochain envoi se calcule de deux façons : à la volée pour une automation (`AutomationScheduler`), stocké en base et remis à jour à chaque envoi pour Messages — en garder une.
+- Le découpage des fournisseurs d'IA, à revoir entièrement : chacun a aujourd'hui deux variantes fixes, standard et économique (`AIProviderRegistry`), et la liste les montre toutes, utilisées ou non ; pouvoir créer les fournisseurs qu'on veut, et ne voir que ceux-là. Avec, le coût d'un serveur à soi, inconnu pour l'instant : des prix réglés à la main (entrée, entrée en cache, sortie) à la place de la liste LiteLLM.
 
 ### Outils et champs
 
