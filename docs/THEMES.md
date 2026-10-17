@@ -13,6 +13,7 @@ Un thème dessine l'app : chaque composant visuel de `UI.*` passe par lui (`core
 
 ## Le déroulé
 
+0. **Où travailler** : avant tout travail sur un thème, l'IA demande à l'utilisateur s'il se fait dans un worktree, ou sur la branche courante.
 1. **Le registre** : une maquette de l'écran d'une zone, ajoutée à `docs/theme-tracks.html` à côté des autres, et choisie à l'œil.
 2. **Les décisions** : la spec `docs/design/<id>-theme.md`, remplie ligne à ligne de la liste ci-dessous.
 3. **Le seuil** : chaque ligne de la liste porte une décision, et le banc du thème est vu dans les deux modes. Rien sur le téléphone avant de coder.
