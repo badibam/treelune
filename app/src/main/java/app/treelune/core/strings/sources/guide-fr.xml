@@ -91,7 +91,7 @@
     <string name="guide_connect_ai_intro">L\'IA peut faire les mêmes choses que toi dans l\'app : lire les outils, les remplir et les régler. Il lui faut pour ça une clé d\'accès chez un fournisseur d\'IA.</string>
     <string name="guide_connect_ai_outro">L\'IA est branchée. Il reste à construire des outils avec elle.</string>
     <string name="guide_connect_ai_1_goal">Ouvre les fournisseurs d\'IA</string>
-    <string name="guide_connect_ai_1_text">Les fournisseurs d\'IA se règlent dans les Réglages : Claude, OpenAI, DeepSeek, ou un service compatible avec l\'API d\'OpenAI, comme Ollama ou LM Studio.</string>
+    <string name="guide_connect_ai_1_text">Les fournisseurs d\'IA se règlent dans les Réglages : Claude, OpenAI, DeepSeek, ou un autre serveur, comme Ollama, LM Studio ou OpenRouter.</string>
     <string name="guide_connect_ai_2_goal">Règle un fournisseur avec ta clé</string>
     <string name="guide_connect_ai_2_text">Crée d\'abord une clé d\'API sur le site du fournisseur. Dans l\'app, touche ce fournisseur, colle la clé, choisis un modèle et enregistre.\n\nLa clé reste sur le téléphone, et l\'app ne l\'envoie qu\'à ce fournisseur.</string>
     <string name="guide_connect_ai_3_goal">Ce que ça coûte</string>

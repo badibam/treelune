@@ -3,6 +3,7 @@ package app.treelune.core.ai.providers
 import android.content.Context
 import app.treelune.core.ai.data.PromptData
 import app.treelune.core.fields.settings.SettingNode
+import app.treelune.core.strings.Strings
 import org.json.JSONObject
 
 /**
@@ -17,7 +18,7 @@ class OpenAICompatibleStandardProvider(private val context: Context) : AIProvide
 
     override fun getProviderId(): String = "compatible_standard"
 
-    override fun getDisplayName(): String = "Compatible OpenAI"
+    override fun getDisplayName(): String = Strings.`for`(context = context).shared("ai_provider_compatible_name")
 
     override fun getConfigSettings(context: Context): List<SettingNode> = core.configSettings(context)
 
@@ -48,7 +49,7 @@ class OpenAICompatibleEconomicProvider(private val context: Context) : AIProvide
 
     override fun getProviderId(): String = "compatible_economic"
 
-    override fun getDisplayName(): String = "Compatible OpenAI (économique)"
+    override fun getDisplayName(): String = Strings.`for`(context = context).shared("ai_provider_compatible_economic_name")
 
     override fun getConfigSettings(context: Context): List<SettingNode> = core.configSettings(context)
 

@@ -652,8 +652,8 @@ DeepSeek passe par `ClaudeProviderCore` sur son endpoint `/anthropic` (`Messages
 - `cache_control` ignoré : le cache de contexte de DeepSeek est automatique. Il reprend d'un appel à l'autre tout le début identique, conversation comprise, message daté final et raisonnement retiré n'y changeant rien (mesuré le 2026-09-25) ; ce qui change avant l'historique, comme un L3 reconstruit, l'arrête là.
 - La réponse commence par un bloc `thinking` : le parsing lit le bloc `text`.
 
-### Compatible OpenAI - Chat Completions à une adresse réglable
-`OpenAICompatibleProviderCore` sert tout serveur qui parle `/chat/completions` : Ollama, llama.cpp, vLLM, LM Studio, OpenRouter. Le fournisseur OpenAI reste sur `/v1/responses`, que ces serveurs ne servent pas tous. Deux variantes, `compatible_standard` et `compatible_economic`. Pourquoi ce fournisseur existe : `docs/design/local-models.md`.
+### Autre serveur - Chat Completions à une adresse réglable
+`OpenAICompatibleProviderCore` sert tout serveur qui parle `/chat/completions` : Ollama, llama.cpp, vLLM, LM Studio, OpenRouter. Le fournisseur OpenAI reste sur `/v1/responses`, que ces serveurs ne servent pas tous. Deux variantes, `compatible_standard` et `compatible_economic`, nommées « Autre serveur » à l'écran. Pourquoi ce fournisseur existe : `docs/design/local-models.md`.
 - Adresse de base (`base_url`, celle qui précède `/chat/completions`, souvent en `/v1`) **en https seulement** : le prompt porte les données de l'utilisateur. Refusée à l'enregistrement (`configError`), à la liste des modèles et à l'appel. Aucune exception de trafic en clair n'est déclarée dans l'app.
 - Clé facultative, envoyée en `Bearer` quand elle existe. Les modèles se listent par `GET /models` dès que l'adresse est remplie.
 - Forçage de la sortie (`output_forcing`), choix obligatoire : `none`, `json` (`response_format: json_object`), `schema` (`json_schema` portant le schéma de la réponse de l'IA tel que le modèle le lit, `SchemaModelView`). Un serveur qui refuse le niveau rend une erreur, affichée telle quelle.

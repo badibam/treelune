@@ -1139,6 +1139,8 @@
     <string name="ai_provider_openai_schema_temperature">Température d\'échantillonnage (0.0 à 2.0)</string>
     <string name="ai_provider_openai_schema_max_output_tokens">Limite maximale de tokens pour les réponses</string>
     <string name="ai_provider_fill_in_first">Renseigne d\'abord : %1$s</string>
+    <string name="ai_provider_compatible_name">Autre serveur</string>
+    <string name="ai_provider_compatible_economic_name">Autre serveur (économique)</string>
     <string name="ai_provider_compatible_base_url">Adresse du serveur</string>
     <string name="ai_provider_compatible_schema_base_url">Adresse de base de l\'API compatible OpenAI du serveur, en https seulement (ex. https://openrouter.ai/api/v1)</string>
     <string name="ai_provider_compatible_api_key">Clé API (si le serveur en demande une)</string>
@@ -1938,7 +1940,7 @@
 
     <!-- Clés que le code demandait et que personne n'avait écrites -->
     <string name="ai_provider_error">Erreur du fournisseur IA</string>
-    <string name="ai_provider_openai_temperature_help">Entre 0 et 2 : plus bas, des réponses plus stables ; plus haut, plus variées</string>
+    <string name="ai_provider_openai_temperature_help">Température : entre 0 et 2 : plus bas, des réponses plus stables ; plus haut, plus variées</string>
     <string name="label_ai_provider">Fournisseur IA</string>
     <string name="label_yes">Oui</string>
     <string name="label_with_default">%1$s (par défaut : %2$s)</string>

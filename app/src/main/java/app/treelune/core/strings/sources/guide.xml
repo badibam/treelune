@@ -91,7 +91,7 @@
     <string name="guide_connect_ai_intro">The AI can do the same things as you in the app: read the tools, fill them in and set them up. For that, it needs an access key from an AI provider.</string>
     <string name="guide_connect_ai_outro">The AI is connected. What remains is to build tools with it.</string>
     <string name="guide_connect_ai_1_goal">Open the AI providers</string>
-    <string name="guide_connect_ai_1_text">AI providers are set up in the Settings: Claude, OpenAI, DeepSeek, or a service compatible with OpenAI\'s API, such as Ollama or LM Studio.</string>
+    <string name="guide_connect_ai_1_text">AI providers are set up in the Settings: Claude, OpenAI, DeepSeek, or another server, such as Ollama, LM Studio or OpenRouter.</string>
     <string name="guide_connect_ai_2_goal">Set up a provider with your key</string>
     <string name="guide_connect_ai_2_text">First create an API key on the provider\'s website. In the app, touch that provider, paste the key, choose a model and save.\n\nThe key stays on the phone, and the app sends it only to that provider.</string>
     <string name="guide_connect_ai_3_goal">What it costs</string>
