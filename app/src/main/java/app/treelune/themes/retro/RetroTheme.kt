@@ -655,6 +655,16 @@ object RetroTheme : ThemeContract {
         }
     }
 
+    /**
+     * A textured page's motif over its whole ground, in a whole tone of the screen's ground, the
+     * cells repeated from the page's corner, which FullScreen sets on the grid of cells.
+     */
+    @Composable
+    override fun PageGround(texture: app.treelune.core.themes.ItemTexture?, content: @Composable () -> Unit) {
+        val brush = app.treelune.core.themes.rememberTextureBrush(texture, retroColors.screen.ground.srgb, textureStyle())
+        Box(modifier = Modifier.fillMaxSize().texture(brush, androidx.compose.ui.graphics.RectangleShape)) { content() }
+    }
+
     /** A row on the screen's ground across the width, closed by a divider. */
     @Composable
     override fun HeaderBar(content: @Composable RowScope.() -> Unit) {
@@ -783,16 +793,12 @@ object RetroTheme : ThemeContract {
         subtitle: String?,
         icon: String?,
         iconColor: app.treelune.core.themes.TagColor?,
-        texture: app.treelune.core.themes.ItemTexture?,
         appMark: Boolean
     ) {
         val grid = retroGrid()
-        // A textured page's motif in a band across the width, on the screen's ground, a cell of air above and below the title
-        val brush = app.treelune.core.themes.rememberTextureBrush(texture, retroColors.screen.ground.srgb, textureStyle())
         // Across the width
         Column(
-            modifier = Modifier.fillMaxWidth().texture(brush, androidx.compose.ui.graphics.RectangleShape)
-                .padding(vertical = if (brush != null) grid.cells(1) else androidx.compose.ui.unit.Dp(0f)),
+            modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // The page's icon and title a size up, as a heading is (HEADING)
