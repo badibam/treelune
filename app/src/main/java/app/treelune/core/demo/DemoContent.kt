@@ -5,7 +5,7 @@ import org.json.JSONObject
 
 /**
  * The demo as the app ships it: `assets/demo/structure.json` holds the
- * parameters of the operations that build it — zones, tools, variables — under ids the app gives
+ * parameters of the operations that build it — identities, zones, tools, variables, automations — under ids the app gives
  * and with no text of its own: a string written `@key` is a text, given by
  * `assets/demo/texts-<lang>.json` in the phone's language. Pure: the service reads the files and
  * hands them here, and runs what comes back through the services.
@@ -13,7 +13,13 @@ import org.json.JSONObject
  * A zone or a tool carries its place in its grid section beside its parameters, as `grid_x` and
  * `grid_y`; the installer places them once the section is built.
  *
+ * A moment of a config, as a goal's start, is written `{"demo_at": [weeks back, ISO weekday,
+ * "HH:MM"]}`, the weeks counted back from the current one as the entries are (DemoData.place), a
+ * negative number for the weeks to come: the installer puts the instant in its place.
+ *
  * @property group The name of the home screen's zone group the demo's zones stand in
+ * @property identities The `identities.create` parameters of each identity, with `texts`, the
+ *           `identities.update` parameters that write its voice, mind, portrait and bagage, beside them
  * @property zones The `zones.create` parameters of each zone, with its place
  * @property tools The `tools.create` parameters of each tool, with its place, in the order they
  *           are created: a tool another one names comes before it
@@ -24,6 +30,7 @@ import org.json.JSONObject
  */
 class DemoContent(
     val group: String,
+    val identities: List<JSONObject>,
     val zones: List<JSONObject>,
     val tools: List<JSONObject>,
     val variables: List<JSONObject>,
@@ -41,6 +48,9 @@ class DemoContent(
         /** The keys of a zone's or a tool's place, which are no parameter of its create. */
         val PLACE = listOf("grid_x", "grid_y")
 
+        /** The key of a moment placed in the demo's weeks, in a config. */
+        const val AT = "demo_at"
+
         /**
          * The demo read from [structure], its texts given by [texts].
          *
@@ -54,14 +64,15 @@ class DemoContent(
             val tools = list("tools")
             val variables = list("variables")
             val automations = list("automations")
-            ((zones + tools + variables + automations).map { it.getString("id") } + automations.map { it.getString("seed_session_id") }).forEach { id ->
+            val identities = list("identities")
+            ((identities + zones + tools + variables + automations).map { it.getString("id") } + automations.map { it.getString("seed_session_id") }).forEach { id ->
                 check(id.startsWith(PREFIX)) { "Demo id '$id' lacks the prefix $PREFIX" }
             }
             variables.forEach { variable ->
                 val name = variable.getString("name")
                 check(name.endsWith(VARIABLE_SUFFIX)) { "Demo variable '$name' lacks the suffix $VARIABLE_SUFFIX" }
             }
-            return DemoContent(resolved.getString("zone_group"), zones, tools, variables, automations)
+            return DemoContent(resolved.getString("zone_group"), identities, zones, tools, variables, automations)
         }
 
         /**
@@ -82,6 +93,14 @@ class DemoContent(
 
         private fun text(key: String, texts: JSONObject): String =
             texts.optString(key).takeIf { it.isNotEmpty() } ?: error("Demo text '$key' missing")
+
+        /** [value] with each `{"demo_at": […]}` replaced by the instant [place] gives it, at any depth. */
+        fun dated(value: Any?, place: (JSONArray) -> Long): Any? = when (value) {
+            is JSONObject -> if (value.has(AT)) place(value.getJSONArray(AT))
+                else JSONObject().also { out -> value.keys().forEach { out.put(it, dated(value.get(it), place)) } }
+            is JSONArray -> JSONArray().also { out -> (0 until value.length()).forEach { out.put(dated(value.get(it), place)) } }
+            else -> value
+        }
 
         /** Whether the tool [item] reads a variable anywhere in its config: a term `{"variable": …}`. */
         fun readsVariable(item: JSONObject): Boolean = hasVariable(item.getJSONObject("config"))

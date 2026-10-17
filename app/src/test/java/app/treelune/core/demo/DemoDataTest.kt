@@ -11,7 +11,7 @@ import java.time.ZonedDateTime
 
 /**
  * Covers the demo's entries, generated at fixed moments: the same demo from
- * the same moment, nothing dated after the install but due dates, one stopwatch running, every
+ * the same moment, nothing dated after the install but due dates and appointments, one stopwatch running, every
  * text given in both languages and every text used, every reference landing on a card, the rush
  * week showing across the zones, and what the free models' bench reads (docs/design/local-models.md).
  */
@@ -38,7 +38,8 @@ class DemoDataTest {
     @Test
     fun `nothing is dated after the install, the running stopwatch started before it`() {
         for (now in moments) {
-            all(now).forEach { e -> if (e.has("timestamp")) assertTrue(e.toString(), e.getLong("timestamp") <= now) }
+            data(now).entries().filterKeys { it != "demo-work-agenda" }.values.flatten()
+                .forEach { e -> if (e.has("timestamp")) assertTrue(e.toString(), e.getLong("timestamp") <= now) }
             val running = all(now).filter { it.optJSONObject("state")?.has("running") == true }
             assertEquals(1, running.size)
             assertEquals(now - 40 * 60_000, running.single().getLong("timestamp"))
@@ -123,6 +124,32 @@ class DemoDataTest {
             assertEquals("active", list.last().status)
             assertEquals("to_validate", list[list.size - 2].status)
             assertTrue(list.dropLast(2).all { it.validate })
+        }
+    }
+
+    @Test
+    fun `the calendar has appointments past and to come, a whole-day one, its series' past with one cancelled and one removed`() {
+        for (now in moments) {
+            val events = data(now).entries().getValue("demo-work-agenda")
+            assertTrue(events.any { it.getLong("timestamp") < now } && events.any { it.getLong("timestamp") > now })
+            assertTrue(events.any { it.getJSONObject("data").optBoolean("all_day") })
+            val series = events.filter { it.getJSONObject("state").optString("series") == "s_brume" }
+            assertTrue(series.all { it.getLong("timestamp") <= now && it.getJSONObject("state").getLong("series_at") == it.getLong("timestamp") })
+            assertEquals(setOf("planned", "cancelled", "removed"), series.map { it.getJSONObject("state").getString("status") }.toSet())
+        }
+    }
+
+    @Test
+    fun `a session keeps its steps, their counts following them`() {
+        val sessions = data(moments[0]).entries().getValue("demo-course-intervals")
+        assertTrue(sessions.isNotEmpty())
+        sessions.forEach { session ->
+            val data = session.getJSONObject("data")
+            val steps = data.getJSONArray("steps").let { a -> (0 until a.length()).map { a.getJSONObject(it).getString("status") } }
+            assertEquals(17, steps.size)
+            assertEquals(data.getInt("steps_done"), steps.count { it == "done" })
+            assertEquals(data.getInt("steps_skipped"), steps.count { it == "skipped" })
+            assertEquals(data.getInt("steps_not_done"), steps.count { it == "not_done" })
         }
     }
 

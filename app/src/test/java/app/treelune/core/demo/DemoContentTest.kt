@@ -102,7 +102,7 @@ class DemoContentTest {
     @Test
     fun `the demo shows every tool type, tracking type and tile mode, every field type among the user's fields, a tool in a group and one outside`() {
         val content = read()
-        assertEquals(setOf("tracking", "goal", "chart", "journal", "list", "messages", "notes", "questionnaire", "structured", "sequence"),
+        assertEquals(app.treelune.core.tools.ToolTypeScanner.scanForToolTypes().keys,
             content.tools.map { it.getString("tooltype") }.toSet())
         assertEquals(setOf("numeric", "scale", "choice", "boolean", "text", "timer", "occurrence"),
             content.tools.filter { it.getString("tooltype") == "tracking" }.map { it.getJSONObject("config").getString("type") }.toSet())
@@ -123,7 +123,7 @@ class DemoContentTest {
     fun `the automations are off, each with its instruction, a catch-up with a schedule only, in a group its zone has`() {
         for (language in languages) {
             val content = read(language)
-            assertEquals(3, content.automations.size)
+            assertEquals(4, content.automations.size)
             val groups = content.zones.associate { it.getString("id") to it.getJSONArray("tool_groups").strings() }
             content.automations.forEach { automation ->
                 assertFalse(automation.getBoolean("is_enabled"))
@@ -132,6 +132,53 @@ class DemoContentTest {
                 automation.optString("group").takeIf { it.isNotEmpty() }?.let { assertTrue(it in groups.getValue(automation.getString("zone_id"))) }
             }
         }
+    }
+
+    @Test
+    fun `the demo shows what a zone, a tool, a field and a routine can carry beyond their type`() {
+        val content = read()
+        fun configs() = content.tools.map { it.getJSONObject("config") }
+        fun fields() = configs().flatMap { c -> c.optJSONArray("extra_fields")?.let { f -> (0 until f.length()).map { f.getJSONObject(it) } } ?: emptyList() }
+        // Textures, on a zone and on a tool, the icon as a motif among them
+        assertTrue(content.zones.any { it.has("texture") })
+        assertTrue(configs().any { it.optString("texture") == "ICON" } && configs().any { it.has("texture") && it.optString("texture") != "ICON" })
+        // The three protections, and a tool always sent
+        assertTrue(content.zones.any { it.optBoolean("validate") })
+        assertTrue(configs().any { it.optBoolean("validate_data") })
+        assertTrue(configs().any { it.optBoolean("always_send") })
+        // A field read-only for the AI, and a choice of each kind: coloured, multiple and open, ordered
+        assertTrue(fields().any { it.optBoolean("ai_read_only") })
+        val choices = fields().filter { it.getString("type") == "CHOICE" }.map { it.getJSONObject("config") }
+        assertTrue(choices.any { it.optBoolean("multiple") && it.optBoolean("open") })
+        assertTrue(choices.any { it.optBoolean("ordered") })
+        assertTrue(choices.any { c -> c.getJSONArray("options").let { o -> (0 until o.length()).any { o.getJSONObject(it).has("color") } } })
+        // A goal judged once, one recurring, one whose validation is closed to the AI, one with sub-goals
+        val goals = content.tools.filter { it.getString("tooltype") == "goal" }.map { it.getJSONObject("config") }
+        assertEquals(setOf("once", "recurring"), goals.map { it.getString("recurrence") }.toSet())
+        assertTrue(goals.any { it.optBoolean("ai_no_validation") } && goals.any { it.has("sub_goals") })
+        // A chart of each mark the demo stands for: a pie among them
+        assertTrue(content.tools.toString().contains("\"arc\""))
+        // An identity, named by a zone and by a routine
+        val identities = content.identities.map { it.getString("id") }.toSet()
+        assertTrue(identities.isNotEmpty())
+        assertTrue(content.zones.any { it.optString("identity_id") in identities })
+        assertTrue(content.automations.any { it.optString("identity_id") in identities })
+        // Routines held to an access, each end told as its routine says
+        assertTrue(content.automations.all { it.has("access") })
+        assertTrue(content.automations.map { it.optString("notify_end") }.toSet().containsAll(setOf("always", "on_problem")))
+    }
+
+    @Test
+    fun `a moment of a config lands in the demo's weeks`() {
+        val zone = java.time.ZoneId.of("Europe/Paris")
+        val now = java.time.ZonedDateTime.of(2026, 10, 14, 15, 0, 0, 0, zone).toInstant().toEpochMilli()
+        val data = DemoData(now, zone, JSONObject())
+        val race = read().tools.single { it.getString("id") == "demo-course-race" }
+        val config = (DemoContent.dated(race, data::place) as JSONObject).getJSONObject("config")
+        // Started eleven weeks back on a Monday, run on a Sunday six weeks ahead
+        assertEquals(java.time.ZonedDateTime.of(2026, 7, 27, 0, 0, 0, 0, zone).toInstant().toEpochMilli(), config.getLong("start"))
+        assertEquals(java.time.ZonedDateTime.of(2026, 11, 29, 9, 0, 0, 0, zone).toInstant().toEpochMilli(), config.getLong("deadline"))
+        assertFalse(config.toString().contains(DemoContent.AT))
     }
 
     @Test
