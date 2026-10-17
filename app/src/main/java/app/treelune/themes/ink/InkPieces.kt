@@ -258,14 +258,14 @@ internal class BlobShape(private val seed: Int) : Shape {
 private const val SEAL_SEED = 23
 
 /**
- * [shape]'s outline traced by hand: its sides trembling along their normal by a fortieth of its
+ * [shape]'s outline traced by hand: its sides trembling along their normal by a hundred and twentieth of its
  * smaller side, the draw of [seed].
  */
 internal class HandShape(private val shape: Shape, private val seed: Int) : Shape {
     override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
         val side = min(size.width, size.height)
         val path = Path().apply { addOutline(shape.createOutline(size, layoutDirection, density)) }
-        return Outline.Generic(wavering(path, amplitude = side / 40f, step = side / 16f, seed = seed))
+        return Outline.Generic(wavering(path, amplitude = side / 120f, step = side / 16f, seed = seed))
     }
 }
 
