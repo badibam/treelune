@@ -177,6 +177,8 @@ def review(folder, scenario, verdict, key):
     choice = answer["choices"][0]
     if choice.get("finish_reason") != "stop":
         raise RuntimeError(f"answer ended by {choice.get('finish_reason')}")
+    if not choice["message"].get("content"):
+        raise RuntimeError("empty answer")
     return {"grid": json.loads(choice["message"]["content"]), "counted": counted(folder),
             "reviewer": REVIEWER, "effort": EFFORT, "provider": answer.get("provider"),
             "cost": answer.get("usage", {}).get("cost", 0), "usage": answer.get("usage")}
