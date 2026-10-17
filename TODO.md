@@ -22,6 +22,8 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 ## Bugs
 
 - Réglages › Interface : un thème choisi, vu, enregistré, et l'ancien revient ; une seconde fois, ça tient (2026-10-09, pas reproduit, peut-être dans la release). Au prochain cas, lire dans le journal les lignes « Theme applied » : laquelle a remis l'ancien (STORED, PREVIEW, LEFT_UNSAVED).
+- La sauvegarde automatique s'affiche « Action inconnue » dans la bande d'une opération longue (`LongOperationBar`), `BackupService.verbalize` ne nommant pas l'opération `auto` ; et cette bande, posée en haut de chaque écran, le pousse vers le bas à chaque sauvegarde — à trancher : la bande par-dessus l'écran, ou pas de bande pour une opération que l'utilisateur n'a pas lancée.
+- Accès externe : « Fermer l'accès » touché ne montre rien pendant plusieurs secondes, puis l'état change ; l'écran doit dire tout de suite que la fermeture est en cours.
 
 ## À passer sur le téléphone
 
@@ -83,11 +85,14 @@ Une idée sans spec : elle demande une décision avant du code.
 - Un type de Suivi « étiquette », qui ne note qu'une étiquette.
 - La section « Quand » de la config d'un Objectif montre ensemble Début, Échéance et Récurrence, alors qu'avec une récurrence `GoalScheduler` ignore Début et Échéance sans le dire : un choix « Une fois » / « Récurrent » en tête, puis les seuls réglages qui comptent (réglage conditionnel du formulaire, `settings-pages.md`).
 - Trier Notes, Liste, Journal et Données structurées par un champ (un Tri = un Champ et un sens, brique à faire de celui de Données structurées) : ranger une fois, l'ordre manuel réécrit après confirmation, ou un réglage de l'outil, manuel ou trié — à trancher.
+- Copier un élément de Liste par un appui long.
 
 ### Interface
 
 - Les onglets de Messages, à remplacer par un classement par thèmes.
 - Dessiner le gras et l'italique des textes lus (identités, Guide) : le lecteur (`GuideMarkup`) retire leurs marques, les thèmes ne dessinant qu'un texte simple (`ThemeContract.Text`) ; l'étendre à un texte mis en forme dans les trois thèmes, la police du rétro comprise.
+- La texture d'une zone ou d'un outil sur tout le fond de sa page, et non plus sur sa tuile et la tête de sa page seules (`docs/design/tool-texture.md`).
+- Le choix d'une texture, et celui d'une couleur, sur une page à part plutôt que déplié dans le formulaire.
 
 ### Events du cœur
 
@@ -113,7 +118,6 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 - Une apostrophe nue dans un texte qui en a déjà une échappée (`\'`) passe tous les contrôles de `./run test` et casse la compilation des ressources (« Invalid unicode escape sequence »), le générateur n'échappant que les textes qui n'en ont aucune : la refuser dans un contrôle des sources de textes, ou faire échapper toutes les apostrophes au générateur.
 
 ## Bugs du téléphone
-
 
 ## En attente d'un déclencheur
 
