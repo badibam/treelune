@@ -185,6 +185,26 @@ internal object InkBrush {
     /** The smooth shapes the theme traces, in a box of its own size. */
     enum class Shape { LINE, VBAR, RING, PEBBLE, ENSO }
 
+    /** A shape's outlines to fill: its rim, laid at RIM_ALPHA, and its core over it. */
+    class Outlines(val rim: List<Path>, val core: List<Path>)
+
+    private data class ShapeKey(val shape: Shape, val w: Float, val h: Float, val widthPx: Float, val sweep: Float)
+
+    // Joining a stroke to its round ends (outline) is the dearest of the brush: a page of cards
+    // traces the same rule dozens of times, once here
+    private val shapes = LruCache<ShapeKey, Outlines>(SHAPE_CACHE)
+
+    /** [shape] traced in a box [w] × [h] and outlined ([trace], [outline]): made once per box, brush and sweep, and kept. */
+    fun outlines(shape: Shape, w: Float, h: Float, widthPx: Float, sweep: Float): Outlines {
+        val key = ShapeKey(shape, w, h, widthPx, sweep)
+        shapes.get(key)?.let { return it }
+        val traced = trace(shape, w, h, widthPx, sweep)
+        return Outlines(
+            traced.map { (stroke, widths) -> outline(stroke, widths, widthPx, 1f) },
+            traced.map { (stroke, widths) -> outline(stroke, widths, widthPx, CORE) }
+        ).also { shapes.put(key, it) }
+    }
+
     /**
      * [shape] traced in a box [w] × [h] pixels, the brush [widthPx] wide: its strokes and their
      * widths, ready for [outline]. [sweep] is the part of a turn an ensō covers.
@@ -247,4 +267,5 @@ internal object InkBrush {
 
     /** The icons of a few screens, at the sizes they are shown. */
     private const val MASK_CACHE = 384
+    private const val SHAPE_CACHE = 256
 }

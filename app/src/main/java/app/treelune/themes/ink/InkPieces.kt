@@ -324,13 +324,10 @@ internal fun Modifier.colorWash(color: Color, strength: Float): Modifier = drawB
  */
 internal fun Modifier.brushed(shape: InkBrush.Shape, thickness: Dp, color: Color, sweep: Float = InkBrush.ENSO_SWEEP): Modifier =
     drawWithCache {
-        val width = thickness.toPx()
-        val traced = InkBrush.trace(shape, size.width, size.height, width, sweep)
-        val rim = traced.map { (stroke, widths) -> InkBrush.outline(stroke, widths, width, 1f) }
-        val core = traced.map { (stroke, widths) -> InkBrush.outline(stroke, widths, width, InkBrush.CORE) }
+        val outlines = InkBrush.outlines(shape, size.width, size.height, thickness.toPx(), sweep)
         onDrawBehind {
-            rim.forEach { drawPath(it, color, alpha = InkBrush.RIM_ALPHA) }
-            core.forEach { drawPath(it, color) }
+            outlines.rim.forEach { drawPath(it, color, alpha = InkBrush.RIM_ALPHA) }
+            outlines.core.forEach { drawPath(it, color) }
         }
     }
 
