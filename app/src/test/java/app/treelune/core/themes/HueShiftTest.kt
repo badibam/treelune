@@ -31,8 +31,10 @@ class HueShiftTest {
             val own = theme.getColorScheme(mode, 0)
             for (shift in listOf(90, 180, 270)) {
                 val turned = theme.getColorScheme(mode, shift)
-                // The border: always coloured, where the main colour can be a white, which has no hue
-                assertNotEquals("$id ${mode.name} +$shift: the border turns", own.outline, turned.outline)
+                // Some colour of the theme turns: which one is the theme's (the border of a theme
+                // coloured throughout, the red alone of the Swiss one, whose inks have no hue)
+                val colours = { s: androidx.compose.material3.ColorScheme -> listOf(s.primary, s.secondary, s.tertiary, s.background, s.surface, s.outline) }
+                assertNotEquals("$id ${mode.name} +$shift: a colour turns", colours(own), colours(turned))
                 assertEquals("$id ${mode.name} +$shift: the error stays", own.error, turned.error)
             }
         }
