@@ -1,10 +1,8 @@
 package app.treelune.tools.chart
 
 import android.content.Context
-import app.treelune.core.conditions.Condition
 import app.treelune.core.fields.ChoiceSettings
 import app.treelune.core.fields.ChoiceShape
-import app.treelune.core.fields.EntryFilters
 import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldType
 import app.treelune.core.services.VariableService
@@ -13,7 +11,7 @@ import org.json.JSONObject
 
 /**
  * What a chart's config is checked on beyond its schema, which only reading the app tells: that
- * every column a channel, a transform or a condition names is one its layer gives, that marks get
+ * every column a channel or a transform names is one its layer gives (a condition's, the check of every config's conditions: ConditionCheck), that marks get
  * the channels they need, that bars and areas colored by category say how they stack, and that
  * the layers of a view put the same sort of values on a shared axis. Each refusal names the
  * layer, what is wrong, and when it can, what would do.
@@ -96,7 +94,6 @@ class ChartCheck(private val context: Context) {
             if (channel == Channel.X || channel == Channel.Y) {
                 def.scale.domain?.let { domain -> if (domain.size != 2 || domain.any { it !is Number }) return s.tool("error_domain").format(channel.key) }
             }
-            def.condition?.let { condition -> condition(channel, condition.test, columns)?.let { return it } }
         }
         val type = layer.mark.type
         val has = { c: Channel -> layer.channel(c) != null }
@@ -124,24 +121,6 @@ class ChartCheck(private val context: Context) {
         val field = def.field?.let { columns[it] } ?: return@any false
         val measure = def.type ?: ChartValues.measureOf(field)
         measure == Measure.NOMINAL || measure == Measure.ORDINAL || c == Channel.DETAIL
-    }
-
-    /** A channel's condition: the Condition brick on the row's columns, sides of one type. */
-    private fun condition(channel: Channel, test: JSONObject, columns: Map<String, FieldDefinition>): String? {
-        val read = try { Condition.fromJson(test, channel.key) { s.shared(it) } } catch (e: IllegalArgumentException) { return e.message }
-        val left = read.left as? Condition.Side.Field ?: return s.tool("error_condition_left").format(channel.key)
-        val field = columns[left.path] ?: return unknown("${channel.key}.${ChartKeys.CONDITION}", left.path, columns)
-        if (read.op !in EntryFilters.operatorsFor(field.type)) return s.tool("error_condition_op").format(channel.key, read.op.key, field.displayName)
-        read.right.forEach { side ->
-            when (side) {
-                is Condition.Side.Field -> {
-                    val other = columns[side.path] ?: return unknown("${channel.key}.${ChartKeys.CONDITION}", side.path, columns)
-                    if (other.type != field.type) return s.tool("error_condition_types").format(channel.key, field.displayName, other.displayName)
-                }
-                is Condition.Side.Of -> if (side.term !is app.treelune.core.terms.Term.Constant) return s.tool("error_condition_written").format(channel.key)
-            }
-        }
-        return null
     }
 
     /**

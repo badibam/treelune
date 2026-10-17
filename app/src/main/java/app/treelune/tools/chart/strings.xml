@@ -181,10 +181,6 @@
     <string name="error_channel_mark">The channel %1$s goes with an arc (or a text on one), not with a %2$s.</string>
     <string name="error_stack_mark">Only bars and areas stack, not a %1$s.</string>
     <string name="error_stack_required">These %1$s are split by a category: say how they stack in stack on their value\'s channel (%2$s).</string>
-    <string name="error_condition_left">The condition of %1$s puts a column of the row on its left.</string>
-    <string name="error_condition_op">The condition of %1$s: %2$s does not compare %3$s.</string>
-    <string name="error_condition_types">The condition of %1$s compares %2$s and %3$s, which are not of one type.</string>
-    <string name="error_condition_written">The condition of %1$s compares with a column of the row or a value written: a variable is read as a column of a grid.</string>
     <string name="error_axis_x">The layers of a view share their horizontal axis: %1$s and %2$s put different sorts of values there.</string>
     <string name="error_axis_y">%1$s and %2$s share a vertical axis but not a unit: put one on the %3$s (axis.orient).</string>
     <string name="screen_problem">This chart cannot be drawn: %1$s</string>

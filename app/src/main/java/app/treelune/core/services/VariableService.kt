@@ -12,10 +12,7 @@ import app.treelune.core.fields.toFieldDefinition
 import app.treelune.core.fields.toFieldDefinitions
 import app.treelune.core.grid.Groups
 import app.treelune.core.grid.ToolPositions
-import app.treelune.core.reading.FieldReading
-import app.treelune.core.reading.Reduction
 import app.treelune.core.selection.EntrySelection
-import app.treelune.core.selection.ReferenceKind
 import app.treelune.core.selection.TimeResolver
 import app.treelune.core.strings.Strings
 import app.treelune.core.utils.DataChangeNotifier
@@ -26,6 +23,7 @@ import app.treelune.core.variables.FormulaType
 import app.treelune.core.variables.Outcome
 import app.treelune.core.variables.StoredVariable
 import app.treelune.core.terms.Term
+import app.treelune.core.terms.TermFields
 import app.treelune.core.variables.VariableDefinition
 import app.treelune.core.variables.VariableEvaluator
 import app.treelune.core.variables.VariableSources
@@ -214,24 +212,17 @@ class VariableService(private val context: Context) : ExecutableService {
             is Term.Constant -> if (term.value !is Number) throw Refused(s.shared("variable_error_constant_not_number").format(name, term.value.toString()))
             is Term.Variable -> if (others.none { it.id == term.id }) throw Refused(s.shared("variable_error_not_found").format(term.id))
             is Term.Reading -> {
-                term.selection.problem { s.shared(it) }?.let { throw Refused(s.shared("variable_error_term").format(name) + " " + it) }
-                if (term.selection.target.kind != ReferenceKind.TOOL_INSTANCE) throw Refused(s.shared("service_error_reading_source").format(term.selection.target.kind.name))
-                val fields = try {
-                    ToolFields.filterable(term.selection.target.id!!, context, s)
-                } catch (e: IllegalStateException) {
-                    throw Refused(s.shared("variable_error_term").format(name) + " " + (e.message ?: ""))
-                }
-                if (term.perEntry != null) {
-                    if (Formula.parse(term.perEntry, aliases) is Formula.Parsed.Unreadable) throw Refused(s.shared("variable_error_term").format(name))
-                    return
-                }
-                val field = term.field?.let { fields[it] ?: throw Refused(s.shared("service_error_filter_unknown_field").format(it, fields.keys.joinToString(", "))) }
-                if (term.reduction !in Reduction.forType(field?.type)) {
-                    throw Refused(s.shared("service_error_reading_reduction_type").format(term.reduction.name, field?.type?.name ?: "-",
-                        Reduction.forType(field?.type).joinToString(", ") { it.name }))
-                }
+                fieldOf(term, name)
+                if (term.perEntry != null && Formula.parse(term.perEntry, aliases) is Formula.Parsed.Unreadable) throw Refused(s.shared("variable_error_term").format(name))
             }
         }
+    }
+
+    /** The field [term] gives values of (TermFields), refused when it does not read; null for a formula per entry. */
+    private suspend fun fieldOf(term: Term.Reading, name: String): FieldDefinition? = try {
+        TermFields.of(term, name, { s.shared(it) }, { ToolFields.filterable(it, context, s) }) { null }
+    } catch (e: IllegalArgumentException) {
+        throw Refused(e.message ?: "")
     }
 
     /** The variables from [reads] back to [id], if one of them leads there; null when none does. */
@@ -260,11 +251,7 @@ class VariableService(private val context: Context) : ExecutableService {
         suspend fun fieldOf(leaf: Formula): FieldDefinition? = when (leaf) {
             is Formula.VariableRef -> others.firstOrNull { it.id == leaf.id }?.let { stored(it).definition.field }
             is Formula.Name -> when (val term = terms[leaf.name]) {
-                is Term.Reading -> when {
-                    term.perEntry != null -> null
-                    term.reduction == Reduction.COUNT -> FieldReading.COUNT_FIELD
-                    else -> ToolFields.filterable(term.selection.target.id!!, context, s)[term.field]
-                }
+                is Term.Reading -> fieldOf(term, leaf.name)
                 is Term.Variable -> others.firstOrNull { it.id == term.id }?.let { stored(it).definition.field }
                 else -> null
             }

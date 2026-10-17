@@ -167,7 +167,7 @@ object EntryFilters {
     }
 
     /** One value of a comparison, in the form its type stores, or null when it is not one. */
-    private fun single(type: FieldType, value: Any?): Any? = when (type) {
+    fun single(type: FieldType, value: Any?): Any? = when (type) {
         FieldType.NUMERIC, FieldType.SCALE -> (value as? Number)?.toDouble()
         FieldType.DURATION, FieldType.DATETIME -> (value as? Number)?.toLong()
         FieldType.DATE -> (value as? String)?.takeIf { DATE_PATTERN.matches(it) }
@@ -180,7 +180,7 @@ object EntryFilters {
     }
 
     /** The key of the string saying what value a condition on a field of [type] takes. */
-    private fun expectedValueKey(type: FieldType, operator: FilterOperator): String = when (operator) {
+    fun expectedValueKey(type: FieldType, operator: FilterOperator): String = when (operator) {
         FilterOperator.ABSENT, FilterOperator.PRESENT -> "filter_value_none"
         FilterOperator.IN -> "filter_value_options"
         FilterOperator.BETWEEN -> "filter_value_pair"
