@@ -1,0 +1,46 @@
+{
+  "palettes": [
+    {
+      "id": "swiss_light",
+      "mode": "LIGHT",
+      "numbers": {
+        "hue": 31,
+        "ground_lightness": 0.955,
+        "ground_chroma": 0.007,
+        "ground_hue": 89,
+        "ink_lightness": 0.178,
+        "ink_chroma": 0.0,
+        "dim_lightness": 0.45,
+        "track_lightness": 0.861,
+        "accent_lightness": 0.52,
+        "accent_chroma": 0.202,
+        "on_accent_lightness": 1.0,
+        "tag_lightness": 0.6,
+        "tag_chroma": 0.15,
+        "status_lightness": 0.52,
+        "status_chroma": 0.15
+      }
+    },
+    {
+      "id": "swiss_dark",
+      "mode": "DARK",
+      "numbers": {
+        "hue": 31,
+        "ground_lightness": 0.191,
+        "ground_chroma": 0.0,
+        "ground_hue": 89,
+        "ink_lightness": 0.955,
+        "ink_chroma": 0.007,
+        "dim_lightness": 0.725,
+        "track_lightness": 0.345,
+        "accent_lightness": 0.667,
+        "accent_chroma": 0.221,
+        "on_accent_lightness": 0.191,
+        "tag_lightness": 0.7,
+        "tag_chroma": 0.14,
+        "status_lightness": 0.74,
+        "status_chroma": 0.14
+      }
+    }
+  ]
+}
