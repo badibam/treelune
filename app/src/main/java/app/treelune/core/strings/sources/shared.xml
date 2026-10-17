@@ -1187,7 +1187,7 @@
     <string name="ai_provider_compatible_output_forcing_none">None</string>
     <string name="ai_provider_compatible_output_forcing_json">Valid JSON</string>
     <string name="ai_provider_compatible_output_forcing_schema">Exact schema</string>
-    <string name="ai_provider_compatible_help">Any server speaking the OpenAI Chat Completions API: Ollama, llama.cpp, vLLM, LM Studio, OpenRouter. The address ends before /chat/completions, usually with /v1 (Ollama: https://&lt;host&gt;/v1). Only https: plain http would send your data in clear. A server at home can get a certificate through tailscale serve or a reverse proxy such as Caddy.</string>
+    <string name="ai_provider_compatible_help">Any server speaking the OpenAI Chat Completions API: Ollama, llama.cpp, vLLM, LM Studio, OpenRouter. The address ends before /chat/completions, usually with /v1 (Ollama: https://&lt;host&gt;/v1). Only https: plain http would send your data in clear. A server at home can get a certificate through tailscale serve or a reverse proxy such as Caddy. The model has to be of the 30B class or larger (Gemma 4 31B, gpt-oss-120b, DeepSeek): a smaller one gets lost in the app\'s commands.</string>
     <string name="ai_provider_compatible_output_forcing_help">Output forcing: the server holds the model to valid JSON, or to the exact schema of the answer. Small models need it most; a server that does not support the level chosen answers an error.</string>
     <string name="ai_provider_compatible_https_required">The server address must start with https://: plain http would send your data in clear</string>
 

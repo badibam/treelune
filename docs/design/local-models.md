@@ -95,9 +95,15 @@ Le prompt actuel (degrés 1 et 2), sur toute l'échelle des tailles, chaque mod�
 
 Résultat de la campagne 1 (2026-10-04) et relecture de ses échecs, modèle par modèle : `docs/design/bench-campaign-1.md`.
 
-## Hypothèses de niveaux de prompt
+## Décision (2026-10-17)
 
-Aucune n'est choisie. La campagne 1 dit lesquelles valent d'être mesurées.
+**Pas de niveaux de prompt** : l'app garde un seul prompt, pour tous les modèles. Mesuré à la campagne 1 et à sa relecture (`docs/design/bench-campaign-1.md`) : gemma 4 31B réussit 18 scénarios sur 19 sans forçage, 15 jugés bons, et deepseek-v4-flash 19, 18 jugés bons ; ministral 3B 2 et 8 ; qwen 35B ne dit rien, ses réponses coupées. Le prompt n'ayant pas changé de fond depuis, la campagne n'est pas rejouée (décision de l'utilisateur). L'aide d'Autre serveur dit la taille de modèle qui suit l'app.
+
+Le banc reste dans `scripts/`, sans campagne prévue. Reste ouvert, hors du banc : la vitesse sur une machine à soi (un Ollama servi en https), jamais mesurée.
+
+## Si un modèle plus petit est voulu
+
+Le déclencheur : quelqu'un veut un modèle sous la classe 30B, ou un modèle dans l'app sur le téléphone. Les pistes, aucune mesurée :
 
 - **Prompt par portée de tâche** (saisie, lecture, configuration complète) plutôt que par taille de modèle : sert aussi les gros modèles, qui coûtent moins. Utile si la carte montre des familles qui tiennent à petite taille et d'autres non.
 - **Session limitée à une zone ou un outil**, qui n'embarque que ses commandes et schémas. Utile si l'échec vient du volume plus que de la difficulté.
