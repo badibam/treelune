@@ -484,6 +484,7 @@
     <string name="label_description">Description</string>
     <string name="label_icon">Icône</string>
     <string name="label_icon_color">Couleur de l\'icône</string>
+    <string name="icon_color_none">Sans couleur</string>
     <string name="label_texture">Texture</string>
     <string name="texture_lines">Rayures</string>
     <string name="texture_diagonals">Biais</string>
@@ -506,7 +507,7 @@
     <string name="service_error_texture_unknown">Texture inconnue : \'%1$s\'. Une parmi %2$s, ou null pour aucune</string>
     <string name="service_error_texture_icon_without_icon">La texture ICON répète l\'icône, et il n\'y en aurait plus : garde une icône, ou retire la texture ou choisis-en une autre</string>
     <string name="settings_ui_texture_intensity">Textures</string>
-    <string name="settings_ui_texture_intensity_help">La force des motifs choisis pour les zones et les outils, sur leurs tuiles et en tête de leurs pages.</string>
+    <string name="settings_ui_texture_intensity_help">La force des motifs choisis pour les zones et les outils, sur leurs tuiles et sur tout le fond de leurs pages.</string>
     <string name="settings_ui_texture_intensity_subtle">Discrètes</string>
     <string name="settings_ui_texture_intensity_marked">Marquées</string>
     <string name="label_page_info">Page %1$d sur %2$d</string>

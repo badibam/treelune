@@ -27,7 +27,7 @@ La couleur s'affiche sur les tuiles (`TileHeader`, `TileIcon`), dans l'en-tête 
 
 ## Le choix
 
-- **À l'écran** : sous `IconSelector`, dans la config d'une zone et dans celle d'un outil, `IconColorSelector` offre neuf choix sur deux rangées — « aucune » puis les huit couleurs, chacun montrant l'icône de la chose comme le thème la dessine dans cette couleur, le choix en cours marqué. Un toucher change la couleur, et l'icône à côté de son sélecteur se dessine aussitôt dans la nouvelle. L'icône et sa couleur restent deux choix séparés.
+- **À l'écran** : sous `IconSelector`, dans la config d'une zone et dans celle d'un outil, une ligne « Couleur de l'icône » ouvre la page du choix (`docs/design/tool-texture.md`, « Le choix ») : `IconColorSelector` y offre « aucune » puis les couleurs, chacune une petite tuile de la chose avec sa texture, l'icône dans cette couleur, le choix en cours marqué. Un toucher prend la couleur et ramène au formulaire, où l'icône se dessine aussitôt dans la nouvelle. L'icône et sa couleur restent deux choix séparés.
 - **Par l'IA** : CREATE_ZONE et UPDATE_ZONE prennent `icon_color` ; un outil la reçoit dans sa config. `null` retire la couleur. Un nom inconnu est refusé par le service, qui donne la liste des noms valides. L'aperçu de l'app n'en dit rien : la couleur ne change rien à ce que l'IA doit savoir pour agir.
 
 ## Tests

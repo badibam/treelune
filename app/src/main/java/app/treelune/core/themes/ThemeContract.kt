@@ -332,6 +332,18 @@ interface ThemeContract {
     fun FullScreen(content: @Composable () -> Unit)
 
     /**
+     * The ground of a page of the stack, around it (PlaceScreen): with the [texture] of a zone's
+     * or a tool's page (docs/design/tool-texture.md), the theme covers the page's whole area with
+     * its screen's ground and the motif at its tone on that ground, hiding whatever else it lays
+     * on that ground (the cosy's dots), as on the thing's tile; with null, it draws nothing and
+     * FullScreen's ground shows. Every theme draws it: a textured page is the tile one has just
+     * touched. Only short texts stand on the motif (a header, a section's title): a theme keeps
+     * its cards, and whatever holds a long text, full.
+     */
+    @Composable
+    fun PageGround(texture: ItemTexture?, content: @Composable () -> Unit)
+
+    /**
      * The band across the top of a full-screen view, holding what its caller puts in a row: a
      * title, a state, buttons.
      */
@@ -396,11 +408,6 @@ interface ThemeContract {
         icon: String?,
         /** The icon's colour, for a zone's or a tool's page; null for a neutral icon. */
         iconColor: TagColor?,
-        /**
-         * The motif of a zone's or a tool's page, laid across the header's width behind its
-         * title (docs/design/tool-texture.md), as on its tile; null for none.
-         */
-        texture: ItemTexture?,
         /**
          * The app's mark in place of [icon], the home screen's: its launcher icon drawn the
          * theme's way, in the launcher's colours whatever the palette (LauncherMark, or the

@@ -12,6 +12,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import app.treelune.core.themes.CurrentTheme
+import app.treelune.core.themes.IconColor
+import app.treelune.core.themes.ItemTexture
 import androidx.activity.compose.BackHandler
 import androidx.compose.ui.text.style.TextAlign
 import app.treelune.core.ui.UI
@@ -150,14 +153,10 @@ fun MainScreen(openToolId: String? = null, openEntryId: String? = null, onToolOp
     }
     Column(modifier = Modifier.fillMaxSize()) {
         Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-            // Every place the same margin from the sides of the screen, given here once: a
-            // place's screen sets none of its own
-            Box(modifier = Modifier.fillMaxSize().padding(horizontal = UI.Space.EDGE)) {
-                key(base.address) {
-                    holder.SaveableStateProvider(base.address) {
-                        CompositionLocalProvider(LocalBreadcrumb provides breadcrumb) {
-                            PlaceScreen(base, zones, demoInstalled)
-                        }
+            key(base.address) {
+                holder.SaveableStateProvider(base.address) {
+                    CompositionLocalProvider(LocalBreadcrumb provides breadcrumb) {
+                        PlaceScreen(base, zones, demoInstalled)
                     }
                 }
             }
@@ -224,93 +223,110 @@ private fun PlaceScreen(place: Place, zones: ZonesState, demoInstalled: Boolean)
     @Composable
     fun name(text: String) = SideEffect { Navigator.name(place, text) }
 
-    when (place) {
-        Place.Home -> {
-            name(s.shared("nav_home"))
-            HomeScreen(zones)
-        }
-        Place.HomeConfig -> {
-            name(s.shared("nav_home_config"))
-            AppSettingsScreen(category = AppSettingCategories.MAIN_SCREEN, onBack = back)
-        }
-        Place.Settings -> {
-            name(s.shared("settings_title"))
-            SettingsScreen(onBack = back, onOpen = { Navigator.push(Place.SettingsPage(it)) })
-        }
-        is Place.SettingsPage -> {
-            name(s.shared("settings_${place.id}"))
-            when (place.id) {
-                "ai_providers" -> AIProvidersScreen(onBack = back)
-                "identities" -> app.treelune.core.identities.ui.IdentitiesScreen(onBack = back)
-                "format" -> AppSettingsScreen(category = AppSettingCategories.FORMAT, onBack = back)
-                "ai_limits" -> AppSettingsScreen(category = AppSettingCategories.AI_LIMITS, onBack = back)
-                "validation" -> AppSettingsScreen(category = AppSettingCategories.VALIDATION_CONFIG, onBack = back)
-                "ui" -> AppSettingsScreen(category = AppSettingCategories.UI, onBack = back)
-                "demo" -> DemoSettingsScreen(onBack = back)
-                "external_access" -> app.treelune.core.mcp.ui.ExternalAccessSettingsScreen(onBack = back)
-                "data" -> DataSettingsScreen(onBack = back)
-                "logs" -> LogsScreen(onBack = back)
-                "bug_report" -> BugReportScreen(onBack = back)
-                else -> throw IllegalArgumentException("No settings page '${place.id}'")
+    // A tool's page lays its ground once its tool is read; a zone's page on its texture, any other on none
+    if (place is Place.Tool) return ToolPlace(place, zone!!.name)
+    val texture = if (place is Place.Zone) ItemTexture.of(zone!!.texture, zone.icon_name, IconColor.of(zone.icon_color)) else null
+    Page(texture) {
+        when (place) {
+            Place.Home -> {
+                name(s.shared("nav_home"))
+                HomeScreen(zones)
             }
+            Place.HomeConfig -> {
+                name(s.shared("nav_home_config"))
+                AppSettingsScreen(category = AppSettingCategories.MAIN_SCREEN, onBack = back)
+            }
+            Place.Settings -> {
+                name(s.shared("settings_title"))
+                SettingsScreen(onBack = back, onOpen = { Navigator.push(Place.SettingsPage(it)) })
+            }
+            is Place.SettingsPage -> {
+                name(s.shared("settings_${place.id}"))
+                when (place.id) {
+                    "ai_providers" -> AIProvidersScreen(onBack = back)
+                    "identities" -> app.treelune.core.identities.ui.IdentitiesScreen(onBack = back)
+                    "format" -> AppSettingsScreen(category = AppSettingCategories.FORMAT, onBack = back)
+                    "ai_limits" -> AppSettingsScreen(category = AppSettingCategories.AI_LIMITS, onBack = back)
+                    "validation" -> AppSettingsScreen(category = AppSettingCategories.VALIDATION_CONFIG, onBack = back)
+                    "ui" -> AppSettingsScreen(category = AppSettingCategories.UI, onBack = back)
+                    "demo" -> DemoSettingsScreen(onBack = back)
+                    "external_access" -> app.treelune.core.mcp.ui.ExternalAccessSettingsScreen(onBack = back)
+                    "data" -> DataSettingsScreen(onBack = back)
+                    "logs" -> LogsScreen(onBack = back)
+                    "bug_report" -> BugReportScreen(onBack = back)
+                    else -> throw IllegalArgumentException("No settings page '${place.id}'")
+                }
+            }
+            is Place.CreateZone -> {
+                name(s.shared("nav_new_zone"))
+                CreateZoneScreen(preSelectedGroup = place.group, onCancel = back, onCreate = back)
+            }
+            is Place.Zone -> {
+                name(zone!!.name)
+                app.treelune.core.ui.components.ShownScreen { ZoneScreen(zone = zone) }
+            }
+            is Place.ZoneConfig -> {
+                name(s.shared("nav_configuration"))
+                CreateZoneScreen(
+                    existingZone = zone,
+                    onCancel = back,
+                    onUpdate = back,
+                    onDelete = { Navigator.dropZone(place.id) }
+                )
+            }
+            is Place.Tool -> throw IllegalStateException("A tool's place lays its own page (ToolPlace)")
+            is Place.ToolConfig -> {
+                name(s.shared(if (place.toolId == null) "nav_new_tool" else "nav_configuration"))
+                val toolType = requireNotNull(ToolTypeManager.getToolType(place.tooltype)) { "No tool type '${place.tooltype}'" }
+                app.treelune.core.tools.ui.ToolConfigScreen(
+                    toolType = toolType,
+                    tooltype = place.tooltype,
+                    zoneId = place.zoneId,
+                    existingToolId = place.toolId,
+                    initialGroup = place.group,
+                    onDone = back,
+                    onCancel = back
+                )
+            }
+            is Place.Variable -> {
+                name(s.shared(if (place.variableId == null) "nav_new_variable" else "nav_variable"))
+                app.treelune.core.ui.variables.VariableScreen(zoneId = place.zoneId, variableId = place.variableId, group = place.group, onDone = back)
+            }
+            is Place.Automation -> {
+                name(s.shared("nav_automation"))
+                app.treelune.core.ai.ui.automation.AutomationScreen(
+                    automationId = place.id,
+                    onNavigateBack = back,
+                    onNavigateToExecution = { sessionId -> Navigator.push(Place.Execution(sessionId, place.id, place.zoneId)) }
+                )
+            }
+            is Place.Execution -> {
+                name(s.shared("nav_execution"))
+                app.treelune.core.ai.ui.automation.ExecutionDetailScreen(sessionId = place.sessionId, onNavigateBack = back)
+            }
+            is Place.Seed -> {
+                name(s.shared("nav_seed"))
+                app.treelune.core.ai.ui.screens.AIScreen(sessionId = place.sessionId, onClose = back)
+            }
+            Place.Guide -> {
+                name(s.shared("guide_title"))
+                app.treelune.core.guide.ui.GuideScreen()
+            }
+            is Place.Chapter -> app.treelune.core.guide.ui.ChapterScreen(place.id, demoInstalled)
+            Place.Chat -> throw IllegalStateException("The chat is laid over a place, never drawn as one")
         }
-        is Place.CreateZone -> {
-            name(s.shared("nav_new_zone"))
-            CreateZoneScreen(preSelectedGroup = place.group, onCancel = back, onCreate = back)
-        }
-        is Place.Zone -> {
-            name(zone!!.name)
-            app.treelune.core.ui.components.ShownScreen { ZoneScreen(zone = zone) }
-        }
-        is Place.ZoneConfig -> {
-            name(s.shared("nav_configuration"))
-            CreateZoneScreen(
-                existingZone = zone,
-                onCancel = back,
-                onUpdate = back,
-                onDelete = { Navigator.dropZone(place.id) }
-            )
-        }
-        is Place.Tool -> ToolPlace(place, zone!!.name)
-        is Place.ToolConfig -> {
-            name(s.shared(if (place.toolId == null) "nav_new_tool" else "nav_configuration"))
-            val toolType = requireNotNull(ToolTypeManager.getToolType(place.tooltype)) { "No tool type '${place.tooltype}'" }
-            app.treelune.core.tools.ui.ToolConfigScreen(
-                toolType = toolType,
-                tooltype = place.tooltype,
-                zoneId = place.zoneId,
-                existingToolId = place.toolId,
-                initialGroup = place.group,
-                onDone = back,
-                onCancel = back
-            )
-        }
-        is Place.Variable -> {
-            name(s.shared(if (place.variableId == null) "nav_new_variable" else "nav_variable"))
-            app.treelune.core.ui.variables.VariableScreen(zoneId = place.zoneId, variableId = place.variableId, group = place.group, onDone = back)
-        }
-        is Place.Automation -> {
-            name(s.shared("nav_automation"))
-            app.treelune.core.ai.ui.automation.AutomationScreen(
-                automationId = place.id,
-                onNavigateBack = back,
-                onNavigateToExecution = { sessionId -> Navigator.push(Place.Execution(sessionId, place.id, place.zoneId)) }
-            )
-        }
-        is Place.Execution -> {
-            name(s.shared("nav_execution"))
-            app.treelune.core.ai.ui.automation.ExecutionDetailScreen(sessionId = place.sessionId, onNavigateBack = back)
-        }
-        is Place.Seed -> {
-            name(s.shared("nav_seed"))
-            app.treelune.core.ai.ui.screens.AIScreen(sessionId = place.sessionId, onClose = back)
-        }
-        Place.Guide -> {
-            name(s.shared("guide_title"))
-            app.treelune.core.guide.ui.GuideScreen()
-        }
-        is Place.Chapter -> app.treelune.core.guide.ui.ChapterScreen(place.id, demoInstalled)
-        Place.Chat -> throw IllegalStateException("The chat is laid over a place, never drawn as one")
+    }
+}
+
+/**
+ * A place's page: its ground, textured for a zone's or a tool's page (ThemeContract.PageGround,
+ * docs/design/tool-texture.md), across the whole width; then every place the same margin from
+ * the sides of the screen, given here once: a place's screen sets none of its own.
+ */
+@Composable
+private fun Page(texture: ItemTexture?, content: @Composable () -> Unit) {
+    CurrentTheme.current.PageGround(texture) {
+        Box(modifier = Modifier.fillMaxSize().padding(horizontal = UI.Space.EDGE)) { content() }
     }
 }
 
@@ -341,15 +357,21 @@ private fun ToolPlace(place: Place.Tool, zoneName: String) {
     val current = tool ?: return
     val tooltype = current["tooltype"] as String
     SideEffect { Navigator.name(place, current["name"] as String) }
-    app.treelune.core.ui.components.ShownScreen {
-        ToolTypeManager.getToolType(tooltype)?.getUsageScreen(
-            toolInstanceId = place.id,
-            configJson = JsonUtils.toJSONObject(current["config"] as Map<String, Any?>).toString(),
-            zoneName = zoneName,
-            onNavigateBack = { Navigator.pop() },
-            onLongClick = { Navigator.push(Place.ToolConfig(place.zoneId, tooltype, place.id, null)) },
-            openEntry = Navigator.openings[place.address]
-        )
+    val config = JsonUtils.toJSONObject(current["config"] as Map<String, Any?>)
+    // The texture as its tile draws it (UI.ToolCard), its type's icon standing for none
+    val settings = app.treelune.core.tools.ToolConfigSettings.read(tooltype, config, context)
+    val texture = ItemTexture.of(settings.string(app.treelune.core.themes.Texture.KEY), settings.string("icon_name"), IconColor.of(settings.string(IconColor.KEY)))
+    Page(texture) {
+        app.treelune.core.ui.components.ShownScreen {
+            ToolTypeManager.getToolType(tooltype)?.getUsageScreen(
+                toolInstanceId = place.id,
+                configJson = config.toString(),
+                zoneName = zoneName,
+                onNavigateBack = { Navigator.pop() },
+                onLongClick = { Navigator.push(Place.ToolConfig(place.zoneId, tooltype, place.id, null)) },
+                openEntry = Navigator.openings[place.address]
+            )
+        }
     }
 }
 

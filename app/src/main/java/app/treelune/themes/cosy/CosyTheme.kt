@@ -1,5 +1,6 @@
 package app.treelune.themes.cosy
 
+import app.treelune.core.themes.texture
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -668,6 +669,18 @@ object CosyTheme : ThemeContract {
         }
     }
 
+    /**
+     * A textured page's motif over its whole ground, at its tone on the sand: the sand laid again
+     * first, so the dots FullScreen sows do not show under the motif.
+     */
+    @Composable
+    override fun PageGround(texture: app.treelune.core.themes.ItemTexture?, content: @Composable () -> Unit) {
+        val ground = cosyColors.ground.srgb
+        val brush = app.treelune.core.themes.rememberTextureBrush(texture, ground, textureStyle())
+        val modifier = if (brush == null) Modifier.fillMaxSize() else Modifier.fillMaxSize().background(ground).texture(brush, androidx.compose.ui.graphics.RectangleShape)
+        Box(modifier = modifier) { content() }
+    }
+
     /** A row across the width, its pieces spaced. */
     @Composable
     override fun HeaderBar(content: @Composable RowScope.() -> Unit) {
@@ -766,15 +779,12 @@ object CosyTheme : ThemeContract {
         subtitle: String?,
         icon: String?,
         iconColor: TagColor?,
-        texture: app.treelune.core.themes.ItemTexture?,
         appMark: Boolean
     ) {
         val size = cosySize()
         val c = cosyColors
-        // A textured page's motif on the pill, at its tone on the main colour
-        val brush = app.treelune.core.themes.rememberTextureBrush(texture, c.accent.srgb, textureStyle())
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = size.dp(8f)), horizontalAlignment = Alignment.CenterHorizontally) {
-            Raised(shape = CircleShape, fill = c.accent.srgb, shadow = c.accentShadow.srgb, depth = size.buttonDepth, padding = size.dp(2f), texture = brush) {
+            Raised(shape = CircleShape, fill = c.accent.srgb, shadow = c.accentShadow.srgb, depth = size.buttonDepth, padding = size.dp(2f)) {
                 Row(
                     modifier = Modifier.padding(horizontal = size.dp(20f)),
                     horizontalArrangement = Arrangement.spacedBy(size.dp(8f)),

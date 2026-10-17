@@ -278,7 +278,9 @@ private fun IdentityScreen(id: String, onBack: () -> Unit) {
             Column(modifier = Modifier.fillMaxWidth().padding(UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
                 UI.FormField(label = s.shared("label_name"), value = name, onChange = { name = it }, required = true)
                 app.treelune.core.ui.components.IconSelector(current = iconName, color = IconColor.of(iconColor), onChange = { iconName = it })
-                app.treelune.core.ui.components.IconColorSelector(current = iconColor, iconName = iconName, onChange = { iconColor = it })
+                // An identity has no texture: its colour chosen in place, under its name
+                UI.Text(s.shared("label_icon_color"), TextType.LABEL)
+                app.treelune.core.ui.components.IconColorSelector(current = iconColor, iconName = iconName, texture = null, onChange = { iconColor = it })
                 UI.FormSelection(label = s.shared("identity_language"), options = languages, selected = language, onSelect = { language = it }, required = true)
                 UI.FormActions {
                     UI.ActionButton(action = ButtonAction.SAVE, onClick = {

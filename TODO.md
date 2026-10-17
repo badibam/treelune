@@ -56,6 +56,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - La lecture seule pour l'IA (`docs/design/unified-fields.md`, branche user-only) : un champ et un critère saisi fermés à l'IA, la validation d'un Objectif fermée à l'IA : la section « Lecture seule pour l'IA » de la recette ; passé, la section de la spec part dans `docs/DATA.md`.
 - Les lectures du connecteur entières, refusées ou en tranches (`McpReads`, branche mcp-reads) : sa ligne « Seuil de données à 5 000 » de la section « Accès externe (serveur MCP) ».
 - Les textures d'outil et de zone (`docs/design/tool-texture.md`, branche tool-texture) : les tons réglés d'abord au banc des textures (`./run themes`), dans les trois thèmes et les deux modes, puis la section « Les textures » de la recette ; passé, élaguer la spec.
+- La texture sur tout le fond de la page et le choix de la couleur et de la texture sur une page du formulaire (branche texture-background, 2026-10-17) : la vue « page » du banc des textures (`./run themes`) d'abord, puis les lignes de la section « Les textures » de la recette qui parlent du fond de page et des pages de choix.
 - Les lectures envoyées une fois par session (`SessionReads`, branche read-once) : la section du même nom de la recette.
 - Les incarnations (`docs/design/incarnations.md`, branche incarnations) : la dernière section de la recette, l'identité de Stan Prokopenko importée et le coût d'un tour mesuré pour personae ; passé, élaguer la spec. L'import attend que personae exporte au format 2 du fichier d'identité (`docs/IDENTITY_FILE.md`), le format 1 n'étant plus lu.
 - Les bugs du téléphone du 2026-10-17 : la section du même nom de la recette.
@@ -89,8 +90,6 @@ Une idée sans spec : elle demande une décision avant du code.
 
 - Les onglets de Messages, à remplacer par un classement par thèmes.
 - Dessiner le gras et l'italique des textes lus (identités, Guide) : le lecteur (`GuideMarkup`) retire leurs marques, les thèmes ne dessinant qu'un texte simple (`ThemeContract.Text`) ; l'étendre à un texte mis en forme dans les trois thèmes, la police du rétro comprise.
-- La texture d'une zone ou d'un outil sur tout le fond de sa page, et non plus sur sa tuile et la tête de sa page seules (`docs/design/tool-texture.md`).
-- Le choix d'une texture, et celui d'une couleur, sur une page à part plutôt que déplié dans le formulaire.
 
 ### Events du cœur
 

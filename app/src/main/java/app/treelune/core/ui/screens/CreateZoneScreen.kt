@@ -95,19 +95,11 @@ fun CreateZoneScreen(
                     suggested = ZoneSettings.SUGGESTED_ICONS, onChange = { onChange(it) })
             }
         },
-        app.treelune.core.themes.IconColor.KEY to object : SettingEditor {
-            @Composable
-            override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
-                app.treelune.core.ui.components.IconColorSelector(current = value as? String, iconName = settings.optString("icon_name"), onChange = { onChange(it) })
-            }
-        },
-        app.treelune.core.themes.Texture.KEY to object : SettingEditor {
-            @Composable
-            override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
-                app.treelune.core.ui.components.TextureSelector(current = value as? String, iconName = settings.optString("icon_name"),
-                    iconColor = settings.optString(app.treelune.core.themes.IconColor.KEY).ifBlank { null }, onChange = { onChange(it) })
-            }
-        },
+        // The colour and the texture each chosen on a page of the form
+        app.treelune.core.themes.IconColor.KEY to app.treelune.core.ui.components.iconColorPage(s.shared("label_icon_color"),
+            settings.optString("icon_name"), settings.optString(app.treelune.core.themes.Texture.KEY).ifBlank { null }),
+        app.treelune.core.themes.Texture.KEY to app.treelune.core.ui.components.texturePage(s.shared("label_texture"),
+            settings.optString("icon_name"), settings.optString(app.treelune.core.themes.IconColor.KEY).ifBlank { null }),
         "group" to object : SettingEditor {
             @Composable
             override fun Edit(value: Any?, onChange: (Any?) -> Unit) {

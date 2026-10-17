@@ -734,8 +734,6 @@ object UI {
         subtitle: String? = null,
         icon: String? = null,
         iconColor: TagColor? = null,
-        /** The motif of a zone's or a tool's page, drawn with [icon] and [iconColor] (docs/design/tool-texture.md); null for none. */
-        texture: app.treelune.core.themes.Texture? = null,
         leftButton: ButtonAction? = null,
         rightButton: ButtonAction? = null,
         onLeftClick: (() -> Unit)? = null,
@@ -774,7 +772,7 @@ object UI {
             }
         }
         // A page's title and description are read: selectable, nothing else answering their touch
-        Selectable { CurrentTheme.current.PageHeader(title, subtitle, icon, iconColor, texture?.let { ItemTexture(it, icon, iconColor) }, appMark) }
+        Selectable { CurrentTheme.current.PageHeader(title, subtitle, icon, iconColor, appMark) }
     }
     
     /** The header of a tool's tile: its icon with its marks, and its name. */

@@ -701,6 +701,14 @@ object DefaultTheme : ThemeContract {
         }
     }
 
+    /** A textured page's motif over its whole ground, on the screen's surface as FullScreen paints it. */
+    @Composable
+    override fun PageGround(texture: app.treelune.core.themes.ItemTexture?, content: @Composable () -> Unit) {
+        val surface = CurrentTheme.getCurrentColorScheme().surface
+        val brush = app.treelune.core.themes.rememberTextureBrush(texture, surface, textureStyle())
+        Box(modifier = Modifier.fillMaxSize().texture(brush, androidx.compose.ui.graphics.RectangleShape)) { content() }
+    }
+
     @Composable
     override fun HeaderBar(content: @Composable RowScope.() -> Unit) {
         Row(
@@ -1645,15 +1653,11 @@ object DefaultTheme : ThemeContract {
         subtitle: String?,
         icon: String?,
         iconColor: app.treelune.core.themes.TagColor?,
-        texture: app.treelune.core.themes.ItemTexture?,
         appMark: Boolean
     ) {
-        // A textured page's motif in a band across the width, on the screen's ground, the title in it with air above and below
-        val brush = app.treelune.core.themes.rememberTextureBrush(texture, CurrentTheme.getCurrentColorScheme().background, textureStyle())
         // The title centered across the width
         Column(
-            modifier = Modifier.fillMaxWidth().texture(brush, androidx.compose.ui.graphics.RectangleShape)
-                .padding(horizontal = 16.dp, vertical = if (brush != null) 12.dp else 0.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Line 1: Icon + Title

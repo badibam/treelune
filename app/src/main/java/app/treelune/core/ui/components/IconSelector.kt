@@ -24,38 +24,50 @@ private const val SEARCH_RESULTS_SHOWN = 60
 /** The icon whose cell sets the width of every cell of the picker's grids: a name of eight letters, longer ones wrapping. */
 private const val ICON_SAMPLE = "calendar"
 
-/** The icon a colour is shown on while the thing has none. */
-private const val COLOR_SAMPLE_ICON = "circle"
-
 /**
  * An icon's colour (docs/design/icon-colors.md): none, then each of IconColor.NAMES, every
- * choice showing [iconName] as the theme draws it in that colour, the chosen one marked. It
- * sits under the IconSelector of the same thing.
+ * choice a small tile of the thing as the theme draws it, its icon in that colour and its
+ * [texture] on it, the colour's name under it, the chosen one marked.
  *
  * @param current The stored colour name; null for none
  * @param iconName The thing's icon; blank while it has none
+ * @param texture The thing's stored texture; null for none
  * @param onChange The name chosen, null for none
  */
 @Composable
-fun IconColorSelector(current: String?, iconName: String, onChange: (String?) -> Unit) {
+fun IconColorSelector(current: String?, iconName: String, texture: String?, onChange: (String?) -> Unit) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
-    val shown = iconName.ifBlank { COLOR_SAMPLE_ICON }
-    val choices = listOf<String?>(null) + IconColor.NAMES
-    Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
-        UI.Text(s.shared("label_icon_color"), TextType.LABEL)
-        // As many colours on a row as hold at their own width (ChoiceGrid)
-        ChoiceGrid(choices, sample = null) { name ->
-            UI.Button(
-                type = if (current == name) ButtonType.PRIMARY else ButtonType.DEFAULT,
-                size = Size.S,
-                onClick = { onChange(name) }
-            ) {
-                Box(modifier = Modifier.padding(UI.Space.XS)) {
-                    UI.ItemIcon(iconName = shown, color = IconColor.of(name), size = 20.dp)
-                }
-            }
-        }
+    val motif = app.treelune.core.themes.Texture.of(texture)
+    ChoiceGrid(listOf<String?>(null) + IconColor.NAMES, sample = null) { name ->
+        AppearanceChoice(iconName, IconColor.of(name), motif, colorName(name, s), current == name) { onChange(name) }
+    }
+}
+
+/** The name of an icon's colour as the screen says it; null for none. */
+private fun colorName(name: String?, s: app.treelune.core.strings.StringsContext): String =
+    s.shared(name?.let { "tag_color_${it.lowercase()}" } ?: "icon_color_none")
+
+/**
+ * The icon's colour of a zone or a tool chosen on a page of its config form
+ * (SettingPageEditor): its line shows the icon in the colour, the page the IconColorSelector.
+ *
+ * @param iconName The thing's icon; blank while it has none
+ * @param texture The thing's stored texture; null for none
+ */
+fun iconColorPage(label: String, iconName: String, texture: String?) = object : app.treelune.core.fields.settings.SettingPageEditor {
+    override val label = label
+
+    @Composable
+    override fun Summary(value: Any?) {
+        val context = LocalContext.current
+        val name = value as? String
+        AppearanceSummary(iconName, IconColor.of(name), app.treelune.core.themes.Texture.of(texture), colorName(name, remember { Strings.`for`(context = context) }))
+    }
+
+    @Composable
+    override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
+        IconColorSelector(current = value as? String, iconName = iconName, texture = texture, onChange = { onChange(it) })
     }
 }
 
