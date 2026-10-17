@@ -28,10 +28,12 @@ L'IA propose toutes les lignes de la liste d'un coup, chacune avec sa décision 
 
 Chaque ligne porte une décision au seuil ; « comme le thème par défaut » en est une, si elle est écrite. Une ligne vide bloque le seuil.
 
+Avant de proposer l'allure d'une pièce, l'IA lit sa pièce dans `ThemeContract` et dit ce que le cœur impose : où il place le contenu (le nom d'une tuile, `UI.TileHeader`), les couleurs qu'il donne (celle d'une icône au motif d'une texture, celles d'un dessin), ce qui est commun à tous les thèmes (la fenêtre flottante et son voile). Une allure que le contrat ne permet pas est une proposition d'ajout au contrat (« Ajouter une pièce au contrat »), nommée comme telle, jamais une décision du thème.
+
 1. **Le registre** : la maquette, et ce que le thème n'est pas.
 2. **Ce qu'il dessine lui-même** : tout, ou des pièces reprises du thème par défaut, nommées.
-3. **La police** : laquelle, sa licence (libre, embarquée dans `assets/fonts/`), sa copie (`third_party/` et un script qui en tire les `res/font/`, ou un projet voisin vérifié par `check_font_copy`), sa couverture (Windows-1252, l'espace fine insécable U+202F, les flèches, `≤ ≥ ≠ ≈`), ses graisses, et ce qui rend un caractère qu'elle n'a pas, validé par l'utilisateur (un repli).
-4. **Les palettes** : claire et sombre, une poignée de nombres OKLCH dont tout dérive ; les contrastes visés (4,5 pour chaque encre sur son fond, la secondaire comprise, et pour les couleurs d'état) ; les tags à luminosité et saturation communes ; ce que tourne la teinte.
+3. **La police** : laquelle, sa licence (libre, embarquée dans `assets/fonts/`), sa copie (`third_party/` et un script qui en tire les `res/font/`, ou un projet voisin vérifié par `check_font_copy`), sa couverture (Windows-1252, l'espace fine insécable U+202F, les flèches, `≤ ≥ ≠ ≈`), ses graisses, et ce qui rend un caractère qu'elle n'a pas, validé par l'utilisateur (un repli). Un caractère manquant s'ajoute par le script quand la licence ne réserve aucun nom de police (l'espace fine d'Archivo, `make_archivo_fonts.py`) ; un nom réservé laisse le repli.
+4. **Les palettes** : claire et sombre, une poignée de nombres OKLCH dont tout dérive ; les contrastes visés (4,5 pour chaque encre sur son fond, la secondaire comprise, et pour les couleurs d'état) ; les tags à luminosité et saturation communes ; ce que tourne la teinte. Les contrastes se tiennent à chaque décalage de teinte, pas au seul décalage 0 : à clarté OKLCH égale, le contraste mesuré change avec la teinte (le rouge du suisse tenait 5,4 à 0 et 4,0 à 120°).
 5. **La géométrie** : la grille des tuiles (case, rangée, écarts), les espacements nommés et la marge de bord (`UI.Space`, `EDGE`), la cible du doigt (48 dp au plus près), l'unité de dessin (`drawingUnit`).
 6. **La taille** : la taille de texte d'Android suivie ou non, et ce que fait chaque cran de 0 à 3.
 7. **Les composants**, une ligne par famille du contrat : cadres (carte, tuile, dialogue, fenêtre flottante, bulle, carte d'interaction) ; boutons (normal, désactivé, activé, flottant) ; saisie (champ, sélection, case, interrupteur, oui/non, curseur, jauge, teinte, onglets) ; repères (tag, séparateur, poignées, marques d'attente et de chrono, icône colorée, textures de tuile et d'en-tête) ; attente (chargement, IA qui réfléchit) ; messages (toast, snackbar) ; sélecteurs de date et d'heure ; en-tête de page et marque de l'app ; la barre d'un texte sélectionné.
@@ -55,7 +57,7 @@ Tout est dans `themes/<id>/` (sous `app/src/main/java/app/treelune/`), sauf ce q
 | `<Id>Theme.kt` | l'objet qui implémente `ThemeContract`, inscrit dans `ThemeScanner` | à la main ; ses pièces dans d'autres fichiers du dossier (`RetroFrame`, `CosyPieces`…) |
 | `<Id>Palette.kt` | les couleurs dérivées des nombres, dans les deux modes et à toute teinte | à la main |
 | `resources/app/treelune/themes/<id>/palettes.json` | les nombres des palettes, leur seule source | le banc, qui les enregistre |
-| `bench/` | le banc : l'écran d'une zone et une planche des composants à la résolution d'un téléphone, dans la police du thème, les deux modes, la teinte essayée sans être enregistrée | à la main, lié depuis `themes/bench.html` |
+| `bench/` | le banc : l'écran d'une zone et une planche des composants à la résolution d'un téléphone, dans la police du thème, les deux modes, la teinte essayée sans être enregistrée | à la main, lié depuis `themes/bench.html` ; un thème lisse en HTML et CSS, les deux modes côte à côte, ses contrastes mesurés à tout décalage (celui du suisse pour modèle), un thème au pixel en canvas (celui du rétro) |
 | `resources/app/treelune/themes/<id>/textures/*.svg`, `textures.json` | une cellule SVG par motif de texture (`ICON` à part), et les tons de chacun par mode et par intensité | les cellules à la main, les tons au banc des textures (`texture-bench.html`), qui les enregistre |
 | `strings.xml`, `strings-fr.xml` | `name`, `tagline`, les noms des palettes | à la main |
 | `icons/` (thème `OWN`) | un SVG par icône Lucide, toutes | un script (`pixelize_icons.py` pour le pixel), plus les retouches à la main |
@@ -64,6 +66,8 @@ Tout est dans `themes/<id>/` (sous `app/src/main/java/app/treelune/`), sauf ce q
 | `res/raw/<id>_<signal>.flac`, `sounds.json` | les sons joués et leurs crédits | `scripts/theme_sounds.py make <id>` |
 | `test/.../themes/<id>/<Id>PaletteTest.kt` | les contrastes des deux palettes | à la main |
 | `docs/design/<id>-theme.md` | le registre et les décisions | la conception, élaguée une fois le thème vu sur le téléphone |
+
+Un thème s'inscrit aussi, hors de son dossier : dans `ThemeScanner` ; dans la liste des thèmes de `TextureCellTest` et `TextureTonesTest` ; dans `THEMES` de `themes/texture-bench.html`, avec ses surfaces ; par un lien vers son banc dans `themes/bench.html` ; dans les README, par `scripts/make_readme.py` ; et comme retenu, sur sa carte de `docs/theme-tracks.html` et dans la liste de `docs/reference.md`.
 
 ## Ce qui vérifie quoi
 
@@ -76,7 +80,7 @@ Tout est dans `themes/<id>/` (sous `app/src/main/java/app/treelune/`), sauf ce q
 | Un thème `OWN` a toutes les icônes de Lucide | `generate_icons.py`, qui refuse un thème incomplet |
 | La copie de la police à jour | `check_font_copy.py` (Cartouche) ; le script de la police (Baloo 2) |
 | Une cellule de chaque motif de texture, rien d'autre dans le dossier, en pixels entiers pour un thème au pixel ; les deux tons de chaque motif dans les deux modes | `TextureCellTest`, `TextureTonesTest` (la liste des thèmes y est écrite) |
-| Les contrastes des palettes | `<Id>PaletteTest`, à écrire avec le thème |
+| Les contrastes des palettes, à chaque décalage de 15° | `<Id>PaletteTest`, à écrire avec le thème (`SwissPaletteTest` pour modèle) |
 | Les couleurs d'un banc d'aperçu égales à celles du code | un test comme `DefaultColorsBenchTest`, si le banc recopie au lieu de lire `palettes.json` |
 | Chaque son branché sur son signal, aucun fichier oublié | `ThemeSoundsTest` |
 | Les sons, leurs crédits et le choix d'accord, leurs licences acceptées | `theme_sounds.py check`, dans `./run test` |

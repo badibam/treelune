@@ -115,6 +115,7 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 - `SessionCostDisplay` formate coûts et tokens par ses propres fonctions, à côté de `AIFormatUtils`, qui fait la même chose pour les exécutions.
 - `shared.xml` (~1 900 lignes) à découper en plusieurs fichiers.
 - Les lignes de commande d'un message de l'IA (`ChatComponents`) écrivent `✓` et `✗` dans leur texte, contre la règle des icônes (un nom Lucide, jamais un glyphe) : une icône par le thème, que la police d'un thème n'a pas à couvrir.
+- `RetroPaletteTest` et `CosyPaletteTest` ne tiennent les contrastes qu'au décalage de teinte 0 : les parcourir par pas de 15°, comme `SwissPaletteTest`, et reprendre les nombres d'un décalage qui tombe sous le seuil.
 - `TextType.SUBTITLE` n'a pas de rang dans le contrat des thèmes (`UITypes.kt`) : plus grand que `HEADING` en défaut et en cosy, plus petit en rétro, pour 71 usages. Lui donner un rang, aligner les thèmes, puis passer ses usages écran par écran dans les trois thèmes.
 
 - Une apostrophe nue dans un texte qui en a déjà une échappée (`\'`) passe tous les contrôles de `./run test` et casse la compilation des ressources (« Invalid unicode escape sequence »), le générateur n'échappant que les textes qui n'en ont aucune : la refuser dans un contrôle des sources de textes, ou faire échapper toutes les apostrophes au générateur.
