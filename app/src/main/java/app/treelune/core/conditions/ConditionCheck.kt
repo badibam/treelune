@@ -72,6 +72,17 @@ class ConditionCheck(private val sources: ConfigConditions.Sources, private val 
     }
 
     /**
+     * The field the written values of [found] are read as: its first side's that has one; null
+     * when none has, or when a side does not read, which [refuse] names.
+     */
+    suspend fun compared(found: ConfigConditions.Found): FieldDefinition? = try {
+        val condition = Condition.fromJson(found.condition, found.label, text)
+        (listOf(condition.left) + condition.right).withIndex().firstNotNullOfOrNull { (i, side) -> fieldOf(found, i, side) }
+    } catch (e: IllegalArgumentException) {
+        null
+    }
+
+    /**
      * The field side [index] of [found] is a value of; null for a written value.
      *
      * @throws IllegalArgumentException naming a side that may not stand there, or does not read
