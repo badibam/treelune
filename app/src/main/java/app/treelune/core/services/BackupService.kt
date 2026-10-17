@@ -117,13 +117,16 @@ class BackupService(private val context: Context) : ExecutableService {
             ?: return OperationResult.success(mapOf("written" to false))
         val now = System.currentTimeMillis()
         val existing = state.copies.mapValues { it.value.at }
-        if (!app.treelune.core.backup.AutoBackupRotation.due(now, existing)) return OperationResult.success(mapOf("written" to false))
+        if (!app.treelune.core.backup.AutoBackup.due(context, now, state.copies)) return OperationResult.success(mapOf("written" to false))
 
         val built = build(token) ?: return OperationResult.cancelled()
         val hash = java.security.MessageDigest.getInstance("SHA-256")
             .digest(built.json.getJSONObject("data").toString().toByteArray(Charsets.UTF_8))
             .joinToString("") { "%02x".format(it) }
-        if (hash == app.treelune.core.backup.AutoBackup.lastHash(context)) return OperationResult.success(mapOf("written" to false))
+        if (hash == app.treelune.core.backup.AutoBackup.lastHash(context)) {
+            app.treelune.core.backup.AutoBackup.unchanged(context, now)
+            return OperationResult.success(mapOf("written" to false))
+        }
 
         val resolver = context.contentResolver
         val zone = app.treelune.core.utils.AppConfigManager.getDateTimeConfig().getZoneId()
@@ -1168,6 +1171,7 @@ class BackupService(private val context: Context) : ExecutableService {
             "export" -> s.shared("action_verbalize_backup_export")
             "import" -> s.shared("action_verbalize_backup_import")
             "reset" -> s.shared("action_verbalize_backup_reset")
+            "auto" -> s.shared("action_verbalize_backup_auto")
             else -> s.shared("action_verbalize_unknown")
         }
     }

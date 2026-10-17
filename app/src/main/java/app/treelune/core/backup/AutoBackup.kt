@@ -47,9 +47,10 @@ object AutoBackup {
         data class Ready(val folder: Uri, val copies: Map<Slot, Copy>) : State
     }
 
-    /** This phone's note of the last copy: the hash of its data. */
+    /** This phone's note of the last copy: the hash of its data, and when the data was last compared to it. */
     private const val STORE = "auto_backup.json"
     private const val DATA_HASH = "data_hash"
+    private const val CHECKED_AT = "checked_at"
 
     private val _pending = MutableStateFlow(false)
     /**
@@ -122,7 +123,7 @@ object AutoBackup {
      */
     suspend fun tick(context: Context) {
         val state = state(context)
-        if (state is State.Ready && AutoBackupRotation.due(System.currentTimeMillis(), state.copies.mapValues { it.value.at })) {
+        if (state is State.Ready && due(context, System.currentTimeMillis(), state.copies)) {
             val result = Coordinator(context).processScheduledTask("backup.auto")
             if (!result.isSuccess) LogManager.service("AutoBackup: no copy: ${result.error}", "WARN")
         }
@@ -143,6 +144,17 @@ object AutoBackup {
         } ?: throw IllegalStateException("the folder's files cannot be listed")
         return copies
     }
+
+    /**
+     * Whether a copy is due at [now]: the rolling asks for one, and the data was not found unchanged
+     * within the hour — comparing it reads every table, so data left alone is read once an hour.
+     */
+    fun due(context: Context, now: Long, copies: Map<Slot, Copy>): Boolean =
+        AutoBackupRotation.due(now, copies.mapValues { it.value.at }) &&
+            read(context).optLong(CHECKED_AT, 0L).let { now - it >= Slot.HOUR.period }
+
+    /** The data found unchanged at [now]: no copy, and no other comparison within the hour. */
+    fun unchanged(context: Context, now: Long) = note(context) { it.put(CHECKED_AT, now) }
 
     /** The hash of the data of the last copy written, null before the first. */
     fun lastHash(context: Context): String? = read(context).optString(DATA_HASH).takeIf { it.isNotEmpty() }
