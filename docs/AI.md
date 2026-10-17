@@ -606,16 +606,20 @@ suspend fun buildPromptData(sessionId: String): PromptData {
 
 ## 11. Provider abstraction
 
-### Signature AIProvider
+Deux niveaux (`docs/design/ai-providers.md`) : une **sorte** est le code qui parle à une API (`AIProviderKind` : Claude, OpenAI, DeepSeek, Autre serveur, listées par `AIProviderKinds`) ; un **fournisseur** est ce que l'utilisateur crée d'une sorte, avec un nom unique et sa config (table `ai_provider_configs` : `id`, `kind`, `name`, `config_json`, `is_default`). On en crée autant qu'on veut, on les duplique ; la liste ne montre qu'eux.
+
+### Signature AIProviderKind
 ```kotlin
-interface AIProvider {
-    fun getProviderId(): String
-    fun getDisplayName(): String
+interface AIProviderKind {
+    val kind: String                                   // "claude", "openai", "deepseek", "compatible"
+    fun kindName(context: Context): String             // le nom d'un nouveau fournisseur de cette sorte
+    fun kindDescription(context: Context): String      // une ligne, au choix de la sorte
     fun getConfigSettings(context: Context): List<SettingNode>
     fun getConfigHelp(context: Context): String
     fun modelListingSettings(): List<String>          // par défaut ["api_key"]
     suspend fun listModels(config: JSONObject): ProviderModels
     fun configError(config: JSONObject, context: Context): String?  // par défaut null
+    fun ownPrices(config: JSONObject, context: Context): ManualPrices?  // par défaut null : la liste LiteLLM
     suspend fun query(promptData: PromptData, config: String): AIResponse
 }
 ```
@@ -652,19 +656,25 @@ DeepSeek passe par `ClaudeProviderCore` sur son endpoint `/anthropic` (`Messages
 - `cache_control` ignoré : le cache de contexte de DeepSeek est automatique. Il reprend d'un appel à l'autre tout le début identique, conversation comprise, message daté final et raisonnement retiré n'y changeant rien (mesuré le 2026-09-25) ; ce qui change avant l'historique, comme un L3 reconstruit, l'arrête là.
 - La réponse commence par un bloc `thinking` : le parsing lit le bloc `text`.
 
-### Compatible OpenAI - Chat Completions à une adresse réglable
-`OpenAICompatibleProviderCore` sert tout serveur qui parle `/chat/completions` : Ollama, llama.cpp, vLLM, LM Studio, OpenRouter. Le fournisseur OpenAI reste sur `/v1/responses`, que ces serveurs ne servent pas tous. Deux variantes, `compatible_standard` et `compatible_economic`. Pourquoi ce fournisseur existe : `docs/design/local-models.md`.
+### Autre serveur - Chat Completions à une adresse réglable
+`OpenAICompatibleProviderCore` sert tout serveur qui parle `/chat/completions` : Ollama, llama.cpp, vLLM, LM Studio, OpenRouter. Le fournisseur OpenAI reste sur `/v1/responses`, que ces serveurs ne servent pas tous. Sorte `compatible`, nommée « Autre serveur » à l'écran. Pourquoi elle existe : `docs/design/local-models.md`.
 - Adresse de base (`base_url`, celle qui précède `/chat/completions`, souvent en `/v1`) **en https seulement** : le prompt porte les données de l'utilisateur. Refusée à l'enregistrement (`configError`), à la liste des modèles et à l'appel. Aucune exception de trafic en clair n'est déclarée dans l'app.
 - Clé facultative, envoyée en `Bearer` quand elle existe. Les modèles se listent par `GET /models` dès que l'adresse est remplie.
 - Forçage de la sortie (`output_forcing`), choix obligatoire : `none`, `json` (`response_format: json_object`), `schema` (`json_schema` portant le schéma de la réponse de l'IA tel que le modèle le lit, `SchemaModelView`). Un serveur qui refuse le niveau rend une erreur, affichée telle quelle.
 - L1, L2 et L3 partent en **un seul** message système : certains gabarits de conversation refusent un second message système.
 - Une réponse coupée par la limite (`finish_reason: length`) est refusée. `prompt_tokens` et `completion_tokens` sont exigés, `cached_tokens` facultatif.
-- Coût : la liste LiteLLM comme ailleurs ; un modèle qu'elle ignore a un coût inconnu.
+- Coût : un choix « Prix » (`prices`), la liste LiteLLM comme ailleurs (`list`, un modèle qu'elle ignore a un coût inconnu) ou réglés à la main (`manual`) : entrée, entrée en cache, sortie, en dollars par million de tokens (`price_input`, `price_cached_input`, `price_output`), lus par `ownPrices`. Un prix vide est inconnu : un appel qui a des tokens de sa sorte a un coût inconnu (`SessionCost`), 0 dit gratuit. Pas d'écriture du cache en Chat Completions, pas de paliers.
 
 ### Configuration
-Configurations gérées par `AIProviderConfigService`, providers découverts via `AIProviderRegistry`, `AIClient` utilise coordinator (pas d'accès DB direct).
+Fournisseurs gérés par `AIProviderConfigService` (`ai_provider_config.kinds`, `list`, `get`, `create`, `update`, `delete`, `set_default`, `get_default`), sortes trouvées par `AIProviderKinds`, `AIClient` passe par le coordinator (pas d'accès DB direct).
+- **Nom** obligatoire, prérempli avec celui de la sorte, unique sans tenir compte de la casse (index unique sur `name`) ; un doublon est refusé en le disant, jamais renommé.
+- **Le défaut** : le premier fournisseur créé le devient ; supprimer le défaut quand d'autres restent demande lequel le devient (`new_default_id`), le dernier supprimé ne laisse aucun défaut. La suppression est refusée tant qu'une routine le nomme (`InUse.provider`), le refus les listant.
+- **Qui appelle quoi** (`ProviderVerifier`, avant de bâtir le prompt) : une session appelle son propre fournisseur (`ai_sessions.provider_id`). Une conversation n'en a pas à sa création ; son premier appel prend le défaut et le garde (`ai_sessions.set_provider`), et ses paramètres le changent, sa propre réflexion partant avec. L'exécution d'une routine prend le fournisseur de la routine à son lancement. Sans fournisseur, une conversation est refusée en disant d'en ajouter un ; un fournisseur supprimé depuis refuse la conversation, qui se relit (`ai_session_provider_gone`). Aucun repli sur un autre.
+- **Une routine** peut n'avoir aucun fournisseur (`automations.provider_id` nul) : elle n'est alors ni activée ni lancée, refus à l'appui, et sa tuile le dit. `CREATE_AUTOMATION` exige la clé `provider_id`, `null` pour aucun ; le formulaire préremplit le défaut ; la démo pose ses routines avec le défaut, sans fournisseur s'il n'y en a pas.
+- **L'IA** lit les fournisseurs dans l'état de l'app (L3, `ai_providers` : `id`, `name`, `kind`, `is_default`), jamais leur config.
+- **Migration 80** (`ProvidersAtV80`, partagée avec l'import d'une sauvegarde) : les huit identifiants fixes d'avant (`claude_standard`, `compatible_economic`…) configurés deviennent des fournisseurs de leur sorte, sous leur id et leur nom, l'actif devenant le défaut ; une variante jamais configurée disparaît, et une routine qui la nommait reste sans fournisseur, éteinte.
 
-**Réflexion d'une conversation** : une conversation peut demander sa propre réflexion (`SessionReasoning` : réflexion désactivée ou non, effort), réglée dans ses paramètres (`ai_sessions.update_reasoning`, colonnes `reasoning_*` de `ai_sessions`, migration 74) parmi ce que le modèle du fournisseur actif propose (`AIClient.modelReasoning`, la liste du fournisseur). Sans elle, la config du fournisseur s'applique. Elle remplace les deux réglages de la config à l'envoi (`SessionReasoning.applyTo`), pour la suite de la conversation. Avant chaque appel, `AIClient.reasoningRefusal` la soumet à `AIProvider.configError` : un modèle qui ne la prend plus (fournisseur ou modèle changé depuis) refuse l'appel, message à l'appui, jamais de remplacement silencieux. Les routines suivent toujours la config de leur fournisseur.
+**Réflexion d'une conversation** : une conversation peut demander sa propre réflexion (`SessionReasoning` : réflexion désactivée ou non, effort), réglée dans ses paramètres (`ai_sessions.update_reasoning`, colonnes `reasoning_*` de `ai_sessions`, migration 74) parmi ce que le modèle de son fournisseur propose (`AIClient.modelReasoning`, la liste du fournisseur). Sans elle, la config du fournisseur s'applique. Elle remplace les deux réglages de la config à l'envoi (`SessionReasoning.applyTo`), pour la suite de la conversation. Avant chaque appel, `AIClient.reasoningRefusal` la soumet à `AIProviderKind.configError` : un modèle qui ne la prend plus (fournisseur ou modèle changé depuis) refuse l'appel, message à l'appui, jamais de remplacement silencieux. Les routines suivent toujours la config de leur fournisseur.
 
 ## 12. Communication modules
 

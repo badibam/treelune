@@ -550,6 +550,14 @@ object PromptManager {
             }
         }
 
+        // The AI providers, each by its id and name, a routine's provider_id being one of them;
+        // never their config, which holds a key
+        val providers = org.json.JSONArray().apply {
+            app.treelune.core.database.AppDatabase.getDatabase(context).aiDao().getAllProviderConfigs().forEach {
+                put(JSONObject().put("id", it.id).put("name", it.name).put("kind", it.kind).put("is_default", it.isDefault))
+            }
+        }
+
         val snapshot = org.json.JSONObject().apply {
             put("timestamp", timestamp)
             put("zone_groups", zoneGroups)
@@ -557,6 +565,7 @@ object PromptManager {
             put("tool_instances", toolInstancesArray)
             put("automations", automationsArray)
             put("identities", identities)
+            put("ai_providers", providers)
         }
 
         return snapshot.toString()
@@ -622,6 +631,15 @@ object PromptManager {
             sb.appendLine()
             sb.appendLine("```json")
             sb.appendLine(identities.toString(2))
+            sb.appendLine("```")
+        }
+        // A snapshot stored before the providers were part of it has none to show
+        snapshotObj.optJSONArray("ai_providers")?.let { providers ->
+            sb.appendLine()
+            sb.appendLine("### ${s.shared("ai_prompt_level3_providers_title")}")
+            sb.appendLine()
+            sb.appendLine("```json")
+            sb.appendLine(providers.toString(2))
             sb.appendLine("```")
         }
 

@@ -342,10 +342,6 @@ object AIOrchestrator {
         val newSessionId = java.util.UUID.randomUUID().toString()
         val now = System.currentTimeMillis()
 
-        // Get active provider
-        val provider = aiDao.getActiveProviderConfig()
-        val providerId = provider?.providerId ?: "claude"
-
         val session = AISessionEntity(
             id = newSessionId,
             name = "Chat ${app.treelune.core.utils.DateUtils.formatTimeForDisplay(now)}",
@@ -356,7 +352,8 @@ object AIOrchestrator {
             lastUserInteractionTime = now,
             automationId = null,
             scheduledExecutionTime = null,
-            providerId = providerId,
+            // None yet: its first call takes the default and keeps it (ProviderVerifier)
+            providerId = null,
             providerSessionId = java.util.UUID.randomUUID().toString(),
             createdAt = now,
             lastActivity = now,
@@ -706,7 +703,11 @@ object AIOrchestrator {
             }
 
             val seedSessionId = automation.seedSessionId
-            val providerId = automation.providerId
+            // Refused when it is switched on and when it is started: none here is a routine changed since
+            val providerId = automation.providerId ?: run {
+                LogManager.aiSession("Automation $automationId not run: it has no provider", "ERROR")
+                return
+            }
 
             // Load SEED session messages
             val seedMessages = aiDao.getMessagesForSession(seedSessionId)

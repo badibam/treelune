@@ -421,14 +421,19 @@ private fun reasoningSummary(reasoning: SessionReasoning?, s: app.treelune.core.
 }
 
 /**
- * Session settings dialog - validation toggle and other session parameters
+ * Session settings dialog - validation toggle, the provider the conversation calls and the
+ * reasoning it asks of its model
+ *
+ * @param providerId The provider it calls; null for a conversation not begun, which takes the default
  */
 @Composable
 fun SessionSettingsDialog(
     validation: SessionValidation,
+    providerId: String?,
     reasoning: SessionReasoning?,
     onDismiss: () -> Unit,
     onValidationChange: (SessionValidation) -> Unit,
+    onProviderChange: (String) -> Unit,
     onReasoningChange: (SessionReasoning?) -> Unit
 ) {
     val context = LocalContext.current
@@ -476,9 +481,45 @@ fun SessionSettingsDialog(
                     UI.Text(text = s.shared("session_validation_help"), type = TextType.CAPTION)
                 }
 
-                SessionReasoningSettings(reasoning, onReasoningChange)
+                // The providers, and the one it calls: its own, or the default it would take
+                var providers by remember { mutableStateOf<List<Map<*, *>>?>(null) }
+                LaunchedEffect(Unit) {
+                    providers = (app.treelune.core.coordinator.Coordinator(context).processUserAction("ai_provider_config.list")
+                        .data?.get("providers") as? List<*>).orEmpty().map { it as Map<*, *> }
+                }
+                val calls = providerId ?: providers?.firstOrNull { it["is_default"] == true }?.get("id") as String?
+                SessionProviderSettings(providers, calls, onProviderChange)
+                calls?.let { SessionReasoningSettings(it, reasoning, onReasoningChange) }
             }
         }
+    }
+}
+
+/**
+ * The provider this conversation calls, among those created: changed, its next message goes to the
+ * new one, and its own reasoning goes with the change (ai_sessions.set_provider).
+ */
+@Composable
+private fun SessionProviderSettings(providers: List<Map<*, *>>?, calls: String?, onProviderChange: (String) -> Unit) {
+    val context = LocalContext.current
+    val s = remember { Strings.`for`(context = context) }
+    Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+        UI.Text(text = s.shared("session_provider_title"), type = TextType.HEADING)
+        when {
+            providers == null -> UI.Text(s.shared("message_loading"), TextType.CAPTION)
+            providers.isEmpty() -> UI.Text(s.shared("ai_error_no_provider_configured"), TextType.CAPTION)
+            else -> {
+                val labels = providers.associate { app.treelune.core.ai.ui.screens.providerLabel(it) to (it["id"] as String) }
+                UI.FormSelection(
+                    label = s.shared("label_ai_provider"),
+                    options = labels.keys.toList(),
+                    selected = labels.entries.find { it.value == calls }?.key ?: "",
+                    onSelect = { chosen -> labels[chosen]?.takeIf { it != calls }?.let(onProviderChange) },
+                    required = true
+                )
+            }
+        }
+        UI.Text(text = s.shared("session_provider_help"), type = TextType.CAPTION)
     }
 }
 
@@ -489,11 +530,11 @@ fun SessionSettingsDialog(
  * those it accepts, never the model's default.
  */
 @Composable
-private fun SessionReasoningSettings(reasoning: SessionReasoning?, onReasoningChange: (SessionReasoning?) -> Unit) {
+private fun SessionReasoningSettings(providerId: String, reasoning: SessionReasoning?, onReasoningChange: (SessionReasoning?) -> Unit) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
-    var model by remember { mutableStateOf<app.treelune.core.ai.providers.ModelReasoning?>(null) }
-    LaunchedEffect(Unit) { model = app.treelune.core.ai.providers.AIClient(context).modelReasoning() }
+    var model by remember(providerId) { mutableStateOf<app.treelune.core.ai.providers.ModelReasoning?>(null) }
+    LaunchedEffect(providerId) { model = app.treelune.core.ai.providers.AIClient(context).modelReasoning(providerId) }
 
     Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
         UI.Text(text = s.shared("session_reasoning_title"), type = TextType.HEADING)

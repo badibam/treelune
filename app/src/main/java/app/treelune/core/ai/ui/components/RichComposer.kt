@@ -181,7 +181,7 @@ fun UI.RichComposer(
     val hasImages = blocks.any { it.segment is MessageSegment.Image }
     var readsImages by remember { mutableStateOf<Boolean?>(null) }
     LaunchedEffect(hasImages) {
-        if (hasImages) readsImages = app.treelune.core.ai.providers.ImageInput.activeModelReadsImages(context)
+        if (hasImages) readsImages = app.treelune.core.ai.providers.ImageInput.sessionModelReadsImages(context, sessionId)
     }
 
     /** The photo at [uri] prepared and kept with the session, then added as a block. */

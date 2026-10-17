@@ -69,7 +69,7 @@ Les scénarios citent ces noms et contenus de la démo : en changer un dans `ass
 
 ## Le lancement
 
-`./run bench` : un menu pour choisir les modèles (rangés par classe de machine) et les niveaux de forçage. Avant de lancer : le nombre de scénarios et le coût estimé, puis confirmation. Chaque résultat s'affiche au fil de l'eau et s'écrit sous `bench-results/<date>/`, avec le tableau scénario × modèle et niveau et le coût réel (les tokens que l'app a stockés, au prix du catalogue d'OpenRouter), réécrits après chaque jeu. Une campagne interrompue se reprend : le menu la propose, ou `scripts/bench.py resume` ; les jeux déjà jugés sont gardés, celui qui a été coupé est rejoué. `scripts/bench.py play <modèle> <scénario> [<forçage>]` joue un seul scénario, pour un diagnostic. Une campagne note le commit du code qu'elle joue et les prix du catalogue à son lancement (`campaign.json`), chaque verdict le commit qui l'a joué. Pour la relire : `trace` donne les tours des jeux échoués (ce que l'IA a envoyé, ce que l'app a répondu), `refusals` compte les refus de l'app par sorte, modèle et niveau, `judge` rejuge tous les jeux sur leurs copies après la correction d'un contrôle.
+`./run bench` : un menu pour choisir les modèles (rangés par classe de machine) et les niveaux de forçage. Avant de lancer : le nombre de scénarios et le coût estimé, puis confirmation. Chaque résultat s'affiche au fil de l'eau et s'écrit sous `bench-results/<date>/`, avec le tableau scénario × modèle et niveau et le coût réel (les tokens que l'app a stockés, au prix du catalogue d'OpenRouter), réécrits après chaque jeu. Une campagne interrompue se reprend : le menu la propose, ou `scripts/bench.py resume` ; les jeux déjà jugés sont gardés, celui qui a été coupé est rejoué. `scripts/bench.py play <modèle> <scénario> [<forçage>]` joue un seul scénario, pour un diagnostic. Une campagne note le commit du code qu'elle joue et les prix du catalogue à son lancement (`campaign.json`), chaque verdict le commit qui l'a joué. Pour la relire : `trace` donne les tours des jeux échoués (ce que l'IA a envoyé, ce que l'app a répondu), `refusals` compte les refus de l'app par sorte, modèle et niveau, `judge` rejuge tous les jeux sur leurs copies après la correction d'un contrôle. `review` fait relire chaque jeu par un modèle (`scripts/bench_review.py`, DeepSeek V4 Pro chez un seul hébergeur) sur une grille fermée : la réponse dit-elle vrai, son chiffre est-il tiré de ce que l'IA a lu, une question inutile ou une supposition fausse, une action non demandée, la façon de corriger un refus, la réponse finale, et une réussite qui ne tient qu'au jugement du banc ; tours et refus comptés dans la base. Chaque jeu reçoit son `review.json`, la campagne un `review.md`. Un jugement de modèle, pas une mesure.
 
 ## Campagne 1
 
@@ -95,9 +95,15 @@ Le prompt actuel (degrés 1 et 2), sur toute l'échelle des tailles, chaque mod�
 
 Résultat de la campagne 1 (2026-10-04) et relecture de ses échecs, modèle par modèle : `docs/design/bench-campaign-1.md`.
 
-## Hypothèses de niveaux de prompt
+## Décision (2026-10-17)
 
-Aucune n'est choisie. La campagne 1 dit lesquelles valent d'être mesurées.
+**Pas de niveaux de prompt** : l'app garde un seul prompt, pour tous les modèles. Mesuré à la campagne 1 et à sa relecture (`docs/design/bench-campaign-1.md`) : gemma 4 31B réussit 18 scénarios sur 19 sans forçage, 15 jugés bons, et deepseek-v4-flash 19, 18 jugés bons ; ministral 3B 2 et 8 ; qwen 35B ne dit rien, ses réponses coupées. Le prompt n'ayant pas changé de fond depuis, la campagne n'est pas rejouée (décision de l'utilisateur). L'aide d'Autre serveur dit la taille de modèle qui suit l'app.
+
+Le banc reste dans `scripts/`, sans campagne prévue. Reste ouvert, hors du banc : la vitesse sur une machine à soi (un Ollama servi en https), jamais mesurée.
+
+## Si un modèle plus petit est voulu
+
+Le déclencheur : quelqu'un veut un modèle sous la classe 30B, ou un modèle dans l'app sur le téléphone. Les pistes, aucune mesurée :
 
 - **Prompt par portée de tâche** (saisie, lecture, configuration complète) plutôt que par taille de modèle : sert aussi les gros modèles, qui coûtent moins. Utile si la carte montre des familles qui tiennent à petite taille et d'autres non.
 - **Session limitée à une zone ou un outil**, qui n'embarque que ses commandes et schémas. Utile si l'échec vient du volume plus que de la difficulté.

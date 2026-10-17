@@ -22,7 +22,7 @@ import java.io.File
 
 /**
  * One scenario of the bench (docs/design/local-models.md), played by the app itself: the base
- * emptied, the OpenAI-compatible provider configured from the arguments, the demo installed, then
+ * emptied, an Other server provider created from the arguments, the demo installed, then
  * a chat message sent or an automation run, through the real orchestrator, until the session
  * rests. What it leaves is judged elsewhere: the base is copied before and after
  * (files/bench/before.db, after.db), with how the session ended (files/bench/result.json), and
@@ -64,7 +64,7 @@ class BenchScenario {
         File(dir, "result.json").writeText(outcome.toJson(System.currentTimeMillis() - started).toString(2))
     }
 
-    /** The base emptied, the provider configured and active, the demo installed over it. */
+    /** The base emptied, its one provider created, so the default, the demo installed over it. */
     private suspend fun prepare(context: Context, coordinator: Coordinator) {
         AppDatabase.getDatabase(context).clearAllTables()
         AppConfigManager.initialize(context)
@@ -74,10 +74,9 @@ class BenchScenario {
             .put("api_key", arg("api_key"))
             .put("model", arg("model"))
             .put("output_forcing", arg("output_forcing"))
-        succeed(coordinator.processUserAction("ai_provider_config.set", mapOf(
-            "provider_id" to PROVIDER, "config" to config.keys().asSequence().associateWith { config.get(it) })), "provider config")
-        succeed(coordinator.processUserAction("ai_provider_config.set_active", mapOf("provider_id" to PROVIDER)), "provider activation")
-        // Installed after the provider: the demo's automations take the first configured one
+        succeed(coordinator.processUserAction("ai_provider_config.create", mapOf(
+            "kind" to PROVIDER_KIND, "name" to PROVIDER_NAME, "config" to config.keys().asSequence().associateWith { config.get(it) })), "provider creation")
+        // Installed after the provider: the demo's automations take the default
         succeed(coordinator.processUserAction("demo.install", emptyMap()), "demo install")
     }
 
@@ -170,7 +169,8 @@ class BenchScenario {
     }
 
     companion object {
-        private const val PROVIDER = "compatible_standard"
+        private const val PROVIDER_KIND = app.treelune.core.ai.providers.OpenAICompatibleProvider.KIND
+        private const val PROVIDER_NAME = "Bench"
         private const val POLL_MS = 250L
         private const val REST_MS = 3_000L
     }

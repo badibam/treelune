@@ -70,3 +70,28 @@ Des heuristiques tirées de la relecture des conversations échouées, pas des m
 - La vitesse sur une machine à soi : les durées sont celles des hébergeurs d'OpenRouter, et leurs modèles peuvent être compressés autrement qu'en 4 bits.
 - Ce que donnent qwen et ministral sans coupure.
 - Ce que deviendraient les scores une fois `period` accepté : 26 échecs l'ont rencontré, mais d'autres causes s'y mêlent.
+
+## La relecture par un juge (2026-10-17)
+
+Les 152 jeux des quatre plus grands modèles relus par `scripts/bench.py review` (DeepSeek V4 Pro chez StreamLake, effort `xhigh`) sur la grille de `scripts/bench_review.py`, 0,33 $. Une première passe a été jetée : le juge prenait pour une affirmation fausse un `post_text` que l'app n'affiche pas après une écriture refusée, et pour une question un module de communication vide ; le texte qui lui explique l'app le dit depuis. ministral n'est pas relu : hors de la décision, 26 de ses jeux l'ont été chez un autre hébergeur, sous l'ancien texte.
+
+Le juge, vérifié : il a relevé les cinq défauts connus d'avance (les heures de gpt-oss sans le départ du chronomètre, la tâche cochée et l'écriture vide de deepseek au schéma, « ce matin » daté de l'après-midi), et trois chiffres qu'il dit faux l'étaient, recalculés à la main sur la base (gemma : 13 h 05 et 8 h 56 pour 14 h 08 et 9 h 56 ; deepseek : 9 h 56 pour 11 h 55). Un seul passage par jeu ; sur un jeu passé deux fois en essai, deux avis différents sur la vérité d'une réponse.
+
+| | qwen sans | qwen schéma | gemma sans | gemma schéma | gpt-oss sans | gpt-oss schéma | deepseek sans | deepseek schéma |
+|---|---|---|---|---|---|---|---|---|
+| réussis au banc | 8 | 9 | 18 | 16 | 14 | 14 | 19 | 4 |
+| réussis et bons | 7 | 9 | 15 | 12 | 11 | 10 | 18 | 2 |
+| réponse fausse | 0 | 1 | 3 | 1 | 4 | 2 | 2 | 3 |
+| supposition fausse | 8 | 4 | 4 | 6 | 6 | 7 | 2 | 3 |
+| action non demandée | 1 | 0 | 0 | 3 | 0 | 4 | 0 | 2 |
+| sans réponse finale | 11 | 12 | 0 | 1 | 2 | 2 | 0 | 14 |
+
+« Réussis et bons » : réussis au banc, et que le juge ne dit tenir à rien d'autre que son contrôle. Le tableau de chaque jeu et sa note : `review.md` du dossier de la campagne.
+
+Ce que le banc ne voyait pas :
+- **Des calculs faux dans une réponse dont le contrôle regarde autre chose** : les heures de la semaine au Point du matin (gemma, deepseek), un sommeil moyen au Bilan de la semaine (gemma 7 h 37, deepseek 7 h 43, pour 7 h 46), une semaine décalée au même Bilan (deepseek sans forçage, gpt-oss au schéma), des valeurs nutritionnelles contredisant la fiche lue (deepseek au schéma). Le contrôle du Point du matin ne lit que la tâche citée, celui du Bilan que les km.
+- **Des questions posées dans une routine**, où personne ne répond : gemma et gpt-oss au Point du matin. L'app les ignore sans le dire à l'IA (`AIStateMachine`, le module de communication hors CHAT).
+- **Des affirmations fausses lues par l'utilisateur** : gpt-oss dit avoir lu le départ du chronomètre, puis « tous les ingrédients manquants ont été ajoutés » au Menu (six sur bien plus) ; deepseek au schéma annonce des lectures qu'il n'envoie pas.
+- **Des écritures tentées malgré la consigne** : gpt-oss au schéma crée une entrée au Point du matin, qui dit « Ne modifie rien ».
+
+Ce que le juge ne dit pas : si un défaut se répète (un jeu par case) ; et pour deepseek, le juge étant de sa famille, il peut le juger avec plus d'indulgence.

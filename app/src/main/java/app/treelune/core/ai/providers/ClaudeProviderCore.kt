@@ -88,7 +88,7 @@ internal fun MessagesApi.listedImageInput(model: JSONObject): Boolean? = when (t
 }
 
 /**
- * Core implementation for Claude AI Provider variants
+ * Core implementation of the Claude and DeepSeek kinds
  *
  * Contains all shared logic for Claude API integration:
  * - HTTP client configuration with 2-minute timeout
@@ -97,20 +97,15 @@ internal fun MessagesApi.listedImageInput(model: JSONObject): Boolean? = when (t
  * - Query execution with prompt caching
  * - Response parsing with token metrics
  *
- * This internal class is used by public provider variants:
- * - ClaudeStandardProvider, ClaudeEconomicProvider (MessagesApi.ANTHROPIC)
- * - DeepSeekStandardProvider, DeepSeekEconomicProvider (MessagesApi.DEEPSEEK)
- *
- * Each variant creates its own core instance with a unique variantId,
- * allowing separate configurations while sharing all implementation code.
+ * Used by ClaudeProvider (MessagesApi.ANTHROPIC) and DeepSeekProvider (MessagesApi.DEEPSEEK).
  *
  * @param context Android context for database and file access
- * @param variantId Unique identifier for this variant (e.g., "claude_standard", "deepseek_economic")
- * @param api Endpoint and vendor specifics for this variant
+ * @param kind The kind it serves, which names its logs and debug files
+ * @param api Endpoint and vendor specifics of that kind
  */
 internal class ClaudeProviderCore(
     private val context: Context,
-    private val variantId: String,
+    private val kind: String,
     val api: MessagesApi
 ) {
 
@@ -140,7 +135,7 @@ internal class ClaudeProviderCore(
     // ========================================================================================
 
     /**
-     * The settings of this variant's config: its API key (secret), the model, the longest answer,
+     * The settings of a provider's config: its API key (secret), the model, the longest answer,
      * and the reasoning (ReasoningSettings), offered by the config screen as the model allows.
      */
     fun configSettings(context: Context): List<SettingNode> {
@@ -181,7 +176,7 @@ internal class ClaudeProviderCore(
      */
     suspend fun fetchAvailableModels(apiKey: String): ProviderModels = withContext(Dispatchers.IO) {
         try {
-            LogManager.aiService("ClaudeProviderCore.fetchAvailableModels() - Variant: $variantId")
+            LogManager.aiService("ClaudeProviderCore.fetchAvailableModels() - Kind: $kind")
 
             // Build request: DeepSeek lists models on its OpenAI-format endpoint (Bearer auth)
             val requestBuilder = Request.Builder().url(api.modelsUrl).get()
@@ -276,7 +271,7 @@ internal class ClaudeProviderCore(
      * @return AIResponse with content, token counts, and cache metrics
      */
     suspend fun query(promptData: PromptData, config: String): AIResponse = withContext(Dispatchers.IO) {
-        LogManager.aiService("ClaudeProviderCore.query() - Variant: $variantId, Messages: ${promptData.sessionMessages.size}")
+        LogManager.aiService("ClaudeProviderCore.query() - Kind: $kind, Messages: ${promptData.sessionMessages.size}")
 
         try {
             // Read the config through its declaration: an absent max_tokens is its default
@@ -306,12 +301,12 @@ internal class ClaudeProviderCore(
             // Accessible via: adb pull /data/data/app.treelune/files/last_prompt_*
             try {
                 // Save Level 1 content with REAL line breaks (human-readable)
-                val level1File = File(context.filesDir, "last_prompt_level1_${variantId}.txt")
+                val level1File = File(context.filesDir, "last_prompt_level1_${kind}.txt")
                 level1File.writeText(promptData.level1Content)
                 LogManager.aiService("Level 1 content (with real line breaks) saved to: ${level1File.absolutePath}", "DEBUG")
 
                 // Save full JSON (with escaped \n)
-                val jsonFile = File(context.filesDir, "last_prompt_json_${variantId}.txt")
+                val jsonFile = File(context.filesDir, "last_prompt_json_${kind}.txt")
                 jsonFile.writeText(formattedPrompt)
                 LogManager.aiService("Full JSON prompt saved to: ${jsonFile.absolutePath}", "DEBUG")
             } catch (e: Exception) {

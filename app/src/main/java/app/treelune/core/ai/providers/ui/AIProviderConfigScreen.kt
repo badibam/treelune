@@ -17,7 +17,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import app.treelune.core.ai.providers.AIProvider
+import app.treelune.core.ai.providers.AIProviderKind
 import app.treelune.core.ai.providers.ImageInput
 import app.treelune.core.ai.providers.ProviderModel
 import app.treelune.core.ai.providers.ReasoningSettings
@@ -38,23 +38,33 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 
 /**
- * The config screen of any AI provider: the form of its declaration (AIProvider.getConfigSettings),
- * the API key masked, and the model chosen among those the provider lists once the settings
+ * The config screen of an AI provider: its name, then the form of its kind's declaration
+ * (AIProviderKind.getConfigSettings), the API key masked, and the model chosen among those the
+ * provider lists once the settings
  * the listing needs are filled in. Its reasoning (ReasoningSettings) offers what the chosen model
  * allows, and is cleared when the model changes: what one model accepts another may refuse. The caller saves through the service, which checks the config against the schema
  * generated from the same declaration.
  *
- * @param config The stored config, "{}" when the provider has none yet
- * @param onSave Called with the config to store
- * @param onReset Called to delete the stored config; null when there is none
+ * @param name Its name, the kind's for a new one
+ * @param config The stored config, "{}" for a new provider
+ * @param onSave Called with the name and the config to store
+ * @param onDuplicate Opens a new provider copied from this one; null for a provider not yet stored
+ * @param onSetDefault Makes it the default; null when it is the default, or not yet stored
+ * @param onDelete Deletes it; null for a provider not yet stored
+ * @param deleteConfirmed Whether [onDelete] asks itself which provider becomes the default, rather
+ *   than this screen confirming the deletion
  */
 @Composable
 fun AIProviderConfigScreen(
-    provider: AIProvider,
+    provider: AIProviderKind,
+    name: String,
     config: String,
-    onSave: (JSONObject) -> Unit,
+    onSave: (String, JSONObject) -> Unit,
     onCancel: () -> Unit,
-    onReset: (() -> Unit)?
+    onDuplicate: (() -> Unit)? = null,
+    onSetDefault: (() -> Unit)? = null,
+    onDelete: (() -> Unit)? = null,
+    deleteConfirmed: Boolean = false
 ) {
     // The header has no back button: the back key cancels, like the form's cancel button
     BackHandler(onBack = onCancel)
@@ -65,6 +75,7 @@ fun AIProviderConfigScreen(
     val nodes = remember(provider) { provider.getConfigSettings(context) }
 
     var settings by rememberSaveable(config, stateSaver = JsonObjectSaver) { mutableStateOf(JSONObject(config)) }
+    var chosenName by rememberSaveable(name) { mutableStateOf(name) }
 
     // The models the key gives access to, once listed
     var models by remember { mutableStateOf<List<ProviderModel>>(emptyList()) }
@@ -187,14 +198,16 @@ fun AIProviderConfigScreen(
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         UI.PageHeader(
-            title = provider.getDisplayName(),
-            subtitle = s.shared("settings_ai_providers_config")
+            title = chosenName.ifBlank { provider.kindName(context) },
+            subtitle = provider.kindName(context)
         )
 
         // The page of the form open, which the actions show under alone
         val pages = app.treelune.core.fields.settings.rememberSettingsPages()
         UI.Card(type = CardType.DEFAULT, size = Size.M) {
             Column(modifier = Modifier.fillMaxWidth().padding(UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.L)) {
+                // What it is shown by, in the list and where a conversation or a routine chooses it
+                if (pages.atRoot) UI.FormField(label = s.shared("ai_provider_name"), value = chosenName, onChange = { chosenName = it }, required = true)
                 // A new key or address lists other models: the ones listed before no longer hold
                 SettingsForm(nodes, settings, { next ->
                     if (listingSettings.any { next.optString(it) != settings.optString(it) }) models = emptyList()
@@ -212,11 +225,16 @@ fun AIProviderConfigScreen(
         }
 
         // The actions on the root page alone: under it, the back arrow goes up (SettingsPages)
-        if (pages.atRoot) UI.FormActions {
-            UI.ActionButton(action = ButtonAction.SAVE, onClick = { onSave(settings) })
-            UI.ActionButton(action = ButtonAction.CANCEL, onClick = onCancel)
-            if (onReset != null) {
-                UI.ActionButton(action = ButtonAction.RESET, requireConfirmation = true, onClick = onReset)
+        if (pages.atRoot) {
+            UI.FormActions {
+                UI.ActionButton(action = ButtonAction.SAVE, onClick = { onSave(chosenName, settings) })
+                UI.ActionButton(action = ButtonAction.CANCEL, onClick = onCancel)
+            }
+            // What is done of a stored provider: copied, made the default, deleted
+            if (onDuplicate != null || onSetDefault != null || onDelete != null) UI.FormActions {
+                onDuplicate?.let { UI.Button(type = ButtonType.SECONDARY, onClick = it) { UI.Text(s.shared("action_duplicate"), TextType.BODY) } }
+                onSetDefault?.let { UI.Button(type = ButtonType.SECONDARY, onClick = it) { UI.Text(s.shared("ai_provider_set_default"), TextType.BODY) } }
+                onDelete?.let { UI.ActionButton(action = ButtonAction.DELETE, requireConfirmation = !deleteConfirmed, onClick = it) }
             }
         }
     }

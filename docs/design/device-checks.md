@@ -413,3 +413,14 @@ Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la po
 - Dans une conversation : « crée un Objectif sommeil moyen d'au moins 7 h sur Sommeil » ; la config de l'Objectif, rouverte à l'écran, montre 7 h, et la tentative se juge sans erreur. Redemander en exigeant « écris 25200000 » : refusé, le message dit d'écrire « PT7H », et l'IA corrige.
 - Graphique « Repas par moment » : demander à l'IA un filtre « moment = déjeuner » : refusé, le message dit que `=` ne compare pas un choix et donne `in` ; puis un filtre sur « déjeunner » : refusé, le message dit d'ajouter l'option d'abord.
 - À l'écran, une condition d'Objectif ou de Graphique enregistrée comme avant : rien ne change ; la config d'un Graphique dont un filtre vise un champ supprimé de son outil : l'enregistrement est refusé et nomme la condition.
+
+## Les fournisseurs créés (branche ai-providers, `docs/design/ai-providers.md`)
+
+- La mise à jour depuis la 0.7.0 avec ses données (migration 80) : Réglages › Fournisseurs IA ne montre que les fournisseurs configurés avant, sous leur nom d'avant, l'actif marqué « Par défaut » ; une routine qui nommait une variante jamais configurée dit « Sans fournisseur d'IA », éteinte ; les conversations passées se relisent, leurs coûts gardés.
+- Liste vide (installation neuve) : la phrase sur ce qu'est un fournisseur et « Ajouter un fournisseur » ; le choix des quatre sortes, chacune sa ligne ; Autre serveur : le formulaire, nom prérempli « Autre serveur », « Prix » sur « Liste LiteLLM », « Réglés à la main » montre les trois cases ; enregistré, il est par défaut.
+- Un deuxième fournisseur du même nom : refusé en le disant. Dupliquer : « … (copie) », la clé recopiée ; « Mettre par défaut » déplace la marque.
+- Supprimer un fournisseur qu'une routine nomme : refusé, la routine nommée. Supprimer le défaut quand un autre reste : la fenêtre demande lequel le remplace ; le dernier supprimé : une nouvelle conversation dit d'en ajouter un.
+- Une conversation nouvelle : son premier message part chez le défaut ; ses paramètres montrent ce fournisseur au-dessus de la réflexion ; en choisir un autre : le message suivant y part, la réflexion propre de la conversation retirée. Changer le défaut ne change pas une conversation commencée.
+- Une routine nouvelle : le défaut présélectionné ; sans aucun fournisseur, elle se crée éteinte, et l'activer ou la lancer est refusé en disant d'en choisir un. Demander à l'IA de créer une routine : elle donne un `provider_id` de la liste, ou `null`.
+- Un serveur à soi aux prix à 0 : la conversation montre un coût de 0, plus « coût inconnu » ; un prix d'entrée en cache vide alors que le serveur en rapporte : coût inconnu.
+- Le Guide, « Brancher une IA » : l'étape « Ajoute un fournisseur » se valide à l'enregistrement d'un fournisseur nouveau, et seulement là.

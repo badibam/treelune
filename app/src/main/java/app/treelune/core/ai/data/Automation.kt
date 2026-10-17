@@ -30,7 +30,7 @@ data class Automation(
 
     /** Among the occurrences that are due, run only the most recent one instead of each */
     val dismissOlderInstances: Boolean = false,
-    val providerId: String,                 // AI provider to use for execution
+    val providerId: String?,                // AI provider its runs call; null for none, not run then
     /** The identity its runs speak as; null for the app's own AI */
     val identityId: String? = null,
     val isEnabled: Boolean,
@@ -67,7 +67,7 @@ data class Automation(
                 catchUpWindow = (catchUp?.get("window") as Number?)?.toLong(),
                 // Without a schedule nothing is missed, and the setting is absent
                 dismissOlderInstances = catchUp?.get("dismiss_older_instances") as Boolean? ?: false,
-                providerId = map["provider_id"] as String,
+                providerId = map["provider_id"] as String?,
                 identityId = map[AutomationSettings.IDENTITY_ID] as String?,
                 isEnabled = map["is_enabled"] as Boolean,
                 notifyEnd = map["notify_end"] as String,

@@ -31,7 +31,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SOURCES = ROOT / "app" / "src" / "main" / "java" / "app" / "treelune"
 TOOL_REGISTRY = SOURCES / "core" / "tools" / "ToolTypeScanner.kt"
 THEME_REGISTRY = SOURCES / "core" / "themes" / "ThemeScanner.kt"
-PROVIDER_REGISTRY = SOURCES / "core" / "ai" / "providers" / "AIProviderRegistry.kt"
+PROVIDER_KINDS = SOURCES / "core" / "ai" / "providers" / "AIProviderKinds.kt"
 PROVIDERS = SOURCES / "core" / "ai" / "providers"
 GRADLE = ROOT / "app" / "build.gradle.kts"
 STRING_SOURCES = SOURCES / "core" / "strings" / "sources"
@@ -85,20 +85,21 @@ def named_lines(folder_root, ids, suffix):
     return lines
 
 
-def providers():
-    """The vendors' names, from the standard provider of each one the registry adds."""
-    registry_text = PROVIDER_REGISTRY.read_text(encoding="utf-8")
+def providers(suffix):
+    """The vendors' names, in one language: each kind the app knows, in its order, but the server of
+    the user's, which the README names apart; a kind's name is its string ai_provider_kind_<kind>."""
+    texts = (STRING_SOURCES / f"shared{suffix}.xml").read_text(encoding="utf-8")
+    shared = {name: value.replace("\\'", "'") for name, value in STRING.findall(texts)}
     names = []
-    for cls in re.findall(r"add\((\w+StandardProvider)\(", registry_text):
-        if cls.startswith("OpenAICompatible"):
-            continue
+    for cls in re.findall(r"\{ (\w+Provider)\(context\) \}", PROVIDER_KINDS.read_text(encoding="utf-8")):
         for path in PROVIDERS.glob("*.kt"):
             text = path.read_text(encoding="utf-8")
             start = text.find(f"class {cls}(")
             if start < 0:
                 continue
-            found = re.search(r'getDisplayName\(\): String = "([^"]+)"', text[start:])
-            names.append(found.group(1))
+            kind = re.search(r'const val KIND = "([a-z]+)"', text[start:]).group(1)
+            if kind != "compatible":
+                names.append(shared[f"ai_provider_kind_{kind}"])
             break
         else:
             raise SystemExit(f"make_readme: no class {cls} under {PROVIDERS}")
@@ -125,7 +126,7 @@ def blocks(suffix):
     """Each block's content in one language."""
     return {
         "tools": named_lines(SOURCES / "tools", registry(TOOL_REGISTRY), suffix),
-        "providers": [", ".join(f"**{name}**" for name in providers())],
+        "providers": [", ".join(f"**{name}**" for name in providers(suffix))],
         "themes": named_lines(SOURCES / "themes", registry(THEME_REGISTRY), suffix),
         "status": status(suffix),
     }

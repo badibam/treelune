@@ -666,30 +666,9 @@ class AIEventProcessor(
                 return
             }
 
-            // 2. Determine which provider to use
-            // For AUTOMATION: use session's configured providerId
-            // For CHAT: use active provider (providerId = null)
-            val providerId: String? = if (state.sessionType == SessionType.AUTOMATION) {
-                // Get session to retrieve providerId
-                val coordinator = app.treelune.core.coordinator.Coordinator(context)
-                val sessionResult = coordinator.processUserAction("ai_sessions.get_session", mapOf(
-                    "session_id" to sessionId
-                ))
-
-                if (sessionResult.status == app.treelune.core.commands.CommandStatus.SUCCESS) {
-                    val sessionData = sessionResult.data?.get("session") as? Map<*, *>
-                    val sessionProviderId = sessionData?.get("provider_id") as? String
-                    LogManager.aiSession("callAI: AUTOMATION session using provider '$sessionProviderId'", "DEBUG")
-                    sessionProviderId
-                } else {
-                    LogManager.aiSession("callAI: Failed to get session providerId, will use active provider", "WARN")
-                    null
-                }
-            } else {
-                // CHAT: use active provider
-                LogManager.aiSession("callAI: CHAT session using active provider", "DEBUG")
-                null
-            }
+            // 2. The provider the check found: the session's own, a conversation's first call
+            // having taken the default
+            val providerId: String = providerCheckResult.providerId!!
 
             // The reasoning the conversation asks of its model, refused before any call when the
             // model in use does not take it: changed since, it is the user's to set again
@@ -2243,19 +2222,24 @@ class AIEventProcessor(
      * The model and prices of the call that just answered, as they are now. Prices unknown for
      * the model are stored as unknown; no model in the provider config gives no pricing at all.
      */
-    private suspend fun callPricing(providerId: String?, response: app.treelune.core.ai.providers.AIResponse): CallPricing? {
+    private suspend fun callPricing(providerId: String, response: app.treelune.core.ai.providers.AIResponse): CallPricing? {
         return try {
             val aiDao = app.treelune.core.database.AppDatabase.getDatabase(context).aiDao()
-            val effectiveProviderId = providerId ?: aiDao.getActiveProviderConfig()?.providerId
-            val modelId = effectiveProviderId
-                ?.let { id -> aiDao.getProviderConfig(id)?.let { config -> id to config } }
-                ?.let { (id, config) ->
-                    val provider = app.treelune.core.ai.providers.AIProviderRegistry(context).getProvider(id) ?: return@let null
-                    app.treelune.core.ai.providers.AIProviderSettings.read(provider, JSONObject(config.configJson), context).string("model")
-                }
-            if (modelId == null) {
-                LogManager.aiSession("callPricing: no model in the config of provider $effectiveProviderId", "ERROR")
+            val stored = aiDao.getProviderConfig(providerId)
+            val kind = stored?.let { app.treelune.core.ai.providers.AIProviderKinds(context).of(it.kind) }
+            if (stored == null || kind == null) {
+                LogManager.aiSession("callPricing: provider $providerId gone or of an unknown kind", "ERROR")
                 return null
+            }
+            val config = JSONObject(stored.configJson)
+            val modelId = app.treelune.core.ai.providers.AIProviderSettings.read(kind, config, context).string("model")
+            if (modelId == null) {
+                LogManager.aiSession("callPricing: no model in the config of provider $providerId", "ERROR")
+                return null
+            }
+            // Prices set by hand (a server of the user's), per million tokens; none written to the cache there
+            kind.ownPrices(config, context)?.let { own ->
+                return CallPricing(modelId, own.input?.div(1_000_000), null, own.cachedInput?.div(1_000_000), own.output?.div(1_000_000))
             }
             val inputTokens = response.inputTokens + response.cacheWriteTokens + response.cacheReadTokens
             app.treelune.core.ai.utils.ModelPriceManager.getModelPrice(context, modelId)?.forCall(inputTokens)

@@ -43,18 +43,21 @@ object ImageInput {
     }
 
     /**
-     * Whether the model a chat would be sent to — the active provider's — reads images; null when
-     * nothing says, or no provider is active.
+     * Whether the model a message of session [sessionId] would go to reads images: the session's
+     * provider's, or the default's for a session that has none yet; null when nothing says, or
+     * there is no provider. The call checks again with the provider it calls.
      */
-    suspend fun activeModelReadsImages(context: Context): Boolean? {
+    suspend fun sessionModelReadsImages(context: Context, sessionId: String?): Boolean? {
         val coordinator = Coordinator(context)
-        val active = coordinator.processUserAction("ai_provider_config.get_active")
-        val providerId = active.data?.get("active_provider_id") as? String ?: return null
+        val own = sessionId?.let { id ->
+            (coordinator.processUserAction("ai_sessions.get_session", mapOf("session_id" to id)).data?.get("session") as? Map<*, *>)?.get("provider_id") as? String
+        }
+        val providerId = own ?: coordinator.processUserAction("ai_provider_config.get_default").data?.get("provider_id") as? String ?: return null
         val configResult = coordinator.processUserAction("ai_provider_config.get", mapOf("provider_id" to providerId))
         if (!configResult.isSuccess) return null
         @Suppress("UNCHECKED_CAST")
         val config = configResult.data?.get("config") as? Map<String, Any?> ?: return null
-        val provider = AIProviderRegistry(context).getProvider(providerId) ?: return null
+        val provider = AIProviderKinds(context).of(configResult.data?.get("kind") as String) ?: return null
         return provider.readsImages(app.treelune.core.utils.JsonUtils.toJSONObject(config), context)
     }
 

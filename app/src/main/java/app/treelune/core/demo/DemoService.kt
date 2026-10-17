@@ -117,15 +117,14 @@ class DemoService(private val context: Context) : ExecutableService {
 
     /**
      * The automations, off — on, an automation calls the AI at the user's cost: each one with its
-     * seed session, its message the instruction, its identity the one it names or none; none has a past. Their provider is the first one configured, or the first there is when
-     * none is: switching one on then says the provider is not configured.
+     * seed session, its message the instruction, its identity the one it names or none; none has a
+     * past. Their provider is the default, or none when there is none: switching one on then says
+     * to choose one.
      */
     private suspend fun automate(content: DemoContent) {
         if (content.automations.isEmpty()) return
         LongOperation.at(s.shared("demo_phase_automations"))
-        @Suppress("UNCHECKED_CAST")
-        val providers = run("ai_provider_config.list", JSONObject())["providers"] as List<Map<String, Any?>>
-        val provider = (providers.firstOrNull { it["is_configured"] == true } ?: providers.first())["id"] as String
+        val provider: Any = run("ai_provider_config.get_default", JSONObject())["provider_id"] ?: JSONObject.NULL
         for (automation in content.automations) {
             val message = org.json.JSONArray().put(JSONObject().put("type", app.treelune.core.ai.data.AutomationMessage.TEXT).put("text", automation.getString("seed")))
             val identity = automation.opt(app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID) ?: JSONObject.NULL

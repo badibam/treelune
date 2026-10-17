@@ -3,27 +3,23 @@ package app.treelune.core.ai.database
 import androidx.room.*
 
 /**
- * AI Provider configuration database entity
- *
- * Stores configuration for each AI provider with:
- * - Searchable fields as columns (provider_id, is_active)
- * - Configuration JSON as text
- *
- * Only one provider can be active at a time (enforced by service logic).
+ * An AI provider the user created (docs/design/ai-providers.md): a kind (AIProviderKinds), a
+ * name, unique, and its config, its secrets sealed (SecretSettings). At most one is the default,
+ * which a new conversation takes (enforced by AIProviderConfigService).
  */
 @Entity(
     tableName = "ai_provider_configs",
     indices = [
-        Index(value = ["provider_id"], unique = true),
-        Index(value = ["is_active"])
+        Index(value = ["name"], unique = true),
+        Index(value = ["is_default"])
     ]
 )
 data class AIProviderConfigEntity(
-    @PrimaryKey @ColumnInfo(name = "provider_id") val providerId: String,  // Provider ID (e.g., "claude", "openai")
-    @ColumnInfo(name = "display_name") val displayName: String,             // Human-readable name
-    @ColumnInfo(name = "config_json") val configJson: String,               // JSON configuration (API keys, models, etc.)
-    @ColumnInfo(name = "is_configured") val isConfigured: Boolean,          // Whether config has all required fields
-    @ColumnInfo(name = "is_active") val isActive: Boolean,                  // Whether this is the active provider
-    @ColumnInfo(name = "created_at") val createdAt: Long,                   // Creation timestamp
-    @ColumnInfo(name = "updated_at") val updatedAt: Long                    // Last update timestamp
+    @PrimaryKey @ColumnInfo(name = "id") val id: String,
+    @ColumnInfo(name = "kind") val kind: String,                     // AIProviderKind.kind: "claude", "openai", "deepseek", "compatible"
+    @ColumnInfo(name = "name") val name: String,
+    @ColumnInfo(name = "config_json") val configJson: String,        // API key sealed, model and settings
+    @ColumnInfo(name = "is_default") val isDefault: Boolean,
+    @ColumnInfo(name = "created_at") val createdAt: Long,
+    @ColumnInfo(name = "updated_at") val updatedAt: Long
 )

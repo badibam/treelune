@@ -2,8 +2,7 @@ package app.treelune.core.ai.ui.screens
 
 import app.treelune.core.fields.settings.labelOf
 import app.treelune.core.utils.JsonUtils
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -16,32 +15,31 @@ import app.treelune.core.ui.*
 import app.treelune.core.strings.Strings
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.commands.CommandStatus
-import app.treelune.core.coordinator.mapData
-import app.treelune.core.coordinator.executeWithLoading
-import app.treelune.core.ai.providers.AIProviderRegistry
+import app.treelune.core.ai.providers.AIProviderKinds
 import kotlinx.coroutines.launch
 
+/** A provider as a list or a choice shows it (ai_provider_config.list): its name, and its model beside. */
+fun providerLabel(provider: Map<*, *>): String =
+    provider["name"] as String + ((provider["model"] as String?)?.let { " · $it" } ?: "")
+
 /**
- * Provider info from service
+ * What the providers screen shows instead of the list: a provider's config, stored ([id]) or new
+ * of [kind], copied from [copyOf] when duplicated; or the choice of a new provider's kind.
  */
-data class ProviderInfo(
-    val id: String,
-    val displayName: String,
-    val isConfigured: Boolean,
-    val isActive: Boolean
+private data class Editing(val id: String? = null, val kind: String? = null, val copyOf: String? = null, val choosingKind: Boolean = false)
+
+private val EditingSaver = androidx.compose.runtime.saveable.listSaver<Editing?, Any?>(
+    save = { listOf(it?.id, it?.kind, it?.copyOf, it?.choosingKind, it != null) },
+    restore = { if (it[4] == true) Editing(it[0] as String?, it[1] as String?, it[2] as String?, it[3] as Boolean) else null }
 )
 
 /**
- * AI Providers configuration screen
- *
- * Displays list of available AI providers with:
- * - Simple click on unconfigured → open config dialog
- * - Simple click on configured inactive → activate provider
- * - Simple click on active → no action
- * - Long click → edit configuration
- * - Configure button (icon) on the right → edit configuration (alternative to long click)
+ * The AI providers the user created (docs/design/ai-providers.md): one card each, its name, its
+ * model and its kind, the default marked; touched, its config. "Add a provider" chooses a kind, then
+ * opens the config of a new one, named after its kind. The config of a stored one duplicates it,
+ * makes it the default, or deletes it: refused while a routine names it, and the default deleted
+ * while others remain asks which becomes it.
  */
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AIProvidersScreen(
     onBack: () -> Unit
@@ -49,79 +47,21 @@ fun AIProvidersScreen(
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     val coordinator = remember { Coordinator(context) }
+    val kinds = remember { AIProviderKinds(context) }
     val coroutineScope = rememberCoroutineScope()
 
-    // Load providers via command pattern
-    var providers by remember { mutableStateOf<List<ProviderInfo>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
+    var providers by remember { mutableStateOf<List<Map<*, *>>?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var editing by rememberSaveable(stateSaver = EditingSaver) { mutableStateOf<Editing?>(null) }
 
-    // Configuration state - provider ID being configured
-    var configuringProviderId by rememberSaveable { mutableStateOf<String?>(null) }
-
-    // Load providers on first composition
-    LaunchedEffect(Unit) {
-        coordinator.executeWithLoading(
-            operation = "ai_provider_config.list",
-            onLoading = { isLoading = it },
-            onError = { error -> errorMessage = error }
-        )?.let { result ->
-            providers = result.mapData("providers") { map ->
-                ProviderInfo(
-                    id = map["id"] as String,
-                    displayName = map["display_name"] as String,
-                    isConfigured = map["is_configured"] as Boolean,
-                    isActive = map["is_active"] as Boolean
-                )
-            }
-
-            // Auto-activate first configured provider if no active provider
-            val hasActiveProvider = providers.any { it.isActive }
-            val firstConfigured = providers.firstOrNull { it.isConfigured }
-
-            if (!hasActiveProvider && firstConfigured != null) {
-                coordinator.processUserAction(
-                    "ai_provider_config.set_active",
-                    mapOf("provider_id" to firstConfigured.id)
-                )
-                // Reload to reflect the change
-                coordinator.executeWithLoading(
-                    operation = "ai_provider_config.list",
-                    onLoading = { isLoading = it },
-                    onError = { error -> errorMessage = error }
-                )?.let { reloadResult ->
-                    providers = reloadResult.mapData("providers") { map ->
-                        ProviderInfo(
-                            id = map["id"] as String,
-                            displayName = map["display_name"] as String,
-                            isConfigured = map["is_configured"] as Boolean,
-                            isActive = map["is_active"] as Boolean
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    // Function to reload providers after operations
-    val reloadProviders = {
+    fun reload() {
         coroutineScope.launch {
-            coordinator.executeWithLoading(
-                operation = "ai_provider_config.list",
-                onLoading = { isLoading = it },
-                onError = { error -> errorMessage = error }
-            )?.let { result ->
-                providers = result.mapData("providers") { map ->
-                    ProviderInfo(
-                        id = map["id"] as String,
-                        displayName = map["display_name"] as String,
-                        isConfigured = map["is_configured"] as Boolean,
-                        isActive = map["is_active"] as Boolean
-                    )
-                }
-            }
+            val result = coordinator.processUserAction("ai_provider_config.list")
+            if (result.status == CommandStatus.SUCCESS) providers = (result.data?.get("providers") as List<*>).map { it as Map<*, *> }
+            else errorMessage = result.error ?: s.shared("error_unknown")
         }
     }
+    LaunchedEffect(Unit) { reload() }
 
     // Error display (toast pattern), before the config screen's early return: a refused save
     // shows while the config screen is still open, not once it is left
@@ -132,94 +72,37 @@ fun AIProvidersScreen(
         }
     }
 
-    // Show provider config screen if provider selected
-    configuringProviderId?.let { providerId ->
-        val registry = remember { AIProviderRegistry(context) }
-        val provider = remember(providerId) { registry.getProvider(providerId) }
-
-        provider?.let {
-            // Get existing config if any
-            var existingConfig by remember { mutableStateOf("{}") }
-            var isLoadingConfig by remember { mutableStateOf(true) }
-
-            LaunchedEffect(providerId) {
-                coordinator.executeWithLoading(
-                    operation = "ai_provider_config.get",
-                    params = mapOf("provider_id" to providerId),
-                    onLoading = { },
-                    onError = { /* Provider not configured yet, that's ok */ }
-                )?.let { result ->
-                    @Suppress("UNCHECKED_CAST")
-                    existingConfig = (result.data?.get("config") as? Map<String, Any?>)
-                        ?.let { JsonUtils.toJSONObject(it).toString() } ?: "{}"
-                    // A key sealed on another phone shows empty: said, so it is not taken for one never entered
-                    (result.data?.get(app.treelune.core.secrets.SecretSettings.UNREADABLE) as? List<*>).orEmpty().takeIf { it.isNotEmpty() }?.let { names ->
-                        val nodes = it.getConfigSettings(context)
-                        errorMessage = s.shared("secrets_unreadable").format(names.joinToString(", ") { name -> nodes.labelOf(name.toString()) ?: name.toString() })
-                    }
-                }
-                isLoadingConfig = false
-            }
-
-            // Render provider config screen after config is loaded
-            if (!isLoadingConfig) {
-                app.treelune.core.ai.providers.ui.AIProviderConfigScreen(
-                    provider = it,
-                    config = existingConfig,
-                    onSave = { config ->
-                        coroutineScope.launch {
-                            val result = coordinator.processUserAction(
-                                "ai_provider_config.set",
-                                mapOf(
-                                    "provider_id" to providerId,
-                                    "config" to JsonUtils.toMap(config)
-                                )
-                            )
-
-                            if (result.status == CommandStatus.SUCCESS) {
-                                configuringProviderId = null
-                                reloadProviders()
-                            } else {
-                                errorMessage = result.error ?: s.shared("error_unknown")
-                            }
-                        }
-                    },
-                    onCancel = {
-                        // Just close the config screen without saving
-                        configuringProviderId = null
-                    },
-                    onReset = {
-                        // Delete provider configuration from DB
-                        coroutineScope.launch {
-                            val result = coordinator.processUserAction(
-                                "ai_provider_config.delete",
-                                mapOf("provider_id" to providerId)
-                            )
-
-                            if (result.status == CommandStatus.SUCCESS) {
-                                configuringProviderId = null
-                                reloadProviders()
-                            } else {
-                                errorMessage = result.error ?: s.shared("error_unknown")
-                            }
-                        }
-                    }
-                )
-            } else {
-                // Show loading while config is being fetched
-                UI.Text(
-                    text = s.shared("message_loading"),
-                    type = TextType.BODY,
-                    fillMaxWidth = true,
-                    textAlign = TextAlign.Center
-                )
-            }
+    /** [operation] run with [params]; done, the list is read again and [then] runs. */
+    fun act(operation: String, params: Map<String, Any?>, then: () -> Unit = { editing = null }) {
+        coroutineScope.launch {
+            val result = coordinator.processUserAction(operation, params)
+            if (result.status == CommandStatus.SUCCESS) {
+                then()
+                reload()
+            } else errorMessage = result.error ?: s.shared("error_unknown")
         }
-
-        return // Exit when showing config
     }
 
-    // Main content: providers list
+    val current = editing
+    if (current != null && current.choosingKind) {
+        androidx.activity.compose.BackHandler { editing = null }
+        KindChoice(kinds, onBack = { editing = null }, onChoose = { editing = Editing(kind = it) })
+        return
+    }
+    if (current != null) {
+        ProviderConfig(current, kinds, providers.orEmpty(), coordinator,
+            onError = { errorMessage = it },
+            onCancel = { editing = null },
+            onSave = { name, config ->
+                if (current.id != null) act("ai_provider_config.update", mapOf("provider_id" to current.id, "name" to name, "config" to JsonUtils.toMap(config)))
+                else act("ai_provider_config.create", mapOf("kind" to current.kind, "name" to name, "config" to JsonUtils.toMap(config)))
+            },
+            onDuplicate = { id, kind -> editing = Editing(kind = kind, copyOf = id) },
+            onSetDefault = { id -> act("ai_provider_config.set_default", mapOf("provider_id" to id)) },
+            onDelete = { id, newDefault -> act("ai_provider_config.delete", mapOf("provider_id" to id, "new_default_id" to newDefault)) })
+        return
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -227,7 +110,6 @@ fun AIProvidersScreen(
             .padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
-        // Header
         UI.PageHeader(
             title = s.shared("settings_ai_providers"),
             subtitle = s.shared("settings_ai_providers_description"),
@@ -238,134 +120,158 @@ fun AIProvidersScreen(
             onRightClick = { }
         )
 
-        // Content based on loading state
+        val list = providers
         when {
-            isLoading -> {
-                UI.Text(
-                    text = s.shared("message_loading"),
-                    type = TextType.BODY,
-                    fillMaxWidth = true,
-                    textAlign = TextAlign.Center
-                )
-            }
-            providers.isEmpty() -> {
-                UI.Text(
-                    text = s.shared("message_no_providers"),
-                    type = TextType.BODY,
-                    fillMaxWidth = true,
-                    textAlign = TextAlign.Center
-                )
-            }
-            else -> {
-                // Providers list
-                providers.forEach { provider ->
-                    UI.Card(
-                        type = CardType.DEFAULT,
-                        size = Size.M
+            list == null -> UI.Text(text = s.shared("message_loading"), type = TextType.BODY, fillMaxWidth = true, textAlign = TextAlign.Center)
+            // What a provider is for, when there is none yet
+            list.isEmpty() -> UI.Text(text = s.shared("ai_providers_empty"), type = TextType.BODY, fillMaxWidth = true, textAlign = TextAlign.Center)
+            else -> list.forEach { provider ->
+                UI.Card(type = CardType.DEFAULT, size = Size.M) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { editing = Editing(id = provider["id"] as String) }
+                            .padding(UI.Space.L),
+                        verticalArrangement = Arrangement.spacedBy(UI.Space.XS)
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(UI.Space.L),
-                            horizontalArrangement = Arrangement.spacedBy(UI.Space.S),
-                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-                        ) {
-                            // Main content (clickable)
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .combinedClickable(
-                                        onClick = {
-                                            // Simple click behavior
-                                            when {
-                                                !provider.isConfigured -> {
-                                                    // Not configured → open config
-                                                    configuringProviderId = provider.id
-                                                }
-                                                !provider.isActive -> {
-                                                    // Configured but inactive → activate
-                                                    coroutineScope.launch {
-                                                        coordinator.processUserAction(
-                                                            "ai_provider_config.set_active",
-                                                            mapOf("provider_id" to provider.id)
-                                                        )
-                                                        reloadProviders()
-                                                    }
-                                                }
-                                                // else: already active → do nothing
-                                            }
-                                        },
-                                        onLongClick = {
-                                            // Long click → edit config
-                                            configuringProviderId = provider.id
-                                        }
-                                    )
-                            ) {
-                                Column(
-                                    verticalArrangement = Arrangement.spacedBy(UI.Space.S)
-                                ) {
-                                    // Provider name
-                                    Row(
-                                        horizontalArrangement = Arrangement.spacedBy(UI.Space.S),
-                                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-                                    ) {
-                                        // Active indicator
-                                        UI.Icon(iconName = if (provider.isActive) "circle-dot" else "circle")
-
-                                        UI.Text(
-                                            text = provider.displayName,
-                                            type = TextType.SUBTITLE
-                                        )
-                                    }
-
-                                    // Status row
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(UI.Space.L)
-                                    ) {
-                                        // Configuration status
-                                        val configStatus = if (provider.isConfigured) {
-                                            s.shared("provider_status_configured")
-                                        } else {
-                                            s.shared("provider_status_not_configured")
-                                        }
-
-                                        UI.Text(
-                                            text = configStatus,
-                                            type = TextType.CAPTION
-                                        )
-
-                                        // Active status (only if configured)
-                                        if (provider.isConfigured) {
-                                            val activeStatus = if (provider.isActive) {
-                                                s.shared("provider_status_active")
-                                            } else {
-                                                s.shared("provider_status_inactive")
-                                            }
-
-                                            UI.Text(
-                                                text = activeStatus,
-                                                type = TextType.CAPTION
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-
-                            // Configure button (icon only)
-                            UI.ActionButton(
-                                action = ButtonAction.CONFIGURE,
-                                display = ButtonDisplay.ICON,
-                                size = Size.M,
-                                onClick = {
-                                    // Open config screen
-                                    configuringProviderId = provider.id
-                                }
-                            )
+                        Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                            if (provider["is_default"] == true) UI.Icon(iconName = "circle-dot")
+                            UI.Text(text = providerLabel(provider), type = TextType.SUBTITLE)
                         }
+                        val kindLine = listOfNotNull(provider["kind_name"] as String?, s.shared("ai_provider_is_default").takeIf { provider["is_default"] == true })
+                        UI.Text(text = kindLine.joinToString(" · "), type = TextType.CAPTION)
                     }
                 }
             }
         }
+
+        UI.FormActions {
+            UI.Button(type = ButtonType.PRIMARY, onClick = { editing = Editing(choosingKind = true) }) {
+                UI.Text(s.shared("ai_provider_add"), TextType.BODY)
+            }
+        }
     }
+}
+
+/** The kinds a new provider can be of, one card each with what it is. */
+@Composable
+private fun KindChoice(kinds: AIProviderKinds, onBack: () -> Unit, onChoose: (String) -> Unit) {
+    val context = LocalContext.current
+    val s = remember { Strings.`for`(context = context) }
+    Column(
+        modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(vertical = UI.Space.L),
+        verticalArrangement = Arrangement.spacedBy(UI.Space.L)
+    ) {
+        UI.PageHeader(
+            title = s.shared("ai_provider_choose_kind"),
+            subtitle = s.shared("ai_provider_choose_kind_description"),
+            icon = null,
+            leftButton = ButtonAction.BACK,
+            rightButton = null,
+            onLeftClick = onBack,
+            onRightClick = { }
+        )
+        kinds.all().forEach { kind ->
+            UI.Card(type = CardType.DEFAULT, size = Size.M) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().clickable { onChoose(kind.kind) }.padding(UI.Space.L),
+                    verticalArrangement = Arrangement.spacedBy(UI.Space.XS)
+                ) {
+                    UI.Text(text = kind.kindName(context), type = TextType.SUBTITLE)
+                    UI.Text(text = kind.kindDescription(context), type = TextType.CAPTION)
+                }
+            }
+        }
+    }
+}
+
+/**
+ * The config of the provider [editing] names: read from the service when stored or copied, empty
+ * and named after its kind when new. Deleting the default while others remain asks which becomes it.
+ */
+@Composable
+private fun ProviderConfig(
+    editing: Editing,
+    kinds: AIProviderKinds,
+    providers: List<Map<*, *>>,
+    coordinator: Coordinator,
+    onError: (String) -> Unit,
+    onCancel: () -> Unit,
+    onSave: (String, org.json.JSONObject) -> Unit,
+    onDuplicate: (String, String) -> Unit,
+    onSetDefault: (String) -> Unit,
+    onDelete: (String, String?) -> Unit
+) {
+    val context = LocalContext.current
+    val s = remember { Strings.`for`(context = context) }
+
+    // Its kind, name and config once read
+    var loaded by remember(editing) { mutableStateOf<Triple<String, String, String>?>(null) }
+    LaunchedEffect(editing) {
+        val source = editing.id ?: editing.copyOf
+        if (source == null) {
+            val kind = kinds.of(editing.kind!!)!!
+            loaded = Triple(kind.kind, kind.kindName(context), "{}")
+            return@LaunchedEffect
+        }
+        val result = coordinator.processUserAction("ai_provider_config.get", mapOf("provider_id" to source))
+        if (result.status != CommandStatus.SUCCESS) {
+            onError(result.error ?: s.shared("error_unknown"))
+            onCancel()
+            return@LaunchedEffect
+        }
+        val data = result.data!!
+        val kind = data["kind"] as String
+        @Suppress("UNCHECKED_CAST")
+        val config = JsonUtils.toJSONObject(data["config"] as Map<String, Any?>).toString()
+        val name = data["name"] as String
+        loaded = Triple(kind, if (editing.copyOf != null) s.shared("ai_provider_copy_name").format(name) else name, config)
+        // A key sealed on another phone shows empty: said, so it is not taken for one never entered
+        (data[app.treelune.core.secrets.SecretSettings.UNREADABLE] as? List<*>).orEmpty().takeIf { it.isNotEmpty() }?.let { names ->
+            val nodes = kinds.of(kind)?.getConfigSettings(context).orEmpty()
+            onError(s.shared("secrets_unreadable").format(names.joinToString(", ") { name -> nodes.labelOf(name.toString()) ?: name.toString() }))
+        }
+    }
+
+    val (kindName, name, config) = loaded ?: run {
+        UI.Text(text = s.shared("message_loading"), type = TextType.BODY, fillMaxWidth = true, textAlign = TextAlign.Center)
+        return
+    }
+    val kind = kinds.of(kindName) ?: run {
+        UI.Text(text = s.shared("ai_error_unknown_provider").format(kindName), type = TextType.BODY, fillMaxWidth = true, textAlign = TextAlign.Center)
+        return
+    }
+
+    val id = editing.id
+    val stored = providers.find { it["id"] == id }
+    val isDefault = stored?.get("is_default") == true
+    val others = providers.filter { it["id"] != id }
+    var choosingNewDefault by rememberSaveable { mutableStateOf(false) }
+    val needsNewDefault = isDefault && others.isNotEmpty()
+
+    if (choosingNewDefault && id != null) {
+        var chosen by remember { mutableStateOf<String?>(null) }
+        UI.Dialog(type = DialogType.DANGER, onConfirm = { chosen?.let { choosingNewDefault = false; onDelete(id, it) } },
+            onCancel = { choosingNewDefault = false }, confirmEnabled = chosen != null) {
+            Column(modifier = Modifier.padding(UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.L)) {
+                UI.Text(text = s.shared("ai_provider_new_default_title"), type = TextType.TITLE)
+                UI.Text(text = s.shared("ai_provider_new_default_message").format(name), type = TextType.BODY)
+                val labels = others.associate { providerLabel(it) to (it["id"] as String) }
+                UI.FormSelection(label = s.shared("ai_provider_is_default"), options = labels.keys.toList(),
+                    selected = labels.entries.find { it.value == chosen }?.key ?: "", onSelect = { chosen = labels[it] }, required = true)
+            }
+        }
+    }
+
+    app.treelune.core.ai.providers.ui.AIProviderConfigScreen(
+        provider = kind,
+        name = name,
+        config = config,
+        onSave = onSave,
+        onCancel = onCancel,
+        onDuplicate = id?.let { { onDuplicate(it, kind.kind) } },
+        onSetDefault = id?.takeIf { !isDefault }?.let { { onSetDefault(it) } },
+        onDelete = id?.let { { if (needsNewDefault) choosingNewDefault = true else onDelete(it, null) } },
+        deleteConfirmed = needsNewDefault
+    )
 }
