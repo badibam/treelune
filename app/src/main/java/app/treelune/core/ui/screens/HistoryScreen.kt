@@ -16,7 +16,6 @@ import app.treelune.core.strings.Strings
 import app.treelune.core.ui.*
 import app.treelune.core.ui.components.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -59,12 +58,11 @@ fun HistoryScreen(
 
     // Filters
     var searchQuery by rememberSaveable { mutableStateOf("") }
+    // The search the list was read with: the field's, once typing pauses
+    var appliedSearch by rememberSaveable { mutableStateOf(searchQuery) }
     var periodFilter by rememberSaveable { mutableStateOf(PeriodFilterType.ALL) }
     var currentPeriod by rememberSaveable(stateSaver = NullablePeriodSaver) { mutableStateOf<Period?>(null) }
     var entriesLimit by rememberSaveable { mutableStateOf(20) }
-
-    // Search debounce
-    var searchJob by remember { mutableStateOf<Job?>(null) }
 
     // Dialog states
     var showRenameDialog by rememberSaveable { mutableStateOf(false) }
@@ -108,7 +106,7 @@ fun HistoryScreen(
                 "limit" to entriesLimit,
                 "page" to currentPage
             )
-            if (searchQuery.isNotEmpty()) params["search"] = searchQuery
+            if (appliedSearch.isNotEmpty()) params["search"] = appliedSearch
             if (startTime != null) params["start_time"] = startTime
             if (endTime != null) params["end_time"] = endTime
 
@@ -158,25 +156,23 @@ fun HistoryScreen(
         }
     }
 
+    // The period counts only when the list is filtered by one: set at opening, it reads nothing again
+    val periodKey = currentPeriod.takeIf { periodFilter != PeriodFilterType.ALL }
+
     // Back to the first page when a filter changes
-    OnChangedEffect("$periodFilter|$currentPeriod|$entriesLimit|$searchQuery") { currentPage = 1 }
+    OnChangedEffect("$periodFilter|$periodKey|$entriesLimit|$appliedSearch") { currentPage = 1 }
 
     // Load sessions when filters/pagination change
-    LaunchedEffect(periodFilter, currentPeriod, entriesLimit, currentPage) {
+    LaunchedEffect(periodFilter, periodKey, entriesLimit, currentPage, appliedSearch) {
         if (currentPeriod != null || periodFilter == PeriodFilterType.ALL) {
             loadSessions()
         }
     }
 
-    // Search debounce - reload sessions after 300ms of no typing
+    // Search debounce: applied 300 ms after the last keystroke, a new one starting the wait again
     LaunchedEffect(searchQuery) {
-        searchJob?.cancel()
-        searchJob = scope.launch {
-            delay(300)
-            if (currentPeriod != null || periodFilter == PeriodFilterType.ALL) {
-                loadSessions()
-            }
-        }
+        delay(300)
+        appliedSearch = searchQuery
     }
 
     // Show error toast
@@ -258,8 +254,6 @@ fun HistoryScreen(
                                 else -> createCurrentPeriod(PeriodType.DAY)
                             }
                         }
-                        // Force reload when period type changes
-                        scope.launch { loadSessions() }
                     }
                 )
             }
@@ -273,8 +267,6 @@ fun HistoryScreen(
                     selected = entriesLimit.toString(),
                     onSelect = { selection ->
                         entriesLimit = selection.toInt()
-                        // Force reload when limit changes
-                        scope.launch { loadSessions() }
                     }
                 )
             }
@@ -297,11 +289,7 @@ fun HistoryScreen(
         if (periodFilter != PeriodFilterType.ALL && currentPeriod != null) {
             SinglePeriodSelector(
                 period = currentPeriod!!,
-                onPeriodChange = { newPeriod ->
-                    currentPeriod = newPeriod
-                    // Force reload even if period value is the same
-                    scope.launch { loadSessions() }
-                }
+                onPeriodChange = { newPeriod -> currentPeriod = newPeriod }
             )
         }
 
