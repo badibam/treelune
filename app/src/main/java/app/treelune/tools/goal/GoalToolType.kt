@@ -66,6 +66,14 @@ object GoalToolType : ToolTypeContract {
     /** The setting that closes validating and reopening an attempt to the AI. */
     const val AI_NO_VALIDATION = "ai_no_validation"
 
+    /** Whether a goal has one attempt or one per occurrence of its schedule, chosen first in its config. */
+    const val RECURRENCE = "recurrence"
+
+    object Recurrence {
+        const val ONCE = "once"
+        const val RECURRING = "recurring"
+    }
+
     /** The types a value entered in an attempt takes: those a condition compares. */
     private val ENTERED_TYPES = listOf(FieldType.BOOLEAN, FieldType.NUMERIC, FieldType.SCALE, FieldType.DURATION,
         FieldType.CHOICE, FieldType.TEXT, FieldType.DATE, FieldType.TIME)
@@ -86,7 +94,7 @@ object GoalToolType : ToolTypeContract {
 
     /** The settings and fields a validation error may name, by their key. */
     private val LABELS = setOf(
-        "criteria", "sub_goals", "at_least", "start", "deadline", "schedule", "duration", "enabled", "expiry_delay", "notify", AI_NO_VALIDATION,
+        "criteria", "sub_goals", "at_least", RECURRENCE, "start", "deadline", "schedule", "duration", "enabled", "expiry_delay", "notify", AI_NO_VALIDATION,
         "essential", Criterion.ENTERED, Criterion.CONDITION, "instructions",
         DEFINITION, STATUS, PERIOD_END, JUDGEMENT, VALIDATED_BY, VALIDATED_AT, REOPENED_AT, NOTIFIED
     )
@@ -137,10 +145,21 @@ object GoalToolType : ToolTypeContract {
                 SettingNode.Field(field("at_least", s.tool("field_at_least"), FieldType.NUMERIC, s.tool("schema_at_least"), mapOf("min" to 0, "decimals" to 0)))
             )),
             SettingNode.Section(s.tool("section_time"), listOf(
-                SettingNode.Field(field("start", s.tool("field_start"), FieldType.DATETIME, s.tool("schema_start"))),
-                SettingNode.Field(field("deadline", s.tool("field_deadline"), FieldType.DATETIME, s.tool("schema_deadline"))),
-                ScheduleSettings.group(s.tool("field_schedule"), shared::shared),
-                SettingNode.Field(field("duration", s.tool("field_duration"), FieldType.DURATION, s.tool("schema_duration"))),
+                // Chosen first, with no default: each option brings only the settings GoalScheduler reads for it
+                SettingNode.Variant(
+                    selector = SettingNode.Field(field(RECURRENCE, s.tool("field_$RECURRENCE"), FieldType.CHOICE, s.tool("schema_$RECURRENCE"),
+                        choice(listOf(Recurrence.ONCE, Recurrence.RECURRING)) { s.tool("${RECURRENCE}_$it") }), required = true),
+                    cases = mapOf(
+                        Recurrence.ONCE to listOf(
+                            SettingNode.Field(field("start", s.tool("field_start"), FieldType.DATETIME, s.tool("schema_start"))),
+                            SettingNode.Field(field("deadline", s.tool("field_deadline"), FieldType.DATETIME, s.tool("schema_deadline")))
+                        ),
+                        Recurrence.RECURRING to listOf(
+                            ScheduleSettings.group(s.tool("field_schedule"), shared::shared).copy(required = true),
+                            SettingNode.Field(field("duration", s.tool("field_duration"), FieldType.DURATION, s.tool("schema_duration")))
+                        )
+                    )
+                ),
                 SettingNode.Field(field("enabled", s.tool("field_enabled"), FieldType.BOOLEAN, s.tool("schema_enabled")), required = true, default = true),
                 SettingNode.Field(field("expiry_delay", s.tool("field_expiry_delay"), FieldType.DURATION, s.tool("schema_expiry_delay")), required = true, default = DEFAULT_EXPIRY),
                 SettingNode.Field(field("notify", s.tool("field_notify"), FieldType.BOOLEAN, s.tool("schema_notify")), required = true, default = true),

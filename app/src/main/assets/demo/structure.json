@@ -397,6 +397,7 @@
         "group": "@course_group_analysis",
         "enabled": true,
         "notify": true,
+        "recurrence": "recurring",
         "duration": 604800000,
         "schedule": {
           "pattern": {
@@ -1833,6 +1834,7 @@
         "display_mode": "CONDENSED",
         "enabled": true,
         "notify": true,
+        "recurrence": "recurring",
         "duration": 604800000,
         "schedule": {
           "pattern": {

@@ -110,13 +110,15 @@ fun rememberGoalTile(tool: ToolInstance): ToolTile {
             }
             !config.optBoolean("enabled", true) ->
                 s.tool("tile_stopped") to (last?.let { s.tool("status_${it.status}") } ?: "")
-            StoredSchedule.of(config) is StoredSchedule.None && last != null ->
+            config.optString(GoalToolType.RECURRENCE) == GoalToolType.Recurrence.ONCE && last != null ->
                 s.tool("status_${last.status}") to DateUtils.formatDateForDisplay(last.start)
             else -> {
-                val next = when (val stored = StoredSchedule.of(config)) {
-                    is StoredSchedule.Readable -> ScheduleCalculator.calculateNextExecution(stored.schedule.pattern, System.currentTimeMillis())
-                    StoredSchedule.None -> (config.opt("start") as? Number)?.toLong()
-                    is StoredSchedule.Unreadable -> null
+                val next = when (config.optString(GoalToolType.RECURRENCE)) {
+                    GoalToolType.Recurrence.ONCE -> (config.opt("start") as? Number)?.toLong()
+                    GoalToolType.Recurrence.RECURRING -> (StoredSchedule.of(config) as? StoredSchedule.Readable)?.let {
+                        ScheduleCalculator.calculateNextExecution(it.schedule.pattern, System.currentTimeMillis())
+                    }
+                    else -> null
                 }
                 s.tool("tile_between") to (next?.let { s.tool("tile_next").format(FormatUtils.formatRelativeTime(it, context)) } ?: "")
             }
