@@ -10,6 +10,7 @@ import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.Dp
@@ -83,11 +84,16 @@ fun inkSize(): InkSize {
     return remember(step) { InkSize(InkSize.FACTORS[step.coerceIn(0, InkSize.FACTORS.lastIndex)]) }
 }
 
-/** Literata's three weights, embedded (res/font, made by scripts/make_literata_fonts.py). */
+/**
+ * Literata's three weights and the italic of a read text at its two (ThemeContract.emphasis),
+ * embedded (res/font, made by scripts/make_literata_fonts.py).
+ */
 val Literata = FontFamily(
     Font(R.font.literata_regular, FontWeight.Normal),
     Font(R.font.literata_semibold, FontWeight.SemiBold),
     Font(R.font.literata_bold, FontWeight.Bold),
+    Font(R.font.literata_italic, FontWeight.Normal, FontStyle.Italic),
+    Font(R.font.literata_semibold_italic, FontWeight.SemiBold, FontStyle.Italic),
 )
 
 /** The current palette's colours. */

@@ -24,10 +24,11 @@ ROOT = Path(__file__).resolve().parent.parent
 MAIN = ROOT / "app" / "src" / "main"
 
 # What the app takes from the font project, as (path there, path here): the text family,
-# both weights, from its ttf/, and the licence.
+# both weights and the Regular's italic, from its ttf/, and the licence.
 FILES = [
     ("ttf/cartouche_regular.ttf", MAIN / "res" / "font" / "cartouche_regular.ttf"),
     ("ttf/cartouche_thin.ttf", MAIN / "res" / "font" / "cartouche_thin.ttf"),
+    ("ttf/cartouche_italic.ttf", MAIN / "res" / "font" / "cartouche_italic.ttf"),
     ("OFL.txt", MAIN / "assets" / "fonts" / "cartouche" / "OFL.txt"),
 ]
 

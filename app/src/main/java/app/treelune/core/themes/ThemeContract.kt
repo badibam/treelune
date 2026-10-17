@@ -6,6 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -17,6 +19,7 @@ import app.treelune.core.ui.ButtonAction
 import app.treelune.core.ui.ButtonDisplay
 import app.treelune.core.ui.FieldType
 import app.treelune.core.ui.TextType
+import app.treelune.core.ui.Emphasis
 import app.treelune.core.ui.CardType
 import app.treelune.core.ui.Duration
 import app.treelune.core.ui.FeedbackType
@@ -133,16 +136,37 @@ interface ThemeContract {
     // DISPLAY
     // =====================================
     
+    /**
+     * A text in the style of its [type]. Its runs may carry the theme's own emphasis ([emphasis]),
+     * which the theme draws over that style: a theme takes the spans as they come.
+     * @param maxLines Lines shown at most, a cut text ending with an ellipsis (a tile's lines)
+     */
     @Composable
-    /** @param maxLines Lines shown at most, a cut text ending with an ellipsis (a tile's lines) */
+    fun Text(
+        text: AnnotatedString,
+        type: TextType,
+        fillMaxWidth: Boolean,
+        textAlign: TextAlign?,
+        maxLines: Int = Int.MAX_VALUE
+    )
+
+    /** A plain text: [Text] without emphasis. */
+    @Composable
     fun Text(
         text: String,
         type: TextType,
         fillMaxWidth: Boolean,
         textAlign: TextAlign?,
         maxLines: Int = Int.MAX_VALUE
-    )
-    
+    ) = Text(AnnotatedString(text), type, fillMaxWidth, textAlign, maxLines)
+
+    /**
+     * How a run of a read text marked bold or italic (GuideMarkup) is drawn, over its text's
+     * style: a weight, a slant, an ink, whatever the theme's font and register have for it.
+     */
+    @Composable
+    fun emphasis(emphasis: Emphasis): SpanStyle
+
     @Composable
     fun Card(
         type: CardType,

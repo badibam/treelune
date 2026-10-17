@@ -56,6 +56,7 @@ import app.treelune.core.ui.ComponentState
 import app.treelune.core.ui.FieldType
 import app.treelune.core.ui.FieldModifier
 import app.treelune.core.ui.TextType
+import app.treelune.core.ui.Emphasis
 import app.treelune.core.ui.CardType
 import app.treelune.core.ui.FeedbackType
 import app.treelune.core.ui.Duration
@@ -581,9 +582,16 @@ object DefaultTheme : ThemeContract {
     // DISPLAY
     // =====================================
     
+    /** The system font's bold and italic. */
+    @Composable
+    override fun emphasis(emphasis: Emphasis): androidx.compose.ui.text.SpanStyle = when (emphasis) {
+        Emphasis.BOLD -> androidx.compose.ui.text.SpanStyle(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+        Emphasis.ITALIC -> androidx.compose.ui.text.SpanStyle(fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
+    }
+
     @Composable
     override fun Text(
-        text: String,
+        text: androidx.compose.ui.text.AnnotatedString,
         type: TextType,
         fillMaxWidth: Boolean,
         textAlign: TextAlign?,

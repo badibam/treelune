@@ -11,6 +11,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
@@ -130,10 +131,14 @@ fun retroGridUp(): RetroGrid {
     return remember(density, grid.scale) { RetroGrid(grid.scale + 1, density) }
 }
 
-/** Cartouche's two weights, embedded (res/font, checked against the font's project). */
+/**
+ * Cartouche's two weights and the Regular's italic, its pixels slanted on the grid, embedded
+ * (res/font, checked against the font's project).
+ */
 val Cartouche = FontFamily(
     Font(R.font.cartouche_thin, FontWeight.Thin),
     Font(R.font.cartouche_regular, FontWeight.Normal),
+    Font(R.font.cartouche_italic, FontWeight.Normal, FontStyle.Italic),
 )
 
 /**

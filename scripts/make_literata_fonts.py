@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Make the ink theme's fonts from Literata, whose source is copied in third_party/literata/.
 
-The source is one variable font, on two axes: weight (200 to 900) and optical size (7 to 72). The
-app takes three fixed weights of it, as res/font/literata_*.ttf: a fixed weight is what every
+The source is two variable fonts, the upright and the italic, on two axes: weight (200 to 900) and
+optical size (7 to 72). The app takes three fixed upright weights and two italic ones, as
+res/font/literata_*.ttf: a fixed weight is what every
 Android version draws the same. The text and the names are cut at the optical size of a text
 (12), sturdier at a phone's sizes; the titles at that of a heading (36), finer. The output is
 committed, as the icons are: the build never needs this script nor fontTools. The licence goes
@@ -28,6 +29,7 @@ from fontTools.varLib.instancer import instantiateVariableFont
 
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "third_party" / "literata" / "Literata[opsz,wght].ttf"
+ITALIC_SOURCE = ROOT / "third_party" / "literata" / "Literata-Italic[opsz,wght].ttf"
 LICENCE = ROOT / "third_party" / "literata" / "OFL.txt"
 FONTS = ROOT / "app" / "src" / "main" / "res" / "font"
 ASSET_LICENCE = ROOT / "app" / "src" / "main" / "assets" / "fonts" / "literata" / "OFL.txt"
@@ -35,6 +37,9 @@ ASSET_LICENCE = ROOT / "app" / "src" / "main" / "assets" / "fonts" / "literata" 
 # The weights the theme draws in, by the name of their file, with their optical size: the text,
 # the names and labels, and the titles.
 WEIGHTS = {"regular": (400, 12), "semibold": (600, 12), "bold": (700, 36)}
+
+# The italic of a read text (ThemeContract.emphasis), at the text's weight and at its bold, STRONG's.
+ITALIC_WEIGHTS = {"italic": (400, 12), "semibold_italic": (600, 12)}
 
 NARROW_NO_BREAK_SPACE = 0x202F
 NARROW_SPACE_GLYPH = "uni202F"
@@ -58,8 +63,10 @@ def add_narrow_space(font):
 
 
 def main():
-    for name, (weight, optical_size) in WEIGHTS.items():
-        font = instantiateVariableFont(TTFont(SOURCE), {"wght": weight, "opsz": optical_size}, updateFontNames=True)
+    cuts = [(name, axes, SOURCE) for name, axes in WEIGHTS.items()]
+    cuts += [(name, axes, ITALIC_SOURCE) for name, axes in ITALIC_WEIGHTS.items()]
+    for name, (weight, optical_size), source in cuts:
+        font = instantiateVariableFont(TTFont(source), {"wght": weight, "opsz": optical_size}, updateFontNames=True)
         add_narrow_space(font)
         out = FONTS / f"literata_{name}.ttf"
         font.save(out)
