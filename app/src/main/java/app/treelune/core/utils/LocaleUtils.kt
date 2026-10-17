@@ -1,8 +1,6 @@
 package app.treelune.core.utils
 
 import android.content.Context
-import app.treelune.core.services.AppConfigService
-import kotlinx.coroutines.runBlocking
 import java.util.*
 
 /**
@@ -12,31 +10,13 @@ import java.util.*
 object LocaleUtils {
     
     /**
-     * Get app's configured locale
-     * Uses AppConfig locale override if available, falls back to system locale
-     * This is the centralized method that should be used throughout the app
+     * The locale the app formats with: its override (Réglages › Format), the phone's otherwise.
+     * Read from AppConfigManager's cache, refreshed whenever the settings change: a list of
+     * dates formats one per line without reading the settings again.
      */
-    fun getAppLocale(context: Context): Locale {
-        return try {
-            val appConfigService = AppConfigService(context)
-            val localeOverride = runBlocking { appConfigService.getLocaleOverride() }
-            
-            localeOverride?.let { localeString ->
-                try {
-                    Locale.forLanguageTag(localeString)
-                } catch (e: Exception) {
-                    // Invalid locale string, fallback to system
-                    Locale.getDefault()
-                }
-            } ?: Locale.getDefault()
-            
-        } catch (e: Exception) {
-            // Fallback to system locale if config unavailable
-            Locale.getDefault()
-        }
-    }
-    
-    
+    fun getAppLocale(): Locale =
+        AppConfigManager.getDateTimeConfig().localeOverride?.let { Locale.forLanguageTag(it) } ?: Locale.getDefault()
+
     /**
      * Get available locales for the app
      * Currently returns common locales, could be extended to support user-defined ones
@@ -56,7 +36,7 @@ object LocaleUtils {
      * Get display name for a locale in current app locale
      */
     fun getLocaleDisplayName(locale: Locale, context: Context): String {
-        val appLocale = getAppLocale(context)
+        val appLocale = getAppLocale()
         return locale.getDisplayName(appLocale)
     }
 }

@@ -47,7 +47,7 @@ object DateTimeFormatter {
     ): String {
         // Get config and locale
         val config = AppConfigManager.getDateTimeConfig()
-        val locale = LocaleUtils.getAppLocale(context)
+        val locale = LocaleUtils.getAppLocale()
         val timezone = config.getZoneId()
 
         // Convert to ZonedDateTime

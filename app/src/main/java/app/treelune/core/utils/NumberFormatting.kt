@@ -14,25 +14,17 @@ import java.util.*
 object NumberFormatting {
     
     /**
-     * Get app's configured locale
-     * Uses centralized LocaleUtils for consistent locale management
-     */
-    private fun getAppLocale(context: Context): Locale {
-        return LocaleUtils.getAppLocale(context)
-    }
-    
-    /**
      * Get configured locale's decimal separator
      */
     private fun getDecimalSeparator(context: Context): Char {
-        return DecimalFormatSymbols.getInstance(getAppLocale(context)).decimalSeparator
+        return DecimalFormatSymbols.getInstance(LocaleUtils.getAppLocale()).decimalSeparator
     }
     
     /**
      * Get configured locale's grouping separator (thousands)
      */
     private fun getGroupingSeparator(context: Context): Char {
-        return DecimalFormatSymbols.getInstance(getAppLocale(context)).groupingSeparator
+        return DecimalFormatSymbols.getInstance(LocaleUtils.getAppLocale()).groupingSeparator
     }
     
     /**
@@ -79,7 +71,7 @@ object NumberFormatting {
             val cleanInput = input.trim()
             if (cleanInput.isEmpty()) return null
             
-            val locale = LocaleUtils.getAppLocale(context)
+            val locale = LocaleUtils.getAppLocale()
             val decimalSep = DecimalFormatSymbols.getInstance(locale).decimalSeparator
             val groupingSep = DecimalFormatSymbols.getInstance(locale).groupingSeparator
             
@@ -144,7 +136,7 @@ object NumberFormatting {
      * @return Localized formatted string
      */
     fun formatForDisplay(value: Double, maxDecimalPlaces: Int = 2, context: Context): String {
-        val formatter = NumberFormat.getNumberInstance(getAppLocale(context))
+        val formatter = NumberFormat.getNumberInstance(LocaleUtils.getAppLocale())
         formatter.maximumFractionDigits = maxDecimalPlaces
         formatter.isGroupingUsed = true // Show thousands separators
         return formatter.format(value)
