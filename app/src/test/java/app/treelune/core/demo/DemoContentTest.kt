@@ -199,6 +199,32 @@ class DemoContentTest {
     }
 
     @Test
+    fun `a filter on a choice of the user's takes the operators a choice takes`() {
+        val content = read()
+        val choices = content.tools.associate { tool ->
+            tool.getString("id") to (tool.getJSONObject("config").optJSONArray("extra_fields")?.let { f ->
+                (0 until f.length()).map { f.getJSONObject(it) }.filter { it.getString("type") == "CHOICE" }.map { "extra." + it.getString("name") }
+            } ?: emptyList()).toSet()
+        }
+        fun walk(value: Any?) {
+            when (value) {
+                is JSONObject -> {
+                    val target = value.optJSONObject("target")?.optString("id")
+                    value.optJSONArray("filters")?.takeIf { target != null }?.let { filters ->
+                        (0 until filters.length()).map { filters.getJSONObject(it) }.forEach { filter ->
+                            val field = filter.optJSONObject("left")?.optString("field")
+                            if (field in choices[target].orEmpty()) assertTrue("$target $field ${filter.getString("op")}", filter.getString("op") in setOf("in", "absent", "present"))
+                        }
+                    }
+                    value.keys().forEach { walk(value.get(it)) }
+                }
+                is JSONArray -> (0 until value.length()).forEach { walk(value.get(it)) }
+            }
+        }
+        (content.tools + content.variables).forEach(::walk)
+    }
+
+    @Test
     fun `a field whose type has no settings carries no config`() {
         read().tools.forEach { tool ->
             val fields = tool.getJSONObject("config").optJSONArray("extra_fields") ?: return@forEach
