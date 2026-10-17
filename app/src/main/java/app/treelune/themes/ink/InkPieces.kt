@@ -278,9 +278,9 @@ internal const val HAND_SQUASHING = 0.06f
 /**
  * A closed blob round [center], [radius] about: its edge [waves] (each a number of waves round it and
  * its part of the radius), squashed by up to [squashing] along an axis turned at random, all drawn
- * from [seed].
+ * from [seed]; walked clockwise from [start] radians (0 on the right), where a brush begins it.
  */
-internal fun blob(center: Offset, radius: Float, seed: Int, waves: List<Pair<Int, Float>>, squashing: Float): Path {
+internal fun blob(center: Offset, radius: Float, seed: Int, waves: List<Pair<Int, Float>>, squashing: Float, start: Float = 0f): Path {
     val random = java.util.Random(seed.toLong())
     // The waves round the edge, each at its own phase
     val phased = waves.map { (k, a) -> Triple(k, a, random.nextFloat() * 2 * Math.PI.toFloat()) }
@@ -289,7 +289,7 @@ internal fun blob(center: Offset, radius: Float, seed: Int, waves: List<Pair<Int
     val points = 96
     return Path().apply {
         for (i in 0..points) {
-            val t = (i % points) * 2 * Math.PI.toFloat() / points
+            val t = start + (i % points) * 2 * Math.PI.toFloat() / points
             val r = radius * (1f + phased.sumOf { (k, a, p) -> (a * kotlin.math.sin(k * t + p)).toDouble() }.toFloat())
             // Squashed along the turned axis: stretched along it, narrowed across it
             val u = r * squash * kotlin.math.cos(t - axis)

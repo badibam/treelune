@@ -948,7 +948,7 @@ object InkTheme : ThemeContract {
         }
     }
 
-    /** A round traced by the brush; checked, a small seal of red. */
+    /** A round traced by the brush; checked, the same round holding a small round seal of red. */
     @Composable
     override fun Checkbox(checked: Boolean, onCheckedChange: (Boolean) -> Unit, label: String?) {
         val size = inkSize()
@@ -961,8 +961,8 @@ object InkTheme : ThemeContract {
             ) {
                 Box(modifier = Modifier.size(size.dp(22f)), contentAlignment = Alignment.Center) {
                     if (pressed) Box(Modifier.size(size.dp(22f)).background(c.pressedWash, BlobShape(CHECK_SEED)))
-                    if (checked) Seal(size.dp(18f), null)
-                    else Box(Modifier.size(size.dp(22f)).brushed(InkBrush.Shape.RING, size.dp(1.6f), c.ink))
+                    Box(Modifier.size(size.dp(22f)).brushed(InkBrush.Shape.RING, size.dp(1.6f), c.ink))
+                    if (checked) Seal(size.dp(13f), null, round = true)
                 }
                 label?.let { Line(it, size.body, c.ink) }
             }

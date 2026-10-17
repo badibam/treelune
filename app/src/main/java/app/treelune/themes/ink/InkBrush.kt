@@ -201,9 +201,10 @@ internal object InkBrush {
             Shape.VBAR -> { path.moveTo(w / 2, min(pad, h / 3)); path.lineTo(w / 2, h) }
             // A ring, beginning a little before the top
             Shape.RING -> {
+                // Round as a hand paints it, as every round thing of the theme is (HAND_ROUND)
                 val r = max(1f, min(w, h) / 2 - pad)
-                arc(path, w / 2, h / 2, r, -100f, 360f)
-                path.close()
+                path.addPath(blob(androidx.compose.ui.geometry.Offset(w / 2, h / 2), r, RING_SEED, HAND_ROUND, HAND_SQUASHING,
+                    start = Math.toRadians(-100.0).toFloat()))
             }
             Shape.PEBBLE -> {
                 val r = max(1f, min(w, h) / 2 - pad)
@@ -235,6 +236,9 @@ internal object InkBrush {
         val x = sin(i * 12.9898 + 78.233) * 43758.5453
         return (x - floor(x)).toFloat()
     }
+
+    /** The draw of a ring's roundness. */
+    private const val RING_SEED = 29
 
     /** The part of a turn an ensō covers, left open. */
     const val ENSO_SWEEP = 0.88f
