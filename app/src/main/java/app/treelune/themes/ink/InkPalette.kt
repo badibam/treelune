@@ -1,0 +1,141 @@
+package app.treelune.themes.ink
+
+import androidx.compose.runtime.Immutable
+import androidx.compose.ui.graphics.Color
+import app.treelune.core.themes.Lch
+import app.treelune.core.themes.PaletteMode
+import app.treelune.core.themes.TagColor
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlin.math.roundToInt
+
+/*
+ * The ink theme's palettes (docs/design/ink-theme.md): each a handful of numbers in OKLCH
+ * (palettes.json, a resource of this package, set on the bench themes/ink/bench/palettes.html,
+ * which derives the colours the same way), every colour derived from them here. Cream paper,
+ * black ink and a single seal red; a wash is ink laid thin on the paper. The hue shift turns the
+ * red and the paper's warmth, the ink following the paper's hue.
+ */
+
+/** The numbers of one palette, as palettes.json holds them. */
+@Serializable
+data class InkNumbers(
+    /** The red's hue. */
+    val hue: Float,
+    @SerialName("ground_lightness") val groundLightness: Float,
+    @SerialName("ground_chroma") val groundChroma: Float,
+    /** The hue of the paper's warmth, which the inks follow. */
+    @SerialName("ground_hue") val groundHue: Float,
+    @SerialName("ink_lightness") val inkLightness: Float,
+    @SerialName("ink_chroma") val inkChroma: Float,
+    /** The secondary ink: descriptions, labels, a field's name. */
+    @SerialName("dim_lightness") val dimLightness: Float,
+    /** The seal's red: the waiting mark, a checked box, a page's seal, danger, an interaction's corner. */
+    @SerialName("accent_lightness") val accentLightness: Float,
+    @SerialName("accent_chroma") val accentChroma: Float,
+    /** What is written on the red: the paper on the light palette, the ground on the dark one. */
+    @SerialName("on_accent_lightness") val onAccentLightness: Float,
+    /** The part of ink on the paper at the heart of a tile's wash. */
+    @SerialName("tile_wash") val tileWash: Float,
+    /** The part of ink of a card's wash, full under its text. */
+    @SerialName("card_wash") val cardWash: Float,
+    /** The part of ink of a gauge's track and of what is disabled. */
+    @SerialName("track_wash") val trackWash: Float,
+    /** A tag's small wash, at one lightness and chroma for all: a mark, held to 3 on the paper. */
+    @SerialName("tag_lightness") val tagLightness: Float,
+    @SerialName("tag_chroma") val tagChroma: Float,
+    /** The states' lightness and chroma: a text in them holds 4.5 on the paper. */
+    @SerialName("status_lightness") val statusLightness: Float,
+    @SerialName("status_chroma") val statusChroma: Float,
+)
+
+/** Every colour of one palette, the paper and the red turned [hueShift] degrees. */
+@Immutable
+class InkColors(val numbers: InkNumbers, hueShift: Int) {
+    private val paperHue = numbers.groundHue + hueShift
+
+    val ground = Lch(numbers.groundLightness, numbers.groundChroma, paperHue).srgb
+    val ink = Lch(numbers.inkLightness, numbers.inkChroma, paperHue).srgb
+    val dim = Lch(numbers.dimLightness, numbers.inkChroma, paperHue).srgb
+
+    val accent = Lch(numbers.accentLightness, numbers.accentChroma, numbers.hue + hueShift).srgb
+    val onAccent = Lch(numbers.onAccentLightness, numbers.groundChroma, paperHue).srgb
+
+    /** A tile's wash at its heart, a card's, a track's. */
+    val wash = mix(numbers.tileWash)
+    val cardWash = mix(numbers.cardWash)
+    val trackWash = mix(numbers.trackWash)
+
+    /** A wash one step darker: what the finger presses, what is lifted. */
+    val pressedWash = mix(numbers.tileWash + PRESS_STEP)
+
+    /** A dark wash for what is laid over the page (a toast, the selection bar): almost the ink. */
+    val deepWash = mix(DEEP)
+
+    val success = status(145f)
+    val warning = status(55f)
+    val error = status(25f)
+    val info = status(250f)
+
+    /** Muted is the secondary ink: what is off steps back. */
+    val muted: Color get() = dim
+
+    /** A tag's wash, its hue its meaning; a grey keeping a trace of the paper's hue. */
+    fun tag(color: TagColor): Color =
+        Lch(numbers.tagLightness, if (color == TagColor.GREY) GREY_CHROMA else numbers.tagChroma, TAG_HUES[color] ?: numbers.groundHue).srgb
+
+    /** The ink laid at [part] over the paper, mixed as the screen mixes them, on whole steps of 8 bits. */
+    fun mix(part: Float): Color {
+        fun channel(g: Float, i: Float) = ((g * (1f - part) + i * part) * 255f).roundToInt() / 255f
+        return Color(channel(ground.red, ink.red), channel(ground.green, ink.green), channel(ground.blue, ink.blue))
+    }
+
+    private fun status(statusHue: Float) = Lch(numbers.statusLightness, numbers.statusChroma, statusHue).srgb
+
+    private companion object {
+        /** A grey tag keeps a trace of chroma, so it is this palette's grey. */
+        const val GREY_CHROMA = 0.015f
+
+        /** The ink a press adds to a wash. */
+        const val PRESS_STEP = 0.06f
+
+        /** The part of ink of a dark wash. */
+        const val DEEP = 0.88f
+
+        /** The same hues as the other themes': a tag's hue is its meaning. */
+        val TAG_HUES = mapOf(
+            TagColor.RED to 25f, TagColor.ORANGE to 55f, TagColor.YELLOW to 95f, TagColor.GREEN to 145f,
+            TagColor.TEAL to 185f, TagColor.BLUE to 230f, TagColor.PURPLE to 300f, TagColor.PINK to 355f,
+        )
+    }
+}
+
+/** One palette of palettes.json: its id ("ink_light", "ink_dark"), its mode, its numbers. */
+@Serializable
+data class InkPaletteEntry(val id: String, val mode: PaletteMode, val numbers: InkNumbers)
+
+@Serializable
+private data class InkPaletteFile(val palettes: List<InkPaletteEntry>)
+
+/** The palettes of palettes.json, read once: one per mode. */
+object InkPalettes {
+
+    val entries: List<InkPaletteEntry> by lazy {
+        // An absolute path: the release build renames and moves this class out of its package,
+        // and a relative one would then be looked up beside the renamed class, where it is not.
+        val stream = InkPalettes::class.java.getResourceAsStream("/app/treelune/themes/ink/palettes.json")
+            ?: error("palettes.json is missing from the ink theme's resources")
+        val text = stream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+        Json { ignoreUnknownKeys = false }.decodeFromString(InkPaletteFile.serializer(), text).palettes
+    }
+
+    /** The colours derived so far, by mode and hue shift: a shift is chosen by dragging a slider. */
+    private val colors = java.util.concurrent.ConcurrentHashMap<Pair<PaletteMode, Int>, InkColors>()
+
+    /** The colours of [mode], the red and the paper turned [hueShift] degrees (Appearance.hueShift). */
+    fun colors(mode: PaletteMode, hueShift: Int): InkColors = colors.getOrPut(mode to hueShift) {
+        val numbers = entries.firstOrNull { it.mode == mode }?.numbers ?: error("no ink palette in ${mode.name}")
+        InkColors(numbers, hueShift % 360)
+    }
+}

@@ -2,6 +2,7 @@ package app.treelune.core.themes
 
 import app.treelune.themes.cosy.CosyTheme
 import app.treelune.themes.default.DefaultTheme
+import app.treelune.themes.ink.InkTheme
 import app.treelune.themes.retro.RetroTheme
 import app.treelune.themes.swiss.SwissTheme
 
@@ -28,6 +29,7 @@ object ThemeScanner {
             "retro" to RetroTheme,
             "cosy" to CosyTheme,
             "swiss" to SwissTheme,
+            "ink" to InkTheme,
         )
     }
     
