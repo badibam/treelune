@@ -322,12 +322,18 @@ private fun PlaceScreen(place: Place, zones: ZonesState, demoInstalled: Boolean)
  * A place's page: its ground, textured for a zone's or a tool's page (ThemeContract.PageGround,
  * docs/design/tool-texture.md), across the whole width; then every place the same margin from
  * the sides of the screen, given here once: a place's screen sets none of its own.
+ *
+ * The page is moved whole from one theme's ground to another's when the theme changes, as the
+ * screens are from one frame to another (MainActivity): each theme draws PageGround its own way,
+ * and without moving it the place's screen would start over, the interface settings being edited
+ * among them, which would take the choice for one left unsaved and put the stored theme back.
  */
 @Composable
 private fun Page(texture: ItemTexture?, content: @Composable () -> Unit) {
-    CurrentTheme.current.PageGround(texture) {
-        Box(modifier = Modifier.fillMaxSize().padding(horizontal = UI.Space.EDGE)) { content() }
-    }
+    val page = remember { movableContentOf { shown: @Composable () -> Unit ->
+        Box(modifier = Modifier.fillMaxSize().padding(horizontal = UI.Space.EDGE)) { shown() }
+    } }
+    CurrentTheme.current.PageGround(texture) { page(content) }
 }
 
 /**
