@@ -22,6 +22,7 @@
     <string name="action_validate">Validate</string>
     <string name="action_confirm">Confirm</string>
     <string name="action_send">Send</string>
+    <string name="action_stats">Statistics</string>
     <string name="action_select_icon">Choose an icon</string>
     <string name="action_create_zone">Create zone</string>
     <string name="action_edit_zone">Edit zone</string>
@@ -117,9 +118,7 @@
     <string name="ai_session_default_name">Chat Session</string>
 
     <!-- AI Interface - Settings Menu -->
-    <string name="ai_settings_menu_title">Settings</string>
-    <string name="ai_settings_costs">Costs</string>
-    <string name="ai_settings_session">Session settings</string>
+    <string name="ai_settings_session">Conversation settings</string>
 
     <!-- AI Status - Processing and State -->
     <string name="ai_status_processing">Processing...</string>
@@ -2164,10 +2163,6 @@
     <string name="session_reasoning_title">Reasoning</string>
     <string name="session_reasoning_follow_provider">As set for the AI provider</string>
     <string name="session_reasoning_help">Applies to the rest of this conversation, in place of the AI provider\'s setting.</string>
-    <string name="session_reasoning_summary">Reasoning: %1$s</string>
-    <string name="session_reasoning_summary_provider">as set for the provider</string>
-    <string name="session_reasoning_summary_off">no thinking, effort %1$s</string>
-    <string name="session_reasoning_summary_effort">effort %1$s</string>
     <string name="session_reasoning_error">Failed to change the reasoning</string>
     <string name="ai_session_reasoning_refused_shown">The reasoning set for this conversation does not suit the AI\'s current model: change it in the conversation\'s settings.</string>
     <string name="automation_access_all">Access: all</string>

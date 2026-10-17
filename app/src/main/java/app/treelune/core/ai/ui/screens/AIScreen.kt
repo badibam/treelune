@@ -996,7 +996,7 @@ private fun ChatOptionsDialog(
 
 /**
  * Chat header - Session controls, validation toggle, stats. Its buttons in order: [identity]
- * (who speaks), the history, the settings, stop, close.
+ * (who speaks), the history, the stats, the settings, stop, close.
  */
 @Composable
 private fun ChatHeader(
@@ -1010,7 +1010,6 @@ private fun ChatHeader(
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     var showStopConfirmation by rememberSaveable { mutableStateOf(false) }
-    var showSettingsMenu by rememberSaveable { mutableStateOf(false) }
     var showSessionSettings by rememberSaveable { mutableStateOf(false) }
     // What the session adds to the protections, as stored: the active session reaches this
     // header built from the AI's state alone, without its settings
@@ -1056,23 +1055,6 @@ private fun ChatHeader(
                 )
             }
         }
-    }
-
-    // Settings menu dialog
-    if (showSettingsMenu) {
-        app.treelune.core.ai.ui.chat.SettingsMenuDialog(
-            session = session,
-            reasoning = reasoning,
-            onDismiss = { showSettingsMenu = false },
-            onShowCosts = {
-                showSettingsMenu = false
-                onShowStats()
-            },
-            onShowSessionSettings = {
-                showSettingsMenu = false
-                showSessionSettings = true
-            }
-        )
     }
 
     // Session settings dialog
@@ -1151,12 +1133,20 @@ private fun ChatHeader(
             )
         }
 
-        // Settings button
+        // What the conversation cost
+        UI.ActionButton(
+            action = ButtonAction.STATS,
+            display = ButtonDisplay.ICON,
+            size = Size.M,
+            onClick = onShowStats
+        )
+
+        // Its settings, all on one dialog
         UI.ActionButton(
             action = ButtonAction.CONFIGURE,
             display = ButtonDisplay.ICON,
             size = Size.M,
-            onClick = { showSettingsMenu = true }
+            onClick = { showSessionSettings = true }
         )
 
         // Stop button

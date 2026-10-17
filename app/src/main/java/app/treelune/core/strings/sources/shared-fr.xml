@@ -22,6 +22,7 @@
     <string name="action_validate">Valider</string>
     <string name="action_confirm">Confirmer</string>
     <string name="action_send">Envoyer</string>
+    <string name="action_stats">Statistiques</string>
     <string name="action_select_icon">Choisir une icône</string>
     <string name="action_create_zone">Créer Zone</string>
     <string name="action_edit_zone">Modifier Zone</string>
@@ -117,9 +118,7 @@
     <string name="ai_session_default_name">Chat Session</string>
 
     <!-- AI Interface - Settings Menu -->
-    <string name="ai_settings_menu_title">Paramètres</string>
-    <string name="ai_settings_costs">Coûts</string>
-    <string name="ai_settings_session">Paramètres session</string>
+    <string name="ai_settings_session">Paramètres de la conversation</string>
 
     <!-- AI Status - Processing and State -->
     <string name="ai_status_processing">Traitement en cours...</string>
@@ -2164,10 +2163,6 @@
     <string name="session_reasoning_title">Réflexion</string>
     <string name="session_reasoning_follow_provider">Comme réglée pour le fournisseur d\'IA</string>
     <string name="session_reasoning_help">Vaut pour la suite de cette conversation, à la place du réglage du fournisseur d\'IA.</string>
-    <string name="session_reasoning_summary">Réflexion : %1$s</string>
-    <string name="session_reasoning_summary_provider">comme réglée pour le fournisseur</string>
-    <string name="session_reasoning_summary_off">sans réflexion, effort %1$s</string>
-    <string name="session_reasoning_summary_effort">effort %1$s</string>
     <string name="session_reasoning_error">Échec du changement de la réflexion</string>
     <string name="ai_session_reasoning_refused_shown">La réflexion réglée pour cette conversation ne convient pas au modèle actuel de l\'IA : change-la dans les paramètres de la conversation.</string>
     <string name="automation_access_all">Accès : tout</string>

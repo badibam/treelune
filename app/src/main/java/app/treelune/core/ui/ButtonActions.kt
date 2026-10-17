@@ -17,7 +17,7 @@ fun ButtonAction.defaultType(): ButtonType {
         ButtonAction.DELETE, ButtonAction.STOP -> ButtonType.DANGER
 
         // DEFAULT: Actions neutres/navigation standard
-        ButtonAction.CANCEL, ButtonAction.BACK, ButtonAction.REFRESH, ButtonAction.RESET, ButtonAction.LEFT, ButtonAction.RIGHT, ButtonAction.UP, ButtonAction.DOWN, ButtonAction.ARRANGE, ButtonAction.INTERRUPT, ButtonAction.PAUSE, ButtonAction.RESUME, ButtonAction.VIEW, ButtonAction.HISTORY, ButtonAction.GUIDE, ButtonAction.COPY, ButtonAction.IDENTITY -> ButtonType.DEFAULT
+        ButtonAction.CANCEL, ButtonAction.BACK, ButtonAction.REFRESH, ButtonAction.RESET, ButtonAction.LEFT, ButtonAction.RIGHT, ButtonAction.UP, ButtonAction.DOWN, ButtonAction.ARRANGE, ButtonAction.INTERRUPT, ButtonAction.PAUSE, ButtonAction.RESUME, ButtonAction.VIEW, ButtonAction.HISTORY, ButtonAction.GUIDE, ButtonAction.COPY, ButtonAction.IDENTITY, ButtonAction.STATS -> ButtonType.DEFAULT
     }
 }
 
@@ -65,6 +65,7 @@ fun ButtonAction.label(): String {
         ButtonAction.COPY -> s.shared("action_copy")
         ButtonAction.IDENTITY -> s.shared("label_identity")
         ButtonAction.SEND -> s.shared("action_send")
+        ButtonAction.STATS -> s.shared("action_stats")
     }
 }
 

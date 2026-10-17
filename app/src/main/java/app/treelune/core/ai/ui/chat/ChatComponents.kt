@@ -4,6 +4,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -346,81 +348,6 @@ fun ChatInterruptButton() {
 }
 
 /**
- * Settings menu dialog - lists settings options
- */
-@Composable
-fun SettingsMenuDialog(
-    session: AISession?,
-    reasoning: SessionReasoning?,
-    onDismiss: () -> Unit,
-    onShowCosts: () -> Unit,
-    onShowSessionSettings: () -> Unit
-) {
-    val context = LocalContext.current
-    val s = remember { Strings.`for`(context = context) }
-
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(
-            dismissOnBackPress = true,
-            dismissOnClickOutside = true
-        )
-    ) {
-        UI.Card(type = CardType.DEFAULT) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .scrollEndSound()
-                    .padding(UI.Space.L),
-                verticalArrangement = Arrangement.spacedBy(UI.Space.M)
-            ) {
-                // Header
-                UI.Text(
-                    text = s.shared("ai_settings_menu_title"),
-                    type = TextType.TITLE
-                )
-
-                // Option 1: Costs
-                UI.Button(
-                    type = ButtonType.DEFAULT,
-                    onClick = onShowCosts
-                ) {
-                    UI.Text(
-                        text = s.shared("ai_settings_costs"),
-                        type = TextType.BODY
-                    )
-                }
-
-                // Option 2: Session settings
-                UI.Button(
-                    type = ButtonType.DEFAULT,
-                    onClick = onShowSessionSettings
-                ) {
-                    Column {
-                        UI.Text(
-                            text = s.shared("ai_settings_session"),
-                            type = TextType.BODY
-                        )
-                        // The reasoning in use, without opening them
-                        UI.Text(
-                            text = s.shared("session_reasoning_summary").format(reasoningSummary(reasoning, s)),
-                            type = TextType.CAPTION
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-/** [reasoning] in a few words: the provider's, or thinking off and the effort. */
-private fun reasoningSummary(reasoning: SessionReasoning?, s: app.treelune.core.strings.StringsContext): String {
-    if (reasoning == null) return s.shared("session_reasoning_summary_provider")
-    val effort = reasoning.effort ?: s.shared("ai_provider_effort_default")
-    return s.shared(if (reasoning.thinkingOff) "session_reasoning_summary_off" else "session_reasoning_summary_effort").format(effort)
-}
-
-/**
  * Session settings dialog - validation toggle, the provider the conversation calls and the
  * reasoning it asks of its model
  *
@@ -439,58 +366,32 @@ fun SessionSettingsDialog(
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
 
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(
-            dismissOnBackPress = true,
-            dismissOnClickOutside = true
-        )
-    ) {
-        UI.Card(type = CardType.DEFAULT) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .scrollEndSound()
-                    .padding(UI.Space.L),
-                verticalArrangement = Arrangement.spacedBy(UI.Space.L)
-            ) {
-                // Header
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    UI.Text(
-                        text = s.shared("ai_settings_session"),
-                        type = TextType.TITLE
-                    )
-                    UI.ActionButton(
-                        action = ButtonAction.CANCEL,
-                        display = ButtonDisplay.ICON,
-                        size = Size.S,
-                        onClick = onDismiss
-                    )
-                }
+    // Each setting is stored as it is touched: OK closes, with nothing left to confirm or undo
+    UI.Dialog(type = DialogType.INFO, onConfirm = onDismiss, onCancel = onDismiss) {
+        Column(
+            modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(UI.Space.L)
+        ) {
+            UI.Text(text = s.shared("ai_settings_session"), type = TextType.TITLE, fillMaxWidth = true)
 
-                // What this conversation adds to the protections: each box a level, for every object of it
-                Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
-                    UI.Text(text = s.shared("session_validation_title"), type = TextType.HEADING)
-                    UI.Checkbox(checked = validation.app, onCheckedChange = { onValidationChange(validation.copy(app = it)) }, label = s.shared("session_validation_app"))
-                    UI.Checkbox(checked = validation.zones, onCheckedChange = { onValidationChange(validation.copy(zones = it)) }, label = s.shared("session_validation_zones"))
-                    UI.Checkbox(checked = validation.data, onCheckedChange = { onValidationChange(validation.copy(data = it)) }, label = s.shared("session_validation_data"))
-                    UI.Text(text = s.shared("session_validation_help"), type = TextType.CAPTION)
-                }
-
-                // The providers, and the one it calls: its own, or the default it would take
-                var providers by remember { mutableStateOf<List<Map<*, *>>?>(null) }
-                LaunchedEffect(Unit) {
-                    providers = (app.treelune.core.coordinator.Coordinator(context).processUserAction("ai_provider_config.list")
-                        .data?.get("providers") as? List<*>).orEmpty().map { it as Map<*, *> }
-                }
-                val calls = providerId ?: providers?.firstOrNull { it["is_default"] == true }?.get("id") as String?
-                SessionProviderSettings(providers, calls, onProviderChange)
-                calls?.let { SessionReasoningSettings(it, reasoning, onReasoningChange) }
+            // What this conversation adds to the protections: each box a level, for every object of it
+            Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+                UI.Text(text = s.shared("session_validation_title"), type = TextType.HEADING)
+                UI.Checkbox(checked = validation.app, onCheckedChange = { onValidationChange(validation.copy(app = it)) }, label = s.shared("session_validation_app"))
+                UI.Checkbox(checked = validation.zones, onCheckedChange = { onValidationChange(validation.copy(zones = it)) }, label = s.shared("session_validation_zones"))
+                UI.Checkbox(checked = validation.data, onCheckedChange = { onValidationChange(validation.copy(data = it)) }, label = s.shared("session_validation_data"))
+                UI.Text(text = s.shared("session_validation_help"), type = TextType.CAPTION)
             }
+
+            // The providers, and the one it calls: its own, or the default it would take
+            var providers by remember { mutableStateOf<List<Map<*, *>>?>(null) }
+            LaunchedEffect(Unit) {
+                providers = (app.treelune.core.coordinator.Coordinator(context).processUserAction("ai_provider_config.list")
+                    .data?.get("providers") as? List<*>).orEmpty().map { it as Map<*, *> }
+            }
+            val calls = providerId ?: providers?.firstOrNull { it["is_default"] == true }?.get("id") as String?
+            SessionProviderSettings(providers, calls, onProviderChange)
+            calls?.let { SessionReasoningSettings(it, reasoning, onReasoningChange) }
         }
     }
 }
