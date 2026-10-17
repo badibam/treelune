@@ -1008,6 +1008,8 @@ private fun ChatHeader(
     var reasoning by remember(session.id) { mutableStateOf(session.reasoning) }
     // The provider it calls, null before its first message
     var providerId by remember(session.id) { mutableStateOf(session.providerId) }
+    // Its name: the active session reaches this header without it
+    var title by remember(session.id) { mutableStateOf(session.name) }
     LaunchedEffect(session.id) {
         val result = app.treelune.core.coordinator.Coordinator(context).processUserAction("ai_sessions.get_session", mapOf("session_id" to session.id))
         val stored = result.data?.get("session") as? Map<*, *>
@@ -1015,6 +1017,7 @@ private fun ChatHeader(
             validation = SessionValidation.fromMap(stored)
             reasoning = SessionReasoning.fromMap(stored[SessionReasoning.KEY] as? Map<*, *>)
             providerId = stored["provider_id"] as String?
+            title = stored["name"] as String
         } else LogManager.aiUI("ChatHeader: session ${session.id} not read: ${result.error}", "ERROR")
     }
 
@@ -1116,7 +1119,7 @@ private fun ChatHeader(
     }
 
     // Header row; the phase is said over the composer (SessionStatusBar)
-    TitledHeaderBar(session.name) {
+    TitledHeaderBar(title) {
 
         // Who speaks: its identity, the app's AI otherwise
         identity()
@@ -1230,10 +1233,15 @@ private fun AutomationHeader(
 ) {
     val context = LocalContext.current
     // The routine's name once read; that it runs is said at the bottom (SessionStatusBar)
+    // The active session reaches this header without its routine: read from the stored session
     var title by remember(session.id) { mutableStateOf(session.name) }
-    LaunchedEffect(session.automationId) {
-        val id = session.automationId ?: return@LaunchedEffect
-        val result = app.treelune.core.coordinator.Coordinator(context).processUserAction("automations.get", mapOf("automation_id" to id))
+    LaunchedEffect(session.id) {
+        val coordinator = app.treelune.core.coordinator.Coordinator(context)
+        val id = session.automationId
+            ?: (coordinator.processUserAction("ai_sessions.get_session", mapOf("session_id" to session.id)).data?.get("session") as? Map<*, *>)
+                ?.get("automation_id") as? String
+            ?: return@LaunchedEffect
+        val result = coordinator.processUserAction("automations.get", mapOf("automation_id" to id))
         ((result.data?.get("automation") as? Map<*, *>)?.get("name") as? String)?.let { title = it }
     }
 
