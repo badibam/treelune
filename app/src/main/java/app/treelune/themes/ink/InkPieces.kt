@@ -236,12 +236,12 @@ internal fun DrawScope.drawSpread(color: Color, center: Offset, box: Size = size
 
 /**
  * A dab of gouache in [color] under what it is put on, reaching past it by [reach] of its smaller
- * side: opaque, flat and matte, its edge clean but irregular, a few lobes drawn from [seed] so that
+ * side: opaque, flat and matte, a disc painted by hand ([HAND_ROUND]) drawn from [seed] so that
  * each thing keeps its own dab. Paint, not light: a transparent colour lightening the dark paper, or
  * fading from a bright heart, read as a glow. It takes no room of its own.
  */
 internal fun Modifier.gouache(color: Color, seed: Int, reach: Float = 0.66f): Modifier = drawBehind {
-    drawPath(blob(center, min(size.width, size.height) * reach, seed), color)
+    drawPath(blob(center, min(size.width, size.height) * reach, seed, HAND_ROUND, HAND_SQUASHING), color)
 }
 
 /**
@@ -251,21 +251,21 @@ internal fun Modifier.gouache(color: Color, seed: Int, reach: Float = 0.66f): Mo
  */
 internal class BlobShape(private val seed: Int) : Shape {
     override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline =
-        Outline.Generic(blob(Offset(size.width / 2, size.height / 2), min(size.width, size.height) * 0.49f, seed, HAND_ROUND, squashing = 0.06f))
+        Outline.Generic(blob(Offset(size.width / 2, size.height / 2), min(size.width, size.height) * 0.49f, seed, HAND_ROUND, HAND_SQUASHING))
 }
 
-/** A dab's waves round its edge, (waves round, part of the radius): a few wide lobes. */
-internal val DAB = listOf(2 to 0.07f, 3 to 0.05f, 5 to 0.03f)
-
-/** A disc painted by hand: a faint oval, a slight lopsidedness, and a fine tremor of the hand. */
+/** A disc painted by hand, its waves round its edge (waves round, part of the radius): a faint oval, a slight lopsidedness, and a fine tremor of the hand. */
 internal val HAND_ROUND = listOf(2 to 0.018f, 3 to 0.012f, 7 to 0.006f, 11 to 0.004f)
+
+/** How far a disc painted by hand may be oval. */
+internal const val HAND_SQUASHING = 0.06f
 
 /**
  * A closed blob round [center], [radius] about: its edge [waves] (each a number of waves round it and
  * its part of the radius), squashed by up to [squashing] along an axis turned at random, all drawn
  * from [seed].
  */
-internal fun blob(center: Offset, radius: Float, seed: Int, waves: List<Pair<Int, Float>> = DAB, squashing: Float = 0.14f): Path {
+internal fun blob(center: Offset, radius: Float, seed: Int, waves: List<Pair<Int, Float>>, squashing: Float): Path {
     val random = java.util.Random(seed.toLong())
     // The waves round the edge, each at its own phase
     val phased = waves.map { (k, a) -> Triple(k, a, random.nextFloat() * 2 * Math.PI.toFloat()) }
