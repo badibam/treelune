@@ -124,7 +124,6 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 
 ## En attente d'un déclencheur
 
-- L'italique du rétro, droit pour l'instant : quand le projet `cartouche-font` aura compilé `ttf/cartouche_italic.ttf` (sa passation, `docs/design/italic.md`), le copier dans `res/font/`, l'ajouter à `scripts/check_font_copy.py`, le déclarer dans la famille `Cartouche` (`RetroGrid.kt`) et le prendre dans `RetroTheme.emphasis`.
 - Un filtre qui compare un champ à une variable ou à une lecture (« kcal > objectif_calorique ») : `EntryFilters.parse` le refuse, `ConditionPicker` n'offre qu'une valeur écrite — quand un pointeur ou une variable en a besoin ; le terme se lit alors une fois à la référence du contexte (`TermReader`).
 
 

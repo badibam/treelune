@@ -405,7 +405,7 @@ Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la po
 
 ## Le gras et l'italique d'un texte lu (branche text-emphasis)
 
-- Une identité en Markdown (`**gras**`, `*italique*`, `***les deux***`, un gras dans un titre `##`), puis le Guide, dans les cinq thèmes et les deux modes : le gras et l'italique se voient sans casser la ligne ; défaut, suisse et encre en vrai italique, cosy penché par Android (la pente de la planche du 2026-10-17), rétro le gras à l'encre vive et l'italique droit ; un titre de section du suisse reste en capitales.
+- Une identité en Markdown (`**gras**`, `*italique*`, `***les deux***`, un gras dans un titre `##`), puis le Guide, dans les cinq thèmes et les deux modes : le gras et l'italique se voient sans casser la ligne ; défaut, suisse et encre en vrai italique, cosy penché par Android (la pente de la planche du 2026-10-17), rétro le gras à l'encre vive et l'italique de Cartouche, ses pixels entiers, ni coupé au début ni à la fin d'une ligne, ni collé à la lettre droite qui le suit ; un titre de section du suisse reste en capitales.
 - Un passage sélectionné qui traverse un gras se copie sans ses marques.
 
 ## Les conditions typées à l'écriture (branche typed-conditions, `docs/design/typed-conditions.md`)

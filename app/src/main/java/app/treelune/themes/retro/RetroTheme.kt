@@ -321,14 +321,13 @@ object RetroTheme : ThemeContract {
     }
 
     /**
-     * Cartouche has no bold: a bold run is written in the strong ink, as STRONG is. It has no
-     * italic yet either, and a slant drawn by Android would put the pixels off the grid: an italic
-     * run stays upright until Cartouche has its own (cartouche-font, docs/design/italic.md).
+     * Cartouche has no bold: a bold run is written in the strong ink, as STRONG is. Its italic is
+     * its own, slanted on the pixel grid; there is none of the Thin, which no read text is in.
      */
     @Composable
     override fun emphasis(emphasis: Emphasis): SpanStyle = when (emphasis) {
         Emphasis.BOLD -> SpanStyle(color = retroSurface.strong.srgb)
-        Emphasis.ITALIC -> SpanStyle()
+        Emphasis.ITALIC -> SpanStyle(fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
     }
 
     /**
