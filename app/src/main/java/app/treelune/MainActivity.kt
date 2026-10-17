@@ -181,15 +181,14 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                         // The end of any list of the screens heard
-                        androidx.compose.foundation.layout.Column(androidx.compose.ui.Modifier.fillMaxSize().scrollEndSound()) {
+                        androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.fillMaxSize().scrollEndSound()) {
+                            MainScreen(openToolId = openToolId, openEntryId = openEntryId, onToolOpened = { openToolId = null; openEntryId = null }, openPlace = openPlace, onPlaceOpened = { openPlace = null })
+                            // A long operation running, floating over the screen without moving it
                             app.treelune.core.ui.components.LongOperationBar()
-                            androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.weight(1f)) {
-                                MainScreen(openToolId = openToolId, openEntryId = openEntryId, onToolOpened = { openToolId = null; openEntryId = null }, openPlace = openPlace, onPlaceOpened = { openPlace = null })
-                                // A request for external access waiting for its code, over any screen
-                                app.treelune.core.mcp.ui.McpApprovalDialog()
-                                // Android restricting the app in the background, told once each time it begins
-                                app.treelune.core.ui.components.BackgroundRestrictionDialog()
-                            }
+                            // A request for external access waiting for its code, over any screen
+                            app.treelune.core.mcp.ui.McpApprovalDialog()
+                            // Android restricting the app in the background, told once each time it begins
+                            app.treelune.core.ui.components.BackgroundRestrictionDialog()
                         }
                     }
                 }

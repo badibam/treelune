@@ -22,7 +22,6 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 ## Bugs
 
 - Réglages › Interface : un thème choisi, vu, enregistré, et l'ancien revient ; une seconde fois, ça tient (2026-10-09, pas reproduit, peut-être dans la release). Au prochain cas, lire dans le journal les lignes « Theme applied » : laquelle a remis l'ancien (STORED, PREVIEW, LEFT_UNSAVED).
-- La sauvegarde automatique s'affiche « Action inconnue » dans la bande d'une opération longue (`LongOperationBar`), `BackupService.verbalize` ne nommant pas l'opération `auto` ; et cette bande, posée en haut de chaque écran, le pousse vers le bas à chaque sauvegarde — à trancher : la bande par-dessus l'écran, ou pas de bande pour une opération que l'utilisateur n'a pas lancée.
 - Accès externe : « Fermer l'accès » touché ne montre rien pendant plusieurs secondes, puis l'état change ; l'écran doit dire tout de suite que la fermeture est en cours.
 
 ## À passer sur le téléphone
@@ -60,6 +59,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - Les textures d'outil et de zone (`docs/design/tool-texture.md`, branche tool-texture) : les tons réglés d'abord au banc des textures (`./run themes`), dans les trois thèmes et les deux modes, puis la section « Les textures » de la recette ; passé, élaguer la spec.
 - Les lectures envoyées une fois par session (`SessionReads`, branche read-once) : la section du même nom de la recette.
 - Les incarnations (`docs/design/incarnations.md`, branche incarnations) : la dernière section de la recette, l'identité de Stan Prokopenko importée et le coût d'un tour mesuré pour personae ; passé, élaguer la spec. L'import attend que personae exporte au format 2 du fichier d'identité (`docs/IDENTITY_FILE.md`), le format 1 n'étant plus lu.
+- Les bugs du téléphone du 2026-10-17 : la section du même nom de la recette.
 
 ## Conçu, à coder
 

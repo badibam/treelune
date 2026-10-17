@@ -42,7 +42,7 @@ Ce que la suite de tests ne voit pas : les écrans, les migrations sur une vraie
 
 - Deux `./run install` de suite, la démo seule à l'accueil : chaque fois la démo se réinstalle entière, sans toast d'erreur sur les groupes de zones. Réglages : retirer le dernier groupe de zones s'enregistre.
 - Réglages › Démo : désactiver « Installer la démo à chaque mise à jour » et enregistrer ne supprime rien, la démo reste ; réinstaller l'APK la laisse telle quelle ; réactiver le réglage n'installe rien avant la mise à jour suivante.
-- Réglages › Démo : « Réinstaller » puis revenir en arrière aussitôt : une bande en haut de chaque écran dit « Installation de la démo » et son étape jusqu'à la fin, puis un toast dit qu'elle est terminée ; la démo est entière. Revenir dans Réglages › Démo pendant l'installation : les boutons attendent, la roue et l'étape s'affichent.
+- Réglages › Démo : « Réinstaller » puis revenir en arrière aussitôt : une carte en bas à gauche de chaque écran, sans rien déplacer et sans toucher le bouton de conversation, dit « Installation de la démo » et son étape jusqu'à la fin, puis un toast dit qu'elle est terminée ; la démo est entière. Revenir dans Réglages › Démo pendant l'installation : les boutons attendent, la roue et l'étape s'affichent.
 - Ajouter une entrée dans un outil de la démo et un outil dans une de ses zones, puis Réglages › Démo › « Supprimer la démo » : la démo et ces deux ajouts disparaissent, le reste de l'app est intact ; « Réinstaller » la remet entière.
 - Chaque suivi de la démo, sauf Repas, montre un raccourci d'ajout rapide nommé comme ses entrées : Verre ajoute 1, Pesée et Récolte ouvrent la saisie dans leur unité, Nuit lance un chrono.
 - Pendant un import d'un gros fichier (Données structurées), lancer « Réinstaller » la démo ou exporter une sauvegarde : refusé, le message nomme l'import en cours ; la bande compte les lignes écrites par 500.
@@ -393,3 +393,7 @@ Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la po
 - Même conversation : ajouter un champ à l'écran, revenir, demander une entrée : le schéma revient avant l'écriture, « il remplace », et l'entrée porte le champ.
 - Une conversation avec une identité : « lis ton lexique », modifier la ressource à l'écran, « relis ton lexique » : le nouveau texte, « il remplace » ; la redemander : « déjà dans cette session ».
 - Une conversation commencée avant cette version : un schéma déjà lu y repart une fois en entier, puis « déjà inclus ».
+
+## Les bugs du téléphone du 2026-10-17
+
+- La sauvegarde automatique, dossier choisi, données inchangées depuis plus d'une heure : la carte « Sauvegarde automatique » paraît une fois, puis plus avant une heure, et non plus à chaque minute ; dans le journal, une seule lecture de la base par heure. Une donnée changée : la copie s'écrit au tour de l'heure suivant.

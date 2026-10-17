@@ -166,7 +166,7 @@ fun MainScreen(openToolId: String? = null, openEntryId: String? = null, onToolOp
             if (base.chatButton && Navigator.top != Place.Chat && !ChatButton.hidden && !app.treelune.core.ui.keyboardOpen()) {
                 val density = androidx.compose.ui.platform.LocalDensity.current
                 Box(modifier = Modifier.align(Alignment.BottomEnd).padding(UI.Space.L)
-                    .onSizeChanged { ChatButton.height = with(density) { it.height.toDp() } }) {
+                    .onSizeChanged { with(density) { ChatButton.height = it.height.toDp(); ChatButton.width = it.width.toDp() } }) {
                     UI.FloatingButton(action = ButtonAction.AI_CHAT, onClick = { Navigator.push(Place.Chat) })
                     // Marked while the chat has an AI message not shown yet
                     if (app.treelune.core.ui.waiting(app.treelune.core.ui.WaitingSource.CHAT)) Box(modifier = Modifier.align(Alignment.TopEnd)) { UI.WaitingMark() }

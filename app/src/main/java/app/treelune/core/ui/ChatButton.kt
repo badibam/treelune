@@ -24,6 +24,9 @@ object ChatButton {
     /** The button's height as drawn by the theme, measured where it is placed (MainScreen). */
     var height by mutableStateOf(0.dp)
 
+    /** Its width, measured with it: what floats beside it (LongOperationBar) stops short of it. */
+    var width by mutableStateOf(0.dp)
+
     private var hiders by mutableIntStateOf(0)
 
     /** Whether something on screen asked for the button to go. */
