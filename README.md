@@ -70,7 +70,7 @@ You lay out each zone's tiles as you like, choose each tool's icon and colour, a
 
 Download the latest version's APK from the [releases page](https://github.com/badibam/treelune/releases), or build the app from source (see below). It is not on F-Droid yet.
 
-On first launch, a **demo** is waiting: twelve weeks in the life of Camille, who trains for a half marathon, works freelance, cooks and grows things on her balcony. There you see what the app looks like once built. Then the **Guide** (the book at the top of the home screen) is followed step by step: the demo, a first zone, a first tool, then the AI and routines.
+On first launch, a **demo** is waiting: twelve weeks in the life of Camille, who trains for a half marathon, works freelance, cooks, grows things on her balcony and learns Italian before a trip to Rome. There you see what the app looks like once built. Then the **Guide** (the book at the top of the home screen) is followed step by step: the demo, a first zone, a first tool, then the AI and routines.
 
 ## Your data
 
