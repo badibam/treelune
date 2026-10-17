@@ -2032,6 +2032,7 @@
     <string name="external_access_state_open">Ouvert. Se ferme seul après 30 minutes sans appel.</string>
     <string name="external_access_state_open_last">Ouvert, dernier appel %1$s. Se ferme seul après 30 minutes sans appel.</string>
     <string name="external_access_state_failed">Fermé après un échec : %1$s</string>
+    <string name="external_access_state_closing">Fermeture de l\'accès…</string>
     <string name="external_access_no_relay">Donne d\'abord l\'adresse du relais (https) et son secret.</string>
     <string name="external_access_secret_unreadable">Le secret du relais ne s\'ouvre pas sur ce téléphone : il a été enregistré sur un autre (une sauvegarde restaurée). Saisis-le à nouveau.</string>
     <string name="external_access_tailscale_unavailable">Tailscale n\'est pas disponible pour le processeur de ce téléphone : choisis le relais.</string>

@@ -22,6 +22,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import java.io.File
 import java.security.SecureRandom
 
@@ -42,6 +43,8 @@ object McpAccess {
         data class Preparing(val step: TailscaleNode.Step) : State
         /** Open at [address] (https://…, no trailing slash) since [openedAt]; [lastCallAt] the last call that did something */
         data class Open(val address: String, val openedAt: Long, val lastCallAt: Long?) : State
+        /** Asked to close, until the node or the relay's wait lets go: seconds, which the screen says */
+        data object Closing : State
         /** Closed by a failure, said in [message] */
         data class Failed(val message: String) : State
     }
@@ -99,13 +102,23 @@ object McpAccess {
 
     /** Opens the access: the service starts, and runs the loop. */
     fun open(context: Context) {
-        if (_state.value is State.Open || _state.value is State.Preparing) return
+        if (_state.value is State.Open || _state.value is State.Preparing || _state.value is State.Closing) return
         ContextCompat.startForegroundService(context, Intent(context, McpAccessService::class.java))
     }
 
     /** Closes the access: the service stops, and the relay's next requests find no one. */
     fun close(context: Context) {
         context.startService(Intent(context, McpAccessService::class.java).setAction(McpAccessService.ACTION_CLOSE))
+    }
+
+    /** The close asked of the running access ([McpAccessService]), said at once: open or preparing, it is closing. */
+    internal fun closing() {
+        _state.update { if (it is State.Open || it is State.Preparing) State.Closing else it }
+    }
+
+    /** [next], unless a close was asked meanwhile: an access closing is not seen open again. */
+    private fun advance(next: State) {
+        _state.update { if (it is State.Closing) it else next }
     }
 
     /**
@@ -123,7 +136,7 @@ object McpAccess {
                     return
                 }
                 val address = try {
-                    TailscaleNode.open(context, RelayLoop.IDLE_LIMIT, System::currentTimeMillis) { _state.value = State.Preparing(it) }
+                    TailscaleNode.open(context, RelayLoop.IDLE_LIMIT, System::currentTimeMillis) { advance(State.Preparing(it)) }
                 } catch (e: TailscaleNode.Failed) {
                     LogManager.service("External access: the Tailscale node failed: ${e.message}", "WARN", e)
                     _state.value = State.Failed(e.message ?: "")
@@ -156,7 +169,7 @@ object McpAccess {
         } finally {
             _published.value = null
             if (tailscale && FunnelNative.available) TailscaleNode.close(context)
-            if (_state.value is State.Open || _state.value is State.Preparing) _state.value = State.Closed
+            if (_state.value is State.Open || _state.value is State.Preparing || _state.value is State.Closing) _state.value = State.Closed
         }
     }
 
@@ -164,11 +177,11 @@ object McpAccess {
     private suspend fun serve(context: Context, s: app.treelune.core.strings.StringsContext, base: String, transport: RelayTransport, onActivity: (Long) -> Unit) {
         val openedAt = System.currentTimeMillis()
         var lastActivity = openedAt
-        _state.value = State.Open(base, openedAt, null)
+        advance(State.Open(base, openedAt, null))
         val server = McpServer(AppMcpBackend(context), ContextTokens(contextKey(context), System::currentTimeMillis), versionName(context))
         val http = McpHttp(base, oauth(context), server, s::shared, log = { LogManager.service("External access: $it", "INFO") }) {
             lastActivity = System.currentTimeMillis()
-            _state.value = State.Open(base, openedAt, lastActivity)
+            advance(State.Open(base, openedAt, lastActivity))
             onActivity(lastActivity)
         }
         try {
@@ -183,7 +196,7 @@ object McpAccess {
         } catch (e: RelayRefused) {
             _state.value = State.Failed(s.shared("external_access_relay_refused"))
         } finally {
-            if (_state.value is State.Open) _state.value = State.Closed
+            if (_state.value is State.Open || _state.value is State.Closing) _state.value = State.Closed
         }
     }
 

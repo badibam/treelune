@@ -22,7 +22,6 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 ## Bugs
 
 - Réglages › Interface : un thème choisi, vu, enregistré, et l'ancien revient ; une seconde fois, ça tient (2026-10-09, pas reproduit, peut-être dans la release). Au prochain cas, lire dans le journal les lignes « Theme applied » : laquelle a remis l'ancien (STORED, PREVIEW, LEFT_UNSAVED).
-- Accès externe : « Fermer l'accès » touché ne montre rien pendant plusieurs secondes, puis l'état change ; l'écran doit dire tout de suite que la fermeture est en cours.
 
 ## À passer sur le téléphone
 

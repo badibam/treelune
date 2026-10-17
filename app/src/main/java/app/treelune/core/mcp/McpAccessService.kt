@@ -34,6 +34,8 @@ class McpAccessService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == ACTION_CLOSE) {
+            // Said closing at once: the loop lets go only once the node or the relay's wait does
+            if (loop?.isActive == true) McpAccess.closing()
             loop?.cancel()
             stopSelf()
             return START_NOT_STICKY

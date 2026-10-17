@@ -8,6 +8,8 @@ import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import app.treelune.core.ui.Size
+import androidx.compose.ui.Alignment
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -139,12 +141,17 @@ fun ExternalAccessSettingsScreen(onBack: () -> Unit) {
                         }
                     }
                     is McpAccess.State.Failed -> UI.Text(s.shared("external_access_state_failed").format(current.message), TextType.BODY, selectable = true)
+                    McpAccess.State.Closing -> Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S), verticalAlignment = Alignment.CenterVertically) {
+                        UI.LoadingIndicator(Size.XS)
+                        UI.Text(s.shared("external_access_state_closing"), TextType.BODY)
+                    }
                 }
+                // Closing, neither button: the access is neither to close again nor to open yet
                 if (state is McpAccess.State.Open || state is McpAccess.State.Preparing) {
                     UI.Button(type = ButtonType.DEFAULT, onClick = { McpAccess.close(context) }) {
                         UI.Text(s.shared("external_access_close"), TextType.LABEL)
                     }
-                } else {
+                } else if (state !is McpAccess.State.Closing) {
                     // The way in chosen above, saved first if it changed; what it lacks (a relay, a
                     // secret sealed on another phone) McpAccess.run says, as the access's failure
                     UI.Button(type = ButtonType.PRIMARY, onClick = {
