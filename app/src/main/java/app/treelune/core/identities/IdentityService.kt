@@ -22,7 +22,7 @@ import java.util.UUID
  * - read: `identity_id`, `language`?; its texts in one language (its own when not given), and its
  *   bagage listed by key, title, description and size -- what the AI reads
  * - read_resource: `identity_id`, `key`, `language`?; one resource of the bagage, whole
- * - create: `name`, `language`, and any of `icon_name`, `icon_color`
+ * - create: `name`, `language`, and any of `icon_name`, `icon_color`; `id` from the app alone, for the demo's (GivenId)
  * - update: `identity_id`, and any of `name`, `icon_name`, `icon_color`, `language` (a language
  *   it does not hold yet is given an empty section), and in `section` (its language when not
  *   given) any of `voice`, `mind`, `portrait` (a text; empty removes it) and `resources` (by key,
@@ -139,9 +139,14 @@ class IdentityService(private val context: Context) : ExecutableService {
     private suspend fun create(params: JSONObject): OperationResult {
         val name = name(params) ?: throw Refused(s.shared("identity_error_param").format("name"))
         val language = language(params.optString("language")) ?: throw Refused(s.shared("identity_error_param").format("language"))
+        val id = when (val given = app.treelune.core.coordinator.GivenId.read(params)) {
+            app.treelune.core.coordinator.GivenId.Read.None -> UUID.randomUUID().toString()
+            is app.treelune.core.coordinator.GivenId.Read.Accepted -> given.id
+            is app.treelune.core.coordinator.GivenId.Read.Refused -> throw Refused(s.shared("service_error_id_not_given").format(given.id))
+        }
         val now = System.currentTimeMillis()
         val identity = Identity(
-            id = UUID.randomUUID().toString(),
+            id = id,
             name = name,
             iconName = icon(params) ?: Identity.DEFAULT_ICON,
             iconColor = iconColor(params),

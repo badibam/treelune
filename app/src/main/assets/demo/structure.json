@@ -1,5 +1,26 @@
 {
   "zone_group": "@zone_group",
+  "identities": [
+    {
+      "id": "demo-identity-giulia",
+      "name": "Giulia",
+      "language": "@identity_language",
+      "icon_name": "graduation-cap",
+      "icon_color": "TEAL",
+      "texts": {
+        "voice": "@giulia_voice",
+        "mind": "@giulia_mind",
+        "portrait": "@giulia_portrait",
+        "resources": {
+          "verbs": {
+            "title": "@giulia_verbs_title",
+            "description": "@giulia_verbs_description",
+            "content": "@giulia_verbs"
+          }
+        }
+      }
+    }
+  ],
   "zones": [
     {
       "id": "demo-course",
@@ -27,7 +48,8 @@
       "group": "@zone_group",
       "tool_groups": [],
       "grid_x": 2,
-      "grid_y": 0
+      "grid_y": 0,
+      "validate": true
     },
     {
       "id": "demo-kitchen",
@@ -54,7 +76,8 @@
       "group": "@zone_group",
       "tool_groups": [],
       "grid_x": 0,
-      "grid_y": 3
+      "grid_y": 3,
+      "texture": "DOTS"
     },
     {
       "id": "demo-italian",
@@ -66,7 +89,9 @@
       "group": "@zone_group",
       "tool_groups": [],
       "grid_x": 2,
-      "grid_y": 3
+      "grid_y": 3,
+      "texture": "CHECKER",
+      "identity_id": "demo-identity-giulia"
     }
   ],
   "tools": [
@@ -152,7 +177,8 @@
               "max": 5,
               "min_label": "@runs_feeling_min",
               "max_label": "@runs_feeling_max"
-            }
+            },
+            "ai_read_only": true
           }
         ]
       },
@@ -278,7 +304,8 @@
           }
         },
         "enabled": true,
-        "show_field_labels": true
+        "show_field_labels": true,
+        "texture": "DIAGONALS"
       },
       "grid_x": 0,
       "grid_y": 3
@@ -315,7 +342,8 @@
             "always_visible": false,
             "config": {}
           }
-        ]
+        ],
+        "validate_data": true
       },
       "grid_x": 0,
       "grid_y": 0
@@ -381,6 +409,181 @@
             "name": "@mood_entry_name"
           }
         ]
+      },
+      "grid_x": 0,
+      "grid_y": 0
+    },
+    {
+      "id": "demo-course-race",
+      "zone_id": "demo-course",
+      "tooltype": "goal",
+      "config": {
+        "name": "@race_name",
+        "description": "@race_description",
+        "icon_name": "medal",
+        "icon_color": "ORANGE",
+        "display_mode": "LINE",
+        "group": "@course_group_analysis",
+        "criteria": [
+          {
+            "key": "c_longest",
+            "name": "@race_longest",
+            "essential": true,
+            "condition": {
+              "left": {
+                "reading": {
+                  "selection": {
+                    "target": {
+                      "kind": "TOOL_INSTANCE",
+                      "id": "demo-course-runs"
+                    }
+                  },
+                  "reduction": "MAX",
+                  "field": "data.value"
+                }
+              },
+              "op": ">=",
+              "right": {
+                "constant": 18
+              }
+            }
+          },
+          {
+            "key": "c_total",
+            "name": "@race_total",
+            "condition": {
+              "left": {
+                "reading": {
+                  "selection": {
+                    "target": {
+                      "kind": "TOOL_INSTANCE",
+                      "id": "demo-course-runs"
+                    }
+                  },
+                  "reduction": "SUM",
+                  "field": "data.value"
+                }
+              },
+              "op": ">=",
+              "right": {
+                "constant": 300
+              }
+            }
+          },
+          {
+            "key": "c_bib",
+            "name": "@race_bib",
+            "essential": true,
+            "field": {
+              "type": "BOOLEAN",
+              "ai_read_only": true,
+              "config": {
+                "true_label": "@race_bib_true",
+                "false_label": "@race_bib_false"
+              }
+            },
+            "instructions": "@race_bib_instructions",
+            "condition": {
+              "left": {
+                "field": "data.c_bib"
+              },
+              "op": "=",
+              "right": {
+                "constant": true
+              }
+            }
+          }
+        ],
+        "sub_goals": [
+          {
+            "name": "@race_body",
+            "at_least": 2,
+            "criteria": [
+              {
+                "key": "c_strength",
+                "name": "@race_strength",
+                "condition": {
+                  "left": {
+                    "reading": {
+                      "selection": {
+                        "target": {
+                          "kind": "TOOL_INSTANCE",
+                          "id": "demo-course-strength"
+                        }
+                      },
+                      "reduction": "COUNT"
+                    }
+                  },
+                  "op": ">=",
+                  "right": {
+                    "constant": 15
+                  }
+                }
+              },
+              {
+                "key": "c_stretching",
+                "name": "@race_stretching",
+                "condition": {
+                  "left": {
+                    "reading": {
+                      "selection": {
+                        "target": {
+                          "kind": "TOOL_INSTANCE",
+                          "id": "demo-course-stretching"
+                        }
+                      },
+                      "reduction": "COUNT"
+                    }
+                  },
+                  "op": ">=",
+                  "right": {
+                    "constant": 60
+                  }
+                }
+              },
+              {
+                "key": "c_weight",
+                "name": "@race_weight",
+                "condition": {
+                  "left": {
+                    "reading": {
+                      "selection": {
+                        "target": {
+                          "kind": "TOOL_INSTANCE",
+                          "id": "demo-course-weight"
+                        }
+                      },
+                      "reduction": "LAST",
+                      "field": "data.value"
+                    }
+                  },
+                  "op": "<=",
+                  "right": {
+                    "constant": 70.5
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "recurrence": "once",
+        "start": {
+          "demo_at": [
+            11,
+            1,
+            "00:00"
+          ]
+        },
+        "deadline": {
+          "demo_at": [
+            -6,
+            7,
+            "09:00"
+          ]
+        },
+        "enabled": true,
+        "notify": true,
+        "ai_no_validation": true
       },
       "grid_x": 0,
       "grid_y": 0
@@ -482,7 +685,8 @@
               "config": {
                 "true_label": "@course_goal_no_pain_true",
                 "false_label": "@course_goal_no_pain_false"
-              }
+              },
+              "ai_read_only": true
             },
             "instructions": "@course_goal_no_pain_instructions",
             "condition": {
@@ -498,7 +702,7 @@
         ]
       },
       "grid_x": 0,
-      "grid_y": 0
+      "grid_y": 1
     },
     {
       "id": "demo-course-chart-km",
@@ -562,7 +766,7 @@
         ]
       },
       "grid_x": 0,
-      "grid_y": 4
+      "grid_y": 5
     },
     {
       "id": "demo-course-chart-weight",
@@ -652,7 +856,7 @@
         ]
       },
       "grid_x": 0,
-      "grid_y": 5
+      "grid_y": 6
     },
     {
       "id": "demo-course-chart-sleep-mood",
@@ -745,7 +949,7 @@
         ]
       },
       "grid_x": 0,
-      "grid_y": 7
+      "grid_y": 8
     },
     {
       "id": "demo-course-chart-mood-calendar",
@@ -819,7 +1023,7 @@
         ]
       },
       "grid_x": 0,
-      "grid_y": 8
+      "grid_y": 9
     },
     {
       "id": "demo-course-notebook",
@@ -831,10 +1035,40 @@
         "icon_name": "notebook-pen",
         "display_mode": "CONDENSED",
         "group": "@course_group_analysis",
-        "sort_order": "descending"
+        "sort_order": "descending",
+        "show_field_labels": true,
+        "extra_fields": [
+          {
+            "name": "tags",
+            "display_name": "@course_notebook_field_tags",
+            "type": "CHOICE",
+            "always_visible": false,
+            "config": {
+              "options": [
+                {
+                  "value": "progress",
+                  "label": "@course_tag_progress",
+                  "color": "GREEN"
+                },
+                {
+                  "value": "tired",
+                  "label": "@course_tag_tired",
+                  "color": "RED"
+                },
+                {
+                  "value": "long_run",
+                  "label": "@course_tag_long_run",
+                  "color": "BLUE"
+                }
+              ],
+              "multiple": true,
+              "open": true
+            }
+          }
+        ]
       },
       "grid_x": 2,
-      "grid_y": 8
+      "grid_y": 9
     },
     {
       "id": "demo-kitchen-foods",
@@ -1023,7 +1257,8 @@
             "value": 0.5,
             "unit": "@water_unit"
           }
-        ]
+        ],
+        "texture": "ICON"
       },
       "grid_x": 0,
       "grid_y": 4
@@ -1162,10 +1397,62 @@
         "description": "@recipes_description",
         "icon_name": "book-open",
         "display_mode": "CONDENSED",
-        "group": "@kitchen_group_pantry"
+        "group": "@kitchen_group_pantry",
+        "texture": "LINES"
       },
       "grid_x": 0,
       "grid_y": 3
+    },
+    {
+      "id": "demo-work-agenda",
+      "zone_id": "demo-work",
+      "tooltype": "agenda",
+      "config": {
+        "name": "@agenda_name",
+        "description": "@agenda_description",
+        "icon_name": "calendar-days",
+        "icon_color": "PURPLE",
+        "display_mode": "EXTENDED",
+        "reminders": [
+          {
+            "relative": {
+              "unit": "MINUTE",
+              "offset": -15,
+              "edge": "SAME"
+            }
+          }
+        ],
+        "all_day_reminders": [
+          {
+            "relative": {
+              "unit": "DAY",
+              "offset": -1,
+              "edge": {
+                "at": "18:00"
+              }
+            }
+          }
+        ],
+        "series": [
+          {
+            "key": "s_brume",
+            "name": "@agenda_series_brume",
+            "schedule": {
+              "pattern": {
+                "type": "WeeklySimple",
+                "days_of_week": [
+                  1
+                ],
+                "time": "10:00"
+              }
+            },
+            "all_day": false,
+            "duration": 1800000
+          }
+        ]
+      },
+      "grid_x": 0,
+      "grid_y": 0
     },
     {
       "id": "demo-work-hours",
@@ -1235,7 +1522,7 @@
         ]
       },
       "grid_x": 0,
-      "grid_y": 0
+      "grid_y": 2
     },
     {
       "id": "demo-work-tasks",
@@ -1248,10 +1535,11 @@
         "icon_color": "BLUE",
         "display_mode": "EXTENDED",
         "remove_when_checked": false,
-        "due_dates": true
+        "due_dates": true,
+        "always_send": true
       },
       "grid_x": 0,
-      "grid_y": 2
+      "grid_y": 4
     },
     {
       "id": "demo-work-invoicing",
@@ -1279,7 +1567,7 @@
         }
       },
       "grid_x": 0,
-      "grid_y": 4
+      "grid_y": 6
     },
     {
       "id": "demo-work-notebook",
@@ -1293,7 +1581,7 @@
         "sort_order": "descending"
       },
       "grid_x": 0,
-      "grid_y": 5
+      "grid_y": 7
     },
     {
       "id": "demo-work-chart-hours",
@@ -1316,128 +1604,276 @@
             "relative": "NOW"
           }
         },
-        "composition": "layer",
-        "layer": [
+        "composition": "vconcat",
+        "vconcat": [
           {
-            "description": "@chart_hours_layer",
-            "transform": [
+            "title": "@chart_hours_weeks",
+            "layer": [
               {
-                "fold": [
-                  "brume",
-                  "rameau",
-                  "villeurbanne"
+                "description": "@chart_hours_layer",
+                "transform": [
+                  {
+                    "fold": [
+                      "Studio Brume",
+                      "Librairie Le Rameau",
+                      "Mairie de Villeurbanne"
+                    ],
+                    "as": [
+                      "client",
+                      "hours"
+                    ]
+                  }
                 ],
-                "as": [
-                  "client",
-                  "hours"
+                "mark": {
+                  "type": "bar"
+                },
+                "encoding": {
+                  "x": {
+                    "field": "timestamp",
+                    "type": "temporal"
+                  },
+                  "y": {
+                    "field": "hours",
+                    "type": "quantitative",
+                    "stack": "zero"
+                  },
+                  "color": {
+                    "field": "client",
+                    "type": "nominal"
+                  }
+                },
+                "source": "grid",
+                "step": "week",
+                "columns": [
+                  {
+                    "name": "Studio Brume",
+                    "term": {
+                      "reading": {
+                        "selection": {
+                          "target": {
+                            "kind": "TOOL_INSTANCE",
+                            "id": "demo-work-hours"
+                          },
+                          "filters": [
+                            {
+                              "left": {
+                                "field": "name"
+                              },
+                              "op": "=",
+                              "right": {
+                                "constant": "Studio Brume"
+                              }
+                            }
+                          ]
+                        },
+                        "reduction": "SUM",
+                        "field": "data.value"
+                      }
+                    }
+                  },
+                  {
+                    "name": "Librairie Le Rameau",
+                    "term": {
+                      "reading": {
+                        "selection": {
+                          "target": {
+                            "kind": "TOOL_INSTANCE",
+                            "id": "demo-work-hours"
+                          },
+                          "filters": [
+                            {
+                              "left": {
+                                "field": "name"
+                              },
+                              "op": "=",
+                              "right": {
+                                "constant": "Librairie Le Rameau"
+                              }
+                            }
+                          ]
+                        },
+                        "reduction": "SUM",
+                        "field": "data.value"
+                      }
+                    }
+                  },
+                  {
+                    "name": "Mairie de Villeurbanne",
+                    "term": {
+                      "reading": {
+                        "selection": {
+                          "target": {
+                            "kind": "TOOL_INSTANCE",
+                            "id": "demo-work-hours"
+                          },
+                          "filters": [
+                            {
+                              "left": {
+                                "field": "name"
+                              },
+                              "op": "=",
+                              "right": {
+                                "constant": "Mairie de Villeurbanne"
+                              }
+                            }
+                          ]
+                        },
+                        "reduction": "SUM",
+                        "field": "data.value"
+                      }
+                    }
+                  }
                 ]
               }
-            ],
-            "mark": {
-              "type": "bar"
-            },
-            "encoding": {
-              "x": {
-                "field": "timestamp",
-                "type": "temporal"
-              },
-              "y": {
-                "field": "hours",
-                "type": "quantitative",
-                "stack": "zero"
-              },
-              "color": {
-                "field": "client",
-                "type": "nominal"
-              }
-            },
-            "source": "grid",
-            "step": "week",
-            "columns": [
+            ]
+          },
+          {
+            "title": "@chart_hours_projects",
+            "layer": [
               {
-                "name": "brume",
-                "term": {
-                  "reading": {
-                    "selection": {
-                      "target": {
-                        "kind": "TOOL_INSTANCE",
-                        "id": "demo-work-hours"
-                      },
-                      "filters": [
-                        {
-                          "left": {
-                            "field": "name"
-                          },
-                          "op": "=",
-                          "right": {
-                            "constant": "Studio Brume"
-                          }
-                        }
-                      ]
-                    },
-                    "reduction": "SUM",
-                    "field": "data.value"
+                "description": "@chart_hours_pie_layer",
+                "transform": [
+                  {
+                    "fold": [
+                      "@hours_project_identity",
+                      "@hours_project_website",
+                      "@hours_project_poster",
+                      "@hours_project_admin"
+                    ],
+                    "as": [
+                      "project",
+                      "hours"
+                    ]
                   }
-                }
-              },
-              {
-                "name": "rameau",
-                "term": {
-                  "reading": {
-                    "selection": {
-                      "target": {
-                        "kind": "TOOL_INSTANCE",
-                        "id": "demo-work-hours"
-                      },
-                      "filters": [
-                        {
-                          "left": {
-                            "field": "name"
-                          },
-                          "op": "=",
-                          "right": {
-                            "constant": "Librairie Le Rameau"
-                          }
-                        }
-                      ]
-                    },
-                    "reduction": "SUM",
-                    "field": "data.value"
+                ],
+                "mark": {
+                  "type": "arc"
+                },
+                "encoding": {
+                  "theta": {
+                    "field": "hours",
+                    "type": "quantitative"
+                  },
+                  "color": {
+                    "field": "project",
+                    "type": "nominal"
                   }
-                }
-              },
-              {
-                "name": "villeurbanne",
-                "term": {
-                  "reading": {
-                    "selection": {
-                      "target": {
-                        "kind": "TOOL_INSTANCE",
-                        "id": "demo-work-hours"
-                      },
-                      "filters": [
-                        {
-                          "left": {
-                            "field": "name"
+                },
+                "source": "grid",
+                "step": "year",
+                "columns": [
+                  {
+                    "name": "@hours_project_identity",
+                    "term": {
+                      "reading": {
+                        "selection": {
+                          "target": {
+                            "kind": "TOOL_INSTANCE",
+                            "id": "demo-work-hours"
                           },
-                          "op": "=",
-                          "right": {
-                            "constant": "Mairie de Villeurbanne"
-                          }
-                        }
-                      ]
-                    },
-                    "reduction": "SUM",
-                    "field": "data.value"
+                          "filters": [
+                            {
+                              "left": {
+                                "field": "extra.project"
+                              },
+                              "op": "=",
+                              "right": {
+                                "constant": "identity"
+                              }
+                            }
+                          ]
+                        },
+                        "reduction": "SUM",
+                        "field": "data.value"
+                      }
+                    }
+                  },
+                  {
+                    "name": "@hours_project_website",
+                    "term": {
+                      "reading": {
+                        "selection": {
+                          "target": {
+                            "kind": "TOOL_INSTANCE",
+                            "id": "demo-work-hours"
+                          },
+                          "filters": [
+                            {
+                              "left": {
+                                "field": "extra.project"
+                              },
+                              "op": "=",
+                              "right": {
+                                "constant": "website"
+                              }
+                            }
+                          ]
+                        },
+                        "reduction": "SUM",
+                        "field": "data.value"
+                      }
+                    }
+                  },
+                  {
+                    "name": "@hours_project_poster",
+                    "term": {
+                      "reading": {
+                        "selection": {
+                          "target": {
+                            "kind": "TOOL_INSTANCE",
+                            "id": "demo-work-hours"
+                          },
+                          "filters": [
+                            {
+                              "left": {
+                                "field": "extra.project"
+                              },
+                              "op": "=",
+                              "right": {
+                                "constant": "poster"
+                              }
+                            }
+                          ]
+                        },
+                        "reduction": "SUM",
+                        "field": "data.value"
+                      }
+                    }
+                  },
+                  {
+                    "name": "@hours_project_admin",
+                    "term": {
+                      "reading": {
+                        "selection": {
+                          "target": {
+                            "kind": "TOOL_INSTANCE",
+                            "id": "demo-work-hours"
+                          },
+                          "filters": [
+                            {
+                              "left": {
+                                "field": "extra.project"
+                              },
+                              "op": "=",
+                              "right": {
+                                "constant": "admin"
+                              }
+                            }
+                          ]
+                        },
+                        "reduction": "SUM",
+                        "field": "data.value"
+                      }
+                    }
                   }
-                }
+                ]
               }
             ]
           }
         ]
       },
       "grid_x": 2,
-      "grid_y": 5
+      "grid_y": 7
     },
     {
       "id": "demo-balcony-plants",
@@ -1815,6 +2251,33 @@
             "always_visible": false,
             "config": {
               "length": "MEDIUM"
+            }
+          },
+          {
+            "name": "hardest",
+            "display_name": "@evening_field_hardest",
+            "type": "CHOICE",
+            "always_visible": false,
+            "config": {
+              "options": [
+                {
+                  "value": "grammar",
+                  "label": "@evening_hardest_grammar"
+                },
+                {
+                  "value": "vocabulary",
+                  "label": "@evening_hardest_vocabulary"
+                },
+                {
+                  "value": "listening",
+                  "label": "@evening_hardest_listening"
+                },
+                {
+                  "value": "speaking",
+                  "label": "@evening_hardest_speaking"
+                }
+              ],
+              "ordered": true
             }
           }
         ]
@@ -2222,7 +2685,24 @@
         "dismiss_older_instances": true
       },
       "is_enabled": false,
-      "seed": "@auto_review_seed"
+      "seed": "@auto_review_seed",
+      "access": [
+        {
+          "target": {
+            "kind": "ZONE",
+            "id": "demo-course"
+          },
+          "level": "read"
+        },
+        {
+          "target": {
+            "kind": "TOOL_INSTANCE",
+            "id": "demo-course-notebook"
+          },
+          "level": "use"
+        }
+      ],
+      "notify_end": "on_problem"
     },
     {
       "id": "demo-auto-weekly-menu",
@@ -2244,7 +2724,24 @@
         "dismiss_older_instances": true
       },
       "is_enabled": false,
-      "seed": "@auto_menu_seed"
+      "seed": "@auto_menu_seed",
+      "access": [
+        {
+          "target": {
+            "kind": "ZONE",
+            "id": "demo-kitchen"
+          },
+          "level": "read"
+        },
+        {
+          "target": {
+            "kind": "TOOL_INSTANCE",
+            "id": "demo-kitchen-shopping"
+          },
+          "level": "use"
+        }
+      ],
+      "notify_end": "always"
     },
     {
       "id": "demo-auto-morning",
@@ -2252,7 +2749,56 @@
       "zone_id": "demo-work",
       "name": "@auto_morning_name",
       "is_enabled": false,
-      "seed": "@auto_morning_seed"
+      "seed": "@auto_morning_seed",
+      "access": [
+        {
+          "target": {
+            "kind": "ZONE",
+            "id": "demo-work"
+          },
+          "level": "read"
+        }
+      ]
+    },
+    {
+      "id": "demo-auto-italian-lesson",
+      "seed_session_id": "demo-seed-italian-lesson",
+      "zone_id": "demo-italian",
+      "name": "@auto_lesson_name",
+      "identity_id": "demo-identity-giulia",
+      "schedule": {
+        "pattern": {
+          "type": "WeeklySimple",
+          "days_of_week": [
+            7
+          ],
+          "time": "10:00"
+        }
+      },
+      "catch_up": {
+        "limit": "limited",
+        "window": 43200000,
+        "dismiss_older_instances": true
+      },
+      "is_enabled": false,
+      "notify_end": "always",
+      "access": [
+        {
+          "target": {
+            "kind": "ZONE",
+            "id": "demo-italian"
+          },
+          "level": "read"
+        },
+        {
+          "target": {
+            "kind": "TOOL_INSTANCE",
+            "id": "demo-italian-phrases"
+          },
+          "level": "use"
+        }
+      ],
+      "seed": "@auto_lesson_seed"
     }
   ]
 }

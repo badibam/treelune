@@ -18,7 +18,7 @@ import kotlin.math.roundToLong
  *
  * The weeks are counted back from the current one, which starts on Monday: week 0 is this one,
  * the rush week is [RUSH] weeks back. Nothing is dated after [now] but what is to come by nature
- * (a due date, a running stopwatch's start being before now).
+ * (a due date, an appointment, a running stopwatch's start being before now).
  *
  * Texts stay keys (`"@key"`, or `{"@": key, "args": […]}` for a text with values), which the
  * service resolves in the phone's language as it does the structure's.
@@ -112,6 +112,7 @@ class DemoData(private val now: Long, private val zone: ZoneId, private val hand
         for (tool in listOf("demo-kitchen-recipes", "demo-italian-phrases")) put(tool, notes(tool))
         for (tool in listOf("demo-work-notebook", "demo-balcony-notebook", "demo-balcony-observations")) put(tool, placed(tool))
         put("demo-course-notebook", reviews())
+        put("demo-work-agenda", appointments())
     }
 
     private fun handOf(tool: String): List<JSONObject> = hand.optJSONArray(tool)?.let { a -> (0 until a.length()).map { a.getJSONObject(it) } } ?: emptyList()
@@ -176,8 +177,8 @@ class DemoData(private val now: Long, private val zone: ZoneId, private val hand
 
     /**
      * The Intervals session of a Thursday, done at [time]: its 17 steps (warm-up, 8 fast, 7
-     * recoveries, cool-down), 38 min 30 of timers and the cool-down's overtime. Two weeks differ:
-     * stopped at the 6th fast one, and a recovery skipped.
+     * recoveries, cool-down), 38 min 30 of timers and the cool-down's overtime, each step kept with
+     * its time. Two weeks differ: stopped at the 6th fast one, and a recovery skipped.
      */
     private fun intervalSession(id: String, time: Long, back: Int): JSONObject {
         val steps = 17
@@ -189,8 +190,35 @@ class DemoData(private val now: Long, private val zone: ZoneId, private val hand
         val length = if (stopped) between(24, 27) * MINUTE else (38 * MINUTE + 30_000 + between(1, 6) * MINUTE - skipped * 90_000)
         val paused = if (sessionRandom.nextDouble() < 0.3) between(1, 3) * MINUTE else 0L
         return entry(id, timestamp = time,
-            data = json("duration" to length, "paused" to paused, "steps_done" to steps - skipped - notDone, "steps_skipped" to skipped, "steps_not_done" to notDone),
+            data = json("duration" to length, "paused" to paused, "steps_done" to steps - skipped - notDone, "steps_skipped" to skipped, "steps_not_done" to notDone,
+                "steps" to keptSteps(length, stopped, skipped > 0)),
             state = json("status" to if (stopped) "stopped" else "done", "started_at" to time, "ended_at" to time + length + paused))
+    }
+
+    /**
+     * The steps a session keeps (SequenceSteps), names as text keys: a list here, the JSON text
+     * the session stores once the installer has put the texts in. Stopped, the steps from the 6th
+     * fast one are not done; with [skipping], the 3rd recovery is skipped at once; the cool-down
+     * takes what [length] leaves.
+     */
+    private fun keptSteps(length: Long, stopped: Boolean, skipping: Boolean): JSONArray {
+        val kept = JSONArray()
+        fun step(name: String, status: String, time: Long?, round: Int? = null) = kept.put(json("name" to "@$name", "status" to status, "time" to time,
+            "rounds" to round?.let { text("intervals_rounds", "@intervals_block", it, 8) }))
+        var used = 10 * MINUTE
+        step("intervals_step_warmup", "done", 10 * MINUTE)
+        for (round in 1..8) {
+            val reached = !stopped || round < 6
+            step("intervals_step_run", if (reached) "done" else "not_done", if (reached) MINUTE else null, round)
+            if (reached) used += MINUTE
+            if (round == 8) continue
+            val skipped = skipping && round == 3
+            step("intervals_step_recovery", if (!reached) "not_done" else if (skipped) "skipped" else "done",
+                if (!reached) null else if (skipped) 0L else 90_000L, round)
+            if (reached && !skipped) used += 90_000L
+        }
+        step("intervals_step_cooldown", if (stopped) "not_done" else "done", if (stopped) null else length - used)
+        return kept
     }
 
     private fun body(): Map<String, List<JSONObject>> {
@@ -343,11 +371,18 @@ class DemoData(private val now: Long, private val zone: ZoneId, private val hand
                 entry("demo-e-evening-$i", timestamp = time, state = json("status" to "ignored"))
             } else {
                 entry("demo-e-evening-$i", timestamp = time,
-                    extra = json("words" to between(4, 12), "difficulty" to between(2, 4), "phrase" to phrases.getString(i % phrases.length())),
+                    extra = json("words" to between(4, 12), "difficulty" to between(2, 4), "phrase" to phrases.getString(i % phrases.length()),
+                        "hardest" to hardest(i)),
                     state = json("status" to "filled", "filled_at" to time + between(15, 40) * MINUTE))
             })
         }
         return filled
+    }
+
+    /** The evening's ranking, hardest first: speaking or listening on top, turn by turn, grammar last but now and then. */
+    private fun hardest(i: Int): JSONArray {
+        val top = if (i % 2 == 0) listOf("speaking", "listening") else listOf("listening", "speaking")
+        return JSONArray(top + if (i % 5 == 0) listOf("grammar", "vocabulary") else listOf("vocabulary", "grammar"))
     }
 
     /** The past sends of a message: [weekdays] at [hour], over the last [weeks]; read, but for the last when [unreadLast]. */
@@ -384,6 +419,32 @@ class DemoData(private val now: Long, private val zone: ZoneId, private val hand
         entry(e.getString("id"), e.getString("name"), time, e.getJSONObject("data"))
     }
 
+    /**
+     * Camille's appointments: the Monday check-in of the series over the last eight weeks, the
+     * rush week's cancelled and one removed (those to come the calendar gives itself), and events
+     * of their own, past and to come, one cancelled and one taking two whole days.
+     */
+    private fun appointments(): List<JSONObject> {
+        val events = mutableListOf<JSONObject>()
+        for (back in 7 downTo 0) {
+            val start = at(day(back, 1), 10, 0).takeIf(::past) ?: continue
+            val status = when (back) { RUSH -> "cancelled"; 3 -> "removed"; else -> "planned" }
+            events.add(entry("demo-e-agenda-brume-$back", text("agenda_series_brume"), start, json("duration" to 30 * MINUTE),
+                state = json("status" to status, "series" to "s_brume", "series_at" to start)))
+        }
+        fun event(key: String, weeksBack: Int, weekday: Int, hour: Int, minute: Int, minutes: Int, status: String = "planned") =
+            events.add(entry("demo-e-agenda-$key", text("agenda_$key"), at(day(weeksBack, weekday), hour, minute),
+                json("duration" to minutes * MINUTE), state = json("status" to status)))
+        event("rameau_kickoff", 10, 2, 14, 0, 60)
+        event("mairie_pitch", RUSH, 5, 16, 0, 90)
+        event("lunch_brume", 1, 4, 12, 30, 90, status = "cancelled")
+        event("dentist", 0, 3, 17, 30, 45)
+        event("accountant", -1, 4, 11, 0, 30)
+        events.add(entry("demo-e-agenda-book_fair", text("agenda_book_fair"), at(day(-2, 6), 0, 0),
+            json("all_day" to true, "days" to 2), state = json("status" to "planned")))
+        return events
+    }
+
     /** The weekly reviews of the Training notebook, each Monday at 7:05 on the week before. */
     private fun reviews(): List<JSONObject> = (1 until WEEKS).reversed().mapNotNull { back ->
         val written = at(day(back - 1, 1), 7, 5).takeIf(::past) ?: return@mapNotNull null
@@ -391,8 +452,11 @@ class DemoData(private val now: Long, private val zone: ZoneId, private val hand
         val nights = (1..7).mapNotNull { sleepByDay[day(back, it)] }
         val average = if (nights.isEmpty()) 0L else nights.sum() / nights.size
         val verdict = if (back == RUSH) "course_review_rush" else "course_review_good"
+        // Its tags: tired in the rush week, progress otherwise, the long run once it reaches 14 km
+        val tags = JSONArray(listOfNotNull(if (back == RUSH) "tired" else "progress", if ((runs.maxOrNull() ?: 0.0) >= 14.0) "long_run" else null))
         entry("demo-e-review-$back", text("course_review_title", day(back, 1).toString()), written,
-            json("content" to text("course_review", runs.size, round1(runs.sum()), "${average / HOUR} h ${"%02d".format(average % HOUR / MINUTE)}", text(verdict))))
+            json("content" to text("course_review", runs.size, round1(runs.sum()), "${average / HOUR} h ${"%02d".format(average % HOUR / MINUTE)}", text(verdict))),
+            json("tags" to tags))
     }
 
     /**
