@@ -25,15 +25,18 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
@@ -117,7 +120,7 @@ internal fun pebble(size: InkSize, a: Float, b: Float, c: Float, d: Float) =
 /**
  * A tile's wash in [color], dense at its heart (a little above and left of the middle) and fading
  * to nothing at its irregular edge, as ink spreads in wet paper; a texture's [motif], when there is one,
- * laid within the same edge, over the wash. It bleeds past the tile by [bleedX] across and [bleedY]
+ * laid within the same edge, over the wash, and fading as the wash does, the same spread its mask. It bleeds past the tile by [bleedX] across and [bleedY]
  * down on each side, half the grid's gaps, so that its edge falls between two tiles, the tile
  * itself, its touch and its content, keeping its cells.
  */
@@ -126,8 +129,15 @@ internal fun Modifier.tileWash(color: Color, motif: Brush?, bleedX: Float, bleed
     translate(-bleedX, -bleedY) {
         val edge = WashShape.TILE.path(box)
         clipPath(edge) {
-            drawSpreadToEdges(color, Offset(box.width * 0.4f, box.height * 0.45f), box)
-            motif?.let { drawPath(edge, it) }
+            val heart = Offset(box.width * 0.4f, box.height * 0.45f)
+            drawSpreadToEdges(color, heart, box)
+            motif?.let { brush ->
+                // The motif in a layer of its own, then kept as much as the spread holds
+                drawIntoCanvas { it.saveLayer(Rect(Offset.Zero, box), Paint()) }
+                drawPath(edge, brush)
+                drawSpreadToEdges(Color.Black, heart, box, BlendMode.DstIn)
+                drawIntoCanvas { it.restore() }
+            }
         }
     }
 }
@@ -138,7 +148,7 @@ internal fun Modifier.tileWash(color: Color, motif: Brush?, bleedX: Float, bleed
  * fades out as much on its near side as on its far one. Dense over half the way, half as dense at
  * four fifths, nothing at the edge.
  */
-internal fun DrawScope.drawSpreadToEdges(color: Color, center: Offset, box: Size) {
+internal fun DrawScope.drawSpreadToEdges(color: Color, center: Offset, box: Size, blendMode: BlendMode = BlendMode.SrcOver) {
     val stops = arrayOf(0f to color, 0.5f to color, 0.8f to color.copy(alpha = color.alpha * 0.5f), 1f to color.copy(alpha = 0f))
     for (right in listOf(false, true)) for (below in listOf(false, true)) {
         val rx = (if (right) box.width - center.x else center.x).coerceAtLeast(1f)
@@ -149,7 +159,7 @@ internal fun DrawScope.drawSpreadToEdges(color: Color, center: Offset, box: Size
         ) {
             // A circle of the quarter's width, squeezed to its height
             scale(1f, ry / rx, pivot = center) {
-                drawCircle(Brush.radialGradient(*stops, center = center, radius = rx), radius = rx, center = center)
+                drawCircle(Brush.radialGradient(*stops, center = center, radius = rx), radius = rx, center = center, blendMode = blendMode)
             }
         }
     }
