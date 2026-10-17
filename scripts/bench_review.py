@@ -22,8 +22,9 @@ REVIEWER = "deepseek/deepseek-v4-pro"
 # OpenRouter's highest documented level; "max" is accepted without error but nothing shows it is used
 EFFORT = "xhigh"
 # The hosts tried, in order, none other: one host, so that two campaigns are read by the same instrument;
-# DeepInfra serves it in 8 bits, and Baidu, ten times cheaper, wrote garbled words ("donnéees", "táche")
-HOSTS = ["deepinfra"]
+# StreamLake serves it in 8 bits at about $0.003 a play; Baidu, as cheap, wrote garbled words
+# ("donnéees", "táche"), DeepInfra wrote clean ones at seven times the price
+HOSTS = ["streamlake"]
 
 # What the reviewer must know of the app to read a play, in place of the AI's whole prompt
 CONTEXT = """Tu relis une conversation jouée par un banc de test. L'app est un assistant personnel Android : l'utilisateur range ses données dans des zones, qui contiennent des outils (suivi, liste, notes, journal, données structurées, objectif, graphique…), dont chaque entrée suit un schéma. Une IA, le modèle testé, lit et écrit ces données par des commandes écrites dans une réponse JSON.
