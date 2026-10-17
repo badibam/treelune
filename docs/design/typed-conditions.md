@@ -19,7 +19,7 @@ Une condition (`{"left", "op", "right"}`, `docs/BRICKS.md`) n'a de type que par 
   1. l'opérateur permis par le type (`EntryFilters.operatorsFor`) ;
   2. la constante lisible dans le type d'en face (un nombre face à un nombre, des millisecondes face à une durée, oui/non face à oui/non) ;
   3. deux côtés comparables quand aucun n'est une constante (une variable en kcal face à une durée est refusée) ;
-  4. pour un choix, chaque valeur citée parmi les options du champ, choix ouvert compris : une valeur absente ne trouverait jamais rien, et c'est presque toujours une faute de frappe. Ne vaut que pour les conditions, pas pour les valeurs écrites dans les entrées (question laissée ouverte dans `NOTES.md`).
+  4. pour un choix, chaque valeur citée parmi les options du champ, choix ouvert compris : une valeur absente ne trouverait jamais rien, et c'est presque toujours une faute de frappe. Le refus dit de l'ajouter d'abord aux options de l'outil, le cas d'une valeur préparée à l'avance (une étiquette pas encore posée) coûtant ce seul geste. Ne vaut que pour les conditions, pas pour les valeurs écrites dans les entrées (question laissée ouverte dans `NOTES.md`).
 - **Un changement de l'outil visé dont dépend une condition ailleurs** (un champ supprimé ou renommé, une option retirée) n'est pas traité ici : la condition échoue à la lecture avec son message. Mis à part le 2026-10-17, à concevoir seul (`TODO.md`).
 - **Les configs déjà enregistrées** qui ne passeraient pas la vérification restent telles quelles : elles échouent à la lecture avec leur message, et leur prochaine modification est refusée tant qu'elles ne sont pas corrigées.
 
