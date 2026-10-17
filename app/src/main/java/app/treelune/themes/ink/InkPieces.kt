@@ -244,6 +244,15 @@ internal fun Modifier.gouache(color: Color, seed: Int, reach: Float = 0.66f): Mo
     drawPath(blob(center, min(size.width, size.height) * reach, seed), color)
 }
 
+/**
+ * A round thing's shape as a dab of paint, never a circle: the [blob] of [seed] fitted to its box
+ * (a button, a check, a knob, a day of the calendar).
+ */
+internal class BlobShape(private val seed: Int) : Shape {
+    override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline =
+        Outline.Generic(blob(Offset(size.width / 2, size.height / 2), min(size.width, size.height) * 0.48f, seed))
+}
+
 /** A closed blob round [center], [radius] about, its lobes and its squash drawn from [seed]. */
 internal fun blob(center: Offset, radius: Float, seed: Int): Path {
     val random = java.util.Random(seed.toLong())

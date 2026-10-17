@@ -39,7 +39,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.BasicTextField
@@ -218,7 +217,7 @@ object InkTheme : ThemeContract {
         Pressable(onClick = onClick) { pressed ->
             Box(
                 modifier = Modifier.size(size.floating)
-                    .background(if (pressed) c.pressedSolid else c.solid, RoundedCornerShape(48, 52, 50, 46)),
+                    .background(if (pressed) c.pressedSolid else c.solid, BlobShape(action.iconName.hashCode())),
                 contentAlignment = Alignment.Center
             ) {
                 NamedIcon(action.iconName, action.label(), size.dp(26f), c.onSolid)
@@ -317,7 +316,7 @@ object InkTheme : ThemeContract {
     /** A drop of the state's colour. */
     @Composable
     override fun StatusIndicator(color: Color, size: Dp) {
-        Box(modifier = Modifier.size(size).background(color, RoundedCornerShape(48, 52, 50, 46)))
+        Box(modifier = Modifier.size(size).background(color, BlobShape(STATUS_SEED)))
     }
 
     @Composable
@@ -600,8 +599,8 @@ object InkTheme : ThemeContract {
                                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                             val drop = Modifier.size(size.dp(34f))
                                             when {
-                                                lit -> Box(drop.background(c.solid, RoundedCornerShape(52, 48, 50, 46)))
-                                                pressed -> Box(drop.background(c.pressedWash, CircleShape))
+                                                lit -> Box(drop.background(c.solid, BlobShape(DAY_SEED)))
+                                                pressed -> Box(drop.background(c.pressedWash, BlobShape(DAY_SEED)))
                                                 date == today -> Box(Modifier.size(size.dp(36f)).brushed(InkBrush.Shape.ENSO, size.dp(1.4f), c.ink, 0.92f))
                                             }
                                             val style = if (lit) size.strong else size.body
@@ -961,7 +960,7 @@ object InkTheme : ThemeContract {
                 horizontalArrangement = Arrangement.spacedBy(size.dp(12f))
             ) {
                 Box(modifier = Modifier.size(size.dp(22f)), contentAlignment = Alignment.Center) {
-                    if (pressed) Box(Modifier.size(size.dp(22f)).background(c.pressedWash, CircleShape))
+                    if (pressed) Box(Modifier.size(size.dp(22f)).background(c.pressedWash, BlobShape(CHECK_SEED)))
                     if (checked) Seal(size.dp(18f), null)
                     else Box(Modifier.size(size.dp(22f)).brushed(InkBrush.Shape.RING, size.dp(1.6f), c.ink))
                 }
@@ -982,13 +981,13 @@ object InkTheme : ThemeContract {
                     modifier = Modifier
                         .size(size.dp(46f), size.dp(26f))
                         .let {
-                            if (checked) it.padding(size.dp(1.5f)).background(c.solid, CircleShape)
+                            if (checked) it.padding(size.dp(1.5f)).background(c.solid, BlobShape(CHECK_SEED))
                             else it.brushed(InkBrush.Shape.PEBBLE, size.dp(1.4f), c.ink)
                         }
                         .padding(horizontal = size.dp(6f)),
                     contentAlignment = if (checked) Alignment.CenterEnd else Alignment.CenterStart
                 ) {
-                    Box(modifier = Modifier.size(size.dp(14f)).background(if (checked) c.onSolid else c.ink, CircleShape))
+                    Box(modifier = Modifier.size(size.dp(14f)).background(if (checked) c.onSolid else c.ink, BlobShape(KNOB_SEED)))
                 }
             }
         }
@@ -1146,7 +1145,7 @@ object InkTheme : ThemeContract {
                             modifier = Modifier
                                 .offset { IntOffset((travel * fraction).roundToInt(), 0) }
                                 .size(knob)
-                                .background(c.ink, RoundedCornerShape(52, 48, 55, 45))
+                                .background(c.ink, BlobShape(KNOB_SEED))
                         )
                     }
                 }
@@ -1353,8 +1352,8 @@ object InkTheme : ThemeContract {
         Box(
             modifier = Modifier.size(size.touch).let {
                 when {
-                    block -> it.background(if (pressed) c.pressedSolid else c.solid, RoundedCornerShape(48, 52, 50, 46))
-                    pressed -> it.background(c.pressedWash, CircleShape)
+                    block -> it.background(if (pressed) c.pressedSolid else c.solid, BlobShape(icon.hashCode()))
+                    pressed -> it.background(c.pressedWash, BlobShape(icon.hashCode()))
                     else -> it
                 }
             },
@@ -1525,6 +1524,12 @@ object InkTheme : ThemeContract {
     /** How far a card's wash fades past its edge, in dp, and the draw its edge wavers by. */
     private const val CARD_FEATHER = 6f
     private const val CARD_SEED = 7
+
+    /** The draws of the round things' dabs (BlobShape), one per kind; a button's is its icon's. */
+    private const val STATUS_SEED = 11
+    private const val DAY_SEED = 13
+    private const val CHECK_SEED = 17
+    private const val KNOB_SEED = 19
 
     /** The brush's width under a group's title, and at the top of a window, in dp. */
     private const val GROUP_RULE = 2.6f
