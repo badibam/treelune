@@ -123,6 +123,9 @@ fun AIScreen(
                 )
                 isLoadingSession = false
                 LogManager.aiUI("AIScreen using active session type from aiState: ${aiState.sessionType}")
+                // Its name and its routine, which the headers show, read once it is routed
+                val stored = coordinator.processUserAction("ai_sessions.get_session", mapOf("session_id" to sessionId)).data?.get("session") as? Map<*, *>
+                if (stored != null) session = session?.copy(name = stored["name"] as String, automationId = stored["automation_id"] as? String)
             }
         }
     }
@@ -717,6 +720,14 @@ private fun SeedMode(
     ) {
         SeedHeader(
             title = automation!!.name,
+            onRename = { name ->
+                val current = automation!!
+                scope.launch {
+                    val result = coordinator.processUserAction("automations.update", mapOf("automation_id" to current.id, "name" to name))
+                    if (result.status == CommandStatus.SUCCESS) automation = current.copy(name = name)
+                    else errorMessage = result.error ?: s.shared("error_rename_failed")
+                }
+            },
             onClose = onClose,
             onConfigureAutomation = {
                 showEditAutomation = true
@@ -1008,8 +1019,9 @@ private fun ChatHeader(
     var reasoning by remember(session.id) { mutableStateOf(session.reasoning) }
     // The provider it calls, null before its first message
     var providerId by remember(session.id) { mutableStateOf(session.providerId) }
-    // Its name: the active session reaches this header without it
-    var title by remember(session.id) { mutableStateOf(session.name) }
+    // Its name, renamed by a touch on it
+    var title by remember(session.id, session.name) { mutableStateOf(session.name) }
+    val renameScope = rememberCoroutineScope()
     LaunchedEffect(session.id) {
         val result = app.treelune.core.coordinator.Coordinator(context).processUserAction("ai_sessions.get_session", mapOf("session_id" to session.id))
         val stored = result.data?.get("session") as? Map<*, *>
@@ -1017,7 +1029,6 @@ private fun ChatHeader(
             validation = SessionValidation.fromMap(stored)
             reasoning = SessionReasoning.fromMap(stored[SessionReasoning.KEY] as? Map<*, *>)
             providerId = stored["provider_id"] as String?
-            title = stored["name"] as String
         } else LogManager.aiUI("ChatHeader: session ${session.id} not read: ${result.error}", "ERROR")
     }
 
@@ -1119,7 +1130,13 @@ private fun ChatHeader(
     }
 
     // Header row; the phase is said over the composer (SessionStatusBar)
-    TitledHeaderBar(title) {
+    TitledHeaderBar(title, onRename = { name ->
+        renameScope.launch {
+            val result = app.treelune.core.coordinator.Coordinator(context).processUserAction("ai_sessions.rename", mapOf("session_id" to session.id, "name" to name))
+            if (result.status == CommandStatus.SUCCESS) title = name
+            else UI.Toast(context, result.error ?: s.shared("error_rename_failed"), Duration.LONG)
+        }
+    }) {
 
         // Who speaks: its identity, the app's AI otherwise
         identity()
@@ -1162,10 +1179,12 @@ private fun ChatHeader(
 
 /**
  * The band at the top of a session's view: its buttons in a row at the right, its [title] on the
- * line under them, cut to that line, so that the buttons keep their room at any size.
+ * line under them, cut to that line, so that the buttons keep their room at any size. Touched,
+ * the title opens a field to rename what it names, [onRename] given the new name.
  */
 @Composable
-private fun TitledHeaderBar(title: String, buttons: @Composable RowScope.() -> Unit) {
+private fun TitledHeaderBar(title: String, onRename: ((String) -> Unit)?, buttons: @Composable RowScope.() -> Unit) {
+    var renaming by rememberSaveable { mutableStateOf(false) }
     UI.HeaderBar {
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
             Row(
@@ -1174,7 +1193,24 @@ private fun TitledHeaderBar(title: String, buttons: @Composable RowScope.() -> U
                 verticalAlignment = Alignment.CenterVertically,
                 content = buttons
             )
-            UI.Text(text = title, type = TextType.TITLE, maxLines = 1)
+            Box(modifier = Modifier.fillMaxWidth().then(if (onRename != null) Modifier.clickable { renaming = true } else Modifier)) {
+                UI.Text(text = title, type = TextType.TITLE, maxLines = 1)
+            }
+        }
+    }
+    if (renaming && onRename != null) {
+        val context = LocalContext.current
+        val s = remember { Strings.`for`(context = context) }
+        var name by rememberSaveable { mutableStateOf(title) }
+        UI.Dialog(
+            type = DialogType.EDIT,
+            onConfirm = { renaming = false; if (name.trim() != title) onRename(name.trim()) },
+            onCancel = { renaming = false },
+            confirmEnabled = name.isNotBlank()
+        ) {
+            Box(modifier = Modifier.padding(UI.Space.L)) {
+                UI.FormField(label = s.shared("label_name"), value = name, onChange = { name = it }, required = true)
+            }
         }
     }
 }
@@ -1187,10 +1223,11 @@ private fun TitledHeaderBar(title: String, buttons: @Composable RowScope.() -> U
 private fun SeedHeader(
     title: String,
     onClose: () -> Unit,
+    onRename: ((String) -> Unit)? = null,
     onConfigureAutomation: () -> Unit,
     onDeleteAutomation: () -> Unit
 ) {
-    TitledHeaderBar(title) {
+    TitledHeaderBar(title, onRename) {
 
         // Delete button
         UI.ActionButton(
@@ -1232,20 +1269,26 @@ private fun AutomationHeader(
     onStop: () -> Unit
 ) {
     val context = LocalContext.current
-    // The routine's name once read; that it runs is said at the bottom (SessionStatusBar)
-    // The active session reaches this header without its routine: read from the stored session
+    val s = remember { Strings.`for`(context = context) }
+    val scope = rememberCoroutineScope()
+    // The routine's name once read, renamed by a touch on it; that it runs is said at the bottom (SessionStatusBar)
     var title by remember(session.id) { mutableStateOf(session.name) }
-    LaunchedEffect(session.id) {
-        val coordinator = app.treelune.core.coordinator.Coordinator(context)
-        val id = session.automationId
-            ?: (coordinator.processUserAction("ai_sessions.get_session", mapOf("session_id" to session.id)).data?.get("session") as? Map<*, *>)
-                ?.get("automation_id") as? String
-            ?: return@LaunchedEffect
-        val result = coordinator.processUserAction("automations.get", mapOf("automation_id" to id))
+    LaunchedEffect(session.automationId) {
+        val id = session.automationId ?: return@LaunchedEffect
+        val result = app.treelune.core.coordinator.Coordinator(context).processUserAction("automations.get", mapOf("automation_id" to id))
         ((result.data?.get("automation") as? Map<*, *>)?.get("name") as? String)?.let { title = it }
     }
 
-    TitledHeaderBar(title) {
+    TitledHeaderBar(title, onRename = session.automationId?.let { id ->
+        { name: String ->
+            scope.launch {
+                val result = app.treelune.core.coordinator.Coordinator(context).processUserAction("automations.update", mapOf("automation_id" to id, "name" to name))
+                if (result.status == CommandStatus.SUCCESS) title = name
+                else UI.Toast(context, result.error ?: s.shared("error_rename_failed"), Duration.LONG)
+            }
+            Unit
+        }
+    }) {
 
         // The past chats, to resume one
         onOpenHistory?.let {
