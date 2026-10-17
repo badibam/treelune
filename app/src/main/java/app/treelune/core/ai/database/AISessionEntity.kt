@@ -61,7 +61,9 @@ data class AISessionEntity(
 
     @ColumnInfo(name = "automation_id") val automationId: String?,              // null for CHAT/SEED, automation ID for AUTOMATION
     @ColumnInfo(name = "scheduled_execution_time") val scheduledExecutionTime: Long?,      // For AUTOMATION: scheduled time (not actual execution time)
-    @ColumnInfo(name = "provider_id") val providerId: String,                 // Fixed for the session
+    // The provider it calls (AIProviderConfigEntity.id): a conversation takes the default at its
+    // first call and keeps it unless changed; a run its routine's. Null before, and for a seed
+    @ColumnInfo(name = "provider_id") val providerId: String?,
     @ColumnInfo(name = "provider_session_id") val providerSessionId: String,          // Provider API session ID
     @ColumnInfo(name = "created_at") val createdAt: Long,
     @ColumnInfo(name = "last_activity") val lastActivity: Long,

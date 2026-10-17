@@ -6,11 +6,12 @@ import app.treelune.core.fields.settings.SettingNode
 import org.json.JSONObject
 
 /**
- * Interface for AI providers (Claude, OpenAI, DeepSeek, etc.)
+ * A kind of AI provider (Claude, OpenAI, DeepSeek, Other server): the code that speaks to one API.
+ * The user creates providers of a kind, each with its name and config (docs/design/ai-providers.md).
  *
- * A provider declares its settings with the fields (docs/DATA.md): the schema its
- * config is held to (AIProviderSettings) and its config screen (AIProviderConfigScreen) are
- * generated from the declaration. The API key is a secret setting.
+ * A kind declares its settings with the fields (docs/DATA.md): the schema a provider's config is
+ * held to (AIProviderSettings) and its config screen (AIProviderConfigScreen) are generated from
+ * the declaration. The API key is a secret setting.
  *
  * Providers receive PromptData (raw L1-L3 + messages) and:
  * 1. Transform messages to provider-specific format
@@ -18,17 +19,16 @@ import org.json.JSONObject
  * 3. Call provider API
  * 4. Return raw JSON response (orchestrator handles parsing)
  */
-interface AIProvider {
+interface AIProviderKind {
 
-    /**
-     * Unique provider identifier
-     */
-    fun getProviderId(): String
+    /** The kind's identifier, stored with each provider of it: "claude", "openai", "deepseek", "compatible". */
+    val kind: String
 
-    /**
-     * Human-readable provider name
-     */
-    fun getDisplayName(): String
+    /** The kind's name on screen, which a new provider of it is first named after. */
+    fun kindName(context: Context): String
+
+    /** What the kind is, in one line under its name where a new provider's kind is chosen. */
+    fun kindDescription(context: Context): String
 
     /** The settings of this provider's config: api_key and model at least. */
     fun getConfigSettings(context: Context): List<SettingNode>
@@ -48,6 +48,12 @@ interface AIProvider {
      * when no fact can name its models: a server of the user's.
      */
     fun factsProvider(): String?
+
+    /**
+     * The prices [config] sets by hand, in place of LiteLLM's list (ModelPriceManager); null when
+     * it takes the list's. Only a server of the user's may set its own: the others publish theirs.
+     */
+    fun ownPrices(config: JSONObject, context: Context): ManualPrices? = null
 
     /** Whether [config]'s model reads images; null when nothing says (ImageInput). */
     fun readsImages(config: JSONObject, context: Context): Boolean? =
@@ -97,6 +103,13 @@ data class Reasoning(val efforts: List<String>, val effortRequired: Boolean, val
 
 /** The models a provider listed, or why it could not. */
 data class ProviderModels(val models: List<ProviderModel>, val error: String? = null)
+
+/**
+ * Prices a provider's config sets by hand, in dollars per million tokens: its input, its input
+ * read from the server's cache, its output (reasoning included). One left empty is unknown: a call
+ * with tokens of that sort has an unknown cost, never a free one.
+ */
+data class ManualPrices(val input: Double?, val cachedInput: Double?, val output: Double?)
 
 /**
  * Longest answer asked of a provider when its config sets none. Without streaming nothing arrives

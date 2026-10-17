@@ -149,7 +149,7 @@ class AutomationService(private val context: Context) : ExecutableService {
             catchUp = null,
             catchUpWindow = null,
             dismissOlderInstances = false,
-            providerId = "",
+            providerId = null,
             isEnabled = true,
             group = null,
             createdAt = now,
@@ -165,6 +165,9 @@ class AutomationService(private val context: Context) : ExecutableService {
         // Given, null for the app's own AI: never taken from the zone without the caller saying so
         if (!params.has(AutomationSettings.IDENTITY_ID)) return OperationResult.error(s.shared("automation_identity_required"))
         identityRefusal(entity.identityId)?.let { return OperationResult.error(it) }
+        // Given too, null for none: never the default without the caller saying so
+        if (!params.has(AutomationSettings.PROVIDER_ID)) return OperationResult.error(s.shared("automation_provider_required"))
+        providerRefusal(entity)?.let { return OperationResult.error(it) }
 
         LogManager.service("Creating automation: name=${entity.name}, zoneId=$zoneId", "DEBUG")
         database.withTransaction {
@@ -175,7 +178,8 @@ class AutomationService(private val context: Context) : ExecutableService {
                 type = SessionType.SEED,
                 automationId = null,
                 scheduledExecutionTime = null,
-                providerId = entity.providerId,
+                // Its runs take their routine's provider when they start
+                providerId = null,
                 providerSessionId = "",
                 createdAt = now,
                 lastActivity = now,
@@ -283,6 +287,7 @@ class AutomationService(private val context: Context) : ExecutableService {
         groupRefusal(updatedEntity.group, updatedEntity.zoneId)?.let { return OperationResult.error(it) }
         // Only an identity that changes is checked: a routine saved again keeps the one it has
         if (updatedEntity.identityId != entity.identityId) identityRefusal(updatedEntity.identityId)?.let { return OperationResult.error(it) }
+        providerRefusal(updatedEntity)?.let { return OperationResult.error(it) }
 
         // The message replaces the one of its seed session, with the settings or not at all
         val seed = message?.let {
@@ -335,6 +340,16 @@ class AutomationService(private val context: Context) : ExecutableService {
         return Given.Kept(mask.toJson().toString())
     }
 
+    /**
+     * Why [entity] cannot hold its provider: one that does not exist, or none while it is on, which
+     * it could not run without.
+     */
+    private suspend fun providerRefusal(entity: AutomationEntity): String? = when {
+        entity.providerId == null -> if (entity.isEnabled) s.shared("automation_provider_none_enabled") else null
+        dao.getProviderConfig(entity.providerId) == null -> s.shared("ai_error_provider_not_found").format(entity.providerId)
+        else -> null
+    }
+
     /** Why [identityId] cannot be an automation's identity: one that does not exist. */
     private suspend fun identityRefusal(identityId: String?): String? =
         if (identityId == null || AppDatabase.getDatabase(context).identityDao().getById(identityId) != null) null
@@ -353,7 +368,7 @@ class AutomationService(private val context: Context) : ExecutableService {
     /** The settings an automation stores, as its declaration describes them (AutomationSettings). */
     private fun settingsOf(entity: AutomationEntity): JSONObject = JSONObject().apply {
         put("name", entity.name)
-        put("provider_id", entity.providerId)
+        entity.providerId?.let { put(AutomationSettings.PROVIDER_ID, it) }
         entity.identityId?.let { put(AutomationSettings.IDENTITY_ID, it) }
         entity.group?.let { put("group", it) }
         put("is_enabled", entity.isEnabled)
@@ -408,7 +423,7 @@ class AutomationService(private val context: Context) : ExecutableService {
         }
         return Result.success(entity.copy(
             name = settings.getString("name"),
-            providerId = settings.getString("provider_id"),
+            providerId = settings.optString(AutomationSettings.PROVIDER_ID).takeIf { it.isNotEmpty() },
             identityId = settings.optString(AutomationSettings.IDENTITY_ID).takeIf { it.isNotEmpty() },
             group = settings.optString("group").takeIf { it.isNotEmpty() },
             isEnabled = SettingValues(AutomationSettings.nodes(context), settings).boolean("is_enabled"),
@@ -675,6 +690,8 @@ class AutomationService(private val context: Context) : ExecutableService {
 
         val entity = dao.getAutomationById(automationId)
             ?: return OperationResult.error(s.shared("error_automation_not_found"))
+        // Without a provider it could not run
+        if (enabled && entity.providerId == null) return OperationResult.error(s.shared("automation_provider_none_enabled"))
 
         dao.setAutomationEnabled(automationId, enabled, System.currentTimeMillis())
 
@@ -706,6 +723,7 @@ class AutomationService(private val context: Context) : ExecutableService {
         val entity = dao.getAutomationById(automationId)
             ?: return OperationResult.error(s.shared("error_automation_not_found"))
         if (AIOrchestrator.isSeedEmpty(entity.seedSessionId)) return OperationResult.error(s.shared("automation_message_empty_run"))
+        if (entity.providerId == null) return OperationResult.error(s.shared("automation_provider_none"))
 
         // Delegate to AIOrchestrator V2
         // V2 handles session creation, trigger, and scheduling internally

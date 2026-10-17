@@ -108,7 +108,7 @@ fun AIScreen(
                             waitingStateJson = sessionData["waiting_state_json"] as? String,
                             automationId = sessionData["automation_id"] as? String,
                             scheduledExecutionTime = (sessionData["scheduled_execution_time"] as? Number)?.toLong(),
-                            providerId = sessionData["provider_id"] as String,
+                            providerId = sessionData["provider_id"] as String?,
                             providerSessionId = sessionData["provider_session_id"] as String,
                             createdAt = (sessionData["created_at"] as Number).toLong(),
                             lastActivity = (sessionData["last_activity"] as Number).toLong(),
@@ -138,7 +138,7 @@ fun AIScreen(
                     waitingStateJson = null,
                     automationId = null,
                     scheduledExecutionTime = null,
-                    providerId = "claude",
+                    providerId = null,
                     providerSessionId = "",
                     createdAt = System.currentTimeMillis(),
                     lastActivity = System.currentTimeMillis(),
@@ -303,8 +303,10 @@ private fun ChatMode(
         val data = result.data?.get("session") as? Map<*, *> ?: return@LaunchedEffect
         identityId = data["identity_id"] as? String
         fixed = (result.data?.get("messages") as? List<*>).orEmpty().any { (it as Map<*, *>)["sender"] == MessageSender.USER.name }
-        val providerId = data["provider_id"] as String
-        val providerKept = coordinator.processUserAction("ai_provider_config.get", mapOf("provider_id" to providerId)).status == CommandStatus.SUCCESS
+        // None yet: its first message takes the default, or says there is none
+        val providerKept = (data["provider_id"] as String?)?.let { providerId ->
+            coordinator.processUserAction("ai_provider_config.get", mapOf("provider_id" to providerId)).status == CommandStatus.SUCCESS
+        } ?: true
         stopped = when {
             identities != null && identityId != null && identities.none { it.id == identityId } -> s.shared("identity_session_gone")
             // A conversation not begun says a missing provider when its first message is sent
@@ -656,10 +658,9 @@ private fun SeedMode(
                 automation = mapOf(
                     "id" to currentAutomation.id,
                     "name" to currentAutomation.name,
-                    "provider_id" to currentAutomation.providerId,
                     "seed_session_id" to currentAutomation.seedSessionId,
                     "notify_end" to currentAutomation.notifyEnd
-                ) + listOfNotNull(currentAutomation.group?.let { "group" to it },
+                ) + listOfNotNull(currentAutomation.providerId?.let { "provider_id" to it }, currentAutomation.group?.let { "group" to it },
                     currentAutomation.identityId?.let { app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID to it }),
                 onDismiss = { showEditAutomation = false },
                 onSuccess = { _ ->
@@ -1030,12 +1031,15 @@ private fun ChatHeader(
     var validation by remember(session.id) { mutableStateOf(session.validation) }
     // The reasoning it asks of its model, null for its provider's (SessionReasoning)
     var reasoning by remember(session.id) { mutableStateOf(session.reasoning) }
+    // The provider it calls, null before its first message
+    var providerId by remember(session.id) { mutableStateOf(session.providerId) }
     LaunchedEffect(session.id) {
         val result = app.treelune.core.coordinator.Coordinator(context).processUserAction("ai_sessions.get_session", mapOf("session_id" to session.id))
         val stored = result.data?.get("session") as? Map<*, *>
         if (result.status == CommandStatus.SUCCESS && stored != null) {
             validation = SessionValidation.fromMap(stored)
             reasoning = SessionReasoning.fromMap(stored[SessionReasoning.KEY] as? Map<*, *>)
+            providerId = stored["provider_id"] as String?
         } else LogManager.aiUI("ChatHeader: session ${session.id} not read: ${result.error}", "ERROR")
     }
 
@@ -1089,6 +1093,7 @@ private fun ChatHeader(
 
         app.treelune.core.ai.ui.chat.SessionSettingsDialog(
             validation = validation,
+            providerId = providerId,
             reasoning = reasoning,
             onDismiss = { showSessionSettings = false },
             onValidationChange = { chosen ->
@@ -1102,6 +1107,18 @@ private fun ChatHeader(
                         LogManager.aiUI("Session validation updated: $chosen", "INFO")
                     } else {
                         UI.Toast(context, result.error ?: s.shared("ai_error_toggle_validation"), Duration.LONG)
+                    }
+                }
+            },
+            onProviderChange = { chosen ->
+                scope.launch {
+                    val result = coordinator.processUserAction("ai_sessions.set_provider", mapOf("session_id" to session.id, "provider_id" to chosen))
+                    if (result.status == CommandStatus.SUCCESS) {
+                        providerId = chosen
+                        if (result.data?.get("reasoning_dropped") == true) reasoning = null
+                        LogManager.aiUI("Session provider now $chosen", "INFO")
+                    } else {
+                        UI.Toast(context, result.error ?: s.shared("error_unknown"), Duration.LONG)
                     }
                 }
             },

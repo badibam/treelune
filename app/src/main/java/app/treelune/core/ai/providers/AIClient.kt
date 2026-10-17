@@ -5,8 +5,6 @@ import org.json.JSONObject
 import app.treelune.core.utils.JsonUtils
 import android.content.Context
 import app.treelune.core.ai.data.*
-import app.treelune.core.ai.providers.AIProvider
-import app.treelune.core.ai.providers.AIProviderRegistry
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.services.OperationResult
@@ -22,12 +20,13 @@ import kotlinx.coroutines.withContext
  * Responsibilities:
  * - Convert PromptResult to provider-specific format
  * - Handle provider errors (NO FALLBACKS without explicit configuration)
- * - Uses AIProviderConfigService for configurations (no direct DB access)
+ * - Uses AIProviderConfigService for configurations (no direct DB access), calling the provider
+ *   a session names, never another (ProviderVerifier)
  */
 class AIClient(private val context: Context) {
 
     private val coordinator = Coordinator(context)
-    private val providerRegistry = AIProviderRegistry(context)
+    private val kinds = AIProviderKinds(context)
     private val s = Strings.`for`(context = context)
 
     /**
@@ -35,112 +34,32 @@ class AIClient(private val context: Context) {
      * Provider transforms PromptData to its specific format and handles prompt construction
      *
      * @param promptData The raw prompt data (L1-L3 + messages)
-     * @param providerId Optional provider ID to use. If null, uses active provider (for CHAT). For AUTOMATION, this should be the automation's configured provider.
+     * @param providerId The provider the session calls, checked before (ProviderVerifier)
      * @param reasoning The conversation's own reasoning, sent in place of the config's; checked
      *   before by the caller ([reasoningRefusal]); null, the config's
      * @return AIResponse with raw JSON string (not parsed)
      */
-    suspend fun query(promptData: PromptData, providerId: String? = null, reasoning: SessionReasoning? = null): AIResponse {
+    suspend fun query(promptData: PromptData, providerId: String, reasoning: SessionReasoning? = null): AIResponse {
         LogManager.aiService("AIClient.query() called with PromptData: ${promptData.sessionMessages.size} messages, providerId: $providerId", "DEBUG")
 
         return withContext(Dispatchers.IO) {
             try {
-                // Determine which provider to use
-                val effectiveProviderId: String = if (providerId != null) {
-                    // Use specified provider (AUTOMATION case)
-                    LogManager.aiService("Using specified provider: $providerId", "DEBUG")
-                    providerId
-                } else {
-                    // Get active provider ID (CHAT case)
-                    val activeResult = coordinator.processUserAction("ai_provider_config.get_active")
-
-                    if (!activeResult.isSuccess) {
-                        LogManager.aiService("Failed to get active provider: ${activeResult.error}", "ERROR")
-                        return@withContext AIResponse(
-                            success = false,
-                            content = "",
-                            errorMessage = s.shared("ai_error_no_provider_configured"),
-                            failure = AIFailure.CONFIG
-                        )
-                    }
-
-                    val hasActiveProvider = activeResult.data?.get("has_active_provider") as? Boolean ?: false
-                    if (!hasActiveProvider) {
-                        LogManager.aiService("No active AI provider configured", "ERROR")
-                        return@withContext AIResponse(
-                            success = false,
-                            content = "",
-                            errorMessage = s.shared("ai_error_no_provider_configured"),
-                            failure = AIFailure.CONFIG
-                        )
-                    }
-
-                    val activeProviderId = activeResult.data?.get("active_provider_id") as? String
-                    if (activeProviderId.isNullOrEmpty()) {
-                        LogManager.aiService("Active provider ID is empty", "ERROR")
-                        return@withContext AIResponse(
-                            success = false,
-                            content = "",
-                            errorMessage = s.shared("ai_error_no_provider_configured"),
-                            failure = AIFailure.CONFIG
-                        )
-                    }
-
-                    LogManager.aiService("Using active provider: $activeProviderId", "DEBUG")
-                    activeProviderId
-                }
-
-                // Get provider from registry
-                val provider = providerRegistry.getProvider(effectiveProviderId)
-                if (provider == null) {
-                    LogManager.aiService("Provider not found in registry: $effectiveProviderId", "ERROR")
-                    return@withContext AIResponse(
-                        success = false,
-                        content = "",
-                        errorMessage = s.shared("ai_error_provider_not_found").format(effectiveProviderId),
-                        failure = AIFailure.CONFIG
-                    )
-                }
-
-                LogManager.aiService("Using provider: ${provider.getDisplayName()}", "DEBUG")
-
-                // Get provider configuration via coordinator
-                val configResult = coordinator.processUserAction("ai_provider_config.get", mapOf(
-                    "provider_id" to effectiveProviderId
-                ))
-
-                if (!configResult.isSuccess) {
-                    LogManager.aiService("Provider configuration not found: $effectiveProviderId", "ERROR")
-                    return@withContext AIResponse(
-                        success = false,
-                        content = "",
-                        errorMessage = s.shared("ai_error_provider_not_configured").format(effectiveProviderId),
-                        failure = AIFailure.CONFIG
-                    )
-                }
-
-                @Suppress("UNCHECKED_CAST")
-                val providerConfig = (configResult.data?.get("config") as? Map<String, Any?>)
-                    ?.let { JsonUtils.toJSONObject(it).toString() } ?: "{}"
-                val isConfigured = configResult.data?.get("is_configured") as? Boolean ?: false
-
-                if (!isConfigured) {
-                    LogManager.aiService("Provider not configured: $effectiveProviderId", "ERROR")
-                    return@withContext AIResponse(
-                        success = false,
-                        content = "",
-                        errorMessage = s.shared("ai_error_provider_not_configured").format(effectiveProviderId),
-                        failure = AIFailure.CONFIG
-                    )
-                }
+                val (provider, config, data) = stored(providerId) ?: return@withContext AIResponse(
+                    success = false,
+                    content = "",
+                    errorMessage = s.shared("ai_error_provider_not_found").format(providerId),
+                    failure = AIFailure.CONFIG
+                ).also { LogManager.aiService("Provider not found: $providerId", "ERROR") }
+                val name = data["name"] as String
+                LogManager.aiService("Using provider $providerId (${provider.kind})", "DEBUG")
 
                 // A key sealed on another phone: said as such, never sent as an empty key
-                if ((configResult.data?.get(app.treelune.core.secrets.SecretSettings.UNREADABLE) as? List<*>).orEmpty().isNotEmpty()) {
-                    LogManager.aiService("Provider secret unreadable on this phone: $effectiveProviderId", "ERROR")
+                if ((data[app.treelune.core.secrets.SecretSettings.UNREADABLE] as? List<*>).orEmpty().isNotEmpty()) {
+                    LogManager.aiService("Provider secret unreadable on this phone: $providerId", "ERROR")
                     return@withContext AIResponse(
                         success = false,
                         content = "",
-                        errorMessage = s.shared("ai_error_provider_secret_unreadable").format(provider.getDisplayName()),
+                        errorMessage = s.shared("ai_error_provider_secret_unreadable").format(name),
                         failure = AIFailure.CONFIG
                     )
                 }
@@ -150,7 +69,7 @@ class AIClient(private val context: Context) {
                 // or when an image's file is missing; never sent without them
                 val imageIds = promptData.sessionMessages.flatMap { it.promptParts.orEmpty() }
                     .filterIsInstance<app.treelune.core.ai.data.PromptPart.Image>().map { it.imageId }
-                val imageRefusal = ImageInput.refusal(imageIds.size, provider.readsImages(JSONObject(providerConfig), context)) { s.shared(it) }
+                val imageRefusal = ImageInput.refusal(imageIds.size, provider.readsImages(config, context)) { s.shared(it) }
                     ?: imageIds.firstOrNull { !app.treelune.core.ai.enrichments.AttachedImages.file(context, it).exists() }
                         ?.let { s.shared("ai_image_error_missing") }
                 if (imageRefusal != null) {
@@ -158,13 +77,9 @@ class AIClient(private val context: Context) {
                     return@withContext AIResponse(success = false, content = "", errorMessage = imageRefusal, failure = AIFailure.CONFIG)
                 }
 
-                // Send query to provider with PromptData
-                LogManager.aiService("Sending PromptData to ${provider.getDisplayName()}", "DEBUG")
-                val sentConfig = reasoning?.applyTo(JSONObject(providerConfig))?.toString() ?: providerConfig
+                val sentConfig = (reasoning?.applyTo(JSONObject(config.toString())) ?: config).toString()
                 val aiResponse = provider.query(promptData, sentConfig)
-
-                LogManager.aiService("Received response from ${provider.getDisplayName()}: success=${aiResponse.success}", "DEBUG")
-
+                LogManager.aiService("Received response from provider $providerId: success=${aiResponse.success}", "DEBUG")
                 aiResponse
 
             } catch (e: CancellationException) {
@@ -182,75 +97,39 @@ class AIClient(private val context: Context) {
     }
 
     /**
-     * Get list of available providers via coordinator
+     * Why [reasoning] cannot go with the model of [providerId], in the kind's words
+     * (AIProviderKind.configError on its config with [reasoning] in place), or null when it can.
+     * Null too without a provider to ask: a call then fails on that.
      */
-    suspend fun getAvailableProviders(): List<AIProviderInfo> {
-        val result = coordinator.processUserAction("ai_provider_config.list")
-
-        return if (result.isSuccess) {
-            val providers = result.data?.get("providers") as? List<*> ?: emptyList<Any>()
-            providers.mapNotNull { item ->
-                val providerMap = item as? Map<*, *> ?: return@mapNotNull null
-                AIProviderInfo(
-                    id = providerMap["id"] as? String ?: return@mapNotNull null,
-                    displayName = providerMap["display_name"] as? String ?: "",
-                    isConfigured = providerMap["is_configured"] as? Boolean ?: false,
-                    isActive = providerMap["is_active"] as? Boolean ?: false
-                )
-            }
-        } else {
-            LogManager.aiService("Failed to get providers: ${result.error}", "ERROR")
-            emptyList()
-        }
-    }
-
-    /**
-     * Why [reasoning] cannot go with the model of [providerId] (the active provider when null), in
-     * the provider's words (AIProvider.configError on its config with [reasoning] in place), or
-     * null when it can. Null too without a provider and config to ask: a call then fails on that.
-     */
-    suspend fun reasoningRefusal(reasoning: SessionReasoning, providerId: String? = null): String? {
-        val (provider, config) = providerAndConfig(providerId) ?: return null
+    suspend fun reasoningRefusal(reasoning: SessionReasoning, providerId: String): String? {
+        val (provider, config) = stored(providerId) ?: return null
         return provider.configError(reasoning.applyTo(config), context)
     }
 
     /**
-     * What the model of [providerId] (the active provider when null) lets a conversation set of
-     * its reasoning, its provider listing it (a network call, as the provider's config screen).
+     * What the model of [providerId] lets a conversation set of its reasoning, its provider listing
+     * it (a network call, as the provider's config screen).
      */
-    suspend fun modelReasoning(providerId: String? = null): ModelReasoning {
-        val (provider, config) = providerAndConfig(providerId)
-            ?: return ModelReasoning(null, null, null, s.shared("ai_error_no_provider_configured"))
+    suspend fun modelReasoning(providerId: String): ModelReasoning {
+        val (provider, config, data) = stored(providerId)
+            ?: return ModelReasoning(null, null, null, s.shared("ai_session_provider_gone"))
         val ownSetting = SessionReasoning(config.optBoolean(SessionReasoning.KEY_THINKING_OFF), config.optString(SessionReasoning.KEY_EFFORT).ifBlank { null })
         val model = config.optString("model").ifBlank { null }
-            ?: return ModelReasoning(null, null, ownSetting, s.shared("ai_error_provider_not_configured").format(provider.getDisplayName()))
+            ?: return ModelReasoning(null, null, ownSetting, s.shared("ai_error_provider_not_configured").format(data["name"]))
         val listed = provider.listModels(config)
         listed.error?.let { return ModelReasoning(model, null, ownSetting, s.shared("ai_provider_fetch_error").format(it)) }
         return ModelReasoning(model, listed.models.find { it.id == model }?.reasoning, ownSetting, null)
     }
 
-    /** The provider of [providerId] (the active one when null) and its stored config, or null when either is missing. */
-    private suspend fun providerAndConfig(providerId: String?): Pair<AIProvider, JSONObject>? {
-        val id = providerId ?: getActiveProviderId() ?: return null
-        val provider = providerRegistry.getProvider(id) ?: return null
-        val result = coordinator.processUserAction("ai_provider_config.get", mapOf("provider_id" to id))
+    /** The kind of provider [providerId], its stored config, and what the service says of it; null when it is gone. */
+    private suspend fun stored(providerId: String): Triple<AIProviderKind, JSONObject, Map<String, Any?>>? {
+        val result = coordinator.processUserAction("ai_provider_config.get", mapOf("provider_id" to providerId))
         if (!result.isSuccess) return null
+        val data = result.data ?: return null
+        val provider = kinds.of(data["kind"] as String) ?: return null
         @Suppress("UNCHECKED_CAST")
-        val config = (result.data?.get("config") as? Map<String, Any?>)?.let { JsonUtils.toJSONObject(it) } ?: return null
-        return provider to config
-    }
-
-    /**
-     * Get active provider ID via coordinator
-     */
-    suspend fun getActiveProviderId(): String? {
-        val result = coordinator.processUserAction("ai_provider_config.get_active")
-        return if (result.isSuccess) {
-            result.data?.get("active_provider_id") as? String
-        } else {
-            LogManager.aiService("Failed to get active provider: ${result.error}", "ERROR")
-            null
-        }
+        val config = (data["config"] as? Map<String, Any?>)?.let { JsonUtils.toJSONObject(it) } ?: return null
+        return Triple(provider, config, data)
     }
 }
 
@@ -259,16 +138,6 @@ class AIClient(private val context: Context) {
  * or not listed), the provider's own setting (null without a config), and why it could not be known.
  */
 data class ModelReasoning(val model: String?, val reasoning: Reasoning?, val providerSetting: SessionReasoning?, val error: String?)
-
-/**
- * Information about an AI provider
- */
-data class AIProviderInfo(
-    val id: String,
-    val displayName: String,
-    val isConfigured: Boolean,
-    val isActive: Boolean
-)
 
 /**
  * AI provider response structure

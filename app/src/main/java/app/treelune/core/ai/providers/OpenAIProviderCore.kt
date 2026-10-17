@@ -20,7 +20,7 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 
 /**
- * Core implementation for OpenAI AI Provider variants
+ * Core implementation of the OpenAI kind
  *
  * Contains all shared logic for OpenAI API integration:
  * - HTTP client configuration with 2-minute timeout
@@ -28,19 +28,14 @@ import java.util.concurrent.TimeUnit
  * - Query execution with token tracking
  * - Response parsing with usage metrics
  *
- * This internal class is used by public provider variants:
- * - OpenAIStandardProvider (default model, e.g., gpt-5.5)
- * - OpenAIEconomicProvider (economic model, e.g., gpt-5.4-mini)
- *
- * Each variant creates its own core instance with a unique variantId,
- * allowing separate configurations while sharing all implementation code.
+ * Used by OpenAIProvider.
  *
  * @param context Android context for database and file access
- * @param variantId Unique identifier for this variant (e.g., "openai_standard", "openai_economic")
+ * @param kind The kind it serves, which names its logs and debug files
  */
 internal class OpenAIProviderCore(
     private val context: Context,
-    private val variantId: String
+    private val kind: String
 ) {
 
     companion object {
@@ -71,7 +66,7 @@ internal class OpenAIProviderCore(
     // ========================================================================================
 
     /**
-     * The settings of this variant's config: its API key (secret), the model, temperature, longest
+     * The settings of a provider's config: its API key (secret), the model, temperature, longest
      * answer, and the effort (ReasoningSettings), whose levels are facts: OpenAI's model list says
      * nothing of reasoning. Turning thinking off is the effort "none", where a model has it.
      */
@@ -118,7 +113,7 @@ internal class OpenAIProviderCore(
      */
     suspend fun fetchAvailableModels(apiKey: String): ProviderModels = withContext(Dispatchers.IO) {
         try {
-            LogManager.aiService("OpenAIProviderCore.fetchAvailableModels() - Variant: $variantId")
+            LogManager.aiService("OpenAIProviderCore.fetchAvailableModels() - Kind: $kind")
 
             // Build request
             val request = Request.Builder()
@@ -194,7 +189,7 @@ internal class OpenAIProviderCore(
      * @return AIResponse with content, token counts, and usage metrics
      */
     suspend fun query(promptData: PromptData, config: String): AIResponse = withContext(Dispatchers.IO) {
-        LogManager.aiService("OpenAIProviderCore.query() - Variant: $variantId, Messages: ${promptData.sessionMessages.size}")
+        LogManager.aiService("OpenAIProviderCore.query() - Kind: $kind, Messages: ${promptData.sessionMessages.size}")
 
         try {
             // Read the config through its declaration: an absent setting is its default
@@ -219,9 +214,9 @@ internal class OpenAIProviderCore(
             val formattedPrompt = prettyJson.encodeToString(JsonObject.serializer(), requestJson)
 
             // Save raw prompt to file for debugging (overwrites previous)
-            // Accessible via: adb pull /data/data/app.treelune/files/last_prompt_openai_<variant>.txt
+            // Accessible via: adb pull /data/data/app.treelune/files/last_prompt_openai_<kind>.txt
             try {
-                val debugFile = File(context.filesDir, "last_prompt_openai_${variantId}.txt")
+                val debugFile = File(context.filesDir, "last_prompt_openai_${kind}.txt")
                 debugFile.writeText(formattedPrompt)
                 LogManager.aiService("Raw prompt saved to: ${debugFile.absolutePath}", "DEBUG")
             } catch (e: Exception) {
@@ -270,7 +265,7 @@ internal class OpenAIProviderCore(
 
             // Save raw response to file for debugging (overwrites previous)
             try {
-                val responseFile = File(context.filesDir, "last_response_openai_${variantId}.txt")
+                val responseFile = File(context.filesDir, "last_response_openai_${kind}.txt")
                 responseFile.writeText(responseBody)
                 LogManager.aiService("Raw response saved to: ${responseFile.absolutePath}", "DEBUG")
             } catch (e: Exception) {

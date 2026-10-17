@@ -998,7 +998,6 @@
     <string name="settings_section_system">System</string>
     <string name="settings_ai_providers">AI providers</string>
     <string name="settings_ai_providers_description">Configure the artificial intelligence providers</string>
-    <string name="settings_ai_providers_config">Provider configuration</string>
 
     <string name="settings_format">Format and dates</string>
     <string name="settings_format_description">Configure the time and display formats</string>
@@ -1087,11 +1086,6 @@
     <string name="backup_reset_failed">Reset failed</string>
 
     <!-- AI PROVIDERS - Provider management -->
-    <string name="message_no_providers">No AI provider available</string>
-    <string name="provider_status_configured">Configured</string>
-    <string name="provider_status_not_configured">Not configured</string>
-    <string name="provider_status_active">Active</string>
-    <string name="provider_status_inactive">Inactive</string>
 
     <!-- AI PROVIDERS - Claude specific -->
     <string name="ai_provider_claude_api_key">Claude API key</string>
@@ -1139,8 +1133,49 @@
     <string name="ai_provider_openai_schema_temperature">Sampling temperature (0.0 to 2.0)</string>
     <string name="ai_provider_openai_schema_max_output_tokens">Maximum token limit for the answers</string>
     <string name="ai_provider_fill_in_first">Fill in first: %1$s</string>
-    <string name="ai_provider_compatible_name">Other server</string>
-    <string name="ai_provider_compatible_economic_name">Other server (economic)</string>
+    <string name="ai_provider_kind_claude">Claude</string>
+    <string name="ai_provider_kind_claude_description">Anthropic\'s models, with an API key from Anthropic</string>
+    <string name="ai_provider_kind_openai">OpenAI</string>
+    <string name="ai_provider_kind_openai_description">OpenAI\'s models, with an API key from OpenAI</string>
+    <string name="ai_provider_kind_deepseek">DeepSeek</string>
+    <string name="ai_provider_kind_deepseek_description">DeepSeek\'s models, with an API key from DeepSeek</string>
+    <string name="ai_provider_kind_compatible">Other server</string>
+    <string name="ai_provider_kind_compatible_description">Ollama, LM Studio, OpenRouter: any server that speaks the Chat Completions API, at home or rented</string>
+    <string name="ai_provider_compatible_prices">Prices</string>
+    <string name="ai_provider_compatible_schema_prices">Where the cost of each call comes from: LiteLLM\'s public list, or prices set by hand</string>
+    <string name="ai_provider_compatible_prices_list">LiteLLM list</string>
+    <string name="ai_provider_compatible_prices_manual">Set by hand</string>
+    <string name="ai_provider_compatible_price_input">Input, $ per million tokens</string>
+    <string name="ai_provider_compatible_schema_price_input">Price of the input the server reads, in dollars per million tokens</string>
+    <string name="ai_provider_compatible_price_cached_input">Cached input, $ per million tokens</string>
+    <string name="ai_provider_compatible_schema_price_cached_input">Price of the input the server reads again from its cache, in dollars per million tokens</string>
+    <string name="ai_provider_compatible_price_output">Output, $ per million tokens</string>
+    <string name="ai_provider_compatible_schema_price_output">Price of the answer, reasoning included, in dollars per million tokens</string>
+    <string name="ai_provider_compatible_prices_help">Prices: LiteLLM\'s list knows the hosted models, not a server at home. On your own server, set the prices by hand: 0 means free. A price left empty stays unknown, and so does the cost of a call that uses it.</string>
+    <string name="ai_error_param_kind_required">The provider\'s kind is missing</string>
+    <string name="ai_error_provider_new_default_required">%1$s is the default provider: choose which one takes its place before deleting it</string>
+    <string name="ai_error_provider_name_required">Give the provider a name</string>
+    <string name="ai_error_provider_name_too_long">A provider\'s name is at most %1$d characters</string>
+    <string name="ai_error_provider_name_taken">A provider is already named %1$s: choose another name</string>
+    <string name="ai_error_session_provider_chat_only">Only a conversation chooses its provider: a routine\'s run takes its routine\'s</string>
+    <string name="automation_provider_none">This routine has no AI provider: choose one in its settings</string>
+    <string name="automation_provider_required">Say which AI provider the routine uses, or null for none</string>
+    <string name="automation_provider_none_enabled">A routine without an AI provider cannot be on: choose a provider first</string>
+    <string name="automation_status_no_provider">No AI provider</string>
+    <string name="automation_no_provider_yet">No AI provider yet: the routine is created off. Add a provider in Settings › AI providers, then choose it here.</string>
+    <string name="session_provider_title">AI provider</string>
+    <string name="session_provider_help">The provider this conversation calls, from its next message on. Changed, the conversation follows the new provider\'s reasoning.</string>
+    <string name="ai_providers_empty">A provider is the AI the app calls: a service such as Claude, OpenAI or DeepSeek with your key, or a server of your own. Add one to talk to the AI.</string>
+    <string name="ai_provider_add">Add a provider</string>
+    <string name="ai_provider_choose_kind">New provider</string>
+    <string name="ai_provider_choose_kind_description">Choose what it is</string>
+    <string name="ai_provider_name">Name</string>
+    <string name="ai_provider_is_default">Default</string>
+    <string name="ai_provider_set_default">Make default</string>
+    <string name="ai_provider_copy_name">%1$s (copy)</string>
+    <string name="ai_provider_new_default_title">Delete the default provider</string>
+    <string name="ai_provider_new_default_message">%1$s is the default: new conversations take it. Choose which provider takes its place.</string>
+    <string name="ai_prompt_level3_providers_title">AI providers</string>
     <string name="ai_provider_compatible_base_url">Server address</string>
     <string name="ai_provider_compatible_schema_base_url">Base address of the server\'s OpenAI-compatible API, https only (e.g. https://openrouter.ai/api/v1)</string>
     <string name="ai_provider_compatible_api_key">API key (if the server asks for one)</string>
@@ -1157,7 +1192,7 @@
     <string name="ai_provider_compatible_https_required">The server address must start with https://: plain http would send your data in clear</string>
 
     <!-- AI ERRORS - Provider related (additional) -->
-    <string name="ai_error_no_provider_configured">No AI provider configured. Please configure a provider in the settings.</string>
+    <string name="ai_error_no_provider_configured">No AI provider: add one in Settings › AI providers.</string>
     <string name="ai_error_provider_not_found">Provider not found: %1$s</string>
     <string name="ai_error_provider_not_configured">Provider %1$s not configured</string>
     <string name="ai_error_provider_secret_unreadable">The API key of %1$s does not open on this phone: it was saved on another one (a restored backup). Enter it again in the provider\'s settings.</string>

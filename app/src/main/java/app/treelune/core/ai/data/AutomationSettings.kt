@@ -1,7 +1,6 @@
 package app.treelune.core.ai.data
 
 import android.content.Context
-import app.treelune.core.ai.providers.AIProviderRegistry
 import app.treelune.core.fields.ChoiceSettings
 import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldType
@@ -38,6 +37,9 @@ object AutomationSettings {
 
     const val SCHEMA_ID = "automation_settings"
 
+    /** The provider its runs call (AIProviderConfigEntity.id). */
+    const val PROVIDER_ID = "provider_id"
+
     /**
      * The identity setting's key. A creation gives it, null for the app's own AI: the screen
      * shows it preselected with the zone's, and an AI, which sees no preselection, says it.
@@ -72,13 +74,13 @@ object AutomationSettings {
 
     fun nodes(context: Context): List<SettingNode> {
         val s = Strings.`for`(context = context)
-        val providers = AIProviderRegistry(context).getAllProviders()
         return listOf(
             SettingNode.Field(FieldDefinition("name", s.shared("label_name"), null, FieldType.TEXT, false,
                 mapOf("length" to TextLength.SHORT.name)), required = true),
-            SettingNode.Field(FieldDefinition("provider_id", s.shared("label_ai_provider"), null, FieldType.CHOICE, false,
-                mapOf("options" to ChoiceSettings.storedOptions(providers.map { it.getProviderId() },
-                    providers.associate { it.getProviderId() to it.getDisplayName() }))), required = true),
+            // One of the providers the user created, absent for none: the routine is then neither
+            // on nor run; checked to exist by the service, as the identity
+            SettingNode.Field(FieldDefinition(PROVIDER_ID, s.shared("label_ai_provider"), null, FieldType.TEXT, false,
+                mapOf("length" to TextLength.SHORT.name))),
             // The identity its runs speak as, absent for the app's own AI; checked to exist by the service
             SettingNode.Field(FieldDefinition(IDENTITY_ID, s.shared("label_identity"), null, FieldType.TEXT, false,
                 mapOf("length" to TextLength.SHORT.name))),

@@ -105,7 +105,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 78
+        const val VERSION = 79
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -1806,6 +1806,24 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * AI providers created by the user (docs/design/ai-providers.md, ProvidersAtV79): the fixed
+         * ids configured become providers of their kind, under their name, the active one the
+         * default; a routine and a session may have none. Refused while the foreign keys are on:
+         * rebuilding the sessions' table would then delete every message with it.
+         */
+        private val MIGRATION_78_79 = object : Migration(78, 79) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.query("PRAGMA foreign_keys").use { cursor ->
+                    check(!(cursor.moveToFirst() && cursor.getInt(0) == 1)) { "MIGRATION 78->79: foreign keys on, the sessions' messages would go with their table" }
+                }
+                app.treelune.core.versioning.ProvidersAtV79.STATEMENTS.forEach { database.execSQL(it) }
+                val providers = database.query("SELECT COUNT(*) FROM ai_provider_configs").use { if (it.moveToFirst()) it.getInt(0) else 0 }
+                val without = database.query("SELECT COUNT(*) FROM automations WHERE provider_id IS NULL").use { if (it.moveToFirst()) it.getInt(0) else 0 }
+                LogManager.database("MIGRATION 78->79: $providers providers kept, $without routines without one", "INFO")
+            }
+        }
+
         /** A conversation's own reasoning (SessionReasoning): two columns, empty, every session following its provider as before. */
         private val MIGRATION_73_74 = object : Migration(73, 74) {
             override fun migrate(database: SupportSQLiteDatabase) {
@@ -2809,7 +2827,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_74_75,
                     MIGRATION_75_76,
                     MIGRATION_76_77,
-                    MIGRATION_77_78
+                    MIGRATION_77_78,
+                    MIGRATION_78_79
                     // Add future migrations here (minimum supported version: 9)
                 )
                 .addCallback(object : RoomDatabase.Callback() {

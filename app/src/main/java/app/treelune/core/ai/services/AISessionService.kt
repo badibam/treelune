@@ -77,6 +77,8 @@ class AISessionService(private val context: Context) : ExecutableService {
                 "update_validation" -> updateValidation(params, token)
                 // The reasoning it asks of its model, or its provider's config again
                 "update_reasoning" -> updateReasoning(params, token)
+                // The provider a conversation calls, chosen in its parameters or taken at its first call
+                "set_provider" -> setProvider(params, token)
                 // Who it speaks as, until its first message fixes it
                 "set_identity" -> setIdentity(params)
 
@@ -124,8 +126,10 @@ class AISessionService(private val context: Context) : ExecutableService {
             ?: return OperationResult.error(s.shared("ai_error_param_name_required"))
         val type = params.optString("type").takeIf { it.isNotEmpty() }
             ?: return OperationResult.error(s.shared("ai_error_param_type_required"))
-        val providerId = params.optString("provider_id").takeIf { it.isNotEmpty() }
-            ?: return OperationResult.error(s.shared("ai_error_param_provider_id_required"))
+        // None: a conversation takes the default at its first call (ProviderVerifier)
+        val providerId = params.optString("provider_id").takeIf { it.isNotEmpty() && !params.isNull("provider_id") }
+        if (providerId != null && AppDatabase.getDatabase(context).aiDao().getProviderConfig(providerId) == null)
+            return OperationResult.error(s.shared("ai_error_provider_not_found").format(providerId))
 
         // A seed session is made with its routine and its message, by automations.create
         if (type == SessionType.SEED.name) return OperationResult.error(s.shared("ai_error_seed_with_routine"))
@@ -169,9 +173,8 @@ class AISessionService(private val context: Context) : ExecutableService {
                 "session_id" to sessionId,
                 "name" to name,
                 "type" to type,
-                "provider_id" to providerId,
                 "created_at" to now
-            ))
+            ) + (providerId?.let { mapOf("provider_id" to it) } ?: emptyMap()))
         } catch (e: Exception) {
             LogManager.aiSession("Failed to create session: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("ai_error_create_session").format(e.message ?: ""))
@@ -898,8 +901,8 @@ class AISessionService(private val context: Context) : ExecutableService {
     /**
      * Sets the reasoning a conversation asks of its model (SessionReasoning): `reasoning` with
      * `thinking_off` and `effort` (null, the model's default), or null to follow its provider's
-     * config again. Refused, in the provider's words, when the active provider's model does not
-     * take it.
+     * config again. Refused, in the provider's words, when the model of the provider it calls
+     * (the default for a conversation that has none yet) does not take it.
      */
     private suspend fun updateReasoning(params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
@@ -919,11 +922,39 @@ class AISessionService(private val context: Context) : ExecutableService {
         val dao = AppDatabase.getDatabase(context).aiDao()
         val session = dao.getSession(sessionId)
             ?: return OperationResult.error(s.shared("ai_error_session_not_found").format(sessionId))
-        reasoning?.let { app.treelune.core.ai.providers.AIClient(context).reasoningRefusal(it) }?.let { return OperationResult.error(it) }
+        val providerId = session.providerId ?: dao.getDefaultProviderConfig()?.id
+        if (reasoning != null && providerId != null) {
+            app.treelune.core.ai.providers.AIClient(context).reasoningRefusal(reasoning, providerId)?.let { return OperationResult.error(it) }
+        }
 
         dao.updateSession(session.copy(reasoningThinkingOff = reasoning?.thinkingOff, reasoningEffort = reasoning?.effort))
         LogManager.aiSession("Reasoning of session $sessionId now ${reasoning ?: "its provider's"}", "INFO")
         return OperationResult.success(buildMap { put("session_id", sessionId); reasoning?.let { put(SessionReasoning.KEY, it.toMap()) } })
+    }
+
+    /**
+     * Sets the provider conversation [params] calls (docs/design/ai-providers.md), from its next
+     * message on: one that exists, never on a routine's run nor a seed, which take their routine's.
+     * Its own reasoning goes: what one model offers another may refuse; it follows its new
+     * provider's config until set again.
+     */
+    private suspend fun setProvider(params: JSONObject, token: CancellationToken): OperationResult {
+        if (token.isCancelled) return OperationResult.cancelled()
+        val sessionId = params.optString("session_id").takeIf { it.isNotEmpty() }
+            ?: return OperationResult.error(s.shared("ai_error_param_session_id_required"))
+        val providerId = params.optString("provider_id").takeIf { it.isNotEmpty() }
+            ?: return OperationResult.error(s.shared("ai_error_param_provider_id_required"))
+        val dao = AppDatabase.getDatabase(context).aiDao()
+        val session = dao.getSession(sessionId)
+            ?: return OperationResult.error(s.shared("ai_error_session_not_found").format(sessionId))
+        if (session.type != SessionType.CHAT) return OperationResult.error(s.shared("ai_error_session_provider_chat_only"))
+        dao.getProviderConfig(providerId) ?: return OperationResult.error(s.shared("ai_error_provider_not_found").format(providerId))
+        val changed = session.providerId != null && session.providerId != providerId
+        dao.updateSession(session.copy(providerId = providerId,
+            reasoningThinkingOff = if (changed) null else session.reasoningThinkingOff,
+            reasoningEffort = if (changed) null else session.reasoningEffort))
+        LogManager.aiSession("Session $sessionId now calls provider $providerId${if (changed) ", its own reasoning dropped" else ""}", "INFO")
+        return OperationResult.success(mapOf("session_id" to sessionId, "provider_id" to providerId, "reasoning_dropped" to changed))
     }
 
     /**

@@ -18,15 +18,15 @@ import kotlinx.coroutines.launch
  * CreateAutomationDialog - Create or edit automation (name, provider, group, end signal)
  *
  * Flow CREATE (automation == null):
- * 1. User fills name + provider
+ * 1. User fills name + provider, the default one shown chosen; without any provider, none, and
+ *    the routine is created off
  * 2. On confirm: create the automation, which makes its SEED session with an empty message,
  *    and return seedSessionId for navigation to SEED editor
  *
  * Flow EDIT (automation != null):
  * 1. Pre-fill name + provider from existing automation
  * 2. On confirm:
- *    - Update automation name + provider
- *    - Update SEED session provider if changed
+ *    - Update automation name + provider (its runs take it when they start)
  *    - Return existing seedSessionId
  *
  * Usage:
@@ -121,15 +121,12 @@ fun CreateAutomationDialog(
                 @Suppress("UNCHECKED_CAST")
                 val allProviders = result.data?.get("providers") as? List<Map<String, Any>> ?: emptyList()
 
-                // Filter only configured providers
-                providers = allProviders.filter { provider ->
-                    provider["is_configured"] as? Boolean ?: false
-                }
+                providers = allProviders
 
-                // A new automation takes the active provider; none active, none chosen, to be picked
-                val active = providers.firstOrNull { it["is_active"] as? Boolean ?: false }
-                if (active != null && selectedProvider == null) {
-                    settings = org.json.JSONObject(settings.toString()).put("provider_id", active["id"] as String)
+                // A new routine starts with the default provider, shown chosen
+                val default = providers.firstOrNull { it["is_default"] as? Boolean ?: false }
+                if (!isEditMode && default != null && selectedProvider == null) {
+                    settings = org.json.JSONObject(settings.toString()).put("provider_id", default["id"] as String)
                 }
             }
         } catch (e: Exception) {
@@ -147,7 +144,8 @@ fun CreateAutomationDialog(
                 errorMessage = s.shared("ai_error_param_name_required")
                 return@Dialog
             }
-            if (selectedProvider == null) {
+            // Without any provider, the routine is created off, to be given one later
+            if (selectedProvider == null && providers.isNotEmpty()) {
                 errorMessage = s.shared("error_param_provider_id_required")
                 return@Dialog
             }
@@ -160,7 +158,6 @@ fun CreateAutomationDialog(
                         // EDIT MODE: Update existing automation
                         val automationId = automation?.get("id") as? String
                         val seedSessionId = automation?.get("seed_session_id") as? String
-                        val currentProviderId = automation?.get("provider_id") as? String
                         val currentZoneId = automation?.get("zone_id") as? String
 
                         if (automationId == null || seedSessionId == null) {
@@ -174,7 +171,7 @@ fun CreateAutomationDialog(
                         val updateParams = mutableMapOf<String, Any>(
                             "automation_id" to automationId,
                             "name" to name,
-                            "provider_id" to selectedProvider!!,
+                            "provider_id" to (selectedProvider ?: org.json.JSONObject.NULL),
                             "group" to (selectedGroup ?: org.json.JSONObject.NULL),
                             "notify_end" to (settings.optString("notify_end").ifEmpty { null } ?: org.json.JSONObject.NULL),
                             app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID to (settings.optString(app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID).ifEmpty { null } ?: org.json.JSONObject.NULL)
@@ -192,22 +189,6 @@ fun CreateAutomationDialog(
                             return@launch
                         }
 
-                        // If provider changed, update SEED session provider
-                        if (selectedProvider != currentProviderId) {
-                            val updateSessionResult = coordinator.processUserAction(
-                                "ai_sessions.update_session",
-                                mapOf(
-                                    "session_id" to seedSessionId,
-                                    "provider_id" to selectedProvider!!
-                                )
-                            )
-
-                            if (updateSessionResult.status != CommandStatus.SUCCESS) {
-                                LogManager.aiUI("Failed to update session provider: ${updateSessionResult.error}", "WARNING")
-                                // Continue anyway - automation is updated
-                            }
-                        }
-
                         LogManager.aiUI("Updated automation: $automationId", "INFO")
                         onSuccess(seedSessionId)
 
@@ -217,8 +198,8 @@ fun CreateAutomationDialog(
                         val createParams = mutableMapOf<String, Any>(
                             "name" to name,
                             "zone_id" to zoneId,
-                            "provider_id" to selectedProvider!!,
-                            "is_enabled" to true
+                            "provider_id" to (selectedProvider ?: org.json.JSONObject.NULL),
+                            "is_enabled" to (selectedProvider != null)
                         )
                         selectedGroup?.let { createParams["group"] = it }
                         createParams[app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID] =
@@ -265,16 +246,16 @@ fun CreateAutomationDialog(
                 type = TextType.TITLE
             )
 
-            // Name, provider among the configured ones, group among the zone's, which runs wait to be read
+            // Name, provider among the user's, group among the zone's, which runs wait to be read
             app.treelune.core.fields.settings.SettingsForm(settingsNodes, settings, { settings = it }, context, mapOf(
                 "provider_id" to object : app.treelune.core.fields.settings.SettingEditor {
                     @Composable
                     override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
                         when {
                             isLoadingProviders -> UI.Text(s.shared("message_loading"), TextType.CAPTION)
-                            providers.isEmpty() -> UI.Text(s.shared("message_no_providers"), TextType.CAPTION)
+                            providers.isEmpty() -> UI.Text(s.shared("automation_no_provider_yet"), TextType.CAPTION)
                             else -> {
-                                val names = providers.associate { (it["display_name"] as String) to (it["id"] as String) }
+                                val names = providers.associate { app.treelune.core.ai.ui.screens.providerLabel(it) to (it["id"] as String) }
                                 UI.FormSelection(
                                     label = s.shared("label_ai_provider"),
                                     options = names.keys.toList(),

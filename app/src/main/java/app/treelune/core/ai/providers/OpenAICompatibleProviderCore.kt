@@ -26,22 +26,32 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 
 /**
- * Core of the OpenAI-compatible provider variants: any server speaking Chat Completions at an
+ * Core of the Other server kind: any server speaking Chat Completions at an
  * address of the user's (Ollama, llama.cpp, vLLM, LM Studio, OpenRouter, a rented GPU), where the
  * OpenAI provider speaks OpenAI's own Responses API.
  *
  * Its config: the server's base address (https only, isHttpsAddress), an API key that a local
  * server may not ask for, the model the server lists, how far the answer is forced to a form
- * (OutputForcing), the temperature and the longest answer.
+ * (OutputForcing), the temperature, the longest answer, and its prices: LiteLLM's list's, or set
+ * by hand (ownPrices).
  *
- * @param variantId Unique identifier of the variant, which names its config and its debug files
+ * @param kind The kind it serves, which names its logs and debug files
  */
 internal class OpenAICompatibleProviderCore(
     private val context: Context,
-    private val variantId: String
+    private val kind: String
 ) {
 
     companion object {
+        // Where its prices come from, and the three it may be given by hand, per million tokens
+        const val PRICES = "prices"
+        const val PRICES_LIST = "list"
+        const val PRICES_MANUAL = "manual"
+        const val PRICE_INPUT = "price_input"
+        const val PRICE_CACHED_INPUT = "price_cached_input"
+        const val PRICE_OUTPUT = "price_output"
+        val MANUAL_PRICES = listOf(PRICE_INPUT, PRICE_CACHED_INPUT, PRICE_OUTPUT)
+
         // Failing to connect means nothing was sent: the sooner it is known, the sooner an
         // automation waits for the network, at no cost
         private const val CONNECT_TIMEOUT_SECONDS = 15L
@@ -63,7 +73,7 @@ internal class OpenAICompatibleProviderCore(
     // Settings
     // ========================================================================================
 
-    /** The settings of this variant's config. */
+    /** The settings of a provider's config. */
     fun configSettings(context: Context): List<SettingNode> {
         val s = Strings.`for`(context = context)
         // MEDIUM: an API key runs past SHORT's 60 characters (an OpenRouter key over 70, a Claude one over 100)
@@ -85,15 +95,34 @@ internal class OpenAICompatibleProviderCore(
                 FieldType.NUMERIC, false, mapOf("min" to 0, "max" to 2, "decimals" to 1)), default = 1.0),
             SettingNode.Field(FieldDefinition("max_output_tokens", s.shared("ai_provider_openai_max_output_tokens"), s.shared("ai_provider_openai_schema_max_output_tokens"),
                 FieldType.NUMERIC, false, mapOf("min" to 1, "max" to MAX_OUTPUT_TOKENS, "decimals" to 0)), default = DEFAULT_MAX_OUTPUT_TOKENS),
-            ImageInput.node(s)
+            ImageInput.node(s),
+            // LiteLLM's list knows the hosted models, not a server at home nor a rented GPU: the
+            // user may say its prices, each one left empty unknown
+            SettingNode.Variant(
+                SettingNode.Field(FieldDefinition(PRICES, s.shared("ai_provider_compatible_prices"), s.shared("ai_provider_compatible_schema_prices"),
+                    FieldType.CHOICE, false, mapOf("options" to ChoiceSettings.storedOptions(listOf(PRICES_LIST, PRICES_MANUAL), mapOf(
+                        PRICES_LIST to s.shared("ai_provider_compatible_prices_list"),
+                        PRICES_MANUAL to s.shared("ai_provider_compatible_prices_manual"))))), default = PRICES_LIST),
+                mapOf(PRICES_LIST to emptyList(), PRICES_MANUAL to MANUAL_PRICES.map { name ->
+                    SettingNode.Field(FieldDefinition(name, s.shared("ai_provider_compatible_$name"), s.shared("ai_provider_compatible_schema_$name"),
+                        FieldType.NUMERIC, false, mapOf("min" to 0, "decimals" to 4)))
+                })
+            )
         )
     }
 
-    /** What an address looks like, what the forcing levels do, and what temperature does. */
+    /** What an address looks like, what the forcing levels do, what temperature does, and the prices. */
     fun configHelp(context: Context): String {
         val s = Strings.`for`(context = context)
         return s.shared("ai_provider_compatible_help") + "\n\n" + s.shared("ai_provider_compatible_output_forcing_help") +
-            "\n\n" + s.shared("ai_provider_openai_temperature_help")
+            "\n\n" + s.shared("ai_provider_openai_temperature_help") + "\n\n" + s.shared("ai_provider_compatible_prices_help")
+    }
+
+    /** The prices [config] sets by hand, per million tokens; null when it takes LiteLLM's list's. */
+    fun ownPrices(config: JSONObject, context: Context): ManualPrices? {
+        if (config.optString(PRICES, PRICES_LIST) != PRICES_MANUAL) return null
+        fun price(name: String) = if (config.has(name) && !config.isNull(name)) config.getDouble(name) else null
+        return ManualPrices(price(PRICE_INPUT), price(PRICE_CACHED_INPUT), price(PRICE_OUTPUT))
     }
 
     /** An address that is not https is refused before it is stored, not when a call fails on it. */
@@ -112,7 +141,7 @@ internal class OpenAICompatibleProviderCore(
             if (!isHttpsAddress(address)) {
                 return@withContext ProviderModels(emptyList(), Strings.`for`(context = context).shared("ai_provider_compatible_https_required"))
             }
-            LogManager.aiService("OpenAICompatibleProviderCore.fetchAvailableModels() - Variant: $variantId")
+            LogManager.aiService("OpenAICompatibleProviderCore.fetchAvailableModels() - Kind: $kind")
 
             val request = Request.Builder()
                 .url(endpointOf(address, "models"))
@@ -157,7 +186,7 @@ internal class OpenAICompatibleProviderCore(
 
     /** Send [promptData] to the server's /chat/completions, and read its answer. */
     suspend fun query(promptData: PromptData, config: String): AIResponse = withContext(Dispatchers.IO) {
-        LogManager.aiService("OpenAICompatibleProviderCore.query() - Variant: $variantId, Messages: ${promptData.sessionMessages.size}")
+        LogManager.aiService("OpenAICompatibleProviderCore.query() - Kind: $kind, Messages: ${promptData.sessionMessages.size}")
 
         try {
             // Read the config through its declaration: an absent setting is its default
@@ -180,8 +209,8 @@ internal class OpenAICompatibleProviderCore(
             LogManager.aiService("Built Chat Completions request: ${requestBody.length} characters")
 
             // The prompt goes whole to a file: a log line would keep only its start
-            // Accessible via: adb pull /data/data/app.treelune/files/last_prompt_compatible_<variant>.txt
-            writeDebugFile("last_prompt_compatible_${variantId}.txt", Json { prettyPrint = true }.encodeToString(JsonObject.serializer(), requestJson))
+            // Accessible via: adb pull /data/data/app.treelune/files/last_prompt_compatible_<kind>.txt
+            writeDebugFile("last_prompt_compatible_${kind}.txt", Json { prettyPrint = true }.encodeToString(JsonObject.serializer(), requestJson))
 
             val request = Request.Builder()
                 .url(endpointOf(address, "chat/completions"))
@@ -209,7 +238,7 @@ internal class OpenAICompatibleProviderCore(
             }
 
             LogManager.aiService("Compatible server success: ${responseBody.length} characters")
-            writeDebugFile("last_response_compatible_${variantId}.txt", responseBody)
+            writeDebugFile("last_response_compatible_${kind}.txt", responseBody)
 
             val aiResponse = Json.parseToJsonElement(responseBody).toChatCompletionsResponse()
             LogManager.aiService(

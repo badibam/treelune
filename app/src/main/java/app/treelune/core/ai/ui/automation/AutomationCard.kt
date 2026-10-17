@@ -127,6 +127,8 @@ fun AutomationCard(
             ) {
                 // Status indicator text
                 val statusText = when {
+                    // Neither on nor run until it has one
+                    automation.providerId == null -> s.shared("automation_status_no_provider")
                     !automation.isEnabled -> s.shared("label_disabled")
                     automation.schedule == null && automation.triggerIds.isEmpty() -> s.shared("automation_status_manual")
                     automation.schedule != null && automation.triggerIds.isNotEmpty() -> {

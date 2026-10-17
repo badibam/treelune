@@ -3,11 +3,14 @@ package app.treelune.core.ai.services
 import app.treelune.core.utils.JsonUtils
 import android.content.Context
 import app.treelune.core.ai.database.AIProviderConfigEntity
-import app.treelune.core.ai.providers.AIProviderRegistry
+import app.treelune.core.ai.providers.AIProviderKind
+import app.treelune.core.ai.providers.AIProviderKinds
+import app.treelune.core.ai.providers.AIProviderSettings
 import app.treelune.core.secrets.SecretBox
 import app.treelune.core.secrets.SecretSettings
 import app.treelune.core.coordinator.CancellationToken
 import app.treelune.core.database.AppDatabase
+import app.treelune.core.validation.FieldLimits
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.services.OperationResult
 import app.treelune.core.strings.Strings
@@ -18,24 +21,24 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
 /**
- * AI Provider configuration service (ExecutableService)
+ * The AI providers the user created (docs/design/ai-providers.md): each of a kind
+ * (AIProviderKinds), a name unique among them, and its config, checked against the schema its
+ * kind declares, its secrets sealed. At most one is the default, which a new conversation takes:
+ * the first one created becomes it.
  *
- * Responsibilities:
- * - CRUD operations for AI provider configurations
- * - Provider activation/deactivation
- * - Configuration validation
- *
- * Available operations:
- * - ai_provider_config.get, .set, .list, .delete
- * - ai_provider_config.set_active, .get_active
+ * Operations:
+ * - ai_provider_config.kinds: the kinds a provider can be created of
+ * - .list: the providers, each with its kind, name, model and whether it is the default
+ * - .get (provider_id): one, its config with its secrets opened
+ * - .create (kind, name, config), .update (provider_id, name, config)
+ * - .delete (provider_id, new_default_id when it is the default and others remain): refused while a routine names it
+ * - .set_default (provider_id), .get_default
  */
 class AIProviderConfigService(private val context: Context) : ExecutableService {
 
     private val s = Strings.`for`(context = context)
-
-    // ========================================================================================
-    // ExecutableService Implementation
-    // ========================================================================================
+    private val kinds = AIProviderKinds(context)
+    private val dao get() = AppDatabase.getDatabase(context).aiDao()
 
     override suspend fun execute(
         operation: String,
@@ -47,12 +50,14 @@ class AIProviderConfigService(private val context: Context) : ExecutableService 
         return withContext(Dispatchers.IO) {
             try {
                 when (operation) {
-                    "get" -> getProviderConfig(params, token)
-                    "set" -> setProviderConfig(params, token)
-                    "list" -> listProviders(params, token)
-                    "delete" -> deleteProviderConfig(params, token)
-                    "set_active" -> setActiveProvider(params, token)
-                    "get_active" -> getActiveProvider(params, token)
+                    "kinds" -> listKinds()
+                    "list" -> listProviders()
+                    "get" -> getProvider(params)
+                    "create" -> createProvider(params)
+                    "update" -> updateProvider(params)
+                    "delete" -> deleteProvider(params)
+                    "set_default" -> setDefault(params)
+                    "get_default" -> getDefault()
                     else -> {
                         LogManager.aiService("Unknown operation: $operation", "ERROR")
                         OperationResult.error("Unknown operation: $operation")
@@ -66,280 +71,154 @@ class AIProviderConfigService(private val context: Context) : ExecutableService 
     }
 
     // ========================================================================================
-    // Operation Implementations
+    // Reading
     // ========================================================================================
 
-    private suspend fun getProviderConfig(
-        params: JSONObject,
-        token: CancellationToken
-    ): OperationResult {
-        val providerId = params.optString("provider_id").takeIf { it.isNotEmpty() }
-            ?: return OperationResult.error(s.shared("ai_error_param_provider_id_required"))
+    private fun listKinds(): OperationResult = OperationResult.success(mapOf(
+        "kinds" to kinds.all().map { mapOf("kind" to it.kind, "name" to it.kindName(context), "description" to it.kindDescription(context)) }
+    ))
 
-        LogManager.aiService("Getting config for provider: $providerId")
+    private suspend fun listProviders(): OperationResult = OperationResult.success(mapOf(
+        "providers" to dao.getAllProviderConfigs().map { summary(it) }
+    ))
 
-        try {
-            val database = AppDatabase.getDatabase(context)
-            val configEntity = database.aiDao().getProviderConfig(providerId)
+    /** A provider as a list shows it: its model read from its config, its kind named. */
+    private fun summary(entity: AIProviderConfigEntity): Map<String, Any?> = mapOf(
+        "id" to entity.id,
+        "kind" to entity.kind,
+        "kind_name" to kinds.of(entity.kind)?.kindName(context),
+        "name" to entity.name,
+        "model" to JSONObject(entity.configJson).optString("model").ifEmpty { null },
+        "is_default" to entity.isDefault
+    )
 
-            if (configEntity == null) {
-                LogManager.aiService("Provider config not found: $providerId", "WARN")
-                return OperationResult.error(s.shared("ai_error_provider_not_configured").format(providerId))
-            }
-
-            // Its secrets opened; one that does not open on this phone is named, for the caller to say so
-            val provider = AIProviderRegistry(context).getProvider(providerId)
-                ?: return OperationResult.error(s.shared("ai_error_unknown_provider").format(providerId))
-            val opened = SecretSettings.open(SecretSettings.names(provider.getConfigSettings(context)),
-                JSONObject(configEntity.configJson), SecretBox.of())
-
-            return OperationResult.success(mapOf(
-                "provider_id" to configEntity.providerId,
-                "display_name" to configEntity.displayName,
-                "config" to JsonUtils.toMap(opened.settings),
-                SecretSettings.UNREADABLE to opened.unreadable,
-                "is_configured" to configEntity.isConfigured,
-                "is_active" to configEntity.isActive,
-                "created_at" to configEntity.createdAt,
-                "updated_at" to configEntity.updatedAt
-            ))
-        } catch (e: Exception) {
-            LogManager.aiService("Failed to get provider config: ${e.message}", "ERROR", e)
-            return OperationResult.error(s.shared("ai_error_provider_config").format(e.message ?: ""))
-        }
+    private suspend fun getProvider(params: JSONObject): OperationResult {
+        val entity = stored(params) ?: return notFound(params)
+        val kind = kinds.of(entity.kind) ?: return unknownKind(entity.kind)
+        // Its secrets opened; one that does not open on this phone is named, for the caller to say so
+        val opened = SecretSettings.open(SecretSettings.names(kind.getConfigSettings(context)), JSONObject(entity.configJson), SecretBox.of())
+        // A model not chosen yet is absent, as a result holds no null at its top
+        val found = summary(entity) + mapOf(
+            "config" to JsonUtils.toMap(opened.settings),
+            SecretSettings.UNREADABLE to opened.unreadable,
+            "created_at" to entity.createdAt,
+            "updated_at" to entity.updatedAt
+        )
+        return OperationResult.success(buildMap { found.forEach { (key, value) -> if (value != null) put(key, value) } })
     }
 
-    private suspend fun setProviderConfig(
-        params: JSONObject,
-        token: CancellationToken
-    ): OperationResult {
-        val providerId = params.optString("provider_id").takeIf { it.isNotEmpty() }
-            ?: return OperationResult.error(s.shared("ai_error_param_provider_id_required"))
-        // Written whole: a key set to null is a setting not given, taken out
-        val configJson = params.optJSONObject("config")?.let { app.treelune.core.utils.JsonNulls.withoutNullKeys(it) }?.toString()
-            ?: return OperationResult.error(s.shared("ai_error_param_config_required"))
-
-        LogManager.aiService("Setting config for provider: $providerId")
-
-        try {
-            // Get provider from registry to validate config
-            val registry = AIProviderRegistry(context)
-            val provider = registry.getProvider(providerId)
-                ?: return OperationResult.error(s.shared("ai_error_unknown_provider").format(providerId))
-
-            // Validate configuration against the schema generated from the provider's declaration
-            val schema = app.treelune.core.ai.providers.AIProviderSettings.schema(provider, context)
-
-            // Parse config JSON and convert to Map
-            val configData = try {
-                val json = JSONObject(configJson)
-                json.keys().asSequence().associateWith { json.get(it) }
-            } catch (e: Exception) {
-                return OperationResult.error(s.shared("ai_error_invalid_json").format(e.message ?: ""))
-            }
-
-            val validation = SchemaValidator.validate(schema, configData, context)
-            if (!validation.isValid) {
-                LogManager.aiService("Provider config validation failed: ${validation.errorMessage}", "WARN")
-                return OperationResult.error(validation.errorMessage ?: s.shared("message_validation_error_simple"))
-            }
-
-            // What the schema cannot say: a rule of the provider's own (an address's form)
-            provider.configError(JSONObject(configJson), context)?.let { error ->
-                LogManager.aiService("Provider config refused: $error", "WARN")
-                return OperationResult.error(error)
-            }
-
-            // Check if config already exists
-            val database = AppDatabase.getDatabase(context)
-            val existingConfig = database.aiDao().getProviderConfig(providerId)
-            val now = System.currentTimeMillis()
-
-            // Its secrets sealed: the database never holds an API key in clear
-            val sealed = SecretSettings.seal(SecretSettings.names(provider.getConfigSettings(context)),
-                JSONObject(configJson), SecretBox.of())
-            val configEntity = AIProviderConfigEntity(
-                providerId = providerId,
-                displayName = provider.getDisplayName(),
-                configJson = sealed.toString(),
-                isConfigured = true,
-                isActive = existingConfig?.isActive ?: false,
-                createdAt = existingConfig?.createdAt ?: now,
-                updatedAt = now
-            )
-
-            database.aiDao().insertProviderConfig(configEntity)
-
-            LogManager.aiService("Successfully set config for provider: $providerId", "INFO")
-
-            return OperationResult.success(mapOf(
-                "provider_id" to providerId,
-                "is_configured" to true,
-                "updated_at" to now
-            ))
-        } catch (e: Exception) {
-            LogManager.aiService("Failed to set provider config: ${e.message}", "ERROR", e)
-            return OperationResult.error(s.shared("ai_error_provider_config").format(e.message ?: ""))
-        }
+    private suspend fun getDefault(): OperationResult {
+        val entity = dao.getDefaultProviderConfig() ?: return OperationResult.success(mapOf("has_default" to false))
+        return OperationResult.success(mapOf("has_default" to true, "provider_id" to entity.id, "name" to entity.name))
     }
 
-    private suspend fun listProviders(
-        params: JSONObject,
-        token: CancellationToken
-    ): OperationResult {
-        LogManager.aiService("Listing all providers")
+    // ========================================================================================
+    // Writing
+    // ========================================================================================
 
-        try {
-            val database = AppDatabase.getDatabase(context)
-            val configEntities = database.aiDao().getAllProviderConfigs()
+    private suspend fun createProvider(params: JSONObject): OperationResult {
+        val kindName = params.optString("kind").ifEmpty { return OperationResult.error(s.shared("ai_error_param_kind_required")) }
+        val kind = kinds.of(kindName) ?: return unknownKind(kindName)
+        val name = nameRefusal(params, null).let { (name, refusal) -> refusal?.let { return OperationResult.error(it) }; name!! }
+        val config = checkedConfig(kind, params).let { (config, refusal) -> refusal?.let { return OperationResult.error(it) }; config!! }
 
-            // Get all available providers from registry
-            val registry = AIProviderRegistry(context)
-            val availableProviders = registry.getAllProviders()
-
-            // Combine registry providers with DB configs
-            val providers = availableProviders.map { provider ->
-                val config = configEntities.find { it.providerId == provider.getProviderId() }
-
-                mapOf(
-                    "id" to provider.getProviderId(),
-                    "display_name" to provider.getDisplayName(),
-                    "is_configured" to (config?.isConfigured ?: false),
-                    "is_active" to (config?.isActive ?: false),
-                    "has_config" to (config != null)
-                )
-            }
-
-            LogManager.aiService("Found ${providers.size} providers")
-
-            return OperationResult.success(mapOf(
-                "providers" to providers
-            ))
-        } catch (e: Exception) {
-            LogManager.aiService("Failed to list providers: ${e.message}", "ERROR", e)
-            return OperationResult.error(s.shared("ai_error_provider_config").format(e.message ?: ""))
-        }
+        val now = System.currentTimeMillis()
+        val id = java.util.UUID.randomUUID().toString()
+        // The first provider is the default: a conversation then has one to take
+        val isDefault = dao.getDefaultProviderConfig() == null
+        dao.insertProviderConfig(AIProviderConfigEntity(id, kind.kind, name, config, isDefault, now, now))
+        LogManager.aiService("Provider $id created: ${kind.kind}, \"$name\"${if (isDefault) ", the default" else ""}", "INFO")
+        return OperationResult.success(mapOf("provider_id" to id, "is_default" to isDefault))
     }
 
-    private suspend fun deleteProviderConfig(
-        params: JSONObject,
-        token: CancellationToken
-    ): OperationResult {
-        val providerId = params.optString("provider_id").takeIf { it.isNotEmpty() }
-            ?: return OperationResult.error(s.shared("ai_error_param_provider_id_required"))
-
-        LogManager.aiService("Deleting config for provider: $providerId")
-
-        try {
-            val database = AppDatabase.getDatabase(context)
-
-            // Check if provider exists
-            val config = database.aiDao().getProviderConfig(providerId)
-            if (config == null) {
-                LogManager.aiService("Provider config not found: $providerId", "WARN")
-                return OperationResult.error(s.shared("ai_error_provider_not_configured").format(providerId))
-            }
-
-            // Refused while a routine runs on it, naming them: changed by hand first
-            app.treelune.core.services.InUse.provider(database, providerId).refusal(config.displayName, s)?.let { refusal ->
-                LogManager.aiService("Provider $providerId still used: $refusal", "INFO")
-                return OperationResult.error(refusal)
-            }
-
-            // If provider is active, deactivate it first
-            if (config.isActive) {
-                LogManager.aiService("Provider is active, deactivating before deletion: $providerId", "INFO")
-                database.aiDao().deactivateAllProviders()
-            }
-
-            database.aiDao().deleteProviderConfigById(providerId)
-
-            LogManager.aiService("Successfully deleted provider config: $providerId", "INFO")
-
-            return OperationResult.success(mapOf(
-                "provider_id" to providerId,
-                "deleted" to true
-            ))
-        } catch (e: Exception) {
-            LogManager.aiService("Failed to delete provider config: ${e.message}", "ERROR", e)
-            return OperationResult.error(s.shared("ai_error_provider_config").format(e.message ?: ""))
-        }
-    }
-
-    private suspend fun setActiveProvider(
-        params: JSONObject,
-        token: CancellationToken
-    ): OperationResult {
-        val providerId = params.optString("provider_id").takeIf { it.isNotEmpty() }
-            ?: return OperationResult.error(s.shared("ai_error_param_provider_id_required"))
-
-        LogManager.aiService("Setting active provider: $providerId")
-
-        try {
-            val database = AppDatabase.getDatabase(context)
-
-            // Check if provider config exists and is configured
-            val config = database.aiDao().getProviderConfig(providerId)
-            if (config == null) {
-                LogManager.aiService("Provider config not found: $providerId", "WARN")
-                return OperationResult.error(s.shared("ai_error_provider_not_configured").format(providerId))
-            }
-
-            if (!config.isConfigured) {
-                LogManager.aiService("Provider not configured: $providerId", "WARN")
-                return OperationResult.error(s.shared("ai_error_provider_not_configured").format(providerId))
-            }
-
-            // Deactivate all providers first
-            database.aiDao().deactivateAllProviders()
-
-            // Activate the target provider
-            database.aiDao().activateProvider(providerId)
-
-            LogManager.aiService("Successfully set active provider: $providerId", "INFO")
-
-            return OperationResult.success(mapOf(
-                "active_provider_id" to providerId
-            ))
-        } catch (e: Exception) {
-            LogManager.aiService("Failed to set active provider: ${e.message}", "ERROR", e)
-            return OperationResult.error(s.shared("ai_error_provider_config").format(e.message ?: ""))
-        }
-    }
-
-    private suspend fun getActiveProvider(
-        params: JSONObject,
-        token: CancellationToken
-    ): OperationResult {
-        LogManager.aiService("Getting active provider")
-
-        try {
-            val database = AppDatabase.getDatabase(context)
-            val activeConfig = database.aiDao().getActiveProviderConfig()
-
-            if (activeConfig == null) {
-                LogManager.aiService("No active provider found", "DEBUG")
-                return OperationResult.success(mapOf(
-                    "has_active_provider" to false
-                ))
-            }
-
-            return OperationResult.success(mapOf(
-                "has_active_provider" to true,
-                "active_provider_id" to activeConfig.providerId,
-                "display_name" to activeConfig.displayName,
-                "is_configured" to activeConfig.isConfigured
-            ))
-        } catch (e: Exception) {
-            LogManager.aiService("Failed to get active provider: ${e.message}", "ERROR", e)
-            return OperationResult.error(s.shared("ai_error_provider_config").format(e.message ?: ""))
-        }
+    private suspend fun updateProvider(params: JSONObject): OperationResult {
+        val entity = stored(params) ?: return notFound(params)
+        val kind = kinds.of(entity.kind) ?: return unknownKind(entity.kind)
+        val name = nameRefusal(params, entity.id).let { (name, refusal) -> refusal?.let { return OperationResult.error(it) }; name!! }
+        val config = checkedConfig(kind, params).let { (config, refusal) -> refusal?.let { return OperationResult.error(it) }; config!! }
+        val now = System.currentTimeMillis()
+        dao.updateProviderConfig(entity.copy(name = name, configJson = config, updatedAt = now))
+        LogManager.aiService("Provider ${entity.id} updated", "INFO")
+        return OperationResult.success(mapOf("provider_id" to entity.id, "updated_at" to now))
     }
 
     /**
-     * Verbalize AI provider config operation
-     * AI provider configuration is typically not exposed to AI actions
+     * Deleted unless a routine names it, the refusal naming them. The default deleted while others
+     * remain needs the one that becomes it (new_default_id); the last one deleted leaves none.
      */
+    private suspend fun deleteProvider(params: JSONObject): OperationResult {
+        val entity = stored(params) ?: return notFound(params)
+        val database = AppDatabase.getDatabase(context)
+        app.treelune.core.services.InUse.provider(database, entity.id).refusal(entity.name, s)?.let { refusal ->
+            LogManager.aiService("Provider ${entity.id} still used: $refusal", "INFO")
+            return OperationResult.error(refusal)
+        }
+        val others = dao.getAllProviderConfigs().filter { it.id != entity.id }
+        val newDefault = params.optString("new_default_id").ifEmpty { null }
+        if (entity.isDefault && others.isNotEmpty()) {
+            newDefault ?: return OperationResult.error(s.shared("ai_error_provider_new_default_required").format(entity.name))
+            if (others.none { it.id == newDefault }) return OperationResult.error(s.shared("ai_error_provider_not_found").format(newDefault))
+        }
+        dao.deleteProviderConfigById(entity.id)
+        if (entity.isDefault && newDefault != null) dao.setDefaultProvider(newDefault)
+        LogManager.aiService("Provider ${entity.id} deleted${if (entity.isDefault) ", default now ${newDefault ?: "none"}" else ""}", "INFO")
+        return OperationResult.success(mapOf("provider_id" to entity.id, "deleted" to true))
+    }
+
+    private suspend fun setDefault(params: JSONObject): OperationResult {
+        val entity = stored(params) ?: return notFound(params)
+        dao.setDefaultProvider(entity.id)
+        LogManager.aiService("Provider ${entity.id} now the default", "INFO")
+        return OperationResult.success(mapOf("provider_id" to entity.id))
+    }
+
+    // ========================================================================================
+    // Checks
+    // ========================================================================================
+
+    private suspend fun stored(params: JSONObject): AIProviderConfigEntity? =
+        params.optString("provider_id").ifEmpty { null }?.let { dao.getProviderConfig(it) }
+
+    private fun notFound(params: JSONObject): OperationResult =
+        if (params.optString("provider_id").isEmpty()) OperationResult.error(s.shared("ai_error_param_provider_id_required"))
+        else OperationResult.error(s.shared("ai_error_provider_not_found").format(params.optString("provider_id")))
+
+    private fun unknownKind(kind: String): OperationResult = OperationResult.error(s.shared("ai_error_unknown_provider").format(kind))
+
+    /** The name given, trimmed, or why it is refused: missing, too long, or another provider's ([ownId] aside). */
+    private suspend fun nameRefusal(params: JSONObject, ownId: String?): Pair<String?, String?> {
+        val name = params.optString("name").trim()
+        if (name.isEmpty()) return null to s.shared("ai_error_provider_name_required")
+        if (name.length > FieldLimits.SHORT_LENGTH) return null to s.shared("ai_error_provider_name_too_long").format(FieldLimits.SHORT_LENGTH)
+        if (dao.getAllProviderConfigs().any { it.id != ownId && it.name.equals(name, ignoreCase = true) }) {
+            return null to s.shared("ai_error_provider_name_taken").format(name)
+        }
+        return name to null
+    }
+
+    /**
+     * The config given, checked against the schema [kind] declares and its own rules, its secrets
+     * sealed, or why it is refused.
+     */
+    private fun checkedConfig(kind: AIProviderKind, params: JSONObject): Pair<String?, String?> {
+        // Written whole: a key set to null is a setting not given, taken out
+        val config = params.optJSONObject("config")?.let { app.treelune.core.utils.JsonNulls.withoutNullKeys(it) }
+            ?: return null to s.shared("ai_error_param_config_required")
+        val validation = SchemaValidator.validate(AIProviderSettings.schema(kind, context), JsonUtils.toMap(config), context)
+        if (!validation.isValid) {
+            LogManager.aiService("Provider config validation failed: ${validation.errorMessage}", "WARN")
+            return null to (validation.errorMessage ?: s.shared("message_validation_error_simple"))
+        }
+        // What the schema cannot say: a rule of the kind's own (an address's form)
+        kind.configError(config, context)?.let { error ->
+            LogManager.aiService("Provider config refused: $error", "WARN")
+            return null to error
+        }
+        // The database never holds an API key in clear
+        return SecretSettings.seal(SecretSettings.names(kind.getConfigSettings(context)), config, SecretBox.of()).toString() to null
+    }
+
+    /** AI provider configuration is not exposed to AI actions. */
     override suspend fun verbalize(operation: String, params: JSONObject, context: Context): String {
         val s = Strings.`for`(context = context)
         return s.shared("action_verbalize_unknown")

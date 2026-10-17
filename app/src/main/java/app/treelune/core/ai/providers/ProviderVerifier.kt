@@ -9,144 +9,85 @@ import app.treelune.core.strings.Strings
 import app.treelune.core.utils.LogManager
 
 /**
- * Provider verification utility for AI sessions.
+ * Which provider a session calls, checked before its prompt is built (docs/design/ai-providers.md).
  *
- * Verifies that the required AI provider exists and is properly configured
- * before attempting to build prompts and call the provider.
- *
- * Architecture:
- * - CHAT sessions: Use active provider (from app config)
- * - AUTOMATION sessions: Use provider specified in automation config
+ * A session calls its own provider: a run its routine's, given at its launch; a conversation the
+ * one it took. A conversation that has none yet takes the default at its first call and keeps it;
+ * without a default it is refused, saying to create a provider. A provider gone, or whose key does
+ * not open on this phone, is refused before anything is sent. Nothing falls back on another.
  */
 object ProviderVerifier {
 
-    /**
-     * Result of provider verification.
-     */
+    /** The provider to call ([providerId]), or why there is none ([errorMessage]). */
     data class VerificationResult(
         val isValid: Boolean,
-        val errorMessage: String? = null
+        val errorMessage: String? = null,
+        val providerId: String? = null
     )
 
-    /**
-     * Verify that the provider required for this session exists and is configured.
-     *
-     * @param state Current AI state containing session info
-     * @param context Android context for coordinator access
-     * @return VerificationResult with validation status and error message if invalid
-     */
     suspend fun verifyProvider(state: AIState, context: Context): VerificationResult {
         val coordinator = Coordinator(context)
         val s = Strings.`for`(context = context)
         val sessionId = state.sessionId
-
-        if (sessionId == null) {
-            LogManager.aiService("verifyProvider: No session ID in state", "ERROR")
-            return VerificationResult(false, "No session ID")
-        }
+            ?: return VerificationResult(false, s.shared("ai_error_session_not_found")).also { LogManager.aiService("verifyProvider: No session ID in state", "ERROR") }
 
         try {
-            // Get session to retrieve providerId
-            val sessionResult = coordinator.processUserAction("ai_sessions.get_session", mapOf(
-                "session_id" to sessionId
-            ))
-
-            if (!sessionResult.isSuccess) {
+            val sessionResult = coordinator.processUserAction("ai_sessions.get_session", mapOf("session_id" to sessionId))
+            val sessionData = sessionResult.data?.get("session") as? Map<*, *>
+            if (!sessionResult.isSuccess || sessionData == null) {
                 LogManager.aiService("verifyProvider: Failed to load session: ${sessionResult.error}", "ERROR")
                 return VerificationResult(false, s.shared("ai_error_session_not_found"))
             }
 
-            val sessionData = sessionResult.data?.get("session") as? Map<*, *>
-            if (sessionData == null) {
-                LogManager.aiService("verifyProvider: No session data found", "ERROR")
-                return VerificationResult(false, s.shared("ai_error_session_not_found"))
-            }
-
-            // Determine which provider to verify based on session type
-            val providerIdToVerify: String = when (state.sessionType) {
+            val providerId: String = (sessionData["provider_id"] as? String) ?: when (state.sessionType) {
+                // Its first call: the default, kept from now on
                 SessionType.CHAT -> {
-                    // For CHAT: use current active provider (may differ from session's initial provider)
-                    val activeResult = coordinator.processUserAction("ai_provider_config.get_active")
-
-                    if (!activeResult.isSuccess) {
-                        LogManager.aiService("verifyProvider: Failed to get active provider", "ERROR")
+                    val default = coordinator.processUserAction("ai_provider_config.get_default")
+                    val defaultId = default.data?.get("provider_id") as? String
+                    if (!default.isSuccess || defaultId == null) {
+                        LogManager.aiService("verifyProvider: conversation without a provider, and no default", "WARN")
                         return VerificationResult(false, s.shared("ai_error_no_provider_configured"))
                     }
-
-                    val hasActiveProvider = activeResult.data?.get("has_active_provider") as? Boolean ?: false
-                    if (!hasActiveProvider) {
-                        LogManager.aiService("verifyProvider: No active provider configured", "WARN")
-                        return VerificationResult(false, s.shared("ai_error_no_provider_configured"))
+                    val taken = coordinator.processUserAction("ai_sessions.set_provider", mapOf("session_id" to sessionId, "provider_id" to defaultId))
+                    if (!taken.isSuccess) {
+                        LogManager.aiService("verifyProvider: the default not taken: ${taken.error}", "ERROR")
+                        return VerificationResult(false, taken.error ?: s.shared("ai_error_no_provider_configured"))
                     }
-
-                    val activeProviderId = activeResult.data?.get("active_provider_id") as? String
-                    if (activeProviderId.isNullOrEmpty()) {
-                        LogManager.aiService("verifyProvider: Active provider ID is empty", "ERROR")
-                        return VerificationResult(false, s.shared("ai_error_no_provider_configured"))
-                    }
-
-                    LogManager.aiService("verifyProvider: CHAT session will use active provider '$activeProviderId'", "DEBUG")
-                    activeProviderId
+                    LogManager.aiService("verifyProvider: conversation $sessionId takes the default provider $defaultId", "INFO")
+                    defaultId
                 }
-
+                // Its routine had none at its launch, which refuses it: not run
                 SessionType.AUTOMATION -> {
-                    // For AUTOMATION: use provider configured in automation
-                    val providerId = sessionData["provider_id"] as? String
-                    if (providerId.isNullOrEmpty()) {
-                        LogManager.aiService("verifyProvider: AUTOMATION session has no providerId", "ERROR")
-                        return VerificationResult(false, s.shared("ai_error_no_provider_configured"))
-                    }
-
-                    LogManager.aiService("verifyProvider: AUTOMATION session uses provider '$providerId'", "DEBUG")
-                    providerId
+                    LogManager.aiService("verifyProvider: AUTOMATION session has no provider", "ERROR")
+                    return VerificationResult(false, s.shared("automation_provider_none"))
                 }
-
-                SessionType.SEED -> {
-                    // SEED sessions should never be active
-                    LogManager.aiService("verifyProvider: SEED session should not be active", "ERROR")
-                    return VerificationResult(false, "SEED session cannot be executed")
-                }
-
-                null -> {
-                    // No session type
-                    LogManager.aiService("verifyProvider: Session has no type", "ERROR")
+                SessionType.SEED, null -> {
+                    LogManager.aiService("verifyProvider: session of type ${state.sessionType} cannot call a provider", "ERROR")
                     return VerificationResult(false, s.shared("ai_error_no_provider_configured"))
                 }
             }
 
-            // Verify provider is configured
-            val providerResult = coordinator.processUserAction("ai_provider_config.get", mapOf(
-                "provider_id" to providerIdToVerify
-            ))
-
+            val providerResult = coordinator.processUserAction("ai_provider_config.get", mapOf("provider_id" to providerId))
             if (!providerResult.isSuccess) {
-                LogManager.aiService("verifyProvider: Provider '$providerIdToVerify' not found in DB", "ERROR")
-                return VerificationResult(false, s.shared("ai_error_provider_not_found").format(providerIdToVerify))
+                LogManager.aiService("verifyProvider: Provider '$providerId' not found", "ERROR")
+                return VerificationResult(false, s.shared("ai_session_provider_gone"))
             }
-
-            val isConfigured = providerResult.data?.get("is_configured") as? Boolean ?: false
-            if (!isConfigured) {
-                LogManager.aiService("verifyProvider: Provider '$providerIdToVerify' not configured", "ERROR")
-                return VerificationResult(false, s.shared("ai_error_provider_not_configured").format(providerIdToVerify))
-            }
-
-            // Verify provider exists in registry
-            val providerRegistry = AIProviderRegistry(context)
-            val provider = providerRegistry.getProvider(providerIdToVerify)
-            if (provider == null) {
-                LogManager.aiService("verifyProvider: Provider '$providerIdToVerify' not found in registry", "ERROR")
-                return VerificationResult(false, s.shared("ai_error_provider_not_found").format(providerIdToVerify))
+            val kind = AIProviderKinds(context).of(providerResult.data?.get("kind") as String)
+            if (kind == null) {
+                LogManager.aiService("verifyProvider: Provider '$providerId' of an unknown kind", "ERROR")
+                return VerificationResult(false, s.shared("ai_error_unknown_provider").format(providerResult.data?.get("kind")))
             }
 
             // A key sealed on another phone: said before a session starts on it
             if ((providerResult.data?.get(app.treelune.core.secrets.SecretSettings.UNREADABLE) as? List<*>).orEmpty().isNotEmpty()) {
-                LogManager.aiService("verifyProvider: Provider '$providerIdToVerify' has a secret unreadable on this phone", "ERROR")
-                return VerificationResult(false, s.shared("ai_error_provider_secret_unreadable").format(provider.getDisplayName()))
+                LogManager.aiService("verifyProvider: Provider '$providerId' has a secret unreadable on this phone", "ERROR")
+                return VerificationResult(false, s.shared("ai_error_provider_secret_unreadable").format(providerResult.data?.get("name")))
             }
 
-            LogManager.aiService("verifyProvider: Provider '$providerIdToVerify' verified successfully", "DEBUG")
-            return VerificationResult(true)
-
+            LogManager.aiService("verifyProvider: Provider '$providerId' verified", "DEBUG")
+            return VerificationResult(true, providerId = providerId)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiService("verifyProvider: Exception during verification: ${e.message}", "ERROR", e)
             return VerificationResult(false, s.shared("ai_error_ai_query_failed").format(e.message ?: ""))

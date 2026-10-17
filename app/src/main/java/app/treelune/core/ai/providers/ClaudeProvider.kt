@@ -3,40 +3,24 @@ package app.treelune.core.ai.providers
 import android.content.Context
 import app.treelune.core.ai.data.PromptData
 import app.treelune.core.fields.settings.SettingNode
+import app.treelune.core.strings.Strings
 import org.json.JSONObject
 
 /**
- * Claude AI Provider - Standard variant
+ * The Claude kind: Anthropic's Messages API, all of it in ClaudeProviderCore.
  *
- * Default Claude provider using standard models (e.g., claude-sonnet-5-5).
- * Delegates all implementation to ClaudeProviderCore with variant ID "claude_standard".
- *
- * This variant is recommended for:
- * - Standard use cases requiring balanced performance and cost
- * - Production workloads with consistent quality requirements
- * - General-purpose AI interactions
- *
- * Configuration:
- * - API key: Claude API key from Anthropic
- * - Model: Selected from available models via API
- * - Max tokens: Response length limit (optional, default DEFAULT_MAX_OUTPUT_TOKENS)
- *
- * Each variant maintains its own configuration in the database,
- * allowing users to configure both standard and economic variants
- * with different API keys or models if desired.
+ * Configuration: the API key (secret), the model chosen among those the key lists, the longest
+ * answer and the reasoning the model allows.
  */
-class ClaudeStandardProvider(private val context: Context) : AIProvider {
+class ClaudeProvider(private val context: Context) : AIProviderKind {
 
-    // Core implementation shared with other Claude variants
-    private val core = ClaudeProviderCore(context, "claude_standard", MessagesApi.ANTHROPIC)
+    private val core = ClaudeProviderCore(context, KIND, MessagesApi.ANTHROPIC)
 
-    // ========================================================================================
-    // AIProvider Implementation
-    // ========================================================================================
+    override val kind: String = KIND
 
-    override fun getProviderId(): String = "claude_standard"
+    override fun kindName(context: Context): String = Strings.`for`(context = context).shared("ai_provider_kind_claude")
 
-    override fun getDisplayName(): String = "Claude"
+    override fun kindDescription(context: Context): String = Strings.`for`(context = context).shared("ai_provider_kind_claude_description")
 
     override fun getConfigSettings(context: Context): List<SettingNode> = core.configSettings(context)
 
@@ -48,63 +32,9 @@ class ClaudeStandardProvider(private val context: Context) : AIProvider {
 
     override suspend fun listModels(config: JSONObject): ProviderModels = core.fetchAvailableModels(config.getString("api_key"))
 
-    /**
-     * Send query to Claude API with PromptData
-     * Delegates to core implementation
-     */
-    override suspend fun query(promptData: PromptData, config: String): AIResponse {
-        return core.query(promptData, config)
-    }
-}
+    override suspend fun query(promptData: PromptData, config: String): AIResponse = core.query(promptData, config)
 
-/**
- * Claude AI Provider - Economic variant
- *
- * Economic Claude provider using cost-optimized models (e.g., claude-haiku-4-5-20251001).
- * Delegates all implementation to ClaudeProviderCore with variant ID "claude_economic".
- *
- * This variant is recommended for:
- * - High-volume use cases where cost is a primary concern
- * - Development and testing environments
- * - Tasks that don't require the most advanced reasoning
- *
- * Configuration:
- * - API key: Claude API key from Anthropic (can be same as standard or different)
- * - Model: Selected from available models via API (typically haiku models)
- * - Max tokens: Response length limit (optional, default DEFAULT_MAX_OUTPUT_TOKENS)
- *
- * Each variant maintains its own configuration in the database,
- * allowing users to configure both standard and economic variants
- * independently.
- */
-class ClaudeEconomicProvider(private val context: Context) : AIProvider {
-
-    // Core implementation shared with other Claude variants
-    private val core = ClaudeProviderCore(context, "claude_economic", MessagesApi.ANTHROPIC)
-
-    // ========================================================================================
-    // AIProvider Implementation
-    // ========================================================================================
-
-    override fun getProviderId(): String = "claude_economic"
-
-    override fun getDisplayName(): String = "Claude (économique)"
-
-    override fun getConfigSettings(context: Context): List<SettingNode> = core.configSettings(context)
-
-    override fun factsProvider(): String = core.api.factsProvider
-
-    override fun getConfigHelp(context: Context): String = core.configHelp(context)
-
-    override fun configError(config: JSONObject, context: Context): String? = core.configError(config, context)
-
-    override suspend fun listModels(config: JSONObject): ProviderModels = core.fetchAvailableModels(config.getString("api_key"))
-
-    /**
-     * Send query to Claude API with PromptData
-     * Delegates to core implementation
-     */
-    override suspend fun query(promptData: PromptData, config: String): AIResponse {
-        return core.query(promptData, config)
+    companion object {
+        const val KIND = "claude"
     }
 }

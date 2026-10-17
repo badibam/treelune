@@ -121,32 +121,27 @@ interface AIDao {
 
     // === Provider Configurations ===
 
-    @Query("SELECT * FROM ai_provider_configs ORDER BY provider_id ASC")
+    @Query("SELECT * FROM ai_provider_configs ORDER BY created_at ASC")
     suspend fun getAllProviderConfigs(): List<AIProviderConfigEntity>
 
-    @Query("SELECT * FROM ai_provider_configs WHERE is_active = 1 LIMIT 1")
-    suspend fun getActiveProviderConfig(): AIProviderConfigEntity?
+    @Query("SELECT * FROM ai_provider_configs WHERE is_default = 1 LIMIT 1")
+    suspend fun getDefaultProviderConfig(): AIProviderConfigEntity?
 
-    @Query("SELECT * FROM ai_provider_configs WHERE provider_id = :providerId")
-    suspend fun getProviderConfig(providerId: String): AIProviderConfigEntity?
+    @Query("SELECT * FROM ai_provider_configs WHERE id = :id")
+    suspend fun getProviderConfig(id: String): AIProviderConfigEntity?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertProviderConfig(config: AIProviderConfigEntity)
 
     @Update
     suspend fun updateProviderConfig(config: AIProviderConfigEntity)
 
-    @Query("UPDATE ai_provider_configs SET is_active = 0")
-    suspend fun deactivateAllProviders()
+    /** [id] the default, and no other, in one go. */
+    @Query("UPDATE ai_provider_configs SET is_default = (id = :id)")
+    suspend fun setDefaultProvider(id: String)
 
-    @Query("UPDATE ai_provider_configs SET is_active = 1 WHERE provider_id = :providerId")
-    suspend fun activateProvider(providerId: String)
-
-    @Delete
-    suspend fun deleteProviderConfig(config: AIProviderConfigEntity)
-
-    @Query("DELETE FROM ai_provider_configs WHERE provider_id = :providerId")
-    suspend fun deleteProviderConfigById(providerId: String)
+    @Query("DELETE FROM ai_provider_configs WHERE id = :id")
+    suspend fun deleteProviderConfigById(id: String)
 
     // === Automations ===
 

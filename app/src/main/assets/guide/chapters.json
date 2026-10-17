@@ -27,7 +27,7 @@
       "steps": [
         {"kind": "go", "target": "settings/ai_providers"},
         {"kind": "do", "target": "settings/ai_providers",
-          "await": {"operation": "ai_provider_config.set", "origin": "USER"}},
+          "await": {"operation": "ai_provider_config.create", "origin": "USER"}},
         {"kind": "read"},
         {"kind": "read", "target": "chat"},
         {"kind": "read", "target": "chat"}

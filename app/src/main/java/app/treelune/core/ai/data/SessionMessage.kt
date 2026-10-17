@@ -77,7 +77,7 @@ data class AISession(
     val waitingStateJson: String? = null,        // Persisted waiting state for app closure (null = no waiting)
     val automationId: String? = null,            // null for CHAT/SEED, automation ID for AUTOMATION
     val scheduledExecutionTime: Long? = null,    // For AUTOMATION: scheduled trigger time (not actual exec time)
-    val providerId: String,        // Fixed for the session
+    val providerId: String?,       // The provider it calls; null for a conversation not begun and a seed
     val providerSessionId: String, // Provider API session ID
     val createdAt: Long,
     val lastActivity: Long,

@@ -301,7 +301,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("last_user_interaction_time", session.lastUserInteractionTime)
                                 put("automation_id", session.automationId)
                                 put("scheduled_execution_time", session.scheduledExecutionTime)
-                                put("provider_id", session.providerId)
+                                put("provider_id", session.providerId ?: JSONObject.NULL)
                                 put("provider_session_id", session.providerSessionId)
                                 put("created_at", session.createdAt)
                                 put("last_activity", session.lastActivity)
@@ -350,11 +350,11 @@ class BackupService(private val context: Context) : ExecutableService {
                     put("ai_provider_configs", JSONArray().apply {
                         aiProviderConfigs.forEach { config ->
                             put(JSONObject().apply {
-                                put("provider_id", config.providerId)
-                                put("display_name", config.displayName)
+                                put("id", config.id)
+                                put("kind", config.kind)
+                                put("name", config.name)
                                 put("config_json", config.configJson)
-                                put("is_configured", config.isConfigured)
-                                put("is_active", config.isActive)
+                                put("is_default", config.isDefault)
                                 put("created_at", config.createdAt)
                                 put("updated_at", config.updatedAt)
                             })
@@ -374,7 +374,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 automation.catchUp?.let { put("catch_up", it) }
                                 automation.catchUpWindow?.let { put("catch_up_window", it) }
                                 put("dismiss_older_instances", automation.dismissOlderInstances)
-                                put("provider_id", automation.providerId)
+                                put("provider_id", automation.providerId ?: JSONObject.NULL)
                                 put("is_enabled", automation.isEnabled)
                                 put("created_at", automation.createdAt)
                                 put("updated_at", automation.updatedAt)
@@ -761,12 +761,13 @@ class BackupService(private val context: Context) : ExecutableService {
             for (i in 0 until array.length()) {
                 val item = array.getJSONObject(i)
                 database.aiDao().insertProviderConfig(
+                    // A backup made before version 79 is brought to this form first (ProvidersAtV79)
                     AIProviderConfigEntity(
-                        providerId = item.getString("provider_id"),
-                        displayName = item.getString("display_name"),
+                        id = item.getString("id"),
+                        kind = item.getString("kind"),
+                        name = item.getString("name"),
                         configJson = item.getString("config_json"),
-                        isConfigured = item.getBoolean("is_configured"),
-                        isActive = item.getBoolean("is_active"),
+                        isDefault = item.getBoolean("is_default"),
                         createdAt = item.getLong("created_at"),
                         updatedAt = item.getLong("updated_at")
                     )
@@ -796,7 +797,7 @@ class BackupService(private val context: Context) : ExecutableService {
                         lastUserInteractionTime = item.getLong("last_user_interaction_time"),
                         automationId = item.optString("automation_id", null),
                         scheduledExecutionTime = item.optLong("scheduled_execution_time", 0).let { if (it == 0L) null else it },
-                        providerId = item.getString("provider_id"),
+                        providerId = if (item.isNull("provider_id")) null else item.getString("provider_id"),
                         providerSessionId = item.getString("provider_session_id"),
                         createdAt = item.getLong("created_at"),
                         lastActivity = item.getLong("last_activity"),
@@ -863,7 +864,7 @@ class BackupService(private val context: Context) : ExecutableService {
                         catchUp = item.optString("catch_up").takeIf { it.isNotEmpty() },
                         catchUpWindow = if (item.has("catch_up_window")) item.getLong("catch_up_window") else null,
                         dismissOlderInstances = item.getBoolean("dismiss_older_instances"),
-                        providerId = item.getString("provider_id"),
+                        providerId = if (item.isNull("provider_id")) null else item.getString("provider_id"),
                         isEnabled = item.getBoolean("is_enabled"),
                         createdAt = item.getLong("created_at"),
                         updatedAt = System.currentTimeMillis(), // Always now on import - prevents executing missed periods
@@ -1128,6 +1129,10 @@ class BackupService(private val context: Context) : ExecutableService {
             }
             if (fromVersion < 72 && toVersion >= 72) {
                 app.treelune.core.versioning.SecretsAtV72.backup(data, app.treelune.core.secrets.SecretBox.of())
+            }
+            // After SecretsAtV72, which reads the providers in their former form
+            if (fromVersion < 79 && toVersion >= 79) {
+                app.treelune.core.versioning.ProvidersAtV79.backup(data)
             }
 
             // Transform automation schedules (fix SchedulePattern types for v10 → v11)

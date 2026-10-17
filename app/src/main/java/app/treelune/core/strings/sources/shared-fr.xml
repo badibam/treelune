@@ -998,7 +998,6 @@
     <string name="settings_section_system">Système</string>
     <string name="settings_ai_providers">Fournisseurs IA</string>
     <string name="settings_ai_providers_description">Configurer les fournisseurs d\'intelligence artificielle</string>
-    <string name="settings_ai_providers_config">Configuration du fournisseur</string>
 
     <string name="settings_format">Format et dates</string>
     <string name="settings_format_description">Configurer les formats temporels et d\'affichage</string>
@@ -1087,11 +1086,6 @@
     <string name="backup_reset_failed">Échec de la réinitialisation</string>
 
     <!-- AI PROVIDERS - Provider management -->
-    <string name="message_no_providers">Aucun fournisseur IA disponible</string>
-    <string name="provider_status_configured">Configuré</string>
-    <string name="provider_status_not_configured">Non configuré</string>
-    <string name="provider_status_active">Actif</string>
-    <string name="provider_status_inactive">Inactif</string>
 
     <!-- AI PROVIDERS - Claude specific -->
     <string name="ai_provider_claude_api_key">Clé API Claude</string>
@@ -1139,8 +1133,49 @@
     <string name="ai_provider_openai_schema_temperature">Température d\'échantillonnage (0.0 à 2.0)</string>
     <string name="ai_provider_openai_schema_max_output_tokens">Limite maximale de tokens pour les réponses</string>
     <string name="ai_provider_fill_in_first">Renseigne d\'abord : %1$s</string>
-    <string name="ai_provider_compatible_name">Autre serveur</string>
-    <string name="ai_provider_compatible_economic_name">Autre serveur (économique)</string>
+    <string name="ai_provider_kind_claude">Claude</string>
+    <string name="ai_provider_kind_claude_description">Les modèles d\'Anthropic, avec une clé d\'API d\'Anthropic</string>
+    <string name="ai_provider_kind_openai">OpenAI</string>
+    <string name="ai_provider_kind_openai_description">Les modèles d\'OpenAI, avec une clé d\'API d\'OpenAI</string>
+    <string name="ai_provider_kind_deepseek">DeepSeek</string>
+    <string name="ai_provider_kind_deepseek_description">Les modèles de DeepSeek, avec une clé d\'API de DeepSeek</string>
+    <string name="ai_provider_kind_compatible">Autre serveur</string>
+    <string name="ai_provider_kind_compatible_description">Ollama, LM Studio, OpenRouter : tout serveur qui parle l\'API Chat Completions, chez toi ou loué</string>
+    <string name="ai_provider_compatible_prices">Prix</string>
+    <string name="ai_provider_compatible_schema_prices">D\'où vient le coût de chaque appel : la liste publique de LiteLLM, ou des prix réglés à la main</string>
+    <string name="ai_provider_compatible_prices_list">Liste LiteLLM</string>
+    <string name="ai_provider_compatible_prices_manual">Réglés à la main</string>
+    <string name="ai_provider_compatible_price_input">Entrée, $ par million de tokens</string>
+    <string name="ai_provider_compatible_schema_price_input">Prix de l\'entrée que le serveur lit, en dollars par million de tokens</string>
+    <string name="ai_provider_compatible_price_cached_input">Entrée en cache, $ par million de tokens</string>
+    <string name="ai_provider_compatible_schema_price_cached_input">Prix de l\'entrée que le serveur relit dans son cache, en dollars par million de tokens</string>
+    <string name="ai_provider_compatible_price_output">Sortie, $ par million de tokens</string>
+    <string name="ai_provider_compatible_schema_price_output">Prix de la réponse, réflexion comprise, en dollars par million de tokens</string>
+    <string name="ai_provider_compatible_prices_help">Prix : la liste LiteLLM connaît les modèles hébergés, pas un serveur chez toi. Sur ton propre serveur, règle les prix à la main : 0 veut dire gratuit. Un prix laissé vide reste inconnu, et le coût d\'un appel qui s\'en sert aussi.</string>
+    <string name="ai_error_param_kind_required">La sorte du fournisseur manque</string>
+    <string name="ai_error_provider_new_default_required">%1$s est le fournisseur par défaut : choisis lequel prend sa place avant de le supprimer</string>
+    <string name="ai_error_provider_name_required">Donne un nom au fournisseur</string>
+    <string name="ai_error_provider_name_too_long">Le nom d\'un fournisseur fait au plus %1$d caractères</string>
+    <string name="ai_error_provider_name_taken">Un fournisseur s\'appelle déjà %1$s : choisis un autre nom</string>
+    <string name="ai_error_session_provider_chat_only">Seule une conversation choisit son fournisseur : l\'exécution d\'une routine prend celui de sa routine</string>
+    <string name="automation_provider_none">Cette routine n\'a pas de fournisseur d\'IA : choisis-en un dans ses réglages</string>
+    <string name="automation_provider_required">Dis quel fournisseur d\'IA la routine utilise, ou null pour aucun</string>
+    <string name="automation_provider_none_enabled">Une routine sans fournisseur d\'IA ne peut pas être activée : choisis d\'abord un fournisseur</string>
+    <string name="automation_status_no_provider">Sans fournisseur d\'IA</string>
+    <string name="automation_no_provider_yet">Aucun fournisseur d\'IA pour l\'instant : la routine est créée éteinte. Ajoute un fournisseur dans Réglages › Fournisseurs IA, puis choisis-le ici.</string>
+    <string name="session_provider_title">Fournisseur d\'IA</string>
+    <string name="session_provider_help">Le fournisseur que cette conversation appelle, à partir de son prochain message. Si tu le changes, la conversation suit la réflexion du nouveau fournisseur.</string>
+    <string name="ai_providers_empty">Un fournisseur, c\'est l\'IA que l\'app appelle : un service comme Claude, OpenAI ou DeepSeek avec ta clé, ou un serveur à toi. Ajoutes-en un pour parler à l\'IA.</string>
+    <string name="ai_provider_add">Ajouter un fournisseur</string>
+    <string name="ai_provider_choose_kind">Nouveau fournisseur</string>
+    <string name="ai_provider_choose_kind_description">Choisis ce que c\'est</string>
+    <string name="ai_provider_name">Nom</string>
+    <string name="ai_provider_is_default">Par défaut</string>
+    <string name="ai_provider_set_default">Mettre par défaut</string>
+    <string name="ai_provider_copy_name">%1$s (copie)</string>
+    <string name="ai_provider_new_default_title">Supprimer le fournisseur par défaut</string>
+    <string name="ai_provider_new_default_message">%1$s est le fournisseur par défaut : les nouvelles conversations le prennent. Choisis le fournisseur qui prend sa place.</string>
+    <string name="ai_prompt_level3_providers_title">Fournisseurs d\'IA</string>
     <string name="ai_provider_compatible_base_url">Adresse du serveur</string>
     <string name="ai_provider_compatible_schema_base_url">Adresse de base de l\'API compatible OpenAI du serveur, en https seulement (ex. https://openrouter.ai/api/v1)</string>
     <string name="ai_provider_compatible_api_key">Clé API (si le serveur en demande une)</string>
@@ -1157,7 +1192,7 @@
     <string name="ai_provider_compatible_https_required">L\'adresse du serveur doit commencer par https:// : le http enverrait tes données en clair</string>
 
     <!-- AI ERRORS - Provider related (additional) -->
-    <string name="ai_error_no_provider_configured">Aucun fournisseur IA configuré. Configure un fournisseur dans les paramètres.</string>
+    <string name="ai_error_no_provider_configured">Aucun fournisseur d\'IA : ajoutes-en un dans Réglages › Fournisseurs IA.</string>
     <string name="ai_error_provider_not_found">Fournisseur introuvable: %1$s</string>
     <string name="ai_error_provider_not_configured">Provider %1$s non configuré</string>
     <string name="ai_error_provider_secret_unreadable">La clé d\'API de %1$s ne s\'ouvre pas sur ce téléphone : elle a été enregistrée sur un autre (une sauvegarde restaurée). Saisis-la à nouveau dans les réglages du fournisseur.</string>
