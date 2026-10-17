@@ -1111,6 +1111,9 @@ private fun ChatHeader(
         )
     }
 
+    // Its name in the breadcrumb of a place opened over it (an identity's page)
+    SideEffect { app.treelune.core.navigation.Navigator.name(app.treelune.core.navigation.Place.Chat, title) }
+
     // Header row; the phase is said over the composer (SessionStatusBar)
     TitledHeaderBar(title, onRename = { name ->
         renameScope.launch {

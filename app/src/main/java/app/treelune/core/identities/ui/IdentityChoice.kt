@@ -1,5 +1,6 @@
 package app.treelune.core.identities.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -14,6 +15,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import app.treelune.core.ai.orchestration.ChatRequests
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
@@ -128,7 +130,7 @@ fun IdentityTile(identity: IdentityChoice) {
  * The button of a conversation's header bar, first of its buttons: the identity it speaks as
  * (its icon, drawn as every icon button; the identities' own, a figure, for the app's AI). Before the first message [fixed] is false and a
  * touch opens the choice among [identities] and the app's AI; after it, a touch shows who speaks,
- * read only, and that another conversation changes it.
+ * read only, and that another conversation changes it; an identity touched there opens its page.
  */
 @Composable
 fun IdentityChip(identities: List<IdentityChoice>, selected: String?, fixed: Boolean, onSelect: (String?) -> Unit) {
@@ -151,10 +153,23 @@ fun IdentityChip(identities: List<IdentityChoice>, selected: String?, fixed: Boo
         ) {
             androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
                 UI.Text(text = s.shared("label_identity"), type = TextType.LABEL)
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(UI.Space.M)) {
+                // An identity opens on its page, laid over the chat, back returning to it
+                Row(
+                    modifier = Modifier.fillMaxWidth().then(
+                        if (identity != null) Modifier.clickable {
+                            choosing = false
+                            app.treelune.core.navigation.Navigator.push(app.treelune.core.navigation.Place.Identity(identity.id))
+                        } else Modifier
+                    ),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(UI.Space.M)
+                ) {
                     UI.ItemIcon(identity?.iconName ?: ButtonAction.IDENTITY.iconName, IconColor.of(identity?.iconColor))
                     // One gone since shows as its id, as the selector shows it
-                    UI.Text(text = identity?.name ?: selected ?: s.shared("identity_app_ai"), type = TextType.BODY)
+                    Box(modifier = Modifier.weight(1f)) {
+                        UI.Text(text = identity?.name ?: selected ?: s.shared("identity_app_ai"), type = TextType.BODY)
+                    }
+                    if (identity != null) UI.Icon("chevron-right", size = 20.dp)
                 }
                 UI.Text(text = s.shared("identity_session_fixed"), type = TextType.CAPTION)
             }
