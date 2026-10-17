@@ -5,6 +5,7 @@ Conçu le 2026-10-01. Aujourd'hui, `SettingsForm` dessine l'arbre des réglages 
 ## Une page par niveau
 
 - **Un groupe qui contient un groupe ou une liste est une page** : dans la page de son parent, une ligne qui le résume ; la toucher ouvre sa page, en pleine largeur. Un groupe qui ne contient que des champs simples reste sur place, dans la page de son parent (l'échelle et l'axe d'un canal, le style d'une marque). La règle se lit dans la déclaration, sans rien déclarer de plus.
+- **Un réglage peut aussi avoir sa page** : son éditeur donne sa ligne de résumé et sa page, qui s'ouvre comme celle d'un groupe ; un choix d'une valeur parmi beaucoup (la couleur de l'icône, la texture : `tool-texture.md`) se prend d'un toucher qui ramène à la page d'avant.
 - **Un élément de liste suit la même règle** : un élément fait de groupes est une ligne qui ouvre sa page, un élément simple (une valeur d'un `fold`) se modifie sur place.
 - **Une liste n'a pas de page à elle** : sous son titre, dans la page de son parent, une ligne par élément, puis « Ajouter » ; on y ajoute, retire et réordonne. Une colonne est donc à Couche › kcal, pas à Couche › Colonnes › kcal.
 - **Les sélecteurs des briques restent sur place** (terme, sélection d'entrées, condition, période) : ils n'ont qu'un niveau, leurs filtres sont déjà une fenêtre (`PointerFiltersDialog`). Le filtre d'une colonne est donc à deux pages et une fenêtre : Couche › kcal, puis « Filtres ».
