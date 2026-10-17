@@ -109,6 +109,7 @@ Chacun a coûté un aller-retour sur l'appareil ; le code des trois thèmes les 
 
 - **Une ressource du thème se lit par son chemin absolu** (`getResourceAsStream("/app/treelune/themes/<id>/palettes.json")`) : la release renomme et déplace les classes, et un chemin relatif ne trouvait plus rien, faisant planter l'écran des réglages. Ne se voit qu'en release.
 - **Un composant survit à toute taille que son parent lui donne**, même sous son minimum : le cadre rétro serré sous deux cellules calculait un nombre négatif de pièces et plantait (l'historique des conversations, un titre de section long à grande taille).
+- **Un élément soulevé garde la même structure que posé** (`Lifted`, `ReorderItem`, `GridTile`) : seuls les réglages changent, jamais une branche pour l'autre ; sinon son contenu est recréé au moment du soulèvement, la poignée avec, et le glisser qui le soulevait s'annule (encre et suisse ne réordonnaient plus rien).
 - **Un geste lit la dernière fonction qu'on lui a passée** (`rememberUpdatedState`) : le curseur rétro gardait le `onValueChange` de son premier dessin et réécrivait les réglages d'alors.
 - **Les encres tiennent 4,5 de contraste sur leur fond dans les deux modes**, la secondaire comprise (descriptions, libellés), et le texte dans un bouton prend l'encre du bouton : une encre pâle sur la couleur principale ne se lisait plus.
 - **Le thème par défaut nomme chaque rôle de couleur de Material** : ceux qu'il omet, Material les remplit de ses violets (un segment choisi, un menu, un sélecteur de date).

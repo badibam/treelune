@@ -81,10 +81,8 @@ private const val FADE_MS = 120
  */
 @Composable
 internal fun Lifted(lifted: Boolean, content: @Composable () -> Unit) {
-    if (!lifted) {
-        Box { content() }
-        return
-    }
+    // One structure lifted or not: the content is the same nodes, so the grip it holds keeps the
+    // drag that lifts it
     val size = swissSize()
     val ink = swissColors.ink.srgb
     val ground = swissColors.ground.srgb
@@ -92,11 +90,11 @@ internal fun Lifted(lifted: Boolean, content: @Composable () -> Unit) {
     Box(
         modifier = Modifier
             .graphicsLayer {
-                translationX = -size.dp(LIFT_DP).toPx()
-                translationY = -size.dp(LIFT_DP).toPx()
+                val lift = if (lifted) -size.dp(LIFT_DP).toPx() else 0f
+                translationX = lift
+                translationY = lift
             }
-            .drawBehind { drawRect(ground) }
-            .outline(stroke, ink)
+            .let { if (lifted) it.drawBehind { drawRect(ground) }.outline(stroke, ink) else it }
     ) { content() }
 }
 

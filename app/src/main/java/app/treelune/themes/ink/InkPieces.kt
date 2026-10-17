@@ -379,18 +379,17 @@ private const val FADE_MS = 220
  */
 @Composable
 internal fun Lifted(lifted: Boolean, content: @Composable () -> Unit) {
-    if (!lifted) {
-        Box { content() }
-        return
-    }
+    // One structure lifted or not: the content is the same nodes, so the grip it holds keeps the
+    // drag that lifts it
     val size = inkSize()
     Box(
         modifier = Modifier.graphicsLayer {
-            translationX = -size.dp(LIFT_DP).toPx()
-            translationY = -size.dp(LIFT_DP).toPx()
+            val lift = if (lifted) -size.dp(LIFT_DP).toPx() else 0f
+            translationX = lift
+            translationY = lift
         }
     ) {
-        CompositionLocalProvider(LocalInkLifted provides true) { content() }
+        CompositionLocalProvider(LocalInkLifted provides lifted) { content() }
     }
 }
 
