@@ -398,3 +398,4 @@ Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la po
 
 - La sauvegarde automatique, dossier choisi, données inchangées depuis plus d'une heure : la carte « Sauvegarde automatique » paraît une fois, puis plus avant une heure, et non plus à chaque minute ; dans le journal, une seule lecture de la base par heure. Une donnée changée : la copie s'écrit au tour de l'heure suivant.
 - Accès externe ouvert, par Tailscale puis par le relais : « Fermer l'accès » touché, l'écran dit aussitôt « Fermeture de l'accès… » avec la roue, sans bouton, jusqu'à « Fermé » ; la tuile des réglages rapides s'éteint aussitôt, et la touchée pendant la fermeture ne rouvre rien. Même chose depuis la notification.
+- Liste : un appui long sur un élément, coché ou non, dit « copié » ; collé ailleurs, son nom puis ses champs remplis, un par ligne. Un toucher l'ouvre toujours, sa poignée le déplace toujours.

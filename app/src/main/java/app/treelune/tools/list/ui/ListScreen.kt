@@ -1,7 +1,7 @@
 package app.treelune.tools.list.ui
 
 import app.treelune.core.ui.chatButtonSpace
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -253,7 +253,8 @@ fun ListScreen(
 
 /**
  * One item: its box, its name as large as a subtitle and, below it, its due date and, compact,
- * the list's fields it shows; the name opens it. A checked item is told by its box and its place below the others.
+ * the list's fields it shows; the name opens it, and a long press copies it with its fields. A checked
+ * item is told by its box and its place below the others.
  */
 @Composable
 private fun ItemRow(
@@ -265,12 +266,16 @@ private fun ItemRow(
     trailing: @Composable () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     Row(verticalAlignment = Alignment.CenterVertically) {
         UI.Checkbox(checked = item.isChecked, onCheckedChange = onCheck)
         Column(
             modifier = Modifier
                 .weight(1f)
-                .clickable(onClick = onOpen)
+                .combinedClickable(
+                    onClick = onOpen,
+                    onLongClick = { scope.launch { UI.copy(context, app.treelune.core.fields.EntryText.of(listOf(item.name), config, item.extra, context)) } }
+                )
                 .padding(vertical = UI.Space.S)
         ) {
             UI.Text(item.name, TextType.SUBTITLE)
