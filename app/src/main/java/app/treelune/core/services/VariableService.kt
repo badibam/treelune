@@ -220,7 +220,7 @@ class VariableService(private val context: Context) : ExecutableService {
 
     /** The field [term] gives values of (TermFields), refused when it does not read; null for a formula per entry. */
     private suspend fun fieldOf(term: Term.Reading, name: String): FieldDefinition? = try {
-        TermFields.of(term, name, context, s) { null }
+        TermFields.of(term, name, { s.shared(it) }, { ToolFields.filterable(it, context, s) }) { null }
     } catch (e: IllegalArgumentException) {
         throw Refused(e.message ?: "")
     }

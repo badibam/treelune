@@ -211,6 +211,16 @@
     <string name="condition_error_side">La condition de %1$s a un côté illisible : %2$s. Un côté est {\"field\": …}, {\"constant\": …}, {\"variable\": …} ou {\"reading\": …}.</string>
     <string name="condition_error_op">La condition de %1$s a un opérateur inconnu : %2$s.</string>
     <string name="condition_error_right">La condition de %1$s avec %2$s prend %3$d côté(s) à droite.</string>
+    <string name="condition_error_untyped">La condition de %1$s compare deux valeurs écrites : un côté doit dire ce qui est comparé, un champ, une variable ou une lecture.</string>
+    <string name="condition_error_operator">La condition de %1$s : %2$s ne compare pas %3$s (%4$s). Il prend : %5$s.</string>
+    <string name="condition_error_types">La condition de %1$s compare %2$s (%3$s) et %4$s (%5$s), qui ne sont pas d\'un même type.</string>
+    <string name="condition_error_value">La condition de %1$s : %2$s n\'est pas une valeur de %3$s, qui prend %4$s.</string>
+    <string name="condition_error_option">La condition de %1$s cite « %2$s », qui n\'est pas une option de %3$s (%4$s) : ajoute-la d\'abord aux options de son outil.</string>
+    <string name="condition_error_field">La condition de %1$s nomme %2$s, qui n\'est pas un champ ici. Champs : %3$s.</string>
+    <string name="condition_error_field_side">La condition de %1$s nomme le champ %2$s, là où seul un terme se place : une valeur écrite, une variable ou une lecture.</string>
+    <string name="condition_error_left_field">La condition de %1$s place un champ à sa gauche : {\"field\": …}.</string>
+    <string name="condition_error_row_written">La condition de %1$s compare des colonnes de la ligne ou des valeurs écrites : une variable se lit comme une colonne d\'une grille.</string>
+    <string name="condition_error_per_entry">La condition de %1$s lit une formule par entrée, que seule une variable lit.</string>
     <string name="condition_schema_description">Une condition jugée une fois : {\"left\": côté, \"op\": ..., \"right\": côté}, chaque côté un terme, {\"constant\": ...}, {\"variable\": \"id\"} ou {\"reading\": {\"selection\", \"field\"?, \"reduction\"}} ; right est une paire de côtés pour between, absent pour absent et present. Une constante s\'écrit comme l\'autre côté stocke ses valeurs.</string>
     <string name="condition_schema_entered_description">Une condition sur la valeur saisie dans chaque tentative : {\"op\": ..., \"right\": côté} ; l\'app écrit left, le champ saisi. Un côté est {\"constant\": ...}, {\"variable\": \"id\"} ou {\"reading\": ...} ; right est une paire pour between, absent pour absent et present.</string>
     <string name="condition_schema_row_description">Une condition sur chaque ligne dessinée : {\"left\": côté, \"op\": ..., \"right\": côté}, chaque côté une colonne de la ligne, {\"field\": \"kcal\"}, ou une valeur écrite, {\"constant\": ...}, écrite comme la colonne d\'en face stocke ses valeurs ; right est une paire de côtés pour between, absent pour absent et present.</string>

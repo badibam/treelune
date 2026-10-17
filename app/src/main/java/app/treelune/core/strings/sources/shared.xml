@@ -211,6 +211,16 @@
     <string name="condition_error_side">The condition of %1$s has a side that does not read: %2$s. A side is {\"field\": …}, {\"constant\": …}, {\"variable\": …} or {\"reading\": …}.</string>
     <string name="condition_error_op">The condition of %1$s has an unknown operator: %2$s.</string>
     <string name="condition_error_right">The condition of %1$s with %2$s takes %3$d side(s) on the right.</string>
+    <string name="condition_error_untyped">The condition of %1$s compares two written values: one side must say what is compared, a field, a variable or a reading.</string>
+    <string name="condition_error_operator">The condition of %1$s: %2$s does not compare %3$s (%4$s). It takes: %5$s.</string>
+    <string name="condition_error_types">The condition of %1$s compares %2$s (%3$s) and %4$s (%5$s), which are not of one type.</string>
+    <string name="condition_error_value">The condition of %1$s: %2$s is not a value of %3$s, which takes %4$s.</string>
+    <string name="condition_error_option">The condition of %1$s cites \"%2$s\", which is not an option of %3$s (%4$s): add it to the options of its tool first.</string>
+    <string name="condition_error_field">The condition of %1$s names %2$s, which is no field here. Fields: %3$s.</string>
+    <string name="condition_error_field_side">The condition of %1$s names the field %2$s, where only a term stands: a written value, a variable or a reading.</string>
+    <string name="condition_error_left_field">The condition of %1$s puts a field on its left: {\"field\": …}.</string>
+    <string name="condition_error_row_written">The condition of %1$s compares columns of the row or written values: a variable is read as a column of a grid.</string>
+    <string name="condition_error_per_entry">The condition of %1$s reads a formula per entry, which only a variable reads.</string>
     <string name="condition_schema_description">A condition judged once: {\"left\": side, \"op\": ..., \"right\": side}, each side a term, {\"constant\": ...}, {\"variable\": \"id\"} or {\"reading\": {\"selection\", \"field\"?, \"reduction\"}}; right is a pair of sides for between, absent for absent and present. A constant is written as the other side stores its values.</string>
     <string name="condition_schema_entered_description">A condition on the value entered in each attempt: {\"op\": ..., \"right\": side}; the app writes left, the entered field. A side is {\"constant\": ...}, {\"variable\": \"id\"} or {\"reading\": ...}; right is a pair for between, absent for absent and present.</string>
     <string name="condition_schema_row_description">A condition on each row drawn: {\"left\": side, \"op\": ..., \"right\": side}, each side a column of the row, {\"field\": \"kcal\"}, or a written value, {\"constant\": ...}, written as the column on the other side stores its values; right is a pair of sides for between, absent for absent and present.</string>

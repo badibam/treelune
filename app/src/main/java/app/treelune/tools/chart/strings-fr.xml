@@ -181,10 +181,6 @@
     <string name="error_channel_mark">Le canal %1$s va avec un arc (ou un texte sur un arc), pas avec un %2$s.</string>
     <string name="error_stack_mark">Seules les barres et les aires s\'empilent, pas un %1$s.</string>
     <string name="error_stack_required">Ces %1$s sont séparées par une catégorie : dites comment elles s\'empilent dans stack sur le canal de leur valeur (%2$s).</string>
-    <string name="error_condition_left">La condition de %1$s met une colonne de la ligne à gauche.</string>
-    <string name="error_condition_op">La condition de %1$s : %2$s ne compare pas %3$s.</string>
-    <string name="error_condition_types">La condition de %1$s compare %2$s et %3$s, qui ne sont pas du même type.</string>
-    <string name="error_condition_written">La condition de %1$s compare à une colonne de la ligne ou à une valeur écrite : une variable se lit comme une colonne d\'une grille.</string>
     <string name="error_axis_x">Les couches d\'une vue partagent leur axe horizontal : %1$s et %2$s y mettent des sortes de valeurs différentes.</string>
     <string name="error_axis_y">%1$s et %2$s partagent un axe vertical mais pas une unité : mets l\'un à %3$s (axis.orient).</string>
     <string name="screen_problem">Ce graphique ne peut pas être dessiné : %1$s</string>

@@ -1,12 +1,9 @@
 package app.treelune.core.terms
 
-import android.content.Context
 import app.treelune.core.fields.FieldDefinition
-import app.treelune.core.fields.ToolFields
 import app.treelune.core.reading.FieldReading
 import app.treelune.core.reading.Reduction
 import app.treelune.core.selection.ReferenceKind
-import app.treelune.core.strings.StringsContext
 
 /**
  * The field a term gives values of, known without reading a single entry: what a condition
@@ -21,8 +18,11 @@ object TermFields {
      * The field [term] gives values of; null for a constant, and for a reading computing a
      * formula in each entry, whose type only its variable deduces.
      *
-     * @param variableField The field of the variable of an id; null when there is no such variable
      * @param name What the term is called where it is used, for the errors
+     * @param text The shared string of a key, for the errors
+     * @param toolFields The fields of a tool instance's entries, by path (ToolFields.filterable),
+     *   throwing IllegalStateException when the tool cannot be read
+     * @param variableField The field of the variable of an id; null when there is no such variable
      * @throws IllegalArgumentException naming what does not read: a variable that does not
      *   exist, a reading of no tool instance, a tool that cannot be read, a field it has not, a
      *   reduction its type does not take
@@ -30,29 +30,29 @@ object TermFields {
     suspend fun of(
         term: Term,
         name: String,
-        context: Context,
-        s: StringsContext,
+        text: (String) -> String,
+        toolFields: suspend (String) -> Map<String, FieldDefinition>,
         variableField: suspend (String) -> FieldDefinition?
     ): FieldDefinition? = when (term) {
         is Term.Constant -> null
-        is Term.Variable -> variableField(term.id) ?: throw IllegalArgumentException(s.shared("variable_error_not_found").format(term.id))
-        is Term.Reading -> reading(term, name, context, s)
+        is Term.Variable -> variableField(term.id) ?: throw IllegalArgumentException(text("variable_error_not_found").format(term.id))
+        is Term.Reading -> reading(term, name, text, toolFields)
     }
 
-    private suspend fun reading(term: Term.Reading, name: String, context: Context, s: StringsContext): FieldDefinition? {
-        term.selection.problem { s.shared(it) }?.let { throw IllegalArgumentException(s.shared("variable_error_term").format(name) + " " + it) }
+    private suspend fun reading(term: Term.Reading, name: String, text: (String) -> String, toolFields: suspend (String) -> Map<String, FieldDefinition>): FieldDefinition? {
+        term.selection.problem(text)?.let { throw IllegalArgumentException(text("variable_error_term").format(name) + " " + it) }
         if (term.selection.target.kind != ReferenceKind.TOOL_INSTANCE) {
-            throw IllegalArgumentException(s.shared("service_error_reading_source").format(term.selection.target.kind.name))
+            throw IllegalArgumentException(text("service_error_reading_source").format(term.selection.target.kind.name))
         }
         val fields = try {
-            ToolFields.filterable(term.selection.target.id!!, context, s)
+            toolFields(term.selection.target.id!!)
         } catch (e: IllegalStateException) {
-            throw IllegalArgumentException(s.shared("variable_error_term").format(name) + " " + (e.message ?: ""))
+            throw IllegalArgumentException(text("variable_error_term").format(name) + " " + (e.message ?: ""))
         }
         if (term.perEntry != null) return null
-        val field = term.field?.let { fields[it] ?: throw IllegalArgumentException(s.shared("service_error_filter_unknown_field").format(it, fields.keys.joinToString(", "))) }
+        val field = term.field?.let { fields[it] ?: throw IllegalArgumentException(text("service_error_filter_unknown_field").format(it, fields.keys.joinToString(", "))) }
         if (term.reduction !in Reduction.forType(field?.type)) {
-            throw IllegalArgumentException(s.shared("service_error_reading_reduction_type").format(term.reduction.name, field?.type?.name ?: "-",
+            throw IllegalArgumentException(text("service_error_reading_reduction_type").format(term.reduction.name, field?.type?.name ?: "-",
                 Reduction.forType(field?.type).joinToString(", ") { it.name }))
         }
         return if (term.reduction == Reduction.COUNT) FieldReading.COUNT_FIELD else field
