@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -114,21 +115,26 @@ internal fun pebble(size: InkSize, a: Float, b: Float, c: Float, d: Float) =
 
 /**
  * A tile's wash in [color], dense at its heart (a little above and left of the middle) and fading
- * to nothing before its irregular edge, as ink spreads in wet paper; a texture's [motif], when
- * there is one, laid within the same edge, over the wash.
+ * towards its irregular edge, as ink spreads in wet paper; a texture's [motif], when there is one,
+ * laid within the same edge, over the wash. It bleeds past the tile by [bleedX] across and [bleedY]
+ * down on each side, half the grid's gaps, so that its edge falls between two tiles, the tile
+ * itself, its touch and its content, keeping its cells.
  */
-internal fun Modifier.tileWash(color: Color, motif: Brush?): Modifier = drawBehind {
-    val edge = WashShape.TILE.path(size)
-    clipPath(edge) {
-        drawSpread(color, Offset(size.width * 0.4f, size.height * 0.45f))
-        motif?.let { drawPath(edge, it) }
+internal fun Modifier.tileWash(color: Color, motif: Brush?, bleedX: Float, bleedY: Float): Modifier = drawBehind {
+    val box = Size(size.width + 2 * bleedX, size.height + 2 * bleedY)
+    translate(-bleedX, -bleedY) {
+        val edge = WashShape.TILE.path(box)
+        clipPath(edge) {
+            drawSpread(color, Offset(box.width * 0.4f, box.height * 0.45f), box)
+            motif?.let { drawPath(edge, it) }
+        }
     }
 }
 
-/** A wash spreading from [center] over the whole box, an ellipse of its proportions. */
-internal fun DrawScope.drawSpread(color: Color, center: Offset) {
-    val w = size.width
-    val h = size.height.coerceAtLeast(1f)
+/** A wash spreading from [center] over the whole [box], an ellipse of its proportions. */
+internal fun DrawScope.drawSpread(color: Color, center: Offset, box: Size = size) {
+    val w = box.width
+    val h = box.height.coerceAtLeast(1f)
     // Drawn as a circle in a space squeezed to the box's height: the farthest corner its reach
     val reach = hypot(maxOf(center.x, w - center.x), maxOf(center.y, h - center.y) * w / h)
     scale(1f, h / w, pivot = center) {

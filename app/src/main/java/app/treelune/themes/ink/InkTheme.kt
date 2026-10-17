@@ -707,7 +707,8 @@ object InkTheme : ThemeContract {
 
     /**
      * A tile filling the cells the grid gives it: a wash of irregular edge, dense at its heart and
-     * fading before its edge, no outline; its motif within the same edge. An icon's tile has no
+     * fading towards its edge, no outline, bleeding into half the gaps around it; its motif within
+     * the same edge. An icon's tile has no
      * wash at rest, its icon alone on the paper. Pressed or lifted, the wash darkens a step.
      */
     @Composable
@@ -718,6 +719,8 @@ object InkTheme : ThemeContract {
         val lifted = LocalInkLifted.current
         // The motif in the ink, whatever the icon's colour: the user's colours are marks, never a fill
         val brush = app.treelune.core.themes.rememberTextureBrush(texture?.copy(color = null), c.ground, textureStyle())
+        val bleedX = gridColumnGapPx() / 2f
+        val bleedY = gridRowGapPx() / 2f
         Pressable(onClick = onClick, onLongClick = onLongClick, modifier = Modifier.fillMaxSize()) { pressed ->
             val wash = when {
                 pressed || lifted -> c.pressedWash
@@ -727,7 +730,7 @@ object InkTheme : ThemeContract {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .tileWash(wash, brush)
+                    .tileWash(wash, brush, bleedX, bleedY)
                     .let { if (bare) it.padding(frame) else it.padding(horizontal = inkSize().dp(TILE_SIDE), vertical = frame) }
             ) { content() }
         }
