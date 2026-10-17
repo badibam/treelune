@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Encre et lavis · pinceau</title>
+<style>
+  :root { --paper: #f3eee2; --ink: #1d1c1a; --sec: #5f5a52; --night: #1b1a18; --rice: #e9e3d5; }
+  body { margin: 0; font-family: Georgia, serif; background: #d9d4c8; color: var(--ink); }
+  header { position: sticky; top: 0; z-index: 2; background: var(--paper); border-bottom: 1px solid #0002; padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; }
+  header h1 { font-size: 18px; margin: 0 12px 0 0; letter-spacing: .08em; }
+  label { font-size: 13px; display: flex; gap: 6px; align-items: center; }
+  label output { min-width: 2.5em; font-variant-numeric: tabular-nums; }
+  button { font: inherit; font-size: 13px; padding: 4px 10px; }
+  .modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(560px, 1fr)); }
+  .mode { padding: 16px; }
+  .mode.light { background: var(--paper); color: var(--ink); }
+  .mode.dark { background: var(--night); color: var(--rice); }
+  .mode.dark .k { color: #a49e92; }
+  h2 { font-size: 15px; letter-spacing: .1em; margin: 18px 0 6px; font-weight: 700; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 4px 0 10px; }
+  .k { font-size: 12px; color: var(--sec); width: 100%; }
+  .row svg, .row canvas { display: block; }
+  p.note { font-size: 13px; color: var(--sec); max-width: 70ch; margin: 8px 16px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Icônes au pinceau</h1>
+  <label>Épaisseur <input id="width" type="range" min="1" max="3" step="0.1" value="1.3"><output></output></label>
+  <label>Effilé <input id="taper" type="range" min="0" max="1" step="0.05" value="0.5"><output></output></label>
+  <label>Sens du pinceau <input id="direction" type="range" min="0" max="1" step="0.05" value="0.45"><output></output></label>
+  <label>Appui aux coudes <input id="corner" type="range" min="0" max="1" step="0.05" value="1"><output></output></label>
+  <label>Pose du pinceau <input id="attack" type="range" min="-1" max="1" step="0.05" value="0.45"><output></output></label>
+  <label>Ampleur <input id="swell" type="range" min="0" max="0.5" step="0.02" value="0.3"><output></output></label>
+  <label>Brosse sèche <input id="dry" type="range" min="0" max="1" step="0.05" value="0"><output></output></label>
+  <label>Bord mouillé <input id="wet" type="checkbox" checked></label>
+  <button id="reseed">Autre geste</button>
+</header>
+<p class="note">Approximatif : chaque tracé de Lucide est parcouru point par point et redessiné en une suite de petits disques dont la taille varie (le pinceau tenu de biais, qui appuie au départ et dans les coudes, gonfle lentement et se lève en pointe). Le thème fait de même sur le téléphone avec les tracés de l'icône (docs/design/ink-theme.md, ligne 9) ; les curseurs s'ouvrent sur ses réglages. Les tailles sont en pixels de l'écran de l'ordinateur : une icône de 24 dp sur le téléphone se voit à peu près comme celle de 24 ou 32 ici.</p>
+<div class="modes">
+  <section class="mode light" data-ink="#1d1c1a"></section>
+  <section class="mode dark" data-ink="#e9e3d5"></section>
+</div>
+<script>
+// The icons the app shows most, read from the copy of Lucide (the page is served from the repository's root).
+const NAMES = ["droplet", "moon", "sparkles", "arrow-left", "ellipsis", "check", "plus", "trash", "settings", "calendar", "clock", "heart", "book-open", "list-checks", "chart-column", "footprints", "utensils", "dumbbell", "bed", "pencil", "search", "bell", "house", "leaf", "message-circle", "face-grinning", "timer", "target", "star", "folder"];
+const ICONS = {};
+const SIZES = [24, 32, 48, 96];
+const $ = id => document.getElementById(id);
+const params = () => ({
+  width: +$('width').value, taper: +$('taper').value,
+  attack: +$('attack').value, direction: +$('direction').value, corner: +$('corner').value, swell: +$('swell').value, dry: +$('dry').value, wet: $('wet').checked,
+});
+let seed = 1;
+
+// A hidden SVG in the page, so each Lucide element can be measured along its length.
+const measure = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+measure.setAttribute('viewBox', '0 0 24 24');
+measure.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden';
+document.body.appendChild(measure);
+
+// Every icon's strokes as lists of points (in the 24 grid), split where a path jumps (a new "M").
+const STEP = 0.08;
+const strokesOf = {};
+function measureStrokes() {
+for (const [name, inner] of Object.entries(ICONS)) {
+  measure.innerHTML = inner;
+  const strokes = [];
+  for (const el of measure.querySelectorAll('path, circle, rect, line, polyline, polygon, ellipse')) {
+    const total = el.getTotalLength();
+    let cur = [];
+    let prev = null;
+    for (let s = 0; s <= total + 1e-6; s += STEP) {
+      const p = el.getPointAtLength(Math.min(s, total));
+      if (prev && Math.hypot(p.x - prev.x, p.y - prev.y) > STEP * 6) { if (cur.length > 1) strokes.push(cur); cur = []; }
+      cur.push({ x: p.x, y: p.y });
+      prev = p;
+    }
+    if (cur.length > 1) strokes.push(cur);
+    else if (cur.length === 1) strokes.push([cur[0], cur[0]]);
+  }
+  strokesOf[name] = strokes;
+}
+}
+
+function rand(i) { const x = Math.sin(i * 12.9898 + seed * 78.233) * 43758.5453; return x - Math.floor(x); }
+const smooth = t => t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
+
+function drawBrush(canvas, name, sizePx, ink, p) {
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.round(sizePx * dpr); canvas.height = Math.round(sizePx * dpr);
+  canvas.style.width = sizePx + 'px'; canvas.style.height = sizePx + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(sizePx * dpr / 24, 0, 0, sizePx * dpr / 24, 0, 0);
+  ctx.fillStyle = ink;
+  // The width along each stroke, computed once, then stamped in discs by each pass.
+  const widths = strokesOf[name].map((pts, si) => {
+    const n = pts.length;
+    const len = (n - 1) * STEP;
+    const closed = n > 3 && Math.hypot(pts[0].x - pts[n - 1].x, pts[0].y - pts[n - 1].y) < 0.2;
+    const attackLen = Math.min(len * 0.3, 1.2);
+    const releaseLen = Math.min(len * 0.5, 0.6 + 3.4 * p.taper);
+    const phase = (rand(si + name.length) - 0.5) * 0.8;
+    const dir = (a, b) => Math.atan2(pts[b].y - pts[a].y, pts[b].x - pts[a].x);
+    const at = i => Math.max(0, Math.min(n - 1, i));
+    const raw = [];
+    for (let i = 0; i < n; i++) {
+      const u = i * STEP;
+      const rest = len - u;
+      let w = 1;
+      // The brush is held at a slant: a stroke rising gently to the right is its thinnest.
+      const theta = dir(at(i - 4), at(i + 4));
+      const across = Math.abs(Math.sin(theta + 0.2));
+      w *= 1 - 0.55 * p.direction * (1 - across);
+      // It presses where the stroke turns, as the hand pauses.
+      const turn = Math.abs(Math.atan2(Math.sin(dir(at(i), at(i + 6)) - dir(at(i - 6), at(i))), Math.cos(dir(at(i), at(i + 6)) - dir(at(i - 6), at(i)))));
+      w *= 1 + 0.6 * p.corner * Math.min(1, turn / (Math.PI / 2));
+      // One slow swell over the whole stroke, never a ripple.
+      w *= 1 + p.swell * Math.sin(Math.PI * (u / Math.max(len, 0.01)) + phase);
+      if (!closed) {
+        // It lands pressed (or lightly), and lifts off in a long point.
+        if (attackLen > 0) w *= 1 + 0.6 * p.attack * (1 - smooth(u / attackLen));
+        if (releaseLen > 0) w *= 0.06 + 0.94 * smooth(rest / releaseLen);
+      }
+      raw.push(w);
+    }
+    // Smoothed, so a width only ever flows from one value to the next.
+    const half = 5;
+    return raw.map((_, i) => { let sum = 0, cnt = 0; for (let j = i - half; j <= i + half; j++) if (j >= 0 && j < n) { sum += raw[j]; cnt++; } return sum / cnt; });
+  });
+  const pass = (c, scale) => {
+    strokesOf[name].forEach((pts, si) => {
+      const n = pts.length;
+      const len = (n - 1) * STEP;
+      const releaseLen = Math.min(len * 0.5, 0.6 + 3.4 * p.taper);
+      for (let i = 0; i < n; i++) {
+        const rest = len - i * STEP;
+        // A dry brush leaves gaps towards the end of a long stroke.
+        if (p.dry > 0 && len > 3 && rest < releaseLen * 1.2 && rand(i * 7 + si) < p.dry * (1 - rest / (releaseLen * 1.2)) * 0.8) continue;
+        const r = Math.max(0.04, p.width * widths[si][i] * scale / 2);
+        c.beginPath(); c.arc(pts[i].x, pts[i].y, r, 0, Math.PI * 2); c.fill();
+      }
+    });
+  };
+  if (p.wet) {
+    // The pale rim drawn opaque on its own canvas, then laid at once, so overlapping discs don't add up.
+    const rim = document.createElement('canvas');
+    rim.width = canvas.width; rim.height = canvas.height;
+    const rctx = rim.getContext('2d');
+    rctx.setTransform(ctx.getTransform()); rctx.fillStyle = ink;
+    pass(rctx, 1);
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 0.5; ctx.drawImage(rim, 0, 0); ctx.globalAlpha = 1;
+    ctx.setTransform(sizePx * dpr / 24, 0, 0, sizePx * dpr / 24, 0, 0);
+    pass(ctx, 0.72);
+  } else pass(ctx, 1);
+}
+
+function lucideSvg(name, sizePx, strokeWidth) {
+  return `<svg width="${sizePx}" height="${sizePx}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]}</svg>`;
+}
+
+function render() {
+  const p = params();
+  for (const id of ['width', 'taper', 'direction', 'corner', 'attack', 'swell', 'dry']) $(id).nextElementSibling.value = $(id).value;
+  for (const mode of document.querySelectorAll('.mode')) {
+    const ink = mode.dataset.ink;
+    mode.innerHTML = `<h2>${mode.classList.contains('light') ? 'CLAIR' : 'SOMBRE'}</h2>`;
+    for (const size of SIZES) {
+      const h = document.createElement('h2'); h.textContent = size + ' px'; mode.appendChild(h);
+      for (const [label, sw] of [['Lucide, trait de 2 (aujourd\'hui)', 2], ['Lucide, trait de 1,5 (niveau 1)', 1.5], ['Pinceau (niveau 2)', null]]) {
+        const row = document.createElement('div'); row.className = 'row';
+        row.innerHTML = `<span class="k">${label}</span>`;
+        for (const name of NAMES) {
+          if (sw) row.insertAdjacentHTML('beforeend', lucideSvg(name, size, sw));
+          else { const c = document.createElement('canvas'); drawBrush(c, name, size, ink, p); row.appendChild(c); }
+        }
+        mode.appendChild(row);
+      }
+    }
+  }
+}
+for (const el of document.querySelectorAll('header input')) el.addEventListener('input', render);
+$('reseed').addEventListener('click', () => { seed++; render(); });
+Promise.all(NAMES.map(async name => {
+  const svg = await (await fetch(`/third_party/lucide/icons/${name}.svg`)).text();
+  ICONS[name] = svg.match(/>\s*([\s\S]*)<\/svg>/)[1].trim();
+})).then(() => { measureStrokes(); render(); });
+</script>
+</body>
+</html>
