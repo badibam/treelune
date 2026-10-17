@@ -25,14 +25,18 @@ import kotlin.math.roundToInt
  * unequal widths.
  *
  * Everything the theme lays out is counted in drawing pixels and in cells, the cell being the
- * font's box across (eleven pixels): frames, panels, margins and spaces fall on whole cells. The
- * vertical of a line of text is free, as long as it is whole pixels.
+ * font's box across (eleven pixels): frames and panels fall on whole cells. The vertical of a line
+ * of text is free, as long as it is whole pixels. The spaces between pieces and the margins keep
+ * the length they have at the first size step ([steady]): the size steps enlarge what is read and
+ * touched, not the air around it.
  */
 @Immutable
 class RetroGrid(
     /** Screen pixels per drawing pixel: a whole number. */
     val scale: Int,
     private val density: Density,
+    /** The scale at the first size step, which the spaces keep the length of. */
+    private val base: Int = scale,
 ) {
     /** [pixels] drawing pixels, as screen pixels. */
     fun px(pixels: Int): Int = pixels * scale
@@ -42,6 +46,12 @@ class RetroGrid(
 
     /** [count] cells. */
     fun cells(count: Int): Dp = dp(count * CELL)
+
+    /**
+     * [count] cells as long as at the first size step, in the whole drawing pixels nearest at
+     * this one: a space, which the size steps leave as it is. One pixel at least.
+     */
+    fun steady(count: Int): Dp = dp((count * CELL * base / scale.toFloat()).roundToInt().coerceAtLeast(1))
 
     /** The cell, in screen pixels. */
     val cellPx: Int get() = px(CELL)
@@ -119,7 +129,8 @@ fun retroGrid(): RetroGrid {
     val density = LocalDensity.current
     val step = CurrentTheme.sizeStep
     return remember(density, step) {
-        RetroGrid((density.density.roundToInt() - 1 + step).coerceAtLeast(1), density)
+        val base = (density.density.roundToInt() - 1).coerceAtLeast(1)
+        RetroGrid((base + step).coerceAtLeast(1), density, base)
     }
 }
 

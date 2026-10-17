@@ -209,7 +209,7 @@ object RetroTheme : ThemeContract {
 
     /** Every space a whole number of cells: the three small ones and the page's edge one cell, then two, then three. */
     @Composable
-    override fun spacing(spacing: Spacing): Dp = retroGrid().cells(
+    override fun spacing(spacing: Spacing): Dp = retroGrid().steady(
         when (spacing) {
             Spacing.XS, Spacing.S, Spacing.M, Spacing.EDGE -> 1
             Spacing.L -> 2
@@ -447,7 +447,7 @@ object RetroTheme : ThemeContract {
         val grid = retroGrid()
         val panel = retroColors.panel
         Framed {
-            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(grid.cells(1))) {
+            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(grid.steady(1))) {
                 for (action in actions) {
                     Pressable(onClick = action.onClick) { pressed ->
                         Box(
@@ -486,7 +486,7 @@ object RetroTheme : ThemeContract {
             FeedbackType.INFO -> s.ink
         }.srgb
         Framed(modifier = Modifier.fillMaxWidth()) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(retroGrid().cells(1))) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(retroGrid().steady(1))) {
                 Box(modifier = Modifier.weight(1f)) { Line(message, retroGrid().text, ink) }
                 if (action != null && onAction != null) WordButton(action, onAction)
             }
@@ -684,7 +684,7 @@ object RetroTheme : ThemeContract {
         Column(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(vertical = grid.dp(RetroGrid.BORDER)),
-                horizontalArrangement = Arrangement.spacedBy(grid.cells(1)),
+                horizontalArrangement = Arrangement.spacedBy(grid.steady(1)),
                 verticalAlignment = Alignment.CenterVertically,
                 content = content
             )
@@ -815,7 +815,7 @@ object RetroTheme : ThemeContract {
         ) {
             // The page's icon and title a size up, as a heading is (HEADING)
             val up = retroGridUp()
-            Row(horizontalArrangement = Arrangement.spacedBy(grid.cells(1)), verticalAlignment = Alignment.CenterVertically) {
+            Row(horizontalArrangement = Arrangement.spacedBy(grid.steady(1)), verticalAlignment = Alignment.CenterVertically) {
                 // The app's mark in its own pixels and colours (app-mark.txt), in an icon's box
                 if (appMark) Image(painter = painterResource(app.treelune.R.drawable.app_mark_retro), contentDescription = null, modifier = Modifier.size(up.dp(RetroGrid.ICON)))
                 else icon?.let { NamedIcon(it, null, up, iconColor?.takeIf { color -> color != TagColor.GREY }?.let { color -> retroColors.icon(color, retroSurface).srgb }) }
@@ -907,7 +907,7 @@ object RetroTheme : ThemeContract {
         @Composable
         fun OptionIconOf(index: Int?) {
             val icon = index?.let { icons.getOrNull(it) } ?: return
-            Box(modifier = Modifier.padding(end = grid.cells(1))) {
+            Box(modifier = Modifier.padding(end = grid.steady(1))) {
                 app.treelune.core.ui.UI.ItemIcon(icon.name, icon.color, grid.dp(RetroGrid.ICON))
             }
         }
@@ -931,7 +931,7 @@ object RetroTheme : ThemeContract {
                         // A section's title above its first option, in the dim ink, not chosen
                         val section = sections.getOrNull(index)
                         if (section != null && section != sections.getOrNull(index - 1)) {
-                            Box(modifier = Modifier.fillMaxWidth().padding(top = grid.cells(1)), contentAlignment = Alignment.CenterStart) {
+                            Box(modifier = Modifier.fillMaxWidth().padding(top = grid.steady(1)), contentAlignment = Alignment.CenterStart) {
                                 Line(section, grid.text, panel.dim.srgb)
                             }
                         }
@@ -958,7 +958,7 @@ object RetroTheme : ThemeContract {
             Row(
                 modifier = Modifier.heightIn(min = grid.cells(grid.touch)),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(grid.cells(1))
+                horizontalArrangement = Arrangement.spacedBy(grid.steady(1))
             ) {
                 Line(if (checked) "[$CHECK]" else "[ ]", grid.text, (if (checked) s.strong else s.dim).srgb)
                 label?.let { Line(it, grid.text, s.ink.srgb) }
@@ -1022,7 +1022,7 @@ object RetroTheme : ThemeContract {
             if (label.isNotBlank()) FieldLabel(label, required)
             Row(
                 modifier = if (compact) Modifier else Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(grid.cells(1))
+                horizontalArrangement = Arrangement.spacedBy(grid.steady(1))
             ) {
                 listOf(true to trueLabel, false to falseLabel).forEach { (answer, text) ->
                     val chosen = value == answer
@@ -1105,7 +1105,7 @@ object RetroTheme : ThemeContract {
             FieldLabel(label, required)
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(grid.cells(1), Alignment.CenterHorizontally),
+                horizontalArrangement = Arrangement.spacedBy(grid.steady(1), Alignment.CenterHorizontally),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Line(value?.let { String.format(Locale.getDefault(), "%.${decimals}f", it) } ?: "—", grid.text, (if (value != null) s.strong else s.dim).srgb)
@@ -1178,7 +1178,7 @@ object RetroTheme : ThemeContract {
 
     @Composable
     override fun AIThinkingIndicator() {
-        Box(modifier = Modifier.fillMaxWidth().padding(retroGrid().cells(1)), contentAlignment = Alignment.Center) { Dots() }
+        Box(modifier = Modifier.fillMaxWidth().padding(retroGrid().steady(1)), contentAlignment = Alignment.Center) { Dots() }
     }
 
     /** A message is a frame; the system's stays on the page, an input's frame rather than a panel. */
@@ -1192,10 +1192,10 @@ object RetroTheme : ThemeContract {
     override fun InteractionCard(title: String, content: @Composable ColumnScope.() -> Unit, actions: @Composable RowScope.() -> Unit) {
         val grid = retroGrid()
         Framed(modifier = Modifier.fillMaxWidth(), pressed = true) {
-            Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(grid.cells(1))) {
+            Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(grid.steady(1))) {
                 Text(title, TextType.TITLE, true, TextAlign.Center)
                 content()
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(grid.cells(1)), content = actions)
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(grid.steady(1)), content = actions)
             }
         }
     }
@@ -1358,11 +1358,11 @@ object RetroTheme : ThemeContract {
         val grid = retroGrid()
         app.treelune.core.ui.components.FloatingDialog(onDismissRequest = onDismiss, margin = spacing(Spacing.EDGE)) {
             Framed(modifier = Modifier.fillMaxWidth()) {
-                Column(verticalArrangement = Arrangement.spacedBy(grid.cells(1))) {
-                    Column(modifier = Modifier.weight(1f, fill = false), verticalArrangement = Arrangement.spacedBy(grid.cells(1)), content = content)
+                Column(verticalArrangement = Arrangement.spacedBy(grid.steady(1))) {
+                    Column(modifier = Modifier.weight(1f, fill = false), verticalArrangement = Arrangement.spacedBy(grid.steady(1)), content = content)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(grid.cells(1), Alignment.End),
+                        horizontalArrangement = Arrangement.spacedBy(grid.steady(1), Alignment.End),
                         verticalAlignment = Alignment.CenterVertically,
                         content = actions
                     )
@@ -1405,7 +1405,7 @@ object RetroTheme : ThemeContract {
             delay(shown.millis)
             RetroToasts.dismiss(shown.id)
         }
-        Box(modifier = modifier.fillMaxWidth().padding(retroGrid().cells(1))) {
+        Box(modifier = modifier.fillMaxWidth().padding(retroGrid().steady(1))) {
             Framed(modifier = Modifier.fillMaxWidth()) { Line(shown.message, retroGrid().text, retroColors.panel.ink.srgb) }
         }
     }

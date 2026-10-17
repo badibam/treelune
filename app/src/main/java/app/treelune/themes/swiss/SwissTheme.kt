@@ -170,11 +170,11 @@ object SwissTheme : ThemeContract {
 
     /** Twelve between two columns, left to the grid: each tile fills its cells. */
     @Composable
-    override fun gridColumnGapPx(): Int = with(LocalDensity.current) { swissSize().dp(12f).roundToPx() }
+    override fun gridColumnGapPx(): Int = with(LocalDensity.current) { 12f.dp.roundToPx() }
 
     /** Sixteen between two rows: a tile has no frame, its rule alone parting it from the one above. */
     @Composable
-    override fun gridRowGapPx(): Int = with(LocalDensity.current) { swissSize().dp(16f).roundToPx() }
+    override fun gridRowGapPx(): Int = with(LocalDensity.current) { 16f.dp.roundToPx() }
 
     /** Silent: the theme's sounds are chosen apart (docs/THEMES.md, Les sons). */
     override fun sound(signal: UISignal): Int? = null
@@ -189,7 +189,7 @@ object SwissTheme : ThemeContract {
         if (displayMode == DisplayMode.ICON) swissSize().dp(8f) else swissSize().dp(TILE_RULE + 8f)
 
     @Composable
-    override fun spacing(spacing: Spacing): Dp = swissSize().dp(
+    override fun spacing(spacing: Spacing): Dp = (
         when (spacing) {
             Spacing.XS -> 4f
             Spacing.S -> 8f
@@ -198,7 +198,7 @@ object SwissTheme : ThemeContract {
             Spacing.XL -> 32f
             Spacing.EDGE -> 16f
         }
-    )
+    ).dp
 
     // =====================================
     // INTERACTIVE

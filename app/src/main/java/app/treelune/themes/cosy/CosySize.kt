@@ -20,7 +20,7 @@ import app.treelune.core.themes.CurrentTheme
 
 /**
  * The cosy theme's sizes: every length and every text of the mockup, times the factor of the size
- * step the user chose (CurrentTheme.sizeStep), so that the whole interface grows together and a
+ * step the user chose (CurrentTheme.sizeStep), but for the spaces between pieces, the margin and the grid's gaps, which stay in plain dp (the theme's spacing), so that the whole interface grows together and a
  * tile stays plump around a larger text. Texts are in sp, so Android's text size enlarges them on
  * top, for the text alone (docs/design/cosy-theme.md).
  */

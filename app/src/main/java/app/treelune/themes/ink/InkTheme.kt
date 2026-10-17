@@ -171,11 +171,11 @@ object InkTheme : ThemeContract {
 
     /** Sixteen between two columns, left to the grid: a wash fades out before its edge, and air parts the tiles. */
     @Composable
-    override fun gridColumnGapPx(): Int = with(LocalDensity.current) { inkSize().dp(16f).roundToPx() }
+    override fun gridColumnGapPx(): Int = with(LocalDensity.current) { 16f.dp.roundToPx() }
 
     /** Twenty between two rows. */
     @Composable
-    override fun gridRowGapPx(): Int = with(LocalDensity.current) { inkSize().dp(20f).roundToPx() }
+    override fun gridRowGapPx(): Int = with(LocalDensity.current) { 20f.dp.roundToPx() }
 
     /** Silent: the theme's sounds are chosen apart (docs/THEMES.md, Les sons). */
     override fun sound(signal: UISignal): Int? = null
@@ -186,7 +186,7 @@ object InkTheme : ThemeContract {
         if (displayMode == DisplayMode.ICON) inkSize().dp(8f) else inkSize().dp(TILE_PAD)
 
     @Composable
-    override fun spacing(spacing: Spacing): Dp = inkSize().dp(
+    override fun spacing(spacing: Spacing): Dp = (
         when (spacing) {
             Spacing.XS -> 4f
             Spacing.S -> 8f
@@ -195,7 +195,7 @@ object InkTheme : ThemeContract {
             Spacing.XL -> 40f
             Spacing.EDGE -> 20f
         }
-    )
+    ).dp
 
     // =====================================
     // INTERACTIVE

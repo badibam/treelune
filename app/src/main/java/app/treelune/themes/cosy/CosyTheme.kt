@@ -176,11 +176,11 @@ object CosyTheme : ThemeContract {
 
     /** The mockup's ten between two tiles, left to the grid: each tile fills its cells. */
     @Composable
-    override fun gridColumnGapPx(): Int = with(LocalDensity.current) { cosySize().dp(10f).roundToPx() }
+    override fun gridColumnGapPx(): Int = with(LocalDensity.current) { 10f.dp.roundToPx() }
 
     /** Twelve between two rows: a little more than across, the shadows taking some. */
     @Composable
-    override fun gridRowGapPx(): Int = with(LocalDensity.current) { cosySize().dp(12f).roundToPx() }
+    override fun gridRowGapPx(): Int = with(LocalDensity.current) { 12f.dp.roundToPx() }
 
     override fun sound(signal: UISignal): Int? = when (signal) {
         UISignal.CONFIRM -> R.raw.cosy_confirm
@@ -205,7 +205,7 @@ object CosyTheme : ThemeContract {
     )
 
     @Composable
-    override fun spacing(spacing: Spacing): Dp = cosySize().dp(
+    override fun spacing(spacing: Spacing): Dp = (
         when (spacing) {
             Spacing.XS -> 4f
             Spacing.S -> 8f
@@ -214,7 +214,7 @@ object CosyTheme : ThemeContract {
             Spacing.XL -> 24f
             Spacing.EDGE -> 8f
         }
-    )
+    ).dp
 
     // =====================================
     // INTERACTIVE

@@ -24,7 +24,7 @@ import app.treelune.core.themes.CurrentTheme
 /**
  * The Swiss theme's sizes (docs/design/swiss-theme.md): every length and every text of the
  * mockup, on a pitch of 8 dp, times the factor of the size step the user chose
- * (CurrentTheme.sizeStep). Texts are in sp, so Android's text size enlarges them on top, for the
+ * (CurrentTheme.sizeStep), but for the spaces between pieces, the margin and the grid's gaps, which stay in plain dp (the theme's spacing). Texts are in sp, so Android's text size enlarges them on top, for the
  * text alone. Every text writes its figures at one width (tnum), so that numbers line up.
  */
 @Immutable
