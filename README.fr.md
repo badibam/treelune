@@ -62,6 +62,7 @@ Tu disposes les tuiles de chaque zone comme tu veux, tu choisis l'icône et la c
 - **Par défaut** — Clair et sobre, dans la teinte de ton choix
 - **Rétro** — Du pixel art : des pixels entiers, une police dessinée, des icônes en pixels, ses propres sons
 - **Cosy** — Comme un téléphone dans un jeu doux : rond et dodu, tout rebondit, ses propres sons
+- **Suisse** — Comme une affiche suisse : une grille stricte, noir et blanc et un seul rouge, les chiffres en grand
 <!-- /themes -->
 
 ## Commencer

@@ -37,7 +37,19 @@ Toutes les lignes du 2026-10-17, dans l'ordre de la liste de `docs/THEMES.md`.
 12. **Le registre sonore** : secs et courts, des clics et des tics sans note (un interrupteur, une agrafeuse), l'opposé des sons ronds du cosy ; à chercher dans click, tick, switch et toggle d'Interface Sounds et d'UI Audio de Kenney. Le thème part muet.
 13. **Les textes** : nom « Suisse » / « Swiss » ; phrase « Comme une affiche suisse : une grille stricte, noir et blanc et un seul rouge, les chiffres en grand » / « Like a Swiss poster: a strict grid, black and white and a single red, the numbers large », qui nommera les sons une fois choisis. Pas de nom de palette.
 
+## Ce qui est codé
+
+`themes/swiss/` : la palette (`SwissPalette`, ses nombres dans `palettes.json`, réglés au banc `./run themes`, « Suisse · palettes », vu et approuvé le 2026-10-17), les tailles et la police par cran (`SwissSize`), l'élément pressé, le fondu, l'élément soulevé et les traits (`SwissPieces`), les graphiques (`SwissDrawing`), chaque composant du contrat (`SwissTheme`), les cellules des textures (`textures/`, sur le pas de 8, aux bouts carrés). `SwissPaletteTest` tient les contrastes des deux palettes à chaque décalage de 15°. Choisi dans Réglages › Interface, sous le nom « Suisse ».
+
+Ce que le code a précisé des décisions :
+- La texture d'une tuile ou d'un en-tête est dessinée à l'encre, sans la couleur de l'icône, que le cœur donnerait au motif.
+- Le titre de page descend, au-delà de deux lignes, jusqu'à la taille d'un titre de dialogue (22 sp) : celle d'un titre de groupe (12 sp) était trop petite pour un titre.
+- Le voile derrière un dialogue est celui d'Android (noir), la fenêtre flottante étant commune à tous les thèmes.
+- Les points d'une série gardent la forme que le graphique leur donne : elle peut distinguer deux séries.
+
 ## Ce qui reste ouvert
 
-- Le seuil : le banc (`./run themes`, « Suisse · palettes » : l'écran d'une zone et la planche des composants, les deux modes côte à côte, dans Archivo, les contrastes mesurés à tout décalage) est fait ; il reste à le voir et à régler ses nombres à l'œil, avant le code.
+- Rien n'a tourné sur un téléphone : le thème entier s'y juge, la passe de `docs/THEMES.md` d'abord.
+- Le nom d'une tuile reste centré : c'est le cœur qui le place (`UI.TileHeader`), pas le thème, et l'alignement à gauche de la décision n'y est donc pas tenu.
+- Les tons des textures sont ceux du thème par défaut, recopiés : à régler au banc des textures (`./run themes`).
 - Les sons, à la planche d'écoute.

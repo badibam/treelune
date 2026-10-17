@@ -57,13 +57,13 @@
 <script>
 "use strict";
 const ROOT = "/app/src/main/resources/app/treelune/themes";
-const THEMES = { default: "Par défaut", cosy: "Cosy", retro: "Rétro" };
+const THEMES = { default: "Par défaut", cosy: "Cosy", retro: "Rétro", swiss: "Suisse" };
 const NAMES = ["LINES", "DIAGONALS", "GRID", "ZIGZAG", "WAVES", "DOTS", "CROSSES", "STARS", "RINGS", "DIAMONDS", "CONFETTI", "CHECKER", "BRICKS", "SCALES", "ICON"];
 const TAGS = ["RED", "ORANGE", "YELLOW", "GREEN", "TEAL", "BLUE", "PURPLE", "PINK"];
 // Screen pixels a cell's unit takes here: a dp is about a CSS pixel; a retro drawing pixel, two
-const UNIT = { default: 1, cosy: 1, retro: 2 };
+const UNIT = { default: 1, cosy: 1, retro: 2, swiss: 1 };
 // The ICON motif's icon and the room around it, in units, as each theme's textureStyle() gives them
-const ICON_CELL = { default: [12, 14], cosy: [14, 16], retro: [22, 10] };
+const ICON_CELL = { default: [12, 14], cosy: [14, 16], retro: [22, 10], swiss: [16, 16] };
 // CosyPalette.TAG_HUES
 const COSY_TAG_HUES = { RED: 25, ORANGE: 55, YELLOW: 95, GREEN: 145, TEAL: 185, BLUE: 230, PURPLE: 300, PINK: 355 };
 const S = { theme: "default", mode: "LIGHT", surface: "TILE", tag: "BLUE", docs: {}, cells: {}, surfaces: {}, dirty: false };
@@ -95,10 +95,11 @@ function motifColor(surfaceHex, tagHex, tone, tagChroma) {
 async function loadSurfaces() {
   const retro = (await (await fetch(`${ROOT}/retro/palettes.json`, { cache: "no-store" })).json()).palettes;
   const cosy = (await (await fetch(`${ROOT}/cosy/palettes.json`, { cache: "no-store" })).json()).palettes;
+  const swiss = (await (await fetch(`${ROOT}/swiss/palettes.json`, { cache: "no-store" })).json()).palettes;
   const colors = await (await fetch("default/bench/colors.html", { cache: "no-store" })).text();
   const grab = (name) => new Function(`return ${colors.match(new RegExp(`const ${name} = (\\{[\\s\\S]*?\\n\\});`))[1]}`)();
   const LIGHT = grab("LIGHT"), DARK = grab("DARK"), ITEM_ICONS = grab("ITEM_ICONS");
-  const out = { default: {}, cosy: {}, retro: {} };
+  const out = { default: {}, cosy: {}, retro: {}, swiss: {} };
   // The default theme: a tile on the surface, a header on the screen's background; a tag its badge's colour (getTagColor)
   for (const [mode, c] of [["LIGHT", LIGHT], ["DARK", DARK]]) {
     const tags = {};
@@ -116,6 +117,13 @@ async function loadSurfaces() {
     const n = p.numbers, tags = {};
     for (const t of TAGS) tags[t] = lchHex([n.tag_lightness, n.tag_chroma, COSY_TAG_HUES[t]]);
     out.cosy[p.mode] = { TILE: lchHex([n.tile_lightness, n.tile_chroma, n.hue]), HEADER: lchHex([n.accent_lightness, n.accent_chroma, n.hue + n.accent_turn]), tags };
+  }
+  // The Swiss: a tile and a header on the ground itself (SwissColors.ground, tag)
+  for (const p of swiss) {
+    const n = p.numbers, tags = {};
+    for (const t of TAGS) tags[t] = lchHex([n.tag_lightness, n.tag_chroma, COSY_TAG_HUES[t]]);
+    const ground = lchHex([n.ground_lightness, n.ground_chroma, n.ground_hue]);
+    out.swiss[p.mode] = { TILE: ground, HEADER: ground, tags };
   }
   S.surfaces = out;
 }

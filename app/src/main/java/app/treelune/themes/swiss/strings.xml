@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="name">Swiss</string>
+    <!-- What the theme looks like, said to the user: the README -->
+    <string name="tagline">Like a Swiss poster: a strict grid, black and white and a single red, the numbers large</string>
+</resources>
