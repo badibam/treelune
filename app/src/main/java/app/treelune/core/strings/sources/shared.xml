@@ -484,6 +484,7 @@
     <string name="label_description">Description</string>
     <string name="label_icon">Icon</string>
     <string name="label_icon_color">Icon colour</string>
+    <string name="icon_color_none">No colour</string>
     <string name="label_texture">Texture</string>
     <string name="texture_lines">Stripes</string>
     <string name="texture_diagonals">Diagonals</string>
@@ -506,7 +507,7 @@
     <string name="service_error_texture_unknown">Unknown texture: \'%1$s\'. One of %2$s, or null for none</string>
     <string name="service_error_texture_icon_without_icon">The ICON texture repeats the icon, and there would be none: keep an icon, or remove the texture or choose another</string>
     <string name="settings_ui_texture_intensity">Textures</string>
-    <string name="settings_ui_texture_intensity_help">How strongly the motifs chosen for zones and tools show on their tiles and at the top of their pages.</string>
+    <string name="settings_ui_texture_intensity_help">How strongly the motifs chosen for zones and tools show, on their tiles and over the whole ground of their pages.</string>
     <string name="settings_ui_texture_intensity_subtle">Subtle</string>
     <string name="settings_ui_texture_intensity_marked">Marked</string>
     <string name="label_page_info">Page %1$d of %2$d</string>

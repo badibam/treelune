@@ -50,6 +50,21 @@ interface SettingEditor {
 }
 
 /**
+ * A setting edited on a page of its own (docs/design/settings-pages.md): a choice of one value among
+ * many (an icon's colour, a texture). The form draws its line, its [label] over its [Summary], and
+ * touched, opens its page under the path, where [Edit] draws the choices; a value taken there
+ * closes the page, back on the one it was opened from.
+ */
+interface SettingPageEditor : SettingEditor {
+    /** The setting's name, on its line and in the path. */
+    val label: String
+
+    /** What is chosen, under [label] on its line; [value] null for none. */
+    @Composable
+    fun Summary(value: Any?)
+}
+
+/**
  * The fields of the rows a config describes, by where a setting stands in it: what a setting
  * marked SettingNode.Field.rowField chooses among, and a condition put on each row
  * (SettingNode.Condition.onRow) compares. A chart's columns differ from one layer to another, so
@@ -95,11 +110,14 @@ private fun rowFields(): Map<String, app.treelune.core.fields.FieldDefinition>? 
 internal sealed class Step {
     data class Group(val name: String) : Step()
     data class Element(val list: String, val index: Int) : Step()
+    /** A setting edited on its own page (SettingPageEditor), by its name. */
+    data class Setting(val name: String) : Step()
 
     /** The keys and positions it goes through in the stored config. */
     val keys: List<Any> get() = when (this) {
         is Group -> listOf(name)
         is Element -> listOf(list, index)
+        is Setting -> listOf(name)
     }
 }
 
@@ -110,6 +128,7 @@ private val TrailSaver: androidx.compose.runtime.saveable.Saver<List<Step>, Stri
             when (step) {
                 is Step.Group -> JSONObject().put("group", step.name)
                 is Step.Element -> JSONObject().put("list", step.list).put("index", step.index)
+                is Step.Setting -> JSONObject().put("setting", step.name)
             }
         }).toString()
     },
@@ -117,7 +136,11 @@ private val TrailSaver: androidx.compose.runtime.saveable.Saver<List<Step>, Stri
         val array = JSONArray(saved)
         (0 until array.length()).map { i ->
             val step = array.getJSONObject(i)
-            if (step.has("group")) Step.Group(step.getString("group")) else Step.Element(step.getString("list"), step.getInt("index"))
+            when {
+                step.has("group") -> Step.Group(step.getString("group"))
+                step.has("setting") -> Step.Setting(step.getString("setting"))
+                else -> Step.Element(step.getString("list"), step.getInt("index"))
+            }
         }
     }
 )
@@ -184,14 +207,17 @@ internal fun List<SettingNode>.shown(config: JSONObject): List<SettingNode> = fl
     }
 }
 
-/** A page reached by a trail: its settings, the object they are stored in, its name in the path. */
-private data class Page(val nodes: List<SettingNode>, val config: JSONObject, val label: String)
+/**
+ * A page reached by a trail: its settings, the object they are stored in, its name in the path;
+ * for a setting's own page, that setting's name and editor, [nodes] then empty.
+ */
+private data class Page(val nodes: List<SettingNode>, val config: JSONObject, val label: String, val setting: Pair<String, SettingPageEditor>? = null)
 
 /**
  * The pages [trail] goes through from [nodes] over [config], as far as they still exist: an
  * element removed, a group whose variant was switched away, end it there.
  */
-private fun pagesOf(nodes: List<SettingNode>, config: JSONObject, trail: List<Step>, context: Context): List<Page> {
+private fun pagesOf(nodes: List<SettingNode>, config: JSONObject, trail: List<Step>, editors: Map<String, SettingEditor>, context: Context): List<Page> {
     val pages = mutableListOf<Page>()
     var level = nodes
     var current = config
@@ -205,6 +231,9 @@ private fun pagesOf(nodes: List<SettingNode>, config: JSONObject, trail: List<St
                 if (element == null || shape == null) null
                 else Page(shape.nodes, element, summaryText(list, shape.nodes, element, step.index, context))
             }
+            // Owners attach editors at the top level only, so a setting's page is opened from the root
+            is Step.Setting -> (editors[step.name] as? SettingPageEditor)?.takeIf { pages.isEmpty() }
+                ?.let { Page(emptyList(), current, it.label, step.name to it) }
         } ?: break
         pages += page
         level = page.nodes
@@ -265,7 +294,7 @@ fun SettingsForm(
     root: (@Composable () -> Unit)? = null
 ) {
     var trail by pages::trail
-    val reached = pagesOf(nodes, config, trail, context)
+    val reached = pagesOf(nodes, config, trail, editors, context)
     // A page that no longer exists (its element removed by the AI, its variant switched) gives
     // way to the deepest one still there
     if (reached.size < trail.size) androidx.compose.runtime.SideEffect { trail = trail.take(reached.size) }
@@ -292,8 +321,14 @@ fun SettingsForm(
                 NodesForm(nodes, nodes, config, onChange, context, editors)
             } else {
                 PageHeader(reached.map { it.label }, context) { depth -> trail = shown.take(depth) }
+                val setting = page.setting
+                // A value taken on a setting's page closes it, back on the root
+                if (setting != null) setting.second.Edit(config.opt(setting.first)?.takeIf { it != JSONObject.NULL }) { value ->
+                    onChange(JSONObject(config.toString()).apply { if (value == null) remove(setting.first) else put(setting.first, value) })
+                    trail = shown.dropLast(1)
+                }
                 // Owners attach editors at the top level only
-                NodesForm(page.nodes, page.nodes, page.config, { changed -> onChange(replaced(config, keys, changed) as JSONObject) }, context, emptyMap())
+                else NodesForm(page.nodes, page.nodes, page.config, { changed -> onChange(replaced(config, keys, changed) as JSONObject) }, context, emptyMap())
             }
         }
     }
@@ -496,6 +531,19 @@ private fun NodeForm(
             val stored = config.opt(name)?.takeIf { it != JSONObject.NULL }
             val editor = editors[name]
             when {
+                // A setting with its own page: its line here, which opens it
+                editor is SettingPageEditor -> UI.Card(type = CardType.DEFAULT) {
+                    val pages = requireNotNull(LocalPages.current) { "A setting's page is opened from a SettingsForm" }
+                    PageLine(
+                        title = { UI.Text(editor.label, TextType.SUBTITLE) },
+                        summary = { editor.Summary(stored) },
+                        nodes = emptyList(),
+                        config = JSONObject(),
+                        context = context,
+                        onOpen = { pages.open(Step.Setting(name)) },
+                        trailing = {}
+                    )
+                }
                 editor != null -> editor.Edit(stored) { set(name, it) }
                 // A field of the rows where the setting stands, chosen among them
                 node.rowField -> RowFieldChoice(node.definition.displayName, stored as? String, node.required) { set(name, it) }

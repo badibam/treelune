@@ -152,9 +152,11 @@ fun ToolConfigScreen(
 
     val editors = mapOf(
         "icon_name" to iconEditor(toolType.getSuggestedIcons(), toolType.getDefaultIconName(), app.treelune.core.themes.IconColor.of(config.optString(app.treelune.core.themes.IconColor.KEY))),
-        app.treelune.core.themes.IconColor.KEY to iconColorEditor(config.optString("icon_name").ifBlank { toolType.getDefaultIconName() }),
-        app.treelune.core.themes.Texture.KEY to textureEditor(config.optString("icon_name").ifBlank { toolType.getDefaultIconName() },
-            config.optString(app.treelune.core.themes.IconColor.KEY).ifBlank { null }),
+        // The colour and the texture each chosen on a page of the form, shown on the tool's icon, its type's for none
+        app.treelune.core.themes.IconColor.KEY to app.treelune.core.ui.components.iconColorPage(s.shared("label_icon_color"),
+            config.optString("icon_name").ifBlank { toolType.getDefaultIconName() }, config.optString(app.treelune.core.themes.Texture.KEY).ifBlank { null }),
+        app.treelune.core.themes.Texture.KEY to app.treelune.core.ui.components.texturePage(s.shared("label_texture"),
+            config.optString("icon_name").ifBlank { toolType.getDefaultIconName() }, config.optString(app.treelune.core.themes.IconColor.KEY).ifBlank { null }),
         "group" to groupEditor(groups, s.shared("label_group"))
     )
 
@@ -304,22 +306,6 @@ private fun iconEditor(suggested: List<String>, default: String, color: app.tree
     @Composable
     override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
         IconSelector(current = value as? String ?: default, color = color, suggested = suggested, onChange = { onChange(it) })
-    }
-}
-
-/** The icon's colour, each choice shown on [iconName]. */
-private fun iconColorEditor(iconName: String) = object : SettingEditor {
-    @Composable
-    override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
-        app.treelune.core.ui.components.IconColorSelector(current = value as? String, iconName = iconName, onChange = { onChange(it) })
-    }
-}
-
-/** The texture, each choice a small tile of the tool with [iconName] in [iconColor]. */
-private fun textureEditor(iconName: String, iconColor: String?) = object : SettingEditor {
-    @Composable
-    override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
-        app.treelune.core.ui.components.TextureSelector(current = value as? String, iconName = iconName, iconColor = iconColor, onChange = { onChange(it) })
     }
 }
 
