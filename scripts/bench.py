@@ -20,6 +20,10 @@ after, and how the session ended; this script fetches them and judges them
     scripts/bench.py refusals <folder>   what the app refused or failed, counted by kind, model and level
     scripts/bench.py judge [<folder>]   every play judged again on its copies, then the table: after a
         check is corrected
+    scripts/bench.py review <folder> [--model m] [--forcing f] [--only s1,s2] [--again]   each play
+        read by a reviewer model (scripts/bench_review.py), its grid written beside its verdict as
+        review.json, then review.md counting the grid per model and level; reviewed plays are kept
+        unless --again
 
 The OpenRouter key comes from OPENROUTER_API_KEY, else from .env at the main repository's root.
 """
@@ -442,6 +446,81 @@ def refusals(folder):
     return 0
 
 
+# Plays read at once: each review waits minutes on the reviewer's reasoning
+REVIEW_THREADS = 6
+
+
+def review(folder, key, model=None, forcing=None, names=None, again=False):
+    """Every play of [folder]'s campaign read by the reviewer, those named if any, then the table of
+    the reviews. A play the reviewer could not read is said and left without a review."""
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    from bench_review import review as read_play
+    plan = json.loads((folder / "campaign.json").read_text(encoding="utf-8"))
+    todo = []
+    for m in [model] if model else plan["models"]:
+        for f in [forcing] if forcing else plan["forcings"]:
+            for n in names or plan["scenarios"]:
+                into = folder / model_dir(m) / f / n
+                if (into / "verdict.json").is_file() and (into / "after.db").is_file() and (again or not (into / "review.json").is_file()):
+                    todo.append((m, f, n, into))
+    print(f"{len(todo)} plays to review")
+
+    def one(m, f, n, into):
+        verdict = json.loads((into / "verdict.json").read_text(encoding="utf-8"))
+        write_json(into / "review.json", read_play(into, n, verdict, key))
+        return m, f, n
+
+    spent = 0.0
+    with ThreadPoolExecutor(REVIEW_THREADS) as pool:
+        futures = {pool.submit(one, *play): play for play in todo}
+        for done in as_completed(futures):
+            m, f, n, into = futures[done]
+            try:
+                done.result()
+                spent += json.loads((into / "review.json").read_text(encoding="utf-8"))["cost"]
+                print(f"reviewed  {m} {f} {n}  (${spent:.3f} so far)")
+            except Exception as e:
+                print(f"NOT REVIEWED  {m} {f} {n}: {e!r}")
+    return review_table(folder)
+
+
+def review_table(folder):
+    """review.md: each field of the grid counted per model and level, then the turns and refusals
+    the base counts, and each play's note."""
+    from bench_review import GRID
+    plan = json.loads((folder / "campaign.json").read_text(encoding="utf-8"))
+    columns = [(m, f) for m in plan["models"] for f in plan["forcings"]]
+    reviews = {}
+    for m, f in columns:
+        for n in plan["scenarios"]:
+            path = folder / model_dir(m) / f / n / "review.json"
+            if path.is_file():
+                verdict = json.loads((path.parent / "verdict.json").read_text(encoding="utf-8"))
+                reviews[(m, f, n)] = (json.loads(path.read_text(encoding="utf-8")), verdict["passed"])
+    lines = ["Relecture par " + ", ".join(sorted({r["reviewer"] + " " + r["effort"] for r, _ in reviews.values()})) +
+             f", {len(reviews)} jeux, ${sum(r['cost'] for r, _ in reviews.values()):.3f}. Un jugement de modèle, pas une mesure de la base ;"
+             " tours et refus comptés dans la base.", "",
+             "| | " + " | ".join(f"{m.split('/')[-1]} {f}" for m, f in columns) + " |",
+             "|---|" + "---|" * len(columns)]
+    for field, (values, _) in GRID.items():
+        for value in values:
+            counts = [sum(1 for (m_, f_, _), (r, _) in reviews.items() if (m_, f_) == (m, f) and r["grid"][field] == value)
+                      for m, f in columns]
+            lines.append(f"| {field} = {value} | " + " | ".join(map(str, counts)) + " |")
+    for key in ("turns", "refusals", "failed_commands"):
+        lines.append(f"| {key} (somme) | " + " | ".join(
+            str(sum(r["counted"][key] for (m_, f_, _), (r, _) in reviews.items() if (m_, f_) == (m, f))) for m, f in columns) + " |")
+    lines += ["", "## Notes, jeu par jeu", ""]
+    for (m, f, n), (r, passed) in reviews.items():
+        g = r["grid"]
+        flags = [f"{k}={g[k]}" for k in ("truthful", "figure_grounded", "assumption", "unrequested_action", "passed_but_not_good")
+                 if g[k] in ("no", "useless_question", "wrong_assumption") or (k in ("unrequested_action", "passed_but_not_good") and g[k] == "yes")]
+        lines.append(f"- {m.split('/')[-1]} {f} {n} ({'réussi' if passed else 'échoué'}) {' '.join(flags)} : {g['note']}")
+    (folder / "review.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print(folder / "review.md")
+    return 0
+
+
 def model_dir(model):
     return model.replace("/", "__")
 
@@ -516,6 +595,17 @@ def main(argv):
     if argv[0] == "judge":
         folder = Path(argv[1]) if len(argv) > 1 else max(OUT.glob("*/campaign.json")).parent
         return judge(folder)
+    if argv[0] == "review":
+        folder, rest = Path(argv[1]), argv[2:]
+        options = {"--model": None, "--forcing": None, "--only": None}
+        again = "--again" in rest
+        rest = [a for a in rest if a != "--again"]
+        while rest:
+            if rest[0] not in options or len(rest) < 2:
+                sys.exit(f"Unknown option {rest[0]}")
+            options[rest[0]], rest = rest[1], rest[2:]
+        names = options["--only"].split(",") if options["--only"] else None
+        return review(folder, api_key(), options["--model"], options["--forcing"], names, again)
     if argv[0] == "table":
         folder = Path(argv[1]) if len(argv) > 1 else max(OUT.glob("*/campaign.json")).parent
         return rebuild(folder)
