@@ -63,13 +63,14 @@ Tu disposes les tuiles de chaque zone comme tu veux, tu choisis l'icône et la c
 - **Rétro** — Du pixel art : des pixels entiers, une police dessinée, des icônes en pixels, ses propres sons
 - **Cosy** — Comme un téléphone dans un jeu doux : rond et dodu, tout rebondit, ses propres sons
 - **Suisse** — Comme une affiche suisse : une grille stricte, noir et blanc et un seul rouge, les chiffres en grand
+- **Encre et lavis** — Comme un lavis à l'encre : un papier crème, l'encre noire et un seul rouge de sceau, beaucoup de vide
 <!-- /themes -->
 
 ## Commencer
 
 Télécharge l'APK de la dernière version sur la [page des releases](https://github.com/badibam/treelune/releases), ou construis l'app depuis les sources (voir plus bas). Elle n'est pas encore sur F-Droid.
 
-Au premier lancement, une **démo** t'attend : douze semaines de la vie de Camille, qui prépare un semi-marathon, travaille en indépendante, cuisine et jardine sur son balcon. On y voit à quoi ressemble l'app une fois construite. Ensuite, le **Guide** (le livre en haut de l'accueil) se suit pas à pas : la démo, une première zone, un premier outil, puis l'IA et les routines.
+Au premier lancement, une **démo** t'attend : douze semaines de la vie de Camille, qui prépare un semi-marathon, travaille en indépendante, cuisine, jardine sur son balcon et apprend l'italien avant un voyage à Rome. On y voit à quoi ressemble l'app une fois construite. Ensuite, le **Guide** (le livre en haut de l'accueil) se suit pas à pas : la démo, une première zone, un premier outil, puis l'IA et les routines.
 
 ## Tes données
 

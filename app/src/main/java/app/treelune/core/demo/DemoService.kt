@@ -67,14 +67,15 @@ class DemoService(private val context: Context) : ExecutableService {
             LogManager.service("Demo not read: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("demo_error_unreadable").format(e.message ?: ""))
         }
+        val data = DemoData(System.currentTimeMillis(), AppConfigManager.getDateTimeConfig().getZoneId(), asset("demo/entries.json"))
         LongOperation.at(s.shared("demo_phase_zones"))
         removeDemo()
         return try {
             addZoneGroup(content.group)
-            build(content)
-            fill(texts)
+            build(content, data)
+            fill(texts, data)
             automate(content)
-            LogManager.service("Demo installed: ${content.zones.size} zones, ${content.tools.size} tools, ${content.variables.size} variables", "INFO")
+            LogManager.service("Demo installed: ${content.identities.size} identities, ${content.zones.size} zones, ${content.tools.size} tools, ${content.variables.size} variables", "INFO")
             OperationResult.success(mapOf("zones" to content.zones.size, "tools" to content.tools.size, "variables" to content.variables.size))
         } catch (e: Refused) {
             removeDemo()
@@ -85,17 +86,22 @@ class DemoService(private val context: Context) : ExecutableService {
     }
 
     /**
-     * The zones, placed; the tools that read no variable; the variables, which read those tools;
+     * The identities, which the zones and the automations name, each created then written; the zones, placed; the tools that read no variable; the variables, which read those tools;
      * the tools that read a variable (a goal, a chart); then every tool placed, section by section.
+     * A tool's moments are put in [data]'s weeks.
      */
-    private suspend fun build(content: DemoContent) {
+    private suspend fun build(content: DemoContent, data: DemoData) {
+        content.identities.forEach { identity ->
+            run("identities.create", JSONObject(identity.toString()).apply { remove("texts") })
+            run("identities.update", JSONObject(identity.getJSONObject("texts").toString()).put("identity_id", identity.getString("id")))
+        }
         content.zones.forEach { run("zones.create", DemoContent.paramsOf(it)) }
         placeZones(content)
         val (readingVariables, others) = content.tools.partition { DemoContent.readsVariable(it) }
         var created = 0
         suspend fun create(tool: JSONObject) {
             LongOperation.at(s.shared("demo_phase_tools").format((created++).toString(), content.tools.size.toString()))
-            run("tools.create", DemoContent.paramsOf(tool))
+            run("tools.create", DemoContent.paramsOf(DemoContent.dated(tool, data::place) as JSONObject))
         }
         others.forEach { create(it) }
         content.variables.forEach { run("variables.create", it) }
@@ -111,8 +117,9 @@ class DemoService(private val context: Context) : ExecutableService {
 
     /**
      * The automations, off — on, an automation calls the AI at the user's cost: each one with its
-     * seed session, its message the instruction; none has a past. Their provider is the default, or
-     * none when there is none: switching one on then says to choose one.
+     * seed session, its message the instruction, its identity the one it names or none; none has a
+     * past. Their provider is the default, or none when there is none: switching one on then says
+     * to choose one.
      */
     private suspend fun automate(content: DemoContent) {
         if (content.automations.isEmpty()) return
@@ -120,7 +127,8 @@ class DemoService(private val context: Context) : ExecutableService {
         val provider: Any = run("ai_provider_config.get_default", JSONObject())["provider_id"] ?: JSONObject.NULL
         for (automation in content.automations) {
             val message = org.json.JSONArray().put(JSONObject().put("type", app.treelune.core.ai.data.AutomationMessage.TEXT).put("text", automation.getString("seed")))
-            run("automations.create", JSONObject(automation.toString()).apply { remove("seed") }.put("provider_id", provider).put(app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID, JSONObject.NULL).put("message", message))
+            val identity = automation.opt(app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID) ?: JSONObject.NULL
+            run("automations.create", JSONObject(automation.toString()).apply { remove("seed") }.put("provider_id", provider).put(app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID, identity).put("message", message))
         }
     }
 
@@ -129,8 +137,7 @@ class DemoService(private val context: Context) : ExecutableService {
      * attempts, opened with their copy of the goal as the scheduler opens them, and those before
      * last week validated as the user validates them, judged on the demo's own entries.
      */
-    private suspend fun fill(texts: JSONObject) {
-        val data = DemoData(System.currentTimeMillis(), AppConfigManager.getDateTimeConfig().getZoneId(), asset("demo/entries.json"))
+    private suspend fun fill(texts: JSONObject, data: DemoData) {
         val all = data.entries()
         val total = all.values.sumOf { it.size }
         var written = 0
@@ -140,7 +147,7 @@ class DemoService(private val context: Context) : ExecutableService {
             written += entries.size
             val batch = run("tool_data.batch_create", JSONObject()
                 .put("tool_instance_id", tool)
-                .put("entries", JSONArray(entries.map { DemoContent.resolve(it, texts) })))
+                .put("entries", JSONArray(entries.map { kept(DemoContent.resolve(it, texts) as JSONObject) })))
             val failed = (batch["failed_count"] as? Number)?.toInt() ?: 0
             if (failed > 0) throw Refused("tool_data.batch_create $tool: $failed refused, ${batch["refusals"]}")
         }
@@ -164,6 +171,14 @@ class DemoService(private val context: Context) : ExecutableService {
                 if (!validated.isSuccess) throw Refused("goal.validate $id: ${validated.error}")
             }
         }
+    }
+
+    /**
+     * [entry] with the steps a session keeps written as the JSON text it stores (SequenceSteps):
+     * a list in DemoData, so that their names are texts put in like any other.
+     */
+    private fun kept(entry: JSONObject): JSONObject = entry.apply {
+        optJSONObject("data")?.let { data -> data.optJSONArray(app.treelune.tools.sequence.SequenceToolType.KEPT_STEPS)?.let { data.put(app.treelune.tools.sequence.SequenceToolType.KEPT_STEPS, it.toString()) } }
     }
 
     /**

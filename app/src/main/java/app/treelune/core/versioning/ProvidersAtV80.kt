@@ -4,7 +4,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * Brings the AI providers to their v79 form, created by the user (docs/design/ai-providers.md):
+ * Brings the AI providers to their v80 form, created by the user (docs/design/ai-providers.md):
  * eight fixed ids, each kind in a standard and an economic variant, become the providers the user
  * had configured, each keeping its id, its name and its config, of the kind its id named; the
  * active one becomes the default. A variant never configured is gone, and a routine that named
@@ -13,12 +13,12 @@ import org.json.JSONObject
  *
  * Shared by the database migration ([STATEMENTS], run in order) and the backup import ([backup]).
  */
-object ProvidersAtV79 {
+object ProvidersAtV80 {
 
-    /** The kinds, by the prefix of the fixed ids before v79: "claude_standard", "compatible_economic"… */
+    /** The kinds, by the prefix of the fixed ids before v80: "claude_standard", "compatible_economic"… */
     val KINDS = listOf("claude", "openai", "deepseek", "compatible")
 
-    /** The kind a fixed id before v79 named, null for an id of none. */
+    /** The kind a fixed id before v80 named, null for an id of none. */
     fun kindOf(id: String): String? = KINDS.firstOrNull { id == it || id.startsWith(it + "_") }
 
     // The kind of the row's provider_id, in SQL, as kindOf reads it
@@ -65,7 +65,7 @@ object ProvidersAtV79 {
         "CREATE INDEX IF NOT EXISTS `index_ai_sessions_end_reason` ON `ai_sessions` (`end_reason`)"
     )
 
-    /** The providers, routines and sessions of a backup's [data], each in its v79 form. */
+    /** The providers, routines and sessions of a backup's [data], each in its v80 form. */
     fun backup(data: JSONObject) {
         val kept = mutableSetOf<String>()
         data.optJSONArray("ai_provider_configs")?.let { configs ->

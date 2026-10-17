@@ -146,6 +146,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             JSONObject(storedConfigJson).optBoolean(app.treelune.core.tools.ToolConfigSettings.VALIDATE_DATA, false), s)?.let { return OperationResult.error(it) }
         checkConfig(toolType, storedConfigJson)?.let { return OperationResult.error(it) }
         ToolTypeManager.getToolType(toolType)?.refuseConfig(JSONObject(storedConfigJson), context)?.let { return OperationResult.error(it) }
+        refuseConditions(toolType, storedConfigJson)?.let { return OperationResult.error(it) }
 
         val zone = zoneDao.getZoneById(zoneId)
             ?: return OperationResult.error(s.shared("service_error_zone_not_found"))
@@ -247,6 +248,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             // A config sent without its display mode keeps the one the tool had
             configJson = withDisplayMode(configJson, JSONObject(existingTool.config_json).getString("display_mode"))
             ToolTypeManager.getToolType(existingTool.tooltype)?.refuseConfig(JSONObject(configJson), context)?.let { return OperationResult.error(it) }
+            refuseConditions(existingTool.tooltype, configJson)?.let { return OperationResult.error(it) }
         }
 
         // What the change does to the recorded entries: refused while it loses something the
@@ -503,6 +505,17 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         val schema = app.treelune.core.tools.ToolConfigSettings.schema(toolType, "config:$tooltype", context)
         val result = SchemaValidator.validate(schema, JsonUtils.toMap(configJson), context)
         return if (result.isValid) null else result.errorMessage ?: s.shared("message_validation_error_simple")
+    }
+
+    /**
+     * Why the conditions [configJson] holds cannot be stored (ConditionCheck), whoever writes it;
+     * null when they can. After the tool type's own check, which names a config that does not
+     * read better than a condition left without the fields it names.
+     */
+    private suspend fun refuseConditions(tooltype: String, configJson: String): String? {
+        val toolType = ToolTypeManager.getToolType(tooltype) ?: return s.shared("error_tooltype_not_found").format(tooltype)
+        return app.treelune.core.conditions.ConditionCheck(app.treelune.core.conditions.AppConditionSources(context, toolType.getRowFields())) { s.shared(it) }
+            .refuse(app.treelune.core.tools.ToolConfigSettings.nodes(toolType, context), JSONObject(configJson))
     }
 
     /** [configJson] with [mode] as its display mode when it gives none: every config holds one. */

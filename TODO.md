@@ -60,15 +60,19 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - La texture sur tout le fond de la page et le choix de la couleur et de la texture sur une page du formulaire (branche texture-background, 2026-10-17) : la vue « page » du banc des textures (`./run themes`) d'abord, puis les lignes de la section « Les textures » de la recette qui parlent du fond de page et des pages de choix.
 - Les lectures envoyées une fois par session (`SessionReads`, branche read-once) : la section du même nom de la recette.
 - Le thème suisse (`docs/design/swiss-theme.md`, branche swiss-theme) : la passe sur le téléphone de `docs/THEMES.md`, puis ce que la spec garde dans « Ce qui reste ouvert ».
+- Le thème encre et lavis (`docs/design/ink-theme.md`, branche theme-ink) : la passe sur le téléphone de `docs/THEMES.md`, les icônes au pinceau d'abord (leur coût à l'ouverture d'une page, celles qui se bouchent), puis ce que la spec garde dans « Ce qui reste ouvert ».
 - Les incarnations (`docs/design/incarnations.md`, branche incarnations) : la dernière section de la recette, l'identité de Stan Prokopenko importée et le coût d'un tour mesuré pour personae ; passé, élaguer la spec. L'import attend que personae exporte au format 2 du fichier d'identité (`docs/IDENTITY_FILE.md`), le format 1 n'étant plus lu.
 - Les bugs du téléphone du 2026-10-17 : la section du même nom de la recette.
-- Les fournisseurs créés par l'utilisateur (`docs/design/ai-providers.md`, branche ai-providers) : la section du même nom de la recette, la migration 79 sur la release et ses données d'abord ; la branche goal-recurrence prend aussi le numéro 79, celle qui fusionne la seconde renumérote ; passé, élaguer la spec.
+- La répétition d'un Objectif, « Une fois » ou « Récurrent » (branche goal-repetition) : migration 79, sa ligne de la section « Objectif » de la recette.
+- Les conditions typées à l'écriture (`docs/design/typed-conditions.md`, branche typed-conditions) : la section du même nom de la recette ; passé, élaguer la spec.
+- Le gras et l'italique d'un texte lu (branche text-emphasis) : la section du même nom de la recette.
+- La démo enrichie (branche demo-guide), jamais installée par les services : « Demo installed » dans le journal, sinon la raison du refus ; puis l'Agenda de Travail (la série du lundi à venir donnée par l'outil, les passées, l'annulée, la retirée, le salon sur deux jours), « Cap sur le semi » (sa tentative ouverte seule, du début à l'échéance), Giulia sur la zone Italien et sa routine, le camembert des heures et sa légende, les étapes gardées d'une séance de fractionné, les étiquettes du carnet et le classement du questionnaire, les textures.
+- Les fournisseurs créés par l'utilisateur (`docs/design/ai-providers.md`, branche ai-providers) : la section du même nom de la recette, la migration 80 sur la release et ses données d'abord ; passé, élaguer la spec.
 
 ## Conçu, à coder
 
 Une spec existe dans `docs/design/`.
 
-- Les conditions typées à l'écriture (`docs/design/typed-conditions.md`) : le type de chaque côté d'une condition connu sans lire de données, les constantes de l'IA traduites à l'entrée, la vérification au service, et le refus d'un changement dont dépend une condition ailleurs.
 - L'historique des écritures et leur annulation (`docs/design/undo-history.md`) : un pas par opération demandée de l'extérieur, la ligne entière avant et après, écrite par une seule classe que garde un script, 30 jours, le service `history` ouvert à l'IA, son écran.
 
 ## À concevoir
@@ -86,14 +90,13 @@ Une idée sans spec : elle demande une décision avant du code.
 
 - Des modèles d'outils prédéfinis et paramétrables (« Série de questions » suivie d'un « Avis de l'IA »…).
 - Un type de Suivi « étiquette », qui ne note qu'une étiquette.
-- La section « Quand » de la config d'un Objectif montre ensemble Début, Échéance et Récurrence, alors qu'avec une récurrence `GoalScheduler` ignore Début et Échéance sans le dire : un choix « Une fois » / « Récurrent » en tête, puis les seuls réglages qui comptent (réglage conditionnel du formulaire, `settings-pages.md`).
+- Un outil changé dont dépend une condition ailleurs (le Graphique filtre sur « moment = déjeuner », l'option « déjeuner » est retirée du Repas, ou le champ « moment » renommé) : refuser le changement en nommant les outils concernés, ou reporter un renommage dans les conditions, que `ListOrigins` sait distinguer d'une suppression — à trancher ; il faut savoir quelles configs et quelles variables visent un outil.
 - Trier Notes, Liste, Journal et Données structurées par un champ (un Tri = un Champ et un sens, brique à faire de celui de Données structurées) : ranger une fois, l'ordre manuel réécrit après confirmation, ou un réglage de l'outil, manuel ou trié — à trancher.
 
 ### Interface
 
-- Les thèmes Encre et lavis, puis Signalétique de métro (les suivants du classement de `docs/theme-tracks.json`, Suisse fait) : la recette de `docs/THEMES.md`, de l'étape 0, le banc de Suisse et ses pièces plates pour départ d'Encre.
-- Les onglets de Messages, à remplacer par un classement par thèmes.
-- Dessiner le gras et l'italique des textes lus (identités, Guide) : le lecteur (`GuideMarkup`) retire leurs marques, les thèmes ne dessinant qu'un texte simple (`ThemeContract.Text`) ; l'étendre à un texte mis en forme dans les trois thèmes, la police du rétro comprise.
+- Le thème Signalétique de métro (le suivant du classement de `docs/theme-tracks.json`, Suisse et Encre et lavis faits) : la recette de `docs/THEMES.md`, de l'étape 0.
+- Lucide redessiné à leur manière pour le cosy et le suisse, comme le pinceau d'Encre et lavis (`docs/design/ink-theme.md`, ligne 9), un trait à chacun : une fois la brique du cœur qui lit les tracés d'une icône codée et tenue sur le téléphone avec Encre.
 
 ### Events du cœur
 

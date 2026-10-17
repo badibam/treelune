@@ -1,12 +1,6 @@
 package app.treelune.tools.chart
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
+import android.content.Context
 import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldType
 import app.treelune.core.fields.settings.RowFields
@@ -29,28 +23,24 @@ import org.json.JSONObject
  */
 object ChartRowFields : RowFields {
 
-    @Composable
-    override fun at(root: JSONObject, path: List<Any>): Map<String, FieldDefinition>? {
-        val context = LocalContext.current
-        val s = remember { Strings.`for`(tool = "chart", context = context) }
-        val reads = remember(root.toString(), path) { reads(root, path) }
-        val repeat = root.optString(ChartKeys.COMPOSITION) == ChartKeys.REPEAT && reads.size == 1
-        // Read again only when what gives the columns changes, not at every keystroke elsewhere
-        val key = reads.joinToString("|") { it.toString() }
-        var fields by remember(key) { mutableStateOf<Map<String, FieldDefinition>?>(null) }
-        LaunchedEffect(key) {
-            val sources = ChartSources(context)
-            fields = reads.fold(emptyMap()) { all, layer ->
-                all + try { columns(sources, layer) } catch (e: IllegalStateException) {
-                    LogManager.ui("ChartRowFields: columns not read: ${e.message}", "WARN")
-                    emptyMap()
-                }
+    override suspend fun at(root: JSONObject, path: List<Any>, context: Context): Map<String, FieldDefinition> {
+        val reads = reads(root, path)
+        val sources = ChartSources(context)
+        val found = reads.fold(emptyMap<String, FieldDefinition>()) { all, layer ->
+            all + try { columns(sources, layer) } catch (e: IllegalStateException) {
+                LogManager.ui("ChartRowFields: columns not read: ${e.message}", "WARN")
+                emptyMap()
             }
         }
-        return fields?.let { found ->
-            if (repeat) found + (ChartKeys.REPEAT to FieldDefinition(ChartKeys.REPEAT, s.tool("column_repeat"), null, FieldType.TEXT, false, null)) else found
-        }
+        // A repeat's channels also offer the field repeated
+        val repeat = root.optString(ChartKeys.COMPOSITION) == ChartKeys.REPEAT && reads.size == 1
+        return if (repeat) found + (ChartKeys.REPEAT to FieldDefinition(ChartKeys.REPEAT, Strings.`for`(tool = "chart", context = context).tool("column_repeat"), null, FieldType.TEXT, false, null))
+        else found
     }
+
+    /** Only what gives the columns: read again when it changes, not at every keystroke elsewhere. */
+    override fun dependsOn(root: JSONObject, path: List<Any>): Any =
+        root.optString(ChartKeys.COMPOSITION) + "|" + reads(root, path).joinToString("|") { it.toString() }
 
     /**
      * What gives the columns at [path]: the layer it stands in, its transforms before the one it

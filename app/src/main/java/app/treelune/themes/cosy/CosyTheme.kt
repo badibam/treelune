@@ -83,7 +83,11 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
@@ -120,6 +124,7 @@ import app.treelune.core.ui.SliderSteps
 import app.treelune.core.ui.Spacing
 import app.treelune.core.ui.StatusColor
 import app.treelune.core.ui.TextType
+import app.treelune.core.ui.Emphasis
 import app.treelune.core.ui.confirmMessage
 import app.treelune.core.ui.defaultType
 import app.treelune.core.ui.label
@@ -280,7 +285,7 @@ object CosyTheme : ThemeContract {
     // =====================================
 
     @Composable
-    override fun Text(text: String, type: TextType, fillMaxWidth: Boolean, textAlign: TextAlign?, maxLines: Int) {
+    override fun Text(text: AnnotatedString, type: TextType, fillMaxWidth: Boolean, textAlign: TextAlign?, maxLines: Int) {
         val size = cosySize()
         val c = cosyColors
         val override = LocalCosyInk.current
@@ -296,6 +301,16 @@ object CosyTheme : ThemeContract {
             TextType.WARNING -> size.body to c.warning.srgb
         }
         Line(text, style, ink, if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier, textAlign, maxLines)
+    }
+
+    /**
+     * The bold of STRONG. Baloo 2 has no italic: Android slants the upright, which its round
+     * strokes take well (validated on a plank against another font's italic and a colour, 2026-10-17).
+     */
+    @Composable
+    override fun emphasis(emphasis: Emphasis): SpanStyle = when (emphasis) {
+        Emphasis.BOLD -> SpanStyle(fontWeight = FontWeight.Bold)
+        Emphasis.ITALIC -> SpanStyle(fontStyle = FontStyle.Italic)
     }
 
     /**
@@ -1261,7 +1276,12 @@ object CosyTheme : ThemeContract {
 
     /** A text in one style and colour, cut with an ellipsis past [maxLines]. */
     @Composable
-    private fun Line(text: String, style: TextStyle, color: Color, modifier: Modifier = Modifier, align: TextAlign? = null, maxLines: Int = Int.MAX_VALUE) {
+    private fun Line(text: String, style: TextStyle, color: Color, modifier: Modifier = Modifier, align: TextAlign? = null, maxLines: Int = Int.MAX_VALUE) =
+        Line(AnnotatedString(text), style, color, modifier, align, maxLines)
+
+    /** The same, its runs keeping their emphasis. */
+    @Composable
+    private fun Line(text: AnnotatedString, style: TextStyle, color: Color, modifier: Modifier = Modifier, align: TextAlign? = null, maxLines: Int = Int.MAX_VALUE) {
         BasicText(
             text = text,
             modifier = modifier,

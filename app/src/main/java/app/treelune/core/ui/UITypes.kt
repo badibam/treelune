@@ -184,6 +184,11 @@ enum class ButtonDisplay {
 }
 
 
+/** The emphasis of a run inside a read text (GuideMarkup), drawn by the theme (ThemeContract.emphasis). */
+enum class Emphasis {
+    BOLD, ITALIC
+}
+
 /**
  * Text types with hierarchy. STRONG is body text that must stand out among its neighbors (an
  * unread message among read ones): bold where the theme's font has a bold, its own way otherwise.

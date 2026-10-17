@@ -13,12 +13,12 @@ import java.sql.Connection
 import java.sql.DriverManager
 
 /**
- * The AI providers brought to their v79 form (docs/design/ai-providers.md): the migration's
- * statements run on SQLite over the v78 tables, and a backup made before v79. What was configured
+ * The AI providers brought to their v80 form (docs/design/ai-providers.md): the migration's
+ * statements run on SQLite over the v79 tables, and a backup made before v80. What was configured
  * stays, under its id and name, of the kind its id named, the active one the default; what was
  * never configured goes, and a routine that named it is left without a provider, off.
  */
-class ProvidersAtV79Test {
+class ProvidersAtV80Test {
 
     private lateinit var db: Connection
 
@@ -42,7 +42,7 @@ class ProvidersAtV79Test {
             session("gone", "CHAT", "deepseek_economic"),
             session("seed", "SEED", "")
         ).forEach { db.createStatement().execute(it) }
-        ProvidersAtV79.STATEMENTS.forEach { db.createStatement().execute(it) }
+        ProvidersAtV80.STATEMENTS.forEach { db.createStatement().execute(it) }
     }
 
     @After
@@ -97,7 +97,7 @@ class ProvidersAtV79Test {
     }
 
     @Test
-    fun `a backup made before v79 is brought to the same form`() {
+    fun `a backup made before v80 is brought to the same form`() {
         val data = JSONObject()
             .put("ai_provider_configs", JSONArray()
                 .put(JSONObject().put("provider_id", "deepseek_standard").put("display_name", "DeepSeek").put("config_json", "{}")
@@ -111,7 +111,7 @@ class ProvidersAtV79Test {
                 .put(JSONObject().put("id", "seed").put("provider_id", ""))
                 .put(JSONObject().put("id", "chat").put("provider_id", "openai_economic")))
 
-        ProvidersAtV79.backup(data)
+        ProvidersAtV80.backup(data)
 
         val providers = data.getJSONArray("ai_provider_configs")
         assertEquals(1, providers.length())
@@ -134,10 +134,10 @@ class ProvidersAtV79Test {
 
     @Test
     fun `the kind of an id is its prefix, none for an id of no kind`() {
-        assertEquals("openai", ProvidersAtV79.kindOf("openai_standard"))
-        assertEquals("compatible", ProvidersAtV79.kindOf("compatible_economic"))
-        assertEquals("claude", ProvidersAtV79.kindOf("claude"))
-        assertNull(ProvidersAtV79.kindOf("claudette"))
-        assertNull(ProvidersAtV79.kindOf(""))
+        assertEquals("openai", ProvidersAtV80.kindOf("openai_standard"))
+        assertEquals("compatible", ProvidersAtV80.kindOf("compatible_economic"))
+        assertEquals("claude", ProvidersAtV80.kindOf("claude"))
+        assertNull(ProvidersAtV80.kindOf("claudette"))
+        assertNull(ProvidersAtV80.kindOf(""))
     }
 }

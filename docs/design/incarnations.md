@@ -16,7 +16,7 @@ Tailles du premier export de personae, `stan-prokopenko` (2026-10-16, `en` et `f
 - **Tout s'édite à la main**, dans l'écran de l'identité, et une identité peut naître sans fichier. Un import garde l'`id` du fichier ; une identité écrite à la main reçoit le sien.
 - Une identité écrite à la main demande un nom et une langue ; voix, esprit et portrait sont facultatifs, et un morceau vide ne part pas dans le prompt.
 - Chaque morceau importé est marqué comme tel (`imported`), et l'écran dit « importé » ; une retouche efface la marque. L'identité garde le moment de son dernier import (`imported_at`), d'où les retouches se comptent.
-- **Édition en texte brut seul, lecture mise en forme.** Le lecteur du Guide (`GuideMarkup`) lit aussi les titres `#` à `###` et les listes `* `, et devient le seul lecteur de l'app (Guide, usage d'un outil, identités). Le gras et l'italique sont lus et leurs marques retirées : les thèmes ne dessinent qu'un texte simple (`ThemeContract.Text`), les dessiner demande de l'étendre dans les trois thèmes.
+- **Édition en texte brut seul, lecture mise en forme.** Le lecteur du Guide (`GuideMarkup`) lit aussi les titres `#` à `###` et les listes `* `, et devient le seul lecteur de l'app (Guide, usage d'un outil, identités). Le gras et l'italique coupent une ligne en morceaux (`Run`), que chaque thème dessine à sa façon (`ThemeContract.emphasis`).
 - **L'icône** se prend dans le vocabulaire Lucide, avec une couleur (`icon_color`), comme une zone ou un outil ; par défaut, `user-round`.
 - L'écran de l'identité montre la taille de chaque ressource du bagage.
 

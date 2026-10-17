@@ -761,7 +761,7 @@ class BackupService(private val context: Context) : ExecutableService {
             for (i in 0 until array.length()) {
                 val item = array.getJSONObject(i)
                 database.aiDao().insertProviderConfig(
-                    // A backup made before version 79 is brought to this form first (ProvidersAtV79)
+                    // A backup made before version 80 is brought to this form first (ProvidersAtV80)
                     AIProviderConfigEntity(
                         id = item.getString("id"),
                         kind = item.getString("kind"),
@@ -1104,6 +1104,9 @@ class BackupService(private val context: Context) : ExecutableService {
             if (fromVersion < 78 && toVersion >= 78) {
                 app.treelune.core.versioning.IdentitiesAtV78.backup(data)
             }
+            if (fromVersion < 79 && toVersion >= 79) {
+                app.treelune.core.versioning.GoalTimingAtV79.backup(data)
+            }
 
             // Transform app settings
             data.optJSONArray("app_settings_categories")?.let { array ->
@@ -1131,8 +1134,8 @@ class BackupService(private val context: Context) : ExecutableService {
                 app.treelune.core.versioning.SecretsAtV72.backup(data, app.treelune.core.secrets.SecretBox.of())
             }
             // After SecretsAtV72, which reads the providers in their former form
-            if (fromVersion < 79 && toVersion >= 79) {
-                app.treelune.core.versioning.ProvidersAtV79.backup(data)
+            if (fromVersion < 80 && toVersion >= 80) {
+                app.treelune.core.versioning.ProvidersAtV80.backup(data)
             }
 
             // Transform automation schedules (fix SchedulePattern types for v10 → v11)

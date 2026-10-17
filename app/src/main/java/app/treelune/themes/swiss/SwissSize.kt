@@ -11,6 +11,7 @@ import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.Dp
@@ -95,12 +96,17 @@ fun swissStroke(value: Float): Dp {
     return with(density) { maxOf(1f, kotlin.math.round(size.dp(value).toPx())).toDp() }
 }
 
-/** Archivo's four weights, embedded (res/font, made by scripts/make_archivo_fonts.py). */
+/**
+ * Archivo's four weights and the italic of a read text at its two (ThemeContract.emphasis),
+ * embedded (res/font, made by scripts/make_archivo_fonts.py).
+ */
 val Archivo = FontFamily(
     Font(R.font.archivo_regular, FontWeight.Normal),
     Font(R.font.archivo_semibold, FontWeight.SemiBold),
     Font(R.font.archivo_extrabold, FontWeight.ExtraBold),
     Font(R.font.archivo_black, FontWeight.Black),
+    Font(R.font.archivo_italic, FontWeight.Normal, FontStyle.Italic),
+    Font(R.font.archivo_semibold_italic, FontWeight.SemiBold, FontStyle.Italic),
 )
 
 /** The current palette's colours. */

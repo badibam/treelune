@@ -105,7 +105,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 79
+        const val VERSION = 80
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -1787,6 +1787,29 @@ abstract class AppDatabase : RoomDatabase() {
          * it was imported, and each of its texts whether it is as its file gave it, rather than
          * the address its producer gave (IdentitiesAtV78).
          */
+        /** A goal's timing chosen first, once or recurring, with only the settings it reads (GoalTimingAtV79). */
+        private val MIGRATION_78_79 = object : Migration(78, 79) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                var count = 0
+                database.query("SELECT id, config_json, created_at FROM tool_instances WHERE tooltype = 'goal'").use { cursor ->
+                    while (cursor.moveToNext()) {
+                        val id = cursor.getString(0)
+                        // A config that cannot be read stays as it was and is logged
+                        try {
+                            val config = org.json.JSONObject(cursor.getString(1))
+                            val next = app.treelune.core.versioning.GoalTimingAtV79.config("goal", config, cursor.getLong(2))
+                            if (next === config) continue
+                            database.execSQL("UPDATE tool_instances SET config_json = ? WHERE id = ?", arrayOf<Any?>(next.toString(), id))
+                            count++
+                        } catch (e: Exception) {
+                            LogManager.database("MIGRATION 78->79: config of goal $id left as it was: ${e.message}", "ERROR", e)
+                        }
+                    }
+                }
+                LogManager.database("MIGRATION 78->79: $count goal(s) given their timing, once or recurring", "INFO")
+            }
+        }
+
         private val MIGRATION_77_78 = object : Migration(77, 78) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE identities ADD COLUMN imported_at INTEGER")
@@ -1807,20 +1830,20 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /**
-         * AI providers created by the user (docs/design/ai-providers.md, ProvidersAtV79): the fixed
+         * AI providers created by the user (docs/design/ai-providers.md, ProvidersAtV80): the fixed
          * ids configured become providers of their kind, under their name, the active one the
          * default; a routine and a session may have none. Refused while the foreign keys are on:
          * rebuilding the sessions' table would then delete every message with it.
          */
-        private val MIGRATION_78_79 = object : Migration(78, 79) {
+        private val MIGRATION_79_80 = object : Migration(79, 80) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.query("PRAGMA foreign_keys").use { cursor ->
-                    check(!(cursor.moveToFirst() && cursor.getInt(0) == 1)) { "MIGRATION 78->79: foreign keys on, the sessions' messages would go with their table" }
+                    check(!(cursor.moveToFirst() && cursor.getInt(0) == 1)) { "MIGRATION 79->80: foreign keys on, the sessions' messages would go with their table" }
                 }
-                app.treelune.core.versioning.ProvidersAtV79.STATEMENTS.forEach { database.execSQL(it) }
+                app.treelune.core.versioning.ProvidersAtV80.STATEMENTS.forEach { database.execSQL(it) }
                 val providers = database.query("SELECT COUNT(*) FROM ai_provider_configs").use { if (it.moveToFirst()) it.getInt(0) else 0 }
                 val without = database.query("SELECT COUNT(*) FROM automations WHERE provider_id IS NULL").use { if (it.moveToFirst()) it.getInt(0) else 0 }
-                LogManager.database("MIGRATION 78->79: $providers providers kept, $without routines without one", "INFO")
+                LogManager.database("MIGRATION 79->80: $providers providers kept, $without routines without one", "INFO")
             }
         }
 
@@ -2828,7 +2851,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_75_76,
                     MIGRATION_76_77,
                     MIGRATION_77_78,
-                    MIGRATION_78_79
+                    MIGRATION_78_79,
+                    MIGRATION_79_80
                     // Add future migrations here (minimum supported version: 9)
                 )
                 .addCallback(object : RoomDatabase.Callback() {

@@ -75,7 +75,11 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.intl.LocaleList
+import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
@@ -112,6 +116,7 @@ import app.treelune.core.ui.SliderSteps
 import app.treelune.core.ui.Spacing
 import app.treelune.core.ui.StatusColor
 import app.treelune.core.ui.TextType
+import app.treelune.core.ui.Emphasis
 import app.treelune.core.ui.components.LocalButtonFill
 import app.treelune.core.ui.confirmMessage
 import app.treelune.core.ui.defaultType
@@ -265,7 +270,7 @@ object SwissTheme : ThemeContract {
 
     /** Each type in its size and weight; a group's or a tile's name (HEADING) in capitals, spaced. */
     @Composable
-    override fun Text(text: String, type: TextType, fillMaxWidth: Boolean, textAlign: TextAlign?, maxLines: Int) {
+    override fun Text(text: AnnotatedString, type: TextType, fillMaxWidth: Boolean, textAlign: TextAlign?, maxLines: Int) {
         val size = swissSize()
         val c = swissColors
         val override = LocalSwissInk.current
@@ -280,8 +285,15 @@ object SwissTheme : ThemeContract {
             TextType.ERROR -> size.body to c.error.srgb
             TextType.WARNING -> size.body to c.warning.srgb
         }
-        val shown = if (type == TextType.HEADING) text.uppercase(Locale.getDefault()) else text
+        val shown = if (type == TextType.HEADING) text.toUpperCase(LocaleList(Locale.getDefault().toLanguageTag())) else text
         Line(shown, style, ink, if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier, textAlign, maxLines)
+    }
+
+    /** The weight of STRONG; Archivo's own italic, at both its weights. */
+    @Composable
+    override fun emphasis(emphasis: Emphasis): SpanStyle = when (emphasis) {
+        Emphasis.BOLD -> SpanStyle(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
+        Emphasis.ITALIC -> SpanStyle(fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
     }
 
     /**
@@ -1295,7 +1307,12 @@ object SwissTheme : ThemeContract {
 
     /** A text in one style and colour, cut with an ellipsis past [maxLines]. */
     @Composable
-    private fun Line(text: String, style: TextStyle, color: Color, modifier: Modifier = Modifier, align: TextAlign? = null, maxLines: Int = Int.MAX_VALUE) {
+    private fun Line(text: String, style: TextStyle, color: Color, modifier: Modifier = Modifier, align: TextAlign? = null, maxLines: Int = Int.MAX_VALUE) =
+        Line(AnnotatedString(text), style, color, modifier, align, maxLines)
+
+    /** The same, its runs keeping their emphasis. */
+    @Composable
+    private fun Line(text: AnnotatedString, style: TextStyle, color: Color, modifier: Modifier = Modifier, align: TextAlign? = null, maxLines: Int = Int.MAX_VALUE) {
         BasicText(
             text = text,
             modifier = modifier,

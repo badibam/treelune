@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Make the Swiss theme's fonts from Archivo, whose source is copied in third_party/archivo/.
 
-The source is one variable font, on two axes: weight (100 to 900) and width (62 to 125). The app
-takes four fixed weights of it at the normal width, as res/font/archivo_*.ttf: a fixed weight is
+The source is two variable fonts, the upright and the italic, on two axes: weight (100 to 900) and
+width (62 to 125). The app takes four fixed upright weights and two italic ones at the normal width,
+as res/font/archivo_*.ttf: a fixed weight is
 what every Android version draws the same. The output is committed, as the icons are: the build
 never needs this script nor fontTools. The licence goes with the fonts into the app's assets
 (fonts/archivo/OFL.txt), as the SIL Open Font License asks.
@@ -27,6 +28,7 @@ from fontTools.varLib.instancer import instantiateVariableFont
 
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "third_party" / "archivo" / "Archivo[wdth,wght].ttf"
+ITALIC_SOURCE = ROOT / "third_party" / "archivo" / "Archivo-Italic[wdth,wght].ttf"
 LICENCE = ROOT / "third_party" / "archivo" / "OFL.txt"
 FONTS = ROOT / "app" / "src" / "main" / "res" / "font"
 ASSET_LICENCE = ROOT / "app" / "src" / "main" / "assets" / "fonts" / "archivo" / "OFL.txt"
@@ -34,6 +36,9 @@ ASSET_LICENCE = ROOT / "app" / "src" / "main" / "assets" / "fonts" / "archivo" /
 # The weights the theme draws in, by the name of their file: the text, names and labels, group
 # titles, and a screen's title with the numbers.
 WEIGHTS = {"regular": 400, "semibold": 600, "extrabold": 800, "black": 900}
+
+# The italic of a read text (ThemeContract.emphasis), at the text's weight and at its bold, STRONG's.
+ITALIC_WEIGHTS = {"italic": 400, "semibold_italic": 600}
 
 # The normal width: the theme never draws Archivo narrowed nor widened.
 WIDTH = 100
@@ -58,8 +63,10 @@ def add_narrow_space(font):
 
 
 def main():
-    for name, weight in WEIGHTS.items():
-        font = instantiateVariableFont(TTFont(SOURCE), {"wght": weight, "wdth": WIDTH}, updateFontNames=True)
+    cuts = [(name, weight, SOURCE) for name, weight in WEIGHTS.items()]
+    cuts += [(name, weight, ITALIC_SOURCE) for name, weight in ITALIC_WEIGHTS.items()]
+    for name, weight, source in cuts:
+        font = instantiateVariableFont(TTFont(source), {"wght": weight, "wdth": WIDTH}, updateFontNames=True)
         add_narrow_space(font)
         out = FONTS / f"archivo_{name}.ttf"
         font.save(out)

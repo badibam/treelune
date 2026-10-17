@@ -68,16 +68,19 @@ interface SettingPageEditor : SettingEditor {
  * The fields of the rows a config describes, by where a setting stands in it: what a setting
  * marked SettingNode.Field.rowField chooses among, and a condition put on each row
  * (SettingNode.Condition.onRow) compares. A chart's columns differ from one layer to another, so
- * the form's owner, who knows what a row is, answers for each place.
+ * the config's owner, who knows what a row is, answers for each place — to the form, and to the
+ * service checking those conditions (ConfigConditions).
  */
 interface RowFields {
     /**
-     * @param root The whole config being edited
+     * @param root The whole config
      * @param path The keys and positions leading from [root] to the object holding the setting
-     * @return The fields by name; null while they are read
+     * @return The fields by name; what does not read yet is left out, for the config's check to name
      */
-    @Composable
-    fun at(root: JSONObject, path: List<Any>): Map<String, app.treelune.core.fields.FieldDefinition>?
+    suspend fun at(root: JSONObject, path: List<Any>, context: Context): Map<String, app.treelune.core.fields.FieldDefinition>
+
+    /** What the fields at [path] depend on: the form reads them again only when it changes. */
+    fun dependsOn(root: JSONObject, path: List<Any>): Any = root.toString()
 }
 
 /** Where a form stands in the config it edits, for the settings that depend on it (RowFields). */
@@ -95,12 +98,20 @@ private fun Into(vararg steps: Any, content: @Composable () -> Unit) {
     else androidx.compose.runtime.CompositionLocalProvider(LocalPlace provides place.into(*steps)) { content() }
 }
 
-/** The fields of the rows where the form stands; a declaration that asks for them without an owner giving them is a mistake. */
+/**
+ * The fields of the rows where the form stands, null until first read; a declaration that asks
+ * for them without an owner giving them is a mistake. Read again in the background when what they
+ * depend on changes, the last ones kept meanwhile.
+ */
 @Composable
 private fun rowFields(): Map<String, app.treelune.core.fields.FieldDefinition>? {
     val place = LocalPlace.current
     val rows = place?.rows ?: error("A setting chooses among the fields of rows, and the form was given none (RowFields)")
-    return rows.at(place.root, place.path)
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val key = rows.dependsOn(place.root, place.path)
+    var fields by remember { mutableStateOf<Map<String, app.treelune.core.fields.FieldDefinition>?>(null) }
+    androidx.compose.runtime.LaunchedEffect(key) { fields = rows.at(place.root, place.path, context) }
+    return fields
 }
 
 /**

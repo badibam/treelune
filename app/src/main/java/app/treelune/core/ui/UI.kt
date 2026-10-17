@@ -143,6 +143,24 @@ object UI {
         else CurrentTheme.current.Text(text, type, fillMaxWidth, textAlign, maxLines)
     }
 
+    /** A text whose runs carry the theme's emphasis ([emphasis]), under the same rules as a plain one. */
+    @Composable
+    fun Text(
+        text: androidx.compose.ui.text.AnnotatedString,
+        type: TextType,
+        fillMaxWidth: Boolean = false,
+        textAlign: TextAlign? = null,
+        maxLines: Int = Int.MAX_VALUE,
+        selectable: Boolean = false
+    ) {
+        if (selectable || type == TextType.ERROR || type == TextType.WARNING) Selectable { CurrentTheme.current.Text(text, type, fillMaxWidth, textAlign, maxLines) }
+        else CurrentTheme.current.Text(text, type, fillMaxWidth, textAlign, maxLines)
+    }
+
+    /** How the current theme draws a run marked bold or italic. */
+    @Composable
+    fun emphasis(emphasis: Emphasis): androidx.compose.ui.text.SpanStyle = CurrentTheme.current.emphasis(emphasis)
+
     /**
      * [content] whose texts Android's selection can take, as one: the rule of [Text]'s selectable.
      * A selection shows the theme's bar (SelectionMenu).

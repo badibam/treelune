@@ -262,6 +262,7 @@ Vu le 2026-10-09 : l'inscription par la page de connexion, « Activer Funnel » 
 - Une tentative validée : la modifier par l'IA est refusé ; « Rouvrir » la remet à valider et garde la date de réouverture.
 - Renommer un critère saisi : sa valeur reste ; le supprimer puis le recréer : la confirmation de la config compte la valeur retirée.
 - Un objectif récurrent quotidien : une tentative par jour ; à la fin de la période, une notification et l'onglet « En cours (1) », la tentative à valider au-dessus de celle du jour ; sans validation, expirée après le délai. Arrêté, plus aucune ne s'ouvre.
+- La section « Quand » d'un nouvel Objectif ne montre d'abord que Répétition, sans choix fait : enregistrer est refusé, la ligne marquée « À compléter ou corriger ». « Une fois » montre Début et Échéance ; « Récurrent », Récurrence (obligatoire) et Durée ; passer de l'un à l'autre retire les réglages de l'autre. Migration 79, sur la release et ses données : un objectif qui avait une récurrence est « Récurrent », sans Début ni Échéance ; un objectif ponctuel qui avait une Durée sans Échéance a pour Échéance son début plus cette durée, sa tentative en cours inchangée.
 - Faire valider par l'IA : « par l'IA ».
 
 ## Questionnaire
@@ -402,9 +403,20 @@ Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la po
 - Accès externe ouvert, par Tailscale puis par le relais : « Fermer l'accès » touché, l'écran dit aussitôt « Fermeture de l'accès… » avec la roue, sans bouton, jusqu'à « Fermé » ; la tuile des réglages rapides s'éteint aussitôt, et la touchée pendant la fermeture ne rouvre rien. Même chose depuis la notification.
 - Liste : un appui long sur un élément, coché ou non, dit « copié » ; collé ailleurs, son nom puis ses champs remplis, un par ligne. Un toucher l'ouvre toujours, sa poignée le déplace toujours.
 
+## Le gras et l'italique d'un texte lu (branche text-emphasis)
+
+- Une identité en Markdown (`**gras**`, `*italique*`, `***les deux***`, un gras dans un titre `##`), puis le Guide, dans les cinq thèmes et les deux modes : le gras et l'italique se voient sans casser la ligne ; défaut, suisse et encre en vrai italique, cosy penché par Android (la pente de la planche du 2026-10-17), rétro le gras à l'encre vive et l'italique de Cartouche, ses pixels entiers, ni coupé au début ni à la fin d'une ligne, ni collé à la lettre droite qui le suit ; un titre de section du suisse reste en capitales.
+- Un passage sélectionné qui traverse un gras se copie sans ses marques.
+
+## Les conditions typées à l'écriture (branche typed-conditions, `docs/design/typed-conditions.md`)
+
+- Dans une conversation : « crée un Objectif sommeil moyen d'au moins 7 h sur Sommeil » ; la config de l'Objectif, rouverte à l'écran, montre 7 h, et la tentative se juge sans erreur. Redemander en exigeant « écris 25200000 » : refusé, le message dit d'écrire « PT7H », et l'IA corrige.
+- Graphique « Repas par moment » : demander à l'IA un filtre « moment = déjeuner » : refusé, le message dit que `=` ne compare pas un choix et donne `in` ; puis un filtre sur « déjeunner » : refusé, le message dit d'ajouter l'option d'abord.
+- À l'écran, une condition d'Objectif ou de Graphique enregistrée comme avant : rien ne change ; la config d'un Graphique dont un filtre vise un champ supprimé de son outil : l'enregistrement est refusé et nomme la condition.
+
 ## Les fournisseurs créés (branche ai-providers, `docs/design/ai-providers.md`)
 
-- La mise à jour depuis la 0.7.0 avec ses données (migration 79) : Réglages › Fournisseurs IA ne montre que les fournisseurs configurés avant, sous leur nom d'avant, l'actif marqué « Par défaut » ; une routine qui nommait une variante jamais configurée dit « Sans fournisseur d'IA », éteinte ; les conversations passées se relisent, leurs coûts gardés.
+- La mise à jour depuis la 0.7.0 avec ses données (migration 80) : Réglages › Fournisseurs IA ne montre que les fournisseurs configurés avant, sous leur nom d'avant, l'actif marqué « Par défaut » ; une routine qui nommait une variante jamais configurée dit « Sans fournisseur d'IA », éteinte ; les conversations passées se relisent, leurs coûts gardés.
 - Liste vide (installation neuve) : la phrase sur ce qu'est un fournisseur et « Ajouter un fournisseur » ; le choix des quatre sortes, chacune sa ligne ; Autre serveur : le formulaire, nom prérempli « Autre serveur », « Prix » sur « Liste LiteLLM », « Réglés à la main » montre les trois cases ; enregistré, il est par défaut.
 - Un deuxième fournisseur du même nom : refusé en le disant. Dupliquer : « … (copie) », la clé recopiée ; « Mettre par défaut » déplace la marque.
 - Supprimer un fournisseur qu'une routine nomme : refusé, la routine nommée. Supprimer le défaut quand un autre reste : la fenêtre demande lequel le remplace ; le dernier supprimé : une nouvelle conversation dit d'en ajouter un.
