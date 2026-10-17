@@ -104,7 +104,7 @@ td.low{color:var(--bad)} td.okk{color:var(--ok)}
 .icon{display:flex;align-items:center;justify-content:center}
 .icon .ic{width:32px;height:32px}
 /* An item's icon on a wash of its colour; a neutral one takes the same room. */
-.spot{position:absolute;inset:-30%;border-radius:45% 55% 50% 48%;background:radial-gradient(circle at 48% 50%,color-mix(in srgb,var(--c) calc(var(--cw) * 100%),transparent) 0%,color-mix(in srgb,var(--c) calc(var(--cw) * 66%),transparent) 45%,transparent 72%)}
+.spot{position:absolute;inset:-16%;border-radius:52% 46% 55% 44% / 47% 55% 43% 53%;background:color-mix(in srgb,var(--c) calc(var(--cw) * 100%),var(--g))}
 .wait{position:absolute;top:4px;right:6px;width:20px;height:20px;background:var(--a);color:var(--oa);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;border-radius:48% 52% 50% 46%}
 .run{position:absolute;bottom:4px;right:6px;width:16px;height:16px}
 .note p{margin:6px 0 0;font-size:15px;line-height:1.5}
@@ -375,7 +375,7 @@ const KNOBS = [
   ["wash_lightness", "Encre des lavis · clarté", 0, 1, 0.005],
   ["solid_part", "Aplats · part d'encre", 0, 1, 0.01],
   ["deep_part", "Toasts · part d'encre", 0, 1, 0.01],
-  ["color_wash", "Tache d'une couleur · opacité", 0, 1, 0.01],
+  ["color_wash", "Tache d'une couleur · part dans le papier (gouache)", 0, 1, 0.01],
   ["tile_wash", "Lavis d'une tuile (cœur)", 0, 0.8, 0.005],
   ["card_wash", "Lavis d'une carte", 0, 0.8, 0.005],
   ["track_wash", "Lavis d'un rail", 0, 0.8, 0.005],

@@ -332,14 +332,14 @@ object InkTheme : ThemeContract {
         }
     }
 
-    /** A small wash of its colour before its text in the ink: the user's colours are marks, never a fill. */
+    /** A small dab of gouache of its colour before its text in the ink: the user's colours are marks, never a fill. */
     @Composable
     override fun Tag(text: String, color: TagColor) {
         val size = inkSize()
         val c = inkColors
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(size.dp(6f))) {
-            // A tag's mark keeps its colour whole at its heart: a mark, held to 3 on the paper
-            Box(modifier = Modifier.size(size.dp(10f)).colorWash(c.tag(color), 1f))
+            // A tag's mark keeps its colour whole: a mark, held to 3 on the paper
+            Box(modifier = Modifier.size(size.dp(10f)).gouache(c.tag(color), color.ordinal, reach = 0.55f))
             Line(text, size.label.copy(letterSpacing = 0.sp, fontSize = size.label.fontSize * 1.08f), LocalInkInk.current ?: c.ink, maxLines = 1)
         }
     }
@@ -509,14 +509,15 @@ object InkTheme : ThemeContract {
     }
 
     /**
-     * A zone's or a tool's icon traced in the ink, on a soft wash of its colour reaching past it.
-     * The wash takes no room: a neutral icon takes the same, so names beside icons line up.
+     * A zone's or a tool's icon traced in the ink, on a dab of gouache of its colour reaching past
+     * it, its shape the icon's own. The dab takes no room: a neutral icon takes the same, so names
+     * beside icons line up.
      */
     @Composable
     override fun ItemIcon(resourceId: Int, size: Dp, color: TagColor?) {
         val c = inkColors
         val ink = LocalInkInk.current ?: c.ink
-        Box(modifier = Modifier.size(size).let { if (color != null) it.colorWash(c.tag(color), c.colorWashAlpha) else it }) {
+        Box(modifier = Modifier.size(size).let { if (color != null) it.gouache(c.gouache(color), resourceId) else it }) {
             InkIcon(resourceId, size, ink)
         }
     }

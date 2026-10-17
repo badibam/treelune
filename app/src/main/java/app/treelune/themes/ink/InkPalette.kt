@@ -94,8 +94,11 @@ class InkColors(val numbers: InkNumbers, hueShift: Int) {
     /** What is laid over the page (a toast, the selection bar), the ink written on it being onSolid. */
     val deepWash = mix(numbers.deepPart)
 
-    /** An icon's colour as a soft wash round it, at its heart. */
-    val colorWashAlpha = numbers.colorWash
+    /**
+     * An icon's colour, a dab of gouache under it: the tag's colour mixed into the paper, opaque,
+     * as much as its wash held at its heart -- a pastel by day, a deep muted tone at night.
+     */
+    fun gouache(color: TagColor): Color = blend(ground, tag(color), numbers.colorWash)
 
     val success = status(145f)
     val warning = status(55f)

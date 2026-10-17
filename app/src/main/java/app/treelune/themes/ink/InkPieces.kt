@@ -173,9 +173,37 @@ internal fun DrawScope.drawSpread(color: Color, center: Offset, box: Size = size
 }
 
 /**
+ * A dab of gouache in [color] under what it is put on, reaching past it by [reach] of its smaller
+ * side: opaque, flat and matte, its edge clean but irregular, a few lobes drawn from [seed] so that
+ * each thing keeps its own dab. Paint, not light: a transparent colour lightening the dark paper, or
+ * fading from a bright heart, read as a glow. It takes no room of its own.
+ */
+internal fun Modifier.gouache(color: Color, seed: Int, reach: Float = 0.66f): Modifier = drawBehind {
+    drawPath(blob(center, min(size.width, size.height) * reach, seed), color)
+}
+
+/** A closed blob round [center], [radius] about, its lobes and its squash drawn from [seed]. */
+internal fun blob(center: Offset, radius: Float, seed: Int): Path {
+    val random = java.util.Random(seed.toLong())
+    // Three waves round the edge, the slowest the widest, each at its own phase
+    val waves = listOf(2 to 0.07f, 3 to 0.05f, 5 to 0.03f).map { (k, a) -> Triple(k, a, random.nextFloat() * 2 * Math.PI.toFloat()) }
+    val squash = 1f + (random.nextFloat() - 0.5f) * 0.14f
+    val points = 48
+    return Path().apply {
+        for (i in 0..points) {
+            val t = (i % points) * 2 * Math.PI.toFloat() / points
+            val r = radius * (1f + waves.sumOf { (k, a, p) -> (a * kotlin.math.sin(k * t + p)).toDouble() }.toFloat())
+            val x = center.x + r * squash * kotlin.math.cos(t)
+            val y = center.y + r / squash * kotlin.math.sin(t)
+            if (i == 0) moveTo(x, y) else lineTo(x, y)
+        }
+        close()
+    }
+}
+
+/**
  * A soft wash of [color] round what it is put on, reaching past it by a third, [strength] its
- * opacity at its heart (InkColors.colorWashAlpha): an icon's colour, a tag's mark. It takes no
- * room of its own.
+ * opacity at its heart: a cell of the grid in edit mode. It takes no room of its own.
  */
 internal fun Modifier.colorWash(color: Color, strength: Float): Modifier = drawBehind {
     val r = min(size.width, size.height) * 0.8f
