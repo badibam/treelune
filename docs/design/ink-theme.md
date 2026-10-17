@@ -13,10 +13,12 @@ Toutes les lignes du 2026-10-17, dans l'ordre de la liste de `docs/THEMES.md`.
    - La dernière barre rouge du graphique de la maquette n'est pas tenue : le dessin du cœur ne dit pas au thème quelle barre est aujourd'hui.
 2. **Ce qu'il dessine lui-même** : tout, dialogues et sélecteurs de date et d'heure compris, en partant des pièces plates du suisse (même découpage en fichiers), leurs formes reprises.
 3. **La police** : Literata (SIL Open Font License 1.1), comparée au banc à EB Garamond. Literata est dessinée pour la lecture sur écran, avec des tailles optiques, et reste lisible à 12 sp ; EB Garamond a plus de caractère, mais ses minuscules petites se lisent mal sur une longue liste. Shippori Mincho, celle de la maquette, est écartée : il lui manque `≤ ≥ ≠ ≈ Š Ž Ÿ ƒ ‰` et l'espace fine insécable, et une graisse pèse 8,7 Mo (mesuré le 2026-10-17). Literata et EB Garamond couvrent Windows-1252, les flèches et `≤ ≥ ≠ ≈ − ×` ; il ne leur manque que l'espace fine (U+202F), que le script de la police ajoute comme `make_archivo_fonts.py`, si son `OFL.txt` ne réserve aucun nom (à vérifier à la copie). `✓ ✗` restent au repli d'Android, comme dans le suisse. Trois graisses fixes tirées de la police variable : 400 le texte, 600 les noms et libellés, 700 les titres.
-4. **Les palettes** (contraste visé 4,5, tenu à chaque décalage de 15° par `InkPaletteTest`) :
-   - claire : fond `#f3eee2`, encre `#1d1c1a` (14,7), rouge `#b0372a` (5,3 en texte sur le fond, et le papier sur le rouge 5,3) ; la secondaire foncée sous le `#6d6860` de la maquette, qui tient 4,8 sur le papier mais 3,9 sur un lavis à 10 % ; le lavis sous un texte autour de 6 % d'encre ; les nombres exacts au banc ;
-   - sombre, de l'encre claire sur un papier de nuit : fond `#1b1a18`, encre `#e9e3d5` (13,6), secondaire `#a49e92` (6,5), rouge `#e5604c` (5,1, le fond sur le rouge 5,1) ; le lavis y est une tache claire ;
-   - la teinte ne tourne que le rouge et la chaleur du papier ; états et tags gardés ; les tags à clarté et saturation communes, dessinés en petites taches de lavis.
+4. **Les palettes** (OKLCH, clarté · saturation · teinte ; contraste visé 4,5, tenu à chaque décalage de 15° par `InkPaletteTest`) ; leurs nombres dans `palettes.json`, réglés au banc (`themes/ink/bench/palettes.html`, « Encre et lavis · palettes ») :
+   - claire : papier `#f3eee2` (0,95 · 0,017 · 88), encre `#1d1c1a` (0,227 ; 14,7), secondaire à clarté 0,45 (6,4 sur le papier, 4,8 sur le rail, foncée sous le `#6d6860` de la maquette, qui ne tenait que 3,9 sur un lavis), rouge à 0,514 · 0,159 (5,3 sur le papier, 4,57 au pire des décalages), le papier sur le rouge ;
+   - sombre, de l'encre claire sur un papier de nuit : fond `#1b1a18` (0,218), encre `#e9e3d5` (0,917 ; 13,6), secondaire à 0,74 (7,5), rouge à 0,654 · 0,17 (5,1), le fond sur le rouge ;
+   - les lavis, la part d'encre posée sur le papier : le cœur d'une tuile 6 % en clair, 8 % en sombre, une carte 5 % et 7 %, un rail (et un bouton désactivé) 14 % et 15 % ; aucun texte secondaire n'y tombe sous 4,5 ;
+   - le rouge ne s'écrit qu'au bouton de danger, sur le papier : le chiffre rouge du graphique de la maquette passe à l'encre ;
+   - la teinte tourne le rouge et la chaleur du papier, l'encre suivant la teinte du papier ; états et tags gardés ; les tags à clarté 0,60 · 0,13 en clair (3,2 au pire sur le papier, une marque, pas un texte), 0,72 · 0,12 en sombre, dessinés en petites taches de lavis.
 5. **La géométrie** : plus de vide que le suisse ; `UI.Space` XS 4, S 8, M 16, L 24, XL 40, `EDGE` 20. Cases carrées, 16 dp entre deux colonnes, 20 entre deux rangées, laissés vides par la grille ; 14 × 8 dp à l'intérieur d'une tuile (maquette). La cible du doigt à 48 dp, le dessin pouvant être plus petit. `drawingUnit` 1.
 6. **La taille** : la taille de texte d'Android suivie ; le cran (0 à 3) agrandit tout par ×1, ×1,12, ×1,25 et ×1,4, comme le suisse. Le titre de page à 30 sp, passant à la ligne coupé aux syllabes.
 7. **Les composants** :
@@ -47,5 +49,5 @@ Toutes les lignes du 2026-10-17, dans l'ordre de la liste de `docs/THEMES.md`.
 
 ## Ce qui reste ouvert
 
-- Le banc du thème (`themes/ink/bench/`), vu dans les deux modes, avant le code : la police (Literata contre EB Garamond), les nombres des palettes, le lavis sous un texte.
+- Le banc du thème (`themes/ink/bench/palettes.html`), vu dans les deux modes, avant le code : la police (Literata contre EB Garamond), les nombres des palettes, les lavis. Ses formes de lavis sont approchées en CSS, et le thème les dessinera en tracés.
 - Une fois redessiné Lucide tenu sur le téléphone (coût, icônes qui se bouchent) : la troisième façon de la ligne 9 de la recette, `docs/THEMES.md`.

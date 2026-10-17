@@ -1,0 +1,50 @@
+{
+  "palettes": [
+    {
+      "id": "ink_light",
+      "mode": "LIGHT",
+      "numbers": {
+        "hue": 30,
+        "ground_lightness": 0.95,
+        "ground_chroma": 0.017,
+        "ground_hue": 88,
+        "ink_lightness": 0.227,
+        "ink_chroma": 0.004,
+        "dim_lightness": 0.45,
+        "accent_lightness": 0.514,
+        "accent_chroma": 0.159,
+        "on_accent_lightness": 0.95,
+        "tile_wash": 0.06,
+        "card_wash": 0.05,
+        "track_wash": 0.14,
+        "tag_lightness": 0.6,
+        "tag_chroma": 0.13,
+        "status_lightness": 0.5,
+        "status_chroma": 0.15
+      }
+    },
+    {
+      "id": "ink_dark",
+      "mode": "DARK",
+      "numbers": {
+        "hue": 30,
+        "ground_lightness": 0.218,
+        "ground_chroma": 0.004,
+        "ground_hue": 85,
+        "ink_lightness": 0.917,
+        "ink_chroma": 0.02,
+        "dim_lightness": 0.74,
+        "accent_lightness": 0.654,
+        "accent_chroma": 0.17,
+        "on_accent_lightness": 0.218,
+        "tile_wash": 0.08,
+        "card_wash": 0.07,
+        "track_wash": 0.15,
+        "tag_lightness": 0.72,
+        "tag_chroma": 0.12,
+        "status_lightness": 0.74,
+        "status_chroma": 0.14
+      }
+    }
+  ]
+}

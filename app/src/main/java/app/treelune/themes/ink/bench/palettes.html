@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Banc du thème encre et lavis</title>
+<!--
+  The ink theme's bench (docs/design/ink-theme.md): a zone's screen and a sheet of every
+  component, in the light and the dark palette side by side, at a phone's width in dp (one CSS
+  pixel per dp), with Lucide's icons from the repository redrawn by the theme's brush (brush.js),
+  which also draws every line. The numbers live in palettes.json, which the theme reads; this page
+  derives the colours from them as InkPalette.kt will, measures their contrasts at every hue shift,
+  and saves them back through `./run themes`. The font, a hue shift and a size step are tried
+  here, never saved. Until the font is chosen, the two candidates are read from tmp/fonts/.
+-->
+<style>
+@font-face{font-family:"Literata";font-weight:200 900;src:url("/tmp/fonts/Literata.ttf") format("truetype");font-display:block}
+@font-face{font-family:"EB Garamond";font-weight:400 800;src:url("/tmp/fonts/EBGaramond.ttf") format("truetype");font-display:block}
+
+/* The bench's own frame, out of the theme. */
+:root{--bg:#1b1b1b;--bg2:#232323;--line:#3a3a3a;--txt:#e6e4df;--mut:#9a978f;--hot:#e5604c;--bad:#ff7b7b;--ok:#8fd19e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:14px system-ui,sans-serif}
+.wrap{max-width:1500px;margin:0 auto;padding:20px 16px 60px;display:flex;flex-direction:column;gap:18px}
+header.top{display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:12px}
+header.top h1{margin:0;font-size:19px;font-weight:600}
+#saved{font-size:12.5px;color:var(--mut)} #saved.dirty{color:var(--hot)} #saved.bad{color:var(--bad)}
+.bench{display:grid;grid-template-columns:auto auto 320px;gap:18px;align-items:start;justify-content:center}
+@media(max-width:1180px){.bench{grid-template-columns:auto auto}.side{grid-column:1/-1}}
+@media(max-width:800px){.bench{grid-template-columns:1fr}}
+.col{display:flex;flex-direction:column;gap:14px;align-items:center}
+.col h2{margin:0;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);font-weight:600}
+.side{display:flex;flex-direction:column;gap:14px}
+fieldset{border:1px solid var(--line);margin:0;padding:11px 12px 13px;display:flex;flex-direction:column;gap:9px}
+legend{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--hot);padding:0 6px}
+.row{display:flex;flex-direction:column;gap:3px}
+.lab{display:flex;justify-content:space-between;font-size:12px;color:var(--mut)}
+.lab b{color:var(--txt);font-weight:400;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--hot);margin:0}
+.seg{display:flex;border:1px solid var(--line)}
+.seg button{flex:1;background:transparent;border:0;border-right:1px solid var(--line);color:var(--mut);font:inherit;font-size:12px;padding:6px 4px;cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed=true]{background:var(--hot);color:#1b1b1b}
+.acts button{width:100%;background:transparent;border:1px solid var(--hot);color:var(--hot);font:inherit;padding:7px;cursor:pointer}
+table.cr{border-collapse:collapse;font-size:12px;width:100%;font-variant-numeric:tabular-nums}
+table.cr td{padding:2px 4px;border-bottom:1px solid var(--line)}
+table.cr td:not(:first-child){text-align:right}
+td.low{color:var(--bad)} td.okk{color:var(--ok)}
+.notes{border-top:1px solid var(--line);padding-top:14px;color:var(--mut);font-size:13px;line-height:1.6;max-width:90ch}
+.notes b{color:var(--txt);font-weight:600}
+
+/* ============ The theme, drawn ============ */
+.phone{width:360px;background:var(--g);color:var(--i);font-family:var(--font),serif;font-variant-numeric:lining-nums;position:relative;overflow:hidden;outline:1px solid var(--line)}
+.zoom{zoom:var(--k)}
+/* Whatever the brush draws: a canvas laid over the element, in its colour. */
+.br{position:relative;display:block}
+.br>canvas,.ic>canvas{position:absolute;left:0;top:0;pointer-events:none;z-index:1}
+.ic{display:block;position:relative;flex:none}
+
+/* bar and page header */
+.bar{display:flex;justify-content:space-between;padding:0 4px}
+.ib{width:48px;height:48px;display:flex;align-items:center;justify-content:center;color:var(--i)}
+.ib .ic{width:24px;height:24px}
+.ph{padding:8px 20px 0;display:flex;flex-direction:column;align-items:center;gap:10px}
+.ph .pic{width:28px;height:28px}
+.ph .tl{display:flex;align-items:center;gap:12px}
+.ph h1{margin:0;font-size:30px;font-weight:700;letter-spacing:.12em;line-height:1.15;hyphens:auto;text-align:center}
+.ph .sub{font-size:12px;color:var(--d);letter-spacing:.04em}
+.seal{width:26px;height:26px;background:var(--a);color:var(--oa);font-size:15px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;border-radius:3px 6px 2px 7px;flex:none;letter-spacing:0}
+.gt{padding:28px 20px 12px;display:flex;flex-direction:column;gap:6px}
+.gt span{font-size:16px;font-weight:700;letter-spacing:.1em}
+.gt .rule{height:6px;width:100%}
+
+/* the tile grid: 4 square cells, 16 across, 20 down */
+.grid{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:68px;column-gap:16px;row-gap:20px;padding:0 20px}
+/* A tile's wash lies under it, its irregular edge never cutting its content. */
+.tile{padding:8px 14px;overflow:hidden;position:relative;min-width:0;isolation:isolate}
+.tile::before{content:"";position:absolute;inset:0;z-index:-1;
+  background:radial-gradient(ellipse at 40% 45%,var(--w) 0%,var(--w) 40%,color-mix(in srgb,var(--w) 50%,transparent) 66%,transparent 82%);
+  border-radius:40% 55% 45% 50% / 30% 40% 35% 45%}
+.w2{grid-column:span 2}.w4{grid-column:span 4}.h2{grid-row:span 2}
+.name{font-size:15px;font-weight:600;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
+.big{font-size:26px;line-height:1.15;text-align:center}
+.big small{font-size:15px}
+.small{font-size:12px;color:var(--d);text-align:center}
+.th{display:flex;justify-content:space-between;align-items:baseline}
+.val{font-size:15px}
+.bars{display:flex;align-items:flex-end;gap:18px;height:78px;margin-top:6px;padding:0 10px;position:relative}
+.bars .br{flex:1;height:calc(var(--h)*100%)}
+.bars .target{position:absolute;left:0;right:0;bottom:75%;border-top:1px dotted var(--i);opacity:.5}
+.days{display:flex;gap:18px;font-size:12px;color:var(--d);margin-top:2px;padding:0 10px}.days span{flex:1;text-align:center}
+.list ul{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:15px}
+.list li{display:flex;gap:10px;align-items:center}
+.box{width:18px;height:18px;flex:none}
+.done{color:var(--d)}
+.sealbox{width:16px;height:16px;background:var(--a);border-radius:3px 5px 2px 6px;margin:1px;flex:none}
+.tags{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;justify-content:center}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:13px}
+.tag::before{content:"";width:12px;height:12px;border-radius:48% 52% 45% 55%;background:radial-gradient(circle at 45% 45%,var(--c) 0%,var(--c) 45%,color-mix(in srgb,var(--c) 40%,transparent) 75%,transparent 100%)}
+.gauge{height:10px;margin-top:12px;position:relative;background:radial-gradient(ellipse,var(--wt) 0%,var(--wt) 55%,transparent 75%)}
+.gauge .br{position:absolute;left:0;top:0;bottom:0}
+.icon::before{display:none}
+.icon{display:flex;align-items:center;justify-content:center}
+.icon .ic{width:32px;height:32px}
+/* An item's icon on a wash of its colour; a neutral one takes the same room. */
+.spot{position:absolute;inset:-30%;border-radius:45% 55% 50% 48%;background:radial-gradient(circle at 48% 50%,color-mix(in srgb,var(--c) 45%,transparent) 0%,color-mix(in srgb,var(--c) 30%,transparent) 45%,transparent 72%)}
+.wait{position:absolute;top:4px;right:6px;width:20px;height:20px;background:var(--a);color:var(--oa);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;border-radius:48% 52% 50% 46%}
+.run{position:absolute;bottom:4px;right:6px;width:16px;height:16px}
+.note p{margin:6px 0 0;font-size:15px;line-height:1.5}
+.card{margin:0 20px 12px;padding:10px 16px;display:flex;justify-content:space-between;align-items:baseline;background:var(--wc);border-radius:10px 14px 12px 9px / 12px 9px 14px 10px}
+.card .name{text-align:left}
+.card .v{font-size:20px}
+.fab{position:absolute;right:20px;bottom:20px;width:56px;height:56px;background:var(--i);color:var(--g);display:flex;align-items:center;justify-content:center;border-radius:48% 52% 50% 46%}
+.fab .ic{width:26px;height:26px}
+
+/* the sheet */
+.sec{padding:18px 20px 0}
+.sl{font-size:11px;letter-spacing:.12em;color:var(--d);margin-bottom:10px}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{height:48px;padding:0 18px;display:inline-flex;align-items:center;font-size:15px;font-weight:600;letter-spacing:.04em;position:relative}
+.b-pri{background:var(--i);color:var(--g);border-radius:22px 18px 24px 16px / 20px 24px 18px 22px}
+.b-sec .br,.b-dan .br{position:absolute;inset:4px 0}
+.b-ter{padding:0 6px;flex-direction:column;justify-content:center}.b-ter .br{height:5px;width:100%}
+.b-dan{color:var(--a)}
+.b-dis{background:var(--wt);color:var(--d);border-radius:22px 18px 24px 16px / 20px 24px 18px 22px}
+.b-press{background:color-mix(in srgb,var(--i) 85%,var(--g));color:var(--g);border-radius:22px 18px 24px 16px / 20px 24px 18px 22px}
+.field{margin-bottom:14px}
+.field .fl{font-size:12px;color:var(--d);letter-spacing:.04em}
+.field .fv{font-size:16px;padding:8px 0 2px;display:flex;justify-content:space-between;align-items:center}
+.field .ul{height:5px;width:100%}
+.field.focus .ul{height:7px}
+.field.err .ul{color:var(--err)}
+.field .fe{font-size:12px;color:var(--err);margin-top:4px}
+.field .ic{width:20px;height:20px}
+.caret{display:inline-block;width:1.5px;height:18px;background:var(--i);vertical-align:-3px;margin-left:1px}
+.menu{background:var(--g);box-shadow:0 0 0 1px color-mix(in srgb,var(--i) 25%,transparent);padding:4px 0}
+.menu div{height:48px;padding:0 14px;display:flex;align-items:center;font-size:15px}
+.menu .on{background:var(--wc)}
+.inline{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.cb{width:22px;height:22px}
+.sw{width:46px;height:26px;position:relative}
+.sw .knob{position:absolute;width:14px;height:14px;top:6px;left:7px;border-radius:50%;background:var(--i)}
+.sw.on .fill{position:absolute;inset:3px;border-radius:12px;background:var(--i)}
+.sw.on .knob{left:25px;background:var(--g)}
+.yn{display:flex;gap:4px}.yn span{height:40px;min-width:64px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600}
+.yn .on{background:var(--wt);border-radius:18px 14px 20px 12px / 16px 20px 14px 18px}
+.slider{position:relative;height:48px}
+.slider .rail{position:absolute;left:0;right:0;top:27px;height:5px}
+.slider .thumb{position:absolute;top:20px;left:62%;width:18px;height:18px;margin-left:-9px;background:var(--i);border-radius:52% 48% 55% 45%}
+.slider .sv{position:absolute;left:62%;top:0;transform:translateX(-50%);font-size:14px;font-weight:700}
+.tabs{display:flex;gap:24px}
+.tabs span{padding:12px 0 2px;font-size:15px;color:var(--d);display:flex;flex-direction:column;gap:4px}
+.tabs .on{color:var(--i);font-weight:600}.tabs .on .br{height:6px;width:100%}
+.hue{height:24px;position:relative;border-radius:12px 9px 13px 10px;background:linear-gradient(90deg,#e8331c,#e8a21c,#b4d31c,#1cd36a,#1cc8d3,#1c5ae8,#8a1ce8,#e81cb4,#e8331c)}
+.hue span{position:absolute;top:-5px;bottom:-5px;left:12%;width:14px;border-radius:50%;box-shadow:0 0 0 2px var(--i),inset 0 0 0 2px var(--g)}
+.handle{width:20px;display:flex;flex-direction:column;gap:4px}.handle .br{height:4px;width:100%}
+.itemrow{display:flex;align-items:center;gap:14px;height:52px}
+.itemrow .ic{width:24px;height:24px}
+.itemrow .nm{flex:1;font-size:15px}
+.sep{height:5px;width:100%;margin:4px 0}
+.scrim{background:color-mix(in srgb,#000 50%,var(--g));padding:24px 16px}
+.dialog{background:var(--g);padding:14px 18px 16px}
+.dialog .top{height:7px;width:100%;margin-bottom:12px}
+.dialog h3{margin:0 0 8px;font-size:22px;font-weight:700;letter-spacing:.04em}
+.dialog p{margin:0 0 16px;font-size:15px;line-height:1.5}
+.dialog .btns{justify-content:flex-end}
+.chat{display:flex;flex-direction:column;gap:14px}
+.you{align-self:flex-end;max-width:78%;background:var(--wc);padding:10px 14px;font-size:15px;line-height:1.45;border-radius:16px 12px 6px 14px}
+.ai{font-size:15px;line-height:1.5}
+.ai b{font-weight:600}
+.inter{background:var(--wc);padding:12px 14px;position:relative;border-radius:12px 9px 13px 10px}
+.inter .q{font-size:15px;margin-bottom:8px;padding-right:20px}
+.inter .seal{position:absolute;top:10px;right:10px;width:14px;height:14px}
+.think{display:flex;gap:10px;align-items:center}.think i{width:10px;height:10px;border-radius:50%;background:var(--i)}
+.think i:nth-child(2){opacity:.55;transform:scale(1.3)}.think i:nth-child(3){opacity:.25;transform:scale(1.6)}
+.toast{background:color-mix(in srgb,var(--i) 88%,var(--g));color:var(--g);padding:14px 16px;font-size:15px;border-radius:14px 10px 16px 12px}
+.snack{background:color-mix(in srgb,var(--i) 88%,var(--g));color:var(--g);padding:0 0 0 16px;display:flex;justify-content:space-between;align-items:center;font-size:15px;min-height:48px;border-radius:14px 10px 16px 12px}
+.snack span:last-child{height:48px;display:flex;align-items:center;padding:0 16px;font-weight:600;text-decoration:underline;text-underline-offset:4px}
+.loadrow{display:flex;gap:24px;align-items:center}
+.enso{width:40px;height:40px}
+.date .mh{display:flex;justify-content:space-between;align-items:center}
+.date .mh b{font-size:18px;font-weight:700;letter-spacing:.08em}
+.date .ib .ic{width:20px;height:20px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);text-align:center}
+.cal .wd{font-size:12px;color:var(--d);padding:4px 0}
+.cal>span{height:40px;display:flex;align-items:center;justify-content:center;font-size:15px;position:relative}
+.cal .mute{color:var(--d)}
+.cal .sel b{width:34px;height:34px;border-radius:52% 48% 50% 46%;background:var(--i);color:var(--g);display:flex;align-items:center;justify-content:center;font-weight:600}
+.cal .today .br{position:absolute;width:36px;height:36px;left:50%;top:50%;margin:-18px 0 0 -18px}
+.time{display:flex;justify-content:center;align-items:center;gap:10px}
+.cnt{display:flex;flex-direction:column;align-items:center;gap:4px}
+.cnt .n{font-size:40px;font-weight:600;line-height:1.1}
+.pm{width:48px;height:44px;display:flex;align-items:center;justify-content:center}
+.pm .ic{width:22px;height:22px}
+.colon{font-size:40px;line-height:1;margin-top:-6px}
+.selbar{display:inline-flex;background:color-mix(in srgb,var(--i) 88%,var(--g));color:var(--g);border-radius:14px 10px 16px 12px}
+.selbar span{height:48px;padding:0 16px;display:flex;flex-direction:column;justify-content:center;font-size:14px}
+.selbar .on .br{height:5px;width:100%}
+.edit{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:68px;column-gap:16px;row-gap:20px;position:relative}
+.edit .cell{border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--i) 7%,transparent) 0%,transparent 70%)}
+.edit .faded{opacity:.45}
+.edit .lifted{--w:color-mix(in srgb,var(--i) 14%,var(--g));transform:translate(-4px,-4px);z-index:1}
+.pad{height:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Banc du thème encre et lavis</h1>
+    <span id="saved">—</span>
+  </header>
+
+  <div class="bench">
+    <div class="col" id="colLight"><h2>Clair</h2></div>
+    <div class="col" id="colDark"><h2>Sombre</h2></div>
+
+    <div class="side">
+      <fieldset>
+        <legend>La palette réglée</legend>
+        <div class="seg" id="segPalette"></div>
+        <div id="sliders"></div>
+        <div class="acts"><button id="btnSave">Enregistrer</button></div>
+      </fieldset>
+      <fieldset>
+        <legend>Essayer (non enregistré)</legend>
+        <div class="row"><div class="lab"><span>Police</span></div><div class="seg" id="segFont"></div></div>
+        <div class="row"><div class="lab"><span>Décalage de teinte</span><b id="shiftOut">0</b></div>
+          <input type="range" id="shift" min="0" max="359" step="1" value="0"></div>
+        <div class="row"><div class="lab"><span>Cran de taille</span></div><div class="seg" id="segStep"></div></div>
+      </fieldset>
+      <fieldset>
+        <legend>Contrastes</legend>
+        <table class="cr" id="contrasts"></table>
+        <div class="lab"><span>Au décalage essayé, puis au pire des 24 décalages (pas de 15°). Texte : 4,5 ; tache d'un tag : 3. Le lavis d'une tuile est mesuré en son cœur, le plus foncé.</span></div>
+      </fieldset>
+    </div>
+  </div>
+
+  <div class="notes">
+    <b>Ce qu'on juge ici</b> : les deux palettes, l'écran d'une zone et chaque composant, à la largeur d'un téléphone (un pixel par dp). Chaque trait est tracé par le pinceau du thème (<code>brush.js</code>, réglé sur son propre banc), les icônes comprises. Les nombres se règlent à droite, sur la palette choisie, et « Enregistrer » les écrit dans <code>palettes.json</code>, que lit le thème ; les trois lavis (tuile, carte, rail) sont la part d'encre posée sur le fond. La teinte ne tourne que le rouge et la chaleur du papier. La police s'essaie entre Literata et EB Garamond, lues dans <code>tmp/fonts/</code> jusqu'au choix. Les formes de lavis sont approchées en CSS ; le thème les dessinera en tracés. Les textures se règlent sur leur propre banc ; le toucher et le mouvement ne se voient que sur le téléphone.
+  </div>
+</div>
+
+<template id="screen">
+  <div class="phone"><div class="zoom">
+    <div class="bar"><span class="ib"><span class="ic" data-icon="arrow-left"></span></span><span class="ib"><span class="ic" data-icon="ellipsis"></span></span></div>
+    <div class="ph">
+      <span class="ic pic" data-icon="heart-pulse"><span class="spot" style="--c:var(--tag-red)"></span></span>
+      <div class="tl"><h1>Santé</h1><span class="seal">S</span></div>
+      <div class="sub">7 outils · 1 routine</div>
+    </div>
+    <div class="gt"><span>Quotidien</span><i class="br rule" data-shape="line" data-t="2.6"></i></div>
+    <div class="grid">
+      <div class="tile w4 h2">
+        <div class="th"><span class="name">Calories</span><span class="val">1 840 kcal</span></div>
+        <div class="bars"><span class="target"></span><i class="br" data-shape="vbar" data-t="5" style="--h:.72"></i><i class="br" data-shape="vbar" data-t="5" style="--h:.50"></i><i class="br" data-shape="vbar" data-t="5" style="--h:.92"></i><i class="br" data-shape="vbar" data-t="5" style="--h:.58"></i><i class="br" data-shape="vbar" data-t="5" style="--h:.34"></i><i class="br" data-shape="vbar" data-t="5" style="--h:.66"></i><i class="br" data-shape="vbar" data-t="5" style="--h:.48"></i></div>
+        <div class="days"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+      </div>
+      <div class="tile w2"><div class="name">Poids</div><div class="big">72,4<small> kg</small></div></div>
+      <div class="tile w2 h2 list"><div class="name">Courses</div>
+        <ul><li><i class="br box" data-shape="ring" data-t="1.6"></i>Lait</li><li class="done"><span class="sealbox"></span>Pommes</li><li><i class="br box" data-shape="ring" data-t="1.6"></i>Riz</li><li><i class="br box" data-shape="ring" data-t="1.6"></i>Café</li></ul>
+      </div>
+      <div class="tile w2"><div class="name">Journal</div><div class="tags"><span class="tag" style="--c:var(--tag-green)">sport</span><span class="tag" style="--c:var(--tag-purple)">humeur</span></div></div>
+      <div class="tile w2"><div class="name">10 000 pas</div><div class="gauge"><i class="br" data-shape="line" data-t="6" style="width:71%"></i></div><div class="small">7 120 · 71 %</div></div>
+      <div class="tile icon"><span class="ic" data-icon="droplet"><span class="spot" style="--c:var(--tag-blue)"></span></span></div>
+      <div class="tile icon"><span class="ic" data-icon="moon"></span><span class="wait">!</span><i class="br run" data-shape="enso" data-t="1.4"></i></div>
+    </div>
+    <div class="gt"><span>Notes</span><i class="br rule" data-shape="line" data-t="2.6"></i></div>
+    <div class="grid"><div class="tile w4 h2 note"><div class="name">Idées</div><p>Essayer la marche après le déjeuner, noter l'effet sur le sommeil…</p></div></div>
+    <div class="gt"><span>Variables</span><i class="br rule" data-shape="line" data-t="2.6"></i></div>
+    <div class="card"><span class="name">Objectif calorique</span><span class="v">2 000</span></div>
+    <div class="card"><span class="name">Taille</span><span class="v">1,78 m</span></div>
+    <div style="height:88px"></div>
+    <span class="fab"><span class="ic" data-icon="sparkles"></span></span>
+  </div></div>
+</template>
+
+<template id="sheet">
+  <div class="phone"><div class="zoom">
+    <div class="sec"><div class="sl">Boutons · au repos, puis pressés</div>
+      <div class="btns">
+        <span class="btn b-pri">Enregistrer</span>
+        <span class="btn b-sec"><i class="br" data-shape="pebble" data-t="1.6"></i>Dupliquer</span>
+        <span class="btn b-ter">Annuler<i class="br" data-shape="line" data-t="1.2"></i></span>
+        <span class="btn b-dan"><i class="br" data-shape="pebble" data-t="1.6"></i>Supprimer</span>
+        <span class="btn b-dis">Désactivé</span>
+        <span class="btn b-press">Pressé</span>
+        <span class="ib"><span class="ic" data-icon="pencil"></span></span><span class="ib"><span class="ic" data-icon="trash"></span></span>
+      </div>
+    </div>
+    <div class="sec"><div class="sl">Saisie</div>
+      <div class="field"><div class="fl">Nom</div><div class="fv"><span>Courses</span></div><i class="br ul" data-shape="line" data-t="1.2"></i></div>
+      <div class="field focus"><div class="fl">Note</div><div class="fv"><span>Marche après le dé<span class="caret"></span></span></div><i class="br ul" data-shape="line" data-t="2"></i></div>
+      <div class="field err"><div class="fl">Quantité</div><div class="fv"><span>-3</span></div><i class="br ul" data-shape="line" data-t="2"></i><div class="fe">Une quantité ne peut pas être négative.</div></div>
+      <div class="field"><div class="fl">Unité</div><div class="fv"><span>Kilogrammes</span><span class="ic" data-icon="chevron-down"></span></div><i class="br ul" data-shape="line" data-t="1.2"></i></div>
+      <div class="menu"><div>Grammes</div><div class="on">Kilogrammes</div><div>Livres</div></div>
+    </div>
+    <div class="sec"><div class="inline">
+      <i class="br cb" data-shape="ring" data-t="1.6"></i><span class="sealbox" style="width:20px;height:20px"></span>
+      <span class="sw"><i class="br" data-shape="pebble" data-t="1.4" style="position:absolute;inset:0"></i><span class="knob"></span></span>
+      <span class="sw on"><span class="fill"></span><span class="knob"></span></span>
+      <span class="yn"><span class="on">Oui</span><span>Non</span></span></div></div>
+    <div class="sec"><div class="slider"><span class="sv">62</span><i class="br rail" data-shape="line" data-t="1.4"></i><span class="thumb"></span></div>
+      <div class="gauge"><i class="br" data-shape="line" data-t="6" style="width:40%"></i></div></div>
+    <div class="sec"><div class="tabs"><span class="on">Entrées<i class="br" data-shape="line" data-t="2.4"></i></span><span>Config</span><span>Historique</span></div></div>
+    <div class="sec"><div class="sl">Teinte</div><div class="hue"><span></span></div></div>
+    <div class="sec"><div class="sl">Repères</div>
+      <div class="tags" style="margin-bottom:12px;justify-content:flex-start"><span class="tag" style="--c:var(--tag-red)">rouge</span><span class="tag" style="--c:var(--tag-orange)">orange</span><span class="tag" style="--c:var(--tag-yellow)">jaune</span><span class="tag" style="--c:var(--tag-green)">vert</span><span class="tag" style="--c:var(--tag-teal)">sarcelle</span><span class="tag" style="--c:var(--tag-blue)">bleu</span><span class="tag" style="--c:var(--tag-purple)">violet</span><span class="tag" style="--c:var(--tag-pink)">rose</span><span class="tag" style="--c:var(--tag-grey)">gris</span></div>
+      <div class="itemrow"><span class="handle"><i class="br" data-shape="line" data-t="1.6"></i><i class="br" data-shape="line" data-t="1.6"></i></span><span class="ic" data-icon="utensils"><span class="spot" style="--c:var(--tag-orange)"></span></span><span class="nm">Repas</span></div>
+      <div class="itemrow"><span class="handle"><i class="br" data-shape="line" data-t="1.6"></i><i class="br" data-shape="line" data-t="1.6"></i></span><span class="ic" data-icon="footprints"></span><span class="nm">Pas</span></div>
+      <i class="br sep" data-shape="line" data-t="1.2"></i>
+    </div>
+    <div class="sec"><div class="sl">Dialogue</div></div>
+    <div class="scrim"><div class="dialog"><i class="br top" data-shape="line" data-t="3"></i><h3>Supprimer l'outil ?</h3><p>Ses 214 entrées seront supprimées avec lui.</p>
+      <div class="btns"><span class="btn b-ter">Annuler<i class="br" data-shape="line" data-t="1.2"></i></span><span class="btn b-dan"><i class="br" data-shape="pebble" data-t="1.6"></i>Supprimer</span></div></div></div>
+    <div class="sec"><div class="sl">Conversation</div>
+      <div class="chat">
+        <div class="you">Combien de calories cette semaine ?</div>
+        <div class="ai">Tu es à <b>12 880 kcal</b> sur sept jours, soit 1 840 par jour, sous ton objectif de 2 000.</div>
+        <div class="inter"><span class="seal"></span><div class="q">Ajouter « Marche 30 min » au Journal ?</div><div class="btns"><span class="btn b-ter">Refuser<i class="br" data-shape="line" data-t="1.2"></i></span><span class="btn b-pri">Valider</span></div></div>
+        <div class="think"><i></i><i></i><i></i></div>
+      </div>
+    </div>
+    <div class="sec"><div class="sl">Messages · chargement</div>
+      <div class="toast">Entrée enregistrée.</div><div class="pad" style="height:8px"></div>
+      <div class="snack"><span>Entrée supprimée.</span><span>Annuler</span></div><div class="pad" style="height:12px"></div>
+      <div class="loadrow"><i class="br enso" data-shape="enso" data-t="2.4"></i><i class="br enso" data-shape="enso" data-t="2.4" data-sweep="0.55"></i></div>
+    </div>
+    <div class="sec"><div class="sl">Date et heure</div>
+      <div class="dialog date">
+        <div class="mh"><span class="ib"><span class="ic" data-icon="chevron-left"></span></span><b>Octobre 2026</b><span class="ib"><span class="ic" data-icon="chevron-right"></span></span></div>
+        <div class="cal" data-cal></div>
+        <div class="btns" style="margin-top:8px"><span class="btn b-ter">Annuler<i class="br" data-shape="line" data-t="1.2"></i></span><span class="btn b-pri">Choisir</span></div>
+      </div>
+      <div class="pad"></div>
+      <div class="dialog"><div class="time">
+        <div class="cnt"><span class="pm"><span class="ic" data-icon="plus"></span></span><span class="n">07</span><span class="pm"><span class="ic" data-icon="minus"></span></span></div>
+        <span class="colon">:</span>
+        <div class="cnt"><span class="pm"><span class="ic" data-icon="plus"></span></span><span class="n">30</span><span class="pm"><span class="ic" data-icon="minus"></span></span></div>
+      </div></div>
+    </div>
+    <div class="sec"><div class="sl">Texte sélectionné</div><div class="selbar"><span>Copier</span><span class="on">Couper<i class="br" data-shape="line" data-t="1.2"></i></span><span>Tout</span></div></div>
+    <div class="sec"><div class="sl">Grille en édition</div>
+      <div class="edit">
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+        <div class="tile w2 faded" style="grid-row:1;grid-column:1/3"><div class="name">Poids</div><div class="big">72,4</div></div>
+        <div class="tile w2 lifted" style="grid-row:2;grid-column:2/4"><div class="name">Pas</div><div class="gauge"><i class="br" data-shape="line" data-t="6" style="width:71%"></i></div></div>
+      </div>
+    </div>
+    <div class="pad"></div>
+  </div></div>
+</template>
+
+<script src="brush.js"></script>
+<script>
+"use strict";
+const PALETTES_URL = "/app/src/main/resources/app/treelune/themes/ink/palettes.json";
+const SAVE_URL = "/palettes/ink";
+const LUCIDE_URL = (name) => `/third_party/lucide/icons/${name}.svg`;
+const STEPS = [1, 1.12, 1.25, 1.4];
+const FONTS = ["Literata", "EB Garamond"];
+
+// The numbers a slider sets, with their range: everything InkPalette.kt will read.
+const KNOBS = [
+  ["hue", "Teinte du rouge", 0, 359, 1],
+  ["accent_lightness", "Rouge · clarté", 0.3, 0.8, 0.005],
+  ["accent_chroma", "Rouge · saturation", 0, 0.3, 0.002],
+  ["on_accent_lightness", "Sur le rouge · clarté", 0, 1, 0.005],
+  ["ground_lightness", "Papier · clarté", 0, 1, 0.002],
+  ["ground_chroma", "Papier · saturation", 0, 0.05, 0.001],
+  ["ground_hue", "Papier · teinte", 0, 359, 1],
+  ["ink_lightness", "Encre · clarté", 0, 1, 0.002],
+  ["ink_chroma", "Encre · saturation", 0, 0.05, 0.001],
+  ["dim_lightness", "Encre secondaire · clarté", 0, 1, 0.005],
+  ["tile_wash", "Lavis d'une tuile (cœur)", 0, 0.2, 0.005],
+  ["card_wash", "Lavis d'une carte", 0, 0.2, 0.005],
+  ["track_wash", "Lavis d'un rail", 0, 0.4, 0.005],
+  ["tag_lightness", "Tags · clarté", 0.3, 0.9, 0.005],
+  ["tag_chroma", "Tags · saturation", 0, 0.25, 0.002],
+  ["status_lightness", "États · clarté", 0.3, 0.9, 0.005],
+  ["status_chroma", "États · saturation", 0, 0.25, 0.002],
+];
+
+// The same hues as the other themes: a tag's hue is its meaning.
+const TAG_HUES = { red: 25, orange: 55, yellow: 95, green: 145, teal: 185, blue: 230, purple: 300, pink: 355 };
+const STATUS_HUES = { success: 145, warning: 55, error: 25, info: 250 };
+const GREY_CHROMA = 0.015;
+
+// ---- OKLCH to sRGB, its chroma reduced until sRGB can show it (Lch.kt) ----
+function linear(L, C, H) {
+  const hr = H * Math.PI / 180, a = C * Math.cos(hr), b = C * Math.sin(hr);
+  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const s = (L - 0.0894841775 * a - 1.2914855480 * b) ** 3;
+  return [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+          -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+          -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s];
+}
+const inGamut = (v) => v.every((x) => x >= -0.0005 && x <= 1.0005);
+// A colour is held as sRGB in 0..1, so a wash (ink laid over the ground) mixes as the screen does.
+function rgb([L, C, H]) {
+  L = Math.min(1, Math.max(0, L)); H = ((H % 360) + 360) % 360; C = Math.max(0, C);
+  if (!inGamut(linear(L, C, H))) {
+    let lo = 0, hi = C;
+    for (let i = 0; i < 18; i++) { const mid = (lo + hi) / 2; if (inGamut(linear(L, mid, H))) lo = mid; else hi = mid; }
+    C = lo;
+  }
+  return linear(L, C, H).map((x) => { x = Math.min(1, Math.max(0, x)); x = x <= 0.0031308 ? 12.92 * x : 1.055 * x ** (1 / 2.4) - 0.055; return Math.round(x * 255) / 255; });
+}
+const mix = (ground, ink, t) => ground.map((g, k) => Math.round((g * (1 - t) + ink[k] * t) * 255) / 255);
+const hex = (c) => "#" + c.map((x) => Math.round(x * 255).toString(16).padStart(2, "0")).join("");
+function luminance(c) { const [r, g, b] = c.map((x) => x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4); return 0.2126 * r + 0.7152 * g + 0.0722 * b; }
+function contrast(a, b) { const [x, y] = [luminance(a), luminance(b)].sort((p, q) => p - q); return (y + 0.05) / (x + 0.05); }
+
+// ---- A palette's colours, as InkPalette.kt will derive them ----
+function derive(n, shift) {
+  const hue = n.hue + shift;
+  // The paper's warmth turns with the red; the ink, nearly grey, follows the paper's hue.
+  const paperHue = n.ground_hue + shift;
+  const g = rgb([n.ground_lightness, n.ground_chroma, paperHue]);
+  const i = rgb([n.ink_lightness, n.ink_chroma, paperHue]);
+  const out = {
+    g, i,
+    d: rgb([n.dim_lightness, n.ink_chroma, paperHue]),
+    a: rgb([n.accent_lightness, n.accent_chroma, hue]),
+    oa: rgb([n.on_accent_lightness, n.ground_chroma, paperHue]),
+    w: mix(g, i, n.tile_wash),
+    wc: mix(g, i, n.card_wash),
+    wt: mix(g, i, n.track_wash),
+  };
+  for (const [k, h] of Object.entries(TAG_HUES)) out["tag-" + k] = rgb([n.tag_lightness, n.tag_chroma, h]);
+  out["tag-grey"] = rgb([n.tag_lightness, GREY_CHROMA, n.ground_hue]);
+  for (const [k, h] of Object.entries(STATUS_HUES)) out["st-" + k] = rgb([n.status_lightness, n.status_chroma, h]);
+  out.err = out["st-error"];
+  return out;
+}
+
+// ---- What the brush draws, as SVG in the element's own dp ----
+function shape(kind, w, h, el) {
+  const t = +el.dataset.t;
+  const pad = t * 0.9;
+  switch (kind) {
+    // A line across, rising a hair to the right as a hand draws it.
+    case "line": return `<path d="M ${pad} ${h / 2 + h * 0.08} L ${w - pad} ${h / 2 - h * 0.08}"/>`;
+    // A bar of a chart, drawn downwards as a vertical stroke is.
+    case "vbar": return `<path d="M ${w / 2} ${Math.min(pad, h / 3)} L ${w / 2} ${h}"/>`;
+    // A ring, closed where it began.
+    case "ring": { const r = Math.min(w, h) / 2 - pad; return `<circle cx="${w / 2}" cy="${h / 2}" r="${r}" transform="rotate(-100 ${w / 2} ${h / 2})"/>`; }
+    // A pebble: a rounded outline (a secondary button, a switch).
+    case "pebble": { const r = Math.min(w, h) / 2 - pad; return `<rect x="${pad}" y="${pad}" width="${w - 2 * pad}" height="${h - 2 * pad}" rx="${r}"/>`; }
+    // An ensō: one round stroke, left open.
+    case "enso": {
+      const r = Math.min(w, h) / 2 - pad, cx = w / 2, cy = h / 2;
+      const sweep = (+el.dataset.sweep || 0.88) * Math.PI * 2, a0 = Math.PI * 0.62;
+      const x0 = cx + r * Math.cos(a0), y0 = cy + r * Math.sin(a0);
+      const x1 = cx + r * Math.cos(a0 + sweep), y1 = cy + r * Math.sin(a0 + sweep);
+      return `<path d="M ${x0} ${y0} A ${r} ${r} 0 ${sweep > Math.PI ? 1 : 0} 1 ${x1} ${y1}"/>`;
+    }
+  }
+  throw new Error(`no brush shape ${kind}`);
+}
+
+// ---- State and drawing ----
+const S = { doc: null, edited: 0, shift: 0, step: 0, font: 0, dirty: false };
+const icons = new Map();
+
+async function loadIcons(root) {
+  const names = [...new Set([...root.querySelectorAll("[data-icon]")].map((e) => e.dataset.icon))];
+  await Promise.all(names.filter((n) => !icons.has(n)).map(async (n) => {
+    const r = await fetch(LUCIDE_URL(n));
+    if (!r.ok) throw new Error(`no Lucide icon ${n}`);
+    icons.set(n, InkBrush.strokes(InkBrush.lucideInner(await r.text())));
+  }));
+}
+
+// Every brushed thing of a phone, redrawn at its size and in its colour.
+function brushAll(phone) {
+  const k = STEPS[S.step];
+  phone.querySelectorAll("[data-icon], .br").forEach((el, idx) => {
+    let canvas = el.querySelector(":scope > canvas");
+    if (!canvas) { canvas = document.createElement("canvas"); el.prepend(canvas); }
+    const r = el.getBoundingClientRect();
+    const w = r.width / k, h = r.height / k;
+    if (w < 1 || h < 1) return;
+    const ink = getComputedStyle(el).color;
+    if (el.dataset.icon) {
+      InkBrush.paint(canvas, icons.get(el.dataset.icon), { viewW: 24, viewH: 24, cssW: w, cssH: h }, ink, InkBrush.SETTINGS, el.dataset.icon.length);
+    } else {
+      // The brush's width of 1.3 stands for the element's thickness in dp.
+      const unit = +el.dataset.t / InkBrush.SETTINGS.width;
+      const drawn = InkBrush.strokes(shape(el.dataset.shape, w, h, el), `0 0 ${w} ${h}`, unit);
+      InkBrush.paint(canvas, drawn, { viewW: w, viewH: h, cssW: w, cssH: h }, ink, InkBrush.SETTINGS, idx);
+    }
+  });
+}
+
+function calendar(root) {
+  const cal = root.querySelector("[data-cal]"); if (!cal) return;
+  let html = ["L", "M", "M", "J", "V", "S", "D"].map((d) => `<span class="wd">${d}</span>`).join("");
+  for (let i = 28; i <= 30; i++) html += `<span class="mute">${i}</span>`;
+  for (let d = 1; d <= 31; d++) html += d === 17 ? `<span class="today"><i class="br" data-shape="enso" data-t="1.4" data-sweep="0.92"></i>${d}</span>` : d === 21 ? `<span class="sel"><b>${d}</b></span>` : `<span>${d}</span>`;
+  html += `<span class="mute">1</span>`;
+  cal.innerHTML = html;
+}
+
+function paint() {
+  for (const [col, idx] of [["colLight", 0], ["colDark", 1]]) {
+    const colors = derive(S.doc.palettes[idx].numbers, S.shift);
+    document.querySelectorAll(`#${col} .phone`).forEach((p) => {
+      for (const [k, v] of Object.entries(colors)) p.style.setProperty("--" + k, hex(v));
+      p.style.setProperty("--k", STEPS[S.step]);
+      p.style.setProperty("--font", `"${FONTS[S.font]}"`);
+    });
+  }
+  // The brush waits for the layout the colours and the size step have just changed.
+  requestAnimationFrame(() => document.querySelectorAll(".phone").forEach(brushAll));
+  contrasts();
+}
+
+function contrasts() {
+  const rows = [];
+  for (const [label, idx] of [["Clair", 0], ["Sombre", 1]]) {
+    const n = S.doc.palettes[idx].numbers;
+    const pairs = [
+      ["encre / papier", (c) => contrast(c.i, c.g), 4.5],
+      ["encre / lavis de tuile", (c) => contrast(c.i, c.w), 4.5],
+      ["secondaire / papier", (c) => contrast(c.d, c.g), 4.5],
+      ["secondaire / lavis de tuile", (c) => contrast(c.d, c.w), 4.5],
+      ["secondaire / lavis de carte", (c) => contrast(c.d, c.wc), 4.5],
+      ["secondaire / lavis de rail", (c) => contrast(c.d, c.wt), 4.5],
+      ["rouge / papier", (c) => contrast(c.a, c.g), 4.5],
+      ["sur rouge / rouge", (c) => contrast(c.oa, c.a), 4.5],
+      ["papier / encre (aplat)", (c) => contrast(c.g, c.i), 4.5],
+      ["états / papier", (c) => Math.min(...Object.keys(STATUS_HUES).map((k) => contrast(c["st-" + k], c.g))), 4.5],
+      ["tache de tag / papier", (c) => Math.min(...Object.keys(TAG_HUES).map((k) => contrast(c["tag-" + k], c.g))), 3],
+    ];
+    rows.push(`<tr><td colspan="3"><b>${label}</b></td></tr>`);
+    for (const [name, f, min] of pairs) {
+      const now = f(derive(n, S.shift));
+      let worst = Infinity;
+      for (let s = 0; s < 360; s += 15) worst = Math.min(worst, f(derive(n, s)));
+      const cls = (v) => v < min ? "low" : "okk";
+      rows.push(`<tr><td>${name}</td><td class="${cls(now)}">${now.toFixed(2)}</td><td class="${cls(worst)}">${worst.toFixed(2)}</td></tr>`);
+    }
+  }
+  document.getElementById("contrasts").innerHTML = rows.join("");
+}
+
+function sliders() {
+  const n = S.doc.palettes[S.edited].numbers;
+  const box = document.getElementById("sliders");
+  box.innerHTML = KNOBS.map(([k, label, min, max, step]) =>
+    `<div class="row"><div class="lab"><span>${label}</span><b id="o_${k}">${n[k]}</b></div><input type="range" data-k="${k}" min="${min}" max="${max}" step="${step}" value="${n[k]}"></div>`).join("");
+  box.querySelectorAll("input").forEach((inp) => inp.addEventListener("input", () => {
+    n[inp.dataset.k] = +inp.value;
+    document.getElementById("o_" + inp.dataset.k).textContent = inp.value;
+    setDirty(true); paint();
+  }));
+}
+
+function seg(id, labels, current, onPick) {
+  const el = document.getElementById(id);
+  el.innerHTML = labels.map((l, i) => `<button aria-pressed="${i === current}">${l}</button>`).join("");
+  el.querySelectorAll("button").forEach((b, i) => b.addEventListener("click", () => {
+    el.querySelectorAll("button").forEach((x, j) => x.setAttribute("aria-pressed", j === i));
+    onPick(i);
+  }));
+}
+
+function setDirty(d) {
+  S.dirty = d;
+  const el = document.getElementById("saved");
+  el.className = d ? "dirty" : "";
+  el.textContent = d ? "modifié, non enregistré" : "enregistré";
+}
+
+async function save() {
+  try {
+    const r = await fetch(SAVE_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(S.doc) });
+    if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+    setDirty(false);
+  } catch (e) {
+    const el = document.getElementById("saved"); el.className = "bad"; el.textContent = "échec de l'enregistrement : " + e.message;
+  }
+}
+
+async function main() {
+  const r = await fetch(PALETTES_URL, { cache: "no-store" });
+  if (!r.ok) throw new Error(`palettes.json: ${r.status}`);
+  S.doc = await r.json();
+  for (const col of ["colLight", "colDark"]) {
+    for (const t of ["screen", "sheet"]) {
+      const node = document.getElementById(t).content.cloneNode(true);
+      calendar(node);
+      document.getElementById(col).appendChild(node);
+    }
+  }
+  await loadIcons(document.body);
+  seg("segPalette", ["Clair", "Sombre"], 0, (i) => { S.edited = i; sliders(); });
+  seg("segFont", FONTS, 0, (i) => { S.font = i; paint(); });
+  seg("segStep", ["0", "1", "2", "3"], 0, (i) => { S.step = i; paint(); });
+  document.getElementById("shift").addEventListener("input", (e) => { S.shift = +e.target.value; document.getElementById("shiftOut").textContent = e.target.value; paint(); });
+  document.getElementById("btnSave").addEventListener("click", save);
+  window.addEventListener("beforeunload", (e) => { if (S.dirty) e.preventDefault(); });
+  sliders(); paint(); setDirty(false);
+  // A font that arrives moves the text, and so what the brush draws around it.
+  document.fonts.addEventListener("loadingdone", paint);
+}
+
+main().catch((e) => { const el = document.getElementById("saved"); el.className = "bad"; el.textContent = e.message; throw e; });
+</script>
+</body>
+</html>
