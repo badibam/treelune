@@ -68,6 +68,29 @@ sealed class Place {
         override fun parent() = Settings
     }
 
+    /** The choice of a new AI provider's kind, from the providers' settings page. */
+    object AIProviderKind : Place() {
+        override val kind = "ai_provider_kind"
+        override fun parent() = SettingsPage("ai_providers")
+    }
+
+    /**
+     * An AI provider's config: a stored one's when [id] is set, otherwise a new one's of
+     * [providerKind], copied from [copyOf] when duplicated.
+     */
+    data class AIProvider(val id: String?, val providerKind: String?, val copyOf: String?) : Place() {
+        override val kind = "ai_provider"
+        override val parameters get() = listOf(id, providerKind, copyOf)
+        override fun parent() = SettingsPage("ai_providers")
+    }
+
+    /** An identity, opened from the identities' settings page. */
+    data class Identity(val id: String) : Place() {
+        override val kind = "identity"
+        override val parameters get() = listOf(id)
+        override fun parent() = SettingsPage("identities")
+    }
+
     /** A zone to create, in a group of the home screen or none. */
     data class CreateZone(val group: String?) : Place() {
         override val kind = "zone_new"
@@ -166,6 +189,9 @@ sealed class Place {
                 "home" -> Home
                 "home_config" -> HomeConfig
                 "settings" -> p(1)?.let { SettingsPage(it) } ?: Settings
+                "identity" -> Identity(r(1))
+                "ai_provider_kind" -> AIProviderKind
+                "ai_provider" -> AIProvider(p(1), p(2), p(3))
                 "zone_new" -> CreateZone(p(1))
                 "zone" -> Zone(r(1))
                 "zone_config" -> ZoneConfig(r(1))

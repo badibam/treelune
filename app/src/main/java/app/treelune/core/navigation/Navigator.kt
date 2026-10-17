@@ -18,6 +18,9 @@ object PlaceStack {
     /** The top taken off, the home screen kept. */
     fun pop(stack: List<Place>): List<Place> = if (stack.size > 1) stack.dropLast(1) else stack
 
+    /** The top replaced by [place]: a step that leads on, back then skipping it. */
+    fun replace(stack: List<Place>, place: Place): List<Place> = if (stack.size > 1) stack.dropLast(1) + place else stack + place
+
     /** Everything above [index] taken off: back to the place at [index]. */
     fun popTo(stack: List<Place>, index: Int): List<Place> = stack.take((index + 1).coerceIn(1, stack.size))
 
@@ -97,6 +100,12 @@ object Navigator {
         val leaving = top
         set(PlaceStack.pop(stack))
         if (!leaving.overlay) UISounds.play(UISignal.BACK)
+    }
+
+    /** The top replaced by [place]: a kind chosen gives way to the new provider's config. */
+    fun replace(place: Place) {
+        set(PlaceStack.replace(stack, place))
+        if (!place.overlay) UISounds.play(UISignal.ENTER)
     }
 
     /** Back to the place at [index] of the stack, from the breadcrumb. */

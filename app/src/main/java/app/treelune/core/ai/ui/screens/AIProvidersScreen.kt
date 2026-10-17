@@ -16,6 +16,8 @@ import app.treelune.core.strings.Strings
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.commands.CommandStatus
 import app.treelune.core.ai.providers.AIProviderKinds
+import app.treelune.core.navigation.Navigator
+import app.treelune.core.navigation.Place
 import kotlinx.coroutines.launch
 
 /** A provider as a list or a choice shows it (ai_provider_config.list): its name, and its model beside. */
@@ -23,22 +25,10 @@ fun providerLabel(provider: Map<*, *>): String =
     provider["name"] as String + ((provider["model"] as String?)?.let { " · $it" } ?: "")
 
 /**
- * What the providers screen shows instead of the list: a provider's config, stored ([id]) or new
- * of [kind], copied from [copyOf] when duplicated; or the choice of a new provider's kind.
- */
-private data class Editing(val id: String? = null, val kind: String? = null, val copyOf: String? = null, val choosingKind: Boolean = false)
-
-private val EditingSaver = androidx.compose.runtime.saveable.listSaver<Editing?, Any?>(
-    save = { listOf(it?.id, it?.kind, it?.copyOf, it?.choosingKind, it != null) },
-    restore = { if (it[4] == true) Editing(it[0] as String?, it[1] as String?, it[2] as String?, it[3] as Boolean) else null }
-)
-
-/**
  * The AI providers the user created (docs/design/ai-providers.md): one card each, its name, its
- * model and its kind, the default marked; touched, its config. "Add a provider" chooses a kind, then
- * opens the config of a new one, named after its kind. The config of a stored one duplicates it,
- * makes it the default, or deletes it: refused while a routine names it, and the default deleted
- * while others remain asks which becomes it.
+ * model and its kind, the default marked; touched, its config (Place.AIProvider). "Add a provider"
+ * opens the choice of a kind (Place.AIProviderKind), which gives way to the config of a new one,
+ * named after its kind.
  */
 @Composable
 fun AIProvidersScreen(
@@ -47,60 +37,22 @@ fun AIProvidersScreen(
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     val coordinator = remember { Coordinator(context) }
-    val kinds = remember { AIProviderKinds(context) }
-    val coroutineScope = rememberCoroutineScope()
 
     var providers by remember { mutableStateOf<List<Map<*, *>>?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    var editing by rememberSaveable(stateSaver = EditingSaver) { mutableStateOf<Editing?>(null) }
 
-    fun reload() {
-        coroutineScope.launch {
-            val result = coordinator.processUserAction("ai_provider_config.list")
-            if (result.status == CommandStatus.SUCCESS) providers = (result.data?.get("providers") as List<*>).map { it as Map<*, *> }
-            else errorMessage = result.error ?: s.shared("error_unknown")
-        }
+    LaunchedEffect(Unit) {
+        val result = coordinator.processUserAction("ai_provider_config.list")
+        if (result.status == CommandStatus.SUCCESS) providers = (result.data?.get("providers") as List<*>).map { it as Map<*, *> }
+        else errorMessage = result.error ?: s.shared("error_unknown")
     }
-    LaunchedEffect(Unit) { reload() }
 
-    // Error display (toast pattern), before the config screen's early return: a refused save
-    // shows while the config screen is still open, not once it is left
+    // Error display (toast pattern)
     errorMessage?.let { error ->
         LaunchedEffect(error) {
             UI.Toast(context, error, Duration.LONG)
             errorMessage = null
         }
-    }
-
-    /** [operation] run with [params]; done, the list is read again and [then] runs. */
-    fun act(operation: String, params: Map<String, Any?>, then: () -> Unit = { editing = null }) {
-        coroutineScope.launch {
-            val result = coordinator.processUserAction(operation, params)
-            if (result.status == CommandStatus.SUCCESS) {
-                then()
-                reload()
-            } else errorMessage = result.error ?: s.shared("error_unknown")
-        }
-    }
-
-    val current = editing
-    if (current != null && current.choosingKind) {
-        androidx.activity.compose.BackHandler { editing = null }
-        KindChoice(kinds, onBack = { editing = null }, onChoose = { editing = Editing(kind = it) })
-        return
-    }
-    if (current != null) {
-        ProviderConfig(current, kinds, providers.orEmpty(), coordinator,
-            onError = { errorMessage = it },
-            onCancel = { editing = null },
-            onSave = { name, config ->
-                if (current.id != null) act("ai_provider_config.update", mapOf("provider_id" to current.id, "name" to name, "config" to JsonUtils.toMap(config)))
-                else act("ai_provider_config.create", mapOf("kind" to current.kind, "name" to name, "config" to JsonUtils.toMap(config)))
-            },
-            onDuplicate = { id, kind -> editing = Editing(kind = kind, copyOf = id) },
-            onSetDefault = { id -> act("ai_provider_config.set_default", mapOf("provider_id" to id)) },
-            onDelete = { id, newDefault -> act("ai_provider_config.delete", mapOf("provider_id" to id, "new_default_id" to newDefault)) })
-        return
     }
 
     Column(
@@ -130,7 +82,7 @@ fun AIProvidersScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { editing = Editing(id = provider["id"] as String) }
+                            .clickable { Navigator.push(Place.AIProvider(provider["id"] as String, null, null)) }
                             .padding(UI.Space.L),
                         verticalArrangement = Arrangement.spacedBy(UI.Space.XS)
                     ) {
@@ -146,18 +98,19 @@ fun AIProvidersScreen(
         }
 
         UI.FormActions {
-            UI.Button(type = ButtonType.PRIMARY, onClick = { editing = Editing(choosingKind = true) }) {
+            UI.Button(type = ButtonType.PRIMARY, onClick = { Navigator.push(Place.AIProviderKind) }) {
                 UI.Text(s.shared("ai_provider_add"), TextType.BODY)
             }
         }
     }
 }
 
-/** The kinds a new provider can be of, one card each with what it is. */
+/** The kinds a new provider can be of, one card each with what it is; one chosen gives way to the new provider's config. */
 @Composable
-private fun KindChoice(kinds: AIProviderKinds, onBack: () -> Unit, onChoose: (String) -> Unit) {
+fun AIProviderKindScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
+    val kinds = remember { AIProviderKinds(context) }
     Column(
         modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
@@ -174,7 +127,7 @@ private fun KindChoice(kinds: AIProviderKinds, onBack: () -> Unit, onChoose: (St
         kinds.all().forEach { kind ->
             UI.Card(type = CardType.DEFAULT, size = Size.M) {
                 Column(
-                    modifier = Modifier.fillMaxWidth().clickable { onChoose(kind.kind) }.padding(UI.Space.L),
+                    modifier = Modifier.fillMaxWidth().clickable { Navigator.replace(Place.AIProvider(null, kind.kind, null)) }.padding(UI.Space.L),
                     verticalArrangement = Arrangement.spacedBy(UI.Space.XS)
                 ) {
                     UI.Text(text = kind.kindName(context), type = TextType.SUBTITLE)
@@ -187,37 +140,68 @@ private fun KindChoice(kinds: AIProviderKinds, onBack: () -> Unit, onChoose: (St
 
 /**
  * The config of the provider [editing] names: read from the service when stored or copied, empty
- * and named after its kind when new. Deleting the default while others remain asks which becomes it.
+ * and named after its kind when new. Saved, made the default or deleted, it leaves for the list;
+ * duplicated, the copy opens over it. Deleting the default while others remain asks which becomes it.
+ *
+ * @param onName Names the place in the breadcrumb: the provider's name, once read
  */
 @Composable
-private fun ProviderConfig(
-    editing: Editing,
-    kinds: AIProviderKinds,
-    providers: List<Map<*, *>>,
-    coordinator: Coordinator,
-    onError: (String) -> Unit,
-    onCancel: () -> Unit,
-    onSave: (String, org.json.JSONObject) -> Unit,
-    onDuplicate: (String, String) -> Unit,
-    onSetDefault: (String) -> Unit,
-    onDelete: (String, String?) -> Unit
-) {
+fun AIProviderScreen(editing: Place.AIProvider, onName: @Composable (String) -> Unit, onBack: () -> Unit) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
+    val coordinator = remember { Coordinator(context) }
+    val kinds = remember { AIProviderKinds(context) }
+    val coroutineScope = rememberCoroutineScope()
+
+    // The others, for the default: which this one is, which may take its place
+    var providers by remember { mutableStateOf<List<Map<*, *>>>(emptyList()) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(Unit) {
+        val result = coordinator.processUserAction("ai_provider_config.list")
+        if (result.status == CommandStatus.SUCCESS) providers = (result.data?.get("providers") as List<*>).map { it as Map<*, *> }
+    }
+    errorMessage?.let { error ->
+        LaunchedEffect(error) {
+            UI.Toast(context, error, Duration.LONG)
+            errorMessage = null
+        }
+    }
+    val onError = { message: String -> errorMessage = message }
+
+    /** Back to the list of providers, wherever the config was opened from. */
+    fun toList() {
+        val index = Navigator.stack.indexOf(Place.SettingsPage("ai_providers"))
+        if (index >= 0) Navigator.popTo(index) else Navigator.pop()
+    }
+
+    /** [operation] run with [params]; done, back to the list. */
+    fun act(operation: String, params: Map<String, Any?>) {
+        coroutineScope.launch {
+            val result = coordinator.processUserAction(operation, params)
+            if (result.status == CommandStatus.SUCCESS) toList() else errorMessage = result.error ?: s.shared("error_unknown")
+        }
+    }
+    val onSave = { name: String, config: org.json.JSONObject ->
+        if (editing.id != null) act("ai_provider_config.update", mapOf("provider_id" to editing.id, "name" to name, "config" to JsonUtils.toMap(config)))
+        else act("ai_provider_config.create", mapOf("kind" to editing.providerKind, "name" to name, "config" to JsonUtils.toMap(config)))
+    }
+    val onDuplicate = { id: String, kind: String -> Navigator.push(Place.AIProvider(null, kind, id)) }
+    val onSetDefault = { id: String -> act("ai_provider_config.set_default", mapOf("provider_id" to id)) }
+    val onDelete = { id: String, newDefault: String? -> act("ai_provider_config.delete", mapOf("provider_id" to id, "new_default_id" to newDefault)) }
 
     // Its kind, name and config once read
     var loaded by remember(editing) { mutableStateOf<Triple<String, String, String>?>(null) }
     LaunchedEffect(editing) {
         val source = editing.id ?: editing.copyOf
         if (source == null) {
-            val kind = kinds.of(editing.kind!!)!!
+            val kind = kinds.of(editing.providerKind!!)!!
             loaded = Triple(kind.kind, kind.kindName(context), "{}")
             return@LaunchedEffect
         }
         val result = coordinator.processUserAction("ai_provider_config.get", mapOf("provider_id" to source))
         if (result.status != CommandStatus.SUCCESS) {
-            onError(result.error ?: s.shared("error_unknown"))
-            onCancel()
+            UI.Toast(context, result.error ?: s.shared("error_unknown"), Duration.LONG)
+            Navigator.drop(editing)
             return@LaunchedEffect
         }
         val data = result.data!!
@@ -242,6 +226,7 @@ private fun ProviderConfig(
         return
     }
 
+    onName(name)
     val id = editing.id
     val stored = providers.find { it["id"] == id }
     val isDefault = stored?.get("is_default") == true
@@ -268,7 +253,7 @@ private fun ProviderConfig(
         name = name,
         config = config,
         onSave = onSave,
-        onCancel = onCancel,
+        onCancel = onBack,
         onDuplicate = id?.let { { onDuplicate(it, kind.kind) } },
         onSetDefault = id?.takeIf { !isDefault }?.let { { onSetDefault(it) } },
         onDelete = id?.let { { if (needsNewDefault) choosingNewDefault = true else onDelete(it, null) } },

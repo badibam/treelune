@@ -18,7 +18,8 @@ class PlaceStackTest {
     private val kitchen = Place.Zone("z-kitchen")
 
     private val everyPlace = listOf(
-        Place.Home, Place.HomeConfig, Place.Settings, Place.SettingsPage("ai_providers"),
+        Place.Home, Place.HomeConfig, Place.Settings, Place.SettingsPage("ai_providers"), Place.Identity("i1"),
+        Place.AIProviderKind, Place.AIProvider("p-1", null, null), Place.AIProvider(null, "openai", "p-1"),
         Place.CreateZone(null), Place.CreateZone("Vie / perso"), course, Place.ZoneConfig("z-course"), runs,
         Place.ToolConfig("z-course", "tracking", "t-runs", null), Place.ToolConfig("z-course", "chart", null, "Analyse"),
         Place.Variable("z-course", null, "Corps"), Place.Variable("z-course", "v-1", null),
@@ -97,5 +98,15 @@ class PlaceStackTest {
     fun aDeletedZoneTakesItsPlacesWithIt() {
         val stack = listOf(home, kitchen, Place.Chat, course, runs, Place.ToolConfig("z-course", "tracking", "t-runs", null))
         assertEquals(listOf(home, kitchen, Place.Chat), PlaceStack.dropZone(stack, "z-course"))
+    }
+
+    @Test
+    fun aReplacedStepIsSkippedOnTheWayBack() {
+        val providers = Place.SettingsPage("ai_providers")
+        val new = Place.AIProvider(null, "openai", null)
+        val stack = PlaceStack.replace(listOf(home, Place.Settings, providers, Place.AIProviderKind), new)
+        assertEquals(listOf(home, Place.Settings, providers, new), stack)
+        assertEquals(listOf(home, Place.Settings, providers), PlaceStack.pop(stack))
+        assertEquals(listOf(home, new), PlaceStack.replace(listOf(home), new))
     }
 }

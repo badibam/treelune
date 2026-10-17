@@ -23,8 +23,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
+import app.treelune.core.grid.Grid
 import app.treelune.core.guide.ui.GuideText
 import app.treelune.core.identities.IdentityLanguage
+import app.treelune.core.navigation.Navigator
+import app.treelune.core.navigation.Place
 import app.treelune.core.strings.Strings
 import app.treelune.core.themes.CurrentTheme
 import app.treelune.core.themes.IconColor
@@ -36,6 +39,7 @@ import app.treelune.core.ui.Duration
 import app.treelune.core.ui.FieldType
 import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
+import app.treelune.core.ui.components.GridLayout
 import app.treelune.core.utils.DataChangeEvent
 import app.treelune.core.utils.DataChangeNotifier
 import kotlinx.coroutines.launch
@@ -53,15 +57,10 @@ fun IdentitiesScreen(onBack: () -> Unit) {
     val coordinator = remember { Coordinator(context) }
     val identities = rememberIdentities()
 
-    var openId by rememberSaveable { mutableStateOf<String?>(null) }
     var creating by rememberSaveable { mutableStateOf(false) }
     // An export read, waiting for its confirmation: its text and its preview
     var importing by remember { mutableStateOf<Pair<String, Map<*, *>>?>(null) }
 
-    openId?.let { id ->
-        IdentityScreen(id, onBack = { openId = null })
-        return
-    }
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri ?: return@rememberLauncherForActivityResult
@@ -101,15 +100,21 @@ fun IdentitiesScreen(onBack: () -> Unit) {
         when {
             identities == null -> UI.Text(s.shared("message_loading"), TextType.BODY)
             identities.isEmpty() -> UI.Text(s.shared("identity_none_yet"), TextType.BODY)
-            else -> identities.forEach { identity ->
-                CurrentTheme.current.ZoneCardContainer(texture = null, onClick = { openId = identity.id }, onLongClick = {}) {
+            // A tile a row, the grid's whole width and one row high: the tile's icon takes its size from the grid's row
+            else -> GridLayout(
+                identities.mapIndexed { i, identity -> Grid.Tile(identity.id, 0, i, Grid.COLUMNS, 1) },
+                identities.map { false },
+                edit = null
+            ) { i ->
+                val identity = identities[i]
+                CurrentTheme.current.ZoneCardContainer(texture = null, onClick = { Navigator.push(Place.Identity(identity.id)) }, onLongClick = {}) {
                     UI.TileHeader(identity.iconName, IconColor.of(identity.iconColor), identity.name, waiting = false, running = false, textType = TextType.HEADING)
                 }
             }
         }
     }
 
-    if (creating) NewIdentityDialog(onDismiss = { creating = false }, onCreated = { creating = false; openId = it })
+    if (creating) NewIdentityDialog(onDismiss = { creating = false }, onCreated = { creating = false; Navigator.push(Place.Identity(it)) })
     importing?.let { (text, preview) ->
         ImportDialog(preview, onDismiss = { importing = null }) { language ->
             scope.launch {
@@ -205,11 +210,11 @@ private fun ImportDialog(preview: Map<*, *>, onDismiss: () -> Unit, onConfirm: (
 /**
  * One identity: its name, icon and the language it speaks; its three texts and its bagage in the
  * language shown, each read laid out and edited as written; its deletion, refused while a zone
- * or a routine names it.
+ * or a routine names it. A place of its own (Place.Identity): [onName] names it in the
+ * breadcrumb, [onGone] leaves it once the identity is deleted or not found.
  */
 @Composable
-private fun IdentityScreen(id: String, onBack: () -> Unit) {
-    BackHandler(onBack = onBack)
+fun IdentityScreen(id: String, onName: @Composable (String) -> Unit, onBack: () -> Unit, onGone: () -> Unit) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     val scope = rememberCoroutineScope()
@@ -220,7 +225,7 @@ private fun IdentityScreen(id: String, onBack: () -> Unit) {
     LaunchedEffect(id, version) {
         val result = coordinator.processUserAction("identities.get", mapOf("identity_id" to id))
         if (result.isSuccess) identity = result.data!!["identity"] as Map<*, *>
-        else { UI.Toast(context, result.error ?: s.shared("error_operation_failed"), Duration.LONG); onBack() }
+        else { UI.Toast(context, result.error ?: s.shared("error_operation_failed"), Duration.LONG); onGone() }
     }
     LaunchedEffect(id) {
         DataChangeNotifier.changes.collect { if (it is DataChangeEvent.IdentitiesChanged) version++ }
@@ -229,6 +234,7 @@ private fun IdentityScreen(id: String, onBack: () -> Unit) {
         UI.Text(s.shared("message_loading"), TextType.BODY)
         return
     }
+    onName(shown["name"] as String)
     val sections = shown["sections"] as Map<*, *>
     val languages = sections.keys.map { it as String }
 
@@ -240,6 +246,9 @@ private fun IdentityScreen(id: String, onBack: () -> Unit) {
     // What is being written: a text by its key, a resource by its key ("" for a new one)
     var editingPiece by rememberSaveable { mutableStateOf<String?>(null) }
     var editingResource by rememberSaveable { mutableStateOf<String?>(null) }
+    // Its icon's colour chosen on a page of its own, as a zone's or a tool's (iconColorPage)
+    var choosingColor by rememberSaveable(id) { mutableStateOf(false) }
+    val colorPage = remember(iconName) { app.treelune.core.ui.components.iconColorPage(s.shared("label_icon_color"), iconName, texture = null) }
 
     fun update(params: Map<String, Any?>, after: () -> Unit = {}) = scope.launch {
         val result = coordinator.processUserAction("identities.update", mapOf("identity_id" to id) + params)
@@ -273,14 +282,29 @@ private fun IdentityScreen(id: String, onBack: () -> Unit) {
             return@Column
         }
 
+        if (choosingColor) {
+            BackHandler { choosingColor = false }
+            app.treelune.core.fields.settings.PageHeader(listOf(colorPage.label), context) { choosingColor = false }
+            // A colour taken closes the page, back on the identity
+            colorPage.Edit(iconColor) { iconColor = it as String?; choosingColor = false }
+            return@Column
+        }
+
         // Its name, icon and the language it speaks
         UI.Card(type = CardType.DEFAULT) {
             Column(modifier = Modifier.fillMaxWidth().padding(UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
                 UI.FormField(label = s.shared("label_name"), value = name, onChange = { name = it }, required = true)
                 app.treelune.core.ui.components.IconSelector(current = iconName, color = IconColor.of(iconColor), onChange = { iconName = it })
-                // An identity has no texture: its colour chosen in place, under its name
-                UI.Text(s.shared("label_icon_color"), TextType.LABEL)
-                app.treelune.core.ui.components.IconColorSelector(current = iconColor, iconName = iconName, texture = null, onChange = { iconColor = it })
+                // An identity has no texture: its colour's line alone, which opens its page
+                app.treelune.core.fields.settings.PageLine(
+                    title = { UI.Text(colorPage.label, TextType.SUBTITLE) },
+                    summary = { colorPage.Summary(iconColor) },
+                    nodes = emptyList(),
+                    config = org.json.JSONObject(),
+                    context = context,
+                    onOpen = { choosingColor = true },
+                    trailing = {}
+                )
                 UI.FormSelection(label = s.shared("identity_language"), options = languages, selected = language, onSelect = { language = it }, required = true)
                 UI.FormActions {
                     UI.ActionButton(action = ButtonAction.SAVE, onClick = {
@@ -329,7 +353,7 @@ private fun IdentityScreen(id: String, onBack: () -> Unit) {
                 onClick = {
                     scope.launch {
                         val result = coordinator.processUserAction("identities.delete", mapOf("identity_id" to id))
-                        if (result.isSuccess) onBack() else UI.Toast(context, result.error ?: s.shared("error_operation_failed"), Duration.LONG)
+                        if (result.isSuccess) onGone() else UI.Toast(context, result.error ?: s.shared("error_operation_failed"), Duration.LONG)
                     }
                 }
             )

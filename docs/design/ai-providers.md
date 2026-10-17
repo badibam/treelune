@@ -29,8 +29,8 @@ Conçu le 2026-10-17. Aujourd'hui, huit fournisseurs sont écrits en dur (`AIPro
 
 ## L'écran
 
-- **Réglages › Fournisseurs d'IA** (`AIProvidersScreen`) : une carte par fournisseur créé (nom, modèle, sorte, marque du défaut) ; la toucher ouvre sa config, en bas de laquelle « Dupliquer », « Supprimer », « Par défaut ».
-- **« Ajouter un fournisseur »** ouvre le choix des quatre sortes, une tuile chacune avec ce qu'elle est (« Autre serveur : Ollama, LM Studio, OpenRouter, tout serveur qui parle l'API Chat Completions »), puis le formulaire. Liste vide : une phrase sur ce qu'est un fournisseur et le bouton.
+- **Réglages › Fournisseurs d'IA** (`AIProvidersScreen`) : une carte par fournisseur créé (nom, modèle, sorte, marque du défaut) ; la toucher ouvre sa config (un lieu, `Place.AIProvider`), en bas de laquelle « Dupliquer » (la copie s'ouvre par-dessus), « Supprimer », « Par défaut » ; enregistrée, supprimée ou faite défaut, on revient à la liste.
+- **« Ajouter un fournisseur »** ouvre le choix des quatre sortes (`Place.AIProviderKind`, que la config du nouveau remplace dans la pile), une tuile chacune avec ce qu'elle est (« Autre serveur : Ollama, LM Studio, OpenRouter, tout serveur qui parle l'API Chat Completions »), puis le formulaire. Liste vide : une phrase sur ce qu'est un fournisseur et le bouton.
 - **Le Guide**, chapitre « Brancher une IA » : une étape « Ajoute un fournisseur » (le choix de la sorte n'a pas d'opération qui validerait une étape à lui), qui attend `ai_provider_config.create` ; la clé dite facultative pour un serveur à soi, le défaut nommé, et le coût d'un serveur à soi mis à 0.
 
 ## Ce qui change ailleurs

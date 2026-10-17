@@ -354,7 +354,7 @@ fun SettingsForm(
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun PageHeader(labels: List<String>, context: Context, onGo: (Int) -> Unit) {
+internal fun PageHeader(labels: List<String>, context: Context, onGo: (Int) -> Unit) {
     val s = remember { Strings.`for`(context = context) }
     UI.Card(type = CardType.DEFAULT, highlight = true) {
         Row(modifier = Modifier.padding(UI.Space.S), verticalAlignment = Alignment.CenterVertically) {
@@ -378,7 +378,7 @@ private fun PageHeader(labels: List<String>, context: Context, onGo: (Int) -> Un
  * opens the page. [trailing] keeps its own gestures.
  */
 @Composable
-private fun PageLine(
+internal fun PageLine(
     title: (@Composable () -> Unit)?,
     summary: @Composable () -> Unit,
     nodes: List<SettingNode>,

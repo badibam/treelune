@@ -257,6 +257,17 @@ private fun PlaceScreen(place: Place, zones: ZonesState, demoInstalled: Boolean)
                     else -> throw IllegalArgumentException("No settings page '${place.id}'")
                 }
             }
+            Place.AIProviderKind -> {
+                name(s.shared("ai_provider_choose_kind"))
+                app.treelune.core.ai.ui.screens.AIProviderKindScreen(onBack = back)
+            }
+            is Place.AIProvider -> app.treelune.core.ai.ui.screens.AIProviderScreen(place, onName = { name(it) }, onBack = back)
+            is Place.Identity -> app.treelune.core.identities.ui.IdentityScreen(
+                place.id,
+                onName = { name(it) },
+                onBack = back,
+                onGone = { Navigator.drop(place) }
+            )
             is Place.CreateZone -> {
                 name(s.shared("nav_new_zone"))
                 CreateZoneScreen(preSelectedGroup = place.group, onCancel = back, onCreate = back)

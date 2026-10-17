@@ -46,6 +46,10 @@ object GuidePath {
             Place.HomeConfig -> t("guide_path_home_config")
             Place.Settings -> t("guide_path_settings")
             is Place.SettingsPage -> t("guide_path_settings_page", n)
+            // An identity's tile touched on its settings page, as a page's on the settings
+            is Place.Identity -> t("guide_path_settings_page", n)
+            Place.AIProviderKind -> t("guide_path_settings_page", t("ai_provider_add"))
+            is Place.AIProvider -> t("guide_path_settings_page", n)
             Place.Guide -> t("guide_path_guide")
             is Place.Chapter -> t("guide_path_chapter", n)
             Place.Chat -> t("guide_path_chat")
