@@ -467,8 +467,10 @@
     <string name="ai_cost_unknown_calls">Appels au coût inconnu : %d</string>
     <string name="ai_cost_at_least">≥ %s</string>
     <string name="ai_cost_loading">Chargement des coûts…</string>
-    <string name="ai_cost_currency_usd">USD</string>
-    <string name="ai_cost_breakdown_title">Détail des coûts</string>
+    <string name="ai_stats_by_model">Par modèle</string>
+    <string name="ai_stats_calls">Appels à l\'IA</string>
+    <string name="ai_stats_last_sent">Dernier envoi</string>
+    <string name="ai_stats_last_sent_help">Ce qui est parti à l\'IA avec le dernier message. Il grandit avec la conversation, et chaque nouveau message le coûte à nouveau, en partie relu depuis le cache.</string>
     <string name="ai_cost_session_total">Coût session</string>
 
     <!-- AI COSTS - Errors -->

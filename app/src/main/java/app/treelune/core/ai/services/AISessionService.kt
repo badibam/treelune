@@ -10,6 +10,7 @@ import app.treelune.core.database.AppDatabase
 import app.treelune.core.ai.database.AISessionEntity
 import app.treelune.core.ai.database.reasoning
 import app.treelune.core.ai.database.runWaits
+import app.treelune.core.ai.database.toDomain
 import app.treelune.core.ai.database.SessionMessageEntity
 import app.treelune.core.coordinator.CancellationToken
 import app.treelune.core.services.ExecutableService
@@ -70,8 +71,8 @@ class AISessionService(private val context: Context) : ExecutableService {
                 "update_message" -> updateMessage(params, token)
                 "delete_message" -> deleteMessage(params, token)
 
-                // Cost calculation
-                "get_cost" -> getSessionCost(params, token)
+                // What a conversation cost, and what it did
+                "get_stats" -> getSessionStats(params, token)
 
                 // What the session adds to the protections, written whole
                 "update_validation" -> updateValidation(params, token)
@@ -813,30 +814,40 @@ class AISessionService(private val context: Context) : ExecutableService {
     }
 
     /**
-     * Get session cost calculation
-     * Calculates total cost for a session based on token usage and LiteLLM pricing
+     * What the session [session_id] cost and did, read from its messages: its tokens and cost
+     * (SessionCost, a lower bound with calls of unknown cost), its calls to the AI, the size of the
+     * last request sent (uncached input and cache, what each new message adds to), the cost of each
+     * model it called, and its writes done and refused or failed (RunEnd.facts).
      */
-    private suspend fun getSessionCost(params: JSONObject, token: CancellationToken): OperationResult {
+    private suspend fun getSessionStats(params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
 
         val sessionId = params.optString("session_id").takeIf { it.isNotEmpty() }
             ?: return OperationResult.error(s.shared("error_session_id_required"))
 
-        LogManager.aiSession("Getting cost for session: $sessionId", "DEBUG")
+        LogManager.aiSession("Getting stats for session: $sessionId", "DEBUG")
 
         try {
-            val database = AppDatabase.getDatabase(context)
+            val dao = AppDatabase.getDatabase(context).aiDao()
+            dao.getSession(sessionId) ?: return OperationResult.error(s.shared("ai_error_session_not_found").format(sessionId))
 
-            // Get session
-            val session = database.aiDao().getSession(sessionId)
-                ?: return OperationResult.error(s.shared("ai_error_session_not_found").format(sessionId))
+            val calls = dao.getCallUsages(listOf(sessionId)).map { it.toCallUsage() }
+            val cost = SessionCost.of(calls)
+            val lastSent = calls.lastOrNull { !it.usageUnknown }?.let { it.inputTokens + it.cacheWriteTokens + it.cacheReadTokens }
+            // A call whose usage never came back has no model: it counts in the total alone
+            val byModel = calls.mapNotNull { call -> call.pricing?.let { it.modelId to call } }
+                .groupBy({ it.first }, { it.second })
+                .map { (model, its) ->
+                    val modelCost = SessionCost.of(its)
+                    mapOf("model_id" to model, "calls" to its.size, "total_cost" to modelCost.totalCost,
+                        "calls_with_unknown_cost" to modelCost.callsWithUnknownCost)
+                }
+            val writes = app.treelune.core.ai.orchestration.RunEnd.facts(
+                dao.getMessagesForSession(sessionId).map { it.toDomain() }, null)
 
-            val cost = SessionCost.of(database.aiDao().getCallUsages(listOf(sessionId)).map { it.toCallUsage() })
+            LogManager.aiSession("Session stats: sessionId=$sessionId, total=\$${String.format("%.3f", cost.totalCost)}, calls=${calls.size}, calls with unknown cost=${cost.callsWithUnknownCost}", "DEBUG")
 
-            LogManager.aiSession("Session cost: sessionId=$sessionId, total=\$${String.format("%.3f", cost.totalCost)}, calls with unknown cost=${cost.callsWithUnknownCost}", "DEBUG")
-
-            // Costs count known prices only: with calls of unknown cost, they are a lower bound
-            val resultMap = mapOf(
+            return OperationResult.success(mapOf(
                 "session_id" to sessionId,
                 "total_uncached_input_tokens" to cost.uncachedInputTokens,
                 "total_cache_write_tokens" to cost.cacheWriteTokens,
@@ -848,13 +859,16 @@ class AISessionService(private val context: Context) : ExecutableService {
                 "output_cost" to cost.outputCost,
                 "total_cost" to cost.totalCost,
                 "calls_with_unknown_cost" to cost.callsWithUnknownCost,
-                "currency" to "USD"
-            )
-
-            return OperationResult.success(resultMap)
+                "currency" to "USD",
+                "calls" to calls.size,
+                "by_model" to byModel,
+                "writes_done" to writes.written,
+                "writes_failed" to writes.failed
+            // Absent before a call's usage came back
+            ) + (lastSent?.let { mapOf("last_sent_tokens" to it) } ?: emptyMap()))
 
         } catch (e: Exception) {
-            LogManager.aiSession("Failed to get session cost: ${e.message}", "ERROR", e)
+            LogManager.aiSession("Failed to get session stats: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("error_cost_calculation_failed"))
         }
     }

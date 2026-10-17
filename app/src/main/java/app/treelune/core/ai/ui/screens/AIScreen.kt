@@ -322,7 +322,7 @@ private fun ChatMode(
 
         // Stats dialog
         if (showStats) {
-            app.treelune.core.ai.ui.chat.SessionStatsDialog(
+            app.treelune.core.ai.ui.SessionStatsDialog(
                 sessionId = session.id,
                 sessionName = session.name,
                 onDismiss = { showStats = false }

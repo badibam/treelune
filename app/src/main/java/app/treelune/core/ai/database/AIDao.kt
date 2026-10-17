@@ -84,12 +84,13 @@ interface AIDao {
 
     // === Messages ===
 
-    /** What the messages of these sessions say about their AI calls' cost: see SessionCost */
+    /** What the messages of these sessions say about their AI calls' cost, oldest first: see SessionCost */
     @Query("""
         SELECT session_id, input_tokens, cache_write_tokens, cache_read_tokens, output_tokens,
                model_id, input_price, cache_write_price, cache_read_price, output_price, usage_unknown
         FROM session_messages
         WHERE session_id IN (:sessionIds) AND (sender = 'AI' OR usage_unknown = 1)
+        ORDER BY timestamp ASC
     """)
     suspend fun getCallUsages(sessionIds: List<String>): List<CallUsageRow>
 

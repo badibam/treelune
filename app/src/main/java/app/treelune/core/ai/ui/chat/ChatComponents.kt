@@ -484,55 +484,6 @@ private fun SessionReasoningSettings(providerId: String, reasoning: SessionReaso
 }
 
 /**
- * Session stats dialog - displays cost breakdown
- */
-@Composable
-fun SessionStatsDialog(
-    sessionId: String,
-    sessionName: String,
-    onDismiss: () -> Unit
-) {
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(
-            dismissOnBackPress = true,
-            dismissOnClickOutside = true
-        )
-    ) {
-        UI.Card(type = CardType.DEFAULT) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .scrollEndSound()
-                    .padding(UI.Space.L),
-                verticalArrangement = Arrangement.spacedBy(UI.Space.L)
-            ) {
-                // Header
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    UI.Text(
-                        text = sessionName,
-                        type = TextType.TITLE
-                    )
-                    UI.ActionButton(
-                        action = ButtonAction.CANCEL,
-                        display = ButtonDisplay.ICON,
-                        size = Size.S,
-                        onClick = onDismiss
-                    )
-                }
-
-                // Cost display
-                app.treelune.core.ai.ui.SessionCostDisplay(sessionId = sessionId)
-            }
-        }
-    }
-}
-
-/**
  * Asks whether data above the CHAT size threshold goes to the AI. For the tools sent always
  * ([alwaysSend]), the message above already says what is asked and that it holds for the
  * session: the card only titles it and answers.
