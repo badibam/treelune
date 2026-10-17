@@ -254,6 +254,21 @@ internal class BlobShape(private val seed: Int) : Shape {
         Outline.Generic(blob(Offset(size.width / 2, size.height / 2), min(size.width, size.height) * 0.49f, seed, HAND_ROUND, HAND_SQUASHING))
 }
 
+/** The draw of a seal's shape. */
+private const val SEAL_SEED = 23
+
+/**
+ * [shape]'s outline traced by hand: its sides trembling along their normal by a fortieth of its
+ * smaller side, the draw of [seed].
+ */
+internal class HandShape(private val shape: Shape, private val seed: Int) : Shape {
+    override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+        val side = min(size.width, size.height)
+        val path = Path().apply { addOutline(shape.createOutline(size, layoutDirection, density)) }
+        return Outline.Generic(wavering(path, amplitude = side / 40f, step = side / 16f, seed = seed))
+    }
+}
+
 /** A disc painted by hand, its waves round its edge (waves round, part of the radius): a faint oval, a slight lopsidedness, and a fine tremor of the hand. */
 internal val HAND_ROUND = listOf(2 to 0.018f, 3 to 0.012f, 7 to 0.006f, 11 to 0.004f)
 
@@ -331,13 +346,16 @@ internal fun InkIcon(resourceId: Int, size: Dp, tint: Color, description: String
     Image(bitmap = mask, contentDescription = description, colorFilter = ColorFilter.tint(tint), modifier = modifier.size(size))
 }
 
-/** A seal: a square of red, its corners pressed unevenly, holding [text] (an initial, a "!") or nothing. */
+/**
+ * A seal pressed by hand: a square of red, its corners pressed unevenly and its sides trembling a
+ * little, or [round], a disc painted by hand; holding [text] (an initial, a "!") or nothing.
+ */
 @Composable
 internal fun Seal(side: Dp, text: String?, round: Boolean = false) {
     val size = inkSize()
     val c = inkColors
-    val shape = if (round) androidx.compose.foundation.shape.RoundedCornerShape(48, 52, 50, 46)
-        else androidx.compose.foundation.shape.RoundedCornerShape(size.dp(3f), size.dp(6f), size.dp(2f), size.dp(7f))
+    val shape = if (round) BlobShape(SEAL_SEED)
+        else HandShape(androidx.compose.foundation.shape.RoundedCornerShape(size.dp(3f), size.dp(6f), size.dp(2f), size.dp(7f)), SEAL_SEED)
     Box(modifier = Modifier.size(side).background(c.accent, shape), contentAlignment = Alignment.Center) {
         if (text != null) {
             BasicText(text, style = size.strong.copy(color = c.onAccent, fontSize = (side.value * 0.56f).sp, letterSpacing = 0.sp, lineHeight = (side.value * 0.7f).sp))
