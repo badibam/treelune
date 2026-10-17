@@ -90,6 +90,7 @@ Une idée sans spec : elle demande une décision avant du code.
 ### Interface
 
 - Les thèmes Encre et lavis, puis Signalétique de métro (les suivants du classement de `docs/theme-tracks.json`, Suisse fait) : la recette de `docs/THEMES.md`, de l'étape 0, le banc de Suisse et ses pièces plates pour départ d'Encre.
+- Lucide redessiné à leur manière pour le cosy et le suisse, comme le pinceau d'Encre et lavis (`docs/design/ink-theme.md`, ligne 9), un trait à chacun : une fois la brique du cœur qui lit les tracés d'une icône codée et tenue sur le téléphone avec Encre.
 - Les onglets de Messages, à remplacer par un classement par thèmes.
 - Dessiner le gras et l'italique des textes lus (identités, Guide) : le lecteur (`GuideMarkup`) retire leurs marques, les thèmes ne dessinant qu'un texte simple (`ThemeContract.Text`) ; l'étendre à un texte mis en forme dans les trois thèmes, la police du rétro comprise.
 
