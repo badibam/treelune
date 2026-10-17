@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Encre et lavis · pinceau</title>
+<style>
+  :root { --paper: #f3eee2; --ink: #1d1c1a; --sec: #5f5a52; --night: #1b1a18; --rice: #e9e3d5; }
+  body { margin: 0; font-family: Georgia, serif; background: #d9d4c8; color: var(--ink); }
+  header { position: sticky; top: 0; z-index: 2; background: var(--paper); border-bottom: 1px solid #0002; padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; }
+  header h1 { font-size: 18px; margin: 0 12px 0 0; letter-spacing: .08em; }
+  label { font-size: 13px; display: flex; gap: 6px; align-items: center; }
+  label output { min-width: 2.5em; font-variant-numeric: tabular-nums; }
+  button { font: inherit; font-size: 13px; padding: 4px 10px; }
+  .modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(560px, 1fr)); }
+  .mode { padding: 16px; }
+  .mode.light { background: var(--paper); color: var(--ink); }
+  .mode.dark { background: var(--night); color: var(--rice); }
+  .mode.dark .k { color: #a49e92; }
+  h2 { font-size: 15px; letter-spacing: .1em; margin: 18px 0 6px; font-weight: 700; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 4px 0 10px; }
+  .k { font-size: 12px; color: var(--sec); width: 100%; }
+  .row svg, .row canvas { display: block; }
+  p.note { font-size: 13px; color: var(--sec); max-width: 70ch; margin: 8px 16px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Icônes au pinceau</h1>
+  <label>Épaisseur <input id="width" type="range" min="1" max="3" step="0.1" value="1.3"><output></output></label>
+  <label>Effilé <input id="taper" type="range" min="0" max="1" step="0.05" value="0.5"><output></output></label>
+  <label>Sens du pinceau <input id="direction" type="range" min="0" max="1" step="0.05" value="0.45"><output></output></label>
+  <label>Appui aux coudes <input id="corner" type="range" min="0" max="1" step="0.05" value="1"><output></output></label>
+  <label>Pose du pinceau <input id="attack" type="range" min="-1" max="1" step="0.05" value="0.45"><output></output></label>
+  <label>Ampleur <input id="swell" type="range" min="0" max="0.5" step="0.02" value="0.3"><output></output></label>
+  <label>Brosse sèche <input id="dry" type="range" min="0" max="1" step="0.05" value="0"><output></output></label>
+  <label>Bord mouillé <input id="wet" type="checkbox" checked></label>
+  <button id="reseed">Autre geste</button>
+</header>
+<p class="note">Approximatif : chaque tracé de Lucide est parcouru point par point et redessiné en une suite de petits disques dont la taille varie (brush.js : le pinceau tenu de biais, qui appuie au départ et dans les coudes, gonfle lentement et se lève en pointe). Le thème fait de même sur le téléphone avec les tracés de l'icône (docs/design/ink-theme.md, ligne 9) ; les curseurs s'ouvrent sur ses réglages. Les tailles sont en pixels de l'écran de l'ordinateur : une icône de 24 dp sur le téléphone se voit à peu près comme celle de 24 ou 32 ici.</p>
+<div class="modes">
+  <section class="mode light" data-ink="#1d1c1a"></section>
+  <section class="mode dark" data-ink="#e9e3d5"></section>
+</div>
+<script src="brush.js"></script>
+<script>
+"use strict";
+// The icons the app shows most, read from the copy of Lucide (the page is served from the repository's root).
+const NAMES = ["droplet", "moon", "sparkles", "arrow-left", "ellipsis", "check", "plus", "trash", "settings", "calendar", "clock", "heart", "book-open", "list-checks", "chart-column", "footprints", "utensils", "dumbbell", "bed", "pencil", "search", "bell", "house", "leaf", "message-circle", "face-grinning", "timer", "target", "star", "folder"];
+const ICONS = {};
+const STROKES = {};
+const SIZES = [24, 32, 48, 96];
+const KNOBS = ["width", "taper", "direction", "corner", "attack", "swell", "dry"];
+const $ = (id) => document.getElementById(id);
+const params = () => ({ ...Object.fromEntries(KNOBS.map((k) => [k, +$(k).value])), wet: $("wet").checked });
+let seed = 1;
+
+function lucideSvg(name, sizePx, strokeWidth) {
+  return `<svg width="${sizePx}" height="${sizePx}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]}</svg>`;
+}
+
+function render() {
+  const p = params();
+  for (const k of KNOBS) $(k).nextElementSibling.value = $(k).value;
+  for (const mode of document.querySelectorAll(".mode")) {
+    const ink = mode.dataset.ink;
+    mode.innerHTML = `<h2>${mode.classList.contains("light") ? "CLAIR" : "SOMBRE"}</h2>`;
+    for (const size of SIZES) {
+      const h = document.createElement("h2"); h.textContent = size + " px"; mode.appendChild(h);
+      for (const [label, sw] of [["Lucide, trait de 2 (aujourd'hui)", 2], ["Lucide, trait de 1,5", 1.5], ["Pinceau", null]]) {
+        const row = document.createElement("div"); row.className = "row";
+        row.innerHTML = `<span class="k">${label}</span>`;
+        for (const name of NAMES) {
+          if (sw) row.insertAdjacentHTML("beforeend", lucideSvg(name, size, sw));
+          else {
+            const c = document.createElement("canvas");
+            InkBrush.paint(c, STROKES[name], { viewW: 24, viewH: 24, cssW: size, cssH: size }, ink, p, seed + name.length);
+            row.appendChild(c);
+          }
+        }
+        mode.appendChild(row);
+      }
+    }
+  }
+}
+
+// The sliders open on the theme's settings.
+for (const k of KNOBS) $(k).value = InkBrush.SETTINGS[k];
+$("wet").checked = InkBrush.SETTINGS.wet;
+for (const el of document.querySelectorAll("header input")) el.addEventListener("input", render);
+$("reseed").addEventListener("click", () => { seed++; render(); });
+Promise.all(NAMES.map(async (name) => {
+  ICONS[name] = InkBrush.lucideInner(await (await fetch(`/third_party/lucide/icons/${name}.svg`)).text());
+})).then(() => {
+  for (const name of NAMES) STROKES[name] = InkBrush.strokes(ICONS[name]);
+  render();
+});
+</script>
+</body>
+</html>
