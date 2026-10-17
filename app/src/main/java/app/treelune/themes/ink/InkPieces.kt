@@ -143,14 +143,15 @@ internal fun DrawScope.drawSpread(color: Color, center: Offset) {
 }
 
 /**
- * A soft wash of [color] round what it is put on, reaching past it by a third: an icon's colour,
- * a tag's mark. It takes no room of its own.
+ * A soft wash of [color] round what it is put on, reaching past it by a third, [strength] its
+ * opacity at its heart (InkColors.colorWashAlpha): an icon's colour, a tag's mark. It takes no
+ * room of its own.
  */
-internal fun Modifier.colorWash(color: Color): Modifier = drawBehind {
+internal fun Modifier.colorWash(color: Color, strength: Float): Modifier = drawBehind {
     val r = min(size.width, size.height) * 0.8f
     drawCircle(
         Brush.radialGradient(
-            0f to color.copy(alpha = 0.45f), 0.55f to color.copy(alpha = 0.30f), 0.9f to color.copy(alpha = 0f),
+            0f to color.copy(alpha = strength), 0.55f to color.copy(alpha = strength * 0.66f), 0.9f to color.copy(alpha = 0f),
             center = center, radius = r
         ),
         radius = r, center = center
