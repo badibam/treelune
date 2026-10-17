@@ -64,6 +64,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - Les bugs du téléphone du 2026-10-17 : la section du même nom de la recette.
 - La répétition d'un Objectif, « Une fois » ou « Récurrent » (branche goal-repetition) : migration 79, sa ligne de la section « Objectif » de la recette.
 - Les conditions typées à l'écriture (`docs/design/typed-conditions.md`, branche typed-conditions) : la section du même nom de la recette ; passé, élaguer la spec.
+- La démo enrichie (branche demo-guide), jamais installée par les services : « Demo installed » dans le journal, sinon la raison du refus ; puis l'Agenda de Travail (la série du lundi à venir donnée par l'outil, les passées, l'annulée, la retirée, le salon sur deux jours), « Cap sur le semi » (sa tentative ouverte seule, du début à l'échéance), Giulia sur la zone Italien et sa routine, le camembert des heures et sa légende, les étapes gardées d'une séance de fractionné, les étiquettes du carnet et le classement du questionnaire, les textures.
 
 ## Conçu, à coder
 
