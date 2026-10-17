@@ -437,8 +437,9 @@ object DefaultTheme : ThemeContract {
             }
         }
         // An icon alone has no fill: its colour says its kind, and the screen's content keeps the
-        // eye. Switched on, it is filled, the main colour saying so.
-        val bare = display == ButtonDisplay.ICON && !active
+        // eye. Switched on, or a main action, it is filled, the main colour saying so.
+        val main = active || (display == ButtonDisplay.ICON && buttonType == ButtonType.PRIMARY)
+        val bare = display == ButtonDisplay.ICON && !main
         val buttonContent: @Composable () -> Unit = {
             if (display == ButtonDisplay.ICON) {
                 // Every action's icon is in the index (ButtonAction's test), so a missing
@@ -461,7 +462,7 @@ object DefaultTheme : ThemeContract {
         }
         when {
             bare -> BareButton(buttonType, size, enabled, press, buttonContent)
-            active -> DrawButton(getButtonConfig(size, ButtonType.PRIMARY, filled = true), enabled, press, buttonContent)
+            main -> DrawButton(getButtonConfig(size, ButtonType.PRIMARY, filled = true), enabled, press, buttonContent)
             else -> Button(type = buttonType, size = size, state = state, onClick = press, content = buttonContent)
         }
         

@@ -277,7 +277,7 @@ fun UI.RichComposer(
             }
         }
 
-        // Controls row: Enrichment buttons + Add Text
+        // Controls row: Add Text + enrichments, neutral, so that Send alone stands out
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(UI.Space.S),
@@ -287,6 +287,7 @@ fun UI.RichComposer(
             UI.ActionButton(
                 action = ButtonAction.TEXT,
                 display = ButtonDisplay.ICON,
+                type = ButtonType.DEFAULT,
                 size = Size.M,
                 onClick = {
                     val newBlock = ComposerBlock(MessageSegment.Text(""))
@@ -301,6 +302,7 @@ fun UI.RichComposer(
                     UI.ActionButton(
                         action = getEnrichmentButtonAction(type),
                         display = ButtonDisplay.ICON,
+                        type = ButtonType.DEFAULT,
                         size = Size.M,
                         onClick = {
                             showEnrichmentDialog = EnrichmentDialogState(type = type, editedBlockId = null)
@@ -314,6 +316,7 @@ fun UI.RichComposer(
                 UI.ActionButton(
                     action = ButtonAction.PHOTO,
                     display = ButtonDisplay.ICON,
+                    type = ButtonType.DEFAULT,
                     size = Size.M,
                     onClick = {
                         val file = java.io.File(context.cacheDir, "camera/${java.util.UUID.randomUUID()}.jpg").apply { parentFile?.mkdirs() }
@@ -330,6 +333,7 @@ fun UI.RichComposer(
                 UI.ActionButton(
                     action = ButtonAction.GALLERY,
                     display = ButtonDisplay.ICON,
+                    type = ButtonType.DEFAULT,
                     size = Size.M,
                     onClick = { gallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
                 )
