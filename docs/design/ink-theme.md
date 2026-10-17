@@ -49,5 +49,4 @@ Toutes les lignes du 2026-10-17, dans l'ordre de la liste de `docs/THEMES.md`.
 
 ## Ce qui reste ouvert
 
-- Le banc du thème (`themes/ink/bench/palettes.html`), vu dans les deux modes, avant le code : vu le 2026-10-17 : la police, les nombres des palettes, les lavis. Ses formes de lavis sont approchées en CSS, et le thème les dessinera en tracés.
 - Une fois redessiné Lucide tenu sur le téléphone (coût, icônes qui se bouchent) : la troisième façon de la ligne 9 de la recette, `docs/THEMES.md`.

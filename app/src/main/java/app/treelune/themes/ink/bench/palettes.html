@@ -7,15 +7,16 @@
 <!--
   The ink theme's bench (docs/design/ink-theme.md): a zone's screen and a sheet of every
   component, in the light and the dark palette side by side, at a phone's width in dp (one CSS
-  pixel per dp), with Lucide's icons from the repository redrawn by the theme's brush (brush.js),
+  pixel per dp), in the embedded Literata, with Lucide's icons from the repository redrawn by the theme's brush (brush.js),
   which also draws every line. The numbers live in palettes.json, which the theme reads; this page
   derives the colours from them as InkPalette.kt will, measures their contrasts at every hue shift,
-  and saves them back through `./run themes`. The font, a hue shift and a size step are tried
-  here, never saved. Until the font is chosen, the two candidates are read from tmp/fonts/.
+  and saves them back through `./run themes`. A hue shift and a size step are tried here, never
+  saved.
 -->
 <style>
-@font-face{font-family:"Literata";font-weight:200 900;src:url("/tmp/fonts/Literata.ttf") format("truetype");font-display:block}
-@font-face{font-family:"EB Garamond";font-weight:400 800;src:url("/tmp/fonts/EBGaramond.ttf") format("truetype");font-display:block}
+@font-face{font-family:"Literata";font-weight:400;src:url("/app/src/main/res/font/literata_regular.ttf") format("truetype");font-display:block}
+@font-face{font-family:"Literata";font-weight:600;src:url("/app/src/main/res/font/literata_semibold.ttf") format("truetype");font-display:block}
+@font-face{font-family:"Literata";font-weight:700;src:url("/app/src/main/res/font/literata_bold.ttf") format("truetype");font-display:block}
 
 /* The bench's own frame, out of the theme. */
 :root{--bg:#1b1b1b;--bg2:#232323;--line:#3a3a3a;--txt:#e6e4df;--mut:#9a978f;--hot:#e5604c;--bad:#ff7b7b;--ok:#8fd19e}
@@ -50,7 +51,7 @@ td.low{color:var(--bad)} td.okk{color:var(--ok)}
 .notes b{color:var(--txt);font-weight:600}
 
 /* ============ The theme, drawn ============ */
-.phone{width:360px;background:var(--g);color:var(--i);font-family:var(--font),serif;font-variant-numeric:lining-nums;position:relative;overflow:hidden;outline:1px solid var(--line)}
+.phone{width:360px;background:var(--g);color:var(--i);font-family:"Literata",serif;font-variant-numeric:lining-nums;position:relative;overflow:hidden;outline:1px solid var(--line)}
 .zoom{zoom:var(--k)}
 /* Whatever the brush draws: a canvas laid over the element, in its colour. */
 .br{position:relative;display:block}
@@ -223,7 +224,6 @@ td.low{color:var(--bad)} td.okk{color:var(--ok)}
       </fieldset>
       <fieldset>
         <legend>Essayer (non enregistré)</legend>
-        <div class="row"><div class="lab"><span>Police</span></div><div class="seg" id="segFont"></div></div>
         <div class="row"><div class="lab"><span>Décalage de teinte</span><b id="shiftOut">0</b></div>
           <input type="range" id="shift" min="0" max="359" step="1" value="0"></div>
         <div class="row"><div class="lab"><span>Cran de taille</span></div><div class="seg" id="segStep"></div></div>
@@ -237,7 +237,7 @@ td.low{color:var(--bad)} td.okk{color:var(--ok)}
   </div>
 
   <div class="notes">
-    <b>Ce qu'on juge ici</b> : les deux palettes, l'écran d'une zone et chaque composant, à la largeur d'un téléphone (un pixel par dp). Chaque trait est tracé par le pinceau du thème (<code>brush.js</code>, réglé sur son propre banc), les icônes comprises. Les nombres se règlent à droite, sur la palette choisie, et « Enregistrer » les écrit dans <code>palettes.json</code>, que lit le thème ; les trois lavis (tuile, carte, rail) sont la part d'encre posée sur le fond. La teinte ne tourne que le rouge et la chaleur du papier. La police s'essaie entre Literata et EB Garamond, lues dans <code>tmp/fonts/</code> jusqu'au choix. Les formes de lavis sont approchées en CSS ; le thème les dessinera en tracés. Les textures se règlent sur leur propre banc ; le toucher et le mouvement ne se voient que sur le téléphone.
+    <b>Ce qu'on juge ici</b> : les deux palettes, l'écran d'une zone et chaque composant, à la largeur d'un téléphone (un pixel par dp). Chaque trait est tracé par le pinceau du thème (<code>brush.js</code>, réglé sur son propre banc), les icônes comprises. Les nombres se règlent à droite, sur la palette choisie, et « Enregistrer » les écrit dans <code>palettes.json</code>, que lit le thème ; les trois lavis (tuile, carte, rail) sont la part d'encre posée sur le fond. La teinte ne tourne que le rouge et la chaleur du papier. Le texte est en Literata, celle du thème. Les formes de lavis sont approchées en CSS ; le thème les dessinera en tracés. Les textures se règlent sur leur propre banc ; le toucher et le mouvement ne se voient que sur le téléphone.
   </div>
 </div>
 
@@ -359,7 +359,6 @@ const PALETTES_URL = "/app/src/main/resources/app/treelune/themes/ink/palettes.j
 const SAVE_URL = "/palettes/ink";
 const LUCIDE_URL = (name) => `/third_party/lucide/icons/${name}.svg`;
 const STEPS = [1, 1.12, 1.25, 1.4];
-const FONTS = ["Literata", "EB Garamond"];
 
 // The numbers a slider sets, with their range: everything InkPalette.kt will read.
 const KNOBS = [
@@ -462,7 +461,7 @@ function shape(kind, w, h, el) {
 }
 
 // ---- State and drawing ----
-const S = { doc: null, edited: 0, shift: 0, step: 0, font: 0, dirty: false };
+const S = { doc: null, edited: 0, shift: 0, step: 0, dirty: false };
 const icons = new Map();
 
 async function loadIcons(root) {
@@ -510,7 +509,6 @@ function paint() {
     document.querySelectorAll(`#${col} .phone`).forEach((p) => {
       for (const [k, v] of Object.entries(colors)) p.style.setProperty("--" + k, hex(v));
       p.style.setProperty("--k", STEPS[S.step]);
-      p.style.setProperty("--font", `"${FONTS[S.font]}"`);
     });
   }
   // The brush waits for the layout the colours and the size step have just changed.
@@ -598,7 +596,6 @@ async function main() {
   }
   await loadIcons(document.body);
   seg("segPalette", ["Clair", "Sombre"], 0, (i) => { S.edited = i; sliders(); });
-  seg("segFont", FONTS, 0, (i) => { S.font = i; paint(); });
   seg("segStep", ["0", "1", "2", "3"], 0, (i) => { S.step = i; paint(); });
   document.getElementById("shift").addEventListener("input", (e) => { S.shift = +e.target.value; document.getElementById("shiftOut").textContent = e.target.value; paint(); });
   document.getElementById("btnSave").addEventListener("click", save);
