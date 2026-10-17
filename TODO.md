@@ -69,6 +69,7 @@ Une spec existe dans `docs/design/`.
 - Les conditions typées à l'écriture (`docs/design/typed-conditions.md`) : le type de chaque côté d'une condition connu sans lire de données, les constantes de l'IA traduites à l'entrée, la vérification au service, et le refus d'un changement dont dépend une condition ailleurs.
 - L'historique des écritures et leur annulation (`docs/design/undo-history.md`) : un pas par opération demandée de l'extérieur, la ligne entière avant et après, écrite par une seule classe que garde un script, 30 jours, le service `history` ouvert à l'IA, son écran.
 - Modèles libres (`docs/design/local-models.md`) : le banc est en place et rodé ; la campagne 1 a tourné le 2026-10-04 (190 scénarios en 5 h 15, 1,35 $ comptés hors réponses coupées, tableau dans `bench-results/2026-10-04_1326/summary.md`), ses échecs relus dans `docs/design/bench-campaign-1.md` ; les corrections de l'app qu'elle a trouvées sont faites (2026-10-13) : les niveaux de prompt se décident après une campagne rejouée.
+- Les fournisseurs d'IA créés par l'utilisateur (`docs/design/ai-providers.md`) : une sorte, un nom et sa config, dupliqués, autant qu'on veut, la liste ne montrant qu'eux ; un défaut que chaque conversation prend et garde, changé dans ses paramètres ; le fournisseur d'une routine facultatif, sa suppression refusée tant qu'une routine le nomme ; des prix à la main pour Autre serveur ; la migration des huit identifiants fixes.
 
 ## À concevoir
 
@@ -79,7 +80,6 @@ Une idée sans spec : elle demande une décision avant du code.
 - Le connecteur MCP : sans session, rien n'oblige le client à lire le schéma d'un outil avant d'y écrire (la consigne seule, `ai_chunk_validation_strategy`) ; l'imposer demande de retenir, par connexion, les schémas envoyés.
 - Les lectures du connecteur MCP se tiennent au seuil de la conversation (`chat_max_data_chars`, `McpReads`) : un seuil propre au connecteur, réglé par client à côté de son masque (migration 71), la limite de réponse de chaque client étant la sienne — à trancher.
 - Le prochain envoi se calcule de deux façons : à la volée pour une automation (`AutomationScheduler`), stocké en base et remis à jour à chaque envoi pour Messages — en garder une.
-- Le découpage des fournisseurs d'IA, à revoir entièrement : chacun a aujourd'hui deux variantes fixes, standard et économique (`AIProviderRegistry`), et la liste les montre toutes, utilisées ou non ; pouvoir créer les fournisseurs qu'on veut, et ne voir que ceux-là. Avec, le coût d'un serveur à soi, inconnu pour l'instant : des prix réglés à la main (entrée, entrée en cache, sortie) à la place de la liste LiteLLM.
 
 ### Outils et champs
 
