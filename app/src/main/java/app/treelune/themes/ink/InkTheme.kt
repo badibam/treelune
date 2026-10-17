@@ -214,10 +214,10 @@ object InkTheme : ThemeContract {
         Pressable(onClick = onClick) { pressed ->
             Box(
                 modifier = Modifier.size(size.floating)
-                    .background(if (pressed) c.deepWash else c.ink, RoundedCornerShape(48, 52, 50, 46)),
+                    .background(if (pressed) c.pressedSolid else c.solid, RoundedCornerShape(48, 52, 50, 46)),
                 contentAlignment = Alignment.Center
             ) {
-                NamedIcon(action.iconName, action.label(), size.dp(26f), c.ground)
+                NamedIcon(action.iconName, action.label(), size.dp(26f), c.onSolid)
             }
         }
     }
@@ -327,7 +327,8 @@ object InkTheme : ThemeContract {
         val size = inkSize()
         val c = inkColors
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(size.dp(6f))) {
-            Box(modifier = Modifier.size(size.dp(10f)).colorWash(c.tag(color)))
+            // A tag's mark keeps its colour whole at its heart: a mark, held to 3 on the paper
+            Box(modifier = Modifier.size(size.dp(10f)).colorWash(c.tag(color), 1f))
             Line(text, size.label.copy(letterSpacing = 0.sp, fontSize = size.label.fontSize * 1.08f), LocalInkInk.current ?: c.ink, maxLines = 1)
         }
     }
@@ -400,7 +401,7 @@ object InkTheme : ThemeContract {
                         modifier = Modifier.heightIn(min = size.touch).padding(horizontal = size.dp(12f)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Underlined(pressed, c.ground) { Line(action.label, size.button.copy(fontWeight = FontWeight.Normal), c.ground, maxLines = 1) }
+                        Underlined(pressed, c.onSolid) { Line(action.label, size.button.copy(fontWeight = FontWeight.Normal), c.onSolid, maxLines = 1) }
                     }
                 }
             }
@@ -440,14 +441,14 @@ object InkTheme : ThemeContract {
             horizontalArrangement = Arrangement.spacedBy(size.dp(8f))
         ) {
             mark?.let { StatusIndicator(it, size.dp(8f)) }
-            Box(modifier = Modifier.weight(1f).padding(vertical = size.dp(12f))) { Line(message, size.body, c.ground) }
+            Box(modifier = Modifier.weight(1f).padding(vertical = size.dp(12f))) { Line(message, size.body, c.onSolid) }
             if (action != null && onAction != null) {
                 Pressable(onClick = onAction) { pressed ->
                     Box(
                         modifier = Modifier.heightIn(min = size.touch).padding(horizontal = size.dp(16f)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Underlined(true, c.ground) { Line(action, size.button, if (pressed) c.cardWash else c.ground, maxLines = 1) }
+                        Underlined(true, c.onSolid) { Line(action, size.button, if (pressed) c.dim else c.onSolid, maxLines = 1) }
                     }
                 }
             }
@@ -504,7 +505,7 @@ object InkTheme : ThemeContract {
     override fun ItemIcon(resourceId: Int, size: Dp, color: TagColor?) {
         val c = inkColors
         val ink = LocalInkInk.current ?: c.ink
-        Box(modifier = Modifier.size(size).let { if (color != null) it.colorWash(c.tag(color)) else it }) {
+        Box(modifier = Modifier.size(size).let { if (color != null) it.colorWash(c.tag(color), c.colorWashAlpha) else it }) {
             InkIcon(resourceId, size, ink)
         }
     }
@@ -587,12 +588,12 @@ object InkTheme : ThemeContract {
                                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                             val drop = Modifier.size(size.dp(34f))
                                             when {
-                                                lit -> Box(drop.background(c.ink, RoundedCornerShape(52, 48, 50, 46)))
+                                                lit -> Box(drop.background(c.solid, RoundedCornerShape(52, 48, 50, 46)))
                                                 pressed -> Box(drop.background(c.pressedWash, CircleShape))
                                                 date == today -> Box(Modifier.size(size.dp(36f)).brushed(InkBrush.Shape.ENSO, size.dp(1.4f), c.ink, 0.92f))
                                             }
                                             val style = if (lit) size.strong else size.body
-                                            Line(n.toString(), style, if (lit) c.ground else c.ink)
+                                            Line(n.toString(), style, if (lit) c.onSolid else c.ink)
                                         }
                                     }
                                 }
@@ -678,8 +679,7 @@ object InkTheme : ThemeContract {
     /** A cell of the grid in edit mode: a round of very pale wash. */
     @Composable
     override fun GridCell() {
-        val color = inkColors.ink.copy(alpha = CELL_ALPHA)
-        Box(modifier = Modifier.fillMaxSize().colorWash(color))
+        Box(modifier = Modifier.fillMaxSize().colorWash(inkColors.ink, CELL_ALPHA))
     }
 
     /**
@@ -967,13 +967,13 @@ object InkTheme : ThemeContract {
                     modifier = Modifier
                         .size(size.dp(46f), size.dp(26f))
                         .let {
-                            if (checked) it.padding(size.dp(1.5f)).background(c.ink, CircleShape)
+                            if (checked) it.padding(size.dp(1.5f)).background(c.solid, CircleShape)
                             else it.brushed(InkBrush.Shape.PEBBLE, size.dp(1.4f), c.ink)
                         }
                         .padding(horizontal = size.dp(6f)),
                     contentAlignment = if (checked) Alignment.CenterEnd else Alignment.CenterStart
                 ) {
-                    Box(modifier = Modifier.size(size.dp(14f)).background(if (checked) c.ground else c.ink, CircleShape))
+                    Box(modifier = Modifier.size(size.dp(14f)).background(if (checked) c.onSolid else c.ink, CircleShape))
                 }
             }
         }
@@ -1293,7 +1293,7 @@ object InkTheme : ThemeContract {
         val word: Color
         when {
             !enabled -> { fill = if (type == ButtonType.PRIMARY) c.trackWash else null; line = null; word = c.dim }
-            type == ButtonType.PRIMARY -> { fill = if (pressed) c.deepWash else c.ink; line = null; word = c.ground }
+            type == ButtonType.PRIMARY -> { fill = if (pressed) c.pressedSolid else c.solid; line = null; word = c.onSolid }
             type == ButtonType.SECONDARY -> { fill = if (pressed) c.cardWash else null; line = c.ink; word = c.ink }
             type == ButtonType.DANGER -> { fill = if (pressed) c.cardWash else null; line = c.accent; word = c.accent }
             else -> { fill = if (pressed) c.cardWash else null; line = null; word = c.ink }
@@ -1326,14 +1326,14 @@ object InkTheme : ThemeContract {
         val block = (active || type == ButtonType.PRIMARY) && enabled
         val tint = when {
             !enabled -> c.dim
-            block -> c.ground
+            block -> c.onSolid
             type == ButtonType.DANGER -> c.accent
             else -> c.ink
         }
         Box(
             modifier = Modifier.size(size.touch).let {
                 when {
-                    block -> it.background(if (pressed) c.deepWash else c.ink, RoundedCornerShape(48, 52, 50, 46))
+                    block -> it.background(if (pressed) c.pressedSolid else c.solid, RoundedCornerShape(48, 52, 50, 46))
                     pressed -> it.background(c.pressedWash, CircleShape)
                     else -> it
                 }
@@ -1472,7 +1472,7 @@ object InkTheme : ThemeContract {
         Box(modifier = modifier.fillMaxWidth().padding(spacing(Spacing.EDGE))) {
             FadeIn {
                 Box(modifier = Modifier.fillMaxWidth().background(c.deepWash, pebble(size, 14f, 10f, 16f, 12f)).padding(horizontal = size.dp(16f), vertical = size.dp(14f))) {
-                    Line(shown.message, size.body, c.ground)
+                    Line(shown.message, size.body, c.onSolid)
                 }
             }
         }

@@ -2,6 +2,7 @@ package app.treelune.themes.ink
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import app.treelune.core.themes.Lch
 import app.treelune.core.themes.PaletteMode
 import app.treelune.core.themes.TagColor
@@ -14,8 +15,10 @@ import kotlin.math.roundToInt
  * The ink theme's palettes (docs/design/ink-theme.md): each a handful of numbers in OKLCH
  * (palettes.json, a resource of this package, set on the bench themes/ink/bench/palettes.html,
  * which derives the colours the same way), every colour derived from them here. Cream paper,
- * black ink and a single seal red; a wash is ink laid thin on the paper. The hue shift turns the
- * red and the paper's warmth, the ink following the paper's hue.
+ * black ink and a single seal red; a wash is ink laid thin on the paper. At night nothing lights
+ * up: a wash is darker than the paper, as ink soaking in, and what is filled is a grey of thinned
+ * light ink, the light ink written on it. The hue shift turns the red and the paper's warmth, the
+ * ink following the paper's hue.
  */
 
 /** The numbers of one palette, as palettes.json holds them. */
@@ -29,6 +32,8 @@ data class InkNumbers(
     @SerialName("ground_hue") val groundHue: Float,
     @SerialName("ink_lightness") val inkLightness: Float,
     @SerialName("ink_chroma") val inkChroma: Float,
+    /** The ink a wash is made of: the ink itself by day, a darker one than the paper at night. */
+    @SerialName("wash_lightness") val washLightness: Float,
     /** The secondary ink: descriptions, labels, a field's name. */
     @SerialName("dim_lightness") val dimLightness: Float,
     /** The seal's red: the waiting mark, a checked box, a page's seal, danger, an interaction's corner. */
@@ -36,12 +41,18 @@ data class InkNumbers(
     @SerialName("accent_chroma") val accentChroma: Float,
     /** What is written on the red: the paper on the light palette, the ground on the dark one. */
     @SerialName("on_accent_lightness") val onAccentLightness: Float,
+    /** The part of ink of what is filled (the main button, the floating one, a day chosen): all of it by day. */
+    @SerialName("solid_part") val solidPart: Float,
+    /** The part of ink of what is laid over the page (a toast, the selection bar). */
+    @SerialName("deep_part") val deepPart: Float,
     /** The part of ink on the paper at the heart of a tile's wash. */
     @SerialName("tile_wash") val tileWash: Float,
     /** The part of ink of a card's wash, full under its text. */
     @SerialName("card_wash") val cardWash: Float,
     /** The part of ink of a gauge's track and of what is disabled. */
     @SerialName("track_wash") val trackWash: Float,
+    /** The opacity at the heart of an icon's colour, a soft wash round it: lower at night, where a colour would glow. */
+    @SerialName("color_wash") val colorWash: Float,
     /** A tag's small wash, at one lightness and chroma for all: a mark, held to 3 on the paper. */
     @SerialName("tag_lightness") val tagLightness: Float,
     @SerialName("tag_chroma") val tagChroma: Float,
@@ -62,16 +73,29 @@ class InkColors(val numbers: InkNumbers, hueShift: Int) {
     val accent = Lch(numbers.accentLightness, numbers.accentChroma, numbers.hue + hueShift).srgb
     val onAccent = Lch(numbers.onAccentLightness, numbers.groundChroma, paperHue).srgb
 
+    /** The ink a wash is made of. */
+    private val washInk = Lch(numbers.washLightness, numbers.inkChroma, paperHue).srgb
+
     /** A tile's wash at its heart, a card's, a track's. */
-    val wash = mix(numbers.tileWash)
-    val cardWash = mix(numbers.cardWash)
-    val trackWash = mix(numbers.trackWash)
+    val wash = blend(ground, washInk, numbers.tileWash)
+    val cardWash = blend(ground, washInk, numbers.cardWash)
+    val trackWash = blend(ground, washInk, numbers.trackWash)
 
     /** A wash one step darker: what the finger presses, what is lifted. */
-    val pressedWash = mix(numbers.tileWash + PRESS_STEP)
+    val pressedWash = blend(ground, washInk, numbers.tileWash * PRESS_FACTOR)
 
-    /** A dark wash for what is laid over the page (a toast, the selection bar): almost the ink. */
-    val deepWash = mix(DEEP)
+    /** What is filled, and the ink written on it: the ground on the ink by day, the ink on its grey at night. */
+    val solid = mix(numbers.solidPart)
+    val onSolid = if (contrast(ground, solid) >= contrast(ink, solid)) ground else ink
+
+    /** What is filled, under the finger: its ink thinned a step, toward the paper. */
+    val pressedSolid = mix(numbers.solidPart - SOLID_STEP)
+
+    /** What is laid over the page (a toast, the selection bar), the ink written on it being onSolid. */
+    val deepWash = mix(numbers.deepPart)
+
+    /** An icon's colour as a soft wash round it, at its heart. */
+    val colorWashAlpha = numbers.colorWash
 
     val success = status(145f)
     val warning = status(55f)
@@ -85,10 +109,18 @@ class InkColors(val numbers: InkNumbers, hueShift: Int) {
     fun tag(color: TagColor): Color =
         Lch(numbers.tagLightness, if (color == TagColor.GREY) GREY_CHROMA else numbers.tagChroma, TAG_HUES[color] ?: numbers.groundHue).srgb
 
-    /** The ink laid at [part] over the paper, mixed as the screen mixes them, on whole steps of 8 bits. */
-    fun mix(part: Float): Color {
+    /** The ink laid at [part] over the paper. */
+    fun mix(part: Float): Color = blend(ground, ink, part)
+
+    /** [over] laid at [part] on [under], mixed as the screen mixes them, on whole steps of 8 bits. */
+    private fun blend(under: Color, over: Color, part: Float): Color {
         fun channel(g: Float, i: Float) = ((g * (1f - part) + i * part) * 255f).roundToInt() / 255f
-        return Color(channel(ground.red, ink.red), channel(ground.green, ink.green), channel(ground.blue, ink.blue))
+        return Color(channel(under.red, over.red), channel(under.green, over.green), channel(under.blue, over.blue))
+    }
+
+    private fun contrast(a: Color, b: Color): Float {
+        val (light, dark) = listOf(a.luminance(), b.luminance()).sortedDescending()
+        return (light + 0.05f) / (dark + 0.05f)
     }
 
     private fun status(statusHue: Float) = Lch(numbers.statusLightness, numbers.statusChroma, statusHue).srgb
@@ -97,11 +129,11 @@ class InkColors(val numbers: InkNumbers, hueShift: Int) {
         /** A grey tag keeps a trace of chroma, so it is this palette's grey. */
         const val GREY_CHROMA = 0.015f
 
-        /** The ink a press adds to a wash. */
-        const val PRESS_STEP = 0.06f
+        /** A pressed wash's ink, over a resting one's. */
+        const val PRESS_FACTOR = 1.8f
 
-        /** The part of ink of a dark wash. */
-        const val DEEP = 0.88f
+        /** The part of ink a press takes from what is filled. */
+        const val SOLID_STEP = 0.1f
 
         /** The same hues as the other themes': a tag's hue is its meaning. */
         val TAG_HUES = mapOf(

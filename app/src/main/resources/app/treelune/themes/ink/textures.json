@@ -4,64 +4,64 @@
       "tag_chroma": 0.05,
       "tones": {
         "LINES": {
-          "SUBTLE": 0.1,
-          "MARKED": 0.18
+          "SUBTLE": 0.04,
+          "MARKED": 0.072
         },
         "DIAGONALS": {
-          "SUBTLE": 0.1,
-          "MARKED": 0.18
+          "SUBTLE": 0.04,
+          "MARKED": 0.072
         },
         "GRID": {
-          "SUBTLE": 0.1,
-          "MARKED": 0.18
+          "SUBTLE": 0.04,
+          "MARKED": 0.072
         },
         "ZIGZAG": {
-          "SUBTLE": 0.1,
-          "MARKED": 0.18
+          "SUBTLE": 0.04,
+          "MARKED": 0.072
         },
         "WAVES": {
-          "SUBTLE": 0.1,
-          "MARKED": 0.18
+          "SUBTLE": 0.04,
+          "MARKED": 0.072
         },
         "DOTS": {
-          "SUBTLE": 0.125,
-          "MARKED": 0.225
+          "SUBTLE": 0.05,
+          "MARKED": 0.09
         },
         "CROSSES": {
-          "SUBTLE": 0.125,
-          "MARKED": 0.225
+          "SUBTLE": 0.05,
+          "MARKED": 0.09
         },
         "STARS": {
-          "SUBTLE": 0.125,
-          "MARKED": 0.225
+          "SUBTLE": 0.05,
+          "MARKED": 0.09
         },
         "RINGS": {
-          "SUBTLE": 0.125,
-          "MARKED": 0.225
+          "SUBTLE": 0.05,
+          "MARKED": 0.09
         },
         "DIAMONDS": {
-          "SUBTLE": 0.1,
-          "MARKED": 0.18
+          "SUBTLE": 0.04,
+          "MARKED": 0.072
         },
         "CONFETTI": {
-          "SUBTLE": 0.125,
-          "MARKED": 0.225
+          "SUBTLE": 0.05,
+          "MARKED": 0.09
         },
         "CHECKER": {
-          "SUBTLE": 0.06,
-          "MARKED": 0.11
+          "SUBTLE": 0.024,
+          "MARKED": 0.044
         },
         "BRICKS": {
-          "SUBTLE": 0.1,
-          "MARKED": 0.18
+          "SUBTLE": 0.04,
+          "MARKED": 0.072
         },
         "SCALES": {
-          "SUBTLE": 0.1,
-          "MARKED": 0.18
+          "SUBTLE": 0.04,
+          "MARKED": 0.072
         },
         "ICON": {
-          "SUBTLE": 0.125,
-          "MARKED": 0.225
+          "SUBTLE": 0.05,
+          "MARKED": 0.09
         }
       }
     },
