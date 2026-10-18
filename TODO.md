@@ -4,7 +4,7 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 
 ## Release F-Droid
 
-- La reproductibilité : la recette et un clone propre du tag donnent le même APK, celui de `./run release` dans l'arbre de travail non (`docs/design/fdroid-compliance.md`, « Ce qui reste ») ; construire la release depuis un clone propre du tag, puis deux builds à deux chemins différents.
+- La reproductibilité : la recette et un clone propre du tag donnent le même APK, celui de `./run release` dans l'arbre de travail non (`docs/design/fdroid-compliance.md`, « Ce qui reste ») ; construire la release depuis un clone propre du tag.
 - La fiche fastlane (`docs/design/fdroid-compliance.md`) : en-US `title`, `short_description`, `full_description`, `changelogs/<versionCode>.txt`, `images/icon.png`, `images/featureGraphic.png` ; les captures d'écran, à faire sur le téléphone, servent aussi au README (`fastlane/metadata/android/en-US/images/phoneScreenshots/`, leur place marquée dans `README.md` et `README.fr.md`), l'icône de l'app en tête.
 - Les anti-features : `NonFreeNet` (Anthropic, OpenAI, DeepSeek, le serveur de connexion de Tailscale) ; à trancher pour la liste de prix LiteLLM que `ModelPriceManager` lit sur GitHub.
 - La version soumise, taguée sur un arbre propre, ses notes de version écrites et validées avant de publier ; la mise à jour depuis la 0.7.0 installée passée sur le téléphone avec ses données (une base neuve ne passe aucune migration, une mise à jour les passe toutes, nouvelles comprises).
