@@ -1,0 +1,772 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Banc du thème plan d'architecte</title>
+<!--
+  The blueprint theme's bench (docs/design/blueprint-theme.md): a zone's screen and a sheet of
+  every component, in the light palette (a whiteprint) and the dark one (a blueprint) side by side,
+  at a phone's width in dp (one CSS pixel per dp), in the embedded Architects Daughter and IBM Plex
+  Mono, with Lucide's icons from the repository redrawn as the theme will: a thinner stroke, and
+  every line overshooting at its open ends and its corners. The palette numbers live in
+  palettes.json, which the theme reads; this page derives the colours from them as
+  BlueprintPalette.kt will, measures their contrasts at every hue shift, and saves them back
+  through `./run themes`. The overshoot, the icons' stroke, a hue shift and a size step are tried
+  here, never saved: the overshoot and the stroke chosen go into the spec and the code.
+-->
+<style>
+@font-face{font-family:"Lettering";src:url("/app/src/main/res/font/architects_daughter.ttf") format("truetype");font-display:block}
+@font-face{font-family:"Plex Mono";font-weight:400;src:url("/app/src/main/res/font/plexmono_regular.ttf") format("truetype");font-display:block}
+@font-face{font-family:"Plex Mono";font-weight:500;src:url("/app/src/main/res/font/plexmono_medium.ttf") format("truetype");font-display:block}
+@font-face{font-family:"Plex Mono";font-weight:400;font-style:italic;src:url("/app/src/main/res/font/plexmono_italic.ttf") format("truetype");font-display:block}
+
+/* The bench's own frame, out of the theme. */
+:root{--bg:#1b1b1b;--line:#3a3a3a;--txt:#e6e4df;--mut:#9a978f;--hot:#5aa9ff;--bad:#ff7b7b;--ok:#8fd19e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:14px system-ui,sans-serif}
+.wrap{max-width:1500px;margin:0 auto;padding:20px 16px 60px;display:flex;flex-direction:column;gap:18px}
+header.top{display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:12px}
+header.top h1{margin:0;font-size:19px;font-weight:600}
+#saved{font-size:12.5px;color:var(--mut)} #saved.dirty{color:var(--hot)} #saved.bad{color:var(--bad)}
+.bench{display:grid;grid-template-columns:auto auto 320px;gap:18px;align-items:start;justify-content:center}
+@media(max-width:1180px){.bench{grid-template-columns:auto auto}.side{grid-column:1/-1}}
+@media(max-width:800px){.bench{grid-template-columns:1fr}}
+.col{display:flex;flex-direction:column;gap:14px;align-items:center}
+.col h2{margin:0;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);font-weight:600}
+.side{display:flex;flex-direction:column;gap:14px;position:sticky;top:12px}
+fieldset{border:1px solid var(--line);margin:0;padding:11px 12px 13px;display:flex;flex-direction:column;gap:9px}
+legend{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--hot);padding:0 6px}
+.row{display:flex;flex-direction:column;gap:3px}
+.lab{display:flex;justify-content:space-between;font-size:12px;color:var(--mut)}
+.lab b{color:var(--txt);font-weight:400;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--hot);margin:0}
+.seg{display:flex;border:1px solid var(--line)}
+.seg button{flex:1;background:transparent;border:0;border-right:1px solid var(--line);color:var(--mut);font:inherit;font-size:12px;padding:6px 4px;cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed=true]{background:var(--hot);color:#1b1b1b}
+.check{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--mut)}
+.acts button{width:100%;background:transparent;border:1px solid var(--hot);color:var(--hot);font:inherit;padding:7px;cursor:pointer}
+#sliders{max-height:42vh;overflow:auto;display:flex;flex-direction:column;gap:9px;padding-right:4px}
+table.cr{border-collapse:collapse;font-size:12px;width:100%;font-variant-numeric:tabular-nums}
+table.cr td{padding:2px 4px;border-bottom:1px solid var(--line)}
+table.cr td:not(:first-child){text-align:right}
+td.low{color:var(--bad)} td.okk{color:var(--ok)}
+.notes{border-top:1px solid var(--line);padding-top:14px;color:var(--mut);font-size:13px;line-height:1.6;max-width:90ch}
+.notes b{color:var(--txt);font-weight:600}
+
+/* ============ The theme, drawn ============ */
+/* --pa paper, --i ink, --d secondary ink, --al alert, --o the overshoot of a frame's lines, in dp. */
+.phone{width:360px;color:var(--i);font-family:"Plex Mono",monospace;font-weight:400;position:relative;overflow:hidden;outline:1px solid var(--line);
+  --sw:1.5px;--lc:var(--i);
+  background-color:var(--pa);
+  background-image:linear-gradient(var(--gM) 1px,transparent 1px),linear-gradient(90deg,var(--gM) 1px,transparent 1px),linear-gradient(var(--gm) 1px,transparent 1px),linear-gradient(90deg,var(--gm) 1px,transparent 1px);
+  background-size:40px 40px,40px 40px,8px 8px,8px 8px}
+.zoom{zoom:var(--k)}
+.ic{display:inline-block;flex:none}
+.ic svg{display:block;width:100%;height:100%;overflow:visible}
+.let{font-family:"Lettering",cursive;text-transform:uppercase;letter-spacing:.08em}
+
+/* A frame: four lines, each running past the corners by --o (the overshoot of a sketch). */
+.fr{position:relative}
+.fr::before{content:"";position:absolute;inset:calc(-1 * var(--o));pointer-events:none;
+  background:
+    linear-gradient(var(--lc),var(--lc)) 0 var(--o) / 100% var(--sw) no-repeat,
+    linear-gradient(var(--lc),var(--lc)) 0 calc(100% - var(--o)) / 100% var(--sw) no-repeat,
+    linear-gradient(var(--lc),var(--lc)) var(--o) 0 / var(--sw) 100% no-repeat,
+    linear-gradient(var(--lc),var(--lc)) calc(100% - var(--o)) 0 / var(--sw) 100% no-repeat}
+.fr.dash::before{background:none;inset:0;border:var(--sw) dashed var(--lc)}
+.hatch{background-image:repeating-linear-gradient(-45deg,var(--hc,var(--i)) 0 1.2px,transparent 1.2px 6px)}
+
+/* bar and page header: the title in a frame, its scale's cell */
+.bar{display:flex;justify-content:space-between;padding:0 4px;background:var(--pa)}
+.ib{width:48px;height:48px;display:flex;align-items:center;justify-content:center;color:inherit}
+.ib .ic{width:24px;height:24px}
+.ph{display:flex;flex-direction:column;align-items:center;gap:6px;padding:4px 16px 14px;background:var(--pa)}
+.ph .title{display:flex;align-items:stretch;background:var(--pa)}
+.ph h1{margin:0;padding:4px 16px 2px;font-size:24px;font-weight:400;line-height:1.15;hyphens:auto}
+.ph .scale{display:flex;align-items:center;padding:0 10px;font-size:11px;border-left:var(--sw) solid var(--i)}
+.ph .sub{font-size:12px;color:var(--d)}
+
+/* a group's title: lettering and an axis in dashes */
+.gt{display:flex;align-items:center;gap:10px;padding:20px 16px 10px}
+.gt span{font-size:15px;letter-spacing:.12em}
+.gt .rule{flex:1;border-top:var(--sw) dashed var(--i);opacity:.75}
+
+/* the tile grid: 4 square cells, 12 across and down */
+.grid{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:75px;gap:12px;padding:0 16px}
+.tile{background:var(--pa);padding:6px 10px;min-width:0}
+.tile>.in{overflow:hidden;height:100%}
+.w2{grid-column:span 2}.w4{grid-column:span 4}.h2{grid-row:span 2}
+.name{font-size:15px;display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden}
+.name .ic{width:18px;height:18px;color:var(--c,var(--i))}
+.big{font-size:24px;font-weight:500;line-height:1.1;margin-top:4px}
+.small{font-size:11px;color:var(--d)}
+.th{display:flex;justify-content:space-between;align-items:center}
+.val{font-size:13px;font-weight:500}
+.bars{display:flex;align-items:flex-end;gap:7px;height:74px;margin-top:6px;position:relative;border-bottom:var(--sw) solid var(--i)}
+.bars i{flex:1;height:calc(var(--h)*100%);box-shadow:inset 0 0 0 var(--sw) var(--c,var(--i));--hc:var(--c,var(--i))}
+.bars .target{position:absolute;left:0;right:0;bottom:75%;height:var(--sw);background:repeating-linear-gradient(90deg,var(--i) 0 9px,transparent 9px 12px,var(--i) 12px 14px,transparent 14px 17px)}
+.days{display:flex;gap:7px;font-size:11px;color:var(--d);margin-top:3px}.days span{flex:1;text-align:center}
+.list ul{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.list li{display:flex;gap:8px;align-items:center}
+.box{width:16px;height:16px;box-shadow:inset 0 0 0 var(--sw) var(--i);flex:none;display:flex;align-items:center;justify-content:center}
+.box .ic{width:14px;height:14px}
+.done{color:var(--d);text-decoration:line-through}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.tag{font-size:12px;font-weight:500;padding:1px 7px;box-shadow:inset 0 0 0 var(--sw) var(--c);color:var(--c)}
+.gauge{height:10px;margin:14px 4px 0 0;box-shadow:inset 0 0 0 var(--sw) var(--i);position:relative}
+.gauge span{display:block;height:100%;--hc:var(--c,var(--i));box-shadow:inset calc(-1 * var(--sw)) 0 0 var(--c,var(--i))}
+.icon{display:flex;align-items:center;justify-content:center;padding:0}
+.icon .ic{width:34px;height:34px;color:var(--c,var(--i))}
+.wait{position:absolute;top:2px;right:2px;width:22px;height:20px}
+.note p{margin:6px 0 0;font-size:13px;line-height:1.4}
+.card{margin:0 16px 8px;background:var(--pa);box-shadow:inset 0 0 0 var(--sw) var(--i);padding:10px 12px;display:flex;justify-content:space-between;align-items:baseline}
+.card .nm{font-size:15px}
+.card .v{font-size:20px;font-weight:500}
+.fab{position:absolute;right:20px;bottom:20px;width:56px;height:56px;border-radius:50%;background:var(--pa);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 var(--sw) var(--i),inset 0 0 0 4px var(--pa),inset 0 0 0 5.5px var(--i)}
+.fab .ic{width:26px;height:26px}
+
+/* the sheet */
+.sheet{background:var(--pa)}
+.sec{padding:16px 16px 0}
+.sl{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--d);margin-bottom:10px}
+.btns{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.btn{height:48px;padding:0 16px;display:inline-flex;align-items:center;font-size:15px}
+.b-pri{background:var(--i);color:var(--pa)}
+.b-ter{padding:0 8px}
+.b-dan{--lc:var(--al);color:var(--al)}
+.b-dis{color:var(--d);--lc:var(--d)}
+.b-press{--hc:color-mix(in srgb,var(--i) 35%,transparent)}
+.b-press-pri{background:color-mix(in srgb,var(--i) 80%,var(--pa));color:var(--pa)}
+.field{margin-bottom:12px}
+.field .fl{font-size:13px;margin-bottom:2px}
+.field .fv{font-size:16px;height:44px;padding:0 2px;display:flex;justify-content:space-between;align-items:center;box-shadow:inset 0 calc(-1 * var(--sw)) 0 var(--i)}
+.field.focus .fv{box-shadow:inset 0 -2.5px 0 var(--i)}
+.field.err .fv{box-shadow:inset 0 -2.5px 0 var(--al)}
+.field .fe{font-size:12px;color:var(--al);margin-top:4px}
+.field .ic{width:20px;height:20px}
+.caret{display:inline-block;width:1.5px;height:18px;background:var(--i);vertical-align:-3px;margin-left:1px}
+.menu{background:var(--pa)}
+.menu div{height:48px;padding:0 12px;display:flex;align-items:center;font-size:15px}
+.menu .on{background:var(--i);color:var(--pa)}
+.inline{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.cb{width:22px;height:22px;box-shadow:inset 0 0 0 var(--sw) var(--i);display:flex;align-items:center;justify-content:center}.cb .ic{width:18px;height:18px}
+.sw{width:50px;height:28px;border-radius:14px;box-shadow:inset 0 0 0 var(--sw) var(--i);position:relative}
+.sw .knob{position:absolute;top:4px;left:4px;width:20px;height:20px}
+.sw.on{background:var(--i)}.sw.on .knob{left:26px;--kc:var(--pa)}
+.yn{display:flex}.yn span{height:40px;min-width:64px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:inset 0 0 0 var(--sw) var(--i)}
+.yn span:last-child{margin-left:calc(-1 * var(--sw))}
+.yn .on{background:var(--i);color:var(--pa)}
+.slider{height:52px}
+.tabs{display:flex;gap:22px;box-shadow:inset 0 -1px 0 var(--d)}
+.tabs span{padding:12px 0 9px;font-size:15px;color:var(--d)}
+.tabs .on{color:var(--i);box-shadow:inset 0 calc(-1 * var(--sw)) 0 var(--i),inset 0 -4px 0 var(--pa),inset 0 -5.5px 0 var(--i)}
+.hue{height:24px;position:relative;box-shadow:inset 0 0 0 var(--sw) var(--i);background:linear-gradient(90deg,#e8331c,#e8a21c,#b4d31c,#1cd36a,#1cc8d3,#1c5ae8,#8a1ce8,#e81cb4,#e8331c)}
+.hue span{position:absolute;top:-4px;left:12%;width:30px;height:32px;box-shadow:0 0 0 var(--sw) var(--i),inset 0 0 0 3px var(--pa)}
+.handle{width:20px;display:flex;flex-direction:column;gap:5px}.handle i{height:var(--sw);background:var(--i)}
+.itemrow{display:flex;align-items:center;gap:12px;height:56px;background:var(--pa);box-shadow:inset 0 0 0 var(--sw) var(--i);padding:0 12px;margin-bottom:8px}
+.itemrow .nm{flex:1;font-size:15px}
+.itemrow .ic{width:22px;height:22px;color:var(--c,var(--i))}
+.divider{border-top:var(--sw) dashed var(--d)}
+.scrim{background:color-mix(in srgb,#000 50%,var(--pa));padding:24px 16px}
+/* the title block: a double frame, the title in its top cell */
+.cart{background:var(--pa);box-shadow:inset 0 0 0 var(--sw) var(--i),inset 0 0 0 4px var(--pa),inset 0 0 0 5px var(--i);padding:6px}
+.cart .head{padding:8px 10px 6px;border-bottom:var(--sw) solid var(--i);font-size:18px}
+.cart .body{padding:10px 10px 4px}
+.cart p{margin:0 0 14px;font-size:14px;line-height:1.45}
+.cart .btns{justify-content:flex-end;padding:0 4px 4px}
+.chat{display:flex;flex-direction:column;gap:14px}
+.you{align-self:flex-end;max-width:78%;background:var(--i);color:var(--pa);padding:10px 12px;font-size:14px;line-height:1.4}
+.ai{background:var(--pa);padding:10px 12px;font-size:14px;line-height:1.45}
+.ai b{font-weight:500}
+.inter{background:var(--pa);--lc:var(--al);padding:0 12px 4px}
+.inter .strip{height:8px;margin:0 -12px 8px;--hc:var(--al)}
+.inter .q{font-size:14px;margin-bottom:4px}
+.toast,.snack{background:var(--i);color:var(--pa);box-shadow:inset 0 0 0 3px var(--i),inset 0 0 0 4px var(--pa)}
+.toast{padding:14px 16px;font-size:14px}
+.snack{padding:0 0 0 16px;display:flex;justify-content:space-between;align-items:center;font-size:14px;min-height:48px}
+.snack span:last-child{height:48px;display:flex;align-items:center;padding:0 16px;font-size:14px}
+.waits{display:flex;gap:28px;align-items:center;margin-top:12px}
+.date .mh{display:flex;justify-content:space-between;align-items:center;font-size:17px}
+.date .ib .ic{width:20px;height:20px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);text-align:center}
+.cal .wd{font-size:13px;color:var(--d);padding:4px 0;font-family:"Lettering",cursive}
+.cal span{height:40px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.cal span u{text-decoration:none;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.cal .mute{color:var(--d)}
+.cal .sel u{box-shadow:inset 0 0 0 var(--sw) var(--i);font-weight:500}
+.cal .today u{text-decoration:underline;text-decoration-thickness:var(--sw);text-underline-offset:4px;font-weight:500}
+.time{display:flex;justify-content:center;align-items:center;gap:8px;padding:6px 0}
+.cnt{display:flex;flex-direction:column;align-items:center;gap:8px}
+.cnt .n{font-size:38px;font-weight:500;line-height:1;padding:8px 10px 6px}
+.pm{width:48px;height:40px;display:flex;align-items:center;justify-content:center}
+.pm .ic{width:20px;height:20px}
+.colon{font-size:38px;font-weight:500;line-height:1}
+.selbar{display:inline-flex;background:var(--pa)}
+.selbar span{height:48px;padding:0 14px;display:flex;align-items:center;font-size:15px}
+.selbar span+span{border-left:1px solid var(--i)}
+.selbar .on{background:var(--i);color:var(--pa)}
+.edit{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:75px;gap:12px;position:relative}
+.edit .cell{--lc:var(--d)}
+.edit .faded{opacity:.45}
+.edit .lifted{--sw:2.5px;transform:translate(-4px,-4px);z-index:1}
+.edit .ghost{--lc:var(--d)}
+.plank{display:grid;grid-template-columns:repeat(6,1fr);gap:14px 6px;justify-items:center}
+.plank .ic{color:var(--i)}
+.plank .raw svg{stroke-width:2}
+.plank-row{display:flex;gap:16px;align-items:center;margin-bottom:12px}
+.plank-row .cap{font-size:10px;color:var(--d);width:64px}
+.pad{height:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Banc du thème plan d'architecte</h1>
+    <span id="saved">—</span>
+  </header>
+
+  <div class="bench">
+    <div class="col" id="colLight"><h2>Clair · le diazo</h2></div>
+    <div class="col" id="colDark"><h2>Sombre · le tirage bleu</h2></div>
+    <div class="side">
+      <fieldset>
+        <legend>Le trait (non enregistré)</legend>
+        <div class="row"><div class="lab"><span>Débord des cadres (dp)</span><b id="o_frame">3</b></div>
+          <input type="range" id="frameOver" min="0" max="8" step="0.5" value="3"></div>
+        <div class="row"><div class="lab"><span>Débord des icônes (sur 24)</span><b id="o_icon">1.2</b></div>
+          <input type="range" id="iconOver" min="0" max="3" step="0.1" value="1.2"></div>
+        <div class="row"><div class="lab"><span>Trait des icônes (sur 24)</span><b id="o_stroke">1.5</b></div>
+          <input type="range" id="iconStroke" min="1" max="2" step="0.25" value="1.5"></div>
+        <label class="check"><input type="checkbox" id="overEnds" checked> aux bouts d'un trait ouvert</label>
+        <label class="check"><input type="checkbox" id="overCorners" checked> aux angles d'un trait</label>
+      </fieldset>
+      <fieldset>
+        <legend>La palette réglée</legend>
+        <div class="seg" id="segPalette"></div>
+        <div id="sliders"></div>
+        <div class="acts"><button id="btnSave">Enregistrer</button></div>
+      </fieldset>
+      <fieldset>
+        <legend>Essayer (non enregistré)</legend>
+        <div class="row"><div class="lab"><span>Décalage de teinte</span><b id="shiftOut">0</b></div>
+          <input type="range" id="shift" min="0" max="359" step="1" value="0"></div>
+        <div class="row"><div class="lab"><span>Cran de taille</span></div><div class="seg" id="segStep"></div></div>
+      </fieldset>
+      <fieldset>
+        <legend>Contrastes</legend>
+        <table class="cr" id="contrasts"></table>
+        <div class="lab"><span>Au décalage essayé, puis au pire des 24 décalages (pas de 15°). Texte : 4,5 ; icône de son crayon : 3.</span></div>
+      </fieldset>
+    </div>
+  </div>
+
+  <div class="notes">
+    <b>Ce qu'on juge ici</b> : les deux palettes, le diazo en clair et le tirage bleu en sombre, l'écran d'une zone et chaque composant, à la largeur d'un téléphone (un pixel par dp), en Architects Daughter (le lettrage) et IBM Plex Mono (le reste). <b>Le trait qui déborde</b> se règle en haut à droite : sur les cadres (tuiles, boutons, cartouches), et sur les icônes de Lucide, retracées comme le thème le fera, chaque tracé ouvert prolongé à ses bouts et chaque angle croisé ; 0 l'éteint. La planche « Icônes » met à côté le Lucide d'origine (trait de 2, sans débord). Les nombres choisis pour le trait se notent dans la spec, ils ne s'enregistrent pas ici. Les nombres des palettes se règlent sur la palette choisie, et « Enregistrer » les écrit dans <code>palettes.json</code>. La teinte tourne le bleu et le papier ; l'alerte, les crayons et les états restent. Le mouvement (compas, cote qui se trace) ne se voit que sur le téléphone : la planche le montre à l'arrêt.
+  </div>
+</div>
+
+<!-- The revision triangle and the centre-crossed circle, reused by the templates. -->
+<template id="triangle"><svg viewBox="0 0 22 20"><path d="M11 1.5 20.5 18.5H1.5Z" fill="var(--al)"/><text x="11" y="16.2" text-anchor="middle" font-family="Plex Mono" font-weight="500" font-size="11" fill="var(--pa)">!</text></svg></template>
+<template id="knob"><svg viewBox="0 0 20 20" overflow="visible"><circle cx="10" cy="10" r="9" fill="var(--kc,var(--pa))" stroke="var(--i)" stroke-width="1.5"/><path d="M10 3v14M3 10h14" stroke="var(--i)" stroke-width="1"/></svg></template>
+
+<template id="screen">
+  <div class="phone"><div class="zoom">
+    <div class="bar"><span class="ib"><span class="ic" data-icon="arrow-left"></span></span><span class="ib"><span class="ic" data-icon="ellipsis"></span></span></div>
+    <div class="ph">
+      <div class="title fr"><h1 class="let">Santé</h1><span class="scale">1:1</span></div>
+      <div class="sub">7 outils · 1 routine</div>
+    </div>
+    <div class="gt"><span class="let">Quotidien</span><span class="rule"></span></div>
+    <div class="grid">
+      <div class="tile fr w4 h2" data-crayon="orange"><div class="in">
+        <div class="th"><span class="name let"><span class="ic" data-icon="flame"></span>Calories</span><span class="val">1 840 kcal</span></div>
+        <div class="bars"><span class="target"></span><i class="hatch" style="--h:.72"></i><i class="hatch" style="--h:.50"></i><i class="hatch" style="--h:.92"></i><i class="hatch" style="--h:.58"></i><i class="hatch" style="--h:.34"></i><i class="hatch" style="--h:.66"></i><i class="hatch" style="--h:.48"></i></div>
+        <div class="days"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+      </div></div>
+      <div class="tile fr w2" data-crayon="blue"><div class="in"><div class="name let"><span class="ic" data-icon="scale"></span>Poids</div><div class="big">72,4 kg</div><div class="small">il y a 2 h</div></div></div>
+      <div class="tile fr w2 h2 list"><div class="in"><div class="name let"><span class="ic" data-icon="shopping-cart"></span>Courses</div>
+        <ul><li><span class="box"></span>Lait</li><li class="done"><span class="box"><span class="ic" data-icon="check"></span></span>Pommes</li><li><span class="box"></span>Riz</li><li><span class="box"></span>Café</li></ul>
+      </div></div>
+      <div class="tile fr w2" data-crayon="purple"><div class="in"><div class="name let"><span class="ic" data-icon="notebook-pen"></span>Journal</div><div class="tags"><span class="tag" data-crayon="purple">sport</span><span class="tag" data-crayon="pink">humeur</span></div></div></div>
+      <div class="tile fr w2" data-crayon="green"><div class="in"><div class="name let"><span class="ic" data-icon="footprints"></span>10 000 pas</div><div class="gauge"><span class="hatch" style="width:71%"></span></div><div class="small" style="margin-top:6px">7 120 · 71 %</div></div></div>
+      <div class="tile fr icon" data-crayon="teal"><span class="ic" data-icon="droplet"></span></div>
+      <div class="tile fr icon" style="position:relative"><span class="ic" data-icon="moon"></span><span class="wait" data-use="triangle"></span></div>
+    </div>
+    <div class="gt"><span class="let">Notes</span><span class="rule"></span></div>
+    <div class="grid"><div class="tile fr w4 note"><div class="in"><div class="name let"><span class="ic" data-icon="sticky-note"></span>Idées</div><p>Essayer la marche après le déjeuner, noter l'effet sur le sommeil…</p></div></div></div>
+    <div class="gt"><span class="let">Variables</span><span class="rule"></span></div>
+    <div class="card"><span class="nm let">Objectif calorique</span><span class="v">2 000</span></div>
+    <div class="card"><span class="nm let">Taille</span><span class="v">1,78 m</span></div>
+    <div style="height:96px"></div>
+    <span class="fab"><span class="ic" data-icon="sparkles"></span></span>
+  </div></div>
+</template>
+
+<template id="sheet">
+  <div class="phone"><div class="zoom sheet">
+    <div class="sec"><div class="sl">Icônes · le thème, puis Lucide tel quel</div>
+      <div class="plank-row"><span class="cap">thème 24</span><div class="plank" id="plank24"></div></div>
+      <div class="plank-row"><span class="cap">Lucide 24</span><div class="plank raw" id="plankRaw"></div></div>
+      <div class="plank-row"><span class="cap">thème 40</span><div class="plank" id="plank40" style="grid-template-columns:repeat(4,1fr)"></div></div>
+    </div>
+    <div class="sec"><div class="sl">Boutons · au repos, puis pressés</div>
+      <div class="btns">
+        <span class="btn b-pri let">Enregistrer</span><span class="btn fr let">Dupliquer</span><span class="btn b-ter let">Annuler</span>
+        <span class="btn fr b-dan let">Supprimer</span><span class="btn fr dash b-dis let">Désactivé</span>
+        <span class="btn b-press-pri let">Pressé</span><span class="btn fr hatch b-press let">Pressé</span>
+        <span class="ib"><span class="ic" data-icon="pencil"></span></span><span class="ib"><span class="ic" data-icon="trash"></span></span>
+      </div>
+    </div>
+    <div class="sec"><div class="sl">Saisie</div>
+      <div class="field"><div class="fl let">Nom</div><div class="fv"><span>Courses</span></div></div>
+      <div class="field focus"><div class="fl let">Note</div><div class="fv"><span>Marche après le dé<span class="caret"></span></span></div></div>
+      <div class="field err"><div class="fl let">Quantité</div><div class="fv"><span>-3</span></div><div class="fe">Une quantité ne peut pas être négative.</div></div>
+      <div class="field"><div class="fl let">Unité</div><div class="fv"><span>Kilogrammes</span><span class="ic" data-icon="chevron-down"></span></div></div>
+      <div class="menu fr"><div>Grammes</div><div class="on">Kilogrammes</div><div>Livres</div></div>
+    </div>
+    <div class="sec"><div class="inline"><span class="cb"></span><span class="cb"><span class="ic" data-icon="check"></span></span>
+      <span class="sw"><span class="knob" data-use="knob"></span></span><span class="sw on"><span class="knob" data-use="knob"></span></span>
+      <span class="yn"><span class="on let">Oui</span><span class="let">Non</span></span></div></div>
+    <div class="sec"><div class="slider" id="slider"></div>
+      <div class="gauge"><span class="hatch" style="width:40%"></span></div></div>
+    <div class="sec"><div class="tabs"><span class="on let">Entrées</span><span class="let">Config</span><span class="let">Historique</span></div></div>
+    <div class="sec"><div class="sl">Teinte</div><div class="hue"><span></span></div></div>
+    <div class="sec"><div class="sl">Crayons : tags et icônes</div>
+      <div class="tags" style="margin-bottom:12px" id="alltags"></div>
+      <div class="inline" style="gap:10px;margin-bottom:14px" id="allicons"></div>
+      <div class="itemrow"><span class="handle"><i></i><i></i></span><span class="ic" data-icon="utensils" data-crayon="orange"></span><span class="nm let">Repas</span></div>
+      <div class="itemrow"><span class="handle"><i></i><i></i></span><span class="ic" data-icon="footprints"></span><span class="nm let">Pas</span></div>
+      <div class="divider"></div>
+    </div>
+    <div class="sec"><div class="sl">Dialogue</div></div>
+    <div class="scrim"><div class="cart"><div class="head let">Supprimer l'outil ?</div><div class="body"><p>Ses 214 entrées seront supprimées avec lui.</p></div>
+      <div class="btns"><span class="btn b-ter let">Annuler</span><span class="btn fr b-dan let">Supprimer</span></div></div></div>
+    <div class="sec"><div class="sl">Conversation · attente</div>
+      <div class="chat">
+        <div class="you">Combien de calories cette semaine ?</div>
+        <div class="ai fr">Tu es à <b>12 880 kcal</b> sur sept jours, soit 1 840 par jour, sous ton objectif de 2 000.</div>
+        <div class="inter fr"><div class="strip hatch"></div><div class="q">Ajouter « Marche 30 min » au Journal ?</div><div class="btns" style="justify-content:flex-end"><span class="btn b-ter let">Refuser</span><span class="btn b-pri let">Valider</span></div></div>
+      </div>
+      <div class="waits">
+        <svg width="40" height="40" viewBox="0 0 40 40"><path d="M20 4a16 16 0 1 1-16 16" fill="none" stroke="var(--i)" stroke-width="1.5"/><path d="M17 20h6M20 17v6" stroke="var(--i)" stroke-width="1"/><path d="M20 20 4.6 15.8" stroke="var(--d)" stroke-width="1"/></svg>
+        <svg width="120" height="24" viewBox="0 0 120 24"><path d="M4 4v16M116 4v16" stroke="var(--d)" stroke-width="1"/><path d="M4 12h70" stroke="var(--i)" stroke-width="1.5"/><path d="m4 12 7-3.5v7Z" fill="var(--i)"/></svg>
+        <span class="wait" data-use="triangle" style="position:static"></span>
+      </div>
+    </div>
+    <div class="sec"><div class="sl">Messages</div>
+      <div class="toast">Entrée enregistrée.</div><div class="pad" style="height:10px"></div>
+      <div class="snack"><span>Entrée supprimée.</span><span class="let">Annuler</span></div>
+    </div>
+    <div class="sec"><div class="sl">Date et heure</div>
+      <div class="cart date"><div class="head let mh"><span class="ib"><span class="ic" data-icon="chevron-left"></span></span><span>Octobre 2026</span><span class="ib"><span class="ic" data-icon="chevron-right"></span></span></div>
+        <div class="body"><div class="cal" id="cal"></div></div>
+        <div class="btns"><span class="btn b-ter let">Annuler</span><span class="btn b-pri let">Choisir</span></div>
+      </div>
+      <div class="pad"></div>
+      <div class="cart"><div class="time">
+        <div class="cnt"><span class="pm fr"><span class="ic" data-icon="plus"></span></span><span class="n fr">07</span><span class="pm fr"><span class="ic" data-icon="minus"></span></span></div>
+        <span class="colon">:</span>
+        <div class="cnt"><span class="pm fr"><span class="ic" data-icon="plus"></span></span><span class="n fr">30</span><span class="pm fr"><span class="ic" data-icon="minus"></span></span></div>
+      </div></div>
+    </div>
+    <div class="sec"><div class="sl">Texte sélectionné</div><div class="selbar fr"><span class="let">Copier</span><span class="on let">Couper</span><span class="let">Tout</span></div></div>
+    <div class="sec"><div class="sl">Grille en édition</div>
+      <div class="edit">
+        <div class="cell fr dash"></div><div class="cell fr dash"></div><div class="cell fr dash"></div><div class="cell fr dash"></div>
+        <div class="cell fr dash"></div><div class="cell fr dash"></div><div class="cell fr dash"></div><div class="cell fr dash"></div>
+        <div class="tile fr w2 faded" style="grid-row:1;grid-column:1/3"><div class="name let">Poids</div><div class="big">72,4</div></div>
+        <div class="ghost fr dash" style="grid-row:2;grid-column:2/4"></div>
+        <div class="tile fr w2 lifted" data-crayon="green" style="grid-row:2;grid-column:2/4"><div class="name let">Pas</div><div class="gauge"><span class="hatch" style="width:71%"></span></div></div>
+      </div>
+    </div>
+    <div class="pad"></div>
+  </div></div>
+</template>
+
+<script>
+"use strict";
+const PALETTES_URL = "/app/src/main/resources/app/treelune/themes/blueprint/palettes.json";
+const SAVE_URL = "/palettes/blueprint";
+const LUCIDE_URL = (name) => `/third_party/lucide/icons/${name}.svg`;
+const STEPS = [1, 1.12, 1.25, 1.4];
+const PLANK = ["arrow-left", "check", "chevron-down", "pencil", "trash", "plus", "house", "settings", "calendar", "clock", "bell", "folder", "square-check", "list-checks", "chart-column", "message-square", "triangle-alert", "ruler"];
+
+// The numbers a slider sets, with their range: everything BlueprintPalette.kt will read.
+const KNOBS = [
+  ["blue_hue", "Teinte du bleu", 0, 359, 1],
+  ["paper_hue", "Teinte du papier", 0, 359, 1],
+  ["paper_lightness", "Papier · clarté", 0, 1, 0.002],
+  ["paper_chroma", "Papier · saturation", 0, 0.16, 0.001],
+  ["ink_lightness", "Encre · clarté", 0, 1, 0.002],
+  ["ink_chroma", "Encre · saturation", 0, 0.16, 0.001],
+  ["dim_lightness", "Encre secondaire · clarté", 0, 1, 0.005],
+  ["dim_chroma", "Encre secondaire · saturation", 0, 0.12, 0.001],
+  ["grid_major", "Quadrillage, grand carré · opacité", 0, 0.4, 0.01],
+  ["grid_minor", "Quadrillage, petit carré · opacité", 0, 0.3, 0.01],
+  ["alert_hue", "Alerte · teinte", 0, 359, 1],
+  ["alert_lightness", "Alerte · clarté", 0.3, 0.95, 0.005],
+  ["alert_chroma", "Alerte · saturation", 0, 0.3, 0.002],
+  ["crayon_lightness", "Crayons · clarté", 0.3, 0.95, 0.005],
+  ["crayon_chroma", "Crayons · saturation", 0, 0.25, 0.002],
+  ["status_lightness", "États · clarté", 0.3, 0.95, 0.005],
+  ["status_chroma", "États · saturation", 0, 0.25, 0.002],
+];
+
+// The same hues as the other themes: a tag's hue is its meaning.
+const TAG_HUES = { red: 25, orange: 55, yellow: 95, green: 145, teal: 185, blue: 230, purple: 300, pink: 355 };
+const STATUS_HUES = { success: 145, warning: 55, error: 25, info: 250 };
+const GREY_CHROMA = 0.015;
+
+// ---- OKLCH to sRGB, its chroma reduced until sRGB can show it (Lch.kt) ----
+function linear(L, C, H) {
+  const hr = H * Math.PI / 180, a = C * Math.cos(hr), b = C * Math.sin(hr);
+  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const s = (L - 0.0894841775 * a - 1.2914855480 * b) ** 3;
+  return [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+          -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+          -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s];
+}
+const inGamut = (v) => v.every((x) => x >= -0.0005 && x <= 1.0005);
+function rgb([L, C, H]) {
+  L = Math.min(1, Math.max(0, L)); H = ((H % 360) + 360) % 360; C = Math.max(0, C);
+  if (!inGamut(linear(L, C, H))) {
+    let lo = 0, hi = C;
+    for (let i = 0; i < 18; i++) { const mid = (lo + hi) / 2; if (inGamut(linear(L, mid, H))) lo = mid; else hi = mid; }
+    C = lo;
+  }
+  return linear(L, C, H).map((x) => { x = Math.min(1, Math.max(0, x)); x = x <= 0.0031308 ? 12.92 * x : 1.055 * x ** (1 / 2.4) - 0.055; return Math.round(x * 255) / 255; });
+}
+const hex = (c) => "#" + rgb(c).map((x) => Math.round(x * 255).toString(16).padStart(2, "0")).join("");
+function luminance(c) { const [r, g, b] = rgb(c).map((x) => x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4); return 0.2126 * r + 0.7152 * g + 0.0722 * b; }
+function contrast(a, b) { const [x, y] = [luminance(a), luminance(b)].sort((p, q) => p - q); return (y + 0.05) / (x + 0.05); }
+
+// ---- A palette's colours, as BlueprintPalette.kt will derive them ----
+function derive(n, shift) {
+  const blue = n.blue_hue + shift;
+  const out = {
+    pa: [n.paper_lightness, n.paper_chroma, n.paper_hue + shift],
+    i: [n.ink_lightness, n.ink_chroma, blue],
+    d: [n.dim_lightness, n.dim_chroma, blue],
+    al: [n.alert_lightness, n.alert_chroma, n.alert_hue],
+  };
+  for (const [k, h] of Object.entries(TAG_HUES)) out["cr-" + k] = [n.crayon_lightness, n.crayon_chroma, h];
+  out["cr-grey"] = [n.crayon_lightness, GREY_CHROMA, blue];
+  for (const [k, h] of Object.entries(STATUS_HUES)) out["st-" + k] = [n.status_lightness, n.status_chroma, h];
+  return out;
+}
+
+// ---- Lucide redrawn: a thinner stroke, every line overshooting at its open ends and corners ----
+const COUNTS = { m: 2, l: 2, h: 1, v: 1, c: 6, s: 4, q: 4, t: 2, a: 7, z: 0 };
+const NUMBER = /[\s,]*([-+]?(?:\d*\.\d+|\d+\.?)(?:[eE][-+]?\d+)?)/y;
+const FLAG = /[\s,]*([01])/y;
+const COMMAND = /[\s,]*([a-zA-Z])/y;
+
+// A path's data split into subpaths, each with its absolute start and its commands, the end of each known.
+// An arc's two flags are one digit each, written without a separator by Lucide ("a10 10 0 0010-10").
+function subpaths(d) {
+  const read = (re) => { re.lastIndex = pos; const m = re.exec(d); if (!m) return null; pos = re.lastIndex; return m[1]; };
+  const subs = [];
+  let pos = 0, cmd = null, cx = 0, cy = 0, sx = 0, sy = 0, cur = null;
+  while (d.slice(pos).trim()) {
+    const letter = read(COMMAND);
+    if (letter) {
+      cmd = letter;
+      if (cmd === "z" || cmd === "Z") {
+        if (cur) { cur.closed = true; cur.segs.push({ c: "Z", end: [sx, sy] }); }
+        cx = sx; cy = sy;
+        continue;
+      }
+    }
+    if (cmd === null) throw new Error("path data without a command: " + d);
+    const lc = cmd.toLowerCase(), n = COUNTS[lc], rel = cmd === lc;
+    const p = [];
+    for (let k = 0; k < n; k++) {
+      const v = read(lc === "a" && (k === 3 || k === 4) ? FLAG : NUMBER);
+      if (v === null) throw new Error("unreadable path data: " + d);
+      p.push(Number(v));
+    }
+    if (lc === "m") {
+      const x = rel ? cx + p[0] : p[0], y = rel ? cy + p[1] : p[1];
+      cur = { start: [x, y], segs: [], closed: false }; subs.push(cur);
+      cx = sx = x; cy = sy = y;
+      cmd = rel ? "l" : "L"; // the pairs after a moveto are linetos
+      continue;
+    }
+    if (!cur || cur.closed) { cur = { start: [sx, sy], segs: [], closed: false }; subs.push(cur); }
+    let ex, ey;
+    if (lc === "h") { ex = rel ? cx + p[0] : p[0]; ey = cy; }
+    else if (lc === "v") { ex = cx; ey = rel ? cy + p[0] : p[0]; }
+    else { ex = rel ? cx + p[n - 2] : p[n - 2]; ey = rel ? cy + p[n - 1] : p[n - 1]; }
+    cur.segs.push({ c: cmd + p.join(" "), end: [ex, ey] });
+    cx = ex; cy = ey;
+  }
+  return subs;
+}
+
+// Every drawn element of an icon as path data; a circle, an ellipse and a rounded rectangle have no end nor corner.
+function shapes(svg) {
+  const out = [];
+  for (const el of svg.querySelectorAll("path,line,polyline,polygon,rect")) {
+    const a = (k) => +(el.getAttribute(k) || 0);
+    switch (el.tagName) {
+      case "path": out.push(el.getAttribute("d")); break;
+      case "line": out.push(`M${a("x1")} ${a("y1")}L${a("x2")} ${a("y2")}`); break;
+      case "polyline": case "polygon": {
+        const pts = el.getAttribute("points").trim().split(/[\s,]+/).map(Number);
+        let d = `M${pts[0]} ${pts[1]}`;
+        for (let k = 2; k < pts.length; k += 2) d += `L${pts[k]} ${pts[k + 1]}`;
+        out.push(el.tagName === "polygon" ? d + "Z" : d);
+        break;
+      }
+      case "rect":
+        if (!a("rx") && !a("ry")) out.push(`M${a("x")} ${a("y")}h${a("width")}v${a("height")}h${-a("width")}Z`);
+        break;
+    }
+  }
+  return out;
+}
+
+const SVGNS = "http://www.w3.org/2000/svg";
+let probe = null;
+function probePath() {
+  if (!probe) {
+    const svg = document.createElementNS(SVGNS, "svg");
+    svg.setAttribute("style", "position:absolute;width:0;height:0;visibility:hidden");
+    probe = document.createElementNS(SVGNS, "path");
+    svg.appendChild(probe); document.body.appendChild(svg);
+  }
+  return probe;
+}
+
+// The short lines that make a subpath overshoot: past its two open ends, and past each sharp corner.
+function overshoots(sub, len, ends, corners) {
+  const p = probePath();
+  const head = `M${sub.start[0]} ${sub.start[1]}`;
+  const lengths = sub.segs.map((_, k) => { p.setAttribute("d", head + sub.segs.slice(0, k + 1).map((s) => s.c).join("")); return p.getTotalLength(); });
+  p.setAttribute("d", head + sub.segs.map((s) => s.c).join(""));
+  const total = p.getTotalLength();
+  if (total < 0.01) return [];
+  const at = (l) => { const q = p.getPointAtLength(Math.max(0, Math.min(total, l))); return [q.x, q.y]; };
+  const unit = (a, b) => { const dx = b[0] - a[0], dy = b[1] - a[1], h = Math.hypot(dx, dy); return h < 1e-6 ? null : [dx / h, dy / h]; };
+  const e = Math.min(0.25, total / 4);
+  const lines = [];
+  const push = (from, dir, sign) => { if (dir) lines.push([from, [from[0] + sign * dir[0] * len, from[1] + sign * dir[1] * len]]); };
+  if (ends && !sub.closed) {
+    push(at(0), unit(at(0), at(e)), -1);
+    push(at(total), unit(at(total - e), at(total)), 1);
+  }
+  if (corners) {
+    // Each junction between two commands, and for a closed subpath the one at its start.
+    const joints = lengths.slice(0, -1);
+    if (sub.closed) joints.push(0);
+    for (const l of joints) {
+      const j = at(l);
+      const before = sub.closed && l === 0 ? unit(at(total - e), at(total)) : unit(at(l - e), j);
+      const after = unit(j, at(l + e));
+      if (!before || !after) continue;
+      const cos = before[0] * after[0] + before[1] * after[1];
+      if (cos > Math.cos(Math.PI * 25 / 180)) continue; // a smooth joint: no corner to cross
+      push(j, before, 1);
+      push(j, after, -1);
+    }
+  }
+  return lines;
+}
+
+function redraw(host, source) {
+  host.innerHTML = source;
+  const svg = host.querySelector("svg");
+  if (host.closest(".raw")) return;
+  svg.setAttribute("stroke-width", S.iconStroke);
+  if (S.iconOver <= 0 || (!S.overEnds && !S.overCorners)) return;
+  const g = document.createElementNS(SVGNS, "g");
+  for (const d of shapes(svg)) {
+    for (const sub of subpaths(d)) {
+      for (const [a, b] of overshoots(sub, S.iconOver, S.overEnds, S.overCorners)) {
+        const l = document.createElementNS(SVGNS, "path");
+        l.setAttribute("d", `M${a[0].toFixed(3)} ${a[1].toFixed(3)}L${b[0].toFixed(3)} ${b[1].toFixed(3)}`);
+        g.appendChild(l);
+      }
+    }
+  }
+  svg.appendChild(g);
+}
+
+// ---- State and drawing ----
+const S = { doc: null, edited: 0, shift: 0, step: 0, dirty: false, frameOver: 3, iconOver: 1.2, iconStroke: 1.5, overEnds: true, overCorners: true };
+const icons = new Map();
+const CRAYONS = [...Object.keys(TAG_HUES), "grey"];
+
+async function loadIcons(root) {
+  const names = [...new Set([...root.querySelectorAll("[data-icon]")].map((e) => e.dataset.icon))];
+  await Promise.all(names.filter((n) => !icons.has(n)).map(async (n) => {
+    const r = await fetch(LUCIDE_URL(n));
+    if (!r.ok) throw new Error(`no Lucide icon ${n}`);
+    icons.set(n, await r.text());
+  }));
+}
+function drawIcons() { document.querySelectorAll("[data-icon]").forEach((e) => redraw(e, icons.get(e.dataset.icon))); }
+
+// A crayon's colour for everything inside an element that names its crayon.
+function crayons(root) {
+  root.querySelectorAll("[data-crayon]").forEach((e) => e.style.setProperty("--c", `var(--cr-${e.dataset.crayon})`));
+}
+function uses(root) {
+  root.querySelectorAll("[data-use]").forEach((e) => { e.innerHTML = document.getElementById(e.dataset.use).innerHTML; });
+}
+
+function sheetParts(root) {
+  const tags = root.querySelector("#alltags"), all = root.querySelector("#allicons");
+  if (!tags) return;
+  tags.removeAttribute("id"); all.removeAttribute("id");
+  const NAMES = { red: "rouge", orange: "orange", yellow: "jaune", green: "vert", teal: "sarcelle", blue: "bleu", purple: "violet", pink: "rose", grey: "gris" };
+  const ICONS = { red: "heart", orange: "flame", yellow: "sun", green: "leaf", teal: "droplet", blue: "scale", purple: "notebook-pen", pink: "flower", grey: "sticky-note" };
+  tags.innerHTML = CRAYONS.map((k) => `<span class="tag" data-crayon="${k}">${NAMES[k]}</span>`).join("");
+  all.innerHTML = CRAYONS.map((k) => `<span class="ic" style="width:26px;height:26px;color:var(--c)" data-crayon="${k}" data-icon="${ICONS[k]}"></span>`).join("");
+  for (const [id, size, list] of [["plank24", 24, PLANK], ["plankRaw", 24, PLANK], ["plank40", 40, PLANK.slice(0, 8)]]) {
+    const el = root.querySelector("#" + id); el.removeAttribute("id");
+    el.innerHTML = list.map((n) => `<span class="ic" style="width:${size}px;height:${size}px" data-icon="${n}"></span>`).join("");
+  }
+  const slider = root.querySelector("#slider"); slider.removeAttribute("id");
+  // The slider: a dimension line from the start to the value, its value above, the centre-crossed knob under the finger.
+  slider.innerHTML = `<svg width="100%" height="52" viewBox="0 0 328 52" preserveAspectRatio="none">
+    <path d="M1 26h326" stroke="var(--d)" stroke-width="1"/>
+    <path d="M1 18v16M203 14v24" stroke="var(--i)" stroke-width="1"/>
+    <path d="M1 26h202" stroke="var(--i)" stroke-width="1.5"/>
+    <path d="m1 26 8-3.5v7Z" fill="var(--i)"/>
+    <text x="102" y="18" text-anchor="middle" font-family="Plex Mono" font-weight="500" font-size="14" fill="var(--i)">62</text>
+    <g transform="translate(193 16)">${document.getElementById("knob").innerHTML.replace('<svg viewBox="0 0 20 20" overflow="visible">', "").replace("</svg>", "")}</g></svg>`;
+}
+
+function calendar(root) {
+  const cal = root.querySelector("#cal"); if (!cal) return;
+  cal.removeAttribute("id");
+  let html = ["L", "M", "M", "J", "V", "S", "D"].map((d) => `<span class="wd">${d}</span>`).join("");
+  for (let i = 28; i <= 30; i++) html += `<span class="mute">${i}</span>`;
+  for (let d = 1; d <= 31; d++) html += `<span class="${d === 18 ? "today" : d === 21 ? "sel" : ""}"><u>${d}</u></span>`;
+  html += `<span class="mute">1</span>`;
+  cal.innerHTML = html;
+}
+
+const alpha = (c, a) => { const [r, g, b] = rgb(c).map((x) => Math.round(x * 255)); return `rgba(${r},${g},${b},${a})`; };
+
+function paint() {
+  for (const [col, idx] of [["colLight", 0], ["colDark", 1]]) {
+    const n = S.doc.palettes[idx].numbers;
+    const colors = derive(n, S.shift);
+    document.querySelectorAll(`#${col} .phone`).forEach((p) => {
+      for (const [k, v] of Object.entries(colors)) p.style.setProperty("--" + k, hex(v));
+      p.style.setProperty("--gM", alpha(colors.i, n.grid_major));
+      p.style.setProperty("--gm", alpha(colors.i, n.grid_minor));
+      p.style.setProperty("--k", STEPS[S.step]);
+      p.style.setProperty("--o", S.frameOver + "px");
+    });
+  }
+  contrasts();
+}
+
+function contrasts() {
+  const rows = [];
+  const crayonKeys = CRAYONS;
+  for (const [label, idx] of [["Clair", 0], ["Sombre", 1]]) {
+    const n = S.doc.palettes[idx].numbers;
+    const pairs = [
+      ["encre / papier", (c) => contrast(c.i, c.pa), 4.5],
+      ["secondaire / papier", (c) => contrast(c.d, c.pa), 4.5],
+      ["papier / aplat d'encre", (c) => contrast(c.pa, c.i), 4.5],
+      ["alerte / papier", (c) => contrast(c.al, c.pa), 4.5],
+      ["papier / aplat d'alerte", (c) => contrast(c.pa, c.al), 3],
+      ["états / papier", (c) => Math.min(...Object.keys(STATUS_HUES).map((k) => contrast(c["st-" + k], c.pa))), 4.5],
+      ["crayons (texte) / papier", (c) => Math.min(...crayonKeys.map((k) => contrast(c["cr-" + k], c.pa))), 4.5],
+    ];
+    rows.push(`<tr><td colspan="3"><b>${label}</b></td></tr>`);
+    for (const [name, f, min] of pairs) {
+      const now = f(derive(n, S.shift));
+      let worst = Infinity;
+      for (let s = 0; s < 360; s += 15) worst = Math.min(worst, f(derive(n, s)));
+      const cls = (v) => v < min ? "low" : "okk";
+      rows.push(`<tr><td>${name}</td><td class="${cls(now)}">${now.toFixed(2)}</td><td class="${cls(worst)}">${worst.toFixed(2)}</td></tr>`);
+    }
+  }
+  document.getElementById("contrasts").innerHTML = rows.join("");
+}
+
+function sliders() {
+  const n = S.doc.palettes[S.edited].numbers;
+  const box = document.getElementById("sliders");
+  box.innerHTML = KNOBS.map(([k, label, min, max, step]) =>
+    `<div class="row"><div class="lab"><span>${label}</span><b id="o_${k}">${n[k]}</b></div><input type="range" data-k="${k}" min="${min}" max="${max}" step="${step}" value="${n[k]}"></div>`).join("");
+  box.querySelectorAll("input").forEach((inp) => inp.addEventListener("input", () => {
+    n[inp.dataset.k] = +inp.value;
+    document.getElementById("o_" + inp.dataset.k).textContent = inp.value;
+    setDirty(true); paint();
+  }));
+}
+
+function seg(id, labels, current, onPick) {
+  const el = document.getElementById(id);
+  el.innerHTML = labels.map((l, i) => `<button aria-pressed="${i === current}">${l}</button>`).join("");
+  el.querySelectorAll("button").forEach((b, i) => b.addEventListener("click", () => {
+    el.querySelectorAll("button").forEach((x, j) => x.setAttribute("aria-pressed", j === i));
+    onPick(i);
+  }));
+}
+
+function setDirty(d) {
+  S.dirty = d;
+  const el = document.getElementById("saved");
+  el.className = d ? "dirty" : "";
+  el.textContent = d ? "modifié, non enregistré" : "enregistré";
+}
+
+async function save() {
+  try {
+    const r = await fetch(SAVE_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(S.doc) });
+    if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+    setDirty(false);
+  } catch (e) {
+    const el = document.getElementById("saved"); el.className = "bad"; el.textContent = "échec de l'enregistrement : " + e.message;
+  }
+}
+
+function strokeControls() {
+  const bind = (id, out, key) => document.getElementById(id).addEventListener("input", (e) => {
+    S[key] = +e.target.value; document.getElementById(out).textContent = e.target.value;
+    if (key === "frameOver") paint(); else drawIcons();
+  });
+  bind("frameOver", "o_frame", "frameOver");
+  bind("iconOver", "o_icon", "iconOver");
+  bind("iconStroke", "o_stroke", "iconStroke");
+  for (const [id, key] of [["overEnds", "overEnds"], ["overCorners", "overCorners"]]) {
+    document.getElementById(id).addEventListener("change", (e) => { S[key] = e.target.checked; drawIcons(); });
+  }
+}
+
+async function main() {
+  const r = await fetch(PALETTES_URL, { cache: "no-store" });
+  if (!r.ok) throw new Error(`palettes.json: ${r.status}`);
+  S.doc = await r.json();
+  for (const col of ["colLight", "colDark"]) {
+    for (const t of ["screen", "sheet"]) {
+      const node = document.getElementById(t).content.cloneNode(true);
+      calendar(node); sheetParts(node); uses(node); crayons(node);
+      document.getElementById(col).appendChild(node);
+    }
+  }
+  await loadIcons(document.body);
+  drawIcons();
+  seg("segPalette", ["Clair", "Sombre"], 0, (i) => { S.edited = i; sliders(); });
+  seg("segStep", ["0", "1", "2", "3"], 0, (i) => { S.step = i; paint(); });
+  document.getElementById("shift").addEventListener("input", (e) => { S.shift = +e.target.value; document.getElementById("shiftOut").textContent = e.target.value; paint(); });
+  document.getElementById("btnSave").addEventListener("click", save);
+  window.addEventListener("beforeunload", (e) => { if (S.dirty) e.preventDefault(); });
+  strokeControls(); sliders(); paint(); setDirty(false);
+}
+
+main().catch((e) => { const el = document.getElementById("saved"); el.className = "bad"; el.textContent = e.message; throw e; });
+</script>
+</body>
+</html>

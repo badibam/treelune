@@ -1,0 +1,50 @@
+{
+  "palettes": [
+    {
+      "id": "blueprint_light",
+      "mode": "LIGHT",
+      "numbers": {
+        "blue_hue": 257,
+        "paper_hue": 91,
+        "alert_hue": 27,
+        "paper_lightness": 0.97,
+        "paper_chroma": 0.008,
+        "ink_lightness": 0.431,
+        "ink_chroma": 0.118,
+        "dim_lightness": 0.5,
+        "dim_chroma": 0.06,
+        "grid_major": 0.14,
+        "grid_minor": 0.06,
+        "alert_lightness": 0.54,
+        "alert_chroma": 0.19,
+        "crayon_lightness": 0.5,
+        "crayon_chroma": 0.14,
+        "status_lightness": 0.52,
+        "status_chroma": 0.15
+      }
+    },
+    {
+      "id": "blueprint_dark",
+      "mode": "DARK",
+      "numbers": {
+        "blue_hue": 257,
+        "paper_hue": 257,
+        "alert_hue": 86,
+        "paper_lightness": 0.431,
+        "paper_chroma": 0.118,
+        "ink_lightness": 0.959,
+        "ink_chroma": 0.019,
+        "dim_lightness": 0.85,
+        "dim_chroma": 0.03,
+        "grid_major": 0.16,
+        "grid_minor": 0.06,
+        "alert_lightness": 0.88,
+        "alert_chroma": 0.135,
+        "crayon_lightness": 0.86,
+        "crayon_chroma": 0.09,
+        "status_lightness": 0.86,
+        "status_chroma": 0.1
+      }
+    }
+  ]
+}
