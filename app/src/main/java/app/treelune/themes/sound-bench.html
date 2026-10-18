@@ -301,9 +301,9 @@ async function playFiles(files) {
 }
 function overview() {
   $("title").textContent = "Les sons de tous les thèmes";
-  document.querySelector("p.lead").textContent = "Ce que chaque thème joue aujourd'hui (res/raw, refait par make) : une ligne enchaîne un signal dans tous les thèmes, une colonne les signaux d'un thème. Un thème se choisit par ?theme=<id>.";
+  document.querySelector("p.lead").textContent = "Ce que chaque thème joue aujourd'hui (res/raw, refait par make) : une ligne enchaîne un signal dans tous les thèmes, une colonne les signaux d'un thème. Le nom d'un thème ouvre sa planche d'écoute.";
   document.querySelector(".bar").remove();
-  const themes = [...new Set(Object.values(S.cat.current).flatMap(o => Object.keys(o)))].sort();
+  const themes = S.cat.themes;
   const table = el("table", { className: "all" });
   const head = el("tr", {}, el("th", { textContent: "" }));
   for (const th of themes) head.append(el("th", {}, el("a", { href: `?theme=${th}`, textContent: th }), " ",

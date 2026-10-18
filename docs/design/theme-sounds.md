@@ -1,6 +1,6 @@
 # Les sons de tous les thèmes
 
-Conçu le 2026-10-18. Le registre sonore de chaque thème, codé ou à venir, posé côte à côte pour que deux thèmes ne sonnent pas pareil, et pour savoir quelles sources ajouter avant d'écouter. Le flux d'un choix (planche d'écoute, `theme_sounds.py`) est dans `docs/THEMES.md`, « Les sons » ; la ligne 12 de la spec d'un thème, « Le registre sonore », reprend la sienne d'ici.
+Conçu le 2026-10-18. Le registre sonore de chaque thème, codé ou à venir, posé côte à côte pour que deux thèmes ne sonnent pas pareil, et pour savoir quelles sources ajouter avant d'écouter. Le flux d'un choix (planche d'écoute, `theme_sounds.py`) est dans `docs/THEMES.md`, « Les sons » ; la ligne 12 de la spec d'un thème, « Le registre sonore », reprend la sienne d'ici. Un thème qui se construit part de sa ligne et la précise dans sa spec, la carte suivant ce qu'elle tranche ; un registre qui n'est pas sur la carte s'y ajoute d'abord, à côté des autres, avant sa spec.
 
 ## Ce qui distingue deux registres
 
@@ -34,7 +34,7 @@ Deux sons sonnent de la même famille par leur prise : la pièce et sa réverbé
 | Cosy (fait) | bois creux, gouttes | oui | rond | des sons ronds qui rebondissent | Kenney |
 | Suisse | métal de bureau | non | très sec | l'agrafeuse, l'interrupteur, la perforatrice | BigSoundBank |
 | Encre et lavis | pierre, bois, eau | peu | feutré, lent | le sceau qu'on frappe, une goutte, le pinceau | BigSoundBank |
-| Signalétique de métro | métal clair, électronique | oui | net, résonne | le carillon à deux notes d'une annonce, le bip du valideur | synthèse |
+| Signalétique de métro | carillon, métal | oui | net, résonne | le carillon de deux ou trois notes douces, le clac du portillon | synthèse, et BigSoundBank pour le clac |
 | Papier découpé | papier épais | non | net | les ciseaux, une feuille posée sur le kraft | BigSoundBank |
 | Plan d'architecte | outils de dessin | non | sec, fin | le porte-mine qu'on clique, la règle posée | BigSoundBank |
 | Carnet | papier, stylo | non | doux | le stylo qui coche, la page qu'on tourne | BigSoundBank |
@@ -55,7 +55,7 @@ Deux sons sonnent de la même famille par leur prise : la pièce et sa réverbé
 - **Cosy** : fait (`cosy/sounds-choice.json`), rien à changer.
 - **Suisse** : la spec disait des clics et des tics de Kenney, ceux-là mêmes que le rétro a pris ; il s'en éloigne par la matière : du métal de bureau, plus mat et plus court que le rétro. BigSoundBank : l'agrafeuse de bureau (n° 9) et sur bois (n° 1580), les interrupteurs (n° 26, 27, 36, 52), le stylo à poussoir (n° 613, 810), le classeur métallique (n° 773).
 - **Encre et lavis** : la spec disait « une page qu'on tourne » ; la page va au carnet, et l'encre garde ce qui n'appartient qu'à elle : le sceau frappé (confirmer), une goutte dans l'eau (ouvrir, fermer), un bois léger (cocher), le pinceau qui glisse (entrer, revenir). BigSoundBank : les gouttes (n° 1384 à 1387), le bois (tiroir, clé posée) ; ni pinceau ni sceau, deux trous pour Freesound.
-- **Signalétique de métro** : le seul thème à vraies notes claires ; confirmer = les deux notes d'une annonce, refuser = le bip refusé du valideur, ouvrir et fermer = les portes en plus court. Une recette `synth` en sinus, une banque d'instruments si le sinus ne suffit pas ; jamais l'enregistrement d'un vrai réseau (BigSoundBank a le jingle de la SNCF, écarté).
+- **Signalétique de métro** (codé, muet ; sa spec, `docs/design/metro-theme.md`, ligne 12) : le seul thème à vraies notes claires ; un carillon de deux ou trois notes douces pour confirmer et entrer, le clac sec d'un portillon pour cocher et le cran, un bip bref pour le refus. Le carillon et le bip par une recette `synth` en sinus, une banque d'instruments si le sinus ne suffit pas ; le clac, un métal de BigSoundBank, plus lourd que l'interrupteur du suisse (aucun portillon dans la banque) ; jamais l'enregistrement d'un vrai réseau (BigSoundBank a le jingle de la SNCF, écarté).
 - **Papier découpé** : du papier épais et sec, coupé et posé ; les ciseaux (confirmer), une feuille posée (entrer), soulevée (revenir). BigSoundBank : les ciseaux (n° 8), le papier déchiré ; peu de prises, Freesound pour un second ciseau.
 - **Plan d'architecte** : des outils de dessin fins et secs ; le porte-mine qu'on clique (cocher, cran), la règle posée (confirmer), le tampon de révision (refuser). BigSoundBank : le crayon (n° 221, 3233 à 3238), le taille-crayon, le stylo à poussoir ; la règle, un trou pour Freesound.
 - **Carnet** : un cahier et un stylo ; le stylo qui coche (confirmer, cocher), la page qu'on tourne (entrer, revenir), la spirale, la gomme (refuser). BigSoundBank : la page tournée (n° 164, 362, 363, 493), le crayon, le capuchon, le feutre.

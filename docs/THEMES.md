@@ -42,7 +42,7 @@ Avant de proposer l'allure d'une pièce, l'IA lit sa pièce dans `ThemeContract`
 9. **Les icônes** : Lucide (`LUCIDE`), ou les siennes (`OWN`), avec leur script de conversion et leur fichier de retouches.
 10. **Les graphiques** : dessinés par le thème, ou ceux du défaut (`DefaultDrawing`).
 11. **Le mode d'édition de la grille** : les cases et la tuile choisie (`GridCell`, `GridTile`).
-12. **Le registre sonore** : le caractère des sons, leur choix se faisant à part.
+12. **Le registre sonore** : la ligne du thème sur la carte des sons (`docs/design/theme-sounds.md` : matière, note, attaque, source principale), précisée signal par signal ; un thème absent de la carte y entre d'abord, à côté des autres. Leur choix se fait à part.
 13. **Les textes du thème** : son nom, sa phrase (`tagline`, lue par le README) et les noms de ses palettes, en anglais et en français.
 
 ## Ajouter une pièce au contrat
@@ -97,7 +97,7 @@ Le cœur envoie un signal d'une liste fermée (`UISignal` : confirmer, entrer, r
 - **Une recette** (dans `sounds-choice.json`) fait un son qu'aucune source n'a : un son retouché (plus aigu, coupé), plusieurs mêlés, ou un son fait de rien (`synth`), par une suite d'effets sox ; ses crédits sont ceux de ce qu'elle mêle.
 - **Le flux** :
   1. L'IA : `scripts/theme_sounds.py library` télécharge les sources dans `tmp/sound-library/`, rend les recettes, écrit le catalogue.
-  2. L'utilisateur, sur la planche (`./run themes`, « sons » du thème, ou `sound-bench.html?theme=<id>` pour un thème neuf) : les familles qui vont au thème, chacune s'écoutant d'un trait.
+  2. L'utilisateur, sur la planche (`./run themes`, « Sons des thèmes », qui liste chaque thème, muets compris, puis le nom du thème) : les familles qui vont au thème, chacune s'écoutant d'un trait.
   3. L'utilisateur, signal par signal dans les familles retenues : écouter, présélectionner, choisir (★), comparer avec le son de chaque autre thème ; le gain du thème en dB, ou sa finition et son volume (onglet « Finition », chaque son s'entendant alors fini par le serveur, ses mesures sous la barre), un décalage par signal ; « ▶ le thème » enchaîne les sons choisis. Un enregistrement de plusieurs gestes montre ses prises, là où il sort de son fond (`find_takes`) : une prise présélectionnée devient une recette qui la coupe. `sound-bench.html` sans thème compare ce que chaque thème joue aujourd'hui, un signal dans tous les thèmes ou les signaux d'un thème d'une traite. Enregistrer écrit `sounds-choice.json` : une séance reprend où la précédente s'est arrêtée.
   4. Un signal qui ne trouve rien : l'IA ajoute une source, ou écrit une recette, et relance l'étape 1.
   5. L'IA : `scripts/theme_sounds.py make <id>` écrit les FLAC (16 bits, ce que rend le décodeur du téléphone) et `sounds.json` ; un signal sans choix n'a pas de fichier.

@@ -209,6 +209,11 @@ def render(recipe, sounds, out):
     subprocess.run(["sox", *head, str(out), *map(str, recipe.get("effects", []))], check=True)
 
 
+def themes():
+    """Every theme of the app, silent ones included: a folder of themes/ holding its <Name>Theme.kt."""
+    return sorted(p.name for p in THEMES.iterdir() if p.is_dir() and any(p.glob("*Theme.kt")))
+
+
 def current():
     """The sound each theme plays now for each signal, to compare on the bench."""
     return {s: {p.name[:-len(f"_{s}.flac")]: p.relative_to(ROOT).as_posix()
@@ -240,7 +245,7 @@ def task_library():
             render(recipe, sounds, out)
             entries.append({"id": f"{RECIPE}{SEP}{name}", "source": f"{theme} {RECIPE}", "family": f"{theme} {RECIPE}s",
                             "theme": theme, "file": out.relative_to(ROOT).as_posix(), "seconds": duration(out)})
-    write_json(CATALOGUE, {"signals": signals(), "current": current(), "sounds": entries})
+    write_json(CATALOGUE, {"signals": signals(), "themes": themes(), "current": current(), "sounds": entries})
     print(f"{len(entries)} sounds in {CATALOGUE.relative_to(ROOT)}")
     return 0
 
@@ -519,7 +524,7 @@ def task_make(theme):
     write_json(THEMES / theme / "sounds.json", document)
     # The bench compares with what each theme plays now: the files just written among them.
     catalogue = load(CATALOGUE)
-    catalogue["current"] = current()
+    catalogue["themes"], catalogue["current"] = themes(), current()
     write_json(CATALOGUE, catalogue)
     return 0
 
