@@ -27,6 +27,13 @@ DEBUG_APPLICATION_ID = "app.treelune.debug"
 # regenerated -- it is the app's identity to every phone that installed it.
 SIGNING = Path.home() / ".config" / "treelune" / "signing.env"
 
+# Where the published release is built: a fresh clone of its tag, outside the working tree,
+# so that nothing the tag does not hold reaches the APK -- neither a file git ignores nor what
+# earlier builds left in app/build. The APK then matches the one F-Droid rebuilds from the
+# tag, which is what lets F-Droid publish it under our signature. On the home disk, as F-Droid
+# builds on ext4.
+RELEASE_CLONES = Path.home() / ".cache" / "treelune" / "release"
+
 # What the compiler says that is worth reading: the errors, and the verdict.
 BUILD_LINES = ("e:", "Error:", "ERROR:", "BUILD SUCCESSFUL", "BUILD FAILED")
 
@@ -513,15 +520,13 @@ def signing():
     return values
 
 
-def task_release():
-    """Assemble the release, signed with the key that lives outside the repository.
+def signing_or_refuse():
+    """The signing key's environment, or None after saying why there is none.
 
-    It refuses rather than building unsigned: Android installs no unsigned APK, so the
-    file would be rejected by the phone much later, for no visible reason. F-Droid is the
-    exception -- it signs with its own key -- and does not go through here.
+    A release is never built unsigned: Android installs no unsigned APK, so the file would
+    be rejected by the phone much later, for no visible reason. F-Droid is the exception --
+    it signs with its own key -- and does not go through here.
     """
-    if task_provider_facts() != 0:
-        return 1
     keys = signing()
     if keys is None:
         print(
@@ -531,8 +536,28 @@ def task_release():
             "and no update installs over a differently signed one.",
             file=sys.stderr,
         )
+    else:
+        print(f"Signing with the key named by {SIGNING}.", flush=True)
+    return keys
+
+
+def verify_signature(apk):
+    """The verdict counts: an APK that does not verify is one no phone will install."""
+    return subprocess.run(["./verify_signature.sh", str(apk)],
+                          cwd=ROOT / "scripts", check=False).returncode
+
+
+def task_release():
+    """Assemble the signed release from the working tree, to try it on a phone.
+
+    What is published comes from `release-tag` instead: the working tree holds what the
+    tag does not, and its APK differs from the one F-Droid rebuilds.
+    """
+    if task_provider_facts() != 0:
         return 1
-    print(f"Signing with the key named by {SIGNING}.", flush=True)
+    keys = signing_or_refuse()
+    if keys is None:
+        return 1
     code = gradle_env(keys, "assembleRelease")
     if code != 0:
         return code
@@ -540,14 +565,61 @@ def task_release():
     if apk is None:
         print("No release APK was produced.", file=sys.stderr)
         return 1
-    # The verdict counts: an APK that does not verify is one no phone will install.
-    return subprocess.run(["./verify_signature.sh", str(apk)],
-                          cwd=ROOT / "scripts", check=False).returncode
+    return verify_signature(apk)
 
 
-def release_apk():
-    """The release APK gradle just wrote, or None."""
-    outputs = ROOT / "app/build/outputs/apk/release"
+def task_release_tag(tag=None):
+    """Assemble the signed release to publish, from a fresh clone of its tag.
+
+    The tag defaults to the one on HEAD. The clone takes the tag from this repository, so
+    it needs not be pushed; local.properties, which git does not hold, is copied in for the
+    SDK and Go. The APK stays in the clone, whose path is printed.
+    """
+    if tag is None:
+        described = subprocess.run(["git", "describe", "--exact-match", "--tags", "HEAD"],
+                                   cwd=ROOT, capture_output=True, text=True, check=False)
+        if described.returncode != 0:
+            print("HEAD carries no tag: name the one to build (./run release-tag vX.Y.Z).",
+                  file=sys.stderr)
+            return 1
+        tag = described.stdout.strip()
+    properties = ROOT / "local.properties"
+    if not properties.is_file():
+        print(f"No {properties}: the clone needs it to find the SDK and Go.", file=sys.stderr)
+        return 1
+    if task_provider_facts() != 0:
+        return 1
+    keys = signing_or_refuse()
+    if keys is None:
+        return 1
+    clone = RELEASE_CLONES / tag
+    if clone.exists():
+        shutil.rmtree(clone)
+    clone.parent.mkdir(parents=True, exist_ok=True)
+    cloned = subprocess.run(["git", "clone", "--quiet", "--branch", tag, str(ROOT), str(clone)],
+                            check=False)
+    if cloned.returncode != 0:
+        return cloned.returncode
+    shutil.copy2(properties, clone / "local.properties")
+    print(f"Building {tag} in {clone}.", flush=True)
+    # Through bash: the tags up to v0.8.0 were recorded with gradlew not executable.
+    code = subprocess.run(["bash", str(clone / "gradlew"), "assembleRelease"], cwd=clone, check=False,
+                          env={**os.environ, **keys}).returncode
+    if code != 0:
+        return code
+    apk = release_apk(clone)
+    if apk is None:
+        print("No release APK was produced.", file=sys.stderr)
+        return 1
+    code = verify_signature(apk)
+    if code == 0:
+        print(f"Release APK: {apk}")
+    return code
+
+
+def release_apk(root=ROOT):
+    """The release APK gradle just wrote under root, or None."""
+    outputs = root / "app/build/outputs/apk/release"
     apks = sorted(outputs.glob("*.apk")) if outputs.is_dir() else []
     return apks[-1] if apks else None
 
@@ -793,6 +865,7 @@ ACTIONS = {
     "logs": task_logs,
     "devices": task_devices,
     "release": task_release,
+    "release-tag": task_release_tag,
     "install-release": task_install_release,
     "provider-facts": task_provider_facts,
     "db": task_db,
@@ -811,7 +884,8 @@ LABELS = {
     "install": "install    assemble, install and start the debug build",
     "logs": "logs       follow logcat, filtered on the app",
     "devices": "devices    list attached devices and their state",
-    "release": "release    assemble the signed release APK",
+    "release": "release    assemble the signed release APK from the working tree, to try it",
+    "release-tag": "release-tag       assemble the signed release to publish, from a clean clone of the tag on HEAD",
     "install-release": "install-release   assemble, install and start the release",
     "provider-facts": "provider-facts    check the app against the providers' facts (run by release)",
     "db": "db         back up or restore the device database",
@@ -862,7 +936,7 @@ def menu():
     choices += [Separator("Device")]
     choices += [Choice(LABELS[k], k) for k in ("logs", "devices", "db", "bench", "bugs")]
     choices += [Separator("Release")]
-    choices += [Choice(LABELS[k], k) for k in ("release", "install-release", "provider-facts")]
+    choices += [Choice(LABELS[k], k) for k in ("release", "install-release", "release-tag", "provider-facts")]
     choices += [Separator("Theme")]
     choices += [Choice(LABELS[k], k) for k in ("themes", "tracks")]
     choices += [Separator(""), Choice(LABELS["clean"], "clean")]

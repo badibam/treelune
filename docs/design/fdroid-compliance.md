@@ -12,9 +12,9 @@ Ce qui reste à faire pour publier sur F-Droid, au sens de la facette `fdroid` d
 
 ## La recette, essayée chez nous avant de la proposer
 
-`scripts/fdroid/app.treelune.yml` est la recette qu'on proposera à `fdroiddata` (`metadata/app.treelune.yml`). F-Droid n'admet pas un Go tout prêt hors de Debian : comme celle de Tailscale, elle installe le Go de Debian, compile avec lui Go 1.27.2 depuis la source `go` de `fdroiddata`, et le donne au build par `go.dir` dans `local.properties`.
+`scripts/fdroid/app.treelune.yml` est la recette qu'on proposera à `fdroiddata` (`metadata/app.treelune.yml`). F-Droid n'admet pas un Go tout prêt hors de Debian : comme celle de Tailscale, elle installe le Go de `trixie-backports` (celui de trixie, 1.24.4, est trop vieux pour compiler Go 1.27), compile avec lui Go 1.27.2 depuis la source `go` de `fdroiddata`, et le donne au build par `go.dir` dans `local.properties`. Elle fait supprimer avant le build ce que le scanner refuse et que l'app n'utilise pas (`scandelete`) : le `package.json` de la copie de Lucide, et l'interface de débogage de Tailscale (`eventbus/assets`, du JavaScript compressé que Go n'embarque pas sous Android).
 
-`scripts/fdroid/build_in_container.sh` refait, pour la seule app, le job de build de la CI de `fdroiddata` : lint de la recette, scanner, build depuis le tag.
+`scripts/fdroid/build_in_container.sh` refait, pour la seule app, le job « fdroid build » de la CI de `fdroiddata` : fdroidserver cloné au commit que `fdroiddata` épingle, lint de la recette, scanner, build depuis le tag. Le 2026-10-18, il a construit `v0.8.0` sans erreur (`tmp/app.treelune_30.apk` dans `fdroiddata`, ~25 min dont 13 de Gradle).
 
 Une fois pour toutes :
 
@@ -35,22 +35,18 @@ Les images vont dans la home (`~/.local/share/containers`, ext4) : `/mnt/data` e
 2. Lancer le build (il télécharge le NDK, les sources de Go, les dépendances Gradle) :
 
    ```
-   podman run --rm -it \
+   podman run --rm \
      -v ~/fdroid-test/fdroiddata:/fdroiddata \
      -v /mnt/data/OUTILS/treelune/scripts/fdroid:/recipe:ro \
      registry.gitlab.com/fdroid/fdroidserver:buildserver-trixie \
-     bash /recipe/build_in_container.sh 2>&1 | tee /mnt/data/OUTILS/treelune/tmp/fdroid-build.log
+     bash /recipe/build_in_container.sh > /mnt/data/OUTILS/treelune/tmp/fdroid-build.log 2>&1
    ```
 
-Inconnues que ce build tranchera :
-
-- le Go de Debian trixie assez récent pour compiler Go 1.27 — sinon `trixie-backports`, comme Tailscale ;
-- le NDK `30.0.16248370` connu de fdroidserver ;
-- le scanner devant `vendor/github.com/tailscale/web-client-prebuilt` (du JavaScript compilé) : il n'entre pas dans la bibliothèque Android (`go list -deps` pour android/arm64 ne le nomme pas), la recette peut donc le supprimer avant le build (`scandelete`).
+Le build construit le tag nommé dans la recette, cloné de GitHub, jamais l'arbre de travail : un correctif du build ne s'essaie qu'une fois tagué et poussé, ou en faisant pointer la recette, le temps de l'essai, sur un clone local (`Repo:`, `commit:`).
 
 ## Ce qui reste
 
-- **Reproductibilité** : construire la release deux fois, depuis deux clones du tag à deux chemins différents, et comparer les APK — un chemin qui fuit dans la bibliothèque Go se voit là.
+- **Reproductibilité** : tenue sur `v0.8.0` le 2026-10-18. L'APK que construit `./run release-tag v0.8.0` (un clone propre du tag, hors de l'arbre de travail) passe `apksigcopier compare` contre l'APK non signé de la recette : notre signature tient sur leur build, à deux chemins différents. L'APK de la v0.8.0 publié sur GitHub, construit dans l'arbre de travail, diffère par `classes.dex` : seule une version publiée par `release-tag` peut l'être par F-Droid sous notre signature.
 - **Fiche fastlane**, `fastlane/metadata/android/en-US/` (l'anglais est la langue de repli obligatoire) : `title.txt` (≤ 50 caractères), `short_description.txt` (≤ 80), `full_description.txt` (≤ 4000), `changelogs/<versionCode>.txt` (≤ 500, nommé du `versionCode`), `images/icon.png`, `images/featureGraphic.png` (paysage), `images/phoneScreenshots/` — les captures que le README attend déjà là. Le français (`fr-FR/`) ensuite, en traduction.
 - **Anti-features**, la grille entière repassée juste avant la soumission (`Ads`, `DisabledAlgorithm`, `KnownVuln`, `NonFreeAdd`, `NonFreeAssets`, `NonFreeDep`, `NonFreeNet`, `NoSourceSince`, `TetheredNet`, `Tracking`). Déjà connu : `NonFreeNet` pour Anthropic, OpenAI, DeepSeek et le serveur de connexion de Tailscale ; à trancher pour la liste de prix LiteLLM que `ModelPriceManager` lit sur GitHub.
 - **La version soumise** : taguée sur un arbre propre, construite depuis le tag ; ses notes de version écrites et validées avant de publier ; la recette mise à jour sur ce tag.

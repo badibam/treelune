@@ -21,11 +21,11 @@ On passe à la version $1
    - Créer fichier temporaire `release-notes-$1.txt`
    - Style : précis, simple, sans emoji, sans mentionner claude. Uniquement changements depuis dernière version.
    - Présenter pour correction avant release
-8. **Build release** : à nouveau `./run release` timeout:10min, depuis le tag et un arbre propre — vérifier que `git status --porcelain` ne liste aucun fichier suivi modifié et que `git describe --exact-match --tags` rend `v$1`, sinon s'arrêter : ce qui n'est pas dans le tag ne doit pas être dans l'APK.
+8. **Build release** : `./run release-tag v$1` timeout:20min, en tâche de fond — il construit l'APK signé dans un clone propre du tag (`~/.cache/treelune/release/v$1`), hors de l'arbre de travail : ce qui n'est pas dans le tag n'entre pas dans l'APK, qui est alors celui que F-Droid reconstruit depuis le tag. Il écrit à la fin le chemin de l'APK.
 9. **Release GitHub** :
    - Utiliser `gh release create v$1` timeout:10min
    - Ajouter notes de version (fichier corrigé)
-   - Attacher APK : `app/build/outputs/apk/release/treelune-v$1.apk`
+   - Attacher APK : `~/.cache/treelune/release/v$1/app/build/outputs/apk/release/treelune-v$1.apk`
 10. **Cleanup** : Supprimer fichier notes de version temporaire
 11. **Merge main** :
    - `git checkout main`
