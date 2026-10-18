@@ -23,8 +23,8 @@ android {
         applicationId = "app.treelune"
         minSdk = 26
         targetSdk = 34
-        versionCode = 29
-        versionName = "0.7.0"
+        versionCode = 30
+        versionName = "0.8.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

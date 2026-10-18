@@ -43,6 +43,7 @@ L'IA dispose des mêmes gestes que toi : elle lit les outils, y ajoute des entr�
 - Tu lui parles dans une conversation, en lui joignant d'un geste un outil ou une zone, sur la période qui t'intéresse.
 - Avant toute modification, tu peux exiger qu'elle montre ce qu'elle va faire et attende ton accord, pour toute l'app, une zone, un outil ou une conversation.
 - Quand il lui manque une information, elle te pose la question sous forme de champ à remplir.
+- Elle peut parler sous une **identité**, avec sa voix et son caractère, créée dans l'app ou importée d'un fichier, choisie pour une zone, une routine ou une conversation.
 - Avec une **routine**, elle travaille seule, sur un planning : « chaque dimanche soir, fais-moi le bilan de la semaine ». Elle sait aussi en créer.
 - Claude peut aussi se brancher à l'app depuis l'extérieur, comme connecteur, et travailler sur les outils depuis claude.ai.
 
@@ -85,7 +86,7 @@ Au premier lancement, une **démo** t'attend : douze semaines de la vie de Camil
 L'app est en développement actif. Elle sert tous les jours, mais tout peut encore changer, la forme des données comprise. Garde des sauvegardes.
 
 <!-- status -->
-- Version 0.7.0
+- Version 0.8.0
 - Android 8.0 ou plus récent
 - Langues : anglais, français
 <!-- /status -->

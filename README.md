@@ -43,6 +43,7 @@ The AI has the same moves as you: it reads the tools, adds entries to them, crea
 - You talk to it in a conversation, attaching a tool or a zone in one gesture, over the period you care about.
 - Before any change, you can require it to show what it is about to do and wait for your approval, for the whole app, a zone, a tool or a conversation.
 - When it lacks some information, it asks you as a field to fill in.
+- It can speak as an **identity**, with its own voice and character, created in the app or imported from a file, chosen for a zone, a routine or a conversation.
 - With a **routine**, it works on its own, on a schedule: “every Sunday evening, sum up my week”. It can create routines too.
 - Claude can also plug into the app from outside, as a connector, and work on the tools from claude.ai.
 
@@ -85,7 +86,7 @@ On first launch, a **demo** is waiting: twelve weeks in the life of Camille, who
 The app is in active development. It is used every day, but anything may still change, the shape of the data included. Keep backups.
 
 <!-- status -->
-- Version 0.7.0
+- Version 0.8.0
 - Android 8.0 or later
 - Languages: English, French
 <!-- /status -->
