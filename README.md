@@ -65,6 +65,7 @@ You lay out each zone's tiles as you like, choose each tool's icon and colour, a
 - **Cosy** — Like a phone in a gentle game: round and plump, everything bounces, its own sounds
 - **Swiss** — Like a Swiss poster: a strict grid, black and white and a single red, the numbers large
 - **Ink and wash** — Like an ink wash painting: cream paper, black ink and a single seal red, plenty of empty space
+- **Metro** — Like metro signage: each tool a line in its colour, each zone a station
 <!-- /themes -->
 
 ## Getting started

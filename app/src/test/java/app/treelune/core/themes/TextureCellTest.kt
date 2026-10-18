@@ -12,7 +12,7 @@ import org.junit.Test
  */
 class TextureCellTest {
 
-    private val themes = listOf("default", "cosy", "retro", "swiss", "ink")
+    private val themes = listOf("default", "cosy", "retro", "swiss", "ink", "metro")
 
     /** The themes drawn in whole pixels, whose cells are filled rectangles on whole units. */
     private val pixelThemes = setOf("retro")

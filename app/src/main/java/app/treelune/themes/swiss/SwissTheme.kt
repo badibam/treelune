@@ -698,7 +698,7 @@ object SwissTheme : ThemeContract {
     }
 
     @Composable
-    override fun ZoneCardContainer(texture: app.treelune.core.themes.ItemTexture?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
+    override fun ZoneCardContainer(texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
         Tile(DisplayMode.CONDENSED, texture, onClick, onLongClick, content)
 
     /** A square of red with an exclamation mark in heavy figures. */
@@ -745,7 +745,7 @@ object SwissTheme : ThemeContract {
     }
 
     @Composable
-    override fun ToolCardContainer(displayMode: DisplayMode, texture: app.treelune.core.themes.ItemTexture?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
+    override fun ToolCardContainer(displayMode: DisplayMode, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
         Tile(displayMode, texture, onClick, onLongClick, content)
 
     /**

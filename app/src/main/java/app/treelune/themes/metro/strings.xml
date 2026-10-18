@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="name">Metro</string>
+    <!-- What the theme looks like, said to the user: the README -->
+    <string name="tagline">Like metro signage: each tool a line in its colour, each zone a station</string>
+</resources>
