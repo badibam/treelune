@@ -10,7 +10,7 @@ Toutes les lignes du 2026-10-18, dans l'ordre de la liste de `docs/THEMES.md`.
 
 1. **Le registre** : des feuilles de papier de couleur, découpées, posées un peu de travers sur du kraft, chacune sur une ombre dure décalée (2 dp à droite, 3 dp en bas, sans flou), aux coins un peu irréguliers (un rayon différent à chaque coin, de 2 à 7 dp). Il n'est ni rond et dodu, enfoncé dans son ombre (le cosy : le papier est plat, mince, anguleux, et ses tuiles changent de couleur l'une à l'autre), ni au pixel (le rétro), ni calme (l'encre).
 2. **Ce qu'il dessine lui-même** : tout, dialogues et sélecteurs de date et d'heure compris, en partant des pièces du métro (même découpage : `PaperPalette`, `PaperSize`, `PaperPieces`, `PaperDrawing`, `PaperTheme`).
-3. **La police** : Bricolage Grotesque, celle de la maquette, licence SIL Open Font License 1.1 ; copiée dans `third_party/bricolage/`, un script `scripts/make_bricolage_fonts.py` en tire les graisses fixes : 500 le texte, 800 les noms, les titres et les chiffres. Sa couverture (Windows-1252, U+202F, les flèches, `≤ ≥ ≠ ≈`), un nom réservé et son italique restent à mesurer sur la copie ; sans italique, celui d'un texte lu est le penché d'Android, un repli à valider. Si la couverture manque, Archivo, déjà copiée.
+3. **La police** : Bricolage Grotesque, celle de la maquette, licence SIL Open Font License 1.1 sans nom réservé ; copiée dans `third_party/bricolage/` depuis Google Fonts, une police variable (taille optique 12 à 96, graisse 200 à 800, largeur 75 à 100). `scripts/make_bricolage_fonts.py` en tire trois coupes fixes, chacune à la taille optique de ce qu'elle écrit : 500 à 14 le texte, 800 à 16 les noms, libellés et chiffres, 800 à 28 les titres de page et de groupe. Mesuré le 2026-10-18 : Windows-1252 entier sauf `¤ ƒ` et le trait d'union conditionnel U+00AD ; l'espace fine U+202F, `← → ↑ ↓ ≤ ≥ ≠ ≈ − ×` présents ; `↔` absent (aucun texte ne l'a), `✓ ✗` au repli d'Android ; le trait d'union U+2010 que pose la césure absent. Pas d'italique : celui d'un texte lu est le penché d'Android (validé le 2026-10-18).
 4. **Les palettes** (OKLCH, réglées au banc ; contraste visé 4,5, tenu à chaque décalage de 15° par `PaperPaletteTest`) :
    - claire, d'après la maquette : le kraft `#d6b688` et ses fibres à 115°, la feuille crème `#f7efe0`, l'encre `#2a2118`, le corail `#e5674e` (accent et alerte), le bleu nuit `#2f4466` (boutons) ;
    - sombre : un carton brun très sombre au fond, la feuille crème devenue un papier noir (anthracite chaud) à l'encre crème, les feuilles de couleur gardées, assombries d'un cran ;
@@ -42,7 +42,7 @@ Toutes les lignes du 2026-10-18, dans l'ordre de la liste de `docs/THEMES.md`.
 
 ## Ce qui reste ouvert
 
-- La couverture de Bricolage Grotesque, un nom réservé, son italique : à mesurer sur la copie.
+- La césure sans U+2010 dans la police : le tiret qu'Android pose à la place, à voir sur le téléphone.
 - Les palettes, au banc, dans les deux modes ; le banc des icônes.
 - Rien n'a tourné sur un téléphone, `IconStrokes` compris (pas encore vu avec l'encre non plus).
 - Les sons, à la planche d'écoute.
