@@ -40,6 +40,10 @@ Toutes les lignes du 2026-10-18, dans l'ordre de la liste de `docs/THEMES.md`.
 12. **Le registre sonore** : celui de la carte des sons (`docs/design/theme-sounds.md`) : des outils de dessin, secs et fins ; le porte-mine qu'on clique (cocher, cran), la règle posée (confirmer), le tampon de révision (refuser) ; BigSoundBank, la règle cherchée sur Freesound. Le thème part muet.
 13. **Les textes** : nom « Plan d'architecte » / « Blueprint » ; phrase « Comme un plan d'architecte : des traits fins sur un papier quadrillé, des cotes et des hachures » / « Like an architect's blueprint: fine lines on grid paper, dimensions and hatching ». Pas de nom de palette.
 
+## Le seuil
+
+Passé le 2026-10-18 : le banc (`./run themes`, « Plan d'architecte · palettes et trait ») vu et approuvé dans les deux modes, ses nombres dans `palettes.json` (l'encre secondaire du clair foncée à 0,5 pour tenir 4,5 à chaque décalage). Le trait : 1,5 dp, le débord des cadres 3 dp ; les icônes tracées à 1,5 sur 24, chaque bout ouvert et chaque angle vif (plus de 25°) prolongés de 1,2 sur 24 — pris d'office, à reprendre sur le téléphone.
+
 ## Ce qui reste ouvert
 
-- Le seuil : le banc du thème, vu dans les deux modes, et la longueur du trait qui déborde.
+- Rien n'a tourné sur un téléphone.
