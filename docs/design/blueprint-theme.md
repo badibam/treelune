@@ -44,6 +44,21 @@ Toutes les lignes du 2026-10-18, dans l'ordre de la liste de `docs/THEMES.md`.
 
 Passé le 2026-10-18 : le banc (`./run themes`, « Plan d'architecte · palettes et trait ») vu et approuvé dans les deux modes, ses nombres dans `palettes.json` (l'encre secondaire du clair foncée à 0,5 pour tenir 4,5 à chaque décalage). Le trait : 1,5 dp, le débord des cadres 3 dp ; les icônes tracées à 1,5 sur 24, chaque bout ouvert et chaque angle vif (plus de 25°) prolongés de 1,2 sur 24 — pris d'office, à reprendre sur le téléphone.
 
+## Ce qui est codé
+
+`themes/blueprint/` : la palette (`BlueprintPalette`, ses nombres dans `palettes.json`), les tailles et les deux polices par cran (`BlueprintSize`), le trait qui déborde, les hachures, le double cadre du cartouche, l'élément pressé, l'apparition et l'élément soulevé (`BlueprintPieces`), Lucide retracé (`BlueprintIcons`), les graphiques (`BlueprintDrawing`), chaque composant du contrat (`BlueprintTheme`). `BlueprintPaletteTest` tient les contrastes des deux palettes à chaque décalage de 15°. Choisi dans Réglages › Interface, sous le nom « Plan d'architecte ».
+
+Ce que le code a précisé des décisions :
+- Le titre de page garde l'icône de la page, dans une case du cadre avant le titre, comme une case de cartouche ; la case d'échelle « 1:1 » après lui.
+- Les angles des icônes : un virage de plus de 25° sur un tiers d'unité, qui ne grandit pas de moitié quand on le regarde sur le double (`BlueprintIcons.corners`) ; une courbe, même serrée, n'a donc pas d'angle. Ce sont les tracés lus par `IconStrokes`, des points tous les 0,08 unité, et non le SVG : le banc et le code ne trouvent pas les angles de la même façon.
+- La snackbar n'a pas de marque d'état : aucune couleur d'état ne se lit sur l'aplat d'encre dans les deux palettes ; son message le dit.
+- La bande de la teinte montre un bleu saturé à chaque décalage : l'encre, trop sombre en clair, ne s'y distinguerait pas d'un décalage à l'autre.
+- Le trait n'est pas arrondi au pixel entier (`blueprintStroke`) : à 1,5 dp, l'arrondi rendait certains traits deux fois plus épais que d'autres.
+- Le point d'un graphique est une petite croix, quelle que soit sa forme ronde ou en croix ; un carré, un triangle et un losange gardent leur forme, en contour.
+- Le lettrage n'a qu'une graisse : le gras d'un texte lu en lettrage n'est que celui qu'Android simule.
+
 ## Ce qui reste ouvert
 
-- Rien n'a tourné sur un téléphone.
+- Rien n'a tourné sur un téléphone : le thème entier s'y juge, la passe de `docs/THEMES.md` d'abord ; le débord des icônes en tête (un angle manqué, une courbe prise pour un angle).
+- Les cellules et les tons des textures sont ceux du métro, recopiés : les motifs de plan de la ligne 7 (hachures à 45°, croisillons, points, briques) restent à dessiner, et leurs tons à régler au banc des textures (`./run themes`).
+- Les sons, à la planche d'écoute.
