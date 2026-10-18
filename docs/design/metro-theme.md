@@ -45,4 +45,4 @@ Toutes les lignes du 2026-10-18, dans l'ordre de la liste de `docs/THEMES.md`.
 
 ## Ce qui reste ouvert
 
-- Les palettes, à régler au banc dans les deux modes : le seuil.
+- Rien n'est codé : le seuil est passé le 2026-10-18, le banc (`./run themes`, « Métro · palettes ») vu et approuvé dans les deux modes, les lignes à clarté commune.
