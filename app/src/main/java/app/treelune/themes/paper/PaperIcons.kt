@@ -40,8 +40,10 @@ import kotlin.math.sin
  * (IconStrokes) cut again in straight facets, a point kept wherever the stroke truly turns and
  * between two of them one every [FACET] units of the grid of 24; laid as a strip [WIDTH] wide,
  * its ends cut square and its joins sharp, on a hard shadow shifted [SHADOW] units down and
- * right. A stroke shorter than its width (Lucide's dots, held up by round caps) is a small
+ * right; each facet's end moved by up to [JITTER] units, a hand that trembles, the same at every
+ * cut of an icon. A stroke shorter than its width (Lucide's dots, held up by round caps) is a small
  * square of paper instead. An icon is cut once, on its grid, and kept: drawn at any size by scaling.
+ * The numbers are those chosen at the bench on 2026-10-18.
  */
 internal object PaperIcons {
 
@@ -49,13 +51,16 @@ internal object PaperIcons {
     const val WIDTH = 2.6f
 
     /** A facet's length between two corners, on the grid of 24. */
-    const val FACET = 1.6f
+    const val FACET = 2.1f
 
     /** How far a stroke turns, in degrees over a few points, to be a corner kept whole. */
-    const val CORNER = 35f
+    const val CORNER = 29f
 
     /** The hard shadow's shift, down and right, on the grid of 24. */
-    const val SHADOW = 0.9f
+    const val SHADOW = 1.2f
+
+    /** How far a facet's end may move, on the grid of 24: half of it either way, along the diagonal. */
+    const val JITTER = 0.36f
 
     /** The points either side over which a stroke's turn is measured: a curve's slow turn never counts. */
     private const val WINDOW = 4
@@ -70,13 +75,17 @@ internal object PaperIcons {
 
     /** The drawable [resourceId] cut, once and kept. */
     fun of(context: Context, resourceId: Int): Cut =
-        cuts.get(resourceId) ?: cut(IconStrokes.of(context, resourceId)).also { cuts.put(resourceId, it) }
+        cuts.get(resourceId) ?: cut(IconStrokes.of(context, resourceId), seed(context, resourceId)).also { cuts.put(resourceId, it) }
 
-    private fun cut(drawing: IconDrawing): Cut {
+    /** The trembling's seed, as the bench takes it: the length of the icon's Lucide name. */
+    private fun seed(context: Context, resourceId: Int): Int =
+        context.resources.getResourceEntryName(resourceId).removePrefix(DRAWABLE_PREFIX).length
+
+    private fun cut(drawing: IconDrawing, seed: Int): Cut {
         val strips = Path()
         val solids = Path()
         drawing.strokes.forEachIndexed { index, stroke ->
-            if (length(stroke) < WIDTH) dot(solids, stroke, index) else strip(strips, stroke)
+            if (length(stroke) < WIDTH) dot(solids, stroke, index) else strip(strips, stroke, index, seed)
         }
         drawing.fills.forEach { solids.addPath(it) }
         return Cut(strips, solids)
@@ -102,8 +111,14 @@ internal object PaperIcons {
         into.close()
     }
 
-    /** A stroke cut in facets, added to [into] as a polyline. */
-    private fun strip(into: Path, s: IconStroke) {
+    /** A number between 0 and 1 drawn from [i] and [seed], the same as the bench's. */
+    private fun rand(i: Int, seed: Int): Float {
+        val x = kotlin.math.sin(i * 12.9898 + seed * 78.233) * 43758.5453
+        return (x - kotlin.math.floor(x)).toFloat()
+    }
+
+    /** The [index]th stroke of its icon cut in facets, added to [into] as a polyline, each facet's end trembling. */
+    private fun strip(into: Path, s: IconStroke, index: Int, seed: Int) {
         val n = s.size
         fun dir(i: Int, j: Int) = atan2(s.points[j * 2 + 1] - s.points[i * 2 + 1], s.points[j * 2] - s.points[i * 2])
         fun turn(i: Int): Float {
@@ -126,6 +141,7 @@ internal object PaperIcons {
         keep += n - 1
         // Between two corners, facets of one length, as near FACET as the stretch allows
         into.moveTo(s.points[0], s.points[1])
+        var vertex = 0
         for (k in 0 until keep.size - 1) {
             val a = keep[k]
             val b = keep[k + 1]
@@ -134,7 +150,8 @@ internal object PaperIcons {
             val parts = max(1, (stretch / FACET).roundToInt())
             for (q in 1..parts) {
                 val p = (a + (b - a) * q.toFloat() / parts).roundToInt()
-                into.lineTo(s.points[p * 2], s.points[p * 2 + 1])
+                val j = JITTER * (rand(++vertex + index * 31, seed) - 0.5f)
+                into.lineTo(s.points[p * 2] + j, s.points[p * 2 + 1] - j)
             }
         }
         if (s.closed) into.close()
@@ -154,6 +171,9 @@ internal object PaperIcons {
     }
 
     private const val GRID = 24f
+
+    /** Lucide's drawables are named lucide_<name> (generate_icons.py). */
+    private const val DRAWABLE_PREFIX = "lucide_"
     private const val MITER = 4f
 
     /** The icons a screen shows at once, and more. */

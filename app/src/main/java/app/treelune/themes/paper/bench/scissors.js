@@ -10,8 +10,8 @@
   PaperIcons.kt does the same with the same numbers.
 */
 window.PaperScissors = (() => {
-  /** The settings the bench opens on: the theme's. */
-  const SETTINGS = { width: 2.6, facet: 1.6, corner: 35, shadow: 0.9, jitter: 0 };
+  /** The settings the bench opens on: the theme's, chosen here on 2026-10-18. */
+  const SETTINGS = { width: 2.6, facet: 2.1, corner: 29, shadow: 1.2, jitter: 0.36 };
   const STEP = 0.08;
 
   let measure = null;
