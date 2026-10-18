@@ -40,9 +40,21 @@ Toutes les lignes du 2026-10-18, dans l'ordre de la liste de `docs/THEMES.md`.
 
 `ToolCardContainer` et `ZoneCardContainer` ne savent pas quelle tuile ils dessinent : `ToolGrid` les passe par leur rang, et un angle tiré du rang changerait celui de toutes les tuiles suivantes à la suppression d'une seule. Décidé le 2026-10-18 : un paramètre `seed: String`, l'identifiant de l'outil ou de la zone (celui d'une identité, d'une entrée des réglages, le nom de l'icône d'une tuile d'exemple), que le thème hache. Pour chaque thème existant : le défaut, le rétro, le cosy, le suisse, l'encre et le métro l'ignorent, leur tuile restant telle qu'elle est.
 
+## Ce qui est codé
+
+`themes/paper/` : la palette (`PaperPalette`, ses nombres dans `palettes.json`, réglés au banc `./run themes`, « Papier découpé · palettes », vu le 2026-10-18), les tailles et la police par cran (`PaperSize`), la feuille, son ombre dure, sa découpe et son inclinaison tirées de l'identifiant (`Laid`), la feuille pressée à plat, la chute d'une fenêtre et l'élément soulevé (`PaperPieces`), Lucide découpé aux ciseaux (`PaperIcons`, les mêmes nombres que `bench/scissors.js`), les graphiques (`PaperDrawing`), chaque composant du contrat (`PaperTheme`). `PaperPaletteTest` tient les contrastes des deux palettes à chaque décalage de 15°, et l'inclinaison d'une tuile, stable et bornée. Choisi dans Réglages › Interface, sous le nom « Papier découpé ».
+
+Ce que le code a précisé des décisions :
+- Une icône d'outil sur une tuile est toujours sur un rond crème, la tuile étant déjà de sa couleur ; hors d'une tuile (une liste, un formulaire), le rond prend la couleur de l'icône.
+- Dans la barre d'en-tête, un bouton d'icône seule est un rond bleu nuit, l'icône crème (maquette) ; ailleurs, l'icône est nue.
+- Le titre de groupe porte aussi les boutons du groupe : la bande crème déchirée passe donc sous le titre et ses boutons, et non à côté.
+- Une fenêtre se ferme d'un coup, sans fondu : c'est son appelant qui la retire.
+
 ## Ce qui reste ouvert
 
+- Rien n'a tourné sur un téléphone : le thème entier s'y juge, la passe de `docs/THEMES.md` d'abord, les icônes découpées en tête (leur coût à l'ouverture d'une page, celles qui se bouchent ; `IconStrokes` n'a encore tourné sur aucun appareil, avec l'encre non plus).
+- Les réglages des icônes au banc (`./run themes`, « Papier découpé · icônes ») : l'épaisseur, la facette, l'angle d'un coin, l'ombre ; à reporter dans `PaperIcons` et `scissors.js`.
 - La césure sans U+2010 dans la police : le tiret qu'Android pose à la place, à voir sur le téléphone.
-- Les palettes, au banc, dans les deux modes ; le banc des icônes.
-- Rien n'a tourné sur un téléphone, `IconStrokes` compris (pas encore vu avec l'encre non plus).
+- Les cellules et les tons des textures sont ceux du métro, recopiés : les motifs de papier de la ligne 7 (fibres, trame de Canson, confettis) restent à dessiner, et leurs tons à régler au banc des textures.
+- Le nom d'une tuile reste centré : c'est le cœur qui le place (`UI.TileHeader`).
 - Les sons, à la planche d'écoute.
