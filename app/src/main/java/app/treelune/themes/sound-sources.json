@@ -1,5 +1,5 @@
 {
-  "_about": "Where the themes' interface sounds are looked for (docs/THEMES.md, Les sons). scripts/sound_library.py downloads each source into tmp/sound-library/, checks its archive against sha256 and lists its sounds in the catalogue the sound bench plays; a sound's id is '<title> · <file name without extension>', the title its credit in a theme's sounds.json. family says how its sounds group on the bench: 'stem', the file name without its trailing number (click_004 → click); 'folder', the folder it lies in. Only CC0 1.0 and CC BY 4.0 are taken: free for F-Droid, CC BY asking only the credit sounds.json gives.",
+  "_about": "Where the themes' interface sounds are looked for (docs/THEMES.md, Les sons). scripts/theme_sounds.py library downloads each source into tmp/sound-library/ and lists its sounds in the catalogue the sound bench plays. A source is an archive, checked against its sha256, whose audio folder is taken whole; or files, a list of sounds each downloaded from its url and checked against its own sha256, named by name, credited by its own page, and by its own author and licence where it has them. A sound's id is '<title> · <file name without extension>', the title its credit in a theme's sounds.json. family says how its sounds group on the bench: 'stem', the file name without its trailing number (click_004 → click); 'folder', the folder it lies in. Only CC0 1.0 and CC BY 4.0 are taken: free for F-Droid, CC BY asking only the credit sounds.json gives.",
   "sources": [
     {
       "title": "Interface Sounds",
@@ -60,6 +60,754 @@
       "sha256": "b729ba57959bd58793d2c5cafa348aaf2655d354f3da35ec4729e03ec77197b8",
       "audio": "Audio/",
       "family": "folder"
+    },
+    {
+      "title": "Casino Audio",
+      "author": "Kenney",
+      "licence": "CC0 1.0",
+      "page": "https://kenney.nl/assets/casino-audio",
+      "archive": "https://kenney.nl/media/pages/assets/casino-audio/2472606a04-1721639069/kenney_casino-audio.zip",
+      "sha256": "f36250766ac5bc378c13708ddf12a23a8e54a3251f8d482c7536e51b5dbafa18",
+      "audio": "Audio/",
+      "family": "stem"
+    },
+    {
+      "title": "Sci-fi Sounds",
+      "author": "Kenney",
+      "licence": "CC0 1.0",
+      "page": "https://kenney.nl/assets/sci-fi-sounds",
+      "archive": "https://kenney.nl/media/pages/assets/sci-fi-sounds/6b296f9ecf-1677589334/kenney_sci-fi-sounds.zip",
+      "sha256": "119340f351a5098ad814f78719438c0da355a9ce8a4c8a3af6a8d48aa3d49e04",
+      "audio": "Audio/",
+      "family": "stem"
+    },
+    {
+      "title": "BigSoundBank",
+      "author": "Joseph Sardin",
+      "licence": "CC0 1.0",
+      "page": "https://bigsoundbank.com/",
+      "family": "stem",
+      "files": [
+        {
+          "name": "stapler_1580",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1580.wav",
+          "sha256": "d637e23657f163c5f7bc0155147a1d1163a6c52f64e80f3b2199215c76085ea5",
+          "page": "https://bigsoundbank.com/stapler-on-wood-s1580.html"
+        },
+        {
+          "name": "stapler_0009",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/0009.wav",
+          "sha256": "72a7cf88194a0fc0d5a86bbe488f6c040ea4fddb020cd80be4ffc930c5e20535",
+          "page": "https://bigsoundbank.com/stapler-s0009.html"
+        },
+        {
+          "name": "switch_0036",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/0036.wav",
+          "sha256": "2cf141f1f0b5bea7721612f29261142b34c3b6a303056e682b684981e9937e9e",
+          "page": "https://bigsoundbank.com/switch-desk-lamp-s0036.html"
+        },
+        {
+          "name": "switch_2027",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/2027.wav",
+          "sha256": "433d73d616ebb920a10c94f1b5ea67bcd37e5fc0b08468c196fe555cfbc11ca1",
+          "page": "https://bigsoundbank.com/microphone-switch-2-s2027.html"
+        },
+        {
+          "name": "switch_0540",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/0540.wav",
+          "sha256": "cc3e8616f03787e463e14c112c02d02aa3dc8c733bf9a0cdab3369a472049ae8",
+          "page": "https://bigsoundbank.com/old-switch-s0540.html"
+        },
+        {
+          "name": "switch_0025",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/0025.wav",
+          "sha256": "2cee5190b4f77eb2e73a1e689281028f3a71b50e1af6f162e55bb27dcc263996",
+          "page": "https://bigsoundbank.com/electronic-switch-s0025.html"
+        },
+        {
+          "name": "switch_0027",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/0027.wav",
+          "sha256": "b1b19e6cd99fbda1a34a86c525123f2e0044e0a7be0029f003aeaa5f78d041bf",
+          "page": "https://bigsoundbank.com/switch-on-a-power-strip-s0027.html"
+        },
+        {
+          "name": "switch_0026",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/0026.wav",
+          "sha256": "836d737af5128b7f4a975062e7360df5f777871070d1dac6d8686bb5e5b37ef8",
+          "page": "https://bigsoundbank.com/electric-switch-s0026.html"
+        },
+        {
+          "name": "switch_0321",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/0321.wav",
+          "sha256": "b155a53781380a0d0d5737b265b7b0c24baf59575b824c9cfea5f587725be416",
+          "page": "https://bigsoundbank.com/switch-5-s0321.html"
+        },
+        {
+          "name": "switch_0052",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/0052.wav",
+          "sha256": "e6497d02016791e22dcaeedeff20100e27bd87465e412f53e9fa098bb3e1330c",
+          "page": "https://bigsoundbank.com/electric-switch-2-s0052.html"
+        },
+        {
+          "name": "switch_2026",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/2026.wav",
+          "sha256": "5e78d913b55d05b47b396059da653c3046a305721340dbf9b52a0713becaad33",
+          "page": "https://bigsoundbank.com/microphone-switch-1-s2026.html"
+        },
+        {
+          "name": "switch_2028",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/2028.wav",
+          "sha256": "de95e98f5ef7c1f85ed84464cabfc727eb263e075541a45765c2f84fe210bb34",
+          "page": "https://bigsoundbank.com/microphone-switch-3-s2028.html"
+        },
+        {
+          "name": "pen_0613",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/0613.wav",
+          "sha256": "5f889e7d334cd63501534d1bd6d0e28dc8362e18d920ded73fa0bc60bdad1752",
+          "page": "https://bigsoundbank.com/pen-click-s0613.html"
+        },
+        {
+          "name": "pen_0810",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/0810.wav",
+          "sha256": "5701590cfef3d7f810313bcfc4d3ab855694482a91ffde9d5d60552eb7ea3ddc",
+          "page": "https://bigsoundbank.com/clicks-pen-s0810.html"
+        },
+        {
+          "name": "pen_0054",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/0054.wav",
+          "sha256": "e4833b475a2b246866a6cd16b17f0ce49be49356c336f29b3ff4a3681b0d18ac",
+          "page": "https://bigsoundbank.com/pen-cap-s0054.html"
+        },
+        {
+          "name": "drawer_0773",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/0773.wav",
+          "sha256": "043e2fbc35de6709f421451c071e924138418090500be3130d507c920521be16",
+          "page": "https://bigsoundbank.com/metal-filing-cabinet-s0773.html"
+        },
+        {
+          "name": "drawer_0792",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/0792.wav",
+          "sha256": "e36ac45de0670227968b1629d161be6ada2e669a7e55a08c2f26970bc9a8fa58",
+          "page": "https://bigsoundbank.com/metal-drawers-1-s0792.html"
+        },
+        {
+          "name": "drawer_0793",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/0793.wav",
+          "sha256": "f3a04b4e4dea3a2e2dc64d31d0abb697617db6a9670961988b067818df50d507",
+          "page": "https://bigsoundbank.com/metal-drawers-2-s0793.html"
+        },
+        {
+          "name": "drawer_1267",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1267.wav",
+          "sha256": "60e73ee7a92834d487d30ce82926d0db579d50d8953f6c6e5466d370054852e4",
+          "page": "https://bigsoundbank.com/wooden-drawer-1-s1267.html"
+        },
+        {
+          "name": "drawer_1268",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1268.wav",
+          "sha256": "69a1ce5e90a980f61abbea4a7fa4cee8ba1a0443f949e91d5e5eba89ea853f4c",
+          "page": "https://bigsoundbank.com/wooden-drawer-2-s1268.html"
+        },
+        {
+          "name": "drawer_1499",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1499.wav",
+          "sha256": "773b4f1bbc16abf5e1cec240ee69ecc87d35ea54e7d17cebc68a33ce2e8a515b",
+          "page": "https://bigsoundbank.com/wooden-drawer-opening-s1499.html"
+        },
+        {
+          "name": "drop_1384",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1384.wav",
+          "sha256": "9b5da355e01be095a63ba1639bd3d08e2b8b973a8a88f249a721880ec96efef1",
+          "page": "https://bigsoundbank.com/drops-of-water-1-s1384.html"
+        },
+        {
+          "name": "drop_1385",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1385.wav",
+          "sha256": "cd50d2c475472a69ec1da0685a62118a9c42d0f3d5dff8f1ca5abd60922396dd",
+          "page": "https://bigsoundbank.com/drops-of-water-2-s1385.html"
+        },
+        {
+          "name": "drop_1386",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1386.wav",
+          "sha256": "7a269cae051356e33c6607b5e7b6ebc2af7ca1f0b559f3d1cb9f8df2c1c01c23",
+          "page": "https://bigsoundbank.com/drops-of-water-3-s1386.html"
+        },
+        {
+          "name": "drop_1387",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1387.wav",
+          "sha256": "a1c08c5237b2da19f9a7610b254c1e3cc7ab77e4b4c1e467a3b99f0aa6ec1eea",
+          "page": "https://bigsoundbank.com/drops-of-water-4-s1387.html"
+        },
+        {
+          "name": "splash_1529",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1529.wav",
+          "sha256": "fd7504403d6c176b598c0023cb7f6e5dcbbf6176b5ad9742fece4ef07237244f",
+          "page": "https://bigsoundbank.com/splash-small-1-s1529.html"
+        },
+        {
+          "name": "splash_1530",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1530.wav",
+          "sha256": "bb9e400265237ae909fbad1623433423cb5cef647e7f04d381361f6cb65fb773",
+          "page": "https://bigsoundbank.com/splash-small-2-s1530.html"
+        },
+        {
+          "name": "splash_1531",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1531.wav",
+          "sha256": "ac3ccb7e910a71e7298f29eeb33166166b1e83ce1ba61861b2d07a1fcb4acc04",
+          "page": "https://bigsoundbank.com/splash-small-3-s1531.html"
+        },
+        {
+          "name": "splash_1532",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1532.wav",
+          "sha256": "1361474a52a9907247a93c233fe3ff3d03ba52950edf6dcda2773f0238cefaea",
+          "page": "https://bigsoundbank.com/splash-small-4-s1532.html"
+        },
+        {
+          "name": "splash_1534",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1534.wav",
+          "sha256": "abc547867935109ae7e91e6d0b43f27b2427e749e4b90932532f1f57b8959c82",
+          "page": "https://bigsoundbank.com/splash-small-6-s1534.html"
+        },
+        {
+          "name": "key_0087",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/0087.wav",
+          "sha256": "294c38cff9d9a2c6aac88b350a7f80375c7e975d50bbf13fb899415021949055",
+          "page": "https://bigsoundbank.com/key-placed-on-wooden-table-s0087.html"
+        },
+        {
+          "name": "page_2210",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/2210.wav",
+          "sha256": "5b34d5f08dbf392609c12f62eebf6db23a18be06dc662636b7b969405920fc54",
+          "page": "https://bigsoundbank.com/pages-that-turn-3-s2210.html"
+        },
+        {
+          "name": "page_2212",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/2212.wav",
+          "sha256": "24defd28f3166c0188708dfab4fcb0df01e8ef9e0c69ed02fed73b389223b049",
+          "page": "https://bigsoundbank.com/pages-that-turn-5-s2212.html"
+        },
+        {
+          "name": "page_2213",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/2213.wav",
+          "sha256": "bd4c4e7d3694a1be339a8ee206fae2027f9fb1d632f67b0021e0970ac5f48e45",
+          "page": "https://bigsoundbank.com/pages-that-turn-6-s2213.html"
+        },
+        {
+          "name": "page_2214",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/2214.wav",
+          "sha256": "101b833a322dd153bac6c5eaccc6d7704fb0eeba3ed43e6810b220f33fa16ad5",
+          "page": "https://bigsoundbank.com/pages-that-turn-7-s2214.html"
+        },
+        {
+          "name": "page_2215",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/2215.wav",
+          "sha256": "fde48a6a1bd64f250826c76fdb3150289eff4733dbbefcd9f9272e1ce302efff",
+          "page": "https://bigsoundbank.com/pages-that-turn-8-s2215.html"
+        },
+        {
+          "name": "page_2216",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/2216.wav",
+          "sha256": "502d9b25a1a0ba550a76179b9a49a6eba3c3c64882c5040bc0f92bc993f242a8",
+          "page": "https://bigsoundbank.com/pages-that-turn-9-s2216.html"
+        },
+        {
+          "name": "page_0363",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/0363.wav",
+          "sha256": "5466912f427930849ab0de1e9f6de2db020e0feb0c58cbc9765028b1300f6a18",
+          "page": "https://bigsoundbank.com/great-page-that-turns-1-s0363.html"
+        },
+        {
+          "name": "page_0164",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/0164.wav",
+          "sha256": "bb3e704ba55c9b023b67df80013c498875cd55db61a0e16fd43f9fe259cca3ad",
+          "page": "https://bigsoundbank.com/turned-page-s0164.html"
+        },
+        {
+          "name": "page_1250",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1250.wav",
+          "sha256": "441267fbc7ecb69db1b7e9d9368688c4057bc52dc4f0cdb3fd8b722c4437d662",
+          "page": "https://bigsoundbank.com/news-paper-pages-s1250.html"
+        },
+        {
+          "name": "book_1411",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1411.wav",
+          "sha256": "c7552463666c6e5ef55c83a6224e7b762e8387469ce806621d160df1ed3af006",
+          "page": "https://bigsoundbank.com/closed-book-2-s1411.html"
+        },
+        {
+          "name": "pencil_3235",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/3235.wav",
+          "sha256": "e3925987946d56486fe6b0c4868bdf2a4bc3831f1283bc8c062c4b1ab16748ff",
+          "page": "https://bigsoundbank.com/pencil-4-s3235.html"
+        },
+        {
+          "name": "pencil_3233",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/3233.wav",
+          "sha256": "d5ab75c250de0a5e038192bc061588c2951b938bcbc30b24d8a984176cf9804c",
+          "page": "https://bigsoundbank.com/pencil-2-s3233.html"
+        },
+        {
+          "name": "pencil_3234",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/3234.wav",
+          "sha256": "056943b62a3ca72b6b5a1f0e1e88ea6a57ae884da6748ce1f24f3644744af25e",
+          "page": "https://bigsoundbank.com/pencil-3-s3234.html"
+        },
+        {
+          "name": "pencil_3236",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/3236.wav",
+          "sha256": "15fe9097441c8dec5da60ed03353980dc4f640eba9598a896c08879cfe110e29",
+          "page": "https://bigsoundbank.com/pencil-signature-1-s3236.html"
+        },
+        {
+          "name": "pencil_3237",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/3237.wav",
+          "sha256": "bb61bc0e771faf7e599d7f6bc3b29e623370556a1657182b8043a6c5ccc243d0",
+          "page": "https://bigsoundbank.com/pencil-signature-2-s3237.html"
+        },
+        {
+          "name": "pencil_3238",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/3238.wav",
+          "sha256": "6eb6e26efbdf4ad1e89edca8baf5f0025ab55212f7121cff9427a67b7f5ebe42",
+          "page": "https://bigsoundbank.com/pencil-signature-3-s3238.html"
+        },
+        {
+          "name": "sharpener_0051",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/0051.wav",
+          "sha256": "aa5c0923202b3ca33687ea9768c7c18ee15e340d0b220e74c591f50526cdfc04",
+          "page": "https://bigsoundbank.com/sharpener-s0051.html"
+        },
+        {
+          "name": "paper_1223",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1223.wav",
+          "sha256": "e2ef1f9c7cfa8f558e0e9e7afed11ecf3224254099ae59e7818be40387f9c506",
+          "page": "https://bigsoundbank.com/ball-paper-4-s1223.html"
+        },
+        {
+          "name": "paper_1224",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1224.wav",
+          "sha256": "c864dde86ddca287bc55e394cc405a483f222eb3fe8b85cc259e45f1094c413e",
+          "page": "https://bigsoundbank.com/ball-paper-5-s1224.html"
+        },
+        {
+          "name": "paper_2807",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/2807.wav",
+          "sha256": "4efeb57d647bffdd57565aa23c5573bc0e3729ea81ae3fa2a6e9359f1570debd",
+          "page": "https://bigsoundbank.com/road-map-12-s2807.html"
+        },
+        {
+          "name": "paper_3245",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/3245.wav",
+          "sha256": "4c91ac031ee9391d3a937ba81f44bba3fb47d9aff80c4886414fe56bb0e2ad9c",
+          "page": "https://bigsoundbank.com/torn-paper-8-s3245.html"
+        },
+        {
+          "name": "paper_0018",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/0018.wav",
+          "sha256": "5702e2d0c2abec1ed38dc722434e732ab5c12248b536f4f8999a527a8b88348f",
+          "page": "https://bigsoundbank.com/torn-paper-s0018.html"
+        },
+        {
+          "name": "paper_1225",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1225.wav",
+          "sha256": "b8a1bb3ccc53f426a6fa93ad4c8a5b5486c31b516e7b98f3f005360db24dab31",
+          "page": "https://bigsoundbank.com/torn-and-creased-page-1-s1225.html"
+        },
+        {
+          "name": "scissors_0008",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/0008.wav",
+          "sha256": "1a50eb2df0add84de0de699379dc6f6ffb5739822575a8ec5a625f06dc3874b4",
+          "page": "https://bigsoundbank.com/scissors-s0008.html"
+        },
+        {
+          "name": "keyboard_1733",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1733.wav",
+          "sha256": "e0d27a524b6c24ca85f9ecfd6f6370020fc7abe77020fa0ee016a3c05b4c993d",
+          "page": "https://bigsoundbank.com/slow-keyboard-s1733.html"
+        },
+        {
+          "name": "keyboard_1724",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1724.wav",
+          "sha256": "d177888ac73c0c32ef6a93f9d87e332c96b637d19ec645b7211b03cd0217e1c5",
+          "page": "https://bigsoundbank.com/quick-raspberry-keyboard-1-s1724.html"
+        },
+        {
+          "name": "keyboard_1727",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1727.wav",
+          "sha256": "821d4d02b2f986113fdf9cf0abe1a8f5bf2903ffd87b5a132487c7f929520f6b",
+          "page": "https://bigsoundbank.com/slow-macbook-keyboard-2-s1727.html"
+        },
+        {
+          "name": "keyboard_1729",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1729.wav",
+          "sha256": "69c86ce5443254efde0ee4c4551723db08c55e6c6213657365bb62dcc335a994",
+          "page": "https://bigsoundbank.com/slow-macbook-pro-keyboard-2-s1729.html"
+        },
+        {
+          "name": "keyboard_1732",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1732.wav",
+          "sha256": "006c3d8c9448380238b6d09e046fa444864a1c15d4331e32e279b6805f972bae",
+          "page": "https://bigsoundbank.com/slow-raspberry-keyboard-s1732.html"
+        },
+        {
+          "name": "typewriter_2842",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/2842.wav",
+          "sha256": "62e1b661fc6ef01afbe296d51a574e9d84951fb5f9799b06fcbd9430b809f4e3",
+          "page": "https://bigsoundbank.com/typewriter-key-s2842.html"
+        },
+        {
+          "name": "typewriter_2843",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/2843.wav",
+          "sha256": "f681dda9b53feaf75540ab3310398b37855173d694b55cb183c846e076fafe9e",
+          "page": "https://bigsoundbank.com/typewriter-space-s2843.html"
+        },
+        {
+          "name": "typewriter_2844",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/2844.wav",
+          "sha256": "deb29f0d2729450e0b2b0f7d3f3259811579c30e688822acec06e519372b0661",
+          "page": "https://bigsoundbank.com/typewriter-bell-s2844.html"
+        },
+        {
+          "name": "typewriter_2836",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/2836.wav",
+          "sha256": "c280aac0150d9ce6f8a5e41aabc2dd6fd51dceaf3219800e4c3bb33a4fb31c41",
+          "page": "https://bigsoundbank.com/typewriter-3-s2836.html"
+        },
+        {
+          "name": "typewriter_2839",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/2839.wav",
+          "sha256": "f759ee9d6305402314c189d10ea74b993cb6fe500e6dd30e7b395b0d08861529",
+          "page": "https://bigsoundbank.com/typewriter-6-s2839.html"
+        },
+        {
+          "name": "thermostat_2191",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/2191.wav",
+          "sha256": "cee98279861a0fa0ed277b72bbd79ca889e8e12bf56db92baa8a2e3523584414",
+          "page": "https://bigsoundbank.com/thermostat-1-s2191.html"
+        },
+        {
+          "name": "thermostat_2192",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/2192.wav",
+          "sha256": "837e213d1b4d2831daafe6e14d80a656f21b220683921e446981e5251a74fcde",
+          "page": "https://bigsoundbank.com/thermostat-2-s2192.html"
+        },
+        {
+          "name": "buzzer_1585",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1585.wav",
+          "sha256": "d62ab6f07f44b36d57052e016db35e3c484f96923fab74fa9d436f8953a784fc",
+          "page": "https://bigsoundbank.com/buzzer-3-s1585.html"
+        },
+        {
+          "name": "buzzer_1587",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1587.wav",
+          "sha256": "44ebe56c8e19ade8af83be6ba75377889faac5db081195783405646a2f49e4bc",
+          "page": "https://bigsoundbank.com/buzzer-5-s1587.html"
+        },
+        {
+          "name": "buzzer_1593",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1593.wav",
+          "sha256": "482e74b97056944cd12a84a9ef131a228c44c5a57cf0838a6556ea507279a3f4",
+          "page": "https://bigsoundbank.com/piezo-alarm-2-s1593.html"
+        },
+        {
+          "name": "buzzer_1592",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1592.wav",
+          "sha256": "6d35afa19594c4411146aa912a5d9b26073ec33fdc8808d4568c4e92e693c061",
+          "page": "https://bigsoundbank.com/piezo-alarm-1-s1592.html"
+        },
+        {
+          "name": "printer_0169",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/0169.wav",
+          "sha256": "c1a2ff7405b82975cef02d17e308ea2cae06cfbe3ed4f400c8796b80d841aa4f",
+          "page": "https://bigsoundbank.com/inkjet-printer-s0169.html"
+        },
+        {
+          "name": "printer_0394",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/0394.wav",
+          "sha256": "44f8bc7da9570b0032f0c4fd53d856333bd5f08865469a0c837143c4f48786d5",
+          "page": "https://bigsoundbank.com/laser-printer-start-s0394.html"
+        },
+        {
+          "name": "printer_0395",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/0395.wav",
+          "sha256": "cd96c4494991eb478351536727664a3d792336b61b813e99efad88bf546aae89",
+          "page": "https://bigsoundbank.com/impression-lazer-s0395.html"
+        },
+        {
+          "name": "calculator_3278",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/3278.wav",
+          "sha256": "7f6a01b2ec74188f46b51e13399468d61cdb6f4323db5007bde086774b0b7fd3",
+          "page": "https://bigsoundbank.com/old-calculator-key-1-s3278.html"
+        },
+        {
+          "name": "calculator_3555",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/3555.wav",
+          "sha256": "4644dcfaf3385f42f210a1411b68bb859c4e48fc6ff6f9584cd39ac1925aa29c",
+          "page": "https://bigsoundbank.com/calculator-printer-3-s3555.html"
+        },
+        {
+          "name": "calculator_3264",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/3264.wav",
+          "sha256": "563a1cd24e1d94fa85f3c77d487c53eff34adbeca814ed4bc54d696cdbda241e",
+          "page": "https://bigsoundbank.com/old-calculator-ticket-1-s3264.html"
+        },
+        {
+          "name": "calculator_3265",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/3265.wav",
+          "sha256": "80c88085edf4127436cb83063804956df9eaf815b83b4ec500c14d4a21ad2124",
+          "page": "https://bigsoundbank.com/old-calculator-calculation-and-ticket-1-s3265.html"
+        },
+        {
+          "name": "calculator_3270",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/3270.wav",
+          "sha256": "ff2fdbbe8558cc0ae56e5d64a9e8dc94b3d29237d351aac1f5be66509cc46855",
+          "page": "https://bigsoundbank.com/old-calculator-number-key-1-s3270.html"
+        },
+        {
+          "name": "dymo_1620",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1620.wav",
+          "sha256": "990fd7ed925d0c8bb80a1701b38a8a2dd3ca25f955292fe3114598badd1aa7f9",
+          "page": "https://bigsoundbank.com/dymo-printing-s1620.html"
+        },
+        {
+          "name": "dymo_1621",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1621.wav",
+          "sha256": "7f38d1a8c12d8825c091fb3c9262bb48939f523a6cebad205a530c048e6b40cf",
+          "page": "https://bigsoundbank.com/dymo-cuting-s1621.html"
+        },
+        {
+          "name": "chime_1922",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/1922.wav",
+          "sha256": "9bee834cb4c6f1862881699b5e9efdad7dd5394e61106d030a62079eb46e9cb1",
+          "page": "https://bigsoundbank.com/industrial-doorbell-2-s1922.html"
+        },
+        {
+          "name": "chime_2079",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/2079.wav",
+          "sha256": "8e4c65ccbec1cb677b0b95fdaeab51e12ee293f28cb9b1d0b7cf20b3e90a8971",
+          "page": "https://bigsoundbank.com/chimes-dream-1-s2079.html"
+        },
+        {
+          "name": "chime_2084",
+          "url": "https://bigsoundbank.com/UPLOAD/bwf-en/2084.wav",
+          "sha256": "efe9bfa31b1b1524c3d72c1522859c57c4830901929bd7fb80766ed1127a1783",
+          "page": "https://bigsoundbank.com/chimes-dream-6-s2084.html"
+        }
+      ]
+    },
+    {
+      "title": "Freesound",
+      "page": "https://freesound.org/",
+      "family": "stem",
+      "files": [
+        {
+          "name": "brush_428338",
+          "url": "https://cdn.freesound.org/previews/428/428338_8617763-hq.ogg",
+          "sha256": "77ef738ba54821fa19e7711e9d68e6b5b9249f212103a798de80e81b7ffec6e5",
+          "page": "https://freesound.org/people/zembacraftworks/sounds/428338/",
+          "author": "zembacraftworks",
+          "licence": "CC0 1.0"
+        },
+        {
+          "name": "brush_86113",
+          "url": "https://cdn.freesound.org/previews/86/86113_1275447-hq.ogg",
+          "sha256": "61e24140a116f8c7a8fa6faeb28d44af13741ffc05d649f190b3dba1a25f75b3",
+          "page": "https://freesound.org/people/acrober/sounds/86113/",
+          "author": "acrober",
+          "licence": "CC0 1.0"
+        },
+        {
+          "name": "brush_86114",
+          "url": "https://cdn.freesound.org/previews/86/86114_1275447-hq.ogg",
+          "sha256": "6c5dedcc7c2924368179b20507288a7bed617dce4bcfde9748b464a6ecd9289a",
+          "page": "https://freesound.org/people/acrober/sounds/86114/",
+          "author": "acrober",
+          "licence": "CC0 1.0"
+        },
+        {
+          "name": "brush_655539",
+          "url": "https://cdn.freesound.org/previews/655/655539_13727636-hq.ogg",
+          "sha256": "0668bee6884098eedce3235a54f2c568ae578eb5d18292c091890295f6cc0dbc",
+          "page": "https://freesound.org/people/221227/sounds/655539/",
+          "author": "221227",
+          "licence": "CC BY 4.0"
+        },
+        {
+          "name": "stamp_470710",
+          "url": "https://cdn.freesound.org/previews/470/470710_9906084-hq.ogg",
+          "sha256": "d1a936c382b330cafbba94dc9e6886c9bdbc0343dbff7ad97be68938aafdc11a",
+          "page": "https://freesound.org/people/I.fekry/sounds/470710/",
+          "author": "I.fekry",
+          "licence": "CC0 1.0"
+        },
+        {
+          "name": "stamp_362624",
+          "url": "https://cdn.freesound.org/previews/362/362624_3165091-hq.ogg",
+          "sha256": "6dd4e54e98c0f382d059093c0759548a0bc935241a70b929e48ed424e7001815",
+          "page": "https://freesound.org/people/kermite607/sounds/362624/",
+          "author": "kermite607",
+          "licence": "CC0 1.0"
+        },
+        {
+          "name": "stamp_362622",
+          "url": "https://cdn.freesound.org/previews/362/362622_3165091-hq.ogg",
+          "sha256": "de5bf29006f3a48fa3eacc5e784bf7ade699e442ddc09ee2155a5dd3ae6e8e6d",
+          "page": "https://freesound.org/people/kermite607/sounds/362622/",
+          "author": "kermite607",
+          "licence": "CC0 1.0"
+        },
+        {
+          "name": "stamp_362623",
+          "url": "https://cdn.freesound.org/previews/362/362623_3165091-hq.ogg",
+          "sha256": "58397839922ccb290f9ef659cbb655992b584ea643ca2a8e6f1aeb50ee8f9a16",
+          "page": "https://freesound.org/people/kermite607/sounds/362623/",
+          "author": "kermite607",
+          "licence": "CC0 1.0"
+        },
+        {
+          "name": "stamp_514486",
+          "url": "https://cdn.freesound.org/previews/514/514486_22858-hq.ogg",
+          "sha256": "e7e0ea52943061ddb8f3c4659a6032c65eb6d6acf1213516a0e78e32d36c3bff",
+          "page": "https://freesound.org/people/whammy/sounds/514486/",
+          "author": "whammy",
+          "licence": "CC0 1.0"
+        },
+        {
+          "name": "stamp_448474",
+          "url": "https://cdn.freesound.org/previews/448/448474_9090982-hq.ogg",
+          "sha256": "b00d63c190ef1496bb8e8e6a4309d2b57621d8a0dd4975d96803242846b1ddd8",
+          "page": "https://freesound.org/people/eddies2000/sounds/448474/",
+          "author": "eddies2000",
+          "licence": "CC0 1.0"
+        },
+        {
+          "name": "stamp_178650",
+          "url": "https://cdn.freesound.org/previews/178/178650_2979997-hq.ogg",
+          "sha256": "1373d9e410c578d93182d4ce1c74cd5e61ff0f3f70c39d2e1c581c1ec30ed57e",
+          "page": "https://freesound.org/people/sengjinn/sounds/178650/",
+          "author": "sengjinn",
+          "licence": "CC BY 4.0"
+        },
+        {
+          "name": "ruler_817400",
+          "url": "https://cdn.freesound.org/previews/817/817400_14398276-hq.ogg",
+          "sha256": "88ee913ca925c9bb3e32b245ecf2577d55c786aacc547f22c26e4c71109ffcb7",
+          "page": "https://freesound.org/people/Chaos-Kid/sounds/817400/",
+          "author": "Chaos-Kid",
+          "licence": "CC0 1.0"
+        },
+        {
+          "name": "ruler_817401",
+          "url": "https://cdn.freesound.org/previews/817/817401_14398276-hq.ogg",
+          "sha256": "0d1d0786e839492e7611affc27d22498f464af175c4c02bbd63389ecd8de3abc",
+          "page": "https://freesound.org/people/Chaos-Kid/sounds/817401/",
+          "author": "Chaos-Kid",
+          "licence": "CC0 1.0"
+        },
+        {
+          "name": "ruler_873217",
+          "url": "https://cdn.freesound.org/previews/873/873217_17675683-hq.ogg",
+          "sha256": "b677ddf2393d03a4774d4f750acc4345d52c72e2f79b4a287f145a8ff047fb4e",
+          "page": "https://freesound.org/people/CAT-FOX_ALEX/sounds/873217/",
+          "author": "CAT-FOX_ALEX",
+          "licence": "CC0 1.0"
+        },
+        {
+          "name": "ruler_337627",
+          "url": "https://cdn.freesound.org/previews/337/337627_2672937-hq.ogg",
+          "sha256": "de002aa6519cf2e5b694fc0d2ac93cffa1cc640cd8ac2136fd27a108fcba4d01",
+          "page": "https://freesound.org/people/mitsuhito/sounds/337627/",
+          "author": "mitsuhito",
+          "licence": "CC BY 4.0"
+        },
+        {
+          "name": "ruler_382569",
+          "url": "https://cdn.freesound.org/previews/382/382569_7119516-hq.ogg",
+          "sha256": "46d94348ea7f26d993cf8fc565659f225d96ac1f8c450f969931dae33f3e5e1f",
+          "page": "https://freesound.org/people/lomographicmusic/sounds/382569/",
+          "author": "lomographicmusic",
+          "licence": "CC BY 4.0"
+        },
+        {
+          "name": "relay_384701",
+          "url": "https://cdn.freesound.org/previews/384/384701_1067129-hq.ogg",
+          "sha256": "335fd8ff8e6a1a33946d0664d8021995f596fac7a8f3e95eca3d0202325f0637",
+          "page": "https://freesound.org/people/bassmosphere/sounds/384701/",
+          "author": "bassmosphere",
+          "licence": "CC0 1.0"
+        },
+        {
+          "name": "relay_384698",
+          "url": "https://cdn.freesound.org/previews/384/384698_1067129-hq.ogg",
+          "sha256": "00ac69bade258f13ed9d5868b8db650f37b12cdd90798f4d2d799b8a163dece3",
+          "page": "https://freesound.org/people/bassmosphere/sounds/384698/",
+          "author": "bassmosphere",
+          "licence": "CC0 1.0"
+        },
+        {
+          "name": "relay_674028",
+          "url": "https://cdn.freesound.org/previews/674/674028_11007330-hq.ogg",
+          "sha256": "829135de566ea9b860f3aefead70c996e0848d795e305bafd67e455105fef6ee",
+          "page": "https://freesound.org/people/mmmtoop/sounds/674028/",
+          "author": "mmmtoop",
+          "licence": "CC0 1.0"
+        },
+        {
+          "name": "relay_740253",
+          "url": "https://cdn.freesound.org/previews/740/740253_16085440-hq.ogg",
+          "sha256": "98b315d1666d14ee5ad8f3a0606014d21639a7090331c2d5c2985101a147b5eb",
+          "page": "https://freesound.org/people/JoontheFloof/sounds/740253/",
+          "author": "JoontheFloof",
+          "licence": "CC0 1.0"
+        },
+        {
+          "name": "relay_112844",
+          "url": "https://cdn.freesound.org/previews/112/112844_1965075-hq.ogg",
+          "sha256": "a962fc090b9b7843fe28e57fac836816d401268379479cae393aacce33692c4d",
+          "page": "https://freesound.org/people/xdrav/sounds/112844/",
+          "author": "xdrav",
+          "licence": "CC0 1.0"
+        },
+        {
+          "name": "scissors_272035",
+          "url": "https://cdn.freesound.org/previews/272/272035_5165013-hq.ogg",
+          "sha256": "6beeb676a2713d7e8a15dd5cba99e8614499141e1fc70caa25c94397b5261bdd",
+          "page": "https://freesound.org/people/aldenroth2/sounds/272035/",
+          "author": "aldenroth2",
+          "licence": "CC0 1.0"
+        },
+        {
+          "name": "scissors_240474",
+          "url": "https://cdn.freesound.org/previews/240/240474_1662097-hq.ogg",
+          "sha256": "39a9f190d4de618b29f2e1c35b7c5aa647ed108bda29ea89678505993b924f18",
+          "page": "https://freesound.org/people/Godowan/sounds/240474/",
+          "author": "Godowan",
+          "licence": "CC0 1.0"
+        },
+        {
+          "name": "scissors_157857",
+          "url": "https://cdn.freesound.org/previews/157/157857_2840087-hq.ogg",
+          "sha256": "26618d2a131db9d9fcfc06cb4bdc7311cbb8f3aa3fe4ec6bec809b73b617bfdd",
+          "page": "https://freesound.org/people/husky70/sounds/157857/",
+          "author": "husky70",
+          "licence": "CC0 1.0"
+        },
+        {
+          "name": "scissors_436769",
+          "url": "https://cdn.freesound.org/previews/436/436769_7085413-hq.ogg",
+          "sha256": "14eed3c87d6513de8a28b6a918b5786c426fac2015f485e3debbbbf863d9afc5",
+          "page": "https://freesound.org/people/Kiyoshiakira/sounds/436769/",
+          "author": "Kiyoshiakira",
+          "licence": "CC0 1.0"
+        },
+        {
+          "name": "scissors_420009",
+          "url": "https://cdn.freesound.org/previews/420/420009_8374106-hq.ogg",
+          "sha256": "4897cf666a35f82aec3d52621cc0c43d580d79401c198682fe0f65e5e91b0b3d",
+          "page": "https://freesound.org/people/14Douderova_Adela/sounds/420009/",
+          "author": "14Douderova_Adela",
+          "licence": "CC0 1.0"
+        }
+      ]
     }
   ]
 }

@@ -9,7 +9,11 @@
   It plays the library scripts/theme_sounds.py downloaded (tmp/sound-library/catalogue.json) and
   edits the theme's sounds-choice.json, saved through the server: first the families kept for the
   theme, then for each signal a shortlist and the one chosen, at the theme's gain and the signal's
-  offset, as the app will play them. The sounds each theme plays now are there to compare.
+  offset, as the app will play them. A theme with a finish (scripts/theme_sounds.py, FINISH) plays
+  each sound finished by the server as the unsaved choice says (POST /hear/<id>), with its
+  measures. A recording of several gestures shows its takes (find_takes): a take shortlisted becomes
+  a recipe that cuts it. The sounds each theme plays now are there to compare; without ?theme, the
+  page compares them all, a signal across the themes or a theme's signals in one go.
 -->
 <style>
   :root { --ground: #f4f1ec; --panel: #fffdf9; --ink: #2b2620; --dim: #6b6358; --line: #d8d0c4; --on: #3d7a4a; --onink: #fff; --pick: #e3f0e3; }
@@ -35,17 +39,27 @@
   input[type=search] { font: inherit; color: inherit; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; min-width: 180px; }
   input[type=number] { width: 60px; font: inherit; color: inherit; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
   #status { color: var(--dim); }
+  #measures { color: var(--dim); font-size: 13px; min-height: 1.4em; }
+  #measures.clips { color: #b3261e; }
+  .finish { display: grid; grid-template-columns: auto auto 1fr; gap: 6px 10px; align-items: center; margin-top: 8px; }
+  .finish input[type=number] { width: 80px; }
+  .take { font-size: 13px; }
+  table.all { border-collapse: collapse; margin-top: 8px; }
+  table.all td, table.all th { border: 1px solid var(--line); padding: 3px 8px; text-align: center; }
+  table.all th { font-weight: 600; }
 </style>
 </head>
 <body>
 <main>
   <h1 id="title">Sons d'un thème</h1>
-  <p class="lead">1. <b>Familles</b> : retenir celles qui vont au thème (▶ enchaîne une famille). 2. <b>Un signal</b> : dans les familles retenues, ▶ écoute, le nom ajoute à la présélection ; dans la présélection, ★ choisit, ✕ retire, le décalage en dB ne vaut que pour ce signal. Tout s'entend au gain du thème, comme dans l'app. « Enregistrer » écrit sounds-choice.json ; puis <code>scripts/theme_sounds.py make &lt;id&gt;</code>.</p>
+  <p class="lead">1. <b>Familles</b> : retenir celles qui vont au thème (▶ enchaîne une famille). 2. <b>Un signal</b> : dans les familles retenues, ▶ écoute, le nom ajoute à la présélection ; dans la présélection, ★ choisit, ✕ retire, le décalage en dB ne vaut que pour ce signal. Tout s'entend au gain du thème, comme dans l'app. 3. <b>Finition</b> : ce qui rapproche des sons de sources différentes, chaque étape cochée ou non ; avec elle, chaque son s'entend fini et ramené au volume du thème, ses mesures sous la barre. « Enregistrer » écrit sounds-choice.json ; puis <code>scripts/theme_sounds.py make &lt;id&gt;</code>.</p>
   <div class="bar">
     <div class="row" id="tabs"></div>
+    <div id="measures"></div>
     <div class="row" id="short"></div>
     <div class="row">
-      <label>Gain du thème <input id="gain" type="range" min="-30" max="0" step="1"> <span id="gainLabel"></span></label>
+      <label><span id="gainName">Gain du thème</span> <input id="gain" type="range" min="-40" max="0" step="1"> <span id="gainLabel"></span></label>
+      <button id="playTheme">▶ le thème</button>
       <input id="q" type="search" placeholder="Filtrer (click, glass…)" aria-label="Filtrer les sons">
       <label><input id="allFamilies" type="checkbox"> toutes les familles</label>
       <button id="save">Enregistrer</button> <span id="status"></span>
@@ -63,18 +77,68 @@ const el = (tag, props = {}, ...kids) => { const e = Object.assign(document.crea
 
 let player = null;
 function play(file, db) {
-  if (player) player.pause();
+  stop();
   player = new Audio(ROOT + file);
   player.volume = Math.min(1, Math.pow(10, db / 20));
   player.play();
   return player;
 }
+// A take of a recording, raw: Web Audio plays a span of a file, where an <audio> element would stop late.
+let audio = null, playing = null;
+const buffers = new Map();
+function stop() {
+  if (player) player.pause();
+  if (playing) { try { playing.stop(); } catch (e) {} playing = null; }
+}
+async function playSpan(file, db, take) {
+  stop();
+  audio ??= new AudioContext();
+  if (!buffers.has(file)) buffers.set(file, await (await fetch(ROOT + file)).arrayBuffer().then(b => audio.decodeAudioData(b)));
+  const source = audio.createBufferSource(), level = audio.createGain();
+  source.buffer = buffers.get(file);
+  level.gain.value = Math.pow(10, db / 20);
+  source.connect(level).connect(audio.destination);
+  source.start(0, take[0], take[1] - take[0]);
+  playing = source;
+  // What the caller awaits: the end of the take, as an <audio> element's onended.
+  const ended = { onended: null, onerror: null };
+  source.onended = () => ended.onended?.();
+  return ended;
+}
+// A recipe that only cuts a take: its input and its span, to play it before the library renders it.
+function takeOf(id) {
+  const r = id.startsWith("recipe · ") ? S.doc.recipes?.[id.slice(9)] : null;
+  if (!r || r.inputs?.length !== 1 || r.effects?.[0] !== "trim" || r.effects.length !== 3) return null;
+  const start = Number(r.effects[1]);
+  return { id: r.inputs[0], take: [start, start + Number(r.effects[2])] };
+}
 const gain = () => Number(S.doc.gain_db ?? 0);
 const signalOf = s => (S.doc.signals[s] ??= { choice: null, offset_db: 0, shortlist: [] });
 const byId = id => S.cat.sounds.find(x => x.id === id);
-const playId = (id, sig) => { const x = byId(id); if (x) play(x.file, gain() + (sig ? Number(signalOf(sig).offset_db || 0) : 0)); };
-async function playAll(items) {
-  for (const x of items) { await new Promise(done => { const a = play(x.file, gain()); a.onended = done; a.onerror = done; }); }
+const fmt = n => n.toLocaleString("fr-FR");
+// A sound as the app will play it: raw at the theme's gain, or finished by the server and brought to the theme's level.
+async function hear(id, offset, take = null) {
+  if (!S.doc.finish) {
+    const cut = take ? { id, take } : takeOf(id);
+    if (cut) { const x = byId(cut.id); return x ? playSpan(x.file, gain() + offset, cut.take) : null; }
+    const x = byId(id); return x ? play(x.file, gain() + offset) : null;
+  }
+  const r = await fetch(`/hear/${THEME}`, { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ choice: S.doc, id, offset_db: offset, take }) });
+  const box = $("measures");
+  if (!r.ok) { box.className = "clips"; box.textContent = `refusé : ${r.status} ${r.statusText}`; return null; }
+  const a = await r.json(), m = a.measured;
+  box.className = a.clips ? "clips" : "";
+  box.textContent = `${id.split(" · ").pop()}${take ? ` (${fmt(take[0])} à ${fmt(take[1])} s)` : ""} : ${fmt(m.seconds)} s · le plus fort ${fmt(m.loud_db)} dB · le fond ${fmt(m.floor_db)} dB · la crête ${fmt(m.peak_db)} dB · le centre ${fmt(m.centre_hz)} Hz · ${a.gain_db > 0 ? "+" : ""}${fmt(a.gain_db)} dB${a.clips ? " · ÉCRÊTE" : ""}`;
+  return play(a.file, 0);
+}
+const playId = (id, sig) => hear(id, sig ? Number(signalOf(sig).offset_db || 0) : 0);
+async function playAll(ids, sigs) {
+  for (let i = 0; i < ids.length; i++) {
+    const a = await hear(ids[i], sigs ? Number(signalOf(sigs[i]).offset_db || 0) : 0);
+    if (a) await new Promise(done => { a.onended = done; a.onerror = done; });
+    await new Promise(done => setTimeout(done, 250));
+  }
 }
 
 function families() {
@@ -93,12 +157,13 @@ function renderTabs() {
   const tabs = $("tabs"); tabs.replaceChildren();
   const tab = (key, label) => tabs.append(el("button", { className: S.tab === key ? "on" : "", textContent: label, onclick: () => { S.tab = key; render(); } }));
   tab("families", `Familles (${S.doc.families.length})`);
+  tab("finish", S.doc.finish ? "Finition ✓" : "Finition");
   for (const s of S.cat.signals) tab(s, `${s}${signalOf(s).choice ? " ★" : ""}`);
 }
 
 function renderShort() {
   const box = $("short"); box.replaceChildren();
-  if (S.tab === "families") return;
+  if (S.tab === "families" || S.tab === "finish") return;
   const sig = signalOf(S.tab);
   const now = S.cat.current?.[S.tab] ?? {};
   for (const [theme, file] of Object.entries(now)) {
@@ -116,8 +181,48 @@ function renderShort() {
   box.append(el("label", {}, "décalage ", offset, " dB"));
 }
 
+// The finish's steps, as FINISH of scripts/theme_sounds.py names them; loudness_db is the theme's slider.
+const STEPS = [
+  ["mono", "un seul canal", null],
+  ["rate", "fréquence d'échantillonnage (Hz)", 44100],
+  ["highpass_hz", "graves coupés sous (Hz)", 120],
+  ["trim_head_db", "silence de tête coupé sous (dB)", -45],
+  ["bass_db", "graves (dB)", 0],
+  ["treble_db", "aigus (dB)", 0],
+  ["reverb", "petite pièce : réverbération %, taille %, part en dB", null],
+  ["max_ms", "longueur au plus (ms)", 400],
+  ["fade_ms", "fondu de fin (ms)", 60],
+];
+function renderFinish(body) {
+  const f = S.doc.finish;
+  if (!f) {
+    body.append(el("p", { textContent: "Aucune finition : les sons s'entendent bruts, au gain du thème." }),
+      el("button", { textContent: "Ajouter une finition", onclick: () => { delete S.doc.gain_db; S.doc.finish = { loudness_db: -24 }; render(); } }));
+    return;
+  }
+  const grid = el("div", { className: "finish" });
+  for (const [key, label, start] of STEPS) {
+    const on = key in f;
+    const box = el("input", { type: "checkbox", checked: on, onchange: e => {
+      if (!e.target.checked) delete f[key];
+      else f[key] = key === "mono" ? true : key === "reverb" ? { reverberance: 20, room_scale: 30, wet_db: -6 } : start;
+      render(); } });
+    const value = el("span");
+    if (on && key === "reverb") {
+      for (const part of ["reverberance", "room_scale", "wet_db"]) {
+        value.append(el("input", { type: "number", step: 1, value: f.reverb[part], onchange: e => { f.reverb[part] = Number(e.target.value); } }), " ");
+      }
+    } else if (on && key !== "mono") {
+      value.append(el("input", { type: "number", step: 1, value: f[key], onchange: e => { f[key] = Number(e.target.value); } }));
+    }
+    grid.append(box, el("span", { textContent: label }), value);
+  }
+  body.append(grid, el("p", {}, el("button", { textContent: "Retirer la finition", onclick: () => { delete S.doc.finish; S.doc.gain_db = -10; render(); } })));
+}
+
 function renderBody() {
   const body = $("body"); body.replaceChildren();
+  if (S.tab === "finish") { renderFinish(body); return; }
   const q = S.q.toLowerCase();
   for (const [key, items] of families()) {
     if (S.tab !== "families" && !S.all && !kept(key)) continue;
@@ -125,7 +230,7 @@ function renderBody() {
     if (!shown.length) continue;
     const group = el("div", { className: "group" });
     const head = el("header", {}, el("b", { textContent: key }), el("span", { className: "dim", textContent: `${items.length} son${items.length > 1 ? "s" : ""}` }),
-      el("button", { textContent: "▶ tout", onclick: () => playAll(shown) }));
+      el("button", { textContent: "▶ tout", onclick: () => playAll(shown.map(x => x.id)) }));
     if (S.tab === "families") {
       head.append(el("button", { className: kept(key) ? "on" : "", textContent: kept(key) ? "retenue" : "retenir",
         onclick: () => { S.doc.families = kept(key) ? S.doc.families.filter(f => f !== key) : [...S.doc.families, key]; render(); } }));
@@ -135,25 +240,50 @@ function renderBody() {
     for (const x of shown) {
       const sig = S.tab === "families" ? null : signalOf(S.tab);
       const chip = el("span", { className: "chip" + (sig?.shortlist.includes(x.id) ? " chosen" : "") },
-        el("button", { className: "play", textContent: "▶", onclick: () => play(x.file, gain()) }),
+        el("button", { className: "play", textContent: "▶", onclick: () => hear(x.id, sig ? Number(sig.offset_db || 0) : 0) }),
         sig ? el("button", { textContent: x.id.split(" · ").pop(), title: "Ajouter à la présélection",
           onclick: () => { if (!sig.shortlist.includes(x.id)) sig.shortlist.push(x.id); render(); } })
             : x.id.split(" · ").pop(),
         el("span", { className: "dim", textContent: `${x.seconds.toFixed(2)} s` }));
       list.append(chip);
+      (x.takes ?? []).forEach((take, k) => {
+        const name = `${x.id.split(" · ").pop()}-take${k + 1}`;
+        const rid = `recipe · ${name}`;
+        const one = el("span", { className: "chip take" + (sig?.shortlist.includes(rid) ? " chosen" : "") },
+          el("button", { className: "play", textContent: "▶", onclick: () => hear(x.id, sig ? Number(sig.offset_db || 0) : 0, take) }),
+          `prise ${k + 1}`, el("span", { className: "dim", textContent: `${(take[1] - take[0]).toFixed(2)} s` }));
+        if (sig) one.append(el("button", { textContent: "+", title: "Ajouter la prise à la présélection : une recette qui la coupe",
+          onclick: () => {
+            S.doc.recipes ??= {};
+            S.doc.recipes[name] = { inputs: [x.id], effects: ["trim", take[0], Math.round((take[1] - take[0]) * 1000) / 1000] };
+            if (!sig.shortlist.includes(rid)) sig.shortlist.push(rid);
+            render(); } }));
+        list.append(one);
+      });
     }
     group.append(list);
     body.append(group);
   }
 }
 
+// The slider sets the raw gain, or with a finish the level each finished sound is brought to.
+const level = () => S.doc.finish ? Number(S.doc.finish.loudness_db) : gain();
 function render() {
-  $("gain").value = gain();
-  $("gainLabel").textContent = `${gain()} dB`;
+  $("gainName").textContent = S.doc.finish ? "Volume du thème" : "Gain du thème";
+  $("gain").value = level();
+  $("gainLabel").textContent = `${level()} dB`;
   renderTabs(); renderShort(); renderBody();
 }
 
-$("gain").oninput = e => { S.doc.gain_db = Number(e.target.value); $("gainLabel").textContent = `${gain()} dB`; };
+$("gain").oninput = e => {
+  if (S.doc.finish) S.doc.finish.loudness_db = Number(e.target.value); else S.doc.gain_db = Number(e.target.value);
+  $("gainLabel").textContent = `${level()} dB`;
+};
+// The theme heard in one go: each signal's chosen sound, in the order of the signals.
+$("playTheme").onclick = () => {
+  const sigs = S.cat.signals.filter(s => signalOf(s).choice);
+  playAll(sigs.map(s => signalOf(s).choice), sigs);
+};
 $("q").oninput = e => { S.q = e.target.value; renderBody(); };
 $("allFamilies").onchange = e => { S.all = e.target.checked; renderBody(); };
 $("save").onclick = async () => {
@@ -161,8 +291,45 @@ $("save").onclick = async () => {
   $("status").textContent = r.ok ? "enregistré" : `refusé : ${r.status} ${r.statusText}`;
 };
 
+// Every theme side by side, as they play now (res/raw): a signal across the themes, or a theme's signals in one go.
+async function playFiles(files) {
+  for (const f of files) {
+    const a = play(f, 0);
+    await new Promise(done => { a.onended = done; a.onerror = done; });
+    await new Promise(done => setTimeout(done, 250));
+  }
+}
+function overview() {
+  $("title").textContent = "Les sons de tous les thèmes";
+  document.querySelector("p.lead").textContent = "Ce que chaque thème joue aujourd'hui (res/raw, refait par make) : une ligne enchaîne un signal dans tous les thèmes, une colonne les signaux d'un thème. Un thème se choisit par ?theme=<id>.";
+  document.querySelector(".bar").remove();
+  const themes = [...new Set(Object.values(S.cat.current).flatMap(o => Object.keys(o)))].sort();
+  const table = el("table", { className: "all" });
+  const head = el("tr", {}, el("th", { textContent: "" }));
+  for (const th of themes) head.append(el("th", {}, el("a", { href: `?theme=${th}`, textContent: th }), " ",
+    el("button", { textContent: "▶", title: "Les signaux du thème", onclick: () => playFiles(S.cat.signals.map(s => S.cat.current[s][th]).filter(Boolean)) })));
+  head.append(el("th", { textContent: "" }));
+  table.append(head);
+  for (const s of S.cat.signals) {
+    const row = el("tr", {}, el("th", { textContent: s }));
+    for (const th of themes) {
+      const f = S.cat.current[s][th];
+      row.append(el("td", {}, f ? el("button", { className: "play", textContent: "▶", onclick: () => play(f, 0) }) : "muet"));
+    }
+    row.append(el("td", {}, el("button", { textContent: "▶ tous", onclick: () => playFiles(themes.map(th => S.cat.current[s][th]).filter(Boolean)) })));
+    table.append(row);
+  }
+  $("body").replaceChildren(table);
+}
+
 (async () => {
-  if (!THEME) { $("body").textContent = "Ouvrir avec ?theme=<id>."; return; }
+  if (!THEME) {
+    const cat = await fetch(`${ROOT}tmp/sound-library/catalogue.json`, { cache: "no-store" });
+    if (!cat.ok) { $("body").textContent = "Pas de bibliothèque : lancer scripts/theme_sounds.py library."; return; }
+    S.cat = await cat.json();
+    overview();
+    return;
+  }
   $("title").textContent = `Sons du thème ${THEME}`;
   const cat = await fetch(`${ROOT}tmp/sound-library/catalogue.json`, { cache: "no-store" });
   if (!cat.ok) { $("body").textContent = "Pas de bibliothèque : lancer scripts/theme_sounds.py library."; return; }
