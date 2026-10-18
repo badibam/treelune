@@ -76,5 +76,3 @@ Ajoutées le 2026-10-18 (`sound-sources.json`) : Casino Audio et Sci-fi Sounds d
 ## Ce qui reste ouvert
 
 - L'e-ink : quels signaux il garde.
-- La planche d'écoute : une vue qui fait entendre un même signal dans tous les thèmes d'un trait.
-- Couper une prise dans un enregistrement de plusieurs gestes, les coupes proposées d'après les gestes qui sortent du silence (comme `bsb_events.py` de Saylune), la prise choisie écrite en recette.

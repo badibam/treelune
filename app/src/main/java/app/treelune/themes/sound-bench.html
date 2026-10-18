@@ -11,7 +11,9 @@
   theme, then for each signal a shortlist and the one chosen, at the theme's gain and the signal's
   offset, as the app will play them. A theme with a finish (scripts/theme_sounds.py, FINISH) plays
   each sound finished by the server as the unsaved choice says (POST /hear/<id>), with its
-  measures. The sounds each theme plays now are there to compare.
+  measures. A recording of several gestures shows its takes (find_takes): a take shortlisted becomes
+  a recipe that cuts it. The sounds each theme plays now are there to compare; without ?theme, the
+  page compares them all, a signal across the themes or a theme's signals in one go.
 -->
 <style>
   :root { --ground: #f4f1ec; --panel: #fffdf9; --ink: #2b2620; --dim: #6b6358; --line: #d8d0c4; --on: #3d7a4a; --onink: #fff; --pick: #e3f0e3; }
@@ -41,6 +43,10 @@
   #measures.clips { color: #b3261e; }
   .finish { display: grid; grid-template-columns: auto auto 1fr; gap: 6px 10px; align-items: center; margin-top: 8px; }
   .finish input[type=number] { width: 80px; }
+  .take { font-size: 13px; }
+  table.all { border-collapse: collapse; margin-top: 8px; }
+  table.all td, table.all th { border: 1px solid var(--line); padding: 3px 8px; text-align: center; }
+  table.all th { font-weight: 600; }
 </style>
 </head>
 <body>
@@ -71,26 +77,59 @@ const el = (tag, props = {}, ...kids) => { const e = Object.assign(document.crea
 
 let player = null;
 function play(file, db) {
-  if (player) player.pause();
+  stop();
   player = new Audio(ROOT + file);
   player.volume = Math.min(1, Math.pow(10, db / 20));
   player.play();
   return player;
+}
+// A take of a recording, raw: Web Audio plays a span of a file, where an <audio> element would stop late.
+let audio = null, playing = null;
+const buffers = new Map();
+function stop() {
+  if (player) player.pause();
+  if (playing) { try { playing.stop(); } catch (e) {} playing = null; }
+}
+async function playSpan(file, db, take) {
+  stop();
+  audio ??= new AudioContext();
+  if (!buffers.has(file)) buffers.set(file, await (await fetch(ROOT + file)).arrayBuffer().then(b => audio.decodeAudioData(b)));
+  const source = audio.createBufferSource(), level = audio.createGain();
+  source.buffer = buffers.get(file);
+  level.gain.value = Math.pow(10, db / 20);
+  source.connect(level).connect(audio.destination);
+  source.start(0, take[0], take[1] - take[0]);
+  playing = source;
+  // What the caller awaits: the end of the take, as an <audio> element's onended.
+  const ended = { onended: null, onerror: null };
+  source.onended = () => ended.onended?.();
+  return ended;
+}
+// A recipe that only cuts a take: its input and its span, to play it before the library renders it.
+function takeOf(id) {
+  const r = id.startsWith("recipe · ") ? S.doc.recipes?.[id.slice(9)] : null;
+  if (!r || r.inputs?.length !== 1 || r.effects?.[0] !== "trim" || r.effects.length !== 3) return null;
+  const start = Number(r.effects[1]);
+  return { id: r.inputs[0], take: [start, start + Number(r.effects[2])] };
 }
 const gain = () => Number(S.doc.gain_db ?? 0);
 const signalOf = s => (S.doc.signals[s] ??= { choice: null, offset_db: 0, shortlist: [] });
 const byId = id => S.cat.sounds.find(x => x.id === id);
 const fmt = n => n.toLocaleString("fr-FR");
 // A sound as the app will play it: raw at the theme's gain, or finished by the server and brought to the theme's level.
-async function hear(id, offset) {
-  if (!S.doc.finish) { const x = byId(id); return x ? play(x.file, gain() + offset) : null; }
+async function hear(id, offset, take = null) {
+  if (!S.doc.finish) {
+    const cut = take ? { id, take } : takeOf(id);
+    if (cut) { const x = byId(cut.id); return x ? playSpan(x.file, gain() + offset, cut.take) : null; }
+    const x = byId(id); return x ? play(x.file, gain() + offset) : null;
+  }
   const r = await fetch(`/hear/${THEME}`, { method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ choice: S.doc, id, offset_db: offset }) });
+    body: JSON.stringify({ choice: S.doc, id, offset_db: offset, take }) });
   const box = $("measures");
   if (!r.ok) { box.className = "clips"; box.textContent = `refusé : ${r.status} ${r.statusText}`; return null; }
   const a = await r.json(), m = a.measured;
   box.className = a.clips ? "clips" : "";
-  box.textContent = `${id.split(" · ").pop()} : ${fmt(m.seconds)} s · le plus fort ${fmt(m.loud_db)} dB · le fond ${fmt(m.floor_db)} dB · la crête ${fmt(m.peak_db)} dB · le centre ${fmt(m.centre_hz)} Hz · ${a.gain_db > 0 ? "+" : ""}${fmt(a.gain_db)} dB${a.clips ? " · ÉCRÊTE" : ""}`;
+  box.textContent = `${id.split(" · ").pop()}${take ? ` (${fmt(take[0])} à ${fmt(take[1])} s)` : ""} : ${fmt(m.seconds)} s · le plus fort ${fmt(m.loud_db)} dB · le fond ${fmt(m.floor_db)} dB · la crête ${fmt(m.peak_db)} dB · le centre ${fmt(m.centre_hz)} Hz · ${a.gain_db > 0 ? "+" : ""}${fmt(a.gain_db)} dB${a.clips ? " · ÉCRÊTE" : ""}`;
   return play(a.file, 0);
 }
 const playId = (id, sig) => hear(id, sig ? Number(signalOf(sig).offset_db || 0) : 0);
@@ -207,6 +246,20 @@ function renderBody() {
             : x.id.split(" · ").pop(),
         el("span", { className: "dim", textContent: `${x.seconds.toFixed(2)} s` }));
       list.append(chip);
+      (x.takes ?? []).forEach((take, k) => {
+        const name = `${x.id.split(" · ").pop()}-take${k + 1}`;
+        const rid = `recipe · ${name}`;
+        const one = el("span", { className: "chip take" + (sig?.shortlist.includes(rid) ? " chosen" : "") },
+          el("button", { className: "play", textContent: "▶", onclick: () => hear(x.id, sig ? Number(sig.offset_db || 0) : 0, take) }),
+          `prise ${k + 1}`, el("span", { className: "dim", textContent: `${(take[1] - take[0]).toFixed(2)} s` }));
+        if (sig) one.append(el("button", { textContent: "+", title: "Ajouter la prise à la présélection : une recette qui la coupe",
+          onclick: () => {
+            S.doc.recipes ??= {};
+            S.doc.recipes[name] = { inputs: [x.id], effects: ["trim", take[0], Math.round((take[1] - take[0]) * 1000) / 1000] };
+            if (!sig.shortlist.includes(rid)) sig.shortlist.push(rid);
+            render(); } }));
+        list.append(one);
+      });
     }
     group.append(list);
     body.append(group);
@@ -238,8 +291,45 @@ $("save").onclick = async () => {
   $("status").textContent = r.ok ? "enregistré" : `refusé : ${r.status} ${r.statusText}`;
 };
 
+// Every theme side by side, as they play now (res/raw): a signal across the themes, or a theme's signals in one go.
+async function playFiles(files) {
+  for (const f of files) {
+    const a = play(f, 0);
+    await new Promise(done => { a.onended = done; a.onerror = done; });
+    await new Promise(done => setTimeout(done, 250));
+  }
+}
+function overview() {
+  $("title").textContent = "Les sons de tous les thèmes";
+  document.querySelector("p.lead").textContent = "Ce que chaque thème joue aujourd'hui (res/raw, refait par make) : une ligne enchaîne un signal dans tous les thèmes, une colonne les signaux d'un thème. Un thème se choisit par ?theme=<id>.";
+  document.querySelector(".bar").remove();
+  const themes = [...new Set(Object.values(S.cat.current).flatMap(o => Object.keys(o)))].sort();
+  const table = el("table", { className: "all" });
+  const head = el("tr", {}, el("th", { textContent: "" }));
+  for (const th of themes) head.append(el("th", {}, el("a", { href: `?theme=${th}`, textContent: th }), " ",
+    el("button", { textContent: "▶", title: "Les signaux du thème", onclick: () => playFiles(S.cat.signals.map(s => S.cat.current[s][th]).filter(Boolean)) })));
+  head.append(el("th", { textContent: "" }));
+  table.append(head);
+  for (const s of S.cat.signals) {
+    const row = el("tr", {}, el("th", { textContent: s }));
+    for (const th of themes) {
+      const f = S.cat.current[s][th];
+      row.append(el("td", {}, f ? el("button", { className: "play", textContent: "▶", onclick: () => play(f, 0) }) : "muet"));
+    }
+    row.append(el("td", {}, el("button", { textContent: "▶ tous", onclick: () => playFiles(themes.map(th => S.cat.current[s][th]).filter(Boolean)) })));
+    table.append(row);
+  }
+  $("body").replaceChildren(table);
+}
+
 (async () => {
-  if (!THEME) { $("body").textContent = "Ouvrir avec ?theme=<id>."; return; }
+  if (!THEME) {
+    const cat = await fetch(`${ROOT}tmp/sound-library/catalogue.json`, { cache: "no-store" });
+    if (!cat.ok) { $("body").textContent = "Pas de bibliothèque : lancer scripts/theme_sounds.py library."; return; }
+    S.cat = await cat.json();
+    overview();
+    return;
+  }
   $("title").textContent = `Sons du thème ${THEME}`;
   const cat = await fetch(`${ROOT}tmp/sound-library/catalogue.json`, { cache: "no-store" });
   if (!cat.ok) { $("body").textContent = "Pas de bibliothèque : lancer scripts/theme_sounds.py library."; return; }

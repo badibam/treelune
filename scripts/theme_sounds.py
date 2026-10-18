@@ -15,8 +15,9 @@ plays is committed: res/raw/<id>_<signal>.flac, and their credits in themes/<id>
 Commands:
     library      download every source (each archive checked against its sha256), render each
                  theme's recipes, and write the catalogue the bench plays
-                 (tmp/sound-library/catalogue.json), with the sound each theme plays now for
-                 each signal. A source already there is kept.
+                 (tmp/sound-library/catalogue.json): each sound with its takes when it records
+                 several gestures (find_takes), and the sound each theme plays now for each
+                 signal. A source already there is kept.
     make <id>    write the theme's FLAC files and its sounds.json from its choice: each sound
                  decoded, given the theme's finish when it has one (FINISH) and brought to its
                  level, measured, or else to the theme's raw gain; plus its signal's offset; its
@@ -208,6 +209,13 @@ def render(recipe, sounds, out):
     subprocess.run(["sox", *head, str(out), *map(str, recipe.get("effects", []))], check=True)
 
 
+def current():
+    """The sound each theme plays now for each signal, to compare on the bench."""
+    return {s: {p.name[:-len(f"_{s}.flac")]: p.relative_to(ROOT).as_posix()
+                for p in sorted(RAW.glob(f"*_{s}.flac")) if (THEMES / p.name[:-len(f"_{s}.flac")]).is_dir()}
+            for s in signals()}
+
+
 def task_library():
     LIBRARY.mkdir(parents=True, exist_ok=True)
     for source in sources().values():
@@ -220,19 +228,19 @@ def task_library():
     sounds = library_sounds()
     entries = []
     for id_, s in sounds.items():
-        entries.append({"id": id_, "source": s["source"], "family": s["family"],
-                        "file": s["file"].relative_to(ROOT).as_posix(), "seconds": duration(s["file"])})
+        entry = {"id": id_, "source": s["source"], "family": s["family"],
+                 "file": s["file"].relative_to(ROOT).as_posix(), "seconds": duration(s["file"])}
+        takes = find_takes(s["file"]) if entry["seconds"] > 2 * TAKE_GAP else []
+        if takes:
+            entry["takes"] = takes
+        entries.append(entry)
     for theme, choice in choices().items():
         for name, recipe in choice.get("recipes", {}).items():
             out = recipe_file(theme, name)
             render(recipe, sounds, out)
             entries.append({"id": f"{RECIPE}{SEP}{name}", "source": f"{theme} {RECIPE}", "family": f"{theme} {RECIPE}s",
                             "theme": theme, "file": out.relative_to(ROOT).as_posix(), "seconds": duration(out)})
-    # The sound each theme plays now for each signal, to compare on the bench.
-    current = {s: {p.name[:-len(f"_{s}.flac")]: p.relative_to(ROOT).as_posix()
-                   for p in sorted(RAW.glob(f"*_{s}.flac")) if (THEMES / p.name[:-len(f"_{s}.flac")]).is_dir()}
-               for s in signals()}
-    write_json(CATALOGUE, {"signals": signals(), "current": current, "sounds": entries})
+    write_json(CATALOGUE, {"signals": signals(), "current": current(), "sounds": entries})
     print(f"{len(entries)} sounds in {CATALOGUE.relative_to(ROOT)}")
     return 0
 
@@ -337,6 +345,49 @@ def measure(path):
             "peak_db": db(numpy.abs(x).max()), "centre_hz": round(centre)}
 
 
+TAKE_FRAME = 0.01
+# A take: where a recording rises above its floor, from its start to where it has died away.
+TAKE_RISE_DB = 15
+TAKE_GAP = 0.12
+TAKE_SHORTEST = 0.02
+TAKE_BEFORE = 0.01
+TAKES_AT_MOST = 60
+
+
+def find_takes(path):
+    """The takes of a recording of several gestures (a stapler slow then fast, five pages turned):
+    each span where it rises above its floor, joined to the next when the gap between them is
+    shorter than TAKE_GAP, a little room kept before. A proposal for the bench, not a verdict: the
+    ear keeps a take, which becomes a recipe that cuts it. None for a sound of one gesture."""
+    import numpy
+    x, rate = samples(path)
+    n = int(rate * TAKE_FRAME)
+    frames = len(x) // n
+    if frames < 3:
+        return []
+    rms = numpy.sqrt(numpy.mean(x[:frames * n].astype(numpy.float64).reshape(frames, n) ** 2, axis=1))
+    db = 20 * numpy.log10(numpy.maximum(rms, 1e-9))
+    floor = float(numpy.percentile(db, 10))
+    above = db > floor + TAKE_RISE_DB
+    spans, start = [], None
+    for i, on in enumerate(above):
+        if on and start is None:
+            start = i
+        elif not on and start is not None:
+            spans.append([start, i]); start = None
+    if start is not None:
+        spans.append([start, frames])
+    joined = []
+    for s in spans:
+        if joined and (s[0] - joined[-1][1]) * TAKE_FRAME < TAKE_GAP:
+            joined[-1][1] = s[1]
+        else:
+            joined.append(s)
+    takes = [[round(max(0, s * TAKE_FRAME - TAKE_BEFORE), 3), round(e * TAKE_FRAME, 3)]
+             for s, e in joined if (e - s) * TAKE_FRAME >= TAKE_SHORTEST]
+    return takes[:TAKES_AT_MOST] if len(takes) > 1 else []
+
+
 def level(measured, finish, offset_db):
     """The gain that brings a finished sound to the theme's level and its signal's offset;
     refused when its peak would clip."""
@@ -345,17 +396,25 @@ def level(measured, finish, offset_db):
 
 
 
-def hear(theme, choice, id_, offset_db, sounds):
-    """A sound as the bench plays it, with the finish of [choice] even unsaved: finished, brought
-    to its level and written in tmp/sound-library/finished/<theme>/hear/; its measures, the gain
-    its level asked and whether it clips. A ValueError for a finish refused or a sound unknown."""
+def hear(theme, choice, id_, offset_db, sounds, take=None):
+    """A sound as the bench plays it, with the finish of [choice] even unsaved, or one take of it
+    ([start, end] in seconds): finished, brought to its level and written in
+    tmp/sound-library/finished/<theme>/hear/; its measures, the gain its level asked and whether it
+    clips. A ValueError for a finish refused or a sound unknown."""
     finish = check_finish(choice)
     if finish is None:
         raise ValueError("no finish: the bench plays the raw sound at the theme's gain")
     source = sound_file(theme, choice, id_, sounds)
-    key = hashlib.sha256(json.dumps([id_, finish, offset_db], sort_keys=True).encode()).hexdigest()[:16]
+    recipe = choice.get("recipes", {}).get(id_[len(RECIPE + SEP):]) if id_.startswith(RECIPE + SEP) else None
+    key = hashlib.sha256(json.dumps([id_, recipe, take, finish, offset_db], sort_keys=True).encode()).hexdigest()[:16]
     folder = LIBRARY / "finished" / theme / "hear"
     done, out = folder / f"{key}.finished.wav", folder / f"{key}.wav"
+    if take is not None:
+        start, end = (float(v) for v in take)
+        cut = folder / f"{key}.take.wav"
+        folder.mkdir(parents=True, exist_ok=True)
+        subprocess.run(["sox", str(source), str(cut), "trim", f"{start:.3f}", f"{end - start:.3f}"], check=True)
+        source = cut
     render_finished(source, finish, done)
     measured = measure(done)
     gain, clips = level(measured, finish, offset_db)
@@ -458,6 +517,10 @@ def task_make(theme):
         if measured:
             print("    " + "  ".join(f"{k} {v}" for k, v in measure(target).items()))
     write_json(THEMES / theme / "sounds.json", document)
+    # The bench compares with what each theme plays now: the files just written among them.
+    catalogue = load(CATALOGUE)
+    catalogue["current"] = current()
+    write_json(CATALOGUE, catalogue)
     return 0
 
 

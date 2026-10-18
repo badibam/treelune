@@ -751,7 +751,8 @@ def serve_themes(page):
                     if not library:
                         library.update(theme_sounds.library_sounds())
                     out, info = theme_sounds.hear(theme, request["choice"], request["id"],
-                                                  float(request.get("offset_db", 0)), library)
+                                                  float(request.get("offset_db", 0)), library,
+                                                  request.get("take"))
             except (ValueError, KeyError) as error:
                 self.send_error(400, str(error))
                 return
