@@ -10,7 +10,8 @@
   badge, a coloured sheet, the night blue button), at the phone's sizes, in both modes. The
   colours are the mockup's, written here: the icons' shapes are judged on this bench, the
   palettes on palettes.html. "Toutes les icônes" draws all of Lucide at 24, to find those that
-  clog.
+  clog. The numbers are the theme's own (icons.json): "Enregistrer" writes them back through
+  `./run themes`, and PaperIcons.kt reads them.
 -->
 <style>
   :root { --kraft: #d6b688; --sheet: #f7efe0; --ink: #2a2118; --navy: #2f4466; --cream: #fff8ee; --shadow: rgba(60,35,10,.3);
@@ -21,6 +22,7 @@
   label { font-size: 13px; display: flex; gap: 6px; align-items: center; }
   label output { min-width: 2.5em; font-variant-numeric: tabular-nums; }
   button { font: inherit; font-size: 13px; padding: 4px 10px; }
+  #saved { font-size: 12.5px; color: #9a978f; } #saved.dirty { color: #5aa9ff; } #saved.bad { color: #ff7b7b; }
   .modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(600px, 1fr)); }
   .mode { padding: 16px; background: var(--kraft) repeating-linear-gradient(115deg, rgba(120,80,30,.08) 0 2px, transparent 2px 7px); color: var(--ink); }
   .mode.dark { background: var(--dkraft) repeating-linear-gradient(115deg, rgba(200,160,100,.06) 0 2px, transparent 2px 7px); color: var(--dink); }
@@ -43,6 +45,8 @@
   <label>Ombre <input id="shadow" type="range" min="0" max="2" step="0.1"><output></output></label>
   <label>Main qui tremble <input id="jitter" type="range" min="0" max="0.6" step="0.02"><output></output></label>
   <button id="all">Toutes les icônes (24 px)</button>
+  <button id="save">Enregistrer</button>
+  <span id="saved">—</span>
 </header>
 <p class="note">Chaque tracé de Lucide est parcouru point par point, puis recoupé en segments droits : un point gardé à chaque vrai coin de l'icône (plus tourné que « Angle d'un coin »), et entre deux, un tous les « Facette » sur la grille de 24. Le trait a l'« Épaisseur », ses bouts coupés droits, ses angles vifs, sur une ombre dure décalée de « Ombre ». Un point de Lucide (un trait plus court que son épaisseur) devient un petit carré de papier. Le thème fait de même sur le téléphone, avec les mêmes nombres. Les tailles sont en pixels de l'écran de l'ordinateur, une par dp.</p>
 <div class="modes">
@@ -135,10 +139,37 @@ $("all").addEventListener("click", async () => {
   $("all").textContent = "Toutes les icônes (24 px)";
 });
 
-// The sliders open on the theme's settings.
-for (const k of KNOBS) $(k).value = PaperScissors.SETTINGS[k];
-for (const el of document.querySelectorAll("header input")) el.addEventListener("input", render);
-load(NAMES).then(render);
+function setDirty(d) {
+  const el = $("saved");
+  el.className = d ? "dirty" : "";
+  el.textContent = d ? "modifié, non enregistré" : "enregistré";
+}
+
+// Written as the theme reads it, in the order of its sliders.
+async function save() {
+  try {
+    const r = await fetch("/icons/paper", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(params()) });
+    if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+    setDirty(false);
+  } catch (e) {
+    $("saved").className = "bad"; $("saved").textContent = "échec de l'enregistrement : " + e.message;
+  }
+}
+
+// The sliders open on the theme's numbers.
+async function main() {
+  const numbers = await PaperScissors.settings();
+  for (const k of KNOBS) {
+    if (typeof numbers[k] !== "number") throw new Error(`icons.json has no ${k}`);
+    $(k).value = numbers[k];
+  }
+  for (const el of document.querySelectorAll("header input")) el.addEventListener("input", () => { setDirty(true); render(); });
+  $("save").addEventListener("click", save);
+  window.addEventListener("beforeunload", (e) => { if ($("saved").className === "dirty") e.preventDefault(); });
+  await load(NAMES);
+  render(); setDirty(false);
+}
+main().catch((e) => { $("saved").className = "bad"; $("saved").textContent = e.message; throw e; });
 </script>
 </body>
 </html>

@@ -745,7 +745,8 @@ def serve_themes(page):
     The benches read the fonts, Lucide's icons, a theme's palettes.json and the sound library from
     the repository, which a page opened from the disk may not do, and save back through here the
     only files of the repository this server writes: a theme's palettes.json (POST
-    /palettes/<id>), its textures.json (POST /textures/<id>) and its sounds-choice.json (POST
+    /palettes/<id>), its textures.json (POST /textures/<id>), the numbers of its icons' drawing
+    (icons.json, POST /icons/<id>) and its sounds-choice.json (POST
     /sounds/<id>), for a theme whose folder exists; the tracks' page saves their notes (POST
     /tracks). The sound bench also has a sound finished as its unsaved choice says (POST
     /hear/<id>), written in the library under tmp/. Each file is
@@ -758,6 +759,10 @@ def serve_themes(page):
     def palettes(document):
         if not isinstance(document.get("palettes"), list):
             raise ValueError("no palettes list")
+
+    def icons(document):
+        if not document or not all(isinstance(v, (int, float)) for v in document.values()):
+            raise ValueError("not a set of numbers")
 
     def textures(document):
         if not isinstance(document.get("modes"), dict):
@@ -775,6 +780,7 @@ def serve_themes(page):
     SAVES = {
         "palettes": (lambda theme: PALETTES / theme / "palettes.json", palettes),
         "textures": (lambda theme: PALETTES / theme / "textures.json", textures),
+        "icons": (lambda theme: PALETTES / theme / "icons.json", icons),
         "sounds": (lambda theme: THEME_SOURCES / theme / "sounds-choice.json", sounds),
     }
 
@@ -792,7 +798,7 @@ def serve_themes(page):
             if self.path == "/tracks":
                 kind, target, valid = "tracks", THEME_TRACK_NOTES, tracks
             else:
-                match = re.fullmatch(r"/(palettes|textures|sounds)/([a-z][a-z0-9_]*)", self.path)
+                match = re.fullmatch(r"/(palettes|textures|icons|sounds)/([a-z][a-z0-9_]*)", self.path)
                 if not match or not (THEME_SOURCES / match.group(2)).is_dir():
                     self.send_error(404)
                     return

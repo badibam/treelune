@@ -7,11 +7,19 @@
   `facet` units. Each stroke is laid as a strip of the cut's width, its ends cut square and its
   joins sharp, on a hard shadow shifted down and right. A stroke shorter than its width (Lucide's
   dots, a ".01" long line held up by round caps) is a small square of paper instead.
-  PaperIcons.kt does the same with the same numbers.
+  PaperIcons.kt does the same with the same numbers, both reading them from the theme's
+  icons.json, which the icon bench saves.
 */
 window.PaperScissors = (() => {
-  /** The settings the bench opens on: the theme's, chosen here on 2026-10-18. */
-  const SETTINGS = { width: 2.6, facet: 2.1, corner: 29, shadow: 1.2, jitter: 0.36 };
+  /** Where the theme's numbers live, read and saved through `./run themes`. */
+  const SETTINGS_URL = "/app/src/main/resources/app/treelune/themes/paper/icons.json";
+
+  /** The theme's numbers: width, facet, corner, shadow, jitter. */
+  async function settings() {
+    const r = await fetch(SETTINGS_URL, { cache: "no-store" });
+    if (!r.ok) throw new Error(`icons.json: ${r.status}`);
+    return r.json();
+  }
   const STEP = 0.08;
 
   let measure = null;
@@ -97,7 +105,7 @@ window.PaperScissors = (() => {
   }
 
   /** Draw the icon on a canvas of cssSize px: its shadow, then the paper, in `colour`. */
-  function paint(canvas, drawing, cssSize, colour, shadowColour, p = SETTINGS, seed = 1) {
+  function paint(canvas, drawing, cssSize, colour, shadowColour, p, seed = 1) {
     const dpr = window.devicePixelRatio || 1;
     canvas.width = Math.round(cssSize * dpr); canvas.height = Math.round(cssSize * dpr);
     canvas.style.width = cssSize + "px"; canvas.style.height = cssSize + "px";
@@ -146,5 +154,5 @@ window.PaperScissors = (() => {
     return d + "Z";
   }
 
-  return { SETTINGS, lucideInner, strokes, cut, paint };
+  return { settings, lucideInner, strokes, cut, paint };
 })();
