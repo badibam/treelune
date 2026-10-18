@@ -10,9 +10,9 @@ RepoType: git
 Repo: https://github.com/badibam/treelune.git
 
 Builds:
-  - versionName: 0.6.0
-    versionCode: 28
-    commit: v0.6.0
+  - versionName: 0.8.0
+    versionCode: 30
+    commit: v0.8.0
     subdir: app
     sudo:
       - apt-get update
@@ -30,5 +30,5 @@ Builds:
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 0.6.0
-CurrentVersionCode: 28
+CurrentVersion: 0.8.0
+CurrentVersionCode: 30
