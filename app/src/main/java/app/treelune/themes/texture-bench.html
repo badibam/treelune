@@ -61,13 +61,13 @@
 <script>
 "use strict";
 const ROOT = "/app/src/main/resources/app/treelune/themes";
-const THEMES = { default: "Par défaut", cosy: "Cosy", retro: "Rétro", swiss: "Suisse", ink: "Encre et lavis", metro: "Métro" };
+const THEMES = { default: "Par défaut", cosy: "Cosy", retro: "Rétro", swiss: "Suisse", ink: "Encre et lavis", metro: "Métro", blueprint: "Plan d'architecte" };
 const NAMES = ["LINES", "DIAGONALS", "GRID", "ZIGZAG", "WAVES", "DOTS", "CROSSES", "STARS", "RINGS", "DIAMONDS", "CONFETTI", "CHECKER", "BRICKS", "SCALES", "ICON"];
 const TAGS = ["RED", "ORANGE", "YELLOW", "GREEN", "TEAL", "BLUE", "PURPLE", "PINK"];
 // Screen pixels a cell's unit takes here: a dp is about a CSS pixel; a retro drawing pixel, two
-const UNIT = { default: 1, cosy: 1, retro: 2, swiss: 1, ink: 1, metro: 1 };
+const UNIT = { default: 1, cosy: 1, retro: 2, swiss: 1, ink: 1, metro: 1, blueprint: 1 };
 // The ICON motif's icon and the room around it, in units, as each theme's textureStyle() gives them
-const ICON_CELL = { default: [12, 14], cosy: [14, 16], retro: [22, 10], swiss: [16, 16], ink: [16, 16], metro: [16, 16] };
+const ICON_CELL = { default: [12, 14], cosy: [14, 16], retro: [22, 10], swiss: [16, 16], ink: [16, 16], metro: [16, 16], blueprint: [16, 16] };
 // CosyPalette.TAG_HUES
 const COSY_TAG_HUES = { RED: 25, ORANGE: 55, YELLOW: 95, GREEN: 145, TEAL: 185, BLUE: 230, PURPLE: 300, PINK: 355 };
 const S = { theme: "default", mode: "LIGHT", surface: "TILE", tag: "BLUE", docs: {}, cells: {}, surfaces: {}, dirty: false };
@@ -102,10 +102,11 @@ async function loadSurfaces() {
   const swiss = (await (await fetch(`${ROOT}/swiss/palettes.json`, { cache: "no-store" })).json()).palettes;
   const ink = (await (await fetch(`${ROOT}/ink/palettes.json`, { cache: "no-store" })).json()).palettes;
   const metro = (await (await fetch(`${ROOT}/metro/palettes.json`, { cache: "no-store" })).json()).palettes;
+  const blueprint = (await (await fetch(`${ROOT}/blueprint/palettes.json`, { cache: "no-store" })).json()).palettes;
   const colors = await (await fetch("default/bench/colors.html", { cache: "no-store" })).text();
   const grab = (name) => new Function(`return ${colors.match(new RegExp(`const ${name} = (\\{[\\s\\S]*?\\n\\});`))[1]}`)();
   const LIGHT = grab("LIGHT"), DARK = grab("DARK"), ITEM_ICONS = grab("ITEM_ICONS");
-  const out = { default: {}, cosy: {}, retro: {}, swiss: {}, ink: {}, metro: {} };
+  const out = { default: {}, cosy: {}, retro: {}, swiss: {}, ink: {}, metro: {}, blueprint: {} };
   // Each theme's TILE (a tile's surface), PAGE (the screen's ground, as PageGround lays it), CARD
   // (an entry's card on the page) and the INK of the texts on both.
   // The default theme: a tile on the surface, the page on the surface FullScreen paints, a card
@@ -153,6 +154,14 @@ async function loadSurfaces() {
     for (const t of TAGS) tags[t] = lchHex([n.line_lightness, n.line_chroma, COSY_TAG_HUES[t]]);
     const panel = lchHex([n.panel_lightness, n.panel_chroma, n.navy_hue]);
     out.metro[p.mode] = { TILE: panel, PAGE: lchHex([n.ground_lightness, n.ground_chroma, n.navy_hue]), CARD: panel, INK: lchHex([n.ink_lightness, n.ink_chroma, n.navy_hue]), tags };
+  }
+  // The blueprint: a tile, the page and a card all on the paper (BlueprintColors.paper, ink); a
+  // motif in the ink, whatever the pencil
+  for (const p of blueprint) {
+    const n = p.numbers, tags = {};
+    for (const t of TAGS) tags[t] = lchHex([n.crayon_lightness, n.crayon_chroma, COSY_TAG_HUES[t]]);
+    const paper = lchHex([n.paper_lightness, n.paper_chroma, n.paper_hue]);
+    out.blueprint[p.mode] = { TILE: paper, PAGE: paper, CARD: paper, INK: lchHex([n.ink_lightness, n.ink_chroma, n.blue_hue]), tags };
   }
   S.surfaces = out;
 }

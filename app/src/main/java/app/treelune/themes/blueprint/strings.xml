@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="name">Blueprint</string>
+    <!-- What the theme looks like, said to the user: the README -->
+    <string name="tagline">Like an architect's blueprint: fine lines on grid paper, dimensions and hatching</string>
+    <!-- The scale's cell beside a page's title, as on a plan's title block -->
+    <string name="scale">1:1</string>
+</resources>

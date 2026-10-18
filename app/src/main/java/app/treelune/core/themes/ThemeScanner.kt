@@ -1,5 +1,6 @@
 package app.treelune.core.themes
 
+import app.treelune.themes.blueprint.BlueprintTheme
 import app.treelune.themes.cosy.CosyTheme
 import app.treelune.themes.default.DefaultTheme
 import app.treelune.themes.ink.InkTheme
@@ -32,6 +33,7 @@ object ThemeScanner {
             "swiss" to SwissTheme,
             "ink" to InkTheme,
             "metro" to MetroTheme,
+            "blueprint" to BlueprintTheme,
         )
     }
     

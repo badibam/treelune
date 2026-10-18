@@ -66,6 +66,7 @@ You lay out each zone's tiles as you like, choose each tool's icon and colour, a
 - **Swiss** — Like a Swiss poster: a strict grid, black and white and a single red, the numbers large
 - **Ink and wash** — Like an ink wash painting: cream paper, black ink and a single seal red, plenty of empty space
 - **Metro** — Like metro signage: each tool a line in its colour, each zone a station
+- **Blueprint** — Like an architect's blueprint: fine lines on grid paper, dimensions and hatching
 <!-- /themes -->
 
 ## Getting started
