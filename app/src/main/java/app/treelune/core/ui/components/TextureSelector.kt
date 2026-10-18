@@ -48,6 +48,7 @@ private fun ThingTile(iconName: String, color: TagColor?, texture: Texture?, sid
         CurrentTheme.current.ToolCardContainer(
             displayMode = DisplayMode.ICON,
             texture = texture?.let { ItemTexture(it, shown, color) },
+            color = color,
             onClick = onClick,
             onLongClick = { }
         ) {

@@ -383,6 +383,8 @@ interface ThemeContract {
     @Composable
     fun ZoneCardContainer(
         texture: ItemTexture?,
+        /** The colour of the zone's icon (docs/design/icon-colors.md), null for a neutral one: a theme may draw the tile in it. */
+        color: TagColor?,
         onClick: () -> Unit,
         onLongClick: () -> Unit,
         content: @Composable () -> Unit
@@ -418,6 +420,8 @@ interface ThemeContract {
     fun ToolCardContainer(
         displayMode: DisplayMode,
         texture: ItemTexture?,
+        /** The colour of the tool's icon (docs/design/icon-colors.md), null for a neutral one: a theme may draw the tile in it. */
+        color: TagColor?,
         onClick: () -> Unit,
         onLongClick: () -> Unit,
         content: @Composable () -> Unit
