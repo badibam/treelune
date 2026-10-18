@@ -1138,6 +1138,7 @@ object DefaultTheme : ThemeContract {
     override fun ZoneCardContainer(
         texture: app.treelune.core.themes.ItemTexture?,
         color: app.treelune.core.themes.TagColor?,
+        seed: String,
         onClick: () -> Unit,
         onLongClick: () -> Unit,
         content: @Composable () -> Unit
@@ -1198,6 +1199,7 @@ object DefaultTheme : ThemeContract {
         displayMode: DisplayMode,
         texture: app.treelune.core.themes.ItemTexture?,
         color: app.treelune.core.themes.TagColor?,
+        seed: String,
         onClick: () -> Unit,
         onLongClick: () -> Unit,
         content: @Composable () -> Unit

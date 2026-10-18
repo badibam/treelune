@@ -10,7 +10,7 @@ import org.junit.Test
  */
 class TextureTonesTest {
 
-    private val themes = listOf("default", "cosy", "retro", "swiss", "ink", "metro")
+    private val themes = listOf("default", "cosy", "retro", "swiss", "ink", "metro", "paper")
 
     @Test
     fun everyTheme_hasEveryTone() {

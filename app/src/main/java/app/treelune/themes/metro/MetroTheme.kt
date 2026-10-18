@@ -753,7 +753,7 @@ object MetroTheme : ThemeContract {
 
     /** A zone is a line too, on the home screen: the tool's tile. */
     @Composable
-    override fun ZoneCardContainer(texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
+    override fun ZoneCardContainer(texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
         Tile(DisplayMode.CONDENSED, texture, color, onClick, onLongClick, content)
 
     /** A round of the red ringed with the panel, an exclamation mark in heavy white. */
@@ -801,7 +801,7 @@ object MetroTheme : ThemeContract {
     }
 
     @Composable
-    override fun ToolCardContainer(displayMode: DisplayMode, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
+    override fun ToolCardContainer(displayMode: DisplayMode, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
         Tile(displayMode, texture, color, onClick, onLongClick, content)
 
     /**

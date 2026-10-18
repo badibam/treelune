@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="name">Papier découpé</string>
+    <!-- What the theme looks like, said to the user: the README -->
+    <string name="tagline">Des feuilles de couleur découpées aux ciseaux, posées de travers sur du kraft</string>
+</resources>

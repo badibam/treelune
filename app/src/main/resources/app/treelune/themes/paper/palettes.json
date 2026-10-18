@@ -1,0 +1,64 @@
+{
+  "palettes": [
+    {
+      "id": "paper_light",
+      "mode": "LIGHT",
+      "numbers": {
+        "kraft_hue": 76,
+        "accent_hue": 33,
+        "navy_hue": 260,
+        "kraft_lightness": 0.793,
+        "kraft_chroma": 0.071,
+        "sheet_lightness": 0.954,
+        "sheet_chroma": 0.022,
+        "white_lightness": 0.992,
+        "ink_lightness": 0.255,
+        "ink_chroma": 0.021,
+        "dim_lightness": 0.39,
+        "dim_chroma": 0.03,
+        "rule_lightness": 0.49,
+        "rule_chroma": 0.089,
+        "shadow_lightness": 0.3,
+        "shadow_alpha": 0.3,
+        "accent_lightness": 0.664,
+        "accent_chroma": 0.162,
+        "navy_lightness": 0.385,
+        "navy_chroma": 0.064,
+        "colour_lightness": 0.76,
+        "colour_chroma": 0.1,
+        "status_lightness": 0.5,
+        "status_chroma": 0.14
+      }
+    },
+    {
+      "id": "paper_dark",
+      "mode": "DARK",
+      "numbers": {
+        "kraft_hue": 76,
+        "accent_hue": 33,
+        "navy_hue": 260,
+        "kraft_lightness": 0.22,
+        "kraft_chroma": 0.03,
+        "sheet_lightness": 0.3,
+        "sheet_chroma": 0.012,
+        "white_lightness": 0.34,
+        "ink_lightness": 0.94,
+        "ink_chroma": 0.02,
+        "dim_lightness": 0.76,
+        "dim_chroma": 0.025,
+        "rule_lightness": 0.6,
+        "rule_chroma": 0.07,
+        "shadow_lightness": 0.08,
+        "shadow_alpha": 0.6,
+        "accent_lightness": 0.66,
+        "accent_chroma": 0.15,
+        "navy_lightness": 0.42,
+        "navy_chroma": 0.07,
+        "colour_lightness": 0.5,
+        "colour_chroma": 0.09,
+        "status_lightness": 0.75,
+        "status_chroma": 0.13
+      }
+    }
+  ]
+}

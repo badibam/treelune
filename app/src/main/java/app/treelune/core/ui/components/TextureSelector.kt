@@ -49,6 +49,7 @@ private fun ThingTile(iconName: String, color: TagColor?, texture: Texture?, sid
             displayMode = DisplayMode.ICON,
             texture = texture?.let { ItemTexture(it, shown, color) },
             color = color,
+            seed = iconName,
             onClick = onClick,
             onLongClick = { }
         ) {

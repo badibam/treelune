@@ -710,7 +710,7 @@ object CosyTheme : ThemeContract {
     }
 
     @Composable
-    override fun ZoneCardContainer(texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
+    override fun ZoneCardContainer(texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
         Tile(DisplayMode.CONDENSED, texture, onClick, onLongClick, content)
 
     /** An orange bubble with an exclamation mark, on its own small shadow. */
@@ -767,7 +767,7 @@ object CosyTheme : ThemeContract {
     }
 
     @Composable
-    override fun ToolCardContainer(displayMode: DisplayMode, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
+    override fun ToolCardContainer(displayMode: DisplayMode, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
         Tile(displayMode, texture, onClick, onLongClick, content)
 
     /** A tile filling the cells the grid gives it, on its shadow, its motif on its face; its content padded in. */

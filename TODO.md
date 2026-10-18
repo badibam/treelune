@@ -68,6 +68,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - Les fournisseurs créés par l'utilisateur (`docs/design/ai-providers.md`, branche ai-providers) : la section du même nom de la recette, la migration 80 sur la release et ses données d'abord ; passé, élaguer la spec.
 - Les écrans du chat, des identités et des fournisseurs, et les marges qui ne suivent plus le cran de taille (2026-10-17, sur develop) : la section du même nom de la recette.
 - Le thème métro (`docs/design/metro-theme.md`, branche theme-metro) : la passe sur le téléphone de `docs/THEMES.md`, puis ce que la spec garde dans « Ce qui reste ouvert ».
+- Le thème papier découpé (`docs/design/paper-theme.md`, branche theme-cut-paper) : la passe sur le téléphone de `docs/THEMES.md`, les icônes découpées d'abord (leur coût, celles qui se bouchent), puis ce que la spec garde dans « Ce qui reste ouvert ».
 
 ## Conçu, à coder
 
@@ -95,7 +96,6 @@ Une idée sans spec : elle demande une décision avant du code.
 
 ### Interface
 
-- Le thème Papier découpé (le suivant du classement de `docs/theme-tracks.json`, Suisse, Encre et lavis et Signalétique de métro faits) : la recette de `docs/THEMES.md`, de l'étape 0.
 - Lucide redessiné à leur manière pour le cosy et le suisse, comme le pinceau d'Encre et lavis (`docs/design/ink-theme.md`, ligne 9), un trait à chacun : une fois la brique du cœur qui lit les tracés d'une icône codée et tenue sur le téléphone avec Encre.
 
 ### Events du cœur
