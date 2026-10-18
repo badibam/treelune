@@ -672,9 +672,11 @@ def serve_themes(page):
 
     The benches read the fonts, Lucide's icons, a theme's palettes.json and the sound library from
     the repository, which a page opened from the disk may not do, and save back through here the
-    only files this server writes: a theme's palettes.json (POST /palettes/<id>), its
-    textures.json (POST /textures/<id>) and its sounds-choice.json (POST /sounds/<id>), for a
-    theme whose folder exists; the tracks' page saves their notes (POST /tracks). Each file is
+    only files of the repository this server writes: a theme's palettes.json (POST
+    /palettes/<id>), its textures.json (POST /textures/<id>) and its sounds-choice.json (POST
+    /sounds/<id>), for a theme whose folder exists; the tracks' page saves their notes (POST
+    /tracks). The sound bench also has a sound finished as its unsaved choice says (POST
+    /hear/<id>), written in the library under tmp/. Each file is
     replaced whole so that a save cut short leaves the old one.
     """
     import http.server
@@ -711,6 +713,10 @@ def serve_themes(page):
         def do_POST(self):
             # Read whole first: a request answered before its body is read leaves the client writing into a closed socket.
             body = self.rfile.read(int(self.headers.get("Content-Length", 0))).decode("utf-8")
+            hear = re.fullmatch(r"/hear/([a-z][a-z0-9_]*)", self.path)
+            if hear:
+                self.hear(hear.group(1), body)
+                return
             if self.path == "/tracks":
                 kind, target, valid = "tracks", THEME_TRACK_NOTES, tracks
             else:
@@ -735,8 +741,37 @@ def serve_themes(page):
             self.send_response(204)
             self.end_headers()
 
+        def hear(self, theme, body):
+            """A sound finished as the sound bench's unsaved choice says, written in the library
+            and named in the answer with its measures, the page playing it from there; writes
+            nothing the repository keeps."""
+            try:
+                request = json.loads(body)
+                with library_lock:
+                    if not library:
+                        library.update(theme_sounds.library_sounds())
+                    out, info = theme_sounds.hear(theme, request["choice"], request["id"],
+                                                  float(request.get("offset_db", 0)), library)
+            except (ValueError, KeyError) as error:
+                self.send_error(400, str(error))
+                return
+            answer = json.dumps({"file": out.relative_to(ROOT).as_posix(), **info}).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(answer)))
+            self.end_headers()
+            self.wfile.write(answer)
+
         def log_message(self, format, *args):
             pass
+
+    # The sound bench's finish (POST /hear/<id>) is scripts/theme_sounds.py's, never a copy.
+    import importlib.util
+    import threading
+    spec = importlib.util.spec_from_file_location("theme_sounds", ROOT / "scripts" / "theme_sounds.py")
+    theme_sounds = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(theme_sounds)
+    library, library_lock = {}, threading.Lock()
 
     server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Bench)
     url = f"http://127.0.0.1:{server.server_port}/{page.relative_to(ROOT)}"

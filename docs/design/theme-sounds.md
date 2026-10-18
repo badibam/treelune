@@ -69,16 +69,12 @@ Deux sons sonnent de la même famille par leur prise : la pièce et sa réverbé
 - **Arcade néon** : le plus fort et le plus brillant de tous ; la pièce glissée (confirmer), un arpège qui monte (entrer), un laser (ouvrir). Où chercher : Digital Audio (`laser`, `powerUp`), Music Jingles pour un bout d'arpège.
 - **Cartes à jouer** : la carte posée (confirmer, cocher), glissée (entrer, revenir), le paquet battu (ouvrir), le jeton qu'on empile (cran). Casino Audio de Kenney ; les jetons ont aussi BigSoundBank (n° 942 à 945), qui reste hors du thème.
 
-## Les sources à ajouter
+## Les sources
 
-- **Kenney, Casino Audio et Sci-fi Sounds** (CC0) : de la même forme d'archive que les six déjà listées, `sound-sources.json` les prend sans rien apprendre de neuf. La page des sons de Kenney (vue le 2026-10-18) n'en a pas d'autres, hors voix.
-- **Une banque d'instruments** (VSCO 2 CE, CC0, dont la Séance tire déjà son marimba) : pour le métro ; ce qu'elle contient au-delà du marimba est à vérifier.
-- **BigSoundBank** (bigsoundbank.com, CC0, un seul preneur de son, des enregistrements en studio) : 3 573 sons, déjà catalogués et téléchargés par le projet voisin Saylune (`bench/bsb_catalogue.py`, `bench/bsb_audio.py`). Ce sont des enregistrements de plusieurs gestes (une agrafeuse lente puis rapide), dont une recette coupe la prise voulue. Elle couvre le suisse, le carnet, le papier découpé, le terminal, les instruments et la risographie, et donne au Mac 1-bit ses objets à dégrader.
-- **Freesound, filtré sur CC0 et CC BY 4.0** : les trous seuls, le pinceau et le sceau de l'encre, la règle du plan d'architecte, les relais des instruments, un second ciseau. Le script ne sait pas encore la lire : un son par page, son téléchargement en qualité d'origine demandant un compte.
-- **Les recettes `synth`** : terminal, JRPG, métro, e-ink, et la dégradation du Mac 1-bit.
+Ajoutées le 2026-10-18 (`sound-sources.json`) : Casino Audio et Sci-fi Sounds de Kenney ; 84 enregistrements de BigSoundBank, choisis par mots-clés dans le catalogue de Saylune, en dehors des voix ; 26 sons de Freesound pour les trous (pinceau, sceau, règle, relais, ciseaux), pris par leur extrait Ogg public, à remplacer par l'original, téléchargé à la main, si l'un d'eux sonne abîmé sur le téléphone. Un son qui manque à un thème s'ajoute à la liste de sa source. Le métro attend une recette `synth` en sinus, et une banque d'instruments si elle ne suffit pas.
 
 ## Ce qui reste ouvert
 
 - L'e-ink : quels signaux il garde.
-- Freesound : comment le script en prend un son (compte, clé d'API, ou téléchargement à la main avec sa somme sha256).
 - La planche d'écoute : une vue qui fait entendre un même signal dans tous les thèmes d'un trait.
+- Couper une prise dans un enregistrement de plusieurs gestes, les coupes proposées d'après les gestes qui sortent du silence (comme `bsb_events.py` de Saylune), la prise choisie écrite en recette.

@@ -18,7 +18,9 @@ Commands:
                  (tmp/sound-library/catalogue.json), with the sound each theme plays now for
                  each signal. A source already there is kept.
     make <id>    write the theme's FLAC files and its sounds.json from its choice: each sound
-                 decoded, brought to the theme's gain plus its signal's offset, written on 16 bits
+                 decoded, given the theme's finish when it has one (FINISH) and brought to its
+                 level, measured, or else to the theme's raw gain; plus its signal's offset; its
+                 measures printed beside it; written on 16 bits
                  at its own rate and in its own channels, which is what the phone's decoder hands
                  back. A signal without a choice has no file: the theme leaves it silent.
     check        without the library: for each theme with a choice, its sounds.json is the one
@@ -236,6 +238,131 @@ def task_library():
 
 
 # ----------------------------------------------------------------------------------------------
+# A theme's finish
+# ----------------------------------------------------------------------------------------------
+
+# What a finish may hold, each step named and applied only when there: what holds a theme's
+# sounds together whatever their source (docs/design/theme-sounds.md).
+FINISH = {
+    "mono": "one channel",
+    "rate": "the sampling rate, in Hz",
+    "highpass_hz": "the bass cut below it: the room, the handling",
+    "trim_head_db": "the silence before the sound cut, under this level in dB",
+    "bass_db": "the bass raised or lowered",
+    "treble_db": "the treble raised or lowered",
+    "reverb": "a small room: reverberance, room_scale and wet_db, as sox's reverb",
+    "max_ms": "the longest a sound lasts, its end faded",
+    "fade_ms": "the fade at the end",
+    "loudness_db": "the level each sound is brought to: its loudest 50 ms, in dB RMS",
+}
+# The loudest a sample may be once brought to its level: above, the sound clips.
+CEILING_DB = -0.5
+WINDOW = 0.05
+
+
+def check_finish(choice):
+    """A theme's finish, or None; a ValueError when it names a step there is not, or keeps the raw
+    gain beside the level it brings each sound to."""
+    finish = choice.get("finish")
+    if finish is None:
+        return None
+    unknown = set(finish) - set(FINISH)
+    if unknown:
+        raise ValueError(f"unknown finish steps {sorted(unknown)} (known: {', '.join(FINISH)})")
+    if "loudness_db" not in finish:
+        raise ValueError("a finish brings every sound to one level, loudness_db")
+    if "gain_db" in choice:
+        raise ValueError("gain_db applies to the raw sound, loudness_db to the finished one: keep one")
+    if "fade_ms" in finish and "max_ms" not in finish:
+        raise ValueError("fade_ms fades the end that max_ms sets")
+    return finish
+
+
+def finish_effects(finish):
+    """The sox effects of a finish, in the order they apply; the level comes after, measured."""
+    effects = []
+    if finish.get("mono"):
+        effects += ["remix", "-"]
+    if "rate" in finish:
+        effects += ["rate", "-v", finish["rate"]]
+    if "highpass_hz" in finish:
+        effects += ["highpass", finish["highpass_hz"]]
+    if "trim_head_db" in finish:
+        effects += ["silence", "1", "0.002", f"{finish['trim_head_db']}d"]
+    if "bass_db" in finish:
+        effects += ["bass", finish["bass_db"]]
+    if "treble_db" in finish:
+        effects += ["treble", finish["treble_db"]]
+    if "reverb" in finish:
+        r = finish["reverb"]
+        # Room for the tail, cut again by max_ms when there is one.
+        effects += ["pad", "0", "0.4", "reverb", r["reverberance"], "50", r["room_scale"], "100", "0", r["wet_db"]]
+    if "max_ms" in finish:
+        effects += ["trim", "0", finish["max_ms"] / 1000]
+        if finish.get("fade_ms"):
+            # Faded in backwards: the end of a sound of any length, never padded to max_ms.
+            effects += ["reverse", "fade", "q", finish["fade_ms"] / 1000, "reverse"]
+    # Room above, so that a step raising the sound never clips before the level is set.
+    return ["gain", "-12", *effects]
+
+
+def render_finished(source, finish, out):
+    out.parent.mkdir(parents=True, exist_ok=True)
+    subprocess.run(["sox", "-G", str(source), "-b", "32", "-e", "floating-point", str(out),
+                    *map(str, finish_effects(finish))], check=True)
+
+
+def samples(path):
+    """The sound's samples, its channels mixed, as floats; and its rate."""
+    import numpy
+    rate = int(float(subprocess.run(["soxi", "-r", str(path)], capture_output=True, text=True, check=True).stdout))
+    raw = subprocess.run(["sox", str(path), "-t", "f32", "-c", "1", "-"], capture_output=True, check=True).stdout
+    return numpy.frombuffer(raw, dtype=numpy.float32), rate
+
+
+def measure(path):
+    """What tells a sound from its neighbours: its length, its loudest and quietest 50 ms (the
+    second its noise floor), its peak, and its colour, the centre of its spectrum in Hz. A
+    measure, not a verdict: the ear decides."""
+    import numpy
+    x, rate = samples(path)
+    n = max(1, int(rate * WINDOW))
+    windows = [x[i:i + n] for i in range(0, max(1, len(x) - n + 1), n)] or [x]
+    rms = numpy.array([numpy.sqrt(numpy.mean(w.astype(numpy.float64) ** 2)) for w in windows])
+    db = lambda v: round(20 * float(numpy.log10(max(float(v), 1e-9))), 1)
+    spectrum = numpy.abs(numpy.fft.rfft(x.astype(numpy.float64)))
+    freqs = numpy.fft.rfftfreq(len(x), 1 / rate)
+    centre = float((spectrum * freqs).sum() / spectrum.sum()) if spectrum.sum() else 0.0
+    return {"seconds": round(len(x) / rate, 3), "loud_db": db(rms.max()), "floor_db": db(rms.min()),
+            "peak_db": db(numpy.abs(x).max()), "centre_hz": round(centre)}
+
+
+def level(measured, finish, offset_db):
+    """The gain that brings a finished sound to the theme's level and its signal's offset;
+    refused when its peak would clip."""
+    gain = float(finish["loudness_db"]) + float(offset_db) - measured["loud_db"]
+    return round(gain, 2), measured["peak_db"] + gain > CEILING_DB
+
+
+
+def hear(theme, choice, id_, offset_db, sounds):
+    """A sound as the bench plays it, with the finish of [choice] even unsaved: finished, brought
+    to its level and written in tmp/sound-library/finished/<theme>/hear/; its measures, the gain
+    its level asked and whether it clips. A ValueError for a finish refused or a sound unknown."""
+    finish = check_finish(choice)
+    if finish is None:
+        raise ValueError("no finish: the bench plays the raw sound at the theme's gain")
+    source = sound_file(theme, choice, id_, sounds)
+    key = hashlib.sha256(json.dumps([id_, finish, offset_db], sort_keys=True).encode()).hexdigest()[:16]
+    folder = LIBRARY / "finished" / theme / "hear"
+    done, out = folder / f"{key}.finished.wav", folder / f"{key}.wav"
+    render_finished(source, finish, done)
+    measured = measure(done)
+    gain, clips = level(measured, finish, offset_db)
+    subprocess.run(["sox", str(done), str(out), "gain", str(gain)], check=True, capture_output=True)
+    return out, {"measured": measured, "gain_db": gain, "clips": clips}
+
+# ----------------------------------------------------------------------------------------------
 # A theme's files
 # ----------------------------------------------------------------------------------------------
 
@@ -272,6 +399,20 @@ def credits(theme, choice):
     }
 
 
+def sound_file(theme, choice, id_, sounds):
+    """The file a sound id plays: a sound of the library, or the theme's recipe, rendered again."""
+    if id_.startswith(RECIPE + SEP):
+        name = id_[len(RECIPE + SEP):]
+        if name not in choice.get("recipes", {}):
+            raise ValueError(f"{id_!r}: no such recipe in the choice")
+        source = recipe_file(theme, name)
+        render(choice["recipes"][name], sounds, source)
+        return source
+    if id_ not in sounds:
+        raise ValueError(f"{id_!r} is not in the library")
+    return sounds[id_]["file"]
+
+
 def task_make(theme):
     path = THEMES / theme / "sounds-choice.json"
     if not path.is_file():
@@ -280,6 +421,10 @@ def task_make(theme):
     if not CATALOGUE.is_file():
         sys.exit("no library: run scripts/theme_sounds.py library first")
     sounds = library_sounds()
+    try:
+        finish = check_finish(choice)
+    except ValueError as error:
+        sys.exit(f"{theme}: {error}")
     gain = float(choice.get("gain_db", 0))
     document = credits(theme, choice)  # refuses an unknown source or a licence before writing
     for signal in signals():
@@ -289,19 +434,29 @@ def task_make(theme):
         if not id_:
             target.unlink(missing_ok=True)
             continue
-        if id_.startswith(RECIPE + SEP):
-            source = recipe_file(theme, id_[len(RECIPE + SEP):])
-            render(choice["recipes"][id_[len(RECIPE + SEP):]], sounds, source)
-        elif id_ in sounds:
-            source = sounds[id_]["file"]
+        try:
+            source = sound_file(theme, choice, id_, sounds)
+        except ValueError as error:
+            sys.exit(f"{signal}: {error}")
+        offset = float(entry.get("offset_db", 0))
+        if finish is None:
+            level_db, measured = gain + offset, None
         else:
-            sys.exit(f"{signal}: {id_!r} is not in the library")
-        level = gain + float(entry.get("offset_db", 0))
+            # Finished first, then brought to the theme's level as measured on the finished sound.
+            done = LIBRARY / "finished" / theme / f"{signal}.wav"
+            render_finished(source, finish, done)
+            measured = measure(done)
+            level_db, clips = level(measured, finish, offset)
+            if clips:
+                sys.exit(f"{signal}: {id_} would clip at {finish['loudness_db'] + offset:g} dB (peak {measured['peak_db']} dB, loudest 50 ms {measured['loud_db']} dB)")
+            source = done
         part = target.with_name(target.stem + ".part.flac")
-        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(source), "-af", f"volume={level:g}dB",
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(source), "-af", f"volume={level_db:g}dB",
                         "-c:a", "flac", "-sample_fmt", "s16", str(part)], check=True)
         os.replace(part, target)
-        print(f"{target.relative_to(ROOT)}  {id_}  {level:g} dB")
+        print(f"{target.relative_to(ROOT)}  {id_}  {level_db:g} dB")
+        if measured:
+            print("    " + "  ".join(f"{k} {v}" for k, v in measure(target).items()))
     write_json(THEMES / theme / "sounds.json", document)
     return 0
 
