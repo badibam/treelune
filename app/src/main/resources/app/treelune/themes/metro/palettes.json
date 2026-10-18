@@ -1,0 +1,60 @@
+{
+  "palettes": [
+    {
+      "id": "metro_light",
+      "mode": "LIGHT",
+      "numbers": {
+        "navy_hue": 262,
+        "accent_hue": 29,
+        "ground_lightness": 0.973,
+        "ground_chroma": 0.003,
+        "panel_lightness": 1.0,
+        "panel_chroma": 0.0,
+        "band_lightness": 0.264,
+        "band_chroma": 0.068,
+        "fill_lightness": 0.264,
+        "fill_chroma": 0.068,
+        "ink_lightness": 0.252,
+        "ink_chroma": 0.056,
+        "dim_lightness": 0.493,
+        "dim_chroma": 0.025,
+        "track_lightness": 0.893,
+        "accent_lightness": 0.55,
+        "accent_chroma": 0.223,
+        "danger_lightness": 0.52,
+        "line_lightness": 0.64,
+        "line_chroma": 0.16,
+        "status_lightness": 0.52,
+        "status_chroma": 0.15
+      }
+    },
+    {
+      "id": "metro_dark",
+      "mode": "DARK",
+      "numbers": {
+        "navy_hue": 262,
+        "accent_hue": 29,
+        "ground_lightness": 0.17,
+        "ground_chroma": 0.03,
+        "panel_lightness": 0.235,
+        "panel_chroma": 0.035,
+        "band_lightness": 0.13,
+        "band_chroma": 0.04,
+        "fill_lightness": 0.45,
+        "fill_chroma": 0.1,
+        "ink_lightness": 0.955,
+        "ink_chroma": 0.005,
+        "dim_lightness": 0.76,
+        "dim_chroma": 0.02,
+        "track_lightness": 0.34,
+        "accent_lightness": 0.55,
+        "accent_chroma": 0.2,
+        "danger_lightness": 0.7,
+        "line_lightness": 0.7,
+        "line_chroma": 0.15,
+        "status_lightness": 0.74,
+        "status_chroma": 0.14
+      }
+    }
+  ]
+}
