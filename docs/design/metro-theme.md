@@ -43,6 +43,20 @@ Toutes les lignes du 2026-10-18, dans l'ordre de la liste de `docs/THEMES.md`.
 
 `ToolCardContainer` et `ZoneCardContainer` ne reçoivent la couleur de l'icône que dans leur texture (`ItemTexture.color`), donc seulement quand une texture est posée ; sans elle, le trait de couleur du registre est impossible. Décidé le 2026-10-18 : un paramètre `color: TagColor?` à ces deux pièces, que le cœur a déjà sous la main (`UI.ToolCard`). Pour chaque thème existant : le défaut, le rétro, le cosy, le suisse et l'encre l'ignorent, leur tuile restant telle qu'elle est.
 
+## Ce qui est codé
+
+`themes/metro/` : la palette (`MetroPalette`, ses nombres dans `palettes.json`, réglés au banc `./run themes`, « Métro · palettes », vu et approuvé le 2026-10-18), les tailles et la police par cran (`MetroSize`), les panneaux, l'élément pressé, l'apparition et l'élément soulevé (`MetroPieces`), les graphiques (`MetroDrawing`), chaque composant du contrat (`MetroTheme`), les cellules des textures (`textures/`). `MetroPaletteTest` tient les contrastes des deux palettes à chaque décalage de 15°. Choisi dans Réglages › Interface, sous le nom « Métro ».
+
+Ce que le code a précisé des décisions :
+- La ligne du titre de groupe passe sous le titre, partant du milieu de l'arrêt, et non après lui : la tête de section porte aussi les boutons du groupe (`ZoneScreen`, `MainScreen`), qui prennent la place à droite du titre.
+- Une tuile sans couleur d'icône a sa ligne grise, mais ce qui est dessiné dedans (jauge, case, graphique) reste au bleu nuit : un gris ne dirait rien de plus.
+- Une fenêtre se ferme d'un coup, sans le fondu de 100 ms : c'est son appelant qui la retire, et le thème ne la voit pas partir.
+- Le rond d'une icône est un tiers plus grand que la place demandée, l'icône aux quatre cinquièmes de cette place (`BADGE_SCALE`, `ICON_IN_BADGE`).
+- La bande de la teinte montre le rouge à chaque décalage, comme le suisse : le bleu nuit, trop sombre, ne s'y distinguerait pas d'un décalage à l'autre.
+
 ## Ce qui reste ouvert
 
-- Rien n'est codé : le seuil est passé le 2026-10-18, le banc (`./run themes`, « Métro · palettes ») vu et approuvé dans les deux modes, les lignes à clarté commune.
+- Rien n'a tourné sur un téléphone : le thème entier s'y juge, la passe de `docs/THEMES.md` d'abord.
+- Les cellules et les tons des textures sont ceux du suisse, recopiés : les motifs de plan de la ligne 7 (traits à 45° et 90°, points d'arrêt) restent à dessiner, et leurs tons à régler au banc des textures (`./run themes`).
+- Le nom d'une tuile reste centré : c'est le cœur qui le place (`UI.TileHeader`), comme pour le suisse.
+- Les sons, à la planche d'écoute.

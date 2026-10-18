@@ -69,6 +69,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - La démo enrichie (branche demo-guide), installée sur le téléphone le 2026-10-17 (ses textures vues sur l'accueil), le reste pas regardé : l'Agenda de Travail (la série du lundi à venir donnée par l'outil, les passées, l'annulée, la retirée, le salon sur deux jours), « Cap sur le semi » (sa tentative ouverte seule, du début à l'échéance), Giulia sur la zone Italien et sa routine, le camembert des heures et sa légende, les étapes gardées d'une séance de fractionné, les étiquettes du carnet et le classement du questionnaire, les textures.
 - Les fournisseurs créés par l'utilisateur (`docs/design/ai-providers.md`, branche ai-providers) : la section du même nom de la recette, la migration 80 sur la release et ses données d'abord ; passé, élaguer la spec.
 - Les écrans du chat, des identités et des fournisseurs, et les marges qui ne suivent plus le cran de taille (2026-10-17, sur develop) : la section du même nom de la recette.
+- Le thème métro (`docs/design/metro-theme.md`, branche theme-metro) : la passe sur le téléphone de `docs/THEMES.md`, puis ce que la spec garde dans « Ce qui reste ouvert ».
 
 ## Conçu, à coder
 
@@ -96,7 +97,7 @@ Une idée sans spec : elle demande une décision avant du code.
 
 ### Interface
 
-- Le thème Signalétique de métro (le suivant du classement de `docs/theme-tracks.json`, Suisse et Encre et lavis faits) : la recette de `docs/THEMES.md`, de l'étape 0.
+- Le thème Papier découpé (le suivant du classement de `docs/theme-tracks.json`, Suisse, Encre et lavis et Signalétique de métro faits) : la recette de `docs/THEMES.md`, de l'étape 0.
 - Lucide redessiné à leur manière pour le cosy et le suisse, comme le pinceau d'Encre et lavis (`docs/design/ink-theme.md`, ligne 9), un trait à chacun : une fois la brique du cœur qui lit les tracés d'une icône codée et tenue sur le téléphone avec Encre.
 
 ### Events du cœur
