@@ -385,6 +385,12 @@ interface ThemeContract {
         texture: ItemTexture?,
         /** The colour of the zone's icon (docs/design/icon-colors.md), null for a neutral one: a theme may draw the tile in it. */
         color: TagColor?,
+        /**
+         * The identifier of the thing the tile stands for (a tool's, a zone's, a settings entry's):
+         * a theme may draw each tile a little differently from it (the cut paper's tilt), the
+         * same at every drawing whatever the tile's place in its grid.
+         */
+        seed: String,
         onClick: () -> Unit,
         onLongClick: () -> Unit,
         content: @Composable () -> Unit
@@ -422,6 +428,12 @@ interface ThemeContract {
         texture: ItemTexture?,
         /** The colour of the tool's icon (docs/design/icon-colors.md), null for a neutral one: a theme may draw the tile in it. */
         color: TagColor?,
+        /**
+         * The identifier of the thing the tile stands for (a tool's, a zone's, a settings entry's):
+         * a theme may draw each tile a little differently from it (the cut paper's tilt), the
+         * same at every drawing whatever the tile's place in its grid.
+         */
+        seed: String,
         onClick: () -> Unit,
         onLongClick: () -> Unit,
         content: @Composable () -> Unit

@@ -723,7 +723,7 @@ object UI {
         fun Header() = TileHeader(zone.icon_name, IconColor.of(zone.icon_color), zone.name, waiting, running, TextType.HEADING)
         @Composable
         fun Description() = zone.description?.let { Text(it, TextType.BODY, maxLines = 2) }
-        CurrentTheme.current.ZoneCardContainer(texture = ItemTexture.of(zone.texture, zone.icon_name, IconColor.of(zone.icon_color)), color = IconColor.of(zone.icon_color), onClick = onClick, onLongClick = onLongClick) {
+        CurrentTheme.current.ZoneCardContainer(texture = ItemTexture.of(zone.texture, zone.icon_name, IconColor.of(zone.icon_color)), color = IconColor.of(zone.icon_color), seed = zone.id, onClick = onClick, onLongClick = onLongClick) {
             when (mode) {
                 DisplayMode.ICON -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     TileIcon(zone.icon_name, IconColor.of(zone.icon_color), waiting, running)
@@ -833,6 +833,7 @@ object UI {
             displayMode = displayMode,
             texture = ItemTexture.of(toolSettings.string(app.treelune.core.themes.Texture.KEY), toolSettings.string("icon_name"), IconColor.of(toolSettings.string(IconColor.KEY))),
             color = IconColor.of(toolSettings.string(IconColor.KEY)),
+            seed = tool.id,
             onClick = onClick,
             onLongClick = onLongClick
         ) {

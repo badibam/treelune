@@ -38,7 +38,7 @@ Toutes les lignes du 2026-10-18, dans l'ordre de la liste de `docs/THEMES.md`.
 
 ## Ajout au contrat
 
-`ToolCardContainer` et `ZoneCardContainer` ne savent pas quelle tuile ils dessinent : `ToolGrid` les passe par leur rang, et un angle tiré du rang changerait celui de toutes les tuiles suivantes à la suppression d'une seule. Décidé le 2026-10-18 : un paramètre `seed: Long`, l'identifiant de l'outil ou de la zone. Pour chaque thème existant : le défaut, le rétro, le cosy, le suisse, l'encre et le métro l'ignorent, leur tuile restant telle qu'elle est.
+`ToolCardContainer` et `ZoneCardContainer` ne savent pas quelle tuile ils dessinent : `ToolGrid` les passe par leur rang, et un angle tiré du rang changerait celui de toutes les tuiles suivantes à la suppression d'une seule. Décidé le 2026-10-18 : un paramètre `seed: String`, l'identifiant de l'outil ou de la zone (celui d'une identité, d'une entrée des réglages, le nom de l'icône d'une tuile d'exemple), que le thème hache. Pour chaque thème existant : le défaut, le rétro, le cosy, le suisse, l'encre et le métro l'ignorent, leur tuile restant telle qu'elle est.
 
 ## Ce qui reste ouvert
 

@@ -107,7 +107,7 @@ fun IdentitiesScreen(onBack: () -> Unit) {
                 edit = null
             ) { i ->
                 val identity = identities[i]
-                CurrentTheme.current.ZoneCardContainer(texture = null, color = null, onClick = { Navigator.push(Place.Identity(identity.id)) }, onLongClick = {}) {
+                CurrentTheme.current.ZoneCardContainer(texture = null, color = null, seed = identity.id, onClick = { Navigator.push(Place.Identity(identity.id)) }, onLongClick = {}) {
                     UI.TileHeader(identity.iconName, IconColor.of(identity.iconColor), identity.name, waiting = false, running = false, textType = TextType.HEADING)
                 }
             }

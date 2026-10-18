@@ -53,7 +53,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpen: (String) -> Unit) {
                 edit = null
             ) { i ->
                 val entry = entries[i]
-                CurrentTheme.current.ZoneCardContainer(texture = null, color = null, onClick = { onOpen(entry.id) }, onLongClick = {}) {
+                CurrentTheme.current.ZoneCardContainer(texture = null, color = null, seed = entry.id, onClick = { onOpen(entry.id) }, onLongClick = {}) {
                     UI.TileHeader(entry.icon, null, s.shared(entry.label), waiting = entry.id == "data" && backupPending, running = false, textType = TextType.HEADING)
                 }
             }

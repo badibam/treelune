@@ -698,7 +698,7 @@ object RetroTheme : ThemeContract {
     }
 
     @Composable
-    override fun ZoneCardContainer(texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
+    override fun ZoneCardContainer(texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
         Tile(texture, onClick, onLongClick, content)
 
     /**
@@ -783,7 +783,7 @@ object RetroTheme : ThemeContract {
     }
 
     @Composable
-    override fun ToolCardContainer(displayMode: DisplayMode, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
+    override fun ToolCardContainer(displayMode: DisplayMode, texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
         Tile(texture, onClick, onLongClick, content)
 
     /** A tile: a frame filling the cells the grid gives it, its motif inside; its content a cell in from the frame's edge. */
