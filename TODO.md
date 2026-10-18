@@ -69,6 +69,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - Les écrans du chat, des identités et des fournisseurs, et les marges qui ne suivent plus le cran de taille (2026-10-17, sur develop) : la section du même nom de la recette.
 - Le thème métro (`docs/design/metro-theme.md`, branche theme-metro) : la passe sur le téléphone de `docs/THEMES.md`, puis ce que la spec garde dans « Ce qui reste ouvert ».
 - Le thème papier découpé (`docs/design/paper-theme.md`, branche theme-cut-paper) : la passe sur le téléphone de `docs/THEMES.md`, les icônes découpées d'abord (leur coût, celles qui se bouchent), puis ce que la spec garde dans « Ce qui reste ouvert ».
+- Le thème plan d'architecte (`docs/design/blueprint-theme.md`, branche theme-blueprint) : la passe sur le téléphone de `docs/THEMES.md`, le débord des icônes d'abord, puis ce que la spec garde dans « Ce qui reste ouvert ».
 
 ## Conçu, à coder
 

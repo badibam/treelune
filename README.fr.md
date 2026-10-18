@@ -67,6 +67,7 @@ Tu disposes les tuiles de chaque zone comme tu veux, tu choisis l'icône et la c
 - **Encre et lavis** — Comme un lavis à l'encre : un papier crème, l'encre noire et un seul rouge de sceau, beaucoup de vide
 - **Métro** — Comme la signalétique d'un métro : chaque outil est une ligne de sa couleur, chaque zone une station
 - **Papier découpé** — Des feuilles de couleur découpées aux ciseaux, posées de travers sur du kraft
+- **Plan d'architecte** — Comme un plan d'architecte : des traits fins sur un papier quadrillé, des cotes et des hachures
 <!-- /themes -->
 
 ## Commencer
