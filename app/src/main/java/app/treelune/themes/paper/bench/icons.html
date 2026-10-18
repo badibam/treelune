@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Papier découpé · icônes</title>
+<!--
+  The cut paper theme's icon bench (docs/design/paper-theme.md, line 9): Lucide's icons cut by
+  scissors.js, beside Lucide's own stroke, on the pieces they stand on in the theme (the cream
+  badge, a coloured sheet, the night blue button), at the phone's sizes, in both modes. The
+  colours are the mockup's, written here: the icons' shapes are judged on this bench, the
+  palettes on palettes.html. "Toutes les icônes" draws all of Lucide at 24, to find those that
+  clog.
+-->
+<style>
+  :root { --kraft: #d6b688; --sheet: #f7efe0; --ink: #2a2118; --navy: #2f4466; --cream: #fff8ee; --shadow: rgba(60,35,10,.3);
+          --dkraft: #2a2218; --dsheet: #3a3631; --dink: #f1ebe2; --dnavy: #3d5378; --dshadow: rgba(0,0,0,.6); }
+  body { margin: 0; font-family: system-ui, sans-serif; background: #1b1b1b; color: #e6e4df; }
+  header { position: sticky; top: 0; z-index: 2; background: #232323; border-bottom: 1px solid #3a3a3a; padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; }
+  header h1 { font-size: 17px; margin: 0 12px 0 0; font-weight: 600; }
+  label { font-size: 13px; display: flex; gap: 6px; align-items: center; }
+  label output { min-width: 2.5em; font-variant-numeric: tabular-nums; }
+  button { font: inherit; font-size: 13px; padding: 4px 10px; }
+  .modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(600px, 1fr)); }
+  .mode { padding: 16px; background: var(--kraft) repeating-linear-gradient(115deg, rgba(120,80,30,.08) 0 2px, transparent 2px 7px); color: var(--ink); }
+  .mode.dark { background: var(--dkraft) repeating-linear-gradient(115deg, rgba(200,160,100,.06) 0 2px, transparent 2px 7px); color: var(--dink); }
+  h2 { font-size: 13px; letter-spacing: .1em; margin: 18px 0 6px; font-weight: 700; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 4px 0 12px; }
+  .k { font-size: 12px; width: 100%; opacity: .8; }
+  .cell { display: flex; align-items: center; justify-content: center; border-radius: 3px 7px 4px 6px; box-shadow: 2px 3px 0 var(--sh); }
+  .cell svg, .cell canvas { display: block; }
+  .all { display: flex; flex-wrap: wrap; gap: 4px; }
+  .all .cell { width: 34px; height: 34px; }
+  p.note { font-size: 13px; color: #9a978f; max-width: 80ch; margin: 10px 16px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Papier découpé · icônes</h1>
+  <label>Épaisseur <input id="width" type="range" min="1.6" max="3.4" step="0.1"><output></output></label>
+  <label>Facette <input id="facet" type="range" min="0.6" max="4" step="0.1"><output></output></label>
+  <label>Angle d'un coin <input id="corner" type="range" min="10" max="90" step="1"><output></output></label>
+  <label>Ombre <input id="shadow" type="range" min="0" max="2" step="0.1"><output></output></label>
+  <label>Main qui tremble <input id="jitter" type="range" min="0" max="0.6" step="0.02"><output></output></label>
+  <button id="all">Toutes les icônes (24 px)</button>
+</header>
+<p class="note">Chaque tracé de Lucide est parcouru point par point, puis recoupé en segments droits : un point gardé à chaque vrai coin de l'icône (plus tourné que « Angle d'un coin »), et entre deux, un tous les « Facette » sur la grille de 24. Le trait a l'« Épaisseur », ses bouts coupés droits, ses angles vifs, sur une ombre dure décalée de « Ombre ». Un point de Lucide (un trait plus court que son épaisseur) devient un petit carré de papier. Le thème fait de même sur le téléphone, avec les mêmes nombres. Les tailles sont en pixels de l'écran de l'ordinateur, une par dp.</p>
+<div class="modes">
+  <section class="mode light"></section>
+  <section class="mode dark"></section>
+</div>
+<div class="modes" id="allModes"></div>
+<script src="scissors.js"></script>
+<script>
+"use strict";
+// The icons the app shows most, those of the mockup, and a few with dots and fills.
+const NAMES = ["droplet", "moon", "sparkles", "arrow-left", "ellipsis", "check", "plus", "trash", "settings", "calendar", "clock", "heart", "book-open", "list-checks", "chart-column", "footprints", "utensils", "dumbbell", "bed", "pencil", "search", "bell", "house", "leaf", "message-circle", "timer", "target", "star", "folder", "flame", "scale", "shopping-cart", "notebook-pen", "sticky-note", "info", "circle-alert", "grip-vertical", "chevron-down"];
+const SIZES = [18, 24, 32, 52];
+const TAGS = ["#e8a08c", "#e6b46b", "#d9c46a", "#9cc48f", "#7cc2b8", "#8fb3dc", "#b9a6dd", "#e2a1bd"];
+const KNOBS = ["width", "facet", "corner", "shadow", "jitter"];
+const $ = (id) => document.getElementById(id);
+const params = () => Object.fromEntries(KNOBS.map((k) => [k, +$(k).value]));
+const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const INNER = {}, DRAWINGS = {};
+
+function cell(size, bg, sh) {
+  const c = document.createElement("span"); c.className = "cell";
+  c.style.cssText = `width:${Math.round(size * 1.6)}px;height:${Math.round(size * 1.6)}px;background:${bg};--sh:${sh}`;
+  return c;
+}
+
+function lucide(name, size, colour) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${colour}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${INNER[name]}</svg>`;
+}
+
+function cutIcon(name, size, colour, shadow) {
+  const c = document.createElement("canvas");
+  PaperScissors.paint(c, DRAWINGS[name], size, colour, shadow, params(), name.length);
+  return c;
+}
+
+function render() {
+  for (const k of KNOBS) $(k).nextElementSibling.value = $(k).value;
+  for (const mode of document.querySelectorAll(".modes:first-of-type .mode")) {
+    const dark = mode.classList.contains("dark");
+    const v = (n) => css(dark ? "--d" + n : "--" + n);
+    mode.innerHTML = `<h2>${dark ? "SOMBRE" : "CLAIR"}</h2>`;
+    for (const size of SIZES) {
+      mode.insertAdjacentHTML("beforeend", `<h2>${size} px</h2>`);
+      const rows = [
+        ["Lucide, trait de 2 (aujourd'hui), sur la feuille crème", (n) => { const c = cell(size, v("sheet"), v("shadow")); c.innerHTML = lucide(n, size, v("ink")); return c; }],
+        ["Découpé, sur la feuille crème", (n) => { const c = cell(size, v("sheet"), v("shadow")); c.appendChild(cutIcon(n, size, v("ink"), v("shadow"))); return c; }],
+        ["Découpé, sur une feuille de couleur", (n, i) => { const c = cell(size, TAGS[i % TAGS.length], v("shadow")); c.appendChild(cutIcon(n, size, css("--ink"), v("shadow"))); return c; }],
+        ["Découpé, crème sur le bleu nuit", (n) => { const c = cell(size, v("navy"), v("shadow")); c.appendChild(cutIcon(n, size, css("--cream"), v("shadow"))); return c; }],
+      ];
+      for (const [label, make] of rows) {
+        const row = document.createElement("div"); row.className = "row";
+        row.innerHTML = `<span class="k">${label}</span>`;
+        NAMES.forEach((n, i) => row.appendChild(make(n, i)));
+        mode.appendChild(row);
+      }
+    }
+  }
+  if ($("allModes").childElementCount) renderAll();
+}
+
+async function load(names) {
+  await Promise.all(names.filter((n) => !INNER[n]).map(async (n) => {
+    const r = await fetch(`/third_party/lucide/icons/${n}.svg`);
+    if (!r.ok) throw new Error(`no Lucide icon ${n}`);
+    INNER[n] = PaperScissors.lucideInner(await r.text());
+  }));
+  for (const n of names) if (!DRAWINGS[n]) DRAWINGS[n] = PaperScissors.strokes(INNER[n]);
+}
+
+let ALL = null;
+function renderAll() {
+  const box = $("allModes"); box.innerHTML = "";
+  for (const dark of [false, true]) {
+    const v = (n) => css(dark ? "--d" + n : "--" + n);
+    const mode = document.createElement("section"); mode.className = "mode" + (dark ? " dark" : "");
+    mode.innerHTML = `<h2>TOUTES · ${dark ? "SOMBRE" : "CLAIR"} · 24 px</h2>`;
+    const all = document.createElement("div"); all.className = "all";
+    for (const n of ALL) { const c = cell(24, v("sheet"), v("shadow")); c.title = n; c.appendChild(cutIcon(n, 24, v("ink"), v("shadow"))); all.appendChild(c); }
+    mode.appendChild(all); box.appendChild(mode);
+  }
+}
+
+$("all").addEventListener("click", async () => {
+  $("all").disabled = true; $("all").textContent = "Chargement…";
+  const index = await (await fetch("/app/src/main/assets/icons/index.json")).json();
+  ALL = index.icons.map((i) => i.name);
+  await load(ALL);
+  renderAll();
+  $("all").textContent = "Toutes les icônes (24 px)";
+});
+
+// The sliders open on the theme's settings.
+for (const k of KNOBS) $(k).value = PaperScissors.SETTINGS[k];
+for (const el of document.querySelectorAll("header input")) el.addEventListener("input", render);
+load(NAMES).then(render);
+</script>
+</body>
+</html>
