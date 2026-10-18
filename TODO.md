@@ -4,11 +4,10 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 
 ## Release F-Droid
 
-- La reproductibilité : la recette et un clone propre du tag donnent le même APK, celui de `./run release` dans l'arbre de travail non (`docs/design/fdroid-compliance.md`, « Ce qui reste ») ; construire la release depuis un clone propre du tag.
 - La fiche fastlane (`docs/design/fdroid-compliance.md`) : en-US `title`, `short_description`, `full_description`, `changelogs/<versionCode>.txt`, `images/icon.png`, `images/featureGraphic.png` ; les captures d'écran, à faire sur le téléphone, servent aussi au README (`fastlane/metadata/android/en-US/images/phoneScreenshots/`, leur place marquée dans `README.md` et `README.fr.md`), l'icône de l'app en tête.
 - Les anti-features : `NonFreeNet` (Anthropic, OpenAI, DeepSeek, le serveur de connexion de Tailscale) ; à trancher pour la liste de prix LiteLLM que `ModelPriceManager` lit sur GitHub.
 - La version soumise, taguée sur un arbre propre, ses notes de version écrites et validées avant de publier ; la mise à jour depuis la 0.7.0 installée passée sur le téléphone avec ses données (une base neuve ne passe aucune migration, une mise à jour les passe toutes, nouvelles comprises).
-- La signature : si F-Droid signe l'app de sa propre clé, un APK installé depuis GitHub ne peut plus se mettre à jour par F-Droid ; un build reproductible lui fait publier l'APK signé de la nôtre (`Binaries`, `AllowedAPKSigningKeys` dans la recette).
+- La signature : la recette déclare `Binaries` (l'APK de la release GitHub) et `AllowedAPKSigningKeys` (l'empreinte SHA-256 de notre certificat) pour que F-Droid publie notre APK signé, et non le sien ; dès la première version publiée par `./run release-tag`, l'APK de la v0.8.0 sur GitHub ne correspondant pas à son tag.
 
 ## Juste après la release
 
