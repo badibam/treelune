@@ -13,7 +13,7 @@ Toutes les lignes du 2026-10-18, dans l'ordre de la liste de `docs/THEMES.md`.
    - **Un outil sans couleur d'icône** (le cas par défaut) est une ligne grise, comme la carte « Notes » de la maquette.
    - **Le rouge est à l'alerte** : la marque d'attente, le bouton de danger, la carte d'interaction. Jamais un aplat décoratif.
 2. **Ce qu'il dessine lui-même** : tout, dialogues et sélecteurs de date et d'heure compris, en partant des pièces plates du suisse (même découpage en fichiers).
-3. **La police** : Overpass, celle de la maquette, dessinée d'après les panneaux routiers américains (Highway Gothic) ; licence SIL Open Font License 1.1, à confirmer à la copie avec son éventuel nom réservé. Copiée dans `third_party/overpass/`, un script `scripts/make_overpass_fonts.py` en tire les graisses fixes : 500 le texte, 700 les noms et libellés, 800 les titres et les chiffres ; de son italique, 500 et 700, pour l'italique d'un texte lu. Sa couverture (Windows-1252, flèches, `≤ ≥ ≠ ≈ − ×`, l'espace fine insécable U+202F) se mesure à la copie ; l'espace fine s'ajoute par le script si la licence ne réserve aucun nom, comme pour Archivo. `✓ ✗` au repli d'Android, comme dans le suisse. Les chiffres à largeur fixe (`tnum`) partout.
+3. **La police** : Overpass, celle de la maquette, dessinée d'après les panneaux routiers américains (Highway Gothic) ; licence SIL Open Font License 1.1, sans nom réservé. Copiée dans `third_party/overpass/` depuis Google Fonts, un script `scripts/make_overpass_fonts.py` en tire les graisses fixes : 500 le texte, 700 les noms et libellés, 800 les titres et les chiffres ; de son italique, 500 et 700, pour l'italique d'un texte lu. Elle couvre Windows-1252, les flèches, `≤ ≥ ≠ ≈ − ×` et l'espace fine insécable (U+202F), que le script n'a donc pas à ajouter (mesuré le 2026-10-18) ; `✓ ✗` au repli d'Android, comme dans le suisse. Les chiffres à largeur fixe (`tnum`) partout.
 4. **Les palettes** (OKLCH, réglées au banc ; contraste visé 4,5, tenu à chaque décalage de 15° par `MetroPaletteTest`) :
    - claire, d'après la maquette : fond `#f6f6f4`, panneau blanc, encre bleu nuit `#14213d` (14,8 sur le fond), secondaire `#5b6170` (5,7 sur le fond, 6,2 sur le blanc), bandeau `#0b2545`, le blanc écrit dessus (15,4) ; le rouge `#e2231a` n'est qu'un aplat, le blanc écrit dessus (4,7) : en texte sur le fond, il ne tient que 4,3 (mesuré le 2026-10-18), et le bouton de danger prend donc un rouge plus foncé ;
    - sombre, le métro de nuit : fond bleu nuit très sombre, panneaux d'un bleu nuit un cran plus clair, encre blanc cassé, les couleurs des lignes gardées un peu plus claires ; le bandeau reste plus sombre que les panneaux ;
@@ -45,5 +45,4 @@ Toutes les lignes du 2026-10-18, dans l'ordre de la liste de `docs/THEMES.md`.
 
 ## Ce qui reste ouvert
 
-- La licence et la couverture d'Overpass, à mesurer à la copie.
 - Les palettes, à régler au banc dans les deux modes : le seuil.
