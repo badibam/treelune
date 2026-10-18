@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Banc du thème papier découpé</title>
+<!--
+  The cut paper theme's bench (docs/design/paper-theme.md): a zone's screen and a sheet of every
+  component, in the light and the dark palette side by side, at a phone's width in dp (one CSS
+  pixel per dp), in the embedded Bricolage Grotesque, with Lucide's icons from the repository. The
+  numbers live in palettes.json, which the theme reads; this page derives the colours from them as
+  PaperPalette.kt will, measures their contrasts at every hue shift, and saves them back through
+  `./run themes`. A hue shift and a size step are tried here, never saved. The icons are Lucide's
+  as they are: their cut paper drawing has its own bench.
+-->
+<style>
+@font-face{font-family:"Bricolage";font-weight:500;src:url("/app/src/main/res/font/bricolage_text.ttf") format("truetype");font-display:block}
+@font-face{font-family:"Bricolage";font-weight:800;src:url("/app/src/main/res/font/bricolage_label.ttf") format("truetype");font-display:block}
+@font-face{font-family:"Bricolage Title";font-weight:800;src:url("/app/src/main/res/font/bricolage_title.ttf") format("truetype");font-display:block}
+
+/* The bench's own frame, out of the theme. */
+:root{--bg:#1b1b1b;--bg2:#232323;--line:#3a3a3a;--txt:#e6e4df;--mut:#9a978f;--hot:#5aa9ff;--bad:#ff7b7b;--ok:#8fd19e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:14px system-ui,sans-serif}
+.wrap{max-width:1500px;margin:0 auto;padding:20px 16px 60px;display:flex;flex-direction:column;gap:18px}
+header.top{display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:12px}
+header.top h1{margin:0;font-size:19px;font-weight:600}
+#saved{font-size:12.5px;color:var(--mut)} #saved.dirty{color:var(--hot)} #saved.bad{color:var(--bad)}
+.bench{display:grid;grid-template-columns:auto auto 320px;gap:18px;align-items:start;justify-content:center}
+@media(max-width:1180px){.bench{grid-template-columns:auto auto}.side{grid-column:1/-1}}
+@media(max-width:800px){.bench{grid-template-columns:1fr}}
+.col{display:flex;flex-direction:column;gap:14px;align-items:center}
+.col h2{margin:0;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);font-weight:600}
+.side{display:flex;flex-direction:column;gap:14px}
+fieldset{border:1px solid var(--line);margin:0;padding:11px 12px 13px;display:flex;flex-direction:column;gap:9px}
+legend{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--hot);padding:0 6px}
+.row{display:flex;flex-direction:column;gap:3px}
+.lab{display:flex;justify-content:space-between;font-size:12px;color:var(--mut)}
+.lab b{color:var(--txt);font-weight:400;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--hot);margin:0}
+.seg{display:flex;border:1px solid var(--line)}
+.seg button{flex:1;background:transparent;border:0;border-right:1px solid var(--line);color:var(--mut);font:inherit;font-size:12px;padding:6px 4px;cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed=true]{background:var(--hot);color:#1b1b1b}
+.acts button{width:100%;background:transparent;border:1px solid var(--hot);color:var(--hot);font:inherit;padding:7px;cursor:pointer}
+table.cr{border-collapse:collapse;font-size:12px;width:100%;font-variant-numeric:tabular-nums}
+table.cr td{padding:2px 4px;border-bottom:1px solid var(--line)}
+table.cr td:not(:first-child){text-align:right}
+td.low{color:var(--bad)} td.okk{color:var(--ok)}
+.notes{border-top:1px solid var(--line);padding-top:14px;color:var(--mut);font-size:13px;line-height:1.6;max-width:90ch}
+.notes b{color:var(--txt);font-weight:600}
+
+/* ============ The theme, drawn ============ */
+/* The kraft: its colour and its fibres at 115°, in the rule's brown. */
+.phone{width:360px;background:var(--g) repeating-linear-gradient(115deg,color-mix(in srgb,var(--r) 9%,transparent) 0 2px,transparent 2px 7px);color:var(--i);font-family:"Bricolage",sans-serif;font-weight:500;font-variant-numeric:tabular-nums;position:relative;overflow:hidden;outline:1px solid var(--line)}
+.zoom{zoom:var(--k)}
+.ic{display:inline-block}
+.ic svg{display:block;width:100%;height:100%;stroke-width:2.4}
+.ttl{font-family:"Bricolage Title",sans-serif;font-weight:800}
+
+/* A sheet: its uneven corners and its hard shadow, never blurred. Each kind of piece its own corners. */
+.sheet{background:var(--c,var(--s));color:var(--oc,var(--i));box-shadow:2px 3px 0 var(--sh)}
+.k1{border-radius:3px 7px 4px 6px}.k2{border-radius:6px 3px 7px 4px}.k3{border-radius:4px 6px 3px 7px}.k4{border-radius:7px 4px 6px 3px}
+.tilt{transform:rotate(var(--r-deg,0deg))}
+
+/* bar and page header */
+.bar{display:flex;justify-content:space-between;align-items:center;padding:8px 12px 0}
+.ib{width:48px;height:48px;display:flex;align-items:center;justify-content:center;color:inherit}
+.ib .ic{width:22px;height:22px}
+.rb{width:44px;height:44px;border-radius:47% 53% 50% 48%;background:var(--n);color:var(--on);box-shadow:2px 3px 0 var(--sh)}
+.ph{display:flex;flex-direction:column;align-items:center;gap:6px;padding:0 16px 8px;margin-top:-40px}
+.ph h1{margin:0;font-size:26px;line-height:1.15;padding:2px 20px;background:var(--s);transform:rotate(-2deg);hyphens:auto}
+.ph .sub{font-size:12px;color:var(--d);background:var(--s);padding:0 8px;transform:rotate(1deg);box-shadow:1px 2px 0 var(--sh)}
+
+/* the badge: an icon on its round, cut by hand */
+.bd{width:var(--bs,22px);height:var(--bs,22px);border-radius:48% 52% 46% 54%;background:var(--s);color:var(--i);display:inline-flex;align-items:center;justify-content:center;flex:none;box-shadow:1px 2px 0 var(--sh)}
+.bd .ic{width:calc(var(--bs,22px)*.62);height:calc(var(--bs,22px)*.62)}
+.bd.col{background:var(--c);color:var(--oc)}
+
+/* a group's title: a coral band, then a torn strip of the sheet */
+.gt{display:flex;align-items:center;gap:10px;padding:20px 16px 12px}
+.gt span{font-size:17px;padding:1px 10px;background:var(--a);color:var(--oa);transform:rotate(-1.5deg);box-shadow:2px 2px 0 var(--sh)}
+.gt .rule{flex:1;height:6px;padding:0;background:var(--s);transform:rotate(.6deg);box-shadow:none;clip-path:polygon(0 20%,30% 0,60% 30%,100% 10%,100% 90%,70% 100%,35% 80%,0 100%)}
+
+/* the tile grid: 4 square cells, 12 across and down */
+.grid{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:75px;gap:12px;padding:0 16px}
+.tile{padding:6px 10px;overflow:hidden;position:relative;min-width:0;transform:rotate(var(--r-deg,0deg))}
+.w2{grid-column:span 2}.w4{grid-column:span 4}.h2{grid-row:span 2}
+.name{font-weight:800;font-size:16px;display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden}
+.big{font-size:28px;font-weight:800;line-height:1.05;margin-top:4px}
+.small{font-size:12px;opacity:.85}
+.th{display:flex;justify-content:space-between;align-items:center}
+.val{font-size:13px;font-weight:800;padding:0 8px;background:var(--a);color:var(--oa);transform:rotate(2deg)}
+.bars{display:flex;align-items:flex-end;gap:7px;height:74px;margin-top:6px;position:relative}
+.bars i{flex:1;background:var(--n);height:calc(var(--h)*100%);border-radius:2px 4px 1px 3px;transform:rotate(-1.5deg)}
+.bars i:nth-of-type(even){transform:rotate(1.5deg)}
+.bars .target{position:absolute;left:0;right:0;bottom:75%;border-top:2px dashed var(--r)}
+.days{display:flex;gap:7px;font-size:12px;font-weight:800;margin-top:3px}.days span{flex:1;text-align:center}
+.list ul{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:15px}
+.list li{display:flex;gap:8px;align-items:center}
+.box{width:18px;height:18px;background:var(--w);border:2px solid var(--i);border-radius:3px 5px 2px 4px;transform:rotate(-4deg);flex:none}
+.done{opacity:.6;text-decoration:line-through}.done .box{background:var(--a)}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.tag{font-size:12px;font-weight:800;padding:0 8px;background:var(--c);color:var(--oc);box-shadow:1px 2px 0 var(--sh)}
+.tag:nth-child(3n+1){transform:rotate(-3deg)}.tag:nth-child(3n+2){transform:rotate(2deg)}.tag:nth-child(3n){transform:rotate(-1deg)}
+.gauge{height:12px;background:var(--n);border-radius:2px;margin:14px 6px 0 0}
+.gauge span{display:block;height:100%;background:var(--tag-yellow);clip-path:polygon(0 0,100% 10%,97% 100%,0 90%)}
+.icon{display:flex;align-items:center;justify-content:center;padding:0}
+.icon .bd{--bs:52px}
+.wait{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:45% 55% 50% 50%;background:var(--a);color:var(--oa);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;box-shadow:1px 2px 0 var(--sh);transform:rotate(8deg)}
+.note p{margin:6px 0 0;font-size:14px;line-height:1.35}
+.card{margin:0 16px 10px;padding:10px 12px;display:flex;justify-content:space-between;align-items:baseline}
+.card .nm{font-weight:800;font-size:15px}
+.card .v{font-size:20px;font-weight:800}
+.fab{position:absolute;right:20px;bottom:20px;width:56px;height:56px;border-radius:50%;background:var(--a);color:var(--oa);display:flex;align-items:center;justify-content:center;box-shadow:5px 4px 0 var(--tag-yellow),7px 7px 0 var(--sh)}
+.fab .ic{width:28px;height:28px}
+
+/* the sheet of components */
+.sec{padding:16px 16px 0}
+.sl{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--i);opacity:.75;margin-bottom:8px}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{height:48px;padding:0 16px;display:inline-flex;align-items:center;font-size:15px;font-weight:800}
+.b-pri{background:var(--n);color:var(--on)}
+.b-sec{background:var(--s);color:var(--i);outline:2px solid var(--i);outline-offset:-2px}
+.b-ter{padding:0 8px;box-shadow:none;background:transparent}
+.b-dan{background:var(--a);color:var(--oa)}
+.b-dis{opacity:.5;box-shadow:none}
+.b-press{transform:translate(2px,3px);box-shadow:none}
+.field{margin-bottom:12px}
+.field .fl{font-size:13px;font-weight:800;margin-bottom:4px}
+.field .fv{font-size:16px;height:48px;padding:0 12px;background:var(--w);outline:2px solid var(--i);outline-offset:-2px;display:flex;justify-content:space-between;align-items:center}
+.field.focus .fv{outline-color:var(--a)}
+.field.err .fv{outline-color:var(--err)}
+.field .fe{font-size:12px;color:var(--err);margin-top:4px;font-weight:800;background:var(--s);display:inline-block;padding:0 6px}
+.field .ic{width:20px;height:20px}
+.caret{display:inline-block;width:2px;height:18px;background:var(--i);vertical-align:-3px;margin-left:1px}
+.menu div{height:48px;padding:0 12px;display:flex;align-items:center;font-size:15px}
+.menu .on{background:var(--n);color:var(--on);font-weight:800}
+.inline{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.cb{width:22px;height:22px}
+.cb.on{background:var(--a)}
+.sw{width:52px;height:28px;border-radius:3px 6px 4px 5px;background:var(--w);outline:2px solid var(--i);outline-offset:-2px;position:relative}
+.sw::after{content:"";position:absolute;width:20px;height:20px;top:4px;left:4px;border-radius:48% 52% 46% 54%;background:var(--i)}
+.sw.on{background:var(--n);outline-color:var(--n)}.sw.on::after{left:28px;background:var(--on)}
+.yn{display:flex;gap:0}.yn span{height:40px;min-width:64px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;background:var(--s)}
+.yn .on{background:var(--n);color:var(--on);transform:rotate(-1.5deg);z-index:1}
+.slider{position:relative;height:48px}
+.slider .rail{position:absolute;left:0;right:0;top:24px;height:12px;border-radius:2px;background:var(--n)}
+.slider .fill{position:absolute;left:0;width:62%;top:24px;height:12px;background:var(--tag-yellow);clip-path:polygon(0 0,100% 10%,97% 100%,0 90%)}
+.slider .thumb{position:absolute;top:18px;left:calc(62% - 12px);width:24px;height:24px;border-radius:48% 52% 46% 54%;background:var(--s);outline:2px solid var(--i);outline-offset:-2px;box-shadow:1px 2px 0 var(--sh)}
+.slider .sv{position:absolute;left:62%;top:-2px;transform:translateX(-50%);font-size:14px;font-weight:800}
+.tabs{display:flex;gap:4px;align-items:flex-end}
+.tabs span{padding:10px 14px;font-size:15px;font-weight:800;opacity:.7}
+.tabs .on{opacity:1;background:var(--s);transform:translateY(-3px) rotate(-1deg);box-shadow:2px 3px 0 var(--sh)}
+.hue{height:24px;border-radius:3px 7px 4px 6px;position:relative;background:linear-gradient(90deg,#e8331c,#e8a21c,#b4d31c,#1cd36a,#1cc8d3,#1c5ae8,#8a1ce8,#e81cb4,#e8331c);box-shadow:2px 3px 0 var(--sh)}
+.hue span{position:absolute;top:-3px;left:12%;width:30px;height:30px;border-radius:48% 52% 46% 54%;box-shadow:0 0 0 3px var(--i),inset 0 0 0 3px var(--s)}
+.handle{width:20px;display:flex;flex-direction:column;gap:5px}.handle i{height:3px;background:var(--i);border-radius:1px}
+.itemrow{display:flex;align-items:center;gap:12px;height:56px;padding:0 12px;margin-bottom:10px}
+.itemrow .nm{flex:1;font-size:15px;font-weight:800}
+.divider{height:5px;background:var(--s);clip-path:polygon(0 30%,25% 0,55% 40%,80% 10%,100% 30%,100% 80%,70% 100%,40% 70%,0 100%)}
+.scrim{background:color-mix(in srgb,#000 50%,var(--g));padding:24px 16px}
+.dialog{padding:16px}
+.dialog h3{margin:0 0 8px;font-size:22px}
+.dialog p{margin:0 0 16px;font-size:15px;line-height:1.4}
+.dialog .btns{justify-content:flex-end}
+.chat{display:flex;flex-direction:column;gap:12px}
+.you{align-self:flex-end;max-width:78%;background:var(--n);color:var(--on);padding:10px 12px;font-size:15px;line-height:1.35}
+.ai{padding:10px 12px;font-size:15px;line-height:1.4}
+.ai b{font-weight:800}
+.inter{padding:0 12px 4px;overflow:hidden}
+.inter .ribbon{height:8px;margin:0 -12px 10px;background:var(--a)}
+.inter .q{font-size:15px;margin-bottom:4px}
+.confetti{display:flex;gap:10px;height:24px;align-items:flex-start}
+.confetti i{width:10px;height:12px;box-shadow:1px 1px 0 var(--sh)}
+.confetti i:nth-child(1){background:var(--a);transform:translateY(12px) rotate(20deg)}
+.confetti i:nth-child(2){background:var(--tag-yellow);transform:translateY(6px) rotate(-15deg)}
+.confetti i:nth-child(3){background:var(--tag-teal);transform:rotate(35deg)}
+.toast{background:var(--n);color:var(--on);padding:14px 16px;font-size:15px}
+.snack{background:var(--n);color:var(--on);padding:0 0 0 16px;display:flex;justify-content:space-between;align-items:center;font-size:15px;min-height:48px}
+.snack span:last-child{height:48px;display:flex;align-items:center;padding:0 16px;font-size:14px;font-weight:800;color:var(--tag-yellow)}
+.date .mh{display:flex;justify-content:space-between;align-items:center}
+.date .mh b{font-size:18px}
+.date .ib .ic{width:20px;height:20px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);text-align:center}
+.cal .wd{font-size:11px;font-weight:800;color:var(--d);padding:4px 0}
+.cal span{height:40px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.cal span u{text-decoration:none;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:48% 52% 46% 54%}
+.cal .mute{color:var(--d)}
+.cal .sel u{background:var(--a);color:var(--oa);font-weight:800;transform:rotate(-6deg);box-shadow:1px 2px 0 var(--sh)}
+.cal .today u{box-shadow:inset 0 0 0 2px var(--i);font-weight:800}
+.time{display:flex;justify-content:center;align-items:center;gap:8px}
+.cnt{display:flex;flex-direction:column;align-items:center;gap:8px}
+.cnt .n{font-size:40px;line-height:1;padding:10px 12px 6px}
+.pm{width:48px;height:40px;display:flex;align-items:center;justify-content:center}
+.pm .ic{width:20px;height:20px}
+.colon{font-size:40px;font-weight:800;line-height:1}
+.selbar{display:inline-flex;background:var(--n);color:var(--on);overflow:hidden}
+.selbar span{height:48px;padding:0 14px;display:flex;align-items:center;font-size:14px;font-weight:800}
+.selbar span+span{border-left:2px solid color-mix(in srgb,var(--on) 35%,transparent)}
+.selbar .on{background:var(--on);color:var(--n)}
+.edit{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:75px;gap:12px;position:relative}
+.edit .cell{border-radius:4px;border:2px dashed var(--r)}
+.edit .faded{opacity:.45}
+.edit .lifted{box-shadow:6px 8px 0 var(--sh);transform:rotate(2.5deg) translate(-2px,-3px);z-index:1}
+.pad{height:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Banc du thème papier découpé</h1>
+    <span id="saved">—</span>
+  </header>
+
+  <div class="bench">
+    <div class="col" id="colLight"><h2>Clair</h2></div>
+    <div class="col" id="colDark"><h2>Sombre</h2></div>
+    <div class="side">
+      <fieldset>
+        <legend>La palette réglée</legend>
+        <div class="seg" id="segPalette"></div>
+        <div id="sliders"></div>
+        <div class="acts"><button id="btnSave">Enregistrer</button></div>
+      </fieldset>
+      <fieldset>
+        <legend>Essayer (non enregistré)</legend>
+        <div class="row"><div class="lab"><span>Décalage de teinte</span><b id="shiftOut">0</b></div>
+          <input type="range" id="shift" min="0" max="359" step="1" value="0"></div>
+        <div class="row"><div class="lab"><span>Cran de taille</span></div><div class="seg" id="segStep"></div></div>
+      </fieldset>
+      <fieldset>
+        <legend>Contrastes</legend>
+        <table class="cr" id="contrasts"></table>
+        <div class="lab"><span>Au décalage essayé, puis au pire des 24 décalages (pas de 15°). Texte : 4,5 ; icône sur sa feuille : 3.</span></div>
+      </fieldset>
+    </div>
+  </div>
+
+  <div class="notes">
+    <b>Ce qu'on juge ici</b> : les deux palettes, l'écran d'une zone et chaque composant, à la largeur d'un téléphone (un pixel par dp), dans Bricolage Grotesque. Les nombres se règlent à droite, sur la palette choisie, et « Enregistrer » les écrit dans <code>palettes.json</code>, que lit le thème. La teinte tourne le kraft, le corail et le bleu nuit ; la feuille crème, l'encre, les feuilles de couleur et les états restent. Sur une feuille de couleur et sur le corail, ce qui s'écrit prend l'encre sombre ou le crème, celui qui se lit le mieux. Les icônes sont celles de Lucide, épaissies à 2,4 : leur découpe au ciseau a son propre banc. Les textures se règlent sur leur banc. Le toucher et le mouvement ne se voient que sur le téléphone ; la planche montre l'élément pressé et la tuile soulevée à l'arrêt.
+  </div>
+</div>
+
+<template id="screen">
+  <div class="phone"><div class="zoom">
+    <div class="bar"><span class="ib rb"><span class="ic" data-icon="arrow-left"></span></span><span class="ib rb"><span class="ic" data-icon="ellipsis"></span></span></div>
+    <div class="ph"><h1 class="ttl sheet k1">Santé</h1><div class="sub">7 outils · 1 routine</div></div>
+    <div class="gt"><span class="ttl">Quotidien</span><span class="rule"></span></div>
+    <div class="grid">
+      <div class="tile sheet k1 w4 h2" style="--r-deg:-.6deg">
+        <div class="th"><span class="name"><span class="bd"><span class="ic" data-icon="flame"></span></span>Calories</span><span class="val">1 840 kcal</span></div>
+        <div class="bars"><span class="target"></span><i style="--h:.72"></i><i style="--h:.50"></i><i style="--h:.92"></i><i style="--h:.58"></i><i style="--h:.34"></i><i style="--h:.66"></i><i style="--h:.48"></i></div>
+        <div class="days"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+      </div>
+      <div class="tile sheet k2 w2" data-colour="yellow" style="--r-deg:1deg"><div class="name"><span class="bd"><span class="ic" data-icon="scale"></span></span>Poids</div><div class="big">72,4 kg</div><div class="small">il y a 2 h</div></div>
+      <div class="tile sheet k3 w2 h2 list" style="--c:var(--w);--r-deg:-1deg"><div class="name"><span class="bd"><span class="ic" data-icon="shopping-cart"></span></span>Courses</div>
+        <ul><li><span class="box"></span>Lait</li><li class="done"><span class="box"></span>Pommes</li><li><span class="box"></span>Riz</li><li><span class="box"></span>Café</li></ul>
+      </div>
+      <div class="tile sheet k4 w2" data-colour="teal" style="--r-deg:.8deg"><div class="name"><span class="bd"><span class="ic" data-icon="notebook-pen"></span></span>Journal</div><div class="tags"><span class="tag" data-colour="yellow">sport</span><span class="tag" style="--c:var(--s);--oc:var(--i)">humeur</span></div></div>
+      <div class="tile sheet k1 w2" data-colour="blue" style="--r-deg:-.8deg"><div class="name"><span class="bd"><span class="ic" data-icon="footprints"></span></span>10 000 pas</div><div class="gauge"><span style="width:71%"></span></div><div class="small" style="margin-top:6px">7 120 · 71 %</div></div>
+      <div class="tile sheet k2 icon" data-colour="teal" style="--r-deg:1.5deg"><span class="bd"><span class="ic" data-icon="droplet"></span></span></div>
+      <div class="tile sheet k3 icon" data-colour="purple" style="--r-deg:-1.5deg"><span class="bd"><span class="ic" data-icon="moon"></span></span><span class="wait">!</span></div>
+    </div>
+    <div class="gt"><span class="ttl">Notes</span><span class="rule"></span></div>
+    <div class="grid"><div class="tile sheet k4 w4 note" style="--r-deg:.4deg"><div class="name"><span class="bd"><span class="ic" data-icon="sticky-note"></span></span>Idées</div><p>Essayer la marche après le déjeuner, noter l'effet sur le sommeil…</p></div></div>
+    <div class="gt"><span class="ttl">Variables</span><span class="rule"></span></div>
+    <div class="card sheet k2"><span class="nm">Objectif calorique</span><span class="v">2 000</span></div>
+    <div class="card sheet k3"><span class="nm">Taille</span><span class="v">1,78 m</span></div>
+    <div style="height:96px"></div>
+    <span class="fab"><span class="ic" data-icon="sparkles"></span></span>
+  </div></div>
+</template>
+
+<template id="sheet">
+  <div class="phone"><div class="zoom">
+    <div class="sec"><div class="sl">Boutons · au repos, puis pressés</div>
+      <div class="btns">
+        <span class="btn sheet k1 b-pri">Enregistrer</span><span class="btn sheet k2 b-sec">Dupliquer</span><span class="btn b-ter">Annuler</span>
+        <span class="btn sheet k3 b-dan">Supprimer</span><span class="btn sheet k4 b-pri b-dis">Désactivé</span><span class="btn sheet k1 b-sec b-dis">Désactivé</span>
+        <span class="btn sheet k2 b-pri b-press">Pressé</span><span class="btn sheet k3 b-sec b-press">Pressé</span>
+        <span class="ib"><span class="ic" data-icon="pencil"></span></span><span class="ib"><span class="ic" data-icon="trash"></span></span>
+      </div>
+    </div>
+    <div class="sec"><div class="sl">Saisie</div>
+      <div class="field"><div class="fl">Nom</div><div class="fv sheet k1"><span>Courses</span></div></div>
+      <div class="field focus"><div class="fl">Note</div><div class="fv sheet k2"><span>Marche après le dé<span class="caret"></span></span></div></div>
+      <div class="field err"><div class="fl">Quantité</div><div class="fv sheet k3"><span>-3</span></div><div class="fe">Une quantité ne peut pas être négative.</div></div>
+      <div class="field"><div class="fl">Unité</div><div class="fv sheet k4"><span>Kilogrammes</span><span class="ic" data-icon="chevron-down"></span></div></div>
+      <div class="menu sheet k2"><div>Grammes</div><div class="on">Kilogrammes</div><div>Livres</div></div>
+    </div>
+    <div class="sec"><div class="inline"><span class="box cb"></span><span class="box cb on"></span><span class="sw"></span><span class="sw on"></span>
+      <span class="yn sheet k1"><span class="on">Oui</span><span>Non</span></span></div></div>
+    <div class="sec"><div class="slider"><span class="sv">62</span><span class="rail"></span><span class="fill"></span><span class="thumb"></span></div>
+      <div class="gauge"><span style="width:40%"></span></div></div>
+    <div class="sec"><div class="tabs"><span class="on k1">Entrées</span><span>Config</span><span>Historique</span></div></div>
+    <div class="sec"><div class="sl">Teinte</div><div class="hue"><span></span></div></div>
+    <div class="sec"><div class="sl">Feuilles de couleur : tags et icônes</div>
+      <div class="tags" style="margin-bottom:14px" id="alltags"></div>
+      <div class="inline" style="gap:8px;margin-bottom:14px" id="allrounds"></div>
+      <div class="itemrow sheet k1"><span class="handle"><i></i><i></i></span><span class="bd col" style="--bs:32px" data-colour="orange"><span class="ic" data-icon="utensils"></span></span><span class="nm">Repas</span></div>
+      <div class="itemrow sheet k3"><span class="handle"><i></i><i></i></span><span class="bd" style="--bs:32px"><span class="ic" data-icon="footprints"></span></span><span class="nm">Pas</span></div>
+      <div class="divider"></div>
+    </div>
+    <div class="sec"><div class="sl">Dialogue</div></div>
+    <div class="scrim"><div class="dialog sheet k2"><h3 class="ttl">Supprimer l'outil ?</h3><p>Ses 214 entrées seront supprimées avec lui.</p>
+      <div class="btns"><span class="btn b-ter">Annuler</span><span class="btn sheet k3 b-dan">Supprimer</span></div></div></div>
+    <div class="sec"><div class="sl">Conversation</div>
+      <div class="chat">
+        <div class="you sheet k1">Combien de calories cette semaine ?</div>
+        <div class="ai sheet k4">Tu es à <b>12 880 kcal</b> sur sept jours, soit 1 840 par jour, sous ton objectif de 2 000.</div>
+        <div class="inter sheet k2"><div class="ribbon"></div><div class="q">Ajouter « Marche 30 min » au Journal ?</div><div class="btns" style="justify-content:flex-end"><span class="btn b-ter">Refuser</span><span class="btn sheet k1 b-pri">Valider</span></div></div>
+        <div class="confetti"><i></i><i></i><i></i></div>
+      </div>
+    </div>
+    <div class="sec"><div class="sl">Messages</div>
+      <div class="toast sheet k3">Entrée enregistrée.</div><div class="pad" style="height:10px"></div>
+      <div class="snack sheet k1"><span>Entrée supprimée.</span><span>Annuler</span></div>
+    </div>
+    <div class="sec"><div class="sl">Date et heure</div>
+      <div class="dialog sheet k1 date">
+        <div class="mh"><span class="ib"><span class="ic" data-icon="chevron-left"></span></span><b class="ttl">Octobre 2026</b><span class="ib"><span class="ic" data-icon="chevron-right"></span></span></div>
+        <div class="cal" id="cal"></div>
+        <div class="btns" style="margin-top:8px;justify-content:flex-end"><span class="btn b-ter">Annuler</span><span class="btn sheet k2 b-pri">Choisir</span></div>
+      </div>
+      <div class="pad"></div>
+      <div class="dialog sheet k3"><div class="time">
+        <div class="cnt"><span class="pm sheet k1 b-sec"><span class="ic" data-icon="plus"></span></span><span class="n ttl sheet k2">07</span><span class="pm sheet k3 b-sec"><span class="ic" data-icon="minus"></span></span></div>
+        <span class="colon">:</span>
+        <div class="cnt"><span class="pm sheet k4 b-sec"><span class="ic" data-icon="plus"></span></span><span class="n ttl sheet k1">30</span><span class="pm sheet k2 b-sec"><span class="ic" data-icon="minus"></span></span></div>
+      </div></div>
+    </div>
+    <div class="sec"><div class="sl">Texte sélectionné</div><div class="selbar sheet k2"><span>Copier</span><span class="on">Couper</span><span>Tout</span></div></div>
+    <div class="sec"><div class="sl">Grille en édition</div>
+      <div class="edit">
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+        <div class="tile sheet k1 w2 faded" data-colour="yellow" style="grid-row:1;grid-column:1/3"><div class="name">Poids</div><div class="big">72,4</div></div>
+        <div class="tile sheet k2 w2 lifted" data-colour="blue" style="grid-row:2;grid-column:2/4"><div class="name">Pas</div><div class="gauge"><span style="width:71%"></span></div></div>
+      </div>
+    </div>
+    <div class="pad"></div>
+  </div></div>
+</template>
+
+<script>
+"use strict";
+const PALETTES_URL = "/app/src/main/resources/app/treelune/themes/paper/palettes.json";
+const SAVE_URL = "/palettes/paper";
+const LUCIDE_URL = (name) => `/third_party/lucide/icons/${name}.svg`;
+const STEPS = [1, 1.12, 1.25, 1.4];
+
+// The numbers a slider sets, with their range: everything PaperPalette.kt will read.
+const KNOBS = [
+  ["kraft_hue", "Teinte du kraft", 0, 359, 1],
+  ["accent_hue", "Teinte du corail", 0, 359, 1],
+  ["navy_hue", "Teinte du bleu nuit", 0, 359, 1],
+  ["kraft_lightness", "Kraft · clarté", 0, 1, 0.002],
+  ["kraft_chroma", "Kraft · saturation", 0, 0.15, 0.001],
+  ["sheet_lightness", "Feuille crème · clarté", 0, 1, 0.002],
+  ["sheet_chroma", "Feuille crème · saturation", 0, 0.06, 0.001],
+  ["white_lightness", "Feuille blanche · clarté", 0, 1, 0.002],
+  ["ink_lightness", "Encre · clarté", 0, 1, 0.002],
+  ["ink_chroma", "Encre · saturation", 0, 0.06, 0.001],
+  ["dim_lightness", "Encre secondaire · clarté", 0, 1, 0.005],
+  ["dim_chroma", "Encre secondaire · saturation", 0, 0.06, 0.001],
+  ["rule_lightness", "Tirets et fibres · clarté", 0, 1, 0.005],
+  ["rule_chroma", "Tirets et fibres · saturation", 0, 0.15, 0.001],
+  ["shadow_lightness", "Ombre · clarté", 0, 0.6, 0.005],
+  ["shadow_alpha", "Ombre · opacité", 0, 1, 0.01],
+  ["accent_lightness", "Corail · clarté", 0.3, 0.9, 0.005],
+  ["accent_chroma", "Corail · saturation", 0, 0.3, 0.002],
+  ["navy_lightness", "Bleu nuit · clarté", 0.1, 0.7, 0.005],
+  ["navy_chroma", "Bleu nuit · saturation", 0, 0.15, 0.001],
+  ["colour_lightness", "Feuilles de couleur · clarté", 0.3, 0.95, 0.005],
+  ["colour_chroma", "Feuilles de couleur · saturation", 0, 0.25, 0.002],
+  ["status_lightness", "États · clarté", 0.3, 0.9, 0.005],
+  ["status_chroma", "États · saturation", 0, 0.25, 0.002],
+];
+
+// The same hues as the other themes: a tag's hue is its meaning.
+const TAG_HUES = { red: 25, orange: 55, yellow: 95, green: 145, teal: 185, blue: 230, purple: 300, pink: 355 };
+const STATUS_HUES = { success: 145, warning: 55, error: 25, info: 250 };
+// The cream sheet's and the ink's hues, kept by the hue shift: paper stays paper.
+const SHEET_HUE = 83, INK_HUE = 67;
+const GREY_CHROMA = 0.012;
+// What is written on a colour (a coloured sheet, the coral): the light cream or the dark ink of the
+// light palette, whichever reads better on it, the same in both modes.
+const CREAM = [0.982, 0.015, 77], DARK_INK = [0.255, 0.021, INK_HUE];
+
+// ---- OKLCH to sRGB, its chroma reduced until sRGB can show it (Lch.kt) ----
+function linear(L, C, H) {
+  const hr = H * Math.PI / 180, a = C * Math.cos(hr), b = C * Math.sin(hr);
+  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const s = (L - 0.0894841775 * a - 1.2914855480 * b) ** 3;
+  return [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+          -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+          -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s];
+}
+const inGamut = (v) => v.every((x) => x >= -0.0005 && x <= 1.0005);
+function rgb([L, C, H]) {
+  L = Math.min(1, Math.max(0, L)); H = ((H % 360) + 360) % 360; C = Math.max(0, C);
+  if (!inGamut(linear(L, C, H))) {
+    let lo = 0, hi = C;
+    for (let i = 0; i < 18; i++) { const mid = (lo + hi) / 2; if (inGamut(linear(L, mid, H))) lo = mid; else hi = mid; }
+    C = lo;
+  }
+  return linear(L, C, H).map((x) => { x = Math.min(1, Math.max(0, x)); x = x <= 0.0031308 ? 12.92 * x : 1.055 * x ** (1 / 2.4) - 0.055; return Math.round(x * 255) / 255; });
+}
+const hex = (c) => "#" + rgb(c).map((x) => Math.round(x * 255).toString(16).padStart(2, "0")).join("");
+function luminance(c) { const [r, g, b] = rgb(c).map((x) => x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4); return 0.2126 * r + 0.7152 * g + 0.0722 * b; }
+function contrast(a, b) { const [x, y] = [luminance(a), luminance(b)].sort((p, q) => p - q); return (y + 0.05) / (x + 0.05); }
+const onColour = (c) => contrast(CREAM, c) >= contrast(DARK_INK, c) ? CREAM : DARK_INK;
+
+// ---- A palette's colours, as PaperPalette.kt will derive them ----
+function derive(n, shift) {
+  const kraft = n.kraft_hue + shift;
+  const out = {
+    g: [n.kraft_lightness, n.kraft_chroma, kraft],
+    s: [n.sheet_lightness, n.sheet_chroma, SHEET_HUE],
+    w: [n.white_lightness, n.sheet_chroma / 3, SHEET_HUE],
+    i: [n.ink_lightness, n.ink_chroma, INK_HUE],
+    d: [n.dim_lightness, n.dim_chroma, INK_HUE],
+    r: [n.rule_lightness, n.rule_chroma, kraft],
+    shc: [n.shadow_lightness, n.kraft_chroma / 2, kraft],
+    a: [n.accent_lightness, n.accent_chroma, n.accent_hue + shift],
+    n: [n.navy_lightness, n.navy_chroma, n.navy_hue + shift],
+    on: CREAM,
+  };
+  out.oa = onColour(out.a);
+  for (const [k, h] of Object.entries(TAG_HUES)) out["tag-" + k] = [n.colour_lightness, n.colour_chroma, h];
+  out["tag-grey"] = [n.colour_lightness, GREY_CHROMA, SHEET_HUE];
+  for (const k of [...Object.keys(TAG_HUES), "grey"]) out["on-" + k] = onColour(out["tag-" + k]);
+  for (const [k, h] of Object.entries(STATUS_HUES)) out["st-" + k] = [n.status_lightness, n.status_chroma, h];
+  out.err = out["st-error"];
+  return out;
+}
+
+// ---- State and drawing ----
+const S = { doc: null, edited: 0, shift: 0, step: 0, dirty: false };
+const icons = new Map();
+const COLOURS = [...Object.keys(TAG_HUES), "grey"];
+
+async function loadIcons(root) {
+  const names = [...new Set([...root.querySelectorAll("[data-icon]")].map((e) => e.dataset.icon))];
+  await Promise.all(names.filter((n) => !icons.has(n)).map(async (n) => {
+    const r = await fetch(LUCIDE_URL(n));
+    if (!r.ok) throw new Error(`no Lucide icon ${n}`);
+    icons.set(n, await r.text());
+  }));
+  root.querySelectorAll("[data-icon]").forEach((e) => { e.innerHTML = icons.get(e.dataset.icon); });
+}
+
+// A sheet's colour and what is written on it, for every element that names its colour.
+function colours(root) {
+  root.querySelectorAll("[data-colour]").forEach((e) => {
+    e.style.setProperty("--c", `var(--tag-${e.dataset.colour})`);
+    e.style.setProperty("--oc", `var(--on-${e.dataset.colour})`);
+  });
+}
+
+function sheetColours(root) {
+  const tags = root.querySelector("#alltags"), rounds = root.querySelector("#allrounds");
+  if (!tags) return;
+  tags.removeAttribute("id"); rounds.removeAttribute("id");
+  const NAMES = { red: "rouge", orange: "orange", yellow: "jaune", green: "vert", teal: "sarcelle", blue: "bleu", purple: "violet", pink: "rose", grey: "gris" };
+  const ICONS = { red: "heart", orange: "flame", yellow: "sun", green: "leaf", teal: "droplet", blue: "scale", purple: "notebook-pen", pink: "flower", grey: "sticky-note" };
+  tags.innerHTML = COLOURS.map((k) => `<span class="tag" data-colour="${k}">${NAMES[k]}</span>`).join("");
+  rounds.innerHTML = COLOURS.map((k) => `<span class="bd col" style="--bs:32px" data-colour="${k}"><span class="ic" data-icon="${ICONS[k]}"></span></span>`).join("");
+}
+
+function calendar(root) {
+  const cal = root.querySelector("#cal"); if (!cal) return;
+  cal.removeAttribute("id");
+  let html = ["L", "M", "M", "J", "V", "S", "D"].map((d) => `<span class="wd">${d}</span>`).join("");
+  for (let i = 28; i <= 30; i++) html += `<span class="mute">${i}</span>`;
+  for (let d = 1; d <= 31; d++) html += `<span class="${d === 18 ? "today" : d === 21 ? "sel" : ""}"><u>${d}</u></span>`;
+  html += `<span class="mute">1</span>`;
+  cal.innerHTML = html;
+}
+
+function paint() {
+  for (const [col, idx] of [["colLight", 0], ["colDark", 1]]) {
+    const n = S.doc.palettes[idx].numbers;
+    const colors = derive(n, S.shift);
+    document.querySelectorAll(`#${col} .phone`).forEach((p) => {
+      for (const [k, v] of Object.entries(colors)) p.style.setProperty("--" + k, hex(v));
+      p.style.setProperty("--sh", `color-mix(in srgb, ${hex(colors.shc)} ${Math.round(n.shadow_alpha * 100)}%, transparent)`);
+      p.style.setProperty("--k", STEPS[S.step]);
+    });
+  }
+  contrasts();
+}
+
+function contrasts() {
+  const rows = [];
+  const tagKeys = Object.keys(TAG_HUES).concat("grey");
+  for (const [label, idx] of [["Clair", 0], ["Sombre", 1]]) {
+    const n = S.doc.palettes[idx].numbers;
+    const pairs = [
+      ["encre / kraft", (c) => contrast(c.i, c.g), 4.5],
+      ["encre / feuille crème", (c) => contrast(c.i, c.s), 4.5],
+      ["encre / feuille blanche", (c) => contrast(c.i, c.w), 4.5],
+      ["secondaire / kraft", (c) => contrast(c.d, c.g), 4.5],
+      ["secondaire / feuille crème", (c) => contrast(c.d, c.s), 4.5],
+      ["crème / bleu nuit", (c) => contrast(c.on, c.n), 4.5],
+      ["texte / corail", (c) => contrast(c.oa, c.a), 4.5],
+      ["états / feuille crème", (c) => Math.min(...Object.keys(STATUS_HUES).map((k) => contrast(c["st-" + k], c.s))), 4.5],
+      ["texte / sa feuille de couleur", (c) => Math.min(...tagKeys.map((k) => contrast(c["on-" + k], c["tag-" + k]))), 4.5],
+      ["icône / sa feuille de couleur", (c) => Math.min(...tagKeys.map((k) => contrast(c["on-" + k], c["tag-" + k]))), 3],
+      ["tirets / kraft", (c) => contrast(c.r, c.g), 3],
+    ];
+    rows.push(`<tr><td colspan="3"><b>${label}</b></td></tr>`);
+    for (const [name, f, min] of pairs) {
+      const now = f(derive(n, S.shift));
+      let worst = Infinity;
+      for (let s = 0; s < 360; s += 15) worst = Math.min(worst, f(derive(n, s)));
+      const cls = (v) => v < min ? "low" : "okk";
+      rows.push(`<tr><td>${name}</td><td class="${cls(now)}">${now.toFixed(2)}</td><td class="${cls(worst)}">${worst.toFixed(2)}</td></tr>`);
+    }
+  }
+  document.getElementById("contrasts").innerHTML = rows.join("");
+}
+
+function sliders() {
+  const n = S.doc.palettes[S.edited].numbers;
+  const box = document.getElementById("sliders");
+  box.innerHTML = KNOBS.map(([k, label, min, max, step]) =>
+    `<div class="row"><div class="lab"><span>${label}</span><b id="o_${k}">${n[k]}</b></div><input type="range" data-k="${k}" min="${min}" max="${max}" step="${step}" value="${n[k]}"></div>`).join("");
+  box.querySelectorAll("input").forEach((inp) => inp.addEventListener("input", () => {
+    n[inp.dataset.k] = +inp.value;
+    document.getElementById("o_" + inp.dataset.k).textContent = inp.value;
+    setDirty(true); paint();
+  }));
+}
+
+function seg(id, labels, current, onPick) {
+  const el = document.getElementById(id);
+  el.innerHTML = labels.map((l, i) => `<button aria-pressed="${i === current}">${l}</button>`).join("");
+  el.querySelectorAll("button").forEach((b, i) => b.addEventListener("click", () => {
+    el.querySelectorAll("button").forEach((x, j) => x.setAttribute("aria-pressed", j === i));
+    onPick(i);
+  }));
+}
+
+function setDirty(d) {
+  S.dirty = d;
+  const el = document.getElementById("saved");
+  el.className = d ? "dirty" : "";
+  el.textContent = d ? "modifié, non enregistré" : "enregistré";
+}
+
+async function save() {
+  try {
+    const r = await fetch(SAVE_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(S.doc) });
+    if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+    setDirty(false);
+  } catch (e) {
+    const el = document.getElementById("saved"); el.className = "bad"; el.textContent = "échec de l'enregistrement : " + e.message;
+  }
+}
+
+async function main() {
+  const r = await fetch(PALETTES_URL, { cache: "no-store" });
+  if (!r.ok) throw new Error(`palettes.json: ${r.status}`);
+  S.doc = await r.json();
+  for (const col of ["colLight", "colDark"]) {
+    for (const t of ["screen", "sheet"]) {
+      const node = document.getElementById(t).content.cloneNode(true);
+      calendar(node); sheetColours(node); colours(node);
+      document.getElementById(col).appendChild(node);
+    }
+  }
+  await loadIcons(document.body);
+  seg("segPalette", ["Clair", "Sombre"], 0, (i) => { S.edited = i; sliders(); });
+  seg("segStep", ["0", "1", "2", "3"], 0, (i) => { S.step = i; paint(); });
+  document.getElementById("shift").addEventListener("input", (e) => { S.shift = +e.target.value; document.getElementById("shiftOut").textContent = e.target.value; paint(); });
+  document.getElementById("btnSave").addEventListener("click", save);
+  window.addEventListener("beforeunload", (e) => { if (S.dirty) e.preventDefault(); });
+  sliders(); paint(); setDirty(false);
+}
+
+main().catch((e) => { const el = document.getElementById("saved"); el.className = "bad"; el.textContent = e.message; throw e; });
+</script>
+</body>
+</html>
