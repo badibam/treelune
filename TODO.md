@@ -4,8 +4,7 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 
 ## Release F-Droid
 
-- La recette F-Droid (`scripts/fdroid/app.treelune.yml`) essayée dans l'image de build de F-Droid : la démarche, les deux commandes et les inconnues sont dans `docs/design/fdroid-compliance.md`, « La recette, essayée chez nous ».
-- La reproductibilité : construire la release deux fois depuis deux clones du tag, à deux chemins différents, et comparer les APK.
+- La reproductibilité : l'APK que la recette construit dans l'image de F-Droid (`docs/design/fdroid-compliance.md`, « La recette, essayée chez nous ») comparé à notre APK signé de la même version (`apksigcopier compare`), puis deux builds depuis deux chemins différents.
 - La fiche fastlane (`docs/design/fdroid-compliance.md`) : en-US `title`, `short_description`, `full_description`, `changelogs/<versionCode>.txt`, `images/icon.png`, `images/featureGraphic.png` ; les captures d'écran, à faire sur le téléphone, servent aussi au README (`fastlane/metadata/android/en-US/images/phoneScreenshots/`, leur place marquée dans `README.md` et `README.fr.md`), l'icône de l'app en tête.
 - Les anti-features : `NonFreeNet` (Anthropic, OpenAI, DeepSeek, le serveur de connexion de Tailscale) ; à trancher pour la liste de prix LiteLLM que `ModelPriceManager` lit sur GitHub.
 - La version soumise, taguée sur un arbre propre, ses notes de version écrites et validées avant de publier ; la mise à jour depuis la 0.7.0 installée passée sur le téléphone avec ses données (une base neuve ne passe aucune migration, une mise à jour les passe toutes, nouvelles comprises).

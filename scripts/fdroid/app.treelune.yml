@@ -1,5 +1,7 @@
 Categories:
-  - Productivity
+  - AI Chat
+  - Habit Tracker
+  - Task
 License: GPL-3.0-or-later
 SourceCode: https://github.com/badibam/treelune
 IssueTracker: https://github.com/badibam/treelune/issues
@@ -16,7 +18,7 @@ Builds:
     subdir: app
     sudo:
       - apt-get update
-      - apt-get install -y golang-go
+      - apt-get install -y -t trixie-backports golang-go
     gradle:
       - yes
     srclibs:
@@ -26,6 +28,9 @@ Builds:
       - pushd $$go$$/src
       - ./make.bash
       - popd
+    scandelete:
+      - third_party/lucide/icons/package.json
+      - app/src/main/go/vendor/tailscale.com/util/eventbus/assets
     ndk: 30.0.16248370
 
 AutoUpdateMode: Version
