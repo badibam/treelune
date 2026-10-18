@@ -7,7 +7,9 @@ themes/<id>/sounds-choice.json, written by the sound bench (./run themes): the f
 the theme, the sounds shortlisted for each signal, the one chosen, a gain for the whole theme in
 dB and an offset for a signal, and the theme's recipes -- a sound of the library retouched, several
 mixed, or one made from nothing by sox. The sounds themselves are never committed: the sources
-are listed in themes/sound-sources.json and downloaded here, into tmp/sound-library/. What the app
+are listed in themes/sound-sources.json -- an archive taken whole, or files listed sound by sound,
+each with its own page and, where they differ from its source's, its author and licence -- and
+downloaded here, into tmp/sound-library/. What the app
 plays is committed: res/raw/<id>_<signal>.flac, and their credits in themes/<id>/sounds.json.
 
 Commands:
@@ -34,6 +36,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import urllib.parse
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -52,6 +55,8 @@ AUDIO = {".ogg", ".wav", ".flac", ".mp3"}
 # A sound's id is its source's title and its file name; a recipe's, this prefix and its name.
 SEP = " · "
 RECIPE = "recipe"
+# Some sites refuse the default agent of urllib.
+AGENT = "treelune-theme-sounds/1.0 (the interface sounds of the app's themes)"
 
 
 def signals():
@@ -90,9 +95,17 @@ def choices():
 # ----------------------------------------------------------------------------------------------
 
 def fetch(source):
-    """The source's sounds in tmp/sound-library/<slug>/, made in a .part folder renamed at the end,
-    so that the folder's presence says it is complete."""
+    """The source's sounds in tmp/sound-library/<slug>/: an archive's audio folder, or each file
+    of a source listed sound by sound."""
     target = LIBRARY / slug(source["title"])
+    if "archive" in source:
+        return fetch_archive(source, target)
+    return fetch_files(source, target)
+
+
+def fetch_archive(source, target):
+    """An archive's audio folder, made in a .part folder renamed at the end, so that the folder's
+    presence says it is complete."""
     if target.is_dir():
         return target
     print(f"downloading {source['title']}")
@@ -119,6 +132,40 @@ def fetch(source):
                 out.write_bytes(z.read(name))
         os.replace(part, target)
     return target
+
+
+def fetch_files(source, target):
+    """Each listed file as <name><its extension>, checked against its sha256 and written whole, so
+    that a file's presence says it is complete: a file added to the list later is the only one
+    downloaded."""
+    target.mkdir(parents=True, exist_ok=True)
+    for one in source["files"]:
+        if not re.fullmatch(r"[a-z0-9_-]+", one["name"]):
+            sys.exit(f"{source['title']}: refused name {one['name']!r}")
+        path = target / (one["name"] + Path(urllib.parse.urlparse(one["url"]).path).suffix.lower())
+        if path.suffix not in AUDIO:
+            sys.exit(f"{source['title']}: {one['name']} is not a sound file ({one['url']})")
+        if path.is_file():
+            continue
+        print(f"downloading {source['title']}{SEP}{one['name']}")
+        request = urllib.request.Request(one["url"], headers={"User-Agent": AGENT})
+        with urllib.request.urlopen(request, timeout=120) as response:
+            data = response.read()
+        digest = hashlib.sha256(data).hexdigest()
+        if digest != one["sha256"]:
+            sys.exit(f"{source['title']}{SEP}{one['name']}: its sha256 is {digest}, not the one listed")
+        part = path.with_name(path.name + ".part")
+        part.write_bytes(data)
+        os.replace(part, path)
+    return target
+
+
+def licence(source, name):
+    """A sound's licence: its file's own in a source listed sound by sound, else its source's."""
+    for one in source.get("files", []):
+        if one["name"] == name:
+            return one.get("licence", source.get("licence"))
+    return source.get("licence")
 
 
 def family(source, relative):
@@ -162,8 +209,11 @@ def render(recipe, sounds, out):
 def task_library():
     LIBRARY.mkdir(parents=True, exist_ok=True)
     for source in sources().values():
-        if source["licence"] not in LICENCES:
-            sys.exit(f"{source['title']}: licence {source['licence']} is not one the app takes ({', '.join(sorted(LICENCES))})")
+        names = [one["name"] for one in source.get("files", [])] or [None]
+        for name in names:
+            if licence(source, name) not in LICENCES:
+                what = source["title"] + (f"{SEP}{name}" if name else "")
+                sys.exit(f"{what}: licence {licence(source, name)} is not one the app takes ({', '.join(sorted(LICENCES))})")
         fetch(source)
     sounds = library_sounds()
     entries = []
@@ -198,13 +248,19 @@ def credit(id_, choice, by_title):
             raise ValueError(f"{id_}: no such recipe in the choice")
         made = " ".join(map(str, recipe.get("effects", [])))
         return {"made": f"sox {made}".strip(), "from": [credit(i, choice, by_title) for i in recipe.get("inputs", [])]}
-    title = id_.split(SEP, 1)[0]
+    title, name = id_.split(SEP, 1)
     source = by_title.get(title)
     if source is None:
         raise ValueError(f"{id_}: no source titled {title!r} in sound-sources.json")
-    if source["licence"] not in LICENCES:
-        raise ValueError(f"{id_}: licence {source['licence']} refused")
-    return {"title": id_, "author": source["author"], "licence": source["licence"], "page": source["page"]}
+    # A source listed sound by sound credits each sound by its own page, and its own author and
+    # licence where they are not the source's.
+    one = next((f for f in source.get("files", []) if f["name"] == name), {})
+    if source.get("files") and not one:
+        raise ValueError(f"{id_}: no file named {name!r} in {title}")
+    if licence(source, name) not in LICENCES:
+        raise ValueError(f"{id_}: licence {licence(source, name)} refused")
+    return {"title": id_, "author": one.get("author", source.get("author")), "licence": licence(source, name),
+            "page": one.get("page", source["page"])}
 
 
 def credits(theme, choice):
