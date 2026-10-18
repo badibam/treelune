@@ -6,7 +6,7 @@
 ## android @ a500d4f
 ! 9b59e58  targetSdk stays 34: target 35+ forces edge-to-edge, every screen to rework and check on a phone
 - 9b59e58  screens call the command dispatcher (Coordinator) directly and keep only view state; the dispatcher and its services are the controller layer
-## fdroid @ bf72ce6
+## fdroid @ a85a2c3
 ! b2320db  no fastlane store listing yet; en-US text and screenshots come with the English default, before the first submission
 ## pixel-ui @ 0db9979
 ## ia-service-distant @ 85554e4
