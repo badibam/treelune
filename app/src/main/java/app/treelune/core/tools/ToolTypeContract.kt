@@ -227,6 +227,13 @@ interface ToolTypeContract {
     fun refuseChange(entry: ToolDataEntity, context: Context): String? = null
 
     /**
+     * Why [entry] may not be changed by an ordinary write, though it may be deleted, or null when
+     * it may: a deck's review, written once, whose deletion undoes it. ToolDataService asks it
+     * before every update, after refuseChange.
+     */
+    fun refuseUpdate(entry: ToolDataEntity, context: Context): String? = null
+
+    /**
      * Why an entry holding [data] and [state] may not be stored, beyond what each field says on
      * its own, or null when it may: a calendar's whole-day event has days, not a duration.
      * ToolDataService asks it on every create and update, the entry as it will be stored.
@@ -255,6 +262,13 @@ interface ToolTypeContract {
      * none: no fields of the user's in its config, and every write of an entry is refused.
      */
     fun keepsEntries(): Boolean = true
+
+    /**
+     * Whether a tool of this type takes fields of the user's in its entries (extra_fields): any
+     * tool that keeps entries, but one whose entries the app alone writes from what the user does
+     * elsewhere (a deck's reviews), where no one would ever enter them.
+     */
+    fun takesUserFields(): Boolean = keepsEntries()
 
     /**
      * The fields of the rows this tool type's config describes, where a setting chooses among

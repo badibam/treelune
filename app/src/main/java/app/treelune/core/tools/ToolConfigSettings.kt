@@ -78,15 +78,15 @@ object ToolConfigSettings {
 
     /**
      * The whole config of a tool of [toolType]: the general settings, its type's, then the user's
-     * own fields, which come after the entries' main field they add to — for a tool that keeps
-     * entries only.
+     * own fields, which come after the entries' main field they add to — for a tool that takes
+     * them only (takesUserFields).
      */
     fun nodes(toolType: ToolTypeContract, context: Context): List<SettingNode> =
         // Built once per tool type and language: it depends on nothing else, and a tile reads
         // its name and icon through it on every drawing (a chart's takes some 150 ms to build)
         declarations.getOrPut(toolType to context.resources.configuration.locales[0]) {
             generalNodes(toolType, context) + typeNodes(toolType, context) +
-                (if (toolType.keepsEntries()) extraFieldsNodes(toolType, context) else emptyList())
+                (if (toolType.takesUserFields()) extraFieldsNodes(toolType, context) else emptyList())
         }
 
     /**
