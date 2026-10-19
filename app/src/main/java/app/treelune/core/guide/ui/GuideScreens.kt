@@ -31,6 +31,7 @@ import app.treelune.core.guide.GuideChapter
 import app.treelune.core.guide.GuideChapters
 import app.treelune.core.guide.GuidePart
 import app.treelune.core.guide.GuidePath
+import app.treelune.core.markup.ui.MarkupText
 import app.treelune.core.navigation.Navigator
 import app.treelune.core.navigation.Place
 import app.treelune.core.strings.Strings
@@ -159,9 +160,9 @@ fun ChapterScreen(id: String, demoInstalled: Boolean) {
                 return@Column
             }
             if (!chapter.isTutorial) {
-                chapter.body(context)?.let { GuideText(it) }
-                chapter.toolConfig(context)?.let { Part("settings", s.shared("guide_tool_config")); GuideText(s.shared("guide_tool_config_open") + "\n" + it) }
-                chapter.toolScreen(context)?.let { Part("smartphone", s.shared("guide_tool_screen")); GuideText(it) }
+                chapter.body(context)?.let { MarkupText(it, icons = true) }
+                chapter.toolConfig(context)?.let { Part("settings", s.shared("guide_tool_config")); MarkupText(s.shared("guide_tool_config_open") + "\n" + it, icons = true) }
+                chapter.toolScreen(context)?.let { Part("smartphone", s.shared("guide_tool_screen")); MarkupText(it, icons = true) }
                 return@Column
             }
             if (chapter.usesDemo && !demoInstalled) DemoMissingLine()
@@ -183,7 +184,7 @@ fun ChapterScreen(id: String, demoInstalled: Boolean) {
             chapter.steps.forEach { step ->
                 Column(verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
                     UI.Text(s.shared("guide_step_number").format(step.number) + " " + chapter.goal(context, step), TextType.STRONG, selectable = true)
-                    GuideText(chapter.text(context, step))
+                    MarkupText(chapter.text(context, step), icons = true)
                     // The way from the home screen, for a place known without the steps before
                     Guide.target(chapter, step)?.let { place ->
                         LaunchedEffect(place) { names(context, place) }
@@ -192,7 +193,7 @@ fun ChapterScreen(id: String, demoInstalled: Boolean) {
                     }
                 }
             }
-            chapter.outro(context)?.let { GuideText(it) }
+            chapter.outro(context)?.let { MarkupText(it, icons = true) }
         }
     }
 }

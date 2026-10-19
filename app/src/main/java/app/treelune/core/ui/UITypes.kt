@@ -184,7 +184,7 @@ enum class ButtonDisplay {
 }
 
 
-/** The emphasis of a run inside a read text (GuideMarkup), drawn by the theme (ThemeContract.emphasis). */
+/** The emphasis of a run inside a read text (Markup), drawn by the theme (ThemeContract.emphasis). */
 enum class Emphasis {
     BOLD, ITALIC
 }

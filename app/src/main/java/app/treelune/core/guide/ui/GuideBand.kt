@@ -21,6 +21,7 @@ import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.guide.Guide
 import app.treelune.core.guide.GuidePath
 import app.treelune.core.guide.StepKind
+import app.treelune.core.markup.ui.MarkupText
 import app.treelune.core.navigation.Navigator
 import app.treelune.core.navigation.Place
 import app.treelune.core.navigation.PlaceStack
@@ -75,7 +76,7 @@ fun GuideBand() {
                 }
                 if (open) {
                     // The band opens and closes at a touch anywhere on it
-                    GuideText(chapter.text(context, step), selectable = false)
+                    MarkupText(chapter.text(context, step), icons = true, selectable = false)
                     when {
                         here -> UI.Text(s.shared("guide_band_here"), TextType.CAPTION)
                         gestures != null -> UI.Text(s.shared("guide_band_from_here").format(GuidePath.sentence(gestures, s.shared("guide_path_then"))), TextType.CAPTION)

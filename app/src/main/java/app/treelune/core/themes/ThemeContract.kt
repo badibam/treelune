@@ -163,7 +163,7 @@ interface ThemeContract {
     ) = Text(AnnotatedString(text), type, fillMaxWidth, textAlign, maxLines)
 
     /**
-     * How a run of a read text marked bold or italic (GuideMarkup) is drawn, over its text's
+     * How a run of a read text marked bold or italic (Markup) is drawn, over its text's
      * style: a weight, a slant, an ink, whatever the theme's font and register have for it.
      */
     @Composable

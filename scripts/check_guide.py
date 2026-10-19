@@ -16,7 +16,7 @@ each chapter and step:
   installs (assets/demo/structure.json), and a tool's place names the zone the demo puts it in:
   the demo rewritten, a tutorial would send the user to a place that is not there;
 - the Guide's texts, and the tool types' texts it shows (usage, guide_config, guide_screen), keep
-  to its markup (GuideMarkup): an icon only as `{name}` at the head of a list line, a name of the
+  to its markup (core/markup/Markup.kt): an icon only as `{name}` at the head of a list line, a name of the
   icon vocabulary (assets/icons/index.json), and no brace anywhere else;
 - a chapter that covers a form ("covers", a name of FORMS) names each of its settings: the label of
   every setting the form declares appears in the chapter's texts, in each language. The labels are

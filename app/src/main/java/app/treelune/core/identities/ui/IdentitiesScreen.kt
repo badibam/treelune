@@ -24,7 +24,7 @@ import androidx.compose.ui.platform.LocalContext
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.grid.Grid
-import app.treelune.core.guide.ui.GuideText
+import app.treelune.core.markup.ui.MarkupText
 import app.treelune.core.identities.IdentityLanguage
 import app.treelune.core.navigation.Navigator
 import app.treelune.core.navigation.Place
@@ -330,7 +330,7 @@ fun IdentityScreen(id: String, onName: @Composable (String) -> Unit, onBack: () 
                     else {
                         val content = piece["content"] as String
                         UI.Text(origin(s, content.length, piece["imported"] == true), TextType.CAPTION)
-                        GuideText(content)
+                        MarkupText(content, icons = false)
                     }
                     UI.FormActions { UI.ActionButton(action = ButtonAction.EDIT, onClick = { editingPiece = key }) }
                 }
@@ -379,7 +379,7 @@ private fun ResourceCard(resource: Map<*, *>, onEdit: () -> Unit, onDelete: () -
             UI.Text(resource["title"] as String, TextType.SUBTITLE)
             UI.Text(origin(s, content.length, resource["imported"] == true), TextType.CAPTION)
             UI.Text(resource["description"] as String, TextType.BODY, selectable = true)
-            if (open) GuideText(content)
+            if (open) MarkupText(content, icons = false)
             UI.FormActions {
                 UI.Button(type = ButtonType.DEFAULT, onClick = { open = !open }) {
                     UI.Text(s.shared(if (open) "identity_resource_fold" else "identity_resource_read"), TextType.BODY)
