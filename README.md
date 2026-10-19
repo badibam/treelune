@@ -90,7 +90,7 @@ On first launch, a **demo** is waiting: twelve weeks in the life of Camille, who
 The app is in active development. It is used every day, but anything may still change, the shape of the data included. Keep backups.
 
 <!-- status -->
-- Version 0.8.0
+- Version 0.8.1
 - Android 8.0 or later
 - Languages: English, French
 <!-- /status -->

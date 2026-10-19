@@ -90,7 +90,7 @@ Au premier lancement, une **démo** t'attend : douze semaines de la vie de Camil
 L'app est en développement actif. Elle sert tous les jours, mais tout peut encore changer, la forme des données comprise. Garde des sauvegardes.
 
 <!-- status -->
-- Version 0.8.0
+- Version 0.8.1
 - Android 8.0 ou plus récent
 - Langues : anglais, français
 <!-- /status -->
