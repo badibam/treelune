@@ -1,0 +1,134 @@
+{
+  "modes": {
+    "LIGHT": {
+      "tag_chroma": 0.0,
+      "tones": {
+        "LINES": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "DIAGONALS": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "GRID": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "ZIGZAG": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "WAVES": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "DOTS": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "CROSSES": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "STARS": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "RINGS": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "DIAMONDS": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "CONFETTI": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "CHECKER": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "BRICKS": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "SCALES": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "ICON": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        }
+      }
+    },
+    "DARK": {
+      "tag_chroma": 0.0,
+      "tones": {
+        "LINES": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "DIAGONALS": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "GRID": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "ZIGZAG": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "WAVES": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "DOTS": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "CROSSES": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "STARS": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "RINGS": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "DIAMONDS": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "CONFETTI": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "CHECKER": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "BRICKS": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "SCALES": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        },
+        "ICON": {
+          "SUBTLE": 1.0,
+          "MARKED": 1.05
+        }
+      }
+    }
+  }
+}

@@ -45,8 +45,19 @@ Le choix d'une couleur n'en demande pas : il passe par des pièces que le thème
 
 Ce que le cœur garde : le voile derrière un dialogue est celui d'Android, un noir translucide, commun à tous les thèmes. C'est le seul gris de l'écran.
 
+## Ce qui est codé
+
+`themes/eink/` : les palettes et les trames (`EinkPalette` : deux couleurs par mode, sans `palettes.json`, rien n'étant à régler ; chaque trame dessinée sans lissage dans une tuile de pixels entiers), les tailles et la police par cran (`EinkSize`), l'élément pressé, les cadres et l'ombre pleine (`EinkPieces`), les graphiques (`EinkDrawing`), chaque composant du contrat (`EinkTheme`), les cellules des textures (`textures/`, celles du suisse, sur le pas de 8). Le banc, `themes/eink/bench/screens.html`, vu le 2026-10-19. `EinkPaletteTest` tient le noir et blanc, le contraste, et des tirets et une densité propres à chaque couleur. Choisi dans Réglages › Interface, sous le nom « Liseuse ».
+
+Ce que le code a précisé des décisions :
+- La bande d'encre ne porte que le titre de la page, son icône et son sous-titre : la rangée des boutons au-dessus (retour, actions) est posée par le cœur hors de toute pièce du thème, et reste sur le fond.
+- Une texture est à l'encre pleine aux deux intensités (`textures.json`, ses deux tons ramenés à l'encre) ; la discrète efface un pixel d'un dp sur deux de son motif (un damier du fond posé dessus), pour rester en deux couleurs.
+- Le titre d'un groupe est en capitales, le nom d'une tuile en gras : les deux sont un `HEADING`, que le thème distingue par l'en-tête de section où il se trouve.
+- Une tuile mise de côté pendant qu'une autre se déplace est couverte d'une trame du fond, au lieu d'être pâlie.
+- La marque de chrono s'allume et s'éteint chaque seconde ; les trois carrés de l'attente se remplissent toutes les 400 ms.
+
 ## Ce qui reste ouvert
 
-- Le seuil : le banc du thème, vu dans les deux modes.
+- La rangée des boutons dans la bande d'encre, comme dans la maquette : un ajout au contrat (la pièce qui porte les boutons du haut de page), à décider.
 - Rien n'a tourné sur un téléphone : la passe de `docs/THEMES.md`.
 - Les sons, à la planche d'écoute.

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="name">Liseuse</string>
+    <!-- What the theme looks like, said to the user: the README -->
+    <string name="tagline">Comme une liseuse : noir et blanc pur, des trames à la place des gris, rien qui bouge</string>
+</resources>
