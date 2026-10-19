@@ -1951,6 +1951,13 @@
             "type": "DATETIME",
             "always_visible": false,
             "config": {}
+          },
+          {
+            "name": "photos",
+            "display_name": "@plants_field_photos",
+            "type": "IMAGE",
+            "always_visible": false,
+            "config": {}
           }
         ]
       },

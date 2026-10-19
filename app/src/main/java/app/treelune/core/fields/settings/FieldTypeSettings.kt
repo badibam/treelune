@@ -6,6 +6,7 @@ import app.treelune.core.fields.DurationForm
 import app.treelune.core.fields.DurationUnit
 import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldType
+import app.treelune.core.fields.ImageField
 import app.treelune.core.fields.ReferenceTarget
 import app.treelune.core.fields.TextLength
 import app.treelune.core.selection.ReferenceKind
@@ -57,8 +58,8 @@ object FieldTypeSettings {
     private fun caseNodes(type: FieldType, text: (String) -> String, labels: TextLength): List<SettingNode> {
         val config = configGroup(type, text, labels)
         // A fixed day or instant is hardly a suggestion for every new entry: dates have none, nor
-        // a reference, one thing for all the entries to come
-        val default = if (type == FieldType.DATE || type == FieldType.DATETIME || type == FieldType.REFERENCE) null
+        // a reference, one thing for all the entries to come, nor images, each owned by one entry
+        val default = if (type in setOf(FieldType.DATE, FieldType.DATETIME, FieldType.REFERENCE, FieldType.IMAGE)) null
             else field("default_value", "field_default_value", type, text, description = "field_type_schema_default_value_description")
                 .copy(valueOfDefined = true)
         return listOfNotNull(config, default)
@@ -179,6 +180,10 @@ object FieldTypeSettings {
                     shownWith = SettingNode.ShownWith(ReferenceTarget.KINDS, ReferenceKind.ENTRY.name)
                 )
             ), required = true)
+        )
+        FieldType.IMAGE -> listOf(
+            field(ImageField.MAX, "field_config_image_max", FieldType.NUMERIC, text,
+                description = "field_type_image_max_description", config = mapOf("min" to 1, "decimals" to 0))
         )
     }
 

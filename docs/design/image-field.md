@@ -23,7 +23,7 @@ Une ou plusieurs images dans un champ d'une entrée : les photos d'une fiche de 
 ## Le stockage
 
 - Une seule table d'images pour les messages et les entrées : chaque ligne a exactement un propriétaire, une session ou une entrée (deux clés étrangères, une seule remplie, suppression en cascade), et note son format. La table `attached_images` devient cette table par une migration.
-- Le fichier : `files/attachments/<id>.jpg` ou `<id>.png`, l'extension d'après le format ; le reste comme aujourd'hui (écrit en `.part` puis renommé, le fichier avant la ligne, la ligne avant le fichier).
+- Le fichier : `<id>.jpg` ou `<id>.png`, l'extension d'après le format, dans `files/attachments/` pour un message, `files/attachments/entries/` pour une entrée, `files/attachments/pending/` pour une photo préparée dans un formulaire que l'entrée n'a pas encore écrite : le ménage sait ainsi, sans ligne, à qui était un fichier orphelin ; le reste comme aujourd'hui (écrit en `.part` puis renommé, le fichier avant la ligne, la ligne avant le fichier).
 - À l'écriture d'une entrée, le service compare les ids du champ avant et après : une image retirée perd sa ligne.
 - Une entrée disparaît par beaucoup de chemins (l'entrée, son outil, sa zone, un champ retiré par un changement de config) : sa ligne d'image part avec elle, son fichier au ménage du démarrage suivant. Pour une image d'entrée c'est un cas prévu, écrit au journal en INFO ; un fichier de message orphelin reste un WARN.
 - La sauvegarde les emporte comme les images d'un message.

@@ -1325,6 +1325,15 @@
     <string name="reference_kind_variable">Variable</string>
     <string name="field_reading_reference">Points to: %1$s, written {"kind", "id"}.</string>
     <string name="field_reading_reference_tools">Only the entries of the tools %1$s.</string>
+    <string name="field_type_image_display_name">Image</string>
+    <string name="field_reading_images">A list of image ids, in their order. Read, each comes with its width and height in pixels, never the image itself: IMAGES shows them. Written, the ids alone; an image of the conversation goes in by its id, copied for the entry.</string>
+    <string name="field_reading_images_max">%1$d images at most.</string>
+    <string name="field_validation_image_max">The most images a field holds is a whole number, at least 1: %1$s is not.</string>
+    <string name="field_config_image_max">Most images</string>
+    <string name="field_type_image_max_description">How many images the field holds at most: 1 for a single photo; empty, no limit</string>
+    <string name="field_image_count_one">1 image</string>
+    <string name="field_image_count">%1$d images</string>
+    <string name="field_image_input_label_max">%1$s (%2$d of %3$d)</string>
     <string name="field_validation_reference_kinds">Choose at least one thing the field can point to.</string>
     <string name="field_validation_reference_tool_instances">The tools of the list are for entries only: check Entry.</string>
     <string name="field_value_reference_invalid">Not a reference: %1$s. Expected {"kind": "ENTRY", "id": "..."}, with no id for the app.</string>
@@ -1341,6 +1350,8 @@
     <string name="file_error_not_text">%1$s is not a text file: only text can be joined (CSV, plain text, Markdown, JSON).</string>
     <string name="image_error_not_read">This image could not be read: %1$s</string>
     <string name="image_error_not_found">No image has the id %1$s</string>
+    <string name="image_error_no_conversation">Images are shown within a conversation only</string>
+    <string name="action_verbalize_files_show_images">Showing images</string>
     <string name="image_animated_first_frame">This image is animated: only its first frame is kept</string>
     <string name="field_image_others">+%1$d</string>
     <string name="ai_image_error_model_does_not_read">This model does not read images: take them off the message, or choose a model that reads them.</string>

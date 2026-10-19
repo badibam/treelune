@@ -169,6 +169,7 @@
   "plants_field_watering": "Arrosage",
   "plants_field_temp": "Température idéale",
   "plants_field_repotted": "Rempoté le",
+  "plants_field_photos": "Photos",
   "plants_name": "Plantes",
   "plants_description": "Une fiche par plante du balcon. Chaque récolte pointe vers la sienne.",
   "harvests_field_plant": "Plante",

@@ -197,8 +197,9 @@ object PromptManager {
         // with images reaches it in parts, each image where the user put it
         val enrichmentText = app.treelune.core.ai.enrichments.EnrichmentText.load(context,
             app.treelune.core.ai.enrichments.EnrichmentText.blocksOf(sessionMessages.mapNotNull { it.richContent }))
-        // The format of each image the messages hold, which says how its file is read
-        val imageIds = sessionMessages.flatMap { it.richContent?.imageIds.orEmpty() }
+        // The format of each image the messages hold, which says how its file is read: those the
+        // user joined, and those of entries IMAGES brought in
+        val imageIds = sessionMessages.flatMap { it.richContent?.imageIds.orEmpty() + shownImages(it) }
         val formats = if (imageIds.isEmpty()) emptyMap()
             else app.treelune.core.database.AppDatabase.getDatabase(context).imageDao().getByIds(imageIds).associate { it.id to it.imageFormat }
         return sessionMessages.map { message ->
@@ -213,9 +214,25 @@ object PromptManager {
                 ?: message.systemMessage?.takeIf { it.type == SystemMessageType.TEXT_OUTSIDE_JSON }?.let { system ->
                     message.copy(systemMessage = system.copy(summary = system.formattedData ?: "", formattedData = null))
                 }
+                // Images of entries IMAGES brought in follow the data that names them, as if the
+                // user had joined them
+                ?: message.systemMessage?.let { system ->
+                    shownImages(message).takeIf { it.isNotEmpty() }?.let { ids ->
+                        message.copy(promptParts = listOf(PromptPart.Text(system.toPromptText())) + ids.flatMap { id ->
+                            val format = checkNotNull(formats[id]) { "Image $id: its row is missing" }
+                            listOf(PromptPart.Text(app.treelune.core.ai.enrichments.EnrichmentText.imageLabel(id)), PromptPart.Image(id, format))
+                        })
+                    }
+                }
                 ?: message
         }
     }
+
+    /** The ids of the images IMAGES brought into the conversation with [message], in order. */
+    private fun shownImages(message: SessionMessage): List<String> =
+        message.systemMessage?.commandResults.orEmpty()
+            .filter { it.command == "files.show_images" && it.status == CommandStatus.SUCCESS }
+            .flatMap { (it.data?.get("image_ids") as? List<*>).orEmpty().map { id -> id as String } }
 
     /**
      * Parse raw message data from DB into SessionMessage objects

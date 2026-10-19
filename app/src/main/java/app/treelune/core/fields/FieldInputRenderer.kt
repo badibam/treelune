@@ -234,6 +234,10 @@ fun FieldInput(
         app.treelune.core.fields.FieldType.REFERENCE -> {
             ReferenceInput(fieldDef, value, onChange, context, required)
         }
+
+        app.treelune.core.fields.FieldType.IMAGE -> {
+            app.treelune.core.images.ImageInput(fieldDef, value, onChange, context)
+        }
     }
 }
 
@@ -455,7 +459,7 @@ fun CustomFieldsDisplay(
                     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
                 ) {
                     if (showLabels) UI.Text(s.shared("field_label_inline").format(field.displayName), TextType.SUBTITLE)
-                    Box(modifier = Modifier.weight(1f)) { FieldValue(field, values[field.name], context) }
+                    Box(modifier = Modifier.weight(1f)) { FieldValue(field, values[field.name], context, short = true) }
                 }
             }
         }
@@ -472,7 +476,7 @@ fun CustomFieldsDisplay(
                     verticalArrangement = Arrangement.spacedBy(UI.Space.XS)
                 ) {
                     if (showLabels) UI.Text(s.shared("field_label_inline").format(field.displayName), TextType.LABEL)
-                    FieldValue(field, values[field.name], context)
+                    FieldValue(field, values[field.name], context, short = true)
                 }
             }
         }

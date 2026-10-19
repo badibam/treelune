@@ -48,11 +48,15 @@ class ChartSources(private val context: Context) {
     /** The columns a source gives, before any transform. */
     suspend fun sourceColumns(source: Source): Map<String, FieldDefinition> = when (source) {
         is Source.Entries -> {
-            val fields = ToolFields.filterable(source.selection.target.id ?: error("a selection's tool"), context, s)
+            val fields = drawable(ToolFields.filterable(source.selection.target.id ?: error("a selection's tool"), context, s))
             source.selection.fields?.let { kept -> fields.filterKeys { it in kept || it == TIMESTAMP } } ?: fields
         }
         is Source.Grid -> gridColumns() + source.columns.associate { it.name to columnField(it) }
     }
+
+    /** The fields of a tool a chart draws: all but its images, which are no value on an axis. */
+    private fun drawable(fields: Map<String, FieldDefinition>): Map<String, FieldDefinition> =
+        fields.filterValues { it.type != FieldType.IMAGE }
 
     /** The columns every row of a grid gives, beside its own. */
     fun gridColumns(): Map<String, FieldDefinition> {
@@ -106,7 +110,7 @@ class ChartSources(private val context: Context) {
     private suspend fun entries(source: Source.Entries, period: EntryPeriod, now: Long): ChartTable {
         val toolId = source.selection.target.id ?: error("a selection's tool")
         val fields = ToolFields.filterable(toolId, context, s)
-        val columns = source.selection.fields?.let { kept -> fields.filterKeys { it in kept || it == TIMESTAMP } } ?: fields
+        val columns = drawable(source.selection.fields?.let { kept -> fields.filterKeys { it in kept || it == TIMESTAMP } } ?: fields)
         // Entries without a date are all shown: the period says when, and they are of no time
         val selection = source.selection.copy(period = if (TIMESTAMP in fields) period else EntryPeriod())
         val result = coordinator.processUserAction("tool_data.get", mapOf(

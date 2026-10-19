@@ -146,7 +146,20 @@ object FieldConfigValidator {
             FieldType.DATETIME -> validateDateTimeConfig(config, s)
             FieldType.DURATION -> validateDurationConfig(config, s)
             FieldType.REFERENCE -> validateReferenceConfig(config, s)
+            FieldType.IMAGE -> validateImageConfig(config, s)
         }
+    }
+
+    /**
+     * Validates IMAGE field config.
+     * Config: {max?} (a whole number, at least 1)
+     */
+    private fun validateImageConfig(config: Map<String, Any>?, s: app.treelune.core.strings.StringsContext): ValidationResult {
+        val max = config?.get(ImageField.MAX) ?: return ValidationResult(isValid = true)
+        if (max !is Number || max.toDouble() % 1.0 != 0.0 || max.toInt() < 1) {
+            return ValidationResult(isValid = false, errorMessage = s.shared("field_validation_image_max").format(max.toString()))
+        }
+        return ValidationResult(isValid = true)
     }
 
     /**

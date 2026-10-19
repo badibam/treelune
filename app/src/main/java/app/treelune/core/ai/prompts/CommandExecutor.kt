@@ -145,7 +145,10 @@ class CommandExecutor(private val context: Context) {
 
             // A read sent once is run all the same: only its text tells whether it changed
             val target = sessionId?.let { readTarget(command) }
-            var result = executeCommand(command, origin)
+            // Images shown to the model enter its conversation, which only the executor knows
+            val run = if (command.resource == "files" && command.operation == "show_images" && sessionId != null)
+                command.copy(params = command.params + ("session_id" to sessionId)) else command
+            var result = executeCommand(run, origin)
 
             val fingerprint = result?.commandResult?.takeIf { it.status == CommandStatus.SUCCESS }
                 ?.data?.get(SessionReads.FINGERPRINT) as? String
@@ -453,6 +456,8 @@ class CommandExecutor(private val context: Context) {
                 data["tool_instance_id"]?.let { filtered["tool_instance_id"] = it }
                 if (filtered.isEmpty()) null else filtered
             }
+            // Images shown: their ids in the conversation, which PromptManager sends after the message
+            "files" -> data["image_ids"]?.let { mapOf("image_ids" to it) }
             "zones", "tools", "tool_data" -> {
                 // Tools/Zones/Data: keep IDs, names, counts - remove large objects/arrays
                 val filtered = mutableMapOf<String, Any>()
@@ -641,6 +646,10 @@ class CommandExecutor(private val context: Context) {
                     "list_sessions_for_automation" -> "Runs of routine '${resolveAutomationName(command.params["automation_id"] as? String)}'"
                     else -> "Run ${command.params["session_id"]}, its messages as its AI received them"
                 }
+                "files" -> when (command.operation) {
+                    "show_images" -> "Images of entries, shown below, each under its id in this conversation: ${(data["images"] as? List<*>)?.size ?: 0}"
+                    else -> "Data from ${command.resource}.${command.operation}"
+                }
                 "icons" -> when (command.operation) {
                     "overview" -> "Icons: overview"
                     else -> {
@@ -745,7 +754,12 @@ class CommandExecutor(private val context: Context) {
                     val references = converted.flatMap { ModelValues.references(it, schema) }.distinct()
                     val names = runBlocking { loadReferenceNames(references, context) }
                         .mapValues { (_, name) -> (name as? ReferenceName.Named)?.name }
-                    reordered["entries"] = converted.map { ModelValues.withReferenceNames(it, schema, names)!! }
+                    // Each image by its id and its size, never the image (IMAGES shows it)
+                    val imageIds = converted.flatMap { ModelValues.imageIds(it, schema) }.distinct()
+                    val images = if (imageIds.isEmpty()) emptyMap() else runBlocking {
+                        app.treelune.core.database.AppDatabase.getDatabase(context).imageDao().getByIds(imageIds)
+                    }.associateBy { it.id }
+                    reordered["entries"] = converted.map { ModelValues.withImageSizes(ModelValues.withReferenceNames(it, schema, names), schema, images)!! }
                 }
 
                 // Add pagination if present

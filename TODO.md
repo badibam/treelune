@@ -74,12 +74,12 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - Le thème papier découpé (`docs/design/paper-theme.md`, branche theme-cut-paper) : la passe sur le téléphone de `docs/THEMES.md`, les icônes découpées d'abord (leur coût, celles qui se bouchent), puis ce que la spec garde dans « Ce qui reste ouvert ».
 - La SQLite de l'app à la place de celle du téléphone (branche demo-install) : la mise à jour depuis la release avec ses données d'abord (« Mise à jour et démarrage »), puis la démo sur l'OPPO A5 2020 (« Démo »).
 - Le thème plan d'architecte (`docs/design/blueprint-theme.md`, branche theme-blueprint) : la passe sur le téléphone de `docs/THEMES.md`, le débord des icônes d'abord, puis ce que la spec garde dans « Ce qui reste ouvert ».
+- Le champ Image (`docs/design/image-field.md`, branche image-field) : la migration 82 sur la release et ses images de messages d'abord, puis la section « À passer sur le téléphone » de la spec ; la tuile de l'Agenda dit encore « 3 images » en texte ; passé, élaguer la spec.
 
 ## Conçu, à coder
 
 Une spec existe dans `docs/design/`.
 
-- Le champ Image (`docs/design/image-field.md`) : une liste d'images par champ, la table d'images commune aux messages et aux entrées, le format gardé (JPEG ou PNG), l'IA qui voit une description et demande les images, qui range une photo de la conversation.
 - L'outil Flashcards (`docs/design/flashcards.md`) : un paquet qui pointe vers les lignes d'un autre outil, ses sens, une entrée par révision, FSRS porté et testé contre sa référence, la séance, la tuile et la page, `flashcards.due` et `flashcards.review`.
 - L'historique des écritures et leur annulation (`docs/design/undo-history.md`) : un pas par opération demandée de l'extérieur, la ligne entière avant et après, écrite par une seule classe que garde un script, 30 jours, le service `history` ouvert à l'IA, son écran.
 

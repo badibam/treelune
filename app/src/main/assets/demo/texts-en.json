@@ -169,6 +169,7 @@
   "plants_field_watering": "Watering",
   "plants_field_temp": "Ideal temperature",
   "plants_field_repotted": "Repotted on",
+  "plants_field_photos": "Photos",
   "plants_name": "Plants",
   "plants_description": "One card per plant on the balcony. Each harvest points to its own.",
   "harvests_field_plant": "Plant",

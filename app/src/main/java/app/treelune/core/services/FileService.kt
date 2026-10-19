@@ -29,6 +29,11 @@ import java.util.UUID
  * - prepare_image: `uri`: the image prepared for an entry's IMAGE field, its file set aside
  *   without a row until the entry is written (ToolDataService, EntryImages); the same answer.
  * - delete_image: `id`: an image taken off the composer; its row deleted before its file.
+ * - show_images: `session_id`, `ids`: images of entries brought into the conversation, as if the
+ *   user had joined them, for the model to see them (the AI's IMAGES): each copied as an image
+ *   of the session, one already the session's kept as it is. Refused for a model that does not
+ *   read images, or of which nothing says it does. Answer: `images` (each one's `id` in the
+ *   conversation, its `source_id`, `width` and `height`) and `image_ids`, the conversation's.
  */
 class FileService(private val context: Context) : ExecutableService {
 
@@ -48,6 +53,7 @@ class FileService(private val context: Context) : ExecutableService {
             }
             "attach_image" -> attachImage(params)
             "prepare_image" -> prepareImage(params)
+            "show_images" -> showImages(params)
             "delete_image" -> {
                 val id = params.optString("id").takeIf { it.isNotEmpty() } ?: return OperationResult.error(s.shared("service_error_missing_id"))
                 val image = imageDao.getById(id) ?: return OperationResult.error(s.shared("image_error_not_found").format(id))
@@ -95,6 +101,31 @@ class FileService(private val context: Context) : ExecutableService {
         val id = UUID.randomUUID().toString()
         Images.write(java.io.File(Images.pendingDir(context), prepared.format.fileName(id)), prepared.bytes)
         return OperationResult.success(answer(id, prepared))
+    }
+
+    private suspend fun showImages(params: JSONObject): OperationResult {
+        val sessionId = params.optString("session_id").takeIf { it.isNotEmpty() } ?: return OperationResult.error(s.shared("image_error_no_conversation"))
+        val ids = params.optJSONArray("ids")?.let { array -> (0 until array.length()).map { array.getString(it) } }
+            ?.takeIf { it.isNotEmpty() } ?: return OperationResult.error(s.shared("service_error_missing_required_params").format("ids"))
+        // Never shown to a model that would not see them: it would answer on images it never saw
+        val reads = app.treelune.core.ai.providers.ImageInput.sessionModelReadsImages(context, sessionId)
+        app.treelune.core.ai.providers.ImageInput.refusal(ids.size, reads) { s.shared(it) }?.let { return OperationResult.error(it) }
+        val sources = ids.map { id -> imageDao.getById(id) ?: return OperationResult.error(s.shared("image_error_not_found").format(id)) }
+        val now = System.currentTimeMillis()
+        val shown = sources.map { source ->
+            if (source.sessionId == sessionId) source
+            else source.copy(id = UUID.randomUUID().toString(), sessionId = sessionId, entryId = null, createdAt = now).also { copy ->
+                // The file first, as for any image: an interruption leaves a file the sweep removes
+                Images.copy(Images.file(context, source), Images.file(context, copy))
+                imageDao.insert(copy)
+            }
+        }
+        return OperationResult.success(mapOf(
+            "images" to shown.zip(sources).map { (image, source) ->
+                mapOf("id" to image.id, "source_id" to source.id, "width" to image.width, "height" to image.height)
+            },
+            "image_ids" to shown.map { it.id }
+        ))
     }
 
     /** An image prepared, or why it could not be. */
@@ -165,6 +196,7 @@ class FileService(private val context: Context) : ExecutableService {
             "delete" -> s.shared("action_verbalize_files_delete")
             "attach_image" -> s.shared("action_verbalize_files_attach_image")
             "prepare_image" -> s.shared("action_verbalize_files_prepare_image")
+            "show_images" -> s.shared("action_verbalize_files_show_images")
             "delete_image" -> s.shared("action_verbalize_files_delete_image")
             else -> s.shared("action_verbalize_unknown")
         }

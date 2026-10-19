@@ -107,7 +107,16 @@ enum class FieldType {
      * - tool_instances: with ENTRY, the entries of these tool instances only
      * Example: the food a meal is made of, the tool a chart draws
      */
-    REFERENCE;
+    REFERENCE,
+
+    /**
+     * Images, always a list of their ids, in their order, even for one: a single stored form, a
+     * single way to enter and show it (docs/design/image-field.md). Each id names a row of the
+     * images table the entry owns; the service keeps the two in step at each write (EntryImages).
+     * Config: {max?} (whole number, at least 1; absent, no limit)
+     * Example: the photos of a plant's sheet, a diagram in a note
+     */
+    IMAGE;
 
     /**
      * Get the localized display name for this field type.
@@ -130,6 +139,7 @@ enum class FieldType {
             DATETIME -> s.shared("field_type_datetime_display_name")
             DURATION -> s.shared("field_type_duration_display_name")
             REFERENCE -> s.shared("field_type_reference_display_name")
+            IMAGE -> s.shared("field_type_image_display_name")
         }
     }
 
@@ -148,6 +158,7 @@ enum class FieldType {
         get() = when (this) {
             TEXT -> setOf("length")
             NUMERIC -> setOf("min", "max", "decimals")
+            IMAGE -> setOf(ImageField.MAX)
             else -> emptySet()
         }
 
@@ -182,6 +193,9 @@ enum class FieldType {
                     else -> true
                 }
             }
+
+            // Fewer images allowed: a value holding more no longer fits
+            IMAGE -> ImageField.max(config)?.let { ImageField.ids(value).size <= it } ?: true
 
             else -> true
         }

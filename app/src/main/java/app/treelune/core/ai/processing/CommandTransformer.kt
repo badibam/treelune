@@ -97,6 +97,10 @@ object CommandTransformer {
                         })
                     }
                     "FILE" -> transformFileCommand(command)
+                    // Images of entries brought into the conversation; its session is the executor's to add
+                    "IMAGES" -> (command.params["ids"] as? List<*>)?.let { ids ->
+                        ExecutableCommand(resource = "files", operation = "show_images", params = mapOf("ids" to ids))
+                    }
                     "IMPORT_PLAN" -> transformImportPlanCommand(command)
                     // The identities (docs/design/incarnations.md): a null, an id missing, is said by the loop as invalid params
                     "IDENTITIES" -> ExecutableCommand(resource = "identities", operation = "list", params = emptyMap())

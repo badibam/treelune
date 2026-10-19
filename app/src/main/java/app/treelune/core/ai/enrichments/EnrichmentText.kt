@@ -66,6 +66,9 @@ class EnrichmentText private constructor(
                 is MessageSegment.Image -> {
                     closeRun()
                     val format = checkNotNull(formats[segment.imageId]) { "Image ${segment.imageId}: its row is missing" }
+                    // Its id before it, by which the AI files it in an entry
+                    run.add(imageLabel(segment.imageId))
+                    closeRun()
                     parts.add(PromptPart.Image(segment.imageId, format))
                 }
             }
@@ -106,6 +109,9 @@ class EnrichmentText private constructor(
     }
 
     companion object {
+        /** The line naming an image of the conversation to the model, just before it: its id. */
+        fun imageLabel(id: String): String = "[image $id]"
+
         /**
          * Reads the zones and the tools the blocks may name, and the entries [blocks] name: the
          * blocks about to be shown or sent.

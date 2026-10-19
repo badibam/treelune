@@ -30,6 +30,12 @@ object FieldValueSchema {
     const val REFERENCE = "reference"
 
     /**
+     * The mark of a value that is a list of image ids (an IMAGE field): who shows it to the model
+     * gives each id its width and height, never the image (ModelValues.withImageSizes).
+     */
+    const val IMAGES = "images"
+
+    /**
      * The schema of a field's value as a reader gets it -- the AI, an entry or a setting alike:
      * what it is held to, its label as the title, and in its description what the value means
      * ([reading]) before what the field's own description says, and its default value, which a
@@ -96,6 +102,10 @@ object FieldValueSchema {
                     target.toolInstances.takeIf { it.isNotEmpty() }?.let { text("field_reading_reference_tools").format(it.joinToString(", ")) }
                 )
             }
+            FieldType.IMAGE -> listOfNotNull(
+                text("field_reading_images"),
+                ImageField.max(config)?.let { text("field_reading_images_max").format(it) }
+            )
             else -> emptyList()
         }
         return parts.joinToString(" ").ifEmpty { null }
@@ -301,6 +311,21 @@ object FieldValueSchema {
                     put("required", JSONArray().put("kind"))
                     put("additionalProperties", false)
                     put("format", REFERENCE)
+                    if (fieldDef.description != null) {
+                        put("description", fieldDef.description)
+                    }
+                }
+            }
+
+            FieldType.IMAGE -> {
+                JSONObject().apply {
+                    // The ids of images the entry owns, in their order: that each one is an image
+                    // the entry may hold is the service's to check, with the database (EntryImages)
+                    put("type", "array")
+                    put("items", JSONObject().put("type", "string").put("minLength", 1))
+                    put("uniqueItems", true)
+                    ImageField.max(fieldDef.config)?.let { put("maxItems", it) }
+                    put("format", IMAGES)
                     if (fieldDef.description != null) {
                         put("description", fieldDef.description)
                     }
