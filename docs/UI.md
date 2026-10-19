@@ -132,6 +132,14 @@ Les constantes suivantes sont référencées dans les schémas JSON :
 
 **INTERDIT** : Une limite UI plus restrictive que le schéma (ex: TEXT_MEDIUM pour un schéma LONG_LENGTH).
 
+### Textes longs
+
+Un texte long (TEXT de longueur LONG ou UNLIMITED, `TextLength.formatted`) s'écrit dans le petit Markdown de l'app (`core/markup/Markup.kt`) : titres `#` à `###`, listes `- ` ou `* `, listes numérotées `1. ` (numérotées par leur place à l'affichage, quel que soit le chiffre tapé), `**gras**`, `*italique*`. Le texte stocké est celui qu'on a tapé, rien d'autre ; le schéma que lit l'IA le marque `text with markup` (`FieldValueSchema.MARKUP`).
+
+- Saisie (`UI.FormField`, `MarkupEditing`) : un retour à la ligne après un élément de liste commence le suivant, sur un élément vide il retire sa marque ; deux boutons au bout de la ligne du label, liste et liste numérotée (`ThemeContract.LabelLine`), posent ou retirent la marque sur chaque ligne que touche la sélection ; Gras et Italique dans la barre d'un texte sélectionné.
+- Lecture : `MarkupText`, le même lecteur pour le Guide, l'usage d'un outil, une identité et les textes de l'utilisateur ; l'icône `{nom}` en tête d'une ligne de liste n'est lue que dans les textes de l'app (`icons = true`).
+- Abrégé (une tuile, une cellule, une ligne de champs) : `Markup.plain`, une ligne sans marques, par `formatValue` ; une entrée copiée garde ses marques (`describeValue`).
+
 ### Autocorrection Intelligente
 - **TEXT** : Words + autocorrect
 - **TEXT_MEDIUM/LONG/UNLIMITED** : Sentences + autocorrect
