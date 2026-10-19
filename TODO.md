@@ -132,7 +132,6 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 - Possibilité de stocker image en champs supplementaire par exemple ? Et/ou galerie d'images ? — Outils — Idée
 - Thème suiss à améliorer — UI — Amélioration
 - Quand on édite une note, c'est très pénible avec le clavier andfoid de faire des liste avec tiret etc. Je vois / options : boutons d'edition dans champs de texte / champs de type texte mis e' forme / option de champs de texte : pour permettre mise en forme / autre type de champ : liste (numérotée ou pas) : qui permet de mulriplier les champs er chacun correspond à 1 étape. Si 1 seul champ se comporte comme texte normal ? / mix entre plusieurs options précédentes ? À bien réfléchir, avec conséquances en termes d'UI en particulier. Ce que je constate c'est qu'il y a déjà un endroit pour placer des boutons de mise en forme : ma ligne du label du champ. À voir..... — Core — Idée
-- Dans quel tooltype on peut stocker recette ? Comme seance mais en mode aperçu par exemple ? (Ça demanderait de changer et renommer seance). Ou alors nouveau type. Données strucgurées : manque succession — Core — Idée
 - Pouvoir stocker des images (par exemple pour faire des fiches de plantes etc) — Core — Idée
 
 ## En attente d'un déclencheur
