@@ -219,8 +219,8 @@ Les outils d'une section de groupe sont posés sur une grille de quatre colonnes
 - **MINIMAL** (2×1) : l'en-tête, icône et nom
 - **LINE** (4×1) : l'en-tête à gauche, le résumé (ou l'aperçu) à droite
 - **CONDENSED** (2×2) : l'en-tête en haut, le résumé (ou l'aperçu) dessous
-- **EXTENDED** (4×2) : l'en-tête et le résumé en haut, une rangée de corps
-- **SQUARE** (4×4) : l'en-tête et le résumé en haut, trois rangées de corps
+- **EXTENDED** (4×2) : l'en-tête et le résumé en haut, une rangée de corps au plus, la tuile aussi haute que son contenu (l'en-tête seul quand l'outil est vide), toutes ses cases en édition
+- **SQUARE** (4×4) : de même, trois rangées de corps au plus
 - **FULL** (4 × sa hauteur) : l'en-tête et le résumé en haut, le corps aussi haut que son contenu, arrondi à la case
 
 Une case fait deux lignes, et toute hauteur dans une tuile se compte en lignes. Seules ICON, MINIMAL et CONDENSED partagent une ligne de la grille. Rien ne défile dans une tuile : ce qui ne tient pas est l'affaire du type d'outil. Un élément tactile de la tuile fait son action, un toucher ailleurs ouvre l'outil (ou l'entrée qui attend), l'appui long sa config ; en édition, un toucher sélectionne. L'IA ne voit ni ne change les positions ; changer le mode d'un outil par sa config fait descendre ce que sa tuile recouvre.

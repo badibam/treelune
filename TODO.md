@@ -135,7 +135,6 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 - Dans notes : si on active les titres, ils devraient quand meme être facultatifs : c'est le cas en update : on peut retirer le titre. Mais en création ça refuse de cliquer sans rien dire. — Outils — Amélioration
 - Bouton d'ajout de notes : tuile "AD" c'est moche et issu du passé du dev. Il faudrait alignement sur patterns de l'app pour ce genre de situation. — UI — Amélioration
 - Il faifrait pouvoir 'retirer' une icone et voir si le manque existe dans d'aittes selcteurs. — UI — Amélioration
-- Outil en etendu et autres disposition pleine largeur : ne prend que l'espace nécessaire : ne pas laisser d'espace vide si l'outil est vide... ? Qu'en oenses tu ? — UI — Amélioration
 - Agenda en complet : afficbe moins qu'en étendu... ! — UI — Bug
 - Filtres et tri dans les outils ? — Core — Amélioration
 - Dans quel tooltype on peut stocker recette ? Comme seance mais en mode aperçu par exemple ? (Ça demanderait de changer et renommer seance). Ou alors nouveau type. Données strucgurées : manque succession — Core — Idée

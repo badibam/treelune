@@ -882,23 +882,25 @@ object UI {
                         }
                     }
                 }
-                DisplayMode.EXTENDED, DisplayMode.SQUARE -> {
-                    // One row of cells for the header and the summary (two in one column), the others for the body
-                    val rows = if (displayMode == DisplayMode.EXTENDED) 1 else 3
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        HeaderAndSummary(Modifier.weight(if (oneColumn) 2f else 1f).fillMaxWidth())
-                        Box(modifier = Modifier.weight(rows.toFloat()).fillMaxWidth()) {
+                DisplayMode.EXTENDED, DisplayMode.SQUARE, DisplayMode.FULL -> {
+                    // As tall as the body needs, to a whole pixel of the theme (GridLayout): the
+                    // header and the summary on a row less the tile's frame (two in one column), the
+                    // body under them. EXTENDED's body holds one row of cells at most, SQUARE's three,
+                    // each with the gap under it, so that a full tile is as tall as its cells; FULL's
+                    // has no limit. An empty body takes no height, the tile its header's row alone.
+                    val row = app.treelune.core.ui.components.LocalGridRow.current
+                    val headerRows = if (oneColumn) 2 else 1
+                    val rows = when (displayMode) {
+                        DisplayMode.EXTENDED -> 1
+                        DisplayMode.SQUARE -> 3
+                        else -> null
+                    }
+                    val gap = with(androidx.compose.ui.platform.LocalDensity.current) { CurrentTheme.current.gridRowGapPx().toDp() }
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        HeaderAndSummary(Modifier.fillMaxWidth().height(row * headerRows - CurrentTheme.current.tileFrame(displayMode)))
+                        Box(modifier = Modifier.fillMaxWidth().let { m -> rows?.let { m.heightIn(max = (row + gap) * it) } ?: m }) {
                             tile.Body(rows)
                         }
-                    }
-                }
-                DisplayMode.FULL -> {
-                    // As tall as the body needs, to a whole pixel of the theme (GridLayout). The header
-                    // and the summary as tall as in EXTENDED: a row less the tile's frame
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        val headerRows = if (oneColumn) 2 else 1
-                        HeaderAndSummary(Modifier.fillMaxWidth().height(app.treelune.core.ui.components.LocalGridRow.current * headerRows - CurrentTheme.current.tileFrame(DisplayMode.FULL)))
-                        tile.Body(null)
                     }
                 }
             }

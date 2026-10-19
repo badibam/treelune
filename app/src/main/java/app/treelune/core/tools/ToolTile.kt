@@ -19,9 +19,9 @@ interface ToolTile {
     fun Summary()
 
     /**
-     * The body under the header and the summary, four cells wide: [rows] rows of cells, each two
-     * lines high (one for EXTENDED, three for SQUARE), or null for FULL, which takes the rows
-     * what it shows needs.
+     * The body under the header and the summary, four cells wide, as tall as what it shows: at
+     * most [rows] rows of cells, each two lines high (one for EXTENDED, three for SQUARE), or no
+     * limit for FULL (null). A body that fills the room it is given (a chart) takes all [rows].
      */
     @Composable
     fun Body(rows: Int?)

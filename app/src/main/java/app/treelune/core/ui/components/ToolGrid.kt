@@ -9,7 +9,10 @@ import org.json.JSONObject
 
 /**
  * The tools of one group section laid on their grid (GridLayout), each tool at its grid_x and
- * grid_y as many cells as its mode takes, in edit mode when [edit] is given.
+ * grid_y as many cells as its mode takes, in edit mode when [edit] is given. A tile of four
+ * cells' width with a body (EXTENDED, SQUARE, FULL) is as tall as its content (GridLayout's
+ * grows), EXTENDED and SQUARE at most their cells (ToolCard); in edit mode EXTENDED and SQUARE
+ * show all their cells, which their place is chosen on.
  */
 @Composable
 fun ToolGrid(
@@ -21,7 +24,7 @@ fun ToolGrid(
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val modes = tools.map { DisplayMode.valueOf(JSONObject(it.config_json).getString("display_mode")) }
-    GridLayout(tools.map { ToolPositions.tile(it) }, modes.map { it == DisplayMode.FULL }, edit) { i ->
+    GridLayout(tools.map { ToolPositions.tile(it) }, modes.map { it == DisplayMode.FULL || (edit == null && (it == DisplayMode.EXTENDED || it == DisplayMode.SQUARE)) }, edit) { i ->
         val tool = tools[i]
         UI.ToolCard(
             tool = tool,

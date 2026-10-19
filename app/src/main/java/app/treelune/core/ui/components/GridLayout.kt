@@ -46,10 +46,11 @@ val LocalGridRow = androidx.compose.runtime.staticCompositionLocalOf<androidx.co
  * leaves.
  *
  * A row is one row high, except the row of a tile that grows with its content ([grows]: a
- * FULL tile), which is as tall as what it shows, a row at least, rounded up to a whole pixel of
+ * tool in FULL, EXTENDED or SQUARE), which is as tall as what it shows, a row at least, rounded up to a whole pixel of
  * the theme's drawings (drawingUnit) so the rows under it stay on whole pixels. Such a tile is measured
  * once, its width fixed and its height free, and keeps the height it takes: the rest of its row
- * stays empty under it. It is never asked for its intrinsic height, which a tile holding a layout
+ * stays empty under it. It is as wide as the grid, alone on its rows: when it spans several
+ * (EXTENDED, SQUARE), the first takes its height and the others close, with their gaps. It is never asked for its intrinsic height, which a tile holding a layout
  * measured by its constraints (BoxWithConstraints, a lazy list) cannot give. An empty cell stays
  * empty.
  *
@@ -121,19 +122,25 @@ fun GridLayout(stored: List<Grid.Tile>, grows: List<Boolean>, edit: GridEdit?, i
             fun span(count: Int) = count * cell + (count - 1).coerceAtLeast(0) * gap
             val left = { column: Int -> column * (cell + gap) }
 
-            // A tile that grows is measured first, at its width and a free height; its row takes
-            // that height in whole pixels of the theme
+            // A tile that grows is measured first, at its width and a free height; its first row
+            // takes that height in whole pixels of the theme, its other rows close
             val rowHeights = IntArray(rowCount) { rowPx }
+            val closed = BooleanArray(rowCount)
             val grown = tiles.mapIndexedNotNull { i, tile ->
                 if (!grows[i]) return@mapIndexedNotNull null
                 val width = span(tile.width)
                 val placeable = measurables[cells + i].measure(Constraints(minWidth = width, maxWidth = width, minHeight = rowPx))
                 rowHeights[tile.row] = maxOf(rowHeights[tile.row], (placeable.height + unit - 1) / unit * unit)
+                for (row in tile.row + 1 until tile.bottom) closed[row] = true
                 i to placeable
             }.toMap()
-            // Each row's top, a gap after every row but the last
+            // Each row's top, a gap after every open row but the last one open; a closed row stands
+            // where the next one starts
+            val lastOpen = (rowCount - 1 downTo 0).firstOrNull { !closed[it] } ?: -1
             val rowTops = IntArray(rowCount + 1)
-            for (row in 0 until rowCount) rowTops[row + 1] = rowTops[row] + rowHeights[row] + if (row < rowCount - 1) rowGap else 0
+            for (row in 0 until rowCount) {
+                rowTops[row + 1] = rowTops[row] + if (closed[row]) 0 else rowHeights[row] + if (row < lastOpen) rowGap else 0
+            }
             /** The pixels from the top of [row] to the bottom of the row before [end]. */
             fun height(row: Int, end: Int) = rowTops[end] - rowTops[row] - if (end < rowCount) rowGap else 0
 
