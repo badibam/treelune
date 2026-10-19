@@ -13,6 +13,12 @@ the build never needs this script nor shapely:
   - res/drawable/app_mark_retro.xml, the retro theme's mark beside the home screen's title, in
     pixels, from the grid of themes/retro/app-mark.txt.
 
+`--store` draws the same shapes in PNG for the F-Droid listing, in
+fastlane/metadata/android/en-US/images/ (the other locales fall back to it): icon.png, the
+launcher's view of the icon in 512 x 512, and featureGraphic.png, the moon and the tree beside
+the app's name in Baloo 2, in 1024 x 500. It needs Pillow besides shapely; its output is
+committed too.
+
 That grid is drawn by hand: at 22 pixels the band around the tree falls between two pixels.
 `--pixel` prints the grid the shapes give, each pixel the shape covering most of it, to start
 from when the shapes change.
@@ -29,6 +35,7 @@ environment that has shapely: `pip install shapely`), committing.
 Usage:
     ./scripts/make_launcher_icon.py            write the four drawables
     ./scripts/make_launcher_icon.py --pixel    print the shapes' grid in pixels
+    ./scripts/make_launcher_icon.py --store    draw the store listing's icon and feature graphic
 """
 
 import sys
@@ -39,6 +46,8 @@ from shapely.geometry.polygon import orient
 from shapely.ops import unary_union
 
 ROOT = Path(__file__).resolve().parent.parent
+STORE_IMAGES = ROOT / "fastlane" / "metadata" / "android" / "en-US" / "images"
+WORDMARK_FONT = ROOT / "app" / "src" / "main" / "res" / "font" / "baloo2_semibold.ttf"
 DRAWABLE = ROOT / "app" / "src" / "main" / "res" / "drawable"
 PIXEL_GRID = ROOT / "app" / "src" / "main" / "java" / "app" / "treelune" / "themes" / "retro" / "app-mark.txt"
 
@@ -66,6 +75,20 @@ BAND = 2.6
 PIXELS = 22
 PIXEL_WINDOW = (18.8, 16.8, 89.2, 87.2)
 PIXEL_COVERAGE = 0.45
+
+
+# The store images: drawn this many times larger, then reduced, which smooths their edges.
+SUPERSAMPLE = 4
+ICON_SIDE = 512
+# The part of the 108 units a launcher shows, which the store icon shows too.
+ICON_WINDOW = (18, 90)
+FEATURE_SIZE = (1024, 500)
+# In the feature graphic: the art's height and centre; the name centred in the box (left, right)
+# of the width, at the largest size up to FEATURE_NAME_SIZE that fits it.
+FEATURE_ART_HEIGHT = 380
+FEATURE_ART_CENTRE = (270, 250)
+FEATURE_NAME_SIZE = 170
+FEATURE_NAME_BOX = (500, 970)
 
 
 def disc(cx, cy, r):
@@ -163,9 +186,68 @@ def vector(paths, comment):
         f"{body}\n</vector>\n")
 
 
+def draw_shapes(image, scale, offset):
+    """Paints the moon and the tree on image, a unit becoming scale pixels, (0, 0) at offset."""
+    from PIL import Image, ImageDraw
+    moon, trunk, crown = shapes()
+    for colour, geometry in ((MOON, moon), (TRUNK, trunk), (LEAVES, crown)):
+        mask = Image.new("L", image.size, 0)
+        pen = ImageDraw.Draw(mask)
+        polygons = geometry.geoms if isinstance(geometry, MultiPolygon) else [geometry]
+        for polygon in polygons:
+            def points(ring):
+                return [(offset[0] + x * scale, offset[1] + y * scale) for x, y in ring.coords]
+            pen.polygon(points(polygon.exterior), fill=255)
+            for hole in polygon.interiors:
+                pen.polygon(points(hole), fill=0)
+        image.paste(colour, mask=mask)
+
+
+def write_png(image, size, name):
+    """Reduces the supersampled image to size and writes it, aside then renamed."""
+    from PIL import Image
+    target = STORE_IMAGES / name
+    target.parent.mkdir(parents=True, exist_ok=True)
+    staged = target.with_name(name + ".part")
+    image.resize(size, Image.LANCZOS).save(staged, format="PNG", optimize=True)
+    staged.replace(target)
+    print(f"wrote {target.relative_to(ROOT)}")
+
+
+def store_images():
+    from PIL import Image, ImageDraw, ImageFont
+    # The icon: the launcher's window over the 108 units, on the night.
+    side = ICON_SIDE * SUPERSAMPLE
+    low, high = ICON_WINDOW
+    scale = side / (high - low)
+    icon = Image.new("RGB", (side, side), BACKGROUND)
+    draw_shapes(icon, scale, (-low * scale, -low * scale))
+    write_png(icon, (ICON_SIDE, ICON_SIDE), "icon.png")
+
+    # The feature graphic: the art, by the bounds of its shapes, beside the name.
+    width, height = FEATURE_SIZE[0] * SUPERSAMPLE, FEATURE_SIZE[1] * SUPERSAMPLE
+    feature = Image.new("RGB", (width, height), BACKGROUND)
+    x0, y0, x1, y1 = unary_union(shapes()).bounds
+    scale = FEATURE_ART_HEIGHT * SUPERSAMPLE / (y1 - y0)
+    cx, cy = (c * SUPERSAMPLE for c in FEATURE_ART_CENTRE)
+    draw_shapes(feature, scale, (cx - (x0 + x1) / 2 * scale, cy - (y0 + y1) / 2 * scale))
+    left, right = (c * SUPERSAMPLE for c in FEATURE_NAME_BOX)
+    size = FEATURE_NAME_SIZE * SUPERSAMPLE
+    while True:
+        font = ImageFont.truetype(str(WORDMARK_FONT), size)
+        if font.getlength("Treelune") <= right - left:
+            break
+        size -= SUPERSAMPLE
+    ImageDraw.Draw(feature).text(((left + right) / 2, height / 2), "Treelune", font=font, fill=MOON, anchor="mm")
+    write_png(feature, FEATURE_SIZE, "featureGraphic.png")
+
+
 def main():
     if sys.argv[1:] == ["--pixel"]:
         print("\n".join(pixel_grid()))
+        return
+    if sys.argv[1:] == ["--store"]:
+        store_images()
         return
     moon, trunk, crown = shapes()
     outputs = {
