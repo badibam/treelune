@@ -203,7 +203,7 @@ object AgendaToolType : ToolTypeContract {
     }
 
     /** An occurrence of a series is removed, not deleted: its series would give it again. */
-    override fun refuseDelete(entry: ToolDataEntity, context: Context): String? =
+    override suspend fun refuseDelete(entry: ToolDataEntity, entries: suspend () -> List<ToolDataEntity>, context: Context): String? =
         if (AgendaEvent.of(entry).series != null) s(context).tool("error_delete_occurrence") else null
 
     /** The occurrences to come of a series whose times change, or which is gone. */

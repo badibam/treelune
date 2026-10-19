@@ -61,7 +61,8 @@ Interface principale avec méthodes pour :
 - **Sans entrées** : keepsEntries() (défaut : oui) ; un outil qui montre les entrées des autres (le Graphique) n'en garde aucune : pas de champs de l'utilisateur dans sa config, et toute écriture d'une entrée est refusée
 - **Contrôle de la config** : refuseConfig() (défaut : rien), ce que seule la lecture de l'app dit au-delà du schéma (une colonne qu'aucune source ne donne), demandé à chaque création et modification ; getRowFields() (défaut : aucun), les champs des lignes que décrit la config là où un réglage les nomme (`RowFields`)
 - **Entrée** : refuseEntry() (défaut : rien), ce qu'une entrée ne peut pas porter au-delà de chaque champ (une journée entière avec une durée), demandé à chaque création et modification
-- **Suppression** : refuseDelete() (défaut : rien), ce qui ne se supprime pas par l'écriture ordinaire mais se modifie (une occurrence de série d'un Agenda, qui se retire)
+- **Suppression** : refuseDelete() (défaut : rien), ce qui ne se supprime pas par l'écriture ordinaire mais se modifie (une occurrence de série d'un Agenda, qui se retire), avec de quoi lire les autres entrées de l'outil, lues seulement s'il les demande (une révision d'un paquet, seule la dernière de sa carte)
+- **Attente** : getWaiting() (défaut : aucune), les conditions d'une entrée qui attend ; countWaiting() (défaut : null), pour un type qui compte lui-même ce qui attend, faute d'une entrée qui le porte (les cartes dues d'un paquet, dues au jour) : la tuile porte le point, et s'ouvre sur l'outil seul
 - **Validation** : validateData() (délègue à SchemaValidator)
 
 ## Méthodologie d'Implémentation

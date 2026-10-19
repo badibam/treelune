@@ -451,7 +451,7 @@ class ToolDataService(private val context: Context) : ExecutableService {
         val entity = dao.getById(entryId)
             ?: return OperationResult.error(s.shared("service_error_entry_not_found").format(entryId))
         ToolTypeManager.getToolType(entity.tooltype)?.let { type ->
-            (type.refuseChange(entity, context) ?: type.refuseDelete(entity, context))?.let { return OperationResult.error(it) }
+            (type.refuseChange(entity, context) ?: type.refuseDelete(entity, { dao.getByToolInstance(entity.toolInstanceId) }, context))?.let { return OperationResult.error(it) }
         }
 
         storeSettled(entity.tooltype, { dao.getByToolInstance(entity.toolInstanceId).filter { it.id != entryId } }, null) {
