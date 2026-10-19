@@ -1,6 +1,6 @@
 package app.treelune.core.services
 
-import androidx.room.withTransaction
+import app.treelune.core.database.transaction
 import android.content.Context
 import app.treelune.core.config.DateTimeConfig
 import app.treelune.core.grid.Groups
@@ -124,7 +124,7 @@ class AppConfigService(private val context: Context) : ExecutableService {
         // A zone whose group is renamed takes the new name; one whose group the home screen gains
         // or loses changes section, and so grid: the settings, the names and the places they
         // change are one write
-        val regrouped = database.withTransaction {
+        val regrouped = database.transaction {
             val moved = if (category != AppSettingCategories.MAIN_SCREEN) emptyList() else {
                 val zones = database.zoneDao().getAllZones().map { zone ->
                     val group = change.held(zone.group)

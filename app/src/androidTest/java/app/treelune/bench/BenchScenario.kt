@@ -1,5 +1,8 @@
 package app.treelune.bench
 
+import androidx.room.execSQL
+import androidx.room.useReaderConnection
+import androidx.room.useWriterConnection
 import android.content.Context
 import android.util.Base64
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -87,7 +90,9 @@ class BenchScenario {
     /** A consistent copy of the whole base, written ahead of its log included. */
     private fun copyBase(context: Context, file: File) {
         file.delete()
-        AppDatabase.getDatabase(context).openHelper.writableDatabase.execSQL("VACUUM INTO '${file.absolutePath}'")
+        kotlinx.coroutines.runBlocking {
+            AppDatabase.getDatabase(context).useWriterConnection { it.execSQL("VACUUM INTO '${file.absolutePath}'") }
+        }
     }
 
     // ========================================================================================
@@ -122,11 +127,16 @@ class BenchScenario {
     /** The automation run now, waited on until its session ends. */
     private suspend fun playAutomation(context: Context, automationId: String, started: Long, deadline: Long): Outcome {
         AIOrchestrator.executeAutomation(automationId, started)
-        val db = AppDatabase.getDatabase(context).openHelper.readableDatabase
-        fun ended(): Boolean = db.query(
-            "SELECT end_reason FROM ai_sessions WHERE automation_id = ? AND type = 'AUTOMATION' AND created_at >= ?",
-            arrayOf<Any>(automationId, started)
-        ).use { cursor -> cursor.moveToFirst() && !cursor.isNull(0) }
+        val db = AppDatabase.getDatabase(context)
+        fun ended(): Boolean = kotlinx.coroutines.runBlocking {
+            db.useReaderConnection { connection ->
+                connection.usePrepared("SELECT end_reason FROM ai_sessions WHERE automation_id = ? AND type = 'AUTOMATION' AND created_at >= ?") { statement ->
+                    statement.bindText(1, automationId)
+                    statement.bindLong(2, started)
+                    statement.step() && !statement.isNull(0)
+                }
+            }
+        }
         return answerUntilRest(deadline) { ended() }
     }
 

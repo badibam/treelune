@@ -3,6 +3,8 @@ package app.treelune.core.database
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.sqlite.SQLiteConnection
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import android.content.Context
 import app.treelune.core.database.dao.ZoneDao
 import app.treelune.core.database.dao.ToolInstanceDao
@@ -56,8 +58,6 @@ import app.treelune.core.versioning.PointerAtV46
 import app.treelune.core.versioning.VariableValidationAtV49
 import app.treelune.core.versioning.FormerDefaultIcons
 import app.treelune.core.versioning.KeyCaseRenames
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
 import app.treelune.core.ai.data.LegacyCatchUp
 
 @Database(
@@ -125,16 +125,16 @@ abstract class AppDatabase : RoomDatabase() {
          * - v11 → v12: Add log_entries table for in-app logging
          */
 
-        private val MIGRATION_9_10 = object : Migration(9, 10) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_9_10 = object : ConnectionMigration(9, 10) {
+            override fun migrate(database: MigrationDatabase) {
                 // Empty migration - no schema changes in this version
                 // Version bump only for consistency with app versioning
                 LogManager.database("MIGRATION 9->10: No schema changes")
             }
         }
 
-        private val MIGRATION_10_11 = object : Migration(10, 11) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_10_11 = object : ConnectionMigration(10, 11) {
+            override fun migrate(database: MigrationDatabase) {
                 // Fix SchedulePattern serialization format in JSONs
                 // Old format: "type":"com.assistant.core.utils.SchedulePattern.SpecificDates"
                 // New format: "type":"SpecificDates"
@@ -206,8 +206,8 @@ abstract class AppDatabase : RoomDatabase() {
          * Note: Column order MUST match exactly the field declaration order in LogEntry.kt
          * Room is strict about column ordering
          */
-        private val MIGRATION_11_12 = object : Migration(11, 12) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_11_12 = object : ConnectionMigration(11, 12) {
+            override fun migrate(database: MigrationDatabase) {
                 LogManager.database("MIGRATION 11->12: Creating log_entries table")
 
                 // Drop table if it exists (clean slate for migration)
@@ -244,8 +244,8 @@ abstract class AppDatabase : RoomDatabase() {
          *
          * Solution: Remove segments_texts from all transcription_metadata in tool_data
          */
-        private val MIGRATION_12_13 = object : Migration(12, 13) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_12_13 = object : ConnectionMigration(12, 13) {
+            override fun migrate(database: MigrationDatabase) {
                 LogManager.database("MIGRATION 12->13: Starting - Cleaning segments_texts from transcription metadata", "INFO")
 
                 // Get all tool_data entries with transcription_metadata
@@ -319,8 +319,8 @@ abstract class AppDatabase : RoomDatabase() {
          * - Migrates existing Messages executions to new table
          * - Removes executions array from Messages tool_data
          */
-        private val MIGRATION_13_14 = object : Migration(13, 14) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_13_14 = object : ConnectionMigration(13, 14) {
+            override fun migrate(database: MigrationDatabase) {
                 LogManager.database("MIGRATION 13->14: Starting - Creating tool_executions table", "INFO")
 
                 // 1. Create tool_executions table
@@ -491,8 +491,8 @@ abstract class AppDatabase : RoomDatabase() {
          * - Uses JsonTransformers.transformToolData() for consistent transformation
          * - Only affects Messages tooltype entries
          */
-        private val MIGRATION_14_15 = object : Migration(14, 15) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_14_15 = object : ConnectionMigration(14, 15) {
+            override fun migrate(database: MigrationDatabase) {
                 LogManager.database("MIGRATION 14->15: Starting - Removing schema_id from Messages data.properties", "INFO")
 
                 // Get all Messages tool_data entries
@@ -552,8 +552,8 @@ abstract class AppDatabase : RoomDatabase() {
          * - Skips executions that would have occurred before last modification
          * - For existing automations at migration time: set to now (safe default)
          */
-        private val MIGRATION_15_16 = object : Migration(15, 16) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_15_16 = object : ConnectionMigration(15, 16) {
+            override fun migrate(database: MigrationDatabase) {
                 LogManager.database("MIGRATION 15->16: Starting - Adding updatedAt to automations + appStateSnapshot to ai_sessions", "INFO")
 
                 // 1. Add updatedAt column to automations with default value 0
@@ -600,8 +600,8 @@ abstract class AppDatabase : RoomDatabase() {
          * - costJson: Calculated when model prices available
          * - Incremental updates when messages added
          */
-        private val MIGRATION_16_17 = object : Migration(16, 17) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_16_17 = object : ConnectionMigration(16, 17) {
+            override fun migrate(database: MigrationDatabase) {
                 LogManager.database("MIGRATION 16->17: Starting - Replacing tokensUsed with tokensJson and costJson", "INFO")
 
                 // 1. Add new columns (nullable, will be populated incrementally as sessions run)
@@ -707,8 +707,8 @@ abstract class AppDatabase : RoomDatabase() {
          * 3. zone_groups will be added to app_config JSON by AppConfigService (no ALTER needed)
          * 4. Tool instances group field already handled by config JSON (no ALTER needed)
          */
-        private val MIGRATION_17_18 = object : Migration(17, 18) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_17_18 = object : ConnectionMigration(17, 18) {
+            override fun migrate(database: MigrationDatabase) {
                 LogManager.database("MIGRATION 17->18: Starting - Adding groups system", "INFO")
 
                 // 1. Add tool_groups column to zones (JSON array of group names)
@@ -780,8 +780,8 @@ abstract class AppDatabase : RoomDatabase() {
          * - Drop transcription_provider_config table
          * - Remove transcription_metadata from all tool_data entries
          */
-        private val MIGRATION_18_19 = object : Migration(18, 19) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_18_19 = object : ConnectionMigration(18, 19) {
+            override fun migrate(database: MigrationDatabase) {
                 LogManager.database("MIGRATION 18->19: Starting - Removing transcription system", "INFO")
 
                 // 1. Drop transcription_provider_config table (if exists)
@@ -828,8 +828,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_19_20 = object : Migration(19, 20) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_19_20 = object : ConnectionMigration(19, 20) {
+            override fun migrate(database: MigrationDatabase) {
                 LogManager.database("MIGRATION 19->20: Version bump only - data migration handled in post-migration", "INFO")
                 // No schema changes - just version bump
                 // Actual data migration (filling null format values) happens in post-migration
@@ -837,8 +837,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_20_21 = object : Migration(20, 21) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_20_21 = object : ConnectionMigration(20, 21) {
+            override fun migrate(database: MigrationDatabase) {
                 // Messages refonte: a Messages instance is now one notification template, its
                 // config holds what used to be a tool_data template entry, and its tool_data
                 // holds the occurrences that used to be tool_executions rows.
@@ -869,8 +869,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_21_22 = object : Migration(21, 22) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_21_22 = object : ConnectionMigration(21, 22) {
+            override fun migrate(database: MigrationDatabase) {
                 // The execution plane is gone. Occurrences are ordinary tool_data entries, so
                 // there is no third place where a tool records what it produced.
                 //
@@ -899,8 +899,8 @@ abstract class AppDatabase : RoomDatabase() {
          * under the new setting. Only scheduled automations are touched, since the two settings
          * mean nothing for a manual or event-driven one.
          */
-        private val MIGRATION_22_23 = object : Migration(22, 23) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_22_23 = object : ConnectionMigration(22, 23) {
+            override fun migrate(database: MigrationDatabase) {
                 database.execSQL("""
                     ALTER TABLE automations
                     ADD COLUMN catchUpWindowMinutes INTEGER DEFAULT NULL
@@ -921,8 +921,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_23_24 = object : Migration(23, 24) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_23_24 = object : ConnectionMigration(23, 24) {
+            override fun migrate(database: MigrationDatabase) {
                 // Rename tool_instances.tool_type to tooltype, the single name the app now uses
                 // for a tool's type. SQLite before 3.25 has no RENAME COLUMN, and minSdk 26 ships
                 // 3.19, so the table is recreated. The foreign key on zone_id is part of the
@@ -962,8 +962,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_24_25 = object : Migration(24, 25) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_24_25 = object : ConnectionMigration(24, 25) {
+            override fun migrate(database: MigrationDatabase) {
                 // ai_provider_configs moves its columns to snake_case, the naming rule the whole
                 // project follows. No RENAME COLUMN before SQLite 3.25 and minSdk 26 ships 3.19,
                 // so the table is recreated; its two indices are recreated under the names Room
@@ -1004,8 +1004,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_25_26 = object : Migration(25, 26) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_25_26 = object : ConnectionMigration(25, 26) {
+            override fun migrate(database: MigrationDatabase) {
                 // The three remaining AI tables move their columns to snake_case, the naming rule
                 // the whole project follows. SQLite before 3.25 has no RENAME COLUMN and minSdk 26
                 // ships 3.19, so each table is recreated with its indices. ai_sessions comes first
@@ -1132,8 +1132,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_26_27 = object : Migration(26, 27) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_26_27 = object : ConnectionMigration(26, 27) {
+            override fun migrate(database: MigrationDatabase) {
                 // The columns are in snake_case; the JSON they hold is not yet. A session's waiting
                 // context, a stored AI message, a tool's config and the app settings all carry the
                 // old key names, and the code that reads them now looks for the new ones.
@@ -1180,8 +1180,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_27_28 = object : Migration(27, 28) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_27_28 = object : ConnectionMigration(27, 28) {
+            override fun migrate(database: MigrationDatabase) {
                 // Migration 26->27 left behind every document that does not begin with a brace.
                 // A model's reply is stored exactly as it came and usually arrives wrapped in a
                 // markdown fence, so those rows kept their old key names while the prompt asks
@@ -1228,8 +1228,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_28_29 = object : Migration(28, 29) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_28_29 = object : ConnectionMigration(28, 29) {
+            override fun migrate(database: MigrationDatabase) {
                 // The min/max bounds of a DATE or DATETIME custom field never constrained a
                 // value, and they are gone from the schema. They have to leave the stored
                 // configs with it: the config schema refuses a property it does not declare, so
@@ -1261,8 +1261,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_29_30 = object : Migration(29, 30) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_29_30 = object : ConnectionMigration(29, 30) {
+            override fun migrate(database: MigrationDatabase) {
                 // Zones get the icon the zone schema and the prompt always offered, and that
                 // nothing could store. Existing zones have none; they show without one until
                 // it is chosen.
@@ -1293,8 +1293,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_35_36 = object : Migration(35, 36) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_35_36 = object : ConnectionMigration(35, 36) {
+            override fun migrate(database: MigrationDatabase) {
                 // One field system: see FieldsAtV36. tool_data's custom_fields column becomes
                 // extra and the table gains state. SQLite before 3.25 has no RENAME COLUMN and
                 // minSdk 26 ships 3.19, so the table is recreated, with the foreign key and the
@@ -1398,8 +1398,8 @@ abstract class AppDatabase : RoomDatabase() {
          * shown in its display_mode: see ZoneGridAtV54. order_index goes; the table is recreated
          * under another name and renamed last, as at 39->40, so the foreign keys onto it stay.
          */
-        private val MIGRATION_53_54 = object : Migration(53, 54) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_53_54 = object : ConnectionMigration(53, 54) {
+            override fun migrate(database: MigrationDatabase) {
                 val mainScreen = database.query("SELECT settings FROM app_settings_categories WHERE category = ?", arrayOf<Any?>(app.treelune.core.database.entities.AppSettingCategories.MAIN_SCREEN)).use { cursor ->
                     if (cursor.moveToFirst()) cursor.getString(0) else null
                 }
@@ -1443,8 +1443,8 @@ abstract class AppDatabase : RoomDatabase() {
          * its display mode: see GridAtV53. order_index goes; no DROP COLUMN before SQLite 3.35,
          * so the table is recreated under another name and renamed last, as zones was at 39->40.
          */
-        private val MIGRATION_52_53 = object : Migration(52, 53) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_52_53 = object : ConnectionMigration(52, 53) {
+            override fun migrate(database: MigrationDatabase) {
                 val zoneGroups = database.query("SELECT id, tool_groups FROM zones").use { cursor ->
                     buildMap { while (cursor.moveToNext()) put(cursor.getString(0), if (cursor.isNull(1)) null else cursor.getString(1)) }
                 }
@@ -1485,8 +1485,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_51_52 = object : Migration(51, 52) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_51_52 = object : ConnectionMigration(51, 52) {
+            override fun migrate(database: MigrationDatabase) {
                 // A row that cannot be read stays as it was and is logged
                 var rewritten = 0
                 database.query("SELECT id, rich_content_json FROM session_messages WHERE rich_content_json LIKE '%POINTER%'").use { cursor ->
@@ -1520,8 +1520,8 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /** A schedule is its pattern alone, without start and end dates: see ScheduleDatesAtV51. */
-        private val MIGRATION_50_51 = object : Migration(50, 51) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_50_51 = object : ConnectionMigration(50, 51) {
+            override fun migrate(database: MigrationDatabase) {
                 // A row that cannot be read stays as it was and is logged
                 var rewritten = 0
                 database.query("SELECT id, schedule_json FROM automations WHERE schedule_json IS NOT NULL AND schedule_json != ''").use { cursor ->
@@ -1555,8 +1555,8 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /** Files joined to messages, kept with their session: see AttachedFileEntity. */
-        private val MIGRATION_49_50 = object : Migration(49, 50) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_49_50 = object : ConnectionMigration(49, 50) {
+            override fun migrate(database: MigrationDatabase) {
                 database.execSQL("""
                     CREATE TABLE IF NOT EXISTS attached_files (
                         id TEXT NOT NULL,
@@ -1577,8 +1577,8 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /** The interface settings gain the appearance and the size step: see UiAppearanceAtV55. */
-        private val MIGRATION_54_55 = object : Migration(54, 55) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_54_55 = object : ConnectionMigration(54, 55) {
+            override fun migrate(database: MigrationDatabase) {
                 database.query("SELECT category, settings FROM app_settings_categories").use { cursor ->
                     while (cursor.moveToNext()) {
                         val category = cursor.getString(0)
@@ -1596,8 +1596,8 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /** The size step counts from the former −1: see UiSizeStepAtV56. */
-        private val MIGRATION_55_56 = object : Migration(55, 56) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_55_56 = object : ConnectionMigration(55, 56) {
+            override fun migrate(database: MigrationDatabase) {
                 database.query("SELECT category, settings FROM app_settings_categories").use { cursor ->
                     while (cursor.moveToNext()) {
                         val category = cursor.getString(0)
@@ -1615,8 +1615,8 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /** Images joined to messages, kept with their session: see AttachedImageEntity. */
-        private val MIGRATION_58_59 = object : Migration(58, 59) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_58_59 = object : ConnectionMigration(58, 59) {
+            override fun migrate(database: MigrationDatabase) {
                 database.execSQL("""
                     CREATE TABLE IF NOT EXISTS attached_images (
                         id TEXT NOT NULL,
@@ -1635,8 +1635,8 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /** The MCP server's OAuth clients and tokens (docs/design/mcp-server.md): two new tables, empty. */
-        private val MIGRATION_59_60 = object : Migration(59, 60) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_59_60 = object : ConnectionMigration(59, 60) {
+            override fun migrate(database: MigrationDatabase) {
                 database.execSQL("""
                     CREATE TABLE IF NOT EXISTS mcp_clients (
                         id TEXT NOT NULL,
@@ -1664,8 +1664,8 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /** A group held is null or one that exists: see GroupsAtV62. */
-        private val MIGRATION_61_62 = object : Migration(61, 62) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_61_62 = object : ConnectionMigration(61, 62) {
+            override fun migrate(database: MigrationDatabase) {
                 val homeGroups = GroupsAtV62.zoneGroups(
                     database.query("SELECT settings FROM app_settings_categories WHERE category = ?", arrayOf<Any?>(app.treelune.core.database.entities.AppSettingCategories.MAIN_SCREEN)).use { cursor ->
                         if (cursor.moveToFirst()) cursor.getString(0) else null
@@ -1731,8 +1731,8 @@ abstract class AppDatabase : RoomDatabase() {
          * settings' intensity, subtle (UiTextureIntensityAtV75). A tool's texture is a key of its
          * config, absent until chosen.
          */
-        private val MIGRATION_74_75 = object : Migration(74, 75) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_74_75 = object : ConnectionMigration(74, 75) {
+            override fun migrate(database: MigrationDatabase) {
                 database.execSQL("ALTER TABLE zones ADD COLUMN texture TEXT")
                 database.query("SELECT settings FROM app_settings_categories WHERE category = ?", arrayOf<Any?>(app.treelune.core.database.entities.AppSettingCategories.UI)).use { cursor ->
                     if (!cursor.moveToFirst()) {
@@ -1758,8 +1758,8 @@ abstract class AppDatabase : RoomDatabase() {
          * session seen at its last activity, every routine signalling its end: nothing starts
          * waiting with the update.
          */
-        private val MIGRATION_75_76 = object : Migration(75, 76) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_75_76 = object : ConnectionMigration(75, 76) {
+            override fun migrate(database: MigrationDatabase) {
                 database.execSQL("ALTER TABLE ai_sessions ADD COLUMN seen_at INTEGER")
                 database.execSQL("ALTER TABLE ai_sessions ADD COLUMN summary TEXT")
                 database.execSQL("UPDATE ai_sessions SET seen_at = last_activity")
@@ -1772,8 +1772,8 @@ abstract class AppDatabase : RoomDatabase() {
          * Incarnations (docs/design/incarnations.md): the identities' table, empty, and the
          * identity of a zone, a routine and a session, none: everything speaks as before.
          */
-        private val MIGRATION_76_77 = object : Migration(76, 77) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_76_77 = object : ConnectionMigration(76, 77) {
+            override fun migrate(database: MigrationDatabase) {
                 database.execSQL("CREATE TABLE IF NOT EXISTS `identities` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `icon_name` TEXT NOT NULL, `icon_color` TEXT, `language` TEXT NOT NULL, `languages_json` TEXT NOT NULL, `published_at` TEXT, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`id`))")
                 database.execSQL("ALTER TABLE zones ADD COLUMN identity_id TEXT")
                 database.execSQL("ALTER TABLE automations ADD COLUMN identity_id TEXT")
@@ -1788,8 +1788,8 @@ abstract class AppDatabase : RoomDatabase() {
          * the address its producer gave (IdentitiesAtV78).
          */
         /** A goal's timing chosen first, once or recurring, with only the settings it reads (GoalTimingAtV79). */
-        private val MIGRATION_78_79 = object : Migration(78, 79) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_78_79 = object : ConnectionMigration(78, 79) {
+            override fun migrate(database: MigrationDatabase) {
                 var count = 0
                 database.query("SELECT id, config_json, created_at FROM tool_instances WHERE tooltype = 'goal'").use { cursor ->
                     while (cursor.moveToNext()) {
@@ -1810,8 +1810,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_77_78 = object : Migration(77, 78) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_77_78 = object : ConnectionMigration(77, 78) {
+            override fun migrate(database: MigrationDatabase) {
                 database.execSQL("ALTER TABLE identities ADD COLUMN imported_at INTEGER")
                 val cursor = database.query("SELECT id, languages_json, published_at, updated_at FROM identities")
                 var count = 0
@@ -1835,8 +1835,8 @@ abstract class AppDatabase : RoomDatabase() {
          * default; a routine and a session may have none. Refused while the foreign keys are on:
          * rebuilding the sessions' table would then delete every message with it.
          */
-        private val MIGRATION_79_80 = object : Migration(79, 80) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_79_80 = object : ConnectionMigration(79, 80) {
+            override fun migrate(database: MigrationDatabase) {
                 database.query("PRAGMA foreign_keys").use { cursor ->
                     check(!(cursor.moveToFirst() && cursor.getInt(0) == 1)) { "MIGRATION 79->80: foreign keys on, the sessions' messages would go with their table" }
                 }
@@ -1848,8 +1848,8 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /** A conversation's own reasoning (SessionReasoning): two columns, empty, every session following its provider as before. */
-        private val MIGRATION_73_74 = object : Migration(73, 74) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_73_74 = object : ConnectionMigration(73, 74) {
+            override fun migrate(database: MigrationDatabase) {
                 database.execSQL("ALTER TABLE ai_sessions ADD COLUMN reasoning_thinking_off INTEGER")
                 database.execSQL("ALTER TABLE ai_sessions ADD COLUMN reasoning_effort TEXT")
                 LogManager.database("MIGRATION 73->74: sessions given their own reasoning, none set", "INFO")
@@ -1857,8 +1857,8 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /** The counter tracking tools made numeric (CounterAtV73), their entries given the counter's unit. */
-        private val MIGRATION_72_73 = object : Migration(72, 73) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_72_73 = object : ConnectionMigration(72, 73) {
+            override fun migrate(database: MigrationDatabase) {
                 val units = mutableMapOf<String, String>()
                 var tools = 0
                 database.query("SELECT id, config_json FROM tool_instances WHERE tooltype = 'tracking'").use { cursor ->
@@ -1901,8 +1901,8 @@ abstract class AppDatabase : RoomDatabase() {
          * The secret settings sealed (SecretsAtV72): every AI provider's API key, the relay's secret.
          * A config that cannot be read stays as it is; reading it then fails with the reason.
          */
-        private val MIGRATION_71_72 = object : Migration(71, 72) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_71_72 = object : ConnectionMigration(71, 72) {
+            override fun migrate(database: MigrationDatabase) {
                 val box = app.treelune.core.secrets.SecretBox.of()
                 var sealed = 0
                 database.query("SELECT provider_id, config_json FROM ai_provider_configs").use { cursor ->
@@ -1933,16 +1933,16 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /** A connector client's access mask (docs/design/validation.md): a new column, an empty list, every client reaching everything as before. */
-        private val MIGRATION_70_71 = object : Migration(70, 71) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_70_71 = object : ConnectionMigration(70, 71) {
+            override fun migrate(database: MigrationDatabase) {
                 database.execSQL("ALTER TABLE mcp_clients ADD COLUMN access_json TEXT NOT NULL DEFAULT '[]'")
                 LogManager.database("MIGRATION 70->71: mcp_clients.access_json added, empty", "INFO")
             }
         }
 
         /** An automation's access mask (docs/design/validation.md): a new column, an empty list, every automation reaching everything as before. */
-        private val MIGRATION_69_70 = object : Migration(69, 70) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_69_70 = object : ConnectionMigration(69, 70) {
+            override fun migrate(database: MigrationDatabase) {
                 database.execSQL("ALTER TABLE automations ADD COLUMN access_json TEXT NOT NULL DEFAULT '[]'")
                 LogManager.database("MIGRATION 69->70: automations.access_json added, empty", "INFO")
             }
@@ -1954,8 +1954,8 @@ abstract class AppDatabase : RoomDatabase() {
          * tool loses validate_config and management, a session's switch becomes three boxes. SQLite
          * before 3.35 cannot drop a column: ai_sessions is rebuilt.
          */
-        private val MIGRATION_68_69 = object : Migration(68, 69) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_68_69 = object : ConnectionMigration(68, 69) {
+            override fun migrate(database: MigrationDatabase) {
                 val category = app.treelune.core.database.entities.AppSettingCategories.VALIDATION_CONFIG
                 database.query("SELECT settings FROM app_settings_categories WHERE category = ?", arrayOf<Any?>(category)).use { cursor ->
                     if (!cursor.moveToFirst()) {
@@ -2038,8 +2038,8 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /** The interface settings gain « One column », off: see UiOneColumnAtV67. */
-        private val MIGRATION_66_67 = object : Migration(66, 67) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_66_67 = object : ConnectionMigration(66, 67) {
+            override fun migrate(database: MigrationDatabase) {
                 database.query("SELECT settings FROM app_settings_categories WHERE category = ?", arrayOf<Any?>(app.treelune.core.database.entities.AppSettingCategories.UI)).use { cursor ->
                     if (!cursor.moveToFirst()) {
                         LogManager.database("MIGRATION 66->67: no interface settings stored, the defaults are written on first read", "INFO")
@@ -2059,8 +2059,8 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /** The external access settings gain the access mode: see ExternalAccessModeAtV68. */
-        private val MIGRATION_67_68 = object : Migration(67, 68) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_67_68 = object : ConnectionMigration(67, 68) {
+            override fun migrate(database: MigrationDatabase) {
                 val category = app.treelune.core.database.entities.AppSettingCategories.EXTERNAL_ACCESS
                 database.query("SELECT settings FROM app_settings_categories WHERE category = ?", arrayOf<Any?>(category)).use { cursor ->
                     if (!cursor.moveToFirst()) {
@@ -2083,16 +2083,16 @@ abstract class AppDatabase : RoomDatabase() {
          * An MCP token names the refresh token its pair was handed out for, until the pair is used
          * (StoredToken.replaces): a new column, empty, every token held replacing nothing.
          */
-        private val MIGRATION_65_66 = object : Migration(65, 66) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_65_66 = object : ConnectionMigration(65, 66) {
+            override fun migrate(database: MigrationDatabase) {
                 database.execSQL("ALTER TABLE mcp_tokens ADD COLUMN replaces TEXT")
                 LogManager.database("MIGRATION 65->66: mcp_tokens.replaces added", "INFO")
             }
         }
 
         /** Every questionnaire entry has its status: one with none is filled (QuestionnaireStateAtV65). */
-        private val MIGRATION_64_65 = object : Migration(64, 65) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_64_65 = object : ConnectionMigration(64, 65) {
+            override fun migrate(database: MigrationDatabase) {
                 var given = 0
                 database.query("SELECT id, state FROM tool_data WHERE tooltype = ?", arrayOf<Any?>(app.treelune.core.versioning.QuestionnaireStateAtV65.TOOLTYPE)).use { cursor ->
                     while (cursor.moveToNext()) {
@@ -2113,8 +2113,8 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /** A zone's icon colour (docs/design/icon-colors.md): a new column, empty, every icon staying neutral. */
-        private val MIGRATION_63_64 = object : Migration(63, 64) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_63_64 = object : ConnectionMigration(63, 64) {
+            override fun migrate(database: MigrationDatabase) {
                 // ai_limits gains the threshold of the tools sent always: see AILimitsAtV64.
                 // Settings that cannot be read are left as they are; reading them then fails with the reason.
                 database.query("SELECT settings FROM app_settings_categories WHERE category = 'ai_limits'").use { cursor ->
@@ -2133,16 +2133,16 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_62_63 = object : Migration(62, 63) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_62_63 = object : ConnectionMigration(62, 63) {
+            override fun migrate(database: MigrationDatabase) {
                 database.execSQL("ALTER TABLE zones ADD COLUMN icon_color TEXT")
                 LogManager.database("MIGRATION 62->63: zones.icon_color added", "INFO")
             }
         }
 
         /** The former text types left in users' fields become a TEXT with its length: see TextLengthAtV61. */
-        private val MIGRATION_60_61 = object : Migration(60, 61) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_60_61 = object : ConnectionMigration(60, 61) {
+            override fun migrate(database: MigrationDatabase) {
                 var rewritten = 0
                 database.query("SELECT id, config_json FROM tool_instances").use { cursor ->
                     while (cursor.moveToNext()) {
@@ -2162,8 +2162,8 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /** A theme's palette family gives way to a hue shift: see UiHueShiftAtV58. */
-        private val MIGRATION_57_58 = object : Migration(57, 58) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_57_58 = object : ConnectionMigration(57, 58) {
+            override fun migrate(database: MigrationDatabase) {
                 database.query("SELECT category, settings FROM app_settings_categories").use { cursor ->
                     while (cursor.moveToNext()) {
                         val category = cursor.getString(0)
@@ -2181,8 +2181,8 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /** The appearance becomes a theme, a palette family and a mode: see UiThemeModeAtV57. */
-        private val MIGRATION_56_57 = object : Migration(56, 57) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_56_57 = object : ConnectionMigration(56, 57) {
+            override fun migrate(database: MigrationDatabase) {
                 database.query("SELECT category, settings FROM app_settings_categories").use { cursor ->
                     while (cursor.moveToNext()) {
                         val category = cursor.getString(0)
@@ -2200,8 +2200,8 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /** The AI's changes to variables get their own validation switch: see VariableValidationAtV49. */
-        private val MIGRATION_48_49 = object : Migration(48, 49) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_48_49 = object : ConnectionMigration(48, 49) {
+            override fun migrate(database: MigrationDatabase) {
                 database.query("SELECT category, settings FROM app_settings_categories").use { cursor ->
                     while (cursor.moveToNext()) {
                         val category = cursor.getString(0)
@@ -2222,8 +2222,8 @@ abstract class AppDatabase : RoomDatabase() {
          * A chat opened prefilled takes its content as the draft of its composer: the seed a
          * session pointed to goes. SQLite before 3.35 cannot drop a column, so the table is rebuilt.
          */
-        private val MIGRATION_47_48 = object : Migration(47, 48) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_47_48 = object : ConnectionMigration(47, 48) {
+            override fun migrate(database: MigrationDatabase) {
                 database.execSQL("""
                     CREATE TABLE ai_sessions_new (
                         id TEXT NOT NULL,
@@ -2269,8 +2269,8 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /** The variables of the core, each in a zone and deleted with it, named once in the app. */
-        private val MIGRATION_46_47 = object : Migration(46, 47) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_46_47 = object : ConnectionMigration(46, 47) {
+            override fun migrate(database: MigrationDatabase) {
                 database.execSQL("""
                     CREATE TABLE IF NOT EXISTS variables (
                         id TEXT NOT NULL,
@@ -2296,8 +2296,8 @@ abstract class AppDatabase : RoomDatabase() {
          * objects with their edge: see PointerAtV46. Which field is a date is read from the
          * tool's config, hence the context.
          */
-        private fun migration45to46(context: Context) = object : Migration(45, 46) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private fun migration45to46(context: Context) = object : ConnectionMigration(45, 46) {
+            override fun migrate(database: MigrationDatabase) {
                 val fieldTypes = { toolInstanceId: String ->
                     database.query("SELECT tooltype, config_json FROM tool_instances WHERE id = ?", arrayOf<Any?>(toolInstanceId)).use { cursor ->
                         if (cursor.moveToFirst()) PointerAtV46.fieldTypes(cursor.getString(0), cursor.getString(1), context) else null
@@ -2323,8 +2323,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_44_45 = object : Migration(44, 45) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_44_45 = object : ConnectionMigration(44, 45) {
+            override fun migrate(database: MigrationDatabase) {
                 // A message stores its segments alone, their texts written when read: see EnrichmentTextAtV45
                 var rewritten = 0
                 database.query("SELECT id, rich_content_json FROM session_messages WHERE rich_content_json IS NOT NULL").use { cursor ->
@@ -2344,8 +2344,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_43_44 = object : Migration(43, 44) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_43_44 = object : ConnectionMigration(43, 44) {
+            override fun migrate(database: MigrationDatabase) {
                 // A pointer names its target by id and its period as filters: see PointerAtV44
                 val format = database.query("SELECT settings FROM app_settings_categories WHERE category = ?", arrayOf<Any?>(app.treelune.core.database.entities.AppSettingCategories.FORMAT)).use { cursor ->
                     if (cursor.moveToFirst()) org.json.JSONObject(cursor.getString(0)) else null
@@ -2371,8 +2371,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_42_43 = object : Migration(42, 43) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_42_43 = object : ConnectionMigration(42, 43) {
+            override fun migrate(database: MigrationDatabase) {
                 // A numeric tracking tool's units live in "units" alone: see TrackingUnitAtV43
                 val units = mutableMapOf<String, String>()
                 database.query("SELECT id, config_json FROM tool_instances WHERE tooltype = 'tracking'").use { cursor ->
@@ -2409,8 +2409,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_41_42 = object : Migration(41, 42) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_41_42 = object : ConnectionMigration(41, 42) {
+            override fun migrate(database: MigrationDatabase) {
                 // The format settings say "follow the phone" by an absence: see FormatNullsAtV42
                 database.query("SELECT category, settings FROM app_settings_categories").use { cursor ->
                     while (cursor.moveToNext()) {
@@ -2428,8 +2428,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_40_41 = object : Migration(40, 41) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_40_41 = object : ConnectionMigration(40, 41) {
+            override fun migrate(database: MigrationDatabase) {
                 // A scheduled automation stores its explicit catch-up choice, and a limited window
                 // in milliseconds: see CatchUpAtV41. No RENAME COLUMN before SQLite 3.25 and
                 // minSdk 26 ships 3.19, so the table is recreated with its indices.
@@ -2483,8 +2483,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_39_40 = object : Migration(39, 40) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_39_40 = object : ConnectionMigration(39, 40) {
+            override fun migrate(database: MigrationDatabase) {
                 // zones loses color, which nothing wrote nor showed. No DROP COLUMN before SQLite
                 // 3.35 and minSdk 26 ships 3.19, so the table is recreated. The new one is created
                 // under another name and renamed last: renaming the old one instead would carry
@@ -2516,8 +2516,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_38_39 = object : Migration(38, 39) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_38_39 = object : ConnectionMigration(38, 39) {
+            override fun migrate(database: MigrationDatabase) {
                 // Tool configs take the form their declaration describes: see ToolConfigsAtV39
                 var rewritten = 0
                 database.query("SELECT id, tooltype, config_json FROM tool_instances").use { cursor ->
@@ -2537,8 +2537,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_37_38 = object : Migration(37, 38) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_37_38 = object : ConnectionMigration(37, 38) {
+            override fun migrate(database: MigrationDatabase) {
                 // Every NUMERIC says its decimals: see NumericDecimalsAtV38. Configs only.
                 var rewritten = 0
                 database.query("SELECT id, tooltype, config_json FROM tool_instances").use { cursor ->
@@ -2558,8 +2558,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_36_37 = object : Migration(36, 37) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_36_37 = object : ConnectionMigration(36, 37) {
+            override fun migrate(database: MigrationDatabase) {
                 // A CHOICE option becomes a group holding its value, label and color: see
                 // ChoiceOptionsAtV37. Only configs change; entries keep the option's value.
                 var rewritten = 0
@@ -2580,8 +2580,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_34_35 = object : Migration(34, 35) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_34_35 = object : ConnectionMigration(34, 35) {
+            override fun migrate(database: MigrationDatabase) {
                 // Each AI message keeps the model and prices of its call. Messages from before
                 // have none: their prices stay unknown rather than today's applied after the fact.
                 database.execSQL("ALTER TABLE session_messages ADD COLUMN model_id TEXT")
@@ -2640,8 +2640,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_33_34 = object : Migration(33, 34) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_33_34 = object : ConnectionMigration(33, 34) {
+            override fun migrate(database: MigrationDatabase) {
                 // ai_limits gains the two data size thresholds: see AILimitsAtV34. Settings that
                 // cannot be read are left as they are; reading them then fails with the reason.
                 val cursor = database.query(
@@ -2665,8 +2665,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_32_33 = object : Migration(32, 33) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_32_33 = object : ConnectionMigration(32, 33) {
+            override fun migrate(database: MigrationDatabase) {
                 // format, validation_config and main_screen get the required keys they lack and
                 // lose the ones nothing declares: see SettingsAtV33. A row that cannot be read is
                 // left as it is; reading it then fails with the reason, instead of the migration
@@ -2691,8 +2691,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_31_32 = object : Migration(31, 32) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_31_32 = object : ConnectionMigration(31, 32) {
+            override fun migrate(database: MigrationDatabase) {
                 // ai_limits keeps the two roundtrip limits alone, the CHAT one set to 10: see
                 // AILimitsAtV32. Settings that cannot be read are left as they are; reading
                 // them at startup then fails with the reason, instead of the migration
@@ -2718,8 +2718,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_30_31 = object : Migration(30, 31) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        private val MIGRATION_30_31 = object : ConnectionMigration(30, 31) {
+            override fun migrate(database: MigrationDatabase) {
                 // waiting_context_json goes: the waiting context derives from the last AI message
                 // and is rebuilt on entering a waiting phase, and nothing ever read the column.
                 // SQLite before 3.35 cannot drop a column and minSdk 26 ships 3.19, so the table is
@@ -2855,17 +2855,17 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_79_80
                     // Add future migrations here (minimum supported version: 9)
                 )
+                // The app's own SQLite, the same on every phone: a phone's own may lack what the
+                // app's SQL uses — an Android 10 phone had no json_extract
+                .setDriver(BundledSQLiteDriver())
                 .addCallback(object : RoomDatabase.Callback() {
-                    override fun onOpen(db: androidx.sqlite.db.SupportSQLiteDatabase) {
-                        super.onOpen(db)
-                        // Database opened successfully
-                        LogManager.database("AppDatabase opened successfully - version ${db.version}")
+                    override fun onOpen(connection: SQLiteConnection) {
+                        LogManager.database("AppDatabase opened successfully - version $VERSION")
+                        // Post-migration: Fix null format settings (migration 19->20 data fix)
+                        fixNullFormatSettings(context, MigrationDatabase(connection))
                     }
                 })
                 .build()
-
-                // Post-migration: Fix null format settings (migration 19->20 data fix)
-                fixNullFormatSettings(context, instance)
 
                 INSTANCE = instance
                 instance
@@ -2876,9 +2876,9 @@ abstract class AppDatabase : RoomDatabase() {
          * Post-migration data fix for version 19->20
          * Fills null use_24_hour_format and date_format_pattern with system-detected values
          */
-        private fun fixNullFormatSettings(context: Context, database: AppDatabase) {
+        private fun fixNullFormatSettings(context: Context, database: MigrationDatabase) {
             try {
-                val cursor = database.openHelper.readableDatabase.query(
+                val cursor = database.query(
                     "SELECT settings FROM app_settings_categories WHERE category = 'format'"
                 )
 
@@ -2905,7 +2905,7 @@ abstract class AppDatabase : RoomDatabase() {
 
                     // Update database if needed
                     if (needsUpdate) {
-                        database.openHelper.writableDatabase.execSQL(
+                        database.execSQL(
                             "UPDATE app_settings_categories SET settings = ? WHERE category = 'format'",
                             arrayOf(settings.toString())
                         )

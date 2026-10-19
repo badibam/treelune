@@ -24,7 +24,7 @@ import app.treelune.core.fields.FieldNameGenerator
 import app.treelune.core.fields.FieldConfigValidator
 import app.treelune.core.fields.ValidationException
 import app.treelune.core.fields.migration.EntryMigration
-import androidx.room.withTransaction
+import app.treelune.core.database.transaction
 import app.treelune.core.scheduling.CoreScheduler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -155,7 +155,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
 
         if (token.isCancelled) return OperationResult.cancelled()
 
-        val newToolInstance = database.withTransaction {
+        val newToolInstance = database.transaction {
             arrive(ToolInstance(id = toolId, zone_id = zoneId, tooltype = toolType, config_json = storedConfigJson, grid_x = 0, grid_y = 0), zone.tool_groups)
                 .also { toolInstanceDao.insertToolInstance(it) }
         }
@@ -291,7 +291,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
 
         // The config, the places it changes and what it does to the entries are one write:
         // none lands without the others
-        val updatedTool = database.withTransaction {
+        val updatedTool = database.transaction {
             val placed = move(existingTool, changedTool, oldZone.tool_groups, newZone.tool_groups)
             toolInstanceDao.updateToolInstance(placed)
             if (migration != null) applyMigration(existingTool, migration)
@@ -597,7 +597,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             ?: return OperationResult.error(s.shared("service_error_zone_not_found"))
 
         // The tool and the rows its leaving closes are one write
-        database.withTransaction {
+        database.transaction {
             leave(existingTool, zone.tool_groups)
             toolInstanceDao.deleteToolInstanceById(toolInstanceId)
         }
@@ -670,7 +670,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         if (token.isCancelled) return OperationResult.cancelled()
 
         // Create new tool instance in target zone, at the bottom of its section's grid
-        val newToolInstance = database.withTransaction {
+        val newToolInstance = database.transaction {
             arrive(ToolInstance(zone_id = targetZoneId, tooltype = sourceTool.tooltype, config_json = sourceConfig.toString(), grid_x = 0, grid_y = 0), targetZone.tool_groups)
                 .also { toolInstanceDao.insertToolInstance(it) }
         }
@@ -763,7 +763,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             tool.copy(grid_x = place.getInt("grid_x"), grid_y = place.getInt("grid_y"))
         }
         if (!Grid.isLaidOut(placed.map { ToolPositions.tile(it) })) return OperationResult.error(s.shared("service_error_grid_places"))
-        database.withTransaction { write(ToolPositions.moved(tools, placed.map { ToolPositions.tile(it) })) }
+        database.transaction { write(ToolPositions.moved(tools, placed.map { ToolPositions.tile(it) })) }
         DataChangeNotifier.notifyToolsChanged(zone.id)
         return OperationResult.success(mapOf("zone_id" to zone.id, "count" to placed.size))
     }

@@ -6,7 +6,6 @@ import app.treelune.core.fields.settings.FieldTypeSettings
 import app.treelune.core.fields.settings.SettingNode
 import android.content.Context
 import androidx.compose.runtime.Composable
-import androidx.sqlite.db.SupportSQLiteDatabase
 import app.treelune.core.tools.ToolTypeContract
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.validation.ValidationResult

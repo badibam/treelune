@@ -8,7 +8,7 @@ import app.treelune.core.strings.Strings
 import app.treelune.core.database.AppDatabase
 import app.treelune.core.database.entities.*
 import app.treelune.core.ai.database.*
-import androidx.room.withTransaction
+import app.treelune.core.database.transaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import app.treelune.core.ai.data.MessageSender
@@ -546,7 +546,7 @@ class BackupService(private val context: Context) : ExecutableService {
 
             // Wipe all tables in reverse dependency order, then insert data
             // This operation is wrapped in a Room transaction for atomicity
-            database.withTransaction {
+            database.transaction {
                 // Delete in reverse dependency order
                 wipeAllTables()
 
@@ -617,7 +617,7 @@ class BackupService(private val context: Context) : ExecutableService {
             }
 
             // Wipe all tables and restore defaults in a transaction
-            database.withTransaction {
+            database.transaction {
                 wipeAllTables()
 
                 // Check cancellation
