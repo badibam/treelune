@@ -1,3 +1,8 @@
+AntiFeatures:
+  NonFreeNet:
+    en-US: "The AI is optional. To use it, you connect the service of your choice with your own key: Anthropic, OpenAI, DeepSeek, or any compatible server, including one at home. External access, also optional, goes through Tailscale's coordination server. Once a day, the app downloads LiteLLM's public price list from GitHub, to show what each call costs."
+    fr-FR: "L'IA est facultative. Pour s'en servir, on branche avec sa propre clé le service de son choix : Anthropic, OpenAI, DeepSeek, ou tout serveur compatible, un serveur chez soi compris. L'accès externe, facultatif lui aussi, passe par le serveur de connexion de Tailscale. Une fois par jour, l'app télécharge depuis GitHub la liste de prix publique de LiteLLM, pour dire ce que coûte chaque appel."
+
 Categories:
   - AI Chat
   - Habit Tracker
