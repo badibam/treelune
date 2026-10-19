@@ -63,7 +63,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - Le thème encre et lavis (`docs/design/ink-theme.md`, branche theme-ink) : la passe sur le téléphone de `docs/THEMES.md`, les icônes au pinceau d'abord (leur coût à l'ouverture d'une page, celles qui se bouchent), puis ce que la spec garde dans « Ce qui reste ouvert » ; ce qui a changé le 2026-10-17 après la première passe : le lavis d'une tuile qui déborde et s'éteint à son bord, sa texture estompée avec lui, la carte en lavis au bord fondu (des marches dans le fondu ?), la gouache sous les icônes et les tags, les ronds peints à la main (boutons, case, sceaux), le coût d'ouverture d'une zone aux tuiles texturées.
 - Les incarnations (`docs/design/incarnations.md`, branche incarnations) : la dernière section de la recette, l'identité de Stan Prokopenko importée et le coût d'un tour mesuré pour personae ; passé, élaguer la spec. L'import attend que personae exporte au format 2 du fichier d'identité (`docs/IDENTITY_FILE.md`), le format 1 n'étant plus lu.
 - Les bugs du téléphone du 2026-10-17 : la section du même nom de la recette.
-- Les bugs du téléphone du 2026-10-19 (branches notes-fixes et layout-fixes) : la section du même nom de la recette.
+- Les bugs du téléphone du 2026-10-19 (branches notes-fixes, layout-fixes et swiss-theme) : la section du même nom de la recette.
 - La répétition d'un Objectif, « Une fois » ou « Récurrent » (branche goal-repetition) : migration 79, sa ligne de la section « Objectif » de la recette.
 - Les conditions typées à l'écriture (`docs/design/typed-conditions.md`, branche typed-conditions) : la section du même nom de la recette ; passé, élaguer la spec.
 - Le gras et l'italique d'un texte lu (branche text-emphasis) : la section du même nom de la recette.
@@ -130,7 +130,6 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 ## Bugs du téléphone
 
 - Possibilité de stocker image en champs supplementaire par exemple ? Et/ou galerie d'images ? — Outils — Idée
-- Thème suiss à améliorer — UI — Amélioration
 - Quand on édite une note, c'est très pénible avec le clavier andfoid de faire des liste avec tiret etc. Je vois / options : boutons d'edition dans champs de texte / champs de type texte mis e' forme / option de champs de texte : pour permettre mise en forme / autre type de champ : liste (numérotée ou pas) : qui permet de mulriplier les champs er chacun correspond à 1 étape. Si 1 seul champ se comporte comme texte normal ? / mix entre plusieurs options précédentes ? À bien réfléchir, avec conséquances en termes d'UI en particulier. Ce que je constate c'est qu'il y a déjà un endroit pour placer des boutons de mise en forme : ma ligne du label du champ. À voir..... — Core — Idée
 - Pouvoir stocker des images (par exemple pour faire des fiches de plantes etc) — Core — Idée
 

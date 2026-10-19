@@ -72,6 +72,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -179,6 +180,9 @@ object SwissTheme : ThemeContract {
     /** Silent: the theme's sounds are chosen apart (docs/THEMES.md, Les sons). */
     override fun sound(signal: UISignal): Int? = null
 
+    /** A tile's name flush with its icon's side, on the grid's left line, as every text of the theme. */
+    override fun tileNameAlign(): TextAlign = TextAlign.Start
+
     /**
      * How far the content stands from the tile's edge: under the rule and 8 dp of air, a tile
      * having no margin at its sides (its content flush with its rule's left end); 8 dp all round
@@ -269,7 +273,10 @@ object SwissTheme : ThemeContract {
     // DISPLAY
     // =====================================
 
-    /** Each type in its size and weight; a group's or a tile's name (HEADING) in capitals, spaced. */
+    /**
+     * Each type in its size and weight; a group's or a tile's name (HEADING) in capitals, spaced,
+     * its lines broken between words only: a name never cut by a hyphen.
+     */
     @Composable
     override fun Text(text: AnnotatedString, type: TextType, fillMaxWidth: Boolean, textAlign: TextAlign?, maxLines: Int) {
         val size = swissSize()
@@ -287,7 +294,7 @@ object SwissTheme : ThemeContract {
             TextType.WARNING -> size.body to c.warning.srgb
         }
         val shown = if (type == TextType.HEADING) text.toUpperCase(LocaleList(Locale.getDefault().toLanguageTag())) else text
-        Line(shown, style, ink, if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier, textAlign, maxLines)
+        Line(shown, style, ink, if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier, textAlign, maxLines, words = type == TextType.HEADING)
     }
 
     /** The weight of STRONG; Archivo's own italic, at both its weights. */
@@ -300,16 +307,22 @@ object SwissTheme : ThemeContract {
     /**
      * A card is content under a rule of 1 dp, flush left, on the ground, full so that a page's
      * motif never runs under its text; a highlighted one under the tile's 3 dp rule. A section's
-     * header is its content over a rule, as a group of tiles' title, on the motif.
+     * header is its content alone, on the motif: the 3 dp rules of the tiles under it are the
+     * section's line, a rule of its own would double them. The screens pad a header's content by
+     * UI.Space.M all round; the space under it is given back, so that a title stands closer to
+     * its tiles than to those above it.
      */
     @Composable
     override fun Card(type: CardType, size: Size, highlight: Boolean, content: @Composable () -> Unit) {
         val s = swissSize()
         val ink = swissColors.ink.srgb
         when (type) {
-            CardType.SECTION_HEADER -> Column(modifier = Modifier.fillMaxWidth()) {
-                content()
-                Divider()
+            CardType.SECTION_HEADER -> {
+                val under = spacing(app.treelune.core.ui.Spacing.M)
+                Box(modifier = Modifier.fillMaxWidth().layout { measurable, constraints ->
+                    val placeable = measurable.measure(constraints)
+                    layout(placeable.width, (placeable.height - under.roundToPx()).coerceAtLeast(0)) { placeable.place(0, 0) }
+                }) { content() }
             }
             CardType.DEFAULT -> {
                 val rule = if (highlight) TILE_RULE else 1f
@@ -1306,22 +1319,25 @@ object SwissTheme : ThemeContract {
     // PIECES
     // =====================================
 
-    /** A text in one style and colour, cut with an ellipsis past [maxLines]. */
+    /**
+     * A text in one style and colour, cut with an ellipsis past [maxLines]; hyphenated, or broken
+     * between [words] only, as a heading is.
+     */
     @Composable
-    private fun Line(text: String, style: TextStyle, color: Color, modifier: Modifier = Modifier, align: TextAlign? = null, maxLines: Int = Int.MAX_VALUE) =
-        Line(AnnotatedString(text), style, color, modifier, align, maxLines)
+    private fun Line(text: String, style: TextStyle, color: Color, modifier: Modifier = Modifier, align: TextAlign? = null, maxLines: Int = Int.MAX_VALUE, words: Boolean = false) =
+        Line(AnnotatedString(text), style, color, modifier, align, maxLines, words)
 
     /** The same, its runs keeping their emphasis. */
     @Composable
-    private fun Line(text: AnnotatedString, style: TextStyle, color: Color, modifier: Modifier = Modifier, align: TextAlign? = null, maxLines: Int = Int.MAX_VALUE) {
+    private fun Line(text: AnnotatedString, style: TextStyle, color: Color, modifier: Modifier = Modifier, align: TextAlign? = null, maxLines: Int = Int.MAX_VALUE, words: Boolean = false) {
         BasicText(
             text = text,
             modifier = modifier,
             style = style.copy(
                 color = color,
                 textAlign = align ?: TextAlign.Unspecified,
-                hyphens = androidx.compose.ui.text.style.Hyphens.Auto,
-                lineBreak = androidx.compose.ui.text.style.LineBreak.Paragraph
+                hyphens = if (words) androidx.compose.ui.text.style.Hyphens.None else androidx.compose.ui.text.style.Hyphens.Auto,
+                lineBreak = if (words) androidx.compose.ui.text.style.LineBreak.Heading else androidx.compose.ui.text.style.LineBreak.Paragraph
             ),
             overflow = TextOverflow.Ellipsis,
             maxLines = maxLines

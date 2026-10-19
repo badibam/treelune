@@ -53,8 +53,11 @@ class SwissSize(val factor: Float) {
     val button: TextStyle = style(13f, 16f, FontWeight.SemiBold, 0.08f)
     /** A tool's name on its tile: small capitals. */
     val name: TextStyle = style(13f, 18f, FontWeight.SemiBold, 0.06f)
-    /** A group of tiles' title, a tile's name in a section header: capitals, heavy, widely spaced. */
-    val heading: TextStyle = style(12f, 16f, FontWeight.ExtraBold, 0.16f)
+    /**
+     * A group of tiles' title, a tile's name: capitals, heavy, spaced; at 0.10 em, a word of
+     * twelve capitals holds on a two cells' tile beside its icon up to the second size step.
+     */
+    val heading: TextStyle = style(12f, 16f, FontWeight.ExtraBold, 0.10f)
     val subtitle: TextStyle = style(22f, 26f, FontWeight.Black, (-0.02f))
     val title: TextStyle = style(22f, 26f, FontWeight.Black, (-0.02f))
     /** A number on show (a counter, a slider's value): the numbers are the theme's stars. */

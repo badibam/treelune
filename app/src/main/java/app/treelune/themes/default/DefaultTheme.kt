@@ -107,6 +107,9 @@ object DefaultTheme : ThemeContract {
     /** Silent: the default theme has no sounds. */
     override fun sound(signal: app.treelune.core.ui.sound.UISignal): Int? = null
 
+    /** A tile's name centered in the width its icon leaves. */
+    override fun tileNameAlign(): TextAlign = TextAlign.Center
+
     /** 4 outside the card, between tiles, and the card's padding inside (ToolCardContainer). */
     @Composable
     override fun tileFrame(displayMode: DisplayMode): Dp = 4.dp + tilePadding(displayMode)

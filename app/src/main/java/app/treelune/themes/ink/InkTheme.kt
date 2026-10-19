@@ -180,6 +180,9 @@ object InkTheme : ThemeContract {
     /** Silent: the theme's sounds are chosen apart (docs/THEMES.md, Les sons). */
     override fun sound(signal: UISignal): Int? = null
 
+    /** A tile's name centered in the width its icon leaves. */
+    override fun tileNameAlign(): TextAlign = TextAlign.Center
+
     /** Eight above and below, fourteen at the sides, as the mockup's tile; eight round an icon alone. */
     @Composable
     override fun tileFrame(displayMode: DisplayMode): Dp =

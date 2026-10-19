@@ -194,6 +194,9 @@ object CosyTheme : ThemeContract {
         UISignal.REFUSE -> R.raw.cosy_refuse
     }
 
+    /** A tile's name centered in the width its icon leaves. */
+    override fun tileNameAlign(): TextAlign = TextAlign.Center
+
     /** The tile's padding round its content: less on a small tile, which has little room. */
     @Composable
     override fun tileFrame(displayMode: DisplayMode): Dp = cosySize().dp(
