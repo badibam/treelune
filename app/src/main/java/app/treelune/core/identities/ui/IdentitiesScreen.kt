@@ -294,7 +294,9 @@ fun IdentityScreen(id: String, onName: @Composable (String) -> Unit, onBack: () 
         UI.Card(type = CardType.DEFAULT) {
             Column(modifier = Modifier.fillMaxWidth().padding(UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
                 UI.FormField(label = s.shared("label_name"), value = name, onChange = { name = it }, required = true)
-                app.treelune.core.ui.components.IconSelector(current = iconName, color = IconColor.of(iconColor), onChange = { iconName = it })
+                // Taken away, the identity gets back the default icon: the chat shows it by its icon
+                app.treelune.core.ui.components.IconSelector(current = iconName, color = IconColor.of(iconColor), onChange = { iconName = it },
+                    onClear = if (iconName != app.treelune.core.identities.Identity.DEFAULT_ICON) ({ iconName = app.treelune.core.identities.Identity.DEFAULT_ICON }) else null)
                 // An identity has no texture: its colour's line alone, which opens its page
                 app.treelune.core.fields.settings.PageLine(
                     title = { UI.Text(colorPage.label, TextType.SUBTITLE) },

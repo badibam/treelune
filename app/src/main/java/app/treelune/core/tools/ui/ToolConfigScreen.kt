@@ -301,11 +301,15 @@ fun ToolConfigScreen(
     }
 }
 
-/** The icon picker, the type's suggestions first; an absent icon shows the type's own, in [color]. */
+/**
+ * The icon picker, the type's suggestions first; an absent icon shows the type's own, in [color].
+ * Another one chosen can be taken away, which brings the type's back.
+ */
 private fun iconEditor(suggested: List<String>, default: String, color: app.treelune.core.themes.TagColor?) = object : SettingEditor {
     @Composable
     override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
-        IconSelector(current = value as? String ?: default, color = color, suggested = suggested, onChange = { onChange(it) })
+        IconSelector(current = value as? String ?: default, color = color, suggested = suggested, onChange = { onChange(it) },
+            onClear = (value as? String)?.takeIf { it.isNotBlank() && it != default }?.let { { onChange(null) } })
     }
 }
 

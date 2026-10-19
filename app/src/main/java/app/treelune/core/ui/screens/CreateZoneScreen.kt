@@ -90,9 +90,17 @@ fun CreateZoneScreen(
         "icon_name" to object : SettingEditor {
             @Composable
             override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
+                // Taken away, the zone has no icon, its tile its name alone; a texture of its icon
+                // goes with it, an ICON motif having nothing left to repeat
                 app.treelune.core.ui.components.IconSelector(current = value as? String ?: "",
                     color = app.treelune.core.themes.IconColor.of(settings.optString(app.treelune.core.themes.IconColor.KEY)),
-                    suggested = ZoneSettings.SUGGESTED_ICONS, onChange = { onChange(it) })
+                    suggested = ZoneSettings.SUGGESTED_ICONS, onChange = { onChange(it) },
+                    onClear = (value as? String)?.takeIf { it.isNotBlank() }?.let { {
+                        settings = JSONObject(settings.toString()).apply {
+                            remove("icon_name")
+                            if (app.treelune.core.themes.Texture.of(optString(app.treelune.core.themes.Texture.KEY)) == app.treelune.core.themes.Texture.ICON) remove(app.treelune.core.themes.Texture.KEY)
+                        }
+                    } })
             }
         },
         // The colour and the texture each chosen on a page of the form
