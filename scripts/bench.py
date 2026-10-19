@@ -25,7 +25,7 @@ after, and how the session ended; this script fetches them and judges them
         review.json, then review.md counting the grid per model and level; reviewed plays are kept
         unless --again
 
-The OpenRouter key comes from OPENROUTER_API_KEY, else from .env at the main repository's root.
+The OpenRouter key comes from OPENROUTER_API_KEY, else from the keyring (projet=treelune var=OPENROUTER_API_KEY).
 """
 
 import base64
@@ -38,7 +38,7 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-# The main checkout, where .env lives, whichever worktree runs this
+# The main checkout, whichever worktree runs this
 MAIN_ROOT = Path(subprocess.run(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
                                 cwd=ROOT, capture_output=True, text=True, check=True).stdout.strip()).parent
 # In the main checkout, out of tmp/, which is disposable: a campaign is kept to be read again, and a
@@ -64,12 +64,12 @@ def api_key():
     key = os.environ.get("OPENROUTER_API_KEY")
     if key:
         return key
-    env = MAIN_ROOT / ".env"
-    if env.is_file():
-        for line in env.read_text(encoding="utf-8").splitlines():
-            if line.startswith("OPENROUTER_API_KEY="):
-                return line.split("=", 1)[1].strip()
-    sys.exit("No OpenRouter key: set OPENROUTER_API_KEY, or write it in .env at the repository root")
+    found = subprocess.run(["secret-tool", "lookup", "projet", "treelune", "var", "OPENROUTER_API_KEY"],
+                           capture_output=True, text=True)
+    if found.returncode == 0 and found.stdout.strip():
+        return found.stdout.strip()
+    sys.exit("No OpenRouter key: set OPENROUTER_API_KEY, or store it in the keyring "
+             "(secret-tool store --label 'treelune : OPENROUTER_API_KEY' projet treelune var OPENROUTER_API_KEY)")
 
 
 def adb(*args, check=True, capture=True):
