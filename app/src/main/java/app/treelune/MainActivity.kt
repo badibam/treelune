@@ -111,13 +111,13 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // The images' folder confronted with their table, once per process, before any screen:
-        // nothing can be joining an image yet
+        // The images' folders confronted with their table, once per process, before any screen:
+        // nothing can be joining an image nor writing an entry yet
         kotlinx.coroutines.runBlocking(Dispatchers.IO) {
             try {
-                app.treelune.core.ai.enrichments.AttachedImages.sweepOnce(this@MainActivity)
+                app.treelune.core.images.Images.sweepOnce(this@MainActivity)
             } catch (e: Exception) {
-                LogManager.aiEnrichment("Startup sweep of the images failed: ${e.message}", "ERROR", e)
+                LogManager.service("Startup sweep of the images failed: ${e.message}", "ERROR", e)
             }
         }
 

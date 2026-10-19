@@ -1,5 +1,6 @@
 package app.treelune.core.ai.prompts
 
+import app.treelune.core.images.imageFormat
 import app.treelune.core.utils.JsonUtils
 import android.content.Context
 import app.treelune.core.ai.data.*
@@ -196,9 +197,13 @@ object PromptManager {
         // with images reaches it in parts, each image where the user put it
         val enrichmentText = app.treelune.core.ai.enrichments.EnrichmentText.load(context,
             app.treelune.core.ai.enrichments.EnrichmentText.blocksOf(sessionMessages.mapNotNull { it.richContent }))
+        // The format of each image the messages hold, which says how its file is read
+        val imageIds = sessionMessages.flatMap { it.richContent?.imageIds.orEmpty() }
+        val formats = if (imageIds.isEmpty()) emptyMap()
+            else app.treelune.core.database.AppDatabase.getDatabase(context).imageDao().getByIds(imageIds).associate { it.id to it.imageFormat }
         return sessionMessages.map { message ->
             message.richContent?.let { rich ->
-                val parts = enrichmentText.promptParts(rich)
+                val parts = enrichmentText.promptParts(rich, formats)
                 if (parts.none { it is app.treelune.core.ai.data.PromptPart.Image })
                     message.copy(richContent = null, textContent = (parts.singleOrNull() as? app.treelune.core.ai.data.PromptPart.Text)?.text ?: "")
                 else message.copy(richContent = null, textContent = null, promptParts = parts)

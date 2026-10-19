@@ -23,8 +23,8 @@ import app.treelune.core.ai.database.AISessionEntity
 import app.treelune.core.ai.database.SessionMessageEntity
 import app.treelune.core.ai.database.AttachedFileEntity
 import app.treelune.core.ai.database.AttachedFileDao
-import app.treelune.core.ai.database.AttachedImageEntity
-import app.treelune.core.ai.database.AttachedImageDao
+import app.treelune.core.images.ImageEntity
+import app.treelune.core.images.ImageDao
 import app.treelune.core.ai.database.AIProviderConfigEntity
 import app.treelune.core.ai.database.AutomationEntity
 import app.treelune.core.ai.database.AITypeConverters
@@ -73,7 +73,7 @@ import app.treelune.core.ai.data.LegacyCatchUp
         LogEntry::class,
         VariableEntity::class,
         AttachedFileEntity::class,
-        AttachedImageEntity::class,
+        ImageEntity::class,
         app.treelune.core.mcp.McpClientEntity::class,
         app.treelune.core.mcp.McpTokenEntity::class,
         app.treelune.core.identities.IdentityEntity::class
@@ -96,7 +96,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun logDao(): LogDao
     abstract fun variableDao(): VariableDao
     abstract fun attachedFileDao(): AttachedFileDao
-    abstract fun attachedImageDao(): AttachedImageDao
+    abstract fun imageDao(): ImageDao
     abstract fun mcpDao(): app.treelune.core.mcp.McpDao
     abstract fun identityDao(): app.treelune.core.identities.IdentityDao
 
@@ -105,7 +105,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 81
+        const val VERSION = 82
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -1614,7 +1614,7 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        /** Images joined to messages, kept with their session: see AttachedImageEntity. */
+        /** Images joined to messages, kept with their session. */
         private val MIGRATION_58_59 = object : ConnectionMigration(58, 59) {
             override fun migrate(database: MigrationDatabase) {
                 database.execSQL("""
@@ -1865,6 +1865,15 @@ abstract class AppDatabase : RoomDatabase() {
                     }
                 }
                 LogManager.database("MIGRATION 80->81: interface settings gain home_title, on", "INFO")
+            }
+        }
+
+        /** One table for the images of messages and of entries: see ImagesAtV82. */
+        private val MIGRATION_81_82 = object : ConnectionMigration(81, 82) {
+            override fun migrate(database: MigrationDatabase) {
+                app.treelune.core.versioning.ImagesAtV82.STATEMENTS.forEach { database.execSQL(it) }
+                val count = database.query("SELECT COUNT(*) FROM images").use { if (it.moveToFirst()) it.getInt(0) else 0 }
+                LogManager.database("MIGRATION 81->82: attached_images becomes images, $count message images kept as JPEG", "INFO")
             }
         }
 
@@ -2874,7 +2883,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_77_78,
                     MIGRATION_78_79,
                     MIGRATION_79_80,
-                    MIGRATION_80_81
+                    MIGRATION_80_81,
+                    MIGRATION_81_82
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

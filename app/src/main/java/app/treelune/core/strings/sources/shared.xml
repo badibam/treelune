@@ -1095,7 +1095,7 @@
     <string name="backup_reset_success">Reset succeeded, restarting...</string>
     <string name="backup_version_too_recent">This file comes from a more recent version of the application</string>
     <string name="backup_invalid_file">Invalid backup file</string>
-    <string name="backup_import_image_missing">The backup names image %1$s (session %2$s) but does not hold its file, and did not have it missing at the export: the backup is damaged, nothing was imported.</string>
+    <string name="backup_import_image_missing">The backup names image %1$s but does not hold its file, and did not have it missing at the export: the backup is damaged, nothing was imported.</string>
     <string name="backup_export_failed">Export failed</string>
     <string name="backup_import_failed">Import failed</string>
     <string name="backup_reset_failed">Reset failed</string>
@@ -1340,6 +1340,9 @@
     <string name="action_verbalize_references_choices">Listing what a link can point to</string>
     <string name="file_error_not_text">%1$s is not a text file: only text can be joined (CSV, plain text, Markdown, JSON).</string>
     <string name="image_error_not_read">This image could not be read: %1$s</string>
+    <string name="image_error_not_found">No image has the id %1$s</string>
+    <string name="image_animated_first_frame">This image is animated: only its first frame is kept</string>
+    <string name="field_image_others">+%1$d</string>
     <string name="ai_image_error_model_does_not_read">This model does not read images: take them off the message, or choose a model that reads them.</string>
     <string name="ai_image_error_model_unknown">Nothing says whether this model reads images, so they are not sent: open the provider\'s config and save it again, or choose another model.</string>
     <string name="ai_image_error_too_many">This conversation holds %1$d images; a request carries %2$d at most.</string>
@@ -1369,6 +1372,7 @@
     <string name="action_verbalize_files_read">Reading a joined file</string>
     <string name="action_verbalize_files_delete">Removing a joined file</string>
     <string name="action_verbalize_files_attach_image">Joining an image</string>
+    <string name="action_verbalize_files_prepare_image">Preparing an image</string>
     <string name="action_verbalize_files_delete_image">Removing a joined image</string>
     <string name="service_error_reading_param">A reading needs "%1$s".</string>
     <string name="service_error_reading_source">A reading reads the entries of one tool instance, not of a %1$s.</string>

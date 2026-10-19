@@ -1095,7 +1095,7 @@
     <string name="backup_reset_success">Réinitialisation réussie, redémarrage...</string>
     <string name="backup_version_too_recent">Ce fichier provient d\'une version plus récente de l\'application</string>
     <string name="backup_invalid_file">Fichier de sauvegarde invalide</string>
-    <string name="backup_import_image_missing">La sauvegarde nomme l\'image %1$s (session %2$s) sans en contenir le fichier, qui ne manquait pas à l\'export : la sauvegarde est abîmée, rien n\'a été importé.</string>
+    <string name="backup_import_image_missing">La sauvegarde nomme l\'image %1$s sans en contenir le fichier, qui ne manquait pas à l\'export : la sauvegarde est abîmée, rien n\'a été importé.</string>
     <string name="backup_export_failed">Échec de l\'export</string>
     <string name="backup_import_failed">Échec de l\'import</string>
     <string name="backup_reset_failed">Échec de la réinitialisation</string>
@@ -1340,6 +1340,9 @@
     <string name="action_verbalize_references_choices">Liste de ce qu\'un lien peut désigner</string>
     <string name="file_error_not_text">%1$s n\'est pas un fichier texte : seul du texte se joint (CSV, texte brut, Markdown, JSON).</string>
     <string name="image_error_not_read">Cette image n\'a pas pu être lue : %1$s</string>
+    <string name="image_error_not_found">Aucune image n\'a l\'id %1$s</string>
+    <string name="image_animated_first_frame">Cette image est animée : seule sa première image est gardée</string>
+    <string name="field_image_others">+%1$d</string>
     <string name="ai_image_error_model_does_not_read">Ce modèle ne lit pas les images : retire-les du message, ou choisis un modèle qui les lit.</string>
     <string name="ai_image_error_model_unknown">Rien ne dit si ce modèle lit les images, elles ne partent donc pas : rouvre la config du fournisseur et enregistre-la, ou choisis un autre modèle.</string>
     <string name="ai_image_error_too_many">Cette conversation compte %1$d images ; une requête en porte %2$d au plus.</string>
@@ -1369,6 +1372,7 @@
     <string name="action_verbalize_files_read">Lecture d\'un fichier joint</string>
     <string name="action_verbalize_files_delete">Retrait d\'un fichier joint</string>
     <string name="action_verbalize_files_attach_image">Ajout d\'une image</string>
+    <string name="action_verbalize_files_prepare_image">Préparation d\'une image</string>
     <string name="action_verbalize_files_delete_image">Retrait d\'une image jointe</string>
     <string name="service_error_reading_param">Une lecture demande "%1$s".</string>
     <string name="service_error_reading_source">Une lecture lit les entrées d\'une instance d\'outil, pas d\'un %1$s.</string>

@@ -2,8 +2,8 @@ package app.treelune.core.services
 
 import android.content.Context
 import app.treelune.core.ai.database.AttachedFileEntity
-import app.treelune.core.ai.database.AttachedImageEntity
-import app.treelune.core.ai.enrichments.AttachedImages
+import app.treelune.core.images.ImageEntity
+import app.treelune.core.images.Images
 import app.treelune.core.ai.database.getById
 import app.treelune.core.coordinator.CancellationToken
 import app.treelune.core.database.AppDatabase
@@ -21,17 +21,20 @@ import java.util.UUID
  *   file's name, type, size and line count. Without them, the whole file.
  * - delete: `id`: a file taken off the composer before its message went.
  *
- * And the images joined to messages (docs/design/message-images.md), a reduced JPEG file each
- * (AttachedImages), described by a row (AttachedImageEntity):
- * - attach_image: `session_id`, `uri` (the photo taken or picked): the image prepared and kept,
- *   its file written before its row; its `id`, `width`, `height` and `size_bytes`.
+ * And the images (docs/design/message-images.md, docs/design/image-field.md), a reduced file each
+ * (Images), described by a row (ImageEntity):
+ * - attach_image: `session_id`, `uri` (the photo taken or picked): the image prepared and kept
+ *   with the session, its file written before its row; its `id`, `width`, `height`,
+ *   `size_bytes`, `format` and `animated` (only its first frame kept).
+ * - prepare_image: `uri`: the image prepared for an entry's IMAGE field, its file set aside
+ *   without a row until the entry is written (ToolDataService, EntryImages); the same answer.
  * - delete_image: `id`: an image taken off the composer; its row deleted before its file.
  */
 class FileService(private val context: Context) : ExecutableService {
 
     private val s = Strings.`for`(context = context)
     private val dao = AppDatabase.getDatabase(context).attachedFileDao()
-    private val imageDao = AppDatabase.getDatabase(context).attachedImageDao()
+    private val imageDao = AppDatabase.getDatabase(context).imageDao()
 
     override suspend fun execute(operation: String, params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
@@ -44,10 +47,12 @@ class FileService(private val context: Context) : ExecutableService {
                 OperationResult.success()
             }
             "attach_image" -> attachImage(params)
+            "prepare_image" -> prepareImage(params)
             "delete_image" -> {
                 val id = params.optString("id").takeIf { it.isNotEmpty() } ?: return OperationResult.error(s.shared("service_error_missing_id"))
+                val image = imageDao.getById(id) ?: return OperationResult.error(s.shared("image_error_not_found").format(id))
                 imageDao.delete(id)
-                AttachedImages.delete(context, id)
+                Images.delete(context, image)
                 OperationResult.success()
             }
             else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
@@ -56,15 +61,15 @@ class FileService(private val context: Context) : ExecutableService {
 
     private suspend fun attachImage(params: JSONObject): OperationResult {
         val sessionId = params.optString("session_id").takeIf { it.isNotEmpty() } ?: return OperationResult.error(s.shared("service_error_missing_required_params").format("session_id"))
-        val uri = params.optString("uri").takeIf { it.isNotEmpty() } ?: return OperationResult.error(s.shared("service_error_missing_required_params").format("uri"))
-        val prepared = try {
-            AttachedImages.prepare(context.contentResolver, android.net.Uri.parse(uri))
-        } catch (e: Exception) {
-            return OperationResult.error(s.shared("image_error_not_read").format(e.message ?: ""))
+        val prepared = when (val done = prepared(params)) {
+            is Preparation.Failed -> return OperationResult.error(done.error)
+            is Preparation.Done -> done.image
         }
-        val image = AttachedImageEntity(
+        val image = ImageEntity(
             id = UUID.randomUUID().toString(),
             sessionId = sessionId,
+            entryId = null,
+            format = prepared.format.name,
             sizeBytes = prepared.bytes.size.toLong(),
             width = prepared.width,
             height = prepared.height,
@@ -72,10 +77,47 @@ class FileService(private val context: Context) : ExecutableService {
         )
         // The file first: an interruption between the two leaves a file no row names, which the
         // startup sweep removes, never a row without its file
-        AttachedImages.write(context, image.id, prepared.bytes)
+        Images.write(Images.file(context, image), prepared.bytes)
         imageDao.insert(image)
-        return OperationResult.success(mapOf("id" to image.id, "width" to image.width, "height" to image.height, "size_bytes" to image.sizeBytes))
+        return OperationResult.success(answer(image.id, prepared))
     }
+
+    /**
+     * An image prepared for an entry: its file in the folder of the images no entry holds yet,
+     * where the entry's write finds it by its id, and the startup sweep removes it if the form
+     * is never saved.
+     */
+    private fun prepareImage(params: JSONObject): OperationResult {
+        val prepared = when (val done = prepared(params)) {
+            is Preparation.Failed -> return OperationResult.error(done.error)
+            is Preparation.Done -> done.image
+        }
+        val id = UUID.randomUUID().toString()
+        Images.write(java.io.File(Images.pendingDir(context), prepared.format.fileName(id)), prepared.bytes)
+        return OperationResult.success(answer(id, prepared))
+    }
+
+    /** An image prepared, or why it could not be. */
+    private sealed interface Preparation {
+        class Done(val image: Images.Prepared) : Preparation
+        class Failed(val error: String) : Preparation
+    }
+
+    /** The image at the `uri` of [params] prepared. */
+    private fun prepared(params: JSONObject): Preparation {
+        val uri = params.optString("uri").takeIf { it.isNotEmpty() }
+            ?: return Preparation.Failed(s.shared("service_error_missing_required_params").format("uri"))
+        return try {
+            Preparation.Done(Images.prepare(context.contentResolver, android.net.Uri.parse(uri)))
+        } catch (e: Exception) {
+            Preparation.Failed(s.shared("image_error_not_read").format(e.message ?: ""))
+        }
+    }
+
+    private fun answer(id: String, prepared: Images.Prepared): Map<String, Any> = mapOf(
+        "id" to id, "width" to prepared.width, "height" to prepared.height, "size_bytes" to prepared.bytes.size.toLong(),
+        "format" to prepared.format.name, "animated" to prepared.animated
+    )
 
     private suspend fun attach(params: JSONObject): OperationResult {
         val sessionId = params.optString("session_id").takeIf { it.isNotEmpty() } ?: return OperationResult.error(s.shared("service_error_missing_required_params").format("session_id"))
@@ -122,6 +164,7 @@ class FileService(private val context: Context) : ExecutableService {
             "read" -> s.shared("action_verbalize_files_read")
             "delete" -> s.shared("action_verbalize_files_delete")
             "attach_image" -> s.shared("action_verbalize_files_attach_image")
+            "prepare_image" -> s.shared("action_verbalize_files_prepare_image")
             "delete_image" -> s.shared("action_verbalize_files_delete_image")
             else -> s.shared("action_verbalize_unknown")
         }

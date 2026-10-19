@@ -442,14 +442,14 @@ class AISessionService(private val context: Context) : ExecutableService {
             }
 
             // Its images, whose rows go with it by cascade and whose files go after them
-            val imageIds = database.attachedImageDao().getForSession(sessionId).map { it.id }
+            val images = database.imageDao().getForSession(sessionId)
 
             // Delete all messages for this session first
             database.aiDao().deleteMessagesForSession(sessionId)
 
             // Delete the session
             database.aiDao().deleteSession(sessionEntity)
-            imageIds.forEach { app.treelune.core.ai.enrichments.AttachedImages.delete(context, it) }
+            images.forEach { app.treelune.core.images.Images.delete(context, it) }
 
             LogManager.aiSession("Successfully deleted session: $sessionId", "INFO")
 
@@ -1220,11 +1220,11 @@ class AISessionService(private val context: Context) : ExecutableService {
             }
 
             // Its images, whose rows go with it by cascade and whose files go after them
-            val imageIds = database.attachedImageDao().getForSession(sessionId).map { it.id }
+            val images = database.imageDao().getForSession(sessionId)
 
             // Delete session (CASCADE DELETE will handle messages automatically)
             dao.deleteSessionById(sessionId)
-            imageIds.forEach { app.treelune.core.ai.enrichments.AttachedImages.delete(context, it) }
+            images.forEach { app.treelune.core.images.Images.delete(context, it) }
 
             LogManager.aiSession("Successfully deleted CHAT session: $sessionId", "INFO")
 

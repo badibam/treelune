@@ -39,7 +39,7 @@ internal data class FusedMessage(
  *   "disabled", "between_tools"); null keeps it on, as the model has it with no thinking field
  * @param datetimeText The dated closing message (buildDatetimeMessage), built by the caller:
  *   it reads the clock and the strings, which keeps this function pure and testable
- * @param imageData The JPEG of each image the messages carry, as base64 (AttachedImages)
+ * @param imageData The file of each image the messages carry, as base64 (Images)
  * @return JsonObject ready for Claude API /v1/messages endpoint
  */
 internal fun PromptData.toClaudeJson(
@@ -130,8 +130,8 @@ internal fun PromptData.toClaudeJson(
                                             put("type", "image")
                                             putJsonObject("source") {
                                                 put("type", "base64")
-                                                put("media_type", IMAGE_MEDIA_TYPE)
-                                                put("data", imageData(block.imageId))
+                                                put("media_type", block.format.mediaType)
+                                                put("data", imageData(block))
                                             }
                                         }
                                     }

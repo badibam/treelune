@@ -138,8 +138,11 @@ data class SessionReasoning(val thinkingOff: Boolean, val effort: String?) {
     }
 }
 
-/** A part of what a user message says to the model: some text, or an image where the user put it. */
+/**
+ * A part of what a message from the user's side says to the model: some text, or an image where
+ * it was put, a message's image read from its file as its [format] says.
+ */
 sealed class PromptPart {
     data class Text(val text: String) : PromptPart()
-    data class Image(val imageId: String) : PromptPart()
+    data class Image(val imageId: String, val format: app.treelune.core.images.ImageFormat) : PromptPart()
 }

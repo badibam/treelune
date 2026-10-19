@@ -188,8 +188,11 @@ fun UI.RichComposer(
         scope.launch {
             val result = Coordinator(context).processUserAction("files.attach_image", mapOf("session_id" to session, "uri" to uri.toString()))
             afterwards()
-            if (result.isSuccess) add(ComposerBlock(MessageSegment.Image(result.data!!["id"] as String)))
-            else UI.Toast(context, result.error ?: "", Duration.LONG)
+            if (result.isSuccess) {
+                add(ComposerBlock(MessageSegment.Image(result.data!!["id"] as String)))
+                // An animated image keeps its first frame, which is said
+                if (result.data!!["animated"] == true) UI.Toast(context, s.shared("image_animated_first_frame"), Duration.LONG)
+            } else UI.Toast(context, result.error ?: "", Duration.LONG)
         }
     }
 
@@ -482,7 +485,7 @@ private fun ImageBlockContent(imageId: String, readsImages: Boolean?) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
-        AttachedImageThumbnail(imageId)
+        app.treelune.core.images.ImageRow(listOf(imageId))
         when (readsImages) {
             true -> {}
             false -> UI.Text(s.shared("ai_image_model_does_not_read"), TextType.WARNING)

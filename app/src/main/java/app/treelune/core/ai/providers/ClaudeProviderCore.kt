@@ -287,7 +287,7 @@ internal class ClaudeProviderCore(
                 thinking = ReasoningSettings.thinkingType(settings.boolean(ReasoningSettings.THINKING_OFF), ProviderFacts.of(context),
                     api.factsProvider, requestedModel),
                 datetimeText = promptData.buildDatetimeMessage(context),
-                imageData = { app.treelune.core.ai.enrichments.AttachedImages.base64(context, it) }
+                imageData = { app.treelune.core.images.Images.base64(context, it.imageId, it.format) }
             )
             val requestBody = requestJson.toString()
 
