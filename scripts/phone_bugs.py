@@ -99,10 +99,9 @@ def ask_claude(prompt, tools, schema):
     )
     if process.returncode != 0:
         raise RuntimeError(f"claude failed ({process.returncode}): {process.stderr.strip() or process.stdout.strip()}")
-    # A list of the session's events, the last one being its result
-    events = json.loads(process.stdout)
-    result = events[-1] if isinstance(events, list) and events else {}
-    if result.get("type") != "result" or result.get("is_error"):
+    # The session's result, as one object
+    result = json.loads(process.stdout)
+    if not isinstance(result, dict) or result.get("type") != "result" or result.get("is_error"):
         raise RuntimeError(f"claude ended without a result: {result.get('result', process.stdout[-500:])}")
     answer = result.get("structured_output")
     if not isinstance(answer, dict):
