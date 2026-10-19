@@ -16,7 +16,7 @@ Toutes les lignes du 2026-10-19, dans l'ordre de la liste de `docs/THEMES.md`.
    - L'encre secondaire est l'encre pleine : la hiérarchie passe par la graisse et la taille.
    - Les couleurs d'état sont à l'encre : un état se dit par son icône et son texte.
    - Chaque couleur de tag (et d'icône) est une trame : rouge, plein ; orange, hachures `/` ; jaune, points clairsemés ; vert, quadrillage ; turquoise, lignes horizontales ; bleu, hachures `\` ; violet, hachures croisées ; rose, points serrés ; gris, un carré vide.
-   - La teinte n'a rien à tourner : le thème le déclare (ajout B) et Réglages › Interface cache sa bande.
+   - La teinte n'a rien à tourner : le thème le déclare (« L'ajout au contrat ») et Réglages › Interface cache sa bande.
    - `EinkPaletteTest` tient les contrastes des deux palettes, comme pour tout thème.
 5. **La géométrie** : un pas de 8 dp ; `UI.Space` XS 4, S 8, M 16, L 24, XL 32, `EDGE` 16. Cases carrées, 8 dp entre deux colonnes et entre deux rangées, laissés vides par la grille. Le contenu d'une tuile commence 8 dp à l'intérieur de son cadre de 2 dp. La cible du doigt à 48 dp. `drawingUnit` 1.
 6. **La taille** : la taille de texte d'Android suivie ; le cran (0 à 3) agrandit tout par ×1, ×1,12, ×1,25 et ×1,4, sauf les espacements, la marge de bord et les écarts de la grille, fixes en dp ; les traits arrondis au pixel entier. Le texte courant à 16 sp, un cran au-dessus des autres thèmes : c'est un thème de lecture.
@@ -37,12 +37,11 @@ Toutes les lignes du 2026-10-19, dans l'ordre de la liste de `docs/THEMES.md`.
 12. **Le registre sonore** : du papier, sec et mat : une page tournée, une feuille tapotée, un crayon qui coche ; l'opposé des clics du suisse. À chercher dans BigSoundBank et Freesound. Le thème part muet.
 13. **Les textes** : nom « Liseuse » / « E-reader » ; phrase « Comme une liseuse : noir et blanc pur, des trames à la place des gris, rien qui bouge » / « Like an e-reader: pure black and white, patterns instead of greys, nothing that moves ». Pas de nom de palette.
 
-## Les ajouts au contrat
+## L'ajout au contrat
 
-Décidés avec le thème, pour les huit autres comme pour lui (`docs/THEMES.md`, « Ajouter une pièce au contrat »).
+Décidé avec le thème, pour les huit autres comme pour lui (`docs/THEMES.md`, « Ajouter une pièce au contrat ») : un thème déclare s'il a une teinte à tourner (`ThemeContract.hueShifts`), vrai pour les huit autres ; Réglages › Interface ne montre la bande de la teinte que s'il en a une, le décalage enregistré restant tel quel.
 
-- **A. La pastille d'une couleur** : `UI.TagSwatch`, d'où l'on choisit la couleur d'un tag ou d'une icône, passe aujourd'hui par `StatusIndicator`, qui ne reçoit qu'une couleur : dans ce thème, les neuf pastilles seraient noires. Une pièce `TagSwatch(color: TagColor, size: Dp)` la donne au thème ; les huit autres gardent leur rond de la couleur (`getTagColor`), celui-ci dessine sa trame.
-- **B. Un thème sans teinte** : un thème déclare s'il a une teinte à tourner (`hueShifts`), vrai pour les huit autres ; Réglages › Interface ne montre la bande que s'il en a une.
+Le choix d'une couleur n'en demande pas : il passe par des pièces que le thème dessine (`Tag` avec le nom de la couleur, `ItemIcon`), qui montrent ici la trame.
 
 Ce que le cœur garde : le voile derrière un dialogue est celui d'Android, un noir translucide, commun à tous les thèmes. C'est le seul gris de l'écran.
 

@@ -197,12 +197,16 @@ class SettingsDraft(private val saveChanged: suspend () -> Boolean) {
     suspend fun saveIfChanged(): Boolean = saveChanged()
 }
 
-/** The hue shift chosen on the theme's slider of the colours each shift gives (HueSlider). */
+/**
+ * The hue shift chosen on the theme's slider of the colours each shift gives (HueSlider); nothing
+ * for a theme without a hue (ThemeContract.hueShifts), the shift stored staying as it is.
+ */
 private class HueShiftEditor(
     private val node: app.treelune.core.fields.settings.SettingNode.Field
 ) : app.treelune.core.fields.settings.SettingEditor {
     @Composable
     override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
+        if (!CurrentTheme.current.hueShifts) return
         Column(verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
             UI.FieldLabel(node.definition.displayName, node.required)
             val shift = ((value ?: node.default) as? Number)?.toInt() ?: AppSettings.HUE_SHIFT_RANGE.first

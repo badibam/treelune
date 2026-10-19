@@ -160,6 +160,7 @@ object BlueprintTheme : ThemeContract {
 
     /** Lucide, redrawn by the theme with its own line (BlueprintIcons). */
     override val iconSource = IconSource.LUCIDE
+    override val hueShifts = true
 
     // =====================================
     // GRID, SPACES, SOUNDS

@@ -153,6 +153,7 @@ object MetroTheme : ThemeContract {
 
     /** Lucide's icons as they are: their even, rounded stroke suits a signage font. */
     override val iconSource = IconSource.LUCIDE
+    override val hueShifts = true
 
     // =====================================
     // GRID, SPACES, SOUNDS
