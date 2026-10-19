@@ -1,5 +1,6 @@
 package app.treelune.tools.notes.ui.components
 
+import app.treelune.core.markup.ui.MarkupText
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -77,11 +78,8 @@ fun NoteCard(
                             )
                         }
                     } else {
-                        // Note with content
-                        UI.Text(
-                            text = displayContent,
-                            type = TextType.BODY
-                        )
+                        // Note with content, drawn from its markup; the card reacts to a touch, so no selection
+                        MarkupText(displayContent, icons = false, selectable = false)
 
                         // Custom fields display (always shown for alwaysVisible fields)
                         Spacer(modifier = Modifier.height(UI.Space.S))

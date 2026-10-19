@@ -376,7 +376,7 @@ private fun LazyListScope.sheetsTable(
             Box(modifier = Modifier.weight(1f)) { UI.Text(sheet.name, TextType.BODY) }
             columns.forEach { field ->
                 Box(modifier = Modifier.weight(1f)) {
-                    sheet.extra[field.name]?.let { FieldValue(field, it, context) }
+                    sheet.extra[field.name]?.let { FieldValue(field, it, context, oneLine = true) }
                 }
             }
         }

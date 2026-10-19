@@ -1,6 +1,7 @@
 package app.treelune.core.fields
 
 import android.content.Context
+import app.treelune.core.markup.Markup
 import app.treelune.core.strings.Strings
 import app.treelune.core.strings.StringsContext
 import org.json.JSONArray
@@ -149,9 +150,10 @@ fun FieldDefinition.formatValue(value: Any?, context: Context): String {
     if (value == null) return s.shared("label_no_value")
 
     return when (type) {
+        // A long text on one line, its marks taken off (Markup.plain)
         FieldType.TEXT -> {
             val text = value.toString()
-            if (text.isEmpty()) s.shared("label_no_value") else text
+            if (text.isEmpty()) s.shared("label_no_value") else if (formatted()) Markup.plain(text) else text
         }
 
         FieldType.NUMERIC -> formatNumericValue(value, config, s)
@@ -177,12 +179,15 @@ fun FieldDefinition.formatValue(value: Any?, context: Context): String {
  * - a choice of a few fixed options: every option, the chosen ones marked, `(x)` for one answer,
  *   `[x]` for several; past [DESCRIBED_OPTIONS] options, or for an open choice whose options grow
  *   without end, the answers alone;
- * - a ranking: the options in the order chosen, numbered.
+ * - a ranking: the options in the order chosen, numbered;
+ * - a long text: as it was written, its marks kept.
  */
 fun FieldDefinition.describeValue(value: Any?, context: Context): String {
     val s = Strings.`for`(context = context)
     if (value == null) return s.shared("label_no_value")
     return when (type) {
+        // Its marks kept: the text as it was written
+        FieldType.TEXT -> value.toString().ifEmpty { s.shared("label_no_value") }
         FieldType.SCALE -> describeScale(value, config, s) ?: formatValue(value, context)
         FieldType.CHOICE -> describeChoice(value, config, s) ?: formatValue(value, context)
         else -> formatValue(value, context)
@@ -433,3 +438,7 @@ fun extraForUpdate(before: Map<String, Any?>, after: Map<String, Any?>): JSONObj
     val kept = after.filterValues { it != null }
     return app.treelune.core.utils.JsonUtils.toJSONObject(kept + (before.keys - kept.keys).associateWith { null })
 }
+
+/** Whether this field holds a long text, written in the app's markup (TextLength.formatted). */
+fun FieldDefinition.formatted(): Boolean =
+    type == FieldType.TEXT && TextLength.fromString(config?.get("length") as? String).formatted

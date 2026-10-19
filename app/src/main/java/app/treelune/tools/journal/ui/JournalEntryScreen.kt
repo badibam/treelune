@@ -1,5 +1,6 @@
 package app.treelune.tools.journal.ui
 
+import app.treelune.core.markup.ui.MarkupText
 import app.treelune.core.tools.BaseSchemas
 import app.treelune.core.ui.FieldValuesSaver
 import androidx.compose.foundation.clickable
@@ -413,12 +414,8 @@ fun JournalEntryScreen(
                         selectable = title.isNotBlank()
                     )
 
-                    // Full content (no truncation)
-                    UI.Text(
-                        text = content,
-                        type = TextType.BODY,
-                        selectable = true
-                    )
+                    // Full content (no truncation), drawn from its markup
+                    MarkupText(content, icons = false)
 
                     // Custom fields display (if any)
                     // Custom fields display (definitions loaded automatically from toolInstanceId)

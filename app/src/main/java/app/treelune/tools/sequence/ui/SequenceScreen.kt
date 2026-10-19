@@ -1,5 +1,6 @@
 package app.treelune.tools.sequence.ui
 
+import app.treelune.core.markup.ui.MarkupText
 import app.treelune.core.ui.chatButtonSpace
 import android.content.Context
 import androidx.compose.foundation.layout.Box
@@ -232,7 +233,7 @@ private fun Running(id: String, run: SequenceRun, s: StringsContext, gesture: (S
             UI.Text(stepClock(run, now), TextType.TITLE)
             if (run.isPaused) UI.Text(s.tool("running_paused"), TextType.WARNING)
             else if (run.held) UI.Text(s.tool("running_held"), TextType.CAPTION)
-            step.instruction?.let { UI.Text(it, TextType.BODY) }
+            step.instruction?.let { MarkupText(it, icons = false, selectable = false) }
         }
     }
     run.next?.let { UI.Text(s.tool("running_next").format(it.name), TextType.CAPTION) }
