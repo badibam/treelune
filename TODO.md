@@ -13,8 +13,7 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 
 - Une réponse coupée par la limite de longueur (`OpenAICompatibleExtensions.kt`, `finish_reason` « length ») garde son texte et ses tokens, aujourd'hui jetés, ce qui montre gratuit un appel facturé ; à trancher : le texte montré dans la session avec l'erreur, ou seulement gardé en base.
 - L'export des entrées d'un outil (`docs/design/export.md`) : le dossier choisi dans les réglages, l'opération `exports.csv`, « Exporter… » sur l'écran d'un outil, l'action `EXPORT_DATA` de l'IA.
-- Les boutons du haut d'un outil changent de hauteur selon le nombre de lignes de son titre.
-- Le titre de l'écran de config d'un outil, écrit par chaque écran : le rendre commun, le nom de l'outil et son type.
+- Le titre de l'écran de config d'un outil (`ToolConfigScreen`) dit « Configurer » et le type de l'outil, jamais son nom.
 - La phrase de date et d'heure envoyée à l'IA (`ai_prompt_current_datetime`) ne dit pas qu'elle est écrite par le système, et non par l'utilisateur.
 
 ## Bugs
@@ -59,7 +58,6 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - Les textures d'outil et de zone (`docs/design/tool-texture.md`, branche tool-texture) : les tons réglés d'abord au banc des textures (`./run themes`), dans les trois thèmes et les deux modes, puis la section « Les textures » de la recette ; passé, élaguer la spec.
 - La texture sur tout le fond de la page et le choix de la couleur et de la texture sur une page du formulaire (branche texture-background, 2026-10-17) : la vue « page » du banc des textures (`./run themes`) d'abord, puis les lignes de la section « Les textures » de la recette qui parlent du fond de page et des pages de choix.
 - Les lectures envoyées une fois par session (`SessionReads`, branche read-once) : la section du même nom de la recette.
-- Le thème suisse (`docs/design/swiss-theme.md`, branche swiss-theme) : la passe sur le téléphone de `docs/THEMES.md`, puis ce que la spec garde dans « Ce qui reste ouvert ».
 - Le thème encre et lavis (`docs/design/ink-theme.md`, branche theme-ink) : la passe sur le téléphone de `docs/THEMES.md`, les icônes au pinceau d'abord (leur coût à l'ouverture d'une page, celles qui se bouchent), puis ce que la spec garde dans « Ce qui reste ouvert » ; ce qui a changé le 2026-10-17 après la première passe : le lavis d'une tuile qui déborde et s'éteint à son bord, sa texture estompée avec lui, la carte en lavis au bord fondu (des marches dans le fondu ?), la gouache sous les icônes et les tags, les ronds peints à la main (boutons, case, sceaux), le coût d'ouverture d'une zone aux tuiles texturées.
 - Les incarnations (`docs/design/incarnations.md`, branche incarnations) : la dernière section de la recette, l'identité de Stan Prokopenko importée et le coût d'un tour mesuré pour personae ; passé, élaguer la spec. L'import attend que personae exporte au format 2 du fichier d'identité (`docs/IDENTITY_FILE.md`), le format 1 n'étant plus lu.
 - Les bugs du téléphone du 2026-10-17 : la section du même nom de la recette.
@@ -103,7 +101,7 @@ Une idée sans spec : elle demande une décision avant du code.
 
 ### Interface
 
-- Lucide redessiné à leur manière pour le cosy et le suisse, comme le pinceau d'Encre et lavis (`docs/design/ink-theme.md`, ligne 9), un trait à chacun : une fois la brique du cœur qui lit les tracés d'une icône codée et tenue sur le téléphone avec Encre.
+- Lucide redessiné à leur manière pour le cosy et le suisse, comme le pinceau d'Encre et lavis (`docs/design/ink-theme.md`, ligne 9), un trait à chacun : une fois la lecture des tracés d'une icône (`IconStrokes`) tenue sur le téléphone avec Encre.
 
 ### Events du cœur
 

@@ -51,6 +51,5 @@ Ce que le code a précisé des décisions :
 
 ## Ce qui reste ouvert
 
-- Rien n'a tourné sur un téléphone : le thème entier s'y juge, la passe de `docs/THEMES.md` d'abord.
 - Les tons des textures sont ceux du thème par défaut, recopiés : à régler au banc des textures (`./run themes`).
 - Les sons, à la planche d'écoute.
