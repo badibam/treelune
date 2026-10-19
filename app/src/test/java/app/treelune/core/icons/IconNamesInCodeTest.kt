@@ -28,12 +28,57 @@ class IconNamesInCodeTest {
             names.add("$owner default" to toolType.getDefaultIconName())
             toolType.getSuggestedIcons().forEach { names.add("$owner suggested" to it) }
         }
-        // The names written in the screens: UI.Icon(iconName = "...")
-        val literal = Regex("""iconName = "([^"]+)"""")
+        // The names written in the screens and the themes: by the parameter's name anywhere
+        // (iconName = "..."), and in the argument that names the icon of each call drawing one,
+        // however it is written ("plus", if (open) "chevron-down" else "chevron-up")
+        val named = Regex("""iconName = "([^"]+)"""")
+        val literal = Regex(""""([^"\\]*)"""")
         File("src/main/java").walkTopDown().filter { it.extension == "kt" }.forEach { file ->
-            literal.findAll(file.readText()).forEach { names.add(file.name to it.groupValues[1]) }
+            val text = file.readText()
+            named.findAll(text).forEach { names.add(file.name to it.groupValues[1]) }
+            ICON_CALLS.forEach { (call, argument) ->
+                Regex(Regex.escape(call) + """\(""").findAll(text).forEach { match ->
+                    val icon = argumentAt(text, match.range.last + 1, argument).removePrefix("iconName = ")
+                    literal.findAll(icon).forEach { names.add("${file.name} $call" to it.groupValues[1]) }
+                }
+            }
         }
         return names
+    }
+
+    /**
+     * The text of the argument at [index] (from 0) of the call whose arguments start at [start]:
+     * up to its comma, or the call's closing parenthesis, at the call's own depth.
+     */
+    private fun argumentAt(text: String, start: Int, index: Int): String {
+        var depth = 0
+        var inString = false
+        var argument = 0
+        var from = start
+        var i = start
+        while (i < text.length) {
+            val c = text[i]
+            when {
+                inString && c == '\\' -> i++
+                c == '"' -> inString = !inString
+                inString -> Unit
+                c == '(' || c == '[' || c == '{' -> depth++
+                (c == ')' || c == ']' || c == '}') && depth > 0 -> depth--
+                c == ')' || (c == ',' && depth == 0) -> {
+                    if (argument == index) return text.substring(from, i).trim()
+                    if (c == ')') return ""
+                    argument++
+                    from = i + 1
+                }
+            }
+            i++
+        }
+        return ""
+    }
+
+    private companion object {
+        /** Each call drawing an icon by its name, with the argument that names it. */
+        val ICON_CALLS = listOf("UI.Icon" to 0, "UI.ItemIcon" to 0, "NamedIcon" to 0, "Icons.drawable" to 1)
     }
 
     /** A current name, not a former one: the code writes the names it means today. */
@@ -43,5 +88,6 @@ class IconNamesInCodeTest {
         val wrong = names.filter { (_, name) -> index.resolve(name) != name }
         assertTrue(wrong.joinToString("\n") { (where, name) -> "$where: $name" }, wrong.isEmpty())
         assertTrue("the source scan found no name", names.any { it.first.endsWith(".kt") })
+        assertTrue("the scan of the calls found no name", names.any { it.first.endsWith(".kt NamedIcon") })
     }
 }

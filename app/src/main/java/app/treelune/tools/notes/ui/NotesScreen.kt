@@ -230,28 +230,12 @@ fun NotesScreen(
 
                 Spacer(modifier = Modifier.height(UI.Space.L))
 
-                // Notes section
+                // The notes, then the button adding one last, where the new note lands; alone
+                // while there is none. In the page, not floating: the chat's button floats at the
+                // bottom right (ChatButton)
                 if (notes.isEmpty()) {
-                    // Empty state - show placeholder
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        NoteCard(
-                            note = null, // Placeholder mode
-                            toolInstanceId = toolInstanceId,
-                            config = config,
-                            contextMenuNoteId = contextMenuNoteId,
-                            onNoteClick = { }, // Placeholder doesn't have click
-                            onContextMenuChanged = { },
-                            onAddAbove = {
-                                openCreateDialog(0) // Create at position 0
-                            }
-                        )
-                    }
+                    UI.ActionButton(action = ButtonAction.ADD, display = ButtonDisplay.ICON, onClick = { openCreateDialog(0) })
                 } else {
-                    // Notes list with simplified logic
                     Column(
                         modifier = Modifier
                             .fillMaxWidth(),
@@ -294,18 +278,10 @@ fun NotesScreen(
                             )
                         }
 
-                        // Placeholder at end for creating new notes
-                        NoteCard(
-                            note = null, // Placeholder mode
-                            toolInstanceId = toolInstanceId,
-                            config = config,
-                            contextMenuNoteId = contextMenuNoteId,
-                            onNoteClick = { }, // Placeholder doesn't have click
-                            onContextMenuChanged = { },
-                            onAddAbove = {
-                                val nextPosition = if (notes.isEmpty()) 0 else (notes.maxOfOrNull { it.position } ?: 0) + 1
-                                openCreateDialog(nextPosition)
-                            }
+                        UI.ActionButton(
+                            action = ButtonAction.ADD,
+                            display = ButtonDisplay.ICON,
+                            onClick = { openCreateDialog((notes.maxOfOrNull { it.position } ?: -1) + 1) }
                         )
                     }
                 }
