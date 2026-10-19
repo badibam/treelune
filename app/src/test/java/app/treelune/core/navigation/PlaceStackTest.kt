@@ -8,7 +8,7 @@ import org.junit.Test
  * What the stack of places promises (docs/design/navigation.md): every place read back from its
  * address; a place opened with nothing open rebuilt from its parents, opened over something
  * stacked alone; the breadcrumb naming the parent of a place stacked without it; a deleted zone
- * taking its places with it.
+ * taking its places with it; the entry a tool place opens on handed once.
  */
 class PlaceStackTest {
 
@@ -108,5 +108,13 @@ class PlaceStackTest {
         assertEquals(listOf(home, Place.Settings, providers, new), stack)
         assertEquals(listOf(home, Place.Settings, providers), PlaceStack.pop(stack))
         assertEquals(listOf(home, new), PlaceStack.replace(listOf(home), new))
+    }
+
+    /** An activity started afresh while the process lives on finds the stack, not the entry to open again. */
+    @Test
+    fun anEntryToOpenIsHandedOnce() {
+        Navigator.openings[runs.address] = app.treelune.core.tools.EntryToOpen.Existing("e-1")
+        assertEquals(app.treelune.core.tools.EntryToOpen.Existing("e-1"), Navigator.take(runs))
+        assertNull(Navigator.take(runs))
     }
 }

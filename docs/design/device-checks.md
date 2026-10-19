@@ -434,3 +434,7 @@ Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la po
 - Les statistiques d'une conversation qui a des appels : le coût total et ses tokens, le coût par modèle après un changement de fournisseur, le nombre d'appels, le dernier envoi qui grandit d'un message à l'autre, les écritures faites et refusées ; les montants jamais coupés.
 - Le composeur : le statut sur sa ligne au-dessus des blocs, à la hauteur de son texte ; T premier de la rangée, Envoyer seul plein à droite, dans les cinq thèmes ; Paramètres, Modifier, Configurer pleins en rétro et dans le thème par défaut, à juger.
 - Les marges au cran de taille 0 puis 3, dans les quatre thèmes qui en ont : les espacements, la marge de bord et les écarts de la grille gardent leur longueur ; en rétro, seuls l'intérieur des cadres et les écarts de la grille des tuiles grandissent.
+
+## Les bugs du téléphone du 2026-10-19
+
+- Une note touchée sur la tuile des Notes, puis fermée ; l'app retirée des récents pendant qu'une routine est active ou que l'accès externe tourne, puis rouverte : la page de l'outil, sans note ouverte. De même pour une entrée de Journal, un événement d'Agenda, un questionnaire touchés sur leur tuile.

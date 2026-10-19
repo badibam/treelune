@@ -61,6 +61,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - Le thème encre et lavis (`docs/design/ink-theme.md`, branche theme-ink) : la passe sur le téléphone de `docs/THEMES.md`, les icônes au pinceau d'abord (leur coût à l'ouverture d'une page, celles qui se bouchent), puis ce que la spec garde dans « Ce qui reste ouvert » ; ce qui a changé le 2026-10-17 après la première passe : le lavis d'une tuile qui déborde et s'éteint à son bord, sa texture estompée avec lui, la carte en lavis au bord fondu (des marches dans le fondu ?), la gouache sous les icônes et les tags, les ronds peints à la main (boutons, case, sceaux), le coût d'ouverture d'une zone aux tuiles texturées.
 - Les incarnations (`docs/design/incarnations.md`, branche incarnations) : la dernière section de la recette, l'identité de Stan Prokopenko importée et le coût d'un tour mesuré pour personae ; passé, élaguer la spec. L'import attend que personae exporte au format 2 du fichier d'identité (`docs/IDENTITY_FILE.md`), le format 1 n'étant plus lu.
 - Les bugs du téléphone du 2026-10-17 : la section du même nom de la recette.
+- Les bugs du téléphone du 2026-10-19 (branche notes-fixes) : la section du même nom de la recette.
 - La répétition d'un Objectif, « Une fois » ou « Récurrent » (branche goal-repetition) : migration 79, sa ligne de la section « Objectif » de la recette.
 - Les conditions typées à l'écriture (`docs/design/typed-conditions.md`, branche typed-conditions) : la section du même nom de la recette ; passé, élaguer la spec.
 - Le gras et l'italique d'un texte lu (branche text-emphasis) : la section du même nom de la recette.
@@ -124,7 +125,6 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 
 ## Bugs du téléphone
 
-- Si je masque l'app avec un outil notes ouvert , qua'd je rouvre l'app ça ouvre une note en edition dans l'outil plutot que juste la oage de l'outil. Uniquement notes ou pas ? — UI — Bug
 - Bug d'installation de démo, cf copies d ecran. Sur un autre tel, 1ere installation. — Core — Bug
 - Possibilité de stocker image en champs supplementaire par exemple ? Et/ou galerie d'images ? — Outils — Idée
 - Au moins pour notes et listes, les champs supplementaires s'affichent sur 1/2 colonne. C'esr surement valable pour des valeurs très courtes, mais pour des champs de texte par exemple x'ça ne va pas. Je vois 2 options : on met tout sir 1 colonne et pas 2 / on met ce choix en paramètre. Dqns tous les cas, en mode 1 colonne ça doit faire 1 colonne. — UI — Amélioration
