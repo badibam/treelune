@@ -1462,7 +1462,7 @@ object CosyTheme : ThemeContract {
 
     /** A window over the screen, swelling in: a tile on its shadow, its content, its actions under it. */
     @Composable
-    private fun DialogFrame(onDismiss: () -> Unit, actions: @Composable RowScope.() -> Unit, content: @Composable ColumnScope.() -> Unit) {
+    private fun DialogFrame(onDismiss: () -> Unit, actions: @Composable () -> Unit, content: @Composable ColumnScope.() -> Unit) {
         app.treelune.core.ui.components.FloatingDialog(onDismissRequest = onDismiss, margin = spacing(Spacing.EDGE)) {
             SwellIn {
                 val size = cosySize()
@@ -1479,12 +1479,7 @@ object CosyTheme : ThemeContract {
                     CompositionLocalProvider(LocalCosyLayer provides CosyLayer.TILE) {
                         Column(verticalArrangement = Arrangement.spacedBy(size.dp(14f))) {
                             Column(modifier = Modifier.weight(1f, fill = false), verticalArrangement = Arrangement.spacedBy(size.dp(10f)), content = content)
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(size.dp(8f), Alignment.End),
-                                verticalAlignment = Alignment.CenterVertically,
-                                content = actions
-                            )
+                            app.treelune.core.ui.components.ButtonRow(align = Alignment.End, mainLast = true, content = actions)
                         }
                     }
                 }

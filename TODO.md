@@ -21,6 +21,8 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 
 - Réglages › Interface : un thème choisi, vu, enregistré, et l'ancien revient ; une seconde fois, ça tient (2026-10-09, pas reproduit, peut-être dans la release). Au prochain cas, lire dans le journal les lignes « Theme applied » : laquelle a remis l'ancien (STORED, PREVIEW, LEFT_UNSAVED).
 
+- Des boutons à libellé posés dans une simple rangée, qui se perdent quand la place manque : à passer dans `ButtonRow` (`VariableScreen.kt:175`, `JournalEntryScreen.kt:376`, `DuplicateSelector.kt:234`, `StructuredScreen.kt:260` et `:299`), et la rangée d'actions de `InteractionCard` (la validation dans le chat), que chaque thème pose avec deux moitiés de largeur fixe (`InteractionActions`).
+
 ## À passer sur le téléphone
 
 Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/design/device-checks.md` (la recette, classée par écran) ; passé, sa spec s'élague, ses garanties devenant des tests.
@@ -133,7 +135,6 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 - Dans notes : si on active les titres, ils devraient quand meme être facultatifs : c'est le cas en update : on peut retirer le titre. Mais en création ça refuse de cliquer sans rien dire. — Outils — Amélioration
 - Bouton d'ajout de notes : tuile "AD" c'est moche et issu du passé du dev. Il faudrait alignement sur patterns de l'app pour ce genre de situation. — UI — Amélioration
 - Il faifrait pouvoir 'retirer' une icone et voir si le manque existe dans d'aittes selcteurs. — UI — Amélioration
-- Suppression d'outil : la fenetre de vamidation : boutons ne s'affichent pas tous les 2 si pas assez de place. En retro pas de pb. Pour les autres selon ecran/taille de l'interface ça ne va pas. Il faidraot voir globalement ce que recouvre ce pb et le regler à la racine. Il me semblait qu'on avait instaurer de repliement des boutons etc... ? — UI — Bug
 - Outil en etendu et autres disposition pleine largeur : ne prend que l'espace nécessaire : ne pas laisser d'espace vide si l'outil est vide... ? Qu'en oenses tu ? — UI — Amélioration
 - Agenda en complet : afficbe moins qu'en étendu... ! — UI — Bug
 - Filtres et tri dans les outils ? — Core — Amélioration

@@ -1441,7 +1441,7 @@ object InkTheme : ThemeContract {
      * actions under it.
      */
     @Composable
-    private fun DialogFrame(onDismiss: () -> Unit, actions: @Composable RowScope.() -> Unit, content: @Composable ColumnScope.() -> Unit) {
+    private fun DialogFrame(onDismiss: () -> Unit, actions: @Composable () -> Unit, content: @Composable ColumnScope.() -> Unit) {
         app.treelune.core.ui.components.FloatingDialog(onDismissRequest = onDismiss, margin = spacing(Spacing.EDGE)) {
             FadeIn {
                 val size = inkSize()
@@ -1456,12 +1456,7 @@ object InkTheme : ThemeContract {
                     Box(modifier = Modifier.fillMaxWidth().height(size.dp(7f)).brushed(InkBrush.Shape.LINE, size.dp(DIALOG_RULE), c.ink))
                     CompositionLocalProvider(LocalInkInk provides null) {
                         Column(modifier = Modifier.weight(1f, fill = false), verticalArrangement = Arrangement.spacedBy(size.dp(8f)), content = content)
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(size.dp(10f), Alignment.End),
-                            verticalAlignment = Alignment.CenterVertically,
-                            content = actions
-                        )
+                        app.treelune.core.ui.components.ButtonRow(align = Alignment.End, mainLast = true, content = actions)
                     }
                 }
             }

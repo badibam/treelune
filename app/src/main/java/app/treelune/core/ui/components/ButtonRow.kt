@@ -21,13 +21,14 @@ val LocalButtonFill = staticCompositionLocalOf { false }
  * line across the whole width, in the order given (the main one first). Never a part of them
  * moved to a second line: two groups would show where there is one, and the cut would change
  * with the language. [align] places the line: at the start, in the middle (a form's actions)
- * or at the end.
+ * or at the end. [mainLast] says the main button is given last, at the end of the line (a
+ * window's actions): stacked, it then goes on top all the same.
  *
  * The content is composed once to measure the buttons at their own width, and once more,
  * filling, when they do not hold on one line.
  */
 @Composable
-fun ButtonRow(align: Alignment.Horizontal = Alignment.Start, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+fun ButtonRow(align: Alignment.Horizontal = Alignment.Start, mainLast: Boolean = false, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     val gap = UI.Space.M
     SubcomposeLayout(modifier.fillMaxWidth()) { constraints ->
         val gapPx = gap.roundToPx()
@@ -48,6 +49,7 @@ fun ButtonRow(align: Alignment.Horizontal = Alignment.Start, modifier: Modifier 
             val filling = subcompose(ButtonRowSlot.FILLING) {
                 CompositionLocalProvider(LocalButtonFill provides true, content = content)
             }.map { it.measure(Constraints(maxWidth = width, maxHeight = constraints.maxHeight)) }
+                .let { if (mainLast) it.reversed() else it }
             val height = filling.sumOf { it.height } + gapPx * (filling.size - 1).coerceAtLeast(0)
             layout(width, height) {
                 var y = 0
