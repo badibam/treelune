@@ -73,16 +73,24 @@ data class EntryFields(
  *
  * With no status at all, the tool type's entries are made by the tool alone (a goal's attempts,
  * a sequence's runs) and every other creation is refused, [refusal] saying what to do instead.
+ * Entries the tool alone makes may also have no status ([withStatus] false: a deck's reviews).
  *
  * @property statuses The statuses an entry may be created with, from outside the app's own work
  * @property refusal Why a creation is refused when [statuses] is empty; null otherwise
+ * @property withStatus Whether the entries live by a status; false only for entries made by the
+ *   tool alone, the app's own writes then keeping the state they give, a status or none
  * @property state The whole state of an entry created with a status of [statuses], at [now]
  */
 class EntryStart(
     val statuses: List<String>,
     val refusal: String? = null,
+    val withStatus: Boolean = true,
     val state: (status: String, now: Long) -> org.json.JSONObject = { status, _ -> org.json.JSONObject().put(STATUS, status) }
 ) {
+    init {
+        require(withStatus || (statuses.isEmpty() && refusal != null)) { "entries without a status are the tool's alone, refused to others with a reason" }
+    }
+
     /** What a creation's state comes to (decide). */
     sealed interface Decision {
         /** The entry is written with [state], none when null */
@@ -109,6 +117,7 @@ class EntryStart(
         fun decide(start: EntryStart?, sent: org.json.JSONObject?, byTheApp: Boolean, now: Long): Decision {
             val given = sent?.takeIf { it.length() > 0 }
             if (start == null) return Decision.Write(given)
+            if (!start.withStatus) return if (byTheApp) Decision.Write(given) else Decision.NoStatus(start, null)
             val status = given?.optString(STATUS)?.takeIf { it.isNotEmpty() }
                 ?: return Decision.NoStatus(start, null)
             if (byTheApp) return Decision.Write(given)
@@ -126,7 +135,7 @@ class EntryStart(
          * to any change.
          */
         fun changesStatus(start: EntryStart?, current: String?, sent: org.json.JSONObject?, byTheApp: Boolean): Boolean {
-            if (start == null || byTheApp || sent == null || !sent.has(STATUS)) return false
+            if (start == null || !start.withStatus || byTheApp || sent == null || !sent.has(STATUS)) return false
             val now = current?.takeIf { it.isNotBlank() }?.let { org.json.JSONObject(it).optString(STATUS) } ?: ""
             return sent.isNull(STATUS) || sent.optString(STATUS) != now
         }
