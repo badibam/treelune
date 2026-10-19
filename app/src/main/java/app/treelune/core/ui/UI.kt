@@ -762,7 +762,9 @@ object UI {
         /** The app's mark beside the title, the home screen's (ThemeContract.PageHeader). */
         appMark: Boolean = false,
         /** The left button marked (WaitingMark): something to look at behind it, the settings of the home screen. */
-        leftMarked: Boolean = false
+        leftMarked: Boolean = false,
+        /** The title shown under the buttons; false leaves the buttons alone (the home screen's, Appearance.homeTitle). */
+        titleShown: Boolean = true
     ) {
         // The phone's back key does what the header's back button does. Only the screen on
         // display is composed, so its header is the one that answers. The sound of going back
@@ -791,7 +793,7 @@ object UI {
             }
         }
         // A page's title and description are read: selectable, nothing else answering their touch
-        Selectable { CurrentTheme.current.PageHeader(title, subtitle, icon, iconColor, appMark) }
+        if (titleShown) Selectable { CurrentTheme.current.PageHeader(title, subtitle, icon, iconColor, appMark) }
     }
     
     /** The header of a tool's tile: its icon with its marks, and its name. */

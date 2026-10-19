@@ -137,7 +137,6 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 - Filtres et tri dans les outils ? — Core — Amélioration
 - Dans quel tooltype on peut stocker recette ? Comme seance mais en mode aperçu par exemple ? (Ça demanderait de changer et renommer seance). Ou alors nouveau type. Données strucgurées : manque succession — Core — Idée
 - Pouvoir stocker des images (par exemple pour faire des fiches de plantes etc) — Core — Idée
-- Mode condensé pour les groupes de zones /outils ? Avec moins d'espaces pour les titres de groupes ? Et aussi afficher ou ligne de titre de l'app (2eme param?) — UI — Amélioration
 
 ## En attente d'un déclencheur
 

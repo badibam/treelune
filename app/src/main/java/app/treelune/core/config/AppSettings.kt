@@ -143,6 +143,9 @@ object AppSettings {
     /** How strongly the motifs of tiles and page headers show (Appearance.textureIntensity). */
     const val UI_TEXTURE_INTENSITY = "texture_intensity"
 
+    /** Whether the home screen shows the app's name and mark under its buttons (Appearance.homeTitle). */
+    const val UI_HOME_TITLE = "home_title"
+
     fun nodes(category: String, context: Context): List<SettingNode> {
         val s = Strings.`for`(context = context)
         val text = s::shared
@@ -249,6 +252,7 @@ object AppSettings {
                     scale(UI_HUE_SHIFT, text("settings_ui_hue_shift"), text("settings_ui_hue_shift_help"), HUE_SHIFT_RANGE),
                     scale(UI_SIZE_STEP, text("settings_ui_size_step"), text("settings_ui_size_step_help"), SIZE_STEP_RANGE),
                     field(UI_ONE_COLUMN, text("settings_ui_one_column"), text("settings_ui_one_column_help"), FieldType.BOOLEAN, required = true),
+                    field(UI_HOME_TITLE, text("settings_ui_home_title"), text("settings_ui_home_title_help"), FieldType.BOOLEAN, required = true),
                     app.treelune.core.themes.TextureIntensity.entries.map { it.name }.let { intensities ->
                         choice(UI_TEXTURE_INTENSITY, text("settings_ui_texture_intensity"), text("settings_ui_texture_intensity_help"), intensities,
                             labels = intensities.associateWith { text("settings_ui_texture_intensity_${it.lowercase()}") }, required = true)

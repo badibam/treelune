@@ -105,7 +105,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 80
+        const val VERSION = 81
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -1847,6 +1847,27 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** The interface settings gain « Home screen title », on: see UiHomeTitleAtV81. */
+        private val MIGRATION_80_81 = object : Migration(80, 81) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.query("SELECT settings FROM app_settings_categories WHERE category = ?", arrayOf<Any?>(app.treelune.core.database.entities.AppSettingCategories.UI)).use { cursor ->
+                    if (!cursor.moveToFirst()) {
+                        LogManager.database("MIGRATION 80->81: no interface settings stored, the defaults are written on first read", "INFO")
+                        return
+                    }
+                    // Settings that cannot be read stay as they are; reading them then fails with the reason
+                    try {
+                        val settings = app.treelune.core.versioning.UiHomeTitleAtV81.rewrite(app.treelune.core.database.entities.AppSettingCategories.UI, org.json.JSONObject(cursor.getString(0)))
+                        database.execSQL("UPDATE app_settings_categories SET settings = ? WHERE category = ?", arrayOf<Any?>(settings.toString(), app.treelune.core.database.entities.AppSettingCategories.UI))
+                    } catch (e: Exception) {
+                        LogManager.database("MIGRATION 80->81: interface settings left as they were: ${e.message}", "ERROR", e)
+                        return
+                    }
+                }
+                LogManager.database("MIGRATION 80->81: interface settings gain home_title, on", "INFO")
+            }
+        }
+
         /** A conversation's own reasoning (SessionReasoning): two columns, empty, every session following its provider as before. */
         private val MIGRATION_73_74 = object : Migration(73, 74) {
             override fun migrate(database: SupportSQLiteDatabase) {
@@ -2852,7 +2873,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_76_77,
                     MIGRATION_77_78,
                     MIGRATION_78_79,
-                    MIGRATION_79_80
+                    MIGRATION_79_80,
+                    MIGRATION_80_81
                     // Add future migrations here (minimum supported version: 9)
                 )
                 .addCallback(object : RoomDatabase.Callback() {

@@ -483,6 +483,7 @@ private fun HomeScreen(zones: ZonesState) {
                 subtitle = null,
                 icon = null,
                 appMark = true,
+                titleShown = app.treelune.core.themes.CurrentTheme.homeTitle,
                 leftButton = ButtonAction.SETTINGS,
                 // Marked while Settings › Data has something to look at (the automatic backup)
                 leftMarked = app.treelune.core.ui.waiting(app.treelune.core.ui.WaitingSource.BACKUP),
