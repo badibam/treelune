@@ -1,6 +1,6 @@
 # Conformité F-Droid
 
-Ce qui reste à faire pour publier sur F-Droid, au sens de la facette `fdroid` de wisdom (`/mnt/data/OUTILS/socle/modules/fdroid.md`, abonnée en plus de `android`). Repris le 2026-10-11. À élaguer une fois la première version publiée : le code, la recette et les commits deviennent le registre.
+Ce qui reste à faire pour publier sur F-Droid, au sens de la facette `fdroid` de wisdom (`/home/simon/Projets/OUTILS/socle/modules/fdroid.md`, abonnée en plus de `android`). Repris le 2026-10-11. À élaguer une fois la première version publiée : le code, la recette et les commits deviennent le registre.
 
 ## Déjà en place
 
@@ -37,9 +37,9 @@ Les images vont dans la home (`~/.local/share/containers`, ext4) : `/mnt/data` e
    ```
    podman run --rm \
      -v ~/fdroid-test/fdroiddata:/fdroiddata \
-     -v /mnt/data/OUTILS/treelune/scripts/fdroid:/recipe:ro \
+     -v /home/simon/Projets/OUTILS/treelune/scripts/fdroid:/recipe:ro \
      registry.gitlab.com/fdroid/fdroidserver:buildserver-trixie \
-     bash /recipe/build_in_container.sh > /mnt/data/OUTILS/treelune/tmp/fdroid-build.log 2>&1
+     bash /recipe/build_in_container.sh > /home/simon/Projets/OUTILS/treelune/tmp/fdroid-build.log 2>&1
    ```
 
 Le build construit le tag nommé dans la recette, cloné de GitHub, jamais l'arbre de travail : un correctif du build ne s'essaie qu'une fois tagué et poussé, ou en faisant pointer la recette, le temps de l'essai, sur un clone local (`Repo:`, `commit:`).

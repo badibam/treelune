@@ -1,4 +1,4 @@
-@/mnt/data/OUTILS/socle/dev_base.md
+@/home/simon/Projets/OUTILS/socle/dev_base.md
 
 @TODO.md
 @NOTES.md
