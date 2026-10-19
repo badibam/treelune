@@ -98,12 +98,12 @@ Système de templates pour actions, états et résultats :
 
 **Quand** : Schéma SQL change (ALTER TABLE, CREATE TABLE, etc.)
 
-**Géré par** : Room Migrations manuelles dans AppDatabase.kt
+**Géré par** : Room Migrations manuelles dans AppDatabase.kt. La base tourne sur la SQLite de l'app (`BundledSQLiteDriver`), pas sur celle du téléphone : Room donne à une migration une connexion, que `ConnectionMigration` lui présente en `MigrationDatabase` (`execSQL`, et `query`, dont les lignes sont lues entières avant d'être rendues).
 
 **Exemple** :
 ```kotlin
-private val MIGRATION_10_11 = object : Migration(10, 11) {
-    override fun migrate(database: SupportSQLiteDatabase) {
+private val MIGRATION_10_11 = object : ConnectionMigration(10, 11) {
+    override fun migrate(database: MigrationDatabase) {
         database.execSQL("ALTER TABLE zones ADD COLUMN icon TEXT")
     }
 }

@@ -9,7 +9,7 @@ import app.treelune.core.ai.data.RichMessage
 import app.treelune.core.ai.data.SessionType
 import app.treelune.core.ai.database.AISessionEntity
 import app.treelune.core.ai.database.SessionMessageEntity
-import androidx.room.withTransaction
+import app.treelune.core.database.transaction
 import app.treelune.core.fields.settings.SettingValues
 import app.treelune.core.ai.database.AutomationEntity
 import app.treelune.core.ai.orchestration.AIOrchestrator
@@ -170,7 +170,7 @@ class AutomationService(private val context: Context) : ExecutableService {
         providerRefusal(entity)?.let { return OperationResult.error(it) }
 
         LogManager.service("Creating automation: name=${entity.name}, zoneId=$zoneId", "DEBUG")
-        database.withTransaction {
+        database.transaction {
             // A seed session is never run nor active: it holds the message each run starts from
             dao.insertSession(AISessionEntity(
                 id = seedSessionId,
@@ -294,7 +294,7 @@ class AutomationService(private val context: Context) : ExecutableService {
             dao.getMessagesForSession(entity.seedSessionId).firstOrNull { it.sender == MessageSender.USER }
                 ?: return OperationResult.error(s.shared("automation_seed_missing").format(entity.name))
         }
-        database.withTransaction {
+        database.transaction {
             if (message != null && seed != null) dao.updateMessage(seed.copy(richContentJson = message.toJson()))
             dao.updateAutomation(updatedEntity)
         }

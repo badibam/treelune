@@ -6,7 +6,7 @@ import app.treelune.core.fields.CoreFields
 import app.treelune.core.fields.toJson
 import app.treelune.core.fields.EntryStart
 import android.content.Context
-import androidx.room.withTransaction
+import app.treelune.core.database.transaction
 import app.treelune.core.coordinator.CancellationToken
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.commands.CommandStatus
@@ -328,7 +328,7 @@ class ToolDataService(private val context: Context) : ExecutableService {
             ?: emptyMap()
         val dao = getToolDataDao()
 
-        AppDatabase.getDatabase(context).withTransaction {
+        AppDatabase.getDatabase(context).transaction {
             toolConfig?.let { AppDatabase.getDatabase(context).toolInstanceDao().updateToolInstance(it) }
             write(writtenId?.let { settled[it] })
             settled.values

@@ -1,7 +1,9 @@
 package app.treelune.core.demo
 
 import android.content.Context
-import androidx.room.withTransaction
+import androidx.room.execSQL
+import androidx.room.immediateTransaction
+import androidx.room.useWriterConnection
 import app.treelune.core.coordinator.CancellationToken
 import app.treelune.core.coordinator.LongOperation
 import app.treelune.core.coordinator.Coordinator
@@ -222,7 +224,7 @@ class DemoService(private val context: Context) : ExecutableService {
     }
 
     /**
-     * Everything of the demo, then the zone groups its zones stood in that are left empty — read
+     * Everything of the demo (DemoRemoval) in one transaction, then the zone groups its zones stood in that are left empty — read
      * from the zones themselves, so a group named in another language than the demo's texts now
      * goes too. A group where a zone of the user's still stands stays.
      */
@@ -230,15 +232,11 @@ class DemoService(private val context: Context) : ExecutableService {
         val demoGroups = database.zoneDao().getAllZones()
             .filter { it.id.startsWith(DemoContent.PREFIX) }
             .mapNotNull { it.group }.toSet()
-        database.withTransaction { removeAll() }
+        database.useWriterConnection { connection ->
+            connection.immediateTransaction { DemoRemoval.STATEMENTS.forEach { execSQL(it) } }
+        }
         val stillUsed = database.zoneDao().getAllZones().mapNotNull { it.group }.toSet()
         removeZoneGroups(demoGroups - stillUsed)
-    }
-
-    /** Everything of the demo (DemoRemoval); called inside a transaction. */
-    private fun removeAll() {
-        val db = database.openHelper.writableDatabase
-        DemoRemoval.STATEMENTS.forEach { db.execSQL(it) }
     }
 
     /**

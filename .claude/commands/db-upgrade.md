@@ -17,8 +17,8 @@ allowed-tools: Bash, Edit, Write, Read, Grep
 
 3. **Créer migration** `MIGRATION_X_Y` dans companion object :
    ```kotlin
-   private val MIGRATION_X_Y = object : Migration(X, Y) {
-       override fun migrate(database: SupportSQLiteDatabase) {
+   private val MIGRATION_X_Y = object : ConnectionMigration(X, Y) {
+       override fun migrate(database: MigrationDatabase) {
            // SQL changes here
            database.execSQL("ALTER TABLE ...")
 

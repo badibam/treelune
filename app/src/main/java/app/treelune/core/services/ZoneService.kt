@@ -21,7 +21,7 @@ import app.treelune.core.grid.Grid
 import app.treelune.core.grid.Groups
 import app.treelune.core.grid.ZonePositions
 import app.treelune.core.database.entities.Zone as ZoneEntity
-import androidx.room.withTransaction
+import app.treelune.core.database.transaction
 
 /**
  * Zone Service - Core service for zone operations
@@ -122,7 +122,7 @@ class ZoneService(private val context: Context) : ExecutableService {
         if (token.isCancelled) return OperationResult.cancelled()
 
         // At the bottom of its section's grid on the home screen
-        val newZone = database.withTransaction {
+        val newZone = database.transaction {
             val groups = zoneGroups()
             val tile = Grid.arrive(ZonePositions.tiles(zoneDao.getAllZones(), groups, ZonePositions.section(group, groups)), placing.id, ZonePositions.size(placing)).last()
             placing.copy(grid_x = tile.column, grid_y = tile.row).also { zoneDao.insertZone(it) }
@@ -260,7 +260,7 @@ class ZoneService(private val context: Context) : ExecutableService {
             ZonePositions.tile(zone).copy(column = place.getInt("grid_x"), row = place.getInt("grid_y"))
         }
         if (!Grid.isLaidOut(placed)) return OperationResult.error(s.shared("service_error_grid_places"))
-        database.withTransaction { write(ZonePositions.moved(zones, placed)) }
+        database.transaction { write(ZonePositions.moved(zones, placed)) }
         DataChangeNotifier.notifyZonesChanged()
         return OperationResult.success(mapOf("count" to placed.size))
     }
@@ -362,7 +362,7 @@ class ZoneService(private val context: Context) : ExecutableService {
 
         // A tool whose group the zone gains or loses changes section, and so grid: the zone,
         // the names it changes and the places it changes are one write
-        val regrouped = database.withTransaction {
+        val regrouped = database.transaction {
             val renamedTools = tools.map { tool ->
                 val config = JSONObject(tool.config_json)
                 val group = change.held(Groups.held(config))
@@ -406,7 +406,7 @@ class ZoneService(private val context: Context) : ExecutableService {
         if (token.isCancelled) return OperationResult.cancelled()
         
         // The zone and the rows its leaving closes on the home screen are one write
-        database.withTransaction {
+        database.transaction {
             val groups = zoneGroups()
             val zones = zoneDao.getAllZones()
             write(ZonePositions.moved(zones, Grid.leave(ZonePositions.tiles(zones, groups, ZonePositions.section(existingZone.group, groups)), zoneId)))

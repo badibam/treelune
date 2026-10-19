@@ -7,7 +7,7 @@ import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.LongOperation
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.AppDatabase
-import androidx.room.withTransaction
+import app.treelune.core.database.transaction
 import app.treelune.core.fields.CoreFieldUsage
 import app.treelune.core.fields.CoreFields
 import app.treelune.core.fields.ToolFields
@@ -128,7 +128,7 @@ class ImportService(private val context: Context) : ExecutableService {
         // The new fields and every line in one transaction: a failure on the way writes nothing.
         // A line the service refuses is an answer, counted, and the others go on
         val report = try {
-            AppDatabase.getDatabase(context).withTransaction {
+            AppDatabase.getDatabase(context).transaction {
                 // The new fields, in the order of their columns, before the lines that fill them
                 val added = declarations.filter { it.target == ColumnTarget.NEW }
                 val newPaths = if (added.isEmpty()) emptyMap() else {

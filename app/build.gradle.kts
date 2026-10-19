@@ -96,6 +96,10 @@ android {
     androidResources {
         noCompress += "flac"
     }
+    // Robolectric's tests read the app's resources and assets as the phone would (DemoInstallTest)
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
 }
 
 kotlin {
@@ -305,6 +309,19 @@ tasks.named("preBuild") {
     dependsOn("generateStringResources")
 }
 
+// The app's own SQLite built for the computer the tests run on (Linux x64): the Android build
+// only holds the phone's, and its loader takes a file named by the two properties set below
+val hostSqlite: Configuration by configurations.creating { isTransitive = false }
+val hostSqliteDir = layout.buildDirectory.dir("host-sqlite")
+val extractHostSqlite by tasks.registering(Copy::class) {
+    from({ zipTree(hostSqlite.singleFile) }) {
+        include("natives/linux_x64/libsqliteJni.so")
+        eachFile { path = name }
+    }
+    includeEmptyDirs = false
+    into(hostSqliteDir)
+}
+
 dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
@@ -319,6 +336,8 @@ dependencies {
     implementation("androidx.room:room-runtime:2.8.4")
     implementation("androidx.room:room-ktx:2.8.4")
     ksp("androidx.room:room-compiler:2.8.4")
+    // The app's own SQLite, JSON functions included, in place of the phone's (AppDatabase)
+    implementation("androidx.sqlite:sqlite-bundled:2.6.2")
     
     // JSON Schema validation
     implementation("com.networknt:json-schema-validator:1.0.87")
@@ -339,6 +358,9 @@ dependencies {
     testImplementation("org.json:json:20240303")
     // A real SQLite with its JSON functions, to run the entry filters' SQL as the phone would
     testImplementation("org.xerial:sqlite-jdbc:3.41.2.2")
+    // The app on the computer, its database included, for what only the whole app shows (DemoInstallTest)
+    testImplementation("org.robolectric:robolectric:4.16.1")
+    hostSqlite("androidx.sqlite:sqlite-bundled-jvm:2.6.2")
     // The bench (docs/design/local-models.md): the app plays a scenario on the emulator, run by ./run bench
     androidTestImplementation("androidx.test:runner:1.6.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
@@ -349,6 +371,9 @@ dependencies {
 // L1 prompt whose examples they check -- so gradle has to know about them, or a regenerated icon
 // set or an edited prompt leaves the tests "up to date".
 tasks.withType<Test>().configureEach {
+    dependsOn(extractHostSqlite)
+    systemProperty("androidx.sqlite.driver.bundled.path", hostSqliteDir.get().asFile.absolutePath)
+    systemProperty("androidx.sqlite.driver.bundled.name", "libsqliteJni.so")
     inputs.dir("src/main/assets/icons")
     inputs.dir("src/main/assets/demo")
     inputs.dir("src/main/res/drawable")
