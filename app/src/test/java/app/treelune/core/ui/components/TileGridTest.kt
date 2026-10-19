@@ -19,4 +19,12 @@ class TileGridTest {
         assertEquals(15, tileGridSlotRows(null, 30, 2, 4))
         assertEquals(3, tileGridSlotRows(null, 5, 2, 2))
     }
+
+    @Test
+    fun aLimitedBodyTakesOnlyTheRowsItsItemsNeed() {
+        // An empty tool in EXTENDED or SQUARE keeps no room for its body; three notes in two columns, two rows of slots
+        assertEquals(0, tileGridSlotRows(1, 0, 2, 2))
+        assertEquals(0, tileGridSlotRows(3, 0, 1, 1))
+        assertEquals(2, tileGridSlotRows(3, 3, 2, 1))
+    }
 }

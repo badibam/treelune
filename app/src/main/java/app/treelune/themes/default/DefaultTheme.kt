@@ -929,47 +929,15 @@ object DefaultTheme : ThemeContract {
     ) {
         val context = androidx.compose.ui.platform.LocalContext.current
         val s = app.treelune.core.strings.Strings.`for`(context = context)
-
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            title = {
-                androidx.compose.material3.Text(
-                    text = title,
-                    style = androidx.compose.material3.MaterialTheme.typography.titleLarge
-                )
-            },
-            text = {
-                androidx.compose.material3.Text(
-                    text = message,
-                    style = androidx.compose.material3.MaterialTheme.typography.bodyMedium
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = onConfirm,
-                    shape = ButtonTextShape
-                ) {
-                    androidx.compose.material3.Text(
-                        text = confirmText ?: s.shared("action_confirm"),
-                        style = androidx.compose.material3.MaterialTheme.typography.labelLarge
-                    )
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = onDismiss,
-                    shape = ButtonTextShape
-                ) {
-                    androidx.compose.material3.Text(
-                        text = cancelText ?: s.shared("action_cancel"),
-                        style = androidx.compose.material3.MaterialTheme.typography.labelLarge
-                    )
-                }
-            },
-            containerColor = CurrentTheme.getCurrentColorScheme().surface,
-            tonalElevation = 6.dp,
-            shape = RoundedCornerShape(16.dp)
-        )
+        DialogWindow(onDismiss = onDismiss, actions = {
+            DialogTextButton(cancelText ?: s.shared("action_cancel"), onDismiss)
+            DialogMainButton(confirmText ?: s.shared("action_confirm"), onConfirm)
+        }) {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                androidx.compose.material3.Text(text = title, style = androidx.compose.material3.MaterialTheme.typography.titleLarge)
+                androidx.compose.material3.Text(text = message, style = androidx.compose.material3.MaterialTheme.typography.bodyMedium)
+            }
+        }
     }
 
     // =====================================
@@ -1086,9 +1054,22 @@ object DefaultTheme : ThemeContract {
             DialogType.SELECTION -> null to cancel
             DialogType.INFO -> s.shared("action_ok") to null
         }
-        
-        // Material's alert dialog drawn in a window that keeps itself clear of the keyboard
-        app.treelune.core.ui.components.FloatingDialog(onDismissRequest = onCancel, margin = spacing(app.treelune.core.ui.Spacing.EDGE)) {
+        DialogWindow(onDismiss = onCancel, actions = {
+            if (cancelText != null) DialogTextButton(cancelText, onCancel)
+            if (confirmText != null) DialogMainButton(confirmText, onConfirm, confirmEnabled, danger = type == DialogType.DANGER)
+        }) {
+            content()
+        }
+    }
+
+    /**
+     * Material's alert dialog drawn in a window that keeps itself clear of the keyboard: its
+     * content, which scrolls when too tall, and its actions under it, the main one last
+     * (ButtonRow: side by side when they hold, else one under the other, the main one on top).
+     */
+    @Composable
+    private fun DialogWindow(onDismiss: () -> Unit, actions: @Composable () -> Unit, content: @Composable () -> Unit) {
+        app.treelune.core.ui.components.FloatingDialog(onDismissRequest = onDismiss, margin = spacing(app.treelune.core.ui.Spacing.EDGE)) {
             androidx.compose.material3.Surface(
                 modifier = Modifier.widthIn(min = 280.dp, max = 560.dp),
                 shape = androidx.compose.material3.AlertDialogDefaults.shape,
@@ -1097,35 +1078,33 @@ object DefaultTheme : ThemeContract {
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     Box(modifier = Modifier.weight(1f, fill = false).scrollEndSound()) { content() }
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        if (cancelText != null) TextButton(onClick = onCancel, shape = ButtonTextShape) {
-                            androidx.compose.material3.Text(cancelText)
-                        }
-                        if (confirmText != null) androidx.compose.material3.Button(
-                            onClick = onConfirm,
-                            enabled = confirmEnabled,
-                            colors = if (type == DialogType.DANGER) {
-                                ButtonDefaults.buttonColors(
-                                    containerColor = CurrentTheme.getCurrentColorScheme().error,
-                                    contentColor = CurrentTheme.getCurrentColorScheme().onError
-                                )
-                            } else {
-                                ButtonDefaults.buttonColors(
-                                    containerColor = CurrentTheme.getCurrentColorScheme().primary,
-                                    contentColor = CurrentTheme.getCurrentColorScheme().onPrimary
-                                )
-                            },
-                            shape = ButtonTextShape
-                        ) {
-                            androidx.compose.material3.Text(confirmText)
-                        }
-                    }
+                    app.treelune.core.ui.components.ButtonRow(align = Alignment.End, mainLast = true, modifier = Modifier.padding(top = 24.dp), content = actions)
                 }
             }
+        }
+    }
+
+    /** A window's plain action, a text in the main colour; stacked, as wide as the window (LocalButtonFill). */
+    @Composable
+    private fun DialogTextButton(text: String, onClick: () -> Unit) {
+        TextButton(onClick = onClick, shape = ButtonTextShape, modifier = Modifier.let { if (LocalButtonFill.current) it.fillMaxWidth() else it }) {
+            androidx.compose.material3.Text(text)
+        }
+    }
+
+    /** A window's main action, filled with the main colour, or the error's for a destructive one. */
+    @Composable
+    private fun DialogMainButton(text: String, onClick: () -> Unit, enabled: Boolean = true, danger: Boolean = false) {
+        val colors = CurrentTheme.getCurrentColorScheme()
+        androidx.compose.material3.Button(
+            onClick = onClick,
+            enabled = enabled,
+            colors = if (danger) ButtonDefaults.buttonColors(containerColor = colors.error, contentColor = colors.onError)
+                else ButtonDefaults.buttonColors(containerColor = colors.primary, contentColor = colors.onPrimary),
+            shape = ButtonTextShape,
+            modifier = Modifier.let { if (LocalButtonFill.current) it.fillMaxWidth() else it }
+        ) {
+            androidx.compose.material3.Text(text)
         }
     }
     

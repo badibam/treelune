@@ -1359,18 +1359,13 @@ object RetroTheme : ThemeContract {
 
     /** A window over the screen: a frame across, its content, its actions under it. */
     @Composable
-    private fun DialogFrame(onDismiss: () -> Unit, actions: @Composable RowScope.() -> Unit, content: @Composable ColumnScope.() -> Unit) {
+    private fun DialogFrame(onDismiss: () -> Unit, actions: @Composable () -> Unit, content: @Composable ColumnScope.() -> Unit) {
         val grid = retroGrid()
         app.treelune.core.ui.components.FloatingDialog(onDismissRequest = onDismiss, margin = spacing(Spacing.EDGE)) {
             Framed(modifier = Modifier.fillMaxWidth()) {
                 Column(verticalArrangement = Arrangement.spacedBy(grid.steady(1))) {
                     Column(modifier = Modifier.weight(1f, fill = false), verticalArrangement = Arrangement.spacedBy(grid.steady(1)), content = content)
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(grid.steady(1), Alignment.End),
-                        verticalAlignment = Alignment.CenterVertically,
-                        content = actions
-                    )
+                    app.treelune.core.ui.components.ButtonRow(align = Alignment.End, mainLast = true, content = actions)
                 }
             }
         }

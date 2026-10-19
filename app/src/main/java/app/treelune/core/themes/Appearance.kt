@@ -14,7 +14,8 @@ enum class AppearanceMode { LIGHT, DARK, SYSTEM }
 
 /**
  * The look the interface settings choose (AppSettings, category UI): a theme, the mode, how far
- * round the hue circle its colours are turned, the size step, one column or the grid.
+ * round the hue circle its colours are turned, the size step, one column or the grid, the
+ * textures' intensity, the home screen's title.
  *
  * @property hueShift Degrees, 0 to 359, added to the hue of every colour of the theme but those
  *   that say something whatever the hue (states, tags): 0 shows the theme's own colours
@@ -22,6 +23,8 @@ enum class AppearanceMode { LIGHT, DARK, SYSTEM }
  *   (Grid.oneColumn), for a narrow screen; the places stored stay those of the grid
  * @property textureIntensity How strongly the motifs of tiles and page headers show
  *   (docs/design/tool-texture.md), for the whole app
+ * @property homeTitle The app's name and mark shown on the home screen under its buttons, which
+ *   stay without it
  */
 data class Appearance(
     val theme: String,
@@ -29,17 +32,18 @@ data class Appearance(
     val hueShift: Int,
     val sizeStep: Int,
     val oneColumn: Boolean,
-    val textureIntensity: TextureIntensity
+    val textureIntensity: TextureIntensity,
+    val homeTitle: Boolean
 ) {
     companion object {
         /** The look [settings] choose, the interface settings as stored or as being edited; null while a choice is missing. */
         fun from(settings: JSONObject): Appearance? {
             val theme = settings.optString(AppSettings.UI_THEME).ifEmpty { return null }
             val mode = settings.optString(AppSettings.UI_MODE).ifEmpty { return null }
-            if (!settings.has(AppSettings.UI_HUE_SHIFT) || !settings.has(AppSettings.UI_SIZE_STEP) || !settings.has(AppSettings.UI_ONE_COLUMN)) return null
+            if (!settings.has(AppSettings.UI_HUE_SHIFT) || !settings.has(AppSettings.UI_SIZE_STEP) || !settings.has(AppSettings.UI_ONE_COLUMN) || !settings.has(AppSettings.UI_HOME_TITLE)) return null
             val intensity = settings.optString(AppSettings.UI_TEXTURE_INTENSITY).ifEmpty { return null }
             return Appearance(theme, AppearanceMode.valueOf(mode), settings.getInt(AppSettings.UI_HUE_SHIFT), settings.getInt(AppSettings.UI_SIZE_STEP),
-                settings.getBoolean(AppSettings.UI_ONE_COLUMN), TextureIntensity.valueOf(intensity))
+                settings.getBoolean(AppSettings.UI_ONE_COLUMN), TextureIntensity.valueOf(intensity), settings.getBoolean(AppSettings.UI_HOME_TITLE))
         }
     }
 }

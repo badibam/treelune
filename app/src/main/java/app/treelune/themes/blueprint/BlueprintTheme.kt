@@ -1625,7 +1625,7 @@ object BlueprintTheme : ThemeContract {
      * in the lettering in a head cell over a line, when it has one; its content, its actions under it.
      */
     @Composable
-    private fun DialogFrame(title: String?, onDismiss: () -> Unit, actions: @Composable RowScope.() -> Unit, content: @Composable ColumnScope.() -> Unit) {
+    private fun DialogFrame(title: String?, onDismiss: () -> Unit, actions: @Composable () -> Unit, content: @Composable ColumnScope.() -> Unit) {
         app.treelune.core.ui.components.FloatingDialog(onDismissRequest = onDismiss, margin = spacing(Spacing.EDGE)) {
             FadeIn {
                 val size = blueprintSize()
@@ -1651,12 +1651,7 @@ object BlueprintTheme : ThemeContract {
                             verticalArrangement = Arrangement.spacedBy(size.dp(8f)),
                             content = content
                         )
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = size.dp(4f)),
-                            horizontalArrangement = Arrangement.spacedBy(size.dp(8f), Alignment.End),
-                            verticalAlignment = Alignment.CenterVertically,
-                            content = actions
-                        )
+                        app.treelune.core.ui.components.ButtonRow(align = Alignment.End, mainLast = true, modifier = Modifier.padding(horizontal = size.dp(4f)), content = actions)
                     }
                 }
             }

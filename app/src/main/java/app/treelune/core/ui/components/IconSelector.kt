@@ -83,13 +83,17 @@ fun iconColorPage(label: String, iconName: String, texture: String?) = object : 
  * @param color Its colour, which it is shown in; null for a neutral icon
  * @param suggested Icons offered first: the tooltype's, or a starting set for a zone
  * @param onChange Callback called when an icon is selected
+ * @param onClear Takes the chosen icon away, offered by a button while there is one to take away:
+ *   what is left depends on the thing (none for a zone, its type's for a tool, the default one for
+ *   an identity); null offers no button
  */
 @Composable
 fun IconSelector(
     current: String,
     color: TagColor? = null,
     suggested: List<String> = emptyList(),
-    onChange: (String) -> Unit
+    onChange: (String) -> Unit,
+    onClear: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
@@ -102,10 +106,16 @@ fun IconSelector(
     ) {
         UI.Text(s.shared("tools_config_label_icon"), TextType.LABEL)
         UI.ItemIcon(iconName = current, color = color, size = 32.dp)
-        UI.ActionButton(
-            action = ButtonAction.SELECT,
-            onClick = { showDialog = true }
-        )
+        // Side by side when they hold, else one under the other
+        ButtonRow(modifier = Modifier.weight(1f)) {
+            UI.ActionButton(
+                action = ButtonAction.SELECT,
+                onClick = { showDialog = true }
+            )
+            if (onClear != null) UI.Button(type = ButtonType.DEFAULT, onClick = onClear) {
+                UI.Text(s.shared("action_clear"), TextType.LABEL)
+            }
+        }
     }
 
     if (showDialog) {

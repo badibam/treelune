@@ -44,6 +44,10 @@ object CurrentTheme {
     var oneColumn: Boolean by mutableStateOf(false)
         private set
 
+    /** Whether the home screen shows the app's name and mark (Appearance.homeTitle). */
+    var homeTitle: Boolean by mutableStateOf(true)
+        private set
+
     /** How strongly the motifs of tiles and page headers show (Appearance.textureIntensity). */
     var textureIntensity: TextureIntensity by mutableStateOf(TextureIntensity.SUBTLE)
         private set
@@ -89,6 +93,7 @@ object CurrentTheme {
         sizeStep = appearance.sizeStep
         oneColumn = appearance.oneColumn
         textureIntensity = appearance.textureIntensity
+        homeTitle = appearance.homeTitle
     }
 
     /** Every theme, by id. */
