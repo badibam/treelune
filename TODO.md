@@ -74,12 +74,12 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - Le thème papier découpé (`docs/design/paper-theme.md`, branche theme-cut-paper) : la passe sur le téléphone de `docs/THEMES.md`, les icônes découpées d'abord (leur coût, celles qui se bouchent), puis ce que la spec garde dans « Ce qui reste ouvert ».
 - La SQLite de l'app à la place de celle du téléphone (branche demo-install) : la mise à jour depuis la release avec ses données d'abord (« Mise à jour et démarrage »), puis la démo sur l'OPPO A5 2020 (« Démo »).
 - Le thème plan d'architecte (`docs/design/blueprint-theme.md`, branche theme-blueprint) : la passe sur le téléphone de `docs/THEMES.md`, le débord des icônes d'abord, puis ce que la spec garde dans « Ce qui reste ouvert ».
+- L'outil Flashcards (`docs/design/flashcards.md`, branche flashcards) : la section « Flashcards » de la recette, la démo d'abord (Lessico, Ripasso), puis le lexique réel ; passé, élaguer la spec.
 
 ## Conçu, à coder
 
 Une spec existe dans `docs/design/`.
 
-- L'outil Flashcards (`docs/design/flashcards.md`) : un paquet qui pointe vers les lignes d'un autre outil, ses sens, une entrée par révision, FSRS porté et testé contre sa référence, la séance, la tuile et la page, `flashcards.due` et `flashcards.review`.
 - L'historique des écritures et leur annulation (`docs/design/undo-history.md`) : un pas par opération demandée de l'extérieur, la ligne entière avant et après, écrite par une seule classe que garde un script, 30 jours, le service `history` ouvert à l'IA, son écran.
 
 ## À concevoir
@@ -142,6 +142,7 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 - D'autres sources de l'attente (`docs/BRICKS.md`) : un message de l'IA arrivé dans une session pendant qu'on était ailleurs, signalé par exemple sur le bouton de conversation — à concevoir.
 - Choisir une entrée précise comme cible du pointeur dans son sélecteur (conçu dans `docs/design/pointer.md` : étiquette par type d'outil, liste, relecture de l'entrée) — si le besoin apparaît : un pointeur peut désigner une entrée (le Questionnaire en pose un), mais seule l'app le fait. La cible APP attend que l'IA sache lire les réglages de l'app.
 - Lire un long texte du connecteur MCP par section (le sommaire de ses titres `##`, puis une section par son titre), en plus des tranches — si l'IA lit mal un bagage d'identité en tranches.
+- Le point d'attente et la tuile d'un paquet de Flashcards ne se relisent qu'à un changement d'entrée ou à l'ouverture de la zone (`rememberWaiting`, `rememberFlashcardsTile`), jamais d'eux-mêmes au début de la journée, quand des cartes deviennent dues : l'app restée ouverte sur la zone les montre en retard — si ça se voit sur le téléphone.
 - Le nombre d'entrées en attente sur la tuile, au lieu du point (`WaitingMark`, décidé « pour le moment » le 2026-09-29) — si le point ne suffit pas.
 - Les valeurs des champs de l'utilisateur dans une série d'Agenda (« Kiné, Lieu : Cabinet Dupont »), recopiées dans chaque occurrence : une brique du cœur, des valeurs pour les champs de l'utilisateur d'un outil, déclarée dans une config (schéma, saisie dans le formulaire, conversion pour l'IA des types qu'elle ne connaît pas d'avance) — quand remplir chaque occurrence pèsera.
 - Outil jamais livré : l'Alerte, laissée pour plus tard (outil ou event du cœur, sans doute une lecture et une condition).

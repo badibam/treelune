@@ -209,11 +209,29 @@ interface ToolTypeContract {
     fun getWaiting(config: JSONObject): List<JSONObject> = emptyList()
 
     /**
+     * How many things wait for the user in [tool], for a tool type that counts them itself rather
+     * than by conditions on its entries (getWaiting), what waits not being one entry: a deck's
+     * cards due today, each the last review of its card, due by the day. Null for a tool type that
+     * does not count so; asked only when getWaiting gives no condition. Nothing it counts is an
+     * entry to open: the tile and the notification open the tool alone.
+     *
+     * @throws IllegalStateException when the count cannot be read, which the core logs and leaves out
+     */
+    suspend fun countWaiting(tool: app.treelune.core.database.entities.ToolInstance, context: Context): Int? = null
+
+    /**
      * Why [entry] may not be changed or deleted by an ordinary write, or null when it may: a
      * goal's validated attempt changes only by its own operation, reopening it. ToolDataService
      * asks it before every update and delete, whoever the caller.
      */
     fun refuseChange(entry: ToolDataEntity, context: Context): String? = null
+
+    /**
+     * Why [entry] may not be changed by an ordinary write, though it may be deleted, or null when
+     * it may: a deck's review, written once, whose deletion undoes it. ToolDataService asks it
+     * before every update, after refuseChange.
+     */
+    fun refuseUpdate(entry: ToolDataEntity, context: Context): String? = null
 
     /**
      * Why an entry holding [data] and [state] may not be stored, beyond what each field says on
@@ -225,9 +243,12 @@ interface ToolTypeContract {
     /**
      * Why [entry] may not be deleted by an ordinary write, though it may change, or null when it
      * may: a calendar's occurrence of a series is removed by its own operation, a deletion making
-     * the series give it again. ToolDataService asks it before every delete, after refuseChange.
+     * the series give it again; a review of a deck goes only while it is its card's last. ToolDataService
+     * asks it before every delete, after refuseChange.
+     *
+     * @param entries Every entry of the tool instance, [entry] included, read only when called
      */
-    fun refuseDelete(entry: ToolDataEntity, context: Context): String? = null
+    suspend fun refuseDelete(entry: ToolDataEntity, entries: suspend () -> List<ToolDataEntity>, context: Context): String? = null
 
     /**
      * Whether [entry] keeps the values it was judged or made with when the config changes
@@ -241,6 +262,13 @@ interface ToolTypeContract {
      * none: no fields of the user's in its config, and every write of an entry is refused.
      */
     fun keepsEntries(): Boolean = true
+
+    /**
+     * Whether a tool of this type takes fields of the user's in its entries (extra_fields): any
+     * tool that keeps entries, but one whose entries the app alone writes from what the user does
+     * elsewhere (a deck's reviews), where no one would ever enter them.
+     */
+    fun takesUserFields(): Boolean = keepsEntries()
 
     /**
      * The fields of the rows this tool type's config describes, where a setting chooses among

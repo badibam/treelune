@@ -1,5 +1,12 @@
 package app.treelune.core.demo
 
+import app.treelune.core.selection.EntrySelection
+import app.treelune.core.selection.Reference
+import app.treelune.core.selection.ReferenceKind
+import app.treelune.tools.flashcards.FlashcardsDeck
+import app.treelune.tools.flashcards.FlashcardsDue
+import app.treelune.tools.flashcards.FlashcardsSession
+import app.treelune.tools.flashcards.Fsrs
 import org.json.JSONArray
 import org.json.JSONObject
 import java.time.DayOfWeek
@@ -105,6 +112,8 @@ class DemoData(private val now: Long, private val zone: ZoneId, private val hand
         put("demo-balcony-harvests", harvests())
         put("demo-balcony-fed", fed())
         put("demo-italian-evening", evenings())
+        put("demo-italian-lexicon", cards("demo-italian-lexicon"))
+        put("demo-italian-deck", deckReviews())
         put("demo-work-invoicing", sends("demo-work-invoicing", "invoicing", weekdays = setOf(1), hour = 9, weeks = WEEKS, unreadLast = true))
         put("demo-balcony-watering", sends("demo-balcony-watering", "watering", weekdays = setOf(1, 3, 5, 7), hour = 19, weeks = 3, unreadLast = false))
         put("demo-balcony-feeding", monthlySends())
@@ -377,6 +386,61 @@ class DemoData(private val now: Long, private val zone: ZoneId, private val hand
             })
         }
         return filled
+    }
+
+    private val reviewRandom = java.util.Random(SEED + 2)
+
+    /**
+     * Giulia's reviews of the deck Ripasso over its lexicon, three weeks up to yesterday: an evening
+     * session most days at 21:00, over the cards the deck offers that day (FlashcardsDue), each
+     * rating drawn from the seed, a failed card asked again in the same session (FlashcardsSession),
+     * every state computed by FSRS. Today's cards are left to review.
+     */
+    private fun deckReviews(): List<JSONObject> {
+        val words = handOf("demo-italian-lexicon")
+        val directions = listOf("d_it", "d_back")
+        val deck = FlashcardsDeck(
+            source = EntrySelection(Reference(ReferenceKind.TOOL_INSTANCE, "demo-italian-lexicon")),
+            groupBy = "extra.theme",
+            directions = directions.map { FlashcardsDeck.Direction(it, it, emptyList(), emptyList()) },
+            afterAnother = false, newPerDay = 6, reviewsPerDay = 200, desiredRetention = 0.9
+        )
+        val lines = words.map { FlashcardsDue.Line(it.getString("id"), setOf(it.getJSONObject("extra").getString("theme")), directions.toSet()) }
+        val cards = mutableMapOf<FlashcardsDue.CardKey, FlashcardsDue.Card>()
+        val reviews = mutableListOf<JSONObject>()
+        fun rating(again: Boolean): Fsrs.Rating {
+            val r = reviewRandom.nextDouble()
+            return when {
+                again -> if (r < 0.8) Fsrs.Rating.GOOD else Fsrs.Rating.AGAIN
+                r < 0.14 -> Fsrs.Rating.AGAIN
+                r < 0.24 -> Fsrs.Rating.HARD
+                r < 0.92 -> Fsrs.Rating.GOOD
+                else -> Fsrs.Rating.EASY
+            }
+        }
+        for (date in days.dropLast(1).takeLast(21)) {
+            if (isRush(date) || reviewRandom.nextDouble() < 0.15) continue
+            val offer = FlashcardsDue.offer(deck, lines, cards, at(date, 0, 0), at(date.plusDays(1), 0, 0))
+            var session = FlashcardsSession.of(offer.cards.map { it.key })
+            var time = at(date, 21, 0)
+            val failed = mutableSetOf<FlashcardsDue.CardKey>()
+            while (!session.over) {
+                val key = session.next(time)!!
+                val rated = rating(key in failed)
+                val previous = cards[key]
+                val state = Fsrs.review(previous?.last, rated, time, deck.desiredRetention)
+                cards[key] = FlashcardsDue.Card(previous?.first ?: time, state, rated)
+                if (rated == Fsrs.Rating.AGAIN) failed += key
+                val id = "demo-e-deck-review-${reviews.size}"
+                reviews += entry(id, timestamp = time,
+                    data = json("source_entry" to ref(key.line), "direction" to key.direction, "rating" to rated.name),
+                    state = json("stability" to state.stability, "difficulty" to state.difficulty, "due" to state.due,
+                        "fsrs_version" to Fsrs.VERSION))
+                session = session.rated(key, rated, time, id)
+                time += (8 + reviewRandom.nextInt(20)) * 1000L
+            }
+        }
+        return reviews
     }
 
     /** The evening's ranking, hardest first: speaking or listening on top, turn by turn, grammar last but now and then. */

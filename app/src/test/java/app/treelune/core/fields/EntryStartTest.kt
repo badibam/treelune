@@ -24,6 +24,16 @@ class EntryStartTest {
     private fun written(decision: EntryStart.Decision): JSONObject? =
         (decision as EntryStart.Decision.Write).state
 
+    /** A deck's review has no status: the deck alone writes it, its state as it gives it. */
+    @Test
+    fun entriesWithoutStatus_areTheTools_andRefusedToOthersWithTheirReason() {
+        val reviews = EntryStart(emptyList(), refusal = "rated by the deck", withStatus = false)
+        assertEquals("""{"stability":3.2}""", written(EntryStart.decide(reviews, state("""{ "stability": 3.2 }"""), byTheApp = true, now))?.toString())
+        val refused = EntryStart.decide(reviews, state("""{ "stability": 3.2 }"""), byTheApp = false, now)
+        assertEquals("rated by the deck", (refused as EntryStart.Decision.NoStatus).start.refusal)
+        assertFalse(EntryStart.changesStatus(reviews, """{"stability":3.2}""", state("""{ "status": "x" }"""), byTheApp = false))
+    }
+
     @Test
     fun withoutDeclaration_theStateGoesAsItCame() {
         assertEquals("""{"position":2}""", written(EntryStart.decide(null, state("""{ "position": 2 }"""), byTheApp = false, now))?.toString())

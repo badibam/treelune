@@ -354,7 +354,9 @@ class ToolDataService(private val context: Context) : ExecutableService {
         val dao = getToolDataDao()
         val existingEntity = dao.getById(entryId)
             ?: return OperationResult.error(s.shared("service_error_entry_not_found").format(entryId))
-        ToolTypeManager.getToolType(existingEntity.tooltype)?.refuseChange(existingEntity, context)?.let { return OperationResult.error(it) }
+        ToolTypeManager.getToolType(existingEntity.tooltype)?.let { type ->
+            (type.refuseChange(existingEntity, context) ?: type.refuseUpdate(existingEntity, context))?.let { return OperationResult.error(it) }
+        }
 
         val target = when (val loaded = batch?.targetOf(existingEntity.toolInstanceId) ?: loadWriteTarget(existingEntity.toolInstanceId)) {
             is WriteTarget.Refused -> return OperationResult.error(loaded.error)
@@ -451,7 +453,7 @@ class ToolDataService(private val context: Context) : ExecutableService {
         val entity = dao.getById(entryId)
             ?: return OperationResult.error(s.shared("service_error_entry_not_found").format(entryId))
         ToolTypeManager.getToolType(entity.tooltype)?.let { type ->
-            (type.refuseChange(entity, context) ?: type.refuseDelete(entity, context))?.let { return OperationResult.error(it) }
+            (type.refuseChange(entity, context) ?: type.refuseDelete(entity, { dao.getByToolInstance(entity.toolInstanceId) }, context))?.let { return OperationResult.error(it) }
         }
 
         storeSettled(entity.tooltype, { dao.getByToolInstance(entity.toolInstanceId).filter { it.id != entryId } }, null) {
@@ -1055,7 +1057,9 @@ class ToolDataService(private val context: Context) : ExecutableService {
         result: Map<String, Any>
     ): OperationResult {
         getToolDataDao().getById(updated.id)?.let { before ->
-            ToolTypeManager.getToolType(before.tooltype)?.refuseChange(before, context)?.let { return OperationResult.error(it) }
+            ToolTypeManager.getToolType(before.tooltype)?.let { type ->
+                (type.refuseChange(before, context) ?: type.refuseUpdate(before, context))?.let { return OperationResult.error(it) }
+            }
         }
         validateEntry(target, updated.name, updated.timestamp, updated.data, updated.extra, updated.state)
             ?.let { return OperationResult.error(it) }

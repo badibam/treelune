@@ -28,6 +28,7 @@ Tu ranges ta vie en **zones** (Santé, Travail, Cuisine…), et dans chaque zone
 - **Graphique** — Tes entrées et tes chiffres dessinés en courbes, barres, camemberts ou calendriers
 - **Séance** — Des étapes préparées à l'avance, suivies à l'écran avec un minuteur et un signal à chaque changement : un entraînement, une recette
 - **Agenda** — Les rendez-vous et les événements à heure, qui passent d'eux-mêmes, avec leurs rappels
+- **Flashcards** — Des cartes à réviser tirées d'un autre outil, chacune revenant juste avant d'être oubliée
 <!-- /tools -->
 
 Chaque outil se règle : ses champs, ses unités, ses rappels, son affichage sur la zone.

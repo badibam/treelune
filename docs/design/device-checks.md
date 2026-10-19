@@ -450,3 +450,16 @@ Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la po
 - Effacer, à côté de Choisir une icône : une zone sans icône ensuite (sa tuile son nom seul, sa texture « icône » retirée avec), un outil revenu à l'icône de son type, une identité revenue à l'icône par défaut ; le bouton absent quand il n'y a rien à retirer ; les deux boutons l'un sous l'autre au cran de taille 3.
 - Le thème encre et lavis : la marge de bord et les grands écarts resserrés (l'accueil, une zone, les Réglages) ; rien ne touche le bord de l'écran.
 - Réglages › Interface, « Titre de l'accueil » : désactivé, l'accueil garde sa ligne de boutons (Réglages, Guide, Configurer), sans le nom de l'app ni sa marque, et les zones remontent ; vu dès le changement, avant l'enregistrement ; la migration 81 sur la release et ses données, le titre toujours là ; une sauvegarde d'avant restaurée, de même.
+
+## Flashcards (branche flashcards, `docs/design/flashcards.md`)
+
+- La démo : Lessico et Ripasso dans la zone Italien ; la tuile de Ripasso (« N à revoir · M nouvelles », le point quand des cartes sont dues, une ligne par thème en Étendu) ; la page, Tout puis Cuisine, Maison, Voyage par leurs libellés, la phrase sous les groupes.
+- La durée du calcul, lue dans le journal (« Flashcards: deck … read in N ms ») : à l'ouverture de la zone Italien, de la page, d'une séance, sur la démo puis sur le lexique réel ; au-delà de 300 ms, le dire.
+- La fenêtre de lancement : une ligne par sens et « Tous les sens », leurs nombres, une ligne à 0 grisée qui ne lance rien ; un paquet à un seul sens lance sans fenêtre.
+- Une séance entière : toucher la carte montre le verso sous un trait, le recto restant ; Raté fait revenir la carte après trois autres et une minute, tout de suite s'il n'en reste pas d'autre ; Difficile, Bon et Facile la finissent ; la séance finie le dit, avec le nombre de cartes.
+- Revenir, plusieurs fois de suite : la carte d'avant, verso caché, sa note retirée de l'historique de l'outil ; le compteur de la page revenu d'autant.
+- Arrêter une séance au milieu par la flèche : une ratée pas encore repassée reste à revoir sur la tuile et la page ; tourner le téléphone pendant une séance la garde où elle en était.
+- Les compteurs de la tuile et de la page d'accord avec la séance lancée ; le lendemain, après l'heure de début de journée, les cartes dues du jour comptées dès le matin (la tuile se relit quand une entrée change ou à l'ouverture de la zone, pas d'elle-même à l'heure).
+- La config : la source choisie, Grouper par et les champs du recto et du verso proposés parmi ceux de la source ; un champ supprimé de la source ensuite : l'erreur qui le nomme sur la tuile, la page et la séance, jamais une carte vide ; changer la source ou retirer un sens demande d'accepter la perte de ses révisions.
+- « Un sens après l'autre » coché : le sens 2 d'un mot n'arrive qu'une fois le sens 1 acquis (sa stabilité à 7 jours au moins, lisible dans l'historique de l'outil).
+- L'IA : « fais-moi réviser Ripasso » en conversation, les cartes lues par flashcards.due, notées par flashcards.review après que tu as dit comment tu t'en souvenais ; une écriture ordinaire de révision refusée avec le message qui dit d'utiliser flashcards.review.

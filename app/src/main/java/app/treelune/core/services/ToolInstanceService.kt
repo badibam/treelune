@@ -695,9 +695,9 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
     /**
      * What waits for the user (ToolTypeContract.getWaiting): how many entries of each tool pass
      * its tool type's conditions and the oldest of them, the tools of `zone_id` or all of them,
-     * and the sum by zone. A
-     * tool type that declares none is left out; a tool whose count cannot be read is logged and
-     * left out, a tile never lying about a count it does not have.
+     * and the sum by zone; for a tool type that counts them itself (countWaiting), its count,
+     * without an oldest. A tool type that does neither is left out; a tool whose count cannot be
+     * read is logged and left out, a tile never lying about a count it does not have.
      */
     private suspend fun handleWaiting(params: JSONObject, token: CancellationToken): OperationResult {
         val zoneId = params.optString("zone_id").takeIf { it.isNotEmpty() }
@@ -707,8 +707,16 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         val oldest = mutableMapOf<String, String>()
         for (tool in tools) {
             if (token.isCancelled) return OperationResult.cancelled()
-            val conditions = ToolTypeManager.getToolType(tool.tooltype)?.getWaiting(JSONObject(tool.config_json)).orEmpty()
-            if (conditions.isEmpty()) continue
+            val type = ToolTypeManager.getToolType(tool.tooltype) ?: continue
+            val conditions = type.getWaiting(JSONObject(tool.config_json))
+            if (conditions.isEmpty()) {
+                val own = try { type.countWaiting(tool, context) } catch (e: IllegalStateException) {
+                    LogManager.service("ToolInstanceService: waiting of ${tool.id} not counted: ${e.message}", "ERROR")
+                    null
+                }
+                own?.let { counts[tool.id] = it }
+                continue
+            }
             val result = coordinator.processUserAction("tool_data.get", mapOf("tool_instance_id" to tool.id, "filters" to conditions, "limit" to 1))
             val total = ((result.data?.get("pagination") as? Map<*, *>)?.get("total_entries") as? Number)?.toInt()
             if (!result.isSuccess || total == null) {

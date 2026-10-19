@@ -2468,6 +2468,128 @@
       },
       "grid_x": 0,
       "grid_y": 5
+    },
+    {
+      "id": "demo-italian-lexicon",
+      "zone_id": "demo-italian",
+      "tooltype": "structured",
+      "config": {
+        "name": "@lexicon_name",
+        "description": "@lexicon_description",
+        "icon_name": "book-a",
+        "display_mode": "LINE",
+        "table_columns": 2,
+        "show_field_labels": true,
+        "extra_fields": [
+          {
+            "name": "translation",
+            "display_name": "@lexicon_field_translation",
+            "type": "TEXT",
+            "always_visible": false,
+            "config": {
+              "length": "SHORT"
+            }
+          },
+          {
+            "name": "nature",
+            "display_name": "@lexicon_field_nature",
+            "type": "CHOICE",
+            "always_visible": false,
+            "config": {
+              "options": [
+                {
+                  "value": "noun",
+                  "label": "@lexicon_nature_noun"
+                },
+                {
+                  "value": "verb",
+                  "label": "@lexicon_nature_verb"
+                },
+                {
+                  "value": "adjective",
+                  "label": "@lexicon_nature_adjective"
+                }
+              ]
+            }
+          },
+          {
+            "name": "theme",
+            "display_name": "@lexicon_field_theme",
+            "type": "CHOICE",
+            "always_visible": false,
+            "config": {
+              "options": [
+                {
+                  "value": "home",
+                  "label": "@lexicon_theme_home",
+                  "color": "BLUE"
+                },
+                {
+                  "value": "food",
+                  "label": "@lexicon_theme_food",
+                  "color": "ORANGE"
+                },
+                {
+                  "value": "travel",
+                  "label": "@lexicon_theme_travel",
+                  "color": "GREEN"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "grid_x": 0,
+      "grid_y": 7
+    },
+    {
+      "id": "demo-italian-deck",
+      "zone_id": "demo-italian",
+      "tooltype": "flashcards",
+      "config": {
+        "name": "@deck_name",
+        "description": "@deck_description",
+        "icon_name": "layers",
+        "icon_color": "TEAL",
+        "display_mode": "EXTENDED",
+        "source": {
+          "target": {
+            "kind": "TOOL_INSTANCE",
+            "id": "demo-italian-lexicon"
+          }
+        },
+        "group_by": "extra.theme",
+        "directions": [
+          {
+            "key": "d_it",
+            "name": "@deck_direction_it",
+            "front": [
+              "name",
+              "extra.nature"
+            ],
+            "back": [
+              "extra.translation"
+            ]
+          },
+          {
+            "key": "d_back",
+            "name": "@deck_direction_back",
+            "front": [
+              "extra.translation"
+            ],
+            "back": [
+              "name",
+              "extra.nature"
+            ]
+          }
+        ],
+        "one_direction_after_another": false,
+        "new_per_day": 6,
+        "reviews_per_day": 200,
+        "desired_retention": 0.9
+      },
+      "grid_x": 0,
+      "grid_y": 8
     }
   ],
   "variables": [
