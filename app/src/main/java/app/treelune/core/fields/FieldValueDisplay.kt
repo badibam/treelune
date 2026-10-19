@@ -19,9 +19,9 @@ import app.treelune.core.ui.UI
  * Shows one value the way its field type shows it, wherever it appears: tool screens, history,
  * communication modules, validation requests, command details.
  *
- * Most types are their short text form (FieldDefinition.formatValue). Three draw more than text:
+ * Most types are their short text form (FieldDefinition.formatValue). Four draw more than text:
  * a SCALE is a gauge between its bounds, a colored CHOICE is tags, a ranking is its options
- * numbered in order.
+ * numbered in order, IMAGE its images in a row of thumbnails.
  *
  * A long text (TextLength.formatted) is drawn from its markup; [oneLine], where it stands among
  * others in a row (a cell of a table, a line of fields), it is its words on one line, marks taken off.
@@ -30,6 +30,8 @@ import app.treelune.core.ui.UI
  * @param value The stored value; null shows "no value"
  * @param context Android context for strings
  * @param oneLine Whether a long text is cut down to one line
+ * @param short Whether the value is shown in a short form, implied by [oneLine] (a card, a table's
+ *   cell, a summary's line): images then show as the first one small and how many others there are
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -37,7 +39,8 @@ fun FieldValue(
     fieldDef: FieldDefinition,
     value: Any?,
     context: Context,
-    oneLine: Boolean = false
+    oneLine: Boolean = false,
+    short: Boolean = false
 ) {
     val s = Strings.`for`(context = context)
 
@@ -119,6 +122,10 @@ fun FieldValue(
         FieldType.TEXT -> if (!oneLine && fieldDef.formatted() && value.toString().isNotEmpty())
             MarkupText(value.toString(), icons = false, selectable = false)
         else UI.Text(text = fieldDef.formatValue(value, context), type = TextType.BODY)
+
+        FieldType.IMAGE ->
+            if (short || oneLine) app.treelune.core.images.ImageAbbreviation(ImageField.ids(value))
+            else app.treelune.core.images.ImageRow(ImageField.ids(value))
 
         else -> UI.Text(text = fieldDef.formatValue(value, context), type = TextType.BODY)
     }

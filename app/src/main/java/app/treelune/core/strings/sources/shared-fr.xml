@@ -1099,7 +1099,7 @@
     <string name="backup_reset_success">Réinitialisation réussie, redémarrage...</string>
     <string name="backup_version_too_recent">Ce fichier provient d\'une version plus récente de l\'application</string>
     <string name="backup_invalid_file">Fichier de sauvegarde invalide</string>
-    <string name="backup_import_image_missing">La sauvegarde nomme l\'image %1$s (session %2$s) sans en contenir le fichier, qui ne manquait pas à l\'export : la sauvegarde est abîmée, rien n\'a été importé.</string>
+    <string name="backup_import_image_missing">La sauvegarde nomme l\'image %1$s sans en contenir le fichier, qui ne manquait pas à l\'export : la sauvegarde est abîmée, rien n\'a été importé.</string>
     <string name="backup_export_failed">Échec de l\'export</string>
     <string name="backup_import_failed">Échec de l\'import</string>
     <string name="backup_reset_failed">Échec de la réinitialisation</string>
@@ -1329,6 +1329,15 @@
     <string name="reference_kind_variable">Variable</string>
     <string name="field_reading_reference">Désigne : %1$s, écrit {"kind", "id"}.</string>
     <string name="field_reading_reference_tools">Seulement les entrées des outils %1$s.</string>
+    <string name="field_type_image_display_name">Image</string>
+    <string name="field_reading_images">Une liste d\'ids d\'images, dans leur ordre. À la lecture, chacune vient avec sa largeur et sa hauteur en pixels, jamais l\'image elle-même : IMAGES les montre. À l\'écriture, les ids seuls ; une image de la conversation entre par son id, copiée pour l\'entrée.</string>
+    <string name="field_reading_images_max">%1$d images au plus.</string>
+    <string name="field_validation_image_max">Le nombre maximum d\'images d\'un champ est un nombre entier, au moins 1 : %1$s n\'en est pas un.</string>
+    <string name="field_config_image_max">Nombre maximum d\'images</string>
+    <string name="field_type_image_max_description">Combien d\'images le champ garde au plus : 1 pour une seule photo ; vide, sans limite</string>
+    <string name="field_image_count_one">1 image</string>
+    <string name="field_image_count">%1$d images</string>
+    <string name="field_image_input_label_max">%1$s (%2$d sur %3$d)</string>
     <string name="field_validation_reference_kinds">Choisis au moins une chose que le champ peut désigner.</string>
     <string name="field_validation_reference_tool_instances">Les outils de la liste ne servent qu\'aux entrées : coche Entrée.</string>
     <string name="field_value_reference_invalid">Pas une référence : %1$s. Attendu {"kind": "ENTRY", "id": "..."}, sans id pour l\'app.</string>
@@ -1344,6 +1353,11 @@
     <string name="action_verbalize_references_choices">Liste de ce qu\'un lien peut désigner</string>
     <string name="file_error_not_text">%1$s n\'est pas un fichier texte : seul du texte se joint (CSV, texte brut, Markdown, JSON).</string>
     <string name="image_error_not_read">Cette image n\'a pas pu être lue : %1$s</string>
+    <string name="image_error_not_found">Aucune image n\'a l\'id %1$s</string>
+    <string name="image_error_no_conversation">Les images ne se montrent que dans une conversation</string>
+    <string name="action_verbalize_files_show_images">Affichage d\'images</string>
+    <string name="image_animated_first_frame">Cette image est animée : seule sa première image est gardée</string>
+    <string name="field_image_others">+%1$d</string>
     <string name="ai_image_error_model_does_not_read">Ce modèle ne lit pas les images : retire-les du message, ou choisis un modèle qui les lit.</string>
     <string name="ai_image_error_model_unknown">Rien ne dit si ce modèle lit les images, elles ne partent donc pas : rouvre la config du fournisseur et enregistre-la, ou choisis un autre modèle.</string>
     <string name="ai_image_error_too_many">Cette conversation compte %1$d images ; une requête en porte %2$d au plus.</string>
@@ -1373,6 +1387,7 @@
     <string name="action_verbalize_files_read">Lecture d\'un fichier joint</string>
     <string name="action_verbalize_files_delete">Retrait d\'un fichier joint</string>
     <string name="action_verbalize_files_attach_image">Ajout d\'une image</string>
+    <string name="action_verbalize_files_prepare_image">Préparation d\'une image</string>
     <string name="action_verbalize_files_delete_image">Retrait d\'une image jointe</string>
     <string name="service_error_reading_param">Une lecture demande "%1$s".</string>
     <string name="service_error_reading_source">Une lecture lit les entrées d\'une instance d\'outil, pas d\'un %1$s.</string>

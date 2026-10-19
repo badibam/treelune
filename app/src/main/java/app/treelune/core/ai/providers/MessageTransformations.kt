@@ -106,8 +106,5 @@ fun SystemMessage.toPromptText(): String = buildString {
 internal fun SessionMessage.userParts(text: String?): List<PromptPart> =
     promptParts ?: listOfNotNull(text?.takeIf { it.isNotBlank() }?.let { PromptPart.Text(it) })
 
-/** The JPEG of an image as base64, by its id: read from its file when the request is built. */
-typealias ImageData = (imageId: String) -> String
-
-/** The media type every kept image has: AttachedImages writes JPEG only. */
-internal const val IMAGE_MEDIA_TYPE = "image/jpeg"
+/** The file of an image as base64: read when the request is built. */
+typealias ImageData = (image: PromptPart.Image) -> String

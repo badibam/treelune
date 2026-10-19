@@ -61,6 +61,10 @@ object FieldValueValidator {
             // REFERENCE: a kind the field takes, and an id for anything but the app. That the
             // thing exists is the service's to check, with the database
             FieldType.REFERENCE -> validateReferenceValue(fieldDef, value, context)
+
+            // IMAGE: a list of ids, at most its max, which the schema checks; that each one is an
+            // image the entry may hold is the service's to check, with the database
+            FieldType.IMAGE -> ValidationResult(isValid = true)
         }
     }
 

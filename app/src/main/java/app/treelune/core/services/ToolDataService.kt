@@ -45,6 +45,7 @@ import app.treelune.core.fields.toJsonArray
 import app.treelune.core.fields.withOptionsAdded
 import app.treelune.core.fields.toFieldDefinitions
 import app.treelune.core.utils.LogManager
+import app.treelune.core.images.EntryImages
 
 /**
  * Centralized service for all tool_data operations
@@ -153,6 +154,11 @@ class ToolDataService(private val context: Context) : ExecutableService {
             ?.let { return OperationResult.error(it) }
         checkReferences(checked, finalDataJson, finalExtraJson, before = null)
             ?.let { return OperationResult.error(it) }
+        // Its IMAGE fields' ids made its images: a form's prepared, a conversation's copied
+        val images = when (val plan = imagesOf(checked, entryId, finalDataJson, finalExtraJson)) {
+            is EntryImages.Plan.Refused -> return OperationResult.error(plan.error)
+            is EntryImages.Plan.Ready -> plan.images
+        }
 
         val now = System.currentTimeMillis()
         val entity = ToolDataEntity(
@@ -161,24 +167,31 @@ class ToolDataService(private val context: Context) : ExecutableService {
             tooltype = tooltype,
             timestamp = timestamp,
             name = name,
-            data = finalDataJson,
+            data = images.dataJson,
             createdAt = now,
             updatedAt = now,
-            extra = finalExtraJson,
+            extra = images.extraJson,
             state = stateJson
         )
 
         val dao = getToolDataDao()
         val known = batch?.entriesOf(toolInstanceId)
+        images.place()
         try {
             val stored = storeSettled(tooltype, { (known?.all() ?: dao.getByToolInstance(toolInstanceId)) + entity }, entity.id, checked.grown(grownConfig)) { settled ->
                 refuseTakenName(checked, entity, known)
                 dao.insert(settled ?: entity)
+                images.store()
             }
             known?.putAll(stored, entity)
         } catch (taken: NameTaken) {
+            images.undo()
             return OperationResult.error(taken.message ?: "")
+        } catch (e: Exception) {
+            images.undo()
+            throw e
         }
+        images.done()
 
         if (grownConfig != null) batch?.grew(toolInstanceId, checked)
         notifyWritten(toolInstanceId, grownConfig != null, batch)
@@ -413,28 +426,42 @@ class ToolDataService(private val context: Context) : ExecutableService {
         )?.let { return OperationResult.error(it) }
         checkReferences(checked, updatedEntity.data, updatedEntity.extra, before = existingEntity)
             ?.let { return OperationResult.error(it) }
+        // Its IMAGE fields' ids compared with the images it owns: the new ones made its, the
+        // ones gone deleted
+        val images = when (val plan = imagesOf(checked, entryId, updatedEntity.data, updatedEntity.extra)) {
+            is EntryImages.Plan.Refused -> return OperationResult.error(plan.error)
+            is EntryImages.Plan.Ready -> plan.images
+        }
+        val written = updatedEntity.copy(data = images.dataJson, extra = images.extraJson)
 
         val known = batch?.entriesOf(existingEntity.toolInstanceId)
         val after: suspend () -> List<ToolDataEntity> = {
-            (known?.all() ?: dao.getByToolInstance(existingEntity.toolInstanceId)).map { if (it.id == updatedEntity.id) updatedEntity else it }
+            (known?.all() ?: dao.getByToolInstance(existingEntity.toolInstanceId)).map { if (it.id == written.id) written else it }
         }
+        images.place()
         try {
-            val stored = storeSettled(existingEntity.tooltype, after, updatedEntity.id, checked.grown(grownConfig)) { settled ->
-                refuseTakenName(checked, updatedEntity, known)
-                dao.update(settled ?: updatedEntity)
+            val stored = storeSettled(existingEntity.tooltype, after, written.id, checked.grown(grownConfig)) { settled ->
+                refuseTakenName(checked, written, known)
+                dao.update(settled ?: written)
+                images.store()
             }
-            known?.putAll(stored, updatedEntity)
+            known?.putAll(stored, written)
         } catch (taken: NameTaken) {
+            images.undo()
             return OperationResult.error(taken.message ?: "")
+        } catch (e: Exception) {
+            images.undo()
+            throw e
         }
+        images.done()
 
         if (grownConfig != null) batch?.grew(existingEntity.toolInstanceId, checked)
         notifyWritten(existingEntity.toolInstanceId, grownConfig != null, batch)
 
         return OperationResult.success(
             data = mapOf(
-                "id" to updatedEntity.id,
-                "updated_at" to updatedEntity.updatedAt
+                "id" to written.id,
+                "updated_at" to written.updatedAt
             )
         )
     }
@@ -1236,6 +1263,10 @@ class ToolDataService(private val context: Context) : ExecutableService {
             context
         )
     }
+
+    /** What writing entry [entryId] of [target] with [dataJson] and [extraJson] does to its images (EntryImages). */
+    private suspend fun imagesOf(target: WriteTarget.Ready, entryId: String, dataJson: String, extraJson: String?): EntryImages.Plan =
+        EntryImages.plan(context, entryId, declaredFields(target), userFields(target), dataJson, extraJson) { s.shared("image_error_not_found").format(it) }
 
     /** The fields the tool type declares in the entries' data, for [target]'s config. */
     private fun declaredFields(target: WriteTarget.Ready): List<FieldDefinition> = target.declaredFields

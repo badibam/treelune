@@ -30,7 +30,7 @@ BASELINE = Path(__file__).resolve().parent / "key_case_baseline.txt"
 # camelCase strings are history, not keys anything reads.
 EXCLUDED = {"core/versioning/KeyCaseRenames.kt"}
 
-# JSON Schema, Vega-Lite, MCP, Tailscale, SVG and vector drawable keywords. Not ours to rename, so not violations.
+# JSON Schema, Vega-Lite, MCP, Tailscale, SVG, vector drawable and PNG keywords. Not ours to rename, so not violations.
 FOREIGN = {
     "additionalProperties", "allOf", "anyOf", "contentEncoding", "contentMediaType",
     "exclusiveMaximum", "exclusiveMinimum", "maxItems", "maxLength", "maxProperties",
@@ -46,6 +46,8 @@ FOREIGN = {
     "viewBox",
     # Android's vector drawables', read as XML for an icon's strokes (IconStrokes)
     "pathData", "fillColor",
+    # PNG's, a chunk's name read in a file's first bytes to tell an animated one (Images.animated)
+    "acTL",
 }
 
 # A string literal holding a single identifier with an inner capital: "toolInstanceId".

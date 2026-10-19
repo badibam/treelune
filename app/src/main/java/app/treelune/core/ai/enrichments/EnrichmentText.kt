@@ -47,10 +47,12 @@ class EnrichmentText private constructor(
 
     /**
      * What the AI reads of [message], in parts: its text, each block in brackets with its ids,
-     * and each image as a part of its own, where the user put it. A message without images is
-     * a single text part.
+     * and each image as a part of its own, where the user put it, written as [formats] says by
+     * its id. A message without images is a single text part.
+     *
+     * @throws IllegalStateException for an image [formats] does not hold: its row is gone
      */
-    suspend fun promptParts(message: RichMessage): List<PromptPart> {
+    suspend fun promptParts(message: RichMessage, formats: Map<String, app.treelune.core.images.ImageFormat>): List<PromptPart> {
         val parts = mutableListOf<PromptPart>()
         val run = mutableListOf<String>()
         fun closeRun() {
@@ -61,7 +63,14 @@ class EnrichmentText private constructor(
             when (segment) {
                 is MessageSegment.Text -> run.add(segment.content)
                 is MessageSegment.EnrichmentBlock -> run.add("[${prompt(segment)}]")
-                is MessageSegment.Image -> { closeRun(); parts.add(PromptPart.Image(segment.imageId)) }
+                is MessageSegment.Image -> {
+                    closeRun()
+                    val format = checkNotNull(formats[segment.imageId]) { "Image ${segment.imageId}: its row is missing" }
+                    // Its id before it, by which the AI files it in an entry
+                    run.add(imageLabel(segment.imageId))
+                    closeRun()
+                    parts.add(PromptPart.Image(segment.imageId, format))
+                }
             }
         }
         closeRun()
@@ -100,6 +109,9 @@ class EnrichmentText private constructor(
     }
 
     companion object {
+        /** The line naming an image of the conversation to the model, just before it: its id. */
+        fun imageLabel(id: String): String = "[image $id]"
+
         /**
          * Reads the zones and the tools the blocks may name, and the entries [blocks] name: the
          * blocks about to be shown or sent.

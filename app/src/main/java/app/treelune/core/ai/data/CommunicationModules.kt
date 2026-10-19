@@ -34,8 +34,9 @@ object CommunicationModules {
 
     /** The declaration of one field of a module. */
     private fun fieldNodes(text: (String) -> String): List<SettingNode> =
-        // A question's texts are read once, in a card as wide as the screen: longer than a column's
-        FieldTypeSettings.definitionNodes(text, labels = TextLength.MEDIUM).mapNotNull { node ->
+        // A question's texts are read once, in a card as wide as the screen: longer than a column's.
+        // No image: an answer belongs to no entry, which an image must
+        FieldTypeSettings.definitionNodes(text, FieldType.entries - FieldType.IMAGE, labels = TextLength.MEDIUM).mapNotNull { node ->
             val name = (node as? SettingNode.Field)?.definition?.name
             when (name) {
                 // The AI's own key for the answer, not one the app makes from the label

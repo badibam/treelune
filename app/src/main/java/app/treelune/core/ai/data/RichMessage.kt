@@ -91,7 +91,7 @@ sealed class MessageSegment {
 
     /**
      * An image the user joined, where they put it: « this one [photo] costs less than that one
-     * [photo] » depends on the order. Its file is kept with the session (AttachedImages); it goes
+     * [photo] » depends on the order. Its file is kept with the session (Images); it goes
      * to the model as an image, never as text.
      */
     data class Image(val imageId: String) : MessageSegment()

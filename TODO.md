@@ -76,6 +76,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - La SQLite de l'app à la place de celle du téléphone (branche demo-install) : la mise à jour depuis la release avec ses données d'abord (« Mise à jour et démarrage »), puis la démo sur l'OPPO A5 2020 (« Démo »).
 - Le thème plan d'architecte (`docs/design/blueprint-theme.md`, branche theme-blueprint) : la passe sur le téléphone de `docs/THEMES.md`, le débord des icônes d'abord, puis ce que la spec garde dans « Ce qui reste ouvert ».
 - L'outil Flashcards (`docs/design/flashcards.md`, branche flashcards) : la section « Flashcards » de la recette, la démo d'abord (Lessico, Ripasso), puis le lexique réel ; passé, élaguer la spec.
+- Le champ Image (`docs/design/image-field.md`, branche image-field) : la migration 82 sur la release et ses images de messages d'abord, puis la section « À passer sur le téléphone » de la spec ; la tuile de l'Agenda dit encore « 3 images » en texte ; passé, élaguer la spec.
 
 ## Conçu, à coder
 
@@ -129,9 +130,6 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 - Une apostrophe nue dans un texte qui en a déjà une échappée (`\'`) passe tous les contrôles de `./run test` et casse la compilation des ressources (« Invalid unicode escape sequence »), le générateur n'échappant que les textes qui n'en ont aucune : la refuser dans un contrôle des sources de textes, ou faire échapper toutes les apostrophes au générateur.
 
 ## Bugs du téléphone
-
-- Possibilité de stocker image en champs supplementaire par exemple ? Et/ou galerie d'images ? — Outils — Idée
-- Pouvoir stocker des images (par exemple pour faire des fiches de plantes etc) — Core — Idée
 
 ## En attente d'un déclencheur
 

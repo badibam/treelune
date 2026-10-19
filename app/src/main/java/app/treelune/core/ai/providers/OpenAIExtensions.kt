@@ -33,7 +33,7 @@ import app.treelune.core.utils.LogManager
  *   the model's default
  * @param datetimeText The dated closing message (buildDatetimeMessage), built by the caller:
  *   it reads the clock and the strings, which keeps this function pure and testable
- * @param imageData The JPEG of each image the messages carry, as base64 (AttachedImages)
+ * @param imageData The file of each image the messages carry, as base64 (Images)
  * @return JsonObject ready for OpenAI API /v1/responses endpoint
  */
 internal fun PromptData.toOpenAIJson(
@@ -110,7 +110,7 @@ internal enum class ImageParts(val textType: String) {
  * of their parts ([format]).
  *
  * @param datetimeText The dated closing message, built by the caller (buildDatetimeMessage)
- * @param imageData The JPEG of each image the messages carry, as base64 (AttachedImages)
+ * @param imageData The file of each image the messages carry, as base64 (Images)
  */
 internal fun PromptData.conversationMessages(
     datetimeText: String,
@@ -130,7 +130,7 @@ internal fun PromptData.conversationMessages(
                     msg.userParts(null).forEach { part ->
                         when (part) {
                             is PromptPart.Text -> addJsonObject { put("type", format.textType); put("text", part.text) }
-                            is PromptPart.Image -> add(format.image("data:$IMAGE_MEDIA_TYPE;base64,${imageData(part.imageId)}"))
+                            is PromptPart.Image -> add(format.image("data:${part.format.mediaType};base64,${imageData(part)}"))
                         }
                     }
                 }

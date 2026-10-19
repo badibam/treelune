@@ -48,7 +48,7 @@ internal fun endpointOf(address: String, path: String): String = address.trimEnd
  * @param responseSchema The schema of the AI's answer as the model reads it (SchemaModelView),
  *   required when [forcing] is SCHEMA
  * @param datetimeText The dated closing message, built by the caller (buildDatetimeMessage)
- * @param imageData The JPEG of each image the messages carry, as base64 (AttachedImages)
+ * @param imageData The file of each image the messages carry, as base64 (Images)
  */
 internal fun PromptData.toChatCompletionsJson(
     model: String,

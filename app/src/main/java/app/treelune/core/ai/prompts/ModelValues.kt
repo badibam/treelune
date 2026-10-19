@@ -53,6 +53,8 @@ object ModelValues {
             // A reference sent back as it was read carries the name it was shown with: only
             // its kind and id are stored
             if (format == FieldValueSchema.REFERENCE) return@walk withoutName(leaf)
+            // Images sent back as they were read, each with its size: only the ids are stored
+            if (format == FieldValueSchema.IMAGES) return@walk idsOf(leaf).let { if (leaf is JSONArray) JSONArray(it) else it }
             if (leaf !is String) return@walk leaf
             when (format) {
                 FieldValueSchema.EPOCH_MILLIS -> DateTimeConverter.isoToTimestamp(leaf, zone)
@@ -85,6 +87,51 @@ object ModelValues {
             shown
         }
 
+    /** The image ids [value] holds where [schema] marks a list of images (FieldValueSchema.IMAGES). */
+    fun imageIds(value: Any?, schema: JSONObject): List<String> {
+        val found = mutableListOf<String>()
+        walk(value, schema) { format, node ->
+            if (format == FieldValueSchema.IMAGES) found.addAll(idsOf(node).filterIsInstance<String>())
+            node
+        }
+        return found
+    }
+
+    /**
+     * [value] with each list of images the [schema] marks written as the model reads it: each id
+     * with the width and height of its image ([images], by id), never the image itself; an id no
+     * image has is written alone, `"missing": true`.
+     */
+    fun withImageSizes(value: Any?, schema: JSONObject, images: Map<String, app.treelune.core.images.ImageEntity>): Any? =
+        walk(value, schema) { format, node ->
+            if (format != FieldValueSchema.IMAGES) return@walk node
+            val shown = idsOf(node).map { id ->
+                val image = images[id]
+                if (image == null) linkedMapOf("id" to id, "missing" to true)
+                else linkedMapOf("id" to id, "width" to image.width, "height" to image.height)
+            }
+            if (node is JSONArray) JSONArray(shown.map { JSONObject(it as Map<*, *>) }) else shown
+        }
+
+    /**
+     * The ids of a list of images, each written as its id or as the object it was read as
+     * (`{"id", "width", "height"}`); anything else is left for the validation to refuse.
+     */
+    private fun idsOf(node: Any): List<Any?> {
+        val items: List<Any?> = when (node) {
+            is JSONArray -> (0 until node.length()).map { node.get(it) }
+            is List<*> -> node
+            else -> return listOf(node)
+        }
+        return items.map { item ->
+            when (item) {
+                is JSONObject -> item.opt("id")
+                is Map<*, *> -> item["id"]
+                else -> item
+            }
+        }
+    }
+
     private fun withoutName(node: Any): Any = when (node) {
         is JSONObject -> JSONObject(node.toString()).apply { remove("name"); remove("deleted") }
         is Map<*, *> -> node.filterKeys { it != "name" && it != "deleted" }
@@ -99,6 +146,10 @@ object ModelValues {
     private fun walk(value: Any?, schema: JSONObject, convert: (String, Any) -> Any): Any? {
         if (schema.optString("format") == FieldValueSchema.REFERENCE && value != null && value != JSONObject.NULL) {
             return convert(FieldValueSchema.REFERENCE, value)
+        }
+        // A list of images goes through [convert] whole, being read with more than its ids
+        if (schema.optString("format") == FieldValueSchema.IMAGES && value != null && value != JSONObject.NULL) {
+            return convert(FieldValueSchema.IMAGES, value)
         }
         // A variant: the branch whose selector the value holds. None or several leave the value
         // as it is, for the validation to name what is wrong with it.

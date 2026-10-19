@@ -104,6 +104,7 @@ object AICommands {
         query("AUTOMATION_RUNS", p("automation_id", "string", true), p("period", "object"), p("limit", "integer")),
         query("AUTOMATION_RUN", p("id", "string", true), p("messages", "string")),
         query("FILE", p("id", "string", true), p("start_line", "integer"), p("lines", "integer")),
+        query("IMAGES", p("ids", "array", true)),
         query("IMPORT_PLAN", p("file", "string", true), p("tool_instance_id", "string", true)),
         query("CURRENT_DATETIME"),
         query("SCHEMA", p("tooltype", "string"), p("tool_instance_id", "string"), p("id", "string")),
