@@ -84,7 +84,11 @@ object Navigator {
     /** A place's name by address, as last shown. */
     val names = mutableStateMapOf<String, String>()
 
-    /** The entry a tool place opens on, by the tool place's address: its tile's waiting entry, a notification's. */
+    /**
+     * The entry a tool place opens on, by the tool place's address: its tile's waiting entry, a
+     * notification's. Taken once by the place's screen ([take]): an activity started afresh while
+     * the process lives on finds the stack as it was, and must not open the entry again.
+     */
     val openings = mutableStateMapOf<String, EntryToOpen>()
 
     val top: Place get() = stack.last()
@@ -127,6 +131,9 @@ object Navigator {
 
     /** [place] gone from under the screen (a tool deleted, a zone not found): it leaves, silently. */
     fun drop(place: Place) = set(stack.filter { it != place }.ifEmpty { listOf(Place.Home) })
+
+    /** The entry [place] opens on, removed as it is handed: null once taken. */
+    fun take(place: Place): EntryToOpen? = openings.remove(place.address)
 
     fun name(place: Place, name: String) {
         if (names[place.address] != name) names[place.address] = name

@@ -355,6 +355,8 @@ private fun Page(texture: ItemTexture?, content: @Composable () -> Unit) {
 private fun ToolPlace(place: Place.Tool, zoneName: String) {
     val context = LocalContext.current
     val coordinator = remember { Coordinator(context) }
+    // The entry to open, taken from the stack once and kept by the place across recreation
+    val opening by rememberSaveable(stateSaver = EntryToOpen.Saver) { mutableStateOf(Navigator.take(place)) }
     var tool by remember { mutableStateOf<Map<*, *>?>(null) }
     var version by remember { mutableStateOf(0) }
     LaunchedEffect(place.id, version) {
@@ -386,7 +388,7 @@ private fun ToolPlace(place: Place.Tool, zoneName: String) {
                 zoneName = zoneName,
                 onNavigateBack = { Navigator.pop() },
                 onLongClick = { Navigator.push(Place.ToolConfig(place.zoneId, tooltype, place.id, null)) },
-                openEntry = Navigator.openings[place.address]
+                openEntry = opening
             )
         }
     }

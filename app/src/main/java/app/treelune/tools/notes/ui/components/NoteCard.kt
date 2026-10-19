@@ -2,7 +2,6 @@ package app.treelune.tools.notes.ui.components
 
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
@@ -16,12 +15,12 @@ import app.treelune.core.fields.CustomFieldsDisplay
 import app.treelune.tools.notes.ui.NoteEntry
 
 /**
- * Simplified note card component with dialog-based editing
+ * A note's card, opened in its dialog to be edited
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NoteCard(
-    note: NoteEntry? = null, // null = placeholder mode
+    note: NoteEntry,
     toolInstanceId: String,
     config: org.json.JSONObject, // The tool's config, for how its fields show
     titles: Boolean = false, // Whether the tool's notes take a title, shown above the text
@@ -37,10 +36,7 @@ fun NoteCard(
     val s = remember { Strings.`for`(tool = "notes", context = context) }
     val scope = androidx.compose.runtime.rememberCoroutineScope()
 
-    // Determine card states
-    val isPlaceholder = note == null
-    val isMoving = false // Simplified - no complex moving state
-    val title = note?.title?.takeIf { titles }
+    val title = note.title?.takeIf { titles }
 
     UI.Card(type = CardType.DEFAULT) {
         Box {
@@ -50,85 +46,58 @@ fun NoteCard(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .let { modifier ->
-                            if (isPlaceholder) {
-                                modifier.clickable { onAddAbove() } // Placeholder click creates note
-                            } else {
-                                modifier.combinedClickable(
-                                    onClick = {
-                                        if (!isMoving && !showContextMenu) {
-                                            onNoteClick() // Open edit dialog
-                                        }
-                                    },
-                                    onLongClick = {
-                                        if (!isMoving && note != null) {
-                                            onContextMenuChanged(true)
-                                        }
-                                    }
-                                )
-                            }
-                        }
+                        .combinedClickable(
+                            onClick = {
+                                if (!showContextMenu) {
+                                    onNoteClick() // Open edit dialog
+                                }
+                            },
+                            onLongClick = { onContextMenuChanged(true) }
+                        )
                         // The band stands in the place of the top margin
                         .padding(start = UI.Space.L, end = UI.Space.L, bottom = UI.Space.L, top = if (dragHandle != null) 0.dp else UI.Space.L)
                 ) {
-                    // Content display logic
-                    when {
-                        isPlaceholder -> {
-                            // Placeholder display
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(120.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                UI.Icon("add", size = 48.dp)
-                            }
+                    title?.let {
+                        UI.Text(text = it, type = TextType.SUBTITLE)
+                        Spacer(modifier = Modifier.height(UI.Space.XS))
+                    }
+
+                    // Note content display
+                    val displayContent = note.content.trim()
+
+                    if (displayContent.isBlank()) {
+                        // Empty note
+                        Box(
+                            modifier = Modifier.height(60.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            UI.Text(
+                                text = s.tool("content_empty"),
+                                type = TextType.CAPTION
+                            )
                         }
+                    } else {
+                        // Note with content
+                        UI.Text(
+                            text = displayContent,
+                            type = TextType.BODY
+                        )
 
-                        else -> {
-                            title?.let {
-                                UI.Text(text = it, type = TextType.SUBTITLE)
-                                Spacer(modifier = Modifier.height(UI.Space.XS))
-                            }
-
-                            // Note content display
-                            val displayContent = note?.content?.trim() ?: ""
-
-                            if (displayContent.isBlank()) {
-                                // Empty note
-                                Box(
-                                    modifier = Modifier.height(60.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    UI.Text(
-                                        text = s.tool("content_empty"),
-                                        type = TextType.CAPTION
-                                    )
-                                }
-                            } else {
-                                // Note with content
-                                UI.Text(
-                                    text = displayContent,
-                                    type = TextType.BODY
-                                )
-
-                                // Custom fields display (always shown for alwaysVisible fields)
-                                Spacer(modifier = Modifier.height(UI.Space.S))
-                                CustomFieldsDisplay(
-                                    toolType = app.treelune.tools.notes.NotesToolType,
-                                    config = config,
-                                    values = note?.extra ?: emptyMap(),
-                                    layout = app.treelune.core.fields.FieldsLayout.COMPACT,
-                                    context = context
-                                )
-                            }
-                        }
+                        // Custom fields display (always shown for alwaysVisible fields)
+                        Spacer(modifier = Modifier.height(UI.Space.S))
+                        CustomFieldsDisplay(
+                            toolType = app.treelune.tools.notes.NotesToolType,
+                            config = config,
+                            values = note.extra,
+                            layout = app.treelune.core.fields.FieldsLayout.COMPACT,
+                            context = context
+                        )
                     }
                 }
             }
 
             // Context menu overlay
-            if (showContextMenu && note != null) {
+            if (showContextMenu) {
                 Row(
                     modifier = Modifier
                         .align(Alignment.TopEnd)

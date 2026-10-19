@@ -61,6 +61,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - Le thème encre et lavis (`docs/design/ink-theme.md`, branche theme-ink) : la passe sur le téléphone de `docs/THEMES.md`, les icônes au pinceau d'abord (leur coût à l'ouverture d'une page, celles qui se bouchent), puis ce que la spec garde dans « Ce qui reste ouvert » ; ce qui a changé le 2026-10-17 après la première passe : le lavis d'une tuile qui déborde et s'éteint à son bord, sa texture estompée avec lui, la carte en lavis au bord fondu (des marches dans le fondu ?), la gouache sous les icônes et les tags, les ronds peints à la main (boutons, case, sceaux), le coût d'ouverture d'une zone aux tuiles texturées.
 - Les incarnations (`docs/design/incarnations.md`, branche incarnations) : la dernière section de la recette, l'identité de Stan Prokopenko importée et le coût d'un tour mesuré pour personae ; passé, élaguer la spec. L'import attend que personae exporte au format 2 du fichier d'identité (`docs/IDENTITY_FILE.md`), le format 1 n'étant plus lu.
 - Les bugs du téléphone du 2026-10-17 : la section du même nom de la recette.
+- Les bugs du téléphone du 2026-10-19 (branche notes-fixes) : la section du même nom de la recette.
 - La répétition d'un Objectif, « Une fois » ou « Récurrent » (branche goal-repetition) : migration 79, sa ligne de la section « Objectif » de la recette.
 - Les conditions typées à l'écriture (`docs/design/typed-conditions.md`, branche typed-conditions) : la section du même nom de la recette ; passé, élaguer la spec.
 - Le gras et l'italique d'un texte lu (branche text-emphasis) : la section du même nom de la recette.
@@ -124,14 +125,10 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 
 ## Bugs du téléphone
 
-- Si je masque l'app avec un outil notes ouvert , qua'd je rouvre l'app ça ouvre une note en edition dans l'outil plutot que juste la oage de l'outil. Uniquement notes ou pas ? — UI — Bug
 - Bug d'installation de démo, cf copies d ecran. Sur un autre tel, 1ere installation. — Core — Bug
 - Possibilité de stocker image en champs supplementaire par exemple ? Et/ou galerie d'images ? — Outils — Idée
-- Au moins pour notes et listes, les champs supplementaires s'affichent sur 1/2 colonne. C'esr surement valable pour des valeurs très courtes, mais pour des champs de texte par exemple x'ça ne va pas. Je vois 2 options : on met tout sir 1 colonne et pas 2 / on met ce choix en paramètre. Dqns tous les cas, en mode 1 colonne ça doit faire 1 colonne. — UI — Amélioration
 - Thème suiss à améliorer — UI — Amélioration
 - Quand on édite une note, c'est très pénible avec le clavier andfoid de faire des liste avec tiret etc. Je vois / options : boutons d'edition dans champs de texte / champs de type texte mis e' forme / option de champs de texte : pour permettre mise en forme / autre type de champ : liste (numérotée ou pas) : qui permet de mulriplier les champs er chacun correspond à 1 étape. Si 1 seul champ se comporte comme texte normal ? / mix entre plusieurs options précédentes ? À bien réfléchir, avec conséquances en termes d'UI en particulier. Ce que je constate c'est qu'il y a déjà un endroit pour placer des boutons de mise en forme : ma ligne du label du champ. À voir..... — Core — Idée
-- Dans notes : si on active les titres, ils devraient quand meme être facultatifs : c'est le cas en update : on peut retirer le titre. Mais en création ça refuse de cliquer sans rien dire. — Outils — Amélioration
-- Bouton d'ajout de notes : tuile "AD" c'est moche et issu du passé du dev. Il faudrait alignement sur patterns de l'app pour ce genre de situation. — UI — Amélioration
 - Il faifrait pouvoir 'retirer' une icone et voir si le manque existe dans d'aittes selcteurs. — UI — Amélioration
 - Suppression d'outil : la fenetre de vamidation : boutons ne s'affichent pas tous les 2 si pas assez de place. En retro pas de pb. Pour les autres selon ecran/taille de l'interface ça ne va pas. Il faidraot voir globalement ce que recouvre ce pb et le regler à la racine. Il me semblait qu'on avait instaurer de repliement des boutons etc... ? — UI — Bug
 - Outil en etendu et autres disposition pleine largeur : ne prend que l'espace nécessaire : ne pas laisser d'espace vide si l'outil est vide... ? Qu'en oenses tu ? — UI — Amélioration

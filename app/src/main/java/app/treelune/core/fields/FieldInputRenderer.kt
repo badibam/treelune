@@ -399,8 +399,8 @@ enum class FieldsLayout {
     /** One field per line, its name as large as a title, its value on the rest of the line: a summary. */
     LINE,
     /**
-     * Two fields per line, each "Mood: Calm" with a small name, a long value wrapping within its
-     * half: a list item, a card.
+     * One field per line, each "Mood: Calm" with a small name, a long value wrapping over the
+     * whole width: a list item, a card.
      */
     COMPACT
 }
@@ -460,24 +460,19 @@ fun CustomFieldsDisplay(
             }
         }
 
-        // Two fields per row, the last one alone keeping half the width
+        // One field per row, its value going on under its name when the line is full
         FieldsLayout.COMPACT -> Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(UI.Space.XS)
         ) {
-            shown.chunked(2).forEach { row ->
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
-                    row.forEach { field ->
-                        FlowRow(
-                            modifier = Modifier.weight(1f),
-                            horizontalArrangement = Arrangement.spacedBy(UI.Space.XS),
-                            verticalArrangement = Arrangement.spacedBy(UI.Space.XS)
-                        ) {
-                            if (showLabels) UI.Text(s.shared("field_label_inline").format(field.displayName), TextType.LABEL)
-                            FieldValue(field, values[field.name], context)
-                        }
-                    }
-                    if (row.size == 1) Spacer(modifier = Modifier.weight(1f))
+            shown.forEach { field ->
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(UI.Space.XS),
+                    verticalArrangement = Arrangement.spacedBy(UI.Space.XS)
+                ) {
+                    if (showLabels) UI.Text(s.shared("field_label_inline").format(field.displayName), TextType.LABEL)
+                    FieldValue(field, values[field.name], context)
                 }
             }
         }
