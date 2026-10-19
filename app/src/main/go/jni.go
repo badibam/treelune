@@ -10,7 +10,10 @@ static jstring jstr_new(JNIEnv* env, const char* c) { return (*env)->NewStringUT
 */
 import "C"
 
-import "unsafe"
+import (
+	"strings"
+	"unsafe"
+)
 
 // The JNI side of app.treelune.core.mcp.FunnelNative: strings in, strings out, the work in node.go.
 
@@ -47,8 +50,8 @@ func Java_app_treelune_core_mcp_FunnelNative_logout(env *C.JNIEnv, cls C.jclass,
 }
 
 //export Java_app_treelune_core_mcp_FunnelNative_networkChanged
-func Java_app_treelune_core_mcp_FunnelNative_networkChanged(env *C.JNIEnv, cls C.jclass, ifName C.jstring) {
-	networkChanged(goString(env, ifName))
+func Java_app_treelune_core_mcp_FunnelNative_networkChanged(env *C.JNIEnv, cls C.jclass, ifName, dnsServers C.jstring) {
+	networkChanged(goString(env, ifName), strings.Fields(goString(env, dnsServers)))
 }
 
 //export Java_app_treelune_core_mcp_FunnelNative_next

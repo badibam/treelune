@@ -35,8 +35,11 @@ object FunnelNative {
     /** Takes the node out of the Tailscale account and erases it; the failure, or "". */
     @JvmStatic external fun logout(dir: String, hostname: String): String
 
-    /** The default route's interface as Android reports it, "" when the network is lost. */
-    @JvmStatic external fun networkChanged(ifName: String)
+    /**
+     * The default route's interface and its DNS servers (addresses separated by spaces) as Android
+     * reports them, both "" when the network is lost.
+     */
+    @JvmStatic external fun networkChanged(ifName: String, dnsServers: String)
 
     /** The oldest request received through the Funnel, as the relay's JSON, or "" after [waitSeconds]. */
     @JvmStatic external fun next(waitSeconds: Int): String

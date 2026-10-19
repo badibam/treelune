@@ -121,17 +121,21 @@ object TailscaleNode {
 
     /**
      * Tells the node each change of Android's default network, as Tailscale's own app does: on
-     * Android the node re-reads its network only every ten minutes otherwise.
+     * Android the node re-reads its network only every ten minutes otherwise. Its DNS servers go
+     * with it, for the node to find ts.net's name servers (isPublished).
      */
     private fun watchNetwork(context: Context) {
         if (network != null) return
         val callback = object : ConnectivityManager.NetworkCallback() {
             override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
-                FunnelNative.networkChanged(linkProperties.interfaceName ?: "")
+                FunnelNative.networkChanged(
+                    linkProperties.interfaceName ?: "",
+                    linkProperties.dnsServers.mapNotNull { it.hostAddress }.joinToString(" ")
+                )
             }
 
             override fun onLost(network: Network) {
-                FunnelNative.networkChanged("")
+                FunnelNative.networkChanged("", "")
             }
         }
         context.getSystemService(ConnectivityManager::class.java).registerDefaultNetworkCallback(callback)

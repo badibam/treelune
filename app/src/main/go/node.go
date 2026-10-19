@@ -71,8 +71,11 @@ var (
 	userLines []string // messages for the app's log, drained by state()
 	lastUser  string
 	ifName    = "android" // the default route's interface, as Android last told it
-	technical *rotatingLog
-	prepared  bool
+	// The default network's DNS servers, as Android last told them: Android has no
+	// /etc/resolv.conf, where Go's own resolver looks for them
+	dnsServers []string
+	technical  *rotatingLog
+	prepared   bool
 )
 
 // start creates the node if needed and opens the Funnel, in the background: state() tells how far
@@ -290,11 +293,12 @@ func logout(dir, hostname string) string {
 
 // networkChanged is what Android's ConnectivityManager reports: the default route's interface,
 // "" when the network is lost. The node re-reads its network at once rather than at its next poll.
-func networkChanged(name string) {
+func networkChanged(name string, servers []string) {
 	mu.Lock()
 	if name != "" {
 		ifName = name
 	}
+	dnsServers = servers
 	s := srv
 	mu.Unlock()
 	netmon.UpdateLastKnownDefaultRouteInterface(name)
@@ -383,19 +387,14 @@ func watchPublication(s *tsnet.Server, host string) {
 
 // isPublished asks ts.net's authoritative name servers whether host has an address.
 func isPublished(host string) bool {
-	servers, err := net.LookupNS("ts.net")
+	servers, err := tsNetServers()
 	if err != nil {
 		technical.printf("publication: ts.net name servers: %v", err)
 		return false
 	}
 	for _, ns := range servers {
-		server := net.JoinHostPort(strings.TrimSuffix(ns.Host, "."), "53")
-		r := &net.Resolver{PreferGo: true, Dial: func(ctx context.Context, _, _ string) (net.Conn, error) {
-			d := net.Dialer{Timeout: 3 * time.Second}
-			return d.DialContext(ctx, "udp", server)
-		}}
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		addrs, err := r.LookupHost(ctx, host)
+		addrs, err := resolverAt(net.JoinHostPort(strings.TrimSuffix(ns.Host, "."), "53")).LookupHost(ctx, host)
 		cancel()
 		if err == nil && len(addrs) > 0 {
 			return true
@@ -407,6 +406,36 @@ func isPublished(host string) bool {
 		}
 	}
 	return false
+}
+
+// tsNetServers asks the default network's DNS servers, which Android gives, for ts.net's name
+// servers. A shared resolver is harmless here: ts.net always exists, no "no such name" is kept.
+func tsNetServers() ([]*net.NS, error) {
+	mu.Lock()
+	servers := dnsServers
+	mu.Unlock()
+	if len(servers) == 0 {
+		return nil, errors.New("Android gave no DNS server for the network")
+	}
+	var lastErr error
+	for _, server := range servers {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		found, err := resolverAt(net.JoinHostPort(server, "53")).LookupNS(ctx, "ts.net")
+		cancel()
+		if err == nil && len(found) > 0 {
+			return found, nil
+		}
+		lastErr = fmt.Errorf("%s: %v", server, err)
+	}
+	return nil, lastErr
+}
+
+// resolverAt is Go's resolver asking server ("host:port") only, whatever /etc/resolv.conf says.
+func resolverAt(server string) *net.Resolver {
+	return &net.Resolver{PreferGo: true, Dial: func(ctx context.Context, _, _ string) (net.Conn, error) {
+		d := net.Dialer{Timeout: 3 * time.Second}
+		return d.DialContext(ctx, "udp", server)
+	}}
 }
 
 // next is the oldest request still waiting, as the relay's JSON, or "" after waitSeconds.
