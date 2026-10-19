@@ -1,5 +1,6 @@
 package app.treelune.tools.sequence
 
+import app.treelune.core.markup.Markup
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -188,7 +189,8 @@ class SequenceRunService : Service() {
             SequenceToolType.StepSignal.SOUND -> sounds.stepChange()
             SequenceToolType.StepSignal.VIBRATION -> sounds.vibrate()
         }
-        if (settings.voice && next != null) sounds.say(listOfNotNull(next.name, next.instruction).joinToString(". "))
+        // The instruction said without its marks
+        if (settings.voice && next != null) sounds.say(listOfNotNull(next.name, next.instruction?.let { Markup.plain(it) }).joinToString(". "))
     }
 
     private suspend fun configOf(toolInstanceId: String): JSONObject {

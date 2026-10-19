@@ -1,5 +1,6 @@
 package app.treelune.tools.journal.ui.components
 
+import app.treelune.core.markup.Markup
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
@@ -44,12 +45,13 @@ fun JournalCard(
         DateFormatUtils.formatJournalDate(timestamp, context)
     }
 
-    // Prepare content preview (max 150 chars)
+    // Prepare content preview (max 150 chars), on one line without its marks
     val contentPreview = remember(content) {
-        if (content.length <= 150) {
-            content
+        val plain = Markup.plain(content)
+        if (plain.length <= 150) {
+            plain
         } else {
-            content.take(150) + "..."
+            plain.take(150) + "..."
         }
     }
 

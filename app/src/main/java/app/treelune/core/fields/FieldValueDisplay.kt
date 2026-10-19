@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import app.treelune.core.markup.ui.MarkupText
 import app.treelune.core.strings.Strings
 import app.treelune.core.themes.TagColor
 import app.treelune.core.ui.TextType
@@ -22,16 +23,21 @@ import app.treelune.core.ui.UI
  * a SCALE is a gauge between its bounds, a colored CHOICE is tags, a ranking is its options
  * numbered in order.
  *
+ * A long text (TextLength.formatted) is drawn from its markup; [oneLine], where it stands among
+ * others in a row (a cell of a table, a line of fields), it is its words on one line, marks taken off.
+ *
  * @param fieldDef The field the value belongs to
  * @param value The stored value; null shows "no value"
  * @param context Android context for strings
+ * @param oneLine Whether a long text is cut down to one line
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FieldValue(
     fieldDef: FieldDefinition,
     value: Any?,
-    context: Context
+    context: Context,
+    oneLine: Boolean = false
 ) {
     val s = Strings.`for`(context = context)
 
@@ -108,6 +114,11 @@ fun FieldValue(
         }
 
         FieldType.REFERENCE -> ReferenceValue(value, context)
+
+        // Selectable or not as what holds it is: never a selection of its own inside another
+        FieldType.TEXT -> if (!oneLine && fieldDef.formatted() && value.toString().isNotEmpty())
+            MarkupText(value.toString(), icons = false, selectable = false)
+        else UI.Text(text = fieldDef.formatValue(value, context), type = TextType.BODY)
 
         else -> UI.Text(text = fieldDef.formatValue(value, context), type = TextType.BODY)
     }

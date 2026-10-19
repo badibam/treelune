@@ -27,6 +27,10 @@ import app.treelune.core.database.entities.Zone
 import app.treelune.core.database.entities.ToolInstance
 import app.treelune.core.tools.ToolTypeManager
 import app.treelune.core.themes.CurrentTheme
+import app.treelune.core.markup.EmphasisMark
+import app.treelune.core.markup.ListKind
+import app.treelune.core.markup.MarkedInput
+import app.treelune.core.markup.MarkupEditing
 import org.json.JSONObject
 
 /**
@@ -462,6 +466,10 @@ object UI {
      * the count shows under the field from [FieldInput.COUNT_FROM] of the limit, and past it the
      * field is in error, the save refused by the check of what is saved. The field always sits in
      * the same column, so the count appearing does not take the focus away.
+     *
+     * A long text (TEXT_LONG, TEXT_UNLIMITED) is helped as it is typed in the app's markup
+     * (MarkupEditing): a list continued on a new line, a button for each list at the end of the
+     * label's line when the label stands above, bold and italic in the bar of a selection.
      */
     @Composable
     fun FormField(
@@ -481,12 +489,37 @@ object UI {
         val length = value.text.length
         val counted = !readonly && max < Int.MAX_VALUE && length >= max * FieldInput.COUNT_FROM
         val over = !readonly && length > max
+        val formatted = !readonly && (fieldType == FieldType.TEXT_LONG || fieldType == FieldType.TEXT_UNLIMITED)
+        // What the buttons and the bar act on when touched: the value as it is then
+        val latest by androidx.compose.runtime.rememberUpdatedState(value)
+        val marked = { v: TextFieldValue -> MarkedInput(v.text, v.selection.min, v.selection.max) }
+        val written = { m: MarkedInput -> TextFieldValue(m.text, TextRange(m.start, m.end)) }
+        val typed: (TextFieldValue) -> Unit = if (!formatted) onChange else { next ->
+            val continued = if (next.text != latest.text) MarkupEditing.continueList(latest.text, marked(next)) else null
+            onChange(continued?.let(written) ?: next)
+        }
+        val listButtons: (@Composable () -> Unit)? = if (!formatted || !labelAbove) null else { {
+            Row(horizontalArrangement = Arrangement.spacedBy(Space.XS)) {
+                listOf(ButtonAction.BULLET_LIST to ListKind.BULLET, ButtonAction.NUMBERED_LIST to ListKind.NUMBERED).forEach { (action, kind) ->
+                    ActionButton(action = action, display = ButtonDisplay.ICON, size = Size.S) {
+                        onChange(written(MarkupEditing.toggleList(marked(latest), kind)))
+                    }
+                }
+            }
+        } }
+        val s = app.treelune.core.strings.Strings.`for`(context = androidx.compose.ui.platform.LocalContext.current)
+        val emphases = { if (!formatted || latest.selection.collapsed) emptyList() else listOf(
+            EmphasisMark.BOLD to s.shared("text_selection_bold"),
+            EmphasisMark.ITALIC to s.shared("text_selection_italic")
+        ).map { (emphasis, word) ->
+            app.treelune.core.themes.SelectionAction(word) { onChange(written(MarkupEditing.toggleEmphasis(marked(latest), emphasis))) }
+        } }
         Column(verticalArrangement = Arrangement.spacedBy(Space.XS)) {
             // A selection in the field shows the theme's bar
-            SelectionMenu { CurrentTheme.current.FormField(
+            SelectionMenu(own = emphases) { CurrentTheme.current.FormField(
                 label = label,
                 value = value,
-                onChange = onChange,
+                onChange = typed,
                 fieldType = fieldType,
                 state = if (over) ComponentState.ERROR else state,
                 readonly = readonly,
@@ -494,10 +527,10 @@ object UI {
                 contentDescription = contentDescription,
                 required = required,
                 fieldModifier = fieldModifier,
-                labelAbove = labelAbove
+                labelAbove = labelAbove,
+                labelActions = listButtons
             ) }
             if (counted) {
-                val s = app.treelune.core.strings.Strings.`for`(context = androidx.compose.ui.platform.LocalContext.current)
                 Text(s.shared("field_length_count").format(length, max), if (over) TextType.ERROR else TextType.CAPTION, fillMaxWidth = true, textAlign = TextAlign.End)
             }
         }

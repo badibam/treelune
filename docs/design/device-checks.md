@@ -411,6 +411,15 @@ Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la po
 - Une identité en Markdown (`**gras**`, `*italique*`, `***les deux***`, un gras dans un titre `##`), puis le Guide, dans les cinq thèmes et les deux modes : le gras et l'italique se voient sans casser la ligne ; défaut, suisse et encre en vrai italique, cosy penché par Android (la pente de la planche du 2026-10-17), rétro le gras à l'encre vive et l'italique de Cartouche, ses pixels entiers, ni coupé au début ni à la fin d'une ligne, ni collé à la lettre droite qui le suit ; un titre de section du suisse reste en capitales.
 - Un passage sélectionné qui traverse un gras se copie sans ses marques.
 
+## La mise en forme des textes longs (branche text-formatting, `docs/design/text-formatting.md`)
+
+- Une note, puis un champ texte long de l'utilisateur, au clavier Android : après « - lait », Entrée commence « - » ; après « 2. Mélanger », « 3. » ; Entrée sur un élément vide retire sa marque et finit la liste ; Entrée au milieu d'un élément porte la fin dans le suivant ; la suggestion de mot du clavier en cours ne casse rien.
+- Les deux boutons au bout de la ligne du label (note, entrée de Journal, champ de l'utilisateur, message d'une routine) : sur la ligne du curseur, puis sur plusieurs lignes sélectionnées ; touché deux fois, la marque repart ; le clavier reste ouvert, le curseur à sa place. Absents de la zone d'écriture du chat, qui garde la continuation.
+- Gras et Italique dans la barre d'un mot sélectionné, dans chaque thème : les marques l'entourent, la sélection garde le mot ; touché à nouveau, elles partent ; les deux ensemble donnent `***mot***`. Absents d'un texte court et d'une sélection vide.
+- Une note mise en forme (titre, liste, liste numérotée avec une étape insérée au milieu, gras, italique) dans chaque thème : sa carte, une entrée de Journal ouverte, un message, la consigne d'une étape de Séance (dite sans ses marques par la voix) ; abrégé sur la tuile des Notes, l'aperçu d'une carte de Journal, une cellule de Données structurées, sans marques ni retours à la ligne.
+- Un message d'un outil Messages, son contenu mis en forme : sa notification sans les marques, une ligne par ligne du texte, les numéros d'une liste numérotée gardés.
+- L'IA priée d'écrire une note avec une liste et du gras : elle l'écrit dans ce vocabulaire, et la note s'affiche mise en forme.
+
 ## Les conditions typées à l'écriture (branche typed-conditions, `docs/design/typed-conditions.md`)
 
 - Dans une conversation : « crée un Objectif sommeil moyen d'au moins 7 h sur Sommeil » ; la config de l'Objectif, rouverte à l'écran, montre 7 h, et la tentative se juge sans erreur. Redemander en exigeant « écris 25200000 » : refusé, le message dit d'écrire « PT7H », et l'IA corrige.

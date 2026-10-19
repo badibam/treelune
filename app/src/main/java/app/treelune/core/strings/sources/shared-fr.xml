@@ -23,6 +23,8 @@
     <string name="action_confirm">Confirmer</string>
     <string name="action_send">Envoyer</string>
     <string name="action_stats">Statistiques</string>
+    <string name="action_bullet_list">Liste</string>
+    <string name="action_numbered_list">Liste numérotée</string>
     <string name="action_select_icon">Choisir une icône</string>
     <string name="action_create_zone">Créer Zone</string>
     <string name="action_edit_zone">Modifier Zone</string>
@@ -597,6 +599,8 @@
     <string name="text_selection_paste">Coller</string>
     <string name="text_selection_select_all">Tout sélectionner</string>
     <string name="text_selection_autofill">Saisie automatique</string>
+    <string name="text_selection_bold">Gras</string>
+    <string name="text_selection_italic">Italique</string>
     <string name="duplicate_success_tool">Outil dupliqué avec succès</string>
     <string name="duplicate_success_automation">Routine dupliquée avec succès</string>
     <string name="duplicate_no_tools">Aucun outil disponible à dupliquer</string>

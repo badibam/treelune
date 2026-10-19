@@ -1028,7 +1028,8 @@ A schema is written one value per line, what a value holds indented under it:
 `key*: kind [constraints] — label. description`
 
 - `*`: required
-- kind: `string`, `number`, `integer`, `boolean`, options `A|B|C`, `ISO 8601 date-time with offset`, `ISO 8601 duration`, `date YYYY-MM-DD`, `list of …`
+- kind: `string`, `number`, `integer`, `boolean`, options `A|B|C`, `ISO 8601 date-time with offset`, `ISO 8601 duration`, `date YYYY-MM-DD`, `text with markup`, `list of …`
+- `text with markup`: a long text, which the app shows formatted. It takes these marks and no other: a line beginning with `# `, `## ` or `### ` is a subtitle, `- ` a line of a list, `1. ` a line of a numbered list (numbered by its place, whatever number is written); `**bold**` and `*italic*` inside a line. No tables, links, quotes, code blocks nor nested lists
 - constraints: `min`, `max`, `step`, `max length`; for a list, `at least N` and `distinct`
 - `default …`: in a config, what an absent value means: leave it out to take it, write it only to choose another. In an entry, a value suggested for a new entry, never filled in for you: write it when it is what the user means, or the value stays without an answer
 - `suggested …`: on a required value, what to write when you mean nothing else

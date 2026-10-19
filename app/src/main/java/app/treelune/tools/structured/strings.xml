@@ -6,7 +6,7 @@
     <string name="display_name">Structured data</string>
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
     <string name="usage">For sheets with fields one chooses, each found by its name: foods and their calories, books, plants, contacts.\n## What it does\n- Other tools can name a sheet, like a meal naming its foods\n- Importing a table\n## Not made for\n- What is noted over time (Tracking, Journal)</string>
-    <!-- The Guide's chapter, beside the usage: every setting of the config, every button of the screen (GuideMarkup) -->
+    <!-- The Guide's chapter, beside the usage: every setting of the config, every button of the screen (Markup) -->
     <string name="guide_config">## The sheets\nA sheet has a name, plus the tool\'s fields, added in the common settings.\n\n## The table\n- Columns of the table: how many fields show after the name</string>
     <string name="guide_screen">## The table\n- Search by name\n- Filters\nTouch a column\'s title to sort by it, and touch it again to reverse the order.\n- {plus} New sheet\n- Import a file: a CSV table, one row per sheet\n\n## A sheet\nTouch a row to open its sheet.\n- {chevron-left} Previous sheet\n- {chevron-right} Next sheet\n- Change\n- {trash} Deletes the sheet</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->

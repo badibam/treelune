@@ -6,7 +6,7 @@
     <string name="display_name">Journal</string>
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
     <string name="usage">For telling what happens, with the date: a logbook, thoughts, the story of a day.\n## What it does\n- Each entry is dated, and the list follows the order of the dates\n## Not made for\n- A value followed over time (Tracking)\n- A text reworked without a date (Notes)</string>
-    <!-- The Guide's chapter, beside the usage: every setting of the config, every button of the screen (GuideMarkup) -->
+    <!-- The Guide's chapter, beside the usage: every setting of the config, every button of the screen (Markup) -->
     <string name="guide_config">## The order\n- Sort order: the newest entries at the top, or the oldest</string>
     <string name="guide_screen">## Writing\n- {plus} Creates an entry\nAn entry has a date, a time, a title and a text. Touch the date or the time to change them.\n\n## An entry\n- {pencil} Changes it\n- {check} Saves it\n- {copy} Copies its text\n- {trash} Deletes it</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->

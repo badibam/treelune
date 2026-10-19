@@ -39,7 +39,7 @@ interface ToolTypeContract {
     fun getAIDetail(context: Context): String? = null
 
     /**
-     * The Guide's chapter on this type, beside its usage, in the Guide's markup (GuideMarkup):
+     * The Guide's chapter on this type, beside its usage, in the Guide's markup (Markup):
      * every setting of its own config, and every button of its screen, one mention each
      * (docs/design/user-journey.md, « Prise en main »). None until written.
      */

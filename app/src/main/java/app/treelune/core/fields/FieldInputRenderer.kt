@@ -455,7 +455,7 @@ fun CustomFieldsDisplay(
                     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
                 ) {
                     if (showLabels) UI.Text(s.shared("field_label_inline").format(field.displayName), TextType.SUBTITLE)
-                    Box(modifier = Modifier.weight(1f)) { FieldValue(field, values[field.name], context) }
+                    Box(modifier = Modifier.weight(1f)) { FieldValue(field, values[field.name], context, oneLine = true) }
                 }
             }
         }

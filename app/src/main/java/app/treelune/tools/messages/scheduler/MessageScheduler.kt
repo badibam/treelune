@@ -1,5 +1,6 @@
 package app.treelune.tools.messages.scheduler
 
+import app.treelune.core.markup.Markup
 import app.treelune.core.fields.settings.SettingValues
 import app.treelune.core.utils.StoredSchedule
 import app.treelune.tools.messages.MessageToolType
@@ -403,7 +404,8 @@ object MessageScheduler : ToolScheduler {
                 "icon_name" to settings.string("icon_name")!!,
                 "tool_instance_id" to toolInstanceId
             )
-            if (content != null) params["content"] = content
+            // A notification shows plain text: the content's marks taken off, its lines kept
+            if (content != null) params["content"] = Markup.unmarked(content)
 
             val result = coordinator.processUserAction("notifications.send", params)
             notificationSent = result.isSuccess

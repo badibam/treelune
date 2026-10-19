@@ -1,5 +1,6 @@
 package app.treelune.tools.messages.ui
 
+import app.treelune.core.markup.ui.MarkupText
 import app.treelune.core.utils.StoredSchedule
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -336,7 +337,7 @@ private fun ReceivedCard(
             UI.Text(formatMoment(occurrence.dueAt), TextType.CAPTION)
             // What was sent, read only: a part of it can be selected
             UI.Text(occurrence.displayTitle, TextType.SUBTITLE, selectable = true)
-            occurrence.displayContent?.let { UI.Text(it, TextType.BODY, selectable = true) }
+            occurrence.displayContent?.let { MarkupText(it, icons = false) }
             OccurrenceFields(occurrence, config)
 
             // Each badge states a fact the history would otherwise lose
@@ -447,7 +448,7 @@ private fun UpcomingTab(
                         UI.Text(s.tool("occurrence_nothing_written"), TextType.CAPTION)
                     } else {
                         occurrence.ownTitle?.let { UI.Text(it, TextType.SUBTITLE, selectable = true) }
-                        occurrence.ownContent?.let { UI.Text(it, TextType.BODY, selectable = true) }
+                        occurrence.ownContent?.let { MarkupText(it, icons = false) }
                     }
                     OccurrenceFields(occurrence, config)
 

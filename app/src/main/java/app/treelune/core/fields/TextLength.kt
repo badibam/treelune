@@ -46,6 +46,12 @@ enum class TextLength {
     UNLIMITED;
 
     /**
+     * Whether a text of this length is written in the app's markup (Markup): helped at the input,
+     * drawn formatted when read (docs/design/text-formatting.md). A shorter one stays as typed.
+     */
+    val formatted: Boolean get() = this == LONG || this == UNLIMITED
+
+    /**
      * Get the numeric limit for this text length.
      * Maps to FieldLimits constants for consistency across the app.
      *

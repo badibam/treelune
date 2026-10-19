@@ -30,6 +30,12 @@ object FieldValueSchema {
     const val REFERENCE = "reference"
 
     /**
+     * The mark of a long text (TextLength.formatted), written in the app's markup (Markup): the
+     * model is told which marks it takes (SchemaNotation, ai_chunk_validation_schema_principle).
+     */
+    const val MARKUP = "markup"
+
+    /**
      * The schema of a field's value as a reader gets it -- the AI, an entry or a setting alike:
      * what it is held to, its label as the title, and in its description what the value means
      * ([reading]) before what the field's own description says, and its default value, which a
@@ -119,6 +125,7 @@ object FieldValueSchema {
                     if (length != TextLength.UNLIMITED) {
                         put("maxLength", length.getLimit())
                     }
+                    if (length.formatted) put("format", MARKUP)
 
                     if (fieldDef.description != null) {
                         put("description", fieldDef.description)

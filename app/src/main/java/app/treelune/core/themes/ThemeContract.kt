@@ -169,7 +169,7 @@ interface ThemeContract {
     ) = Text(AnnotatedString(text), type, fillMaxWidth, textAlign, maxLines)
 
     /**
-     * How a run of a read text marked bold or italic (GuideMarkup) is drawn, over its text's
+     * How a run of a read text marked bold or italic (Markup) is drawn, over its text's
      * style: a weight, a slant, an ink, whatever the theme's font and register have for it.
      */
     @Composable
@@ -478,12 +478,27 @@ interface ThemeContract {
     fun FieldLabel(label: String, required: Boolean)
 
     /**
+     * The label above an input, with [actions] at the end of its line when the input has some (a
+     * long text's list buttons), the label taking the room they leave. Every theme's FormField
+     * draws its label by it; the label itself stays the theme's (FieldLabel).
+     */
+    @Composable
+    fun LabelLine(label: String, required: Boolean, actions: (@Composable () -> Unit)?) {
+        if (actions == null) return FieldLabel(label, required)
+        androidx.compose.foundation.layout.Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+            androidx.compose.foundation.layout.Box(modifier = androidx.compose.ui.Modifier.weight(1f)) { FieldLabel(label, required) }
+            actions()
+        }
+    }
+
+    /**
      * The one text input of the theme. Its value is the text with its selection and its
      * composition (TextFieldValue), which a Compose text field takes as it is: the cursor survives
      * the round trip, so a button can insert where it stands (the formula editor).
      *
      * [label] names the field above it and stands inside it while it is empty; without
      * [labelAbove], it stands only inside: a field whose place says what it is for (a message).
+     * [labelActions], when given, stand at the end of the label's line (LabelLine).
      */
     @Composable
     fun FormField(
@@ -497,7 +512,8 @@ interface ThemeContract {
         contentDescription: String?,
         required: Boolean,
         fieldModifier: FieldModifier,
-        labelAbove: Boolean
+        labelAbove: Boolean,
+        labelActions: (@Composable () -> Unit)?
     )
     
     /**

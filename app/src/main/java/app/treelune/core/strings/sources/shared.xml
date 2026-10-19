@@ -23,6 +23,8 @@
     <string name="action_confirm">Confirm</string>
     <string name="action_send">Send</string>
     <string name="action_stats">Statistics</string>
+    <string name="action_bullet_list">List</string>
+    <string name="action_numbered_list">Numbered list</string>
     <string name="action_select_icon">Choose an icon</string>
     <string name="action_create_zone">Create zone</string>
     <string name="action_edit_zone">Edit zone</string>
@@ -597,6 +599,8 @@
     <string name="text_selection_paste">Paste</string>
     <string name="text_selection_select_all">Select all</string>
     <string name="text_selection_autofill">Autofill</string>
+    <string name="text_selection_bold">Bold</string>
+    <string name="text_selection_italic">Italic</string>
     <string name="duplicate_success_tool">Tool duplicated successfully</string>
     <string name="duplicate_success_automation">Routine duplicated successfully</string>
     <string name="duplicate_no_tools">No tool available to duplicate</string>

@@ -72,6 +72,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - Les écrans du chat, des identités et des fournisseurs, et les marges qui ne suivent plus le cran de taille (2026-10-17, sur develop) : la section du même nom de la recette.
 - Le thème métro (`docs/design/metro-theme.md`, branche theme-metro) : la passe sur le téléphone de `docs/THEMES.md`, puis ce que la spec garde dans « Ce qui reste ouvert ».
 - Le thème papier découpé (`docs/design/paper-theme.md`, branche theme-cut-paper) : la passe sur le téléphone de `docs/THEMES.md`, les icônes découpées d'abord (leur coût, celles qui se bouchent), puis ce que la spec garde dans « Ce qui reste ouvert ».
+- La mise en forme des textes longs (`docs/design/text-formatting.md`, branche text-formatting) : la section du même nom de la recette ; passé, élaguer la spec.
 - La SQLite de l'app à la place de celle du téléphone (branche demo-install) : la mise à jour depuis la release avec ses données d'abord (« Mise à jour et démarrage »), puis la démo sur l'OPPO A5 2020 (« Démo »).
 - Le thème plan d'architecte (`docs/design/blueprint-theme.md`, branche theme-blueprint) : la passe sur le téléphone de `docs/THEMES.md`, le débord des icônes d'abord, puis ce que la spec garde dans « Ce qui reste ouvert ».
 - L'outil Flashcards (`docs/design/flashcards.md`, branche flashcards) : la section « Flashcards » de la recette, la démo d'abord (Lessico, Ripasso), puis le lexique réel ; passé, élaguer la spec.
@@ -130,7 +131,6 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 ## Bugs du téléphone
 
 - Possibilité de stocker image en champs supplementaire par exemple ? Et/ou galerie d'images ? — Outils — Idée
-- Quand on édite une note, c'est très pénible avec le clavier andfoid de faire des liste avec tiret etc. Je vois / options : boutons d'edition dans champs de texte / champs de type texte mis e' forme / option de champs de texte : pour permettre mise en forme / autre type de champ : liste (numérotée ou pas) : qui permet de mulriplier les champs er chacun correspond à 1 étape. Si 1 seul champ se comporte comme texte normal ? / mix entre plusieurs options précédentes ? À bien réfléchir, avec conséquances en termes d'UI en particulier. Ce que je constate c'est qu'il y a déjà un endroit pour placer des boutons de mise en forme : ma ligne du label du champ. À voir..... — Core — Idée
 - Pouvoir stocker des images (par exemple pour faire des fiches de plantes etc) — Core — Idée
 
 ## En attente d'un déclencheur

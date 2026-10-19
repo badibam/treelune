@@ -1,5 +1,6 @@
 package app.treelune.tools.notes.ui
 
+import app.treelune.core.markup.Markup
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -99,7 +100,8 @@ fun rememberNotesTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTile
                     Box(modifier = Modifier.fillMaxSize().padding(vertical = UI.Space.XS).clickable { open(EntryToOpen.Existing(note.id)) }) {
                         UI.Card(type = CardType.DEFAULT) {
                             Box(modifier = Modifier.fillMaxSize().padding(UI.Space.XS)) {
-                                val text = note.content.ifBlank { s.tool("content_empty") }
+                                // On one line, without its marks
+                                val text = Markup.plain(note.content).ifBlank { s.tool("content_empty") }
                                 // No count of lines: the slot's height bounds the text, its last line cut by an ellipsis
                                 if (note.title != null) Column {
                                     UI.Text(note.title, TextType.LABEL, maxLines = 1)
