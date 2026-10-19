@@ -71,14 +71,25 @@ object Markup {
      * [text] on one line, its marks taken off, for where it is shown cut short (a tile, a cell of
      * a table): its blocks one after the other, a space between two.
      */
-    fun plain(text: String): String = parse(text, icons = false).joinToString(" ") { block ->
+    fun plain(text: String): String = parse(text, icons = false).joinToString(" ") { words(it) }
+
+    /**
+     * [text] without its marks, a line for each of its blocks, for where it is shown as plain
+     * text (a notification): a numbered line keeps the number it is read with.
+     */
+    fun unmarked(text: String): String = parse(text, icons = false).joinToString("\n") { block ->
+        if (block is MarkupBlock.Numbered) "${block.number}. ${words(block)}" else words(block)
+    }
+
+    /** The words of [block], its runs without their emphasis. */
+    private fun words(block: MarkupBlock): String {
         val runs = when (block) {
             is MarkupBlock.Heading -> block.runs
             is MarkupBlock.Item -> block.runs
             is MarkupBlock.Numbered -> block.runs
             is MarkupBlock.Paragraph -> block.runs
         }
-        runs.joinToString("") { it.text }
+        return runs.joinToString("") { it.text }
     }
 
     private fun isBullet(line: String) = line.startsWith("- ") || line.startsWith("* ")

@@ -100,4 +100,9 @@ class MarkupTest {
     fun `on one line, the marks are taken off`() {
         assertEquals("Shopping milk and eggs Bake **slowly", Markup.plain("## Shopping\n- milk *and* eggs\n\n1. **Bake** **slowly"))
     }
+
+    @Test
+    fun `without its marks, a line for each block, a numbered line keeping its number`() {
+        assertEquals("Shopping\nmilk and eggs\n1. Bake\n2. Eat", Markup.unmarked("## Shopping\n- milk *and* eggs\n\n3. **Bake**\n3. Eat"))
+    }
 }
