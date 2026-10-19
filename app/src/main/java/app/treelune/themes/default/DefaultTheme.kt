@@ -1234,11 +1234,12 @@ object DefaultTheme : ThemeContract {
         contentDescription: String?,
         required: Boolean,
         fieldModifier: FieldModifier,
-        labelAbove: Boolean
+        labelAbove: Boolean,
+        labelActions: (@Composable () -> Unit)?
     ) {
         
         Column {
-            if (labelAbove) FieldLabel(label, required)
+            if (labelAbove) LabelLine(label, required, labelActions)
             
             if (readonly) {
                 // Display as text when readonly - clickable if onClick provided

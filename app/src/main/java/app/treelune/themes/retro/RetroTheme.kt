@@ -855,12 +855,13 @@ object RetroTheme : ThemeContract {
         contentDescription: String?,
         required: Boolean,
         fieldModifier: FieldModifier,
-        labelAbove: Boolean
+        labelAbove: Boolean,
+        labelActions: (@Composable () -> Unit)?
     ) {
         val grid = retroGrid()
         val s = retroSurface
         Column(verticalArrangement = Arrangement.spacedBy(grid.dp(3))) {
-            if (labelAbove) FieldLabel(label, required)
+            if (labelAbove) LabelLine(label, required, labelActions)
             if (readonly) {
                 val shown = value.text.ifBlank { Strings.`for`(context = LocalContext.current).shared("label_no_value") }
                 Box(modifier = if (onClick != null) Modifier.combinedClickable(onClick = onClick) else Modifier) {

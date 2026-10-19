@@ -899,12 +899,13 @@ object BlueprintTheme : ThemeContract {
         contentDescription: String?,
         required: Boolean,
         fieldModifier: FieldModifier,
-        labelAbove: Boolean
+        labelAbove: Boolean,
+        labelActions: (@Composable () -> Unit)?
     ) {
         val size = blueprintSize()
         val c = blueprintColors
         Column(verticalArrangement = Arrangement.spacedBy(size.dp(2f))) {
-            if (labelAbove) FieldLabel(label, required)
+            if (labelAbove) LabelLine(label, required, labelActions)
             if (readonly) {
                 val shown = value.text.ifBlank { Strings.`for`(context = LocalContext.current).shared("label_no_value") }
                 Box(modifier = if (onClick != null) Modifier.combinedClickable(onClick = onClick) else Modifier) {

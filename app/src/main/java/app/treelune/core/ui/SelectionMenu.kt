@@ -44,9 +44,12 @@ import kotlin.math.roundToInt
  * actions Compose names are said in the app's language (Android names them in the phone's); those
  * other apps add keep their label. What Android proposes for the text itself (call a number, open a
  * link) Compose keeps to its own bar: it is not offered here.
+ *
+ * [own] gives the actions of the app's own the bar adds after Compose's, asked each time the bar
+ * shows (a long text's bold and italic, for what is selected then).
  */
 @Composable
-fun SelectionMenu(content: @Composable () -> Unit) {
+fun SelectionMenu(own: () -> List<SelectionAction> = { emptyList() }, content: @Composable () -> Unit) {
     val menu = remember { SelectionMenuState() }
     // Where the text's surroundings stand, read when the bar is placed: kept out of the state, a
     // layout pass never recomposes for it
@@ -56,7 +59,7 @@ fun SelectionMenu(content: @Composable () -> Unit) {
             content()
             val shown = menu.shown
             val coordinates = anchor.coordinates
-            if (shown != null && coordinates != null) SelectionBarPopup(shown.session, shown.data) { anchor.coordinates ?: coordinates }
+            if (shown != null && coordinates != null) SelectionBarPopup(shown.session, shown.data, own) { anchor.coordinates ?: coordinates }
         }
     }
 }
@@ -92,6 +95,7 @@ private class SelectionMenuState : TextContextMenuProvider {
 private fun SelectionBarPopup(
     session: TextContextMenuSession,
     dataProvider: TextContextMenuDataProvider,
+    own: () -> List<SelectionAction>,
     anchor: () -> LayoutCoordinates
 ) {
     val s = Strings.`for`(context = LocalContext.current)
@@ -106,6 +110,13 @@ private fun SelectionBarPopup(
             // A separator: the bar's actions are apart already; and what Android proposes for the
             // text itself, which Compose keeps to its own bar
             else -> null
+        }
+    } + own().map { action ->
+        // The bar closes once its action has run, as Compose's do
+        SelectionAction(action.label) {
+            sound(UISignal.CONFIRM)
+            action.onClick()
+            session.close()
         }
     }
     if (actions.isEmpty()) return
