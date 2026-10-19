@@ -192,8 +192,8 @@ object InkTheme : ThemeContract {
             Spacing.S -> 8f
             Spacing.M -> 16f
             Spacing.L -> 24f
-            Spacing.XL -> 40f
-            Spacing.EDGE -> 20f
+            Spacing.XL -> 32f
+            Spacing.EDGE -> 16f
         }
     ).dp
 
