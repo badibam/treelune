@@ -37,8 +37,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Treelune"
         tools:targetApi="31">
+        <!-- One activity, ever: the places are one stack for the whole app (Navigator), which every
+             activity would draw, each with its own copy of a screen's state; some launchers start
+             the app again on top of itself, and a notification comes in by onNewIntent -->
         <activity
             android:name=".MainActivity"
+            android:launchMode="singleTask"
             android:exported="true"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize"

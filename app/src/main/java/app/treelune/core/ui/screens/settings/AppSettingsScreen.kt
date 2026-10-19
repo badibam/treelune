@@ -102,8 +102,14 @@ fun AppSettingsScreen(
             }
             CurrentTheme.apply(chosen, CurrentTheme.Reason.PREVIEW)
         }
+        // Each instance of the screen named in the log, with what it holds when it goes
+        val instance = remember { Integer.toHexString(System.identityHashCode(Any())) }
         DisposableEffect(Unit) {
-            onDispose { if (!saved) Appearance.from(stored)?.let { CurrentTheme.apply(it, CurrentTheme.Reason.LEFT_UNSAVED) } }
+            app.treelune.core.utils.LogManager.ui("Interface settings #$instance: opened, stored ${Appearance.from(stored)?.theme}, theme ${CurrentTheme.themeId}")
+            onDispose {
+                app.treelune.core.utils.LogManager.ui("Interface settings #$instance: left, saved=$saved, stored ${Appearance.from(stored)?.theme}, chosen ${Appearance.from(settings)?.theme}")
+                if (!saved) Appearance.from(stored)?.let { CurrentTheme.apply(it, CurrentTheme.Reason.LEFT_UNSAVED) }
+            }
         }
     }
 

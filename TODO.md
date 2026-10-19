@@ -17,8 +17,6 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 
 ## Bugs
 
-- Réglages › Interface : un thème choisi, vu, enregistré, et l'ancien revient ; une seconde fois, ça tient (2026-10-09, pas reproduit, peut-être dans la release). Au prochain cas, lire dans le journal les lignes « Theme applied » : laquelle a remis l'ancien (STORED, PREVIEW, LEFT_UNSAVED).
-
 - Des boutons à libellé posés dans une simple rangée, qui se perdent quand la place manque : à passer dans `ButtonRow` (`VariableScreen.kt:175`, `JournalEntryScreen.kt:376`, `DuplicateSelector.kt:234`, `StructuredScreen.kt:260` et `:299`), et la rangée d'actions de `InteractionCard` (la validation dans le chat), que chaque thème pose avec deux moitiés de largeur fixe (`InteractionActions`).
 
 ## À passer sur le téléphone
@@ -73,6 +71,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - La SQLite de l'app à la place de celle du téléphone (branche demo-install) : la mise à jour depuis la release avec ses données d'abord (« Mise à jour et démarrage »), puis la démo sur l'OPPO A5 2020 (« Démo »).
 - Le thème plan d'architecte (`docs/design/blueprint-theme.md`, branche theme-blueprint) : la passe sur le téléphone de `docs/THEMES.md`, le débord des icônes d'abord, puis ce que la spec garde dans « Ce qui reste ouvert ».
 - L'outil Flashcards (`docs/design/flashcards.md`, branche flashcards) : la section « Flashcards » de la recette, la démo d'abord (Lessico, Ripasso), puis le lexique réel ; passé, élaguer la spec.
+- Une seule activité (`launchMode` singleTask, 2026-10-20) : une notification qui ouvre un outil ou un lieu, l'app ouverte comme fermée ; un retour du sélecteur de photos et de l'appareil photo ; le lanceur qui ramène l'app là où on l'avait laissée.
 - Le champ Image (`docs/design/image-field.md`, branche image-field) : la migration 82 sur la release et ses images de messages d'abord, puis la section « À passer sur le téléphone » de la spec ; la tuile de l'Agenda dit encore « 3 images » en texte ; passé, élaguer la spec.
 - Le thème liseuse (`docs/design/eink-theme.md`, branche theme-eink) : la passe sur le téléphone de `docs/THEMES.md`, les trames d'abord (deux couleurs au pixel près, la discrète des textures), puis ce que la spec garde dans « Ce qui reste ouvert », la bande d'encre et ses boutons d'abord.
 
@@ -125,6 +124,7 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 - `RetroPaletteTest` et `CosyPaletteTest` ne tiennent les contrastes qu'au décalage de teinte 0 : les parcourir par pas de 15°, comme `SwissPaletteTest`, et reprendre les nombres d'un décalage qui tombe sous le seuil.
 - `TextType.SUBTITLE` n'a pas de rang dans le contrat des thèmes (`UITypes.kt`) : plus grand que `HEADING` en défaut et en cosy, plus petit en rétro, pour 71 usages. Lui donner un rang, aligner les thèmes, puis passer ses usages écran par écran dans les trois thèmes.
 
+- `FlashcardsServiceTest` (« a deck's reviews are written by its own operation alone ») a échoué à 00:30 le 2026-10-20 (`flashcards.due` vide), passé quelques heures plus tôt : il dépend sans doute de l'heure, la démo et les cartes dues se calculant depuis l'instant présent et le début de la journée (4 h) ; non vérifié. Lui donner une horloge fixe.
 - Une apostrophe nue dans un texte qui en a déjà une échappée (`\'`) passe tous les contrôles de `./run test` et casse la compilation des ressources (« Invalid unicode escape sequence »), le générateur n'échappant que les textes qui n'en ont aucune : la refuser dans un contrôle des sources de textes, ou faire échapper toutes les apostrophes au générateur.
 
 ## Bugs du téléphone
