@@ -69,6 +69,7 @@ You lay out each zone's tiles as you like, choose each tool's icon and colour, a
 - **Metro** — Like metro signage: each tool a line in its colour, each zone a station
 - **Cut paper** — Coloured sheets cut with scissors, laid askew on kraft paper
 - **Blueprint** — Like an architect's blueprint: fine lines on grid paper, dimensions and hatching
+- **E-reader** — Like an e-reader: pure black and white, patterns instead of greys, nothing that moves
 <!-- /themes -->
 
 ## Getting started

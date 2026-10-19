@@ -152,6 +152,7 @@ object InkTheme : ThemeContract {
 
     /** Lucide's drawings, traced by the theme's brush (InkIcon). */
     override val iconSource = IconSource.LUCIDE
+    override val hueShifts = true
 
     // =====================================
     // GRID, SPACES, SOUNDS

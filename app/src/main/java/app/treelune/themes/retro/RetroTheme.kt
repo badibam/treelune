@@ -155,6 +155,7 @@ object RetroTheme : ThemeContract {
      * scripts/pixelize_icons.py, hand retouches in icon-retouches.txt).
      */
     override val iconSource = IconSource.OWN
+    override val hueShifts = true
 
     // =====================================
     // GRID, SPACES, SOUNDS

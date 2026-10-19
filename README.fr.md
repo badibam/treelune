@@ -69,6 +69,7 @@ Tu disposes les tuiles de chaque zone comme tu veux, tu choisis l'icône et la c
 - **Métro** — Comme la signalétique d'un métro : chaque outil est une ligne de sa couleur, chaque zone une station
 - **Papier découpé** — Des feuilles de couleur découpées aux ciseaux, posées de travers sur du kraft
 - **Plan d'architecte** — Comme un plan d'architecte : des traits fins sur un papier quadrillé, des cotes et des hachures
+- **Liseuse** — Comme une liseuse : noir et blanc pur, des trames à la place des gris, rien qui bouge
 <!-- /themes -->
 
 ## Commencer

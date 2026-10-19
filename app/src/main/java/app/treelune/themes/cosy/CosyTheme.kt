@@ -157,6 +157,7 @@ object CosyTheme : ThemeContract {
 
     /** Lucide's icons, round ends and all, which suit the register as they are. */
     override val iconSource = IconSource.LUCIDE
+    override val hueShifts = true
 
     // =====================================
     // GRID, SPACES, SOUNDS

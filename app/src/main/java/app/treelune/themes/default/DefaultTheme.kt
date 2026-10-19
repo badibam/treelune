@@ -86,6 +86,7 @@ object DefaultTheme : ThemeContract {
         app.treelune.core.strings.Strings.`for`(context = context, theme = "default").theme("name")
 
     override val iconSource = app.treelune.core.icons.IconSource.LUCIDE
+    override val hueShifts = true
 
     /** A quarter of the width, the grid growing no wider than 480 dp. */
     @Composable

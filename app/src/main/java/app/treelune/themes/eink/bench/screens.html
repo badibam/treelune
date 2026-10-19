@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Banc du thème liseuse</title>
+<!--
+  The e-reader theme's bench (docs/design/eink-theme.md): a zone's screen and a sheet of every
+  component, in the light and the dark palette side by side, at a phone's width in dp (one CSS
+  pixel per dp), in the embedded Atkinson Hyperlegible Next, with Lucide's icons from the
+  repository. The palettes are pure black and white, with nothing to set: the page shows what the
+  theme draws, the patterns standing for the tag colours first. A size step is tried here.
+-->
+<style>
+@font-face{font-family:"Atkinson";font-weight:400;src:url("/app/src/main/res/font/atkinson_regular.ttf") format("truetype");font-display:block}
+@font-face{font-family:"Atkinson";font-weight:600;src:url("/app/src/main/res/font/atkinson_semibold.ttf") format("truetype");font-display:block}
+@font-face{font-family:"Atkinson";font-weight:700;src:url("/app/src/main/res/font/atkinson_bold.ttf") format("truetype");font-display:block}
+@font-face{font-family:"Atkinson";font-weight:800;src:url("/app/src/main/res/font/atkinson_extrabold.ttf") format("truetype");font-display:block}
+@font-face{font-family:"Atkinson";font-weight:400;font-style:italic;src:url("/app/src/main/res/font/atkinson_italic.ttf") format("truetype");font-display:block}
+
+/* The bench's own frame, out of the theme. */
+:root{--bg:#1b1b1b;--line:#3a3a3a;--txt:#e6e4df;--mut:#9a978f;--hot:#7fb2ff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:14px system-ui,sans-serif}
+.wrap{max-width:1200px;margin:0 auto;padding:20px 16px 60px;display:flex;flex-direction:column;gap:18px}
+header.top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:12px}
+header.top h1{margin:0;font-size:19px;font-weight:600}
+.seg{display:flex;border:1px solid var(--line)}
+.seg button{background:transparent;border:0;border-right:1px solid var(--line);color:var(--mut);font:inherit;font-size:12px;padding:6px 12px;cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed=true]{background:var(--hot);color:#1b1b1b}
+.bench{display:flex;flex-wrap:wrap;gap:24px;justify-content:center;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:14px;align-items:center}
+.col h2{margin:0;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);font-weight:600}
+.notes{border-top:1px solid var(--line);padding-top:14px;color:var(--mut);font-size:13px;line-height:1.6;max-width:90ch}
+.notes b{color:var(--txt);font-weight:600}
+#err{color:#ff7b7b}
+
+/* ============ The theme, drawn ============ */
+.light{--i:#000;--g:#fff}
+.dark{--i:#fff;--g:#000}
+.phone{width:360px;background:var(--g);color:var(--i);font-family:"Atkinson",sans-serif;font-variant-numeric:tabular-nums;font-size:16px;position:relative;overflow:hidden;outline:1px solid var(--line)}
+.zoom{zoom:var(--k,1)}
+.ic svg{display:block;width:100%;height:100%}
+.caps{text-transform:uppercase;letter-spacing:.1em}
+
+/* The patterns a colour becomes: two colours only, hard stops. */
+.p-red{background:var(--i)}
+.p-orange{background:repeating-linear-gradient(-45deg,var(--i) 0 1.5px,var(--g) 1.5px 4px)}
+.p-yellow{background:radial-gradient(circle,var(--i) 0 1px,transparent 1.2px) 0 0/5px 5px,var(--g)}
+.p-green{background:linear-gradient(var(--i) 0 1px,transparent 1px) 0 0/4px 4px,linear-gradient(90deg,var(--i) 0 1px,transparent 1px) 0 0/4px 4px,var(--g)}
+.p-teal{background:repeating-linear-gradient(0deg,var(--i) 0 1.5px,var(--g) 1.5px 4px)}
+.p-blue{background:repeating-linear-gradient(45deg,var(--i) 0 1.5px,var(--g) 1.5px 4px)}
+.p-purple{background:repeating-linear-gradient(45deg,var(--i) 0 1px,transparent 1px 4px),repeating-linear-gradient(-45deg,var(--i) 0 1px,var(--g) 1px 4px)}
+.p-pink{background:radial-gradient(circle,var(--i) 0 .9px,transparent 1.1px) 0 0/3px 3px,var(--g)}
+.p-grey{background:var(--g)}
+/* A density of dots, for a mix or an opacity: --r the dot's radius in a 4 px cell. */
+.dither{background:radial-gradient(circle,var(--i) 0 var(--r),transparent calc(var(--r) + .2px)) 0 0/4px 4px,var(--g)}
+
+/* bar and page header: the band, inverted */
+.band{background:var(--i);color:var(--g);display:flex;align-items:center;gap:4px;padding:8px 4px}
+.ib{width:48px;height:48px;display:flex;align-items:center;justify-content:center;flex:none}
+.ib .ic{width:24px;height:24px}
+.band h1{margin:0;flex:1;font-size:26px;font-weight:800;line-height:1.1;hyphens:auto}
+.band .sub{font-size:13px;font-weight:600}
+.mark{width:28px;height:28px;margin-left:10px;flex:none}
+.gt{padding:20px 16px 12px}
+.gt span{display:block;font-size:15px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding-bottom:4px;border-bottom:3px solid var(--i)}
+
+/* the tile grid: 4 square cells, 8 across and down */
+.grid{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:76px;gap:8px;padding:0 16px}
+.tile{border:2px solid var(--i);padding:6px 8px;overflow:hidden;position:relative;min-width:0;background:var(--g)}
+.w2{grid-column:span 2}.w4{grid-column:span 4}.h2{grid-row:span 2}
+.name{font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.big{font-size:26px;font-weight:800;line-height:1.1}
+.big small{font-size:16px;font-weight:600}
+.small{font-size:13px}
+.th{display:flex;justify-content:space-between;align-items:baseline}
+.val{font-size:16px}
+.bars{display:flex;align-items:flex-end;gap:8px;height:92px;margin-top:6px;position:relative;border-bottom:2px solid var(--i)}
+.bars i{flex:1;height:calc(var(--h)*100%);box-shadow:inset 0 0 0 1.5px var(--i)}
+.bars .target{position:absolute;left:0;right:0;bottom:75%;border-top:1px dotted var(--i)}
+.days{display:flex;gap:8px;font-size:13px;font-weight:700;margin-top:2px}.days span{flex:1;text-align:center}
+.list ul{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:5px;font-size:16px}
+.list li{display:flex;gap:8px;align-items:center}
+.box{width:16px;height:16px;border:2px solid var(--i);flex:none}
+.done{text-decoration:line-through}.done .box{background:var(--i)}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:14px;border:1.5px solid var(--i);padding:1px 6px 1px 2px}
+.tag .sw{width:12px;height:12px;flex:none}
+.tag .sw.p-grey{box-shadow:inset 0 0 0 1.5px var(--i)}
+.gauge{height:14px;border:2px solid var(--i);margin:6px 0 3px}.gauge span{display:block;height:100%;background:var(--i)}
+.icon{display:flex;align-items:center;justify-content:center}
+.icon .ic{width:32px;height:32px}
+.cmark{position:absolute;width:8px;height:8px;right:-3px;bottom:-3px;outline:1.5px solid var(--i)}
+.icon .cmark{right:8px;bottom:8px}
+.wait{position:absolute;top:0;right:0;width:0;height:0;border-top:18px solid var(--i);border-left:18px solid transparent}
+.note p{margin:4px 0 0;font-size:16px;line-height:1.35}
+.card{margin:0 16px 8px;border:2px solid var(--i);padding:8px 10px;display:flex;justify-content:space-between;align-items:baseline}
+.card .v{font-size:20px;font-weight:800}
+.fab{position:absolute;right:16px;bottom:16px;width:56px;height:56px;background:var(--i);color:var(--g);box-shadow:0 0 0 3px var(--g);display:flex;align-items:center;justify-content:center}
+.fab .ic{width:26px;height:26px}
+
+/* the sheet */
+.sec{padding:16px 16px 0}
+.sl{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
+.btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{height:48px;padding:0 16px;display:inline-flex;align-items:center;gap:6px;font-size:16px;font-weight:600}
+.btn .ic{width:20px;height:20px}
+.b-pri{background:var(--i);color:var(--g)}
+.b-sec{box-shadow:inset 0 0 0 2px var(--i)}
+.b-ter{padding:0 6px}.b-ter span{text-decoration:underline;text-underline-offset:3px}
+.b-dan{box-shadow:inset 0 0 0 2px var(--i);font-weight:800}
+.b-dis{border:2px dashed var(--i);font-weight:400}
+.b-press{background:var(--i);color:var(--g)}
+.b-press2{background:var(--g);color:var(--i);box-shadow:inset 0 0 0 2px var(--i)}
+.field{margin-bottom:12px}
+.field .fl{font-size:14px;font-weight:600;margin-bottom:4px}
+.field .fv{font-size:16px;min-height:48px;padding:0 12px;border:2px solid var(--i);display:flex;justify-content:space-between;align-items:center}
+.field.focus .fv{border-width:3px;padding:0 11px}
+.field.err .fv{border-width:3px;padding:0 11px}
+.field .fe{font-size:14px;font-weight:700;margin-top:4px;display:flex;gap:6px;align-items:center}
+.field .fe .ic{width:18px;height:18px}
+.field .fv .ic{width:20px;height:20px}
+.caret{display:inline-block;width:2px;height:18px;background:var(--i);vertical-align:-3px;margin-left:1px}
+.menu{border:2px solid var(--i);background:var(--g);box-shadow:6px 6px 0 var(--i)}
+.menu div{height:48px;padding:0 12px;display:flex;align-items:center;font-size:16px}
+.menu .on{background:var(--i);color:var(--g)}
+.inline{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.cb{width:22px;height:22px;border:2px solid var(--i);display:flex;align-items:center;justify-content:center}
+.cb.on{background:var(--i);color:var(--g)}.cb .ic{width:16px;height:16px}
+.swt{width:44px;height:24px;box-shadow:inset 0 0 0 2px var(--i);position:relative}
+.swt::after{content:"";position:absolute;width:16px;height:16px;top:4px;left:4px;background:var(--i)}
+.swt.on{background:var(--i)}.swt.on::after{left:24px;background:var(--g)}
+.yn{display:flex}.yn span{height:40px;min-width:64px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;box-shadow:inset 0 0 0 2px var(--i)}
+.yn span+span{margin-left:-2px}.yn .on{background:var(--i);color:var(--g)}
+.slider{position:relative;height:48px}
+.slider .rail{position:absolute;left:0;right:0;top:23px;height:2px;background:var(--i)}
+.slider .thumb{position:absolute;top:14px;left:62%;width:20px;height:20px;background:var(--i);margin-left:-10px}
+.slider .sv{position:absolute;left:62%;top:-6px;transform:translateX(-50%);font-size:14px;font-weight:800}
+.tabs{display:flex}
+.tabs span{flex:1;height:44px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;box-shadow:inset 0 0 0 2px var(--i)}
+.tabs span+span{margin-left:-2px}.tabs .on{background:var(--i);color:var(--g)}
+.handle{width:20px;display:flex;flex-direction:column;gap:5px}.handle i{height:3px;background:var(--i)}
+.itemrow{display:flex;align-items:center;gap:12px;height:48px;border-bottom:2px solid var(--i)}
+.itemrow .ic{width:24px;height:24px;position:relative;flex:none}
+.itemrow .nm{flex:1;font-size:16px}
+.swatches{display:grid;grid-template-columns:repeat(9,1fr);gap:6px}
+.swatches span{aspect-ratio:1;border:2px solid var(--i)}
+.swatches span.chosen{outline:3px solid var(--i);outline-offset:2px}
+.swatches + .legend{display:grid;grid-template-columns:repeat(9,1fr);gap:6px;font-size:10px;text-align:center;margin-top:4px}
+.scrim{background:color-mix(in srgb,#000 50%,var(--g));padding:24px 22px 30px 16px}
+.dialog{background:var(--g);border:2px solid var(--i);box-shadow:6px 6px 0 var(--i);padding:16px}
+.dialog.flat{box-shadow:none}
+.dialog h3{margin:0 0 8px;font-size:22px;font-weight:800}
+.dialog p{margin:0 0 16px;font-size:16px;line-height:1.4}
+.dialog .btns{justify-content:flex-end}
+.chat{display:flex;flex-direction:column;gap:12px}
+.you{align-self:flex-end;max-width:78%;background:var(--i);color:var(--g);padding:10px 12px;font-size:16px;line-height:1.35}
+.ai{align-self:flex-start;max-width:90%;border:2px solid var(--i);padding:10px 12px;font-size:16px;line-height:1.4}
+.ai b{font-weight:700}.ai i{font-style:italic}
+.inter{border:2px solid var(--i);outline:2px solid var(--i);outline-offset:2px;margin:4px;padding:10px 12px}
+.inter .q{font-size:16px;margin-bottom:8px}
+.think{display:flex;gap:6px}.think i{width:10px;height:10px;box-shadow:inset 0 0 0 2px var(--i)}.think i.f{background:var(--i)}
+.toast{background:var(--i);color:var(--g);box-shadow:0 0 0 3px var(--g),0 0 0 5px var(--i);padding:14px 16px;font-size:16px;margin:5px}
+.snack{background:var(--i);color:var(--g);box-shadow:0 0 0 3px var(--g),0 0 0 5px var(--i);padding:0 0 0 16px;display:flex;justify-content:space-between;align-items:center;font-size:16px;min-height:48px;margin:5px}
+.snack span:last-child{height:48px;display:flex;align-items:center;padding:0 16px;font-size:14px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;text-decoration:underline;text-underline-offset:3px}
+.date .mh{display:flex;justify-content:space-between;align-items:center}
+.date .mh b{font-size:18px;font-weight:800}
+.date .ib .ic{width:20px;height:20px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);text-align:center}
+.cal .wd{font-size:13px;font-weight:700;padding:4px 0}
+.cal span{height:40px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.cal .mute{text-decoration:line-through;text-decoration-thickness:1px;opacity:1;font-weight:400}
+.cal .sel{background:var(--i);color:var(--g);font-weight:800}
+.cal .today{box-shadow:inset 0 0 0 2px var(--i);font-weight:800}
+.time{display:flex;justify-content:center;align-items:center;gap:8px}
+.cnt{display:flex;flex-direction:column;align-items:center;gap:4px}
+.cnt .n{font-size:44px;font-weight:800;line-height:1}
+.pm{width:48px;height:40px;box-shadow:inset 0 0 0 2px var(--i);display:flex;align-items:center;justify-content:center}
+.pm .ic{width:20px;height:20px}
+.colon{font-size:44px;font-weight:800;line-height:1;margin-top:-6px}
+.selbar{display:inline-flex;background:var(--i);color:var(--g)}
+.selbar span{height:48px;padding:0 14px;display:flex;align-items:center;font-size:15px;font-weight:600}
+.selbar span+span{border-left:1px solid var(--g)}
+.selbar .on{background:var(--g);color:var(--i);box-shadow:inset 0 0 0 2px var(--i)}
+.edit{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:76px;gap:8px;position:relative}
+.edit .cell{border:1px dashed var(--i)}
+.edit .lifted{box-shadow:4px 4px 0 var(--i);transform:translate(-4px,-4px);z-index:1}
+.chart{border:2px solid var(--i);padding:8px}
+.chart .row{display:flex;align-items:flex-end;gap:8px;height:90px;border-bottom:2px solid var(--i)}
+.chart .row i{flex:1;box-shadow:inset 0 0 0 1.5px var(--i)}
+.chart svg{display:block;width:100%;height:90px;margin-top:8px}
+.heat{display:grid;grid-template-columns:repeat(9,1fr);gap:2px;margin-top:8px}
+.heat i{height:22px;box-shadow:inset 0 0 0 1px var(--i)}
+.heat i.miss{background:repeating-linear-gradient(45deg,var(--i) 0 1px,var(--g) 1px 5px)}
+.legend2{display:flex;justify-content:space-between;font-size:12px;margin-top:2px}
+.pad{height:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Banc du thème liseuse</h1>
+    <div class="seg" id="segStep"></div>
+    <span id="err"></span>
+  </header>
+
+  <div class="bench">
+    <div class="col light" id="colLight"><h2>Clair</h2></div>
+    <div class="col dark" id="colDark"><h2>Sombre</h2></div>
+  </div>
+
+  <div class="notes">
+    <b>Ce qu'on juge ici</b> : l'écran d'une zone et chaque composant, à la largeur d'un téléphone (un pixel par dp), dans Atkinson Hyperlegible Next. Les palettes sont du noir et du blanc purs, sans rien à régler : contraste 21 dans les deux modes. <b>Les trames</b> tiennent lieu de couleurs : celles des tags et des icônes (la rangée des pastilles), les séries d'un graphique, et une quantité (un mélange, une opacité) en points plus ou moins gros. Le bouton pressé est inversé ; la tuile soulevée et les dialogues portent une ombre pleine. Rien ne bouge : le toucher se juge sur le téléphone. Le voile derrière le dialogue est celui d'Android, commun aux thèmes. À un écran près, l'anticrénelage du navigateur grise un peu les trames fines ; le téléphone dessinera au pixel.
+  </div>
+</div>
+
+<template id="screen">
+  <div class="phone"><div class="zoom">
+    <div class="band">
+      <span class="mark ic" data-icon="trees"></span><span style="flex:1;font-size:20px;font-weight:800;padding-left:6px">Treelune</span>
+      <span class="ib"><span class="ic" data-icon="settings"></span></span>
+    </div>
+    <div class="pad" style="height:8px"></div>
+    <div class="band">
+      <span class="ib"><span class="ic" data-icon="arrow-left"></span></span>
+      <div style="flex:1"><h1>Santé</h1><div class="sub">7 outils · 1 routine</div></div>
+      <span class="ib"><span class="ic" data-icon="ellipsis-vertical"></span></span>
+    </div>
+    <div class="gt"><span>Quotidien</span></div>
+    <div class="grid">
+      <div class="tile w4 h2">
+        <div class="th"><span class="name">Calories</span><span class="val">1 840 kcal</span></div>
+        <div class="bars"><span class="target"></span><i class="p-blue" style="--h:.72"></i><i class="p-blue" style="--h:.50"></i><i class="p-blue" style="--h:.92"></i><i class="p-blue" style="--h:.58"></i><i class="p-blue" style="--h:.34"></i><i class="p-blue" style="--h:.66"></i><i class="p-red" style="--h:.48"></i></div>
+        <div class="days"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+      </div>
+      <div class="tile w2"><div class="name">Poids</div><div class="big">72,4<small> kg</small></div><div class="small">il y a 2 h</div></div>
+      <div class="tile w2 h2 list"><div class="name">Courses</div>
+        <ul><li><span class="box"></span>Lait</li><li class="done"><span class="box"></span>Pommes</li><li><span class="box"></span>Riz</li><li><span class="box"></span>Café</li></ul>
+      </div>
+      <div class="tile w2"><div class="name">Journal</div><div class="tags"><span class="tag"><span class="sw p-green"></span>sport</span><span class="tag"><span class="sw p-purple"></span>humeur</span></div></div>
+      <div class="tile w2"><div class="name">10 000 pas</div><div class="gauge"><span style="width:71%"></span></div><div class="small">7 120 · 71 %</div></div>
+      <div class="tile icon"><span class="ic" data-icon="droplet" style="position:relative"><span class="cmark p-blue"></span></span></div>
+      <div class="tile icon"><span class="ic" data-icon="moon"></span><span class="wait"></span></div>
+    </div>
+    <div class="gt"><span>Notes</span></div>
+    <div class="grid"><div class="tile w4 note"><div class="name">Idées</div><p>Essayer la marche après le déjeuner, noter l'effet sur le sommeil…</p></div></div>
+    <div class="gt"><span>Variables</span></div>
+    <div class="card"><span class="name">Objectif calorique</span><span class="v">2 000</span></div>
+    <div class="card"><span class="name">Taille</span><span class="v">1,78 m</span></div>
+    <div style="height:88px"></div>
+    <span class="fab"><span class="ic" data-icon="sparkles"></span></span>
+  </div></div>
+</template>
+
+<template id="sheet">
+  <div class="phone"><div class="zoom">
+    <div class="sec"><div class="sl">Les couleurs, en trames</div>
+      <div class="swatches"><span class="p-red"></span><span class="p-orange"></span><span class="p-yellow"></span><span class="p-green chosen"></span><span class="p-teal"></span><span class="p-blue"></span><span class="p-purple"></span><span class="p-pink"></span><span class="p-grey"></span></div>
+      <div class="legend"><span>rouge</span><span>orange</span><span>jaune</span><span>vert</span><span>turq.</span><span>bleu</span><span>violet</span><span>rose</span><span>gris</span></div>
+      <div class="tags" style="margin-top:12px"><span class="tag"><span class="sw p-red"></span>urgent</span><span class="tag"><span class="sw p-orange"></span>travail</span><span class="tag"><span class="sw p-yellow"></span>idée</span><span class="tag"><span class="sw p-teal"></span>eau</span><span class="tag"><span class="sw p-blue"></span>sommeil</span><span class="tag"><span class="sw p-pink"></span>amis</span><span class="tag"><span class="sw p-grey"></span>divers</span></div>
+    </div>
+    <div class="sec"><div class="sl">Boutons · au repos, puis pressés</div>
+      <div class="btns">
+        <span class="btn b-pri">Enregistrer</span><span class="btn b-sec">Dupliquer</span><span class="btn b-ter"><span>Annuler</span></span>
+        <span class="btn b-dan"><span class="ic" data-icon="trash"></span>Supprimer</span><span class="btn b-dis">Désactivé</span>
+        <span class="btn b-press2">Enregistrer, pressé</span><span class="btn b-press">Dupliquer, pressé</span>
+        <span class="ib"><span class="ic" data-icon="pencil"></span></span><span class="ib"><span class="ic" data-icon="trash"></span></span><span class="ib" style="background:var(--i);color:var(--g)"><span class="ic" data-icon="settings"></span></span>
+      </div>
+    </div>
+    <div class="sec"><div class="sl">Saisie</div>
+      <div class="field"><div class="fl">Nom</div><div class="fv"><span>Courses</span></div></div>
+      <div class="field focus"><div class="fl">Note</div><div class="fv"><span>Marche après le dé<span class="caret"></span></span></div></div>
+      <div class="field err"><div class="fl">Quantité</div><div class="fv"><span>-3</span></div><div class="fe"><span class="ic" data-icon="circle-alert"></span>Une quantité ne peut pas être négative.</div></div>
+      <div class="field"><div class="fl">Unité</div><div class="fv"><span>Kilogrammes</span><span class="ic" data-icon="chevron-down"></span></div></div>
+      <div class="menu"><div>Grammes</div><div class="on">Kilogrammes</div><div>Livres</div></div>
+    </div>
+    <div class="sec"><div class="inline"><span class="cb"></span><span class="cb on"><span class="ic" data-icon="check"></span></span><span class="swt"></span><span class="swt on"></span>
+      <span class="yn"><span class="on">Oui</span><span>Non</span></span></div></div>
+    <div class="sec"><div class="slider"><span class="sv">62</span><span class="rail"></span><span class="thumb"></span></div>
+      <div class="gauge"><span style="width:40%"></span></div></div>
+    <div class="sec"><div class="tabs"><span class="on">Entrées</span><span>Config</span><span>Historique</span></div></div>
+    <div class="sec"><div class="sl">Repères</div>
+      <div class="itemrow"><span class="handle"><i></i><i></i></span><span class="ic" data-icon="utensils"><span class="cmark p-orange"></span></span><span class="nm">Repas</span></div>
+      <div class="itemrow"><span class="handle"><i></i><i></i></span><span class="ic" data-icon="footprints"></span><span class="nm">Pas</span></div>
+    </div>
+    <div class="sec"><div class="sl">Graphiques</div>
+      <div class="chart">
+        <div class="row"><i class="p-orange" style="height:60%"></i><i class="p-teal" style="height:35%"></i><i class="p-purple" style="height:80%"></i><i class="p-orange" style="height:45%"></i><i class="p-teal" style="height:55%"></i><i class="p-purple" style="height:70%"></i></div>
+        <svg viewBox="0 0 300 90" preserveAspectRatio="none">
+          <path d="M0 70 L50 52 L100 60 L150 30 L200 40 L250 18 L300 26" fill="none" stroke="var(--i)" stroke-width="2"/>
+          <path d="M0 40 L50 46 L100 30 L150 52 L200 60 L250 50 L300 66" fill="none" stroke="var(--i)" stroke-width="2" stroke-dasharray="7 4"/>
+          <path d="M0 82 L50 76 L100 80 L150 72 L200 76 L250 70 L300 74" fill="none" stroke="var(--i)" stroke-width="2" stroke-dasharray="2 3"/>
+          <path d="M0 45 H300" stroke="var(--i)" stroke-width="1" stroke-dasharray="1 3"/>
+          <path d="M0 89 H300" stroke="var(--i)" stroke-width="2"/>
+        </svg>
+        <div class="heat"><i class="dither" style="--r:0px"></i><i class="dither" style="--r:.5px"></i><i class="dither" style="--r:.8px"></i><i class="dither" style="--r:1.1px"></i><i class="miss"></i><i class="dither" style="--r:1.4px"></i><i class="dither" style="--r:1.7px"></i><i class="dither" style="--r:2.1px"></i><i class="dither" style="--r:3px"></i></div>
+        <div class="legend2"><span>0</span><span>une quantité, de peu à beaucoup ; hachuré : inconnu</span><span>max</span></div>
+      </div>
+    </div>
+    <div class="sec"><div class="sl">Dialogue</div></div>
+    <div class="scrim"><div class="dialog"><h3>Supprimer l'outil ?</h3><p>Ses 214 entrées seront supprimées avec lui.</p>
+      <div class="btns"><span class="btn b-ter"><span>Annuler</span></span><span class="btn b-dan"><span class="ic" data-icon="trash"></span>Supprimer</span></div></div></div>
+    <div class="sec"><div class="sl">Conversation</div>
+      <div class="chat">
+        <div class="you">Combien de calories cette semaine ?</div>
+        <div class="ai">Tu es à <b>12 880 kcal</b> sur sept jours, soit 1 840 par jour, <i>sous</i> ton objectif de 2 000.</div>
+        <div class="inter"><div class="q">Ajouter « Marche 30 min » au Journal ?</div><div class="btns"><span class="btn b-ter"><span>Refuser</span></span><span class="btn b-pri">Valider</span></div></div>
+        <div class="think"><i class="f"></i><i class="f"></i><i></i></div>
+      </div>
+    </div>
+    <div class="sec"><div class="sl">Messages</div>
+      <div class="toast">Entrée enregistrée.</div><div class="pad" style="height:8px"></div>
+      <div class="snack"><span>Entrée supprimée.</span><span>Annuler</span></div>
+    </div>
+    <div class="sec"><div class="sl">Date et heure</div>
+      <div class="dialog flat date">
+        <div class="mh"><span class="ib"><span class="ic" data-icon="chevron-left"></span></span><b>Octobre 2026</b><span class="ib"><span class="ic" data-icon="chevron-right"></span></span></div>
+        <div class="cal" data-cal></div>
+        <div class="btns" style="margin-top:8px"><span class="btn b-ter"><span>Annuler</span></span><span class="btn b-pri">Choisir</span></div>
+      </div>
+      <div class="pad"></div>
+      <div class="dialog flat"><div class="time">
+        <div class="cnt"><span class="pm"><span class="ic" data-icon="plus"></span></span><span class="n">07</span><span class="pm"><span class="ic" data-icon="minus"></span></span></div>
+        <span class="colon">:</span>
+        <div class="cnt"><span class="pm"><span class="ic" data-icon="plus"></span></span><span class="n">30</span><span class="pm"><span class="ic" data-icon="minus"></span></span></div>
+      </div></div>
+    </div>
+    <div class="sec"><div class="sl">Texte sélectionné</div><div class="selbar"><span>Copier</span><span class="on">Couper</span><span>Tout</span></div></div>
+    <div class="sec"><div class="sl">Grille en édition</div>
+      <div class="edit">
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+        <div class="tile w2" style="grid-row:1;grid-column:1/3"><div class="name">Poids</div><div class="big">72,4</div></div>
+        <div class="tile w2 lifted" style="grid-row:2;grid-column:2/4"><div class="name">Pas</div><div class="gauge"><span style="width:71%"></span></div></div>
+      </div>
+    </div>
+    <div class="pad"></div>
+  </div></div>
+</template>
+
+<script>
+"use strict";
+const LUCIDE_URL = (name) => `/third_party/lucide/icons/${name}.svg`;
+const STEPS = [1, 1.12, 1.25, 1.4];
+const icons = new Map();
+
+async function loadIcons(root) {
+  const names = [...new Set([...root.querySelectorAll("[data-icon]")].map((e) => e.dataset.icon))];
+  await Promise.all(names.filter((n) => !icons.has(n)).map(async (n) => {
+    const r = await fetch(LUCIDE_URL(n));
+    if (!r.ok) throw new Error(`no Lucide icon ${n}`);
+    icons.set(n, await r.text());
+  }));
+  root.querySelectorAll("[data-icon]").forEach((e) => { const mark = e.querySelector(".cmark"); e.innerHTML = icons.get(e.dataset.icon); if (mark) e.appendChild(mark); });
+}
+
+function calendar(root) {
+  root.querySelectorAll("[data-cal]").forEach((cal) => {
+    let html = ["L", "M", "M", "J", "V", "S", "D"].map((d) => `<span class="wd">${d}</span>`).join("");
+    for (let i = 28; i <= 30; i++) html += `<span class="mute">${i}</span>`;
+    for (let d = 1; d <= 31; d++) html += d === 19 ? `<span class="today">${d}</span>` : d === 23 ? `<span class="sel">${d}</span>` : `<span>${d}</span>`;
+    html += `<span class="mute">1</span>`;
+    cal.innerHTML = html;
+  });
+}
+
+function step(i) {
+  document.querySelectorAll(".phone").forEach((p) => p.style.setProperty("--k", STEPS[i]));
+}
+
+async function main() {
+  for (const col of ["colLight", "colDark"]) {
+    for (const t of ["screen", "sheet"]) {
+      const node = document.getElementById(t).content.cloneNode(true);
+      calendar(node);
+      document.getElementById(col).appendChild(node);
+    }
+  }
+  await loadIcons(document.body);
+  const el = document.getElementById("segStep");
+  el.innerHTML = ["Cran 0", "1", "2", "3"].map((l, i) => `<button aria-pressed="${i === 0}">${l}</button>`).join("");
+  el.querySelectorAll("button").forEach((b, i) => b.addEventListener("click", () => {
+    el.querySelectorAll("button").forEach((x, j) => x.setAttribute("aria-pressed", j === i));
+    step(i);
+  }));
+}
+
+main().catch((e) => { document.getElementById("err").textContent = e.message; throw e; });
+</script>
+</body>
+</html>

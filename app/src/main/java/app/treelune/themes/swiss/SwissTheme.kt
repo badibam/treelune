@@ -152,6 +152,7 @@ object SwissTheme : ThemeContract {
 
     /** Lucide's icons as they are: their even stroke suits a grotesque. */
     override val iconSource = IconSource.LUCIDE
+    override val hueShifts = true
 
     // =====================================
     // GRID, SPACES, SOUNDS

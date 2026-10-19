@@ -26,8 +26,8 @@ class HueShiftTest {
     }
 
     @Test
-    fun `every theme turns its colours, not its states', in both modes`() {
-        for ((id, theme) in ThemeScanner.scanForThemes()) for (mode in PaletteMode.entries) {
+    fun `every theme with a hue turns its colours, not its states', in both modes`() {
+        for ((id, theme) in ThemeScanner.scanForThemes().filterValues { it.hueShifts }) for (mode in PaletteMode.entries) {
             val own = theme.getColorScheme(mode, 0)
             for (shift in listOf(90, 180, 270)) {
                 val turned = theme.getColorScheme(mode, shift)
@@ -36,6 +36,15 @@ class HueShiftTest {
                 val colours = { s: androidx.compose.material3.ColorScheme -> listOf(s.primary, s.secondary, s.tertiary, s.background, s.surface, s.outline) }
                 assertNotEquals("$id ${mode.name} +$shift: a colour turns", colours(own), colours(turned))
                 assertEquals("$id ${mode.name} +$shift: the error stays", own.error, turned.error)
+            }
+        }
+    }
+
+    @Test
+    fun `a theme without a hue keeps every colour, at any shift`() {
+        for ((id, theme) in ThemeScanner.scanForThemes().filterValues { !it.hueShifts }) for (mode in PaletteMode.entries) {
+            for (shift in listOf(90, 180, 270)) {
+                assertEquals("$id ${mode.name} +$shift", theme.getColorScheme(mode, 0).toString(), theme.getColorScheme(mode, shift).toString())
             }
         }
     }

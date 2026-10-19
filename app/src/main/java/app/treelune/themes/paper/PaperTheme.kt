@@ -156,6 +156,7 @@ object PaperTheme : ThemeContract {
 
     /** Lucide's icons, cut again by the theme as it draws them (PaperIcons): the drawables stay Lucide's. */
     override val iconSource = IconSource.LUCIDE
+    override val hueShifts = true
 
     // =====================================
     // GRID, SPACES, SOUNDS

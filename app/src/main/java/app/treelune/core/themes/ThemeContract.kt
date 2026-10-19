@@ -46,6 +46,12 @@ interface ThemeContract {
     val iconSource: app.treelune.core.icons.IconSource
 
     /**
+     * Whether a hue shift turns any of the theme's colours (Appearance.hueShift): false for a
+     * theme without a hue, black and white only, whose settings then show no hue slider.
+     */
+    val hueShifts: Boolean
+
+    /**
      * The width of a cell of the tile grid (GridLayout), in pixels, given the width there is for
      * its four columns and the three gaps between them (gridColumnGapPx), in pixels; the grid is
      * centered in what it leaves. Composable, as a size
