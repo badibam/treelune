@@ -4,7 +4,8 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 
 ## Release F-Droid
 
-- La fiche fastlane (`docs/design/fdroid-compliance.md`) : en-US `title`, `short_description`, `full_description`, `changelogs/<versionCode>.txt`, `images/icon.png`, `images/featureGraphic.png` ; les captures d'écran, à faire sur le téléphone, servent aussi au README (`fastlane/metadata/android/en-US/images/phoneScreenshots/`, leur place marquée dans `README.md` et `README.fr.md`), l'icône de l'app en tête.
+- La fiche fastlane (`fastlane/metadata/android/`, textes écrits en `en-US` et `fr-FR`) : `changelogs/<versionCode>.txt` de la 0.9.0, `images/icon.png`, `images/featureGraphic.png` ; les captures d'écran, à faire sur le téléphone, servent aussi au README (`fastlane/metadata/android/en-US/images/phoneScreenshots/`, leur place marquée dans `README.md` et `README.fr.md`), l'icône de l'app en tête.
+- Le haut des deux README repris sur l'angle de la fiche : des pièces qui s'emboîtent, montrées par leurs combinaisons, l'IA en second.
 - La version soumise, la 0.9.0, taguée sur un arbre propre, ses notes de version écrites et validées avant de publier ; la mise à jour depuis la dernière version publiée passée sur le téléphone avec ses données (une base neuve ne passe aucune migration, une mise à jour les passe toutes, nouvelles comprises).
 - La recette sur `v0.8.1`, avec `Binaries` et `AllowedAPKSigningKeys`, essayée dans le conteneur (`docs/design/fdroid-compliance.md`), son APK comparé par `apksigcopier compare` à celui de la release GitHub : podman à installer d'abord, absent de cette machine.
 

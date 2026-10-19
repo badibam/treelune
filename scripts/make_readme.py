@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Fill the READMEs' generated blocks from the sources, or check that they are up to date.
+"""Fill the READMEs' generated blocks and the store listing's list of tools from the sources, or
+check that they are up to date.
 
 Each README (README.md in English, README.fr.md in French) is written by hand, except for a few
 blocks between HTML comments that say what the code says and would go stale otherwise:
@@ -13,13 +14,18 @@ A block ends at its closing comment (<!-- /tools -->). Names and taglines come f
 and the themes' own strings, in the README's language; a tool or a theme added to its registry
 appears without touching the README.
 
+The store listing's long description (fastlane/metadata/android/<locale>/full_description.txt)
+is written by hand down to its line that announces the tools ("The pieces:"): everything after it
+is the tool types, one line each with its tagline, in plain text. The file is published as it is,
+so it carries no comment to mark the block.
+
 The OpenAI-compatible provider is left out of the providers' block: it is a way of talking, not
 a vendor, and the README's text names it.
 
 Usage:
     ./scripts/make_readme.py           write the blocks
     ./scripts/make_readme.py --check   say which blocks are stale, and fail if any is; ./run test
-                                       runs this, and never writes a README on its own
+                                       runs this, and never writes a README or a listing on its own
 """
 
 import os
@@ -41,6 +47,16 @@ READMES = {
     ROOT / "README.md": "",
     ROOT / "README.fr.md": "-fr",
 }
+
+# A store listing's long description, the language its strings are read in, and its line after
+# which the tools are listed.
+LISTING = ROOT / "fastlane" / "metadata" / "android"
+LISTINGS = {
+    LISTING / "en-US" / "full_description.txt": ("", "The pieces:"),
+    LISTING / "fr-FR" / "full_description.txt": ("-fr", "Les pièces :"),
+}
+
+LISTING_LIMITS = {"title.txt": 50, "short_description.txt": 80, "full_description.txt": 4000}
 
 # The Android release each API level the app may require as its lowest.
 ANDROID_RELEASES = {
@@ -83,6 +99,19 @@ def named_lines(folder_root, ids, suffix):
         name = texts.get("display_name") or texts["name"]
         lines.append(f"- **{name}** — {texts['tagline']}")
     return lines
+
+
+def listing_tools(suffix):
+    """One line per tool type, in plain text: a store listing shows no Markdown."""
+    return [line.replace("**", "") for line in named_lines(SOURCES / "tools", registry(TOOL_REGISTRY), suffix)]
+
+
+def fill_listing(text, heading):
+    """The listing with everything after its heading line replaced by the tools; None without it."""
+    lines = text.split("\n")
+    if heading not in lines:
+        return None
+    return lines, len(lines) - 1 - lines[::-1].index(heading)
 
 
 def providers(suffix):
@@ -145,6 +174,14 @@ def fill(text, contents):
     return text, missing
 
 
+def write(path, text):
+    """Written aside then renamed: an interrupted write never leaves half a file."""
+    partial = path.with_name(path.name + ".part")
+    partial.write_text(text, encoding="utf-8")
+    os.replace(partial, path)
+    print(f"{path.relative_to(ROOT)}: written")
+
+
 def main():
     check = "--check" in sys.argv[1:]
     failed = False
@@ -162,13 +199,32 @@ def main():
             print(f"{readme.name}: stale blocks {', '.join(stale)} — run ./scripts/make_readme.py, then read the result")
             failed = True
         else:
-            # Written aside then renamed: an interrupted write never leaves half a README
-            partial = readme.with_name(readme.name + ".part")
-            partial.write_text(filled, encoding="utf-8")
-            os.replace(partial, readme)
-            print(f"{readme.name}: written")
+            write(readme, filled)
+    for listing, (suffix, heading) in LISTINGS.items():
+        current = listing.read_text(encoding="utf-8")
+        found = fill_listing(current, heading)
+        if found is None:
+            print(f"{listing.relative_to(ROOT)}: no line “{heading}” to list the tools after")
+            failed = True
+            continue
+        lines, at = found
+        filled = "\n".join(lines[:at + 1] + listing_tools(suffix)) + "\n"
+        if filled == current:
+            continue
+        if check:
+            print(f"{listing.relative_to(ROOT)}: stale list of tools — run ./scripts/make_readme.py, then read the result")
+            failed = True
+        else:
+            write(listing, filled)
+    # F-Droid's limits on a listing's texts, in characters
+    for locale in sorted(LISTING.iterdir()):
+        for name, limit in LISTING_LIMITS.items():
+            length = len((locale / name).read_text(encoding="utf-8").strip())
+            if length > limit:
+                print(f"{(locale / name).relative_to(ROOT)}: {length} characters, more than {limit}")
+                failed = True
     if check and not failed:
-        print("READMEs: generated blocks up to date")
+        print("READMEs and store listings: generated blocks up to date")
     return 1 if failed else 0
 
 

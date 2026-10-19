@@ -1,0 +1,33 @@
+Every tracking app does one thing, its own way. Treelune gives you the pieces, and you build the one you need.
+
+A tracker, a journal, a list, records, a goal, a chart, flashcards, a calendar… Each piece is set up your way, and they all fit together. What you note once is used everywhere: counted, compared, charted, reviewed.
+
+- The vocabulary list becomes a flashcard deck.
+- Meals draw on food records, and the day's calories add up by themselves.
+- Work hours split by client, ready for the invoice.
+- Each run moves the week's goal forward, and a curve shows how far you've come.
+- Each evening's mood colours a calendar, month after month.
+
+Each part of your life becomes a zone, with tools of its own: training, a project, a vegetable patch, a language, and whatever else you want to add.
+
+If you want a hand, an AI knows the same pieces you do. Ask it “set me up to train for a half marathon”, and it creates the zone, the tools and the links between them. It can then take notes with you, answer questions about your data, or work on its own at set times, for a review every Sunday evening for example. If you ask, it waits for your approval before each change. You pick the provider and bring your own key: Claude, OpenAI, DeepSeek, or a model running at home. Without AI, nothing is missing.
+
+And to make it yours: an icon and a colour for each tool, tiles to arrange, themes ranging from pixel art to ink wash.
+
+Everything stays on your phone. No account, no ads, no tracking. A full backup fits in a single file.
+
+To see what it looks like, open the demo: twelve weeks in the life of Camille, between a half marathon, clients, a balcony garden and Italian before a trip to Rome.
+
+The pieces:
+- Tracking — Numbers, ratings, choices or timed durations, noted as they come: weight, sleep, mood, glasses of water
+- Notes — Notes, each with its title, kept where they belong
+- Journal — A dated diary, for writing about your days
+- Messages — Reminders and notifications, once or on a schedule
+- List — What is left to do, checked off as it is done, with due dates if you want
+- Structured data — Sheets of your own fields, each found by its name: foods, books, plants
+- Goal — A goal judged each day, week or month by the criteria you set, read from your entries
+- Questionnaire — Questions asked one per screen, when you want or at planned times
+- Chart — Your entries and figures drawn as lines, bars, pies or calendars
+- Session — Steps prepared ahead, then followed on screen with a timer and a signal at each change: a workout, a recipe
+- Calendar — Appointments and events at a time, which pass by themselves, with reminders
+- Flashcards — Cards to review drawn from another tool, each coming back just before it is forgotten

@@ -1,0 +1,33 @@
+Chaque app de suivi fait une chose, à sa façon. Treelune te donne les pièces, et tu construis celle qu'il te faut.
+
+Un suivi, un carnet, une liste, des fiches, un objectif, un graphique, des flashcards, un agenda… Chaque pièce se règle à ton idée, et toutes s'emboîtent. Ce que tu notes une fois sert partout : ça se compte, se compare, se dessine, se révise.
+
+- La liste de vocabulaire devient un paquet de flashcards.
+- Les repas puisent dans les fiches d'aliments, et les calories du jour se comptent seules.
+- Les heures de travail se répartissent par client, prêtes pour la facture.
+- Chaque sortie de course fait avancer l'objectif de la semaine, et une courbe montre le chemin parcouru.
+- L'humeur de chaque soir colore un calendrier, mois après mois.
+
+Chaque pan de ta vie devient une zone, avec ses propres outils : le sport, un projet, un potager, une langue, et tout ce que tu voudras y ajouter.
+
+Si tu veux un coup de main, une IA connaît les mêmes pièces que toi. Demande-lui « monte-moi de quoi préparer un semi-marathon », et elle crée la zone, les outils et leurs liens. Elle peut ensuite noter avec toi, répondre sur tes données, ou travailler seule à heure fixe, pour un bilan chaque dimanche soir par exemple. Si tu le demandes, elle attend ton accord avant chaque changement. Tu choisis le fournisseur et tu apportes ta clé : Claude, OpenAI, DeepSeek, ou un modèle qui tourne chez toi. Sans IA, rien ne manque.
+
+Et pour que ça te ressemble : une icône et une couleur par outil, des tuiles à disposer, des thèmes qui vont du pixel art au lavis à l'encre.
+
+Tout reste sur ton téléphone. Pas de compte, pas de publicité, pas de pistage. Une sauvegarde complète tient dans un seul fichier.
+
+Pour voir ce que ça donne, ouvre la démo : douze semaines dans la vie de Camille, entre semi-marathon, clients, potager sur le balcon et italien avant Rome.
+
+Les pièces :
+- Suivi — Des chiffres, des notes sur une échelle, des choix ou des durées chronométrées, notés au fil des jours : poids, sommeil, humeur, verres d'eau
+- Notes — Des notes, chacune avec son titre, rangées là où elles servent
+- Journal — Un carnet daté, pour raconter ses journées
+- Messages — Des rappels et des notifications, une fois ou selon un planning
+- Liste — Ce qui reste à faire, coché au fur et à mesure, avec des échéances si tu veux
+- Données structurées — Des fiches faites de tes champs, retrouvées par leur nom : aliments, livres, plantes
+- Objectif — Un objectif jugé chaque jour, semaine ou mois sur les critères que tu fixes, lus dans tes entrées
+- Questionnaire — Des questions posées une par écran, quand tu veux ou à heures prévues
+- Graphique — Tes entrées et tes chiffres dessinés en courbes, barres, camemberts ou calendriers
+- Séance — Des étapes préparées à l'avance, suivies à l'écran avec un minuteur et un signal à chaque changement : un entraînement, une recette
+- Agenda — Les rendez-vous et les événements à heure, qui passent d'eux-mêmes, avec leurs rappels
+- Flashcards — Des cartes à réviser tirées d'un autre outil, chacune revenant juste avant d'être oubliée
