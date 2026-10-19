@@ -95,11 +95,19 @@ object CoreScheduler {
      * 2. Tool scheduling (discovery via ToolTypeManager)
      * 3. The automatic backup (AutoBackup)
      *
+     * Nothing while the demo is being written (DemoService.writing).
+     *
      * Error handling: Each component logs errors independently,
      * one failure doesn't block others.
      */
     suspend fun tick() = kotlinx.coroutines.withContext(app.treelune.core.coordinator.Origin(app.treelune.core.coordinator.Source.SCHEDULER)) {
         // Everything a tick starts is the scheduler's, unless it is the AI's (processAICommand)
+
+        // The demo being written, nothing is acted on: the next tick finds it whole
+        if (app.treelune.core.demo.DemoService.writing) {
+            LogManager.service("CoreScheduler: tick skipped, the demo is being written", "INFO")
+            return@withContext
+        }
 
         try {
             // 1. AI scheduling (AIOrchestrator handles automations + session management), set up
@@ -154,11 +162,13 @@ object CoreScheduler {
      * Runs the scheduler of the tool type [tooltype] now, as the scheduler, rather than at the
      * next tick, then sets the alarm again: a tool's config just created or changed is acted on
      * at once (ToolInstanceService), a schedule given its first occurrences. Nothing for a tool
-     * type without a scheduler. [appContext] is given, the scheduler's own not being set yet
+     * type without a scheduler, nor while the demo is being written. [appContext] is given, the scheduler's own not being set yet
      * where no tick ran.
      */
     suspend fun runTool(appContext: Context, tooltype: String) {
         val scheduler = ToolTypeManager.getToolType(tooltype)?.getScheduler() ?: return
+        // The demo's tools are acted on at the first tick after it is written whole (tick)
+        if (app.treelune.core.demo.DemoService.writing) return
         kotlinx.coroutines.withContext(app.treelune.core.coordinator.Origin(app.treelune.core.coordinator.Source.SCHEDULER)) {
             try {
                 scheduler.checkScheduled(appContext)

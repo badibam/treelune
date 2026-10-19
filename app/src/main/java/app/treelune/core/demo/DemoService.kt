@@ -54,10 +54,32 @@ class DemoService(private val context: Context) : ExecutableService {
     override suspend fun execute(operation: String, params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
         return when (operation) {
-            "install" -> install()
-            "remove" -> remove()
+            "install" -> writing { install() }
+            "remove" -> writing { remove() }
             else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
         }
+    }
+
+    /** [block] run with the schedulers held off (writing): they see the demo whole or absent. */
+    private suspend fun writing(block: suspend () -> OperationResult): OperationResult {
+        writing = true
+        try {
+            return block()
+        } finally {
+            writing = false
+        }
+    }
+
+    companion object {
+        /**
+         * Whether the demo is being written, installed or removed: the schedulers wait for it to
+         * end (CoreScheduler), as one acting on a demo half built would act on what the demo
+         * itself is about to write: a goal's attempt of weeks ago, written to be validated, would
+         * expire before the demo validates it.
+         */
+        @Volatile
+        var writing: Boolean = false
+            private set
     }
 
     private suspend fun install(): OperationResult {
