@@ -28,6 +28,7 @@ You sort your life into **zones** (Health, Work, Kitchen…), and in each zone y
 - **Chart** — Your entries and figures drawn as lines, bars, pies or calendars
 - **Session** — Steps prepared ahead, then followed on screen with a timer and a signal at each change: a workout, a recipe
 - **Calendar** — Appointments and events at a time, which pass by themselves, with reminders
+- **Flashcards** — Cards to review drawn from another tool, each coming back just before it is forgotten
 <!-- /tools -->
 
 Each tool can be set up: its fields, its units, its reminders, how it shows on the zone.

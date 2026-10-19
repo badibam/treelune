@@ -1106,6 +1106,224 @@
       }
     }
   ],
+  "demo-italian-lexicon": [
+    {
+      "id": "demo-lexicon-casa",
+      "name": "casa",
+      "extra": {
+        "translation": "@lexicon_casa",
+        "nature": "noun",
+        "theme": "home"
+      }
+    },
+    {
+      "id": "demo-lexicon-finestra",
+      "name": "finestra",
+      "extra": {
+        "translation": "@lexicon_finestra",
+        "nature": "noun",
+        "theme": "home"
+      }
+    },
+    {
+      "id": "demo-lexicon-chiave",
+      "name": "chiave",
+      "extra": {
+        "translation": "@lexicon_chiave",
+        "nature": "noun",
+        "theme": "home"
+      }
+    },
+    {
+      "id": "demo-lexicon-letto",
+      "name": "letto",
+      "extra": {
+        "translation": "@lexicon_letto",
+        "nature": "noun",
+        "theme": "home"
+      }
+    },
+    {
+      "id": "demo-lexicon-tavolo",
+      "name": "tavolo",
+      "extra": {
+        "translation": "@lexicon_tavolo",
+        "nature": "noun",
+        "theme": "home"
+      }
+    },
+    {
+      "id": "demo-lexicon-aprire",
+      "name": "aprire",
+      "extra": {
+        "translation": "@lexicon_aprire",
+        "nature": "verb",
+        "theme": "home"
+      }
+    },
+    {
+      "id": "demo-lexicon-chiudere",
+      "name": "chiudere",
+      "extra": {
+        "translation": "@lexicon_chiudere",
+        "nature": "verb",
+        "theme": "home"
+      }
+    },
+    {
+      "id": "demo-lexicon-comodo",
+      "name": "comodo",
+      "extra": {
+        "translation": "@lexicon_comodo",
+        "nature": "adjective",
+        "theme": "home"
+      }
+    },
+    {
+      "id": "demo-lexicon-pane",
+      "name": "pane",
+      "extra": {
+        "translation": "@lexicon_pane",
+        "nature": "noun",
+        "theme": "food"
+      }
+    },
+    {
+      "id": "demo-lexicon-formaggio",
+      "name": "formaggio",
+      "extra": {
+        "translation": "@lexicon_formaggio",
+        "nature": "noun",
+        "theme": "food"
+      }
+    },
+    {
+      "id": "demo-lexicon-mela",
+      "name": "mela",
+      "extra": {
+        "translation": "@lexicon_mela",
+        "nature": "noun",
+        "theme": "food"
+      }
+    },
+    {
+      "id": "demo-lexicon-cena",
+      "name": "cena",
+      "extra": {
+        "translation": "@lexicon_cena",
+        "nature": "noun",
+        "theme": "food"
+      }
+    },
+    {
+      "id": "demo-lexicon-cucinare",
+      "name": "cucinare",
+      "extra": {
+        "translation": "@lexicon_cucinare",
+        "nature": "verb",
+        "theme": "food"
+      }
+    },
+    {
+      "id": "demo-lexicon-assaggiare",
+      "name": "assaggiare",
+      "extra": {
+        "translation": "@lexicon_assaggiare",
+        "nature": "verb",
+        "theme": "food"
+      }
+    },
+    {
+      "id": "demo-lexicon-dolce",
+      "name": "dolce",
+      "extra": {
+        "translation": "@lexicon_dolce",
+        "nature": "adjective",
+        "theme": "food"
+      }
+    },
+    {
+      "id": "demo-lexicon-piccante",
+      "name": "piccante",
+      "extra": {
+        "translation": "@lexicon_piccante",
+        "nature": "adjective",
+        "theme": "food"
+      }
+    },
+    {
+      "id": "demo-lexicon-treno",
+      "name": "treno",
+      "extra": {
+        "translation": "@lexicon_treno",
+        "nature": "noun",
+        "theme": "travel"
+      }
+    },
+    {
+      "id": "demo-lexicon-biglietto",
+      "name": "biglietto",
+      "extra": {
+        "translation": "@lexicon_biglietto",
+        "nature": "noun",
+        "theme": "travel"
+      }
+    },
+    {
+      "id": "demo-lexicon-stazione",
+      "name": "stazione",
+      "extra": {
+        "translation": "@lexicon_stazione",
+        "nature": "noun",
+        "theme": "travel"
+      }
+    },
+    {
+      "id": "demo-lexicon-valigia",
+      "name": "valigia",
+      "extra": {
+        "translation": "@lexicon_valigia",
+        "nature": "noun",
+        "theme": "travel"
+      }
+    },
+    {
+      "id": "demo-lexicon-partire",
+      "name": "partire",
+      "extra": {
+        "translation": "@lexicon_partire",
+        "nature": "verb",
+        "theme": "travel"
+      }
+    },
+    {
+      "id": "demo-lexicon-arrivare",
+      "name": "arrivare",
+      "extra": {
+        "translation": "@lexicon_arrivare",
+        "nature": "verb",
+        "theme": "travel"
+      }
+    },
+    {
+      "id": "demo-lexicon-vicino",
+      "name": "vicino",
+      "extra": {
+        "translation": "@lexicon_vicino",
+        "nature": "adjective",
+        "theme": "travel"
+      }
+    },
+    {
+      "id": "demo-lexicon-veloce",
+      "name": "veloce",
+      "extra": {
+        "translation": "@lexicon_veloce",
+        "nature": "adjective",
+        "theme": "travel"
+      }
+    }
+  ],
   "_evening_phrases": [
     "@evening_phrase_0",
     "@evening_phrase_1",

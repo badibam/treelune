@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Strings of the flashcards tooltype -->
+    <string name="display_name">Flashcards</string>
+    <string name="usage">Pour réviser par répétition espacée les lignes d\'un autre outil : un lexique, des capitales, des dates. Chaque carte revient juste avant d\'être oubliée, de plus en plus tard à chaque bonne réponse. Un paquet ne contient pas les mots : il pointe vers les entrées de sa source, et un mot ajouté à la source fait une carte de plus.\n## Ce qu\'il fait\n- Plusieurs sens par ligne (italien vers français, et l\'inverse), un sens à la fois chaque jour\n- Des groupes tirés d\'un champ de la source (le thème d\'un mot)\n- Un nombre de nouvelles cartes et de révisions par jour\n## Pas fait pour\n- Garder les mots eux-mêmes (Données structurées)\n- Un quiz noté une fois (Questionnaire)</string>
+    <string name="ai_detail">A card is a line of the source (source_entry, an entry id) in one of the deck\'s directions (its key). Ask flashcards.due for the cards to offer now, with their front and back values, flashcards.counts for the numbers of each group, and rate a card with flashcards.review (rating AGAIN, HARD, GOOD or EASY) once the person has said how well they remembered it: the person rates themself, never you. A review is written only by flashcards.review, never by an ordinary write, and never changes; deleting a card\'s last review undoes it. Changing the source deletes every review, removing a direction its own, which asks the person first.</string>
+    <string name="guide_config">## La source\n- Source : l\'outil dont les lignes font les cartes, avec des filtres pour écarter ce qu\'on ne révise pas\n- Grouper par : un champ de la source, dont chaque valeur fait un groupe à réviser à part (le thème d\'un mot)\n\n## Les sens\n- Sens : chaque façon de poser une ligne, avec son nom, les champs du recto et ceux du verso. Le premier champ d\'une face est la question ou la réponse, les suivants des précisions\n- Un sens après l\'autre : le sens suivant d\'une ligne n\'arrive qu\'une fois le précédent acquis, son souvenir tenant une semaine\n\n## La journée\n- Nouvelles par jour : combien de cartes jamais vues entrent chaque jour, pour tout le paquet\n- Révisions par jour : combien de cartes déjà vues reviennent au plus chaque jour\n- Rétention voulue : la chance de se souvenir à laquelle une carte revient, 0,9 par défaut. Plus haut, les cartes reviennent plus souvent</string>
+    <string name="guide_screen">## Le paquet\n- Tout : les cartes du jour, tous groupes confondus\n- Une ligne par groupe, avec ses cartes à revoir et ses nouvelles. Une ligne pouvant être dans plusieurs groupes, Tout n\'est pas leur somme, et deux groupes peuvent montrer les mêmes nouvelles\nTouche une ligne pour choisir le sens, puis lance la séance.\n\n## La séance\nTouche la carte pour voir la réponse, puis dis comment tu t\'en es souvenu.\n- Raté : la carte revient plus tard dans la séance\n- Difficile, Bon, Facile : elle revient plus tard, d\'autant plus tard que c\'était facile\n- Revenir : annule la dernière note et remontre la carte\n- {arrow-left} Arrête la séance : une carte ratée pas encore repassée reste à revoir</string>
+    <string name="tagline">Des cartes à réviser tirées d\'un autre outil, chacune revenant juste avant d\'être oubliée</string>
+
+    <!-- Config -->
+    <string name="section_source">Source</string>
+    <string name="field_source">Source</string>
+    <string name="reference_review">le moment de la révision</string>
+    <string name="field_group_by">Grouper par</string>
+    <string name="schema_group_by">Le chemin d\'un champ de la source (data.theme) dont chaque valeur fait un groupe ; aucun pour un paquet sans groupes</string>
+    <string name="section_directions">Sens</string>
+    <string name="field_directions">Sens</string>
+    <string name="schema_direction_key">Donnée par l\'app à la création du sens, renvoyée telle quelle</string>
+    <string name="field_direction_name">Nom</string>
+    <string name="schema_direction_name">Le nom du sens, « IT → FR »</string>
+    <string name="field_face_field">Champ</string>
+    <string name="field_front">Recto</string>
+    <string name="schema_front">Les chemins des champs de la source montrés au recto, la question d\'abord</string>
+    <string name="field_back">Verso</string>
+    <string name="schema_back">Les chemins des champs de la source montrés au verso, la réponse d\'abord</string>
+    <string name="field_after_another">Un sens après l\'autre</string>
+    <string name="schema_after_another">Le sens suivant d\'une ligne n\'entre qu\'une fois le précédent acquis pour elle, dans l\'ordre des sens</string>
+    <string name="section_day">La journée</string>
+    <string name="field_new_per_day">Nouvelles par jour</string>
+    <string name="schema_new_per_day">Combien de cartes jamais vues entrent par jour, pour tout le paquet</string>
+    <string name="field_reviews_per_day">Révisions par jour</string>
+    <string name="schema_reviews_per_day">Combien de cartes déjà vues sont revues au plus par jour, pour tout le paquet</string>
+    <string name="field_desired_retention">Rétention voulue</string>
+    <string name="schema_desired_retention">La chance de se souvenir à laquelle une carte revient, entre 0,7 et 0,99</string>
+
+    <!-- A review -->
+    <string name="field_source_entry">Ligne</string>
+    <string name="schema_source_entry">La ligne de la source que la carte pose ; écrite par l\'app</string>
+    <string name="field_direction">Sens</string>
+    <string name="schema_direction">La clé du sens de la carte ; écrite par l\'app</string>
+    <string name="field_rating">Note</string>
+    <string name="schema_rating">AGAIN (raté), HARD, GOOD ou EASY : comment la carte a été retrouvée</string>
+    <string name="rating_again">Raté</string>
+    <string name="rating_hard">Difficile</string>
+    <string name="rating_good">Bon</string>
+    <string name="rating_easy">Facile</string>
+    <string name="field_stability">Stabilité</string>
+    <string name="schema_stability">Combien de jours le souvenir de la carte tient après la révision, avec 90 % de chances de s\'en souvenir</string>
+    <string name="field_difficulty">Difficulté</string>
+    <string name="schema_difficulty">De 1 à 10, la difficulté de la carte estimée par FSRS</string>
+    <string name="field_due">Échéance</string>
+    <string name="schema_due">Quand la carte est à revoir</string>
+    <string name="field_fsrs_version">Version de FSRS</string>
+    <string name="schema_fsrs_version">La version de FSRS qui a calculé l\'état</string>
+
+    <!-- Operations -->
+    <string name="operation_due">Les cartes à proposer maintenant, pour un groupe et un sens, avec les valeurs de leurs faces</string>
+    <string name="operation_counts">Les cartes à revoir et les nouvelles du paquet, de chaque groupe et de chaque sens</string>
+    <string name="operation_review">Noter une carte : son état est calculé par FSRS et écrit comme une révision</string>
+    <string name="param_group">Groupe</string>
+    <string name="schema_param_group">Une valeur du champ « Grouper par » ; aucune pour tout le paquet</string>
+    <string name="param_direction">Sens</string>
+    <string name="schema_param_direction">La clé d\'un sens ; aucune pour tous les sens</string>
+    <string name="param_source_entry">Ligne</string>
+    <string name="schema_param_source_entry">L\'id de la ligne de la source</string>
+    <string name="verbalize_due">Lire les cartes à proposer</string>
+    <string name="verbalize_counts">Compter les cartes du jour</string>
+    <string name="verbalize_review">Noter une carte</string>
+
+    <!-- Errors -->
+    <string name="error_source_reads">La source ne se lit pas : %1$s</string>
+    <string name="error_source_tool">La source doit être un outil.</string>
+    <string name="error_source_gone">L\'outil de la source n\'existe plus.</string>
+    <string name="error_source_kind">%1$s ne peut pas être la source d\'un paquet : il faut un outil qui garde des entrées, autre qu\'un paquet.</string>
+    <string name="error_field_gone">Le champ %1$s n\'existe plus dans %2$s.</string>
+    <string name="error_field_gone_session">Le champ %1$s n\'existe plus dans la source.</string>
+    <string name="error_direction_names">Deux sens portent le même nom.</string>
+    <string name="error_direction_unknown">Le paquet n\'a pas de sens %1$s.</string>
+    <string name="error_rating">Note inconnue : %1$s. Elle est AGAIN, HARD, GOOD ou EASY.</string>
+    <string name="error_not_a_line">%1$s n\'est pas une ligne de %2$s retenue par le paquet.</string>
+    <string name="error_no_question">La ligne %1$s n\'a pas de question dans le sens %2$s : son premier champ de recto est vide.</string>
+    <string name="start_refused">Une révision s\'écrit en notant une carte (flashcards.review), jamais par une écriture ordinaire.</string>
+    <string name="error_review_changed">Une révision ne se modifie pas : supprime la dernière d\'une carte pour l\'annuler.</string>
+    <string name="error_not_last_review">Seule la dernière révision d\'une carte s\'annule.</string>
+
+    <!-- Tile and page -->
+    <string name="count_due">%1$d à revoir</string>
+    <string name="count_new">%1$d nouvelles</string>
+    <string name="count_nothing">Rien pour aujourd\'hui</string>
+    <string name="group_all">Tout</string>
+    <string name="groups_note">Une ligne peut être dans plusieurs groupes : Tout n\'est pas la somme des groupes.</string>
+    <string name="direction_all">Tous les sens</string>
+
+    <!-- Session -->
+    <string name="session_nothing">Rien à réviser ici aujourd\'hui</string>
+    <string name="session_progress">%1$d / %2$d</string>
+    <string name="session_turn">Touche la carte pour voir la réponse</string>
+    <string name="session_over">Séance finie : %1$d cartes revues.</string>
+    <string name="session_back">Retour au paquet</string>
+    <string name="action_undo">Revenir</string>
+</resources>
