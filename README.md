@@ -2,19 +2,25 @@
 
 # Treelune
 
-**Keep track of what matters — workouts, meals, tasks, mood — with tools you put together yourself, and an AI that can read them, fill them in and set them up with you.**
+**Every tracking app does one thing, its own way. Treelune gives you the pieces, and you build the one you need.**
 
-For example, you note your meals, and the app adds up the day's calories, compares them to a target and draws them in a chart. Each tool can read the others.
+A tracker, a journal, a list, records, a goal, a chart, flashcards, a calendar… Each piece is set up your way, and they all fit together. What you note once is used everywhere: counted, compared, charted, reviewed.
+
+- The vocabulary list becomes a flashcard deck.
+- Meals draw on food records, and the day's calories add up by themselves.
+- Work hours split by client, ready for the invoice.
+- Each run moves the week's goal forward, and a curve shows how far you've come.
+- Each evening's mood colours a calendar, month after month.
 
 A free and open source Android app, with no account and no ads. The data stays on the phone.
 
 <!-- Screenshots: the home screen, a demo zone, a chart, a conversation with the AI, kept in fastlane/metadata/android/en-US/images/phoneScreenshots/ -->
 
-## What you can do
+## The pieces
 
-### Note
+### Zones and tools
 
-You sort your life into **zones** (Health, Work, Kitchen…), and in each zone you place the **tools** you need. Whatever you note in a tool, a weigh-in, a meal, a journal page, is one of its **entries**. The tool types:
+Each part of your life becomes a **zone**: training, a project, a vegetable patch, a language, and whatever else you want to add. In each zone, you place the **tools** you need. Whatever you note in a tool, a weigh-in, a meal, a journal page, is one of its **entries**. The tool types:
 
 <!-- tools -->
 - **Tracking** — Numbers, ratings, choices or timed durations, noted as they come: weight, sleep, mood, glasses of water
@@ -33,13 +39,13 @@ You sort your life into **zones** (Health, Work, Kitchen…), and in each zone y
 
 Each tool can be set up: its fields, its units, its reminders, how it shows on the zone.
 
-### Connect
+### What links them
 
 A **variable** is a figure worked out from the entries, such as the day's calories or the week's kilometres. A Goal compares it to its target, a Chart draws it, the AI reads it. An entry can also **point** to another one, a meal to the food's sheet, a harvest to its plant.
 
-### With an AI
+### With an AI, if you want
 
-The AI has the same moves as you: it reads the tools, adds entries to them, creates new ones and sets them up.
+An AI knows the same pieces you do. Ask it “set me up to train for a half marathon”, and it creates the zone, the tools and the links between them. It then reads the tools, adds entries to them, creates new ones and sets them up. Without AI, nothing is missing.
 
 - You talk to it in a conversation, attaching a tool or a zone in one gesture, over the period you care about.
 - Before any change, you can require it to show what it is about to do and wait for your approval, for the whole app, a zone, a tool or a conversation.

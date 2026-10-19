@@ -2,19 +2,25 @@
 
 # Treelune
 
-**Suis ce qui compte — sport, repas, tâches, humeur — avec des outils que tu assembles toi-même, et une IA qui peut les lire, les remplir et les régler avec toi.**
+**Chaque app de suivi fait une chose, à sa façon. Treelune te donne les pièces, et tu construis celle qu'il te faut.**
 
-Par exemple, tu notes tes repas, et l'app en tire les calories du jour, les compare à une cible et les dessine en graphique. Chaque outil peut lire les autres.
+Un suivi, un carnet, une liste, des fiches, un objectif, un graphique, des flashcards, un agenda… Chaque pièce se règle à ton idée, et toutes s'emboîtent. Ce que tu notes une fois sert partout : ça se compte, se compare, se dessine, se révise.
+
+- La liste de vocabulaire devient un paquet de flashcards.
+- Les repas puisent dans les fiches d'aliments, et les calories du jour se comptent seules.
+- Les heures de travail se répartissent par client, prêtes pour la facture.
+- Chaque sortie de course fait avancer l'objectif de la semaine, et une courbe montre le chemin parcouru.
+- L'humeur de chaque soir colore un calendrier, mois après mois.
 
 Une application Android libre, sans compte ni publicité. Les données restent sur le téléphone.
 
 <!-- Captures d'écran : l'accueil, une zone de la démo, un graphique, une conversation avec l'IA, rangées dans fastlane/metadata/android/en-US/images/phoneScreenshots/ -->
 
-## Ce que tu peux faire
+## Les pièces
 
-### Noter
+### Zones et outils
 
-Tu ranges ta vie en **zones** (Santé, Travail, Cuisine…), et dans chaque zone tu poses les **outils** dont tu as besoin. Ce qu'on note dans un outil, une pesée, un repas, une page de journal, en est une **entrée**. Les types d'outils :
+Chaque pan de ta vie devient une **zone** : le sport, un projet, un potager, une langue, et tout ce que tu voudras y ajouter. Dans chaque zone, tu poses les **outils** dont tu as besoin. Ce qu'on note dans un outil, une pesée, un repas, une page de journal, en est une **entrée**. Les types d'outils :
 
 <!-- tools -->
 - **Suivi** — Des chiffres, des notes sur une échelle, des choix ou des durées chronométrées, notés au fil des jours : poids, sommeil, humeur, verres d'eau
@@ -33,13 +39,13 @@ Tu ranges ta vie en **zones** (Santé, Travail, Cuisine…), et dans chaque zone
 
 Chaque outil se règle : ses champs, ses unités, ses rappels, son affichage sur la zone.
 
-### Relier
+### Ce qui les relie
 
 Une **variable** est un chiffre calculé à partir des entrées, comme les calories du jour ou les kilomètres de la semaine. Un Objectif la compare à sa cible, un Graphique la dessine, l'IA la lit. Une entrée peut aussi **pointer** vers une autre, un repas vers la fiche de l'aliment, une récolte vers sa plante.
 
-### Avec une IA
+### Avec une IA, si tu veux
 
-L'IA dispose des mêmes gestes que toi : elle lit les outils, y ajoute des entrées, en crée de nouveaux et les règle.
+Une IA connaît les mêmes pièces que toi. Demande-lui « monte-moi de quoi préparer un semi-marathon », et elle crée la zone, les outils et leurs liens. Elle lit ensuite les outils, y ajoute des entrées, en crée de nouveaux et les règle. Sans IA, rien ne manque.
 
 - Tu lui parles dans une conversation, en lui joignant d'un geste un outil ou une zone, sur la période qui t'intéresse.
 - Avant toute modification, tu peux exiger qu'elle montre ce qu'elle va faire et attende ton accord, pour toute l'app, une zone, un outil ou une conversation.
