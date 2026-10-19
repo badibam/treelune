@@ -112,6 +112,7 @@ Une idée sans spec : elle demande une décision avant du code.
 
 Ce qui marche, mais contredit l'architecture ou une règle du projet.
 
+- `~/.config/treelune/signing.env`, lu par `./run` pour signer une release, garde ses mots de passe en clair : les passer au trousseau (KWallet, via `secret-tool`, comme la clé OpenRouter du banc depuis le 2026-10-19), le `release.keystore` restant un fichier.
 - `CommandExecutor` lit la base directement (`AppDatabase.getDatabase`, les messages d'une session), hors du coordinateur.
 - `AutomationScheduler.getNextExecutionForAutomation()` est appelé depuis l'écran (`AutomationCard`, `AutomationScreen`), sans passer par le service.
 - `CommandExecutor` remplace un nom ou un `schema_id` manquant par `"unknown"` : un repli que la règle du projet interdit.
