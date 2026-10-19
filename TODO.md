@@ -79,6 +79,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 
 Une spec existe dans `docs/design/`.
 
+- L'outil Flashcards (`docs/design/flashcards.md`) : un paquet qui pointe vers les lignes d'un autre outil, ses sens, une entrée par révision, FSRS porté et testé contre sa référence, la séance, la tuile et la page, `flashcards.due` et `flashcards.review`.
 - L'historique des écritures et leur annulation (`docs/design/undo-history.md`) : un pas par opération demandée de l'extérieur, la ligne entière avant et après, écrite par une seule classe que garde un script, 30 jours, le service `history` ouvert à l'IA, son écran.
 
 ## À concevoir
