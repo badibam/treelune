@@ -136,6 +136,7 @@ object SchemaNotation {
             "date-time" -> return "ISO 8601 date-time with offset"
             "duration" -> return "ISO 8601 duration"
             "date" -> return "date YYYY-MM-DD"
+            FieldValueSchema.MARKUP -> return "text with markup"
             FieldValueSchema.REFERENCE -> {
                 val kinds = schema.optJSONObject("properties")?.optJSONObject("kind")?.optJSONArray("enum")
                     ?.let { options -> (0 until options.length()).joinToString("|") { options.getString(it) } } ?: "any"
