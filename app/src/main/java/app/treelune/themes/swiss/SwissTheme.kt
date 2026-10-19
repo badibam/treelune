@@ -180,6 +180,9 @@ object SwissTheme : ThemeContract {
     override fun sound(signal: UISignal): Int? = null
 
     /**
+    /** A tile's name flush with its icon's side, on the grid's left line, as every text of the theme. */
+    override fun tileNameAlign(): TextAlign = TextAlign.Start
+
      * How far the content stands from the tile's edge: under the rule and 8 dp of air, a tile
      * having no margin at its sides (its content flush with its rule's left end); 8 dp all round
      * an icon's tile, a block of ink.

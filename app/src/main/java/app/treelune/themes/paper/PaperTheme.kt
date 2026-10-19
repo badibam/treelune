@@ -184,6 +184,9 @@ object PaperTheme : ThemeContract {
     /** Silent: the theme's sounds are chosen apart (docs/THEMES.md, Les sons). */
     override fun sound(signal: UISignal): Int? = null
 
+    /** A tile's name centered in the width its icon leaves. */
+    override fun tileNameAlign(): TextAlign = TextAlign.Center
+
     /** How far the content stands from the tile's top: 6 dp, 8 all round an icon's tile. */
     @Composable
     override fun tileFrame(displayMode: DisplayMode): Dp =

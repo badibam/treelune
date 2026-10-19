@@ -203,6 +203,9 @@ object RetroTheme : ThemeContract {
         UISignal.REFUSE -> R.raw.retro_refuse
     }
 
+    /** A tile's name centered in the width its icon leaves. */
+    override fun tileNameAlign(): TextAlign = TextAlign.Center
+
     /** The frame's cell: the content of a tile starts one cell in. */
     @Composable
     override fun tileFrame(displayMode: DisplayMode): Dp = retroGrid().cells(1)

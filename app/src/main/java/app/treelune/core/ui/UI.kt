@@ -676,17 +676,19 @@ object UI {
 
     /**
      * The header of a tile, filling the space it is given: its icon ([TileIcon]) at the start,
-     * its name centered in the width left, and [subtitle] under it in the caption when given.
-     * Without an icon or a mark to show, the name is centered in the whole width.
+     * its name in the width left, centered or flush with the icon as the theme places it
+     * (tileNameAlign), and [subtitle] under it in the caption when given. Without an icon or a
+     * mark to show, the name takes the whole width.
      */
     @Composable
     fun TileHeader(iconName: String?, iconColor: TagColor?, name: String, waiting: Boolean, running: Boolean, textType: TextType, subtitle: String? = null) {
         val iconShown = !iconName.isNullOrBlank() || waiting || running
         Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
             if (iconShown) TileIcon(iconName, iconColor, waiting, running)
-            Column(modifier = Modifier.weight(1f).padding(start = if (iconShown) Space.M else 0.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(name, textType, maxLines = 2, fillMaxWidth = true, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                if (subtitle != null) Text(subtitle, TextType.CAPTION, maxLines = 1, fillMaxWidth = true, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            val align = CurrentTheme.current.tileNameAlign()
+            Column(modifier = Modifier.weight(1f).padding(start = if (iconShown) Space.M else 0.dp)) {
+                Text(name, textType, maxLines = 2, fillMaxWidth = true, textAlign = align)
+                if (subtitle != null) Text(subtitle, TextType.CAPTION, maxLines = 1, fillMaxWidth = true, textAlign = align)
             }
         }
     }

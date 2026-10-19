@@ -79,6 +79,12 @@ interface ThemeContract {
     fun sound(signal: app.treelune.core.ui.sound.UISignal): Int?
 
     /**
+     * Where a tile's name stands in the width its icon leaves (UI.TileHeader): centered in it, or
+     * flush with the icon's side.
+     */
+    fun tileNameAlign(): TextAlign
+
+    /**
      * How far a tool's tile frame (ToolCardContainer) keeps its content from the edge of its
      * cells, on each side, in [displayMode]: the space between tiles and the frame's own margin.
      */
