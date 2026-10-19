@@ -79,6 +79,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 
 Une spec existe dans `docs/design/`.
 
+- Le champ Image (`docs/design/image-field.md`) : une liste d'images par champ, la table d'images commune aux messages et aux entrées, le format gardé (JPEG ou PNG), l'IA qui voit une description et demande les images, qui range une photo de la conversation.
 - L'outil Flashcards (`docs/design/flashcards.md`) : un paquet qui pointe vers les lignes d'un autre outil, ses sens, une entrée par révision, FSRS porté et testé contre sa référence, la séance, la tuile et la page, `flashcards.due` et `flashcards.review`.
 - L'historique des écritures et leur annulation (`docs/design/undo-history.md`) : un pas par opération demandée de l'extérieur, la ligne entière avant et après, écrite par une seule classe que garde un script, 30 jours, le service `history` ouvert à l'IA, son écran.
 
@@ -130,12 +131,10 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 
 ## Bugs du téléphone
 
-- Possibilité de stocker image en champs supplementaire par exemple ? Et/ou galerie d'images ? — Outils — Idée
 - Thème suiss à améliorer — UI — Amélioration
 - Quand on édite une note, c'est très pénible avec le clavier andfoid de faire des liste avec tiret etc. Je vois / options : boutons d'edition dans champs de texte / champs de type texte mis e' forme / option de champs de texte : pour permettre mise en forme / autre type de champ : liste (numérotée ou pas) : qui permet de mulriplier les champs er chacun correspond à 1 étape. Si 1 seul champ se comporte comme texte normal ? / mix entre plusieurs options précédentes ? À bien réfléchir, avec conséquances en termes d'UI en particulier. Ce que je constate c'est qu'il y a déjà un endroit pour placer des boutons de mise en forme : ma ligne du label du champ. À voir..... — Core — Idée
 - Filtres et tri dans les outils ? — Core — Amélioration
 - Dans quel tooltype on peut stocker recette ? Comme seance mais en mode aperçu par exemple ? (Ça demanderait de changer et renommer seance). Ou alors nouveau type. Données strucgurées : manque succession — Core — Idée
-- Pouvoir stocker des images (par exemple pour faire des fiches de plantes etc) — Core — Idée
 
 ## En attente d'un déclencheur
 
