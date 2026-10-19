@@ -324,7 +324,7 @@ fun NotesScreen(
             initialNoteId = dialogNote?.id,
             initialCustomFields = dialogNote?.extra ?: emptyMap(),
             onConfirm = { title, content, position, customFields ->
-                if (dialogNote == null) {
+                val result = if (dialogNote == null) {
                     // Create new note
                     createNote(coordinator, toolInstanceId, title, content, position ?: 0, customFields) {
                         refreshTrigger++
@@ -337,7 +337,8 @@ fun NotesScreen(
                         showNoteDialog = false
                     }
                 }
-                true // Always return success for now
+                // The service's refusal, said in the dialog that stays open
+                if (result.isSuccess) null else result.error ?: s.shared("message_error_simple")
             },
             onCancel = {
                 showNoteDialog = false
@@ -360,7 +361,7 @@ private suspend fun moveNote(coordinator: Coordinator, note: NoteEntry, position
 }
 
 /**
- * Create a new note
+ * Create a new note; [title] null or empty gives it no name. The service's result is returned.
  */
 private suspend fun createNote(
     coordinator: Coordinator,
@@ -370,7 +371,7 @@ private suspend fun createNote(
     position: Int,
     customFields: Map<String, Any?>,
     onSuccess: () -> Unit
-) {
+): app.treelune.core.commands.CommandResult {
     val params = mutableMapOf<String, Any>(
         "tool_instance_id" to toolInstanceId,
         "tooltype" to "notes",
@@ -383,7 +384,8 @@ private suspend fun createNote(
         }
     )
 
-    title?.let { params["name"] = it }
+    // A name is never empty: a title left empty is no name at all
+    title?.takeIf { it.isNotEmpty() }?.let { params["name"] = it }
 
     // Add custom fields if any
     if (customFields.isNotEmpty()) {
@@ -391,14 +393,15 @@ private suspend fun createNote(
     }
 
     val result = coordinator.processUserAction("tool_data.create", params)
-    if (result?.isSuccess == true) {
+    if (result.isSuccess) {
         onSuccess()
     }
+    return result
 }
 
 /**
  * Update an existing note. [title] is null when the notes take no title, its name then left as
- * it is; a title emptied clears it.
+ * it is; a title emptied clears it. The service's result is returned.
  */
 private suspend fun updateNote(
     coordinator: Coordinator,
@@ -407,7 +410,7 @@ private suspend fun updateNote(
     newContent: String,
     customFields: Map<String, Any?>,
     onSuccess: (NoteEntry) -> Unit
-) {
+): app.treelune.core.commands.CommandResult {
     val params = mutableMapOf<String, Any>(
         "id" to note.id,
         "data" to JSONObject().apply {
@@ -421,10 +424,11 @@ private suspend fun updateNote(
     params["extra"] = app.treelune.core.fields.extraForUpdate(note.extra, customFields)
 
     val result = coordinator.processUserAction("tool_data.update", params)
-    if (result?.isSuccess == true) {
+    if (result.isSuccess) {
         val updatedNote = note.copy(title = if (title == null) note.title else title.ifEmpty { null }, content = newContent.trim(), extra = customFields)
         onSuccess(updatedNote)
     }
+    return result
 }
 
 /**

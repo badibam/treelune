@@ -31,7 +31,8 @@ import org.json.JSONObject
  *
  * Simple dialog for creating or editing a note: its title when the tool's notes take one
  * ([titles]), its content, its user's fields. [onConfirm] gets the title trimmed, empty when
- * cleared, or null when the notes take no title.
+ * left empty or cleared, or null when the notes take no title; it returns the error to show, the
+ * dialog then staying open, or null once saved.
  */
 @Composable
 fun EditNoteDialog(
@@ -44,7 +45,7 @@ fun EditNoteDialog(
     initialContent: String = "",
     initialNoteId: String? = null,
     initialCustomFields: Map<String, Any?> = emptyMap(),
-    onConfirm: suspend (title: String?, content: String, position: Int?, customFields: Map<String, Any?>) -> Boolean,
+    onConfirm: suspend (title: String?, content: String, position: Int?, customFields: Map<String, Any?>) -> String?,
     onCancel: () -> Unit
 ) {
     // Get context and coordinator
@@ -163,12 +164,9 @@ fun EditNoteDialog(
                         // Use coroutine to call suspend function
                         coroutineScope.launch {
                             try {
-                                val success = onConfirm(if (titles) title.trim() else null, content.trim(), insertPosition, customFieldsValues)
-                                if (success) {
-                                    // Dialog will close automatically
-                                } else {
-                                    errorMessage = s.shared("message_error_simple")
-                                }
+                                // Saved, the screen closes the dialog; refused, the reason is shown
+                                onConfirm(if (titles) title.trim() else null, content.trim(), insertPosition, customFieldsValues)
+                                    ?.let { errorMessage = it }
                             } catch (e: Exception) {
                                 LogManager.ui("Error saving note: ${e.message}", "ERROR")
                                 errorMessage = s.shared("message_error").format(e.message ?: "")
