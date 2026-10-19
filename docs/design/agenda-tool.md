@@ -108,7 +108,7 @@ L'Agenda en est le premier usage ; Messages, les routines et les échéances de 
 ## La tuile
 
 - **Le résumé** : le prochain événement ou celui en cours, son nom et son moment en relatif (« dans 2 h », « demain 14 h », « jeu. 23 », « en cours ») ; « Rien à venir » sinon.
-- **Le corps** : les événements à venir, un par `TileLine` : le moment à gauche (« 14:30 » aujourd'hui, « Dem. », « Jeu. 23 »), le nom au milieu, les champs de l'utilisateur en seconde ligne discrète ; un annulé précédé de « Annulé · », un retiré absent. EXTENDED, ce que tient sa rangée ; SQUARE, ses trois rangées ; FULL, les 7 prochains jours.
+- **Le corps** : les événements à venir, un par `TileLine` : le moment à gauche (« 14:30 » aujourd'hui, « Dem. », « Jeu. 23 »), le nom au milieu, les champs de l'utilisateur en seconde ligne discrète ; un annulé précédé de « Annulé · », un retiré absent. EXTENDED, ce que tient sa rangée ; SQUARE, ses trois rangées ; FULL, tous, les 90 jours que crée une série compris.
 - Un événement touché ouvre sa fiche (`EntryToOpen`) ; ailleurs, l'outil.
 
 ## L'IA

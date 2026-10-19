@@ -439,3 +439,4 @@ Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la po
 
 - Les boutons d'une fenêtre (supprimer un outil, une confirmation, une date) au cran de taille 3, dans chaque thème : côte à côte s'ils tiennent, sinon l'un sous l'autre en pleine largeur, l'action principale en haut ; jamais un bouton écrasé ou absent.
 - Un outil vide en Étendu, en Carré et en Complet : la tuile n'a que sa ligne d'en-tête, les tuiles du dessous remontent ; à moitié rempli, elle s'arrête sous sa dernière ligne ; plein, et un Graphique, elle a sa hauteur d'avant ; en mode d'édition de la grille, Étendu et Carré montrent toutes leurs cases ; dans les huit thèmes, en une colonne aussi.
+- Un Agenda en Complet dont le prochain événement est dans plus de sept jours : il le montre, avec tous les suivants ; jamais moins qu'en Étendu.

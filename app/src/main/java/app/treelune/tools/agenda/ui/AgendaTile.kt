@@ -40,7 +40,7 @@ import org.json.JSONObject
  * A calendar's tile (docs/design/agenda-tool.md, « La tuile »): the summary says the event going
  * on or the next one, its name and its moment in relative words, « Nothing coming » otherwise; the
  * body lists the events to come, one line each, the moment at the start, the name, the
- * calendar's fields below; in FULL, the next seven days. A cancelled event says so, a removed one
+ * calendar's fields below; in FULL, all of them. A cancelled event says so, a removed one
  * is not there. An event touched opens; elsewhere, the tool.
  */
 @Composable
@@ -82,9 +82,7 @@ fun rememberAgendaTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTil
             override fun Body(rows: Int?) {
                 val loaded = events ?: return
                 val now = System.currentTimeMillis()
-                val week = now + 7L * 24 * 60 * 60 * 1000
-                val shown = coming(loaded, now).let { all -> if (rows == null) all.filter { it.start <= week } else all }
-                TileGrid(rows, shown, columns = 1) { event ->
+                TileGrid(rows, coming(loaded, now), columns = 1) { event ->
                     TileLine(
                         text = if (event.isPlanned) event.name else s.tool("cancelled_name").format(event.name),
                         modifier = Modifier.clickable { open(EntryToOpen.Existing(event.id)) },
