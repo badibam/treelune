@@ -6,7 +6,7 @@ import app.treelune.core.fields.FieldType
 import app.treelune.core.selection.Edge
 import app.treelune.core.selection.TimePoint
 import app.treelune.core.selection.TimeResolver
-import app.treelune.core.ui.components.PeriodType
+import app.treelune.core.selection.PeriodType
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZonedDateTime

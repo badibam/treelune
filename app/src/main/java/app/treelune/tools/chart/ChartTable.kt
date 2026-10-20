@@ -3,10 +3,10 @@ package app.treelune.tools.chart
 import app.treelune.core.fields.ChoiceSettings
 import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldType
-import app.treelune.core.ui.components.PeriodType
-import app.treelune.core.ui.components.RelativePeriod
-import app.treelune.core.ui.components.getPeriodEndTimestamp
-import app.treelune.core.ui.components.resolveRelativePeriod
+import app.treelune.core.selection.PeriodType
+import app.treelune.core.selection.RelativePeriod
+import app.treelune.core.selection.getPeriodEndTimestamp
+import app.treelune.core.selection.resolveRelativePeriod
 import java.time.Instant
 import java.time.ZoneId
 

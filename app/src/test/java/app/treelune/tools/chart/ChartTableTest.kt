@@ -2,7 +2,7 @@ package app.treelune.tools.chart
 
 import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldType
-import app.treelune.core.ui.components.PeriodType
+import app.treelune.core.selection.PeriodType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

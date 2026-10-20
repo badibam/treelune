@@ -1,6 +1,5 @@
-package app.treelune.core.ui.components
+package app.treelune.core.selection
 
-import app.treelune.core.selection.TimeResolver
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.LocalDate

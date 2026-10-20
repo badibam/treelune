@@ -2,8 +2,8 @@ package app.treelune.tools.journal.utils
 
 import android.content.Context
 import app.treelune.core.strings.Strings
-import app.treelune.core.ui.components.PeriodType
-import app.treelune.core.ui.components.normalizeTimestampWithConfig
+import app.treelune.core.selection.PeriodType
+import app.treelune.core.selection.normalizeTimestampWithConfig
 import app.treelune.core.utils.DateUtils
 
 /**

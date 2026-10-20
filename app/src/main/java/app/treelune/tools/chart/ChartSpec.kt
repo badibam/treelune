@@ -4,7 +4,7 @@ import app.treelune.core.selection.EntryPeriod
 import app.treelune.core.selection.EntrySelection
 import app.treelune.core.terms.Term
 import app.treelune.core.themes.TagColor
-import app.treelune.core.ui.components.PeriodType
+import app.treelune.core.selection.PeriodType
 import org.json.JSONArray
 import org.json.JSONObject
 

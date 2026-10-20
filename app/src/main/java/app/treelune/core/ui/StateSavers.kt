@@ -49,19 +49,19 @@ val MessageSegmentsSaver: Saver<List<app.treelune.core.ai.data.MessageSegment>, 
     }
 )
 
-val NullablePeriodSaver: Saver<app.treelune.core.ui.components.Period?, String> = Saver(
+val NullablePeriodSaver: Saver<app.treelune.core.selection.Period?, String> = Saver(
     save = { it?.let { period -> "${period.type.name}:${period.timestamp}" } },
     restore = {
         val (type, timestamp) = it.split(":", limit = 2)
-        app.treelune.core.ui.components.Period(timestamp.toLong(), app.treelune.core.ui.components.PeriodType.valueOf(type))
+        app.treelune.core.selection.Period(timestamp.toLong(), app.treelune.core.selection.PeriodType.valueOf(type))
     }
 )
 
-val PeriodSaver: Saver<app.treelune.core.ui.components.Period, String> = Saver(
+val PeriodSaver: Saver<app.treelune.core.selection.Period, String> = Saver(
     save = { "${it.type.name}:${it.timestamp}" },
     restore = {
         val (type, timestamp) = it.split(":", limit = 2)
-        app.treelune.core.ui.components.Period(timestamp.toLong(), app.treelune.core.ui.components.PeriodType.valueOf(type))
+        app.treelune.core.selection.Period(timestamp.toLong(), app.treelune.core.selection.PeriodType.valueOf(type))
     }
 )
 

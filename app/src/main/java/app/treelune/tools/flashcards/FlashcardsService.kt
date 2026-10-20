@@ -11,7 +11,7 @@ import app.treelune.core.selection.TimeResolver
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.services.OperationResult
 import app.treelune.core.strings.Strings
-import app.treelune.core.ui.components.PeriodType
+import app.treelune.core.selection.PeriodType
 import app.treelune.core.utils.JsonUtils
 import app.treelune.core.utils.LogManager
 import org.json.JSONObject

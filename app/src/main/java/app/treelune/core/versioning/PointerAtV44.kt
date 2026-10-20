@@ -3,9 +3,9 @@ package app.treelune.core.versioning
 import app.treelune.core.config.DateTimeConfig
 import app.treelune.core.config.FormatDefaults
 import app.treelune.core.database.entities.AppSettingCategories
-import app.treelune.core.ui.components.Period
-import app.treelune.core.ui.components.PeriodType
-import app.treelune.core.ui.components.getPeriodEndTimestamp
+import app.treelune.core.selection.Period
+import app.treelune.core.selection.PeriodType
+import app.treelune.core.selection.getPeriodEndTimestamp
 import org.json.JSONArray
 import org.json.JSONObject
 import java.time.ZoneId

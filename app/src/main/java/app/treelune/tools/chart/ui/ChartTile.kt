@@ -23,7 +23,7 @@ import app.treelune.core.strings.StringsContext
 import app.treelune.core.tools.ToolTile
 import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
-import app.treelune.core.ui.components.PeriodType
+import app.treelune.core.selection.PeriodType
 import app.treelune.core.ui.selectors.PointerDescription
 import app.treelune.core.utils.DataChangeEvent
 import app.treelune.core.utils.DataChangeNotifier
