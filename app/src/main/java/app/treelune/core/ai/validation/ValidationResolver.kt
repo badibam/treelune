@@ -157,14 +157,11 @@ class ValidationResolver(private val context: Context) {
         // A change refused for another reason is refused at its execution, saying why
         if (!result.isSuccess) return null
         val migration = result.data?.get("migration") as? Map<*, *> ?: return null
-        fun count(key: String) = (migration[key] as? Number)?.toInt() ?: 0
-        val removed = count("removed_values")
-        val deleted = count("deleted_entries")
-        val reinterpreted = count("reinterpreted_values")
+        val parts = app.treelune.core.fields.migration.MigrationCounts.parts(migration, s::shared)
         // The other tools whose filters it leaves aiming at an option gone are asked about too
         val aimedBy = (migration["aimed_by"] as? List<*>).orEmpty().map { it.toString() }
         val reasons = listOfNotNull(
-            s.shared("validation_reason_past_data").format(removed, deleted, reinterpreted).takeIf { removed + deleted + reinterpreted > 0 },
+            s.shared("validation_reason_past_data").format(parts.joinToString(", ")).takeIf { parts.isNotEmpty() },
             s.shared("validation_reason_filters_aimed").format(aimedBy.joinToString(", ")).takeIf { aimedBy.isNotEmpty() }
         )
         return reasons.takeIf { it.isNotEmpty() }?.joinToString(" ")

@@ -21,6 +21,8 @@
     <string name="field_group_by">Group by</string>
     <string name="schema_group_by">The path of a field of the source (data.theme) each value of which makes a group; none for a deck without groups</string>
     <string name="section_directions">How they are asked</string>
+    <string name="removed_direction">%1$d review(s) of the direction « %2$s » deleted</string>
+    <string name="removed_source_changed">the deck\'s %1$d review(s) deleted, its source changing</string>
     <string name="field_directions">Directions</string>
     <string name="schema_direction_key">Given by the app when the direction is created, sent back unchanged</string>
     <string name="field_direction_name">Name</string>

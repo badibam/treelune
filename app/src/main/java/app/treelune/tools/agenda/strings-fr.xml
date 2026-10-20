@@ -78,6 +78,8 @@
     <string name="action_edit_series">Modifier la série</string>
     <string name="delete_event_confirm">Supprimer « %1$s » ?</string>
     <string name="delete_series_confirm">Supprimer la série « %1$s » ? Ses occurrences à venir partent avec elle, les passées restent.</string>
+    <string name="removed_series_moved">%1$d occurrence(s) à venir de « %2$s » supprimée(s), redonnée(s) à ses nouveaux horaires</string>
+    <string name="removed_series_gone">%1$d occurrence(s) à venir de « %2$s » supprimée(s) avec leur série</string>
     <string name="series_change_confirm">Les %1$d occurrences à venir seront recréées : ce que tu y as changé sera perdu.</string>
     <string name="moment_at">%1$s, %2$s</string>
     <string name="moment_range">%1$s, %2$s – %3$s</string>

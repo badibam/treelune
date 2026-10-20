@@ -176,7 +176,7 @@
 
     <!-- Validation reasons -->
     <string name="validation_reason_app">The home screen is protected</string>
-    <string name="validation_reason_past_data">The config changes entries already recorded: %1$d value(s) removed, %2$d entry(ies) deleted, %3$d value(s) read differently.</string>
+    <string name="validation_reason_past_data">The config changes entries already recorded: %1$s.</string>
     <string name="validation_reason_filters_aimed">A filter of %1$s uses an option the config removes or renames, and would find nothing.</string>
     <string name="validation_reason_zone">The zone « %1$s » is protected</string>
     <string name="validation_reason_tool">The data of « %1$s » is protected</string>
@@ -1635,7 +1635,7 @@
     <string name="migration_fill_title">Values needed</string>
     <string name="migration_fill_message">%1$d entr(ies) have no value for %2$s, which this change makes required. Give the value they take, or cancel.</string>
     <string name="tools_config_error_not_found">Tool not found</string>
-    <string name="service_error_migration_unconfirmed">This change removes %1$d value(s) from this tool\'s entries, deletes %2$d entry(ies) left without a required value, and reads %3$d kept value(s) differently (new bounds, order). Tell the user, and send it again with "confirm_migration": true once they agree.</string>
+    <string name="service_error_migration_unconfirmed">This change touches this tool\'s entries: %1$s. Tell the user, and send it again with "confirm_migration": true once they agree.</string>
     <string name="service_error_migration_filters_aimed">A filter of %1$s compares a field with an option this change removes or renames: it would find nothing. Tell the user, and send it again with "confirm_migration": true once they agree.</string>
     <string name="service_error_migration_missing_values">Entries have no value for a field this change makes required: %1$s. Give the value they take in "fill_values": {"data": {"field": value}}.</string>
     <string name="service_error_migration_fill_unknown">"fill_values" names %1$s, which is not a required field of "data" in this config</string>

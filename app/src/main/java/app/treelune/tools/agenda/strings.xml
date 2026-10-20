@@ -82,6 +82,8 @@
     <string name="action_edit_series">Edit the series</string>
     <string name="delete_event_confirm">Delete « %1$s »?</string>
     <string name="delete_series_confirm">Delete the series « %1$s »? Its occurrences to come go with it, the past ones stay.</string>
+    <string name="removed_series_moved">%1$d occurrence(s) to come of « %2$s » deleted, given again at its new times</string>
+    <string name="removed_series_gone">%1$d occurrence(s) to come of « %2$s » deleted with their series</string>
     <string name="series_change_confirm">The %1$d occurrences to come will be made again: what you changed in them will be lost.</string>
     <string name="moment_at">%1$s, %2$s</string>
     <string name="moment_range">%1$s, %2$s – %3$s</string>

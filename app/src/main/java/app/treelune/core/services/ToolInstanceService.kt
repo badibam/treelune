@@ -24,6 +24,7 @@ import app.treelune.core.fields.FieldNameGenerator
 import app.treelune.core.fields.FieldConfigValidator
 import app.treelune.core.fields.ValidationException
 import app.treelune.core.fields.migration.EntryMigration
+import app.treelune.core.fields.migration.MigrationCounts
 import app.treelune.core.database.transaction
 import app.treelune.core.scheduling.CoreScheduler
 import kotlinx.coroutines.CoroutineScope
@@ -444,10 +445,20 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         // What the tool type's own rules remove under the new config, deleted with the rest
         val previous = JSONObject(tool.config_json)
         val next = JSONObject(newConfigJson)
-        val removed = toolType.entriesRemovedByConfig(previous, next, entries, context)
-            .filter { entry -> plan.deleted.none { it.id == entry.id } }
+        // Each entry counted once, in the first reason that removes it, none already deleted by the fields
+        val counted = plan.deleted.map { it.id }.toMutableSet()
+        val groups = toolType.entriesRemovedByConfig(previous, next, entries, context).mapNotNull { group ->
+            val own = group.entries.filter { counted.add(it.id) }
+            own.takeIf { it.isNotEmpty() }?.let { it to group.reason(it.size) }
+        }
+        val removed = groups.flatMap { it.first }
         val removedIds = removed.map { it.id }.toSet()
-        val fieldsDone = plan.copy(updated = plan.updated.filter { it.id !in removedIds }, deleted = plan.deleted + removed)
+        val fieldsDone = plan.copy(
+            updated = plan.updated.filter { it.id !in removedIds },
+            deleted = plan.deleted + removed,
+            removals = groups.map { it.second },
+            removedByRules = removed.size
+        )
 
         // Then what its own rules change, on the entries as the change of fields leaves them
         val deletedIds = fieldsDone.deleted.map { it.id }.toSet()
@@ -475,7 +486,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         }
         if ((plan.touchesPast || aimedBy.isNotEmpty()) && !confirmed) {
             val reasons = listOfNotNull(
-                s.shared("service_error_migration_unconfirmed").format(plan.removedValues, plan.deleted.size, plan.reinterpreted).takeIf { plan.touchesPast },
+                s.shared("service_error_migration_unconfirmed").format(MigrationCounts.parts(report(plan, aimedBy)["migration"] as Map<*, *>, s::shared).joinToString(", ")).takeIf { plan.touchesPast },
                 s.shared("service_error_migration_filters_aimed").format(aimedBy.joinToString(", ")).takeIf { aimedBy.isNotEmpty() }
             )
             return OperationResult.error(reasons.joinToString(" "), report(plan, aimedBy))
@@ -505,6 +516,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         "aimed_by" to aimedBy,
         "removed_values" to plan.removedValues,
         "deleted_entries" to plan.deleted.size,
+        "deleted_without_value" to plan.deletedWithoutValue,
+        "removals" to plan.removals,
         "filled_values" to plan.filledValues,
         "missing_values" to mapOf("data" to plan.missing),
         "reinterpreted_values" to plan.reinterpreted,

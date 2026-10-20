@@ -36,6 +36,9 @@ object EntryMigration {
      * @property reinterpreted The values kept but read under another meaning (a scale's other bounds)
      * @property changedMeaning The user's fields whose values a change of meaning touches (its type,
      *   a scale's bounds, the number of answers of a choice): those a new field can take instead
+     * @property removals Among [deleted], what the tool type's own rules remove, one sentence per
+     *   reason, its count in it (RemovedByConfig); the rest lost the value of a required field
+     * @property removedByRules How many of [deleted] the [removals] count
      */
     data class Plan(
         val updated: List<ToolDataEntity>,
@@ -44,8 +47,13 @@ object EntryMigration {
         val filledValues: Int,
         val missing: Map<String, Int>,
         val reinterpreted: Int = 0,
-        val changedMeaning: List<String> = emptyList()
+        val changedMeaning: List<String> = emptyList(),
+        val removals: List<String> = emptyList(),
+        val removedByRules: Int = 0
     ) {
+        /** The entries deleted for the value of a required field they lost. */
+        val deletedWithoutValue: Int get() = deleted.size - removedByRules
+
         /** Whether applying it loses something recorded. */
         val losesData: Boolean get() = removedValues > 0 || deleted.isNotEmpty()
 

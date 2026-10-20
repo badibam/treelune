@@ -158,14 +158,15 @@ interface ToolTypeContract {
 
     /**
      * The entries [config] removes among those recorded ([entries]), beyond what its fields
-     * lose: a list set to remove what is checked removes the items already checked; a calendar
-     * whose series changes its schedule, the occurrences to come, to be made again. They join
-     * the entries a config change deletes (ToolInstanceService.planMigration), so nothing goes
-     * before the user or the AI agrees to it (confirm_migration).
+     * lose, in groups that each say why: a list set to remove what is checked removes the items
+     * already checked; a calendar whose series changes its schedule, the occurrences to come, to
+     * be made again. They join the entries a config change deletes
+     * (ToolInstanceService.planMigration), so nothing goes before the user or the AI agrees to it
+     * (confirm_migration), told each group's reason.
      *
      * @param previous The config as stored, before the change
      */
-    fun entriesRemovedByConfig(previous: JSONObject, config: JSONObject, entries: List<ToolDataEntity>, context: Context): List<ToolDataEntity> = emptyList()
+    fun entriesRemovedByConfig(previous: JSONObject, config: JSONObject, entries: List<ToolDataEntity>, context: Context): List<RemovedByConfig> = emptyList()
 
     /**
      * The entries whose content [config] changes, beyond what its fields do to them, written with
@@ -298,3 +299,11 @@ interface ToolTypeContract {
      */
     fun getScheduler(): ToolScheduler? = null
 }
+
+/**
+ * Entries a tool type's own rule removes when its config changes (entriesRemovedByConfig), and
+ * why, in the words the user reads for how many go: « 12 révisions du sens « Français → Anglais »
+ * supprimées ». The count is the service's, once the entries its fields already delete are
+ * left out.
+ */
+data class RemovedByConfig(val entries: List<ToolDataEntity>, val reason: (count: Int) -> String)

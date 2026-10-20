@@ -4,6 +4,7 @@
 
     <!-- Métadonnées -->
     <string name="display_name">Liste</string>
+    <string name="removed_checked">%1$d élément(s) coché(s) retiré(s)</string>
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
     <string name="usage">Pour ce qui reste à faire, coché une fois fait : courses, tâches, check-list.\n## Ce qu\'il fait\n- Si on l\'active, une échéance par élément, avec une notification le moment venu, et l\'élément reste en attente tant qu\'il n\'est pas coché\n- Ou bien un élément qui disparaît dès qu\'il est coché, pratique pour les courses\n## Pas fait pour\n- Un rappel qui revient à rythme fixe (Messages)</string>
     <!-- The Guide's chapter, beside the usage: every setting of the config, every button of the screen (Markup) -->

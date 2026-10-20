@@ -199,8 +199,14 @@ object AgendaToolType : ToolTypeContract {
         if (AgendaEvent.of(entry).series != null) s(context).tool("error_delete_occurrence") else null
 
     /** The occurrences to come of a series whose times change, or which is gone. */
-    override fun entriesRemovedByConfig(previous: JSONObject, config: JSONObject, entries: List<ToolDataEntity>, context: Context): List<ToolDataEntity> =
-        AgendaRules.removedByConfig(previous, config, entries, System.currentTimeMillis())
+    override fun entriesRemovedByConfig(previous: JSONObject, config: JSONObject, entries: List<ToolDataEntity>, context: Context): List<app.treelune.core.tools.RemovedByConfig> {
+        val s = s(context)
+        return AgendaRules.removedByConfig(previous, config, entries, System.currentTimeMillis()).map { removal ->
+            app.treelune.core.tools.RemovedByConfig(removal.entries) {
+                s.tool(if (removal.gone) "removed_series_gone" else "removed_series_moved").format(it, removal.series.name)
+            }
+        }
+    }
 
     /** The occurrences to come taking their series' new name, duration or days, where they still had the former. */
     override fun entriesUpdatedByConfig(previous: JSONObject, config: JSONObject, entries: List<ToolDataEntity>, context: Context): List<ToolDataEntity> =
