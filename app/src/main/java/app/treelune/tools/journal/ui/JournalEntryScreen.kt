@@ -1,5 +1,6 @@
 package app.treelune.tools.journal.ui
 
+import androidx.activity.compose.BackHandler
 import app.treelune.core.ui.chatButtonSpace
 import app.treelune.core.markup.ui.MarkupText
 import app.treelune.core.tools.BaseSchemas
@@ -255,6 +256,9 @@ fun JournalEntryScreen(
         }
     }
 
+    // The phone's Back as the arrow: while editing, it cancels, rather than leaving a new entry empty behind
+    BackHandler(enabled = isEditing) { handleCancel() }
+
     // Early return for loading state
     if (entryLoad == LoadState.LOADING) {
         Column(
@@ -282,15 +286,8 @@ fun JournalEntryScreen(
             // A new entry is named by the button that opens it, an entry changed by « Edit »
             title = if (isCreating && isEditing) s.tool("tile_write") else if (isEditing) s.shared("action_edit") else title.ifBlank { s.tool("placeholder_untitled") },
             leftButton = ButtonAction.BACK,
-            onLeftClick = {
-                if (isEditing && !isUnsaved) {
-                    // In edit mode (not creating), Back = Cancel
-                    handleCancel()
-                } else {
-                    // In consultation mode or creating, Back = navigate back
-                    onNavigateBack()
-                }
-            }
+            // While editing, Back is Cancel: a new entry never saved is deleted, a changed one read again
+            onLeftClick = { if (isEditing) handleCancel() else onNavigateBack() }
         )
 
         if (isEditing) {
