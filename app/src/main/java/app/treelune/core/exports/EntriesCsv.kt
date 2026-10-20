@@ -114,7 +114,10 @@ object EntriesCsv {
             FieldType.TIME -> value.toString().split(':').let { (h, m) -> "${h.padStart(2, '0')}:$m" }
             FieldType.DURATION -> duration((value as Number).toLong())
             FieldType.BOOLEAN -> (value as Boolean).toString()
-            FieldType.CHOICE -> listOfValues(value).joinToString(";")
+            // By the label the screen shows, as the first line names the fields
+            FieldType.CHOICE -> app.treelune.core.fields.ChoiceSettings.fromConfig(column.field.config).let { choice ->
+                listOfValues(value).joinToString(";") { choice.labelOf(it.toString()) }
+            }
             FieldType.REFERENCE -> listOfValues(value).joinToString(";") { reference ->
                 val read = ReferenceTarget.referenceOf(reference) ?: error("A reference that does not read: $reference")
                 names[read] ?: text("pointer_target_deleted")

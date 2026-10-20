@@ -21,7 +21,7 @@ Un CSV au format fixe, le même quelle que soit la langue du téléphone (RFC 41
 | TIME | `08:12` |
 | DURÉE | `1:25:00` |
 | BOOLEAN | `true` / `false` |
-| CHOICE à plusieurs valeurs | `a;b` |
+| CHOICE | son libellé, comme l'écran le montre (« Dîner ») ; à plusieurs valeurs, `Dîner;En-cas` |
 | Absence de réponse | cellule vide |
 
 Ces écritures sont toutes des `Writing` de l'importeur, qui relit donc ce fichier ; mais l'export est conçu pour être lu, pas réimporté, et aucun aller-retour n'est promis.
