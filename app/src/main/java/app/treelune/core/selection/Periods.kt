@@ -135,6 +135,23 @@ fun normalizeTimestampWithConfig(
 }
 
 /**
+ * The days from the app's day [millis] is in to the app's day of [calendar]'s reference, counted
+ * on the calendar: the day after a change of hour, the day before lasted 23 or 25 hours and is
+ * still one day back. Negative for a day to come.
+ */
+fun daysBetween(millis: Long, calendar: TimeResolver): Int =
+    java.time.temporal.ChronoUnit.DAYS.between(calendar.dateOf(millis), calendar.today()).toInt()
+
+/**
+ * The weeks from the one [millis] is in to the one of [calendar]'s reference, counted between the
+ * days they start on, as the user set weeks. Negative for a week to come.
+ */
+fun weeksBetween(millis: Long, calendar: TimeResolver): Int {
+    fun start(at: Long) = calendar.dateOf(normalizeTimestampWithConfig(at, PeriodType.WEEK, calendar.dayStartHour, calendar.weekStartDay, calendar.zone))
+    return java.time.temporal.ChronoUnit.WEEKS.between(start(millis), start(calendar.reference)).toInt()
+}
+
+/**
  * The period of [type] the day [date] chosen in a date picker is in: the one its start, as the
  * user set days ([calendar]), falls in. Its midnight would be the day before's.
  */

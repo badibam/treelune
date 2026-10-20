@@ -16,7 +16,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs
 
-- Les libellés du sélecteur de période comptent un écart en millisecondes divisées par 24 h ou 7 jours (`generateDayLabel`, `generateWeekLabel`) : le lendemain du passage à l'heure d'été, la veille, de 23 h, se dirait « Aujourd'hui » — déduit du code ; compter les jours entre deux dates de l'app.
 - La durée d'un Objectif est stockée en millisecondes (7 jours = 604 800 000) : une tentative qui traverse un changement d'heure finit une heure avant ou après l'heure de son début — déduit du code.
 
 ## Bugs du téléphone
