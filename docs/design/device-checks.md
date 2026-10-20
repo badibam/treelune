@@ -516,3 +516,14 @@ Vu le 2026-10-20 sur la démo : la tuile et la page de Ripasso ; la fenêtre de 
 - Les boutons à libellé à la plus grande taille de texte d'Android : la validation d'une action de l'IA dans le chat, les formulaires d'une variable et d'une entrée du Journal, la duplication d'un outil, une fiche de Données structurées : côte à côte quand ils tiennent, l'un sous l'autre sinon, jamais un coupé.
 - En français, « Rétention voulue » d'un paquet s'écrit « 0,9 » ; « 0,85 » tapé avec la virgule est gardé.
 - Une Séance : le minuteur d'une étape se saisit en m et s, un repos de 30 s et 2 m 30 s tenus ; la durée d'une séance faite s'affiche et se corrige en h, m et s.
+
+## L'export des entrées (branche post-release, `docs/design/export.md`)
+
+- Config de Repas (démo) › « Exporter les entrées… », sans période ni filtre : la fenêtre dit le nom du fichier et le nombre d'entrées ; le fichier est dans le dossier de l'app (app Fichiers), son nom `Repas_<date>_<heure>.csv`. Ouvert dans un tableur par son dialogue d'import (virgule, UTF-8) : la première ligne en libellés (« Nom », « Date »…), les accents justes, une ligne par entrée, l'aliment par son nom.
+- Le même export deux fois dans la minute : le second fichier prend `_2`, le premier reste.
+- Une période (cette semaine) et un filtre : le nombre d'entrées suit ; des champs gardés : seules leurs colonnes.
+- « Partager » ouvre le menu d'Android ; le fichier joint à un mail arrive entier.
+- Sans dossier choisi (Réglages › Données), ou son droit retiré : l'export est refusé en disant d'aller le choisir.
+- Un outil en création n'a pas le bouton ; une sous-page de la config non plus.
+- Au chat : « exporte mes repas de cette semaine en CSV » : l'IA lance `EXPORT_DATA` sans demander d'accord ; sa carte dit l'export de Repas, le fichier et le nombre d'entrées, avec « Partager » qui ouvre le menu d'Android.
+- Une routine dont le message demande l'export de la semaine : le fichier paraît dans le dossier à chaque exécution, sans écraser le précédent.

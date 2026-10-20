@@ -9,7 +9,7 @@ Conçu le 2026-10-01. Aujourd'hui, `SettingsForm` dessine l'arbre des réglages 
 - **Un élément de liste suit la même règle** : un élément fait de groupes est une ligne qui ouvre sa page, un élément simple (une valeur d'un `fold`) se modifie sur place.
 - **Une liste n'a pas de page à elle** : sous son titre, dans la page de son parent, une ligne par élément, puis « Ajouter » ; on y ajoute, retire et réordonne. Une colonne est donc à Couche › kcal, pas à Couche › Colonnes › kcal.
 - **Les sélecteurs des briques restent sur place** (terme, sélection d'entrées, condition, période) : ils n'ont qu'un niveau, leurs filtres sont déjà une fenêtre (`PointerFiltersDialog`). Le filtre d'une colonne est donc à deux pages et une fenêtre : Couche › kcal, puis « Filtres ».
-- **En haut de chaque page, le chemin** depuis la racine (Couche 1 › kcal) ; toucher un de ses éléments remonte à ce niveau. Le retour du téléphone remonte d'un niveau.
+- **En haut de chaque page, son titre et un bouton qui remonte d'un niveau en nommant la page où il ramène** (« Retour à la configuration », « Retour au champ « Étiquettes » ») ; le retour du téléphone fait de même. Une page de champ se nomme « Champ « Étiquettes » (de type Choix) », « Nouveau champ » avant son nom ; celle des réglages de son type, « Réglages du type Choix ». L'en-tête de l'écran, au-dessus, sort de la config (le nom de l'outil, « Nouvel outil » en création).
 - Une recréation de l'écran garde la page ouverte et le brouillon.
 
 ## La ligne de résumé

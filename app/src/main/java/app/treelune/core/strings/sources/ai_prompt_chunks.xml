@@ -717,6 +717,18 @@ Imports a joined file into a tool, following a complete declaration: the new fie
 - `columns` (array, **required**): one declaration per column of the file, in their order, as IMPORT_PLAN returns them (without `example`, `ambiguous`, `unreadable_lines` and `app_written`), each ambiguity settled
 
 A new table for a file: CREATE_TOOL first, then IMPORT_PLAN and IMPORT_DATA at the next turn, with the id it returned.]]></string>
+    <string name="ai_command_export_data"><![CDATA[### EXPORT_DATA
+
+Writes the entries of a tool as a CSV file into the app\'s folder, which the user chose in Settings › Data, to read in a spreadsheet or send. Nothing in the app changes and no file is written over: it runs without asking. The answer gives the file\'s name and its number of entries, never its content; the user shares it from the card.
+
+**Parameters**:
+
+- `tool_instance_id` (string, **required**)
+- `period` (object, optional): as in TOOL_DATA; relative dates resolve when the file is written
+- `filters` (array, optional): as in TOOL_DATA
+- `fields` (array, optional): the paths kept, as in TOOL_DATA; every field when absent
+
+No folder chosen is refused: tell the user to choose one in Settings › Data.]]></string>
     <string name="ai_command_update_app_config"><![CDATA[### UPDATE_APP_CONFIG
 
 Changes the settings of a category open to you, written **whole**: read them first with APP_CONFIG.

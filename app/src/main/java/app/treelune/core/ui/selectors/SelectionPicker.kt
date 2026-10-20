@@ -40,6 +40,8 @@ import app.treelune.core.ui.components.PeriodPicker
  * @param emptyPeriod What no period means in this context, said while none is set
  * @param offerPeriod Whether the period is chosen here; not where the context gives it (a chart's
  *   displayed period)
+ * @param fixed Whether the thing is the context's own and stays it (the tool whose entries are
+ *   exported): named without "change"
  */
 @Composable
 fun SelectionPicker(
@@ -50,7 +52,8 @@ fun SelectionPicker(
     reference: String?,
     offerFields: Boolean,
     emptyPeriod: String? = null,
-    offerPeriod: Boolean = true
+    offerPeriod: Boolean = true,
+    fixed: Boolean = false
 ) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
@@ -74,7 +77,7 @@ fun SelectionPicker(
                         if (names.size == 2) s.shared("selection_place_in_zone").format(names[0], names[1]) else names.firstOrNull() ?: ""
                     }, type = TextType.SUBTITLE)
                 }
-                UI.Button(type = ButtonType.DEFAULT, onClick = { browsing = draft.path.upTo(ReferenceKind.ZONE) }) {
+                if (!fixed) UI.Button(type = ButtonType.DEFAULT, onClick = { browsing = draft.path.upTo(ReferenceKind.ZONE) }) {
                     UI.Text(text = s.shared("selection_change"), type = TextType.LABEL)
                 }
             }

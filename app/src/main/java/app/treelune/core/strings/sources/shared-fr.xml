@@ -552,7 +552,14 @@
     <string name="label_no_value">Aucune valeur</string>
     <string name="list_item_untitled">Sans nom</string>
     <string name="list_item_summary_separator">·</string>
-    <string name="settings_path_root">Réglages</string>
+    <string name="settings_back_to_configuration">Retour à la configuration</string>
+    <string name="settings_back_to">Retour à « %1$s »</string>
+    <string name="settings_back_to_field">Retour au champ « %1$s »</string>
+    <string name="settings_back_to_new_field">Retour au nouveau champ</string>
+    <string name="settings_field_title">Champ « %1$s » (de type %2$s)</string>
+    <string name="settings_field_title_untyped">Champ « %1$s »</string>
+    <string name="settings_field_title_new">Nouveau champ</string>
+    <string name="settings_field_title_new_typed">Nouveau champ (de type %1$s)</string>
     <string name="settings_path_separator">›</string>
     <string name="settings_page_problem">À compléter ou corriger</string>
     <string name="settings_count">%1$s : %2$s</string>
@@ -764,7 +771,7 @@
     <string name="field_ai_read_only_description">L\'IA le lit, mais ne l\'écrit jamais : ni en conversation, ni par une routine, ni par le connecteur.</string>
 
     <!-- Custom Fields Configuration - Field-specific config labels -->
-    <string name="field_config_section_title">Configuration du champ</string>
+    <string name="field_config_section_title">Réglages du type %1$s</string>
     <string name="field_config_default_value">Valeur par défaut</string>
     <string name="field_config_unit">Unité</string>
     <string name="field_config_min">Minimum</string>
@@ -1004,7 +1011,7 @@
     <string name="ai_prompt_level3_zones_title">Zones</string>
     <string name="ai_prompt_level3_tools_title">Instances d\'outils</string>
     <string name="ai_prompt_level3_automations_title">Routines</string>
-    <string name="ai_prompt_current_datetime">Date et heure actuelles : %1$s</string>
+    <string name="ai_prompt_current_datetime">Message système, pas de l\'utilisateur. Date et heure actuelles : %1$s</string>
     <string name="ai_prompt_scheduled_datetime">Date prévue pour cette exécution : %1$s. Les données relatives (hier, cette semaine) sont résolues sur cette date, pas sur l\'heure actuelle. Ce que tu fais ou dis reste au présent. Si tu écris une donnée qui appartient à la date prévue plutôt qu\'à aujourd\'hui, passe son timestamp explicitement : sans timestamp, l\'entrée est datée du moment où cette exécution tourne.</string>
 
     <!-- AI TOKEN STATUS - Affichage statut tokens (TokenCalculator) -->
@@ -1477,6 +1484,21 @@
     <string name="action_verbalize_imports_detect">Lecture d\'un fichier à importer</string>
     <string name="action_verbalize_imports_apply">Import d\'un fichier</string>
     <string name="action_verbalize_imports_apply_file">Import de « %1$s » (%2$d lignes) dans %3$s</string>
+    <string name="export_csv_title">Exporter les entrées</string>
+    <string name="export_csv_all_entries">Sans période, toutes les entrées vont dans le fichier.</string>
+    <string name="export_csv_written">Le fichier %1$s est écrit dans le dossier de l\'app.</string>
+    <string name="export_csv_entries">%1$d entrée(s)</string>
+    <string name="export_csv_share">Partager</string>
+    <string name="export_csv_range_start">%1$s (début)</string>
+    <string name="export_csv_range_end">%1$s (fin)</string>
+    <string name="export_error_no_folder">Aucun dossier n\'est choisi pour l\'app : choisis-en un dans Réglages › Données pour y écrire le fichier.</string>
+    <string name="export_error_folder_lost">Le dossier de l\'app n\'est plus accessible en écriture : choisis-le à nouveau dans Réglages › Données.</string>
+    <string name="export_error_unknown_field">Cet outil n\'a pas de champ %1$s. Ses champs : %2$s</string>
+    <string name="export_error_read">Les entrées n\'ont pas pu être lues.</string>
+    <string name="export_error_write">Le fichier %1$s n\'a pas pu être écrit dans le dossier de l\'app.</string>
+    <string name="export_error_file_name">Le nom de l\'outil, « %1$s », ne peut pas nommer un fichier : renomme l\'outil pour exporter ses entrées.</string>
+    <string name="action_verbalize_exports_csv">Export des entrées</string>
+    <string name="action_verbalize_exports_csv_tool">Export des entrées de « %1$s »</string>
     <string name="import_action">Importer un fichier</string>
     <string name="import_title">Import</string>
     <string name="import_lines">%1$d ligne(s) dans le fichier</string>
@@ -1632,6 +1654,8 @@
     <string name="migration_kept_name">%1$s (avant le %2$s)</string>
     <string name="migration_fill_title">Valeurs à donner</string>
     <string name="migration_fill_message">%1$d entrée(s) n\'ont pas de valeur pour %2$s, que cette modification rend obligatoire. Donne la valeur qu\'elles prennent, ou annule.</string>
+    <string name="tools_config_export_entries">Exporter les entrées…</string>
+    <string name="tools_config_new_tool">Nouvel outil</string>
     <string name="tools_config_error_not_found">Outil introuvable</string>
     <string name="service_error_migration_unconfirmed">Cette modification touche les entrées de cet outil : %1$s. Dis-le à l\'utilisateur, et renvoie-la avec "confirm_migration": true une fois qu\'il est d\'accord.</string>
     <string name="service_error_migration_filters_aimed">Un filtre de %1$s compare un champ à une option que cette modification retire ou renomme : il ne trouverait plus rien. Dis-le à l\'utilisateur, et renvoie-la avec "confirm_migration": true une fois qu\'il est d\'accord.</string>

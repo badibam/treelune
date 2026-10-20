@@ -284,7 +284,7 @@ fun IdentityScreen(id: String, onName: @Composable (String) -> Unit, onBack: () 
 
         if (choosingColor) {
             BackHandler { choosingColor = false }
-            app.treelune.core.fields.settings.PageHeader(listOf(colorPage.label), context) { choosingColor = false }
+            app.treelune.core.fields.settings.PageHeader(colorPage.label, s.shared("settings_back_to").format(shown["name"] as String)) { choosingColor = false }
             // A colour taken closes the page, back on the identity
             colorPage.Edit(iconColor) { iconColor = it as String?; choosingColor = false }
             return@Column

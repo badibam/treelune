@@ -146,6 +146,7 @@ object AICommands {
             p("automation_id", "string", true), p("zone_id", "string"), p("settings", "object"), p("message", "array"), p("access", "array")),
         action("DELETE_AUTOMATION", p("automation_id", "string", true)),
         action("IMPORT_DATA", p("file", "string", true), p("tool_instance_id", "string", true), p("columns", "array", true)),
+        action("EXPORT_DATA", p("tool_instance_id", "string", true), p("period", "object"), p("filters", "array"), p("fields", "array")),
         action("UPDATE_APP_CONFIG", p("category", "string", true), p("settings", "object", true), p("renames", "object")),
         action("CREATE_IDENTITY", p("name", "string", true), p("language", "string", true), p("icon_name", "string"), p("icon_color", "string")),
         action("UPDATE_IDENTITY",

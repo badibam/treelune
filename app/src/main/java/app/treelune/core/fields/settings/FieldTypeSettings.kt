@@ -88,9 +88,10 @@ object FieldTypeSettings {
     private fun configGroup(type: FieldType, text: (String) -> String, labels: TextLength = TextLength.SHORT): SettingNode.Group? {
         val settings = listOfNotNull(if (type == FieldType.NUMERIC || type == FieldType.RANGE) unit(text) else null) +
             configNodes(type, text, labels)
-        // A number or a range needs its decimals, a scale its bounds and a choice its options:
-        // their config is required
-        return if (settings.isEmpty()) null else SettingNode.Group("config", text("field_config_section_title"), settings,
+        // Named by the type, whose settings they are: a choice's options, a number's unit. A number
+        // or a range needs its decimals, a scale its bounds and a choice its options: their
+        // config is required
+        return if (settings.isEmpty()) null else SettingNode.Group("config", text("field_config_section_title").format(text("field_type_${type.name.lowercase()}_display_name")), settings,
             required = type in setOf(FieldType.NUMERIC, FieldType.RANGE, FieldType.SCALE, FieldType.CHOICE, FieldType.REFERENCE))
     }
 

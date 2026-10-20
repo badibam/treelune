@@ -8,6 +8,7 @@ import app.treelune.core.services.ToolInstanceService
 import app.treelune.core.services.ToolDataService
 import app.treelune.core.services.AppConfigService
 import app.treelune.core.services.BackupService
+import app.treelune.core.services.ExportService
 import app.treelune.core.services.SchemaService
 import app.treelune.core.services.IconService
 import app.treelune.core.services.ImportService
@@ -45,6 +46,7 @@ class ServiceRegistry(private val context: Context) {
         "variables" to ::VariableService,
         "identities" to ::IdentityService,
         "imports" to ::ImportService,
+        "exports" to ::ExportService,
         "files" to ::FileService,
         "ai_sessions" to ::AISessionService,
         "ai_provider_config" to ::AIProviderConfigService,

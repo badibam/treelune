@@ -85,6 +85,7 @@ fun ToolConfigScreen(
     // The config as it was before any change, and whether leaving with changes is being asked
     var asLoaded by rememberSaveable { mutableStateOf<String?>(null) }
     var leaving by rememberSaveable { mutableStateOf(false) }
+    var exporting by rememberSaveable { mutableStateOf(false) }
 
     val configLoad = rememberLoadOnce(existingToolId) {
         if (existingToolId == null) return@rememberLoadOnce true
@@ -169,7 +170,8 @@ fun ToolConfigScreen(
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         UI.PageHeader(
-            title = if (isEditing) s.shared("action_configure") else s.shared("action_create"),
+            // The tool's name as saved, not as being typed; a new tool has none yet
+            title = asLoaded?.let { JSONObject(it).optString("name") }?.takeIf { it.isNotBlank() } ?: s.shared("tools_config_new_tool"),
             subtitle = toolType.getDisplayName(context),
             leftButton = ButtonAction.BACK,
             onLeftClick = { leave() }
@@ -215,7 +217,13 @@ fun ToolConfigScreen(
             // The tool named as it is stored, its entries going with it
             deleteMessage = s.shared("tools_delete_confirm").format(asLoaded?.let { JSONObject(it).optString("name") }.orEmpty())
         )
+        // Acts on the tool's entries, not its config: a tool being created has none
+        if (pages.atRoot && existingToolId != null) UI.Button(type = ButtonType.SECONDARY, onClick = { exporting = true }) {
+            UI.Text(s.shared("tools_config_export_entries"), TextType.LABEL)
+        }
     }
+
+    if (exporting && existingToolId != null) app.treelune.core.ui.exports.EntriesExportDialog(existingToolId) { exporting = false }
 
     if (leaving) UI.Dialog(
         type = app.treelune.core.ui.DialogType.CONFIRM,

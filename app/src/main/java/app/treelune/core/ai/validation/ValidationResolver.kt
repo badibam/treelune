@@ -138,6 +138,9 @@ class ValidationResolver(private val context: Context) {
             "CREATE_DATA", "UPDATE_DATA", "DELETE_DATA", "START_DURATION", "STOP_DURATION", "IMPORT_DATA", "TOOL_OPERATION" ->
                 dataReason(toolId(action), levels)
 
+            // A file written into the app's folder: nothing of the app is changed, nothing written over
+            "EXPORT_DATA" -> null
+
             // An undo writes what its step wrote: each row asks as its own write would
             "UNDO_STEP", "REDO_STEP" -> stepReason(params["id"] as? String ?: error(s.shared("validation_reason_no_target")), levels)
 
