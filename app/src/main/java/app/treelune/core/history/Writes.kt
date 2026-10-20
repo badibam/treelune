@@ -2,9 +2,15 @@ package app.treelune.core.history
 
 import android.content.Context
 import androidx.room.useWriterConnection
+import app.treelune.core.ai.database.AISessionEntity
 import app.treelune.core.ai.database.AutomationEntity
+import app.treelune.core.ai.database.SessionMessageEntity
 import app.treelune.core.database.AppDatabase
+import app.treelune.core.database.entities.AppSettingsCategory
 import app.treelune.core.database.entities.ToolDataEntity
+import app.treelune.core.identities.IdentityEntity
+import app.treelune.core.images.ImageEntity
+import app.treelune.core.mcp.McpClientEntity
 import app.treelune.core.database.entities.ToolInstance
 import app.treelune.core.database.entities.VariableEntity
 import app.treelune.core.database.entities.Zone
@@ -60,6 +66,14 @@ class Writes(private val context: Context) {
 
     suspend fun deleteEntry(id: String) = delete(CoveredTable.TOOL_DATA, id) { database.toolDataDao().deleteById(id) }
 
+    /** Deletes every entry of the tool [toolInstanceId], each kept with what goes along with it. */
+    suspend fun deleteEntriesOf(toolInstanceId: String) = database.transaction {
+        val gone = Rows.read(database, CoveredTable.TOOL_DATA, "tool_instance_id", toolInstanceId)
+            .flatMap { descent(CoveredTable.TOOL_DATA, it.getString("id")) }
+        database.toolDataDao().deleteByToolInstance(toolInstanceId)
+        record(gone)
+    }
+
     // ── Variables ──
 
     suspend fun insertVariable(variable: VariableEntity) = write(CoveredTable.VARIABLES, variable.id) { database.variableDao().insert(variable) }
@@ -80,6 +94,49 @@ class Writes(private val context: Context) {
         write(CoveredTable.AUTOMATIONS, id) { database.aiDao().setAutomationEnabled(id, enabled, updatedAt) }
 
     suspend fun deleteAutomation(id: String) = delete(CoveredTable.AUTOMATIONS, id) { database.aiDao().deleteAutomationById(id) }
+
+    // ── Sessions and their messages: kept for a routine's message alone (covers) ──
+
+    suspend fun insertSession(session: AISessionEntity) = write(CoveredTable.AI_SESSIONS, session.id) { database.aiDao().insertSession(session) }
+
+    suspend fun insertMessage(message: SessionMessageEntity) =
+        write(CoveredTable.SESSION_MESSAGES, message.id) { database.aiDao().insertMessage(message) }
+
+    suspend fun updateMessage(message: SessionMessageEntity) =
+        write(CoveredTable.SESSION_MESSAGES, message.id) { database.aiDao().updateMessage(message) }
+
+    // ── Settings ──
+
+    /** Writes the settings of [category], sealed as the database holds them. */
+    suspend fun updateSettings(category: String, settings: String) =
+        write(CoveredTable.APP_SETTINGS, category) { database.appSettingsCategoryDao().updateSettings(category, settings) }
+
+    /**
+     * Writes the defaults of a category that has no row yet. Not a word to the history: a category
+     * without its row reads as its defaults, so writing them changes nothing a step could undo.
+     */
+    suspend fun writeDefaults(settings: AppSettingsCategory) = database.appSettingsCategoryDao().insertOrUpdateSettings(settings)
+
+    // ── Identities ──
+
+    suspend fun putIdentity(identity: IdentityEntity) = write(CoveredTable.IDENTITIES, identity.id) { database.identityDao().upsert(identity) }
+
+    suspend fun deleteIdentity(id: String) = delete(CoveredTable.IDENTITIES, id) { database.identityDao().deleteById(id) }
+
+    // ── The connector's clients ──
+
+    suspend fun insertClient(client: McpClientEntity) = write(CoveredTable.MCP_CLIENTS, client.id) { database.mcpDao().insertClient(client) }
+
+    /** Sets what the client [id] may reach, as the JSON of its mask. */
+    suspend fun setClientAccess(id: String, access: String) = write(CoveredTable.MCP_CLIENTS, id) { database.mcpDao().setAccess(id, access) }
+
+    suspend fun deleteClient(id: String) = delete(CoveredTable.MCP_CLIENTS, id) { database.mcpDao().deleteClient(id) }
+
+    // ── Images ──
+
+    suspend fun insertImage(image: ImageEntity) = write(CoveredTable.IMAGES, image.id) { database.imageDao().insert(image) }
+
+    suspend fun deleteImage(id: String) = delete(CoveredTable.IMAGES, id) { database.imageDao().delete(id) }
 
     // ── The door ──
 

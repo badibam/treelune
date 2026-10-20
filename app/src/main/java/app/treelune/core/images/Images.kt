@@ -277,8 +277,11 @@ object Images {
         swept = true
         val dao = AppDatabase.getDatabase(context).imageDao()
 
+        // The app's own write, at its start: noted by the history, never a step
+        val writes = app.treelune.core.history.Writes(context)
+        val noted = app.treelune.core.history.Step(app.treelune.core.coordinator.Source.SYSTEM, isStep = false, sessionId = null)
         dao.unnamedByTheirEntry().forEach { image ->
-            dao.delete(image.id)
+            kotlinx.coroutines.withContext(noted) { writes.deleteImage(image.id) }
             delete(context, image)
             LogManager.service("Startup sweep: image ${image.id} no longer named by its entry ${image.entryId}, removed", "INFO")
         }

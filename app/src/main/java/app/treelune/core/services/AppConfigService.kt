@@ -33,6 +33,7 @@ class AppConfigService(private val context: Context) : ExecutableService {
 
     private val database = AppDatabase.getDatabase(context)
     private val settingsDao = database.appSettingsCategoryDao()
+    private val writes = app.treelune.core.history.Writes(context)
     private val s = Strings.`for`(context = context)
 
     // ===== Reading =====
@@ -128,15 +129,15 @@ class AppConfigService(private val context: Context) : ExecutableService {
             val moved = if (category != AppSettingCategories.MAIN_SCREEN) emptyList() else {
                 val zones = database.zoneDao().getAllZones().map { zone ->
                     val group = change.held(zone.group)
-                    if (group == zone.group) zone else zone.copy(group = group).also { database.zoneDao().updateZone(it) }
+                    if (group == zone.group) zone else zone.copy(group = group).also { writes.updateZone(it) }
                 }
                 if (change.beforeRenamed == change.after) emptyList()
                 else app.treelune.core.grid.ZonePositions.regroup(zones, change.beforeRenamed, change.after)
             }
-            moved.forEach { database.zoneDao().updatePosition(it.id, it.grid_x, it.grid_y) }
+            moved.forEach { writes.moveZone(it.id, it.grid_x, it.grid_y) }
             // Its secrets sealed: the database never holds one in clear
             val sealed = SecretSettings.seal(SecretSettings.names(AppSettings.nodes(category, context)), settings, SecretBox.of())
-            settingsDao.updateSettings(category, sealed.toString())
+            writes.updateSettings(category, sealed.toString())
             moved
         }
         AppConfigManager.refresh(context)
@@ -158,7 +159,7 @@ class AppConfigService(private val context: Context) : ExecutableService {
 
         LogManager.service("No $category settings found, writing the defaults", "INFO")
         val defaults = AppSettingsDefaults.forCategory(category, context)
-        settingsDao.insertOrUpdateSettings(AppSettingsCategory(category = category, settings = defaults))
+        writes.writeDefaults(AppSettingsCategory(category = category, settings = defaults))
         return JSONObject(defaults)
     }
 
