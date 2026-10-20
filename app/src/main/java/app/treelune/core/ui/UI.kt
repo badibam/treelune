@@ -763,8 +763,11 @@ object UI {
             when (mode) {
                 DisplayMode.ICON -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     if (zone.icon_name.isNullOrBlank()) {
-                        // Without an icon, the name stands in its place and the marks in their corners
-                        Text(zone.name, TextType.BODY, maxLines = 2, fillMaxWidth = true, textAlign = TextAlign.Center)
+                        // Without an icon, the name stands in its place, small enough for a word to
+                        // hold in the cell, centered between the marks in their corners
+                        Box(modifier = Modifier.padding(horizontal = Space.XS)) {
+                            Text(zone.name, TextType.CAPTION, maxLines = 2, fillMaxWidth = true, textAlign = TextAlign.Center)
+                        }
                         if (waiting) Box(modifier = Modifier.align(Alignment.TopEnd)) { WaitingMark() }
                         if (running) Box(modifier = Modifier.align(Alignment.BottomEnd)) { RunningMark() }
                     } else {
