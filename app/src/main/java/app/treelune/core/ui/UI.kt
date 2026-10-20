@@ -387,12 +387,13 @@ object UI {
     @Composable
     fun DatePicker(
         selectedDate: String,
+        today: java.time.LocalDate,
         onDateSelected: (String) -> Unit,
         onDismiss: () -> Unit
     ) {
         val sound = rememberUISound()
         LaunchedEffect(Unit) { sound(UISignal.OPEN) }
-        CurrentTheme.current.DatePicker(selectedDate, { sound(UISignal.CONFIRM); onDateSelected(it) }, { sound(UISignal.CLOSE); onDismiss() })
+        CurrentTheme.current.DatePicker(selectedDate, today, { sound(UISignal.CONFIRM); onDateSelected(it) }, { sound(UISignal.CLOSE); onDismiss() })
     }
     
     @Composable

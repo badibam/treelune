@@ -549,13 +549,11 @@ object InkTheme : ThemeContract {
      * by an ensō. The month and its year spaced, between two chevrons.
      */
     @Composable
-    override fun DatePicker(selectedDate: String, onDateSelected: (String) -> Unit, onDismiss: () -> Unit) {
-        val zone = AppConfigManager.getDateTimeConfig().getZoneId()
-        // "" means nothing chosen yet, and the picker opens on today by contract
-        val initial = DateUtils.parseDisplayDate(selectedDate) ?: LocalDate.now(zone)
+    override fun DatePicker(selectedDate: String, today: LocalDate, onDateSelected: (String) -> Unit, onDismiss: () -> Unit) {
+        // "" means nothing chosen yet, and the picker opens on the caller's today by contract
+        val initial = DateUtils.parseDisplayDate(selectedDate) ?: today
         var chosen by remember { mutableStateOf(initial) }
         var month by remember { mutableStateOf(YearMonth.from(initial)) }
-        val today = LocalDate.now(zone)
         val locale = Locale.getDefault()
         val size = inkSize()
         val c = inkColors

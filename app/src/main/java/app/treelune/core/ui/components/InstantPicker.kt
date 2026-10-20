@@ -327,12 +327,10 @@ fun shiftLabel(point: TimePoint.Shift, s: StringsContext): String {
 private fun CustomDate(fixed: TimePoint.Fixed?, precision: FieldType, clearable: Boolean, onChange: (TimePoint?) -> Unit) {
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
     var showTimePicker by rememberSaveable { mutableStateOf(false) }
-    val millis: Long? = when (val v = fixed?.value) {
-        is Number -> v.toLong()
-        is String -> DateUtils.parseIso8601Date(v)
-        else -> null
-    }
-    val displayDate = millis?.let { DateUtils.formatDateForDisplay(it) } ?: ""
+    // A day is a day, "2026-09-15"; an instant, milliseconds
+    val millis: Long? = (fixed?.value as? Number)?.toLong()
+    val day: java.time.LocalDate? = (fixed?.value as? String)?.let { runCatching { java.time.LocalDate.parse(it) }.getOrNull() }
+    val displayDate = day?.let { DateUtils.formatDisplayDate(it) } ?: millis?.let { DateUtils.formatDateForDisplay(it) } ?: ""
     val displayTime = if (precision == FieldType.DATETIME) millis?.let { DateUtils.formatTimeForDisplay(it) } ?: "" else ""
 
     Row(
@@ -356,11 +354,13 @@ private fun CustomDate(fixed: TimePoint.Fixed?, precision: FieldType, clearable:
     }
 
     if (showDatePicker) {
+        // A day's today is the app's; the date of an instant, the calendar's
         UI.DatePicker(
-            selectedDate = displayDate.ifEmpty { DateUtils.getTodayFormatted() },
+            selectedDate = displayDate,
+            today = if (precision == FieldType.DATE) TimeResolver.at(System.currentTimeMillis()).today() else DateUtils.calendarToday(),
             onDateSelected = { date ->
                 if (precision == FieldType.DATE) {
-                    DateUtils.parseDateForFilter(date)?.let { onChange(TimePoint.Fixed(DateUtils.timestampToIso8601Date(it))) }
+                    DateUtils.parseDisplayDate(date)?.let { onChange(TimePoint.Fixed(it.toString())) }
                 } else {
                     DateUtils.combineDateTime(date, displayTime.ifEmpty { "00:00" })?.let { onChange(TimePoint.Fixed(it)) }
                 }

@@ -75,6 +75,9 @@ object DateUtils {
     /** [date] as the display writes days (dd/MM/yyyy). */
     fun formatDisplayDate(date: LocalDate): String = displayDateFormatter.format(date)
 
+    /** Today on the calendar: the date of now, the date an instant written now is on. The day of the app is TimeResolver.today(). */
+    fun calendarToday(zone: ZoneId = getConfiguredZone()): LocalDate = LocalDate.now(zone)
+
     /** The first day of the week the user set. */
     fun weekStart(): DayOfWeek = DayOfWeek.valueOf(AppConfigManager.getWeekStartDay().uppercase())
 

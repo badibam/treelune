@@ -1555,13 +1555,15 @@ object DefaultTheme : ThemeContract {
     @Composable
     override fun DatePicker(
         selectedDate: String,
+        today: java.time.LocalDate,
         onDateSelected: (String) -> Unit,
         onDismiss: () -> Unit
     ) {
         // Which day the picker opens on. Callers pass "" to mean nothing is chosen yet, so
-        // that case opens on today by contract, not as a fallback hiding a failure.
-        val initial = DateUtils.parseDisplayDate(selectedDate)
-            ?: java.time.LocalDate.now(AppConfigManager.getDateTimeConfig().getZoneId())
+        // that case opens on the caller's [today] by contract, not as a fallback hiding a failure.
+        // Material marks the calendar's today itself, from the clock: only the day it opens on
+        // follows [today]
+        val initial = DateUtils.parseDisplayDate(selectedDate) ?: today
         // Material counts its days in midnights UTC, and takes the first day of a week from its
         // locale's week data: the phone's language, given the week's first day the user set
         // through the locale's "fw" keyword (to check on the phone: Android reads it through ICU)

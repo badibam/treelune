@@ -243,42 +243,43 @@ fun SinglePeriodSelector(
                 // For HOUR: DatePicker keeps existing hour
                 UI.DatePicker(
                     selectedDate = DateUtils.formatDateForDisplay(period.timestamp),
+                    today = DateUtils.calendarToday(),
                     onDateSelected = { selectedDate ->
-                        // Combine new date + existing hour
-                        val existingHour = DateUtils.calendarAt(period.timestamp).get(Calendar.HOUR_OF_DAY)
-                        val existingMinute = DateUtils.calendarAt(period.timestamp).get(Calendar.MINUTE)
-                        
-                        val newDate = DateUtils.parseDateForFilter(selectedDate)
-                            ?: return@DatePicker
-                        val combinedTimestamp = DateUtils.calendarAt(newDate).apply {
-                            set(Calendar.HOUR_OF_DAY, existingHour)
-                            set(Calendar.MINUTE, existingMinute)
-                            set(Calendar.SECOND, 0)
-                            set(Calendar.MILLISECOND, 0)
-                        }.timeInMillis
-                        
-                        // Normalize for HOUR (start of hour)
-                        val normalizedTimestamp = normalizeTimestampWithConfig(combinedTimestamp, period.type)
-                        onPeriodChange(Period(normalizedTimestamp, period.type))
+                        // The hour kept, at its time of the clock on the day chosen
+                        val date = DateUtils.parseDisplayDate(selectedDate) ?: return@DatePicker
+                        onPeriodChange(hourOnDay(period, date, app.treelune.core.selection.TimeResolver.at(System.currentTimeMillis())))
                     },
                     onDismiss = { showPicker = false }
                 )
             }
             else -> {
                 // For other types: classic DatePicker
+                val calendar = app.treelune.core.selection.TimeResolver.at(System.currentTimeMillis())
                 UI.DatePicker(
                     selectedDate = DateUtils.formatDateForDisplay(period.timestamp),
+                    today = calendar.today(),
                     onDateSelected = { selectedDate ->
-                        DateUtils.parseDateForFilter(selectedDate)?.let { picked ->
-                            val newTimestamp = normalizeTimestampWithConfig(picked, period.type)
-                            onPeriodChange(Period(newTimestamp, period.type))
-                        }
+                        DateUtils.parseDisplayDate(selectedDate)?.let { onPeriodChange(periodOfDay(it, period.type, calendar)) }
                     },
                     onDismiss = { showPicker = false }
                 )
             }
         }
     }
+}
+
+/**
+ * The period of [type] the day [date] chosen in a date picker is in: the one its start, as the
+ * user set days ([calendar]), falls in. Its midnight would be the day before's.
+ */
+fun periodOfDay(date: java.time.LocalDate, type: PeriodType, calendar: app.treelune.core.selection.TimeResolver): Period =
+    Period(normalizeTimestampWithConfig(calendar.startOf(date), type, calendar.dayStartHour, calendar.weekStartDay, calendar.zone), type)
+
+/** The hour [period] on the day [date], at the same time of the clock. */
+fun hourOnDay(period: Period, date: java.time.LocalDate, calendar: app.treelune.core.selection.TimeResolver): Period {
+    val time = java.time.Instant.ofEpochMilli(period.timestamp).atZone(calendar.zone).toLocalTime()
+    val at = java.time.ZonedDateTime.of(date, time, calendar.zone).toInstant().toEpochMilli()
+    return Period(normalizeTimestampWithConfig(at, PeriodType.HOUR, calendar.dayStartHour, calendar.weekStartDay, calendar.zone), PeriodType.HOUR)
 }
 
 /**

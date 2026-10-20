@@ -86,6 +86,9 @@ data class TimeResolver(
     /** The day [millis] belongs to, as the user set days: with days starting at 4:00, 2:00 belongs to the day before. */
     fun dateOf(millis: Long): LocalDate = dayOf(normalizeTimestampWithConfig(millis, PeriodType.DAY, dayStartHour, weekStartDay, zone))
 
+    /** The day of the app the reference is in: at 0:30, with days starting at 4:00, the day before. */
+    fun today(): LocalDate = dateOf(reference)
+
     /** The instant the day [date] starts at, as the user set days: [dayStartHour] on that date. */
     fun startOf(date: LocalDate): Long = date.atTime(dayStartHour, 0).atZone(zone).toInstant().toEpochMilli()
 

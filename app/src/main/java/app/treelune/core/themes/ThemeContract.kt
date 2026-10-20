@@ -347,9 +347,15 @@ interface ThemeContract {
         content: @Composable () -> Unit
     )
     
+    /**
+     * A day to choose, [selectedDate] as the display writes days, "" for none yet: the picker then
+     * opens on [today]. [today] is the caller's, the one it marks: the day of the app for a day or
+     * a period, the calendar's for the date of an instant (docs/reference.md, « Un seul calendrier »).
+     */
     @Composable
     fun DatePicker(
         selectedDate: String,
+        today: java.time.LocalDate,
         onDateSelected: (String) -> Unit,
         onDismiss: () -> Unit
     )

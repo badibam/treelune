@@ -479,6 +479,7 @@ fun JournalEntryScreen(
         val currentDate = DateUtils.formatDateForDisplay(timestamp)
         UI.DatePicker(
             selectedDate = currentDate,
+            today = DateUtils.calendarToday(),
             onDateSelected = { newDate ->
                 // Update date part of timestamp, keep time part
                 val currentTime = DateUtils.formatTimeForDisplay(timestamp)
