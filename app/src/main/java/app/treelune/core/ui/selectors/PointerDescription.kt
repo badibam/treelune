@@ -13,7 +13,7 @@ import app.treelune.core.selection.EntryPeriod
 import app.treelune.core.selection.ReferenceKind
 import app.treelune.core.selection.TimePoint
 import app.treelune.core.strings.StringsContext
-import app.treelune.core.ui.components.RelativePeriod
+import app.treelune.core.selection.RelativePeriod
 import app.treelune.core.ui.components.generateRelativePeriodLabel
 import app.treelune.core.utils.AppConfigManager
 import app.treelune.core.utils.DateTimeConverter

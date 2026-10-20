@@ -3,7 +3,7 @@ package app.treelune.tools.chart
 import app.treelune.core.selection.TimePoint
 import app.treelune.core.terms.Term
 import app.treelune.core.themes.TagColor
-import app.treelune.core.ui.components.PeriodType
+import app.treelune.core.selection.PeriodType
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows

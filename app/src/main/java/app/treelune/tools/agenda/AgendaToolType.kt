@@ -16,6 +16,7 @@ import app.treelune.core.fields.TextLength
 import app.treelune.core.fields.settings.ScheduleSettings
 import app.treelune.core.fields.settings.SettingNode
 import app.treelune.core.selection.TimePoint
+import app.treelune.core.selection.TimeResolver
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.strings.Strings
 import app.treelune.core.tools.ToolOperation
@@ -209,7 +210,10 @@ object AgendaToolType : ToolTypeContract {
     override suspend fun settleEntries(entries: suspend () -> List<ToolDataEntity>, writtenId: String?): List<ToolDataEntity> {
         writtenId ?: return emptyList()
         val written = entries().find { it.id == writtenId } ?: return emptyList()
-        return listOfNotNull(AgendaRules.settleReminded(written))
+        // A whole day at the start of its day first, its reminders' mark then read against that start
+        val placed = AgendaRules.settleAllDay(written, calendar(zone()))
+        val settled = AgendaRules.settleReminded(placed ?: written) ?: placed
+        return listOfNotNull(settled)
     }
 
     override fun getService(context: Context): ExecutableService = AgendaService(context)
@@ -219,6 +223,9 @@ object AgendaToolType : ToolTypeContract {
 
     /** The zone the calendar's days and reminders are read in. */
     fun zone() = AppConfigManager.getDateTimeConfig().getZoneId()
+
+    /** The app's calendar read in [zone]: the hour its days start at, the first day of its weeks. */
+    fun calendar(zone: java.time.ZoneId) = TimeResolver.at(System.currentTimeMillis(), zone)
 
     @Composable
     override fun getUsageScreen(toolInstanceId: String, configJson: String, zoneName: String, onNavigateBack: () -> Unit, onLongClick: () -> Unit, openEntry: app.treelune.core.tools.EntryToOpen?) {

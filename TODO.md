@@ -17,6 +17,8 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 ## Bugs
 
 - Des boutons à libellé posés dans une simple rangée, qui se perdent quand la place manque : à passer dans `ButtonRow` (`VariableScreen.kt:175`, `JournalEntryScreen.kt:376`, `DuplicateSelector.kt:234`, `StructuredScreen.kt:260` et `:299`), et la rangée d'actions de `InteractionCard` (la validation dans le chat), que chaque thème pose avec deux moitiés de largeur fixe (`InteractionActions`).
+- Les libellés du sélecteur de période comptent un écart en millisecondes divisées par 24 h ou 7 jours (`generateDayLabel`, `generateWeekLabel`) : le lendemain du passage à l'heure d'été, la veille, de 23 h, se dirait « Aujourd'hui » — déduit du code ; compter les jours entre deux dates de l'app.
+- La durée d'un Objectif est stockée en millisecondes (7 jours = 604 800 000) : une tentative qui traverse un changement d'heure finit une heure avant ou après l'heure de son début — déduit du code.
 
 ## Bugs du téléphone
 
@@ -62,14 +64,10 @@ Codé, jamais vu sur l'appareil.
 - Les mots de passe de `~/.config/treelune/signing.env` en clair : au trousseau (`secret-tool`).
 - `CommandExecutor` lit la base directement, hors du coordinateur.
 - `AutomationScheduler.getNextExecutionForAutomation()` appelé depuis l'écran, sans le service.
-- `CommandExecutor` remplace un nom ou un `schema_id` manquant par `"unknown"`.
-- `ToolConfigActions` porte un nom qui ne dit pas ce qu'il fait.
 - Des conversions JSON refaites sur place au lieu de `JsonUtils` (`toValueMap`, `jsonToValue`, `toFieldConfigValue`…).
 - `shared.xml` (~1 900 lignes) à découper.
 - `RetroPaletteTest` et `CosyPaletteTest` à parcourir par pas de 15° de teinte, comme `SwissPaletteTest`.
 - `TextType.SUBTITLE` sans rang dans le contrat des thèmes : lui en donner un, aligner les thèmes et ses 71 usages.
-- `FlashcardsServiceTest` dépend sans doute de l'heure : lui donner une horloge fixe.
-- Une apostrophe nue à côté d'une échappée casse la compilation des ressources sans qu'aucun contrôle la voie.
 - Le journal ne garde que ~24 min d'usage (12 000 lignes le 2026-10-01, dont 3 782 « Service result » en VERBOSE) : les lignes utiles à la recette en sortent avant d'être lues ; réduire VERBOSE et DEBUG, « Service result » d'abord.
 - Des écrans encore ouverts à l'intérieur d'un lieu, hors de la pile (`Place`, `docs/UI.md`) : la config d'un fournisseur d'IA, les pages d'un formulaire de config, les écrans internes d'un outil (fiche, historique), l'historique des conversations — à passer en lieux, au plus tard quand un tutoriel, une notification ou un pointeur doit les viser.
 
@@ -92,6 +90,7 @@ Ce qui doit monter dans un module de sagesse (`/update push`).
 - Un import lancé par erreur qu'on ne peut pas arrêter (`LongOperation`).
 - Des réponses de l'IA perdues pendant la génération : streaming et keep-alive TCP.
 - La mémoire d'un import grandit avec son fichier (276 Mo pour 5 Mo) : lire et écrire par tranches.
+- Un événement toute la journée de l'Agenda qui se montre sur le mauvais jour : il est un instant, le début du jour de l'app à sa date (migration 85), qu'un changement de l'heure où commence le jour ou du fuseau (un voyage, le fuseau suivant le téléphone) fait glisser d'un jour, rien ne le replaçant ; le replacer à chaque changement du calendrier, ou stocker une date.
 
 ## Idée sans besoin
 

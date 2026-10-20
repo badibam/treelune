@@ -1,7 +1,7 @@
 package app.treelune.core.selection
 
 import app.treelune.core.conditions.Conditions
-import app.treelune.core.ui.components.PeriodType
+import app.treelune.core.selection.PeriodType
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertEquals

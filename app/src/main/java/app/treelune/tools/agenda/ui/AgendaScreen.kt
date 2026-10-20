@@ -42,10 +42,10 @@ import app.treelune.core.ui.Size
 import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
 import app.treelune.core.ui.chatButtonSpace
-import app.treelune.core.ui.components.Period
-import app.treelune.core.ui.components.PeriodType
+import app.treelune.core.selection.Period
+import app.treelune.core.selection.PeriodType
 import app.treelune.core.ui.components.SinglePeriodSelector
-import app.treelune.core.ui.components.getPeriodEndTimestamp
+import app.treelune.core.selection.getPeriodEndTimestamp
 import app.treelune.core.utils.DataChangeEvent
 import app.treelune.core.utils.DataChangeNotifier
 import app.treelune.core.utils.JsonUtils

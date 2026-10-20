@@ -1,7 +1,7 @@
 package app.treelune.core.selection
 
 import app.treelune.core.fields.FieldType
-import app.treelune.core.ui.components.PeriodType
+import app.treelune.core.selection.PeriodType
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -133,5 +133,45 @@ class TimePointTest {
         assertEquals(at(2026, 10, 24, 14, 30), afterChange.instant(TimePoint.Shift(ShiftUnit.DAY, -1)))
         val endOfMarch = TimeResolver(at(2026, 3, 31, 9, 0), zone, 4, "MONDAY")
         assertEquals(at(2026, 2, 28, 9, 0), endOfMarch.instant(TimePoint.Shift(ShiftUnit.MONTH, -1)))
+    }
+
+    @Test
+    fun `an instant belongs to the day the user set, which starts at its hour`() {
+        assertEquals(java.time.LocalDate.of(2026, 9, 15), resolver.dateOf(at(2026, 9, 16, 3, 59)))
+        assertEquals(java.time.LocalDate.of(2026, 9, 16), resolver.dateOf(at(2026, 9, 16, 4, 0)))
+        assertEquals(at(2026, 9, 16, 4, 0), resolver.startOf(java.time.LocalDate.of(2026, 9, 16)))
+    }
+
+    @Test
+    fun `before the hour days start at, the current week, month and year are those of the day before`() {
+        // Wednesday 2026-10-14 at 2:00 is still Tuesday the 13th; at 15:00, Wednesday
+        for (reference in listOf(at(2026, 10, 14, 2, 0), at(2026, 10, 14, 15, 0))) {
+            fun start(unit: PeriodType, weekStart: String = "monday") =
+                TimeResolver(reference, zone, 4, weekStart).instant(TimePoint.Relative(unit, 0, Edge.START))
+            assertEquals(at(2026, 10, 12, 4, 0), start(PeriodType.WEEK))
+            assertEquals(at(2026, 10, 11, 4, 0), start(PeriodType.WEEK, "sunday"))
+            assertEquals(at(2026, 10, 11, 4, 0), start(PeriodType.WEEK, "SUNDAY"))
+            assertEquals(at(2026, 10, 1, 4, 0), start(PeriodType.MONTH))
+            assertEquals(at(2026, 1, 1, 4, 0), start(PeriodType.YEAR))
+        }
+        // The first of a month before 4:00 is still the month before
+        val firstAtNight = TimeResolver(at(2026, 10, 1, 2, 0), zone, 4, "monday")
+        assertEquals(at(2026, 9, 1, 4, 0), firstAtNight.instant(TimePoint.Relative(PeriodType.MONTH, 0, Edge.START)))
+        assertEquals(at(2026, 9, 30, 4, 0), firstAtNight.instant(TimePoint.Relative(PeriodType.DAY, 0, Edge.START)))
+    }
+
+    @Test
+    fun `today and a shift in days are the user's days, a time of the clock the calendar's`() {
+        // Wednesday 2026-10-14 at 0:30 is still Tuesday; at 15:00, Wednesday
+        val night = TimeResolver(at(2026, 10, 14, 0, 30), zone, 4, "monday")
+        val day = TimeResolver(at(2026, 10, 14, 15, 0), zone, 4, "monday")
+        assertEquals("2026-10-13", night.day(TimePoint.Now))
+        assertEquals("2026-10-14", day.day(TimePoint.Now))
+        assertEquals("2026-10-16", night.day(TimePoint.Shift(ShiftUnit.DAY, 3)))
+        assertEquals("2026-10-17", day.day(TimePoint.Shift(ShiftUnit.DAY, 3)))
+        assertEquals("2026-10-12", night.day(TimePoint.Shift(ShiftUnit.DAY, -1)))
+        // The day before at 18:00 of a flight at 1:30 on Thursday: Wednesday at 18:00
+        val flight = TimeResolver(at(2026, 10, 15, 1, 30), zone, 4, "monday")
+        assertEquals(at(2026, 10, 14, 18, 0), flight.instant(TimePoint.Shift(ShiftUnit.DAY, -1, LocalTime.of(18, 0))))
     }
 }

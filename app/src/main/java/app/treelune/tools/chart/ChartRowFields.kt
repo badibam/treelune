@@ -7,7 +7,7 @@ import app.treelune.core.fields.settings.RowFields
 import app.treelune.core.selection.EntrySelection
 import app.treelune.core.strings.Strings
 import app.treelune.core.terms.Term
-import app.treelune.core.ui.components.PeriodType
+import app.treelune.core.selection.PeriodType
 import app.treelune.core.utils.LogManager
 import org.json.JSONArray
 import org.json.JSONObject

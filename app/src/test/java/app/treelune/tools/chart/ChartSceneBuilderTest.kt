@@ -34,7 +34,7 @@ class ChartSceneBuilderTest {
         override fun own(key: String) = "$key %1\$s"
     }
 
-    private fun builder() = ChartSceneBuilder(ChartMetrics(1f), text, zone, "monday", day(30))
+    private fun builder() = ChartSceneBuilder(ChartMetrics(1f), text, app.treelune.core.selection.TimeResolver(day(30), zone, 0, "monday"))
     private val timestamp = FieldDefinition("timestamp", "Day", null, FieldType.DATETIME, false, null)
     private fun numeric(name: String) = FieldDefinition(name, name, null, FieldType.NUMERIC, false, null)
     private val period = """"period": {"start": 0}"""
@@ -92,6 +92,21 @@ class ChartSceneBuilderTest {
         // A touch on a bar finds its row
         val hit = scene.hitAt((food.rect.left + food.rect.right) / 2, (food.rect.top + food.rect.bottom) / 2, 24f)
         assertEquals("food", hit!!.row.value("kind"))
+    }
+
+    @Test
+    fun `a condition's today is the user's day, still the day before past midnight`() {
+        // Shown on the 3rd at 1:00, days starting at 4:00: today began on the 2nd at 4:00
+        val calendar = app.treelune.core.selection.TimeResolver(day(3) + 3_600_000L, zone, 4, "monday")
+        val builder = ChartSceneBuilder(ChartMetrics(1f), text, calendar)
+        val table = ChartTable(mapOf("timestamp" to timestamp, "kcal" to numeric("kcal")),
+            listOf(1, 2).map { d -> Row(mapOf("timestamp" to Cell.Value(day(d) + 12 * 3_600_000L), "kcal" to Cell.Value(1500.0)), day(d) to day(d + 1) - 1) })
+        val today = """{"constant": {"relative": {"unit": "DAY", "offset": 0, "edge": "START"}}}"""
+        val layer = """{"source": "grid", "step": "day", "columns": [{"name": "a", "term": {"variable": "v"}}],
+            "mark": {"type": "bar"}, "encoding": {"x": {"field": "timestamp"}, "y": {"field": "kcal"},
+            "color": {"value": "GREEN", "condition": {"test": {"left": {"field": "timestamp"}, "op": ">=", "right": $today}, "value": "RED"}}}}"""
+        val bars = marks(builder.build(spec(layer), listOf(table), day(1) to day(3) - 1, 400f)).filterIsInstance<DrawShape.Box>()
+        assertEquals(listOf(DrawColor.Palette(TagColor.GREEN), DrawColor.Palette(TagColor.RED)), bars.sortedBy { it.rect.left }.map { it.color })
     }
 
     @Test

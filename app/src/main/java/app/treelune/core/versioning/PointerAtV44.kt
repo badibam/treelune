@@ -3,9 +3,9 @@ package app.treelune.core.versioning
 import app.treelune.core.config.DateTimeConfig
 import app.treelune.core.config.FormatDefaults
 import app.treelune.core.database.entities.AppSettingCategories
-import app.treelune.core.ui.components.Period
-import app.treelune.core.ui.components.PeriodType
-import app.treelune.core.ui.components.getPeriodEndTimestamp
+import app.treelune.core.selection.Period
+import app.treelune.core.selection.PeriodType
+import app.treelune.core.selection.getPeriodEndTimestamp
 import org.json.JSONArray
 import org.json.JSONObject
 import java.time.ZoneId
@@ -114,7 +114,7 @@ object PointerAtV44 {
     }
 
     /** The format settings among the categories of a backup document, if it holds them. */
-    private fun backupFormat(data: JSONObject): JSONObject? {
+    fun backupFormat(data: JSONObject): JSONObject? {
         val categories = data.optJSONArray("app_settings_categories") ?: return null
         return (0 until categories.length()).map { categories.getJSONObject(it) }
             .firstOrNull { it.optString("category") == AppSettingCategories.FORMAT }

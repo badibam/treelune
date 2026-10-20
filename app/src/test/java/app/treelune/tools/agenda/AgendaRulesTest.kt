@@ -38,6 +38,10 @@ class AgendaRulesTest {
 
     private fun resolve(reference: Long, point: TimePoint) = TimeResolver(reference, zone, 0, "MONDAY").instant(point)
 
+    // Days starting at midnight, and at 4:00
+    private val midnight = TimeResolver(now, zone, 0, "MONDAY")
+    private val four = TimeResolver(now, zone, 4, "MONDAY")
+
     @Test
     fun `a series gives its times up to ninety days ahead, after the last one given and never before now`() {
         val first = AgendaRules.timesToGive(tuesdays, null, false, now, zone)
@@ -68,16 +72,16 @@ class AgendaRulesTest {
         val times = AgendaRules.reminderTimes(dentist, listOf(TimePoint.Shift(ShiftUnit.MINUTE, -15)), ::resolve)
         assertEquals(listOf(at(2026, 10, 16, 14, 15)), times)
 
-        assertEquals(emptyList<Long>(), AgendaRules.dueReminders(dentist, times, at(2026, 10, 16, 14, 0), zone))
-        assertEquals(times, AgendaRules.dueReminders(dentist, times, at(2026, 10, 16, 14, 20), zone))
+        assertEquals(emptyList<Long>(), AgendaRules.dueReminders(dentist, times, at(2026, 10, 16, 14, 0), midnight))
+        assertEquals(times, AgendaRules.dueReminders(dentist, times, at(2026, 10, 16, 14, 20), midnight))
         // Late, while the event goes on; not once it is over
-        assertEquals(times, AgendaRules.dueReminders(dentist, times, at(2026, 10, 16, 15, 0), zone))
-        assertEquals(emptyList<Long>(), AgendaRules.dueReminders(dentist, times, at(2026, 10, 16, 15, 16), zone))
+        assertEquals(times, AgendaRules.dueReminders(dentist, times, at(2026, 10, 16, 15, 0), midnight))
+        assertEquals(emptyList<Long>(), AgendaRules.dueReminders(dentist, times, at(2026, 10, 16, 15, 16), midnight))
         // Sent for this start: not again; sent for another one: due anew
-        assertEquals(emptyList<Long>(), AgendaRules.dueReminders(event(start, 45 * 60_000L, remindedUntil = times[0], remindedFor = start), times, at(2026, 10, 16, 14, 20), zone))
-        assertEquals(times, AgendaRules.dueReminders(event(start, 45 * 60_000L, remindedUntil = times[0], remindedFor = start - 1), times, at(2026, 10, 16, 14, 20), zone))
+        assertEquals(emptyList<Long>(), AgendaRules.dueReminders(event(start, 45 * 60_000L, remindedUntil = times[0], remindedFor = start), times, at(2026, 10, 16, 14, 20), midnight))
+        assertEquals(times, AgendaRules.dueReminders(event(start, 45 * 60_000L, remindedUntil = times[0], remindedFor = start - 1), times, at(2026, 10, 16, 14, 20), midnight))
         // Cancelled: none
-        assertEquals(emptyList<Long>(), AgendaRules.dueReminders(event(start, status = AgendaToolType.Status.CANCELLED), times, at(2026, 10, 16, 14, 20), zone))
+        assertEquals(emptyList<Long>(), AgendaRules.dueReminders(event(start, status = AgendaToolType.Status.CANCELLED), times, at(2026, 10, 16, 14, 20), midnight))
     }
 
     @Test
@@ -85,10 +89,32 @@ class AgendaRulesTest {
         val birthday = event(at(2026, 10, 17), allDay = true)
         val times = AgendaRules.reminderTimes(birthday, listOf(TimePoint.Shift(ShiftUnit.DAY, -1, LocalTime.of(18, 0))), ::resolve)
         assertEquals(listOf(at(2026, 10, 16, 18)), times)
-        assertEquals(times, AgendaRules.dueReminders(birthday, times, at(2026, 10, 17, 8), zone))
-        assertEquals(emptyList<Long>(), AgendaRules.dueReminders(birthday, times, at(2026, 10, 18, 0, 1), zone))
-        assertEquals(at(2026, 10, 16, 18), AgendaRules.nextReminder(birthday, times, now, zone))
-        assertNull(AgendaRules.nextReminder(birthday, times, at(2026, 10, 16, 19), zone))
+        assertEquals(times, AgendaRules.dueReminders(birthday, times, at(2026, 10, 17, 8), midnight))
+        assertEquals(emptyList<Long>(), AgendaRules.dueReminders(birthday, times, at(2026, 10, 18, 0, 1), midnight))
+        assertEquals(at(2026, 10, 16, 18), AgendaRules.nextReminder(birthday, times, now, midnight))
+        assertNull(AgendaRules.nextReminder(birthday, times, at(2026, 10, 16, 19), midnight))
+    }
+
+    @Test
+    fun `a whole day lasts until the user's next day starts, its reminders late until then`() {
+        // Saturday's birthday, its start the start of Saturday as the day starts at 4:00
+        val birthday = event(at(2026, 10, 17, 4), allDay = true)
+        assertEquals(at(2026, 10, 18, 4) - 1, birthday.end(four))
+        assertTrue(birthday.isOngoing(at(2026, 10, 18, 1), four))
+        val times = listOf(at(2026, 10, 16, 18))
+        assertEquals(times, AgendaRules.dueReminders(birthday, times, at(2026, 10, 18, 1), four))
+        assertEquals(emptyList<Long>(), AgendaRules.dueReminders(birthday, times, at(2026, 10, 18, 4), four))
+    }
+
+    @Test
+    fun `a whole day written at another time is put at the start of the user's day, its reminders' mark read against it`() {
+        val data = JSONObject().put(AgendaToolType.ALL_DAY, true).put(AgendaToolType.DAYS, 1).toString()
+        val written = ToolDataEntity("b", "agenda", "agenda", at(2026, 10, 17), "Birthday", data, 0L, 0L)
+        assertEquals(at(2026, 10, 17, 4), AgendaRules.settleAllDay(written, four)!!.timestamp)
+        assertEquals(at(2026, 10, 17, 4), AgendaRules.settleAllDay(written.copy(timestamp = at(2026, 10, 17, 14, 30)), four)!!.timestamp)
+        assertNull(AgendaRules.settleAllDay(written.copy(timestamp = at(2026, 10, 17, 4)), four))
+        // An event at a time stays where it is
+        assertNull(AgendaRules.settleAllDay(written.copy(data = JSONObject().put(AgendaToolType.DURATION, 3_600_000L).toString()), four))
     }
 
     private fun config(vararg series: JSONObject) = JSONObject().put(AgendaToolType.SERIES_LIST, JSONArray(series.toList()))

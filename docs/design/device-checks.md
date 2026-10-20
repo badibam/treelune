@@ -504,3 +504,14 @@ Vu le 2026-10-20 sur la démo : la tuile et la page de Ripasso ; la lecture du p
 - Un rappel d'Agenda envoyé, puis annuler le renommage de son événement : l'ancien nom revient, le rappel ne repart pas.
 - Un gros import (le fichier de 64 659 lignes du 2026-10-01) : la durée de l'import, à comparer à celle d'avant (3 min 19 s), et la place prise par l'historique ensuite ; puis l'annuler, et sa durée.
 - Restaurer une sauvegarde : la confirmation dit que l'historique sera vidé et renvoie à l'export ; l'historique est vide ensuite.
+
+## Les journées de l'app (2026-10-20, branche todo-cleanup)
+
+- La nuit, entre minuit et l'heure de début du jour : « cette semaine », « ce mois » restent ceux de la veille au soir (une variable de la semaine, le Suivi d'une semaine, un Graphique de la semaine) ; « aujourd'hui » reste la veille.
+- La démo installée après minuit, avant 4 h : Ripasso a des cartes à revoir ; avec « La semaine commence » le dimanche, la semaine chargée et les relevés du carnet tombent sur des semaines qui commencent le dimanche, les tentatives des Objectifs restent le lundi à 00:00.
+- La migration 85 sur la release et ses données : un événement toute la journée garde son jour dans l'Agenda, ses rappels déjà envoyés ne repartent pas ; une sauvegarde d'avant restaurée, de même.
+- Un événement toute la journée créé par le formulaire, par une série et par l'IA : son début à l'heure de début du jour (l'historique de l'outil) ; à 1 h du matin, celui de la veille encore en cours dans À venir ; l'IA qui lit les événements d'aujourd'hui le voit.
+- Un Graphique en grille par jour : chaque graduation sous son point ; par semaine, la graduation au premier jour de la semaine réglé.
+- Le sélecteur de période (Jour, Semaine, Mois) : toucher la date, choisir le 14, un lundi, le 1er : la période montrée est celle du jour choisi, jamais la veille, la semaine ou le mois d'avant.
+- La nuit, avant 4 h : le sélecteur de date d'un champ DATE et celui d'une période marquent la veille comme aujourd'hui et s'ouvrent dessus ; celui d'une date et heure, et de la date d'une entrée du Journal, marque le jour du calendrier ; dans le thème par défaut, Material marque toujours le jour du calendrier, seule l'ouverture suit ; « aujourd'hui » choisi dans un champ DATE donne la veille.
+- Le sélecteur de date de chaque thème avec « La semaine commence » le dimanche : la grille commence le dimanche ; dans le thème par défaut (le sélecteur de Material), si elle commence encore le lundi, Android ne lit pas la marque `fw` de la langue — le dire ; la date choisie est celle touchée, le fuseau de l'app réglé sur New York aussi.

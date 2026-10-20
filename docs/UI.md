@@ -310,12 +310,13 @@ data class RelativePeriod(val offset: Int, val type: PeriodType) // Relative per
 - `false`: "Week of 15 March"
 - `true`: "125 weeks ago"
 
-### Utilities
-- `normalizeTimestampWithConfig()`: normalises a timestamp to the start of the period
-- `getPeriodEndTimestamp()`: computes the end of the period
-- `getNextPeriod()` / `getPreviousPeriod()`: period navigation
-- `resolveRelativePeriod()`: resolves a RelativePeriod → absolute Period
-- `calculatePeriodOffset()`: computes the offset between a timestamp and now
+### The period computations
+They live in the core, `core/selection/Periods.kt`, beside `TimeResolver`; the selector reads them, never redoes them:
+- `normalizeTimestampWithConfig()`: the start of an instant's period, from the day of the app that holds it
+- `getPeriodEndTimestamp()`: the end of a period
+- `getNextPeriod()` / `getPreviousPeriod()`: the neighbouring periods
+- `resolveRelativePeriod()`: a `RelativePeriod` as a `Period`
+- `periodOfDay()`: the period of a day chosen in the date picker
 
 ## Usage rules
 

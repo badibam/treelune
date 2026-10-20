@@ -17,7 +17,6 @@ import app.treelune.core.fields.FieldType
 import app.treelune.core.selection.TimeResolver
 import app.treelune.core.terms.Term
 import app.treelune.core.themes.TagColor
-import java.time.ZoneId
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -96,14 +95,13 @@ data class ChartMetrics(val density: Float, val unit: Float = 1f) {
  * its theme draws (Drawing), written once here, and what a touch finds on it. Nothing here reads data or knows a screen: the tables come in whole, the
  * sizes of texts from [text].
  *
- * @param now The instant the chart is shown at, which a condition's relative dates resolve against
+ * @param calendar The app's calendar, against the instant the chart is shown at: its days and
+ *        weeks lay out a time axis, and a condition's relative dates resolve against it
  */
 class ChartSceneBuilder(
     private val metrics: ChartMetrics,
     private val text: ChartText,
-    private val zone: ZoneId,
-    private val weekStartDay: String,
-    private val now: Long
+    private val calendar: TimeResolver
 ) {
     private val shapes = mutableListOf<DrawShape>()
     private val hits = mutableListOf<Hit>()
@@ -265,16 +263,16 @@ class ChartSceneBuilder(
             val name = def?.field ?: return null
             val value = row.value(name) ?: return null
             return if (isBand(measure)) ChartValues.category(value)?.let { Pos.Cat(it) }
-            else ChartValues.number(field ?: return null, value, zone)?.let { Pos.Num(it) }
+            else ChartValues.number(field ?: return null, value, calendar)?.let { Pos.Num(it) }
         }
 
         private fun place(): List<Placed> {
             val used = layer.encoding.values.mapNotNull { it.field }.toSet()
             val placed = table.rows.map { row ->
                 val failure = used.firstNotNullOfOrNull { row.failure(it) }
-                val x2 = layer.channel(Channel.X2)?.field?.let { f -> table.columns[f]?.let { ChartValues.number(it, row.value(f), zone) } }
+                val x2 = layer.channel(Channel.X2)?.field?.let { f -> table.columns[f]?.let { ChartValues.number(it, row.value(f), calendar) } }
                     ?: xField?.let { ChartValues.end(it, xDef?.field?.let(row::value)) }
-                val y2 = layer.channel(Channel.Y2)?.field?.let { f -> table.columns[f]?.let { ChartValues.number(it, row.value(f), zone) } }
+                val y2 = layer.channel(Channel.Y2)?.field?.let { f -> table.columns[f]?.let { ChartValues.number(it, row.value(f), calendar) } }
                     ?: yField?.let { ChartValues.end(it, yDef?.field?.let(row::value)) }
                 Placed(row, pos(xDef, xField, xMeasure, row), x2, pos(yDef, yField, yMeasure, row), y2, null, null, failure)
             }
@@ -306,7 +304,7 @@ class ChartSceneBuilder(
             val result = placed.toMutableList()
             placed.indices.groupBy { place(placed[it]) }.values.forEach { group ->
                 val ordered = group.sortedWith(compareBy<Int> { i ->
-                    orderField?.let { f -> table.columns[f]?.let { ChartValues.number(it, placed[i].row.value(f), zone) } } ?: 0.0
+                    orderField?.let { f -> table.columns[f]?.let { ChartValues.number(it, placed[i].row.value(f), calendar) } } ?: 0.0
                 }.thenBy { i -> colors.rank(layer, placed[i].row) })
                 val total = ordered.sumOf { i -> abs(((if (horizontal) placed[i].x else placed[i].y) as? Pos.Num)?.value ?: 0.0) }
                 var up = 0.0
@@ -536,7 +534,7 @@ class ChartSceneBuilder(
 
     private fun timeTicks(lo: Double, hi: Double, count: Int): List<Tick> {
         val step = ChartTicks.calendarStep(lo.toLong(), hi.toLong(), count)
-        return ChartTicks.calendar(lo.toLong(), hi.toLong(), step, zone, weekStartDay).map { Tick(it.toDouble(), text.instant(it, step)) }
+        return ChartTicks.calendar(lo.toLong(), hi.toLong(), step, calendar).map { Tick(it.toDouble(), text.instant(it, step)) }
     }
 
     /** Graduations of a quantity, written as its field writes it: durations as durations, hours as hours, shares as percents. */
@@ -711,7 +709,7 @@ class ChartSceneBuilder(
     private fun drawPoints(p: Prepared, xAxis: Axis, yAxis: Axis, plot: DrawRect) {
         val sizeDef = p.layer.channel(Channel.SIZE)
         val sizeField = sizeDef?.field?.let { p.table.columns[it] }
-        val sizes = sizeField?.let { f -> p.table.rows.mapNotNull { ChartValues.number(f, it.value(sizeDef.field!!), zone) } }
+        val sizes = sizeField?.let { f -> p.table.rows.mapNotNull { ChartValues.number(f, it.value(sizeDef.field!!), calendar) } }
         p.rows.forEach { r ->
             if (r.failure != null) return@forEach
             val x = xAxis.position(r.x) ?: return@forEach
@@ -728,7 +726,7 @@ class ChartSceneBuilder(
                 MarkType.POINT -> {
                     // Vega-Lite's size is an area in square pixels, 30 by default
                     val area = conditioned(p, Channel.SIZE, r.row) as? Float
-                        ?: sizeField?.let { f -> ChartValues.number(f, r.row.value(sizeDef.field!!), zone)?.let { v -> scaled(v, sizes!!, 20f, 400f) } }
+                        ?: sizeField?.let { f -> ChartValues.number(f, r.row.value(sizeDef.field!!), calendar)?.let { v -> scaled(v, sizes!!, 20f, 400f) } }
                         ?: (sizeDef?.value as? Float) ?: p.layer.mark.size ?: 30f
                     val shape = shapeOf(p, r.row)
                     shapes.add(DrawShape.Symbol(point, metrics.dp(sqrt(area)), shape.symbol, color, opacity, p.layer.mark.filled ?: false))
@@ -786,9 +784,9 @@ class ChartSceneBuilder(
             val radiusField = radiusDef?.field?.let { b.table.columns[it] }
             val rows = b.table.rows.filter { it.failure(theta) == null }
                 .sortedBy { colors.rank(b.layer, it) }
-            val values = rows.map { ChartValues.number(thetaField, it.value(theta), zone)?.coerceAtLeast(0.0) ?: 0.0 }
+            val values = rows.map { ChartValues.number(thetaField, it.value(theta), calendar)?.coerceAtLeast(0.0) ?: 0.0 }
             val total = values.sum().takeIf { it > 0 } ?: return@forEach
-            val radii = radiusField?.let { f -> rows.map { ChartValues.number(f, it.value(radiusDef.field!!), zone) ?: 0.0 } }
+            val radii = radiusField?.let { f -> rows.map { ChartValues.number(f, it.value(radiusDef.field!!), calendar) ?: 0.0 } }
             val maxRadius = radii?.maxOrNull()?.takeIf { it > 0 }
             var angle = 0f
             rows.forEachIndexed { i, row ->
@@ -837,7 +835,7 @@ class ChartSceneBuilder(
                     orders[name] = order
                     categorical[name] = order.mapIndexed { i, key -> key to (def.scale.range?.getOrNull(i) ?: optionColors[key] ?: PALETTE[i % PALETTE.size]) }.toMap()
                 } else {
-                    val values = b.table.rows.mapNotNull { ChartValues.number(field, it.value(name), zone) }
+                    val values = b.table.rows.mapNotNull { ChartValues.number(field, it.value(name), calendar) }
                     if (values.isNotEmpty()) {
                         val (lo, hi) = quantities[name] ?: (values.min() to values.max())
                         quantities[name] = min(lo, values.min()) to max(hi, values.max())
@@ -967,7 +965,7 @@ class ChartSceneBuilder(
                 val category = ChartValues.category(row.value(name))
                 category?.let { colors.color(name, it) }?.let { return DrawColor.Palette(it) }
             } else if (field != null) {
-                val value = ChartValues.number(field, row.value(name), zone)
+                val value = ChartValues.number(field, row.value(name), calendar)
                 val range = colors.quantity(name)
                 if (value != null && range != null) {
                     val (from, to) = ramp(def)
@@ -985,8 +983,8 @@ class ChartSceneBuilder(
         val def = p.layer.channel(Channel.OPACITY)
         def?.field?.let { name ->
             val field = p.table.columns[name] ?: return@let
-            val values = p.table.rows.mapNotNull { ChartValues.number(field, it.value(name), zone) }
-            ChartValues.number(field, row.value(name), zone)?.let { return scaled(it, values, 0.25f, 1f) }
+            val values = p.table.rows.mapNotNull { ChartValues.number(field, it.value(name), calendar) }
+            ChartValues.number(field, row.value(name), calendar)?.let { return scaled(it, values, 0.25f, 1f) }
         }
         (def?.value as? Float)?.let { return it.coerceIn(0f, 1f) }
         return p.layer.mark.opacity?.coerceIn(0f, 1f) ?: default
@@ -1028,7 +1026,7 @@ class ChartSceneBuilder(
         val left = read.left as? Condition.Side.Field ?: return null
         val field = p.table.columns[left.path] ?: return null
         val holds = runCatching {
-            ConditionJudge.holds(field, read.op, side(read.left), read.right.map { side(it) }, TimeResolver(now, zone, 0, weekStartDay), text::shared)
+            ConditionJudge.holds(field, read.op, side(read.left), read.right.map { side(it) }, calendar, text::shared)
         }.getOrNull()
         return if (holds == true) condition.value else null
     }

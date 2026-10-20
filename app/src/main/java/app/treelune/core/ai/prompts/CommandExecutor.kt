@@ -534,6 +534,8 @@ class CommandExecutor(private val context: Context) {
      *
      * Always states the result count (even if 0) and the exact query (filters, fields): the AI
      * knows what the data covers, and has no reason to ask for it again
+     *
+     * A name missing from a successful result throws: executeCommand then fails the command
      */
     private suspend fun generateDataTitle(command: ExecutableCommand, data: Map<String, Any>): String {
         // No title needed for action commands
@@ -541,192 +543,163 @@ class CommandExecutor(private val context: Context) {
             return ""
         }
 
-        return try {
-            when (command.resource) {
-                "tool_data" -> {
-                    // Resolve tool instance name from ID in command params
-                    // Note: UserCommandProcessor transforms "id" → "tool_instance_id"
-                    LogManager.aiPrompt("tool_data command params keys: ${command.params.keys}", "VERBOSE")
-                    LogManager.aiPrompt("tool_instance_id=${command.params["tool_instance_id"]}, id=${command.params["id"]}", "VERBOSE")
+        return when (command.resource) {
+            "tool_data" -> {
+                // Resolve tool instance name from ID in command params
+                // Note: UserCommandProcessor transforms "id" → "tool_instance_id"
+                LogManager.aiPrompt("tool_data command params keys: ${command.params.keys}", "VERBOSE")
+                LogManager.aiPrompt("tool_instance_id=${command.params["tool_instance_id"]}, id=${command.params["id"]}", "VERBOSE")
 
-                    val toolInstanceId = command.params["tool_instance_id"] as? String
-                        ?: command.params["id"] as? String
+                val toolInstanceId = command.params["tool_instance_id"] as? String
+                    ?: command.params["id"] as? String
 
-                    LogManager.aiPrompt("Resolved toolInstanceId: $toolInstanceId", "VERBOSE")
+                LogManager.aiPrompt("Resolved toolInstanceId: $toolInstanceId", "VERBOSE")
 
-                    val toolName = if (toolInstanceId != null) {
-                        val name = resolveToolInstanceName(toolInstanceId)
-                        LogManager.aiPrompt("Resolved tool name: $name", "VERBOSE")
-                        name
-                    } else {
-                        LogManager.aiPrompt("No toolInstanceId found in params!", "WARN")
-                        "unknown tool"
-                    }
+                val toolName = resolveToolInstanceName(toolInstanceId
+                    ?: throw IllegalStateException("tool_data.${command.operation} succeeded without a tool_instance_id in its params"))
+                LogManager.aiPrompt("Resolved tool name: $toolName", "VERBOSE")
 
-                    val count = data["count"] as? Int
-                        ?: (data["entries"] as? List<*>)?.size
-                        ?: 0
+                val count = data["count"] as? Int
+                    ?: (data["entries"] as? List<*>)?.size
+                    ?: 0
 
-                    // Build comprehensive header with ALL query details
-                    val headerParts = mutableListOf<String>()
+                // Build comprehensive header with ALL query details
+                val headerParts = mutableListOf<String>()
 
-                    // Main title with result count (ALWAYS shown, even if 0)
-                    headerParts.add("=== ${s.shared("ai_data_header_tool").format(toolName)} ===")
-                    headerParts.add(s.shared("ai_data_result_count").format(count))
+                // Main title with result count (ALWAYS shown, even if 0)
+                headerParts.add("=== ${s.shared("ai_data_header_tool").format(toolName)} ===")
+                headerParts.add(s.shared("ai_data_result_count").format(count))
 
-                    // The filters, a period included, written as the model writes them
-                    val filters = command.params["filters"] as? List<*>
-                    if (filters.isNullOrEmpty()) {
-                        headerParts.add(s.shared("ai_data_filters_none"))
-                    } else {
-                        headerParts.add(s.shared("ai_data_filters").format(describeFilters(command, filters)))
-                    }
-
-                    val limit = command.params["limit"] as? Int
-                    if (limit != null) {
-                        headerParts.add(s.shared("ai_data_limit").format(limit))
-                    }
-
-                    // Fields included (dynamic from command params)
-                    val requestedFields = command.params["fields"] as? List<*>
-                    val fieldsDisplay = if (requestedFields != null && requestedFields.isNotEmpty()) {
-                        requestedFields.joinToString(", ")
-                    } else {
-                        // Fallback for backward compatibility (no fields param = all fields)
-                        s.shared("ai_data_fields_all")
-                    }
-                    headerParts.add(s.shared("ai_data_fields").format(fieldsDisplay))
-
-                    // An empty result says so, so that it does not read as a failure
-                    if (count == 0) headerParts.add(s.shared("ai_data_no_results_warning"))
-
-                    headerParts.joinToString("\n")
+                // The filters, a period included, written as the model writes them
+                val filters = command.params["filters"] as? List<*>
+                if (filters.isNullOrEmpty()) {
+                    headerParts.add(s.shared("ai_data_filters_none"))
+                } else {
+                    headerParts.add(s.shared("ai_data_filters").format(describeFilters(command, filters)))
                 }
-                "schemas" -> {
-                    val schemaId = data["schema_id"] as? String ?: "unknown"
-                    "Schema: $schemaId"
+
+                val limit = command.params["limit"] as? Int
+                if (limit != null) {
+                    headerParts.add(s.shared("ai_data_limit").format(limit))
                 }
-                "identities" -> IdentityPrompt.title(command.operation, data)
-                "tools" -> {
-                    when (command.operation) {
-                        "get" -> {
-                            // ToolInstanceService.handleGetById returns data["tool_instance"]["name"]
-                            val toolInstance = data["tool_instance"] as? Map<*, *>
-                            val toolName = toolInstance?.get("name") as? String ?: "unknown"
-                            "Configuration for tool '$toolName'"
+
+                // Fields included (dynamic from command params)
+                val requestedFields = command.params["fields"] as? List<*>
+                val fieldsDisplay = if (requestedFields != null && requestedFields.isNotEmpty()) {
+                    requestedFields.joinToString(", ")
+                } else {
+                    // Fallback for backward compatibility (no fields param = all fields)
+                    s.shared("ai_data_fields_all")
+                }
+                headerParts.add(s.shared("ai_data_fields").format(fieldsDisplay))
+
+                // An empty result says so, so that it does not read as a failure
+                if (count == 0) headerParts.add(s.shared("ai_data_no_results_warning"))
+
+                headerParts.joinToString("\n")
+            }
+            "schemas" -> {
+                val schemaId = data["schema_id"] as? String
+                    ?: throw IllegalStateException("schemas.${command.operation} result without schema_id")
+                "Schema: $schemaId"
+            }
+            "identities" -> IdentityPrompt.title(command.operation, data)
+            "tools" -> {
+                when (command.operation) {
+                    "get" -> {
+                        // ToolInstanceService.handleGetById returns data["tool_instance"]["name"]
+                        val toolInstance = data["tool_instance"] as? Map<*, *>
+                        val toolName = toolInstance?.get("name") as? String
+                            ?: throw IllegalStateException("tools.get result without tool_instance.name")
+                        "Configuration for tool '$toolName'"
+                    }
+                    "list" -> {
+                        val zoneId = command.params["zone_id"] as? String
+                        if (zoneId != null) {
+                            val zoneName = resolveZoneName(zoneId)
+                            "Tool instances in zone '$zoneName'"
+                        } else {
+                            "All tool instances"
                         }
-                        "list" -> {
-                            val zoneId = command.params["zone_id"] as? String
-                            if (zoneId != null) {
-                                val zoneName = resolveZoneName(zoneId)
-                                "Tool instances in zone '$zoneName'"
-                            } else {
-                                "All tool instances"
-                            }
-                        }
-                        "list_all" -> "All tool instances"
-                        else -> ""
                     }
+                    "list_all" -> "All tool instances"
+                    else -> ""
                 }
-                "zones" -> {
-                    when (command.operation) {
-                        "get" -> {
-                            // ZoneService.handleGet returns data["zone"]["name"]
-                            val zone = data["zone"] as? Map<*, *>
-                            val zoneName = zone?.get("name") as? String ?: "unknown"
-                            "Configuration for zone '$zoneName'"
-                        }
-                        "list" -> "All zones"
-                        else -> ""
+            }
+            "zones" -> {
+                when (command.operation) {
+                    "get" -> {
+                        // ZoneService.handleGet returns data["zone"]["name"]
+                        val zone = data["zone"] as? Map<*, *>
+                        val zoneName = zone?.get("name") as? String
+                            ?: throw IllegalStateException("zones.get result without zone.name")
+                        "Configuration for zone '$zoneName'"
                     }
+                    "list" -> "All zones"
+                    else -> ""
                 }
-                "automations" -> when (command.operation) {
-                    "config" -> "Configuration for routine '${resolveAutomationName(command.params["automation_id"] as? String)}'"
-                    "list" -> "Routines in zone '${resolveZoneName(command.params["zone_id"] as String)}'"
-                    else -> "All routines"
-                }
-                "ai_sessions" -> when (command.operation) {
-                    "list_sessions_for_automation" -> "Runs of routine '${resolveAutomationName(command.params["automation_id"] as? String)}'"
-                    else -> "Run ${command.params["session_id"]}, its messages as its AI received them"
-                }
-                "files" -> when (command.operation) {
-                    "show_images" -> "Images of entries, shown below, each under its id in this conversation: ${(data["images"] as? List<*>)?.size ?: 0}"
-                    else -> "Data from ${command.resource}.${command.operation}"
-                }
-                "history" -> {
-                    val tool = (command.params["tool_instance_id"] as? String)?.let { " of tool '${resolveToolInstanceName(it)}'" }
-                    val zone = (command.params["zone_id"] as? String)?.let { " of zone '${resolveZoneName(it)}'" }
-                    "Steps of the history${tool ?: zone ?: ""}, the most recent first"
-                }
-                "icons" -> when (command.operation) {
-                    "overview" -> "Icons: overview"
-                    else -> {
-                        val query = (command.params["query"] as? List<*>)?.joinToString(", ")
-                        val categories = (command.params["categories"] as? List<*>)?.joinToString(", ")
-                        listOfNotNull(
-                            query?.let { "matching $it" },
-                            categories?.let { "in $it" }
-                        ).joinToString(" ", prefix = "Icons ")
-                    }
-                }
+            }
+            "automations" -> when (command.operation) {
+                "config" -> "Configuration for routine '${resolveAutomationName(command.params["automation_id"] as? String)}'"
+                "list" -> "Routines in zone '${resolveZoneName(command.params["zone_id"] as String)}'"
+                else -> "All routines"
+            }
+            "ai_sessions" -> when (command.operation) {
+                "list_sessions_for_automation" -> "Runs of routine '${resolveAutomationName(command.params["automation_id"] as? String)}'"
+                else -> "Run ${command.params["session_id"]}, its messages as its AI received them"
+            }
+            "files" -> when (command.operation) {
+                "show_images" -> "Images of entries, shown below, each under its id in this conversation: ${(data["images"] as? List<*>)?.size ?: 0}"
+                else -> "Data from ${command.resource}.${command.operation}"
+            }
+            "history" -> {
+                val tool = (command.params["tool_instance_id"] as? String)?.let { " of tool '${resolveToolInstanceName(it)}'" }
+                val zone = (command.params["zone_id"] as? String)?.let { " of zone '${resolveZoneName(it)}'" }
+                "Steps of the history${tool ?: zone ?: ""}, the most recent first"
+            }
+            "icons" -> when (command.operation) {
+                "overview" -> "Icons: overview"
                 else -> {
-                    "Data from ${command.resource}.${command.operation}"
+                    val query = (command.params["query"] as? List<*>)?.joinToString(", ")
+                    val categories = (command.params["categories"] as? List<*>)?.joinToString(", ")
+                    listOfNotNull(
+                        query?.let { "matching $it" },
+                        categories?.let { "in $it" }
+                    ).joinToString(" ", prefix = "Icons ")
                 }
             }
-        } catch (e: Exception) {
-            LogManager.aiPrompt("Failed to generate data title: ${e.message}", "WARN")
-            ""
+            else -> {
+                "Data from ${command.resource}.${command.operation}"
+            }
         }
     }
 
-    /**
-     * Resolve tool instance name from ID via coordinator
-     */
+    // The names below are read for a command that has just succeeded on the same id: one that
+    // cannot be read is a bug, and throws
+
+    /** The name of tool [toolInstanceId], read by tools.get. */
     private suspend fun resolveToolInstanceName(toolInstanceId: String): String {
-        return try {
-            val result = coordinator.processUserAction("tools.get", mapOf("tool_instance_id" to toolInstanceId))
-
-            if (result.isSuccess) {
-                // tools.get returns { "tool_instance": { "name": "...", ... } }
-                val toolInstance = result.data?.get("tool_instance") as? Map<*, *>
-                val name = toolInstance?.get("name") as? String
-                name ?: "unknown tool"
-            } else {
-                LogManager.aiPrompt("Failed to resolve tool instance name for $toolInstanceId: ${result.error}", "WARN")
-                "unknown tool"
-            }
-        } catch (e: Exception) {
-            LogManager.aiPrompt("Error resolving tool instance name: ${e.message}", "WARN", e)
-            "unknown tool"
-        }
+        val result = coordinator.processUserAction("tools.get", mapOf("tool_instance_id" to toolInstanceId))
+        check(result.isSuccess) { "Cannot read the name of tool $toolInstanceId: ${result.error}" }
+        return (result.data?.get("tool_instance") as? Map<*, *>)?.get("name") as? String
+            ?: throw IllegalStateException("tools.get result for $toolInstanceId without tool_instance.name")
     }
 
-    /** The name of routine [automationId], its id when it cannot be read. */
+    /** The name of routine [automationId], read by automations.get. */
     private suspend fun resolveAutomationName(automationId: String?): String {
-        automationId ?: return "unknown routine"
+        automationId ?: throw IllegalStateException("A routine command succeeded without an automation_id")
         val result = coordinator.processUserAction("automations.get", mapOf("automation_id" to automationId))
-        return (result.data?.get("automation") as? Map<*, *>)?.get("name") as? String ?: automationId
+        check(result.isSuccess) { "Cannot read the name of routine $automationId: ${result.error}" }
+        return (result.data?.get("automation") as? Map<*, *>)?.get("name") as? String
+            ?: throw IllegalStateException("automations.get result for $automationId without automation.name")
     }
 
-    /**
-     * Resolve zone name from ID via coordinator
-     */
+    /** The name of zone [zoneId], read by zones.get. */
     private suspend fun resolveZoneName(zoneId: String): String {
-        return try {
-            val result = coordinator.processUserAction("zones.get", mapOf("zone_id" to zoneId))
-            if (result.isSuccess) {
-                // zones.get returns { "zone": { "name": "...", ... } }
-                val zone = result.data?.get("zone") as? Map<*, *>
-                val name = zone?.get("name") as? String
-                name ?: "unknown zone"
-            } else {
-                LogManager.aiPrompt("Failed to resolve zone name for $zoneId: ${result.error}", "WARN")
-                "unknown zone"
-            }
-        } catch (e: Exception) {
-            LogManager.aiPrompt("Error resolving zone name: ${e.message}", "WARN")
-            "unknown zone"
-        }
+        val result = coordinator.processUserAction("zones.get", mapOf("zone_id" to zoneId))
+        check(result.isSuccess) { "Cannot read the name of zone $zoneId: ${result.error}" }
+        return (result.data?.get("zone") as? Map<*, *>)?.get("name") as? String
+            ?: throw IllegalStateException("zones.get result for $zoneId without zone.name")
     }
 
     /**

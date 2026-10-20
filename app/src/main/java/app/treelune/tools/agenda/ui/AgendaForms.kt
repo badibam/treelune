@@ -36,7 +36,7 @@ import java.time.LocalDate
 
 /**
  * What an event or a series is made of on the screen: its name, whole days or not, its start,
- * its duration or its days. A whole day's start is its day, stored as midnight in the zone.
+ * its duration or its days. A whole day's start is its day, stored as the start of the user's day on it.
  */
 @kotlinx.serialization.Serializable
 internal data class EventDraft(
@@ -55,9 +55,9 @@ internal data class EventDraft(
 /** A day as a DATE field stores it, "2026-10-23", from a whole day's start. */
 private fun dayOf(start: Long?): String? = start?.let { Instant.ofEpochMilli(it).atZone(AgendaToolType.zone()).toLocalDate().toString() }
 
-/** Midnight in the zone of a day stored as a DATE field holds it. */
-private fun midnightOf(day: Any?): Long? = (day as? String)?.let {
-    try { LocalDate.parse(it).atStartOfDay(AgendaToolType.zone()).toInstant().toEpochMilli() } catch (e: java.time.format.DateTimeParseException) { null }
+/** The start of the user's day on a day stored as a DATE field holds it. */
+private fun startOfDay(day: Any?): Long? = (day as? String)?.let {
+    try { AgendaToolType.calendar(AgendaToolType.zone()).startOf(LocalDate.parse(it)) } catch (e: java.time.format.DateTimeParseException) { null }
 }
 
 /**
@@ -72,7 +72,7 @@ private fun DraftFields(draft: EventDraft, withStart: Boolean, context: Context,
         fieldType = app.treelune.core.ui.FieldType.TEXT, required = true)
     UI.Checkbox(checked = draft.allDay, onCheckedChange = { onChange(draft.copy(allDay = it)) }, label = s.tool("field_all_day"))
     if (withStart) {
-        if (draft.allDay) FieldInput(def("start_day", FieldType.DATE), dayOf(draft.start), { onChange(draft.copy(start = midnightOf(it))) }, context, required = true)
+        if (draft.allDay) FieldInput(def("start_day", FieldType.DATE), dayOf(draft.start), { onChange(draft.copy(start = startOfDay(it))) }, context, required = true)
         else FieldInput(def("start", FieldType.DATETIME), draft.start, { onChange(draft.copy(start = (it as? Number)?.toLong())) }, context, required = true)
     }
     if (draft.allDay) FieldInput(def(AgendaToolType.DAYS, FieldType.NUMERIC, mapOf("min" to 1, "decimals" to 0)), draft.days,

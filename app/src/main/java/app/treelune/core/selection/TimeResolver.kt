@@ -1,9 +1,6 @@
 package app.treelune.core.selection
 
 import app.treelune.core.fields.FieldType
-import app.treelune.core.ui.components.RelativePeriod
-import app.treelune.core.ui.components.getPeriodEndTimestamp
-import app.treelune.core.ui.components.resolveRelativePeriod
 import app.treelune.core.utils.AppConfigManager
 import java.time.Instant
 import java.time.LocalDate
@@ -38,8 +35,10 @@ data class TimeResolver(
     /**
      * [point] on the calendar of the zone: the reference moved by its units, its time of day kept
      * across a change of hour (the day before at 14:30 is 14:30, not 24 hours before), or the day
-     * moved and set at its hour. The start of a day the user set plays no part: a shift keeps its
-     * place, it stands on no edge.
+     * moved and set at its hour. An instant at a time of the clock is the calendar's, as every
+     * instant the user writes: the day before at 18:00 of a flight at 01:30 on Thursday is
+     * Wednesday at 18:00, though the day of the app the flight is in is Wednesday. Only a day
+     * read from it ([day]) is the app's.
      */
     private fun shifted(point: TimePoint.Shift): Long {
         val from = Instant.ofEpochMilli(reference).atZone(zone)
@@ -57,14 +56,16 @@ data class TimeResolver(
     }
 
     /**
-     * The day [point] designates, "2026-09-15". A period's start is the day it starts in; its end,
-     * the eve of the day the next period starts in: with days starting at 4:00, a day runs to 3:59
-     * the day after, and is still one day.
+     * The day [point] designates, "2026-09-15", as the user set days: now, or a shift, is the day
+     * of the app the instant is in (at 0:30 on Wednesday, with days starting at 4:00, today is
+     * Tuesday). A period's start is the day it starts in; its end, the eve of the day the next
+     * period starts in: with days starting at 4:00, a day runs to 3:59 the day after, and is still
+     * one day.
      */
     fun day(point: TimePoint): String = when (point) {
         is TimePoint.Fixed -> point.value as? String
             ?: throw IllegalArgumentException("a fixed day is \"yyyy-MM-dd\", not ${point.value}")
-        TimePoint.Now -> dayOf(reference).toString()
+        TimePoint.Now -> dateOf(reference).toString()
         is TimePoint.Relative -> {
             val start = resolveRelativePeriod(RelativePeriod(point.offset, point.unit), reference, dayStartHour, weekStartDay, zone)
             val first = dayOf(start.timestamp)
@@ -74,8 +75,17 @@ data class TimeResolver(
                 maxOf(first, dayOf(next.timestamp).minusDays(1)).toString()
             }
         }
-        is TimePoint.Shift -> dayOf(shifted(point)).toString()
+        is TimePoint.Shift -> dateOf(shifted(point)).toString()
     }
+
+    /** The day [millis] belongs to, as the user set days: with days starting at 4:00, 2:00 belongs to the day before. */
+    fun dateOf(millis: Long): LocalDate = dayOf(normalizeTimestampWithConfig(millis, PeriodType.DAY, dayStartHour, weekStartDay, zone))
+
+    /** The day of the app the reference is in: at 0:30, with days starting at 4:00, the day before. */
+    fun today(): LocalDate = dateOf(reference)
+
+    /** The instant the day [date] starts at, as the user set days: [dayStartHour] on that date. */
+    fun startOf(date: LocalDate): Long = date.atTime(dayStartHour, 0).atZone(zone).toInstant().toEpochMilli()
 
     /** [point] in the stored form of a field of [type]: a day for a DATE, milliseconds otherwise. */
     fun resolve(point: TimePoint, type: FieldType): Any = if (type == FieldType.DATE) day(point) else instant(point)
@@ -83,10 +93,10 @@ data class TimeResolver(
     private fun dayOf(millis: Long): LocalDate = Instant.ofEpochMilli(millis).atZone(zone).toLocalDate()
 
     companion object {
-        /** Against [reference], with the calendar the user set. */
-        fun at(reference: Long) = TimeResolver(
+        /** Against [reference], with the calendar the user set, read in [zone]: the app's unless given. */
+        fun at(reference: Long, zone: ZoneId = AppConfigManager.getDateTimeConfig().getZoneId()) = TimeResolver(
             reference = reference,
-            zone = AppConfigManager.getDateTimeConfig().getZoneId(),
+            zone = zone,
             dayStartHour = AppConfigManager.getDayStartHour(),
             weekStartDay = AppConfigManager.getWeekStartDay()
         )

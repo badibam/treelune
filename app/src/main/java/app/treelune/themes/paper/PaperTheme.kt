@@ -131,12 +131,10 @@ import app.treelune.core.ui.sound.scrollEndSound
 import app.treelune.core.utils.AppConfigManager
 import app.treelune.core.utils.DateUtils
 import kotlinx.coroutines.delay
-import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZonedDateTime
 import java.time.format.TextStyle as DateTextStyle
-import java.time.temporal.WeekFields
 import java.util.Locale
 
 /**
@@ -582,14 +580,11 @@ object PaperTheme : ThemeContract {
      * between two chevrons.
      */
     @Composable
-    override fun DatePicker(selectedDate: String, onDateSelected: (String) -> Unit, onDismiss: () -> Unit) {
-        val zone = AppConfigManager.getDateTimeConfig().getZoneId()
-        // "" means nothing chosen yet, and the picker opens on today by contract
-        val initial = (DateUtils.parseDateForFilter(selectedDate) ?: System.currentTimeMillis())
-            .let { Instant.ofEpochMilli(it).atZone(zone).toLocalDate() }
+    override fun DatePicker(selectedDate: String, today: LocalDate, onDateSelected: (String) -> Unit, onDismiss: () -> Unit) {
+        // "" means nothing chosen yet, and the picker opens on the caller's today by contract
+        val initial = DateUtils.parseDisplayDate(selectedDate) ?: today
         var chosen by remember { mutableStateOf(initial) }
         var month by remember { mutableStateOf(YearMonth.from(initial)) }
-        val today = LocalDate.now(zone)
         val locale = Locale.getDefault()
         val size = paperSize()
         val c = paperColors
@@ -598,7 +593,7 @@ object PaperTheme : ThemeContract {
         DialogFrame(onDismiss = onDismiss, actions = {
             WordButton(s.shared("action_cancel"), onDismiss)
             WordButton(s.shared("action_ok"), {
-                onDateSelected(DateUtils.formatDateForDisplay(chosen.atStartOfDay(zone).toInstant().toEpochMilli()))
+                onDateSelected(DateUtils.formatDisplayDate(chosen))
                 onDismiss()
             }, strong = true)
         }) {
@@ -610,7 +605,7 @@ object PaperTheme : ThemeContract {
                 }
                 PlainIconButton("chevron-right") { month = month.plusMonths(1) }
             }
-            val first = WeekFields.of(locale).firstDayOfWeek
+            val first = DateUtils.weekStart()
             val days = (0 until 7).map { first.plus(it.toLong()) }
             Column {
                 Row(modifier = Modifier.fillMaxWidth()) {

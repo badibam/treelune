@@ -349,8 +349,7 @@ private fun formatDateValue(value: Any?, s: StringsContext): String {
 
     // A value that is not a date is shown as it was stored, rather than as some other
     // date: the reader sees what is actually recorded.
-    val timestamp = app.treelune.core.utils.DateUtils.parseIso8601Date(dateStr) ?: return dateStr
-    return app.treelune.core.utils.DateUtils.formatDateForDisplay(timestamp)
+    return app.treelune.core.utils.DateUtils.formatIsoDate(dateStr) ?: dateStr
 }
 
 /**

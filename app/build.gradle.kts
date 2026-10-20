@@ -273,25 +273,17 @@ fun cleanAndEscapeXmlString(value: String): String {
         value.replace(Regex("\\s+"), " ").trim()
     }
 
-    // 2. Apostrophes, without double-escaping
-    if (!result.contains("\\'")) {
-        // Escape apostrophes only when they are not escaped already
-        result = result.replace("'", "\\'")
-    }
+    // 2. Apostrophes and quotes: each one not escaped already, a text mixing both kinds included
+    result = result.replace(Regex("(?<!\\\\)'"), "\\\\'")
+    result = result.replace(Regex("(?<!\\\\)\""), "\\\\\"")
 
-    // 3. Quotes, without double-escaping
-    if (!result.contains("\\\"")) {
-        // Escape quotes only when they are not escaped already
-        result = result.replace("\"", "\\\"")
-    }
-
-    // 4. Convert placeholders to the Android format, unless they already are
+    // 3. Convert placeholders to the Android format, unless they already are
     if (!result.contains("%1\$")) {
         result = result.replace("%s", "%1\$s")
                        .replace("%d", "%1\$d")
     }
 
-    // 5. Final pass: strip the invisible control characters that break Unicode decoding
+    // 4. Final pass: strip the invisible control characters that break Unicode decoding
     // PRESERVE newlines (\n) and tabs (\t) for CDATA
     if (isCDATA) {
         result = result.replace(Regex("[\\u0000-\\u0008\\u000B-\\u000C\\u000E-\\u001F\\u007F-\\u009F]"), "")

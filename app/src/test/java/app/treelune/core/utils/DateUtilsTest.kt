@@ -57,69 +57,20 @@ class DateUtilsTest {
 
     // ==================== Reading a displayed date ====================
 
-    /** A date typed as dd/MM/yyyy means the start of that day in the given timezone. */
-    @Test
-    fun aDisplayedDateIsReadAsTheStartOfThatDay() {
-        assertEquals(at(2025, 3, 15, 0, 0), DateUtils.parseDateForFilter("15/03/2025", paris))
-        assertEquals(at(2025, 3, 15, 0, 0, tokyo), DateUtils.parseDateForFilter("15/03/2025", tokyo))
-    }
-
     /** Out and back returns the day it started on. */
     @Test
     fun showingThenReadingADateKeepsTheDay() {
         val instant = at(2025, 3, 15, 14, 30)
-        val readBack = DateUtils.parseDateForFilter(DateUtils.formatDateForDisplay(instant, paris), paris)!!
-
-        assertTrue(DateUtils.isOnSameDay(instant, readBack, paris))
-    }
-
-    // ==================== Where a day begins and ends ====================
-
-    /** Midnight to the last millisecond before the next, in the given timezone. */
-    @Test
-    fun aDayRunsFromMidnightToTheLastMillisecond() {
-        val middayOn15th = at(2025, 3, 15, 12, 0)
-
-        assertEquals(at(2025, 3, 15, 0, 0), DateUtils.getStartOfDay(middayOn15th, paris))
-        assertEquals(
-            at(2025, 3, 16, 0, 0) - 1L,
-            DateUtils.getEndOfDay(middayOn15th, paris)
-        )
-    }
-
-    /**
-     * On the night the clocks go forward there is no midnight missing, but the day is an
-     * hour shorter. The bounds follow the calendar day rather than a fixed 24 hours.
-     */
-    @Test
-    fun aDayThatLosesAnHourIsStillOneDay() {
-        val duringTheShortDay = at(2024, 3, 31, 12, 0)
-
-        val start = DateUtils.getStartOfDay(duringTheShortDay, paris)
-        val end = DateUtils.getEndOfDay(duringTheShortDay, paris)
-
-        assertEquals(23 * 3_600_000L - 1L, end - start)
-    }
-
-    /** Two moments are on the same day or not according to the timezone they are read in. */
-    @Test
-    fun beingOnTheSameDayDependsOnTheTimezone() {
-        val lateOn15th = at(2025, 3, 15, 23, 0)
-        val earlyOn16th = at(2025, 3, 16, 1, 0)
-
-        assertFalse(DateUtils.isOnSameDay(lateOn15th, earlyOn16th, paris))
-        assertTrue(DateUtils.isOnSameDay(lateOn15th, earlyOn16th, tokyo))
+        assertEquals(LocalDate.of(2025, 3, 15), DateUtils.parseDisplayDate(DateUtils.formatDateForDisplay(instant, paris)))
     }
 
     // ==================== The ISO helpers for custom fields ====================
 
-    /** A date field's value out and back in the same timezone. */
+    /** A date field's value, a day, shown as the display writes days; an instant's day in the zone given. */
     @Test
-    fun anIsoDateSurvivesTheRoundTrip() {
-        val timestamp = DateUtils.parseIso8601Date("2025-03-15", paris)!!
-
-        assertEquals(at(2025, 3, 15, 0, 0), timestamp)
-        assertEquals("2025-03-15", DateUtils.timestampToIso8601Date(timestamp, paris))
+    fun anIsoDateIsShownAsItsDay() {
+        assertEquals("15/03/2025", DateUtils.formatIsoDate("2025-03-15"))
+        assertEquals("2025-03-15", DateUtils.timestampToIso8601Date(at(2025, 3, 15, 14, 30), paris))
     }
 
     /** A time field has no date of its own: it is read as that time today. */
@@ -128,7 +79,7 @@ class DateUtilsTest {
         val timestamp = DateUtils.parseIso8601Time("14:30", paris)!!
 
         assertEquals("14:30", DateUtils.timestampToIso8601Time(timestamp, paris))
-        assertTrue(DateUtils.isOnSameDay(timestamp, System.currentTimeMillis(), paris))
+        assertEquals(DateUtils.calendarToday(paris), java.time.Instant.ofEpochMilli(timestamp).atZone(paris).toLocalDate())
     }
 
     /** A time in hours and minutes is read as written. */
@@ -171,9 +122,9 @@ class DateUtilsTest {
         val inTokyo = DateUtils.getTodayFormatted(tokyo)
 
         // Same day or the next one, never anything else: Tokyo is eight hours ahead.
-        val readBackParis = DateUtils.parseDateForFilter(inParis, paris)!!
-        val readBackTokyo = DateUtils.parseDateForFilter(inTokyo, tokyo)
-        assertTrue(readBackTokyo == null || readBackTokyo >= readBackParis - 86_400_000L)
+        val dayInParis = DateUtils.parseDisplayDate(inParis)!!
+        val dayInTokyo = DateUtils.parseDisplayDate(inTokyo)!!
+        assertTrue(dayInTokyo == dayInParis || dayInTokyo == dayInParis.plusDays(1))
     }
 
     // ==================== What happens when it cannot be read ====================
@@ -191,11 +142,11 @@ class DateUtilsTest {
         val unreadable = listOf("", "not a date", "2025-03-15", "32/13/2025", "15/03/2025 14:30")
 
         for (bad in unreadable) {
-            assertNull("parseDateForFilter(\"$bad\")", DateUtils.parseDateForFilter(bad, paris))
+            assertNull("parseDisplayDate(\"$bad\")", DateUtils.parseDisplayDate(bad))
             assertNull("combineDateTime(\"$bad\")", DateUtils.combineDateTime(bad, "14:30", paris))
         }
 
-        assertNull(DateUtils.parseIso8601Date("15/03/2025", paris))
+        assertNull(DateUtils.formatIsoDate("15/03/2025"))
         assertNull(DateUtils.parseIso8601Time("not a time", paris))
     }
 
@@ -229,5 +180,22 @@ class DateUtilsTest {
     fun theEdgesOfTheClockAreAccepted() {
         assertEquals(Pair(0, 0), DateUtils.parseTime("00:00", paris))
         assertEquals(Pair(23, 59), DateUtils.parseTime("23:59", paris))
+    }
+
+    @Test
+    fun `a day written for the display reads back as the same day, without a zone`() {
+        assertEquals(LocalDate.of(2026, 10, 14), DateUtils.parseDisplayDate("14/10/2026"))
+        assertEquals("14/10/2026", DateUtils.formatDisplayDate(LocalDate.of(2026, 10, 14)))
+        assertNull(DateUtils.parseDisplayDate(""))
+        assertNull(DateUtils.parseDisplayDate("2026-10-14"))
+    }
+
+    @Test
+    fun `the day a Material picker hands back is its UTC day, west of UTC too`() {
+        val day = LocalDate.of(2026, 10, 14)
+        val millis = DateUtils.pickerMillisOf(day)
+        assertEquals(day, DateUtils.dateOfPickerMillis(millis))
+        // Read in New York, the same midnight UTC is the evening before: the day is not read there
+        assertEquals(LocalDate.of(2026, 10, 13), java.time.Instant.ofEpochMilli(millis).atZone(ZoneId.of("America/New_York")).toLocalDate())
     }
 }

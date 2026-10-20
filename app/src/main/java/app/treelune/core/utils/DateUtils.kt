@@ -65,29 +65,27 @@ object DateUtils {
         return fullDateTimeFormatter.format(zonedDateTime)
     }
 
-    /**
-     * Parse date string back to timestamp for filtering (dd/MM/yyyy)
-     *
-     * @return the start of that day, or null if the string is not a dd/MM/yyyy date
-     */
-    fun parseDateForFilter(dateString: String, zone: ZoneId = getConfiguredZone()): Long? {
-        return try {
-            val localDate = LocalDate.parse(dateString, displayDateFormatter)
-            val zonedDateTime = localDate.atStartOfDay(zone)
-            zonedDateTime.toInstant().toEpochMilli()
-        } catch (e: DateTimeParseException) {
-            null
-        }
+    /** A day as the display writes days (dd/MM/yyyy); null when [text] is not one. */
+    fun parseDisplayDate(text: String): LocalDate? = try {
+        LocalDate.parse(text, displayDateFormatter)
+    } catch (e: DateTimeParseException) {
+        null
     }
 
-    /**
-     * Check if two timestamps are on the same day
-     */
-    fun isOnSameDay(timestamp1: Long, timestamp2: Long, zone: ZoneId = getConfiguredZone()): Boolean {
-        val date1 = ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp1), zone).toLocalDate()
-        val date2 = ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp2), zone).toLocalDate()
-        return date1 == date2
-    }
+    /** [date] as the display writes days (dd/MM/yyyy). */
+    fun formatDisplayDate(date: LocalDate): String = displayDateFormatter.format(date)
+
+    /** Today on the calendar: the date of now, the date an instant written now is on. The day of the app is TimeResolver.today(). */
+    fun calendarToday(zone: ZoneId = getConfiguredZone()): LocalDate = LocalDate.now(zone)
+
+    /** The first day of the week the user set. */
+    fun weekStart(): DayOfWeek = DayOfWeek.valueOf(AppConfigManager.getWeekStartDay().uppercase())
+
+    /** The day a date picker of Material hands back: midnight UTC of that day, by its convention. */
+    fun dateOfPickerMillis(millis: Long): LocalDate = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
+
+    /** [date] as a date picker of Material takes it: midnight UTC of that day. */
+    fun pickerMillisOf(date: LocalDate): Long = date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
 
     /**
      * Get today's date formatted for display
@@ -115,24 +113,6 @@ object DateUtils {
      */
     fun format(timestamp: Long, pattern: String, zone: ZoneId = getConfiguredZone()): String =
         DateTimeFormatter.ofPattern(pattern).format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp), zone))
-
-    /**
-     * Get start of day timestamp (00:00:00) for a given date
-     */
-    fun getStartOfDay(timestamp: Long, zone: ZoneId = getConfiguredZone()): Long {
-        val zonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp), zone)
-        val startOfDay = zonedDateTime.toLocalDate().atStartOfDay(zone)
-        return startOfDay.toInstant().toEpochMilli()
-    }
-
-    /**
-     * Get end of day timestamp (23:59:59.999) for a given date
-     */
-    fun getEndOfDay(timestamp: Long, zone: ZoneId = getConfiguredZone()): Long {
-        val zonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp), zone)
-        val endOfDay = zonedDateTime.toLocalDate().atTime(23, 59, 59, 999_999_999).atZone(zone)
-        return endOfDay.toInstant().toEpochMilli()
-    }
 
     /**
      * Get current time formatted for display (HH:mm)
@@ -165,11 +145,7 @@ object DateUtils {
      * @return that moment, or null if either string cannot be read
      */
     fun combineDateTime(dateString: String, timeString: String, zone: ZoneId = getConfiguredZone()): Long? {
-        val localDate = try {
-            LocalDate.parse(dateString, displayDateFormatter)
-        } catch (e: DateTimeParseException) {
-            return null
-        }
+        val localDate = parseDisplayDate(dateString) ?: return null
         val (hour, minute) = parseTime(timeString, zone) ?: return null
         val localDateTime = localDate.atTime(hour, minute, 0, 0)
         return localDateTime.atZone(zone).toInstant().toEpochMilli()
@@ -180,19 +156,13 @@ object DateUtils {
     // ================================================================
 
     /**
-     * Parse ISO 8601 date string to timestamp (YYYY-MM-DD → Long)
-     * Used for custom fields DATE type
-     *
-     * @return the start of that day, or null if the string is not an ISO 8601 date
+     * A day as a DATE field stores it ("2026-10-14") as the display writes days ("14/10/2026");
+     * null when [text] is not one.
      */
-    fun parseIso8601Date(dateStr: String, zone: ZoneId = getConfiguredZone()): Long? {
-        return try {
-            val localDate = LocalDate.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE)
-            val zonedDateTime = localDate.atStartOfDay(zone)
-            zonedDateTime.toInstant().toEpochMilli()
-        } catch (e: DateTimeParseException) {
-            null
-        }
+    fun formatIsoDate(text: String): String? = try {
+        formatDisplayDate(LocalDate.parse(text, DateTimeFormatter.ISO_LOCAL_DATE))
+    } catch (e: DateTimeParseException) {
+        null
     }
 
     /**

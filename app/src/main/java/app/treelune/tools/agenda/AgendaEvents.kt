@@ -2,6 +2,7 @@ package app.treelune.tools.agenda
 
 import app.treelune.core.database.entities.ToolDataEntity
 import app.treelune.core.selection.TimePoint
+import app.treelune.core.selection.TimeResolver
 import app.treelune.core.utils.JsonUtils
 import app.treelune.core.utils.ScheduleCalculator
 import app.treelune.core.utils.SchedulePattern
@@ -13,12 +14,12 @@ import java.time.ZoneId
 
 /**
  * An event of a calendar as its entry holds it (docs/design/agenda-tool.md, « L'événement »): its
- * start is the entry's timestamp; in data, its duration, or for a whole day the number of days;
+ * start is the entry's timestamp, for a whole day the start of the user's day on its date; in data, its duration, or for a whole day the number of days;
  * in state, its status, the series that gave it and when, and the reminders already sent.
  *
  * @property seriesAt The time of its series it was given for, which the next one counts from:
- *   an occurrence moved by hand keeps it, and a whole day's, which starts at midnight, keeps the
- *   schedule's time of day
+ *   an occurrence moved by hand keeps it, and a whole day's, which starts at the start of its day,
+ *   keeps the schedule's time of day
  * @property remindedUntil The latest reminder sent, every one up to it being sent
  * @property remindedFor The start those reminders were sent for: a start moved makes them due anew
  */
@@ -40,15 +41,25 @@ data class AgendaEvent(
     val isRemoved get() = status == AgendaToolType.Status.REMOVED
 
     /**
-     * Its end: the last millisecond of its last day for a whole day, its start plus its duration
-     * otherwise — its start itself without one.
+     * Its end: the last millisecond of its last day for a whole day, the day as the user set it
+     * ([calendar]: past midnight, still that day until it starts again); its start plus its
+     * duration otherwise — its start itself without one.
      */
-    fun end(zone: ZoneId): Long =
-        if (allDay) Instant.ofEpochMilli(start).atZone(zone).toLocalDate().plusDays(days.toLong()).atStartOfDay(zone).toInstant().toEpochMilli() - 1
+    fun end(calendar: TimeResolver): Long =
+        if (allDay) calendar.startOf(date(calendar.zone).plusDays(days.toLong())) - 1
         else start + (duration ?: 0L)
 
+    /** [end] in the app's calendar, read in [zone]. */
+    fun end(zone: ZoneId): Long = end(AgendaToolType.calendar(zone))
+
+    /** The date a whole day is on: its start's. */
+    fun date(zone: ZoneId): java.time.LocalDate = Instant.ofEpochMilli(start).atZone(zone).toLocalDate()
+
     /** Whether it is going on at [now]: begun and not ended. */
-    fun isOngoing(now: Long, zone: ZoneId) = start <= now && now <= end(zone)
+    fun isOngoing(now: Long, calendar: TimeResolver) = start <= now && now <= end(calendar)
+
+    /** [isOngoing] in the app's calendar, read in [zone]. */
+    fun isOngoing(now: Long, zone: ZoneId) = isOngoing(now, AgendaToolType.calendar(zone))
 
     companion object {
         /** An event read from an entry as the services give it (ToolDataEntries.toMap). */
@@ -101,9 +112,9 @@ data class AgendaSeries(
     fun timesDifferFrom(other: AgendaSeries): Boolean =
         allDay != other.allDay || !sameSchedule(schedule, other.schedule)
 
-    /** The start of the occurrence given for the time [at]: midnight of its day for whole days. */
-    fun startOf(at: Long, zone: ZoneId): Long =
-        if (allDay) Instant.ofEpochMilli(at).atZone(zone).toLocalDate().atStartOfDay(zone).toInstant().toEpochMilli() else at
+    /** The start of the occurrence given for the time [at]: for whole days, the start of the user's day on its date. */
+    fun startOf(at: Long, calendar: TimeResolver): Long =
+        if (allDay) calendar.startOf(Instant.ofEpochMilli(at).atZone(calendar.zone).toLocalDate()) else at
 
     companion object {
         /** The series of [config], in their order; one without a key yet is not read (completeConfig gives it one). */
@@ -167,16 +178,16 @@ object AgendaRules {
      * The reminders of [event] due at [now] and not sent yet: their time come, the event not
      * ended, still planned. Those sent for another start count for nothing (remindedFor).
      */
-    fun dueReminders(event: AgendaEvent, times: List<Long>, now: Long, zone: ZoneId): List<Long> {
-        if (!event.isPlanned || now > event.end(zone)) return emptyList()
+    fun dueReminders(event: AgendaEvent, times: List<Long>, now: Long, calendar: TimeResolver): List<Long> {
+        if (!event.isPlanned || now > event.end(calendar)) return emptyList()
         val sentUntil = event.remindedUntil.takeIf { event.remindedFor == event.start }
         return times.filter { it <= now && (sentUntil == null || it > sentUntil) }
     }
 
     /** The next reminder of [event] after [now], null when none is left to send. */
-    fun nextReminder(event: AgendaEvent, times: List<Long>, now: Long, zone: ZoneId): Long? {
+    fun nextReminder(event: AgendaEvent, times: List<Long>, now: Long, calendar: TimeResolver): Long? {
         if (!event.isPlanned) return null
-        val end = event.end(zone)
+        val end = event.end(calendar)
         return times.firstOrNull { it > now && it <= end }
     }
 
@@ -225,6 +236,17 @@ object AgendaRules {
             }
             if (changed) entry.copy(name = name, data = data.toString()) else null
         }
+    }
+
+    /**
+     * [entry] at the start of the user's day on its date ([calendar]) when it takes whole days and
+     * starts elsewhere — written at midnight, or made whole days from a time; null when it holds.
+     */
+    fun settleAllDay(entry: ToolDataEntity, calendar: TimeResolver): ToolDataEntity? {
+        val start = entry.timestamp ?: return null
+        if (JSONObject(entry.data).opt(AgendaToolType.ALL_DAY) != true) return null
+        val day = calendar.startOf(Instant.ofEpochMilli(start).atZone(calendar.zone).toLocalDate())
+        return if (day == start) null else entry.copy(timestamp = day)
     }
 
     /** [entry] without its reminders' mark when they were sent for another start; null when it holds or there is none. */

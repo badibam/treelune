@@ -5,7 +5,7 @@ import app.treelune.core.selection.Edge
 import app.treelune.core.selection.EntryPeriod
 import app.treelune.core.selection.ReferenceKind
 import app.treelune.core.selection.TimePoint
-import app.treelune.core.ui.components.PeriodType
+import app.treelune.core.selection.PeriodType
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertEquals

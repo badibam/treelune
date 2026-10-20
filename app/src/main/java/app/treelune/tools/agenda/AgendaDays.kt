@@ -1,8 +1,8 @@
 package app.treelune.tools.agenda
 
 import app.treelune.core.strings.StringsContext
-import app.treelune.core.ui.components.PeriodType
-import app.treelune.core.ui.components.normalizeTimestampWithConfig
+import app.treelune.core.selection.PeriodType
+import app.treelune.core.selection.normalizeTimestampWithConfig
 import app.treelune.core.utils.DateUtils
 import java.time.Instant
 import java.time.LocalDate
@@ -67,8 +67,7 @@ object AgendaDays {
         else dayOfInstant(range.first, zone) to dayOfInstant(range.second, zone)
 
     /** The first instant of [date] as a day the user set: at the hour it starts. */
-    private fun startOfDate(date: LocalDate, zone: ZoneId): Long =
-        normalizeTimestampWithConfig(date.atTime(12, 0).atZone(zone).toInstant().toEpochMilli(), PeriodType.DAY, zone = zone)
+    private fun startOfDate(date: LocalDate, zone: ZoneId): Long = AgendaToolType.calendar(zone).startOf(date)
 
     /** An event's time at the start of its line: « 14:30 », or « All day ». */
     fun timeLabel(event: AgendaEvent, s: StringsContext): String =

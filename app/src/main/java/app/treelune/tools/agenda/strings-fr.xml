@@ -19,7 +19,7 @@
     <string name="schema_series_name">Le nom de ses occurrences</string>
     <string name="field_series_schedule">Se répète</string>
     <string name="field_all_day">Journée entière</string>
-    <string name="schema_all_day">Une journée entière, ou plusieurs : elle dure des jours, pas une durée ; sa date est minuit de son premier jour</string>
+    <string name="schema_all_day">Une journée entière, ou plusieurs : elle dure des jours, pas une durée ; elle commence au début de la journée de la personne à sa première date (l\'heure où commencent ses jours), quelle que soit l\'heure écrite</string>
     <string name="field_duration">Durée</string>
     <string name="schema_duration">Combien de temps dure un événement à heure ; aucune pour un moment</string>
     <string name="field_days">Jours</string>

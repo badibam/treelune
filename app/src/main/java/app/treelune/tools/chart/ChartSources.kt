@@ -15,8 +15,8 @@ import app.treelune.core.selection.TimePoint
 import app.treelune.core.selection.TimeResolver
 import app.treelune.core.strings.Strings
 import app.treelune.core.terms.Term
-import app.treelune.core.ui.components.RelativePeriod
-import app.treelune.core.ui.components.resolveRelativePeriod
+import app.treelune.core.selection.RelativePeriod
+import app.treelune.core.selection.resolveRelativePeriod
 import app.treelune.core.utils.AppConfigManager
 import app.treelune.core.utils.JsonUtils
 
@@ -131,7 +131,7 @@ class ChartSources(private val context: Context) {
         val columns = gridColumns() + source.columns.associate { it.name to columnField(it) }
         val read = source.columns.associate { column -> column.name to readColumn(column, source, instants) }
         val rows = steps.mapIndexed { i, (stepStart, stepEnd) ->
-            val week = resolveRelativePeriod(RelativePeriod(0, app.treelune.core.ui.components.PeriodType.WEEK), stepStart,
+            val week = resolveRelativePeriod(RelativePeriod(0, app.treelune.core.selection.PeriodType.WEEK), stepStart,
                 resolver.dayStartHour, resolver.weekStartDay, resolver.zone).timestamp
             Row(
                 cells = mapOf(

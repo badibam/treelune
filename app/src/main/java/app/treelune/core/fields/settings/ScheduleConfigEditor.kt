@@ -760,6 +760,7 @@ private fun DateTimePickerField(
     if (showDatePicker) {
         UI.DatePicker(
             selectedDate = DateUtils.formatDateForDisplay(timestamp),
+            today = DateUtils.calendarToday(),
             onDateSelected = { dateStr ->
                 tempDate = dateStr
                 showDatePicker = false
