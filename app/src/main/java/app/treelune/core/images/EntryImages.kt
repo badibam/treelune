@@ -72,14 +72,15 @@ class EntryImages private constructor(
 
     /** The rows of the new images written and the removed ones deleted, inside the entry's transaction, after the entry. */
     suspend fun store() {
-        val dao = AppDatabase.getDatabase(context).imageDao()
-        rows.forEach { dao.insert(it) }
-        removed.forEach { dao.delete(it.id) }
+        val writes = app.treelune.core.history.Writes(context)
+        rows.forEach { writes.insertImage(it) }
+        removed.forEach { writes.deleteImage(it.id) }
     }
 
-    /** Once the transaction is done: the files of the removed images deleted. */
+    /** Once the transaction is done: what changed, logged. */
     fun done() {
-        removed.forEach { Images.delete(context, it) }
+        // The files of the removed images stay: the history keeps their rows, an undo puts them
+        // back, and the startup sweep deletes a file once nothing names it (Images.sweepOnce)
         if (!unchanged) LogManager.service("Entry $entryId: ${rows.size} images added, ${removed.size} removed", "DEBUG")
     }
 

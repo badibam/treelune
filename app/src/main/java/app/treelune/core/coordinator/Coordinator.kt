@@ -150,8 +150,22 @@ class Coordinator(private val context: Context) {
             // (e.g., entries[].data becomes JSONObject instead of remaining as Map)
             val params = app.treelune.core.utils.JsonUtils.toJSONObject(command.params)
 
-            // The origin goes with the operation, for its service and every call made from it
-            val result = kotlinx.coroutines.withContext(Origin(command.source, command.byTheApp)) { service.execute(operation, params, token) }
+            // The origin goes with the operation, for its service and every call made from it, and
+            // so does its step of the history: opened here for an operation asked from outside,
+            // kept by every operation it calls (docs/design/undo-history.md, « Le pas »)
+            val running = kotlin.coroutines.coroutineContext[app.treelune.core.history.Step]
+            val step = running ?: app.treelune.core.history.Step(
+                source = command.source,
+                isStep = !command.byTheApp,
+                sessionId = kotlin.coroutines.coroutineContext[app.treelune.core.history.StepSession]?.sessionId
+            )
+            val result = kotlinx.coroutines.withContext(Origin(command.source, command.byTheApp) + step) { service.execute(operation, params, token) }
+            if (running == null) app.treelune.core.history.Steps.close(context, step) {
+                // A deletion's result names what is gone, which its params alone may not
+                val gone = (result.data?.get("name") as? String)?.takeIf { operation == "delete" }
+                val named = gone?.let { JSONObject(params.toString()).put("name", it) } ?: params
+                service.verbalize(operation, named, context)
+            }
             LogManager.coordination("Service result: success=${result.success}, error=${result.error}", "VERBOSE")
             // Asked from outside and done: said to whoever waits for it (the Guide's steps)
             if (result.success && !command.byTheApp) {

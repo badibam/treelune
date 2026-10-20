@@ -32,8 +32,6 @@ interface OAuthStore {
     suspend fun addClient(client: OAuthClient)
     suspend fun client(id: String): OAuthClient?
     suspend fun clients(): List<OAuthClient>
-    /** Removes the client and every token it holds. */
-    suspend fun removeClient(id: String)
     suspend fun touchClient(id: String, at: Long)
     suspend fun addToken(token: StoredToken)
     suspend fun token(hash: String): StoredToken?

@@ -231,11 +231,6 @@ object SequenceToolType : ToolTypeContract {
     override fun getService(context: Context): ExecutableService = SequenceService(context)
     override fun getScheduler(): ToolScheduler = SequenceScheduler
 
-    override fun getDao(context: Context): Any {
-        val baseDao = app.treelune.core.database.AppDatabase.getDatabase(context).toolDataDao()
-        return app.treelune.core.database.dao.DefaultExtendedToolDataDao(baseDao, "sequence")
-    }
-
     override fun getDatabaseEntities(): List<Class<*>> = listOf(ToolDataEntity::class.java)
 
     @Composable

@@ -62,6 +62,7 @@ class ToolDataService(private val context: Context) : ExecutableService {
     }
 
     private val s = Strings.`for`(context = context)
+    private val writes by lazy { app.treelune.core.history.Writes(context) }
 
     override suspend fun execute(operation: String, params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
@@ -180,7 +181,7 @@ class ToolDataService(private val context: Context) : ExecutableService {
         try {
             val stored = storeSettled(tooltype, { (known?.all() ?: dao.getByToolInstance(toolInstanceId)) + entity }, entity.id, checked.grown(grownConfig)) { settled ->
                 refuseTakenName(checked, entity, known)
-                dao.insert(settled ?: entity)
+                writes.insertEntry(settled ?: entity)
                 images.store()
             }
             known?.putAll(stored, entity)
@@ -342,11 +343,11 @@ class ToolDataService(private val context: Context) : ExecutableService {
         val dao = getToolDataDao()
 
         AppDatabase.getDatabase(context).transaction {
-            toolConfig?.let { AppDatabase.getDatabase(context).toolInstanceDao().updateToolInstance(it) }
+            toolConfig?.let { writes.updateTool(it) }
             write(writtenId?.let { settled[it] })
             settled.values
                 .filter { it.id != writtenId }
-                .forEach { dao.update(it) }
+                .forEach { writes.updateEntry(it) }
         }
         return settled
     }
@@ -442,7 +443,7 @@ class ToolDataService(private val context: Context) : ExecutableService {
         try {
             val stored = storeSettled(existingEntity.tooltype, after, written.id, checked.grown(grownConfig)) { settled ->
                 refuseTakenName(checked, written, known)
-                dao.update(settled ?: written)
+                writes.updateEntry(settled ?: written)
                 images.store()
             }
             known?.putAll(stored, written)
@@ -484,7 +485,7 @@ class ToolDataService(private val context: Context) : ExecutableService {
         }
 
         storeSettled(entity.tooltype, { dao.getByToolInstance(entity.toolInstanceId).filter { it.id != entryId } }, null) {
-            dao.deleteById(entryId)
+            writes.deleteEntry(entryId)
         }
 
         // Notify UI of data change in this tool instance
@@ -708,7 +709,7 @@ class ToolDataService(private val context: Context) : ExecutableService {
 
         val dao = getToolDataDao()
         val deletedCount = dao.countByToolInstance(toolInstanceId) // Count before deletion
-        dao.deleteByToolInstance(toolInstanceId)
+        writes.deleteEntriesOf(toolInstanceId)
 
         // Notify UI of data change in this tool instance
         val zoneId = getZoneIdForTool(toolInstanceId)
@@ -1092,7 +1093,7 @@ class ToolDataService(private val context: Context) : ExecutableService {
             ?.let { return OperationResult.error(it) }
 
         val dao = getToolDataDao()
-        storeSettled(updated.tooltype, { dao.getByToolInstance(updated.toolInstanceId).map { if (it.id == updated.id) updated else it } }, updated.id) { settled -> dao.update(settled ?: updated) }
+        storeSettled(updated.tooltype, { dao.getByToolInstance(updated.toolInstanceId).map { if (it.id == updated.id) updated else it } }, updated.id) { settled -> writes.updateEntry(settled ?: updated) }
 
         getZoneIdForTool(updated.toolInstanceId)?.let { DataChangeNotifier.notifyToolDataChanged(updated.toolInstanceId, it) }
         return OperationResult.success(result)

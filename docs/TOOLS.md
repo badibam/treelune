@@ -56,7 +56,7 @@ Interface principale avec méthodes pour :
 - **Métadonnées** : getDisplayName(), getUsage() (le texte `usage` : à quoi sert le type, ce qu'il fait déjà de lui-même, ce pour quoi il n'est pas ; lu par l'IA toujours en anglais, montré par le Guide), getAIDetail() (ce que seule l'IA lit en plus, aucun par défaut), getSuggestedIcons(), getDefaultIconName(), getDefaultDisplayMode(), getDefaultShowFieldLabels()
 - **Déclarations** : getEntryFields() (champs des entrées), getConfigSettings() (réglages propres, à côté de la partie commune `ToolConfigSettings` ; ceux que le type ne range dans aucune section, le cœur les met dans une section au nom du type, pour qu'à l'écran tout soit dans un cadre) ; schémas, config par défaut et lecture en sont générés ; configWithOptionsAdded() pour un type qui déclare un choix ouvert dans `data` ; getOperations() (défaut : aucune), les opérations que son service mène sur ses entrées à côté des écritures génériques, chacune un nom, une phrase et ses paramètres déclarés en champs (`ToolOperation`)
 - **Interface utilisateur** : getUsageScreen() @Composable ; rememberTile() @Composable, la tuile de l'outil sur une zone (`ToolTile`) : son résumé de 2×1, son corps sur les rangées que son mode lui donne, et son aperçu à la place du résumé dans les modes sans corps (LINE, CONDENSED ; le résumé par défaut, la bande du Graphique), placés par `UI.ToolCard` à côté de l'en-tête ; le corps range ses éléments par `TileGrid`, chaque case aussi haute en FULL que dans les modes limités, chacun écrit par `TileLine` : à gauche une case ou une icône, à droite une valeur ou des boutons qui gardent leur taille, au milieu le texte sur deux lignes au plus (une seule quand la tuile en empile quatre par rangée, une Liste d'éléments courts), ou une ligne et une seconde plus discrète dessous ; chaque type remplit tous les modes, sans tuile par défaut, et une tuile ouvre l'outil sur une entrée ou une entrée neuve (`EntryToOpen`) ; l'écran de config est généré depuis la déclaration (`ToolConfigScreen`, `SettingsForm`), une planification (`ScheduleSettings.group`) comprise
-- **Discovery pattern** : getService(), getDao(), getDatabaseEntities(), getDatabaseMigrations(), getScheduler()
+- **Discovery pattern** : getService(), getDatabaseEntities(), getDatabaseMigrations(), getScheduler()
 - **Enrichissement** : enrichData() (défaut identity, enrichissement automatique avant persistence)
 - **Règle entre entrées** : settleEntries() (défaut : rien à changer), voir plus bas
 - **Sans entrées** : keepsEntries() (défaut : oui) ; un outil qui montre les entrées des autres (le Graphique) n'en garde aucune : pas de champs de l'utilisateur dans sa config, et toute écriture d'une entrée est refusée ; takesUserFields() (défaut : keepsEntries()), faux pour un outil dont l'app seule écrit les entrées d'après ce que l'utilisateur fait ailleurs (les révisions d'un paquet) : pas de champs de l'utilisateur dans sa config
@@ -100,7 +100,7 @@ Class implémentant ToolTypeContract avec :
 - getDisplayName(), getUsage(), getDefaultDisplayMode()
 - getEntryFields(), getConfigSettings()
 - getUsageScreen() @Composable
-- getService(), getDao(), getDatabaseEntities()
+- getService(), getDatabaseEntities()
 
 ### enrichData Pattern
 **Principe** : Enrichissement automatique des données avant persistence (appelé par ToolDataService pour toutes les entrées).

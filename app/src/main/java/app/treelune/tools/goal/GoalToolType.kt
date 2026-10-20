@@ -285,11 +285,6 @@ object GoalToolType : ToolTypeContract {
 
     override fun getScheduler(): ToolScheduler = GoalScheduler
 
-    override fun getDao(context: Context): Any {
-        val baseDao = app.treelune.core.database.AppDatabase.getDatabase(context).toolDataDao()
-        return app.treelune.core.database.dao.DefaultExtendedToolDataDao(baseDao, "goal")
-    }
-
     override fun getDatabaseEntities(): List<Class<*>> = listOf(ToolDataEntity::class.java)
 
     @Composable

@@ -224,7 +224,7 @@ class GoalService(private val context: Context) : ExecutableService {
             remove(GoalToolType.JUDGEMENT); remove(GoalToolType.VALIDATED_BY); remove(GoalToolType.VALIDATED_AT)
             put(GoalToolType.REOPENED_AT, System.currentTimeMillis())
         }
-        dao.update(entity.copy(state = state.toString(), updatedAt = System.currentTimeMillis()))
+        app.treelune.core.history.Writes(context).updateEntry(entity.copy(state = state.toString(), updatedAt = System.currentTimeMillis()))
         AppDatabase.getDatabase(context).toolInstanceDao().getToolInstanceById(attempt.toolInstanceId)?.let {
             DataChangeNotifier.notifyToolDataChanged(attempt.toolInstanceId, it.zone_id)
         }

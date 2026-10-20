@@ -150,7 +150,8 @@ object ListToolType : ToolTypeContract {
                         alwaysVisible = false,
                         config = null
                     ),
-                    filterable = true
+                    filterable = true,
+                    bookkeeping = true
                 )
             )
         )
@@ -201,11 +202,6 @@ object ListToolType : ToolTypeContract {
     }
 
     override fun getScheduler(): app.treelune.core.tools.ToolScheduler = ListDueScheduler
-
-    override fun getDao(context: Context): Any {
-        val baseDao = app.treelune.core.database.AppDatabase.getDatabase(context).toolDataDao()
-        return app.treelune.core.database.dao.DefaultExtendedToolDataDao(baseDao, "list")
-    }
 
     override fun getDatabaseEntities(): List<Class<*>> = listOf(ToolDataEntity::class.java)
 

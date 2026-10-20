@@ -90,6 +90,7 @@ object CommandTransformer {
                         ExecutableCommand(resource = "automations", operation = "config", params = mapOf("automation_id" to id))
                     }
                     "AUTOMATION_RUNS" -> transformAutomationRunsCommand(command, s, reference)
+                    "HISTORY" -> transformHistoryCommand(command, s, reference)
                     "AUTOMATION_RUN" -> (command.params["id"] as? String)?.let { id ->
                         ExecutableCommand(resource = "ai_sessions", operation = "run_history", params = buildMap {
                             put("session_id", id)
@@ -223,6 +224,20 @@ object CommandTransformer {
             (command.params["limit"] as? Number)?.let { put("limit", it.toInt()) }
             period?.start?.let { put("start_time", resolver.instant(it)) }
             period?.end?.let { put("end_time", resolver.instant(it)) }
+        })
+    }
+
+    /** The steps of the history of writes (docs/design/undo-history.md), of a tool, a zone, a period. */
+    private fun transformHistoryCommand(command: DataCommand, s: StringsContext, reference: Long): ExecutableCommand {
+        val resolver = TimeResolver.at(reference)
+        @Suppress("UNCHECKED_CAST")
+        val period = (command.params["period"] as? Map<String, Any?>)?.let { EntryPeriod.fromJson(JsonUtils.toJSONObject(it)) { key -> s.shared(key) } }
+        return ExecutableCommand(resource = "history", operation = "list", params = buildMap {
+            (command.params["tool_instance_id"] as? String)?.let { put("tool_instance_id", it) }
+            (command.params["zone_id"] as? String)?.let { put("zone_id", it) }
+            (command.params["limit"] as? Number)?.let { put("limit", it.toInt()) }
+            period?.start?.let { put("from", resolver.instant(it)) }
+            period?.end?.let { put("to", resolver.instant(it)) }
         })
     }
 

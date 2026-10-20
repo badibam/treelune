@@ -111,14 +111,6 @@ object JournalToolType : ToolTypeContract {
         return app.treelune.core.services.ToolDataService(context)
     }
 
-    override fun getDao(context: Context): Any {
-        val database = app.treelune.core.database.AppDatabase.getDatabase(context)
-        val baseDao = database.toolDataDao()
-
-        // Uses generic implementation for standard journal entries
-        return app.treelune.core.database.dao.DefaultExtendedToolDataDao(baseDao, "journal")
-    }
-
     override fun getDatabaseEntities(): List<Class<*>> {
         return listOf(ToolDataEntity::class.java)
     }

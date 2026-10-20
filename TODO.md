@@ -17,7 +17,6 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 
 ## Bugs
 
-- Supprimer une zone laisse ses routines en base (`ZoneService.handleDelete`) : `automations.zone_id` n'a pas de clé étrangère, rien ne les supprime ; lu dans le code, pas vu sur le téléphone. À traiter avec l'historique des écritures, dont la descente des suppressions doit les inclure.
 
 - Des boutons à libellé posés dans une simple rangée, qui se perdent quand la place manque : à passer dans `ButtonRow` (`VariableScreen.kt:175`, `JournalEntryScreen.kt:376`, `DuplicateSelector.kt:234`, `StructuredScreen.kt:260` et `:299`), et la rangée d'actions de `InteractionCard` (la validation dans le chat), que chaque thème pose avec deux moitiés de largeur fixe (`InteractionActions`).
 
@@ -76,12 +75,12 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - Une seule activité (`launchMode` singleTask, 2026-10-20) : une notification qui ouvre un outil ou un lieu, l'app ouverte comme fermée ; un retour du sélecteur de photos et de l'appareil photo ; le lanceur qui ramène l'app là où on l'avait laissée.
 - Le champ Image (`docs/design/image-field.md`, branche image-field) : la migration 82 sur la release et ses images de messages d'abord, puis la section « À passer sur le téléphone » de la spec ; la tuile de l'Agenda dit encore « 3 images » en texte ; passé, élaguer la spec.
 - Le thème liseuse (`docs/design/eink-theme.md`, branche theme-eink) : la passe sur le téléphone de `docs/THEMES.md`, les trames d'abord (deux couleurs au pixel près, la discrète des textures), puis ce que la spec garde dans « Ce qui reste ouvert », la bande d'encre et ses boutons d'abord.
+- L'historique des écritures (`docs/design/undo-history.md`, branche undo-history) : la migration 83 sur la release et ses données d'abord, puis la section du même nom de la recette, le gros import mesuré (sa durée, la place prise) ; passé, élaguer la spec.
 
 ## Conçu, à coder
 
 Une spec existe dans `docs/design/`.
 
-- L'historique des écritures et leur annulation (`docs/design/undo-history.md`) : un pas par opération demandée de l'extérieur, la ligne entière avant et après, écrite par une seule classe que garde un script, 30 jours, le service `history` ouvert à l'IA, son écran.
 
 ## À concevoir
 

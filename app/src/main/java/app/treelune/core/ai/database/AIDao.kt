@@ -173,8 +173,6 @@ interface AIDao {
     @Query("UPDATE automations SET is_enabled = :enabled, updated_at = :updatedAt WHERE id = :id")
     suspend fun setAutomationEnabled(id: String, enabled: Boolean, updatedAt: Long)
 
-    @Query("UPDATE automations SET last_execution_id = :executionId WHERE id = :id")
-    suspend fun updateAutomationLastExecution(id: String, executionId: String)
 
     // === History Queries ===
 

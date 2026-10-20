@@ -20,6 +20,8 @@ import app.treelune.core.ai.services.AIProviderConfigService
 import app.treelune.core.ai.services.AutomationService
 import app.treelune.core.notifications.NotificationService
 import app.treelune.core.demo.DemoService
+import app.treelune.core.history.HistoryService
+import app.treelune.core.mcp.McpClientService
 import app.treelune.core.tools.ToolTypeManager
 import app.treelune.core.utils.LogManager
 
@@ -48,7 +50,9 @@ class ServiceRegistry(private val context: Context) {
         "ai_provider_config" to ::AIProviderConfigService,
         "automations" to ::AutomationService,
         "notifications" to ::NotificationService,
-        "demo" to ::DemoService
+        "demo" to ::DemoService,
+        "mcp_clients" to ::McpClientService,
+        "history" to ::HistoryService
     )
     
     /**

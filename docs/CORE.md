@@ -75,7 +75,7 @@ Architecture sans imports hardcodés dans Core, avec ServiceRegistry centralisé
 Chaque service du cœur y est associé à sa ressource par son constructeur, en un seul endroit ; une ressource inconnue passe à ToolTypeManager pour les services des outils.
 
 ### ToolTypeManager
-API unifiée pour découverte dynamique : getServiceForToolType(), getDaoForToolType(), getToolTypeName(), getAllToolTypes()
+API unifiée pour découverte dynamique : getServiceForToolType(), getToolTypeName(), getAllToolTypes()
 
 ### Extension Automatique
 **Nouveau tool type** :

@@ -182,8 +182,8 @@ object AgendaToolType : ToolTypeContract {
                     mapOf("options" to ChoiceSettings.storedOptions(Status.ALL, Status.ALL.associateWith { s.tool("status_$it") }, emptyMap()))), filterable = true),
                 StateField(field(SERIES, s.tool("field_series"), FieldType.TEXT, s.tool("schema_series"), mapOf("length" to TextLength.SHORT.name)), filterable = true),
                 StateField(field(SERIES_AT, s.tool("field_series_at"), FieldType.DATETIME, s.tool("schema_series_at")), filterable = false),
-                StateField(field(REMINDED_UNTIL, s.tool("field_reminded_until"), FieldType.DATETIME, s.tool("schema_reminded_until")), filterable = false),
-                StateField(field(REMINDED_FOR, s.tool("field_reminded_for"), FieldType.DATETIME, s.tool("schema_reminded_for")), filterable = false)
+                StateField(field(REMINDED_UNTIL, s.tool("field_reminded_until"), FieldType.DATETIME, s.tool("schema_reminded_until")), filterable = false, bookkeeping = true),
+                StateField(field(REMINDED_FOR, s.tool("field_reminded_for"), FieldType.DATETIME, s.tool("schema_reminded_for")), filterable = false, bookkeeping = true)
             ),
             start = START
         )
@@ -223,11 +223,6 @@ object AgendaToolType : ToolTypeContract {
 
     override fun getService(context: Context): ExecutableService = AgendaService(context)
     override fun getScheduler(): ToolScheduler = AgendaScheduler
-
-    override fun getDao(context: Context): Any {
-        val baseDao = app.treelune.core.database.AppDatabase.getDatabase(context).toolDataDao()
-        return app.treelune.core.database.dao.DefaultExtendedToolDataDao(baseDao, "agenda")
-    }
 
     override fun getDatabaseEntities(): List<Class<*>> = listOf(ToolDataEntity::class.java)
 

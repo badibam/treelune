@@ -19,9 +19,10 @@ import java.io.File
 
 /**
  * What docs/design/image-field.md promised of an entry's write: a form's prepared image becomes
- * the entry's, a conversation's is copied under a new id, an image taken off the field is deleted,
- * an id that names no image refuses the write, and an entry deleted takes its rows with it, its
- * files going at the next startup sweep.
+ * the entry's, a conversation's is copied under a new id, an image taken off the field loses its
+ * row, an id that names no image refuses the write, and an entry deleted takes its rows with it.
+ * A file stays while the history of writes names its image (docs/design/undo-history.md): an undo
+ * puts the entry back with its images; the history done with it, the startup sweep removes it.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -95,7 +96,7 @@ class EntryImagesTest {
     }
 
     @Test
-    fun `an image taken off the field is deleted, row and file`() = runBlocking {
+    fun `an image taken off the field loses its row, its file kept for the history`() = runBlocking {
         pending("p3")
         pending("p4")
         val entryId = create(mapOf("photos" to listOf("p3", "p4"))).data!!["id"] as String
@@ -104,8 +105,24 @@ class EntryImagesTest {
         val updated = coordinator.processUserAction("tool_data.update", mapOf("id" to entryId, "extra" to mapOf("photos" to listOf("p4"))))
         assertTrue(updated.error, updated.isSuccess)
         assertEquals(null, dao.getById("p3"))
-        assertFalse(file.exists())
+        assertTrue("the history names it", file.exists())
         assertEquals(listOf("p4"), photos(entryId))
+    }
+
+    @Test
+    fun `an entry deleted comes back by an undo, its images with it`() = runBlocking {
+        pending("p6")
+        val entryId = create(mapOf("photos" to listOf("p6"))).data!!["id"] as String
+        val file = Images.file(context, dao.getById("p6")!!)
+        assertTrue(coordinator.processUserAction("tool_data.delete", mapOf("id" to entryId)).isSuccess)
+        assertEquals(null, dao.getById("p6"))
+
+        val step = AppDatabase.getDatabase(context).historyDao().getRowsOf("tool_data", entryId).last().stepId
+        val undone = coordinator.processUserAction("history.undo", mapOf("id" to step))
+        assertTrue(undone.error, undone.isSuccess)
+        assertEquals(entryId, dao.getById("p6")!!.entryId)
+        assertTrue(file.exists())
+        assertEquals(listOf("p6"), photos(entryId))
     }
 
     @Test
@@ -116,7 +133,7 @@ class EntryImagesTest {
     }
 
     @Test
-    fun `an entry deleted takes its rows, the sweep its files`() = runBlocking {
+    fun `an entry deleted takes its rows, the sweep its files once the history is done with them`() = runBlocking {
         pending("p5")
         val entryId = create(mapOf("photos" to listOf("p5"))).data!!["id"] as String
         val file = Images.file(context, dao.getById("p5")!!)
@@ -126,6 +143,8 @@ class EntryImagesTest {
         assertEquals(null, dao.getById("p5"))
         assertTrue(file.exists())
 
+        // The history pruned, nothing names the image any more
+        AppDatabase.getDatabase(context).historyDao().clear()
         Images.sweepOnce(context)
         assertFalse(file.exists())
         assertEquals(null, Images.pendingFile(context, "never-written"))
