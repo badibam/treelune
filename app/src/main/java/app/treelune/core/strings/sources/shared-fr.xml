@@ -177,6 +177,7 @@
     <!-- Validation reasons -->
     <string name="validation_reason_app">L\'accueil est protégé</string>
     <string name="validation_reason_past_data">La config change des entrées déjà enregistrées : %1$d valeur(s) retirée(s), %2$d entrée(s) supprimée(s), %3$d valeur(s) relue(s) autrement.</string>
+    <string name="validation_reason_filters_aimed">Un filtre de %1$s utilise une option que la config retire ou renomme, et ne trouverait plus rien.</string>
     <string name="validation_reason_zone">La zone « %1$s » est protégée</string>
     <string name="validation_reason_tool">Les données de « %1$s » sont protégées</string>
     <string name="validation_reason_session">Cette conversation le demande</string>
@@ -1619,6 +1620,7 @@
     <string name="migration_part_deleted">%1$d entrée(s) supprimée(s) faute de valeur obligatoire</string>
     <string name="migration_part_reinterpreted">%1$d valeur(s) gardée(s) mais lue(s) autrement (nouvelles bornes, ordre)</string>
     <string name="migration_lost_for_good">Ce qui est retiré ou supprimé ne revient pas.</string>
+    <string name="migration_filters_aimed">Un filtre de %1$s utilise une option que cette modification retire ou renomme : il ne trouvera plus rien tant que tu ne le changes pas.</string>
     <string name="migration_new_field_offer">Pour ne rien toucher, crée plutôt un nouveau champ : l\'ancien garde ses valeurs, renommé %1$s.</string>
     <string name="migration_new_field">Créer un nouveau champ</string>
     <string name="migration_kept_name">%1$s (avant le %2$s)</string>
@@ -1626,6 +1628,7 @@
     <string name="migration_fill_message">%1$d entrée(s) n\'ont pas de valeur pour %2$s, que cette modification rend obligatoire. Donne la valeur qu\'elles prennent, ou annule.</string>
     <string name="tools_config_error_not_found">Outil introuvable</string>
     <string name="service_error_migration_unconfirmed">Cette modification retire %1$d valeur(s) des entrées de cet outil, supprime %2$d entrée(s) restée(s) sans valeur obligatoire et relit autrement %3$d valeur(s) gardée(s) (nouvelles bornes, ordre). Dis-le à l\'utilisateur, et renvoie-la avec "confirm_migration": true une fois qu\'il est d\'accord.</string>
+    <string name="service_error_migration_filters_aimed">Un filtre de %1$s compare un champ à une option que cette modification retire ou renomme : il ne trouverait plus rien. Dis-le à l\'utilisateur, et renvoie-la avec "confirm_migration": true une fois qu\'il est d\'accord.</string>
     <string name="service_error_migration_missing_values">Des entrées n\'ont pas de valeur pour un champ que cette modification rend obligatoire : %1$s. Donne la valeur qu\'elles prennent dans "fill_values": {"data": {"champ": valeur}}.</string>
     <string name="service_error_migration_fill_unknown">"fill_values" nomme %1$s, qui n\'est pas un champ obligatoire de "data" dans cette config</string>
 

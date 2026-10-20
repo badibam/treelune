@@ -74,11 +74,11 @@ Codé, jamais vu sur l'appareil ; le détail est dans la recette, `docs/design/d
 - Champ Image (`docs/design/image-field.md`) : migration 82 d'abord ; la tuile de l'Agenda dit « 3 images » en texte.
 - Thème liseuse (`docs/design/eink-theme.md`) : les trames d'abord.
 - Une question de l'IA dans une routine refusée, l'IA continuant seule (gemma, gpt-oss au banc).
+- Retirer ou renommer une option du Repas qu'un Graphique filtre : la confirmation nomme le Graphique, même sans entrée touchée ; par l'IA, la validation le nomme aussi.
 
 ## Décidé, à coder
 
 - L'historique des écritures et leur annulation (`docs/design/undo-history.md`).
-- L'écran de confirmation d'un changement de config nomme les outils dont un filtre vise une option retirée ou renommée.
 - `docs/` en anglais ; `docs/design/` et `TODO.md` restent en français.
 
 ## À concevoir

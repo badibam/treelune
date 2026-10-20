@@ -158,8 +158,13 @@ class ValidationResolver(private val context: Context) {
         val removed = count("removed_values")
         val deleted = count("deleted_entries")
         val reinterpreted = count("reinterpreted_values")
-        if (removed + deleted + reinterpreted == 0) return null
-        return s.shared("validation_reason_past_data").format(removed, deleted, reinterpreted)
+        // The other tools whose filters it leaves aiming at an option gone are asked about too
+        val aimedBy = (migration["aimed_by"] as? List<*>).orEmpty().map { it.toString() }
+        val reasons = listOfNotNull(
+            s.shared("validation_reason_past_data").format(removed, deleted, reinterpreted).takeIf { removed + deleted + reinterpreted > 0 },
+            s.shared("validation_reason_filters_aimed").format(aimedBy.joinToString(", ")).takeIf { aimedBy.isNotEmpty() }
+        )
+        return reasons.takeIf { it.isNotEmpty() }?.joinToString(" ")
     }
 
     private fun appReason(levels: Levels): String? = when {
