@@ -512,7 +512,7 @@ class DemoData(private val time: TimeResolver, private val hand: JSONObject) {
         event("lunch_brume", 1, 4, 12, 30, 90, status = "cancelled")
         event("dentist", 0, 3, 17, 30, 45)
         event("accountant", -1, 4, 11, 0, 30)
-        events.add(entry("demo-e-agenda-book_fair", text("agenda_book_fair"), at(day(-2, 6), 0, 0),
+        events.add(entry("demo-e-agenda-book_fair", text("agenda_book_fair"), time.startOf(day(-2, 6)),
             json("all_day" to true, "days" to 2), state = json("status" to "planned")))
         return events
     }

@@ -23,7 +23,7 @@
     <string name="schema_series_name">The name of its occurrences</string>
     <string name="field_series_schedule">Repeats</string>
     <string name="field_all_day">All day</string>
-    <string name="schema_all_day">A whole day, or several: it lasts days, not a duration; its date is midnight of its first day</string>
+    <string name="schema_all_day">A whole day, or several: it lasts days, not a duration; it starts at the start of the person\'s day on its first date (the hour their days start at), whatever time is written</string>
     <string name="field_duration">Duration</string>
     <string name="schema_duration">How long an event at a time lasts; none for a moment</string>
     <string name="field_days">Days</string>

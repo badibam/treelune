@@ -51,7 +51,7 @@ object AgendaScheduler : ToolScheduler {
             val events = events(coordinator, tool.id) ?: return@mapNotNull null
             events.mapNotNull { event ->
                 val reminders = try { AgendaRules.reminders(tool.config, event.allDay, text) } catch (e: IllegalArgumentException) { return@mapNotNull null }
-                AgendaRules.nextReminder(event, AgendaRules.reminderTimes(event, reminders, ::resolve), now, zone)
+                AgendaRules.nextReminder(event, AgendaRules.reminderTimes(event, reminders, ::resolve), now, AgendaToolType.calendar(zone))
             }.minOrNull()
         }.minOrNull()
     }
@@ -113,7 +113,7 @@ object AgendaScheduler : ToolScheduler {
                 val created = coordinator.processUserAction("tool_data.create", mapOf(
                     "tool_instance_id" to tool.id,
                     "name" to series.name,
-                    "timestamp" to series.startOf(time, zone),
+                    "timestamp" to series.startOf(time, AgendaToolType.calendar(zone)),
                     "data" to data,
                     "state" to mapOf(
                         AgendaToolType.STATUS to AgendaToolType.Status.PLANNED,
@@ -143,7 +143,7 @@ object AgendaScheduler : ToolScheduler {
                 LogManager.service("AgendaScheduler: reminders of ${tool.id} unreadable: ${e.message}", "ERROR")
                 return
             }
-            val due = AgendaRules.dueReminders(event, AgendaRules.reminderTimes(event, reminders, ::resolve), now, zone)
+            val due = AgendaRules.dueReminders(event, AgendaRules.reminderTimes(event, reminders, ::resolve), now, AgendaToolType.calendar(zone))
             if (due.isEmpty()) continue
             val sent = coordinator.processUserAction("notifications.send", mapOf(
                 "title" to event.name,

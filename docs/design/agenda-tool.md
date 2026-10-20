@@ -24,12 +24,12 @@ Ce qui n'en est pas : une chose à faire avant un moment (la Liste et son éché
 - **Son nom** est le nom de l'entrée.
 - **`data`**, déclaré par le type :
   - `duration` (`duration-millis`), facultative : sans elle l'événement est un moment, avec elle un créneau. Une durée plutôt qu'une heure de fin : déplacer un rendez-vous garde sa durée vraie.
-  - `all_day` (oui/non) : le `timestamp` est alors minuit du jour dans le fuseau de l'app (`DateTimeConfig.getZoneId()`), et la durée se compte en jours, `days` (1 par défaut), une journée ne faisant pas toujours 24 h. `duration` et `days` ne vont jamais ensemble.
+  - `all_day` (oui/non) : le `timestamp` est alors le début du jour de l'app à cette date, à l'heure où commencent les jours, dans le fuseau de l'app (`DateTimeConfig.getZoneId()`) : ce qui lit les entrées par période la trouve sur son jour ; elle finit quand le jour de l'app qui suit son dernier jour commence, et la durée se compte en jours, `days` (1 par défaut), une journée ne faisant pas toujours 24 h. `duration` et `days` ne vont jamais ensemble.
 - **Les autres champs** sont ceux de l'utilisateur (« Lieu », « Avec qui »), qu'il déclare lui-même : aucun préréglage, le type n'en sachant rien. Ils s'affichent comme dans la Liste, en compact sous le nom (`CustomFieldsDisplay`).
 - **`state`**, écrit par les opérations et le planificateur seuls, jamais par l'écriture ordinaire :
   - `status` : `planned` pour un événement normal, `cancelled` (annulé : visible, son nom précédé de « Annulé · », sans rappel), `removed` (retiré : invisible du planning, de la tuile et des rappels ; occurrence de série seulement). Toujours présent, il est le statut de départ du cœur (`EntryStart`) : un événement se crée `planned`, et seules les opérations de l'outil et l'app changent ce statut ;
   - `series` : la clé de la série qui l'a créé, absente pour un événement isolé ;
-  - `series_at` : l'heure de sa série pour laquelle l'occurrence a été donnée, d'où la série compte la suivante (une occurrence déplacée la garde ; celle d'une journée entière, qui commence à minuit, garde l'heure du planning) ;
+  - `series_at` : l'heure de sa série pour laquelle l'occurrence a été donnée, d'où la série compte la suivante (une occurrence déplacée la garde ; celle d'une journée entière, qui commence au début de son jour, garde l'heure du planning) ;
   - `reminded_until` et `reminded_for` : le dernier rappel envoyé, tous ceux d'avant l'étant, et le début pour lequel ils l'ont été ; un début déplacé efface les deux (`settleEntries`).
 - **Une journée entière n'a pas de durée, un événement à heure pas de jours** : le service refuse l'un avec l'autre (`refuseEntry`, un refus du type d'outil sur l'entrée entière), en création comme en modification.
 - **Aucun statut fait / pas fait** : à venir, en cours ou passé se lit à l'horloge.

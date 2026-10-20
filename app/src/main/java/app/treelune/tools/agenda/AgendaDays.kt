@@ -67,8 +67,7 @@ object AgendaDays {
         else dayOfInstant(range.first, zone) to dayOfInstant(range.second, zone)
 
     /** The first instant of [date] as a day the user set: at the hour it starts. */
-    private fun startOfDate(date: LocalDate, zone: ZoneId): Long =
-        normalizeTimestampWithConfig(date.atTime(12, 0).atZone(zone).toInstant().toEpochMilli(), PeriodType.DAY, zone = zone)
+    private fun startOfDate(date: LocalDate, zone: ZoneId): Long = AgendaToolType.calendar(zone).startOf(date)
 
     /** An event's time at the start of its line: « 14:30 », or « All day ». */
     fun timeLabel(event: AgendaEvent, s: StringsContext): String =

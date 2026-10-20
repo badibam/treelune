@@ -105,7 +105,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 82
+        const val VERSION = 83
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -1869,6 +1869,32 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /** One table for the images of messages and of entries: see ImagesAtV82. */
+        /** An Agenda's whole-day events start at the start of the user's day, no longer at midnight: see AllDayAtV83. */
+        private val MIGRATION_82_83 = object : ConnectionMigration(82, 83) {
+            override fun migrate(database: MigrationDatabase) {
+                val format = database.query("SELECT settings FROM app_settings_categories WHERE category = ?", arrayOf<Any?>(app.treelune.core.database.entities.AppSettingCategories.FORMAT)).use { cursor ->
+                    if (cursor.moveToFirst()) org.json.JSONObject(cursor.getString(0)) else null
+                }
+                val calendar = PointerAtV44.Calendar.of(format)
+                var moved = 0
+                database.query("SELECT id, timestamp, data, state FROM tool_data WHERE tooltype = 'agenda' AND timestamp IS NOT NULL").use { cursor ->
+                    while (cursor.moveToNext()) {
+                        val id = cursor.getString(0)
+                        // An entry that cannot be read stays as it was and is logged
+                        try {
+                            val state = if (cursor.isNull(3)) null else cursor.getString(3)
+                            val next = app.treelune.core.versioning.AllDayAtV83.entry(cursor.getLong(1), org.json.JSONObject(cursor.getString(2)), state, calendar) ?: continue
+                            database.execSQL("UPDATE tool_data SET timestamp = ?, state = ? WHERE id = ?", arrayOf<Any?>(next.timestamp, next.state, id))
+                            moved++
+                        } catch (e: Exception) {
+                            LogManager.database("MIGRATION 82->83: entry $id left as it was: ${e.message}", "ERROR", e)
+                        }
+                    }
+                }
+                LogManager.database("MIGRATION 82->83: $moved whole-day event(s) moved to the start of their day", "INFO")
+            }
+        }
+
         private val MIGRATION_81_82 = object : ConnectionMigration(81, 82) {
             override fun migrate(database: MigrationDatabase) {
                 app.treelune.core.versioning.ImagesAtV82.STATEMENTS.forEach { database.execSQL(it) }
@@ -2884,7 +2910,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_78_79,
                     MIGRATION_79_80,
                     MIGRATION_80_81,
-                    MIGRATION_81_82
+                    MIGRATION_81_82,
+                    MIGRATION_82_83
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

@@ -114,7 +114,7 @@ object PointerAtV44 {
     }
 
     /** The format settings among the categories of a backup document, if it holds them. */
-    private fun backupFormat(data: JSONObject): JSONObject? {
+    fun backupFormat(data: JSONObject): JSONObject? {
         val categories = data.optJSONArray("app_settings_categories") ?: return null
         return (0 until categories.length()).map { categories.getJSONObject(it) }
             .firstOrNull { it.optString("category") == AppSettingCategories.FORMAT }
