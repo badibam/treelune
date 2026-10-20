@@ -175,11 +175,13 @@ object UI {
         SelectionMenu { androidx.compose.foundation.text.selection.SelectionContainer { content() } }
     }
 
-    /** [text] put in the clipboard, said by a toast: the one way the app copies. */
+    /** [text] put in the clipboard, said by a toast before Android 13 and by Android after: the one way the app copies. */
     fun copy(context: Context, text: String) {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
         clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Treelune", text))
-        Toast(app.treelune.core.strings.Strings.`for`(context = context).shared("text_copied"), Duration.SHORT)
+        // From Android 13, Android shows the copy itself, over the bottom of the screen: said once, by it
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU)
+            Toast(app.treelune.core.strings.Strings.`for`(context = context).shared("text_copied"), Duration.SHORT)
     }
     
     /**

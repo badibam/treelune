@@ -904,6 +904,13 @@ object DefaultTheme : ThemeContract {
                 FeedbackType.ERROR -> CurrentTheme.getCurrentColorScheme().error
                 FeedbackType.WARNING -> CurrentTheme.getCurrentColorScheme().tertiary
                 FeedbackType.INFO -> CurrentTheme.getCurrentColorScheme().surfaceVariant
+            },
+            // The text in the colour made for its ground: Material's default is for a dark band
+            contentColor = when (type) {
+                FeedbackType.SUCCESS -> CurrentTheme.getCurrentColorScheme().onPrimary
+                FeedbackType.ERROR -> CurrentTheme.getCurrentColorScheme().onError
+                FeedbackType.WARNING -> CurrentTheme.getCurrentColorScheme().onTertiary
+                FeedbackType.INFO -> CurrentTheme.getCurrentColorScheme().onSurfaceVariant
             }
         ) {
             androidx.compose.material3.Text(message)
