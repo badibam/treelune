@@ -616,6 +616,7 @@
     <string name="confirm_action">Confirm this action?</string>
     <string name="tools_delete_confirm">Delete the tool “%1$s” and all its entries?</string>
     <string name="confirm_delete">Do you really want to delete this item?</string>
+    <string name="quoted">“%1$s”</string>
     <string name="confirm_reset">Do you want to reset the configuration? The current data will be lost.</string>
 
     <!-- The one date input (InstantPicker) and its period -->
@@ -1625,7 +1626,6 @@
     <string name="migration_part_removed">%1$d value(s) removed</string>
     <string name="migration_part_deleted">%1$d entry(ies) deleted for lack of a required value</string>
     <string name="migration_part_reinterpreted">%1$d value(s) kept but read differently (new bounds, order)</string>
-    <string name="migration_lost_for_good">What is removed or deleted does not come back.</string>
     <string name="migration_filters_aimed">A filter of %1$s uses an option this change removes or renames: it will find nothing until you change it.</string>
     <string name="migration_new_field_offer">To touch nothing, create a new field instead: the former one keeps its values, renamed %1$s.</string>
     <string name="migration_new_field">Create a new field</string>
@@ -1958,7 +1958,7 @@
     <string name="history_empty">No conversation</string>
     <string name="history_rename_title">Rename the conversation</string>
     <string name="history_rename_label">New name</string>
-    <string name="history_delete_confirm">This action cannot be undone. Delete the conversation \'%1$s\'?</string>
+    <string name="history_delete_confirm">This action cannot be undone. Delete the conversation “%1$s”?</string>
     <string name="history_session_messages">%1$d messages</string>
     <string name="settings_history">History of the conversations</string>
 

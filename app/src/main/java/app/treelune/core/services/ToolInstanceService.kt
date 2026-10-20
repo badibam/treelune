@@ -341,7 +341,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             fun data(config: JSONObject) = toolType.getEntryFields(config, context).data.map { it.definition }
             fun extra(config: JSONObject) = config.optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList()
             val unmarked = AiReadOnly.unmarked(data(oldConfig), data(newConfig)) + AiReadOnly.unmarked(extra(oldConfig), extra(newConfig))
-            if (unmarked.isNotEmpty()) return s.shared("service_error_ai_read_only_unmarked").format(AiReadOnly.named(unmarked))
+            if (unmarked.isNotEmpty()) return s.shared("service_error_ai_read_only_unmarked").format(AiReadOnly.named(unmarked) { s.shared(it) })
         }
         return toolType.refuseConfigChange(oldConfig, newConfig, byAPerson, context)
     }

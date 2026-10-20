@@ -616,6 +616,7 @@
     <string name="confirm_action">Confirmer cette action ?</string>
     <string name="tools_delete_confirm">Supprimer l\'outil « %1$s » et toutes ses entrées ?</string>
     <string name="confirm_delete">Veux-tu vraiment supprimer cet élément ?</string>
+    <string name="quoted">« %1$s »</string>
     <string name="confirm_reset">Veux-tu réinitialiser la configuration ? Les données actuelles seront perdues.</string>
 
     <!-- The one date input (InstantPicker) and its period -->
@@ -1625,7 +1626,6 @@
     <string name="migration_part_removed">%1$d valeur(s) retirée(s)</string>
     <string name="migration_part_deleted">%1$d entrée(s) supprimée(s) faute de valeur obligatoire</string>
     <string name="migration_part_reinterpreted">%1$d valeur(s) gardée(s) mais lue(s) autrement (nouvelles bornes, ordre)</string>
-    <string name="migration_lost_for_good">Ce qui est retiré ou supprimé ne revient pas.</string>
     <string name="migration_filters_aimed">Un filtre de %1$s utilise une option que cette modification retire ou renomme : il ne trouvera plus rien tant que tu ne le changes pas.</string>
     <string name="migration_new_field_offer">Pour ne rien toucher, crée plutôt un nouveau champ : l\'ancien garde ses valeurs, renommé %1$s.</string>
     <string name="migration_new_field">Créer un nouveau champ</string>
@@ -1958,7 +1958,7 @@
     <string name="history_empty">Aucune discussion</string>
     <string name="history_rename_title">Renommer la discussion</string>
     <string name="history_rename_label">Nouveau nom</string>
-    <string name="history_delete_confirm">Cette action est irréversible. Supprimer la discussion \'%1$s\' ?</string>
+    <string name="history_delete_confirm">Cette action est irréversible. Supprimer la discussion « %1$s » ?</string>
     <string name="history_session_messages">%1$d messages</string>
     <string name="settings_history">Historique des discussions</string>
 
