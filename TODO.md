@@ -10,7 +10,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Juste après la release
 
-- Une réponse coupée par la limite de longueur (`finish_reason` « length ») garde son texte et ses tokens, aujourd'hui jetés — à trancher : montré avec l'erreur, ou gardé en base seulement.
 - L'export des entrées d'un outil (`docs/design/export.md`).
 - Le titre de `ToolConfigScreen` donne le nom de l'outil, pas seulement son type.
 - `ai_prompt_current_datetime` dit qu'elle est écrite par le système.
@@ -86,6 +85,7 @@ Codé, jamais vu sur l'appareil ; le détail est dans la recette, `docs/design/d
 - Les events du cœur : quel premier usage — un événement de l'Agenda qui commence, une entrée écrite, une condition devenue vraie (l'Alerte) ? L'automation directe (le relevé, `docs/design/missing-tools.md`) attend la même brique.
 - Des outils montrés sur la tuile d'une zone de l'accueil (le poids du jour sur « Santé ») : leur résumé ou un raccourci selon la place de la tuile — lesquels, dans quel ordre, un outil montré à deux endroits.
 - Des rythmes que la planification (`ScheduleConfig`, commune à tous les outils et aux routines) ne sait pas dire : « tous les N jours à partir d'une date », « une semaine sur deux », plusieurs jours d'un mois (« le 1er et le 15 »).
+- Une réponse coupée par la limite de longueur (`max_tokens` chez Claude et DeepSeek, un `status` incomplet chez OpenAI, `finish_reason` « length » chez un autre serveur) : refusée, son texte jeté et ses tokens mis à 0, le coût affiché la compte gratuite alors qu'elle est facturée — que garder du texte, et où le montrer.
 
 ## Dette de code
 
