@@ -60,7 +60,7 @@ Un seul calcul, d'où sortent la tuile, la page, la fenêtre de lancement et la 
 - Au toucher, le verso apparaît sous un trait, le recto restant affiché ; les quatre notes en dessous.
 - Chaque champ s'affiche selon son type, par ce que l'app sait déjà afficher.
 - Une case vide (validé avec l'utilisateur, pas un repli) : sur le premier champ du recto, la carte n'existe pas — pas de question à poser ; ailleurs, le champ ne s'affiche pas.
-- Un champ disparu de la source : une erreur qui le nomme (« le champ italien n'existe plus dans Lexique »), jamais une carte vide.
+- Un champ disparu de la source : une erreur qui nomme l'endroit du paquet à corriger, le regroupement ou le recto ou le verso d'un sens (« Le recto de IT → FR montre un champ qui n'existe plus dans Lessico »), jamais une carte vide. Le champ lui-même n'est pas nommé : disparu, son libellé est parti avec lui.
 
 ## Les écrans
 

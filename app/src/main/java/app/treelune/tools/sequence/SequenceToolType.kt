@@ -17,7 +17,6 @@ import app.treelune.core.fields.settings.ScheduleSettings
 import app.treelune.core.fields.settings.SettingNode
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.strings.Strings
-import app.treelune.core.tools.BaseSchemas
 import app.treelune.core.tools.EntryToOpen
 import app.treelune.core.tools.ToolOperation
 import app.treelune.core.tools.ToolScheduler
@@ -95,12 +94,6 @@ object SequenceToolType : ToolTypeContract {
     override fun getDefaultShowFieldLabels(): Boolean = true
     override fun getDefaultIconName(): String = "timer"
     override fun getSuggestedIcons(): List<String> = listOf("timer", "dumbbell", "flower-2", "list-ordered", "hourglass", "chef-hat", "music")
-
-    override fun getFormFieldName(fieldName: String, context: Context): String = when (fieldName) {
-        SequencePlan.STEPS, STEP_SIGNAL, COUNTDOWN, VOICE, ENABLED, "schedule",
-        STATUS, STARTED_AT, ENDED_AT, RUN, DURATION, PAUSED, STEPS_DONE, STEPS_SKIPPED, STEPS_NOT_DONE -> s(context).tool("field_$fieldName")
-        else -> BaseSchemas.getCommonFieldName(fieldName, context) ?: fieldName
-    }
 
     override fun getConfigSettings(context: Context): List<SettingNode> {
         val s = s(context)

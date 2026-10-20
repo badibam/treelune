@@ -3,7 +3,6 @@ package app.treelune.tools.notes
 import android.content.Context
 import androidx.compose.runtime.Composable
 import app.treelune.core.tools.ToolTypeContract
-import app.treelune.core.tools.BaseSchemas
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.database.entities.ToolDataEntity
 import app.treelune.core.strings.Strings
@@ -42,15 +41,6 @@ object NotesToolType : ToolTypeContract {
 
 
     override fun getDefaultShowFieldLabels(): Boolean = true
-
-    override fun getFormFieldName(fieldName: String, context: Context): String {
-        val s = Strings.`for`(tool = "notes", context = context)
-        return when (fieldName) {
-            "content" -> s.tool("field_content")
-            "position" -> s.tool("field_position")
-            else -> BaseSchemas.getCommonFieldName(fieldName, context) ?: fieldName
-        }
-    }
 
     /** The config key of whether notes take a title. */
     const val TITLES = "titles"

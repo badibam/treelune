@@ -20,7 +20,6 @@ import app.treelune.core.reading.Reduction
 import app.treelune.core.selection.ReferenceKind
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.strings.Strings
-import app.treelune.core.tools.BaseSchemas
 import app.treelune.core.tools.ToolOperation
 import app.treelune.core.tools.ToolScheduler
 import app.treelune.core.tools.ToolTypeContract
@@ -91,18 +90,6 @@ object GoalToolType : ToolTypeContract {
     override fun getDefaultShowFieldLabels(): Boolean = true
     override fun getDefaultIconName(): String = "target"
     override fun getSuggestedIcons(): List<String> = listOf("target", "trophy", "flag", "medal")
-
-    /** The settings and fields a validation error may name, by their key. */
-    private val LABELS = setOf(
-        "criteria", "sub_goals", "at_least", RECURRENCE, "start", "deadline", "schedule", "duration", "enabled", "expiry_delay", "notify", AI_NO_VALIDATION,
-        "essential", Criterion.ENTERED, Criterion.CONDITION, "instructions",
-        DEFINITION, STATUS, PERIOD_END, JUDGEMENT, VALIDATED_BY, VALIDATED_AT, REOPENED_AT, NOTIFIED
-    )
-
-    override fun getFormFieldName(fieldName: String, context: Context): String = when (fieldName) {
-        in LABELS -> s(context).tool("field_$fieldName")
-        else -> BaseSchemas.getCommonFieldName(fieldName, context) ?: fieldName
-    }
 
     private fun field(name: String, label: String, type: FieldType, description: String? = null, config: Map<String, Any>? = null) =
         FieldDefinition(name, label, description, type, false, config)

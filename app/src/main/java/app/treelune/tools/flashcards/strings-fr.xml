@@ -73,8 +73,10 @@
     <string name="error_source_tool">La source doit être un outil.</string>
     <string name="error_source_gone">L\'outil de la source n\'existe plus.</string>
     <string name="error_source_kind">%1$s ne peut pas être la source d\'un paquet : il faut un outil qui garde des entrées, autre qu\'un paquet.</string>
-    <string name="error_field_gone">Le champ %1$s n\'existe plus dans %2$s.</string>
-    <string name="error_field_gone_session">Le champ %1$s n\'existe plus dans la source.</string>
+    <string name="error_group_by_gone">Le regroupement se fait sur un champ qui n\'existe plus dans %1$s.</string>
+    <string name="error_front_gone">Le recto de %1$s montre un champ qui n\'existe plus dans %2$s.</string>
+    <string name="error_back_gone">Le verso de %1$s montre un champ qui n\'existe plus dans %2$s.</string>
+    <string name="error_field_gone_session">Un champ de cette carte n\'existe plus dans la source.</string>
     <string name="error_direction_names">Deux sens portent le même nom.</string>
     <string name="error_direction_unknown">Le paquet n\'a pas de sens %1$s.</string>
     <string name="error_rating">Note inconnue : %1$s. Elle est AGAIN, HARD, GOOD ou EASY.</string>
@@ -86,7 +88,8 @@
 
     <!-- Tile and page -->
     <string name="count_due">%1$d à revoir</string>
-    <string name="count_new">%1$d nouvelles</string>
+    <string name="count_new_singular">%1$d nouvelle</string>
+    <string name="count_new_plural">%1$d nouvelles</string>
     <string name="count_nothing">Rien pour aujourd\'hui</string>
     <string name="group_all">Tout</string>
     <string name="groups_note">Une ligne peut être dans plusieurs groupes : Tout n\'est pas la somme des groupes.</string>
@@ -96,7 +99,8 @@
     <string name="session_nothing">Rien à réviser ici aujourd\'hui</string>
     <string name="session_progress">%1$d / %2$d</string>
     <string name="session_turn">Touche la carte pour voir la réponse</string>
-    <string name="session_over">Séance finie : %1$d cartes revues.</string>
+    <string name="session_over_singular">Séance finie : %1$d carte revue.</string>
+    <string name="session_over_plural">Séance finie : %1$d cartes revues.</string>
     <string name="session_back">Retour au paquet</string>
     <string name="action_undo">Revenir</string>
 </resources>

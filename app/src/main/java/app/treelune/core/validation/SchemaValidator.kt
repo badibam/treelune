@@ -97,7 +97,7 @@ object SchemaValidator {
                 // branch the value's selector points to
                 val (others, explained) = VariantErrors.sort(errors, JSONObject(schemaContent), dataNode)
                 val errorMessage = (listOfNotNull(
-                    ValidationErrorProcessor.filterErrors(others.toSet(), schema.content, context).takeIf { it.isNotEmpty() }
+                    ValidationErrorProcessor.filterErrors(others.toSet(), schema.content).takeIf { it.isNotEmpty() }
                 ) + explained).joinToString("\n")
                 if (errorMessage.isEmpty()) {
                     ValidationResult.success()

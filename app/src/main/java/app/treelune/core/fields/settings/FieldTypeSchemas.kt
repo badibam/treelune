@@ -30,11 +30,6 @@ object FieldTypeSchemas : SchemaProvider {
 
     override fun getAllSchemaIds(): List<String> = FieldType.entries.map { PREFIX + it.name }
 
-    override fun getFormFieldName(fieldName: String, context: Context): String {
-        val s = Strings.`for`(context = context)
-        return FieldTypeSettings.definitionNodes(s::shared).labelOf(fieldName) ?: s.shared("label_field_generic")
-    }
-
     /** The schema of any field definition, whatever its type: an element of a config's extra_fields. */
     fun anyDefinition(context: Context): String {
         val s = Strings.`for`(context = context)

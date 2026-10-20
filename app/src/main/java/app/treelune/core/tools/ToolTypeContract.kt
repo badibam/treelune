@@ -17,12 +17,6 @@ import org.json.JSONObject
 interface ToolTypeContract {
 
     /**
-     * The label of [fieldName] as a screen shows it, for a validation error or the pointer
-     * to name it.
-     */
-    fun getFormFieldName(fieldName: String, context: Context): String
-    
-    /**
      * Human-readable display name for this tool type
      * @param context Android context for string resource access
      */

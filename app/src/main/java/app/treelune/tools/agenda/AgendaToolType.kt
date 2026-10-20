@@ -18,7 +18,6 @@ import app.treelune.core.fields.settings.SettingNode
 import app.treelune.core.selection.TimePoint
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.strings.Strings
-import app.treelune.core.tools.BaseSchemas
 import app.treelune.core.tools.ToolOperation
 import app.treelune.core.tools.ToolScheduler
 import app.treelune.core.tools.ToolTypeContract
@@ -74,14 +73,6 @@ object AgendaToolType : ToolTypeContract {
     override fun getDefaultShowFieldLabels(): Boolean = false
     override fun getDefaultIconName(): String = "calendar"
     override fun getSuggestedIcons(): List<String> = listOf("calendar", "calendar-days", "calendar-clock", "stethoscope", "cake")
-
-    override fun getFormFieldName(fieldName: String, context: Context): String = when (fieldName) {
-        "name" -> s(context).tool("field_name")
-        "timestamp" -> s(context).tool("field_start")
-        DURATION, ALL_DAY, DAYS, STATUS, SERIES, SERIES_AT, REMINDED_UNTIL, REMINDED_FOR,
-        REMINDERS, ALL_DAY_REMINDERS -> s(context).tool("field_$fieldName")
-        else -> BaseSchemas.getCommonFieldName(fieldName, context) ?: fieldName
-    }
 
     private fun field(name: String, label: String, type: FieldType, description: String? = null, config: Map<String, Any>? = null) =
         FieldDefinition(name, label, description, type, false, config)

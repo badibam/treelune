@@ -15,7 +15,6 @@ import app.treelune.core.fields.settings.ScheduleSettings
 import app.treelune.core.fields.settings.SettingNode
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.strings.Strings
-import app.treelune.core.tools.BaseSchemas
 import app.treelune.core.tools.ToolOperation
 import app.treelune.core.tools.ToolScheduler
 import app.treelune.core.tools.ToolTypeContract
@@ -55,11 +54,6 @@ object QuestionnaireToolType : ToolTypeContract {
     override fun getDefaultShowFieldLabels(): Boolean = true
     override fun getDefaultIconName(): String = "clipboard-list"
     override fun getSuggestedIcons(): List<String> = listOf("clipboard-list", "list-checks", "message-circle-question-mark", "notebook-pen")
-
-    override fun getFormFieldName(fieldName: String, context: Context): String = when (fieldName) {
-        "schedule", "enabled", AI_MESSAGE, STATUS, FILLED_AT -> s(context).tool("field_$fieldName")
-        else -> BaseSchemas.getCommonFieldName(fieldName, context) ?: fieldName
-    }
 
     override fun getConfigSettings(context: Context): List<SettingNode> {
         val s = s(context)
