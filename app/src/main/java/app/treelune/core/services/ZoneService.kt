@@ -30,6 +30,7 @@ import app.treelune.core.database.transaction
 class ZoneService(private val context: Context) : ExecutableService {
     private val database by lazy { AppDatabase.getDatabase(context) }
     private val zoneDao by lazy { database.zoneDao() }
+    private val writes by lazy { app.treelune.core.history.Writes(context) }
     private val s = Strings.`for`(context = context)
     
     /**
@@ -125,7 +126,7 @@ class ZoneService(private val context: Context) : ExecutableService {
         val newZone = database.transaction {
             val groups = zoneGroups()
             val tile = Grid.arrive(ZonePositions.tiles(zoneDao.getAllZones(), groups, ZonePositions.section(group, groups)), placing.id, ZonePositions.size(placing)).last()
-            placing.copy(grid_x = tile.column, grid_y = tile.row).also { zoneDao.insertZone(it) }
+            placing.copy(grid_x = tile.column, grid_y = tile.row).also { writes.insertZone(it) }
         }
 
         // Notify UI of zones change
@@ -216,7 +217,7 @@ class ZoneService(private val context: Context) : ExecutableService {
     private suspend fun zoneGroups(): List<String> = AppConfigService(context).getZoneGroups()
 
     private suspend fun write(moved: List<ZoneEntity>) {
-        moved.forEach { zoneDao.updatePosition(it.id, it.grid_x, it.grid_y) }
+        moved.forEach { writes.moveZone(it.id, it.grid_x, it.grid_y) }
     }
 
     /**
@@ -367,13 +368,13 @@ class ZoneService(private val context: Context) : ExecutableService {
                 val config = JSONObject(tool.config_json)
                 val group = change.held(Groups.held(config))
                 if (group == Groups.held(config)) tool
-                else tool.copy(config_json = config.put("group", group).toString()).also { toolDao.updateToolInstance(it) }
+                else tool.copy(config_json = config.put("group", group).toString()).also { writes.updateTool(it) }
             }
-            automations.filter { change.held(it.group) != it.group }.forEach { automationDao.updateAutomation(it.copy(group = change.held(it.group))) }
-            variables.filter { change.held(it.group) != it.group }.forEach { variableDao.update(it.copy(group = change.held(it.group))) }
+            automations.filter { change.held(it.group) != it.group }.forEach { writes.updateAutomation(it.copy(group = change.held(it.group))) }
+            variables.filter { change.held(it.group) != it.group }.forEach { writes.updateVariable(it.copy(group = change.held(it.group))) }
             val moved = if (change.beforeRenamed == change.after) emptyList() else ToolPositions.regroup(renamedTools, change.beforeRenamed, change.after)
-            moved.forEach { toolDao.updatePosition(it.id, it.grid_x, it.grid_y) }
-            zoneDao.updateZone(move(existingZone, updatedZone))
+            moved.forEach { writes.moveTool(it.id, it.grid_x, it.grid_y) }
+            writes.updateZone(move(existingZone, updatedZone))
             moved
         }
 
@@ -410,7 +411,7 @@ class ZoneService(private val context: Context) : ExecutableService {
             val groups = zoneGroups()
             val zones = zoneDao.getAllZones()
             write(ZonePositions.moved(zones, Grid.leave(ZonePositions.tiles(zones, groups, ZonePositions.section(existingZone.group, groups)), zoneId)))
-            zoneDao.deleteZoneById(zoneId)
+            writes.deleteZone(zoneId)
         }
 
         // Notify UI of zones change

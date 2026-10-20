@@ -150,7 +150,8 @@ object ListToolType : ToolTypeContract {
                         alwaysVisible = false,
                         config = null
                     ),
-                    filterable = true
+                    filterable = true,
+                    bookkeeping = true
                 )
             )
         )

@@ -235,7 +235,7 @@ object AppSettings {
                 field(DATA_FOLDER, text("settings_data_folder"), null, FieldType.TEXT, config = mapOf("length" to TextLength.UNLIMITED.name)),
                 field(DATA_AUTO_BACKUP, text("settings_data_auto_backup"), text("settings_data_auto_backup_help"), FieldType.BOOLEAN, required = true),
                 // Written by the screen that showed it, never entered
-                field(DATA_SEEN, text("settings_data_seen"), null, FieldType.TEXT, config = mapOf("length" to TextLength.UNLIMITED.name))
+                field(DATA_SEEN, text("settings_data_seen"), null, FieldType.TEXT, config = mapOf("length" to TextLength.UNLIMITED.name), systemWritten = true)
             )
             AppSettingCategories.DEMO -> listOf(
                 field(app.treelune.core.demo.DemoStartup.INSTALL_ON_UPDATE, text("settings_demo_install_on_update"),
@@ -314,9 +314,10 @@ object AppSettings {
         SettingValues(nodes(category, context), settings)
 
     private fun field(name: String, label: String, description: String?, type: FieldType, required: Boolean = false,
-                      config: Map<String, Any>? = null, secret: Boolean = false, address: Boolean = false) =
+                      config: Map<String, Any>? = null, secret: Boolean = false, address: Boolean = false,
+                      systemWritten: Boolean = false) =
         SettingNode.Field(FieldDefinition(name, label, description, type, false, config), required = required, secret = secret,
-            address = address)
+            address = address, systemWritten = systemWritten)
 
     private fun choice(name: String, label: String, description: String, values: List<String>,
                        labels: Map<String, String> = emptyMap(), required: Boolean = false) =
