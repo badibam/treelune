@@ -103,15 +103,6 @@ object DateUtils {
     }
 
     /**
-     * Check if two timestamps are on the same day
-     */
-    fun isOnSameDay(timestamp1: Long, timestamp2: Long, zone: ZoneId = getConfiguredZone()): Boolean {
-        val date1 = ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp1), zone).toLocalDate()
-        val date2 = ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp2), zone).toLocalDate()
-        return date1 == date2
-    }
-
-    /**
      * Get today's date formatted for display
      */
     fun getTodayFormatted(zone: ZoneId = getConfiguredZone()): String {
@@ -137,24 +128,6 @@ object DateUtils {
      */
     fun format(timestamp: Long, pattern: String, zone: ZoneId = getConfiguredZone()): String =
         DateTimeFormatter.ofPattern(pattern).format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp), zone))
-
-    /**
-     * Get start of day timestamp (00:00:00) for a given date
-     */
-    fun getStartOfDay(timestamp: Long, zone: ZoneId = getConfiguredZone()): Long {
-        val zonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp), zone)
-        val startOfDay = zonedDateTime.toLocalDate().atStartOfDay(zone)
-        return startOfDay.toInstant().toEpochMilli()
-    }
-
-    /**
-     * Get end of day timestamp (23:59:59.999) for a given date
-     */
-    fun getEndOfDay(timestamp: Long, zone: ZoneId = getConfiguredZone()): Long {
-        val zonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp), zone)
-        val endOfDay = zonedDateTime.toLocalDate().atTime(23, 59, 59, 999_999_999).atZone(zone)
-        return endOfDay.toInstant().toEpochMilli()
-    }
 
     /**
      * Get current time formatted for display (HH:mm)

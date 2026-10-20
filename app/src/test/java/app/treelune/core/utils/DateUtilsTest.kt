@@ -70,45 +70,7 @@ class DateUtilsTest {
         val instant = at(2025, 3, 15, 14, 30)
         val readBack = DateUtils.parseDateForFilter(DateUtils.formatDateForDisplay(instant, paris), paris)!!
 
-        assertTrue(DateUtils.isOnSameDay(instant, readBack, paris))
-    }
-
-    // ==================== Where a day begins and ends ====================
-
-    /** Midnight to the last millisecond before the next, in the given timezone. */
-    @Test
-    fun aDayRunsFromMidnightToTheLastMillisecond() {
-        val middayOn15th = at(2025, 3, 15, 12, 0)
-
-        assertEquals(at(2025, 3, 15, 0, 0), DateUtils.getStartOfDay(middayOn15th, paris))
-        assertEquals(
-            at(2025, 3, 16, 0, 0) - 1L,
-            DateUtils.getEndOfDay(middayOn15th, paris)
-        )
-    }
-
-    /**
-     * On the night the clocks go forward there is no midnight missing, but the day is an
-     * hour shorter. The bounds follow the calendar day rather than a fixed 24 hours.
-     */
-    @Test
-    fun aDayThatLosesAnHourIsStillOneDay() {
-        val duringTheShortDay = at(2024, 3, 31, 12, 0)
-
-        val start = DateUtils.getStartOfDay(duringTheShortDay, paris)
-        val end = DateUtils.getEndOfDay(duringTheShortDay, paris)
-
-        assertEquals(23 * 3_600_000L - 1L, end - start)
-    }
-
-    /** Two moments are on the same day or not according to the timezone they are read in. */
-    @Test
-    fun beingOnTheSameDayDependsOnTheTimezone() {
-        val lateOn15th = at(2025, 3, 15, 23, 0)
-        val earlyOn16th = at(2025, 3, 16, 1, 0)
-
-        assertFalse(DateUtils.isOnSameDay(lateOn15th, earlyOn16th, paris))
-        assertTrue(DateUtils.isOnSameDay(lateOn15th, earlyOn16th, tokyo))
+        assertEquals(DateUtils.formatDateForDisplay(instant, paris), DateUtils.formatDateForDisplay(readBack, paris))
     }
 
     // ==================== The ISO helpers for custom fields ====================
@@ -128,7 +90,7 @@ class DateUtilsTest {
         val timestamp = DateUtils.parseIso8601Time("14:30", paris)!!
 
         assertEquals("14:30", DateUtils.timestampToIso8601Time(timestamp, paris))
-        assertTrue(DateUtils.isOnSameDay(timestamp, System.currentTimeMillis(), paris))
+        assertEquals(DateUtils.calendarToday(paris), java.time.Instant.ofEpochMilli(timestamp).atZone(paris).toLocalDate())
     }
 
     /** A time in hours and minutes is read as written. */
