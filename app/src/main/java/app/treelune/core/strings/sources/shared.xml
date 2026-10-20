@@ -1099,8 +1099,8 @@
     <string name="backup_reset">Reset all the data</string>
     <string name="backup_export_success">Export succeeded</string>
     <string name="backup_export_success_missing_images">Backup made; %1$d images had lost their file and stay so in it</string>
-    <string name="backup_import_confirm">All the current data will be overwritten. Continue?</string>
-    <string name="backup_reset_confirm">All the data will be deleted for good. Continue?</string>
+    <string name="backup_import_confirm">All the current data will be overwritten, and the history emptied: nothing from before can be undone. To keep the current data, export it first (Export all the data). Continue?</string>
+    <string name="backup_reset_confirm">All the data will be deleted for good, its history with it. Continue?</string>
     <string name="backup_import_success">Import succeeded, restarting...</string>
     <string name="backup_reset_success">Reset succeeded, restarting...</string>
     <string name="backup_version_too_recent">This file comes from a more recent version of the application</string>

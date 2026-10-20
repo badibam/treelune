@@ -207,6 +207,7 @@ Le zip de l'export, écrit sans rien demander dans un dossier du téléphone cho
 - Migrations manuelles explicites dans AppDatabase
 - Pas de fallbackToDestructiveMigration (migrations obligatoires)
 - Migrations conservées historiquement
+- L'historique des écritures (`docs/design/undo-history.md`) garde des copies entières des lignes : une migration qui renomme ou retire une colonne d'une table couverte, ou transforme le JSON qu'elle tient, transforme aussi ses copies, avec la même transformation (`HistoryCopies.rewrite`). Une colonne ajoutée n'en demande rien.
 
 **Transformations JSON** :
 - Centralisées dans JsonTransformers.kt
