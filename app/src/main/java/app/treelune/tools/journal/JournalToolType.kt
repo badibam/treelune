@@ -65,6 +65,7 @@ object JournalToolType : ToolTypeContract {
         val s = Strings.`for`(tool = "journal", context = context)
         return EntryFields(
             name = CoreFieldUsage.REQUIRED,
+            nameLabel = app.treelune.core.fields.CoreFields.TITLE_LABEL,
             timestamp = CoreFieldUsage.REQUIRED,
             data = listOf(
                 FixedField(

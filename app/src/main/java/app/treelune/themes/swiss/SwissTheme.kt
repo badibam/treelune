@@ -1300,7 +1300,7 @@ object SwissTheme : ThemeContract {
 
     /** A red rule of 3 dp over it, a signal that the user is asked: the title, the content, the actions. */
     @Composable
-    override fun InteractionCard(title: String, content: @Composable ColumnScope.() -> Unit, actions: @Composable RowScope.() -> Unit) {
+    override fun InteractionCard(title: String, content: @Composable ColumnScope.() -> Unit, actions: (@Composable () -> Unit)?) {
         val size = swissSize()
         Column(
             modifier = Modifier.fillMaxWidth().topRule(swissStroke(TILE_RULE), swissColors.accent.srgb).padding(top = size.dp(TILE_RULE + 8f)),
@@ -1308,7 +1308,7 @@ object SwissTheme : ThemeContract {
         ) {
             Text(title, TextType.TITLE, true, null)
             content()
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(size.dp(8f)), content = actions)
+            if (actions != null) app.treelune.core.ui.components.ButtonRow(align = Alignment.CenterHorizontally, mainLast = true, content = actions)
         }
     }
 

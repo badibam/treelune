@@ -1307,7 +1307,7 @@ object EinkTheme : ThemeContract {
 
     /** A double frame, 2 dp, 2 dp of air, 2 dp: the user is asked. The title, the content, the actions. */
     @Composable
-    override fun InteractionCard(title: String, content: @Composable ColumnScope.() -> Unit, actions: @Composable RowScope.() -> Unit) {
+    override fun InteractionCard(title: String, content: @Composable ColumnScope.() -> Unit, actions: (@Composable () -> Unit)?) {
         val size = einkSize()
         val c = einkColors
         val stroke = einkStroke(FRAME)
@@ -1318,7 +1318,7 @@ object EinkTheme : ThemeContract {
             ) {
                 Text(title, TextType.TITLE, true, null)
                 content()
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(size.dp(8f)), content = actions)
+                if (actions != null) app.treelune.core.ui.components.ButtonRow(align = Alignment.CenterHorizontally, mainLast = true, content = actions)
             }
         }
     }

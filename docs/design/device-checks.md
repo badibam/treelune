@@ -515,3 +515,13 @@ Vu le 2026-10-20 sur la démo : la tuile et la page de Ripasso ; la lecture du p
 - Le sélecteur de période (Jour, Semaine, Mois) : toucher la date, choisir le 14, un lundi, le 1er : la période montrée est celle du jour choisi, jamais la veille, la semaine ou le mois d'avant.
 - La nuit, avant 4 h : le sélecteur de date d'un champ DATE et celui d'une période marquent la veille comme aujourd'hui et s'ouvrent dessus ; celui d'une date et heure, et de la date d'une entrée du Journal, marque le jour du calendrier ; dans le thème par défaut, Material marque toujours le jour du calendrier, seule l'ouverture suit ; « aujourd'hui » choisi dans un champ DATE donne la veille.
 - Le sélecteur de date de chaque thème avec « La semaine commence » le dimanche : la grille commence le dimanche ; dans le thème par défaut (le sélecteur de Material), si elle commence encore le lundi, Android ne lit pas la marque `fw` de la langue — le dire ; la date choisie est celle touchée, le fuseau de l'app réglé sur New York aussi.
+
+## Les bugs du 2026-10-20 et les unités des durées (branche bugs)
+
+- La migration 86 sur la release et ses données : chaque champ Durée s'affiche comme avant (le sommeil et les heures de la démo en « h m », un champ réglé « une seule unité » dans son unité) ; sa config montre « Unités » à la place de Précision et Forme ; une sauvegarde d'avant restaurée, de même.
+- Un Objectif récurrent : « Durée d'une tentative » et « Délai avant expiration » se saisissent en j et h, l'expiration à « 7 j » par défaut ; une tentative en cours dit « reste 6 j 8 h », « reste 40 m » dans sa dernière heure.
+- La durée d'un événement de l'Agenda, la fenêtre de validité de Messages, le délai de rattrapage d'une routine : une case j devant h et m.
+- Retirer un sens d'un paquet Flashcards : la confirmation dit « N révision(s) du sens « … » supprimée(s) » ; changer d'horaire une série de l'Agenda, « N occurrence(s) à venir de « … » supprimée(s), redonnée(s) à ses nouveaux horaires » ; l'IA qui fait le même changement reçoit les mêmes mots.
+- Les boutons à libellé à la plus grande taille de texte d'Android : la validation d'une action de l'IA dans le chat, les formulaires d'une variable et d'une entrée du Journal, la duplication d'un outil, une fiche de Données structurées : côte à côte quand ils tiennent, l'un sous l'autre sinon, jamais un coupé.
+- En français, « Rétention voulue » d'un paquet s'écrit « 0,9 » ; « 0,85 » tapé avec la virgule est gardé.
+- Une Séance : le minuteur d'une étape se saisit en m et s, un repos de 30 s et 2 m 30 s tenus ; la durée d'une séance faite s'affiche et se corrige en h, m et s.

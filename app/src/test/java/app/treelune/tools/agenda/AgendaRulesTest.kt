@@ -135,9 +135,13 @@ class AgendaRulesTest {
         val past = occurrence("past", at(2026, 10, 13, 18))
         val coming = occurrence("coming", at(2026, 10, 20, 18))
         val before = config(series(weekly))
-        assertEquals(listOf("coming"), AgendaRules.removedByConfig(before, config(series(otherDay)), listOf(past, coming), now).map { it.id })
-        assertEquals(listOf("coming"), AgendaRules.removedByConfig(before, config(), listOf(past, coming), now).map { it.id })
-        assertEquals(emptyList<String>(), AgendaRules.removedByConfig(before, config(series(weekly, name = "Kiné")), listOf(past, coming), now).map { it.id })
+        val moved = AgendaRules.removedByConfig(before, config(series(otherDay)), listOf(past, coming), now)
+        assertEquals(listOf("coming"), moved.flatMap { it.entries }.map { it.id })
+        assertEquals(listOf(false), moved.map { it.gone })
+        val gone = AgendaRules.removedByConfig(before, config(), listOf(past, coming), now)
+        assertEquals(listOf("coming"), gone.flatMap { it.entries }.map { it.id })
+        assertEquals(listOf(true), gone.map { it.gone })
+        assertEquals(emptyList<String>(), AgendaRules.removedByConfig(before, config(series(weekly, name = "Kiné")), listOf(past, coming), now).flatMap { it.entries }.map { it.id })
     }
 
     @Test

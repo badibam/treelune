@@ -191,7 +191,7 @@ fun EditNoteDialog(
 
                 if (titles) {
                     UI.FormField(
-                        label = s.tool("label_title"),
+                        label = s.shared(app.treelune.core.fields.CoreFields.TITLE_LABEL),
                         value = title,
                         onChange = { title = it },
                         fieldType = FieldType.TEXT,

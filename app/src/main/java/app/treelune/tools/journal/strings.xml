@@ -42,7 +42,6 @@
     <string name="loading_entries">Loading entries...</string>
 
     <!-- ENTRY SCREEN - Viewing/editing -->
-    <string name="label_title">Title</string>
     <string name="label_date_time">Date and time</string>
     <string name="label_content">Content</string>
     <string name="loading_entry">Loading the entry...</string>

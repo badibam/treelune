@@ -1383,7 +1383,7 @@ object BlueprintTheme : ThemeContract {
 
     /** The paper in a sketch's frame of the alert's colour, a band hatched in it across its top: the title, the content, the actions. */
     @Composable
-    override fun InteractionCard(title: String, content: @Composable ColumnScope.() -> Unit, actions: @Composable RowScope.() -> Unit) {
+    override fun InteractionCard(title: String, content: @Composable ColumnScope.() -> Unit, actions: (@Composable () -> Unit)?) {
         val size = blueprintSize()
         val c = blueprintColors
         val alert = c.alert.srgb
@@ -1400,7 +1400,7 @@ object BlueprintTheme : ThemeContract {
             ) {
                 Text(title, TextType.TITLE, true, null)
                 content()
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(size.dp(8f), Alignment.End), content = actions)
+                if (actions != null) app.treelune.core.ui.components.ButtonRow(align = Alignment.End, mainLast = true, content = actions)
             }
         }
     }

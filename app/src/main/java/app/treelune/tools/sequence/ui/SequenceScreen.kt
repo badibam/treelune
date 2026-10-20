@@ -354,7 +354,7 @@ private fun SessionView(entry: SequenceEntry, s: StringsContext, onSave: (Map<St
     val notReached = (notDone as? Number)?.toInt() ?: 0
     UI.Text(s.tool("status_${if (notReached == 0) SequenceToolType.Status.DONE else SequenceToolType.Status.STOPPED}"), TextType.SUBTITLE)
     FieldInput(field("when", FieldType.DATETIME), at, { at = it }, context, required = true)
-    FieldInput(field(SequenceToolType.DURATION, FieldType.DURATION), duration, { duration = it }, context)
+    FieldInput(field(SequenceToolType.DURATION, FieldType.DURATION, SequenceToolType.SESSION_UNITS), duration, { duration = it }, context)
     FieldInput(field(SequenceToolType.STEPS_DONE, FieldType.NUMERIC, count), done, { done = it }, context, required = true)
     FieldInput(field(SequenceToolType.STEPS_SKIPPED, FieldType.NUMERIC, count), skipped, { skipped = it }, context, required = true)
     FieldInput(field(SequenceToolType.STEPS_NOT_DONE, FieldType.NUMERIC, count), notDone, { notDone = it }, context, required = true)
@@ -392,7 +392,7 @@ private fun KeptStepsView(
     val counts = SequenceSteps.counts(kept.mapIndexed { i, step -> step.copy(status = chosen.getOrElse(i) { step.status }) })
     UI.Text(s.tool("status_${counts.status}"), TextType.SUBTITLE)
     FieldInput(field("when", FieldType.DATETIME), at, onAt, context, required = true)
-    FieldInput(field(SequenceToolType.DURATION, FieldType.DURATION), duration, onDuration, context)
+    FieldInput(field(SequenceToolType.DURATION, FieldType.DURATION, SequenceToolType.SESSION_UNITS), duration, onDuration, context)
     // One line a step: its name, its round, its time as the label of its state
     kept.forEachIndexed { i, step ->
         FieldInput(state.copy(name = "status_$i", displayName = listOfNotNull(step.name, step.rounds, step.time?.let { clockText(it) }).joinToString(" · ")),

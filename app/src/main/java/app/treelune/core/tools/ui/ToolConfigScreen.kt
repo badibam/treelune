@@ -211,7 +211,9 @@ fun ToolConfigScreen(
                     }
                 }
             },
-            saveEnabled = !isSaving && configLoad == LoadState.LOADED
+            saveEnabled = !isSaving && configLoad == LoadState.LOADED,
+            // The tool named as it is stored, its entries going with it
+            deleteMessage = s.shared("tools_delete_confirm").format(asLoaded?.let { JSONObject(it).optString("name") }.orEmpty())
         )
     }
 
@@ -274,14 +276,10 @@ fun ToolConfigScreen(
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
                 UI.Text(s.shared("migration_confirm_title"), TextType.SUBTITLE)
-                // Only what it does: each count that is not zero
+                // Only what it does: each count that is not zero, each reason a rule of the tool gives
                 val removed = migration.optInt("removed_values")
                 val deleted = migration.optInt("deleted_entries")
-                val parts = listOfNotNull(
-                    removed.takeIf { it > 0 }?.let { s.shared("migration_part_removed").format(it) },
-                    deleted.takeIf { it > 0 }?.let { s.shared("migration_part_deleted").format(it) },
-                    migration.optInt("reinterpreted_values").takeIf { it > 0 }?.let { s.shared("migration_part_reinterpreted").format(it) }
-                )
+                val parts = app.treelune.core.fields.migration.MigrationCounts.parts(JsonUtils.toMap(migration), s::shared)
                 if (parts.isNotEmpty()) UI.Text(s.shared("migration_confirm_counts").format(parts.joinToString(", ")) +
                     (if (removed + deleted > 0) " " + s.shared("migration_lost_for_good") else ""), TextType.BODY)
                 // The other tools whose filters the change leaves aiming at an option gone

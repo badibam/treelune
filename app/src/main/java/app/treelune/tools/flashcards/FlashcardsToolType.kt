@@ -24,6 +24,7 @@ import app.treelune.core.selection.ReferenceKind
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.strings.Strings
 import app.treelune.core.tools.EntryToOpen
+import app.treelune.core.tools.RemovedByConfig
 import app.treelune.core.tools.ToolOperation
 import app.treelune.core.tools.ToolTile
 import app.treelune.core.tools.ToolTypeContract
@@ -147,15 +148,23 @@ object FlashcardsToolType : ToolTypeContract {
     }
 
     /**
-     * A source changed removes every review; a direction removed, its own. Only after the user's or
-     * the AI's agreement, as every entry a config change deletes (confirm_migration).
+     * A source changed removes every review; a direction removed, its own, said by its name. Only
+     * after the user's or the AI's agreement, as every entry a config change deletes
+     * (confirm_migration).
      */
-    override fun entriesRemovedByConfig(previous: JSONObject, config: JSONObject, entries: List<ToolDataEntity>, context: Context): List<ToolDataEntity> {
+    override fun entriesRemovedByConfig(previous: JSONObject, config: JSONObject, entries: List<ToolDataEntity>, context: Context): List<RemovedByConfig> {
+        val s = s(context)
         fun sourceOf(c: JSONObject) = c.optJSONObject(FlashcardsDeck.SOURCE)?.optJSONObject("target")?.optString("id")
-        if (sourceOf(previous) != sourceOf(config)) return entries
-        fun keysOf(c: JSONObject) = FlashcardsDeck.objects(c.optJSONArray(FlashcardsDeck.DIRECTIONS)).map { it.optString(FlashcardsDeck.KEY) }.toSet()
-        val removed = keysOf(previous) - keysOf(config)
-        return entries.filter { JSONObject(it.data).optString(FlashcardsJournal.DIRECTION) in removed }
+        if (sourceOf(previous) != sourceOf(config)) return listOf(RemovedByConfig(entries) { s.tool("removed_source_changed").format(it) })
+        val kept = FlashcardsDeck.objects(config.optJSONArray(FlashcardsDeck.DIRECTIONS)).map { it.optString(FlashcardsDeck.KEY) }.toSet()
+        return FlashcardsDeck.objects(previous.optJSONArray(FlashcardsDeck.DIRECTIONS))
+            .filter { it.optString(FlashcardsDeck.KEY) !in kept }
+            .map { direction ->
+                val key = direction.optString(FlashcardsDeck.KEY)
+                RemovedByConfig(entries.filter { JSONObject(it.data).optString(FlashcardsJournal.DIRECTION) == key }) {
+                    s.tool("removed_direction").format(it, direction.optString(FlashcardsDeck.NAME))
+                }
+            }
     }
 
     // -----------------------------------------------------------------------------------------

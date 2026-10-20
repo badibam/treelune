@@ -1761,7 +1761,7 @@ object DefaultTheme : ThemeContract {
     override fun InteractionCard(
         title: String,
         content: @Composable ColumnScope.() -> Unit,
-        actions: @Composable RowScope.() -> Unit
+        actions: (@Composable () -> Unit)?
     ) {
         val colors = CurrentTheme.getCurrentColorScheme()
 
@@ -1802,12 +1802,7 @@ object DefaultTheme : ThemeContract {
                     content()
 
                     // Actions
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        actions()
-                    }
+                    if (actions != null) app.treelune.core.ui.components.ButtonRow(align = Alignment.CenterHorizontally, mainLast = true, content = actions)
                 }
             }
         }

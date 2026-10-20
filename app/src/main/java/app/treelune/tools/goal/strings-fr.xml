@@ -31,7 +31,7 @@
     <string name="schema_deadline">Quand la tentative d\'un objectif ponctuel finit ; sans échéance elle court jusqu\'à sa validation</string>
     <string name="field_schedule">Récurrence</string>
     <string name="field_duration">Durée d\'une tentative</string>
-    <string name="schema_duration">Combien dure une tentative ; sans durée, jusqu\'à l\'ouverture de la suivante</string>
+    <string name="schema_duration">Combien dure une tentative, ses jours comptés sur le calendrier ; sans durée, jusqu\'à l\'ouverture de la suivante, qui l\'arrête de toute façon</string>
     <string name="field_enabled">Actif</string>
     <string name="schema_enabled">Arrêté, aucune tentative ne s\'ouvre ; celle en cours continue</string>
     <string name="field_expiry_delay">Délai avant expiration</string>

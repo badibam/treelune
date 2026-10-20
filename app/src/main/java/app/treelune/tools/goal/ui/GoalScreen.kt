@@ -214,7 +214,9 @@ private fun AttemptCard(
             UI.Text(s.tool("count").format(loaded["met"], loaded["required"]) + " · " + s.tool("verdict_${(loaded["verdict"] as? String ?: "UNKNOWN").lowercase()}"), TextType.SUBTITLE)
             attempt.periodEnd?.takeIf { attempt.status == GoalToolType.Status.ACTIVE }?.let { end ->
                 val left = end - System.currentTimeMillis()
-                if (left > 0) UI.Text(s.tool("time_left").format(app.treelune.core.fields.Durations.format(left, mapOf("precision" to "MINUTE"), Strings.`for`(context = context))), TextType.CAPTION)
+                // In the units of the goal's duration, days and hours; in minutes for the last hour, which would read 0 h
+                val units = if (left < app.treelune.core.fields.DurationUnit.HOUR.millis) app.treelune.core.fields.DurationUnits.MINUTE else app.treelune.core.fields.DurationUnits.DAY_HOUR
+                if (left > 0) UI.Text(s.tool("time_left").format(app.treelune.core.fields.Durations.format(left, units.units, Strings.`for`(context = context))), TextType.CAPTION)
             }
             criteria.forEach { row ->
                 val key = row["key"] as String

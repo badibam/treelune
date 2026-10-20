@@ -176,7 +176,7 @@
 
     <!-- Validation reasons -->
     <string name="validation_reason_app">The home screen is protected</string>
-    <string name="validation_reason_past_data">The config changes entries already recorded: %1$d value(s) removed, %2$d entry(ies) deleted, %3$d value(s) read differently.</string>
+    <string name="validation_reason_past_data">The config changes entries already recorded: %1$s.</string>
     <string name="validation_reason_filters_aimed">A filter of %1$s uses an option the config removes or renames, and would find nothing.</string>
     <string name="validation_reason_zone">The zone « %1$s » is protected</string>
     <string name="validation_reason_tool">The data of « %1$s » is protected</string>
@@ -536,6 +536,7 @@
     <string name="label_date">Date</string>
     <string name="label_time">Time</string>
     <string name="label_name">Name</string>
+    <string name="label_title">Title</string>
     <string name="label_created_at">Created</string>
     <string name="label_updated_at">Modified</string>
     <string name="label_configuration">Configuration</string>
@@ -613,6 +614,7 @@
 
     <!-- Confirmation messages -->
     <string name="confirm_action">Confirm this action?</string>
+    <string name="tools_delete_confirm">Delete the tool « %1$s » and all its entries?</string>
     <string name="confirm_delete">Do you really want to delete this item? This action cannot be undone.</string>
     <string name="confirm_reset">Do you want to reset the configuration? The current data will be lost.</string>
 
@@ -797,8 +799,6 @@
     <string name="field_config_true_label">Label for true</string>
     <string name="field_config_false_label">Label for false</string>
     <string name="field_config_time_format">Time format</string>
-    <string name="field_config_duration_precision">Precision</string>
-    <string name="field_config_duration_form">Form</string>
     <string name="field_config_text_length">Text length</string>
     <string name="field_config_no_config_required">This field type needs no configuration</string>
 
@@ -1321,8 +1321,8 @@
     <string name="field_type_datetime_description">Date and time combined</string>
     <string name="field_type_duration_display_name">Duration</string>
     <string name="field_type_duration_description">A length of time, entered and shown in the chosen units</string>
-    <string name="field_type_duration_precision_description">Smallest unit entered and shown. The value is always stored in milliseconds.</string>
-    <string name="field_type_duration_form_description">COMPOSED writes several units (1 h 25 min), SINGLE writes the precision alone (85 min)</string>
+    <string name="field_config_duration_units">Units</string>
+    <string name="field_type_duration_units_description">The units entered and shown, from the largest to the smallest. Days for a delay on the calendar; hours for time spent, whose total reads wrong in days. The value is always stored in milliseconds.</string>
     <string name="field_type_reference_display_name">Reference</string>
     <string name="field_type_reference_description">A link to another thing of the app (an entry, a tool, a zone), shown by its current name</string>
     <string name="field_type_reference_kinds_description">What a value may point to: APP, ZONE, TOOL_INSTANCE, ENTRY, VARIABLE, one or several</string>
@@ -1557,14 +1557,15 @@
     <string name="duration_unit_hour">h</string>
     <string name="duration_unit_minute">m</string>
     <string name="duration_unit_second">s</string>
-    <string name="duration_unit_millisecond">ms</string>
-    <string name="duration_unit_day_display_name">Day</string>
-    <string name="duration_unit_hour_display_name">Hour</string>
-    <string name="duration_unit_minute_display_name">Minute</string>
-    <string name="duration_unit_second_display_name">Second</string>
-    <string name="duration_unit_millisecond_display_name">Millisecond</string>
-    <string name="duration_form_composed_display_name">Several units (1 h 25 min)</string>
-    <string name="duration_form_single_display_name">One unit (85 min)</string>
+    <string name="duration_units_day">days</string>
+    <string name="duration_units_day_hour">days hours</string>
+    <string name="duration_units_day_hour_minute">days hours minutes</string>
+    <string name="duration_units_hour">hours</string>
+    <string name="duration_units_hour_minute">hours minutes</string>
+    <string name="duration_units_hour_minute_second">hours minutes seconds</string>
+    <string name="duration_units_minute">minutes</string>
+    <string name="duration_units_minute_second">minutes seconds</string>
+    <string name="duration_units_second">seconds</string>
 
     <!-- CUSTOM FIELDS - Schema descriptions (used by AI) -->
     <string name="field_type_schema_name_description">Technical identifier of the field, the key the values are stored under. Assigned by the app at creation, from the label, and immutable afterwards. Omit it for a new field; repeat it as is to designate an existing field. Renaming it would destroy the values already recorded, the label is the one that can be changed freely.</string>
@@ -1614,9 +1615,8 @@
     <string name="field_validation_time_default_format">The default value must be in HH:MM format</string>
     <string name="field_validation_datetime_default_format">The default value must be in ISO 8601 format (YYYY-MM-DDTHH:MM:SS)</string>
     <string name="field_validation_datetime_default_range">The default value must sit between min and max</string>
+    <string name="field_validation_duration_units">Unknown duration units: %1$s</string>
     <string name="field_validation_datetime_format">The time format must be 24h or 12h</string>
-    <string name="field_validation_duration_precision">Unknown duration precision: %1$s</string>
-    <string name="field_validation_duration_form">Unknown duration form: %1$s</string>
     <string name="field_value_range_start_end">The start value must be less than or equal to end</string>
 
     <!-- CUSTOM FIELDS - Migration -->
@@ -1633,7 +1633,7 @@
     <string name="migration_fill_title">Values needed</string>
     <string name="migration_fill_message">%1$d entr(ies) have no value for %2$s, which this change makes required. Give the value they take, or cancel.</string>
     <string name="tools_config_error_not_found">Tool not found</string>
-    <string name="service_error_migration_unconfirmed">This change removes %1$d value(s) from this tool\'s entries, deletes %2$d entry(ies) left without a required value, and reads %3$d kept value(s) differently (new bounds, order). Tell the user, and send it again with "confirm_migration": true once they agree.</string>
+    <string name="service_error_migration_unconfirmed">This change touches this tool\'s entries: %1$s. Tell the user, and send it again with "confirm_migration": true once they agree.</string>
     <string name="service_error_migration_filters_aimed">A filter of %1$s compares a field with an option this change removes or renames: it would find nothing. Tell the user, and send it again with "confirm_migration": true once they agree.</string>
     <string name="service_error_migration_missing_values">Entries have no value for a field this change makes required: %1$s. Give the value they take in "fill_values": {"data": {"field": value}}.</string>
     <string name="service_error_migration_fill_unknown">"fill_values" names %1$s, which is not a required field of "data" in this config</string>

@@ -87,6 +87,17 @@ data class TimeResolver(
     /** The instant the day [date] starts at, as the user set days: [dayStartHour] on that date. */
     fun startOf(date: LocalDate): Long = date.atTime(dayStartHour, 0).atZone(zone).toInstant().toEpochMilli()
 
+    /**
+     * [start] moved by [duration] as a delay on the calendar reads: its whole days at the same
+     * time of the clock, the rest in elapsed time. A week from Monday 8:00 is Monday 8:00 across a
+     * change of hour, not 7:00 or 9:00; 36 h is the next day at the same time, then 12 hours.
+     */
+    fun after(start: Long, duration: Long): Long {
+        val days = duration / app.treelune.core.fields.DurationUnit.DAY.millis
+        val rest = duration % app.treelune.core.fields.DurationUnit.DAY.millis
+        return Instant.ofEpochMilli(start).atZone(zone).plusDays(days).toInstant().toEpochMilli() + rest
+    }
+
     /** [point] in the stored form of a field of [type]: a day for a DATE, milliseconds otherwise. */
     fun resolve(point: TimePoint, type: FieldType): Any = if (type == FieldType.DATE) day(point) else instant(point)
 

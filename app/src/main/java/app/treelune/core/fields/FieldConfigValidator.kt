@@ -473,25 +473,17 @@ object FieldConfigValidator {
 
     /**
      * Validates DURATION field config.
-     * Config: {precision?, form?}
+     * Config: {units?: DurationUnits}
      */
     private fun validateDurationConfig(config: Map<String, Any>?, s: app.treelune.core.strings.StringsContext): ValidationResult {
-        // Config is optional for DURATION (minutes, composed)
+        // Config is optional for DURATION (hours and minutes)
         if (config == null) return ValidationResult(isValid = true)
 
-        val precision = config["precision"]
-        if (precision != null && DurationUnit.entries.none { it.name == precision }) {
+        val units = config[DurationUnits.KEY]
+        if (units != null && DurationUnits.entries.none { it.name == units }) {
             return ValidationResult(
                 isValid = false,
-                errorMessage = s.shared("field_validation_duration_precision").format(precision.toString())
-            )
-        }
-
-        val form = config["form"]
-        if (form != null && DurationForm.entries.none { it.name == form }) {
-            return ValidationResult(
-                isValid = false,
-                errorMessage = s.shared("field_validation_duration_form").format(form.toString())
+                errorMessage = s.shared("field_validation_duration_units").format(units.toString())
             )
         }
 

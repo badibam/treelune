@@ -126,9 +126,9 @@ object MessageToolType : ToolTypeContract {
                 ScheduleSettings.group(s.tool("field_schedule"), shared::shared),
                 // How far ahead occurrences are created, and how long a missed one may still go out
                 field("creation_horizon", FieldType.DURATION, default = 2 * 86_400_000L,
-                    config = mapOf("precision" to "DAY", "form" to "SINGLE")),
+                    config = app.treelune.core.fields.DurationUnits.DAY.config()),
                 field("validity_window", FieldType.DURATION, default = 3_600_000L,
-                    config = mapOf("precision" to "MINUTE", "form" to "COMPOSED"))
+                    config = app.treelune.core.fields.DurationUnits.DAY_HOUR_MINUTE.config())
             ))
         )
     }

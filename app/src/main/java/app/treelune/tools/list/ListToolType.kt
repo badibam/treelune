@@ -84,9 +84,12 @@ object ListToolType : ToolTypeContract {
     }
 
     /** Set to remove what is checked, a list removes the items checked before it was. */
-    override fun entriesRemovedByConfig(previous: JSONObject, config: JSONObject, entries: List<ToolDataEntity>, context: Context): List<ToolDataEntity> =
+    override fun entriesRemovedByConfig(previous: JSONObject, config: JSONObject, entries: List<ToolDataEntity>, context: Context): List<app.treelune.core.tools.RemovedByConfig> =
         if (!app.treelune.core.tools.ToolConfigSettings.read(this, config, context).boolean(REMOVE_WHEN_CHECKED)) emptyList()
-        else entries.filter { ListItems.isChecked(it.state) }
+        else {
+            val s = Strings.`for`(tool = "list", context = context)
+            listOf(app.treelune.core.tools.RemovedByConfig(entries.filter { ListItems.isChecked(it.state) }) { s.tool("removed_checked").format(it) })
+        }
 
     /**
      * An item: its name, required; the moment it was added, as any entry; in data its due date,

@@ -42,7 +42,6 @@
     <string name="loading_entries">Chargement des entrées...</string>
 
     <!-- ENTRY SCREEN - Consultation/édition -->
-    <string name="label_title">Titre</string>
     <string name="label_date_time">Date et heure</string>
     <string name="label_content">Contenu</string>
     <string name="loading_entry">Chargement de l\'entrée...</string>

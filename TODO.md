@@ -16,21 +16,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs
 
-- Des boutons à libellé posés dans une simple rangée, qui se perdent quand la place manque : à passer dans `ButtonRow` (`VariableScreen.kt:175`, `JournalEntryScreen.kt:376`, `DuplicateSelector.kt:234`, `StructuredScreen.kt:260` et `:299`), et la rangée d'actions de `InteractionCard` (la validation dans le chat), que chaque thème pose avec deux moitiés de largeur fixe (`InteractionActions`).
-- Les libellés du sélecteur de période comptent un écart en millisecondes divisées par 24 h ou 7 jours (`generateDayLabel`, `generateWeekLabel`) : le lendemain du passage à l'heure d'été, la veille, de 23 h, se dirait « Aujourd'hui » — déduit du code ; compter les jours entre deux dates de l'app.
-- La durée d'un Objectif est stockée en millisecondes (7 jours = 604 800 000) : une tentative qui traverse un changement d'heure finit une heure avant ou après l'heure de son début — déduit du code.
-
-## Bugs du téléphone
-
-Vus le 2026-10-20, laissés pour plus tard :
-
-- Un titre trop long d'une entrée de Journal ou d'une note est refusé avec « Nom: … » quand le formulaire dit « Titre » : le champ du nom du cœur porte le même libellé dans tous les outils (`CoreFields.name`).
-- Flashcards : la confirmation au retrait d'un sens dit « N entrée(s) supprimée(s) faute de valeur obligatoire », sans dire que ce sont les révisions de ce sens.
-- La config d'un paquet Flashcards : « Source » et « Sens » écrits deux fois (le titre du cadre, puis le libellé du champ) ; « Rétention voulue » écrite « 0.9 » en français ; la poignée d'un champ d'un sens collée à sa liste déroulante.
-- Le choix d'une texture : toucher le libellé sous une vignette ne choisit rien, seule la vignette le fait.
-- La fenêtre de suppression d'un outil dit « cet élément » sans nommer l'outil.
-- Au cran de taille 3, le point d'attente et le chrono recouvrent presque toute l'icône d'une zone sur l'accueil (Travail).
-- La tuile de l'Agenda dit encore « 3 images » en texte (champ Image).
+- La fin d'un événement de l'Agenda est son début plus sa durée en temps écoulé : un événement de plusieurs jours qui traverse un changement d'heure finit une heure avant ou après — l'ajouter sur le calendrier (`TimeResolver.after`, comme l'Objectif), la grille des jours et les séries lisant cette fin.
 
 ## À passer sur le téléphone
 

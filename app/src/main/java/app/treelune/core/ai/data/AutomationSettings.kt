@@ -62,7 +62,7 @@ object AutomationSettings {
                         UNLIMITED to s.shared("automation_catch_up_unlimited"))))), required = true),
                 cases = mapOf(
                     LIMITED to listOf(SettingNode.Field(FieldDefinition("window", s.shared("automation_catch_up_delay"), null, FieldType.DURATION, false,
-                        mapOf("precision" to "MINUTE", "form" to "COMPOSED")), required = true)),
+                        app.treelune.core.fields.DurationUnits.DAY_HOUR_MINUTE.config()), required = true)),
                     UNLIMITED to emptyList()
                 )
             ),

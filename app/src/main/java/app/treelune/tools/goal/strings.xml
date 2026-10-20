@@ -31,7 +31,7 @@
     <string name="schema_deadline">When a one-off goal's attempt ends; without one it runs until validated</string>
     <string name="field_schedule">Recurrence</string>
     <string name="field_duration">Duration of an attempt</string>
-    <string name="schema_duration">How long an attempt lasts; without it, until the next one opens</string>
+    <string name="schema_duration">How long an attempt lasts, its days on the calendar; without it, until the next one opens, which ends it at the latest</string>
     <string name="field_enabled">On</string>
     <string name="schema_enabled">Switched off, no attempt opens; the one running goes on</string>
     <string name="field_expiry_delay">Delay before expiry</string>

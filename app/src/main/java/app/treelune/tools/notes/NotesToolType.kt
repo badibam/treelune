@@ -71,6 +71,7 @@ object NotesToolType : ToolTypeContract {
         val s = Strings.`for`(tool = "notes", context = context)
         return EntryFields(
             name = if (hasTitles(config, context)) CoreFieldUsage.OPTIONAL else CoreFieldUsage.ABSENT,
+            nameLabel = app.treelune.core.fields.CoreFields.TITLE_LABEL,
             timestamp = CoreFieldUsage.OPTIONAL,
             data = listOf(
                 FixedField(

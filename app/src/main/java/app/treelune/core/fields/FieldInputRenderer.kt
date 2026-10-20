@@ -66,12 +66,10 @@ fun FieldInput(
             val unit = config?.get("unit") as? String
             val decimals = (config?.get("decimals") as? Number)?.toInt() ?: 0
 
-            fun parse(text: String): Number? = if (decimals == 0) text.toLongOrNull() else text.toDoubleOrNull()
-            // A number reads as it is written: 16000 and 0.5, never 16000.0
-            fun format(number: Number?): String =
-                number?.let { java.math.BigDecimal(it.toString()).stripTrailingZeros().toPlainString() } ?: ""
+            fun parse(text: String): Number? = typedNumber(text, decimals)
+            fun format(number: Number?): String = writtenNumber(number)
 
-            // The text typed is kept as typed ("0.", "") while it is being written: rewritten from
+            // The text typed is kept as typed ("0,", "") while it is being written: rewritten from
             // the number it parses to, it could not be emptied nor take a decimal point. It is
             // replaced only when the value changes from outside.
             var text by rememberSaveable { mutableStateOf(format(value as? Number)) }
@@ -135,9 +133,9 @@ fun FieldInput(
             val rangeValue = value as? Map<*, *>
             val unit = fieldDef.config?.get("unit") as? String
             val decimals = (fieldDef.config?.get("decimals") as? Number)?.toInt() ?: 0
-            // A whole number reads and writes as one, as a NUMERIC does: 7, not 7.0
-            fun text(bound: Any?): String = (bound as? Number)?.let { if (decimals == 0) it.toLong().toString() else it.toDouble().toString() } ?: ""
-            fun number(text: String): Number? = if (decimals == 0) text.toLongOrNull() else text.toDoubleOrNull()
+            // Written and read as a NUMERIC is
+            fun text(bound: Any?): String = writtenNumber(bound as? Number)
+            fun number(text: String): Number? = typedNumber(text, decimals)
             // What is typed in each box, kept as typed: the range has a value only once both
             // bounds read as numbers, and none while one is empty or unreadable
             var startText by rememberSaveable { mutableStateOf(text(rangeValue?.get("start"))) }
@@ -271,6 +269,25 @@ private fun Clearable(showClear: Boolean, onClear: () -> Unit, content: @Composa
  * The value stays milliseconds throughout. Emptying every box clears the field; a value finer
  * than the precision (a stopwatch's exact time) is kept as long as no box is touched.
  */
+/**
+ * A number as a form writes it: 16000 and 0.5, never 16000.0, with the decimal separator of the
+ * app's language ("0,9" in French); empty for none.
+ */
+private fun writtenNumber(number: Number?): String {
+    val plain = number?.let { java.math.BigDecimal(it.toString()).stripTrailingZeros().toPlainString() } ?: return ""
+    val separator = java.text.DecimalFormatSymbols.getInstance(app.treelune.core.utils.LocaleUtils.getAppLocale()).decimalSeparator
+    return plain.replace('.', separator)
+}
+
+/**
+ * The number typed in a form, a comma or a point before its decimals, whichever the keyboard
+ * gives: a whole number when the field has no [decimals], null while the text reads as none.
+ */
+private fun typedNumber(text: String, decimals: Int): Number? {
+    val plain = text.trim().replace(',', '.')
+    return if (decimals == 0) plain.toLongOrNull() else plain.toDoubleOrNull()
+}
+
 @Composable
 private fun DurationInput(
     fieldDef: FieldDefinition,
@@ -280,11 +297,7 @@ private fun DurationInput(
     required: Boolean
 ) {
     val s = Strings.`for`(context = context)
-    val precision = DurationUnit.fromConfig(fieldDef.config)
-    val units = when (DurationForm.fromConfig(fieldDef.config)) {
-        DurationForm.COMPOSED -> Durations.composedUnits(precision)
-        DurationForm.SINGLE -> listOf(precision)
-    }
+    val units = DurationUnits.fromConfig(fieldDef.config).units
     val millis = (value as? Number)?.toLong()
     val amounts = millis?.let { Durations.split(it, units).toMap() }
 

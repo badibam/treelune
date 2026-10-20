@@ -14,6 +14,9 @@ import app.treelune.core.utils.AppConfigManager
 import app.treelune.core.selection.Period
 import app.treelune.core.selection.PeriodType
 import app.treelune.core.selection.RelativePeriod
+import app.treelune.core.selection.TimeResolver
+import app.treelune.core.selection.daysBetween
+import app.treelune.core.selection.weeksBetween
 import app.treelune.core.selection.getNextPeriod
 import app.treelune.core.selection.getPreviousPeriod
 import app.treelune.core.selection.hourOnDay
@@ -63,7 +66,7 @@ fun SinglePeriodSelector(
 
     // Smart label generation
     val label = remember(period, dayStartHour, weekStartDay, useOnlyRelativeLabels) {
-        generatePeriodLabel(period, dayStartHour, weekStartDay, s, useOnlyRelativeLabels)
+        generatePeriodLabel(period, app.treelune.core.selection.TimeResolver.at(System.currentTimeMillis()), s, useOnlyRelativeLabels)
     }
     
     Row(
@@ -153,22 +156,22 @@ fun SinglePeriodSelector(
 
 /**
  * Generates smart label for given period
+ * @param calendar The user's calendar, against now: the days and weeks counted on it
  * @param useOnlyRelativeLabels if true, always use relative labels ("dans 145 ans"),
  *                             if false, fallback to absolute dates for distant periods
  */
 fun generatePeriodLabel(
     period: Period,
-    dayStartHour: Int,
-    weekStartDay: String,
+    calendar: TimeResolver,
     s: StringsContext,
     useOnlyRelativeLabels: Boolean = false
 ): String {
-    val now = System.currentTimeMillis()
+    val now = calendar.reference
 
     return when (period.type) {
         PeriodType.HOUR -> generateHourLabel(period.timestamp, now, s, useOnlyRelativeLabels)
-        PeriodType.DAY -> generateDayLabel(period.timestamp, now, dayStartHour, s, useOnlyRelativeLabels)
-        PeriodType.WEEK -> generateWeekLabel(period.timestamp, now, weekStartDay, s, useOnlyRelativeLabels)
+        PeriodType.DAY -> generateDayLabel(period.timestamp, calendar, s, useOnlyRelativeLabels)
+        PeriodType.WEEK -> generateWeekLabel(period.timestamp, calendar, s, useOnlyRelativeLabels)
         PeriodType.MONTH -> generateMonthLabel(period.timestamp, now, s, useOnlyRelativeLabels)
         PeriodType.YEAR -> generateYearLabel(period.timestamp, now, s, useOnlyRelativeLabels)
     }
@@ -225,12 +228,8 @@ private fun generateHourLabel(timestamp: Long, now: Long, s: StringsContext, use
 /**
  * Labels for days
  */
-private fun generateDayLabel(timestamp: Long, now: Long, dayStartHour: Int, s: StringsContext, useOnlyRelativeLabels: Boolean): String {
-    // Normalize timestamps to compare them according to dayStartHour
-    val normalizedNow = normalizeTimestampWithConfig(now, PeriodType.DAY)
-    val normalizedTimestamp = normalizeTimestampWithConfig(timestamp, PeriodType.DAY)
-
-    val diffDays = ((normalizedNow - normalizedTimestamp) / (24 * 60 * 60 * 1000)).toInt()
+private fun generateDayLabel(timestamp: Long, calendar: TimeResolver, s: StringsContext, useOnlyRelativeLabels: Boolean): String {
+    val diffDays = daysBetween(timestamp, calendar)
 
     return when {
         diffDays == 0 -> s.shared("period_today")
@@ -266,12 +265,8 @@ private fun generateDayLabel(timestamp: Long, now: Long, dayStartHour: Int, s: S
 /**
  * Labels for weeks
  */
-private fun generateWeekLabel(timestamp: Long, now: Long, weekStartDay: String, s: StringsContext, useOnlyRelativeLabels: Boolean = false): String {
-    // Normalize timestamps to compare weeks correctly
-    val normalizedNow = normalizeTimestampWithConfig(now, PeriodType.WEEK)
-    val normalizedTimestamp = normalizeTimestampWithConfig(timestamp, PeriodType.WEEK)
-
-    val diffWeeks = ((normalizedNow - normalizedTimestamp) / (7 * 24 * 60 * 60 * 1000)).toInt()
+private fun generateWeekLabel(timestamp: Long, calendar: TimeResolver, s: StringsContext, useOnlyRelativeLabels: Boolean = false): String {
+    val diffWeeks = weeksBetween(timestamp, calendar)
 
     return when {
         diffWeeks == 0 -> s.shared("period_this_week")
@@ -285,7 +280,7 @@ private fun generateWeekLabel(timestamp: Long, now: Long, weekStartDay: String, 
                     s.shared("period_weeks_ago_plural").format(diffWeeks)
                 }
             } else {
-                val weekStart = normalizeTimestampWithConfig(timestamp, PeriodType.WEEK, weekStartDay = weekStartDay)
+                val weekStart = normalizeTimestampWithConfig(timestamp, PeriodType.WEEK, calendar.dayStartHour, calendar.weekStartDay, calendar.zone)
                 s.shared("period_week_of").format(DateUtils.formatDateForDisplay(weekStart))
             }
         }
@@ -298,13 +293,13 @@ private fun generateWeekLabel(timestamp: Long, now: Long, weekStartDay: String, 
                     s.shared("period_weeks_from_now_plural").format(absDiff)
                 }
             } else {
-                val weekStart = normalizeTimestampWithConfig(timestamp, PeriodType.WEEK, weekStartDay = weekStartDay)
+                val weekStart = normalizeTimestampWithConfig(timestamp, PeriodType.WEEK, calendar.dayStartHour, calendar.weekStartDay, calendar.zone)
                 s.shared("period_week_of").format(DateUtils.formatDateForDisplay(weekStart))
             }
         }
         else -> {
             // Fallback case should never happen
-            val weekStart = normalizeTimestampWithConfig(timestamp, PeriodType.WEEK, weekStartDay = weekStartDay)
+            val weekStart = normalizeTimestampWithConfig(timestamp, PeriodType.WEEK, calendar.dayStartHour, calendar.weekStartDay, calendar.zone)
             s.shared("period_week_of").format(DateUtils.formatDateForDisplay(weekStart))
         }
     }

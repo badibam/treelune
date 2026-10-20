@@ -93,8 +93,8 @@ enum class FieldType {
 
     /**
      * A length of time, stored as a whole number of milliseconds with no unit.
-     * Config: {precision?: DurationUnit (default MINUTE), form?: "COMPOSED" | "SINGLE" (default COMPOSED)}
-     * The precision is the smallest unit entered and shown; the form writes "1 h 25 min" or "85 min".
+     * Config: {units?: DurationUnits (default HOUR_MINUTE)}, the units entered and shown, from the
+     * largest to the smallest: "1 h 25 min", "85 min", "2 j 2 h".
      * Example: Sleep, time spent on an activity, a workout
      */
     DURATION,

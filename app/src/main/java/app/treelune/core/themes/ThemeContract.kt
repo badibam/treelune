@@ -662,13 +662,15 @@ interface ThemeContract {
      *
      * @param title Title of the interaction
      * @param content Main content area
-     * @param actions Action buttons area (typically CONFIRM/CANCEL)
+     * @param actions Its buttons, the main one last, laid out by the theme in a ButtonRow: side by
+     *   side while they hold on one line, else one under the other; null when the content holds
+     *   them itself, next to the fields they send
      */
     @Composable
     fun InteractionCard(
         title: String,
         content: @Composable ColumnScope.() -> Unit,
-        actions: @Composable RowScope.() -> Unit
+        actions: (@Composable () -> Unit)?
     )
 
     // Old buttons removed - use ActionButton

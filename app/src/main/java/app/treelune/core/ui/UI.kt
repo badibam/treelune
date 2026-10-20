@@ -979,9 +979,10 @@ object UI {
         onCancel: () -> Unit,
         onDelete: (() -> Unit)? = null,
         onReset: (() -> Unit)? = null,
-        saveEnabled: Boolean = true
+        saveEnabled: Boolean = true,
+        deleteMessage: String? = null
     ) = app.treelune.core.ui.components.ToolConfigActions(
-        isEditing, onSave, onCancel, onDelete, onReset, saveEnabled
+        isEditing, onSave, onCancel, onDelete, onReset, saveEnabled, deleteMessage
     )
     
     @Composable
@@ -1011,6 +1012,6 @@ object UI {
     fun InteractionCard(
         title: String,
         content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit,
-        actions: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit
+        actions: (@Composable () -> Unit)?
     ) = CurrentTheme.current.InteractionCard(title, content, actions)
 }

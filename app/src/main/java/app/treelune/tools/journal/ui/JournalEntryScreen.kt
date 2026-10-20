@@ -328,7 +328,7 @@ fun JournalEntryScreen(
                     verticalArrangement = Arrangement.spacedBy(UI.Space.S)
                 ) {
                     UI.FormField(
-                        label = s.tool("label_title"),
+                        label = s.shared(app.treelune.core.fields.CoreFields.TITLE_LABEL),
                         value = title,
                         onChange = { title = it },
                         fieldType = FieldType.TEXT,
@@ -374,19 +374,16 @@ fun JournalEntryScreen(
             }
 
             // Form actions
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(UI.Space.S)
-            ) {
-                UI.ActionButton(
-                    action = ButtonAction.CANCEL,
-                    onClick = { handleCancel() }
-                )
-
+            UI.FormActions {
                 UI.ActionButton(
                     action = ButtonAction.SAVE,
                     enabled = entryLoad == LoadState.LOADED,
                     onClick = { handleSave() }
+                )
+
+                UI.ActionButton(
+                    action = ButtonAction.CANCEL,
+                    onClick = { handleCancel() }
                 )
             }
         } else {

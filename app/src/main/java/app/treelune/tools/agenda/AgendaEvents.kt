@@ -194,19 +194,21 @@ object AgendaRules {
     /**
      * The occurrences to come of the series whose times change with [config] ([previous] as it
      * was), or which it no longer has: whatever they became, moved, cancelled, removed, they go,
-     * and the series gives them again. The past is never touched.
+     * and the series gives them again. The past is never touched. By series, as it was, in its
+     * order, those without such occurrences left out.
      */
-    fun removedByConfig(previous: JSONObject, config: JSONObject, entries: List<ToolDataEntity>, now: Long): List<ToolDataEntity> {
-        val before = AgendaSeries.of(previous).associateBy { it.key }
+    fun removedByConfig(previous: JSONObject, config: JSONObject, entries: List<ToolDataEntity>, now: Long): List<SeriesRemoval> {
         val after = AgendaSeries.of(config).associateBy { it.key }
-        return entries.filter { entry ->
-            val event = AgendaEvent.of(entry)
-            val key = event.series ?: return@filter false
-            if (event.start <= now || key !in before) return@filter false
-            val next = after[key] ?: return@filter true
-            next.timesDifferFrom(before.getValue(key))
+        return AgendaSeries.of(previous).mapNotNull { old ->
+            val next = after[old.key]
+            if (next != null && !next.timesDifferFrom(old)) return@mapNotNull null
+            val coming = entries.filter { entry -> AgendaEvent.of(entry).let { it.series == old.key && it.start > now } }
+            coming.takeIf { it.isNotEmpty() }?.let { SeriesRemoval(old, gone = next == null, it) }
         }
     }
+
+    /** The occurrences to come of [series] that a config change removes: with it ([gone]), or to be given again at its new times. */
+    data class SeriesRemoval(val series: AgendaSeries, val gone: Boolean, val entries: List<ToolDataEntity>)
 
     /**
      * The occurrences to come of the series whose times stay but whose name, duration or days

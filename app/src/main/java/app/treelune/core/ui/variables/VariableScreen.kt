@@ -172,7 +172,7 @@ fun VariableScreen(zoneId: String, variableId: String?, group: String?, onDone: 
 
         error?.let { UI.Text(text = it, type = TextType.ERROR) }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.M)) {
+        UI.FormActions {
             UI.Button(type = ButtonType.PRIMARY, onClick = {
                 scope.launch {
                     val params = mutableMapOf<String, Any>("name" to name, "definition" to JsonUtils.toMap(JSONObject(draft)))

@@ -257,7 +257,7 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
             sheetsTable(shown, columns, sortKey, ascending, empty, s, context,
                 onSort = { key -> if (key == sortKey) ascending = !ascending else { sortKey = key; ascending = true } },
                 onOpen = { open(it) })
-            item { Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.M), verticalAlignment = Alignment.CenterVertically) {
+            item { app.treelune.core.ui.components.ButtonRow {
                 UI.ActionButton(action = ButtonAction.ADD, onClick = { open(null) })
                 // Always there; put forward while the table is empty, a new table being most often filled from a file
                 UI.Button(type = if (empty) ButtonType.PRIMARY else ButtonType.SECONDARY, onClick = { pickFile.launch(arrayOf("text/*", "application/csv", "application/vnd.ms-excel")) }) {
@@ -296,7 +296,7 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
             SheetView(openSheet, loadedConfig, context,
                 onPrevious = if (position > 0) ({ open(shown[position - 1]) }) else null,
                 onNext = if (position < shown.size - 1) ({ open(shown[position + 1]) }) else null)
-            Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.M), verticalAlignment = Alignment.CenterVertically) {
+            app.treelune.core.ui.components.ButtonRow {
                 UI.Button(type = ButtonType.PRIMARY, onClick = { open(openSheet); editing = true }) { UI.Text(s.tool("action_edit"), TextType.LABEL) }
                 UI.ActionButton(action = ButtonAction.DELETE, onClick = { confirmDelete = true })
             }

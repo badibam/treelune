@@ -133,9 +133,8 @@ fun CommunicationModuleCard(
                 }
             }
         },
-        actions = {
-            // The buttons are inside the content, next to the fields they send
-        }
+        // The buttons are inside the content, next to the fields they send
+        actions = null
     )
 }
 
