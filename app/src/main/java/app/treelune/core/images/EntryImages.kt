@@ -77,9 +77,10 @@ class EntryImages private constructor(
         removed.forEach { writes.deleteImage(it.id) }
     }
 
-    /** Once the transaction is done: the files of the removed images deleted. */
+    /** Once the transaction is done: what changed, logged. */
     fun done() {
-        removed.forEach { Images.delete(context, it) }
+        // The files of the removed images stay: the history keeps their rows, an undo puts them
+        // back, and the startup sweep deletes a file once nothing names it (Images.sweepOnce)
         if (!unchanged) LogManager.service("Entry $entryId: ${rows.size} images added, ${removed.size} removed", "DEBUG")
     }
 

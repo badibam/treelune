@@ -1880,11 +1880,26 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        /** The history of writes (HistoryAtV83): its two tables, empty. */
+        /** The history of writes (HistoryAtV83): its two tables, empty, and its depth in the data settings. */
         private val MIGRATION_82_83 = object : ConnectionMigration(82, 83) {
             override fun migrate(database: MigrationDatabase) {
                 app.treelune.core.versioning.HistoryAtV83.STATEMENTS.forEach { database.execSQL(it) }
-                LogManager.database("MIGRATION 82->83: the history of writes, empty", "INFO")
+                val category = app.treelune.core.database.entities.AppSettingCategories.DATA
+                database.query("SELECT settings FROM app_settings_categories WHERE category = ?", arrayOf<Any?>(category)).use { cursor ->
+                    if (!cursor.moveToFirst()) {
+                        LogManager.database("MIGRATION 82->83: the history of writes, empty; no data settings stored, the defaults are written on first read", "INFO")
+                        return
+                    }
+                    // Settings that cannot be read stay as they are; reading them then fails with the reason
+                    try {
+                        val settings = app.treelune.core.versioning.HistoryAtV83.dataSettings(category, org.json.JSONObject(cursor.getString(0)))
+                        database.execSQL("UPDATE app_settings_categories SET settings = ? WHERE category = ?", arrayOf<Any?>(settings.toString(), category))
+                    } catch (e: Exception) {
+                        LogManager.database("MIGRATION 82->83: the history of writes, empty; data settings left as they were: ${e.message}", "ERROR", e)
+                        return
+                    }
+                }
+                LogManager.database("MIGRATION 82->83: the history of writes, empty, kept 30 days and 500 MB", "INFO")
             }
         }
 

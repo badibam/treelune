@@ -59,7 +59,8 @@ class FileService(private val context: Context) : ExecutableService {
                 val id = params.optString("id").takeIf { it.isNotEmpty() } ?: return OperationResult.error(s.shared("service_error_missing_id"))
                 val image = imageDao.getById(id) ?: return OperationResult.error(s.shared("image_error_not_found").format(id))
                 writes.deleteImage(id)
-                Images.delete(context, image)
+                // A routine's message's image the history keeps stays, for an undo to put it back
+                if (image.id !in AppDatabase.getDatabase(context).historyDao().keptImages()) Images.delete(context, image)
                 OperationResult.success()
             }
             else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))

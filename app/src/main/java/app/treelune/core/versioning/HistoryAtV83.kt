@@ -1,9 +1,14 @@
 package app.treelune.core.versioning
 
+import app.treelune.core.config.AppSettings
+import app.treelune.core.database.entities.AppSettingCategories
+import org.json.JSONObject
+
 /**
  * The history of writes (docs/design/undo-history.md): its two tables, empty, the history beginning
- * with the first write after the update. A backup carries no history, so its import has nothing
- * to transform.
+ * with the first write after the update; and its depth, joining the data settings: 30 days, 500 MB.
+ * A backup carries no history: its import gains the depth alone (dataSettings, through
+ * JsonTransformers.transformAppConfig).
  */
 object HistoryAtV83 {
 
@@ -43,4 +48,17 @@ object HistoryAtV83 {
         "CREATE INDEX IF NOT EXISTS index_history_rows_tool_instance_id ON history_rows(tool_instance_id)",
         "CREATE INDEX IF NOT EXISTS index_history_rows_zone_id ON history_rows(zone_id)"
     )
+
+    /** [settings] of [category], the data settings with the history's depth. */
+    fun dataSettings(category: String, settings: JSONObject): JSONObject {
+        if (category != AppSettingCategories.DATA) return settings
+        val out = JSONObject(settings.toString())
+        if (!out.has(AppSettings.DATA_HISTORY_DAYS)) out.put(AppSettings.DATA_HISTORY_DAYS, DAYS)
+        if (!out.has(AppSettings.DATA_HISTORY_MEGABYTES)) out.put(AppSettings.DATA_HISTORY_MEGABYTES, MEGABYTES)
+        return out
+    }
+
+    /** The depth a history starts with: also the defaults of a new installation (AppSettingsDefaults) */
+    const val DAYS = 30
+    const val MEGABYTES = 500
 }

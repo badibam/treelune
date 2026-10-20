@@ -75,6 +75,14 @@ data class StepPlace(
     @ColumnInfo(name = "zone_id") val zoneId: String?
 )
 
+/** A step, or the app's noted writes, with its time and the room its rows take. */
+data class StepSize(
+    val id: String,
+    @ColumnInfo(name = "is_step") val isStep: Boolean,
+    val at: Long,
+    @ColumnInfo(name = "size_bytes") val sizeBytes: Long
+)
+
 @Dao
 interface HistoryDao {
     @Query("SELECT * FROM history_steps WHERE id = :id")
@@ -104,6 +112,29 @@ interface HistoryDao {
     /** The tools, zones and tables a step touched, for what an undo tells the screens. */
     @Query("SELECT DISTINCT table_name, tool_instance_id, zone_id FROM history_rows WHERE step_id = :stepId")
     suspend fun placesOf(stepId: String): List<StepPlace>
+
+    /** The images a copy of the history keeps, whose files stay while it does. */
+    @Query("SELECT DISTINCT row_id FROM history_rows WHERE table_name = 'images'")
+    suspend fun keptImages(): List<String>
+
+    /** Whether an entry's copy of the history names [imageId]: an id is a UUID, found in a copy's text only as a value. */
+    @Query("SELECT EXISTS (SELECT 1 FROM history_rows WHERE table_name = 'tool_data' AND (before LIKE '%' || :imageId || '%' OR after LIKE '%' || :imageId || '%'))")
+    suspend fun entriesName(imageId: String): Boolean
+
+    /** Each step and noted write with the room its rows take, the most recent first. */
+    @Query("""
+        SELECT s.id AS id, s.is_step AS is_step, s.at AS at, COALESCE(SUM(r.size_bytes), 0) AS size_bytes
+        FROM history_steps s LEFT JOIN history_rows r ON r.step_id = s.id
+        GROUP BY s.id ORDER BY s.at DESC, s.rowid DESC
+    """)
+    suspend fun sizes(): List<StepSize>
+
+    @Query("DELETE FROM history_steps WHERE id IN (:ids)")
+    suspend fun deleteSteps(ids: List<String>)
+
+    /** Empties the history: a backup restored replaces the data it was about. */
+    @Query("DELETE FROM history_steps")
+    suspend fun clear()
 
     /** The rows that touched one row of a table, oldest first. */
     @Query("SELECT * FROM history_rows WHERE table_name = :table AND row_id = :rowId ORDER BY id ASC")

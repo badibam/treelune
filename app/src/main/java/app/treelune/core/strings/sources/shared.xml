@@ -2288,4 +2288,8 @@
     <string name="action_verbalize_history_undo">Undo of “%1$s”</string>
     <string name="action_verbalize_history_redo">Redo of “%1$s”</string>
     <string name="action_verbalize_history_list">Reading of the history</string>
+    <string name="settings_data_history_days">Days of history</string>
+    <string name="settings_data_history_days_help">How long a change stays in the history, to be undone.</string>
+    <string name="settings_data_history_megabytes">Room for the history (MB)</string>
+    <string name="settings_data_history_megabytes_help">Past this, the oldest changes leave the history first. The latest always stays.</string>
 </resources>

@@ -2288,4 +2288,8 @@
     <string name="action_verbalize_history_undo">Annulation de « %1$s »</string>
     <string name="action_verbalize_history_redo">Rétablissement de « %1$s »</string>
     <string name="action_verbalize_history_list">Lecture de l'historique</string>
+    <string name="settings_data_history_days">Jours d'historique</string>
+    <string name="settings_data_history_days_help">Combien de temps un changement reste dans l'historique, pour être annulé.</string>
+    <string name="settings_data_history_megabytes">Place pour l'historique (Mo)</string>
+    <string name="settings_data_history_megabytes_help">Au-delà, les changements les plus anciens sortent de l'historique en premier. Le dernier reste toujours.</string>
 </resources>
