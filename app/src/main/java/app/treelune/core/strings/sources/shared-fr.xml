@@ -1103,11 +1103,8 @@
 
     <!-- BACKUP SYSTEM - Backup and restore operations -->
     <string name="settings_backup">Sauvegarde &amp; Réinitialisation</string>
-    <string name="backup_export">Exporter toutes les données</string>
     <string name="backup_import">Importer un fichier de sauvegarde</string>
     <string name="backup_reset">Réinitialiser toutes les données</string>
-    <string name="backup_export_success">Export réussi</string>
-    <string name="backup_export_success_missing_images">Sauvegarde faite ; %1$d images avaient perdu leur fichier et le restent dedans</string>
     <string name="backup_import_confirm">Toutes les données actuelles seront écrasées, et l'historique vidé : plus rien d'avant ne pourra être annulé. Pour garder les données actuelles, exporte-les d'abord (Exporter toutes les données). Continuer ?</string>
     <string name="backup_reset_confirm">Toutes les données seront définitivement supprimées, leur historique avec. Continuer ?</string>
     <string name="backup_import_success">Import réussi, redémarrage...</string>
@@ -1115,7 +1112,6 @@
     <string name="backup_version_too_recent">Ce fichier provient d\'une version plus récente de l\'application</string>
     <string name="backup_invalid_file">Fichier de sauvegarde invalide</string>
     <string name="backup_import_image_missing">La sauvegarde nomme l\'image %1$s sans en contenir le fichier, qui ne manquait pas à l\'export : la sauvegarde est abîmée, rien n\'a été importé.</string>
-    <string name="backup_export_failed">Échec de l\'export</string>
     <string name="backup_import_failed">Échec de l\'import</string>
     <string name="backup_reset_failed">Échec de la réinitialisation</string>
 
@@ -1488,7 +1484,7 @@
     <string name="export_csv_all_entries">Sans période, toutes les entrées vont dans le fichier.</string>
     <string name="export_csv_written">Le fichier %1$s est écrit dans le dossier de l\'app.</string>
     <string name="export_csv_entries">%1$d entrée(s)</string>
-    <string name="export_csv_share">Partager</string>
+    <string name="file_share">Partager</string>
     <string name="export_csv_range_start">%1$s (début)</string>
     <string name="export_csv_range_end">%1$s (fin)</string>
     <string name="export_error_no_folder">Aucun dossier n\'est choisi pour l\'app : choisis-en un dans Réglages › Données pour y écrire le fichier.</string>
@@ -1506,6 +1502,32 @@
     <string name="share_link_entries_to_entries">Des entrées de « %1$s » désignent des entrées de « %2$s ». Allume les entrées de « %2$s », ou éteins celles de « %1$s ».</string>
     <string name="share_error_restore_part">Ce fichier ne contient qu\'une partie de l\'app. Il ne peut pas tout remplacer, mais il peut s\'ajouter à ce que tu as.</string>
     <string name="share_import_refused">L\'import s\'est arrêté et rien n\'a été ajouté. Raison : %1$s</string>
+    <string name="backup_file_name">treelune_sauvegarde</string>
+    <string name="share_link_routine">« %1$s » vise « %2$s », hors de la sélection. Sur un autre téléphone, ce lien ne mènera à rien.</string>
+    <string name="share_link_routine_alone">« %1$s » arrivera éteinte, sans fournisseur d\'IA ni identité. Il faudra les choisir avant de l\'allumer.</string>
+    <string name="share_export_title">Exporter</string>
+    <string name="share_export_card">Une partie de l\'app à partager, ou toute l\'app.</string>
+    <string name="share_export_open">Exporter…</string>
+    <string name="share_export_what">Ce qui part</string>
+    <string name="share_export_part">Une partie</string>
+    <string name="share_export_all">Tout</string>
+    <string name="share_export_part_help">Pour partager des zones et des outils, ou pour les reprendre sur un autre téléphone. Le fichier s\'ajoute à l\'app qui l\'importe.</string>
+    <string name="share_export_all_help">Une sauvegarde complète de l\'app, réglages compris. Elle peut tout restaurer.</string>
+    <string name="share_export_no_folder">Le fichier s\'écrit dans le dossier de l\'app, celui de la sauvegarde automatique. Choisis-le d\'abord.</string>
+    <string name="share_zone_count_zero">%1$s (0 élément sur %3$d)</string>
+    <string name="share_zone_count_one">%1$s (1 élément sur %3$d)</string>
+    <string name="share_zone_count_other">%1$s (%2$d éléments sur %3$d)</string>
+    <string name="share_element_tool">%1$s (%2$s)</string>
+    <string name="share_element_variable">Variable « %1$s »</string>
+    <string name="share_element_routine">Routine « %1$s »</string>
+    <string name="share_entries_one">Son entrée</string>
+    <string name="share_entries_other">Ses %1$d entrées</string>
+    <string name="share_links_left_one">1 lien à régler avant de créer le fichier.</string>
+    <string name="share_links_left_other">%1$d liens à régler avant de créer le fichier.</string>
+    <string name="share_create">Créer le fichier</string>
+    <string name="share_written">Le fichier %1$s est écrit dans le dossier de l\'app.</string>
+    <string name="share_written_counts">Éléments : %1$d. Entrées : %2$d.</string>
+    <string name="share_written_missing_images">%1$d images manquaient déjà sur le téléphone, et le fichier part sans elles.</string>
     <string name="action_verbalize_exports_csv">Export des entrées</string>
     <string name="action_verbalize_exports_csv_tool">Export des entrées de « %1$s »</string>
     <string name="import_action">Importer un fichier</string>
@@ -2136,6 +2158,7 @@
     <string name="action_verbalize_backup_export">Export des données</string>
     <string name="action_verbalize_backup_import">Restauration d\'une sauvegarde</string>
     <string name="action_verbalize_backup_import_part">Import d\'une partie d\'une sauvegarde</string>
+    <string name="action_verbalize_backup_tree">Lecture de ce que contient l\'app</string>
     <string name="action_verbalize_backup_reset">Réinitialisation des données</string>
     <string name="action_verbalize_backup_auto">Sauvegarde automatique</string>
     <string name="long_operation_busy">%1$s en cours : réessayer une fois fini.</string>

@@ -1,12 +1,14 @@
 package app.treelune.core.backup
 
 import android.net.Uri
+import app.treelune.core.coordinator.CancellationToken
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.AppDatabase
 import app.treelune.core.demo.DemoContent
 import app.treelune.core.demo.DemoStartup
 import app.treelune.core.images.Images
+import app.treelune.core.services.BackupService
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
@@ -36,14 +38,17 @@ class PartImportTest {
     private val context get() = RuntimeEnvironment.getApplication()
     private val database get() = AppDatabase.getDatabase(context)
 
-    /** The demo installed, then the whole app exported into a file: its uri. */
+    /**
+     * The demo installed, then the whole app written into a file as the export writes it (the
+     * app's folder, a document tree, has no stand-in here): its uri.
+     */
     private suspend fun demoExported(): Uri {
         assertNull(DemoStartup.run(context))
         val file = File(context.cacheDir, "backup.zip")
-        val uri = Uri.fromFile(file)
-        val exported = Coordinator(context).processUserAction("backup.export", mapOf("uri" to uri.toString()))
-        assertTrue("export: ${exported.error}", exported.isSuccess)
-        return uri
+        val service = BackupService(context)
+        val token = CancellationToken()
+        assertTrue(service.writeZip(file.outputStream(), service.build(token)!!, token))
+        return Uri.fromFile(file)
     }
 
     /** The backup's document read from the file at [uri]. */

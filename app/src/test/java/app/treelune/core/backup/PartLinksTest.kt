@@ -97,7 +97,7 @@ class PartLinksTest {
             "share_link_element_to_element" to "%1\$s reads %2\$s",
             "share_link_entries_to_entries" to "%1\$s entries designate %2\$s entries"
         ).getValue(key) }
-        assertEquals("Calories reads Poids", PartLinks.blockingText(link(Kind.TOOL, "chart", Kind.TOOL, "weight"), backup(), text))
-        assertEquals("Repas entries designate Aliments entries", PartLinks.blockingText(link(Kind.ENTRIES, "meals", Kind.ENTRIES, "foods"), backup(), text))
+        assertEquals("Calories reads Poids", PartLinks.text(link(Kind.TOOL, "chart", Kind.TOOL, "weight"), { PartLinks.name(backup(), it) }, text))
+        assertEquals("Repas entries designate Aliments entries", PartLinks.text(link(Kind.ENTRIES, "meals", Kind.ENTRIES, "foods"), { PartLinks.name(backup(), it) }, text))
     }
 }

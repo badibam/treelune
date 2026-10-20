@@ -258,6 +258,10 @@ private fun PlaceScreen(place: Place, zones: ZonesState, demoInstalled: Boolean)
                     else -> throw IllegalArgumentException("No settings page '${place.id}'")
                 }
             }
+            Place.Export -> {
+                name(s.shared("share_export_title"))
+                app.treelune.core.ui.exports.ExportScreen(onBack = back)
+            }
             Place.AIProviderKind -> {
                 name(s.shared("ai_provider_choose_kind"))
                 app.treelune.core.ai.ui.screens.AIProviderKindScreen(onBack = back)

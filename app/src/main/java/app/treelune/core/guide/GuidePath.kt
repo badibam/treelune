@@ -49,6 +49,8 @@ object GuidePath {
             // An identity's tile touched on its settings page, as a page's on the settings
             is Place.Identity -> t("guide_path_settings_page", n)
             Place.AIProviderKind -> t("guide_path_settings_page", t("ai_provider_add"))
+            // The export's button touched on the data's settings page
+            Place.Export -> t("guide_path_settings_page", t("share_export_open"))
             is Place.AIProvider -> t("guide_path_settings_page", n)
             Place.Guide -> t("guide_path_guide")
             is Place.Chapter -> t("guide_path_chapter", n)

@@ -15,7 +15,7 @@ Réglages › Données porte deux boutons, « Exporter… » et « Importer… �
    ( ) Tout — une sauvegarde complète de l'app
 
    ── Perso ──────────────────────
-   [~] Cuisine  (3 sur 5)               ▾
+   [x] Cuisine  (4 éléments sur 5)      ▾
          Repas
          [x] Repas          Ses 214 entrées  [●  ]
          [x] Aliments       Ses 312 entrées  [●  ]
@@ -29,7 +29,7 @@ Réglages › Données porte deux boutons, « Exporter… » et « Importer… �
 ```
 
 - Deux niveaux qu'on coche, la zone et ses éléments. Les groupes de zones sont des titres de section, comme sur l'accueil ; les groupes d'outils, des petits titres dans la zone ouverte, recréés avec leurs outils.
-- Une zone est fermée par défaut. Sa case prend tout ce qu'elle tient ; une partie prise la montre à moitié cochée (« 3 sur 5 »).
+- Une zone est fermée par défaut. Sa case dit si elle part et prend tout ce qu'elle tient ; son compte dit combien de ses éléments partent (« 4 éléments sur 5 »).
 - Un outil coché qui a des entrées porte un interrupteur « Ses N entrées », éteint par défaut : un modèle se partage plus souvent qu'un contenu, et des données ne partent pas par mégarde. Un graphique, une variable, une routine n'en ont pas.
 - Le fichier écrit, l'écran dit son nom, le nombre d'éléments et d'entrées, avec [ Partager ] (menu de partage d'Android, `FileProvider`).
 
@@ -110,12 +110,12 @@ Pour un modèle, la cible part sans ses entrées et arrive vide. Ainsi un fichie
 
 ## Implémentation
 
-Le découpage, un commit chacun ; les trois premiers sont faits (`BackupPart`, `PartSelection`, `AppFolder`, `backup.export` avec `selection` ; `PartLinks` ; `PartImport`, `backup.import_part`).
+Le découpage, un commit chacun ; les quatre premiers sont faits (`BackupPart`, `PartSelection`, `AppFolder`, `backup.export` avec `selection` ; `PartLinks` ; `PartImport`, `backup.import_part` ; `ExportScreen`, `PartTree`, `backup.tree`).
 
 1. La sauvegarde partielle côté service — fait.
 2. Le contrôle des liens : les deux familles sur une sélection, le service refusant aussi une sélection qui garde un lien bloquant ; des tests — fait.
 3. L'import partiel (`backup.import_part`) : une sélection et la zone d'arrivée de chaque zone, tout par les services ordinaires dans l'ordre des dépendances (comme `DemoService.build`), un seul pas de l'historique — fait.
-4. L'écran Exporter : l'arbre de cases lu d'une sauvegarde complète de l'app (`build()`), la même fonction qui lira le fichier à l'import.
+4. L'écran Exporter : l'arbre de cases lu d'une sauvegarde complète de l'app (`build()`), la même fonction qui lira le fichier à l'import — fait.
 5. L'écran Importer, reprendre une partie.
 6. Tout restaurer devenu un choix de l'import, les anciens boutons et leurs textes retirés ; `docs/DATA.md`, le Guide s'il cite Réglages › Données, une section de la recette.
 
@@ -129,8 +129,6 @@ Décidé en séance :
 - Une image déjà manquante à l'export : son entrée arrive sans elle, et l'écran le dit. Refuser rendrait le fichier inimportable pour une photo que personne ne peut plus fournir.
 - Un import refusé en chemin retire ce qu'il a écrit, comme la démo ; les planificateurs attendent pendant l'import (`SchedulersHeld`).
 - Une restauration complète refuse un fichier partiel, dès le service.
+- « Tout » s'écrit dans le dossier de l'app, comme une partie, et Partager l'envoie ailleurs ; sans dossier, l'écran fait choisir celui de la sauvegarde automatique. `backup.export` n'a plus d'`uri`.
+- La case d'une zone a deux états, cochée ou non, sans état « à moitié » : elle dit si la zone part, son compte ce qu'elle emporte (« Cuisine (11 éléments sur 23) », outils, variables et routines ; une zone vide cochée se partage comme modèle). Cocher la zone prend tout, la décocher lâche tout ; cocher un élément coche sa zone.
 - La liste d'accès d'une routine qui vise un élément non coché prévient, et garde la ligne : elle n'atteint rien, comme celle d'un élément supprimé (l'écran et l'IA la disent « supprimé »). La retirer pourrait vider la liste, et une liste vide ouvre toute l'app.
-
-Proposé, à trancher avant le commit qui le rencontre :
-
-- (4) « Tout » écrit dans le même dossier que la partie, pour que Partager marche aussi ; sans dossier, l'écran demande d'en choisir un (le sélecteur de la sauvegarde automatique). `backup.export` avec `uri` disparaît alors.

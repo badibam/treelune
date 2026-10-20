@@ -31,10 +31,11 @@ data class PartLink(val from: PartElement, val to: PartElement) {
 object PartLinks {
 
     /**
-     * The links from what [selection] keeps of [document], a whole backup at the current version,
-     * to what it leaves out. The selection is one BackupPart.cut accepts.
+     * Every link of [document], a whole backup at the current version or a part: from each tool,
+     * each tool's entries, each variable and each routine to what it names, whatever is ticked —
+     * the screen filters them as the boxes change ([left]).
      */
-    fun of(document: JSONObject, selection: PartSelection): Set<PartLink> {
+    fun all(document: JSONObject): Set<PartLink> {
         val data = document.getJSONObject("data")
         val tools = rows(data, "tool_instances")
         val entries = rows(data, "tool_data")
@@ -46,31 +47,21 @@ object PartLinks {
         entries.forEach { targets[it.getString("id")] = PartElement(PartElement.Kind.ENTRIES, it.getString("tool_instance_id")) }
         rows(data, "variables").forEach { targets[it.getString("id")] = PartElement(PartElement.Kind.VARIABLE, it.getString("id")) }
 
-        fun kept(element: PartElement): Boolean = when (element.kind) {
-            PartElement.Kind.ZONE -> element.id in selection.zones
-            PartElement.Kind.TOOL -> element.id in selection.tools
-            PartElement.Kind.ENTRIES -> selection.tools[element.id] == true
-            PartElement.Kind.VARIABLE -> element.id in selection.variables
-            PartElement.Kind.ROUTINE, PartElement.Kind.PROVIDER, PartElement.Kind.IDENTITY -> false
-        }
-
         val links = LinkedHashSet<PartLink>()
         fun scan(from: PartElement, row: JSONObject) {
             IdWords.words(row).forEach { word ->
                 val to = targets[word] ?: return@forEach
-                if (to != from && !kept(to)) links += PartLink(from, to)
+                if (to != from) links += PartLink(from, to)
             }
         }
 
-        tools.filter { it.getString("id") in selection.tools }.forEach { scan(PartElement(PartElement.Kind.TOOL, it.getString("id")), it) }
-        entries.filter { selection.tools[it.getString("tool_instance_id")] == true }
-            .forEach { scan(PartElement(PartElement.Kind.ENTRIES, it.getString("tool_instance_id")), it) }
-        rows(data, "variables").filter { it.getString("id") in selection.variables }
-            .forEach { scan(PartElement(PartElement.Kind.VARIABLE, it.getString("id")), it) }
+        tools.forEach { scan(PartElement(PartElement.Kind.TOOL, it.getString("id")), it) }
+        entries.forEach { scan(PartElement(PartElement.Kind.ENTRIES, it.getString("tool_instance_id")), it) }
+        rows(data, "variables").forEach { scan(PartElement(PartElement.Kind.VARIABLE, it.getString("id")), it) }
 
         // A routine: its row, and the message each of its runs starts from
         val messages = rows(data, "session_messages").groupBy { it.getString("session_id") }
-        rows(data, "automations").filter { it.getString("id") in selection.automations }.forEach { automation ->
+        rows(data, "automations").forEach { automation ->
             val routine = PartElement(PartElement.Kind.ROUTINE, automation.getString("id"))
             scan(routine, automation)
             messages[automation.getString("seed_session_id")].orEmpty().forEach { scan(routine, it) }
@@ -80,37 +71,60 @@ object PartLinks {
         return links
     }
 
+    /** Of [links], those from what [selection] keeps to what it leaves out. */
+    fun left(links: Set<PartLink>, selection: PartSelection): Set<PartLink> =
+        links.filterTo(LinkedHashSet()) { kept(it.from, selection) && !kept(it.to, selection) }
+
     /**
-     * What to do about the blocking [link], said with the names [document] gives its elements:
-     * tick the target, or untick what names it.
+     * The links from what [selection] keeps of [document] to what it leaves out. The selection is
+     * one BackupPart.cut accepts.
+     */
+    fun of(document: JSONObject, selection: PartSelection): Set<PartLink> = left(all(document), selection)
+
+    /** Whether [selection] keeps [element]; a provider or an identity never goes. */
+    fun kept(element: PartElement, selection: PartSelection): Boolean = when (element.kind) {
+        PartElement.Kind.ZONE -> element.id in selection.zones
+        PartElement.Kind.TOOL -> element.id in selection.tools
+        PartElement.Kind.ENTRIES -> selection.tools[element.id] == true
+        PartElement.Kind.VARIABLE -> element.id in selection.variables
+        PartElement.Kind.ROUTINE -> element.id in selection.automations
+        PartElement.Kind.PROVIDER, PartElement.Kind.IDENTITY -> false
+    }
+
+    /**
+     * What [link] means for the user, said with the names [name] gives its elements: for a
+     * blocking one, what to tick or untick; for a routine's, how it will arrive. A routine's
+     * provider and identity are said in the same sentence.
      *
      * @param text a shared string by its key
      */
-    fun blockingText(link: PartLink, document: JSONObject, text: (String) -> String): String {
-        require(link.blocking) { "Only a blocking link is said here: $link" }
-        val from = name(document, link.from)
-        val to = name(document, link.to)
+    fun text(link: PartLink, name: (PartElement) -> String, text: (String) -> String): String {
         val fromEntries = link.from.kind == PartElement.Kind.ENTRIES
         val toEntries = link.to.kind == PartElement.Kind.ENTRIES
         val key = when {
+            link.to.kind == PartElement.Kind.PROVIDER || link.to.kind == PartElement.Kind.IDENTITY -> return text("share_link_routine_alone").format(name(link.from))
+            !link.blocking -> "share_link_routine"
             fromEntries && toEntries -> "share_link_entries_to_entries"
             fromEntries -> "share_link_entries_to_element"
             toEntries -> "share_link_element_to_entries"
             else -> "share_link_element_to_element"
         }
-        return text(key).format(from, to)
+        return text(key).format(name(link.from), name(link.to))
     }
 
-    /** The name the user knows [element] by: a zone's, a tool's (its entries' tool's), a variable's. */
-    private fun name(document: JSONObject, element: PartElement): String {
+    /**
+     * The name the user knows [element] of [document] by: a zone's, a tool's (its entries' tool's),
+     * a variable's, a routine's.
+     */
+    fun name(document: JSONObject, element: PartElement): String {
         val data = document.getJSONObject("data")
         fun find(table: String) = rows(data, table).first { it.getString("id") == element.id }
         return when (element.kind) {
             PartElement.Kind.ZONE -> find("zones").getString("name")
             PartElement.Kind.TOOL, PartElement.Kind.ENTRIES -> JSONObject(find("tool_instances").getString("config_json")).getString("name")
             PartElement.Kind.VARIABLE -> find("variables").getString("name")
-            PartElement.Kind.ROUTINE, PartElement.Kind.PROVIDER, PartElement.Kind.IDENTITY ->
-                throw IllegalArgumentException("A ${element.kind} never blocks a part")
+            PartElement.Kind.ROUTINE -> find("automations").getString("name")
+            PartElement.Kind.PROVIDER, PartElement.Kind.IDENTITY -> throw IllegalArgumentException("A ${element.kind} is never named here")
         }
     }
 

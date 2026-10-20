@@ -263,8 +263,8 @@ fun ChatMessageBubble(
                                                         }
                                                         if (exported != null) {
                                                             val context = LocalContext.current
-                                                            UI.Button(type = app.treelune.core.ui.ButtonType.SECONDARY, onClick = { app.treelune.core.ui.exports.shareCsv(context, exported) }) {
-                                                                UI.Text(s.shared("export_csv_share"), TextType.LABEL)
+                                                            UI.Button(type = app.treelune.core.ui.ButtonType.SECONDARY, onClick = { app.treelune.core.ui.exports.shareFile(context, exported, "text/csv") }) {
+                                                                UI.Text(s.shared("file_share"), TextType.LABEL)
                                                             }
                                                         }
 

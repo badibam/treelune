@@ -34,6 +34,25 @@ object AppFolder {
     }
 
     /**
+     * [folder] made the app's folder and the automatic backup switched [autoBackup], the other data
+     * settings as they are (the history's depth), through the settings service as the user; the
+     * refusal's message, null when saved.
+     */
+    suspend fun save(context: Context, folder: Uri, autoBackup: Boolean): String? {
+        val coordinator = app.treelune.core.coordinator.Coordinator(context)
+        val category = app.treelune.core.database.entities.AppSettingCategories.DATA
+        val read = coordinator.processUserAction("app_config.get", mapOf("category" to category))
+        if (read.status != app.treelune.core.commands.CommandStatus.SUCCESS) return read.error
+        @Suppress("UNCHECKED_CAST")
+        val settings = (read.data!!["settings"] as Map<String, Any?>).toMutableMap().apply {
+            put(app.treelune.core.config.AppSettings.DATA_FOLDER, folder.toString())
+            put(app.treelune.core.config.AppSettings.DATA_AUTO_BACKUP, autoBackup)
+        }
+        val result = coordinator.processUserAction("app_config.set", mapOf("category" to category, "settings" to settings))
+        return if (result.status == app.treelune.core.commands.CommandStatus.SUCCESS) null else result.error
+    }
+
+    /**
      * A file written by [content] in [folder] under `[base].[extension]`, or `[base]_2`… when the
      * name is taken (FileNames.unique), through a `.part` file renamed once complete: a file of
      * the final name is complete, one that failed midway is removed. The document and its name.
