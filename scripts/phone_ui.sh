@@ -16,10 +16,10 @@ from PIL import Image; im=Image.open('$S/$2.png'); im.resize((720,1520)).save('$
  swipe) adb shell input swipe $(( $2 * 2 )) $(( $3 * 2 )) $(( $4 * 2 )) $(( $5 * 2 )) ${6:-300};;
  back) adb shell input keyevent 4;;
  dump) adb shell uiautomator dump /sdcard/u.xml >/dev/null && adb exec-out cat /sdcard/u.xml > $S/u.xml && python3 - <<P
-import re
+import re, html
 x=open('$S/u.xml').read()
 for m in re.finditer(r'<node [^>]*?text="([^"]*)"[^>]*?content-desc="([^"]*)"[^>]*?bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"',x):
-    t,d,a,b,c,e=m.groups()
+    t,d,a,b,c,e=m.groups(); t,d=html.unescape(t),html.unescape(d)
     if t or d: print(f"{(int(a)+int(c))//4},{(int(b)+int(e))//4}  {t!r} {d!r}")
 P
 ;;
