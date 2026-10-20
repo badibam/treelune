@@ -79,6 +79,18 @@ object DurationUnitsAtV86 {
     /** The columns of session_messages that hold a communication module's fields. */
     val MESSAGE_COLUMNS = listOf("ai_message_json", "ai_message_parsed_json")
 
+    /**
+     * A message's column as it stands at v86, null when nothing changes. The column keeps the
+     * model's answer as it came: one that is not JSON (a sentence before it, a code fence, cut
+     * short) was never read as a message, holds no field, and is left as it is — it would
+     * otherwise fail the migration of its row, and the whole import of a backup.
+     */
+    fun messageText(json: String): String? = try {
+        text(json)
+    } catch (e: org.json.JSONException) {
+        null
+    }
+
     /** A copy the history keeps of a row of [table] (column -> value), as it stands at v86. */
     fun historyCopy(table: String, copy: JSONObject): JSONObject {
         when (table) {
@@ -89,7 +101,7 @@ object DurationUnitsAtV86 {
                 text(definition)?.let { copy.put("definition_json", it) }
             }
             "session_messages" -> MESSAGE_COLUMNS.forEach { column ->
-                if (!copy.isNull(column)) copy.optString(column).takeIf { it.isNotEmpty() }?.let { value -> text(value)?.let { copy.put(column, it) } }
+                if (!copy.isNull(column)) copy.optString(column).takeIf { it.isNotEmpty() }?.let { value -> messageText(value)?.let { copy.put(column, it) } }
             }
         }
         return copy
@@ -113,7 +125,7 @@ object DurationUnitsAtV86 {
             for (i in 0 until messages.length()) {
                 val message = messages.getJSONObject(i)
                 MESSAGE_COLUMNS.forEach { column ->
-                    if (!message.isNull(column) && message.has(column)) text(message.getString(column))?.let { message.put(column, it) }
+                    if (!message.isNull(column) && message.has(column)) messageText(message.getString(column))?.let { message.put(column, it) }
                 }
             }
         }
