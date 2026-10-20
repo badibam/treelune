@@ -217,7 +217,7 @@
     <string name="condition_error_operator">The condition of %1$s: %2$s does not compare %3$s (%4$s). It takes: %5$s.</string>
     <string name="condition_error_types">The condition of %1$s compares %2$s (%3$s) and %4$s (%5$s), which are not of one type.</string>
     <string name="condition_error_value">The condition of %1$s: %2$s is not a value of %3$s, which takes %4$s.</string>
-    <string name="condition_error_option">The condition of %1$s cites \"%2$s\", which is not an option of %3$s (%4$s): add it to the options of its tool first.</string>
+    <string name="condition_error_option">The condition of %1$s cites “%2$s”, which is not an option of %3$s (%4$s): add it to the options of its tool first.</string>
     <string name="condition_error_field">The condition of %1$s names %2$s, which is no field here. Fields: %3$s.</string>
     <string name="condition_error_field_side">The condition of %1$s names the field %2$s, where only a term stands: a written value, a variable or a reading.</string>
     <string name="condition_error_left_field">The condition of %1$s puts a field on its left: {\"field\": …}.</string>
@@ -378,21 +378,21 @@
     <string name="ai_written_entries_unreadable">The values written can no longer be shown: their tool cannot be read</string>
 
     <!-- Action verbalization (substantive form for validation + SystemMessage) -->
-    <string name="action_verbalize_create_zone">Creation of the zone \"%1$s\"</string>
-    <string name="action_verbalize_update_zone">Modification of the zone \"%1$s\"</string>
-    <string name="action_verbalize_delete_zone">Deletion of the zone \"%1$s\"</string>
-    <string name="action_verbalize_mcp_client_access">Modification of the access of the client \"%1$s\"</string>
-    <string name="action_verbalize_mcp_client_delete">Revocation of the client \"%1$s\"</string>
-    <string name="action_verbalize_create_tool">Creation of the tool \"%1$s\" in the zone \"%2$s\"</string>
-    <string name="action_verbalize_update_tool_config">Modification of the configuration of the tool \"%1$s\"</string>
-    <string name="action_verbalize_delete_tool">Deletion of the tool \"%1$s\"</string>
-    <string name="action_verbalize_create_data">Use of the tool \"%1$s\" (zone \"%2$s\"): %3$d entry/entries added</string>
-    <string name="action_verbalize_update_data">Use of the tool \"%1$s\" (zone \"%2$s\"): %3$d entry/entries modified</string>
-    <string name="action_verbalize_start_duration">Use of the tool \"%1$s\" (zone \"%2$s\"): stopwatch started</string>
-    <string name="action_verbalize_stop_duration">Use of the tool \"%1$s\" (zone \"%2$s\"): stopwatch stopped</string>
-    <string name="action_verbalize_delete_data">Use of the tool \"%1$s\" (zone \"%2$s\"): %3$d entry/entries deleted</string>
+    <string name="action_verbalize_create_zone">Creation of the zone “%1$s”</string>
+    <string name="action_verbalize_update_zone">Modification of the zone “%1$s”</string>
+    <string name="action_verbalize_delete_zone">Deletion of the zone “%1$s”</string>
+    <string name="action_verbalize_mcp_client_access">Modification of the access of the client “%1$s”</string>
+    <string name="action_verbalize_mcp_client_delete">Revocation of the client “%1$s”</string>
+    <string name="action_verbalize_create_tool">Creation of the tool “%1$s” in the zone “%2$s”</string>
+    <string name="action_verbalize_update_tool_config">Modification of the configuration of the tool “%1$s”</string>
+    <string name="action_verbalize_delete_tool">Deletion of the tool “%1$s”</string>
+    <string name="action_verbalize_create_data">Use of the tool “%1$s” (zone “%2$s”): %3$d entry/entries added</string>
+    <string name="action_verbalize_update_data">Use of the tool “%1$s” (zone “%2$s”): %3$d entry/entries modified</string>
+    <string name="action_verbalize_start_duration">Use of the tool “%1$s” (zone “%2$s”): stopwatch started</string>
+    <string name="action_verbalize_stop_duration">Use of the tool “%1$s” (zone “%2$s”): stopwatch stopped</string>
+    <string name="action_verbalize_delete_data">Use of the tool “%1$s” (zone “%2$s”): %3$d entry/entries deleted</string>
     <string name="action_verbalize_update_app_config">Change of the settings: %1$s</string>
-    <string name="action_verbalize_schema_get">Retrieval of the schema \"%1$s\"</string>
+    <string name="action_verbalize_schema_get">Retrieval of the schema “%1$s”</string>
     <string name="action_verbalize_schema_list">Retrieval of the list of schemas</string>
     <string name="action_verbalize_unknown">Unknown action</string>
     <string name="action_verbalize_tools_running">Find the running stopwatches in the tools</string>
@@ -590,7 +590,7 @@
     <string name="message_validation_error_simple">Validation error</string>
     <string name="message_error">Error: %1$s</string>
     <string name="message_irreversible_action">This action cannot be undone.</string>
-    <string name="message_delete_zone_confirmation">Delete the zone \"%1$s\"?</string>
+    <string name="message_delete_zone_confirmation">Delete the zone “%1$s”?</string>
     <string name="message_no_zones_created">No zone created</string>
     <string name="message_available_tool_types">Available tool types</string>
     <string name="message_no_tools_in_zone">No tool in this zone</string>
@@ -1302,7 +1302,7 @@
     <string name="field_type_numeric_description">Numeric value with a unit and optional constraints</string>
     <string name="field_type_scale_display_name">Scale</string>
     <string name="field_scale_value">%1$s (%2$s to %3$s)</string>
-    <string name="field_scale_value_with_labels">%1$s (%2$s to %3$s - \"%4$s\" to \"%5$s\")</string>
+    <string name="field_scale_value_with_labels">%1$s (%2$s to %3$s - “%4$s” to “%5$s”)</string>
     <string name="field_type_scale_description">Graduated scale between two values with labels</string>
     <string name="field_type_choice_display_name">Choice</string>
     <string name="field_type_choice_description">Single or multiple choice among predefined options</string>

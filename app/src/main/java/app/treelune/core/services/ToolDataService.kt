@@ -1108,7 +1108,7 @@ class ToolDataService(private val context: Context) : ExecutableService {
 
     /**
      * Generates human-readable description of tool data action
-     * Format: substantive form (e.g., "Utilisation de l'outil \"Poids\" (zone \"Santé\") : ajout de 10 entrée(s)")
+     * Format: substantive form (e.g., "Utilisation de l'outil « Poids » (zone « Santé ») : ajout de 10 entrée(s)")
      * Usage: (a) UI validation display, (b) SystemMessage feedback
      */
     override suspend fun verbalize(operation: String, params: JSONObject, context: Context): String {

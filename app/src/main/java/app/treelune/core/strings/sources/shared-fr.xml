@@ -378,21 +378,21 @@
     <string name="ai_written_entries_unreadable">Les valeurs écrites ne peuvent plus s\'afficher : leur outil est illisible</string>
 
     <!-- Action verbalization (substantive form for validation + SystemMessage) -->
-    <string name="action_verbalize_create_zone">Création de la zone \"%1$s\"</string>
-    <string name="action_verbalize_update_zone">Modification de la zone \"%1$s\"</string>
-    <string name="action_verbalize_delete_zone">Suppression de la zone \"%1$s\"</string>
-    <string name="action_verbalize_mcp_client_access">Modification des accès du client \"%1$s\"</string>
-    <string name="action_verbalize_mcp_client_delete">Révocation du client \"%1$s\"</string>
-    <string name="action_verbalize_create_tool">Création de l\'outil \"%1$s\" dans la zone \"%2$s\"</string>
-    <string name="action_verbalize_update_tool_config">Modification de la configuration de l\'outil \"%1$s\"</string>
-    <string name="action_verbalize_delete_tool">Suppression de l\'outil \"%1$s\"</string>
-    <string name="action_verbalize_create_data">Utilisation de l\'outil \"%1$s\" (zone \"%2$s\") : ajout de %3$d entrée(s)</string>
-    <string name="action_verbalize_update_data">Utilisation de l\'outil \"%1$s\" (zone \"%2$s\") : modification de %3$d entrée(s)</string>
-    <string name="action_verbalize_start_duration">Utilisation de l\'outil \"%1$s\" (zone \"%2$s\") : chronomètre démarré</string>
-    <string name="action_verbalize_stop_duration">Utilisation de l\'outil \"%1$s\" (zone \"%2$s\") : chronomètre arrêté</string>
-    <string name="action_verbalize_delete_data">Utilisation de l\'outil \"%1$s\" (zone \"%2$s\") : suppression de %3$d entrée(s)</string>
+    <string name="action_verbalize_create_zone">Création de la zone « %1$s »</string>
+    <string name="action_verbalize_update_zone">Modification de la zone « %1$s »</string>
+    <string name="action_verbalize_delete_zone">Suppression de la zone « %1$s »</string>
+    <string name="action_verbalize_mcp_client_access">Modification des accès du client « %1$s »</string>
+    <string name="action_verbalize_mcp_client_delete">Révocation du client « %1$s »</string>
+    <string name="action_verbalize_create_tool">Création de l\'outil « %1$s » dans la zone « %2$s »</string>
+    <string name="action_verbalize_update_tool_config">Modification de la configuration de l\'outil « %1$s »</string>
+    <string name="action_verbalize_delete_tool">Suppression de l\'outil « %1$s »</string>
+    <string name="action_verbalize_create_data">Utilisation de l\'outil « %1$s » (zone « %2$s ») : ajout de %3$d entrée(s)</string>
+    <string name="action_verbalize_update_data">Utilisation de l\'outil « %1$s » (zone « %2$s ») : modification de %3$d entrée(s)</string>
+    <string name="action_verbalize_start_duration">Utilisation de l\'outil « %1$s » (zone « %2$s ») : chronomètre démarré</string>
+    <string name="action_verbalize_stop_duration">Utilisation de l\'outil « %1$s » (zone « %2$s ») : chronomètre arrêté</string>
+    <string name="action_verbalize_delete_data">Utilisation de l\'outil « %1$s » (zone « %2$s ») : suppression de %3$d entrée(s)</string>
     <string name="action_verbalize_update_app_config">Modification des réglages : %1$s</string>
-    <string name="action_verbalize_schema_get">Récupération du schéma \"%1$s\"</string>
+    <string name="action_verbalize_schema_get">Récupération du schéma « %1$s »</string>
     <string name="action_verbalize_schema_list">Récupération de la liste des schémas</string>
     <string name="action_verbalize_unknown">Action inconnue</string>
     <string name="action_verbalize_tools_running">Recherche des chronomètres en cours dans les outils</string>
@@ -1302,7 +1302,7 @@
     <string name="field_type_numeric_description">Valeur numérique avec unité et contraintes optionnelles</string>
     <string name="field_type_scale_display_name">Échelle</string>
     <string name="field_scale_value">%1$s (%2$s à %3$s)</string>
-    <string name="field_scale_value_with_labels">%1$s (%2$s à %3$s - \"%4$s\" à \"%5$s\")</string>
+    <string name="field_scale_value_with_labels">%1$s (%2$s à %3$s - « %4$s » à « %5$s »)</string>
     <string name="field_type_scale_description">Échelle graduée entre deux valeurs avec labels</string>
     <string name="field_type_choice_display_name">Choix</string>
     <string name="field_type_choice_description">Choix unique ou multiple parmi des options prédéfinies</string>

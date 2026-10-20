@@ -519,7 +519,7 @@ class ZoneService(private val context: Context) : ExecutableService {
 
     /**
      * Generates human-readable description of zone action
-     * Format: substantive form (e.g., "Création de la zone \"Santé\"")
+     * Format: substantive form (e.g., "Création de la zone « Santé »")
      * Usage: (a) UI validation display, (b) SystemMessage feedback
      */
     override suspend fun verbalize(operation: String, params: JSONObject, context: Context): String {

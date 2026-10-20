@@ -973,7 +973,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
 
     /**
      * Generates human-readable description of tool instance action
-     * Format: substantive form (e.g., "Création de l'outil \"Poids\" dans la zone \"Santé\"")
+     * Format: substantive form (e.g., "Création de l'outil « Poids » dans la zone « Santé »")
      * Usage: (a) UI validation display, (b) SystemMessage feedback
      */
     override suspend fun verbalize(operation: String, params: JSONObject, context: Context): String {

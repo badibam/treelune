@@ -296,7 +296,7 @@ class CommandExecutor(private val context: Context) {
                     }
 
                     // Get verbalized description for all commands
-                    // - Action commands: use service verbalization (e.g., "Création de la zone \"Santé\"")
+                    // - Action commands: use service verbalization (e.g., "Création de la zone « Santé »")
                     // - Query commands: a line for the user (userDetails), the data's header being the AI's
                     val verbalizedDescription = if (command.isActionCommand) {
                         // Enrich params with name from result for delete operations
@@ -368,7 +368,7 @@ class CommandExecutor(private val context: Context) {
 
     /**
      * Get verbalized description from service for action command
-     * Returns substantive form description (e.g., "Création de la zone \"Santé\"")
+     * Returns substantive form description (e.g., "Création de la zone « Santé »")
      */
     private suspend fun getVerbalizedDescription(command: ExecutableCommand): String {
         return try {
