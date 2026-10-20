@@ -272,6 +272,17 @@ fun ChatMessageBubble(
                                                             }
                                                         }
 
+                                                        // A file the AI exported, handed on from here
+                                                        val exported = (commandResult.data?.get("uri") as? String)?.takeIf {
+                                                            commandResult.command == "exports.csv" && commandResult.status == CommandStatus.SUCCESS
+                                                        }
+                                                        if (exported != null) {
+                                                            val context = LocalContext.current
+                                                            UI.Button(type = app.treelune.core.ui.ButtonType.SECONDARY, onClick = { app.treelune.core.ui.exports.shareCsv(context, exported) }) {
+                                                                UI.Text(s.shared("export_csv_share"), TextType.LABEL)
+                                                            }
+                                                        }
+
                                                         // Error (if failed)
                                                         commandResult.error?.let { error ->
                                                             UI.Text(

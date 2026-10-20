@@ -105,6 +105,8 @@ object AccessRules {
                 "apply" -> listOf(toolAt(AccessLevel.USE))
                 else -> listOf(Reach.Unknown("$resource.$operation"))
             }
+            // A tool's entries read, written out of the app
+            "exports" -> if (operation == "csv") listOf(toolAt(AccessLevel.READ)) else listOf(Reach.Unknown("$resource.$operation"))
             "schemas", "icons" -> listOf(Reach.Free)
             // An identity is read by whoever speaks as it, a routine under a mask included; it is written as the app is
             "identities" -> when (operation) {

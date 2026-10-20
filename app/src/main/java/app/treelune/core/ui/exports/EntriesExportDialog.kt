@@ -77,7 +77,7 @@ fun EntriesExportDialog(toolInstanceId: String, onDismiss: () -> Unit) {
             Column(verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
                 UI.Text(s.shared("export_csv_written").format(done.name), TextType.BODY)
                 UI.Text(s.shared("export_csv_entries").format(done.entries), TextType.CAPTION)
-                UI.Button(type = ButtonType.PRIMARY, onClick = { share(context, Uri.parse(done.uri), s.shared("export_csv_share")) }) {
+                UI.Button(type = ButtonType.PRIMARY, onClick = { shareCsv(context, done.uri) }) {
                     UI.Text(s.shared("export_csv_share"), TextType.LABEL)
                 }
             }
@@ -124,12 +124,16 @@ fun EntriesExportDialog(toolInstanceId: String, onDismiss: () -> Unit) {
     }
 }
 
-/** The file at [uri] handed to the app the user chooses, which may read it. */
-private fun share(context: Context, uri: Uri, title: String) {
+/**
+ * The CSV at [uri] (a document of the app's folder, as exports.csv answers it) handed to the app
+ * the user chooses, which may read it: from the export's window, and from the chat's card of an
+ * export the AI made.
+ */
+fun shareCsv(context: Context, uri: String) {
     val send = Intent(Intent.ACTION_SEND).apply {
         type = "text/csv"
-        putExtra(Intent.EXTRA_STREAM, uri)
+        putExtra(Intent.EXTRA_STREAM, Uri.parse(uri))
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
-    context.startActivity(Intent.createChooser(send, title))
+    context.startActivity(Intent.createChooser(send, Strings.`for`(context = context).shared("export_csv_share")))
 }

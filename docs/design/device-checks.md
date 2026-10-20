@@ -524,3 +524,5 @@ Vu le 2026-10-20 sur la démo : la tuile et la page de Ripasso ; la lecture du p
 - « Partager » ouvre le menu d'Android ; le fichier joint à un mail arrive entier.
 - Sans dossier choisi (Réglages › Données), ou son droit retiré : l'export est refusé en disant d'aller le choisir.
 - Un outil en création n'a pas le bouton ; une sous-page de la config non plus.
+- Au chat : « exporte mes repas de cette semaine en CSV » : l'IA lance `EXPORT_DATA` sans demander d'accord ; sa carte dit l'export de Repas, le fichier et le nombre d'entrées, avec « Partager » qui ouvre le menu d'Android.
+- Une routine dont le message demande l'export de la semaine : le fichier paraît dans le dossier à chaque exécution, sans écraser le précédent.

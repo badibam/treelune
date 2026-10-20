@@ -10,7 +10,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Juste après la release
 
-- L'export des entrées d'un outil (`docs/design/export.md`).
 - Partager une partie de l'app, et reprendre une partie d'une sauvegarde (`docs/design/share.md`).
 
 ## Bugs

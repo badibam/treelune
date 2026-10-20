@@ -251,6 +251,7 @@ class AICommandProcessor(private val context: Context) {
 
             // An import of a joined file, following the AI's declaration: the file read by the service itself
             "IMPORT_DATA" -> importCommand(command)
+            "EXPORT_DATA" -> exportCommand(command)
             "UPDATE_APP_CONFIG" -> appConfigCommand(command)
             "CREATE_IDENTITY", "UPDATE_IDENTITY", "DELETE_IDENTITY", "IMPORT_IDENTITY" -> ExecutableCommand(
                 resource = "identities",
@@ -355,6 +356,7 @@ class AICommandProcessor(private val context: Context) {
 
             "CREATE_AUTOMATION", "UPDATE_AUTOMATION", "DELETE_AUTOMATION" -> automationCommand(command, stored = false)
             "IMPORT_DATA" -> importCommand(command)
+            "EXPORT_DATA" -> exportCommand(command)
             "UPDATE_APP_CONFIG" -> appConfigCommand(command)
             "CREATE_IDENTITY", "UPDATE_IDENTITY", "DELETE_IDENTITY", "IMPORT_IDENTITY" -> ExecutableCommand(
                 resource = "identities",
@@ -420,6 +422,35 @@ class AICommandProcessor(private val context: Context) {
         params = command.params.filterKeys { it in setOf("category", "settings", "renames") },
         isActionCommand = true
     )
+
+    /**
+     * EXPORT_DATA as the exports service takes it: the tool, its period and filters as TOOL_DATA
+     * reads them, in the stored form (FilterValues), and the fields kept. An action has no
+     * reference: its relative dates resolve when the file is written.
+     *
+     * @throws IllegalArgumentException on a period or a filter that does not read
+     */
+    private suspend fun exportCommand(command: DataCommand): ExecutableCommand? {
+        val toolInstanceId = command.params["tool_instance_id"] as? String ?: return null
+        val resolver = app.treelune.core.selection.TimeResolver.at(System.currentTimeMillis())
+        @Suppress("UNCHECKED_CAST")
+        val period = (command.params["period"] as? Map<String, Any?>)
+            ?.let { app.treelune.core.selection.EntryPeriod.fromJson(app.treelune.core.utils.JsonUtils.toJSONObject(it)) { key -> s.shared(key) }.timestampFilters(resolver) }
+            ?: emptyList()
+        val filters = (command.params["filters"] as? List<*>)?.let { written ->
+            FilterValues.toStored(written, app.treelune.core.fields.ToolFields.filterable(toolInstanceId, context, s), resolver) { s.shared(it) }
+        } ?: emptyList()
+        return ExecutableCommand(
+            resource = "exports",
+            operation = "csv",
+            params = buildMap {
+                put("tool_instance_id", toolInstanceId)
+                if (period.isNotEmpty() || filters.isNotEmpty()) put("filters", period + filters)
+                command.params["fields"]?.let { put("fields", it) }
+            },
+            isActionCommand = true
+        )
+    }
 
     /** IMPORT_DATA as the imports service takes it: the file, the tool, the declaration as written. */
     private fun importCommand(command: DataCommand) = ExecutableCommand(
