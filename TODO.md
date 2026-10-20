@@ -17,7 +17,6 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 
 ## Bugs
 
-- Une borne de jour ou de semaine se calcule en journées de l'app (l'heure où commence le jour, le premier jour de la semaine, `TimeResolver`), jamais de minuit à minuit ; seul le transport d'une date sans rien couper y échappe. Reste un contrôle des sources qui refuse une borne faite à la main hors de `TimeResolver`, `DateUtils` et `PeriodSelector`.
 - La durée d'un Objectif est stockée en millisecondes (7 jours = 604 800 000) : une tentative qui traverse un changement d'heure finit une heure avant ou après l'heure de son début — non vérifié.
 - Des boutons à libellé posés dans une simple rangée, qui se perdent quand la place manque : à passer dans `ButtonRow` (`VariableScreen.kt:175`, `JournalEntryScreen.kt:376`, `DuplicateSelector.kt:234`, `StructuredScreen.kt:260` et `:299`), et la rangée d'actions de `InteractionCard` (la validation dans le chat), que chaque thème pose avec deux moitiés de largeur fixe (`InteractionActions`).
 
