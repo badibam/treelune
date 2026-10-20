@@ -39,7 +39,7 @@ Toutes les lignes du 2026-10-19, dans l'ordre de la liste de `docs/THEMES.md`.
 
 ## L'ajout au contrat
 
-Décidé avec le thème, pour les huit autres comme pour lui (`docs/THEMES.md`, « Ajouter une pièce au contrat ») : un thème déclare s'il a une teinte à tourner (`ThemeContract.hueShifts`), vrai pour les huit autres ; Réglages › Interface ne montre la bande de la teinte que s'il en a une, le décalage enregistré restant tel quel.
+Décidé avec le thème, pour les huit autres comme pour lui (`docs/THEMES.md`, « Adding a piece to the contract ») : un thème déclare s'il a une teinte à tourner (`ThemeContract.hueShifts`), vrai pour les huit autres ; Réglages › Interface ne montre la bande de la teinte que s'il en a une, le décalage enregistré restant tel quel.
 
 Le choix d'une couleur n'en demande pas : il passe par des pièces que le thème dessine (`Tag` avec le nom de la couleur, `ItemIcon`), qui montrent ici la trame.
 

@@ -184,7 +184,7 @@ object EinkTheme : ThemeContract {
     @Composable
     override fun gridRowGapPx(): Int = with(LocalDensity.current) { GRID_GAP_DP.dp.roundToPx() }
 
-    /** Silent: the theme's sounds are chosen apart (docs/THEMES.md, Les sons). */
+    /** Silent: the theme's sounds are chosen apart (docs/THEMES.md, The sounds). */
     override fun sound(signal: UISignal): Int? = null
 
     /** A tile's name flush with its icon's side, as a page of a book. */

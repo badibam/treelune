@@ -1,6 +1,6 @@
 # Les sons de tous les thèmes
 
-Conçu le 2026-10-18. Le registre sonore de chaque thème, codé ou à venir, posé côte à côte pour que deux thèmes ne sonnent pas pareil, et pour savoir quelles sources ajouter avant d'écouter. Le flux d'un choix (planche d'écoute, `theme_sounds.py`) est dans `docs/THEMES.md`, « Les sons » ; la ligne 12 de la spec d'un thème, « Le registre sonore », reprend la sienne d'ici. Un thème qui se construit part de sa ligne et la précise dans sa spec, la carte suivant ce qu'elle tranche ; un registre qui n'est pas sur la carte s'y ajoute d'abord, à côté des autres, avant sa spec.
+Conçu le 2026-10-18. Le registre sonore de chaque thème, codé ou à venir, posé côte à côte pour que deux thèmes ne sonnent pas pareil, et pour savoir quelles sources ajouter avant d'écouter. Le flux d'un choix (planche d'écoute, `theme_sounds.py`) est dans `docs/THEMES.md`, « The sounds » ; la ligne 12 de la spec d'un thème, « Le registre sonore », reprend la sienne d'ici. Un thème qui se construit part de sa ligne et la précise dans sa spec, la carte suivant ce qu'elle tranche ; un registre qui n'est pas sur la carte s'y ajoute d'abord, à côté des autres, avant sa spec.
 
 ## Ce qui distingue deux registres
 
