@@ -13,7 +13,7 @@
     <string name="field_enabled">On</string>
     <string name="schema_enabled">Switched off, no invitation is created</string>
     <string name="field_ai_message">Message to the AI</string>
-    <string name="schema_ai_message">What a chat « with the AI » opens with, to send or change; the pointer to what to fill goes with it</string>
+    <string name="schema_ai_message">What a chat “with the AI” opens with, to send or change; the pointer to what to fill goes with it</string>
     <string name="ai_message_default">Ask me the questions of this questionnaire one at a time. If an answer is vague, ask again. Before recording, show me the values you will write, then fill the entry and mark it filled.</string>
     <string name="field_status">State</string>
     <string name="schema_status">to_fill, filled or ignored; an entry is filled by the questionnaire's operation complete, after its answers are written</string>

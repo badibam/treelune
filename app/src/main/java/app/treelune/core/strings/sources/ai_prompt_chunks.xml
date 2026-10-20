@@ -1437,7 +1437,7 @@ The schemas of a tool are asked for by its tool type or its tool_instance_id (Pa
     <!-- J.1 Header for tooltypes section -->
     <string name="ai_chunk_tooltypes_header"><![CDATA[## Available tool types
 
-Every tool type can also take custom fields, be filled in by the AI, and be read by a Chart or a Goal. Before combining tools, check what each one already does on its own (its « What it does »): add another tool only for what it does not do.]]></string>
+Every tool type can also take custom fields, be filled in by the AI, and be read by a Chart or a Goal. Before combining tools, check what each one already does on its own (its “What it does”): add another tool only for what it does not do.]]></string>
 
     <!-- Header of the operations a tool's entries schema comes with (CommandExecutor) -->
     <string name="ai_chunk_tool_operations_header">Operations (TOOL_OPERATION)</string>

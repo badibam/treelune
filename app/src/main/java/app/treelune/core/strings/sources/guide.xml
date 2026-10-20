@@ -43,7 +43,7 @@
     <string name="guide_path_then">, then\u0020</string>
     <string name="guide_path_zone">open the zone %1$s</string>
     <string name="guide_path_zone_config">touch the gear at the top right</string>
-    <string name="guide_path_zone_new">scroll down to « Ungrouped » and touch its +</string>
+    <string name="guide_path_zone_new">scroll down to “Ungrouped” and touch its +</string>
     <string name="guide_path_tool">touch %1$s</string>
     <string name="guide_path_tool_new">touch + beside a section, then a tool type</string>
     <string name="guide_path_tool_config">touch and hold the tool\'s title</string>
@@ -81,7 +81,7 @@
     <string name="guide_first_steps_2_text">Runs is a Tracking tool. Each run is noted in it with its date and its kilometres. A figure noted this way is called an entry.\n\nTouch + to add one. The buttons under the title are shortcuts: one touch, and the entry is noted.</string>
     <string name="guide_first_steps_3_goal">Open Km per week</string>
     <string name="guide_first_steps_3_text">The run just added already shows in this chart, and counts towards the goal “Training week”. An entry is noted once and shows up wherever it counts: chart, goal, variable.</string>
-    <string name="guide_first_steps_4_goal">Create your own zone, under « Ungrouped »</string>
+    <string name="guide_first_steps_4_goal">Create your own zone, under “Ungrouped”</string>
     <string name="guide_first_steps_4_text">Go back to the home screen, scroll down to the “Ungrouped” section at the very bottom, and touch its +. Give the zone a name, an icon and a short description.\n\nNot in the Demo group, which belongs to Camille. Groups of your own come later, with the gear of the home screen.</string>
     <string name="guide_first_steps_5_goal">Add a tool to it</string>
     <string name="guide_first_steps_5_text">In the zone, touch the + of a section, then choose a tool type. List is the simplest. It holds things to do, shopping or tasks, ticked once done.\n\nThe configuration screen shows many settings, but only the name is required, the others already have a value. Give the list a name, then confirm at the bottom of the screen.</string>
