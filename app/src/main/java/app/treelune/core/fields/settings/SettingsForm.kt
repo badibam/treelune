@@ -818,7 +818,7 @@ private fun ListForm(
             publish(values.toMutableList().also { it.removeAt(index) })
         }
         when (val shape = list.item) {
-            is SettingNode.Item.Value -> Row(verticalAlignment = Alignment.CenterVertically) {
+            is SettingNode.Item.Value -> Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S), verticalAlignment = Alignment.CenterVertically) {
                 Box(modifier = Modifier.weight(1f)) {
                     if (shape.rowField) RowFieldChoice(shape.definition.displayName, item.takeIf { it != JSONObject.NULL } as? String, required = true) { value ->
                         publish(values.toMutableList().also { it[index] = value ?: JSONObject.NULL })
