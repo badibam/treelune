@@ -696,12 +696,12 @@ object UI {
 
     /**
      * A tile's icon with its two marks, square, the same size in every tile of every mode, one
-     * column included: half of what an ICON tile holds, a row of the grid (LocalGridRow) less its
+     * column included: half of what an ICON tile holds, a row of the grid as the theme gives it (LocalGridIconRow) less its
      * frame. Sized by the space it stands in, it would grow with each header.
      */
     @Composable
     fun TileIcon(iconName: String?, iconColor: TagColor?, waiting: Boolean, running: Boolean) {
-        val size = (app.treelune.core.ui.components.LocalGridRow.current - CurrentTheme.current.tileFrame(DisplayMode.ICON)) / 2
+        val size = (app.treelune.core.ui.components.LocalGridIconRow.current - CurrentTheme.current.tileFrame(DisplayMode.ICON)) / 2
         Box(modifier = Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
             MarkedIcon(iconName, iconColor, waiting, running, size)
         }
@@ -741,7 +741,8 @@ object UI {
     }
 
     /**
-     * A zone's tile on the home screen, laid out by its display mode: its icon (ICON), its icon and
+     * A zone's tile on the home screen, laid out by its display mode: its icon, or its name when it
+     * has none (ICON), its icon and
      * name (MINIMAL), its description beside them (LINE) or below (CONDENSED). Something waiting or
      * a stopwatch running in one of its tools (LocalWaiting, LocalRunning) is marked on its icon.
      */
@@ -761,7 +762,17 @@ object UI {
         CurrentTheme.current.ZoneCardContainer(texture = ItemTexture.of(zone.texture, zone.icon_name, IconColor.of(zone.icon_color)), color = IconColor.of(zone.icon_color), seed = zone.id, onClick = onClick, onLongClick = onLongClick) {
             when (mode) {
                 DisplayMode.ICON -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    TileIcon(zone.icon_name, IconColor.of(zone.icon_color), waiting, running)
+                    if (zone.icon_name.isNullOrBlank()) {
+                        // Without an icon, the name stands in its place, small enough for a word to
+                        // hold in the cell, centered between the marks in their corners
+                        Box(modifier = Modifier.padding(horizontal = Space.XS)) {
+                            Text(zone.name, TextType.CAPTION, maxLines = 2, fillMaxWidth = true, textAlign = TextAlign.Center)
+                        }
+                        if (waiting) Box(modifier = Modifier.align(Alignment.TopEnd)) { WaitingMark() }
+                        if (running) Box(modifier = Modifier.align(Alignment.BottomEnd)) { RunningMark() }
+                    } else {
+                        TileIcon(zone.icon_name, IconColor.of(zone.icon_color), waiting, running)
+                    }
                 }
                 DisplayMode.MINIMAL -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) { Header() }
                 // The smallest space between the two halves, so that their texts never touch

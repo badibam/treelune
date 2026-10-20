@@ -51,6 +51,7 @@ class VariableService(private val context: Context) : ExecutableService {
 
     private val s = Strings.`for`(context = context)
     private val dao = AppDatabase.getDatabase(context).variableDao()
+    private val writes = app.treelune.core.history.Writes(context)
 
     override suspend fun execute(operation: String, params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
@@ -88,7 +89,7 @@ class VariableService(private val context: Context) : ExecutableService {
         val name = checkName(params.optString("name"), id)
         val definition = checkDefinition(params.optJSONObject("definition") ?: throw Refused(s.shared("variable_error_param").format("definition")), name, id)
         val now = System.currentTimeMillis()
-        dao.insert(VariableEntity(
+        writes.insertVariable(VariableEntity(
             id = id, zoneId = zoneId, name = name,
             group = group,
             orderIndex = dao.getByZone(zoneId).size,
@@ -115,7 +116,7 @@ class VariableService(private val context: Context) : ExecutableService {
         }
         val emptiedGroup = existing.group?.takeIf { moved && !params.has("group") }
         Groups.refusal(group, ToolPositions.zoneGroups(zone.tool_groups), s)?.let { throw Refused(it) }
-        dao.update(existing.copy(
+        writes.updateVariable(existing.copy(
             name = name,
             zoneId = zoneId,
             group = group,
@@ -132,7 +133,7 @@ class VariableService(private val context: Context) : ExecutableService {
 
     private suspend fun delete(params: JSONObject): OperationResult {
         val existing = dao.getById(params.optString("variable_id")) ?: throw Refused(s.shared("variable_error_not_found").format(params.optString("variable_id")))
-        dao.deleteById(existing.id)
+        writes.deleteVariable(existing.id)
         DataChangeNotifier.notifyVariablesChanged()
         return OperationResult.success(mapOf("variable_id" to existing.id, "name" to existing.name))
     }

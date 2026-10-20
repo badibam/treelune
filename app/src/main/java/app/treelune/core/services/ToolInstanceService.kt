@@ -48,6 +48,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
     private val database by lazy { AppDatabase.getDatabase(context) }
     private val toolInstanceDao by lazy { database.toolInstanceDao() }
     private val zoneDao by lazy { database.zoneDao() }
+    private val writes by lazy { app.treelune.core.history.Writes(context) }
     private val s = Strings.`for`(context = context)
 
     // Detached scope for the post-CRUD tick, which must not hold up the caller
@@ -157,7 +158,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
 
         val newToolInstance = database.transaction {
             arrive(ToolInstance(id = toolId, zone_id = zoneId, tooltype = toolType, config_json = storedConfigJson, grid_x = 0, grid_y = 0), zone.tool_groups)
-                .also { toolInstanceDao.insertToolInstance(it) }
+                .also { writes.insertTool(it) }
         }
 
         // Notify UI of tools change in this zone
@@ -296,7 +297,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         // none lands without the others
         val updatedTool = database.transaction {
             val placed = move(existingTool, changedTool, oldZone.tool_groups, newZone.tool_groups)
-            toolInstanceDao.updateToolInstance(placed)
+            writes.updateTool(placed)
             if (migration != null) applyMigration(existingTool, migration)
             placed
         }
@@ -513,12 +514,12 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
     /** Writes [plan] to the entries of [tool], inside the caller's transaction. */
     private suspend fun applyMigration(tool: ToolInstance, plan: EntryMigration.Plan) {
         val dao = database.toolDataDao()
-        plan.updated.forEach { dao.update(it.copy(updatedAt = System.currentTimeMillis())) }
-        plan.deleted.forEach { dao.deleteById(it.id) }
+        plan.updated.forEach { writes.updateEntry(it.copy(updatedAt = System.currentTimeMillis())) }
+        plan.deleted.forEach { writes.deleteEntry(it.id) }
         if (plan.deleted.isEmpty()) return
         // A rule spanning the entries (a manual order) settles again once some are gone
         val toolType = ToolTypeManager.getToolType(tool.tooltype) ?: return
-        toolType.settleEntries({ dao.getByToolInstance(tool.id) }, null).forEach { dao.update(it) }
+        toolType.settleEntries({ dao.getByToolInstance(tool.id) }, null).forEach { writes.updateEntry(it) }
     }
     
     /**
@@ -595,7 +596,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
     }
 
     private suspend fun write(moved: List<ToolInstance>) {
-        moved.forEach { toolInstanceDao.updatePosition(it.id, it.grid_x, it.grid_y) }
+        moved.forEach { writes.moveTool(it.id, it.grid_x, it.grid_y) }
     }
 
     /**
@@ -628,7 +629,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         // The tool and the rows its leaving closes are one write
         database.transaction {
             leave(existingTool, zone.tool_groups)
-            toolInstanceDao.deleteToolInstanceById(toolInstanceId)
+            writes.deleteTool(toolInstanceId)
         }
 
         // Notify UI of tools change in this zone
@@ -701,7 +702,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         // Create new tool instance in target zone, at the bottom of its section's grid
         val newToolInstance = database.transaction {
             arrive(ToolInstance(zone_id = targetZoneId, tooltype = sourceTool.tooltype, config_json = sourceConfig.toString(), grid_x = 0, grid_y = 0), targetZone.tool_groups)
-                .also { toolInstanceDao.insertToolInstance(it) }
+                .also { writes.insertTool(it) }
         }
 
         // Notify UI of tools change in target zone

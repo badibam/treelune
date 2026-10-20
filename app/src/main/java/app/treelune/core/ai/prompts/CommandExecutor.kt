@@ -148,7 +148,10 @@ class CommandExecutor(private val context: Context) {
             // Images shown to the model enter its conversation, which only the executor knows
             val run = if (command.resource == "files" && command.operation == "show_images" && sessionId != null)
                 command.copy(params = command.params + ("session_id" to sessionId)) else command
-            var result = executeCommand(run, origin)
+            // A step of the history keeps the conversation whose command it is
+            var result = if (sessionId != null) {
+                kotlinx.coroutines.withContext(app.treelune.core.history.StepSession(sessionId)) { executeCommand(run, origin) }
+            } else executeCommand(run, origin)
 
             val fingerprint = result?.commandResult?.takeIf { it.status == CommandStatus.SUCCESS }
                 ?.data?.get(SessionReads.FINGERPRINT) as? String
@@ -649,6 +652,11 @@ class CommandExecutor(private val context: Context) {
                 "files" -> when (command.operation) {
                     "show_images" -> "Images of entries, shown below, each under its id in this conversation: ${(data["images"] as? List<*>)?.size ?: 0}"
                     else -> "Data from ${command.resource}.${command.operation}"
+                }
+                "history" -> {
+                    val tool = (command.params["tool_instance_id"] as? String)?.let { " of tool '${resolveToolInstanceName(it)}'" }
+                    val zone = (command.params["zone_id"] as? String)?.let { " of zone '${resolveZoneName(it)}'" }
+                    "Steps of the history${tool ?: zone ?: ""}, the most recent first"
                 }
                 "icons" -> when (command.operation) {
                     "overview" -> "Icons: overview"

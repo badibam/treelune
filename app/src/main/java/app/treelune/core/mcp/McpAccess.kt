@@ -68,7 +68,7 @@ object McpAccess {
     /** The OAuth server, one for the app: a request waiting for its code outlives the screens. */
     fun oauth(context: Context): OAuthServer = oauthServer ?: synchronized(this) {
         oauthServer ?: OAuthServer(
-            store = RoomOAuthStore(AppDatabase.getDatabase(context)),
+            store = RoomOAuthStore(context.applicationContext),
             prompt = NotificationPrompt(context.applicationContext),
             now = System::currentTimeMillis
         ).also { oauthServer = it }

@@ -93,7 +93,7 @@ object CoreScheduler {
      * Execution order:
      * 1. AI scheduling (core functionality, high priority)
      * 2. Tool scheduling (discovery via ToolTypeManager)
-     * 3. The automatic backup (AutoBackup)
+     * 3. The automatic backup (AutoBackup), after the history of writes is pruned to its depth (HistoryDepth)
      *
      * Nothing while the demo is being written (DemoService.writing).
      *
@@ -148,6 +148,13 @@ object CoreScheduler {
         // The alarm set again after every tick, the minute's included: what the screen added while
         // the app was open is known to it before the app closes
         armForNextAction(context)
+
+        try {
+            // The history of writes kept to its depth
+            app.treelune.core.history.HistoryDepth.prune(context)
+        } catch (e: Exception) {
+            LogManager.service("CoreScheduler: history pruning error: ${e.message}", "ERROR", e)
+        }
 
         try {
             // 3. The automatic backup, last: the tick's other work is due at its minute, a copy within the hour

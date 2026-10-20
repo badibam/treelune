@@ -85,23 +85,4 @@ object BaseSchemas {
         return org.json.JSONObject(tool.config_json)
     }
 
-    /**
-     * Get human-readable name for common ToolType fields
-     * Used for validation error messages
-     * @param fieldName Technical field name (e.g., "management", "display_mode")
-     * @param context Android context for string resource access
-     * @return Translated field name or null if not a common field
-     */
-    fun getCommonFieldName(fieldName: String, context: Context): String? {
-        val s = Strings.`for`(context = context)
-        return when(fieldName) {
-            "name" -> s.shared("tools_config_label_name")
-            "description" -> s.shared("tools_config_label_description")
-            "display_mode" -> s.shared("tools_config_label_display_mode")
-            "icon_name" -> s.shared("tools_config_label_icon")
-            "validate_data" -> s.shared("tools_config_label_validate_data")
-            else -> null
-        }
-    }
-
 }

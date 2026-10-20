@@ -11,7 +11,6 @@ import app.treelune.core.fields.FieldType
 import app.treelune.core.fields.StateField
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.strings.Strings
-import app.treelune.core.tools.BaseSchemas
 import app.treelune.core.tools.ManualOrder
 import app.treelune.core.tools.ToolTypeContract
 import app.treelune.tools.list.ui.ListScreen
@@ -64,21 +63,6 @@ object ListToolType : ToolTypeContract {
 
 
     override fun getDefaultShowFieldLabels(): Boolean = false
-
-    override fun getFormFieldName(fieldName: String, context: Context): String {
-        val s = Strings.`for`(tool = "list", context = context)
-        return when (fieldName) {
-            // An item's name is what it says: its content, on screen and in an error
-            "name" -> s.tool("field_content")
-            ManualOrder.POSITION -> s.tool("field_position")
-            CHECKED_AT -> s.tool("field_checked_at")
-            DUE_AT -> s.tool("field_due_at")
-            DUE_NOTIFIED -> s.tool("field_due_notified")
-            DUE_DATES -> s.tool("field_due_dates")
-            SHORT_ITEMS -> s.tool("field_short_items")
-            else -> BaseSchemas.getCommonFieldName(fieldName, context) ?: fieldName
-        }
-    }
 
     /** The setting under which checking an item deletes it, for a list whose done items have nothing left to say. */
     const val REMOVE_WHEN_CHECKED = "remove_when_checked"
@@ -150,7 +134,8 @@ object ListToolType : ToolTypeContract {
                         alwaysVisible = false,
                         config = null
                     ),
-                    filterable = true
+                    filterable = true,
+                    bookkeeping = true
                 )
             )
         )
@@ -201,11 +186,6 @@ object ListToolType : ToolTypeContract {
     }
 
     override fun getScheduler(): app.treelune.core.tools.ToolScheduler = ListDueScheduler
-
-    override fun getDao(context: Context): Any {
-        val baseDao = app.treelune.core.database.AppDatabase.getDatabase(context).toolDataDao()
-        return app.treelune.core.database.dao.DefaultExtendedToolDataDao(baseDao, "list")
-    }
 
     override fun getDatabaseEntities(): List<Class<*>> = listOf(ToolDataEntity::class.java)
 

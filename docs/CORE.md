@@ -75,7 +75,7 @@ An architecture without hardcoded imports in the Core, with a centralised Servic
 Each core service is tied there to its resource by its constructor, in a single place; an unknown resource passes to ToolTypeManager for the tools' services.
 
 ### ToolTypeManager
-A unified API for dynamic discovery: getServiceForToolType(), getDaoForToolType(), getToolTypeName(), getAllToolTypes()
+A unified API for dynamic discovery: getServiceForToolType(), getToolTypeName(), getAllToolTypes()
 
 ### Automatic extension
 **New tool type**:

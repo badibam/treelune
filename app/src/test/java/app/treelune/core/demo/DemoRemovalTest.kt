@@ -10,8 +10,8 @@ import java.sql.DriverManager
 /**
  * A reinstall of the demo removes all of it — its own rows, and what the user put in a demo zone
  * or tool — and touches nothing else, the demo's identity staying while a zone or a routine of the
- * user's names it: the statements of DemoRemoval, run on SQLite in their order over the columns
- * they read.
+ * user's names it: the selections of DemoRemoval, run on SQLite in their order over the columns
+ * they read, each id they give deleted before the next one is read.
  */
 class DemoRemovalTest {
 
@@ -86,7 +86,10 @@ class DemoRemovalTest {
 
     @Test
     fun `a removal takes the demo and what was put in it, and leaves everything else`() {
-        DemoRemoval.STATEMENTS.forEach { db.createStatement().execute(it) }
+        DemoRemoval.SELECTIONS.forEach { (table, query) ->
+            val selected = db.createStatement().executeQuery(query).use { rows -> buildList { while (rows.next()) add(rows.getString(1)) } }
+            selected.forEach { id -> db.prepareStatement("DELETE FROM $table WHERE id = ?").apply { setString(1, id); execute() } }
+        }
         assertEquals(setOf("zone"), ids("zones"))
         assertEquals(setOf("tool"), ids("tool_instances"))
         assertEquals(setOf("entry"), ids("tool_data"))

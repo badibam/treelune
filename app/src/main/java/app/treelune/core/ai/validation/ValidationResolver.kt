@@ -138,6 +138,9 @@ class ValidationResolver(private val context: Context) {
             "CREATE_DATA", "UPDATE_DATA", "DELETE_DATA", "START_DURATION", "STOP_DURATION", "IMPORT_DATA", "TOOL_OPERATION" ->
                 dataReason(toolId(action), levels)
 
+            // An undo writes what its step wrote: each row asks as its own write would
+            "UNDO_STEP", "REDO_STEP" -> stepReason(params["id"] as? String ?: error(s.shared("validation_reason_no_target")), levels)
+
             // An action this resolver does not know is asked rather than let through
             else -> s.shared("validation_reason_unknown").format(action.type)
         }
@@ -165,6 +168,25 @@ class ValidationResolver(private val context: Context) {
             s.shared("validation_reason_filters_aimed").format(aimedBy.joinToString(", ")).takeIf { aimedBy.isNotEmpty() }
         )
         return reasons.takeIf { it.isNotEmpty() }?.joinToString(" ")
+    }
+
+    /**
+     * Why an undo or a redo of the step [stepId] waits for approval: the first level one of its
+     * rows asks, as the write of that row would — a zone, a setting, an identity or a client of
+     * the connector the app's; a tool, a variable or a routine its zone's; an entry its tool's.
+     */
+    private suspend fun stepReason(stepId: String, levels: Levels): String? {
+        val places = app.treelune.core.database.AppDatabase.getDatabase(context).historyDao().placesOf(stepId)
+        if (places.isEmpty()) error(s.shared("validation_reason_no_target"))
+        for (place in places) {
+            val reason = when (place.tableName) {
+                "tool_data", "images" -> place.toolInstanceId?.let { dataReason(it, levels) } ?: place.zoneId?.let { zoneReason(it, levels) }
+                "tool_instances", "variables", "automations", "ai_sessions", "session_messages" -> place.zoneId?.let { zoneReason(it, levels) } ?: appReason(levels)
+                else -> appReason(levels)
+            }
+            if (reason != null) return reason
+        }
+        return null
     }
 
     private fun appReason(levels: Levels): String? = when {

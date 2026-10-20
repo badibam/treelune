@@ -48,7 +48,7 @@ fun ExternalAccessSettingsScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     val scope = rememberCoroutineScope()
-    val store = remember { RoomOAuthStore(AppDatabase.getDatabase(context)) }
+    val store = remember { RoomOAuthStore(context.applicationContext) }
     val state by McpAccess.state.collectAsState()
     val published by McpAccess.published.collectAsState()
     var clients by remember { mutableStateOf<List<OAuthClient>>(emptyList()) }
@@ -90,7 +90,13 @@ fun ExternalAccessSettingsScreen(onBack: () -> Unit) {
             onConfirm = {
                 val chosen = accessDraft
                 editingAccess = null
-                scope.launch { app.treelune.core.mcp.McpClientAccess.write(context, client.id, chosen) }
+                scope.launch {
+                    val result = app.treelune.core.coordinator.Coordinator(context).processUserAction("mcp_clients.set_access", mapOf(
+                        "client_id" to client.id,
+                        "access" to app.treelune.core.utils.JsonUtils.toList(chosen.toJson())
+                    ))
+                    if (result.status != app.treelune.core.commands.CommandStatus.SUCCESS) UI.Toast(context, result.error ?: "", app.treelune.core.ui.Duration.LONG)
+                }
             },
             onCancel = { editingAccess = null }
         ) {
@@ -109,7 +115,11 @@ fun ExternalAccessSettingsScreen(onBack: () -> Unit) {
             type = DialogType.DANGER,
             onConfirm = {
                 revoking = null
-                scope.launch { store.removeClient(client.id); clients = store.clients() }
+                scope.launch {
+                    val result = app.treelune.core.coordinator.Coordinator(context).processUserAction("mcp_clients.delete", mapOf("client_id" to client.id))
+                    if (result.status != app.treelune.core.commands.CommandStatus.SUCCESS) UI.Toast(context, result.error ?: "", app.treelune.core.ui.Duration.LONG)
+                    clients = store.clients()
+                }
             },
             onCancel = { revoking = null }
         ) {

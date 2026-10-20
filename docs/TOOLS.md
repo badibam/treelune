@@ -56,7 +56,7 @@ The main interface, with methods for:
 - **Metadata**: getDisplayName(), getUsage() (the `usage` text: what the type is for, what it already does by itself, what it is not for; read by the AI always in English, shown by the Guide), getAIDetail() (what only the AI reads besides, none by default), getSuggestedIcons(), getDefaultIconName(), getDefaultDisplayMode(), getDefaultShowFieldLabels()
 - **Declarations**: getEntryFields() (the entries' fields), getConfigSettings() (its own settings, beside the common part `ToolConfigSettings`; those the type puts in no section, the core puts in a section named after the type, so that on screen everything is in a frame); schemas, default config and reading are generated from them; configWithOptionsAdded() for a type that declares an open choice in `data`; getOperations() (default: none), the operations its service runs on its entries beside the generic writes, each a name, a sentence and its parameters declared as fields (`ToolOperation`)
 - **User interface**: getUsageScreen() @Composable; rememberTile() @Composable, the tool's tile on a zone (`ToolTile`): its 2×1 summary, its body on the rows its mode gives it, and its preview in place of the summary in the modes without a body (LINE, CONDENSED; the summary by default, the Chart's band), placed by `UI.ToolCard` beside the header; the body lays out its elements through `TileGrid`, each cell as high in FULL as in the limited modes, each written by `TileLine`: on the left a checkbox or an icon, on the right a value or buttons that keep their size, in the middle the text on two lines at most (one only when the tile stacks four per row, a List of short items), or a line and a second, quieter one below; each type fills every mode, with no default tile, and a tile opens the tool on an entry or a new entry (`EntryToOpen`); the config screen is generated from the declaration (`ToolConfigScreen`, `SettingsForm`), a schedule (`ScheduleSettings.group`) included
-- **Discovery pattern**: getService(), getDao(), getDatabaseEntities(), getDatabaseMigrations(), getScheduler()
+- **Discovery pattern**: getService(), getDatabaseEntities(), getDatabaseMigrations(), getScheduler()
 - **Enrichment**: enrichData() (identity by default, automatic enrichment before persistence)
 - **Rule between entries**: settleEntries() (default: nothing to change), see below
 - **Without entries**: keepsEntries() (default: yes); a tool that shows the entries of others (the Chart) keeps none: no user fields in its config, and every write of an entry is refused; takesUserFields() (default: keepsEntries()), false for a tool whose entries the app alone writes from what the user does elsewhere (a deck's reviews): no user fields in its config
@@ -100,7 +100,7 @@ A class implementing ToolTypeContract with:
 - getDisplayName(), getUsage(), getDefaultDisplayMode()
 - getEntryFields(), getConfigSettings()
 - getUsageScreen() @Composable
-- getService(), getDao(), getDatabaseEntities()
+- getService(), getDatabaseEntities()
 
 ### enrichData pattern
 **Principle**: automatic enrichment of the data before persistence (called by ToolDataService for all entries).

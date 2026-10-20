@@ -5,14 +5,14 @@ import app.treelune.core.database.entities.AppSettingCategories
 import org.json.JSONObject
 
 /**
- * Brings the external access settings to their v83 form: the connector gains its own data
+ * Brings the external access settings to their v84 form: the connector gains its own data
  * threshold, 200 000 characters, where it read the chat's.
  *
- * Written here as decided at v83, not read from AppSettings, whose default may change later
+ * Written here as decided at v84, not read from AppSettings, whose default may change later
  * without changing what this migration did. Shared by the database migration and the backup
  * import (JsonTransformers.transformAppConfig).
  */
-object ExternalAccessDataAtV83 {
+object ExternalAccessDataAtV84 {
 
     /** [settings] of [category], with the connector's data threshold. */
     fun rewrite(category: String, settings: JSONObject): JSONObject {

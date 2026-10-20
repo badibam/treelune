@@ -80,5 +80,5 @@ fun rememberFlashcardsTile(tool: ToolInstance): ToolTile {
 /** « 14 to review · 6 new », what is left alone when the other is none, « Nothing for today » when both are. */
 internal fun countsText(counts: DeckCounts.Counts, s: app.treelune.core.strings.StringsContext): String = listOfNotNull(
     s.tool("count_due").format(counts.due).takeIf { counts.due > 0 },
-    s.tool("count_new").format(counts.new).takeIf { counts.new > 0 }
+    s.tool(if (counts.new == 1) "count_new_singular" else "count_new_plural").format(counts.new).takeIf { counts.new > 0 }
 ).joinToString(" · ").ifEmpty { s.tool("count_nothing") }

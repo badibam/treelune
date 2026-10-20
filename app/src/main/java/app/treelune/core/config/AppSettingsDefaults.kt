@@ -52,7 +52,9 @@ object AppSettingsDefaults {
             .put(AppSettings.GUIDE_BAND_HIDDEN, false)
             .put(AppSettings.GUIDE_CHAPTERS, JSONArray()).toString()
         // No folder until the user chooses one; the automatic backup on as soon as there is one
-        AppSettingCategories.DATA -> JSONObject().put(AppSettings.DATA_AUTO_BACKUP, true).toString()
+        AppSettingCategories.DATA -> JSONObject().put(AppSettings.DATA_AUTO_BACKUP, true)
+            .put(AppSettings.DATA_HISTORY_DAYS, app.treelune.core.versioning.HistoryAtV83.DAYS)
+            .put(AppSettings.DATA_HISTORY_MEGABYTES, app.treelune.core.versioning.HistoryAtV83.MEGABYTES).toString()
         else -> throw IllegalArgumentException("No defaults for settings category '$category'")
     }
 
