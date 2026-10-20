@@ -379,6 +379,8 @@
     <string name="action_verbalize_create_zone">Création de la zone \"%1$s\"</string>
     <string name="action_verbalize_update_zone">Modification de la zone \"%1$s\"</string>
     <string name="action_verbalize_delete_zone">Suppression de la zone \"%1$s\"</string>
+    <string name="action_verbalize_mcp_client_access">Modification des accès du client \"%1$s\"</string>
+    <string name="action_verbalize_mcp_client_delete">Révocation du client \"%1$s\"</string>
     <string name="action_verbalize_create_tool">Création de l\'outil \"%1$s\" dans la zone \"%2$s\"</string>
     <string name="action_verbalize_update_tool_config">Modification de la configuration de l\'outil \"%1$s\"</string>
     <string name="action_verbalize_delete_tool">Suppression de l\'outil \"%1$s\"</string>
@@ -949,6 +951,10 @@
     <string name="service_error_zone_id_required">ID de zone obligatoire</string>
     <string name="service_error_grid_places">Les places données ne disposent pas les outils du groupe</string>
     <string name="service_error_zone_not_found">Zone introuvable</string>
+    <string name="service_error_mcp_clients_user_only">Les clients du connecteur se gèrent dans l\'app, par l\'utilisateur</string>
+    <string name="service_error_mcp_client_not_found">Client du connecteur introuvable : %1$s</string>
+    <string name="service_error_mcp_client_access_missing">Paramètre obligatoire manquant: access</string>
+    <string name="service_error_mcp_client_access_unreadable">Accès illisibles : %1$s</string>
     <string name="service_error_zone_id_tool_type_required">ID de zone et type d'outil obligatoires</string>
     <string name="service_error_tool_instance_id_required">ID d'instance d'outil obligatoire</string>
     <string name="service_error_tool_instance_not_found">Instance d'outil introuvable</string>

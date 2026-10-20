@@ -98,24 +98,28 @@ object McpClientAccess {
         }
     }
 
-    suspend fun write(context: android.content.Context, clientId: String, access: app.treelune.core.access.AccessMask) =
-        AppDatabase.getDatabase(context).mcpDao().setAccess(clientId, access.toJson().toString())
 }
 
-class RoomOAuthStore(private val dao: McpDao) : OAuthStore {
+class RoomOAuthStore(private val context: android.content.Context) : OAuthStore {
+    private val dao = AppDatabase.getDatabase(context).mcpDao()
 
-    constructor(database: AppDatabase) : this(database.mcpDao())
-
-    override suspend fun addClient(client: OAuthClient) = dao.insertClient(
-        McpClientEntity(client.id, client.name, JSONArray(client.redirectUris).toString(), client.secretHash, client.createdAt, client.lastUsedAt)
-    )
+    /**
+     * A client registering itself: the app's own write, which the history notes without making a
+     * step of it (docs/design/undo-history.md). The user revokes it through the coordinator
+     * (McpClientService).
+     */
+    override suspend fun addClient(client: OAuthClient) {
+        val noted = app.treelune.core.history.Step(app.treelune.core.coordinator.Source.EXTERNAL, isStep = false, sessionId = null)
+        kotlinx.coroutines.withContext(noted) {
+            app.treelune.core.history.Writes(context).insertClient(
+                McpClientEntity(client.id, client.name, JSONArray(client.redirectUris).toString(), client.secretHash, client.createdAt, client.lastUsedAt)
+            )
+        }
+    }
 
     override suspend fun client(id: String): OAuthClient? = dao.client(id)?.toClient()
 
     override suspend fun clients(): List<OAuthClient> = dao.clients().map { it.toClient() }
-
-    // Its tokens go with it (ForeignKey.CASCADE)
-    override suspend fun removeClient(id: String) = dao.deleteClient(id)
 
     override suspend fun touchClient(id: String, at: Long) = dao.touchClient(id, at)
 

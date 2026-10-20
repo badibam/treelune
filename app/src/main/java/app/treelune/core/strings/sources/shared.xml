@@ -379,6 +379,8 @@
     <string name="action_verbalize_create_zone">Creation of the zone \"%1$s\"</string>
     <string name="action_verbalize_update_zone">Modification of the zone \"%1$s\"</string>
     <string name="action_verbalize_delete_zone">Deletion of the zone \"%1$s\"</string>
+    <string name="action_verbalize_mcp_client_access">Modification of the access of the client \"%1$s\"</string>
+    <string name="action_verbalize_mcp_client_delete">Revocation of the client \"%1$s\"</string>
     <string name="action_verbalize_create_tool">Creation of the tool \"%1$s\" in the zone \"%2$s\"</string>
     <string name="action_verbalize_update_tool_config">Modification of the configuration of the tool \"%1$s\"</string>
     <string name="action_verbalize_delete_tool">Deletion of the tool \"%1$s\"</string>
@@ -949,6 +951,10 @@
     <string name="service_error_zone_id_required">Zone ID required</string>
     <string name="service_error_grid_places">The places given do not lay out the tools of the group</string>
     <string name="service_error_zone_not_found">Zone not found</string>
+    <string name="service_error_mcp_clients_user_only">The connector's clients are managed in the app, by the user</string>
+    <string name="service_error_mcp_client_not_found">Connector client not found: %1$s</string>
+    <string name="service_error_mcp_client_access_missing">Mandatory parameter missing: access</string>
+    <string name="service_error_mcp_client_access_unreadable">Access unreadable: %1$s</string>
     <string name="service_error_zone_id_tool_type_required">Zone ID and tool type required</string>
     <string name="service_error_tool_instance_id_required">Tool instance ID required</string>
     <string name="service_error_tool_instance_not_found">Tool instance not found</string>
