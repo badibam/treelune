@@ -17,7 +17,7 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 
 ## Bugs
 
-- Une borne de jour ou de semaine se calcule en journées de l'app (l'heure où commence le jour, le premier jour de la semaine, `TimeResolver`), jamais de minuit à minuit ; seul le transport d'une date sans rien couper y échappe. Restent : les événements toute la journée de l'Agenda (`AgendaEvents.kt:47` et `:106`, `AgendaForms.kt:60`, la date stockée gardée, ses bornes lues en journées de l'app), les graduations et les champs DATE du Graphique (`ChartScales.kt:37`, `:189-193`), le premier jour de semaine des sélecteurs de date des thèmes (`WeekFields.of(locale)`, et celui de Material), `TimeResolver.day(Now)` et `day(Shift)` qui donnent la date de minuit à minuit (« aujourd'hui » à 00:30, le lendemain) ; puis un contrôle des sources qui refuse une borne faite à la main hors de `TimeResolver`, `DateUtils` et `PeriodSelector`.
+- Une borne de jour ou de semaine se calcule en journées de l'app (l'heure où commence le jour, le premier jour de la semaine, `TimeResolver`), jamais de minuit à minuit ; seul le transport d'une date sans rien couper y échappe. Restent : les graduations et les champs DATE du Graphique (`ChartScales.kt:37`, `:189-193`), le premier jour de semaine des sélecteurs de date des thèmes (`WeekFields.of(locale)`, et celui de Material), `TimeResolver.day(Now)` et `day(Shift)` qui donnent la date de minuit à minuit (« aujourd'hui » à 00:30, le lendemain) ; puis un contrôle des sources qui refuse une borne faite à la main hors de `TimeResolver`, `DateUtils` et `PeriodSelector`.
 - La durée d'un Objectif est stockée en millisecondes (7 jours = 604 800 000) : une tentative qui traverse un changement d'heure finit une heure avant ou après l'heure de son début — non vérifié.
 - Des boutons à libellé posés dans une simple rangée, qui se perdent quand la place manque : à passer dans `ButtonRow` (`VariableScreen.kt:175`, `JournalEntryScreen.kt:376`, `DuplicateSelector.kt:234`, `StructuredScreen.kt:260` et `:299`), et la rangée d'actions de `InteractionCard` (la validation dans le chat), que chaque thème pose avec deux moitiés de largeur fixe (`InteractionActions`).
 
@@ -129,6 +129,7 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 
 ## En attente d'un déclencheur
 
+- Un événement toute la journée de l'Agenda est un instant, le début du jour de l'app à sa date (v83) : un changement de l'heure où commence le jour, ou du fuseau (un voyage, le fuseau suivant le téléphone), le fait glisser d'un jour pour ce qui lit par période ; rien ne le replace. Le replacer à chaque changement du calendrier (un crochet du contrat des outils, le dernier calendrier appliqué gardé par le cœur), ou stocker une date — quand un événement se montre sur le mauvais jour.
 - Des niveaux de prompt (`docs/design/local-models.md`, « Si un modèle plus petit est voulu ») : décidé le 2026-10-17, un seul prompt, la classe 30B le suivant — quand un modèle plus petit, ou un modèle dans l'app sur le téléphone, sera voulu.
 - Un filtre qui compare un champ à une variable ou à une lecture (« kcal > objectif_calorique ») : `EntryFilters.parse` le refuse, `ConditionPicker` n'offre qu'une valeur écrite — quand un pointeur ou une variable en a besoin ; le terme se lit alors une fois à la référence du contexte (`TermReader`).
 
