@@ -1500,6 +1500,10 @@
     <string name="share_file_name">treelune_share</string>
     <string name="share_error_selection">What is ticked cannot be read: %1$s</string>
     <string name="share_error_file_name">The zone\'s name, “%1$s”, cannot name a file: rename the zone to share it.</string>
+    <string name="share_link_element_to_element">“%1$s” reads “%2$s”. Tick “%2$s” too, or untick “%1$s”.</string>
+    <string name="share_link_element_to_entries">“%1$s” reads entries of “%2$s”. Switch on the entries of “%2$s”, or untick “%1$s”.</string>
+    <string name="share_link_entries_to_element">Entries of “%1$s” designate “%2$s”. Tick “%2$s” too, or switch off the entries of “%1$s”.</string>
+    <string name="share_link_entries_to_entries">Entries of “%1$s” designate entries of “%2$s”. Switch on the entries of “%2$s”, or switch off those of “%1$s”.</string>
     <string name="action_verbalize_exports_csv">Export of entries</string>
     <string name="action_verbalize_exports_csv_tool">Export of the entries of “%1$s”</string>
     <string name="import_action">Import a file</string>

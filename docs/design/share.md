@@ -110,10 +110,10 @@ Pour un modèle, la cible part sans ses entrées et arrive vide. Ainsi un fichie
 
 ## Implémentation
 
-Le découpage, un commit chacun ; le premier est fait (`BackupPart`, `PartSelection`, `AppFolder`, `backup.export` avec `selection`).
+Le découpage, un commit chacun ; les deux premiers sont faits (`BackupPart`, `PartSelection`, `AppFolder`, `backup.export` avec `selection` ; `PartLinks`).
 
 1. La sauvegarde partielle côté service — fait.
-2. Le contrôle des liens : les deux familles sur une sélection, le service refusant aussi une sélection qui garde un lien bloquant ; des tests.
+2. Le contrôle des liens : les deux familles sur une sélection, le service refusant aussi une sélection qui garde un lien bloquant ; des tests — fait.
 3. L'import partiel (`backup.import_part`) : une sélection et la zone d'arrivée de chaque zone, tout par les services ordinaires dans l'ordre des dépendances (comme `DemoService.build`), un seul pas de l'historique. Un fichier partiel passe par les transformations de version alors qu'il n'a ni réglages ni fournisseurs : à vérifier.
 4. L'écran Exporter : l'arbre de cases lu d'une sauvegarde complète de l'app (`build()`), la même fonction qui lira le fichier à l'import.
 5. L'écran Importer, reprendre une partie.

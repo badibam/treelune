@@ -54,7 +54,8 @@ import app.treelune.core.ai.data.LegacyCatchUp
  * - export: `uri`: the backup of all data written there. Or `selection` (PartSelection's stored
  *   form): the part of the app ticked (BackupPart, docs/design/share.md), written into the app's
  *   folder (AppFolder) under the name of its zone when there is one, `treelune_share` otherwise,
- *   and the minute. Answer: `file_name`, `uri`, `elements`, `entries`, `missing_images`
+ *   and the minute; refused while an element kept names one left out (PartLinks, a blocking
+ *   link). Answer: `file_name`, `uri`, `elements`, `entries`, `missing_images`
  * - auto: the automatic backup's copy (AutoBackup), into the folder chosen, rolled; none when the
  *   data did not change since the last one. Answer: `written`
  * - import: `uri`: data restored from a backup there (with version migrations): a zip, or the
@@ -132,6 +133,10 @@ class BackupService(private val context: Context) : ExecutableService {
             app.treelune.core.backup.BackupPart.cut(whole.json, selection)
         } catch (e: IllegalArgumentException) {
             return OperationResult.error(s.shared("share_error_selection").format(e.message ?: ""))
+        }
+        // An element kept that names one left out would arrive broken: the first such link refuses
+        app.treelune.core.backup.PartLinks.of(whole.json, selection).firstOrNull { it.blocking }?.let { link ->
+            return OperationResult.error(app.treelune.core.backup.PartLinks.blockingText(link, whole.json, s::shared))
         }
         val kept = app.treelune.core.backup.BackupPart.imageIds(part)
         val built = Built(part, whole.images.filter { it.id in kept }, whole.missingIds intersect kept)
