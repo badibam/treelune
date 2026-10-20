@@ -62,4 +62,18 @@ class DurationUnitsAtV86Test {
         assertEquals("HOUR_MINUTE", next.getJSONObject("field").getJSONObject("config").getString("units"))
         assertFalse(next.getJSONObject("field").getJSONObject("config").has("precision"))
     }
+
+    @Test
+    fun `a model's answer that is not JSON is left as it is, a backup holding one imported all the same`() {
+        assertNull(DurationUnitsAtV86.messageText("Je crée la zone.\n```json\n{\"pre_text\": \"…\"}\n```"))
+        assertNull(DurationUnitsAtV86.messageText("""{"pre_text": "coupé"""))
+        val backup = JSONObject().put("session_messages", org.json.JSONArray().put(JSONObject()
+            .put("ai_message_json", "Voici la réponse")
+            .put("ai_message_parsed_json", """{"communication_module": {"fields": [{"type": "DURATION", "config": {"precision": "MINUTE"}}]}}""")))
+        DurationUnitsAtV86.backup(backup)
+        val message = backup.getJSONArray("session_messages").getJSONObject(0)
+        assertEquals("Voici la réponse", message.getString("ai_message_json"))
+        assertEquals("HOUR_MINUTE", JSONObject(message.getString("ai_message_parsed_json")).getJSONObject("communication_module")
+            .getJSONArray("fields").getJSONObject(0).getJSONObject("config").getString("units"))
+    }
 }

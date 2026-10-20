@@ -460,9 +460,8 @@ object DefaultTheme : ThemeContract {
                     modifier = Modifier.size(getButtonIconSize(size))
                 )
             } else {
-                androidx.compose.material3.Text(
-                    action.label()
-                )
+                // The text of every labelled button, as one composed by hand: only the colour tells their kind
+                Text(action.label(), TextType.LABEL, false, null)
             }
         }
         when {
@@ -514,15 +513,19 @@ object DefaultTheme : ThemeContract {
             ButtonType.DANGER -> scheme.error
             ButtonType.DEFAULT -> scheme.onSurfaceVariant
         }
+        val shown = if (enabled) ink else scheme.onSurface.copy(alpha = 0.38f)
         Surface(
             color = Color.Transparent,
-            contentColor = if (enabled) ink else scheme.onSurface.copy(alpha = 0.38f),
+            contentColor = shown,
             shape = config.shape,
             modifier = Modifier
                 .defaultMinSize(minWidth = config.minWidth, minHeight = config.minHeight)
                 .clickable(enabled = enabled) { onClick() }
         ) {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(config.padding)) { content() }
+            // Its colour to the theme's text inside, as the other buttons give theirs
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(config.padding)) {
+                CompositionLocalProvider(LocalDefaultInk provides shown) { content() }
+            }
         }
     }
 

@@ -77,4 +77,14 @@ class ConditionValuesTest {
     fun anythingElse_isWrittenAsItIsStored() {
         assertEquals(2100, filterValue(stored(filter("meals", "data.kcal", ">", 2100))))
     }
+
+    private fun forModel(config: JSONObject) = runBlocking { ConditionValues(sources, ZoneId.of("Europe/Paris")) { it }.toModel(nodes, config) }
+
+    @Test
+    fun aStoredValue_isReadByTheModelAsItWritesIt_theWayBack() {
+        // What the AI reads of a config it wrote with PT7H is PT7H, not 25200000 it would take for a bare number
+        assertEquals("PT7H", rightOf(forModel(stored(criterion(sleepAverage, "PT7H")))))
+        assertEquals("2025-09-15T08:00:00+02:00", filterValue(forModel(filter("sleep", "timestamp", ">=", 1_757_916_000_000L))))
+        assertEquals(2100, filterValue(forModel(filter("meals", "data.kcal", ">", 2100))))
+    }
 }

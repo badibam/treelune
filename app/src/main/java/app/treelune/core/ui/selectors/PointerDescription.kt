@@ -46,7 +46,7 @@ object PointerDescription {
         field.type == FieldType.DURATION && value is Number -> Durations.format(value.toLong(), field.config, s)
         field.type == FieldType.DATETIME && value is Number -> DateUtils.formatFullDateTime(value.toLong())
         field.type == FieldType.BOOLEAN -> s.shared(if (value == true) "label_yes" else "label_no")
-        field.type == FieldType.TEXT -> "« $value »"
+        field.type == FieldType.TEXT -> s.shared("quoted").format(value)
         value is Double && value % 1.0 == 0.0 -> value.toLong().toString()
         else -> value.toString()
     }

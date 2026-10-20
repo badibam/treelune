@@ -190,7 +190,7 @@
     <string name="entry_not_found">This entry no longer exists.</string>
     <string name="error_fold_as">A fold names its two columns in as, a key then a value: [\"key\", \"value\"].</string>
     <string name="error_missing">A chart needs %1$s.</string>
-    <string name="error_option">%1$s: « %2$s » is not an option. Accepted: %3$s.</string>
+    <string name="error_option">%1$s: “%2$s” is not an option. Accepted: %3$s.</string>
     <string name="error_transform">A transform is a fold or a flatten, one of the two.</string>
     <string name="error_value">%1$s: %2$s is not a value this channel takes.</string>
     <string name="format_day">MMM d</string>

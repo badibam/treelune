@@ -52,6 +52,6 @@ object AiReadOnly {
     /** The objects of [array], the ones it holds and not copies. */
     fun objects(array: JSONArray?): List<JSONObject> = array?.let { a -> (0 until a.length()).map { a.getJSONObject(it) } } ?: emptyList()
 
-    /** [fields] named for a message, each between quotes. */
-    fun named(fields: List<FieldDefinition>): String = fields.joinToString(", ") { "« ${it.displayName} »" }
+    /** [fields] named for a message, each between the quotes of the app's language ([text], the shared strings). */
+    fun named(fields: List<FieldDefinition>, text: (String) -> String): String = fields.joinToString(", ") { text("quoted").format(it.displayName) }
 }

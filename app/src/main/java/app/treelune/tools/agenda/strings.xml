@@ -51,8 +51,8 @@
     <string name="verbalize_restore">Planning an event again</string>
     <string name="error_all_day_duration">A whole day event lasts days (days), not a duration: send one or the other</string>
     <string name="error_days_without_all_day">Days (days) go with a whole day event (all_day): an event at a time has a duration</string>
-    <string name="error_series_all_day_duration">The series « %1$s » takes whole days: it lasts days, not a duration</string>
-    <string name="error_series_days_without_all_day">The series « %1$s » is at a time: it has a duration, not days</string>
+    <string name="error_series_all_day_duration">The series “%1$s” takes whole days: it lasts days, not a duration</string>
+    <string name="error_series_days_without_all_day">The series “%1$s” is at a time: it has a duration, not days</string>
     <string name="error_reminder_not_relative">A reminder is relative to the start of the event, never a fixed date</string>
     <string name="error_delete_occurrence">An occurrence of a series is not deleted, its series would give it again: remove it (agenda.remove)</string>
     <string name="error_remove_single">Only an occurrence of a series is removed; an event of its own is deleted</string>
@@ -80,10 +80,10 @@
     <string name="action_restore">Restore</string>
     <string name="action_remove">Remove</string>
     <string name="action_edit_series">Edit the series</string>
-    <string name="delete_event_confirm">Delete « %1$s »?</string>
-    <string name="delete_series_confirm">Delete the series « %1$s »? Its occurrences to come go with it, the past ones stay.</string>
-    <string name="removed_series_moved">%1$d occurrence(s) to come of « %2$s » deleted, given again at its new times</string>
-    <string name="removed_series_gone">%1$d occurrence(s) to come of « %2$s » deleted with their series</string>
+    <string name="delete_event_confirm">Delete “%1$s”?</string>
+    <string name="delete_series_confirm">Delete the series “%1$s”? Its occurrences to come go with it, the past ones stay.</string>
+    <string name="removed_series_moved">%1$d occurrence(s) to come of “%2$s” deleted, given again at its new times</string>
+    <string name="removed_series_gone">%1$d occurrence(s) to come of “%2$s” deleted with their series</string>
     <string name="series_change_confirm">The %1$d occurrences to come will be made again: what you changed in them will be lost.</string>
     <string name="moment_at">%1$s, %2$s</string>
     <string name="moment_range">%1$s, %2$s – %3$s</string>

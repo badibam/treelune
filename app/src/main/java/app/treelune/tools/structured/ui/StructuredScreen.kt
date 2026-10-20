@@ -221,7 +221,7 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
         // The filter header: one line summing it up, the whole of it when opened
         if (!editing) item {
             val summary = listOfNotNull(
-                search.takeIf { it.isNotBlank() }?.let { "« $it »" },
+                search.takeIf { it.isNotBlank() }?.let { s.shared("quoted").format(it) },
                 *JSONArray(filters).let { a -> (0 until a.length()).map { PointerDescription.filter(a.getJSONObject(it), filterable, s) } }.toTypedArray(),
                 "${if (sortKey == BY_NAME) s.shared("label_name") else fields.find { it.name == sortKey }?.displayName ?: sortKey} ${if (ascending) "↑" else "↓"}",
                 if (position != null) s.tool("position").format(position + 1, shown.size) else s.tool("count").format(shown.size)

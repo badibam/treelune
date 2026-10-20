@@ -94,7 +94,8 @@ class DemoData(private val time: TimeResolver, private val hand: JSONObject) {
     // ------------------------------------------------------------------ entries
 
     private fun text(key: String) = "@$key"
-    private fun text(key: String, vararg args: Any) = JSONObject().put("@", key).put("args", JSONArray(args.map { it.toString() }))
+    /** A text with its values put in; a value that is a text itself is resolved in the same language. */
+    private fun text(key: String, vararg args: Any) = JSONObject().put("@", key).put("args", JSONArray(args.map { if (it is JSONObject) it else it.toString() }))
 
     private fun entry(id: String, name: Any? = null, timestamp: Long? = null, data: JSONObject? = null, extra: JSONObject? = null, state: JSONObject? = null) =
         JSONObject().apply {
@@ -528,8 +529,12 @@ class DemoData(private val time: TimeResolver, private val hand: JSONObject) {
         val verdict = if (back == RUSH) "course_review_rush" else "course_review_good"
         // Its tags: tired in the rush week, progress otherwise, the long run once it reaches 14 km
         val tags = JSONArray(listOfNotNull(if (back == RUSH) "tired" else "progress", if ((runs.maxOrNull() ?: 0.0) >= 14.0) "long_run" else null))
-        entry("demo-e-review-$back", text("course_review_title", weekFirst(back).toString()), written,
-            json("content" to text("course_review", runs.size, round1(runs.sum()), "${average / HOUR} h ${"%02d".format(average % HOUR / MINUTE)}", text(verdict))),
+        val first = weekFirst(back)
+        // Its title and its numbers written by each language: « 03/08 », « 22,5 », one run singular
+        val km = (runs.sum() * 10).roundToInt()
+        entry("demo-e-review-$back", text("course_review_title", text("day_month", "%02d".format(first.dayOfMonth), "%02d".format(first.monthValue))), written,
+            json("content" to text(if (runs.size == 1) "course_review_one" else "course_review", runs.size, text("decimal", km / 10, km % 10),
+                "${average / HOUR} h ${"%02d".format(average % HOUR / MINUTE)}", text(verdict))),
             json("tags" to tags))
     }
 
@@ -551,7 +556,7 @@ class DemoData(private val time: TimeResolver, private val hand: JSONObject) {
         val starts = generateSequence(next(from)) { next(it) }.takeWhile { it <= now }.toList().takeLast(WEEKS)
         starts.mapIndexed { i, start ->
             val back = starts.lastIndex - i
-            val end = duration?.let { start + it } ?: (next(start)!! - 1)
+            val end = duration?.let { time.after(start, it) } ?: (next(start)!! - 1)
             val entered = if (tool == "demo-course-goal") json("c_no_pain" to (back != RUSH)) else JSONObject()
             when (back) {
                 0 -> Attempt(tool, start, end, entered, "active", validate = false)

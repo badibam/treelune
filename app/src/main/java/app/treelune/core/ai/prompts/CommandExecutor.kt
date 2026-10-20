@@ -745,7 +745,7 @@ class CommandExecutor(private val context: Context) {
      * Format result data as JSON with metadata first
      * Reorganizes data to put important metadata before bulk data
      */
-    private fun formatResultData(command: ExecutableCommand, data: Map<String, Any>): String {
+    private suspend fun formatResultData(command: ExecutableCommand, data: Map<String, Any>): String {
         val reordered = mutableMapOf<String, Any>()
         val timezone = AppConfigManager.getDateTimeConfig().getZoneId()
 
@@ -910,15 +910,17 @@ class CommandExecutor(private val context: Context) {
     private fun schemaForModel(content: String): String =
         SchemaNotation.render(SchemaModelView.forModel(JSONObject(content), AppConfigManager.getDateTimeConfig().getZoneId()))
 
-    /** A tool instance of a result, its config in the form the model reads. */
-    private fun configForModel(instance: Any?, timezone: java.time.ZoneId): Any? {
+    /** A tool instance of a result, its config in the form the model reads, its conditions' values included (ConditionValues). */
+    private suspend fun configForModel(instance: Any?, timezone: java.time.ZoneId): Any? {
         val map = instance as? Map<*, *> ?: return instance
         val config = map["config"] ?: return instance
         val tooltype = map["tooltype"] as? String ?: return instance
         val toolType = app.treelune.core.tools.ToolTypeManager.getToolType(tooltype)
             ?: throw IllegalStateException("Unknown tooltype $tooltype")
         val schema = JSONObject(app.treelune.core.tools.ToolConfigSettings.schema(toolType, "${tooltype}_config", context).content)
-        return map.toMutableMap().apply { put("config", ModelValues.toModel(config, schema, timezone)) }
+        val values = app.treelune.core.ai.processing.ConditionValues(app.treelune.core.conditions.AppConditionSources(context, toolType.getRowFields()), timezone) { s.shared(it) }
+            .toModel(app.treelune.core.tools.ToolConfigSettings.nodes(toolType, context), JsonUtils.toJSONObject(JsonUtils.toMap(config)))
+        return map.toMutableMap().apply { put("config", ModelValues.toModel(JsonUtils.toMap(values), schema, timezone)) }
     }
 
     /**

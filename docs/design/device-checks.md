@@ -361,7 +361,7 @@ Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la po
 - Copier une entrée de Journal et une note qui ont des champs ajoutés (une échelle, un choix de moins de 8 options, un classement, une référence) : les lignes « Nom : valeur » après le texte, une échelle en barre, un choix parmi ses options, une référence par son nom, un champ vide absent.
 - Un choix à une réponse passé à plusieurs : enregistré sans rien demander, chaque entrée garde sa réponse. Plusieurs vers une : seules les entrées à plusieurs réponses perdent la valeur, comptées.
 - Le type de valeur d'un Suivi changé : les entrées supprimées, comptées dans la fenêtre.
-- Demander à l'IA de resserrer une échelle (conversation) : la carte de validation dit les comptes, même dans une zone non protégée ; refusée, rien ne change ; acceptée, les valeurs hors bornes partent. « Protéger les données passées » décoché : l'IA est refusée et doit renvoyer avec `confirm_migration`. Par le connecteur : la notification d'accord. Une routine qui le fait : passe si son accès le permet.
+- Demander à l'IA de resserrer une échelle (conversation) : la carte de validation dit les comptes, même dans une zone non protégée (vu le 2026-10-20 en retirant un critère saisi d'un Objectif, dont la config porte une durée) ; refusée, rien ne change ; acceptée, les valeurs hors bornes partent. « Protéger les données passées » décoché : l'IA est refusée et doit renvoyer avec `confirm_migration`. Par le connecteur : la notification d'accord. Une routine qui le fait : passe si son accès le permet.
 - Objectif : valider une tentative, changer un critère (seuil, critère retiré), rouvrir la tentative : elle est jugée selon ses anciens critères, la valeur saisie du critère retiré toujours là ; revalidée, son jugement aussi.
 - Une séance notée « Faite » sans l'écran : ses étapes toutes faites, sans temps ; une séance finie avant ce changement se corrige toujours par ses comptes.
 
@@ -438,7 +438,7 @@ Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la po
 
 ## Les conditions typées à l'écriture (branche typed-conditions, `docs/design/typed-conditions.md`)
 
-- Dans une conversation : « crée un Objectif sommeil moyen d'au moins 7 h sur Sommeil » ; la config de l'Objectif, rouverte à l'écran, montre 7 h, et la tentative se juge sans erreur. Redemander en exigeant « écris 25200000 » : refusé, le message dit d'écrire « PT7H », et l'IA corrige.
+- Un Objectif « sommeil moyen d'au moins 7 h » créé par l'IA : sa config, rouverte à l'écran, montre 7 h, et la tentative se juge sans erreur (l'IA qui écrit « PT7H », relit « PT7H », et voit « 25200000 » refusé : vus le 2026-10-20).
 - Graphique « Repas par moment » : demander à l'IA un filtre « moment = déjeuner » : refusé, le message dit que `=` ne compare pas un choix et donne `in` ; puis un filtre sur « déjeunner » : refusé, le message dit d'ajouter l'option d'abord.
 - À l'écran, une condition d'Objectif ou de Graphique enregistrée comme avant : rien ne change ; la config d'un Graphique dont un filtre vise un champ supprimé de son outil : l'enregistrement est refusé et nomme la condition.
 
@@ -509,13 +509,12 @@ Vu le 2026-10-20 sur la démo : la tuile et la page de Ripasso ; la fenêtre de 
 
 ## Les bugs du 2026-10-20 et les unités des durées (branche bugs)
 
-- La migration 86 sur la release et ses données : chaque champ Durée s'affiche comme avant (le sommeil et les heures de la démo en « h m », un champ réglé « une seule unité » dans son unité) ; sa config montre « Unités » à la place de Précision et Forme ; une sauvegarde d'avant restaurée, de même.
-- Un Objectif récurrent : « Durée d'une tentative » et « Délai avant expiration » se saisissent en j et h, l'expiration à « 7 j » par défaut ; une tentative en cours dit « reste 6 j 8 h », « reste 40 m » dans sa dernière heure.
-- La durée d'un événement de l'Agenda, la fenêtre de validité de Messages, le délai de rattrapage d'une routine : une case j devant h et m.
-- Retirer un sens d'un paquet Flashcards : la confirmation dit « N révision(s) du sens « … » supprimée(s) » ; changer d'horaire une série de l'Agenda, « N occurrence(s) à venir de « … » supprimée(s), redonnée(s) à ses nouveaux horaires » ; l'IA qui fait le même changement reçoit les mêmes mots.
-- Les boutons à libellé à la plus grande taille de texte d'Android : la validation d'une action de l'IA dans le chat, les formulaires d'une variable et d'une entrée du Journal, la duplication d'un outil, une fiche de Données structurées : côte à côte quand ils tiennent, l'un sous l'autre sinon, jamais un coupé.
-- En français, « Rétention voulue » d'un paquet s'écrit « 0,9 » ; « 0,85 » tapé avec la virgule est gardé.
-- Une Séance : le minuteur d'une étape se saisit en m et s, un repos de 30 s et 2 m 30 s tenus ; la durée d'une séance faite s'affiche et se corrige en h, m et s.
+- La migration 86 : un champ réglé « une seule unité » s'affiche dans son unité ; une sauvegarde d'avant restaurée s'importe, ses durées comme avant (sur la release le 2026-10-20 : le sommeil en « 7h 42m », « Unités : heures minutes » dans sa config ; les réponses brutes de l'IA qui ne sont pas du JSON laissées telles quelles, sans erreur au journal, depuis le correctif).
+- Un Objectif récurrent : une tentative en cours dit « reste 40m » dans sa dernière heure ; la démo réinstallée, la semaine d'italien finit le lundi 26 octobre à 00:00, malgré le changement d'heure du 25 (j et h, « 7 j », « reste 5j 5h » : vus le 2026-10-20).
+- Le délai de rattrapage d'une routine : une case j devant h et m (l'Agenda et Messages : vus le 2026-10-20).
+- Retirer un sens d'un paquet Flashcards : la confirmation ne dit plus que ce qui est retiré ne revient pas (« 109 révision(s) du sens « FR → IT » supprimée(s) » : vu le 2026-10-20) ; changer d'horaire une série de l'Agenda, « N occurrence(s) à venir de « … » supprimée(s), redonnée(s) à ses nouveaux horaires » ; l'IA qui fait le même changement reçoit les mêmes mots.
+- Les boutons à libellé à la plus grande taille de texte d'Android, dans les thèmes autres que le défaut : la validation d'une action de l'IA dans le chat, les formulaires d'une variable et d'une entrée du Journal, la duplication d'un outil, une fiche de Données structurées : côte à côte quand ils tiennent, l'un sous l'autre sinon, jamais un coupé (le défaut : vu le 2026-10-20) ; l'entrée du Journal et une séance Flashcards laissent sous leurs boutons la place du bouton de conversation.
+- Une Séance : un repos de 30 s et 2 m 30 s tenus ; la durée d'une séance faite s'affiche et se corrige en h, m et s (le minuteur en m et s : vu le 2026-10-20).
 
 ## L'export des entrées (branche post-release, `docs/design/export.md`)
 

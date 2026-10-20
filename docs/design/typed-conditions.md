@@ -28,5 +28,5 @@ Une condition (`{"left", "op", "right"}`, `docs/BRICKS.md`) n'a de type que par 
 - `TermFields` : le type d'un terme sans lire de données, que le service des variables partage.
 - `ConfigConditions` : le parcours ; `RowFields` répond au service comme au formulaire.
 - `ConditionCheck` : les quatre refus, appelés par `ToolInstanceService` après le contrôle propre au type d'outil, qui nomme mieux une config illisible ; il remplace celui des conditions de `ChartCheck`.
-- `ConditionValues` : la traduction des constantes de l'IA, dans `AICommandProcessor.configToStoredForm`. Les filtres d'une requête de l'IA (`FilterValues`) acceptent toujours des millisecondes face à un instant.
+- `ConditionValues` : la traduction des constantes de l'IA, dans `AICommandProcessor.configToStoredForm` ; au retour, `toModel` les lui rend comme elle les écrit (« PT7H »), dans `CommandExecutor.configForModel`. Les filtres d'une requête de l'IA (`FilterValues`) acceptent toujours des millisecondes face à un instant.
 - Le prompt et les descriptions des schémas de config disent qu'une constante s'écrit dans le format de l'IA, jamais en millisecondes.

@@ -1955,7 +1955,7 @@ abstract class AppDatabase : RoomDatabase() {
                 }
                 units.MESSAGE_COLUMNS.forEach { column ->
                     each("SELECT id, $column FROM session_messages WHERE $column IS NOT NULL", "UPDATE session_messages SET $column = ? WHERE id = ?") {
-                        units.text(it.getString(1))
+                        units.messageText(it.getString(1))
                     }
                 }
                 listOf("tool_instances", "variables", "session_messages").forEach { table ->

@@ -22,9 +22,9 @@
     <string name="schema_repeat">How many times the block\'s steps are done in a row</string>
     <string name="field_step_name">Step name</string>
     <string name="field_instruction">Instruction</string>
-    <string name="schema_instruction">Shown during the step, and said by the voice when it is on (« 10 × 60 kg », « Meanwhile: the sauce »)</string>
+    <string name="schema_instruction">Shown during the step, and said by the voice when it is on (“10 × 60 kg”, “Meanwhile: the sauce”)</string>
     <string name="field_end">Ends</string>
-    <string name="schema_end">timed: the timer counts down, then the next step comes by itself; manual: a stopwatch counts up until « Done »; timed_then_manual: the timer sounds, then the stopwatch goes on until « Done »</string>
+    <string name="schema_end">timed: the timer counts down, then the next step comes by itself; manual: a stopwatch counts up until “Done”; timed_then_manual: the timer sounds, then the stopwatch goes on until “Done”</string>
     <string name="end_timed">Timed</string>
     <string name="end_manual">By hand</string>
     <string name="end_timed_then_manual">Timed, then by hand</string>
@@ -96,7 +96,7 @@
     <string name="running_position">Step %1$d / %2$d</string>
     <string name="running_get_ready">Get ready</string>
     <string name="running_paused">Paused</string>
-    <string name="running_held">The timer ran out: « Done », or start the step again</string>
+    <string name="running_held">The timer ran out: “Done”, or start the step again</string>
     <string name="running_next">Next: %1$s</string>
     <string name="planned_waiting">A planned session waits since %1$s</string>
     <string name="planned_count">Planned (%1$d)</string>

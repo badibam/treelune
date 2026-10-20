@@ -272,7 +272,7 @@ fun ToolConfigScreen(
         val today = remember { app.treelune.core.utils.DateUtils.formatDateForDisplay(System.currentTimeMillis()) }
         fun keptName(name: String) = s.shared("migration_kept_name").format(name, today)
         val keptNames = changedMeaning.mapNotNull { key ->
-            (0 until before.length()).map { before.getJSONObject(it) }.firstOrNull { it.optString("name") == key }?.optString("display_name")?.let { "« ${keptName(it)} »" }
+            (0 until before.length()).map { before.getJSONObject(it) }.firstOrNull { it.optString("name") == key }?.optString("display_name")?.let { s.shared("quoted").format(keptName(it)) }
         }
         UI.Dialog(
             type = app.treelune.core.ui.DialogType.CONFIRM,
@@ -285,13 +285,10 @@ fun ToolConfigScreen(
             Column(verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
                 UI.Text(s.shared("migration_confirm_title"), TextType.SUBTITLE)
                 // Only what it does: each count that is not zero, each reason a rule of the tool gives
-                val removed = migration.optInt("removed_values")
-                val deleted = migration.optInt("deleted_entries")
                 val parts = app.treelune.core.fields.migration.MigrationCounts.parts(JsonUtils.toMap(migration), s::shared)
-                if (parts.isNotEmpty()) UI.Text(s.shared("migration_confirm_counts").format(parts.joinToString(", ")) +
-                    (if (removed + deleted > 0) " " + s.shared("migration_lost_for_good") else ""), TextType.BODY)
+                if (parts.isNotEmpty()) UI.Text(s.shared("migration_confirm_counts").format(parts.joinToString(", ")), TextType.BODY)
                 // The other tools whose filters the change leaves aiming at an option gone
-                val aimedBy = migration.optJSONArray("aimed_by")?.let { a -> (0 until a.length()).map { "« ${a.getString(it)} »" } }.orEmpty()
+                val aimedBy = migration.optJSONArray("aimed_by")?.let { a -> (0 until a.length()).map { s.shared("quoted").format(a.getString(it)) } }.orEmpty()
                 if (aimedBy.isNotEmpty()) UI.Text(s.shared("migration_filters_aimed").format(aimedBy.joinToString(", ")), TextType.BODY)
                 // A change of meaning can leave the past alone: the edited field takes a new key
                 if (keptNames.isNotEmpty()) {

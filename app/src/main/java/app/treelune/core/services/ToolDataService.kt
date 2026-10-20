@@ -1280,7 +1280,7 @@ class ToolDataService(private val context: Context) : ExecutableService {
     private suspend fun aiReadOnlyRefusal(target: WriteTarget.Ready, data: JSONObject?, extra: JSONObject?): String? {
         if (!AiReadOnly.refuses(app.treelune.core.coordinator.currentOrigin())) return null
         val held = AiReadOnly.held(data, declaredFields(target)) + AiReadOnly.held(extra, userFields(target))
-        return if (held.isEmpty()) null else s.shared("service_error_ai_read_only").format(AiReadOnly.named(held))
+        return if (held.isEmpty()) null else s.shared("service_error_ai_read_only").format(AiReadOnly.named(held) { s.shared(it) })
     }
 
     /** The user's fields of [target], from its config's extra_fields. */
