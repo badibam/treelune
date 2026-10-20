@@ -1,5 +1,6 @@
 package app.treelune.tools.journal.ui
 
+import app.treelune.core.ui.chatButtonSpace
 import app.treelune.core.markup.ui.MarkupText
 import app.treelune.core.tools.BaseSchemas
 import app.treelune.core.ui.FieldValuesSaver
@@ -271,6 +272,8 @@ fun JournalEntryScreen(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
+            // Opened in the tool's place, under the chat's button: its buttons stay out from under it
+            .chatButtonSpace()
             .padding(vertical = UI.Space.L),
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
