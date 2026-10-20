@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cosy · icônes</title>
+<!--
+  The cosy theme's icons bench (served by ./run themes from the repository's root): Lucide redrawn
+  in the theme's register, round and plump, each piece on its solid shadow (docs/design/cosy-theme.md).
+  Three levers on the Lucide drawing: a thicker stroke with round ends, a solid shadow under it,
+  never blurred, and a pale fill inside the shapes Lucide closes. Three proposals open the page,
+  the sliders tune them, side by side with Lucide's own stroke, at the phone's sizes, on a tile,
+  on the sand and in the pale round of an icon alone on its tile, in both palettes. "Enregistrer"
+  writes the numbers into the theme's icons.json (POST /icons/cosy), which the theme will read.
+  The colours are derived from palettes.json as CosyPalette derives them (OKLCH).
+-->
+<style>
+  body { margin: 0; font-family: "Baloo 2", system-ui, sans-serif; background: #ddd6c6; color: #3d3428; }
+  header { position: sticky; top: 0; z-index: 2; background: #f6efe0; border-bottom: 1px solid #0002; padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; }
+  header h1 { font-size: 18px; margin: 0 12px 0 0; }
+  label { font-size: 13px; display: flex; gap: 6px; align-items: center; }
+  label output { min-width: 2.5em; font-variant-numeric: tabular-nums; }
+  button { font: inherit; font-size: 13px; padding: 4px 10px; border-radius: 8px; border: 1px solid #0003; background: #fff8; cursor: pointer; }
+  button.on { background: #9fcf7a; }
+  #saved { font-size: 12.5px; color: #8a7f6c; } #saved.dirty { color: #2f7ad0; } #saved.bad { color: #c03030; }
+  p.note { font-size: 13px; max-width: 80ch; margin: 10px 16px; }
+  .modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(560px, 1fr)); }
+  .mode { padding: 16px; }
+  h2 { font-size: 15px; margin: 16px 0 6px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 4px 0 12px; }
+  .k { font-size: 12px; width: 100%; opacity: .75; }
+  .cell { display: flex; align-items: center; justify-content: center; border-radius: 14px; }
+  .all { display: flex; flex-wrap: wrap; gap: 4px; }
+  .all .cell { border-radius: 8px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Icônes du cosy</h1>
+  <span>Propositions :</span>
+  <button data-preset="0">A · trait épais</button>
+  <button data-preset="1">B · épais sur son ombre</button>
+  <button data-preset="2">C · dodu</button>
+  <label>Épaisseur <input id="width" type="range" min="1.5" max="4" step="0.05"><output></output></label>
+  <label>Ombre <input id="shadow" type="range" min="0" max="3" step="0.1"><output></output></label>
+  <label>Remplissage <input id="fill" type="range" min="0" max="1" step="0.05"><output></output></label>
+  <button id="all">Toutes les icônes (24 px)</button>
+  <button id="save">Enregistrer</button>
+  <span id="saved">—</span>
+</header>
+<p class="note">A garde le dessin de Lucide et l'épaissit, bouts ronds compris. B le pose en plus sur une ombre pleine, décalée vers le bas, comme les tuiles et les boutons du thème. C remplit aussi d'un ton pâle l'intérieur des formes que Lucide ferme (le cœur, la goutte, le cadran), ce qui les rend dodues. Épaisseur et ombre sont en unités de la grille de 24 de Lucide (son trait fait 2) ; le remplissage va de rien à la couleur de l'ombre. Les tailles sont en pixels de l'écran de l'ordinateur : une icône de 24 dp sur le téléphone se voit à peu près comme celle de 32 ici. « Toutes les icônes » montre les quelque 1 600 icônes à 24 px, pour trouver celles qui se bouchent.</p>
+<div class="modes" id="modes"></div>
+<div class="modes" id="allModes"></div>
+<script>
+"use strict";
+// The icons the app shows most, read from the copy of Lucide.
+const NAMES = ["droplet", "moon", "sparkles", "arrow-left", "ellipsis", "check", "plus", "trash", "settings", "calendar", "clock", "heart", "book-open", "list-checks", "chart-column", "footprints", "utensils", "dumbbell", "bed", "pencil", "search", "bell", "house", "leaf", "message-circle", "timer", "target", "star", "folder", "cable"];
+const PRESETS = [
+  { width: 2.75, shadow: 0, fill: 0 },
+  { width: 2.75, shadow: 1.2, fill: 0 },
+  { width: 2.75, shadow: 1.2, fill: 0.45 },
+];
+const KNOBS = ["width", "shadow", "fill"];
+const INNER = {};
+const $ = (id) => document.getElementById(id);
+const params = () => Object.fromEntries(KNOBS.map((k) => [k, +$(k).value]));
+
+// OKLCH (L 0..1, C, h in degrees) to an sRGB hex, as Oklch does in the app.
+function oklch(l, c, h) {
+  const a = c * Math.cos(h * Math.PI / 180), b = c * Math.sin(h * Math.PI / 180);
+  const l_ = l + 0.3963377774 * a + 0.2158037573 * b, m_ = l - 0.1055613458 * a - 0.0638541728 * b, s_ = l - 0.0894841775 * a - 1.2914855480 * b;
+  const L = l_ ** 3, M = m_ ** 3, S = s_ ** 3;
+  const lin = [4.0767416621 * L - 3.3077115913 * M + 0.2309699292 * S, -1.2684380046 * L + 2.6097574011 * M - 0.3413193965 * S, -0.0041960863 * L - 0.7034186147 * M + 1.7076147010 * S];
+  return "#" + lin.map((x) => {
+    const v = x <= 0.0031308 ? 12.92 * x : 1.055 * Math.pow(Math.max(x, 0), 1 / 2.4) - 0.055;
+    return Math.round(Math.min(1, Math.max(0, v)) * 255).toString(16).padStart(2, "0");
+  }).join("");
+}
+
+// The colours CosyPalette derives from the numbers, for what this bench draws.
+let PALETTES = [];
+function colours(n) {
+  const h = n.hue;
+  return {
+    ground: oklch(n.ground_lightness, n.ground_chroma, h),
+    tile: oklch(n.tile_lightness, n.tile_chroma, h),
+    shadow: oklch(n.shadow_lightness, n.shadow_chroma, h),
+    ink: oklch(n.ink_lightness, n.ink_chroma, h + n.ink_turn),
+    pale: oklch(n.tag_lightness, n.tag_chroma, h + n.accent_turn),
+  };
+}
+
+// The inner markup of a Lucide SVG, its elements kept as written.
+function lucideInner(svg) { return svg.replace(/^[\s\S]*?<svg[^>]*>/, "").replace(/<\/svg>\s*$/, ""); }
+
+// Whether a path comes back to where it started: ended on z, or its last point on its first, as
+// Lucide draws the heart. Measured by the browser on a hidden path.
+const MEASURE = document.createElementNS("http://www.w3.org/2000/svg", "path");
+const RETURNS = new Map();
+function returns(d) {
+  if (!RETURNS.has(d)) RETURNS.set(d, measureReturns(d));
+  return RETURNS.get(d);
+}
+function measureReturns(d) {
+  if (/[zZ]\s*$/.test(d)) return true;
+  if (!MEASURE.isConnected) {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.style.position = "absolute"; svg.style.width = svg.style.height = "0";
+    svg.appendChild(MEASURE); document.body.appendChild(svg);
+  }
+  MEASURE.setAttribute("d", d);
+  const length = MEASURE.getTotalLength();
+  if (length === 0) return false;
+  const a = MEASURE.getPointAtLength(0), b = MEASURE.getPointAtLength(length);
+  return Math.hypot(a.x - b.x, a.y - b.y) < 0.5;
+}
+
+// The shapes Lucide closes take the fill: circles, rectangles, ellipses, polygons, and paths that come back on themselves.
+function filled(inner, colour) {
+  return inner.replace(/<(circle|rect|ellipse|polygon|path)\b([^>]*?)\/?>/g, (all, tag, attrs) => {
+    const d = tag === "path" ? (attrs.match(/\bd="([^"]*)"/) || [])[1] : null;
+    const closed = tag !== "path" || (d && returns(d));
+    return closed ? `<${tag}${attrs} fill="${colour}" stroke="none"/>` : "";
+  });
+}
+
+// One icon, drawn as the parameters say, [size] px.
+function icon(name, size, c, p, lucide) {
+  const inner = INNER[name];
+  if (lucide) return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${c.ink}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+  const pad = 2;
+  const box = `${-pad} ${-pad} ${24 + 2 * pad} ${24 + 2 * pad}`;
+  const s = size * (24 + 2 * pad) / 24;
+  const fillLayer = p.fill > 0 ? `<g opacity="${p.fill}">${filled(inner, c.shadow)}</g>` : "";
+  const shadow = p.shadow > 0 ? `<g transform="translate(0 ${p.shadow})" stroke="${c.shadow}">${inner}</g>` : "";
+  return `<svg width="${s}" height="${s}" viewBox="${box}" fill="none" stroke-width="${p.width}" stroke-linecap="round" stroke-linejoin="round" style="margin:${-(s - size) / 2}px">${shadow}${fillLayer}<g stroke="${c.ink}">${inner}</g></svg>`;
+}
+
+function cell(size, background, round) {
+  const d = document.createElement("div"); d.className = "cell";
+  const pad = Math.round(size * 0.5);
+  d.style.width = d.style.height = (size + pad) + "px"; d.style.background = background;
+  if (round) d.style.borderRadius = "50%";
+  return d;
+}
+
+function render() {
+  for (const k of KNOBS) $(k).nextElementSibling.textContent = (+$(k).value).toFixed(2);
+  const p = params();
+  document.querySelectorAll("[data-preset]").forEach((b) => b.classList.toggle("on", KNOBS.every((k) => Math.abs(PRESETS[+b.dataset.preset][k] - p[k]) < 1e-6)));
+  const box = $("modes"); box.innerHTML = "";
+  for (const palette of PALETTES) {
+    const c = colours(palette.numbers);
+    const mode = document.createElement("section"); mode.className = "mode";
+    mode.style.background = c.ground; mode.style.color = c.ink;
+    mode.innerHTML = `<h2>${palette.mode === "DARK" ? "Nuit d'été" : "Sable"}</h2>`;
+    const rows = [
+      ["Lucide tel quel, 32 px, sur une tuile", (n) => wrap(cell(32, c.tile), icon(n, 32, c, p, true))],
+      ["La proposition, 32 px, sur une tuile", (n) => wrap(cell(32, c.tile), icon(n, 32, c, p, false))],
+      ["24 px, sur une tuile", (n) => wrap(cell(24, c.tile), icon(n, 24, c, p, false))],
+      ["48 px, sur le fond", (n) => wrap(cell(48, "transparent"), icon(n, 48, c, p, false))],
+      ["Seule sur sa tuile, dans le rond pâle, 32 px", (n) => wrap(cell(32, c.pale, true), icon(n, 32, c, p, false))],
+    ];
+    for (const [label, make] of rows) {
+      const row = document.createElement("div"); row.className = "row";
+      row.innerHTML = `<span class="k">${label}</span>`;
+      NAMES.forEach((n) => row.appendChild(make(n)));
+      mode.appendChild(row);
+    }
+    box.appendChild(mode);
+  }
+  if ($("allModes").childElementCount) renderAll();
+}
+
+function wrap(el, svg) { el.innerHTML = svg; return el; }
+
+async function load(names) {
+  await Promise.all(names.filter((n) => !INNER[n]).map(async (n) => {
+    const r = await fetch(`/third_party/lucide/icons/${n}.svg`);
+    if (!r.ok) throw new Error(`no Lucide icon ${n}`);
+    INNER[n] = lucideInner(await r.text());
+  }));
+}
+
+let ALL = null;
+function renderAll() {
+  const box = $("allModes"); box.innerHTML = "";
+  const p = params();
+  for (const palette of PALETTES) {
+    const c = colours(palette.numbers);
+    const mode = document.createElement("section"); mode.className = "mode";
+    mode.style.background = c.ground; mode.style.color = c.ink;
+    mode.innerHTML = `<h2>Toutes · ${palette.mode === "DARK" ? "nuit d'été" : "sable"} · 24 px</h2>`;
+    const all = document.createElement("div"); all.className = "all";
+    for (const n of ALL) { const e = wrap(cell(24, c.tile), icon(n, 24, c, p, false)); e.title = n; all.appendChild(e); }
+    mode.appendChild(all); box.appendChild(mode);
+  }
+}
+
+$("all").addEventListener("click", async () => {
+  $("all").disabled = true; $("all").textContent = "Chargement…";
+  const index = await (await fetch("/app/src/main/assets/icons/index.json")).json();
+  ALL = index.icons.map((i) => i.name);
+  await load(ALL);
+  renderAll();
+  $("all").textContent = "Toutes les icônes (24 px)";
+});
+
+function setDirty(d) {
+  const el = $("saved");
+  el.className = d ? "dirty" : "";
+  el.textContent = d ? "modifié, non enregistré" : "enregistré";
+}
+
+async function save() {
+  try {
+    const r = await fetch("/icons/cosy", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(params()) });
+    if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+    setDirty(false);
+  } catch (e) {
+    $("saved").className = "bad"; $("saved").textContent = "échec de l'enregistrement : " + e.message;
+  }
+}
+
+// The sliders open on the theme's numbers.
+async function main() {
+  PALETTES = (await (await fetch("/app/src/main/resources/app/treelune/themes/cosy/palettes.json")).json()).palettes;
+  const numbers = await (await fetch("/app/src/main/resources/app/treelune/themes/cosy/icons.json")).json();
+  for (const k of KNOBS) {
+    if (typeof numbers[k] !== "number") throw new Error(`icons.json has no ${k}`);
+    $(k).value = numbers[k];
+  }
+  for (const el of document.querySelectorAll("header input")) el.addEventListener("input", () => { setDirty(true); render(); });
+  document.querySelectorAll("[data-preset]").forEach((b) => b.addEventListener("click", () => {
+    const preset = PRESETS[+b.dataset.preset];
+    for (const k of KNOBS) $(k).value = preset[k];
+    setDirty(true); render();
+  }));
+  $("save").addEventListener("click", save);
+  window.addEventListener("beforeunload", (e) => { if ($("saved").className === "dirty") e.preventDefault(); });
+  await load(NAMES);
+  render(); setDirty(false);
+}
+main().catch((e) => { $("saved").className = "bad"; $("saved").textContent = e.message; throw e; });
+</script>
+</body>
+</html>
