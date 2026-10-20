@@ -551,7 +551,7 @@ class DemoData(private val time: TimeResolver, private val hand: JSONObject) {
         val starts = generateSequence(next(from)) { next(it) }.takeWhile { it <= now }.toList().takeLast(WEEKS)
         starts.mapIndexed { i, start ->
             val back = starts.lastIndex - i
-            val end = duration?.let { start + it } ?: (next(start)!! - 1)
+            val end = duration?.let { time.after(start, it) } ?: (next(start)!! - 1)
             val entered = if (tool == "demo-course-goal") json("c_no_pain" to (back != RUSH)) else JSONObject()
             when (back) {
                 0 -> Attempt(tool, start, end, entered, "active", validate = false)
