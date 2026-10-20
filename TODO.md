@@ -12,6 +12,12 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 - Partager une partie de l'app, et reprendre une partie d'une sauvegarde (`docs/design/share.md`).
 
+## Bugs du téléphone
+- petit bug pas très grave, dans la mise en forme des listes, si j'appuie sur l'icône de liste, trop peu de temps avant d'avoir fini d'écrire, alors ça envoie à la ligne, la ligne que j'étais en train d'écrire, en mettant un tiret sur la ligne d'avant vide.
+- Si on passe de relais à tailscale, on ne devrait pas perdre la config de relais. Je ne sis pas s c'est le cas aujourd'hui
+- Option pour supprimer les notifs de la démo / les réactiver ?
+
+
 ## Bugs
 
 - La fin d'un événement de l'Agenda est son début plus sa durée en temps écoulé : un événement de plusieurs jours qui traverse un changement d'heure finit une heure avant ou après — l'ajouter sur le calendrier (`TimeResolver.after`, comme l'Objectif), la grille des jours et les séries lisant cette fin.
