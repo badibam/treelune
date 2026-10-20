@@ -18,7 +18,8 @@ fun ToolConfigActions(
     onCancel: () -> Unit,
     onDelete: (() -> Unit)? = null,
     onReset: (() -> Unit)? = null,
-    saveEnabled: Boolean = true
+    saveEnabled: Boolean = true,
+    deleteMessage: String? = null
 ) {
     UI.FormActions {
         // Tools keep CREATE vs SAVE logic based on isEditing
@@ -47,6 +48,7 @@ fun ToolConfigActions(
             UI.ActionButton(
                 action = ButtonAction.DELETE,
                 requireConfirmation = true,
+                confirmMessage = deleteMessage,
                 onClick = onDelete
             )
         }

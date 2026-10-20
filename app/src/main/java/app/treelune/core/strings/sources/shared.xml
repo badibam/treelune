@@ -614,6 +614,7 @@
 
     <!-- Confirmation messages -->
     <string name="confirm_action">Confirm this action?</string>
+    <string name="tools_delete_confirm">Delete the tool « %1$s » and all its entries?</string>
     <string name="confirm_delete">Do you really want to delete this item? This action cannot be undone.</string>
     <string name="confirm_reset">Do you want to reset the configuration? The current data will be lost.</string>
 

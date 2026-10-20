@@ -979,9 +979,10 @@ object UI {
         onCancel: () -> Unit,
         onDelete: (() -> Unit)? = null,
         onReset: (() -> Unit)? = null,
-        saveEnabled: Boolean = true
+        saveEnabled: Boolean = true,
+        deleteMessage: String? = null
     ) = app.treelune.core.ui.components.ToolConfigActions(
-        isEditing, onSave, onCancel, onDelete, onReset, saveEnabled
+        isEditing, onSave, onCancel, onDelete, onReset, saveEnabled, deleteMessage
     )
     
     @Composable

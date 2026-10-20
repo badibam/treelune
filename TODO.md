@@ -24,7 +24,6 @@ Vus le 2026-10-20, laissés pour plus tard :
 
 - Flashcards : la confirmation au retrait d'un sens dit « N entrée(s) supprimée(s) faute de valeur obligatoire », sans dire que ce sont les révisions de ce sens.
 - La config d'un paquet Flashcards : « Source » et « Sens » écrits deux fois (le titre du cadre, puis le libellé du champ).
-- La fenêtre de suppression d'un outil dit « cet élément » sans nommer l'outil.
 - La tuile de l'Agenda dit encore « 3 images » en texte (champ Image).
 
 ## À passer sur le téléphone

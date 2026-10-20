@@ -211,7 +211,9 @@ fun ToolConfigScreen(
                     }
                 }
             },
-            saveEnabled = !isSaving && configLoad == LoadState.LOADED
+            saveEnabled = !isSaving && configLoad == LoadState.LOADED,
+            // The tool named as it is stored, its entries going with it
+            deleteMessage = s.shared("tools_delete_confirm").format(asLoaded?.let { JSONObject(it).optString("name") }.orEmpty())
         )
     }
 

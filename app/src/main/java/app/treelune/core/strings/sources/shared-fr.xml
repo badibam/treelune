@@ -614,6 +614,7 @@
 
     <!-- Confirmation messages -->
     <string name="confirm_action">Confirmer cette action ?</string>
+    <string name="tools_delete_confirm">Supprimer l\'outil « %1$s » et toutes ses entrées ?</string>
     <string name="confirm_delete">Veux-tu vraiment supprimer cet élément ? Cette action est irréversible.</string>
     <string name="confirm_reset">Veux-tu réinitialiser la configuration ? Les données actuelles seront perdues.</string>
 
