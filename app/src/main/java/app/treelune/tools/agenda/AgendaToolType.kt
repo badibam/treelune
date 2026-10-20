@@ -224,11 +224,6 @@ object AgendaToolType : ToolTypeContract {
     override fun getService(context: Context): ExecutableService = AgendaService(context)
     override fun getScheduler(): ToolScheduler = AgendaScheduler
 
-    override fun getDao(context: Context): Any {
-        val baseDao = app.treelune.core.database.AppDatabase.getDatabase(context).toolDataDao()
-        return app.treelune.core.database.dao.DefaultExtendedToolDataDao(baseDao, "agenda")
-    }
-
     override fun getDatabaseEntities(): List<Class<*>> = listOf(ToolDataEntity::class.java)
 
     /** The zone the calendar's days and reminders are read in. */

@@ -69,11 +69,6 @@ object StructuredToolType : ToolTypeContract {
 
     override fun getService(context: Context): ExecutableService = app.treelune.core.services.ToolDataService(context)
 
-    override fun getDao(context: Context): Any {
-        val baseDao = app.treelune.core.database.AppDatabase.getDatabase(context).toolDataDao()
-        return app.treelune.core.database.dao.DefaultExtendedToolDataDao(baseDao, "structured")
-    }
-
     override fun getDatabaseEntities(): List<Class<*>> = listOf(ToolDataEntity::class.java)
 
     @Composable

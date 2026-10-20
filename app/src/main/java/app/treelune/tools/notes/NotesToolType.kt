@@ -126,14 +126,6 @@ object NotesToolType : ToolTypeContract {
     override suspend fun settleEntries(entries: suspend () -> List<ToolDataEntity>, writtenId: String?): List<ToolDataEntity> =
         app.treelune.core.tools.ManualOrder.settle(entries(), writtenId)
 
-    override fun getDao(context: Context): Any {
-        val database = app.treelune.core.database.AppDatabase.getDatabase(context)
-        val baseDao = database.toolDataDao()
-
-        // Uses generic implementation which is sufficient for standard notes
-        return app.treelune.core.database.dao.DefaultExtendedToolDataDao(baseDao, "notes")
-    }
-
     override fun getDatabaseEntities(): List<Class<*>> {
         return listOf(ToolDataEntity::class.java)
     }

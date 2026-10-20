@@ -242,11 +242,6 @@ object FlashcardsToolType : ToolTypeContract {
 
     override fun getService(context: Context): ExecutableService = FlashcardsService(context)
 
-    override fun getDao(context: Context): Any {
-        val baseDao = app.treelune.core.database.AppDatabase.getDatabase(context).toolDataDao()
-        return app.treelune.core.database.dao.DefaultExtendedToolDataDao(baseDao, "flashcards")
-    }
-
     override fun getDatabaseEntities(): List<Class<*>> = listOf(ToolDataEntity::class.java)
 
     /** A deck opens on its page; nothing of it is an entry to open. */

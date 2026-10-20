@@ -260,8 +260,6 @@ object ChartToolType : ToolTypeContract {
 
     override fun getService(context: Context): ExecutableService? = null
 
-    override fun getDao(context: Context): Any? = null
-
     override fun getDatabaseEntities(): List<Class<*>> = emptyList()
 
     /** A chart has no entry of its own to open: its screen alone. */

@@ -170,14 +170,6 @@ object TrackingToolType : ToolTypeContract {
         return app.treelune.core.services.ToolDataService(context)
     }
     
-    override fun getDao(context: Context): Any {
-        val database = app.treelune.core.database.AppDatabase.getDatabase(context)
-        val baseDao = database.toolDataDao()
-        
-        // Uses generic implementation which is sufficient for standard tracking
-        return app.treelune.core.database.dao.DefaultExtendedToolDataDao(baseDao, "tracking")
-    }
-    
     override fun getDatabaseEntities(): List<Class<*>> {
         return listOf(ToolDataEntity::class.java)
     }

@@ -278,14 +278,6 @@ object MessageToolType : ToolTypeContract {
         return MessageService(context)
     }
 
-    override fun getDao(context: Context): Any {
-        val database = app.treelune.core.database.AppDatabase.getDatabase(context)
-        val baseDao = database.toolDataDao()
-
-        // Uses generic implementation for standard message entries
-        return app.treelune.core.database.dao.DefaultExtendedToolDataDao(baseDao, "messages")
-    }
-
     override fun getDatabaseEntities(): List<Class<*>> {
         // Messages uses unified ToolDataEntity (no custom entity)
         return listOf(ToolDataEntity::class.java)
