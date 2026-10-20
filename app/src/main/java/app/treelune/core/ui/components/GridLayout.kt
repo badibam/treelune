@@ -45,6 +45,12 @@ val LocalGridRow = androidx.compose.runtime.staticCompositionLocalOf<androidx.co
  * gridRowGapPx), which a tile spanning several cells covers; the grid is centered in what it
  * leaves.
  *
+ * A row is never lower than a tile's header needs (headerNeed): a name on two lines and its type
+ * under it, in the theme's texts at the size step and Android's text size, within a tile's frame.
+ * The cells stay as the theme draws them while that fits; when the texts grow past it, every row
+ * grows with them and the cells stand taller than wide, rather than a header being cut. The height
+ * of LocalGridRow, which a tile's icon is sized by, stays the theme's.
+ *
  * A row is one row high, except the row of a tile that grows with its content ([grows]: a
  * tool in FULL, EXTENDED or SQUARE), which is as tall as what it shows, a row at least, rounded up to a whole pixel of
  * the theme's drawings (drawingUnit) so the rows under it stay on whole pixels. Such a tile is measured
@@ -79,8 +85,14 @@ fun GridLayout(stored: List<Grid.Tile>, grows: List<Boolean>, edit: GridEdit?, i
         val gap = CurrentTheme.current.gridColumnGapPx()
         val rowGap = CurrentTheme.current.gridRowGapPx()
         val unit = kotlin.math.ceil(CurrentTheme.current.drawingUnit()).toInt().coerceAtLeast(1)
+        val framePx = with(LocalDensity.current) {
+            listOf(DisplayMode.ICON, DisplayMode.MINIMAL, DisplayMode.LINE, DisplayMode.CONDENSED)
+                .maxOf { CurrentTheme.current.tileFrame(it) }.roundToPx()
+        }
         Layout(
             content = {
+                // First a header measured and never placed: the height a row must give a tile's header
+                HeaderSample()
                 // In edit mode, first the cells, one per cell of the grid, then the tiles over them
                 repeat(cells) { CurrentTheme.current.GridCell() }
                 tiles.forEachIndexed { i, place ->
@@ -116,8 +128,11 @@ fun GridLayout(stored: List<Grid.Tile>, grows: List<Boolean>, edit: GridEdit?, i
                     }
                 }
             }
-        ) { measurables, _ ->
+        ) { all, _ ->
             val cell = cellPx
+            val headerNeed = all[0].measure(Constraints(maxWidth = 2 * cell)).height + 2 * framePx
+            val rowPx = maxOf(rowPx, (headerNeed + unit - 1) / unit * unit)
+            val measurables = all.drop(1)
             /** The pixels [count] cells span, the gaps between them included. */
             fun span(count: Int) = count * cell + (count - 1).coerceAtLeast(0) * gap
             val left = { column: Int -> column * (cell + gap) }
@@ -182,5 +197,17 @@ fun GridWide(content: @Composable () -> Unit) {
                 placeables.forEach { it.place(left, top); top += it.height }
             }
         }
+    }
+}
+
+/**
+ * What a tile's header holds at most, in the theme's texts (UI.TileHeader): a name on two lines
+ * and its type under it. GridLayout measures it to know the height a row must give.
+ */
+@Composable
+private fun HeaderSample() {
+    androidx.compose.foundation.layout.Column {
+        UI.Text("Wg\nWg", app.treelune.core.ui.TextType.HEADING, maxLines = 2)
+        UI.Text("Wg", app.treelune.core.ui.TextType.CAPTION, maxLines = 1)
     }
 }
