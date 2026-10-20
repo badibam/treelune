@@ -22,7 +22,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 Vus le 2026-10-20, laissés pour plus tard :
 
-- Un titre trop long d'une entrée de Journal ou d'une note est refusé avec « Nom: … » quand le formulaire dit « Titre » : le champ du nom du cœur porte le même libellé dans tous les outils (`CoreFields.name`).
 - Flashcards : la confirmation au retrait d'un sens dit « N entrée(s) supprimée(s) faute de valeur obligatoire », sans dire que ce sont les révisions de ce sens.
 - La config d'un paquet Flashcards : « Source » et « Sens » écrits deux fois (le titre du cadre, puis le libellé du champ) ; « Rétention voulue » écrite « 0.9 » en français ; la poignée d'un champ d'un sens collée à sa liste déroulante.
 - Le choix d'une texture : toucher le libellé sous une vignette ne choisit rien, seule la vignette le fait.

@@ -661,7 +661,7 @@ class ToolDataService(private val context: Context) : ExecutableService {
         val text: (String) -> String = { s.shared(it) }
 
         val written = buildMap<String, FieldDefinition> {
-            if (declared.name != CoreFieldUsage.ABSENT) put("name", CoreFields.name(text, declared.nameUnique))
+            if (declared.name != CoreFieldUsage.ABSENT) put("name", CoreFields.name(text, declared.nameUnique, declared.nameLabel))
             if (declared.timestamp != CoreFieldUsage.ABSENT) put("timestamp", CoreFields.timestamp(text))
             declared.data.filter { it.definition.name !in appManaged }.forEach { put("data.${it.definition.name}", it.definition) }
             target.userFields.forEach { put("extra.${it.name}", it) }

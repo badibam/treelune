@@ -54,7 +54,6 @@
     <string name="create_note_title">Create a note</string>
     <string name="edit_note_title">Edit note</string>
     <string name="label_content">Content</string>
-    <string name="label_title">Title</string>
     <string name="field_titles">Titles</string>
     <string name="schema_config_titles">Whether each note can have a title, above its text</string>
 

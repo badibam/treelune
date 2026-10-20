@@ -536,6 +536,7 @@
     <string name="label_date">Date</string>
     <string name="label_time">Time</string>
     <string name="label_name">Name</string>
+    <string name="label_title">Title</string>
     <string name="label_created_at">Created</string>
     <string name="label_updated_at">Modified</string>
     <string name="label_configuration">Configuration</string>

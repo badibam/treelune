@@ -328,7 +328,7 @@ fun JournalEntryScreen(
                     verticalArrangement = Arrangement.spacedBy(UI.Space.S)
                 ) {
                     UI.FormField(
-                        label = s.tool("label_title"),
+                        label = s.shared(app.treelune.core.fields.CoreFields.TITLE_LABEL),
                         value = title,
                         onChange = { title = it },
                         fieldType = FieldType.TEXT,

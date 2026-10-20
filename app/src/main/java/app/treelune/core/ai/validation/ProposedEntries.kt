@@ -89,7 +89,7 @@ object ProposedEntries {
         fun add(field: FieldDefinition, from: Map<*, *>?) {
             if (from != null && from.containsKey(field.name)) values.add(ProposedValue(field, from[field.name]))
         }
-        if (declared.name != CoreFieldUsage.ABSENT) add(CoreFields.name(text), entry)
+        if (declared.name != CoreFieldUsage.ABSENT) add(CoreFields.name(text, label = declared.nameLabel), entry)
         if (declared.timestamp != CoreFieldUsage.ABSENT) add(CoreFields.timestamp(text), entry)
         declared.data.filterNot { it.systemWritten }.forEach { add(it.definition, entry["data"] as? Map<*, *>) }
         extra.forEach { add(it, entry["extra"] as? Map<*, *>) }
