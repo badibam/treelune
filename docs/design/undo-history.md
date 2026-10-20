@@ -4,13 +4,15 @@ Chaque écriture dans la base est gardée dans un historique, pour pouvoir l'ann
 
 ## Ce qui est couvert
 
-- Couvert : zones, outils (leur config), entrées et leurs images (`images` dont l'entrée est la propriétaire), variables, automations, incarnations (`identities`), masques des clients du connecteur (`mcp_clients`), réglages de l'app.
-- Hors historique : sessions et messages de l'IA (une conversation a eu lieu et a été facturée), fournisseurs, ceux de l'utilisateur compris (`ai_provider_configs` : la clé d'API ne se recopie pas), jetons du connecteur (`mcp_tokens`), journal de l'app, fichiers joints à une session.
+- Une ligne suit ce à quoi elle appartient.
+- Couvert : zones, outils (leur config), entrées, variables, automations, incarnations (`identities`), masques des clients du connecteur (`mcp_clients`), réglages de l'app — et ce qui leur appartient : les images d'une entrée, le message d'une routine (sa session de départ, `seed_session_id`, ses messages et leurs images), qui n'est une session que par sa forme.
+- Hors historique : les conversations, leurs messages et leurs images (ce qui s'y écrit — un message, une réponse, ses tokens — n'a pas de sens à annuler, et noierait les gestes de l'utilisateur), fournisseurs, ceux de l'utilisateur compris (`ai_provider_configs` : la clé d'API ne se recopie pas), jetons du connecteur (`mcp_tokens`), journal de l'app, fichiers joints à une session.
 - L'historique ne revient que sur la base : une notification envoyée, un appel à l'IA facturé restent faits.
 
 ## Le pas
 
 - Un pas = une opération demandée de l'extérieur : un geste à l'écran, une commande de l'IA, une action du planificateur. Il regroupe toutes les lignes qu'elle écrit, y compris par les opérations qu'elle appelle en chemin.
+- Les opérations appelées en chemin repassent par le coordinateur : il n'ouvre un pas que si aucun n'est en cours dans le contexte. Supprimer la démo (`demo.remove`, qui appelle `app_config.set` pour les groupes de l'accueil) est un seul pas.
 - Une commande de l'IA est un pas à elle seule ; le pas garde l'id de sa session, pour les montrer regroupés par réponse.
 - Un pas s'annule entier ou pas du tout.
 - Le numéro du pas voyage dans le contexte de la coroutine, comme l'origine (`Origin`, `currentOrigin()`) : le nombre d'instances du coordinateur qui tournent en même temps n'y change rien. Une écriture hors de toute opération est une erreur.
