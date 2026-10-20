@@ -152,13 +152,13 @@ fun FlashcardsSessionView(
  * One face of a card: its first field large, the question or the answer; the others smaller, as
  * details, without their labels. Each value shows as its field type shows it; an empty one does not
  * show — the first field of a front is never empty, a line without it making no card. A field gone
- * from the source since the session started is an error naming it, never a value shown blind.
+ * from the source since the session started is an error, never a value shown blind.
  */
 @Composable
 private fun Face(values: List<Pair<String, Any?>>, fields: Map<String, FieldDefinition>, s: app.treelune.core.strings.StringsContext) {
     val context = LocalContext.current
     values.forEachIndexed { index, (path, value) ->
-        val field = fields[path] ?: return@forEachIndexed UI.Text(s.tool("error_field_gone_session").format(path.substringAfter('.')), TextType.ERROR)
+        val field = fields[path] ?: return@forEachIndexed UI.Text(s.tool("error_field_gone_session"), TextType.ERROR)
         if (value == null) return@forEachIndexed
         if (index == 0) UI.Text(field.formatValue(value, context), TextType.TITLE, textAlign = TextAlign.Center)
         else FieldValue(field, value, context)

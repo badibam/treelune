@@ -79,8 +79,10 @@
     <string name="error_source_tool">The source must be a tool.</string>
     <string name="error_source_gone">The source\'s tool no longer exists.</string>
     <string name="error_source_kind">%1$s cannot be a deck\'s source: it takes a tool that keeps entries, other than a deck.</string>
-    <string name="error_field_gone">The field %1$s no longer exists in %2$s.</string>
-    <string name="error_field_gone_session">The field %1$s no longer exists in the source.</string>
+    <string name="error_group_by_gone">The grouping is on a field that no longer exists in %1$s.</string>
+    <string name="error_front_gone">The front of %1$s shows a field that no longer exists in %2$s.</string>
+    <string name="error_back_gone">The back of %1$s shows a field that no longer exists in %2$s.</string>
+    <string name="error_field_gone_session">A field of this card no longer exists in the source.</string>
     <string name="error_direction_names">Two directions have the same name.</string>
     <string name="error_direction_unknown">The deck has no direction %1$s.</string>
     <string name="error_rating">Unknown rating: %1$s. It is AGAIN, HARD, GOOD or EASY.</string>
