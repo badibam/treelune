@@ -4,8 +4,8 @@ Chaque écriture dans la base est gardée dans un historique, pour pouvoir l'ann
 
 ## Ce qui est couvert
 
-- Couvert : zones, outils (leur config), entrées, variables, automations, réglages de l'app.
-- Hors historique : sessions et messages de l'IA (une conversation a eu lieu et a été facturée), configs des fournisseurs (la clé d'API ne se recopie pas), journal de l'app, fichiers joints.
+- Couvert : zones, outils (leur config), entrées et leurs images (`images` dont l'entrée est la propriétaire), variables, automations, incarnations (`identities`), masques des clients du connecteur (`mcp_clients`), réglages de l'app.
+- Hors historique : sessions et messages de l'IA (une conversation a eu lieu et a été facturée), fournisseurs, ceux de l'utilisateur compris (`ai_provider_configs` : la clé d'API ne se recopie pas), jetons du connecteur (`mcp_tokens`), journal de l'app, fichiers joints à une session.
 - L'historique ne revient que sur la base : une notification envoyée, un appel à l'IA facturé restent faits.
 
 ## Le pas
@@ -30,8 +30,9 @@ Chaque écriture dans la base est gardée dans un historique, pour pouvoir l'ann
 
 ## Profondeur
 
-- On garde les pas des 30 derniers jours, réglable dans les réglages de l'app. Le tick de `CoreScheduler` supprime les plus vieux.
-- Pas de limite de taille : un gros import (estimé, non mesuré : 65 à 130 Mo d'historique pour les 64 659 lignes du 2026-10-01) reste annulable 30 jours. L'écran montre la place prise.
+- Deux limites, réglables dans les réglages de l'app : 30 jours, et 500 Mo. Le tick de `CoreScheduler` supprime les pas de plus de 30 jours, puis les plus anciens tant que le total dépasse la limite de volume — jamais le plus récent : un gros import (estimé, non mesuré : 65 à 130 Mo d'historique pour les 64 659 lignes du 2026-10-01) reste annulable même seul au-dessus de la limite.
+- Le volume vient surtout de petites écritures répétées sur des lignes lourdes (une tuile déplacée réécrit la ligne entière de chaque outil décalé, config comprise) ; aucun chiffre ne le mesure encore, et le défaut de 500 Mo se revoit d'après ce que l'historique en service mesurera.
+- L'écran montre la place prise et la date du plus ancien pas gardé.
 
 ## Annuler et rétablir
 
