@@ -9,12 +9,12 @@ Conçu le 2026-10-05. Sortir les entrées d'un outil qui passent un filtre, dans
 
 ## Le format
 
-Un CSV au format fixe, le même quelle que soit la langue du téléphone (RFC 4180, UTF-8). Un tableur réglé à la virgule décimale l'ouvre par son dialogue d'import, pas d'un double-clic : c'est le prix d'un fichier identique partout.
+Un CSV au format fixe, le même quelle que soit la langue du téléphone (RFC 4180, UTF-8), sauf les noms de ses colonnes, écrits pour la personne qui le lit. Un tableur réglé à la virgule décimale l'ouvre par son dialogue d'import, pas d'un double-clic : c'est le prix d'un fichier identique partout.
 
 | Type | Écriture |
 |---|---|
 | Séparateur | `,`, guillemets autour d'une cellule qui en contient |
-| En-tête | la clé du champ (`name`, `timestamp`, `quantity`, `kcal`, `state.checked_at`), jamais son libellé, traduit pour les champs d'un type d'outil |
+| En-tête | le libellé du champ dans la langue de l'app, tel que l'écran le montre (« Nom », « Date », « Quantité », « Kcal », « Fait le », « Créé le ») ; deux champs au même libellé, chacun suivi de sa clé entre parenthèses (« Note (data.note) ») |
 | NUMERIC, SCALE | `72.4` |
 | DATE | `2026-09-12` |
 | DATETIME, dont la date de l'entrée | `2026-09-12T08:12:00+02:00`, au fuseau de l'app (`DateTimeConfig.getZoneId()`) |
