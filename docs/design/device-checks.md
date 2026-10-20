@@ -524,3 +524,4 @@ Vu le 2026-10-20 sur la démo : la tuile et la page de Ripasso ; la lecture du p
 - Retirer un sens d'un paquet Flashcards : la confirmation dit « N révision(s) du sens « … » supprimée(s) » ; changer d'horaire une série de l'Agenda, « N occurrence(s) à venir de « … » supprimée(s), redonnée(s) à ses nouveaux horaires » ; l'IA qui fait le même changement reçoit les mêmes mots.
 - Les boutons à libellé à la plus grande taille de texte d'Android : la validation d'une action de l'IA dans le chat, les formulaires d'une variable et d'une entrée du Journal, la duplication d'un outil, une fiche de Données structurées : côte à côte quand ils tiennent, l'un sous l'autre sinon, jamais un coupé.
 - En français, « Rétention voulue » d'un paquet s'écrit « 0,9 » ; « 0,85 » tapé avec la virgule est gardé.
+- Une Séance : le minuteur d'une étape se saisit en m et s, un repos de 30 s et 2 m 30 s tenus ; la durée d'une séance faite s'affiche et se corrige en h, m et s.

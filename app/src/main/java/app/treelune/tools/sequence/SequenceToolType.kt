@@ -80,6 +80,12 @@ object SequenceToolType : ToolTypeContract {
 
     private fun s(context: Context) = Strings.`for`(tool = "sequence", context = context)
 
+    /** A step's timer, in minutes and seconds: a rest of 30 s, 2 m 30 s, an hour as 60 m. */
+    val STEP_UNITS = app.treelune.core.fields.DurationUnits.MINUTE_SECOND.config()
+
+    /** A session's duration and its pauses, to the second the app measures them at, past the hour. */
+    val SESSION_UNITS = app.treelune.core.fields.DurationUnits.HOUR_MINUTE_SECOND.config()
+
     private fun field(name: String, label: String, type: FieldType, description: String? = null, config: Map<String, Any>? = null) =
         FieldDefinition(name, label, description, type, false, config)
 
@@ -140,7 +146,7 @@ object SequenceToolType : ToolTypeContract {
 
     /** A step: its name, its instruction, how it ends; in a block, whether its last round leaves it out. */
     private fun stepNodes(text: (String) -> String, inBlock: Boolean): List<SettingNode> {
-        val duration = listOf(SettingNode.Field(field(SequencePlan.DURATION, text("field_step_duration"), FieldType.DURATION), required = true))
+        val duration = listOf(SettingNode.Field(field(SequencePlan.DURATION, text("field_step_duration"), FieldType.DURATION, config = STEP_UNITS), required = true))
         return listOfNotNull(
             SettingNode.Field(field(SequencePlan.NAME, text("field_step_name"), FieldType.TEXT, config = mapOf("length" to TextLength.SHORT.name)), required = true),
             SettingNode.Field(field(SequencePlan.INSTRUCTION, text("field_instruction"), FieldType.TEXT, text("schema_instruction"), mapOf("length" to TextLength.LONG.name))),
@@ -167,8 +173,8 @@ object SequenceToolType : ToolTypeContract {
             name = CoreFieldUsage.ABSENT,
             timestamp = CoreFieldUsage.REQUIRED,
             data = listOf(
-                data(DURATION, FieldType.DURATION),
-                data(PAUSED, FieldType.DURATION),
+                data(DURATION, FieldType.DURATION, SESSION_UNITS),
+                data(PAUSED, FieldType.DURATION, SESSION_UNITS),
                 data(STEPS_DONE, FieldType.NUMERIC, count),
                 data(STEPS_SKIPPED, FieldType.NUMERIC, count),
                 data(STEPS_NOT_DONE, FieldType.NUMERIC, count),
@@ -199,12 +205,12 @@ object SequenceToolType : ToolTypeContract {
             ToolOperation(SequenceService.COMPLETE, s.tool("operation_complete"), listOf(
                 SettingNode.Field(field("id", s.tool("field_entry"), FieldType.TEXT, s.tool("schema_complete_id"), mapOf("length" to TextLength.SHORT.name))),
                 SettingNode.Field(field("timestamp", s.tool("field_when"), FieldType.DATETIME, s.tool("schema_complete_timestamp"))),
-                SettingNode.Field(field(DURATION, s.tool("field_duration"), FieldType.DURATION, s.tool("schema_complete_duration")))
+                SettingNode.Field(field(DURATION, s.tool("field_duration"), FieldType.DURATION, s.tool("schema_complete_duration"), SESSION_UNITS))
             )),
             ToolOperation(SequenceService.CORRECT, s.tool("operation_correct"), listOf(
                 id,
                 SettingNode.Field(field("timestamp", s.tool("field_when"), FieldType.DATETIME)),
-                SettingNode.Field(field(DURATION, s.tool("field_duration"), FieldType.DURATION)),
+                SettingNode.Field(field(DURATION, s.tool("field_duration"), FieldType.DURATION, config = SESSION_UNITS)),
                 SettingNode.Field(field(STEPS_DONE, s.tool("field_steps_done"), FieldType.NUMERIC, config = count)),
                 SettingNode.Field(field(STEPS_SKIPPED, s.tool("field_steps_skipped"), FieldType.NUMERIC, config = count)),
                 SettingNode.Field(field(STEPS_NOT_DONE, s.tool("field_steps_not_done"), FieldType.NUMERIC, config = count)),
