@@ -130,89 +130,27 @@ fun normalizeTimestampWithConfig(
     weekStartDay: String = AppConfigManager.getWeekStartDay(),
     zone: ZoneId = AppConfigManager.getDateTimeConfig().getZoneId()
 ): Long {
-    val cal = DateUtils.calendarAt(timestamp, zone)
-    
     return when (type) {
         PeriodType.HOUR -> {
             // Start of hour (XX:00:00.000)
-            cal.apply {
+            DateUtils.calendarAt(timestamp, zone).apply {
                 set(Calendar.MINUTE, 0)
                 set(Calendar.SECOND, 0)
                 set(Calendar.MILLISECOND, 0)
             }.timeInMillis
         }
-        PeriodType.DAY -> {
-            // Start of day according to dayStartHour
-            cal.apply {
-                // If current hour is before dayStartHour, we need to go back to previous day
-                val currentHour = get(Calendar.HOUR_OF_DAY)
-                if (currentHour < dayStartHour) {
-                    add(Calendar.DAY_OF_MONTH, -1)
-                }
-                set(Calendar.HOUR_OF_DAY, dayStartHour)
-                set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
-            }.timeInMillis
-        }
-        PeriodType.WEEK -> {
-            // Start of week according to weekStartDay
-            val calendarDay = when (weekStartDay) {
-                "sunday" -> Calendar.SUNDAY
-                "monday" -> Calendar.MONDAY
-                "tuesday" -> Calendar.TUESDAY
-                "wednesday" -> Calendar.WEDNESDAY
-                "thursday" -> Calendar.THURSDAY
-                "friday" -> Calendar.FRIDAY
-                "saturday" -> Calendar.SATURDAY
-                else -> Calendar.MONDAY
+        else -> {
+            // The day of the app [timestamp] is in first, the day before when it comes before the
+            // hour days start at; then the period that day is in, starting at that hour
+            val at = java.time.Instant.ofEpochMilli(timestamp).atZone(zone)
+            val day = if (at.hour < dayStartHour) at.toLocalDate().minusDays(1) else at.toLocalDate()
+            val first = when (type) {
+                PeriodType.WEEK -> day.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.valueOf(weekStartDay.uppercase())))
+                PeriodType.MONTH -> day.withDayOfMonth(1)
+                PeriodType.YEAR -> day.withDayOfYear(1)
+                else -> day
             }
-            cal.apply {
-                firstDayOfWeek = calendarDay
-                set(Calendar.DAY_OF_WEEK, calendarDay)
-                // If current hour is before dayStartHour, we need to go back to previous day
-                val currentHour = get(Calendar.HOUR_OF_DAY)
-                if (currentHour < dayStartHour) {
-                    add(Calendar.DAY_OF_MONTH, -1)
-                    // After going back a day, we might need to adjust the week
-                    set(Calendar.DAY_OF_WEEK, calendarDay)
-                }
-                set(Calendar.HOUR_OF_DAY, dayStartHour)
-                set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
-            }.timeInMillis
-        }
-        PeriodType.MONTH -> {
-            // First day of month with dayStartHour
-            cal.apply {
-                set(Calendar.DAY_OF_MONTH, 1)
-                // If current hour is before dayStartHour, we need to go back to previous day
-                val currentHour = get(Calendar.HOUR_OF_DAY)
-                if (currentHour < dayStartHour) {
-                    add(Calendar.DAY_OF_MONTH, -1)
-                }
-                set(Calendar.HOUR_OF_DAY, dayStartHour)
-                set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
-            }.timeInMillis
-        }
-        PeriodType.YEAR -> {
-            // First day of year with dayStartHour
-            cal.apply {
-                set(Calendar.MONTH, Calendar.JANUARY)
-                set(Calendar.DAY_OF_MONTH, 1)
-                // If current hour is before dayStartHour, we need to go back to previous day
-                val currentHour = get(Calendar.HOUR_OF_DAY)
-                if (currentHour < dayStartHour) {
-                    add(Calendar.DAY_OF_MONTH, -1)
-                }
-                set(Calendar.HOUR_OF_DAY, dayStartHour)
-                set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
-            }.timeInMillis
+            first.atTime(dayStartHour, 0).atZone(zone).toInstant().toEpochMilli()
         }
     }
 }

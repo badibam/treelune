@@ -27,7 +27,7 @@ class DemoDataTest {
     private val moments = listOf("2026-10-01T15:30", "2026-10-05T06:10", "2026-10-04T23:50")
         .map { ZonedDateTime.of(java.time.LocalDateTime.parse(it), zone).toInstant().toEpochMilli() }
 
-    private fun data(now: Long, weekStart: String = "MONDAY") = DemoData(TimeResolver(now, zone, 4, weekStart), hand)
+    private fun data(now: Long, weekStart: String = "monday") = DemoData(TimeResolver(now, zone, 4, weekStart), hand)
     private fun at(moment: String) = ZonedDateTime.of(java.time.LocalDateTime.parse(moment), zone).toInstant().toEpochMilli()
     private fun all(now: Long) = data(now).entries().values.flatten()
 
@@ -160,7 +160,7 @@ class DemoDataTest {
     fun `the deck's reviews end before the app's today, which past midnight is still yesterday`() {
         for (moment in listOf("2026-10-20T00:30", "2026-10-20T15:30")) {
             val now = at(moment)
-            val time = TimeResolver(now, zone, 4, "MONDAY")
+            val time = TimeResolver(now, zone, 4, "monday")
             val reviews = data(now).entries().getValue("demo-italian-deck")
             assertTrue(reviews.isNotEmpty())
             reviews.forEach { assertTrue("$moment: $it", it.getLong("timestamp") < time.startOf(time.dateOf(now))) }
@@ -171,7 +171,7 @@ class DemoDataTest {
     fun `with weeks starting on Sunday, the goals' attempts keep their Monday, the current one begun, nothing else ahead`() {
         // A Sunday afternoon, the week's first day; a Monday just past midnight, still Sunday for the app
         for (now in listOf(at("2026-10-04T15:30"), at("2026-10-05T00:30"))) {
-            val data = data(now, weekStart = "SUNDAY")
+            val data = data(now, weekStart = "sunday")
             val attempts = data.attempts()
             attempts.forEach { attempt ->
                 val start = java.time.Instant.ofEpochMilli(attempt.start).atZone(zone)

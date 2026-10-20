@@ -141,4 +141,22 @@ class TimePointTest {
         assertEquals(java.time.LocalDate.of(2026, 9, 16), resolver.dateOf(at(2026, 9, 16, 4, 0)))
         assertEquals(at(2026, 9, 16, 4, 0), resolver.startOf(java.time.LocalDate.of(2026, 9, 16)))
     }
+
+    @Test
+    fun `before the hour days start at, the current week, month and year are those of the day before`() {
+        // Wednesday 2026-10-14 at 2:00 is still Tuesday the 13th; at 15:00, Wednesday
+        for (reference in listOf(at(2026, 10, 14, 2, 0), at(2026, 10, 14, 15, 0))) {
+            fun start(unit: PeriodType, weekStart: String = "monday") =
+                TimeResolver(reference, zone, 4, weekStart).instant(TimePoint.Relative(unit, 0, Edge.START))
+            assertEquals(at(2026, 10, 12, 4, 0), start(PeriodType.WEEK))
+            assertEquals(at(2026, 10, 11, 4, 0), start(PeriodType.WEEK, "sunday"))
+            assertEquals(at(2026, 10, 11, 4, 0), start(PeriodType.WEEK, "SUNDAY"))
+            assertEquals(at(2026, 10, 1, 4, 0), start(PeriodType.MONTH))
+            assertEquals(at(2026, 1, 1, 4, 0), start(PeriodType.YEAR))
+        }
+        // The first of a month before 4:00 is still the month before
+        val firstAtNight = TimeResolver(at(2026, 10, 1, 2, 0), zone, 4, "monday")
+        assertEquals(at(2026, 9, 1, 4, 0), firstAtNight.instant(TimePoint.Relative(PeriodType.MONTH, 0, Edge.START)))
+        assertEquals(at(2026, 9, 30, 4, 0), firstAtNight.instant(TimePoint.Relative(PeriodType.DAY, 0, Edge.START)))
+    }
 }
