@@ -231,10 +231,7 @@ fun DuplicateSelector(
                 UI.Divider()
 
                 // Actions
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+                app.treelune.core.ui.components.ButtonRow(align = Alignment.End, mainLast = true) {
                     // Back/Cancel button
                     if (currentStep == DuplicateStep.INSTANCE) {
                         UI.ActionButton(

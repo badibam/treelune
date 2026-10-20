@@ -1249,7 +1249,7 @@ object InkTheme : ThemeContract {
 
     /** A pale wash with a small seal of red in its corner, a sign that the user is asked: the title, the content, the actions. */
     @Composable
-    override fun InteractionCard(title: String, content: @Composable ColumnScope.() -> Unit, actions: @Composable RowScope.() -> Unit) {
+    override fun InteractionCard(title: String, content: @Composable ColumnScope.() -> Unit, actions: (@Composable () -> Unit)?) {
         val size = inkSize()
         Box(modifier = Modifier.fillMaxWidth().background(inkColors.cardWash, pebble(size, 12f, 9f, 13f, 10f))) {
             Column(
@@ -1258,7 +1258,7 @@ object InkTheme : ThemeContract {
             ) {
                 Text(title, TextType.TITLE, true, null)
                 content()
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(size.dp(8f)), content = actions)
+                if (actions != null) app.treelune.core.ui.components.ButtonRow(align = Alignment.CenterHorizontally, mainLast = true, content = actions)
             }
             Box(modifier = Modifier.align(Alignment.TopEnd).padding(size.dp(10f))) { Seal(size.dp(14f), null) }
         }

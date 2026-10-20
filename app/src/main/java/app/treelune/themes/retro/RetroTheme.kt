@@ -1194,13 +1194,13 @@ object RetroTheme : ThemeContract {
 
     /** A frame whose tones stay swapped, to draw the eye: the title, the content, the actions. */
     @Composable
-    override fun InteractionCard(title: String, content: @Composable ColumnScope.() -> Unit, actions: @Composable RowScope.() -> Unit) {
+    override fun InteractionCard(title: String, content: @Composable ColumnScope.() -> Unit, actions: (@Composable () -> Unit)?) {
         val grid = retroGrid()
         Framed(modifier = Modifier.fillMaxWidth(), pressed = true) {
             Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(grid.steady(1))) {
                 Text(title, TextType.TITLE, true, TextAlign.Center)
                 content()
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(grid.steady(1)), content = actions)
+                if (actions != null) app.treelune.core.ui.components.ButtonRow(align = Alignment.CenterHorizontally, mainLast = true, content = actions)
             }
         }
     }

@@ -374,19 +374,16 @@ fun JournalEntryScreen(
             }
 
             // Form actions
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(UI.Space.S)
-            ) {
-                UI.ActionButton(
-                    action = ButtonAction.CANCEL,
-                    onClick = { handleCancel() }
-                )
-
+            UI.FormActions {
                 UI.ActionButton(
                     action = ButtonAction.SAVE,
                     enabled = entryLoad == LoadState.LOADED,
                     onClick = { handleSave() }
+                )
+
+                UI.ActionButton(
+                    action = ButtonAction.CANCEL,
+                    onClick = { handleCancel() }
                 )
             }
         } else {

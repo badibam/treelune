@@ -1419,7 +1419,7 @@ object MetroTheme : ThemeContract {
 
     /** A white panel under a red line of 6 dp, a signal that the user is asked: the title, the content, the actions. */
     @Composable
-    override fun InteractionCard(title: String, content: @Composable ColumnScope.() -> Unit, actions: @Composable RowScope.() -> Unit) {
+    override fun InteractionCard(title: String, content: @Composable ColumnScope.() -> Unit, actions: (@Composable () -> Unit)?) {
         val size = metroSize()
         val c = metroColors
         val radius = size.dp(RADIUS)
@@ -1433,7 +1433,7 @@ object MetroTheme : ThemeContract {
         ) {
             Text(title, TextType.TITLE, true, null)
             content()
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(size.dp(8f), Alignment.End), content = actions)
+            if (actions != null) app.treelune.core.ui.components.ButtonRow(align = Alignment.End, mainLast = true, content = actions)
         }
     }
 

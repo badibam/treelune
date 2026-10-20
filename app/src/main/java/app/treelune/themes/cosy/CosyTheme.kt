@@ -1259,13 +1259,13 @@ object CosyTheme : ThemeContract {
 
     /** A tile ringed with the main colour, to draw the eye: the title, the content, the actions. */
     @Composable
-    override fun InteractionCard(title: String, content: @Composable ColumnScope.() -> Unit, actions: @Composable RowScope.() -> Unit) {
+    override fun InteractionCard(title: String, content: @Composable ColumnScope.() -> Unit, actions: (@Composable () -> Unit)?) {
         val size = cosySize()
         TileBox(modifier = Modifier.fillMaxWidth(), highlight = true) {
             Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(size.dp(10f))) {
                 Text(title, TextType.TITLE, true, TextAlign.Center)
                 content()
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(size.dp(10f)), content = actions)
+                if (actions != null) app.treelune.core.ui.components.ButtonRow(align = Alignment.CenterHorizontally, mainLast = true, content = actions)
             }
         }
     }

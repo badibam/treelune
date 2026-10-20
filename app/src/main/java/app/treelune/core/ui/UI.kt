@@ -1011,6 +1011,6 @@ object UI {
     fun InteractionCard(
         title: String,
         content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit,
-        actions: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit
+        actions: (@Composable () -> Unit)?
     ) = CurrentTheme.current.InteractionCard(title, content, actions)
 }
