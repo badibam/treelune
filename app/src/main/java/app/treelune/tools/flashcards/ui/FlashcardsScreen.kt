@@ -86,9 +86,9 @@ fun FlashcardsScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
                 group?.let { put("group", it) }
                 direction?.let { put("direction", it) }
             })
-            if (!result.isSuccess) { UI.Toast(context, result.error ?: s.shared("message_error_simple"), Duration.LONG); return@launch }
+            if (!result.isSuccess) { UI.Toast(result.error ?: s.shared("message_error_simple"), Duration.LONG); return@launch }
             val started = SessionState.started(result.data)
-            if (started.session.over) UI.Toast(context, s.tool("session_nothing"), Duration.SHORT)
+            if (started.session.over) UI.Toast(s.tool("session_nothing"), Duration.SHORT)
             else session = started.toJson().toString()
         }
     }

@@ -191,8 +191,8 @@ fun UI.RichComposer(
             if (result.isSuccess) {
                 add(ComposerBlock(MessageSegment.Image(result.data!!["id"] as String)))
                 // An animated image keeps its first frame, which is said
-                if (result.data!!["animated"] == true) UI.Toast(context, s.shared("image_animated_first_frame"), Duration.LONG)
-            } else UI.Toast(context, result.error ?: "", Duration.LONG)
+                if (result.data!!["animated"] == true) UI.Toast(s.shared("image_animated_first_frame"), Duration.LONG)
+            } else UI.Toast(result.error ?: "", Duration.LONG)
         }
     }
 
@@ -329,7 +329,7 @@ fun UI.RichComposer(
                         } catch (e: android.content.ActivityNotFoundException) {
                             capturePath = null
                             file.delete()
-                            UI.Toast(context, s.shared("ai_image_no_camera"), Duration.LONG)
+                            UI.Toast(s.shared("ai_image_no_camera"), Duration.LONG)
                         }
                     }
                 )
@@ -358,7 +358,7 @@ fun UI.RichComposer(
                         // A message with images waits for a model that reads them
                         val imageCount = blocks.count { it.segment is MessageSegment.Image }
                         val refusal = app.treelune.core.ai.providers.ImageInput.refusal(imageCount, readsImages) { s.shared(it) }
-                        if (refusal != null) UI.Toast(context, refusal, Duration.LONG)
+                        if (refusal != null) UI.Toast(refusal, Duration.LONG)
                         else onSend(RichMessage(ComposerBlocks.toSegments(blocks)))
                     }
                 )

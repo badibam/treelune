@@ -57,8 +57,8 @@ fun ImageInput(fieldDef: FieldDefinition, value: Any?, onChange: (Any?) -> Unit,
             if (result.isSuccess) {
                 changed(current + (result.data!!["id"] as String))
                 // An animated image keeps its first frame, which is said
-                if (result.data!!["animated"] == true) UI.Toast(context, s.shared("image_animated_first_frame"), Duration.LONG)
-            } else UI.Toast(context, result.error ?: "", Duration.LONG)
+                if (result.data!!["animated"] == true) UI.Toast(s.shared("image_animated_first_frame"), Duration.LONG)
+            } else UI.Toast(result.error ?: "", Duration.LONG)
         }
     }
 
@@ -98,7 +98,7 @@ fun ImageInput(fieldDef: FieldDefinition, value: Any?, onChange: (Any?) -> Unit,
                         } catch (e: android.content.ActivityNotFoundException) {
                             capturePath = null
                             file.delete()
-                            UI.Toast(context, s.shared("ai_image_no_camera"), Duration.LONG)
+                            UI.Toast(s.shared("ai_image_no_camera"), Duration.LONG)
                         }
                     }
                 )

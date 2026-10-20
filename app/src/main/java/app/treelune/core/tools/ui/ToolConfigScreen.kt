@@ -93,7 +93,7 @@ fun ToolConfigScreen(
         @Suppress("UNCHECKED_CAST")
         val loaded = result.mapSingleData("tool_instance") { it }?.get("config") as? Map<String, Any?>
         if (!result.isSuccess || loaded == null) {
-            UI.Toast(context, result.error ?: s.shared("tools_config_error_not_found"), Duration.LONG)
+            UI.Toast(result.error ?: s.shared("tools_config_error_not_found"), Duration.LONG)
             return@rememberLoadOnce false
         }
         config = JsonUtils.toJSONObject(loaded)
@@ -132,7 +132,7 @@ fun ToolConfigScreen(
                 missing.isNotEmpty() -> pendingFill = missing
                 // Refused for what it loses, and for nothing else: the user decides
                 migration != null && !confirmed -> pendingMigration = JsonUtils.toJSONObject(migration.entries.associate { it.key.toString() to it.value }).toString()
-                else -> UI.Toast(context, result.error ?: s.shared("tools_config_error_save"), Duration.LONG)
+                else -> UI.Toast(result.error ?: s.shared("tools_config_error_save"), Duration.LONG)
             }
         }
     }
@@ -209,7 +209,7 @@ fun ToolConfigScreen(
                     scope.launch {
                         val result = coordinator.processUserAction("tools.delete", mapOf("tool_instance_id" to toolId))
                         if (result.isSuccess) onDone()
-                        else UI.Toast(context, result.error ?: s.shared("tools_config_error_save"), Duration.LONG)
+                        else UI.Toast(result.error ?: s.shared("tools_config_error_save"), Duration.LONG)
                     }
                 }
             },

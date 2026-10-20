@@ -152,7 +152,7 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
         }
     }
     errorMessage?.let { message ->
-        LaunchedEffect(message) { UI.Toast(context, message, Duration.LONG); errorMessage = null }
+        LaunchedEffect(message) { UI.Toast(message, Duration.LONG); errorMessage = null }
     }
 
     fun write(action: suspend () -> CommandResult, onDone: (CommandResult) -> Unit = {}) {

@@ -1,8 +1,6 @@
 package app.treelune.themes.swiss
 
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -440,11 +438,6 @@ object SwissTheme : ThemeContract {
     // FEEDBACK
     // =====================================
 
-    /** A block of ink at the bottom of the screen (FullScreen shows it), for as long as Android's would last. */
-    override fun Toast(context: Context, message: String, duration: Duration) {
-        val shown = if (duration == Duration.SHORT) TOAST_SHORT_MS else TOAST_LONG_MS
-        Handler(Looper.getMainLooper()).post { SwissToasts.show(message, shown) }
-    }
 
     /**
      * A block of ink, its message in the ground's colour, its action in underlined capitals; a
@@ -677,7 +670,6 @@ object SwissTheme : ThemeContract {
         Box(modifier = Modifier.fillMaxSize().background(swissColors.ground.srgb)) {
             CompositionLocalProvider(LocalSwissInk provides null) {
                 content()
-                ToastHost(Modifier.align(Alignment.BottomCenter))
             }
         }
     }
@@ -1535,24 +1527,6 @@ object SwissTheme : ThemeContract {
         }
     }
 
-    /** The toast shown, a block of ink across the bottom of the screen. */
-    @Composable
-    private fun ToastHost(modifier: Modifier) {
-        val shown = SwissToasts.current ?: return
-        LaunchedEffect(shown.id) {
-            delay(shown.millis)
-            SwissToasts.dismiss(shown.id)
-        }
-        val size = swissSize()
-        val c = swissColors
-        Box(modifier = modifier.fillMaxWidth().padding(spacing(Spacing.EDGE))) {
-            FadeIn {
-                Box(modifier = Modifier.fillMaxWidth().background(c.ink.srgb).padding(horizontal = size.dp(16f), vertical = size.dp(14f))) {
-                    Line(shown.message, size.body, c.ground.srgb)
-                }
-            }
-        }
-    }
 
     /**
      * How the motifs are laid (docs/design/tool-texture.md): a cell's unit a dp at the size step,
@@ -1578,8 +1552,6 @@ object SwissTheme : ThemeContract {
     private const val MAX_GRID_DP = 480
     private const val CELL_ALPHA = 0.2f
     private const val ASIDE_ALPHA = 0.4f
-    private const val TOAST_SHORT_MS = 2000L
-    private const val TOAST_LONG_MS = 3500L
     private const val LOADING_MS = 1100
     private const val THINKING_STEPS = 4
     private const val THINKING_STEP_MS = 300
@@ -1587,20 +1559,3 @@ object SwissTheme : ThemeContract {
     private fun Float.em() = androidx.compose.ui.unit.TextUnit(this, androidx.compose.ui.unit.TextUnitType.Em)
 }
 
-/** The toasts waiting, the oldest shown first; posted on the main thread. */
-internal object SwissToasts {
-    data class Shown(val id: Long, val message: String, val millis: Long)
-
-    private val queue = mutableStateListOf<Shown>()
-    private var next = 0L
-
-    val current: Shown? get() = queue.firstOrNull()
-
-    fun show(message: String, millis: Long) {
-        queue.add(Shown(next++, message, millis))
-    }
-
-    fun dismiss(id: Long) {
-        queue.removeAll { it.id == id }
-    }
-}

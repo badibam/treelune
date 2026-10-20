@@ -195,6 +195,7 @@ Vu le 2026-10-09 : l'inscription par la page de connexion, « Activer Funnel » 
 
 ## Réglages et affichage
 - La conversion du réglage d'apparence en v58 (une famille devient une teinte), sur la release et ses données ; les titres de section du thème par défaut ; une tuile sans icône, son nom centré.
+- Les messages de l'app (`Toasts`), dans chaque thème : un message long entier, lisible sur la page et distinct des cartes ; au-dessus d'une fenêtre ouverte (le refus d'un export dans sa fenêtre, le chat) ; parti au toucher ; « Import réussi » dit au redémarrage qui suit une restauration (le défaut et le cosy sur la page, le chat au-dessus : vus le 2026-10-20, le cosy à peine distinct de ses cartes).
 - Une seule activité : un retour du sélecteur de photos et de l'appareil photo (champ Image, message) ramène à l'écran d'où on les a ouverts, sans activité de plus.
 - Les rangées de la grille (vues en Métro au cran 3 et au cran 0 le 2026-10-20) au cran de taille 3 dans les autres thèmes, puis avec la taille de texte d'Android au maximum dans chacun : une tuile en Minimal, Ligne et Compact (« Point facturation », le Carnet de Travail) montre son nom sur deux lignes et son type entiers, rien de coupé en bas ; au cran 0 et à la taille d'Android normale, les cases restent carrées comme avant (comparer avec une capture d'avant) ; le mode d'édition de la grille, ses cases à la nouvelle hauteur.
 - La place à l'écran, en rétro à la plus grande taille, en une colonne, puis dans les deux autres thèmes : chaque écran (zone, outils, réglages, Guide, routine) à la même marge des bords, la plus petite, et une fenêtre flottante alignée sur elle ; les boutons d'un formulaire côte à côte s'ils tiennent, sinon chacun sur sa ligne en pleine largeur, le texte centré (Questionnaire en une colonne : « Remplir maintenant », « Avec l'IA ») ; les couleurs d'une icône et la grille d'icônes passent à la ligne sans s'écraser.
@@ -518,13 +519,11 @@ Vu le 2026-10-20 sur la démo : la tuile et la page de Ripasso ; la fenêtre de 
 
 ## L'export des entrées (branche post-release, `docs/design/export.md`)
 
-- Config de Repas (démo) › « Exporter les entrées… », sans période ni filtre : la fenêtre dit le nom du fichier et le nombre d'entrées ; le fichier est dans le dossier de l'app (app Fichiers), son nom `Repas_<date>_<heure>.csv`. Ouvert dans un tableur par son dialogue d'import (virgule, UTF-8) : la première ligne en libellés (« Nom », « Date »…), les accents justes, une ligne par entrée, l'aliment par son nom.
-- Le même export deux fois dans la minute : le second fichier prend `_2`, le premier reste.
-- Une période (cette semaine) et un filtre : le nombre d'entrées suit ; des champs gardés : seules leurs colonnes.
-- « Partager » ouvre le menu d'Android ; le fichier joint à un mail arrive entier.
-- Sans dossier choisi (Réglages › Données), ou son droit retiré : l'export est refusé en disant d'aller le choisir.
-- Un outil en création n'a pas le bouton ; une sous-page de la config non plus.
-- Au chat : « exporte mes repas de cette semaine en CSV » : l'IA lance `EXPORT_DATA` sans demander d'accord ; sa carte dit l'export de Repas, le fichier et le nombre d'entrées, avec « Partager » qui ouvre le menu d'Android.
+- Le fichier d'un export de Repas ouvert dans un tableur par son dialogue d'import (virgule, UTF-8) : la première ligne en libellés (« Nom », « Date »…), les accents justes, une ligne par entrée, l'aliment par son nom. (la fenêtre, le nom, le dossier, la marque d'ordre des octets et les colonnes par leurs libellés : vus le 2026-10-20 ; un choix s'y écrit par sa clé, « dinner »)
+- Le fichier partagé joint à un mail arrive entier (le menu d'Android : vu le 2026-10-20).
+- Le droit sur le dossier retiré : l'export est refusé en disant d'aller le choisir (sans dossier : vu le 2026-10-20, le toast coupé avant « Données »).
+- Un outil en création n'a pas le bouton (une sous-page non plus : vu le 2026-10-20).
+- Au chat, « Partager » de la carte d'un export ouvre le menu d'Android (l'export par l'IA, sans accord, sa carte avec le fichier et le compte : vus le 2026-10-20).
 - Une routine dont le message demande l'export de la semaine : le fichier paraît dans le dossier à chaque exécution, sans écraser le précédent.
 
 ## Partager une partie de l'app (branche post-release, `docs/design/share.md`)

@@ -1728,7 +1728,6 @@ class AIEventProcessor(
             // Show toast on main thread
             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                 app.treelune.core.ui.UI.Toast(
-                    context = context,
                     message = errorMessage,
                     duration = app.treelune.core.ui.Duration.LONG
                 )

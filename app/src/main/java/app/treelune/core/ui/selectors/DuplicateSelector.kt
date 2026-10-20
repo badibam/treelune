@@ -130,12 +130,13 @@ fun DuplicateSelector(
     // Error toast
     LaunchedEffect(errorMessage) {
         errorMessage?.let { msg ->
-            UI.Toast(context, msg)
+            UI.Toast(msg)
             errorMessage = null
         }
     }
 
     Dialog(onDismissRequest = onDismiss) {
+        app.treelune.core.ui.ToastLayer()
         UI.Card(type = CardType.DEFAULT) {
             Column(
                 modifier = Modifier

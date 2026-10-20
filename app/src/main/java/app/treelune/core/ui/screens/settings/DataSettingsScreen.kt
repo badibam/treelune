@@ -3,7 +3,6 @@ package app.treelune.core.ui.screens.settings
 import androidx.compose.runtime.saveable.rememberSaveable
 import android.app.Activity
 import android.content.Intent
-import android.widget.Toast
 import kotlin.system.exitProcess
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -64,7 +63,7 @@ fun DataSettingsScreen(
     // Toast for errors
     LaunchedEffect(errorMessage) {
         errorMessage?.let { error ->
-            Toast.makeText(context, error, Toast.LENGTH_LONG).show()
+            UI.Toast(error, Duration.LONG)
             errorMessage = null
         }
     }
@@ -261,11 +260,7 @@ fun DataSettingsScreen(
                         )
 
                         if (result.status == CommandStatus.SUCCESS) {
-                            Toast.makeText(
-                                context,
-                                s.shared("backup_reset_success"),
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            Toasts.showAfterRestart(context, s.shared("backup_reset_success"))
                             // Restart app with clean state
                             restartApp(context)
                         } else {

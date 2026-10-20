@@ -97,7 +97,7 @@ fun ExportScreen(onBack: () -> Unit) {
         folderState = withContext(Dispatchers.IO) { AutoBackup.state(context) }
     }
     val chooseFolder = rememberAppFolderPicker(folderState) { refused ->
-        refused?.let { UI.Toast(context, it) }
+        refused?.let { UI.Toast(it) }
         folderRead++
     }
     val folderReady = folderState is AutoBackup.State.Ready || folderState is AutoBackup.State.Off
@@ -163,7 +163,7 @@ fun ExportScreen(onBack: () -> Unit) {
                                 val data = result.data!!
                                 written = FileWritten(data["file_name"] as String, data["uri"] as String, (data["elements"] as Number).toInt(),
                                     (data["entries"] as Number).toInt(), (data["missing_images"] as Number).toInt())
-                            } else UI.Toast(context, result.error ?: "", app.treelune.core.ui.Duration.LONG)
+                            } else UI.Toast(result.error ?: "", app.treelune.core.ui.Duration.LONG)
                         }
                     }
                 ) {

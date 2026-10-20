@@ -125,7 +125,7 @@ fun LogsScreen(
     // Error display (toast pattern)
     errorMessage?.let { error ->
         LaunchedEffect(error) {
-            UI.Toast(context, error, Duration.LONG)
+            UI.Toast(error, Duration.LONG)
             errorMessage = null
         }
     }

@@ -55,7 +55,7 @@ fun ZoneChoice(label: String, selected: String?, onSelect: (String) -> Unit, req
         val listed = coordinator.processUserAction("zones.list", mapOf("include_position" to true))
         val settings = coordinator.processUserAction("app_config.get", mapOf("category" to AppSettingCategories.MAIN_SCREEN))
         if (!listed.isSuccess || !settings.isSuccess) {
-            UI.Toast(context, listed.error ?: settings.error ?: s.shared("error_load_failed"))
+            UI.Toast(listed.error ?: settings.error ?: s.shared("error_load_failed"))
             return@LaunchedEffect
         }
         val groups = ((settings.data?.get("settings") as? Map<*, *>)?.get("zone_groups") as? List<*>).orEmpty().map { it as String }

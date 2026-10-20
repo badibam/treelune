@@ -73,5 +73,7 @@ class AutoBackupRotationTest {
         assertEquals("treelune_auto_day_2026-10-12_14h05.zip", name)
         assertEquals(Slot.DAY to at, AutoBackupRotation.parse(name, zone))
         assertNull(AutoBackupRotation.parse("treelune_backup_2026-10-12_v80.zip", zone))
+        // A copy made twice in a minute, renamed by Android, is of the rolling all the same
+        assertEquals(Slot.DAY to at, AutoBackupRotation.parse("treelune_auto_day_2026-10-12_14h05 (1).zip", zone))
     }
 }

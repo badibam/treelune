@@ -74,7 +74,7 @@ fun ExternalAccessSettingsScreen(onBack: () -> Unit) {
                 loggingOut = false
                 scope.launch {
                     val failure = TailscaleNode.logout(context)
-                    UI.Toast(context, failure?.let { s.shared("external_access_tailscale_logout_failed").format(it) }
+                    UI.Toast(failure?.let { s.shared("external_access_tailscale_logout_failed").format(it) }
                         ?: s.shared("external_access_tailscale_logout_done"), app.treelune.core.ui.Duration.LONG)
                 }
             },
@@ -95,7 +95,7 @@ fun ExternalAccessSettingsScreen(onBack: () -> Unit) {
                         "client_id" to client.id,
                         "access" to app.treelune.core.utils.JsonUtils.toList(chosen.toJson())
                     ))
-                    if (result.status != app.treelune.core.commands.CommandStatus.SUCCESS) UI.Toast(context, result.error ?: "", app.treelune.core.ui.Duration.LONG)
+                    if (result.status != app.treelune.core.commands.CommandStatus.SUCCESS) UI.Toast(result.error ?: "", app.treelune.core.ui.Duration.LONG)
                 }
             },
             onCancel = { editingAccess = null }
@@ -117,7 +117,7 @@ fun ExternalAccessSettingsScreen(onBack: () -> Unit) {
                 revoking = null
                 scope.launch {
                     val result = app.treelune.core.coordinator.Coordinator(context).processUserAction("mcp_clients.delete", mapOf("client_id" to client.id))
-                    if (result.status != app.treelune.core.commands.CommandStatus.SUCCESS) UI.Toast(context, result.error ?: "", app.treelune.core.ui.Duration.LONG)
+                    if (result.status != app.treelune.core.commands.CommandStatus.SUCCESS) UI.Toast(result.error ?: "", app.treelune.core.ui.Duration.LONG)
                     clients = store.clients()
                 }
             },
@@ -250,7 +250,7 @@ private fun TailscaleStep(step: TailscaleNode.Step, s: app.treelune.core.strings
             UI.Button(type = ButtonType.DEFAULT, onClick = {
                 val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 clipboard.setPrimaryClip(ClipData.newPlainText("Tailscale policy", FUNNEL_POLICY))
-                UI.Toast(context, s.shared("external_access_policy_copied"), app.treelune.core.ui.Duration.SHORT)
+                UI.Toast(s.shared("external_access_policy_copied"), app.treelune.core.ui.Duration.SHORT)
             }) {
                 UI.Text(s.shared("external_access_copy_policy"), TextType.LABEL)
             }

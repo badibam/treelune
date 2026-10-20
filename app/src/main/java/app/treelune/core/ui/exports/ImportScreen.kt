@@ -190,7 +190,7 @@ fun ImportScreen(uri: String, onBack: () -> Unit) {
                                         val data = result.data!!
                                         imported = Imported((data["zones"] as Number).toInt(), (data["elements"] as Number).toInt(),
                                             (data["entries"] as Number).toInt(), (data["images_missing"] as Number).toInt())
-                                    } else UI.Toast(context, result.error ?: "", app.treelune.core.ui.Duration.LONG)
+                                    } else UI.Toast(result.error ?: "", app.treelune.core.ui.Duration.LONG)
                                 }
                             }
                         ) {
@@ -216,10 +216,11 @@ fun ImportScreen(uri: String, onBack: () -> Unit) {
                     val result = Coordinator(context).processUserAction("backup.import", mapOf("uri" to uri))
                     running = false
                     if (result.isSuccess) {
-                        UI.Toast(context, s.shared("backup_import_success"))
+                        // Said once the app has started again (Toasts.showAfterRestart)
+                        app.treelune.core.ui.Toasts.showAfterRestart(context, s.shared("backup_import_success"))
                         // Every screen reads the restored data from a clean start
                         app.treelune.core.ui.screens.settings.restartApp(context)
-                    } else UI.Toast(context, result.error ?: "", app.treelune.core.ui.Duration.LONG)
+                    } else UI.Toast(result.error ?: "", app.treelune.core.ui.Duration.LONG)
                 }
             },
             onDismiss = { confirmRestore = false }

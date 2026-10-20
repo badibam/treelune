@@ -298,7 +298,9 @@ class BackupService(private val context: Context) : ExecutableService {
         }
 
         // The older copies roll, each going down or out, from the bottom up
-        app.treelune.core.backup.AutoBackupRotation.plan(now, existing).forEach { step ->
+        val steps = app.treelune.core.backup.AutoBackupRotation.plan(now, existing)
+        LogManager.service("Auto backup: copies found ${existing.keys.joinToString { it.key }.ifEmpty { "none" }}, ${state.extra.size} in excess, rolling $steps", "DEBUG")
+        steps.forEach { step ->
             when (step) {
                 is app.treelune.core.backup.AutoBackupRotation.Step.Delete ->
                     android.provider.DocumentsContract.deleteDocument(resolver, state.copies.getValue(step.slot).document)
@@ -308,6 +310,8 @@ class BackupService(private val context: Context) : ExecutableService {
                 }
             }
         }
+        // The files of the rolling in excess, left by a rolling that did not run: one copy per slot is kept
+        state.extra.forEach { android.provider.DocumentsContract.deleteDocument(resolver, it.document) }
         app.treelune.core.backup.AutoBackup.copied(context, hash)
         LogManager.service("Auto backup: $name written in ${System.currentTimeMillis() - now} ms, ${built.images.size} images")
         return OperationResult.success(mapOf("written" to true))

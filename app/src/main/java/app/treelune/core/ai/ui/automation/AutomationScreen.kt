@@ -259,7 +259,7 @@ fun AutomationScreen(
     // Show error toast
     LaunchedEffect(errorMessage) {
         if (errorMessage != null) {
-            UI.Toast(context, errorMessage!!)
+            UI.Toast(errorMessage!!)
             errorMessage = null
         }
     }

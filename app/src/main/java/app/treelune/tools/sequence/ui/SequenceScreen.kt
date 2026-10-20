@@ -164,7 +164,7 @@ fun SequenceScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigu
             }
         }
     }
-    errorMessage?.let { message -> LaunchedEffect(message) { UI.Toast(context, message, Duration.LONG); errorMessage = null } }
+    errorMessage?.let { message -> LaunchedEffect(message) { UI.Toast(message, Duration.LONG); errorMessage = null } }
 
     fun call(operation: String, params: Map<String, Any?> = emptyMap(), onDone: () -> Unit = {}) {
         scope.launch {

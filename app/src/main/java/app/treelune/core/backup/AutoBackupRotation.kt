@@ -33,7 +33,8 @@ object AutoBackupRotation {
 
     private const val PREFIX = "treelune_auto_"
     private val DATE = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH'h'mm")
-    private val NAME = Regex("^${PREFIX}(hour|day|week|month)_(\\d{4}-\\d{2}-\\d{2}_\\d{2}h\\d{2})\\.zip$")
+    // Android adds " (1)" to a file created under a name already taken: a copy made twice in a minute
+    private val NAME = Regex("^${PREFIX}(hour|day|week|month)_(\\d{4}-\\d{2}-\\d{2}_\\d{2}h\\d{2})( \\(\\d+\\))?\\.zip$")
 
     /** The name of the copy of [slot] made at [at]: "treelune_auto_day_2026-10-12_14h05.zip", in [zone]. */
     fun name(slot: Slot, at: Long, zone: ZoneId): String =

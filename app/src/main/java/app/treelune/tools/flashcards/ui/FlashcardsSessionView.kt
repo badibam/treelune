@@ -68,7 +68,7 @@ fun FlashcardsSessionView(
     var fields by remember { mutableStateOf<Map<String, FieldDefinition>?>(null) }
     LaunchedEffect(sourceId) {
         fields = try { ToolFields.filterable(sourceId ?: return@LaunchedEffect, context, s) } catch (e: IllegalStateException) {
-            UI.Toast(context, e.message ?: s.shared("message_error_simple"), Duration.LONG)
+            UI.Toast(e.message ?: s.shared("message_error_simple"), Duration.LONG)
             null
         }
     }
@@ -81,7 +81,7 @@ fun FlashcardsSessionView(
                 "tool_instance_id" to toolInstanceId, "source_entry" to card.line, "direction" to card.direction, "rating" to rating.name
             ))
             busy = false
-            if (!result.isSuccess) { UI.Toast(context, result.error ?: s.shared("message_error_simple"), Duration.LONG); return@launch }
+            if (!result.isSuccess) { UI.Toast(result.error ?: s.shared("message_error_simple"), Duration.LONG); return@launch }
             val now = System.currentTimeMillis()
             val next = state.session.rated(card, rating, now, result.data?.get("id") as String)
             onChange(state.copy(session = next, shown = next.next(now), turned = false))
@@ -94,7 +94,7 @@ fun FlashcardsSessionView(
         scope.launch {
             val result = coordinator.processUserAction("tool_data.delete", mapOf("id" to undone.reviewId))
             busy = false
-            if (!result.isSuccess) { UI.Toast(context, result.error ?: s.shared("message_error_simple"), Duration.LONG); return@launch }
+            if (!result.isSuccess) { UI.Toast(result.error ?: s.shared("message_error_simple"), Duration.LONG); return@launch }
             onChange(state.copy(session = undone.session, shown = undone.card, turned = false))
         }
     }

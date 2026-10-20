@@ -54,7 +54,7 @@
     <string name="date_on_at">On %1$s at %2$s</string>
 
     <!-- CONFIRMATIONS - Confirmation messages -->
-    <string name="delete_confirm_template">Delete the entry \"%1$s\"?</string>
+    <string name="delete_confirm_template">Delete the entry “%1$s”?</string>
     <string name="delete_confirm_untitled">Delete this untitled entry?</string>
     <string name="confirm_delete_entry">Confirm deletion of this entry?</string>
 

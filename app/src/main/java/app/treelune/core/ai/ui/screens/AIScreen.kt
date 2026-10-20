@@ -385,7 +385,7 @@ private fun ChatMode(
     // Error display
     errorMessage?.let { message ->
         LaunchedEffect(message) {
-            UI.Toast(context, message, Duration.LONG)
+            UI.Toast(message, Duration.LONG)
             errorMessage = null
         }
     }
@@ -655,7 +655,7 @@ private fun SeedMode(
                             val automationMap = result.data?.get("automation") as? Map<String, Any>
                             if (automationMap != null) {
                                 automation = Automation.fromResult(automationMap)
-                                UI.Toast(context, s.shared("automation_updated_success"), Duration.SHORT)
+                                UI.Toast(s.shared("automation_updated_success"), Duration.SHORT)
                             }
                         }
                     } catch (e: Exception) {
@@ -683,7 +683,7 @@ private fun SeedMode(
                             )
 
                             if (result.status == CommandStatus.SUCCESS) {
-                                UI.Toast(context, s.shared("automation_deleted_success"), Duration.SHORT)
+                                UI.Toast(s.shared("automation_deleted_success"), Duration.SHORT)
                                 onClose()  // Return to zone screen
                             } else {
                                 errorMessage = result.error ?: s.shared("error_automation_delete_failed")
@@ -799,7 +799,7 @@ private fun SeedMode(
 
                             val result = coordinator.processUserAction("automations.update", updateParams)
                             if (result.status == CommandStatus.SUCCESS) {
-                                UI.Toast(context, s.shared("automation_saved_success"), Duration.SHORT)
+                                UI.Toast(s.shared("automation_saved_success"), Duration.SHORT)
                                 LogManager.aiUI("SeedMode: Automation saved successfully", "INFO")
                                 onClose()
                             } else {
@@ -820,7 +820,7 @@ private fun SeedMode(
     // Error display
     errorMessage?.let { message ->
         LaunchedEffect(message) {
-            UI.Toast(context, message, Duration.LONG)
+            UI.Toast(message, Duration.LONG)
             errorMessage = null
         }
     }
@@ -930,6 +930,7 @@ private fun ChatOptionsDialog(
             dismissOnClickOutside = true
         )
     ) {
+        app.treelune.core.ui.ToastLayer()
         UI.Card(type = CardType.DEFAULT) {
             Column(
                 modifier = Modifier
@@ -1077,7 +1078,7 @@ private fun ChatHeader(
                         validation = chosen
                         LogManager.aiUI("Session validation updated: $chosen", "INFO")
                     } else {
-                        UI.Toast(context, result.error ?: s.shared("ai_error_toggle_validation"), Duration.LONG)
+                        UI.Toast(result.error ?: s.shared("ai_error_toggle_validation"), Duration.LONG)
                     }
                 }
             },
@@ -1089,7 +1090,7 @@ private fun ChatHeader(
                         if (result.data?.get("reasoning_dropped") == true) reasoning = null
                         LogManager.aiUI("Session provider now $chosen", "INFO")
                     } else {
-                        UI.Toast(context, result.error ?: s.shared("error_unknown"), Duration.LONG)
+                        UI.Toast(result.error ?: s.shared("error_unknown"), Duration.LONG)
                     }
                 }
             },
@@ -1104,7 +1105,7 @@ private fun ChatHeader(
                         reasoning = chosen
                         LogManager.aiUI("Session reasoning updated: $chosen", "INFO")
                     } else {
-                        UI.Toast(context, result.error ?: s.shared("session_reasoning_error"), Duration.LONG)
+                        UI.Toast(result.error ?: s.shared("session_reasoning_error"), Duration.LONG)
                     }
                 }
             }
@@ -1119,7 +1120,7 @@ private fun ChatHeader(
         renameScope.launch {
             val result = app.treelune.core.coordinator.Coordinator(context).processUserAction("ai_sessions.rename", mapOf("session_id" to session.id, "name" to name))
             if (result.status == CommandStatus.SUCCESS) title = name
-            else UI.Toast(context, result.error ?: s.shared("error_rename_failed"), Duration.LONG)
+            else UI.Toast(result.error ?: s.shared("error_rename_failed"), Duration.LONG)
         }
     }) {
 
@@ -1277,7 +1278,7 @@ private fun AutomationHeader(
             scope.launch {
                 val result = app.treelune.core.coordinator.Coordinator(context).processUserAction("automations.update", mapOf("automation_id" to id, "name" to name))
                 if (result.status == CommandStatus.SUCCESS) title = name
-                else UI.Toast(context, result.error ?: s.shared("error_rename_failed"), Duration.LONG)
+                else UI.Toast(result.error ?: s.shared("error_rename_failed"), Duration.LONG)
             }
             Unit
         }

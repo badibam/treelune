@@ -184,7 +184,7 @@ fun rememberToolFields(toolInstanceId: String?): Map<String, app.treelune.core.f
             app.treelune.core.fields.ToolFields.filterable(toolInstanceId, context, s)
         } catch (e: Exception) {
             LogManager.ui("rememberToolFields: fields of $toolInstanceId not loaded: ${e.message}", "ERROR", e)
-            UI.Toast(context, s.shared("error_loading_options"))
+            UI.Toast(s.shared("error_loading_options"))
             emptyMap()
         }
     }

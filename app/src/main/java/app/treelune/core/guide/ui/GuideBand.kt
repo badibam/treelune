@@ -90,7 +90,7 @@ fun GuideBand() {
                         }
                         UI.Button(type = ButtonType.DEFAULT, onClick = {
                             Guide.hide()
-                            UI.Toast(context, s.shared("guide_band_hidden"), Duration.LONG)
+                            UI.Toast(s.shared("guide_band_hidden"), Duration.LONG)
                         }) {
                             UI.Text(s.shared("guide_band_hide"), TextType.LABEL)
                         }

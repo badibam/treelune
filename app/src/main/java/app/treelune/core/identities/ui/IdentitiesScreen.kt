@@ -70,12 +70,12 @@ fun IdentitiesScreen(onBack: () -> Unit) {
                     context.contentResolver.openInputStream(uri)!!.bufferedReader(Charsets.UTF_8).use { it.readText() }
                 }
             } catch (e: Exception) {
-                UI.Toast(context, s.shared("identity_import_unreadable").format(e.message ?: ""), Duration.LONG)
+                UI.Toast(s.shared("identity_import_unreadable").format(e.message ?: ""), Duration.LONG)
                 return@launch
             }
             val result = coordinator.processUserAction("identities.import_preview", mapOf("text" to text))
             if (result.isSuccess) importing = text to result.data!!
-            else UI.Toast(context, result.error ?: s.shared("error_operation_failed"), Duration.LONG)
+            else UI.Toast(result.error ?: s.shared("error_operation_failed"), Duration.LONG)
         }
     }
 
@@ -121,8 +121,8 @@ fun IdentitiesScreen(onBack: () -> Unit) {
                 val result = coordinator.processUserAction("identities.import", mapOf("text" to text, "language" to language, "replace" to true))
                 if (result.isSuccess) {
                     importing = null
-                    UI.Toast(context, s.shared("identity_import_done"), Duration.SHORT)
-                } else UI.Toast(context, result.error ?: s.shared("error_operation_failed"), Duration.LONG)
+                    UI.Toast(s.shared("identity_import_done"), Duration.SHORT)
+                } else UI.Toast(result.error ?: s.shared("error_operation_failed"), Duration.LONG)
             }
         }
     }
@@ -143,7 +143,7 @@ private fun NewIdentityDialog(onDismiss: () -> Unit, onCreated: (String) -> Unit
             scope.launch {
                 val result = Coordinator(context).processUserAction("identities.create", mapOf("name" to name, "language" to language))
                 if (result.isSuccess) onCreated(result.data!!["identity_id"] as String)
-                else UI.Toast(context, result.error ?: s.shared("error_operation_failed"), Duration.LONG)
+                else UI.Toast(result.error ?: s.shared("error_operation_failed"), Duration.LONG)
             }
         },
         onCancel = onDismiss
@@ -225,7 +225,7 @@ fun IdentityScreen(id: String, onName: @Composable (String) -> Unit, onBack: () 
     LaunchedEffect(id, version) {
         val result = coordinator.processUserAction("identities.get", mapOf("identity_id" to id))
         if (result.isSuccess) identity = result.data!!["identity"] as Map<*, *>
-        else { UI.Toast(context, result.error ?: s.shared("error_operation_failed"), Duration.LONG); onGone() }
+        else { UI.Toast(result.error ?: s.shared("error_operation_failed"), Duration.LONG); onGone() }
     }
     LaunchedEffect(id) {
         DataChangeNotifier.changes.collect { if (it is DataChangeEvent.IdentitiesChanged) version++ }
@@ -252,7 +252,7 @@ fun IdentityScreen(id: String, onName: @Composable (String) -> Unit, onBack: () 
 
     fun update(params: Map<String, Any?>, after: () -> Unit = {}) = scope.launch {
         val result = coordinator.processUserAction("identities.update", mapOf("identity_id" to id) + params)
-        if (result.isSuccess) after() else UI.Toast(context, result.error ?: s.shared("error_operation_failed"), Duration.LONG)
+        if (result.isSuccess) after() else UI.Toast(result.error ?: s.shared("error_operation_failed"), Duration.LONG)
     }
 
     val current = sections[section] as? Map<*, *> ?: sections[shown["language"]] as Map<*, *>
@@ -311,7 +311,7 @@ fun IdentityScreen(id: String, onName: @Composable (String) -> Unit, onBack: () 
                 UI.FormActions {
                     UI.ActionButton(action = ButtonAction.SAVE, onClick = {
                         update(mapOf("name" to name, "icon_name" to iconName, IconColor.KEY to iconColor, "language" to language)) {
-                            UI.Toast(context, s.shared("identity_saved"), Duration.SHORT)
+                            UI.Toast(s.shared("identity_saved"), Duration.SHORT)
                         }
                     })
                 }
@@ -355,7 +355,7 @@ fun IdentityScreen(id: String, onName: @Composable (String) -> Unit, onBack: () 
                 onClick = {
                     scope.launch {
                         val result = coordinator.processUserAction("identities.delete", mapOf("identity_id" to id))
-                        if (result.isSuccess) onGone() else UI.Toast(context, result.error ?: s.shared("error_operation_failed"), Duration.LONG)
+                        if (result.isSuccess) onGone() else UI.Toast(result.error ?: s.shared("error_operation_failed"), Duration.LONG)
                     }
                 }
             )

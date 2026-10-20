@@ -880,22 +880,6 @@ object DefaultTheme : ThemeContract {
 
     private val TagTextColor = Color(0xFF2E2C3A)
 
-    // =====================================
-    // FEEDBACK SYSTEM
-    // =====================================
-    
-    override fun Toast(
-        context: android.content.Context,
-        message: String,
-        duration: Duration
-    ) {
-        val androidDuration = when (duration) {
-            Duration.SHORT -> android.widget.Toast.LENGTH_SHORT
-            Duration.LONG -> android.widget.Toast.LENGTH_LONG
-            Duration.INDEFINITE -> android.widget.Toast.LENGTH_LONG // No equivalent, use LONG
-        }
-        android.widget.Toast.makeText(context, message, androidDuration).show()
-    }
     
     @Composable
     override fun Snackbar(
@@ -920,6 +904,13 @@ object DefaultTheme : ThemeContract {
                 FeedbackType.ERROR -> CurrentTheme.getCurrentColorScheme().error
                 FeedbackType.WARNING -> CurrentTheme.getCurrentColorScheme().tertiary
                 FeedbackType.INFO -> CurrentTheme.getCurrentColorScheme().surfaceVariant
+            },
+            // The text in the colour made for its ground: Material's default is for a dark band
+            contentColor = when (type) {
+                FeedbackType.SUCCESS -> CurrentTheme.getCurrentColorScheme().onPrimary
+                FeedbackType.ERROR -> CurrentTheme.getCurrentColorScheme().onError
+                FeedbackType.WARNING -> CurrentTheme.getCurrentColorScheme().onTertiary
+                FeedbackType.INFO -> CurrentTheme.getCurrentColorScheme().onSurfaceVariant
             }
         ) {
             androidx.compose.material3.Text(message)
@@ -1611,6 +1602,7 @@ object DefaultTheme : ThemeContract {
                 }
             }
         ) {
+            app.treelune.core.ui.ToastLayer()
             DatePicker(
                 state = datePickerState
             )
@@ -1657,7 +1649,10 @@ object DefaultTheme : ThemeContract {
                     androidx.compose.material3.Text(app.treelune.core.strings.Strings.`for`(context = androidx.compose.ui.platform.LocalContext.current).shared("action_cancel"))
                 }
             },
-            text = { TimePicker(state = timePickerState) }
+            text = {
+                app.treelune.core.ui.ToastLayer()
+                TimePicker(state = timePickerState)
+            }
         )
     }
     

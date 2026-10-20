@@ -12,7 +12,7 @@
   offset, as the app will play them. A theme with a finish (scripts/theme_sounds.py, FINISH) plays
   each sound finished by the server as the unsaved choice says (POST /hear/<id>), with its
   measures. A recording of several gestures shows its takes (find_takes): a take shortlisted becomes
-  a recipe that cuts it. The sounds each theme plays now are there to compare; without ?theme, the
+  a recipe that cuts it, its start and length set by hand on the shortlist. The sounds each theme plays now are there to compare; without ?theme, the
   page compares them all, a signal across the themes or a theme's signals in one go.
 -->
 <style>
@@ -43,6 +43,8 @@
   #measures.clips { color: #b3261e; }
   .finish { display: grid; grid-template-columns: auto auto 1fr; gap: 6px 10px; align-items: center; margin-top: 8px; }
   .finish input[type=number] { width: 80px; }
+  .take-field { margin-left: 6px; color: var(--dim); }
+  .take-field input { width: 64px; }
   .take { font-size: 13px; }
   table.all { border-collapse: collapse; margin-top: 8px; }
   table.all td, table.all th { border: 1px solid var(--line); padding: 3px 8px; text-align: center; }
@@ -161,6 +163,15 @@ function renderTabs() {
   for (const s of S.cat.signals) tab(s, `${s}${signalOf(s).choice ? " ★" : ""}`);
 }
 
+// A take's start and length, in seconds, written into its recipe's trim: its ▶ plays it cut again, saving keeps it.
+function takeFields(id) {
+  if (!takeOf(id)) return [];
+  const effects = S.doc.recipes[id.slice(9)].effects;
+  const field = (label, i) => el("label", { className: "take-field" }, label,
+    el("input", { type: "number", step: 0.01, min: 0, value: effects[i], onchange: e => { effects[i] = Math.round(Number(e.target.value) * 1000) / 1000; } }));
+  return [field("début ", 1), field("longueur ", 2)];
+}
+
 function renderShort() {
   const box = $("short"); box.replaceChildren();
   if (S.tab === "families" || S.tab === "finish") return;
@@ -173,6 +184,7 @@ function renderShort() {
     const chip = el("span", { className: "chip" + (sig.choice === id ? " chosen" : "") },
       el("button", { className: "play", textContent: "▶", onclick: () => playId(id, S.tab) }),
       id,
+      ...takeFields(id),
       el("button", { textContent: "★", title: "Choisir", onclick: () => { sig.choice = id; render(); } }),
       el("button", { textContent: "✕", title: "Retirer", onclick: () => { sig.shortlist = sig.shortlist.filter(x => x !== id); if (sig.choice === id) sig.choice = null; render(); } }));
     box.append(chip);

@@ -63,7 +63,7 @@ fun EntriesExportDialog(toolInstanceId: String, onDismiss: () -> Unit) {
         if (draft != null) return@LaunchedEffect
         val path = toolPath(toolInstanceId, context)
         if (path == null) {
-            UI.Toast(context, s.shared("service_error_tool_instance_not_found"))
+            UI.Toast(s.shared("service_error_tool_instance_not_found"))
             onDismiss()
             return@LaunchedEffect
         }
@@ -105,14 +105,14 @@ fun EntriesExportDialog(toolInstanceId: String, onDismiss: () -> Unit) {
                     })
                 } catch (e: IllegalArgumentException) {
                     running = false
-                    UI.Toast(context, e.message ?: "")
+                    UI.Toast(e.message ?: "")
                     return@launch
                 }
                 running = false
                 if (result.isSuccess) {
                     val data = result.data!!
                     written = Written(data["file_name"] as String, data["uri"] as String, (data["entries"] as Number).toInt())
-                } else UI.Toast(context, result.error ?: s.shared("export_error_read"), app.treelune.core.ui.Duration.LONG)
+                } else UI.Toast(result.error ?: s.shared("export_error_read"), app.treelune.core.ui.Duration.LONG)
             }
         }
     ) {

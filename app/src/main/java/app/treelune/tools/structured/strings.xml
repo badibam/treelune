@@ -26,7 +26,7 @@
     <string name="count">%1$d sheet(s)</string>
     <string name="new_sheet">New sheet</string>
     <string name="action_edit">Change</string>
-    <string name="delete_confirm">Delete \"%1$s\"?</string>
+    <string name="delete_confirm">Delete “%1$s”?</string>
     <string name="previous">Previous</string>
     <string name="next">Next</string>
 

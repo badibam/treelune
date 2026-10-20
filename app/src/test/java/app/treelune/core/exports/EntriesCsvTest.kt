@@ -70,7 +70,9 @@ class EntriesCsvTest {
             EntriesCsv.Column("extra.at", field("at", "Heure", FieldType.TIME)),
             EntriesCsv.Column("extra.run", field("run", "Durée", FieldType.DURATION)),
             EntriesCsv.Column("extra.done", field("done", "Fait", FieldType.BOOLEAN)),
-            EntriesCsv.Column("extra.tags", field("tags", "Tags", FieldType.CHOICE)),
+            // A choice by the label the screen shows, an option without one by its value
+            EntriesCsv.Column("extra.tags", FieldDefinition("tags", "Tags", null, FieldType.CHOICE, false,
+                mapOf("multiple" to true, "options" to listOf(mapOf("value" to "a", "label" to "Alpha"), mapOf("value" to "b"))))),
             EntriesCsv.Column("extra.pulse", field("pulse", "Pouls", FieldType.RANGE)),
             EntriesCsv.Column("extra.food", field("food", "Aliment", FieldType.REFERENCE)),
             EntriesCsv.Column("extra.other", field("other", "Autre", FieldType.REFERENCE)),
@@ -88,7 +90,7 @@ class EntriesCsvTest {
             )
         )
         val line = EntriesCsv.write(columns, listOf(entry), mapOf(rice to "Riz", gone to null), zone, text).split("\r\n")[1]
-        assertEquals("2026-09-12T08:12:30+02:00,72.4,150,2026-09-12,08:05,1:25:00,true,a;b,60,80.5,Riz,supprimé,2,", line)
+        assertEquals("2026-09-12T08:12:30+02:00,72.4,150,2026-09-12,08:05,1:25:00,true,Alpha;b,60,80.5,Riz,supprimé,2,", line)
     }
 
     @Test

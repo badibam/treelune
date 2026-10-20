@@ -83,7 +83,7 @@ fun WriteHistoryScreen(onBack: () -> Unit) {
             acting = false
             if (result.isSuccess) {
                 val phrase = result.data?.get("phrase") as? String ?: ""
-                UI.Toast(context, s.shared(if (operation == "undo") "history_undone" else "history_redone").format(phrase), Duration.SHORT)
+                UI.Toast(s.shared(if (operation == "undo") "history_undone" else "history_redone").format(phrase), Duration.SHORT)
                 version++
             } else {
                 errorMessage = result.error
@@ -93,7 +93,7 @@ fun WriteHistoryScreen(onBack: () -> Unit) {
 
     errorMessage?.let { message ->
         LaunchedEffect(message) {
-            UI.Toast(context, message, Duration.LONG)
+            UI.Toast(message, Duration.LONG)
             errorMessage = null
         }
     }
@@ -185,7 +185,7 @@ private fun DepthCard(s: StringsContext) {
     LaunchedEffect(reads) {
         val read = coordinator.processUserAction("app_config.get", mapOf("category" to category))
         if (!read.isSuccess) {
-            UI.Toast(context, read.error ?: "", Duration.LONG)
+            UI.Toast(read.error ?: "", Duration.LONG)
             return@LaunchedEffect
         }
         @Suppress("UNCHECKED_CAST")
@@ -205,7 +205,7 @@ private fun DepthCard(s: StringsContext) {
                     onClick = {
                         scope.launch {
                             val result = coordinator.processUserAction("app_config.set", mapOf("category" to category, "settings" to app.treelune.core.utils.JsonUtils.toMap(shown)))
-                            if (!result.isSuccess) UI.Toast(context, result.error ?: "", Duration.LONG)
+                            if (!result.isSuccess) UI.Toast(result.error ?: "", Duration.LONG)
                             reads++
                         }
                     }

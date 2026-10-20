@@ -7,6 +7,8 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import app.treelune.core.ui.ToastLayer
+import app.treelune.core.ui.Toasts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -102,6 +104,8 @@ class MainActivity : ComponentActivity() {
 
     /** The app set up and its screens shown. */
     private fun startApp() {
+        // What a gesture that restarted the app had to say (a backup restored, the data reset)
+        Toasts.showLeftBeforeRestart(this)
         // Purge old logs at startup to prevent DB bloat and CursorWindow overflow
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -157,7 +161,7 @@ class MainActivity : ComponentActivity() {
                 if (!demoReady) {
                     androidx.compose.runtime.LaunchedEffect(Unit) {
                         val failed = withContext(Dispatchers.IO) { app.treelune.core.demo.DemoStartup.run(this@MainActivity) }
-                        if (failed != null) app.treelune.core.ui.UI.Toast(this@MainActivity, failed, app.treelune.core.ui.Duration.LONG)
+                        if (failed != null) app.treelune.core.ui.UI.Toast(failed, app.treelune.core.ui.Duration.LONG)
                         demoReady = true
                     }
                     app.treelune.core.ui.components.DemoInstalling()
@@ -177,7 +181,7 @@ class MainActivity : ComponentActivity() {
                                 val s = app.treelune.core.strings.Strings.`for`(context = this@MainActivity)
                                 val message = if (ended.result.isSuccess) s.shared("long_operation_done").format(ended.label)
                                     else s.shared("long_operation_failed").format(ended.label, ended.result.error ?: "")
-                                app.treelune.core.ui.UI.Toast(this@MainActivity, message, app.treelune.core.ui.Duration.LONG)
+                                app.treelune.core.ui.UI.Toast(message, app.treelune.core.ui.Duration.LONG)
                             }
                         }
                         // The end of any list of the screens heard
@@ -196,7 +200,11 @@ class MainActivity : ComponentActivity() {
             MaterialTheme(
                 colorScheme = CurrentTheme.getCurrentColorScheme()
             ) {
-                UI.FullScreen { app() }
+                UI.FullScreen {
+                    app()
+                    // The app's messages over the page (Toasts); a window open above it shows them itself
+                    ToastLayer()
+                }
             }
         }
     }

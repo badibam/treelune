@@ -1,8 +1,6 @@
 package app.treelune.themes.eink
 
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -462,11 +460,6 @@ object EinkTheme : ThemeContract {
     // FEEDBACK
     // =====================================
 
-    /** A block of ink at the bottom of the screen (FullScreen shows it), for as long as Android's would last. */
-    override fun Toast(context: Context, message: String, duration: Duration) {
-        val shown = if (duration == Duration.SHORT) TOAST_SHORT_MS else TOAST_LONG_MS
-        Handler(Looper.getMainLooper()).post { EinkToasts.show(message, shown) }
-    }
 
     /**
      * A block of ink ringed with the ground and the ink, its message in the ground's colour, its
@@ -693,7 +686,6 @@ object EinkTheme : ThemeContract {
         Box(modifier = Modifier.fillMaxSize().background(einkColors.ground)) {
             CompositionLocalProvider(LocalEinkInk provides null) {
                 content()
-                ToastHost(Modifier.align(Alignment.BottomCenter))
             }
         }
     }
@@ -1575,24 +1567,6 @@ object EinkTheme : ThemeContract {
         }
     }
 
-    /** The toast shown, a block of ink across the bottom of the screen. */
-    @Composable
-    private fun ToastHost(modifier: Modifier) {
-        val shown = EinkToasts.current ?: return
-        LaunchedEffect(shown.id) {
-            delay(shown.millis)
-            EinkToasts.dismiss(shown.id)
-        }
-        val size = einkSize()
-        val c = einkColors
-        Box(modifier = modifier.fillMaxWidth().padding(spacing(Spacing.EDGE))) {
-            Ringed {
-                Box(modifier = Modifier.fillMaxWidth().background(c.ink).padding(horizontal = size.dp(16f), vertical = size.dp(14f))) {
-                    Line(shown.message, size.body, c.ground)
-                }
-            }
-        }
-    }
 
     /**
      * The checker of [surface] laid over a subtle motif (Réglages › Interface, Textures): half its
@@ -1630,8 +1604,6 @@ object EinkTheme : ThemeContract {
     private const val GRID_GAP_DP = 8f
     /** The share of a tile stepping back that the ground's screen covers. */
     private const val ASIDE_CLEARED = 0.5f
-    private const val TOAST_SHORT_MS = 2000L
-    private const val TOAST_LONG_MS = 3500L
     private const val SQUARES_STEPS = 4
     private const val SQUARES_STEP_MS = 400
     private const val TICK_MS = 1000
@@ -1645,20 +1617,3 @@ internal val LocalEinkSection = compositionLocalOf { false }
 /** The style a button's word takes: its block sets its weight, and underlines it when it is a word alone. */
 internal val LocalEinkWord = compositionLocalOf { TextStyle.Default }
 
-/** The toasts waiting, the oldest shown first; posted on the main thread. */
-internal object EinkToasts {
-    data class Shown(val id: Long, val message: String, val millis: Long)
-
-    private val queue = mutableStateListOf<Shown>()
-    private var next = 0L
-
-    val current: Shown? get() = queue.firstOrNull()
-
-    fun show(message: String, millis: Long) {
-        queue.add(Shown(next++, message, millis))
-    }
-
-    fun dismiss(id: Long) {
-        queue.removeAll { it.id == id }
-    }
-}

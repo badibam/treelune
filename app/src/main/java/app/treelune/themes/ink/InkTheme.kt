@@ -1,8 +1,6 @@
 package app.treelune.themes.ink
 
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -427,11 +425,6 @@ object InkTheme : ThemeContract {
     // FEEDBACK
     // =====================================
 
-    /** A dark wash at the bottom of the screen (FullScreen shows it), for as long as Android's would last. */
-    override fun Toast(context: Context, message: String, duration: Duration) {
-        val shown = if (duration == Duration.SHORT) TOAST_SHORT_MS else TOAST_LONG_MS
-        Handler(Looper.getMainLooper()).post { InkToasts.show(message, shown) }
-    }
 
     /**
      * A dark wash, its message in the paper's colour, its action underlined; a drop of the state's
@@ -650,7 +643,6 @@ object InkTheme : ThemeContract {
         Box(modifier = Modifier.fillMaxSize().background(inkColors.ground)) {
             CompositionLocalProvider(LocalInkInk provides null) {
                 content()
-                ToastHost(Modifier.align(Alignment.BottomCenter))
             }
         }
     }
@@ -1474,24 +1466,6 @@ object InkTheme : ThemeContract {
         }
     }
 
-    /** The toast shown, a dark wash across the bottom of the screen. */
-    @Composable
-    private fun ToastHost(modifier: Modifier) {
-        val shown = InkToasts.current ?: return
-        LaunchedEffect(shown.id) {
-            delay(shown.millis)
-            InkToasts.dismiss(shown.id)
-        }
-        val size = inkSize()
-        val c = inkColors
-        Box(modifier = modifier.fillMaxWidth().padding(spacing(Spacing.EDGE))) {
-            FadeIn {
-                Box(modifier = Modifier.fillMaxWidth().background(c.deepWash, pebble(size, 14f, 10f, 16f, 12f)).padding(horizontal = size.dp(16f), vertical = size.dp(14f))) {
-                    Line(shown.message, size.body, c.onSolid)
-                }
-            }
-        }
-    }
 
     /** A title's first letter, as its seal holds it; none for a title without one. */
     private fun initial(title: String): String? {
@@ -1540,26 +1514,7 @@ object InkTheme : ThemeContract {
     private const val MAX_GRID_DP = 480
     private const val CELL_ALPHA = 0.12f
     private const val ASIDE_ALPHA = 0.4f
-    private const val TOAST_SHORT_MS = 2000L
-    private const val TOAST_LONG_MS = 3500L
     private const val LOADING_MS = 1600
     private const val THINKING_MS = 1500
 }
 
-/** The toasts waiting, the oldest shown first; posted on the main thread. */
-internal object InkToasts {
-    data class Shown(val id: Long, val message: String, val millis: Long)
-
-    private val queue = mutableStateListOf<Shown>()
-    private var next = 0L
-
-    val current: Shown? get() = queue.firstOrNull()
-
-    fun show(message: String, millis: Long) {
-        queue.add(Shown(next++, message, millis))
-    }
-
-    fun dismiss(id: Long) {
-        queue.removeAll { it.id == id }
-    }
-}

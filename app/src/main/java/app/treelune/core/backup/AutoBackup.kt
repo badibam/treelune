@@ -43,8 +43,11 @@ object AutoBackup {
         data class Off(val folder: Uri) : State
         /** A folder the app may no longer write in: its right taken away, or the folder gone */
         data class Lost(val folder: Uri) : State
-        /** A folder written in, the copies it holds by slot */
-        data class Ready(val folder: Uri, val copies: Map<Slot, Copy>) : State
+        /**
+         * A folder written in, the copies it holds by slot, and the [extra] files of the rolling
+         * beside them: older copies of a slot, left by a rolling that did not run, deleted at the next copy
+         */
+        data class Ready(val folder: Uri, val copies: Map<Slot, Copy>, val extra: List<Copy> = emptyList()) : State
     }
 
     /** This phone's note of the last copy: the hash of its data, and when the data was last compared to it. */
@@ -106,11 +109,11 @@ object AutoBackup {
         val folder = settings.optString(AppSettings.DATA_FOLDER).takeIf { it.isNotEmpty() }?.let { Uri.parse(it) } ?: return State.NoFolder
         if (!settings.optBoolean(AppSettings.DATA_AUTO_BACKUP, true)) return State.Off(folder)
         if (!writable(context, folder)) return State.Lost(folder)
-        val copies = try { list(context, folder) } catch (e: Exception) {
+        val listed = try { list(context, folder) } catch (e: Exception) {
             LogManager.service("AutoBackup: the folder cannot be read: ${e.message}", "WARN")
             return State.Lost(folder)
         }
-        return State.Ready(folder, copies)
+        return State.Ready(folder, listed.first, listed.second)
     }
 
     /** Whether Android still gives the app the right to write in [folder]. */
@@ -130,19 +133,23 @@ object AutoBackup {
         refresh(context)
     }
 
-    /** The copies of the rolling in [folder], by slot; any other file of it left alone. */
-    fun list(context: Context, folder: Uri): Map<Slot, Copy> {
+    /**
+     * The copies of the rolling in [folder], the latest of each slot, and the others of a slot
+     * beside it; any other file of the folder left alone.
+     */
+    fun list(context: Context, folder: Uri): Pair<Map<Slot, Copy>, List<Copy>> {
         val zone = AppConfigManager.getDateTimeConfig().getZoneId()
         val children = DocumentsContract.buildChildDocumentsUriUsingTree(folder, DocumentsContract.getTreeDocumentId(folder))
-        val copies = mutableMapOf<Slot, Copy>()
+        val bySlot = mutableMapOf<Slot, MutableList<Copy>>()
         context.contentResolver.query(children, arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_DISPLAY_NAME), null, null, null)?.use { cursor ->
             while (cursor.moveToNext()) {
                 val (slot, at) = AutoBackupRotation.parse(cursor.getString(1), zone) ?: continue
-                // Two files of one slot (one copied in by hand): the latest is the slot's
-                if ((copies[slot]?.at ?: Long.MIN_VALUE) < at) copies[slot] = Copy(DocumentsContract.buildDocumentUriUsingTree(folder, cursor.getString(0)), at)
+                bySlot.getOrPut(slot) { mutableListOf() } += Copy(DocumentsContract.buildDocumentUriUsingTree(folder, cursor.getString(0)), at)
             }
         } ?: throw IllegalStateException("the folder's files cannot be listed")
-        return copies
+        // Several files of one slot: the latest is the slot's, the others are in excess
+        val sorted = bySlot.mapValues { (_, copies) -> copies.sortedByDescending { it.at } }
+        return sorted.mapValues { it.value.first() } to sorted.values.flatMap { it.drop(1) }
     }
 
     /**

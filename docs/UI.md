@@ -264,7 +264,7 @@ A place's header (`UI.PageHeader`) lays a bar above the title: the left button (
 The conversation button floats at the bottom right of the places one consults (`Place.chatButton`: home screen, zone, tool, Guide, automation), never on a form. A screen of these places leaves it room at the end of what scrolls (`Modifier.chatButtonSpace()` after `verticalScroll`, `chatButtonEnd()` as end padding of a lazy list), which `scripts/check_chat_space.py` checks; what holds fixed controls at the bottom while it shows hides it (`HideChatButton()`: a tile's move bar, a running Session). The sounds of going and coming back are played by the stack, never by the gesture: a button that changes place (`BACK`, `CONFIGURE`, `VIEW`, `AI_CHAT`) plays nothing.
 
 ### User feedback
-UI.Toast with context, message and Duration (SHORT/LONG) for temporary messages.
+UI.Toast with a message and a Duration (SHORT/LONG) for what the app says after a gesture: one queue (`Toasts`), the message whole in the theme's band (`ThemeContract.Snackbar`) at the bottom of the screen, its time growing with its length, gone at a touch. Android's toast is not used, which cuts a message at two lines. The page and every window above it hold a `ToastLayer()` (`FloatingDialog`, `FullScreenDialog`, the dialogs built otherwise), and only the one on top shows it, so that a dialog never hides it. A gesture that restarts the app says its message at the next start (`Toasts.showAfterRestart`).
 
 ## Themes and customisation
 

@@ -134,7 +134,7 @@ fun CreateZoneScreen(
                 coordinator.processUserAction("zones.create", given)
             }
             when {
-                !result.isSuccess -> UI.Toast(context, result.error ?: s.shared("error_operation_failed"), Duration.LONG)
+                !result.isSuccess -> UI.Toast(result.error ?: s.shared("error_operation_failed"), Duration.LONG)
                 isEditing -> onUpdate?.invoke()
                 else -> onCreate?.invoke()
             }
@@ -179,7 +179,7 @@ fun CreateZoneScreen(
                         coroutineScope.launch {
                             val result = coordinator.processUserAction("zones.delete", mapOf("zone_id" to existingZone.id))
                             if (result.isSuccess) onDelete.invoke()
-                            else UI.Toast(context, result.error ?: s.shared("error_operation_failed"), Duration.LONG)
+                            else UI.Toast(result.error ?: s.shared("error_operation_failed"), Duration.LONG)
                         }
                     }
                 )

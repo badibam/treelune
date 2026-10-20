@@ -289,12 +289,6 @@ interface ThemeContract {
     // FEEDBACK SYSTEM
     // =====================================
     
-    fun Toast(
-        context: Context,
-        message: String,
-        duration: Duration = Duration.SHORT
-    )
-    
     @Composable
     fun Snackbar(
         type: FeedbackType,

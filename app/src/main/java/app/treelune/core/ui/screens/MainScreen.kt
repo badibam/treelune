@@ -193,7 +193,7 @@ fun MainScreen(openToolId: String? = null, openEntryId: String? = null, onToolOp
 
     errorMessage?.let { message ->
         LaunchedEffect(message) {
-            UI.Toast(context, message, Duration.LONG)
+            UI.Toast(message, Duration.LONG)
             errorMessage = null
         }
     }
@@ -554,7 +554,7 @@ private fun HomeScreen(zones: ZonesState) {
 
     errorMessage?.let { message ->
         LaunchedEffect(message) {
-            UI.Toast(context, message, Duration.LONG)
+            UI.Toast(message, Duration.LONG)
             errorMessage = null
         }
     }

@@ -236,7 +236,7 @@ private fun DemoMissingLine() {
         scope.launch {
             val result = Coordinator(context).processUserAction("demo.install", emptyMap())
             working = false
-            UI.Toast(context, if (result.isSuccess) s.shared("demo_installed") else result.error ?: s.shared("error_operation_failed"), Duration.LONG)
+            UI.Toast(if (result.isSuccess) s.shared("demo_installed") else result.error ?: s.shared("error_operation_failed"), Duration.LONG)
         }
     }) {
         UI.Text(s.shared("guide_reinstall_demo"), TextType.LABEL)
@@ -269,7 +269,7 @@ fun WelcomeScreen(demoInstalled: Boolean) {
         }
         UI.Button(type = ButtonType.DEFAULT, onClick = {
             Guide.welcomeDone()
-            UI.Toast(context, s.shared("guide_welcome_where"), Duration.LONG)
+            UI.Toast(s.shared("guide_welcome_where"), Duration.LONG)
         }) {
             UI.Text(s.shared("guide_welcome_explore"), TextType.LABEL)
         }
@@ -301,7 +301,7 @@ fun GuideEndDialog(chapter: GuideChapter, demoInstalled: Boolean) {
         },
         onDismiss = {
             close()
-            UI.Toast(context, s.shared("guide_end_where"), Duration.LONG)
+            UI.Toast(s.shared("guide_end_where"), Duration.LONG)
         }
     )
 }
@@ -323,7 +323,7 @@ fun GuideStartDialog(chapter: GuideChapter) {
         onDismiss = {
             Guide.introducing = null
             Guide.hide()
-            UI.Toast(context, s.shared("guide_band_hidden"), Duration.LONG)
+            UI.Toast(s.shared("guide_band_hidden"), Duration.LONG)
         }
     )
 }
@@ -344,7 +344,7 @@ fun GuideDemoMissingDialog(chapter: GuideChapter) {
             scope.launch {
                 val result = Coordinator(context).processUserAction("demo.install", emptyMap())
                 if (result.isSuccess) Guide.begin(chapter, demoInstalled = true)
-                else UI.Toast(context, result.error ?: s.shared("error_operation_failed"), Duration.LONG)
+                else UI.Toast(result.error ?: s.shared("error_operation_failed"), Duration.LONG)
             }
         },
         onDismiss = { Guide.skipDemo(chapter) }
