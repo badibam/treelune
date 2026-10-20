@@ -12,7 +12,7 @@
   offset, as the app will play them. A theme with a finish (scripts/theme_sounds.py, FINISH) plays
   each sound finished by the server as the unsaved choice says (POST /hear/<id>), with its
   measures. A recording of several gestures shows its takes (find_takes): a take shortlisted becomes
-  a recipe that cuts it, its start and length set by hand on the shortlist, as a whole sound's, which a change makes a recipe that cuts it, and its recording's noise taken out (denoise). The sounds each theme plays now are there to compare; without ?theme, the
+  a recipe that cuts it, its start and length set by hand on the shortlist, as a whole sound's, which a change makes a recipe that cuts it, its recording's noise taken out (denoise) and its end faded (fade_ms). The sounds each theme plays now are there to compare; without ?theme, the
   page compares them all, a signal across the themes or a theme's signals in one go.
 -->
 <style>
@@ -119,8 +119,8 @@ const signalOf = s => (S.doc.signals[s] ??= { choice: null, offset_db: 0, shortl
 const byId = id => S.cat.sounds.find(x => x.id === id);
 const fmt = n => n.toLocaleString("fr-FR");
 // A sound as the app will play it: raw at the theme's gain, or finished by the server and brought to the theme's level.
-// A take denoised is rendered by the server, the page cutting only a raw span.
-const denoised = id => !!(id.startsWith("recipe · ") && S.doc.recipes?.[id.slice(9)]?.denoise);
+// A take denoised or faded is rendered by the server, the page cutting only a raw span.
+const denoised = id => { const r = id.startsWith("recipe · ") ? S.doc.recipes?.[id.slice(9)] : null; return !!(r?.denoise || r?.fade_ms); };
 async function hear(id, offset, take = null) {
   if (!S.doc.finish && !denoised(id)) {
     const cut = take ? { id, take } : takeOf(id);
@@ -165,8 +165,9 @@ function renderTabs() {
   for (const s of S.cat.signals) tab(s, `${s}${signalOf(s).choice ? " ★" : ""}`);
 }
 
-// A take's start and length, in seconds, written into its recipe's trim, and its denoising (sox's noisered,
-// 0 for none, 0.1 to 0.3 the usual): its ▶ plays it cut again, saving keeps it.
+// A take's start and length, in seconds, written into its recipe's trim, its denoising (sox's noisered,
+// 0 for none, 0.1 to 0.3 the usual) and its fade out in ms, for a take cut while it still sounds:
+// its ▶ plays it cut again, saving keeps it.
 // A whole sound of the library shows them too, at 0 and its length: the first change makes it a recipe that cuts it,
 // in its place in the signal's shortlist and choice.
 function takeFields(id, sig) {
@@ -179,7 +180,12 @@ function takeFields(id, sig) {
       const v = Math.round(Number(e.target.value) * 100) / 100;
       if (v > 0) recipe.denoise = v; else delete recipe.denoise;
     } }));
-  return [field("début ", 1), field("longueur ", 2), denoise];
+  const fade = el("label", { className: "take-field", title: "La fin du son éteinte sur ces millisecondes, pour un son coupé en cours" }, "fondu ",
+    el("input", { type: "number", step: 5, min: 0, value: recipe.fade_ms ?? 0, onchange: e => {
+      const v = Math.round(Number(e.target.value));
+      if (v > 0) recipe.fade_ms = v; else delete recipe.fade_ms;
+    } }), " ms");
+  return [field("début ", 1), field("longueur ", 2), denoise, fade];
 }
 function wholeFields(id, sig) {
   const seconds = byId(id).seconds;

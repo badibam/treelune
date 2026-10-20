@@ -201,7 +201,8 @@ def render(recipe, sounds, out):
     """A recipe written to [out]: its inputs mixed (none for a sound made from nothing), then its
     sox effects, then its denoising if it has one: the noise of its one recording, learnt where
     that recording is quietest (noise_profile), taken out at the recipe's strength (sox's
-    noisered, 0 to 1; 0.1 to 0.3 the usual, more and the sound turns metallic)."""
+    noisered, 0 to 1; 0.1 to 0.3 the usual, more and the sound turns metallic); last its fade out
+    if it has one (fade_ms), for a sound cut while it still sounds."""
     inputs = recipe.get("inputs", [])
     for one in inputs:
         if one not in sounds:
@@ -211,6 +212,8 @@ def render(recipe, sounds, out):
         if len(inputs) != 1:
             sys.exit(f"recipe denoise needs one recording to learn its noise from, not {len(inputs)}")
         effects += ["noisered", noise_profile(sounds[inputs[0]]["file"]), recipe["denoise"]]
+    if recipe.get("fade_ms"):
+        effects += ["fade", 0, "-0", float(recipe["fade_ms"]) / 1000]
     head = ["-n"] if not inputs else (["-m"] if len(inputs) > 1 else []) + [str(sounds[i]["file"]) for i in inputs]
     out.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run(["sox", *head, str(out), *map(str, effects)], check=True)
