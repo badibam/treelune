@@ -212,24 +212,21 @@ object AppSettings {
                         FieldType.TEXT, false, mapOf("length" to TextLength.SHORT.name))),
                     required = true, distinct = true)
             )
-            // The relay's address and secret belong to the relay mode only: shown with it, and
-            // dropped on switching to Tailscale, as a variant drops what its new option does not declare
-            AppSettingCategories.EXTERNAL_ACCESS -> listOf(SettingNode.Variant(
-                selector = choice(ACCESS_MODE, text("settings_external_access_mode"), text("settings_external_access_mode_help"),
+            // The relay's address and secret are shown in the relay mode only, and kept under
+            // Tailscale: going back to the relay finds them as they were
+            AppSettingCategories.EXTERNAL_ACCESS -> listOf(
+                choice(ACCESS_MODE, text("settings_external_access_mode"), text("settings_external_access_mode_help"),
                     listOf(ACCESS_MODE_TAILSCALE, ACCESS_MODE_RELAY),
                     labels = mapOf(ACCESS_MODE_TAILSCALE to text("settings_external_access_mode_tailscale"),
                         ACCESS_MODE_RELAY to text("settings_external_access_mode_relay")), required = true),
-                cases = mapOf(
-                    ACCESS_MODE_TAILSCALE to emptyList(),
-                    ACCESS_MODE_RELAY to listOf(SettingNode.Section(text("settings_external_access_relay_section"), listOf(
-                        field(RELAY_URL, text("settings_external_access_relay_url"), text("settings_external_access_relay_url_help"),
-                            FieldType.TEXT, config = mapOf("length" to TextLength.MEDIUM.name), address = true),
-                        // MEDIUM: the relay's secret runs past SHORT's 60 characters, 64 in hexadecimal
-                        field(RELAY_SECRET, text("settings_external_access_relay_secret"), text("settings_external_access_relay_secret_help"),
-                            FieldType.TEXT, config = mapOf("length" to TextLength.MEDIUM.name), secret = true)
-                    )))
-                )
-            ), scale(MCP_MAX_DATA_CHARS, text("settings_external_access_max_data"), text("settings_external_access_max_data_help"), MCP_DATA_RANGE))
+                SettingNode.Section(text("settings_external_access_relay_section"), listOf(
+                    field(RELAY_URL, text("settings_external_access_relay_url"), text("settings_external_access_relay_url_help"),
+                        FieldType.TEXT, config = mapOf("length" to TextLength.MEDIUM.name), address = true),
+                    // MEDIUM: the relay's secret runs past SHORT's 60 characters, 64 in hexadecimal
+                    field(RELAY_SECRET, text("settings_external_access_relay_secret"), text("settings_external_access_relay_secret_help"),
+                        FieldType.TEXT, config = mapOf("length" to TextLength.MEDIUM.name), secret = true)
+                ), shownWith = SettingNode.ShownWith(ACCESS_MODE, ACCESS_MODE_RELAY)),
+                scale(MCP_MAX_DATA_CHARS, text("settings_external_access_max_data"), text("settings_external_access_max_data_help"), MCP_DATA_RANGE))
             AppSettingCategories.GUIDE -> listOf(
                 field(GUIDE_WELCOME_SEEN, text("guide_setting_welcome_seen"), null, FieldType.BOOLEAN, required = true),
                 field(GUIDE_BAND_HIDDEN, text("guide_setting_band_hidden"), null, FieldType.BOOLEAN, required = true),

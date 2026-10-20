@@ -209,7 +209,7 @@ private fun List<SettingNode>.isPage(): Boolean = any { node ->
  */
 internal fun List<SettingNode>.shown(config: JSONObject): List<SettingNode> = flatMap { node ->
     when (node) {
-        is SettingNode.Section -> node.nodes.shown(config)
+        is SettingNode.Section -> if (node.shownWith?.isChosenIn(config) == false) emptyList() else node.nodes.shown(config)
         is SettingNode.Variant -> {
             val chosen = config.optString(node.selector.definition.name).ifEmpty { node.selector.default?.toString() }
             listOf(node) + (node.cases[chosen] ?: emptyList()).shown(config)
@@ -673,7 +673,7 @@ private fun NodeForm(
             node.cases[chosen]?.let { NodesForm(it, level, config, onChange, context, editors) }
         }
 
-        is SettingNode.Section -> Titled(node.label) {
+        is SettingNode.Section -> if (node.shownWith == null || node.shownWith.isChosenIn(config)) Titled(node.label) {
             NodesForm(node.nodes, level, config, onChange, context, editors)
         }
 
