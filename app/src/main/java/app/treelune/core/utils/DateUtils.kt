@@ -88,21 +88,6 @@ object DateUtils {
     fun pickerMillisOf(date: LocalDate): Long = date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
 
     /**
-     * Parse date string back to timestamp for filtering (dd/MM/yyyy)
-     *
-     * @return the start of that day, or null if the string is not a dd/MM/yyyy date
-     */
-    fun parseDateForFilter(dateString: String, zone: ZoneId = getConfiguredZone()): Long? {
-        return try {
-            val localDate = LocalDate.parse(dateString, displayDateFormatter)
-            val zonedDateTime = localDate.atStartOfDay(zone)
-            zonedDateTime.toInstant().toEpochMilli()
-        } catch (e: DateTimeParseException) {
-            null
-        }
-    }
-
-    /**
      * Get today's date formatted for display
      */
     fun getTodayFormatted(zone: ZoneId = getConfiguredZone()): String {
@@ -171,19 +156,13 @@ object DateUtils {
     // ================================================================
 
     /**
-     * Parse ISO 8601 date string to timestamp (YYYY-MM-DD → Long)
-     * Used for custom fields DATE type
-     *
-     * @return the start of that day, or null if the string is not an ISO 8601 date
+     * A day as a DATE field stores it ("2026-10-14") as the display writes days ("14/10/2026");
+     * null when [text] is not one.
      */
-    fun parseIso8601Date(dateStr: String, zone: ZoneId = getConfiguredZone()): Long? {
-        return try {
-            val localDate = LocalDate.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE)
-            val zonedDateTime = localDate.atStartOfDay(zone)
-            zonedDateTime.toInstant().toEpochMilli()
-        } catch (e: DateTimeParseException) {
-            null
-        }
+    fun formatIsoDate(text: String): String? = try {
+        formatDisplayDate(LocalDate.parse(text, DateTimeFormatter.ISO_LOCAL_DATE))
+    } catch (e: DateTimeParseException) {
+        null
     }
 
     /**

@@ -57,31 +57,20 @@ class DateUtilsTest {
 
     // ==================== Reading a displayed date ====================
 
-    /** A date typed as dd/MM/yyyy means the start of that day in the given timezone. */
-    @Test
-    fun aDisplayedDateIsReadAsTheStartOfThatDay() {
-        assertEquals(at(2025, 3, 15, 0, 0), DateUtils.parseDateForFilter("15/03/2025", paris))
-        assertEquals(at(2025, 3, 15, 0, 0, tokyo), DateUtils.parseDateForFilter("15/03/2025", tokyo))
-    }
-
     /** Out and back returns the day it started on. */
     @Test
     fun showingThenReadingADateKeepsTheDay() {
         val instant = at(2025, 3, 15, 14, 30)
-        val readBack = DateUtils.parseDateForFilter(DateUtils.formatDateForDisplay(instant, paris), paris)!!
-
-        assertEquals(DateUtils.formatDateForDisplay(instant, paris), DateUtils.formatDateForDisplay(readBack, paris))
+        assertEquals(LocalDate.of(2025, 3, 15), DateUtils.parseDisplayDate(DateUtils.formatDateForDisplay(instant, paris)))
     }
 
     // ==================== The ISO helpers for custom fields ====================
 
-    /** A date field's value out and back in the same timezone. */
+    /** A date field's value, a day, shown as the display writes days; an instant's day in the zone given. */
     @Test
-    fun anIsoDateSurvivesTheRoundTrip() {
-        val timestamp = DateUtils.parseIso8601Date("2025-03-15", paris)!!
-
-        assertEquals(at(2025, 3, 15, 0, 0), timestamp)
-        assertEquals("2025-03-15", DateUtils.timestampToIso8601Date(timestamp, paris))
+    fun anIsoDateIsShownAsItsDay() {
+        assertEquals("15/03/2025", DateUtils.formatIsoDate("2025-03-15"))
+        assertEquals("2025-03-15", DateUtils.timestampToIso8601Date(at(2025, 3, 15, 14, 30), paris))
     }
 
     /** A time field has no date of its own: it is read as that time today. */
@@ -133,9 +122,9 @@ class DateUtilsTest {
         val inTokyo = DateUtils.getTodayFormatted(tokyo)
 
         // Same day or the next one, never anything else: Tokyo is eight hours ahead.
-        val readBackParis = DateUtils.parseDateForFilter(inParis, paris)!!
-        val readBackTokyo = DateUtils.parseDateForFilter(inTokyo, tokyo)
-        assertTrue(readBackTokyo == null || readBackTokyo >= readBackParis - 86_400_000L)
+        val dayInParis = DateUtils.parseDisplayDate(inParis)!!
+        val dayInTokyo = DateUtils.parseDisplayDate(inTokyo)!!
+        assertTrue(dayInTokyo == dayInParis || dayInTokyo == dayInParis.plusDays(1))
     }
 
     // ==================== What happens when it cannot be read ====================
@@ -153,11 +142,11 @@ class DateUtilsTest {
         val unreadable = listOf("", "not a date", "2025-03-15", "32/13/2025", "15/03/2025 14:30")
 
         for (bad in unreadable) {
-            assertNull("parseDateForFilter(\"$bad\")", DateUtils.parseDateForFilter(bad, paris))
+            assertNull("parseDisplayDate(\"$bad\")", DateUtils.parseDisplayDate(bad))
             assertNull("combineDateTime(\"$bad\")", DateUtils.combineDateTime(bad, "14:30", paris))
         }
 
-        assertNull(DateUtils.parseIso8601Date("15/03/2025", paris))
+        assertNull(DateUtils.formatIsoDate("15/03/2025"))
         assertNull(DateUtils.parseIso8601Time("not a time", paris))
     }
 

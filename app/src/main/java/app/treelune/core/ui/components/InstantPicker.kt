@@ -214,7 +214,7 @@ private fun atClock(point: TimePoint, precision: FieldType): TimePoint.Fixed =
 /** A fixed date in words, as the user reads it: "15/09/2026", or with its time. */
 private fun shown(fixed: TimePoint.Fixed, precision: FieldType): String = when (val v = fixed.value) {
     is Number -> if (precision == FieldType.DATE) DateUtils.formatDateForDisplay(v.toLong()) else DateUtils.formatFullDateTime(v.toLong())
-    is String -> DateUtils.parseIso8601Date(v)?.let { DateUtils.formatDateForDisplay(it) } ?: v
+    is String -> DateUtils.formatIsoDate(v) ?: v
     else -> v.toString()
 }
 
