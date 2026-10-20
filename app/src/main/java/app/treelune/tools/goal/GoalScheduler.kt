@@ -61,7 +61,8 @@ object GoalScheduler : ToolScheduler {
         val attempts = attemptsOf(coordinator, id)
         val s = Strings.`for`(tool = "goal", context = context)
 
-        // 1 and 2: periods ended, delays passed
+        // 1 and 2: periods ended, delays passed; a duration's days counted on the calendar
+        val calendar = app.treelune.core.selection.TimeResolver.at(now)
         val expiry = (config.opt("expiry_delay") as? Number)?.toLong() ?: GoalToolType.DEFAULT_EXPIRY
         for (attempt in attempts) {
             val end = (attempt.state.opt(GoalToolType.PERIOD_END) as? Number)?.toLong() ?: continue
@@ -79,7 +80,7 @@ object GoalScheduler : ToolScheduler {
                         setState(coordinator, attempt.id, mapOf(GoalToolType.NOTIFIED to true))
                     }
                 }
-                GoalToolType.Status.TO_VALIDATE -> if (end + expiry <= now) {
+                GoalToolType.Status.TO_VALIDATE -> if (calendar.after(end, expiry) <= now) {
                     setState(coordinator, attempt.id, mapOf(GoalToolType.STATUS to GoalToolType.Status.EXPIRED))
                 }
             }
@@ -117,7 +118,7 @@ object GoalScheduler : ToolScheduler {
                         cursor = next
                     }
                     due?.takeIf { d -> attempts.none { it.start == d } }?.let { start ->
-                        val end = duration?.let { start + it }
+                        val end = duration?.let { calendar.after(start, it) }
                             ?: ScheduleCalculator.calculateNextExecution(schedule.pattern, start)?.let { it - 1 }
                         start to end
                     }
