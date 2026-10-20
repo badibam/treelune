@@ -113,7 +113,7 @@ fun FlashcardsSessionView(
         val known = fields
         when {
             state.session.over || shown == null -> {
-                UI.Text(s.tool("session_over").format(state.session.done), TextType.BODY)
+                UI.Text(s.tool(if (state.session.done == 1) "session_over_singular" else "session_over_plural").format(state.session.done), TextType.BODY)
                 ButtonRow {
                     UI.Button(type = ButtonType.PRIMARY, onClick = onLeave) { UI.Text(s.tool("session_back"), TextType.LABEL) }
                     if (state.session.history.isNotEmpty()) UI.Button(type = ButtonType.DEFAULT, onClick = { if (!busy) undo() }) { UI.Text(s.tool("action_undo"), TextType.LABEL) }

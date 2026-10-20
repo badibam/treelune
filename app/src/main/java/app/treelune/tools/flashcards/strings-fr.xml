@@ -86,7 +86,8 @@
 
     <!-- Tile and page -->
     <string name="count_due">%1$d à revoir</string>
-    <string name="count_new">%1$d nouvelles</string>
+    <string name="count_new_singular">%1$d nouvelle</string>
+    <string name="count_new_plural">%1$d nouvelles</string>
     <string name="count_nothing">Rien pour aujourd\'hui</string>
     <string name="group_all">Tout</string>
     <string name="groups_note">Une ligne peut être dans plusieurs groupes : Tout n\'est pas la somme des groupes.</string>
@@ -96,7 +97,8 @@
     <string name="session_nothing">Rien à réviser ici aujourd\'hui</string>
     <string name="session_progress">%1$d / %2$d</string>
     <string name="session_turn">Touche la carte pour voir la réponse</string>
-    <string name="session_over">Séance finie : %1$d cartes revues.</string>
+    <string name="session_over_singular">Séance finie : %1$d carte revue.</string>
+    <string name="session_over_plural">Séance finie : %1$d cartes revues.</string>
     <string name="session_back">Retour au paquet</string>
     <string name="action_undo">Revenir</string>
 </resources>
