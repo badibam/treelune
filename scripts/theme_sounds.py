@@ -199,14 +199,50 @@ def recipe_file(theme, name):
 
 def render(recipe, sounds, out):
     """A recipe written to [out]: its inputs mixed (none for a sound made from nothing), then its
-    sox effects."""
+    sox effects, then its denoising if it has one: the noise of its one recording, learnt where
+    that recording is quietest (noise_profile), taken out at the recipe's strength (sox's
+    noisered, 0 to 1; 0.1 to 0.3 the usual, more and the sound turns metallic)."""
     inputs = recipe.get("inputs", [])
     for one in inputs:
         if one not in sounds:
             sys.exit(f"recipe input {one!r} is not in the library")
+    effects = list(recipe.get("effects", []))
+    if recipe.get("denoise"):
+        if len(inputs) != 1:
+            sys.exit(f"recipe denoise needs one recording to learn its noise from, not {len(inputs)}")
+        effects += ["noisered", noise_profile(sounds[inputs[0]]["file"]), recipe["denoise"]]
     head = ["-n"] if not inputs else (["-m"] if len(inputs) > 1 else []) + [str(sounds[i]["file"]) for i in inputs]
     out.parent.mkdir(parents=True, exist_ok=True)
-    subprocess.run(["sox", *head, str(out), *map(str, recipe.get("effects", []))], check=True)
+    subprocess.run(["sox", *head, str(out), *map(str, effects)], check=True)
+
+
+# The span a recording's noise is learnt from: its quietest stretch of this length, in seconds,
+# away from its first and last NOISE_EDGE, where a recording fades in and out under its floor.
+NOISE_SPAN = 0.3
+NOISE_EDGE = 0.5
+
+
+def noise_profile(path):
+    """The noise of a recording, as sox's noiseprof writes it: learnt on its quietest NOISE_SPAN
+    away from its edges, where no gesture is heard, only the floor; kept in the library beside its
+    recording's name."""
+    import numpy
+    out = LIBRARY / "noise" / f"{path.parent.name}-{path.stem}.prof"
+    if out.is_file():
+        return out
+    x, rate = samples(path)
+    n = int(rate * TAKE_FRAME)
+    frames = len(x) // n
+    width, edge = int(NOISE_SPAN / TAKE_FRAME), int(NOISE_EDGE / TAKE_FRAME)
+    if frames < width + 2 * edge:
+        sys.exit(f"{path.name}: shorter than {NOISE_SPAN + 2 * NOISE_EDGE} s, no stretch to learn its noise from")
+    energy = numpy.mean(x[edge * n:(frames - edge) * n].astype(numpy.float64).reshape(frames - 2 * edge, n) ** 2, axis=1)
+    # The mean energy of each run of [width] frames; the quietest one is the floor alone.
+    runs = numpy.convolve(energy, numpy.ones(width) / width, mode="valid")
+    start = (edge + int(numpy.argmin(runs))) * TAKE_FRAME
+    out.parent.mkdir(parents=True, exist_ok=True)
+    subprocess.run(["sox", str(path), "-n", "trim", f"{start:.3f}", f"{NOISE_SPAN:.3f}", "noiseprof", str(out)], check=True)
+    return out
 
 
 def themes():
@@ -405,14 +441,23 @@ def hear(theme, choice, id_, offset_db, sounds, take=None):
     """A sound as the bench plays it, with the finish of [choice] even unsaved, or one take of it
     ([start, end] in seconds): finished, brought to its level and written in
     tmp/sound-library/finished/<theme>/hear/; its measures, the gain its level asked and whether it
-    clips. A ValueError for a finish refused or a sound unknown."""
+    clips. Without a finish, a recipe the page cannot cut itself (a take denoised) rendered as the
+    unsaved choice says, at the theme's raw gain. A ValueError for a finish refused or a sound
+    unknown."""
     finish = check_finish(choice)
-    if finish is None:
-        raise ValueError("no finish: the bench plays the raw sound at the theme's gain")
     source = sound_file(theme, choice, id_, sounds)
     recipe = choice.get("recipes", {}).get(id_[len(RECIPE + SEP):]) if id_.startswith(RECIPE + SEP) else None
-    key = hashlib.sha256(json.dumps([id_, recipe, take, finish, offset_db], sort_keys=True).encode()).hexdigest()[:16]
+    gain = float(choice.get("gain_db", 0)) + offset_db
+    key = hashlib.sha256(json.dumps([id_, recipe, take, finish, offset_db if finish else gain], sort_keys=True).encode()).hexdigest()[:16]
     folder = LIBRARY / "finished" / theme / "hear"
+    if finish is None:
+        if take is not None:
+            raise ValueError("no finish: the bench cuts a raw take itself")
+        out = folder / f"{key}.raw.wav"
+        folder.mkdir(parents=True, exist_ok=True)
+        subprocess.run(["sox", str(source), str(out), "gain", str(gain)], check=True, capture_output=True)
+        measured = measure(out)
+        return out, {"measured": measured, "gain_db": gain, "clips": measured["peak_db"] > CEILING_DB}
     done, out = folder / f"{key}.finished.wav", folder / f"{key}.wav"
     if take is not None:
         start, end = (float(v) for v in take)
