@@ -589,7 +589,6 @@
     <string name="message_validation_error">Validation error: %1$s</string>
     <string name="message_validation_error_simple">Validation error</string>
     <string name="message_error">Error: %1$s</string>
-    <string name="message_irreversible_action">This action cannot be undone.</string>
     <string name="message_delete_zone_confirmation">Delete the zone “%1$s”?</string>
     <string name="message_no_zones_created">No zone created</string>
     <string name="message_available_tool_types">Available tool types</string>
@@ -613,7 +612,7 @@
 
     <!-- Confirmation messages -->
     <string name="confirm_action">Confirm this action?</string>
-    <string name="confirm_delete">Do you really want to delete this item? This action cannot be undone.</string>
+    <string name="confirm_delete">Do you really want to delete this item?</string>
     <string name="confirm_reset">Do you want to reset the configuration? The current data will be lost.</string>
 
     <!-- The one date input (InstantPicker) and its period -->
@@ -1699,7 +1698,7 @@
     <string name="automation_updated_success">Routine updated</string>
     <string name="automation_deleted_success">Routine deleted</string>
     <string name="automation_delete_confirm_title">Delete the routine?</string>
-    <string name="automation_delete_confirm_message">This action cannot be undone. The routine and its SEED session will be deleted for good.</string>
+    <string name="automation_delete_confirm_message">The routine and its message will be deleted.</string>
     <string name="error_param_seed_session_required">SEED session ID required</string>
     <string name="error_param_zone_id_required">Zone ID required</string>
     <string name="error_param_icon_required">Icon required</string>
@@ -2308,12 +2307,12 @@
     <string name="identity_saved">Saved</string>
 
     <!-- The history of writes (docs/design/undo-history.md) -->
-    <string name="history_error_step_not_found">Step of the history not found: %1$s</string>
+    <string name="history_error_step_not_found">Change not found in the history: %1$s</string>
     <string name="history_error_not_a_step">What the app writes by itself is not undone</string>
-    <string name="history_error_already_undone">This step is already undone</string>
-    <string name="history_error_not_undone">This step is not undone</string>
-    <string name="history_refused_undo">This step can no longer be undone:</string>
-    <string name="history_refused_redo">This step can no longer be redone:</string>
+    <string name="history_error_already_undone">This change is already undone</string>
+    <string name="history_error_not_undone">This change is not undone</string>
+    <string name="history_refused_undo">This change can no longer be undone:</string>
+    <string name="history_refused_redo">This change can no longer be redone:</string>
     <string name="history_refused_changed">what it wrote has changed since.</string>
     <string name="history_refused_changed_by_app">the app changed what it wrote, on %1$s.</string>
     <string name="history_refused_changed_by_step">“%1$s” changed what it wrote, on %2$s.</string>

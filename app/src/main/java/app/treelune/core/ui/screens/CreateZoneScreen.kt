@@ -174,7 +174,7 @@ fun CreateZoneScreen(
                 UI.ActionButton(
                     action = ButtonAction.DELETE,
                     requireConfirmation = true,
-                    confirmMessage = "${s.shared("message_delete_zone_confirmation").format(existingZone.name)} ${s.shared("message_irreversible_action")}",
+                    confirmMessage = s.shared("message_delete_zone_confirmation").format(existingZone.name),
                     onClick = {
                         coroutineScope.launch {
                             val result = coordinator.processUserAction("zones.delete", mapOf("zone_id" to existingZone.id))
