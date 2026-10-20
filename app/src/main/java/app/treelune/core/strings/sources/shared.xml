@@ -193,6 +193,7 @@
     <string name="ai_text_outside_json_notice">Your last answer held text outside the JSON object. It was set aside. Write everything inside the JSON (pre_text, post_text), nothing before or after it, no code block.</string>
     <string name="ai_error_format_text_before_json">Your answer starts with text instead of `{`: "%1$s". Answer again, starting with `{`: nothing before the JSON, no reasoning, no tag.</string>
     <string name="ai_error_format_invalid_json">Your answer is not valid JSON following the AIMessage schema. Answer again with that JSON alone.</string>
+    <string name="ai_error_format_brackets">Your answer is not valid JSON: its braces and brackets stop closing correctly at character %1$d, at the end of this passage: “%2$s”. A `}` or a `]` is probably missing there. Answer again with this JSON fixed, alone.</string>
     <string name="ai_error_format_errors">Format errors in your answer: %1$s. Answer again with them corrected.</string>
     <string name="ai_error_parsing_technical">Technical error while reading your answer: %1$s</string>
     <string name="ai_error_communication_module_invalid">Invalid communication module: %1$s</string>

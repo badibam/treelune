@@ -193,6 +193,7 @@
     <string name="ai_text_outside_json_notice">Ta dernière réponse contenait du texte hors de l\'objet JSON. Il a été ignoré. Écris tout dans le JSON (pre_text, post_text), rien avant ni après, sans bloc de code.</string>
     <string name="ai_error_format_text_before_json">Ta réponse commence par du texte au lieu de `{` : « %1$s ». Réponds à nouveau en commençant par `{` : rien avant le JSON, ni raisonnement, ni balise.</string>
     <string name="ai_error_format_invalid_json">Ta réponse n\'est pas un JSON valide selon le schéma AIMessage. Réponds à nouveau avec ce JSON seul.</string>
+    <string name="ai_error_format_brackets">Ta réponse n\'est pas un JSON valide : ses accolades et crochets ne se ferment plus correctement au caractère %1$d, à la fin de ce passage : « %2$s ». Il y manque sans doute une `}` ou un `]`. Réponds à nouveau avec ce JSON corrigé, seul.</string>
     <string name="ai_error_format_errors">Erreurs de format dans ta réponse : %1$s. Réponds à nouveau en les corrigeant.</string>
     <string name="ai_error_parsing_technical">Erreur technique à la lecture de ta réponse : %1$s</string>
     <string name="ai_error_communication_module_invalid">Module de communication invalide : %1$s</string>

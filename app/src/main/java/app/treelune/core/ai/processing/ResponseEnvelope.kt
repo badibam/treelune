@@ -51,6 +51,29 @@ object ResponseEnvelope {
         return found
     }
 
+    /**
+     * Where [text]'s braces and brackets stop matching, strings skipped: the index of a `}` or `]`
+     * that closes nothing or closes the other kind, or the text's length when one stays open; null
+     * when they all match. The usual break of a long answer, a brace forgotten among closing ones,
+     * which the AI fixes once told where, and otherwise sends again as it was.
+     */
+    fun bracketBreak(text: String): Int? {
+        val open = ArrayDeque<Char>()
+        var inString = false
+        var escaped = false
+        for ((i, c) in text.withIndex()) {
+            when {
+                escaped -> escaped = false
+                inString && c == '\\' -> escaped = true
+                c == '"' -> inString = !inString
+                inString -> Unit
+                c == '{' || c == '[' -> open.addLast(c)
+                c == '}' || c == ']' -> if (open.removeLastOrNull() != (if (c == '}') '{' else '[')) return i
+            }
+        }
+        return if (open.isEmpty()) null else text.length
+    }
+
     /** The index just past the brace closing the one at [start], strings skipped; null if it never closes. */
     private fun closing(text: String, start: Int): Int? {
         var depth = 0

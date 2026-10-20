@@ -56,4 +56,22 @@ class ResponseEnvelopeTest {
     fun `an object that does not close is no message`() {
         assertNull(ResponseEnvelope.split("""{"pre_text": "coupé"""))
     }
+
+    @Test
+    fun `a brace forgotten among closing ones is found where the brackets stop matching`() {
+        // DeepSeek's answer of 2026-10-20: the command's object never closed before the list's `]`
+        val broken = """{"pre_text":"Je relis.","data_commands":[{"type":"TOOL_DATA","params":{"id":"a","period":{"start":{"relative":"NOW"}}}]}"""
+        assertEquals(broken.lastIndexOf(']'), ResponseEnvelope.bracketBreak(broken))
+    }
+
+    @Test
+    fun `brackets that match, those in strings included, are no break`() {
+        assertNull(ResponseEnvelope.bracketBreak(message))
+        assertNull(ResponseEnvelope.bracketBreak("""{"pre_text": "un } et un [ dans le texte, et \" un guillemet"}"""))
+    }
+
+    @Test
+    fun `an object left open breaks at the end`() {
+        assertEquals(12, ResponseEnvelope.bracketBreak("""{"a": [1, 2]"""))
+    }
 }
