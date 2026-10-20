@@ -23,7 +23,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 Vus le 2026-10-20, laissés pour plus tard :
 
 - Flashcards : la confirmation au retrait d'un sens dit « N entrée(s) supprimée(s) faute de valeur obligatoire », sans dire que ce sont les révisions de ce sens.
-- La config d'un paquet Flashcards : « Source » et « Sens » écrits deux fois (le titre du cadre, puis le libellé du champ).
 
 ## À passer sur le téléphone
 
