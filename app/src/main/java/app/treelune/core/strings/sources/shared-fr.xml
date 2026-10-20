@@ -2099,6 +2099,8 @@
     <string name="settings_external_access_relay_url_help">L\'adresse publique du relais, https://… L\'adresse à donner à l\'IA extérieure est celle-ci suivie de /mcp.</string>
     <string name="settings_external_access_relay_secret">Secret du relais</string>
     <string name="settings_external_access_relay_secret_help">Le secret écrit dans la configuration du relais, par lequel il reconnaît l\'app.</string>
+    <string name="settings_external_access_max_data">Taille des données par lecture</string>
+    <string name="settings_external_access_max_data_help">En caractères. Au-delà, une lecture de plusieurs entrées est refusée et l\'IA en demande moins ; le reste arrive en tranches. Ça pèse sur la mémoire de l\'IA extérieure, pas sur ta clé d\'API.</string>
     <string name="external_access_open">Ouvrir l\'accès</string>
     <string name="external_access_close">Fermer l\'accès</string>
     <string name="external_access_state_closed">Fermé : aucune IA extérieure ne peut joindre l\'app.</string>

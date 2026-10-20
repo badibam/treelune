@@ -82,6 +82,14 @@ object McpAccess {
             ?: throw IllegalStateException("External access settings without an access mode")
     }
 
+    /** The connector's data threshold, in characters (AppSettings.MCP_MAX_DATA_CHARS). */
+    suspend fun maxDataChars(context: Context): Int {
+        val result = Coordinator(context).processUserAction("app_config.get", mapOf("category" to AppSettingCategories.EXTERNAL_ACCESS))
+        val settings = result.data?.get("settings") as? Map<*, *>
+        return (settings?.get(AppSettings.MCP_MAX_DATA_CHARS) as? Number)?.toInt()
+            ?: throw IllegalStateException("External access settings without a data threshold")
+    }
+
     /** The relay's address and secret as set, or null while either is missing or the address is not https. */
     suspend fun relay(context: Context): Pair<String, String>? {
         val result = Coordinator(context).processUserAction("app_config.get", mapOf("category" to AppSettingCategories.EXTERNAL_ACCESS))

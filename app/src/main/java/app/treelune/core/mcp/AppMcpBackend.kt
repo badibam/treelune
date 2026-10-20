@@ -5,7 +5,6 @@ import app.treelune.core.ai.data.AICommands
 import app.treelune.core.ai.data.CommandKind
 import app.treelune.core.ai.data.CommandStatus
 import app.treelune.core.ai.data.DataCommand
-import app.treelune.core.ai.data.SessionType
 import app.treelune.core.ai.data.SystemMessageType
 import app.treelune.core.ai.data.withinChars
 import app.treelune.core.ai.processing.AICommandProcessor
@@ -110,7 +109,7 @@ class AppMcpBackend(private val context: Context) : McpBackend {
         val message = executed.systemMessage.let { message ->
             executed.promptResults.toPromptSection().takeIf { it.isNotEmpty() }?.let { message.copy(formattedData = it) } ?: message
         }
-        val maxChars = AppConfigManager.getAILimits().getLimitsForSessionType(SessionType.CHAT).maxDataChars
+        val maxChars = McpAccess.maxDataChars(context)
         val failed = message.commandResults.any { it.status == CommandStatus.FAILED }
         if (command.kind == CommandKind.ACTION) {
             val held = message.withinChars(maxChars) { s.shared("ai_system_result_cut").format(it) }

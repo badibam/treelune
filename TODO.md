@@ -52,7 +52,7 @@ Codé, jamais vu sur l'appareil ; le détail est dans la recette, `docs/design/d
 - Sources de l'attente (`docs/design/waiting-sources.md`).
 - La réflexion de chaque fournisseur, requête envoyée : Claude (Sonnet 5.5 par `between_tools`, Opus 5.5, Haiku 4.5), OpenAI (`none`, un modèle sans fait), DeepSeek ; le changement de modèle qui vide les réglages, une combinaison refusée.
 - Lecture seule pour l'IA (`docs/design/unified-fields.md`) : passé, la section part dans `docs/DATA.md`.
-- Lectures du connecteur en tranches : « Seuil de données à 5 000 ».
+- Lectures du connecteur en tranches, et son propre seuil (migration 83) : section « Accès externe (serveur MCP) ».
 - Textures (`docs/design/tool-texture.md`) : le banc d'abord (`./run themes`), vue « page » comprise.
 - Lectures envoyées une fois par session.
 - Thème encre et lavis (`docs/design/ink-theme.md`) : la passe de `docs/THEMES.md`, ce qui a changé le 2026-10-17, puis « Ce qui reste ouvert ».
@@ -78,7 +78,6 @@ Codé, jamais vu sur l'appareil ; le détail est dans la recette, `docs/design/d
 ## Décidé, à coder
 
 - L'historique des écritures et leur annulation (`docs/design/undo-history.md`).
-- Un seuil de lecture propre au connecteur MCP, un seul, dans ses réglages, séparé de `chat_max_data_chars`.
 - L'écran de confirmation d'un changement de config nomme les outils dont un filtre vise une option retirée ou renommée.
 - Une phrase du Guide : partir d'un outil de la démo (le dupliquer) ou le décrire à l'IA — vérifier d'abord qu'un outil dupliqué survit au retrait de la démo.
 - `docs/` en anglais ; `docs/design/` et `TODO.md` restent en français.

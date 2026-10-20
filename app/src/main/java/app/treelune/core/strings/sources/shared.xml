@@ -2099,6 +2099,8 @@
     <string name="settings_external_access_relay_url_help">The relay\'s public address, https://… The address to give the outside AI is this one followed by /mcp.</string>
     <string name="settings_external_access_relay_secret">Relay secret</string>
     <string name="settings_external_access_relay_secret_help">The secret written in the relay\'s configuration, by which it knows the app.</string>
+    <string name="settings_external_access_max_data">Data size per read</string>
+    <string name="settings_external_access_max_data_help">In characters. Above this size, a read of several entries is refused and the AI asks for less; anything else comes in slices. It weighs on the outside AI\'s memory, not on your API key.</string>
     <string name="external_access_open">Open the access</string>
     <string name="external_access_close">Close the access</string>
     <string name="external_access_state_closed">Closed: no outside AI can reach the app.</string>

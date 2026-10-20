@@ -116,6 +116,14 @@ object AppSettings {
     /** The secret the relay knows the app by. */
     const val RELAY_SECRET = "relay_secret"
 
+    /**
+     * The connector's data threshold, in characters: its own, the size of a read weighing on the
+     * outside AI's context and subscription, never on a key of the app's paid by the call.
+     */
+    const val MCP_MAX_DATA_CHARS = "max_data_chars"
+    val MCP_DATA_RANGE = IntProgression.fromClosedRange(10_000, 500_000, 10_000)
+    const val MCP_MAX_DATA_CHARS_DEFAULT = 200_000
+
     /** The setting under which the theme's interface sounds play. */
     const val UI_SOUNDS = "sounds"
 
@@ -213,7 +221,7 @@ object AppSettings {
                             FieldType.TEXT, config = mapOf("length" to TextLength.MEDIUM.name), secret = true)
                     )))
                 )
-            ))
+            ), scale(MCP_MAX_DATA_CHARS, text("settings_external_access_max_data"), text("settings_external_access_max_data_help"), MCP_DATA_RANGE))
             AppSettingCategories.GUIDE -> listOf(
                 field(GUIDE_WELCOME_SEEN, text("guide_setting_welcome_seen"), null, FieldType.BOOLEAN, required = true),
                 field(GUIDE_BAND_HIDDEN, text("guide_setting_band_hidden"), null, FieldType.BOOLEAN, required = true),
