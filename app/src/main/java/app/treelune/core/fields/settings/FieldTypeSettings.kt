@@ -2,8 +2,7 @@ package app.treelune.core.fields.settings
 
 import app.treelune.core.fields.AI_READ_ONLY
 import app.treelune.core.fields.ChoiceSettings
-import app.treelune.core.fields.DurationForm
-import app.treelune.core.fields.DurationUnit
+import app.treelune.core.fields.DurationUnits
 import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldType
 import app.treelune.core.fields.ImageField
@@ -153,12 +152,9 @@ object FieldTypeSettings {
         FieldType.TIME -> listOf(clockFormat("format", text))
         FieldType.DATETIME -> listOf(clockFormat("time_format", text))
         FieldType.DURATION -> listOf(
-            field("precision", "field_config_duration_precision", FieldType.CHOICE, text,
-                default = DurationUnit.DEFAULT_PRECISION.name, description = "field_type_duration_precision_description",
-                config = choice(DurationUnit.entries.map { it.name }, DurationUnit.entries.associate { it.name to text("duration_unit_${it.name.lowercase()}_display_name") })),
-            field("form", "field_config_duration_form", FieldType.CHOICE, text,
-                default = DurationForm.DEFAULT.name, description = "field_type_duration_form_description",
-                config = choice(DurationForm.entries.map { it.name }, DurationForm.entries.associate { it.name to text("duration_form_${it.name.lowercase()}_display_name") }))
+            field(DurationUnits.KEY, "field_config_duration_units", FieldType.CHOICE, text,
+                default = DurationUnits.DEFAULT.name, description = "field_type_duration_units_description",
+                config = choice(DurationUnits.entries.map { it.name }, DurationUnits.entries.associate { it.name to text("duration_units_${it.name.lowercase()}") }))
         )
         FieldType.REFERENCE -> listOf(
             SettingNode.Group(ReferenceTarget.TARGET, text("field_config_reference_target"), listOf(

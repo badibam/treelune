@@ -297,11 +297,7 @@ private fun DurationInput(
     required: Boolean
 ) {
     val s = Strings.`for`(context = context)
-    val precision = DurationUnit.fromConfig(fieldDef.config)
-    val units = when (DurationForm.fromConfig(fieldDef.config)) {
-        DurationForm.COMPOSED -> Durations.composedUnits(precision)
-        DurationForm.SINGLE -> listOf(precision)
-    }
+    val units = DurationUnits.fromConfig(fieldDef.config).units
     val millis = (value as? Number)?.toLong()
     val amounts = millis?.let { Durations.split(it, units).toMap() }
 

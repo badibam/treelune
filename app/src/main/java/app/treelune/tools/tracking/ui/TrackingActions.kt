@@ -353,7 +353,8 @@ fun elapsedText(entry: RunningEntry, valueConfig: Map<String, Any>?, s: StringsC
         }
     }
     val elapsed = (entry.storedValue?.toLong() ?: 0L) + (now - entry.startedAt).coerceAtLeast(0L)
-    // Shown to the second whatever the field's precision: a stopwatch that only moved every
-    // minute would look stopped
-    return Durations.format(elapsed, (valueConfig ?: emptyMap()) + ("precision" to "SECOND"), s)
+    // Shown to the second, from the field's largest unit, whatever its smallest: a stopwatch that
+    // only moved every minute would look stopped
+    val largest = app.treelune.core.fields.DurationUnits.fromConfig(valueConfig).largest
+    return Durations.format(elapsed, app.treelune.core.fields.Durations.between(largest, app.treelune.core.fields.DurationUnit.SECOND), s)
 }

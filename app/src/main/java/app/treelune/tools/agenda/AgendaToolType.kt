@@ -78,6 +78,9 @@ object AgendaToolType : ToolTypeContract {
     private fun field(name: String, label: String, type: FieldType, description: String? = null, config: Map<String, Any>? = null) =
         FieldDefinition(name, label, description, type, false, config)
 
+    /** The units an event's duration is written in: days for an event that runs over several. */
+    val DURATION_UNITS = app.treelune.core.fields.DurationUnits.DAY_HOUR_MINUTE.config()
+
     /** A duration in days, a whole number from one. */
     private val daysConfig = mapOf("min" to 1, "decimals" to 0)
 
@@ -100,7 +103,7 @@ object AgendaToolType : ToolTypeContract {
                     SettingNode.Field(field("name", s.tool("field_name"), FieldType.TEXT, s.tool("schema_series_name"), mapOf("length" to TextLength.SHORT.name)), required = true),
                     SettingNode.Group(ScheduleSettings.NAME, s.tool("field_series_schedule"), ScheduleSettings.nodes(shared::shared), required = true),
                     SettingNode.Field(field(ALL_DAY, s.tool("field_all_day"), FieldType.BOOLEAN, s.tool("schema_all_day")), default = false),
-                    SettingNode.Field(field(DURATION, s.tool("field_duration"), FieldType.DURATION, s.tool("schema_duration"))),
+                    SettingNode.Field(field(DURATION, s.tool("field_duration"), FieldType.DURATION, s.tool("schema_duration"), DURATION_UNITS)),
                     SettingNode.Field(field(DAYS, s.tool("field_days"), FieldType.NUMERIC, s.tool("schema_days"), daysConfig))
                 )), summary = listOf("name"))
             ))
@@ -165,7 +168,7 @@ object AgendaToolType : ToolTypeContract {
             name = CoreFieldUsage.REQUIRED,
             timestamp = CoreFieldUsage.REQUIRED,
             data = listOf(
-                FixedField(field(DURATION, s.tool("field_duration"), FieldType.DURATION, s.tool("schema_duration"))),
+                FixedField(field(DURATION, s.tool("field_duration"), FieldType.DURATION, s.tool("schema_duration"), DURATION_UNITS)),
                 FixedField(field(ALL_DAY, s.tool("field_all_day"), FieldType.BOOLEAN, s.tool("schema_all_day"))),
                 FixedField(field(DAYS, s.tool("field_days"), FieldType.NUMERIC, s.tool("schema_days"), daysConfig))
             ),

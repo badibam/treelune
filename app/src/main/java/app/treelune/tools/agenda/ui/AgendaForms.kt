@@ -77,7 +77,7 @@ private fun DraftFields(draft: EventDraft, withStart: Boolean, context: Context,
     }
     if (draft.allDay) FieldInput(def(AgendaToolType.DAYS, FieldType.NUMERIC, mapOf("min" to 1, "decimals" to 0)), draft.days,
         { onChange(draft.copy(days = (it as? Number)?.toInt()?.coerceAtLeast(1) ?: 1)) }, context, required = true)
-    else FieldInput(def(AgendaToolType.DURATION, FieldType.DURATION), draft.duration, { onChange(draft.copy(duration = (it as? Number)?.toLong())) }, context)
+    else FieldInput(def(AgendaToolType.DURATION, FieldType.DURATION, AgendaToolType.DURATION_UNITS), draft.duration, { onChange(draft.copy(duration = (it as? Number)?.toLong())) }, context)
 }
 
 /**

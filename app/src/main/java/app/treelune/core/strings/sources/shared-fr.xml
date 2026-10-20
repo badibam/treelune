@@ -799,8 +799,6 @@
     <string name="field_config_true_label">Label pour vrai</string>
     <string name="field_config_false_label">Label pour faux</string>
     <string name="field_config_time_format">Format d\'heure</string>
-    <string name="field_config_duration_precision">Précision</string>
-    <string name="field_config_duration_form">Forme</string>
     <string name="field_config_text_length">Longueur du texte</string>
     <string name="field_config_no_config_required">Ce type de champ ne nécessite aucune configuration</string>
 
@@ -1323,8 +1321,8 @@
     <string name="field_type_datetime_description">Date et heure combinées</string>
     <string name="field_type_duration_display_name">Durée</string>
     <string name="field_type_duration_description">Une durée, saisie et affichée dans les unités choisies</string>
-    <string name="field_type_duration_precision_description">Plus petite unité saisie et affichée. La valeur est toujours stockée en millisecondes.</string>
-    <string name="field_type_duration_form_description">COMPOSED écrit plusieurs unités (1 h 25 min), SINGLE écrit la précision seule (85 min)</string>
+    <string name="field_config_duration_units">Unités</string>
+    <string name="field_type_duration_units_description">Les unités saisies et affichées, de la plus grande à la plus petite. Les jours pour un délai sur le calendrier ; les heures pour du temps passé, dont un total se lit mal en jours. La valeur est toujours stockée en millisecondes.</string>
     <string name="field_type_reference_display_name">Référence</string>
     <string name="field_type_reference_description">Un lien vers une autre chose de l\'app (une entrée, un outil, une zone), affiché sous son nom actuel</string>
     <string name="field_type_reference_kinds_description">Ce qu\'une valeur peut désigner : APP, ZONE, TOOL_INSTANCE, ENTRY, VARIABLE, une ou plusieurs</string>
@@ -1559,14 +1557,15 @@
     <string name="duration_unit_hour">h</string>
     <string name="duration_unit_minute">m</string>
     <string name="duration_unit_second">s</string>
-    <string name="duration_unit_millisecond">ms</string>
-    <string name="duration_unit_day_display_name">Jour</string>
-    <string name="duration_unit_hour_display_name">Heure</string>
-    <string name="duration_unit_minute_display_name">Minute</string>
-    <string name="duration_unit_second_display_name">Seconde</string>
-    <string name="duration_unit_millisecond_display_name">Milliseconde</string>
-    <string name="duration_form_composed_display_name">Plusieurs unités (1 h 25 min)</string>
-    <string name="duration_form_single_display_name">Une seule unité (85 min)</string>
+    <string name="duration_units_day">jours</string>
+    <string name="duration_units_day_hour">jours heures</string>
+    <string name="duration_units_day_hour_minute">jours heures minutes</string>
+    <string name="duration_units_hour">heures</string>
+    <string name="duration_units_hour_minute">heures minutes</string>
+    <string name="duration_units_hour_minute_second">heures minutes secondes</string>
+    <string name="duration_units_minute">minutes</string>
+    <string name="duration_units_minute_second">minutes secondes</string>
+    <string name="duration_units_second">secondes</string>
 
     <!-- CUSTOM FIELDS - Schema descriptions (used by AI) -->
     <string name="field_type_schema_name_description">Identifiant technique du champ, clé sous laquelle les valeurs sont stockées. Attribué par l\'app à la création, à partir de l\'intitulé, et immuable ensuite. À omettre pour un nouveau champ ; à reprendre tel quel pour désigner un champ existant. Le renommer détruirait les valeurs déjà enregistrées, c\'est l\'intitulé qui se modifie librement.</string>
@@ -1616,9 +1615,8 @@
     <string name="field_validation_time_default_format">La valeur par défaut doit être au format HH:MM</string>
     <string name="field_validation_datetime_default_format">La valeur par défaut doit être au format ISO 8601 (YYYY-MM-DDTHH:MM:SS)</string>
     <string name="field_validation_datetime_default_range">La valeur par défaut doit être comprise entre min et max</string>
+    <string name="field_validation_duration_units">Unités de durée inconnues : %1$s</string>
     <string name="field_validation_datetime_format">Le format d\'heure doit être 24h ou 12h</string>
-    <string name="field_validation_duration_precision">Précision de durée inconnue : %1$s</string>
-    <string name="field_validation_duration_form">Forme de durée inconnue : %1$s</string>
     <string name="field_value_range_start_end">La valeur start doit être inférieure ou égale à end</string>
 
     <!-- CUSTOM FIELDS - Migration -->

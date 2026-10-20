@@ -80,6 +80,12 @@ object GoalToolType : ToolTypeContract {
     /** Seven days, the default delay before an attempt left to validate expires. */
     const val DEFAULT_EXPIRY = 7L * 86_400_000
 
+    /**
+     * The units of an attempt's duration and of the delay before it expires, days on the
+     * calendar: GoalScheduler adds the days at the same time of the clock (TimeResolver.after).
+     */
+    val DURATION_UNITS = app.treelune.core.fields.DurationUnits.DAY_HOUR.config()
+
     private fun s(context: Context) = Strings.`for`(tool = "goal", context = context)
 
     override fun getDisplayName(context: Context): String = s(context).tool("display_name")
@@ -143,12 +149,12 @@ object GoalToolType : ToolTypeContract {
                         ),
                         Recurrence.RECURRING to listOf(
                             ScheduleSettings.group(s.tool("field_schedule"), shared::shared).copy(required = true),
-                            SettingNode.Field(field("duration", s.tool("field_duration"), FieldType.DURATION, s.tool("schema_duration")))
+                            SettingNode.Field(field("duration", s.tool("field_duration"), FieldType.DURATION, s.tool("schema_duration"), DURATION_UNITS))
                         )
                     )
                 ),
                 SettingNode.Field(field("enabled", s.tool("field_enabled"), FieldType.BOOLEAN, s.tool("schema_enabled")), required = true, default = true),
-                SettingNode.Field(field("expiry_delay", s.tool("field_expiry_delay"), FieldType.DURATION, s.tool("schema_expiry_delay")), required = true, default = DEFAULT_EXPIRY),
+                SettingNode.Field(field("expiry_delay", s.tool("field_expiry_delay"), FieldType.DURATION, s.tool("schema_expiry_delay"), DURATION_UNITS), required = true, default = DEFAULT_EXPIRY),
                 SettingNode.Field(field("notify", s.tool("field_notify"), FieldType.BOOLEAN, s.tool("schema_notify")), required = true, default = true),
                 SettingNode.Field(field(AI_NO_VALIDATION, s.tool("field_$AI_NO_VALIDATION"), FieldType.BOOLEAN, s.tool("schema_$AI_NO_VALIDATION")), default = false)
             ))

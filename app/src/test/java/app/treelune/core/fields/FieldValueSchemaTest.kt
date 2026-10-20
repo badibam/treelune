@@ -191,10 +191,10 @@ class FieldValueSchemaTest {
         assertFalse(schema.accepts("\"a\""))
     }
 
-    /** A duration is whole milliseconds, whatever precision it is entered in. */
+    /** A duration is whole milliseconds, whatever units it is entered in. */
     @Test
     fun duration_isWholeMilliseconds() {
-        val schema = schemaFor("""{ "type": "DURATION", "config": { "precision": "HOUR" } }""")
+        val schema = schemaFor("""{ "type": "DURATION", "config": { "units": "HOUR" } }""")
 
         assertTrue(schema.accepts("5100000"))
         assertTrue(schema.accepts("1"))
