@@ -17,6 +17,8 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 
 ## Bugs
 
+- Une borne de jour ou de semaine se calcule en journées de l'app (l'heure où commence le jour, le premier jour de la semaine, `TimeResolver`), jamais de minuit à minuit ; seul le transport d'une date sans rien couper y échappe. Restent : les événements toute la journée de l'Agenda (`AgendaEvents.kt:47` et `:106`, `AgendaForms.kt:60`, la date stockée gardée, ses bornes lues en journées de l'app), les graduations et les champs DATE du Graphique (`ChartScales.kt:37`, `:189-193`), le premier jour de semaine des sélecteurs de date des thèmes (`WeekFields.of(locale)`, et celui de Material), `TimeResolver.day(Now)` et `day(Shift)` qui donnent la date de minuit à minuit (« aujourd'hui » à 00:30, le lendemain) ; puis un contrôle des sources qui refuse une borne faite à la main hors de `TimeResolver`, `DateUtils` et `PeriodSelector`.
+- La durée d'un Objectif est stockée en millisecondes (7 jours = 604 800 000) : une tentative qui traverse un changement d'heure finit une heure avant ou après l'heure de son début — non vérifié.
 - Des boutons à libellé posés dans une simple rangée, qui se perdent quand la place manque : à passer dans `ButtonRow` (`VariableScreen.kt:175`, `JournalEntryScreen.kt:376`, `DuplicateSelector.kt:234`, `StructuredScreen.kt:260` et `:299`), et la rangée d'actions de `InteractionCard` (la validation dans le chat), que chaque thème pose avec deux moitiés de largeur fixe (`InteractionActions`).
 
 ## À passer sur le téléphone
@@ -117,15 +119,11 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 - `~/.config/treelune/signing.env`, lu par `./run` pour signer une release, garde ses mots de passe en clair : les passer au trousseau (KWallet, via `secret-tool`, comme la clé OpenRouter du banc depuis le 2026-10-19), le `release.keystore` restant un fichier.
 - `CommandExecutor` lit la base directement (`AppDatabase.getDatabase`, les messages d'une session), hors du coordinateur.
 - `AutomationScheduler.getNextExecutionForAutomation()` est appelé depuis l'écran (`AutomationCard`, `AutomationScreen`), sans passer par le service.
-- `CommandExecutor` remplace un nom ou un `schema_id` manquant par `"unknown"` : un repli que la règle du projet interdit.
-- `ToolConfigActions` (`core/ui/components`), utilisé par l'IA, porte un nom qui ne dit pas ce qu'il fait.
 - Des conversions JSON → valeurs refaites sur place au lieu de `JsonUtils` : au moins `toValueMap` (`MessagesScreen`), `jsonToValue` (`StateSavers`), `toFieldConfigValue` (`FieldDefinition`) — compter le reste avant de les ramener.
 - `shared.xml` (~1 900 lignes) à découper en plusieurs fichiers.
 - `RetroPaletteTest` et `CosyPaletteTest` ne tiennent les contrastes qu'au décalage de teinte 0 : les parcourir par pas de 15°, comme `SwissPaletteTest`, et reprendre les nombres d'un décalage qui tombe sous le seuil.
 - `TextType.SUBTITLE` n'a pas de rang dans le contrat des thèmes (`UITypes.kt`) : plus grand que `HEADING` en défaut et en cosy, plus petit en rétro, pour 71 usages. Lui donner un rang, aligner les thèmes, puis passer ses usages écran par écran dans les trois thèmes.
 
-- `FlashcardsServiceTest` (« a deck's reviews are written by its own operation alone ») a échoué à 00:30 le 2026-10-20 (`flashcards.due` vide), passé quelques heures plus tôt : il dépend sans doute de l'heure, la démo et les cartes dues se calculant depuis l'instant présent et le début de la journée (4 h) ; non vérifié. Lui donner une horloge fixe.
-- Une apostrophe nue dans un texte qui en a déjà une échappée (`\'`) passe tous les contrôles de `./run test` et casse la compilation des ressources (« Invalid unicode escape sequence »), le générateur n'échappant que les textes qui n'en ont aucune : la refuser dans un contrôle des sources de textes, ou faire échapper toutes les apostrophes au générateur.
 
 ## Bugs du téléphone
 
