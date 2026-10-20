@@ -1877,6 +1877,32 @@
     <string name="ai_data_fields_all">tous</string>
     <string name="ai_data_no_results_warning">Aucune entrée ne répond à ces critères.</string>
     <string name="ai_data_user_summary">« %1$s » : %2$d entrée(s) lue(s)</string>
+    <string name="ai_read_user_schema">Schéma lu</string>
+    <string name="ai_read_user_schema_of">« %1$s » : schéma lu</string>
+    <string name="ai_read_user_tool_config">« %1$s » : configuration lue</string>
+    <string name="ai_read_user_tools">Tous les outils lus</string>
+    <string name="ai_read_user_tools_of">« %1$s » : outils lus</string>
+    <string name="ai_read_user_zone_config">Zone « %1$s » : configuration lue</string>
+    <string name="ai_read_user_zones">Zones lues</string>
+    <string name="ai_read_user_variables">Variables lues</string>
+    <string name="ai_read_user_variables_of">« %1$s » : variables lues</string>
+    <string name="ai_read_user_reading">« %1$s » : valeur lue</string>
+    <string name="ai_read_user_routine">Routine « %1$s » lue</string>
+    <string name="ai_read_user_routines">Toutes les routines lues</string>
+    <string name="ai_read_user_routines_of">« %1$s » : routines lues</string>
+    <string name="ai_read_user_runs_of">« %1$s » : exécutions lues</string>
+    <string name="ai_read_user_run">Une exécution lue</string>
+    <string name="ai_read_user_file">Fichier lu</string>
+    <string name="ai_read_user_images">%1$d image(s) montrée(s)</string>
+    <string name="ai_read_user_import_plan">Fichier lu pour l\'import</string>
+    <string name="ai_read_user_datetime">Date et heure lues</string>
+    <string name="ai_read_user_settings">Réglages lus</string>
+    <string name="ai_read_user_icons">Icônes lues</string>
+    <string name="ai_read_user_identities">Identités lues</string>
+    <string name="ai_read_user_identity">« %1$s » : identité lue</string>
+    <string name="ai_read_user_identity_resource">« %1$s » : ressource lue</string>
+    <string name="ai_read_user_history">Historique lu</string>
+    <string name="ai_read_user_history_of">« %1$s » : historique lu</string>
 
     <!-- AI Enrichment - POINTER inline summaries -->
     <string name="ai_enrichment_pointer_zone">Zone</string>

@@ -1877,6 +1877,32 @@
     <string name="ai_data_fields_all">all</string>
     <string name="ai_data_no_results_warning">No entry matches these criteria.</string>
     <string name="ai_data_user_summary">'%1$s': %2$d entries read</string>
+    <string name="ai_read_user_schema">Schema read</string>
+    <string name="ai_read_user_schema_of">'%1$s': schema read</string>
+    <string name="ai_read_user_tool_config">'%1$s': configuration read</string>
+    <string name="ai_read_user_tools">All tools read</string>
+    <string name="ai_read_user_tools_of">'%1$s': tools read</string>
+    <string name="ai_read_user_zone_config">Zone '%1$s': configuration read</string>
+    <string name="ai_read_user_zones">Zones read</string>
+    <string name="ai_read_user_variables">Variables read</string>
+    <string name="ai_read_user_variables_of">'%1$s': variables read</string>
+    <string name="ai_read_user_reading">'%1$s': value read</string>
+    <string name="ai_read_user_routine">Routine '%1$s' read</string>
+    <string name="ai_read_user_routines">All routines read</string>
+    <string name="ai_read_user_routines_of">'%1$s': routines read</string>
+    <string name="ai_read_user_runs_of">'%1$s': runs read</string>
+    <string name="ai_read_user_run">A run read</string>
+    <string name="ai_read_user_file">File read</string>
+    <string name="ai_read_user_images">%1$d image(s) shown</string>
+    <string name="ai_read_user_import_plan">File read for the import</string>
+    <string name="ai_read_user_datetime">Date and time read</string>
+    <string name="ai_read_user_settings">Settings read</string>
+    <string name="ai_read_user_icons">Icons read</string>
+    <string name="ai_read_user_identities">Identities read</string>
+    <string name="ai_read_user_identity">'%1$s': identity read</string>
+    <string name="ai_read_user_identity_resource">'%1$s': resource read</string>
+    <string name="ai_read_user_history">History read</string>
+    <string name="ai_read_user_history_of">'%1$s': history read</string>
 
     <!-- AI Enrichment - POINTER inline summaries -->
     <string name="ai_enrichment_pointer_zone">Zone</string>
