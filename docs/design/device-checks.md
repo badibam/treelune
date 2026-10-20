@@ -518,11 +518,9 @@ Vu le 2026-10-20 sur la démo : la tuile et la page de Ripasso ; la fenêtre de 
 
 ## L'export des entrées (branche post-release, `docs/design/export.md`)
 
-- Config de Repas (démo) › « Exporter les entrées… », sans période ni filtre : la fenêtre dit le nom du fichier et le nombre d'entrées ; le fichier est dans le dossier de l'app (app Fichiers), son nom `Repas_<date>_<heure>.csv`. Ouvert dans un tableur par son dialogue d'import (virgule, UTF-8) : la première ligne en libellés (« Nom », « Date »…), les accents justes, une ligne par entrée, l'aliment par son nom.
-- Le même export deux fois dans la minute : le second fichier prend `_2`, le premier reste.
-- Une période (cette semaine) et un filtre : le nombre d'entrées suit ; des champs gardés : seules leurs colonnes.
-- « Partager » ouvre le menu d'Android ; le fichier joint à un mail arrive entier.
-- Sans dossier choisi (Réglages › Données), ou son droit retiré : l'export est refusé en disant d'aller le choisir.
-- Un outil en création n'a pas le bouton ; une sous-page de la config non plus.
-- Au chat : « exporte mes repas de cette semaine en CSV » : l'IA lance `EXPORT_DATA` sans demander d'accord ; sa carte dit l'export de Repas, le fichier et le nombre d'entrées, avec « Partager » qui ouvre le menu d'Android.
+- Le fichier d'un export de Repas ouvert dans un tableur par son dialogue d'import (virgule, UTF-8) : la première ligne en libellés (« Nom », « Date »…), les accents justes, une ligne par entrée, l'aliment par son nom. (la fenêtre, le nom, le dossier, la marque d'ordre des octets et les colonnes par leurs libellés : vus le 2026-10-20 ; un choix s'y écrit par sa clé, « dinner »)
+- Le fichier partagé joint à un mail arrive entier (le menu d'Android : vu le 2026-10-20).
+- Le droit sur le dossier retiré : l'export est refusé en disant d'aller le choisir (sans dossier : vu le 2026-10-20, le toast coupé avant « Données »).
+- Un outil en création n'a pas le bouton (une sous-page non plus : vu le 2026-10-20).
+- Au chat, « Partager » de la carte d'un export ouvre le menu d'Android (l'export par l'IA, sans accord, sa carte avec le fichier et le compte : vus le 2026-10-20).
 - Une routine dont le message demande l'export de la semaine : le fichier paraît dans le dossier à chaque exécution, sans écraser le précédent.
