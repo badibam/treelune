@@ -153,7 +153,11 @@ class ValidationResolver(private val context: Context) {
      */
     private suspend fun pastDataReason(action: DataCommand, levels: Levels): String? {
         if (!levels.app.validatePastData || action.params["config"] == null) return null
-        val result = coordinator.processUserAction("tools.update", action.params + mapOf("dry_run" to true))
+        // The change as it would run: its dates and durations, written ISO by the AI, in their
+        // stored form; a change that does not transform is refused at its execution, saying why
+        val transformed = app.treelune.core.ai.processing.AICommandProcessor(context).processActionCommands(listOf(action))
+        val params = transformed.executableCommands.singleOrNull()?.takeIf { transformed.errors.isEmpty() }?.params ?: return null
+        val result = coordinator.processUserAction("tools.update", params + mapOf("dry_run" to true))
         // A change refused for another reason is refused at its execution, saying why
         if (!result.isSuccess) return null
         val migration = result.data?.get("migration") as? Map<*, *> ?: return null
