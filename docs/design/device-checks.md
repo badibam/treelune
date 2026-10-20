@@ -49,9 +49,16 @@ Ce que la suite de tests ne voit pas : les écrans, les migrations sur une vraie
 - Ajouter une entrée dans un outil de la démo et un outil dans une de ses zones, puis Réglages › Démo › « Supprimer la démo » : la démo et ces deux ajouts disparaissent, le reste de l'app est intact ; « Réinstaller » la remet entière.
 - Chaque suivi de la démo, sauf Repas, montre un raccourci d'ajout rapide nommé comme ses entrées : Verre ajoute 1, Pesée et Récolte ouvrent la saisie dans leur unité, Nuit lance un chrono.
 - Pendant un import d'un gros fichier (Données structurées), lancer « Réinstaller » la démo ou exporter une sauvegarde : refusé, le message nomme l'import en cours ; la bande compte les lignes écrites par 500.
+- La démo enrichie (ses textures vues sur l'accueil le 2026-10-17) : l'Agenda de Travail (la série du lundi à venir donnée par l'outil, les passées, l'annulée, la retirée, le salon sur deux jours), « Cap sur le semi » (sa tentative ouverte seule, du début à l'échéance), Giulia sur la zone Italien et sa routine, le camembert des heures et sa légende, les étapes gardées d'une séance de fractionné, les étiquettes du carnet et le classement du questionnaire.
+
+## Guide
+
+- Les chapitres Les routines (six étapes, celle du message attend l'enregistrement) et Parler à l'IA (l'étape des cases d'accord), « Les outils en un coup d'œil », la partie Les outils et ses dix chapitres (textes mis en forme, tuiles de titre de partie, dans les trois thèmes).
+- Le Guide réécrit dans sa langue ; les tutoriels de Prise en main (Organiser, Relier, Apparence) : chaque étape se valide par le bon geste, et seulement par lui ; les chapitres Tes données, Accès externe, Quand ça coince, et la partie Approfondissement, lus.
 
 ## Chat IA
 
+- Les réglages de réflexion de chaque fournisseur, en envoyant une requête : Claude (Sonnet 5.5 sans réflexion par `between_tools`, Opus 5.5 sans « Sans réflexion », Haiku 4.5 sans effort), OpenAI (un modèle à `none`, un modèle qu'aucun fait ne couvre), DeepSeek (effort obligatoire, sans réflexion) ; le changement de modèle qui vide les deux réglages, l'enregistrement d'une combinaison refusée.
 - Messages système en langage courant, le détail replié sous « Détails » : mode avion (« Pas de réseau… »), une clé fausse (« …telle qu'elle est réglée… », le message du fournisseur dans Détails), la limite d'échanges atteinte, une fin à confirmer (« L'IA dit avoir terminé… »), des données refusées ; un résultat de lecture n'a pas de « Détails ».
 - Demander à l'IA de répondre dans `post_text` sans rien faire (« réponds-moi dans post_text, sans action ») : son texte s'affiche après `pre_text`. Lui faire créer une entrée que son outil refuse (une valeur hors de ses bornes) avec un `post_text` : il ne s'affiche pas, et le résultat qu'elle reçoit dit qu'il n'a pas été montré.
 - Paramètres de la conversation › Réflexion : la ligne du menu dit « Réflexion : comme réglée pour le fournisseur » ; décocher « Comme réglée… » part du réglage du fournisseur, choisir un effort, « Sans réflexion » (Claude) réduit les efforts proposés. La requête envoyée porte l'effort choisi (journal, ou le fournisseur). Fermer, rouvrir la conversation depuis l'historique : le réglage est gardé. Changer de modèle dans la config du fournisseur pour un qui n'a pas cet effort, puis écrire : l'appel est refusé avec « La réflexion réglée pour cette conversation ne convient pas… ». Les cases de validation cochées restent cochées en rouvrant les paramètres.
@@ -106,7 +113,7 @@ Ce que la suite de tests ne voit pas : les écrans, les migrations sur une vraie
 
 ## Accès externe (serveur MCP)
 
-Avec le relais en place (son projet), son adresse et son secret dans Réglages › Accès externe.
+Avec le relais en place (son projet `relay`, en ligne sur `https://relay.badibam.fr` ; son hébergement tient une requête 120 s, `RelayLoop.WAIT_SECONDS` = 20 reste en dessous), son adresse et son secret dans Réglages › Accès externe.
 
 - « Ouvrir l'accès » sans adresse ni secret : refusé, le message le dit. Avec : la notification « Accès externe ouvert » paraît, l'écran dit « Ouvert ».
 - La tuile « Accès externe » ajoutée aux réglages rapides : un toucher ouvre, un autre ferme ; son état suit l'écran.
@@ -134,7 +141,8 @@ Vu le 2026-10-09 : l'inscription par la page de connexion, « Activer Funnel » 
 - Le journal de l'app montre les messages « External access: » du nœud (URL de connexion, Funnel ouvert, adresse publiée), et `files/tailscale/tailscale.log` le journal technique, sans dépasser deux fichiers d'1 Mo.
 
 ## Automations
-- Le message d'une routine : la page défile d'un bloc jusqu'à Enregistrer et Annuler, même avec un long message et des accès ; trois boutons Planning, Déclencheurs, Accès qui se résument ; le rattrapage sous le planning, dans sa fenêtre, gardé seulement à la confirmation ; les accès dans leur fenêtre, chaque nom sur toute la largeur, le niveau dessous ; Enregistrer écrit le message et les réglages (rouvrir la routine).
+
+- « Routine » à l'écran dans les deux langues ; la page du message d'une routine, ses blocs à leur hauteur entière, un bloc déplacé par sa poignée au-delà de l'écran.- Le message d'une routine : la page défile d'un bloc jusqu'à Enregistrer et Annuler, même avec un long message et des accès ; trois boutons Planning, Déclencheurs, Accès qui se résument ; le rattrapage sous le planning, dans sa fenêtre, gardé seulement à la confirmation ; les accès dans leur fenêtre, chaque nom sur toute la largeur, le niveau dessous ; Enregistrer écrit le message et les réglages (rouvrir la routine).
 - Une automation lancée à la main, puis une planifiée, lisent et écrivent les outils de leur masque d'accès (plus de « Une automation qui n'existe plus n'a pas l'accès ») ; une automation au message vide ne s'enregistre pas et ne se lance pas, le refus dit.
 
 - Rattrapage après la mise à jour : une automation programmée « sans limite » le reste, une fenêtre de 3 heures se relit « jusqu'à un délai » de 3 h. Dans l'éditeur : sans choix, l'enregistrement est refusé ; « jusqu'à un délai » demande la durée ; retirer la planification puis enregistrer retire aussi le rattrapage.
@@ -186,6 +194,8 @@ Vu le 2026-10-09 : l'inscription par la page de connexion, « Activer Funnel » 
 - Liste avec des éléments cochés : activer « Un élément coché est supprimé aussitôt », enregistrer : le dialogue dit combien d'entrées seront supprimées ; confirmer : les cochés ont disparu, les autres gardent leur ordre ; annuler : rien n'a bougé.
 
 ## Réglages et affichage
+- La conversion du réglage d'apparence en v58 (une famille devient une teinte), sur la release et ses données ; les titres de section du thème par défaut ; une tuile sans icône, son nom centré.
+- Une seule activité : un retour du sélecteur de photos et de l'appareil photo (champ Image, message) ramène à l'écran d'où on les a ouverts, sans activité de plus.
 - Les rangées de la grille (vues en Métro au cran 3 et au cran 0 le 2026-10-20) au cran de taille 3 dans les autres thèmes, puis avec la taille de texte d'Android au maximum dans chacun : une tuile en Minimal, Ligne et Compact (« Point facturation », le Carnet de Travail) montre son nom sur deux lignes et son type entiers, rien de coupé en bas ; au cran 0 et à la taille d'Android normale, les cases restent carrées comme avant (comparer avec une capture d'avant) ; le mode d'édition de la grille, ses cases à la nouvelle hauteur.
 - La place à l'écran, en rétro à la plus grande taille, en une colonne, puis dans les deux autres thèmes : chaque écran (zone, outils, réglages, Guide, routine) à la même marge des bords, la plus petite, et une fenêtre flottante alignée sur elle ; les boutons d'un formulaire côte à côte s'ils tiennent, sinon chacun sur sa ligne en pleine largeur, le texte centré (Questionnaire en une colonne : « Remplir maintenant », « Avec l'IA ») ; les couleurs d'une icône et la grille d'icônes passent à la ligne sans s'écraser.
 - Clavier ouvert dans un champ en bas d'une page longue (config d'un outil, Réglages) : la page défile jusqu'à son bas au-dessus du clavier ; le bouton de conversation et la bande du Guide disparaissent tant qu'il est ouvert et reviennent à sa fermeture ; dans le Guide en cours, l'éditeur n'est plus écrasé.
@@ -221,6 +231,7 @@ Vu le 2026-10-09 : l'inscription par la page de connexion, « Activer Funnel » 
 
 ## Champs RÉFÉRENCE
 
+- La config d'un champ référence : Cible, Peut désigner, la liste d'outils seulement avec Entrée.
 - Champ RÉFÉRENCE restreint aux entrées d'un seul outil (`aliment`) : le choix s'ouvre dans cet outil, la recherche filtre les entrées, toucher une entrée l'ajoute au fil d'Ariane et « Confirmer » l'enregistre. Restreint à plusieurs outils : ils sont listés à l'app avec leur zone. Acceptant zones et outils : « Confirmer » n'est actif que sur une zone ou un outil atteint.
 - Ajouter à un outil un champ de l'utilisateur de type Référence, limité aux entrées d'un autre outil : le choix liste ses entrées avec une recherche ; l'entrée enregistrée affiche le nom de la fiche, renommer la fiche change l'affichage, la supprimer affiche « supprimé » et l'entrée reste modifiable.
 - Même champ sans restriction : choisir d'abord un outil puis son entrée. Avec les sortes Zone et Outil : leurs listes s'affichent.
@@ -266,6 +277,7 @@ Vu le 2026-10-09 : l'inscription par la page de connexion, « Activer Funnel » 
 - Une tentative validée : la modifier par l'IA est refusé ; « Rouvrir » la remet à valider et garde la date de réouverture.
 - Renommer un critère saisi : sa valeur reste ; le supprimer puis le recréer : la confirmation de la config compte la valeur retirée.
 - Un objectif récurrent quotidien : une tentative par jour ; à la fin de la période, une notification et l'onglet « En cours (1) », la tentative à valider au-dessus de celle du jour ; sans validation, expirée après le délai. Arrêté, plus aucune ne s'ouvre.
+- Après la migration 79, sur la release et ses données : chaque Objectif choisit « Une fois » ou « Récurrent » selon ce qu'il était, la durée d'un objectif ponctuel devenue son échéance.
 - La section « Quand » d'un nouvel Objectif ne montre d'abord que Répétition, sans choix fait : enregistrer est refusé, la ligne marquée « À compléter ou corriger ». « Une fois » montre Début et Échéance ; « Récurrent », Récurrence (obligatoire) et Durée ; passer de l'un à l'autre retire les réglages de l'autre. Migration 79, sur la release et ses données : un objectif qui avait une récurrence est « Récurrent », sans Début ni Échéance ; un objectif ponctuel qui avait une Durée sans Échéance a pour Échéance son début plus cette durée, sa tentative en cours inchangée.
 - Faire valider par l'IA : « par l'IA ».
 

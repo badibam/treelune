@@ -22,60 +22,19 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 
 ## À passer sur le téléphone
 
-Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/design/device-checks.md` (la recette, classée par écran) ; passé, sa spec s'élague, ses garanties devenant des tests.
+Codé, jamais vu sur l'appareil.
 
+- La recette, `docs/design/device-checks.md` : chaque section dit quoi faire et quoi voir, une ligne vue en sort ; une section vidée, la spec qu'elle nomme s'élague, ses garanties devenant des tests.
+- Les specs que la recette ne nomme pas, à élaguer une fois leurs lignes passées : `missing-tools.md` (Champs RÉFÉRENCE, Variables, Données structurées, Objectif, Questionnaire, Graphique), `icon-colors.md`, `settings-pages.md` (Réglages et affichage), `message-images.md` (Chat IA, la ligne « Images »), `sequence-tool.md` (Séance), `entry-start-state.md`, `always-send.md`, `bug-report.md` (Mise à jour et démarrage), `validation.md` (Validation), `mcp-server.md` (Accès externe), `funnel-poc.md` avec `funnel-access.md`, `custom-fields-display.md` (Outils et saisie) ; `unified-fields.md` (Lecture seule pour l'IA), dont la section part dans `docs/DATA.md` ; `image-field.md`, sa propre section « À passer sur le téléphone », la migration 82 sur la release d'abord.
 - Un modèle libre chez soi : un Ollama sur l'ordinateur, servi en https par `tailscale serve`, branché comme Autre serveur depuis le téléphone avec un modèle de la classe 30B, prix à 0 ; mesurer le temps d'une réponse (la lecture d'un prompt de ~29k tokens sur la machine). Passé, une page du Guide « Brancher un modèle libre » d'après ce qui a été fait.
-- La place à l'écran (2026-10-14) : marge de bord unique, rangées de boutons, grille de choix, clavier, poignées, dates des tuiles, point d'attente du rétro, page du message d'une routine (Réglages et affichage, Automations).
-- Les outils manquants (sélection du cœur, RÉFÉRENCE, lecture du cœur, variables, Données structurées et import, Objectif, Questionnaire, Graphique) : puis élaguer de `docs/design/missing-tools.md` ce qui est codé.
-- Le thème rétro (`docs/design/retro-theme.md`), vu le 2026-10-01 (écran d'une zone, palette pâle, marges reprises) : le parcourir écran par écran, les graduations en pointillé de ses graphiques et le damier du mode d'édition de la grille compris, puis ce que la spec garde dans « Ce qui reste ouvert ».
-- Le thème cosy (`docs/design/cosy-theme.md`, maquettes liées dedans) : l'essayer, puis ce que la spec garde dans « Ce qui reste ouvert », le banc des palettes d'abord.
-- Ce qui n'est pas passé le 2026-10-02 : la conversion du réglage d'apparence en v58 (une famille devient une teinte), les titres de section du thème par défaut, la tuile sans icône centrée.
-- Les couleurs des icônes (`docs/design/icon-colors.md`).
-- Les images dans un message (`docs/design/message-images.md`) : la ligne « Images ».
-- L'outil Séance (`docs/design/sequence-tool.md`) : sa section.
-- Le formulaire de config en pages (`docs/design/settings-pages.md`) : les boutons sur la page racine seule, les marques d'un problème, la phrase d'une condition (Réglages et affichage).
-- L'état de départ d'une entrée (`docs/design/entry-start-state.md`) : migration 65, un message demandé à l'IA, une tentative refusée.
-- Les outils toujours envoyés (`docs/design/always-send.md`) : migration 64, Réglages.
-- Le rapport de bug (`docs/design/bug-report.md`) : démarrage, Réglages.
-- La validation et les accès de l'IA (`docs/design/validation.md`) : les trois niveaux et les cases de session (migration 69), `UPDATE_APP_CONFIG`, le masque des automations (migration 70), la validation du connecteur par notification et son masque par client (migration 71) — section Validation.
-- Le serveur MCP (`docs/design/mcp-server.md`, `core/mcp`, migration 60) ; le relais (projet `relay`) est en ligne sur `https://relay.badibam.fr` depuis le 2026-10-05, Claude s'y est branché comme connecteur depuis le téléphone ; l'hébergement tient une requête 120 s, `RelayLoop.WAIT_SECONDS` = 20 reste en dessous : la section « Accès externe ».
-- L'accès externe par Tailscale Funnel (`docs/design/funnel-access.md`) : sa section (migration 68), puis élaguer aussi `funnel-poc.md`.
-- Ce qui a changé le 2026-10-11, vu en debug seulement ou pas du tout : la migration 73 (le compteur devient numérique) sur la release et ses données, l'avertissement d'arrière-plan sur une installation neuve, les automations et leurs accès, une fenêtre flottante longue dans le cosy (Mise à jour et démarrage, Automations, Réglages et affichage).
-- Ce qui a changé le 2026-10-13 (branche ai-runtime) : une routine lancée app fermée et sa notification (Automations) ; la réflexion d'une conversation, la migration 74, ses cases de validation gardées, une écriture dans un outil qui n'existe pas, un champ sans nom affiché (Chat IA).
-- Ce qui a changé le 2026-10-14 (branche data-text) : copier et sélectionner, le compteur des champs et les nouvelles limites, les fuseaux et les langues, les colonnes écartées de l'import, la sauvegarde automatique et sa marque ; la durée d'une copie, à lire dans le journal (« Auto backup: … written in N ms ») : au-delà de 50 s app fermée, la faire tourner sous le service au premier plan des routines (dernière section de la recette).
-- Ce qui a changé le 2026-10-14 sur develop : « routine » à l'écran dans les deux langues ; la page du message d'une routine, ses blocs à leur hauteur entière, la page défilant d'un bloc (un bloc déplacé par sa poignée au-delà de l'écran compris) ; la config d'un champ référence (Cible, Peut désigner, la liste d'outils seulement avec Entrée) ; le Guide, les chapitres Les routines (six étapes, celle du message attend l'enregistrement) et Parler à l'IA (l'étape des cases d'accord), « Les outils en un coup d'œil », la partie Les outils et ses dix chapitres (textes mis en forme, tuiles de titre de partie, dans les trois thèmes) ; le Guide réécrit dans sa langue, les tutoriels nouveaux de Prise en main (Organiser, Relier, Apparence : chaque étape se valide-t-elle par le bon geste, et seulement par lui), les chapitres lus (Tes données, Accès externe, Quand ça coince) et la partie Approfondissement.
-- Les champs de l'utilisateur dans le Suivi et Messages (`docs/design/custom-fields-display.md`, branche custom-fields) : l'historique du Suivi en cartes, les champs sous le texte d'un message (Outils et saisie) ; passé, élaguer la spec.
-- L'IA et les routines (branche ai-routines) : leur création par l'écran et la démo, celle de l'IA en conversation, une routine qui en crée une sous son masque, la lecture d'une exécution ratée, le connecteur (section « L'IA et les routines »).
-- La barre d'un texte sélectionné dessinée par le thème (branche theme-recipe) : sa ligne de la section « Copier, limites, fuseau… » de la recette.
-- L'outil Agenda (`docs/design/agenda-tool.md`, branche agenda) : l'Instant étendu dans un formulaire, les séries, les rappels app fermée et le réveil précis (section « Agenda ») ; passé, élaguer la spec.
-- Les bugs du téléphone du 2026-10-16 et le changement de config (`docs/design/config-change.md`) : la dernière section de la recette ; passé, élaguer la spec.
-- Les sources de l'attente (`docs/design/waiting-sources.md`, branche waiting-sources) : migration 76, la conversation marquée sur le bouton flottant, le résumé d'une routine, sa notification et ses points, le réglage « Me signaler la fin » (section du même nom) ; passé, élaguer la spec.
-- Les réglages de réflexion de chaque fournisseur, en envoyant une requête : Claude (Sonnet 5.5 sans réflexion par `between_tools`, Opus 5.5 sans « Sans réflexion », Haiku 4.5 sans effort), OpenAI (un modèle à `none`, un modèle qu'aucun fait ne couvre), DeepSeek (effort obligatoire, sans réflexion) ; le changement de modèle qui vide les deux réglages, l'enregistrement d'une combinaison refusée.
-- La lecture seule pour l'IA (`docs/design/unified-fields.md`, branche user-only) : un champ et un critère saisi fermés à l'IA, la validation d'un Objectif fermée à l'IA : la section « Lecture seule pour l'IA » de la recette ; passé, la section de la spec part dans `docs/DATA.md`.
-- Les lectures du connecteur entières, refusées ou en tranches (`McpReads`, branche mcp-reads) : sa ligne « Seuil de données à 5 000 » de la section « Accès externe (serveur MCP) ».
-- Les textures d'outil et de zone (`docs/design/tool-texture.md`, branche tool-texture) : les tons réglés d'abord au banc des textures (`./run themes`), dans les trois thèmes et les deux modes, puis la section « Les textures » de la recette ; passé, élaguer la spec.
-- La texture sur tout le fond de la page et le choix de la couleur et de la texture sur une page du formulaire (branche texture-background, 2026-10-17) : la vue « page » du banc des textures (`./run themes`) d'abord, puis les lignes de la section « Les textures » de la recette qui parlent du fond de page et des pages de choix.
-- Les lectures envoyées une fois par session (`SessionReads`, branche read-once) : la section du même nom de la recette.
-- Le thème encre et lavis (`docs/design/ink-theme.md`, branche theme-ink) : la passe sur le téléphone de `docs/THEMES.md`, les icônes au pinceau d'abord (leur coût à l'ouverture d'une page, celles qui se bouchent), puis ce que la spec garde dans « Ce qui reste ouvert » ; ce qui a changé le 2026-10-17 après la première passe : le lavis d'une tuile qui déborde et s'éteint à son bord, sa texture estompée avec lui, la carte en lavis au bord fondu (des marches dans le fondu ?), la gouache sous les icônes et les tags, les ronds peints à la main (boutons, case, sceaux), le coût d'ouverture d'une zone aux tuiles texturées.
-- Les incarnations (`docs/design/incarnations.md`, branche incarnations) : la dernière section de la recette, l'identité de Stan Prokopenko importée et le coût d'un tour mesuré pour personae ; passé, élaguer la spec. L'import attend que personae exporte au format 2 du fichier d'identité (`docs/IDENTITY_FILE.md`), le format 1 n'étant plus lu.
-- Les bugs du téléphone du 2026-10-17 : la section du même nom de la recette.
-- Les bugs du téléphone du 2026-10-19 (branches notes-fixes et layout-fixes) : la section du même nom de la recette.
-- La répétition d'un Objectif, « Une fois » ou « Récurrent » (branche goal-repetition) : migration 79, sa ligne de la section « Objectif » de la recette.
-- Les conditions typées à l'écriture (`docs/design/typed-conditions.md`, branche typed-conditions) : la section du même nom de la recette ; passé, élaguer la spec.
-- Le gras et l'italique d'un texte lu (branche text-emphasis) : la section du même nom de la recette.
-- La démo enrichie (branche demo-guide), installée sur le téléphone le 2026-10-17 (ses textures vues sur l'accueil), le reste pas regardé : l'Agenda de Travail (la série du lundi à venir donnée par l'outil, les passées, l'annulée, la retirée, le salon sur deux jours), « Cap sur le semi » (sa tentative ouverte seule, du début à l'échéance), Giulia sur la zone Italien et sa routine, le camembert des heures et sa légende, les étapes gardées d'une séance de fractionné, les étiquettes du carnet et le classement du questionnaire, les textures.
-- Les fournisseurs créés par l'utilisateur (`docs/design/ai-providers.md`, branche ai-providers) : la section du même nom de la recette, la migration 80 sur la release et ses données d'abord ; passé, élaguer la spec.
-- Les écrans du chat, des identités et des fournisseurs, et les marges qui ne suivent plus le cran de taille (2026-10-17, sur develop) : la section du même nom de la recette.
-- Le thème métro (`docs/design/metro-theme.md`, branche theme-metro) : la passe sur le téléphone de `docs/THEMES.md`, puis ce que la spec garde dans « Ce qui reste ouvert ».
-- Le thème papier découpé (`docs/design/paper-theme.md`, branche theme-cut-paper) : la passe sur le téléphone de `docs/THEMES.md`, les icônes découpées d'abord (leur coût, celles qui se bouchent), puis ce que la spec garde dans « Ce qui reste ouvert ».
-- La mise en forme des textes longs (`docs/design/text-formatting.md`, branche text-formatting) : la section du même nom de la recette ; passé, élaguer la spec.
-- La SQLite de l'app à la place de celle du téléphone (branche demo-install) : la mise à jour depuis la release avec ses données d'abord (« Mise à jour et démarrage »), puis la démo sur l'OPPO A5 2020 (« Démo »).
-- Le thème plan d'architecte (`docs/design/blueprint-theme.md`, branche theme-blueprint) : la passe sur le téléphone de `docs/THEMES.md`, le débord des icônes d'abord, puis ce que la spec garde dans « Ce qui reste ouvert ».
-- L'outil Flashcards (`docs/design/flashcards.md`, branche flashcards) : la section « Flashcards » de la recette, la démo d'abord (Lessico, Ripasso), puis le lexique réel ; passé, élaguer la spec.
-- Une seule activité (`launchMode` singleTask, 2026-10-20) : un retour du sélecteur de photos et de l'appareil photo (la notification et le lanceur passés le 2026-10-20).
-- Le champ Image (`docs/design/image-field.md`, branche image-field) : la migration 82 sur la release et ses images de messages d'abord, puis la section « À passer sur le téléphone » de la spec ; la tuile de l'Agenda dit encore « 3 images » en texte ; passé, élaguer la spec.
-- Le thème liseuse (`docs/design/eink-theme.md`, branche theme-eink) : la passe sur le téléphone de `docs/THEMES.md`, les trames d'abord (deux couleurs au pixel près, la discrète des textures), puis ce que la spec garde dans « Ce qui reste ouvert », la bande d'encre et ses boutons d'abord.
-- L'historique des écritures (`docs/design/undo-history.md`, branche undo-history) : la migration 83 sur la release et ses données d'abord, puis la section du même nom de la recette, le gros import mesuré (sa durée, la place prise) ; passé, élaguer la spec.
+- Les passes sur le téléphone de `docs/THEMES.md`, puis ce que la spec de chaque thème garde dans « Ce qui reste ouvert » :
+  - le rétro (`retro-theme.md`), vu le 2026-10-01 (écran d'une zone, palette pâle, marges reprises) : écran par écran, les graduations en pointillé de ses graphiques et le damier du mode d'édition de la grille compris ;
+  - le cosy (`cosy-theme.md`, maquettes liées dedans) : le banc des palettes d'abord ;
+  - l'encre et lavis (`ink-theme.md`) : les icônes au pinceau d'abord (leur coût à l'ouverture d'une page, celles qui se bouchent) ; ce qui a changé le 2026-10-17 après la première passe : le lavis d'une tuile qui déborde et s'éteint à son bord, sa texture estompée avec lui, la carte en lavis au bord fondu (des marches dans le fondu ?), la gouache sous les icônes et les tags, les ronds peints à la main (boutons, case, sceaux), le coût d'ouverture d'une zone aux tuiles texturées ;
+  - le métro (`metro-theme.md`) ;
+  - le papier découpé (`paper-theme.md`) : les icônes découpées d'abord (leur coût, celles qui se bouchent) ;
+  - le plan d'architecte (`blueprint-theme.md`) : le débord des icônes d'abord ;
+  - la liseuse (`eink-theme.md`) : les trames d'abord (deux couleurs au pixel près, la discrète des textures), la bande d'encre et ses boutons d'abord dans « Ce qui reste ouvert ».
 
 ## Conçu, à coder
 
@@ -138,9 +97,11 @@ Vus le 2026-10-20, laissés pour plus tard :
 - Le choix d'une texture : toucher le libellé sous une vignette ne choisit rien, seule la vignette le fait.
 - La fenêtre de suppression d'un outil dit « cet élément » sans nommer l'outil.
 - Au cran de taille 3, le point d'attente et le chrono recouvrent presque toute l'icône d'une zone sur l'accueil (Travail).
+- La tuile de l'Agenda dit encore « 3 images » en texte (champ Image).
 
 ## En attente d'un déclencheur
 
+- L'import d'une incarnation depuis personae (la dernière section de la recette, l'identité de Stan Prokopenko) : quand personae exportera au format 2 du fichier d'identité (`docs/IDENTITY_FILE.md`), le format 1 n'étant plus lu.
 - Des niveaux de prompt (`docs/design/local-models.md`, « Si un modèle plus petit est voulu ») : décidé le 2026-10-17, un seul prompt, la classe 30B le suivant — quand un modèle plus petit, ou un modèle dans l'app sur le téléphone, sera voulu.
 - Un filtre qui compare un champ à une variable ou à une lecture (« kcal > objectif_calorique ») : `EntryFilters.parse` le refuse, `ConditionPicker` n'offre qu'une valeur écrite — quand un pointeur ou une variable en a besoin ; le terme se lit alors une fois à la référence du contexte (`TermReader`).
 
