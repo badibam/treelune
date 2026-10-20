@@ -509,10 +509,9 @@ Vu le 2026-10-20 sur la démo : la tuile et la page de Ripasso ; la fenêtre de 
 
 ## Les bugs du 2026-10-20 et les unités des durées (branche bugs)
 
-- La migration 86 sur la release et ses données : chaque champ Durée s'affiche comme avant (le sommeil et les heures de la démo en « h m », un champ réglé « une seule unité » dans son unité) ; sa config montre « Unités » à la place de Précision et Forme ; une sauvegarde d'avant restaurée, de même.
-- Un Objectif récurrent : « Durée d'une tentative » et « Délai avant expiration » se saisissent en j et h, l'expiration à « 7 j » par défaut ; une tentative en cours dit « reste 6 j 8 h », « reste 40 m » dans sa dernière heure.
-- La durée d'un événement de l'Agenda, la fenêtre de validité de Messages, le délai de rattrapage d'une routine : une case j devant h et m.
-- Retirer un sens d'un paquet Flashcards : la confirmation dit « N révision(s) du sens « … » supprimée(s) » ; changer d'horaire une série de l'Agenda, « N occurrence(s) à venir de « … » supprimée(s), redonnée(s) à ses nouveaux horaires » ; l'IA qui fait le même changement reçoit les mêmes mots.
+- La migration 86 : un champ réglé « une seule unité » s'affiche dans son unité ; une sauvegarde d'avant restaurée s'importe, ses durées comme avant (sur la release le 2026-10-20 : le sommeil en « 7h 42m », « Unités : heures minutes » dans sa config ; les réponses brutes de l'IA qui ne sont pas du JSON laissées telles quelles, sans erreur au journal, depuis le correctif).
+- Un Objectif récurrent : une tentative en cours dit « reste 40m » dans sa dernière heure ; la démo réinstallée, la semaine d'italien finit le lundi 26 octobre à 00:00, malgré le changement d'heure du 25 (j et h, « 7 j », « reste 5j 5h » : vus le 2026-10-20).
+- Le délai de rattrapage d'une routine : une case j devant h et m (l'Agenda et Messages : vus le 2026-10-20).
+- Retirer un sens d'un paquet Flashcards : la confirmation ne dit plus que ce qui est retiré ne revient pas (« 109 révision(s) du sens « FR → IT » supprimée(s) » : vu le 2026-10-20) ; changer d'horaire une série de l'Agenda, « N occurrence(s) à venir de « … » supprimée(s), redonnée(s) à ses nouveaux horaires » ; l'IA qui fait le même changement reçoit les mêmes mots.
 - Les boutons à libellé à la plus grande taille de texte d'Android : la validation d'une action de l'IA dans le chat, les formulaires d'une variable et d'une entrée du Journal, la duplication d'un outil, une fiche de Données structurées : côte à côte quand ils tiennent, l'un sous l'autre sinon, jamais un coupé.
-- En français, « Rétention voulue » d'un paquet s'écrit « 0,9 » ; « 0,85 » tapé avec la virgule est gardé.
-- Une Séance : le minuteur d'une étape se saisit en m et s, un repos de 30 s et 2 m 30 s tenus ; la durée d'une séance faite s'affiche et se corrige en h, m et s.
+- Une Séance : un repos de 30 s et 2 m 30 s tenus ; la durée d'une séance faite s'affiche et se corrige en h, m et s (le minuteur en m et s : vu le 2026-10-20).
