@@ -28,14 +28,14 @@ Ces écritures sont toutes des `Writing` de l'importeur, qui relit donc ce fichi
 
 ## Où va le fichier
 
-- **Un dossier du téléphone choisi une fois**, dans Réglages › Données : l'app reçoit d'Android un droit d'écriture durable sur ce dossier (`OpenDocumentTree`, permission persistée). Tout export y est écrit sans dialogue, qu'il vienne de l'écran, de l'IA ou d'une automation ; le dossier se voit dans l'app Fichiers et se synchronise par l'outil qu'on veut.
+- **Le dossier de l'app**, choisi une fois dans Réglages › Données, celui des sauvegardes automatiques et du partage (`AppSettings.DATA_FOLDER`, `share.md`) : l'app y a d'Android un droit d'écriture durable (`OpenDocumentTree`, permission persistée). Tout export y est écrit sans dialogue, qu'il vienne de l'écran, de l'IA ou d'une automation ; le dossier se voit dans l'app Fichiers et se synchronise par l'outil qu'on veut.
 - **Aucun dossier réglé** : l'écran de l'outil le demande sur le moment ; l'IA reçoit un refus qui le dit. Pas de dossier par défaut.
 - **Droit retiré ou dossier disparu** : l'export échoue en le disant.
 - **Nom** : `<nom de l'outil>_<AAAA-MM-JJ_HHMM>.csv`, le nom de l'outil passé par une fonction de nettoyage unique ; `_2`, `_3`… quand le nom existe. Rien n'est jamais écrasé. L'appelant ne choisit pas le nom.
 
 ## D'où on le lance
 
-- **L'écran de l'outil** : « Exporter… » dans son menu ouvre `SelectionPicker` réglé sur cet outil (période, filtres, champs) ; le fichier écrit, un message dit son nom et le nombre d'entrées, avec un bouton Partager (menu de partage d'Android, par un `FileProvider`).
+- **L'écran de l'outil** : « Exporter les entrées… » dans son menu (« Exporter… » est le partage d'une partie de l'app, Réglages › Données) ouvre `SelectionPicker` réglé sur cet outil (période, filtres, champs) ; le fichier écrit, un message dit son nom et le nombre d'entrées, avec un bouton Partager (menu de partage d'Android, par un `FileProvider`).
 - **L'IA** : l'action `EXPORT_DATA`, aux paramètres de la requête `TOOL_DATA` (`tool_instance_id`, `period`, `filters`, `fields`), traduits de la même façon. Elle ne reçoit que le compte-rendu (fichier, nombre d'entrées), jamais le contenu. Sa carte dans le chat dit l'outil, le nombre d'entrées et le fichier, avec Partager. Pas de validation : rien n'est modifié dans l'app ni écrasé, et le fichier va où l'utilisateur a choisi. Une automation l'emploie de même, sa période relative résolue à l'exécution.
 - **Pas le pointeur** : il dit à l'IA « regarde ça » ; exporter une sélection qu'on y a réglée se demande à l'IA.
 
