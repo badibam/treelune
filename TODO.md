@@ -17,6 +17,8 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 
 ## Bugs
 
+- Supprimer une zone laisse ses routines en base (`ZoneService.handleDelete`) : `automations.zone_id` n'a pas de clé étrangère, rien ne les supprime ; lu dans le code, pas vu sur le téléphone. À traiter avec l'historique des écritures, dont la descente des suppressions doit les inclure.
+
 - Des boutons à libellé posés dans une simple rangée, qui se perdent quand la place manque : à passer dans `ButtonRow` (`VariableScreen.kt:175`, `JournalEntryScreen.kt:376`, `DuplicateSelector.kt:234`, `StructuredScreen.kt:260` et `:299`), et la rangée d'actions de `InteractionCard` (la validation dans le chat), que chaque thème pose avec deux moitiés de largeur fixe (`InteractionActions`).
 
 ## À passer sur le téléphone
