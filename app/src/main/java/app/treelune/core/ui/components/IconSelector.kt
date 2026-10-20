@@ -99,21 +99,43 @@ fun IconSelector(
     val s = remember { Strings.`for`(context = context) }
     var showDialog by rememberSaveable { mutableStateOf(false) }
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(UI.Space.M)
-    ) {
-        UI.Text(s.shared("tools_config_label_icon"), TextType.LABEL)
-        UI.ItemIcon(iconName = current, color = color, size = 32.dp)
-        // Side by side when they hold, else one under the other
-        ButtonRow(modifier = Modifier.weight(1f)) {
-            UI.ActionButton(
-                action = ButtonAction.SELECT,
-                onClick = { showDialog = true }
-            )
-            if (onClear != null) UI.Button(type = ButtonType.DEFAULT, onClick = onClear) {
-                UI.Text(s.shared("action_clear"), TextType.LABEL)
+    val head: @Composable () -> Unit = {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(UI.Space.M)) {
+            UI.Text(s.shared("tools_config_label_icon"), TextType.LABEL)
+            UI.ItemIcon(iconName = current, color = color, size = 32.dp)
+        }
+    }
+    val buttons: @Composable () -> Unit = {
+        UI.ActionButton(
+            action = ButtonAction.SELECT,
+            onClick = { showDialog = true }
+        )
+        if (onClear != null) UI.Button(type = ButtonType.DEFAULT, onClick = onClear) {
+            UI.Text(s.shared("action_clear"), TextType.LABEL)
+        }
+    }
+    // The label, the icon and the buttons on one line when they hold; else the buttons under them,
+    // over the whole width, side by side or one under the other (ButtonRow): never a word cut
+    val space = UI.Space.M
+    androidx.compose.ui.layout.SubcomposeLayout(Modifier.fillMaxWidth()) { constraints ->
+        val gap = space.roundToPx()
+        val free = androidx.compose.ui.unit.Constraints(maxHeight = constraints.maxHeight)
+        val headPlaced = subcompose("head", head).single().measure(free)
+        val natural = subcompose("natural", buttons).map { it.measure(free) }
+        val inline = headPlaced.width + gap + natural.sumOf { it.width } + gap * (natural.size - 1).coerceAtLeast(0) <= constraints.maxWidth
+        val rowWidth = if (inline) constraints.maxWidth - headPlaced.width - gap else constraints.maxWidth
+        val row = subcompose("row") { ButtonRow(content = buttons) }.single()
+            .measure(androidx.compose.ui.unit.Constraints(maxWidth = rowWidth, maxHeight = constraints.maxHeight))
+        if (inline) {
+            val height = maxOf(headPlaced.height, row.height)
+            layout(constraints.maxWidth, height) {
+                headPlaced.place(0, (height - headPlaced.height) / 2)
+                row.place(headPlaced.width + gap, (height - row.height) / 2)
+            }
+        } else {
+            layout(constraints.maxWidth, headPlaced.height + gap + row.height) {
+                headPlaced.place(0, 0)
+                row.place(0, headPlaced.height + gap)
             }
         }
     }

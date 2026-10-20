@@ -26,7 +26,6 @@ Ce que la suite de tests ne voit pas : les écrans, les migrations sur une vraie
 
 - Après le passage à Compose 1.12 (BOM 2026.09.00) : parcourir l'accueil, une zone, un outil de chaque type, sa config, Réglages, le chat, dans les deux thèmes ; les fenêtres de dialogue, les listes qui défilent, le glisser-déposer et le clavier se comportent comme avant.
 
-
 ## Validation
 
 - Protéger les données d'un outil : une entrée écrite par l'IA attend l'accord, la carte dit « Les données de « … » sont protégées ».
@@ -45,7 +44,7 @@ Ce que la suite de tests ne voit pas : les écrans, les migrations sur une vraie
 - Sur l'OPPO A5 2020 (Android 10, ColorOS 7.1), dont la SQLite n'a pas `json_extract` : l'app désinstallée puis installée à neuf, la démo s'installe au premier démarrage sans toast d'erreur ; l'Objectif de la zone Italien montre ses tentatives validées, un Graphique de la démo se dessine, un chrono lancé s'affiche en cours sur sa tuile.
 - Deux `./run install` de suite, la démo seule à l'accueil : chaque fois la démo se réinstalle entière, sans toast d'erreur sur les groupes de zones. Réglages : retirer le dernier groupe de zones s'enregistre.
 - Réglages › Démo : désactiver « Installer la démo à chaque mise à jour » et enregistrer ne supprime rien, la démo reste ; réinstaller l'APK la laisse telle quelle ; réactiver le réglage n'installe rien avant la mise à jour suivante.
-- Réglages › Démo : « Réinstaller » puis revenir en arrière aussitôt (la carte en bas à gauche et son étape jusqu'à la fin, la démo entière, les boutons qui attendent pendant l'installation : vus le 2026-10-20) : la carte ne touche pas le bouton de conversation, sur un écran où il flotte ; un toast dit que c'est terminé.
+- Réglages › Démo : « Réinstaller » puis revenir en arrière aussitôt : la carte ne touche pas le bouton de conversation, sur un écran où il flotte ; un toast dit que c'est terminé.
 - Ajouter une entrée dans un outil de la démo et un outil dans une de ses zones, puis Réglages › Démo › « Supprimer la démo » : la démo et ces deux ajouts disparaissent, le reste de l'app est intact ; « Réinstaller » la remet entière.
 - Chaque suivi de la démo, sauf Repas, montre un raccourci d'ajout rapide nommé comme ses entrées : Verre ajoute 1, Pesée et Récolte ouvrent la saisie dans leur unité, Nuit lance un chrono.
 - Pendant un import d'un gros fichier (Données structurées), lancer « Réinstaller » la démo ou exporter une sauvegarde : refusé, le message nomme l'import en cours ; la bande compte les lignes écrites par 500.
@@ -71,7 +70,7 @@ Ce que la suite de tests ne voit pas : les écrans, les migrations sur une vraie
 - Session CHAT avec DeepSeek : elle passe, et son coût s'affiche sans « ≥ ».
 - « Importe ce fichier dans une nouvelle table » avec un CSV joint : l'IA crée la table, puis au tour suivant `IMPORT_PLAN` et `IMPORT_DATA` ; la carte de validation nomme le fichier, ses lignes et la table ; la table a ses colonnes et ses lignes.
 - Le message de départ d'une automation ne propose pas le trombone.
-- DeepSeek dont le JSON perd une accolade (dix fois de suite le 2026-10-20, une lecture d'agenda à période relative) : le message renvoyé nomme le caractère et le passage, et la réponse suivante est corrigée.
+- DeepSeek dont le JSON perd une accolade (une lecture d'agenda à période relative) : le message renvoyé nomme le caractère et le passage, et la réponse suivante est corrigée.
 - DeepSeek, sur une dizaine de réponses : une réponse dont le JSON est entouré de texte ou d'un bloc de code est exécutée sans `FORMAT_ERROR` ; un message système cite le texte écarté, et la réponse suivante ne le reprend pas.
 - Session CHAT avec OpenAI : la première réponse passe (le mode JSON, `text.format`, est accepté par l'API Responses).
 - « Coche Lait dans Courses » : l'IA appelle l'opération `check` et l'élément est coché ; dans une liste qui retire ce qui est coché, il disparaît.
@@ -129,12 +128,10 @@ Avec le relais en place (son projet `relay`, en ligne sur `https://relay.badibam
 
 ## Accès externe par Tailscale (`docs/design/funnel-access.md`)
 
-Vu le 2026-10-09 : l'inscription par la page de connexion, « Activer Funnel » sur un compte où HTTPS et le droit `funnel` étaient retirés, l'accès ouvert seul ensuite, la publication de l'adresse attendue à l'écran, claude.ai branché sur l'adresse. Reste :
-
 - Après la migration 68 : avec un relais réglé, Réglages › Accès externe montre « Relais » choisi, sa section affichée, et l'accès s'ouvre comme avant.
 - En relais, une sauvegarde restaurée (secret illisible) : choisir Tailscale et toucher « Ouvrir » sans enregistrer : « Réglages enregistrés », puis l'étape Tailscale ; rouvrir l'écran, Tailscale est choisi. Revenir à Relais, toucher « Ouvrir » : l'écran dit que le secret a été saisi sur un autre téléphone.
 - Un membre d'un compte qui ne peut pas activer Funnel : les étapes à la main s'affichent (HTTPS et la page DNS, le bloc à copier et l'éditeur de la politique d'accès), et l'accès s'ouvre seul une fois le compte réglé par son administrateur.
-- Fermer, rouvrir : un appel passe aussitôt, sans attendre de certificat (l'adresse revient en quelques secondes, vu le 2026-10-20). 30 minutes sans appel : fermé seul, l'adresse ne répond plus. La tuile ferme l'accès aussi pendant une étape d'attente.
+- Fermer, rouvrir : un appel passe aussitôt, sans attendre de certificat. 30 minutes sans appel : fermé seul, l'adresse ne répond plus. La tuile ferme l'accès aussi pendant une étape d'attente.
 - Passer du Wi-Fi à la 4G, accès ouvert : un appel passe encore dans la minute.
 - « Déconnecter de Tailscale », accès fermé : confirmé, l'appareil `treelune` disparaît de la console ; l'ouverture suivante redemande la connexion.
 - Le journal de l'app montre une ligne par requête reçue (« POST /register -> 201 », « POST /mcp -> 200 »), une inscription avec le client créé, jamais un jeton.
@@ -195,9 +192,9 @@ Vu le 2026-10-09 : l'inscription par la page de connexion, « Activer Funnel » 
 
 ## Réglages et affichage
 - La conversion du réglage d'apparence en v58 (une famille devient une teinte), sur la release et ses données ; les titres de section du thème par défaut ; une tuile sans icône, son nom centré.
-- Les messages de l'app (`Toasts`), dans chaque thème : un message long entier, lisible sur la page et distinct des cartes ; au-dessus d'une fenêtre ouverte (le refus d'un export dans sa fenêtre, le chat) ; parti au toucher ; « Import réussi » dit au redémarrage qui suit une restauration (le défaut et le cosy sur la page, le chat au-dessus : vus le 2026-10-20, le cosy à peine distinct de ses cartes).
+- Les messages de l'app (`Toasts`), dans chaque thème : un message long entier, lisible sur la page et distinct des cartes ; au-dessus d'une fenêtre ouverte (le refus d'un export dans sa fenêtre, le chat) ; parti au toucher ; « Import réussi » dit au redémarrage qui suit une restauration.
 - Une seule activité : un retour du sélecteur de photos et de l'appareil photo (champ Image, message) ramène à l'écran d'où on les a ouverts, sans activité de plus.
-- Les rangées de la grille (vues en Métro au cran 3 et au cran 0 le 2026-10-20) au cran de taille 3 dans les autres thèmes, puis avec la taille de texte d'Android au maximum dans chacun : une tuile en Minimal, Ligne et Compact (« Point facturation », le Carnet de Travail) montre son nom sur deux lignes et son type entiers, rien de coupé en bas ; au cran 0 et à la taille d'Android normale, les cases restent carrées comme avant (comparer avec une capture d'avant) ; le mode d'édition de la grille, ses cases à la nouvelle hauteur.
+- Les rangées de la grille au cran de taille 3 dans les thèmes autres que Métro, puis avec la taille de texte d'Android au maximum dans chacun : une tuile en Minimal, Ligne et Compact (« Point facturation », le Carnet de Travail) montre son nom sur deux lignes et son type entiers, rien de coupé en bas ; au cran 0 et à la taille d'Android normale, les cases restent carrées comme avant (comparer avec une capture d'avant) ; le mode d'édition de la grille, ses cases à la nouvelle hauteur.
 - La place à l'écran, en rétro à la plus grande taille, en une colonne, puis dans les deux autres thèmes : chaque écran (zone, outils, réglages, Guide, routine) à la même marge des bords, la plus petite, et une fenêtre flottante alignée sur elle ; les boutons d'un formulaire côte à côte s'ils tiennent, sinon chacun sur sa ligne en pleine largeur, le texte centré (Questionnaire en une colonne : « Remplir maintenant », « Avec l'IA ») ; les couleurs d'une icône et la grille d'icônes passent à la ligne sans s'écraser.
 - Clavier ouvert dans un champ en bas d'une page longue (config d'un outil, Réglages) : la page défile jusqu'à son bas au-dessus du clavier ; le bouton de conversation et la bande du Guide disparaissent tant qu'il est ouvert et reviennent à sa fermeture ; dans le Guide en cours, l'éditeur n'est plus écrasé.
 - Tuiles : une tuile de Journal à titre long montre « 12 j » à côté du titre, entier ; la tuile de Suivi en rétro montre sa date entière. Rétro : le point d'attente sur le livre du Guide se détache du cadre.
@@ -330,7 +327,6 @@ Vu le 2026-10-09 : l'inscription par la page de connexion, « Activer Funnel » 
 - Ajouter une entrée au suivi que lit le graphique, revenir : le graphique l'a prise. Recréer l'écran : le graphique se redessine à l'identique.
 - Thème rétro : les graduations en pointillé d'un pixel sur deux, les axes pleins.
 
-
 ## Copier, limites, fuseau, import, sauvegarde automatique (branche data-text, 2026-10-14)
 
 - Conversation : un appui simple sur une bulle ne copie plus ; un appui long copie, avec une vibration. Message de l'IA à module : son texte puis ses questions ; en attente de validation : ses actions ; message système : résumé, lignes ✓/✗, détails. Les boutons et « Détails » dans la bulle répondent toujours à l'appui simple.
@@ -356,13 +352,11 @@ Vu le 2026-10-09 : l'inscription par la page de connexion, « Activer Funnel » 
 
 - Un Graphique qui filtre « moment = déjeuner » sur le Repas ; retirer l'option « déjeuner » du Repas, puis la renommer : la confirmation nomme le Graphique, même quand aucune entrée n'a cette valeur ; « Annuler » ne change rien. Par l'IA, la validation demandée nomme le Graphique aussi.
 
-Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la poignée d'une note limitée à son icône, les cartes d'une zone à la largeur de la grille en rétro, le coup d'œil sur les outils dans l'accueil du Guide, la sélection d'un texte du Guide, les bornes d'une échelle resserrées (comptes, nouveau champ), une séance arrêtée qui garde ses étapes et sa correction étape par étape. Reste :
-
 - La carte des variables d'une zone avec un nom long : la valeur passe sous le nom, rien ne se coupe.
 - Copier une entrée de Journal et une note qui ont des champs ajoutés (une échelle, un choix de moins de 8 options, un classement, une référence) : les lignes « Nom : valeur » après le texte, une échelle en barre, un choix parmi ses options, une référence par son nom, un champ vide absent.
 - Un choix à une réponse passé à plusieurs : enregistré sans rien demander, chaque entrée garde sa réponse. Plusieurs vers une : seules les entrées à plusieurs réponses perdent la valeur, comptées.
 - Le type de valeur d'un Suivi changé : les entrées supprimées, comptées dans la fenêtre.
-- Demander à l'IA de resserrer une échelle (conversation) : la carte de validation dit les comptes, même dans une zone non protégée (vu le 2026-10-20 en retirant un critère saisi d'un Objectif, dont la config porte une durée) ; refusée, rien ne change ; acceptée, les valeurs hors bornes partent. « Protéger les données passées » décoché : l'IA est refusée et doit renvoyer avec `confirm_migration`. Par le connecteur : la notification d'accord. Une routine qui le fait : passe si son accès le permet.
+- Demander à l'IA de resserrer une échelle (conversation) : la carte de validation dit les comptes, même dans une zone non protégée ; refusée, rien ne change ; acceptée, les valeurs hors bornes partent. « Protéger les données passées » décoché : l'IA est refusée et doit renvoyer avec `confirm_migration`. Par le connecteur : la notification d'accord. Une routine qui le fait : passe si son accès le permet.
 - Objectif : valider une tentative, changer un critère (seuil, critère retiré), rouvrir la tentative : elle est jugée selon ses anciens critères, la valeur saisie du critère retiré toujours là ; revalidée, son jugement aussi.
 - Une séance notée « Faite » sans l'écran : ses étapes toutes faites, sans temps ; une séance finie avant ce changement se corrige toujours par ses comptes.
 
@@ -439,7 +433,7 @@ Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la po
 
 ## Les conditions typées à l'écriture (branche typed-conditions, `docs/design/typed-conditions.md`)
 
-- Un Objectif « sommeil moyen d'au moins 7 h » créé par l'IA : sa config, rouverte à l'écran, montre 7 h, et la tentative se juge sans erreur (l'IA qui écrit « PT7H », relit « PT7H », et voit « 25200000 » refusé : vus le 2026-10-20).
+- Un Objectif « sommeil moyen d'au moins 7 h » créé par l'IA : sa config, rouverte à l'écran, montre 7 h, et la tentative se juge sans erreur.
 - Graphique « Repas par moment » : demander à l'IA un filtre « moment = déjeuner » : refusé, le message dit que `=` ne compare pas un choix et donne `in` ; puis un filtre sur « déjeunner » : refusé, le message dit d'ajouter l'option d'abord.
 - À l'écran, une condition d'Objectif ou de Graphique enregistrée comme avant : rien ne change ; la config d'un Graphique dont un filtre vise un champ supprimé de son outil : l'enregistrement est refusé et nomme la condition.
 
@@ -466,23 +460,18 @@ Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la po
 
 ## Les bugs du téléphone du 2026-10-19
 
-Vu le 2026-10-20 en Métro : une note, une entrée de Journal, un événement d'Agenda rouverts par la page de l'outil après les récents ; les champs sous une entrée du Suivi ; une note au titre vide, un titre trop long refusé ; le bouton « Ajouter » sous la dernière note ; « Effacer » sur une zone, un outil, une identité ; le titre de l'accueil désactivé ; la suppression d'un outil et un outil vide en Étendu, Carré et Complet au cran 3. Reste :
-
 - Un questionnaire à remplir touché sur sa tuile, puis fermé ; l'app retirée des récents pendant qu'une routine est active ou que l'accès externe tourne, puis rouverte : la page de l'outil, sans questionnaire ouvert.
 - Les champs de l'utilisateur sous une note, un élément de Liste, un événement d'Agenda, un message (la démo n'en a pas : en ajouter) : un champ par ligne, un texte long revenant à la ligne sur toute la largeur de la carte, le nom en tête ; de même avec les noms des champs masqués.
 - Notes : le bouton « Ajouter » seul sur la page d'un outil qui n'a aucune note, plus de carte « AD » ; « Ajouter au-dessus » dans le menu d'une note, inchangé.
-- Les boutons d'une fenêtre (une confirmation, une date ; la suppression d'un outil dans chaque thème sauf Métro) au cran de taille 3 : côte à côte s'ils tiennent, sinon l'un sous l'autre en pleine largeur, l'action principale en haut ; jamais un bouton écrasé ou absent.
+- Les boutons de la fenêtre d'une date au cran de taille 3, dans chaque thème sauf Métro : côte à côte s'ils tiennent, sinon l'un sous l'autre, l'action principale en haut (le rétro les empile sans les étendre à toute la largeur : à juger).
 - Un outil à moitié rempli en Étendu, en Carré et en Complet : la tuile s'arrête sous sa dernière ligne ; plein, et un Graphique, elle a sa hauteur d'avant ; en mode d'édition de la grille, Étendu et Carré montrent toutes leurs cases ; un outil vide, sa ligne d'en-tête seule, dans les sept thèmes autres que Métro, en une colonne aussi.
 - Un Agenda en Complet dont le prochain événement est dans plus de sept jours : il le montre, avec tous les suivants ; jamais moins qu'en Étendu.
-- Effacer et Choisir une icône au cran de taille 3 : l'un sous l'autre.
 - Le thème encre et lavis : la marge de bord et les grands écarts resserrés (l'accueil, une zone, les Réglages) ; rien ne touche le bord de l'écran.
-- Réglages › Interface, « Titre de l'accueil » : vu dès le changement, avant l'enregistrement ; une sauvegarde d'avant la migration 81 restaurée, le titre toujours là (sur la release, vu le 2026-10-20).
+- Réglages › Interface, « Titre de l'accueil » : vu dès le changement, avant l'enregistrement ; une sauvegarde d'avant la migration 81 restaurée, le titre toujours là.
 
 ## Flashcards (branche flashcards, `docs/design/flashcards.md`)
 
-Vu le 2026-10-20 sur la démo : la tuile et la page de Ripasso ; la fenêtre de lancement, une ligne à 0 grisée qui ne lance rien, « Tous les sens » sans la nouvelle de FR → IT (voulu : deux sens d'une ligne jamais le même jour, `FlashcardsDue`) ; Raté sur la dernière carte qui la remontre, Difficile qui finit ; Revenir qui retire la note ; « fais-moi réviser Ripasso » par flashcards.due et flashcards.review, l'écriture ordinaire refusée ; la lecture du paquet entre 22 et 251 ms (zone, page) ; la fenêtre de lancement, ses sens et leurs nombres ; une séance, Raté qui revient après une minute, Revenir trois fois, l'arrêt par la flèche, l'écran recréé ; les compteurs d'accord ; la config, ses champs proposés, un champ supprimé de la source nommé par l'endroit à corriger sur la tuile ; la confirmation au retrait d'un sens. Reste :
-
-- La durée du calcul (« Flashcards: deck … read in N ms ») sur le lexique réel (sur la démo, de 26 à 152 ms le 2026-10-20) ; au-delà de 300 ms, le dire.
+- La durée du calcul (« Flashcards: deck … read in N ms ») sur le lexique réel (sur la démo, de 26 à 152 ms) ; au-delà de 300 ms, le dire.
 - Un paquet à un seul sens lance sans fenêtre.
 - Une séance d'une seule carte revue : « Séance finie : 1 carte revue. » ; une seule nouvelle : « 1 nouvelle ».
 - Le lendemain, après l'heure de début de journée, les cartes dues du jour comptées dès le matin (la tuile se relit quand une entrée change ou à l'ouverture de la zone, pas d'elle-même à l'heure).
@@ -491,10 +480,10 @@ Vu le 2026-10-20 sur la démo : la tuile et la page de Ripasso ; la fenêtre de 
 
 ## L'historique des écritures (branche undo-history, `docs/design/undo-history.md`)
 
-- Changer la config d'un outil (un champ ajouté, une option retirée), modifier puis supprimer une entrée, déplacer une tuile : chacun une ligne ; toucher la ligne montre chaque champ par son libellé, avant et après comme l'app les montre, un réglage composé par son nom, « Et N changements internes » pour la tuile (le renommage d'une zone, une entrée ajoutée, un thème changé, une zone supprimée en un écran : vus le 2026-10-20).
-- Supprimer une zone qui a une routine et une variable, puis l'annuler : tout revient, la routine avec son message ; une entrée à photos supprimée puis annulée retrouve ses photos (Balcon, sans routine, supprimé puis rendu entier : vu le 2026-10-20).
+- Changer la config d'un outil (un champ ajouté, une option retirée), modifier puis supprimer une entrée, déplacer une tuile : chacun une ligne ; toucher la ligne montre chaque champ par son libellé, avant et après comme l'app les montre, un réglage composé par son nom, « Et N changements internes » pour la tuile.
+- Supprimer une zone qui a une routine et une variable, puis l'annuler : tout revient, la routine avec son message ; une entrée à photos supprimée puis annulée retrouve ses photos.
 - Supprimer la démo puis l'annuler : la démo revient entière, ses routines et leurs messages compris.
-- Demander à l'IA d'annuler ce qu'elle a fait dans une zone protégée : l'accord est demandé au niveau de ce qu'elle remet (HISTORY puis UNDO_STEP, la ligne « L'IA » : vus le 2026-10-20).
+- Demander à l'IA d'annuler ce qu'elle a fait dans une zone protégée : l'accord est demandé au niveau de ce qu'elle remet.
 - Un rappel d'Agenda envoyé, puis annuler le renommage de son événement : l'ancien nom revient, le rappel ne repart pas.
 - Un gros import (le fichier de 64 659 lignes du 2026-10-01) : la durée de l'import, à comparer à celle d'avant (3 min 19 s), et la place prise par l'historique ensuite ; puis l'annuler, et sa durée.
 - Restaurer une sauvegarde : la confirmation dit que l'historique sera vidé et renvoie à l'export ; l'historique est vide ensuite.
@@ -502,28 +491,28 @@ Vu le 2026-10-20 sur la démo : la tuile et la page de Ripasso ; la fenêtre de 
 ## Les journées de l'app (2026-10-20, branche todo-cleanup)
 
 - La nuit, entre minuit et l'heure de début du jour : « cette semaine », « ce mois » restent ceux de la veille au soir (une variable de la semaine, le Suivi d'une semaine, un Graphique de la semaine) ; « aujourd'hui » reste la veille.
-- La migration 85 sur la release (passée le 2026-10-20, 3 journées entières déplacées) : un premier événement au mercredi 28 octobre, un second au lundi 9 novembre — leurs jours d'avant ? Leurs rappels déjà envoyés ne repartent pas ; une sauvegarde d'avant restaurée, de même.
-- Une série d'événements toute la journée : chaque début à l'heure de début du jour ; l'IA qui lit les événements d'aujourd'hui voit une journée entière (par le formulaire et par l'IA, la veille encore en cours la nuit, le jour proposé la nuit : vus le 2026-10-20, le jour commençant à 18 h ou 19 h).
+- La migration 85 sur la release : un premier événement au mercredi 28 octobre, un second au lundi 9 novembre — leurs jours d'avant ? Leurs rappels déjà envoyés ne repartent pas ; une sauvegarde d'avant restaurée, de même.
+- Une série d'événements toute la journée : chaque début à l'heure de début du jour ; l'IA qui lit les événements d'aujourd'hui voit une journée entière.
 - Un Graphique en grille par jour : chaque graduation sous son point ; par semaine, la graduation au premier jour de la semaine réglé.
-- La nuit, avant 4 h : le sélecteur d'un champ DATE marque la veille comme aujourd'hui et s'ouvre dessus, celui de la date d'une entrée du Journal le jour du calendrier ; « aujourd'hui » choisi dans un champ DATE donne la veille (celui d'une période et celui d'une date et heure, en papier découpé et en Material : vus le 2026-10-20).
-- Le sélecteur de date des thèmes autres que le papier découpé et le défaut (vus le 2026-10-20, Material compris, New York compris) avec « La semaine commence » le dimanche : la grille commence le dimanche, la date choisie est celle touchée.
+- La nuit, avant 4 h : le sélecteur d'un champ DATE marque la veille comme aujourd'hui et s'ouvre dessus, celui de la date d'une entrée du Journal le jour du calendrier ; « aujourd'hui » choisi dans un champ DATE donne la veille.
+- Le sélecteur de date des thèmes autres que le papier découpé et le défaut, avec « La semaine commence » le dimanche : la grille commence le dimanche, la date choisie est celle touchée.
 
 ## Les bugs du 2026-10-20 et les unités des durées (branche bugs)
 
-- La migration 86 : un champ réglé « une seule unité » s'affiche dans son unité ; une sauvegarde d'avant restaurée s'importe, ses durées comme avant (sur la release le 2026-10-20 : le sommeil en « 7h 42m », « Unités : heures minutes » dans sa config ; les réponses brutes de l'IA qui ne sont pas du JSON laissées telles quelles, sans erreur au journal, depuis le correctif).
-- Un Objectif récurrent : une tentative en cours dit « reste 40m » dans sa dernière heure ; la démo réinstallée, la semaine d'italien finit le lundi 26 octobre à 00:00, malgré le changement d'heure du 25 (j et h, « 7 j », « reste 5j 5h » : vus le 2026-10-20).
-- Le délai de rattrapage d'une routine : une case j devant h et m (l'Agenda et Messages : vus le 2026-10-20).
-- Retirer un sens d'un paquet Flashcards : la confirmation ne dit plus que ce qui est retiré ne revient pas (« 109 révision(s) du sens « FR → IT » supprimée(s) » : vu le 2026-10-20) ; changer d'horaire une série de l'Agenda, « N occurrence(s) à venir de « … » supprimée(s), redonnée(s) à ses nouveaux horaires » ; l'IA qui fait le même changement reçoit les mêmes mots.
-- Les boutons à libellé à la plus grande taille de texte d'Android, dans les thèmes autres que le défaut : la validation d'une action de l'IA dans le chat, les formulaires d'une variable et d'une entrée du Journal, la duplication d'un outil, une fiche de Données structurées : côte à côte quand ils tiennent, l'un sous l'autre sinon, jamais un coupé (le défaut : vu le 2026-10-20) ; l'entrée du Journal et une séance Flashcards laissent sous leurs boutons la place du bouton de conversation.
-- Une Séance : un repos de 30 s et 2 m 30 s tenus ; la durée d'une séance faite s'affiche et se corrige en h, m et s (le minuteur en m et s : vu le 2026-10-20).
+- La migration 86 : un champ réglé « une seule unité » s'affiche dans son unité ; une sauvegarde d'avant restaurée s'importe, ses durées comme avant.
+- Un Objectif récurrent : une tentative en cours dit « reste 40m » dans sa dernière heure ; la démo réinstallée, la semaine d'italien finit le lundi 26 octobre à 00:00, malgré le changement d'heure du 25.
+- Le délai de rattrapage d'une routine : une case j devant h et m.
+- Retirer un sens d'un paquet Flashcards : la confirmation ne dit plus que ce qui est retiré ne revient pas ; changer d'horaire une série de l'Agenda, « N occurrence(s) à venir de « … » supprimée(s), redonnée(s) à ses nouveaux horaires » ; l'IA qui fait le même changement reçoit les mêmes mots.
+- Les boutons à libellé à la plus grande taille de texte d'Android, dans les thèmes autres que le défaut : la validation d'une action de l'IA dans le chat, les formulaires d'une variable et d'une entrée du Journal, la duplication d'un outil, une fiche de Données structurées : côte à côte quand ils tiennent, l'un sous l'autre sinon, jamais un coupé ; l'entrée du Journal et une séance Flashcards laissent sous leurs boutons la place du bouton de conversation.
+- Une Séance : un repos de 30 s et 2 m 30 s tenus ; la durée d'une séance faite s'affiche et se corrige en h, m et s.
 
 ## L'export des entrées (branche post-release, `docs/design/export.md`)
 
-- Le fichier d'un export de Repas ouvert dans un tableur par son dialogue d'import (virgule, UTF-8) : la première ligne en libellés (« Nom », « Date »…), les accents justes, une ligne par entrée, l'aliment par son nom. (la fenêtre, le nom, le dossier, la marque d'ordre des octets et les colonnes par leurs libellés : vus le 2026-10-20 ; un choix s'y écrit par sa clé, « dinner »)
-- Le fichier partagé joint à un mail arrive entier (le menu d'Android : vu le 2026-10-20).
-- Le droit sur le dossier retiré : l'export est refusé en disant d'aller le choisir (sans dossier : vu le 2026-10-20, le toast coupé avant « Données »).
-- Un outil en création n'a pas le bouton (une sous-page non plus : vu le 2026-10-20).
-- Au chat, « Partager » de la carte d'un export ouvre le menu d'Android (l'export par l'IA, sans accord, sa carte avec le fichier et le compte : vus le 2026-10-20).
+- Le fichier d'un export de Repas ouvert dans un tableur par son dialogue d'import (virgule, UTF-8) : la première ligne en libellés (« Nom », « Date »…), les accents justes, une ligne par entrée, l'aliment par son nom, un choix par son libellé (« Dîner »).
+- Le fichier partagé joint à un mail arrive entier.
+- Le droit sur le dossier retiré : l'export est refusé en disant d'aller le choisir.
+- Un outil en création n'a pas le bouton.
+- Au chat, « Partager » de la carte d'un export ouvre le menu d'Android.
 - Une routine dont le message demande l'export de la semaine : le fichier paraît dans le dossier à chaque exécution, sans écraser le précédent.
 
 ## Partager une partie de l'app (branche post-release, `docs/design/share.md`)

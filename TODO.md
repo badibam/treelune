@@ -13,6 +13,8 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs
 
+- Les dates sous l'axe d'un Graphique se chevauchent quand la place manque (« 31 août14 sept.28 sept. » au cran 3 du plan d'architecte, la tuile des récoltes) : le nombre de graduations à régler sur la largeur de leurs libellés.
+- La démo nomme chaque repas par son moment, que sa valeur dit aussi : la tuile de Repas montre « Dîner Dîner ».
 - La fin d'un événement de l'Agenda est son début plus sa durée en temps écoulé : un événement de plusieurs jours qui traverse un changement d'heure finit une heure avant ou après — l'ajouter sur le calendrier (`TimeResolver.after`, comme l'Objectif), la grille des jours et les séries lisant cette fin.
 
 ## À passer sur le téléphone
@@ -24,7 +26,7 @@ Codé, jamais vu sur l'appareil.
 - Un modèle libre chez soi : un Ollama sur l'ordinateur, servi en https par `tailscale serve`, branché comme Autre serveur depuis le téléphone avec un modèle de la classe 30B, prix à 0 ; mesurer le temps d'une réponse (la lecture d'un prompt de ~29k tokens sur la machine). Passé, une page du Guide « Brancher un modèle libre » d'après ce qui a été fait.
 - Les passes sur le téléphone de `docs/THEMES.md`, puis ce que la spec de chaque thème garde dans « Ce qui reste ouvert » :
   - le rétro (`retro-theme.md`), vu le 2026-10-01 (écran d'une zone, palette pâle, marges reprises) : écran par écran, les graduations en pointillé de ses graphiques et le damier du mode d'édition de la grille compris ;
-  - le cosy (`cosy-theme.md`, maquettes liées dedans) : le banc des palettes d'abord, les icônes retracées (leur coût à l'ouverture d'une page, celles qui se bouchent à 24 dp) ;
+  - le cosy (`cosy-theme.md`, maquettes liées dedans) : le banc des palettes d'abord, les icônes retracées (leur coût à l'ouverture d'une page, celles qui se bouchent à 24 dp), le bandeau des messages qui se distingue mal de ses cartes crème ;
   - l'encre et lavis (`ink-theme.md`) : ce qui a changé le 2026-10-17 après la première passe : le lavis d'une tuile qui déborde et s'éteint à son bord, sa texture estompée avec lui, la carte en lavis au bord fondu (des marches dans le fondu ?), la gouache sous les icônes et les tags, les ronds peints à la main (boutons, case, sceaux), le coût d'ouverture d'une zone aux tuiles texturées ;
   - le métro (`metro-theme.md`) ;
   - le papier découpé (`paper-theme.md`) : les icônes découpées d'abord (leur coût, celles qui se bouchent) ;
@@ -51,6 +53,7 @@ Codé, jamais vu sur l'appareil.
 - `shared.xml` (~1 900 lignes) à découper.
 - `RetroPaletteTest` et `CosyPaletteTest` à parcourir par pas de 15° de teinte, comme `SwissPaletteTest`.
 - `TextType.SUBTITLE` sans rang dans le contrat des thèmes : lui en donner un, aligner les thèmes et ses 71 usages.
+- `scripts/check_chat_space.py` ne voit que l'écran d'usage d'un outil, pas ceux qu'il ouvre dans son lieu (la saisie du Journal, une séance Flashcards, corrigées à la main le 2026-10-20) : les lui faire lire.
 - Le journal ne garde que ~24 min d'usage (12 000 lignes le 2026-10-01, dont 3 782 « Service result » en VERBOSE) : les lignes utiles à la recette en sortent avant d'être lues ; réduire VERBOSE et DEBUG, « Service result » d'abord.
 - Des écrans encore ouverts à l'intérieur d'un lieu, hors de la pile (`Place`, `docs/UI.md`) : la config d'un fournisseur d'IA, les pages d'un formulaire de config, les écrans internes d'un outil (fiche, historique), l'historique des conversations — à passer en lieux, au plus tard quand un tutoriel, une notification ou un pointeur doit les viser.
 
@@ -69,6 +72,7 @@ Ce qui doit monter dans un module de sagesse (`/update push`).
 
 - Une zone lente à s'afficher, à l'ouverture comme au retour, qui relit tout (~1 s en debug le 2026-10-01, le graphique Calories de Panorama de 0,75 à 1,2 s).
 - Le bouton de liste d'un texte long touché pendant une dictée : Gboard réécrit son texte encore souligné une seconde fois au curseur (mesuré le 2026-10-20), le bouton rendant le champ sans la place de ce texte (`composition` nulle) ; la garder, décalée par `MarkupEditing.apply` comme le curseur.
+- Une copie automatique dont la rotation n'a rien fait (le 2026-10-20 à 21h21, juste après le choix du dossier) : la ligne « Auto backup: copies found … » dit maintenant ce qu'elle a trouvé et prévu.
 - Un `DATA_REFUSED` légitime dans une routine : un seuil par routine.
 - Un calcul lourd qui fige l'app : lire, calculer sans bloquer, écrire.
 - Un import lancé par erreur qu'on ne peut pas arrêter (`LongOperation`).

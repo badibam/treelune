@@ -834,7 +834,7 @@
                 "type": "temporal"
               },
               "y": {
-                "field": "average",
+                "field": "@chart_col_average",
                 "type": "quantitative",
                 "scale": {
                   "zero": false
@@ -845,7 +845,7 @@
             "step": "day",
             "columns": [
               {
-                "name": "average",
+                "name": "@chart_col_average",
                 "term": {
                   "variable": "demo-var-weight-7d"
                 }
@@ -989,7 +989,7 @@
                 "type": "ordinal"
               },
               "color": {
-                "field": "mood",
+                "field": "@chart_col_mood",
                 "type": "quantitative",
                 "scale": {
                   "range": [
@@ -1003,7 +1003,7 @@
             "step": "day",
             "columns": [
               {
-                "name": "mood",
+                "name": "@chart_col_mood",
                 "term": {
                   "reading": {
                     "selection": {
@@ -1310,7 +1310,7 @@
                     },
                     "op": ">",
                     "right": {
-                      "field": "target"
+                      "field": "@chart_col_target"
                     }
                   },
                   "value": "RED"
@@ -1327,7 +1327,7 @@
                 }
               },
               {
-                "name": "target",
+                "name": "@chart_col_target",
                 "term": {
                   "variable": "demo-var-kcal-target"
                 }
@@ -1350,7 +1350,7 @@
                 "type": "temporal"
               },
               "y": {
-                "field": "target",
+                "field": "@chart_col_target",
                 "type": "quantitative"
               }
             },
@@ -1358,7 +1358,7 @@
             "step": "day",
             "columns": [
               {
-                "name": "target",
+                "name": "@chart_col_target",
                 "term": {
                   "variable": "demo-var-kcal-target"
                 }
@@ -2186,7 +2186,7 @@
                 "type": "temporal"
               },
               "y": {
-                "field": "grams",
+                "field": "@chart_col_harvest",
                 "type": "quantitative"
               }
             },
@@ -2194,7 +2194,7 @@
             "step": "week",
             "columns": [
               {
-                "name": "grams",
+                "name": "@chart_col_harvest",
                 "term": {
                   "reading": {
                     "selection": {
@@ -2446,7 +2446,7 @@
                 "type": "temporal"
               },
               "y": {
-                "field": "words",
+                "field": "@chart_col_words",
                 "type": "quantitative"
               }
             },
@@ -2454,7 +2454,7 @@
             "step": "week",
             "columns": [
               {
-                "name": "words",
+                "name": "@chart_col_words",
                 "term": {
                   "reading": {
                     "selection": {
