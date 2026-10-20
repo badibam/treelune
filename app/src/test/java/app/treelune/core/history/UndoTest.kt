@@ -95,6 +95,26 @@ class UndoTest {
     }
 
     @Test
+    fun `a zone deleted takes its routines, and an undo brings them back`() = runBlocking {
+        val zoneId = zone("Garden")
+        val routine = coordinator.processUserAction("automations.create", mapOf(
+            "zone_id" to zoneId,
+            "name" to "Weekly review",
+            "identity_id" to null,
+            "provider_id" to null,
+            "is_enabled" to false,
+            "message" to listOf(mapOf("type" to app.treelune.core.ai.data.AutomationMessage.TEXT, "text" to "How did the week go?"))
+        ))
+        assertTrue(routine.error, routine.isSuccess)
+        val routineId = routine.data!!["automation_id"] as String
+        assertTrue(coordinator.processUserAction("zones.delete", mapOf("zone_id" to zoneId)).isSuccess)
+        assertNull("no routine left behind", database.aiDao().getAutomationById(routineId))
+
+        assertTrue(coordinator.processUserAction("history.undo", mapOf("id" to lastStep())).isSuccess)
+        assertEquals(zoneId, database.aiDao().getAutomationById(routineId)!!.zoneId)
+    }
+
+    @Test
     fun `a row changed since refuses the undo, naming the step that changed it`() = runBlocking {
         val zoneId = zone("Garden")
         val first = rename(zoneId, "Orchard")

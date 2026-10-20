@@ -472,3 +472,16 @@ Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la po
 - La config : la source choisie, Grouper par et les champs du recto et du verso proposés parmi ceux de la source ; un champ supprimé de la source ensuite : l'erreur qui le nomme sur la tuile, la page et la séance, jamais une carte vide ; changer la source ou retirer un sens demande d'accepter la perte de ses révisions.
 - « Un sens après l'autre » coché : le sens 2 d'un mot n'arrive qu'une fois le sens 1 acquis (sa stabilité à 7 jours au moins, lisible dans l'historique de l'outil).
 - L'IA : « fais-moi réviser Ripasso » en conversation, les cartes lues par flashcards.due, notées par flashcards.review après que tu as dit comment tu t'en souvenais ; une écriture ordinaire de révision refusée avec le message qui dit d'utiliser flashcards.review.
+
+## L'historique des écritures (branche undo-history, `docs/design/undo-history.md`)
+
+- La migration 83 sur la release et ses données : Réglages › Historique s'ouvre vide, « 30 » jours et « 500 » Mo ; Réglages › Données garde son dossier et sa sauvegarde automatique, et les change encore sans erreur.
+- Renommer une zone, changer la config d'un outil, ajouter, modifier et supprimer une entrée, déplacer une tuile, changer un réglage d'Interface : chacun une ligne, sa phrase, « Toi » et l'heure ; toucher une ligne montre ce qui a changé, champ par champ, lisible.
+- Annuler en haut, plusieurs fois de suite : chaque changement défait dans l'ordre, l'écran concerné à jour en y revenant ; Rétablir les remet dans l'ordre inverse.
+- Annuler une ligne plus ancienne qu'une autre qui a changé la même chose : refusé, le message nomme le changement d'après et sa date ; rien n'a bougé.
+- Supprimer une zone pleine (outils, entrées, une variable, une routine), puis l'annuler : tout revient, la routine avec son message ; une entrée à photos supprimée puis annulée retrouve ses photos.
+- Supprimer la démo puis l'annuler : la démo revient entière, ses routines et leurs messages compris.
+- Une commande de l'IA en conversation : sa ligne dit « L'IA » ; demander à l'IA « annule ce que tu viens de faire » : elle lit HISTORY puis UNDO_STEP, et demande l'accord au niveau de ce qu'elle remet.
+- Un rappel d'Agenda envoyé, puis annuler le renommage de son événement : l'ancien nom revient, le rappel ne repart pas.
+- Un gros import (le fichier de 64 659 lignes du 2026-10-01) : la durée de l'import, à comparer à celle d'avant (3 min 19 s), et la place prise par l'historique ensuite ; puis l'annuler, et sa durée.
+- Restaurer une sauvegarde : la confirmation dit que l'historique sera vidé et renvoie à l'export ; l'historique est vide ensuite.
