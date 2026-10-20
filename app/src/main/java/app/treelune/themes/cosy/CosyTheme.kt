@@ -18,7 +18,6 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
@@ -73,7 +72,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
@@ -82,7 +80,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -155,7 +152,7 @@ object CosyTheme : ThemeContract {
     override fun name(context: Context): String =
         Strings.`for`(context = context, theme = "cosy").theme("name")
 
-    /** Lucide's icons, round ends and all, which suit the register as they are. */
+    /** Lucide's icons, drawn again thicker by the theme on their solid shadow (CosyIcons): the drawables stay Lucide's. */
     override val iconSource = IconSource.LUCIDE
     override val hueShifts = true
 
@@ -513,15 +510,17 @@ object CosyTheme : ThemeContract {
     @Composable
     override fun LoadingIndicator(size: Size) = Dots()
 
-    /** Lucide's drawing; a background, when asked, is a round of it behind the icon. */
+    /**
+     * Lucide thickened, on its solid shadow (CosyIcons); on a coloured piece, whose ink it takes,
+     * the piece's own shadow is enough and the icon has none. A background, when asked, is a round
+     * of it behind the icon.
+     */
     @Composable
     override fun Icon(resourceId: Int, size: Dp, contentDescription: String?, tint: Color?, background: Color?) {
-        Image(
-            painter = painterResource(resourceId),
-            contentDescription = contentDescription,
-            colorFilter = ColorFilter.tint(tint ?: LocalCosyInk.current ?: cosyColors.ink.srgb),
-            modifier = Modifier.size(size).let { m -> background?.let { m.background(it, CircleShape) } ?: m }
-        )
+        val onPiece = LocalCosyInk.current
+        Box(modifier = Modifier.size(size).let { m -> background?.let { m.background(it, CircleShape) } ?: m }, contentAlignment = Alignment.Center) {
+            CosyIcon(resourceId, size, tint ?: onPiece ?: cosyColors.ink.srgb, if (onPiece == null) cosyColors.shadow.srgb else null, contentDescription)
+        }
     }
 
     /**
@@ -534,7 +533,7 @@ object CosyTheme : ThemeContract {
         val c = cosyColors
         val (round, ink) = if (color == null) well() to c.ink.srgb else c.tag(color).srgb to c.tagInk(color).srgb
         Box(modifier = Modifier.size(size * ITEM_ROUND).background(round, CircleShape), contentAlignment = Alignment.Center) {
-            Image(painter = painterResource(resourceId), contentDescription = null, colorFilter = ColorFilter.tint(ink), modifier = Modifier.size(size))
+            CosyIcon(resourceId, size, ink, c.shadow.srgb)
         }
     }
 
@@ -1421,16 +1420,11 @@ object CosyTheme : ThemeContract {
         Pressable(onClick = onClick) { pressed -> RoundButton(icon, null, ButtonType.DEFAULT, true, pressed) }
     }
 
-    /** A Lucide icon by name, at [size], in [tint]. */
+    /** A Lucide icon by name, thickened (CosyIcons), at [size], in [tint]: on a piece that has its own shadow, without one. */
     @Composable
     private fun NamedIcon(name: String, description: String?, size: Dp, tint: Color) {
         val resource = requireNotNull(Icons.drawable(LocalContext.current, name)) { "No drawable for the icon $name" }
-        Image(
-            painter = painterResource(resource),
-            contentDescription = description,
-            colorFilter = ColorFilter.tint(tint),
-            modifier = Modifier.size(size)
-        )
+        CosyIcon(resource, size, tint, null, description)
     }
 
     /** Three dots hopping one after the other, each on a spring of its own. */

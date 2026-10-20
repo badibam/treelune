@@ -28,7 +28,7 @@ Codé, jamais vu sur l'appareil ; le détail est dans la recette, `docs/design/d
 - La place à l'écran (2026-10-14) : Réglages et affichage, Automations.
 - Les outils manquants : puis élaguer `docs/design/missing-tools.md`.
 - Thème rétro (`docs/design/retro-theme.md`) : écran par écran, puis « Ce qui reste ouvert ».
-- Thème cosy (`docs/design/cosy-theme.md`) : le banc des palettes, puis « Ce qui reste ouvert ».
+- Thème cosy (`docs/design/cosy-theme.md`) : le banc des palettes, les icônes retracées (leur coût à l'ouverture d'une page, celles qui se bouchent à 24 dp), puis « Ce qui reste ouvert ».
 - Le 2026-10-02 : la conversion d'apparence en v58, les titres de section du thème par défaut, la tuile sans icône.
 - Couleurs des icônes (`docs/design/icon-colors.md`).
 - Images dans un message (`docs/design/message-images.md`).
@@ -82,7 +82,6 @@ Codé, jamais vu sur l'appareil ; le détail est dans la recette, `docs/design/d
 
 ## À concevoir
 
-- Les icônes du cosy redessinées depuis les tracés de Lucide (`IconStrokes`), comme Encre et lavis : leur trait.
 - Les events du cœur : quel premier usage — un événement de l'Agenda qui commence, une entrée écrite, une condition devenue vraie ?
 
 ## Dette de code
