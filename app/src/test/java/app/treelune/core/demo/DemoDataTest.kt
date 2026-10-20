@@ -6,6 +6,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
+import app.treelune.core.selection.TimeResolver
+import java.time.DayOfWeek
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
@@ -25,7 +27,8 @@ class DemoDataTest {
     private val moments = listOf("2026-10-01T15:30", "2026-10-05T06:10", "2026-10-04T23:50")
         .map { ZonedDateTime.of(java.time.LocalDateTime.parse(it), zone).toInstant().toEpochMilli() }
 
-    private fun data(now: Long) = DemoData(now, zone, hand)
+    private fun data(now: Long, weekStart: String = "MONDAY") = DemoData(TimeResolver(now, zone, 4, weekStart), hand)
+    private fun at(moment: String) = ZonedDateTime.of(java.time.LocalDateTime.parse(moment), zone).toInstant().toEpochMilli()
     private fun all(now: Long) = data(now).entries().values.flatten()
 
     @Test
@@ -150,6 +153,35 @@ class DemoDataTest {
             assertEquals(data.getInt("steps_done"), steps.count { it == "done" })
             assertEquals(data.getInt("steps_skipped"), steps.count { it == "skipped" })
             assertEquals(data.getInt("steps_not_done"), steps.count { it == "not_done" })
+        }
+    }
+
+    @Test
+    fun `the deck's reviews end before the app's today, which past midnight is still yesterday`() {
+        for (moment in listOf("2026-10-20T00:30", "2026-10-20T15:30")) {
+            val now = at(moment)
+            val time = TimeResolver(now, zone, 4, "MONDAY")
+            val reviews = data(now).entries().getValue("demo-italian-deck")
+            assertTrue(reviews.isNotEmpty())
+            reviews.forEach { assertTrue("$moment: $it", it.getLong("timestamp") < time.startOf(time.dateOf(now))) }
+        }
+    }
+
+    @Test
+    fun `with weeks starting on Sunday, the goals' attempts keep their Monday, the current one begun, nothing else ahead`() {
+        // A Sunday afternoon, the week's first day; a Monday just past midnight, still Sunday for the app
+        for (now in listOf(at("2026-10-04T15:30"), at("2026-10-05T00:30"))) {
+            val data = data(now, weekStart = "SUNDAY")
+            val attempts = data.attempts()
+            attempts.forEach { attempt ->
+                val start = java.time.Instant.ofEpochMilli(attempt.start).atZone(zone)
+                assertEquals(DayOfWeek.MONDAY, start.dayOfWeek)
+                assertEquals(0, start.hour)
+                assertTrue(attempt.start <= now)
+            }
+            attempts.filter { it.status == "active" }.forEach { assertTrue(now - it.start < 7 * 24 * 3_600_000L) }
+            data.entries().filterKeys { it != "demo-work-agenda" }.values.flatten()
+                .forEach { e -> if (e.has("timestamp")) assertTrue(e.toString(), e.getLong("timestamp") <= now) }
         }
     }
 

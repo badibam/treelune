@@ -134,4 +134,11 @@ class TimePointTest {
         val endOfMarch = TimeResolver(at(2026, 3, 31, 9, 0), zone, 4, "MONDAY")
         assertEquals(at(2026, 2, 28, 9, 0), endOfMarch.instant(TimePoint.Shift(ShiftUnit.MONTH, -1)))
     }
+
+    @Test
+    fun `an instant belongs to the day the user set, which starts at its hour`() {
+        assertEquals(java.time.LocalDate.of(2026, 9, 15), resolver.dateOf(at(2026, 9, 16, 3, 59)))
+        assertEquals(java.time.LocalDate.of(2026, 9, 16), resolver.dateOf(at(2026, 9, 16, 4, 0)))
+        assertEquals(at(2026, 9, 16, 4, 0), resolver.startOf(java.time.LocalDate.of(2026, 9, 16)))
+    }
 }

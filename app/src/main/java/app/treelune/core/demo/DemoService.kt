@@ -17,7 +17,6 @@ import app.treelune.core.services.ExecutableService
 import app.treelune.core.services.OperationResult
 import app.treelune.core.strings.Strings
 import app.treelune.core.ui.DisplayMode
-import app.treelune.core.utils.AppConfigManager
 import app.treelune.core.utils.DataChangeNotifier
 import app.treelune.core.utils.JsonUtils
 import app.treelune.core.utils.LogManager
@@ -91,7 +90,7 @@ class DemoService(private val context: Context) : ExecutableService {
             LogManager.service("Demo not read: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("demo_error_unreadable").format(e.message ?: ""))
         }
-        val data = DemoData(System.currentTimeMillis(), AppConfigManager.getDateTimeConfig().getZoneId(), asset("demo/entries.json"))
+        val data = DemoData(app.treelune.core.selection.TimeResolver.at(System.currentTimeMillis()), asset("demo/entries.json"))
         LongOperation.at(s.shared("demo_phase_zones"))
         removeDemo()
         return try {

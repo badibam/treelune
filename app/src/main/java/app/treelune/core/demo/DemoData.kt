@@ -1,8 +1,12 @@
 package app.treelune.core.demo
 
+import app.treelune.core.selection.Edge
 import app.treelune.core.selection.EntrySelection
 import app.treelune.core.selection.Reference
 import app.treelune.core.selection.ReferenceKind
+import app.treelune.core.selection.TimePoint
+import app.treelune.core.selection.TimeResolver
+import app.treelune.core.ui.components.PeriodType
 import app.treelune.tools.flashcards.FlashcardsDeck
 import app.treelune.tools.flashcards.FlashcardsDue
 import app.treelune.tools.flashcards.FlashcardsSession
@@ -12,28 +16,27 @@ import org.json.JSONObject
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
-import java.time.ZoneId
-import java.time.ZonedDateTime
 import java.time.temporal.TemporalAdjusters
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
 /**
- * The demo's entries, afloat at [now]: twelve weeks of Camille's life up to
- * this moment, in the app's time zone [zone]. Pure, and the same at every install but for the
- * dates, which slide with [now]: the numbers come from one seed.
+ * The demo's entries, afloat at the reference of [time]: twelve weeks of Camille's life up to
+ * this moment, in the app's calendar (its time zone, the hour its days start at, the first day of
+ * its weeks). Pure, and the same at every install but for the dates, which slide with the
+ * reference: the numbers come from one seed.
  *
- * The weeks are counted back from the current one, which starts on Monday: week 0 is this one,
- * the rush week is [RUSH] weeks back. Nothing is dated after [now] but what is to come by nature
+ * The days and weeks are the app's: today is the day of the app now is in, and the weeks are
+ * counted back from the current one: week 0 is this one, the rush week is [RUSH] weeks back. Nothing is dated after [now] but what is to come by nature
  * (a due date, an appointment, a running stopwatch's start being before now).
  *
  * Texts stay keys (`"@key"`, or `{"@": key, "args": […]}` for a text with values), which the
  * service resolves in the phone's language as it does the structure's.
  *
  * @param hand The entries written by hand (`assets/demo/entries.json`), by tool, each placed in
- *        time as `[weeks back, ISO weekday, "HH:MM"]`
+ *        time as `[weeks back, ISO weekday, "HH:MM"]`, the weekday within that week of the app
  */
-class DemoData(private val now: Long, private val zone: ZoneId, private val hand: JSONObject) {
+class DemoData(private val time: TimeResolver, private val hand: JSONObject) {
 
     companion object {
         /** How many weeks back the rush week is: Work, Running and Italian all show it. */
@@ -49,8 +52,10 @@ class DemoData(private val now: Long, private val zone: ZoneId, private val hand
 
     private val random = java.util.Random(SEED)
     private val sessionRandom = java.util.Random(SEED + 1)
-    private val today: LocalDate = ZonedDateTime.ofInstant(java.time.Instant.ofEpochMilli(now), zone).toLocalDate()
-    private val weekStart: LocalDate = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+    private val now = time.reference
+    private val zone = time.zone
+    private val today: LocalDate = time.dateOf(now)
+    private val weekStart: LocalDate = time.dateOf(time.instant(TimePoint.Relative(PeriodType.WEEK, 0, Edge.START)))
 
     /** A goal attempt to open: its period, the values entered in it, and whether it is validated. */
     data class Attempt(val toolId: String, val start: Long, val end: Long, val entered: JSONObject, val status: String, val validate: Boolean)
@@ -58,7 +63,10 @@ class DemoData(private val now: Long, private val zone: ZoneId, private val hand
     // ------------------------------------------------------------------ time
 
     /** The day [weekday] (1 = Monday) of the week [weeksBack] weeks before the current one. */
-    fun day(weeksBack: Int, weekday: Int): LocalDate = weekStart.minusWeeks(weeksBack.toLong()).plusDays((weekday - 1).toLong())
+    fun day(weeksBack: Int, weekday: Int): LocalDate = weekFirst(weeksBack).with(TemporalAdjusters.nextOrSame(DayOfWeek.of(weekday)))
+
+    /** The first day of the week [weeksBack] weeks before the current one. */
+    private fun weekFirst(weeksBack: Int): LocalDate = weekStart.minusWeeks(weeksBack.toLong())
 
     fun at(date: LocalDate, hour: Int, minute: Int): Long = date.atTime(LocalTime.of(hour, minute)).atZone(zone).toInstant().toEpochMilli()
 
@@ -68,9 +76,9 @@ class DemoData(private val now: Long, private val zone: ZoneId, private val hand
     fun place(place: JSONArray): Long = at(day(place.getInt(0), place.getInt(1)), place.getString(2))
 
     /** Every day of the history up to today, oldest first. */
-    private val days: List<LocalDate> = generateSequence(day(WEEKS - 1, 1)) { it.plusDays(1) }.takeWhile { !it.isAfter(today) }.toList()
+    private val days: List<LocalDate> = generateSequence(weekFirst(WEEKS - 1)) { it.plusDays(1) }.takeWhile { !it.isAfter(today) }.toList()
 
-    private fun weeksBack(date: LocalDate): Int = ((weekStart.toEpochDay() - date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).toEpochDay()) / 7).toInt()
+    private fun weeksBack(date: LocalDate): Int = Math.floorDiv(weekStart.toEpochDay() - date.toEpochDay() + 6, 7).toInt()
     private fun isRush(date: LocalDate) = weeksBack(date) == RUSH
     private fun past(instant: Long) = instant <= now
 
@@ -420,7 +428,7 @@ class DemoData(private val now: Long, private val zone: ZoneId, private val hand
         }
         for (date in days.dropLast(1).takeLast(21)) {
             if (isRush(date) || reviewRandom.nextDouble() < 0.15) continue
-            val offer = FlashcardsDue.offer(deck, lines, cards, at(date, 0, 0), at(date.plusDays(1), 0, 0))
+            val offer = FlashcardsDue.offer(deck, lines, cards, time.startOf(date), time.startOf(date.plusDays(1)))
             var session = FlashcardsSession.of(offer.cards.map { it.key })
             var time = at(date, 21, 0)
             val failed = mutableSetOf<FlashcardsDue.CardKey>()
@@ -509,16 +517,16 @@ class DemoData(private val now: Long, private val zone: ZoneId, private val hand
         return events
     }
 
-    /** The weekly reviews of the Training notebook, each Monday at 7:05 on the week before. */
+    /** The weekly reviews of the Training notebook, each on the first day of a week at 7:05, on the week before. */
     private fun reviews(): List<JSONObject> = (1 until WEEKS).reversed().mapNotNull { back ->
-        val written = at(day(back - 1, 1), 7, 5).takeIf(::past) ?: return@mapNotNull null
+        val written = at(weekFirst(back - 1), 7, 5).takeIf(::past) ?: return@mapNotNull null
         val runs = runsByWeek[back] ?: emptyList()
-        val nights = (1..7).mapNotNull { sleepByDay[day(back, it)] }
+        val nights = (0..6).mapNotNull { sleepByDay[weekFirst(back).plusDays(it.toLong())] }
         val average = if (nights.isEmpty()) 0L else nights.sum() / nights.size
         val verdict = if (back == RUSH) "course_review_rush" else "course_review_good"
         // Its tags: tired in the rush week, progress otherwise, the long run once it reaches 14 km
         val tags = JSONArray(listOfNotNull(if (back == RUSH) "tired" else "progress", if ((runs.maxOrNull() ?: 0.0) >= 14.0) "long_run" else null))
-        entry("demo-e-review-$back", text("course_review_title", day(back, 1).toString()), written,
+        entry("demo-e-review-$back", text("course_review_title", weekFirst(back).toString()), written,
             json("content" to text("course_review", runs.size, round1(runs.sum()), "${average / HOUR} h ${"%02d".format(average % HOUR / MINUTE)}", text(verdict))),
             json("tags" to tags))
     }
@@ -526,11 +534,16 @@ class DemoData(private val now: Long, private val zone: ZoneId, private val hand
     /**
      * The goals' attempts, one a week: those before last validated, last week's left to validate,
      * the current one open. Running's "No pain" is ticked but in the rush week.
+     *
+     * They follow the goals' own schedule (assets/demo/structure.json: each Monday at 00:00), not
+     * the app's weeks: the goals' scheduler opens the next ones from it, and an attempt that starts
+     * off it would not be recognised as the one it is.
      */
     fun attempts(): List<Attempt> = listOf("demo-course-goal", "demo-italian-goal").flatMap { tool ->
+        val lastMonday = java.time.Instant.ofEpochMilli(now).atZone(zone).toLocalDate().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
         (WEEKS - 1 downTo 0).map { back ->
-            val start = at(day(back, 1), 0, 0)
-            val end = at(day(back - 1, 1), 0, 0) - 1
+            val start = at(lastMonday.minusWeeks(back.toLong()), 0, 0)
+            val end = at(lastMonday.minusWeeks((back - 1).toLong()), 0, 0) - 1
             val entered = if (tool == "demo-course-goal") json("c_no_pain" to (back != RUSH)) else JSONObject()
             when (back) {
                 0 -> Attempt(tool, start, end, entered, "active", validate = false)

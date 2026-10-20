@@ -1,8 +1,10 @@
 package app.treelune.core.selection
 
 import app.treelune.core.fields.FieldType
+import app.treelune.core.ui.components.PeriodType
 import app.treelune.core.ui.components.RelativePeriod
 import app.treelune.core.ui.components.getPeriodEndTimestamp
+import app.treelune.core.ui.components.normalizeTimestampWithConfig
 import app.treelune.core.ui.components.resolveRelativePeriod
 import app.treelune.core.utils.AppConfigManager
 import java.time.Instant
@@ -76,6 +78,12 @@ data class TimeResolver(
         }
         is TimePoint.Shift -> dayOf(shifted(point)).toString()
     }
+
+    /** The day [millis] belongs to, as the user set days: with days starting at 4:00, 2:00 belongs to the day before. */
+    fun dateOf(millis: Long): LocalDate = dayOf(normalizeTimestampWithConfig(millis, PeriodType.DAY, dayStartHour, weekStartDay, zone))
+
+    /** The instant the day [date] starts at, as the user set days: [dayStartHour] on that date. */
+    fun startOf(date: LocalDate): Long = date.atTime(dayStartHour, 0).atZone(zone).toInstant().toEpochMilli()
 
     /** [point] in the stored form of a field of [type]: a day for a DATE, milliseconds otherwise. */
     fun resolve(point: TimePoint, type: FieldType): Any = if (type == FieldType.DATE) day(point) else instant(point)

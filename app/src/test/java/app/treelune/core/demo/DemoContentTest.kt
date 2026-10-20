@@ -173,7 +173,7 @@ class DemoContentTest {
     fun `a moment of a config lands in the demo's weeks`() {
         val zone = java.time.ZoneId.of("Europe/Paris")
         val now = java.time.ZonedDateTime.of(2026, 10, 14, 15, 0, 0, 0, zone).toInstant().toEpochMilli()
-        val data = DemoData(now, zone, JSONObject())
+        val data = DemoData(app.treelune.core.selection.TimeResolver(now, zone, 4, "MONDAY"), JSONObject())
         val race = read().tools.single { it.getString("id") == "demo-course-race" }
         val config = (DemoContent.dated(race, data::place) as JSONObject).getJSONObject("config")
         // Started eleven weeks back on a Monday, run on a Sunday six weeks ahead
