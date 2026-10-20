@@ -208,10 +208,17 @@ sealed class SettingNode {
         val required: Boolean = false
     ) : SettingNode()
 
-    /** Settings shown together on the screen; nothing of it is stored. */
+    /**
+     * Settings shown together on the screen; nothing of it is stored.
+     *
+     * @property shownWith The option of a setting beside it the section serves: the form shows it
+     *   only while that option is chosen, its settings kept as they are while it is hidden. The
+     *   screen's alone: the schema and the service know nothing of it
+     */
     data class Section(
         val label: String,
-        val nodes: List<SettingNode>
+        val nodes: List<SettingNode>,
+        val shownWith: ShownWith? = null
     ) : SettingNode()
 }
 

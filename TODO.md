@@ -13,9 +13,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 - Partager une partie de l'app, et reprendre une partie d'une sauvegarde (`docs/design/share.md`).
 
 ## Bugs du téléphone
-- petit bug pas très grave, dans la mise en forme des listes, si j'appuie sur l'icône de liste, trop peu de temps avant d'avoir fini d'écrire, alors ça envoie à la ligne, la ligne que j'étais en train d'écrire, en mettant un tiret sur la ligne d'avant vide.
-- Si on passe de relais à tailscale, on ne devrait pas perdre la config de relais. Je ne sis pas s c'est le cas aujourd'hui
-- Option pour supprimer les notifs de la démo / les réactiver ?
 
 
 ## Bugs
@@ -75,6 +72,7 @@ Ce qui doit monter dans un module de sagesse (`/update push`).
 ## À surveiller
 
 - Une zone lente à s'afficher, à l'ouverture comme au retour, qui relit tout (~1 s en debug le 2026-10-01, le graphique Calories de Panorama de 0,75 à 1,2 s).
+- Le bouton de liste d'un texte long touché pendant une dictée : Gboard réécrit son texte encore souligné une seconde fois au curseur (mesuré le 2026-10-20), le bouton rendant le champ sans la place de ce texte (`composition` nulle) ; la garder, décalée par `MarkupEditing.apply` comme le curseur.
 - Un `DATA_REFUSED` légitime dans une routine : un seuil par routine.
 - Un calcul lourd qui fige l'app : lire, calculer sans bloquer, écrire.
 - Un import lancé par erreur qu'on ne peut pas arrêter (`LongOperation`).

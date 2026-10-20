@@ -2136,6 +2136,8 @@
     <string name="settings_demo_description">Un groupe de zones de démonstration, réinstallé à chaque mise à jour</string>
     <string name="settings_demo_install_on_update">Installer la démo à chaque mise à jour</string>
     <string name="settings_demo_install_on_update_help">Activé, la démo est réinstallée à chaque mise à jour ; désactivé, elle est laissée telle quelle. Ce que tu ajoutes à la démo disparaît à chaque réinstallation.</string>
+    <string name="settings_demo_notifications">Les notifications de la démo</string>
+    <string name="settings_demo_notifications_help">Activé, les outils et les routines de la démo t'envoient des notifications comme les tiens ; désactivé, ils n'en envoient plus, et tout le reste continue.</string>
 
     <!-- External access (MCP): the authorization page a client opens -->
     <string name="mcp_authorize_title">Accès à Treelune</string>
