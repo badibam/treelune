@@ -13,16 +13,16 @@
     <string name="tagline">Des chiffres, des notes sur une échelle, des choix ou des durées chronométrées, notés au fil des jours : poids, sommeil, humeur, verres d\'eau</string>
 
     <!-- CONFIG - Labels de paramètres spécifiques -->
-    <string name="config_label_tracking_type">Type de tracking</string>
+    <string name="config_label_tracking_type">Type de valeur</string>
     
     <!-- CONFIG - Options de types de tracking -->
-    <string name="config_option_numeric">Numérique (numeric)</string>
-    <string name="config_option_text">Texte (text)</string>
-    <string name="config_option_scale">Échelle (scale)</string>
-    <string name="config_option_boolean">Oui/Non (boolean)</string>
-    <string name="config_option_timer">Timer (timer)</string>
-    <string name="config_option_choice">Choix (choice)</string>
-    <string name="config_option_occurrence">Occurrence (occurrence)</string>
+    <string name="config_option_numeric">Nombre</string>
+    <string name="config_option_text">Texte</string>
+    <string name="config_option_scale">Échelle</string>
+    <string name="config_option_boolean">Oui ou non</string>
+    <string name="config_option_timer">Chrono</string>
+    <string name="config_option_choice">Choix</string>
+    <string name="config_option_occurrence">Occurrence</string>
     
     <!-- CONFIG - Sections -->
 

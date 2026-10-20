@@ -13,16 +13,16 @@
     <string name="tagline">Numbers, ratings, choices or timed durations, noted as they come: weight, sleep, mood, glasses of water</string>
 
     <!-- CONFIG - Labels of specific settings -->
-    <string name="config_label_tracking_type">Tracking type</string>
+    <string name="config_label_tracking_type">Value type</string>
     
     <!-- CONFIG - Tracking type options -->
-    <string name="config_option_numeric">Numeric (numeric)</string>
-    <string name="config_option_text">Text (text)</string>
-    <string name="config_option_scale">Scale (scale)</string>
-    <string name="config_option_boolean">Yes/No (boolean)</string>
-    <string name="config_option_timer">Timer (timer)</string>
-    <string name="config_option_choice">Choice (choice)</string>
-    <string name="config_option_occurrence">Occurrence (occurrence)</string>
+    <string name="config_option_numeric">Number</string>
+    <string name="config_option_text">Text</string>
+    <string name="config_option_scale">Scale</string>
+    <string name="config_option_boolean">Yes or no</string>
+    <string name="config_option_timer">Stopwatch</string>
+    <string name="config_option_choice">Choice</string>
+    <string name="config_option_occurrence">Occurrence</string>
     
     <!-- CONFIG - Sections -->
 
