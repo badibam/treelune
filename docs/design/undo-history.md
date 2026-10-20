@@ -6,7 +6,8 @@ Chaque écriture dans la base est gardée dans un historique, pour pouvoir l'ann
 
 - Une ligne suit ce à quoi elle appartient.
 - Couvert : zones, outils (leur config), entrées, variables, automations, incarnations (`identities`), masques des clients du connecteur (`mcp_clients`), réglages de l'app — et ce qui leur appartient : les images d'une entrée, le message d'une routine (sa session de départ, `seed_session_id`, ses messages et leurs images), qui n'est une session que par sa forme.
-- Hors historique : les conversations, leurs messages et leurs images (ce qui s'y écrit — un message, une réponse, ses tokens — n'a pas de sens à annuler, et noierait les gestes de l'utilisateur), fournisseurs, ceux de l'utilisateur compris (`ai_provider_configs` : la clé d'API ne se recopie pas), jetons du connecteur (`mcp_tokens`), journal de l'app, fichiers joints à une session.
+- Hors historique : les conversations, leurs messages et leurs images (ce qui s'y écrit — un message, une réponse, ses tokens — n'a pas de sens à annuler, et noierait les gestes de l'utilisateur), fournisseurs, ceux de l'utilisateur compris (`ai_provider_configs` : la clé d'API ne se recopie pas), jetons du connecteur (`mcp_tokens`), la progression du Guide (catégorie de réglages `guide` : un pense-bête de l'app, qui ferait reculer le tutoriel), journal de l'app, fichiers joints à une session.
+- Un secret dans un réglage couvert (celui du relais, catégorie `external_access`, les clés que nomme `SecretSettings`) n'est jamais recopié : il est traité comme un champ que l'app tient seule, laissé tel quel par une annulation.
 - L'historique ne revient que sur la base : une notification envoyée, un appel à l'IA facturé restent faits.
 
 ## Le pas
