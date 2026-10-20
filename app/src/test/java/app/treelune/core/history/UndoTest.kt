@@ -141,6 +141,24 @@ class UndoTest {
     }
 
     @Test
+    fun `an AI's command is a step that keeps its conversation, and the AI undoes a step of the user's`() = runBlocking {
+        val created = kotlinx.coroutines.withContext(StepSession("session-1")) {
+            coordinator.processAICommand("zones.create", mapOf("name" to "Garden"))
+        }
+        assertTrue(created.error, created.isSuccess)
+        val aiStep = database.historyDao().getStep(lastStep())!!
+        assertEquals("AI", aiStep.source)
+        assertEquals("session-1", aiStep.sessionId)
+
+        val zoneId = created.data!!["zone_id"] as String
+        val step = rename(zoneId, "Orchard")
+        val undone = coordinator.processAICommand("history.undo", mapOf("id" to step))
+        assertTrue(undone.error, undone.isSuccess)
+        assertEquals("Garden", nameOf(zoneId))
+        assertEquals("AI", database.historyDao().getStep(step)!!.stateBy)
+    }
+
+    @Test
     fun `the app's own writes are never undone`() = runBlocking {
         assertTrue(coordinator.processScheduledTask("zones.create", mapOf("name" to "Garden")).isSuccess)
         val noted = database.historyDao().allSteps().last()

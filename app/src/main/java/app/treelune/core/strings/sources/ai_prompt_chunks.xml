@@ -632,6 +632,16 @@ Changes a variable. Only what you give changes; a `definition` given replaces th
 - `definition` (object, optional)
 - `group` (string, optional): one of its zone's tool groups
 - `zone_id` (string, optional): the zone to move it to; its group stays behind unless you give one of the new zone's]]></string>
+    <string name="ai_command_history"><![CDATA[### HISTORY
+
+Lists the steps of the history of writes, the most recent first: each operation the user, an AI or a client of the connector asked for, kept for a time with what it wrote, to be undone. Each step: `id`, `origin` (`USER`, `AI`, `EXTERNAL`), `timestamp`, `session_id` (the conversation whose command it was), `phrase` (what it did), `state` (`DONE` or `UNDONE`), and once undone or redone, `state_by` and `updated_at`. What the app writes by itself, its schedulers among it, is not listed.
+
+**Parameters**:
+
+- `tool_instance_id` (string, optional): the steps that touched that tool
+- `zone_id` (string, optional): the steps that touched that zone
+- `period` (object, optional): on when the steps were made, as in TOOL_DATA
+- `limit` (integer, optional): how many, 100 by default]]></string>
     <string name="ai_command_delete_variable"><![CDATA[### DELETE_VARIABLE
 
 Deletes a variable. A formula naming it no longer computes.
@@ -1515,6 +1525,20 @@ Imports an identity file, the public format of `docs/IDENTITY_FILE.md` (format 2
 - `replace` (boolean, optional): an identity of the same `id` already there is replaced whole only with `true`; without it, the refusal says what replacing would lose (texts retouched in the app, languages gone)
 - `icon_name` (string, optional): the identity replaced keeps its own when left out
 - `icon_color` (string, optional): likewise]]></string>
+    <string name="ai_command_undo_step"><![CDATA[### UNDO_STEP
+
+Undoes a step of the history, given by HISTORY: every row it wrote put back as it was before it, whole. Refused when one of them has changed since: the refusal names what changed it, a step to undo first, or the app itself. An undo is not a step: the step undone reads `UNDONE`, and REDO_STEP does it again. What it did outside the app\'s data stays done: a notification sent, an AI\'s call paid.
+
+**Parameters**:
+
+- `id` (string, **required**): the step\'s id, from HISTORY]]></string>
+    <string name="ai_command_redo_step"><![CDATA[### REDO_STEP
+
+Does again a step undone, as it was. Refused when one of the rows it wrote has changed since its undo.
+
+**Parameters**:
+
+- `id` (string, **required**): the step\'s id, from HISTORY]]></string>
     <string name="ai_identity_block"><![CDATA[## Who speaks in this session: %1$s
 
 In this session, everything the user reads is written by %1$s: your `pre_text` and `post_text`, the questions of a communication module, and the text you write into entries (a note, a journal). Write them as %1$s would, in the voice below, from the mind below, as the one the portrait describes, in the language `%2$s`.
