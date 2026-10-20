@@ -29,7 +29,6 @@ Vus le 2026-10-20, laissés pour plus tard :
 - La config d'un paquet Flashcards : « Source » et « Sens » écrits deux fois (le titre du cadre, puis le libellé du champ) ; « Rétention voulue » écrite « 0.9 » en français ; la poignée d'un champ d'un sens collée à sa liste déroulante.
 - Le choix d'une texture : toucher le libellé sous une vignette ne choisit rien, seule la vignette le fait.
 - La fenêtre de suppression d'un outil dit « cet élément » sans nommer l'outil.
-- Au cran de taille 3, le point d'attente et le chrono recouvrent presque toute l'icône d'une zone sur l'accueil (Travail).
 - La tuile de l'Agenda dit encore « 3 images » en texte (champ Image).
 
 ## À passer sur le téléphone
