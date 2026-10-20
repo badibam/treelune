@@ -745,6 +745,8 @@ The user set what you reach. Anything not listed is refused, creating a zone and
     <string name="ai_prompt_access_always_sent">The tools sent always, in Level 2, reach you as context even when they are not listed: read them, but a write to one not listed is refused.</string>
     <string name="ai_prompt_access_zone">- zone %1$s (`%2$s`): `%3$s`</string>
     <string name="ai_prompt_access_tool">- tool %1$s (`%2$s`): `%3$s`</string>
+    <string name="ai_prompt_access_zone_deleted">- a zone deleted (`%1$s`): reaches nothing</string>
+    <string name="ai_prompt_access_tool_deleted">- a tool deleted (`%1$s`): reaches nothing</string>
     <string name="ai_prompt_access_level_read">read</string>
     <string name="ai_prompt_access_level_use">use</string>
     <string name="ai_prompt_access_level_full">full</string>
