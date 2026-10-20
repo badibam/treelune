@@ -16,6 +16,10 @@ The script also reads the placeholders (%1$s, %2$d...), because a translation th
 renumbers one throws IllegalFormatException at the moment the screen draws it -- the kind of
 crash that reaches a phone and not a test.
 
+And the quotation marks (docs/WRITING.md): a name put in a text is quoted with its language's
+marks, « » in French, “ ” in English, never straight quotes around it, and English never with
+the French marks -- the kind of slip a screen in the other language shows and nothing else does.
+
 Usage:
     ./scripts/check_string_locales.py
 """
@@ -34,6 +38,8 @@ SHARED = ROOT / "app" / "src" / "main" / "java" / "app" / "treelune" / "core" / 
 LOCALE = re.compile(r"^(.+?)(?:-([a-zA-Z]{2}(?:-r[A-Z]{2})?))?\.xml$")
 STRING = re.compile(r'<string\s+name="([^"]+)"[^>]*>(.*?)</string>', re.DOTALL)
 PLACEHOLDER = re.compile(r"%\d+\$[sd]|%[sd]")
+# A name put in between straight quotes, the way a text quoted before each language had its marks
+STRAIGHT_QUOTED = re.compile(r'\\"%\d+\$s\\"')
 
 # Sources that are deliberately single-locale: they are sent to the AI, not shown on screen,
 # so they have no translation to be out of step with. Named here rather than guessed, so that
@@ -81,6 +87,14 @@ def main():
             continue
 
         default = strings_of(by_locale[""])
+
+        for locale, path in sorted(by_locale.items()):
+            for key, body in sorted(strings_of(path).items()):
+                if STRAIGHT_QUOTED.search(body):
+                    problems.append(f"{namespace}[{locale or 'default'}]: {key} quotes a name "
+                                    f"with straight quotes; « » in French, “ ” in English")
+                if not locale and "«" in body:
+                    problems.append(f"{namespace}[default]: {key} quotes with « » in English; “ ”")
         translations = {loc: p for loc, p in by_locale.items() if loc}
 
         if not translations and namespace not in UNTRANSLATED:

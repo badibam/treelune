@@ -47,7 +47,7 @@
     <string name="save_in_progress">Saving...</string>
 
     <!-- CONFIRMATIONS - Confirmation messages -->
-    <string name="delete_confirm_template">Delete \"%1$s\"?</string>
+    <string name="delete_confirm_template">Delete “%1$s”?</string>
     <string name="delete_confirm_empty_note">Delete this empty note?</string>
 
     <!-- DIALOG - Note editing -->

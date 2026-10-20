@@ -42,7 +42,7 @@
     <string name="add_item_title">Add an item</string>
     <string name="action_uncheck_all">Uncheck all</string>
     <string name="edit_item_title">Item</string>
-    <string name="delete_item_confirm">Delete \"%1$s\"?</string>
+    <string name="delete_item_confirm">Delete “%1$s”?</string>
     <string name="due_late">Late</string>
 
     <!-- Tile on a zone -->

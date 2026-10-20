@@ -54,7 +54,7 @@
     <string name="date_on_at">Le %1$s à %2$s</string>
 
     <!-- CONFIRMATIONS - Messages de confirmation -->
-    <string name="delete_confirm_template">Supprimer l\'entrée \"%1$s\" ?</string>
+    <string name="delete_confirm_template">Supprimer l\'entrée « %1$s » ?</string>
     <string name="delete_confirm_untitled">Supprimer cette entrée sans titre ?</string>
     <string name="confirm_delete_entry">Confirmer la suppression de cette entrée ?</string>
 
