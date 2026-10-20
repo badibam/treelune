@@ -51,6 +51,7 @@ object GuidePath {
             Place.AIProviderKind -> t("guide_path_settings_page", t("ai_provider_add"))
             // The export's button touched on the data's settings page
             Place.Export -> t("guide_path_settings_page", t("share_export_open"))
+            is Place.Import -> t("guide_path_settings_page", t("share_import_open"))
             is Place.AIProvider -> t("guide_path_settings_page", n)
             Place.Guide -> t("guide_path_guide")
             is Place.Chapter -> t("guide_path_chapter", n)

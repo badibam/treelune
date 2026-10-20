@@ -49,9 +49,9 @@ Réglages › Données porte deux boutons, « Exporter… » et « Importer… �
      Aliments             312 entrées
      Calories (Graphique)
      Variable « objectif_calorique »
-       ⚠ Ce nom est déjà pris : elle arrive sous « objectif_calorique_2 ».
+       Ce nom est déjà pris, elle arrive donc sous « objectif_calorique_2 ».
      Hydratation (Messages)
-       Notifications : 3 par jour, de 9 h à 18 h.
+       Cet outil peut envoyer des notifications, réglées comme dans le fichier.
 
    [ Importer ]
 ```
@@ -99,7 +99,7 @@ Pour un modèle, la cible part sans ses entrées et arrive vide. Ainsi un fichie
 ## À l'arrivée
 
 - Tout s'ajoute, rien n'est remplacé. Zones, outils et routines gardent leur nom, même pris. Une variable, au nom unique dans l'app, prend `_2`, et l'écran le dit ; les formules la suivent, qui la désignent par son identifiant.
-- Les rappels arrivent tels qu'ils ont été configurés ; l'écran dit ceux de chaque outil.
+- Les rappels arrivent tels qu'ils ont été configurés ; l'écran dit quels outils peuvent en envoyer.
 - L'import est un pas ordinaire de l'historique (`undo-history.md`), annulable d'un coup.
 
 ## Hors de cette version
@@ -110,13 +110,13 @@ Pour un modèle, la cible part sans ses entrées et arrive vide. Ainsi un fichie
 
 ## Implémentation
 
-Le découpage, un commit chacun ; les quatre premiers sont faits (`BackupPart`, `PartSelection`, `AppFolder`, `backup.export` avec `selection` ; `PartLinks` ; `PartImport`, `backup.import_part` ; `ExportScreen`, `PartTree`, `backup.tree`).
+Le découpage, un commit chacun ; les cinq premiers sont faits (`BackupPart`, `PartSelection`, `AppFolder`, `backup.export` avec `selection` ; `PartLinks` ; `PartImport`, `backup.import_part` ; `ExportScreen`, `PartTree`, `backup.tree` ; `ImportScreen`).
 
 1. La sauvegarde partielle côté service — fait.
 2. Le contrôle des liens : les deux familles sur une sélection, le service refusant aussi une sélection qui garde un lien bloquant ; des tests — fait.
 3. L'import partiel (`backup.import_part`) : une sélection et la zone d'arrivée de chaque zone, tout par les services ordinaires dans l'ordre des dépendances (comme `DemoService.build`), un seul pas de l'historique — fait.
 4. L'écran Exporter : l'arbre de cases lu d'une sauvegarde complète de l'app (`build()`), la même fonction qui lira le fichier à l'import — fait.
-5. L'écran Importer, reprendre une partie.
+5. L'écran Importer, reprendre une partie — fait.
 6. Tout restaurer devenu un choix de l'import, les anciens boutons et leurs textes retirés ; `docs/DATA.md`, le Guide s'il cite Réglages › Données, une section de la recette.
 
 Décidé en séance :
@@ -131,4 +131,6 @@ Décidé en séance :
 - Une restauration complète refuse un fichier partiel, dès le service.
 - « Tout » s'écrit dans le dossier de l'app, comme une partie, et Partager l'envoie ailleurs ; sans dossier, l'écran fait choisir celui de la sauvegarde automatique. `backup.export` n'a plus d'`uri`.
 - La case d'une zone a deux états, cochée ou non, sans état « à moitié » : elle dit si la zone part, son compte ce qu'elle emporte (« Cuisine (11 éléments sur 23) », outils, variables et routines ; une zone vide cochée se partage comme modèle). Cocher la zone prend tout, la décocher lâche tout ; cocher un élément coche sa zone.
+- À l'import, un partage arrive tout coché, ses entrées comprises ; une sauvegarde complète rien coché : tout reprendre doublerait l'app, puisque l'import ajoute.
+- Un outil dont le type peut envoyer des notifications (il a un planificateur) le dit d'une ligne à l'import, « réglées comme dans le fichier », sans résumer ses rappels : il faudrait les lire là où chacun des six types les range.
 - La liste d'accès d'une routine qui vise un élément non coché prévient, et garde la ligne : elle n'atteint rien, comme celle d'un élément supprimé (l'écran et l'IA la disent « supprimé »). La retirer pourrait vider la liste, et une liste vide ouvre toute l'app.

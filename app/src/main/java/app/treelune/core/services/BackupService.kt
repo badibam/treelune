@@ -59,7 +59,8 @@ import app.treelune.core.ai.data.LegacyCatchUp
  *   (PartLinks, a blocking link). Answer: `file_name`, `uri`, `elements`, `entries`,
  *   `missing_images`
  * - tree: what the app holds, its zones and their elements with every link between them
- *   (PartTree's stored form under `tree`), for the export's screen
+ *   (PartTree's stored form under `tree`), for the export's screen; given `uri`, what the backup
+ *   there holds, for the import's, with `partial` and `taken_variable_names`
  * - auto: the automatic backup's copy (AutoBackup), into the folder chosen, rolled; none when the
  *   data did not change since the last one. Answer: `written`
  * - import_part: `uri`, `selection`, `arrivals`: a part of the backup there added to the app
@@ -120,7 +121,7 @@ class BackupService(private val context: Context) : ExecutableService {
         return withContext(Dispatchers.IO) {
             when (operation) {
                 "export" -> if (params.has("selection")) performExportPart(params, token) else performExport(token)
-                "tree" -> performTree(token)
+                "tree" -> performTree(params, token)
                 "auto" -> performAuto(token)
                 "import" -> performImport(params.optString("uri"), token)
                 "import_part" -> performImportPart(params, token)
@@ -226,10 +227,34 @@ class BackupService(private val context: Context) : ExecutableService {
         ))
     }
 
-    /** What the app holds, as the export's screen ticks it (PartTree). */
-    private suspend fun performTree(token: CancellationToken): OperationResult {
-        val built = build(token) ?: return OperationResult.cancelled()
-        return OperationResult.success(mapOf("tree" to app.treelune.core.utils.JsonUtils.toMap(app.treelune.core.backup.PartTree.of(built.json).toJson())))
+    /**
+     * What the app holds, as the export's screen ticks it (PartTree); or, given `uri`, what the
+     * backup there holds, as the import's screen ticks it, with whether it is a part and the
+     * variables' names the app already has (a variable of the file under a taken name arrives
+     * under another, PartImport.arrivalNames).
+     */
+    private suspend fun performTree(params: JSONObject, token: CancellationToken): OperationResult {
+        if (!params.has("uri")) {
+            val built = build(token) ?: return OperationResult.cancelled()
+            return OperationResult.success(mapOf("tree" to app.treelune.core.utils.JsonUtils.toMap(app.treelune.core.backup.PartTree.of(built.json).toJson())))
+        }
+        val staging = Images.importDir(context)
+        return try {
+            val document = when (val opened = open(params.getString("uri"), staging)) {
+                is Opened.Refused -> return OperationResult.error(opened.message)
+                is Opened.Read -> opened.document
+            }
+            OperationResult.success(mapOf(
+                "tree" to app.treelune.core.utils.JsonUtils.toMap(app.treelune.core.backup.PartTree.of(document).toJson()),
+                "partial" to app.treelune.core.backup.BackupPart.isPartial(document),
+                "taken_variable_names" to database.variableDao().getAll().map { it.name }
+            ))
+        } catch (e: Exception) {
+            LogManager.service("Backup not read: ${e.message}", "ERROR", e)
+            OperationResult.error(s.shared("backup_invalid_file"))
+        } finally {
+            staging.deleteRecursively()
+        }
     }
 
     /**

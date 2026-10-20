@@ -262,6 +262,10 @@ private fun PlaceScreen(place: Place, zones: ZonesState, demoInstalled: Boolean)
                 name(s.shared("share_export_title"))
                 app.treelune.core.ui.exports.ExportScreen(onBack = back)
             }
+            is Place.Import -> {
+                name(s.shared("share_import_title"))
+                app.treelune.core.ui.exports.ImportScreen(place.uri, onBack = back)
+            }
             Place.AIProviderKind -> {
                 name(s.shared("ai_provider_choose_kind"))
                 app.treelune.core.ai.ui.screens.AIProviderKindScreen(onBack = back)

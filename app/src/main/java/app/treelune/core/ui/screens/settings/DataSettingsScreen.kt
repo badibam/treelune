@@ -93,6 +93,11 @@ fun DataSettingsScreen(
         autoRead++
     }
 
+    // The file a part is taken from, then the import's screen on it
+    val partLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let { app.treelune.core.navigation.Navigator.push(app.treelune.core.navigation.Place.Import(it.toString())) }
+    }
+
     // SAF launcher for import (pick document)
     val importLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
@@ -194,6 +199,27 @@ fun DataSettingsScreen(
                     onClick = { app.treelune.core.navigation.Navigator.push(app.treelune.core.navigation.Place.Export) }
                 ) {
                     UI.Text(text = s.shared("share_export_open"), type = TextType.BODY)
+                }
+            }
+        }
+
+        // Import: a part of a file, added to what there is
+        UI.Card(type = CardType.DEFAULT) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(UI.Space.L),
+                verticalArrangement = Arrangement.spacedBy(UI.Space.S)
+            ) {
+                UI.Text(text = s.shared("share_import_title"), type = TextType.SUBTITLE)
+                UI.Text(text = s.shared("share_import_card"), type = TextType.CAPTION)
+                UI.Button(
+                    type = ButtonType.PRIMARY,
+                    size = Size.M,
+                    state = if (isLoading) ComponentState.DISABLED else ComponentState.NORMAL,
+                    onClick = { partLauncher.launch(arrayOf("application/zip", "application/json")) }
+                ) {
+                    UI.Text(text = s.shared("share_import_open"), type = TextType.BODY)
                 }
             }
         }

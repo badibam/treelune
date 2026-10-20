@@ -139,15 +139,10 @@ class PartImport(private val context: Context) {
 
         // The tools and the variables, each after what it reads, a variable whose name is taken
         // under the next free one
-        val taken = database.variableDao().getAll().map { it.name }.toMutableSet()
-        val renamed = linkedMapOf<String, String>()
-        val names = rows(data, "variables").associate { variable ->
-            val name = variable.getString("name")
-            val free = generateSequence(2) { it + 1 }.map { "${name}_$it" }.let { sequence { yield(name); yieldAll(it) } }.first { it !in taken }
-            taken += free
-            if (free != name) renamed[name] = free
-            variable.getString("id") to free
-        }
+        val variables = rows(data, "variables")
+        val names = arrivalNames(variables.map { it.getString("id") to it.getString("name") }, database.variableDao().getAll().map { it.name }.toSet())
+        val renamed = variables.filter { names.getValue(it.getString("id")) != it.getString("name") }
+            .associateTo(linkedMapOf()) { it.getString("name") to names.getValue(it.getString("id")) }
         val elements = rows(data, "tool_instances") + rows(data, "variables")
         for (element in ordered(elements)) {
             val zone = element.getString("zone_id")
@@ -224,6 +219,21 @@ class PartImport(private val context: Context) {
         }
 
         return Report(newZones.size, elements.size + rows(data, "automations").size, entries.size, renamed, 0)
+    }
+
+    companion object {
+        /**
+         * The name each variable of [variables] (id and name, in order) arrives under: its own, or
+         * when [taken] by the app or by one before it, the first of `_2`, `_3`… that is free.
+         */
+        fun arrivalNames(variables: List<Pair<String, String>>, taken: Set<String>): Map<String, String> {
+            val used = taken.toMutableSet()
+            return variables.associate { (id, name) ->
+                val free = (sequenceOf(name) + generateSequence(2) { it + 1 }.map { "${name}_$it" }).first { it !in used }
+                used += free
+                id to free
+            }
+        }
     }
 
     /**
