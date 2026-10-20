@@ -279,7 +279,8 @@ fun JournalEntryScreen(
     ) {
         // Header (no right button - EDIT moved to bottom actions)
         UI.PageHeader(
-            title = if (isEditing) s.shared("action_edit") else title.ifBlank { s.tool("placeholder_untitled") },
+            // A new entry is named by the button that opens it, an entry changed by « Edit »
+            title = if (isCreating && isEditing) s.tool("tile_write") else if (isEditing) s.shared("action_edit") else title.ifBlank { s.tool("placeholder_untitled") },
             leftButton = ButtonAction.BACK,
             onLeftClick = {
                 if (isEditing && !isUnsaved) {
