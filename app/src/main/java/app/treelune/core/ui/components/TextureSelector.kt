@@ -1,5 +1,6 @@
 package app.treelune.core.ui.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -69,7 +70,8 @@ private fun ThingTile(iconName: String, color: TagColor?, texture: Texture?, sid
 internal fun AppearanceChoice(iconName: String, color: TagColor?, texture: Texture?, name: String, chosen: Boolean, onClick: () -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
         ThingTile(iconName, color, texture, SWATCH, onClick)
-        Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.XS), verticalAlignment = Alignment.CenterVertically) {
+        // Its name chooses it too: the finger goes to what it reads
+        Row(modifier = Modifier.clickable(onClick = onClick), horizontalArrangement = Arrangement.spacedBy(UI.Space.XS), verticalAlignment = Alignment.CenterVertically) {
             if (chosen) UI.Icon(iconName = "check", size = 14.dp)
             UI.Text(name, if (chosen) TextType.LABEL else TextType.CAPTION, textAlign = TextAlign.Center)
         }
