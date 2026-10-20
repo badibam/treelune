@@ -79,7 +79,6 @@ Codé, jamais vu sur l'appareil ; le détail est dans la recette, `docs/design/d
 
 - L'historique des écritures et leur annulation (`docs/design/undo-history.md`).
 - L'écran de confirmation d'un changement de config nomme les outils dont un filtre vise une option retirée ou renommée.
-- Une phrase du Guide : partir d'un outil de la démo (le dupliquer) ou le décrire à l'IA — vérifier d'abord qu'un outil dupliqué survit au retrait de la démo.
 - `docs/` en anglais ; `docs/design/` et `TODO.md` restent en français.
 
 ## À concevoir

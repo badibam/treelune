@@ -74,7 +74,7 @@
     <string name="guide_demo_removal_warning">Ces tutoriels utilisent la démo : %1$s. Sans elle, leurs étapes dans la démo seront sautées. Tu pourras la réinstaller à tout moment depuis Réglages › Démo.</string>
     <string name="guide_first_steps_title">Premiers pas</string>
     <string name="guide_first_steps_intro">Après un tour dans la démo, tu crées une première zone et un premier outil, sans avoir besoin d\'IA.</string>
-    <string name="guide_first_steps_outro">Tu as maintenant une zone et un outil où noter des entrées. Pour choisir les suivants, parcours la partie « Les outils » du Guide. Il reste à brancher une IA.</string>
+    <string name="guide_first_steps_outro">Tu as maintenant une zone et un outil où noter des entrées. Pour choisir les suivants, parcours la partie « Les outils » du Guide. Pour partir d\'un outil de la démo, touche le + d\'une section de ta zone, puis « Dupliquer un outil » : la copie reste quand la démo est retirée. Avec une IA, tu peux aussi lui décrire l\'outil voulu. Il reste à brancher une IA.</string>
     <string name="guide_first_steps_1_goal">Ouvre la zone Course</string>
     <string name="guide_first_steps_1_text">La démo suit Camille, qui prépare un semi-marathon. Camille range sa vie en zones, une par domaine, et la course en est une. Dans chaque zone, Camille note ce qui compte avec des outils, rangés ici en trois groupes : Entraînement, Corps et Analyse.</string>
     <string name="guide_first_steps_2_goal">Ajoute une sortie dans Sorties</string>

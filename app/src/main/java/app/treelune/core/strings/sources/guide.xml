@@ -74,7 +74,7 @@
     <string name="guide_demo_removal_warning">These tutorials use the demo: %1$s. Without it, their steps in the demo are skipped. You can reinstall it at any time from Settings › Demo.</string>
     <string name="guide_first_steps_title">First steps</string>
     <string name="guide_first_steps_intro">After a look around the demo, you create a first zone and a first tool, with no AI needed.</string>
-    <string name="guide_first_steps_outro">You now have a zone and a tool to note entries in. To choose the next ones, look through the “The tools” part of the Guide. What remains is to connect an AI.</string>
+    <string name="guide_first_steps_outro">You now have a zone and a tool to note entries in. To choose the next ones, look through the “The tools” part of the Guide. To start from a tool of the demo, touch the + of a section in your zone, then “Duplicate a tool”: the copy stays when the demo is removed. With an AI, you can also describe the tool you want. What remains is to connect an AI.</string>
     <string name="guide_first_steps_1_goal">Open the zone Running</string>
     <string name="guide_first_steps_1_text">The demo follows Camille, who is training for a half marathon. Camille sorts life into zones, one per area, and running is one of them. In each zone, Camille notes what matters with tools, sorted here into three groups: Training, Body and Analysis.</string>
     <string name="guide_first_steps_2_goal">Add a run in Runs</string>
