@@ -79,10 +79,13 @@ Codé, jamais vu sur l'appareil ; le détail est dans la recette, `docs/design/d
 ## Décidé, à coder
 
 - L'historique des écritures et leur annulation (`docs/design/undo-history.md`).
+- Un filtre qui compare un champ à une variable ou une lecture (« kcal > objectif_calorique ») : le terme lu une fois à la référence du contexte (`TermReader`, `docs/BRICKS.md`), puis le filtre SQL comme aujourd'hui ; `EntryFilters.parse` et `ConditionPicker` le prennent.
 
 ## À concevoir
 
-- Les events du cœur : quel premier usage — un événement de l'Agenda qui commence, une entrée écrite, une condition devenue vraie ?
+- Les events du cœur : quel premier usage — un événement de l'Agenda qui commence, une entrée écrite, une condition devenue vraie (l'Alerte) ? L'automation directe (le relevé, `docs/design/missing-tools.md`) attend la même brique.
+- Des outils montrés sur la tuile d'une zone de l'accueil (le poids du jour sur « Santé ») : leur résumé ou un raccourci selon la place de la tuile — lesquels, dans quel ordre, un outil montré à deux endroits.
+- Des rythmes que la planification (`ScheduleConfig`, commune à tous les outils et aux routines) ne sait pas dire : « tous les N jours à partir d'une date », « une semaine sur deux », plusieurs jours d'un mois (« le 1er et le 15 »).
 
 ## Dette de code
 
@@ -97,47 +100,42 @@ Codé, jamais vu sur l'appareil ; le détail est dans la recette, `docs/design/d
 - `TextType.SUBTITLE` sans rang dans le contrat des thèmes : lui en donner un, aligner les thèmes et ses 71 usages.
 - `FlashcardsServiceTest` dépend sans doute de l'heure : lui donner une horloge fixe.
 - Une apostrophe nue à côté d'une échappée casse la compilation des ressources sans qu'aucun contrôle la voie.
+- Le journal ne garde que ~24 min d'usage (12 000 lignes le 2026-10-01, dont 3 782 « Service result » en VERBOSE) : les lignes utiles à la recette en sortent avant d'être lues ; réduire VERBOSE et DEBUG, « Service result » d'abord.
+- Des écrans encore ouverts à l'intérieur d'un lieu, hors de la pile (`Place`, `docs/UI.md`) : la config d'un fournisseur d'IA, les pages d'un formulaire de config, les écrans internes d'un outil (fiche, historique), l'historique des conversations — à passer en lieux, au plus tard quand un tutoriel, une notification ou un pointeur doit les viser.
+
+## Sagesse
+
+Ce qui doit monter dans un module de sagesse (`/update push`).
+
+- Le pilotage du téléphone par adb pour la recette (`scripts/phone_ui.sh` : captures réduites, toucher par le texte de l'écran, frappe mot par mot), dans `android`.
 
 ## Bloqué par autre chose
 
-- L'Alerte et l'automation directe (le relevé, `docs/design/missing-tools.md`) : les events du cœur.
-- Le pilotage du téléphone par adb (`scripts/phone_ui.sh`) dans le module de sagesse `android` : au prochain `/update push android`.
 - Le correctif Tailscale de la route `cert/` (PR #21720) : fusionné, monter de version et retirer la correction de `scripts/vendor_go.py` ; refusé, noter pourquoi dans `funnel-poc.md`.
 
 ## À surveiller
 
-- Un appel à l'IA relancé par un changement d'état qui ne change pas de phase (`AIEventProcessor.handleStateChange`) : au prochain doublon, lire « ignored: it belongs to » dans le journal.
-- Le point d'attente et la tuile de Flashcards pas relus au début de la journée.
-- Revenir à une zone la relit entièrement.
-- Le graphique Calories de Panorama (0,75 à 1,2 s) et l'ouverture d'une zone (~1 s).
-- Défilement saccadé à la réouverture d'une longue conversation.
+- Une zone lente à s'afficher, à l'ouverture comme au retour, qui relit tout (~1 s en debug le 2026-10-01, le graphique Calories de Panorama de 0,75 à 1,2 s).
 - Un `DATA_REFUSED` légitime dans une routine : un seuil par routine.
 - Un calcul lourd qui fige l'app : lire, calculer sans bloquer, écrire.
 - Un import lancé par erreur qu'on ne peut pas arrêter (`LongOperation`).
 - Des réponses de l'IA perdues pendant la génération : streaming et keep-alive TCP.
-- Le journal ne garde que ~24 min d'usage : réduire VERBOSE et DEBUG.
 - La mémoire d'un import grandit avec son fichier (276 Mo pour 5 Mo) : lire et écrire par tranches.
-- Une IA qui lit mal un long texte en tranches par le connecteur : le lire par section `##`.
 
 ## Idée sans besoin
 
 - Des modèles d'outils prédéfinis.
+- Lire un long texte du connecteur MCP par section (le sommaire des titres `##`, puis une section par son titre), en plus des tranches.
 - Des niveaux de prompt pour un modèle plus petit (`docs/design/local-models.md`).
-- Un filtre qui compare un champ à une variable ou une lecture (`EntryFilters.parse`, `TermReader`).
-- D'autres sources de l'attente : un message de l'IA arrivé pendant qu'on était ailleurs.
 - Une entrée précise comme cible d'un pointeur (`docs/design/pointer.md`).
-- Le nombre d'entrées en attente sur la tuile, au lieu du point.
 - Des valeurs de champs de l'utilisateur recopiées dans chaque occurrence d'une série d'Agenda.
-- Des outils montrés sur la tuile d'une zone de l'accueil.
-- Des écrans internes passés en lieux (`Place`) : quand un tutoriel, une notification ou un pointeur doit les viser.
 - Un pointeur touché dans un message ouvre sa cible.
 - Le sens « out » : l'app confie une tâche lourde à une IA extérieure et en reprend le résultat.
-- Un fichier joint au message de départ d'une routine.
-- « Tous les N jours à partir d'une date », plusieurs jours d'un mois, dans la brique de planning.
-- Un bouton « Fait » sur un message qui écrit dans un Suivi.
 
 ## Écarté
 
 - Obliger le client MCP à lire le schéma avant d'écrire : chaque écriture est validée, un refus dit quoi corriger.
 - Un seul calcul du prochain envoi : Messages stocke des envois que l'utilisateur voit, une routine n'a qu'une heure.
 - Un Suivi « étiquette » : le type « choix » le couvre.
+- Le nombre d'entrées en attente sur la tuile, au lieu du point : le résumé des tuiles donne déjà ce compte.
+- Un fichier joint au message de départ d'une routine : un pointeur vers un outil qui garde le contenu fait mieux, relu à chaque exécution.
