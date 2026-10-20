@@ -1497,6 +1497,9 @@
     <string name="export_error_read">The entries could not be read.</string>
     <string name="export_error_write">The file %1$s could not be written in the app\'s folder.</string>
     <string name="export_error_file_name">The tool\'s name, “%1$s”, cannot name a file: rename the tool to export its entries.</string>
+    <string name="share_file_name">treelune_share</string>
+    <string name="share_error_selection">What is ticked cannot be read: %1$s</string>
+    <string name="share_error_file_name">The zone\'s name, “%1$s”, cannot name a file: rename the zone to share it.</string>
     <string name="action_verbalize_exports_csv">Export of entries</string>
     <string name="action_verbalize_exports_csv_tool">Export of the entries of “%1$s”</string>
     <string name="import_action">Import a file</string>

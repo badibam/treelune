@@ -1,11 +1,9 @@
 package app.treelune.core.services
 
 import android.content.Context
-import android.net.Uri
-import android.provider.DocumentsContract
-import app.treelune.core.backup.AutoBackup
 import app.treelune.core.coordinator.CancellationToken
 import app.treelune.core.coordinator.Coordinator
+import app.treelune.core.exports.AppFolder
 import app.treelune.core.exports.EntriesCsv
 import app.treelune.core.fields.ReferenceTarget
 import app.treelune.core.fields.toFieldDefinitions
@@ -67,13 +65,11 @@ class ExportService(private val context: Context) : ExecutableService {
             ?: return OperationResult.error(s.shared("service_error_missing_tool_instance_id"))
 
         // The folder first: no entry is read for a file that cannot be written
-        val folder = when (val state = AutoBackup.state(context)) {
-            AutoBackup.State.NoFolder -> return OperationResult.error(s.shared("export_error_no_folder"))
-            is AutoBackup.State.Lost -> return OperationResult.error(s.shared("export_error_folder_lost"))
-            is AutoBackup.State.Off -> state.folder
-            is AutoBackup.State.Ready -> state.folder
+        val folder = when (val read = AppFolder.read(context)) {
+            AppFolder.Read.NoFolder -> return OperationResult.error(s.shared("export_error_no_folder"))
+            AppFolder.Read.Lost -> return OperationResult.error(s.shared("export_error_folder_lost"))
+            is AppFolder.Read.Ready -> read.folder
         }
-        if (!AutoBackup.writable(context, folder)) return OperationResult.error(s.shared("export_error_folder_lost"))
 
         val tool = coordinator.processUserAction("tools.get", mapOf("tool_instance_id" to toolInstanceId))
         val toolInstance = tool.data?.get("tool_instance") as? Map<*, *>
@@ -112,7 +108,7 @@ class ExportService(private val context: Context) : ExecutableService {
             return OperationResult.error(s.shared("export_error_file_name").format(toolName))
         }
         val written = try {
-            write(folder, base, csv)
+            AppFolder.write(context, folder, base, "csv") { it.write(EntriesCsv.bytes(csv)) }
         } catch (e: Exception) {
             LogManager.service("Export: $base not written: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("export_error_write").format(base))
@@ -129,35 +125,6 @@ class ExportService(private val context: Context) : ExecutableService {
         return read.filterIsInstance<Map<*, *>>().associate { named ->
             requireNotNull(ReferenceTarget.referenceOf(named)) to (named["name"] as? String)
         }
-    }
-
-    /**
-     * [csv] written in [folder] under a name not yet taken, through a `.part` file renamed once
-     * complete; the document and its name.
-     */
-    private fun write(folder: Uri, base: String, csv: String): Pair<Uri, String> {
-        val resolver = context.contentResolver
-        val name = FileNames.unique(base, "csv", namesIn(folder))
-        val parent = DocumentsContract.buildDocumentUriUsingTree(folder, DocumentsContract.getTreeDocumentId(folder))
-        // A type of no extension: the folder's provider would otherwise add ".csv" after ".part"
-        val part = DocumentsContract.createDocument(resolver, parent, "application/octet-stream", "$name.part")
-            ?: throw IllegalStateException("$name.part not created")
-        try {
-            (resolver.openOutputStream(part) ?: throw IllegalStateException("$name.part not opened")).use { it.write(EntriesCsv.bytes(csv)) }
-            val done = DocumentsContract.renameDocument(resolver, part, name) ?: throw IllegalStateException("$name.part not renamed")
-            return done to name
-        } catch (e: Exception) {
-            DocumentsContract.deleteDocument(resolver, part)
-            throw e
-        }
-    }
-
-    /** The names of the files in [folder]. */
-    private fun namesIn(folder: Uri): Set<String> {
-        val children = DocumentsContract.buildChildDocumentsUriUsingTree(folder, DocumentsContract.getTreeDocumentId(folder))
-        return context.contentResolver.query(children, arrayOf(DocumentsContract.Document.COLUMN_DISPLAY_NAME), null, null, null)?.use { cursor ->
-            buildSet { while (cursor.moveToNext()) add(cursor.getString(0)) }
-        } ?: throw IllegalStateException("the folder's files cannot be listed")
     }
 
     override suspend fun verbalize(operation: String, params: JSONObject, context: Context): String {

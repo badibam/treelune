@@ -51,7 +51,10 @@ import app.treelune.core.ai.data.LegacyCatchUp
  * photos in base64 would not fit in memory beside it. The file is the one the user chose (SAF), given by its `uri`.
  *
  * Operations:
- * - export: `uri`: the backup of all data written there
+ * - export: `uri`: the backup of all data written there. Or `selection` (PartSelection's stored
+ *   form): the part of the app ticked (BackupPart, docs/design/share.md), written into the app's
+ *   folder (AppFolder) under the name of its zone when there is one, `treelune_share` otherwise,
+ *   and the minute. Answer: `file_name`, `uri`, `elements`, `entries`, `missing_images`
  * - auto: the automatic backup's copy (AutoBackup), into the folder chosen, rolled; none when the
  *   data did not change since the last one. Answer: `written`
  * - import: `uri`: data restored from a backup there (with version migrations): a zip, or the
@@ -80,7 +83,7 @@ class BackupService(private val context: Context) : ExecutableService {
     ): OperationResult {
         return withContext(Dispatchers.IO) {
             when (operation) {
-                "export" -> performExport(params.optString("uri"), token)
+                "export" -> if (params.has("selection")) performExportPart(params, token) else performExport(params.optString("uri"), token)
                 "auto" -> performAuto(token)
                 "import" -> performImport(params.optString("uri"), token)
                 "reset" -> performReset(token)
@@ -106,6 +109,66 @@ class BackupService(private val context: Context) : ExecutableService {
             LogManager.service("Backup export failed: ${e.message}", "ERROR", e)
             OperationResult.error("Export failed: ${e.message}")
         }
+    }
+
+    /**
+     * The part of the app [params]' `selection` ticks, written into the app's folder: built as a
+     * whole backup, then cut (BackupPart); its images' files beside it.
+     */
+    private suspend fun performExportPart(params: JSONObject, token: CancellationToken): OperationResult {
+        val selection = try {
+            app.treelune.core.backup.PartSelection.read(params.getJSONObject("selection"))
+        } catch (e: org.json.JSONException) {
+            return OperationResult.error(s.shared("share_error_selection").format(e.message ?: ""))
+        }
+        // The folder first: nothing is read for a file that cannot be written
+        val folder = when (val read = app.treelune.core.exports.AppFolder.read(context)) {
+            app.treelune.core.exports.AppFolder.Read.NoFolder -> return OperationResult.error(s.shared("export_error_no_folder"))
+            app.treelune.core.exports.AppFolder.Read.Lost -> return OperationResult.error(s.shared("export_error_folder_lost"))
+            is app.treelune.core.exports.AppFolder.Read.Ready -> read.folder
+        }
+        val whole = build(token) ?: return OperationResult.cancelled()
+        val part = try {
+            app.treelune.core.backup.BackupPart.cut(whole.json, selection)
+        } catch (e: IllegalArgumentException) {
+            return OperationResult.error(s.shared("share_error_selection").format(e.message ?: ""))
+        }
+        val kept = app.treelune.core.backup.BackupPart.imageIds(part)
+        val built = Built(part, whole.images.filter { it.id in kept }, whole.missingIds intersect kept)
+
+        // Named after its zone when it holds one, the share's name otherwise, and the minute
+        val zones = part.getJSONObject("data").getJSONArray("zones")
+        val title = if (zones.length() == 1) zones.getJSONObject(0).getString("name") else s.shared("share_file_name")
+        val zone = app.treelune.core.utils.AppConfigManager.getDateTimeConfig().getZoneId()
+        val minute = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd_HHmm").format(java.time.Instant.now().atZone(zone))
+        val base = try {
+            "${app.treelune.core.utils.FileNames.clean(title)}_$minute"
+        } catch (e: IllegalArgumentException) {
+            return OperationResult.error(s.shared("share_error_file_name").format(title))
+        }
+        val written = try {
+            // Stopped midway, the half-written file is removed (AppFolder.write)
+            app.treelune.core.exports.AppFolder.write(context, folder, base, "zip") { output ->
+                if (!writeZip(output, built, token)) throw java.util.concurrent.CancellationException()
+            }
+        } catch (e: java.util.concurrent.CancellationException) {
+            return OperationResult.cancelled()
+        } catch (e: Exception) {
+            LogManager.service("Share: $base not written: ${e.message}", "ERROR", e)
+            return OperationResult.error(s.shared("export_error_write").format(base))
+        }
+
+        val data = part.getJSONObject("data")
+        val elements = listOf("tool_instances", "variables", "automations").sumOf { data.getJSONArray(it).length() }
+        val entries = data.getJSONArray("tool_data").length()
+        LogManager.service("Share: ${written.second} written, $elements elements, $entries entries, ${built.images.size} images")
+        return OperationResult.success(mapOf(
+            "file_name" to written.second,
+            "uri" to written.first.toString(),
+            "elements" to elements,
+            "entries" to entries,
+            "missing_images" to built.missing
+        ))
     }
 
     /**
@@ -164,8 +227,10 @@ class BackupService(private val context: Context) : ExecutableService {
         return OperationResult.success(mapOf("written" to true))
     }
 
-    /** A backup ready to write: its JSON, the images whose files go beside it, how many had none. */
-    private class Built(val json: JSONObject, val images: List<ImageEntity>, val missing: Int)
+    /** A backup ready to write: its JSON, the images whose files go beside it, how many had none and which. */
+    private class Built(val json: JSONObject, val images: List<ImageEntity>, val missingIds: Set<String>) {
+        val missing: Int get() = missingIds.size
+    }
 
     /** Every table read into a backup's JSON, the images listed; null when [token] stops it. */
     private suspend fun build(token: CancellationToken): Built? {
@@ -464,7 +529,7 @@ class BackupService(private val context: Context) : ExecutableService {
                 })
             }
 
-            return Built(backupJson, images - missingImages.toSet(), missingImages.size)
+            return Built(backupJson, images - missingImages.toSet(), missingImages.map { it.id }.toSet())
     }
 
     /** [built] written to [output] as a backup zip, closed after; false when [token] stopped it midway. */

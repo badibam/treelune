@@ -173,6 +173,8 @@ private fun transformTrackingConfig(json: JSONObject, version: Int): JSONObject 
 
 **The file**: a zip, `backup.json` (the tables, below) and `images/<id>.jpg`, the images attached to messages copied file by file, never in the JSON. `BackupService` writes and reads the chosen file itself (its `uri`). An image whose file is missing is an error the backup copies as it is: the export goes ahead anyway, its row without a file, named in `missing_images`, and says so; the import accepts a row without a file that it names, and refuses any other, the sign of a damaged backup. The import also accepts the old `.json` alone; it lays the zip's images apart (`files/attachments.import/`), and replaces the images' folder in the same move as the tables.
 
+**A part of the app** (`docs/design/share.md`): the same file cut down to what is ticked (`BackupPart`, `PartSelection`: zones, and in them tools, each with its entries or not, variables, routines), `"partial": true` in its metadata. It never holds the settings, the AI providers, the identities (a zone's set to none), the conversations or the files joined to them; a routine keeps its seed session and its message, without its provider, identity or runs. `backup.export` given a `selection` writes it into the app's folder (`AppFolder`, the CSV export's too), named after its zone when it holds one, `treelune_share` otherwise, and the minute.
+
 **Metadata in `backup.json`**:
 ```json
 {

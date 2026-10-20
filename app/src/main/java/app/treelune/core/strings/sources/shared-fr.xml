@@ -1497,6 +1497,9 @@
     <string name="export_error_read">Les entrées n\'ont pas pu être lues.</string>
     <string name="export_error_write">Le fichier %1$s n\'a pas pu être écrit dans le dossier de l\'app.</string>
     <string name="export_error_file_name">Le nom de l\'outil, « %1$s », ne peut pas nommer un fichier : renomme l\'outil pour exporter ses entrées.</string>
+    <string name="share_file_name">treelune_partage</string>
+    <string name="share_error_selection">Ce qui est coché ne se lit pas : %1$s</string>
+    <string name="share_error_file_name">Le nom de la zone, « %1$s », ne peut pas nommer un fichier : renomme la zone pour la partager.</string>
     <string name="action_verbalize_exports_csv">Export des entrées</string>
     <string name="action_verbalize_exports_csv_tool">Export des entrées de « %1$s »</string>
     <string name="import_action">Importer un fichier</string>
