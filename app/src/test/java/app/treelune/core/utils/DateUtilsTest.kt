@@ -230,4 +230,21 @@ class DateUtilsTest {
         assertEquals(Pair(0, 0), DateUtils.parseTime("00:00", paris))
         assertEquals(Pair(23, 59), DateUtils.parseTime("23:59", paris))
     }
+
+    @Test
+    fun `a day written for the display reads back as the same day, without a zone`() {
+        assertEquals(LocalDate.of(2026, 10, 14), DateUtils.parseDisplayDate("14/10/2026"))
+        assertEquals("14/10/2026", DateUtils.formatDisplayDate(LocalDate.of(2026, 10, 14)))
+        assertNull(DateUtils.parseDisplayDate(""))
+        assertNull(DateUtils.parseDisplayDate("2026-10-14"))
+    }
+
+    @Test
+    fun `the day a Material picker hands back is its UTC day, west of UTC too`() {
+        val day = LocalDate.of(2026, 10, 14)
+        val millis = DateUtils.pickerMillisOf(day)
+        assertEquals(day, DateUtils.dateOfPickerMillis(millis))
+        // Read in New York, the same midnight UTC is the evening before: the day is not read there
+        assertEquals(LocalDate.of(2026, 10, 13), java.time.Instant.ofEpochMilli(millis).atZone(ZoneId.of("America/New_York")).toLocalDate())
+    }
 }

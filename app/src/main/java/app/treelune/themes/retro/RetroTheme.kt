@@ -121,12 +121,10 @@ import app.treelune.core.utils.AppConfigManager
 import app.treelune.core.utils.DateUtils
 import kotlinx.coroutines.delay
 import java.time.DayOfWeek
-import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZonedDateTime
 import java.time.format.TextStyle as DateTextStyle
-import java.time.temporal.WeekFields
 import java.util.Locale
 import kotlin.math.roundToInt
 import androidx.compose.foundation.border
@@ -569,8 +567,7 @@ object RetroTheme : ThemeContract {
     override fun DatePicker(selectedDate: String, onDateSelected: (String) -> Unit, onDismiss: () -> Unit) {
         val zone = AppConfigManager.getDateTimeConfig().getZoneId()
         // "" means nothing chosen yet, and the picker opens on today by contract
-        val initial = (DateUtils.parseDateForFilter(selectedDate) ?: System.currentTimeMillis())
-            .let { Instant.ofEpochMilli(it).atZone(zone).toLocalDate() }
+        val initial = DateUtils.parseDisplayDate(selectedDate) ?: LocalDate.now(zone)
         var chosen by remember { mutableStateOf(initial) }
         var month by remember { mutableStateOf(YearMonth.from(initial)) }
         val today = LocalDate.now(zone)
@@ -582,7 +579,7 @@ object RetroTheme : ThemeContract {
         DialogFrame(onDismiss = onDismiss, actions = {
             WordButton(s.shared("action_cancel"), onDismiss)
             WordButton(s.shared("action_ok"), {
-                onDateSelected(DateUtils.formatDateForDisplay(chosen.atStartOfDay(zone).toInstant().toEpochMilli()))
+                onDateSelected(DateUtils.formatDisplayDate(chosen))
                 onDismiss()
             }, strong = true)
         }) {
@@ -596,7 +593,7 @@ object RetroTheme : ThemeContract {
             BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
                 // Seven columns of whole cells, as wide as the frame allows
                 val per = (constraints.maxWidth / grid.cellPx / 7).coerceAtLeast(2)
-                val first = WeekFields.of(locale).firstDayOfWeek
+                val first = DateUtils.weekStart()
                 val days = (0 until 7).map { first.plus(it.toLong()) }
                 Column {
                     Row { days.forEach { day -> DayCell(per) { Line(day.getDisplayName(DateTextStyle.NARROW_STANDALONE, locale), grid.thin, panel.dim.srgb) } } }

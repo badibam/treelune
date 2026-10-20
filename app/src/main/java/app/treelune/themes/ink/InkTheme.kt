@@ -127,12 +127,10 @@ import app.treelune.core.ui.sound.scrollEndSound
 import app.treelune.core.utils.AppConfigManager
 import app.treelune.core.utils.DateUtils
 import kotlinx.coroutines.delay
-import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZonedDateTime
 import java.time.format.TextStyle as DateTextStyle
-import java.time.temporal.WeekFields
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -554,8 +552,7 @@ object InkTheme : ThemeContract {
     override fun DatePicker(selectedDate: String, onDateSelected: (String) -> Unit, onDismiss: () -> Unit) {
         val zone = AppConfigManager.getDateTimeConfig().getZoneId()
         // "" means nothing chosen yet, and the picker opens on today by contract
-        val initial = (DateUtils.parseDateForFilter(selectedDate) ?: System.currentTimeMillis())
-            .let { Instant.ofEpochMilli(it).atZone(zone).toLocalDate() }
+        val initial = DateUtils.parseDisplayDate(selectedDate) ?: LocalDate.now(zone)
         var chosen by remember { mutableStateOf(initial) }
         var month by remember { mutableStateOf(YearMonth.from(initial)) }
         val today = LocalDate.now(zone)
@@ -567,7 +564,7 @@ object InkTheme : ThemeContract {
         DialogFrame(onDismiss = onDismiss, actions = {
             WordButton(s.shared("action_cancel"), onDismiss)
             WordButton(s.shared("action_ok"), {
-                onDateSelected(DateUtils.formatDateForDisplay(chosen.atStartOfDay(zone).toInstant().toEpochMilli()))
+                onDateSelected(DateUtils.formatDisplayDate(chosen))
                 onDismiss()
             }, strong = true)
         }) {
@@ -580,7 +577,7 @@ object InkTheme : ThemeContract {
                 }
                 PlainIconButton("chevron-right") { month = month.plusMonths(1) }
             }
-            val first = WeekFields.of(locale).firstDayOfWeek
+            val first = DateUtils.weekStart()
             val days = (0 until 7).map { first.plus(it.toLong()) }
             Column {
                 Row(modifier = Modifier.fillMaxWidth()) {

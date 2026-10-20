@@ -65,6 +65,25 @@ object DateUtils {
         return fullDateTimeFormatter.format(zonedDateTime)
     }
 
+    /** A day as the display writes days (dd/MM/yyyy); null when [text] is not one. */
+    fun parseDisplayDate(text: String): LocalDate? = try {
+        LocalDate.parse(text, displayDateFormatter)
+    } catch (e: DateTimeParseException) {
+        null
+    }
+
+    /** [date] as the display writes days (dd/MM/yyyy). */
+    fun formatDisplayDate(date: LocalDate): String = displayDateFormatter.format(date)
+
+    /** The first day of the week the user set. */
+    fun weekStart(): DayOfWeek = DayOfWeek.valueOf(AppConfigManager.getWeekStartDay().uppercase())
+
+    /** The day a date picker of Material hands back: midnight UTC of that day, by its convention. */
+    fun dateOfPickerMillis(millis: Long): LocalDate = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
+
+    /** [date] as a date picker of Material takes it: midnight UTC of that day. */
+    fun pickerMillisOf(date: LocalDate): Long = date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+
     /**
      * Parse date string back to timestamp for filtering (dd/MM/yyyy)
      *
@@ -165,11 +184,7 @@ object DateUtils {
      * @return that moment, or null if either string cannot be read
      */
     fun combineDateTime(dateString: String, timeString: String, zone: ZoneId = getConfiguredZone()): Long? {
-        val localDate = try {
-            LocalDate.parse(dateString, displayDateFormatter)
-        } catch (e: DateTimeParseException) {
-            return null
-        }
+        val localDate = parseDisplayDate(dateString) ?: return null
         val (hour, minute) = parseTime(timeString, zone) ?: return null
         val localDateTime = localDate.atTime(hour, minute, 0, 0)
         return localDateTime.atZone(zone).toInstant().toEpochMilli()

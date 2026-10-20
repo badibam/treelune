@@ -24,7 +24,6 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.ui.text.input.TextFieldValue
@@ -1561,15 +1560,23 @@ object DefaultTheme : ThemeContract {
     ) {
         // Which day the picker opens on. Callers pass "" to mean nothing is chosen yet, so
         // that case opens on today by contract, not as a fallback hiding a failure.
-        val selectedDateMs = DateUtils.parseDateForFilter(selectedDate) ?: System.currentTimeMillis()
-        val timezone = AppConfigManager.getDateTimeConfig().getZoneId()
-        val offsetMs = timezone.rules.getOffset(java.time.Instant.ofEpochMilli(selectedDateMs)).totalSeconds * 1000L
-        val utcDate = selectedDateMs + offsetMs
-        
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = utcDate,
-            initialDisplayMode = androidx.compose.material3.DisplayMode.Picker
-        )
+        val initial = DateUtils.parseDisplayDate(selectedDate)
+            ?: java.time.LocalDate.now(AppConfigManager.getDateTimeConfig().getZoneId())
+        // Material counts its days in midnights UTC, and takes the first day of a week from its
+        // locale's week data: the phone's language, given the week's first day the user set
+        // through the locale's "fw" keyword (to check on the phone: Android reads it through ICU)
+        val language = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+        val locale = remember(language) {
+            java.util.Locale.Builder().setLocale(language)
+                .setUnicodeLocaleKeyword("fw", DateUtils.weekStart().name.lowercase().take(3)).build()
+        }
+        val datePickerState = remember(locale) {
+            androidx.compose.material3.DatePickerState(
+                locale = locale,
+                initialSelectedDateMillis = DateUtils.pickerMillisOf(initial),
+                initialDisplayMode = androidx.compose.material3.DisplayMode.Picker
+            )
+        }
         
         DatePickerDialog(
             onDismissRequest = onDismiss,
@@ -1577,7 +1584,7 @@ object DefaultTheme : ThemeContract {
                 androidx.compose.material3.TextButton(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
-                            onDateSelected(DateUtils.formatDateForDisplay(millis))
+                            onDateSelected(DateUtils.formatDisplayDate(DateUtils.dateOfPickerMillis(millis)))
                         }
                         onDismiss()
                     },
