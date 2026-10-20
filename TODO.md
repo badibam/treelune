@@ -79,7 +79,6 @@ Codé, jamais vu sur l'appareil ; le détail est dans la recette, `docs/design/d
 ## Décidé, à coder
 
 - L'historique des écritures et leur annulation (`docs/design/undo-history.md`).
-- `docs/` en anglais ; `docs/design/` et `TODO.md` restent en français.
 
 ## À concevoir
 
