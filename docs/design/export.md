@@ -9,7 +9,7 @@ Conçu le 2026-10-05. Sortir les entrées d'un outil qui passent un filtre, dans
 
 ## Le format
 
-Un CSV au format fixe, le même quelle que soit la langue du téléphone (RFC 4180, UTF-8), sauf les noms de ses colonnes, écrits pour la personne qui le lit. Un tableur réglé à la virgule décimale l'ouvre par son dialogue d'import, pas d'un double-clic : c'est le prix d'un fichier identique partout.
+Un CSV au format fixe, le même quelle que soit la langue du téléphone (RFC 4180, UTF-8 précédé de sa marque d'ordre des octets, pour qu'un tableur ouvert d'un double-clic lise les accents), sauf les noms de ses colonnes, écrits pour la personne qui le lit. Un tableur réglé à la virgule décimale l'ouvre par son dialogue d'import, pas d'un double-clic : c'est le prix d'un fichier identique partout.
 
 | Type | Écriture |
 |---|---|

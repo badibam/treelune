@@ -72,6 +72,12 @@ object EntriesCsv {
             entries.forEach { entry -> line(columns.flatMap { cells(it, valueAt(entry, it.path), names, zone, text) }) }
         }
 
+    /**
+     * The file's bytes: UTF-8 after its byte order mark, without which a spreadsheet opening the
+     * file by a double tap reads its accents in the computer's own encoding.
+     */
+    fun bytes(csv: String): ByteArray = ("\uFEFF" + csv).toByteArray(Charsets.UTF_8)
+
     private fun StringBuilder.line(cells: List<String>) {
         append(cells.joinToString(",") { quoted(it) })
         append("\r\n")

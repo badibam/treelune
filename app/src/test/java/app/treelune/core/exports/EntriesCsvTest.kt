@@ -99,6 +99,13 @@ class EntriesCsvTest {
     }
 
     @Test
+    fun `the file is UTF-8 after its byte order mark`() {
+        val bytes = EntriesCsv.bytes("Nom\r\nCafé\r\n")
+        assertEquals(listOf(0xEF, 0xBB, 0xBF), bytes.take(3).map { it.toInt() and 0xFF })
+        assertEquals("Nom\r\nCafé\r\n", String(bytes.drop(3).toByteArray(), Charsets.UTF_8))
+    }
+
+    @Test
     fun `a cell is quoted only when it holds a comma, a quote or a line break`() {
         assertEquals("riz", EntriesCsv.quoted("riz"))
         assertEquals("\"riz, cuit\"", EntriesCsv.quoted("riz, cuit"))

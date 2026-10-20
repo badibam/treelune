@@ -143,7 +143,7 @@ class ExportService(private val context: Context) : ExecutableService {
         val part = DocumentsContract.createDocument(resolver, parent, "application/octet-stream", "$name.part")
             ?: throw IllegalStateException("$name.part not created")
         try {
-            (resolver.openOutputStream(part) ?: throw IllegalStateException("$name.part not opened")).use { it.write(csv.toByteArray(Charsets.UTF_8)) }
+            (resolver.openOutputStream(part) ?: throw IllegalStateException("$name.part not opened")).use { it.write(EntriesCsv.bytes(csv)) }
             val done = DocumentsContract.renameDocument(resolver, part, name) ?: throw IllegalStateException("$name.part not renamed")
             return done to name
         } catch (e: Exception) {
