@@ -1484,6 +1484,11 @@
     <string name="action_verbalize_imports_detect">Reading a file to import</string>
     <string name="action_verbalize_imports_apply">Importing a file</string>
     <string name="action_verbalize_imports_apply_file">Import of « %1$s » (%2$d lines) into %3$s</string>
+    <string name="export_csv_title">Export the entries</string>
+    <string name="export_csv_all_entries">No period: every entry goes in the file.</string>
+    <string name="export_csv_written">The file %1$s is written in the app\'s folder.</string>
+    <string name="export_csv_entries">%1$d entry/entries</string>
+    <string name="export_csv_share">Share</string>
     <string name="export_csv_range_start">%1$s (start)</string>
     <string name="export_csv_range_end">%1$s (end)</string>
     <string name="export_error_no_folder">No folder is chosen for the app: choose one in Settings › Data to write the file there.</string>
@@ -1649,6 +1654,7 @@
     <string name="migration_kept_name">%1$s (before %2$s)</string>
     <string name="migration_fill_title">Values needed</string>
     <string name="migration_fill_message">%1$d entr(ies) have no value for %2$s, which this change makes required. Give the value they take, or cancel.</string>
+    <string name="tools_config_export_entries">Export the entries…</string>
     <string name="tools_config_new_tool">New tool</string>
     <string name="tools_config_error_not_found">Tool not found</string>
     <string name="service_error_migration_unconfirmed">This change removes %1$d value(s) from this tool\'s entries, deletes %2$d entry(ies) left without a required value, and reads %3$d kept value(s) differently (new bounds, order). Tell the user, and send it again with "confirm_migration": true once they agree.</string>

@@ -515,3 +515,12 @@ Vu le 2026-10-20 sur la démo : la tuile et la page de Ripasso ; la lecture du p
 - Le sélecteur de période (Jour, Semaine, Mois) : toucher la date, choisir le 14, un lundi, le 1er : la période montrée est celle du jour choisi, jamais la veille, la semaine ou le mois d'avant.
 - La nuit, avant 4 h : le sélecteur de date d'un champ DATE et celui d'une période marquent la veille comme aujourd'hui et s'ouvrent dessus ; celui d'une date et heure, et de la date d'une entrée du Journal, marque le jour du calendrier ; dans le thème par défaut, Material marque toujours le jour du calendrier, seule l'ouverture suit ; « aujourd'hui » choisi dans un champ DATE donne la veille.
 - Le sélecteur de date de chaque thème avec « La semaine commence » le dimanche : la grille commence le dimanche ; dans le thème par défaut (le sélecteur de Material), si elle commence encore le lundi, Android ne lit pas la marque `fw` de la langue — le dire ; la date choisie est celle touchée, le fuseau de l'app réglé sur New York aussi.
+
+## L'export des entrées (branche post-release, `docs/design/export.md`)
+
+- Config de Repas (démo) › « Exporter les entrées… », sans période ni filtre : la fenêtre dit le nom du fichier et le nombre d'entrées ; le fichier est dans le dossier de l'app (app Fichiers), son nom `Repas_<date>_<heure>.csv`. Ouvert dans un tableur par son dialogue d'import (virgule, UTF-8) : la première ligne en libellés (« Nom », « Date »…), les accents justes, une ligne par entrée, l'aliment par son nom.
+- Le même export deux fois dans la minute : le second fichier prend `_2`, le premier reste.
+- Une période (cette semaine) et un filtre : le nombre d'entrées suit ; des champs gardés : seules leurs colonnes.
+- « Partager » ouvre le menu d'Android ; le fichier joint à un mail arrive entier.
+- Sans dossier choisi (Réglages › Données), ou son droit retiré : l'export est refusé en disant d'aller le choisir.
+- Un outil en création n'a pas le bouton ; une sous-page de la config non plus.

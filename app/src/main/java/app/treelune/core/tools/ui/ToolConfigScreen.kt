@@ -85,6 +85,7 @@ fun ToolConfigScreen(
     // The config as it was before any change, and whether leaving with changes is being asked
     var asLoaded by rememberSaveable { mutableStateOf<String?>(null) }
     var leaving by rememberSaveable { mutableStateOf(false) }
+    var exporting by rememberSaveable { mutableStateOf(false) }
 
     val configLoad = rememberLoadOnce(existingToolId) {
         if (existingToolId == null) return@rememberLoadOnce true
@@ -214,7 +215,13 @@ fun ToolConfigScreen(
             },
             saveEnabled = !isSaving && configLoad == LoadState.LOADED
         )
+        // Acts on the tool's entries, not its config: a tool being created has none
+        if (pages.atRoot && existingToolId != null) UI.Button(type = ButtonType.SECONDARY, onClick = { exporting = true }) {
+            UI.Text(s.shared("tools_config_export_entries"), TextType.LABEL)
+        }
     }
+
+    if (exporting && existingToolId != null) app.treelune.core.ui.exports.EntriesExportDialog(existingToolId) { exporting = false }
 
     if (leaving) UI.Dialog(
         type = app.treelune.core.ui.DialogType.CONFIRM,

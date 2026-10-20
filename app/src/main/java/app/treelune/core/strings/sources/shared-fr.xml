@@ -1484,6 +1484,11 @@
     <string name="action_verbalize_imports_detect">Lecture d\'un fichier à importer</string>
     <string name="action_verbalize_imports_apply">Import d\'un fichier</string>
     <string name="action_verbalize_imports_apply_file">Import de « %1$s » (%2$d lignes) dans %3$s</string>
+    <string name="export_csv_title">Exporter les entrées</string>
+    <string name="export_csv_all_entries">Sans période, toutes les entrées vont dans le fichier.</string>
+    <string name="export_csv_written">Le fichier %1$s est écrit dans le dossier de l\'app.</string>
+    <string name="export_csv_entries">%1$d entrée(s)</string>
+    <string name="export_csv_share">Partager</string>
     <string name="export_csv_range_start">%1$s (début)</string>
     <string name="export_csv_range_end">%1$s (fin)</string>
     <string name="export_error_no_folder">Aucun dossier n\'est choisi pour l\'app : choisis-en un dans Réglages › Données pour y écrire le fichier.</string>
@@ -1649,6 +1654,7 @@
     <string name="migration_kept_name">%1$s (avant le %2$s)</string>
     <string name="migration_fill_title">Valeurs à donner</string>
     <string name="migration_fill_message">%1$d entrée(s) n\'ont pas de valeur pour %2$s, que cette modification rend obligatoire. Donne la valeur qu\'elles prennent, ou annule.</string>
+    <string name="tools_config_export_entries">Exporter les entrées…</string>
     <string name="tools_config_new_tool">Nouvel outil</string>
     <string name="tools_config_error_not_found">Outil introuvable</string>
     <string name="service_error_migration_unconfirmed">Cette modification retire %1$d valeur(s) des entrées de cet outil, supprime %2$d entrée(s) restée(s) sans valeur obligatoire et relit autrement %3$d valeur(s) gardée(s) (nouvelles bornes, ordre). Dis-le à l\'utilisateur, et renvoie-la avec "confirm_migration": true une fois qu\'il est d\'accord.</string>
