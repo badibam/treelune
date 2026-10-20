@@ -254,7 +254,10 @@ object AppSettings {
             )
             AppSettingCategories.DEMO -> listOf(
                 field(app.treelune.core.demo.DemoStartup.INSTALL_ON_UPDATE, text("settings_demo_install_on_update"),
-                    text("settings_demo_install_on_update_help"), FieldType.BOOLEAN, required = true)
+                    text("settings_demo_install_on_update_help"), FieldType.BOOLEAN, required = true),
+                // Absent from the settings stored before it: on
+                SettingNode.Field(FieldDefinition(app.treelune.core.demo.DemoNotifications.SETTING, text("settings_demo_notifications"),
+                    text("settings_demo_notifications_help"), FieldType.BOOLEAN, false, null), default = true)
             )
             AppSettingCategories.UI -> {
                 val themes = app.treelune.core.themes.CurrentTheme.getAvailableThemes()

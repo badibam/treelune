@@ -107,6 +107,11 @@ class NotificationService(private val context: Context) : ExecutableService {
             val place = params.optString("place").takeIf { it.isNotEmpty() }
             // The entry it is about, opened in that tool rather than the oldest that waits
             val entryId = params.optString("entry_id").takeIf { it.isNotEmpty() && toolInstanceId != null }
+            // The demo's, while its notifications are off: not shown, what sends it goes on
+            if (app.treelune.core.demo.DemoNotifications.silenced(context, toolInstanceId, place)) {
+                LogManager.service("NotificationService.send: '$title' of the demo not shown, its notifications are off", "INFO")
+                return OperationResult.success(mapOf("shown" to false))
+            }
             val iconName = params.optString("icon_name").ifEmpty { APP_ICON }
             val icon = Icons.lucideDrawable(context, iconName)
             if (icon == null) {
