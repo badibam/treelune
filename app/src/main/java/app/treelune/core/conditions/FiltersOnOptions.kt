@@ -10,8 +10,8 @@ import org.json.JSONObject
  * The filters a config change leaves aiming at nothing: an option taken out of a CHOICE field,
  * or renamed (its value changes, so the former one goes), that a filter of another tool compares
  * the field with ("moment = lunch" once "lunch" is gone). Such a filter finds no entry and says
- * nothing; the change's confirmation names the tools that hold one (docs/DATA.md, « Changement de
- * config »).
+ * nothing; the change's confirmation names the tools that hold one (docs/DATA.md, « Config
+ * change »).
  *
  * A field taken out entirely is not counted: the filter naming it is refused when read
  * (EntryFilters), which shows.

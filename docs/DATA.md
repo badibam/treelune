@@ -1,107 +1,107 @@
-# Gestion des Données
+# Data management
 
-Guide technique pour la navigation, validation et manipulation des données dans l'architecture Treelune.
-
-##
-## Navigation Hiérarchique
-
-### La navigation vers une chose
-
-Un seul chemin mène à une chose de l'app, pour le pointeur comme pour un champ RÉFÉRENCE : `ThingBrowser`, le fil d'Ariane App › zone › outil › entrée (`ThingPath`), chaque étape un retour, et les lieux un niveau plus bas, parmi ceux qui mènent à ce que la cible accepte (`ReferenceTarget`). Il les lit par `references.choices` : à l'app, les zones — ou, quand seules les entrées de certains outils sont acceptées, ces outils directement ; dans une zone, ses outils ; dans un outil, ses entrées, cherchées par leur libellé. Le navigateur ne fait que déplacer le chemin ; ce que vaut le lieu atteint appartient à qui l'utilise.
-
-### Le pointeur
-
-Un bloc POINTER d'un message porte une sélection du cœur (`EntrySelection` : une référence, jamais un nom, sa période, ses filtres, ses champs) et dit ce qui part avec le message (`PointerConfig`, `{"selection", "attach"}`) : la config, les entrées, ou rien (une mention). Pour un outil, une période, des filtres par valeur et un choix de champs restreignent ses entrées, jointes ou seulement mentionnées ; une mention d'entrées restreintes donne à l'IA la requête qui les lit. À l'envoi, `EnrichmentProcessor` en tire des requêtes `tool_data.get` ordinaires ; la période d'une automation est relative, recalculée à chaque exécution. L'écran est `PointerSelector` : le navigateur (zone ou outil), les cases et ce qui restreint les entrées, et la phrase qui dit ce qui partira.
+Technical guide to navigating, validating and handling data in the Treelune architecture.
 
 ##
-## Champs et entrées
+## Hierarchical navigation
 
-Toute valeur de l'app est un champ d'un type de champ (`core/fields`, `FieldType`) : ce qu'on saisit dans une entrée, l'état qu'y écrivent l'app et ses actions, un réglage, une question de l'IA. Le type de champ porte la forme de la valeur, ses contraintes, son schéma, sa saisie (`FieldInput`), son affichage (`FieldValue`, partout où une valeur se montre) et sa description pour l'IA ; un outil ne porte que ses façons rapides de créer une entrée et ses calculs sur plusieurs entrées.
+### Navigating to a thing
 
-- **Rangement par auteur** : `name` et `timestamp`, déclarés par le core, vivent en colonnes ; les champs du type d'outil dans `data` ; ceux de l'utilisateur dans `extra` ; l'état dans `state`. Deux auteurs qui font évoluer leurs champs chacun de son côté ne partagent jamais un objet. `id`, `tool_instance_id`, `tooltype` servent à retrouver l'entrée et ne sont pas des champs.
-- **Usage de `name` et `timestamp`** : chaque type d'outil les déclare obligatoires, facultatifs ou absents, au besoin selon la config (une note n'a de nom, son titre, que si sa config le demande) ; absent, rien ne les montre et le schéma refuse une valeur. En modification, un `name` envoyé à null efface le nom, comme une clé de `data`, `extra` ou `state`. À la création, et pour un objet écrit en entier (une config, des réglages), une clé à null est une valeur non donnée : l'écriture la retire avant de valider et d'enregistrer (`JsonNulls`), et le validateur vérifie ce qu'on lui donne, rien de moins — ce qu'il vérifie est ce qui s'enregistre. Les éléments d'une liste restent tels qu'envoyés.
-- **État** : décrit par des champs pour ses libellés et ses filtres, jamais saisi. Un type d'outil dont les entrées vivent par un statut déclare comment elles commencent (`EntryStart`, dans `EntryFields`) : qui crée une entrée, un écran, l'IA, un client MCP, donne son statut seul parmi ceux déclarés, et le type d'outil pose le reste de l'état (`EntryStart.decide`, appelé par `ToolDataService`) ; ce que l'app écrit elle-même (un programmateur, l'opération de l'outil, la démo) garde l'état qu'elle donne ; une entrée sans statut est refusée, d'où qu'elle vienne. Messages commence « à envoyer » (posée à la main), Questionnaire « à remplir » ou « rempli » ; Objectif et Séance refusent toute autre création, leurs tentatives et séances étant faites par l'outil ; Flashcards aussi, dont les révisions n'ont pas de statut (`withStatus` faux) : l'app seule les écrit, avec l'état qu'elle donne. Ensuite, le statut n'avance que par les opérations de l'outil et par l'app : une modification venue d'ailleurs qui le change est refusée (`EntryStart.changesStatus`), le reste de l'état (lu, archivé) restant modifiable. Un champ DURÉE peut être « en cours » : `start_duration` écrit l'instant dans `state.running.<data|extra>.<champ>`, `stop_duration` ajoute le temps écoulé à la valeur. La vérité est en base, un chronomètre survit à l'app tuée.
-- **Valeur par défaut** : une suggestion, appliquée par qui agit — le formulaire la préremplit, une action rapide l'applique, l'IA la lit dans le schéma. Une définition de champ la porte (`default_value`, tous les types sauf DATE, DATETIME, RÉFÉRENCE et IMAGE), vérifiée contre le champ lui-même par `FieldConfigValidator` ; la config la saisit avec l'input du champ en cours de définition (`SettingNode.Field.valueOfDefined`). Elle préremplit une nouvelle entrée (`CustomFieldsInput` avec `newEntry`), un raccourci touché d'un suivi, un module de communication, et la valeur demandée par une migration. Le service n'écrit jamais une valeur qu'on ne lui a pas donnée : un champ absent veut dire « pas de réponse », et la saisie le montre ainsi (oui/non sans bouton choisi, curseur sans poignée, cases vides).
-- **Affichage des champs de l'utilisateur** : un seul composant, `CustomFieldsDisplay`, que tout outil utilise. Il montre les champs qui ont une valeur et ceux réglés « Toujours afficher » (« Aucune valeur » s'ils sont vides), avec leur nom sauf si la config dit `show_field_labels: false` — un réglage commun à tous les champs d'une config, dont la valeur par défaut vient du type d'outil (`getDefaultShowFieldLabels`). L'écran choisit la disposition selon sa place : `EXPANDED` (chaque champ en bloc, le nom en grand au-dessus), `LINE` (un champ par ligne, le nom en grand puis la valeur sur le reste de la ligne) ou `COMPACT` (un par ligne, « Nom : valeur » avec le nom en petit, une valeur longue revenant à la ligne sur toute la largeur).
-- **Copie de la config dans une entrée** : un fait quand l'entrée doit continuer de dire ce qu'elle disait (l'unité d'un suivi numérique, le titre d'un message envoyé) ; sinon une dérivation, calculée à la lecture et jamais stockée.
-- **CHOICE** : ses options sont des groupes `{value, label, color}`, une couleur de la palette du thème faisant une pastille. Multiple, ordonné (un classement, saisi par glisser-déposer) ou ouvert : une valeur nouvelle rejoint les options dans la transaction qui écrit l'entrée — celles d'un champ de l'utilisateur dans `extra_fields`, celles d'un champ du type d'outil là où sa config les garde (`configWithOptionsAdded`) ; l'écran de l'outil relit alors sa config.
-- **Unité** : l'unité fixe (`unit`, « km ») n'est pas un réglage de la valeur mais un réglage à part (`FieldTypeSettings.unit`), que porte un nombre ou une plage de l'utilisateur quand toutes ses valeurs la partagent. Un suivi numérique n'en a pas : chaque entrée porte la sienne (`data.unit`), un choix ouvert sur la liste `units`.
-- **DURÉE** : des millisecondes ; la précision et la forme de la config ne décident que de la saisie et de l'affichage.
-- **RÉFÉRENCE** : une autre chose de l'app par sa sorte et son id, `{"kind": "ENTRY", "id": …}` (`Reference`, sans id pour l'app), jamais par son nom. La config dit ce qu'elle accepte, `target: {kinds, tool_instances?}` (`ReferenceTarget`), les outils restreignant une entrée aux leurs ; chacun est lui-même une RÉFÉRENCE à une instance d'outil. Le nom se lit à l'affichage par le service du cœur `references` (`names`), l'écran comme l'IA, qui la reçoit avec `name` ou `"deleted": true` et la renvoie sans (`ModelValues`) ; une cible supprimée garde son adresse. La saisie (`ReferencePicker`) passe par le navigateur et se confirme quand le lieu atteint est d'une sorte acceptée ; restreinte aux entrées d'un seul outil, elle s'ouvre dans cet outil. À l'écriture, `ToolDataService` vérifie qu'une valeur nouvelle ou changée désigne une chose qui existe, et pour une entrée un outil accepté ; restreindre la cible retire les valeurs qui n'y entrent plus, sous `confirm_migration` (`FieldChange.ReferenceTargetNarrowed`). Un filtre la compare par l'id qu'elle porte (`=`, `absent`, `present`).
-- **IMAGE** (`docs/design/image-field.md`) : toujours une liste ordonnée d'ids d'images, même pour une seule ; `max` en borne le nombre (sans limite par défaut). Chaque id nomme une ligne de la table `images` (`ImageEntity`), commune aux images des messages et des entrées, dont l'entrée est propriétaire ; le fichier, dans son format gardé (JPEG ou PNG), vit dans `files/attachments/entries/`. La saisie (`ImageInput`) prépare une photo à l'ajout (`files.prepare_image`, un fichier sans ligne dans `attachments/pending/`) ; à l'écriture, `ToolDataService` compare les ids du champ aux images de l'entrée (`EntryImages`) : une image préparée devient la sienne, celle d'un autre propriétaire (une photo de la conversation, une autre entrée) est copiée sous un id neuf écrit à sa place, une image retirée est supprimée, un id inconnu refuse l'écriture. Une entrée qui disparaît emporte ses lignes par cascade, ses fichiers au ménage du démarrage (INFO), qui retire aussi les images que leur entrée ne nomme plus (un champ retiré). Un filtre ne connaît que `absent` et `present` ; un Graphique ne la dessine pas, une lecture du cœur ne la réduit pas. L'IA lit chaque id avec sa taille, jamais l'image (`ModelValues.withImageSizes`), et demande les images par `IMAGES`.
-- **Lire des entrées filtrées** : `tool_data.get` prend des `filters`, des conditions posées à chaque entrée (`Conditions`, `{"left": {"field"}, "op", "right": {"constant"}}`, une paire de constantes pour `between`), qui doivent toutes être vraies. Le champ est un chemin du schéma (`timestamp`, `data.x`, `extra.x`, une clé d'état filtrable) ; les conditions dépendent de son type (`EntryFilters.operatorsFor`, pas de `=` sur un instant), et `absent` / `present`, sans `right`, disent s'il a une réponse. Un filtre ne compare qu'à des valeurs écrites : une variable ou une lecture se lit d'abord. Une période y arrive en filtres sur `timestamp`. Une date écrite d'un filtre ou une borne de période est fixe (sa forme stockée) ou relative, un objet qui dit son bord (`{"relative": {"unit": "DAY", "offset": -1, "edge": "START"}}`, `{"relative": "NOW"}`, `TimePoint`), résolu par `TimeResolver` sur la référence du contexte ; l'opérateur ne choisit jamais de bord. Les filtres s'exécutent en SQL (`json_extract`), donc une page et son décompte sont ceux des entrées filtrées.
-- **Lecture du cœur** : `readings.read` tire une valeur des entrées d'une seule instance d'outil — une `selection` (sa période et ses filtres, les dates relatives résolues sur la `reference` que donne le lecteur, en millisecondes), un `field` (absent pour compter) et une `reduction` permise par son type (`Reduction.forType` : dernière, somme, moyenne, min, max pour un nombre ou une durée ; dernière, la plus tôt, la plus tard pour une date ou une heure ; compte sans champ). Le résultat garde le type et les réglages de sa source, le compte est un nombre entier (`FieldReading`). Sans entrée, somme et compte valent 0 et le reste échoue ; une entrée sans réponse au champ fait échouer, en la nommant — le filtre `present` l'écarte si c'est ce qu'on veut dire ; une source supprimée échoue aussi. Un échec est une réponse (`failure` : raison, champ, entrées, texte), dont chaque lecteur décide. Une DURÉE en cours compte jusqu'à l'instant lu : sa valeur enregistrée plus le temps de son chronomètre. Avec `at` à la place de `reference`, la lecture se fait à plusieurs instants (une grille de Graphique, un pas chacun) et rend `values`, une valeur ou un échec par instant : sans date relative dans les filtres, une seule lecture des entrées les sert tous, chaque instant gardant celles de sa période (`EntrySelection.filtersMove`).
-- **Variables** : une valeur nommée que tout lecteur lit, sans type d'outil entre eux (`core/variables`, table `variables`, service `variables`). Elle vit dans une zone (supprimée avec elle, rangée dans un groupe comme une automation) et lit n'importe quelle zone ; son nom est unique dans l'app et s'écrit dans une formule. Une constante (`{"kind": "CONSTANT", "value", "field"}`) ou une formule (`{"kind": "FORMULA", "formula", "terms", "field"}`) : le texte (`Formula`, `+ - × ÷`, parenthèses, `hours()`, `minutes()`, `seconds()`, noms anglais stockés et écrits par l'IA, montrés et acceptés à l'écran dans la langue de l'app) porte sur les noms de ses termes — une lecture du cœur sans test, éventuellement une formule par entrée qui lit à travers une RÉFÉRENCE (`quantité × aliment.kcal_100g / 100`), une constante, une autre variable — et sur d'autres variables nommées directement, enregistrées par leur id (`{var:ID}`) et montrées sous leur nom actuel. Le champ (NUMERIC, SCALE ou DURÉE) se déduit de ce qu'elle lit s'il n'est pas donné (`FormulaType`). Le service refuse un nom pris ou illisible, un nom inconnu dans la formule, un terme illisible, une boucle (en nommant le chemin). Rien n'est enregistré de la valeur : `variables.evaluate` (ou `readings.read` avec `variable` et `at`) la calcule à chaque instant demandé (`VariableEvaluator`), chaque période relative à cet instant ; un terme en échec, une division par zéro, une variable supprimée font échouer, avec leurs causes.
-- **Import** : le service du cœur `imports`, pour tout outil, lit des lignes de valeurs texte nommées par leur colonne (un CSV : `CsvReader`, séparateur `,` `;` ou tabulation), donné en texte ou par l'id d'un fichier joint à un message (service `files`, table `attached_files`) — ce par quoi l'IA importe, avec `IMPORT_PLAN` et `IMPORT_DATA`, sans lire les lignes. Chaque type de champ porte la liste fermée et nommée de ses écritures (`Writing` : décimale point ou virgule, jour/mois/année, `1h25`, `85 min`, oui/non…), qui lit une cellule ou dit pourquoi ; une écriture absente de la liste n'est acceptée nulle part. `detect` propose une déclaration en lisant tout le fichier (`ImportPlanner.detect`) : le nom comme clé là où les noms sont uniques, un champ existant par son nom ou son libellé — parmi ceux que `tool_data` dit écrire (`tool_data.writable` : le nom, la date, les champs de données hors `system_managed`, ceux de l'utilisateur) ; une colonne qui nomme un champ que l'app écrit elle-même (`created_at`, `updated_at`, l'état, une donnée `system_managed`) est écartée, en le disant —, sinon un nouveau champ du type le plus exigeant dont une écriture lit toutes les cellules (TEXT en dernier, CHOICE quand les valeurs sont peu nombreuses, ses options tirées du fichier ; un en-tête `kcal [NUMERIC]` fixe le type) ; deux écritures qui lisent tout différemment ne sont pas choisies. Elle dit aussi ce qui manque à sa proposition telle quelle (`missing`), avec les contrôles d'`apply` : une colonne à trancher, aucune colonne pour le nom quand le type d'outil l'exige — par sa clé si ses noms sont uniques, par le champ `name` sinon —, un nouveau champ qui porterait le nom d'un champ que l'app écrit. `apply` n'applique qu'une déclaration complète, qui nomme sinon ce qui manque, et refuse un doublon de clé dans le fichier : les nouveaux champs se créent dans l'ordre des colonnes, puis les lignes s'écrivent par `tool_data`, en deux batch — mises à jour celles dont la clé trouve une entrée, créées les autres. Une cellule vide est une absence de réponse ; une cellule illisible ou une ligne que le service refuse refuse sa ligne seule, avec la raison ; le compte-rendu dit créées, mises à jour, refusées. Les nouveaux champs et toutes les lignes s'écrivent dans une même transaction : un échec en route n'écrit rien ; une ligne que le service refuse est une réponse, comptée, qui n'annule pas les autres. L'écran (`ImportDialog`) montre la déclaration colonne par colonne avec un exemple lu, les ambiguïtés à trancher et les lignes qui seraient refusées ; il refait ces contrôles à chaque changement, en dit les manques en tête, et n'importe qu'une déclaration complète.
-- **Valeurs d'un champ texte** : `tool_data.values` (`tool_instance_id`, `field`, `limit` à 20 par défaut) rend les valeurs qu'un champ texte prend dans les entrées d'un outil, les plus fréquentes d'abord, sans les réponses absentes ni vides (`EntryFilters.values`). C'est ce qu'un filtre propose de choisir au lieu de taper ; un champ d'un autre type est refusé, sa saisie ayant déjà ses valeurs.
+A single path leads to a thing of the app, for the pointer as for a REFERENCE field: `ThingBrowser`, the breadcrumb App › zone › tool › entry (`ThingPath`), each step a way back, and the places one level down, among those that lead to what the target accepts (`ReferenceTarget`). It reads them through `references.choices`: at the app, the zones — or, when only the entries of certain tools are accepted, these tools directly; in a zone, its tools; in a tool, its entries, searched by their label. The browser only moves the path; what the place reached is worth belongs to whoever uses it.
 
-Un réglage se déclare avec les mêmes champs, assemblés par un ensemble fixe de formes (`SettingNode`) : champ, groupe, liste, variante (des réglages selon la valeur d'un CHOICE, stockés à plat à côté de lui), section (de l'affichage seul), et les briques qu'une config garde entières, chacune stockée sous la forme de sa brique et saisie par son sélecteur : condition (jugée une fois, un terme de chaque côté, `SettingNode.Condition`), terme (`SettingNode.Term`, parmi les sortes que le contexte prend), sélection d'entrées d'un outil sans sa période (`SettingNode.Selection`, `SelectionSetting`) et période (`SettingNode.Period`). Un réglage peut nommer un champ des lignes que la config décrit là où il se trouve (`rowField`, et une condition `onRow` posée sur chaque ligne, qui compare ces champs entre eux ou à une valeur écrite) : le propriétaire du formulaire donne ces champs selon l'endroit (`RowFields`) — les colonnes d'une couche de Graphique. Un groupe facultatif rempli se retire d'un bouton. Un réglage déclare sa valeur par défaut, qui est aussi le sens de son absence ; il peut être secret (saisi masqué, jamais envoyé à l'IA ni journalisé, et scellé en base : `SecretSettings`, une clé AES du Keystore d'Android qui ne sort pas du téléphone, `SecretBox`). Le service qui écrit la config le scelle, celui qui la lit l'ouvre ; un secret à plat seulement (champ, section, cas d'une variante), jamais dans un groupe ni une liste. Une sauvegarde l'emporte scellé : restauré sur un autre téléphone, il ne s'ouvre pas, la lecture le laisse de côté et le nomme (`unreadable_secrets`), et l'écran, l'appel à l'IA et l'accès externe le disent. L'écran d'une config est le formulaire de sa déclaration (`SettingsForm`), où le cœur branche ses propres éditeurs sur quelques réglages (l'icône, le groupe, une planification). Une liste de groupes déclare son résumé (`summary`), les réglages d'un élément qui le représentent : le formulaire montre chaque élément fermé, sur une ligne de ces valeurs, et l'ouvre au toucher de cette ligne ; un élément ajouté s'ouvre. Un groupe ou un élément qui contient un groupe, une liste ou une brique s'ouvre sur une page à lui, en pleine largeur sous le chemin depuis la racine ; sa ligne dans la page de son parent dit aussi ce que lisent ses termes et ses sélections, et compte ses listes. Le retour du téléphone remonte d'une page ; toutes les pages modifient le même brouillon.
+### The pointer
+
+A POINTER block of a message holds a selection of the core (`EntrySelection`: a reference, never a name, its period, its filters, its fields) and says what goes with the message (`PointerConfig`, `{"selection", "attach"}`): the config, the entries, or nothing (a mention). For a tool, a period, filters by value and a choice of fields narrow its entries, attached or only mentioned; a mention of narrowed entries gives the AI the query that reads them. On sending, `EnrichmentProcessor` draws ordinary `tool_data.get` queries from it; an automation's period is relative, computed again at each run. The screen is `PointerSelector`: the browser (zone or tool), the checkboxes and what narrows the entries, and the sentence that says what will go.
 
 ##
-## Validation par schéma
+## Fields and entries
 
-Aucun schéma n'est écrit à la main ni nommé dans une donnée : ils sont générés depuis des déclarations.
+Every value of the app is a field of a field type (`core/fields`, `FieldType`): what is entered in an entry, the state the app and its actions write there, a setting, a question of the AI. The field type holds the value's form, its constraints, its schema, its input (`FieldInput`), its display (`FieldValue`, wherever a value shows) and its description for the AI; a tool holds only its quick ways to create an entry and its computations over several entries.
 
-- **Entrées** : le schéma se génère depuis les champs que le type d'outil déclare (`getEntryFields`) et les champs de l'utilisateur (`extra_fields`), par `BaseSchemas.getEntrySchema`. `ToolDataService` valide toute écriture, quel que soit l'appelant, après avoir arrondi les nombres à leurs décimales (`NumericPrecision`) ; `FieldValueValidator` ajoute ce qu'un schéma ne sait pas dire (le début d'une plage avant sa fin).
-- **Configs d'outil** : le schéma se génère depuis la partie commune (`ToolConfigSettings`) et la partie du type d'outil (`getConfigSettings`), par `SettingsSchemaGenerator` ; une variante (le `type` d'un suivi) devient un `oneOf`. `ToolInstanceService` valide toute écriture de config.
-- **Changement de config** (`docs/design/config-change.md`) : ce qu'il fait aux entrées se déduit des champs d'entrée que donnent l'ancienne et la nouvelle config, `data` comme `extra` (`EntryMigration`) : une valeur que le nouveau réglage ne peut plus tenir est retirée (champ retiré, type changé, option retirée), une valeur qu'il peut tenir est convertie (des bornes d'échelle qui la contiennent, une réponse devenue liste d'une réponse, une liste d'une réponse devenue réponse), une entrée qui perd une valeur obligatoire de `data` est supprimée, et le tout s'écrit dans la même transaction que la config. Une entrée qui garde son passé (`keepsItsPast` : une tentative close ou rouverte d'un Objectif) n'est pas touchée. Retirer des valeurs, supprimer des entrées ou relire autrement des valeurs gardées (`reinterpreted`) est refusé sans `confirm_migration: true`, les comptes sous `migration` ; l'écran les montre, et propose pour un changement de sens (`changed_meaning`) un nouveau champ à la place : le champ modifié part sans sa clé et en reçoit une neuve, l'ancien reste avec ses valeurs, renommé (`NewFieldInstead`). Une entrée sans valeur pour un champ devenu obligatoire prend celle que l'appelant donne dans `fill_values` (`{"data": {"value": 3}}`), sinon le changement est refusé. Une option retirée ou renommée qu'un filtre d'un autre outil compare au champ (« moment = déjeuner » dans un Graphique) laisserait ce filtre sans rien trouver, sans erreur : ces outils sont nommés sous `migration.aimed_by` et demandent le même accord (`FiltersOnOptions`, qui parcourt la config de chaque autre outil par `ConfigConditions`). Un champ retiré n'y est pas compté : le filtre qui le nomme est refusé à la lecture, ce qui se voit. Les pointeurs d'un message et les variables ne sont pas parcourus.
-- **Zones** : le schéma `zone_config` se génère depuis `ZoneSettings` (nom, description, icône, groupe de l'écran d'accueil, groupes d'outils), et `ZoneService` valide toute écriture ; l'écran de zone est le formulaire de cette déclaration.
-- **Groupes** : un élément rangé a pour groupe `null` ou un groupe qui existe (`Groups`) — une zone, un groupe de l'écran d'accueil ; un outil, une automation ou une variable, un groupe d'outils de sa zone. Les services refusent un groupe inconnu et la suppression d'un groupe encore tenu, en nommant ce qui le tient ; un renommage arrive avec la liste (`renames`, que l'éditeur de liste tire de ses noms d'origine, `ListOrigins`) et suit chez tout ce qui tient l'ancien nom ; changer de zone sans groupe donné vide le groupe.
-- **Réglages de l'app** : chaque catégorie (format, limites IA, validation, écran d'accueil, démo, interface) est déclarée dans `AppSettings` ; `app_config.get` et `app_config.set` lisent et écrivent une catégorie entière, `AppConfigService` la vérifie contre le schéma généré, et l'écran de chaque catégorie est le formulaire de sa déclaration (`AppSettingsScreen`). Un réglage borné s'y déclare en SCALE, réglé au curseur.
-- **Automations** : déclarées dans `AutomationSettings` (voir `docs/AI.md`).
-- **Lecture** : une config se lit par `ToolConfigSettings.read` (`SettingValues`) ; un réglage absent vaut son défaut déclaré, jamais un repli écrit sur place.
-- **Face à l'IA** : un schéma se demande par `tooltype` (config), `tool_instance_id` (entrées) ou `id` (les autres : `zone_config`, `field_type_TEXT`…). Son nom calculé (`tracking_config`, `tracking_data`) ne sert qu'à ne pas renvoyer deux fois le même schéma.
-- **Ce que l'IA lit d'un schéma** : pas le JSON Schema, qui ne sert qu'à valider, mais sa notation (`SchemaNotation`) : une ligne par valeur, avec son libellé et sa description une seule fois, et les réglages communs d'une variante écrits une fois au lieu d'une par option. Une liste de définitions de champ y renvoie à la section Fields du prompt, qui la décrit une fois. Un mot-clé que la notation ne sait pas écrire fait échouer l'envoi plutôt que de disparaître.
+- **Storage by author**: `name` and `timestamp`, declared by the core, live in columns; the tool type's fields in `data`; the user's in `extra`; the state in `state`. Two authors who each evolve their fields on their own never share an object. `id`, `tool_instance_id`, `tooltype` serve to find the entry and are not fields.
+- **Use of `name` and `timestamp`**: each tool type declares them required, optional or absent, according to the config when needed (a note has a name, its title, only if its config asks for one); absent, nothing shows them and the schema refuses a value. In an update, a `name` sent as null erases the name, as a key of `data`, `extra` or `state` does. On creation, and for an object written whole (a config, settings), a key at null is a value not given: the write removes it before validating and storing (`JsonNulls`), and the validator checks what it is given, nothing less — what it checks is what is stored. The elements of a list stay as sent.
+- **State**: described by fields for its labels and its filters, never entered. A tool type whose entries live by a status declares how they start (`EntryStart`, in `EntryFields`): whoever creates an entry, a screen, the AI, an MCP client, gives its status alone among those declared, and the tool type sets the rest of the state (`EntryStart.decide`, called by `ToolDataService`); what the app writes itself (a scheduler, the tool's operation, the demo) keeps the state it gives; an entry without a status is refused, wherever it comes from. Messages starts "to send" (set by hand), Questionnaire "to fill" or "filled"; Goal and Session refuse any other creation, their attempts and sessions being made by the tool; Flashcards too, whose reviews have no status (`withStatus` false): the app alone writes them, with the state it gives. Afterwards, the status moves only through the tool's operations and through the app: an update coming from elsewhere that changes it is refused (`EntryStart.changesStatus`), the rest of the state (read, archived) staying changeable. A DURATION field can be "running": `start_duration` writes the instant in `state.running.<data|extra>.<field>`, `stop_duration` adds the time elapsed to the value. The truth is in the database, a stopwatch survives the app being killed.
+- **Default value**: a suggestion, applied by whoever acts — the form prefills it, a quick action applies it, the AI reads it in the schema. A field definition holds it (`default_value`, all types except DATE, DATETIME, REFERENCE and IMAGE), checked against the field itself by `FieldConfigValidator`; the config enters it with the input of the field being defined (`SettingNode.Field.valueOfDefined`). It prefills a new entry (`CustomFieldsInput` with `newEntry`), a tracking's shortcut touched, a communication module, and the value a migration asks for. The service never writes a value it was not given: an absent field means "no answer", and the input shows it so (yes/no with no button chosen, slider without a handle, empty boxes).
+- **Display of the user's fields**: a single component, `CustomFieldsDisplay`, which every tool uses. It shows the fields that have a value and those set "Always show" ("No value" when empty), with their name unless the config says `show_field_labels: false` — a setting common to all the fields of a config, whose default comes from the tool type (`getDefaultShowFieldLabels`). The screen chooses the layout by its place: `EXPANDED` (each field as a block, the name large above), `LINE` (one field per line, the name large then the value on the rest of the line) or `COMPACT` (one per line, "Name: value" with the name small, a long value wrapping across the whole width).
+- **Copy of the config into an entry**: a fact when the entry must keep saying what it said (the unit of a numeric tracking, the title of a message sent); otherwise a derivation, computed on reading and never stored.
+- **CHOICE**: its options are groups `{value, label, color}`, a colour of the theme's palette making a pill. Multiple, ordered (a ranking, entered by drag and drop) or open: a new value joins the options in the transaction that writes the entry — those of a user's field in `extra_fields`, those of a tool type's field where its config keeps them (`configWithOptionsAdded`); the tool's screen then reads its config again.
+- **Unit**: the fixed unit (`unit`, "km") is not a setting of the value but a setting apart (`FieldTypeSettings.unit`), held by a user's number or range when all its values share it. A numeric tracking has none: each entry holds its own (`data.unit`), an open choice over the list `units`.
+- **DURATION**: milliseconds; the precision and the form of the config decide only the input and the display.
+- **REFERENCE**: another thing of the app by its kind and its id, `{"kind": "ENTRY", "id": …}` (`Reference`, without id for the app), never by its name. The config says what it accepts, `target: {kinds, tool_instances?}` (`ReferenceTarget`), the tools narrowing an entry to theirs; each is itself a REFERENCE to a tool instance. The name is read on display through the core's service `references` (`names`), by the screen as by the AI, which receives it with `name` or `"deleted": true` and sends it back without (`ModelValues`); a deleted target keeps its address. The input (`ReferencePicker`) goes through the browser and is confirmed when the place reached is of an accepted kind; narrowed to the entries of a single tool, it opens in that tool. On writing, `ToolDataService` checks that a new or changed value names a thing that exists, and for an entry an accepted tool; narrowing the target removes the values that no longer fit, under `confirm_migration` (`FieldChange.ReferenceTargetNarrowed`). A filter compares it by the id it holds (`=`, `absent`, `present`).
+- **IMAGE** (`docs/design/image-field.md`): always an ordered list of image ids, even for one; `max` bounds their number (no limit by default). Each id names a row of the table `images` (`ImageEntity`), shared by the images of messages and of entries, which the entry owns; the file, in its kept format (JPEG or PNG), lives in `files/attachments/entries/`. The input (`ImageInput`) prepares a photo when it is added (`files.prepare_image`, a file without a row in `attachments/pending/`); on writing, `ToolDataService` compares the field's ids with the entry's images (`EntryImages`): a prepared image becomes its own, one of another owner (a photo of the conversation, another entry) is copied under a new id written in its place, an image removed is deleted, an unknown id refuses the write. An entry that goes takes its rows by cascade, its files at the startup sweep (INFO), which also removes the images their entry no longer names (a field removed). A filter knows only `absent` and `present`; a Chart does not draw it, a reading of the core does not reduce it. The AI reads each id with its size, never the image (`ModelValues.withImageSizes`), and asks for the images through `IMAGES`.
+- **Reading filtered entries**: `tool_data.get` takes `filters`, conditions put on each entry (`Conditions`, `{"left": {"field"}, "op", "right": {"constant"}}`, a pair of constants for `between`), which must all be true. The field is a path of the schema (`timestamp`, `data.x`, `extra.x`, a filterable state key); the conditions depend on its type (`EntryFilters.operatorsFor`, no `=` on an instant), and `absent` / `present`, without `right`, say whether it has an answer. A filter compares only with written values: a variable or a reading is read first. A period arrives there as filters on `timestamp`. A written date of a filter or a bound of a period is fixed (its stored form) or relative, an object that says its edge (`{"relative": {"unit": "DAY", "offset": -1, "edge": "START"}}`, `{"relative": "NOW"}`, `TimePoint`), resolved by `TimeResolver` on the context's reference; the operator never chooses an edge. The filters run in SQL (`json_extract`), so a page and its count are those of the filtered entries.
+- **Reading of the core**: `readings.read` draws a value from the entries of a single tool instance — a `selection` (its period and its filters, the relative dates resolved on the `reference` the reader gives, in milliseconds), a `field` (absent to count) and a `reduction` its type allows (`Reduction.forType`: last, sum, average, min, max for a number or a duration; last, earliest, latest for a date or a time; count without a field). The result keeps its source's type and settings, the count is a whole number (`FieldReading`). Without an entry, sum and count are 0 and the rest fails; an entry without an answer to the field makes it fail, naming it — the `present` filter sets it aside if that is what is meant; a deleted source fails too. A failure is an answer (`failure`: reason, field, entries, text), which each reader decides on. A running DURATION counts up to the instant read: its stored value plus its stopwatch's time. With `at` in place of `reference`, the reading is made at several instants (a Chart's grid, one step each) and returns `values`, a value or a failure per instant: without a relative date in the filters, a single reading of the entries serves them all, each instant keeping those of its period (`EntrySelection.filtersMove`).
+- **Variables**: a named value that any reader reads, without a tool type between them (`core/variables`, table `variables`, service `variables`). It lives in a zone (deleted with it, stored in a group like an automation) and reads any zone; its name is unique in the app and is written in a formula. A constant (`{"kind": "CONSTANT", "value", "field"}`) or a formula (`{"kind": "FORMULA", "formula", "terms", "field"}`): the text (`Formula`, `+ - × ÷`, parentheses, `hours()`, `minutes()`, `seconds()`, English names stored and written by the AI, shown and accepted on screen in the app's language) bears on the names of its terms — a reading of the core without a test, possibly a per-entry formula that reads through a REFERENCE (`quantity × food.kcal_100g / 100`), a constant, another variable — and on other variables named directly, stored by their id (`{var:ID}`) and shown under their current name. The field (NUMERIC, SCALE or DURATION) is deduced from what it reads when not given (`FormulaType`). The service refuses a name taken or unreadable, an unknown name in the formula, an unreadable term, a loop (naming the path). Nothing of the value is stored: `variables.evaluate` (or `readings.read` with `variable` and `at`) computes it at each instant asked (`VariableEvaluator`), each period relative to that instant; a term in failure, a division by zero, a deleted variable make it fail, with their causes.
+- **Import**: the core's service `imports`, for any tool, reads rows of text values named by their column (a CSV: `CsvReader`, separator `,` `;` or tab), given as text or by the id of a file attached to a message (service `files`, table `attached_files`) — which is how the AI imports, with `IMPORT_PLAN` and `IMPORT_DATA`, without reading the rows. Each field type holds the closed, named list of its writings (`Writing`: decimal point or comma, day/month/year, `1h25`, `85 min`, yes/no…), which reads a cell or says why not; a writing absent from the list is accepted nowhere. `detect` proposes a declaration by reading the whole file (`ImportPlanner.detect`): the name as key where the names are unique, an existing field by its name or its label — among those `tool_data` says it writes (`tool_data.writable`: the name, the date, the data fields outside `system_managed`, the user's); a column that names a field the app writes itself (`created_at`, `updated_at`, the state, a `system_managed` data) is set aside, saying so —, otherwise a new field of the most demanding type one of whose writings reads all the cells (TEXT last, CHOICE when the values are few, its options drawn from the file; a header `kcal [NUMERIC]` fixes the type); two writings that read everything differently are not chosen. It also says what its proposal lacks as it stands (`missing`), with `apply`'s checks: a column to settle, no column for the name when the tool type requires one — by its key if its names are unique, by the field `name` otherwise —, a new field that would bear the name of a field the app writes. `apply` applies only a complete declaration, otherwise naming what is missing, and refuses a duplicate key in the file: the new fields are created in the order of the columns, then the rows are written through `tool_data`, in two batches — updated those whose key finds an entry, created the others. An empty cell is an absence of answer; an unreadable cell or a row the service refuses refuses its row alone, with the reason; the report says created, updated, refused. The new fields and all the rows are written in a single transaction: a failure on the way writes nothing; a row the service refuses is an answer, counted, which cancels none of the others. The screen (`ImportDialog`) shows the declaration column by column with an example read, the ambiguities to settle and the rows that would be refused; it runs these checks again at each change, states the gaps at the top, and imports only a complete declaration.
+- **Values of a text field**: `tool_data.values` (`tool_instance_id`, `field`, `limit` 20 by default) returns the values a text field takes in a tool's entries, the most frequent first, without the absent or empty answers (`EntryFilters.values`). It is what a filter offers to choose instead of typing; a field of another type is refused, its input already having its values.
 
-Un champ marqué `"system_managed": true` est à l'app de le produire, jamais à l'appelant. Dans `data`, le service retire tout champ marqué de ce qu'envoie un écran ou l'IA, et le garde quand c'est l'app elle-même qui écrit — un service depuis sa propre opération, un planificateur, l'origine `SYSTEM` (`Origin.byTheApp`, `SystemManagedFields`) ; un import n'offre pas ces champs à ses colonnes. À la racine, il ne lit que des paramètres nommés.
-
-La validation que font les écrans avant d'appeler le service sert à répondre tôt dans le formulaire ; elle n'est pas la garde.
-
-**Champ `id`** : pas `system_managed`, puisqu'une modification le nomme pour désigner l'entrée. Une création le génère ; seule l'app elle-même en donne un, préfixé `demo-`, pour la démo (`GivenId`) — d'un écran ou de l'IA, un `id` donné à une création est refusé.
+A setting is declared with the same fields, assembled by a fixed set of forms (`SettingNode`): field, group, list, variant (settings according to the value of a CHOICE, stored flat beside it), section (of the display alone), and the bricks a config keeps whole, each stored in its brick's form and entered through its selector: condition (judged once, a term on each side, `SettingNode.Condition`), term (`SettingNode.Term`, among the kinds the context takes), entry selection of a tool without its period (`SettingNode.Selection`, `SelectionSetting`) and period (`SettingNode.Period`). A setting can name a field of the rows the config describes where it stands (`rowField`, and a condition `onRow` put on each row, which compares these fields with each other or with a written value): the form's owner gives these fields according to the place (`RowFields`) — the columns of a Chart's layer. An optional group filled in is removed with a button. A setting declares its default value, which is also the meaning of its absence; it can be secret (entered masked, never sent to the AI nor logged, and sealed in the database: `SecretSettings`, an AES key of Android's Keystore that does not leave the phone, `SecretBox`). The service that writes the config seals it, the one that reads it opens it; a secret flat only (field, section, case of a variant), never in a group or a list. A backup carries it sealed: restored on another phone, it does not open, the reading leaves it aside and names it (`unreadable_secrets`), and the screen, the call to the AI and the external access say so. A config's screen is the form of its declaration (`SettingsForm`), where the core plugs its own editors on a few settings (the icon, the group, a schedule). A list of groups declares its summary (`summary`), the settings of an element that stand for it: the form shows each element closed, on a line of these values, and opens it when that line is touched; an element added opens. A group or an element that holds a group, a list or a brick opens on a page of its own, full width under the path from the root; its line in its parent's page also says what its terms and its selections read, and counts its lists. The phone's back goes up one page; all the pages change the same draft.
 
 ##
-## Propagation des modifications
+## Schema validation
 
-Une écriture passe par le service, qui écrit en base via son DAO puis signale le changement avec `DataChangeNotifier` — les écrans qui en dépendent se rechargent. Il n'y a pas de journal d'événements : aucune table n'enregistre les modifications, et l'état en base est la seule source. Ce que l'utilisateur et l'IA lisent comme un historique, ce sont les entrées elles-mêmes et les sessions, pas une suite d'événements rejouable.
+No schema is written by hand nor named in a piece of data: they are generated from declarations.
+
+- **Entries**: the schema is generated from the fields the tool type declares (`getEntryFields`) and the user's fields (`extra_fields`), by `BaseSchemas.getEntrySchema`. `ToolDataService` validates every write, whoever the caller, after rounding the numbers to their decimals (`NumericPrecision`); `FieldValueValidator` adds what a schema cannot say (a range's start before its end).
+- **Tool configs**: the schema is generated from the common part (`ToolConfigSettings`) and the tool type's part (`getConfigSettings`), by `SettingsSchemaGenerator`; a variant (a tracking's `type`) becomes a `oneOf`. `ToolInstanceService` validates every write of a config.
+- **Config change** (`docs/design/config-change.md`): what it does to the entries is deduced from the entry fields the old and the new config give, `data` as `extra` (`EntryMigration`): a value the new setting can no longer hold is removed (field removed, type changed, option removed), a value it can hold is converted (scale bounds that contain it, an answer become a list of one answer, a list of one answer become an answer), an entry that loses a required value of `data` is deleted, and the whole is written in the same transaction as the config. An entry that keeps its past (`keepsItsPast`: a Goal's attempt closed or reopened) is not touched. Removing values, deleting entries or reading kept values differently (`reinterpreted`) is refused without `confirm_migration: true`, the counts under `migration`; the screen shows them, and for a change of meaning (`changed_meaning`) offers a new field instead: the changed field leaves without its key and receives a new one, the former stays with its values, renamed (`NewFieldInstead`). An entry without a value for a field become required takes the one the caller gives in `fill_values` (`{"data": {"value": 3}}`), otherwise the change is refused. An option removed or renamed that a filter of another tool compares the field with ("moment = lunch" in a Chart) would leave that filter finding nothing, without an error: these tools are named under `migration.aimed_by` and ask for the same agreement (`FiltersOnOptions`, which walks each other tool's config through `ConfigConditions`). A field removed is not counted there: the filter that names it is refused on reading, which shows. A message's pointers and the variables are not walked.
+- **Zones**: the schema `zone_config` is generated from `ZoneSettings` (name, description, icon, group of the home screen, tool groups), and `ZoneService` validates every write; the zone screen is the form of this declaration.
+- **Groups**: an element stored has as its group `null` or a group that exists (`Groups`) — a zone, a group of the home screen; a tool, an automation or a variable, a tool group of its zone. The services refuse an unknown group and the deletion of a group still held, naming what holds it; a renaming arrives with the list (`renames`, which the list editor draws from its original names, `ListOrigins`) and follows into everything that holds the former name; changing zone without a group given empties the group.
+- **App settings**: each category (format, AI limits, validation, home screen, demo, interface) is declared in `AppSettings`; `app_config.get` and `app_config.set` read and write a whole category, `AppConfigService` checks it against the generated schema, and each category's screen is the form of its declaration (`AppSettingsScreen`). A bounded setting is declared there as SCALE, set with the slider.
+- **Automations**: declared in `AutomationSettings` (see `docs/AI.md`).
+- **Reading**: a config is read through `ToolConfigSettings.read` (`SettingValues`); an absent setting is worth its declared default, never a fallback written on the spot.
+- **Facing the AI**: a schema is asked for by `tooltype` (config), `tool_instance_id` (entries) or `id` (the others: `zone_config`, `field_type_TEXT`…). Its computed name (`tracking_config`, `tracking_data`) serves only not to send the same schema twice.
+- **What the AI reads of a schema**: not the JSON Schema, which serves only to validate, but its notation (`SchemaNotation`): one line per value, with its label and its description once only, and the common settings of a variant written once instead of once per option. A list of field definitions refers there to the prompt's Fields section, which describes it once. A keyword the notation cannot write makes the sending fail rather than vanish.
+
+A field marked `"system_managed": true` is the app's to produce, never the caller's. In `data`, the service removes every marked field from what a screen or the AI sends, and keeps it when the app itself writes — a service from its own operation, a scheduler, the origin `SYSTEM` (`Origin.byTheApp`, `SystemManagedFields`); an import does not offer these fields to its columns. At the root, it reads only named parameters.
+
+The validation the screens do before calling the service serves to answer early in the form; it is not the guard.
+
+**Field `id`**: not `system_managed`, since an update names it to designate the entry. A creation generates it; only the app itself gives one, prefixed `demo-`, for the demo (`GivenId`) — from a screen or the AI, an `id` given to a creation is refused.
+
+##
+## Propagation of changes
+
+A write goes through the service, which writes to the database via its DAO then signals the change with `DataChangeNotifier` — the screens that depend on it reload. There is no event log: no table records the changes, and the state in the database is the only source. What the user and the AI read as a history are the entries themselves and the sessions, not a replayable sequence of events.
 
 ### Verbalisation
 
-Système de templates pour actions, états et résultats :
+A system of templates for actions, states and results:
 
 ```kotlin
 // Template
-"[source] [verb] le titre [old_value] en [new_value]"
+"[source] [verb] the title [old_value] to [new_value]"
 
-// Résultat
-"L'IA a modifié le titre Blup en Blip"
+// Result
+"The AI changed the title Blup to Blip"
 ```
 
-**Usage** : Historique, validation utilisateur, feedback IA.
+**Use**: history, user validation, AI feedback.
 
 ##
-## Versioning et Migrations
+## Versioning and migrations
 
-### Sources de vérité uniques
+### Single sources of truth
 
-**build.gradle.kts** :
-- `versionCode` = entier monotone (10, 11, 12...) pour comparaisons
-- `versionName` = string SemVer ("0.3.0", "0.4.0"...) pour affichage utilisateur
-- Accessibles via `BuildConfig.VERSION_CODE` et `BuildConfig.VERSION_NAME`
+**build.gradle.kts**:
+- `versionCode` = monotonic integer (10, 11, 12...) for comparisons
+- `versionName` = SemVer string ("0.3.0", "0.4.0"...) for the user's display
+- Reachable through `BuildConfig.VERSION_CODE` and `BuildConfig.VERSION_NAME`
 
-**AppDatabase** :
-- `@Database(version = 10)` = version schéma SQL
-- `companion object { const val VERSION = 10 }` = accessible à runtime
-- Indépendante de versionCode (peut rester stable entre releases)
+**AppDatabase**:
+- `@Database(version = 10)` = SQL schema version
+- `companion object { const val VERSION = 10 }` = reachable at runtime
+- Independent of versionCode (can stay stable between releases)
 
-### Types de migrations
+### Kinds of migrations
 
-#### Migration SQL (Type 1)
+#### SQL migration (Type 1)
 
-**Quand** : Schéma SQL change (ALTER TABLE, CREATE TABLE, etc.)
+**When**: the SQL schema changes (ALTER TABLE, CREATE TABLE, etc.)
 
-**Géré par** : Room Migrations manuelles dans AppDatabase.kt. La base tourne sur la SQLite de l'app (`BundledSQLiteDriver`), pas sur celle du téléphone : Room donne à une migration une connexion, que `ConnectionMigration` lui présente en `MigrationDatabase` (`execSQL`, et `query`, dont les lignes sont lues entières avant d'être rendues).
+**Handled by**: manual Room migrations in AppDatabase.kt. The database runs on the app's SQLite (`BundledSQLiteDriver`), not on the phone's: Room gives a migration a connection, which `ConnectionMigration` presents to it as a `MigrationDatabase` (`execSQL`, and `query`, whose rows are read whole before being returned).
 
-**Exemple** :
+**Example**:
 ```kotlin
 private val MIGRATION_10_11 = object : ConnectionMigration(10, 11) {
     override fun migrate(database: MigrationDatabase) {
@@ -110,39 +110,39 @@ private val MIGRATION_10_11 = object : ConnectionMigration(10, 11) {
 }
 ```
 
-**Flow** :
-1. Incrémenter `@Database(version = 11)` et `const val VERSION = 11`
-2. Écrire migration SQL dans AppDatabase companion object
-3. Ajouter à `.addMigrations()` dans getDatabase()
-4. Room détecte et exécute automatiquement au démarrage
+**Flow**:
+1. Increment `@Database(version = 11)` and `const val VERSION = 11`
+2. Write the SQL migration in AppDatabase's companion object
+3. Add it to `.addMigrations()` in getDatabase()
+4. Room detects and runs it automatically at startup
 
-#### Migration JSON (Type 2)
+#### JSON migration (Type 2)
 
-**Quand** : Format JSON non rétrocompatible (renommage champs, restructuration)
+**When**: a JSON format that is not backward compatible (fields renamed, restructuring)
 
-**Géré par** : JsonTransformers centralisé
+**Handled by**: the centralised JsonTransformers
 
-**Exemple** : `{"unit": "kg"}` → `{"measurement_unit": "kg"}`
+**Example**: `{"unit": "kg"}` → `{"measurement_unit": "kg"}`
 
-**Flow** :
-1. Écrire transformation dans JsonTransformers.kt
-2. Appliquée lors import backup automatiquement
-3. Optionnellement appelable dans migration Room si nécessaire
+**Flow**:
+1. Write the transformation in JsonTransformers.kt
+2. Applied automatically on a backup import
+3. Optionally callable in a Room migration when needed
 
-### JsonTransformers - Architecture centralisée
+### JsonTransformers - centralised architecture
 
-**Fichier unique** : `core/versioning/JsonTransformers.kt`
+**Single file**: `core/versioning/JsonTransformers.kt`
 
-**Fonctions publiques** :
+**Public functions**:
 ```kotlin
 transformToolConfig(json, tooltype, fromVersion, toVersion): String
 transformToolData(json, tooltype, fromVersion, toVersion): String
 transformAppConfig(json, fromVersion, toVersion): String
 ```
 
-**Application séquentielle** : Boucle `for (v in fromVersion until toVersion)` applique tous les transformers intermédiaires
+**Sequential application**: a loop `for (v in fromVersion until toVersion)` applies all the intermediate transformers
 
-**Exemple** :
+**Example**:
 ```kotlin
 private fun transformTrackingConfig(json: JSONObject, version: Int): JSONObject {
     return when (version) {
@@ -159,20 +159,20 @@ private fun transformTrackingConfig(json: JSONObject, version: Int): JSONObject 
 }
 ```
 
-**Réutilisation** : Mêmes transformers utilisés par :
-- **Migration Room** : Transforme JSONs en DB au démarrage (une fois par version)
-- **Import backup** : Transforme JSONs de vieux backups
-- Import partiel futur
+**Reuse**: the same transformers are used by:
+- **Room migration**: transforms the JSONs in the database at startup (once per version)
+- **Backup import**: transforms the JSONs of old backups
+- A future partial import
 
-**Application au démarrage** : Changement de format JSON REQUIERT migration Room pour transformer les données existantes. Les transformers sont appelés dans la migration pour mettre à jour les JSONs stockés.
+**Application at startup**: a change of JSON format REQUIRES a Room migration to transform the existing data. The transformers are called in the migration to update the stored JSONs.
 
-**Lifecycle** : Transformers conservés indéfiniment (support vieux backups)
+**Lifecycle**: transformers kept indefinitely (support for old backups)
 
-### Format export/import
+### Export/import format
 
-**Le fichier** : un zip, `backup.json` (les tables, ci-dessous) et `images/<id>.jpg`, les images jointes aux messages copiées fichier par fichier, jamais dans le JSON. `BackupService` écrit et lit lui-même le fichier choisi (son `uri`). Une image dont le fichier manque est une erreur que la sauvegarde recopie telle quelle : l'export part quand même, sa ligne sans fichier, nommée dans `missing_images`, et le dit ; l'import accepte une ligne sans fichier qu'elle nomme, et refuse toute autre, signe d'une sauvegarde abîmée. L'import accepte aussi l'ancien `.json` seul ; il pose les images du zip à part (`files/attachments.import/`), et remplace le dossier des images dans le même geste que les tables.
+**The file**: a zip, `backup.json` (the tables, below) and `images/<id>.jpg`, the images attached to messages copied file by file, never in the JSON. `BackupService` writes and reads the chosen file itself (its `uri`). An image whose file is missing is an error the backup copies as it is: the export goes ahead anyway, its row without a file, named in `missing_images`, and says so; the import accepts a row without a file that it names, and refuses any other, the sign of a damaged backup. The import also accepts the old `.json` alone; it lays the zip's images apart (`files/attachments.import/`), and replaces the images' folder in the same move as the tables.
 
-**Metadata dans `backup.json`** :
+**Metadata in `backup.json`**:
 ```json
 {
   "metadata": {
@@ -184,56 +184,56 @@ private fun transformTrackingConfig(json: JSONObject, version: Int): JSONObject 
 }
 ```
 
-**Process import** :
-1. Vérifier `export_version` vs `BuildConfig.VERSION_CODE`
-2. Si `export_version > VERSION_CODE` → Erreur "version trop récente"
-3. Si `export_version < VERSION_CODE` → Appliquer JsonTransformers
-4. Insertion données transformées, puis le dossier des images remplacé par celui de la sauvegarde
+**Import process**:
+1. Check `export_version` against `BuildConfig.VERSION_CODE`
+2. If `export_version > VERSION_CODE` → error "version too recent"
+3. If `export_version < VERSION_CODE` → apply JsonTransformers
+4. Insert the transformed data, then the images' folder replaced by the backup's
 
-**En DB** : JSONs purs sans metadata (version dans fichiers export uniquement)
+**In the database**: pure JSONs without metadata (version in the export files only)
 
-### Sauvegarde automatique
+### Automatic backup
 
-Le zip de l'export, écrit sans rien demander dans un dossier du téléphone choisi une fois dans Réglages › Données (`OpenDocumentTree`, droit d'écriture durable gardé par Android ; catégorie de réglages `data`, `folder` et `auto_backup`). Le tour du planificateur (`CoreScheduler.tick`, toutes les 10 minutes, app fermée comprise) demande à `AutoBackup` : une copie est due quand celle de l'heure manque ou a une heure ; elle est l'opération longue `backup.auto`, jamais à côté d'un import, de la démo ou d'un export, et ne s'écrit que si les données diffèrent de la dernière copie (empreinte SHA-256 de `data`, gardée sur le téléphone dans `files/auto_backup.json`, hors de la base que la copie porterait) ; des données trouvées inchangées ne se relisent pas avant une heure (`checked_at`, même fichier), la comparaison lisant toute la base. Quatre fichiers, `treelune_auto_<heure|jour|semaine|mois>_<date>.zip` (en anglais : `hour`, `day`, `week`, `month`) : la nouvelle copie prend l'heure, et l'ancienne descend d'un cran quand le cran du dessous a dépassé sa durée (un jour, une semaine, trente jours), sinon elle s'efface (`AutoBackupRotation`) ; l'état se lit dans les noms du dossier, rien d'autre n'est gardé. La nouvelle copie s'écrit avant le roulement : un échec en route laisse le dossier tel qu'il était. Un dossier dont le droit est perdu (désinstallation, dossier déplacé, sauvegarde restaurée sur un autre téléphone) arrête les copies et le dit dans Réglages. Aucun dossier choisi, ou le dossier perdu, marque le chemin jusqu'à Réglages › Données (`WaitingMark` sur le bouton Réglages de l'accueil et sur la tuile Données, `AutoBackup.pending`) jusqu'à ce que l'écran soit ouvert : le cas vu est gardé (`seen`), un autre cas marque de nouveau.
+The export's zip, written without asking anything into a folder of the phone chosen once in Settings › Data (`OpenDocumentTree`, a lasting write permission kept by Android; settings category `data`, `folder` and `auto_backup`). The scheduler's round (`CoreScheduler.tick`, every 10 minutes, app closed included) asks `AutoBackup`: a copy is due when the hour's is missing or is an hour old; it is the long operation `backup.auto`, never beside an import, the demo or an export, and is written only if the data differs from the last copy (SHA-256 fingerprint of `data`, kept on the phone in `files/auto_backup.json`, outside the database the copy would hold); data found unchanged is not read again before an hour (`checked_at`, same file), the comparison reading the whole database. Four files, `treelune_auto_<hour|day|week|month>_<date>.zip`: the new copy takes the hour, and the older one moves down a step when the step below has passed its duration (a day, a week, thirty days), otherwise it is erased (`AutoBackupRotation`); the state is read in the folder's names, nothing else is kept. The new copy is written before the rotation: a failure on the way leaves the folder as it was. A folder whose permission is lost (uninstall, folder moved, backup restored on another phone) stops the copies and says so in Settings. No folder chosen, or the folder lost, marks the way to Settings › Data (`WaitingMark` on the home screen's Settings button and on the Data tile, `AutoBackup.pending`) until the screen is opened: the case seen is kept (`seen`), another case marks again.
 
-### Règles de développement
+### Development rules
 
-**Versioning** :
-- `BuildConfig.VERSION_CODE` = source unique version app
-- `AppDatabase.VERSION` = version DB (indépendante de app version)
-- Pas de metadata en DB (version dans fichiers export uniquement)
+**Versioning**:
+- `BuildConfig.VERSION_CODE` = single source of the app's version
+- `AppDatabase.VERSION` = database version (independent of the app's version)
+- No metadata in the database (version in the export files only)
 
-**Migrations SQL** :
-- Migrations manuelles explicites dans AppDatabase
-- Pas de fallbackToDestructiveMigration (migrations obligatoires)
-- Migrations conservées historiquement
+**SQL migrations**:
+- Explicit manual migrations in AppDatabase
+- No fallbackToDestructiveMigration (migrations required)
+- Migrations kept historically
 
-**Transformations JSON** :
-- Centralisées dans JsonTransformers.kt
-- Réutilisées partout (imports + migrations Room)
-- Conservées indéfiniment (historique complet)
-- Application séquentielle automatique
+**JSON transformations**:
+- Centralised in JsonTransformers.kt
+- Reused everywhere (imports + Room migrations)
+- Kept indefinitely (complete history)
+- Automatic sequential application
 
 ##
-## Règles de Développement
+## Development rules
 
-### Patterns d'Implémentation
+### Implementation patterns
 
-#### Service Implementation
-- Hériter `ExecutableService`
-- Validation par le service contre le schéma généré (voir « Validation par schéma »)
-- Logs d'erreur explicites et gestion token cancellation
+#### Service implementation
+- Inherit `ExecutableService`
+- Validation by the service against the generated schema (see "Schema validation")
+- Explicit error logs and handling of token cancellation
 
-#### Discovery Pattern
-- Jamais d'imports hardcodés dans Core
-- Services découverts via ToolTypeManager
-- Extension automatique par ajout au Scanner
-- ToolTypes déclarent `getEntryFields` et `getConfigSettings` ; leurs schémas sont générés
+#### Discovery pattern
+- Never hardcoded imports in the Core
+- Services discovered through ToolTypeManager
+- Automatic extension by adding to the Scanner
+- ToolTypes declare `getEntryFields` and `getConfigSettings`; their schemas are generated
 
-#### Data Consistency
-- Écriture par le service, puis notification via `DataChangeNotifier` (pas de journal d'événements)
-- Validation centralisée par les services, contre des schémas générés
+#### Data consistency
+- Write by the service, then notification through `DataChangeNotifier` (no event log)
+- Validation centralised in the services, against generated schemas
 
 ---
 
-*L'architecture de données garantit cohérence, validation automatique et extensibilité via patterns découplés.*
+*The data architecture guarantees consistency, automatic validation and extensibility through decoupled patterns.*

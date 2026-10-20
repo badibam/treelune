@@ -20,8 +20,8 @@ import app.treelune.core.utils.JsonUtils
 import org.json.JSONObject
 
 /**
- * The core's reading: one value from the entries of one tool instance (docs/DATA.md, « Lecture
- * du cœur »), the door every reader goes through -- a goal's criterion, a variable's term.
+ * The core's reading: one value from the entries of one tool instance (docs/DATA.md, « Reading
+ * of the core »), the door every reader goes through -- a goal's criterion, a variable's term.
  *
  * - read, a variable: `variable` (its name) and `at`, the instants to read it at (milliseconds);
  *   a value or a failure per instant, in the same order (the variables service computes it).
