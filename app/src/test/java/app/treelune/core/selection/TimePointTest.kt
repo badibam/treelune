@@ -159,4 +159,19 @@ class TimePointTest {
         assertEquals(at(2026, 9, 1, 4, 0), firstAtNight.instant(TimePoint.Relative(PeriodType.MONTH, 0, Edge.START)))
         assertEquals(at(2026, 9, 30, 4, 0), firstAtNight.instant(TimePoint.Relative(PeriodType.DAY, 0, Edge.START)))
     }
+
+    @Test
+    fun `today and a shift in days are the user's days, a time of the clock the calendar's`() {
+        // Wednesday 2026-10-14 at 0:30 is still Tuesday; at 15:00, Wednesday
+        val night = TimeResolver(at(2026, 10, 14, 0, 30), zone, 4, "monday")
+        val day = TimeResolver(at(2026, 10, 14, 15, 0), zone, 4, "monday")
+        assertEquals("2026-10-13", night.day(TimePoint.Now))
+        assertEquals("2026-10-14", day.day(TimePoint.Now))
+        assertEquals("2026-10-16", night.day(TimePoint.Shift(ShiftUnit.DAY, 3)))
+        assertEquals("2026-10-17", day.day(TimePoint.Shift(ShiftUnit.DAY, 3)))
+        assertEquals("2026-10-12", night.day(TimePoint.Shift(ShiftUnit.DAY, -1)))
+        // The day before at 18:00 of a flight at 1:30 on Thursday: Wednesday at 18:00
+        val flight = TimeResolver(at(2026, 10, 15, 1, 30), zone, 4, "monday")
+        assertEquals(at(2026, 10, 14, 18, 0), flight.instant(TimePoint.Shift(ShiftUnit.DAY, -1, LocalTime.of(18, 0))))
+    }
 }
