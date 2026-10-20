@@ -1484,6 +1484,16 @@
     <string name="action_verbalize_imports_detect">Reading a file to import</string>
     <string name="action_verbalize_imports_apply">Importing a file</string>
     <string name="action_verbalize_imports_apply_file">Import of « %1$s » (%2$d lines) into %3$s</string>
+    <string name="export_csv_range_start">%1$s (start)</string>
+    <string name="export_csv_range_end">%1$s (end)</string>
+    <string name="export_error_no_folder">No folder is chosen for the app: choose one in Settings › Data to write the file there.</string>
+    <string name="export_error_folder_lost">The app\'s folder can no longer be written in: choose it again in Settings › Data.</string>
+    <string name="export_error_unknown_field">This tool has no field %1$s. Its fields: %2$s</string>
+    <string name="export_error_read">The entries could not be read.</string>
+    <string name="export_error_write">The file %1$s could not be written in the app\'s folder.</string>
+    <string name="export_error_file_name">The tool\'s name, “%1$s”, cannot name a file: rename the tool to export its entries.</string>
+    <string name="action_verbalize_exports_csv">Export of entries</string>
+    <string name="action_verbalize_exports_csv_tool">Export of the entries of “%1$s”</string>
     <string name="import_action">Import a file</string>
     <string name="import_title">Import</string>
     <string name="import_lines">%1$d line(s) in the file</string>
