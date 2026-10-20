@@ -2337,8 +2337,11 @@
     <string name="history_row_created">%1$s, created</string>
     <string name="history_row_deleted">%1$s, deleted</string>
     <string name="history_row_changed">%1$s, changed</string>
-    <string name="history_change">%1$s: %2$s → %3$s</string>
-    <string name="history_none">nothing</string>
+    <string name="history_before">Before</string>
+    <string name="history_after">After</string>
+    <string name="history_composite_changed">Contents changed</string>
+    <string name="history_internal_one">And 1 internal change</string>
+    <string name="history_internal_many">And %1$d internal changes</string>
     <string name="history_row_named">%1$s “%2$s”</string>
     <string name="history_table_zones">Zone</string>
     <string name="history_table_tool_instances">Tool</string>
