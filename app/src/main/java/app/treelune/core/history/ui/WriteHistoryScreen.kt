@@ -12,6 +12,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -35,6 +36,7 @@ import app.treelune.core.ui.UI
 import app.treelune.core.ui.components.ButtonRow
 import app.treelune.core.utils.DateUtils
 import app.treelune.core.utils.FormatUtils
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -241,7 +243,9 @@ private fun StepCard(
         ) {
             UI.Text((step["phrase"] as? String).orEmpty(), if (undone) TextType.CAPTION else TextType.BODY)
             val who = s.shared("history_origin_${(step["origin"] as String).lowercase()}")
-            val whenText = FormatUtils.formatRelativeTimePast((step["timestamp"] as Number).toLong(), context)
+            // Said again each minute, so that « 21 s ago » does not stay while the screen is open
+            val minute by produceState(0) { while (true) { delay(60_000); value++ } }
+            val whenText = remember(minute, step["timestamp"]) { FormatUtils.formatRelativeTimePast((step["timestamp"] as Number).toLong(), context) }
             UI.Text(listOfNotNull(who, whenText, s.shared("history_state_undone").takeIf { undone }).joinToString(" · "), TextType.CAPTION)
 
             if (open) {
