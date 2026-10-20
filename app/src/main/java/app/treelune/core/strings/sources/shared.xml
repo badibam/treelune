@@ -2274,4 +2274,18 @@
     <string name="identity_resource_delete_confirm">Delete the resource “%1$s”?</string>
     <string name="identity_delete_confirm">Delete the identity “%1$s”?</string>
     <string name="identity_saved">Saved</string>
+
+    <!-- The history of writes (docs/design/undo-history.md) -->
+    <string name="history_error_step_not_found">Step of the history not found: %1$s</string>
+    <string name="history_error_not_a_step">What the app writes by itself is not undone</string>
+    <string name="history_error_already_undone">This step is already undone</string>
+    <string name="history_error_not_undone">This step is not undone</string>
+    <string name="history_refused_undo">This step can no longer be undone:</string>
+    <string name="history_refused_redo">This step can no longer be redone:</string>
+    <string name="history_refused_changed">what it wrote has changed since.</string>
+    <string name="history_refused_changed_by_app">the app changed what it wrote, on %1$s.</string>
+    <string name="history_refused_changed_by_step">“%1$s” changed what it wrote, on %2$s.</string>
+    <string name="action_verbalize_history_undo">Undo of “%1$s”</string>
+    <string name="action_verbalize_history_redo">Redo of “%1$s”</string>
+    <string name="action_verbalize_history_list">Reading of the history</string>
 </resources>

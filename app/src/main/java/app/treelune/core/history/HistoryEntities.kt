@@ -68,6 +68,13 @@ data class HistoryRowEntity(
     @ColumnInfo(name = "size_bytes") val sizeBytes: Long
 )
 
+/** A table a step touched, and the tool and zone of its rows there. */
+data class StepPlace(
+    @ColumnInfo(name = "table_name") val tableName: String,
+    @ColumnInfo(name = "tool_instance_id") val toolInstanceId: String?,
+    @ColumnInfo(name = "zone_id") val zoneId: String?
+)
+
 @Dao
 interface HistoryDao {
     @Query("SELECT * FROM history_steps WHERE id = :id")
@@ -79,6 +86,24 @@ interface HistoryDao {
 
     @Query("SELECT * FROM history_rows WHERE step_id = :stepId ORDER BY id ASC")
     suspend fun getRows(stepId: String): List<HistoryRowEntity>
+
+    /**
+     * The steps — never the app's own writes — that touched the tool [toolInstanceId] or the zone
+     * [zoneId] (either or neither given), between [from] and [to], the most recent first.
+     */
+    @Query("""
+        SELECT * FROM history_steps s WHERE s.is_step = 1 AND s.at BETWEEN :from AND :to
+        AND (:toolInstanceId IS NULL AND :zoneId IS NULL OR EXISTS (
+            SELECT 1 FROM history_rows r WHERE r.step_id = s.id
+            AND (:toolInstanceId IS NULL OR r.tool_instance_id = :toolInstanceId)
+            AND (:zoneId IS NULL OR r.zone_id = :zoneId)))
+        ORDER BY s.at DESC, s.rowid DESC LIMIT :limit
+    """)
+    suspend fun listSteps(toolInstanceId: String?, zoneId: String?, from: Long, to: Long, limit: Int): List<HistoryStepEntity>
+
+    /** The tools, zones and tables a step touched, for what an undo tells the screens. */
+    @Query("SELECT DISTINCT table_name, tool_instance_id, zone_id FROM history_rows WHERE step_id = :stepId")
+    suspend fun placesOf(stepId: String): List<StepPlace>
 
     /** The rows that touched one row of a table, oldest first. */
     @Query("SELECT * FROM history_rows WHERE table_name = :table AND row_id = :rowId ORDER BY id ASC")

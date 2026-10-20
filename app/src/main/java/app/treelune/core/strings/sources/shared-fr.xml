@@ -2274,4 +2274,18 @@
     <string name="identity_resource_delete_confirm">Supprimer la ressource « %1$s » ?</string>
     <string name="identity_delete_confirm">Supprimer l'identité « %1$s » ?</string>
     <string name="identity_saved">Enregistré</string>
+
+    <!-- L'historique des écritures (docs/design/undo-history.md) -->
+    <string name="history_error_step_not_found">Pas de l'historique introuvable : %1$s</string>
+    <string name="history_error_not_a_step">Ce que l'app écrit d'elle-même ne s'annule pas</string>
+    <string name="history_error_already_undone">Ce pas est déjà annulé</string>
+    <string name="history_error_not_undone">Ce pas n'est pas annulé</string>
+    <string name="history_refused_undo">Ce pas ne s'annule plus :</string>
+    <string name="history_refused_redo">Ce pas ne se rétablit plus :</string>
+    <string name="history_refused_changed">ce qu'il a écrit a changé depuis.</string>
+    <string name="history_refused_changed_by_app">l'app a changé ce qu'il a écrit, le %1$s.</string>
+    <string name="history_refused_changed_by_step">« %1$s » a changé ce qu'il a écrit, le %2$s.</string>
+    <string name="action_verbalize_history_undo">Annulation de « %1$s »</string>
+    <string name="action_verbalize_history_redo">Rétablissement de « %1$s »</string>
+    <string name="action_verbalize_history_list">Lecture de l'historique</string>
 </resources>
