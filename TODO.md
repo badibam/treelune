@@ -73,12 +73,12 @@ Codé, jamais vu sur l'appareil ; le détail est dans la recette, `docs/design/d
 - Une seule activité (singleTask) : une notification qui ouvre un lieu, app ouverte et fermée ; le retour du sélecteur de photos ; le lanceur.
 - Champ Image (`docs/design/image-field.md`) : migration 82 d'abord ; la tuile de l'Agenda dit « 3 images » en texte.
 - Thème liseuse (`docs/design/eink-theme.md`) : les trames d'abord.
+- Une question de l'IA dans une routine refusée, l'IA continuant seule (gemma, gpt-oss au banc).
 
 ## Décidé, à coder
 
 - L'historique des écritures et leur annulation (`docs/design/undo-history.md`).
 - Un seuil de lecture propre au connecteur MCP, un seul, dans ses réglages, séparé de `chat_max_data_chars`.
-- En routine, le prompt ne parle plus de module de communication et dit que personne ne répondra ; un module reçu est refusé en le disant, l'IA continue seule.
 - L'écran de confirmation d'un changement de config nomme les outils dont un filtre vise une option retirée ou renommée.
 - Une phrase du Guide : partir d'un outil de la démo (le dupliquer) ou le décrire à l'IA — vérifier d'abord qu'un outil dupliqué survit au retrait de la démo.
 - `docs/` en anglais ; `docs/design/` et `TODO.md` restent en français.

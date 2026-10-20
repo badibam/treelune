@@ -352,7 +352,7 @@ La recherche de la prochaine occurrence démarre au plus tôt à `maintenant −
 
 **Réseau** : nouvel essai toutes les 30 s, phase `WAITING_NETWORK_RETRY` (le watchdog ne la compte pas). Après 2 min d'attente en tout (`AIStateMachine.AUTOMATION_NETWORK_WAIT_LIMIT`), la session se ferme en `NETWORK_ERROR`, pour ne pas garder le téléphone éveillé tant que le réseau manque ; le planificateur la reprend 5 min après au plus tôt (`SessionSlotPolicy.NETWORK_RESUME_PAUSE`) et ne lance pas d'autre occurrence de la même automation entre-temps.
 
-**Communication modules** : Interdits pour AUTOMATION (validationRequest, communicationModule ignorés).
+**Communication modules** : personne ne répond pendant une exécution. Le prompt d'une AUTOMATION ne présente pas les modules et le dit (`ai_chunk_automation_completion`) ; un module reçu est un FORMAT_ERROR (`ai_error_communication_module_in_automation`) qui demande à l'IA de décider seule et de dire dans son résumé ce qu'elle a supposé. Un `validationRequest` y est ignoré.
 
 ### Arrêt AUTOMATION
 **UI boutons** :

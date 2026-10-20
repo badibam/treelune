@@ -199,6 +199,7 @@
     <!-- AI Response Validation Errors -->
     <string name="ai_error_validation_multiple_action_types">Plusieurs types de commandes présents: %1$s. Un seul type autorisé par réponse.</string>
     <string name="ai_error_validation_request_without_actions">validation_request présent sans action_commands. validation_request n\'est autorisé qu\'avec action_commands.</string>
+    <string name="ai_error_communication_module_in_automation">communication_module dans une routine : personne ne répond pendant une exécution. Décide d\'après ce que tu peux lire, continue, et dis dans ton résumé ce que tu as supposé.</string>
 
     <!-- Custom fields - Technical name -->
     <string name="error_field_name_unknown">Nom technique inconnu : %1$s. Un nom technique est attribué par l\'app et ne se choisit pas : omets \'name\' pour créer un champ, reprends-le tel quel pour désigner un champ existant. Le renommer détruirait les valeurs déjà enregistrées ; c\'est \'display_name\' qui se modifie librement.</string>

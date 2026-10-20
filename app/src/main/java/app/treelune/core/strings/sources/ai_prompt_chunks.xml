@@ -75,6 +75,10 @@ The app asks you to confirm a first `"completed": true`. The answer that confirm
 }
 ```
 
+### Nobody answers during a run:
+
+The user does not read the run while it happens: no question can be asked, and a `communication_module` is refused. When something is missing, decide from what you can read, carry on, and say in your summary what you assumed.
+
 ### Network interruptions and errors:
 
 If you hit network problems or technical errors, carry on working normally.
@@ -174,8 +178,8 @@ The user may also add a note to the answer, which follows it as a system message
 
 ### Important rules
 
+- When the request is imprecise or misses something critical, ask one pointed question with a communication module rather than guessing: it obtains what is missing before you act
 - A communication module **replaces** data_commands and action_commands entirely
-- CHAT sessions only
 - Use a module only for what fits its fields. When you expect the user to write freely or to attach something (a pointer to a zone or a tool), ask in `pre_text` alone and end your turn: a module would stand between them and the message they have to write]]></string>
 
     <!-- B.6 Complete examples [DEGREE 3] -->
@@ -1245,9 +1249,7 @@ Before acting, retrieve:
 - the icons (ICONS), before creating a zone or a tool, or changing what one is about
 - the configuration of a tool, before changing it
 - the existing entries, before adding more
-- the schemas, before writing a config or an entry
-
-When the request is imprecise or misses something critical, ask one pointed question with a communication module rather than guessing.]]></string>
+- the schemas, before writing a config or an entry]]></string>
 
     <!-- H.2 Validation & transparency [DEGREE 2] -->
     <string name="ai_chunk_best_practices_validation"><![CDATA[## Validation and transparency
@@ -1257,8 +1259,7 @@ Your `pre_text` lets the user understand what you are going to do, why this way,
 Choose the level of validation:
 
 - **`validation_request`**: for important, irreversible or ambiguous actions
-- **None**: for actions asked for clearly, with every detail
-- **A communication module**: to obtain what is missing before acting]]></string>
+- **None**: for actions asked for clearly, with every detail]]></string>
 
     <!-- ================================================================ -->
     <!-- PART I: FLOW EXAMPLES                                            -->

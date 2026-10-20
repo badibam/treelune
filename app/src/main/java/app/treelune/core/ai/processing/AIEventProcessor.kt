@@ -999,6 +999,12 @@ class AIEventProcessor(
                     formatErrors.add(s.shared("ai_error_validation_request_without_actions"))
                 }
 
+                // Rule 3: nobody answers a routine's question while it runs; refused so that its
+                // AI carries on alone, its summary saying what it assumed
+                if (hasCommunicationModule && state.sessionType == SessionType.AUTOMATION) {
+                    formatErrors.add(s.shared("ai_error_communication_module_in_automation"))
+                }
+
                 // Check the communication module's fields before anything reads them
                 cleanedAIMessage.communicationModule?.let { module ->
                     app.treelune.core.ai.data.CommunicationModules.check(module.declaration, context)?.let {

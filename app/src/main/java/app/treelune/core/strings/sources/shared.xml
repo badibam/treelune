@@ -199,6 +199,7 @@
     <!-- AI Response Validation Errors -->
     <string name="ai_error_validation_multiple_action_types">Several command types present: %1$s. Only one type is allowed per answer.</string>
     <string name="ai_error_validation_request_without_actions">validation_request present without action_commands. validation_request is only allowed together with action_commands.</string>
+    <string name="ai_error_communication_module_in_automation">communication_module in a routine: nobody answers during a run. Decide from what you can read, carry on, and say in your summary what you assumed.</string>
 
     <!-- Custom fields - Technical name -->
     <string name="error_field_name_unknown">Unknown technical name: %1$s. A technical name is assigned by the app and is not chosen: omit \'name\' to create a field, and repeat it as is to designate an existing field. Renaming it would destroy the values already recorded; \'display_name\' is the one that can be changed freely.</string>
