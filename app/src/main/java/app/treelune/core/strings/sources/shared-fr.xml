@@ -2337,6 +2337,8 @@
     <string name="history_row_created">Création : %1$s</string>
     <string name="history_row_deleted">Suppression : %1$s</string>
     <string name="history_row_changed">Modification : %1$s</string>
+    <string name="history_entries_created">Création : %1$d entrées de « %2$s »</string>
+    <string name="history_entries_deleted">Suppression : %1$d entrées de « %2$s »</string>
     <string name="history_before">Avant</string>
     <string name="history_after">Après</string>
     <string name="history_composite_changed">Contenu changé</string>

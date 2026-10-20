@@ -24,6 +24,7 @@ import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.history.HistoryState
 import app.treelune.core.history.CoveredTable
 import app.treelune.core.history.ReadableChanges
+import app.treelune.core.history.Rows
 import app.treelune.core.fields.FieldValue
 import app.treelune.core.strings.StringsContext
 import app.treelune.core.strings.Strings
@@ -268,13 +269,39 @@ private fun StepCard(
 /** A row a step touched, read: its line (its kind and name), and what changed in it as the user reads it. */
 private data class ReadRow(val title: String, val readable: ReadableChanges.Readable)
 
-/** The rows of a step as the history keeps them, read for the screen (ReadableChanges). */
+/**
+ * The rows of a step as the history keeps them, read for the screen (ReadableChanges). A row
+ * changed shows its fields before and after; a row created or deleted, its line alone — but an
+ * entry alone, whose fields are what was written — and the entries of one tool created or
+ * deleted together, one line counting them: a zone deleted is a few lines, not each of its entries.
+ */
 private suspend fun readRows(stored: List<Map<String, Any?>>, context: android.content.Context): List<ReadRow> {
     val s = Strings.`for`(context = context)
     val readable = ReadableChanges(context, app.treelune.core.database.AppDatabase.getDatabase(context))
     fun json(map: Any?) = (map as? Map<*, *>)?.let { org.json.JSONObject(it) }
     val all = stored.map { row -> CoveredTable.of(row["table"] as String) to json(row["before"] ?: row["after"])!! }
-    return stored.map { row ->
+    val none = ReadableChanges.Readable(emptyList(), 0)
+
+    // The entries created or deleted, by their tool and what befell them
+    fun entryGroup(row: Map<String, Any?>): Pair<String, Boolean>? {
+        if (row["table"] != CoveredTable.TOOL_DATA.tableName || (row["before"] != null && row["after"] != null)) return null
+        val entry = (row["before"] ?: row["after"]) as Map<*, *>
+        return (entry["tool_instance_id"] as String) to (row["after"] == null)
+    }
+    val groups = stored.mapNotNull { entryGroup(it) }.groupingBy { it }.eachCount()
+    val counted = mutableSetOf<Pair<String, Boolean>>()
+
+    return stored.mapNotNull { row ->
+        val group = entryGroup(row)
+        val many = group?.let { groups.getValue(it) }?.takeIf { it > 1 }
+        if (group != null && many != null) {
+            if (!counted.add(group)) return@mapNotNull null
+            val (toolId, deleted) = group
+            val tool = all.firstOrNull { (t, r) -> t == CoveredTable.TOOL_INSTANCES && r.optString("id") == toolId }?.second
+                ?: Rows.read(app.treelune.core.database.AppDatabase.getDatabase(context), CoveredTable.TOOL_INSTANCES, toolId)
+            val toolName = tool?.optString("config_json")?.let { runCatching { org.json.JSONObject(it).optString("name") }.getOrNull() }.orEmpty()
+            return@mapNotNull ReadRow(s.shared(if (deleted) "history_entries_deleted" else "history_entries_created").format(many, toolName), none)
+        }
         val before = json(row["before"])
         val after = json(row["after"])
         val table = CoveredTable.of(row["table"] as String)
@@ -286,7 +313,8 @@ private suspend fun readRows(stored: List<Map<String, Any?>>, context: android.c
         val tableName = s.shared("history_table_${row["table"]}")
         @Suppress("UNCHECKED_CAST")
         val named = nameOf((row["before"] ?: row["after"]) as Map<String, Any?>, context)?.let { s.shared("history_row_named").format(tableName, it) } ?: tableName
-        ReadRow(s.shared(kind).format(named), readable.of(table, before, after, all))
+        val shown = before != null && after != null || table == CoveredTable.TOOL_DATA
+        ReadRow(s.shared(kind).format(named), if (shown) readable.of(table, before, after, all) else none)
     }
 }
 
