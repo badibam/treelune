@@ -263,6 +263,13 @@ fun ChatMessageBubble(
                                                         }
                                                         if (exported != null) {
                                                             val context = LocalContext.current
+                                                            // The file and its count, as the export's own window says them
+                                                            (commandResult.data?.get("file_name") as? String)?.let {
+                                                                UI.Text(s.shared("export_csv_written").format(it), TextType.CAPTION)
+                                                            }
+                                                            (commandResult.data?.get("entries") as? Number)?.let {
+                                                                UI.Text(s.shared("export_csv_entries").format(it.toInt()), TextType.CAPTION)
+                                                            }
                                                             UI.Button(type = app.treelune.core.ui.ButtonType.SECONDARY, onClick = { app.treelune.core.ui.exports.shareCsv(context, exported) }) {
                                                                 UI.Text(s.shared("export_csv_share"), TextType.LABEL)
                                                             }
