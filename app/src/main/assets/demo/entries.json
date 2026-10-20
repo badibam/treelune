@@ -311,7 +311,12 @@
         "ideal_temp": {
           "start": 18,
           "end": 28
-        }
+        },
+        "photos": [
+          {
+            "demo_image": "tomato.jpg"
+          }
+        ]
       },
       "sown_weeks_ago": 13,
       "sown_weekday": 3,
@@ -330,7 +335,12 @@
         "ideal_temp": {
           "start": 18,
           "end": 30
-        }
+        },
+        "photos": [
+          {
+            "demo_image": "basil.jpg"
+          }
+        ]
       },
       "sown_weeks_ago": 12,
       "sown_weekday": 6,
@@ -375,7 +385,12 @@
         "ideal_temp": {
           "start": 20,
           "end": 30
-        }
+        },
+        "photos": [
+          {
+            "demo_image": "chilli.jpg"
+          }
+        ]
       },
       "sown_weeks_ago": 13,
       "sown_weekday": 5,

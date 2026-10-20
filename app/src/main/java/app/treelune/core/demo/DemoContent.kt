@@ -51,6 +51,9 @@ class DemoContent(
         /** The key of a moment placed in the demo's weeks, in a config. */
         const val AT = "demo_at"
 
+        /** The key of an image shipped in assets/demo/images, by its file's name, in an entry's IMAGE field. */
+        const val IMAGE = "demo_image"
+
         /**
          * The demo read from [structure], its texts given by [texts].
          *
@@ -99,6 +102,17 @@ class DemoContent(
             is JSONObject -> if (value.has(AT)) place(value.getJSONArray(AT))
                 else JSONObject().also { out -> value.keys().forEach { out.put(it, dated(value.get(it), place)) } }
             is JSONArray -> JSONArray().also { out -> (0 until value.length()).forEach { out.put(dated(value.get(it), place)) } }
+            else -> value
+        }
+
+        /**
+         * [value] with each `{"demo_image": "tomato.jpg"}` replaced by the id [prepare] gives that
+         * image once prepared for an entry, at any depth.
+         */
+        suspend fun pictured(value: Any?, prepare: suspend (String) -> String): Any? = when (value) {
+            is JSONObject -> if (value.has(IMAGE)) prepare(value.getString(IMAGE))
+                else JSONObject().also { out -> value.keys().forEach { out.put(it, pictured(value.get(it), prepare)) } }
+            is JSONArray -> JSONArray().also { out -> (0 until value.length()).forEach { out.put(pictured(value.get(it), prepare)) } }
             else -> value
         }
 

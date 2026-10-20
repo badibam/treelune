@@ -1,0 +1,20 @@
+{
+  "_about": "Where the demo's photos (assets/demo/images) come from: each under CC0, reduced to 1024 px on its long side and written again without its metadata. Replacing one = another CC0 or public domain photo, reduced the same way, its line here changed.",
+  "images": {
+    "tomato.jpg": {
+      "source": "https://commons.wikimedia.org/wiki/File:Tomato_Plant_June_%2724.jpg",
+      "author": "Weeone61",
+      "licence": "CC0"
+    },
+    "basil.jpg": {
+      "source": "https://commons.wikimedia.org/wiki/File:Young_basil_plant.JPG",
+      "author": "Pixelmaniac pictures",
+      "licence": "CC0"
+    },
+    "chilli.jpg": {
+      "source": "https://commons.wikimedia.org/wiki/File:Sibirischer_Hauspaprika_mit_noch_gr%C3%BCnen_Chilis.jpg",
+      "author": "Singlespeedfahrer",
+      "licence": "CC0"
+    }
+  }
+}

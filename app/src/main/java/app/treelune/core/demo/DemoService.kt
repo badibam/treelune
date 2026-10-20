@@ -149,7 +149,7 @@ class DemoService(private val context: Context) : ExecutableService {
             written += entries.size
             val batch = run("tool_data.batch_create", JSONObject()
                 .put("tool_instance_id", tool)
-                .put("entries", JSONArray(entries.map { kept(DemoContent.resolve(it, texts) as JSONObject) })))
+                .put("entries", JSONArray(entries.map { kept(DemoContent.pictured(DemoContent.resolve(it, texts), ::prepareImage) as JSONObject) })))
             val failed = (batch["failed_count"] as? Number)?.toInt() ?: 0
             if (failed > 0) throw Refused("tool_data.batch_create $tool: $failed refused, ${batch["refusals"]}")
         }
@@ -181,6 +181,21 @@ class DemoService(private val context: Context) : ExecutableService {
      */
     private fun kept(entry: JSONObject): JSONObject = entry.apply {
         optJSONObject("data")?.let { data -> data.optJSONArray(app.treelune.tools.sequence.SequenceToolType.KEPT_STEPS)?.let { data.put(app.treelune.tools.sequence.SequenceToolType.KEPT_STEPS, it.toString()) } }
+    }
+
+    /**
+     * The image [name] of assets/demo/images prepared for an entry as a photo picked in the
+     * gallery is (files.prepare_image), from a copy in the cache: its id, which the entry's write
+     * makes the entry's.
+     */
+    private suspend fun prepareImage(name: String): String {
+        val copy = java.io.File(context.cacheDir, "demo-image-$name")
+        try {
+            context.assets.open("demo/images/$name").use { input -> copy.outputStream().use { input.copyTo(it) } }
+            return run("files.prepare_image", JSONObject().put("uri", android.net.Uri.fromFile(copy).toString()))["id"] as String
+        } finally {
+            copy.delete()
+        }
     }
 
     /**
