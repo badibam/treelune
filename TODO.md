@@ -39,7 +39,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - Le rapport de bug (`docs/design/bug-report.md`) : démarrage, Réglages.
 - La validation et les accès de l'IA (`docs/design/validation.md`) : les trois niveaux et les cases de session (migration 69), `UPDATE_APP_CONFIG`, le masque des automations (migration 70), la validation du connecteur par notification et son masque par client (migration 71) — section Validation.
 - Le serveur MCP (`docs/design/mcp-server.md`, `core/mcp`, migration 60) ; le relais (projet `relay`) est en ligne sur `https://relay.badibam.fr` depuis le 2026-10-05, Claude s'y est branché comme connecteur depuis le téléphone ; l'hébergement tient une requête 120 s, `RelayLoop.WAIT_SECONDS` = 20 reste en dessous : la section « Accès externe ».
-- L'accès externe par Tailscale Funnel (`docs/design/funnel-access.md`) : sa section (migration 68), « Adresse prête » qui arrive enfin (le nœud demande les serveurs de `ts.net` aux serveurs DNS que donne Android ; jamais construit, le NDK manquant), puis élaguer aussi `funnel-poc.md`.
+- L'accès externe par Tailscale Funnel (`docs/design/funnel-access.md`) : sa section (migration 68), puis élaguer aussi `funnel-poc.md`.
 - Ce qui a changé le 2026-10-11, vu en debug seulement ou pas du tout : la migration 73 (le compteur devient numérique) sur la release et ses données, l'avertissement d'arrière-plan sur une installation neuve, les automations et leurs accès, une fenêtre flottante longue dans le cosy (Mise à jour et démarrage, Automations, Réglages et affichage).
 - Ce qui a changé le 2026-10-13 (branche ai-runtime) : une routine lancée app fermée et sa notification (Automations) ; la réflexion d'une conversation, la migration 74, ses cases de validation gardées, une écriture dans un outil qui n'existe pas, un champ sans nom affiché (Chat IA).
 - Ce qui a changé le 2026-10-14 (branche data-text) : copier et sélectionner, le compteur des champs et les nouvelles limites, les fuseaux et les langues, les colonnes écartées de l'import, la sauvegarde automatique et sa marque ; la durée d'une copie, à lire dans le journal (« Auto backup: … written in N ms ») : au-delà de 50 s app fermée, la faire tourner sous le service au premier plan des routines (dernière section de la recette).
@@ -72,7 +72,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - La SQLite de l'app à la place de celle du téléphone (branche demo-install) : la mise à jour depuis la release avec ses données d'abord (« Mise à jour et démarrage »), puis la démo sur l'OPPO A5 2020 (« Démo »).
 - Le thème plan d'architecte (`docs/design/blueprint-theme.md`, branche theme-blueprint) : la passe sur le téléphone de `docs/THEMES.md`, le débord des icônes d'abord, puis ce que la spec garde dans « Ce qui reste ouvert ».
 - L'outil Flashcards (`docs/design/flashcards.md`, branche flashcards) : la section « Flashcards » de la recette, la démo d'abord (Lessico, Ripasso), puis le lexique réel ; passé, élaguer la spec.
-- Une seule activité (`launchMode` singleTask, 2026-10-20) : une notification qui ouvre un outil ou un lieu, l'app ouverte comme fermée ; un retour du sélecteur de photos et de l'appareil photo ; le lanceur qui ramène l'app là où on l'avait laissée.
+- Une seule activité (`launchMode` singleTask, 2026-10-20) : un retour du sélecteur de photos et de l'appareil photo (la notification et le lanceur passés le 2026-10-20).
 - Le champ Image (`docs/design/image-field.md`, branche image-field) : la migration 82 sur la release et ses images de messages d'abord, puis la section « À passer sur le téléphone » de la spec ; la tuile de l'Agenda dit encore « 3 images » en texte ; passé, élaguer la spec.
 - Le thème liseuse (`docs/design/eink-theme.md`, branche theme-eink) : la passe sur le téléphone de `docs/THEMES.md`, les trames d'abord (deux couleurs au pixel près, la discrète des textures), puis ce que la spec garde dans « Ce qui reste ouvert », la bande d'encre et ses boutons d'abord.
 - L'historique des écritures (`docs/design/undo-history.md`, branche undo-history) : la migration 83 sur la release et ses données d'abord, puis la section du même nom de la recette, le gros import mesuré (sa durée, la place prise) ; passé, élaguer la spec.
@@ -129,6 +129,15 @@ Ce qui marche, mais contredit l'architecture ou une règle du projet.
 - Une apostrophe nue dans un texte qui en a déjà une échappée (`\'`) passe tous les contrôles de `./run test` et casse la compilation des ressources (« Invalid unicode escape sequence »), le générateur n'échappant que les textes qui n'en ont aucune : la refuser dans un contrôle des sources de textes, ou faire échapper toutes les apostrophes au générateur.
 
 ## Bugs du téléphone
+
+Vus le 2026-10-20, laissés pour plus tard :
+
+- Un titre trop long d'une entrée de Journal ou d'une note est refusé avec « Nom: … » quand le formulaire dit « Titre » : le champ du nom du cœur porte le même libellé dans tous les outils (`CoreFields.name`).
+- Flashcards : la confirmation au retrait d'un sens dit « N entrée(s) supprimée(s) faute de valeur obligatoire », sans dire que ce sont les révisions de ce sens.
+- La config d'un paquet Flashcards : « Source » et « Sens » écrits deux fois (le titre du cadre, puis le libellé du champ) ; « Rétention voulue » écrite « 0.9 » en français ; la poignée d'un champ d'un sens collée à sa liste déroulante.
+- Le choix d'une texture : toucher le libellé sous une vignette ne choisit rien, seule la vignette le fait.
+- La fenêtre de suppression d'un outil dit « cet élément » sans nommer l'outil.
+- Au cran de taille 3, le point d'attente et le chrono recouvrent presque toute l'icône d'une zone sur l'accueil (Travail).
 
 ## En attente d'un déclencheur
 
