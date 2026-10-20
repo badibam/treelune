@@ -22,6 +22,7 @@ Chaque écriture dans la base est gardée dans un historique, pour pouvoir l'ann
 - Toute écriture d'une table couverte passe par une seule classe, qui lit la ligne d'avant, écrit, puis écrit l'historique, dans la même transaction.
 - Un script de contrôle lancé par `./run test` refuse tout appel d'écriture de ces tables ailleurs. Les écritures qui contournent aujourd'hui un service (`GoalService`, `DefaultExtendedToolDataDao`…) y passent.
 - Les suppressions en cascade se font dans SQLite (`onDelete = CASCADE` sur outils, entrées, variables) : avant une suppression, la classe lit elle-même les lignes qui partent avec, sinon elles ne seraient pas restaurables. Une restauration remet les parents avant les enfants. Un test compare cette descente aux clés étrangères du schéma (`PRAGMA foreign_key_list`) et échoue dès qu'une cascade vers une table couverte lui manque.
+- Le fichier d'une image d'entrée reste sur le disque tant qu'un pas de l'historique nomme sa ligne : la suppression ne retire que la ligne, et le nettoyage du démarrage n'efface que les fichiers que ni la base ni l'historique ne nomment. Sa taille (`size_bytes`) compte dans la limite de volume.
 - Pas de déclencheurs SQLite : ils ne savent pas à quel pas appartient une écriture sans une transaction ouverte pendant toute l'opération, qui bloquerait les autres écritures pendant un appel de l'IA.
 
 ## Migrations
