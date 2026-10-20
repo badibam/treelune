@@ -20,6 +20,8 @@ import org.json.JSONObject
  *   that touched it, from and to (milliseconds) to a period, limit to how many (100 when not given)
  * - undo: id, a step done
  * - redo: id, a step undone
+ * - summary: the room the history takes (size_bytes) and when its oldest step was made (timestamp)
+ * - rows: id, the rows a step touched, each with its table and its copies before and after
  *
  * A step is given by its origin, its time (timestamp), the AI's session it answered (session_id),
  * its phrase, its state, and once undone or redone, who did it and when (state_by, updated_at).
@@ -33,6 +35,11 @@ class HistoryService(private val context: Context) : ExecutableService {
         return when (operation) {
             "list" -> list(params)
             "undo", "redo" -> act(operation, params)
+            "summary" -> OperationResult.success(buildMap {
+                put("size_bytes", dao.totalSize())
+                dao.oldestStep()?.let { put("timestamp", it) }
+            })
+            "rows" -> rows(params)
             else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
         }
     }
@@ -71,6 +78,19 @@ class HistoryService(private val context: Context) : ExecutableService {
                 OperationResult.success(mapOf("id" to id, "state" to step.state, "phrase" to (step.phrase ?: "")))
             }
         }
+    }
+
+    private suspend fun rows(params: JSONObject): OperationResult {
+        val id = params.text("id") ?: return OperationResult.error(s.shared("service_error_missing_id"))
+        dao.getStep(id)?.takeIf { it.isStep } ?: return OperationResult.error(s.shared("history_error_step_not_found").format(id))
+        return OperationResult.success(mapOf("rows" to dao.getRows(id).map { row ->
+            buildMap {
+                put("table", row.tableName)
+                put("row_id", row.rowId)
+                row.before?.let { put("before", app.treelune.core.utils.JsonUtils.toMap(JSONObject(it))) }
+                row.after?.let { put("after", app.treelune.core.utils.JsonUtils.toMap(JSONObject(it))) }
+            }
+        }))
     }
 
     /** What the step [id] touched said to the screens, as its own writes said it. */

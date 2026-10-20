@@ -116,7 +116,7 @@ object AccessRules {
             // The history of one tool or zone is read as it is; the whole of it, and an undo, whose rows may be anywhere, as the app
             "history" -> when (operation) {
                 "list" -> listOf(text("tool_instance_id")?.let { toolAt(AccessLevel.READ) } ?: text("zone_id")?.let { zoneAt("zone_id", AccessLevel.READ) } ?: Reach.App)
-                "undo", "redo" -> listOf(Reach.App)
+                "undo", "redo", "summary", "rows" -> listOf(Reach.App)
                 else -> listOf(Reach.Unknown("$resource.$operation"))
             }
             // A tool type's own operation writes the tool's entries

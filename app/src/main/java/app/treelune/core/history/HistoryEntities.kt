@@ -113,6 +113,14 @@ interface HistoryDao {
     @Query("SELECT DISTINCT table_name, tool_instance_id, zone_id FROM history_rows WHERE step_id = :stepId")
     suspend fun placesOf(stepId: String): List<StepPlace>
 
+    /** The room the history takes, its copies and the files of the images it keeps. */
+    @Query("SELECT COALESCE(SUM(size_bytes), 0) FROM history_rows")
+    suspend fun totalSize(): Long
+
+    /** When the oldest step still kept was made; null for a history with no step. */
+    @Query("SELECT MIN(at) FROM history_steps WHERE is_step = 1")
+    suspend fun oldestStep(): Long?
+
     /** The images a copy of the history keeps, whose files stay while it does. */
     @Query("SELECT DISTINCT row_id FROM history_rows WHERE table_name = 'images'")
     suspend fun keptImages(): List<String>
