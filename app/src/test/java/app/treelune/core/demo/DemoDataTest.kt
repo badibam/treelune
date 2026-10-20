@@ -22,6 +22,8 @@ class DemoDataTest {
     private val zone = ZoneId.of("Europe/Paris")
     private fun asset(name: String) = JSONObject(File("src/main/assets/demo/$name").readText(Charsets.UTF_8))
     private val hand = asset("entries.json")
+    private val goals = asset("structure.json").getJSONArray("tools").let { a -> (0 until a.length()).map { a.getJSONObject(it) } }
+        .associate { it.getString("id") to it.getJSONObject("config") }
 
     /** A Wednesday afternoon, a Monday at dawn and a Sunday night: the week's edges. */
     private val moments = listOf("2026-10-01T15:30", "2026-10-05T06:10", "2026-10-04T23:50")
@@ -120,7 +122,7 @@ class DemoDataTest {
 
     @Test
     fun `each goal has a week's attempt for twelve weeks, the current one open, last week's to validate`() {
-        val attempts = data(moments[0]).attempts().groupBy { it.toolId }
+        val attempts = data(moments[0]).attempts(goals).groupBy { it.toolId }
         assertEquals(setOf("demo-course-goal", "demo-italian-goal"), attempts.keys)
         attempts.values.forEach { list ->
             assertEquals(DemoData.WEEKS, list.size)
@@ -172,7 +174,7 @@ class DemoDataTest {
         // A Sunday afternoon, the week's first day; a Monday just past midnight, still Sunday for the app
         for (now in listOf(at("2026-10-04T15:30"), at("2026-10-05T00:30"))) {
             val data = data(now, weekStart = "sunday")
-            val attempts = data.attempts()
+            val attempts = data.attempts(goals)
             attempts.forEach { attempt ->
                 val start = java.time.Instant.ofEpochMilli(attempt.start).atZone(zone)
                 assertEquals(DayOfWeek.MONDAY, start.dayOfWeek)

@@ -7,6 +7,8 @@ import app.treelune.core.selection.ReferenceKind
 import app.treelune.core.selection.TimePoint
 import app.treelune.core.selection.TimeResolver
 import app.treelune.core.selection.PeriodType
+import app.treelune.core.utils.ScheduleCalculator
+import app.treelune.core.utils.StoredSchedule
 import app.treelune.tools.flashcards.FlashcardsDeck
 import app.treelune.tools.flashcards.FlashcardsDue
 import app.treelune.tools.flashcards.FlashcardsSession
@@ -535,15 +537,21 @@ class DemoData(private val time: TimeResolver, private val hand: JSONObject) {
      * The goals' attempts, one a week: those before last validated, last week's left to validate,
      * the current one open. Running's "No pain" is ticked but in the rush week.
      *
-     * They follow the goals' own schedule (assets/demo/structure.json: each Monday at 00:00), not
-     * the app's weeks: the goals' scheduler opens the next ones from it, and an attempt that starts
-     * off it would not be recognised as the one it is.
+     * They follow each goal's own schedule, read from its config [goals] (by tool id) as the goals'
+     * scheduler reads it (GoalScheduler): its occurrences up to now, the last the current one,
+     * each lasting the goal's duration or up to the next. The scheduler opens the next ones from
+     * there, and an attempt off the schedule would not be recognised as the one it is.
      */
-    fun attempts(): List<Attempt> = listOf("demo-course-goal", "demo-italian-goal").flatMap { tool ->
-        val lastMonday = java.time.Instant.ofEpochMilli(now).atZone(zone).toLocalDate().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-        (WEEKS - 1 downTo 0).map { back ->
-            val start = at(lastMonday.minusWeeks(back.toLong()), 0, 0)
-            val end = at(lastMonday.minusWeeks((back - 1).toLong()), 0, 0) - 1
+    fun attempts(goals: Map<String, JSONObject>): List<Attempt> = listOf("demo-course-goal", "demo-italian-goal").flatMap { tool ->
+        val config = goals.getValue(tool)
+        val pattern = (StoredSchedule.of(config) as StoredSchedule.Readable).schedule.pattern
+        val duration = (config.opt("duration") as? Number)?.toLong()
+        fun next(after: Long) = ScheduleCalculator.calculateNextExecution(pattern, after, zone)
+        val from = time.startOf(weekFirst(WEEKS))
+        val starts = generateSequence(next(from)) { next(it) }.takeWhile { it <= now }.toList().takeLast(WEEKS)
+        starts.mapIndexed { i, start ->
+            val back = starts.lastIndex - i
+            val end = duration?.let { start + it } ?: (next(start)!! - 1)
             val entered = if (tool == "demo-course-goal") json("c_no_pain" to (back != RUSH)) else JSONObject()
             when (back) {
                 0 -> Attempt(tool, start, end, entered, "active", validate = false)

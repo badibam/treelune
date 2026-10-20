@@ -96,7 +96,7 @@ class DemoService(private val context: Context) : ExecutableService {
         return try {
             addZoneGroup(content.group)
             build(content, data)
-            fill(texts, data)
+            fill(texts, data, content)
             automate(content)
             LogManager.service("Demo installed: ${content.identities.size} identities, ${content.zones.size} zones, ${content.tools.size} tools, ${content.variables.size} variables", "INFO")
             OperationResult.success(mapOf("zones" to content.zones.size, "tools" to content.tools.size, "variables" to content.variables.size))
@@ -160,7 +160,7 @@ class DemoService(private val context: Context) : ExecutableService {
      * attempts, opened with their copy of the goal as the scheduler opens them, and those before
      * last week validated as the user validates them, judged on the demo's own entries.
      */
-    private suspend fun fill(texts: JSONObject, data: DemoData) {
+    private suspend fun fill(texts: JSONObject, data: DemoData, content: DemoContent) {
         val all = data.entries()
         val total = all.values.sumOf { it.size }
         var written = 0
@@ -175,7 +175,7 @@ class DemoService(private val context: Context) : ExecutableService {
             if (failed > 0) throw Refused("tool_data.batch_create $tool: $failed refused, ${batch["refusals"]}")
         }
         LongOperation.at(s.shared("demo_phase_goals"))
-        for (attempt in data.attempts()) {
+        for (attempt in data.attempts(content.tools.associate { it.getString("id") to it.getJSONObject("config") })) {
             @Suppress("UNCHECKED_CAST")
             val tool = run("tools.get", JSONObject().put("tool_instance_id", attempt.toolId))["tool_instance"] as Map<String, Any?>
             @Suppress("UNCHECKED_CAST")
