@@ -696,12 +696,12 @@ object UI {
 
     /**
      * A tile's icon with its two marks, square, the same size in every tile of every mode, one
-     * column included: half of what an ICON tile holds, a row of the grid (LocalGridRow) less its
+     * column included: half of what an ICON tile holds, a row of the grid as the theme gives it (LocalGridIconRow) less its
      * frame. Sized by the space it stands in, it would grow with each header.
      */
     @Composable
     fun TileIcon(iconName: String?, iconColor: TagColor?, waiting: Boolean, running: Boolean) {
-        val size = (app.treelune.core.ui.components.LocalGridRow.current - CurrentTheme.current.tileFrame(DisplayMode.ICON)) / 2
+        val size = (app.treelune.core.ui.components.LocalGridIconRow.current - CurrentTheme.current.tileFrame(DisplayMode.ICON)) / 2
         Box(modifier = Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
             MarkedIcon(iconName, iconColor, waiting, running, size)
         }
