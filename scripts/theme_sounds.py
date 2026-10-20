@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The themes' interface sounds: the library they are chosen from, the files the app plays, and
-the check that both agree (docs/THEMES.md, Les sons).
+the check that both agree (docs/THEMES.md, The sounds).
 
 A theme answers each UISignal with a sound or none. Its choice is a file of its own,
 themes/<id>/sounds-choice.json, written by the sound bench (./run themes): the families kept for

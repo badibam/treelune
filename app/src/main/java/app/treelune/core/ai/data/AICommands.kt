@@ -113,6 +113,7 @@ object AICommands {
         query("IDENTITIES"),
         query("IDENTITY", p("id", "string", true), p("language", "string")),
         query("IDENTITY_RESOURCE", p("id", "string", true), p("key", "string", true), p("language", "string")),
+        query("HISTORY", p("tool_instance_id", "string"), p("zone_id", "string"), p("period", "object"), p("limit", "integer")),
 
         action("CREATE_DATA", p("tool_instance_id", "string", true), p("entries", "array", true), writesEntries = true),
         action("UPDATE_DATA", p("tool_instance_id", "string", true), p("entries", "array", true), writesEntries = true),
@@ -153,7 +154,9 @@ object AICommands {
             p("resources", "object")),
         action("DELETE_IDENTITY", p("identity_id", "string", true)),
         action("IMPORT_IDENTITY", p("text", "string", true), p("language", "string", true), p("replace", "boolean"),
-            p("icon_name", "string"), p("icon_color", "string"))
+            p("icon_name", "string"), p("icon_color", "string")),
+        action("UNDO_STEP", p("id", "string", true)),
+        action("REDO_STEP", p("id", "string", true))
     )
 
     private val byType = ALL.associateBy { it.type }

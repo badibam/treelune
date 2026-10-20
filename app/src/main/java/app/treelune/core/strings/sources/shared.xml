@@ -177,6 +177,7 @@
     <!-- Validation reasons -->
     <string name="validation_reason_app">The home screen is protected</string>
     <string name="validation_reason_past_data">The config changes entries already recorded: %1$d value(s) removed, %2$d entry(ies) deleted, %3$d value(s) read differently.</string>
+    <string name="validation_reason_filters_aimed">A filter of %1$s uses an option the config removes or renames, and would find nothing.</string>
     <string name="validation_reason_zone">The zone « %1$s » is protected</string>
     <string name="validation_reason_tool">The data of « %1$s » is protected</string>
     <string name="validation_reason_session">This conversation asks for it</string>
@@ -199,6 +200,7 @@
     <!-- AI Response Validation Errors -->
     <string name="ai_error_validation_multiple_action_types">Several command types present: %1$s. Only one type is allowed per answer.</string>
     <string name="ai_error_validation_request_without_actions">validation_request present without action_commands. validation_request is only allowed together with action_commands.</string>
+    <string name="ai_error_communication_module_in_automation">communication_module in a routine: nobody answers during a run. Decide from what you can read, carry on, and say in your summary what you assumed.</string>
 
     <!-- Custom fields - Technical name -->
     <string name="error_field_name_unknown">Unknown technical name: %1$s. A technical name is assigned by the app and is not chosen: omit \'name\' to create a field, and repeat it as is to designate an existing field. Renaming it would destroy the values already recorded; \'display_name\' is the one that can be changed freely.</string>
@@ -379,6 +381,8 @@
     <string name="action_verbalize_create_zone">Creation of the zone \"%1$s\"</string>
     <string name="action_verbalize_update_zone">Modification of the zone \"%1$s\"</string>
     <string name="action_verbalize_delete_zone">Deletion of the zone \"%1$s\"</string>
+    <string name="action_verbalize_mcp_client_access">Modification of the access of the client \"%1$s\"</string>
+    <string name="action_verbalize_mcp_client_delete">Revocation of the client \"%1$s\"</string>
     <string name="action_verbalize_create_tool">Creation of the tool \"%1$s\" in the zone \"%2$s\"</string>
     <string name="action_verbalize_update_tool_config">Modification of the configuration of the tool \"%1$s\"</string>
     <string name="action_verbalize_delete_tool">Deletion of the tool \"%1$s\"</string>
@@ -949,6 +953,10 @@
     <string name="service_error_zone_id_required">Zone ID required</string>
     <string name="service_error_grid_places">The places given do not lay out the tools of the group</string>
     <string name="service_error_zone_not_found">Zone not found</string>
+    <string name="service_error_mcp_clients_user_only">The connector's clients are managed in the app, by the user</string>
+    <string name="service_error_mcp_client_not_found">Connector client not found: %1$s</string>
+    <string name="service_error_mcp_client_access_missing">Mandatory parameter missing: access</string>
+    <string name="service_error_mcp_client_access_unreadable">Access unreadable: %1$s</string>
     <string name="service_error_zone_id_tool_type_required">Zone ID and tool type required</string>
     <string name="service_error_tool_instance_id_required">Tool instance ID required</string>
     <string name="service_error_tool_instance_not_found">Tool instance not found</string>
@@ -1093,8 +1101,8 @@
     <string name="backup_reset">Reset all the data</string>
     <string name="backup_export_success">Export succeeded</string>
     <string name="backup_export_success_missing_images">Backup made; %1$d images had lost their file and stay so in it</string>
-    <string name="backup_import_confirm">All the current data will be overwritten. Continue?</string>
-    <string name="backup_reset_confirm">All the data will be deleted for good. Continue?</string>
+    <string name="backup_import_confirm">All the current data will be overwritten, and the history emptied: nothing from before can be undone. To keep the current data, export it first (Export all the data). Continue?</string>
+    <string name="backup_reset_confirm">All the data will be deleted for good, its history with it. Continue?</string>
     <string name="backup_import_success">Import succeeded, restarting...</string>
     <string name="backup_reset_success">Reset succeeded, restarting...</string>
     <string name="backup_version_too_recent">This file comes from a more recent version of the application</string>
@@ -1618,6 +1626,7 @@
     <string name="migration_part_deleted">%1$d entry(ies) deleted for lack of a required value</string>
     <string name="migration_part_reinterpreted">%1$d value(s) kept but read differently (new bounds, order)</string>
     <string name="migration_lost_for_good">What is removed or deleted does not come back.</string>
+    <string name="migration_filters_aimed">A filter of %1$s uses an option this change removes or renames: it will find nothing until you change it.</string>
     <string name="migration_new_field_offer">To touch nothing, create a new field instead: the former one keeps its values, renamed %1$s.</string>
     <string name="migration_new_field">Create a new field</string>
     <string name="migration_kept_name">%1$s (before %2$s)</string>
@@ -1625,6 +1634,7 @@
     <string name="migration_fill_message">%1$d entr(ies) have no value for %2$s, which this change makes required. Give the value they take, or cancel.</string>
     <string name="tools_config_error_not_found">Tool not found</string>
     <string name="service_error_migration_unconfirmed">This change removes %1$d value(s) from this tool\'s entries, deletes %2$d entry(ies) left without a required value, and reads %3$d kept value(s) differently (new bounds, order). Tell the user, and send it again with "confirm_migration": true once they agree.</string>
+    <string name="service_error_migration_filters_aimed">A filter of %1$s compares a field with an option this change removes or renames: it would find nothing. Tell the user, and send it again with "confirm_migration": true once they agree.</string>
     <string name="service_error_migration_missing_values">Entries have no value for a field this change makes required: %1$s. Give the value they take in "fill_values": {"data": {"field": value}}.</string>
     <string name="service_error_migration_fill_unknown">"fill_values" names %1$s, which is not a required field of "data" in this config</string>
 
@@ -2098,6 +2108,8 @@
     <string name="settings_external_access_relay_url_help">The relay\'s public address, https://… The address to give the outside AI is this one followed by /mcp.</string>
     <string name="settings_external_access_relay_secret">Relay secret</string>
     <string name="settings_external_access_relay_secret_help">The secret written in the relay\'s configuration, by which it knows the app.</string>
+    <string name="settings_external_access_max_data">Data size per read</string>
+    <string name="settings_external_access_max_data_help">In characters. Above this size, a read of several entries is refused and the AI asks for less; anything else comes in slices. It weighs on the outside AI\'s memory, not on your API key.</string>
     <string name="external_access_open">Open the access</string>
     <string name="external_access_close">Close the access</string>
     <string name="external_access_state_closed">Closed: no outside AI can reach the app.</string>
@@ -2268,4 +2280,53 @@
     <string name="identity_resource_delete_confirm">Delete the resource “%1$s”?</string>
     <string name="identity_delete_confirm">Delete the identity “%1$s”?</string>
     <string name="identity_saved">Saved</string>
+
+    <!-- The history of writes (docs/design/undo-history.md) -->
+    <string name="history_error_step_not_found">Step of the history not found: %1$s</string>
+    <string name="history_error_not_a_step">What the app writes by itself is not undone</string>
+    <string name="history_error_already_undone">This step is already undone</string>
+    <string name="history_error_not_undone">This step is not undone</string>
+    <string name="history_refused_undo">This step can no longer be undone:</string>
+    <string name="history_refused_redo">This step can no longer be redone:</string>
+    <string name="history_refused_changed">what it wrote has changed since.</string>
+    <string name="history_refused_changed_by_app">the app changed what it wrote, on %1$s.</string>
+    <string name="history_refused_changed_by_step">“%1$s” changed what it wrote, on %2$s.</string>
+    <string name="action_verbalize_history_undo">Undo of “%1$s”</string>
+    <string name="action_verbalize_history_redo">Redo of “%1$s”</string>
+    <string name="action_verbalize_history_list">Reading of the history</string>
+    <string name="settings_write_history">History</string>
+    <string name="history_help">Every change you, the AI or a client of the connector made, the latest first. Undo takes back the latest, Redo puts back the last one undone. Touch a change to see it, and to undo it alone.</string>
+    <string name="history_room">%1$s taken, since %2$s</string>
+    <string name="write_history_empty">Nothing in the history yet.</string>
+    <string name="history_undo">Undo</string>
+    <string name="history_redo">Redo</string>
+    <string name="history_undo_this">Undo this change</string>
+    <string name="history_redo_this">Redo this change</string>
+    <string name="history_undone">Undone: %1$s</string>
+    <string name="history_redone">Redone: %1$s</string>
+    <string name="history_state_undone">Undone</string>
+    <string name="history_origin_user">You</string>
+    <string name="history_origin_ai">The AI</string>
+    <string name="history_origin_external">A connector client</string>
+    <string name="history_row_created">%1$s, created</string>
+    <string name="history_row_deleted">%1$s, deleted</string>
+    <string name="history_row_changed">%1$s, changed</string>
+    <string name="history_change">%1$s: %2$s → %3$s</string>
+    <string name="history_none">nothing</string>
+    <string name="history_row_named">%1$s “%2$s”</string>
+    <string name="history_table_zones">Zone</string>
+    <string name="history_table_tool_instances">Tool</string>
+    <string name="history_table_tool_data">Entry</string>
+    <string name="history_table_variables">Variable</string>
+    <string name="history_table_automations">Routine</string>
+    <string name="history_table_ai_sessions">Routine's message</string>
+    <string name="history_table_session_messages">Routine's message</string>
+    <string name="history_table_images">Image</string>
+    <string name="history_table_identities">Identity</string>
+    <string name="history_table_mcp_clients">Connector client</string>
+    <string name="history_table_app_settings_categories">Settings</string>
+    <string name="settings_data_history_days">Days of history</string>
+    <string name="settings_data_history_days_help">How long a change stays in the history, to be undone.</string>
+    <string name="settings_data_history_megabytes">Room for the history (MB)</string>
+    <string name="settings_data_history_megabytes_help">Past this, the oldest changes leave the history first. The latest always stays.</string>
 </resources>

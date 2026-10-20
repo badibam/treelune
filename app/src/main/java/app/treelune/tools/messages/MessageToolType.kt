@@ -15,7 +15,6 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import app.treelune.core.tools.ToolTypeContract
 import app.treelune.core.tools.ToolScheduler
-import app.treelune.core.tools.BaseSchemas
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.database.entities.ToolDataEntity
 import app.treelune.core.strings.Strings
@@ -216,28 +215,6 @@ object MessageToolType : ToolTypeContract {
         JSONObject().put(app.treelune.core.fields.EntryStart.STATUS, status).put("triggered_by", "MANUAL")
     }
 
-    override fun getFormFieldName(fieldName: String, context: Context): String {
-        val s = Strings.`for`(tool = "messages", context = context)
-        return when (fieldName) {
-            "title" -> s.tool("field_title")
-            "content" -> s.tool("field_content")
-            "enabled" -> s.tool("field_enabled")
-            "common_title" -> s.tool("field_common_title")
-            "common_content" -> s.tool("field_common_content")
-            "external_notifications" -> s.tool("field_external_notifications")
-            "priority" -> s.tool("field_priority")
-            "schedule" -> s.tool("field_schedule")
-            "creation_horizon" -> s.tool("field_creation_horizon")
-            "validity_window" -> s.tool("field_validity_window")
-            "status" -> s.tool("field_status")
-            "notification_sent" -> s.tool("field_notification_sent")
-            "read" -> s.tool("field_read")
-            "archived" -> s.tool("field_archived")
-            "triggered_by" -> s.tool("field_triggered_by")
-            else -> BaseSchemas.getCommonFieldName(fieldName, context) ?: fieldName
-        }
-    }
-
     // ========================================
     // UI
     // ========================================
@@ -276,14 +253,6 @@ object MessageToolType : ToolTypeContract {
 
     override fun getService(context: Context): ExecutableService {
         return MessageService(context)
-    }
-
-    override fun getDao(context: Context): Any {
-        val database = app.treelune.core.database.AppDatabase.getDatabase(context)
-        val baseDao = database.toolDataDao()
-
-        // Uses generic implementation for standard message entries
-        return app.treelune.core.database.dao.DefaultExtendedToolDataDao(baseDao, "messages")
     }
 
     override fun getDatabaseEntities(): List<Class<*>> {

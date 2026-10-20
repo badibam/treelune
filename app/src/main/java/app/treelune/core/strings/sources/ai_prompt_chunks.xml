@@ -75,6 +75,10 @@ The app asks you to confirm a first `"completed": true`. The answer that confirm
 }
 ```
 
+### Nobody answers during a run:
+
+The user does not read the run while it happens: no question can be asked, and a `communication_module` is refused. When something is missing, decide from what you can read, carry on, and say in your summary what you assumed.
+
 ### Network interruptions and errors:
 
 If you hit network problems or technical errors, carry on working normally.
@@ -174,8 +178,8 @@ The user may also add a note to the answer, which follows it as a system message
 
 ### Important rules
 
+- When the request is imprecise or misses something critical, ask one pointed question with a communication module rather than guessing: it obtains what is missing before you act
 - A communication module **replaces** data_commands and action_commands entirely
-- CHAT sessions only
 - Use a module only for what fits its fields. When you expect the user to write freely or to attach something (a pointer to a zone or a tool), ask in `pre_text` alone and end your turn: a module would stand between them and the message they have to write]]></string>
 
     <!-- B.6 Complete examples [DEGREE 3] -->
@@ -632,6 +636,16 @@ Changes a variable. Only what you give changes; a `definition` given replaces th
 - `definition` (object, optional)
 - `group` (string, optional): one of its zone's tool groups
 - `zone_id` (string, optional): the zone to move it to; its group stays behind unless you give one of the new zone's]]></string>
+    <string name="ai_command_history"><![CDATA[### HISTORY
+
+Lists the steps of the history of writes, the most recent first: each operation the user, an AI or a client of the connector asked for, kept for a time with what it wrote, to be undone. Each step: `id`, `origin` (`USER`, `AI`, `EXTERNAL`), `timestamp`, `session_id` (the conversation whose command it was), `phrase` (what it did), `state` (`DONE` or `UNDONE`), and once undone or redone, `state_by` and `updated_at`. What the app writes by itself, its schedulers among it, is not listed.
+
+**Parameters**:
+
+- `tool_instance_id` (string, optional): the steps that touched that tool
+- `zone_id` (string, optional): the steps that touched that zone
+- `period` (object, optional): on when the steps were made, as in TOOL_DATA
+- `limit` (integer, optional): how many, 100 by default]]></string>
     <string name="ai_command_delete_variable"><![CDATA[### DELETE_VARIABLE
 
 Deletes a variable. A formula naming it no longer computes.
@@ -1245,9 +1259,7 @@ Before acting, retrieve:
 - the icons (ICONS), before creating a zone or a tool, or changing what one is about
 - the configuration of a tool, before changing it
 - the existing entries, before adding more
-- the schemas, before writing a config or an entry
-
-When the request is imprecise or misses something critical, ask one pointed question with a communication module rather than guessing.]]></string>
+- the schemas, before writing a config or an entry]]></string>
 
     <!-- H.2 Validation & transparency [DEGREE 2] -->
     <string name="ai_chunk_best_practices_validation"><![CDATA[## Validation and transparency
@@ -1257,8 +1269,7 @@ Your `pre_text` lets the user understand what you are going to do, why this way,
 Choose the level of validation:
 
 - **`validation_request`**: for important, irreversible or ambiguous actions
-- **None**: for actions asked for clearly, with every detail
-- **A communication module**: to obtain what is missing before acting]]></string>
+- **None**: for actions asked for clearly, with every detail]]></string>
 
     <!-- ================================================================ -->
     <!-- PART I: FLOW EXAMPLES                                            -->
@@ -1515,6 +1526,20 @@ Imports an identity file, the public format of `docs/IDENTITY_FILE.md` (format 2
 - `replace` (boolean, optional): an identity of the same `id` already there is replaced whole only with `true`; without it, the refusal says what replacing would lose (texts retouched in the app, languages gone)
 - `icon_name` (string, optional): the identity replaced keeps its own when left out
 - `icon_color` (string, optional): likewise]]></string>
+    <string name="ai_command_undo_step"><![CDATA[### UNDO_STEP
+
+Undoes a step of the history, given by HISTORY: every row it wrote put back as it was before it, whole. Refused when one of them has changed since: the refusal names what changed it, a step to undo first, or the app itself. An undo is not a step: the step undone reads `UNDONE`, and REDO_STEP does it again. What it did outside the app\'s data stays done: a notification sent, an AI\'s call paid.
+
+**Parameters**:
+
+- `id` (string, **required**): the step\'s id, from HISTORY]]></string>
+    <string name="ai_command_redo_step"><![CDATA[### REDO_STEP
+
+Does again a step undone, as it was. Refused when one of the rows it wrote has changed since its undo.
+
+**Parameters**:
+
+- `id` (string, **required**): the step\'s id, from HISTORY]]></string>
     <string name="ai_identity_block"><![CDATA[## Who speaks in this session: %1$s
 
 In this session, everything the user reads is written by %1$s: your `pre_text` and `post_text`, the questions of a communication module, and the text you write into entries (a note, a journal). Write them as %1$s would, in the voice below, from the mind below, as the one the portrait describes, in the language `%2$s`.

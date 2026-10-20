@@ -25,7 +25,8 @@ class McpHttpTest {
         override suspend fun addClient(client: OAuthClient) { clients[client.id] = client }
         override suspend fun client(id: String) = clients[id]
         override suspend fun clients() = clients.values.toList()
-        override suspend fun removeClient(id: String) { clients.remove(id); tokens.values.removeAll { it.clientId == id } }
+        /** A revocation, as the user makes it (McpClientService): the client and its tokens go. */
+        fun revoke(id: String) { clients.remove(id); tokens.values.removeAll { it.clientId == id } }
         override suspend fun touchClient(id: String, at: Long) { clients[id]?.let { clients[id] = it.copy(lastUsedAt = at) } }
         override suspend fun addToken(token: StoredToken) { tokens[token.hash] = token }
         override suspend fun token(hash: String) = tokens[hash]
@@ -239,7 +240,7 @@ class McpHttpTest {
     @Test
     fun aRevokedClientIsShutOut() {
         val (clientId, tokens) = authorized()
-        runBlocking { store.removeClient(clientId) }
+        store.revoke(clientId)
         assertEquals(401, request("POST", "/mcp", headers = mapOf("Authorization" to "Bearer ${tokens.getString("access_token")}"), body = "{}").status)
     }
 

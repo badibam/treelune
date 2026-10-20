@@ -40,6 +40,7 @@ class IdentityService(private val context: Context) : ExecutableService {
     private val s = Strings.`for`(context = context)
     private val database = AppDatabase.getDatabase(context)
     private val dao = database.identityDao()
+    private val writes = app.treelune.core.history.Writes(context)
 
     override suspend fun execute(operation: String, params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
@@ -156,7 +157,7 @@ class IdentityService(private val context: Context) : ExecutableService {
             importedAt = null,
             createdAt = now, updatedAt = now
         )
-        dao.upsert(IdentityEntity.of(identity))
+        writes.putIdentity(IdentityEntity.of(identity))
         DataChangeNotifier.notifyIdentitiesChanged()
         return OperationResult.success(mapOf("identity_id" to identity.id, "name" to identity.name))
     }
@@ -203,7 +204,7 @@ class IdentityService(private val context: Context) : ExecutableService {
             languages = languages,
             updatedAt = System.currentTimeMillis()
         )
-        dao.upsert(IdentityEntity.of(updated))
+        writes.putIdentity(IdentityEntity.of(updated))
         DataChangeNotifier.notifyIdentitiesChanged()
         return OperationResult.success(mapOf("identity_id" to updated.id, "name" to updated.name))
     }
@@ -211,7 +212,7 @@ class IdentityService(private val context: Context) : ExecutableService {
     private suspend fun delete(params: JSONObject): OperationResult {
         val identity = identity(params)
         InUse.identity(database, identity.id).refusal(identity.name, s)?.let { throw Refused(it) }
-        dao.deleteById(identity.id)
+        writes.deleteIdentity(identity.id)
         DataChangeNotifier.notifyIdentitiesChanged()
         return OperationResult.success(mapOf("identity_id" to identity.id, "name" to identity.name))
     }
@@ -270,7 +271,7 @@ class IdentityService(private val context: Context) : ExecutableService {
             createdAt = existing?.createdAt ?: now,
             updatedAt = now
         )
-        dao.upsert(IdentityEntity.of(identity))
+        writes.putIdentity(IdentityEntity.of(identity))
         DataChangeNotifier.notifyIdentitiesChanged()
         return OperationResult.success(mapOf("identity_id" to identity.id, "name" to identity.name, "replaced" to (existing != null)))
     }

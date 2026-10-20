@@ -258,6 +258,7 @@ class AICommandProcessor(private val context: Context) {
                 params = command.params,
                 isActionCommand = true
             )
+            "UNDO_STEP", "REDO_STEP" -> historyCommand(command)
 
             else -> {
                 LogManager.aiService("Unknown action command type: ${command.type}", "WARN")
@@ -361,6 +362,7 @@ class AICommandProcessor(private val context: Context) {
                 params = command.params,
                 isActionCommand = true
             )
+            "UNDO_STEP", "REDO_STEP" -> historyCommand(command)
 
             else -> {
                 LogManager.aiService("Unknown action command type for verbalization: ${command.type}", "WARN")
@@ -368,6 +370,14 @@ class AICommandProcessor(private val context: Context) {
             }
         }
     }
+
+    /** An undo or a redo of a step of the history of writes, by its id. */
+    private fun historyCommand(command: DataCommand) = ExecutableCommand(
+        resource = "history",
+        operation = command.type.substringBefore('_').lowercase(),
+        params = command.params,
+        isActionCommand = true
+    )
 
     /**
      * A routine action as the automations service takes it: its settings among its params, beside

@@ -1,303 +1,303 @@
-# Outils et Extensibilité
+# Tools and extensibility
 
-Guide pour comprendre et créer des outils dans l'architecture modulaire.
+A guide to understanding and creating tools in the modular architecture.
 
-## Concepts Fondamentaux
+## Fundamental concepts
 
-### Tool Type vs Tool Instance
-- **Tool Type** : Métadonnées statiques et comportements (ex: TrackingToolType)
-- **Tool Instance** : Configuration spécifique dans une zone (ex: "Poids quotidien")
+### Tool type vs tool instance
+- **Tool type**: static metadata and behaviours (e.g. TrackingToolType)
+- **Tool instance**: a specific configuration in a zone (e.g. "Daily weight")
 
-### Une Instance = Un Concept
-- **Suivi** : 1 métrique spécifique (poids, humeur, etc.)
-- **Objectif** : 1 objectif avec sous-objectifs et critères
-- **Graphique** : 1 graphique, qui peut superposer des couches ou se répéter par catégorie
-- **Liste** : 1 liste thématique (courses, tâches)
-- **Données structurées** : 1 table de fiches (aliments, livres, contacts)
-- **Journal** : 1 type de journal (réflexions, rêves)
-- **Note** : 1 note individuelle
-- **Message** : 1 message/rappel planifié
-- **Alerte** : 1 règle d'alerte automatique
-- **Agenda** : 1 calendrier thématique (médical, perso)
-- **Flashcards** : 1 paquet de cartes à réviser, tirées des lignes d'un autre outil
+### One instance = one concept
+- **Tracking**: 1 specific metric (weight, mood, etc.)
+- **Goal**: 1 goal with sub-goals and criteria
+- **Chart**: 1 chart, which can layer several layers or repeat by category
+- **List**: 1 themed list (shopping, tasks)
+- **Structured data**: 1 table of records (foods, books, contacts)
+- **Journal**: 1 kind of journal (reflections, dreams)
+- **Note**: 1 individual note
+- **Message**: 1 scheduled message/reminder
+- **Alert**: 1 automatic alert rule
+- **Agenda**: 1 themed calendar (medical, personal)
+- **Flashcards**: 1 deck of cards to review, drawn from the rows of another tool
 
-### Custom Fields (Champs Personnalisés)
+### Custom fields
 
-Tous les tooltypes supportent des **champs supplémentaires** définis par l'utilisateur pour étendre les données.
+All tooltypes support **extra fields** defined by the user to extend the data.
 
-**Structure** :
-- **Définitions** : Dans `custom_fields` array de la config (name, display_name, type, always_visible)
-- **Valeurs** : Dans `custom_fields` object des données (clé = name du champ)
-- **Types** : source unique `FieldType` — TEXT, NUMERIC, SCALE, CHOICE, BOOLEAN, RANGE, DATE, TIME, DATETIME
-- **Validation** : Intégrée automatiquement dans les schémas data enrichis
+**Structure**:
+- **Definitions**: in the config's `custom_fields` array (name, display_name, type, always_visible)
+- **Values**: in the data's `custom_fields` object (key = the field's name)
+- **Types**: single source `FieldType` — TEXT, NUMERIC, SCALE, CHOICE, BOOLEAN, RANGE, DATE, TIME, DATETIME
+- **Validation**: built automatically into the enriched data schemas
 
-**Pattern** : Les schémas data nécessitent `toolInstanceId` pour enrichissement avec custom fields.
+**Pattern**: the data schemas need `toolInstanceId` to be enriched with the custom fields.
 
-#### `name` est attribué, jamais choisi
+#### `name` is given, never chosen
 
-`name` est l'identifiant technique : la clé sous laquelle les valeurs sont stockées. Il est attribué par `ToolInstanceService.processCustomFields` à partir de `display_name`, et par lui seul — ni l'écran de configuration ni l'IA n'en fournissent un. Un champ nouveau arrive donc **sans** `name` ; `display_name` reste librement modifiable.
+`name` is the technical identifier: the key the values are stored under. It is given by `ToolInstanceService.processCustomFields` from `display_name`, and by it alone — neither the configuration screen nor the AI supplies one. A new field therefore arrives **without** `name`; `display_name` stays freely changeable.
 
-Conséquence : un `name` envoyé dans une mise à jour de config doit désigner un champ existant, sinon la mise à jour est refusée. C'est ce qui rend un renommage inexprimable plutôt que détecté après coup — les champs sont comparés par leur `name`, donc un renommage ressortirait comme une suppression suivie d'un ajout, et la suppression efface le champ de toutes les entrées.
+Consequence: a `name` sent in a config update must name an existing field, otherwise the update is refused. This is what makes a renaming impossible to express rather than detected afterwards — the fields are compared by their `name`, so a renaming would come out as a removal followed by an addition, and the removal erases the field from all the entries.
 
-Retirer un champ de la liste reste une suppression ordinaire : ses valeurs sont effacées, c'est ce que ça veut dire.
+Removing a field from the list stays an ordinary removal: its values are erased, that is what it means.
 
-## Architecture Outil
+## Tool architecture
 
-### Structure Physique
-Dossier tools/[type]/ contient :
-- ToolType.kt (contrat et métadonnées)
-- Service.kt (logique métier)
-- Dao.kt (accès données)
-- Data.kt (entité base)
-- ui/ (écran d'usage et affichage ; l'écran de config est celui du core)
+### Physical structure
+The folder tools/[type]/ holds:
+- ToolType.kt (contract and metadata)
+- Service.kt (business logic)
+- Dao.kt (data access)
+- Data.kt (database entity)
+- ui/ (usage screen and display; the config screen is the core's)
 
-### Interface ToolTypeContract
-Interface principale avec méthodes pour :
-- **Métadonnées** : getDisplayName(), getUsage() (le texte `usage` : à quoi sert le type, ce qu'il fait déjà de lui-même, ce pour quoi il n'est pas ; lu par l'IA toujours en anglais, montré par le Guide), getAIDetail() (ce que seule l'IA lit en plus, aucun par défaut), getSuggestedIcons(), getDefaultIconName(), getDefaultDisplayMode(), getDefaultShowFieldLabels()
-- **Déclarations** : getEntryFields() (champs des entrées), getConfigSettings() (réglages propres, à côté de la partie commune `ToolConfigSettings` ; ceux que le type ne range dans aucune section, le cœur les met dans une section au nom du type, pour qu'à l'écran tout soit dans un cadre) ; schémas, config par défaut et lecture en sont générés ; configWithOptionsAdded() pour un type qui déclare un choix ouvert dans `data` ; getOperations() (défaut : aucune), les opérations que son service mène sur ses entrées à côté des écritures génériques, chacune un nom, une phrase et ses paramètres déclarés en champs (`ToolOperation`)
-- **Interface utilisateur** : getUsageScreen() @Composable ; rememberTile() @Composable, la tuile de l'outil sur une zone (`ToolTile`) : son résumé de 2×1, son corps sur les rangées que son mode lui donne, et son aperçu à la place du résumé dans les modes sans corps (LINE, CONDENSED ; le résumé par défaut, la bande du Graphique), placés par `UI.ToolCard` à côté de l'en-tête ; le corps range ses éléments par `TileGrid`, chaque case aussi haute en FULL que dans les modes limités, chacun écrit par `TileLine` : à gauche une case ou une icône, à droite une valeur ou des boutons qui gardent leur taille, au milieu le texte sur deux lignes au plus (une seule quand la tuile en empile quatre par rangée, une Liste d'éléments courts), ou une ligne et une seconde plus discrète dessous ; chaque type remplit tous les modes, sans tuile par défaut, et une tuile ouvre l'outil sur une entrée ou une entrée neuve (`EntryToOpen`) ; l'écran de config est généré depuis la déclaration (`ToolConfigScreen`, `SettingsForm`), une planification (`ScheduleSettings.group`) comprise
-- **Discovery pattern** : getService(), getDao(), getDatabaseEntities(), getDatabaseMigrations(), getScheduler()
-- **Enrichissement** : enrichData() (défaut identity, enrichissement automatique avant persistence)
-- **Règle entre entrées** : settleEntries() (défaut : rien à changer), voir plus bas
-- **Sans entrées** : keepsEntries() (défaut : oui) ; un outil qui montre les entrées des autres (le Graphique) n'en garde aucune : pas de champs de l'utilisateur dans sa config, et toute écriture d'une entrée est refusée ; takesUserFields() (défaut : keepsEntries()), faux pour un outil dont l'app seule écrit les entrées d'après ce que l'utilisateur fait ailleurs (les révisions d'un paquet) : pas de champs de l'utilisateur dans sa config
-- **Contrôle de la config** : refuseConfig() (défaut : rien), ce que seule la lecture de l'app dit au-delà du schéma (une colonne qu'aucune source ne donne), demandé à chaque création et modification ; getRowFields() (défaut : aucun), les champs des lignes que décrit la config là où un réglage les nomme (`RowFields`)
-- **Modification** : refuseUpdate() (défaut : rien), ce qui ne se modifie pas par l'écriture ordinaire mais se supprime (une révision d'un paquet, écrite une fois, que l'annulation supprime)
-- **Entrée** : refuseEntry() (défaut : rien), ce qu'une entrée ne peut pas porter au-delà de chaque champ (une journée entière avec une durée), demandé à chaque création et modification
-- **Suppression** : refuseDelete() (défaut : rien), ce qui ne se supprime pas par l'écriture ordinaire mais se modifie (une occurrence de série d'un Agenda, qui se retire), avec de quoi lire les autres entrées de l'outil, lues seulement s'il les demande (une révision d'un paquet, seule la dernière de sa carte)
-- **Attente** : getWaiting() (défaut : aucune), les conditions d'une entrée qui attend ; countWaiting() (défaut : null), pour un type qui compte lui-même ce qui attend, faute d'une entrée qui le porte (les cartes dues d'un paquet, dues au jour) : la tuile porte le point, et s'ouvre sur l'outil seul
-- **Validation** : validateData() (délègue à SchemaValidator)
+### ToolTypeContract interface
+The main interface, with methods for:
+- **Metadata**: getDisplayName(), getUsage() (the `usage` text: what the type is for, what it already does by itself, what it is not for; read by the AI always in English, shown by the Guide), getAIDetail() (what only the AI reads besides, none by default), getSuggestedIcons(), getDefaultIconName(), getDefaultDisplayMode(), getDefaultShowFieldLabels()
+- **Declarations**: getEntryFields() (the entries' fields), getConfigSettings() (its own settings, beside the common part `ToolConfigSettings`; those the type puts in no section, the core puts in a section named after the type, so that on screen everything is in a frame); schemas, default config and reading are generated from them; configWithOptionsAdded() for a type that declares an open choice in `data`; getOperations() (default: none), the operations its service runs on its entries beside the generic writes, each a name, a sentence and its parameters declared as fields (`ToolOperation`)
+- **User interface**: getUsageScreen() @Composable; rememberTile() @Composable, the tool's tile on a zone (`ToolTile`): its 2×1 summary, its body on the rows its mode gives it, and its preview in place of the summary in the modes without a body (LINE, CONDENSED; the summary by default, the Chart's band), placed by `UI.ToolCard` beside the header; the body lays out its elements through `TileGrid`, each cell as high in FULL as in the limited modes, each written by `TileLine`: on the left a checkbox or an icon, on the right a value or buttons that keep their size, in the middle the text on two lines at most (one only when the tile stacks four per row, a List of short items), or a line and a second, quieter one below; each type fills every mode, with no default tile, and a tile opens the tool on an entry or a new entry (`EntryToOpen`); the config screen is generated from the declaration (`ToolConfigScreen`, `SettingsForm`), a schedule (`ScheduleSettings.group`) included
+- **Discovery pattern**: getService(), getDatabaseEntities(), getDatabaseMigrations(), getScheduler()
+- **Enrichment**: enrichData() (identity by default, automatic enrichment before persistence)
+- **Rule between entries**: settleEntries() (default: nothing to change), see below
+- **Without entries**: keepsEntries() (default: yes); a tool that shows the entries of others (the Chart) keeps none: no user fields in its config, and every write of an entry is refused; takesUserFields() (default: keepsEntries()), false for a tool whose entries the app alone writes from what the user does elsewhere (a deck's reviews): no user fields in its config
+- **Config check**: refuseConfig() (default: nothing), what only the app's reading says beyond the schema (a column no source gives), asked at each creation and update; getRowFields() (default: none), the fields of the rows the config describes where a setting names them (`RowFields`)
+- **Update**: refuseUpdate() (default: nothing), what is not changed by the ordinary write but deleted (a deck's review, written once, which undoing deletes)
+- **Entry**: refuseEntry() (default: nothing), what an entry cannot hold beyond each field (a whole day with a duration), asked at each creation and update
+- **Deletion**: refuseDelete() (default: nothing), what is not deleted by the ordinary write but changed (an occurrence of an Agenda series, which is withdrawn), with the means to read the tool's other entries, read only if it asks for them (a deck's review, only the last of its card)
+- **Waiting**: getWaiting() (default: none), the conditions of an entry that waits; countWaiting() (default: null), for a type that counts itself what waits, for lack of an entry that holds it (a deck's due cards, due by the day): the tile bears the dot, and opens on the tool alone
+- **Validation**: validateData() (delegates to SchemaValidator)
 
-## Méthodologie d'Implémentation
+## Implementation method
 
-**Règle d'or** : Toujours copier-coller Tracking d'abord, adapter ensuite.
+**Golden rule**: always copy-paste Tracking first, adapt afterwards.
 
-### Ordre d'Implémentation
-1. **ToolType** avec ses déclarations (getEntryFields, getConfigSettings, défauts compris)
-2. **Service** avec validation stricte
-3. **UI screens** avec parsing robuste
-4. **Enregistrement** dans ToolTypeScanner
+### Order of implementation
+1. **ToolType** with its declarations (getEntryFields, getConfigSettings, defaults included)
+2. **Service** with strict validation
+3. **UI screens** with robust parsing
+4. **Registration** in ToolTypeScanner
 
-### Points de Vérification Critiques
-- API SchemaValidator : schemaType = "config|data"
-- Services : tools.* utilise tool_instance_id, tool_data.* utilise toolInstanceId
-- LaunchedEffect : toutes variables vérifiées dans le scope = dépendances
-- Validation : au save uniquement, pas préventive
+### Critical checkpoints
+- SchemaValidator API: schemaType = "config|data"
+- Services: tools.* uses tool_instance_id, tool_data.* uses toolInstanceId
+- LaunchedEffect: all variables checked in the scope = dependencies
+- Validation: on save only, not preventive
 
-## Création d'un Nouvel Outil
+## Creating a new tool
 
-### Structure de Base
-1. **Entité données** : @Entity avec id, toolInstanceId, timestamp, value (JSON), metadata
-2. **DAO** : Interface avec queries pour récupérer/insérer/modifier les données
+### Base structure
+1. **Data entity**: @Entity with id, toolInstanceId, timestamp, value (JSON), metadata
+2. **DAO**: an interface with queries to fetch/insert/change the data
 
-### Service Métier
-Class implémentant ExecutableService avec :
-- execute() qui valide via ToolType puis route selon opération (create/update/delete)
-- Méthodes privées pour chaque opération avec gestion CancellationToken
-- Validation automatique via SchemaValidator
+### Business service
+A class implementing ExecutableService with:
+- execute(), which validates through the ToolType then routes by operation (create/update/delete)
+- Private methods for each operation, handling the CancellationToken
+- Automatic validation through SchemaValidator
 
-### ToolType Implementation
-Class implémentant ToolTypeContract avec :
+### ToolType implementation
+A class implementing ToolTypeContract with:
 - getDisplayName(), getUsage(), getDefaultDisplayMode()
 - getEntryFields(), getConfigSettings()
 - getUsageScreen() @Composable
-- getService(), getDao(), getDatabaseEntities()
+- getService(), getDatabaseEntities()
 
-### enrichData Pattern
-**Principe** : Enrichissement automatique des données avant persistence (appelé par ToolDataService pour toutes les entrées).
+### enrichData pattern
+**Principle**: automatic enrichment of the data before persistence (called by ToolDataService for all entries).
 
 ```kotlin
 override fun enrichData(data: Map<String, Any>, context: Context): Map<String, Any> {
-    // Calculs, validations, enrichissements automatiques
-    // Exemple Tracking : valeur brute → champ d'affichage formaté
+    // Automatic computations, validations, enrichments
+    // Tracking example: raw value → formatted display field
     return enrichedData
 }
 ```
 
-**Usage** : Unifié UI + IA, logique pré-persistence sans interception manuelle.
+**Use**: unified UI + AI, pre-persistence logic without manual interception.
 
-### settleEntries Pattern
-**Principe** : une règle qui porte sur toutes les entrées d'une instance, et non sur une seule. `ToolDataService` l'appelle à chaque création, modification ou suppression d'une entrée du tooltype, avec de quoi lire toutes les entrées de l'instance telles qu'elles seront après l'écriture — lues seulement s'il les demande, un type d'outil sans règle n'en payant pas la lecture —, et l'id de l'entrée écrite (null après une suppression). Il enregistre les entrées renvoyées dans la même transaction que l'écriture. Unifié UI + IA, comme enrichData.
+### settleEntries pattern
+**Principle**: a rule that bears on all the entries of an instance, not on a single one. `ToolDataService` calls it at each creation, update or deletion of an entry of the tooltype, with the means to read all the instance's entries as they will be after the write — read only if it asks for them, a tool type without a rule not paying for the reading —, and the id of the entry written (null after a deletion). It stores the entries returned in the same transaction as the write. Unified UI + AI, like enrichData.
 
-**Ordre manuel** : `ManualOrder` (cœur) garde les positions 0, 1, 2… sans trou ni doublon, sous `state.position`, pour un type d'outil dont l'utilisateur ordonne les entrées à la main (Notes, Liste). Écrire la position p place l'entrée en p et décale les suivantes ; une entrée sans position va en dernier.
+**Manual order**: `ManualOrder` (core) keeps the positions 0, 1, 2… without gap or duplicate, under `state.position`, for a tool type whose entries the user orders by hand (Notes, List). Writing position p places the entry at p and shifts the following ones; an entry without a position goes last.
 
-### Tooltypes passifs et actifs
+### Passive and active tooltypes
 
-**Principe** : il n'y a que deux plans de données. La **config** est ce que l'outil *est* (sa définition : template, formule, planning) ; **tool_data** est tout ce qu'il *enregistre ou produit* (saisies, occurrences, résultats). Pas de troisième plan — l'audit technique des échecs relève du système de logs.
+**Principle**: there are only two planes of data. The **config** is what the tool *is* (its definition: template, formula, schedule); **tool_data** is everything it *records or produces* (inputs, occurrences, results). No third plane — the technical audit of failures belongs to the logging system.
 
-**Passifs** (Tracking, Journal, Note) : l'utilisateur écrit dans tool_data.
+**Passive** (Tracking, Journal, Note): the user writes into tool_data.
 
-**Actifs** (Messages, futurs Alertes, Objectifs) : le système écrit dans tool_data, piloté par la config. Un tooltype actif expose une opération `execute` (`{tooltype}.execute` avec `tool_instance_id`), déclarée dans getOperations(), et généralement un `getScheduler()`. Ses occurrences sont des entrées tool_data ordinaires : requêtables, statistiquables, migrables, visibles par l'IA, comme n'importe quelle autre entrée.
+**Active** (Messages, future Alerts, Goals): the system writes into tool_data, driven by the config. An active tooltype exposes an `execute` operation (`{tooltype}.execute` with `tool_instance_id`), declared in getOperations(), and usually a `getScheduler()`. Its occurrences are ordinary tool_data entries: queryable, open to statistics, migratable, visible to the AI, like any other entry.
 
-**Occurrences à cycle de vie** : une occurrence n'est pas forcément instantanée. Elle peut vivre (créée → active → close), auquel cas son schéma data porte un champ `status` et ses exigences en dépendent. Le filtre `status` de `tool_data.get` existe pour ces tooltypes-là.
+**Occurrences with a life cycle**: an occurrence is not necessarily instantaneous. It can live (created → active → closed), in which case its data schema holds a `status` field and its requirements depend on it. The `status` filter of `tool_data.get` exists for these tooltypes.
 
-### Enregistrement
-Ajout dans ToolTypeScanner.getAllToolTypes() pour discovery automatique.
+### Registration
+Added in ToolTypeScanner.getAllToolTypes() for automatic discovery.
 
-## Exemples de Flows Complets
+## Examples of complete flows
 
-### Flow Nutritionnel
-1. SUIVI alimentaire (manuel) → saisie repas
-2. DONNÉES STRUCTURÉES nutrition (IA) → référentiel aliments + AJR
-3. SUIVI nutritionnel (IA + #1 + #2) → calculs automatiques
-4. JOURNAL (IA, basé sur #3) → rapports quotidiens
-5. VARIABLES (cœur, basées sur #3) → totaux du jour, moyennes périodiques
-6. GRAPHIQUE (App, basé sur #5) → visualisations vs AJR
-7. ALERTES (App, critères sur #3) → carences/excès détectées
+### Nutrition flow
+1. Food TRACKING (manual) → meals entered
+2. Nutrition STRUCTURED DATA (AI) → reference table of foods + RDA
+3. Nutrition TRACKING (AI + #1 + #2) → automatic computations
+4. JOURNAL (AI, based on #3) → daily reports
+5. VARIABLES (core, based on #3) → totals of the day, periodic averages
+6. CHART (App, based on #5) → visualisations vs RDA
+7. ALERTS (App, criteria on #3) → deficiencies/excesses detected
 
-### Configuration par l'IA
-**Principe** : L'IA configure et gère automatiquement les outils complexes via commandes JSON.
-- **Utilisateur** : Définit l'objectif ("suivre ma nutrition")
-- **IA** : Crée la chaîne d'outils, configure les calculs, définit les alertes
+### Configuration by the AI
+**Principle**: the AI configures and manages complex tools automatically through JSON commands.
+- **User**: defines the goal ("track my nutrition")
+- **AI**: creates the chain of tools, configures the computations, defines the alerts
 
-## Types d'Outils Disponibles
+## Tool types available
 
-### Suivi (Tracking)
-**Usage** : Données temporelles quantitatives/qualitatives
-**Configuration** : Type de valeur (numeric, text, scale, choice, timer…), unités (numérique : la liste où chaque entrée prend la sienne, une unité nouvelle saisie la rejoint), items prédéfinis (en numérique, un raccourci qui a une valeur la saisit d'un toucher : « Verre » = 1, « Demi-verre » = 0,5, « − Verre » = −1 pour un compte qui descend). Un choix montre en plus chacune de ses options, comme le oui/non ses réponses : enregistrée d'un toucher (nommée par son libellé, les champs de l'utilisateur à leur valeur par défaut), ou par la fenêtre de saisie préremplie
-**Exemples** : Poids, humeur échelle 1-10, alimentation libre
+### Tracking
+**Use**: time-based quantitative/qualitative data
+**Configuration**: value type (numeric, text, scale, choice, timer…), units (numeric: the list each entry takes its own from, a new unit entered joins it), predefined items (in numeric, a shortcut that has a value enters it with one touch: "Glass" = 1, "Half glass" = 0.5, "− Glass" = −1 for a count that goes down). A choice also shows each of its options, as the yes/no shows its answers: recorded with one touch (named by its label, the user's fields at their default value), or through the prefilled input window
+**Examples**: weight, mood on a 1-10 scale, free food log
 
-### Objectif (Goal)
-**Usage** : Critères de réussite avec poids relatifs
-**Structure** : 3 niveaux - objectif → sous-objectifs → items
-**Validation** : Confirmation obligatoire avant finalisation
+### Goal
+**Use**: success criteria with relative weights
+**Structure**: 3 levels - goal → sub-goals → items
+**Validation**: confirmation required before finalising
 
-### Graphique (Chart)
-**Usage** : Montrer les entrées d'autres outils et des variables, sans rien calculer : un total par jour est une colonne de grille ou une variable, jamais une agrégation
-**Configuration** : un sous-ensemble de Vega-Lite, déclaré réglage par réglage (le formulaire et le schéma de l'IA en sont générés), ses clés celles de Vega-Lite (`strokeDash` et `strokeWidth` compris). `period`, la période affichée, relative au moment de l'affichage ; `composition` : `layer` (une vue), `vconcat`, `hconcat`, `concat` (des vues `{"title", "layer"}`, `columns` par rangée), `facet` (`facet.field`), `repeat` (des colonnes, que prennent les canaux dont le `field` vaut `repeat`). Une couche : `source` — `entries` (`selection` d'un outil sans sa période, une ligne par entrée : `timestamp`, `name`, ses champs par chemin) ou `grid` (`step` du calendrier, `columns` : un nom et un terme, variable ou lecture, lu à la fin de chaque pas ; une lecture sans période lit son pas ; la ligne a aussi `timestamp`, `weekday`, `week`) ; `transform` (`fold` avec `as`, `flatten`) ; `mark` (line, point, bar, area, text, arc, tick, rect, avec ses styles) ; `encoding` (x, y, x2, y2, color, size, shape, opacity, strokeDash, detail, order, text, theta, radius : `field` parmi les colonnes de la couche, `type`, `scale` — `domain`, `zero`, `nice`, `reverse`, `range` en noms de la palette —, `axis` — `grid`, `orient` gauche ou droite —, `stack` — `none`, `zero`, `normalize`, obligatoire sur des barres ou des aires séparées par une catégorie —, `legend`, `condition` — la brique Condition sur les colonnes de la ligne — et `value`). `ChartCheck` refuse ce que le schéma ne dit pas : une colonne qu'aucune source ne donne, un canal qui manque à sa marque, deux sortes de valeurs sur un axe partagé, deux unités d'un même côté
-**Données** : Aucune entrée à lui (`keepsEntries`). `ChartSources` lit une table par couche : les entrées par `tool_data.get`, une grille pas à pas (`GridSteps`, le pas en cours lu à maintenant) par `variables.evaluate` et `readings.read` avec `at`, une colonne par appel ; une valeur en échec est une cellule marquée, dessinée en trou. L'outil met le graphique en page (`ChartSceneBuilder` : échelles, graduations, empilement, légende) en un dessin de formes du cœur (`core/drawing`), que le thème dessine. L'écran : le graphique, sa légende, et ce que touche le doigt (toutes les colonnes de la ligne, ou la cause d'un trou et ses entrées, qui s'ouvrent dans leur outil) ; relu quand une entrée ou un outil change. La tuile (`rememberChartTile`) : en résumé la période et la dernière valeur de la première série ; en corps ses marques en bandeau (EXTENDED), le graphique réduit (SQUARE) ou entier (FULL) (`ChartDetail`) ; un toucher ouvre l'outil
+### Chart
+**Use**: show the entries of other tools and variables, computing nothing: a total per day is a grid column or a variable, never an aggregation
+**Configuration**: a subset of Vega-Lite, declared setting by setting (the form and the AI's schema are generated from it), its keys Vega-Lite's (`strokeDash` and `strokeWidth` included). `period`, the period shown, relative to the moment of display; `composition`: `layer` (one view), `vconcat`, `hconcat`, `concat` (views `{"title", "layer"}`, `columns` per row), `facet` (`facet.field`), `repeat` (columns, which the channels whose `field` is `repeat` take). A layer: `source` — `entries` (`selection` of a tool without its period, one row per entry: `timestamp`, `name`, its fields by path) or `grid` (calendar `step`, `columns`: a name and a term, variable or reading, read at the end of each step; a reading without a period reads its step; the row also has `timestamp`, `weekday`, `week`); `transform` (`fold` with `as`, `flatten`); `mark` (line, point, bar, area, text, arc, tick, rect, with its styles); `encoding` (x, y, x2, y2, color, size, shape, opacity, strokeDash, detail, order, text, theta, radius: `field` among the layer's columns, `type`, `scale` — `domain`, `zero`, `nice`, `reverse`, `range` in names of the palette —, `axis` — `grid`, `orient` left or right —, `stack` — `none`, `zero`, `normalize`, required on bars or areas split by a category —, `legend`, `condition` — the Condition brick on the row's columns — and `value`). `ChartCheck` refuses what the schema does not say: a column no source gives, a channel its mark lacks, two kinds of values on a shared axis, two units on the same side
+**Data**: no entry of its own (`keepsEntries`). `ChartSources` reads one table per layer: the entries through `tool_data.get`, a grid step by step (`GridSteps`, the current step read at now) through `variables.evaluate` and `readings.read` with `at`, one column per call; a value in failure is a marked cell, drawn as a hole. The tool lays out the chart (`ChartSceneBuilder`: scales, ticks, stacking, legend) as a drawing of the core's shapes (`core/drawing`), which the theme draws. The screen: the chart, its legend, and what the finger touches (all the row's columns, or the cause of a hole and its entries, which open in their tool); read again when an entry or a tool changes. The tile (`rememberChartTile`): as summary the period and the last value of the first series; as body its marks as a band (EXTENDED), the chart reduced (SQUARE) or whole (FULL) (`ChartDetail`); a touch opens the tool
 
-### Journal (Journal)
-**Usage** : Entrées textuelles libres avec dates
-**Configuration** : Template d'entrée, fréquence suggérée
+### Journal
+**Use**: free text entries with dates
+**Configuration**: entry template, suggested frequency
 
-### Liste (List)
-**Usage** : L'état présent de ce qui reste à faire (courses, tâches, check-list), sans historique : ce qui a été fait et quand relève d'un suivi « occurrence »
-**Configuration** : `remove_when_checked`, un élément coché est supprimé aussitôt (les courses) ; `due_dates`, les éléments peuvent porter une échéance ; ce qu'un élément porte d'autre au-delà de son nom (une quantité) est un champ personnalisé
-**Données** : Une entrée par élément : son nom, dans `data` son échéance `due_at` (déclarée seulement avec `due_dates`), et dans `state` sa position (`ManualOrder`), `checked_at`, l'instant où il a été coché, absent sinon — décocher l'efface —, et `due_notified`, l'échéance déjà notifiée. L'écran montre les non cochés dans l'ordre manuel, réordonnés en glissant, puis, sous un trait, les cochés dans l'ordre où ils l'ont été ; « Tout décocher » agit en un lot. La tuile se coche sans ouvrir l'outil (`ListTile`)
-**Échéances** : une chose à faire une fois avant un moment (un rythme fixe relève de Messages). `ListDueScheduler` notifie une fois chaque échéance passée d'un élément non coché et la marque dans `due_notified` ; un élément marqué et non coché attend (le point), les conditions d'attente ne connaissant pas l'heure ; `DueNotice` efface la marque quand l'échéance qu'elle nomme change. L'écran montre l'échéance sous le nom, « En retard » une fois passée ; la tuile met les éléments en retard en tête et les compte
+### List
+**Use**: the present state of what remains to do (shopping, tasks, checklist), without history: what was done and when belongs to an "occurrence" tracking
+**Configuration**: `remove_when_checked`, a checked item is deleted at once (shopping); `due_dates`, the items can bear a due date; what else an item bears beyond its name (a quantity) is a custom field
+**Data**: one entry per item: its name, in `data` its due date `due_at` (declared only with `due_dates`), and in `state` its position (`ManualOrder`), `checked_at`, the instant it was checked, absent otherwise — unchecking erases it —, and `due_notified`, the due date already notified. The screen shows the unchecked items in the manual order, reordered by dragging, then, under a line, the checked ones in the order they were checked; "Uncheck all" acts as one batch. The tile checks without opening the tool (`ListTile`)
+**Due dates**: a thing to do once before a moment (a fixed rhythm belongs to Messages). `ListDueScheduler` notifies once each past due date of an unchecked item and marks it in `due_notified`; an item marked and unchecked waits (the dot), the waiting conditions not knowing the time; `DueNotice` erases the mark when the due date it names changes. The screen shows the due date under the name, "Overdue" once past; the tile puts the overdue items first and counts them
 
-### Objectif (Goal)
-**Usage** : Un objectif jugé par comptage de ses critères, une tentative par période
-**Configuration** : des critères et des sous-objectifs (deux niveaux), « au moins N » (tous par défaut) et « indispensable » ; un critère est une valeur — une variable, un champ d'un outil réduit sur la période de la tentative (choisi parmi ses champs, `SettingNode.Field.fieldOf`), ou saisie (oui/non, nombre, durée, échelle) avec « comment le remplir » — et une condition ; sa clé est donnée à sa création et gardée ensuite (`completeConfig`) : le renommer garde ses valeurs, le supprimer puis le recréer en fait un autre. Ouverture ponctuelle (`start`, `deadline`) ou récurrente (`schedule`), `duration`, `enabled`, `expiry_delay` (7 jours), `notify`
-**Données** : une entrée par tentative, datée du début de sa période : `data.definition` (la copie qui l'a jugée), un champ par critère saisi ; `state` : `status` (active, to_validate, succeeded, failed, expired), `period_end`, et une fois validée `judgement` (valeurs et verdict figés), `validated_by` (l'origine de l'appel : une personne ou l'IA, jamais un planificateur), `validated_at`, `reopened_at`. Une tentative ouverte suit la définition courante ; une tentative validée ou expirée garde sa copie et refuse toute écriture (`refuseChange`), sauf `goal.reopen`. `GoalService` : `evaluate`, `validate` (refusé tant qu'une valeur manque), `reopen` ; `GoalScheduler` : à valider à la fin de la période (une notification), expirée après le délai, la tentative de la dernière occurrence venue ouverte sans rattraper les autres. L'écran : la tentative en cours, ses critères face à leur condition, saisis sur place, le compte, le temps restant et « Valider » ; les tentatives à valider ; l'historique en pastilles, chaque tentative relue figée avec « Rouvrir ». La tuile : le compte et le verdict en cours, les dernières pastilles, le nombre à valider
+### Goal
+**Use**: a goal judged by counting its criteria, one attempt per period
+**Configuration**: criteria and sub-goals (two levels), "at least N" (all by default) and "essential"; a criterion is a value — a variable, a tool's field reduced over the attempt's period (chosen among its fields, `SettingNode.Field.fieldOf`), or entered (yes/no, number, duration, scale) with "how to fill it in" — and a condition; its key is given at its creation and kept afterwards (`completeConfig`): renaming it keeps its values, deleting then recreating it makes another. One-off opening (`start`, `deadline`) or recurring (`schedule`), `duration`, `enabled`, `expiry_delay` (7 days), `notify`
+**Data**: one entry per attempt, dated at the start of its period: `data.definition` (the copy that judged it), one field per entered criterion; `state`: `status` (active, to_validate, succeeded, failed, expired), `period_end`, and once validated `judgement` (values and verdict frozen), `validated_by` (the call's origin: a person or the AI, never a scheduler), `validated_at`, `reopened_at`. An open attempt follows the current definition; a validated or expired attempt keeps its copy and refuses any write (`refuseChange`), except `goal.reopen`. `GoalService`: `evaluate`, `validate` (refused while a value is missing), `reopen`; `GoalScheduler`: to validate at the end of the period (a notification), expired after the delay, the attempt of the last occurrence come opened without catching up the others. The screen: the current attempt, its criteria facing their condition, entered on the spot, the count, the time left and "Validate"; the attempts to validate; the history as pills, each attempt read again frozen with "Reopen". The tile: the count and the current verdict, the latest pills, the number to validate
 
-### Questionnaire (Questionnaire)
-**Usage** : Des questions posées une par écran, à la demande ou à heures prévues, par l'utilisateur ou avec l'IA
-**Configuration** : les questions sont les champs de l'utilisateur (`extra_fields`) ; `schedule` (les invitations), `enabled`, `ai_message` (« Message à l'IA », prérempli d'une consigne modifiable)
-**Données** : une entrée par passation, datée du moment qu'elle décrit, sans nom ; `state.status` (to_fill, filled, ignored), `state.filled_at`. `QuestionnaireScheduler` crée à chaque heure prévue l'entrée « à remplir », les heures venues pendant une absence comprises (60 au plus, celles après la dernière déjà créée), et une notification. `QuestionnaireService` : `complete`, `ignore`, `ignore_all`. L'écran : « Remplir maintenant » (rien n'est écrit avant la fin), « Avec l'IA » (un chat ouvert avec le message et les pointeurs vers l'outil et l'entrée, `ChatRequests`), « À remplir (n) » avec « Tout ignorer », l'historique où une entrée se relit et se modifie ; la passation d'une entrée prévue enregistre chaque réponse et reprend à la première sans réponse. Le titre d'une entrée, nom et moment en relatif, se calcule à l'affichage. La tuile : le nombre à remplir, sinon la dernière réponse
+### Questionnaire
+**Use**: questions asked one per screen, on demand or at planned times, by the user or with the AI
+**Configuration**: the questions are the user's fields (`extra_fields`); `schedule` (the invitations), `enabled`, `ai_message` ("Message to the AI", prefilled with an instruction that can be changed)
+**Data**: one entry per sitting, dated at the moment it describes, without a name; `state.status` (to_fill, filled, ignored), `state.filled_at`. `QuestionnaireScheduler` creates at each planned time the entry "to fill", the times come during an absence included (60 at most, those after the last already created), and a notification. `QuestionnaireService`: `complete`, `ignore`, `ignore_all`. The screen: "Fill in now" (nothing is written before the end), "With the AI" (a chat opened with the message and the pointers to the tool and the entry, `ChatRequests`), "To fill (n)" with "Ignore all", the history where an entry is read again and changed; the sitting of a planned entry stores each answer and resumes at the first without an answer. An entry's title, name and moment in relative terms, is computed on display. The tile: the number to fill, otherwise the last answer
 
-### Séance (Sequence)
-**Usage** : Des étapes préparées à l'avance puis faites en suivant l'écran, un minuteur ou « Fait » par étape (fractionné, pomodoro, yoga, routine, recette) ; elle guide, elle ne mesure rien : les chiffres vont dans un Suivi
-**Configuration** : `steps`, des étapes et des blocs (`kind`), deux niveaux au plus, les étapes d'un bloc dans un bloc rangées sans `kind` (`SequencePlan`) ; une étape : `name`, `instruction`, `end` (`timed`, `manual`, `timed_then_manual`) et sa `duration`, dans un bloc `skip_last_round` ; un bloc : `name`, `repeat`, `steps`. `step_signal`, `countdown`, `voice` ; `schedule`, `enabled`
-**Données** : une entrée par séance, datée de son début ou de l'heure prévue, sans nom ; `state` : `status` (planned, running, done, stopped, ignored), `started_at`, `ended_at`, et tant qu'elle court `run` (`SequenceRun` : le déroulé déplié recopié au démarrage, les étapes quittées, les temps sur l'horloge de la séance, arrêtée en pause) ; `data`, une fois finie : `duration`, `paused`, `steps_done`, `steps_skipped`, `steps_not_done`, et `steps`, ses étapes telles qu'elles ont couru (`SequenceSteps` : nom, tour, état, temps), écrits par ses opérations seules (`systemWritten`). Retirer une étape de la config ne touche aucune entrée. `SequenceService` : pour l'écran et l'IA `complete` (une séance faite sans l'écran : la prévue `id`, ou une non prévue à l'heure donnée), `correct` (une séance finie : heure, durée, et l'état de chaque étape, `step_statuses`, pour une séance qui garde ses étapes, les comptes en découlant ; les comptes eux-mêmes, leur somme gardée, pour une séance finie avant, `SequenceCorrection` ; l'état suit), `ignore`, `ignore_all` ; pour l'écran et la notification seulement `start` et les gestes (`done`, `skip`, `back`, `restart`, `pause`, `resume`, `extend`, `stop`, `resume_interrupted`), calculés par `SequenceGestures`. `SequenceRunService`, un service au premier plan (`specialUse`) sous verrou d'éveil, la fait tourner écran éteint : les signaux (`SequenceSounds`, trois notes de marimba, la vibration, la voix d'Android), les minuteurs passés, sa notification avec « Fait » et « Pause ». Une seule séance en cours dans l'app. `SequenceScheduler` crée les séances prévues comme les invitations d'un questionnaire. L'écran : la séance en cours (l'étape, son tour, son temps, sa consigne, la suivante, les gestes, l'écran gardé allumé), une séance interrompue avec l'app à reprendre ou arrêter, ou « Commencer », les séances prévues avec « Faite » et « Ignorer », le déroulé et l'historique, dont une séance s'ouvre pour être corrigée. La tuile : l'étape en cours et son temps, la séance prévue, la prochaine ou la dernière ; en corps les dernières séances
+### Session (Sequence)
+**Use**: steps prepared in advance then done by following the screen, a timer or "Done" per step (intervals, pomodoro, yoga, routine, recipe); it guides, it measures nothing: the figures go into a Tracking
+**Configuration**: `steps`, steps and blocks (`kind`), two levels at most, the steps of a block within a block stored without `kind` (`SequencePlan`); a step: `name`, `instruction`, `end` (`timed`, `manual`, `timed_then_manual`) and its `duration`, in a block `skip_last_round`; a block: `name`, `repeat`, `steps`. `step_signal`, `countdown`, `voice`; `schedule`, `enabled`
+**Data**: one entry per session, dated at its start or at the planned time, without a name; `state`: `status` (planned, running, done, stopped, ignored), `started_at`, `ended_at`, and while it runs `run` (`SequenceRun`: the unfolded course copied at the start, the steps left, the times on the session's clock, stopped during a pause); `data`, once over: `duration`, `paused`, `steps_done`, `steps_skipped`, `steps_not_done`, and `steps`, its steps as they ran (`SequenceSteps`: name, round, state, time), written by its operations alone (`systemWritten`). Removing a step from the config touches no entry. `SequenceService`: for the screen and the AI `complete` (a session done without the screen: the planned one `id`, or an unplanned one at the time given), `correct` (a finished session: time, duration, and the state of each step, `step_statuses`, for a session that keeps its steps, the counts following from them; the counts themselves, their sum kept, for a session finished before, `SequenceCorrection`; the state follows), `ignore`, `ignore_all`; for the screen and the notification only `start` and the gestures (`done`, `skip`, `back`, `restart`, `pause`, `resume`, `extend`, `stop`, `resume_interrupted`), computed by `SequenceGestures`. `SequenceRunService`, a foreground service (`specialUse`) under a wake lock, runs it with the screen off: the signals (`SequenceSounds`, three marimba notes, the vibration, Android's voice), the timers passed, its notification with "Done" and "Pause". A single session running in the app. `SequenceScheduler` creates the planned sessions as a questionnaire's invitations. The screen: the running session (the step, its round, its time, its instruction, the next, the gestures, the screen kept on), a session interrupted with the app to resume or stop, or "Start", the planned sessions with "Done" and "Ignore", the course and the history, in which a session opens to be corrected. The tile: the current step and its time, the planned session, the next or the last; as body the latest sessions
 
-### Agenda (Agenda)
-**Usage** : Ce qui a lieu à une heure et passe de soi-même (un rendez-vous, un anniversaire, des congés), sans rien à cocher : ni l'échéance d'une Liste, ni le rappel de Messages, ni la chose faite d'un Suivi
-**Configuration** : `reminders` et `all_day_reminders`, des Instants relatifs au début d'un événement (`SettingNode.Instants`, le bord `SAME` et l'heure comme bord compris) ; `series`, chacune une clé donnée à sa création (`completeConfig`), un nom, un planning (`ScheduleSettings`), une durée ou `all_day` et `days`
-**Données** : une entrée par événement, son `timestamp` son début (pour une journée entière, le début du jour de l'app à sa première date, où `settleEntries` la remet quelle que soit l'heure écrite) ; `data` : `duration`, ou `all_day` et `days`, jamais ensemble (`refuseEntry`) ; `state` : `status` (planned, cancelled, removed), statut de départ du cœur (`EntryStart`), changé par `agenda.cancel`, `agenda.remove` (une occurrence de série seulement) et `agenda.restore` ; `series` et `series_at` pour une occurrence ; `reminded_until` et `reminded_for`. Une occurrence de série ne se supprime pas (`refuseDelete`). `AgendaScheduler` donne les occurrences de chaque série 90 jours devant, la prochaine toujours, après la dernière donnée, et envoie les rappels venus, en retard aussi tant que l'événement n'est pas fini ; son prochain rappel réveille l'app (`nextAction`). Un planning de série changé supprime ses occurrences à venir, que la série redonne (`entriesRemovedByConfig`, la confirmation du changement de config) ; un nom, une durée ou des jours changés descendent sur celles qui avaient encore l'ancienne valeur (`entriesUpdatedByConfig`). L'écran : À venir, Jour, Semaine ou Mois (`SinglePeriodSelector`), les événements par jour, « Retirées (n) » replié ; « + » crée un événement ou, avec « Se répète », une série ; la fiche d'un événement, et d'une occurrence, « Modifier la série ». La tuile : le prochain événement, puis ceux à venir, sept jours en FULL
+### Agenda
+**Use**: what takes place at a time and passes by itself (an appointment, a birthday, holidays), with nothing to check: neither a List's due date, nor a Messages reminder, nor a Tracking's thing done
+**Configuration**: `reminders` and `all_day_reminders`, Instants relative to the start of an event (`SettingNode.Instants`, the edge `SAME` and the time as edge included); `series`, each a key given at its creation (`completeConfig`), a name, a schedule (`ScheduleSettings`), a duration or `all_day` and `days`
+**Data**: one entry per event, its `timestamp` its start (for a whole day, the start of the app's day on its first date, where `settleEntries` puts it back whatever time is written); `data`: `duration`, or `all_day` and `days`, never together (`refuseEntry`); `state`: `status` (planned, cancelled, removed), a starting status of the core (`EntryStart`), changed by `agenda.cancel`, `agenda.remove` (a series occurrence only) and `agenda.restore`; `series` and `series_at` for an occurrence; `reminded_until` and `reminded_for`. A series occurrence is not deleted (`refuseDelete`). `AgendaScheduler` gives each series' occurrences 90 days ahead, the next one always, after the last given, and sends the reminders due, late too as long as the event is not over; its next reminder wakes the app (`nextAction`). A series' schedule changed deletes its occurrences to come, which the series gives again (`entriesRemovedByConfig`, the confirmation of the config change); a name, a duration or days changed go down to those that still had the former value (`entriesUpdatedByConfig`). The screen: Upcoming, Day, Week or Month (`SinglePeriodSelector`), the events per day, "Withdrawn (n)" folded; "+" creates an event or, with "Repeats", a series; an event's sheet, and for an occurrence, "Edit the series". The tile: the next event, then those to come, seven days in FULL
 
-### Flashcards (Flashcards)
-**Usage** : Réviser par répétition espacée les lignes d'un autre outil (un lexique, des capitales) : chaque carte revient juste avant d'être oubliée ; le paquet ne garde pas les mots, il pointe vers sa source
-**Configuration** : `source`, une Sélection d'entrées sans période (`SettingNode.Selection`) ; `group_by`, un champ de la source dont chaque valeur fait un groupe ; `directions`, chacun une clé donnée à sa création (`completeConfig`), un nom, ses champs de recto et de verso (`front`, `back`), choisis parmi ceux de la source (`FlashcardsRowFields`) ; `one_direction_after_another`, `new_per_day`, `reviews_per_day`, `desired_retention`. `refuseConfig` refuse une source qui n'est pas un outil gardant des entrées, ou un paquet, et un champ qu'elle n'a pas ; changer la source supprime les révisions, retirer un sens les siennes (`entriesRemovedByConfig`). Pas de champs de l'utilisateur (`takesUserFields`)
-**Données** : une entrée par révision, son `timestamp` l'instant ; `data` : `source_entry` (une RÉFÉRENCE vers la ligne), `direction`, `rating`, écrits par l'app seule (`EntryStart` sans statut) ; `state` : l'état FSRS de la carte après elle, `stability`, `difficulty`, `due`, `fsrs_version`. Une révision ne se modifie pas (`refuseUpdate`), seule la dernière d'une carte se supprime (`refuseDelete`), ce qui l'annule. `Fsrs` : FSRS-6 porté de py-fsrs 6.3.2, sans paliers d'apprentissage ni flou, testé contre ses suites (`FsrsTest`, `scripts/make_fsrs_reference.py`). `FlashcardsJournal` lit en SQL la première et la dernière révision de chaque carte, `FlashcardsSource` les lignes filtrées de la source, et `FlashcardsDue` en tire les cartes à proposer : dues dès le début du jour de leur échéance ou ratées, nouvelles dans l'ordre d'ajout, plafonds du jour en cartes sur tout le paquet, deux sens d'une ligne jamais le même jour, un sens après l'autre (acquis = stabilité d'au moins 7 jours). `FlashcardsService` : `due` (un groupe, un sens, les faces), `counts` (Tout, chaque groupe par son libellé, chaque sens), `review`. La séance (`FlashcardsSession`) : une liste fixée au lancement, une ratée revenant après trois cartes et une minute, Difficile, Bon et Facile finissant une carte, l'annulation en remontant. L'écran : Tout puis une ligne par groupe, la fenêtre de lancement par sens, la séance (recto, verso sous un trait au toucher, les quatre notes, Revenir). La tuile : « N à revoir · M nouvelles », une ligne par groupe, le point compté par le paquet (`countWaiting`)
+### Flashcards
+**Use**: review by spaced repetition the rows of another tool (a lexicon, capitals): each card comes back just before being forgotten; the deck does not keep the words, it points to its source
+**Configuration**: `source`, an Entry selection without a period (`SettingNode.Selection`); `group_by`, a field of the source each value of which makes a group; `directions`, each a key given at its creation (`completeConfig`), a name, its front and back fields (`front`, `back`), chosen among the source's (`FlashcardsRowFields`); `one_direction_after_another`, `new_per_day`, `reviews_per_day`, `desired_retention`. `refuseConfig` refuses a source that is not a tool keeping entries, or a deck, and a field it does not have; changing the source deletes the reviews, removing a direction deletes its own (`entriesRemovedByConfig`). No user fields (`takesUserFields`)
+**Data**: one entry per review, its `timestamp` the instant; `data`: `source_entry` (a REFERENCE to the row), `direction`, `rating`, written by the app alone (`EntryStart` without a status); `state`: the card's FSRS state after it, `stability`, `difficulty`, `due`, `fsrs_version`. A review is not changed (`refuseUpdate`), only a card's last one is deleted (`refuseDelete`), which undoes it. `Fsrs`: FSRS-6 ported from py-fsrs 6.3.2, without learning steps or fuzz, tested against its suites (`FsrsTest`, `scripts/make_fsrs_reference.py`). `FlashcardsJournal` reads in SQL the first and the last review of each card, `FlashcardsSource` the source's filtered rows, and `FlashcardsDue` draws from them the cards to offer: due from the start of the day of their due date or failed, new in the order added, the day's caps in cards across the whole deck, two directions of a row never on the same day, one direction after the other (learnt = a stability of at least 7 days). `FlashcardsService`: `due` (a group, a direction, the faces), `counts` (All, each group by its label, each direction), `review`. The session (`FlashcardsSession`): a list fixed at the start, a failed card coming back after three cards and a minute, Hard, Good and Easy finishing a card, undoing by going back. The screen: All then one line per group, the start window per direction, the session (front, back under a line on touch, the four ratings, Back). The tile: "N to review · M new", one line per group, the dot counted by the deck (`countWaiting`)
 
-### Données structurées (Structured)
-**Usage** : Des fiches faites des champs de l'utilisateur, chacune retrouvée par son nom (les aliments et leurs calories, que lit une RÉFÉRENCE d'un repas)
-**Configuration** : les colonnes sont les champs de l'utilisateur (`extra_fields`) ; `table_columns`, combien d'entre eux le tableau montre après le nom (2 par défaut)
-**Données** : Une entrée par fiche : son nom, obligatoire et unique dans l'outil sans compter la casse ni les espaces autour (`EntryFields.nameUnique` : `ToolDataService` refuse un doublon dans sa transaction en nommant la fiche existante, un filtre sur `name` compare de même), pas de date, `data` vide. L'écran (`StructuredScreen`) : un tableau trié au toucher d'un en-tête, l'écran d'une fiche où un glissement mène aux voisines, un en-tête de filtre commun aux deux (recherche, filtres, tri) replié en une ligne qui les résume avec la position, gardé le temps de la visite ; une fiche se modifie entière et s'écrit en une fois, une nouvelle rien avant « Enregistrer ». La tuile compte les fiches
+### Structured data
+**Use**: records made of the user's fields, each found again by its name (the foods and their calories, which a meal's REFERENCE reads)
+**Configuration**: the columns are the user's fields (`extra_fields`); `table_columns`, how many of them the table shows after the name (2 by default)
+**Data**: one entry per record: its name, required and unique in the tool ignoring case and the spaces around (`EntryFields.nameUnique`: `ToolDataService` refuses a duplicate in its transaction naming the existing record, a filter on `name` compares the same way), no date, `data` empty. The screen (`StructuredScreen`): a table sorted by touching a header, a record's screen where a swipe leads to the neighbours, a filter header common to both (search, filters, sort) folded into a line that sums them up with the position, kept for the length of the visit; a record is changed whole and written at once, a new one nothing before "Save". The tile counts the records
 
-### Note (Note)
-**Usage** : Titre et contenu libre
-**Configuration** : Template, catégories
+### Note
+**Use**: a title and free content
+**Configuration**: template, categories
 
-### Message (Message)
-**Usage** : Un message de notification et ses envois
-**Configuration** : Titre et corps communs, priorité, récurrence, jours d'avance de création, fenêtre de validité
-**Données** : Une entrée par envoi (`pending`, `sent`, `expired`, `cancelled`), portant la part écrite pour ce jour-là et, une fois parti, la part commune recopiée
+### Message
+**Use**: a notification message and its sends
+**Configuration**: common title and body, priority, recurrence, days of advance creation, validity window
+**Data**: one entry per send (`pending`, `sent`, `expired`, `cancelled`), holding the part written for that day and, once gone, the common part copied
 
-### Alerte (Alert)
-**Usage** : Déclenchement automatique sur seuils
-**Configuration** : Source de données, conditions, actions
+### Alert
+**Use**: automatic triggering on thresholds
+**Configuration**: data source, conditions, actions
 
-## Display Modes pour Tool Cards
+## Display modes for tool cards
 
-Les outils d'une section de groupe sont posés sur une grille de quatre colonnes à cases carrées (`ToolGrid`), dont le thème donne le côté selon la largeur disponible (`gridCellPx` : un quart, la grille large au plus de 480 dp, dans le thème par défaut). Chaque outil y tient à `grid_x`/`grid_y` (`tool_instances`), placé par `ToolPositions` et `Grid` ; sa taille en cases vient de son `display_mode`, que sa config porte toujours :
+The tools of a group's section are laid on a grid of four columns of square cells (`ToolGrid`), whose side the theme gives according to the width available (`gridCellPx`: a quarter, the grid at most 480 dp wide, in the default theme). Each tool sits there at `grid_x`/`grid_y` (`tool_instances`), placed by `ToolPositions` and `Grid`; its size in cells comes from its `display_mode`, which its config always holds:
 
-- **ICON** (1×1) : l'icône seule
-- **MINIMAL** (2×1) : l'en-tête, icône et nom
-- **LINE** (4×1) : l'en-tête à gauche, le résumé (ou l'aperçu) à droite
-- **CONDENSED** (2×2) : l'en-tête en haut, le résumé (ou l'aperçu) dessous
-- **EXTENDED** (4×2) : l'en-tête et le résumé en haut, une rangée de corps au plus, la tuile aussi haute que son contenu (l'en-tête seul quand l'outil est vide), toutes ses cases en édition
-- **SQUARE** (4×4) : de même, trois rangées de corps au plus
-- **FULL** (4 × sa hauteur) : l'en-tête et le résumé en haut, le corps aussi haut que son contenu, arrondi à la case
+- **ICON** (1×1): the icon alone
+- **MINIMAL** (2×1): the header, icon and name
+- **LINE** (4×1): the header on the left, the summary (or the preview) on the right
+- **CONDENSED** (2×2): the header at the top, the summary (or the preview) below
+- **EXTENDED** (4×2): the header and the summary at the top, one row of body at most, the tile as high as its content (the header alone when the tool is empty), all its cells in editing
+- **SQUARE** (4×4): likewise, three rows of body at most
+- **FULL** (4 × its height): the header and the summary at the top, the body as high as its content, rounded to the cell
 
-Une case fait deux lignes, et toute hauteur dans une tuile se compte en lignes. Seules ICON, MINIMAL et CONDENSED partagent une ligne de la grille. Rien ne défile dans une tuile : ce qui ne tient pas est l'affaire du type d'outil. Un élément tactile de la tuile fait son action, un toucher ailleurs ouvre l'outil (ou l'entrée qui attend), l'appui long sa config ; en édition, un toucher sélectionne. L'IA ne voit ni ne change les positions ; changer le mode d'un outil par sa config fait descendre ce que sa tuile recouvre.
+A cell is two lines, and every height in a tile is counted in lines. Only ICON, MINIMAL and CONDENSED share a row of the grid. Nothing scrolls in a tile: what does not fit is the tool type's business. A touchable element of the tile does its action, a touch elsewhere opens the tool (or the entry that waits), a long press its config; in editing, a touch selects. The AI neither sees nor changes the positions; changing a tool's mode through its config moves down what its tile covers.
 
-## Validation JSON Schema V3
+## JSON Schema V3 validation
 
-Validation unifiée pour tous les types d'outils via SchemaValidator.
+Unified validation for all tool types through SchemaValidator.
 
-### API Standard
-- Récupération ToolType via ToolTypeManager.getToolType()
-- Schéma des entrées d'un outil : `BaseSchemas.getEntrySchema` (champs de l'utilisateur compris) ; schéma de config : `ToolConfigSettings.schema`
-- Les services valident toute écriture (`ToolDataService`, `ToolInstanceService`)
-- Gestion résultat : isValid et errorMessage traduit automatiquement
+### Standard API
+- ToolType fetched through ToolTypeManager.getToolType()
+- Schema of a tool's entries: `BaseSchemas.getEntrySchema` (user fields included); config schema: `ToolConfigSettings.schema`
+- The services validate every write (`ToolDataService`, `ToolInstanceService`)
+- Result handling: isValid and errorMessage translated automatically
 
-### Validation Service Pattern
-Service execute() valide automatiquement via ToolType puis retourne OperationResult.error() si validation échoue.
+### Validation service pattern
+The service's execute() validates automatically through the ToolType, then returns OperationResult.error() if validation fails.
 
-### Configuration Screen Pattern
-- States pour champs de formulaire
-- Validation temps réel optionnelle avec remember(dépendances)
-- Toast automatique pour erreurs via LaunchedEffect
-- FormActions avec bouton SAVE enabled selon validation
+### Configuration screen pattern
+- States for the form's fields
+- Optional real-time validation with remember(dependencies)
+- Automatic toast for errors through a LaunchedEffect
+- FormActions with the SAVE button enabled according to validation
 
-## BaseSchemas et Configuration
+## BaseSchemas and configuration
 
-### Réglages communs (`ToolConfigSettings`)
-- **name** : Nom de l'instance
-- **description** : Description
-- **display_mode** : Mode d'affichage (ICON/MINIMAL/LINE/etc.)
-- **validate_data** : « Protéger les données de cet outil », l'IA de la conversation et du connecteur demande avant d'écrire ses entrées (défaut : non) ; sa config est gardée par la protection de sa zone (`docs/design/validation.md`), et seule une personne change l'une ou l'autre (`Protections`)
+### Common settings (`ToolConfigSettings`)
+- **name**: the instance's name
+- **description**: description
+- **display_mode**: display mode (ICON/MINIMAL/LINE/etc.)
+- **validate_data**: "Protect this tool's data", the AI of the conversation and of the connector asks before writing its entries (default: no); its config is kept by its zone's protection (`docs/design/validation.md`), and only a person changes either one (`Protections`)
 
-### Champ always_send (Level 2 AI)
+### always_send field (Level 2 AI)
 ```kotlin
 "always_send": {
     "type": "boolean",
     "default": false,
-    "description": "Toujours envoyer les données à l'IA (Level 2)"
+    "description": "Always send the data to the AI (Level 2)"
 }
 ```
 
-**Usage** : Si `always_send = true`, les données de cette tool instance sont incluses systématiquement en Level 2 des prompts IA pour contexte permanent.
+**Use**: if `always_send = true`, the data of this tool instance is included systematically in Level 2 of the AI prompts, as permanent context.
 
-**Interface UI** : réglage commun, déclaré dans `ToolConfigSettings`.
+**UI**: a common setting, declared in `ToolConfigSettings`.
 
-## Patterns de Parsing Robuste
+## Robust parsing patterns
 
-### les services rendent des objets
-`tool_data.*` rend `data` et `custom_fields` en `Map`, et `tools.*` prend et rend `config` en objet — jamais en chaîne. La sérialisation JSON ne vit qu'au bord de la base, où `tool_instances.config_json` garde son nom parce que la colonne, elle, contient bien une chaîne. Un appelant lit ses clés directement, sans parsing ni try/catch.
+### The services return objects
+`tool_data.*` returns `data` and `custom_fields` as a `Map`, and `tools.*` takes and returns `config` as an object — never as a string. JSON serialisation lives only at the edge of the database, where `tool_instances.config_json` keeps its name because the column does hold a string. A caller reads its keys directly, without parsing or try/catch.
 
-### LaunchedEffect avec Dépendances Complètes
-Inclure TOUTES les variables vérifiées dans le scope comme dépendances pour éviter les états obsolètes.
+### LaunchedEffect with complete dependencies
+Include ALL the variables checked in the scope as dependencies to avoid stale states.
 
-## Règles d'Extension
+## Extension rules
 
-### Discovery Pure
-- Aucun import hardcodé dans Core
-- Enregistrement automatique via ToolTypeScanner
-- Service et DAO découverts dynamiquement
+### Pure discovery
+- No hardcoded import in the Core
+- Automatic registration through ToolTypeScanner
+- Service and DAO discovered dynamically
 
-### Consistency Patterns
-- Validation unifiée via SchemaValidator
-- Configuration JSON avec schéma
-- Event sourcing pour toutes modifications
+### Consistency patterns
+- Unified validation through SchemaValidator
+- JSON configuration with a schema
+- Event sourcing for all changes
 
-### Interface Contracts
-- ToolTypeContract déclare ses champs et réglages ; les schémas en sont générés
-- ExecutableService pour logique métier
-- SchemaValidator pour validation UI/Service
+### Interface contracts
+- ToolTypeContract declares its fields and settings; the schemas are generated from them
+- ExecutableService for the business logic
+- SchemaValidator for UI/Service validation
 
 ---
 
-*L'architecture d'outils garantit extensibilité sans modification du Core et cohérence des patterns.*
+*The tools architecture guarantees extensibility without changing the Core, and consistent patterns.*

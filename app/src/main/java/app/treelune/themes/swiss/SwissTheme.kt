@@ -176,7 +176,7 @@ object SwissTheme : ThemeContract {
     @Composable
     override fun gridRowGapPx(): Int = with(LocalDensity.current) { 16f.dp.roundToPx() }
 
-    /** Silent: the theme's sounds are chosen apart (docs/THEMES.md, Les sons). */
+    /** Silent: the theme's sounds are chosen apart (docs/THEMES.md, The sounds). */
     override fun sound(signal: UISignal): Int? = null
 
     /** A tile's name flush with its icon's side, on the grid's left line, as every text of the theme. */

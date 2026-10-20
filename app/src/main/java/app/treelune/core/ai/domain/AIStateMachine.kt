@@ -503,7 +503,7 @@ object AIStateMachine {
             }
         }
 
-        // Priority 1: Communication module (CHAT only - ignored for AUTOMATION)
+        // Priority 1: Communication module (CHAT only: an AUTOMATION's is refused as a format error)
         if (message.communicationModule != null && state.sessionType == SessionType.CHAT) {
             return state.copy(
                 phase = Phase.WAITING_COMMUNICATION_RESPONSE,

@@ -4,16 +4,16 @@ import org.json.JSONObject
 import java.time.Instant
 
 /**
- * Brings an Agenda's whole-day events to their v83 form: an event that takes whole days starts at
+ * Brings an Agenda's whole-day events to their v85 form: an event that takes whole days starts at
  * the start of the user's day on its date (day_start_hour), no longer at midnight, so that what
  * reads entries by period finds it on its day. The mark of its reminders (reminded_for), set for
  * the start they were sent for, follows it.
  *
  * Shared by the database migration and the backup import.
  */
-object AllDayAtV83 {
+object AllDayAtV85 {
 
-    /** An entry's start and state, as they stand at v83. */
+    /** An entry's start and state, as they stand at v85. */
     data class Moved(val timestamp: Long, val state: String?)
 
     /**

@@ -8,7 +8,7 @@ import org.junit.Test
 import java.io.File
 
 /**
- * Holds each theme's sounds to the files scripts/theme_sounds.py makes (docs/THEMES.md, Les sons):
+ * Holds each theme's sounds to the files scripts/theme_sounds.py makes (docs/THEMES.md, The sounds):
  * a theme answers a signal with res/raw/<id>_<signal>.flac, the file of that very signal, or with
  * silence when it has none. A file made and never wired, or a signal answered by another one's
  * file, would otherwise only be heard on a phone.

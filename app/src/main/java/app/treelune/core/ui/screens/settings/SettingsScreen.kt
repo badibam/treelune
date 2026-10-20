@@ -78,6 +78,7 @@ private val SECTIONS = listOf(
     ),
     "settings_section_data" to listOf(
         SettingsEntry("data", "database", "settings_data"),
+        SettingsEntry("write_history", "history", "settings_write_history"),
         SettingsEntry("external_access", "cable", "settings_external_access")
     ),
     "settings_section_system" to listOf(

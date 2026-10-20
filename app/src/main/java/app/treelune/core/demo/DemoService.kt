@@ -1,9 +1,6 @@
 package app.treelune.core.demo
 
 import android.content.Context
-import androidx.room.execSQL
-import androidx.room.immediateTransaction
-import androidx.room.useWriterConnection
 import app.treelune.core.coordinator.CancellationToken
 import app.treelune.core.coordinator.LongOperation
 import app.treelune.core.coordinator.Coordinator
@@ -11,6 +8,7 @@ import app.treelune.core.coordinator.Origin
 import app.treelune.core.coordinator.Source
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.AppDatabase
+import app.treelune.core.database.transaction
 import app.treelune.core.database.entities.AppSettingCategories
 import app.treelune.core.grid.Grid
 import app.treelune.core.services.ExecutableService
@@ -253,8 +251,9 @@ class DemoService(private val context: Context) : ExecutableService {
         val demoGroups = database.zoneDao().getAllZones()
             .filter { it.id.startsWith(DemoContent.PREFIX) }
             .mapNotNull { it.group }.toSet()
-        database.useWriterConnection { connection ->
-            connection.immediateTransaction { DemoRemoval.STATEMENTS.forEach { execSQL(it) } }
+        val writes = app.treelune.core.history.Writes(context)
+        database.transaction {
+            DemoRemoval.SELECTIONS.forEach { (table, query) -> writes.deleteSelected(table, query) }
         }
         val stillUsed = database.zoneDao().getAllZones().mapNotNull { it.group }.toSet()
         removeZoneGroups(demoGroups - stillUsed)

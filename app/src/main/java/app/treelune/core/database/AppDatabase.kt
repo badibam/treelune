@@ -76,7 +76,9 @@ import app.treelune.core.ai.data.LegacyCatchUp
         ImageEntity::class,
         app.treelune.core.mcp.McpClientEntity::class,
         app.treelune.core.mcp.McpTokenEntity::class,
-        app.treelune.core.identities.IdentityEntity::class
+        app.treelune.core.identities.IdentityEntity::class,
+        app.treelune.core.history.HistoryStepEntity::class,
+        app.treelune.core.history.HistoryRowEntity::class
         // Note: Tool entities will be added dynamically
         // via build system and ToolTypeRegistry
     ],
@@ -99,13 +101,14 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun imageDao(): ImageDao
     abstract fun mcpDao(): app.treelune.core.mcp.McpDao
     abstract fun identityDao(): app.treelune.core.identities.IdentityDao
+    abstract fun historyDao(): app.treelune.core.history.HistoryDao
 
     companion object {
         /**
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 83
+        const val VERSION = 85
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -1869,8 +1872,39 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /** One table for the images of messages and of entries: see ImagesAtV82. */
-        /** An Agenda's whole-day events start at the start of the user's day, no longer at midnight: see AllDayAtV83. */
+        private val MIGRATION_81_82 = object : ConnectionMigration(81, 82) {
+            override fun migrate(database: MigrationDatabase) {
+                app.treelune.core.versioning.ImagesAtV82.STATEMENTS.forEach { database.execSQL(it) }
+                val count = database.query("SELECT COUNT(*) FROM images").use { if (it.moveToFirst()) it.getInt(0) else 0 }
+                LogManager.database("MIGRATION 81->82: attached_images becomes images, $count message images kept as JPEG", "INFO")
+            }
+        }
+
+        /** The history of writes (HistoryAtV83): its two tables, empty, and its depth in the data settings. */
         private val MIGRATION_82_83 = object : ConnectionMigration(82, 83) {
+            override fun migrate(database: MigrationDatabase) {
+                app.treelune.core.versioning.HistoryAtV83.STATEMENTS.forEach { database.execSQL(it) }
+                val category = app.treelune.core.database.entities.AppSettingCategories.DATA
+                database.query("SELECT settings FROM app_settings_categories WHERE category = ?", arrayOf<Any?>(category)).use { cursor ->
+                    if (!cursor.moveToFirst()) {
+                        LogManager.database("MIGRATION 82->83: the history of writes, empty; no data settings stored, the defaults are written on first read", "INFO")
+                        return
+                    }
+                    // Settings that cannot be read stay as they are; reading them then fails with the reason
+                    try {
+                        val settings = app.treelune.core.versioning.HistoryAtV83.dataSettings(category, org.json.JSONObject(cursor.getString(0)))
+                        database.execSQL("UPDATE app_settings_categories SET settings = ? WHERE category = ?", arrayOf<Any?>(settings.toString(), category))
+                    } catch (e: Exception) {
+                        LogManager.database("MIGRATION 82->83: the history of writes, empty; data settings left as they were: ${e.message}", "ERROR", e)
+                        return
+                    }
+                }
+                LogManager.database("MIGRATION 82->83: the history of writes, empty, kept 30 days and 500 MB", "INFO")
+            }
+        }
+
+        /** An Agenda's whole-day events start at the start of the user's day, no longer at midnight: see AllDayAtV85. */
+        private val MIGRATION_84_85 = object : ConnectionMigration(84, 85) {
             override fun migrate(database: MigrationDatabase) {
                 val format = database.query("SELECT settings FROM app_settings_categories WHERE category = ?", arrayOf<Any?>(app.treelune.core.database.entities.AppSettingCategories.FORMAT)).use { cursor ->
                     if (cursor.moveToFirst()) org.json.JSONObject(cursor.getString(0)) else null
@@ -1883,23 +1917,37 @@ abstract class AppDatabase : RoomDatabase() {
                         // An entry that cannot be read stays as it was and is logged
                         try {
                             val state = if (cursor.isNull(3)) null else cursor.getString(3)
-                            val next = app.treelune.core.versioning.AllDayAtV83.entry(cursor.getLong(1), org.json.JSONObject(cursor.getString(2)), state, calendar) ?: continue
+                            val next = app.treelune.core.versioning.AllDayAtV85.entry(cursor.getLong(1), org.json.JSONObject(cursor.getString(2)), state, calendar) ?: continue
                             database.execSQL("UPDATE tool_data SET timestamp = ?, state = ? WHERE id = ?", arrayOf<Any?>(next.timestamp, next.state, id))
                             moved++
                         } catch (e: Exception) {
-                            LogManager.database("MIGRATION 82->83: entry $id left as it was: ${e.message}", "ERROR", e)
+                            LogManager.database("MIGRATION 84->85: entry $id left as it was: ${e.message}", "ERROR", e)
                         }
                     }
                 }
-                LogManager.database("MIGRATION 82->83: $moved whole-day event(s) moved to the start of their day", "INFO")
+                LogManager.database("MIGRATION 84->85: $moved whole-day event(s) moved to the start of their day", "INFO")
             }
         }
 
-        private val MIGRATION_81_82 = object : ConnectionMigration(81, 82) {
+        /** The connector gains its own data threshold: see ExternalAccessDataAtV84. */
+        private val MIGRATION_83_84 = object : ConnectionMigration(83, 84) {
             override fun migrate(database: MigrationDatabase) {
-                app.treelune.core.versioning.ImagesAtV82.STATEMENTS.forEach { database.execSQL(it) }
-                val count = database.query("SELECT COUNT(*) FROM images").use { if (it.moveToFirst()) it.getInt(0) else 0 }
-                LogManager.database("MIGRATION 81->82: attached_images becomes images, $count message images kept as JPEG", "INFO")
+                val category = app.treelune.core.database.entities.AppSettingCategories.EXTERNAL_ACCESS
+                database.query("SELECT settings FROM app_settings_categories WHERE category = ?", arrayOf<Any?>(category)).use { cursor ->
+                    if (!cursor.moveToFirst()) {
+                        LogManager.database("MIGRATION 83->84: no external access settings stored, the defaults are written on first read", "INFO")
+                        return
+                    }
+                    // Settings that cannot be read stay as they are; reading them then fails with the reason
+                    try {
+                        val settings = app.treelune.core.versioning.ExternalAccessDataAtV84.rewrite(category, org.json.JSONObject(cursor.getString(0)))
+                        database.execSQL("UPDATE app_settings_categories SET settings = ? WHERE category = ?", arrayOf<Any?>(settings.toString(), category))
+                    } catch (e: Exception) {
+                        LogManager.database("MIGRATION 83->84: external access settings left as they were: ${e.message}", "ERROR", e)
+                        return
+                    }
+                }
+                LogManager.database("MIGRATION 83->84: external access settings gain the connector's data threshold", "INFO")
             }
         }
 
@@ -2911,7 +2959,9 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_79_80,
                     MIGRATION_80_81,
                     MIGRATION_81_82,
-                    MIGRATION_82_83
+                    MIGRATION_82_83,
+                    MIGRATION_83_84,
+                    MIGRATION_84_85
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

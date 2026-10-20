@@ -56,6 +56,7 @@ class AutomationService(private val context: Context) : ExecutableService {
     // Access common database
     private val database by lazy { AppDatabase.getDatabase(context) }
     private val dao by lazy { database.aiDao() }
+    private val writes by lazy { app.treelune.core.history.Writes(context) }
 
     override suspend fun execute(
         operation: String,
@@ -172,7 +173,7 @@ class AutomationService(private val context: Context) : ExecutableService {
         LogManager.service("Creating automation: name=${entity.name}, zoneId=$zoneId", "DEBUG")
         database.transaction {
             // A seed session is never run nor active: it holds the message each run starts from
-            dao.insertSession(AISessionEntity(
+            writes.insertSession(AISessionEntity(
                 id = seedSessionId,
                 name = entity.name,
                 type = SessionType.SEED,
@@ -185,8 +186,8 @@ class AutomationService(private val context: Context) : ExecutableService {
                 lastActivity = now,
                 isActive = false
             ))
-            dao.insertMessage(seedMessage(seedSessionId, message, now))
-            dao.insertAutomation(entity)
+            writes.insertMessage(seedMessage(seedSessionId, message, now))
+            writes.insertAutomation(entity)
         }
 
         // A zone shown reads its routines again, whoever created this one
@@ -295,8 +296,8 @@ class AutomationService(private val context: Context) : ExecutableService {
                 ?: return OperationResult.error(s.shared("automation_seed_missing").format(entity.name))
         }
         database.transaction {
-            if (message != null && seed != null) dao.updateMessage(seed.copy(richContentJson = message.toJson()))
-            dao.updateAutomation(updatedEntity)
+            if (message != null && seed != null) writes.updateMessage(seed.copy(richContentJson = message.toJson()))
+            writes.updateAutomation(updatedEntity)
         }
 
         // A zone shown reads its routines again: their name, their state, their place
@@ -451,7 +452,7 @@ class AutomationService(private val context: Context) : ExecutableService {
         val entity = dao.getAutomationById(automationId)
             ?: return OperationResult.error(s.shared("error_automation_not_found"))
 
-        dao.deleteAutomationById(automationId)
+        writes.deleteAutomation(automationId)
         app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
 
         LogManager.service("Successfully deleted automation: $automationId", "INFO")
@@ -520,7 +521,7 @@ class AutomationService(private val context: Context) : ExecutableService {
             lastUserInteractionTime = now
         )
 
-        dao.insertSession(newSeedSession)
+        writes.insertSession(newSeedSession)
 
         LogManager.service("Created new SEED session: $newSeedSessionId", "DEBUG")
 
@@ -533,7 +534,7 @@ class AutomationService(private val context: Context) : ExecutableService {
                 sessionId = newSeedSessionId,
                 timestamp = now + sourceMessages.indexOf(sourceMessage) // Preserve order with slight offset
             )
-            dao.insertMessage(newMessage)
+            writes.insertMessage(newMessage)
         }
 
         LogManager.service("Duplicated ${sourceMessages.size} messages to new SEED session", "DEBUG")
@@ -556,7 +557,7 @@ class AutomationService(private val context: Context) : ExecutableService {
             executionHistoryJson = json.encodeToString(emptyList<String>())
         )
 
-        dao.insertAutomation(newAutomation)
+        writes.insertAutomation(newAutomation)
 
         // Notify UI
         app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
@@ -693,7 +694,7 @@ class AutomationService(private val context: Context) : ExecutableService {
         // Without a provider it could not run
         if (enabled && entity.providerId == null) return OperationResult.error(s.shared("automation_provider_none_enabled"))
 
-        dao.setAutomationEnabled(automationId, enabled, System.currentTimeMillis())
+        writes.setAutomationEnabled(automationId, enabled, System.currentTimeMillis())
 
         // Notify UI of automation change
         app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()

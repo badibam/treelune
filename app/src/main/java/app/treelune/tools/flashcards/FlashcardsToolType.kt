@@ -23,7 +23,6 @@ import app.treelune.core.fields.settings.labelOf
 import app.treelune.core.selection.ReferenceKind
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.strings.Strings
-import app.treelune.core.tools.BaseSchemas
 import app.treelune.core.tools.EntryToOpen
 import app.treelune.core.tools.ToolOperation
 import app.treelune.core.tools.ToolTile
@@ -59,15 +58,6 @@ object FlashcardsToolType : ToolTypeContract {
     override fun getDefaultShowFieldLabels(): Boolean = false
     override fun getDefaultIconName(): String = "layers"
     override fun getSuggestedIcons(): List<String> = listOf("layers", "languages", "brain", "graduation-cap", "book-open-check", "repeat")
-
-    override fun getFormFieldName(fieldName: String, context: Context): String =
-        getConfigSettings(context).labelOf(fieldName)
-            ?: when (fieldName) {
-                FlashcardsJournal.SOURCE_ENTRY, FlashcardsJournal.DIRECTION, FlashcardsJournal.RATING,
-                FlashcardsJournal.STABILITY, FlashcardsJournal.DIFFICULTY, FlashcardsJournal.DUE, FlashcardsJournal.FSRS_VERSION -> s(context).tool("field_$fieldName")
-                else -> null
-            }
-            ?: BaseSchemas.getCommonFieldName(fieldName, context) ?: fieldName
 
     /** Its reviews are written by the app alone, from what the user does in a session: no fields of the user's. */
     override fun takesUserFields(): Boolean = false
@@ -144,7 +134,7 @@ object FlashcardsToolType : ToolTypeContract {
         val type = app.treelune.core.tools.ToolTypeManager.getToolType(tool["tooltype"] as? String ?: "")
         if (type == null || type === this || !type.keepsEntries()) return s.tool("error_source_kind").format(tool["name"])
         val fields = try { ToolFields.filterable(deck.sourceId, context, s) } catch (e: IllegalStateException) { return e.message }
-        deck.namedFields.firstOrNull { it !in fields }?.let { return s.tool("error_field_gone").format(it.substringAfter('.'), tool["name"]) }
+        deck.goneField({ it in fields }, tool["name"] as? String ?: "", s::tool)?.let { return it }
         val names = deck.directions.map { it.name.trim().lowercase() }
         if (names.size != names.toSet().size) return s.tool("error_direction_names")
         // Its filters, read as the deck will read them
@@ -241,11 +231,6 @@ object FlashcardsToolType : ToolTypeContract {
     }
 
     override fun getService(context: Context): ExecutableService = FlashcardsService(context)
-
-    override fun getDao(context: Context): Any {
-        val baseDao = app.treelune.core.database.AppDatabase.getDatabase(context).toolDataDao()
-        return app.treelune.core.database.dao.DefaultExtendedToolDataDao(baseDao, "flashcards")
-    }
 
     override fun getDatabaseEntities(): List<Class<*>> = listOf(ToolDataEntity::class.java)
 

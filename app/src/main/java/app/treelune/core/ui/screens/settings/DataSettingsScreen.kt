@@ -113,13 +113,20 @@ fun DataSettingsScreen(
             }
         } catch (e: Exception) { errorMessage = e.message; null }
     }
-    /** The data settings written whole, [folder] and [on], then read again. */
+    /** The data settings with [folder] and [on], the others as they are (the history's depth), then read again. */
     fun saveAuto(folder: android.net.Uri?, on: Boolean) = scope.launch {
-        val settings = buildMap<String, Any> {
-            folder?.let { put(app.treelune.core.config.AppSettings.DATA_FOLDER, it.toString()) }
+        val category = app.treelune.core.database.entities.AppSettingCategories.DATA
+        val read = coordinator.processUserAction("app_config.get", mapOf("category" to category))
+        if (read.status != CommandStatus.SUCCESS) {
+            errorMessage = read.error
+            return@launch
+        }
+        @Suppress("UNCHECKED_CAST")
+        val settings = (read.data!!["settings"] as Map<String, Any?>).toMutableMap().apply {
+            if (folder != null) put(app.treelune.core.config.AppSettings.DATA_FOLDER, folder.toString()) else remove(app.treelune.core.config.AppSettings.DATA_FOLDER)
             put(app.treelune.core.config.AppSettings.DATA_AUTO_BACKUP, on)
         }
-        val result = coordinator.processUserAction("app_config.set", mapOf("category" to app.treelune.core.database.entities.AppSettingCategories.DATA, "settings" to settings))
+        val result = coordinator.processUserAction("app_config.set", mapOf("category" to category, "settings" to settings))
         if (result.status != CommandStatus.SUCCESS) errorMessage = result.error
         autoRead++
     }

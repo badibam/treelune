@@ -162,6 +162,8 @@ object JsonTransformers {
                     68 -> ValidationAtV69.appSettings(category, transformed)
                     74 -> UiTextureIntensityAtV75.rewrite(category, transformed)
                     80 -> UiHomeTitleAtV81.rewrite(category, transformed)
+                    82 -> HistoryAtV83.dataSettings(category, transformed)
+                    83 -> ExternalAccessDataAtV84.rewrite(category, transformed)
                     // Example future migration:
                     // 10 -> migrateAppConfigFrom10To11(transformed)
                     else -> transformed // No migrations

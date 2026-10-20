@@ -40,6 +40,7 @@ class FileService(private val context: Context) : ExecutableService {
     private val s = Strings.`for`(context = context)
     private val dao = AppDatabase.getDatabase(context).attachedFileDao()
     private val imageDao = AppDatabase.getDatabase(context).imageDao()
+    private val writes = app.treelune.core.history.Writes(context)
 
     override suspend fun execute(operation: String, params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
@@ -57,8 +58,9 @@ class FileService(private val context: Context) : ExecutableService {
             "delete_image" -> {
                 val id = params.optString("id").takeIf { it.isNotEmpty() } ?: return OperationResult.error(s.shared("service_error_missing_id"))
                 val image = imageDao.getById(id) ?: return OperationResult.error(s.shared("image_error_not_found").format(id))
-                imageDao.delete(id)
-                Images.delete(context, image)
+                writes.deleteImage(id)
+                // A routine's message's image the history keeps stays, for an undo to put it back
+                if (image.id !in AppDatabase.getDatabase(context).historyDao().keptImages()) Images.delete(context, image)
                 OperationResult.success()
             }
             else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
@@ -84,7 +86,7 @@ class FileService(private val context: Context) : ExecutableService {
         // The file first: an interruption between the two leaves a file no row names, which the
         // startup sweep removes, never a row without its file
         Images.write(Images.file(context, image), prepared.bytes)
-        imageDao.insert(image)
+        writes.insertImage(image)
         return OperationResult.success(answer(image.id, prepared))
     }
 
@@ -117,7 +119,7 @@ class FileService(private val context: Context) : ExecutableService {
             else source.copy(id = UUID.randomUUID().toString(), sessionId = sessionId, entryId = null, createdAt = now).also { copy ->
                 // The file first, as for any image: an interruption leaves a file the sweep removes
                 Images.copy(Images.file(context, source), Images.file(context, copy))
-                imageDao.insert(copy)
+                writes.insertImage(copy)
             }
         }
         return OperationResult.success(mapOf(

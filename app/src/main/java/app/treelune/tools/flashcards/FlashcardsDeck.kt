@@ -41,6 +41,21 @@ data class FlashcardsDeck(
     /** Every field of the source the deck names: its groups' and its directions'. */
     val namedFields: List<String> get() = (listOfNotNull(groupBy) + directions.flatMap { it.fields }).distinct()
 
+    /**
+     * Where the deck names a field the source no longer has ([exists] false), as the error says it:
+     * the grouping, or a direction's front or back, the place to correct in the deck's config. The
+     * field itself is not named: gone from the source, its label is gone with it. Null when every
+     * field it names exists.
+     */
+    fun goneField(exists: (String) -> Boolean, sourceName: String, text: (String) -> String): String? {
+        if (groupBy != null && !exists(groupBy)) return text("error_group_by_gone").format(sourceName)
+        directions.forEach { direction ->
+            if (direction.front.any { !exists(it) }) return text("error_front_gone").format(direction.name, sourceName)
+            if (direction.back.any { !exists(it) }) return text("error_back_gone").format(direction.name, sourceName)
+        }
+        return null
+    }
+
     companion object {
         const val SOURCE = "source"
         const val GROUP_BY = "group_by"

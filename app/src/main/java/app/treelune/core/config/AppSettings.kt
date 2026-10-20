@@ -104,6 +104,10 @@ object AppSettings {
     const val DATA_AUTO_BACKUP = "auto_backup"
     /** The case of the automatic backup last looked at in Settings › Data (AutoBackup.seen) */
     const val DATA_SEEN = "seen"
+    /** How many days the history of writes keeps its steps (docs/design/undo-history.md, HistoryDepth) */
+    const val DATA_HISTORY_DAYS = "history_days"
+    /** How many megabytes the history of writes takes at most, its latest step kept whatever its size */
+    const val DATA_HISTORY_MEGABYTES = "history_megabytes"
 
     /** How an outside AI reaches the app: through its own Tailscale node, or through a relay (docs/design/funnel-access.md). */
     const val ACCESS_MODE = "access_mode"
@@ -115,6 +119,14 @@ object AppSettings {
 
     /** The secret the relay knows the app by. */
     const val RELAY_SECRET = "relay_secret"
+
+    /**
+     * The connector's data threshold, in characters: its own, the size of a read weighing on the
+     * outside AI's context and subscription, never on a key of the app's paid by the call.
+     */
+    const val MCP_MAX_DATA_CHARS = "max_data_chars"
+    val MCP_DATA_RANGE = IntProgression.fromClosedRange(10_000, 500_000, 10_000)
+    const val MCP_MAX_DATA_CHARS_DEFAULT = 200_000
 
     /** The setting under which the theme's interface sounds play. */
     const val UI_SOUNDS = "sounds"
@@ -130,6 +142,10 @@ object AppSettings {
 
     /** The hue shifts: a whole turn, by degree. */
     val HUE_SHIFT_RANGE = 0..359
+
+    /** The history of writes' depth: days, and megabytes */
+    val HISTORY_DAYS_RANGE = 1..365
+    val HISTORY_MEGABYTES_RANGE = IntProgression.fromClosedRange(100, 5_000, 100)
 
     /** How many whole steps the interface's size is moved by. */
     const val UI_SIZE_STEP = "size_step"
@@ -213,7 +229,7 @@ object AppSettings {
                             FieldType.TEXT, config = mapOf("length" to TextLength.MEDIUM.name), secret = true)
                     )))
                 )
-            ))
+            ), scale(MCP_MAX_DATA_CHARS, text("settings_external_access_max_data"), text("settings_external_access_max_data_help"), MCP_DATA_RANGE))
             AppSettingCategories.GUIDE -> listOf(
                 field(GUIDE_WELCOME_SEEN, text("guide_setting_welcome_seen"), null, FieldType.BOOLEAN, required = true),
                 field(GUIDE_BAND_HIDDEN, text("guide_setting_band_hidden"), null, FieldType.BOOLEAN, required = true),
@@ -235,7 +251,9 @@ object AppSettings {
                 field(DATA_FOLDER, text("settings_data_folder"), null, FieldType.TEXT, config = mapOf("length" to TextLength.UNLIMITED.name)),
                 field(DATA_AUTO_BACKUP, text("settings_data_auto_backup"), text("settings_data_auto_backup_help"), FieldType.BOOLEAN, required = true),
                 // Written by the screen that showed it, never entered
-                field(DATA_SEEN, text("settings_data_seen"), null, FieldType.TEXT, config = mapOf("length" to TextLength.UNLIMITED.name))
+                field(DATA_SEEN, text("settings_data_seen"), null, FieldType.TEXT, config = mapOf("length" to TextLength.UNLIMITED.name), systemWritten = true),
+                scale(DATA_HISTORY_DAYS, text("settings_data_history_days"), text("settings_data_history_days_help"), HISTORY_DAYS_RANGE),
+                scale(DATA_HISTORY_MEGABYTES, text("settings_data_history_megabytes"), text("settings_data_history_megabytes_help"), HISTORY_MEGABYTES_RANGE)
             )
             AppSettingCategories.DEMO -> listOf(
                 field(app.treelune.core.demo.DemoStartup.INSTALL_ON_UPDATE, text("settings_demo_install_on_update"),
@@ -314,9 +332,10 @@ object AppSettings {
         SettingValues(nodes(category, context), settings)
 
     private fun field(name: String, label: String, description: String?, type: FieldType, required: Boolean = false,
-                      config: Map<String, Any>? = null, secret: Boolean = false, address: Boolean = false) =
+                      config: Map<String, Any>? = null, secret: Boolean = false, address: Boolean = false,
+                      systemWritten: Boolean = false) =
         SettingNode.Field(FieldDefinition(name, label, description, type, false, config), required = required, secret = secret,
-            address = address)
+            address = address, systemWritten = systemWritten)
 
     private fun choice(name: String, label: String, description: String, values: List<String>,
                        labels: Map<String, String> = emptyMap(), required: Boolean = false) =

@@ -1,6 +1,6 @@
 # Outils manquants
 
-Conception commencée le 2026-09-27, après la refonte des champs (`docs/DATA.md`, « Champs et entrées ») : un type d'outil ne porte plus que ses façons rapides de créer une entrée et ses calculs sur plusieurs entrées.
+Conception commencée le 2026-09-27, après la refonte des champs (`docs/DATA.md`, « Fields and entries ») : un type d'outil ne porte plus que ses façons rapides de créer une entrée et ses calculs sur plusieurs entrées.
 
 ## Tri (provisoire)
 

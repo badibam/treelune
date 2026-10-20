@@ -67,7 +67,10 @@ object PromptChunks {
         Chunk("response_structure", 1) { ctx, _ -> buildChunk("response_structure", ctx) },
         Chunk("response_rules", 1) { ctx, _ -> buildChunk("response_rules", ctx) },
         Chunk("response_validation_request", 1) { ctx, _ -> buildChunk("response_validation_request", ctx) },
-        Chunk("response_communication_modules_intro", 1) { ctx, _ -> buildChunk("response_communication_modules_intro", ctx) },
+        // A conversation's alone: nobody answers a routine's question while it runs
+        Chunk("response_communication_modules_intro", 1) { ctx, sessionType ->
+            if (sessionType == SessionType.CHAT) buildChunk("response_communication_modules_intro", ctx) else ""
+        },
         Chunk("response_examples", 3) { ctx, _ -> buildChunk("response_examples", ctx) },
 
         // PARTIE C : COMMANDES DISPONIBLES

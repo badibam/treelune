@@ -271,20 +271,30 @@ object Images {
      * WARN by its name for a message's image without a row, which comes from a hard stop or a
      * deletion path that forgot the file. The rows of the images their entry no longer names go
      * too, with their files.
+     *
+     * What the history of writes still names stays, row and file: an image whose row a step keeps,
+     * an image a copy of an entry names (docs/design/undo-history.md) — an undo puts them back.
      */
     suspend fun sweepOnce(context: Context) {
         if (swept) return
         swept = true
         val dao = AppDatabase.getDatabase(context).imageDao()
 
-        dao.unnamedByTheirEntry().forEach { image ->
-            dao.delete(image.id)
+        // The app's own write, at its start: noted by the history, never a step
+        val writes = app.treelune.core.history.Writes(context)
+        val noted = app.treelune.core.history.Step(app.treelune.core.coordinator.Source.SYSTEM, isStep = false, sessionId = null)
+        val history = AppDatabase.getDatabase(context).historyDao()
+        val kept = history.keptImages().toSet()
+        dao.unnamedByTheirEntry().filterNot { history.entriesName(it.id) }.forEach { image ->
+            kotlinx.coroutines.withContext(noted) { writes.deleteImage(image.id) }
             delete(context, image)
             LogManager.service("Startup sweep: image ${image.id} no longer named by its entry ${image.entryId}, removed", "INFO")
         }
 
         val images = dao.getAll()
         fun names(owned: List<ImageEntity>) = owned.map { it.imageFormat.fileName(it.id) }.toSet()
+        // A file is named by its image's id and its format's extension
+        fun keptByHistory(name: String) = name.substringBeforeLast('.') in kept
 
         dir(context).list()?.toList()?.let { found ->
             val sweep = sweep(found, names(images.filter { it.sessionId != null }))
@@ -292,14 +302,14 @@ object Images {
                 File(dir(context), name).delete()
                 LogManager.service("Startup sweep: interrupted image write $name removed", "INFO")
             }
-            sweep.orphans.forEach { name ->
+            sweep.orphans.filterNot(::keptByHistory).forEach { name ->
                 File(dir(context), name).delete()
                 LogManager.service("Startup sweep: image file $name named by no row, removed", "WARN")
             }
         }
         entriesDir(context).list()?.toList()?.let { found ->
             val sweep = sweep(found, names(images.filter { it.entryId != null }))
-            (sweep.parts + sweep.orphans).forEach { name ->
+            (sweep.parts + sweep.orphans.filterNot(::keptByHistory)).forEach { name ->
                 File(entriesDir(context), name).delete()
                 LogManager.service("Startup sweep: entry image file $name, its entry or its write gone, removed", "INFO")
             }

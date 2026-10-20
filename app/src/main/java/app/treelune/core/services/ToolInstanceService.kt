@@ -48,6 +48,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
     private val database by lazy { AppDatabase.getDatabase(context) }
     private val toolInstanceDao by lazy { database.toolInstanceDao() }
     private val zoneDao by lazy { database.zoneDao() }
+    private val writes by lazy { app.treelune.core.history.Writes(context) }
     private val s = Strings.`for`(context = context)
 
     // Detached scope for the post-CRUD tick, which must not hold up the caller
@@ -157,7 +158,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
 
         val newToolInstance = database.transaction {
             arrive(ToolInstance(id = toolId, zone_id = zoneId, tooltype = toolType, config_json = storedConfigJson, grid_x = 0, grid_y = 0), zone.tool_groups)
-                .also { toolInstanceDao.insertToolInstance(it) }
+                .also { writes.insertTool(it) }
         }
 
         // Notify UI of tools change in this zone
@@ -252,19 +253,22 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         }
 
         // What the change does to the recorded entries: refused while it loses something the
-        // caller has not agreed to lose, or leaves an entry without a value it now requires
+        // caller has not agreed to lose, or leaves an entry without a value it now requires;
+        // and the other tools whose filters it leaves aiming at an option gone
+        var aimedBy = emptyList<String>()
         val migration = if (configJson.isNotBlank()) {
             val fill = when (val given = readFill(existingTool, configJson, params.optJSONObject("fill_values"))) {
                 is Fill.Refused -> return OperationResult.error(given.message)
                 is Fill.Values -> given.values
             }
             val plan = planMigration(existingTool, configJson, fill)
+            aimedBy = aimingTools(existingTool, configJson)
             // A dry run says what the change would do, writing nothing (ValidationResolver)
-            if (params.optBoolean("dry_run", false)) return OperationResult.success(report(plan))
-            refuseMigration(plan, migrationAgreed(params))?.let { return it }
+            if (params.optBoolean("dry_run", false)) return OperationResult.success(report(plan, aimedBy))
+            refuseMigration(plan, aimedBy, migrationAgreed(params))?.let { return it }
             plan
         } else null
-        if (params.optBoolean("dry_run", false)) return OperationResult.success(report(EntryMigration.Plan(emptyList(), emptyList(), 0, 0, emptyMap())))
+        if (params.optBoolean("dry_run", false)) return OperationResult.success(report(EntryMigration.Plan(emptyList(), emptyList(), 0, 0, emptyMap()), emptyList()))
 
         // Store old zone_id for notification
         val oldZoneId = existingTool.zone_id
@@ -293,7 +297,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         // none lands without the others
         val updatedTool = database.transaction {
             val placed = move(existingTool, changedTool, oldZone.tool_groups, newZone.tool_groups)
-            toolInstanceDao.updateToolInstance(placed)
+            writes.updateTool(placed)
             if (migration != null) applyMigration(existingTool, migration)
             placed
         }
@@ -318,7 +322,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             "tool_instance_id" to updatedTool.id,
             "zone_id" to updatedTool.zone_id,
             "updated_at" to updatedTool.updated_at
-        ) + iconCheck.report() + (migration?.let { report(it) } ?: emptyMap())
+        ) + iconCheck.report() + (migration?.let { report(it, aimedBy) } ?: emptyMap())
             + (emptiedGroup?.let { mapOf("group_emptied" to it) } ?: emptyMap()))
     }
 
@@ -386,14 +390,36 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         return Fill.Values(values)
     }
 
+    /** The fields [config] gives the entries of a tool of [toolType]. */
+    private fun entryFields(toolType: app.treelune.core.tools.ToolTypeContract, config: JSONObject) = EntryMigration.Fields(
+        data = toolType.getEntryFields(config, context).data,
+        extra = config.optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList()
+    )
+
+    /**
+     * The names of the other tools whose filters compare a field of [tool] with an option the
+     * config [newConfigJson] takes out or renames (FiltersOnOptions): left finding nothing, they
+     * are named for the change to be agreed to.
+     */
+    private suspend fun aimingTools(tool: ToolInstance, newConfigJson: String): List<String> {
+        val toolType = ToolTypeManager.getToolType(tool.tooltype)
+            ?: throw IllegalStateException("Unknown tooltype ${tool.tooltype}")
+        val removed = app.treelune.core.conditions.FiltersOnOptions.removed(
+            entryFields(toolType, JSONObject(tool.config_json)), entryFields(toolType, JSONObject(newConfigJson)))
+        if (removed.isEmpty()) return emptyList()
+        return toolInstanceDao.getAllToolInstances().filter { it.id != tool.id }.filter { other ->
+            val otherType = ToolTypeManager.getToolType(other.tooltype)
+                ?: throw IllegalStateException("Unknown tooltype ${other.tooltype}")
+            app.treelune.core.conditions.FiltersOnOptions.holds(
+                app.treelune.core.tools.ToolConfigSettings.nodes(otherType, context), JSONObject(other.config_json), tool.id, removed)
+        }.map { JSONObject(it.config_json).getString("name") }
+    }
+
     /** What the config [newConfigJson] would do to the entries of [tool], as its config stands now. */
     private suspend fun planMigration(tool: ToolInstance, newConfigJson: String, fill: Map<String, Any>): EntryMigration.Plan {
         val toolType = ToolTypeManager.getToolType(tool.tooltype)
             ?: throw IllegalStateException("Unknown tooltype ${tool.tooltype}")
-        fun fieldsOf(config: JSONObject) = EntryMigration.Fields(
-            data = toolType.getEntryFields(config, context).data,
-            extra = config.optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList()
-        )
+        fun fieldsOf(config: JSONObject) = entryFields(toolType, config)
         val old = fieldsOf(JSONObject(tool.config_json))
         // An entry that keeps its past (a goal's closed attempt) is left as it is
         val entries = database.toolDataDao().getByToolInstance(tool.id).filterNot { toolType.keepsItsPast(it, context) }
@@ -438,18 +464,21 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
      * left without the value of a field now required is never stored: the caller gives one in
      * "fill_values".
      *
+     * The tools whose filters aim at an option taken out ([aimedBy]) need the same agreement.
+     *
      * The refusal carries the counts in "migration", for the screen to show them.
      */
-    private fun refuseMigration(plan: EntryMigration.Plan, confirmed: Boolean): OperationResult? {
+    private fun refuseMigration(plan: EntryMigration.Plan, aimedBy: List<String>, confirmed: Boolean): OperationResult? {
         if (plan.missing.isNotEmpty()) {
             val fields = plan.missing.entries.joinToString(", ") { (field, count) -> "data.$field ($count)" }
-            return OperationResult.error(s.shared("service_error_migration_missing_values").format(fields), report(plan))
+            return OperationResult.error(s.shared("service_error_migration_missing_values").format(fields), report(plan, aimedBy))
         }
-        if (plan.touchesPast && !confirmed) {
-            return OperationResult.error(
-                s.shared("service_error_migration_unconfirmed").format(plan.removedValues, plan.deleted.size, plan.reinterpreted),
-                report(plan)
+        if ((plan.touchesPast || aimedBy.isNotEmpty()) && !confirmed) {
+            val reasons = listOfNotNull(
+                s.shared("service_error_migration_unconfirmed").format(plan.removedValues, plan.deleted.size, plan.reinterpreted).takeIf { plan.touchesPast },
+                s.shared("service_error_migration_filters_aimed").format(aimedBy.joinToString(", ")).takeIf { aimedBy.isNotEmpty() }
             )
+            return OperationResult.error(reasons.joinToString(" "), report(plan, aimedBy))
         }
         return null
     }
@@ -471,8 +500,9 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         }
     }
 
-    /** What a migration does, under "migration" in a result. */
-    private fun report(plan: EntryMigration.Plan): Map<String, Any> = mapOf("migration" to mapOf(
+    /** What a migration does, under "migration" in a result, with the tools whose filters it leaves aiming at an option gone. */
+    private fun report(plan: EntryMigration.Plan, aimedBy: List<String>): Map<String, Any> = mapOf("migration" to mapOf(
+        "aimed_by" to aimedBy,
         "removed_values" to plan.removedValues,
         "deleted_entries" to plan.deleted.size,
         "filled_values" to plan.filledValues,
@@ -484,12 +514,12 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
     /** Writes [plan] to the entries of [tool], inside the caller's transaction. */
     private suspend fun applyMigration(tool: ToolInstance, plan: EntryMigration.Plan) {
         val dao = database.toolDataDao()
-        plan.updated.forEach { dao.update(it.copy(updatedAt = System.currentTimeMillis())) }
-        plan.deleted.forEach { dao.deleteById(it.id) }
+        plan.updated.forEach { writes.updateEntry(it.copy(updatedAt = System.currentTimeMillis())) }
+        plan.deleted.forEach { writes.deleteEntry(it.id) }
         if (plan.deleted.isEmpty()) return
         // A rule spanning the entries (a manual order) settles again once some are gone
         val toolType = ToolTypeManager.getToolType(tool.tooltype) ?: return
-        toolType.settleEntries({ dao.getByToolInstance(tool.id) }, null).forEach { dao.update(it) }
+        toolType.settleEntries({ dao.getByToolInstance(tool.id) }, null).forEach { writes.updateEntry(it) }
     }
     
     /**
@@ -566,7 +596,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
     }
 
     private suspend fun write(moved: List<ToolInstance>) {
-        moved.forEach { toolInstanceDao.updatePosition(it.id, it.grid_x, it.grid_y) }
+        moved.forEach { writes.moveTool(it.id, it.grid_x, it.grid_y) }
     }
 
     /**
@@ -599,7 +629,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         // The tool and the rows its leaving closes are one write
         database.transaction {
             leave(existingTool, zone.tool_groups)
-            toolInstanceDao.deleteToolInstanceById(toolInstanceId)
+            writes.deleteTool(toolInstanceId)
         }
 
         // Notify UI of tools change in this zone
@@ -672,7 +702,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         // Create new tool instance in target zone, at the bottom of its section's grid
         val newToolInstance = database.transaction {
             arrive(ToolInstance(zone_id = targetZoneId, tooltype = sourceTool.tooltype, config_json = sourceConfig.toString(), grid_x = 0, grid_y = 0), targetZone.tool_groups)
-                .also { toolInstanceDao.insertToolInstance(it) }
+                .also { writes.insertTool(it) }
         }
 
         // Notify UI of tools change in target zone

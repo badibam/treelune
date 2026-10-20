@@ -1,6 +1,6 @@
 # Recette : les null à l'écriture, par une session IA
 
-Écrit le 2026-10-08, pour la règle posée le même jour (`docs/DATA.md`, « Usage de `name` et `timestamp` ») : à la création et pour un objet écrit en entier, une clé à null est une valeur non donnée, retirée avant de valider et d'enregistrer (`JsonNulls`) ; le validateur vérifie ce qu'on lui donne ; les éléments d'une liste restent tels qu'envoyés ; en modification, une clé à null efface le champ. À supprimer une fois passé, ses lignes de `device-checks.md` (« Validation ») avec.
+Écrit le 2026-10-08, pour la règle posée le même jour (`docs/DATA.md`, « Use of `name` and `timestamp` ») : à la création et pour un objet écrit en entier, une clé à null est une valeur non donnée, retirée avant de valider et d'enregistrer (`JsonNulls`) ; le validateur vérifie ce qu'on lui donne ; les éléments d'une liste restent tels qu'envoyés ; en modification, une clé à null efface le champ. À supprimer une fois passé, ses lignes de `device-checks.md` (« Validation ») avec.
 
 ## Avant
 

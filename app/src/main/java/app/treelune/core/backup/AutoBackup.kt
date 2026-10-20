@@ -17,7 +17,7 @@ import org.json.JSONObject
 import java.io.File
 
 /**
- * The automatic backup (docs/DATA.md, « Sauvegarde automatique »): the backup zip of the manual
+ * The automatic backup (docs/DATA.md, « Automatic backup »): the backup zip of the manual
  * export, written into the folder of the phone chosen once (AppSettings.DATA_FOLDER), at most once
  * an hour and only when the data changed, rolled over four files (AutoBackupRotation).
  *

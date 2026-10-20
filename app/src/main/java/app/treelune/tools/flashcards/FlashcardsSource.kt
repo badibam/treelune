@@ -50,9 +50,7 @@ class FlashcardsSource(
             val name = ((tool.data?.get("tool_instance") as? Map<*, *>)?.get("name") as? String)
                 ?: throw IllegalStateException(s.tool("error_source_gone"))
             val fields = ToolFields.filterable(deck.sourceId, context, s)
-            deck.namedFields.firstOrNull { it !in fields }?.let { path ->
-                throw IllegalStateException(s.tool("error_field_gone").format(path.substringAfter('.'), name))
-            }
+            deck.goneField({ it in fields }, name, s::tool)?.let { throw IllegalStateException(it) }
             val result = coordinator.processUserAction("tool_data.get", mapOf(
                 "tool_instance_id" to deck.sourceId,
                 "filters" to JsonUtils.toList(deck.source.storedFilters(fields, TimeResolver.at(now)) { s.shared(it) })

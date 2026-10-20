@@ -68,7 +68,7 @@ object McpAccess {
     /** The OAuth server, one for the app: a request waiting for its code outlives the screens. */
     fun oauth(context: Context): OAuthServer = oauthServer ?: synchronized(this) {
         oauthServer ?: OAuthServer(
-            store = RoomOAuthStore(AppDatabase.getDatabase(context)),
+            store = RoomOAuthStore(context.applicationContext),
             prompt = NotificationPrompt(context.applicationContext),
             now = System::currentTimeMillis
         ).also { oauthServer = it }
@@ -80,6 +80,14 @@ object McpAccess {
         val settings = result.data?.get("settings") as? Map<*, *>
         return settings?.get(AppSettings.ACCESS_MODE) as? String
             ?: throw IllegalStateException("External access settings without an access mode")
+    }
+
+    /** The connector's data threshold, in characters (AppSettings.MCP_MAX_DATA_CHARS). */
+    suspend fun maxDataChars(context: Context): Int {
+        val result = Coordinator(context).processUserAction("app_config.get", mapOf("category" to AppSettingCategories.EXTERNAL_ACCESS))
+        val settings = result.data?.get("settings") as? Map<*, *>
+        return (settings?.get(AppSettings.MCP_MAX_DATA_CHARS) as? Number)?.toInt()
+            ?: throw IllegalStateException("External access settings without a data threshold")
     }
 
     /** The relay's address and secret as set, or null while either is missing or the address is not https. */

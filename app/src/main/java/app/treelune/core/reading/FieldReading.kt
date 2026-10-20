@@ -46,7 +46,7 @@ sealed interface ReadingResult {
 }
 
 /**
- * A field reduced across entries (docs/DATA.md, « Lecture du cœur »). Pure: the entries are
+ * A field reduced across entries (docs/DATA.md, « Reading of the core »). Pure: the entries are
  * given, newest first, as tool_data hands them out.
  *
  * A reduction keeps its source's type and settings (the average of a 1-10 scale is a 1-10 scale,

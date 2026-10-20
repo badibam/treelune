@@ -57,13 +57,15 @@ class ConfigConditions(private val sources: Sources) {
      * @property condition Its stored form
      * @property fields The fields a side may name, by path or name: the entries' for [Kind.ON_ENTRY], the row's for [Kind.ON_ROW]
      * @property entered For [Kind.ONCE], the value entered in each attempt that stands on its left whatever is stored there
+     * @property tool For [Kind.ON_ENTRY], the tool instance whose entries it is put on; null when its selection names none
      */
     data class Found(
         val label: String,
         val condition: JSONObject,
         val kind: Kind,
         val fields: Map<String, FieldDefinition> = emptyMap(),
-        val entered: FieldDefinition? = null
+        val entered: FieldDefinition? = null,
+        val tool: String? = null
     )
 
     /**
@@ -157,7 +159,7 @@ class ConfigConditions(private val sources: Sources) {
         } ?: emptyMap()
         for (i in 0 until filters.length()) {
             val filter = filters.optJSONObject(i) ?: continue
-            filters.put(i, visit(Found(label, filter, Kind.ON_ENTRY, fields)))
+            filters.put(i, visit(Found(label, filter, Kind.ON_ENTRY, fields, tool = id)))
         }
     }
 

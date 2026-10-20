@@ -282,8 +282,11 @@ fun ToolConfigScreen(
                     deleted.takeIf { it > 0 }?.let { s.shared("migration_part_deleted").format(it) },
                     migration.optInt("reinterpreted_values").takeIf { it > 0 }?.let { s.shared("migration_part_reinterpreted").format(it) }
                 )
-                UI.Text(s.shared("migration_confirm_counts").format(parts.joinToString(", ")) +
+                if (parts.isNotEmpty()) UI.Text(s.shared("migration_confirm_counts").format(parts.joinToString(", ")) +
                     (if (removed + deleted > 0) " " + s.shared("migration_lost_for_good") else ""), TextType.BODY)
+                // The other tools whose filters the change leaves aiming at an option gone
+                val aimedBy = migration.optJSONArray("aimed_by")?.let { a -> (0 until a.length()).map { "« ${a.getString(it)} »" } }.orEmpty()
+                if (aimedBy.isNotEmpty()) UI.Text(s.shared("migration_filters_aimed").format(aimedBy.joinToString(", ")), TextType.BODY)
                 // A change of meaning can leave the past alone: the edited field takes a new key
                 if (keptNames.isNotEmpty()) {
                     UI.Text(s.shared("migration_new_field_offer").format(keptNames.joinToString(", ")), TextType.BODY)

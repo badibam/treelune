@@ -79,8 +79,10 @@
     <string name="error_source_tool">The source must be a tool.</string>
     <string name="error_source_gone">The source\'s tool no longer exists.</string>
     <string name="error_source_kind">%1$s cannot be a deck\'s source: it takes a tool that keeps entries, other than a deck.</string>
-    <string name="error_field_gone">The field %1$s no longer exists in %2$s.</string>
-    <string name="error_field_gone_session">The field %1$s no longer exists in the source.</string>
+    <string name="error_group_by_gone">The grouping is on a field that no longer exists in %1$s.</string>
+    <string name="error_front_gone">The front of %1$s shows a field that no longer exists in %2$s.</string>
+    <string name="error_back_gone">The back of %1$s shows a field that no longer exists in %2$s.</string>
+    <string name="error_field_gone_session">A field of this card no longer exists in the source.</string>
     <string name="error_direction_names">Two directions have the same name.</string>
     <string name="error_direction_unknown">The deck has no direction %1$s.</string>
     <string name="error_rating">Unknown rating: %1$s. It is AGAIN, HARD, GOOD or EASY.</string>
@@ -92,7 +94,8 @@
 
     <!-- Tile and page -->
     <string name="count_due">%1$d to review</string>
-    <string name="count_new">%1$d new</string>
+    <string name="count_new_singular">%1$d new</string>
+    <string name="count_new_plural">%1$d new</string>
     <string name="count_nothing">Nothing for today</string>
     <string name="group_all">Everything</string>
     <string name="groups_note">A line may be in several groups: Everything is not the sum of the groups.</string>
@@ -102,7 +105,8 @@
     <string name="session_nothing">Nothing to review here today</string>
     <string name="session_progress">%1$d / %2$d</string>
     <string name="session_turn">Touch the card to see the answer</string>
-    <string name="session_over">Session over: %1$d cards reviewed.</string>
+    <string name="session_over_singular">Session over: %1$d card reviewed.</string>
+    <string name="session_over_plural">Session over: %1$d cards reviewed.</string>
     <string name="session_back">Back to the deck</string>
     <string name="action_undo">Go back</string>
 </resources>

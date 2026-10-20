@@ -17,12 +17,6 @@ import org.json.JSONObject
 interface ToolTypeContract {
 
     /**
-     * The label of [fieldName] as a screen shows it, for a validation error or the pointer
-     * to name it.
-     */
-    fun getFormFieldName(fieldName: String, context: Context): String
-    
-    /**
      * Human-readable display name for this tool type
      * @param context Android context for string resource access
      */
@@ -77,13 +71,6 @@ interface ToolTypeContract {
      * @param context Android context for service creation
      */
     fun getService(context: Context): ExecutableService?
-    
-    /**
-     * Create DAO instance for this tool type
-     * Returns null if this tool type doesn't have an associated DAO
-     * @param context Android context for DAO creation
-     */
-    fun getDao(context: Context): Any?
     
     /**
      * Get database entities for this tool type

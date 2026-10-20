@@ -10,7 +10,6 @@ import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldType
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.strings.Strings
-import app.treelune.core.tools.BaseSchemas
 import app.treelune.core.tools.ToolTypeContract
 import app.treelune.tools.structured.ui.StructuredScreen
 import org.json.JSONObject
@@ -41,11 +40,6 @@ object StructuredToolType : ToolTypeContract {
 
     override fun getDefaultShowFieldLabels(): Boolean = true
 
-    override fun getFormFieldName(fieldName: String, context: Context): String = when (fieldName) {
-        TABLE_COLUMNS -> Strings.`for`(tool = "structured", context = context).tool("field_table_columns")
-        else -> BaseSchemas.getCommonFieldName(fieldName, context) ?: fieldName
-    }
-
     override fun getConfigSettings(context: Context): List<app.treelune.core.fields.settings.SettingNode> {
         val s = Strings.`for`(tool = "structured", context = context)
         return listOf(app.treelune.core.fields.settings.SettingNode.Field(
@@ -68,11 +62,6 @@ object StructuredToolType : ToolTypeContract {
     override fun getSuggestedIcons(): List<String> = listOf("table", "database", "book-open", "apple", "contact")
 
     override fun getService(context: Context): ExecutableService = app.treelune.core.services.ToolDataService(context)
-
-    override fun getDao(context: Context): Any {
-        val baseDao = app.treelune.core.database.AppDatabase.getDatabase(context).toolDataDao()
-        return app.treelune.core.database.dao.DefaultExtendedToolDataDao(baseDao, "structured")
-    }
 
     override fun getDatabaseEntities(): List<Class<*>> = listOf(ToolDataEntity::class.java)
 

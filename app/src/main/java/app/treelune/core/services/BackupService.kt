@@ -655,7 +655,8 @@ class BackupService(private val context: Context) : ExecutableService {
      * Must be called within a Room transaction
      */
     private fun wipeAllTables() {
-        // Reverse dependency order: children first, parents last
+        // Every table Room knows, the history of writes among them: restored data has no history
+        // that could undo it (docs/design/undo-history.md, « Sauvegardes »)
         database.clearAllTables()
     }
 
@@ -1122,8 +1123,8 @@ class BackupService(private val context: Context) : ExecutableService {
             if (fromVersion < 82 && toVersion >= 82) {
                 app.treelune.core.versioning.ImagesAtV82.backup(data)
             }
-            if (fromVersion < 83 && toVersion >= 83) {
-                app.treelune.core.versioning.AllDayAtV83.backup(data)
+            if (fromVersion < 85 && toVersion >= 85) {
+                app.treelune.core.versioning.AllDayAtV85.backup(data)
             }
 
             // Transform app settings

@@ -1,28 +1,28 @@
-# Interface Utilisateur
+# User interface
 
-Guide des patterns et composants UI pour maintenir cohérence et simplicité.
+A guide to the UI patterns and components, to keep things consistent and simple.
 
-## Architecture Hybride
+## Hybrid architecture
 
-**Layouts** : Compose natif (Row, Column, Box, Spacer)
-**Visuels** : Composants UI.* (Button, Text, Card, FormField)
-**Métier** : Composants spécialisés (ZoneCard, ToolCard)
+**Layouts**: native Compose (Row, Column, Box, Spacer)
+**Visuals**: UI.* components (Button, Text, Card, FormField)
+**Business**: specialised components (ZoneCard, ToolCard)
 
-### Layout Standard
-Column avec fillMaxWidth, padding vertical `UI.Space.L` et espacement automatique entre éléments. Un écran ne pose aucune marge sur les côtés : la marge de bord (`UI.Space.EDGE`, la plus petite que le thème permette, 1 case en rétro, 8 dp ailleurs) est donnée une fois par `MainScreen` autour du lieu affiché, et c'est aussi celle d'une fenêtre flottante (`FloatingDialog`).
+### Standard layout
+A Column with fillMaxWidth, vertical padding `UI.Space.L` and automatic spacing between elements. A screen sets no margin on the sides: the edge margin (`UI.Space.EDGE`, the smallest the theme allows, 1 cell in retro, 8 dp elsewhere) is given once by `MainScreen` around the place shown, and it is also that of a floating window (`FloatingDialog`).
 
-### Espacements
-Un écran n'écrit jamais un espacement en dp : il le nomme, `UI.Space.XS`, `S`, `M`, `L`, `XL` ou `EDGE`, et le thème en donne la taille (`ThemeContract.spacing`) — 4, 8, 12, 16 et 24 dp pour le thème par défaut, des cellules entières pour le thème rétro. Sont des espacements les arguments de `padding()`, `Arrangement.spacedBy()` et `PaddingValues()`, la hauteur ou la largeur d'un `Spacer`, et un argument `spacing =` ; `scripts/check_spacing.py` refuse un dp à ces endroits, hors du code des thèmes. Une taille (d'icône, de bloc) n'est pas un espacement.
+### Spacings
+A screen never writes a spacing in dp: it names it, `UI.Space.XS`, `S`, `M`, `L`, `XL` or `EDGE`, and the theme gives its size (`ThemeContract.spacing`) — 4, 8, 12, 16 and 24 dp for the default theme, whole cells for the retro theme. Spacings are the arguments of `padding()`, `Arrangement.spacedBy()` and `PaddingValues()`, the height or width of a `Spacer`, and a `spacing =` argument; `scripts/check_spacing.py` refuses a dp in these places, outside the themes' code. A size (of an icon, of a block) is not a spacing.
 
-### Sons de l'interface
-Un composant `UI.*` envoie un signal de la liste fermée `UISignal` (confirmer, entrer, revenir, ouvrir, fermer, cocher, cran, bout de liste, refus) ; le thème dit quel son y répond (`ThemeContract.sound`, null pour le silence) et `UISounds` le joue sur une seule piste, si le réglage « Sons de l'interface » (catégorie `ui`) est activé. Un écran ne joue jamais de son lui-même. Un élément désactivé reçoit encore le toucher, pour le seul son de refus. Le bout d'une liste s'entend à la racine de chaque fenêtre (`Modifier.scrollEndSound()`), jamais liste par liste : une nouvelle fenêtre de dialogue faite à la main le pose à sa racine.
+### Interface sounds
+A `UI.*` component sends a signal of the closed list `UISignal` (confirm, enter, back, open, close, check, step, end of list, refusal); the theme says which sound answers it (`ThemeContract.sound`, null for silence) and `UISounds` plays it on a single track, if the setting "Interface sounds" (category `ui`) is on. A screen never plays a sound itself. A disabled element still receives the touch, for the refusal sound alone. The end of a list is heard at the root of each window (`Modifier.scrollEndSound()`), never list by list: a new dialog window made by hand sets it at its root.
 
-### Scroll Obligatoire pour Tous les Conteneurs
-**Règle** : Tous les conteneurs de contenu (écrans, dialogues, formulaires) DOIVENT avoir un scroll vertical sur leur Column principale.
+### Scroll required for every container
+**Rule**: all content containers (screens, dialogs, forms) MUST have a vertical scroll on their main Column.
 
-**S'applique à** : MainScreen, ZoneScreen, CreateZoneScreen, Settings, Dialogues de configuration, Formulaires multi-sections, etc.
+**Applies to**: MainScreen, ZoneScreen, CreateZoneScreen, Settings, configuration dialogs, multi-section forms, etc.
 
-**Pattern obligatoire** :
+**Required pattern**:
 ```kotlin
 Column(
     modifier = Modifier
@@ -31,313 +31,312 @@ Column(
         .padding(vertical = UI.Space.L),
     verticalArrangement = Arrangement.spacedBy(UI.Space.L)
 ) {
-    // Contenu scrollable
+    // Scrollable content
 }
 ```
 
-**Imports requis** :
+**Imports required**:
 ```kotlin
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 ```
 
-**Rationale** : Le scroll garantit que tout le contenu reste accessible sur tous les appareils, quelle que soit la taille de l'écran, la quantité de contenu affichée, ou la présence du clavier. Le clavier ouvert, la fenêtre se réduit à ce qu'il laisse (`adjustResize`, sur l'activité) : une page défile jusqu'à son bas au-dessus de lui. Ce qui tient fixe en bas de l'écran monterait avec, donc s'efface tant qu'il est ouvert (`keyboardOpen()`) : la bande du Guide, le bouton de la conversation.
+**Rationale**: the scroll guarantees that all the content stays reachable on every device, whatever the screen's size, the amount of content shown, or the presence of the keyboard. With the keyboard open, the window shrinks to what it leaves (`adjustResize`, on the activity): a page scrolls down to its bottom above it. What stays fixed at the bottom of the screen would rise with it, so it disappears while it is open (`keyboardOpen()`): the Guide's band, the conversation button.
 
-**Exceptions** : Seuls les conteneurs avec LazyColumn/LazyRow (qui ont leur propre scroll natif) sont exemptés.
+**Exceptions**: only containers with LazyColumn/LazyRow (which have their own native scroll) are exempt.
 
-### Headers de Page
-UI.PageHeader supporte titre (une ligne : l'entête garde sa hauteur), sous-titre optionnel, icône ou marque de l'app (`appMark`, l'accueil seul : l'icône du lanceur dessinée par le thème, `LauncherMark` ou ses pixels), et, dans une barre au-dessus, boutons gauche/droite avec actions prédéfinies et le fil d'Ariane dans un lieu de la pile. Un bouton gauche BACK donne aussi son action à la touche Retour du téléphone ; sans lui, la touche retire le lieu de la pile (`MainScreen`), et un formulaire qui doit d'abord demander pose son propre `BackHandler`. L'accueil demande confirmation avant de fermer l'app.
+### Page headers
+UI.PageHeader supports a title (one line: the header keeps its height), an optional subtitle, an icon or the app's mark (`appMark`, the home screen alone: the launcher icon drawn by the theme, `LauncherMark` or its pixels), and, in a bar above, left/right buttons with predefined actions and the breadcrumb in a place of the stack. A left BACK button also gives its action to the phone's Back key; without it, the key removes the place from the stack (`MainScreen`), and a form that must ask first sets its own `BackHandler`. The home screen asks for confirmation before closing the app.
 
-## Conventions Générales
+## General conventions
 
-### Langue par Défaut
-**Tous les strings sont en français par défaut**, sauf :
-- Commentaires et debug : anglais
-- Noms de variables/fonctions : anglais
-- Messages utilisateur : français via système de strings (s.shared/s.tool)
+### Language
+- Comments and debug: English
+- Variable/function names: English
+- User messages: through the strings system (s.shared/s.tool), English in the default resources and French in the `-fr` files (`docs/reference.md`)
 
-## Système de Texte Simplifié
+## Simplified text system
 
-### UI.Text - 4 paramètres maximum
-Accepte text, type (TITLE, SUBTITLE, HEADING, BODY, STRONG, CAPTION, LABEL, ERROR, WARNING), fillMaxWidth et textAlign optionnel. STRONG est un texte courant qui doit ressortir de ses voisins (un message non lu) : en gras dans le thème par défaut. HEADING nomme une tuile ou une section de tuiles (le nom d'un outil, d'une zone, d'un groupe), un cran au-dessus du texte courant.
+### UI.Text - 4 parameters at most
+Takes text, type (TITLE, SUBTITLE, HEADING, BODY, STRONG, CAPTION, LABEL, ERROR, WARNING), fillMaxWidth and an optional textAlign. STRONG is running text that must stand out from its neighbours (an unread message): bold in the default theme. HEADING names a tile or a section of tiles (the name of a tool, a zone, a group), one step above running text.
 
-### Séparation Layout/Contenu
-**Principe** : UI.Text pour le rendu, Box+Modifier pour layout et interactions.
-- Pattern weight avec Box wrapper pour répartition d'espace
-- Pattern padding avec Box pour espacement
-- Pattern clickable avec Box pour interactions
+### Separating layout and content
+**Principle**: UI.Text for rendering, Box+Modifier for layout and interactions.
+- Weight pattern with a Box wrapper to share space
+- Padding pattern with a Box for spacing
+- Clickable pattern with a Box for interactions
 
-### Pattern Row Standardisé
-Row avec fillMaxWidth, padding vertical `UI.Space.XS`, espacement `UI.Space.S` entre colonnes.
-- Colonnes avec weight + Box pour alignement précis
-- **Usage** : Tableaux, listes avec actions, formulaires multi-colonnes
+### Standard Row pattern
+A Row with fillMaxWidth, vertical padding `UI.Space.XS`, spacing `UI.Space.S` between columns.
+- Columns with weight + Box for precise alignment
+- **Use**: tables, lists with actions, multi-column forms
 
-## Boutons et Actions
+## Buttons and actions
 
-### Deux Types de Boutons
+### Two kinds of buttons
 
-**UI.Button** - Générique et flexible avec type (PRIMARY/SECONDARY/DEFAULT), size (XS à XXL), state et content personnalisé.
+**UI.Button** - generic and flexible, with type (PRIMARY/SECONDARY/DEFAULT), size (XS to XXL), state and custom content.
 
-**UI.ActionButton** - Actions standardisées avec action prédéfinie, display (ICON/LABEL), size et confirmation optionnelle. En ICON, le bouton montre l'icône Lucide que porte l'action (`ButtonAction.iconName`), dessinée par le thème. `active` le montre allumé tant que dure ce qu'il ouvre (le mode d'édition d'un groupe), dessiné par le thème (le thème par défaut : un fond plein de la couleur principale). Le thème par défaut dessine un bouton en icône sans fond, l'icône dans la couleur de son type, et le bouton principal en cadre de la couleur principale.
+**UI.ActionButton** - standardised actions with a predefined action, display (ICON/LABEL), size and optional confirmation. In ICON, the button shows the Lucide icon the action holds (`ButtonAction.iconName`), drawn by the theme. `active` shows it lit as long as what it opens lasts (a group's edit mode), drawn by the theme (the default theme: a solid background of the primary colour). The default theme draws an icon button without a background, the icon in its type's colour, and the primary button as a frame of the primary colour.
 
-**UI.FloatingButton** - Un bouton posé au-dessus du contenu (le chat, sur l'accueil), sur un fond à lui, pour que ce qui défile dessous ne se voie pas au travers.
+**UI.FloatingButton** - a button laid above the content (the chat, on the home screen), on a background of its own, so that what scrolls below does not show through.
 
-### Actions Disponibles
-- **Principales** : SAVE, CREATE, UPDATE, DELETE, CANCEL, CONFIRM
-- **Navigation** : BACK, UP, DOWN
-- **Utilitaires** : ADD, EDIT, CONFIGURE, REFRESH, SELECT
+### Actions available
+- **Main**: SAVE, CREATE, UPDATE, DELETE, CANCEL, CONFIRM
+- **Navigation**: BACK, UP, DOWN
+- **Utilities**: ADD, EDIT, CONFIGURE, REFRESH, SELECT
 
-### Hiérarchie Visuelle
-- **PRIMARY** (vert) : Actions critiques - SAVE, CREATE, CONFIRM, ADD, CONFIGURE, SELECT, EDIT, UPDATE
-- **DEFAULT** (gris) : Navigation neutre - CANCEL, BACK, REFRESH, UP, DOWN
-- **SECONDARY** (rouge) : Actions destructives - DELETE uniquement
+### Visual hierarchy
+- **PRIMARY** (green): critical actions - SAVE, CREATE, CONFIRM, ADD, CONFIGURE, SELECT, EDIT, UPDATE
+- **DEFAULT** (grey): neutral navigation - CANCEL, BACK, REFRESH, UP, DOWN
+- **SECONDARY** (red): destructive actions - DELETE only
 
-### Confirmation Automatique
-UI.ActionButton supporte requireConfirmation avec message personnalisable.
+### Automatic confirmation
+UI.ActionButton supports requireConfirmation with a customisable message.
 
-**UI.ConfirmDialog** - Dialog modal de confirmation avec title, message, confirmText/cancelText optionnels, onConfirm et onDismiss.
+**UI.ConfirmDialog** - a modal confirmation dialog with title, message, optional confirmText/cancelText, onConfirm and onDismiss.
 
-**FloatingDialog** - La fenêtre où un thème pose son cadre de dialogue (`UI.Dialog`) : elle couvre l'écran, centre le cadre dans ce que laissent les barres et le clavier, à la marge que donne le thème, et tient le clavier elle-même (Android n'en fait rien) : le cadre se réduit au-dessus, le défilement du champ garde le curseur en vue. Un toucher autour du cadre ferme.
+**FloatingDialog** - the window where a theme lays its dialog frame (`UI.Dialog`): it covers the screen, centres the frame in what the bars and the keyboard leave, at the margin the theme gives, and handles the keyboard itself (Android does nothing about it): the frame shrinks above, the field's scrolling keeps the cursor in view. A touch around the frame closes it.
 
-## Champs de Texte et Saisie
+## Text fields and input
 
-### Extensions FieldType
-- **TEXT** (60 chars) : Noms, identifiants, labels
-- **TEXT_MEDIUM** (250 chars) : Descriptions courtes
-- **TEXT_LONG** (1500 chars) : Contenu textuel substantiel
-- **TEXT_UNLIMITED** : Contenu long sans limite (journaux, etc.)
-- **NUMERIC** : Clavier numérique
-- **EMAIL** : Clavier email, pas d'autocorrect
-- **PASSWORD** : Masqué, pas d'autocorrect
-- **SEARCH** : Autocorrect + action loupe
+### FieldType extensions
+- **TEXT** (60 chars): names, identifiers, labels
+- **TEXT_MEDIUM** (250 chars): short descriptions
+- **TEXT_LONG** (1500 chars): substantial text content
+- **TEXT_UNLIMITED**: long content without a limit (journals, etc.)
+- **NUMERIC**: numeric keyboard
+- **EMAIL**: email keyboard, no autocorrect
+- **PASSWORD**: masked, no autocorrect
+- **SEARCH**: autocorrect + magnifier action
 
-### Limites Définies (FieldLimits.kt)
-Les constantes suivantes sont référencées dans les schémas JSON :
-- `SHORT_LENGTH = 60` : FieldType.TEXT
-- `MEDIUM_LENGTH = 250` : FieldType.TEXT_MEDIUM
-- `LONG_LENGTH = 1500` : FieldType.TEXT_LONG
-- `UNLIMITED_LENGTH = Int.MAX_VALUE` : FieldType.TEXT_UNLIMITED
+### Limits defined (FieldLimits.kt)
+The following constants are referenced in the JSON schemas:
+- `SHORT_LENGTH = 60`: FieldType.TEXT
+- `MEDIUM_LENGTH = 250`: FieldType.TEXT_MEDIUM
+- `LONG_LENGTH = 1500`: FieldType.TEXT_LONG
+- `UNLIMITED_LENGTH = Int.MAX_VALUE`: FieldType.TEXT_UNLIMITED
 
-### Cohérence Schéma/UI - RÈGLE CRITIQUE
+### Schema/UI consistency - CRITICAL RULE
 
-**Principe** : La limite UI (FieldType) DOIT correspondre à la limite schéma (maxLength). Un champ ne refuse jamais ce qu'on tape ou colle : `UI.FormField` garde le texte trop long, en montre le compte sous le champ à partir de 80 % de la limite (`FieldInput.COUNT_FROM`), passe le champ en erreur au-delà, et c'est la vérification de ce qui s'enregistre (le schéma, le service) qui refuse, en le disant.
+**Principle**: the UI limit (FieldType) MUST match the schema's limit (maxLength). A field never refuses what is typed or pasted: `UI.FormField` keeps the text too long, shows its count under the field from 80 % of the limit (`FieldInput.COUNT_FROM`), puts the field in error beyond it, and it is the check of what is stored (the schema, the service) that refuses, saying so.
 
-**Cas d'usage** :
-- **Contenu écrit** (Journal, note) : `TEXT_UNLIMITED` UI + pas de maxLength schéma
-- **Contenu d'un Message** (une notification) : `TEXT_LONG` UI + `maxLength: LONG_LENGTH` schéma
-- **Consigne** (étape de Séance) : `TEXT_LONG`
-- **Noms/labels** : `TEXT` UI + `maxLength: SHORT_LENGTH` schéma
-- **Descriptions** : `TEXT_MEDIUM` UI + `maxLength: MEDIUM_LENGTH` schéma
-- **Champ texte de l'utilisateur** : illimité par défaut, ou la longueur qu'il choisit
+**Use cases**:
+- **Written content** (Journal, note): `TEXT_UNLIMITED` UI + no maxLength in the schema
+- **Content of a Message** (a notification): `TEXT_LONG` UI + `maxLength: LONG_LENGTH` in the schema
+- **Instruction** (a Session's step): `TEXT_LONG`
+- **Names/labels**: `TEXT` UI + `maxLength: SHORT_LENGTH` in the schema
+- **Descriptions**: `TEXT_MEDIUM` UI + `maxLength: MEDIUM_LENGTH` in the schema
+- **The user's text field**: unlimited by default, or the length they choose
 
-**INTERDIT** : Une limite UI plus restrictive que le schéma (ex: TEXT_MEDIUM pour un schéma LONG_LENGTH).
+**FORBIDDEN**: a UI limit more restrictive than the schema (e.g. TEXT_MEDIUM for a LONG_LENGTH schema).
 
-### Textes longs
+### Long texts
 
-Un texte long (TEXT de longueur LONG ou UNLIMITED, `TextLength.formatted`) s'écrit dans le petit Markdown de l'app (`core/markup/Markup.kt`) : titres `#` à `###`, listes `- ` ou `* `, listes numérotées `1. ` (numérotées par leur place à l'affichage, quel que soit le chiffre tapé), `**gras**`, `*italique*`. Le texte stocké est celui qu'on a tapé, rien d'autre ; le schéma que lit l'IA le marque `text with markup` (`FieldValueSchema.MARKUP`).
+A long text (TEXT of length LONG or UNLIMITED, `TextLength.formatted`) is written in the app's small Markdown (`core/markup/Markup.kt`): headings `#` to `###`, lists `- ` or `* `, numbered lists `1. ` (numbered by their place on display, whatever the digit typed), `**bold**`, `*italic*`. The text stored is the one typed, nothing else; the schema the AI reads marks it `text with markup` (`FieldValueSchema.MARKUP`).
 
-- Saisie (`UI.FormField`, `MarkupEditing`) : un retour à la ligne après un élément de liste commence le suivant, sur un élément vide il retire sa marque ; deux boutons au bout de la ligne du label, liste et liste numérotée (`ThemeContract.LabelLine`), posent ou retirent la marque sur chaque ligne que touche la sélection ; Gras et Italique dans la barre d'un texte sélectionné.
-- Lecture : `MarkupText`, le même lecteur pour le Guide, l'usage d'un outil, une identité et les textes de l'utilisateur ; l'icône `{nom}` en tête d'une ligne de liste n'est lue que dans les textes de l'app (`icons = true`).
-- Abrégé (une tuile, une cellule, une ligne de champs) : `Markup.plain`, une ligne sans marques, par `formatValue` ; une entrée copiée garde ses marques (`describeValue`).
+- Input (`UI.FormField`, `MarkupEditing`): a line break after a list item starts the next, on an empty item it removes its mark; two buttons at the end of the label's line, list and numbered list (`ThemeContract.LabelLine`), set or remove the mark on each line the selection touches; Bold and Italic in the bar of a selected text.
+- Reading: `MarkupText`, the same reader for the Guide, a tool's usage, an identity and the user's texts; the icon `{name}` at the head of a list line is read only in the app's texts (`icons = true`).
+- Abridged (a tile, a cell, a line of fields): `Markup.plain`, one line without marks, through `formatValue`; an entry copied keeps its marks (`describeValue`).
 
-### Autocorrection Intelligente
-- **TEXT** : Words + autocorrect
-- **TEXT_MEDIUM/LONG/UNLIMITED** : Sentences + autocorrect
-- **EMAIL/PASSWORD** : Pas d'autocorrect (sécurité)
-- **NUMERIC** : Clavier numérique uniquement
-- **SEARCH** : Words + action loupe
+### Smart autocorrection
+- **TEXT**: Words + autocorrect
+- **TEXT_MEDIUM/LONG/UNLIMITED**: Sentences + autocorrect
+- **EMAIL/PASSWORD**: no autocorrect (security)
+- **NUMERIC**: numeric keyboard only
+- **SEARCH**: Words + magnifier action
 
-## Formulaires et Validation
+## Forms and validation
 
-### Toast d'Erreurs Automatique
-Pattern LaunchedEffect pour afficher et reset automatiquement les messages d'erreur.
+### Automatic error toast
+A LaunchedEffect pattern to show and reset the error messages automatically.
 
-### Validation Pré-Envoi (Dialogs)
-**Pattern** : Validation avant envoi au service via SchemaValidator. State validationResult, fonction validateForm(), usage dans onConfirm avec vérification isValid.
+### Validation before sending (dialogs)
+**Pattern**: validation before sending to the service through SchemaValidator. A validationResult state, a validateForm() function, used in onConfirm with an isValid check.
 
-### Composants Formulaire
+### Form components
 
-**UI.FormField** - Champ standard avec label, value, onChange, fieldType, required, state, readonly et onClick optionnel. Le thème n'a qu'un champ de texte, qui reçoit un `TextFieldValue` (le texte, sa sélection, sa composition) : la forme sur une chaîne garde le curseur elle-même, la forme sur un `TextFieldValue` le laisse à l'appelant, pour insérer là où il se trouve (l'éditeur de formule).
+**UI.FormField** - a standard field with label, value, onChange, fieldType, required, state, readonly and an optional onClick. The theme has only one text field, which receives a `TextFieldValue` (the text, its selection, its composition): the form over a string keeps the cursor itself, the form over a `TextFieldValue` leaves it to the caller, to insert where it stands (the formula editor).
 
-**Copier et sélectionner** - Un texte qu'on lit, qu'il vienne de l'utilisateur, de l'IA ou de l'app, en lecture seule et hors d'une zone qui réagit au toucher ou à l'appui long, est sélectionnable (`UI.Text(selectable = true)`, `UI.Selectable` pour un bloc). Le sont d'office : le titre et la description d'une page (`UI.PageHeader`), les textes du Guide (`MarkupText`), une erreur et un avertissement (`TextType.ERROR`, `WARNING`), les champs d'une entrée en `FieldsLayout.EXPANDED`. Jamais un libellé de bouton, un titre de tuile ni une étiquette de champ. Là où l'appui long sert déjà, on copie l'objet entier par `UI.copy` : une bulle de conversation par appui long (ce qu'elle montre, en mots), une note par « Copier » dans son menu, un élément de Liste par appui long (son nom, puis ses champs), une entrée de Journal et le rapport de bug par un bouton `ButtonAction.COPY`. Un texte sélectionné, à lire ou dans un champ, montre la barre du thème et non celle d'Android (`SelectionMenu`, posé par `UI.Selectable` et `UI.FormField` ; `ThemeContract.SelectionBar`) : copier, coller, couper, tout sélectionner dans la langue de l'app, et les actions d'autres applis ; ce qu'Android propose pour le texte lui-même (appeler un numéro, ouvrir un lien), Compose le garde pour sa propre barre.
+**Copy and select** - a text one reads, whether from the user, the AI or the app, read-only and outside an area that reacts to a touch or a long press, is selectable (`UI.Text(selectable = true)`, `UI.Selectable` for a block). Selectable as a matter of course: a page's title and description (`UI.PageHeader`), the Guide's texts (`MarkupText`), an error and a warning (`TextType.ERROR`, `WARNING`), an entry's fields in `FieldsLayout.EXPANDED`. Never a button's label, a tile's title or a field's label. Where the long press already serves, the whole object is copied through `UI.copy`: a conversation bubble by long press (what it shows, in words), a note by "Copy" in its menu, a List item by long press (its name, then its fields), a Journal entry and the bug report by a `ButtonAction.COPY` button. A selected text, to read or in a field, shows the theme's bar and not Android's (`SelectionMenu`, set by `UI.Selectable` and `UI.FormField`; `ThemeContract.SelectionBar`): copy, paste, cut, select all in the app's language, and the actions of other apps; what Android offers for the text itself (call a number, open a link), Compose keeps for its own bar.
 
-**UI.FormSelection** - Sélections avec label, options, selected, onSelect et required. Un champ CHOICE à une réponse de plus de 30 options (les fuseaux, les langues) a une recherche au-dessus de sa liste, qui la restreint à ce qui contient le texte tapé (`FieldInputRenderer`).
+**UI.FormSelection** - selections with label, options, selected, onSelect and required. A single-answer CHOICE field with more than 30 options (the time zones, the languages) has a search above its list, which narrows it to what contains the text typed (`FieldInputRenderer`).
 
-**UI.SectionedSelection** - La même sélection rangée en sections, le titre de chacune dessiné sans se choisir, une option choisie par sa position ; chaque option peut avoir l'icône d'une zone ou d'un outil dans sa couleur (`OptionIcon`), dessinée devant elle et devant la valeur choisie (`ZoneChoice`).
+**UI.SectionedSelection** - the same selection laid out in sections, each one's title drawn without being chosen, an option chosen by its position; each option can have the icon of a zone or a tool in its colour (`OptionIcon`), drawn before it and before the chosen value (`ZoneChoice`).
 
-**UI.BooleanField** - Oui/non en deux boutons. Une réponse (`Boolean?`) part sans bouton choisi et se vide si elle est facultative ; un état (`Boolean`) a toujours un bouton choisi et ne se vide jamais : « On » / « Off » par défaut, en boutons compacts qui se posent à côté de ce qu'ils commutent (une automation) ; avec ses propres libellés, c'est un choix entre deux modes, sur toute la largeur. Une liste où l'on coche plusieurs éléments est faite de `UI.Checkbox`.
+**UI.BooleanField** - yes/no as two buttons. An answer (`Boolean?`) starts with no button chosen and is emptied if optional; a state (`Boolean`) always has a button chosen and is never emptied: "On" / "Off" by default, as compact buttons laid beside what they switch (an automation); with its own labels, it is a choice between two modes, across the whole width. A list where several items are checked is made of `UI.Checkbox`.
 
-**UI.Switch, UI.Tabs** - Un réglage qui prend effet dès qu'on le bascule, son libellé au début ; une rangée d'onglets, un par libellé. Dessinés par le thème.
+**UI.Switch, UI.Tabs** - a setting that takes effect as soon as it is toggled, its label first; a row of tabs, one per label. Drawn by the theme.
 
-**UI.FullScreen, UI.HeaderBar** - Une vue qui couvre l'écran sur le fond du thème (la racine de l'app, et le chat par `FullScreenDialog`, dont la fenêtre couvre tout l'écran, masque la barre de navigation et peint sous la barre d'état la bande de l'activité, sa couleur et le ton de ses icônes recopiés) ; le bandeau en haut d'une telle vue, son titre et ses boutons en rangée.
+**UI.FullScreen, UI.HeaderBar** - a view that covers the screen on the theme's background (the app's root, and the chat through `FullScreenDialog`, whose window covers the whole screen, hides the navigation bar and paints under the status bar the activity's band, its colour and the tone of its icons copied); the band at the top of such a view, its title and its buttons in a row.
 
-**UI.StatusIndicator** - Une pastille d'état : l'écran nomme l'état (`StatusColor` : succès, avertissement, erreur, info, discret), le thème en donne la couleur (`UI.statusColor` pour la teinte d'une icône).
+**UI.StatusIndicator** - a status pill: the screen names the status (`StatusColor`: success, warning, error, info, quiet), the theme gives its colour (`UI.statusColor` for an icon's tint).
 
-**UI.SliderField** - Échelle ; sans réponse, pas de poignée et « — ».
+**UI.SliderField** - a scale; without an answer, no handle and "—".
 
-**HueSlider** (du thème) - Le curseur du décalage de teinte : sa piste est la couleur que chaque décalage donne au thème, bordée, le pouce posé dessus ; un toucher ou un glissé passe par `horizontalPick` et `RangePick`.
+**HueSlider** (the theme's) - the hue shift slider: its track is the colour each shift gives the theme, bordered, the thumb laid on it; a touch or a drag goes through `horizontalPick` and `RangePick`.
 
-**UI.Divider** - Un trait horizontal qui sépare deux parties d'un écran ou d'une carte, dessiné par le thème.
+**UI.Divider** - a horizontal line that separates two parts of a screen or a card, drawn by the theme.
 
-**UI.MarkedIcon** - L'icône d'une tuile d'outil ou de zone et ses deux pastilles, chacune dans son coin : en haut `UI.WaitingMark`, quand une de ses entrées attend l'utilisateur (`ToolTypeContract.getWaiting`, compté par `tools.waiting`, lu dans `LocalWaiting`, qui compte aussi les exécutions de routines non lues pour la tuile d'une zone et la carte d'une routine) ; en bas `UI.RunningMark`, quand un chronomètre tourne sur une de ses entrées, pour tout type d'outil (`tools.running`, lu dans `LocalRunning`). Leur forme est au thème (`ThemeContract.WaitingMark`, `RunningMark`).
+**UI.MarkedIcon** - the icon of a tool or zone tile and its two pills, each in its corner: at the top `UI.WaitingMark`, when one of its entries waits for the user (`ToolTypeContract.getWaiting`, counted by `tools.waiting`, read in `LocalWaiting`, which also counts the unread routine runs for a zone's tile and a routine's card); at the bottom `UI.RunningMark`, when a stopwatch runs on one of its entries, for any tool type (`tools.running`, read in `LocalRunning`). Their shape is the theme's (`ThemeContract.WaitingMark`, `RunningMark`).
 
-**UI.Drawing** - Un dessin fait de formes placées en pixels (`core/drawing` : rectangle, tracé, symbole, arc, segment, texte, pointe), mis en page par qui le fait — un graphique (`tools/chart`), plus tard un aperçu sur une tuile — et dessiné par le thème (`ThemeContract.Drawing`). Les couleurs y sont des sens, jamais des valeurs : un nom de la palette (`TagColor`), le mélange de deux pour une quantité, ou l'une des encres du thème (forte, moyenne, légère) ; un rectangle « manquant » marque ce qui n'a pas pu être lu. Les textes se mesurent dans le style que le thème donne aux dessins (`drawingTextStyle`) avant d'être placés. Le thème donne aussi la taille d'un pixel de ses dessins (`drawingUnit` : un pixel écran pour le thème par défaut, le facteur entier pour le rétro), sur laquelle qui met en page cale la largeur d'une barre. Aucune primitive ne sait ce qu'elle représente : ce qu'un toucher trouve est l'affaire de qui a fait le dessin.
+**UI.Drawing** - a drawing made of shapes placed in pixels (`core/drawing`: rectangle, path, symbol, arc, segment, text, tip), laid out by whoever makes it — a chart (`tools/chart`), later a preview on a tile — and drawn by the theme (`ThemeContract.Drawing`). The colours there are meanings, never values: a name of the palette (`TagColor`), the mix of two for a quantity, or one of the theme's inks (strong, medium, light); a "missing" rectangle marks what could not be read. The texts are measured in the style the theme gives drawings (`drawingTextStyle`) before being placed. The theme also gives the size of a pixel of its drawings (`drawingUnit`: a screen pixel for the default theme, the whole factor for the retro), on which whoever lays out sets a bar's width. No primitive knows what it represents: what a touch finds is the business of whoever made the drawing.
 
-**UI.ReorderableColumn** - Une liste qu'on réordonne en glissant la poignée de chaque élément (`DragHandle()`, posée où l'élément le veut). Le geste, la place d'arrivée et le défilement près d'un bord sont au cœur ; la poignée et l'élément soulevé sont au thème (`ThemeContract.DragHandle`, `ReorderItem`). Chaque liste garde son ordre, imbriquée ou non : un élément ne quitte jamais sa liste. Le nouvel ordre part une seule fois, au lâcher (`onMove(from, to)`) ; « monter » et « descendre » restent des actions d'accessibilité de la poignée.
+**UI.ReorderableColumn** - a list reordered by dragging each element's handle (`DragHandle()`, laid where the element wants it). The gesture, the place of arrival and the scrolling near an edge are the core's; the handle and the lifted element are the theme's (`ThemeContract.DragHandle`, `ReorderItem`). Each list keeps its order, nested or not: an element never leaves its list. The new order goes out once, on release (`onMove(from, to)`); "move up" and "move down" stay accessibility actions of the handle.
 
-**`required`** - Chaque saisie le reçoit, sans valeur par défaut : vrai pour un champ qui peut être vide et bloque la validation tant qu'il l'est ; un champ qui a toujours une valeur (filtre, sélecteur) ne l'est pas. Le thème le marque à sa façon (`FieldLabel`, un astérisque dans le thème par défaut) ; une saisie en plusieurs parties (plage, durée, choix multiple) marque son libellé commun.
+**`required`** - each input receives it, without a default value: true for a field that can be empty and blocks validation while it is; a field that always has a value (filter, selector) is not. The theme marks it its own way (`FieldLabel`, an asterisk in the default theme); an input in several parts (range, duration, multiple choice) marks its common label.
 
-**UI.FormActions** - Container standardisé pour boutons de formulaire avec ActionButton (SAVE, CANCEL, DELETE conditionnel).
+**UI.FormActions** - a standard container for form buttons with ActionButton (SAVE, CANCEL, conditional DELETE).
 
-**ButtonRow** - Toute rangée de boutons : côte à côte s'ils tiennent tous à leur largeur, sinon chacun sur sa ligne en pleine largeur, dans l'ordre donné (le principal d'abord) — jamais une partie seulement renvoyée à la ligne. `UI.FormActions` en est la version centrée. Un bouton s'étire en lisant `LocalButtonFill`, que chaque thème honore. Un texte ne partage pas la ligne de ses boutons : il passe au-dessus.
+**ButtonRow** - every row of buttons: side by side if they all fit at their width, otherwise each on its line at full width, in the order given (the primary first) — never only some sent to the next line. `UI.FormActions` is its centred version. A button stretches by reading `LocalButtonFill`, which each theme honours. A text does not share its buttons' line: it goes above.
 
-**ChoiceGrid** - Des choix d'une même taille (couleurs, icônes) : autant de colonnes que la largeur en tient à la taille d'une case d'exemple, chaque ligne partagée à parts égales ; jamais un nombre par ligne écrit dans un écran. Des éléments de tailles différentes (pastilles, valeurs) passent à la ligne par `FlowRow`.
+**ChoiceGrid** - choices of a same size (colours, icons): as many columns as the width holds at the size of a sample cell, each line shared in equal parts; never a number per line written in a screen. Elements of different sizes (pills, values) wrap through `FlowRow`.
 
-### Pattern State/Controller
-**RecordingController** - Logique métier expose `StateFlow<RecordingState>` observable. Actions via méthodes (start, pause, resume, validate).
+### State/Controller pattern
+**RecordingController** - the business logic exposes an observable `StateFlow<RecordingState>`. Actions through methods (start, pause, resume, validate).
 
-**RecordingDialog** - UI pure observe state et délègue actions. Cleanup via DisposableEffect.
+**RecordingDialog** - pure UI observes the state and delegates the actions. Cleanup through DisposableEffect.
 
-## Cards et Conteneurs
+## Cards and containers
 
-### Cards Pleine Largeur
-UI.Card avec type CardType.DEFAULT, contenu en Column avec padding interne `UI.Space.L`. Un en-tête de section (`CardType.SECTION_HEADER`) n'est pas une carte, dans aucun thème : son titre sur le fond de l'écran au-dessus d'un trait, les tuiles dessous restant les seules cartes.
+### Full-width cards
+UI.Card with type CardType.DEFAULT, content in a Column with internal padding `UI.Space.L`. A section header (`CardType.SECTION_HEADER`) is not a card, in any theme: its title on the screen's background above a line, the tiles below staying the only cards.
 
-### Titres et Sections
-- **Titre principal** : UI.Text avec TextType.TITLE, fillMaxWidth et textAlign Center
-- **Titre section** : UI.Text avec TextType.HEADING dans Box avec padding horizontal
+### Titles and sections
+- **Main title**: UI.Text with TextType.TITLE, fillMaxWidth and textAlign Center
+- **Section title**: UI.Text with TextType.HEADING in a Box with horizontal padding
 
-## Recréation de l'activité
+## Recreation of the activity
 
-L'app est en portrait seul, mais l'activité se recrée encore (thème sombre basculé, langue changée, activité non conservée par le système) : tout `remember` repart de zéro et tout `LaunchedEffect` se rejoue. Trois règles, chacune avec l'outil qui l'applique.
+The app is portrait only, but the activity is still recreated (dark theme toggled, language changed, activity not kept by the system): every `remember` starts from zero and every `LaunchedEffect` runs again. Three rules, each with the tool that applies it.
 
-### 1. rememberSaveable pour ce que l'utilisateur a produit
+### 1. rememberSaveable for what the user produced
 
-**rememberSaveable** : saisies de formulaire, sélections, filtres, page courante, onglet, fenêtre ouverte et ce qu'elle édite.
+**rememberSaveable**: form inputs, selections, filters, current page, tab, open window and what it edits.
 
-**remember** : données rechargées (`entries`, `toolInstance`), indicateurs de chargement et d'envoi (`isSaving`), messages temporaires (`errorMessage`), menus déroulants.
+**remember**: reloaded data (`entries`, `toolInstance`), loading and sending indicators (`isSaving`), temporary messages (`errorMessage`), drop-down menus.
 
-Un type que le Bundle ne sait pas porter passe par un saver de `core/ui/StateSavers.kt` (`JsonObjectSaver`, `FieldDefinitionsSaver`, `FieldValuesSaver`, `NullablePeriodSaver`, `MessageSegmentsSaver`, `serializableSaver(serializer)` pour tout type `@Serializable`…) : `rememberSaveable(stateSaver = JsonObjectSaver) { mutableStateOf(...) }`. Un objet chargé qu'on édite (entité, occurrence) se garde par son id et se retrouve dans la liste chargée. C'est cet id qu'on transmet à l'écran enfant et qui décide mise à jour ou création, jamais l'objet retrouvé : la liste se recharge après la recréation, et l'objet vaut `null` en attendant. Un type non couvert → ajouter un saver dans ce fichier, pas au site d'appel.
+A type the Bundle cannot carry goes through a saver of `core/ui/StateSavers.kt` (`JsonObjectSaver`, `FieldDefinitionsSaver`, `FieldValuesSaver`, `NullablePeriodSaver`, `MessageSegmentsSaver`, `serializableSaver(serializer)` for any `@Serializable` type…): `rememberSaveable(stateSaver = JsonObjectSaver) { mutableStateOf(...) }`. A loaded object being edited (entity, occurrence) is kept by its id and found again in the loaded list. It is this id that is passed to the child screen and decides update or creation, never the object found: the list reloads after the recreation, and the object is `null` meanwhile. A type not covered → add a saver in that file, not at the call site.
 
-### 2. Charger le contenu stocké une fois par écran : rememberLoadOnce
+### 2. Load the stored content once per screen: rememberLoadOnce
 
-Un `LaunchedEffect` qui remplit le formulaire se rejoue après la recréation et écrase la saisie restaurée. `rememberLoadOnce(keys) { ...; true }` (`core/ui/LoadState.kt`) ne charge qu'une fois par écran — à nouveau si les clés changent — et rend un `LoadState` :
+A `LaunchedEffect` that fills the form runs again after the recreation and overwrites the restored input. `rememberLoadOnce(keys) { ...; true }` (`core/ui/LoadState.kt`) loads only once per screen — again if the keys change — and returns a `LoadState`:
 
 ```kotlin
 val configLoad = rememberLoadOnce(existingToolId) {
-    if (existingToolId == null) return@rememberLoadOnce true  // création : rien à charger
+    if (existingToolId == null) return@rememberLoadOnce true  // creation: nothing to load
     val result = coordinator.processUserAction("tools.get", mapOf("tool_instance_id" to existingToolId))
     if (!result.isSuccess) return@rememberLoadOnce false
-    name = ...                                                  // remplit les états saveable
+    name = ...                                                  // fills the saveable states
     true
 }
 
-if (configLoad == LoadState.LOADING) { /* chargement */ return }
+if (configLoad == LoadState.LOADING) { /* loading */ return }
 UI.ToolConfigActions(..., saveEnabled = !isSaving && configLoad == LoadState.LOADED)
 ```
 
-### 3. Une action ne travaille que sur une donnée chargée
+### 3. An action works only on loaded data
 
-Avant un chargement ou après son échec, l'écran montre des valeurs par défaut : enregistrées, elles écraseraient le contenu stocké, sans erreur. Enregistrer (et toute action qui lit la donnée chargée) est donc désactivé hors de `LoadState.LOADED`, ou caché tant que l'écran charge.
+Before a load or after its failure, the screen shows default values: saved, they would overwrite the stored content, without an error. Save (and any action that reads the loaded data) is therefore disabled outside `LoadState.LOADED`, or hidden while the screen loads.
 
-Pour revenir à la première page quand un filtre change, `OnChangedEffect("$filtre|$periode") { currentPage = 1 }` : un `LaunchedEffect` sur les filtres se déclencherait aussi à la recréation et perdrait la page restaurée.
+To go back to the first page when a filter changes, `OnChangedEffect("$filter|$period") { currentPage = 1 }`: a `LaunchedEffect` on the filters would also fire at the recreation and lose the restored page.
 
-## Tableaux et Listes
+## Tables and lists
 
-### Pattern Weight pour Tableaux
-Row avec fillMaxWidth, colonnes en Box avec weight pour répartition (ex: 1f pour actions, 4f pour contenu), contentAlignment Center pour boutons.
+### Weight pattern for tables
+A Row with fillMaxWidth, columns in a Box with weight to share (e.g. 1f for actions, 4f for content), contentAlignment Center for buttons.
 
-### Composants Métier Spécialisés
+### Specialised business components
 
-**UI.ZoneCard** - Zone avec logique métier intégrée, onClick et contentDescription.
+**UI.ZoneCard** - a zone with built-in business logic, onClick and contentDescription.
 
-**UI.ToolCard** - Tool instance avec displayMode (ICON, MINIMAL, LINE, CONDENSED, EXTENDED, SQUARE, FULL), onClick et onLongClick.
+**UI.ToolCard** - a tool instance with displayMode (ICON, MINIMAL, LINE, CONDENSED, EXTENDED, SQUARE, FULL), onClick and onLongClick.
 
-**ToolGrid** - Les outils d'une section sur leur grille de quatre colonnes. En mode d'édition (`GridEditor`, un groupe à la fois, ouvert par le bouton `ARRANGE` de son titre), le thème dessine les cases (`ThemeContract.GridCell`), un toucher sélectionne une tuile, et `GridEditBar` la déplace aux flèches (`Grid.move`) ; la validation l'écrit en une fois (`tools.place`), « Annuler » remet la section comme elle était ; le reste de l'écran est mis à l'écart et ne réagit pas (`Faded`). Le thème dessine chaque tuile selon son état (`ThemeContract.GridTile` : aucune choisie, choisie, à l'écart) et le reste de l'écran comme une tuile à l'écart : le thème par défaut pâlit, le rétro trame en damier, ses pixels ouverts tombant sur les pointillés des cases (`RetroChecker`), qu'on voit ainsi au travers. L'accueil range ses zones de la même façon (`GridLayout`, `ZonePositions`, `zones.place`), une zone en ICON, MINIMAL, LINE ou CONDENSED (`UI.ZoneCard`), son mode réglé avec elle (`display_mode`). Le réglage « Une colonne » (Réglages › Interface, `CurrentTheme.oneColumn`) montre chaque grille en une colonne, lue de la grille sans rien enregistrer (`Grid.oneColumn`) : une moitié de l'écran prend toute la largeur, les deux moitiés d'une tuile pleine largeur (en-tête et résumé, en-tête et aperçu) s'empilent, une rangée de plus, les ICON vont deux par rangée. Ses flèches déplacent une tuile dans la colonne, puis la section est tassée dans la grille dans ce nouvel ordre (`Grid.moveInOneColumn`, `Grid.pack`) : sa disposition sur la grille n'est pas gardée.
+**ToolGrid** - the tools of a section on their grid of four columns. In edit mode (`GridEditor`, one group at a time, opened by the `ARRANGE` button of its title), the theme draws the cells (`ThemeContract.GridCell`), a touch selects a tile, and `GridEditBar` moves it with the arrows (`Grid.move`); validating writes it at once (`tools.place`), "Cancel" puts the section back as it was; the rest of the screen is set aside and does not react (`Faded`). The theme draws each tile according to its state (`ThemeContract.GridTile`: none chosen, chosen, set aside) and the rest of the screen as a tile set aside: the default theme pales, the retro dithers in a checkerboard, its open pixels falling on the cells' dotted lines (`RetroChecker`), which thus show through. The home screen lays out its zones the same way (`GridLayout`, `ZonePositions`, `zones.place`), a zone in ICON, MINIMAL, LINE or CONDENSED (`UI.ZoneCard`), its mode set with it (`display_mode`). The setting "One column" (Settings › Interface, `CurrentTheme.oneColumn`) shows each grid in one column, read from the grid without saving anything (`Grid.oneColumn`): a half of the screen takes the whole width, the two halves of a full-width tile (header and summary, header and preview) stack, one more row, the ICON tiles go two per row. Its arrows move a tile in the column, then the section is packed into the grid in that new order (`Grid.moveInOneColumn`, `Grid.pack`): its layout on the grid is not kept.
 
-## Navigation et États
+## Navigation and states
 
-### La pile des lieux
-Un écran qu'on peut vouloir atteindre ou retrouver est un **lieu** (`core/navigation/Place.kt`) : l'accueil, une zone, un outil, une config, une page des Réglages, une identité, un fournisseur d'IA et le choix de sa sorte, une automation, la conversation… Il a une adresse (`zone/<id>`, `tool/<id>/<zone>`) et connaît son parent. `Navigator` tient la pile, l'accueil en bas : un écran ouvre un lieu par `Navigator.push`, le quitte par `Navigator.pop`, cède sa place à l'étape qui suit par `Navigator.replace` (la sorte d'un fournisseur choisie, sa config ouverte : le retour saute le choix), et `MainScreen` dessine celui du haut (la conversation se pose par-dessus celui d'en dessous). Ouvert de l'extérieur (`Navigator.open` : une notification, un outil demandé ailleurs), un lieu reconstruit ses parents si rien n'est ouvert, s'empile seul sinon. La pile se sauve en adresses avec l'état de l'activité ; chaque lieu garde ses `rememberSaveable` tant qu'il y reste. Les fenêtres de passage (confirmation, saisie, sélecteur) ne sont pas des lieux : un `if` sur un état de l'écran qui les ouvre. Un écran plein qu'on ouvre et quitte, lui, en est un : seul le passage d'un lieu à l'autre joue les sons d'entrée et de retour du thème. Les règles de la pile, sans téléphone : `PlaceStackTest`.
+### The stack of places
+A screen one may want to reach or find again is a **place** (`core/navigation/Place.kt`): the home screen, a zone, a tool, a config, a page of the Settings, an identity, an AI provider and the choice of its kind, an automation, the conversation… It has an address (`zone/<id>`, `tool/<id>/<zone>`) and knows its parent. `Navigator` holds the stack, the home screen at the bottom: a screen opens a place through `Navigator.push`, leaves it through `Navigator.pop`, gives its place to the next step through `Navigator.replace` (a provider's kind chosen, its config opened: going back skips the choice), and `MainScreen` draws the top one (the conversation lays itself over the one below). Opened from outside (`Navigator.open`: a notification, a tool asked for elsewhere), a place rebuilds its parents if nothing is open, otherwise stacks alone. The stack is saved as addresses with the activity's state; each place keeps its `rememberSaveable` as long as it stays. Passing windows (confirmation, input, picker) are not places: an `if` on a state of the screen that opens them. A full screen one opens and leaves is one: only going from one place to another plays the theme's enter and back sounds. The stack's rules, without a phone: `PlaceStackTest`.
 
-L'entête d'un lieu (`UI.PageHeader`) pose au-dessus du titre une barre : le bouton de gauche (retour, réglages) et ceux qui le suivent (`afterLeft` : le livre du Guide sur l'accueil), le fil d'Ariane (`BreadcrumbLine`, lu dans `LocalBreadcrumb`) — les lieux d'avant, chacun touchable —, le bouton de droite (l'engrenage) au bout. Le thème ne dessine que le titre, sur toute la largeur (`ThemeContract.PageHeader`). Un lieu nomme son entrée du fil (`Navigator.name`).
+A place's header (`UI.PageHeader`) lays a bar above the title: the left button (back, settings) and those that follow it (`afterLeft`: the Guide's book on the home screen), the breadcrumb (`BreadcrumbLine`, read in `LocalBreadcrumb`) — the places before, each touchable —, the right button (the gear) at the end. The theme draws only the title, across the whole width (`ThemeContract.PageHeader`). A place names its breadcrumb entry (`Navigator.name`).
 
-Le bouton de la conversation flotte en bas à droite des lieux qu'on consulte (`Place.chatButton` : accueil, zone, outil, Guide, automation), jamais sur un formulaire. Un écran de ces lieux lui laisse la place au bout de ce qui défile (`Modifier.chatButtonSpace()` après `verticalScroll`, `chatButtonEnd()` en marge de fin d'une liste paresseuse), ce que `scripts/check_chat_space.py` vérifie ; ce qui tient des commandes fixes en bas pendant qu'il s'affiche le cache (`HideChatButton()` : la barre de déplacement d'une tuile, une Séance qui tourne). Les sons d'aller et retour sont joués par la pile, jamais par le geste : un bouton qui change de lieu (`BACK`, `CONFIGURE`, `VIEW`, `AI_CHAT`) ne joue rien.
+The conversation button floats at the bottom right of the places one consults (`Place.chatButton`: home screen, zone, tool, Guide, automation), never on a form. A screen of these places leaves it room at the end of what scrolls (`Modifier.chatButtonSpace()` after `verticalScroll`, `chatButtonEnd()` as end padding of a lazy list), which `scripts/check_chat_space.py` checks; what holds fixed controls at the bottom while it shows hides it (`HideChatButton()`: a tile's move bar, a running Session). The sounds of going and coming back are played by the stack, never by the gesture: a button that changes place (`BACK`, `CONFIGURE`, `VIEW`, `AI_CHAT`) plays nothing.
 
-### Feedback Utilisateur
-UI.Toast avec context, message et Duration (SHORT/LONG) pour messages temporaires.
+### User feedback
+UI.Toast with context, message and Duration (SHORT/LONG) for temporary messages.
 
-## Thèmes et Personnalisation
+## Themes and customisation
 
-### Thèmes
-Ce qu'est un thème, ses réglages, et la recette pour en coder un : `docs/THEMES.md`.
+### Themes
+What a theme is, its settings, and the recipe to code one: `docs/THEMES.md`.
 
-### Espacement Standard
-- **Entre sections** : spacedBy(UI.Space.L)
-- **Vertical screens** : padding(vertical = UI.Space.L)
-- **Cards internes** : padding(UI.Space.L)
+### Standard spacing
+- **Between sections**: spacedBy(UI.Space.L)
+- **Vertical screens**: padding(vertical = UI.Space.L)
+- **Inside cards**: padding(UI.Space.L)
 
-## Pattern Loading/Error Standard
+## Standard loading/error pattern
 
-### États Obligatoires
-States data, isLoading et errorMessage obligatoires pour tous composants async.
+### Required states
+The data, isLoading and errorMessage states are required for all async components.
 
-### Affichage Conditionnel
-- Early return si isLoading avec UI.Text loading
-- Toast automatique pour erreurs avec LaunchedEffect et reset
+### Conditional display
+- Early return if isLoading with a loading UI.Text
+- Automatic toast for errors with a LaunchedEffect and a reset
 
-### INTERDIT : Valeurs par défaut silencieuses
-Toujours vérifier config != null avant utilisation, pas de valeurs par défaut qui masquent les erreurs.
+### FORBIDDEN: silent default values
+Always check config != null before use, no default values that hide errors.
 
-## Sélection Temporelle
+## Time selection
 
-### Types de Période
+### Period types
 
 ```kotlin
-data class Period(val timestamp: Long, val type: PeriodType) // Période absolue
-data class RelativePeriod(val offset: Int, val type: PeriodType) // Période relative (offset depuis maintenant)
+data class Period(val timestamp: Long, val type: PeriodType) // Absolute period
+data class RelativePeriod(val offset: Int, val type: PeriodType) // Relative period (offset from now)
 ```
 
-### Composants de Période
+### Period components
 
-**SinglePeriodSelector** - Navigation avec flèches, period, onPeriodChange, showDatePicker, useOnlyRelativeLabels.
+**SinglePeriodSelector** - navigation with arrows, period, onPeriodChange, showDatePicker, useOnlyRelativeLabels.
 
-**InstantPicker** - La seule saisie d'une date ou d'un instant (champ DATE ou DATETIME d'une entrée, borne d'une période) : une date personnalisée, une date relative (unité, décalage, début ou fin), maintenant, sans limite pour une borne. Elle édite un `TimePoint`. Avec une référence (`hasReference`), un relatif et maintenant s'enregistrent tels quels, résolus à chaque fois ; sans référence, l'horloge résout le choix sur-le-champ et c'est la date obtenue qui s'enregistre.
+**InstantPicker** - the only input of a date or an instant (an entry's DATE or DATETIME field, a period's bound): a custom date, a relative date (unit, offset, start or end), now, without limit for a bound. It edits a `TimePoint`. With a reference (`hasReference`), a relative date and now are stored as they are, resolved each time; without a reference, the clock resolves the choice on the spot and the date obtained is what is stored.
 
-**PeriodPicker** - Deux `InstantPicker` (depuis, jusqu'à) qui éditent une `EntryPeriod` ; il nomme une fois la référence du contexte (« Par rapport à : l'instant lu »).
+**PeriodPicker** - two `InstantPicker` (from, until) that edit an `EntryPeriod`; it names the context's reference once ("Relative to: the instant read").
 
-### Logique Labels
-**useOnlyRelativeLabels** :
-- `false` : "Semaine du 15 mars"
-- `true` : "il y a 125 semaines"
+### Labels logic
+**useOnlyRelativeLabels**:
+- `false`: "Week of 15 March"
+- `true`: "125 weeks ago"
 
-### Les calculs de période
-Ils vivent dans le cœur, `core/selection/Periods.kt`, à côté de `TimeResolver` ; le sélecteur les lit, ne les refait pas :
-- `normalizeTimestampWithConfig()` : le début de la période d'un instant, d'après le jour de l'app qui le contient
-- `getPeriodEndTimestamp()` : la fin d'une période
-- `getNextPeriod()` / `getPreviousPeriod()` : les périodes voisines
-- `resolveRelativePeriod()` : une `RelativePeriod` en `Period`
-- `periodOfDay()` : la période d'un jour choisi dans le sélecteur de date
+### The period computations
+They live in the core, `core/selection/Periods.kt`, beside `TimeResolver`; the selector reads them, never redoes them:
+- `normalizeTimestampWithConfig()`: the start of an instant's period, from the day of the app that holds it
+- `getPeriodEndTimestamp()`: the end of a period
+- `getNextPeriod()` / `getPreviousPeriod()`: the neighbouring periods
+- `resolveRelativePeriod()`: a `RelativePeriod` as a `Period`
+- `periodOfDay()`: the period of a day chosen in the date picker
 
-## Règles d'Usage
+## Usage rules
 
-### À Faire
-- **ActionButton** pour actions standard (SAVE, DELETE, BACK)
-- **UI.Button** pour textes dynamiques et contenu complexe
-- **FormActions** pour tous boutons de formulaire
-- **Box wrappers** pour layout et interactions UI.Text
-- **Validation centralisée** via SchemaValidator
-- **isLoading pattern** pour tous états async
-- **rememberSaveable** pour états métier et navigation (survit à la recréation)
-- **remember** pour états temporaires rechargés (isLoading, données)
+### Do
+- **ActionButton** for standard actions (SAVE, DELETE, BACK)
+- **UI.Button** for dynamic texts and complex content
+- **FormActions** for all form buttons
+- **Box wrappers** for UI.Text's layout and interactions
+- **Centralised validation** through SchemaValidator
+- **isLoading pattern** for all async states
+- **rememberSaveable** for business and navigation states (survives the recreation)
+- **remember** for reloaded temporary states (isLoading, data)
 
-### À Éviter
-- Mélanger ActionButton et UI.Button dans même écran
-- Boutons Row/Column manuels au lieu de FormActions
-- Layout modifiers directement sur UI.Text
-- Valeurs par défaut qui masquent erreurs de config
-- Strings hardcodées (toujours s.shared/s.tool)
+### Avoid
+- Mixing ActionButton and UI.Button in the same screen
+- Manual Row/Column buttons instead of FormActions
+- Layout modifiers directly on UI.Text
+- Default values that hide config errors
+- Hardcoded strings (always s.shared/s.tool)
 
 ---
 
-*L'interface UI privilégie cohérence et simplicité sans sacrifier flexibilité.*
+*The UI favours consistency and simplicity without sacrificing flexibility.*

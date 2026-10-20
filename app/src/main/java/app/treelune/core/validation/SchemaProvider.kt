@@ -23,11 +23,4 @@ interface SchemaProvider {
      */
     fun getAllSchemaIds(): List<String>
 
-    /**
-     * Get user-friendly field name for display in validation errors
-     * @param fieldName The technical field name (e.g., "quantity", "name")
-     * @param context Android context for string resource access
-     * @return User-friendly field name for display (e.g., "Quantity", "Name")
-     */
-    fun getFormFieldName(fieldName: String, context: Context): String
 }

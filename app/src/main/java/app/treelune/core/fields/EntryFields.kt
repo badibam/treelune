@@ -39,10 +39,14 @@ data class FixedField(
  *
  * @property definition The field; its config gives the labels ("Read" / "Unread")
  * @property filterable Whether it is offered as a filter: read yes, a manual position no
+ * @property bookkeeping A note the app keeps so as not to do a thing twice (a reminder marked
+ *   sent): out of the history of writes, which never copies it and leaves it as it is when it
+ *   undoes a step (docs/design/undo-history.md)
  */
 data class StateField(
     val definition: FieldDefinition,
-    val filterable: Boolean
+    val filterable: Boolean,
+    val bookkeeping: Boolean = false
 )
 
 /**

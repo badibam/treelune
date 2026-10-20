@@ -177,6 +177,7 @@
     <!-- Validation reasons -->
     <string name="validation_reason_app">L\'accueil est protégé</string>
     <string name="validation_reason_past_data">La config change des entrées déjà enregistrées : %1$d valeur(s) retirée(s), %2$d entrée(s) supprimée(s), %3$d valeur(s) relue(s) autrement.</string>
+    <string name="validation_reason_filters_aimed">Un filtre de %1$s utilise une option que la config retire ou renomme, et ne trouverait plus rien.</string>
     <string name="validation_reason_zone">La zone « %1$s » est protégée</string>
     <string name="validation_reason_tool">Les données de « %1$s » sont protégées</string>
     <string name="validation_reason_session">Cette conversation le demande</string>
@@ -199,6 +200,7 @@
     <!-- AI Response Validation Errors -->
     <string name="ai_error_validation_multiple_action_types">Plusieurs types de commandes présents: %1$s. Un seul type autorisé par réponse.</string>
     <string name="ai_error_validation_request_without_actions">validation_request présent sans action_commands. validation_request n\'est autorisé qu\'avec action_commands.</string>
+    <string name="ai_error_communication_module_in_automation">communication_module dans une routine : personne ne répond pendant une exécution. Décide d\'après ce que tu peux lire, continue, et dis dans ton résumé ce que tu as supposé.</string>
 
     <!-- Custom fields - Technical name -->
     <string name="error_field_name_unknown">Nom technique inconnu : %1$s. Un nom technique est attribué par l\'app et ne se choisit pas : omets \'name\' pour créer un champ, reprends-le tel quel pour désigner un champ existant. Le renommer détruirait les valeurs déjà enregistrées ; c\'est \'display_name\' qui se modifie librement.</string>
@@ -379,6 +381,8 @@
     <string name="action_verbalize_create_zone">Création de la zone \"%1$s\"</string>
     <string name="action_verbalize_update_zone">Modification de la zone \"%1$s\"</string>
     <string name="action_verbalize_delete_zone">Suppression de la zone \"%1$s\"</string>
+    <string name="action_verbalize_mcp_client_access">Modification des accès du client \"%1$s\"</string>
+    <string name="action_verbalize_mcp_client_delete">Révocation du client \"%1$s\"</string>
     <string name="action_verbalize_create_tool">Création de l\'outil \"%1$s\" dans la zone \"%2$s\"</string>
     <string name="action_verbalize_update_tool_config">Modification de la configuration de l\'outil \"%1$s\"</string>
     <string name="action_verbalize_delete_tool">Suppression de l\'outil \"%1$s\"</string>
@@ -949,6 +953,10 @@
     <string name="service_error_zone_id_required">ID de zone obligatoire</string>
     <string name="service_error_grid_places">Les places données ne disposent pas les outils du groupe</string>
     <string name="service_error_zone_not_found">Zone introuvable</string>
+    <string name="service_error_mcp_clients_user_only">Les clients du connecteur se gèrent dans l\'app, par l\'utilisateur</string>
+    <string name="service_error_mcp_client_not_found">Client du connecteur introuvable : %1$s</string>
+    <string name="service_error_mcp_client_access_missing">Paramètre obligatoire manquant: access</string>
+    <string name="service_error_mcp_client_access_unreadable">Accès illisibles : %1$s</string>
     <string name="service_error_zone_id_tool_type_required">ID de zone et type d'outil obligatoires</string>
     <string name="service_error_tool_instance_id_required">ID d'instance d'outil obligatoire</string>
     <string name="service_error_tool_instance_not_found">Instance d'outil introuvable</string>
@@ -1093,8 +1101,8 @@
     <string name="backup_reset">Réinitialiser toutes les données</string>
     <string name="backup_export_success">Export réussi</string>
     <string name="backup_export_success_missing_images">Sauvegarde faite ; %1$d images avaient perdu leur fichier et le restent dedans</string>
-    <string name="backup_import_confirm">Toutes les données actuelles seront écrasées. Continuer ?</string>
-    <string name="backup_reset_confirm">Toutes les données seront définitivement supprimées. Continuer ?</string>
+    <string name="backup_import_confirm">Toutes les données actuelles seront écrasées, et l'historique vidé : plus rien d'avant ne pourra être annulé. Pour garder les données actuelles, exporte-les d'abord (Exporter toutes les données). Continuer ?</string>
+    <string name="backup_reset_confirm">Toutes les données seront définitivement supprimées, leur historique avec. Continuer ?</string>
     <string name="backup_import_success">Import réussi, redémarrage...</string>
     <string name="backup_reset_success">Réinitialisation réussie, redémarrage...</string>
     <string name="backup_version_too_recent">Ce fichier provient d\'une version plus récente de l\'application</string>
@@ -1618,6 +1626,7 @@
     <string name="migration_part_deleted">%1$d entrée(s) supprimée(s) faute de valeur obligatoire</string>
     <string name="migration_part_reinterpreted">%1$d valeur(s) gardée(s) mais lue(s) autrement (nouvelles bornes, ordre)</string>
     <string name="migration_lost_for_good">Ce qui est retiré ou supprimé ne revient pas.</string>
+    <string name="migration_filters_aimed">Un filtre de %1$s utilise une option que cette modification retire ou renomme : il ne trouvera plus rien tant que tu ne le changes pas.</string>
     <string name="migration_new_field_offer">Pour ne rien toucher, crée plutôt un nouveau champ : l\'ancien garde ses valeurs, renommé %1$s.</string>
     <string name="migration_new_field">Créer un nouveau champ</string>
     <string name="migration_kept_name">%1$s (avant le %2$s)</string>
@@ -1625,6 +1634,7 @@
     <string name="migration_fill_message">%1$d entrée(s) n\'ont pas de valeur pour %2$s, que cette modification rend obligatoire. Donne la valeur qu\'elles prennent, ou annule.</string>
     <string name="tools_config_error_not_found">Outil introuvable</string>
     <string name="service_error_migration_unconfirmed">Cette modification retire %1$d valeur(s) des entrées de cet outil, supprime %2$d entrée(s) restée(s) sans valeur obligatoire et relit autrement %3$d valeur(s) gardée(s) (nouvelles bornes, ordre). Dis-le à l\'utilisateur, et renvoie-la avec "confirm_migration": true une fois qu\'il est d\'accord.</string>
+    <string name="service_error_migration_filters_aimed">Un filtre de %1$s compare un champ à une option que cette modification retire ou renomme : il ne trouverait plus rien. Dis-le à l\'utilisateur, et renvoie-la avec "confirm_migration": true une fois qu\'il est d\'accord.</string>
     <string name="service_error_migration_missing_values">Des entrées n\'ont pas de valeur pour un champ que cette modification rend obligatoire : %1$s. Donne la valeur qu\'elles prennent dans "fill_values": {"data": {"champ": valeur}}.</string>
     <string name="service_error_migration_fill_unknown">"fill_values" nomme %1$s, qui n\'est pas un champ obligatoire de "data" dans cette config</string>
 
@@ -2098,6 +2108,8 @@
     <string name="settings_external_access_relay_url_help">L\'adresse publique du relais, https://… L\'adresse à donner à l\'IA extérieure est celle-ci suivie de /mcp.</string>
     <string name="settings_external_access_relay_secret">Secret du relais</string>
     <string name="settings_external_access_relay_secret_help">Le secret écrit dans la configuration du relais, par lequel il reconnaît l\'app.</string>
+    <string name="settings_external_access_max_data">Taille des données par lecture</string>
+    <string name="settings_external_access_max_data_help">En caractères. Au-delà, une lecture de plusieurs entrées est refusée et l\'IA en demande moins ; le reste arrive en tranches. Ça pèse sur la mémoire de l\'IA extérieure, pas sur ta clé d\'API.</string>
     <string name="external_access_open">Ouvrir l\'accès</string>
     <string name="external_access_close">Fermer l\'accès</string>
     <string name="external_access_state_closed">Fermé : aucune IA extérieure ne peut joindre l\'app.</string>
@@ -2268,4 +2280,53 @@
     <string name="identity_resource_delete_confirm">Supprimer la ressource « %1$s » ?</string>
     <string name="identity_delete_confirm">Supprimer l'identité « %1$s » ?</string>
     <string name="identity_saved">Enregistré</string>
+
+    <!-- L'historique des écritures (docs/design/undo-history.md) -->
+    <string name="history_error_step_not_found">Pas de l'historique introuvable : %1$s</string>
+    <string name="history_error_not_a_step">Ce que l'app écrit d'elle-même ne s'annule pas</string>
+    <string name="history_error_already_undone">Ce pas est déjà annulé</string>
+    <string name="history_error_not_undone">Ce pas n'est pas annulé</string>
+    <string name="history_refused_undo">Ce pas ne s'annule plus :</string>
+    <string name="history_refused_redo">Ce pas ne se rétablit plus :</string>
+    <string name="history_refused_changed">ce qu'il a écrit a changé depuis.</string>
+    <string name="history_refused_changed_by_app">l'app a changé ce qu'il a écrit, le %1$s.</string>
+    <string name="history_refused_changed_by_step">« %1$s » a changé ce qu'il a écrit, le %2$s.</string>
+    <string name="action_verbalize_history_undo">Annulation de « %1$s »</string>
+    <string name="action_verbalize_history_redo">Rétablissement de « %1$s »</string>
+    <string name="action_verbalize_history_list">Lecture de l'historique</string>
+    <string name="settings_write_history">Historique</string>
+    <string name="history_help">Chaque changement fait par toi, l'IA ou un client du connecteur, le plus récent en haut. Annuler reprend le dernier, Rétablir remet le dernier annulé. Touche un changement pour le voir, et pour l'annuler lui seul.</string>
+    <string name="history_room">%1$s pris, depuis le %2$s</string>
+    <string name="write_history_empty">Rien dans l'historique pour l'instant.</string>
+    <string name="history_undo">Annuler</string>
+    <string name="history_redo">Rétablir</string>
+    <string name="history_undo_this">Annuler ce changement</string>
+    <string name="history_redo_this">Rétablir ce changement</string>
+    <string name="history_undone">Annulé : %1$s</string>
+    <string name="history_redone">Rétabli : %1$s</string>
+    <string name="history_state_undone">Annulé</string>
+    <string name="history_origin_user">Toi</string>
+    <string name="history_origin_ai">L'IA</string>
+    <string name="history_origin_external">Un client du connecteur</string>
+    <string name="history_row_created">%1$s, créé</string>
+    <string name="history_row_deleted">%1$s, supprimé</string>
+    <string name="history_row_changed">%1$s, modifié</string>
+    <string name="history_change">%1$s : %2$s → %3$s</string>
+    <string name="history_none">rien</string>
+    <string name="history_row_named">%1$s « %2$s »</string>
+    <string name="history_table_zones">Zone</string>
+    <string name="history_table_tool_instances">Outil</string>
+    <string name="history_table_tool_data">Entrée</string>
+    <string name="history_table_variables">Variable</string>
+    <string name="history_table_automations">Routine</string>
+    <string name="history_table_ai_sessions">Message de routine</string>
+    <string name="history_table_session_messages">Message de routine</string>
+    <string name="history_table_images">Image</string>
+    <string name="history_table_identities">Identité</string>
+    <string name="history_table_mcp_clients">Client du connecteur</string>
+    <string name="history_table_app_settings_categories">Réglages</string>
+    <string name="settings_data_history_days">Jours d'historique</string>
+    <string name="settings_data_history_days_help">Combien de temps un changement reste dans l'historique, pour être annulé.</string>
+    <string name="settings_data_history_megabytes">Place pour l'historique (Mo)</string>
+    <string name="settings_data_history_megabytes_help">Au-delà, les changements les plus anciens sortent de l'historique en premier. Le dernier reste toujours.</string>
 </resources>
