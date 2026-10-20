@@ -13,6 +13,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs
 
+- Les dates sous l'axe d'un Graphique se chevauchent quand la place manque (« 31 août14 sept.28 sept. » au cran 3 du plan d'architecte, la tuile des récoltes) : le nombre de graduations à régler sur la largeur de leurs libellés.
 - La fin d'un événement de l'Agenda est son début plus sa durée en temps écoulé : un événement de plusieurs jours qui traverse un changement d'heure finit une heure avant ou après — l'ajouter sur le calendrier (`TimeResolver.after`, comme l'Objectif), la grille des jours et les séries lisant cette fin.
 
 ## À passer sur le téléphone

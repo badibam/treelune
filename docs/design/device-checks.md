@@ -471,10 +471,9 @@ Vu le 2026-10-20 en Métro : une note, une entrée de Journal, un événement d'
 - Un questionnaire à remplir touché sur sa tuile, puis fermé ; l'app retirée des récents pendant qu'une routine est active ou que l'accès externe tourne, puis rouverte : la page de l'outil, sans questionnaire ouvert.
 - Les champs de l'utilisateur sous une note, un élément de Liste, un événement d'Agenda, un message (la démo n'en a pas : en ajouter) : un champ par ligne, un texte long revenant à la ligne sur toute la largeur de la carte, le nom en tête ; de même avec les noms des champs masqués.
 - Notes : le bouton « Ajouter » seul sur la page d'un outil qui n'a aucune note, plus de carte « AD » ; « Ajouter au-dessus » dans le menu d'une note, inchangé.
-- Les boutons d'une fenêtre (une confirmation, une date ; la suppression d'un outil dans chaque thème sauf Métro) au cran de taille 3 : côte à côte s'ils tiennent, sinon l'un sous l'autre en pleine largeur, l'action principale en haut ; jamais un bouton écrasé ou absent.
+- Les boutons de la fenêtre d'une date au cran de taille 3, dans chaque thème sauf Métro : côte à côte s'ils tiennent, sinon l'un sous l'autre, l'action principale en haut (la suppression d'un outil dans les huit : vue le 2026-10-20 ; le rétro les empile sans les étendre à toute la largeur).
 - Un outil à moitié rempli en Étendu, en Carré et en Complet : la tuile s'arrête sous sa dernière ligne ; plein, et un Graphique, elle a sa hauteur d'avant ; en mode d'édition de la grille, Étendu et Carré montrent toutes leurs cases ; un outil vide, sa ligne d'en-tête seule, dans les sept thèmes autres que Métro, en une colonne aussi.
 - Un Agenda en Complet dont le prochain événement est dans plus de sept jours : il le montre, avec tous les suivants ; jamais moins qu'en Étendu.
-- Effacer et Choisir une icône au cran de taille 3 : l'un sous l'autre.
 - Le thème encre et lavis : la marge de bord et les grands écarts resserrés (l'accueil, une zone, les Réglages) ; rien ne touche le bord de l'écran.
 - Réglages › Interface, « Titre de l'accueil » : vu dès le changement, avant l'enregistrement ; une sauvegarde d'avant la migration 81 restaurée, le titre toujours là (sur la release, vu le 2026-10-20).
 
