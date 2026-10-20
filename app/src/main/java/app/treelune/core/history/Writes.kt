@@ -161,7 +161,7 @@ class Writes(private val context: Context) {
         block()
         val after = Rows.read(database, table, id)
         val where = whereBefore ?: after?.let { where(table, it) } ?: return@transaction
-        record(listOf(Touched(table, id, before, after, where)))
+        record(listOf(Touched(table, id, before, after, where, partsOf(table, (after ?: before)!!, where))))
     }
 
     /** The row of [table] whose id is [id] deleted by [block], with all that SQLite deletes along with it. */
@@ -171,8 +171,19 @@ class Writes(private val context: Context) {
         record(gone)
     }
 
-    /** One row a write touched: its copies before and after, and where it stands (Where). */
-    private data class Touched(val table: CoveredTable, val id: String, val before: JSONObject?, val after: JSONObject?, val where: Where)
+    /**
+     * One row a write touched: its copies before and after, where it stands (Where), and its
+     * parts the app alone writes (Kept), read while its parents are there — an entry's, from its
+     * tool's config, which a deletion takes along.
+     */
+    private data class Touched(
+        val table: CoveredTable,
+        val id: String,
+        val before: JSONObject?,
+        val after: JSONObject?,
+        val where: Where,
+        val parts: List<Kept.Part>
+    )
 
     /** The tool and the zone a row concerns, for the history of one of them. */
     private data class Place(val toolInstanceId: String?, val zoneId: String?)
@@ -185,20 +196,26 @@ class Writes(private val context: Context) {
 
     private suspend fun where(table: CoveredTable, row: JSONObject) = Where(place(table, row), covers(table, row))
 
+    /** [row]'s parts the app alone writes, for a row the history keeps; none for another. */
+    private suspend fun partsOf(table: CoveredTable, row: JSONObject, where: Where) =
+        if (where.covered) kept.of(table, row) else emptyList()
+
     /**
      * The row of [table] whose id is [id] and everything that hangs from it by cascade, parents
      * first, each as its copy before a deletion, with its place read while its parents are there.
      */
     private suspend fun descent(table: CoveredTable, id: String): List<Touched> {
         val row = Rows.read(database, table, id) ?: return emptyList()
-        return listOf(Touched(table, id, row, null, where(table, row))) + childrenOf(table, row)
+        val where = where(table, row)
+        return listOf(Touched(table, id, row, null, where, partsOf(table, row, where))) + childrenOf(table, row)
     }
 
     private suspend fun childrenOf(table: CoveredTable, row: JSONObject): List<Touched> =
         table.children.flatMap { (childTable, column) ->
             val child = CoveredTable.of(childTable)
             Rows.read(database, child, column, row.getString(table.idColumn)).flatMap { childRow ->
-                listOf(Touched(child, childRow.getString(child.idColumn), childRow, null, where(child, childRow))) + childrenOf(child, childRow)
+                val where = where(child, childRow)
+                listOf(Touched(child, childRow.getString(child.idColumn), childRow, null, where, partsOf(child, childRow, where))) + childrenOf(child, childRow)
             }
         }
 
@@ -206,7 +223,7 @@ class Writes(private val context: Context) {
     private suspend fun record(touched: List<Touched>) {
         val changed = touched.mapNotNull { t ->
             if (!t.where.covered) return@mapNotNull null
-            val parts = kept.of(t.table, (t.after ?: t.before)!!)
+            val parts = t.parts
             val unchanged = t.before != null && t.after != null &&
                 kept.same(kept.without(t.before, parts), kept.without(t.after, parts))
             if (unchanged) null else t

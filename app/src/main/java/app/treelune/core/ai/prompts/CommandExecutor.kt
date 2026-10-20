@@ -296,7 +296,7 @@ class CommandExecutor(private val context: Context) {
                     }
 
                     // Get verbalized description for all commands
-                    // - Action commands: use service verbalization (e.g., "Création de la zone \"Santé\"")
+                    // - Action commands: use service verbalization (e.g., "Création de la zone « Santé »")
                     // - Query commands: a line for the user (userDetails), the data's header being the AI's
                     val verbalizedDescription = if (command.isActionCommand) {
                         // Enrich params with name from result for delete operations
@@ -368,7 +368,7 @@ class CommandExecutor(private val context: Context) {
 
     /**
      * Get verbalized description from service for action command
-     * Returns substantive form description (e.g., "Création de la zone \"Santé\"")
+     * Returns substantive form description (e.g., "Création de la zone « Santé »")
      */
     private suspend fun getVerbalizedDescription(command: ExecutableCommand): String {
         return try {
@@ -515,16 +515,55 @@ class CommandExecutor(private val context: Context) {
     }
 
     /**
-     * What the user reads of a query in the chat: for entries, the tool and how many were read;
-     * otherwise the data's header. The header of entries is written for the AI (filters, fields)
-     * and stays in the prompt.
+     * What the user reads of a query in the chat, in the app's language: what was read, named —
+     * for entries, the tool and how many. The data's header is written for the AI, in English
+     * (filters, fields, ids), and stays in the prompt.
      */
     private suspend fun userDetails(command: ExecutableCommand, data: Map<String, Any>): String {
-        if (command.resource != "tool_data") return generateDataTitle(command, data)
+        if (command.resource != "tool_data") return userReadLine(command, data)
         val toolInstanceId = command.params["tool_instance_id"] as? String ?: command.params["id"] as? String
-            ?: return generateDataTitle(command, data)
+            ?: return userReadLine(command, data)
         val count = data["count"] as? Int ?: (data["entries"] as? List<*>)?.size ?: 0
         return s.shared("ai_data_user_summary").format(resolveToolInstanceName(toolInstanceId), count)
+    }
+
+    /**
+     * The line of a read other than entries, one per read the AI can ask for (AICommands): what
+     * was read, by its name when it has one. Empty for a read without its line, which then shows
+     * its command alone.
+     */
+    private suspend fun userReadLine(command: ExecutableCommand, data: Map<String, Any>): String {
+        fun line(key: String, vararg args: Any) = s.shared("ai_read_user_$key").format(*args)
+        val params = command.params
+        val tool = (params["tool_instance_id"] as? String)?.let { resolveToolInstanceName(it) }
+        val zone = (params["zone_id"] as? String)?.let { resolveZoneName(it) }
+        return when ("${command.resource}.${command.operation}") {
+            "schemas.get" -> tool?.let { line("schema_of", it) } ?: line("schema")
+            "tools.get" -> line("tool_config", tool ?: throw IllegalStateException("tools.get without a tool_instance_id"))
+            "tools.list" -> zone?.let { line("tools_of", it) } ?: line("tools")
+            "tools.list_all" -> line("tools")
+            "zones.get" -> line("zone_config", zone ?: throw IllegalStateException("zones.get without a zone_id"))
+            "zones.list" -> line("zones")
+            "variables.list" -> line("variables_of", zone ?: "")
+            "variables.list_all" -> line("variables")
+            "readings.read" -> line("reading", params["variable"] as? String ?: "")
+            "automations.config" -> line("routine", resolveAutomationName(params["automation_id"] as? String))
+            "automations.list" -> line("routines_of", zone ?: "")
+            "automations.list_all" -> line("routines")
+            "ai_sessions.list_sessions_for_automation" -> line("runs_of", resolveAutomationName(params["automation_id"] as? String))
+            "ai_sessions.run_history" -> line("run")
+            "files.read" -> line("file")
+            "files.show_images" -> line("images", (data["images"] as? List<*>)?.size ?: 0)
+            "imports.detect" -> line("import_plan")
+            "app_config.get_current_datetime" -> line("datetime")
+            "app_config.get" -> line("settings")
+            "icons.overview", "icons.search" -> line("icons")
+            "identities.list" -> line("identities")
+            "identities.read" -> line("identity", (data["identity"] as? Map<*, *>)?.get("name") as? String ?: "")
+            "identities.read_resource" -> line("identity_resource", params["key"] as? String ?: "")
+            "history.list" -> (tool ?: zone)?.let { line("history_of", it) } ?: line("history")
+            else -> ""
+        }
     }
 
     /**

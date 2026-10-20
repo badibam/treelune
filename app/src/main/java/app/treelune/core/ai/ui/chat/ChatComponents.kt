@@ -250,27 +250,12 @@ fun ChatMessageBubble(
                                                             )
                                                         }
 
-                                                        // What an action wrote: its entries by their fields, or else
-                                                        // the little it returns (an id, a name). Query data is filtered
-                                                        // and not displayed (already in formattedData)
+                                                        // What an action wrote: its entries by their fields. What it
+                                                        // returns besides is the AI's, its line above saying what it did
                                                         val written = commandOf[commandResult]?.takeIf {
                                                             commandResult.status == CommandStatus.SUCCESS && it.params["entries"] != null
                                                         }
-                                                        if (written != null) {
-                                                            WrittenEntries(written)
-                                                        } else if (commandResult.isActionCommand) {
-                                                            commandResult.data?.let { data ->
-                                                                if (data.isNotEmpty()) {
-                                                                    val dataText = data.entries.joinToString(", ") { (k, v) ->
-                                                                        "$k: $v"
-                                                                    }
-                                                                    UI.Text(
-                                                                        text = dataText,
-                                                                        type = TextType.CAPTION
-                                                                    )
-                                                                }
-                                                            }
-                                                        }
+                                                        if (written != null) WrittenEntries(written)
 
                                                         // Error (if failed)
                                                         commandResult.error?.let { error ->
@@ -522,7 +507,6 @@ private fun copyText(
                 add(results.joinToString("\n") { result ->
                     listOfNotNull(
                         (if (result.status == CommandStatus.SUCCESS) "✓ " else "✗ ") + (result.details ?: result.command),
-                        result.data?.takeIf { result.isActionCommand && it.isNotEmpty() }?.entries?.joinToString(", ") { (k, v) -> "$k: $v" }?.let { "  $it" },
                         result.error?.let { "  " + s.shared("ai_error_label").format(it) }
                     ).joinToString("\n")
                 })

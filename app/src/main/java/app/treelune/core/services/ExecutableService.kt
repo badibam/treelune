@@ -26,7 +26,7 @@ interface ExecutableService {
     /**
      * Generates a human-readable description of the action (substantive form)
      *
-     * Example: "Création de la zone \"Santé\""
+     * Example: "Création de la zone « Santé »"
      *
      * Usage:
      * - (a) UI validation: display action to user before execution

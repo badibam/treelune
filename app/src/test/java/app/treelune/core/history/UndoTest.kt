@@ -95,6 +95,25 @@ class UndoTest {
     }
 
     @Test
+    fun `a zone deleted with a tracking and its entries, whose type its config gives, comes back`() = runBlocking {
+        val zoneId = zone("Health")
+        val toolId = coordinator.processUserAction("tools.create", mapOf(
+            "zone_id" to zoneId, "tooltype" to "tracking",
+            "config" to mapOf("name" to "Weight", "type" to "numeric", "value" to mapOf("decimals" to 1), "units" to listOf("kg"))
+        )).let { assertTrue(it.error, it.isSuccess); it.data!!["tool_instance_id"] as String }
+        val entry = coordinator.processUserAction("tool_data.create", mapOf(
+            "tool_instance_id" to toolId, "name" to "Weighing", "data" to mapOf("value" to 72, "unit" to "kg")
+        ))
+        assertTrue(entry.error, entry.isSuccess)
+        val deleted = coordinator.processUserAction("zones.delete", mapOf("zone_id" to zoneId))
+        assertTrue(deleted.error, deleted.isSuccess)
+
+        val undone = coordinator.processUserAction("history.undo", mapOf("id" to lastStep()))
+        assertTrue(undone.error, undone.isSuccess)
+        assertEquals(toolId, database.toolDataDao().getById(entry.data!!["id"] as String)!!.toolInstanceId)
+    }
+
+    @Test
     fun `a zone deleted takes its routines, and an undo brings them back`() = runBlocking {
         val zoneId = zone("Garden")
         val routine = coordinator.processUserAction("automations.create", mapOf(

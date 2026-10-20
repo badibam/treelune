@@ -26,4 +26,9 @@ class BatchRefusalsTest {
         assertTrue(summary.startsWith("All 28 refused: reason 6 (7, entries 60, 61, 62, 63, 64…); reason 5"))
         assertTrue(summary.endsWith("; and 2 other reasons"))
     }
+
+    @Test
+    fun `one entry refused is its reason alone`() {
+        assertEquals("name missing", BatchRefusals.summary(listOf(0 to "name missing"), text))
+    }
 }

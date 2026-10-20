@@ -4,7 +4,7 @@ package app.treelune.core.services
  * The entries a batch refused, said in a few lines whatever their number: each distinct reason
  * once, with how many entries it refused and the places of the first ones. A batch of 64 000
  * entries all refused for the same reason is one line, where listing each refusal made a
- * message of megabytes that went to the AI.
+ * message of megabytes that went to the AI. A batch of one entry refused is its reason alone.
  */
 internal object BatchRefusals {
 
@@ -13,6 +13,7 @@ internal object BatchRefusals {
 
     /** [refusals], each the entry's place in the batch and its reason, with [text] the shared strings. */
     fun summary(refusals: List<Pair<Int, String>>, text: (String) -> String): String {
+        refusals.singleOrNull()?.let { return it.second }
         val byReason = refusals.groupBy({ it.second }, { it.first }).entries.sortedByDescending { it.value.size }
         val reasons = byReason.take(REASONS_SHOWN).joinToString("; ") { (reason, places) ->
             val shown = places.take(PLACES_SHOWN).joinToString(", ") + if (places.size > PLACES_SHOWN) "…" else ""

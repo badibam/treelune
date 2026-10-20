@@ -27,6 +27,7 @@ import app.treelune.core.ui.FieldValuesSaver
 import app.treelune.core.ui.NullableJsonObjectSaver
 import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
+import app.treelune.tools.agenda.AgendaDays
 import app.treelune.tools.agenda.AgendaEvent
 import app.treelune.tools.agenda.AgendaSeries
 import app.treelune.tools.agenda.AgendaToolType
@@ -61,6 +62,15 @@ private fun startOfDay(day: Any?): Long? = (day as? String)?.let {
 }
 
 /**
+ * A start at a time made whole days: the start of the user's day that time is in — at 1:00 with
+ * days starting at 4:00, the day before, as « today » everywhere else.
+ */
+private fun wholeDayOf(start: Long?): Long? = start?.let {
+    val zone = AgendaToolType.zone()
+    AgendaToolType.calendar(zone).startOf(AgendaDays.dayOfInstant(it, zone))
+}
+
+/**
  * The fields an event and a series share: the name, whole days or not, the start (a series has
  * none: its schedule gives it), the duration or the days.
  */
@@ -70,7 +80,7 @@ private fun DraftFields(draft: EventDraft, withStart: Boolean, context: Context,
     fun def(name: String, type: FieldType, config: Map<String, Any>? = null) = FieldDefinition(name, s.tool("field_$name"), null, type, false, config)
     UI.FormField(label = s.tool("field_name"), value = draft.name, onChange = { onChange(draft.copy(name = it)) },
         fieldType = app.treelune.core.ui.FieldType.TEXT, required = true)
-    UI.Checkbox(checked = draft.allDay, onCheckedChange = { onChange(draft.copy(allDay = it)) }, label = s.tool("field_all_day"))
+    UI.Checkbox(checked = draft.allDay, onCheckedChange = { onChange(draft.copy(allDay = it, start = if (it) wholeDayOf(draft.start) else draft.start)) }, label = s.tool("field_all_day"))
     if (withStart) {
         if (draft.allDay) FieldInput(def("start_day", FieldType.DATE), dayOf(draft.start), { onChange(draft.copy(start = startOfDay(it))) }, context, required = true)
         else FieldInput(def("start", FieldType.DATETIME), draft.start, { onChange(draft.copy(start = (it as? Number)?.toLong())) }, context, required = true)

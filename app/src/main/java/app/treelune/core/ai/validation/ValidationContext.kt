@@ -23,7 +23,7 @@ data class ValidationContext(
  * Verbalized action with validation metadata
  *
  * Each action in the validation UI is displayed with:
- * - Its human-readable description (e.g., "Création de la zone \"Santé\"")
+ * - Its human-readable description (e.g., "Création de la zone « Santé »")
  * - A warning icon if validated by CONFIG (sensitive action)
  * - The validation reason explaining why validation is required
  *

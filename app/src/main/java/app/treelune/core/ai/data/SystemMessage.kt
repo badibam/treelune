@@ -151,7 +151,7 @@ enum class SystemMessageType {
 data class CommandResult(
     val command: String,         // Command executed (e.g., "tool_data.get")
     val status: CommandStatus,
-    val details: String?,        // Verbalized action description (e.g., "Création de la zone \"Santé\"")
+    val details: String?,        // Verbalized action description (e.g., "Création de la zone « Santé »")
     val data: Map<String, Any>?, // Structured result data (filtered for actions, complete for queries)
     val error: String?,          // Technical error message if failed (e.g., "nom déjà existant")
     val isActionCommand: Boolean = false  // true = action (create/update/delete), false = query (get/list/stats)

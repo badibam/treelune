@@ -45,7 +45,7 @@ Ce que la suite de tests ne voit pas : les écrans, les migrations sur une vraie
 - Sur l'OPPO A5 2020 (Android 10, ColorOS 7.1), dont la SQLite n'a pas `json_extract` : l'app désinstallée puis installée à neuf, la démo s'installe au premier démarrage sans toast d'erreur ; l'Objectif de la zone Italien montre ses tentatives validées, un Graphique de la démo se dessine, un chrono lancé s'affiche en cours sur sa tuile.
 - Deux `./run install` de suite, la démo seule à l'accueil : chaque fois la démo se réinstalle entière, sans toast d'erreur sur les groupes de zones. Réglages : retirer le dernier groupe de zones s'enregistre.
 - Réglages › Démo : désactiver « Installer la démo à chaque mise à jour » et enregistrer ne supprime rien, la démo reste ; réinstaller l'APK la laisse telle quelle ; réactiver le réglage n'installe rien avant la mise à jour suivante.
-- Réglages › Démo : « Réinstaller » puis revenir en arrière aussitôt (la carte en bas à gauche et son étape jusqu'à la fin, la démo entière : vus le 2026-10-20) : la carte ne touche pas le bouton de conversation, sur un écran où il flotte ; un toast dit que c'est terminé. Revenir dans Réglages › Démo pendant l'installation : les boutons attendent, la roue et l'étape s'affichent.
+- Réglages › Démo : « Réinstaller » puis revenir en arrière aussitôt (la carte en bas à gauche et son étape jusqu'à la fin, la démo entière, les boutons qui attendent pendant l'installation : vus le 2026-10-20) : la carte ne touche pas le bouton de conversation, sur un écran où il flotte ; un toast dit que c'est terminé.
 - Ajouter une entrée dans un outil de la démo et un outil dans une de ses zones, puis Réglages › Démo › « Supprimer la démo » : la démo et ces deux ajouts disparaissent, le reste de l'app est intact ; « Réinstaller » la remet entière.
 - Chaque suivi de la démo, sauf Repas, montre un raccourci d'ajout rapide nommé comme ses entrées : Verre ajoute 1, Pesée et Récolte ouvrent la saisie dans leur unité, Nuit lance un chrono.
 - Pendant un import d'un gros fichier (Données structurées), lancer « Réinstaller » la démo ou exporter une sauvegarde : refusé, le message nomme l'import en cours ; la bande compte les lignes écrites par 500.
@@ -71,6 +71,7 @@ Ce que la suite de tests ne voit pas : les écrans, les migrations sur une vraie
 - Session CHAT avec DeepSeek : elle passe, et son coût s'affiche sans « ≥ ».
 - « Importe ce fichier dans une nouvelle table » avec un CSV joint : l'IA crée la table, puis au tour suivant `IMPORT_PLAN` et `IMPORT_DATA` ; la carte de validation nomme le fichier, ses lignes et la table ; la table a ses colonnes et ses lignes.
 - Le message de départ d'une automation ne propose pas le trombone.
+- DeepSeek dont le JSON perd une accolade (dix fois de suite le 2026-10-20, une lecture d'agenda à période relative) : le message renvoyé nomme le caractère et le passage, et la réponse suivante est corrigée.
 - DeepSeek, sur une dizaine de réponses : une réponse dont le JSON est entouré de texte ou d'un bloc de code est exécutée sans `FORMAT_ERROR` ; un message système cite le texte écarté, et la réponse suivante ne le reprend pas.
 - Session CHAT avec OpenAI : la première réponse passe (le mode JSON, `text.format`, est accepté par l'API Responses).
 - « Coche Lait dans Courses » : l'IA appelle l'opération `check` et l'élément est coché ; dans une liste qui retire ce qui est coché, il disparaît.
@@ -83,7 +84,6 @@ Ce que la suite de tests ne voit pas : les écrans, les migrations sur une vraie
 - Demander à l'IA une zone et un outil dedans en une fois : elle crée la zone, puis l'outil au tour suivant avec l'id reçu, sans id inventé dans la même réponse.
 - Pointeur : le fil d'Ariane et les zones puis les outils s'affichent comme avant ; dans un outil, rien n'est listé en dessous ; passer d'un outil à celui d'une autre zone par le fil garde les cases et la période.
 - Pointeur en chat, période « Depuis : date relative, il y a 2 jours, début » : « Soit : » montre la date obtenue, et après confirmation la phrase du pointeur dit cette date. Pointeur du message de départ d'une automation : « Par rapport à : l'heure prévue de l'exécution » s'affiche une fois, la période se relit « la veille », « le moment même ». Un filtre sur un champ DATE propose des jours, sans heure ni unité « heure ».
-- Une IA qui enchaîne plus de 10 appels seule s'arrête et rend la main avec un message.
 - Faire écrire par l'IA une valeur hors d'une échelle ou hors des options d'un choix : le refus lui revient.
 - Faire créer et modifier des entrées de tracking par l'IA : `raw` est juste.
 - Faire poser une récurrence sur un outil Messages par l'IA, et retirer la description d'une zone.
@@ -121,7 +121,6 @@ Avec le relais en place (son projet `relay`, en ligne sur `https://relay.badibam
 - Ajouter le connecteur dans claude.ai avec l'adresse que l'écran donne (`…/mcp`) : la page montre un code à 4 chiffres ; le téléphone notifie la demande, sa fenêtre nomme le client et le domaine de retour ; le bon code autorise, la page revient à claude.ai, le connecteur est connecté et le client paraît dans la liste.
 - Trois codes faux : la demande est refusée, la page le dit. « Refuser » : de même.
 - Dans un chat claude.ai : le premier appel est `app_context` (ou un autre outil refusé, qui le renvoie à `app_context`) ; une lecture d'entrées avec une période passe ; une création d'entrée paraît dans l'app ; chaque réponse commence par la date et l'heure.
-- Après la migration 84, Réglages › Accès externe montre « Taille des données par lecture » à 200 000 ; le chat de l'app garde son propre seuil.
 - Taille des données par lecture à 10 000, dans un chat claude.ai : une lecture d'entrées plus grosse est refusée, et Claude la resserre de lui-même (champs, période, pages) ; une entrée seule au texte plus long (`limit` 1), ou la config d'un gros outil, arrive en tranches, et Claude lit les suivantes par `text_from` jusqu'à « la fin de cette lecture ».
 - Ce que claude.ai fait des outils : les lectures marquées comme telles, l'autorisation outil par outil ; ce qu'il fait d'une session MCP d'une conversation à l'autre (instruit, pas exigé).
 - 30 minutes sans appel : l'accès se ferme seul, la notification part. « Fermer » dans la notification : de même.
@@ -320,7 +319,7 @@ Vu le 2026-10-09 : l'inscription par la page de connexion, « Activer Funnel » 
 - Déplacer un événement déjà rappelé à plus tard : son rappel repart à la nouvelle heure.
 - L'IA crée un événement (status planned), en annule un, retire une occurrence ; supprimer une occurrence est refusé et le message renvoie à agenda.remove ; changer le jour d'une série demande d'abord à la personne.
 - L'écran et la tuile, dans les trois thèmes.
-- Installer la démo : chaque outil planifié créé fait tourner aussitôt le planificateur de son type (`CoreScheduler.runTool`) ; noter la durée de l'installation, à comparer avec celle d'avant la fusion de la branche agenda.
+- Installer la démo : chaque outil planifié créé fait tourner aussitôt le planificateur de son type (`CoreScheduler.runTool`) ; l'installation a pris ~50 s le 2026-10-20 (du toucher à « Demo installed »), à comparer avec une mesure d'avant la fusion de la branche agenda.
 
 ## Graphique
 
@@ -359,7 +358,6 @@ Vu le 2026-10-09 : l'inscription par la page de connexion, « Activer Funnel » 
 Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la poignée d'une note limitée à son icône, les cartes d'une zone à la largeur de la grille en rétro, le coup d'œil sur les outils dans l'accueil du Guide, la sélection d'un texte du Guide, les bornes d'une échelle resserrées (comptes, nouveau champ), une séance arrêtée qui garde ses étapes et sa correction étape par étape. Reste :
 
 - La carte des variables d'une zone avec un nom long : la valeur passe sous le nom, rien ne se coupe.
-- Changer de thème depuis Réglages › Interface, revenir à l'accueil : pas de plantage (la marque de sauvegarde automatique).
 - Copier une entrée de Journal et une note qui ont des champs ajoutés (une échelle, un choix de moins de 8 options, un classement, une référence) : les lignes « Nom : valeur » après le texte, une échelle en barre, un choix parmi ses options, une référence par son nom, un champ vide absent.
 - Un choix à une réponse passé à plusieurs : enregistré sans rien demander, chaque entrée garde sa réponse. Plusieurs vers une : seules les entrées à plusieurs réponses perdent la valeur, comptées.
 - Le type de valeur d'un Suivi changé : les entrées supprimées, comptées dans la fenêtre.
@@ -477,30 +475,25 @@ Vu le 2026-10-20 en Métro : une note, une entrée de Journal, un événement d'
 - Un Agenda en Complet dont le prochain événement est dans plus de sept jours : il le montre, avec tous les suivants ; jamais moins qu'en Étendu.
 - Effacer et Choisir une icône au cran de taille 3 : l'un sous l'autre.
 - Le thème encre et lavis : la marge de bord et les grands écarts resserrés (l'accueil, une zone, les Réglages) ; rien ne touche le bord de l'écran.
-- Réglages › Interface, « Titre de l'accueil » : vu dès le changement, avant l'enregistrement ; la migration 81 sur la release et ses données, le titre toujours là ; une sauvegarde d'avant restaurée, de même.
+- Réglages › Interface, « Titre de l'accueil » : vu dès le changement, avant l'enregistrement ; une sauvegarde d'avant la migration 81 restaurée, le titre toujours là (sur la release, vu le 2026-10-20).
 
 ## Flashcards (branche flashcards, `docs/design/flashcards.md`)
 
-Vu le 2026-10-20 sur la démo : la tuile et la page de Ripasso ; la lecture du paquet entre 22 et 251 ms (zone, page) ; la fenêtre de lancement, ses sens et leurs nombres ; une séance, Raté qui revient après une minute, Revenir trois fois, l'arrêt par la flèche, l'écran recréé ; les compteurs d'accord ; la config, ses champs proposés, un champ supprimé de la source nommé par l'endroit à corriger sur la tuile ; la confirmation au retrait d'un sens. Reste :
+Vu le 2026-10-20 sur la démo : la tuile et la page de Ripasso ; la fenêtre de lancement, une ligne à 0 grisée qui ne lance rien, « Tous les sens » sans la nouvelle de FR → IT (voulu : deux sens d'une ligne jamais le même jour, `FlashcardsDue`) ; Raté sur la dernière carte qui la remontre, Difficile qui finit ; Revenir qui retire la note ; « fais-moi réviser Ripasso » par flashcards.due et flashcards.review, l'écriture ordinaire refusée ; la lecture du paquet entre 22 et 251 ms (zone, page) ; la fenêtre de lancement, ses sens et leurs nombres ; une séance, Raté qui revient après une minute, Revenir trois fois, l'arrêt par la flèche, l'écran recréé ; les compteurs d'accord ; la config, ses champs proposés, un champ supprimé de la source nommé par l'endroit à corriger sur la tuile ; la confirmation au retrait d'un sens. Reste :
 
-- La durée du calcul (« Flashcards: deck … read in N ms ») à l'ouverture d'une séance, puis sur le lexique réel ; au-delà de 300 ms, le dire.
-- La fenêtre de lancement : une ligne à 0 grisée qui ne lance rien ; un paquet à un seul sens lance sans fenêtre ; « Tous les sens » sans la nouvelle de FR → IT (le 2026-10-20 : IT → FR 5 à revoir, FR → IT 3 à revoir · 1 nouvelle, Tous les sens 7 à revoir) : voulu ?
-- Une séance : Raté sur la dernière carte la remontre tout de suite ; Difficile et Facile la finissent ; une seule carte revue, « Séance finie : 1 carte revue. », une seule nouvelle, « 1 nouvelle ».
-- Revenir : la note retirée de l'historique de l'outil.
+- La durée du calcul (« Flashcards: deck … read in N ms ») sur le lexique réel (sur la démo, de 26 à 152 ms le 2026-10-20) ; au-delà de 300 ms, le dire.
+- Un paquet à un seul sens lance sans fenêtre.
+- Une séance d'une seule carte revue : « Séance finie : 1 carte revue. » ; une seule nouvelle : « 1 nouvelle ».
 - Le lendemain, après l'heure de début de journée, les cartes dues du jour comptées dès le matin (la tuile se relit quand une entrée change ou à l'ouverture de la zone, pas d'elle-même à l'heure).
 - Un champ supprimé de la source : l'erreur qui nomme l'endroit à corriger (« Le recto de IT → FR montre un champ qui n'existe plus dans Lessico. ») sur la page, et « Un champ de cette carte n'existe plus dans la source » dans une séance ouverte avant ; changer la source demande d'accepter la perte de ses révisions.
 - « Un sens après l'autre » coché : le sens 2 d'un mot n'arrive qu'une fois le sens 1 acquis (sa stabilité à 7 jours au moins, lisible dans l'historique de l'outil).
-- L'IA : « fais-moi réviser Ripasso » en conversation, les cartes lues par flashcards.due, notées par flashcards.review après que tu as dit comment tu t'en souvenais ; une écriture ordinaire de révision refusée avec le message qui dit d'utiliser flashcards.review.
 
 ## L'historique des écritures (branche undo-history, `docs/design/undo-history.md`)
 
-- La migration 83 sur la release et ses données : Réglages › Historique s'ouvre vide, « 30 » jours et « 500 » Mo ; Réglages › Données garde son dossier et sa sauvegarde automatique, et les change encore sans erreur.
-- Renommer une zone, changer la config d'un outil, ajouter, modifier et supprimer une entrée, déplacer une tuile, changer un réglage d'Interface : chacun une ligne, sa phrase, « Toi » et l'heure ; toucher une ligne montre ce qui a changé, champ par champ, lisible.
-- Annuler en haut, plusieurs fois de suite : chaque changement défait dans l'ordre, l'écran concerné à jour en y revenant ; Rétablir les remet dans l'ordre inverse.
-- Annuler une ligne plus ancienne qu'une autre qui a changé la même chose : refusé, le message nomme le changement d'après et sa date ; rien n'a bougé.
-- Supprimer une zone pleine (outils, entrées, une variable, une routine), puis l'annuler : tout revient, la routine avec son message ; une entrée à photos supprimée puis annulée retrouve ses photos.
+- Changer la config d'un outil (un champ ajouté, une option retirée), modifier puis supprimer une entrée, déplacer une tuile : chacun une ligne ; toucher la ligne montre chaque champ par son libellé, avant et après comme l'app les montre, un réglage composé par son nom, « Et N changements internes » pour la tuile (le renommage d'une zone, une entrée ajoutée, un thème changé, une zone supprimée en un écran : vus le 2026-10-20).
+- Supprimer une zone qui a une routine et une variable, puis l'annuler : tout revient, la routine avec son message ; une entrée à photos supprimée puis annulée retrouve ses photos (Balcon, sans routine, supprimé puis rendu entier : vu le 2026-10-20).
 - Supprimer la démo puis l'annuler : la démo revient entière, ses routines et leurs messages compris.
-- Une commande de l'IA en conversation : sa ligne dit « L'IA » ; demander à l'IA « annule ce que tu viens de faire » : elle lit HISTORY puis UNDO_STEP, et demande l'accord au niveau de ce qu'elle remet.
+- Demander à l'IA d'annuler ce qu'elle a fait dans une zone protégée : l'accord est demandé au niveau de ce qu'elle remet (HISTORY puis UNDO_STEP, la ligne « L'IA » : vus le 2026-10-20).
 - Un rappel d'Agenda envoyé, puis annuler le renommage de son événement : l'ancien nom revient, le rappel ne repart pas.
 - Un gros import (le fichier de 64 659 lignes du 2026-10-01) : la durée de l'import, à comparer à celle d'avant (3 min 19 s), et la place prise par l'historique ensuite ; puis l'annuler, et sa durée.
 - Restaurer une sauvegarde : la confirmation dit que l'historique sera vidé et renvoie à l'export ; l'historique est vide ensuite.
@@ -508,13 +501,11 @@ Vu le 2026-10-20 sur la démo : la tuile et la page de Ripasso ; la lecture du p
 ## Les journées de l'app (2026-10-20, branche todo-cleanup)
 
 - La nuit, entre minuit et l'heure de début du jour : « cette semaine », « ce mois » restent ceux de la veille au soir (une variable de la semaine, le Suivi d'une semaine, un Graphique de la semaine) ; « aujourd'hui » reste la veille.
-- La démo installée après minuit, avant 4 h : Ripasso a des cartes à revoir ; avec « La semaine commence » le dimanche, la semaine chargée et les relevés du carnet tombent sur des semaines qui commencent le dimanche, les tentatives des Objectifs restent le lundi à 00:00.
-- La migration 85 sur la release et ses données : un événement toute la journée garde son jour dans l'Agenda, ses rappels déjà envoyés ne repartent pas ; une sauvegarde d'avant restaurée, de même.
-- Un événement toute la journée créé par le formulaire, par une série et par l'IA : son début à l'heure de début du jour (l'historique de l'outil) ; à 1 h du matin, celui de la veille encore en cours dans À venir ; l'IA qui lit les événements d'aujourd'hui le voit.
+- La migration 85 sur la release (passée le 2026-10-20, 3 journées entières déplacées) : un premier événement au mercredi 28 octobre, un second au lundi 9 novembre — leurs jours d'avant ? Leurs rappels déjà envoyés ne repartent pas ; une sauvegarde d'avant restaurée, de même.
+- Une série d'événements toute la journée : chaque début à l'heure de début du jour ; l'IA qui lit les événements d'aujourd'hui voit une journée entière (par le formulaire et par l'IA, la veille encore en cours la nuit, le jour proposé la nuit : vus le 2026-10-20, le jour commençant à 18 h ou 19 h).
 - Un Graphique en grille par jour : chaque graduation sous son point ; par semaine, la graduation au premier jour de la semaine réglé.
-- Le sélecteur de période (Jour, Semaine, Mois) : toucher la date, choisir le 14, un lundi, le 1er : la période montrée est celle du jour choisi, jamais la veille, la semaine ou le mois d'avant.
-- La nuit, avant 4 h : le sélecteur de date d'un champ DATE et celui d'une période marquent la veille comme aujourd'hui et s'ouvrent dessus ; celui d'une date et heure, et de la date d'une entrée du Journal, marque le jour du calendrier ; dans le thème par défaut, Material marque toujours le jour du calendrier, seule l'ouverture suit ; « aujourd'hui » choisi dans un champ DATE donne la veille.
-- Le sélecteur de date de chaque thème avec « La semaine commence » le dimanche : la grille commence le dimanche ; dans le thème par défaut (le sélecteur de Material), si elle commence encore le lundi, Android ne lit pas la marque `fw` de la langue — le dire ; la date choisie est celle touchée, le fuseau de l'app réglé sur New York aussi.
+- La nuit, avant 4 h : le sélecteur d'un champ DATE marque la veille comme aujourd'hui et s'ouvre dessus, celui de la date d'une entrée du Journal le jour du calendrier ; « aujourd'hui » choisi dans un champ DATE donne la veille (celui d'une période et celui d'une date et heure, en papier découpé et en Material : vus le 2026-10-20).
+- Le sélecteur de date des thèmes autres que le papier découpé et le défaut (vus le 2026-10-20, Material compris, New York compris) avec « La semaine commence » le dimanche : la grille commence le dimanche, la date choisie est celle touchée.
 
 ## Les bugs du 2026-10-20 et les unités des durées (branche bugs)
 

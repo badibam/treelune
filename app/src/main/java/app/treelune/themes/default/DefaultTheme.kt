@@ -10,6 +10,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -1346,15 +1348,17 @@ object DefaultTheme : ThemeContract {
         onCheckedChange: (Boolean) -> Unit,
         label: String?
     ) {
+        // The whole row toggles, label included, as in the other themes
         Row(
+            modifier = Modifier.toggleable(value = checked, role = Role.Checkbox, onValueChange = onCheckedChange),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             androidx.compose.material3.Checkbox(
                 checked = checked,
-                onCheckedChange = onCheckedChange
+                onCheckedChange = null
             )
-            
+
             if (label != null) {
                 Text(label, TextType.BODY, false, null)
             }

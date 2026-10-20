@@ -1097,7 +1097,13 @@ class AIEventProcessor(
                     val excerpt = if (leadingText.length > 120) leadingText.take(120) + "…" else leadingText
                     s.shared("ai_error_format_text_before_json").format(excerpt)
                 } else {
-                    s.shared("ai_error_format_invalid_json")
+                    // A brace or a bracket that does not close where it should: the error says
+                    // where, quoting the 60 characters that lead to it, so the AI fixes it instead
+                    // of sending it again
+                    ResponseEnvelope.bracketBreak(cleanedJson)?.let { at ->
+                        val excerpt = cleanedJson.substring(maxOf(0, at - 60), minOf(cleanedJson.length, at + 1))
+                        s.shared("ai_error_format_brackets").format(at, excerpt)
+                    } ?: s.shared("ai_error_format_invalid_json")
                 }
 
                 // Create FORMAT_ERROR system message for AI to see and fix

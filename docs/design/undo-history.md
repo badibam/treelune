@@ -64,4 +64,5 @@ Chaque écriture dans la base est gardée dans un historique, pour pouvoir l'ann
 
 - Un seul écran Historique, ouvert depuis les Réglages, sans filtre. Une vue d'un outil ou d'une zone montrerait des pas qui débordent de l'outil (la zone supprimée avec lui, remise entière par l'annulation) et un « dernier pas » qui change selon l'endroit : à l'usage, si elle manque.
 - Les pas du plus récent au plus ancien, avec leur état ; Annuler et Rétablir en haut ; toucher un pas déplie ses lignes avant et après, et l'annule ou le rétablit lui seul.
+- Le détail sert à savoir ce qu'on va défaire (`ReadableChanges`) : un champ par le libellé du formulaire qui l'édite (zone, config d'outil, champs d'une entrée, réglages, routine), ses valeurs avant et après comme l'app les montre (`FieldValue`), un id par le nom de sa chose ; un réglage composé (liste, groupe, planification) par son libellé seul ; ce qu'aucun formulaire ne montre (la place d'une tuile, ce que l'app écrit sur une entrée) compté, pas montré.
 - Pas de bandeau « annuler » après chaque geste pour l'instant — à l'usage, s'il manque.

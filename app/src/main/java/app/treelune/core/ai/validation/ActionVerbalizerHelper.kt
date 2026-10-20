@@ -32,7 +32,7 @@ object ActionVerbalizerHelper {
      *
      * @param action The DataCommand to verbalize
      * @param context Android context for string resources
-     * @return Human-readable description in substantive form (e.g., "Création de la zone \"Santé\"")
+     * @return Human-readable description in substantive form (e.g., "Création de la zone « Santé »")
      */
     suspend fun verbalizeAction(
         action: DataCommand,

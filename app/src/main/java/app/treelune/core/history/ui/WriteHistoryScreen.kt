@@ -12,6 +12,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -21,7 +22,10 @@ import androidx.compose.ui.platform.LocalContext
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.history.HistoryState
-import app.treelune.core.history.RowChanges
+import app.treelune.core.history.CoveredTable
+import app.treelune.core.history.ReadableChanges
+import app.treelune.core.history.Rows
+import app.treelune.core.fields.FieldValue
 import app.treelune.core.strings.StringsContext
 import app.treelune.core.strings.Strings
 import app.treelune.core.ui.ButtonAction
@@ -35,6 +39,7 @@ import app.treelune.core.ui.UI
 import app.treelune.core.ui.components.ButtonRow
 import app.treelune.core.utils.DateUtils
 import app.treelune.core.utils.FormatUtils
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -227,11 +232,12 @@ private fun StepCard(
     val context = LocalContext.current
     val coordinator = remember { Coordinator(context) }
     val undone = step["state"] == HistoryState.UNDONE
-    var rows by remember(step["id"], version) { mutableStateOf<List<Map<String, Any?>>?>(null) }
+    var rows by remember(step["id"], version) { mutableStateOf<List<ReadRow>?>(null) }
     if (open) LaunchedEffect(step["id"], version) {
         val read = coordinator.processUserAction("history.rows", mapOf("id" to step["id"]))
         @Suppress("UNCHECKED_CAST")
-        rows = if (read.isSuccess) read.data!!["rows"] as List<Map<String, Any?>> else emptyList()
+        val stored = if (read.isSuccess) read.data!!["rows"] as List<Map<String, Any?>> else emptyList()
+        rows = readRows(stored, context)
     }
 
     UI.Card(type = CardType.DEFAULT, size = Size.S) {
@@ -241,7 +247,9 @@ private fun StepCard(
         ) {
             UI.Text((step["phrase"] as? String).orEmpty(), if (undone) TextType.CAPTION else TextType.BODY)
             val who = s.shared("history_origin_${(step["origin"] as String).lowercase()}")
-            val whenText = FormatUtils.formatRelativeTimePast((step["timestamp"] as Number).toLong(), context)
+            // Said again each minute, so that « 21 s ago » does not stay while the screen is open
+            val minute by produceState(0) { while (true) { delay(60_000); value++ } }
+            val whenText = remember(minute, step["timestamp"]) { FormatUtils.formatRelativeTimePast((step["timestamp"] as Number).toLong(), context) }
             UI.Text(listOfNotNull(who, whenText, s.shared("history_state_undone").takeIf { undone }).joinToString(" · "), TextType.CAPTION)
 
             if (open) {
@@ -258,30 +266,89 @@ private fun StepCard(
     }
 }
 
-/** A row a step touched: its kind, and what changed in it, field by field. */
-@Composable
-private fun RowLines(row: Map<String, Any?>, s: StringsContext) {
-    @Suppress("UNCHECKED_CAST")
-    val before = row["before"] as Map<String, Any?>?
-    @Suppress("UNCHECKED_CAST")
-    val after = row["after"] as Map<String, Any?>?
-    val table = s.shared("history_table_${row["table"]}")
-    val kind = when {
-        before == null -> "history_row_created"
-        after == null -> "history_row_deleted"
-        else -> "history_row_changed"
+/** A row a step touched, read: its line (its kind and name), and what changed in it as the user reads it. */
+private data class ReadRow(val title: String, val readable: ReadableChanges.Readable)
+
+/**
+ * The rows of a step as the history keeps them, read for the screen (ReadableChanges). A row
+ * changed shows its fields before and after; a row created or deleted, its line alone — but an
+ * entry alone, whose fields are what was written — and the entries of one tool created or
+ * deleted together, one line counting them: a zone deleted is a few lines, not each of its entries.
+ */
+private suspend fun readRows(stored: List<Map<String, Any?>>, context: android.content.Context): List<ReadRow> {
+    val s = Strings.`for`(context = context)
+    val readable = ReadableChanges(context, app.treelune.core.database.AppDatabase.getDatabase(context))
+    fun json(map: Any?) = (map as? Map<*, *>)?.let { org.json.JSONObject(it) }
+    val all = stored.map { row -> CoveredTable.of(row["table"] as String) to json(row["before"] ?: row["after"])!! }
+    val none = ReadableChanges.Readable(emptyList(), 0)
+
+    // The entries created or deleted, by their tool and what befell them
+    fun entryGroup(row: Map<String, Any?>): Pair<String, Boolean>? {
+        if (row["table"] != CoveredTable.TOOL_DATA.tableName || (row["before"] != null && row["after"] != null)) return null
+        val entry = (row["before"] ?: row["after"]) as Map<*, *>
+        return (entry["tool_instance_id"] as String) to (row["after"] == null)
     }
-    val context = LocalContext.current
-    val named = nameOf(before ?: after!!, context)?.let { s.shared("history_row_named").format(table, it) } ?: table
-    UI.Text(s.shared(kind).format(named), TextType.LABEL)
-    if (before != null && after != null) {
-        RowChanges.of(before, after).forEach { change ->
-            UI.Text(s.shared("history_change").format(
-                change.field,
-                shortened(change.old) ?: s.shared("history_none"),
-                shortened(change.new) ?: s.shared("history_none")
-            ), TextType.CAPTION)
+    val groups = stored.mapNotNull { entryGroup(it) }.groupingBy { it }.eachCount()
+    val counted = mutableSetOf<Pair<String, Boolean>>()
+
+    return stored.mapNotNull { row ->
+        val group = entryGroup(row)
+        val many = group?.let { groups.getValue(it) }?.takeIf { it > 1 }
+        if (group != null && many != null) {
+            if (!counted.add(group)) return@mapNotNull null
+            val (toolId, deleted) = group
+            val tool = all.firstOrNull { (t, r) -> t == CoveredTable.TOOL_INSTANCES && r.optString("id") == toolId }?.second
+                ?: Rows.read(app.treelune.core.database.AppDatabase.getDatabase(context), CoveredTable.TOOL_INSTANCES, toolId)
+            val toolName = tool?.optString("config_json")?.let { runCatching { org.json.JSONObject(it).optString("name") }.getOrNull() }.orEmpty()
+            return@mapNotNull ReadRow(s.shared(if (deleted) "history_entries_deleted" else "history_entries_created").format(many, toolName), none)
         }
+        val before = json(row["before"])
+        val after = json(row["after"])
+        val table = CoveredTable.of(row["table"] as String)
+        val kind = when {
+            before == null -> "history_row_created"
+            after == null -> "history_row_deleted"
+            else -> "history_row_changed"
+        }
+        val tableName = s.shared("history_table_${row["table"]}")
+        @Suppress("UNCHECKED_CAST")
+        val named = nameOf((row["before"] ?: row["after"]) as Map<String, Any?>, context)?.let { s.shared("history_row_named").format(tableName, it) } ?: tableName
+        val shown = before != null && after != null || table == CoveredTable.TOOL_DATA
+        ReadRow(s.shared(kind).format(named), if (shown) readable.of(table, before, after, all) else none)
+    }
+}
+
+/** A row a step touched: its kind, then each field changed by its label, its values before and after as the app shows them. */
+@Composable
+private fun RowLines(row: ReadRow, s: StringsContext) {
+    val context = LocalContext.current
+    UI.Text(row.title, TextType.LABEL)
+    row.readable.lines.forEach { line ->
+        when (line) {
+            is ReadableChanges.Line.Value -> Column(verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
+                UI.Text(line.field.displayName, TextType.BODY)
+                // A row created shows its values alone, a row deleted what it held
+                if (line.old != null || line.new == null) Labelled(s.shared("history_before")) { FieldValue(line.field, line.old, context, oneLine = true) }
+                if (line.new != null || line.old == null) Labelled(s.shared("history_after")) { FieldValue(line.field, line.new, context, oneLine = true) }
+            }
+            is ReadableChanges.Line.Composite -> Column {
+                UI.Text(line.label, TextType.BODY)
+                UI.Text(s.shared("history_composite_changed"), TextType.CAPTION)
+            }
+        }
+    }
+    if (row.readable.internal > 0) UI.Text(
+        if (row.readable.internal == 1) s.shared("history_internal_one") else s.shared("history_internal_many").format(row.readable.internal),
+        TextType.CAPTION
+    )
+}
+
+/** A value under its small label: « Before », « After ». */
+@Composable
+private fun Labelled(label: String, value: @Composable () -> Unit) {
+    Column {
+        UI.Text(label, TextType.CAPTION)
+        value()
     }
 }
 
@@ -290,6 +357,3 @@ private fun nameOf(row: Map<String, Any?>, context: android.content.Context): St
     (row["name"] as? String)?.takeIf { it.isNotBlank() }
         ?: (row["config_json"] as? String)?.let { runCatching { org.json.JSONObject(it).optString("name") }.getOrNull() }?.takeIf { it.isNotBlank() }
         ?: (row["category"] as? String)?.let { app.treelune.core.config.AppSettings.title(it, context) }
-
-/** A value cut to one short line, for a change to read at a glance. */
-private fun shortened(value: String?): String? = value?.let { if (it.length > 80) it.take(79) + "…" else it }

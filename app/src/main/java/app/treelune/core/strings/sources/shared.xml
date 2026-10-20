@@ -193,6 +193,7 @@
     <string name="ai_text_outside_json_notice">Your last answer held text outside the JSON object. It was set aside. Write everything inside the JSON (pre_text, post_text), nothing before or after it, no code block.</string>
     <string name="ai_error_format_text_before_json">Your answer starts with text instead of `{`: "%1$s". Answer again, starting with `{`: nothing before the JSON, no reasoning, no tag.</string>
     <string name="ai_error_format_invalid_json">Your answer is not valid JSON following the AIMessage schema. Answer again with that JSON alone.</string>
+    <string name="ai_error_format_brackets">Your answer is not valid JSON: its braces and brackets stop closing correctly at character %1$d, at the end of this passage: “%2$s”. A `}` or a `]` is probably missing there. Answer again with this JSON fixed, alone.</string>
     <string name="ai_error_format_errors">Format errors in your answer: %1$s. Answer again with them corrected.</string>
     <string name="ai_error_parsing_technical">Technical error while reading your answer: %1$s</string>
     <string name="ai_error_communication_module_invalid">Invalid communication module: %1$s</string>
@@ -217,7 +218,7 @@
     <string name="condition_error_operator">The condition of %1$s: %2$s does not compare %3$s (%4$s). It takes: %5$s.</string>
     <string name="condition_error_types">The condition of %1$s compares %2$s (%3$s) and %4$s (%5$s), which are not of one type.</string>
     <string name="condition_error_value">The condition of %1$s: %2$s is not a value of %3$s, which takes %4$s.</string>
-    <string name="condition_error_option">The condition of %1$s cites \"%2$s\", which is not an option of %3$s (%4$s): add it to the options of its tool first.</string>
+    <string name="condition_error_option">The condition of %1$s cites “%2$s”, which is not an option of %3$s (%4$s): add it to the options of its tool first.</string>
     <string name="condition_error_field">The condition of %1$s names %2$s, which is no field here. Fields: %3$s.</string>
     <string name="condition_error_field_side">The condition of %1$s names the field %2$s, where only a term stands: a written value, a variable or a reading.</string>
     <string name="condition_error_left_field">The condition of %1$s puts a field on its left: {\"field\": …}.</string>
@@ -378,21 +379,21 @@
     <string name="ai_written_entries_unreadable">The values written can no longer be shown: their tool cannot be read</string>
 
     <!-- Action verbalization (substantive form for validation + SystemMessage) -->
-    <string name="action_verbalize_create_zone">Creation of the zone \"%1$s\"</string>
-    <string name="action_verbalize_update_zone">Modification of the zone \"%1$s\"</string>
-    <string name="action_verbalize_delete_zone">Deletion of the zone \"%1$s\"</string>
-    <string name="action_verbalize_mcp_client_access">Modification of the access of the client \"%1$s\"</string>
-    <string name="action_verbalize_mcp_client_delete">Revocation of the client \"%1$s\"</string>
-    <string name="action_verbalize_create_tool">Creation of the tool \"%1$s\" in the zone \"%2$s\"</string>
-    <string name="action_verbalize_update_tool_config">Modification of the configuration of the tool \"%1$s\"</string>
-    <string name="action_verbalize_delete_tool">Deletion of the tool \"%1$s\"</string>
-    <string name="action_verbalize_create_data">Use of the tool \"%1$s\" (zone \"%2$s\"): %3$d entry/entries added</string>
-    <string name="action_verbalize_update_data">Use of the tool \"%1$s\" (zone \"%2$s\"): %3$d entry/entries modified</string>
-    <string name="action_verbalize_start_duration">Use of the tool \"%1$s\" (zone \"%2$s\"): stopwatch started</string>
-    <string name="action_verbalize_stop_duration">Use of the tool \"%1$s\" (zone \"%2$s\"): stopwatch stopped</string>
-    <string name="action_verbalize_delete_data">Use of the tool \"%1$s\" (zone \"%2$s\"): %3$d entry/entries deleted</string>
+    <string name="action_verbalize_create_zone">Creation of the zone “%1$s”</string>
+    <string name="action_verbalize_update_zone">Modification of the zone “%1$s”</string>
+    <string name="action_verbalize_delete_zone">Deletion of the zone “%1$s”</string>
+    <string name="action_verbalize_mcp_client_access">Modification of the access of the client “%1$s”</string>
+    <string name="action_verbalize_mcp_client_delete">Revocation of the client “%1$s”</string>
+    <string name="action_verbalize_create_tool">Creation of the tool “%1$s” in the zone “%2$s”</string>
+    <string name="action_verbalize_update_tool_config">Modification of the configuration of the tool “%1$s”</string>
+    <string name="action_verbalize_delete_tool">Deletion of the tool “%1$s”</string>
+    <string name="action_verbalize_create_data">Use of the tool “%1$s” (zone “%2$s”): %3$d entry/entries added</string>
+    <string name="action_verbalize_update_data">Use of the tool “%1$s” (zone “%2$s”): %3$d entry/entries modified</string>
+    <string name="action_verbalize_start_duration">Use of the tool “%1$s” (zone “%2$s”): stopwatch started</string>
+    <string name="action_verbalize_stop_duration">Use of the tool “%1$s” (zone “%2$s”): stopwatch stopped</string>
+    <string name="action_verbalize_delete_data">Use of the tool “%1$s” (zone “%2$s”): %3$d entry/entries deleted</string>
     <string name="action_verbalize_update_app_config">Change of the settings: %1$s</string>
-    <string name="action_verbalize_schema_get">Retrieval of the schema \"%1$s\"</string>
+    <string name="action_verbalize_schema_get">Retrieval of the schema “%1$s”</string>
     <string name="action_verbalize_schema_list">Retrieval of the list of schemas</string>
     <string name="action_verbalize_unknown">Unknown action</string>
     <string name="action_verbalize_tools_running">Find the running stopwatches in the tools</string>
@@ -590,8 +591,7 @@
     <string name="message_validation_error">Validation error: %1$s</string>
     <string name="message_validation_error_simple">Validation error</string>
     <string name="message_error">Error: %1$s</string>
-    <string name="message_irreversible_action">This action cannot be undone.</string>
-    <string name="message_delete_zone_confirmation">Delete the zone \"%1$s\"?</string>
+    <string name="message_delete_zone_confirmation">Delete the zone “%1$s”?</string>
     <string name="message_no_zones_created">No zone created</string>
     <string name="message_available_tool_types">Available tool types</string>
     <string name="message_no_tools_in_zone">No tool in this zone</string>
@@ -614,8 +614,8 @@
 
     <!-- Confirmation messages -->
     <string name="confirm_action">Confirm this action?</string>
-    <string name="tools_delete_confirm">Delete the tool « %1$s » and all its entries?</string>
-    <string name="confirm_delete">Do you really want to delete this item? This action cannot be undone.</string>
+    <string name="tools_delete_confirm">Delete the tool “%1$s” and all its entries?</string>
+    <string name="confirm_delete">Do you really want to delete this item?</string>
     <string name="confirm_reset">Do you want to reset the configuration? The current data will be lost.</string>
 
     <!-- The one date input (InstantPicker) and its period -->
@@ -1302,7 +1302,7 @@
     <string name="field_type_numeric_description">Numeric value with a unit and optional constraints</string>
     <string name="field_type_scale_display_name">Scale</string>
     <string name="field_scale_value">%1$s (%2$s to %3$s)</string>
-    <string name="field_scale_value_with_labels">%1$s (%2$s to %3$s - \"%4$s\" to \"%5$s\")</string>
+    <string name="field_scale_value_with_labels">%1$s (%2$s to %3$s - “%4$s” to “%5$s”)</string>
     <string name="field_type_scale_description">Graduated scale between two values with labels</string>
     <string name="field_type_choice_display_name">Choice</string>
     <string name="field_type_choice_description">Single or multiple choice among predefined options</string>
@@ -1699,7 +1699,7 @@
     <string name="automation_updated_success">Routine updated</string>
     <string name="automation_deleted_success">Routine deleted</string>
     <string name="automation_delete_confirm_title">Delete the routine?</string>
-    <string name="automation_delete_confirm_message">This action cannot be undone. The routine and its SEED session will be deleted for good.</string>
+    <string name="automation_delete_confirm_message">The routine and its message will be deleted.</string>
     <string name="error_param_seed_session_required">SEED session ID required</string>
     <string name="error_param_zone_id_required">Zone ID required</string>
     <string name="error_param_icon_required">Icon required</string>
@@ -1877,6 +1877,32 @@
     <string name="ai_data_fields_all">all</string>
     <string name="ai_data_no_results_warning">No entry matches these criteria.</string>
     <string name="ai_data_user_summary">'%1$s': %2$d entries read</string>
+    <string name="ai_read_user_schema">Schema read</string>
+    <string name="ai_read_user_schema_of">'%1$s': schema read</string>
+    <string name="ai_read_user_tool_config">'%1$s': configuration read</string>
+    <string name="ai_read_user_tools">All tools read</string>
+    <string name="ai_read_user_tools_of">'%1$s': tools read</string>
+    <string name="ai_read_user_zone_config">Zone '%1$s': configuration read</string>
+    <string name="ai_read_user_zones">Zones read</string>
+    <string name="ai_read_user_variables">Variables read</string>
+    <string name="ai_read_user_variables_of">'%1$s': variables read</string>
+    <string name="ai_read_user_reading">'%1$s': value read</string>
+    <string name="ai_read_user_routine">Routine '%1$s' read</string>
+    <string name="ai_read_user_routines">All routines read</string>
+    <string name="ai_read_user_routines_of">'%1$s': routines read</string>
+    <string name="ai_read_user_runs_of">'%1$s': runs read</string>
+    <string name="ai_read_user_run">A run read</string>
+    <string name="ai_read_user_file">File read</string>
+    <string name="ai_read_user_images">%1$d image(s) shown</string>
+    <string name="ai_read_user_import_plan">File read for the import</string>
+    <string name="ai_read_user_datetime">Date and time read</string>
+    <string name="ai_read_user_settings">Settings read</string>
+    <string name="ai_read_user_icons">Icons read</string>
+    <string name="ai_read_user_identities">Identities read</string>
+    <string name="ai_read_user_identity">'%1$s': identity read</string>
+    <string name="ai_read_user_identity_resource">'%1$s': resource read</string>
+    <string name="ai_read_user_history">History read</string>
+    <string name="ai_read_user_history_of">'%1$s': history read</string>
 
     <!-- AI Enrichment - POINTER inline summaries -->
     <string name="ai_enrichment_pointer_zone">Zone</string>
@@ -2282,12 +2308,12 @@
     <string name="identity_saved">Saved</string>
 
     <!-- The history of writes (docs/design/undo-history.md) -->
-    <string name="history_error_step_not_found">Step of the history not found: %1$s</string>
+    <string name="history_error_step_not_found">Change not found in the history: %1$s</string>
     <string name="history_error_not_a_step">What the app writes by itself is not undone</string>
-    <string name="history_error_already_undone">This step is already undone</string>
-    <string name="history_error_not_undone">This step is not undone</string>
-    <string name="history_refused_undo">This step can no longer be undone:</string>
-    <string name="history_refused_redo">This step can no longer be redone:</string>
+    <string name="history_error_already_undone">This change is already undone</string>
+    <string name="history_error_not_undone">This change is not undone</string>
+    <string name="history_refused_undo">This change can no longer be undone:</string>
+    <string name="history_refused_redo">This change can no longer be redone:</string>
     <string name="history_refused_changed">what it wrote has changed since.</string>
     <string name="history_refused_changed_by_app">the app changed what it wrote, on %1$s.</string>
     <string name="history_refused_changed_by_step">“%1$s” changed what it wrote, on %2$s.</string>
@@ -2311,8 +2337,13 @@
     <string name="history_row_created">%1$s, created</string>
     <string name="history_row_deleted">%1$s, deleted</string>
     <string name="history_row_changed">%1$s, changed</string>
-    <string name="history_change">%1$s: %2$s → %3$s</string>
-    <string name="history_none">nothing</string>
+    <string name="history_entries_created">Created: %1$d entries of “%2$s”</string>
+    <string name="history_entries_deleted">Deleted: %1$d entries of “%2$s”</string>
+    <string name="history_before">Before</string>
+    <string name="history_after">After</string>
+    <string name="history_composite_changed">Contents changed</string>
+    <string name="history_internal_one">And 1 internal change</string>
+    <string name="history_internal_many">And %1$d internal changes</string>
     <string name="history_row_named">%1$s “%2$s”</string>
     <string name="history_table_zones">Zone</string>
     <string name="history_table_tool_instances">Tool</string>

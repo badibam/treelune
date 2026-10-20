@@ -193,6 +193,7 @@
     <string name="ai_text_outside_json_notice">Ta dernière réponse contenait du texte hors de l\'objet JSON. Il a été ignoré. Écris tout dans le JSON (pre_text, post_text), rien avant ni après, sans bloc de code.</string>
     <string name="ai_error_format_text_before_json">Ta réponse commence par du texte au lieu de `{` : « %1$s ». Réponds à nouveau en commençant par `{` : rien avant le JSON, ni raisonnement, ni balise.</string>
     <string name="ai_error_format_invalid_json">Ta réponse n\'est pas un JSON valide selon le schéma AIMessage. Réponds à nouveau avec ce JSON seul.</string>
+    <string name="ai_error_format_brackets">Ta réponse n\'est pas un JSON valide : ses accolades et crochets ne se ferment plus correctement au caractère %1$d, à la fin de ce passage : « %2$s ». Il y manque sans doute une `}` ou un `]`. Réponds à nouveau avec ce JSON corrigé, seul.</string>
     <string name="ai_error_format_errors">Erreurs de format dans ta réponse : %1$s. Réponds à nouveau en les corrigeant.</string>
     <string name="ai_error_parsing_technical">Erreur technique à la lecture de ta réponse : %1$s</string>
     <string name="ai_error_communication_module_invalid">Module de communication invalide : %1$s</string>
@@ -378,21 +379,21 @@
     <string name="ai_written_entries_unreadable">Les valeurs écrites ne peuvent plus s\'afficher : leur outil est illisible</string>
 
     <!-- Action verbalization (substantive form for validation + SystemMessage) -->
-    <string name="action_verbalize_create_zone">Création de la zone \"%1$s\"</string>
-    <string name="action_verbalize_update_zone">Modification de la zone \"%1$s\"</string>
-    <string name="action_verbalize_delete_zone">Suppression de la zone \"%1$s\"</string>
-    <string name="action_verbalize_mcp_client_access">Modification des accès du client \"%1$s\"</string>
-    <string name="action_verbalize_mcp_client_delete">Révocation du client \"%1$s\"</string>
-    <string name="action_verbalize_create_tool">Création de l\'outil \"%1$s\" dans la zone \"%2$s\"</string>
-    <string name="action_verbalize_update_tool_config">Modification de la configuration de l\'outil \"%1$s\"</string>
-    <string name="action_verbalize_delete_tool">Suppression de l\'outil \"%1$s\"</string>
-    <string name="action_verbalize_create_data">Utilisation de l\'outil \"%1$s\" (zone \"%2$s\") : ajout de %3$d entrée(s)</string>
-    <string name="action_verbalize_update_data">Utilisation de l\'outil \"%1$s\" (zone \"%2$s\") : modification de %3$d entrée(s)</string>
-    <string name="action_verbalize_start_duration">Utilisation de l\'outil \"%1$s\" (zone \"%2$s\") : chronomètre démarré</string>
-    <string name="action_verbalize_stop_duration">Utilisation de l\'outil \"%1$s\" (zone \"%2$s\") : chronomètre arrêté</string>
-    <string name="action_verbalize_delete_data">Utilisation de l\'outil \"%1$s\" (zone \"%2$s\") : suppression de %3$d entrée(s)</string>
+    <string name="action_verbalize_create_zone">Création de la zone « %1$s »</string>
+    <string name="action_verbalize_update_zone">Modification de la zone « %1$s »</string>
+    <string name="action_verbalize_delete_zone">Suppression de la zone « %1$s »</string>
+    <string name="action_verbalize_mcp_client_access">Modification des accès du client « %1$s »</string>
+    <string name="action_verbalize_mcp_client_delete">Révocation du client « %1$s »</string>
+    <string name="action_verbalize_create_tool">Création de l\'outil « %1$s » dans la zone « %2$s »</string>
+    <string name="action_verbalize_update_tool_config">Modification de la configuration de l\'outil « %1$s »</string>
+    <string name="action_verbalize_delete_tool">Suppression de l\'outil « %1$s »</string>
+    <string name="action_verbalize_create_data">Utilisation de l\'outil « %1$s » (zone « %2$s ») : ajout de %3$d entrée(s)</string>
+    <string name="action_verbalize_update_data">Utilisation de l\'outil « %1$s » (zone « %2$s ») : modification de %3$d entrée(s)</string>
+    <string name="action_verbalize_start_duration">Utilisation de l\'outil « %1$s » (zone « %2$s ») : chronomètre démarré</string>
+    <string name="action_verbalize_stop_duration">Utilisation de l\'outil « %1$s » (zone « %2$s ») : chronomètre arrêté</string>
+    <string name="action_verbalize_delete_data">Utilisation de l\'outil « %1$s » (zone « %2$s ») : suppression de %3$d entrée(s)</string>
     <string name="action_verbalize_update_app_config">Modification des réglages : %1$s</string>
-    <string name="action_verbalize_schema_get">Récupération du schéma \"%1$s\"</string>
+    <string name="action_verbalize_schema_get">Récupération du schéma « %1$s »</string>
     <string name="action_verbalize_schema_list">Récupération de la liste des schémas</string>
     <string name="action_verbalize_unknown">Action inconnue</string>
     <string name="action_verbalize_tools_running">Recherche des chronomètres en cours dans les outils</string>
@@ -590,7 +591,6 @@
     <string name="message_validation_error">Erreur de validation: %1$s</string>
     <string name="message_validation_error_simple">Erreur de validation</string>
     <string name="message_error">Erreur: %1$s</string>
-    <string name="message_irreversible_action">Cette action est irréversible.</string>
     <string name="message_delete_zone_confirmation">Supprimer la zone "%1$s" ?</string>
     <string name="message_no_zones_created">Aucune zone créée</string>
     <string name="message_available_tool_types">Types d'outils disponibles</string>
@@ -615,7 +615,7 @@
     <!-- Confirmation messages -->
     <string name="confirm_action">Confirmer cette action ?</string>
     <string name="tools_delete_confirm">Supprimer l\'outil « %1$s » et toutes ses entrées ?</string>
-    <string name="confirm_delete">Veux-tu vraiment supprimer cet élément ? Cette action est irréversible.</string>
+    <string name="confirm_delete">Veux-tu vraiment supprimer cet élément ?</string>
     <string name="confirm_reset">Veux-tu réinitialiser la configuration ? Les données actuelles seront perdues.</string>
 
     <!-- The one date input (InstantPicker) and its period -->
@@ -1302,7 +1302,7 @@
     <string name="field_type_numeric_description">Valeur numérique avec unité et contraintes optionnelles</string>
     <string name="field_type_scale_display_name">Échelle</string>
     <string name="field_scale_value">%1$s (%2$s à %3$s)</string>
-    <string name="field_scale_value_with_labels">%1$s (%2$s à %3$s - \"%4$s\" à \"%5$s\")</string>
+    <string name="field_scale_value_with_labels">%1$s (%2$s à %3$s - « %4$s » à « %5$s »)</string>
     <string name="field_type_scale_description">Échelle graduée entre deux valeurs avec labels</string>
     <string name="field_type_choice_display_name">Choix</string>
     <string name="field_type_choice_description">Choix unique ou multiple parmi des options prédéfinies</string>
@@ -1699,7 +1699,7 @@
     <string name="automation_updated_success">Routine mise à jour</string>
     <string name="automation_deleted_success">Routine supprimée</string>
     <string name="automation_delete_confirm_title">Supprimer la routine ?</string>
-    <string name="automation_delete_confirm_message">Cette action est irréversible. La routine et sa session SEED seront définitivement supprimées.</string>
+    <string name="automation_delete_confirm_message">La routine et son message seront supprimés.</string>
     <string name="error_param_seed_session_required">ID session SEED requis</string>
     <string name="error_param_zone_id_required">ID zone requis</string>
     <string name="error_param_icon_required">Icône requise</string>
@@ -1877,6 +1877,32 @@
     <string name="ai_data_fields_all">tous</string>
     <string name="ai_data_no_results_warning">Aucune entrée ne répond à ces critères.</string>
     <string name="ai_data_user_summary">« %1$s » : %2$d entrée(s) lue(s)</string>
+    <string name="ai_read_user_schema">Schéma lu</string>
+    <string name="ai_read_user_schema_of">« %1$s » : schéma lu</string>
+    <string name="ai_read_user_tool_config">« %1$s » : configuration lue</string>
+    <string name="ai_read_user_tools">Tous les outils lus</string>
+    <string name="ai_read_user_tools_of">« %1$s » : outils lus</string>
+    <string name="ai_read_user_zone_config">Zone « %1$s » : configuration lue</string>
+    <string name="ai_read_user_zones">Zones lues</string>
+    <string name="ai_read_user_variables">Variables lues</string>
+    <string name="ai_read_user_variables_of">« %1$s » : variables lues</string>
+    <string name="ai_read_user_reading">« %1$s » : valeur lue</string>
+    <string name="ai_read_user_routine">Routine « %1$s » lue</string>
+    <string name="ai_read_user_routines">Toutes les routines lues</string>
+    <string name="ai_read_user_routines_of">« %1$s » : routines lues</string>
+    <string name="ai_read_user_runs_of">« %1$s » : exécutions lues</string>
+    <string name="ai_read_user_run">Une exécution lue</string>
+    <string name="ai_read_user_file">Fichier lu</string>
+    <string name="ai_read_user_images">%1$d image(s) montrée(s)</string>
+    <string name="ai_read_user_import_plan">Fichier lu pour l\'import</string>
+    <string name="ai_read_user_datetime">Date et heure lues</string>
+    <string name="ai_read_user_settings">Réglages lus</string>
+    <string name="ai_read_user_icons">Icônes lues</string>
+    <string name="ai_read_user_identities">Identités lues</string>
+    <string name="ai_read_user_identity">« %1$s » : identité lue</string>
+    <string name="ai_read_user_identity_resource">« %1$s » : ressource lue</string>
+    <string name="ai_read_user_history">Historique lu</string>
+    <string name="ai_read_user_history_of">« %1$s » : historique lu</string>
 
     <!-- AI Enrichment - POINTER inline summaries -->
     <string name="ai_enrichment_pointer_zone">Zone</string>
@@ -2282,12 +2308,12 @@
     <string name="identity_saved">Enregistré</string>
 
     <!-- L'historique des écritures (docs/design/undo-history.md) -->
-    <string name="history_error_step_not_found">Pas de l'historique introuvable : %1$s</string>
+    <string name="history_error_step_not_found">Changement introuvable dans l'historique : %1$s</string>
     <string name="history_error_not_a_step">Ce que l'app écrit d'elle-même ne s'annule pas</string>
-    <string name="history_error_already_undone">Ce pas est déjà annulé</string>
-    <string name="history_error_not_undone">Ce pas n'est pas annulé</string>
-    <string name="history_refused_undo">Ce pas ne s'annule plus :</string>
-    <string name="history_refused_redo">Ce pas ne se rétablit plus :</string>
+    <string name="history_error_already_undone">Ce changement est déjà annulé</string>
+    <string name="history_error_not_undone">Ce changement n'est pas annulé</string>
+    <string name="history_refused_undo">Ce changement ne s'annule plus :</string>
+    <string name="history_refused_redo">Ce changement ne se rétablit plus :</string>
     <string name="history_refused_changed">ce qu'il a écrit a changé depuis.</string>
     <string name="history_refused_changed_by_app">l'app a changé ce qu'il a écrit, le %1$s.</string>
     <string name="history_refused_changed_by_step">« %1$s » a changé ce qu'il a écrit, le %2$s.</string>
@@ -2308,11 +2334,16 @@
     <string name="history_origin_user">Toi</string>
     <string name="history_origin_ai">L'IA</string>
     <string name="history_origin_external">Un client du connecteur</string>
-    <string name="history_row_created">%1$s, créé</string>
-    <string name="history_row_deleted">%1$s, supprimé</string>
-    <string name="history_row_changed">%1$s, modifié</string>
-    <string name="history_change">%1$s : %2$s → %3$s</string>
-    <string name="history_none">rien</string>
+    <string name="history_row_created">Création : %1$s</string>
+    <string name="history_row_deleted">Suppression : %1$s</string>
+    <string name="history_row_changed">Modification : %1$s</string>
+    <string name="history_entries_created">Création : %1$d entrées de « %2$s »</string>
+    <string name="history_entries_deleted">Suppression : %1$d entrées de « %2$s »</string>
+    <string name="history_before">Avant</string>
+    <string name="history_after">Après</string>
+    <string name="history_composite_changed">Contenu changé</string>
+    <string name="history_internal_one">Et 1 changement interne</string>
+    <string name="history_internal_many">Et %1$d changements internes</string>
     <string name="history_row_named">%1$s « %2$s »</string>
     <string name="history_table_zones">Zone</string>
     <string name="history_table_tool_instances">Outil</string>
