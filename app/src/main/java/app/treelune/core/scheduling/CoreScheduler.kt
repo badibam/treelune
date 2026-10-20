@@ -95,7 +95,7 @@ object CoreScheduler {
      * 2. Tool scheduling (discovery via ToolTypeManager)
      * 3. The automatic backup (AutoBackup), after the history of writes is pruned to its depth (HistoryDepth)
      *
-     * Nothing while the demo is being written (DemoService.writing).
+     * Nothing while the app writes a whole set, the demo or an imported part (SchedulersHeld).
      *
      * Error handling: Each component logs errors independently,
      * one failure doesn't block others.
@@ -103,9 +103,9 @@ object CoreScheduler {
     suspend fun tick() = kotlinx.coroutines.withContext(app.treelune.core.coordinator.Origin(app.treelune.core.coordinator.Source.SCHEDULER)) {
         // Everything a tick starts is the scheduler's, unless it is the AI's (processAICommand)
 
-        // The demo being written, nothing is acted on: the next tick finds it whole
-        if (app.treelune.core.demo.DemoService.writing) {
-            LogManager.service("CoreScheduler: tick skipped, the demo is being written", "INFO")
+        // A set being written, nothing is acted on: the next tick finds it whole
+        if (SchedulersHeld.held) {
+            LogManager.service("CoreScheduler: tick skipped, a set is being written", "INFO")
             return@withContext
         }
 
@@ -169,13 +169,13 @@ object CoreScheduler {
      * Runs the scheduler of the tool type [tooltype] now, as the scheduler, rather than at the
      * next tick, then sets the alarm again: a tool's config just created or changed is acted on
      * at once (ToolInstanceService), a schedule given its first occurrences. Nothing for a tool
-     * type without a scheduler, nor while the demo is being written. [appContext] is given, the scheduler's own not being set yet
+     * type without a scheduler, nor while a set is being written (SchedulersHeld). [appContext] is given, the scheduler's own not being set yet
      * where no tick ran.
      */
     suspend fun runTool(appContext: Context, tooltype: String) {
         val scheduler = ToolTypeManager.getToolType(tooltype)?.getScheduler() ?: return
-        // The demo's tools are acted on at the first tick after it is written whole (tick)
-        if (app.treelune.core.demo.DemoService.writing) return
+        // The tools of a set being written are acted on at the first tick after it is whole (tick)
+        if (SchedulersHeld.held) return
         kotlinx.coroutines.withContext(app.treelune.core.coordinator.Origin(app.treelune.core.coordinator.Source.SCHEDULER)) {
             try {
                 scheduler.checkScheduled(appContext)

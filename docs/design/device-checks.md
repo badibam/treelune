@@ -526,3 +526,14 @@ Vu le 2026-10-20 sur la démo : la tuile et la page de Ripasso ; la fenêtre de 
 - Un outil en création n'a pas le bouton ; une sous-page de la config non plus.
 - Au chat : « exporte mes repas de cette semaine en CSV » : l'IA lance `EXPORT_DATA` sans demander d'accord ; sa carte dit l'export de Repas, le fichier et le nombre d'entrées, avec « Partager » qui ouvre le menu d'Android.
 - Une routine dont le message demande l'export de la semaine : le fichier paraît dans le dossier à chaque exécution, sans écraser le précédent.
+
+## Partager une partie de l'app (branche post-release, `docs/design/share.md`)
+
+- Réglages › Données › Exporter… sans dossier de l'app : l'écran demande d'en choisir un ; choisi, la sauvegarde automatique est allumée, comme depuis Réglages › Données.
+- Exporter, Une partie : cocher une zone coche tout ce qu'elle tient, son compte passe à « N éléments sur N » ; décocher un outil laisse la zone cochée ; cocher un outil d'une zone décochée coche la zone. L'interrupteur « Ses N entrées » n'apparaît que sous un outil coché qui en a.
+- Un graphique coché sans l'outil qu'il trace : la phrase sous lui dit quoi cocher, « Créer le fichier » reste inactif avec « 1 lien à régler » ; l'outil coché, tout s'efface. Une routine cochée : ses phrases préviennent, sans bloquer.
+- Le fichier écrit : la fenêtre dit son nom (celui de la zone, ou treelune_partage) et ses comptes, Partager ouvre le menu de partage avec le zip. Exporter, Tout : même chose, sous treelune_sauvegarde.
+- Importer… sur ce fichier : tout coché, entrées comprises, sans le choix « Tout restaurer ». Une zone dans « Une zone existante » : celle du même nom en tête de liste. Une variable dont le nom est pris dit son nouveau nom ; un outil Messages ou Agenda dit qu'il peut envoyer des notifications.
+- Importer : la fenêtre dit les zones créées, les éléments et les entrées ; tout est là, une routine éteinte sans fournisseur ; Réglages › Historique montre un seul pas, et l'annuler retire tout.
+- Importer… sur une sauvegarde complète : rien coché, le choix « Reprendre une partie » / « Tout restaurer » en tête ; Tout restaurer cache les cases, dit ce qui est remplacé, demande confirmation, puis l'app redémarre sur la sauvegarde.
+- Un fichier de partage reçu d'un autre téléphone (par le menu de partage, enregistré dans Téléchargements) s'importe de même, ses images d'entrées comprises.

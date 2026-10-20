@@ -68,6 +68,19 @@ sealed class Place {
         override fun parent() = Settings
     }
 
+    /** The export of a part of the app or of the whole, from the data's settings page. */
+    object Export : Place() {
+        override val kind = "export"
+        override fun parent() = SettingsPage("data")
+    }
+
+    /** The import of a part of the backup file at [uri], chosen from the data's settings page. */
+    data class Import(val uri: String) : Place() {
+        override val kind = "import"
+        override val parameters get() = listOf(uri)
+        override fun parent() = SettingsPage("data")
+    }
+
     /** The choice of a new AI provider's kind, from the providers' settings page. */
     object AIProviderKind : Place() {
         override val kind = "ai_provider_kind"
@@ -189,6 +202,8 @@ sealed class Place {
                 "home" -> Home
                 "home_config" -> HomeConfig
                 "settings" -> p(1)?.let { SettingsPage(it) } ?: Settings
+                "export" -> Export
+                "import" -> Import(r(1))
                 "identity" -> Identity(r(1))
                 "ai_provider_kind" -> AIProviderKind
                 "ai_provider" -> AIProvider(p(1), p(2), p(3))

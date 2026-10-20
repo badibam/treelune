@@ -13,7 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import app.treelune.core.utils.DateUtils
+import app.treelune.core.ui.exports.folderOf
 import app.treelune.core.commands.CommandStatus
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.strings.Strings
@@ -23,9 +23,9 @@ import java.util.*
 
 /**
  * Restart the application
- * Used after import/reset to reload all data with clean state
+ * Used after a restore or a reset to reload all data with clean state
  */
-private fun restartApp(context: android.content.Context) {
+fun restartApp(context: android.content.Context) {
     val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
     intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
     context.startActivity(intent)
@@ -36,8 +36,10 @@ private fun restartApp(context: android.content.Context) {
  * Data Management Settings Screen - Backup & Restore
  *
  * Features:
- * - Export: Generate JSON backup via SAF document creation
- * - Import: Read JSON from SAF document picker with confirmation
+ * - The automatic backup: the app's folder, on or off
+ * - Export: opens the export's screen (ExportScreen), a part or the whole app
+ * - Import: the file chosen opened on the import's screen (ImportScreen), a part taken back or
+ *   the whole app restored
  * - Reset: Wipe all data with confirmation
  *
  * Architecture:
@@ -57,47 +59,13 @@ fun DataSettingsScreen(
     // UI states
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    var showImportConfirm by rememberSaveable { mutableStateOf(false) }
     var showResetConfirm by rememberSaveable { mutableStateOf(false) }
-    var pendingImportUri by rememberSaveable { mutableStateOf<android.net.Uri?>(null) }
 
     // Toast for errors
     LaunchedEffect(errorMessage) {
         errorMessage?.let { error ->
             Toast.makeText(context, error, Toast.LENGTH_LONG).show()
             errorMessage = null
-        }
-    }
-
-    // SAF launcher for export (create document)
-    val exportLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("application/zip")
-    ) { uri ->
-        uri?.let {
-            isLoading = true
-            scope.launch {
-                try {
-                    // The service writes the zip into the chosen file itself: its images are copied
-                    // there file by file, never held in memory
-                    val result = coordinator.processUserAction(
-                        "backup.export",
-                        mapOf("uri" to uri.toString())
-                    )
-
-                    if (result.status == CommandStatus.SUCCESS) {
-                        // Images whose file was missing went without it: said, not hidden
-                        val missing = (result.data?.get("missing_images") as? Number)?.toInt() ?: 0
-                        if (missing == 0) Toast.makeText(context, s.shared("backup_export_success"), Toast.LENGTH_SHORT).show()
-                        else Toast.makeText(context, s.shared("backup_export_success_missing_images").format(missing), Toast.LENGTH_LONG).show()
-                    } else {
-                        errorMessage = result.error ?: s.shared("backup_export_failed")
-                    }
-                } catch (e: Exception) {
-                    errorMessage = "${s.shared("backup_export_failed")}: ${e.message}"
-                } finally {
-                    isLoading = false
-                }
-            }
         }
     }
 
@@ -113,55 +81,20 @@ fun DataSettingsScreen(
             }
         } catch (e: Exception) { errorMessage = e.message; null }
     }
-    /** The data settings with [folder] and [on], the others as they are (the history's depth), then read again. */
-    fun saveAuto(folder: android.net.Uri?, on: Boolean) = scope.launch {
-        val category = app.treelune.core.database.entities.AppSettingCategories.DATA
-        val read = coordinator.processUserAction("app_config.get", mapOf("category" to category))
-        if (read.status != CommandStatus.SUCCESS) {
-            errorMessage = read.error
-            return@launch
-        }
-        @Suppress("UNCHECKED_CAST")
-        val settings = (read.data!!["settings"] as Map<String, Any?>).toMutableMap().apply {
-            if (folder != null) put(app.treelune.core.config.AppSettings.DATA_FOLDER, folder.toString()) else remove(app.treelune.core.config.AppSettings.DATA_FOLDER)
-            put(app.treelune.core.config.AppSettings.DATA_AUTO_BACKUP, on)
-        }
-        val result = coordinator.processUserAction("app_config.set", mapOf("category" to category, "settings" to settings))
-        if (result.status != CommandStatus.SUCCESS) errorMessage = result.error
+    /** The app's folder kept, the automatic backup switched [on], then read again. */
+    fun saveAuto(folder: android.net.Uri, on: Boolean) = scope.launch {
+        app.treelune.core.exports.AppFolder.save(context, folder, on)?.let { errorMessage = it }
         autoRead++
     }
-    val folderOf: (app.treelune.core.backup.AutoBackup.State?) -> android.net.Uri? = { state ->
-        when (state) {
-            is app.treelune.core.backup.AutoBackup.State.Ready -> state.folder
-            is app.treelune.core.backup.AutoBackup.State.Lost -> state.folder
-            is app.treelune.core.backup.AutoBackup.State.Off -> state.folder
-            else -> null
-        }
-    }
-    // A folder chosen once: Android gives the app a lasting right to write in it, the one before given back
-    val folderLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
-        uri ?: return@rememberLauncherForActivityResult
-        val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-        try {
-            context.contentResolver.takePersistableUriPermission(uri, flags)
-        } catch (e: SecurityException) {
-            errorMessage = s.shared("auto_backup_folder_refused")
-            return@rememberLauncherForActivityResult
-        }
-        folderOf(autoState)?.takeIf { it != uri }?.let { old ->
-            try { context.contentResolver.releasePersistableUriPermission(old, flags) } catch (_: SecurityException) {}
-        }
-        saveAuto(uri, autoState !is app.treelune.core.backup.AutoBackup.State.Off)
+    // A folder chosen once: Android gives the app a lasting right to write in it
+    val chooseFolder = app.treelune.core.ui.exports.rememberAppFolderPicker(autoState) { refused ->
+        refused?.let { errorMessage = it }
+        autoRead++
     }
 
-    // SAF launcher for import (pick document)
-    val importLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
-    ) { uri ->
-        uri?.let {
-            pendingImportUri = uri
-            showImportConfirm = true
-        }
+    // The file a part is taken from, then the import's screen on it
+    val partLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let { app.treelune.core.navigation.Navigator.push(app.treelune.core.navigation.Place.Import(it.toString())) }
     }
 
     // Layout
@@ -231,14 +164,14 @@ fun DataSettingsScreen(
                     type = if (folder == null || state is app.treelune.core.backup.AutoBackup.State.Lost) ButtonType.PRIMARY else ButtonType.DEFAULT,
                     size = Size.M,
                     state = if (state == null) ComponentState.DISABLED else ComponentState.NORMAL,
-                    onClick = { folderLauncher.launch(folder) }
+                    onClick = chooseFolder
                 ) {
                     UI.Text(text = s.shared(if (folder == null) "auto_backup_choose_folder" else "auto_backup_change_folder"), type = TextType.BODY)
                 }
             }
         }
 
-        // Export button
+        // Export: a part to share, or the whole app
         UI.Card(type = CardType.DEFAULT) {
             Column(
                 modifier = Modifier
@@ -246,29 +179,20 @@ fun DataSettingsScreen(
                     .padding(UI.Space.L),
                 verticalArrangement = Arrangement.spacedBy(UI.Space.S)
             ) {
-                UI.Text(
-                    text = s.shared("backup_export"),
-                    type = TextType.SUBTITLE
-                )
+                UI.Text(text = s.shared("share_export_title"), type = TextType.SUBTITLE)
+                UI.Text(text = s.shared("share_export_card"), type = TextType.CAPTION)
                 UI.Button(
                     type = ButtonType.PRIMARY,
                     size = Size.M,
                     state = if (isLoading) ComponentState.DISABLED else ComponentState.NORMAL,
-                    onClick = {
-                        val timestamp = DateUtils.format(System.currentTimeMillis(), "yyyyMMdd_HHmmss")
-                        val version = app.treelune.BuildConfig.VERSION_NAME
-                        exportLauncher.launch("treelune_backup_${timestamp}_v$version.zip")
-                    }
+                    onClick = { app.treelune.core.navigation.Navigator.push(app.treelune.core.navigation.Place.Export) }
                 ) {
-                    UI.Text(
-                        text = s.shared("backup_export"),
-                        type = TextType.BODY
-                    )
+                    UI.Text(text = s.shared("share_export_open"), type = TextType.BODY)
                 }
             }
         }
 
-        // Import button
+        // Import: a part of a file added to what there is, or a whole backup restored
         UI.Card(type = CardType.DEFAULT) {
             Column(
                 modifier = Modifier
@@ -276,22 +200,15 @@ fun DataSettingsScreen(
                     .padding(UI.Space.L),
                 verticalArrangement = Arrangement.spacedBy(UI.Space.S)
             ) {
-                UI.Text(
-                    text = s.shared("backup_import"),
-                    type = TextType.SUBTITLE
-                )
+                UI.Text(text = s.shared("share_import_title"), type = TextType.SUBTITLE)
+                UI.Text(text = s.shared("share_import_card"), type = TextType.CAPTION)
                 UI.Button(
                     type = ButtonType.PRIMARY,
                     size = Size.M,
                     state = if (isLoading) ComponentState.DISABLED else ComponentState.NORMAL,
-                    onClick = {
-                        importLauncher.launch(arrayOf("application/zip", "application/json"))
-                    }
+                    onClick = { partLauncher.launch(arrayOf("application/zip", "application/json")) }
                 ) {
-                    UI.Text(
-                        text = s.shared("backup_import"),
-                        type = TextType.BODY
-                    )
+                    UI.Text(text = s.shared("share_import_open"), type = TextType.BODY)
                 }
             }
         }
@@ -323,51 +240,6 @@ fun DataSettingsScreen(
                 }
             }
         }
-    }
-
-    // Import confirmation dialog
-    if (showImportConfirm) {
-        UI.ConfirmDialog(
-            title = s.shared("backup_import"),
-            message = s.shared("backup_import_confirm"),
-            confirmText = s.shared("action_confirm"),
-            cancelText = s.shared("action_cancel"),
-            onConfirm = {
-                showImportConfirm = false
-                pendingImportUri?.let { uri ->
-                    isLoading = true
-                    scope.launch {
-                        try {
-                            // The service reads the chosen file itself: a zip, or an older .json
-                            val result = coordinator.processUserAction(
-                                "backup.import",
-                                mapOf("uri" to uri.toString())
-                            )
-
-                            if (result.status == CommandStatus.SUCCESS) {
-                                Toast.makeText(
-                                    context,
-                                    s.shared("backup_import_success"),
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                // Restart app with clean state
-                                restartApp(context)
-                            } else {
-                                errorMessage = result.error ?: s.shared("backup_import_failed")
-                            }
-                        } catch (e: Exception) {
-                            errorMessage = "${s.shared("backup_import_failed")}: ${e.message}"
-                        } finally {
-                            isLoading = false
-                        }
-                    }
-                }
-            },
-            onDismiss = {
-                showImportConfirm = false
-                pendingImportUri = null
-            }
-        )
     }
 
     // Reset confirmation dialog

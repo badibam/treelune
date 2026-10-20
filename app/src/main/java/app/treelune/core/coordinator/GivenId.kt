@@ -2,14 +2,25 @@ package app.treelune.core.coordinator
 
 import app.treelune.core.demo.DemoContent
 import org.json.JSONObject
+import kotlin.coroutines.AbstractCoroutineContextElement
+import kotlin.coroutines.CoroutineContext
 
 /**
- * The id a create may be given instead of making one: only by the app
- * itself (Source.SYSTEM) and only with the demo's prefix, so that the demo is written through the
- * services as everything else is, under ids its reinstall finds again. Neither the AI nor a
- * screen chooses an id: from them, an id sent is refused.
+ * The id a create may be given instead of making one: only by the app itself (Source.SYSTEM), and
+ * only with the demo's prefix, so that the demo is written through the services as everything
+ * else is, under ids its reinstall finds again; or one of the ids an import has just made for
+ * what it brings ([Made]), so that what arrives names itself under its new ids from the start.
+ * Neither the AI nor a screen chooses an id: from them, an id sent is refused.
  */
 object GivenId {
+
+    /**
+     * The ids made by the import running, carried by its coroutine: each new, never one of the
+     * app's, so that giving one creates and never overwrites.
+     */
+    class Made(val ids: Set<String>) : AbstractCoroutineContextElement(Key) {
+        companion object Key : CoroutineContext.Key<Made>
+    }
 
     sealed interface Read {
         /** No id given: the service makes one. */
@@ -22,7 +33,9 @@ object GivenId {
     /** The id under "id" in [params], read against the origin of the operation running. */
     suspend fun read(params: JSONObject): Read {
         val id = params.optString("id").takeIf { it.isNotEmpty() } ?: return Read.None
-        return if (isAccepted(id, currentOrigin())) Read.Accepted(id) else Read.Refused(id)
+        val origin = currentOrigin()
+        val made = origin == Source.SYSTEM && kotlin.coroutines.coroutineContext[Made]?.ids?.contains(id) == true
+        return if (made || isAccepted(id, origin)) Read.Accepted(id) else Read.Refused(id)
     }
 
     /** Whether [id] may be given by a caller of [origin]. */

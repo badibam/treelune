@@ -495,11 +495,14 @@ object PromptManager {
         val lines = mask.grants.map { grant ->
             val id = grant.target.id!!
             val level = s.shared("ai_prompt_access_level_${grant.level.key}")
+            // A zone or a tool deleted since stays listed (nothing removes it): it reaches nothing,
+            // and the list holding it is not empty, so it does not open everything either
             if (grant.target.kind == app.treelune.core.selection.ReferenceKind.ZONE)
-                s.shared("ai_prompt_access_zone").format(database.zoneDao().getZoneById(id)?.name ?: id, id, level)
+                database.zoneDao().getZoneById(id)?.let { s.shared("ai_prompt_access_zone").format(it.name, id, level) }
+                    ?: s.shared("ai_prompt_access_zone_deleted").format(id)
             else
-                s.shared("ai_prompt_access_tool").format(
-                    database.toolInstanceDao().getToolInstanceById(id)?.let { org.json.JSONObject(it.config_json).optString("name") } ?: id, id, level)
+                database.toolInstanceDao().getToolInstanceById(id)?.let { s.shared("ai_prompt_access_tool").format(org.json.JSONObject(it.config_json).optString("name"), id, level) }
+                    ?: s.shared("ai_prompt_access_tool_deleted").format(id)
         }
         return s.shared("ai_prompt_access_intro") + "\n" + lines.joinToString("\n") + "\n\n" + s.shared("ai_prompt_access_always_sent")
     }

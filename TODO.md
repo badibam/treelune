@@ -8,10 +8,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 - La 0.9.0 taguée sur un arbre propre, ses notes de version validées, la mise à jour depuis la dernière version publiée passée sur le téléphone avec ses données.
 - La recette F-Droid sur `v0.8.1` essayée dans le conteneur (`docs/design/fdroid-compliance.md`), son APK comparé à celui de GitHub (`apksigcopier compare`) — podman à installer.
 
-## Juste après la release
-
-- Partager une partie de l'app, et reprendre une partie d'une sauvegarde (`docs/design/share.md`).
-
 ## Bugs du téléphone
 
 
