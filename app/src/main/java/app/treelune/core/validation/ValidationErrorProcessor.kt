@@ -1,8 +1,7 @@
 package app.treelune.core.validation
 
-import android.content.Context
-import app.treelune.R
 import com.networknt.schema.ValidationMessage
+import org.json.JSONObject
 import app.treelune.core.utils.LogManager
 
 /**
@@ -14,10 +13,9 @@ object ValidationErrorProcessor {
     /**
      * Filters and formats validation errors into readable string with error prioritization
      * Filters base schema errors when conditional schemas are present
-     * @param context Android context for string resource access
-     * @param schemaProvider Optional SchemaProvider for field name translation
+     * Each field is named by its label, read in [schema] (replaceFieldNameInMessage).
      */
-    fun filterErrors(errors: Set<ValidationMessage>, schema: String, context: Context, schemaProvider: SchemaProvider? = null): String {
+    fun filterErrors(errors: Set<ValidationMessage>, schema: String): String {
         if (errors.isEmpty()) return ""
         
         // Filter out base schema errors if conditional schemas are present
@@ -26,10 +24,9 @@ object ValidationErrorProcessor {
         // Group remaining errors by path and prioritize
         val errorsByPath = filteredErrors.groupBy { it.path }
         
-        return errorsByPath.map { (path, pathErrors) ->
-            val prioritizedError = selectMostRelevantError(pathErrors)
-            val translatedMessage = replaceFieldNameInMessage(prioritizedError, schemaProvider, context)
-            translatedMessage
+        val schemaJson = JSONObject(schema)
+        return errorsByPath.map { (_, pathErrors) ->
+            replaceFieldNameInMessage(selectMostRelevantError(pathErrors), schemaJson)
         }.joinToString("\n")
     }
     
@@ -139,49 +136,35 @@ object ValidationErrorProcessor {
     }
     
     /**
-     * Replaces $.fieldname references in error messages with translated field names
-     * Examples:
-     * - "$.name is required but missing" -> "Name is required but missing"
-     * - "$.value.quantity: must be a number" -> "Quantity: must be a number"
-     * - "$.items[2].default_quantity is invalid" -> "Default quantity is invalid"
+     * Replaces each $.path in a refusal by the label of the field it points to, the title its
+     * schema carries (FieldValueSchema.forReader): "$.name: must be at most 60 characters long"
+     * reads "Name: must be at most 60 characters long", "$.extra.kcal" the label of the user's
+     * field. A path whose schema has no title is named by its last key, never shown as a path.
      */
-    private fun replaceFieldNameInMessage(errorMessage: String, schemaProvider: SchemaProvider?, context: Context): String {
-        if (schemaProvider == null) return errorMessage
-        
-        // Find all $.fieldname patterns in the message
-        val fieldPathRegex = Regex("""\$\.([a-zA-Z_][a-zA-Z0-9_]*(?:\[[0-9]+\])?(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*(?:\[[0-9]+\])?)""")
-        
-        var translatedMessage = errorMessage
-        
-        fieldPathRegex.findAll(errorMessage).forEach { match ->
-            val fullPath = match.value // e.g., "$.value.quantity"
-            val fieldPath = match.groupValues[1] // e.g., "value.quantity"
-            
-            // DEBUG: Log field replacement process
-            LogManager.schema("Field replace: fullPath='$fullPath', fieldPath='$fieldPath'")
-            
-            // Get the actual field name (last component)
-            val fieldName = when {
-                fieldPath.contains(".") -> {
-                    // Get last part after final dot: "value.quantity" -> "quantity"
-                    fieldPath.substringAfterLast(".")
-                }
-                else -> {
-                    // Direct field: "fieldname" -> "fieldname"
-                    fieldPath
-                }
+    private fun replaceFieldNameInMessage(errorMessage: String, schema: JSONObject): String {
+        val fieldPathRegex = Regex("""\$((?:\.[a-zA-Z_][a-zA-Z0-9_]*|\[[0-9]+\])+)""")
+        val stepRegex = Regex("""\.([a-zA-Z_][a-zA-Z0-9_]*)|\[[0-9]+\]""")
+        return fieldPathRegex.replace(errorMessage) { match ->
+            val steps = stepRegex.findAll(match.groupValues[1]).toList()
+            var node: JSONObject? = schema
+            steps.forEach { step ->
+                node = node?.let { if (step.value.startsWith("[")) it.optJSONObject("items") else propertyOf(it, step.groupValues[1]) }
             }
-            
-            LogManager.schema("Field replace: extracted fieldName='$fieldName'")
-            
-            val translatedName = schemaProvider.getFormFieldName(fieldName, context)
-            LogManager.schema("Field replace: translated to='$translatedName'")
-            
-            // Replace the full $.path with just the translated name
-            translatedMessage = translatedMessage.replace(fullPath, translatedName)
+            node?.optString("title")?.takeIf { it.isNotBlank() }
+                ?: steps.last { !it.value.startsWith("[") }.groupValues[1]
         }
-        
-        return translatedMessage
+    }
+
+    /**
+     * The schema of [key] under [schema]: among its properties, or those of a branch it combines
+     * (allOf, anyOf, oneOf, then, else), where a conditional schema declares some of its fields.
+     */
+    private fun propertyOf(schema: JSONObject, key: String): JSONObject? {
+        schema.optJSONObject("properties")?.optJSONObject(key)?.let { return it }
+        val branches = listOf("allOf", "anyOf", "oneOf").flatMap { name ->
+            schema.optJSONArray(name)?.let { array -> (0 until array.length()).mapNotNull { array.optJSONObject(it) } } ?: emptyList()
+        } + listOfNotNull(schema.optJSONObject("then"), schema.optJSONObject("else"))
+        return branches.firstNotNullOfOrNull { propertyOf(it, key) }
     }
     
     /**
