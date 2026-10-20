@@ -3,7 +3,6 @@ package app.treelune.tools.journal
 import android.content.Context
 import androidx.compose.runtime.Composable
 import app.treelune.core.tools.ToolTypeContract
-import app.treelune.core.tools.BaseSchemas
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.database.entities.ToolDataEntity
 import app.treelune.core.strings.Strings
@@ -44,15 +43,6 @@ object JournalToolType : ToolTypeContract {
 
 
     override fun getDefaultShowFieldLabels(): Boolean = true
-
-    override fun getFormFieldName(fieldName: String, context: Context): String {
-        val s = Strings.`for`(tool = "journal", context = context)
-        return when (fieldName) {
-            "content" -> s.tool("field_content")
-            "sort_order" -> s.tool("field_sort_order")
-            else -> BaseSchemas.getCommonFieldName(fieldName, context) ?: fieldName
-        }
-    }
 
     /** A journal's own setting: in which order its entries are shown. */
     override fun getConfigSettings(context: Context): List<app.treelune.core.fields.settings.SettingNode> {

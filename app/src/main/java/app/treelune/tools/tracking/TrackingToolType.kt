@@ -17,7 +17,6 @@ import app.treelune.core.validation.Schema
 import app.treelune.core.validation.SchemaCategory
 import app.treelune.core.validation.SchemaProvider
 import app.treelune.core.validation.FieldLimits
-import app.treelune.core.tools.BaseSchemas
 import app.treelune.tools.tracking.ui.TrackingScreen
 import app.treelune.core.fields.CoreFieldUsage
 import app.treelune.core.fields.EntryFields
@@ -200,31 +199,6 @@ object TrackingToolType : ToolTypeContract {
     }
     
     
-    /**
-     * Get user-friendly field name for display
-     * @param fieldName The technical field name (e.g., "quantity", "name")
-     * @param context Android context for string resource access
-     * @return User-friendly field name for display (e.g., "Quantity", "Name")
-     */
-    override fun getFormFieldName(fieldName: String, context: Context): String {
-
-        val s = Strings.`for`(tool = "tracking", context = context)
-
-        // Try common fields for all tooltypes first
-        val commonFieldName = BaseSchemas.getCommonFieldName(fieldName, context)
-        if (commonFieldName != null) return commonFieldName
-
-        // Then tracking-specific fields
-        return when(fieldName) {
-            "type" -> s.tool("field_type")
-            "value" -> s.tool("field_value")
-            "unit" -> s.tool("field_unit")
-            "units" -> s.tool("field_units")
-            "items" -> s.tool("field_items")
-            else -> s.tool("field_unknown")
-        }
-    }
-
     /**
      * The config keys that say how to read a tracking entry: the kind of value (type), its
      * settings (value: a scale's bounds, a choice's options...), the units a numeric value can

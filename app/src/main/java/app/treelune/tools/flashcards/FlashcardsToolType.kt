@@ -23,7 +23,6 @@ import app.treelune.core.fields.settings.labelOf
 import app.treelune.core.selection.ReferenceKind
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.strings.Strings
-import app.treelune.core.tools.BaseSchemas
 import app.treelune.core.tools.EntryToOpen
 import app.treelune.core.tools.ToolOperation
 import app.treelune.core.tools.ToolTile
@@ -59,15 +58,6 @@ object FlashcardsToolType : ToolTypeContract {
     override fun getDefaultShowFieldLabels(): Boolean = false
     override fun getDefaultIconName(): String = "layers"
     override fun getSuggestedIcons(): List<String> = listOf("layers", "languages", "brain", "graduation-cap", "book-open-check", "repeat")
-
-    override fun getFormFieldName(fieldName: String, context: Context): String =
-        getConfigSettings(context).labelOf(fieldName)
-            ?: when (fieldName) {
-                FlashcardsJournal.SOURCE_ENTRY, FlashcardsJournal.DIRECTION, FlashcardsJournal.RATING,
-                FlashcardsJournal.STABILITY, FlashcardsJournal.DIFFICULTY, FlashcardsJournal.DUE, FlashcardsJournal.FSRS_VERSION -> s(context).tool("field_$fieldName")
-                else -> null
-            }
-            ?: BaseSchemas.getCommonFieldName(fieldName, context) ?: fieldName
 
     /** Its reviews are written by the app alone, from what the user does in a session: no fields of the user's. */
     override fun takesUserFields(): Boolean = false

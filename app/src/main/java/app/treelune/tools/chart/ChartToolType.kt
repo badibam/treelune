@@ -15,7 +15,6 @@ import app.treelune.core.services.ExecutableService
 import app.treelune.core.strings.Strings
 import app.treelune.core.terms.Term
 import app.treelune.core.themes.TagColor
-import app.treelune.core.tools.BaseSchemas
 import app.treelune.core.tools.ToolTypeContract
 import app.treelune.tools.chart.ui.ChartScreen
 import app.treelune.tools.chart.ui.rememberChartTile
@@ -47,9 +46,6 @@ object ChartToolType : ToolTypeContract {
     override fun getDefaultShowFieldLabels(): Boolean = true
     override fun getDefaultIconName(): String = "chart-line"
     override fun getSuggestedIcons(): List<String> = listOf("chart-line", "chart-column", "chart-pie", "chart-area", "chart-scatter", "trending-up")
-
-    override fun getFormFieldName(fieldName: String, context: Context): String =
-        getConfigSettings(context).labelOf(fieldName) ?: BaseSchemas.getCommonFieldName(fieldName, context) ?: fieldName
 
     override fun keepsEntries(): Boolean = false
 
