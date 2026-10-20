@@ -48,6 +48,31 @@ class ConditionValues(private val sources: ConfigConditions.Sources, private val
         }
     }
 
+    /**
+     * [config], declared by [nodes], with its conditions' stored values in the form the model
+     * writes them: the way back of [toStored], on a config the AI reads. A duration faced is
+     * ISO 8601 ("PT7H"), an instant an ISO 8601 date-time; a relative date stays as it is.
+     */
+    suspend fun toModel(nodes: List<SettingNode>, config: JSONObject): JSONObject {
+        val check = ConditionCheck(sources, text)
+        return ConfigConditions(sources).map(nodes, config) { found ->
+            val field = check.compared(found)?.takeIf { it.type == FieldType.DURATION || it.type == FieldType.DATETIME }
+                ?: return@map found.condition
+            val shown = Conditions.withValues(found.condition) { forModel(field, JsonUtils.toValue(it)) }
+            shown.optJSONObject(Conditions.LEFT)?.takeIf { it.has(Conditions.CONSTANT) && !it.isNull(Conditions.CONSTANT) }?.let { left ->
+                shown.put(Conditions.LEFT, JSONObject().put(Conditions.CONSTANT, forModel(field, JsonUtils.toValue(left.get(Conditions.CONSTANT)))))
+            }
+            shown
+        }
+    }
+
+    /** A stored [value] facing [field], a DURATION or a DATETIME, as the model writes it. */
+    private fun forModel(field: FieldDefinition, value: Any?): Any? = when {
+        value !is Number -> value
+        field.type == FieldType.DATETIME -> DateTimeConverter.timestampToISO(value.toLong(), zone)
+        else -> ModelValues.toModel(value, FieldValueSchema.of(field), zone)
+    }
+
     /** [value] facing [field], a DURATION or a DATETIME, in its stored form. */
     private fun stored(label: String, field: FieldDefinition, value: Any?): Any? = when {
         value == null -> null
