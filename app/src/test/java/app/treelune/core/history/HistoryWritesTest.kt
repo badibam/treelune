@@ -107,6 +107,22 @@ class HistoryWritesTest {
     }
 
     @Test
+    fun `the demo installed is one step, its removal another that keeps what it deletes`() = runBlocking {
+        val installed = coordinator.processUserAction("demo.install", emptyMap())
+        assertTrue(installed.error, installed.isSuccess)
+        val install = steps().filter { it.isStep }.single()
+        assertTrue(database.historyDao().getRows(install.id).any { it.tableName == "zones" })
+
+        val removed = coordinator.processUserAction("demo.remove", emptyMap())
+        assertTrue(removed.error, removed.isSuccess)
+        val removal = steps().filter { it.isStep }.last()
+        val rows = database.historyDao().getRows(removal.id)
+        assertTrue("its zones kept", rows.any { it.tableName == "zones" && it.after == null && it.before != null })
+        assertTrue("its routines' messages kept", rows.any { it.tableName == "session_messages" && it.after == null })
+        assertTrue("the home screen's groups in the same step", rows.any { it.tableName == "app_settings_categories" })
+    }
+
+    @Test
     fun `an operation that writes nothing leaves no step`() = runBlocking {
         val read = coordinator.processUserAction("zones.list", emptyMap())
         assertTrue(read.error, read.isSuccess)

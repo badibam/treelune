@@ -138,15 +138,30 @@ class Writes(private val context: Context) {
 
     suspend fun deleteImage(id: String) = delete(CoveredTable.IMAGES, id) { database.imageDao().delete(id) }
 
+    // ── A selection ──
+
+    /**
+     * Deletes from [tableName] each row whose id [query] selects (its first column), each kept
+     * with what goes along with it: the demo's removal (DemoRemoval).
+     */
+    suspend fun deleteSelected(tableName: String, query: String) = database.transaction {
+        val table = CoveredTable.of(tableName)
+        val ids = database.useWriterConnection { connection ->
+            connection.usePrepared(query) { statement -> buildList { while (statement.step()) add(statement.getText(0)) } }
+        }
+        ids.forEach { id -> delete(table, id) { Rows.delete(database, table, id) } }
+    }
+
     // ── The door ──
 
     /** A row of [table] whose id is [id] written by [block], which creates, changes or deletes that row alone. */
     private suspend fun write(table: CoveredTable, id: String, block: suspend () -> Unit) = database.transaction {
         val before = Rows.read(database, table, id)
-        val placeBefore = before?.let { place(table, it) }
+        val whereBefore = before?.let { where(table, it) }
         block()
         val after = Rows.read(database, table, id)
-        record(listOf(Touched(table, id, before, after, placeBefore ?: after?.let { place(table, it) })))
+        val where = whereBefore ?: after?.let { where(table, it) } ?: return@transaction
+        record(listOf(Touched(table, id, before, after, where)))
     }
 
     /** The row of [table] whose id is [id] deleted by [block], with all that SQLite deletes along with it. */
@@ -156,11 +171,19 @@ class Writes(private val context: Context) {
         record(gone)
     }
 
-    /** One row a write touched: its copies before and after, and the tool and zone it concerns. */
-    private data class Touched(val table: CoveredTable, val id: String, val before: JSONObject?, val after: JSONObject?, val place: Place?)
+    /** One row a write touched: its copies before and after, and where it stands (Where). */
+    private data class Touched(val table: CoveredTable, val id: String, val before: JSONObject?, val after: JSONObject?, val where: Where)
 
     /** The tool and the zone a row concerns, for the history of one of them. */
     private data class Place(val toolInstanceId: String?, val zoneId: String?)
+
+    /**
+     * What a row's parents say of it, read while they are in the database — before a deletion,
+     * which takes them along: the tool and zone it concerns, and whether the history keeps it.
+     */
+    private data class Where(val place: Place?, val covered: Boolean)
+
+    private suspend fun where(table: CoveredTable, row: JSONObject) = Where(place(table, row), covers(table, row))
 
     /**
      * The row of [table] whose id is [id] and everything that hangs from it by cascade, parents
@@ -168,21 +191,21 @@ class Writes(private val context: Context) {
      */
     private suspend fun descent(table: CoveredTable, id: String): List<Touched> {
         val row = Rows.read(database, table, id) ?: return emptyList()
-        return listOf(Touched(table, id, row, null, place(table, row))) + childrenOf(table, row)
+        return listOf(Touched(table, id, row, null, where(table, row))) + childrenOf(table, row)
     }
 
     private suspend fun childrenOf(table: CoveredTable, row: JSONObject): List<Touched> =
         table.children.flatMap { (childTable, column) ->
             val child = CoveredTable.of(childTable)
             Rows.read(database, child, column, row.getString(table.idColumn)).flatMap { childRow ->
-                listOf(Touched(child, childRow.getString(child.idColumn), childRow, null, place(child, childRow))) + childrenOf(child, childRow)
+                listOf(Touched(child, childRow.getString(child.idColumn), childRow, null, where(child, childRow))) + childrenOf(child, childRow)
             }
         }
 
     /** Keeps in the step running what [touched] changed of what the history keeps. */
     private suspend fun record(touched: List<Touched>) {
         val changed = touched.mapNotNull { t ->
-            if (!covers(t)) return@mapNotNull null
+            if (!t.where.covered) return@mapNotNull null
             val parts = kept.of(t.table, (t.after ?: t.before)!!)
             val unchanged = t.before != null && t.after != null &&
                 kept.same(kept.without(t.before, parts), kept.without(t.after, parts))
@@ -214,8 +237,8 @@ class Writes(private val context: Context) {
                     s.bindText(1, step.id)
                     s.bindText(2, t.table.tableName)
                     s.bindText(3, t.id)
-                    t.place?.toolInstanceId?.let { s.bindText(4, it) } ?: s.bindNull(4)
-                    t.place?.zoneId?.let { s.bindText(5, it) } ?: s.bindNull(5)
+                    t.where.place?.toolInstanceId?.let { s.bindText(4, it) } ?: s.bindNull(4)
+                    t.where.place?.zoneId?.let { s.bindText(5, it) } ?: s.bindNull(5)
                     before?.let { s.bindText(6, it) } ?: s.bindNull(6)
                     after?.let { s.bindText(7, it) } ?: s.bindNull(7)
                     s.bindLong(8, size)
@@ -233,12 +256,11 @@ class Writes(private val context: Context) {
         if (t.table == CoveredTable.IMAGES) (t.before ?: t.after)!!.optLong("size_bytes", 0) else 0
 
     /**
-     * Whether the history keeps [t]: every covered row but a conversation's — a session that is
-     * not a routine's message, its messages, its images — and the Guide's progress.
+     * Whether the history keeps [row] of [table]: every covered row but a conversation's — a
+     * session that is not a routine's message, its messages, its images — and the Guide's progress.
      */
-    private suspend fun covers(t: Touched): Boolean {
-        val row = (t.after ?: t.before)!!
-        return when (t.table) {
+    private suspend fun covers(table: CoveredTable, row: JSONObject): Boolean {
+        return when (table) {
             CoveredTable.AI_SESSIONS -> row.optString("type") == SEED
             CoveredTable.SESSION_MESSAGES -> isSeed(row.getString("session_id"))
             CoveredTable.IMAGES -> row.isNull("session_id") || isSeed(row.getString("session_id"))
