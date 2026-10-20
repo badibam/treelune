@@ -1103,16 +1103,14 @@
 
     <!-- BACKUP SYSTEM - Backup and restore operations -->
     <string name="settings_backup">Backup &amp; reset</string>
-    <string name="backup_import">Import a backup file</string>
     <string name="backup_reset">Reset all the data</string>
-    <string name="backup_import_confirm">All the current data will be overwritten, and the history emptied: nothing from before can be undone. To keep the current data, export it first (Export all the data). Continue?</string>
+    <string name="backup_import_confirm">All the current data will be replaced by the backup\'s, settings, AI providers and conversations included. The history will be emptied, and nothing from before can be undone. To keep the current data, export it first with Export… and Everything. Continue?</string>
     <string name="backup_reset_confirm">All the data will be deleted for good, its history with it. Continue?</string>
     <string name="backup_import_success">Import succeeded, restarting...</string>
     <string name="backup_reset_success">Reset succeeded, restarting...</string>
     <string name="backup_version_too_recent">This file comes from a more recent version of the application</string>
     <string name="backup_invalid_file">Invalid backup file</string>
     <string name="backup_import_image_missing">The backup names image %1$s but does not hold its file, and did not have it missing at the export: the backup is damaged, nothing was imported.</string>
-    <string name="backup_import_failed">Import failed</string>
     <string name="backup_reset_failed">Reset failed</string>
 
     <!-- AI PROVIDERS - Provider management -->
@@ -1530,8 +1528,12 @@
     <string name="share_written_missing_images">%1$d images were already missing on the phone, and the file goes without them.</string>
     <string name="share_import_title">Import</string>
     <string name="share_import_open">Import…</string>
-    <string name="share_import_card">A part of a file, added to what you have.</string>
+    <string name="share_import_card">Take a part of a file back, or restore the whole app from a backup.</string>
     <string name="share_import_part_help">What you tick is added to what you have. Nothing is replaced.</string>
+    <string name="share_import_mode">What the import does</string>
+    <string name="share_import_part_mode">Take a part back</string>
+    <string name="share_import_restore_mode">Restore everything</string>
+    <string name="share_import_restore_help">Everything the app holds is replaced by the backup: the zones and their data, the settings, the AI providers and the conversations. The app restarts afterwards.</string>
     <string name="share_import_into">Arrives in</string>
     <string name="share_import_new_zone">A new zone</string>
     <string name="share_import_existing_zone">An existing zone</string>

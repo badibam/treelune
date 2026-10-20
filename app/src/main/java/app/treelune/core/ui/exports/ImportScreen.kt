@@ -61,7 +61,9 @@ private val ArrivalsSaver: Saver<Map<String, String>, String> = Saver(
 )
 
 /**
- * The import of a part of the file at [uri] (docs/design/share.md, « Les écrans »): the same boxes
+ * The import of the file at [uri] (docs/design/share.md, « Les écrans »). A whole backup offers
+ * to take a part back, the default, or to restore everything, which replaces the whole app after
+ * a confirmation and restarts it; a share only offers a part. A part is taken with the same boxes
  * as the export's, a share ticked whole, a whole backup not at all; each zone ticked goes into a
  * new zone or into one of the app's, one of the same name first in the list. Under an element,
  * how it will arrive: a variable whose name is taken under another, a tool that may send
@@ -82,6 +84,9 @@ fun ImportScreen(uri: String, onBack: () -> Unit) {
     var opened by rememberSaveable { mutableStateOf(listOf<String>()) }
     var running by remember { mutableStateOf(false) }
     var imported by remember { mutableStateOf<Imported?>(null) }
+    // A whole backup may also restore everything, which a part never does
+    var restore by rememberSaveable { mutableStateOf(false) }
+    var confirmRestore by remember { mutableStateOf(false) }
 
     LaunchedEffect(uri) {
         fileName = withContext(Dispatchers.IO) {
@@ -126,7 +131,26 @@ fun ImportScreen(uri: String, onBack: () -> Unit) {
             readError != null -> Column(modifier = Modifier.padding(horizontal = UI.Space.L)) { UI.Text(readError!!, TextType.ERROR) }
             shown == null || chosen == null -> UI.LoadingIndicator()
             else -> {
-                Column(modifier = Modifier.padding(horizontal = UI.Space.L)) { UI.Text(s.shared("share_import_part_help"), TextType.CAPTION) }
+                Column(modifier = Modifier.padding(horizontal = UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+                    if (!shown.partial) UI.BooleanField(
+                        label = s.shared("share_import_mode"),
+                        value = !restore,
+                        onValueChange = { restore = !it },
+                        trueLabel = s.shared("share_import_part_mode"),
+                        falseLabel = s.shared("share_import_restore_mode")
+                    )
+                    UI.Text(s.shared(if (restore) "share_import_restore_help" else "share_import_part_help"), if (restore) TextType.WARNING else TextType.CAPTION)
+                }
+                if (restore) {
+                    Column(modifier = Modifier.padding(horizontal = UI.Space.L)) {
+                        UI.FormActions {
+                            UI.Button(type = ButtonType.DANGER, size = Size.M, state = if (running) ComponentState.DISABLED else ComponentState.NORMAL, onClick = { confirmRestore = true }) {
+                                UI.Text(s.shared(if (running) "message_loading" else "share_import_restore_mode"), TextType.BODY)
+                            }
+                        }
+                    }
+                    return@Column
+                }
 
                 // The variables ticked, under the name each arrives with
                 val variables = shown.tree.elements.filter { it.kind == PartElement.Kind.VARIABLE && it.id in chosen.variables }
@@ -176,6 +200,30 @@ fun ImportScreen(uri: String, onBack: () -> Unit) {
                 }
             }
         }
+    }
+
+    if (confirmRestore) {
+        UI.ConfirmDialog(
+            title = s.shared("share_import_restore_mode"),
+            message = s.shared("backup_import_confirm"),
+            confirmText = s.shared("action_confirm"),
+            cancelText = s.shared("action_cancel"),
+            onConfirm = {
+                confirmRestore = false
+                running = true
+                scope.launch {
+                    // The service reads the file itself: a zip, or an older .json
+                    val result = Coordinator(context).processUserAction("backup.import", mapOf("uri" to uri))
+                    running = false
+                    if (result.isSuccess) {
+                        UI.Toast(context, s.shared("backup_import_success"))
+                        // Every screen reads the restored data from a clean start
+                        app.treelune.core.ui.screens.settings.restartApp(context)
+                    } else UI.Toast(context, result.error ?: "", app.treelune.core.ui.Duration.LONG)
+                }
+            },
+            onDismiss = { confirmRestore = false }
+        )
     }
 
     imported?.let { done ->

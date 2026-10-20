@@ -110,14 +110,14 @@ Pour un modèle, la cible part sans ses entrées et arrive vide. Ainsi un fichie
 
 ## Implémentation
 
-Le découpage, un commit chacun ; les cinq premiers sont faits (`BackupPart`, `PartSelection`, `AppFolder`, `backup.export` avec `selection` ; `PartLinks` ; `PartImport`, `backup.import_part` ; `ExportScreen`, `PartTree`, `backup.tree` ; `ImportScreen`).
+Le découpage, un commit chacun ; tous sont faits (`BackupPart`, `PartSelection`, `AppFolder`, `backup.export` avec `selection` ; `PartLinks` ; `PartImport`, `backup.import_part` ; `ExportScreen`, `PartTree`, `backup.tree` ; `ImportScreen`, Tout restaurer compris). Reste le passage sur le téléphone, section « Partager une partie de l'app » de `device-checks.md` ; vue, cette conception s'élague, ses garanties étant dans `BackupPartTest`, `PartLinksTest`, `PartTreeTest` et `PartImportTest`.
 
 1. La sauvegarde partielle côté service — fait.
 2. Le contrôle des liens : les deux familles sur une sélection, le service refusant aussi une sélection qui garde un lien bloquant ; des tests — fait.
 3. L'import partiel (`backup.import_part`) : une sélection et la zone d'arrivée de chaque zone, tout par les services ordinaires dans l'ordre des dépendances (comme `DemoService.build`), un seul pas de l'historique — fait.
 4. L'écran Exporter : l'arbre de cases lu d'une sauvegarde complète de l'app (`build()`), la même fonction qui lira le fichier à l'import — fait.
 5. L'écran Importer, reprendre une partie — fait.
-6. Tout restaurer devenu un choix de l'import, les anciens boutons et leurs textes retirés ; `docs/DATA.md`, le Guide s'il cite Réglages › Données, une section de la recette.
+6. Tout restaurer devenu un choix de l'import, les anciens boutons et leurs textes retirés ; `docs/DATA.md`, le Guide s'il cite Réglages › Données, une section de la recette — fait.
 
 Décidé en séance :
 

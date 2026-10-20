@@ -1103,16 +1103,14 @@
 
     <!-- BACKUP SYSTEM - Backup and restore operations -->
     <string name="settings_backup">Sauvegarde &amp; Réinitialisation</string>
-    <string name="backup_import">Importer un fichier de sauvegarde</string>
     <string name="backup_reset">Réinitialiser toutes les données</string>
-    <string name="backup_import_confirm">Toutes les données actuelles seront écrasées, et l'historique vidé : plus rien d'avant ne pourra être annulé. Pour garder les données actuelles, exporte-les d'abord (Exporter toutes les données). Continuer ?</string>
+    <string name="backup_import_confirm">Toutes les données actuelles seront remplacées par celles de la sauvegarde, réglages, fournisseurs d\'IA et conversations compris. L\'historique sera vidé, et plus rien d\'avant ne pourra être annulé. Pour garder les données actuelles, exporte-les d\'abord avec Exporter… et Tout. Continuer ?</string>
     <string name="backup_reset_confirm">Toutes les données seront définitivement supprimées, leur historique avec. Continuer ?</string>
     <string name="backup_import_success">Import réussi, redémarrage...</string>
     <string name="backup_reset_success">Réinitialisation réussie, redémarrage...</string>
     <string name="backup_version_too_recent">Ce fichier provient d\'une version plus récente de l\'application</string>
     <string name="backup_invalid_file">Fichier de sauvegarde invalide</string>
     <string name="backup_import_image_missing">La sauvegarde nomme l\'image %1$s sans en contenir le fichier, qui ne manquait pas à l\'export : la sauvegarde est abîmée, rien n\'a été importé.</string>
-    <string name="backup_import_failed">Échec de l\'import</string>
     <string name="backup_reset_failed">Échec de la réinitialisation</string>
 
     <!-- AI PROVIDERS - Provider management -->
@@ -1530,8 +1528,12 @@
     <string name="share_written_missing_images">%1$d images manquaient déjà sur le téléphone, et le fichier part sans elles.</string>
     <string name="share_import_title">Importer</string>
     <string name="share_import_open">Importer…</string>
-    <string name="share_import_card">Une partie d\'un fichier, ajoutée à ce que tu as.</string>
+    <string name="share_import_card">Reprends une partie d\'un fichier, ou restaure toute l\'app depuis une sauvegarde.</string>
     <string name="share_import_part_help">Ce que tu coches s\'ajoute à ce que tu as. Rien n\'est remplacé.</string>
+    <string name="share_import_mode">Ce que fait l\'import</string>
+    <string name="share_import_part_mode">Reprendre une partie</string>
+    <string name="share_import_restore_mode">Tout restaurer</string>
+    <string name="share_import_restore_help">Tout ce que l\'app contient est remplacé par la sauvegarde : les zones et leurs données, les réglages, les fournisseurs d\'IA et les conversations. L\'app redémarre ensuite.</string>
     <string name="share_import_into">Arrive dans</string>
     <string name="share_import_new_zone">Une nouvelle zone</string>
     <string name="share_import_existing_zone">Une zone existante</string>

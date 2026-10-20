@@ -23,9 +23,9 @@ import java.util.*
 
 /**
  * Restart the application
- * Used after import/reset to reload all data with clean state
+ * Used after a restore or a reset to reload all data with clean state
  */
-private fun restartApp(context: android.content.Context) {
+fun restartApp(context: android.content.Context) {
     val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
     intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
     context.startActivity(intent)
@@ -38,7 +38,8 @@ private fun restartApp(context: android.content.Context) {
  * Features:
  * - The automatic backup: the app's folder, on or off
  * - Export: opens the export's screen (ExportScreen), a part or the whole app
- * - Import: Read JSON from SAF document picker with confirmation
+ * - Import: the file chosen opened on the import's screen (ImportScreen), a part taken back or
+ *   the whole app restored
  * - Reset: Wipe all data with confirmation
  *
  * Architecture:
@@ -58,9 +59,7 @@ fun DataSettingsScreen(
     // UI states
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    var showImportConfirm by rememberSaveable { mutableStateOf(false) }
     var showResetConfirm by rememberSaveable { mutableStateOf(false) }
-    var pendingImportUri by rememberSaveable { mutableStateOf<android.net.Uri?>(null) }
 
     // Toast for errors
     LaunchedEffect(errorMessage) {
@@ -96,16 +95,6 @@ fun DataSettingsScreen(
     // The file a part is taken from, then the import's screen on it
     val partLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let { app.treelune.core.navigation.Navigator.push(app.treelune.core.navigation.Place.Import(it.toString())) }
-    }
-
-    // SAF launcher for import (pick document)
-    val importLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
-    ) { uri ->
-        uri?.let {
-            pendingImportUri = uri
-            showImportConfirm = true
-        }
     }
 
     // Layout
@@ -203,7 +192,7 @@ fun DataSettingsScreen(
             }
         }
 
-        // Import: a part of a file, added to what there is
+        // Import: a part of a file added to what there is, or a whole backup restored
         UI.Card(type = CardType.DEFAULT) {
             Column(
                 modifier = Modifier
@@ -220,34 +209,6 @@ fun DataSettingsScreen(
                     onClick = { partLauncher.launch(arrayOf("application/zip", "application/json")) }
                 ) {
                     UI.Text(text = s.shared("share_import_open"), type = TextType.BODY)
-                }
-            }
-        }
-
-        // Import button
-        UI.Card(type = CardType.DEFAULT) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(UI.Space.L),
-                verticalArrangement = Arrangement.spacedBy(UI.Space.S)
-            ) {
-                UI.Text(
-                    text = s.shared("backup_import"),
-                    type = TextType.SUBTITLE
-                )
-                UI.Button(
-                    type = ButtonType.PRIMARY,
-                    size = Size.M,
-                    state = if (isLoading) ComponentState.DISABLED else ComponentState.NORMAL,
-                    onClick = {
-                        importLauncher.launch(arrayOf("application/zip", "application/json"))
-                    }
-                ) {
-                    UI.Text(
-                        text = s.shared("backup_import"),
-                        type = TextType.BODY
-                    )
                 }
             }
         }
@@ -279,51 +240,6 @@ fun DataSettingsScreen(
                 }
             }
         }
-    }
-
-    // Import confirmation dialog
-    if (showImportConfirm) {
-        UI.ConfirmDialog(
-            title = s.shared("backup_import"),
-            message = s.shared("backup_import_confirm"),
-            confirmText = s.shared("action_confirm"),
-            cancelText = s.shared("action_cancel"),
-            onConfirm = {
-                showImportConfirm = false
-                pendingImportUri?.let { uri ->
-                    isLoading = true
-                    scope.launch {
-                        try {
-                            // The service reads the chosen file itself: a zip, or an older .json
-                            val result = coordinator.processUserAction(
-                                "backup.import",
-                                mapOf("uri" to uri.toString())
-                            )
-
-                            if (result.status == CommandStatus.SUCCESS) {
-                                Toast.makeText(
-                                    context,
-                                    s.shared("backup_import_success"),
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                // Restart app with clean state
-                                restartApp(context)
-                            } else {
-                                errorMessage = result.error ?: s.shared("backup_import_failed")
-                            }
-                        } catch (e: Exception) {
-                            errorMessage = "${s.shared("backup_import_failed")}: ${e.message}"
-                        } finally {
-                            isLoading = false
-                        }
-                    }
-                }
-            },
-            onDismiss = {
-                showImportConfirm = false
-                pendingImportUri = null
-            }
-        )
     }
 
     // Reset confirmation dialog
