@@ -107,3 +107,27 @@ Pour un modèle, la cible part sans ses entrées et arrive vide. Ainsi un fichie
 - L'IA et le connecteur n'exportent ni n'importent une partie : un geste de l'utilisateur.
 - Ouvrir un fichier depuis le gestionnaire de fichiers ou le menu de partage d'Android : on passe par « Importer… ».
 - Des modèles fournis avec l'app (`TODO.md`, « Idée sans besoin ») : des fichiers de ce format.
+
+## Implémentation
+
+Le découpage, un commit chacun ; le premier est fait (`BackupPart`, `PartSelection`, `AppFolder`, `backup.export` avec `selection`).
+
+1. La sauvegarde partielle côté service — fait.
+2. Le contrôle des liens : les deux familles sur une sélection, le service refusant aussi une sélection qui garde un lien bloquant ; des tests.
+3. L'import partiel (`backup.import_part`) : une sélection et la zone d'arrivée de chaque zone, tout par les services ordinaires dans l'ordre des dépendances (comme `DemoService.build`), un seul pas de l'historique. Un fichier partiel passe par les transformations de version alors qu'il n'a ni réglages ni fournisseurs : à vérifier.
+4. L'écran Exporter : l'arbre de cases lu d'une sauvegarde complète de l'app (`build()`), la même fonction qui lira le fichier à l'import.
+5. L'écran Importer, reprendre une partie.
+6. Tout restaurer devenu un choix de l'import, les anciens boutons et leurs textes retirés ; `docs/DATA.md`, le Guide s'il cite Réglages › Données, une section de la recette.
+
+Décidé en séance :
+
+- Un lien se repère sans lire sa forme : un élément dépend d'un autre dès que l'identifiant de l'autre apparaît comme un mot entier (une suite de `[A-Za-z0-9_-]`) n'importe où dans son texte — config, formule, entrées, message d'une routine, JSON rangé dans une chaîne compris. La même fonction remplace les identifiants à l'import. Le message d'un lien est donc générique (« Calories lit Poids : coche Poids, ou décoche Calories ») ; entre entrées, celui ci-dessus.
+- Une routine part avec sa session graine et son message, sans fournisseur, identité ni exécutions ; une zone part sans son identité (`BackupPart`).
+- Un nom de zone qui ne fait pas un nom de fichier refuse le partage en le disant, comme l'export CSV : pas de nom de repli.
+
+Proposé, à trancher avant le commit qui le rencontre :
+
+- (2) Le masque d'accès d'une routine qui vise un élément non coché : prévenir et garder la ligne, qui ne vise plus rien. La retirer pourrait vider le masque, et un masque vide ouvre toute l'app.
+- (3) Les identifiants : l'import fabrique tous les nouveaux d'abord, réécrit le fichier une fois, puis les donne aux services ; `GivenId` accepterait, venant de l'app, les identifiants que l'import en cours a lui-même fabriqués, ceux-là seulement. Sinon : créer pièce par pièce et relire chaque identifiant rendu, deux passes pour un champ RÉFÉRENCE qui vise une entrée de son propre outil.
+- (3) Les groupes : une nouvelle zone arrive dans son groupe de l'accueil, ajouté s'il manque (comme la démo) ; les groupes d'outils manquants s'ajoutent à une zone existante qui reçoit des outils.
+- (4) « Tout » écrit dans le même dossier que la partie, pour que Partager marche aussi ; sans dossier, l'écran demande d'en choisir un (le sélecteur de la sauvegarde automatique). `backup.export` avec `uri` disparaît alors.
