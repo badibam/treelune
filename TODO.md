@@ -1,170 +1,147 @@
 # TODO
 
-Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en est le registre. Une ligne par item : ce qu'il faut faire, et ce qui le débloque. Les deux premières sections suivent l'ordre de travail : la release, puis ce qui la suit ; les autres suivent l'état de l'item : les bugs, ce qu'attend le téléphone, ce qu'attend du code, ce qu'attend une décision, ce qu'attend un déclencheur. Les pistes brutes arrivent dans `NOTES.md` et se trient ici.
+Travail ouvert, une ligne par item ; un item fait sort, le commit en est le registre. Les pistes brutes arrivent dans `NOTES.md` et se trient ici.
 
 ## Release F-Droid
 
-- La fiche fastlane (`fastlane/metadata/android/`, textes écrits en `en-US` et `fr-FR`) : `changelogs/<versionCode>.txt` de la 0.9.0 ; les captures d'écran, à faire sur le téléphone, servent aussi au README (`fastlane/metadata/android/en-US/images/phoneScreenshots/`, leur place marquée dans `README.md` et `README.fr.md`), l'icône de l'app en tête.
-- La version soumise, la 0.9.0, taguée sur un arbre propre, ses notes de version écrites et validées avant de publier ; la mise à jour depuis la dernière version publiée passée sur le téléphone avec ses données (une base neuve ne passe aucune migration, une mise à jour les passe toutes, nouvelles comprises).
-- La recette sur `v0.8.1`, avec `Binaries` et `AllowedAPKSigningKeys`, essayée dans le conteneur (`docs/design/fdroid-compliance.md`), son APK comparé par `apksigcopier compare` à celui de la release GitHub : podman à installer d'abord, absent de cette machine.
+- La fiche fastlane : le changelog de la 0.9.0, les captures d'écran faites sur le téléphone (elles servent aussi aux README, place marquée).
+- La 0.9.0 taguée sur un arbre propre, ses notes de version validées, la mise à jour depuis la dernière version publiée passée sur le téléphone avec ses données.
+- La recette F-Droid sur `v0.8.1` essayée dans le conteneur (`docs/design/fdroid-compliance.md`), son APK comparé à celui de GitHub (`apksigcopier compare`) — podman à installer.
 
 ## Juste après la release
 
-- Une réponse coupée par la limite de longueur (`OpenAICompatibleExtensions.kt`, `finish_reason` « length ») garde son texte et ses tokens, aujourd'hui jetés, ce qui montre gratuit un appel facturé ; à trancher : le texte montré dans la session avec l'erreur, ou seulement gardé en base.
-- L'export des entrées d'un outil (`docs/design/export.md`) : le dossier choisi dans les réglages, l'opération `exports.csv`, « Exporter… » sur l'écran d'un outil, l'action `EXPORT_DATA` de l'IA.
-- Le titre de l'écran de config d'un outil (`ToolConfigScreen`) dit « Configurer » et le type de l'outil, jamais son nom.
-- La phrase de date et d'heure envoyée à l'IA (`ai_prompt_current_datetime`) ne dit pas qu'elle est écrite par le système, et non par l'utilisateur.
+- Une réponse coupée par la limite de longueur (`finish_reason` « length ») garde son texte et ses tokens, aujourd'hui jetés — à trancher : montré avec l'erreur, ou gardé en base seulement.
+- L'export des entrées d'un outil (`docs/design/export.md`).
+- Le titre de `ToolConfigScreen` donne le nom de l'outil, pas seulement son type.
+- `ai_prompt_current_datetime` dit qu'elle est écrite par le système.
 
 ## Bugs
 
-- Supprimer une zone laisse ses routines en base (`ZoneService.handleDelete`) : `automations.zone_id` n'a pas de clé étrangère, rien ne les supprime ; lu dans le code, pas vu sur le téléphone. À traiter avec l'historique des écritures, dont la descente des suppressions doit les inclure.
-
-- Des boutons à libellé posés dans une simple rangée, qui se perdent quand la place manque : à passer dans `ButtonRow` (`VariableScreen.kt:175`, `JournalEntryScreen.kt:376`, `DuplicateSelector.kt:234`, `StructuredScreen.kt:260` et `:299`), et la rangée d'actions de `InteractionCard` (la validation dans le chat), que chaque thème pose avec deux moitiés de largeur fixe (`InteractionActions`).
+- Supprimer une zone laisse ses routines (`automations.zone_id` sans clé étrangère) — avec l'historique des écritures.
+- Des rangées de boutons à libellé à passer dans `ButtonRow` (`VariableScreen.kt:175`, `JournalEntryScreen.kt:376`, `DuplicateSelector.kt:234`, `StructuredScreen.kt:260` et `:299`, `InteractionActions`).
 
 ## À passer sur le téléphone
 
-Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/design/device-checks.md` (la recette, classée par écran) ; passé, sa spec s'élague, ses garanties devenant des tests.
+Codé, jamais vu sur l'appareil ; le détail est dans la recette, `docs/design/device-checks.md`. Passé, la spec s'élague et ses garanties deviennent des tests.
 
-- Un modèle libre chez soi : un Ollama sur l'ordinateur, servi en https par `tailscale serve`, branché comme Autre serveur depuis le téléphone avec un modèle de la classe 30B, prix à 0 ; mesurer le temps d'une réponse (la lecture d'un prompt de ~29k tokens sur la machine). Passé, une page du Guide « Brancher un modèle libre » d'après ce qui a été fait.
-- La place à l'écran (2026-10-14) : marge de bord unique, rangées de boutons, grille de choix, clavier, poignées, dates des tuiles, point d'attente du rétro, page du message d'une routine (Réglages et affichage, Automations).
-- Les outils manquants (sélection du cœur, RÉFÉRENCE, lecture du cœur, variables, Données structurées et import, Objectif, Questionnaire, Graphique) : puis élaguer de `docs/design/missing-tools.md` ce qui est codé.
-- Le thème rétro (`docs/design/retro-theme.md`), vu le 2026-10-01 (écran d'une zone, palette pâle, marges reprises) : le parcourir écran par écran, les graduations en pointillé de ses graphiques et le damier du mode d'édition de la grille compris, puis ce que la spec garde dans « Ce qui reste ouvert ».
-- Le thème cosy (`docs/design/cosy-theme.md`, maquettes liées dedans) : l'essayer, puis ce que la spec garde dans « Ce qui reste ouvert », le banc des palettes d'abord.
-- Ce qui n'est pas passé le 2026-10-02 : la conversion du réglage d'apparence en v58 (une famille devient une teinte), les titres de section du thème par défaut, la tuile sans icône centrée.
-- Les couleurs des icônes (`docs/design/icon-colors.md`).
-- Les images dans un message (`docs/design/message-images.md`) : la ligne « Images ».
-- L'outil Séance (`docs/design/sequence-tool.md`) : sa section.
-- Le formulaire de config en pages (`docs/design/settings-pages.md`) : les boutons sur la page racine seule, les marques d'un problème, la phrase d'une condition (Réglages et affichage).
-- L'état de départ d'une entrée (`docs/design/entry-start-state.md`) : migration 65, un message demandé à l'IA, une tentative refusée.
-- Les outils toujours envoyés (`docs/design/always-send.md`) : migration 64, Réglages.
-- Le rapport de bug (`docs/design/bug-report.md`) : démarrage, Réglages.
-- La validation et les accès de l'IA (`docs/design/validation.md`) : les trois niveaux et les cases de session (migration 69), `UPDATE_APP_CONFIG`, le masque des automations (migration 70), la validation du connecteur par notification et son masque par client (migration 71) — section Validation.
-- Le serveur MCP (`docs/design/mcp-server.md`, `core/mcp`, migration 60) ; le relais (projet `relay`) est en ligne sur `https://relay.badibam.fr` depuis le 2026-10-05, Claude s'y est branché comme connecteur depuis le téléphone ; l'hébergement tient une requête 120 s, `RelayLoop.WAIT_SECONDS` = 20 reste en dessous : la section « Accès externe ».
-- L'accès externe par Tailscale Funnel (`docs/design/funnel-access.md`) : sa section (migration 68), « Adresse prête » qui arrive enfin (le nœud demande les serveurs de `ts.net` aux serveurs DNS que donne Android ; jamais construit, le NDK manquant), puis élaguer aussi `funnel-poc.md`.
-- Ce qui a changé le 2026-10-11, vu en debug seulement ou pas du tout : la migration 73 (le compteur devient numérique) sur la release et ses données, l'avertissement d'arrière-plan sur une installation neuve, les automations et leurs accès, une fenêtre flottante longue dans le cosy (Mise à jour et démarrage, Automations, Réglages et affichage).
-- Ce qui a changé le 2026-10-13 (branche ai-runtime) : une routine lancée app fermée et sa notification (Automations) ; la réflexion d'une conversation, la migration 74, ses cases de validation gardées, une écriture dans un outil qui n'existe pas, un champ sans nom affiché (Chat IA).
-- Ce qui a changé le 2026-10-14 (branche data-text) : copier et sélectionner, le compteur des champs et les nouvelles limites, les fuseaux et les langues, les colonnes écartées de l'import, la sauvegarde automatique et sa marque ; la durée d'une copie, à lire dans le journal (« Auto backup: … written in N ms ») : au-delà de 50 s app fermée, la faire tourner sous le service au premier plan des routines (dernière section de la recette).
-- Ce qui a changé le 2026-10-14 sur develop : « routine » à l'écran dans les deux langues ; la page du message d'une routine, ses blocs à leur hauteur entière, la page défilant d'un bloc (un bloc déplacé par sa poignée au-delà de l'écran compris) ; la config d'un champ référence (Cible, Peut désigner, la liste d'outils seulement avec Entrée) ; le Guide, les chapitres Les routines (six étapes, celle du message attend l'enregistrement) et Parler à l'IA (l'étape des cases d'accord), « Les outils en un coup d'œil », la partie Les outils et ses dix chapitres (textes mis en forme, tuiles de titre de partie, dans les trois thèmes) ; le Guide réécrit dans sa langue, les tutoriels nouveaux de Prise en main (Organiser, Relier, Apparence : chaque étape se valide-t-elle par le bon geste, et seulement par lui), les chapitres lus (Tes données, Accès externe, Quand ça coince) et la partie Approfondissement.
-- Les champs de l'utilisateur dans le Suivi et Messages (`docs/design/custom-fields-display.md`, branche custom-fields) : l'historique du Suivi en cartes, les champs sous le texte d'un message (Outils et saisie) ; passé, élaguer la spec.
-- L'IA et les routines (branche ai-routines) : leur création par l'écran et la démo, celle de l'IA en conversation, une routine qui en crée une sous son masque, la lecture d'une exécution ratée, le connecteur (section « L'IA et les routines »).
-- La barre d'un texte sélectionné dessinée par le thème (branche theme-recipe) : sa ligne de la section « Copier, limites, fuseau… » de la recette.
-- L'outil Agenda (`docs/design/agenda-tool.md`, branche agenda) : l'Instant étendu dans un formulaire, les séries, les rappels app fermée et le réveil précis (section « Agenda ») ; passé, élaguer la spec.
-- Les bugs du téléphone du 2026-10-16 et le changement de config (`docs/design/config-change.md`) : la dernière section de la recette ; passé, élaguer la spec.
-- Les sources de l'attente (`docs/design/waiting-sources.md`, branche waiting-sources) : migration 76, la conversation marquée sur le bouton flottant, le résumé d'une routine, sa notification et ses points, le réglage « Me signaler la fin » (section du même nom) ; passé, élaguer la spec.
-- Les réglages de réflexion de chaque fournisseur, en envoyant une requête : Claude (Sonnet 5.5 sans réflexion par `between_tools`, Opus 5.5 sans « Sans réflexion », Haiku 4.5 sans effort), OpenAI (un modèle à `none`, un modèle qu'aucun fait ne couvre), DeepSeek (effort obligatoire, sans réflexion) ; le changement de modèle qui vide les deux réglages, l'enregistrement d'une combinaison refusée.
-- La lecture seule pour l'IA (`docs/design/unified-fields.md`, branche user-only) : un champ et un critère saisi fermés à l'IA, la validation d'un Objectif fermée à l'IA : la section « Lecture seule pour l'IA » de la recette ; passé, la section de la spec part dans `docs/DATA.md`.
-- Les lectures du connecteur entières, refusées ou en tranches (`McpReads`, branche mcp-reads) : sa ligne « Seuil de données à 5 000 » de la section « Accès externe (serveur MCP) ».
-- Les textures d'outil et de zone (`docs/design/tool-texture.md`, branche tool-texture) : les tons réglés d'abord au banc des textures (`./run themes`), dans les trois thèmes et les deux modes, puis la section « Les textures » de la recette ; passé, élaguer la spec.
-- La texture sur tout le fond de la page et le choix de la couleur et de la texture sur une page du formulaire (branche texture-background, 2026-10-17) : la vue « page » du banc des textures (`./run themes`) d'abord, puis les lignes de la section « Les textures » de la recette qui parlent du fond de page et des pages de choix.
-- Les lectures envoyées une fois par session (`SessionReads`, branche read-once) : la section du même nom de la recette.
-- Le thème encre et lavis (`docs/design/ink-theme.md`, branche theme-ink) : la passe sur le téléphone de `docs/THEMES.md`, les icônes au pinceau d'abord (leur coût à l'ouverture d'une page, celles qui se bouchent), puis ce que la spec garde dans « Ce qui reste ouvert » ; ce qui a changé le 2026-10-17 après la première passe : le lavis d'une tuile qui déborde et s'éteint à son bord, sa texture estompée avec lui, la carte en lavis au bord fondu (des marches dans le fondu ?), la gouache sous les icônes et les tags, les ronds peints à la main (boutons, case, sceaux), le coût d'ouverture d'une zone aux tuiles texturées.
-- Les incarnations (`docs/design/incarnations.md`, branche incarnations) : la dernière section de la recette, l'identité de Stan Prokopenko importée et le coût d'un tour mesuré pour personae ; passé, élaguer la spec. L'import attend que personae exporte au format 2 du fichier d'identité (`docs/IDENTITY_FILE.md`), le format 1 n'étant plus lu.
-- Les bugs du téléphone du 2026-10-17 : la section du même nom de la recette.
-- Les bugs du téléphone du 2026-10-19 (branches notes-fixes et layout-fixes) : la section du même nom de la recette.
-- La répétition d'un Objectif, « Une fois » ou « Récurrent » (branche goal-repetition) : migration 79, sa ligne de la section « Objectif » de la recette.
-- Les conditions typées à l'écriture (`docs/design/typed-conditions.md`, branche typed-conditions) : la section du même nom de la recette ; passé, élaguer la spec.
-- Le gras et l'italique d'un texte lu (branche text-emphasis) : la section du même nom de la recette.
-- La démo enrichie (branche demo-guide), installée sur le téléphone le 2026-10-17 (ses textures vues sur l'accueil), le reste pas regardé : l'Agenda de Travail (la série du lundi à venir donnée par l'outil, les passées, l'annulée, la retirée, le salon sur deux jours), « Cap sur le semi » (sa tentative ouverte seule, du début à l'échéance), Giulia sur la zone Italien et sa routine, le camembert des heures et sa légende, les étapes gardées d'une séance de fractionné, les étiquettes du carnet et le classement du questionnaire, les textures.
-- Les fournisseurs créés par l'utilisateur (`docs/design/ai-providers.md`, branche ai-providers) : la section du même nom de la recette, la migration 80 sur la release et ses données d'abord ; passé, élaguer la spec.
-- Les écrans du chat, des identités et des fournisseurs, et les marges qui ne suivent plus le cran de taille (2026-10-17, sur develop) : la section du même nom de la recette.
-- Le thème métro (`docs/design/metro-theme.md`, branche theme-metro) : la passe sur le téléphone de `docs/THEMES.md`, puis ce que la spec garde dans « Ce qui reste ouvert ».
-- Le thème papier découpé (`docs/design/paper-theme.md`, branche theme-cut-paper) : la passe sur le téléphone de `docs/THEMES.md`, les icônes découpées d'abord (leur coût, celles qui se bouchent), puis ce que la spec garde dans « Ce qui reste ouvert ».
-- La mise en forme des textes longs (`docs/design/text-formatting.md`, branche text-formatting) : la section du même nom de la recette ; passé, élaguer la spec.
-- La SQLite de l'app à la place de celle du téléphone (branche demo-install) : la mise à jour depuis la release avec ses données d'abord (« Mise à jour et démarrage »), puis la démo sur l'OPPO A5 2020 (« Démo »).
-- Le thème plan d'architecte (`docs/design/blueprint-theme.md`, branche theme-blueprint) : la passe sur le téléphone de `docs/THEMES.md`, le débord des icônes d'abord, puis ce que la spec garde dans « Ce qui reste ouvert ».
-- L'outil Flashcards (`docs/design/flashcards.md`, branche flashcards) : la section « Flashcards » de la recette, la démo d'abord (Lessico, Ripasso), puis le lexique réel ; passé, élaguer la spec.
-- Une seule activité (`launchMode` singleTask, 2026-10-20) : une notification qui ouvre un outil ou un lieu, l'app ouverte comme fermée ; un retour du sélecteur de photos et de l'appareil photo ; le lanceur qui ramène l'app là où on l'avait laissée.
-- Le champ Image (`docs/design/image-field.md`, branche image-field) : la migration 82 sur la release et ses images de messages d'abord, puis la section « À passer sur le téléphone » de la spec ; la tuile de l'Agenda dit encore « 3 images » en texte ; passé, élaguer la spec.
-- Le thème liseuse (`docs/design/eink-theme.md`, branche theme-eink) : la passe sur le téléphone de `docs/THEMES.md`, les trames d'abord (deux couleurs au pixel près, la discrète des textures), puis ce que la spec garde dans « Ce qui reste ouvert », la bande d'encre et ses boutons d'abord.
+- Un Ollama sur l'ordinateur servi par `tailscale serve`, modèle de classe 30B, en Autre serveur : le temps d'une réponse ; puis une page du Guide « Brancher un modèle libre ».
+- La place à l'écran (2026-10-14) : Réglages et affichage, Automations.
+- Les outils manquants : puis élaguer `docs/design/missing-tools.md`.
+- Thème rétro (`docs/design/retro-theme.md`) : écran par écran, puis « Ce qui reste ouvert ».
+- Thème cosy (`docs/design/cosy-theme.md`) : le banc des palettes, puis « Ce qui reste ouvert ».
+- Le 2026-10-02 : la conversion d'apparence en v58, les titres de section du thème par défaut, la tuile sans icône.
+- Couleurs des icônes (`docs/design/icon-colors.md`).
+- Images dans un message (`docs/design/message-images.md`).
+- Outil Séance (`docs/design/sequence-tool.md`).
+- Formulaire de config en pages (`docs/design/settings-pages.md`).
+- État de départ d'une entrée (`docs/design/entry-start-state.md`).
+- Outils toujours envoyés (`docs/design/always-send.md`).
+- Rapport de bug (`docs/design/bug-report.md`).
+- Validation et accès de l'IA (`docs/design/validation.md`) : section Validation.
+- Serveur MCP (`docs/design/mcp-server.md`) : section « Accès externe ».
+- Accès par Tailscale Funnel (`docs/design/funnel-access.md`) : « Adresse prête » qui arrive enfin ; puis élaguer aussi `funnel-poc.md`.
+- Le 2026-10-11 : migration 73 sur la release, l'avertissement d'arrière-plan, les automations, une fenêtre flottante longue du cosy.
+- Le 2026-10-13 (ai-runtime) : une routine app fermée, la réflexion d'une conversation, migration 74.
+- Le 2026-10-14 (data-text) : section « Copier, limites, fuseau… » ; la durée d'une sauvegarde automatique dans le journal, au-delà de 50 s la passer sous le service au premier plan.
+- Le 2026-10-14 sur develop : « routine » à l'écran, la page du message d'une routine, la config d'un champ référence, le Guide (chapitres et tutoriels nouveaux, dans les trois thèmes).
+- Champs de l'utilisateur dans Suivi et Messages (`docs/design/custom-fields-display.md`).
+- L'IA et les routines : section du même nom.
+- La barre d'un texte sélectionné dessinée par le thème.
+- Outil Agenda (`docs/design/agenda-tool.md`).
+- Bugs du 2026-10-16 et changement de config (`docs/design/config-change.md`).
+- Sources de l'attente (`docs/design/waiting-sources.md`).
+- La réflexion de chaque fournisseur, requête envoyée : Claude (Sonnet 5.5 par `between_tools`, Opus 5.5, Haiku 4.5), OpenAI (`none`, un modèle sans fait), DeepSeek ; le changement de modèle qui vide les réglages, une combinaison refusée.
+- Lecture seule pour l'IA (`docs/design/unified-fields.md`) : passé, la section part dans `docs/DATA.md`.
+- Lectures du connecteur en tranches : « Seuil de données à 5 000 ».
+- Textures (`docs/design/tool-texture.md`) : le banc d'abord (`./run themes`), vue « page » comprise.
+- Lectures envoyées une fois par session.
+- Thème encre et lavis (`docs/design/ink-theme.md`) : la passe de `docs/THEMES.md`, ce qui a changé le 2026-10-17, puis « Ce qui reste ouvert ».
+- Incarnations (`docs/design/incarnations.md`) : l'import attend le format 2 du fichier d'identité côté personae.
+- Bugs du 2026-10-17, du 2026-10-19.
+- Répétition d'un Objectif (migration 79).
+- Conditions typées (`docs/design/typed-conditions.md`).
+- Gras et italique d'un texte lu.
+- La démo enrichie : tout sauf les textures, déjà vues.
+- Fournisseurs créés (`docs/design/ai-providers.md`) : migration 80 sur la release d'abord.
+- Écrans du chat, des identités et des fournisseurs (2026-10-17).
+- Thème métro (`docs/design/metro-theme.md`).
+- Thème papier découpé (`docs/design/paper-theme.md`) : les icônes découpées d'abord.
+- Mise en forme des textes longs (`docs/design/text-formatting.md`).
+- La SQLite de l'app : la mise à jour depuis la release, puis la démo sur l'OPPO A5 2020.
+- Thème plan d'architecte (`docs/design/blueprint-theme.md`) : le débord des icônes d'abord.
+- Flashcards (`docs/design/flashcards.md`) : la démo, puis le lexique réel.
+- Une seule activité (singleTask) : une notification qui ouvre un lieu, app ouverte et fermée ; le retour du sélecteur de photos ; le lanceur.
+- Champ Image (`docs/design/image-field.md`) : migration 82 d'abord ; la tuile de l'Agenda dit « 3 images » en texte.
+- Thème liseuse (`docs/design/eink-theme.md`) : les trames d'abord.
 
-## Conçu, à coder
+## Décidé, à coder
 
-Une spec existe dans `docs/design/`.
-
-- L'historique des écritures et leur annulation (`docs/design/undo-history.md`) : un pas par opération demandée de l'extérieur, la ligne entière avant et après, écrite par une seule classe que garde un script, 30 jours, le service `history` ouvert à l'IA, son écran.
+- L'historique des écritures et leur annulation (`docs/design/undo-history.md`).
+- Un seuil de lecture propre au connecteur MCP, un seul, dans ses réglages, séparé de `chat_max_data_chars`.
+- En routine, le prompt ne parle plus de module de communication et dit que personne ne répondra ; un module reçu est refusé en le disant, l'IA continue seule.
+- L'écran de confirmation d'un changement de config nomme les outils dont un filtre vise une option retirée ou renommée.
+- Une phrase du Guide : partir d'un outil de la démo (le dupliquer) ou le décrire à l'IA — vérifier d'abord qu'un outil dupliqué survit au retrait de la démo.
+- `docs/` en anglais ; `docs/design/` et `TODO.md` restent en français.
 
 ## À concevoir
 
-Une idée sans spec : elle demande une décision avant du code.
-
-### IA et automations
-
-- Le connecteur MCP : sans session, rien n'oblige le client à lire le schéma d'un outil avant d'y écrire (la consigne seule, `ai_chunk_validation_strategy`) ; l'imposer demande de retenir, par connexion, les schémas envoyés.
-- Les lectures du connecteur MCP se tiennent au seuil de la conversation (`chat_max_data_chars`, `McpReads`) : un seuil propre au connecteur, réglé par client à côté de son masque (migration 71), la limite de réponse de chaque client étant la sienne — à trancher.
-- Une question posée par l'IA dans une routine (`communication_module`) est ignorée sans le lui dire (`AIStateMachine`) : la refuser comme une erreur de format, que l'IA corrige, ou la garder pour l'utilisateur dans le compte rendu de l'exécution — à trancher. La relecture de la campagne 1 en a vu chez gemma et gpt-oss (`docs/design/bench-campaign-1.md`).
-- Le prochain envoi se calcule de deux façons : à la volée pour une automation (`AutomationScheduler`), stocké en base et remis à jour à chaque envoi pour Messages — en garder une.
-
-### Outils et champs
-
-- Des modèles d'outils prédéfinis et paramétrables (« Série de questions » suivie d'un « Avis de l'IA »…).
-- Un type de Suivi « étiquette », qui ne note qu'une étiquette.
-- Un outil changé dont dépend une condition ailleurs (le Graphique filtre sur « moment = déjeuner », l'option « déjeuner » est retirée du Repas, ou le champ « moment » renommé) : refuser le changement en nommant les outils concernés, ou reporter un renommage dans les conditions, que `ListOrigins` sait distinguer d'une suppression — à trancher ; il faut savoir quelles configs et quelles variables visent un outil.
-
-### Interface
-
-- Lucide redessiné à leur manière pour le cosy et le suisse, comme le pinceau d'Encre et lavis (`docs/design/ink-theme.md`, ligne 9), un trait à chacun : une fois la lecture des tracés d'une icône (`IconStrokes`) tenue sur le téléphone avec Encre.
-
-### Events du cœur
-
-- Un système d'events du cœur, intégré au planificateur, avec une section par zone : un lien entre outils qui passe par le cœur (par une automation, par exemple). Déclencheurs d'une exécution : `SCHEDULE`, `MANUAL`, `EVENT` — revoir ceux des automations (ce qui est un déclencheur y est traité de façon inégale). Un event peut naître du planning d'un outil, et nomme l'outil qui l'a déclenché pour qu'on y aille en un geste ; des events système, sur le même modèle. Les constantes sont à penser avec. L'Agenda en donne une première source, « un événement commence » (`docs/design/agenda-tool.md`). L'Alerte et l'automation directe le croisent.
-
-### Documentation
-
-- Traduire la doc en anglais.
+- Les icônes du cosy redessinées depuis les tracés de Lucide (`IconStrokes`), comme Encre et lavis : leur trait.
+- Les events du cœur : quel premier usage — un événement de l'Agenda qui commence, une entrée écrite, une condition devenue vraie ?
 
 ## Dette de code
 
-Ce qui marche, mais contredit l'architecture ou une règle du projet.
+- Les mots de passe de `~/.config/treelune/signing.env` en clair : au trousseau (`secret-tool`).
+- `CommandExecutor` lit la base directement, hors du coordinateur.
+- `AutomationScheduler.getNextExecutionForAutomation()` appelé depuis l'écran, sans le service.
+- `CommandExecutor` remplace un nom ou un `schema_id` manquant par `"unknown"`.
+- `ToolConfigActions` porte un nom qui ne dit pas ce qu'il fait.
+- Des conversions JSON refaites sur place au lieu de `JsonUtils` (`toValueMap`, `jsonToValue`, `toFieldConfigValue`…).
+- `shared.xml` (~1 900 lignes) à découper.
+- `RetroPaletteTest` et `CosyPaletteTest` à parcourir par pas de 15° de teinte, comme `SwissPaletteTest`.
+- `TextType.SUBTITLE` sans rang dans le contrat des thèmes : lui en donner un, aligner les thèmes et ses 71 usages.
+- `FlashcardsServiceTest` dépend sans doute de l'heure : lui donner une horloge fixe.
+- Une apostrophe nue à côté d'une échappée casse la compilation des ressources sans qu'aucun contrôle la voie.
 
-- `~/.config/treelune/signing.env`, lu par `./run` pour signer une release, garde ses mots de passe en clair : les passer au trousseau (KWallet, via `secret-tool`, comme la clé OpenRouter du banc depuis le 2026-10-19), le `release.keystore` restant un fichier.
-- `CommandExecutor` lit la base directement (`AppDatabase.getDatabase`, les messages d'une session), hors du coordinateur.
-- `AutomationScheduler.getNextExecutionForAutomation()` est appelé depuis l'écran (`AutomationCard`, `AutomationScreen`), sans passer par le service.
-- `CommandExecutor` remplace un nom ou un `schema_id` manquant par `"unknown"` : un repli que la règle du projet interdit.
-- `ToolConfigActions` (`core/ui/components`), utilisé par l'IA, porte un nom qui ne dit pas ce qu'il fait.
-- Des conversions JSON → valeurs refaites sur place au lieu de `JsonUtils` : au moins `toValueMap` (`MessagesScreen`), `jsonToValue` (`StateSavers`), `toFieldConfigValue` (`FieldDefinition`) — compter le reste avant de les ramener.
-- `shared.xml` (~1 900 lignes) à découper en plusieurs fichiers.
-- `RetroPaletteTest` et `CosyPaletteTest` ne tiennent les contrastes qu'au décalage de teinte 0 : les parcourir par pas de 15°, comme `SwissPaletteTest`, et reprendre les nombres d'un décalage qui tombe sous le seuil.
-- `TextType.SUBTITLE` n'a pas de rang dans le contrat des thèmes (`UITypes.kt`) : plus grand que `HEADING` en défaut et en cosy, plus petit en rétro, pour 71 usages. Lui donner un rang, aligner les thèmes, puis passer ses usages écran par écran dans les trois thèmes.
+## Bloqué par autre chose
 
-- `FlashcardsServiceTest` (« a deck's reviews are written by its own operation alone ») a échoué à 00:30 le 2026-10-20 (`flashcards.due` vide), passé quelques heures plus tôt : il dépend sans doute de l'heure, la démo et les cartes dues se calculant depuis l'instant présent et le début de la journée (4 h) ; non vérifié. Lui donner une horloge fixe.
-- Une apostrophe nue dans un texte qui en a déjà une échappée (`\'`) passe tous les contrôles de `./run test` et casse la compilation des ressources (« Invalid unicode escape sequence »), le générateur n'échappant que les textes qui n'en ont aucune : la refuser dans un contrôle des sources de textes, ou faire échapper toutes les apostrophes au générateur.
+- L'Alerte et l'automation directe (le relevé, `docs/design/missing-tools.md`) : les events du cœur.
+- Le pilotage du téléphone par adb (`scripts/phone_ui.sh`) dans le module de sagesse `android` : au prochain `/update push android`.
+- Le correctif Tailscale de la route `cert/` (PR #21720) : fusionné, monter de version et retirer la correction de `scripts/vendor_go.py` ; refusé, noter pourquoi dans `funnel-poc.md`.
 
-## Bugs du téléphone
+## À surveiller
 
-## En attente d'un déclencheur
+- Un appel à l'IA relancé par un changement d'état qui ne change pas de phase (`AIEventProcessor.handleStateChange`) : au prochain doublon, lire « ignored: it belongs to » dans le journal.
+- Le point d'attente et la tuile de Flashcards pas relus au début de la journée.
+- Revenir à une zone la relit entièrement.
+- Le graphique Calories de Panorama (0,75 à 1,2 s) et l'ouverture d'une zone (~1 s).
+- Défilement saccadé à la réouverture d'une longue conversation.
+- Un `DATA_REFUSED` légitime dans une routine : un seuil par routine.
+- Un calcul lourd qui fige l'app : lire, calculer sans bloquer, écrire.
+- Un import lancé par erreur qu'on ne peut pas arrêter (`LongOperation`).
+- Des réponses de l'IA perdues pendant la génération : streaming et keep-alive TCP.
+- Le journal ne garde que ~24 min d'usage : réduire VERBOSE et DEBUG.
+- La mémoire d'un import grandit avec son fichier (276 Mo pour 5 Mo) : lire et écrire par tranches.
+- Une IA qui lit mal un long texte en tranches par le connecteur : le lire par section `##`.
 
-- Des niveaux de prompt (`docs/design/local-models.md`, « Si un modèle plus petit est voulu ») : décidé le 2026-10-17, un seul prompt, la classe 30B le suivant — quand un modèle plus petit, ou un modèle dans l'app sur le téléphone, sera voulu.
-- Un filtre qui compare un champ à une variable ou à une lecture (« kcal > objectif_calorique ») : `EntryFilters.parse` le refuse, `ConditionPicker` n'offre qu'une valeur écrite — quand un pointeur ou une variable en a besoin ; le terme se lit alors une fois à la référence du contexte (`TermReader`).
+## Idée sans besoin
 
+- Des modèles d'outils prédéfinis.
+- Des niveaux de prompt pour un modèle plus petit (`docs/design/local-models.md`).
+- Un filtre qui compare un champ à une variable ou une lecture (`EntryFilters.parse`, `TermReader`).
+- D'autres sources de l'attente : un message de l'IA arrivé pendant qu'on était ailleurs.
+- Une entrée précise comme cible d'un pointeur (`docs/design/pointer.md`).
+- Le nombre d'entrées en attente sur la tuile, au lieu du point.
+- Des valeurs de champs de l'utilisateur recopiées dans chaque occurrence d'une série d'Agenda.
+- Des outils montrés sur la tuile d'une zone de l'accueil.
+- Des écrans internes passés en lieux (`Place`) : quand un tutoriel, une notification ou un pointeur doit les viser.
+- Un pointeur touché dans un message ouvre sa cible.
+- Le sens « out » : l'app confie une tâche lourde à une IA extérieure et en reprend le résultat.
+- Un fichier joint au message de départ d'une routine.
+- « Tous les N jours à partir d'une date », plusieurs jours d'un mois, dans la brique de planning.
+- Un bouton « Fait » sur un message qui écrit dans un Suivi.
 
-- D'autres sources de l'attente (`docs/BRICKS.md`) : un message de l'IA arrivé dans une session pendant qu'on était ailleurs, signalé par exemple sur le bouton de conversation — à concevoir.
-- Choisir une entrée précise comme cible du pointeur dans son sélecteur (conçu dans `docs/design/pointer.md` : étiquette par type d'outil, liste, relecture de l'entrée) — si le besoin apparaît : un pointeur peut désigner une entrée (le Questionnaire en pose un), mais seule l'app le fait. La cible APP attend que l'IA sache lire les réglages de l'app.
-- Lire un long texte du connecteur MCP par section (le sommaire de ses titres `##`, puis une section par son titre), en plus des tranches — si l'IA lit mal un bagage d'identité en tranches.
-- Le point d'attente et la tuile d'un paquet de Flashcards ne se relisent qu'à un changement d'entrée ou à l'ouverture de la zone (`rememberWaiting`, `rememberFlashcardsTile`), jamais d'eux-mêmes au début de la journée, quand des cartes deviennent dues : l'app restée ouverte sur la zone les montre en retard — si ça se voit sur le téléphone.
-- Le nombre d'entrées en attente sur la tuile, au lieu du point (`WaitingMark`, décidé « pour le moment » le 2026-09-29) — si le point ne suffit pas.
-- Les valeurs des champs de l'utilisateur dans une série d'Agenda (« Kiné, Lieu : Cabinet Dupont »), recopiées dans chaque occurrence : une brique du cœur, des valeurs pour les champs de l'utilisateur d'un outil, déclarée dans une config (schéma, saisie dans le formulaire, conversion pour l'IA des types qu'elle ne connaît pas d'avance) — quand remplir chaque occurrence pèsera.
-- Outil jamais livré : l'Alerte, laissée pour plus tard (outil ou event du cœur, sans doute une lecture et une condition).
-- L'automation directe : des commandes que l'app exécute elle-même, sans IA. Premier usage connu, le relevé (une écriture qui accepte une valeur lue à l'exécution : un Suivi qui garde un chiffre de Calcul, `docs/design/missing-tools.md`) ; à concevoir avec les events du cœur (« À concevoir › Events du cœur ») et l'Alerte, qu'elle croise, et à trancher : la date de l'entrée écrite, le doublon d'une exécution relancée.
-- Des outils sur l'accueil : une tuile de zone qui montre les résumés de certains de ses outils, ou des raccourcis vers eux selon la place qu'elle a — à discuter : lesquels, dans quel ordre, un outil montré à deux endroits.
+## Écarté
 
-------
-
-- Un appel à l'IA relancé sans raison : les effets d'une phase (`AIEventProcessor.handleStateChange`, l'appel en `CALLING_AI`) se rejouent à chaque nouvel état, pas seulement à chaque changement de phase ; un événement qui ne change qu'un champ pendant l'appel en relance un, la requête déjà partie pouvant être facturée. Deux réponses identiques à une même demande le 2026-10-09 ; les gardes de phase (`AIStateMachine.expectedPhases`) en limitent l'effet — à mesurer dans le journal (« ignored: it belongs to ») au prochain doublon.
-- Faire monter dans le module de sagesse `android` le pilotage du téléphone par adb pour la recette (captures réduites, toucher par le texte de l'écran, frappe mot par mot ; `scripts/phone_ui.sh`) — au prochain `/update push android` fait pour autre chose.
-- Le correctif de la route `cert/` sous Android est proposé à Tailscale (ticket #21719, PR #21720) : fusionné, monter à la version qui le porte, retirer la correction de `scripts/vendor_go.py` et son contrôle de `./run test` ; refusé, la garder et noter pourquoi dans `docs/design/funnel-poc.md`.
-- Des écrans encore ouverts à l'intérieur d'un lieu, hors de la pile des lieux (`Place`, `docs/UI.md`) : la config d'un fournisseur d'IA, les pages d'un formulaire de config (`SettingsForm`), les écrans internes d'un outil (fiche, historique), l'historique des conversations — à passer en lieux quand un tutoriel, une notification ou un pointeur doit les viser.
-- Revenir à une zone la relit (ses outils, ses variables) : ce que l'écran garde par `remember` ne survit pas à son passage sous un autre lieu — si le rechargement se voit.
-- Un pointeur touché dans un message (l'étiquette d'une zone ou d'un outil, aujourd'hui un simple texte) ouvre sa cible, empilée au-dessus de la conversation pour que le retour y ramène ; de même pour une cible nommée par l'IA dans sa réponse — la pile des lieux sait l'ouvrir (`Navigator.open`, `docs/UI.md`) — quand on le voudra.
-- Le sens « out » : l'app qui confie une tâche lourde à une IA extérieure (Claude Code, par exemple) et en reprend le résultat, comme une commande différée — une fois le serveur MCP en place, par lequel la tâche lira et écrira, et vérifié ce que chaque service permet pour lancer une tâche par une requête.
-- Le graphique Calories de Panorama (74 lignes) se lit en 0,75 s à l'ouverture de l'outil, 0,9 à 1,2 s à celle de la zone (2026-10-01, version debug, une fiche lue une fois par calcul) ; sa mise en page prend 15 à 19 ms. Restent 181 appels aux services : par jour, deux lectures des repas (60) et la lecture de l'outil qui donne leurs champs (`ToolFields.filterable`, `tools.get`) à chacune — si ça gêne encore.
-- L'ouverture d'une zone bloque encore l'écran ~1 s la première fois après le démarrage (version debug, 2026-10-01 : 6 graphiques, 18 tuiles) — à décomposer si ça gêne.
-- Défilement saccadé à la réouverture d'une longue session CHAT — à mesurer (recompositions de la liste, défilements automatiques successifs).
-- Seuil de taille des données par automation — quand une automation légitime montre un `DATA_REFUSED` dans son historique d'exécution ; la valeur globale deviendra la valeur par défaut.
-- Joindre un fichier ou une image au message de départ d'une automation : son composeur n'a pas toujours de session, à laquelle un fichier joint et une image appartiennent.
-- La brique de planning ne sait pas dire « tous les N jours / N semaines à partir d'une date », ni plusieurs jours d'un mois (« le 1er et le 15 ») — au premier rythme qu'on ne peut pas saisir.
-- Une chose répétée dont on veut savoir qu'elle est faite (un médicament chaque jour) demande deux gestes : lire le message, cocher le suivi — un bouton « Fait » sur le message qui écrit dans un suivi (avec les automations directes), ou un type Rappels avec un champ planning par entrée ; quand ce double geste pèse.
-- Un calcul lourd en trois temps (lire, calculer longtemps sans bloquer les autres opérations, écrire), le résultat rendu à l'écran qui l'a lancé et arrêté si cet écran se ferme — au premier calcul qui fige l'app. Les écritures longues ont leur place unique (`LongOperation`) ; un calcul n'a rien à y faire, son résultat ne servant qu'à son écran.
-- Arrêter une opération longue en cours (un bouton dans la bande de `LongOperation`) — quand un import lancé par erreur gênera ; l'import ne regarde aujourd'hui sa demande d'arrêt qu'au début.
-- Streaming des réponses IA (Claude et OpenAI), avec le TCP keep-alive — quand des messages « requête envoyée, réponse perdue » s'accumulent dans les sessions : le réseau coupe les connexions restées silencieuses pendant la génération.
-- Le journal de l'app ne garde que ses ~12 000 dernières lignes, 24 minutes d'usage le 2026-10-01 (VERBOSE 7 562 dont 3 782 « Service result » du coordinateur, DEBUG 2 439) : les lignes utiles, migrations comprises, en sortent avant d'être lues. Réduire ce que VERBOSE et DEBUG écrivent, ou ne garder qu'eux en rotation courte.
-- La mémoire d'un import grandit avec son fichier : le texte entier, toutes ses cellules (`CsvReader.read`), le plan de toutes les lignes et leurs fiches sont tenus ensemble — l'écriture va au service par tranches de 500 lignes, mais toutes les fiches sont construites avant ; 64 659 lignes (5 Mo) ont atteint 276 Mo de tas Java pour une limite de 256 Mo le 2026-10-01, en 3 min 19 s. À lire au fil de l'eau et construire chaque tranche au moment de l'écrire, dans la même transaction (le contrôle des doublons sur les seules clés), puis l'écran d'une table qui charge toutes ses fiches — au premier import qui plante, ou à une limite de mémoire plus basse.
+- Obliger le client MCP à lire le schéma avant d'écrire : chaque écriture est validée, un refus dit quoi corriger.
+- Un seul calcul du prochain envoi : Messages stocke des envois que l'utilisateur voit, une routine n'a qu'une heure.
+- Un Suivi « étiquette » : le type « choix » le couvre.
