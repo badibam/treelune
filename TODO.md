@@ -17,7 +17,7 @@ Travail ouvert. Un item disparaît d'ici dès qu'il est fait — le commit en es
 
 ## Bugs
 
-- Une borne de jour ou de semaine se calcule en journées de l'app (l'heure où commence le jour, le premier jour de la semaine, `TimeResolver`), jamais de minuit à minuit ; seul le transport d'une date sans rien couper y échappe. Restent : les graduations et les champs DATE du Graphique (`ChartScales.kt:37`, `:189-193`), le premier jour de semaine des sélecteurs de date des thèmes (`WeekFields.of(locale)`, et celui de Material), `TimeResolver.day(Now)` et `day(Shift)` qui donnent la date de minuit à minuit (« aujourd'hui » à 00:30, le lendemain) ; puis un contrôle des sources qui refuse une borne faite à la main hors de `TimeResolver`, `DateUtils` et `PeriodSelector`.
+- Une borne de jour ou de semaine se calcule en journées de l'app (l'heure où commence le jour, le premier jour de la semaine, `TimeResolver`), jamais de minuit à minuit ; seul le transport d'une date sans rien couper y échappe. Restent : `TimeResolver.day(Now)` et `day(Shift)` qui donnent la date de minuit à minuit (« aujourd'hui » à 00:30, le lendemain) ; puis un contrôle des sources qui refuse une borne faite à la main hors de `TimeResolver`, `DateUtils` et `PeriodSelector`.
 - La durée d'un Objectif est stockée en millisecondes (7 jours = 604 800 000) : une tentative qui traverse un changement d'heure finit une heure avant ou après l'heure de son début — non vérifié.
 - Des boutons à libellé posés dans une simple rangée, qui se perdent quand la place manque : à passer dans `ButtonRow` (`VariableScreen.kt:175`, `JournalEntryScreen.kt:376`, `DuplicateSelector.kt:234`, `StructuredScreen.kt:260` et `:299`), et la rangée d'actions de `InteractionCard` (la validation dans le chat), que chaque thème pose avec deux moitiés de largeur fixe (`InteractionActions`).
 
@@ -76,6 +76,7 @@ Codé, jamais vu sur l'appareil. Chaque item renvoie à ses lignes de `docs/desi
 - Une seule activité (`launchMode` singleTask, 2026-10-20) : une notification qui ouvre un outil ou un lieu, l'app ouverte comme fermée ; un retour du sélecteur de photos et de l'appareil photo ; le lanceur qui ramène l'app là où on l'avait laissée.
 - Le champ Image (`docs/design/image-field.md`, branche image-field) : la migration 82 sur la release et ses images de messages d'abord, puis la section « À passer sur le téléphone » de la spec ; la tuile de l'Agenda dit encore « 3 images » en texte ; passé, élaguer la spec.
 - Le thème liseuse (`docs/design/eink-theme.md`, branche theme-eink) : la passe sur le téléphone de `docs/THEMES.md`, les trames d'abord (deux couleurs au pixel près, la discrète des textures), puis ce que la spec garde dans « Ce qui reste ouvert », la bande d'encre et ses boutons d'abord.
+- Les journées de l'app (branche todo-cleanup, 2026-10-20) : la section du même nom de la recette, la migration 83 sur la release et ses données d'abord.
 
 ## Conçu, à coder
 

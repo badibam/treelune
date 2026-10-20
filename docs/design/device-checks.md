@@ -472,3 +472,12 @@ Vu le 2026-10-16 sur la debug : le bouton « + » du Journal dans la page, la po
 - La config : la source choisie, Grouper par et les champs du recto et du verso proposés parmi ceux de la source ; un champ supprimé de la source ensuite : l'erreur qui le nomme sur la tuile, la page et la séance, jamais une carte vide ; changer la source ou retirer un sens demande d'accepter la perte de ses révisions.
 - « Un sens après l'autre » coché : le sens 2 d'un mot n'arrive qu'une fois le sens 1 acquis (sa stabilité à 7 jours au moins, lisible dans l'historique de l'outil).
 - L'IA : « fais-moi réviser Ripasso » en conversation, les cartes lues par flashcards.due, notées par flashcards.review après que tu as dit comment tu t'en souvenais ; une écriture ordinaire de révision refusée avec le message qui dit d'utiliser flashcards.review.
+
+## Les journées de l'app (2026-10-20, branche todo-cleanup)
+
+- La nuit, entre minuit et l'heure de début du jour : « cette semaine », « ce mois » restent ceux de la veille au soir (une variable de la semaine, le Suivi d'une semaine, un Graphique de la semaine) ; « aujourd'hui » reste la veille.
+- La démo installée après minuit, avant 4 h : Ripasso a des cartes à revoir ; avec « La semaine commence » le dimanche, la semaine chargée et les relevés du carnet tombent sur des semaines qui commencent le dimanche, les tentatives des Objectifs restent le lundi à 00:00.
+- La migration 83 sur la release et ses données : un événement toute la journée garde son jour dans l'Agenda, ses rappels déjà envoyés ne repartent pas ; une sauvegarde d'avant restaurée, de même.
+- Un événement toute la journée créé par le formulaire, par une série et par l'IA : son début à l'heure de début du jour (l'historique de l'outil) ; à 1 h du matin, celui de la veille encore en cours dans À venir ; l'IA qui lit les événements d'aujourd'hui le voit.
+- Un Graphique en grille par jour : chaque graduation sous son point ; par semaine, la graduation au premier jour de la semaine réglé.
+- Le sélecteur de date de chaque thème avec « La semaine commence » le dimanche : la grille commence le dimanche ; dans le thème par défaut (le sélecteur de Material), si elle commence encore le lundi, Android ne lit pas la marque `fw` de la langue — le dire ; la date choisie est celle touchée, le fuseau de l'app réglé sur New York aussi.
