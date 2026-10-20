@@ -219,38 +219,61 @@ internal fun List<SettingNode>.shown(config: JSONObject): List<SettingNode> = fl
 }
 
 /**
- * A page reached by a trail: its settings, the object they are stored in, its name in the path;
- * for a setting's own page, that setting's name and editor, [nodes] then empty.
+ * A page reached by a trail: its settings, the object they are stored in, its title, and what
+ * the button of the page under it says to come back to it ("Back to the field “Tags”"); for a
+ * setting's own page, that setting's name and editor, [nodes] then empty.
  */
-private data class Page(val nodes: List<SettingNode>, val config: JSONObject, val label: String, val setting: Pair<String, SettingPageEditor>? = null)
+private data class Page(val nodes: List<SettingNode>, val config: JSONObject, val label: String, val back: String, val setting: Pair<String, SettingPageEditor>? = null)
 
 /**
  * The pages [trail] goes through from [nodes] over [config], as far as they still exist: an
  * element removed, a group whose variant was switched away, end it there.
  */
 private fun pagesOf(nodes: List<SettingNode>, config: JSONObject, trail: List<Step>, editors: Map<String, SettingEditor>, context: Context): List<Page> {
+    val s = Strings.`for`(context = context)
+    fun backTo(label: String) = s.shared("settings_back_to").format(label)
     val pages = mutableListOf<Page>()
     var level = nodes
     var current = config
     for (step in trail) {
         val page = when (step) {
             is Step.Group -> level.shown(current).filterIsInstance<SettingNode.Group>().firstOrNull { it.name == step.name }
-                ?.let { Page(it.nodes, current.optJSONObject(it.name) ?: JSONObject(), it.label) }
+                ?.let { Page(it.nodes, current.optJSONObject(it.name) ?: JSONObject(), it.label, backTo(it.label)) }
             is Step.Element -> level.shown(current).filterIsInstance<SettingNode.ListOf>().firstOrNull { it.name == step.list }?.let { list ->
                 val element = current.optJSONArray(list.name)?.opt(step.index) as? JSONObject
                 val shape = list.item as? SettingNode.Item.Of
                 if (element == null || shape == null) null
-                else Page(shape.nodes, element, summaryText(list, shape.nodes, element, step.index, context))
+                else if (list.fieldDefinitions) fieldPage(shape.nodes, element, context)
+                else summaryText(list, shape.nodes, element, step.index, context).let { Page(shape.nodes, element, it, backTo(it)) }
             }
             // Owners attach editors at the top level only, so a setting's page is opened from the root
             is Step.Setting -> (editors[step.name] as? SettingPageEditor)?.takeIf { pages.isEmpty() }
-                ?.let { Page(emptyList(), current, it.label, step.name to it) }
+                ?.let { Page(emptyList(), current, it.label, backTo(it.label), step.name to it) }
         } ?: break
         pages += page
         level = page.nodes
         current = page.config
     }
     return pages
+}
+
+/**
+ * The page of a field's definition, named as a field rather than by its list's summary: its name
+ * and its type, which the page under it is about (Field “Tags” (Choice type)); a field just
+ * added, with neither yet, is a new field.
+ */
+private fun fieldPage(nodes: List<SettingNode>, element: JSONObject, context: Context): Page {
+    val s = Strings.`for`(context = context)
+    val name = element.optString("display_name").takeIf { it.isNotBlank() }
+    val type = element.optString("type").takeIf { it.isNotBlank() }?.let { s.shared("field_type_${it.lowercase()}_display_name") }
+    val title = when {
+        name != null && type != null -> s.shared("settings_field_title").format(name, type)
+        name != null -> s.shared("settings_field_title_untyped").format(name)
+        type != null -> s.shared("settings_field_title_new_typed").format(type)
+        else -> s.shared("settings_field_title_new")
+    }
+    val back = if (name != null) s.shared("settings_back_to_field").format(name) else s.shared("settings_back_to_new_field")
+    return Page(nodes, element, title, back)
 }
 
 /** [container] with [value] put where [keys] lead, every object and list on the way copied. */
@@ -290,6 +313,8 @@ private fun replaced(container: Any, keys: List<Any>, value: Any): Any {
  *   root page alone (SettingsPages)
  * @param root What its owner shows with the settings of the root page and no other, above them:
  *   what is not a setting of [config] (a tool's zone)
+ * @param rootBack What the button of a page under the root says to come back to it; "Back to the
+ *   configuration" when the root is the whole config of what the screen edits
  */
 @Composable
 fun SettingsForm(
@@ -302,6 +327,7 @@ fun SettingsForm(
     scroll: androidx.compose.foundation.ScrollState? = null,
     origins: ListOrigins? = null,
     pages: SettingsPages = rememberSettingsPages(),
+    rootBack: String? = null,
     root: (@Composable () -> Unit)? = null
 ) {
     var trail by pages::trail
@@ -331,7 +357,9 @@ fun SettingsForm(
                 root?.invoke()
                 NodesForm(nodes, nodes, config, onChange, context, editors)
             } else {
-                PageHeader(reached.map { it.label }, context) { depth -> trail = shown.take(depth) }
+                val back = if (reached.size == 1) rootBack ?: Strings.`for`(context = context).shared("settings_back_to_configuration")
+                    else reached[reached.size - 2].back
+                PageHeader(page.label, back) { trail = shown.dropLast(1) }
                 val setting = page.setting
                 // A value taken on a setting's page closes it, back on the root
                 if (setting != null) setting.second.Edit(config.opt(setting.first)?.takeIf { it != JSONObject.NULL }) { value ->
@@ -346,28 +374,21 @@ fun SettingsForm(
 }
 
 /**
- * The head of a page under the root: a button up one page, the page's name, and under it the
- * path it was reached by, each step going back to its page.
+ * The head of a page under the root: a button up one page, saying which page it goes back to,
+ * over the page's title. One page at a time: leaving the whole form is the screen's own header.
  *
- * @param labels The pages from the root's first to the one open
- * @param onGo The number of pages to keep open, 0 for the root
+ * @param title The page open
+ * @param back What the button says: the page above, "Back to the configuration" for the root
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun PageHeader(labels: List<String>, context: Context, onGo: (Int) -> Unit) {
-    val s = remember { Strings.`for`(context = context) }
+internal fun PageHeader(title: String, back: String, onBack: () -> Unit) {
     UI.Card(type = CardType.DEFAULT, highlight = true) {
-        Row(modifier = Modifier.padding(UI.Space.S), verticalAlignment = Alignment.CenterVertically) {
-            UI.ActionButton(action = ButtonAction.BACK, display = ButtonDisplay.ICON, size = Size.M, onClick = { onGo(labels.size - 1) })
-            Column(modifier = Modifier.weight(1f).padding(start = UI.Space.S), verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
-                UI.Text(labels.last(), TextType.SUBTITLE)
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(UI.Space.S), verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
-                    (listOf(s.shared("settings_path_root")) + labels.dropLast(1)).forEachIndexed { depth, label ->
-                        if (depth > 0) UI.Text(s.shared("settings_path_separator"), TextType.CAPTION)
-                        Box(modifier = Modifier.clickable { onGo(depth) }) { UI.Text(label, TextType.CAPTION) }
-                    }
-                }
+        Column(modifier = Modifier.padding(UI.Space.S), verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
+            Row(modifier = Modifier.clickable(onClick = onBack), verticalAlignment = Alignment.CenterVertically) {
+                UI.ActionButton(action = ButtonAction.BACK, display = ButtonDisplay.ICON, size = Size.S, onClick = onBack)
+                UI.Text(back, TextType.CAPTION)
             }
+            Box(modifier = Modifier.padding(horizontal = UI.Space.S)) { UI.Text(title, TextType.SUBTITLE) }
         }
     }
 }

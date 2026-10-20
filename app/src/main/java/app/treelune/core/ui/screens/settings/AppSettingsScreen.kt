@@ -179,7 +179,9 @@ fun AppSettingsScreen(
 
         UI.Card(type = CardType.DEFAULT) {
             Column(modifier = Modifier.fillMaxWidth().padding(UI.Space.L)) {
-                SettingsForm(nodes, settings, { settings = it }, context, editors, origins = origins, pages = pages)
+                // The root is a category of the settings, not a configuration: its page says its name
+                SettingsForm(nodes, settings, { settings = it }, context, editors, origins = origins, pages = pages,
+                    rootBack = s.shared("settings_back_to").format(AppSettings.title(category, context)))
             }
         }
 

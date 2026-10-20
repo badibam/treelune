@@ -11,7 +11,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 ## Juste après la release
 
 - L'export des entrées d'un outil (`docs/design/export.md`).
-- Le titre de `ToolConfigScreen` donne le nom de l'outil, pas seulement son type.
 
 ## Bugs
 

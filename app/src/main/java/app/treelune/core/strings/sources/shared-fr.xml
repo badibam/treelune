@@ -550,7 +550,14 @@
     <string name="label_no_value">Aucune valeur</string>
     <string name="list_item_untitled">Sans nom</string>
     <string name="list_item_summary_separator">·</string>
-    <string name="settings_path_root">Réglages</string>
+    <string name="settings_back_to_configuration">Retour à la configuration</string>
+    <string name="settings_back_to">Retour à « %1$s »</string>
+    <string name="settings_back_to_field">Retour au champ « %1$s »</string>
+    <string name="settings_back_to_new_field">Retour au nouveau champ</string>
+    <string name="settings_field_title">Champ « %1$s » (de type %2$s)</string>
+    <string name="settings_field_title_untyped">Champ « %1$s »</string>
+    <string name="settings_field_title_new">Nouveau champ</string>
+    <string name="settings_field_title_new_typed">Nouveau champ (de type %1$s)</string>
     <string name="settings_path_separator">›</string>
     <string name="settings_page_problem">À compléter ou corriger</string>
     <string name="settings_count">%1$s : %2$s</string>
@@ -762,7 +769,7 @@
     <string name="field_ai_read_only_description">L\'IA le lit, mais ne l\'écrit jamais : ni en conversation, ni par une routine, ni par le connecteur.</string>
 
     <!-- Custom Fields Configuration - Field-specific config labels -->
-    <string name="field_config_section_title">Configuration du champ</string>
+    <string name="field_config_section_title">Réglages du type %1$s</string>
     <string name="field_config_default_value">Valeur par défaut</string>
     <string name="field_config_unit">Unité</string>
     <string name="field_config_min">Minimum</string>
@@ -1632,6 +1639,7 @@
     <string name="migration_kept_name">%1$s (avant le %2$s)</string>
     <string name="migration_fill_title">Valeurs à donner</string>
     <string name="migration_fill_message">%1$d entrée(s) n\'ont pas de valeur pour %2$s, que cette modification rend obligatoire. Donne la valeur qu\'elles prennent, ou annule.</string>
+    <string name="tools_config_new_tool">Nouvel outil</string>
     <string name="tools_config_error_not_found">Outil introuvable</string>
     <string name="service_error_migration_unconfirmed">Cette modification retire %1$d valeur(s) des entrées de cet outil, supprime %2$d entrée(s) restée(s) sans valeur obligatoire et relit autrement %3$d valeur(s) gardée(s) (nouvelles bornes, ordre). Dis-le à l\'utilisateur, et renvoie-la avec "confirm_migration": true une fois qu\'il est d\'accord.</string>
     <string name="service_error_migration_filters_aimed">Un filtre de %1$s compare un champ à une option que cette modification retire ou renomme : il ne trouverait plus rien. Dis-le à l\'utilisateur, et renvoie-la avec "confirm_migration": true une fois qu\'il est d\'accord.</string>

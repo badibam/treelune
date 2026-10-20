@@ -550,7 +550,14 @@
     <string name="label_no_value">No value</string>
     <string name="list_item_untitled">Untitled</string>
     <string name="list_item_summary_separator">·</string>
-    <string name="settings_path_root">Settings</string>
+    <string name="settings_back_to_configuration">Back to the configuration</string>
+    <string name="settings_back_to">Back to “%1$s”</string>
+    <string name="settings_back_to_field">Back to the field “%1$s”</string>
+    <string name="settings_back_to_new_field">Back to the new field</string>
+    <string name="settings_field_title">Field “%1$s” (%2$s type)</string>
+    <string name="settings_field_title_untyped">Field “%1$s”</string>
+    <string name="settings_field_title_new">New field</string>
+    <string name="settings_field_title_new_typed">New field (%1$s type)</string>
     <string name="settings_path_separator">›</string>
     <string name="settings_page_problem">To complete or correct</string>
     <string name="settings_count">%1$s: %2$s</string>
@@ -762,7 +769,7 @@
     <string name="field_ai_read_only_description">The AI reads it but never writes it: not in a chat, not by a routine, not through the connector.</string>
 
     <!-- Custom Fields Configuration - Field-specific config labels -->
-    <string name="field_config_section_title">Field configuration</string>
+    <string name="field_config_section_title">%1$s type settings</string>
     <string name="field_config_default_value">Default value</string>
     <string name="field_config_unit">Unit</string>
     <string name="field_config_min">Minimum</string>
@@ -1632,6 +1639,7 @@
     <string name="migration_kept_name">%1$s (before %2$s)</string>
     <string name="migration_fill_title">Values needed</string>
     <string name="migration_fill_message">%1$d entr(ies) have no value for %2$s, which this change makes required. Give the value they take, or cancel.</string>
+    <string name="tools_config_new_tool">New tool</string>
     <string name="tools_config_error_not_found">Tool not found</string>
     <string name="service_error_migration_unconfirmed">This change removes %1$d value(s) from this tool\'s entries, deletes %2$d entry(ies) left without a required value, and reads %3$d kept value(s) differently (new bounds, order). Tell the user, and send it again with "confirm_migration": true once they agree.</string>
     <string name="service_error_migration_filters_aimed">A filter of %1$s compares a field with an option this change removes or renames: it would find nothing. Tell the user, and send it again with "confirm_migration": true once they agree.</string>

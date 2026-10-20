@@ -169,7 +169,8 @@ fun ToolConfigScreen(
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         UI.PageHeader(
-            title = if (isEditing) s.shared("action_configure") else s.shared("action_create"),
+            // The tool's name as saved, not as being typed; a new tool has none yet
+            title = asLoaded?.let { JSONObject(it).optString("name") }?.takeIf { it.isNotBlank() } ?: s.shared("tools_config_new_tool"),
             subtitle = toolType.getDisplayName(context),
             leftButton = ButtonAction.BACK,
             onLeftClick = { leave() }
