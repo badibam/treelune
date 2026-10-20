@@ -91,10 +91,10 @@ data class TimeResolver(
     private fun dayOf(millis: Long): LocalDate = Instant.ofEpochMilli(millis).atZone(zone).toLocalDate()
 
     companion object {
-        /** Against [reference], with the calendar the user set. */
-        fun at(reference: Long) = TimeResolver(
+        /** Against [reference], with the calendar the user set, read in [zone]: the app's unless given. */
+        fun at(reference: Long, zone: ZoneId = AppConfigManager.getDateTimeConfig().getZoneId()) = TimeResolver(
             reference = reference,
-            zone = AppConfigManager.getDateTimeConfig().getZoneId(),
+            zone = zone,
             dayStartHour = AppConfigManager.getDayStartHour(),
             weekStartDay = AppConfigManager.getWeekStartDay()
         )

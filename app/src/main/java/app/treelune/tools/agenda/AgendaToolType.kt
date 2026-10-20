@@ -238,8 +238,8 @@ object AgendaToolType : ToolTypeContract {
     /** The zone the calendar's days and reminders are read in. */
     fun zone() = AppConfigManager.getDateTimeConfig().getZoneId()
 
-    /** The app's calendar read in [zone]: the hour its days start at, the first day of its weeks. No relative point is read against it. */
-    fun calendar(zone: java.time.ZoneId) = TimeResolver(System.currentTimeMillis(), zone, AppConfigManager.getDayStartHour(), AppConfigManager.getWeekStartDay())
+    /** The app's calendar read in [zone]: the hour its days start at, the first day of its weeks. */
+    fun calendar(zone: java.time.ZoneId) = TimeResolver.at(System.currentTimeMillis(), zone)
 
     @Composable
     override fun getUsageScreen(toolInstanceId: String, configJson: String, zoneName: String, onNavigateBack: () -> Unit, onLongClick: () -> Unit, openEntry: app.treelune.core.tools.EntryToOpen?) {
