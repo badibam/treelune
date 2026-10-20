@@ -3,7 +3,6 @@ package app.treelune.core.ui.screens.settings
 import androidx.compose.runtime.saveable.rememberSaveable
 import android.app.Activity
 import android.content.Intent
-import android.widget.Toast
 import kotlin.system.exitProcess
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -64,7 +63,7 @@ fun DataSettingsScreen(
     // Toast for errors
     LaunchedEffect(errorMessage) {
         errorMessage?.let { error ->
-            Toast.makeText(context, error, Toast.LENGTH_LONG).show()
+            UI.Toast(error, Duration.LONG)
             errorMessage = null
         }
     }
@@ -87,8 +86,8 @@ fun DataSettingsScreen(
                     if (result.status == CommandStatus.SUCCESS) {
                         // Images whose file was missing went without it: said, not hidden
                         val missing = (result.data?.get("missing_images") as? Number)?.toInt() ?: 0
-                        if (missing == 0) Toast.makeText(context, s.shared("backup_export_success"), Toast.LENGTH_SHORT).show()
-                        else Toast.makeText(context, s.shared("backup_export_success_missing_images").format(missing), Toast.LENGTH_LONG).show()
+                        if (missing == 0) UI.Toast(s.shared("backup_export_success"))
+                        else UI.Toast(s.shared("backup_export_success_missing_images").format(missing), Duration.LONG)
                     } else {
                         errorMessage = result.error ?: s.shared("backup_export_failed")
                     }
@@ -345,11 +344,7 @@ fun DataSettingsScreen(
                             )
 
                             if (result.status == CommandStatus.SUCCESS) {
-                                Toast.makeText(
-                                    context,
-                                    s.shared("backup_import_success"),
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                Toasts.showAfterRestart(context, s.shared("backup_import_success"))
                                 // Restart app with clean state
                                 restartApp(context)
                             } else {
@@ -389,11 +384,7 @@ fun DataSettingsScreen(
                         )
 
                         if (result.status == CommandStatus.SUCCESS) {
-                            Toast.makeText(
-                                context,
-                                s.shared("backup_reset_success"),
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            Toasts.showAfterRestart(context, s.shared("backup_reset_success"))
                             // Restart app with clean state
                             restartApp(context)
                         } else {

@@ -34,6 +34,8 @@ fun FloatingDialog(onDismissRequest: () -> Unit, margin: Dp, content: @Composabl
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
     ) {
+        // The app's messages over this window while it is the one on top (Toasts)
+        app.treelune.core.ui.ToastLayer()
         val window = (LocalView.current.parent as DialogWindowProvider).window
         SideEffect { window.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING) }
         Box(

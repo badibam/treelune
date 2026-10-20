@@ -179,7 +179,7 @@ object UI {
     fun copy(context: Context, text: String) {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
         clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Treelune", text))
-        Toast(context, app.treelune.core.strings.Strings.`for`(context = context).shared("text_copied"), Duration.SHORT)
+        Toast(app.treelune.core.strings.Strings.`for`(context = context).shared("text_copied"), Duration.SHORT)
     }
     
     /**
@@ -282,11 +282,11 @@ object UI {
     // FEEDBACK SYSTEM
     // =====================================
     
+    /** What the app says after a gesture, in the theme's band at the bottom of the screen (Toasts). */
     fun Toast(
-        context: Context,
         message: String,
         duration: Duration = Duration.SHORT
-    ) = CurrentTheme.current.Toast(context, message, duration)
+    ) = Toasts.show(message, duration)
     
     @Composable
     fun Snackbar(

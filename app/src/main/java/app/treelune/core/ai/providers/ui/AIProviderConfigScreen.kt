@@ -88,7 +88,7 @@ fun AIProviderConfigScreen(
     fun fetchModels() {
         if (!canList()) {
             val labels = listingSettings.mapNotNull { name -> nodes.storedField(name)?.displayName }
-            UI.Toast(context, s.shared("ai_provider_fill_in_first").format(labels.joinToString(", ")), Duration.SHORT)
+            UI.Toast(s.shared("ai_provider_fill_in_first").format(labels.joinToString(", ")), Duration.SHORT)
             return
         }
         scope.launch {
@@ -96,7 +96,7 @@ fun AIProviderConfigScreen(
             val listed = provider.listModels(JSONObject(settings.toString()))
             isFetching = false
             models = listed.models
-            listed.error?.let { UI.Toast(context, s.shared("ai_provider_fetch_error").format(it), Duration.LONG) }
+            listed.error?.let { UI.Toast(s.shared("ai_provider_fetch_error").format(it), Duration.LONG) }
             // A config without a model takes the first one listed
             if (!settings.has("model")) listed.models.firstOrNull()?.let { settings = JSONObject(settings.toString()).put("model", it.id) }
             // What the list says of the model's images, kept with the config once it is saved

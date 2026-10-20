@@ -40,7 +40,7 @@ fun DemoSettingsScreen(onBack: () -> Unit) {
         scope.launch {
             val result = coordinator.processUserAction(operation, emptyMap())
             working = false
-            UI.Toast(context, if (result.isSuccess) done else result.error ?: s.shared("error_operation_failed"), Duration.LONG)
+            UI.Toast(if (result.isSuccess) done else result.error ?: s.shared("error_operation_failed"), Duration.LONG)
         }
     }
 

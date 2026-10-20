@@ -124,7 +124,7 @@ fun MessagesScreen(
 
     errorMessage?.let { message ->
         LaunchedEffect(message) {
-            UI.Toast(context, message, Duration.LONG)
+            UI.Toast(message, Duration.LONG)
             errorMessage = null
         }
     }

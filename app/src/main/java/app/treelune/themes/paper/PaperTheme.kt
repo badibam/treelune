@@ -1,8 +1,6 @@
 package app.treelune.themes.paper
 
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -456,11 +454,6 @@ object PaperTheme : ThemeContract {
     // FEEDBACK
     // =====================================
 
-    /** A night-blue sheet at the bottom of the screen (FullScreen shows it), for as long as Android's would last. */
-    override fun Toast(context: Context, message: String, duration: Duration) {
-        val shown = if (duration == Duration.SHORT) TOAST_SHORT_MS else TOAST_LONG_MS
-        Handler(Looper.getMainLooper()).post { PaperToasts.show(message, shown) }
-    }
 
     /**
      * A night-blue sheet on its shadow, its message in cream, its action in the mustard; a round
@@ -685,7 +678,6 @@ object PaperTheme : ThemeContract {
         Box(modifier = Modifier.fillMaxSize().kraft(c.ground.srgb, c.rule.srgb)) {
             CompositionLocalProvider(LocalPaperInk provides null, LocalPaperStrong provides null, LocalPaperInTile provides false) {
                 content()
-                ToastHost(Modifier.align(Alignment.BottomCenter))
             }
         }
     }
@@ -1645,24 +1637,6 @@ object PaperTheme : ThemeContract {
         }
     }
 
-    /** The toast shown, a night-blue sheet across the bottom of the screen. */
-    @Composable
-    private fun ToastHost(modifier: Modifier) {
-        val shown = PaperToasts.current ?: return
-        LaunchedEffect(shown.id) {
-            delay(shown.millis)
-            PaperToasts.dismiss(shown.id)
-        }
-        val size = paperSize()
-        val c = paperColors
-        Box(modifier = modifier.fillMaxWidth().padding(spacing(Spacing.EDGE))) {
-            FallIn {
-                Box(modifier = Modifier.fillMaxWidth().paperSheet(c.navy.srgb, Cut.C.shape(size)).padding(horizontal = size.dp(16f), vertical = size.dp(14f))) {
-                    Line(shown.message, size.body, c.onNavy.srgb)
-                }
-            }
-        }
-    }
 
     /**
      * How the motifs are laid (docs/design/tool-texture.md): a cell's unit a dp at the size step,
@@ -1705,8 +1679,6 @@ object PaperTheme : ThemeContract {
 
     private const val MAX_GRID_DP = 480
     private const val ASIDE_ALPHA = 0.4f
-    private const val TOAST_SHORT_MS = 2000L
-    private const val TOAST_LONG_MS = 3500L
     private const val CONFETTI = 3
     private const val CONFETTI_STEP_MS = 350
 }
@@ -1735,20 +1707,3 @@ private fun Modifier.kraft(ground: Color, fibre: Color): Modifier = drawBehind {
 
 private const val FIBRE_ALPHA = 0.09f
 
-/** The toasts waiting, the oldest shown first; posted on the main thread. */
-internal object PaperToasts {
-    data class Shown(val id: Long, val message: String, val millis: Long)
-
-    private val queue = mutableStateListOf<Shown>()
-    private var next = 0L
-
-    val current: Shown? get() = queue.firstOrNull()
-
-    fun show(message: String, millis: Long) {
-        queue.add(Shown(next++, message, millis))
-    }
-
-    fun dismiss(id: Long) {
-        queue.removeAll { it.id == id }
-    }
-}

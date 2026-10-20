@@ -175,5 +175,5 @@ private suspend fun openEntry(context: Context, id: String) {
     val result = Coordinator(context).processUserAction("tool_data.get_single", mapOf("entry_id" to id))
     val toolId = (result.data?.get("entry") as? Map<*, *>)?.get("tool_instance_id") as? String
     if (toolId != null) ToolRequests.open(toolId, id)
-    else UI.Toast(context, result.error ?: Strings.`for`(tool = "chart", context = context).tool("entry_not_found"))
+    else UI.Toast(result.error ?: Strings.`for`(tool = "chart", context = context).tool("entry_not_found"))
 }

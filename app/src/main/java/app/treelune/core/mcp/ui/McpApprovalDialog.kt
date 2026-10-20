@@ -38,9 +38,9 @@ fun McpApprovalDialog() {
 
     fun ended(outcome: PendingAuthorization?) {
         when (outcome?.outcome) {
-            PendingAuthorization.Outcome.APPROVED -> UI.Toast(context, s.shared("external_access_request_allowed"), Duration.LONG)
+            PendingAuthorization.Outcome.APPROVED -> UI.Toast(s.shared("external_access_request_allowed"), Duration.LONG)
             PendingAuthorization.Outcome.WAITING -> wrong = OAuthServer.MAX_ATTEMPTS - outcome.attempts
-            else -> UI.Toast(context, s.shared("external_access_request_ended"), Duration.LONG)
+            else -> UI.Toast(s.shared("external_access_request_ended"), Duration.LONG)
         }
     }
 

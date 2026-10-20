@@ -6,8 +6,6 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import app.treelune.core.ui.components.LocalButtonFill
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
@@ -466,11 +464,6 @@ object CosyTheme : ThemeContract {
     // FEEDBACK
     // =====================================
 
-    /** A tile at the bottom of the screen (FullScreen shows it), for as long as Android's would last. */
-    override fun Toast(context: Context, message: String, duration: Duration) {
-        val shown = if (duration == Duration.SHORT) TOAST_SHORT_MS else TOAST_LONG_MS
-        Handler(Looper.getMainLooper()).post { CosyToasts.show(message, shown) }
-    }
 
     @Composable
     override fun Snackbar(type: FeedbackType, message: String, action: String?, onAction: (() -> Unit)?) {
@@ -678,7 +671,6 @@ object CosyTheme : ThemeContract {
         ) {
             CompositionLocalProvider(LocalCosyLayer provides CosyLayer.GROUND, LocalCosyInk provides null) {
                 content()
-                ToastHost(Modifier.align(Alignment.BottomCenter))
             }
         }
     }
@@ -1494,18 +1486,6 @@ object CosyTheme : ThemeContract {
         }
     }
 
-    /** The toast shown, a tile across the bottom of the screen. */
-    @Composable
-    private fun ToastHost(modifier: Modifier) {
-        val shown = CosyToasts.current ?: return
-        LaunchedEffect(shown.id) {
-            delay(shown.millis)
-            CosyToasts.dismiss(shown.id)
-        }
-        Box(modifier = modifier.fillMaxWidth().padding(cosySize().dp(16f))) {
-            SwellIn { TileBox(modifier = Modifier.fillMaxWidth()) { Line(shown.message, cosySize().body, cosyColors.ink.srgb) } }
-        }
-    }
 
     /** Diagonal stripes across what is drawn, [pitch] apart. */
     private fun androidx.compose.ui.graphics.drawscope.DrawScope.stripes(color: Color, pitch: Float) {
@@ -1530,8 +1510,6 @@ object CosyTheme : ThemeContract {
         return app.treelune.core.themes.TextureStyle(unitPx = unit, pixel = false, iconUnits = 14, iconGapUnits = 16)
     }
     private const val ASIDE_ALPHA = 0.4f
-    private const val TOAST_SHORT_MS = 2000L
-    private const val TOAST_LONG_MS = 3500L
     private const val DOT_PITCH = 22f
     private const val DOT_RADIUS = 2f
     private const val STRIPE_ALPHA = 0.35f
@@ -1540,20 +1518,3 @@ object CosyTheme : ThemeContract {
     private const val DOTS_CYCLE_MS = 1100
 }
 
-/** The toasts waiting, the oldest shown first; posted on the main thread. */
-internal object CosyToasts {
-    data class Shown(val id: Long, val message: String, val millis: Long)
-
-    private val queue = mutableStateListOf<Shown>()
-    private var next = 0L
-
-    val current: Shown? get() = queue.firstOrNull()
-
-    fun show(message: String, millis: Long) {
-        queue.add(Shown(next++, message, millis))
-    }
-
-    fun dismiss(id: Long) {
-        queue.removeAll { it.id == id }
-    }
-}

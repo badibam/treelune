@@ -174,7 +174,7 @@ try {
     val result = coordinator.processUserAction("backup.export", mapOf("uri" to uri.toString()))
 
     if (result.status == CommandStatus.SUCCESS) {
-        Toast.makeText(context, s.shared("backup_export_success"), Toast.LENGTH_SHORT).show()
+        UI.Toast(s.shared("backup_export_success"))
     } else {
         // Service error (result.error first, already translated)
         errorMessage = result.error ?: s.shared("backup_export_failed")

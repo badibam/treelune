@@ -1,8 +1,6 @@
 package app.treelune.themes.blueprint
 
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -463,11 +461,6 @@ object BlueprintTheme : ThemeContract {
     // FEEDBACK
     // =====================================
 
-    /** A small title block at the bottom of the screen (FullScreen shows it), for as long as Android's would last. */
-    override fun Toast(context: Context, message: String, duration: Duration) {
-        val shown = if (duration == Duration.SHORT) TOAST_SHORT_MS else TOAST_LONG_MS
-        Handler(Looper.getMainLooper()).post { BlueprintToasts.show(message, shown) }
-    }
 
     /**
      * A small title block full of the ink, a hairline of the paper inside its edge, its message in
@@ -683,7 +676,6 @@ object BlueprintTheme : ThemeContract {
         Box(modifier = Modifier.fillMaxSize().background(paper).drawBehind { drawGrid(minor, major) }) {
             CompositionLocalProvider(LocalBlueprintInk provides null, LocalBlueprintCrayon provides null) {
                 content()
-                ToastHost(Modifier.align(Alignment.BottomCenter))
             }
         }
     }
@@ -1675,24 +1667,6 @@ object BlueprintTheme : ThemeContract {
         }
     }
 
-    /** The toast shown, a small title block full of the ink across the bottom of the screen. */
-    @Composable
-    private fun ToastHost(modifier: Modifier) {
-        val shown = BlueprintToasts.current ?: return
-        LaunchedEffect(shown.id) {
-            delay(shown.millis)
-            BlueprintToasts.dismiss(shown.id)
-        }
-        val size = blueprintSize()
-        val c = blueprintColors
-        Box(modifier = modifier.fillMaxWidth().padding(spacing(Spacing.EDGE))) {
-            FadeIn {
-                Box(modifier = Modifier.fillMaxWidth().inkBlock().padding(horizontal = size.dp(16f), vertical = size.dp(14f))) {
-                    Line(shown.message, size.body, c.paper.srgb)
-                }
-            }
-        }
-    }
 
     /** A fill of the ink with a hairline of the paper inside its edge: a small title block, full. */
     @Composable
@@ -1796,28 +1770,9 @@ object BlueprintTheme : ThemeContract {
 
     private const val MAX_GRID_DP = 480
     private const val ASIDE_ALPHA = 0.4f
-    private const val TOAST_SHORT_MS = 2000L
-    private const val TOAST_LONG_MS = 3500L
     private const val LOADING_MS = 2400
     private const val THINKING_MS = 1600
     /** The part of the AI's turn the dimension line takes to draw itself; the rest it stays drawn. */
     private const val THINKING_DRAW = 0.8f
 }
 
-/** The toasts waiting, the oldest shown first; posted on the main thread. */
-internal object BlueprintToasts {
-    data class Shown(val id: Long, val message: String, val millis: Long)
-
-    private val queue = mutableStateListOf<Shown>()
-    private var next = 0L
-
-    val current: Shown? get() = queue.firstOrNull()
-
-    fun show(message: String, millis: Long) {
-        queue.add(Shown(next++, message, millis))
-    }
-
-    fun dismiss(id: Long) {
-        queue.removeAll { it.id == id }
-    }
-}

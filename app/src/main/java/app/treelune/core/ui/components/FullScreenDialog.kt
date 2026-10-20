@@ -52,6 +52,8 @@ fun FullScreenDialog(onDismiss: () -> Unit, content: @Composable () -> Unit) {
             decorFitsSystemWindows = false
         )
     ) {
+        // The app's messages over this window while it is the one on top (Toasts)
+        app.treelune.core.ui.ToastLayer()
         val window = (LocalView.current.parent as DialogWindowProvider).window
         val activity = LocalContext.current.activity()
         @Suppress("DEPRECATION") // Read only, as the activity's window has it until the app goes edge-to-edge

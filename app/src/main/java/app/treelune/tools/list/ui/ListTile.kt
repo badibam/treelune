@@ -81,7 +81,7 @@ fun rememberListTile(tool: ToolInstance): ToolTile {
     fun check(item: ListItem, checked: Boolean) {
         scope.launch {
             val result = ListItems.setChecked(coordinator, item.id, checked, removeWhenChecked)
-            if (!result.isSuccess) UI.Toast(context, result.error ?: s.shared("message_error_simple"), Duration.LONG)
+            if (!result.isSuccess) UI.Toast(result.error ?: s.shared("message_error_simple"), Duration.LONG)
         }
     }
 
@@ -93,7 +93,7 @@ fun rememberListTile(tool: ToolInstance): ToolTile {
                 scope.launch {
                     val result = ListItems.add(coordinator, tool.id, name, extra, dueAt.takeIf { dueDates })
                     if (result.isSuccess) adding = false
-                    else UI.Toast(context, result.error ?: s.shared("message_error_simple"), Duration.LONG)
+                    else UI.Toast(result.error ?: s.shared("message_error_simple"), Duration.LONG)
                 }
             },
             onCancel = { adding = false }

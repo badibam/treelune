@@ -100,7 +100,7 @@ class TrackingActions internal constructor(
         return if (result.isSuccess) {
             result.data?.get("id") as? String
         } else {
-            UI.Toast(context, result.error ?: s.tool("error_entry_saving"), Duration.LONG)
+            UI.Toast(result.error ?: s.tool("error_entry_saving"), Duration.LONG)
             null
         }
     }
@@ -116,7 +116,7 @@ class TrackingActions internal constructor(
     /** An entry named [name] holding [value] and [unit], saved at once, at [timestamp] or now. */
     fun quickSave(name: String, value: Any?, unit: String?, timestamp: Long? = null) = save {
         if (create(name, timestamp ?: System.currentTimeMillis(), value, unit) != null) {
-            UI.Toast(context, s.tool("usage_entry_saved"), Duration.SHORT)
+            UI.Toast(s.tool("usage_entry_saved"), Duration.SHORT)
         }
     }
 
@@ -137,14 +137,14 @@ class TrackingActions internal constructor(
 
     fun stop(entry: RunningEntry) = save {
         val result = coordinator.processUserAction("tool_data.stop_duration", mapOf("id" to entry.id, "container" to "data", "field" to "value"))
-        if (!result.isSuccess) UI.Toast(context, result.error ?: s.tool("error_entry_update_failed"), Duration.LONG)
+        if (!result.isSuccess) UI.Toast(result.error ?: s.tool("error_entry_update_failed"), Duration.LONG)
     }
 
     // Starting one stops the one running: the service keeps that rule (TrackingStopwatch)
     fun start(name: String) = save {
         val id = create(name, System.currentTimeMillis(), null, null) ?: return@save
         val result = coordinator.processUserAction("tool_data.start_duration", mapOf("id" to id, "container" to "data", "field" to "value"))
-        if (!result.isSuccess) UI.Toast(context, result.error ?: s.tool("error_entry_saving"), Duration.LONG)
+        if (!result.isSuccess) UI.Toast(result.error ?: s.tool("error_entry_saving"), Duration.LONG)
     }
 
     /** The entries with a stopwatch running, or null when they cannot be read (logged). */
@@ -184,7 +184,7 @@ class TrackingActions internal constructor(
                 dialog.value = null
                 save {
                     create(entry.name, entry.timestamp, entry.value, entry.unit, entry.extra) ?: return@save
-                    UI.Toast(context, s.tool("usage_entry_saved"), Duration.SHORT)
+                    UI.Toast(s.tool("usage_entry_saved"), Duration.SHORT)
                     if (entry.addToShortcuts) addShortcut(entry)
                 }
             },
@@ -206,7 +206,7 @@ class TrackingActions internal constructor(
             ?.mapSingleData("tool_instance") { map -> @Suppress("UNCHECKED_CAST") (map["config"] as? Map<String, Any?>) }
             ?.let(JsonUtils::toJSONObject)
         if (current == null) {
-            UI.Toast(context, s.shared("tools_config_error_save"), Duration.LONG)
+            UI.Toast(s.shared("tools_config_error_save"), Duration.LONG)
             return
         }
         val result = coordinator.processUserAction("tools.update", mapOf(
@@ -214,7 +214,7 @@ class TrackingActions internal constructor(
             "config" to JsonUtils.toMap(TrackingConfig.withShortcut(current, shortcut))
         ))
         if (result.isSuccess) onConfigChanged()
-        else UI.Toast(context, result.error ?: s.shared("tools_config_error_save"), Duration.LONG)
+        else UI.Toast(result.error ?: s.shared("tools_config_error_save"), Duration.LONG)
     }
 }
 

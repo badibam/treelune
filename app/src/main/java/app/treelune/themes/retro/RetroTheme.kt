@@ -3,8 +3,6 @@ package app.treelune.themes.retro
 import app.treelune.core.themes.texture
 import app.treelune.core.ui.components.LocalButtonFill
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -477,11 +475,6 @@ object RetroTheme : ThemeContract {
     // FEEDBACK
     // =====================================
 
-    /** A frame at the bottom of the screen (FullScreen shows it), for as long as Android's would last. */
-    override fun Toast(context: Context, message: String, duration: Duration) {
-        val shown = if (duration == Duration.SHORT) TOAST_SHORT_MS else TOAST_LONG_MS
-        Handler(Looper.getMainLooper()).post { RetroToasts.show(message, shown) }
-    }
 
     @Composable
     override fun Snackbar(type: FeedbackType, message: String, action: String?, onAction: (() -> Unit)?) {
@@ -666,7 +659,6 @@ object RetroTheme : ThemeContract {
         }) {
             CompositionLocalProvider(LocalRetroSurface provides RetroSurface.SCREEN, LocalRetroInk provides null) {
                 content()
-                ToastHost(Modifier.align(Alignment.BottomCenter))
             }
         }
     }
@@ -1397,22 +1389,8 @@ object RetroTheme : ThemeContract {
         }
     }
 
-    /** The toast shown, a frame across the bottom of the screen. */
-    @Composable
-    private fun ToastHost(modifier: Modifier) {
-        val shown = RetroToasts.current ?: return
-        LaunchedEffect(shown.id) {
-            delay(shown.millis)
-            RetroToasts.dismiss(shown.id)
-        }
-        Box(modifier = modifier.fillMaxWidth().padding(retroGrid().steady(1))) {
-            Framed(modifier = Modifier.fillMaxWidth()) { Line(shown.message, retroGrid().text, retroColors.panel.ink.srgb) }
-        }
-    }
 
     private const val THEME_ID = "retro"
-    private const val TOAST_SHORT_MS = 2000L
-    private const val TOAST_LONG_MS = 3500L
     private const val DOT_STEP_MS = 300L
 
     // Cartouche's interface symbols (cartouche-font, private area U+E010–U+E028)
@@ -1432,20 +1410,3 @@ internal val LocalRetroInk = compositionLocalOf<Color?> { null }
 /** Whether the item holding these frames is lifted (a reorder in progress). */
 internal val LocalRetroLifted = compositionLocalOf { false }
 
-/** The toasts waiting, the oldest shown first; posted on the main thread. */
-internal object RetroToasts {
-    data class Shown(val id: Long, val message: String, val millis: Long)
-
-    private val queue = mutableStateListOf<Shown>()
-    private var next = 0L
-
-    val current: Shown? get() = queue.firstOrNull()
-
-    fun show(message: String, millis: Long) {
-        queue.add(Shown(next++, message, millis))
-    }
-
-    fun dismiss(id: Long) {
-        queue.removeAll { it.id == id }
-    }
-}

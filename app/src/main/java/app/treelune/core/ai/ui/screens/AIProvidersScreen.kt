@@ -50,7 +50,7 @@ fun AIProvidersScreen(
     // Error display (toast pattern)
     errorMessage?.let { error ->
         LaunchedEffect(error) {
-            UI.Toast(context, error, Duration.LONG)
+            UI.Toast(error, Duration.LONG)
             errorMessage = null
         }
     }
@@ -162,7 +162,7 @@ fun AIProviderScreen(editing: Place.AIProvider, onName: @Composable (String) -> 
     }
     errorMessage?.let { error ->
         LaunchedEffect(error) {
-            UI.Toast(context, error, Duration.LONG)
+            UI.Toast(error, Duration.LONG)
             errorMessage = null
         }
     }
@@ -200,7 +200,7 @@ fun AIProviderScreen(editing: Place.AIProvider, onName: @Composable (String) -> 
         }
         val result = coordinator.processUserAction("ai_provider_config.get", mapOf("provider_id" to source))
         if (result.status != CommandStatus.SUCCESS) {
-            UI.Toast(context, result.error ?: s.shared("error_unknown"), Duration.LONG)
+            UI.Toast(result.error ?: s.shared("error_unknown"), Duration.LONG)
             Navigator.drop(editing)
             return@LaunchedEffect
         }

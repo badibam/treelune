@@ -491,7 +491,7 @@ fun ZoneScreen(zone: Zone) {
                             )
                         )
                         if (result.status == CommandStatus.SUCCESS) {
-                            UI.Toast(context, s.shared("duplicate_success_tool"))
+                            UI.Toast(s.shared("duplicate_success_tool"))
                             showDuplicateToolDialog = false
                             // Reload tools to show the new one
                             coordinator.executeWithLoading(
@@ -539,7 +539,7 @@ fun ZoneScreen(zone: Zone) {
                             )
                         )
                         if (result.status == CommandStatus.SUCCESS) {
-                            UI.Toast(context, s.shared("duplicate_success_automation"))
+                            UI.Toast(s.shared("duplicate_success_automation"))
                             showDuplicateAutomationDialog = false
                             // Reload automations to show the new one
                             coordinator.executeWithLoading(
@@ -567,7 +567,7 @@ fun ZoneScreen(zone: Zone) {
     // Error handling with Toast
     errorMessage?.let { message ->
         LaunchedEffect(message) {
-            UI.Toast(context, message, Duration.LONG)
+            UI.Toast(message, Duration.LONG)
             errorMessage = null
         }
     }

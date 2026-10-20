@@ -210,15 +210,15 @@ fun TrackingHistory(
 
                 when {
                     result.isSuccess -> {
-                        UI.Toast(context, s.tool("usage_entry_updated"), Duration.SHORT)
+                        UI.Toast(s.tool("usage_entry_updated"), Duration.SHORT)
                         // The data change notification reloads the list
                     }
                     else -> {
-                        UI.Toast(context, result.error ?: s.tool("error_entry_update"), Duration.LONG)
+                        UI.Toast(result.error ?: s.tool("error_entry_update"), Duration.LONG)
                     }
                 }
             } catch (e: Exception) {
-                UI.Toast(context, s.shared("message_error").format(e.message ?: ""), Duration.LONG)
+                UI.Toast(s.shared("message_error").format(e.message ?: ""), Duration.LONG)
             }
         }
     }
@@ -238,15 +238,15 @@ fun TrackingHistory(
                 
                 when {
                     result.isSuccess -> {
-                        UI.Toast(context, s.tool("usage_entry_deleted"), Duration.SHORT)
+                        UI.Toast(s.tool("usage_entry_deleted"), Duration.SHORT)
                         trackingData = trackingData.filter { it.id != entryId }
                     }
                     else -> {
-                        UI.Toast(context, result.error ?: s.tool("error_entry_deletion"), Duration.LONG)
+                        UI.Toast(result.error ?: s.tool("error_entry_deletion"), Duration.LONG)
                     }
                 }
             } catch (e: Exception) {
-                UI.Toast(context, s.shared("message_error").format(e.message ?: ""), Duration.LONG)
+                UI.Toast(s.shared("message_error").format(e.message ?: ""), Duration.LONG)
             }
         }
     }

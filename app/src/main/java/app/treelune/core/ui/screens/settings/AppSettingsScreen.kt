@@ -71,14 +71,14 @@ fun AppSettingsScreen(
         @Suppress("UNCHECKED_CAST")
         val read = result.data?.get("settings") as? Map<String, Any?>
         if (!result.isSuccess || read == null) {
-            UI.Toast(context, result.error ?: s.shared("error_load_failed"), Duration.LONG)
+            UI.Toast(result.error ?: s.shared("error_load_failed"), Duration.LONG)
             return@rememberLoadOnce false
         }
         settings = JsonUtils.toJSONObject(read)
         stored = JsonUtils.toJSONObject(read)
         // A secret sealed on another phone shows empty: said, so it is not taken for one never entered
         (result.data?.get(app.treelune.core.secrets.SecretSettings.UNREADABLE) as? List<*>).orEmpty().takeIf { it.isNotEmpty() }?.let { names ->
-            UI.Toast(context, s.shared("secrets_unreadable").format(names.joinToString(", ") { nodes.labelOf(it.toString()) ?: it.toString() }), Duration.LONG)
+            UI.Toast(s.shared("secrets_unreadable").format(names.joinToString(", ") { nodes.labelOf(it.toString()) ?: it.toString() }), Duration.LONG)
         }
         true
     }
@@ -129,7 +129,7 @@ fun AppSettingsScreen(
             else mapOf("zone_groups" to origins.renames("zone_groups", settings.optJSONArray("zone_groups")))
         val result = coordinator.processUserAction("app_config.set", mapOf("category" to category, "settings" to JsonUtils.toMap(settings), "renames" to renames))
         if (!result.isSuccess) {
-            UI.Toast(context, result.error ?: s.shared("error_operation_failed"), Duration.LONG)
+            UI.Toast(result.error ?: s.shared("error_operation_failed"), Duration.LONG)
             return false
         }
         stored = JSONObject(settings.toString())
@@ -143,7 +143,7 @@ fun AppSettingsScreen(
             isSaving = false
             if (written) {
                 saved = true
-                UI.Toast(context, s.shared("settings_saved"), Duration.SHORT)
+                UI.Toast(s.shared("settings_saved"), Duration.SHORT)
                 onBack()
             }
         }
@@ -154,7 +154,7 @@ fun AppSettingsScreen(
         when {
             load != LoadState.LOADED -> false
             JsonUtils.toMap(settings) == JsonUtils.toMap(stored) -> true
-            else -> write().also { if (it) UI.Toast(context, s.shared("settings_saved"), Duration.SHORT) }
+            else -> write().also { if (it) UI.Toast(s.shared("settings_saved"), Duration.SHORT) }
         }
     }
 

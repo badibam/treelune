@@ -108,7 +108,7 @@ fun QuestionnaireScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onCo
             }
         }
     }
-    errorMessage?.let { message -> LaunchedEffect(message) { UI.Toast(context, message, Duration.LONG); errorMessage = null } }
+    errorMessage?.let { message -> LaunchedEffect(message) { UI.Toast(message, Duration.LONG); errorMessage = null } }
 
     fun write(action: suspend () -> CommandResult, onDone: () -> Unit = {}) {
         scope.launch {
