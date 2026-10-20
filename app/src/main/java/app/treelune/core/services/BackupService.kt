@@ -58,6 +58,10 @@ import app.treelune.core.ai.data.LegacyCatchUp
  *   link). Answer: `file_name`, `uri`, `elements`, `entries`, `missing_images`
  * - auto: the automatic backup's copy (AutoBackup), into the folder chosen, rolled; none when the
  *   data did not change since the last one. Answer: `written`
+ * - import_part: `uri`, `selection`, `arrivals`: a part of the backup there added to the app
+ *   (performImportPart, PartImport), one step of the history. Answer: `zones` (the new ones),
+ *   `elements`, `entries`, `renamed` (each variable's name in the file and the one it took),
+ *   `images_missing`
  * - import: `uri`: data restored from a backup there (with version migrations): a zip, or the
  *   `.json` of the backups made before images, still readable
  * - reset: Wipe all data and restore defaults
@@ -67,15 +71,42 @@ class BackupService(private val context: Context) : ExecutableService {
     private val s = Strings.`for`(context = context)
     private val database = AppDatabase.getDatabase(context)
 
-    private companion object {
+    companion object {
         /** The tables, in the zip */
-        const val BACKUP_JSON = "backup.json"
+        private const val BACKUP_JSON = "backup.json"
         /** The images' folder, in the zip */
-        const val IMAGES_DIR = "images/"
+        private const val IMAGES_DIR = "images/"
+
+        /** A routine as a backup's [item] holds it, in the form of the current schema. */
+        fun automationOf(item: JSONObject): AutomationEntity = AutomationEntity(
+            id = item.getString("id"),
+            name = item.getString("name"),
+            zoneId = item.getString("zone_id"),
+            seedSessionId = item.getString("seed_session_id"),
+            scheduleJson = item.optString("schedule_json", null),
+            triggerIdsJson = item.optString("trigger_ids_json", "[]"),
+            // A backup older than v41 is brought to this form first (CatchUpAtV41)
+            catchUp = item.optString("catch_up").takeIf { it.isNotEmpty() },
+            catchUpWindow = if (item.has("catch_up_window")) item.getLong("catch_up_window") else null,
+            dismissOlderInstances = item.getBoolean("dismiss_older_instances"),
+            providerId = if (item.isNull("provider_id")) null else item.getString("provider_id"),
+            isEnabled = item.getBoolean("is_enabled"),
+            createdAt = item.getLong("created_at"),
+            updatedAt = System.currentTimeMillis(), // Always now on import - prevents executing missed periods
+            lastExecutionId = item.optString("last_execution_id", null),
+            executionHistoryJson = item.optString("execution_history_json", "[]"),
+            group = item.optString("group", null),
+            // Absent from a backup made before version 70: an automation reaching everything
+            accessJson = item.optString("access_json", "[]"),
+            // Absent from a backup made before version 76: every run signalled, as the migration does
+            notifyEnd = item.optString("notify_end", app.treelune.core.ai.data.AutomationSettings.NOTIFY_ALWAYS),
+            // Absent from a backup made before version 77: the app's own AI, as the migration does
+            identityId = item.nullableString("identity_id")
+        )
     }
 
     /** Both read or rewrite the whole base: never with another, the demo or an import. */
-    override val longOperations = setOf("export", "import", "auto")
+    override val longOperations = setOf("export", "import", "import_part", "auto")
 
     override suspend fun execute(
         operation: String,
@@ -87,6 +118,7 @@ class BackupService(private val context: Context) : ExecutableService {
                 "export" -> if (params.has("selection")) performExportPart(params, token) else performExport(params.optString("uri"), token)
                 "auto" -> performAuto(token)
                 "import" -> performImport(params.optString("uri"), token)
+                "import_part" -> performImportPart(params, token)
                 "reset" -> performReset(token)
                 else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
             }
@@ -564,38 +596,12 @@ class BackupService(private val context: Context) : ExecutableService {
         return try {
             LogManager.service("Starting backup import")
 
-            staging.deleteRecursively()
-            val jsonData = readBackup(android.net.Uri.parse(uri), staging)
-                ?: return OperationResult.error(s.shared("backup_invalid_file"))
-
-            // Parse and validate JSON
-            val backupJson = JSONObject(jsonData)
-            val metadata = backupJson.optJSONObject("metadata")
-                ?: return OperationResult.error(s.shared("backup_invalid_file"))
-
-            // Get versions for validation and transformations
-            val exportVersion = metadata.optInt("export_version", -1)
-            val dbSchemaVersion = metadata.optInt("db_schema_version", -1)
-
-            if (exportVersion == -1 || dbSchemaVersion == -1) {
-                return OperationResult.error(s.shared("backup_invalid_file"))
-            }
-
-            // Check app version compatibility (export_version is the app version)
-            val currentAppVersion = app.treelune.BuildConfig.VERSION_CODE
-            if (exportVersion > currentAppVersion) {
-                return OperationResult.error(s.shared("backup_version_too_recent"))
-            }
-
-            // Apply JSON transformations based on DB schema version
-            // (db_schema_version determines data structure, not app version)
-            val currentDbVersion = AppDatabase.VERSION
-            val transformedData = if (dbSchemaVersion < currentDbVersion) {
-                LogManager.service("Applying JSON transformations from DB schema v$dbSchemaVersion to v$currentDbVersion", "INFO")
-                transformBackupData(backupJson, dbSchemaVersion, currentDbVersion)
-            } else {
-                LogManager.service("No JSON transformations needed (DB schema v$dbSchemaVersion)", "DEBUG")
-                backupJson
+            val data = when (val opened = open(uri, staging)) {
+                is Opened.Refused -> return OperationResult.error(opened.message)
+                // A part restored whole would empty the app of all it does not hold
+                is Opened.Read -> if (app.treelune.core.backup.BackupPart.isPartial(opened.document)) {
+                    return OperationResult.error(s.shared("share_error_restore_part"))
+                } else opened.document.getJSONObject("data")
             }
 
             // Check cancellation
@@ -603,23 +609,10 @@ class BackupService(private val context: Context) : ExecutableService {
                 return OperationResult.error("Operation cancelled")
             }
 
-            val data = transformedData.getJSONObject("data")
-
-            // Every image the tables name has its file, unless the export said it was missing
-            // then: a file absent otherwise is a damaged backup (a zip cut short), refused whole
-            val missingAtExport = data.optJSONArray("missing_images")?.let { ids -> (0 until ids.length()).map { ids.getString(it) }.toSet() } ?: emptySet()
-            val entryImages = mutableListOf<String>()
-            data.optJSONArray("images")?.let { images ->
-                for (i in 0 until images.length()) {
-                    val image = images.getJSONObject(i)
-                    val id = image.getString("id")
-                    val name = app.treelune.core.images.ImageFormat.valueOf(image.getString("format")).fileName(id)
-                    if (id !in missingAtExport && !java.io.File(staging, name).exists()) {
-                        return OperationResult.error(s.shared("backup_import_image_missing").format(id))
-                    }
-                    if (image.has("entry_id")) entryImages.add(name)
-                }
-            }
+            val entryImages = data.optJSONArray("images")?.let { images ->
+                (0 until images.length()).map { images.getJSONObject(it) }.filter { it.has("entry_id") }
+                    .map { app.treelune.core.images.ImageFormat.valueOf(it.getString("format")).fileName(it.getString("id")) }
+            }.orEmpty()
             // An entry's image goes into the entries' folder, a message's stays flat
             Images.sortImport(staging, entryImages)
 
@@ -651,6 +644,110 @@ class BackupService(private val context: Context) : ExecutableService {
         } finally {
             staging.deleteRecursively()
         }
+    }
+
+    /**
+     * A part of the backup at [params]' `uri` brought into the app (PartImport): `selection`
+     * (PartSelection's stored form) what is taken of it, `arrivals` the app's zone each of its
+     * zones goes into, a zone left out going into a new one. Refused when the selection keeps a
+     * blocking link (PartLinks). A whole backup or a part, the same way.
+     */
+    private suspend fun performImportPart(params: JSONObject, token: CancellationToken): OperationResult {
+        val staging = Images.importDir(context)
+        return try {
+            val document = when (val opened = open(params.optString("uri"), staging)) {
+                is Opened.Refused -> return OperationResult.error(opened.message)
+                is Opened.Read -> opened.document
+            }
+            val selection = try {
+                app.treelune.core.backup.PartSelection.read(params.getJSONObject("selection"))
+            } catch (e: org.json.JSONException) {
+                return OperationResult.error(s.shared("share_error_selection").format(e.message ?: ""))
+            }
+            val arrivals = params.optJSONObject("arrivals")?.let { given -> given.keys().asSequence().associateWith { given.getString(it) } }.orEmpty()
+            val part = try {
+                app.treelune.core.backup.BackupPart.cut(document, selection)
+            } catch (e: IllegalArgumentException) {
+                return OperationResult.error(s.shared("share_error_selection").format(e.message ?: ""))
+            }
+            app.treelune.core.backup.PartLinks.of(document, selection).firstOrNull { it.blocking }?.let { link ->
+                return OperationResult.error(app.treelune.core.backup.PartLinks.blockingText(link, document, s::shared))
+            }
+            if (token.isCancelled) return OperationResult.cancelled()
+
+            val report = try {
+                app.treelune.core.backup.PartImport(context).run(part, staging, arrivals)
+            } catch (e: app.treelune.core.backup.PartImport.Refused) {
+                LogManager.service("Part import refused: ${e.message}", "ERROR")
+                return OperationResult.error(s.shared("share_import_refused").format(e.message ?: ""))
+            }
+            app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
+            LogManager.service("Part imported: ${report.zones} new zones, ${report.elements} elements, ${report.entries} entries, ${report.renamed.size} variables renamed, ${report.imagesMissing} images missing")
+            OperationResult.success(mapOf(
+                "zones" to report.zones,
+                "elements" to report.elements,
+                "entries" to report.entries,
+                "renamed" to report.renamed,
+                "images_missing" to report.imagesMissing
+            ))
+        } catch (e: Exception) {
+            LogManager.service("Part import failed: ${e.message}", "ERROR", e)
+            OperationResult.error(s.shared("share_import_refused").format(e.message ?: ""))
+        } finally {
+            staging.deleteRecursively()
+        }
+    }
+
+    /** A backup file opened: its document at the current version, or why it cannot be. */
+    private sealed class Opened {
+        class Read(val document: JSONObject) : Opened()
+        class Refused(val message: String) : Opened()
+    }
+
+    /**
+     * The backup at [uri] read, its images' files into [staging] emptied first: refused when it is
+     * no backup, comes from a newer app, or names an image whose file is absent though the export
+     * did not say it was missing (a zip cut short); otherwise brought to the current version
+     * (transformBackupData), whose failure throws.
+     */
+    private fun open(uri: String, staging: java.io.File): Opened {
+        staging.deleteRecursively()
+        val jsonData = readBackup(android.net.Uri.parse(uri), staging) ?: return Opened.Refused(s.shared("backup_invalid_file"))
+        val backupJson = JSONObject(jsonData)
+        val metadata = backupJson.optJSONObject("metadata") ?: return Opened.Refused(s.shared("backup_invalid_file"))
+
+        // Get versions for validation and transformations
+        val exportVersion = metadata.optInt("export_version", -1)
+        val dbSchemaVersion = metadata.optInt("db_schema_version", -1)
+        if (exportVersion == -1 || dbSchemaVersion == -1) return Opened.Refused(s.shared("backup_invalid_file"))
+
+        // Check app version compatibility (export_version is the app version)
+        if (exportVersion > app.treelune.BuildConfig.VERSION_CODE) return Opened.Refused(s.shared("backup_version_too_recent"))
+
+        // Apply JSON transformations based on DB schema version
+        // (db_schema_version determines data structure, not app version)
+        val document = if (dbSchemaVersion < AppDatabase.VERSION) {
+            LogManager.service("Applying JSON transformations from DB schema v$dbSchemaVersion to v${AppDatabase.VERSION}", "INFO")
+            transformBackupData(backupJson, dbSchemaVersion, AppDatabase.VERSION)
+        } else {
+            LogManager.service("No JSON transformations needed (DB schema v$dbSchemaVersion)", "DEBUG")
+            backupJson
+        }
+
+        // Every image the tables name has its file, unless the export said it was missing then
+        val data = document.getJSONObject("data")
+        val missingAtExport = data.optJSONArray("missing_images")?.let { ids -> (0 until ids.length()).map { ids.getString(it) }.toSet() } ?: emptySet()
+        data.optJSONArray("images")?.let { images ->
+            for (i in 0 until images.length()) {
+                val image = images.getJSONObject(i)
+                val id = image.getString("id")
+                val name = app.treelune.core.images.ImageFormat.valueOf(image.getString("format")).fileName(id)
+                if (id !in missingAtExport && !java.io.File(staging, name).exists()) {
+                    return Opened.Refused(s.shared("backup_import_image_missing").format(id))
+                }
+            }
+        }
+        return Opened.Read(document)
     }
 
     /**
@@ -933,33 +1030,7 @@ class BackupService(private val context: Context) : ExecutableService {
         data.optJSONArray("automations")?.let { array ->
             for (i in 0 until array.length()) {
                 val item = array.getJSONObject(i)
-                database.aiDao().insertAutomation(
-                    AutomationEntity(
-                        id = item.getString("id"),
-                        name = item.getString("name"),
-                        zoneId = item.getString("zone_id"),
-                        seedSessionId = item.getString("seed_session_id"),
-                        scheduleJson = item.optString("schedule_json", null),
-                        triggerIdsJson = item.optString("trigger_ids_json", "[]"),
-                        // A backup older than v41 is brought to this form first (CatchUpAtV41)
-                        catchUp = item.optString("catch_up").takeIf { it.isNotEmpty() },
-                        catchUpWindow = if (item.has("catch_up_window")) item.getLong("catch_up_window") else null,
-                        dismissOlderInstances = item.getBoolean("dismiss_older_instances"),
-                        providerId = if (item.isNull("provider_id")) null else item.getString("provider_id"),
-                        isEnabled = item.getBoolean("is_enabled"),
-                        createdAt = item.getLong("created_at"),
-                        updatedAt = System.currentTimeMillis(), // Always now on import - prevents executing missed periods
-                        lastExecutionId = item.optString("last_execution_id", null),
-                        executionHistoryJson = item.optString("execution_history_json", "[]"),
-                        group = item.optString("group", null),
-                        // Absent from a backup made before version 70: an automation reaching everything
-                        accessJson = item.optString("access_json", "[]"),
-                        // Absent from a backup made before version 76: every run signalled, as the migration does
-                        notifyEnd = item.optString("notify_end", app.treelune.core.ai.data.AutomationSettings.NOTIFY_ALWAYS),
-                        // Absent from a backup made before version 77: the app's own AI, as the migration does
-                        identityId = item.nullableString("identity_id")
-                    )
-                )
+                database.aiDao().insertAutomation(automationOf(item))
             }
         }
 
@@ -1270,6 +1341,7 @@ class BackupService(private val context: Context) : ExecutableService {
         return when (operation) {
             "export" -> s.shared("action_verbalize_backup_export")
             "import" -> s.shared("action_verbalize_backup_import")
+            "import_part" -> s.shared("action_verbalize_backup_import_part")
             "reset" -> s.shared("action_verbalize_backup_reset")
             "auto" -> s.shared("action_verbalize_backup_auto")
             else -> s.shared("action_verbalize_unknown")

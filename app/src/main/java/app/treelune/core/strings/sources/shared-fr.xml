@@ -1504,6 +1504,8 @@
     <string name="share_link_element_to_entries">« %1$s » lit des entrées de « %2$s ». Allume les entrées de « %2$s », ou décoche « %1$s ».</string>
     <string name="share_link_entries_to_element">Des entrées de « %1$s » désignent « %2$s ». Coche aussi « %2$s », ou éteins les entrées de « %1$s ».</string>
     <string name="share_link_entries_to_entries">Des entrées de « %1$s » désignent des entrées de « %2$s ». Allume les entrées de « %2$s », ou éteins celles de « %1$s ».</string>
+    <string name="share_error_restore_part">Ce fichier ne contient qu\'une partie de l\'app. Il ne peut pas tout remplacer, mais il peut s\'ajouter à ce que tu as.</string>
+    <string name="share_import_refused">L\'import s\'est arrêté et rien n\'a été ajouté. Raison : %1$s</string>
     <string name="action_verbalize_exports_csv">Export des entrées</string>
     <string name="action_verbalize_exports_csv_tool">Export des entrées de « %1$s »</string>
     <string name="import_action">Importer un fichier</string>
@@ -2133,6 +2135,7 @@
     <string name="action_verbalize_demo_remove">Suppression de la démo</string>
     <string name="action_verbalize_backup_export">Export des données</string>
     <string name="action_verbalize_backup_import">Restauration d\'une sauvegarde</string>
+    <string name="action_verbalize_backup_import_part">Import d\'une partie d\'une sauvegarde</string>
     <string name="action_verbalize_backup_reset">Réinitialisation des données</string>
     <string name="action_verbalize_backup_auto">Sauvegarde automatique</string>
     <string name="long_operation_busy">%1$s en cours : réessayer une fois fini.</string>

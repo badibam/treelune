@@ -9,7 +9,6 @@ import app.treelune.core.coordinator.Source
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.AppDatabase
 import app.treelune.core.database.transaction
-import app.treelune.core.database.entities.AppSettingCategories
 import app.treelune.core.grid.Grid
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.services.OperationResult
@@ -57,27 +56,9 @@ class DemoService(private val context: Context) : ExecutableService {
         }
     }
 
-    /** [block] run with the schedulers held off (writing): they see the demo whole or absent. */
-    private suspend fun writing(block: suspend () -> OperationResult): OperationResult {
-        writing = true
-        try {
-            return block()
-        } finally {
-            writing = false
-        }
-    }
-
-    companion object {
-        /**
-         * Whether the demo is being written, installed or removed: the schedulers wait for it to
-         * end (CoreScheduler), as one acting on a demo half built would act on what the demo
-         * itself is about to write: a goal's attempt of weeks ago, written to be validated, would
-         * expire before the demo validates it.
-         */
-        @Volatile
-        var writing: Boolean = false
-            private set
-    }
+    /** [block] run with the schedulers held off: they see the demo whole or absent. */
+    private suspend fun writing(block: suspend () -> OperationResult): OperationResult =
+        app.treelune.core.scheduling.SchedulersHeld.during(block)
 
     private suspend fun install(): OperationResult {
         val texts: JSONObject
@@ -92,7 +73,7 @@ class DemoService(private val context: Context) : ExecutableService {
         LongOperation.at(s.shared("demo_phase_zones"))
         removeDemo()
         return try {
-            addZoneGroup(content.group)
+            app.treelune.core.grid.HomeGroups(::run).add(listOf(content.group))
             build(content, data)
             fill(texts, data, content)
             automate(content)
@@ -256,36 +237,7 @@ class DemoService(private val context: Context) : ExecutableService {
             DemoRemoval.SELECTIONS.forEach { (table, query) -> writes.deleteSelected(table, query) }
         }
         val stillUsed = database.zoneDao().getAllZones().mapNotNull { it.group }.toSet()
-        removeZoneGroups(demoGroups - stillUsed)
-    }
-
-    /**
-     * Adds [group] to the home screen's zone groups through the settings service, which places
-     * the zones again; nothing when it is there.
-     */
-    private suspend fun addZoneGroup(group: String) {
-        val read = run("app_config.get", JSONObject().put("category", AppSettingCategories.MAIN_SCREEN))
-        @Suppress("UNCHECKED_CAST")
-        val settings = JsonUtils.toJSONObject(read["settings"] as Map<String, Any?>)
-        val groups = settings.getJSONArray("zone_groups")
-        if ((0 until groups.length()).any { groups.getString(it) == group }) return
-        run("app_config.set", JSONObject()
-            .put("category", AppSettingCategories.MAIN_SCREEN)
-            .put("settings", JSONObject(settings.toString()).put("zone_groups", JSONArray(groups.toString()).put(group))))
-    }
-
-    /** Takes [groups] out of the home screen's zone groups through the settings service; nothing when none is there. */
-    private suspend fun removeZoneGroups(groups: Set<String>) {
-        if (groups.isEmpty()) return
-        val read = run("app_config.get", JSONObject().put("category", AppSettingCategories.MAIN_SCREEN))
-        @Suppress("UNCHECKED_CAST")
-        val settings = JsonUtils.toJSONObject(read["settings"] as Map<String, Any?>)
-        val before = settings.getJSONArray("zone_groups")
-        val kept = (0 until before.length()).map { before.getString(it) }.filter { it !in groups }
-        if (kept.size == before.length()) return
-        run("app_config.set", JSONObject()
-            .put("category", AppSettingCategories.MAIN_SCREEN)
-            .put("settings", JSONObject(settings.toString()).put("zone_groups", JSONArray(kept))))
+        app.treelune.core.grid.HomeGroups(::run).remove(demoGroups - stillUsed)
     }
 
     private fun asset(path: String): JSONObject =

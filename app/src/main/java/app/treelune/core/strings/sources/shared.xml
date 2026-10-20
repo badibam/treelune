@@ -1504,6 +1504,8 @@
     <string name="share_link_element_to_entries">“%1$s” reads entries of “%2$s”. Switch on the entries of “%2$s”, or untick “%1$s”.</string>
     <string name="share_link_entries_to_element">Entries of “%1$s” designate “%2$s”. Tick “%2$s” too, or switch off the entries of “%1$s”.</string>
     <string name="share_link_entries_to_entries">Entries of “%1$s” designate entries of “%2$s”. Switch on the entries of “%2$s”, or switch off those of “%1$s”.</string>
+    <string name="share_error_restore_part">This file holds only part of the app. It cannot replace everything, but it can be added to what you have.</string>
+    <string name="share_import_refused">The import stopped and nothing was added. Reason: %1$s</string>
     <string name="action_verbalize_exports_csv">Export of entries</string>
     <string name="action_verbalize_exports_csv_tool">Export of the entries of “%1$s”</string>
     <string name="import_action">Import a file</string>
@@ -2133,6 +2135,7 @@
     <string name="action_verbalize_demo_remove">Demo removal</string>
     <string name="action_verbalize_backup_export">Data export</string>
     <string name="action_verbalize_backup_import">Backup restore</string>
+    <string name="action_verbalize_backup_import_part">Part of a backup imported</string>
     <string name="action_verbalize_backup_reset">Data reset</string>
     <string name="action_verbalize_backup_auto">Automatic backup</string>
     <string name="long_operation_busy">%1$s is running: try again once it is done.</string>

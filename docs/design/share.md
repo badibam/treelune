@@ -110,11 +110,11 @@ Pour un modèle, la cible part sans ses entrées et arrive vide. Ainsi un fichie
 
 ## Implémentation
 
-Le découpage, un commit chacun ; les deux premiers sont faits (`BackupPart`, `PartSelection`, `AppFolder`, `backup.export` avec `selection` ; `PartLinks`).
+Le découpage, un commit chacun ; les trois premiers sont faits (`BackupPart`, `PartSelection`, `AppFolder`, `backup.export` avec `selection` ; `PartLinks` ; `PartImport`, `backup.import_part`).
 
 1. La sauvegarde partielle côté service — fait.
 2. Le contrôle des liens : les deux familles sur une sélection, le service refusant aussi une sélection qui garde un lien bloquant ; des tests — fait.
-3. L'import partiel (`backup.import_part`) : une sélection et la zone d'arrivée de chaque zone, tout par les services ordinaires dans l'ordre des dépendances (comme `DemoService.build`), un seul pas de l'historique. Un fichier partiel passe par les transformations de version alors qu'il n'a ni réglages ni fournisseurs : à vérifier.
+3. L'import partiel (`backup.import_part`) : une sélection et la zone d'arrivée de chaque zone, tout par les services ordinaires dans l'ordre des dépendances (comme `DemoService.build`), un seul pas de l'historique — fait.
 4. L'écran Exporter : l'arbre de cases lu d'une sauvegarde complète de l'app (`build()`), la même fonction qui lira le fichier à l'import.
 5. L'écran Importer, reprendre une partie.
 6. Tout restaurer devenu un choix de l'import, les anciens boutons et leurs textes retirés ; `docs/DATA.md`, le Guide s'il cite Réglages › Données, une section de la recette.
@@ -124,10 +124,13 @@ Décidé en séance :
 - Un lien se repère sans lire sa forme : un élément dépend d'un autre dès que l'identifiant de l'autre apparaît comme un mot entier (une suite de `[A-Za-z0-9_-]`) n'importe où dans son texte — config, formule, entrées, message d'une routine, JSON rangé dans une chaîne compris. La même fonction remplace les identifiants à l'import. Le message d'un lien est donc générique (« Calories lit Poids : coche Poids, ou décoche Calories ») ; entre entrées, celui ci-dessus.
 - Une routine part avec sa session graine et son message, sans fournisseur, identité ni exécutions ; une zone part sans son identité (`BackupPart`).
 - Un nom de zone qui ne fait pas un nom de fichier refuse le partage en le disant, comme l'export CSV : pas de nom de repli.
+- Les identifiants : l'import tire tous les nouveaux d'abord, les remplace dans tout le fichier en une passe, puis les donne aux services ; `GivenId` accepte, venant de l'app, ceux que l'import en cours a tirés, ceux-là seulement.
+- Les groupes : une nouvelle zone arrive dans son groupe de l'accueil, ajouté s'il manque (comme la démo) ; les groupes d'outils manquants s'ajoutent à la fin d'une zone existante qui reçoit des outils.
+- Une image déjà manquante à l'export : son entrée arrive sans elle, et l'écran le dit. Refuser rendrait le fichier inimportable pour une photo que personne ne peut plus fournir.
+- Un import refusé en chemin retire ce qu'il a écrit, comme la démo ; les planificateurs attendent pendant l'import (`SchedulersHeld`).
+- Une restauration complète refuse un fichier partiel, dès le service.
 - La liste d'accès d'une routine qui vise un élément non coché prévient, et garde la ligne : elle n'atteint rien, comme celle d'un élément supprimé (l'écran et l'IA la disent « supprimé »). La retirer pourrait vider la liste, et une liste vide ouvre toute l'app.
 
 Proposé, à trancher avant le commit qui le rencontre :
 
-- (3) Les identifiants : l'import fabrique tous les nouveaux d'abord, réécrit le fichier une fois, puis les donne aux services ; `GivenId` accepterait, venant de l'app, les identifiants que l'import en cours a lui-même fabriqués, ceux-là seulement. Sinon : créer pièce par pièce et relire chaque identifiant rendu, deux passes pour un champ RÉFÉRENCE qui vise une entrée de son propre outil.
-- (3) Les groupes : une nouvelle zone arrive dans son groupe de l'accueil, ajouté s'il manque (comme la démo) ; les groupes d'outils manquants s'ajoutent à une zone existante qui reçoit des outils.
 - (4) « Tout » écrit dans le même dossier que la partie, pour que Partager marche aussi ; sans dossier, l'écran demande d'en choisir un (le sélecteur de la sauvegarde automatique). `backup.export` avec `uri` disparaît alors.

@@ -1,6 +1,7 @@
 package app.treelune.core.ai.data
 
 import android.content.Context
+import app.treelune.core.ai.database.AutomationEntity
 import app.treelune.core.fields.ChoiceSettings
 import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldType
@@ -11,6 +12,7 @@ import app.treelune.core.fields.settings.SettingsSchemaGenerator
 import app.treelune.core.strings.Strings
 import app.treelune.core.validation.Schema
 import app.treelune.core.validation.SchemaCategory
+import org.json.JSONObject
 
 /**
  * An automation's settings, declared with the fields (docs/DATA.md): its name,
@@ -110,5 +112,23 @@ object AutomationSettings {
             category = SchemaCategory.AUTOMATION_CONFIG,
             content = SettingsSchemaGenerator.generate(nodes(context), s::shared).toString()
         )
+    }
+
+    /** The settings [entity] stores, as their declaration describes them: the form create and update take. */
+    fun of(entity: AutomationEntity): JSONObject = JSONObject().apply {
+        put("name", entity.name)
+        entity.providerId?.let { put(PROVIDER_ID, it) }
+        entity.identityId?.let { put(IDENTITY_ID, it) }
+        entity.group?.let { put("group", it) }
+        put("is_enabled", entity.isEnabled)
+        put("notify_end", entity.notifyEnd)
+        entity.scheduleJson?.let { put("schedule", JSONObject(it)) }
+        entity.catchUp?.let { limit ->
+            put("catch_up", JSONObject().apply {
+                put("limit", limit)
+                entity.catchUpWindow?.let { put("window", it) }
+                put("dismiss_older_instances", entity.dismissOlderInstances)
+            })
+        }
     }
 }

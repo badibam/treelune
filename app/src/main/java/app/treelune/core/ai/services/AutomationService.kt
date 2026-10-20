@@ -265,7 +265,7 @@ class AutomationService(private val context: Context) : ExecutableService {
             ?: entity.triggerIdsJson
 
         // An automation changing zone without a group given leaves its group behind
-        val settings = settingsGiven(params, settingsOf(entity))
+        val settings = settingsGiven(params, AutomationSettings.of(entity))
         val emptiedGroup = entity.group?.takeIf { newZoneId != null && newZoneId != entity.zoneId && !params.has("group") }
         if (emptiedGroup != null) settings.remove("group")
 
@@ -364,24 +364,6 @@ class AutomationService(private val context: Context) : ExecutableService {
         val zone = AppDatabase.getDatabase(context).zoneDao().getZoneById(zoneId)
             ?: return s.shared("service_error_zone_not_found")
         return Groups.refusal(group, ToolPositions.zoneGroups(zone.tool_groups), s)
-    }
-
-    /** The settings an automation stores, as its declaration describes them (AutomationSettings). */
-    private fun settingsOf(entity: AutomationEntity): JSONObject = JSONObject().apply {
-        put("name", entity.name)
-        entity.providerId?.let { put(AutomationSettings.PROVIDER_ID, it) }
-        entity.identityId?.let { put(AutomationSettings.IDENTITY_ID, it) }
-        entity.group?.let { put("group", it) }
-        put("is_enabled", entity.isEnabled)
-        put("notify_end", entity.notifyEnd)
-        entity.scheduleJson?.let { put("schedule", JSONObject(it)) }
-        entity.catchUp?.let { limit ->
-            put("catch_up", JSONObject().apply {
-                put("limit", limit)
-                entity.catchUpWindow?.let { put("window", it) }
-                put("dismiss_older_instances", entity.dismissOlderInstances)
-            })
-        }
     }
 
     /**
@@ -614,7 +596,7 @@ class AutomationService(private val context: Context) : ExecutableService {
         return OperationResult.success(mapOf(
             "automation_id" to entity.id,
             "zone_id" to entity.zoneId,
-            "settings" to app.treelune.core.utils.JsonUtils.toMap(settingsOf(entity)),
+            "settings" to app.treelune.core.utils.JsonUtils.toMap(AutomationSettings.of(entity)),
             "access" to app.treelune.core.utils.JsonUtils.toList(entity.accessJson),
             "message" to app.treelune.core.utils.JsonUtils.toList(AutomationMessage.toBlocks(message))
         ))
@@ -774,7 +756,7 @@ class AutomationService(private val context: Context) : ExecutableService {
         "last_execution_id" to entity.lastExecutionId,
         "execution_history" to json.decodeFromString<List<String>>(entity.executionHistoryJson),
         "access" to app.treelune.core.utils.JsonUtils.toList(entity.accessJson)
-    ) + app.treelune.core.utils.JsonUtils.toMap(settingsOf(entity))
+    ) + app.treelune.core.utils.JsonUtils.toMap(AutomationSettings.of(entity))
 
     /** An operation said in words, its routine by its name: what a validation card and a result line show. */
     override suspend fun verbalize(operation: String, params: JSONObject, context: Context): String {

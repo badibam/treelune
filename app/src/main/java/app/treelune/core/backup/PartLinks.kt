@@ -24,14 +24,11 @@ data class PartLink(val from: PartElement, val to: PartElement) {
 /**
  * The links of a [PartSelection], found without reading their form: an element depends on
  * another as soon as the other's id stands as a whole word anywhere in its text (its rows of the
- * backup, a JSON kept in a string included). A chart, a goal, a formula, a REFERENCE field, an
+ * backup, a JSON kept in a string included: IdWords). A chart, a goal, a formula, a REFERENCE field, an
  * entry designating another, a routine's access or the pointers of its message are all found
  * alike, and a new way to link is found without being declared.
  */
 object PartLinks {
-
-    /** A word of a text, which an id is whole: the import replaces ids by the same cut. */
-    val WORD = Regex("[A-Za-z0-9_-]+")
 
     /**
      * The links from what [selection] keeps of [document], a whole backup at the current version,
@@ -58,25 +55,25 @@ object PartLinks {
         }
 
         val links = LinkedHashSet<PartLink>()
-        fun scan(from: PartElement, text: String) {
-            WORD.findAll(text).forEach { word ->
-                val to = targets[word.value] ?: return@forEach
+        fun scan(from: PartElement, row: JSONObject) {
+            IdWords.words(row).forEach { word ->
+                val to = targets[word] ?: return@forEach
                 if (to != from && !kept(to)) links += PartLink(from, to)
             }
         }
 
-        tools.filter { it.getString("id") in selection.tools }.forEach { scan(PartElement(PartElement.Kind.TOOL, it.getString("id")), it.toString()) }
+        tools.filter { it.getString("id") in selection.tools }.forEach { scan(PartElement(PartElement.Kind.TOOL, it.getString("id")), it) }
         entries.filter { selection.tools[it.getString("tool_instance_id")] == true }
-            .forEach { scan(PartElement(PartElement.Kind.ENTRIES, it.getString("tool_instance_id")), it.toString()) }
+            .forEach { scan(PartElement(PartElement.Kind.ENTRIES, it.getString("tool_instance_id")), it) }
         rows(data, "variables").filter { it.getString("id") in selection.variables }
-            .forEach { scan(PartElement(PartElement.Kind.VARIABLE, it.getString("id")), it.toString()) }
+            .forEach { scan(PartElement(PartElement.Kind.VARIABLE, it.getString("id")), it) }
 
         // A routine: its row, and the message each of its runs starts from
         val messages = rows(data, "session_messages").groupBy { it.getString("session_id") }
         rows(data, "automations").filter { it.getString("id") in selection.automations }.forEach { automation ->
             val routine = PartElement(PartElement.Kind.ROUTINE, automation.getString("id"))
-            scan(routine, automation.toString())
-            messages[automation.getString("seed_session_id")].orEmpty().forEach { scan(routine, it.toString()) }
+            scan(routine, automation)
+            messages[automation.getString("seed_session_id")].orEmpty().forEach { scan(routine, it) }
             if (!automation.isNull("provider_id")) links += PartLink(routine, PartElement(PartElement.Kind.PROVIDER, automation.getString("provider_id")))
             if (!automation.isNull("identity_id")) links += PartLink(routine, PartElement(PartElement.Kind.IDENTITY, automation.getString("identity_id")))
         }

@@ -1,0 +1,130 @@
+package app.treelune.core.backup
+
+import android.net.Uri
+import app.treelune.core.coordinator.Coordinator
+import app.treelune.core.coordinator.isSuccess
+import app.treelune.core.database.AppDatabase
+import app.treelune.core.demo.DemoContent
+import app.treelune.core.demo.DemoStartup
+import app.treelune.core.images.Images
+import kotlinx.coroutines.runBlocking
+import org.json.JSONObject
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.annotation.Config
+import java.io.File
+import java.util.zip.ZipInputStream
+
+/**
+ * What taking a part of a backup back promises (docs/design/share.md, « À l'arrivée »): the demo,
+ * exported whole then brought back whole, arrives a second time through the services, each thing
+ * under a new id that the things reading it follow, a variable whose name is taken under `_2`, a
+ * routine off without provider nor identity; one step of the history, undone at once; and a step
+ * refused leaves nothing behind.
+ */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
+class PartImportTest {
+
+    private val context get() = RuntimeEnvironment.getApplication()
+    private val database get() = AppDatabase.getDatabase(context)
+
+    /** The demo installed, then the whole app exported into a file: its uri. */
+    private suspend fun demoExported(): Uri {
+        assertNull(DemoStartup.run(context))
+        val file = File(context.cacheDir, "backup.zip")
+        val uri = Uri.fromFile(file)
+        val exported = Coordinator(context).processUserAction("backup.export", mapOf("uri" to uri.toString()))
+        assertTrue("export: ${exported.error}", exported.isSuccess)
+        return uri
+    }
+
+    /** The backup's document read from the file at [uri]. */
+    private fun document(uri: Uri): JSONObject = ZipInputStream(File(uri.path!!).inputStream()).use { zip ->
+        generateSequence { zip.nextEntry }.first { it.name == "backup.json" }
+        JSONObject(zip.readBytes().toString(Charsets.UTF_8))
+    }
+
+    /** Everything of the demo ticked, each tool with its entries. */
+    private fun everything(document: JSONObject): PartSelection {
+        val data = document.getJSONObject("data")
+        fun ids(table: String) = data.getJSONArray(table).let { a -> (0 until a.length()).map { a.getJSONObject(it).getString("id") } }.filter { it.startsWith(DemoContent.PREFIX) }
+        return PartSelection(ids("zones").toSet(), ids("tool_instances").associateWith { true }, ids("variables").toSet(), ids("automations").toSet())
+    }
+
+    // One test, the demo being installed once: a refused import first, then the whole one
+    @Test
+    fun `the demo brought back whole arrives a second time under new ids, one step undone at once, a refused step leaving nothing`() = runBlocking {
+        val uri = demoExported()
+
+        // A step refused takes out what was written before it
+        val whole = document(uri)
+        val part = BackupPart.cut(whole, everything(whole))
+        // The last tool of a type the app does not know: its creation is refused, after the others
+        val tools = part.getJSONObject("data").getJSONArray("tool_instances")
+        tools.getJSONObject(tools.length() - 1).put("tooltype", "nothing_such")
+        val zones = database.zoneDao().getAllZones().size
+        val tool = database.toolInstanceDao().getAllToolInstances().size
+        val groups = database.appSettingsCategoryDao().getAllSettings().map { it.category to it.settings }
+
+        val refused = try {
+            PartImport(context).run(part, Images.importDir(context), emptyMap())
+            null
+        } catch (e: PartImport.Refused) {
+            e
+        }
+        assertNotNull(refused)
+        assertEquals(zones, database.zoneDao().getAllZones().size)
+        assertEquals(tool, database.toolInstanceDao().getAllToolInstances().size)
+        assertEquals(groups, database.appSettingsCategoryDao().getAllSettings().map { it.category to it.settings })
+
+        // The whole demo brought back
+        val selection = everything(document(uri))
+        val zonesBefore = database.zoneDao().getAllZones().size
+        val entriesBefore = database.toolDataDao().getAllEntries().size
+        val variablesBefore = database.variableDao().getAll()
+
+        val imported = Coordinator(context).processUserAction("backup.import_part", mapOf("uri" to uri.toString(), "selection" to selection.toJson()))
+        assertTrue("import: ${imported.error}", imported.isSuccess)
+
+        // Every zone, tool and entry a second time, the variables under a free name
+        assertEquals(zonesBefore + selection.zones.size, database.zoneDao().getAllZones().size)
+        assertEquals(2 * entriesBefore, database.toolDataDao().getAllEntries().size)
+        val variables = database.variableDao().getAll()
+        assertEquals(2 * variablesBefore.size, variables.size)
+        variablesBefore.forEach { variable -> assertTrue(variable.name, variables.any { it.name == "${variable.name}_2" }) }
+
+        // What arrived names nothing of the demo: each link followed its thing to its new id
+        val demoIds = (selection.zones + selection.tools.keys + selection.variables + selection.automations +
+            database.toolDataDao().getAllEntries().filter { it.id.startsWith(DemoContent.PREFIX) }.map { it.id }).toSet()
+        val arrived = database.toolInstanceDao().getAllToolInstances().filter { !it.id.startsWith(DemoContent.PREFIX) }
+        assertTrue(arrived.isNotEmpty())
+        arrived.forEach { tool -> assertFalse(tool.config_json, IdWords.words(JSONObject(tool.config_json)).any { it in demoIds }) }
+        database.toolDataDao().getAllEntries().filter { !it.id.startsWith(DemoContent.PREFIX) }.forEach { entry ->
+            assertFalse(entry.data, IdWords.words(entry.data).any { it in demoIds })
+        }
+        variables.filter { !it.id.startsWith(DemoContent.PREFIX) }.forEach { variable ->
+            assertFalse(variable.definitionJson, IdWords.words(variable.definitionJson).any { it in demoIds })
+        }
+
+        // A routine arrives off, without provider nor identity
+        val routines = database.aiDao().getAllAutomations().filter { !it.id.startsWith(DemoContent.PREFIX) }
+        assertEquals(selection.automations.size, routines.size)
+        routines.forEach { assertFalse(it.isEnabled); assertNull(it.providerId); assertNull(it.identityId) }
+
+        // One step of the history, which undoes it all
+        @Suppress("UNCHECKED_CAST")
+        val step = (Coordinator(context).processUserAction("history.list", mapOf("limit" to 1)).data!!["steps"] as List<Map<String, Any?>>).single()
+        val undone = Coordinator(context).processUserAction("history.undo", mapOf("id" to step["id"]))
+        assertTrue("undo: ${undone.error}", undone.isSuccess)
+        assertEquals(zonesBefore, database.zoneDao().getAllZones().size)
+        assertEquals(entriesBefore, database.toolDataDao().getAllEntries().size)
+    }
+}

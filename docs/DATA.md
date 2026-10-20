@@ -163,7 +163,7 @@ private fun transformTrackingConfig(json: JSONObject, version: Int): JSONObject 
 **Reuse**: the same transformers are used by:
 - **Room migration**: transforms the JSONs in the database at startup (once per version)
 - **Backup import**: transforms the JSONs of old backups
-- A future partial import
+- **Part import**: a part of a backup taken back (`backup.import_part`); a part holds only some tables, so a transformation reads each table as optional (`optJSONArray`), never as required
 
 **Application at startup**: a change of JSON format REQUIRES a Room migration to transform the existing data. The transformers are called in the migration to update the stored JSONs.
 
@@ -173,7 +173,9 @@ private fun transformTrackingConfig(json: JSONObject, version: Int): JSONObject 
 
 **The file**: a zip, `backup.json` (the tables, below) and `images/<id>.jpg`, the images attached to messages copied file by file, never in the JSON. `BackupService` writes and reads the chosen file itself (its `uri`). An image whose file is missing is an error the backup copies as it is: the export goes ahead anyway, its row without a file, named in `missing_images`, and says so; the import accepts a row without a file that it names, and refuses any other, the sign of a damaged backup. The import also accepts the old `.json` alone; it lays the zip's images apart (`files/attachments.import/`), and replaces the images' folder in the same move as the tables.
 
-**A part of the app** (`docs/design/share.md`): the same file cut down to what is ticked (`BackupPart`, `PartSelection`: zones, and in them tools, each with its entries or not, variables, routines), `"partial": true` in its metadata. It never holds the settings, the AI providers, the identities (a zone's set to none), the conversations or the files joined to them; a routine keeps its seed session and its message, without its provider, identity or runs. `backup.export` given a `selection` writes it into the app's folder (`AppFolder`, the CSV export's too), named after its zone when it holds one, `treelune_share` otherwise, and the minute.
+**A part of the app** (`docs/design/share.md`): the same file cut down to what is ticked (`BackupPart`, `PartSelection`: zones, and in them tools, each with its entries or not, variables, routines), `"partial": true` in its metadata. It never holds the settings, the AI providers, the identities (a zone's set to none), the conversations or the files joined to them; a routine keeps its seed session and its message, without its provider, identity or runs. `backup.export` given a `selection` writes it into the app's folder (`AppFolder`, the CSV export's too), named after its zone when it holds one, `treelune_share` otherwise, and the minute. An element kept that names one left out blocks the file, a routine's only warns (`PartLinks`, its ids found as whole words, `IdWords`).
+
+**Taking a part back** (`backup.import_part`, `PartImport`): a whole backup or a part, cut to a `selection`, each of its zones going into a new zone or into one of the app's (`arrivals`). Everything is added through the ordinary services as the app itself, one step of the history: each thing gets a new id first, replaced in the whole part at once, which the services take as given (`GivenId.Made`); the tools and variables are created after what they read, the entries after those they designate. A variable whose name is taken arrives under `_2`; a routine arrives off, without provider nor identity; a missing home or tool group is added; an image missing at the export is taken out of its entry. A step refused removes what was written before it. A part is never restored whole (`backup.import` refuses it).
 
 **Metadata in `backup.json`**:
 ```json
