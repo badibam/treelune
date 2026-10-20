@@ -18,6 +18,8 @@ import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.entities.ToolInstance
 import app.treelune.core.fields.FieldDefinition
+import app.treelune.core.fields.FieldType
+import app.treelune.core.fields.ImageField
 import app.treelune.core.fields.formatValue
 import app.treelune.core.fields.toFieldDefinitions
 import app.treelune.core.strings.Strings
@@ -87,7 +89,8 @@ fun rememberAgendaTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTil
                         text = if (event.isPlanned) event.name else s.tool("cancelled_name").format(event.name),
                         modifier = Modifier.clickable { open(EntryToOpen.Existing(event.id)) },
                         secondary = fieldsLine(event, fields, context),
-                        leading = { UI.Text(shortWhen(event, now, s), TextType.LABEL) }
+                        leading = { UI.Text(shortWhen(event, now, s), TextType.LABEL) },
+                        trailing = images(event, fields).takeIf { it.isNotEmpty() }?.let { ids -> { app.treelune.core.images.ImageAbbreviation(ids) } }
                     )
                 }
             }
@@ -101,10 +104,14 @@ private fun coming(events: List<AgendaEvent>, now: Long): List<AgendaEvent> {
     return events.filter { !it.isRemoved && it.end(zone) >= now }.sortedBy { it.start }
 }
 
-/** The calendar's fields of [event] on one line, or nothing when it has none. */
+/** The calendar's fields of [event] on one line, its images apart ([images]), or nothing when it has none. */
 private fun fieldsLine(event: AgendaEvent, fields: List<FieldDefinition>, context: android.content.Context): String? =
-    fields.mapNotNull { field -> event.extra[field.name]?.let { field.formatValue(it, context) } }
+    fields.filter { it.type != FieldType.IMAGE }.mapNotNull { field -> event.extra[field.name]?.let { field.formatValue(it, context) } }
         .filter { it.isNotBlank() }.joinToString(" · ").ifEmpty { null }
+
+/** The images of [event]'s image fields, in the order of the fields, shown at the end of its line. */
+private fun images(event: AgendaEvent, fields: List<FieldDefinition>): List<String> =
+    fields.filter { it.type == FieldType.IMAGE }.flatMap { field -> event.extra[field.name]?.let { ImageField.ids(it) }.orEmpty() }
 
 /** When an event is, for the summary: « going on », « in 2 h », « tomorrow 14:30 », « Thu 23 ». */
 private fun whenLabel(event: AgendaEvent, now: Long, s: StringsContext): String {
