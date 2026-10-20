@@ -42,7 +42,7 @@ Chaque écriture dans la base est gardée dans un historique, pour pouvoir l'ann
 
 ## Annuler et rétablir
 
-- Annuler : le pas le plus récent encore fait. Rétablir : le pas le plus récemment annulé. Dans un outil ou une zone, on ne regarde que les pas qui les touchent.
+- Annuler : le pas le plus récent encore fait. Rétablir : le pas le plus récemment annulé. Un pas choisi dans la liste s'annule ou se rétablit aussi, hors de cet ordre, sous la même vérification.
 - Une annulation n'est pas un pas : elle change l'état du pas annulé.
 - Avant d'annuler ou de rétablir, chaque ligne touchée doit être encore dans l'état où le pas l'a laissée (sa copie « après » pour annuler, « avant » pour rétablir). Sinon : refus, en nommant le pas qui l'a changée depuis. Jamais de fusion ni d'écrasement. Conséquence : après une nouvelle écriture, un pas annulé qu'elle touche ne se rétablit plus ; il reste visible, annulé.
 - Une annulation a les droits du geste qu'elle équivaut à faire : celle qui supprime une ligne passe par le même contrôle « qui dépend de ça ? » qu'une suppression par le service. Ce contrôle est écrit une fois, appelé par les deux ; il n'existe pas encore (le refus conçu dans `docs/design/typed-conditions.md`), et s'appliquera aux deux le jour où il sera codé.
@@ -51,7 +51,7 @@ Chaque écriture dans la base est gardée dans un historique, pour pouvoir l'ann
 
 ## Le service `history`
 
-- `history.list` (filtre par outil, zone, période ; origine, heure, phrase, état), `history.undo` et `history.redo` (un pas par son id). L'écran et l'IA appellent les mêmes opérations ; `history.list` est documenté dans le prompt.
+- `history.list` (filtre par outil, zone, période ; origine, heure, phrase, état), `history.undo` et `history.redo` (un pas par son id). L'écran et l'IA appellent les mêmes opérations ; `history.list` est documenté dans le prompt. Le filtre sert à l'IA, qui lit l'historique d'un outil ; l'écran n'en a pas.
 - Pas de règle à part pour l'IA qui annule un pas de l'utilisateur : elle peut déjà écrire les mêmes lignes ; c'est la validation des actions de l'IA qui en décide.
 
 ## Sauvegardes
@@ -62,6 +62,6 @@ Chaque écriture dans la base est gardée dans un historique, pour pouvoir l'ann
 
 ## Écran
 
-- Un écran Historique, ouvert depuis les Réglages (toute l'app) et depuis le menu d'un outil ou d'une zone (filtré).
-- Les pas du plus récent au plus ancien, avec leur état ; Annuler et Rétablir en haut ; toucher un pas déplie ses lignes avant et après.
+- Un seul écran Historique, ouvert depuis les Réglages, sans filtre. Une vue d'un outil ou d'une zone montrerait des pas qui débordent de l'outil (la zone supprimée avec lui, remise entière par l'annulation) et un « dernier pas » qui change selon l'endroit : à l'usage, si elle manque.
+- Les pas du plus récent au plus ancien, avec leur état ; Annuler et Rétablir en haut ; toucher un pas déplie ses lignes avant et après, et l'annule ou le rétablit lui seul.
 - Pas de bandeau « annuler » après chaque geste pour l'instant — à l'usage, s'il manque.
