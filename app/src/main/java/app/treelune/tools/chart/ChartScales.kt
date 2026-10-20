@@ -3,12 +3,14 @@ package app.treelune.tools.chart
 import app.treelune.core.fields.ChoiceSettings
 import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldType
+import app.treelune.core.selection.Edge
+import app.treelune.core.selection.TimePoint
+import app.treelune.core.selection.TimeResolver
+import app.treelune.core.ui.components.PeriodType
 import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
-import java.time.temporal.TemporalAdjusters
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -29,12 +31,12 @@ object ChartValues {
 
     /**
      * [value] as a number on a continuous axis: a quantity as it is (a duration in milliseconds),
-     * an instant in milliseconds, a day at its first millisecond, an hour of the day in minutes,
-     * a RANGE by its start; null for none, or for a value that is no number.
+     * an instant in milliseconds, a day at the start of the user's day on it ([calendar]), an hour
+     * of the day in minutes, a RANGE by its start; null for none, or for a value that is no number.
      */
-    fun number(field: FieldDefinition, value: Any?, zone: ZoneId): Double? = when {
+    fun number(field: FieldDefinition, value: Any?, calendar: TimeResolver): Double? = when {
         value == null -> null
-        field.type == FieldType.DATE -> (value as? String)?.let { runCatching { LocalDate.parse(it).atStartOfDay(zone).toInstant().toEpochMilli().toDouble() }.getOrNull() }
+        field.type == FieldType.DATE -> (value as? String)?.let { runCatching { calendar.startOf(LocalDate.parse(it)).toDouble() }.getOrNull() }
         field.type == FieldType.TIME -> (value as? String)?.split(":")?.takeIf { it.size == 2 }?.let { (h, m) -> h.toIntOrNull()?.let { hh -> m.toIntOrNull()?.let { mm -> hh * 60.0 + mm } } }
         field.type == FieldType.RANGE -> rangeEnd(value, "start")
         else -> (value as? Number)?.toDouble()
@@ -178,19 +180,21 @@ object ChartTicks {
     }
 
     /**
-     * The instants of [step] from [min] to [max] in [zone]: the calendar's own (midnights, the
-     * week's first day as the user set it, the first of a month, of a year), not every so many
-     * milliseconds, which daylight saving time would shift.
+     * The instants of [step] from [min] to [max]: the user's calendar's own ([calendar]: the
+     * starts of its days, its weeks, its months, its years, at the hour its days start at; its
+     * hours counted from the start of a day), not every so many milliseconds, which daylight saving
+     * time would shift.
      */
-    fun calendar(min: Long, max: Long, step: CalendarStep, zone: ZoneId, weekStartDay: String): List<Long> {
-        val start = Instant.ofEpochMilli(min).atZone(zone)
+    fun calendar(min: Long, max: Long, step: CalendarStep, calendar: TimeResolver): List<Long> {
+        val from = calendar.copy(reference = min)
+        fun startOf(unit: PeriodType): ZonedDateTime =
+            Instant.ofEpochMilli(from.instant(TimePoint.Relative(unit, 0, Edge.START))).atZone(calendar.zone)
         var at: ZonedDateTime = when (step.unit) {
-            ChronoUnit.MINUTES -> start.truncatedTo(ChronoUnit.HOURS)
-            ChronoUnit.HOURS -> start.truncatedTo(ChronoUnit.DAYS)
-            ChronoUnit.DAYS -> start.truncatedTo(ChronoUnit.DAYS)
-            ChronoUnit.WEEKS -> start.truncatedTo(ChronoUnit.DAYS).with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.valueOf(weekStartDay.uppercase())))
-            ChronoUnit.MONTHS -> start.truncatedTo(ChronoUnit.DAYS).withDayOfMonth(1)
-            else -> start.truncatedTo(ChronoUnit.DAYS).withDayOfYear(1)
+            ChronoUnit.MINUTES -> Instant.ofEpochMilli(min).atZone(calendar.zone).truncatedTo(ChronoUnit.HOURS)
+            ChronoUnit.HOURS, ChronoUnit.DAYS -> startOf(PeriodType.DAY)
+            ChronoUnit.WEEKS -> startOf(PeriodType.WEEK)
+            ChronoUnit.MONTHS -> startOf(PeriodType.MONTH)
+            else -> startOf(PeriodType.YEAR)
         }
         // A month step starts on a month its amount divides, a year step likewise
         if (step.unit == ChronoUnit.MONTHS) at = at.withMonth(((at.monthValue - 1) / step.amount.toInt()) * step.amount.toInt() + 1)

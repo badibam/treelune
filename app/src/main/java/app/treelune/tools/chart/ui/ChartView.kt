@@ -73,9 +73,8 @@ fun ChartView(spec: ChartSpec, tables: List<ChartTable>, period: Pair<Long?, Lon
         val height = if (detail == ChartDetail.WHOLE) null else constraints.maxHeight.toFloat()
         val metrics = remember(density, unit) { ChartMetrics(density, unit) }
         val layout = remember(spec, tables, period, width, height, detail, text, metrics) {
-            val calendar = app.treelune.core.utils.AppConfigManager
             val start = System.currentTimeMillis()
-            ChartSceneBuilder(metrics, text, calendar.getDateTimeConfig().getZoneId(), calendar.getWeekStartDay(), now)
+            ChartSceneBuilder(metrics, text, app.treelune.core.selection.TimeResolver.at(now))
                 .build(spec, tables, period, width, detail, height)
                 .also { app.treelune.core.utils.LogManager.ui("Chart laid out in ${System.currentTimeMillis() - start} ms ($detail)", "INFO") }
         }
