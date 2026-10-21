@@ -26,11 +26,11 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 
 ## Questionnaire
 
-- Planifié chaque jour à une heure passée : au tick, une entrée « à remplir » datée de cette heure et une notification ; répondre à la première question puis quitter : la réponse reste, et « Remplir » reprend à la deuxième. Une absence de plusieurs jours : autant d'entrées, « Tout ignorer » les passe en ignorées.
+- Une réponse donnée puis l'écran quitté : « Remplir » reprend à la deuxième question.
 
 ## Séance
 
-- Planifiée chaque jour à une heure passée : au tick, une entrée prévue, une notification qui ouvre l'outil, le point d'attente sur la tuile ; « Commencer » la reprend, « Faite » la marque faite à son heure prévue ; une absence de plusieurs jours, « Tout ignorer ».
+- La notification d'une séance planifiée ouvre l'outil.
 
 ## Les bugs du téléphone du 2026-10-16 et le changement de config
 
