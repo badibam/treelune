@@ -8,23 +8,19 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 
 ## Validation
 
-- Une automation dont l'accès donne un outil en Lecture, à qui l'on demande d'y écrire : le refus se lit dans son historique d'exécution ; en Utilisation, l'écriture passe. Ajouter, changer, retirer une ligne de la carte d'accès, enregistrer, rouvrir : tout est gardé.
+- Une automation dont l'accès donne un outil en Lecture, à qui l'on demande d'y écrire : le refus se lit dans son historique d'exécution.
 - Donner à un client du connecteur un accès limité (bouton « Accès » de sa ligne) : une lecture hors de la liste est refusée, et `app_context` dit son accès.
 
 ## Démo
 
 - Réglages › Démo : désactiver « Installer la démo à chaque mise à jour » et enregistrer ne supprime rien, la démo reste ; réinstaller l'APK la laisse telle quelle ; réactiver le réglage n'installe rien avant la mise à jour suivante.
-- Les photos de la démo (Tomate, Basilic, Piment) : « Supprimer la démo » puis l'app redémarrée, leurs fichiers partent au ménage, une ligne INFO au journal.
+- Les photos de la démo (Tomate, Basilic, Piment) : « Supprimer la démo » puis l'app redémarrée, une ligne INFO au journal.
 - Pendant un import d'un gros fichier (Données structurées), lancer « Réinstaller » la démo ou exporter une sauvegarde : refusé, le message nomme l'import en cours ; la bande compte les lignes écrites par 500.
 
 ## Chat IA
 
 - Faire créer et modifier des entrées de tracking par l'IA : `raw` est juste.
 - Même sélecteur dans le message de départ d'une automation : période et filtre de date en valeurs relatives, recalculées à l'exécution suivante. Le résumé dit le côté de chaque borne : « entre le début de « 7 jours avant » et la fin de « le jour-même » », « Pesé le depuis le début de « la veille » ».
-
-## Automations
-
-- Rattrapage après la mise à jour : une automation programmée « sans limite » le reste, une fenêtre de 3 heures se relit « jusqu'à un délai » de 3 h. Dans l'éditeur : sans choix, l'enregistrement est refusé ; « jusqu'à un délai » demande la durée ; retirer la planification puis enregistrer retire aussi le rattrapage.
 
 ## Outils et saisie
 
