@@ -45,7 +45,7 @@ import app.treelune.core.utils.DataChangeNotifier
 import kotlinx.coroutines.launch
 
 /**
- * Settings › Identities (docs/design/incarnations.md): the identities the app's AI may speak as,
+ * Settings › Identities (docs/AI.md, « Identities »): the identities the app's AI may speak as,
  * each opened on its own screen; an identity file imported after a preview of what it replaces;
  * a new identity written in the app from a name and a language.
  */

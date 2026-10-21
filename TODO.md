@@ -32,8 +32,9 @@ Codé, jamais vu sur l'appareil.
 
 ## À concevoir
 
+- Un contrôle « qui dépend de ça ? » avant de supprimer une chose (une condition, une variable, un pointeur qui la visent), écrit une fois, appelé par le service qui supprime et par l'annulation qui supprime une ligne.
 - Un modèle libre chez soi : un Ollama sur l'ordinateur, servi en https par `tailscale serve`, branché comme Autre serveur depuis le téléphone avec un modèle de la classe 30B, prix à 0 ; mesurer le temps d'une réponse (la lecture d'un prompt de ~29k tokens sur la machine). Passé, une page du Guide « Brancher un modèle libre » d'après ce qui a été fait.
-- Les events du cœur : quel premier usage — un événement de l'Agenda qui commence, une entrée écrite, une condition devenue vraie (l'Alerte) ? L'automation directe (le relevé, `docs/design/missing-tools.md`) attend la même brique.
+- Les events du cœur : quel premier usage — un événement de l'Agenda qui commence, une entrée écrite, une condition devenue vraie (l'Alerte) ? L'automation directe attend la même brique : sans IA, elle exécute elle-même ses commandes ; son premier usage, le relevé, garde une valeur telle qu'elle était (une variable `imc` écrite chaque semaine dans un Suivi), là où une variable se relit à tout jour passé avec les données d'aujourd'hui.
 - Des outils montrés sur la tuile d'une zone de l'accueil (le poids du jour sur « Santé ») : leur résumé ou un raccourci selon la place de la tuile — lesquels, dans quel ordre, un outil montré à deux endroits.
 - Des rythmes que la planification (`ScheduleConfig`, commune à tous les outils et aux routines) ne sait pas dire : « tous les N jours à partir d'une date », « une semaine sur deux », plusieurs jours d'un mois (« le 1er et le 15 »).
 - Une réponse coupée par la limite de longueur (`max_tokens` chez Claude et DeepSeek, un `status` incomplet chez OpenAI, `finish_reason` « length » chez un autre serveur) : refusée, son texte jeté et ses tokens mis à 0, le coût affiché la compte gratuite alors qu'elle est facturée — que garder du texte, et où le montrer.
@@ -45,7 +46,6 @@ Codé, jamais vu sur l'appareil.
 - `AutomationScheduler.getNextExecutionForAutomation()` appelé depuis l'écran, sans le service.
 - Des conversions JSON refaites sur place au lieu de `JsonUtils` (`toValueMap`, `jsonToValue`, `toFieldConfigValue`…).
 - `shared.xml` (~1 900 lignes) à découper.
-- Les specs de `docs/design/` dont le code est en place, à élaguer une ou deux par séance : leur part durable dans `docs/`, les commentaires qui les citent redirigés, leur partie non faite au TODO — `undo-history.md`, `validation.md`, `mcp-server.md`, `funnel-access.md` avec `funnel-poc.md`, `incarnations.md`, `missing-tools.md`, `image-field.md` (la migration 82 sur la release d'abord).
 - Les garanties sorties de la recette, `docs/design/device-check-tests.md` : chacune un test, ou sortie si un test la tient déjà.
 - `RetroPaletteTest` et `CosyPaletteTest` à parcourir par pas de 15° de teinte, comme `SwissPaletteTest`.
 - `TextType.SUBTITLE` sans rang dans le contrat des thèmes : lui en donner un, aligner les thèmes et ses 71 usages.
@@ -61,7 +61,7 @@ Ce qui doit monter dans un module de sagesse (`/update push`).
 
 ## Bloqué par autre chose
 
-- Le correctif Tailscale de la route `cert/` (PR #21720) : fusionné, monter de version et retirer la correction de `scripts/vendor_go.py` ; refusé, noter pourquoi dans `funnel-poc.md`.
+- Le correctif Tailscale de la route `cert/` (PR #21720) : fusionné, monter de version et retirer la correction de `scripts/vendor_go.py` ; refusé, noter pourquoi dans `docs/EXTERNAL_ACCESS.md`.
 - L'import d'une incarnation depuis personae (la dernière section de la recette, l'identité de Stan Prokopenko) : quand personae exportera au format 2 du fichier d'identité (`docs/IDENTITY_FILE.md`), le format 1 n'étant plus lu.
 
 ## À surveiller
@@ -78,6 +78,8 @@ Ce qui doit monter dans un module de sagesse (`/update push`).
 
 ## Idée sans besoin
 
+- Le champ Image : la galerie comme affichage d'un outil (la grille des premières images de ses entrées), les images d'une entrée lues par le connecteur MCP.
+- Le relais de l'accès externe (le projet `relay`) servi à d'autres : il n'a pas de licence aujourd'hui.
 - Flashcards : les statistiques (cartes acquises, prévision des jours à venir), la liste des cartes et leur état, la réponse tapée, le jugement d'une réponse libre par l'IA, une face en image, les révisions d'une ligne disparue de la source.
 - Le texte d'une image d'un message (un ticket) transcrit par un modèle qui lit les images, réglé à part, pour un modèle qui ne les lit pas : modifiable dans son bloc, il part à la place de l'image.
 - Une tentative passée d'un Objectif, enregistrée à la main ou importée (refusée aujourd'hui) : la réponse d'Objectif poserait son état (la période où tombe la date, une tentative déjà là, le verdict, la définition à copier).
@@ -87,7 +89,7 @@ Ce qui doit monter dans un module de sagesse (`/update push`).
 - Des modèles d'outils prédéfinis.
 - Lire un long texte du connecteur MCP par section (le sommaire des titres `##`, puis une section par son titre), en plus des tranches.
 - Des niveaux de prompt pour un modèle plus petit (`docs/design/local-models.md`).
-- Une entrée précise comme cible d'un pointeur (`docs/design/pointer.md`).
+- Une entrée précise comme cible d'un pointeur : `{"kind": "ENTRY", "id"}`, lue par `tool_data.get_single`, nommée par sa date puis son nom ou le début de son premier texte (qu'un type d'outil peut remplacer : « 26/09 08:12 — Pesée : 72,4 kg »), choisie dans la liste des entrées d'un outil, 30 par 30.
 - Des valeurs de champs de l'utilisateur recopiées dans chaque occurrence d'une série d'Agenda.
 - Un pointeur touché dans un message ouvre sa cible.
 - Le sens « out » : l'app confie une tâche lourde à une IA extérieure et en reprend le résultat.

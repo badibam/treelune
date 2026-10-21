@@ -1,7 +1,7 @@
 package app.treelune.core.fields
 
 /**
- * An IMAGE field's value and settings (docs/design/image-field.md): its value is always a list of
+ * An IMAGE field's value and settings (docs/DATA.md, « IMAGE »): its value is always a list of
  * image ids, in their order, even for one; its config may cap how many it holds.
  */
 object ImageField {

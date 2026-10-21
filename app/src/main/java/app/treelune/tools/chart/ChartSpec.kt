@@ -9,7 +9,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * What a chart draws, read from its config (docs/design/missing-tools.md, « Graphique »): a
+ * What a chart draws, read from its config (docs/TOOLS.md, « Chart »): a
  * subset of Vega-Lite, which the AI already knows, with two departures — the data come from a
  * source of the app, never written in the config, and a color is a name of the palette.
  *

@@ -876,7 +876,7 @@ class BackupService(private val context: Context) : ExecutableService {
      */
     private fun wipeAllTables() {
         // Every table Room knows, the history of writes among them: restored data has no history
-        // that could undo it (docs/design/undo-history.md, « Sauvegardes »)
+        // that could undo it (docs/DATA.md, « History of writes »)
         database.clearAllTables()
     }
 

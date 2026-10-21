@@ -89,7 +89,7 @@ data class AISession(
 )
 
 /**
- * What a conversation adds to the protections it runs under (docs/design/validation.md): each level
+ * What a conversation adds to the protections it runs under (docs/AI.md, « Levels »): each level
  * extended to all its objects for this session alone -- the home screen and the zones ([app]),
  * the content of every zone ([zones]), the data of every tool ([data]). It never lessens them.
  */

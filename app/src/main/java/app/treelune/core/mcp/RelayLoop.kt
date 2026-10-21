@@ -9,7 +9,7 @@ import org.json.JSONObject
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-/** The app's side of the relay's contract (docs/design/mcp-server.md, « Le contrat du relais »). */
+/** The app's side of the relay's contract (docs/EXTERNAL_ACCESS.md, « The relay's contract »). */
 interface RelayTransport {
     /** The oldest request waiting at the relay, or null when none came within [waitSeconds]. */
     suspend fun next(waitSeconds: Int): HttpRequest?

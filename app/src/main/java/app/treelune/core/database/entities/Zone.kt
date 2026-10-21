@@ -40,12 +40,12 @@ data class Zone(
     val group: String? = null,
 
     /**
-     * Whether the zone's content is protected (docs/design/validation.md): the AI asks before it
+     * Whether the zone's content is protected (docs/AI.md, « Levels »): the AI asks before it
      * creates, changes or deletes a tool of it, its tool groups, its automations or its variables.
      * Changed by a person alone (Protections).
      */
     val validate: Boolean = false,
 
-    /** The identity its tile opens a conversation with (docs/design/incarnations.md); null for none. */
+    /** The identity its tile opens a conversation with (docs/AI.md, « Identities »); null for none. */
     val identity_id: String? = null
 )

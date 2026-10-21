@@ -14,7 +14,7 @@ import org.json.JSONObject
 import java.util.UUID
 
 /**
- * The identities (docs/design/incarnations.md), for the screens and every AI alike, the
+ * The identities (docs/AI.md, « Identities »), for the screens and every AI alike, the
  * connector's included.
  *
  * - list: each identity, without its texts

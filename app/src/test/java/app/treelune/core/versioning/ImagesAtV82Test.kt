@@ -11,7 +11,7 @@ import java.sql.Connection
 import java.sql.DriverManager
 
 /**
- * The images brought to their v82 form (docs/design/image-field.md): the migration's statements
+ * The images brought to their v82 form (docs/DATA.md, « IMAGE »): the migration's statements
  * run on SQLite over the v81 table, and a backup made before v82. Every image kept so far stays,
  * a message's, owned by its session, written as JPEG.
  */

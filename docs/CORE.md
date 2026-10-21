@@ -104,7 +104,7 @@ No change to the Core needed.
 - Automatic extension by adding to the Scanner
 
 ### Data consistency
-- No event log: the state in the database is the only source (`docs/DATA.md`). The undo history is designed in `docs/design/undo-history.md`
+- No event log: the state in the database is the only source (`docs/DATA.md`). The history of writes keeps copies of the rows to undo, not events (`docs/DATA.md`, « History of writes »)
 - **Centralised validation**: SchemaValidator for config/data
 - JSON schemas for automatic validation
 - **Recursive conversion**: JsonUtils.toJSONObject() converts Kotlin Map/List → JSONObject/JSONArray recursively (the Coordinator applies it before passing to the services)

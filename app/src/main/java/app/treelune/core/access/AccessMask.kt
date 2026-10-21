@@ -8,8 +8,7 @@ import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
 
 /**
- * How far an AI acting without the user may go in a zone or a tool (docs/design/validation.md,
- * « Le masque d'accès »), each level holding the one before it.
+ * How far an AI acting without the user may go in a zone or a tool (docs/AI.md, « Levels »), each level holding the one before it.
  */
 enum class AccessLevel(val key: String) {
     /** The zone or the tool, its entries, a zone's variables, read */

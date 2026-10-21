@@ -1637,7 +1637,7 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        /** The MCP server's OAuth clients and tokens (docs/design/mcp-server.md): two new tables, empty. */
+        /** The MCP server's OAuth clients and tokens (docs/EXTERNAL_ACCESS.md): two new tables, empty. */
         private val MIGRATION_59_60 = object : ConnectionMigration(59, 60) {
             override fun migrate(database: MigrationDatabase) {
                 database.execSQL("""
@@ -1772,7 +1772,7 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /**
-         * Incarnations (docs/design/incarnations.md): the identities' table, empty, and the
+         * Incarnations (docs/AI.md, « Identities »): the identities' table, empty, and the
          * identity of a zone, a routine and a session, none: everything speaks as before.
          */
         private val MIGRATION_76_77 = object : ConnectionMigration(76, 77) {
@@ -2072,7 +2072,7 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        /** A connector client's access mask (docs/design/validation.md): a new column, an empty list, every client reaching everything as before. */
+        /** A connector client's access mask (docs/AI.md, « Levels »): a new column, an empty list, every client reaching everything as before. */
         private val MIGRATION_70_71 = object : ConnectionMigration(70, 71) {
             override fun migrate(database: MigrationDatabase) {
                 database.execSQL("ALTER TABLE mcp_clients ADD COLUMN access_json TEXT NOT NULL DEFAULT '[]'")
@@ -2080,7 +2080,7 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        /** An automation's access mask (docs/design/validation.md): a new column, an empty list, every automation reaching everything as before. */
+        /** An automation's access mask (docs/AI.md, « Levels »): a new column, an empty list, every automation reaching everything as before. */
         private val MIGRATION_69_70 = object : ConnectionMigration(69, 70) {
             override fun migrate(database: MigrationDatabase) {
                 database.execSQL("ALTER TABLE automations ADD COLUMN access_json TEXT NOT NULL DEFAULT '[]'")
@@ -2089,7 +2089,7 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /**
-         * Validation by levels (docs/design/validation.md, ValidationAtV69): the app's settings keep
+         * Validation by levels (docs/AI.md, « Levels », ValidationAtV69): the app's settings keep
          * one switch, a zone gains its own (on when one of its tools had its config validated), a
          * tool loses validate_config and management, a session's switch becomes three boxes. SQLite
          * before 3.35 cannot drop a column: ai_sessions is rebuilt.

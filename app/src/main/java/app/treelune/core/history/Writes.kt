@@ -18,8 +18,7 @@ import app.treelune.core.database.transaction
 import org.json.JSONObject
 
 /**
- * The one door of every write to a covered table (docs/design/undo-history.md, « Où il est
- * écrit »): it reads the rows a write is about to change, makes the write, reads them again, and
+ * The one door of every write to a covered table (docs/DATA.md, « History of writes »): it reads the rows a write is about to change, makes the write, reads them again, and
  * keeps both copies in the step of the operation running, all in one transaction. A check of the
  * sources (`scripts/check_history_writes.py`, run by `./run test`) refuses a write to these tables
  * made anywhere else.

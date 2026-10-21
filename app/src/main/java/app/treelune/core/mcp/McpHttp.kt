@@ -5,7 +5,7 @@ import org.json.JSONObject
 import java.net.URLDecoder
 import java.util.Base64
 
-/** An HTTP request as the relay hands it over (docs/design/mcp-server.md, « Le contrat du relais »). */
+/** An HTTP request as the relay hands it over (docs/EXTERNAL_ACCESS.md, « The relay's contract »). */
 data class HttpRequest(
     val id: String,
     val method: String,

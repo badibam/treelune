@@ -4,7 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
- * What docs/design/undo-history.md promised of the history's depth: the steps past their days
+ * What docs/DATA.md, « History of writes » promised of the history's depth: the steps past their days
  * go, then the oldest while the room is exceeded; the latest step stays whatever its size, and an
  * older step never outlives a newer one pruned for room.
  */

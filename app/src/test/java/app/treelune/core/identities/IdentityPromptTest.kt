@@ -6,8 +6,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * What a session speaking as an identity reads of it (docs/design/incarnations.md, « Ce que porte
- * le prompt »): its texts in the language it speaks, an absent one left out, its bagage listed by
+ * What a session speaking as an identity reads of it (docs/AI.md, « Identities »): its texts in the language it speaks, an absent one left out, its bagage listed by
  * key and size without its content; a resource read as written.
  */
 class IdentityPromptTest {

@@ -47,7 +47,7 @@ A brick does not know the screen that uses it; the screen gives it what it needs
 
 - **A variable's formula** is the only exception assumed: computing takes a language (`Formula`: `+ - × ÷`, parentheses, functions), which is not an assembly of bricks. Its names are Terms; its per-entry variant (`per_entry`, `quantity × food.kcal_100g / 100`) reads the fields of each entry inside a Reading.
 - **The Period stays beside the Conditions**, though it could be written as two conditions on `timestamp`: it also applies to a whole zone, to each of its tools, where conditions on fields make no sense (decided on 2026-09-29). It is not a duplicate to merge.
-- **The Chart writes its conditions with the Condition**, not with Vega-Lite's predicates: the columns of the row drawn are its Fields. The rest of its drawing config is the subset of Vega-Lite described in `docs/design/missing-tools.md`.
+- **The Chart writes its conditions with the Condition**, not with Vega-Lite's predicates: the columns of the row drawn are its Fields. The rest of its drawing config is the subset of Vega-Lite described in `docs/TOOLS.md`, « Chart ».
 
 ## Catalogue
 

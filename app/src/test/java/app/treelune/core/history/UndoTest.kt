@@ -18,7 +18,7 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 /**
- * What docs/design/undo-history.md promised of an undo and a redo: a step undone whole and
+ * What docs/DATA.md, « History of writes » promised of an undo and a redo: a step undone whole and
  * redone whole; a deletion undone with all it took along; a row changed since refuses, naming
  * what changed it; an undo that would delete what a later step wrote refuses; what the app alone
  * writes is left as it is; the app's own writes are never undone.

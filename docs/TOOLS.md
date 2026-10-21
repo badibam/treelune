@@ -178,7 +178,7 @@ Added in ToolTypeScanner.getAllToolTypes() for automatic discovery.
 
 ### Goal
 **Use**: a goal judged by counting its criteria, one attempt per period
-**Configuration**: criteria and sub-goals (two levels), "at least N" (all by default) and "essential"; a criterion is a value — a variable, a tool's field reduced over the attempt's period (chosen among its fields, `SettingNode.Field.fieldOf`), or entered (yes/no, number, duration, scale) with "how to fill it in" — and a condition; its key is given at its creation and kept afterwards (`completeConfig`): renaming it keeps its values, deleting then recreating it makes another. One-off opening (`start`, `deadline`) or recurring (`schedule`), `duration`, `enabled`, `expiry_delay` (7 days), `notify`
+**Configuration**: criteria and sub-goals (two levels), "at least N" (all by default) and "essential"; a criterion is a value — a variable, a tool's field reduced over the attempt's period (chosen among its fields, `SettingNode.Field.fieldOf`), or entered (yes/no, number, duration, scale) with "how to fill it in" — and a condition; its key is given at its creation and kept afterwards (`completeConfig`): renaming it keeps its values, deleting then recreating it makes another. One-off opening (`start`, `deadline`) or recurring (`schedule`), `duration`, `enabled`, `expiry_delay` (7 days), `notify`, `ai_no_validation` ("Validation closed to the AI": `goal.validate` and `goal.reopen` refused to the AI, a routine and the connector, unticked by a person only)
 **Data**: one entry per attempt, dated at the start of its period: `data.definition` (the copy that judged it), one field per entered criterion; `state`: `status` (active, to_validate, succeeded, failed, expired), `period_end`, and once validated `judgement` (values and verdict frozen), `validated_by` (the call's origin: a person or the AI, never a scheduler), `validated_at`, `reopened_at`. An open attempt follows the current definition; a validated or expired attempt keeps its copy and refuses any write (`refuseChange`), except `goal.reopen`. `GoalService`: `evaluate`, `validate` (refused while a value is missing), `reopen`; `GoalScheduler`: to validate at the end of the period (a notification), expired after the delay, the attempt of the last occurrence come opened without catching up the others. The screen: the current attempt, its criteria facing their condition, entered on the spot, the count, the time left and "Validate"; the attempts to validate; the history as pills, each attempt read again frozen with "Reopen". The tile: the count and the current verdict, the latest pills, the number to validate
 
 ### Questionnaire
@@ -258,7 +258,7 @@ The service's execute() validates automatically through the ToolType, then retur
 - **name**: the instance's name
 - **description**: description
 - **display_mode**: display mode (ICON/MINIMAL/LINE/etc.)
-- **validate_data**: "Protect this tool's data", the AI of the conversation and of the connector asks before writing its entries (default: no); its config is kept by its zone's protection (`docs/design/validation.md`), and only a person changes either one (`Protections`)
+- **validate_data**: "Protect this tool's data", the AI of the conversation and of the connector asks before writing its entries (default: no); its config is kept by its zone's protection (`docs/AI.md`, « Levels »), and only a person changes either one (`Protections`)
 
 ### always_send field (Level 2 AI)
 ```kotlin

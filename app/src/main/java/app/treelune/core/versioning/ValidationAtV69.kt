@@ -4,7 +4,7 @@ import app.treelune.core.database.entities.AppSettingCategories
 import org.json.JSONObject
 
 /**
- * Brings the validation settings to their v69 form (docs/design/validation.md): three levels, each
+ * Brings the validation settings to their v69 form (docs/AI.md, « Levels »): three levels, each
  * guarding what it holds directly, where five switches of the app, two of each tool and one of
  * each session added up.
  *

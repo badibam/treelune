@@ -9,7 +9,7 @@ import app.treelune.core.database.entities.AppSettingCategories
 import app.treelune.core.utils.LogManager
 
 /**
- * How deep the history of writes goes (docs/design/undo-history.md, « Profondeur »): the steps of
+ * How deep the history of writes goes (docs/DATA.md, « History of writes »): the steps of
  * the last days the data settings give (history_days), within the room they give
  * (history_megabytes). The scheduler's tick prunes the rest.
  */

@@ -3,7 +3,7 @@ package app.treelune.core.ai.database
 import androidx.room.*
 
 /**
- * A text file joined to a message of a session (docs/design/missing-tools.md, « L'import »):
+ * A text file joined to a message of a session (docs/DATA.md, « Import »):
  * read once when it is joined, kept here, so the composer holds only its id and the AI can ask
  * for it again (FILE, IMPORT_PLAN, IMPORT_DATA). It belongs to its session: deleted with it,
  * saved in backups with it; a file taken off the composer before sending is deleted then.

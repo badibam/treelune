@@ -59,7 +59,7 @@ import org.json.JSONObject
 data class QuestionnaireEntry(val id: String, val timestamp: Long, val status: String, val answers: Map<String, Any?>)
 
 /**
- * A questionnaire's screen (docs/design/missing-tools.md, « Questionnaire »), in two tabs, always
+ * A questionnaire's screen (docs/TOOLS.md, « Questionnaire »), in two tabs, always
  * there, the first open: « To fill », its label counting the entries waiting, lists them oldest
  * first as the tile opens them, with « Ignore all », then « Fill in now » and « With the AI »;
  * « History », newest first, each entry with its title and state, touching one opens it, its

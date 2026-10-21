@@ -1,7 +1,7 @@
 package app.treelune.core.identities
 
 /**
- * An identity as the AI reads it (docs/design/incarnations.md, « Ce que porte le prompt »): the
+ * An identity as the AI reads it (docs/AI.md, « Identities »): the
  * section of a session's L1 that says who speaks, and the results of the identity reads, written
  * as their texts are rather than as escaped JSON.
  */

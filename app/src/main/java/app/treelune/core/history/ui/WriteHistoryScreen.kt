@@ -43,7 +43,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
- * The history of writes (docs/design/undo-history.md, « Écran »): the steps, the most recent first,
+ * The history of writes (docs/DATA.md, « History of writes »): the steps, the most recent first,
  * each with who made it, when, and its state. Undo takes back the latest step done, Redo puts back
  * the one last undone; a step touched shows its rows, field by field, and is undone or redone
  * alone. A refusal is said as the service says it, naming what changed a row since. Above, the

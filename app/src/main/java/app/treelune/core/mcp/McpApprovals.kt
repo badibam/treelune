@@ -17,7 +17,7 @@ import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * The approval an AI outside the app waits for before a protected write (docs/design/validation.md):
+ * The approval an AI outside the app waits for before a protected write (docs/AI.md, « Levels »):
  * a notification saying what it wants to do and why it is asked, with Allow and Refuse, which the
  * user touches without leaving the app they talk to the AI in. The call waits for the answer,
  * within [TIMEOUT_MS], under the relay's hosting cut of 120 s.

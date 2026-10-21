@@ -77,7 +77,7 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 - Un Objectif fermé à l'IA : elle dit où en est la tentative, mais « valide-la » et « rouvre-la » sont refusés ; validée et rouverte à l'écran, sans changement.
 - Par le connecteur, et par une routine qui écrit ce champ : refusé, l'erreur dans la réponse du connecteur, dans l'historique d'exécution de la routine.
 
-## Les incarnations (branche incarnations, `docs/design/incarnations.md`)
+## Les incarnations (branche incarnations)
 
 - Par le connecteur (un client à l'accès « toute l'app ») : `import_identity` avec le texte d'un fichier au format 2 crée l'identité, ses textes « importé » ; la même encore, sans `replace`, est refusée en disant les retouches et langues perdues ; avec `replace: true`, remplacée. La protection du niveau de l'app active, la notification d'accord vient d'abord. Un client limité à des zones est refusé.
 - Modifier la voix, enregistrer : « écrit dans l'app » ; réimporter le fichier : la confirmation nomme `fr · voice` parmi les retouches perdues, et confirmée, la voix revient. Choisir une autre icône et une couleur, enregistrer : la tuile les montre.
@@ -91,7 +91,7 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 
 - Supprimer un fournisseur qu'une routine nomme : refusé, la routine nommée. Supprimer le défaut quand un autre reste : la fenêtre demande lequel le remplace ; le dernier supprimé : une nouvelle conversation dit d'en ajouter un.
 
-## L'historique des écritures (branche undo-history, `docs/design/undo-history.md`)
+## L'historique des écritures (branche undo-history)
 
 - Supprimer une zone qui a une routine et une variable, puis l'annuler : tout revient, la routine avec son message ; une entrée à photos supprimée puis annulée retrouve ses photos.
 - Supprimer la démo puis l'annuler : la démo revient entière, ses routines et leurs messages compris.
@@ -115,3 +115,7 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 
 - Importer… sur ce fichier : tout coché, entrées comprises, sans le choix « Tout restaurer ». Une zone dans « Une zone existante » : celle du même nom en tête de liste. Une variable dont le nom est pris dit son nouveau nom ; un outil Messages ou Agenda dit qu'il peut envoyer des notifications.
 - Importer : la fenêtre dit les zones créées, les éléments et les entrées ; tout est là, une routine éteinte sans fournisseur ; Réglages › Historique montre un seul pas, et l'annuler retire tout.
+
+## Le champ Image (branche image-field)
+
+- Une sauvegarde puis sa restauration, avec des images d'entrées et de messages : toutes reviennent, chacune à son propriétaire. Une entrée supprimée, l'app redémarrée : son fichier part, une ligne INFO au journal.

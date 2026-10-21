@@ -84,7 +84,7 @@ data class DateTimeConfig(
 }
 
 /**
- * The app's level of the AI's validation (docs/design/validation.md): whether the AI of the
+ * The app's level of the AI's validation (docs/AI.md, « Levels »): whether the AI of the
  * conversation and of the connector asks before it creates, changes or deletes a zone, or changes
  * the home screen's groups. A zone guards what it holds and a tool its data, each by its own
  * setting; nothing is validated by default.

@@ -89,7 +89,7 @@ data class AISessionEntity(
     @ColumnInfo(name = "app_state_snapshot") val appStateSnapshot: String? = null,
 
     /**
-     * The identity it speaks as (docs/design/incarnations.md), fixed at its first message; null
+     * The identity it speaks as (docs/AI.md, « Identities »), fixed at its first message; null
      * for the app's own AI.
      */
     @ColumnInfo(name = "identity_id") val identityId: String? = null

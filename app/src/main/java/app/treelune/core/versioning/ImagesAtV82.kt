@@ -4,7 +4,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * Brings the images to their v82 form (docs/design/image-field.md): `attached_images`, the images
+ * Brings the images to their v82 form (docs/DATA.md, « IMAGE »): `attached_images`, the images
  * of messages, becomes `images`, the table of the images of messages and entries, each row owned
  * by a session or an entry and noting its format. Every image kept so far is a message's, written
  * as JPEG; the files stay where they are.

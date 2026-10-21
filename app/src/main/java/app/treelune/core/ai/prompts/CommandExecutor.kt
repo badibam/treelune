@@ -27,7 +27,7 @@ data class PromptCommandResult(
     val formattedData: String,     // JSON formatted data for prompt
     /**
      * Whether it is left out of the session's data threshold: an identity read, whose size is
-     * known and shown on the identity's screen (docs/design/incarnations.md, « Le bagage »)
+     * known and shown on the identity's screen (docs/AI.md, « Identities »)
      */
     val sizeExempt: Boolean = false
 )

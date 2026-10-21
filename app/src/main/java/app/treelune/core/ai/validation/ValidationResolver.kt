@@ -13,7 +13,7 @@ import app.treelune.core.utils.LogManager
 
 /**
  * Whether the actions of an AI message wait for the user's approval, and what the approval shows
- * (docs/design/validation.md).
+ * (docs/AI.md, « Levels »).
  *
  * Three levels, each guarding what it holds directly, nothing by default:
  * - the app (validation_config): the zones and the home screen's groups;

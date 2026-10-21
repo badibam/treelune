@@ -12,7 +12,7 @@ import org.json.JSONObject
 import java.io.File
 
 /**
- * The app's Tailscale node seen from Kotlin (docs/design/funnel-access.md): alive only while the
+ * The app's Tailscale node seen from Kotlin (docs/EXTERNAL_ACCESS.md, « The Tailscale node »): alive only while the
  * external access is open, its identity in the app's own files, out of every backup.
  */
 object TailscaleNode {

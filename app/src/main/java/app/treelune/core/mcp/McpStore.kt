@@ -82,7 +82,7 @@ interface McpDao {
 
 /** The OAuth server's clients and tokens, in the app's database. */
 /**
- * What a client of the connector may reach (AccessMask, docs/design/validation.md), set by the
+ * What a client of the connector may reach (AccessMask, docs/AI.md, « Levels »), set by the
  * user in the external access screen alone: the server never writes it.
  */
 object McpClientAccess {
@@ -105,7 +105,7 @@ class RoomOAuthStore(private val context: android.content.Context) : OAuthStore 
 
     /**
      * A client registering itself: the app's own write, which the history notes without making a
-     * step of it (docs/design/undo-history.md). The user revokes it through the coordinator
+     * step of it (docs/DATA.md, « History of writes »). The user revokes it through the coordinator
      * (McpClientService).
      */
     override suspend fun addClient(client: OAuthClient) {

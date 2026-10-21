@@ -1,8 +1,8 @@
 package main
 
 // The app's Tailscale node: one per process, driven from Kotlin (FunnelNative), alive only while
-// the external access is open (docs/design/funnel-access.md). It publishes the app's address
-// through Funnel and speaks the relay's contract (docs/design/mcp-server.md): each HTTPS request
+// the external access is open (docs/EXTERNAL_ACCESS.md, « The Tailscale node »). It publishes the app's address
+// through Funnel and speaks the relay's contract (docs/EXTERNAL_ACCESS.md): each HTTPS request
 // it receives waits in a queue until Kotlin takes it (next) and answers it (reply).
 
 import (

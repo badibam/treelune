@@ -9,6 +9,7 @@ Ce que seul le téléphone juge : l'œil, l'oreille, le doigt, et ce qu'un vrai 
 - Installation neuve, app en « Optimisée » : après l'écran de bienvenue du Guide, un seul dialogue (« L'app peut être arrêtée en arrière-plan »), son bouton ouvre la demande d'Android ; acceptée, il ne revient plus ; « Plus tard », il ne revient pas au démarrage suivant, la carte reste en tête de Réglages.
 - App quittée et téléphone verrouillé depuis plus d'une heure : un message de l'outil Messages prévu à une heure donnée arrive dans les 10 minutes qui suivent, sans ouvrir l'app ; de même après un redémarrage du téléphone, sans l'avoir ouverte depuis.
 - Fermer l'app de force pendant que l'IA répond dans une discussion, la relancer : « Réponse de l'IA interrompue » dans la discussion, l'IA au repos, rien ne repart seul.
+- La migration 82 (les images des messages et des entrées dans une seule table) sur la release et ses données : les photos des conversations passées toujours là.
 
 ## Validation
 
@@ -40,7 +41,7 @@ Avec le relais en place (son projet `relay`, en ligne sur `https://relay.badibam
 - La tuile « Accès externe » ajoutée aux réglages rapides : un toucher ouvre, un autre ferme ; son état suit l'écran.
 - Révoquer le client : l'appel suivant de claude.ai est refusé, il redemande l'autorisation.
 
-## Accès externe par Tailscale (`docs/design/funnel-access.md`)
+## Accès externe par Tailscale
 
 - Un membre d'un compte qui ne peut pas activer Funnel : les étapes à la main s'affichent (HTTPS et la page DNS, le bloc à copier et l'éditeur de la politique d'accès), et l'accès s'ouvre seul une fois le compte réglé par son administrateur.
 - Passer du Wi-Fi à la 4G, accès ouvert : un appel passe encore dans la minute.
@@ -56,6 +57,7 @@ Avec le relais en place (son projet `relay`, en ligne sur `https://relay.badibam
 
 - Réglages nombre (bornes et pas d'une échelle, d'un nombre) : « 0 » s'affiche « 0 », un champ se vide entièrement, « 0.5 » se tape point compris. Le pas d'une échelle part à « 1 », son défaut ; il s'efface entièrement, et vide son libellé dit « Pas (par défaut : 1) ».
 - Historique d'un Suivi, dans les trois thèmes, police d'Android agrandie au maximum : une carte par entrée, le nom et la valeur avec son unité (un chrono en cours le dit), la date en petit, les champs personnalisés un par ligne, modifier et supprimer (qui demande confirmation) ; un nom long revient à la ligne, rien n'est coupé. Messages, onglets « reçus » et « à venir » : les champs personnalisés d'un message sous son texte, un par ligne.
+- Champ Image : ajouter, ordonner, retirer des photos dans une fiche ; une vignette touchée s'ouvre en grand, on glisse d'une image à l'autre ; en abrégé, la première et « +N ». Un PNG transparent et une capture d'écran gardés nets, transparence comprise ; une photo de 4 000 px réduite, une image de 200 px gardée telle quelle.
 
 ## Réglages et affichage
 
@@ -120,7 +122,7 @@ Avec le relais en place (son projet `relay`, en ligne sur `https://relay.badibam
 - Envoyer un message, passer l'app en arrière-plan pendant la réponse, revenir sur la conversation ouverte : pas de point ensuite. Revenir sur un autre écran : le point est là.
 - Une routine lancée à la main, réglée « Toujours » : à sa fin, une notification au nom de la routine avec le début du résumé ; la toucher ouvre l'exécution, le résumé et la ligne de faits en tête. Avant de la toucher : le point sur la tuile de la zone, la carte de la routine et sa ligne dans l'historique, la première phrase du résumé sous sa date ; ouverte, les trois points s'effacent.
 
-## Les incarnations (branche incarnations, `docs/design/incarnations.md`)
+## Les incarnations (branche incarnations)
 
 - Réglages › Identités › Importer, avec un fichier d'identité au format 2 copié sur le téléphone (l'export de Stan Prokopenko une fois personae passé au format 2, ou l'exemple de `docs/IDENTITY_FILE.md`) : la fenêtre dit son nom, sa date de publication s'il en a une, ses langues, la langue de l'app présélectionnée ; importée, sa tuile paraît. Un fichier qui n'en est pas un (une sauvegarde de l'app, un export de personae au format 1) est refusé en disant le champ ou le format en cause.
 - Config d'une zone : Identité, Stan Prokopenko ; la zone montre sa tuile sous l'en-tête, son bouton ouvre une conversation neuve, le bouton d'identité de la barre du haut à son icône. Envoyer « Comment tu dessines une main ? » : la réponse dans sa voix, en français ; le bouton d'identité ne change plus (un toucher ouvre son nom en lecture seule, la raison dessous, fermé par OK ; son nom touché ouvre sa page, le fil d'Ariane « Accueil › le titre du chat », le retour ou ce titre ramenant au chat). Dans le journal, la ligne « Prompt data built » donne la taille du L1 ; dans les statistiques de la session, les tokens du premier tour puis du second, mis en cache ou non : c'est la mesure qu'attend personae, qui produit les identités.
@@ -156,7 +158,7 @@ Avec le relais en place (son projet `relay`, en ligne sur `https://relay.badibam
 
 - La durée du calcul (« Flashcards: deck … read in N ms ») sur le lexique réel (sur la démo, de 26 à 152 ms) ; au-delà de 300 ms, le dire.
 
-## L'historique des écritures (branche undo-history, `docs/design/undo-history.md`)
+## L'historique des écritures (branche undo-history)
 
 - Un gros import (le fichier de 64 659 lignes du 2026-10-01) : la durée de l'import, à comparer à celle d'avant (3 min 19 s), et la place prise par l'historique ensuite ; puis l'annuler, et sa durée.
 

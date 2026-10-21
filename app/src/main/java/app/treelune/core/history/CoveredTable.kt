@@ -1,7 +1,7 @@
 package app.treelune.core.history
 
 /**
- * The tables the history covers (docs/design/undo-history.md, « Ce qui est couvert »), in the order
+ * The tables the history covers (docs/DATA.md, « History of writes »), in the order
  * a restoration puts them back: a parent before the rows that hang from it.
  *
  * A session, its messages and its images are covered only when the session is a routine's

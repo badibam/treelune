@@ -1457,7 +1457,7 @@ Every tool type can also take custom fields, be filled in by the AI, and be read
     <string name="ai_chunk_tool_operations_header">Operations (TOOL_OPERATION)</string>
 
     <!-- ================================================================ -->
-    <!-- MCP SERVER: what an AI outside the app reads (docs/design/mcp-server.md) -->
+    <!-- MCP SERVER: what an AI outside the app reads (docs/EXTERNAL_ACCESS.md) -->
     <!-- ================================================================ -->
 
     <!-- A routine's run read back (AUTOMATION_RUN): who sent each message, and what it leaves out -->
@@ -1475,7 +1475,7 @@ Every tool type can also take custom fields, be filled in by the AI, and be read
 
 A personal life management application. Each of its commands is one of your tools, named by the command in lower case: an example written `{ "type": "SCHEMA", "params": { ... } }` is a call of the tool `schema` with those parameters. What a tool does and takes is in its own description.]]></string>
 
-    <!-- Identities (docs/design/incarnations.md): the commands, and the L1 section of a session speaking as one -->
+    <!-- Identities (docs/AI.md, « Identities »): the commands, and the L1 section of a session speaking as one -->
     <string name="ai_command_identities"><![CDATA[### IDENTITIES
 
 Lists the identities the app's AI may speak as: each one's `id`, `name`, the `language` it speaks and the `languages` it holds.]]></string>

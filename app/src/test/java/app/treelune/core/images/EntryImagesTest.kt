@@ -18,10 +18,10 @@ import org.robolectric.annotation.Config
 import java.io.File
 
 /**
- * What docs/design/image-field.md promised of an entry's write: a form's prepared image becomes
+ * What docs/DATA.md (« IMAGE ») promises of an entry's write: a form's prepared image becomes
  * the entry's, a conversation's is copied under a new id, an image taken off the field loses its
  * row, an id that names no image refuses the write, and an entry deleted takes its rows with it.
- * A file stays while the history of writes names its image (docs/design/undo-history.md): an undo
+ * A file stays while the history of writes names its image (docs/DATA.md, « History of writes »): an undo
  * puts the entry back with its images; the history done with it, the startup sweep removes it.
  */
 @RunWith(RobolectricTestRunner::class)

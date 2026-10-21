@@ -273,7 +273,7 @@ object Images {
      * too, with their files.
      *
      * What the history of writes still names stays, row and file: an image whose row a step keeps,
-     * an image a copy of an entry names (docs/design/undo-history.md) — an undo puts them back.
+     * an image a copy of an entry names (docs/DATA.md, « History of writes ») — an undo puts them back.
      */
     suspend fun sweepOnce(context: Context) {
         if (swept) return

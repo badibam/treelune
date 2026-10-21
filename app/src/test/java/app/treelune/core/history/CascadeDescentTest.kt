@@ -11,7 +11,7 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 /**
- * What docs/design/undo-history.md promised of a deletion: the door reads, before it, every row
+ * What docs/DATA.md, « History of writes » promised of a deletion: the door reads, before it, every row
  * SQLite deletes along with it, so that an undo puts it back. The descent it walks
  * (CoveredTable.children) is the schema's cascades from a covered table, every one of them: a
  * table added with a cascade the descent does not know would be deleted unseen by the history.

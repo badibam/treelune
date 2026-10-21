@@ -104,7 +104,7 @@ class AISessionService(private val context: Context) : ExecutableService {
     /**
      * The identity a CHAT session speaks as: `session_id`, `identity_id` (null for the app's own
      * AI). Refused once the user has sent a message: from there it is fixed, another conversation
-     * changing who speaks (docs/design/incarnations.md).
+     * changing who speaks (docs/AI.md, « Identities »).
      */
     private suspend fun setIdentity(params: JSONObject): OperationResult {
         val sessionId = params.optString("session_id").takeIf { it.isNotEmpty() }

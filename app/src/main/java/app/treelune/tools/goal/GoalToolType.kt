@@ -27,7 +27,7 @@ import app.treelune.tools.goal.ui.GoalScreen
 import org.json.JSONObject
 
 /**
- * A goal (docs/design/missing-tools.md, « Objectif »): an entry is an attempt over a period, opened
+ * A goal (docs/TOOLS.md, « Goal »): an entry is an attempt over a period, opened
  * active, filled in along the period, validated as succeeded or failed — or expired, left
  * unvalidated. A one-off goal has one attempt; a recurring one an attempt per period, opened by
  * its schedule.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check that every write to a table the history covers goes through its one door.
 
-The history of writes (docs/design/undo-history.md) keeps each row a step touches, whole
+The history of writes (docs/DATA.md, « History of writes ») keeps each row a step touches, whole
 before and after, so that an undo puts it back. It can only keep what it sees: one class,
 core/history/Writes.kt, reads the row before a write, makes the write and keeps both copies.
 A write made anywhere else -- a DAO's insert called from a service, a DELETE in plain SQL --

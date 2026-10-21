@@ -10,7 +10,7 @@ object Steps {
 
     /**
      * Writes the phrase of [step] from [phrase], when the operation wrote anything into it: said
-     * once, as it was done, and never again (docs/design/undo-history.md, « Le pas »). A step its
+     * once, as it was done, and never again (docs/DATA.md, « History of writes »). A step its
      * operation wrote nothing into has no row, and [phrase] is not asked.
      */
     suspend fun close(context: Context, step: Step, phrase: suspend () -> String) {

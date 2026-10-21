@@ -12,8 +12,7 @@ import org.json.JSONObject
 import org.json.JSONTokener
 
 /**
- * The parts of a row the history leaves to the app (docs/design/undo-history.md, « Annuler et
- * rétablir »): what the app alone writes, and the secrets. An undo neither looks at them, to tell
+ * The parts of a row the history leaves to the app (docs/DATA.md, « History of writes »): what the app alone writes, and the secrets. An undo neither looks at them, to tell
  * whether the row is still as the step left it, nor changes them: it puts the rest back and keeps
  * them as they are now. A secret is besides never copied.
  *

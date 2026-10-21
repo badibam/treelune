@@ -40,8 +40,7 @@ private enum class Moment { START, END, SAME, AT }
 private val STORED_TIME = DateTimeFormatter.ofPattern("HH:mm")
 
 /**
- * The one input of a date or an instant in the app (docs/design/missing-tools.md, « Le temps
- * relatif »): an entry's DATE or DATETIME field, each bound of a period.
+ * The one input of a date or an instant in the app (docs/BRICKS.md, « Instant »): an entry's DATE or DATETIME field, each bound of a period.
  *
  * It offers a custom date, always absolute, with the time for a DATETIME; a relative date, a unit
  * and an offset ("the day before") with its moment, the start or the end of that period; now;
