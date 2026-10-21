@@ -121,6 +121,11 @@ object Guide {
 
     fun welcomeDone() = update { it.copy(welcomeSeen = true) }
 
+    /** A read chapter marked read by hand, or no longer: unmarked, it stands as never opened. */
+    fun markRead(chapter: GuideChapter, read: Boolean) = update {
+        if (read) it.with(ChapterProgress(chapter.id, 0, true, emptyMap())) else it.without(chapter.id)
+    }
+
     /** The band hidden: the tutorial waits in the Guide. */
     fun hide() = update { it.copy(bandHidden = true) }
 

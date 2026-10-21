@@ -81,7 +81,7 @@ A step is written as data, not code. A check of `./run test` verifies that each 
 ## The Guide
 
 - A page, opened by a fixed icon at the top of the home screen (`book-open`). It reads in a single scroll, in parts (`GuidePart`): "Discovery", the tour of what the app does, whose chapters are numbered and form the journey; "Getting started", each feature to use it for real; "The tools", one chapter per tool type, all together; "Going further", the subtleties. A part without a chapter does not show: Going further waits for its first chapters.
-- Each chapter has the same line in all the parts: icon, title, duration, state ("To do", "3/6 · resume", "Done"). Open, it reads whole (all its steps, paths from the home screen), with "Do it on the app" if it has steps to do and "Start again" if it is finished.
+- Each chapter has the same line in all the parts: icon, title, duration, state ("To do", "3/6 · resume", "Done"). Open, it reads whole (all its steps, paths from the home screen), with "Do it on the app" if it has steps to do and "Start again" if it is finished. A chapter without steps (Going further, a tool's) is "To read" until "Mark as read" at its end makes it "Read"; "Mark as unread" takes the mark back.
 - Nothing is locked: every chapter opens at any time.
 - While a journey tutorial is proposed and not done, or a tutorial is hidden in progress, the Guide's icon carries `WaitingMark`'s dot.
 

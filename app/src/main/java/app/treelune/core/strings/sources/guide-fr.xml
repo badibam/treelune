@@ -17,6 +17,9 @@
     <string name="guide_state_done">Fait</string>
     <string name="guide_state_stub">À écrire</string>
     <string name="guide_state_read">À lire</string>
+    <string name="guide_state_was_read">Lu</string>
+    <string name="guide_mark_read">Marquer comme lu</string>
+    <string name="guide_mark_unread">Marquer comme non lu</string>
     <string name="guide_tool_config">Sa config</string>
     <string name="guide_tool_config_open">- {settings} Pour l\'ouvrir, touche l\'engrenage de son écran, ou fais un appui long sur sa tuile</string>
     <string name="guide_tool_screen">Son écran</string>
