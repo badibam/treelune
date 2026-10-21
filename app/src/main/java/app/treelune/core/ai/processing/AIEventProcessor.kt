@@ -1855,25 +1855,12 @@ class AIEventProcessor(
 
     /**
      * [block] under the access mask of the automation whose AI the session runs (AccessScope:
-     * the coordinator refuses what goes beyond it), as it is; a chat's AI is held to none. The
-     * automation is the one the session's row names, written when the session was created. An
-     * automation that cannot be read reaches nothing: its commands are refused, saying so.
+     * the coordinator refuses what goes beyond it, AccessScope.ofRun), as it is; a chat's AI is
+     * held to none.
      */
     private suspend fun <T> withinAccess(state: AIState, block: suspend () -> T): T {
         if (state.sessionType != SessionType.AUTOMATION) return block()
-        val aiDao = app.treelune.core.database.AppDatabase.getDatabase(context).aiDao()
-        val automationId = state.sessionId?.let { aiDao.getSession(it) }?.automationId
-        val automation = automationId?.let { aiDao.getAutomationById(it) }
-        val mask = automation?.let {
-            try {
-                app.treelune.core.access.AccessMask.fromJson(it.accessJson)
-            } catch (e: Exception) {
-                LogManager.aiSession("Access of automation ${it.id} unreadable: ${e.message}", "ERROR", e)
-                null
-            }
-        } ?: app.treelune.core.access.AccessMask.NOTHING
-        val holder = automation?.name ?: app.treelune.core.strings.Strings.`for`(context = context).shared("automation_unknown")
-        return kotlinx.coroutines.withContext(app.treelune.core.access.AccessScope(mask, holder)) { block() }
+        return kotlinx.coroutines.withContext(app.treelune.core.access.AccessScope.ofRun(context, state.sessionId)) { block() }
     }
 
     /**
