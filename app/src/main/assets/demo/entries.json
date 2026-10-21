@@ -752,6 +752,7 @@
   "demo-kitchen-recipes": [
     {
       "id": "demo-recipe-porridge",
+      "name": "@recipe_porridge_title",
       "position": 0,
       "data": {
         "content": "@recipe_porridge"
@@ -759,6 +760,7 @@
     },
     {
       "id": "demo-recipe-lentils",
+      "name": "@recipe_lentils_title",
       "position": 1,
       "data": {
         "content": "@recipe_lentils"
@@ -766,6 +768,7 @@
     },
     {
       "id": "demo-recipe-salmon",
+      "name": "@recipe_salmon_title",
       "position": 2,
       "data": {
         "content": "@recipe_salmon"
@@ -773,6 +776,7 @@
     },
     {
       "id": "demo-recipe-pesto",
+      "name": "@recipe_pesto_title",
       "position": 3,
       "data": {
         "content": "@recipe_pesto"
@@ -780,6 +784,7 @@
     },
     {
       "id": "demo-recipe-chickpeas",
+      "name": "@recipe_chickpeas_title",
       "position": 4,
       "data": {
         "content": "@recipe_chickpeas"
@@ -787,6 +792,7 @@
     },
     {
       "id": "demo-recipe-skyr",
+      "name": "@recipe_skyr_title",
       "position": 5,
       "data": {
         "content": "@recipe_skyr"

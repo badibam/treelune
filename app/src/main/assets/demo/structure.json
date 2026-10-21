@@ -1397,7 +1397,8 @@
         "icon_name": "book-open",
         "display_mode": "CONDENSED",
         "group": "@kitchen_group_pantry",
-        "texture": "LINES"
+        "texture": "LINES",
+        "titles": true
       },
       "grid_x": 0,
       "grid_y": 3

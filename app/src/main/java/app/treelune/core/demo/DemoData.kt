@@ -486,8 +486,9 @@ class DemoData(private val time: TimeResolver, private val hand: JSONObject) {
         entry(item.getString("id"), item.getString("name"), data = data, state = state)
     }
 
+    /** A tool's notes, each with its title when it has one (the tool's titles on). */
     private fun notes(tool: String) = handOf(tool).map { note ->
-        entry(note.getString("id"), data = note.getJSONObject("data"), state = json("position" to note.getInt("position")))
+        entry(note.getString("id"), note.optString("name").takeIf { it.isNotEmpty() }, data = note.getJSONObject("data"), state = json("position" to note.getInt("position")))
     }
 
     private fun placed(tool: String) = handOf(tool).mapNotNull { e ->
