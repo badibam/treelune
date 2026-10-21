@@ -164,11 +164,16 @@
 
   /* Short landscape, screen 2: the unfolded picker on the left, kept in view, the phone sized by the width */
   @media (max-height: 500px) and (orientation: landscape) {
-    .band .showcase { display: flex; justify-content: center; align-items: flex-start; gap: 40px; padding: 24px 0 32px; }
+    .band .showcase { display: flex; justify-content: center; align-items: flex-start; gap: 40px; padding: 4svh 0 32px; }
     .band .phone-box { display: block; order: 2; }
     .band .showcase .phone { width: 34vw; height: auto; }
-    .band .picker { order: 1; position: sticky; top: 72px; }
-    .picker-intro, .picker-list button, .mode-switch button { font-size: 16px; }
+    /* The whole picker stays within the screen under the header while the phone scrolls beside it */
+    .band .picker { order: 1; position: sticky; top: calc(56px + 4svh); gap: .4svh; }
+    .picker-intro { font-size: min(14px, 3.8svh); margin-bottom: 1.5svh; max-width: none; white-space: nowrap; }
+    .picker-list { gap: .4svh; }
+    .picker-list button { font-size: min(17px, 4.2svh); line-height: 1.25; }
+    .mode-switch { margin-top: 2svh; }
+    .mode-switch button { font-size: min(13px, 3.6svh); padding: 1svh 12px; }
   }
 
   /* A phone frame: thin, drawn, no real device */
