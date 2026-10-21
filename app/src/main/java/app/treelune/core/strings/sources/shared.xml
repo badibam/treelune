@@ -199,6 +199,7 @@
     <!-- AI Response Validation Errors -->
     <string name="ai_error_validation_multiple_action_types">Several command types present: %1$s. Only one type is allowed per answer.</string>
     <string name="ai_error_validation_request_without_actions">validation_request present without action_commands. validation_request is only allowed together with action_commands.</string>
+    <string name="ai_error_post_text_without_actions">post_text present without action_commands. post_text is only allowed together with action_commands: without actions, put all your text in pre_text.</string>
     <string name="ai_error_communication_module_in_automation">communication_module in a routine: nobody answers during a run. Decide from what you can read, carry on, and say in your summary what you assumed.</string>
 
     <!-- Custom fields - Technical name -->
