@@ -43,6 +43,7 @@ Codé, jamais vu sur l'appareil.
 
 Ce qui doit monter dans un module de sagesse (`/update push`).
 
+- Rien de personnel dans un fichier commité : une passe sur le téléphone de l'utilisateur lit ses vraies données, et en recopier un nom (un événement, une personne, une note) dans la recette ou le TODO le publie au prochain push. On décrit le cas (« deux événements toute la journée ») sans le nommer ; vu le 2026-10-21, deux noms de l'Agenda retirés de 348 commits non poussés. Pour le module universel.
 - Le pilotage du téléphone par adb pour la recette (`scripts/phone_ui.sh` : captures réduites, toucher par le texte de l'écran, frappe mot par mot), dans `android`.
 
 ## Bloqué par autre chose
