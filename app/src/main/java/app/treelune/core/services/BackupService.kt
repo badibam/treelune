@@ -60,13 +60,15 @@ import app.treelune.core.ai.data.LegacyCatchUp
  *   `missing_images`
  * - tree: what the app holds, its zones and their elements with every link between them
  *   (PartTree's stored form under `tree`), for the export's screen; given `uri`, what the backup
- *   there holds, for the import's, with `partial` and `taken_variable_names`
+ *   there holds, for the import's, with `partial`, `taken_variable_names` and `identities`, each
+ *   identity of the file the app holds by its id, `same` or `different` (Identity.sameAs)
  * - auto: the automatic backup's copy (AutoBackup), into the folder chosen, rolled; none when the
  *   data did not change since the last one. Answer: `written`
- * - import_part: `uri`, `selection`, `arrivals`: a part of the backup there added to the app
- *   (performImportPart, PartImport), one step of the history. Answer: `zones` (the new ones),
+ * - import_part: `uri`, `selection`, `arrivals`, `replace_identities`?: a part of the backup
+ *   there added to the app (performImportPart, PartImport), one step of the history; an identity
+ *   the app holds kept unless listed in `replace_identities`. Answer: `zones` (the new ones),
  *   `elements`, `entries`, `renamed` (each variable's name in the file and the one it took),
- *   `images_missing`
+ *   `images_missing`, `identities_added`, `identities_replaced`
  * - import: `uri`: data restored from a backup there (with version migrations): a zip, or the
  *   `.json` of the backups made before images, still readable
  * - reset: Wipe all data and restore defaults
@@ -176,6 +178,15 @@ class BackupService(private val context: Context) : ExecutableService {
         app.treelune.core.backup.PartLinks.of(whole.json, selection).firstOrNull { it.blocking }?.let { link ->
             return OperationResult.error(app.treelune.core.backup.PartLinks.text(link, { app.treelune.core.backup.PartLinks.name(whole.json, it) }, s::shared))
         }
+        // An identity arrives as its identity file imports: one that does not make a file stops here, not on the other phone
+        val today = app.treelune.core.selection.TimeResolver.at(System.currentTimeMillis()).today()
+        part.getJSONObject("data").getJSONArray("identities").let { rows -> (0 until rows.length()).map { app.treelune.core.backup.BackupPart.identity(rows.getJSONObject(it)) } }.forEach { identity ->
+            try {
+                app.treelune.core.identities.IdentityFile.write(identity, today)
+            } catch (e: app.treelune.core.identities.IdentityFile.Refused) {
+                return OperationResult.error(s.shared("share_error_identity").format(identity.name, s.shared(e.key).format(*e.args)))
+            }
+        }
         val kept = app.treelune.core.backup.BackupPart.imageIds(part)
         val built = Built(part, whole.images.filter { it.id in kept }, whole.missingIds intersect kept)
 
@@ -255,7 +266,12 @@ class BackupService(private val context: Context) : ExecutableService {
             OperationResult.success(mapOf(
                 "tree" to app.treelune.core.utils.JsonUtils.toMap(app.treelune.core.backup.PartTree.of(document).toJson()),
                 "partial" to app.treelune.core.backup.BackupPart.isPartial(document),
-                "taken_variable_names" to database.variableDao().getAll().map { it.name }
+                "taken_variable_names" to database.variableDao().getAll().map { it.name },
+                "identities" to (document.getJSONObject("data").optJSONArray("identities") ?: JSONArray()).let { rows ->
+                    (0 until rows.length()).map { app.treelune.core.backup.BackupPart.identity(rows.getJSONObject(it)) }
+                }.mapNotNull { identity ->
+                    database.identityDao().getById(identity.id)?.let { held -> identity.id to if (held.toIdentity().sameAs(identity)) "same" else "different" }
+                }.toMap()
             ))
         } catch (e: Exception) {
             LogManager.service("Backup not read: ${e.message}", "ERROR", e)
@@ -742,6 +758,7 @@ class BackupService(private val context: Context) : ExecutableService {
                 return OperationResult.error(s.shared("share_error_selection").format(e.message ?: ""))
             }
             val arrivals = params.optJSONObject("arrivals")?.let { given -> given.keys().asSequence().associateWith { given.getString(it) } }.orEmpty()
+            val replaced = params.optJSONArray("replace_identities")?.let { ids -> (0 until ids.length()).map { ids.getString(it) }.toSet() }.orEmpty()
             val part = try {
                 app.treelune.core.backup.BackupPart.cut(document, selection)
             } catch (e: IllegalArgumentException) {
@@ -753,19 +770,21 @@ class BackupService(private val context: Context) : ExecutableService {
             if (token.isCancelled) return OperationResult.cancelled()
 
             val report = try {
-                app.treelune.core.backup.PartImport(context).run(part, staging, arrivals)
+                app.treelune.core.backup.PartImport(context).run(part, staging, arrivals, replaced)
             } catch (e: app.treelune.core.backup.PartImport.Refused) {
                 LogManager.service("Part import refused: ${e.message}", "ERROR")
                 return OperationResult.error(s.shared("share_import_refused").format(e.message ?: ""))
             }
             app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
-            LogManager.service("Part imported: ${report.zones} new zones, ${report.elements} elements, ${report.entries} entries, ${report.renamed.size} variables renamed, ${report.imagesMissing} images missing")
+            LogManager.service("Part imported: ${report.zones} new zones, ${report.elements} elements, ${report.entries} entries, ${report.renamed.size} variables renamed, ${report.imagesMissing} images missing, ${report.identitiesAdded} identities added, ${report.identitiesReplaced} replaced")
             OperationResult.success(mapOf(
                 "zones" to report.zones,
                 "elements" to report.elements,
                 "entries" to report.entries,
                 "renamed" to report.renamed,
-                "images_missing" to report.imagesMissing
+                "images_missing" to report.imagesMissing,
+                "identities_added" to report.identitiesAdded,
+                "identities_replaced" to report.identitiesReplaced
             ))
         } catch (e: Exception) {
             LogManager.service("Part import failed: ${e.message}", "ERROR", e)
@@ -1115,20 +1134,7 @@ class BackupService(private val context: Context) : ExecutableService {
         data.optJSONArray("identities")?.let { array ->
             for (i in 0 until array.length()) {
                 val item = array.getJSONObject(i)
-                database.identityDao().upsert(
-                    app.treelune.core.identities.IdentityEntity(
-                        id = item.getString("id"),
-                        name = item.getString("name"),
-                        iconName = item.getString("icon_name"),
-                        iconColor = item.nullableString("icon_color"),
-                        language = item.getString("language"),
-                        languagesJson = item.getString("languages_json"),
-                        publishedAt = item.nullableString("published_at"),
-                        importedAt = if (item.isNull("imported_at")) null else item.getLong("imported_at"),
-                        createdAt = item.getLong("created_at"),
-                        updatedAt = item.getLong("updated_at")
-                    )
-                )
+                database.identityDao().upsert(app.treelune.core.identities.IdentityEntity.of(app.treelune.core.backup.BackupPart.identity(item)))
             }
         }
 

@@ -1509,6 +1509,7 @@
     <string name="share_file_name">treelune_share</string>
     <string name="share_error_selection">What is ticked cannot be read: %1$s</string>
     <string name="share_error_file_name">The zone\'s name, “%1$s”, cannot name a file: rename the zone to share it.</string>
+    <string name="share_error_identity">The identity “%1$s” cannot go: %2$s.</string>
     <string name="share_link_element_to_element">“%1$s” reads “%2$s”. Tick “%2$s” too, or untick “%1$s”.</string>
     <string name="share_link_element_to_entries">“%1$s” reads entries of “%2$s”. Switch on the entries of “%2$s”, or untick “%1$s”.</string>
     <string name="share_link_entries_to_element">Entries of “%1$s” designate “%2$s”. Tick “%2$s” too, or switch off the entries of “%1$s”.</string>
@@ -1517,7 +1518,10 @@
     <string name="share_import_refused">The import stopped and nothing was added. Reason: %1$s</string>
     <string name="backup_file_name">treelune_backup</string>
     <string name="share_link_routine">“%1$s” points to “%2$s”, outside the selection. On another phone, this link will lead nowhere.</string>
-    <string name="share_link_routine_alone">“%1$s” will arrive switched off, without an AI provider or identity. They need choosing before switching it on.</string>
+    <string name="share_link_routine_alone">“%1$s” will arrive switched off, without an AI provider. One needs choosing before switching it on.</string>
+    <string name="share_link_routine_identity">“%1$s” will arrive without its identity “%2$s”: it will speak as the app\'s AI.</string>
+    <string name="share_link_zone_identity">The zone “%1$s” will arrive without its identity “%2$s”: its conversations will be with the app\'s AI.</string>
+    <string name="share_element_identity">Identity “%1$s”</string>
     <string name="share_export_title">Export</string>
     <string name="share_export_card">A part of the app to share, or the whole app.</string>
     <string name="share_export_open">Export…</string>
@@ -1544,7 +1548,7 @@
     <string name="share_import_title">Import</string>
     <string name="share_import_open">Import…</string>
     <string name="share_import_card">Take a part of a file back, or restore the whole app from a backup.</string>
-    <string name="share_import_part_help">What you tick is added to what you have. Nothing is replaced.</string>
+    <string name="share_import_part_help">What you tick is added to what you have. Nothing is replaced, except an identity you choose to replace.</string>
     <string name="share_import_mode">What the import does</string>
     <string name="share_import_part_mode">Take a part back</string>
     <string name="share_import_restore_mode">Restore everything</string>
@@ -1554,6 +1558,14 @@
     <string name="share_import_existing_zone">An existing zone</string>
     <string name="share_import_zone_pick">Zone of arrival</string>
     <string name="share_import_variable_renamed">This name is taken, so it arrives as “%1$s”.</string>
+    <string name="share_import_identity_new">This identity will be added to the app.</string>
+    <string name="share_import_identity_same">This identity is already in the app, the same: the one in place is used.</string>
+    <string name="share_import_identity_differs">An identity of the same id is already in the app, different from this one.</string>
+    <string name="share_import_identity_choice">The identity in the app</string>
+    <string name="share_import_identity_keep">Keep it</string>
+    <string name="share_import_identity_replace">Replace it</string>
+    <string name="share_import_identity_replace_help">The one in place is replaced whole, the retouches made in the app lost.</string>
+    <string name="share_import_done_identities">Identities added: %1$d. Replaced: %2$d.</string>
     <string name="share_import_notifications">This tool may send notifications, set as in the file.</string>
     <string name="share_import_links_left_one">1 link to settle before importing.</string>
     <string name="share_import_links_left_other">%1$d links to settle before importing.</string>
@@ -2351,6 +2363,7 @@
     <string name="action_verbalize_identity_update">Changing the identity "%1$s"</string>
     <string name="action_verbalize_identity_delete">Deleting the identity "%1$s"</string>
     <string name="action_verbalize_identity_import">Importing an identity</string>
+    <string name="action_verbalize_identity_export">Exporting the identity “%1$s”</string>
     <string name="label_zone_identity">Identity</string>
     <string name="zone_schema_identity_id">The identity its tile opens a conversation with: its id (IDENTITIES)</string>
     <string name="label_identity">Identity</string>
@@ -2382,6 +2395,12 @@
     <string name="identity_import_language_lost">The language it spoke, %1$s, is not in this file: choose another.</string>
     <string name="identity_import_done">Identity imported</string>
     <string name="identity_import_unreadable">The file could not be read: %1$s</string>
+    <string name="identity_export">Export</string>
+    <string name="identity_export_written">The file %1$s is written in the app\'s folder: it is imported in Settings › Identities › Import.</string>
+    <string name="identity_export_no_text">The language %1$s holds resources and no text: write it a voice, a mind or a portrait to export it</string>
+    <string name="identity_export_empty">The identity “%1$s” holds no text yet: write it a voice, a mind or a portrait to export it</string>
+    <string name="identity_export_spoken_empty">The language it speaks, %1$s, holds no text: write it a voice, a mind or a portrait, or have it speak another, to export it</string>
+    <string name="identity_export_file_name">The identity\'s name, “%1$s”, cannot name a file: rename it to export it.</string>
     <string name="identity_language">Language it speaks</string>
     <string name="identity_language_code">Language (a code: fr, en)</string>
     <string name="identity_section">Texts in</string>
