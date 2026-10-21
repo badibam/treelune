@@ -90,7 +90,6 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 
 ## L'historique des écritures (branche undo-history)
 
-- Supprimer une zone qui a une routine et une variable, puis l'annuler : tout revient, la routine avec son message ; une entrée à photos supprimée puis annulée retrouve ses photos.
 - Supprimer la démo puis l'annuler : la démo revient entière, ses routines et leurs messages compris.
 - Un rappel d'Agenda envoyé, puis annuler le renommage de son événement : l'ancien nom revient, le rappel ne repart pas.
 
