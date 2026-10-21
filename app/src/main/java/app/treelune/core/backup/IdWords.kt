@@ -43,17 +43,19 @@ object IdWords {
         else -> value
     }
 
-    /** [text] read as a JSON object or list, null when it is none. */
+    /**
+     * [text] read as a JSON object or list, null when it is none. Strict JSON only, read whole
+     * first: org.json takes unquoted words and stops at the first closing brace, so a formula
+     * `{var:A} - {var:B}` would come back as `{"var":"A"}`, the rest lost.
+     */
     private fun nested(text: String): Any? {
         val trimmed = text.trim()
-        return try {
-            when {
-                trimmed.startsWith("{") -> JSONObject(trimmed)
-                trimmed.startsWith("[") -> JSONArray(trimmed)
-                else -> null
-            }
-        } catch (e: org.json.JSONException) {
-            null
+        if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return null
+        try {
+            kotlinx.serialization.json.Json.parseToJsonElement(trimmed)
+        } catch (e: kotlinx.serialization.SerializationException) {
+            return null
         }
+        return if (trimmed.startsWith("{")) JSONObject(trimmed) else JSONArray(trimmed)
     }
 }
