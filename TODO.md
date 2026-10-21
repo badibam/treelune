@@ -4,7 +4,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Release F-Droid
 
-- La recette F-Droid sur `v0.9.0` essayée dans le conteneur (`docs/design/fdroid-compliance.md`), son APK comparé à celui de GitHub (`apksigcopier compare`) — podman à installer.
 - La recette proposée à `fdroiddata` : merge request d'inclusion sur GitLab.
 
 ## Bugs du téléphone
