@@ -14,13 +14,11 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 ## Démo
 
 - Réglages › Démo : désactiver « Installer la démo à chaque mise à jour » et enregistrer ne supprime rien, la démo reste ; réinstaller l'APK la laisse telle quelle ; réactiver le réglage n'installe rien avant la mise à jour suivante.
-- Ajouter une entrée dans un outil de la démo et un outil dans une de ses zones, puis Réglages › Démo › « Supprimer la démo » : la démo et ces deux ajouts disparaissent, le reste de l'app est intact ; « Réinstaller » la remet entière.
 - Les photos de la démo (Tomate, Basilic, Piment) : « Supprimer la démo » puis l'app redémarrée, leurs fichiers partent au ménage, une ligne INFO au journal.
 - Pendant un import d'un gros fichier (Données structurées), lancer « Réinstaller » la démo ou exporter une sauvegarde : refusé, le message nomme l'import en cours ; la bande compte les lignes écrites par 500.
 
 ## Chat IA
 
-- Faire écrire par l'IA une valeur hors d'une échelle ou hors des options d'un choix : le refus lui revient.
 - Faire créer et modifier des entrées de tracking par l'IA : `raw` est juste.
 - Même sélecteur dans le message de départ d'une automation : période et filtre de date en valeurs relatives, recalculées à l'exécution suivante. Le résumé dit le côté de chaque borne : « entre le début de « 7 jours avant » et la fin de « le jour-même » », « Pesé le depuis le début de « la veille » ».
 
@@ -60,7 +58,6 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 
 - « Se répète » chaque mardi 18 h : les champs supplémentaires disparaissent ; des occurrences sur 90 jours apparaissent aussitôt l'enregistrement (une série créée par l'IA ou par la roue dentée aussi), chacune avec l'icône de répétition. Une occurrence : « Retirer » la fait passer sous « Retirées (1) », « Rétablir » la remet ; « Supprimer » n'y est pas.
 - « Modifier la série » : changer la durée, enregistrer sans confirmation ; les occurrences restées à l'ancienne durée la prennent, celle réglée à la main garde la sienne. Changer le jour : la confirmation compte les occurrences à venir ; acceptée, elles reviennent sur le nouveau jour, le passé intact.
-- Déplacer un événement déjà rappelé à plus tard : son rappel repart à la nouvelle heure.
 
 ## L'IA et les routines (branche ai-routines)
 
@@ -75,7 +72,6 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 ## Lecture seule pour l'IA (branche user-only)
 
 - Le champ coché se remplit toujours à l'écran. Demander à l'IA, en conversation, de le remplir : refusé, elle dit que le champ lui est fermé, rien n'est écrit, pas même le reste de l'entrée. Lui demander de décocher la case : refusé ; de la cocher sur un autre champ : fait.
-- Un Objectif fermé à l'IA : elle dit où en est la tentative, mais « valide-la » et « rouvre-la » sont refusés ; validée et rouverte à l'écran, sans changement.
 - Par le connecteur, et par une routine qui écrit ce champ : refusé, l'erreur dans la réponse du connecteur, dans l'historique d'exécution de la routine.
 
 ## Les incarnations (branche incarnations)
@@ -120,4 +116,3 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 ## Le champ Image (branche image-field)
 
 - Une sauvegarde puis sa restauration, avec des images d'entrées et de messages : toutes reviennent, chacune à son propriétaire. Une entrée supprimée, l'app redémarrée : son fichier part, une ligne INFO au journal.
-- Une photo de 4 000 px ajoutée à un champ Image est réduite, une image de 200 px gardée telle quelle ; un PNG transparent garde sa transparence.
