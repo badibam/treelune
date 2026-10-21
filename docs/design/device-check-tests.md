@@ -8,7 +8,7 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 
 ## Démo
 
-- Pendant un import d'un gros fichier (Données structurées), lancer « Réinstaller » la démo ou exporter une sauvegarde : refusé, le message nomme l'import en cours ; la bande compte les lignes écrites par 500.
+- Pendant un import d'un gros fichier (Données structurées) : la bande compte les lignes écrites par 500.
 
 ## Outils et saisie
 
