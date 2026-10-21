@@ -20,7 +20,6 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 ## Chat IA
 
 - Faire créer et modifier des entrées de tracking par l'IA : `raw` est juste.
-- Même sélecteur dans le message de départ d'une automation : période et filtre de date en valeurs relatives, recalculées à l'exécution suivante. Le résumé dit le côté de chaque borne : « entre le début de « 7 jours avant » et la fin de « le jour-même » », « Pesé le depuis le début de « la veille » ».
 
 ## Outils et saisie
 
