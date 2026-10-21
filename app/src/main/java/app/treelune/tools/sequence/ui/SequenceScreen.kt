@@ -32,9 +32,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
+import app.treelune.core.fields.CustomFieldsInput
 import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldInput
 import app.treelune.core.fields.FieldType
+import app.treelune.core.fields.toFieldDefinitions
 import app.treelune.core.strings.Strings
 import app.treelune.core.strings.StringsContext
 import app.treelune.core.tools.ToolConfigSettings
@@ -73,7 +75,9 @@ data class SequenceEntry(
     val stepsNotDone: Int?,
     val run: SequenceRun?,
     /** The steps it keeps once over, null for one finished before they were kept */
-    val steps: List<SequenceSteps.Kept>? = null
+    val steps: List<SequenceSteps.Kept>? = null,
+    /** The values of the user's fields */
+    val extra: Map<String, Any?> = emptyMap()
 ) {
     /** The steps of the session, once it is over: done, skipped and not reached together. */
     val stepsTotal: Int? get() = if (stepsDone != null && stepsSkipped != null && stepsNotDone != null) stepsDone + stepsSkipped + stepsNotDone else null
@@ -95,7 +99,8 @@ internal fun sequenceEntries(result: Map<String, Any?>?): List<SequenceEntry> =
             stepsNotDone = count(SequenceToolType.STEPS_NOT_DONE),
             run = (state?.get(SequenceToolType.RUN) as? String)?.takeIf { it.isNotEmpty() && state[SequenceToolType.STATUS] == SequenceToolType.Status.RUNNING }
                 ?.let { SequenceRun.fromJson(JSONObject(it)) },
-            steps = SequenceSteps.read(data?.get(SequenceToolType.KEPT_STEPS) as? String)
+            steps = SequenceSteps.read(data?.get(SequenceToolType.KEPT_STEPS) as? String),
+            extra = (e["extra"] as? Map<*, *>)?.entries?.associate { it.key.toString() to it.value } ?: emptyMap()
         )
     }
 
@@ -129,7 +134,8 @@ internal fun roundsText(step: PlannedStep): String = SequenceSteps.roundsOf(step
  * the fact », the planned sessions with « Ignore all », the run read one line per step, the blocks
  * indented, then the history. During a session: the step large, its round, its clock, its
  * instruction, the next step small, the gestures. A session recorded as running that no service
- * runs was stopped with the app: resume or stop.
+ * runs was stopped with the app: resume or stop. A session over waits for « Finish the session »,
+ * under the user's fields.
  */
 @Composable
 fun SequenceScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureClick: () -> Unit) {
@@ -179,6 +185,8 @@ fun SequenceScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigu
     val settings = ToolConfigSettings.read(SequenceToolType, loadedConfig, context)
     val name = settings.string("name")!!
     val running = loaded.firstOrNull { it.run != null }
+    val toFinish = loaded.firstOrNull { it.status == SequenceToolType.Status.TO_FINISH }
+    val fields = loadedConfig.optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList()
 
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).chatButtonSpace().padding(vertical = UI.Space.L),
@@ -196,11 +204,12 @@ fun SequenceScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigu
         )
         val open = openId?.let { id -> loaded.find { it.id == id && it.stepsTotal != null } }
         when {
-            open != null -> SessionView(open, s) { params -> call(SequenceService.CORRECT, mapOf("id" to open.id) + params) {} }
+            open != null -> SessionView(open, fields, s) { params -> call(SequenceService.CORRECT, mapOf("id" to open.id) + params) {} }
             running != null && live == running.id -> Running(running.id, running.run!!, s) { op -> call(op, mapOf("id" to running.id)) }
             running != null -> Interrupted(s,
                 onResume = { call(SequenceService.RESUME_INTERRUPTED, mapOf("id" to running.id)) },
                 onStop = { call(SequenceService.STOP, mapOf("id" to running.id)) })
+            toFinish != null -> Closing(toFinish, fields, s) { extra -> call(SequenceService.FINISH, mapOf("id" to toFinish.id, "extra" to extra)) }
             else -> Idle(loadedConfig, loaded, s, ::call, onOpen = { openId = it })
         }
     }
@@ -250,6 +259,23 @@ private fun Running(id: String, run: SequenceRun, s: StringsContext, gesture: (S
     UI.ActionButton(action = ButtonAction.STOP, requireConfirmation = true, confirmMessage = s.tool("confirm_stop")) { gesture(SequenceService.STOP) }
 }
 
+/**
+ * A session over that waits for « Finish the session »: its length and its steps, the user's
+ * fields to fill, and the button, which sets it done or stopped as its steps say.
+ */
+@Composable
+private fun Closing(entry: SequenceEntry, fields: List<FieldDefinition>, s: StringsContext, onFinish: (Map<String, Any?>) -> Unit) {
+    val context = LocalContext.current
+    var values by rememberSaveable(entry.id, stateSaver = app.treelune.core.ui.FieldValuesSaver) { mutableStateOf(entry.extra) }
+    UI.Text(s.tool("closing_title"), TextType.SUBTITLE)
+    UI.Text(listOfNotNull(
+        entry.duration?.let { clockText(it) },
+        if (entry.stepsDone != null && entry.stepsTotal != null) s.tool("steps_of").format(entry.stepsDone, entry.stepsTotal) else null
+    ).joinToString(" · "), TextType.BODY)
+    if (fields.isNotEmpty()) CustomFieldsInput(customFieldsMetadata = fields, values = values, onValuesChange = { values = it }, context = context)
+    UI.Button(type = ButtonType.PRIMARY, onClick = { onFinish(fields.associate { it.name to values[it.name] }) }) { UI.Text(s.tool("action_finish"), TextType.LABEL) }
+}
+
 /** A session the app stopped mid-way: resumed, its step starting again, or stopped. */
 @Composable
 private fun Interrupted(s: StringsContext, onResume: () -> Unit, onStop: () -> Unit) {
@@ -268,7 +294,7 @@ private fun Interrupted(s: StringsContext, onResume: () -> Unit, onStop: () -> U
 private fun Idle(config: JSONObject, entries: List<SequenceEntry>, s: StringsContext, call: (String, Map<String, Any?>, () -> Unit) -> Unit, onOpen: (String) -> Unit) {
     val context = LocalContext.current
     val planned = entries.filter { it.status == SequenceToolType.Status.PLANNED }.sortedByDescending { it.timestamp }
-    val history = entries.filter { it.status != SequenceToolType.Status.PLANNED }.sortedByDescending { it.timestamp }
+    val history = entries.filter { it.status != SequenceToolType.Status.PLANNED && it.status != SequenceToolType.Status.TO_FINISH }.sortedByDescending { it.timestamp }
 
     planned.firstOrNull()?.let { UI.Text(s.tool("planned_waiting").format(FormatUtils.formatRelativeTimePast(it.timestamp, context)), TextType.CAPTION) }
     UI.Button(type = ButtonType.PRIMARY, onClick = { call(SequenceService.START, emptyMap()) {} }) { UI.Text(s.tool("action_start"), TextType.LABEL) }
@@ -335,15 +361,20 @@ private fun StepLines(elements: JSONArray?, depth: Int, s: StringsContext) {
 /**
  * A session over, read and corrected: its time, its length, and its steps, each with its state
  * for one that keeps them, their counts for one that does not; its state following them as the
- * service sets it (SequenceSteps, SequenceCorrection).
+ * service sets it (SequenceSteps, SequenceCorrection); then the user's fields.
  */
 @Composable
-private fun SessionView(entry: SequenceEntry, s: StringsContext, onSave: (Map<String, Any?>) -> Unit) {
+private fun SessionView(entry: SequenceEntry, fields: List<FieldDefinition>, s: StringsContext, onSave: (Map<String, Any?>) -> Unit) {
     val context = LocalContext.current
     var at by rememberSaveable(entry.id) { mutableStateOf<Any?>(entry.timestamp) }
     var duration by rememberSaveable(entry.id) { mutableStateOf<Any?>(entry.duration) }
+    var values by rememberSaveable(entry.id, stateSaver = app.treelune.core.ui.FieldValuesSaver) { mutableStateOf(entry.extra) }
+    val userFields: @Composable () -> Unit = {
+        if (fields.isNotEmpty()) CustomFieldsInput(customFieldsMetadata = fields, values = values, onValuesChange = { values = it }, context = context)
+    }
+    val extra = { mapOf("extra" to fields.associate { it.name to values[it.name] }) }
     entry.steps?.let { kept ->
-        KeptStepsView(kept, at, { at = it }, duration, { duration = it }, s, entry.id, onSave)
+        KeptStepsView(kept, at, { at = it }, duration, { duration = it }, s, entry.id, userFields) { onSave(it + extra()) }
         return
     }
     var done by rememberSaveable(entry.id) { mutableStateOf<Any?>(entry.stepsDone) }
@@ -359,6 +390,7 @@ private fun SessionView(entry: SequenceEntry, s: StringsContext, onSave: (Map<St
     FieldInput(field(SequenceToolType.STEPS_SKIPPED, FieldType.NUMERIC, count), skipped, { skipped = it }, context, required = true)
     FieldInput(field(SequenceToolType.STEPS_NOT_DONE, FieldType.NUMERIC, count), notDone, { notDone = it }, context, required = true)
     UI.Text(s.tool("correct_total").format(entry.stepsTotal ?: 0), TextType.CAPTION)
+    userFields()
     UI.Button(type = ButtonType.PRIMARY, onClick = {
         onSave(mapOf(
             "timestamp" to at,
@@ -366,13 +398,13 @@ private fun SessionView(entry: SequenceEntry, s: StringsContext, onSave: (Map<St
             SequenceToolType.STEPS_DONE to done,
             SequenceToolType.STEPS_SKIPPED to skipped,
             SequenceToolType.STEPS_NOT_DONE to notDone
-        ))
+        ) + extra())
     }) { UI.Text(s.shared("action_save"), TextType.LABEL) }
 }
 
 /**
  * A session that keeps its steps, corrected step by step: each step's name and time, and its
- * state to choose; the counts follow from them.
+ * state to choose; the counts follow from them; then [userFields].
  */
 @Composable
 private fun KeptStepsView(
@@ -380,6 +412,7 @@ private fun KeptStepsView(
     at: Any?, onAt: (Any?) -> Unit,
     duration: Any?, onDuration: (Any?) -> Unit,
     s: StringsContext, id: String,
+    userFields: @Composable () -> Unit,
     onSave: (Map<String, Any?>) -> Unit
 ) {
     val context = LocalContext.current
@@ -401,6 +434,7 @@ private fun KeptStepsView(
                 statuses = chosen.mapIndexed { j, current -> if (j == i) status else current }.joinToString(",")
             }, context)
     }
+    userFields()
     UI.Button(type = ButtonType.PRIMARY, onClick = {
         onSave(mapOf("timestamp" to at, SequenceToolType.DURATION to duration, SequenceToolType.STEP_STATUSES to chosen))
     }) { UI.Text(s.shared("action_save"), TextType.LABEL) }

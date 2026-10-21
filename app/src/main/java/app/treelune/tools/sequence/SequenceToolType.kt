@@ -40,10 +40,12 @@ object SequenceToolType : ToolTypeContract {
     object Status {
         const val PLANNED = "planned"
         const val RUNNING = "running"
+        /** Its steps over, written; it waits for « Finish the session », its user fields with it */
+        const val TO_FINISH = "to_finish"
         const val DONE = "done"
         const val STOPPED = "stopped"
         const val IGNORED = "ignored"
-        val ALL = listOf(PLANNED, RUNNING, DONE, STOPPED, IGNORED)
+        val ALL = listOf(PLANNED, RUNNING, TO_FINISH, DONE, STOPPED, IGNORED)
     }
 
     /** The signal at each change of step. */
@@ -225,9 +227,9 @@ object SequenceToolType : ToolTypeContract {
         )
     }
 
-    /** A planned session not done yet waits. */
+    /** A planned session not done yet waits, and a session over not finished yet. */
     override fun getWaiting(config: JSONObject): List<JSONObject> =
-        listOf(Conditions.onField("state.$STATUS", "in", listOf(Status.PLANNED)))
+        listOf(Conditions.onField("state.$STATUS", "in", listOf(Status.PLANNED, Status.TO_FINISH)))
 
     override fun getService(context: Context): ExecutableService = SequenceService(context)
     override fun getScheduler(): ToolScheduler = SequenceScheduler

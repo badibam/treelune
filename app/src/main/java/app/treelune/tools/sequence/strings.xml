@@ -6,7 +6,7 @@
     <string name="usage">For something done step by step while following the screen: a workout, a recipe, stretching. Each step ends on a timer or on “Done”, with a sound, a vibration or a voice at each change.\n## What it does\n- Its own schedule: at each planned time, a notification and a session ready\n- Each session done is kept, with its duration and the steps done or skipped\n- A planned session never done shows as missed\n## Not made for\n- A reminder with nothing to follow (Messages)\n- A value noted alone (Tracking)</string>
     <!-- The Guide's chapter, beside the usage: every setting of the config, every button of the screen (Markup) -->
     <string name="guide_config">## The steps\nEach element is a step or a block. A step has a name and an instruction, shown during the step and read aloud (“10 × 60 kg”). It ends in three ways:\n- On the timer: the next step starts by itself\n- By hand: a stopwatch runs until you touch “Done”\n- On the timer, then by hand: the timer rings, and the stopwatch goes on until “Done”\n\n## The blocks\nA block repeats its steps a number of rounds.\n- Skipped at the last round: the step is not done in the block\'s last round, like a rest with nothing left after it\n\n## The signals\n- At each change of step: sound and vibration, sound only, vibration only, or nothing\n- Countdown: a beep at 3, 2 and 1 second before a timed step ends\n- Voice: says the step that begins and its instruction\n\n## The planning\n- Planned sessions: at the times chosen, each with its notification\n- On: unchecked, no session is planned any more</string>
-    <string name="guide_screen">## Before\n- Start: begins the session, after a “Get ready”\nFor a planned session waiting:\n- Done: you did it without following the screen\n- Ignore: it does not count\n- Ignore all: for those that piled up during an absence\n\n## During\n- Pause, then Resume\n- Done: ends the step by hand\n- Skip: skips the step\n- Back: goes back to the step before\n- +15 s: makes the timer longer\n- Restart the step\n- {square} Stop: the steps not yet reached stay not done\nIf the app closes during a session, the session resumes at its step, and the time gone by counts as a pause.\n\n## After\nEach session is kept in the history, with its duration and its steps. Touch a session to correct its steps: done, skipped, not reached.</string>
+    <string name="guide_screen">## Before\n- Start: begins the session, after a “Get ready”\nFor a planned session waiting:\n- Done: you did it without following the screen\n- Ignore: it does not count\n- Ignore all: for those that piled up during an absence\n\n## During\n- Pause, then Resume\n- Done: ends the step by hand\n- Skip: skips the step\n- Back: goes back to the step before\n- +15 s: makes the timer longer\n- Restart the step\n- {square} Stop: the steps not yet reached stay not done\nIf the app closes during a session, the session resumes at its step, and the time gone by counts as a pause.\n\n## After\n- Finish the session: under your fields if the tool has some; until then the session waits, and another cannot start\nEach session is kept in the history, with its duration and its steps. Touch a session to correct its steps (done, skipped, not reached) and your fields.</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Steps prepared ahead, then followed on screen with a timer and a signal at each change: a workout, a recipe</string>
     <string name="section_steps">Steps</string>
@@ -46,9 +46,10 @@
     <string name="field_enabled">On</string>
     <string name="schema_enabled">Switched off, no session is planned</string>
     <string name="field_status">State</string>
-    <string name="schema_status">planned, running, done, stopped or ignored</string>
+    <string name="schema_status">planned, running, to_finish (over, waiting for “Finish the session”), done, stopped or ignored</string>
     <string name="status_planned">Planned</string>
     <string name="status_running">Running</string>
+    <string name="status_to_finish">To finish</string>
     <string name="status_done">Done</string>
     <string name="status_stopped">Stopped</string>
     <string name="status_ignored">Ignored</string>
@@ -74,6 +75,9 @@
     <string name="error_gesture_origin">Starting a session and its gestures belong to whoever does it</string>
     <string name="error_already_running">This session is already running</string>
     <string name="error_running_elsewhere">A session is already running: %1$s</string>
+    <string name="error_to_finish">This session is over and waits to be finished: touch “Finish the session”</string>
+    <string name="error_to_finish_elsewhere">A session is over and waits to be finished: %1$s</string>
+    <string name="error_not_to_finish">This session does not wait to be finished</string>
     <string name="error_no_steps">The session has no step</string>
     <string name="error_not_running">This session is not running</string>
     <string name="error_not_planned">This session is not a planned one</string>
@@ -93,6 +97,8 @@
     <string name="action_resume_interrupted">Resume</string>
     <string name="confirm_stop">Stop the session? The steps not reached stay not done.</string>
     <string name="interrupted">This session was stopped with the app. Resume it: its step starts again, the time since counted as a pause.</string>
+    <string name="closing_title">Session over</string>
+    <string name="action_finish">Finish the session</string>
     <string name="running_position">Step %1$d / %2$d</string>
     <string name="running_get_ready">Get ready</string>
     <string name="running_paused">Paused</string>
@@ -104,11 +110,13 @@
     <string name="history_empty">No session yet</string>
     <string name="steps_of">%1$d / %2$d steps</string>
     <string name="tile_planned">Planned</string>
+    <string name="tile_to_finish">To finish</string>
     <string name="tile_next">Next</string>
     <string name="tile_last">Last</string>
     <string name="channel">Session running</string>
     <string name="notification_starting">Starting</string>
     <string name="notification_paused">%1$s · paused</string>
+    <string name="notification_to_finish">Session over: touch to finish it</string>
     <string name="notification_planned">A session is planned</string>
     <string name="field_when">When</string>
     <string name="schema_complete_id">The planned session done; left out for a session that was not planned</string>
