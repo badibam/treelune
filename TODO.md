@@ -10,7 +10,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs du téléphone
 
-- Un pointeur confirmé dans le composeur arrive après le bloc actif, mais la liste des blocs ne défile pas jusqu'à lui : il reste coupé au bas de l'écran.
 
 ## Bugs
 

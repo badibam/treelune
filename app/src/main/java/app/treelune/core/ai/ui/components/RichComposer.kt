@@ -7,6 +7,8 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -168,10 +170,15 @@ fun UI.RichComposer(
         onSegmentsChange(ComposerBlocks.toSegments(newBlocks))
     }
 
-    /** [block] added after the active one, and made active. */
+    // The block just added, brought into view once laid out: a pointer or an image added after
+    // the active block would otherwise stay cut at the bottom of the blocks' scroll
+    var revealBlockId by remember { mutableStateOf<String?>(null) }
+
+    /** [block] added after the active one, made active, and brought into view. */
     fun add(block: ComposerBlock) {
         update(ComposerBlocks.insertAfter(blocks, activeBlockId, block))
         activeBlockId = block.id
+        revealBlockId = block.id
     }
 
     // Whether the model the message would go to reads images: read once an image is in the
@@ -237,7 +244,15 @@ fun UI.RichComposer(
                 spacing = UI.Space.S,
                 onMove = { from, to -> update(ComposerBlocks.move(blocks, from, to)) }
             ) { _, block ->
+                val viewRequester = remember { BringIntoViewRequester() }
+                LaunchedEffect(revealBlockId) {
+                    if (revealBlockId == block.id) {
+                        viewRequester.bringIntoView()
+                        revealBlockId = null
+                    }
+                }
                 BlockCard(
+                    modifier = Modifier.bringIntoViewRequester(viewRequester),
                     isActive = block.id == activeBlockId,
                     onActivate = { activeBlockId = block.id },
                     onDelete = {
@@ -409,10 +424,11 @@ private fun BlockCard(
     onActivate: () -> Unit,
     onDelete: () -> Unit,
     bar: @Composable (end: @Composable () -> Unit) -> Unit,
+    modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable { onActivate() }
     ) {
