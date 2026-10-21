@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Treelune — maquette</title>
+<!--
+  Mock-up of the site treelune.app (docs/design/website.md): static, no PHP, opened straight from the repo.
+  Captures are the F-Droid screenshots, one theme each; empty frames stand for captures not taken yet.
+  Paths are relative to docs/design/.
+-->
+<style>
+  /* Theme fonts, used only inside the opening band */
+  @font-face { font-family: "Baloo 2"; src: url("../../app/src/main/res/font/baloo2_extrabold.ttf"); }
+  @font-face { font-family: "Archivo Black"; src: url("../../app/src/main/res/font/archivo_black.ttf"); }
+  @font-face { font-family: "Literata"; src: url("../../app/src/main/res/font/literata_semibold.ttf"); }
+  @font-face { font-family: "Overpass"; src: url("../../app/src/main/res/font/overpass_extrabold.ttf"); }
+  @font-face { font-family: "Bricolage"; src: url("../../app/src/main/res/font/bricolage_title.ttf"); }
+  @font-face { font-family: "Architects Daughter"; src: url("../../app/src/main/res/font/architects_daughter.ttf"); }
+  @font-face { font-family: "Atkinson"; src: url("../../app/src/main/res/font/atkinson_extrabold.ttf"); }
+  @font-face { font-family: "Cartouche"; src: url("../../app/src/main/res/font/cartouche_regular.ttf"); }
+
+  /* The site's own frame: the icon's night blue, never changed by a theme */
+  :root {
+    --night: #1E2A47;
+    --moon: #F2E6BF;
+    --leaf: #76B578;
+    --bg: #F6F7FA;
+    --surface: #FFFFFF;
+    --shot-ground: #ECEEF2;
+    --ink: #1B2233;
+    --muted: #5A6375;
+    --line: #DDE1E8;
+    --accent: var(--night);
+    --accent-ink: #FFFFFF;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1E2A47;
+      --surface: #25335A;
+      --shot-ground: #2B3A63;
+      --ink: #EEF0F5;
+      --muted: #AEB6C8;
+      --line: #34446F;
+      --accent: #F2E6BF;
+      --accent-ink: #1E2A47;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1E2A47; --surface: #25335A; --shot-ground: #2B3A63; --ink: #EEF0F5;
+    --muted: #AEB6C8; --line: #34446F; --accent: #F2E6BF; --accent-ink: #1E2A47;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 17px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  a { color: var(--accent); }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+  section { padding: 72px 0; }
+  h2 { font-size: 30px; line-height: 1.2; margin: 0 0 12px; }
+  .lead { color: var(--muted); max-width: 640px; margin: 0 0 36px; }
+  .note {
+    font-size: 13px; color: var(--muted); border: 1px dashed var(--line);
+    padding: 6px 10px; border-radius: 6px; display: inline-block; margin-top: 12px;
+  }
+
+  /* Header, sticky, neutral */
+  header {
+    position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(8px); border-bottom: 1px solid var(--line);
+  }
+  header .wrap { display: flex; align-items: center; gap: 16px; height: 56px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--ink); text-decoration: none; }
+  header nav { margin-left: auto; display: flex; gap: 18px; font-size: 15px; }
+  header nav a { color: var(--muted); text-decoration: none; }
+  @media (max-width: 640px) { header nav a.opt { display: none; } }
+
+  /* Opening band: the only place a theme dresses the page */
+  .band { transition: background .35s, color .35s; }
+  .band .hero { display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; align-items: center; padding-top: 56px; padding-bottom: 40px; }
+  @media (max-width: 820px) { .band .hero { grid-template-columns: 1fr; } }
+  .band h1 { font-size: clamp(30px, 5vw, 46px); line-height: 1.12; margin: 0 0 18px; }
+  .band .ai { font-size: 19px; opacity: .85; margin: 0 0 28px; max-width: 520px; }
+  .buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn {
+    display: inline-block; padding: 12px 20px; border-radius: 10px; font-weight: 600; text-decoration: none;
+    background: var(--night); color: #fff;
+  }
+  .btn.ghost { background: transparent; color: inherit; border: 1.5px solid currentColor; }
+  .band .phone-col { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .theme-name { font-size: 26px; text-align: center; line-height: 1.1; }
+  .theme-tagline { font-size: 14px; text-align: center; max-width: 340px; opacity: .8; margin: 0; }
+  .picker { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 0 0 40px; }
+  .picker button {
+    font: 600 14px system-ui, sans-serif; padding: 8px 14px; border-radius: 999px; cursor: pointer;
+    border: 1.5px solid currentColor; background: transparent; color: inherit; opacity: .7;
+  }
+  .picker button[aria-pressed="true"] { opacity: 1; background: currentColor; }
+  .picker button[aria-pressed="true"] span { color: var(--band-bg); }
+
+  /* A phone frame: thin, drawn, no real device */
+  .phone {
+    width: 260px; aspect-ratio: 1440 / 2898; border-radius: 28px; padding: 8px;
+    background: #11161F; box-shadow: 0 18px 40px rgba(0,0,0,.18); flex: none;
+  }
+  .phone img, .phone .empty { width: 100%; height: 100%; border-radius: 21px; display: block; object-fit: cover; }
+  .phone.small { width: 180px; border-radius: 22px; padding: 6px; }
+  .phone.small img, .phone.small .empty { border-radius: 17px; }
+  .empty {
+    background: repeating-linear-gradient(45deg, #2a3140 0 10px, #252b38 10px 20px);
+    color: #c9d0dd; display: flex !important; align-items: center; justify-content: center;
+    text-align: center; font-size: 13px; padding: 14px;
+  }
+  .shot { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .shot .theme-label { font-size: 12px; color: var(--muted); }
+
+  /* Three lines on the data */
+  .privacy { padding: 36px 16px; border-bottom: 1px solid var(--line); }
+  .privacy ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  @media (max-width: 720px) { .privacy ul { grid-template-columns: 1fr; gap: 12px; } }
+  .privacy li { font-size: 16px; }
+  .privacy b { display: block; font-size: 18px; }
+
+  /* Annotated map */
+  .map { display: grid; grid-template-columns: 1fr auto 1fr; gap: 28px; align-items: center; }
+  @media (max-width: 820px) { .map { grid-template-columns: 1fr; justify-items: center; } }
+  .legend { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 18px; }
+  .legend li { display: flex; gap: 12px; align-items: flex-start; cursor: default; }
+  .pin {
+    flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--accent-ink);
+    font: 700 13px/26px system-ui, sans-serif; text-align: center;
+  }
+  .legend b { display: block; }
+  .legend span { color: var(--muted); font-size: 15px; }
+  .zone-screen {
+    width: 100%; height: 100%; border-radius: 21px; background: #FFF8EE; color: #2b2b2b;
+    padding: 18px 12px; display: flex; flex-direction: column; gap: 8px; font-size: 11px;
+  }
+  .zone-screen h4 { margin: 0; font-size: 16px; text-align: center; }
+  .zone-screen p { margin: 0 0 4px; text-align: center; font-size: 9px; color: #6b6b6b; }
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+  .tile { position: relative; background: #fff; border: 1px solid #eadfcd; border-radius: 10px; padding: 10px 8px; min-height: 62px; }
+  .tile.wide { grid-column: span 2; }
+  .tile small { display: block; color: #8a8a8a; font-size: 9px; }
+  .tile .pin { position: absolute; top: -9px; right: -9px; width: 20px; height: 20px; font-size: 11px; line-height: 20px; }
+
+  /* Videos, one at a time, by tab */
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; }
+  .tabs button {
+    font: 600 15px system-ui, sans-serif; padding: 10px 16px; border-radius: 10px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  }
+  .tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .stage { display: grid; grid-template-columns: auto 1fr; gap: 40px; align-items: center; background: var(--shot-ground); border-radius: 18px; padding: 36px; }
+  @media (max-width: 720px) { .stage { grid-template-columns: 1fr; justify-items: center; padding: 24px 16px; } }
+  .stage h3 { font-size: 24px; margin: 0 0 10px; }
+  .stage p { color: var(--muted); margin: 0; max-width: 460px; }
+  .stage .computer {
+    width: 420px; max-width: 100%; aspect-ratio: 16 / 10; border-radius: 12px; border: 8px solid #11161F;
+  }
+
+  /* Tools and other pieces */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 20px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .card h3 { margin: 0; font-size: 18px; }
+  .card p { margin: 0; color: var(--muted); font-size: 15px; }
+  .card .shot { background: var(--shot-ground); border-radius: 10px; padding: 16px 0 10px; }
+  .pieces { margin-top: 48px; }
+  .pieces .card { gap: 6px; }
+
+  /* Bottom */
+  .install { text-align: center; }
+  .install .buttons { justify-content: center; margin: 24px 0 8px; }
+  .signature { display: flex; justify-content: center; margin: 56px 0 8px; }
+  footer { border-top: 1px solid var(--line); padding: 24px 0; color: var(--muted); font-size: 14px; }
+  footer .wrap { display: flex; gap: 18px; flex-wrap: wrap; justify-content: space-between; }
+</style>
+</head>
+<body>
+
+<!-- The app's mark, drawn once, reused small and large -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="mark" viewBox="0 0 100 100">
+      <rect width="100" height="100" rx="22" fill="#1E2A47"/>
+      <mask id="crescent"><rect width="100" height="100" fill="#fff"/><circle cx="70" cy="30" r="22" fill="#000"/></mask>
+      <circle cx="58" cy="38" r="24" fill="#F2E6BF" mask="url(#crescent)"/>
+      <rect x="45" y="56" width="8" height="28" rx="2" fill="#558B58"/>
+      <circle cx="49" cy="52" r="17" fill="#76B578"/>
+      <circle cx="37" cy="60" r="11" fill="#76B578"/>
+      <circle cx="61" cy="60" r="11" fill="#76B578"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header>
+  <div class="wrap">
+    <a class="brand" href="#"><svg width="28" height="28"><use href="#mark"/></svg>Treelune</a>
+    <nav>
+      <a class="opt" href="#zone">Découvrir</a>
+      <a class="opt" href="#action">En action</a>
+      <a class="opt" href="#outils">Outils</a>
+      <a href="#installer">Installer</a>
+      <a href="#">EN</a>
+    </nav>
+  </div>
+</header>
+
+<!-- 1. Opening -->
+<div class="band" id="band">
+  <div class="wrap hero">
+    <div>
+      <h1>Chaque app de suivi fait une chose, à sa façon. Treelune te donne les pièces, et tu construis celle qu'il te faut.</h1>
+      <p class="ai">Et une IA de ton choix sait se servir des mêmes pièces que toi : elle crée un outil, note une entrée, prépare ton bilan du dimanche.</p>
+      <div class="buttons">
+        <a class="btn" href="#installer">Installer</a>
+        <a class="btn ghost" href="#zone">Voir comment ça marche</a>
+      </div>
+    </div>
+    <div class="phone-col">
+      <div class="phone"><img id="band-shot" alt=""></div>
+      <div class="theme-name" id="band-name"></div>
+      <p class="theme-tagline" id="band-tagline"></p>
+    </div>
+  </div>
+  <div class="wrap picker" id="picker" role="group" aria-label="Thème"></div>
+</div>
+<div class="wrap"><span class="note">Maquette : en vrai, chaque thème montre l'écran d'accueil ; ici, une capture F-Droid de ce thème tient sa place.</span></div>
+
+<!-- 2. Three lines on the data -->
+<div class="wrap privacy">
+  <ul>
+    <li><b>Pas de compte</b>Tes données restent sur ton téléphone. Pas de publicité.</li>
+    <li><b>L'IA que tu choisis</b>Avec ta propre clé, ou ton propre serveur. Ou aucune.</li>
+    <li><b>Ton réseau, pas le nôtre</b>L'accès depuis ton ordinateur passe par ton réseau privé.</li>
+  </ul>
+</div>
+
+<!-- 3. Annotated map: the Italian zone -->
+<section id="zone">
+  <div class="wrap">
+    <h2>Une zone, des pièces qui s'emboîtent</h2>
+    <p class="lead">La zone Italien de la démo : une soirée d'italien chaque soir avant un voyage à Rome. Chaque outil en nourrit un autre.</p>
+    <div class="map">
+      <ul class="legend">
+        <li><span class="pin">1</span><div><b>Soirée d'italien</b><span>Un Questionnaire, posé chaque soir : ce que tu as fait, combien de mots appris.</span></div></li>
+        <li><span class="pin">2</span><div><b>Semaine d'italien</b><span>Un Objectif qui compte les soirées dans le Questionnaire, et juge la semaine.</span></div></li>
+        <li><span class="pin">3</span><div><b>Mots par semaine</b><span>Un Graphique qui dessine les mots notés, semaine après semaine.</span></div></li>
+      </ul>
+      <div class="phone">
+        <div class="zone-screen">
+          <h4>Italien</h4>
+          <p>Une soirée d'italien chaque soir avant le voyage à Rome</p>
+          <div class="tiles">
+            <div class="tile">Soirée d'italien<small>Questionnaire</small><span class="pin">1</span></div>
+            <div class="tile">Semaine d'italien<small>Objectif</small><span class="pin">2</span></div>
+            <div class="tile wide">Mots par semaine<small>Graphique</small><span class="pin">3</span></div>
+            <div class="tile">Lessico<small>Données structurées</small><span class="pin">4</span></div>
+            <div class="tile">Ripasso<small>Flashcards</small><span class="pin">5</span></div>
+            <div class="tile">Phrases utiles<small>Notes</small><span class="pin">6</span></div>
+            <div class="tile">Valise pour Rome<small>Liste</small><span class="pin">7</span></div>
+          </div>
+        </div>
+      </div>
+      <ul class="legend">
+        <li><span class="pin">4</span><div><b>Lessico</b><span>Le vocabulaire, une fiche par mot.</span></div></li>
+        <li><span class="pin">5</span><div><b>Ripasso</b><span>Des Flashcards tirées du Lessico : chaque mot revient juste avant d'être oublié.</span></div></li>
+        <li><span class="pin">6</span><div><b>Phrases utiles</b><span>Des Notes, à garder sous la main à Rome.</span></div></li>
+        <li><span class="pin">7</span><div><b>Leçon du dimanche</b><span>Une routine : chaque dimanche, Giulia, l'identité que l'IA incarne, prépare la leçon de la semaine.</span></div></li>
+      </ul>
+    </div>
+    <span class="note">Maquette : la vraie capture de la zone Italien remplace l'écran dessiné ; toucher un numéro met sa légende en avant.</span>
+  </div>
+</section>
+
+<!-- 4. In action -->
+<section id="action" style="padding-top:24px">
+  <div class="wrap">
+    <h2>En action</h2>
+    <p class="lead">Quelques secondes de l'app pendant qu'on s'en sert.</p>
+    <div class="tabs" id="tabs" role="tablist"></div>
+    <div class="stage">
+      <div id="stage-media"></div>
+      <div>
+        <h3 id="stage-title"></h3>
+        <p id="stage-text"></p>
+        <div class="theme-label" id="stage-theme" style="margin-top:14px;font-size:13px;color:var(--muted)"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. Tools and other pieces -->
+<section id="outils" style="padding-top:24px">
+  <div class="wrap">
+    <h2>Les pièces</h2>
+    <p class="lead">Douze types d'outils, que tu règles à ton idée, et qui se lisent les uns les autres.</p>
+    <div class="grid" id="tools"></div>
+    <div class="pieces">
+      <h2 style="font-size:24px">Et ce qui les relie</h2>
+      <div class="grid" id="pieces"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. Data, install -->
+<section id="installer" class="install">
+  <div class="wrap">
+    <h2>Installer Treelune</h2>
+    <p class="lead" style="margin:0 auto">Une application Android libre (GPL-3.0), pour un téléphone 64 bits. Treelune est encore jeune, et n'a été essayée que sur quelques téléphones.</p>
+    <div class="buttons">
+      <a class="btn" href="#">F-Droid</a>
+      <a class="btn ghost" href="#">APK sur GitHub</a>
+    </div>
+    <span class="note">À décider sur la maquette : la version longue sur les données, et les pages pour l'ordinateur (brancher une IA, l'accès externe, brancher un client MCP).</span>
+    <div class="signature"><svg width="120" height="120"><use href="#mark"/></svg></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>Treelune — libre, sans compte, sans traceur.</span>
+    <span><a href="#">Code source</a> · <a href="#">Signaler un bug</a> · <a href="#">English</a></span>
+  </div>
+</footer>
+
+<script>
+  const SHOTS = "../../fastlane/metadata/android/en-US/images/phoneScreenshots/";
+
+  // Opening band: one entry per theme, its ground, its ink, its font, its capture
+  const THEMES = [
+    { id: "default", name: "Material", font: "system-ui", bg: "#FFFFFF", ink: "#1B2233", shot: 1, tagline: "Clair et sobre, dans la teinte de ton choix" },
+    { id: "cosy", name: "Cosy", font: "Baloo 2", bg: "#D0F0EF", ink: "#1F3B3A", shot: 2, tagline: "Comme un téléphone dans un jeu doux : rond et dodu, tout rebondit, ses propres sons" },
+    { id: "swiss", name: "Suisse", font: "Archivo Black", bg: "#F2F0EB", ink: "#111111", shot: 3, tagline: "Comme une affiche suisse : une grille stricte, noir et blanc et un seul rouge, les chiffres en grand, ses propres sons" },
+    { id: "ink", name: "Encre et lavis", font: "Literata", bg: "#F3EEE2", ink: "#1D1C1A", shot: 4, tagline: "Comme un lavis à l'encre : un papier crème, l'encre noire et un seul rouge de sceau, beaucoup de vide, ses propres sons" },
+    { id: "eink", name: "Liseuse", font: "Atkinson", bg: "#FFFFFF", ink: "#000000", shot: 5, tagline: "Comme une liseuse : noir et blanc pur, des trames à la place des gris, rien qui bouge" },
+    { id: "metro", name: "Métro", font: "Overpass", bg: "#122446", ink: "#F5F6F8", shot: 6, tagline: "Comme la signalétique d'un métro : chaque outil est une ligne de sa couleur, chaque zone une station, ses propres sons" },
+    { id: "blueprint", name: "Plan d'architecte", font: "Architects Daughter", bg: "#F3F2ED", ink: "#1F4A8A", shot: 7, tagline: "Comme un plan d'architecte : des traits fins sur un papier quadrillé, des cotes et des hachures, ses propres sons", grid: true },
+    { id: "paper", name: "Papier découpé", font: "Bricolage", bg: "#D6B688", ink: "#2A2118", shot: 8, tagline: "Des feuilles de couleur découpées aux ciseaux, posées de travers sur du kraft, ses propres sons" },
+    { id: "retro", name: "Rétro", font: "Cartouche", bg: "#FFF3E4", ink: "#2A1A0A", shot: 9, tagline: "Du pixel art : des pixels entiers, une police dessinée, des icônes en pixels, ses propres sons" },
+  ];
+
+  const band = document.getElementById("band");
+  const picker = document.getElementById("picker");
+  function applyTheme(t) {
+    band.style.background = t.grid
+      ? `linear-gradient(#1F4A8A14 1px, transparent 1px) 0 0 / 22px 22px, linear-gradient(90deg, #1F4A8A14 1px, transparent 1px) 0 0 / 22px 22px, ${t.bg}`
+      : t.bg;
+    band.style.color = t.ink;
+    band.style.setProperty("--band-bg", t.bg);
+    document.getElementById("band-shot").src = SHOTS + t.shot + ".png";
+    const name = document.getElementById("band-name");
+    name.textContent = t.name;
+    name.style.fontFamily = `"${t.font}", system-ui, sans-serif`;
+    document.getElementById("band-tagline").textContent = t.tagline;
+    picker.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.id === t.id));
+  }
+  THEMES.forEach(t => {
+    const b = document.createElement("button");
+    b.dataset.id = t.id;
+    b.innerHTML = `<span>${t.name}</span>`;
+    b.onclick = () => applyTheme(t);
+    picker.appendChild(b);
+  });
+  applyTheme(THEMES[1]);
+
+  // Videos: a placeholder per process, its fixed theme named under it
+  const VIDEOS = [
+    { title: "L'IA crée un outil", text: "« Je voudrais suivre mon sommeil. » L'IA propose un Suivi réglé, tu le valides, la tuile apparaît dans la zone.", theme: "Cosy" },
+    { title: "Une saisie rapide", text: "Depuis la tuile, sans ouvrir l'outil : 7,4 km, et l'Objectif de la semaine avance aussitôt.", theme: "Suisse" },
+    { title: "Une vraie discussion", text: "« Est-ce que je dors moins quand je travaille beaucoup ? » L'IA lit les deux outils et répond, chiffres à l'appui.", theme: "Liseuse", shot: 5 },
+    { title: "Une routine", text: "Chaque dimanche, l'IA fait seule le bilan de la semaine d'entraînement, et une notification l'annonce.", theme: "Métro" },
+    { title: "Depuis ton ordinateur", text: "Claude Desktop, branché sur l'app par son connecteur MCP, lit tes données et y écrit, avec ton accord.", theme: "écran d'ordinateur", computer: true },
+  ];
+  const tabs = document.getElementById("tabs");
+  function showVideo(i) {
+    const v = VIDEOS[i];
+    const media = document.getElementById("stage-media");
+    media.innerHTML = v.computer
+      ? `<div class="computer empty">Vidéo : le client MCP sur l'ordinateur</div>`
+      : `<div class="phone">${v.shot ? `<img src="${SHOTS + v.shot}.png" alt="">` : `<div class="empty">Vidéo de 10 à 20 s : ${v.title.toLowerCase()}</div>`}</div>`;
+    document.getElementById("stage-title").textContent = v.title;
+    document.getElementById("stage-text").textContent = v.text;
+    document.getElementById("stage-theme").textContent = "Thème : " + v.theme;
+    tabs.querySelectorAll("button").forEach((b, j) => b.setAttribute("aria-selected", i === j));
+  }
+  VIDEOS.forEach((v, i) => {
+    const b = document.createElement("button");
+    b.setAttribute("role", "tab");
+    b.textContent = v.title;
+    b.onclick = () => showVideo(i);
+    tabs.appendChild(b);
+  });
+  showVideo(0);
+
+  // Tools: the tagline of each tooltype, a capture in its own fixed theme
+  const TOOLS = [
+    ["Suivi", "Des chiffres, des notes sur une échelle, des choix ou des durées chronométrées, notés au fil des jours, comme le poids, le sommeil, l'humeur ou les verres d'eau", "Cosy", 2],
+    ["Objectif", "Un objectif jugé chaque jour, semaine ou mois sur les critères que tu fixes, lus dans tes entrées", "Suisse", 3],
+    ["Graphique", "Tes entrées et tes chiffres dessinés en courbes, barres, camemberts ou calendriers", "Encre et lavis"],
+    ["Flashcards", "Des cartes à réviser tirées d'un autre outil, chacune revenant juste avant d'être oubliée", "Métro", 6],
+    ["Agenda", "Les rendez-vous et les événements à heure, qui passent d'eux-mêmes, avec leurs rappels", "Plan d'architecte", 7],
+    ["Séance", "Des étapes préparées à l'avance, suivies à l'écran avec un minuteur et un signal à chaque changement, comme un entraînement ou une recette", "Papier découpé", 8],
+    ["Données structurées", "Des fiches aux champs que tu choisis, chacune retrouvée par son nom, pour des aliments, des livres, des plantes ou autre chose", "Rétro"],
+    ["Questionnaire", "Des questions posées une par écran, quand tu veux ou à heures prévues", "Liseuse"],
+    ["Liste", "Ce qui reste à faire, coché au fur et à mesure, avec des échéances si tu veux", "Material"],
+    ["Journal", "Un carnet daté, pour raconter ses journées", "Encre et lavis"],
+    ["Notes", "Des notes, chacune avec son titre, rangées là où elles servent", "Cosy"],
+    ["Messages", "Des rappels et des notifications, une fois ou selon un planning", "Suisse"],
+  ];
+  document.getElementById("tools").innerHTML = TOOLS.map(([name, tagline, theme, shot]) => `
+    <div class="card">
+      <div class="shot">
+        <div class="phone small">${shot ? `<img src="${SHOTS + shot}.png" alt="">` : `<div class="empty">Capture : ${name}</div>`}</div>
+        <span class="theme-label">${theme}</span>
+      </div>
+      <h3>${name}</h3>
+      <p>${tagline}</p>
+    </div>`).join("");
+
+  const PIECES = [
+    ["Routines", "L'IA travaille seule, à l'heure que tu fixes : un bilan, un menu, une leçon."],
+    ["Variables", "Un chiffre calculé une fois, lu partout : les calories du jour, les km de la semaine."],
+    ["Conditions et alertes", "Quand une condition devient vraie, une notification te prévient."],
+    ["Identités", "Le personnage que l'IA incarne : une professeure d'italien, un coach."],
+    ["Pointeurs", "Un message qui désigne un outil ou une zone, pour que l'IA sache de quoi tu parles."],
+    ["Connecteur MCP", "Une IA de ton ordinateur lit et écrit dans l'app, par ton réseau privé."],
+    ["Thèmes", "La même app, en neuf univers, chacun avec ses sons."],
+  ];
+  document.getElementById("pieces").innerHTML = PIECES.map(([name, text]) => `
+    <div class="card"><h3>${name}</h3><p>${text}</p></div>`).join("");
+</script>
+</body>
+</html>
