@@ -2,7 +2,7 @@
 <resources>
     <string name="name">Plan d'architecte</string>
     <!-- What the theme looks like, said to the user: the README -->
-    <string name="tagline">Comme un plan d'architecte : des traits fins sur un papier quadrillé, des cotes et des hachures</string>
+    <string name="tagline">Comme un plan d'architecte : des traits fins sur un papier quadrillé, des cotes et des hachures, ses propres sons</string>
     <!-- The scale's cell beside a page's title, as on a plan's title block -->
     <string name="scale">1:1</string>
 </resources>

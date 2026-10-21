@@ -34,8 +34,8 @@ Toutes les lignes du 2026-10-17, dans l'ordre de la liste de `docs/THEMES.md`.
 9. **Les icônes** : Lucide (`LUCIDE`), tel quel.
 10. **Les graphiques** : dessinés par le thème (`SwissDrawing`). Les couleurs que l'utilisateur donne aux séries sont gardées, seule exception aux petites marques ; des aplats sans arrondi, des traits aux bouts carrés, des points carrés, les axes en filets de 1 dp, les étiquettes en chiffres alignés ; les niveaux d'encre à l'encre, la secondaire et le gris du rail.
 11. **Le mode d'édition de la grille** : une case, un carré au filet de 1 dp à l'encre à 20 % ; la tuile choisie, la tuile soulevée de la ligne 8.
-12. **Le registre sonore** : secs et courts, des clics et des tics sans note (un interrupteur, une agrafeuse), l'opposé des sons ronds du cosy ; à chercher dans click, tick, switch et toggle d'Interface Sounds et d'UI Audio de Kenney. Le thème part muet.
-13. **Les textes** : nom « Suisse » / « Swiss » ; phrase « Comme une affiche suisse : une grille stricte, noir et blanc et un seul rouge, les chiffres en grand » / « Like a Swiss poster: a strict grid, black and white and a single red, the numbers large », qui nommera les sons une fois choisis. Pas de nom de palette.
+12. **Le registre sonore** : secs et courts, des clics et des tics sans note (un interrupteur, une agrafeuse), l'opposé des sons ronds du cosy ; à chercher dans click, tick, switch et toggle d'Interface Sounds et d'UI Audio de Kenney. Choisis à l'écoute : `sounds-choice.json`.
+13. **Les textes** : nom « Suisse » / « Swiss » ; phrase « Comme une affiche suisse : une grille stricte, noir et blanc et un seul rouge, les chiffres en grand, ses propres sons » / « Like a Swiss poster: a strict grid, black and white and a single red, the numbers large, its own sounds ». Pas de nom de palette.
 
 ## Ce qui est codé
 
@@ -52,4 +52,4 @@ Ce que le code a précisé des décisions :
 ## Ce qui reste ouvert
 
 - Les tons des textures sont ceux du thème par défaut, recopiés : à régler au banc des textures (`./run themes`).
-- Les sons, à la planche d'écoute.
+- Les sons, au téléphone : leur niveau à l'oreille.

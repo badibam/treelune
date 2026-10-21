@@ -2,5 +2,5 @@
 <resources>
     <string name="name">Métro</string>
     <!-- What the theme looks like, said to the user: the README -->
-    <string name="tagline">Comme la signalétique d'un métro : chaque outil est une ligne de sa couleur, chaque zone une station</string>
+    <string name="tagline">Comme la signalétique d'un métro : chaque outil est une ligne de sa couleur, chaque zone une station, ses propres sons</string>
 </resources>

@@ -92,6 +92,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.treelune.R
 import app.treelune.core.ai.data.MessageSender
 import app.treelune.core.icons.IconSource
 import app.treelune.core.icons.Icons
@@ -178,8 +179,17 @@ object PaperTheme : ThemeContract {
     @Composable
     override fun gridRowGapPx(): Int = with(LocalDensity.current) { 12f.dp.roundToPx() }
 
-    /** Silent: the theme's sounds are chosen apart (docs/THEMES.md, The sounds). */
-    override fun sound(signal: UISignal): Int? = null
+    override fun sound(signal: UISignal): Int? = when (signal) {
+        UISignal.CONFIRM -> R.raw.paper_confirm
+        UISignal.ENTER -> R.raw.paper_enter
+        UISignal.BACK -> R.raw.paper_back
+        UISignal.OPEN -> R.raw.paper_open
+        UISignal.CLOSE -> R.raw.paper_close
+        UISignal.TOGGLE -> R.raw.paper_toggle
+        UISignal.STEP -> R.raw.paper_step
+        UISignal.SCROLL_END -> R.raw.paper_scroll_end
+        UISignal.REFUSE -> R.raw.paper_refuse
+    }
 
     /** A tile's name centered in the width its icon leaves. */
     override fun tileNameAlign(): TextAlign = TextAlign.Center

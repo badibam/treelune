@@ -2,5 +2,5 @@
 <resources>
     <string name="name">Papier découpé</string>
     <!-- What the theme looks like, said to the user: the README -->
-    <string name="tagline">Des feuilles de couleur découpées aux ciseaux, posées de travers sur du kraft</string>
+    <string name="tagline">Des feuilles de couleur découpées aux ciseaux, posées de travers sur du kraft, ses propres sons</string>
 </resources>

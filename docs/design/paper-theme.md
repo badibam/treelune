@@ -33,7 +33,7 @@ Toutes les lignes du 2026-10-18, dans l'ordre de la liste de `docs/THEMES.md`.
 9. **Les icônes** : Lucide (`LUCIDE`), redessiné par le thème en pièces de papier découpées, d'après les tracés que lit la brique du cœur `core/icons/IconStrokes`, comme le pinceau de l'encre : le trait épaissi à 2,6, ses bouts coupés droits et ses angles vifs, les courbes coupées en petits segments droits (la facette des ciseaux), une ombre dure décalée ; la couleur, celle que le cœur donne. Calculé une fois par icône, sur sa grille de 24. Le bout de chaque facette est un peu déplacé, une main qui tremble, la même à chaque dessin d'une icône (le hasard tiré de la longueur de son nom, comme au banc). Ses nombres (l'épaisseur, la facette, l'angle d'un coin, l'ombre, le tremblement) sont dans `icons.json`, que le banc des icônes (`themes/paper/bench/icons.html`) lit et enregistre, et que le thème lit ; réglés au banc le 2026-10-18.
 10. **Les graphiques** : dessinés par le thème (`PaperDrawing`). Les barres sont des bandes découpées aux coins inégaux, penchées tour à tour de ±1,5° ; la courbe, un trait de 3 dp, ses points de petits ronds découpés ; l'objectif en tirets bruns de 2 dp ; les couleurs que l'utilisateur donne aux séries gardées. La dernière barre au corail de la maquette n'est pas tenue : le dessin du cœur ne dit pas quelle barre est aujourd'hui.
 11. **Le mode d'édition de la grille** : une case, un rectangle en tirets bruns sur le kraft ; la tuile choisie, la tuile soulevée de la ligne 8.
-12. **Le registre sonore** : sa ligne de la carte des sons (`docs/design/theme-sounds.md`) : du papier épais, sans note, une attaque nette ; les ciseaux pour confirmer, une feuille posée sur le kraft pour ouvrir et fermer, une feuille froissée brève pour le refus ; pris à BigSoundBank. Le thème part muet.
+12. **Le registre sonore** : sa ligne de la carte des sons (`docs/design/theme-sounds.md`) : du papier épais, sans note, une attaque nette ; les ciseaux pour confirmer, une feuille posée sur le kraft pour ouvrir et fermer, une feuille froissée brève pour le refus ; pris à BigSoundBank. Choisis à l'écoute : `sounds-choice.json`.
 13. **Les textes** : nom « Papier découpé » / « Cut paper » ; phrase « Des feuilles de couleur découpées aux ciseaux, posées de travers sur du kraft » / « Coloured sheets cut with scissors, laid askew on kraft paper ». Pas de nom de palette.
 
 ## Ajout au contrat
@@ -56,4 +56,4 @@ Ce que le code a précisé des décisions :
 - La césure sans U+2010 dans la police : le tiret qu'Android pose à la place, à voir sur le téléphone.
 - Les cellules et les tons des textures sont ceux du métro, recopiés : les motifs de papier de la ligne 7 (fibres, trame de Canson, confettis) restent à dessiner, et leurs tons à régler au banc des textures.
 - Le nom d'une tuile reste centré : c'est le cœur qui le place (`UI.TileHeader`).
-- Les sons, à la planche d'écoute.
+- Les sons, au téléphone : leur niveau à l'oreille.

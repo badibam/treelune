@@ -2,5 +2,5 @@
 <resources>
     <string name="name">Ink and wash</string>
     <!-- What the theme looks like, said to the user: the README -->
-    <string name="tagline">Like an ink wash painting: cream paper, black ink and a single seal red, plenty of empty space</string>
+    <string name="tagline">Like an ink wash painting: cream paper, black ink and a single seal red, plenty of empty space, its own sounds</string>
 </resources>

@@ -34,7 +34,7 @@ Toutes les lignes du 2026-10-19, dans l'ordre de la liste de `docs/THEMES.md`.
 9. **Les icônes** : Lucide (`LUCIDE`), tel quel.
 10. **Les graphiques** : dessinés par le thème (`EinkDrawing`). Une couleur de série devient sa trame pour un aplat (barre, part) et un motif de tirets pour un trait, sauf si le cœur en donne un ; un mélange (`Mix`) et une opacité, une trame de points régulière plus ou moins dense ; ce qui manque, hachuré ; les niveaux d'encre, fort un trait de 2 dp, moyen de 1 dp, faible en pointillé de 1 dp.
 11. **Le mode d'édition de la grille** : une case, un carré en tirets de 1 dp ; la tuile choisie, la tuile soulevée de la ligne 8.
-12. **Le registre sonore** : du papier, sec et mat : une page tournée, une feuille tapotée, un crayon qui coche ; l'opposé des clics du suisse. À chercher dans BigSoundBank et Freesound. Le thème part muet.
+12. **Le registre sonore** : aucun, une liseuse ne fait pas de bruit (décidé le 2026-10-21).
 13. **Les textes** : nom « Liseuse » / « E-reader » ; phrase « Comme une liseuse : noir et blanc pur, des trames à la place des gris, rien qui bouge » / « Like an e-reader: pure black and white, patterns instead of greys, nothing that moves ». Pas de nom de palette.
 
 ## L'ajout au contrat
@@ -60,4 +60,3 @@ Ce que le code a précisé des décisions :
 
 - La rangée des boutons dans la bande d'encre, comme dans la maquette : un ajout au contrat (la pièce qui porte les boutons du haut de page), à décider.
 - Rien n'a tourné sur un téléphone : la passe de `docs/THEMES.md`.
-- Les sons, à la planche d'écoute.

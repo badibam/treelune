@@ -174,8 +174,17 @@ object InkTheme : ThemeContract {
     @Composable
     override fun gridRowGapPx(): Int = with(LocalDensity.current) { 20f.dp.roundToPx() }
 
-    /** Silent: the theme's sounds are chosen apart (docs/THEMES.md, The sounds). */
-    override fun sound(signal: UISignal): Int? = null
+    override fun sound(signal: UISignal): Int? = when (signal) {
+        UISignal.CONFIRM -> R.raw.ink_confirm
+        UISignal.ENTER -> R.raw.ink_enter
+        UISignal.BACK -> R.raw.ink_back
+        UISignal.OPEN -> R.raw.ink_open
+        UISignal.CLOSE -> R.raw.ink_close
+        UISignal.TOGGLE -> R.raw.ink_toggle
+        UISignal.STEP -> R.raw.ink_step
+        UISignal.SCROLL_END -> R.raw.ink_scroll_end
+        UISignal.REFUSE -> R.raw.ink_refuse
+    }
 
     /** A tile's name centered in the width its icon leaves. */
     override fun tileNameAlign(): TextAlign = TextAlign.Center

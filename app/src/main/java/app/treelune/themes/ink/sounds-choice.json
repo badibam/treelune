@@ -1,0 +1,141 @@
+{
+  "gain_db": -10,
+  "families": [
+    "Interface Sounds · bong",
+    "Interface Sounds · glass",
+    "BigSoundBank · drop",
+    "BigSoundBank · page",
+    "BigSoundBank · pencil",
+    "BigSoundBank · splash",
+    "Freesound · brush"
+  ],
+  "signals": {
+    "confirm": {
+      "choice": "recipe · brush_655539-take1",
+      "offset_db": 0,
+      "shortlist": [
+        "recipe · brush_655539-take1"
+      ]
+    },
+    "enter": {
+      "choice": "recipe · page_2210-take1",
+      "offset_db": 0,
+      "shortlist": [
+        "recipe · page_2210-take1"
+      ]
+    },
+    "back": {
+      "choice": "recipe · page_1250-take9",
+      "offset_db": 0,
+      "shortlist": [
+        "recipe · page_1250-take9"
+      ]
+    },
+    "open": {
+      "choice": "recipe · drop_1385-take14",
+      "offset_db": 0,
+      "shortlist": [
+        "recipe · drop_1385-take14"
+      ]
+    },
+    "close": {
+      "choice": "recipe · drop_1385-take7",
+      "offset_db": 0,
+      "shortlist": [
+        "recipe · drop_1385-take7"
+      ]
+    },
+    "toggle": {
+      "choice": "Interface Sounds · glass_006",
+      "offset_db": -5,
+      "shortlist": [
+        "Interface Sounds · glass_006"
+      ]
+    },
+    "step": {
+      "choice": "Interface Sounds · glass_005",
+      "offset_db": -4,
+      "shortlist": [
+        "Interface Sounds · glass_005"
+      ]
+    },
+    "scroll_end": {
+      "choice": "recipe · drop_1384-take10",
+      "offset_db": 0,
+      "shortlist": [
+        "recipe · drop_1384-take10"
+      ]
+    },
+    "refuse": {
+      "choice": "Interface Sounds · glass_003",
+      "offset_db": -8,
+      "shortlist": [
+        "Interface Sounds · glass_003"
+      ]
+    }
+  },
+  "recipes": {
+    "brush_655539-take1": {
+      "inputs": [
+        "Freesound · brush_655539"
+      ],
+      "effects": [
+        "trim",
+        0.11,
+        0.36
+      ]
+    },
+    "page_2210-take1": {
+      "inputs": [
+        "BigSoundBank · page_2210"
+      ],
+      "effects": [
+        "trim",
+        0.06,
+        0.08
+      ]
+    },
+    "page_1250-take9": {
+      "inputs": [
+        "BigSoundBank · page_1250"
+      ],
+      "effects": [
+        "trim",
+        10.45,
+        0.18
+      ]
+    },
+    "drop_1385-take14": {
+      "inputs": [
+        "BigSoundBank · drop_1385"
+      ],
+      "effects": [
+        "trim",
+        16.26,
+        0.27
+      ],
+      "denoise": 0.3
+    },
+    "drop_1385-take7": {
+      "inputs": [
+        "BigSoundBank · drop_1385"
+      ],
+      "effects": [
+        "trim",
+        9.06,
+        0.35
+      ],
+      "denoise": 0.3
+    },
+    "drop_1384-take10": {
+      "inputs": [
+        "BigSoundBank · drop_1384"
+      ],
+      "effects": [
+        "trim",
+        11.35,
+        0.06
+      ]
+    }
+  }
+}

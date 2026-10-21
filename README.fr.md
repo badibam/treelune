@@ -70,11 +70,11 @@ Tu disposes les tuiles de chaque zone comme tu veux, tu choisis l'icône et la c
 - **Par défaut** — Clair et sobre, dans la teinte de ton choix
 - **Rétro** — Du pixel art : des pixels entiers, une police dessinée, des icônes en pixels, ses propres sons
 - **Cosy** — Comme un téléphone dans un jeu doux : rond et dodu, tout rebondit, ses propres sons
-- **Suisse** — Comme une affiche suisse : une grille stricte, noir et blanc et un seul rouge, les chiffres en grand
-- **Encre et lavis** — Comme un lavis à l'encre : un papier crème, l'encre noire et un seul rouge de sceau, beaucoup de vide
-- **Métro** — Comme la signalétique d'un métro : chaque outil est une ligne de sa couleur, chaque zone une station
-- **Papier découpé** — Des feuilles de couleur découpées aux ciseaux, posées de travers sur du kraft
-- **Plan d'architecte** — Comme un plan d'architecte : des traits fins sur un papier quadrillé, des cotes et des hachures
+- **Suisse** — Comme une affiche suisse : une grille stricte, noir et blanc et un seul rouge, les chiffres en grand, ses propres sons
+- **Encre et lavis** — Comme un lavis à l'encre : un papier crème, l'encre noire et un seul rouge de sceau, beaucoup de vide, ses propres sons
+- **Métro** — Comme la signalétique d'un métro : chaque outil est une ligne de sa couleur, chaque zone une station, ses propres sons
+- **Papier découpé** — Des feuilles de couleur découpées aux ciseaux, posées de travers sur du kraft, ses propres sons
+- **Plan d'architecte** — Comme un plan d'architecte : des traits fins sur un papier quadrillé, des cotes et des hachures, ses propres sons
 - **Liseuse** — Comme une liseuse : noir et blanc pur, des trames à la place des gris, rien qui bouge
 <!-- /themes -->
 

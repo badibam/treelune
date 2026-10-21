@@ -1,0 +1,79 @@
+{
+  "_about": "The metro theme's interface sounds, one per UISignal chosen, made by scripts/theme_sounds.py from sounds-choice.json beside this file (docs/THEMES.md); their source and licence.",
+  "sounds": {
+    "res/raw/metro_confirm.flac": {
+      "title": "Freesound · relay_384698",
+      "author": "bassmosphere",
+      "licence": "CC0 1.0",
+      "page": "https://freesound.org/people/bassmosphere/sounds/384698/"
+    },
+    "res/raw/metro_enter.flac": {
+      "title": "BigSoundBank · thermostat_2191",
+      "author": "Joseph Sardin",
+      "licence": "CC0 1.0",
+      "page": "https://bigsoundbank.com/thermostat-1-s2191.html"
+    },
+    "res/raw/metro_back.flac": {
+      "title": "BigSoundBank · thermostat_2192",
+      "author": "Joseph Sardin",
+      "licence": "CC0 1.0",
+      "page": "https://bigsoundbank.com/thermostat-2-s2192.html"
+    },
+    "res/raw/metro_open.flac": {
+      "made": "sox trim 5.73 0.29",
+      "from": [
+        {
+          "title": "BigSoundBank · keyboard_1727",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/slow-macbook-keyboard-2-s1727.html"
+        }
+      ]
+    },
+    "res/raw/metro_close.flac": {
+      "made": "sox trim 6.45 0.3",
+      "from": [
+        {
+          "title": "BigSoundBank · keyboard_1727",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/slow-macbook-keyboard-2-s1727.html"
+        }
+      ]
+    },
+    "res/raw/metro_toggle.flac": {
+      "made": "sox trim 0.04 0.4",
+      "from": [
+        {
+          "title": "BigSoundBank · switch_0036",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/switch-desk-lamp-s0036.html"
+        }
+      ]
+    },
+    "res/raw/metro_step.flac": {
+      "title": "Freesound · relay_740253",
+      "author": "JoontheFloof",
+      "licence": "CC0 1.0",
+      "page": "https://freesound.org/people/JoontheFloof/sounds/740253/"
+    },
+    "res/raw/metro_scroll_end.flac": {
+      "made": "sox trim 5.64 0.11",
+      "from": [
+        {
+          "title": "BigSoundBank · drawer_0793",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/metal-drawers-2-s0793.html"
+        }
+      ]
+    },
+    "res/raw/metro_refuse.flac": {
+      "title": "BigSoundBank · switch_2028",
+      "author": "Joseph Sardin",
+      "licence": "CC0 1.0",
+      "page": "https://bigsoundbank.com/microphone-switch-3-s2028.html"
+    }
+  }
+}

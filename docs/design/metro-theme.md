@@ -36,7 +36,7 @@ Toutes les lignes du 2026-10-18, dans l'ordre de la liste de `docs/THEMES.md`.
 9. **Les icônes** : Lucide (`LUCIDE`), tel quel. La maquette les trace à 2,4 au lieu de 2 : il faudrait des icônes à soi (`OWN`) et un script qui les épaissit, un coût qui ne vaut pas la différence.
 10. **Les graphiques** : dessinés par le thème (`MetroDrawing`). Une courbe est une ligne de métro : un trait de 4 dp aux joints arrondis, ses points des arrêts (ronds blancs cerclés de sa couleur) ; les barres aux coins hauts de 3 dp ; l'objectif en tirets bleu nuit de 2 dp (maquette) ; les axes en filets de 1 dp, les étiquettes en chiffres alignés 700. Les couleurs des séries données par l'utilisateur gardées ; l'encre de premier niveau prend la couleur de la ligne dans une tuile. La dernière barre pleine et les autres pâles de la maquette ne sont pas tenues : le dessin du cœur ne dit pas quelle barre est aujourd'hui.
 11. **Le mode d'édition de la grille** : une case, un rectangle aux coins de 4 dp au filet gris en tirets ; la tuile choisie, la tuile soulevée de la ligne 8.
-12. **Le registre sonore** : le métro sans en copier aucun : des carillons de deux ou trois notes douces pour confirmer et entrer, le clac sec d'un portillon pour cocher et le cran, un bip bref pour le refus. Sa source principale et ce qui le distingue des autres thèmes sont sur la carte des sons (`docs/design/theme-sounds.md`) : le carillon et le bip par recette (`synth`), le clac pris à BigSoundBank. Le thème part muet.
+12. **Le registre sonore** : le métro sans en copier aucun : des carillons de deux ou trois notes douces pour confirmer et entrer, le clac sec d'un portillon pour cocher et le cran, un bip bref pour le refus. Sa source principale et ce qui le distingue des autres thèmes sont sur la carte des sons (`docs/design/theme-sounds.md`) : le carillon et le bip par recette (`synth`), le clac pris à BigSoundBank. À l'écoute (`sounds-choice.json`), des relais, un thermostat et une touche de clavier ont pris la place du carillon et du bip.
 13. **Les textes** : nom « Métro » / « Metro » ; phrase « Comme la signalétique d'un métro : chaque outil est une ligne de sa couleur, chaque zone une station » / « Like metro signage: each tool a line in its colour, each zone a station ». Pas de nom de palette.
 
 ## Ajout au contrat
@@ -59,4 +59,4 @@ Ce que le code a précisé des décisions :
 - Rien n'a tourné sur un téléphone : le thème entier s'y juge, la passe de `docs/THEMES.md` d'abord.
 - Les cellules et les tons des textures sont ceux du suisse, recopiés : les motifs de plan de la ligne 7 (traits à 45° et 90°, points d'arrêt) restent à dessiner, et leurs tons à régler au banc des textures (`./run themes`).
 - Le nom d'une tuile reste centré : c'est le cœur qui le place (`UI.TileHeader`), comme pour le suisse.
-- Les sons, à la planche d'écoute.
+- Les sons, au téléphone : leur niveau à l'oreille.

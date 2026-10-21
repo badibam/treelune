@@ -182,8 +182,17 @@ object BlueprintTheme : ThemeContract {
     @Composable
     override fun gridRowGapPx(): Int = with(LocalDensity.current) { 12f.dp.roundToPx() }
 
-    /** Silent: the theme's sounds are chosen apart (docs/THEMES.md, The sounds). */
-    override fun sound(signal: UISignal): Int? = null
+    override fun sound(signal: UISignal): Int? = when (signal) {
+        UISignal.CONFIRM -> R.raw.blueprint_confirm
+        UISignal.ENTER -> R.raw.blueprint_enter
+        UISignal.BACK -> R.raw.blueprint_back
+        UISignal.OPEN -> R.raw.blueprint_open
+        UISignal.CLOSE -> R.raw.blueprint_close
+        UISignal.TOGGLE -> R.raw.blueprint_toggle
+        UISignal.STEP -> R.raw.blueprint_step
+        UISignal.SCROLL_END -> R.raw.blueprint_scroll_end
+        UISignal.REFUSE -> R.raw.blueprint_refuse
+    }
 
     /** A tile's name centered in the width its icon leaves. */
     override fun tileNameAlign(): TextAlign = TextAlign.Center

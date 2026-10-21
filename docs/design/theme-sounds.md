@@ -32,13 +32,13 @@ Deux sons sonnent de la même famille par leur prise : la pièce et sa réverbé
 | Défaut | aucune | | | muet | — |
 | Rétro (fait) | plastique, interrupteurs | non | sec | les clics de Kenney | Kenney |
 | Cosy (fait) | bois creux, gouttes | oui | rond | des sons ronds qui rebondissent | Kenney |
-| Suisse | métal de bureau | non | très sec | l'agrafeuse, l'interrupteur, la perforatrice | BigSoundBank |
-| Encre et lavis | pierre, bois, eau | peu | feutré, lent | le sceau qu'on frappe, une goutte, le pinceau | BigSoundBank |
-| Signalétique de métro | carillon, métal | oui | net, résonne | le carillon de deux ou trois notes douces, le clac du portillon | synthèse, et BigSoundBank pour le clac |
-| Papier découpé | papier épais | non | net | les ciseaux, une feuille posée sur le kraft | BigSoundBank |
-| Plan d'architecte | outils de dessin | non | sec, fin | le porte-mine qu'on clique, la règle posée | BigSoundBank |
+| Suisse (fait) | métal de bureau | non | très sec | le tampon, le tiroir métallique, le stylo à poussoir | BigSoundBank, Freesound |
+| Encre et lavis (fait) | pierre, bois, eau | peu | feutré, lent | le pinceau, une goutte, le verre | BigSoundBank, Freesound, Kenney |
+| Signalétique de métro (fait) | relais, métal | non | net | le relais, le thermostat, la touche | BigSoundBank, Freesound |
+| Papier découpé (fait) | papier épais | non | net | la feuille posée, le taille-crayon, l'agrafeuse | BigSoundBank |
+| Plan d'architecte (fait) | outils de dessin | non | sec, fin | le crayon, le taille-crayon, la règle | BigSoundBank, Freesound |
 | Carnet | papier, stylo | non | doux | le stylo qui coche, la page qu'on tourne | BigSoundBank |
-| Monochrome / e-ink | presque rien | non | très doux | le thème qui répond le moins : un souffle, quelques signaux seulement | synthèse |
+| Monochrome / e-ink | aucune | | | muet | — |
 | Terminal | haut-parleur de PC, clavier | oui (une seule) | sec | le bip carré à une seule hauteur, les touches d'un clavier mécanique | synthèse et BigSoundBank |
 | Instruments | métal lourd, relais | non, sauf l'alarme | lourd, mécanique | l'interrupteur à levier, le relais qui claque, le buzzer | BigSoundBank |
 | Menu de JRPG | électronique | oui, mélodique | court | le curseur bip-bip, la confirmation qui monte, l'annulation qui descend | synthèse |
@@ -53,13 +53,13 @@ Deux sons sonnent de la même famille par leur prise : la pièce et sa réverbé
 - **Défaut** : muet (décidé le 2026-10-18).
 - **Rétro** : fait (`retro/sounds-choice.json`). Ses clics sont ceux d'un objet en plastique, pas d'une console : les bips 8 bits vont au JRPG, à l'arcade et au Mac, et le rétro les garde. À réécouter à côté du suisse.
 - **Cosy** : fait (`cosy/sounds-choice.json`), rien à changer.
-- **Suisse** : la spec disait des clics et des tics de Kenney, ceux-là mêmes que le rétro a pris ; il s'en éloigne par la matière : du métal de bureau, plus mat et plus court que le rétro. BigSoundBank : l'agrafeuse de bureau (n° 9) et sur bois (n° 1580), les interrupteurs (n° 26, 27, 36, 52), le stylo à poussoir (n° 613, 810), le classeur métallique (n° 773).
-- **Encre et lavis** : la spec disait « une page qu'on tourne » ; la page va au carnet, et l'encre garde ce qui n'appartient qu'à elle : le sceau frappé (confirmer), une goutte dans l'eau (ouvrir, fermer), un bois léger (cocher), le pinceau qui glisse (entrer, revenir). BigSoundBank : les gouttes (n° 1384 à 1387), le bois (tiroir, clé posée) ; ni pinceau ni sceau, deux trous pour Freesound.
-- **Signalétique de métro** (codé, muet ; sa spec, `docs/design/metro-theme.md`, ligne 12) : le seul thème à vraies notes claires ; un carillon de deux ou trois notes douces pour confirmer et entrer, le clac sec d'un portillon pour cocher et le cran, un bip bref pour le refus. Le carillon et le bip par une recette `synth` en sinus, une banque d'instruments si le sinus ne suffit pas ; le clac, un métal de BigSoundBank, plus lourd que l'interrupteur du suisse (aucun portillon dans la banque) ; jamais l'enregistrement d'un vrai réseau (BigSoundBank a le jingle de la SNCF, écarté).
-- **Papier découpé** : du papier épais et sec, coupé et posé ; les ciseaux (confirmer), une feuille posée (entrer), soulevée (revenir). BigSoundBank : les ciseaux (n° 8), le papier déchiré ; peu de prises, Freesound pour un second ciseau.
-- **Plan d'architecte** : des outils de dessin fins et secs ; le porte-mine qu'on clique (cocher, cran), la règle posée (confirmer), le tampon de révision (refuser). BigSoundBank : le crayon (n° 221, 3233 à 3238), le taille-crayon, le stylo à poussoir ; la règle, un trou pour Freesound.
+- **Suisse** : fait (`swiss/sounds-choice.json`).
+- **Encre et lavis** : fait (`ink/sounds-choice.json`).
+- **Signalétique de métro** : fait (`metro/sounds-choice.json`).
+- **Papier découpé** : fait (`paper/sounds-choice.json`).
+- **Plan d'architecte** : fait (`blueprint/sounds-choice.json`).
 - **Carnet** : un cahier et un stylo ; le stylo qui coche (confirmer, cocher), la page qu'on tourne (entrer, revenir), la spirale, la gomme (refuser). BigSoundBank : la page tournée (n° 164, 362, 363, 493), le crayon, le capuchon, le feutre.
-- **Monochrome / e-ink** : une liseuse ne fait aucun bruit ; le thème répond à peu de signaux, un souffle très bas pour confirmer, cocher et refuser, le reste muet. Une recette : un bruit filtré, très court.
+- **Monochrome / e-ink** : muet, une liseuse ne fait pas de bruit (décidé le 2026-10-21).
 - **Terminal** : le bip du haut-parleur d'un PC, une seule hauteur, longueurs différentes (refuser = deux bips), et les touches d'un clavier mécanique pour le cran et cocher. Une recette `synth` en onde carrée ; BigSoundBank : les claviers (n° 229, 1724 à 1728…) et les machines à écrire.
 - **Instruments** : un panneau de commande lourd ; l'interrupteur à levier (cocher), le relais (confirmer, cran), le buzzer d'alarme (refuser). BigSoundBank : les interrupteurs, les buzzers (n° 35, 89, 173), le classeur métallique ; peu de relais (un thermostat, un clignotant), un trou pour Freesound.
 - **Menu de JRPG** : la convention des menus de jeu de rôle, mélodique et courte : le curseur (cran), une note qui monte (confirmer, entrer), qui descend (revenir, fermer), un buzzer grave (refuser). Une recette `synth`.
@@ -71,8 +71,7 @@ Deux sons sonnent de la même famille par leur prise : la pièce et sa réverbé
 
 ## Les sources
 
-Ajoutées le 2026-10-18 (`sound-sources.json`) : Casino Audio et Sci-fi Sounds de Kenney ; 84 enregistrements de BigSoundBank, choisis par mots-clés dans le catalogue de Saylune, en dehors des voix ; 26 sons de Freesound pour les trous (pinceau, sceau, règle, relais, ciseaux), pris par leur extrait Ogg public, à remplacer par l'original, téléchargé à la main, si l'un d'eux sonne abîmé sur le téléphone. Un son qui manque à un thème s'ajoute à la liste de sa source. Le métro attend une recette `synth` en sinus, et une banque d'instruments si elle ne suffit pas.
+Ajoutées le 2026-10-18 (`sound-sources.json`) : Casino Audio et Sci-fi Sounds de Kenney ; 84 enregistrements de BigSoundBank, choisis par mots-clés dans le catalogue de Saylune, en dehors des voix ; 26 sons de Freesound pour les trous (pinceau, sceau, règle, relais, ciseaux), pris par leur extrait Ogg public, à remplacer par l'original, téléchargé à la main, si l'un d'eux sonne abîmé sur le téléphone. Un son qui manque à un thème s'ajoute à la liste de sa source.
 
 ## Ce qui reste ouvert
 
-- L'e-ink : quels signaux il garde.

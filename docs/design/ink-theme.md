@@ -47,7 +47,7 @@ Toutes les lignes du 2026-10-17, dans l'ordre de la liste de `docs/THEMES.md`.
    - le geste fixé par icône (une même icône toujours dessinée pareil), calculé une fois par taille et gardé.
 10. **Les graphiques** : dessinés par le thème (`InkDrawing`, parti de `SwissDrawing`). Une barre est un lavis plein qui tient exactement sa valeur, ses coins du haut doux et un peu inégaux (au pinceau, une barre large devenait une goutte qui débordait sa valeur en haut et s'effilait en bas, vu sur le téléphone le 2026-10-17), les surfaces en lavis transparents, l'objectif en pointillé, les axes en trait fin ; les couleurs que l'utilisateur donne aux séries gardées, en lavis.
 11. **Le mode d'édition de la grille** : une case, un rond de lavis très pâle ; la tuile choisie, la tuile soulevée de la ligne 8.
-12. **Le registre sonore** : feutré, un pinceau sur le papier, une page qu'on tourne, un bois léger ; à chercher dans les sons d'impact doux et les « drop » de Kenney. Le thème part muet.
+12. **Le registre sonore** : feutré, un pinceau sur le papier, une page qu'on tourne, un bois léger ; à chercher dans les sons d'impact doux et les « drop » de Kenney. Choisis à l'écoute : `sounds-choice.json`.
 13. **Les textes** : nom « Encre et lavis » / « Ink and wash » ; phrase « Comme un lavis à l'encre : un papier crème, l'encre noire et un seul rouge de sceau, beaucoup de vide » / « Like an ink wash painting: cream paper, black ink and a single seal red, plenty of empty space ». Pas de nom de palette.
 
 ## Ce qui est codé
@@ -66,5 +66,5 @@ Ce que le code a précisé des décisions :
 - Rien n'a tourné sur un téléphone : le thème entier s'y juge, la passe de `docs/THEMES.md` d'abord, le coût des icônes au pinceau (une page pleine d'icônes à sa première ouverture) et les icônes qui se bouchent compris.
 - Le nom d'une tuile reste centré par le cœur (`UI.TileHeader`), comme le veut la maquette.
 - Les tons des textures, à régler au banc des textures (`./run themes`).
-- Les sons, à la planche d'écoute.
+- Les sons, au téléphone : leur niveau à l'oreille.
 - Une fois redessiné Lucide tenu sur le téléphone (coût, icônes qui se bouchent) : la troisième façon de la ligne 9 de la recette, `docs/THEMES.md`.

@@ -37,7 +37,7 @@ Toutes les lignes du 2026-10-18, dans l'ordre de la liste de `docs/THEMES.md`.
 9. **Les icônes** : Lucide (`LUCIDE`), retracé par le thème d'après ses tracés (`IconStrokes`, la brique du cœur faite pour l'encre) : un trait de 1,5 au lieu de 2, et chaque tracé ouvert prolongé à ses deux bouts dans sa direction, le trait qui déborde des cadres ; un tracé fermé ne déborde pas. Sa longueur se règle au même banc que celle des cadres, quelques icônes et une tuile, dans les deux modes : à 24 dp, le dépassement peut ne pas se voir ou se lire comme un rendu raté, et seul l'œil le dit.
 10. **Les graphiques** : dessinés par le thème (`BlueprintDrawing`). Les barres en contour hachurées à 45° ; la courbe un trait fin, ses points de petites croix ; l'objectif en trait mixte (tiret-point, celui d'un axe) ; les axes en traits fins, les étiquettes en Plex Mono. La cote « ← 7 j → » de la maquette n'est pas tenue : le dessin du cœur ne dit pas la durée couverte.
 11. **Le mode d'édition de la grille** : une case, un rectangle en tirets au trait qui déborde ; la tuile choisie, la tuile soulevée de la ligne 8.
-12. **Le registre sonore** : celui de la carte des sons (`docs/design/theme-sounds.md`) : des outils de dessin, secs et fins ; le porte-mine qu'on clique (cocher, cran), la règle posée (confirmer), le tampon de révision (refuser) ; BigSoundBank, la règle cherchée sur Freesound. Le thème part muet.
+12. **Le registre sonore** : celui de la carte des sons (`docs/design/theme-sounds.md`) : des outils de dessin, secs et fins ; le porte-mine qu'on clique (cocher, cran), la règle posée (confirmer), le tampon de révision (refuser) ; BigSoundBank, la règle cherchée sur Freesound. Choisis à l'écoute : `sounds-choice.json`.
 13. **Les textes** : nom « Plan d'architecte » / « Blueprint » ; phrase « Comme un plan d'architecte : des traits fins sur un papier quadrillé, des cotes et des hachures » / « Like an architect's blueprint: fine lines on grid paper, dimensions and hatching ». Pas de nom de palette.
 
 ## Le seuil
@@ -62,4 +62,4 @@ Ce que le code a précisé des décisions :
 
 - Rien n'a tourné sur un téléphone : le thème entier s'y juge, la passe de `docs/THEMES.md` d'abord ; le débord des icônes en tête (un angle manqué, une courbe prise pour un angle).
 - Les cellules et les tons des textures sont ceux du métro, recopiés : les motifs de plan de la ligne 7 (hachures à 45°, croisillons, points, briques) restent à dessiner, et leurs tons à régler au banc des textures (`./run themes`).
-- Les sons, à la planche d'écoute.
+- Les sons, au téléphone : leur niveau à l'oreille.

@@ -1,0 +1,99 @@
+{
+  "_about": "The swiss theme's interface sounds, one per UISignal chosen, made by scripts/theme_sounds.py from sounds-choice.json beside this file (docs/THEMES.md); their source and licence.",
+  "sounds": {
+    "res/raw/swiss_confirm.flac": {
+      "made": "sox trim 1.31 0.4",
+      "from": [
+        {
+          "title": "Freesound · stamp_178650",
+          "author": "sengjinn",
+          "licence": "CC BY 4.0",
+          "page": "https://freesound.org/people/sengjinn/sounds/178650/"
+        }
+      ]
+    },
+    "res/raw/swiss_enter.flac": {
+      "made": "sox trim 2.77 0.32",
+      "from": [
+        {
+          "title": "BigSoundBank · drawer_0793",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/metal-drawers-2-s0793.html"
+        }
+      ]
+    },
+    "res/raw/swiss_back.flac": {
+      "made": "sox trim 4.69 0.4",
+      "from": [
+        {
+          "title": "BigSoundBank · drawer_0793",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/metal-drawers-2-s0793.html"
+        }
+      ]
+    },
+    "res/raw/swiss_open.flac": {
+      "made": "sox trim 18.21 0.47",
+      "from": [
+        {
+          "title": "BigSoundBank · drawer_0793",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/metal-drawers-2-s0793.html"
+        }
+      ]
+    },
+    "res/raw/swiss_close.flac": {
+      "made": "sox trim 18.81 0.39",
+      "from": [
+        {
+          "title": "BigSoundBank · drawer_0793",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/metal-drawers-2-s0793.html"
+        }
+      ]
+    },
+    "res/raw/swiss_toggle.flac": {
+      "made": "sox trim 6.02 0.47",
+      "from": [
+        {
+          "title": "BigSoundBank · pen_0613",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/pen-click-s0613.html"
+        }
+      ]
+    },
+    "res/raw/swiss_step.flac": {
+      "made": "sox trim 2.25 0.12",
+      "from": [
+        {
+          "title": "BigSoundBank · pen_0054",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/pen-cap-s0054.html"
+        }
+      ]
+    },
+    "res/raw/swiss_scroll_end.flac": {
+      "made": "sox trim 22.95 0.28",
+      "from": [
+        {
+          "title": "BigSoundBank · drawer_0793",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/metal-drawers-2-s0793.html"
+        }
+      ]
+    },
+    "res/raw/swiss_refuse.flac": {
+      "title": "BigSoundBank · switch_2028",
+      "author": "Joseph Sardin",
+      "licence": "CC0 1.0",
+      "page": "https://bigsoundbank.com/microphone-switch-3-s2028.html"
+    }
+  }
+}
