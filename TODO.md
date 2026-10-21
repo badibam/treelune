@@ -5,7 +5,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 ## Release F-Droid
 
 - La fiche fastlane : le changelog de la 0.9.0, les captures d'écran faites sur le téléphone (elles servent aussi aux README, place marquée).
-- La 0.9.0 taguée sur un arbre propre, ses notes de version validées, la mise à jour depuis la dernière version publiée passée sur le téléphone avec ses données.
+- La 0.9.0 taguée sur un arbre propre, ses notes de version validées, la mise à jour depuis la dernière version publiée passée sur le téléphone avec ses données : les photos des conversations passées toujours là (migration 82) ; un premier événement au mercredi 28 octobre, un second au lundi 9 novembre, leurs rappels déjà envoyés qui ne repartent pas, une sauvegarde d'avant restaurée de même (migration 85).
 - La recette F-Droid sur `v0.8.1` essayée dans le conteneur (`docs/design/fdroid-compliance.md`), son APK comparé à celui de GitHub (`apksigcopier compare`) — podman à installer.
 
 ## Bugs du téléphone
@@ -65,6 +65,7 @@ Ce qui doit monter dans un module de sagesse (`/update push`).
 
 ## À surveiller
 
+- Des durées à relever sur le téléphone : l'installation de la démo (~50 s le 2026-10-20, chaque outil planifié faisant tourner son planificateur, `CoreScheduler.runTool`) ; le calcul d'un paquet de Flashcards sur le lexique réel (« Flashcards: deck … read in N ms », de 26 à 152 ms sur la démo, à dire au-delà de 300 ms) ; un gros import (64 659 lignes, 3 min 19 s avant l'historique des écritures), la place prise par l'historique ensuite, et son annulation.
 - Une zone lente à s'afficher, à l'ouverture comme au retour, qui relit tout (~1 s en debug le 2026-10-01, le graphique Calories de Panorama de 0,75 à 1,2 s).
 - Le bouton de liste d'un texte long touché pendant une dictée : Gboard réécrit son texte encore souligné une seconde fois au curseur (mesuré le 2026-10-20), le bouton rendant le champ sans la place de ce texte (`composition` nulle) ; la garder, décalée par `MarkupEditing.apply` comme le curseur.
 - Une copie automatique dont la rotation n'a rien fait (le 2026-10-20 à 21h21, juste après le choix du dossier) : la ligne « Auto backup: copies found … » dit maintenant ce qu'elle a trouvé et prévu.
