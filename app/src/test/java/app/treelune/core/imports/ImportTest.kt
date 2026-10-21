@@ -57,6 +57,21 @@ class ImportTest {
     }
 
     @Test
+    fun `a cell no writing reads leaves the writing that reads the most, refusing its line alone`() {
+        val fields = mapOf("extra.kcal" to field("kcal", FieldType.NUMERIC))
+        val table = ImportTable(listOf("kcal"), listOf(listOf("52,5"), listOf("41"), listOf("beaucoup"), listOf("57,2")))
+        val proposal = ImportPlanner.detect(table, fields, emptyMap(), uniqueName = false, zone).single()
+        assertEquals(Writing.DECIMAL_COMMA, proposal.declaration.writing)
+        assertEquals(listOf(3), proposal.unreadable)
+
+        // As many cells read by each, differently: left to choose
+        val tied = ImportTable(listOf("kcal"), listOf(listOf("1,5"), listOf("2.5"), listOf("beaucoup")))
+        val left = ImportPlanner.detect(tied, fields, emptyMap(), uniqueName = false, zone).single()
+        assertNull(left.declaration.writing)
+        assertTrue(Writing.DECIMAL_POINT in left.ambiguous && Writing.DECIMAL_COMMA in left.ambiguous)
+    }
+
+    @Test
     fun `the name is the key where names are unique, a known field is filled, a header can fix a type`() {
         val table = ImportTable(listOf("Nom", "kcal_100g", "portion [NUMERIC]"), listOf(listOf("pomme", "52", "1"), listOf("pain", "250", "2")))
         val fields = mapOf("name" to field("name", FieldType.TEXT).copy(displayName = "Nom"), "extra.kcal_100g" to field("kcal_100g", FieldType.NUMERIC))
