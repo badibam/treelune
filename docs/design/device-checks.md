@@ -4,11 +4,8 @@ Ce que seul le téléphone juge : l'œil, l'oreille, le doigt, et ce qu'un vrai 
 
 ## Mise à jour et démarrage
 
-- Après un plantage (`adb shell am crash app.treelune.debug`, à vérifier qu'il passe par le gestionnaire de l'app) : au lancement suivant, l'écran « L'app s'est arrêtée » avant tout le reste ; « Voir le rapport » montre la pile d'appels, « Envoyer » ouvre le menu de partage avec le rapport entier ; « Continuer » démarre l'app, et l'écran ne revient pas au lancement d'après.
 - Une sauvegarde faite après la migration 72, importée après avoir désinstallé puis réinstallé l'app (la clé du Keystore change) : l'écran du fournisseur dit que la clé ne s'ouvre pas et la montre vide ; un message à l'IA est refusé en le disant ; la clé ressaisie, tout repart.
-- Installation neuve, app en « Optimisée » : après l'écran de bienvenue du Guide, un seul dialogue (« L'app peut être arrêtée en arrière-plan »), son bouton ouvre la demande d'Android ; acceptée, il ne revient plus ; « Plus tard », il ne revient pas au démarrage suivant, la carte reste en tête de Réglages.
-- App quittée et téléphone verrouillé depuis plus d'une heure : un message de l'outil Messages prévu à une heure donnée arrive dans les 10 minutes qui suivent, sans ouvrir l'app ; de même après un redémarrage du téléphone, sans l'avoir ouverte depuis.
-- Fermer l'app de force pendant que l'IA répond dans une discussion, la relancer : « Réponse de l'IA interrompue » dans la discussion, l'IA au repos, rien ne repart seul.
+- Après un redémarrage du téléphone, sans ouvrir l'app : un message de l'outil Messages prévu à une heure donnée arrive dans les 10 minutes qui suivent.
 
 ## Validation
 
@@ -20,10 +17,8 @@ Ce que seul le téléphone juge : l'œil, l'oreille, le doigt, et ce qu'un vrai 
 
 ## Chat IA
 
-- Session CHAT avec OpenAI : la première réponse passe (le mode JSON, `text.format`, est accepté par l'API Responses).
-- Fermer l'app de force pendant une attente (validation, question, données volumineuses), la rouvrir : les boutons reviennent.
-- Recréation pendant la composition : deux blocs, un pointeur ouvert sur le second avec un outil, ses cases et une période choisis. Après la recréation, la fenêtre et les choix sont là, et le pointeur arrive dans le second bloc. De même pendant une question de l'IA : la précision ajoutée est gardée.
-- Images : « Photo » ouvre l'appareil photo sans demande d'autorisation, la photo prise en portrait arrive droite ; supprimer la session efface ses fichiers (`files/attachments`) ; exporter une sauvegarde avec images, la réimporter, les vignettes reviennent ; un ancien `.json` s'importe encore.
+- Fermer l'app de force pendant une attente (une validation, des données volumineuses), la rouvrir : les boutons reviennent.
+- Images : une sauvegarde avec des images de messages, réimportée, rend leurs vignettes ; un ancien `.json` s'importe encore.
 
 ## Accès externe (serveur MCP)
 
@@ -55,22 +50,18 @@ Avec le relais en place (son projet `relay`, en ligne sur `https://relay.badibam
 
 ## Séance
 
-- « Commencer » : « Prépare-toi », 5 s avec un accord au début et 3 bips ; une étape au temps bipe à 3, 2, 1 s et passe d'elle-même sur la quinte (et la vibration) ; la voix, activée, dit l'étape et sa consigne, la musique baissée un instant.
+- « Commencer » : l'accord au début, les 3 bips du décompte, la quinte au changement d'étape ; la voix, activée, dit l'étape et sa consigne, la musique baissée un instant.
 - Étapes de 30 s au temps, écran éteint, téléphone posé à plat 15 min : chaque bip et chaque changement à l'heure. Noter ce que la séance a pris de batterie.
-- La notification montre l'étape et son temps qui défile ; « Fait » et « Pause » marchent écran verrouillé ; la toucher ouvre l'outil.
-- « Pause » : le temps s'arrête, la notification dit « en pause », aucun bip ; « Reprendre » repart d'où il en était.
+- « Fait » et « Pause » de la notification marchent écran verrouillé ; la toucher ouvre l'outil.
 - Téléphone en silencieux ou en vibreur : aucun son ni voix, la vibration reste.
-- Forcer l'arrêt de l'app pendant une séance, rouvrir l'outil : « Cette séance s'est arrêtée avec l'app » ; « Reprendre » relance l'étape, « Arrêter » la clôt.
 
 ## Agenda
 
-- Réglages › Rappels : « 15 min avant » (Minute, −15, Même moment) ; « Rappels des journées entières » : « La veille, 18:00 » (Jour, −1, À une heure). Un événement dans 20 min : la notification part à l'heure, app fermée, écran éteint, téléphone posé à plat ; la toucher ouvre la fiche de l'événement. Deux rappels à 3 min d'écart : le second à l'heure, ou son retard noté : s'il y en a, le repli est `setAlarmClock` pour les seuls rappels, qu'Android montre comme un réveil (une horloge dans la barre d'état).
 - Téléphone éteint pendant un rappel, rallumé avant la fin de l'événement : le rappel part ; rallumé après : rien.
 
 ## Sauvegarde et partage
 
 - Le fichier partagé joint à un mail arrive entier.
-- Importer… sur une sauvegarde complète : rien coché, le choix « Reprendre une partie » / « Tout restaurer » en tête ; Tout restaurer cache les cases, dit ce qui est remplacé, demande confirmation, puis l'app redémarre sur la sauvegarde.
 - Un fichier de partage reçu d'un autre téléphone (par le menu de partage, enregistré dans Téléchargements) s'importe de même, ses images d'entrées comprises.
 
 ## Les incarnations
