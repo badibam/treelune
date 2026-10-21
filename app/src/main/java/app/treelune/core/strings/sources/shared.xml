@@ -51,8 +51,6 @@
     <string name="action_start">Start</string>
     <string name="action_view">View</string>
     <string name="action_duplicate">Duplicate</string>
-    <string name="action_duplicate_tool">Duplicate a tool</string>
-    <string name="action_duplicate_automation">Duplicate a routine</string>
 
     <!-- AI Interface - Composer and Enrichments -->
     <string name="ai_composer_placeholder">Write your message...</string>
@@ -600,7 +598,15 @@
     <string name="message_error">Error: %1$s</string>
     <string name="message_delete_zone_confirmation">Delete the zone “%1$s”?</string>
     <string name="message_no_zones_created">No zone created</string>
-    <string name="message_available_tool_types">Available tool types</string>
+    <!-- The add menu of a zone's section: the tool types by family, a variable, a routine, a copy -->
+    <string name="add_title">Add to “%1$s”</string>
+    <string name="add_family_note">Note</string>
+    <string name="add_family_plan">Plan</string>
+    <string name="add_family_use">Draw on</string>
+    <string name="add_section_link">Link and automate</string>
+    <string name="add_section_copy">Copy</string>
+    <string name="add_copy_tool">A tool</string>
+    <string name="add_copy_automation">A routine</string>
     <string name="message_no_tools_in_zone">No tool in this zone</string>
     <string name="message_no_items_in_group">No item in this group</string>
     <string name="error_tooltype_not_found">Tool type \'%1$s\' not found</string>

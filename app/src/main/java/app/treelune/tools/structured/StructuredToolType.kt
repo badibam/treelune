@@ -36,6 +36,8 @@ object StructuredToolType : ToolTypeContract {
     override fun getUsage(context: Context): String =
         Strings.`for`(tool = "structured", context = context).tool("usage")
 
+    override fun getFamily() = app.treelune.core.tools.ToolFamily.NOTE
+
     override fun getDefaultDisplayMode(): String = "LINE"
 
     override fun getDefaultShowFieldLabels(): Boolean = true

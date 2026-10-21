@@ -128,6 +128,13 @@ class DemoContentTest {
             content.automations.forEach { automation ->
                 assertFalse(automation.getBoolean("is_enabled"))
                 assertTrue(automation.getString("seed").isNotBlank())
+                // Its pointers read as the routine's screen reads one
+                automation.optJSONArray("pointers")?.let { pointers ->
+                    (0 until pointers.length()).forEach {
+                        val pointer = app.treelune.core.ai.enrichments.PointerConfig.fromJson(pointers.getJSONObject(it)) { key -> key }
+                        assertEquals(null, pointer.selection.problem { key -> key })
+                    }
+                }
                 assertEquals(automation.has("schedule"), automation.has("catch_up"))
                 automation.optString("group").takeIf { it.isNotEmpty() }?.let { assertTrue(it in groups.getValue(automation.getString("zone_id"))) }
             }
@@ -269,4 +276,22 @@ class DemoContentTest {
     }
 
     private fun JSONArray.strings() = (0 until length()).map { getString(it) }
+
+    @Test
+    fun `every photo the entries name is shipped, every one shipped is named, each with its source`() {
+        val named = mutableSetOf<String>()
+        fun walk(value: Any?) {
+            when (value) {
+                is JSONObject -> if (value.has(DemoContent.IMAGE)) named += value.getString(DemoContent.IMAGE) else value.keys().forEach { walk(value.get(it)) }
+                is JSONArray -> (0 until value.length()).forEach { walk(value.get(it)) }
+            }
+        }
+        walk(asset("entries.json"))
+        val shipped = File("src/main/assets/demo/images").list()!!.toSet()
+        val sourced = JSONObject(File("src/main/java/app/treelune/core/demo/image-sources.json").readText(Charsets.UTF_8)).getJSONObject("images")
+        assertTrue(named.isNotEmpty())
+        assertEquals(shipped, named)
+        assertEquals(shipped, sourced.keys().asSequence().toSet())
+        sourced.keys().forEach { assertEquals("CC0", sourced.getJSONObject(it).getString("licence")) }
+    }
 }

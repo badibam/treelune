@@ -19,16 +19,20 @@ crash that reaches a phone and not a test.
 And the quotation marks (docs/WRITING.md): a name put in a text is quoted with its language's
 marks, « » in French, “ ” in English, never straight quotes around it, and English never with
 the French marks -- the kind of slip a screen in the other language shows and nothing else does.
+The demo's texts (assets/demo/texts-<language>.json) are held to the same marks: no straight
+quote at all in them, and the French marks only in French.
 
 Usage:
     ./scripts/check_string_locales.py
 """
 
+import json
 import re
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+DEMO = ROOT / "app" / "src" / "main" / "assets" / "demo"
 TOOLS = ROOT / "app" / "src" / "main" / "java" / "app" / "treelune" / "tools"
 THEMES = ROOT / "app" / "src" / "main" / "java" / "app" / "treelune" / "themes"
 SHARED = ROOT / "app" / "src" / "main" / "java" / "app" / "treelune" / "core" / "strings" / "sources"
@@ -77,8 +81,21 @@ def strings_of(path):
     return {m.group(1): m.group(2).strip() for m in STRING.finditer(path.read_text(encoding="utf-8"))}
 
 
-def main():
+def demo_quotes():
+    """The demo's texts quoting with straight quotes, or with « » outside French."""
     problems = []
+    for path in sorted(DEMO.glob("texts-*.json")):
+        language = path.stem.removeprefix("texts-")
+        for key, text in json.loads(path.read_text(encoding="utf-8")).items():
+            if '"' in text:
+                problems.append(f"demo[{language}]: {key} quotes with straight quotes; « » in French, “ ” in English")
+            if language != "fr" and "«" in text:
+                problems.append(f"demo[{language}]: {key} quotes with « » outside French; “ ”")
+    return problems
+
+
+def main():
+    problems = demo_quotes()
 
     for namespace, by_locale in sorted(groups().items()):
         if "" not in by_locale:

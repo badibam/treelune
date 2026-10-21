@@ -39,6 +39,8 @@ object JournalToolType : ToolTypeContract {
         return s.tool("usage")
     }
 
+    override fun getFamily() = app.treelune.core.tools.ToolFamily.NOTE
+
     override fun getDefaultDisplayMode(): String = "EXTENDED"
 
 

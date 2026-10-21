@@ -59,6 +59,8 @@ object ListToolType : ToolTypeContract {
     override fun getUsage(context: Context): String =
         Strings.`for`(tool = "list", context = context).tool("usage")
 
+    override fun getFamily() = app.treelune.core.tools.ToolFamily.NOTE
+
     override fun getDefaultDisplayMode(): String = "EXTENDED"
 
 

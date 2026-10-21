@@ -50,6 +50,8 @@ object QuestionnaireToolType : ToolTypeContract {
     override fun getGuideConfig(context: Context): String = Strings.`for`(tool = "questionnaire", context = context).tool("guide_config")
     override fun getGuideScreen(context: Context): String = Strings.`for`(tool = "questionnaire", context = context).tool("guide_screen")
     override fun getUsage(context: Context): String = s(context).tool("usage")
+    override fun getFamily() = app.treelune.core.tools.ToolFamily.PLAN
+
     override fun getDefaultDisplayMode(): String = "LINE"
     override fun getDefaultShowFieldLabels(): Boolean = true
     override fun getDefaultIconName(): String = "clipboard-list"

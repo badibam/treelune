@@ -294,8 +294,9 @@ class DemoData(private val time: TimeResolver, private val hand: JSONObject) {
             )
             for ((moment, time, foods) in moments) {
                 if (!past(time)) continue
+                // One entry per food, named by it as one writes it, its moment the value
                 foods.forEachIndexed { i, (food, grams) ->
-                    meals.add(entry("demo-e-meal-${n++}", text("meals_entry_$moment"), time + i * MINUTE, json("value" to moment),
+                    meals.add(entry("demo-e-meal-${n++}", text("food_$food"), time + i * MINUTE, json("value" to moment),
                         json("food" to ref("demo-food-$food"), "quantity" to (grams * between(0.85, 1.15)).roundToInt())))
                 }
             }
@@ -485,8 +486,9 @@ class DemoData(private val time: TimeResolver, private val hand: JSONObject) {
         entry(item.getString("id"), item.getString("name"), data = data, state = state)
     }
 
+    /** A tool's notes, each with its title when it has one (the tool's titles on). */
     private fun notes(tool: String) = handOf(tool).map { note ->
-        entry(note.getString("id"), data = note.getJSONObject("data"), state = json("position" to note.getInt("position")))
+        entry(note.getString("id"), note.optString("name").takeIf { it.isNotEmpty() }, data = note.getJSONObject("data"), state = json("position" to note.getInt("position")))
     }
 
     private fun placed(tool: String) = handOf(tool).mapNotNull { e ->

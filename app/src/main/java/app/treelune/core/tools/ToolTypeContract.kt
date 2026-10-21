@@ -40,6 +40,9 @@ interface ToolTypeContract {
     fun getGuideConfig(context: Context): String? = null
     fun getGuideScreen(context: Context): String? = null
 
+    /** The family this type's tile stands in, in the add menu of a zone's section. */
+    fun getFamily(): ToolFamily
+
     /** The display mode a new tool of this type is shown in, in its zone. */
     fun getDefaultDisplayMode(): String
 

@@ -73,6 +73,8 @@ object MessageToolType : ToolTypeContract {
         return listOf("bell", "bell-ring", "message-circle", "alarm-clock", "calendar-clock")
     }
 
+    override fun getFamily() = app.treelune.core.tools.ToolFamily.PLAN
+
     override fun getDefaultDisplayMode(): String = "LINE"
 
 

@@ -1397,7 +1397,8 @@
         "icon_name": "book-open",
         "display_mode": "CONDENSED",
         "group": "@kitchen_group_pantry",
-        "texture": "LINES"
+        "texture": "LINES",
+        "titles": true
       },
       "grid_x": 0,
       "grid_y": 3
@@ -1880,6 +1881,117 @@
       },
       "grid_x": 2,
       "grid_y": 7
+    },
+    {
+      "id": "demo-course-chart-work-sleep",
+      "zone_id": "demo-course",
+      "tooltype": "chart",
+      "config": {
+        "name": "@chart_work_sleep_name",
+        "description": "@chart_work_sleep_description",
+        "icon_name": "chart-column-big",
+        "display_mode": "LINE",
+        "group": "@course_group_analysis",
+        "period": {
+          "start": {
+            "relative": {
+              "unit": "WEEK",
+              "offset": -11,
+              "edge": "START"
+            }
+          },
+          "end": {
+            "relative": "NOW"
+          }
+        },
+        "composition": "vconcat",
+        "vconcat": [
+          {
+            "title": "@chart_work_sleep_work",
+            "layer": [
+              {
+                "description": "@chart_work_sleep_work_layer",
+                "mark": {
+                  "type": "bar"
+                },
+                "encoding": {
+                  "x": {
+                    "field": "timestamp",
+                    "type": "temporal"
+                  },
+                  "y": {
+                    "field": "@chart_work_sleep_col_hours",
+                    "type": "quantitative"
+                  }
+                },
+                "source": "grid",
+                "step": "week",
+                "columns": [
+                  {
+                    "name": "@chart_work_sleep_col_hours",
+                    "term": {
+                      "reading": {
+                        "selection": {
+                          "target": {
+                            "kind": "TOOL_INSTANCE",
+                            "id": "demo-work-hours"
+                          }
+                        },
+                        "reduction": "SUM",
+                        "field": "data.value"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "title": "@chart_work_sleep_sleep",
+            "layer": [
+              {
+                "description": "@chart_work_sleep_sleep_layer",
+                "mark": {
+                  "type": "line",
+                  "interpolate": "monotone",
+                  "point": true
+                },
+                "encoding": {
+                  "x": {
+                    "field": "timestamp",
+                    "type": "temporal"
+                  },
+                  "y": {
+                    "field": "@chart_work_sleep_col_night",
+                    "type": "quantitative"
+                  }
+                },
+                "source": "grid",
+                "step": "week",
+                "columns": [
+                  {
+                    "name": "@chart_work_sleep_col_night",
+                    "term": {
+                      "reading": {
+                        "selection": {
+                          "target": {
+                            "kind": "TOOL_INSTANCE",
+                            "id": "demo-course-sleep"
+                          }
+                        },
+                        "reduction": "AVERAGE",
+                        "field": "data.value"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "grid_x": 0,
+      "grid_y": 11
     },
     {
       "id": "demo-balcony-plants",
@@ -2763,6 +2875,24 @@
       }
     },
     {
+      "id": "demo-var-kcal-left",
+      "zone_id": "demo-kitchen",
+      "group": "@kitchen_group_meals",
+      "name": "kcal_restantes_demo",
+      "definition": {
+        "kind": "FORMULA",
+        "formula": "objectif_calorique_demo - kcal_jour_demo",
+        "terms": {},
+        "field": {
+          "type": "NUMERIC",
+          "config": {
+            "decimals": 0,
+            "unit": "kcal"
+          }
+        }
+      }
+    },
+    {
       "id": "demo-var-hours-week",
       "zone_id": "demo-work",
       "name": "heures_semaine_demo",
@@ -2821,6 +2951,36 @@
       },
       "is_enabled": false,
       "seed": "@auto_review_seed",
+      "pointers": [
+        {
+          "selection": {
+            "target": {
+              "kind": "TOOL_INSTANCE",
+              "id": "demo-course-runs"
+            },
+            "period": {
+              "start": {
+                "relative": {
+                  "unit": "WEEK",
+                  "offset": -1,
+                  "edge": "START"
+                }
+              },
+              "end": {
+                "relative": {
+                  "unit": "WEEK",
+                  "offset": -1,
+                  "edge": "END"
+                }
+              }
+            }
+          },
+          "attach": {
+            "config": false,
+            "entries": true
+          }
+        }
+      ],
       "access": [
         {
           "target": {

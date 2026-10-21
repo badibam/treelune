@@ -42,6 +42,8 @@ object ChartToolType : ToolTypeContract {
     override fun getGuideScreen(context: Context): String = Strings.`for`(tool = "chart", context = context).tool("guide_screen")
     override fun getUsage(context: Context): String = s(context).tool("usage")
     override fun getAIDetail(context: Context): String = s(context).tool("ai_detail")
+    override fun getFamily() = app.treelune.core.tools.ToolFamily.USE
+
     override fun getDefaultDisplayMode(): String = "LINE"
     override fun getDefaultShowFieldLabels(): Boolean = true
     override fun getDefaultIconName(): String = "chart-line"

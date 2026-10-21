@@ -70,6 +70,8 @@ object AgendaToolType : ToolTypeContract {
     override fun getAIDetail(context: Context): String = s(context).tool("ai_detail")
     override fun getGuideConfig(context: Context): String = s(context).tool("guide_config")
     override fun getGuideScreen(context: Context): String = s(context).tool("guide_screen")
+    override fun getFamily() = app.treelune.core.tools.ToolFamily.PLAN
+
     override fun getDefaultDisplayMode(): String = "EXTENDED"
     override fun getDefaultShowFieldLabels(): Boolean = false
     override fun getDefaultIconName(): String = "calendar"
