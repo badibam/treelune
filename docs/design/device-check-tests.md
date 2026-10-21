@@ -62,10 +62,6 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 - Supprimer la démo puis l'annuler : la démo revient entière, ses routines et leurs messages compris.
 - Un rappel d'Agenda envoyé, puis annuler le renommage de son événement : l'ancien nom revient, le rappel ne repart pas.
 
-## Les bugs du 2026-10-20 et les unités des durées (branche bugs)
-
-- Un Objectif récurrent : une tentative en cours dit « reste 40m » dans sa dernière heure.
-
 ## L'export des entrées (branche post-release)
 
 - Une routine dont le message demande l'export de la semaine : le fichier paraît dans le dossier à chaque exécution.
