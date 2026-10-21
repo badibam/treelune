@@ -80,7 +80,7 @@ object Looks {
             field(Texture.KEY, text("label_texture"), FieldType.CHOICE, mapOf("options" to Texture.options(text))),
             field(DISPLAY_MODE, text("tools_config_label_display_mode"), FieldType.CHOICE,
                 mapOf("options" to ChoiceSettings.storedOptions(modes, modes.associateWith { text("tools_config_display_${it.lowercase()}") })),
-                required = true, default = spec.defaultMode.name)
+                default = spec.defaultMode.name)
         )
     }
 

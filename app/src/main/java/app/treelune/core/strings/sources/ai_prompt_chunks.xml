@@ -589,7 +589,8 @@ Creates a variable in a zone. Its name is unique in the app and can be written i
 - `label` (string, **required**): what its tile and page show, in the user's words ("Calories left"); never its name made readable, ask when you do not know it
 - `description` (string, optional): what it is for
 - `icon_name` (string, optional): a Lucide icon name, `variable` when left out
-- `icon_color` (string, optional), `texture` (string, optional): as a tool's
+- `icon_color` (string, optional): as a tool's
+- `texture` (string, optional): as a tool's
 - `display_mode` (string, optional): `ICON`, `MINIMAL` (icon and label), `LINE` (its value beside, the default), `CONDENSED` (its value below)
 - `group` (string, optional): a group of the zone
 - `definition` (object, **required**), one of:
@@ -640,7 +641,12 @@ Changes a variable. Only what you give changes; a `definition` given replaces th
 
 - `variable_id` (string, **required**)
 - `name` (string, optional)
-- `label`, `description`, `icon_name`, `icon_color`, `texture`, `display_mode` (optional): as CREATE_VARIABLE; null empties a description, a colour or a texture
+- `label` (string, optional)
+- `description` (string, optional): null empties it
+- `icon_name` (string, optional)
+- `icon_color` (string, optional): null empties it
+- `texture` (string, optional): null empties it
+- `display_mode` (string, optional): as CREATE_VARIABLE
 - `definition` (object, optional)
 - `group` (string, optional): one of its zone's tool groups
 - `zone_id` (string, optional): the zone to move it to; its group stays behind unless you give one of the new zone's]]></string>

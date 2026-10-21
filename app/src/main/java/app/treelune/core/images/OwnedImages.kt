@@ -58,11 +58,10 @@ class OwnedImages private constructor(
     /** Whether the write changes nothing of the owner's images. */
     val unchanged: Boolean get() = moves.isEmpty() && copies.isEmpty() && removed.isEmpty()
 
-    private fun owned(image: ImageEntity) = image.copy(
-        sessionId = null,
-        entryId = (owner as? Owner.Entry)?.id,
-        toolInstanceId = (owner as? Owner.Tool)?.id
-    )
+    private val entryId = (owner as? Owner.Entry)?.id
+    private val toolInstanceId = (owner as? Owner.Tool)?.id
+
+    private fun owned(image: ImageEntity) = image.copy(sessionId = null, entryId = entryId, toolInstanceId = toolInstanceId)
 
     /** The files of the new images put in the entries' folder, before the transaction. */
     fun place() {
@@ -75,7 +74,7 @@ class OwnedImages private constructor(
             val format = ImageFormat.ofExtension(pending.extension) ?: error("Image $id: ${pending.name} is no image file")
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             BitmapFactory.decodeFile(target.path, bounds)
-            rows.add(owned(ImageEntity(id, null, null, null, format.name, target.length(), bounds.outWidth, bounds.outHeight, now)))
+            rows.add(ImageEntity(id, null, entryId, toolInstanceId, format.name, target.length(), bounds.outWidth, bounds.outHeight, now))
         }
         copies.forEach { (source, newId) ->
             val copy = owned(source).copy(id = newId, createdAt = now)
