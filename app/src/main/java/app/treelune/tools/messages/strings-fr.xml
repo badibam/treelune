@@ -104,6 +104,7 @@
     <string name="label_content">Contenu du jour</string>
     <string name="occurrence_due_at">Prévu le %1$s</string>
     <string name="occurrence_nothing_written">Rien d\'écrit pour cet envoi : seule la part commune partira</string>
+    <string name="removed_prepared">%1$d envoi(s) préparé(s) supprimé(s) avec ce qui y était écrit (%2$s), hors des horaires de la récurrence ; %3$d préparé(s) gardé(s)</string>
 
     <!-- OPERATIONS - What the AI reads of each operation -->
     <string name="operation_execute">Envoie le message maintenant, avec un titre et un contenu propres à cet envoi ; sans eux, seule la partie commune part.</string>

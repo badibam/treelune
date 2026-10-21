@@ -203,7 +203,18 @@ class SchemaService(private val context: Context) : ExecutableService {
 
         return when (operation) {
             "get" -> {
-                val target = listOf("tooltype", "tool_instance_id", "id").map { params.optString(it) }.firstOrNull { it.isNotEmpty() } ?: ""
+                // Named as the user knows it: a tool by its name, a tool type by the name it shows;
+                // a schema of the app itself has no other name than its id
+                val toolId = params.optString("tool_instance_id")
+                val tooltype = params.optString("tooltype")
+                val target = when {
+                    toolId.isNotEmpty() -> {
+                        val tool = app.treelune.core.coordinator.Coordinator(context).processUserAction("tools.get", mapOf("tool_instance_id" to toolId))
+                        (tool.data?.get("tool_instance") as? Map<*, *>)?.get("name") as? String ?: s.shared("content_unnamed")
+                    }
+                    tooltype.isNotEmpty() -> app.treelune.core.tools.ToolTypeManager.getToolType(tooltype)?.getDisplayName(context) ?: tooltype
+                    else -> params.optString("id")
+                }
                 s.shared("action_verbalize_schema_get").format(target)
             }
             "list" -> s.shared("action_verbalize_schema_list")

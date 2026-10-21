@@ -50,6 +50,7 @@ import org.json.JSONObject
 @Composable
 fun AutomationScreen(
     automationId: String,
+    onName: (String) -> Unit,
     onNavigateBack: () -> Unit,
     onNavigateToExecution: (sessionId: String) -> Unit
 ) {
@@ -114,6 +115,8 @@ fun AutomationScreen(
                 val found = data["automation"] as? Map<String, Any>
                 if (found != null) {
                     automationName = found["name"] as? String
+                    // The routine's place named by it, for the breadcrumb
+                    automationName?.let(onName)
                     automation = app.treelune.core.ai.data.Automation.fromResult(found)
                     automationMap = found
                 } else {
@@ -178,7 +181,9 @@ fun AutomationScreen(
 
                         ExecutionSummary(
                             sessionId = sessionMap["id"] as String,
-                            scheduledExecutionTime = sessionMap["scheduled_execution_time"] as? Long,
+                            // A run started by hand was planned for nothing: its card says so
+                            scheduledExecutionTime = (sessionMap["scheduled_execution_time"] as? Long)
+                                .takeIf { sessionMap["triggered_by"] != app.treelune.core.ai.data.ExecutionTrigger.MANUAL.name },
                             createdAt = createdAtValue,
                             phase = phase,
                             endReason = sessionMap["end_reason"] as? String,
