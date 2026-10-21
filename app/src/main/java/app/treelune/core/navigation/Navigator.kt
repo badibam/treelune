@@ -115,7 +115,7 @@ object Navigator {
     /** Back to the place at [index] of the stack, from the breadcrumb. */
     fun popTo(index: Int) {
         if (index >= stack.size - 1) return
-        set(PlaceStack.popTo(stack, index), "popTo")
+        set(PlaceStack.popTo(stack, index), "pop_to")
         UISounds.play(UISignal.BACK)
     }
 
@@ -127,7 +127,7 @@ object Navigator {
     }
 
     /** The zone [zoneId] deleted: every place of it leaves the stack. */
-    fun dropZone(zoneId: String) = set(PlaceStack.dropZone(stack, zoneId), "dropZone")
+    fun dropZone(zoneId: String) = set(PlaceStack.dropZone(stack, zoneId), "drop_zone")
 
     /** [place] gone from under the screen (a tool deleted, a zone not found): it leaves, silently. */
     fun drop(place: Place) = set(stack.filter { it != place }.ifEmpty { listOf(Place.Home) }, "drop")
