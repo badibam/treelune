@@ -4,12 +4,15 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Release F-Droid
 
-- La fiche fastlane : le changelog de la 0.9.0, les captures d'écran faites sur le téléphone (elles servent aussi aux README, place marquée).
+- La fiche fastlane : le changelog de la 0.9.0 ; les captures, dans `phoneScreenshots/`, à montrer dans les README (place marquée).
 - La 0.9.0 taguée sur un arbre propre, ses notes de version validées, la mise à jour depuis la dernière version publiée passée sur le téléphone avec ses données : les photos des conversations passées toujours là (migration 82) ; un premier événement au mercredi 28 octobre, un second au lundi 9 novembre, leurs rappels déjà envoyés qui ne repartent pas, une sauvegarde d'avant restaurée de même (migration 85).
 - La recette F-Droid sur `v0.8.1` essayée dans le conteneur (`docs/design/fdroid-compliance.md`), son APK comparé à celui de GitHub (`apksigcopier compare`) — podman à installer.
 
 ## Bugs du téléphone
 
+- La barre de navigation d'Android (trois boutons) dessinée par-dessus la barre d'outils du message dans la conversation, quand elle apparaît (vu le 2026-10-21, `navigationBars:[0,0,0,168]` au journal).
+- Encre et lavis : le nom d'une tuile coupé par un trait d'union au milieu d'un mot (« Day's calor- / ies » dans Kitchen).
+- Réglages › Format, « Langue et région » : « Locale personnalisée » ne change que l'écriture des nombres et des dates, la langue des textes suivant le téléphone ou le réglage d'Android par app ; un nom et une phrase qui le disent. Le filtre au-dessus d'une longue liste de choix (« Chercher dans la liste ») pris pour un réglage : « Filtrer la liste », une loupe.
 
 ## Bugs
 
