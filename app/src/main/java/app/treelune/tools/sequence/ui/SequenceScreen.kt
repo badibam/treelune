@@ -27,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -37,6 +38,10 @@ import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldInput
 import app.treelune.core.fields.FieldType
 import app.treelune.core.fields.toFieldDefinitions
+import app.treelune.core.images.IMAGE_LARGE_HEIGHT
+import app.treelune.core.images.IMAGE_SMALL_HEIGHT
+import app.treelune.core.images.ImageThumbnail
+import app.treelune.core.images.ImageViewer
 import app.treelune.core.strings.Strings
 import app.treelune.core.strings.StringsContext
 import app.treelune.core.tools.ToolConfigSettings
@@ -243,6 +248,7 @@ private fun Running(id: String, run: SequenceRun, s: StringsContext, gesture: (S
             if (run.isPaused) UI.Text(s.tool("running_paused"), TextType.WARNING)
             else if (run.held) UI.Text(s.tool("running_held"), TextType.CAPTION)
             step.instruction?.let { MarkupText(it, icons = false, selectable = false) }
+            if (step.images.isNotEmpty()) StepImages(step.images)
         }
     }
     run.next?.let { UI.Text(s.tool("running_next").format(it.name), TextType.CAPTION) }
@@ -274,6 +280,21 @@ private fun Closing(entry: SequenceEntry, fields: List<FieldDefinition>, s: Stri
     ).joinToString(" · "), TextType.BODY)
     if (fields.isNotEmpty()) CustomFieldsInput(customFieldsMetadata = fields, values = values, onValuesChange = { values = it }, context = context)
     UI.Button(type = ButtonType.PRIMARY, onClick = { onFinish(fields.associate { it.name to values[it.name] }) }) { UI.Text(s.tool("action_finish"), TextType.LABEL) }
+}
+
+/**
+ * A step's images during the session: the first large, the others small under it; a touched one
+ * opens whole, the others a swipe away.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun StepImages(ids: List<String>) {
+    var open by rememberSaveable(ids) { mutableStateOf<Int?>(null) }
+    ImageThumbnail(ids.first(), Modifier.fillMaxWidth(), height = IMAGE_LARGE_HEIGHT, onClick = { open = 0 })
+    if (ids.size > 1) FlowRow(horizontalArrangement = Arrangement.spacedBy(UI.Space.S), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+        ids.drop(1).forEachIndexed { i, id -> ImageThumbnail(id, height = IMAGE_SMALL_HEIGHT, onClick = { open = i + 1 }) }
+    }
+    open?.let { start -> ImageViewer(ids, start) { open = null } }
 }
 
 /** A session the app stopped mid-way: resumed, its step starting again, or stopped. */
@@ -335,7 +356,10 @@ internal fun historyLine(entry: SequenceEntry, s: StringsContext, context: Conte
     if (entry.stepsDone != null && entry.stepsTotal != null) s.tool("steps_of").format(entry.stepsDone, entry.stepsTotal) else null
 ).joinToString(" · ")
 
-/** The run as the config writes it: one line per step, its end; a block « × N », its steps indented. */
+/**
+ * The run as the config writes it: one line per step, its end, its first image small at its end;
+ * a block « × N », its steps indented.
+ */
 @Composable
 private fun StepLines(elements: JSONArray?, depth: Int, s: StringsContext) {
     if (elements == null) return
@@ -353,7 +377,10 @@ private fun StepLines(elements: JSONArray?, depth: Int, s: StringsContext) {
                 null -> ""
                 else -> clockText(element.optLong(SequencePlan.DURATION)) + if (end == StepEnd.TIMED_THEN_MANUAL) " · " + s.tool("end_then_manual_short") else ""
             }
-            Box(modifier = indent) { UI.Text(listOf(element.optString(SequencePlan.NAME), how).filter { it.isNotEmpty() }.joinToString(" · "), TextType.BODY) }
+            Row(modifier = indent.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(UI.Space.S), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.weight(1f)) { UI.Text(listOf(element.optString(SequencePlan.NAME), how).filter { it.isNotEmpty() }.joinToString(" · "), TextType.BODY) }
+                SequencePlan.ids(element.optJSONArray(SequencePlan.IMAGES)).firstOrNull()?.let { ImageThumbnail(it, height = IMAGE_SMALL_HEIGHT) }
+            }
         }
     }
 }

@@ -148,12 +148,13 @@ object SequenceToolType : ToolTypeContract {
         return SettingNode.ListOf(SequencePlan.STEPS, text("field_steps"), SettingNode.Item.Of(item), required = true, minItems = 1, summary = listOf(SequencePlan.NAME))
     }
 
-    /** A step: its name, its instruction, how it ends; in a block, whether its last round leaves it out. */
+    /** A step: its name, its instruction, its images, how it ends; in a block, whether its last round leaves it out. */
     private fun stepNodes(text: (String) -> String, inBlock: Boolean): List<SettingNode> {
         val duration = listOf(SettingNode.Field(field(SequencePlan.DURATION, text("field_step_duration"), FieldType.DURATION, config = STEP_UNITS), required = true))
         return listOfNotNull(
             SettingNode.Field(field(SequencePlan.NAME, text("field_step_name"), FieldType.TEXT, config = mapOf("length" to TextLength.SHORT.name)), required = true),
             SettingNode.Field(field(SequencePlan.INSTRUCTION, text("field_instruction"), FieldType.TEXT, text("schema_instruction"), mapOf("length" to TextLength.LONG.name))),
+            SettingNode.Field(field(SequencePlan.IMAGES, text("field_step_images"), FieldType.IMAGE, text("schema_step_images"))),
             SettingNode.Variant(
                 selector = SettingNode.Field(field(SequencePlan.END, text("field_end"), FieldType.CHOICE, text("schema_end"),
                     choice(StepEnd.KEYS) { text("end_$it") }), required = true, default = StepEnd.MANUAL.key),

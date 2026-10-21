@@ -26,7 +26,6 @@ Codé, jamais vu sur l'appareil.
 ## Décidé, à coder
 
 - Un filtre qui compare un champ à une variable ou une lecture (« kcal > objectif_calorique ») : le terme lu une fois à la référence du contexte (`TermReader`, `docs/BRICKS.md`), puis le filtre SQL comme aujourd'hui ; `EntryFilters.parse` et `ConditionPicker` le prennent.
-- Séance : des images par étape (une posture de yoga), montrées en grand pendant la séance ; une image peut appartenir à la config d'un outil, écrit une fois pour tous les outils (enregistrement, nettoyage au démarrage, sauvegarde, import d'une partie, historique).
 - La grille d'une section accepte des variables, chacune avec un libellé et un mode (MINIMAL, LINE, CONDENSED), placées parmi les outils ; puis les automations dans le même modèle, leur tuile ouvrant leur page, où passent les boutons de leur carte. Reste à concevoir : où ranger la position d'une variable, le placement de deux sortes d'éléments.
 
 ## À concevoir
