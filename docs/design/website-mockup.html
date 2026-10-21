@@ -33,6 +33,9 @@
     --line: #DDE1E8;
     --accent: var(--night);
     --accent-ink: #FFFFFF;
+    /* Tag colours, the default theme's (DefaultDrawing.kt) */
+    --red: #C94A4A; --orange: #D9772B; --yellow: #B8961A; --green: #4E9A45;
+    --teal: #2E8F84; --blue: #3D6FC6; --purple: #7A55B0; --pink: #C4508D; --grey: #8C8699;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -44,11 +47,13 @@
       --line: #34446F;
       --accent: #F2E6BF;
       --accent-ink: #1E2A47;
+      --red: #F08A8A; --orange: #F5AE72; --yellow: #EBD36A; --green: #8FD08A; --teal: #79CFC4; --blue: #8DB0F0; --purple: #BE9BE3; --pink: #EE95C3; --grey: #B8B2C2;
     }
   }
   :root[data-theme="dark"] {
     --bg: #1E2A47; --surface: #25335A; --shot-ground: #2B3A63; --ink: #EEF0F5;
     --muted: #AEB6C8; --line: #34446F; --accent: #F2E6BF; --accent-ink: #1E2A47;
+    --red: #F08A8A; --orange: #F5AE72; --yellow: #EBD36A; --green: #8FD08A; --teal: #79CFC4; --blue: #8DB0F0; --purple: #BE9BE3; --pink: #EE95C3; --grey: #B8B2C2;
   }
 
   * { box-sizing: border-box; }
@@ -204,9 +209,13 @@
   .explorer { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 56px; align-items: center; }
   .flip .explorer { grid-template-columns: auto minmax(0, 1fr); }
   .flip .ex-side { order: 2; }
-  .ex-stage { display: flex; justify-content: center; background: var(--shot-ground); border-radius: 18px; padding: 28px 40px; }
-  .ex-stage .phone { height: min(600px, 76svh); width: auto; }
-  .ex-stage .computer { height: min(320px, 50svh); aspect-ratio: 16 / 10; border-radius: 12px; border: 8px solid #11161F; }
+  .ex-stage {
+    --ph: min(600px, 76svh);
+    display: flex; justify-content: center; align-items: center; background: var(--shot-ground); border-radius: 18px;
+    width: calc(var(--ph) * .4969 + 80px); height: calc(var(--ph) + 56px);
+  }
+  .ex-stage .phone { height: var(--ph); width: auto; }
+  .ex-stage .computer { width: calc(100% - 32px); height: auto; aspect-ratio: 16 / 10; border-radius: 10px; border: 7px solid #11161F; }
   /* The choices are tiles, several per row; the details sit in a box of fixed size, so nothing jumps and the eye goes there */
   .ex-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
   .ex-list button {
@@ -214,7 +223,14 @@
     border: 1.5px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink);
     transition: border-color .2s, background .2s, transform .2s;
   }
+  .ex-list button { display: flex; align-items: center; gap: 12px; }
   .ex-list button small { display: block; font-weight: 400; font-size: 13px; margin-top: 3px; color: var(--muted); }
+  /* An icon on a pill of its colour, as the default theme draws a tool's icon */
+  .pill {
+    flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
+    color: var(--c); background: color-mix(in srgb, var(--c) 16%, transparent);
+  }
+  .pill svg { width: 20px; height: 20px; }
   .ex-list button:hover { border-color: var(--accent); transform: translateY(-1px); }
   .ex-list button[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); box-shadow: inset 0 0 0 1px var(--accent); }
   .ex-caption {
@@ -245,7 +261,7 @@
   @media (max-width: 820px) and (orientation: portrait) {
     .explorer, .flip .explorer { grid-template-columns: 1fr; gap: 16px; }
     .flip .ex-side { order: 0; }
-    .ex-stage { padding: 20px 16px; order: -1; }
+    .ex-stage { --ph: min(560px, 62svh); width: auto; height: calc(var(--ph) + 40px); order: -1; }
     .ex-caption h3 { display: none; }
     .ex-stage .phone { height: min(560px, 62svh); }
     .ex-side { position: relative; display: flex; flex-direction: column; align-items: center; }
@@ -263,6 +279,7 @@
     .ex-side.open .ex-list { display: flex; top: -8px; }
     .ex-list button { border: none; border-left: 3px solid transparent; border-radius: 0; min-height: 0; padding: 6px 14px; background: transparent; box-shadow: none; transform: none; }
     .ex-list button small { display: inline; margin-left: 8px; }
+    .ex-list .pill { width: 26px; height: 26px; } .ex-list .pill svg { width: 15px; height: 15px; }
     .ex-list button[aria-pressed="true"] { border-left-color: var(--accent); background: transparent; box-shadow: none; }
     .ex-caption { margin-top: 14px; height: auto; width: 100%; }
   }
@@ -271,6 +288,7 @@
   @media (max-height: 500px) and (orientation: landscape) {
     .explorer { align-items: start; }
     .ex-side { position: sticky; top: calc(56px + 4svh); }
+    .ex-stage { width: calc(30vw + 48px); height: calc(30vw * 2.0125 + 48px); }
     .ex-stage .phone { height: auto; width: 30vw; }
     .ex-list { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1.5svh; }
     .ex-list button { font-size: min(15px, 4svh); padding: 1.5svh 10px; min-height: 0; }
@@ -490,6 +508,35 @@
   prefersDark.addEventListener("change", e => { if (!storedMode()) applyMode(e.matches ? "dark" : "light"); });
   applyMode(mode);
 
+  // Lucide icons (third_party/lucide), drawn on a pill of their tag colour
+  const ICONS = {
+    "activity": "<path d=\"M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2\" />",
+    "target": "<circle cx=\"12\" cy=\"12\" r=\"10\" /> <circle cx=\"12\" cy=\"12\" r=\"6\" /> <circle cx=\"12\" cy=\"12\" r=\"2\" />",
+    "chart-line": "<path d=\"M3 3v16a2 2 0 0 0 2 2h16\" /> <path d=\"m19 9-5 5-4-4-3 3\" />",
+    "layers": "<path d=\"M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z\" /> <path d=\"M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12\" /> <path d=\"M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17\" />",
+    "calendar": "<path d=\"M8 2v3\" /> <path d=\"M16 2v3\" /> <rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\" /> <path d=\"M3 9h18\" />",
+    "timer": "<line x1=\"10\" x2=\"14\" y1=\"2\" y2=\"2\" /> <line x1=\"12\" x2=\"15\" y1=\"14\" y2=\"11\" /> <circle cx=\"12\" cy=\"14\" r=\"8\" />",
+    "table": "<path d=\"M12 3v18\" /> <rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" /> <path d=\"M3 9h18\" /> <path d=\"M3 15h18\" />",
+    "clipboard-list": "<rect width=\"8\" height=\"4\" x=\"8\" y=\"2\" rx=\"1\" ry=\"1\" /> <path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2\" /> <path d=\"M12 11h4\" /> <path d=\"M12 16h4\" /> <path d=\"M8 11h.01\" /> <path d=\"M8 16h.01\" />",
+    "list-checks": "<path d=\"M13 5h8\" /> <path d=\"M13 12h8\" /> <path d=\"M13 19h8\" /> <path d=\"m3 17 2 2 4-4\" /> <path d=\"m3 7 2 2 4-4\" />",
+    "book-open": "<path d=\"M12 5v16\" /> <path d=\"M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z\" />",
+    "sticky-note": "<path d=\"M21 9a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 15 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2z\" /> <path d=\"M15 3v5a1 1 0 0 0 1 1h5\" />",
+    "bell": "<path d=\"M10.268 21a2 2 0 0 0 3.464 0\" /> <path d=\"M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326\" />",
+    "languages": "<path d=\"m5 8 6 6\" /> <path d=\"m4 14 6-6 2-3\" /> <path d=\"M2 5h12\" /> <path d=\"M7 2h1\" /> <path d=\"m22 22-5-10-5 10\" /> <path d=\"M14 18h6\" />",
+    "trophy": "<path d=\"M10 14.66V17a1 1 0 0 1-1 1 2 2 0 0 0-2 2v2\" /> <path d=\"M14 14.66V17a1 1 0 0 0 1 1 2 2 0 0 1 2 2v2\" /> <path d=\"M17.916 10H19.5A2.5 2.5 0 0 0 22 7.5V5a1 1 0 0 0-1-1h-3\" /> <path d=\"M4 22h16\" /> <path d=\"M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z\" /> <path d=\"M6.084 10H4.5A2.5 2.5 0 0 1 2 7.5V5a1 1 0 0 1 1-1h3\" />",
+    "chart-column": "<path d=\"M3 3v16a2 2 0 0 0 2 2h16\" /> <path d=\"M18 17V9\" /> <path d=\"M13 17V5\" /> <path d=\"M8 17v-3\" />",
+    "book-a": "<path d=\"M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20\" /> <path d=\"m8 13 4-7 4 7\" /> <path d=\"M9.1 11h5.7\" />",
+    "message-square-quote": "<path d=\"M14 14a2 2 0 0 0 2-2V8h-2\" /> <path d=\"M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z\" /> <path d=\"M8 14a2 2 0 0 0 2-2V8H8\" />",
+    "luggage": "<path d=\"M6 20a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2\" /> <path d=\"M8 18V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v14\" /> <path d=\"M10 20h4\" /> <circle cx=\"16\" cy=\"20\" r=\"2\" /> <circle cx=\"8\" cy=\"20\" r=\"2\" />",
+    "book-open-text": "<path d=\"M12 5v16\" /> <path d=\"M16 13h2\" /> <path d=\"M16 9h2\" /> <path d=\"M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z\" /> <path d=\"M6 13h2\" /> <path d=\"M6 9h2\" />",
+    "sparkles": "<path d=\"M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z\" /> <path d=\"M20 2v4\" /> <path d=\"M22 4h-4\" /> <circle cx=\"4\" cy=\"20\" r=\"2\" />",
+    "zap": "<path d=\"M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z\" />",
+    "message-circle": "<path d=\"M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719\" />",
+    "repeat": "<path d=\"m17 2 4 4-4 4\" /> <path d=\"M3 11v-1a4 4 0 0 1 4-4h14\" /> <path d=\"m7 22-4-4 4-4\" /> <path d=\"M21 13v1a4 4 0 0 1-4 4H3\" />",
+    "laptop": "<path d=\"M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 0 4 15.526V7a2 2 0 0 1 2-2z\" /> <path d=\"M20.054 15.987H3.946\" />"
+    };
+  const pill = (icon, color) => `<span class="pill" style="--c: var(--${color})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[icon]}</svg></span>`;
+
   // The explorer pattern: each set lists its choices; a choice says what the stage shows and what the caption says
   const empty = text => `<div class="phone"><div class="empty">${text}</div></div>`;
   const shot = n => `<div class="phone"><img src="${SHOTS + n}.png" alt=""></div>`;
@@ -507,36 +554,36 @@
 
   const SETS = {
     zone: [
-      { name: "Soirée d'italien", tag: "Questionnaire", stage: zoneScreen("survey"), text: "Un Questionnaire posé chaque soir, pour noter ce qui a été fait et les mots appris." },
-      { name: "Semaine d'italien", tag: "Objectif", stage: zoneScreen("goal"), text: "Un Objectif, jugé chaque semaine sur le nombre de soirées notées dans le Questionnaire." },
-      { name: "Mots par semaine", tag: "Graphique", stage: zoneScreen("chart"), text: "Un Graphique des mots appris, semaine après semaine, lus dans le Questionnaire." },
-      { name: "Lessico", tag: "Données structurées", stage: zoneScreen("lessico"), text: "Le vocabulaire, avec une fiche par mot." },
-      { name: "Ripasso", tag: "Flashcards", stage: zoneScreen("ripasso"), text: "Des Flashcards tirées du Lessico. Chaque mot revient juste avant d'être oublié." },
-      { name: "Phrases utiles", tag: "Notes", stage: zoneScreen("phrases"), text: "Des Notes à garder sous la main à Rome." },
-      { name: "Valise pour Rome", tag: "Liste", stage: zoneScreen("suitcase"), text: "Une Liste à cocher avant le départ." },
-      { name: "Leçon du dimanche", tag: "Routine", stage: zoneScreen(null), text: "Chaque dimanche, l'IA prépare seule la leçon de la semaine, dans le rôle de Giulia, une professeure d'italien." },
+      { name: "Soirée d'italien", icon: "languages", color: "blue", tag: "Questionnaire", stage: zoneScreen("survey"), text: "Un Questionnaire posé chaque soir, pour noter ce qui a été fait et les mots appris." },
+      { name: "Semaine d'italien", icon: "trophy", color: "yellow", tag: "Objectif", stage: zoneScreen("goal"), text: "Un Objectif, jugé chaque semaine sur le nombre de soirées notées dans le Questionnaire." },
+      { name: "Mots par semaine", icon: "chart-column", color: "green", tag: "Graphique", stage: zoneScreen("chart"), text: "Un Graphique des mots appris, semaine après semaine, lus dans le Questionnaire." },
+      { name: "Lessico", icon: "book-a", color: "orange", tag: "Données structurées", stage: zoneScreen("lessico"), text: "Le vocabulaire, avec une fiche par mot." },
+      { name: "Ripasso", icon: "layers", color: "teal", tag: "Flashcards", stage: zoneScreen("ripasso"), text: "Des Flashcards tirées du Lessico. Chaque mot revient juste avant d'être oublié." },
+      { name: "Phrases utiles", icon: "message-square-quote", color: "pink", tag: "Notes", stage: zoneScreen("phrases"), text: "Des Notes à garder sous la main à Rome." },
+      { name: "Valise pour Rome", icon: "luggage", color: "purple", tag: "Liste", stage: zoneScreen("suitcase"), text: "Une Liste à cocher avant le départ." },
+      { name: "Leçon du dimanche", icon: "book-open-text", color: "teal", tag: "Routine", stage: zoneScreen(null), text: "Chaque dimanche, l'IA prépare seule la leçon de la semaine, dans le rôle de Giulia, une professeure d'italien." },
     ],
     action: [
-      { name: "L'IA crée un outil", stage: empty("Vidéo de 10 à 20 s : l'IA crée un outil"), text: "« Je voudrais suivre mon sommeil. » L'IA propose un Suivi déjà réglé. Une fois validé, sa tuile apparaît dans la zone.", theme: "Cosy" },
-      { name: "Une saisie rapide", stage: empty("Vidéo : une saisie rapide"), text: "Une sortie de 7,4 km se note depuis la tuile, sans ouvrir l'outil. L'Objectif de la semaine avance aussitôt.", theme: "Suisse" },
-      { name: "Une vraie discussion", stage: shot(5), text: "« Est-ce que je dors moins quand je travaille beaucoup ? » L'IA lit les deux outils et répond, chiffres à l'appui.", theme: "Liseuse" },
-      { name: "Une routine", stage: empty("Vidéo : une routine"), text: "Chaque dimanche, l'IA fait seule le bilan de la semaine d'entraînement. Une notification arrive quand il est prêt.", theme: "Métro" },
-      { name: "Depuis l'ordinateur", stage: `<div class="computer empty">Vidéo : une IA de l'ordinateur dans l'app</div>`, text: "Une IA installée sur l'ordinateur, comme Claude Desktop, peut lire les données de l'app et y écrire, avec ton accord.", theme: "écran d'ordinateur" },
+      { name: "L'IA crée un outil", icon: "sparkles", color: "purple", stage: empty("Vidéo de 10 à 20 s : l'IA crée un outil"), text: "« Je voudrais suivre mon sommeil. » L'IA propose un Suivi déjà réglé. Une fois validé, sa tuile apparaît dans la zone.", theme: "Cosy" },
+      { name: "Une saisie rapide", icon: "zap", color: "orange", stage: empty("Vidéo : une saisie rapide"), text: "Une sortie de 7,4 km se note depuis la tuile, sans ouvrir l'outil. L'Objectif de la semaine avance aussitôt.", theme: "Suisse" },
+      { name: "Une vraie discussion", icon: "message-circle", color: "blue", stage: shot(5), text: "« Est-ce que je dors moins quand je travaille beaucoup ? » L'IA lit les deux outils et répond, chiffres à l'appui.", theme: "Liseuse" },
+      { name: "Une routine", icon: "repeat", color: "teal", stage: empty("Vidéo : une routine"), text: "Chaque dimanche, l'IA fait seule le bilan de la semaine d'entraînement. Une notification arrive quand il est prêt.", theme: "Métro" },
+      { name: "Depuis l'ordinateur", icon: "laptop", color: "green", stage: `<div class="computer empty">Vidéo : une IA de l'ordinateur dans l'app</div>`, text: "Une IA installée sur l'ordinateur, comme Claude Desktop, peut lire les données de l'app et y écrire, avec ton accord.", theme: "écran d'ordinateur" },
     ],
     tools: [
-      ["Suivi", "Des chiffres, des notes sur une échelle, des choix ou des durées chronométrées, notés au fil des jours, comme le poids, le sommeil, l'humeur ou les verres d'eau", "Cosy", 2],
-      ["Objectif", "Un objectif jugé chaque jour, semaine ou mois sur les critères que tu fixes, lus dans tes entrées", "Suisse", 3],
-      ["Graphique", "Tes entrées et tes chiffres dessinés en courbes, barres, camemberts ou calendriers", "Encre et lavis"],
-      ["Flashcards", "Des cartes à réviser tirées d'un autre outil, chacune revenant juste avant d'être oubliée", "Métro", 6],
-      ["Agenda", "Les rendez-vous et les événements à heure, qui passent d'eux-mêmes, avec leurs rappels", "Plan d'architecte", 7],
-      ["Séance", "Des étapes préparées à l'avance, suivies à l'écran avec un minuteur et un signal à chaque changement, comme un entraînement ou une recette", "Papier découpé", 8],
-      ["Données structurées", "Des fiches aux champs que tu choisis, chacune retrouvée par son nom, pour des aliments, des livres, des plantes ou autre chose", "Rétro"],
-      ["Questionnaire", "Des questions posées une par écran, quand tu veux ou à heures prévues", "Liseuse"],
-      ["Liste", "Ce qui reste à faire, coché au fur et à mesure, avec des échéances si tu veux", "Material"],
-      ["Journal", "Un carnet daté, pour raconter ses journées", "Encre et lavis"],
-      ["Notes", "Des notes, chacune avec son titre, rangées là où elles servent", "Cosy"],
-      ["Messages", "Des rappels et des notifications, une fois ou selon un planning", "Suisse"],
-    ].map(([name, text, theme, n]) => ({ name, text, theme, stage: n ? shot(n) : empty("Capture : " + name) })),
+      ["Suivi", "activity", "orange", "Des chiffres, des notes sur une échelle, des choix ou des durées chronométrées, notés au fil des jours, comme le poids, le sommeil, l'humeur ou les verres d'eau", "Cosy", 2],
+      ["Objectif", "target", "yellow", "Un objectif jugé chaque jour, semaine ou mois sur les critères que tu fixes, lus dans tes entrées", "Suisse", 3],
+      ["Graphique", "chart-line", "green", "Tes entrées et tes chiffres dessinés en courbes, barres, camemberts ou calendriers", "Encre et lavis"],
+      ["Flashcards", "layers", "teal", "Des cartes à réviser tirées d'un autre outil, chacune revenant juste avant d'être oubliée", "Métro", 6],
+      ["Agenda", "calendar", "blue", "Les rendez-vous et les événements à heure, qui passent d'eux-mêmes, avec leurs rappels", "Plan d'architecte", 7],
+      ["Séance", "timer", "red", "Des étapes préparées à l'avance, suivies à l'écran avec un minuteur et un signal à chaque changement, comme un entraînement ou une recette", "Papier découpé", 8],
+      ["Données structurées", "table", "purple", "Des fiches aux champs que tu choisis, chacune retrouvée par son nom, pour des aliments, des livres, des plantes ou autre chose", "Rétro"],
+      ["Questionnaire", "clipboard-list", "pink", "Des questions posées une par écran, quand tu veux ou à heures prévues", "Liseuse"],
+      ["Liste", "list-checks", "teal", "Ce qui reste à faire, coché au fur et à mesure, avec des échéances si tu veux", "Material"],
+      ["Journal", "book-open", "orange", "Un carnet daté, pour raconter ses journées", "Encre et lavis"],
+      ["Notes", "sticky-note", "yellow", "Des notes, chacune avec son titre, rangées là où elles servent", "Cosy"],
+      ["Messages", "bell", "red", "Des rappels et des notifications, une fois ou selon un planning", "Suisse"],
+    ].map(([name, icon, color, text, theme, n]) => ({ name, icon, color, text, theme, stage: n ? shot(n) : empty("Capture : " + name) })),
   };
 
   document.querySelectorAll(".explorer").forEach(root => {
@@ -563,7 +610,7 @@
     }
     items.forEach((it, i) => {
       const b = document.createElement("button");
-      b.innerHTML = it.name + (it.tag ? `<small>${it.tag}</small>` : "");
+      b.innerHTML = pill(it.icon, it.color) + `<span>${it.name}${it.tag ? `<small>${it.tag}</small>` : ""}</span>`;
       b.onclick = () => { choose(i); fold(); };
       list.appendChild(b);
     });
