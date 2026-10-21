@@ -74,23 +74,10 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 - Modifier la voix, enregistrer : « écrit dans l'app » ; réimporter le fichier : la confirmation nomme `fr · voice` parmi les retouches perdues, et confirmée, la voix revient. Choisir une autre icône et une couleur, enregistrer : la tuile les montre.
 - Les retirer, supprimer : la conversation passée se relit, son composeur remplacé par la raison.
 
-## Les conditions typées à l'écriture (branche typed-conditions)
-
-- Un Objectif « sommeil moyen d'au moins 7 h » créé par l'IA : sa config, rouverte à l'écran, montre 7 h, et la tentative se juge sans erreur.
-
-## Les fournisseurs créés (branche ai-providers)
-
-
 ## L'historique des écritures (branche undo-history)
 
 - Supprimer la démo puis l'annuler : la démo revient entière, ses routines et leurs messages compris.
 - Un rappel d'Agenda envoyé, puis annuler le renommage de son événement : l'ancien nom revient, le rappel ne repart pas.
-
-## Les journées de l'app (2026-10-20, branche todo-cleanup)
-
-- La nuit, entre minuit et l'heure de début du jour : « cette semaine », « ce mois » restent ceux de la veille au soir (une variable de la semaine, le Suivi d'une semaine, un Graphique de la semaine) ; « aujourd'hui » reste la veille.
-- Une série d'événements toute la journée : chaque début à l'heure de début du jour ; l'IA qui lit les événements d'aujourd'hui voit une journée entière.
-- La nuit, avant 4 h : le sélecteur d'un champ DATE marque la veille comme aujourd'hui et s'ouvre dessus, celui de la date d'une entrée du Journal le jour du calendrier ; « aujourd'hui » choisi dans un champ DATE donne la veille.
 
 ## Les bugs du 2026-10-20 et les unités des durées (branche bugs)
 
