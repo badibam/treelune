@@ -37,14 +37,13 @@ Avec le relais en place (son projet `relay`, en ligne sur `https://relay.badibam
 
 - Rattrapage réel : automation programmée, app fermée plusieurs jours. Voir quelle session est reprise et ce que montre l'écran d'historique ; une donnée de la date prévue est écrite avec un timestamp ISO explicite.
 - Lancer une automation, couper le réseau pendant l'appel, puis Stop : la session se ferme tout de suite. Sans Stop, elle attend le réseau si l'appel n'était pas parti, ou s'arrête avec « Requête envoyée, réponse perdue » et un coût en « ≥ » sur sa carte.
-- Routine planifiée qui demande plusieurs lectures et écritures, app fermée (glissée hors des récentes), écran éteint : à l'alarme, une notification « Routine en cours » à son nom apparaît, la routine va au bout (son historique), la notification disparaît. Pas de ligne « AutomationRun: the service could not start » au journal. Réseau coupé pendant qu'elle tourne : elle se ferme après 2 min, la notification part, et elle reprend à une alarme suivante une fois le réseau revenu.
+- Routine planifiée en cours, réseau coupé : elle se ferme après 2 min, la notification « Routine en cours » part, et elle reprend à une alarme suivante une fois le réseau revenu.
 - Un questionnaire à remplir touché sur sa tuile, puis fermé ; l'app retirée des récents pendant qu'une routine est active ou que l'accès externe tourne, puis rouverte : la page de l'outil, sans questionnaire ouvert.
 
 ## Notifications
 
 - Notifications : toucher celle d'une tentative à valider, d'une invitation à remplir ou d'un message ouvre l'app sur la zone puis l'outil, à sa plus ancienne entrée qui attend ; un outil supprimé depuis ouvre l'app telle quelle.
 - Icône des notifications : dans la barre d'état et le volet, celle de l'outil qui envoie (un message, un élément de liste à échéance, une tentative à valider, un questionnaire à remplir), en silhouette nette, avec le thème par défaut comme avec le rétro.
-- Une routine lancée à la main, réglée « Toujours » : à sa fin, une notification au nom de la routine avec le début du résumé ; la toucher ouvre l'exécution, le résumé et la ligne de faits en tête. Avant de la toucher : le point sur la tuile de la zone, la carte de la routine et sa ligne dans l'historique, la première phrase du résumé sous sa date ; ouverte, les trois points s'effacent.
 
 ## Séance
 
