@@ -1882,6 +1882,117 @@
       "grid_y": 7
     },
     {
+      "id": "demo-course-chart-work-sleep",
+      "zone_id": "demo-course",
+      "tooltype": "chart",
+      "config": {
+        "name": "@chart_work_sleep_name",
+        "description": "@chart_work_sleep_description",
+        "icon_name": "chart-column-big",
+        "display_mode": "LINE",
+        "group": "@course_group_analysis",
+        "period": {
+          "start": {
+            "relative": {
+              "unit": "WEEK",
+              "offset": -11,
+              "edge": "START"
+            }
+          },
+          "end": {
+            "relative": "NOW"
+          }
+        },
+        "composition": "vconcat",
+        "vconcat": [
+          {
+            "title": "@chart_work_sleep_work",
+            "layer": [
+              {
+                "description": "@chart_work_sleep_work_layer",
+                "mark": {
+                  "type": "bar"
+                },
+                "encoding": {
+                  "x": {
+                    "field": "timestamp",
+                    "type": "temporal"
+                  },
+                  "y": {
+                    "field": "@chart_work_sleep_col_hours",
+                    "type": "quantitative"
+                  }
+                },
+                "source": "grid",
+                "step": "week",
+                "columns": [
+                  {
+                    "name": "@chart_work_sleep_col_hours",
+                    "term": {
+                      "reading": {
+                        "selection": {
+                          "target": {
+                            "kind": "TOOL_INSTANCE",
+                            "id": "demo-work-hours"
+                          }
+                        },
+                        "reduction": "SUM",
+                        "field": "data.value"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "title": "@chart_work_sleep_sleep",
+            "layer": [
+              {
+                "description": "@chart_work_sleep_sleep_layer",
+                "mark": {
+                  "type": "line",
+                  "interpolate": "monotone",
+                  "point": true
+                },
+                "encoding": {
+                  "x": {
+                    "field": "timestamp",
+                    "type": "temporal"
+                  },
+                  "y": {
+                    "field": "@chart_work_sleep_col_night",
+                    "type": "quantitative"
+                  }
+                },
+                "source": "grid",
+                "step": "week",
+                "columns": [
+                  {
+                    "name": "@chart_work_sleep_col_night",
+                    "term": {
+                      "reading": {
+                        "selection": {
+                          "target": {
+                            "kind": "TOOL_INSTANCE",
+                            "id": "demo-course-sleep"
+                          }
+                        },
+                        "reduction": "AVERAGE",
+                        "field": "data.value"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "grid_x": 0,
+      "grid_y": 11
+    },
+    {
       "id": "demo-balcony-plants",
       "zone_id": "demo-balcony",
       "tooltype": "structured",
