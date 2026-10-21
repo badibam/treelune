@@ -52,8 +52,7 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 
 ## Partager une partie de l'app (branche post-release)
 
-- Importer… sur ce fichier : tout coché, entrées comprises, sans le choix « Tout restaurer ». Une zone dans « Une zone existante » : celle du même nom en tête de liste. Une variable dont le nom est pris dit son nouveau nom ; un outil Messages ou Agenda dit qu'il peut envoyer des notifications.
-- Importer : la fenêtre dit les zones créées, les éléments et les entrées ; tout est là, une routine éteinte sans fournisseur ; Réglages › Historique montre un seul pas, et l'annuler retire tout.
+- Importer… sur ce fichier : tout coché, entrées comprises, sans le choix « Tout restaurer ». Une zone dans « Une zone existante » : celle du même nom en tête de liste. Un outil Messages ou Agenda dit qu'il peut envoyer des notifications.
 
 ## Le champ Image (branche image-field)
 

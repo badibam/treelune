@@ -9,6 +9,7 @@ import app.treelune.core.demo.DemoContent
 import app.treelune.core.demo.DemoStartup
 import app.treelune.core.images.Images
 import app.treelune.core.services.BackupService
+import app.treelune.core.utils.JsonUtils
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
@@ -96,6 +97,17 @@ class PartImportTest {
         val entriesBefore = database.toolDataDao().getAllEntries().size
         val variablesBefore = database.variableDao().getAll()
 
+        // The name the import's screen says each variable arrives under, from what backup.tree reads
+        val read = Coordinator(context).processUserAction("backup.tree", mapOf("uri" to uri.toString()))
+        assertTrue("tree: ${read.error}", read.isSuccess)
+        @Suppress("UNCHECKED_CAST")
+        val tree = PartTree.read(JsonUtils.toJSONObject(read.data!!["tree"] as Map<String, Any?>))
+        @Suppress("UNCHECKED_CAST")
+        val said = PartImport.arrivalNames(
+            tree.elements.filter { it.kind == PartElement.Kind.VARIABLE && it.id in selection.variables }.map { it.id to it.name },
+            (read.data!!["taken_variable_names"] as List<String>).toSet()
+        )
+
         val imported = Coordinator(context).processUserAction("backup.import_part", mapOf("uri" to uri.toString(), "selection" to selection.toJson()))
         assertTrue("import: ${imported.error}", imported.isSuccess)
 
@@ -105,6 +117,18 @@ class PartImportTest {
         val variables = database.variableDao().getAll()
         assertEquals(2 * variablesBefore.size, variables.size)
         variablesBefore.forEach { variable -> assertTrue(variable.name, variables.any { it.name == "${variable.name}_2" }) }
+        // Each under the name the screen said, which the import's window says again
+        assertEquals(said.values.toSet(), variables.filter { !it.id.startsWith(DemoContent.PREFIX) }.map { it.name }.toSet())
+        @Suppress("UNCHECKED_CAST")
+        assertEquals(
+            said.mapKeys { (id, _) -> tree.elements.first { it.id == id }.name }.filter { (name, arrived) -> name != arrived },
+            imported.data!!["renamed"] as Map<String, String>
+        )
+
+        // What the import's window counts: the zones created, the elements, the entries
+        assertEquals(selection.zones.size, imported.data!!["zones"])
+        assertEquals(selection.tools.size + selection.variables.size + selection.automations.size, imported.data!!["elements"])
+        assertEquals(entriesBefore, imported.data!!["entries"])
 
         // What arrived names nothing of the demo: each link followed its thing to its new id
         val demoIds = (selection.zones + selection.tools.keys + selection.variables + selection.automations +
