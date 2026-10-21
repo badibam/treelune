@@ -26,6 +26,7 @@ import app.treelune.core.fields.ValidationException
 import app.treelune.core.fields.migration.EntryMigration
 import app.treelune.core.fields.migration.MigrationCounts
 import app.treelune.core.database.transaction
+import app.treelune.core.images.OwnedImages
 import app.treelune.core.scheduling.CoreScheduler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -157,10 +158,25 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
 
         if (token.isCancelled) return OperationResult.cancelled()
 
-        val newToolInstance = database.transaction {
-            arrive(ToolInstance(id = toolId, zone_id = zoneId, tooltype = toolType, config_json = storedConfigJson, grid_x = 0, grid_y = 0), zone.tool_groups)
-                .also { writes.insertTool(it) }
+        // Its IMAGE settings' ids made its images: a form's prepared, a conversation's copied
+        val config = JSONObject(storedConfigJson)
+        val images = when (val plan = imagesOf(toolType, toolId, config)) {
+            is OwnedImages.Plan.Refused -> return OperationResult.error(plan.error)
+            is OwnedImages.Plan.Ready -> plan.images
         }
+        val writtenConfigJson = if (images.rewritten) config.toString() else storedConfigJson
+
+        images.place()
+        val newToolInstance = try {
+            database.transaction {
+                arrive(ToolInstance(id = toolId, zone_id = zoneId, tooltype = toolType, config_json = writtenConfigJson, grid_x = 0, grid_y = 0), zone.tool_groups)
+                    .also { writes.insertTool(it); images.store() }
+            }
+        } catch (e: Exception) {
+            images.undo()
+            throw e
+        }
+        images.done()
 
         // Notify UI of tools change in this zone
         DataChangeNotifier.notifyToolsChanged(zoneId)
@@ -286,6 +302,13 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         if (emptiedGroup != null) storedConfig.remove("group")
         Groups.refusal(Groups.held(storedConfig), ToolPositions.zoneGroups(newZone.tool_groups), s)?.let { return OperationResult.error(it) }
 
+        // A config given: its IMAGE settings' ids compared with the images the tool owns, the new
+        // ones made its, the ones gone deleted
+        val images = if (configJson.isBlank()) null else when (val plan = imagesOf(existingTool.tooltype, existingTool.id, storedConfig)) {
+            is OwnedImages.Plan.Refused -> return OperationResult.error(plan.error)
+            is OwnedImages.Plan.Ready -> plan.images
+        }
+
         val changedTool = existingTool.copy(
             config_json = if (configJson.isBlank() && emptiedGroup == null) existingTool.config_json else storedConfig.toString(),
             zone_id = newZone.id,
@@ -296,12 +319,20 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
 
         // The config, the places it changes and what it does to the entries are one write:
         // none lands without the others
-        val updatedTool = database.transaction {
-            val placed = move(existingTool, changedTool, oldZone.tool_groups, newZone.tool_groups)
-            writes.updateTool(placed)
-            if (migration != null) applyMigration(existingTool, migration)
-            placed
+        images?.place()
+        val updatedTool = try {
+            database.transaction {
+                val placed = move(existingTool, changedTool, oldZone.tool_groups, newZone.tool_groups)
+                writes.updateTool(placed)
+                images?.store()
+                if (migration != null) applyMigration(existingTool, migration)
+                placed
+            }
+        } catch (e: Exception) {
+            images?.undo()
+            throw e
         }
+        images?.done()
         if (migration != null && (migration.updated.isNotEmpty() || migration.deleted.isNotEmpty())) {
             DataChangeNotifier.notifyToolDataChanged(toolInstanceId, updatedTool.zone_id)
         }
@@ -542,6 +573,17 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
      *
      * @return The error to hand back, or null when the config is valid
      */
+    /**
+     * What writing tool [toolId] of [tooltype] with [config] does to its images (OwnedImages): the
+     * IMAGE settings its config declares, a copy's new id written in [config].
+     */
+    private suspend fun imagesOf(tooltype: String, toolId: String, config: JSONObject): OwnedImages.Plan {
+        val nodes = ToolTypeManager.getToolType(tooltype)?.let { app.treelune.core.tools.ToolConfigSettings.nodes(it, context) }.orEmpty()
+        return OwnedImages.plan(context, OwnedImages.Owner.Tool(toolId), OwnedImages.configSlots(nodes, config)) {
+            s.shared("image_error_not_found").format(it)
+        }
+    }
+
     private fun checkConfig(tooltype: String, configJson: String): String? {
         val toolType = ToolTypeManager.getToolType(tooltype)
             ?: return s.shared("error_tooltype_not_found").format(tooltype)
@@ -712,11 +754,25 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
 
         if (token.isCancelled) return OperationResult.cancelled()
 
-        // Create new tool instance in target zone, at the bottom of its section's grid
-        val newToolInstance = database.transaction {
-            arrive(ToolInstance(zone_id = targetZoneId, tooltype = sourceTool.tooltype, config_json = sourceConfig.toString(), grid_x = 0, grid_y = 0), targetZone.tool_groups)
-                .also { writes.insertTool(it) }
+        // The source's images copied for the copy, their new ids in its config
+        val copyId = java.util.UUID.randomUUID().toString()
+        val images = when (val plan = imagesOf(sourceTool.tooltype, copyId, sourceConfig)) {
+            is OwnedImages.Plan.Refused -> return OperationResult.error(plan.error)
+            is OwnedImages.Plan.Ready -> plan.images
         }
+
+        // Create new tool instance in target zone, at the bottom of its section's grid
+        images.place()
+        val newToolInstance = try {
+            database.transaction {
+                arrive(ToolInstance(id = copyId, zone_id = targetZoneId, tooltype = sourceTool.tooltype, config_json = sourceConfig.toString(), grid_x = 0, grid_y = 0), targetZone.tool_groups)
+                    .also { writes.insertTool(it); images.store() }
+            }
+        } catch (e: Exception) {
+            images.undo()
+            throw e
+        }
+        images.done()
 
         // Notify UI of tools change in target zone
         DataChangeNotifier.notifyToolsChanged(targetZoneId)

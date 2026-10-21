@@ -44,7 +44,7 @@ class ImageFieldTest {
 
     @Test
     fun `the AI reads each id with its size, never the image`() {
-        val images = mapOf("a" to ImageEntity("a", null, "e", "JPEG", 1, 1568, 1176, 0))
+        val images = mapOf("a" to ImageEntity("a", null, "e", null, "JPEG", 1, 1568, 1176, 0))
         val shown = ModelValues.withImageSizes(mapOf("photos" to listOf("a", "gone")), schema, images) as Map<*, *>
         assertEquals(
             listOf(mapOf("id" to "a", "width" to 1568, "height" to 1176), mapOf("id" to "gone", "missing" to true)),

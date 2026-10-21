@@ -26,7 +26,7 @@ import java.io.File
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
-class EntryImagesTest {
+class OwnedImagesTest {
 
     private lateinit var context: Context
     private lateinit var coordinator: Coordinator

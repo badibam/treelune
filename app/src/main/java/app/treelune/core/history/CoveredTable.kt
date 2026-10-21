@@ -20,7 +20,7 @@ enum class CoveredTable(
 ) {
     IDENTITIES("identities"),
     ZONES("zones", children = listOf("tool_instances" to "zone_id", "variables" to "zone_id")),
-    TOOL_INSTANCES("tool_instances", children = listOf("tool_data" to "tool_instance_id")),
+    TOOL_INSTANCES("tool_instances", children = listOf("tool_data" to "tool_instance_id", "images" to "tool_instance_id")),
     TOOL_DATA("tool_data", children = listOf("images" to "entry_id")),
     VARIABLES("variables"),
     AUTOMATIONS("automations"),

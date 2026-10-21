@@ -342,12 +342,12 @@ class BackupService(private val context: Context) : ExecutableService {
             val identities = database.identityDao().getAll()
             // The files joined to messages, with their session
             val attachedFiles = aiSessions.flatMap { database.attachedFileDao().getForSession(it.id) }
-            // The images of messages and entries: their rows in the JSON, their files beside it.
+            // The images of messages, entries and tools: their rows in the JSON, their files beside it.
             // An image whose file is missing is an error the backup copies as it is, neither
             // hidden nor repaired: its row goes, named in missing_images, and the export says how many
             val images = database.imageDao().getAll()
             val missingImages = images.filter { !Images.file(context, it).exists() }
-            missingImages.forEach { LogManager.service("Backup export: the file of image ${it.id} (${it.sessionId?.let { s -> "session $s" } ?: "entry ${it.entryId}"}) is missing", "WARN") }
+            missingImages.forEach { LogManager.service("Backup export: the file of image ${it.id} (${it.sessionId?.let { s -> "session $s" } ?: it.entryId?.let { e -> "entry $e" } ?: "tool ${it.toolInstanceId}"}) is missing", "WARN") }
 
             // Check cancellation before building JSON
             if (token.isCancelled) return null
@@ -600,13 +600,14 @@ class BackupService(private val context: Context) : ExecutableService {
                     // The images whose file was missing at the export: their rows go without one
                     put("missing_images", JSONArray(missingImages.map { it.id }))
 
-                    // Images of messages and entries: their files are entries of the zip
+                    // Images of messages, entries and tools: their files are entries of the zip
                     put("images", JSONArray().apply {
                         images.forEach { image ->
                             put(JSONObject().apply {
                                 put("id", image.id)
                                 image.sessionId?.let { put("session_id", it) }
                                 image.entryId?.let { put("entry_id", it) }
+                                image.toolInstanceId?.let { put("tool_instance_id", it) }
                                 put("format", image.format)
                                 put("size_bytes", image.sizeBytes)
                                 put("width", image.width)
@@ -662,11 +663,12 @@ class BackupService(private val context: Context) : ExecutableService {
                 return OperationResult.error("Operation cancelled")
             }
 
+            // An entry's or a tool's image, not a message's
             val entryImages = data.optJSONArray("images")?.let { images ->
-                (0 until images.length()).map { images.getJSONObject(it) }.filter { it.has("entry_id") }
+                (0 until images.length()).map { images.getJSONObject(it) }.filter { !it.has("session_id") }
                     .map { app.treelune.core.images.ImageFormat.valueOf(it.getString("format")).fileName(it.getString("id")) }
             }.orEmpty()
-            // An entry's image goes into the entries' folder, a message's stays flat
+            // An entry's or a tool's image goes into the entries' folder, a message's stays flat
             Images.sortImport(staging, entryImages)
 
             // Wipe all tables in reverse dependency order, then insert data
@@ -1127,7 +1129,7 @@ class BackupService(private val context: Context) : ExecutableService {
             }
         }
 
-        // Images of messages and entries, after the sessions and the entries they belong to;
+        // Images of messages, entries and tools, after the sessions, entries and tools they belong to;
         // absent before v59. Their files are already set aside (performImport)
         data.optJSONArray("images")?.let { array ->
             for (i in 0 until array.length()) {
@@ -1137,6 +1139,7 @@ class BackupService(private val context: Context) : ExecutableService {
                         id = item.getString("id"),
                         sessionId = item.optString("session_id").takeIf { it.isNotEmpty() },
                         entryId = item.optString("entry_id").takeIf { it.isNotEmpty() },
+                        toolInstanceId = item.optString("tool_instance_id").takeIf { it.isNotEmpty() },
                         format = item.getString("format"),
                         sizeBytes = item.getLong("size_bytes"),
                         width = item.getInt("width"),

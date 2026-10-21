@@ -108,7 +108,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 86
+        const val VERSION = 87
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -1965,6 +1965,14 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** A tool can own images, those its config holds: see ImagesAtV87. No other table names images. */
+        private val MIGRATION_86_87 = object : ConnectionMigration(86, 87) {
+            override fun migrate(database: MigrationDatabase) {
+                app.treelune.core.versioning.ImagesAtV87.STATEMENTS.forEach { database.execSQL(it) }
+                LogManager.database("MIGRATION 86->87: images gain tool_instance_id", "INFO")
+            }
+        }
+
         /** The connector gains its own data threshold: see ExternalAccessDataAtV84. */
         private val MIGRATION_83_84 = object : ConnectionMigration(83, 84) {
             override fun migrate(database: MigrationDatabase) {
@@ -2998,7 +3006,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_82_83,
                     MIGRATION_83_84,
                     MIGRATION_84_85,
-                    MIGRATION_85_86
+                    MIGRATION_85_86,
+                    MIGRATION_86_87
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

@@ -48,7 +48,7 @@ class PartImport(private val context: Context) {
      * What arrived.
      *
      * @property renamed Each variable's name in the file, and the one it arrived under when taken
-     * @property imagesMissing The images taken out of their entries, missing already at the export
+     * @property imagesMissing The images taken out of their entries and tools, missing already at the export
      */
     data class Report(val zones: Int, val elements: Int, val entries: Int, val renamed: Map<String, String>, val imagesMissing: Int)
 
@@ -67,15 +67,16 @@ class PartImport(private val context: Context) {
         val data = JSONObject(part.getJSONObject("data").toString())
         arrivals.values.firstOrNull { database.zoneDao().getZoneById(it) == null }?.let { throw Refused("No zone $it to arrive in") }
 
-        // The images already missing at the export, taken out of the entries that held them
+        // The images already missing at the export, taken out of the entries and the tools that held them
         val missing = data.optJSONArray("missing_images")?.let { ids -> (0 until ids.length()).map { ids.getString(it) }.toSet() }.orEmpty()
-        val imagesMissing = rows(data, "tool_data").sumOf { withoutImages(it, missing) }
+        val imagesMissing = rows(data, "tool_data").sumOf { withoutImages(it, missing) } +
+            rows(data, "tool_instances").sumOf { withoutConfigImages(it, missing) }
 
         // A new id for each thing brought, the zone of arrival's for a zone going into one
         val ids = HashMap<String, String>()
         rows(data, "zones").forEach { zone -> ids[zone.getString("id")] = arrivals[zone.getString("id")] ?: newId() }
         listOf("tool_instances", "tool_data", "variables", "automations").forEach { table -> rows(data, table).forEach { ids[it.getString("id")] = newId() } }
-        val images = rows(data, "images").filter { it.has("entry_id") && it.getString("id") !in missing }
+        val images = rows(data, "images").filter { !it.has("session_id") && it.getString("id") !in missing }
         images.forEach { ids[it.getString("id")] = newId() }
         val former = images.associate { ids.getValue(it.getString("id")) to it.getString("id") }
         IdWords.replace(data, ids)
@@ -137,6 +138,14 @@ class PartImport(private val context: Context) {
             written.toolGroups[id] = stored
         }
 
+        // The images of the entries and the tools waiting where a form leaves one, which their
+        // owner then takes
+        val imageRows = rows(data, "images").filter { !it.has("session_id") && it.getString("id") in former }
+        imageRows.forEach { image ->
+            val format = ImageFormat.valueOf(image.getString("format"))
+            Images.copy(File(staging, format.fileName(former.getValue(image.getString("id")))), pending(image))
+        }
+
         // The tools and the variables, each after what it reads, a variable whose name is taken
         // under the next free one
         val variables = rows(data, "variables")
@@ -190,12 +199,6 @@ class PartImport(private val context: Context) {
             if (automation.getString("zone_id") in existing) written.inExisting += "automations.delete" to JSONObject().put("automation_id", automation.getString("id"))
         }
 
-        // The entries' images waiting where a form leaves one, which the entry then takes
-        val imageRows = rows(data, "images").filter { it.has("entry_id") && it.getString("id") in former }
-        imageRows.forEach { image ->
-            val format = ImageFormat.valueOf(image.getString("format"))
-            Images.copy(File(staging, format.fileName(former.getValue(image.getString("id")))), pending(image))
-        }
         // The entries, each after the ones it designates, a tool's together
         val entries = ordered(rows(data, "tool_data"))
         var start = 0
@@ -302,7 +305,27 @@ class PartImport(private val context: Context) {
         return removed
     }
 
-    /** Where [image]'s file waits for its entry. */
+    /**
+     * [tool]'s config without the ids of [missing], wherever its lists hold them (a step's
+     * images); how many it held.
+     */
+    private fun withoutConfigImages(tool: JSONObject, missing: Set<String>): Int {
+        if (missing.isEmpty()) return 0
+        var removed = 0
+        fun clean(value: Any?): Any? = when (value) {
+            is JSONObject -> value.apply { keys().asSequence().toList().forEach { put(it, clean(get(it))) } }
+            is JSONArray -> {
+                val kept = (0 until value.length()).map { value.get(it) }.filter { it !is String || it !in missing }
+                removed += value.length() - kept.size
+                JSONArray(kept.map { clean(it) })
+            }
+            else -> value
+        }
+        tool.put("config_json", clean(JSONObject(tool.getString("config_json"))).toString())
+        return removed
+    }
+
+    /** Where [image]'s file waits for its owner. */
     private fun pending(image: JSONObject): File =
         File(Images.pendingDir(context).apply { mkdirs() }, ImageFormat.valueOf(image.getString("format")).fileName(image.getString("id")))
 
