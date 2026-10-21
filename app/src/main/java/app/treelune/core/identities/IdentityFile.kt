@@ -76,19 +76,24 @@ object IdentityFile {
      * The file of [identity], every language it holds: what an import gives back, its icon and
      * the language it speaks aside, which are the app's. A language holding nothing (no text, no
      * resource, as one chosen and never written) is left out, nothing of it lost; one holding
-     * resources and no text is refused, a file's language holding at least one text.
-     * `published_at` is the file's it came from while none of its texts is retouched, still its
-     * author's version; [today] (the app's day) once one is, or for one written in the app, a
-     * version of its own; absent when it came from a file that did not say.
+     * resources and no text is refused, a file's language holding at least one text; and so is
+     * the language it speaks holding no text, which the import would have to replace.
+     * `published_at` is the file's it came from while nothing of it changed since its import,
+     * still its author's version; [today] (the app's day) once anything did, a text removed
+     * included, or for one written in the app, a version of its own; absent when it came from a
+     * file that did not say.
      *
-     * @throws Refused when it cannot be written: a language with resources and no text, or no
-     *   language left
+     * @throws Refused when it cannot be written: a language with resources and no text, no
+     *   language left, or the language it speaks without a text
      */
     fun write(identity: Identity, today: LocalDate): String {
         val written = identity.languages.filterValues { it.holds() }
         written.entries.firstOrNull { it.value.pieces().isEmpty() }?.let { throw Refused("identity_export_no_text", it.key) }
         if (written.isEmpty()) throw Refused("identity_export_empty", identity.name)
-        val publishedAt = if (identity.importedAt != null && identity.retouched().isEmpty()) identity.publishedAt else today.toString()
+        if (identity.language !in written) throw Refused("identity_export_spoken_empty", identity.language)
+        // An import writes both at once: any change since moves updated_at alone
+        val unchanged = identity.importedAt != null && identity.updatedAt == identity.importedAt
+        val publishedAt = if (unchanged) identity.publishedAt else today.toString()
         val file = buildJsonObject {
             put("format", FORMAT)
             put("id", identity.id)

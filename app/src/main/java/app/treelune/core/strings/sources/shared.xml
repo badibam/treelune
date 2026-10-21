@@ -2386,6 +2386,7 @@
     <string name="identity_export_written">The file %1$s is written in the app\'s folder: it is imported in Settings › Identities › Import.</string>
     <string name="identity_export_no_text">The language %1$s holds resources and no text: write it a voice, a mind or a portrait to export it</string>
     <string name="identity_export_empty">The identity “%1$s” holds no text yet: write it a voice, a mind or a portrait to export it</string>
+    <string name="identity_export_spoken_empty">The language it speaks, %1$s, holds no text: write it a voice, a mind or a portrait, or have it speak another, to export it</string>
     <string name="identity_export_file_name">The identity\'s name, “%1$s”, cannot name a file: rename it to export it.</string>
     <string name="identity_language">Language it speaks</string>
     <string name="identity_language_code">Language (a code: fr, en)</string>

@@ -124,8 +124,8 @@ class PartImport(private val context: Context) {
         val zones = rows(data, "zones")
         val newZones = zones.filter { it.getString("id") !in existing }
 
-        // The identities, each as its file, all read back before anything is written: a
-        // replacement, made last, then fails on nothing of its own
+        // The identities, each as its file, all written before anything is: a replacement, made
+        // last, then fails on nothing of its own. The file holds the language it speaks (IdentityFile.write)
         val today = app.treelune.core.selection.TimeResolver.at(System.currentTimeMillis()).today()
         val identities = rows(data, "identities").map { BackupPart.identity(it) }.map { identity ->
             val text = try {
@@ -133,9 +133,7 @@ class PartImport(private val context: Context) {
             } catch (e: app.treelune.core.identities.IdentityFile.Refused) {
                 throw Refused("identity ${identity.name}: ${e.key} ${e.args.joinToString()}")
             }
-            // The language it spoke, or the first holding something when that one held nothing
-            val languages = app.treelune.core.identities.IdentityFile.read(text).languages.keys
-            Arrival(identity, text, if (identity.language in languages) identity.language else languages.first())
+            Arrival(identity, text, identity.language)
         }
         val held = identities.filter { database.identityDao().getById(it.identity.id) != null }.map { it.identity.id }.toSet()
         // One the app lacks before the zones and routines that speak as it

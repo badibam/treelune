@@ -21,7 +21,7 @@ import java.time.LocalDate
  * or of another type refused by its path; a field more passed over; a language without a text
  * refused; the resources kept in their order; every text read marked imported. What the app
  * writes of an identity reads back, its schema agreeing, with the date of its author's version
- * while nothing is retouched.
+ * while nothing changed since its import; never without a text in the language it speaks.
  */
 class IdentityFileTest {
 
@@ -127,9 +127,10 @@ class IdentityFileTest {
 
     private val today = LocalDate.of(2026, 10, 21)
 
-    private fun identity(languages: Map<String, IdentityLanguage>, publishedAt: String? = "2026-10-16", importedAt: Long? = 1L) = Identity(
+    private fun identity(languages: Map<String, IdentityLanguage>, publishedAt: String? = "2026-10-16", importedAt: Long? = 1L, updatedAt: Long = 1L,
+        language: String = languages.keys.first()) = Identity(
         id = "0f8fad5b-d9cb-469f-a165-70867728950e", name = "Teacher", iconName = Identity.DEFAULT_ICON, iconColor = null,
-        language = languages.keys.first(), languages = languages, publishedAt = publishedAt, importedAt = importedAt, createdAt = 1L, updatedAt = 1L)
+        language = language, languages = languages, publishedAt = publishedAt, importedAt = importedAt, createdAt = 1L, updatedAt = updatedAt)
 
     @Test
     fun `an identity written reads back whole, its schema agreeing`() {
@@ -146,13 +147,13 @@ class IdentityFileTest {
     }
 
     @Test
-    fun `the date is its author's until a text is retouched, today's for one written in the app`() {
+    fun `the date is its author's until anything changes, a text removed included, today's for one written in the app`() {
         val untouched = mapOf("en" to IdentityLanguage(voice = IdentityPiece("v", imported = true)))
-        val retouched = mapOf("en" to IdentityLanguage(voice = IdentityPiece("v", imported = true), mind = IdentityPiece("m")))
         fun date(identity: Identity) = IdentityFile.read(IdentityFile.write(identity, today)).publishedAt
         assertEquals("2026-10-16", date(identity(untouched)))
         assertNull(date(identity(untouched, publishedAt = null)))
-        assertEquals("2026-10-21", date(identity(retouched)))
+        // Its mind removed since: every text left as imported, the identity changed all the same
+        assertEquals("2026-10-21", date(identity(untouched, updatedAt = 2L)))
         assertEquals("2026-10-21", date(identity(mapOf("en" to IdentityLanguage(voice = IdentityPiece("v"))), publishedAt = null, importedAt = null)))
     }
 
@@ -166,5 +167,9 @@ class IdentityFileTest {
         assertEquals("de", refused.args[0])
         val empty = try { IdentityFile.write(identity(mapOf("en" to IdentityLanguage())), today); fail(); throw IllegalStateException() } catch (e: IdentityFile.Refused) { e }
         assertEquals("identity_export_empty", empty.key)
+        // Speaking a language it holds nothing in: the file could not say which it speaks
+        val spoken = try { IdentityFile.write(identity(mapOf("en" to voice, "de" to IdentityLanguage()), language = "de"), today); fail(); throw IllegalStateException() } catch (e: IdentityFile.Refused) { e }
+        assertEquals("identity_export_spoken_empty", spoken.key)
+        assertEquals("de", spoken.args[0])
     }
 }
