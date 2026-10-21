@@ -30,10 +30,6 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 
 - La notification d'une séance planifiée ouvre l'outil.
 
-## Les bugs du téléphone du 2026-10-16 et le changement de config
-
-- La carte de validation dit les comptes, même dans une zone non protégée ; par le connecteur, la notification d'accord ; une routine qui le fait passe si son accès le permet.
-
 ## Les incarnations (branche incarnations)
 
 - Choisir une autre icône et une couleur pour une incarnation, enregistrer : la tuile les montre.
