@@ -74,3 +74,5 @@ Two sounds ring of the same family by their take: the room and its reverberation
 Added 2026-10-18 (`sound-sources.json`): Kenney's Casino Audio and Sci-fi Sounds; 84 BigSoundBank recordings, chosen by keywords in Saylune's catalogue, outside the voices; 26 Freesound sounds for the holes (brush, seal, ruler, relay, scissors), taken by their public Ogg excerpt, to replace by the original, downloaded by hand, if one of them sounds damaged on the phone. A sound missing from a theme is added to its source's list.
 
 ## What stays open
+
+- The level of each theme's sounds, on the phone, by ear: the retro's taken from Saylune, 10 dB under Kenney.

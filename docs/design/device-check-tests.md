@@ -15,6 +15,7 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 
 - Réglages › Démo : désactiver « Installer la démo à chaque mise à jour » et enregistrer ne supprime rien, la démo reste ; réinstaller l'APK la laisse telle quelle ; réactiver le réglage n'installe rien avant la mise à jour suivante.
 - Ajouter une entrée dans un outil de la démo et un outil dans une de ses zones, puis Réglages › Démo › « Supprimer la démo » : la démo et ces deux ajouts disparaissent, le reste de l'app est intact ; « Réinstaller » la remet entière.
+- Les photos de la démo (Tomate, Basilic, Piment) : « Supprimer la démo » puis l'app redémarrée, leurs fichiers partent au ménage, une ligne INFO au journal.
 - Pendant un import d'un gros fichier (Données structurées), lancer « Réinstaller » la démo ou exporter une sauvegarde : refusé, le message nomme l'import en cours ; la bande compte les lignes écrites par 500.
 
 ## Chat IA
@@ -119,3 +120,4 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 ## Le champ Image (branche image-field)
 
 - Une sauvegarde puis sa restauration, avec des images d'entrées et de messages : toutes reviennent, chacune à son propriétaire. Une entrée supprimée, l'app redémarrée : son fichier part, une ligne INFO au journal.
+- Une photo de 4 000 px ajoutée à un champ Image est réduite, une image de 200 px gardée telle quelle ; un PNG transparent garde sa transparence.

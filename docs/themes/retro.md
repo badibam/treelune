@@ -27,7 +27,7 @@ Designed from 2026-09-29. A second theme, beside the default theme, in Saylune's
 
 ## What stays open
 
-- The pass of `docs/THEMES.md`: seen 2026-10-01 the screen of a zone, the pale palette, the margins taken again; left screen by screen, the dotted graduations of the charts and the checkerboard of the grid edit mode included, and the sound level (taken from Saylune, 10 dB under Kenney) by ear.
+- The pass of `docs/THEMES.md`: seen 2026-10-01 the screen of a zone, the pale palette, the margins taken again; left screen by screen, the dotted graduations of the charts and the checkerboard of the grid edit mode included.
 - The icons: the touch-ups as they come with use, first those the user chooses (two to date, `refresh-cw` and `rotate-ccw`, the tip stuck to the end of the arc). Then icons in a 4-pixel stroke, Saylune's normal weight, on the same board.
 - At step 3, on a 1080 screen, a cell is four cells: an ICON tile has only one cell left inside, less than its icon.
 - The default theme does not yet follow the size step; the setting's help says so.

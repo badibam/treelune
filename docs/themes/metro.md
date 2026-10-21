@@ -59,4 +59,3 @@ What the code made precise among the decisions:
 - Nothing has run on a phone: the whole theme is judged there, the pass of `docs/THEMES.md` first.
 - The textures' cells and tones are the swiss's, copied: the plan patterns of line 7 (45° and 90° strokes, stop dots) stay to draw, and their tones to set on the textures bench (`./run themes`).
 - A tile's name stays centred: the core places it (`UI.TileHeader`), as for the swiss.
-- The sounds, on the phone: their level by ear.

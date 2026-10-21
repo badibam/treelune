@@ -62,4 +62,3 @@ What the code made precise among the decisions:
 
 - Nothing has run on a phone: the whole theme is judged there, the pass of `docs/THEMES.md` first; the icons' spill at the top (a missed corner, a curve taken for a corner).
 - The textures' cells and tones are the metro's, copied: the plan patterns of line 7 (45° hatching, crosshatch, dots, bricks) stay to draw, and their tones to set on the textures bench (`./run themes`).
-- The sounds, on the phone: their level by ear.

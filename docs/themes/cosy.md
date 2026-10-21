@@ -32,7 +32,7 @@ Mock-ups (the screen of a zone, beside the other theme tracks, on hold): `docs/t
 
 ## What stays open
 
-- The pass of `docs/THEMES.md`, the palette bench first: the spring and the sound level, what the springs become when Android's animations are cut (Compose is supposed to skip them, not checked), the redrawn icons (their cost at a page's opening, those that clog at 24 dp), the messages band, which is hard to tell from its cream cards.
+- The pass of `docs/THEMES.md`, the palette bench first: the spring, what the springs become when Android's animations are cut (Compose is supposed to skip them, not checked), the redrawn icons (their cost at a page's opening, those that clog at 24 dp), the messages band, which is hard to tell from its cream cards.
 - The palette bench (`./run themes`) does not yet have the cosy: its numbers were read on the mock-up and the summer night is laid without having seen it.
 - The Chart goes through the default theme's drawing (`DefaultDrawing`), its colours included, in the cosy's font: to draw in the register, as the retro made its own (`RetroDrawing`).
 - A block that unfolds is not in the themes' contract: its slide stays the core's.
