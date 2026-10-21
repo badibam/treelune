@@ -68,7 +68,7 @@ Each kind of screen of the stack knows its parent and the sentence that leads th
 Three kinds:
 
 - **go**: done when the target screen is at the top of the stack;
-- **do**: done when the expected operation passes through the dispatcher, with its origin (`currentOrigin()`) — `tool_data.create` on a tool, of user origin; "ask the AI to create a tool" waits for `tools.create` of AI origin, and does not tick if the user creates it themselves;
+- **do**: done when the expected operation passes through the dispatcher, with its origin (`currentOrigin()`) — `tool_data.create` on a tool, of user origin; "ask the AI to create a tool" waits for `tools.create` of AI origin, and does not tick if the user creates it themselves; or when the user sends the AI the expected message, which goes through `AIOrchestrator`, not the dispatcher (`SentMessages`): any message (`"await": {"message": "any"}`), or one carrying a pointer to a tool (`"pointer_tool"`);
 - **read**: an explanation and "Next".
 
 A step waits for an operation done while it is underway, not a state already there. It can:
@@ -81,7 +81,7 @@ A step is written as data, not code. A check of `./run test` verifies that each 
 ## The Guide
 
 - A page, opened by a fixed icon at the top of the home screen (`book-open`). It reads in a single scroll, in parts (`GuidePart`): "Discovery", the tour of what the app does, whose chapters are numbered and form the journey; "Getting started", each feature to use it for real; "The tools", one chapter per tool type, all together; "Going further", the subtleties. A part without a chapter does not show: Going further waits for its first chapters.
-- Each chapter has the same line in all the parts: icon, title, duration, state ("To do", "3/6 · resume", "Done"). Open, it reads whole (all its steps, paths from the home screen), with "Do it on the app" if it has steps to do and "Start again" if it is finished.
+- Each chapter has the same line in all the parts: icon, title, duration, state ("To do", "3/6 · resume", "Done"). Open, it reads whole (all its steps, paths from the home screen), with "Do it on the app" if it has steps to do and "Start again" if it is finished. A chapter without steps (Going further, a tool's) is "To read" until "Mark as read" at its end makes it "Read"; "Mark as unread" takes the mark back.
 - Nothing is locked: every chapter opens at any time.
 - While a journey tutorial is proposed and not done, or a tutorial is hidden in progress, the Guide's icon carries `WaitingMark`'s dot.
 
@@ -148,7 +148,7 @@ In the app's settings: for each chapter, the step underway or "Done"; the band h
 
 - The chapters: `assets/guide/chapters.json`, one step per object (kind, address of the place, expected operation with its origin and its parameters, what it keeps). "Outside the demo" has no form of its own: a step targets the zone created at the step before (`{zone}`), never a demo zone. One chapter per tool type is added in the The tools part, drawn from the tool's name, `tagline`, `usage` and Guide texts; "The tools at a glance" is added at the head of Getting started.
 - The texts: `core/strings/sources/guide.xml` and `guide-fr.xml`, named after the chapter and the step; a tool chapter's, `usage`, `guide_config` and `guide_screen`, in the tool's texts.
-- A Going further chapter is a text to read, without steps: `"text": true` in `chapters.json`, its body `guide_<chapitre>_body`, written in the same formatting. First subject: the relative dates (`relative_dates`).
+- A Going further chapter is a text to read, without steps: `"text": true` in `chapters.json`, its body `guide_<chapitre>_body`, written in the same formatting. Its subjects: the relative dates, the protections, the field types, formulas and variables, conditions and filters, changing a tool's fields. A new one comes with the feature it explains.
 - Their formatting (`Markup`, shown by `MarkupText`), a bit of Markdown: `## ` a subtitle, `- ` a list line, `{nom}` at the head of a list line the Lucide icon of the button it names, never elsewhere; short sentences under subtitles rather than blocks. `scripts/check_guide.py` checks it. A chapter's parts (steps, config, screen) are title tiles with their icon.
 - The engine: `core/guide/Guide.kt`, which listens to the successful operations asked from outside (`PassedOperations`, emitted by the coordinator) and the stack; the progress in the settings category `guide`.
 - The check: `scripts/check_guide.py`, in `./run test`.
