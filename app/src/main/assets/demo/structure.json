@@ -2970,6 +2970,8 @@
       "zone_id": "demo-course",
       "group": "@course_group_analysis",
       "name": "@auto_review_name",
+      "icon_name": "calendar-check",
+      "icon_color": "ORANGE",
       "schedule": {
         "pattern": {
           "type": "WeeklySimple",
@@ -3038,7 +3040,10 @@
       "id": "demo-auto-weekly-menu",
       "seed_session_id": "demo-seed-weekly-menu",
       "zone_id": "demo-kitchen",
+      "group": "@kitchen_group_meals",
       "name": "@auto_menu_name",
+      "icon_name": "utensils-crossed",
+      "icon_color": "RED",
       "schedule": {
         "pattern": {
           "type": "WeeklySimple",
@@ -3078,6 +3083,8 @@
       "seed_session_id": "demo-seed-morning",
       "zone_id": "demo-work",
       "name": "@auto_morning_name",
+      "icon_name": "sun-medium",
+      "icon_color": "YELLOW",
       "is_enabled": false,
       "seed": "@auto_morning_seed",
       "access": [
@@ -3095,6 +3102,8 @@
       "seed_session_id": "demo-seed-italian-lesson",
       "zone_id": "demo-italian",
       "name": "@auto_lesson_name",
+      "icon_name": "book-open-text",
+      "icon_color": "TEAL",
       "identity_id": "demo-identity-giulia",
       "schedule": {
         "pattern": {
