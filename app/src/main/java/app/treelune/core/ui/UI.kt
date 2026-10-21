@@ -750,10 +750,10 @@ object UI {
     }
 
     /**
-     * A zone's tile on the home screen, laid out by its display mode: its icon, or its name when it
-     * has none (ICON), its icon and
-     * name (MINIMAL), its description beside them (LINE) or below (CONDENSED). Something waiting or
-     * a stopwatch running in one of its tools (LocalWaiting, LocalRunning) is marked on its icon.
+     * A zone's tile on the home screen (LookCard, in the theme's zone frame): its icon, or its
+     * name when it has none (ICON), its icon and name (MINIMAL), its description beside them
+     * (LINE) or below (CONDENSED). Something waiting or running in one of its tools or routines
+     * (LocalWaiting, LocalRunning) is marked on its icon.
      */
     @Composable
     fun ZoneCard(
@@ -761,45 +761,20 @@ object UI {
         onClick: () -> Unit,
         onLongClick: () -> Unit = { }
     ) {
-        val waiting = LocalWaiting.current.zone(zone.id)
-        val running = LocalRunning.current.zone(zone.id)
-        val mode = DisplayMode.valueOf(zone.display_mode)
-        @Composable
-        fun Header() = TileHeader(zone.icon_name, IconColor.of(zone.icon_color), zone.name, waiting, running, TextType.HEADING)
-        @Composable
-        fun Description() = zone.description?.let { Text(it, TextType.BODY, maxLines = 2) }
-        CurrentTheme.current.ZoneCardContainer(texture = ItemTexture.of(zone.texture, zone.icon_name, IconColor.of(zone.icon_color)), color = IconColor.of(zone.icon_color), seed = zone.id, onClick = onClick, onLongClick = onLongClick) {
-            when (mode) {
-                DisplayMode.ICON -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    if (zone.icon_name.isNullOrBlank()) {
-                        // Without an icon, the name stands in its place, small enough for a word to
-                        // hold in the cell, centered between the marks in their corners
-                        Box(modifier = Modifier.padding(horizontal = Space.XS)) {
-                            Text(zone.name, TextType.CAPTION, maxLines = 2, fillMaxWidth = true, textAlign = TextAlign.Center)
-                        }
-                        if (waiting) Box(modifier = Modifier.align(Alignment.TopEnd)) { WaitingMark() }
-                        if (running) Box(modifier = Modifier.align(Alignment.BottomEnd)) { RunningMark() }
-                    } else {
-                        TileIcon(zone.icon_name, IconColor.of(zone.icon_color), waiting, running)
-                    }
-                }
-                DisplayMode.MINIMAL -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) { Header() }
-                // The smallest space between the two halves, so that their texts never touch
-                // In one column, as CONDENSED: the header over the description (Grid.oneColumnSize)
-                DisplayMode.LINE -> if (CurrentTheme.oneColumn) Column(modifier = Modifier.fillMaxSize()) {
-                    Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.CenterStart) { Header() }
-                    Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.CenterStart) { Description() }
-                } else Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(Space.XS), verticalAlignment = Alignment.CenterVertically) {
-                    Box(modifier = Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.CenterStart) { Header() }
-                    Box(modifier = Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.CenterStart) { Description() }
-                }
-                DisplayMode.CONDENSED -> Column(modifier = Modifier.fillMaxSize()) {
-                    Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.CenterStart) { Header() }
-                    Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.CenterStart) { Description() }
-                }
-                else -> throw IllegalStateException("A zone has no ${zone.display_mode} tile")
-            }
-        }
+        val look = app.treelune.core.look.Look(zone.name, zone.description, zone.icon_name, zone.icon_color, zone.texture, DisplayMode.valueOf(zone.display_mode))
+        LookCard(
+            look = look,
+            subtitle = null,
+            seed = zone.id,
+            waiting = LocalWaiting.current.zone(zone.id),
+            running = LocalRunning.current.zone(zone.id),
+            onClick = onClick,
+            onLongClick = onLongClick,
+            summary = { },
+            glance = { zone.description?.let { Text(it, TextType.BODY, maxLines = 2) } },
+            body = { },
+            frame = LookFrame.ZONE
+        )
     }
 
     @Composable
@@ -854,7 +829,7 @@ object UI {
     /**
      * A tool's tile, its look read from its config (ToolConfigSettings.look): the header the core
      * draws, its type's name under its name, the summary, the preview and the body its tool type
-     * draws (ToolTile), laid out by SectionCard.
+     * draws (ToolTile), laid out by LookCard.
      *
      * @param onOpenEntry Opens the tool on one of its entries, touched on the tile
      */
@@ -870,7 +845,7 @@ object UI {
         val tile = toolType.rememberTile(tool, onOpenEntry)
         val look = app.treelune.core.look.Looks.read(app.treelune.core.tools.ToolConfigSettings.look(toolType), JSONObject(tool.config_json))
         // Something waiting among its entries, or a stopwatch running on one, is marked on its icon
-        SectionCard(
+        LookCard(
             look = look,
             subtitle = ToolTypeManager.getToolTypeName(tool.tooltype, context),
             seed = tool.id,
@@ -884,15 +859,19 @@ object UI {
         )
     }
 
+    /** The theme's frame a tile is drawn in: a zone's on the home screen, or a tile of a zone's section. */
+    enum class LookFrame { ZONE, SECTION }
+
     /**
-     * A tile of a zone's section, a tool's or a variable's, laid out by its look's display mode
-     * (Looks), each part on whole cells of the grid: its icon alone (ICON); its header, icon and
-     * name with [subtitle] under it (MINIMAL); [glance] beside the header (LINE) or under it
-     * (CONDENSED); the header and [summary] side by side, [body] under them on the rows its mode
-     * gives (EXTENDED, SQUARE, FULL).
+     * A tile drawn from its look (Looks), a zone's, a tool's, a variable's or a routine's, laid
+     * out by its display mode, each part on whole cells of the grid: its icon alone, or its name
+     * small in its place without one (ICON); its header, icon and name with [subtitle] under it
+     * (MINIMAL); [glance] beside the header (LINE) or under it (CONDENSED), centered in a section's
+     * tile, flush with the header in a zone's; the header and [summary] side by side, [body] under
+     * them on the rows its mode gives (EXTENDED, SQUARE, FULL). [frame] picks the theme's frame.
      */
     @Composable
-    fun SectionCard(
+    fun LookCard(
         look: app.treelune.core.look.Look,
         subtitle: String?,
         seed: String,
@@ -902,20 +881,23 @@ object UI {
         onLongClick: () -> Unit,
         summary: @Composable () -> Unit,
         glance: @Composable () -> Unit,
-        body: @Composable (Int?) -> Unit
+        body: @Composable (Int?) -> Unit,
+        frame: LookFrame = LookFrame.SECTION
     ) {
         val displayMode = look.displayMode
         val color = IconColor.of(look.iconColor)
+        val texture = ItemTexture.of(look.texture, look.iconName, color)
+        // A zone's description reads from its start, a section tile's preview stands centered
+        val glanceAlign = if (frame == LookFrame.ZONE) Alignment.CenterStart else Alignment.Center
         @Composable
         fun Header() = TileHeader(look.iconName, color, look.name, waiting, running, TextType.HEADING, subtitle = subtitle)
-        CurrentTheme.current.ToolCardContainer(
-            displayMode = displayMode,
-            texture = ItemTexture.of(look.texture, look.iconName, color),
-            color = color,
-            seed = seed,
-            onClick = onClick,
-            onLongClick = onLongClick
-        ) {
+        @Composable
+        fun Frame(content: @Composable () -> Unit) = when (frame) {
+            LookFrame.ZONE -> CurrentTheme.current.ZoneCardContainer(texture = texture, color = color, seed = seed, onClick = onClick, onLongClick = onLongClick, content = content)
+            LookFrame.SECTION -> CurrentTheme.current.ToolCardContainer(displayMode = displayMode, texture = texture, color = color, seed = seed,
+                onClick = onClick, onLongClick = onLongClick, content = content)
+        }
+        Frame {
             // In one column a half of the screen takes its whole width: the two halves of a row, one
             // under the other, the tile a row taller (Grid.oneColumnSize)
             val oneColumn = CurrentTheme.oneColumn
@@ -925,24 +907,34 @@ object UI {
             fun Halves(modifier: Modifier, first: @Composable () -> Unit, other: @Composable () -> Unit) {
                 if (oneColumn) Column(modifier = modifier) {
                     Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.CenterStart) { first() }
-                    Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { other() }
+                    Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = glanceAlign) { other() }
                 } else Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(Space.XS), verticalAlignment = Alignment.CenterVertically) {
                     Box(modifier = Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.CenterStart) { first() }
-                    Box(modifier = Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.Center) { other() }
+                    Box(modifier = Modifier.weight(1f).fillMaxHeight(), contentAlignment = glanceAlign) { other() }
                 }
             }
 
             when (displayMode) {
                 // The icon alone, centered in its cell
                 DisplayMode.ICON -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    TileIcon(look.iconName, color, waiting, running)
+                    if (look.iconName.isNullOrBlank()) {
+                        // Without an icon, the name stands in its place, small enough for a word to
+                        // hold in the cell, centered between the marks in their corners
+                        Box(modifier = Modifier.padding(horizontal = Space.XS)) {
+                            Text(look.name, TextType.CAPTION, maxLines = 2, fillMaxWidth = true, textAlign = TextAlign.Center)
+                        }
+                        if (waiting) Box(modifier = Modifier.align(Alignment.TopEnd)) { WaitingMark() }
+                        if (running) Box(modifier = Modifier.align(Alignment.BottomEnd)) { RunningMark() }
+                    } else {
+                        TileIcon(look.iconName, color, waiting, running)
+                    }
                 }
                 DisplayMode.MINIMAL -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) { Header() }
                 // The smallest space between the two halves, so that their texts never touch
                 DisplayMode.LINE -> Halves(Modifier.fillMaxSize(), { Header() }, glance)
                 DisplayMode.CONDENSED -> Column(modifier = Modifier.fillMaxSize()) {
                     Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.CenterStart) { Header() }
-                    Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { glance() }
+                    Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = glanceAlign) { glance() }
                 }
                 DisplayMode.EXTENDED, DisplayMode.SQUARE, DisplayMode.FULL -> {
                     // As tall as the body needs, to a whole pixel of the theme (GridLayout): the

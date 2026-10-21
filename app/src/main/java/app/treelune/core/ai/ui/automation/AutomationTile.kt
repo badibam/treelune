@@ -148,23 +148,23 @@ fun AutomationButtons(automation: Automation, state: AutomationState, actions: A
 }
 
 /**
- * A routine's tile among its section's tools (UI.SectionCard), « Routine » under its name: its
+ * A routine's tile among its section's tools (UI.LookCard), « Routine » under its name: its
  * state and its switch beside its header (LINE, EXTENDED, SQUARE) or under it (CONDENSED); its
  * buttons on a line of their own (EXTENDED, SQUARE); its last three runs under them (SQUARE), each
  * opening. A touch opens its history; a long touch, [onLongClick], its settings. A run of it that
- * waits to be read is marked on its icon.
+ * waits to be read is marked on its icon, and its run going on now (LocalRunning).
  */
 @Composable
 fun AutomationTile(automation: Automation, actions: AutomationActions, onLongClick: () -> Unit) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     val state = rememberAutomationState(automation)
-    UI.SectionCard(
+    UI.LookCard(
         look = automation.look,
         subtitle = s.shared("automation_display_name"),
         seed = automation.id,
         waiting = LocalWaiting.current.automation(automation.id),
-        running = false,
+        running = LocalRunning.current.automation(automation.id),
         onClick = { actions.history(automation) },
         onLongClick = onLongClick,
         summary = { AutomationStateLine(automation, state, actions) },

@@ -85,7 +85,7 @@ fun rememberVariableValue(variable: VariableRow): String? {
 }
 
 /**
- * A variable's tile among its section's tools (UI.SectionCard): its look, its value beside its
+ * A variable's tile among its section's tools (UI.LookCard): its look, its value beside its
  * header (LINE) or under it (CONDENSED). Touching it opens the variable.
  */
 @Composable
@@ -95,7 +95,7 @@ fun VariableCard(variable: VariableRow, onOpen: () -> Unit, onLongClick: () -> U
     val value = rememberVariableValue(variable)
     @Composable
     fun Value() = UI.Text(value ?: s.shared("tools_loading"), TextType.BODY, maxLines = 2)
-    UI.SectionCard(
+    UI.LookCard(
         look = variable.look,
         // Its kind under its label, as a tool's type under its name
         subtitle = s.shared("variable_display_name"),

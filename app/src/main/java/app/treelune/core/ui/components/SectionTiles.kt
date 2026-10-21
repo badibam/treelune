@@ -38,7 +38,7 @@ sealed interface SectionTile {
  * The tiles of one group section laid on their grid (GridLayout), tools, variables and routines together,
  * each at its column and row as many cells as its mode takes, in edit mode when [edit] is given.
  * A tile of four cells' width with a body (EXTENDED, SQUARE, FULL) is as tall as its content
- * (GridLayout's grows), EXTENDED and SQUARE at most their cells (SectionCard); in edit mode
+ * (GridLayout's grows), EXTENDED and SQUARE at most their cells (LookCard); in edit mode
  * EXTENDED and SQUARE show all their cells, which their place is chosen on.
  */
 @Composable

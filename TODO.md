@@ -26,8 +26,6 @@ Codé, jamais vu sur l'appareil.
 ## Décidé, à coder
 
 - Un filtre qui compare un champ à une variable ou une lecture (« kcal > objectif_calorique ») : le terme lu une fois à la référence du contexte (`TermReader`, `docs/BRICKS.md`), puis le filtre SQL comme aujourd'hui ; `EntryFilters.parse` et `ConditionPicker` le prennent.
-- La tuile d'une zone de l'accueil (`UI.ZoneCard`) sur `UI.SectionCard`, si son conteneur de thème (`ZoneCardContainer`) peut se fondre dans celui des tuiles de section.
-- La marque « en cours » sur la tuile d'une routine pendant qu'une de ses exécutions tourne (`LocalRunning` ne connaît que les chronos des outils).
 
 ## À concevoir
 
