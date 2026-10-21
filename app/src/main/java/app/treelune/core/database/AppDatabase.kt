@@ -1141,14 +1141,7 @@ abstract class AppDatabase : RoomDatabase() {
                 // context, a stored AI message, a tool's config and the app settings all carry the
                 // old key names, and the code that reads them now looks for the new ones.
                 // KeyCaseRenames says what became what, and is the same map the backup import uses.
-                val columns = listOf(
-                    Triple("ai_sessions", "id", listOf("waiting_context_json", "tokens_json", "cost_json", "app_state_snapshot")),
-                    Triple("session_messages", "id", listOf("rich_content_json", "ai_message_json", "ai_message_parsed_json", "system_message_json", "execution_metadata_json")),
-                    Triple("automations", "id", listOf("schedule_json")),
-                    Triple("tool_instances", "id", listOf("config_json")),
-                    Triple("tool_data", "id", listOf("data", "custom_fields")),
-                    Triple("app_settings_categories", "category", listOf("settings"))
-                )
+                val columns = KeyCaseRenames.JSON_COLUMNS
 
                 var rewritten = 0
                 for ((table, key, jsonColumns) in columns) {
@@ -1191,14 +1184,7 @@ abstract class AppDatabase : RoomDatabase() {
                 // for the new ones -- the model then reads its own past replies in one spelling
                 // and is told to answer in another. KeyCaseRenames now converts a wrapped
                 // document too, so the same columns are passed over again.
-                val columns = listOf(
-                    Triple("ai_sessions", "id", listOf("waiting_context_json", "tokens_json", "cost_json", "app_state_snapshot")),
-                    Triple("session_messages", "id", listOf("rich_content_json", "ai_message_json", "ai_message_parsed_json", "system_message_json", "execution_metadata_json")),
-                    Triple("automations", "id", listOf("schedule_json")),
-                    Triple("tool_instances", "id", listOf("config_json")),
-                    Triple("tool_data", "id", listOf("data", "custom_fields")),
-                    Triple("app_settings_categories", "category", listOf("settings"))
-                )
+                val columns = KeyCaseRenames.JSON_COLUMNS
 
                 var rewritten = 0
                 for ((table, key, jsonColumns) in columns) {

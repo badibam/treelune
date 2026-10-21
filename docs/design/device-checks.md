@@ -17,6 +17,7 @@ Ce que seul le téléphone juge : l'œil, l'oreille, le doigt, et ce qu'un vrai 
 ## Démo
 
 - Sur l'OPPO A5 2020 (Android 10, ColorOS 7.1), dont la SQLite n'a pas `json_extract` : l'app désinstallée puis installée à neuf, la démo s'installe au premier démarrage sans toast d'erreur ; l'Objectif de la zone Italien montre ses tentatives validées, un Graphique de la démo se dessine, un chrono lancé s'affiche en cours sur sa tuile.
+- Pendant l'import d'un gros fichier dans une table (Données structurées) : la bande compte les lignes écrites, par 500.
 
 ## Chat IA
 
@@ -53,6 +54,13 @@ Avec le relais en place (son projet `relay`, en ligne sur `https://relay.badibam
 - Une routine lancée à la main, réglée « Toujours » : à sa fin, une notification au nom de la routine avec le début du résumé ; la toucher ouvre l'exécution, le résumé et la ligne de faits en tête. Avant de la toucher : le point sur la tuile de la zone, la carte de la routine et sa ligne dans l'historique, la première phrase du résumé sous sa date ; ouverte, les trois points s'effacent.
 - Un message d'un outil Messages, son contenu mis en forme : sa notification sans les marques, une ligne par ligne du texte, les numéros d'une liste numérotée gardés.
 
+## Outils
+
+- Messages, récurrence illisible (écrire en base un `schedule` portant `"enabled": true`) : un avertissement sur l'écran de l'outil, une erreur dans sa config.
+- « Importer un fichier » sur une table d'aliments : l'écran relit la table une fois l'import fini.
+- Un objectif récurrent quotidien, sa période finie : l'onglet « En cours (1) », la tentative à valider au-dessus de celle du jour.
+- Un questionnaire planifié, la première réponse donnée puis l'écran quitté : « Remplir » reprend à la deuxième question.
+
 ## Séance
 
 - « Commencer » : « Prépare-toi », 5 s avec un accord au début et 3 bips ; une étape au temps bipe à 3, 2, 1 s et passe d'elle-même sur la quinte (et la vibration) ; la voix, activée, dit l'étape et sa consigne, la musique baissée un instant.
@@ -78,8 +86,12 @@ Avec le relais en place (son projet `relay`, en ligne sur `https://relay.badibam
 - Le fichier partagé joint à un mail arrive entier.
 - Importer… sur une sauvegarde complète : rien coché, le choix « Reprendre une partie » / « Tout restaurer » en tête ; Tout restaurer cache les cases, dit ce qui est remplacé, demande confirmation, puis l'app redémarre sur la sauvegarde.
 - Un fichier de partage reçu d'un autre téléphone (par le menu de partage, enregistré dans Téléchargements) s'importe de même, ses images d'entrées comprises.
+- Un export d'entrées : son fichier paraît dans le dossier choisi dans Réglages › Données.
+- Importer… sur un fichier de partage : tout coché, entrées comprises, sans le choix « Tout restaurer » ; dans « Une zone existante », celle du même nom en tête de liste ; un outil Messages ou Agenda dit qu'il peut envoyer des notifications.
 
 ## Les incarnations
 
 - Réglages › Identités › Importer, avec un fichier d'identité au format 2 copié sur le téléphone (l'export de Stan Prokopenko une fois personae passé au format 2, ou l'exemple de `docs/IDENTITY_FILE.md`) : la fenêtre dit son nom, sa date de publication s'il en a une, ses langues, la langue de l'app présélectionnée ; importée, sa tuile paraît. Un fichier qui n'en est pas un (une sauvegarde de l'app, un export de personae au format 1) est refusé en disant le champ ou le format en cause.
 - Config d'une zone : Identité, Stan Prokopenko ; la zone montre sa tuile sous l'en-tête, son bouton ouvre une conversation neuve, le bouton d'identité de la barre du haut à son icône. Envoyer « Comment tu dessines une main ? » : la réponse dans sa voix, en français ; le bouton d'identité ne change plus (un toucher ouvre son nom en lecture seule, la raison dessous, fermé par OK ; son nom touché ouvre sa page, le fil d'Ariane « Accueil › le titre du chat », le retour ou ce titre ramenant au chat). Dans le journal, la ligne « Prompt data built » donne la taille du L1 ; dans les statistiques de la session, les tokens du premier tour puis du second, mis en cache ou non : c'est la mesure qu'attend personae, qui produit les identités.
+- Une autre icône et une couleur choisies pour une incarnation, enregistrées : sa tuile les montre.
+- Une conversation dont l'incarnation est supprimée : son composeur remplacé par la raison.

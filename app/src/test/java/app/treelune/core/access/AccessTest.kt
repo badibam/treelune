@@ -100,6 +100,8 @@ class AccessTest {
     fun aZoneReadGivesItsRoutinesAndTheirRunsToReadAndAZoneFullGivesThemToWrite() {
         val read = AccessMask(listOf(zone("health", AccessLevel.READ)))
         assertNull(refusal(read, "automations", "get", mapOf("automation_id" to "weekly")))
+        assertNull(refusal(read, "automations", "config", mapOf("automation_id" to "weekly")))
+        assertNotNull(refusal(read, "automations", "config", mapOf("automation_id" to "watering")))
         assertNull(refusal(read, "ai_sessions", "run_history", mapOf("session_id" to "r1")))
         assertNull(refusal(read, "automations", "list_all", emptyMap()))
         assertNotNull(refusal(read, "ai_sessions", "list_sessions_for_automation", mapOf("automation_id" to "watering")))
