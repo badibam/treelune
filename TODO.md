@@ -4,9 +4,8 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Release F-Droid
 
-- La fiche fastlane : le changelog de la 0.9.0 ; les captures, dans `phoneScreenshots/`, à montrer dans les README (place marquée).
-- La 0.9.0 taguée sur un arbre propre, ses notes de version validées.
-- La recette F-Droid sur `v0.8.1` essayée dans le conteneur (`docs/design/fdroid-compliance.md`), son APK comparé à celui de GitHub (`apksigcopier compare`) — podman à installer.
+- La recette F-Droid sur `v0.9.0` essayée dans le conteneur (`docs/design/fdroid-compliance.md`), son APK comparé à celui de GitHub (`apksigcopier compare`) — podman à installer.
+- La recette proposée à `fdroiddata` : merge request d'inclusion sur GitLab.
 
 ## Bugs du téléphone
 
