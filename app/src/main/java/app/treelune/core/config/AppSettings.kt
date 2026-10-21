@@ -171,10 +171,9 @@ object AppSettings {
                 SettingNode.Section(text("settings_format_timezone"), listOf(
                     timezones().let { (zones, labels) -> choice("timezone_override", text("app_config_format_timezone_override"), text("app_config_schema_format_timezone_override"), zones, labels) }
                 )),
+                // How numbers and dates are written: the convention first, then what it leaves to choose
                 SettingNode.Section(text("settings_format_locale_section"), listOf(
-                    locales().let { (locales, labels) -> choice("locale_override", text("app_config_format_locale_override"), text("app_config_schema_format_locale_override"), locales, labels) }
-                )),
-                SettingNode.Section(text("settings_format_display_section"), listOf(
+                    locales().let { (locales, labels) -> choice("locale_override", text("app_config_format_locale_override"), text("app_config_schema_format_locale_override"), locales, labels) },
                     // Absent, the phone's habit
                     field("use_24_hour_format", text("settings_format_24h"), text("app_config_schema_format_use_24_hour_format"), FieldType.BOOLEAN),
                     choice("date_format_pattern", text("app_config_format_date_format_pattern"), text("app_config_schema_format_date_format_pattern"), DATE_PATTERNS),

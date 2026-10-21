@@ -1043,7 +1043,6 @@
     <string name="settings_format_subtitle">Date/time configuration</string>
     <string name="settings_format_timezone">Time zone</string>
     <string name="settings_format_locale_section">Numbers and dates</string>
-    <string name="settings_format_display_section">Display formats</string>
     <string name="settings_format_24h">24h format (otherwise 12h)</string>
     <string name="settings_format_business_section">Business logic (periods)</string>
     <string name="settings_format_relative_section">Relative labels (periods)</string>
