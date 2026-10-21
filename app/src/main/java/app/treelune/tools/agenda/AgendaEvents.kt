@@ -42,12 +42,13 @@ data class AgendaEvent(
 
     /**
      * Its end: the last millisecond of its last day for a whole day, the day as the user set it
-     * ([calendar]: past midnight, still that day until it starts again); its start plus its
-     * duration otherwise — its start itself without one.
+     * ([calendar]: past midnight, still that day until it starts again); its start moved by its
+     * duration on the calendar otherwise, its whole days at the same time of the clock across a
+     * change of hour (TimeResolver.after) — its start itself without one.
      */
     fun end(calendar: TimeResolver): Long =
         if (allDay) calendar.startOf(date(calendar.zone).plusDays(days.toLong())) - 1
-        else start + (duration ?: 0L)
+        else calendar.after(start, duration ?: 0L)
 
     /** [end] in the app's calendar, read in [zone]. */
     fun end(zone: ZoneId): Long = end(AgendaToolType.calendar(zone))

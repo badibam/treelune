@@ -79,7 +79,7 @@ object AgendaDays {
         event.allDay -> null
         event.duration != null -> s.tool("length_range").format(
             DateUtils.formatTimeForDisplay(event.start, AgendaToolType.zone()),
-            DateUtils.formatTimeForDisplay(event.start + event.duration, AgendaToolType.zone()))
+            DateUtils.formatTimeForDisplay(event.end(AgendaToolType.zone()), AgendaToolType.zone()))
         else -> null
     }
 
