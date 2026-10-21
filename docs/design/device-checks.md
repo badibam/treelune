@@ -4,7 +4,6 @@ Ce que seul le téléphone juge : l'œil, l'oreille, le doigt, et ce qu'un vrai 
 
 ## Mise à jour et démarrage
 
-- Une sauvegarde faite après la migration 72, importée après avoir désinstallé puis réinstallé l'app (la clé du Keystore change) : l'écran du fournisseur dit que la clé ne s'ouvre pas et la montre vide ; un message à l'IA est refusé en le disant ; la clé ressaisie, tout repart.
 - Après un redémarrage du téléphone, sans ouvrir l'app : un message de l'outil Messages prévu à une heure donnée arrive dans les 10 minutes qui suivent.
 
 ## Validation
@@ -18,7 +17,7 @@ Ce que seul le téléphone juge : l'œil, l'oreille, le doigt, et ce qu'un vrai 
 ## Chat IA
 
 - Fermer l'app de force pendant une attente de données volumineuses, la rouvrir : les boutons reviennent.
-- Images : une sauvegarde avec des images de messages, réimportée, rend leurs vignettes ; un ancien `.json` s'importe encore.
+- Un ancien `.json` de sauvegarde s'importe encore.
 
 ## Accès externe (serveur MCP)
 
