@@ -20,7 +20,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 /**
- * The tutorial in progress and the Guide's progress (docs/design/user-journey.md). A GO step is
+ * The tutorial in progress and the Guide's progress (docs/GUIDE.md). A GO step is
  * done when its place is on screen, a DO step when the operation it waits for passes through the
  * dispatcher (PassedOperations), asked by whom it says, a READ step by Next. Each change is
  * written to the settings (category guide) as it happens.

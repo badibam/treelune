@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 /*
- * The blueprint theme's palettes (docs/design/blueprint-theme.md): each a handful of numbers in
+ * The blueprint theme's palettes (docs/themes/blueprint.md): each a handful of numbers in
  * OKLCH (palettes.json, a resource of this package, set on the bench
  * themes/blueprint/bench/palettes.html, which derives the colours the same way), every colour
  * derived from them here. The light one is a whiteprint, blue lines on an off-white paper; the

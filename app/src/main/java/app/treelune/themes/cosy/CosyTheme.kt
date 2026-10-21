@@ -137,7 +137,7 @@ import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
- * The cosy theme (docs/design/cosy-theme.md): the app as a phone in a gentle game. Everything round
+ * The cosy theme (docs/themes/cosy.md): the app as a phone in a gentle game. Everything round
  * and plump, cream tiles on a sand ground sown with dots, each piece raised on a full shadow it
  * sinks into under the finger before springing back (CosyPieces); the Baloo 2 font; two palettes of
  * a handful of OKLCH numbers (CosyPalette); Kenney's round sounds.

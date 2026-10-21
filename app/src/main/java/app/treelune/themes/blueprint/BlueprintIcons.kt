@@ -25,7 +25,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * Lucide redrawn the blueprint's way (docs/design/blueprint-theme.md, line 9): its strokes, read
+ * Lucide redrawn the blueprint's way (docs/themes/blueprint.md, line 9): its strokes, read
  * from the drawable (IconStrokes), traced with a line of [STROKE] units of the icon's grid of 24
  * instead of Lucide's 2, and every line overshooting as on an architect's sketch: each open
  * stroke runs [OVERSHOOT] units past its two ends, and at each sharp corner the two lines that

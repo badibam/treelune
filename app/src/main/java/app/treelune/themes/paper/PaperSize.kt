@@ -21,7 +21,7 @@ import app.treelune.R
 import app.treelune.core.themes.CurrentTheme
 
 /**
- * The cut paper theme's sizes (docs/design/paper-theme.md): every length and every text of the
+ * The cut paper theme's sizes (docs/themes/paper.md): every length and every text of the
  * mockup, on a pitch of 8 dp, times the factor of the size step the user chose
  * (CurrentTheme.sizeStep), but for the spaces between pieces, the margin and the grid's gaps,
  * which stay in plain dp (the theme's spacing). Texts are in sp, so Android's text size enlarges

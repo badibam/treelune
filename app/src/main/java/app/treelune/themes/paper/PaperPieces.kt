@@ -26,7 +26,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 
 /*
- * The pieces every cut paper component is made of (docs/design/paper-theme.md): sheets with
+ * The pieces every cut paper component is made of (docs/themes/paper.md): sheets with
  * uneven corners, each on a hard shadow shifted down and right, never blurred; a tile laid a
  * little askew, the same way at every drawing. Under the finger a sheet is pressed flat onto its
  * shadow, with no ripple; a window falls in as a sheet laid on the table; a lifted piece rises on

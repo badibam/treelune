@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 /*
- * The Swiss theme's palettes (docs/design/swiss-theme.md): each a handful of numbers in OKLCH
+ * The Swiss theme's palettes (docs/themes/swiss.md): each a handful of numbers in OKLCH
  * (palettes.json, a resource of this package, set on the bench themes/swiss/bench/palettes.html,
  * which derives the colours the same way), every colour derived from them here. Black, an
  * off-white and a single red: the hue shift turns the red alone, the rest having no hue to turn.

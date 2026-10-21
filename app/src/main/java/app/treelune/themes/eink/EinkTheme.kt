@@ -138,7 +138,7 @@ import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
- * The e-reader theme (docs/design/eink-theme.md): the app as on an e-reader. Pure black and white,
+ * The e-reader theme (docs/themes/eink.md): the app as on an e-reader. Pure black and white,
  * no grey: a frame of 2 dp round every tile and card, square; a group's title in capitals over a
  * rule of 3 dp; a page's title in a band of ink. Whatever the core gives in colour becomes a
  * pattern of the ink (EinkPalette): a tag's colour, an icon's, a chart's series. Nothing moves:

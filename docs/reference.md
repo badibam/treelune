@@ -39,6 +39,7 @@ A native Android application (Kotlin + Jetpack Compose, Room persistence): a per
 - `docs/CORE.md` — system architecture: command dispatcher, service registry, scheduling, discovery pattern, strings, logs.
 - `docs/DATA.md` — hierarchical navigation in the data, schema validation, propagation of changes, versioning and migrations.
 - `docs/UI.md` — interface components, forms, Compose patterns.
+- `docs/themes/` — one doc per theme (its register, its decisions, what stays open), and `sounds.md`, the map of the themes' sound registers.
 - `docs/THEMES.md` — the themes: what they are in the app, and the recipe to code one (course, decisions before the code, files, checks, sounds, traps, pass on the phone).
 - `docs/WRITING.md` — writing for the user: the rules of the sentence and of address, for every text they read.
 - `docs/BRICKS.md` — the bricks (instant, period, thing, field, reduction, condition, filter, entry selection, reading, term): what each chooses, its stored form, its model, its selector, its state; who assembles them.
@@ -46,7 +47,7 @@ A native Android application (Kotlin + Jetpack Compose, Room persistence): a per
 - `docs/AI.md` — AI system: state machine, sessions, prompts, automations, providers.
 - `docs/EXTERNAL_ACCESS.md` — the external access: the two ways in (an embedded Tailscale node, a relay), the relay's contract, the OAuth, what an outside client sees, the Tailscale node and what Android asks of it.
 - `docs/IDENTITY_FILE.md` — the identity file, a public format any producer writes for the app to import (in English, for these producers), and its JSON schema `docs/schemas/identity-file.schema.json`, which `IdentityFileTest` checks.
-- `docs/design/user-journey.md` — the user's journey: the README, the first launch, the tutorial band and the Guide (`core/guide`, its chapters in `assets/guide/chapters.json`, its texts in `guide.xml` and `guide-fr.xml`, its progress in the settings category `guide`).
+- `docs/GUIDE.md` — the user's journey: the README, the first launch, the tutorial band and the Guide (`core/guide`, its chapters in `assets/guide/chapters.json`, its texts in `guide.xml` and `guide-fr.xml`, its progress in the settings category `guide`).
 - `docs/design/` — transitory design, written to be implemented then pruned. The code and the commits become the register.
 - `docs/theme-tracks.html` — the theme registers mocked up on the same screen of a zone, as previews a click enlarges, opened by `./run tracks`; to read again before proposing or designing a theme (`docs/THEMES.md`, "The course"). Cosy, Swiss, Ink and wash, Metro signage, Cut paper, Architect's blueprint and Monochrome / e-ink (the e-reader) are retained; the others, on hold, each bear a mark by the AI and one by the user out of 10 (`docs/theme-tracks.json`, written by the page): the user's mark ranks them, and that ranking is the order of implementation. On 2026-10-19: Notebook, Terminal, Instruments, JRPG menu, 1-bit Mac, Science-fiction HUD, Risograph, Neon arcade, Playing cards.
 

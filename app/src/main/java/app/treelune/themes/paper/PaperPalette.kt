@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 /*
- * The cut paper theme's palettes (docs/design/paper-theme.md): each a handful of numbers in OKLCH
+ * The cut paper theme's palettes (docs/themes/paper.md): each a handful of numbers in OKLCH
  * (palettes.json, a resource of this package, set on the bench themes/paper/bench/palettes.html,
  * which derives the colours the same way), every colour derived from them here. A kraft ground, a
  * cream sheet, a dark brown ink, a coral and a night blue, and the coloured sheets of the tags: the

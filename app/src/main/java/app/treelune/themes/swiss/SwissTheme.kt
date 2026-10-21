@@ -134,7 +134,7 @@ import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
- * The Swiss theme (docs/design/swiss-theme.md): the app as a Swiss poster. A strict grid on a
+ * The Swiss theme (docs/themes/swiss.md): the app as a Swiss poster. A strict grid on a
  * pitch of 8 dp, black ink on an off-white ground and a single red for the app's signals, no
  * shadow and no rounding: a tile is a thick rule over its content, flush left; the numbers large,
  * in Archivo's black weight (SwissSize). Under the finger a piece inverts, and a window fades in

@@ -1,6 +1,6 @@
 "use strict";
 /*
-  The cut paper theme's scissors (docs/design/paper-theme.md, line 9), shared by its benches: a
+  The cut paper theme's scissors (docs/themes/paper.md, line 9), shared by its benches: a
   Lucide icon walked along its strokes, as IconStrokes does on the phone (a point every 0.08 of
   the grid of 24), then cut again in straight facets, the way scissors go round a curve: a point
   kept wherever the stroke truly turns (a corner of the icon), and between two of them one every

@@ -28,7 +28,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 
 /*
- * The pieces every blueprint component is made of (docs/design/blueprint-theme.md): fine lines
+ * The pieces every blueprint component is made of (docs/themes/blueprint.md): fine lines
  * drawn with a ruler, each side of a frame running past its corners as on an architect's sketch,
  * hatching, the title block's double frame. Under the finger a piece fills with light hatching,
  * with no ripple; a window fades in; a lifted piece thickens its lines and leaves its place drawn

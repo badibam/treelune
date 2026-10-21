@@ -595,7 +595,7 @@ class AICommandProcessor(private val context: Context) {
 
     /**
      * Turn the dates and durations the model writes into milliseconds, the form everything past
-     * this point speaks (docs/design/date-boundary.md). ISO 8601 is the model's form, and this is
+     * this point speaks (docs/reference.md, the rule of dates and durations). ISO 8601 is the model's form, and this is
      * the last place it is understood: the dispatcher, the services and the database see numbers.
      *
      * Where a value is a date or a duration is read from the tool's entry schema -- the one its

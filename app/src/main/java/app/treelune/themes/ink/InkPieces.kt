@@ -55,7 +55,7 @@ import kotlin.math.hypot
 import kotlin.math.min
 
 /*
- * The pieces every ink component is made of (docs/design/ink-theme.md): washes of irregular
+ * The pieces every ink component is made of (docs/themes/ink.md): washes of irregular
  * edge, the brush's strokes (InkBrush), the seal. Motion is slow and soft: under the finger a
  * wash darkens a step, with no ripple; a window fades in, slowing at its end; a lifted piece
  * darkens and stands off, with no shadow.

@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
 /*
- * The pieces every cosy component is made of (docs/design/cosy-theme.md): a piece raised on its
+ * The pieces every cosy component is made of (docs/themes/cosy.md): a piece raised on its
  * full shadow, which sinks into it under the finger and springs back up past its place before it
  * settles; a window that swells in.
  */

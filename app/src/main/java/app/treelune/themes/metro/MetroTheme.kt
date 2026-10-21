@@ -133,7 +133,7 @@ import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
- * The metro theme (docs/design/metro-theme.md): the app as a metro's signage. Each tool is a line
+ * The metro theme (docs/themes/metro.md): the app as a metro's signage. Each tool is a line
  * in its icon's colour: a white panel with corners of 4 dp under a thick line of that colour, its
  * icon in a roundel of it, what is drawn inside the tile (a gauge, a checked box, a chart) in it
  * too. A page's header is a night-blue band, its title in white, as a station's name on its sign;

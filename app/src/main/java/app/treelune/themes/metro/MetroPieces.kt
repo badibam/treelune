@@ -26,7 +26,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 
 /*
- * The pieces every metro component is made of (docs/design/metro-theme.md): panels with corners of
+ * The pieces every metro component is made of (docs/themes/metro.md): panels with corners of
  * 4 dp, lines of a colour, round stops. Under the finger a piece darkens with the night blue, with
  * no ripple; a window slides in as a train enters the station; a lifted piece rises on a flat shadow.
  */

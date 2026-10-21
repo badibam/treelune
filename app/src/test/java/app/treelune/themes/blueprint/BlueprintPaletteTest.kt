@@ -9,7 +9,7 @@ import org.junit.Test
 
 /**
  * The blueprint palettes are read, one per mode, and every text they draw is legible where it is
- * drawn at every hue shift (docs/design/blueprint-theme.md): at one OKLCH lightness, the measured
+ * drawn at every hue shift (docs/themes/blueprint.md): at one OKLCH lightness, the measured
  * contrast changes with the hue, so the blue and the paper are held at each step of 15 degrees,
  * as the bench measures them. Everything stands on the paper: the ink, the secondary ink, the
  * alert, the states and the pencils; and the paper is written on a fill of the ink.

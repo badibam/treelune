@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 /*
- * The metro theme's palettes (docs/design/metro-theme.md): each a handful of numbers in OKLCH
+ * The metro theme's palettes (docs/themes/metro.md): each a handful of numbers in OKLCH
  * (palettes.json, a resource of this package, set on the bench themes/metro/bench/palettes.html,
  * which derives the colours the same way), every colour derived from them here. An off-white
  * ground, white panels and a night blue, the lines in the vivid colours of a metro map, and a red

@@ -131,7 +131,7 @@ import androidx.compose.ui.unit.IntOffset
 import app.treelune.core.ui.horizontalPick
 
 /**
- * The retro theme (docs/design/retro-theme.md): the console, softened. Pixel art on an integer
+ * The retro theme (docs/themes/retro.md): the console, softened. Pixel art on an integer
  * grid (RetroGrid), the Cartouche font, frames written in its own pieces (RetroFrame), a palette
  * of a handful of OKLCH numbers set on a bench (RetroPalette), interface sounds.
  *

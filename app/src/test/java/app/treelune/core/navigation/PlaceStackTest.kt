@@ -5,7 +5,7 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 /**
- * What the stack of places promises (docs/design/navigation.md): every place read back from its
+ * What the stack of places promises (docs/UI.md, « The stack of places »): every place read back from its
  * address; a place opened with nothing open rebuilt from its parents, opened over something
  * stacked alone; the breadcrumb naming the parent of a place stacked without it; a deleted zone
  * taking its places with it; the entry a tool place opens on handed once.

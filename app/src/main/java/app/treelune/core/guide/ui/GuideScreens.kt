@@ -125,7 +125,7 @@ private fun state(chapter: GuideChapter): String {
     val s = remember { Strings.`for`(context = context) }
     val at = Guide.progress?.of(chapter.id)
     return when {
-        // A chapter without steps nor text is still to be written (docs/design/user-journey.md, « Référence »)
+        // A chapter without steps nor text is still to be written (docs/GUIDE.md)
         chapter.isStub -> s.shared("guide_state_stub")
         !chapter.isTutorial -> s.shared("guide_state_read")
         at?.done == true -> s.shared("guide_state_done")

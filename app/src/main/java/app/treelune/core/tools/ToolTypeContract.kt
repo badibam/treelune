@@ -35,7 +35,7 @@ interface ToolTypeContract {
     /**
      * The Guide's chapter on this type, beside its usage, in the Guide's markup (Markup):
      * every setting of its own config, and every button of its screen, one mention each
-     * (docs/design/user-journey.md, « Prise en main »). None until written.
+     * (docs/GUIDE.md, « Getting started »). None until written.
      */
     fun getGuideConfig(context: Context): String? = null
     fun getGuideScreen(context: Context): String? = null

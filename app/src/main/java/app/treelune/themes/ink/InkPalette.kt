@@ -12,7 +12,7 @@ import kotlinx.serialization.json.Json
 import kotlin.math.roundToInt
 
 /*
- * The ink theme's palettes (docs/design/ink-theme.md): each a handful of numbers in OKLCH
+ * The ink theme's palettes (docs/themes/ink.md): each a handful of numbers in OKLCH
  * (palettes.json, a resource of this package, set on the bench themes/ink/bench/palettes.html,
  * which derives the colours the same way), every colour derived from them here. Cream paper,
  * black ink and a single seal red; a wash is ink laid thin on the paper. At night nothing lights

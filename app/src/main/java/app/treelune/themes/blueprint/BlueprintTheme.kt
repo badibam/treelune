@@ -140,7 +140,7 @@ import java.time.format.TextStyle as DateTextStyle
 import java.util.Locale
 
 /**
- * The blueprint theme (docs/design/blueprint-theme.md): the app as an architect's plan. Fine lines
+ * The blueprint theme (docs/themes/blueprint.md): the app as an architect's plan. Fine lines
  * drawn with a ruler on grid paper, each side of a frame running past its corners as on a sketch;
  * hatching for what is filled (a gauge's progress, a chart's bars, a piece pressed); a title block
  * for a window; a revision triangle for what waits. The light palette is a whiteprint, the dark a

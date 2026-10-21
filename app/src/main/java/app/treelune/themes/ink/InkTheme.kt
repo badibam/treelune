@@ -133,7 +133,7 @@ import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
- * The ink theme (docs/design/ink-theme.md): the app as an ink wash painting. Cream paper, black
+ * The ink theme (docs/themes/ink.md): the app as an ink wash painting. Cream paper, black
  * ink and a single seal red, plenty of empty space: a tile is a wash of irregular edge with no
  * outline, a group's title is spaced over a stroke of the brush, and every line, the icons
  * included, is traced by one brush (InkBrush) in Literata's company (InkSize). Under the finger a

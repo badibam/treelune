@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 /*
- * The cosy theme's palettes (docs/design/cosy-theme.md): each a handful of numbers in OKLCH
+ * The cosy theme's palettes (docs/themes/cosy.md): each a handful of numbers in OKLCH
  * (palettes.json, a resource of this package), every colour derived from them here. The light one
  * is the mockup's sand and cream, read off it; the dark one a summer night, blue, its ink cream.
  */

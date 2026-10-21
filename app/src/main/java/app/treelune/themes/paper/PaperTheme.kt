@@ -137,7 +137,7 @@ import java.time.format.TextStyle as DateTextStyle
 import java.util.Locale
 
 /**
- * The cut paper theme (docs/design/paper-theme.md): the app in sheets of coloured paper cut with
+ * The cut paper theme (docs/themes/paper.md): the app in sheets of coloured paper cut with
  * scissors and laid a little askew on kraft, each on a hard shadow, never blurred. A tool's tile
  * is a sheet of its icon's colour (cream without one), tilted by its own seed; a group's title a
  * coral band and a torn strip; the page's title on a cream strip. Lucide cut in facets

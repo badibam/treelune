@@ -143,7 +143,7 @@ class DemoContentTest {
         assertTrue(content.zones.any { it.has("texture") })
         assertTrue(configs().any { it.optString("texture") == "ICON" } && configs().any { it.has("texture") && it.optString("texture") != "ICON" })
         // The three protections; no tool always sent, which would put the demo's data in every
-        // prompt of whoever installs it (docs/design/user-journey.md, La démo)
+        // prompt of whoever installs it (docs/GUIDE.md, La démo)
         assertTrue(content.zones.any { it.optBoolean("validate") })
         assertTrue(configs().any { it.optBoolean("validate_data") })
         assertTrue(configs().none { it.optBoolean("always_send") })

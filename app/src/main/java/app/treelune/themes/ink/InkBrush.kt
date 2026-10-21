@@ -26,7 +26,7 @@ import kotlin.math.roundToInt
 import kotlin.math.sin
 
 /**
- * The ink theme's brush (docs/design/ink-theme.md, line 9), the one hand of every line it draws:
+ * The ink theme's brush (docs/themes/ink.md, line 9), the one hand of every line it draws:
  * held at a slant, it presses where it lands and where the stroke turns, swells once slowly over
  * a stroke and lifts off in a point, its widths smoothed so they only ever flow. The same as the
  * benches' brush.js, its settings chosen at the brush bench.

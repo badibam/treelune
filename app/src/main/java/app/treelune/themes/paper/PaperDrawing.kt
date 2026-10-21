@@ -33,7 +33,7 @@ import app.treelune.core.drawing.TextAnchor
 import app.treelune.core.drawing.TextBaseline
 
 /**
- * The cut paper theme's drawings (docs/design/paper-theme.md): a box is a strip of paper cut with
+ * The cut paper theme's drawings (docs/themes/paper.md): a box is a strip of paper cut with
  * uneven corners, the strips leaning in turn by [BOX_TILT] degrees about their foot; a curve's
  * strokes have square ends and sharp joins, its round points are small rounds of its colour on a
  * hard shadow; labels in Bricolage's figures of one width. The colours the user gives a chart's

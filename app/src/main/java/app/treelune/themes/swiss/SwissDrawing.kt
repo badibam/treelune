@@ -30,7 +30,7 @@ import app.treelune.core.drawing.TextAnchor
 import app.treelune.core.drawing.TextBaseline
 
 /**
- * The Swiss theme's drawings (docs/design/swiss-theme.md): flat fills with no rounding, strokes
+ * The Swiss theme's drawings (docs/themes/swiss.md): flat fills with no rounding, strokes
  * with square ends and mitred corners, labels in Archivo's figures of one width. The colours the
  * user gives a chart's series are kept, in the palette's tag colours: they are the user's data,
  * and a chart of three series in black alone would no longer read. The inks go to the ink, the

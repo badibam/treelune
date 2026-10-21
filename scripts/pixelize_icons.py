@@ -2,7 +2,7 @@
 """Pixelize Lucide's icons for the retro theme: app/.../themes/retro/icons/<name>.svg.
 
 Each icon is drawn in a box of 22 by 22 pixels, the register's second size (docs/design/
-retro-theme.md): rendered eight times larger, then each pixel kept when the icon covers at least
+docs/themes/retro.md): rendered eight times larger, then each pixel kept when the icon covers at least
 THRESHOLD of it. The rendering is headless Chrome's, the renderer the palette bench uses; the
 vendored Lucide copy is the source (third_party/lucide).
 

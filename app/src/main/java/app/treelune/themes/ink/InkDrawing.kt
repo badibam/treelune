@@ -32,7 +32,7 @@ import app.treelune.core.drawing.TextAnchor
 import app.treelune.core.drawing.TextBaseline
 
 /**
- * The ink theme's drawings (docs/design/ink-theme.md, line 10): a block (a bar, a cell) is a wash
+ * The ink theme's drawings (docs/themes/ink.md, line 10): a block (a bar, a cell) is a wash
  * filling exactly its value, its top corners soft; surfaces are thin washes, lines have round ends and joins, labels are in
  * Literata. The colours the user gives a chart's series are kept, in the palette's tag colours:
  * they are the user's data. The inks go to the ink, the secondary ink and a track's wash; what is
