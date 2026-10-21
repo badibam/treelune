@@ -47,6 +47,13 @@ data class IdentityLanguage(
     /** Its three texts by their key ([PIECES]), absent ones left out. */
     fun pieces(): Map<String, IdentityPiece> = listOfNotNull(voice?.let { VOICE to it }, mind?.let { MIND to it }, portrait?.let { PORTRAIT to it }).toMap()
 
+    /** Whether it holds anything: a text or a resource. */
+    fun holds(): Boolean = pieces().isNotEmpty() || resources.isNotEmpty()
+
+    /** Its texts without their origin, as a file gives them. */
+    fun unmarked(): IdentityLanguage = IdentityLanguage(voice?.copy(imported = false), mind?.copy(imported = false), portrait?.copy(imported = false),
+        resources.mapValues { it.value.copy(imported = false) })
+
     fun withPiece(key: String, piece: IdentityPiece?): IdentityLanguage = when (key) {
         VOICE -> copy(voice = piece)
         MIND -> copy(mind = piece)
@@ -113,6 +120,16 @@ data class Identity(
     fun retouched(): List<String> = if (importedAt == null) emptyList() else languages.flatMap { (code, section) ->
         section.pieces().filterValues { !it.imported }.keys.map { "$code · $it" } +
             section.resources.filterValues { !it.imported }.keys.map { "$code · $it" }
+    }
+
+    /**
+     * Whether [other] holds what this one does, as a file of either would: the same name, the same
+     * texts in the same languages, whether each was imported or written in the app; a language
+     * holding nothing does not count.
+     */
+    fun sameAs(other: Identity): Boolean {
+        fun held(identity: Identity) = identity.languages.filterValues { it.holds() }.mapValues { it.value.unmarked() }
+        return name == other.name && held(this) == held(other)
     }
 
     companion object {

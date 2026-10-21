@@ -29,7 +29,9 @@ import java.util.zip.ZipInputStream
  * What taking a part of a backup back promises (docs/DATA.md, « A part of the app »): the demo,
  * exported whole then brought back whole, arrives a second time through the services, each thing
  * under a new id that the things reading it follow, a variable whose name is taken under `_2`, a
- * routine off without provider nor identity; one step of the history, undone at once; and a step
+ * routine off without provider; its identities, which the app holds, under their own ids, the one
+ * retouched in the app said different and replaced when asked, the zones and routines speaking as
+ * them; one step of the history, undone at once, the identity replaced back as it was; and a step
  * refused leaves nothing behind.
  */
 @RunWith(RobolectricTestRunner::class)
@@ -58,11 +60,13 @@ class PartImportTest {
         JSONObject(zip.readBytes().toString(Charsets.UTF_8))
     }
 
-    /** Everything of the demo ticked, each tool with its entries. */
+    /** Everything of the demo ticked, each tool with its entries, and the identities its zones and routines speak as. */
     private fun everything(document: JSONObject): PartSelection {
         val data = document.getJSONObject("data")
-        fun ids(table: String) = data.getJSONArray(table).let { a -> (0 until a.length()).map { a.getJSONObject(it).getString("id") } }.filter { it.startsWith(DemoContent.PREFIX) }
-        return PartSelection(ids("zones").toSet(), ids("tool_instances").associateWith { true }, ids("variables").toSet(), ids("automations").toSet())
+        fun rows(table: String) = data.getJSONArray(table).let { a -> (0 until a.length()).map { a.getJSONObject(it) } }.filter { it.getString("id").startsWith(DemoContent.PREFIX) }
+        fun ids(table: String) = rows(table).map { it.getString("id") }
+        val spoken = (rows("zones") + rows("automations")).mapNotNull { BackupPart.identityOf(it) }.toSet()
+        return PartSelection(ids("zones").toSet(), ids("tool_instances").associateWith { true }, ids("variables").toSet(), ids("automations").toSet(), spoken)
     }
 
     // One test, the demo being installed once: a refused import first, then the whole one
@@ -81,7 +85,7 @@ class PartImportTest {
         val groups = database.appSettingsCategoryDao().getAllSettings().map { it.category to it.settings }
 
         val refused = try {
-            PartImport(context).run(part, Images.importDir(context), emptyMap())
+            PartImport(context).run(part, Images.importDir(context), emptyMap(), emptySet())
             null
         } catch (e: PartImport.Refused) {
             e
@@ -91,8 +95,17 @@ class PartImportTest {
         assertEquals(tool, database.toolInstanceDao().getAllToolInstances().size)
         assertEquals(groups, database.appSettingsCategoryDao().getAllSettings().map { it.category to it.settings })
 
-        // The whole demo brought back
+        // The whole demo brought back, one of its identities retouched in the app since, and replaced
         val selection = everything(document(uri))
+        assertTrue(selection.identities.isNotEmpty())
+        val retouched = selection.identities.first()
+        val original = database.identityDao().getById(retouched)!!.name
+        assertTrue(Coordinator(context).processUserAction("identities.update", mapOf("identity_id" to retouched, "name" to "Retouched")).isSuccess)
+        @Suppress("UNCHECKED_CAST")
+        val held = Coordinator(context).processUserAction("backup.tree", mapOf("uri" to uri.toString())).data!!["identities"] as Map<String, String>
+        assertEquals("different", held[retouched])
+        (selection.identities - retouched).forEach { assertEquals(it, "same", held[it]) }
+        val identitiesBefore = database.identityDao().getAll().size
         val zonesBefore = database.zoneDao().getAllZones().size
         val entriesBefore = database.toolDataDao().getAllEntries().size
         val variablesBefore = database.variableDao().getAll()
@@ -108,8 +121,15 @@ class PartImportTest {
             (read.data!!["taken_variable_names"] as List<String>).toSet()
         )
 
-        val imported = Coordinator(context).processUserAction("backup.import_part", mapOf("uri" to uri.toString(), "selection" to selection.toJson()))
+        val imported = Coordinator(context).processUserAction("backup.import_part", mapOf("uri" to uri.toString(), "selection" to selection.toJson(),
+            "replace_identities" to listOf(retouched)))
         assertTrue("import: ${imported.error}", imported.isSuccess)
+        assertEquals(0, imported.data!!["identities_added"])
+        assertEquals(1, imported.data!!["identities_replaced"])
+        assertEquals(identitiesBefore, database.identityDao().getAll().size)
+        val replaced = database.identityDao().getById(retouched)!!.toIdentity()
+        assertEquals(original, replaced.name)
+        assertTrue(replaced.retouched().isEmpty())
 
         // Every zone, tool and entry a second time, the variables under a free name
         assertEquals(zonesBefore + selection.zones.size, database.zoneDao().getAllZones().size)
@@ -143,10 +163,19 @@ class PartImportTest {
             assertFalse(variable.definitionJson, IdWords.words(variable.definitionJson).any { it in demoIds })
         }
 
-        // A routine arrives off, without provider nor identity
+        // A routine arrives off, without provider, speaking as its identity; a zone as its own
+        val demoRoutines = database.aiDao().getAllAutomations().filter { it.id.startsWith(DemoContent.PREFIX) }
         val routines = database.aiDao().getAllAutomations().filter { !it.id.startsWith(DemoContent.PREFIX) }
         assertEquals(selection.automations.size, routines.size)
-        routines.forEach { assertFalse(it.isEnabled); assertNull(it.providerId); assertNull(it.identityId) }
+        routines.forEach { routine ->
+            assertFalse(routine.isEnabled)
+            assertNull(routine.providerId)
+            assertEquals(routine.name, demoRoutines.first { it.name == routine.name }.identityId, routine.identityId)
+        }
+        val allZones = database.zoneDao().getAllZones()
+        allZones.filter { !it.id.startsWith(DemoContent.PREFIX) }.forEach { zone ->
+            assertEquals(zone.name, allZones.first { it.id.startsWith(DemoContent.PREFIX) && it.name == zone.name }.identity_id, zone.identity_id)
+        }
 
         // One step of the history, which undoes it all
         @Suppress("UNCHECKED_CAST")
@@ -155,5 +184,6 @@ class PartImportTest {
         assertTrue("undo: ${undone.error}", undone.isSuccess)
         assertEquals(zonesBefore, database.zoneDao().getAllZones().size)
         assertEquals(entriesBefore, database.toolDataDao().getAllEntries().size)
+        assertEquals("Retouched", database.identityDao().getById(retouched)!!.name)
     }
 }

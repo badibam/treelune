@@ -33,8 +33,13 @@ import java.util.UUID
  * once (IdWords): what arrives names itself under its new ids from the start, whatever the order
  * of creation, and the services take them as given (GivenId.Made). A zone goes into a new zone, or
  * into one of the app's, whose id then takes its place. A variable whose name is taken arrives
- * under `_2`, `_3`…; a routine arrives switched off, without provider nor identity. An image the
- * file says was already missing at its export is taken out of its entry.
+ * under `_2`, `_3`…; a routine arrives switched off, without provider. An image the file says was
+ * already missing at its export is taken out of its entry.
+ *
+ * An identity keeps its id, shared with whoever wrote it: one the app lacks is added, one it holds
+ * is kept, or replaced whole when asked, as an identity file of it imports (IdentityFile), its
+ * texts then marked imported. A new zone and a routine speak as the identity the part gives them;
+ * a zone going into one of the app's leaves the app's zone as it speaks.
  *
  * The part arrives whole or not at all: a step refused removes what was written before it, and the
  * refusal names the step. The schedulers are held off meanwhile (SchedulersHeld).
@@ -49,8 +54,11 @@ class PartImport(private val context: Context) {
      *
      * @property renamed Each variable's name in the file, and the one it arrived under when taken
      * @property imagesMissing The images taken out of their entries, missing already at the export
+     * @property identitiesAdded The identities the app did not hold
+     * @property identitiesReplaced The identities it held, replaced
      */
-    data class Report(val zones: Int, val elements: Int, val entries: Int, val renamed: Map<String, String>, val imagesMissing: Int)
+    data class Report(val zones: Int, val elements: Int, val entries: Int, val renamed: Map<String, String>, val imagesMissing: Int,
+        val identitiesAdded: Int, val identitiesReplaced: Int)
 
     private val coordinator = Coordinator(context)
     private val database = AppDatabase.getDatabase(context)
@@ -61,9 +69,12 @@ class PartImport(private val context: Context) {
      *
      * @param arrivals For a zone of the part, the id of the app's zone it goes into; a zone left
      *   out goes into a new zone
-     * @throws Refused when a zone of arrival is gone, or a service refuses a step
+     * @param replaced The identities of the part the app holds that replace its own; the others it
+     *   holds are kept
+     * @throws Refused when a zone of arrival is gone, an identity of the part does not make a file,
+     *   or a service refuses a step
      */
-    suspend fun run(part: JSONObject, staging: File, arrivals: Map<String, String>): Report {
+    suspend fun run(part: JSONObject, staging: File, arrivals: Map<String, String>, replaced: Set<String>): Report {
         val data = JSONObject(part.getJSONObject("data").toString())
         arrivals.values.firstOrNull { database.zoneDao().getZoneById(it) == null }?.let { throw Refused("No zone $it to arrive in") }
 
@@ -84,7 +95,7 @@ class PartImport(private val context: Context) {
         val written = Written()
         return try {
             withContext(GivenId.Made(made)) {
-                SchedulersHeld.during { write(data, staging, former, arrivals.values.toSet(), written) }
+                SchedulersHeld.during { write(data, staging, former, arrivals.values.toSet(), replaced, written) }
             }.copy(imagesMissing = imagesMissing)
         } catch (e: Refused) {
             undo(written)
@@ -101,6 +112,7 @@ class PartImport(private val context: Context) {
     /** What was written so far, for [undo]. */
     private class Written {
         val homeGroups = mutableListOf<String>()
+        val identities = mutableListOf<String>()
         val zones = mutableListOf<String>()
         /** The app's zones whose tool groups grew, with the ones they had */
         val toolGroups = mutableMapOf<String, String?>()
@@ -108,9 +120,27 @@ class PartImport(private val context: Context) {
         val inExisting = mutableListOf<Pair<String, JSONObject>>()
     }
 
-    private suspend fun write(data: JSONObject, staging: File, former: Map<String, String>, existing: Set<String>, written: Written): Report {
+    private suspend fun write(data: JSONObject, staging: File, former: Map<String, String>, existing: Set<String>, replaced: Set<String>, written: Written): Report {
         val zones = rows(data, "zones")
         val newZones = zones.filter { it.getString("id") !in existing }
+
+        // The identities, each as its file, all written before anything is: a replacement, made
+        // last, then fails on nothing of its own. The file holds the language it speaks (IdentityFile.write)
+        val today = app.treelune.core.selection.TimeResolver.at(System.currentTimeMillis()).today()
+        val identities = rows(data, "identities").map { BackupPart.identity(it) }.map { identity ->
+            val text = try {
+                app.treelune.core.identities.IdentityFile.write(identity, today)
+            } catch (e: app.treelune.core.identities.IdentityFile.Refused) {
+                throw Refused("identity ${identity.name}: ${e.key} ${e.args.joinToString()}")
+            }
+            Arrival(identity, text, identity.language)
+        }
+        val held = identities.filter { database.identityDao().getById(it.identity.id) != null }.map { it.identity.id }.toSet()
+        // One the app lacks before the zones and routines that speak as it
+        identities.filter { it.identity.id !in held }.forEach { arrival ->
+            run("identities.import", arrival.params(replace = false))
+            written.identities += arrival.identity.id
+        }
 
         // A new zone in its group of the home screen, added when missing
         written.homeGroups += HomeGroups(::run).add(newZones.mapNotNull { it.optString("group").takeIf { g -> g.isNotEmpty() } })
@@ -121,6 +151,7 @@ class PartImport(private val context: Context) {
                     if (zone.has(key) && !zone.isNull(key)) put(key, zone.get(key))
                 }
                 put("validate", zone.optBoolean("validate", false))
+                BackupPart.identityOf(zone)?.let { put("identity_id", it) }
                 zone.optString("tool_groups").takeIf { it.isNotEmpty() }?.let { put("tool_groups", JSONArray(it)) }
             })
             written.zones += zone.getString("id")
@@ -173,7 +204,7 @@ class PartImport(private val context: Context) {
                     .put("places", JSONObject().apply { tools.forEach { put(it.getString("id"), JSONObject().put("grid_x", it.getInt("grid_x")).put("grid_y", it.getInt("grid_y"))) } }))
             }
 
-        // The routines, off, with no provider nor identity: both are the user's to choose
+        // The routines, off, with no provider, the user's to choose, and the identity the part gives them
         val messages = rows(data, "session_messages").groupBy { it.getString("session_id") }
         rows(data, "automations").forEach { automation ->
             val seed = messages[automation.getString("seed_session_id")].orEmpty().firstOrNull { it.optString("sender") == "USER" }
@@ -182,7 +213,7 @@ class PartImport(private val context: Context) {
                 put("id", automation.getString("id"))
                 put("zone_id", automation.getString("zone_id"))
                 put(AutomationSettings.PROVIDER_ID, JSONObject.NULL)
-                put(AutomationSettings.IDENTITY_ID, JSONObject.NULL)
+                put(AutomationSettings.IDENTITY_ID, BackupPart.identityOf(automation) ?: JSONObject.NULL)
                 put("is_enabled", false)
                 put("access", JSONArray(automation.optString("access_json", "[]")))
                 message?.let { put("message", AutomationMessage.toBlocks(it)) }
@@ -218,7 +249,21 @@ class PartImport(private val context: Context) {
             start = end
         }
 
-        return Report(newZones.size, elements.size + rows(data, "automations").size, entries.size, renamed, 0)
+        // The identities the app held, replaced last
+        val replacing = identities.filter { it.identity.id in held && it.identity.id in replaced }
+        replacing.forEach { run("identities.import", it.params(replace = true)) }
+
+        return Report(newZones.size, elements.size + rows(data, "automations").size, entries.size, renamed, 0, written.identities.size, replacing.size)
+    }
+
+    /** An identity of the part, as the file it imports from and the language it speaks. */
+    private class Arrival(val identity: app.treelune.core.identities.Identity, val text: String, val language: String) {
+        fun params(replace: Boolean): JSONObject = JSONObject()
+            .put("text", text)
+            .put("language", language)
+            .put("icon_name", identity.iconName)
+            .apply { identity.iconColor?.let { put(app.treelune.core.themes.IconColor.KEY, it) } }
+            .put("replace", replace)
     }
 
     companion object {
@@ -251,6 +296,8 @@ class PartImport(private val context: Context) {
         try {
             written.inExisting.asReversed().forEach { (action, params) -> run(action, params) }
             written.zones.asReversed().forEach { run("zones.delete", JSONObject().put("zone_id", it)) }
+            // Once nothing speaks as them any more
+            written.identities.forEach { run("identities.delete", JSONObject().put("identity_id", it)) }
             written.toolGroups.forEach { (zone, groups) ->
                 run("zones.update", JSONObject().put("zone_id", zone).put("tool_groups", groups?.let { JSONArray(it) } ?: JSONObject.NULL))
             }

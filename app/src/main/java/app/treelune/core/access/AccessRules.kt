@@ -111,7 +111,7 @@ object AccessRules {
             // An identity is read by whoever speaks as it, a routine under a mask included; it is written as the app is
             "identities" -> when (operation) {
                 "list", "read", "read_resource" -> listOf(Reach.Free)
-                "create", "update", "delete", "import" -> listOf(Reach.App)
+                "create", "update", "delete", "import", "export" -> listOf(Reach.App)
                 else -> listOf(Reach.Unknown("$resource.$operation"))
             }
             "files" -> if (operation == "read") listOf(Reach.Free) else listOf(Reach.Unknown("$resource.$operation"))

@@ -34,6 +34,8 @@ import java.util.UUID
  * - import: `text`, `language` (one of the file's), `replace`; creates the identity, or replaces
  *   the one of its id whole, its icon kept — only with `replace`, the refusal saying otherwise what
  *   replacing loses, as the screen's confirmation does
+ * - export: `identity_id`; its identity file (IdentityFile.write), written into the app's folder
+ *   (AppFolder) under its name. Answer: `file_name`, `uri`
  */
 class IdentityService(private val context: Context) : ExecutableService {
 
@@ -55,6 +57,7 @@ class IdentityService(private val context: Context) : ExecutableService {
                 "delete" -> delete(params)
                 "import_preview" -> importPreview(params)
                 "import" -> import(params)
+                "export" -> export(params)
                 else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
             }
         } catch (e: Refused) {
@@ -276,6 +279,33 @@ class IdentityService(private val context: Context) : ExecutableService {
         return OperationResult.success(mapOf("identity_id" to identity.id, "name" to identity.name, "replaced" to (existing != null)))
     }
 
+    private suspend fun export(params: JSONObject): OperationResult {
+        val identity = identity(params)
+        val text = try {
+            IdentityFile.write(identity, app.treelune.core.selection.TimeResolver.at(System.currentTimeMillis()).today())
+        } catch (e: IdentityFile.Refused) {
+            throw Refused(s.shared(e.key).format(*e.args))
+        }
+        val folder = when (val read = app.treelune.core.exports.AppFolder.read(context)) {
+            app.treelune.core.exports.AppFolder.Read.NoFolder -> throw Refused(s.shared("export_error_no_folder"))
+            app.treelune.core.exports.AppFolder.Read.Lost -> throw Refused(s.shared("export_error_folder_lost"))
+            is app.treelune.core.exports.AppFolder.Read.Ready -> read.folder
+        }
+        val base = try {
+            app.treelune.core.utils.FileNames.clean(identity.name)
+        } catch (e: IllegalArgumentException) {
+            throw Refused(s.shared("identity_export_file_name").format(identity.name))
+        }
+        val written = try {
+            app.treelune.core.exports.AppFolder.write(context, folder, base, "json") { it.write(text.toByteArray(Charsets.UTF_8)) }
+        } catch (e: Exception) {
+            app.treelune.core.utils.LogManager.service("Identities: ${identity.id} not exported: ${e.message}", "ERROR", e)
+            throw Refused(s.shared("export_error_write").format(base))
+        }
+        app.treelune.core.utils.LogManager.service("Identities: ${identity.id} exported as ${written.second}")
+        return OperationResult.success(mapOf("file_name" to written.second, "uri" to written.first.toString()))
+    }
+
     private fun name(params: JSONObject): String? =
         params.optString("name").trim().takeIf { it.isNotEmpty() }?.also {
             if (it.length > Identity.MAX_NAME) throw Refused(s.shared("identity_error_name_length").format(Identity.MAX_NAME))
@@ -310,6 +340,7 @@ class IdentityService(private val context: Context) : ExecutableService {
             "update" -> s.shared("action_verbalize_identity_update").format(name)
             "delete" -> s.shared("action_verbalize_identity_delete").format(name)
             "import" -> s.shared("action_verbalize_identity_import")
+            "export" -> s.shared("action_verbalize_identity_export").format(name)
             else -> s.shared("action_verbalize_unknown")
         }
     }

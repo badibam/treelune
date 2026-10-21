@@ -27,7 +27,8 @@ import app.treelune.core.ui.UI
 
 /**
  * The boxes of [tree]: its zones under their home group, each opened on its elements under their
- * tool group; [left] the links from what is ticked to what is not, each said under its element.
+ * tool group; [left] the links from what is ticked to what is not, each said under its element,
+ * a zone's under the zone.
  * Under a zone ticked, [zoneExtra]; under an element ticked, [elementExtra]: what the screen adds
  * (where a zone arrives, how an element will).
  */
@@ -60,7 +61,7 @@ fun PartTreeChoice(
                 Box(modifier = Modifier.weight(1f)) {
                     UI.Checkbox(
                         checked = zone.id in selection.zones,
-                        onCheckedChange = { on -> onSelection(Ticks.zone(selection, zone, on)) },
+                        onCheckedChange = { on -> onSelection(Ticks.zone(selection, tree, zone, on)) },
                         label = s.shared(when (kept) { 0 -> "share_zone_count_zero"; 1 -> "share_zone_count_one"; else -> "share_zone_count_other" })
                             .format(zone.name, kept, zone.elements.size)
                     )
@@ -73,7 +74,12 @@ fun PartTreeChoice(
                 }
             }
 
-            if (zone.id in selection.zones) zoneExtra(zone)
+            if (zone.id in selection.zones) {
+                // The identity it speaks as, left out
+                left.filter { it.from.kind == PartElement.Kind.ZONE && it.from.id == zone.id }
+                    .forEach { link -> UI.Text(PartLinks.text(link, tree::name, s::shared), if (link.blocking) TextType.WARNING else TextType.CAPTION) }
+                zoneExtra(zone)
+            }
 
             if (zone.id in opened) {
                 Column(modifier = Modifier.padding(start = UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
@@ -106,11 +112,12 @@ private fun ElementChoice(
     Column(verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
         UI.Checkbox(
             checked = ticked,
-            onCheckedChange = { on -> onSelection(Ticks.element(selection, zone, element, on)) },
+            onCheckedChange = { on -> onSelection(Ticks.element(selection, tree, zone, element, on)) },
             label = when (element.kind) {
                 PartElement.Kind.TOOL -> s.shared("share_element_tool").format(element.name,
                     element.tooltype?.let { ToolTypeManager.getToolType(it)?.getDisplayName(context) } ?: element.tooltype.orEmpty())
                 PartElement.Kind.VARIABLE -> s.shared("share_element_variable").format(element.name)
+                PartElement.Kind.IDENTITY -> s.shared("share_element_identity").format(element.name)
                 else -> s.shared("share_element_routine").format(element.name)
             }
         )
@@ -123,7 +130,7 @@ private fun ElementChoice(
                 )
             }
         }
-        // What its links to what is not ticked mean, a routine's provider and identity said once
+        // What its links to what is not ticked mean
         left.filter { it.from.id == element.id && (it.from.kind == element.kind || (element.kind == PartElement.Kind.TOOL && it.from.kind == PartElement.Kind.ENTRIES)) }
             .map { link -> link.blocking to PartLinks.text(link, tree::name, s::shared) }
             .distinct()
@@ -136,35 +143,48 @@ private fun ElementChoice(
 private fun PartTree.Element.part() = PartElement(kind, id)
 
 /**
- * What a tick changes: a zone ticked takes all it holds, its tools without their entries; a zone
- * unticked lets all of it go. An element ticked takes its zone; unticked, its zone stays.
+ * What a tick changes: a zone ticked takes all it holds, its tools without their entries and the
+ * identities it and its routines speak as; a zone unticked lets all of it go, an identity another
+ * zone ticked speaks as staying. An element ticked takes its zone, a routine its identity too;
+ * unticked, its zone stays.
  */
 internal object Ticks {
 
-    fun zone(selection: PartSelection, zone: PartTree.Zone, on: Boolean): PartSelection {
+    fun zone(selection: PartSelection, tree: PartTree, zone: PartTree.Zone, on: Boolean): PartSelection {
         val ids = zone.elements.groupBy({ it.kind }, { it.id })
         val tools = ids[PartElement.Kind.TOOL].orEmpty()
         val variables = ids[PartElement.Kind.VARIABLE].orEmpty()
         val routines = ids[PartElement.Kind.ROUTINE].orEmpty()
+        val identities = ids[PartElement.Kind.IDENTITY].orEmpty()
         return if (on) PartSelection(
             selection.zones + zone.id,
             selection.tools + tools.filter { it !in selection.tools }.associateWith { false },
             selection.variables + variables,
-            selection.automations + routines
+            selection.automations + routines,
+            selection.identities + identities
         ) else PartSelection(
             selection.zones - zone.id,
             selection.tools - tools.toSet(),
             selection.variables - variables.toSet(),
-            selection.automations - routines.toSet()
+            selection.automations - routines.toSet(),
+            selection.identities - identities.filter { identity ->
+                tree.zones.none { other -> other.id != zone.id && other.id in selection.zones && other.elements.any { it.kind == PartElement.Kind.IDENTITY && it.id == identity } }
+            }.toSet()
         )
     }
 
-    fun element(selection: PartSelection, zone: PartTree.Zone, element: PartTree.Element, on: Boolean): PartSelection {
+    fun element(selection: PartSelection, tree: PartTree, zone: PartTree.Zone, element: PartTree.Element, on: Boolean): PartSelection {
         val zones = if (on) selection.zones + zone.id else selection.zones
         return when (element.kind) {
             PartElement.Kind.TOOL -> selection.copy(zones = zones, tools = if (on) selection.tools + (element.id to false) else selection.tools - element.id)
             PartElement.Kind.VARIABLE -> selection.copy(zones = zones, variables = if (on) selection.variables + element.id else selection.variables - element.id)
-            else -> selection.copy(zones = zones, automations = if (on) selection.automations + element.id else selection.automations - element.id)
+            PartElement.Kind.IDENTITY -> selection.copy(zones = zones, identities = if (on) selection.identities + element.id else selection.identities - element.id)
+            else -> {
+                // A routine ticked takes the identity it speaks as, which can be unticked on its own
+                val identity = tree.links.firstOrNull { it.from == PartElement(PartElement.Kind.ROUTINE, element.id) && it.to.kind == PartElement.Kind.IDENTITY }?.to?.id
+                selection.copy(zones = zones, automations = if (on) selection.automations + element.id else selection.automations - element.id,
+                    identities = if (on && identity != null) selection.identities + identity else selection.identities)
+            }
         }
     }
 }
