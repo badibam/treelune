@@ -77,25 +77,31 @@
   header nav a { color: var(--muted); text-decoration: none; }
   @media (max-width: 640px) { header nav a.opt { display: none; } }
 
-  /* Opening band: the only place a theme dresses the page */
+  /* Opening band: the only place a theme dresses the page; it fills the screen under the header exactly */
   .band {
     transition: background .35s, color .35s;
     height: calc(100svh - 56px); display: flex; flex-direction: column;
   }
   .band .hero {
-    flex: 1; min-height: 0; width: 100%; display: grid; grid-template-columns: 1.1fr .9fr;
-    grid-template-rows: minmax(0, 1fr); gap: 40px; align-items: center; padding-top: 24px; padding-bottom: 16px;
+    flex: 1; min-height: 0; width: 100%; display: grid; grid-template-columns: 1.15fr auto auto;
+    grid-template-rows: minmax(0, 1fr); gap: 48px; align-items: center; padding-top: 24px; padding-bottom: 24px;
   }
+  .band .showcase { display: contents; }
   @media (max-width: 820px) {
-    .band .hero { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); gap: 14px; padding-top: 16px; padding-bottom: 8px; }
-    .band h1 { font-size: min(23px, 3.6svh); margin-bottom: 8px; }
-    .band .ai { font-size: min(15px, 2.3svh); margin-bottom: 12px; }
-    .band .btn { padding: 8px 14px; font-size: 15px; }
-    .band .theme-tagline { display: none; }
-    .band .theme-name { font-size: 20px; }
+    .band .hero { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); gap: 14px; padding-top: 16px; padding-bottom: 16px; }
+    /* The showcase takes the room left and never asks for more: its size is the grid's, not its content's */
+    .band .showcase { display: flex; gap: 16px; height: 100%; min-height: 0; justify-content: center; align-items: center; container-type: size; }
+    .band h1 { font-size: min(23px, 3.2svh); margin-bottom: 8px; }
+    .band .ai { font-size: min(15px, 2.1svh); margin-bottom: 12px; }
+    .band .btn { padding: 8px 12px; font-size: 14px; }
+    .band .buttons { flex-wrap: nowrap; gap: 8px; }
+    /* The phone leaves the picker its ~170px: its width is capped, its height follows */
+    .band .showcase .phone { height: min(100cqh, calc((100cqw - 186px) * 2.0125)); }
+    .picker button { font-size: min(16px, 2.3svh); padding: 0 8px; }
+    .picker-intro { font-size: min(13px, 2svh); max-width: 150px; }
   }
   /* Sizes follow the height as much as the width: the band never overflows a short screen */
-  .band h1 { font-size: clamp(20px, min(4.6vw, 6.2svh), 46px); line-height: 1.12; margin: 0 0 min(18px, 2svh); }
+  .band h1 { font-size: clamp(20px, min(4.4vw, 6.2svh), 46px); line-height: 1.12; margin: 0 0 min(18px, 2svh); }
   .band .ai { font-size: clamp(14px, min(1.9vw, 2.9svh), 19px); opacity: .85; margin: 0 0 min(28px, 3svh); max-width: 520px; }
   .band .btn { padding: min(12px, 1.4svh) 20px; }
   .buttons { display: flex; gap: 12px; flex-wrap: wrap; }
@@ -104,21 +110,24 @@
     background: var(--night); color: #fff;
   }
   .btn.ghost { background: transparent; color: inherit; border: 1.5px solid currentColor; }
-  .band .phone-col { display: flex; flex-direction: column; align-items: center; gap: 10px; height: 100%; min-height: 0; }
-  .band .phone { flex: 1; min-height: 0; width: auto; height: auto; }
-  .theme-name { font-size: min(26px, 3.6svh); text-align: center; line-height: 1.1; }
-  .theme-tagline { font-size: 14px; text-align: center; max-width: 340px; opacity: .8; margin: 0; }
-  .picker { flex: none; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding-bottom: 20px; }
-  @media (max-width: 820px) {
-    .picker { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; padding-bottom: 14px; scrollbar-width: none; }
-    .picker button { flex: none; }
-  }
+  .band .phone { height: 100%; width: auto; }
+
+  /* The picker: a column, each theme's name written in its own font, the light/dark switch under it */
+  .picker { display: flex; flex-direction: column; gap: min(4px, .5svh); }
+  .picker-intro { font-size: min(14px, 2.2svh); opacity: .75; margin: 0 0 min(8px, 1svh); max-width: 180px; }
   .picker button {
-    font: 600 14px system-ui, sans-serif; padding: 8px 14px; border-radius: 999px; cursor: pointer;
-    border: 1.5px solid currentColor; background: transparent; color: inherit; opacity: .7;
+    font-size: min(18px, 2.7svh); line-height: 1.35; text-align: left; padding: 1px 10px; cursor: pointer;
+    border: none; border-left: 3px solid transparent; background: transparent; color: inherit; opacity: .6; white-space: nowrap;
   }
-  .picker button[aria-pressed="true"] { opacity: 1; background: currentColor; }
-  .picker button[aria-pressed="true"] span { color: var(--band-bg); }
+  .picker button:hover { opacity: .9; }
+  .picker button[aria-pressed="true"] { opacity: 1; border-left-color: currentColor; }
+  .mode-switch { display: flex; margin-top: min(14px, 1.8svh); border: 1.5px solid currentColor; border-radius: 999px; overflow: hidden; align-self: flex-start; }
+  .mode-switch button {
+    font: 600 min(13px, 2svh) system-ui, sans-serif; padding: min(6px, .8svh) 12px; border: none; cursor: pointer;
+    background: transparent; color: inherit;
+  }
+  .mode-switch button[aria-pressed="true"] { background: currentColor; }
+  .mode-switch button[aria-pressed="true"] span { color: var(--band-bg); }
 
   /* A phone frame: thin, drawn, no real device */
   .phone {
@@ -239,15 +248,19 @@
         <a class="btn ghost" href="#zone">Voir comment ça marche</a>
       </div>
     </div>
-    <div class="phone-col">
+    <div class="showcase">
       <div class="phone"><img id="band-shot" alt=""></div>
-      <div class="theme-name" id="band-name"></div>
-      <p class="theme-tagline" id="band-tagline"></p>
+      <div class="picker" id="picker" role="group" aria-label="Ambiance">
+        <p class="picker-intro">L'app se décline en plusieurs ambiances :</p>
+        <div class="mode-switch" id="mode-switch" role="group" aria-label="Clair ou sombre">
+          <button data-mode="light"><span>Clair</span></button>
+          <button data-mode="dark"><span>Sombre</span></button>
+        </div>
+      </div>
     </div>
   </div>
-  <div class="wrap picker" id="picker" role="group" aria-label="Thème"></div>
 </div>
-<div class="wrap"><span class="note">Maquette : en vrai, chaque thème montre l'écran d'accueil ; ici, une capture F-Droid de ce thème tient sa place.</span></div>
+<div class="wrap"><span class="note">Maquette : en vrai, chaque ambiance montre l'écran d'accueil, pris en clair et en sombre ; ici, une capture F-Droid claire de ce thème tient sa place, et les fonds sombres de Cosy, Métro, Papier découpé, Rétro et Material sont approchés.</span></div>
 
 <!-- 2. Three lines on the data -->
 <div class="wrap privacy">
@@ -349,42 +362,60 @@
 <script>
   const SHOTS = "../../fastlane/metadata/android/en-US/images/phoneScreenshots/";
 
-  // Opening band: one entry per theme, its ground, its ink, its font, its capture
+  // Opening band: one entry per theme, its ground and ink in light and in dark, its font, its capture
   const THEMES = [
-    { id: "default", name: "Material", font: "system-ui", bg: "#FFFFFF", ink: "#1B2233", shot: 1, tagline: "Clair et sobre, dans la teinte de ton choix" },
-    { id: "cosy", name: "Cosy", font: "Baloo 2", bg: "#D0F0EF", ink: "#1F3B3A", shot: 2, tagline: "Comme un téléphone dans un jeu doux : rond et dodu, tout rebondit, ses propres sons" },
-    { id: "swiss", name: "Suisse", font: "Archivo Black", bg: "#F2F0EB", ink: "#111111", shot: 3, tagline: "Comme une affiche suisse : une grille stricte, noir et blanc et un seul rouge, les chiffres en grand, ses propres sons" },
-    { id: "ink", name: "Encre et lavis", font: "Literata", bg: "#F3EEE2", ink: "#1D1C1A", shot: 4, tagline: "Comme un lavis à l'encre : un papier crème, l'encre noire et un seul rouge de sceau, beaucoup de vide, ses propres sons" },
-    { id: "eink", name: "Liseuse", font: "Atkinson", bg: "#FFFFFF", ink: "#000000", shot: 5, tagline: "Comme une liseuse : noir et blanc pur, des trames à la place des gris, rien qui bouge" },
-    { id: "metro", name: "Métro", font: "Overpass", bg: "#122446", ink: "#F5F6F8", shot: 6, tagline: "Comme la signalétique d'un métro : chaque outil est une ligne de sa couleur, chaque zone une station, ses propres sons" },
-    { id: "blueprint", name: "Plan d'architecte", font: "Architects Daughter", bg: "#F3F2ED", ink: "#1F4A8A", shot: 7, tagline: "Comme un plan d'architecte : des traits fins sur un papier quadrillé, des cotes et des hachures, ses propres sons", grid: true },
-    { id: "paper", name: "Papier découpé", font: "Bricolage", bg: "#D6B688", ink: "#2A2118", shot: 8, tagline: "Des feuilles de couleur découpées aux ciseaux, posées de travers sur du kraft, ses propres sons" },
-    { id: "retro", name: "Rétro", font: "Cartouche", bg: "#FFF3E4", ink: "#2A1A0A", shot: 9, tagline: "Du pixel art : des pixels entiers, une police dessinée, des icônes en pixels, ses propres sons" },
+    { id: "default", name: "Material", font: "system-ui", light: ["#FFFFFF", "#1B2233"], dark: ["#141218", "#E6E1E9"], shot: 1 },
+    { id: "cosy", name: "Cosy", font: "Baloo 2", light: ["#D0F0EF", "#1F3B3A"], dark: ["#1B2A3A", "#E8F3F2"], shot: 2 },
+    { id: "swiss", name: "Suisse", font: "Archivo Black", light: ["#F2F0EB", "#111111"], dark: ["#141414", "#F2F0EB"], shot: 3 },
+    { id: "ink", name: "Encre et lavis", font: "Literata", light: ["#F3EEE2", "#1D1C1A"], dark: ["#1D1C1A", "#EDE7DA"], shot: 4 },
+    { id: "eink", name: "Liseuse", font: "Atkinson", light: ["#FFFFFF", "#000000"], dark: ["#000000", "#FFFFFF"], shot: 5 },
+    { id: "metro", name: "Métro", font: "Overpass", light: ["#F5F6F8", "#122446"], dark: ["#0E1730", "#F5F6F8"], shot: 6 },
+    { id: "blueprint", name: "Plan d'architecte", font: "Architects Daughter", light: ["#F3F2ED", "#1F4A8A"], dark: ["#1F4F8F", "#EAF2FF"], shot: 7, grid: true },
+    { id: "paper", name: "Papier découpé", font: "Bricolage", light: ["#D6B688", "#2A2118"], dark: ["#2A1F17", "#F3E6D0"], shot: 8 },
+    { id: "retro", name: "Rétro", font: "Cartouche", light: ["#FFF3E4", "#2A1A0A"], dark: ["#1E1914", "#F6ECD2"], shot: 9 },
   ];
+
+  // Light or dark for the whole site: the visitor's preference first, then the switch, remembered in this browser
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
+  function storedMode() { try { return localStorage.getItem("mode"); } catch (e) { return null; } }
+  let mode = storedMode() || (prefersDark.matches ? "dark" : "light");
+  let current = THEMES[1];
 
   const band = document.getElementById("band");
   const picker = document.getElementById("picker");
+  const modeSwitch = document.getElementById("mode-switch");
   function applyTheme(t) {
+    current = t;
+    const [bg, ink] = t[mode];
+    const line = ink + "22";
     band.style.background = t.grid
-      ? `linear-gradient(#1F4A8A14 1px, transparent 1px) 0 0 / 22px 22px, linear-gradient(90deg, #1F4A8A14 1px, transparent 1px) 0 0 / 22px 22px, ${t.bg}`
-      : t.bg;
-    band.style.color = t.ink;
-    band.style.setProperty("--band-bg", t.bg);
+      ? `linear-gradient(${line} 1px, transparent 1px) 0 0 / 22px 22px, linear-gradient(90deg, ${line} 1px, transparent 1px) 0 0 / 22px 22px, ${bg}`
+      : bg;
+    band.style.color = ink;
+    band.style.setProperty("--band-bg", bg);
     document.getElementById("band-shot").src = SHOTS + t.shot + ".png";
-    const name = document.getElementById("band-name");
-    name.textContent = t.name;
-    name.style.fontFamily = `"${t.font}", system-ui, sans-serif`;
-    document.getElementById("band-tagline").textContent = t.tagline;
-    picker.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.id === t.id));
+    picker.querySelectorAll("button[data-id]").forEach(b => b.setAttribute("aria-pressed", b.dataset.id === t.id));
+  }
+  function applyMode(m) {
+    mode = m;
+    document.documentElement.dataset.theme = m;
+    modeSwitch.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === m));
+    applyTheme(current);
   }
   THEMES.forEach(t => {
     const b = document.createElement("button");
     b.dataset.id = t.id;
-    b.innerHTML = `<span>${t.name}</span>`;
+    b.textContent = t.name;
+    b.style.fontFamily = `"${t.font}", system-ui, sans-serif`;
     b.onclick = () => applyTheme(t);
-    picker.appendChild(b);
+    picker.insertBefore(b, modeSwitch);
   });
-  applyTheme(THEMES[1]);
+  modeSwitch.querySelectorAll("button").forEach(b => b.onclick = () => {
+    try { localStorage.setItem("mode", b.dataset.mode); } catch (e) {}
+    applyMode(b.dataset.mode);
+  });
+  prefersDark.addEventListener("change", e => { if (!storedMode()) applyMode(e.matches ? "dark" : "light"); });
+  applyMode(mode);
 
   // Videos: a placeholder per process, its fixed theme named under it
   const VIDEOS = [

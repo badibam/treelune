@@ -17,9 +17,11 @@ Français et anglais, comme l'app, textes selon `docs/WRITING.md`.
 
 ## Les thèmes
 
-- Le sélecteur ne vit que dans l'ouverture : il change la capture de l'accueil et le fond de ce bandeau (couleur, texture, nom et `tagline` du thème dans sa police).
-- Chaque autre capture a son propre thème, fixé une fois, nommé en petit dessous ; deux captures voisines n'ont jamais le même. Une capture ne se prend qu'une fois : une capture par thème et par écran coûterait trop.
-- Le cadre du site ne change jamais : le bleu nuit de l'icône pour les titres, les liens et les boutons, sur un blanc cassé à peine bleuté ; en sombre, le fond devient ce bleu nuit, selon le réglage que le navigateur transmet (`prefers-color-scheme`). L'arbre et le croissant en petit dans l'en-tête, en grand une fois en bas de page. Une police sobre ; les polices des thèmes restent dans le bandeau. Les captures sur un gris très clair, dans un cadre de téléphone fin et dessiné.
+- L'ouverture occupe exactement l'écran sous l'en-tête, sur ordinateur comme sur téléphone, et ses tailles suivent la hauteur autant que la largeur.
+- Le sélecteur ne vit que dans l'ouverture : une colonne à droite de la capture, introduite par « L'app se décline en plusieurs ambiances : », chaque nom de thème écrit dans sa police, sans la phrase qui le décrit. Il change la capture de l'accueil et le fond du bandeau (couleur, texture).
+- Sous la colonne, un interrupteur clair / sombre : il part du réglage que le navigateur transmet (`prefers-color-scheme`), change le mode de tout le site, et le navigateur s'en souvient. En sombre, le bandeau prend la palette sombre du thème et une capture de l'accueil prise en sombre : 18 captures d'accueil, les seules doublées.
+- Chaque autre capture a son propre thème et son propre mode, clair ou sombre, fixés une fois, le thème nommé en petit dessous ; deux captures voisines n'ont jamais le même thème, et les deux modes se mélangent le long de la page. Une capture ne se prend qu'une fois : une capture par thème et par écran coûterait trop.
+- Le cadre du site ne change jamais : le bleu nuit de l'icône pour les titres, les liens et les boutons, sur un blanc cassé à peine bleuté ; en sombre, le fond devient ce bleu nuit. L'arbre et le croissant en petit dans l'en-tête, en grand une fois en bas de page. Une police sobre ; les polices des thèmes restent dans le bandeau. Les captures sur un gris très clair, dans un cadre de téléphone fin et dessiné.
 
 ## Les captures
 
