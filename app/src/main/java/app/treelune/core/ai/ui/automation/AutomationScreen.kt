@@ -51,6 +51,7 @@ import org.json.JSONObject
 @Composable
 fun AutomationScreen(
     automationId: String,
+    onName: (String) -> Unit,
     onNavigateBack: () -> Unit,
     onNavigateToExecution: (sessionId: String) -> Unit
 ) {
@@ -112,6 +113,8 @@ fun AutomationScreen(
                 val automation = data["automation"] as? Map<String, Any>
                 if (automation != null) {
                     automationName = automation["name"] as? String
+                    // The routine's place named by it, for the breadcrumb
+                    automationName?.let(onName)
                     isEnabled = automation["is_enabled"] as? Boolean ?: false
 
                     // Load next execution if enabled

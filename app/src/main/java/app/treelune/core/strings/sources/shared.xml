@@ -2296,7 +2296,6 @@
     <string name="nav_new_tool">New tool</string>
     <string name="nav_variable">Variable</string>
     <string name="nav_new_variable">New variable</string>
-    <string name="nav_automation">Routine</string>
     <string name="nav_execution">Execution</string>
     <string name="nav_seed">Starting message</string>
     <string name="nav_chat">Conversation</string>
