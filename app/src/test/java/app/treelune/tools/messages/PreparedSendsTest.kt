@@ -41,10 +41,16 @@ class PreparedSendsTest {
         val tool = coordinator.processUserAction("tools.create", mapOf(
             "zone_id" to zone, "tooltype" to "messages", "config" to config(listOf("09:00"))
         )).data!!["tool_instance_id"] as String
-        // The sends to come, made by the scheduler as in the app
-        MessageScheduler.checkScheduled(context)
-        val pending = (coordinator.processUserAction("tool_data.get", mapOf("tool_instance_id" to tool)).data!!["entries"] as List<*>)
+        // The sends to come, made by the scheduler as in the app: creating the tool already runs
+        // it in the background, so a pass asked here may find it busy and leave it the work
+        fun pending() = (runBlocking { coordinator.processUserAction("tool_data.get", mapOf("tool_instance_id" to tool)) }.data!!["entries"] as List<*>)
             .map { it as Map<*, *> }.sortedBy { (it["timestamp"] as Number).toLong() }
+        val deadline = System.currentTimeMillis() + 10_000
+        while (pending().size < 2 && System.currentTimeMillis() < deadline) {
+            MessageScheduler.checkScheduled(context)
+            Thread.sleep(50)
+        }
+        val pending = pending()
         assertEquals(2, pending.size)
         val ids = pending.map { it["id"] as String }
         val written = coordinator.processUserAction("tool_data.update", mapOf("id" to ids[0], "data" to mapOf("content" to "The basil first")))
