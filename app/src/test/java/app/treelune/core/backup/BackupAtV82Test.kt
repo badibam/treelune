@@ -4,16 +4,20 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import app.treelune.core.ai.enrichments.PointerConfig
+import app.treelune.core.coordinator.CancellationToken
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.AppDatabase
+import app.treelune.core.services.BackupService
 import app.treelune.core.strings.Strings
 import app.treelune.core.utils.StoredSchedule
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.After
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -36,6 +40,21 @@ import java.io.File
 class BackupAtV82Test {
 
     private val context: Context get() = RuntimeEnvironment.getApplication()
+    private val before get() = File(context.cacheDir, "before_v82.zip")
+
+    /** The base outlives the class: the app as it was is backed up first, and restored after. */
+    @Before
+    fun backUp() = runBlocking {
+        val service = BackupService(context)
+        val token = CancellationToken()
+        assertTrue(service.writeZip(before.outputStream(), service.build(token)!!, token))
+    }
+
+    @After
+    fun restore() = runBlocking {
+        val restored = Coordinator(context).processUserAction("backup.import", mapOf("uri" to Uri.fromFile(before).toString()))
+        assertTrue(restored.error, restored.isSuccess)
+    }
 
     /** The fixture copied where a uri can name it, and its document as v0.8.1 wrote it. */
     private fun fixture(): Pair<File, JSONObject> {
