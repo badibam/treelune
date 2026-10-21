@@ -16,8 +16,6 @@ import androidx.compose.ui.platform.LocalContext
 import app.treelune.core.ai.data.SessionType
 import app.treelune.core.ai.domain.Phase
 import app.treelune.core.ai.orchestration.AIOrchestrator
-import app.treelune.core.ai.scheduling.AutomationScheduler
-import app.treelune.core.ai.scheduling.NextExecution
 import app.treelune.core.commands.CommandStatus
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.strings.Strings
@@ -66,7 +64,7 @@ fun AutomationScreen(
     // Automation metadata (simple data, not full Automation object)
     var automationName by remember { mutableStateOf<String?>(null) }
     var isEnabled by remember { mutableStateOf(false) }
-    var nextExecution by remember { mutableStateOf<NextExecution?>(null) }
+    var nextExecution by remember { mutableStateOf<String?>(null) }
 
     // Execution list
     var sessions by remember { mutableStateOf<List<ExecutionSummary>>(emptyList()) }
@@ -116,10 +114,7 @@ fun AutomationScreen(
 
                     // Load next execution if enabled
                     if (isEnabled) {
-                        nextExecution = withContext(Dispatchers.IO) {
-                            val scheduler = AutomationScheduler(context)
-                            scheduler.getNextExecutionForAutomation(automationId)
-                        }
+                        nextExecution = withContext(Dispatchers.IO) { nextExecutionLine(context, automationId) }
                     } else {
                         nextExecution = null
                     }
@@ -294,7 +289,7 @@ fun AutomationScreen(
                         type = TextType.SUBTITLE
                     )
                     UI.Text(
-                        text = nextExecution!!.message,
+                        text = nextExecution!!,
                         type = TextType.BODY
                     )
                 }

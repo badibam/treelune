@@ -42,7 +42,6 @@ Codé, jamais vu sur l'appareil.
 
 - Les mots de passe de `~/.config/treelune/signing.env` en clair : au trousseau (`secret-tool`).
 - `CommandExecutor` lit la base directement, hors du coordinateur.
-- `AutomationScheduler.getNextExecutionForAutomation()` appelé depuis l'écran, sans le service.
 - Des conversions JSON refaites sur place au lieu de `JsonUtils` (`toValueMap`, `jsonToValue`, `toFieldConfigValue`…).
 - `shared.xml` (~1 900 lignes) à découper.
 - Les garanties sorties de la recette, `docs/design/device-check-tests.md` : chacune un test, ou sortie si un test la tient déjà.

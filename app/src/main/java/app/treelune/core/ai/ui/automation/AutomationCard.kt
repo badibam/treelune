@@ -8,9 +8,9 @@ import androidx.compose.ui.platform.LocalContext
 import app.treelune.core.ai.data.Automation
 import app.treelune.core.ai.data.SessionType
 import app.treelune.core.ai.orchestration.AIOrchestrator
-import app.treelune.core.ai.scheduling.AutomationScheduler
 import app.treelune.core.fields.settings.scheduleSummary
-import app.treelune.core.ai.scheduling.NextExecution
+import app.treelune.core.commands.CommandStatus
+import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.strings.Strings
 import app.treelune.core.ui.*
 import kotlinx.coroutines.Dispatchers
@@ -42,12 +42,10 @@ fun AutomationCard(
     val s = remember { Strings.`for`(context = context) }
 
     // Next execution, computed by the scheduler itself so the card shows what will actually run
-    var nextExecution by remember { mutableStateOf<NextExecution?>(null) }
+    var nextExecution by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(automation.id, automation.isEnabled, automation.schedule, automation.updatedAt) {
         nextExecution = if (automation.isEnabled && automation.schedule != null) {
-            withContext(Dispatchers.IO) {
-                AutomationScheduler(context).getNextExecutionForAutomation(automation.id)
-            }
+            withContext(Dispatchers.IO) { nextExecutionLine(context, automation.id) }
         } else {
             null
         }
@@ -149,7 +147,7 @@ fun AutomationCard(
             // Next execution time (if scheduled and enabled)
             nextExecution?.let {
                 UI.Text(
-                    text = it.message,
+                    text = it,
                     type = TextType.CAPTION
                 )
             }
@@ -223,4 +221,16 @@ fun AutomationCard(
             }
         }
     }
+}
+
+/**
+ * The line saying when the automation [automationId] runs next ("Next: in 2 h"), read through
+ * automations.next_execution; null when it will not run, the error's text when it cannot be read.
+ */
+internal suspend fun nextExecutionLine(context: android.content.Context, automationId: String): String? {
+    val s = Strings.`for`(context = context)
+    val result = Coordinator(context).processUserAction("automations.next_execution", mapOf("automation_id" to automationId))
+    if (result.status != CommandStatus.SUCCESS) return result.error ?: s.shared("error_automation_load_failed")
+    val at = result.data?.get("next_execution_at") as? Long ?: return null
+    return s.shared("automation_next_execution").format(app.treelune.core.utils.FormatUtils.formatRelativeTime(at, context))
 }
