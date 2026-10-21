@@ -128,6 +128,13 @@ class DemoContentTest {
             content.automations.forEach { automation ->
                 assertFalse(automation.getBoolean("is_enabled"))
                 assertTrue(automation.getString("seed").isNotBlank())
+                // Its pointers read as the routine's screen reads one
+                automation.optJSONArray("pointers")?.let { pointers ->
+                    (0 until pointers.length()).forEach {
+                        val pointer = app.treelune.core.ai.enrichments.PointerConfig.fromJson(pointers.getJSONObject(it)) { key -> key }
+                        assertEquals(null, pointer.selection.problem { key -> key })
+                    }
+                }
                 assertEquals(automation.has("schedule"), automation.has("catch_up"))
                 automation.optString("group").takeIf { it.isNotEmpty() }?.let { assertTrue(it in groups.getValue(automation.getString("zone_id"))) }
             }

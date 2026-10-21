@@ -387,7 +387,7 @@
   "evening_phrase_10": "Domani piove.",
   "evening_phrase_11": "Ci vediamo a Roma!",
   "auto_review_name": "Weekly review",
-  "auto_review_seed": "Review the training week that just ended. Read the Runs (count, km, kinds), the Sleep (average), the Mood and last week's attempt of \"Training week\". Write an entry in the \"Training notebook\", titled \"Week of\" followed by the date of the week's first day: the week's km, the number of runs, the average sleep, and one sentence of advice for the coming week, with the half marathon a few weeks away in mind. Change nothing else.",
+  "auto_review_seed": "Review the training week that just ended. Its Runs are attached to this message, with their count, km and kinds. Also read the Sleep (average), the Mood and last week's attempt of \"Training week\". Write an entry in the \"Training notebook\", titled \"Week of\" followed by the date of the week's first day: the week's km, the number of runs, the average sleep, and one sentence of advice for the coming week, with the half marathon a few weeks away in mind. Change nothing else.",
   "auto_menu_name": "Weekly menu",
   "auto_menu_seed": "Suggest the coming week's meals, suited to the training: more starch the day before Sunday's long run, protein after intervals. Start from the Foods cards and the last two weeks of Meals. Add to \"Shopping\" what these meals need, with no duplicate of an item already there and unchecked. End with the menu in a few lines.",
   "auto_morning_name": "Morning check",

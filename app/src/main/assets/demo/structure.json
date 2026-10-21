@@ -2821,6 +2821,36 @@
       },
       "is_enabled": false,
       "seed": "@auto_review_seed",
+      "pointers": [
+        {
+          "selection": {
+            "target": {
+              "kind": "TOOL_INSTANCE",
+              "id": "demo-course-runs"
+            },
+            "period": {
+              "start": {
+                "relative": {
+                  "unit": "WEEK",
+                  "offset": -1,
+                  "edge": "START"
+                }
+              },
+              "end": {
+                "relative": {
+                  "unit": "WEEK",
+                  "offset": -1,
+                  "edge": "END"
+                }
+              }
+            }
+          },
+          "attach": {
+            "config": false,
+            "entries": true
+          }
+        }
+      ],
       "access": [
         {
           "target": {

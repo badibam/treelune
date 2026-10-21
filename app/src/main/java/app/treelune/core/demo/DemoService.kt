@@ -119,9 +119,9 @@ class DemoService(private val context: Context) : ExecutableService {
 
     /**
      * The automations, off — on, an automation calls the AI at the user's cost: each one with its
-     * seed session, its message the instruction, its identity the one it names or none; none has a
-     * past. Their provider is the default, or none when there is none: switching one on then says
-     * to choose one.
+     * seed session, its message the instruction followed by its pointers (`pointers`, each in the
+     * stored form of PointerConfig), its identity the one it names or none; none has a past. Their
+     * provider is the default, or none when there is none: switching one on then says to choose one.
      */
     private suspend fun automate(content: DemoContent) {
         if (content.automations.isEmpty()) return
@@ -129,8 +129,11 @@ class DemoService(private val context: Context) : ExecutableService {
         val provider: Any = run("ai_provider_config.get_default", JSONObject())["provider_id"] ?: JSONObject.NULL
         for (automation in content.automations) {
             val message = org.json.JSONArray().put(JSONObject().put("type", app.treelune.core.ai.data.AutomationMessage.TEXT).put("text", automation.getString("seed")))
+            automation.optJSONArray("pointers")?.let { pointers ->
+                (0 until pointers.length()).forEach { message.put(JSONObject().put("type", app.treelune.core.ai.data.AutomationMessage.POINTER).put("pointer", pointers.getJSONObject(it))) }
+            }
             val identity = automation.opt(app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID) ?: JSONObject.NULL
-            run("automations.create", JSONObject(automation.toString()).apply { remove("seed") }.put("provider_id", provider).put(app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID, identity).put("message", message))
+            run("automations.create", JSONObject(automation.toString()).apply { remove("seed"); remove("pointers") }.put("provider_id", provider).put(app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID, identity).put("message", message))
         }
     }
 
