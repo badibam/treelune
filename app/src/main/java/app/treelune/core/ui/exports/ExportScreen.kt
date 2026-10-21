@@ -54,7 +54,7 @@ private val SelectionSaver: Saver<PartSelection, String> = Saver(
     restore = { PartSelection.read(JSONObject(it)) }
 )
 
-private val NOTHING = PartSelection(emptySet(), emptyMap(), emptySet(), emptySet())
+private val NOTHING = PartSelection(emptySet(), emptyMap(), emptySet(), emptySet(), emptySet())
 
 /**
  * The export (docs/DATA.md, « A part of the app »): a part of the app, ticked zone by zone, to

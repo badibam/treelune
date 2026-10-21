@@ -10,8 +10,8 @@ import org.junit.Test
 
 /**
  * What the links of a part promise (docs/DATA.md, « A part of the app »): a kept element naming
- * one left out is found wherever its id stands, blocks the file unless it is a routine's, and
- * nothing ticked holds no link.
+ * one left out is found wherever its id stands, blocks the file unless it is a routine's or goes
+ * to an identity, and nothing ticked holds no link.
  */
 class PartLinksTest {
 
@@ -47,7 +47,7 @@ class PartLinksTest {
                 .put(JSONObject().put("id", "m1").put("session_id", "seed").put("rich_content_json", "{\"pointer\":\"weight\"}"))))
 
     private fun links(zones: Set<String>, tools: Map<String, Boolean>, variables: Set<String> = emptySet(), automations: Set<String> = emptySet()) =
-        PartLinks.of(backup(), PartSelection(zones, tools, variables, automations))
+        PartLinks.of(backup(), PartSelection(zones, tools, variables, automations, emptySet()))
 
     private fun link(from: Kind, fromId: String, to: Kind, toId: String) = PartLink(PartElement(from, fromId), PartElement(to, toId))
 
@@ -84,11 +84,28 @@ class PartLinksTest {
     }
 
     @Test
+    fun `a zone or a routine without its identity only warns, naming both, and none once it is ticked`() {
+        val document = backup()
+        val data = document.getJSONObject("data")
+        data.getJSONArray("zones").getJSONObject(1).put("identity_id", "i1")
+        data.put("identities", JSONArray().put(JSONObject().put("id", "i1").put("name", "Coach")))
+        val sport = PartSelection(setOf("z2"), emptyMap(), emptySet(), emptySet(), emptySet())
+        val left = PartLinks.of(document, sport)
+        assertEquals(setOf(link(Kind.ZONE, "z2", Kind.IDENTITY, "i1")), left)
+        assertFalse(left.single().blocking)
+        assertEquals("Sport without Coach", PartLinks.text(left.single(), { PartLinks.name(document, it) }, { mapOf("share_link_zone_identity" to "%1\$s without %2\$s").getValue(it) }))
+        assertEquals(emptySet<PartLink>(), PartLinks.of(document, sport.copy(identities = setOf("i1"))))
+        // The routine's identity ticked, its provider alone is left
+        val routine = PartLinks.of(document, PartSelection(setOf("z1", "z2"), mapOf("weight" to false), emptySet(), setOf("a1"), setOf("i1")))
+        assertEquals(setOf(link(Kind.ROUTINE, "a1", Kind.PROVIDER, "p1")), routine)
+    }
+
+    @Test
     fun `an id only counts as a whole word`() {
         val document = backup()
         document.getJSONObject("data").getJSONArray("tool_instances").getJSONObject(2)
             .put("config_json", JSONObject().put("name", "Calories").put("note", "weight_2 xweight weight-old").toString())
-        assertEquals(emptySet<PartLink>(), PartLinks.of(document, PartSelection(setOf("z1"), mapOf("chart" to false), emptySet(), emptySet())))
+        assertEquals(emptySet<PartLink>(), PartLinks.of(document, PartSelection(setOf("z1"), mapOf("chart" to false), emptySet(), emptySet(), emptySet())))
     }
 
     @Test

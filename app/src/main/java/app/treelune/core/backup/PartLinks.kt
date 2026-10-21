@@ -4,7 +4,7 @@ import org.json.JSONObject
 
 /**
  * What a link of a part goes from or to: an element that can be ticked, the entries of a tool
- * (kept by its switch, [id] being the tool's), or what never goes with a routine.
+ * (kept by its switch, [id] being the tool's), or a routine's provider, which never goes.
  */
 data class PartElement(val kind: Kind, val id: String) {
     enum class Kind { ZONE, TOOL, ENTRIES, VARIABLE, ROUTINE, PROVIDER, IDENTITY }
@@ -14,11 +14,12 @@ data class PartElement(val kind: Kind, val id: String) {
  * An element kept that names one left out (docs/DATA.md, « A part of the app »).
  *
  * A tool, its entries or a variable would arrive broken without its target: the link blocks the
- * file. A routine arrives in a state the app knows (switched off, without provider nor identity,
- * an access or a pointer reaching nothing): its links only warn.
+ * file. A routine arrives in a state the app knows (switched off, without provider, an access or a
+ * pointer reaching nothing), and a zone or a routine without its identity speaks as the app's own
+ * AI: these links only warn.
  */
 data class PartLink(val from: PartElement, val to: PartElement) {
-    val blocking: Boolean get() = from.kind != PartElement.Kind.ROUTINE
+    val blocking: Boolean get() = from.kind != PartElement.Kind.ROUTINE && to.kind != PartElement.Kind.IDENTITY
 }
 
 /**
@@ -48,6 +49,10 @@ object PartLinks {
         rows(data, "variables").forEach { targets[it.getString("id")] = PartElement(PartElement.Kind.VARIABLE, it.getString("id")) }
 
         val links = LinkedHashSet<PartLink>()
+        // A zone and the identity it speaks as
+        rows(data, "zones").forEach { zone ->
+            BackupPart.identityOf(zone)?.let { links += PartLink(PartElement(PartElement.Kind.ZONE, zone.getString("id")), PartElement(PartElement.Kind.IDENTITY, it)) }
+        }
         fun scan(from: PartElement, row: JSONObject) {
             IdWords.words(row).forEach { word ->
                 val to = targets[word] ?: return@forEach
@@ -66,7 +71,7 @@ object PartLinks {
             scan(routine, automation)
             messages[automation.getString("seed_session_id")].orEmpty().forEach { scan(routine, it) }
             if (!automation.isNull("provider_id")) links += PartLink(routine, PartElement(PartElement.Kind.PROVIDER, automation.getString("provider_id")))
-            if (!automation.isNull("identity_id")) links += PartLink(routine, PartElement(PartElement.Kind.IDENTITY, automation.getString("identity_id")))
+            BackupPart.identityOf(automation)?.let { links += PartLink(routine, PartElement(PartElement.Kind.IDENTITY, it)) }
         }
         return links
     }
@@ -81,20 +86,21 @@ object PartLinks {
      */
     fun of(document: JSONObject, selection: PartSelection): Set<PartLink> = left(all(document), selection)
 
-    /** Whether [selection] keeps [element]; a provider or an identity never goes. */
+    /** Whether [selection] keeps [element]; a provider never goes. */
     fun kept(element: PartElement, selection: PartSelection): Boolean = when (element.kind) {
         PartElement.Kind.ZONE -> element.id in selection.zones
         PartElement.Kind.TOOL -> element.id in selection.tools
         PartElement.Kind.ENTRIES -> selection.tools[element.id] == true
         PartElement.Kind.VARIABLE -> element.id in selection.variables
         PartElement.Kind.ROUTINE -> element.id in selection.automations
-        PartElement.Kind.PROVIDER, PartElement.Kind.IDENTITY -> false
+        PartElement.Kind.IDENTITY -> element.id in selection.identities
+        PartElement.Kind.PROVIDER -> false
     }
 
     /**
      * What [link] means for the user, said with the names [name] gives its elements: for a
-     * blocking one, what to tick or untick; for a routine's, how it will arrive. A routine's
-     * provider and identity are said in the same sentence.
+     * blocking one, what to tick or untick; for a routine's, how it will arrive; for an identity
+     * left out, who will speak instead.
      *
      * @param text a shared string by its key
      */
@@ -102,7 +108,9 @@ object PartLinks {
         val fromEntries = link.from.kind == PartElement.Kind.ENTRIES
         val toEntries = link.to.kind == PartElement.Kind.ENTRIES
         val key = when {
-            link.to.kind == PartElement.Kind.PROVIDER || link.to.kind == PartElement.Kind.IDENTITY -> return text("share_link_routine_alone").format(name(link.from))
+            link.to.kind == PartElement.Kind.PROVIDER -> return text("share_link_routine_alone").format(name(link.from))
+            link.to.kind == PartElement.Kind.IDENTITY && link.from.kind == PartElement.Kind.ZONE -> "share_link_zone_identity"
+            link.to.kind == PartElement.Kind.IDENTITY -> "share_link_routine_identity"
             !link.blocking -> "share_link_routine"
             fromEntries && toEntries -> "share_link_entries_to_entries"
             fromEntries -> "share_link_entries_to_element"
@@ -114,7 +122,7 @@ object PartLinks {
 
     /**
      * The name the user knows [element] of [document] by: a zone's, a tool's (its entries' tool's),
-     * a variable's, a routine's.
+     * a variable's, a routine's, an identity's.
      */
     fun name(document: JSONObject, element: PartElement): String {
         val data = document.getJSONObject("data")
@@ -124,7 +132,8 @@ object PartLinks {
             PartElement.Kind.TOOL, PartElement.Kind.ENTRIES -> JSONObject(find("tool_instances").getString("config_json")).getString("name")
             PartElement.Kind.VARIABLE -> find("variables").getString("name")
             PartElement.Kind.ROUTINE -> find("automations").getString("name")
-            PartElement.Kind.PROVIDER, PartElement.Kind.IDENTITY -> throw IllegalArgumentException("A ${element.kind} is never named here")
+            PartElement.Kind.IDENTITY -> find("identities").getString("name")
+            PartElement.Kind.PROVIDER -> throw IllegalArgumentException("A ${element.kind} is never named here")
         }
     }
 
