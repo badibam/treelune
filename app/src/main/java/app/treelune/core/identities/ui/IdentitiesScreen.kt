@@ -102,11 +102,11 @@ fun IdentitiesScreen(onBack: () -> Unit) {
             identities.isEmpty() -> UI.Text(s.shared("identity_none_yet"), TextType.BODY)
             // A tile a row, the grid's whole width and one row high: the tile's icon takes its size from the grid's row
             else -> GridLayout(
+                identities,
                 identities.mapIndexed { i, identity -> Grid.Tile(identity.id, 0, i, Grid.COLUMNS, 1) },
                 identities.map { false },
                 edit = null
-            ) { i ->
-                val identity = identities[i]
+            ) { identity ->
                 CurrentTheme.current.ZoneCardContainer(texture = null, color = null, seed = identity.id, onClick = { Navigator.push(Place.Identity(identity.id)) }, onLongClick = {}) {
                     UI.TileHeader(identity.iconName, IconColor.of(identity.iconColor), identity.name, waiting = false, running = false, textType = TextType.HEADING)
                 }

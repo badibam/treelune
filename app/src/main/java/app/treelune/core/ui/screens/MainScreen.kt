@@ -632,8 +632,7 @@ private fun ZoneGroupSection(
     } else {
         // The zones on their grid, in edit mode when it is this section's, faded while another's is
         app.treelune.core.ui.components.Faded(editor.anyEditing && !editor.isEditing(key)) {
-            app.treelune.core.ui.components.GridLayout(groupZones.map { app.treelune.core.grid.ZonePositions.tile(it) }, groupZones.map { false }, editor.gridEdit(key)) { i ->
-                val zone = groupZones[i]
+            app.treelune.core.ui.components.GridLayout(groupZones, groupZones.map { app.treelune.core.grid.ZonePositions.tile(it) }, groupZones.map { false }, editor.gridEdit(key)) { zone ->
                 UI.ZoneCard(
                     zone = zone,
                     onClick = { onZoneClick(zone) },

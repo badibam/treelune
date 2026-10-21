@@ -23,12 +23,12 @@ fun ToolGrid(
     edit: GridEdit? = null
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    val modes = tools.map { DisplayMode.valueOf(JSONObject(it.config_json).getString("display_mode")) }
-    GridLayout(tools.map { ToolPositions.tile(it) }, modes.map { it == DisplayMode.FULL || (edit == null && (it == DisplayMode.EXTENDED || it == DisplayMode.SQUARE)) }, edit) { i ->
-        val tool = tools[i]
+    fun mode(tool: ToolInstance) = DisplayMode.valueOf(JSONObject(tool.config_json).getString("display_mode"))
+    val modes = tools.map(::mode)
+    GridLayout(tools, tools.map { ToolPositions.tile(it) }, modes.map { it == DisplayMode.FULL || (edit == null && (it == DisplayMode.EXTENDED || it == DisplayMode.SQUARE)) }, edit) { tool ->
         UI.ToolCard(
             tool = tool,
-            displayMode = modes[i],
+            displayMode = mode(tool),
             context = context,
             onClick = { onToolClick(tool) },
             onLongClick = { onToolLongClick(tool) },
