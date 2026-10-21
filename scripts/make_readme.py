@@ -15,7 +15,7 @@ and the themes' own strings, in the README's language; a tool or a theme added t
 appears without touching the README.
 
 The store listing's long description (fastlane/metadata/android/<locale>/full_description.txt)
-is written by hand down to its line that announces the tools ("The pieces:"): everything after it
+is written by hand down to its line that announces the tools ("The tools:"): everything after it
 is the tool types, one line each with its tagline, in plain text. The file is published as it is,
 so it carries no comment to mark the block.
 
@@ -52,8 +52,8 @@ READMES = {
 # which the tools are listed.
 LISTING = ROOT / "fastlane" / "metadata" / "android"
 LISTINGS = {
-    LISTING / "en-US" / "full_description.txt": ("", "The pieces:"),
-    LISTING / "fr-FR" / "full_description.txt": ("-fr", "Les pièces :"),
+    LISTING / "en-US" / "full_description.txt": ("", "The tools:"),
+    LISTING / "fr-FR" / "full_description.txt": ("-fr", "Les outils :"),
 }
 
 LISTING_LIMITS = {"title.txt": 50, "short_description.txt": 80, "full_description.txt": 4000}

@@ -1,0 +1,9 @@
+- Chaque changement des données s'annule et se refait, pendant 30 jours
+- Des zones, des outils et des routines se partagent dans un fichier
+- Les entrées d'un outil s'exportent en CSV, pour un tableur
+- Il y a un nouveau thème, Liseuse
+- La plupart des thèmes ont leurs sons
+- L'heure où commence la journée et le premier jour de la semaine valent partout
+- La langue de l'app se choisit à part (Android 13 et plus)
+- Le thème par défaut s'appelle Material
+- Deux plantages sont corrigés

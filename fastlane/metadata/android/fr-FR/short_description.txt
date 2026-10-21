@@ -1,1 +1,1 @@
-Construis l'app qu'il te faut, avec des pièces qui s'emboîtent
+Une app de suivi sur mesure, faite d'outils qui s'assemblent

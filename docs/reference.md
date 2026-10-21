@@ -4,7 +4,7 @@ The documentation's entry point. This file says what the project is, the rules h
 
 ## What the project is
 
-A native Android application (Kotlin + Jetpack Compose, Room persistence): a personal assistant where the user and the AI have the same capacities to act on the data. Everything goes through the same dispatcher `resource.operation`, whether the action comes from the interface, the AI, the scheduler or the system. `README.md` (English) and `README.fr.md` (French) present the app to whoever discovers it; their generated blocks (tools, AI providers, themes, version) are filled by `scripts/make_readme.py`, from the `tagline` sentence of each tool and each theme. The F-Droid listing, `fastlane/metadata/android/` (`en-US`, `fr-FR`), is written by hand down to its line "The pieces:" ("Les pièces :"): the list of tools that follows comes from the same script, which also checks F-Droid's length limits.
+A native Android application (Kotlin + Jetpack Compose, Room persistence): a personal assistant where the user and the AI have the same capacities to act on the data. Everything goes through the same dispatcher `resource.operation`, whether the action comes from the interface, the AI, the scheduler or the system. `README.md` (English) and `README.fr.md` (French) present the app to whoever discovers it; their generated blocks (tools, AI providers, themes, version) are filled by `scripts/make_readme.py`, from the `tagline` sentence of each tool and each theme. The F-Droid listing, `fastlane/metadata/android/` (`en-US`, `fr-FR`), is written by hand down to its line "The tools:" ("Les outils :"): the list of tools that follows comes from the same script, which also checks F-Droid's length limits.
 
 ## Project rules
 

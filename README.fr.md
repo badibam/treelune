@@ -14,7 +14,14 @@ Un suivi, un carnet, une liste, des fiches, un objectif, un graphique, des flash
 
 Une application Android libre, sans compte ni publicité. Les données restent sur le téléphone.
 
-<!-- Captures d'écran : l'accueil, une zone de la démo, un graphique, une conversation avec l'IA, rangées dans fastlane/metadata/android/en-US/images/phoneScreenshots/ -->
+Treelune est encore jeune, et n'a été essayée que sur quelques téléphones. Pour qu'un problème soit corrigé, signale-le depuis Réglages › Signaler un bug.
+
+<p>
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width="200" alt="">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width="200" alt="">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width="200" alt="">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5.png" width="200" alt="">
+</p>
 
 ## Les pièces
 
@@ -23,16 +30,16 @@ Une application Android libre, sans compte ni publicité. Les données restent s
 Chaque pan de ta vie devient une **zone** : le sport, un projet, un potager, une langue, et tout ce que tu voudras y ajouter. Dans chaque zone, tu poses les **outils** dont tu as besoin. Ce qu'on note dans un outil, une pesée, un repas, une page de journal, en est une **entrée**. Les types d'outils :
 
 <!-- tools -->
-- **Suivi** — Des chiffres, des notes sur une échelle, des choix ou des durées chronométrées, notés au fil des jours : poids, sommeil, humeur, verres d'eau
+- **Suivi** — Des chiffres, des notes sur une échelle, des choix ou des durées chronométrées, notés au fil des jours, comme le poids, le sommeil, l'humeur ou les verres d'eau
 - **Notes** — Des notes, chacune avec son titre, rangées là où elles servent
 - **Journal** — Un carnet daté, pour raconter ses journées
 - **Messages** — Des rappels et des notifications, une fois ou selon un planning
 - **Liste** — Ce qui reste à faire, coché au fur et à mesure, avec des échéances si tu veux
-- **Données structurées** — Des fiches faites de tes champs, retrouvées par leur nom : aliments, livres, plantes
+- **Données structurées** — Des fiches aux champs que tu choisis, chacune retrouvée par son nom, pour des aliments, des livres, des plantes ou autre chose
 - **Objectif** — Un objectif jugé chaque jour, semaine ou mois sur les critères que tu fixes, lus dans tes entrées
 - **Questionnaire** — Des questions posées une par écran, quand tu veux ou à heures prévues
 - **Graphique** — Tes entrées et tes chiffres dessinés en courbes, barres, camemberts ou calendriers
-- **Séance** — Des étapes préparées à l'avance, suivies à l'écran avec un minuteur et un signal à chaque changement : un entraînement, une recette
+- **Séance** — Des étapes préparées à l'avance, suivies à l'écran avec un minuteur et un signal à chaque changement, comme un entraînement ou une recette
 - **Agenda** — Les rendez-vous et les événements à heure, qui passent d'eux-mêmes, avec leurs rappels
 - **Flashcards** — Des cartes à réviser tirées d'un autre outil, chacune revenant juste avant d'être oubliée
 <!-- /tools -->
@@ -45,7 +52,7 @@ Une **variable** est un chiffre calculé à partir des entrées, comme les calor
 
 ### Avec une IA, si tu veux
 
-Une IA connaît les mêmes pièces que toi. Demande-lui « monte-moi de quoi préparer un semi-marathon », et elle crée la zone, les outils et leurs liens. Elle lit ensuite les outils, y ajoute des entrées, en crée de nouveaux et les règle. Sans IA, rien ne manque.
+Une IA connaît les mêmes pièces que toi. Demande-lui « monte-moi de quoi préparer un semi-marathon », et elle crée la zone, les outils et leurs liens. Elle lit ensuite les outils, y ajoute des entrées, en crée de nouveaux et les règle. Tout reste possible sans IA.
 
 - Tu lui parles dans une conversation, en lui joignant d'un geste un outil ou une zone, sur la période qui t'intéresse.
 - Avant toute modification, tu peux exiger qu'elle montre ce qu'elle va faire et attende ton accord, pour toute l'app, une zone, un outil ou une conversation.

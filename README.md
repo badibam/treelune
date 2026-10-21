@@ -14,7 +14,14 @@ A tracker, a journal, a list, records, a goal, a chart, flashcards, a calendar�
 
 A free and open source Android app, with no account and no ads. The data stays on the phone.
 
-<!-- Screenshots: the home screen, a demo zone, a chart, a conversation with the AI, kept in fastlane/metadata/android/en-US/images/phoneScreenshots/ -->
+Treelune is still young, and has been tried on only a few phones. To get a problem fixed, report it from Settings › Report a bug.
+
+<p>
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width="200" alt="">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width="200" alt="">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width="200" alt="">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5.png" width="200" alt="">
+</p>
 
 ## The pieces
 
@@ -23,16 +30,16 @@ A free and open source Android app, with no account and no ads. The data stays o
 Each part of your life becomes a **zone**: training, a project, a vegetable patch, a language, and whatever else you want to add. In each zone, you place the **tools** you need. Whatever you note in a tool, a weigh-in, a meal, a journal page, is one of its **entries**. The tool types:
 
 <!-- tools -->
-- **Tracking** — Numbers, ratings, choices or timed durations, noted as they come: weight, sleep, mood, glasses of water
+- **Tracking** — Numbers, ratings, choices or timed durations, noted as they come, such as weight, sleep, mood or glasses of water
 - **Notes** — Notes, each with its title, kept where they belong
 - **Journal** — A dated diary, for writing about your days
 - **Messages** — Reminders and notifications, once or on a schedule
 - **List** — What is left to do, checked off as it is done, with due dates if you want
-- **Structured data** — Sheets of your own fields, each found by its name: foods, books, plants
+- **Structured data** — Sheets with the fields you choose, each found by its name, for foods, books, plants or anything else
 - **Goal** — A goal judged each day, week or month by the criteria you set, read from your entries
 - **Questionnaire** — Questions asked one per screen, when you want or at planned times
 - **Chart** — Your entries and figures drawn as lines, bars, pies or calendars
-- **Session** — Steps prepared ahead, then followed on screen with a timer and a signal at each change: a workout, a recipe
+- **Session** — Steps prepared ahead, then followed on screen with a timer and a signal at each change, such as a workout or a recipe
 - **Calendar** — Appointments and events at a time, which pass by themselves, with reminders
 - **Flashcards** — Cards to review drawn from another tool, each coming back just before it is forgotten
 <!-- /tools -->
@@ -45,7 +52,7 @@ A **variable** is a figure worked out from the entries, such as the day's calori
 
 ### With an AI, if you want
 
-An AI knows the same pieces you do. Ask it “set me up to train for a half marathon”, and it creates the zone, the tools and the links between them. It then reads the tools, adds entries to them, creates new ones and sets them up. Without AI, nothing is missing.
+An AI knows the same pieces you do. Ask it “set me up to train for a half marathon”, and it creates the zone, the tools and the links between them. It then reads the tools, adds entries to them, creates new ones and sets them up. Everything stays possible without AI.
 
 - You talk to it in a conversation, attaching a tool or a zone in one gesture, over the period you care about.
 - Before any change, you can require it to show what it is about to do and wait for your approval, for the whole app, a zone, a tool or a conversation.

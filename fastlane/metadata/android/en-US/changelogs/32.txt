@@ -1,0 +1,9 @@
+- Every change to the data can be undone and redone, for 30 days
+- Zones, tools and routines can be shared in a file
+- A tool's entries can be exported as CSV, for a spreadsheet
+- There is a new theme, E-reader
+- Most themes have their own sounds
+- The hour the day starts and the first day of the week now apply everywhere
+- The app's language can be chosen apart (Android 13 and later)
+- The default theme is called Material
+- Two crashes are fixed
