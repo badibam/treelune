@@ -10,8 +10,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs du téléphone
 
-- La vibration d'un changement d'étape de Séance n'arrive pas quand le retour haptique d'Android est coupé : `SequenceSounds.vibrate()` vibre sans attributs, qu'Android 16 range en `TOUCH` et écarte (`ignored_for_settings` dans `dumpsys vibrator_manager`, le 2026-10-21) — lui donner un usage qui passe en silencieux (alarme).
-- Deux rappels de l'Agenda arrivés ensemble, groupés par Android : toucher le groupe replié ouvre l'outil, pas l'un des événements ; un rappel seul ouvre bien sa fiche.
 - Un pointeur confirmé dans le composeur arrive après le bloc actif, mais la liste des blocs ne défile pas jusqu'à lui : il reste coupé au bas de l'écran.
 
 ## Bugs

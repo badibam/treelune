@@ -5,8 +5,10 @@ import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.SoundPool
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.VibrationAttributes
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.speech.tts.TextToSpeech
@@ -44,8 +46,20 @@ class SequenceSounds(private val context: Context) {
     fun stepChange() = play(stepChange, STEP_CHANGE_LENGTH)
     fun edge() = play(edge, EDGE_LENGTH)
 
+    /**
+     * Vibrates as an alarm: without a usage, Android 13 and later file the vibration as a touch
+     * feedback and drop it when the phone's touch vibrations are off; an alarm's goes through
+     * silent mode too.
+     */
     fun vibrate() {
-        context.getSystemService(Vibrator::class.java)?.vibrate(VibrationEffect.createOneShot(VIBRATION, VibrationEffect.DEFAULT_AMPLITUDE))
+        val vibrator = context.getSystemService(Vibrator::class.java) ?: return
+        val effect = VibrationEffect.createOneShot(VIBRATION, VibrationEffect.DEFAULT_AMPLITUDE)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            vibrator.vibrate(effect, VibrationAttributes.createForUsage(VibrationAttributes.USAGE_ALARM))
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(effect, AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM).build())
+        }
     }
 
     /** Says [text] after the sound of the step change, the synthesis made ready at its first use. */
