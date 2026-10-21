@@ -313,7 +313,7 @@ object BlueprintTheme : ThemeContract {
             TextType.ERROR -> size.body to c.error.srgb
             TextType.WARNING -> size.body to c.warning.srgb
         }
-        Line(text, style, ink, if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier, textAlign, maxLines)
+        Line(text, style, ink, if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier, textAlign, maxLines, words = type == TextType.HEADING)
     }
 
     /** Plex Mono's medium for the bold; its italic. */
@@ -1410,24 +1410,26 @@ object BlueprintTheme : ThemeContract {
     // PIECES
     // =====================================
 
-    /** A text in one style and colour, cut with an ellipsis past [maxLines]; the lettering in capitals. */
+    /** A text in one style and colour, cut with an ellipsis past [maxLines]; hyphenated, or broken between [words] as a heading is (HeadingBreak); the lettering in capitals. */
     @Composable
     private fun Line(text: String, style: TextStyle, color: Color, modifier: Modifier = Modifier, align: TextAlign? = null, maxLines: Int = Int.MAX_VALUE) =
         Line(AnnotatedString(text), style, color, modifier, align, maxLines)
 
     /** The same, its runs keeping their emphasis; [capitals] false keeps a lettering text as written (a field's hint). */
     @Composable
-    private fun Line(text: AnnotatedString, style: TextStyle, color: Color, modifier: Modifier = Modifier, align: TextAlign? = null, maxLines: Int = Int.MAX_VALUE, capitals: Boolean = true) {
+    private fun Line(text: AnnotatedString, style: TextStyle, color: Color, modifier: Modifier = Modifier, align: TextAlign? = null, maxLines: Int = Int.MAX_VALUE, capitals: Boolean = true, words: Boolean = false) {
         val shown = if (capitals && style.isLettering) text.toUpperCase(LocaleList(Locale.getDefault().toLanguageTag())) else text
+        val heading = if (words) app.treelune.core.ui.rememberHeadingBreak(shown) else null
         BasicText(
             text = shown,
             modifier = modifier,
             style = style.copy(
                 color = color,
-                textAlign = align ?: TextAlign.Unspecified,
-                hyphens = androidx.compose.ui.text.style.Hyphens.Auto,
-                lineBreak = androidx.compose.ui.text.style.LineBreak.Paragraph
-            ),
+                textAlign = align ?: TextAlign.Unspecified
+            ).let { base ->
+                heading?.style(base) ?: base.copy(hyphens = androidx.compose.ui.text.style.Hyphens.Auto, lineBreak = androidx.compose.ui.text.style.LineBreak.Paragraph)
+            },
+            onTextLayout = { layout -> heading?.onTextLayout?.invoke(layout) },
             overflow = TextOverflow.Ellipsis,
             maxLines = maxLines
         )

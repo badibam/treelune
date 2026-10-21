@@ -291,7 +291,7 @@ object InkTheme : ThemeContract {
             TextType.ERROR -> size.body to c.error
             TextType.WARNING -> size.body to c.warning
         }
-        Line(text, style, ink, if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier, textAlign, maxLines)
+        Line(text, style, ink, if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier, textAlign, maxLines, words = type == TextType.HEADING)
     }
 
     /** The weight of STRONG, cut at a text's optical size; Literata's own italic, at both its weights. */
@@ -1269,23 +1269,25 @@ object InkTheme : ThemeContract {
     // PIECES
     // =====================================
 
-    /** A text in one style and colour, cut with an ellipsis past [maxLines]. */
+    /** A text in one style and colour, cut with an ellipsis past [maxLines]; hyphenated, or broken between [words] as a heading is (HeadingBreak). */
     @Composable
     private fun Line(text: String, style: TextStyle, color: Color, modifier: Modifier = Modifier, align: TextAlign? = null, maxLines: Int = Int.MAX_VALUE) =
         Line(AnnotatedString(text), style, color, modifier, align, maxLines)
 
     /** The same, its runs keeping their emphasis. */
     @Composable
-    private fun Line(text: AnnotatedString, style: TextStyle, color: Color, modifier: Modifier = Modifier, align: TextAlign? = null, maxLines: Int = Int.MAX_VALUE) {
+    private fun Line(text: AnnotatedString, style: TextStyle, color: Color, modifier: Modifier = Modifier, align: TextAlign? = null, maxLines: Int = Int.MAX_VALUE, words: Boolean = false) {
+        val heading = if (words) app.treelune.core.ui.rememberHeadingBreak(text) else null
         BasicText(
             text = text,
             modifier = modifier,
             style = style.copy(
                 color = color,
-                textAlign = align ?: TextAlign.Unspecified,
-                hyphens = androidx.compose.ui.text.style.Hyphens.Auto,
-                lineBreak = androidx.compose.ui.text.style.LineBreak.Paragraph
-            ),
+                textAlign = align ?: TextAlign.Unspecified
+            ).let { base ->
+                heading?.style(base) ?: base.copy(hyphens = androidx.compose.ui.text.style.Hyphens.Auto, lineBreak = androidx.compose.ui.text.style.LineBreak.Paragraph)
+            },
+            onTextLayout = { layout -> heading?.onTextLayout?.invoke(layout) },
             overflow = TextOverflow.Ellipsis,
             maxLines = maxLines
         )
