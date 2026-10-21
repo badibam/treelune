@@ -36,8 +36,7 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 
 ## Les incarnations (branche incarnations)
 
-- Par le connecteur (un client à l'accès « toute l'app ») : `import_identity` avec le texte d'un fichier au format 2 crée l'identité, ses textes « importé » ; la même encore, sans `replace`, est refusée en disant les retouches et langues perdues ; avec `replace: true`, remplacée. La protection du niveau de l'app active, la notification d'accord vient d'abord. Un client limité à des zones est refusé.
-- Modifier la voix, enregistrer : « écrit dans l'app » ; réimporter le fichier : la confirmation nomme `fr · voice` parmi les retouches perdues, et confirmée, la voix revient. Choisir une autre icône et une couleur, enregistrer : la tuile les montre.
+- Choisir une autre icône et une couleur pour une incarnation, enregistrer : la tuile les montre.
 - Les retirer, supprimer : la conversation passée se relit, son composeur remplacé par la raison.
 
 ## L'export des entrées (branche post-release)
