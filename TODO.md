@@ -17,6 +17,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 - La démo nomme chaque repas par son moment, que sa valeur dit aussi : la tuile de Repas montre « Dîner Dîner ».
 - La fin d'un événement de l'Agenda est son début plus sa durée en temps écoulé : un événement de plusieurs jours qui traverse un changement d'heure finit une heure avant ou après — l'ajouter sur le calendrier (`TimeResolver.after`, comme l'Objectif), la grille des jours et les séries lisant cette fin.
 - Une session de routine restée en `AWAITING_SESSION_CLOSURE` à la fermeture de l'app est close au démarrage (`AIStateRepository.initializeFromDb`) sans passer par `RunEnd` : son résumé n'est pas gardé, et elle attend quel que soit son réglage « Me signaler la fin ».
+- Le dialogue « la démo n'est pas installée » du Guide : le fermer sans choisir (retour, toucher à côté) saute les étapes de la démo, comme son bouton.
 - Au cran 3 dans certains thèmes, les marques sur les icônes deviennent trop grandes proportionnellement aux icônes et les recouvrent presque entièrement. La proportion devrait rester la même.
 
 ## À passer sur le téléphone
@@ -32,6 +33,7 @@ Codé, jamais vu sur l'appareil.
 
 ## À concevoir
 
+- Le Guide : les sujets d'Approfondissement suivants (formules et variables, conditions et filtres, champs et leur migration…), ce qui marque « fait » un chapitre sans étape à faire (ouvert, ou lu jusqu'au bout), et l'étape « demandez-lui son avis » de Brancher une IA, qui se lit au lieu d'attendre l'envoi : un message à l'IA ne passe pas par le dispatcher (`AIOrchestrator.sendMessage` le range lui-même).
 - Un contrôle « qui dépend de ça ? » avant de supprimer une chose (une condition, une variable, un pointeur qui la visent), écrit une fois, appelé par le service qui supprime et par l'annulation qui supprime une ligne.
 - Un modèle libre chez soi : un Ollama sur l'ordinateur, servi en https par `tailscale serve`, branché comme Autre serveur depuis le téléphone avec un modèle de la classe 30B, prix à 0 ; mesurer le temps d'une réponse (la lecture d'un prompt de ~29k tokens sur la machine). Passé, une page du Guide « Brancher un modèle libre » d'après ce qui a été fait.
 - Les events du cœur : quel premier usage — un événement de l'Agenda qui commence, une entrée écrite, une condition devenue vraie (l'Alerte) ? L'automation directe attend la même brique : sans IA, elle exécute elle-même ses commandes ; son premier usage, le relevé, garde une valeur telle qu'elle était (une variable `imc` écrite chaque semaine dans un Suivi), là où une variable se relit à tout jour passé avec les données d'aujourd'hui.
