@@ -37,7 +37,7 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 ## Les incarnations (branche incarnations)
 
 - Choisir une autre icône et une couleur pour une incarnation, enregistrer : la tuile les montre.
-- Les retirer, supprimer : la conversation passée se relit, son composeur remplacé par la raison.
+- Une conversation dont l'incarnation est supprimée : son composeur remplacé par la raison.
 
 ## L'export des entrées (branche post-release)
 
