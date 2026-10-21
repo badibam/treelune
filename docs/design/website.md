@@ -8,10 +8,12 @@ Public : les curieux un peu techniques (celui qui installe depuis F-Droid), et c
 
 1. Ouverture : la phrase du README (« Chaque app de suivi fait une chose, à sa façon. Treelune te donne les pièces, et tu construis celle qu'il te faut. »), puis l'IA en deuxième idée ; la capture de l'accueil et le sélecteur de thème.
 2. Trois lignes sur les données : pas de compte ; l'IA que tu choisis, ta clé ou ton propre serveur ; l'accès depuis l'extérieur passe par ton réseau.
-3. La carte annotée de la zone Italien : une capture, chaque élément touché ouvre son explication. Elle n'entre pas dans les outils, que la partie 5 montre.
-4. En action : des vidéos courtes, sans son, en boucle, une à la fois dans le même cadre de téléphone, choisies par onglet. Pour commencer : l'IA crée un outil et on le valide, une saisie rapide, une vraie discussion, une routine (le « Bilan de la semaine » de Course), un client MCP sur l'ordinateur qui lit et écrit dans l'app. Ensuite : créer un outil à la main, ranger une zone, lire un graphique, réviser des Flashcards, une alerte, annuler une écriture, importer un fichier.
-5. Les outils et les autres pièces : la liste part de la phrase `tagline` de chaque outil, comme `scripts/make_readme.py` ; une capture par outil. Les autres pièces : routines, variables, identités, conditions et alertes, pointeurs, connecteur MCP et accès externe, thèmes.
+3. La zone Italien : ses outils et sa routine en liste ; le choix entoure sa tuile sur la capture de la zone et dit à quoi il sert. Elle n'entre pas dans les outils, que la partie 5 montre.
+4. En action : des vidéos courtes, sans son, en boucle, une à la fois dans le même cadre de téléphone, choisies dans la liste. Pour commencer : l'IA crée un outil et on le valide, une saisie rapide, une vraie discussion, une routine (le « Bilan de la semaine » de Course), un client MCP sur l'ordinateur qui lit et écrit dans l'app. Ensuite : créer un outil à la main, ranger une zone, lire un graphique, réviser des Flashcards, une alerte, annuler une écriture, importer un fichier.
+5. Les outils : leur liste, la capture de l'outil choisi, sa phrase `tagline`, comme `scripts/make_readme.py`. Puis les autres pièces, en cartes de texte : routines, variables, identités, conditions et alertes, pointeurs, accès depuis l'ordinateur, ambiances.
 6. Les données en version longue, l'installation, et peut-être des pages à lire sur l'ordinateur (brancher une IA, l'accès externe, brancher un client MCP) : leur présence et leur contenu se décident sur la maquette.
+
+Les parties 1, 3, 4 et 5 partagent un motif, le geste du site : une liste de choix à côté d'un téléphone, et choisir change ce que le téléphone montre, avec sa légende sous la liste. La liste change de côté d'une partie à l'autre. Sur un téléphone tenu droit, le téléphone d'abord, puis la liste repliée et la légende ; sur un écran couché et bas, la liste reste à l'écran à côté d'un téléphone calculé sur la largeur.
 
 Français et anglais, comme l'app, textes selon `docs/WRITING.md`.
 
