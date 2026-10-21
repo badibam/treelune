@@ -75,7 +75,7 @@ Avec le relais en place (son projet `relay`, en ligne sur `https://relay.badibam
 - Le fichier partagé joint à un mail arrive entier.
 - Un fichier de partage reçu d'un autre téléphone (par le menu de partage, enregistré dans Téléchargements) s'importe de même, ses images d'entrées comprises.
 - Un export d'entrées : son fichier paraît dans le dossier choisi dans Réglages › Données.
-- Importer… sur un fichier de partage : tout coché, entrées comprises, sans le choix « Tout restaurer » ; dans « Une zone existante », celle du même nom en tête de liste ; un outil Messages ou Agenda dit qu'il peut envoyer des notifications.
+- Importer… sur un fichier de partage qui porte des entrées : elles arrivent cochées.
 
 ## Les incarnations
 
