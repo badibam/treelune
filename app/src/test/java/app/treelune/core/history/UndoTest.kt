@@ -114,7 +114,7 @@ class UndoTest {
     }
 
     @Test
-    fun `a zone deleted takes its routines, and an undo brings them back`() = runBlocking {
+    fun `a zone deleted takes its routines and variables, and an undo brings them back with the message`() = runBlocking {
         val zoneId = zone("Garden")
         val routine = coordinator.processUserAction("automations.create", mapOf(
             "zone_id" to zoneId,
@@ -126,11 +126,24 @@ class UndoTest {
         ))
         assertTrue(routine.error, routine.isSuccess)
         val routineId = routine.data!!["automation_id"] as String
+        val seedSessionId = routine.data["seed_session_id"] as String
+        val variable = coordinator.processUserAction("variables.create", mapOf(
+            "zone_id" to zoneId,
+            "name" to "objectif_calorique",
+            "label" to "Objectif calorique",
+            "definition" to mapOf("kind" to "CONSTANT", "value" to 2100, "field" to mapOf("type" to "NUMERIC"))
+        ))
+        assertTrue(variable.error, variable.isSuccess)
+        val variableId = variable.data!!["variable_id"] as String
+
         assertTrue(coordinator.processUserAction("zones.delete", mapOf("zone_id" to zoneId)).isSuccess)
         assertNull("no routine left behind", database.aiDao().getAutomationById(routineId))
+        assertNull("no variable left behind", database.variableDao().getById(variableId))
 
         assertTrue(coordinator.processUserAction("history.undo", mapOf("id" to lastStep())).isSuccess)
         assertEquals(zoneId, database.aiDao().getAutomationById(routineId)!!.zoneId)
+        assertEquals(zoneId, database.variableDao().getById(variableId)!!.zoneId)
+        assertTrue("the message comes back with it", database.aiDao().getMessagesForSession(seedSessionId).single().richContentJson!!.contains("How did the week go?"))
     }
 
     @Test

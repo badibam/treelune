@@ -60,13 +60,15 @@ import app.treelune.core.ai.data.LegacyCatchUp
  *   `missing_images`
  * - tree: what the app holds, its zones and their elements with every link between them
  *   (PartTree's stored form under `tree`), for the export's screen; given `uri`, what the backup
- *   there holds, for the import's, with `partial` and `taken_variable_names`
+ *   there holds, for the import's, with `partial`, `taken_variable_names` and `identities`, each
+ *   identity of the file the app holds by its id, `same` or `different` (Identity.sameAs)
  * - auto: the automatic backup's copy (AutoBackup), into the folder chosen, rolled; none when the
  *   data did not change since the last one. Answer: `written`
- * - import_part: `uri`, `selection`, `arrivals`: a part of the backup there added to the app
- *   (performImportPart, PartImport), one step of the history. Answer: `zones` (the new ones),
+ * - import_part: `uri`, `selection`, `arrivals`, `replace_identities`?: a part of the backup
+ *   there added to the app (performImportPart, PartImport), one step of the history; an identity
+ *   the app holds kept unless listed in `replace_identities`. Answer: `zones` (the new ones),
  *   `elements`, `entries`, `renamed` (each variable's name in the file and the one it took),
- *   `images_missing`
+ *   `images_missing`, `identities_added`, `identities_replaced`
  * - import: `uri`: data restored from a backup there (with version migrations): a zip, or the
  *   `.json` of the backups made before images, still readable
  * - reset: Wipe all data and restore defaults
@@ -106,7 +108,15 @@ class BackupService(private val context: Context) : ExecutableService {
             // Absent from a backup made before version 76: every run signalled, as the migration does
             notifyEnd = item.optString("notify_end", app.treelune.core.ai.data.AutomationSettings.NOTIFY_ALWAYS),
             // Absent from a backup made before version 77: the app's own AI, as the migration does
-            identityId = item.nullableString("identity_id")
+            identityId = item.nullableString("identity_id"),
+            // A backup older than v89 is brought to this form first (AutomationsAtV89)
+            description = item.nullableString("description"),
+            iconName = item.getString("icon_name"),
+            iconColor = item.nullableString("icon_color"),
+            texture = item.nullableString("texture"),
+            displayMode = item.getString("display_mode"),
+            gridX = item.getInt("grid_x"),
+            gridY = item.getInt("grid_y")
         )
     }
 
@@ -167,6 +177,15 @@ class BackupService(private val context: Context) : ExecutableService {
         // An element kept that names one left out would arrive broken: the first such link refuses
         app.treelune.core.backup.PartLinks.of(whole.json, selection).firstOrNull { it.blocking }?.let { link ->
             return OperationResult.error(app.treelune.core.backup.PartLinks.text(link, { app.treelune.core.backup.PartLinks.name(whole.json, it) }, s::shared))
+        }
+        // An identity arrives as its identity file imports: one that does not make a file stops here, not on the other phone
+        val today = app.treelune.core.selection.TimeResolver.at(System.currentTimeMillis()).today()
+        part.getJSONObject("data").getJSONArray("identities").let { rows -> (0 until rows.length()).map { app.treelune.core.backup.BackupPart.identity(rows.getJSONObject(it)) } }.forEach { identity ->
+            try {
+                app.treelune.core.identities.IdentityFile.write(identity, today)
+            } catch (e: app.treelune.core.identities.IdentityFile.Refused) {
+                return OperationResult.error(s.shared("share_error_identity").format(identity.name, s.shared(e.key).format(*e.args)))
+            }
         }
         val kept = app.treelune.core.backup.BackupPart.imageIds(part)
         val built = Built(part, whole.images.filter { it.id in kept }, whole.missingIds intersect kept)
@@ -247,7 +266,12 @@ class BackupService(private val context: Context) : ExecutableService {
             OperationResult.success(mapOf(
                 "tree" to app.treelune.core.utils.JsonUtils.toMap(app.treelune.core.backup.PartTree.of(document).toJson()),
                 "partial" to app.treelune.core.backup.BackupPart.isPartial(document),
-                "taken_variable_names" to database.variableDao().getAll().map { it.name }
+                "taken_variable_names" to database.variableDao().getAll().map { it.name },
+                "identities" to (document.getJSONObject("data").optJSONArray("identities") ?: JSONArray()).let { rows ->
+                    (0 until rows.length()).map { app.treelune.core.backup.BackupPart.identity(rows.getJSONObject(it)) }
+                }.mapNotNull { identity ->
+                    database.identityDao().getById(identity.id)?.let { held -> identity.id to if (held.toIdentity().sameAs(identity)) "same" else "different" }
+                }.toMap()
             ))
         } catch (e: Exception) {
             LogManager.service("Backup not read: ${e.message}", "ERROR", e)
@@ -342,12 +366,12 @@ class BackupService(private val context: Context) : ExecutableService {
             val identities = database.identityDao().getAll()
             // The files joined to messages, with their session
             val attachedFiles = aiSessions.flatMap { database.attachedFileDao().getForSession(it.id) }
-            // The images of messages and entries: their rows in the JSON, their files beside it.
+            // The images of messages, entries and tools: their rows in the JSON, their files beside it.
             // An image whose file is missing is an error the backup copies as it is, neither
             // hidden nor repaired: its row goes, named in missing_images, and the export says how many
             val images = database.imageDao().getAll()
             val missingImages = images.filter { !Images.file(context, it).exists() }
-            missingImages.forEach { LogManager.service("Backup export: the file of image ${it.id} (${it.sessionId?.let { s -> "session $s" } ?: "entry ${it.entryId}"}) is missing", "WARN") }
+            missingImages.forEach { LogManager.service("Backup export: the file of image ${it.id} (${it.sessionId?.let { s -> "session $s" } ?: it.entryId?.let { e -> "entry $e" } ?: "tool ${it.toolInstanceId}"}) is missing", "WARN") }
 
             // Check cancellation before building JSON
             if (token.isCancelled) return null
@@ -541,6 +565,13 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("access_json", automation.accessJson)
                                 put("notify_end", automation.notifyEnd)
                                 put("identity_id", automation.identityId ?: JSONObject.NULL)
+                                automation.description?.let { put("description", it) }
+                                put("icon_name", automation.iconName)
+                                automation.iconColor?.let { put("icon_color", it) }
+                                automation.texture?.let { put("texture", it) }
+                                put("display_mode", automation.displayMode)
+                                put("grid_x", automation.gridX)
+                                put("grid_y", automation.gridY)
                                 if (automation.group != null) {
                                     put("group", automation.group)
                                 }
@@ -555,8 +586,15 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("id", variable.id)
                                 put("zone_id", variable.zoneId)
                                 put("name", variable.name)
+                                put("label", variable.label)
+                                variable.description?.let { put("description", it) }
                                 variable.group?.let { put("group", it) }
-                                put("order_index", variable.orderIndex)
+                                put("icon_name", variable.iconName)
+                                variable.iconColor?.let { put("icon_color", it) }
+                                variable.texture?.let { put("texture", it) }
+                                put("display_mode", variable.displayMode)
+                                put("grid_x", variable.gridX)
+                                put("grid_y", variable.gridY)
                                 put("definition_json", variable.definitionJson)
                                 put("created_at", variable.createdAt)
                                 put("updated_at", variable.updatedAt)
@@ -601,13 +639,14 @@ class BackupService(private val context: Context) : ExecutableService {
                     // The images whose file was missing at the export: their rows go without one
                     put("missing_images", JSONArray(missingImages.map { it.id }))
 
-                    // Images of messages and entries: their files are entries of the zip
+                    // Images of messages, entries and tools: their files are entries of the zip
                     put("images", JSONArray().apply {
                         images.forEach { image ->
                             put(JSONObject().apply {
                                 put("id", image.id)
                                 image.sessionId?.let { put("session_id", it) }
                                 image.entryId?.let { put("entry_id", it) }
+                                image.toolInstanceId?.let { put("tool_instance_id", it) }
                                 put("format", image.format)
                                 put("size_bytes", image.sizeBytes)
                                 put("width", image.width)
@@ -663,11 +702,12 @@ class BackupService(private val context: Context) : ExecutableService {
                 return OperationResult.error("Operation cancelled")
             }
 
+            // An entry's or a tool's image, not a message's
             val entryImages = data.optJSONArray("images")?.let { images ->
-                (0 until images.length()).map { images.getJSONObject(it) }.filter { it.has("entry_id") }
+                (0 until images.length()).map { images.getJSONObject(it) }.filter { !it.has("session_id") }
                     .map { app.treelune.core.images.ImageFormat.valueOf(it.getString("format")).fileName(it.getString("id")) }
             }.orEmpty()
-            // An entry's image goes into the entries' folder, a message's stays flat
+            // An entry's or a tool's image goes into the entries' folder, a message's stays flat
             Images.sortImport(staging, entryImages)
 
             // Wipe all tables in reverse dependency order, then insert data
@@ -719,6 +759,7 @@ class BackupService(private val context: Context) : ExecutableService {
                 return OperationResult.error(s.shared("share_error_selection").format(e.message ?: ""))
             }
             val arrivals = params.optJSONObject("arrivals")?.let { given -> given.keys().asSequence().associateWith { given.getString(it) } }.orEmpty()
+            val replaced = params.optJSONArray("replace_identities")?.let { ids -> (0 until ids.length()).map { ids.getString(it) }.toSet() }.orEmpty()
             val part = try {
                 app.treelune.core.backup.BackupPart.cut(document, selection)
             } catch (e: IllegalArgumentException) {
@@ -730,19 +771,21 @@ class BackupService(private val context: Context) : ExecutableService {
             if (token.isCancelled) return OperationResult.cancelled()
 
             val report = try {
-                app.treelune.core.backup.PartImport(context).run(part, staging, arrivals)
+                app.treelune.core.backup.PartImport(context).run(part, staging, arrivals, replaced)
             } catch (e: app.treelune.core.backup.PartImport.Refused) {
                 LogManager.service("Part import refused: ${e.message}", "ERROR")
                 return OperationResult.error(s.shared("share_import_refused").format(e.message ?: ""))
             }
             app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
-            LogManager.service("Part imported: ${report.zones} new zones, ${report.elements} elements, ${report.entries} entries, ${report.renamed.size} variables renamed, ${report.imagesMissing} images missing")
+            LogManager.service("Part imported: ${report.zones} new zones, ${report.elements} elements, ${report.entries} entries, ${report.renamed.size} variables renamed, ${report.imagesMissing} images missing, ${report.identitiesAdded} identities added, ${report.identitiesReplaced} replaced")
             OperationResult.success(mapOf(
                 "zones" to report.zones,
                 "elements" to report.elements,
                 "entries" to report.entries,
                 "renamed" to report.renamed,
-                "images_missing" to report.imagesMissing
+                "images_missing" to report.imagesMissing,
+                "identities_added" to report.identitiesAdded,
+                "identities_replaced" to report.identitiesReplaced
             ))
         } catch (e: Exception) {
             LogManager.service("Part import failed: ${e.message}", "ERROR", e)
@@ -1041,7 +1084,7 @@ class BackupService(private val context: Context) : ExecutableService {
                         summary = if (item.isNull("summary")) null else item.getString("summary"),
                         // Absent from a backup made before version 77: the app's own AI, as the migration does
                         identityId = item.nullableString("identity_id"),
-                        // Absent from a backup made before version 87: a run taken as planned, as the migration does
+                        // Absent from a backup made before version 90: a run taken as planned, as the migration does
                         triggeredBy = if (item.has("triggered_by")) item.nullableString("triggered_by")
                             else if (item.getString("type") == SessionType.AUTOMATION.name) app.treelune.core.ai.data.ExecutionTrigger.SCHEDULED.name else null,
                         appStateSnapshot = item.optString("app_state_snapshot", null)
@@ -1095,20 +1138,7 @@ class BackupService(private val context: Context) : ExecutableService {
         data.optJSONArray("identities")?.let { array ->
             for (i in 0 until array.length()) {
                 val item = array.getJSONObject(i)
-                database.identityDao().upsert(
-                    app.treelune.core.identities.IdentityEntity(
-                        id = item.getString("id"),
-                        name = item.getString("name"),
-                        iconName = item.getString("icon_name"),
-                        iconColor = item.nullableString("icon_color"),
-                        language = item.getString("language"),
-                        languagesJson = item.getString("languages_json"),
-                        publishedAt = item.nullableString("published_at"),
-                        importedAt = if (item.isNull("imported_at")) null else item.getLong("imported_at"),
-                        createdAt = item.getLong("created_at"),
-                        updatedAt = item.getLong("updated_at")
-                    )
-                )
+                database.identityDao().upsert(app.treelune.core.identities.IdentityEntity.of(app.treelune.core.backup.BackupPart.identity(item)))
             }
         }
 
@@ -1121,8 +1151,15 @@ class BackupService(private val context: Context) : ExecutableService {
                         id = item.getString("id"),
                         zoneId = item.getString("zone_id"),
                         name = item.getString("name"),
+                        label = item.getString("label"),
+                        description = item.optString("description").takeIf { it.isNotEmpty() },
                         group = item.optString("group").takeIf { it.isNotEmpty() },
-                        orderIndex = item.getInt("order_index"),
+                        iconName = item.getString("icon_name"),
+                        iconColor = item.optString("icon_color").takeIf { it.isNotEmpty() },
+                        texture = item.optString("texture").takeIf { it.isNotEmpty() },
+                        displayMode = item.getString("display_mode"),
+                        gridX = item.getInt("grid_x"),
+                        gridY = item.getInt("grid_y"),
                         definitionJson = item.getString("definition_json"),
                         createdAt = item.getLong("created_at"),
                         updatedAt = item.getLong("updated_at")
@@ -1131,7 +1168,7 @@ class BackupService(private val context: Context) : ExecutableService {
             }
         }
 
-        // Images of messages and entries, after the sessions and the entries they belong to;
+        // Images of messages, entries and tools, after the sessions, entries and tools they belong to;
         // absent before v59. Their files are already set aside (performImport)
         data.optJSONArray("images")?.let { array ->
             for (i in 0 until array.length()) {
@@ -1141,6 +1178,7 @@ class BackupService(private val context: Context) : ExecutableService {
                         id = item.getString("id"),
                         sessionId = item.optString("session_id").takeIf { it.isNotEmpty() },
                         entryId = item.optString("entry_id").takeIf { it.isNotEmpty() },
+                        toolInstanceId = item.optString("tool_instance_id").takeIf { it.isNotEmpty() },
                         format = item.getString("format"),
                         sizeBytes = item.getLong("size_bytes"),
                         width = item.getInt("width"),
@@ -1197,6 +1235,11 @@ class BackupService(private val context: Context) : ExecutableService {
                 jsonData
             }
             val data = document.getJSONObject("data")
+            // The JSON a column holds is a string in the document, which renaming it whole does
+            // not reach: the columns the database migration renames, renamed one by one
+            if (fromVersion < 28) KeyCaseRenames.backup(data) { table, column, reason ->
+                LogManager.service("Backup import: a value of $table.$column left as is, its keys not renamed ($reason)", "WARN")
+            }
 
             // The column transformations run up to v35. From there an entry changes as a whole
             // (columns renamed, state moved out of data, tracking reshaped against its tool's
@@ -1326,6 +1369,12 @@ class BackupService(private val context: Context) : ExecutableService {
             }
             if (fromVersion < 86 && toVersion >= 86) {
                 app.treelune.core.versioning.DurationUnitsAtV86.backup(data)
+            }
+            if (fromVersion < 88 && toVersion >= 88) {
+                app.treelune.core.versioning.VariablesAtV88.backup(data)
+            }
+            if (fromVersion < 89 && toVersion >= 89) {
+                app.treelune.core.versioning.AutomationsAtV89.backup(data)
             }
 
             // Transform app settings

@@ -16,6 +16,7 @@ import app.treelune.core.ai.orchestration.AIOrchestrator
 import app.treelune.core.database.AppDatabase
 import app.treelune.core.coordinator.CancellationToken
 import app.treelune.core.grid.Groups
+import app.treelune.core.grid.SectionItem
 import app.treelune.core.grid.ToolPositions
 import app.treelune.core.services.ExecutableService
 import app.treelune.core.services.OperationResult
@@ -42,6 +43,7 @@ import java.util.*
  * - create (with its seed session and message), update, delete, get
  * - config: its settings, access and message as they are written
  * - list (by zone), list_all
+ * - next_execution: when it runs next
  * - enable, disable
  * - execute_manual (triggers manual execution via AIOrchestrator)
  */
@@ -57,6 +59,7 @@ class AutomationService(private val context: Context) : ExecutableService {
     private val database by lazy { AppDatabase.getDatabase(context) }
     private val dao by lazy { database.aiDao() }
     private val writes by lazy { app.treelune.core.history.Writes(context) }
+    private val sections by lazy { app.treelune.core.grid.SectionGrid(context) }
 
     override suspend fun execute(
         operation: String,
@@ -78,6 +81,7 @@ class AutomationService(private val context: Context) : ExecutableService {
                 "config" -> getConfig(params, token)
                 "list" -> listAutomations(params, token)
                 "list_all" -> listAllAutomations(token)
+                "next_execution" -> nextExecution(params, token)
                 "waiting" -> waiting(params)
                 "enable" -> setEnabled(params, token, true)
                 "disable" -> setEnabled(params, token, false)
@@ -161,7 +165,7 @@ class AutomationService(private val context: Context) : ExecutableService {
                 is Given.Refused -> return OperationResult.error(access.message)
                 is Given.Kept -> access.json
             }
-        ), settingsGiven(params, null)).getOrElse { return OperationResult.error(it.message ?: s.shared("message_validation_error_simple")) }
+        ), settingsGiven(params, null), null).getOrElse { return OperationResult.error(it.message ?: s.shared("message_validation_error_simple")) }
         groupRefusal(entity.group, zoneId)?.let { return OperationResult.error(it) }
         // Given, null for the app's own AI: never taken from the zone without the caller saying so
         if (!params.has(AutomationSettings.IDENTITY_ID)) return OperationResult.error(s.shared("automation_identity_required"))
@@ -187,7 +191,9 @@ class AutomationService(private val context: Context) : ExecutableService {
                 isActive = false
             ))
             writes.insertMessage(seedMessage(seedSessionId, message, now))
-            writes.insertAutomation(entity)
+            // At the end of its section's grid, among the tools and the variables
+            val place = sections.arrive(SectionItem.of(entity), database.zoneDao().getZoneById(zoneId)?.tool_groups)
+            writes.insertAutomation(entity.copy(gridX = place.column, gridY = place.row))
         }
 
         // A zone shown reads its routines again, whoever created this one
@@ -284,7 +290,7 @@ class AutomationService(private val context: Context) : ExecutableService {
             triggerIdsJson = triggerIdsJson,
             accessJson = accessJson,
             updatedAt = System.currentTimeMillis()
-        ), settings).getOrElse { return OperationResult.error(it.message ?: s.shared("message_validation_error_simple")) }
+        ), settings, AutomationSettings.of(entity)).getOrElse { return OperationResult.error(it.message ?: s.shared("message_validation_error_simple")) }
         groupRefusal(updatedEntity.group, updatedEntity.zoneId)?.let { return OperationResult.error(it) }
         // Only an identity that changes is checked: a routine saved again keeps the one it has
         if (updatedEntity.identityId != entity.identityId) identityRefusal(updatedEntity.identityId)?.let { return OperationResult.error(it) }
@@ -297,7 +303,10 @@ class AutomationService(private val context: Context) : ExecutableService {
         }
         database.transaction {
             if (message != null && seed != null) writes.updateMessage(seed.copy(richContentJson = message.toJson()))
-            writes.updateAutomation(updatedEntity)
+            // Its section or its size changed, it moves in the grids, the tiles around with it
+            val place = sections.move(SectionItem.of(entity), SectionItem.of(updatedEntity),
+                database.zoneDao().getZoneById(entity.zoneId)?.tool_groups, database.zoneDao().getZoneById(updatedEntity.zoneId)?.tool_groups)
+            writes.updateAutomation(updatedEntity.copy(gridX = place.column, gridY = place.row))
         }
 
         // A zone shown reads its routines again: their name, their state, their place
@@ -372,7 +381,7 @@ class AutomationService(private val context: Context) : ExecutableService {
      */
     private fun settingsGiven(params: JSONObject, stored: JSONObject?): JSONObject {
         val settings = stored?.let { JSONObject(it.toString()) } ?: JSONObject()
-        listOf("name", "provider_id", AutomationSettings.IDENTITY_ID, "group", "is_enabled", "notify_end", "schedule", "catch_up").forEach { key ->
+        (app.treelune.core.look.Looks.keys(AutomationSettings.LOOK) + listOf("provider_id", AutomationSettings.IDENTITY_ID, "group", "is_enabled", "notify_end", "schedule", "catch_up")).forEach { key ->
             if (!params.has(key)) return@forEach
             if (params.isNull(key)) settings.remove(key) else settings.put(key, params.get(key))
         }
@@ -381,13 +390,19 @@ class AutomationService(private val context: Context) : ExecutableService {
 
     /**
      * [entity] holding [settings], once they are checked against the schema generated from their
-     * declaration, and against the rule it cannot say: the catch-up settings come with a schedule
-     * and only with it.
+     * declaration, and against what it cannot say: its look as every look is (Looks, an icon that
+     * changes from [before]'s checked), the catch-up settings with a schedule and only with it.
      */
-    private fun withSettings(entity: AutomationEntity, sent: JSONObject): Result<AutomationEntity> {
+    private fun withSettings(entity: AutomationEntity, sent: JSONObject, before: JSONObject?): Result<AutomationEntity> {
         // A key set to null inside a setting (a schedule's) is not given: taken out, as the merge
         // above takes out a setting set to null
         val settings = app.treelune.core.utils.JsonNulls.withoutNullKeys(sent)
+        // A look's setting left out takes its declared default, as a tool's (an icon, a mode)
+        if (!settings.has(app.treelune.core.look.Looks.ICON)) settings.put(app.treelune.core.look.Looks.ICON, AutomationSettings.DEFAULT_ICON)
+        if (!settings.has(app.treelune.core.look.Looks.DISPLAY_MODE)) settings.put(app.treelune.core.look.Looks.DISPLAY_MODE, AutomationSettings.DEFAULT_MODE)
+        (app.treelune.core.look.Looks.check(AutomationSettings.LOOK, settings, before, context) as? app.treelune.core.look.Looks.Checked.Refused)
+            ?.let { return Result.failure(IllegalArgumentException(it.message)) }
+        val look = app.treelune.core.look.Looks.read(AutomationSettings.LOOK, settings)
         val checked = app.treelune.core.validation.SchemaValidator.validate(
             AutomationSettings.schema(context), app.treelune.core.utils.JsonUtils.toMap(settings), context)
         if (!checked.isValid) return Result.failure(IllegalArgumentException(checked.errorMessage))
@@ -406,6 +421,11 @@ class AutomationService(private val context: Context) : ExecutableService {
         }
         return Result.success(entity.copy(
             name = settings.getString("name"),
+            description = look.description,
+            iconName = look.iconName!!,
+            iconColor = look.iconColor,
+            texture = look.texture,
+            displayMode = look.displayMode.name,
             providerId = settings.optString(AutomationSettings.PROVIDER_ID).takeIf { it.isNotEmpty() },
             identityId = settings.optString(AutomationSettings.IDENTITY_ID).takeIf { it.isNotEmpty() },
             group = settings.optString("group").takeIf { it.isNotEmpty() },
@@ -434,7 +454,10 @@ class AutomationService(private val context: Context) : ExecutableService {
         val entity = dao.getAutomationById(automationId)
             ?: return OperationResult.error(s.shared("error_automation_not_found"))
 
-        writes.deleteAutomation(automationId)
+        database.transaction {
+            sections.leave(SectionItem.of(entity), database.zoneDao().getZoneById(entity.zoneId)?.tool_groups)
+            writes.deleteAutomation(automationId)
+        }
         app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
 
         LogManager.service("Successfully deleted automation: $automationId", "INFO")
@@ -539,7 +562,11 @@ class AutomationService(private val context: Context) : ExecutableService {
             executionHistoryJson = json.encodeToString(emptyList<String>())
         )
 
-        writes.insertAutomation(newAutomation)
+        // At the end of its section's grid in the target zone
+        database.transaction {
+            val place = sections.arrive(SectionItem.of(newAutomation), database.zoneDao().getZoneById(targetZoneId)?.tool_groups)
+            writes.insertAutomation(newAutomation.copy(gridX = place.column, gridY = place.row))
+        }
 
         // Notify UI
         app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
@@ -657,6 +684,21 @@ class AutomationService(private val context: Context) : ExecutableService {
     }
 
     /**
+     * When an automation runs next (AutomationScheduler.nextExecutionAt): `next_execution_at` left
+     * out when it will not run (disabled, without a schedule, its schedule ended).
+     */
+    private suspend fun nextExecution(params: JSONObject, token: CancellationToken): OperationResult {
+        if (token.isCancelled) return OperationResult.cancelled()
+
+        val automationId = params.optString("automation_id").takeIf { it.isNotEmpty() }
+            ?: return OperationResult.error(s.shared("error_param_automation_id_required"))
+        dao.getAutomationById(automationId) ?: return OperationResult.error(s.shared("error_automation_not_found"))
+
+        val at = app.treelune.core.ai.scheduling.AutomationScheduler(context).nextExecutionAt(automationId)
+        return OperationResult.success(mapOf("automation_id" to automationId) + (at?.let { mapOf("next_execution_at" to it) } ?: emptyMap()))
+    }
+
+    /**
      * Enable or disable automation
      */
     private suspend fun setEnabled(
@@ -755,7 +797,9 @@ class AutomationService(private val context: Context) : ExecutableService {
         "updated_at" to entity.updatedAt,
         "last_execution_id" to entity.lastExecutionId,
         "execution_history" to json.decodeFromString<List<String>>(entity.executionHistoryJson),
-        "access" to app.treelune.core.utils.JsonUtils.toList(entity.accessJson)
+        "access" to app.treelune.core.utils.JsonUtils.toList(entity.accessJson),
+        "grid_x" to entity.gridX,
+        "grid_y" to entity.gridY
     ) + app.treelune.core.utils.JsonUtils.toMap(AutomationSettings.of(entity))
 
     /** An operation said in words, its routine by its name: what a validation card and a result line show. */
@@ -769,6 +813,7 @@ class AutomationService(private val context: Context) : ExecutableService {
             "update" -> s.shared("action_verbalize_automations_update").format(name)
             "delete" -> s.shared("action_verbalize_automations_delete").format(name)
             "config", "get" -> s.shared("action_verbalize_automations_config").format(name)
+            "next_execution" -> s.shared("action_verbalize_automations_next_execution").format(name)
             "list", "list_all" -> s.shared("action_verbalize_automations_list")
             "waiting" -> s.shared("action_verbalize_automations_waiting")
             else -> s.shared("action_verbalize_unknown")

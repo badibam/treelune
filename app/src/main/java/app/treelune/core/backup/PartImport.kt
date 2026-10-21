@@ -33,8 +33,13 @@ import java.util.UUID
  * once (IdWords): what arrives names itself under its new ids from the start, whatever the order
  * of creation, and the services take them as given (GivenId.Made). A zone goes into a new zone, or
  * into one of the app's, whose id then takes its place. A variable whose name is taken arrives
- * under `_2`, `_3`…; a routine arrives switched off, without provider nor identity. An image the
- * file says was already missing at its export is taken out of its entry.
+ * under `_2`, `_3`…; a routine arrives switched off, without provider. An image the file says was
+ * already missing at its export is taken out of its entry.
+ *
+ * An identity keeps its id, shared with whoever wrote it: one the app lacks is added, one it holds
+ * is kept, or replaced whole when asked, as an identity file of it imports (IdentityFile), its
+ * texts then marked imported. A new zone and a routine speak as the identity the part gives them;
+ * a zone going into one of the app's leaves the app's zone as it speaks.
  *
  * The part arrives whole or not at all: a step refused removes what was written before it, and the
  * refusal names the step. The schedulers are held off meanwhile (SchedulersHeld).
@@ -48,9 +53,12 @@ class PartImport(private val context: Context) {
      * What arrived.
      *
      * @property renamed Each variable's name in the file, and the one it arrived under when taken
-     * @property imagesMissing The images taken out of their entries, missing already at the export
+     * @property imagesMissing The images taken out of their entries and tools, missing already at the export
+     * @property identitiesAdded The identities the app did not hold
+     * @property identitiesReplaced The identities it held, replaced
      */
-    data class Report(val zones: Int, val elements: Int, val entries: Int, val renamed: Map<String, String>, val imagesMissing: Int)
+    data class Report(val zones: Int, val elements: Int, val entries: Int, val renamed: Map<String, String>, val imagesMissing: Int,
+        val identitiesAdded: Int, val identitiesReplaced: Int)
 
     private val coordinator = Coordinator(context)
     private val database = AppDatabase.getDatabase(context)
@@ -61,21 +69,25 @@ class PartImport(private val context: Context) {
      *
      * @param arrivals For a zone of the part, the id of the app's zone it goes into; a zone left
      *   out goes into a new zone
-     * @throws Refused when a zone of arrival is gone, or a service refuses a step
+     * @param replaced The identities of the part the app holds that replace its own; the others it
+     *   holds are kept
+     * @throws Refused when a zone of arrival is gone, an identity of the part does not make a file,
+     *   or a service refuses a step
      */
-    suspend fun run(part: JSONObject, staging: File, arrivals: Map<String, String>): Report {
+    suspend fun run(part: JSONObject, staging: File, arrivals: Map<String, String>, replaced: Set<String>): Report {
         val data = JSONObject(part.getJSONObject("data").toString())
         arrivals.values.firstOrNull { database.zoneDao().getZoneById(it) == null }?.let { throw Refused("No zone $it to arrive in") }
 
-        // The images already missing at the export, taken out of the entries that held them
+        // The images already missing at the export, taken out of the entries and the tools that held them
         val missing = data.optJSONArray("missing_images")?.let { ids -> (0 until ids.length()).map { ids.getString(it) }.toSet() }.orEmpty()
-        val imagesMissing = rows(data, "tool_data").sumOf { withoutImages(it, missing) }
+        val imagesMissing = rows(data, "tool_data").sumOf { withoutImages(it, missing) } +
+            rows(data, "tool_instances").sumOf { withoutConfigImages(it, missing) }
 
         // A new id for each thing brought, the zone of arrival's for a zone going into one
         val ids = HashMap<String, String>()
         rows(data, "zones").forEach { zone -> ids[zone.getString("id")] = arrivals[zone.getString("id")] ?: newId() }
         listOf("tool_instances", "tool_data", "variables", "automations").forEach { table -> rows(data, table).forEach { ids[it.getString("id")] = newId() } }
-        val images = rows(data, "images").filter { it.has("entry_id") && it.getString("id") !in missing }
+        val images = rows(data, "images").filter { !it.has("session_id") && it.getString("id") !in missing }
         images.forEach { ids[it.getString("id")] = newId() }
         val former = images.associate { ids.getValue(it.getString("id")) to it.getString("id") }
         IdWords.replace(data, ids)
@@ -84,7 +96,7 @@ class PartImport(private val context: Context) {
         val written = Written()
         return try {
             withContext(GivenId.Made(made)) {
-                SchedulersHeld.during { write(data, staging, former, arrivals.values.toSet(), written) }
+                SchedulersHeld.during { write(data, staging, former, arrivals.values.toSet(), replaced, written) }
             }.copy(imagesMissing = imagesMissing)
         } catch (e: Refused) {
             undo(written)
@@ -101,6 +113,7 @@ class PartImport(private val context: Context) {
     /** What was written so far, for [undo]. */
     private class Written {
         val homeGroups = mutableListOf<String>()
+        val identities = mutableListOf<String>()
         val zones = mutableListOf<String>()
         /** The app's zones whose tool groups grew, with the ones they had */
         val toolGroups = mutableMapOf<String, String?>()
@@ -108,9 +121,27 @@ class PartImport(private val context: Context) {
         val inExisting = mutableListOf<Pair<String, JSONObject>>()
     }
 
-    private suspend fun write(data: JSONObject, staging: File, former: Map<String, String>, existing: Set<String>, written: Written): Report {
+    private suspend fun write(data: JSONObject, staging: File, former: Map<String, String>, existing: Set<String>, replaced: Set<String>, written: Written): Report {
         val zones = rows(data, "zones")
         val newZones = zones.filter { it.getString("id") !in existing }
+
+        // The identities, each as its file, all written before anything is: a replacement, made
+        // last, then fails on nothing of its own. The file holds the language it speaks (IdentityFile.write)
+        val today = app.treelune.core.selection.TimeResolver.at(System.currentTimeMillis()).today()
+        val identities = rows(data, "identities").map { BackupPart.identity(it) }.map { identity ->
+            val text = try {
+                app.treelune.core.identities.IdentityFile.write(identity, today)
+            } catch (e: app.treelune.core.identities.IdentityFile.Refused) {
+                throw Refused("identity ${identity.name}: ${e.key} ${e.args.joinToString()}")
+            }
+            Arrival(identity, text, identity.language)
+        }
+        val held = identities.filter { database.identityDao().getById(it.identity.id) != null }.map { it.identity.id }.toSet()
+        // One the app lacks before the zones and routines that speak as it
+        identities.filter { it.identity.id !in held }.forEach { arrival ->
+            run("identities.import", arrival.params(replace = false))
+            written.identities += arrival.identity.id
+        }
 
         // A new zone in its group of the home screen, added when missing
         written.homeGroups += HomeGroups(::run).add(newZones.mapNotNull { it.optString("group").takeIf { g -> g.isNotEmpty() } })
@@ -121,6 +152,7 @@ class PartImport(private val context: Context) {
                     if (zone.has(key) && !zone.isNull(key)) put(key, zone.get(key))
                 }
                 put("validate", zone.optBoolean("validate", false))
+                BackupPart.identityOf(zone)?.let { put("identity_id", it) }
                 zone.optString("tool_groups").takeIf { it.isNotEmpty() }?.let { put("tool_groups", JSONArray(it)) }
             })
             written.zones += zone.getString("id")
@@ -135,6 +167,14 @@ class PartImport(private val context: Context) {
             if (missing.isEmpty()) return@forEach
             run("zones.update", JSONObject().put("zone_id", id).put("tool_groups", JSONArray(has + missing)))
             written.toolGroups[id] = stored
+        }
+
+        // The images of the entries and the tools waiting where a form leaves one, which their
+        // owner then takes
+        val imageRows = rows(data, "images").filter { !it.has("session_id") && it.getString("id") in former }
+        imageRows.forEach { image ->
+            val format = ImageFormat.valueOf(image.getString("format"))
+            Images.copy(File(staging, format.fileName(former.getValue(image.getString("id")))), pending(image))
         }
 
         // The tools and the variables, each after what it reads, a variable whose name is taken
@@ -158,22 +198,16 @@ class PartImport(private val context: Context) {
                     .put("id", element.getString("id"))
                     .put("zone_id", zone)
                     .put("name", names.getValue(element.getString("id")))
-                    .apply { element.optString("group").takeIf { it.isNotEmpty() }?.let { put("group", it) } }
+                    .apply {
+                        listOf("label", "description", "group", "icon_name", "icon_color", "texture", "display_mode").forEach { key ->
+                            element.optString(key).takeIf { it.isNotEmpty() }?.let { put(key, it) }
+                        }
+                    }
                     .put("definition", given(JSONObject(element.getString("definition_json")), names)))
                 if (zone in existing) written.inExisting += "variables.delete" to JSONObject().put("variable_id", element.getString("id"))
             }
         }
-        // The tools of a new zone at the places they had, section by section
-        rows(data, "tool_instances").filter { it.getString("zone_id") !in existing }
-            .groupBy { it.getString("zone_id") to JSONObject(it.getString("config_json")).optString("group").takeIf { g -> g.isNotEmpty() } }
-            .forEach { (section, tools) ->
-                run("tools.place", JSONObject()
-                    .put("zone_id", section.first)
-                    .apply { section.second?.let { put("group", it) } }
-                    .put("places", JSONObject().apply { tools.forEach { put(it.getString("id"), JSONObject().put("grid_x", it.getInt("grid_x")).put("grid_y", it.getInt("grid_y"))) } }))
-            }
-
-        // The routines, off, with no provider nor identity: both are the user's to choose
+        // The routines, off, with no provider, the user's to choose, and the identity the part gives them
         val messages = rows(data, "session_messages").groupBy { it.getString("session_id") }
         rows(data, "automations").forEach { automation ->
             val seed = messages[automation.getString("seed_session_id")].orEmpty().firstOrNull { it.optString("sender") == "USER" }
@@ -182,7 +216,7 @@ class PartImport(private val context: Context) {
                 put("id", automation.getString("id"))
                 put("zone_id", automation.getString("zone_id"))
                 put(AutomationSettings.PROVIDER_ID, JSONObject.NULL)
-                put(AutomationSettings.IDENTITY_ID, JSONObject.NULL)
+                put(AutomationSettings.IDENTITY_ID, BackupPart.identityOf(automation) ?: JSONObject.NULL)
                 put("is_enabled", false)
                 put("access", JSONArray(automation.optString("access_json", "[]")))
                 message?.let { put("message", AutomationMessage.toBlocks(it)) }
@@ -190,12 +224,19 @@ class PartImport(private val context: Context) {
             if (automation.getString("zone_id") in existing) written.inExisting += "automations.delete" to JSONObject().put("automation_id", automation.getString("id"))
         }
 
-        // The entries' images waiting where a form leaves one, which the entry then takes
-        val imageRows = rows(data, "images").filter { it.has("entry_id") && it.getString("id") in former }
-        imageRows.forEach { image ->
-            val format = ImageFormat.valueOf(image.getString("format"))
-            Images.copy(File(staging, format.fileName(former.getValue(image.getString("id")))), pending(image))
-        }
+        // The tools, the variables and the routines of a new zone at the places they had, section by section
+        val tiles = rows(data, "tool_instances").map { it to JSONObject(it.getString("config_json")).optString("group") } +
+            rows(data, "variables").map { it to it.optString("group") } +
+            rows(data, "automations").map { it to it.optString("group") }
+        tiles.filter { (item, _) -> item.getString("zone_id") !in existing }
+            .groupBy({ (item, group) -> item.getString("zone_id") to group.takeIf { it.isNotEmpty() } }, { it.first })
+            .forEach { (section, items) ->
+                run("zones.place_section", JSONObject()
+                    .put("zone_id", section.first)
+                    .apply { section.second?.let { put("group", it) } }
+                    .put("places", JSONObject().apply { items.forEach { put(it.getString("id"), JSONObject().put("grid_x", it.getInt("grid_x")).put("grid_y", it.getInt("grid_y"))) } }))
+            }
+
         // The entries, each after the ones it designates, a tool's together
         val entries = ordered(rows(data, "tool_data"))
         var start = 0
@@ -218,7 +259,21 @@ class PartImport(private val context: Context) {
             start = end
         }
 
-        return Report(newZones.size, elements.size + rows(data, "automations").size, entries.size, renamed, 0)
+        // The identities the app held, replaced last
+        val replacing = identities.filter { it.identity.id in held && it.identity.id in replaced }
+        replacing.forEach { run("identities.import", it.params(replace = true)) }
+
+        return Report(newZones.size, elements.size + rows(data, "automations").size, entries.size, renamed, 0, written.identities.size, replacing.size)
+    }
+
+    /** An identity of the part, as the file it imports from and the language it speaks. */
+    private class Arrival(val identity: app.treelune.core.identities.Identity, val text: String, val language: String) {
+        fun params(replace: Boolean): JSONObject = JSONObject()
+            .put("text", text)
+            .put("language", language)
+            .put("icon_name", identity.iconName)
+            .apply { identity.iconColor?.let { put(app.treelune.core.themes.IconColor.KEY, it) } }
+            .put("replace", replace)
     }
 
     companion object {
@@ -251,6 +306,8 @@ class PartImport(private val context: Context) {
         try {
             written.inExisting.asReversed().forEach { (action, params) -> run(action, params) }
             written.zones.asReversed().forEach { run("zones.delete", JSONObject().put("zone_id", it)) }
+            // Once nothing speaks as them any more
+            written.identities.forEach { run("identities.delete", JSONObject().put("identity_id", it)) }
             written.toolGroups.forEach { (zone, groups) ->
                 run("zones.update", JSONObject().put("zone_id", zone).put("tool_groups", groups?.let { JSONArray(it) } ?: JSONObject.NULL))
             }
@@ -302,7 +359,27 @@ class PartImport(private val context: Context) {
         return removed
     }
 
-    /** Where [image]'s file waits for its entry. */
+    /**
+     * [tool]'s config without the ids of [missing], wherever its lists hold them (a step's
+     * images); how many it held.
+     */
+    private fun withoutConfigImages(tool: JSONObject, missing: Set<String>): Int {
+        if (missing.isEmpty()) return 0
+        var removed = 0
+        fun clean(value: Any?): Any? = when (value) {
+            is JSONObject -> value.apply { keys().asSequence().toList().forEach { put(it, clean(get(it))) } }
+            is JSONArray -> {
+                val kept = (0 until value.length()).map { value.get(it) }.filter { it !is String || it !in missing }
+                removed += value.length() - kept.size
+                JSONArray(kept.map { clean(it) })
+            }
+            else -> value
+        }
+        tool.put("config_json", clean(JSONObject(tool.getString("config_json"))).toString())
+        return removed
+    }
+
+    /** Where [image]'s file waits for its owner. */
     private fun pending(image: JSONObject): File =
         File(Images.pendingDir(context).apply { mkdirs() }, ImageFormat.valueOf(image.getString("format")).fileName(image.getString("id")))
 

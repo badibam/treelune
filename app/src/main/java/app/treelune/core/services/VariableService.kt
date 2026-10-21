@@ -10,7 +10,13 @@ import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.ToolFields
 import app.treelune.core.fields.toFieldDefinition
 import app.treelune.core.fields.toFieldDefinitions
+import app.treelune.core.database.transaction
 import app.treelune.core.grid.Groups
+import app.treelune.core.grid.SectionItem
+import app.treelune.core.look.Looks
+import app.treelune.core.variables.VariableLook
+import app.treelune.core.themes.IconColor
+import app.treelune.core.themes.Texture
 import app.treelune.core.grid.ToolPositions
 import app.treelune.core.selection.EntrySelection
 import app.treelune.core.selection.TimeResolver
@@ -35,9 +41,15 @@ import java.util.UUID
 /**
  * The variables of the core (docs/DATA.md, « Variables »), for the screen and the AI alike.
  *
- * - create: `zone_id`, `name`, `definition` (a constant or a formula written with names), `group`?
- * - update: `variable_id`, and any of `name`, `definition`, `group`, `zone_id`, `order_index`
- * - delete: `variable_id`; a formula naming it then fails, "variable deleted"
+ * - create: `zone_id`, `name`, `definition` (a constant or a formula written with names),
+ *   `group`?, and its look (VariableLook): `label`, `description`?, `icon_name` (`variable` when
+ *   left out), `icon_color`?, `texture`?, `display_mode` (LINE when left out); it arrives at the
+ *   end of its section's grid
+ * - update: `variable_id`, and any of `name`, `definition`, `group`, `zone_id` and its look's
+ *   settings (null empties a description, a colour or a texture); a change of section or of
+ *   size moves it in the grids (SectionGrid)
+ * - delete: `variable_id`; a formula naming it then fails, "variable deleted"; the tiles after
+ *   the rows it leaves empty move up
  * - get, list (`zone_id`), list_all: each variable with its formula written with the current
  *   names, its terms and its field; never its value, which a list would freeze
  * - evaluate: `variable_id` or `name`, `at` (a list of instants, milliseconds): a value or a
@@ -52,6 +64,7 @@ class VariableService(private val context: Context) : ExecutableService {
     private val s = Strings.`for`(context = context)
     private val dao = AppDatabase.getDatabase(context).variableDao()
     private val writes = app.treelune.core.history.Writes(context)
+    private val sections = app.treelune.core.grid.SectionGrid(context)
 
     override suspend fun execute(operation: String, params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
@@ -88,16 +101,22 @@ class VariableService(private val context: Context) : ExecutableService {
         }
         val name = checkName(params.optString("name"), id)
         val definition = checkDefinition(params.optJSONObject("definition") ?: throw Refused(s.shared("variable_error_param").format("definition")), name, id)
+        val (tile, icon) = lookOf(params, null)
         val now = System.currentTimeMillis()
-        writes.insertVariable(VariableEntity(
-            id = id, zoneId = zoneId, name = name,
+        val variable = VariableEntity(
+            id = id, zoneId = zoneId, name = name, label = tile.name, description = tile.description,
             group = group,
-            orderIndex = dao.getByZone(zoneId).size,
+            iconName = tile.iconName!!, iconColor = tile.iconColor, texture = tile.texture, displayMode = tile.displayMode.name,
+            gridX = 0, gridY = 0,
             definitionJson = definition.toJson().toString(),
             createdAt = now, updatedAt = now
-        ))
+        )
+        AppDatabase.getDatabase(context).transaction {
+            val place = sections.arrive(SectionItem.of(variable), zone.tool_groups)
+            writes.insertVariable(variable.copy(gridX = place.column, gridY = place.row))
+        }
         DataChangeNotifier.notifyVariablesChanged()
-        return OperationResult.success(mapOf("variable_id" to id, "name" to name))
+        return OperationResult.success(mapOf("variable_id" to id, "name" to name) + icon.report())
     }
 
     private suspend fun update(params: JSONObject): OperationResult {
@@ -116,24 +135,37 @@ class VariableService(private val context: Context) : ExecutableService {
         }
         val emptiedGroup = existing.group?.takeIf { moved && !params.has("group") }
         Groups.refusal(group, ToolPositions.zoneGroups(zone.tool_groups), s)?.let { throw Refused(it) }
-        writes.updateVariable(existing.copy(
+        val (tile, icon) = lookOf(params, existing)
+        val changed = existing.copy(
             name = name,
+            label = tile.name,
+            description = tile.description,
             zoneId = zoneId,
             group = group,
-            orderIndex = if (params.has("order_index")) params.getInt("order_index") else existing.orderIndex,
+            iconName = tile.iconName!!, iconColor = tile.iconColor, texture = tile.texture, displayMode = tile.displayMode.name,
             definitionJson = definition?.toJson()?.toString()
                 // A rename alone leaves the definition, whose field carries the name
                 ?: existing.definitionJson,
             updatedAt = System.currentTimeMillis()
-        ))
+        )
+        // Its section or its size changed, it moves in the grids, the tiles around with it
+        val oldZone = if (moved) AppDatabase.getDatabase(context).zoneDao().getZoneById(existing.zoneId) else zone
+        AppDatabase.getDatabase(context).transaction {
+            val place = sections.move(SectionItem.of(existing), SectionItem.of(changed), oldZone?.tool_groups, zone.tool_groups)
+            writes.updateVariable(changed.copy(gridX = place.column, gridY = place.row))
+        }
         DataChangeNotifier.notifyVariablesChanged()
-        return OperationResult.success(mapOf("variable_id" to existing.id, "name" to name)
+        return OperationResult.success(mapOf("variable_id" to existing.id, "name" to name) + icon.report()
             + (emptiedGroup?.let { mapOf("group_emptied" to it) } ?: emptyMap()))
     }
 
     private suspend fun delete(params: JSONObject): OperationResult {
         val existing = dao.getById(params.optString("variable_id")) ?: throw Refused(s.shared("variable_error_not_found").format(params.optString("variable_id")))
-        writes.deleteVariable(existing.id)
+        val zone = AppDatabase.getDatabase(context).zoneDao().getZoneById(existing.zoneId)
+        AppDatabase.getDatabase(context).transaction {
+            sections.leave(SectionItem.of(existing), zone?.tool_groups)
+            writes.deleteVariable(existing.id)
+        }
         DataChangeNotifier.notifyVariablesChanged()
         return OperationResult.success(mapOf("variable_id" to existing.id, "name" to existing.name))
     }
@@ -148,6 +180,32 @@ class VariableService(private val context: Context) : ExecutableService {
     // ========================================================================================
 
     /** A name a formula can write, unique in the app. */
+    /** A variable's look as its columns keep it, for Looks. */
+    private fun lookValues(variable: VariableEntity): JSONObject = JSONObject().apply {
+        put("label", variable.label)
+        variable.description?.let { put(Looks.DESCRIPTION, it) }
+        put(Looks.ICON, variable.iconName)
+        variable.iconColor?.let { put(IconColor.KEY, it) }
+        variable.texture?.let { put(Texture.KEY, it) }
+        put(Looks.DISPLAY_MODE, variable.displayMode)
+    }
+
+    /**
+     * The look [params] give (VariableLook), each setting left out kept from [existing], or its
+     * default for a variable being created; the label required, never made from the name.
+     */
+    private fun lookOf(params: JSONObject, existing: VariableEntity?): Pair<app.treelune.core.look.Look, Looks.Checked.Kept> {
+        val before = existing?.let { lookValues(it) }
+        val values = JSONObject(before?.toString() ?: "{}").apply { Looks.keys(VariableLook.SPEC).forEach { key -> if (params.has(key)) put(key, params.get(key)) } }
+        val kept = when (val checked = Looks.check(VariableLook.SPEC, values, before, context)) {
+            is Looks.Checked.Refused -> throw Refused(checked.message)
+            is Looks.Checked.Kept -> checked
+        }
+        val look = Looks.read(VariableLook.SPEC, values)
+        if (look.name.isBlank()) throw Refused(s.shared("variable_error_param").format("label"))
+        return look.copy(name = look.name.trim()) to kept
+    }
+
     private suspend fun checkName(name: String, id: String): String {
         val trimmed = name.trim()
         if (!NAME.matches(trimmed)) throw Refused(s.shared("variable_error_name").format(trimmed))
@@ -303,9 +361,16 @@ class VariableService(private val context: Context) : ExecutableService {
         return mapOf(
             "id" to entity.id,
             "name" to entity.name,
+            "label" to entity.label,
+            "description" to entity.description,
             "zone_id" to entity.zoneId,
             "group" to entity.group,
-            "order_index" to entity.orderIndex,
+            "icon_name" to entity.iconName,
+            IconColor.KEY to entity.iconColor,
+            Texture.KEY to entity.texture,
+            "display_mode" to entity.displayMode,
+            "grid_x" to entity.gridX,
+            "grid_y" to entity.gridY,
             "definition" to JsonUtils.toMap(definition),
             "tools_read" to toolsRead(entity, dao.getAll().associateBy { it.id }).toList()
         )

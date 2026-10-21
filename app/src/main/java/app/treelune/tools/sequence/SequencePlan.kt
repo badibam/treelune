@@ -29,13 +29,15 @@ data class Round(val block: String, val round: Int, val of: Int)
  * around it, outermost first.
  *
  * @property duration The timer's length, null for a step ended by hand
+ * @property images Its images' ids, owned by the tool (OwnedImages), the first shown large
  */
 data class PlannedStep(
     val name: String,
     val instruction: String?,
     val end: StepEnd,
     val duration: Long?,
-    val rounds: List<Round>
+    val rounds: List<Round>,
+    val images: List<String> = emptyList()
 )
 
 /**
@@ -43,8 +45,8 @@ data class PlannedStep(
  * skip_last_round left out of its block's last round. The session copies it when it starts, so a
  * config changed meanwhile does not change it.
  *
- * The config's elements: a step {"kind": "step", "name", "instruction", "end", "duration",
- * "skip_last_round"} or a block {"kind": "block", "name", "repeat", "steps"}; a block holds steps
+ * The config's elements: a step {"kind": "step", "name", "instruction", "images", "end",
+ * "duration", "skip_last_round"} or a block {"kind": "block", "name", "repeat", "steps"}; a block holds steps
  * or blocks, the latter steps only, stored without their kind.
  */
 object SequencePlan {
@@ -55,6 +57,7 @@ object SequencePlan {
     const val STEPS = "steps"
     const val NAME = "name"
     const val INSTRUCTION = "instruction"
+    const val IMAGES = "images"
     const val END = "end"
     const val DURATION = "duration"
     const val SKIP_LAST_ROUND = "skip_last_round"
@@ -92,9 +95,13 @@ object SequencePlan {
             instruction = element.optString(INSTRUCTION).takeIf { it.isNotBlank() },
             end = end,
             duration = if (end.timed) element.getLong(DURATION) else null,
-            rounds = rounds
+            rounds = rounds,
+            images = ids(element.optJSONArray(IMAGES))
         )
     }
+
+    /** The ids of a list of images, none when it is absent. */
+    fun ids(array: JSONArray?): List<String> = if (array == null) emptyList() else (0 until array.length()).map { array.getString(it) }
 
     private fun elements(array: JSONArray?): List<JSONObject> =
         if (array == null) emptyList() else (0 until array.length()).map { array.getJSONObject(it) }
@@ -107,6 +114,7 @@ object SequencePlan {
                 .put(INSTRUCTION, step.instruction ?: JSONObject.NULL)
                 .put(END, step.end.key)
                 .put(DURATION, step.duration ?: JSONObject.NULL)
+                .put(IMAGES, JSONArray(step.images))
                 .put("rounds", JSONArray().apply {
                     step.rounds.forEach { put(JSONObject().put("block", it.block).put("round", it.round).put("of", it.of)) }
                 }))
@@ -123,7 +131,9 @@ object SequencePlan {
             duration = if (o.isNull(DURATION)) null else o.getLong(DURATION),
             rounds = (0 until rounds.length()).map { r ->
                 rounds.getJSONObject(r).let { Round(it.getString("block"), it.getInt("round"), it.getInt("of")) }
-            }
+            },
+            // A run started before steps had images holds none
+            images = ids(o.optJSONArray(IMAGES))
         )
     }
 }

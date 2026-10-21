@@ -49,6 +49,8 @@ class AIStateMachineResponseRoutingTest {
         )
 
         assertEquals(Phase.AWAITING_SESSION_CLOSURE, state.phase)
+        // The end it closes with, which a restart during the countdown takes up
+        assertEquals(app.treelune.core.ai.data.SessionEndReason.COMPLETED, state.endReason)
         assertEquals(false, state.awaitingCompletionConfirmation)
     }
 

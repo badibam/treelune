@@ -79,7 +79,8 @@ fun CreateZoneScreen(
     // The identities its tile may open a conversation with
     val identities = app.treelune.core.identities.ui.rememberIdentities()
 
-    val editors = mapOf(
+    // Its icon, colour and texture, as every look's (Looks)
+    val editors = app.treelune.core.look.ui.lookEditors(ZoneSettings.LOOK, settings, s) { settings = it } + mapOf(
         "identity_id" to object : SettingEditor {
             @Composable
             override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
@@ -87,27 +88,6 @@ fun CreateZoneScreen(
                     onSelect = { onChange(it) }, label = s.shared("label_zone_identity"), noneLabel = s.shared("label_none"))
             }
         },
-        "icon_name" to object : SettingEditor {
-            @Composable
-            override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
-                // Taken away, the zone has no icon, its tile its name alone; a texture of its icon
-                // goes with it, an ICON motif having nothing left to repeat
-                app.treelune.core.ui.components.IconSelector(current = value as? String ?: "",
-                    color = app.treelune.core.themes.IconColor.of(settings.optString(app.treelune.core.themes.IconColor.KEY)),
-                    suggested = ZoneSettings.SUGGESTED_ICONS, onChange = { onChange(it) },
-                    onClear = (value as? String)?.takeIf { it.isNotBlank() }?.let { {
-                        settings = JSONObject(settings.toString()).apply {
-                            remove("icon_name")
-                            if (app.treelune.core.themes.Texture.of(optString(app.treelune.core.themes.Texture.KEY)) == app.treelune.core.themes.Texture.ICON) remove(app.treelune.core.themes.Texture.KEY)
-                        }
-                    } })
-            }
-        },
-        // The colour and the texture each chosen on a page of the form
-        app.treelune.core.themes.IconColor.KEY to app.treelune.core.ui.components.iconColorPage(s.shared("label_icon_color"),
-            settings.optString("icon_name"), settings.optString(app.treelune.core.themes.Texture.KEY).ifBlank { null }),
-        app.treelune.core.themes.Texture.KEY to app.treelune.core.ui.components.texturePage(s.shared("label_texture"),
-            settings.optString("icon_name"), settings.optString(app.treelune.core.themes.IconColor.KEY).ifBlank { null }),
         "group" to object : SettingEditor {
             @Composable
             override fun Edit(value: Any?, onChange: (Any?) -> Unit) {

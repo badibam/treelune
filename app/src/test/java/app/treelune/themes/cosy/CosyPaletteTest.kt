@@ -9,8 +9,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The cosy palettes are read, one per mode, and every text they draw is legible where it is drawn:
- * a palette retouched by eye can otherwise lose a contrast nobody notices until it is on the phone.
+ * The cosy palettes are read, one per mode, and every text they draw is legible where it is drawn
+ * at every hue shift: at one OKLCH lightness, the measured contrast changes with the hue, so each
+ * step of 15 degrees is held. A palette retouched by eye can otherwise lose a contrast nobody
+ * notices until it is on the phone.
  */
 class CosyPaletteTest {
 
@@ -24,6 +26,8 @@ class CosyPaletteTest {
         assertTrue("$name: $ratio, at least $least", ratio >= least)
     }
 
+    private val shifts = 0 until 360 step 15
+
     @Test
     fun `one palette per mode`() {
         assertEquals(PaletteMode.entries.toSet(), CosyPalettes.entries.map { it.mode }.toSet())
@@ -31,17 +35,17 @@ class CosyPaletteTest {
     }
 
     @Test
-    fun `every text is legible on what it is drawn on`() {
-        for (mode in PaletteMode.entries) {
-            val c = CosyPalettes.colors(mode, 0)
-            legible("$mode ink on a tile", c.ink, c.tile)
-            legible("$mode ink on the ground", c.ink, c.ground)
-            legible("$mode main colour's ink", c.onAccent, c.accent)
-            TagColor.entries.forEach { legible("$mode tag $it", c.tagInk(it), c.tag(it)) }
+    fun `every text is legible on what it is drawn on, at every shift`() {
+        for (mode in PaletteMode.entries) for (shift in shifts) {
+            val c = CosyPalettes.colors(mode, shift)
+            legible("$mode $shift ink on a tile", c.ink, c.tile)
+            legible("$mode $shift ink on the ground", c.ink, c.ground)
+            legible("$mode $shift main colour's ink", c.onAccent, c.accent)
+            TagColor.entries.forEach { legible("$mode $shift tag $it", c.tagInk(it), c.tag(it)) }
             // The dim ink and the states are secondary, their texts short: the large text's ratio
-            legible("$mode dim ink on a tile", c.dim, c.tile, 3f)
-            legible("$mode dim ink on the ground", c.dim, c.ground, 3f)
-            listOf(c.success, c.warning, c.error, c.info).forEach { legible("$mode state $it on a tile", it, c.tile, 3f) }
+            legible("$mode $shift dim ink on a tile", c.dim, c.tile, 3f)
+            legible("$mode $shift dim ink on the ground", c.dim, c.ground, 3f)
+            listOf(c.success, c.warning, c.error, c.info).forEach { legible("$mode $shift state $it on a tile", it, c.tile, 3f) }
         }
     }
 

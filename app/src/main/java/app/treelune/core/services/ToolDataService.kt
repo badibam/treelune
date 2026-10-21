@@ -45,7 +45,7 @@ import app.treelune.core.fields.toJsonArray
 import app.treelune.core.fields.withOptionsAdded
 import app.treelune.core.fields.toFieldDefinitions
 import app.treelune.core.utils.LogManager
-import app.treelune.core.images.EntryImages
+import app.treelune.core.images.OwnedImages
 
 /**
  * Centralized service for all tool_data operations
@@ -156,9 +156,10 @@ class ToolDataService(private val context: Context) : ExecutableService {
         checkReferences(checked, finalDataJson, finalExtraJson, before = null)
             ?.let { return OperationResult.error(it) }
         // Its IMAGE fields' ids made its images: a form's prepared, a conversation's copied
-        val images = when (val plan = imagesOf(checked, entryId, finalDataJson, finalExtraJson)) {
-            is EntryImages.Plan.Refused -> return OperationResult.error(plan.error)
-            is EntryImages.Plan.Ready -> plan.images
+        val planned = PlannedValues(finalDataJson, finalExtraJson)
+        val images = when (val plan = imagesOf(checked, entryId, planned)) {
+            is OwnedImages.Plan.Refused -> return OperationResult.error(plan.error)
+            is OwnedImages.Plan.Ready -> plan.images
         }
 
         val now = System.currentTimeMillis()
@@ -168,10 +169,10 @@ class ToolDataService(private val context: Context) : ExecutableService {
             tooltype = tooltype,
             timestamp = timestamp,
             name = name,
-            data = images.dataJson,
+            data = planned.dataJson(images),
             createdAt = now,
             updatedAt = now,
-            extra = images.extraJson,
+            extra = planned.extraJson(images),
             state = stateJson
         )
 
@@ -429,11 +430,12 @@ class ToolDataService(private val context: Context) : ExecutableService {
             ?.let { return OperationResult.error(it) }
         // Its IMAGE fields' ids compared with the images it owns: the new ones made its, the
         // ones gone deleted
-        val images = when (val plan = imagesOf(checked, entryId, updatedEntity.data, updatedEntity.extra)) {
-            is EntryImages.Plan.Refused -> return OperationResult.error(plan.error)
-            is EntryImages.Plan.Ready -> plan.images
+        val planned = PlannedValues(updatedEntity.data, updatedEntity.extra)
+        val images = when (val plan = imagesOf(checked, entryId, planned)) {
+            is OwnedImages.Plan.Refused -> return OperationResult.error(plan.error)
+            is OwnedImages.Plan.Ready -> plan.images
         }
-        val written = updatedEntity.copy(data = images.dataJson, extra = images.extraJson)
+        val written = updatedEntity.copy(data = planned.dataJson(images), extra = planned.extraJson(images))
 
         val known = batch?.entriesOf(existingEntity.toolInstanceId)
         val after: suspend () -> List<ToolDataEntity> = {
@@ -503,12 +505,7 @@ class ToolDataService(private val context: Context) : ExecutableService {
     private suspend fun getEntries(params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
 
-        // Debug logging
-        LogManager.service("ToolDataService.getEntries - Received params: $params")
-
         val toolInstanceId = params.optString("tool_instance_id")
-        LogManager.service("ToolDataService.getEntries - toolInstanceId='$toolInstanceId' (length=${toolInstanceId.length})")
-        LogManager.service("ToolDataService.getEntries - params keys: ${params.keys().asSequence().toList()}")
 
         if (toolInstanceId.isEmpty()) {
             LogManager.service("ToolDataService.getEntries - toolInstanceId is empty, returning error", "ERROR")
@@ -1265,9 +1262,22 @@ class ToolDataService(private val context: Context) : ExecutableService {
         )
     }
 
-    /** What writing entry [entryId] of [target] with [dataJson] and [extraJson] does to its images (EntryImages). */
-    private suspend fun imagesOf(target: WriteTarget.Ready, entryId: String, dataJson: String, extraJson: String?): EntryImages.Plan =
-        EntryImages.plan(context, entryId, declaredFields(target), userFields(target), dataJson, extraJson) { s.shared("image_error_not_found").format(it) }
+    /**
+     * An entry's data and extra on their way to the database, read once for its images: as they
+     * came when no copy changed an id, rewritten otherwise.
+     */
+    private class PlannedValues(private val dataJson: String, private val extraJson: String?) {
+        val data = JSONObject(dataJson)
+        val extra = extraJson?.let { JSONObject(it) }
+        fun dataJson(images: OwnedImages) = if (images.rewritten) data.toString() else dataJson
+        fun extraJson(images: OwnedImages) = if (images.rewritten) extra?.toString() else extraJson
+    }
+
+    /** What writing entry [entryId] of [target] with [values] does to its images (OwnedImages). */
+    private suspend fun imagesOf(target: WriteTarget.Ready, entryId: String, values: PlannedValues): OwnedImages.Plan =
+        OwnedImages.plan(context, OwnedImages.Owner.Entry(entryId), OwnedImages.entrySlots(values.data, declaredFields(target), values.extra, userFields(target))) {
+            s.shared("image_error_not_found").format(it)
+        }
 
     /** The fields the tool type declares in the entries' data, for [target]'s config. */
     private fun declaredFields(target: WriteTarget.Ready): List<FieldDefinition> = target.declaredFields

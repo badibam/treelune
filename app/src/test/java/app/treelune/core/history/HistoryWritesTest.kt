@@ -108,6 +108,10 @@ class HistoryWritesTest {
 
     @Test
     fun `the demo installed is one step, its removal another that keeps what it deletes`() = runBlocking {
+        // On an app emptied first: a zone an earlier test left in a group of the demo's would keep
+        // that group at the removal, as the removal keeps a group a zone of the user's stands in
+        assertTrue(coordinator.processUserAction("backup.reset", emptyMap()).isSuccess)
+        earlier = database.historyDao().allSteps().map { it.id }.toSet()
         val installed = coordinator.processUserAction("demo.install", emptyMap())
         assertTrue(installed.error, installed.isSuccess)
         val install = steps().filter { it.isStep }.single()

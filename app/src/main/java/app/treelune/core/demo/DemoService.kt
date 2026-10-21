@@ -89,7 +89,7 @@ class DemoService(private val context: Context) : ExecutableService {
 
     /**
      * The identities, which the zones and the automations name, each created then written; the zones, placed; the tools that read no variable; the variables, which read those tools;
-     * the tools that read a variable (a goal, a chart); then every tool placed, section by section.
+     * the tools that read a variable (a goal, a chart); then every tool and variable placed, section by section.
      * A tool's moments are put in [data]'s weeks.
      */
     private suspend fun build(content: DemoContent, data: DemoData) {
@@ -108,12 +108,13 @@ class DemoService(private val context: Context) : ExecutableService {
         others.forEach { create(it) }
         content.variables.forEach { run("variables.create", it) }
         readingVariables.forEach { create(it) }
-        content.tools.groupBy { it.getString("zone_id") to it.getJSONObject("config").optString("group").takeIf { g -> g.isNotEmpty() } }
-            .forEach { (section, tools) ->
-                run("tools.place", JSONObject()
+        val tiles = content.tools.map { it to it.getJSONObject("config").optString("group") } + content.variables.map { it to it.optString("group") }
+        tiles.groupBy({ (item, group) -> item.getString("zone_id") to group.takeIf { it.isNotEmpty() } }, { it.first })
+            .forEach { (section, items) ->
+                run("zones.place_section", JSONObject()
                     .put("zone_id", section.first)
                     .apply { section.second?.let { put("group", it) } }
-                    .put("places", places(tools)))
+                    .put("places", places(items)))
             }
     }
 

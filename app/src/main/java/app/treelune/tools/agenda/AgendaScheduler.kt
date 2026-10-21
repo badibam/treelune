@@ -170,7 +170,7 @@ object AgendaScheduler : ToolScheduler {
         return when {
             event.allDay && event.days > 1 -> s.tool("moment_days").format(day, event.days)
             event.allDay -> s.tool("moment_all_day").format(day)
-            event.duration != null -> s.tool("moment_range").format(day, DateUtils.formatTimeForDisplay(event.start, zone), DateUtils.formatTimeForDisplay(event.start + event.duration, zone))
+            event.duration != null -> s.tool("moment_range").format(day, DateUtils.formatTimeForDisplay(event.start, zone), DateUtils.formatTimeForDisplay(event.end(zone), zone))
             else -> s.tool("moment_at").format(day, DateUtils.formatTimeForDisplay(event.start, zone))
         }
     }

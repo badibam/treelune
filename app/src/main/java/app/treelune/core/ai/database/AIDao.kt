@@ -63,11 +63,12 @@ interface AIDao {
 
     /**
      * A routine's runs that wait for the user (docs/AI.md, « Summary of the run »): over for good,
-     * not yet seen. AISessionEntity.runWaits says the same of one run.
+     * closed — an end reason is written from the closure's countdown on — and not yet seen.
+     * AISessionEntity.runWaits says the same of one run.
      */
     @Query("""
         SELECT * FROM ai_sessions
-        WHERE type = 'AUTOMATION' AND seen_at IS NULL
+        WHERE type = 'AUTOMATION' AND seen_at IS NULL AND is_active = 0
           AND end_reason IS NOT NULL AND end_reason NOT IN ${SessionEndReason.RESUMABLE_SQL}
     """)
     suspend fun getWaitingRuns(): List<AISessionEntity>
@@ -160,6 +161,9 @@ interface AIDao {
 
     @Query("SELECT * FROM automations WHERE is_enabled = 1")
     suspend fun getAllEnabledAutomations(): List<AutomationEntity>
+
+    @Query("UPDATE automations SET grid_x = :gridX, grid_y = :gridY WHERE id = :id")
+    suspend fun updateAutomationPosition(id: String, gridX: Int, gridY: Int)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAutomation(automation: AutomationEntity)

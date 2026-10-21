@@ -105,34 +105,13 @@ class AIStateRepository(
         val activeSession = aiDao.getActiveSession()
 
         if (activeSession != null) {
-            // Check if session was stuck in AWAITING_SESSION_CLOSURE
-            // This happens if app was closed while timer was running
-            if (activeSession.phase == "AWAITING_SESSION_CLOSURE") {
-                LogManager.aiSession(
-                    "Session ${activeSession.id} was stuck in AWAITING_SESSION_CLOSURE - completing and deactivating",
-                    "WARN"
-                )
-                // Complete session with proper endReason
-                val completedEntity = activeSession.copy(
-                    phase = Phase.CLOSED.name,
-                    endReason = activeSession.endReason ?: SessionEndReason.COMPLETED.name,
-                    isActive = false
-                )
-                aiDao.updateSession(completedEntity)
-
-                // Start with IDLE state
-                _state.value = AIState.idle()
-                LogManager.aiSession("Started IDLE after fixing stuck session", "INFO")
-            } else {
-                // Normal restoration
-                val restoredState = entityToState(activeSession)
-                _state.value = restoredState
-
-                LogManager.aiSession(
-                    "State restored from DB: session=${activeSession.id}, phase=${activeSession.phase}",
-                    "INFO"
-                )
-            }
+            // Restored as it was, a routine awaiting its closure included: AIEventProcessor
+            // settles what the app closing cut
+            _state.value = entityToState(activeSession)
+            LogManager.aiSession(
+                "State restored from DB: session=${activeSession.id}, phase=${activeSession.phase}",
+                "INFO"
+            )
         } else {
             _state.value = AIState.idle()
 
@@ -190,7 +169,8 @@ class AIStateRepository(
                     lastUserInteractionTime = state.lastUserInteractionTime,
                     lastActivity = System.currentTimeMillis(),
                     isActive = shouldBeActive,
-                    endReason = if (state.phase == Phase.CLOSED) state.endReason?.name else existingSession.endReason
+                    // Written from the closure's countdown on, which a restart takes up
+                    endReason = if (state.phase == Phase.CLOSED || state.phase == Phase.AWAITING_SESSION_CLOSURE) state.endReason?.name else existingSession.endReason
                 )
 
             } catch (e: Exception) {
@@ -214,6 +194,7 @@ class AIStateRepository(
             phase = Phase.valueOf(entity.phase),
             sessionType = entity.type,
             totalRoundtrips = entity.totalRoundtrips,
+            endReason = entity.endReason?.let { SessionEndReason.valueOf(it) },
             lastEventTime = entity.lastEventTime,
             lastUserInteractionTime = entity.lastUserInteractionTime,
             // Not stored: AIEventProcessor builds it again from the last AI message when the

@@ -316,8 +316,8 @@ object RetroTheme : ThemeContract {
         val s = retroSurface
         val override = LocalRetroInk.current
         val (style, ink) = when (type) {
-            TextType.HEADING -> retroGridUp().text to (override ?: s.strong.srgb)
-            TextType.TITLE, TextType.SUBTITLE, TextType.STRONG -> grid.text to (override ?: s.strong.srgb)
+            TextType.HEADING, TextType.SUBTITLE -> retroGridUp().text to (override ?: s.strong.srgb)
+            TextType.TITLE, TextType.STRONG -> grid.text to (override ?: s.strong.srgb)
             TextType.BODY -> grid.text to (override ?: s.ink.srgb)
             TextType.CAPTION, TextType.LABEL -> grid.thin to (override ?: s.dim.srgb)
             TextType.ERROR -> grid.text to s.error.srgb
@@ -494,10 +494,10 @@ object RetroTheme : ThemeContract {
     }
 
     @Composable
-    override fun ConfirmDialog(title: String, message: String, confirmText: String?, cancelText: String?, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    override fun ConfirmDialog(title: String, message: String, confirmText: String?, cancelText: String?, onConfirm: () -> Unit, onCancel: () -> Unit, onDismiss: () -> Unit) {
         val s = Strings.`for`(context = LocalContext.current)
         DialogFrame(onDismiss = onDismiss, actions = {
-            WordButton(cancelText ?: s.shared("action_cancel"), onDismiss)
+            WordButton(cancelText ?: s.shared("action_cancel"), onCancel)
             WordButton(confirmText ?: s.shared("action_confirm"), onConfirm, strong = true)
         }) {
             Text(title, TextType.TITLE, false, null)

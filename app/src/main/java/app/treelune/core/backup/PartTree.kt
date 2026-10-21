@@ -15,10 +15,11 @@ data class PartTree(val zones: List<Zone>, val links: Set<PartLink>) {
     data class Zone(val id: String, val name: String, val group: String?, val elements: List<Element>)
 
     /**
-     * A tool, a variable or a routine, under the tool group [group] of its zone or none.
+     * A tool, a variable, a routine, under the tool group [group] of its zone or none, or an
+     * identity the zone or one of its routines speaks as, under none.
      *
-     * @property tooltype A tool's type, null for a variable or a routine
-     * @property entries A tool's number of entries, 0 for a variable or a routine
+     * @property tooltype A tool's type, null for anything else
+     * @property entries A tool's number of entries, 0 for anything else
      */
     data class Element(val kind: PartElement.Kind, val id: String, val name: String, val group: String?, val tooltype: String?, val entries: Int)
 
@@ -48,8 +49,9 @@ data class PartTree(val zones: List<Zone>, val links: Set<PartLink>) {
          * The tree of [document], a whole backup at the current version or a part. The zones in
          * the home screen's order: its groups as the backup's settings list them, then those a
          * part names in its zones' order, then the zones without a group; in a group by their
-         * place. In a zone, its tool groups in its order then the elements without one: the tools
-         * by their place, the variables by theirs, the routines by name.
+         * place. In a zone, the identities it and its routines speak as, its own first; then its
+         * tool groups in its order then the elements without one: the tools by their place, the
+         * variables by theirs, the routines by name. An identity two zones speak as is under each.
          */
         fun of(document: JSONObject): PartTree {
             val data = document.getJSONObject("data")
@@ -63,6 +65,7 @@ data class PartTree(val zones: List<Zone>, val links: Set<PartLink>) {
             val tools = rows(data, "tool_instances").groupBy { it.getString("zone_id") }
             val variables = rows(data, "variables").groupBy { it.getString("zone_id") }
             val routines = rows(data, "automations").groupBy { it.getString("zone_id") }
+            val identities = rows(data, "identities").associateBy { it.getString("id") }
 
             val ordered = zones.sortedWith(compareBy<JSONObject>({ zone -> zone.group()?.let { homeGroups.indexOf(it) } ?: Int.MAX_VALUE }, { it.optInt("grid_y") }, { it.optInt("grid_x") }))
             return PartTree(ordered.map { zone ->
@@ -72,12 +75,15 @@ data class PartTree(val zones: List<Zone>, val links: Set<PartLink>) {
                     val config = JSONObject(tool.getString("config_json"))
                     Element(PartElement.Kind.TOOL, tool.getString("id"), config.optString("name"), config.optString("group").ifEmpty { null },
                         tool.getString("tooltype"), entries[tool.getString("id")] ?: 0)
-                } + variables[id].orEmpty().sortedBy { it.optInt("order_index") }.map { variable ->
+                } + variables[id].orEmpty().sortedWith(compareBy({ it.optInt("grid_y") }, { it.optInt("grid_x") })).map { variable ->
                     Element(PartElement.Kind.VARIABLE, variable.getString("id"), variable.getString("name"), variable.group(), null, 0)
                 } + routines[id].orEmpty().sortedBy { it.getString("name") }.map { routine ->
                     Element(PartElement.Kind.ROUTINE, routine.getString("id"), routine.getString("name"), routine.group(), null, 0)
                 }
-                Zone(id, zone.getString("name"), zone.group(), elements.sortedBy { element -> element.group?.let { toolGroups.indexOf(it) } ?: Int.MAX_VALUE })
+                // A part holds only the identities kept: one left out is named by no zone nor routine there
+                val spoken = (listOf(zone) + routines[id].orEmpty().sortedBy { it.getString("name") }).mapNotNull { BackupPart.identityOf(it) }.distinct()
+                    .mapNotNull { identities[it] }.map { Element(PartElement.Kind.IDENTITY, it.getString("id"), it.getString("name"), null, null, 0) }
+                Zone(id, zone.getString("name"), zone.group(), spoken + elements.sortedBy { element -> element.group?.let { toolGroups.indexOf(it) } ?: Int.MAX_VALUE })
             }, PartLinks.all(document))
         }
 

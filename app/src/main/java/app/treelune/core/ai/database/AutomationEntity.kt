@@ -1,6 +1,7 @@
 package app.treelune.core.ai.database
 
 import androidx.room.*
+import app.treelune.core.ai.data.AutomationSettings
 
 /**
  * Automation database entity
@@ -50,5 +51,19 @@ data class AutomationEntity(
     @ColumnInfo(name = "notify_end") val notifyEnd: String = app.treelune.core.ai.data.AutomationSettings.NOTIFY_ALWAYS,
 
     /** The identity its runs speak as (docs/AI.md, « Identities »); null for the app's own AI */
-    @ColumnInfo(name = "identity_id") val identityId: String? = null
+    @ColumnInfo(name = "identity_id") val identityId: String? = null,
+
+    /** Its look beside its name (AutomationSettings.LOOK): what it is for, null for nothing said */
+    val description: String? = null,
+    /** A Lucide icon name, stored under its current name */
+    @ColumnInfo(name = "icon_name") val iconName: String = AutomationSettings.DEFAULT_ICON,
+    /** Its icon's colour, a name of IconColor.NAMES; null for a neutral icon */
+    @ColumnInfo(name = "icon_color") val iconColor: String? = null,
+    /** The motif of its tile, a name of Texture.NAMES; null for none */
+    val texture: String? = null,
+    /** How its tile shows among its section's tools, ICON to SQUARE */
+    @ColumnInfo(name = "display_mode") val displayMode: String = AutomationSettings.DEFAULT_MODE,
+    /** Its column and row in the grid of its group's section (SectionGrid) */
+    @ColumnInfo(name = "grid_x") val gridX: Int = 0,
+    @ColumnInfo(name = "grid_y") val gridY: Int = 0
 )

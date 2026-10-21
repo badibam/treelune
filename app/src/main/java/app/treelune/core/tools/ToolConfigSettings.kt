@@ -19,31 +19,26 @@ import app.treelune.core.validation.SchemaCategory
  */
 object ToolConfigSettings {
 
-    /** Display modes a tool can be shown in, in a zone. */
-    private val DISPLAY_MODES = listOf("ICON", "MINIMAL", "LINE", "CONDENSED", "EXTENDED", "SQUARE", "FULL")
+    /**
+     * A tool's look (Looks): its icon its type's when it has none of its own, its tile in its
+     * zone from ICON to FULL.
+     */
+    fun look(toolType: ToolTypeContract): app.treelune.core.look.LookSpec = app.treelune.core.look.LookSpec(
+        nameKey = "name",
+        nameLabel = "tools_config_label_name",
+        schemaPrefix = "tools_base_schema_config_",
+        modes = app.treelune.core.ui.DisplayMode.entries,
+        defaultMode = app.treelune.core.ui.DisplayMode.valueOf(toolType.getDefaultDisplayMode()),
+        defaultIcon = toolType.getDefaultIconName(),
+        suggestedIcons = toolType.getSuggestedIcons()
+    )
 
     /** The general settings every tool has, whatever its type. */
     private fun generalNodes(toolType: ToolTypeContract, context: Context): List<SettingNode> {
         val s = Strings.`for`(context = context)
         val text: (String) -> String = s::shared
         return listOf(
-            SettingNode.Section(text("tools_config_section_general_params"), listOf(
-                field("name", text("tools_config_label_name"), FieldType.TEXT, text("tools_base_schema_config_name"),
-                    required = true, config = mapOf("length" to TextLength.SHORT.name)),
-                field("description", text("tools_config_label_description"), FieldType.TEXT, text("tools_base_schema_config_description"),
-                    config = mapOf("length" to TextLength.MEDIUM.name)),
-                // Checked against the icon index by the service (ToolInstanceService)
-                field("icon_name", text("tools_config_label_icon"), FieldType.TEXT, text("tools_base_schema_config_icon_name"),
-                    default = toolType.getDefaultIconName(), config = mapOf("length" to TextLength.SHORT.name)),
-                // A tag's name, or none for a neutral icon; checked with its names by the service
-                field(app.treelune.core.themes.IconColor.KEY, text("label_icon_color"), FieldType.CHOICE, text("tools_base_schema_config_icon_color"),
-                    config = mapOf("options" to app.treelune.core.themes.IconColor.options(text))),
-                // A motif's name, or none; checked with its names, and ICON with the icon, by the service
-                field(app.treelune.core.themes.Texture.KEY, text("label_texture"), FieldType.CHOICE, text("tools_base_schema_config_texture"),
-                    config = mapOf("options" to app.treelune.core.themes.Texture.options(text))),
-                field("display_mode", text("tools_config_label_display_mode"), FieldType.CHOICE, text("tools_base_schema_config_display_mode"),
-                    default = toolType.getDefaultDisplayMode(),
-                    config = choice(DISPLAY_MODES, DISPLAY_MODES.associateWith { text("tools_config_display_${it.lowercase()}") })),
+            SettingNode.Section(text("tools_config_section_general_params"), app.treelune.core.look.Looks.nodes(look(toolType), text) + listOf(
                 field("group", text("label_group"), FieldType.TEXT, text("tools_base_schema_config_group"),
                     config = mapOf("length" to TextLength.SHORT.name)),
                 // Whether the AI asks before writing the tool's entries; a person alone changes it

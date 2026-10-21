@@ -211,8 +211,8 @@ private fun ImportDialog(preview: Map<*, *>, onDismiss: () -> Unit, onConfirm: (
 
 /**
  * One identity: its name, icon and the language it speaks; its three texts and its bagage in the
- * language shown, each read laid out and edited as written; its deletion, refused while a zone
- * or a routine names it. A place of its own (Place.Identity): [onName] names it in the
+ * language shown, each read laid out and edited as written; its export as an identity file
+ * into the app's folder, then shared; its deletion, refused while a zone or a routine names it. A place of its own (Place.Identity): [onName] names it in the
  * breadcrumb, [onGone] leaves it once the identity is deleted or not found.
  */
 @Composable
@@ -250,6 +250,8 @@ fun IdentityScreen(id: String, onName: @Composable (String) -> Unit, onBack: () 
     var editingResource by rememberSaveable { mutableStateOf<String?>(null) }
     // Its icon's colour chosen on a page of its own, as a zone's or a tool's (iconColorPage)
     var choosingColor by rememberSaveable(id) { mutableStateOf(false) }
+    // The identity file written, its name and its document, for the window that says so
+    var exported by remember { mutableStateOf<Pair<String, String>?>(null) }
     val colorPage = remember(iconName) { app.treelune.core.ui.components.iconColorPage(s.shared("label_icon_color"), iconName, texture = null) }
 
     fun update(params: Map<String, Any?>, after: () -> Unit = {}) = scope.launch {
@@ -350,6 +352,13 @@ fun IdentityScreen(id: String, onName: @Composable (String) -> Unit, onBack: () 
         }
 
         UI.FormActions {
+            UI.Button(type = ButtonType.DEFAULT, onClick = {
+                scope.launch {
+                    val result = coordinator.processUserAction("identities.export", mapOf("identity_id" to id))
+                    if (result.isSuccess) exported = result.data!!["file_name"] as String to result.data!!["uri"] as String
+                    else UI.Toast(result.error ?: s.shared("error_operation_failed"), Duration.LONG)
+                }
+            }) { UI.Text(s.shared("identity_export"), TextType.BODY) }
             UI.ActionButton(
                 action = ButtonAction.DELETE,
                 requireConfirmation = true,
@@ -361,6 +370,23 @@ fun IdentityScreen(id: String, onName: @Composable (String) -> Unit, onBack: () 
                     }
                 }
             )
+        }
+    }
+
+    exported?.let { (name, uri) -> ExportedDialog(name, uri, onDismiss = { exported = null }) }
+}
+
+/** The window of an identity file written, [name] at [uri], with Share. */
+@Composable
+private fun ExportedDialog(name: String, uri: String, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val s = remember { Strings.`for`(context = context) }
+    UI.Dialog(type = DialogType.INFO, onConfirm = onDismiss, onCancel = onDismiss) {
+        Column(verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
+            UI.Text(s.shared("identity_export_written").format(name), TextType.BODY)
+            UI.Button(type = ButtonType.PRIMARY, onClick = { app.treelune.core.ui.exports.shareFile(context, uri, "application/json") }) {
+                UI.Text(s.shared("file_share"), TextType.LABEL)
+            }
         }
     }
 }

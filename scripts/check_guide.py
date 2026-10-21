@@ -7,6 +7,7 @@ each chapter and step:
 
 - an operation waited for is `resource.operation`, the resource registered (ServiceRegistry)
   and the operation answered by its service (a `"operation" ->` branch in its file);
+- a message waited for says what it carries as MessageWait names it (GuideChapters.kt);
 - an origin is a Source;
 - a place's address begins with a kind Place.of reads, a name in braces kept by an earlier step;
 - every text the Guide reads by name exists in English and in French (guide.xml, guide-fr.xml):
@@ -38,6 +39,7 @@ CORE = ROOT / "app" / "src" / "main" / "java" / "app" / "treelune" / "core"
 REGISTRY = CORE / "coordinator" / "ServiceRegistry.kt"
 PLACE = CORE / "navigation" / "Place.kt"
 SOURCE = CORE / "coordinator" / "Source.kt"
+GUIDE_CHAPTERS = CORE / "guide" / "GuideChapters.kt"
 TEXTS = {"English": CORE / "strings" / "sources" / "guide.xml", "French": CORE / "strings" / "sources" / "guide-fr.xml"}
 SOURCES = ROOT / "app" / "src" / "main" / "java"
 DEMO = ROOT / "app" / "src" / "main" / "assets" / "demo" / "structure.json"
@@ -62,6 +64,11 @@ SHARED = {"English": CORE / "strings" / "sources" / "shared.xml", "French": CORE
 # SettingNode.ListOf("name", text("label")…), and ZoneSettings' field("name", "label"…)
 LABEL_CALL = re.compile(r'\b\w+\(\s*(?:"[^"]*"|[A-Za-z_][\w.]*)\s*,\s*(?:s\.shared|text)\("([a-z0-9_]+)"\)')
 LABEL_RAW = re.compile(r'\bfield\(\s*"[^"]+"\s*,\s*"([a-z0-9_]+)"')
+# A look's settings (core/look/Look.kt, Looks.nodes), spread into a declaration: its name, labelled by
+# the owner's spec (nameLabel = "…", in the same file), then the labels every look shares
+LOOK_NODES = re.compile(r"\bLooks\.nodes\(")
+LOOK_NAME = re.compile(r'\bnameLabel\s*=\s*"([a-z0-9_]+)"')
+LOOK_LABELS = ["label_description", "label_icon", "label_icon_color", "label_texture", "tools_config_label_display_mode"]
 
 
 def markup_problems(where, text, icons):
@@ -126,6 +133,8 @@ def main():
     chapters = json.loads(CHAPTERS.read_text(encoding="utf-8"))["chapters"]
     registered = services()
     kinds = set(re.findall(r'^\s+"([a-z_]+)" ->', PLACE.read_text(encoding="utf-8"), re.M))
+    enum = re.search(r"enum class MessageWait\(.*?\n\}", GUIDE_CHAPTERS.read_text(encoding="utf-8"), re.S).group(0)
+    message_waits = set(re.findall(r'^\s+[A-Z_]+\("([a-z_]+)"\)', enum, re.M))
     origins = set(re.findall(r"^\s+([A-Z]+),?$", SOURCE.read_text(encoding="utf-8"), re.M))
     texts = {lang: set(re.findall(r'<string name="([^"]+)"', path.read_text(encoding="utf-8"))) for lang, path in TEXTS.items()}
     demo = json.loads(DEMO.read_text(encoding="utf-8"))
@@ -153,6 +162,8 @@ def main():
                 problems.append(f"{cid}: the declaration of '{form}' is not found where FORMS says")
                 continue
             labels = LABEL_CALL.findall(body) + LABEL_RAW.findall(body)
+            if LOOK_NODES.search(body):
+                labels += LOOK_NAME.findall(FORMS[form][0].read_text(encoding="utf-8")) + LOOK_LABELS
             if not labels:
                 problems.append(f"{cid}: no setting read in the declaration of '{form}'")
             for lang in TEXTS:
@@ -185,8 +196,11 @@ def main():
                         problems.append(f"{where}: '{{{name}}}' kept by no earlier step")
             wait = step.get("await")
             if (step["kind"] == "do") != (wait is not None):
-                problems.append(f"{where}: a do step waits for an operation, and only it")
-            if wait:
+                problems.append(f"{where}: a do step waits for an operation or a message, and only it")
+            if wait and "message" in wait:
+                if wait["message"] not in message_waits:
+                    problems.append(f"{where}: no message wait '{wait['message']}'")
+            elif wait:
                 resource, _, operation = wait["operation"].partition(".")
                 service = registered.get(resource)
                 if resource not in registered:

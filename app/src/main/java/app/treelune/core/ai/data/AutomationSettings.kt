@@ -15,8 +15,8 @@ import app.treelune.core.validation.SchemaCategory
 import org.json.JSONObject
 
 /**
- * An automation's settings, declared with the fields (docs/DATA.md): its name,
- * the provider it runs with, its group, whether it is on, which of its runs wait for the user,
+ * An automation's settings, declared with the fields (docs/DATA.md): its look (its name, a
+ * description, an icon, a colour, a texture, a display mode; Looks), the provider it runs with, its group, whether it is on, which of its runs wait for the user,
  * its schedule, and what it does about the runs it missed. Not its zone (its place), its seed session (its message) nor its history.
  *
  * AutomationService checks every write against the schema generated from here, on the settings
@@ -38,6 +38,28 @@ object AutomationSettings {
     const val NOTIFY_NEVER = "never"
 
     const val SCHEMA_ID = "automation_settings"
+
+    const val DEFAULT_ICON = "bot"
+    const val DEFAULT_MODE = "EXTENDED"
+
+    /** Where the icon picker starts for a routine. */
+    val SUGGESTED_ICONS = listOf("bot", "sparkles", "repeat", "alarm-clock", "calendar-clock", "sunrise", "moon", "newspaper", "clipboard-check", "brain")
+
+    /**
+     * A routine's look (Looks): an icon always, `bot` until one is chosen; its tile among its
+     * section's tools from ICON to SQUARE, its state, its switch and its buttons from LINE on,
+     * its last runs in SQUARE (AutomationTile).
+     */
+    val LOOK = app.treelune.core.look.LookSpec(
+        nameKey = "name",
+        nameLabel = "label_name",
+        schemaPrefix = "automation_schema_",
+        modes = listOf(app.treelune.core.ui.DisplayMode.ICON, app.treelune.core.ui.DisplayMode.MINIMAL, app.treelune.core.ui.DisplayMode.LINE,
+            app.treelune.core.ui.DisplayMode.CONDENSED, app.treelune.core.ui.DisplayMode.EXTENDED, app.treelune.core.ui.DisplayMode.SQUARE),
+        defaultMode = app.treelune.core.ui.DisplayMode.valueOf(DEFAULT_MODE),
+        defaultIcon = DEFAULT_ICON,
+        suggestedIcons = SUGGESTED_ICONS
+    )
 
     /** The provider its runs call (AIProviderConfigEntity.id). */
     const val PROVIDER_ID = "provider_id"
@@ -76,9 +98,7 @@ object AutomationSettings {
 
     fun nodes(context: Context): List<SettingNode> {
         val s = Strings.`for`(context = context)
-        return listOf(
-            SettingNode.Field(FieldDefinition("name", s.shared("label_name"), null, FieldType.TEXT, false,
-                mapOf("length" to TextLength.SHORT.name)), required = true),
+        return app.treelune.core.look.Looks.nodes(LOOK, s::shared) + listOf(
             // One of the providers the user created, absent for none: the routine is then neither
             // on nor run; checked to exist by the service, as the identity
             SettingNode.Field(FieldDefinition(PROVIDER_ID, s.shared("label_ai_provider"), null, FieldType.TEXT, false,
@@ -117,6 +137,11 @@ object AutomationSettings {
     /** The settings [entity] stores, as their declaration describes them: the form create and update take. */
     fun of(entity: AutomationEntity): JSONObject = JSONObject().apply {
         put("name", entity.name)
+        entity.description?.let { put(app.treelune.core.look.Looks.DESCRIPTION, it) }
+        put(app.treelune.core.look.Looks.ICON, entity.iconName)
+        entity.iconColor?.let { put(app.treelune.core.themes.IconColor.KEY, it) }
+        entity.texture?.let { put(app.treelune.core.themes.Texture.KEY, it) }
+        put(app.treelune.core.look.Looks.DISPLAY_MODE, entity.displayMode)
         entity.providerId?.let { put(PROVIDER_ID, it) }
         entity.identityId?.let { put(IDENTITY_ID, it) }
         entity.group?.let { put("group", it) }

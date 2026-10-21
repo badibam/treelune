@@ -13,16 +13,15 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs
 
-- Une exécution de routine lancée à la main s'affiche « Prévue : » à l'heure du clic dans l'historique (`ExecutionCard`) : la session ne garde pas son déclencheur (`ExecutionTrigger.MANUAL` n'est pas stocké), l'heure du clic tenant lieu d'heure prévue pour le planificateur — une colonne à ajouter, par migration.
-- La fin d'un événement de l'Agenda est son début plus sa durée en temps écoulé : un événement de plusieurs jours qui traverse un changement d'heure finit une heure avant ou après — l'ajouter sur le calendrier (`TimeResolver.after`, comme l'Objectif), la grille des jours et les séries lisant cette fin.
-- Une session de routine restée en `AWAITING_SESSION_CLOSURE` à la fermeture de l'app est close au démarrage (`AIStateRepository.initializeFromDb`) sans passer par `RunEnd` : son résumé n'est pas gardé, et elle attend quel que soit son réglage « Me signaler la fin ».
-- Le dialogue « la démo n'est pas installée » du Guide : le fermer sans choisir (retour, toucher à côté) saute les étapes de la démo, comme son bouton.
 
 ## À passer sur le téléphone
 
 Codé, jamais vu sur l'appareil.
 
 - La recette, `docs/design/device-checks.md` : ce que seul le téléphone juge, une ligne vue en sort.
+- Le Guide : les étapes 4 et 5 de Brancher une IA, cochées par un message envoyé puis par un pointeur vers un outil (pas vers une zone) ; « Marquer comme lu » d'un chapitre d'Approfondissement ; dans les nouveaux chapitres, la couleur d'un Graphique qui suit une Condition, la date dans le nom d'un champ gardé (« Humeur (avant le 21 octobre) »), un choix multiple repassé en simple qui retire les listes de plusieurs réponses.
+- Le partage des identités : « Exporter » sur l'écran d'une identité, puis Partager ; une zone exportée avec son identité, réimportée sur un téléphone qui l'a retouchée (garder, remplacer), puis l'import annulé.
+- Les usages de `TextType.SUBTITLE` (56 fichiers), maintenant sous `TITLE` et sur `HEADING` dans chaque thème, le rétro compris : un SUBTITLE placé sous un HEADING passe en STRONG, comme les intertitres du Guide.
 - Les passes des thèmes sur le téléphone : la tournée de `docs/THEMES.md` (« The pass on the phone ») pour chaque thème, puis ce que sa spec garde à juger sur l'appareil dans « What stays open » (`docs/themes/<id>.md`), le niveau des sons dans `docs/themes/sounds.md`.
 
 ## Décidé, à coder
@@ -31,7 +30,6 @@ Codé, jamais vu sur l'appareil.
 
 ## À concevoir
 
-- Le Guide : les sujets d'Approfondissement suivants (formules et variables, conditions et filtres, champs et leur migration…), ce qui marque « fait » un chapitre sans étape à faire (ouvert, ou lu jusqu'au bout), et l'étape « demandez-lui son avis » de Brancher une IA, qui se lit au lieu d'attendre l'envoi : un message à l'IA ne passe pas par le dispatcher (`AIOrchestrator.sendMessage` le range lui-même).
 - Un contrôle « qui dépend de ça ? » avant de supprimer une chose (une condition, une variable, un pointeur qui la visent), écrit une fois, appelé par le service qui supprime et par l'annulation qui supprime une ligne.
 - Les events du cœur : quel premier usage — un événement de l'Agenda qui commence, une entrée écrite, une condition devenue vraie (l'Alerte) ? L'automation directe attend la même brique : sans IA, elle exécute elle-même ses commandes ; son premier usage, le relevé, garde une valeur telle qu'elle était (une variable `imc` écrite chaque semaine dans un Suivi), là où une variable se relit à tout jour passé avec les données d'aujourd'hui.
 - Des outils montrés sur la tuile d'une zone de l'accueil (le poids du jour sur « Santé ») : leur résumé ou un raccourci selon la place de la tuile — lesquels, dans quel ordre, un outil montré à deux endroits.
@@ -40,16 +38,6 @@ Codé, jamais vu sur l'appareil.
 
 ## Dette de code
 
-- Les mots de passe de `~/.config/treelune/signing.env` en clair : au trousseau (`secret-tool`).
-- `CommandExecutor` lit la base directement, hors du coordinateur.
-- `AutomationScheduler.getNextExecutionForAutomation()` appelé depuis l'écran, sans le service.
-- Des conversions JSON refaites sur place au lieu de `JsonUtils` (`toValueMap`, `jsonToValue`, `toFieldConfigValue`…).
-- `shared.xml` (~1 900 lignes) à découper.
-- Les garanties sorties de la recette, `docs/design/device-check-tests.md` : chacune un test, ou sortie si un test la tient déjà.
-- `RetroPaletteTest` et `CosyPaletteTest` à parcourir par pas de 15° de teinte, comme `SwissPaletteTest`.
-- `TextType.SUBTITLE` sans rang dans le contrat des thèmes : lui en donner un, aligner les thèmes et ses 71 usages.
-- `scripts/check_chat_space.py` ne voit que l'écran d'usage d'un outil, pas ceux qu'il ouvre dans son lieu (la saisie du Journal, une séance Flashcards, corrigées à la main le 2026-10-20) : les lui faire lire.
-- Le journal ne garde que ~24 min d'usage (12 000 lignes le 2026-10-01, dont 3 782 « Service result » en VERBOSE) : les lignes utiles à la recette en sortent avant d'être lues ; réduire VERBOSE et DEBUG, « Service result » d'abord.
 - Des écrans encore ouverts à l'intérieur d'un lieu, hors de la pile (`Place`, `docs/UI.md`) : la config d'un fournisseur d'IA, les pages d'un formulaire de config, les écrans internes d'un outil (fiche, historique), l'historique des conversations — à passer en lieux, au plus tard quand un tutoriel, une notification ou un pointeur doit les viser.
 
 ## Sagesse
@@ -65,6 +53,7 @@ Ce qui doit monter dans un module de sagesse (`/update push`).
 
 ## À surveiller
 
+- Gemini essayé par le type « Autre serveur » (son point d'accès compatible OpenAI) : un type de fournisseur à lui seulement pour ce qui y manque, noté.
 - Des durées à relever sur le téléphone : l'installation de la démo (~50 s le 2026-10-20, chaque outil planifié faisant tourner son planificateur, `CoreScheduler.runTool`) ; le calcul d'un paquet de Flashcards sur le lexique réel (« Flashcards: deck … read in N ms », de 26 à 152 ms sur la démo, à dire au-delà de 300 ms) ; un gros import (64 659 lignes, 3 min 19 s avant l'historique des écritures), la place prise par l'historique ensuite, et son annulation.
 - Une zone lente à s'afficher, à l'ouverture comme au retour, qui relit tout (~1 s en debug le 2026-10-01, le graphique Calories de Panorama de 0,75 à 1,2 s).
 - Le bouton de liste d'un texte long touché pendant une dictée : Gboard réécrit son texte encore souligné une seconde fois au curseur (mesuré le 2026-10-20), le bouton rendant le champ sans la place de ce texte (`composition` nulle) ; la garder, décalée par `MarkupEditing.apply` comme le curseur.

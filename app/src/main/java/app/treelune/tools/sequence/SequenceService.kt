@@ -24,14 +24,17 @@ import org.json.JSONObject
  * - correct: `id`, `timestamp`, `duration`, and `step_statuses` for a session that keeps its steps
  *   (SequenceSteps), `steps_done`, `steps_skipped`, `steps_not_done` for one that does not — a
  *   session over corrected, each value kept when not given; its counts add up to its steps, its
- *   state follows them
+ *   state follows them; from the screen, `extra` also, its user fields
  * - ignore: `id` — a planned session left undone, which stays in the history
  * - ignore_all: every planned session of the tool
  *
  * For the screen and the notification only, refused to the AI and to an outside client: they
  * have a meaning only for whoever does the session.
  * - start: the session begins, on the planned entry waiting if there is one, a new one if not
- * - done, skip, back, restart, pause, resume, extend, stop: `id` — the gestures (SequenceGestures)
+ * - done, skip, back, restart, pause, resume, extend, stop: `id` — the gestures (SequenceGestures);
+ *   the last step passed or the session stopped, it is written whole and waits « to finish »
+ * - finish: `id`, `extra` — « Finish the session »: its user fields written, its state done or
+ *   stopped as its steps say
  * - resume_interrupted: `id` — a session the app stopped mid-way goes on
  * - advance: `id` — the timers run out by now passed, which the running session asks itself
  *
@@ -45,7 +48,7 @@ class SequenceService(private val context: Context) : ExecutableService {
 
     override suspend fun execute(operation: String, params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
-        if (operation in GESTURES || operation == START) {
+        if (operation in GESTURES || operation == START || operation == FINISH) {
             val origin = currentOrigin()
             if (origin != Source.USER && origin != Source.SYSTEM) return OperationResult.error(s.tool("error_gesture_origin"))
         }
@@ -53,6 +56,7 @@ class SequenceService(private val context: Context) : ExecutableService {
             START -> start(params.optString("tool_instance_id"))
             COMPLETE -> complete(params)
             CORRECT -> correct(params)
+            FINISH -> finish(params)
             IGNORE -> ignore(params.optString("id"))
             IGNORE_ALL -> ignoreAll(params.optString("tool_instance_id"))
             in GESTURES -> gesture(operation, params.optString("id"))
@@ -62,8 +66,12 @@ class SequenceService(private val context: Context) : ExecutableService {
 
     private suspend fun start(toolInstanceId: String): OperationResult {
         if (toolInstanceId.isEmpty()) return OperationResult.error(s.shared("service_error_missing_tool_instance_id"))
-        runningElsewhere()?.let { (tool, name) ->
-            return OperationResult.error(if (tool == toolInstanceId) s.tool("error_already_running") else s.tool("error_running_elsewhere").format(name))
+        unfinished()?.let { (tool, name, status) ->
+            val here = tool == toolInstanceId
+            return OperationResult.error(when (status) {
+                SequenceToolType.Status.TO_FINISH -> if (here) s.tool("error_to_finish") else s.tool("error_to_finish_elsewhere").format(name)
+                else -> if (here) s.tool("error_already_running") else s.tool("error_running_elsewhere").format(name)
+            })
         }
         val config = configOf(toolInstanceId)
         val steps = SequencePlan.unroll(config)
@@ -119,12 +127,14 @@ class SequenceService(private val context: Context) : ExecutableService {
         return written
     }
 
-    /** The run written back; a session over keeps what is left of it, and loses its run. */
+    /**
+     * The run written back; a session over keeps what is left of it, loses its run, and waits for
+     * « Finish the session » (finish), which sets it done or stopped.
+     */
     private suspend fun write(id: String, step: Step): OperationResult {
         val params = when (step) {
             is Step.Running -> mapOf("id" to id, "state" to mapOf(SequenceToolType.RUN to step.run.toJson().toString()))
             is Step.Finished -> {
-                val status = if (step.completed) SequenceToolType.Status.DONE else SequenceToolType.Status.STOPPED
                 mapOf(
                     "id" to id,
                     "data" to mapOf(
@@ -137,7 +147,7 @@ class SequenceService(private val context: Context) : ExecutableService {
                         SequenceToolType.KEPT_STEPS to SequenceSteps.toJson(SequenceSteps.of(step))
                     ),
                     "state" to mapOf(
-                        SequenceToolType.STATUS to status,
+                        SequenceToolType.STATUS to SequenceToolType.Status.TO_FINISH,
                         SequenceToolType.ENDED_AT to step.endedAt,
                         SequenceToolType.RUN to JSONObject.NULL
                     )
@@ -146,7 +156,29 @@ class SequenceService(private val context: Context) : ExecutableService {
         }
         val result = coordinator.processUserAction("tool_data.update", params)
         if (!result.isSuccess) return OperationResult.error(result.error ?: "")
-        val status = if (step is Step.Finished) (if (step.completed) SequenceToolType.Status.DONE else SequenceToolType.Status.STOPPED) else SequenceToolType.Status.RUNNING
+        val status = if (step is Step.Finished) SequenceToolType.Status.TO_FINISH else SequenceToolType.Status.RUNNING
+        return OperationResult.success(mapOf("id" to id, "status" to status))
+    }
+
+    /**
+     * « Finish the session »: a session over that waits for it is set done or stopped as its
+     * steps say, its user fields ([params] `extra`) written with it, and the notification that
+     * called for it goes.
+     */
+    private suspend fun finish(params: JSONObject): OperationResult {
+        val id = params.optString("id")
+        if (id.isEmpty()) return OperationResult.error(s.shared("service_error_missing_id"))
+        val entry = entryOf(id) ?: return OperationResult.error(s.shared("service_error_entry_not_found").format(id))
+        if (statusOf(entry) != SequenceToolType.Status.TO_FINISH) return OperationResult.error(s.tool("error_not_to_finish"))
+        val data = JSONObject(entry.data)
+        fun count(key: String) = if (data.has(key)) data.getInt(key) else throw IllegalStateException("session $id without $key")
+        val status = StepCounts(count(SequenceToolType.STEPS_DONE), count(SequenceToolType.STEPS_SKIPPED), count(SequenceToolType.STEPS_NOT_DONE)).status
+        val result = coordinator.processUserAction("tool_data.update", buildMap {
+            put("id", id); put("state", mapOf(SequenceToolType.STATUS to status))
+            params.optJSONObject("extra")?.let { put("extra", JsonUtils.toValue(it)) }
+        })
+        if (!result.isSuccess) return OperationResult.error(result.error ?: "")
+        SequenceRunService.clearEnded(context)
         return OperationResult.success(mapOf("id" to id, "status" to status))
     }
 
@@ -214,6 +246,7 @@ class SequenceService(private val context: Context) : ExecutableService {
             val result = coordinator.processUserAction("tool_data.update", buildMap {
                 put("id", id); put("data", data); put("state", mapOf(SequenceToolType.STATUS to counts.status))
                 (params.opt("timestamp") as? Number)?.let { put("timestamp", it.toLong()) }
+                params.optJSONObject("extra")?.let { put("extra", JsonUtils.toValue(it)) }
             })
             return if (result.isSuccess) OperationResult.success(mapOf("id" to id, "status" to counts.status)) else OperationResult.error(result.error ?: "")
         }
@@ -235,6 +268,7 @@ class SequenceService(private val context: Context) : ExecutableService {
         val result = coordinator.processUserAction("tool_data.update", buildMap {
             put("id", id); put("data", data); put("state", mapOf(SequenceToolType.STATUS to counts.status))
             (params.opt("timestamp") as? Number)?.let { put("timestamp", it.toLong()) }
+            params.optJSONObject("extra")?.let { put("extra", JsonUtils.toValue(it)) }
         })
         return if (result.isSuccess) OperationResult.success(mapOf("id" to id, "status" to counts.status)) else OperationResult.error(result.error ?: "")
     }
@@ -257,15 +291,20 @@ class SequenceService(private val context: Context) : ExecutableService {
         return OperationResult.success(mapOf("ignored" to planned.size))
     }
 
-    /** The session running in the app, its tool and the tool's name; null when none runs. */
-    private suspend fun runningElsewhere(): Pair<String, String>? {
+    /**
+     * The session running in the app, or over and not finished yet: its tool, the tool's name and
+     * its state; null when there is none.
+     */
+    private suspend fun unfinished(): Triple<String, String, String>? {
         val tools = coordinator.processUserAction("tools.list_all", emptyMap())
         if (!tools.isSuccess) throw IllegalStateException(tools.error ?: "tools.list_all")
         val sessions = (tools.data?.get("tool_instances") as? List<*> ?: emptyList<Any>()).filterIsInstance<Map<*, *>>()
             .filter { it["tooltype"] == "sequence" }
         for (tool in sessions) {
             val id = tool["id"] as String
-            if (entriesOf(id, SequenceToolType.Status.RUNNING).isNotEmpty()) return id to (tool["name"] as? String ?: "")
+            for (status in listOf(SequenceToolType.Status.RUNNING, SequenceToolType.Status.TO_FINISH)) {
+                if (entriesOf(id, status).isNotEmpty()) return Triple(id, tool["name"] as? String ?: "", status)
+            }
         }
         return null
     }
@@ -299,6 +338,7 @@ class SequenceService(private val context: Context) : ExecutableService {
         const val START = "start"
         const val COMPLETE = "complete"
         const val CORRECT = "correct"
+        const val FINISH = "finish"
         const val IGNORE = "ignore"
         const val IGNORE_ALL = "ignore_all"
         const val DONE = "done"

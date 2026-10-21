@@ -21,8 +21,9 @@ import kotlin.math.roundToInt
  * Three folders, by who owns the file:
  * - `files/attachments/`: a message's images, deleted with their session by the service that
  *   deletes it; a file there without its row is a hard stop or a forgotten deletion (WARN);
- * - `files/attachments/entries/`: an entry's images; an entry goes by many paths (itself, its
- *   tool, its zone), its row by cascade, its file at the next startup sweep (INFO);
+ * - `files/attachments/entries/`: an entry's images, and a tool's (those its config holds); an
+ *   entry or a tool goes by many paths (itself, its tool, its zone), its rows by cascade, its
+ *   files at the next startup sweep (INFO);
  * - `files/attachments/pending/`: an image prepared in a form, owned by no row until the entry
  *   is written, which moves it into `entries/`; one the form never wrote is swept (INFO).
  */
@@ -48,7 +49,7 @@ object Images {
 
     /** The file of [image], in its owner's folder. */
     fun file(context: Context, image: ImageEntity): File =
-        File(if (image.entryId != null) entriesDir(context) else dir(context), image.imageFormat.fileName(image.id))
+        File(if (image.sessionId == null) entriesDir(context) else dir(context), image.imageFormat.fileName(image.id))
 
     /** The file of a message's image [id], written as [format]. */
     fun sessionFile(context: Context, id: String, format: ImageFormat): File = File(dir(context), format.fileName(id))
@@ -285,10 +286,15 @@ object Images {
         val noted = app.treelune.core.history.Step(app.treelune.core.coordinator.Source.SYSTEM, isStep = false, sessionId = null)
         val history = AppDatabase.getDatabase(context).historyDao()
         val kept = history.keptImages().toSet()
-        dao.unnamedByTheirEntry().filterNot { history.entriesName(it.id) }.forEach { image ->
+        dao.unnamedByTheirEntry().filterNot { history.ownersName(it.id) }.forEach { image ->
             kotlinx.coroutines.withContext(noted) { writes.deleteImage(image.id) }
             delete(context, image)
             LogManager.service("Startup sweep: image ${image.id} no longer named by its entry ${image.entryId}, removed", "INFO")
+        }
+        dao.unnamedByTheirTool().filterNot { history.ownersName(it.id) }.forEach { image ->
+            kotlinx.coroutines.withContext(noted) { writes.deleteImage(image.id) }
+            delete(context, image)
+            LogManager.service("Startup sweep: image ${image.id} no longer named by its tool ${image.toolInstanceId}, removed", "INFO")
         }
 
         val images = dao.getAll()
@@ -308,10 +314,10 @@ object Images {
             }
         }
         entriesDir(context).list()?.toList()?.let { found ->
-            val sweep = sweep(found, names(images.filter { it.entryId != null }))
+            val sweep = sweep(found, names(images.filter { it.sessionId == null }))
             (sweep.parts + sweep.orphans.filterNot(::keptByHistory)).forEach { name ->
                 File(entriesDir(context), name).delete()
-                LogManager.service("Startup sweep: entry image file $name, its entry or its write gone, removed", "INFO")
+                LogManager.service("Startup sweep: entry or tool image file $name, its owner or its write gone, removed", "INFO")
             }
         }
         pendingDir(context).list()?.toList()?.takeIf { it.isNotEmpty() }?.let { found ->

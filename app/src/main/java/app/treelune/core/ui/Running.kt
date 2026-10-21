@@ -2,6 +2,7 @@ package app.treelune.core.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -14,24 +15,44 @@ import app.treelune.core.utils.DataChangeEvent
 import app.treelune.core.utils.DataChangeNotifier
 import app.treelune.core.utils.LogManager
 
-/** The stopwatches running on the screen shown, which the tiles mark; none where no screen provides them. */
+/** What runs on the screen shown, which the tiles mark; nothing where no screen provides it. */
 val LocalRunning = androidx.compose.runtime.staticCompositionLocalOf { Running() }
 
-/** The tools with a stopwatch running on one of their entries, and the zones holding one (tools.running). */
-data class Running(val tools: Set<String> = emptySet(), val zones: Set<String> = emptySet()) {
+/**
+ * The tools with a stopwatch running on one of their entries (tools.running), the routine whose
+ * run the AI is doing now, and the zones holding one or the other.
+ */
+data class Running(val tools: Set<String> = emptySet(), val zones: Set<String> = emptySet(), val automations: Set<String> = emptySet()) {
     fun tool(id: String): Boolean = id in tools
     fun zone(id: String): Boolean = id in zones
+    fun automation(id: String): Boolean = id in automations
 }
 
 /**
- * The stopwatches running in every tool, read again whenever tools or their entries change;
- * none while they are read, and none when the read fails, which is logged.
+ * The stopwatches running in every tool, read again whenever tools or their entries change, and
+ * the routine whose run is the AI's session now, read again when that session changes; none while
+ * they are read, and none when a read fails, which is logged.
  */
 @Composable
 fun rememberRunning(): Running {
     val context = LocalContext.current
     var running by remember { mutableStateOf(Running()) }
     var version by remember { mutableIntStateOf(0) }
+    // The routine running and its zone: the AI's session, when it is a routine's run
+    val ai by app.treelune.core.ai.orchestration.AIOrchestrator.currentState.collectAsState()
+    var routine by remember { mutableStateOf<Pair<String, String>?>(null) }
+    LaunchedEffect(ai.sessionId, ai.sessionType) {
+        val sessionId = ai.sessionId
+        routine = if (sessionId == null || ai.sessionType != app.treelune.core.ai.data.SessionType.AUTOMATION) null else {
+            val coordinator = Coordinator(context)
+            val automationId = coordinator.processUserAction("ai_sessions.get", mapOf("id" to sessionId)).data?.get("automation_id") as? String
+            val automation = automationId?.let { coordinator.processUserAction("automations.get", mapOf("automation_id" to it)).data?.get("automation") as? Map<*, *> }
+            if (automationId == null || automation == null) {
+                LogManager.ui("rememberRunning: the routine of run $sessionId not read", "ERROR")
+                null
+            } else automationId to (automation["zone_id"] as String)
+        }
+    }
     LaunchedEffect(Unit) {
         DataChangeNotifier.changes.collect { event ->
             if (event is DataChangeEvent.ToolDataChanged || event is DataChangeEvent.ToolsChanged) version++
@@ -46,5 +67,6 @@ fun rememberRunning(): Running {
         fun ids(key: String) = (result.data?.get(key) as? List<*>).orEmpty().map { it.toString() }.toSet()
         running = Running(ids("tools"), ids("zones"))
     }
-    return running
+    val now = routine ?: return running
+    return running.copy(zones = running.zones + now.second, automations = setOf(now.first))
 }

@@ -193,7 +193,9 @@ enum class Emphasis {
 /**
  * Text types with hierarchy. STRONG is body text that must stand out among its neighbors (an
  * unread message among read ones): bold where the theme's font has a bold, its own way otherwise.
- * HEADING names a tile or a section of tiles: a step above the body, short of a screen's title.
+ * The titles rank TITLE (a screen's), SUBTITLE (a section of a screen, a card's), then HEADING,
+ * which names a tile or a section of tiles: a step above the body. A theme may draw two of them
+ * at one size, never one below the next.
  */
 enum class TextType {
     TITLE, SUBTITLE, HEADING, BODY, STRONG, CAPTION, LABEL, ERROR, WARNING

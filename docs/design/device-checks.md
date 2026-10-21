@@ -13,6 +13,7 @@ Ce que seul le téléphone juge : l'œil, l'oreille, le doigt, et ce qu'un vrai 
 ## Démo
 
 - Sur l'OPPO A5 2020 (Android 10, ColorOS 7.1), dont la SQLite n'a pas `json_extract` : l'app désinstallée puis installée à neuf, la démo s'installe au premier démarrage sans toast d'erreur ; l'Objectif de la zone Italien montre ses tentatives validées, un Graphique de la démo se dessine, un chrono lancé s'affiche en cours sur sa tuile.
+- Pendant l'import d'un gros fichier dans une table (Données structurées) : la bande compte les lignes écrites, par 500.
 
 ## Chat IA
 
@@ -45,12 +46,25 @@ Avec le relais en place (son projet `relay`, en ligne sur `https://relay.badibam
 - Notifications : toucher celle d'une tentative à valider, d'une invitation à remplir ou d'un message ouvre l'app sur la zone puis l'outil, à sa plus ancienne entrée qui attend ; un outil supprimé depuis ouvre l'app telle quelle.
 - Icône des notifications : dans la barre d'état et le volet, celle de l'outil qui envoie (un message, un élément de liste à échéance, une tentative à valider, un questionnaire à remplir), en silhouette nette, avec le thème par défaut comme avec le rétro.
 
+## Outils
+
+- Messages, récurrence illisible (écrire en base un `schedule` portant `"enabled": true`) : un avertissement sur l'écran de l'outil, une erreur dans sa config.
+- « Importer un fichier » sur une table d'aliments : l'écran relit la table une fois l'import fini.
+- Un objectif récurrent quotidien, sa période finie : l'onglet « En cours (1) », la tentative à valider au-dessus de celle du jour.
+- Un questionnaire planifié, la première réponse donnée puis l'écran quitté : « Remplir » reprend à la deuxième question.
+
 ## Séance
 
 - « Commencer » : l'accord au début, les 3 bips du décompte, la quinte au changement d'étape ; la voix, activée, dit l'étape et sa consigne, la musique baissée un instant.
 - Étapes de 30 s au temps, écran éteint, téléphone posé à plat 15 min : chaque bip et chaque changement à l'heure. Noter ce que la séance a pris de batterie.
 - « Fait » et « Pause » de la notification marchent écran verrouillé ; la toucher ouvre l'outil.
 - Téléphone en silencieux ou en vibreur : aucun son ni voix, la vibration reste.
+- Les variables parmi les outils : une zone de la démo réinstallée, ses variables en tuiles à leur place (Cuisine : Objectif calorique et Calories du jour côte à côte en Compact) ; une variable mise à jour d'avant garde sa valeur, son nom comme libellé, en Ligne sous les outils de sa section ; Disposer la déplace parmi les outils ; son icône, sa couleur, sa texture et son mode changés sur sa page ; une variable passée dans un autre groupe change de grille.
+- L'accueil dans chaque thème, ses zones dans chacun des quatre modes (une sans icône en ICON) : à l'identique d'avant, la tuile d'une zone passant par la tuile commune (`UI.LookCard`).
+- Une routine lancée : la marque « en cours » sur son icône et sur la tuile de sa zone à l'accueil, partie à la fin de l'exécution.
+- Les routines parmi les outils : une mise à jour d'avant les montre en Étendu sous les outils et variables de leur section, « Routine » sous leur nom ; leurs quatre boutons, l'interrupteur et l'état marchent sur la tuile ; en Carré, leurs trois dernières exécutions avec leur résumé, chacune s'ouvre ; en Ligne et Compact, un toucher ouvre leur page, qui a l'état, l'interrupteur et les boutons (Réglages à la place d'Historique) ; un appui long ouvre leurs réglages, leur apparence comprise ; en file d'attente, Annuler à la place de Lancer.
+- Des images sur une étape (la config de la Séance, une photo prise et une de la galerie) : pendant la séance, la première en grand sous la consigne, les autres petites dessous, chacune ouverte en grand au toucher ; la première petite au bout de sa ligne dans le déroulé ; l'outil dupliqué garde ses images, une image retirée de l'étape disparaît.
+- Une séance finie écran éteint (dernière étape au temps) : la notification devient « Séance finie : touche pour la terminer », le point sur l'outil et la zone ; la toucher ouvre la page de fin, tes champs dessous ; « Terminer la séance » retire la notification et le point, la séance « Faite » dans l'historique ; « Commencer » refusé tant qu'elle attend. Pareil après « Arrêter », la séance « Arrêtée ».
 
 ## Agenda
 
@@ -60,7 +74,11 @@ Avec le relais en place (son projet `relay`, en ligne sur `https://relay.badibam
 
 - Le fichier partagé joint à un mail arrive entier.
 - Un fichier de partage reçu d'un autre téléphone (par le menu de partage, enregistré dans Téléchargements) s'importe de même, ses images d'entrées comprises.
+- Un export d'entrées : son fichier paraît dans le dossier choisi dans Réglages › Données.
+- Importer… sur un fichier de partage : tout coché, entrées comprises, sans le choix « Tout restaurer » ; dans « Une zone existante », celle du même nom en tête de liste ; un outil Messages ou Agenda dit qu'il peut envoyer des notifications.
 
 ## Les incarnations
 
 - Config d'une zone : Identité, Stan Prokopenko ; la zone montre sa tuile sous l'en-tête, son bouton ouvre une conversation neuve, le bouton d'identité de la barre du haut à son icône. Envoyer « Comment tu dessines une main ? » : la réponse dans sa voix, en français ; le bouton d'identité ne change plus (un toucher ouvre son nom en lecture seule, la raison dessous, fermé par OK ; son nom touché ouvre sa page, le fil d'Ariane « Accueil › le titre du chat », le retour ou ce titre ramenant au chat). Dans le journal, la ligne « Prompt data built » donne la taille du L1 ; dans les statistiques de la session, les tokens du premier tour puis du second, mis en cache ou non : c'est la mesure qu'attend personae, qui produit les identités.
+- Une autre icône et une couleur choisies pour une incarnation, enregistrées : sa tuile les montre.
+- Une conversation dont l'incarnation est supprimée : son composeur remplacé par la raison.

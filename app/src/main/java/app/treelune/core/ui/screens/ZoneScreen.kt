@@ -64,14 +64,15 @@ fun ZoneScreen(zone: Zone) {
     // A tool opened on top of the zone, on the oldest entry that waits when its tile was touched with one
     val openTool = { toolId: String, entry: app.treelune.core.tools.EntryToOpen? -> Navigator.push(Place.Tool(toolId, zone.id), entry) }
     val configureTool = { tool: ToolInstance -> Navigator.push(Place.ToolConfig(zone.id, tool.tooltype, tool.id, null)) }
-    // The seed session of an automation, its history, a chat started with its starting message
-    val onNavigateToSeedEditor = { seedSessionId: String -> Navigator.push(Place.Seed(seedSessionId, zone.id)) }
-    val onNavigateToAutomationHistory = { automationId: String -> Navigator.push(Place.Automation(automationId, zone.id)) }
-    val onAutomationStartChat = { seedSessionId: String ->
+    // What a routine's tile does (AutomationActions); a long touch opens its settings, read first
+    val automationActions = app.treelune.core.ai.ui.automation.rememberAutomationActions { errorMessage = it }
+    var automationSettings by remember { mutableStateOf<Map<String, Any>?>(null) }
+    val openAutomationSettings = { automation: app.treelune.core.ai.data.Automation ->
         coroutineScope.launch {
-            val seed = app.treelune.core.ai.orchestration.AIOrchestrator.loadSeedMessages(seedSessionId)
-            val prefill = seed.firstOrNull { it.sender == app.treelune.core.ai.data.MessageSender.USER }?.richContent?.segments ?: emptyList()
-            app.treelune.core.ai.orchestration.ChatRequests.open(prefill)
+            val result = coordinator.processUserAction("automations.get", mapOf("automation_id" to automation.id))
+            @Suppress("UNCHECKED_CAST")
+            if (result.status == CommandStatus.SUCCESS) automationSettings = result.data?.get("automation") as? Map<String, Any>
+            else errorMessage = result.error
         }
         Unit
     }
@@ -212,9 +213,15 @@ fun ZoneScreen(zone: Zone) {
 
     // The edit mode of the sections' grids, a section named by its group, "" for the ungrouped one
     val gridEditor = app.treelune.core.ui.components.rememberGridEditor(
-        placeOperation = "tools.place",
+        placeOperation = "zones.place_section",
         placeParams = mapOf("zone_id" to zone.id),
-        sectionTiles = { key -> ToolPositions.tiles(toolInstances, zoneToolGroups, key.ifEmpty { null }) },
+        // The section's tools and variables, laid on the same grid
+        sectionTiles = { key ->
+            val section = key.ifEmpty { null }
+            toolInstances.filter { ToolPositions.section(it, zoneToolGroups) == section }.map { app.treelune.core.grid.SectionItem.of(it).tile } +
+                variables.filter { ToolPositions.section(it.group, zoneToolGroups) == section }.map { it.tile } +
+                automations.filter { ToolPositions.section(it.group, zoneToolGroups) == section }.map { it.tile }
+        },
         onError = { errorMessage = it }
     )
 
@@ -300,42 +307,8 @@ fun ZoneScreen(zone: Zone) {
                     onOpenEntry = { tool, entry -> openTool(tool.id, entry) },
                     editor = gridEditor,
                     onToolLongClick = configureTool,
-                    onAutomationEdit = { automation -> onNavigateToSeedEditor(automation.seedSessionId) },
-                    onAutomationTest = { automation ->
-                        coroutineScope.launch {
-                            try {
-                                val result = coordinator.processUserAction(
-                                    "automations.execute_manual",
-                                    mapOf("automation_id" to automation.id)
-                                )
-                                if (result.status == CommandStatus.SUCCESS) {
-                                    errorMessage = s.shared("automation_execution_triggered")
-                                } else {
-                                    errorMessage = result.error
-                                }
-                            } catch (e: Exception) {
-                                errorMessage = s.shared("message_error").format(e.message ?: "")
-                            }
-                        }
-                    },
-                    onAutomationView = { automation -> onNavigateToAutomationHistory(automation.id) },
-                    onAutomationToggle = { automation, enabled ->
-                        coroutineScope.launch {
-                            try {
-                                val operation = if (enabled) "automations.enable" else "automations.disable"
-                                val result = coordinator.processUserAction(
-                                    operation,
-                                    mapOf("automation_id" to automation.id)
-                                )
-                                if (result.status != CommandStatus.SUCCESS) {
-                                    errorMessage = result.error
-                                }
-                            } catch (e: Exception) {
-                                errorMessage = s.shared("message_error").format(e.message ?: "")
-                            }
-                        }
-                    },
-                    onAutomationStartChat = onAutomationStartChat,
+                    automationActions = automationActions,
+                    onAutomationLongClick = openAutomationSettings,
                     context = context
                 )
             }
@@ -381,42 +354,8 @@ fun ZoneScreen(zone: Zone) {
                     onOpenEntry = { tool, entry -> openTool(tool.id, entry) },
                     editor = gridEditor,
                     onToolLongClick = configureTool,
-                    onAutomationEdit = { automation -> onNavigateToSeedEditor(automation.seedSessionId) },
-                    onAutomationTest = { automation ->
-                        coroutineScope.launch {
-                            try {
-                                val result = coordinator.processUserAction(
-                                    "automations.execute_manual",
-                                    mapOf("automation_id" to automation.id)
-                                )
-                                if (result.status == CommandStatus.SUCCESS) {
-                                    errorMessage = s.shared("automation_execution_triggered")
-                                } else {
-                                    errorMessage = result.error
-                                }
-                            } catch (e: Exception) {
-                                errorMessage = s.shared("message_error").format(e.message ?: "")
-                            }
-                        }
-                    },
-                    onAutomationView = { automation -> onNavigateToAutomationHistory(automation.id) },
-                    onAutomationToggle = { automation, enabled ->
-                        coroutineScope.launch {
-                            try {
-                                val operation = if (enabled) "automations.enable" else "automations.disable"
-                                val result = coordinator.processUserAction(
-                                    operation,
-                                    mapOf("automation_id" to automation.id)
-                                )
-                                if (result.status != CommandStatus.SUCCESS) {
-                                    errorMessage = result.error
-                                }
-                            } catch (e: Exception) {
-                                errorMessage = s.shared("message_error").format(e.message ?: "")
-                            }
-                        }
-                    },
-                    onAutomationStartChat = onAutomationStartChat,
+                    automationActions = automationActions,
+                    onAutomationLongClick = openAutomationSettings,
                     context = context
                 )
         }
@@ -466,8 +405,19 @@ fun ZoneScreen(zone: Zone) {
                     }
                 }
                 // Navigate to SEED editor
-                onNavigateToSeedEditor(seedSessionId)
+                Navigator.push(Place.Seed(seedSessionId, zone.id))
             }
+        )
+    }
+
+    // A routine's settings, opened by a long touch on its tile; the zone reads its routines again on their change
+    automationSettings?.let { automation ->
+        app.treelune.core.ai.ui.automation.CreateAutomationDialog(
+            zoneId = zone.id,
+            zoneName = zone.name,
+            automation = automation,
+            onDismiss = { automationSettings = null },
+            onSuccess = { automationSettings = null }
         )
     }
 
@@ -649,11 +599,8 @@ private fun GroupSection(
     onOpenEntry: (ToolInstance, app.treelune.core.tools.EntryToOpen) -> Unit,
     editor: app.treelune.core.ui.components.GridEditor,
     onToolLongClick: (ToolInstance) -> Unit,
-    onAutomationEdit: (app.treelune.core.ai.data.Automation) -> Unit,
-    onAutomationTest: (app.treelune.core.ai.data.Automation) -> Unit,
-    onAutomationView: (app.treelune.core.ai.data.Automation) -> Unit,
-    onAutomationToggle: (app.treelune.core.ai.data.Automation, Boolean) -> Unit,
-    onAutomationStartChat: ((String) -> Unit)?,
+    automationActions: app.treelune.core.ai.ui.automation.AutomationActions,
+    onAutomationLongClick: (app.treelune.core.ai.data.Automation) -> Unit,
     context: android.content.Context
 ) {
     val s = remember { Strings.`for`(context = context) }
@@ -678,7 +625,7 @@ private fun GroupSection(
                 )
             }
 
-            app.treelune.core.ui.components.GridSectionButtons(groupName, groupTools.isNotEmpty(), editor, onToggleToolsList)
+            app.treelune.core.ui.components.GridSectionButtons(groupName, groupTools.isNotEmpty() || variables.isNotEmpty() || groupAutomations.isNotEmpty(), editor, onToggleToolsList)
         }
     }
 
@@ -695,26 +642,12 @@ private fun GroupSection(
         )
     }
 
-    // The group's tools on their grid
-    SectionGrid(groupName, groupTools, editor, onToolClick, onToolLongClick, onOpenEntry)
+    // The group's tools, variables and routines on their grid
+    SectionGrid(groupName, groupTools, variables, groupAutomations, editor, onToolClick, onToolLongClick, onOpenEntry, onOpenVariable, automationActions, onAutomationLongClick)
 
-    // The group's variables, in one compact card
-    app.treelune.core.ui.components.GridWide { app.treelune.core.ui.components.Faded(editor.anyEditing) { app.treelune.core.ui.variables.VariablesCard(variables, onOpenVariable) } }
-
-    // Display automations in this group
-    groupAutomations.forEach { automation ->
-        app.treelune.core.ui.components.GridWide { app.treelune.core.ui.components.Faded(editor.anyEditing) { app.treelune.core.ai.ui.automation.AutomationCard(
-            automation = automation,
-            onEdit = { onAutomationEdit(automation) },
-            onTest = { onAutomationTest(automation) },
-            onView = { onAutomationView(automation) },
-            onToggleEnabled = { enabled -> onAutomationToggle(automation, enabled) },
-            onStartChat = { onAutomationStartChat?.invoke(automation.seedSessionId) }
-        ) } }
-    }
 
     // Empty state if no tools/automations in this group (only when list is not showing)
-    if (groupTools.isEmpty() && groupAutomations.isEmpty() && showAvailableToolsForGroup != groupName) {
+    if (groupTools.isEmpty() && variables.isEmpty() && groupAutomations.isEmpty() && showAvailableToolsForGroup != groupName) {
         UI.Text(
             text = s.shared("message_no_items_in_group"),
             type = TextType.CAPTION,
@@ -748,11 +681,8 @@ private fun UngroupedSection(
     onOpenEntry: (ToolInstance, app.treelune.core.tools.EntryToOpen) -> Unit,
     editor: app.treelune.core.ui.components.GridEditor,
     onToolLongClick: (ToolInstance) -> Unit,
-    onAutomationEdit: (app.treelune.core.ai.data.Automation) -> Unit,
-    onAutomationTest: (app.treelune.core.ai.data.Automation) -> Unit,
-    onAutomationView: (app.treelune.core.ai.data.Automation) -> Unit,
-    onAutomationToggle: (app.treelune.core.ai.data.Automation, Boolean) -> Unit,
-    onAutomationStartChat: ((String) -> Unit)?,
+    automationActions: app.treelune.core.ai.ui.automation.AutomationActions,
+    onAutomationLongClick: (app.treelune.core.ai.data.Automation) -> Unit,
     context: android.content.Context
 ) {
     val s = remember { Strings.`for`(context = context) }
@@ -781,7 +711,7 @@ private fun UngroupedSection(
                 )
             }
 
-            app.treelune.core.ui.components.GridSectionButtons("", toolInstances.isNotEmpty(), editor, onToggleToolsList)
+            app.treelune.core.ui.components.GridSectionButtons("", toolInstances.isNotEmpty() || variables.isNotEmpty() || automations.isNotEmpty(), editor, onToggleToolsList)
         }
     }
 
@@ -798,26 +728,12 @@ private fun UngroupedSection(
         )
     }
 
-    // The ungrouped tools on their grid
-    SectionGrid("", toolInstances, editor, onToolClick, onToolLongClick, onOpenEntry)
+    // The ungrouped tools, variables and routines on their grid
+    SectionGrid("", toolInstances, variables, automations, editor, onToolClick, onToolLongClick, onOpenEntry, onOpenVariable, automationActions, onAutomationLongClick)
 
-    // The ungrouped variables, in one compact card
-    app.treelune.core.ui.components.GridWide { app.treelune.core.ui.components.Faded(editor.anyEditing) { app.treelune.core.ui.variables.VariablesCard(variables, onOpenVariable) } }
-
-    // Display ungrouped automations
-    automations.forEach { automation ->
-        app.treelune.core.ui.components.GridWide { app.treelune.core.ui.components.Faded(editor.anyEditing) { app.treelune.core.ai.ui.automation.AutomationCard(
-            automation = automation,
-            onEdit = { onAutomationEdit(automation) },
-            onTest = { onAutomationTest(automation) },
-            onView = { onAutomationView(automation) },
-            onToggleEnabled = { enabled -> onAutomationToggle(automation, enabled) },
-            onStartChat = { onAutomationStartChat?.invoke(automation.seedSessionId) }
-        ) } }
-    }
 
     // Empty state (only when list is not showing)
-    if (toolInstances.isEmpty() && automations.isEmpty() && showAvailableToolsForGroup != "") {
+    if (toolInstances.isEmpty() && variables.isEmpty() && automations.isEmpty() && showAvailableToolsForGroup != "") {
         UI.Text(
             text = s.shared("message_no_items_in_group"),
             type = TextType.CAPTION,
@@ -840,17 +756,26 @@ private fun toolInstanceOf(map: Map<String, Any?>) = ToolInstance(
     updated_at = (map["updated_at"] as Number).toLong()
 )
 
-/** A section's grid: in edit mode when it is the section edited, faded while another is. */
+/** A section's grid, its tools, variables and routines: in edit mode when it is the section edited, faded while another is. */
 @Composable
 private fun SectionGrid(
     key: String,
     tools: List<ToolInstance>,
+    variables: List<app.treelune.core.ui.variables.VariableRow>,
+    automations: List<app.treelune.core.ai.data.Automation>,
     editor: app.treelune.core.ui.components.GridEditor,
     onToolClick: (String) -> Unit,
     onToolLongClick: (ToolInstance) -> Unit,
-    onOpenEntry: (ToolInstance, app.treelune.core.tools.EntryToOpen) -> Unit
+    onOpenEntry: (ToolInstance, app.treelune.core.tools.EntryToOpen) -> Unit,
+    onOpenVariable: (String) -> Unit,
+    automationActions: app.treelune.core.ai.ui.automation.AutomationActions,
+    onAutomationLongClick: (app.treelune.core.ai.data.Automation) -> Unit
 ) {
+    val tiles = tools.map { app.treelune.core.ui.components.SectionTile.Tool(it) } +
+        variables.map { app.treelune.core.ui.components.SectionTile.Variable(it) } +
+        automations.map { app.treelune.core.ui.components.SectionTile.Routine(it) }
     app.treelune.core.ui.components.Faded(editor.anyEditing && !editor.isEditing(key)) {
-        app.treelune.core.ui.components.ToolGrid(tools, { onToolClick(it.id) }, onToolLongClick, onOpenEntry, editor.gridEdit(key))
+        app.treelune.core.ui.components.SectionTiles(tiles, { onToolClick(it.id) }, onToolLongClick, onOpenEntry, onOpenVariable,
+            automationActions, onAutomationLongClick, editor.gridEdit(key))
     }
 }

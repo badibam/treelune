@@ -580,12 +580,18 @@ Deletes a zone, with its tools and their entries.
 - `zone_id` (string, **required**)]]></string>
     <string name="ai_command_create_variable"><![CDATA[### CREATE_VARIABLE
 
-Creates a variable in a zone. Its name is unique in the app and can be written in a formula (letters, digits, `_`).
+Creates a variable in a zone. Its name is unique in the app and can be written in a formula (letters, digits, `_`). It shows as a tile among the tools of its group, its value beside or under its label.
 
 **Parameters**:
 
 - `zone_id` (string, **required**)
 - `name` (string, **required**)
+- `label` (string, **required**): what its tile and page show, in the user's words ("Calories left"); never its name made readable, ask when you do not know it
+- `description` (string, optional): what it is for
+- `icon_name` (string, optional): a Lucide icon name, `variable` when left out
+- `icon_color` (string, optional): as a tool's
+- `texture` (string, optional): as a tool's
+- `display_mode` (string, optional): `ICON`, `MINIMAL` (icon and label), `LINE` (its value beside, the default), `CONDENSED` (its value below)
 - `group` (string, optional): a group of the zone
 - `definition` (object, **required**), one of:
   - a constant: `{ "kind": "CONSTANT", "value": 2100, "field": { "type": "NUMERIC", "config": { "decimals": 0, "unit": "kcal" } } }`
@@ -605,6 +611,8 @@ A formula uses `+ - * /`, parentheses, numbers, `hours()`, `minutes()`, `seconds
   "params": {
     "zone_id": "zone_food",
     "name": "kcal",
+    "label": "Calories today",
+    "icon_name": "flame",
     "definition": {
       "kind": "FORMULA",
       "formula": "eaten",
@@ -633,6 +641,12 @@ Changes a variable. Only what you give changes; a `definition` given replaces th
 
 - `variable_id` (string, **required**)
 - `name` (string, optional)
+- `label` (string, optional)
+- `description` (string, optional): null empties it
+- `icon_name` (string, optional)
+- `icon_color` (string, optional): null empties it
+- `texture` (string, optional): null empties it
+- `display_mode` (string, optional): as CREATE_VARIABLE
 - `definition` (object, optional)
 - `group` (string, optional): one of its zone's tool groups
 - `zone_id` (string, optional): the zone to move it to; its group stays behind unless you give one of the new zone's]]></string>
@@ -660,7 +674,7 @@ Creates a routine in a zone: a message the app sends to an AI on its own, on a s
 **Parameters**:
 
 - `zone_id` (string, **required**)
-- `settings` (object, **required**): `name` required; `provider_id` required too, the `id` of one of the AI providers (AI providers, in the app\'s state), `null` for none: the routine is then off (`is_enabled` `false`) and cannot run until one is set, so never leave it out to take the default; `identity_id` required too, the identity its runs speak as (IDENTITIES), `null` for none: say it even when the zone has one, never take it for granted; `group` (one of the zone\'s tool groups), `is_enabled` (`true` by default), `schedule` (left out, it runs when the user starts it) and `catch_up` (with a schedule and only with it: `limit`, `limited` with its `window`, a duration, or `unlimited`; `dismiss_older_instances`, `true` to run only the latest of the runs missed)
+- `settings` (object, **required**): `name` required; `provider_id` required too, the `id` of one of the AI providers (AI providers, in the app\'s state), `null` for none: the routine is then off (`is_enabled` `false`) and cannot run until one is set, so never leave it out to take the default; `identity_id` required too, the identity its runs speak as (IDENTITIES), `null` for none: say it even when the zone has one, never take it for granted; its look, shown on its tile among the zone\'s tools: `description`, `icon_name` (a Lucide icon name, `bot` by default), `icon_color`, `texture`, `display_mode` (`ICON`, `MINIMAL`, `LINE`, `CONDENSED`, `EXTENDED` the default, with its buttons, `SQUARE` with its last runs); `group` (one of the zone\'s tool groups), `is_enabled` (`true` by default), `schedule` (left out, it runs when the user starts it) and `catch_up` (with a schedule and only with it: `limit`, `limited` with its `window`, a duration, or `unlimited`; `dismiss_older_instances`, `true` to run only the latest of the runs missed)
 - `message` (array, **required**): its blocks, in order, `{"type": "text", "text": "..."}` and `{"type": "pointer", "pointer": {"selection": {...}, "attach": {"config": false, "entries": true}}}`. A pointer\'s selection is the one a chart\'s config holds, with a `period` whose relative dates are those of the run\'s scheduled time; `attach` says whether the target\'s config and its entries go with the message. No file, no image
 - `access` (array, optional): what its AI may reach, `[{"target": {"kind": "ZONE", "id": "..."}, "level": "read"}]`, kinds `ZONE` and `TOOL_INSTANCE`, levels `read`, `use`, `full`. Empty or left out, everything; when your own access is listed, it is refused, and you give only what you reach yourself
 

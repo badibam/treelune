@@ -26,6 +26,9 @@ import app.treelune.core.fields.ValidationException
 import app.treelune.core.fields.migration.EntryMigration
 import app.treelune.core.fields.migration.MigrationCounts
 import app.treelune.core.database.transaction
+import app.treelune.core.images.OwnedImages
+import app.treelune.core.look.Looks
+import app.treelune.core.grid.SectionItem
 import app.treelune.core.scheduling.CoreScheduler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -50,6 +53,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
     private val toolInstanceDao by lazy { database.toolInstanceDao() }
     private val zoneDao by lazy { database.zoneDao() }
     private val writes by lazy { app.treelune.core.history.Writes(context) }
+    private val sections by lazy { app.treelune.core.grid.SectionGrid(context) }
     private val s = Strings.`for`(context = context)
 
     // Detached scope for the post-CRUD tick, which must not hold up the caller
@@ -74,7 +78,6 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
                 "get" -> handleGetById(params, token)      // tools/{id} pattern
                 "waiting" -> handleWaiting(params, token)
                 "running" -> handleRunning(params)
-                "place" -> handlePlace(params)
                 else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
             }
         } catch (e: Exception) {
@@ -136,13 +139,13 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             type.completeConfig(app.treelune.core.tools.ToolConfigSettings.withDefaults(type, JSONObject(assignMissingFieldNames(configJson)), context), null).toString()
         } ?: assignMissingFieldNames(configJson)
 
-        iconColorRefusal(namedConfigJson)?.let { return OperationResult.error(it) }
-        textureRefusal(namedConfigJson, toolType)?.let { return OperationResult.error(it) }
-        val iconCheck = checkIconName(withoutEmpty(withoutEmptyIconColor(namedConfigJson), Texture.KEY))
-        val storedConfigJson = when (iconCheck) {
-            is IconCheck.Refused -> return OperationResult.error(iconCheck.message)
-            is IconCheck.Kept -> iconCheck.configJson
+        // Its look checked and brought to its stored form (Looks)
+        val lookConfig = JSONObject(namedConfigJson)
+        val iconCheck = when (val checked = lookCheck(toolType, lookConfig, null)) {
+            is Looks.Checked.Refused -> return OperationResult.error(checked.message)
+            is Looks.Checked.Kept -> checked
         }
+        val storedConfigJson = lookConfig.toString()
         // A tool is born unprotected unless a person protects it (Protections)
         app.treelune.core.coordinator.Protections.refusal(s.shared("tools_config_label_data_validation"), false,
             JSONObject(storedConfigJson).optBoolean(app.treelune.core.tools.ToolConfigSettings.VALIDATE_DATA, false), s)?.let { return OperationResult.error(it) }
@@ -157,10 +160,25 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
 
         if (token.isCancelled) return OperationResult.cancelled()
 
-        val newToolInstance = database.transaction {
-            arrive(ToolInstance(id = toolId, zone_id = zoneId, tooltype = toolType, config_json = storedConfigJson, grid_x = 0, grid_y = 0), zone.tool_groups)
-                .also { writes.insertTool(it) }
+        // Its IMAGE settings' ids made its images: a form's prepared, a conversation's copied
+        val config = JSONObject(storedConfigJson)
+        val images = when (val plan = imagesOf(toolType, toolId, config)) {
+            is OwnedImages.Plan.Refused -> return OperationResult.error(plan.error)
+            is OwnedImages.Plan.Ready -> plan.images
         }
+        val writtenConfigJson = if (images.rewritten) config.toString() else storedConfigJson
+
+        images.place()
+        val newToolInstance = try {
+            database.transaction {
+                arrive(ToolInstance(id = toolId, zone_id = zoneId, tooltype = toolType, config_json = writtenConfigJson, grid_x = 0, grid_y = 0), zone.tool_groups)
+                    .also { writes.insertTool(it); images.store() }
+            }
+        } catch (e: Exception) {
+            images.undo()
+            throw e
+        }
+        images.done()
 
         // Notify UI of tools change in this zone
         DataChangeNotifier.notifyToolsChanged(zoneId)
@@ -216,20 +234,16 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             configJson = processResult.data?.get("processed_config") as? String ?: configJson
         }
 
-        // Only a name that changes is checked: a config saved again with the icon it already
-        // had stays savable, even if that name was stored before names were checked.
-        val iconChanged = configJson.isNotBlank() &&
-            JSONObject(configJson).optString("icon_name") != JSONObject(existingTool.config_json).optString("icon_name")
-        val iconCheck = if (iconChanged) checkIconName(configJson) else IconCheck.Kept(configJson)
-        when (iconCheck) {
-            is IconCheck.Refused -> return OperationResult.error(iconCheck.message)
-            is IconCheck.Kept -> configJson = iconCheck.configJson
-        }
+        // Its look checked against the icon the tool will have: removing the icon of an ICON
+        // texture is refused too (Looks)
+        var iconCheck = Looks.Checked.Kept()
         if (configJson.isNotBlank()) {
-            iconColorRefusal(configJson)?.let { return OperationResult.error(it) }
-            // Checked against the icon the tool will have: removing the icon of an ICON texture is refused too
-            textureRefusal(configJson, existingTool.tooltype)?.let { return OperationResult.error(it) }
-            configJson = withoutEmpty(withoutEmptyIconColor(configJson), Texture.KEY)
+            val lookConfig = JSONObject(configJson)
+            iconCheck = when (val checked = lookCheck(existingTool.tooltype, lookConfig, JSONObject(existingTool.config_json))) {
+                is Looks.Checked.Refused -> return OperationResult.error(checked.message)
+                is Looks.Checked.Kept -> checked
+            }
+            configJson = lookConfig.toString()
             ToolTypeManager.getToolType(existingTool.tooltype)?.let { type ->
                 configJson = type.completeConfig(JSONObject(configJson), JSONObject(existingTool.config_json)).toString()
             }
@@ -286,6 +300,13 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         if (emptiedGroup != null) storedConfig.remove("group")
         Groups.refusal(Groups.held(storedConfig), ToolPositions.zoneGroups(newZone.tool_groups), s)?.let { return OperationResult.error(it) }
 
+        // A config given: its IMAGE settings' ids compared with the images the tool owns, the new
+        // ones made its, the ones gone deleted
+        val images = if (configJson.isBlank()) null else when (val plan = imagesOf(existingTool.tooltype, existingTool.id, storedConfig)) {
+            is OwnedImages.Plan.Refused -> return OperationResult.error(plan.error)
+            is OwnedImages.Plan.Ready -> plan.images
+        }
+
         val changedTool = existingTool.copy(
             config_json = if (configJson.isBlank() && emptiedGroup == null) existingTool.config_json else storedConfig.toString(),
             zone_id = newZone.id,
@@ -296,12 +317,20 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
 
         // The config, the places it changes and what it does to the entries are one write:
         // none lands without the others
-        val updatedTool = database.transaction {
-            val placed = move(existingTool, changedTool, oldZone.tool_groups, newZone.tool_groups)
-            writes.updateTool(placed)
-            if (migration != null) applyMigration(existingTool, migration)
-            placed
+        images?.place()
+        val updatedTool = try {
+            database.transaction {
+                val placed = move(existingTool, changedTool, oldZone.tool_groups, newZone.tool_groups)
+                writes.updateTool(placed)
+                images?.store()
+                if (migration != null) applyMigration(existingTool, migration)
+                placed
+            }
+        } catch (e: Exception) {
+            images?.undo()
+            throw e
         }
+        images?.done()
         if (migration != null && (migration.updated.isNotEmpty() || migration.deleted.isNotEmpty())) {
             DataChangeNotifier.notifyToolDataChanged(toolInstanceId, updatedTool.zone_id)
         }
@@ -542,6 +571,22 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
      *
      * @return The error to hand back, or null when the config is valid
      */
+    /**
+     * What writing tool [toolId] of [tooltype] with [config] does to its images (OwnedImages): the
+     * IMAGE settings its config declares, a copy's new id written in [config].
+     */
+    /** [config]'s look checked and brought to its stored form, in place, against [before]'s (Looks). */
+    private fun lookCheck(tooltype: String, config: JSONObject, before: JSONObject?): Looks.Checked =
+        ToolTypeManager.getToolType(tooltype)?.let { Looks.check(app.treelune.core.tools.ToolConfigSettings.look(it), config, before, context) }
+            ?: Looks.Checked.Kept()
+
+    private suspend fun imagesOf(tooltype: String, toolId: String, config: JSONObject): OwnedImages.Plan {
+        val nodes = ToolTypeManager.getToolType(tooltype)?.let { app.treelune.core.tools.ToolConfigSettings.nodes(it, context) }.orEmpty()
+        return OwnedImages.plan(context, OwnedImages.Owner.Tool(toolId), OwnedImages.configSlots(nodes, config)) {
+            s.shared("image_error_not_found").format(it)
+        }
+    }
+
     private fun checkConfig(tooltype: String, configJson: String): String? {
         val toolType = ToolTypeManager.getToolType(tooltype)
             ?: return s.shared("error_tooltype_not_found").format(tooltype)
@@ -568,49 +613,19 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
     }
 
     /** [tool] placed at the bottom of its section's grid in its zone, whose groups are [toolGroups]. */
-    private suspend fun arrive(tool: ToolInstance, toolGroups: String?): ToolInstance {
-        val groups = ToolPositions.zoneGroups(toolGroups)
-        val section = ToolPositions.section(tool, groups)
-        val tiles = Grid.arrive(ToolPositions.tiles(toolInstanceDao.getToolInstancesByZone(tool.zone_id), groups, section), tool.id, ToolPositions.size(tool.config_json))
-        val tile = tiles.last()
-        return tool.copy(grid_x = tile.column, grid_y = tile.row)
-    }
+    /** [tool] arriving at the end of its section's grid, among its tools and variables (SectionGrid). */
+    private suspend fun arrive(tool: ToolInstance, toolGroups: String?): ToolInstance =
+        sections.arrive(SectionItem.of(tool), toolGroups).let { tool.copy(grid_x = it.column, grid_y = it.row) }
 
-    /** [tool] leaving its section's grid: the tools after the rows it leaves empty move up. */
-    private suspend fun leave(tool: ToolInstance, toolGroups: String?) {
-        val groups = ToolPositions.zoneGroups(toolGroups)
-        val tools = toolInstanceDao.getToolInstancesByZone(tool.zone_id)
-        val tiles = Grid.leave(ToolPositions.tiles(tools, groups, ToolPositions.section(tool, groups)), tool.id)
-        write(ToolPositions.moved(tools, tiles))
-    }
+    /** [tool] leaving its section's grid: the tiles after the rows it leaves empty move up. */
+    private suspend fun leave(tool: ToolInstance, toolGroups: String?) = sections.leave(SectionItem.of(tool), toolGroups)
 
     /**
-     * [before] becoming [after], placed: a tool that changes zone or section leaves its grid and
-     * arrives in the other one; one that changes size in its grid takes it where it is, the
-     * tools it grows over moving down. The other tools that move are written here, [after] is
-     * returned at its place for the caller to write.
+     * [before] becoming [after], placed (SectionGrid.move): the other tiles that move are written
+     * there, [after] is returned at its place for the caller to write.
      */
-    private suspend fun move(before: ToolInstance, after: ToolInstance, oldGroups: String?, newGroups: String?): ToolInstance {
-        val fromSection = ToolPositions.section(before, ToolPositions.zoneGroups(oldGroups))
-        val toSection = ToolPositions.section(after, ToolPositions.zoneGroups(newGroups))
-        if (before.zone_id != after.zone_id || fromSection != toSection) {
-            leave(before, oldGroups)
-            return arrive(after, newGroups)
-        }
-        val size = ToolPositions.size(after.config_json)
-        if (size == ToolPositions.size(before.config_json)) return after
-
-        val groups = ToolPositions.zoneGroups(newGroups)
-        val tools = toolInstanceDao.getToolInstancesByZone(after.zone_id)
-        val tiles = Grid.resize(ToolPositions.tiles(tools, groups, toSection), after.id, size)
-        write(ToolPositions.moved(tools.filter { it.id != after.id }, tiles))
-        val tile = tiles.single { it.id == after.id }
-        return after.copy(grid_x = tile.column, grid_y = tile.row)
-    }
-
-    private suspend fun write(moved: List<ToolInstance>) {
-        moved.forEach { writes.moveTool(it.id, it.grid_x, it.grid_y) }
-    }
+    private suspend fun move(before: ToolInstance, after: ToolInstance, oldGroups: String?, newGroups: String?): ToolInstance =
+        sections.move(SectionItem.of(before), SectionItem.of(after), oldGroups, newGroups).let { after.copy(grid_x = it.column, grid_y = it.row) }
 
     /**
      * Delete tool instance
@@ -712,11 +727,25 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
 
         if (token.isCancelled) return OperationResult.cancelled()
 
-        // Create new tool instance in target zone, at the bottom of its section's grid
-        val newToolInstance = database.transaction {
-            arrive(ToolInstance(zone_id = targetZoneId, tooltype = sourceTool.tooltype, config_json = sourceConfig.toString(), grid_x = 0, grid_y = 0), targetZone.tool_groups)
-                .also { writes.insertTool(it) }
+        // The source's images copied for the copy, their new ids in its config
+        val copyId = java.util.UUID.randomUUID().toString()
+        val images = when (val plan = imagesOf(sourceTool.tooltype, copyId, sourceConfig)) {
+            is OwnedImages.Plan.Refused -> return OperationResult.error(plan.error)
+            is OwnedImages.Plan.Ready -> plan.images
         }
+
+        // Create new tool instance in target zone, at the bottom of its section's grid
+        images.place()
+        val newToolInstance = try {
+            database.transaction {
+                arrive(ToolInstance(id = copyId, zone_id = targetZoneId, tooltype = sourceTool.tooltype, config_json = sourceConfig.toString(), grid_x = 0, grid_y = 0), targetZone.tool_groups)
+                    .also { writes.insertTool(it); images.store() }
+            }
+        } catch (e: Exception) {
+            images.undo()
+            throw e
+        }
+        images.done()
 
         // Notify UI of tools change in target zone
         DataChangeNotifier.notifyToolsChanged(targetZoneId)
@@ -795,29 +824,6 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         ))
     }
 
-    /**
-     * The places of the tools of one group section, moved in the zone's edit mode: `zone_id`,
-     * `group` (absent for the ungrouped one) and `places`, `{tool_id: {"grid_x", "grid_y"}}` for
-     * every tool of the section. Written in one go, or refused when they do not lay the section
-     * out (Grid.isLaidOut). The screen alone moves tiles: the AI has no command for it.
-     */
-    private suspend fun handlePlace(params: JSONObject): OperationResult {
-        val zone = zoneDao.getZoneById(params.optString("zone_id"))
-            ?: return OperationResult.error(s.shared("service_error_zone_not_found"))
-        val groups = ToolPositions.zoneGroups(zone.tool_groups)
-        val section = ToolPositions.section(params.optString("group").takeIf { it.isNotEmpty() }, groups)
-        val places = params.optJSONObject("places") ?: return OperationResult.error(s.shared("service_error_grid_places"))
-        val tools = toolInstanceDao.getToolInstancesByZone(zone.id).filter { ToolPositions.section(it, groups) == section }
-        if (places.keys().asSequence().toSet() != tools.map { it.id }.toSet()) return OperationResult.error(s.shared("service_error_grid_places"))
-        val placed = tools.map { tool ->
-            val place = places.getJSONObject(tool.id)
-            tool.copy(grid_x = place.getInt("grid_x"), grid_y = place.getInt("grid_y"))
-        }
-        if (!Grid.isLaidOut(placed.map { ToolPositions.tile(it) })) return OperationResult.error(s.shared("service_error_grid_places"))
-        database.transaction { write(ToolPositions.moved(tools, placed.map { ToolPositions.tile(it) })) }
-        DataChangeNotifier.notifyToolsChanged(zone.id)
-        return OperationResult.success(mapOf("zone_id" to zone.id, "count" to placed.size))
-    }
 
     private suspend fun handleGetByZone(params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
@@ -1017,7 +1023,6 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             }
             "waiting" -> s.shared("action_verbalize_tools_waiting")
             "running" -> s.shared("action_verbalize_tools_running")
-            "place" -> s.shared("action_verbalize_tools_place")
             else -> s.shared("action_verbalize_unknown")
         }
     }
@@ -1054,72 +1059,6 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
                 field
             }
         }
-    }
-
-    /** A config's icon colour is one of IconColor.NAMES, or none: any other name is refused with them. */
-    private fun iconColorRefusal(configJson: String): String? {
-        val config = JSONObject(configJson)
-        val given = if (config.isNull(IconColor.KEY)) null else config.optString(IconColor.KEY).trim()
-        return if (IconColor.accepts(given)) null
-        else s.shared("service_error_icon_color_unknown").format(given, IconColor.NAMES.joinToString(", "))
-    }
-
-    /**
-     * A config's texture is one of Texture.NAMES, or none, and ICON only with an icon to repeat:
-     * its own, or the type's that a tool without one shows (ToolConfigSettings).
-     */
-    private fun textureRefusal(configJson: String, toolType: String): String? {
-        val config = JSONObject(configJson)
-        val given = if (config.isNull(Texture.KEY)) null else config.optString(Texture.KEY).trim()
-        val icon = config.optString("icon_name").ifBlank { ToolTypeManager.getToolType(toolType)?.getDefaultIconName().orEmpty() }
-        return Texture.refusal(given, icon, s::shared)
-    }
-
-    /** The config without [key] when it is given as null or empty, which is how a command removes a setting. */
-    private fun withoutEmpty(configJson: String, key: String): String {
-        val config = JSONObject(configJson)
-        if (!config.has(key)) return configJson
-        if (!config.isNull(key) && config.optString(key).isNotBlank()) return configJson
-        config.remove(key)
-        return config.toString()
-    }
-
-    /** The config without its icon colour when it is given as null or empty, which is how a command removes it. */
-    private fun withoutEmptyIconColor(configJson: String): String {
-        val config = JSONObject(configJson)
-        if (!config.has(IconColor.KEY)) return configJson
-        if (!config.isNull(IconColor.KEY) && config.optString(IconColor.KEY).isNotBlank()) return configJson
-        config.remove(IconColor.KEY)
-        return config.toString()
-    }
-
-    /** What storing a config's icon name comes to: kept, maybe under its current name, or refused. */
-    private sealed interface IconCheck {
-        /** Stored as [configJson]; [renamedFrom] is the former name it was given, if it was one. */
-        data class Kept(val configJson: String, val renamedFrom: String? = null) : IconCheck
-        data class Refused(val message: String) : IconCheck
-
-        /** Said in the result when a former name was stored under the current one. */
-        fun report(): Map<String, Any> {
-            val kept = this as? Kept ?: return emptyMap()
-            val from = kept.renamedFrom ?: return emptyMap()
-            return mapOf("icon_renamed" to mapOf("from" to from, "to" to JSONObject(kept.configJson).getString("icon_name")))
-        }
-    }
-
-
-    /**
-     * An icon name is a Lucide name. A former one is stored under the name it became, and a
-     * name that designates no icon is refused rather than stored and shown as two letters.
-     */
-    private fun checkIconName(configJson: String): IconCheck {
-        val config = JSONObject(configJson)
-        val given = config.optString("icon_name").takeIf { it.isNotBlank() } ?: return IconCheck.Kept(configJson)
-        val stored = Icons.storedName(context, given)
-            ?: return IconCheck.Refused(s.shared("service_error_icon_unknown").format(given))
-        if (stored == given) return IconCheck.Kept(configJson)
-        config.put("icon_name", stored)
-        return IconCheck.Kept(config.toString(), renamedFrom = given)
     }
 
     /**

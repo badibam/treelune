@@ -19,12 +19,21 @@ object ZoneSettings {
 
     const val SCHEMA_ID = "zone_config"
 
-    private val MODES = app.treelune.core.grid.ZonePositions.MODES.map { it.name }
-
     /** Where the icon picker starts for a zone: the themes zones are usually made of. */
     val SUGGESTED_ICONS = listOf(
         "heart", "dumbbell", "briefcase", "house", "wallet", "graduation-cap",
         "users", "leaf", "book-open", "utensils", "plane", "music", "palette", "folder"
+    )
+
+    /** A zone's look (Looks): its icon optional, its tile on the home screen from ICON to CONDENSED. */
+    val LOOK = app.treelune.core.look.LookSpec(
+        nameKey = "name",
+        nameLabel = "label_zone_name",
+        schemaPrefix = "zone_schema_",
+        modes = app.treelune.core.grid.ZonePositions.MODES,
+        defaultMode = app.treelune.core.ui.DisplayMode.LINE,
+        defaultIcon = null,
+        suggestedIcons = SUGGESTED_ICONS
     )
 
     fun nodes(context: Context): List<SettingNode> {
@@ -35,30 +44,12 @@ object ZoneSettings {
                 required = required
             )
         return listOf(
-            field("name", "label_zone_name", FieldType.TEXT, TextLength.SHORT, required = true),
-            field("description", "label_description", FieldType.TEXT, TextLength.MEDIUM),
-            // Checked against the icon index by the service
-            field("icon_name", "label_icon", FieldType.TEXT, TextLength.SHORT),
-            // A tag's name, or none for a neutral icon; checked with its names by the service
-            SettingNode.Field(
-                FieldDefinition(app.treelune.core.themes.IconColor.KEY, s.shared("label_icon_color"), s.shared("zone_schema_icon_color"), FieldType.CHOICE, false,
-                    mapOf("options" to app.treelune.core.themes.IconColor.options(s::shared)))
-            ),
-            // A motif's name, or none; checked with its names, and ICON with the icon, by the service
-            SettingNode.Field(
-                FieldDefinition(app.treelune.core.themes.Texture.KEY, s.shared("label_texture"), s.shared("zone_schema_texture"), FieldType.CHOICE, false,
-                    mapOf("options" to app.treelune.core.themes.Texture.options(s::shared)))
-            ),
+            // Its name, description, icon, colour, texture and mode, checked by Looks
+            *app.treelune.core.look.Looks.nodes(LOOK, s::shared).toTypedArray(),
             // One of the zone groups of the main screen
             field("group", "label_zone_group", FieldType.TEXT, TextLength.SHORT),
             // The identity its tile opens a conversation with; checked to exist by the service
             field("identity_id", "label_zone_identity", FieldType.TEXT, TextLength.SHORT),
-            // How its tile shows on the main screen, which gives the cells it takes
-            SettingNode.Field(
-                FieldDefinition("display_mode", s.shared("tools_config_label_display_mode"), s.shared("zone_schema_display_mode"), FieldType.CHOICE, false,
-                    mapOf("options" to app.treelune.core.fields.ChoiceSettings.storedOptions(MODES, MODES.associateWith { s.shared("tools_config_display_${it.lowercase()}") }))),
-                required = true, default = "LINE"
-            ),
             // The groups the zone's tools are sorted into
             SettingNode.ListOf("tool_groups", s.shared("label_tool_groups"),
                 SettingNode.Item.Value(FieldDefinition("tool_group", s.shared("label_tool_group"), s.shared("zone_schema_tool_groups"),

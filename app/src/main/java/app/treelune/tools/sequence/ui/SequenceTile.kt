@@ -35,7 +35,7 @@ import org.json.JSONObject
 
 /**
  * A session's tile (docs/TOOLS.md, « Session (Sequence) »). During a session, the summary is
- * its step and its clock; otherwise the planned session waiting and since when, or the next one
+ * its step and its clock; a session over waiting to be finished; otherwise the planned session waiting and since when, or the next one
  * planned, or the last one done. The body lists the last sessions, one per line: when, state,
  * length, how far.
  */
@@ -69,10 +69,12 @@ fun rememberSequenceTile(tool: ToolInstance): ToolTile {
                 val running = loaded.firstOrNull { it.run != null }?.run
                 var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
                 if (running != null) LaunchedEffect(running) { while (true) { now = System.currentTimeMillis(); delay(1_000) } }
+                val toFinish = loaded.firstOrNull { it.status == SequenceToolType.Status.TO_FINISH }
                 val planned = loaded.filter { it.status == SequenceToolType.Status.PLANNED }.maxByOrNull { it.timestamp }
                 val last = loaded.filter { it.status == SequenceToolType.Status.DONE || it.status == SequenceToolType.Status.STOPPED }.maxByOrNull { it.timestamp }
                 val (first, second) = when {
                     running != null -> running.current.name to stepClock(running, now)
+                    toFinish != null -> s.tool("tile_to_finish") to FormatUtils.formatRelativeTimeShort(toFinish.timestamp, context)
                     planned != null -> s.tool("tile_planned") to FormatUtils.formatRelativeTimeShort(planned.timestamp, context)
                     else -> {
                         val next = (StoredSchedule.of(config) as? StoredSchedule.Readable)

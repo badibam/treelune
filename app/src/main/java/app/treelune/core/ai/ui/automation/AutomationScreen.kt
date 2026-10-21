@@ -16,8 +16,6 @@ import androidx.compose.ui.platform.LocalContext
 import app.treelune.core.ai.data.SessionType
 import app.treelune.core.ai.domain.Phase
 import app.treelune.core.ai.orchestration.AIOrchestrator
-import app.treelune.core.ai.scheduling.AutomationScheduler
-import app.treelune.core.ai.scheduling.NextExecution
 import app.treelune.core.commands.CommandStatus
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.strings.Strings
@@ -32,11 +30,12 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
 /**
- * AutomationScreen - Display automation execution history
+ * AutomationScreen - A routine's page: what its tile does, then its execution history
  *
  * Shows:
  * - Automation name in header
- * - Next execution card (if scheduled and enabled)
+ * - Its state, its switch and its buttons, whatever its tile's mode shows of them (AutomationTile):
+ *   run it (cancel while queued), a conversation with its message, its settings, its message to edit
  * - Filters: period type + limit + refresh
  * - Period selector (if not ALL)
  * - List of ExecutionCard with pagination
@@ -46,7 +45,7 @@ import org.json.JSONObject
  * - BACK button returns to previous screen
  * - VIEW button on ExecutionCard navigates to detail screen
  *
- * Usage: Accessed from AutomationCard VIEW button in ZoneScreen
+ * Usage: opened by a routine's tile, or its history button
  */
 @Composable
 fun AutomationScreen(
@@ -66,8 +65,11 @@ fun AutomationScreen(
 
     // Automation metadata (simple data, not full Automation object)
     var automationName by remember { mutableStateOf<String?>(null) }
-    var isEnabled by remember { mutableStateOf(false) }
-    var nextExecution by remember { mutableStateOf<NextExecution?>(null) }
+    // The routine itself, for what its tile does, and as the service gives it, for its settings
+    var automation by remember { mutableStateOf<app.treelune.core.ai.data.Automation?>(null) }
+    var automationMap by remember { mutableStateOf<Map<String, Any>?>(null) }
+    var showSettings by rememberSaveable { mutableStateOf(false) }
+    val actions = rememberAutomationActions { errorMessage = it }
 
     // Execution list
     var sessions by remember { mutableStateOf<List<ExecutionSummary>>(emptyList()) }
@@ -110,22 +112,13 @@ fun AutomationScreen(
             if (data != null) {
                 // Service returns data under "automation" key
                 @Suppress("UNCHECKED_CAST")
-                val automation = data["automation"] as? Map<String, Any>
-                if (automation != null) {
-                    automationName = automation["name"] as? String
+                val found = data["automation"] as? Map<String, Any>
+                if (found != null) {
+                    automationName = found["name"] as? String
                     // The routine's place named by it, for the breadcrumb
                     automationName?.let(onName)
-                    isEnabled = automation["is_enabled"] as? Boolean ?: false
-
-                    // Load next execution if enabled
-                    if (isEnabled) {
-                        nextExecution = withContext(Dispatchers.IO) {
-                            val scheduler = AutomationScheduler(context)
-                            scheduler.getNextExecutionForAutomation(automationId)
-                        }
-                    } else {
-                        nextExecution = null
-                    }
+                    automation = app.treelune.core.ai.data.Automation.fromResult(found)
+                    automationMap = found
                 } else {
                     errorMessage = s.shared("error_automation_load_failed")
                 }
@@ -232,9 +225,10 @@ fun AutomationScreen(
     // Back to the first page when a filter changes
     OnChangedEffect("$periodFilter|$currentPeriod|$entriesLimit") { currentPage = 1 }
 
-    // Load automation metadata on first load
+    // Load automation metadata on first load, and again when a routine changes (switched, renamed)
     LaunchedEffect(automationId) {
         loadAutomationMetadata()
+        DataChangeNotifier.changes.collect { event -> if (event is DataChangeEvent.ZonesChanged) loadAutomationMetadata() }
     }
 
     // Load sessions when filters/pagination change
@@ -261,6 +255,18 @@ fun AutomationScreen(
     // Real-time updates - Observe current AI state for active session highlighting
     val aiState by AIOrchestrator.currentState.collectAsState()
 
+    // Its settings, from its Settings button; the page reads it again on their change
+    val settingsOf = automationMap
+    if (showSettings && settingsOf != null) {
+        CreateAutomationDialog(
+            zoneId = settingsOf["zone_id"] as String,
+            zoneName = "",
+            automation = settingsOf,
+            onDismiss = { showSettings = false },
+            onSuccess = { showSettings = false }
+        )
+    }
+
     // Show error toast
     LaunchedEffect(errorMessage) {
         if (errorMessage != null) {
@@ -285,23 +291,14 @@ fun AutomationScreen(
             onLeftClick = onNavigateBack
         )
 
-        // Next execution card
-        if (nextExecution != null) {
+        // What its tile does, all of it whatever its tile's mode: its state and switch, its buttons,
+        // its settings in place of its history, which is this page
+        automation?.let { routine ->
+            val state = rememberAutomationState(routine)
             UI.Card(type = CardType.DEFAULT) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(UI.Space.M),
-                    verticalArrangement = Arrangement.spacedBy(UI.Space.XS)
-                ) {
-                    UI.Text(
-                        text = s.shared("automation_next_execution_title"),
-                        type = TextType.SUBTITLE
-                    )
-                    UI.Text(
-                        text = nextExecution!!.message,
-                        type = TextType.BODY
-                    )
+                Column(modifier = Modifier.fillMaxWidth().padding(UI.Space.M), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+                    AutomationStateLine(routine, state, actions)
+                    AutomationButtons(routine, state, actions, onSettings = { showSettings = true })
                 }
             }
         }

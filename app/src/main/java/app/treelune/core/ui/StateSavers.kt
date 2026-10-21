@@ -7,7 +7,7 @@ import app.treelune.core.fields.toJsonArray
 import app.treelune.core.fields.toJson
 import app.treelune.core.fields.toFieldDefinition
 import app.treelune.core.fields.toFieldConfig
-import org.json.JSONArray
+import app.treelune.core.utils.JsonUtils
 import org.json.JSONObject
 
 /**
@@ -70,28 +70,14 @@ val PeriodSaver: Saver<app.treelune.core.selection.Period, String> = Saver(
 
 /** Custom field values: nulls are kept (an emptied field differs from an untouched one). */
 val FieldValuesSaver: Saver<Map<String, Any?>, String> = Saver(
-    save = { valueToJson(it).toString() },
-    restore = { @Suppress("UNCHECKED_CAST") (jsonToValue(JSONObject(it)) as Map<String, Any?>) }
+    save = { JsonUtils.toJSONObject(it).toString() },
+    restore = { JsonUtils.toMap(it) }
 )
-
-private fun valueToJson(value: Any?): Any = when (value) {
-    null -> JSONObject.NULL
-    is Map<*, *> -> JSONObject().apply { value.forEach { (k, v) -> put(k.toString(), valueToJson(v)) } }
-    is Iterable<*> -> JSONArray().apply { value.forEach { put(valueToJson(it)) } }
-    else -> value
-}
-
-private fun jsonToValue(value: Any?): Any? = when (value) {
-    JSONObject.NULL -> null
-    is JSONObject -> value.keys().asSequence().associateWith { jsonToValue(value.get(it)) }
-    is JSONArray -> (0 until value.length()).map { jsonToValue(value.get(it)) }
-    else -> value
-}
 
 /** Item properties (no nulls): same JSON form as FieldValuesSaver. */
 val PropertiesSaver: Saver<Map<String, Any>, String> = Saver(
-    save = { valueToJson(it).toString() },
-    restore = { @Suppress("UNCHECKED_CAST") (jsonToValue(JSONObject(it)) as Map<String, Any>) }
+    save = { JsonUtils.toJSONObject(it).toString() },
+    restore = { @Suppress("UNCHECKED_CAST") (JsonUtils.toMap(it) as Map<String, Any>) }
 )
 
 /** Any kotlinx-serializable value, kept as its JSON form. */
