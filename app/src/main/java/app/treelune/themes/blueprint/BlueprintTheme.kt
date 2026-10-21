@@ -501,10 +501,10 @@ object BlueprintTheme : ThemeContract {
     }
 
     @Composable
-    override fun ConfirmDialog(title: String, message: String, confirmText: String?, cancelText: String?, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    override fun ConfirmDialog(title: String, message: String, confirmText: String?, cancelText: String?, onConfirm: () -> Unit, onCancel: () -> Unit, onDismiss: () -> Unit) {
         val s = Strings.`for`(context = LocalContext.current)
         DialogFrame(title = title, onDismiss = onDismiss, actions = {
-            WordButton(cancelText ?: s.shared("action_cancel"), onDismiss)
+            WordButton(cancelText ?: s.shared("action_cancel"), onCancel)
             WordButton(confirmText ?: s.shared("action_confirm"), onConfirm, strong = true)
         }) {
             Text(message, TextType.BODY, false, null)

@@ -309,6 +309,7 @@ object UI {
      * @param cancelText Text for cancel button (default: "Annuler")
      * @param onConfirm Callback when user confirms
      * @param onDismiss Callback when user cancels or dismisses
+     * @param onCancel Callback for the cancel button alone, when it differs from a close without a choice
      */
     @Composable
     fun ConfirmDialog(
@@ -317,12 +318,13 @@ object UI {
         confirmText: String? = null,
         cancelText: String? = null,
         onConfirm: () -> Unit,
-        onDismiss: () -> Unit
+        onDismiss: () -> Unit,
+        onCancel: () -> Unit = onDismiss
     ) {
         val sound = rememberUISound()
         LaunchedEffect(Unit) { sound(UISignal.OPEN) }
         CurrentTheme.current.ConfirmDialog(title, message, confirmText, cancelText,
-            { sound(UISignal.CONFIRM); onConfirm() }, { sound(UISignal.CLOSE); onDismiss() })
+            { sound(UISignal.CONFIRM); onConfirm() }, { sound(UISignal.CLOSE); onCancel() }, { sound(UISignal.CLOSE); onDismiss() })
     }
 
     // =====================================
