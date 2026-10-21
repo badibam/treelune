@@ -9,7 +9,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The validation settings at v69 (docs/design/validation.md): nothing that was protected stops
+ * The validation settings at v69 (docs/AI.md, « Levels »): nothing that was protected stops
  * being so, what covered the whole app goes, the dead settings leave the tools.
  */
 class ValidationAtV69Test {

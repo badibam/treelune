@@ -16,7 +16,7 @@ import java.time.ZoneId
 
 /**
  * The written values of the conditions in a config the AI writes, put in their stored form on the
- * way in (docs/design/typed-conditions.md), as every date and duration from the AI is: what a
+ * way in (docs/BRICKS.md, « Condition »), as every date and duration from the AI is: what a
  * value is read as is the type it faces (ConditionCheck.compared), known from declarations,
  * never the look of the value.
  *

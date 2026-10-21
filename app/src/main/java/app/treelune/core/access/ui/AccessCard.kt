@@ -36,7 +36,7 @@ import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
 
 /**
- * What an AI acting without the user may reach (AccessMask, docs/design/validation.md): an
+ * What an AI acting without the user may reach (AccessMask, docs/AI.md, « Levels »): an
  * automation's, a client's of the connector. Its zones and tools, each with its level and a way
  * to take it out, and a way to add one, picked as a pointer picks (the Chose brick, a zone or a
  * tool). Added, it is read only: one widens it knowingly.

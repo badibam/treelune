@@ -38,7 +38,7 @@ import app.treelune.tools.chart.Source
 import org.json.JSONObject
 
 /**
- * A chart's tile (docs/design/missing-tools.md, « La tuile »). The summary: the period shown, then
+ * A chart's tile (docs/TOOLS.md, « Chart »). The summary: the period shown, then
  * the last value of the first series with its unit and when — or that nothing falls in the period,
  * or that the chart cannot be drawn. The body: a strip of its marks in EXTENDED, the chart reduced
  * in SQUARE, its first view only in both; the whole chart in FULL. Where the tile has no body

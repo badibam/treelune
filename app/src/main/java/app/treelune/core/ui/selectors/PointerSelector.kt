@@ -29,7 +29,7 @@ private val PointerSelectionSaver: Saver<PointerSelection, String> = Saver(
 )
 
 /**
- * The POINTER selector, on one screen (docs/design/pointer.md): the selection of entries
+ * The POINTER selector, on one screen (docs/DATA.md, « The pointer »): the selection of entries
  * (SelectionPicker), then once a zone or a tool is reached the config and the entries to attach,
  * with the sentence that says what will go.
  *

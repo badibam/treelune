@@ -1,0 +1,119 @@
+{
+  "gain_db": -10,
+  "families": [
+    "Freesound · stamp",
+    "Freesound · relay",
+    "BigSoundBank · typewriter",
+    "BigSoundBank · thermostat",
+    "BigSoundBank · switch",
+    "BigSoundBank · keyboard",
+    "BigSoundBank · drawer"
+  ],
+  "signals": {
+    "confirm": {
+      "choice": "Freesound · relay_384698",
+      "offset_db": -5,
+      "shortlist": [
+        "Freesound · relay_384698"
+      ]
+    },
+    "enter": {
+      "choice": "BigSoundBank · thermostat_2191",
+      "offset_db": 0,
+      "shortlist": [
+        "BigSoundBank · thermostat_2191"
+      ]
+    },
+    "back": {
+      "choice": "BigSoundBank · thermostat_2192",
+      "offset_db": 0,
+      "shortlist": [
+        "BigSoundBank · thermostat_2192"
+      ]
+    },
+    "open": {
+      "choice": "recipe · keyboard_1727-take7",
+      "offset_db": 0,
+      "shortlist": [
+        "recipe · keyboard_1727-take7"
+      ]
+    },
+    "close": {
+      "choice": "recipe · keyboard_1727-take8",
+      "offset_db": 0,
+      "shortlist": [
+        "recipe · keyboard_1727-take8"
+      ]
+    },
+    "toggle": {
+      "choice": "recipe · switch_0036-take1",
+      "offset_db": 0,
+      "shortlist": [
+        "recipe · switch_0036-take1"
+      ]
+    },
+    "step": {
+      "choice": "Freesound · relay_740253",
+      "offset_db": 0,
+      "shortlist": [
+        "Freesound · relay_740253"
+      ]
+    },
+    "scroll_end": {
+      "choice": "recipe · drawer_0793-take9",
+      "offset_db": 0,
+      "shortlist": [
+        "recipe · drawer_0793-take9"
+      ]
+    },
+    "refuse": {
+      "choice": "BigSoundBank · switch_2028",
+      "offset_db": 0,
+      "shortlist": [
+        "BigSoundBank · switch_2028"
+      ]
+    }
+  },
+  "recipes": {
+    "keyboard_1727-take7": {
+      "inputs": [
+        "BigSoundBank · keyboard_1727"
+      ],
+      "effects": [
+        "trim",
+        5.73,
+        0.29
+      ]
+    },
+    "keyboard_1727-take8": {
+      "inputs": [
+        "BigSoundBank · keyboard_1727"
+      ],
+      "effects": [
+        "trim",
+        6.45,
+        0.3
+      ]
+    },
+    "switch_0036-take1": {
+      "inputs": [
+        "BigSoundBank · switch_0036"
+      ],
+      "effects": [
+        "trim",
+        0.04,
+        0.4
+      ]
+    },
+    "drawer_0793-take9": {
+      "inputs": [
+        "BigSoundBank · drawer_0793"
+      ],
+      "effects": [
+        "trim",
+        5.64,
+        0.11
+      ]
+    }
+  }
+}

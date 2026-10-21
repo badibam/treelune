@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Copy the Go module's dependencies into the repository, with the fix Tailscale lacks on Android.
 
-The app's Tailscale node (app/src/main/go, docs/design/funnel-access.md) builds from
+The app's Tailscale node (app/src/main/go, docs/EXTERNAL_ACCESS.md, « The Tailscale node ») builds from
 app/src/main/go/vendor, committed, so that the build never downloads anything: F-Droid
 builds offline and from the repository alone. That copy carries one change to Tailscale:
 the local API's certificate route, which `tsnet` uses to serve the Funnel's HTTPS, is left
 out of Android builds -- the Funnel opens, then every connection fails for want of a
-certificate (docs/design/funnel-poc.md). Taking `android` out of the two build constraints
+certificate (docs/EXTERNAL_ACCESS.md, « The Tailscale node »). Taking `android` out of the two build constraints
 below is the whole fix.
 
 Updating Tailscale = change its version in go.mod, run this script, read the diff, commit.

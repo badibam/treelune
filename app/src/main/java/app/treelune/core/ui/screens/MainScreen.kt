@@ -340,7 +340,7 @@ private fun PlaceScreen(place: Place, zones: ZonesState, demoInstalled: Boolean)
 
 /**
  * A place's page: its ground, textured for a zone's or a tool's page (ThemeContract.PageGround,
- * docs/design/tool-texture.md), across the whole width; then every place the same margin from
+ * docs/THEMES.md, « What a theme is in the app »), across the whole width; then every place the same margin from
  * the sides of the screen, given here once: a place's screen sets none of its own.
  *
  * The page is moved whole from one theme's ground to another's when the theme changes, as the

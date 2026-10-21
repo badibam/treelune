@@ -4,7 +4,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * Brings the AI providers to their v80 form, created by the user (docs/design/ai-providers.md):
+ * Brings the AI providers to their v80 form, created by the user (docs/AI.md, « Provider abstraction »):
  * eight fixed ids, each kind in a standard and an economic variant, become the providers the user
  * had configured, each keeping its id, its name and its config, of the kind its id named; the
  * active one becomes the default. A variant never configured is gone, and a routine that named

@@ -9,7 +9,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * What a part of the app shared promises (docs/design/share.md, « Le fichier »): the backup's
+ * What a part of the app shared promises (docs/DATA.md, « A part of the app »): the backup's
  * format marked partial, holding only what is ticked, a tool's entries only when asked, and never
  * the settings, the AI providers, the identities, the conversations.
  */

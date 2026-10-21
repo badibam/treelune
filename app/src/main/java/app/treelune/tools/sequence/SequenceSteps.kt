@@ -4,7 +4,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * A finished session's steps as it keeps them (docs/design/config-change.md, « Séance »): each
+ * A finished session's steps as it keeps them (docs/DATA.md, « Config change »): each
  * step's name, what became of it, and the time it ran on the session's clock, copied from its run
  * when it ends, so that changing the tool's steps afterwards leaves the session as it was. Its
  * counts follow from them: correcting the session is changing a step's state. Pure.

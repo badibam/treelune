@@ -8,7 +8,7 @@ import org.junit.Test
 import java.time.ZoneId
 
 /**
- * What the bug report promises (docs/design/bug-report.md): identifiers and quoted texts
+ * What the bug report promises (docs/CORE.md, « Bug report »): identifiers and quoted texts
  * replaced, the user's free text left as written, only recent WARN and ERROR lines, and a size
  * the share menu accepts.
  */

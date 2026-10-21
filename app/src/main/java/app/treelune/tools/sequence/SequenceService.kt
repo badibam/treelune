@@ -15,7 +15,7 @@ import app.treelune.core.utils.JsonUtils
 import org.json.JSONObject
 
 /**
- * A session's operations (docs/design/sequence-tool.md, « Les opérations »).
+ * A session's operations (docs/TOOLS.md, « Session (Sequence) »).
  *
  * For the screen, the notification and the AI:
  * - complete: `id`, `timestamp`, `duration` — a session done without following the screen, all

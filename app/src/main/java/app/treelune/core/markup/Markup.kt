@@ -22,7 +22,7 @@ sealed class MarkupBlock {
 
 /**
  * The markup of the app's long texts, a small part of Markdown, read by one reader for the Guide,
- * a tool type's usage, an identity's texts and the user's long texts (docs/design/text-formatting.md):
+ * a tool type's usage, an identity's texts and the user's long texts (docs/UI.md, « Long texts »):
  * `#`, `##` or `### ` begins a subtitle, `- ` or `* ` a line of a list, `1. ` a line of a numbered
  * list. Every other line is a paragraph; empty lines only separate. Inside a line, `**bold**` and
  * `*italic*` cut it into runs, their marks taken off; `***both***` is both.

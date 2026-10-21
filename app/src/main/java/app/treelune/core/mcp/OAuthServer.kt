@@ -73,7 +73,7 @@ interface ApprovalPrompt {
 }
 
 /**
- * The app as its own OAuth 2.1 authorization server (docs/design/mcp-server.md, « L'autorisation »):
+ * The app as its own OAuth 2.1 authorization server (docs/EXTERNAL_ACCESS.md, « The authorisation »):
  * a client registers itself, the page it opens shows a code, the person types that code on the
  * phone, and the client gets its tokens. Any client and any return address are accepted and
  * shown: what keeps a stranger out is the code, which only the one who sees the page holds, and

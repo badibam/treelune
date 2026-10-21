@@ -19,7 +19,7 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 /**
- * What docs/design/undo-history.md promised of the writes kept: a step per operation asked from
+ * What docs/DATA.md, « History of writes » promised of the writes kept: a step per operation asked from
  * outside, its phrase said once it is done, each row whole before and after; a deletion keeping
  * what SQLite deletes with the row; the app's own writes noted, not steps.
  */

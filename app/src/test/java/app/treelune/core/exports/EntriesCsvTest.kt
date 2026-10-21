@@ -15,7 +15,7 @@ import org.junit.Test
 import java.time.ZoneId
 
 /**
- * What the CSV export promises (docs/design/export.md): the columns in the file's order, named by
+ * What the CSV export promises (docs/DATA.md, « Export »): the columns in the file's order, named by
  * their labels, a label borne twice followed by its path; each type written in its fixed form
  * whatever the language; a cell quoted only when it must be; a file name cleaned, never written over.
  */

@@ -1637,7 +1637,7 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        /** The MCP server's OAuth clients and tokens (docs/design/mcp-server.md): two new tables, empty. */
+        /** The MCP server's OAuth clients and tokens (docs/EXTERNAL_ACCESS.md): two new tables, empty. */
         private val MIGRATION_59_60 = object : ConnectionMigration(59, 60) {
             override fun migrate(database: MigrationDatabase) {
                 database.execSQL("""
@@ -1730,7 +1730,7 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /**
-         * Textures (docs/design/tool-texture.md): a zone's column, empty, and the interface
+         * Textures (docs/THEMES.md, « What a theme is in the app »): a zone's column, empty, and the interface
          * settings' intensity, subtle (UiTextureIntensityAtV75). A tool's texture is a key of its
          * config, absent until chosen.
          */
@@ -1756,7 +1756,7 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /**
-         * What waits for the user among the sessions (docs/design/waiting-sources.md): when each
+         * What waits for the user among the sessions (docs/BRICKS.md, « Waiting »): when each
          * was last seen, a routine's summary, and whether a routine signals its end. Every past
          * session seen at its last activity, every routine signalling its end: nothing starts
          * waiting with the update.
@@ -1772,7 +1772,7 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /**
-         * Incarnations (docs/design/incarnations.md): the identities' table, empty, and the
+         * Incarnations (docs/AI.md, « Identities »): the identities' table, empty, and the
          * identity of a zone, a routine and a session, none: everything speaks as before.
          */
         private val MIGRATION_76_77 = object : ConnectionMigration(76, 77) {
@@ -1833,7 +1833,7 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /**
-         * AI providers created by the user (docs/design/ai-providers.md, ProvidersAtV80): the fixed
+         * AI providers created by the user (docs/AI.md, « Provider abstraction », ProvidersAtV80): the fixed
          * ids configured become providers of their kind, under their name, the active one the
          * default; a routine and a session may have none. Refused while the foreign keys are on:
          * rebuilding the sessions' table would then delete every message with it.
@@ -2072,7 +2072,7 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        /** A connector client's access mask (docs/design/validation.md): a new column, an empty list, every client reaching everything as before. */
+        /** A connector client's access mask (docs/AI.md, « Levels »): a new column, an empty list, every client reaching everything as before. */
         private val MIGRATION_70_71 = object : ConnectionMigration(70, 71) {
             override fun migrate(database: MigrationDatabase) {
                 database.execSQL("ALTER TABLE mcp_clients ADD COLUMN access_json TEXT NOT NULL DEFAULT '[]'")
@@ -2080,7 +2080,7 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        /** An automation's access mask (docs/design/validation.md): a new column, an empty list, every automation reaching everything as before. */
+        /** An automation's access mask (docs/AI.md, « Levels »): a new column, an empty list, every automation reaching everything as before. */
         private val MIGRATION_69_70 = object : ConnectionMigration(69, 70) {
             override fun migrate(database: MigrationDatabase) {
                 database.execSQL("ALTER TABLE automations ADD COLUMN access_json TEXT NOT NULL DEFAULT '[]'")
@@ -2089,7 +2089,7 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /**
-         * Validation by levels (docs/design/validation.md, ValidationAtV69): the app's settings keep
+         * Validation by levels (docs/AI.md, « Levels », ValidationAtV69): the app's settings keep
          * one switch, a zone gains its own (on when one of its tools had its config validated), a
          * tool loses validate_config and management, a session's switch becomes three boxes. SQLite
          * before 3.35 cannot drop a column: ai_sessions is rebuilt.
@@ -2252,7 +2252,7 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        /** A zone's icon colour (docs/design/icon-colors.md): a new column, empty, every icon staying neutral. */
+        /** A zone's icon colour (docs/reference.md, « Icons »): a new column, empty, every icon staying neutral. */
         private val MIGRATION_63_64 = object : ConnectionMigration(63, 64) {
             override fun migrate(database: MigrationDatabase) {
                 // ai_limits gains the threshold of the tools sent always: see AILimitsAtV64.

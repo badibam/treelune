@@ -16,7 +16,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The end of a routine's run (docs/design/waiting-sources.md): which summary is kept, what the
+ * The end of a routine's run (docs/AI.md, « Summary of the run »): which summary is kept, what the
  * app counts beside it, and which runs wait for the user.
  */
 class RunEndTest {

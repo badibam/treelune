@@ -5,7 +5,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
- * What the ids of a part promise when they are replaced (docs/design/share.md, « Les liens »): an
+ * What the ids of a part promise when they are replaced (docs/DATA.md, « A part of the app »): an
  * id is replaced wherever it stands, and a text that only looks like JSON is kept whole.
  */
 class IdWordsTest {

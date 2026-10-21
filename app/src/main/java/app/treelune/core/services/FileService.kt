@@ -12,7 +12,7 @@ import org.json.JSONObject
 import java.util.UUID
 
 /**
- * The files joined to messages (docs/design/missing-tools.md, « L'import »): text read once
+ * The files joined to messages (docs/DATA.md, « Import »): text read once
  * when it is joined, kept with its session (AttachedFileEntity).
  *
  * - attach: `session_id`, `name`, `mime_type`, `content`: the file kept; its `id` and `line_count`.
@@ -21,7 +21,7 @@ import java.util.UUID
  *   file's name, type, size and line count. Without them, the whole file.
  * - delete: `id`: a file taken off the composer before its message went.
  *
- * And the images (docs/design/message-images.md, docs/design/image-field.md), a reduced file each
+ * And the images (docs/AI.md, « Images », and docs/DATA.md, « IMAGE »), a reduced file each
  * (Images), described by a row (ImageEntity):
  * - attach_image: `session_id`, `uri` (the photo taken or picked): the image prepared and kept
  *   with the session, its file written before its row; its `id`, `width`, `height`,

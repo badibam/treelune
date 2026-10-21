@@ -17,7 +17,7 @@ import app.treelune.core.utils.LogManager
 import org.json.JSONObject
 
 /**
- * A deck's operations, for the screen and the AI alike (docs/design/flashcards.md, « Les opérations »):
+ * A deck's operations, for the screen and the AI alike (docs/TOOLS.md, « Flashcards »):
  * - due: `group`, `direction`, both optional — the cards to offer now (FlashcardsDue), each with
  *   its faces, the values of its line's fields
  * - counts: the due and new cards of the whole deck and of each group (its value and its label),

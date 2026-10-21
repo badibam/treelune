@@ -24,7 +24,7 @@ import app.treelune.core.utils.JsonUtils
 import org.json.JSONObject
 
 /**
- * The operations of a goal's attempts (docs/design/missing-tools.md, « Objectif »), for the screen
+ * The operations of a goal's attempts (docs/TOOLS.md, « Goal »), for the screen
  * and the AI alike:
  * - evaluate: `id` — each criterion's value and whether it is met, each sub-goal's, the verdict so
  *   far; a locked attempt gives the judgement frozen when it was validated
@@ -37,7 +37,7 @@ import org.json.JSONObject
  *
  * An attempt still open follows the goal's current definition; a locked one keeps the copy it was
  * judged by, and so does a reopened one: reopening judges it again by the rules it had, never by
- * the goal's current ones (docs/design/config-change.md).
+ * the goal's current ones (docs/DATA.md, « Config change »).
  */
 class GoalService(private val context: Context) : ExecutableService {
 

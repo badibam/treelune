@@ -51,7 +51,7 @@ import org.json.JSONObject
 data class AttemptRow(val id: String, val start: Long, val status: String, val periodEnd: Long?, val validatedBy: String?)
 
 /**
- * A goal's screen (docs/design/missing-tools.md, « Objectif »), in two tabs, always there, the
+ * A goal's screen (docs/TOOLS.md, « Goal »), in two tabs, always there, the
  * first open: « In progress », its label counting the attempts waiting to be validated, lists them
  * oldest first, then the attempt running, its criteria by sub-goal, each value against its
  * condition, entered where it is entered, the count against what is asked, the time left and

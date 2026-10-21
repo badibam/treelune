@@ -1,5 +1,5 @@
 {
-  "_about": "The Guide's chapters (docs/design/user-journey.md), in their order: the journey first, then the reference. Their texts are strings of core/strings/sources/guide.xml, named after the chapter and the step (guide_<id>_title, guide_<id>_intro, guide_<id>_outro, guide_<id>_<n>_goal, guide_<id>_<n>_text). A step goes to a place (go), waits for an operation through the dispatcher (do), or is read (read, then Next, once at its place when it has one). A place's address may name what an earlier step kept: {zone}. A tool type's chapter is added in the tools' part from the tool's own strings. scripts/check_guide.py reads this file against the code.",
+  "_about": "The Guide's chapters (docs/GUIDE.md), in their order: the journey first, then the reference. Their texts are strings of core/strings/sources/guide.xml, named after the chapter and the step (guide_<id>_title, guide_<id>_intro, guide_<id>_outro, guide_<id>_<n>_goal, guide_<id>_<n>_text). A step goes to a place (go), waits for an operation through the dispatcher (do), or is read (read, then Next, once at its place when it has one). A place's address may name what an earlier step kept: {zone}. A tool type's chapter is added in the tools' part from the tool's own strings. scripts/check_guide.py reads this file against the code.",
   "chapters": [
     {
       "id": "first_steps",

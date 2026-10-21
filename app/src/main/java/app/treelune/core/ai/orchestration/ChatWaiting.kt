@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * The chat as a source of what waits (docs/design/waiting-sources.md): the active chat waits while
+ * The chat as a source of what waits (docs/BRICKS.md, « Waiting »): the active chat waits while
  * an AI message is newer than the moment it was last shown on screen (seen_at). Its mark is on the
  * chat's floating button (WaitingSource.CHAT); showing the chat ([ChatSeen]) makes it seen.
  */

@@ -61,7 +61,7 @@ import org.json.JSONObject
 internal enum class AgendaView { UPCOMING, DAY, WEEK, MONTH }
 
 /**
- * The screen of a calendar (docs/design/agenda-tool.md, « L'écran »): the view chosen at the top,
+ * The screen of a calendar (docs/TOOLS.md, « Agenda »): the view chosen at the top,
  * « Upcoming » first, then a day, a week or a month with their arrows and their calendar; the
  * events grouped by day, each line its time or « All day », its name, its duration and the
  * calendar's fields; the removed occurrences of the period folded at the bottom. « + » makes an

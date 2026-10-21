@@ -31,7 +31,7 @@ import java.nio.charset.CodingErrorAction
 private val TEXT_TYPES = arrayOf("text/*", "application/csv", "application/vnd.ms-excel", "application/json")
 
 /**
- * The FILE enrichment's dialog (docs/design/missing-tools.md, « L'import »). A new one opens the
+ * The FILE enrichment's dialog (docs/DATA.md, « Import »). A new one opens the
  * phone's file picker; the file picked is read once and kept by the files service with the
  * session, so only its id is held here. Then what will go: its name, type, size, line count and
  * first lines, and « Include it whole », ticked. Cancelling a file just joined deletes it;

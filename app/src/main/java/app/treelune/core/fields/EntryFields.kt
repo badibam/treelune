@@ -41,7 +41,7 @@ data class FixedField(
  * @property filterable Whether it is offered as a filter: read yes, a manual position no
  * @property bookkeeping A note the app keeps so as not to do a thing twice (a reminder marked
  *   sent): out of the history of writes, which never copies it and leaves it as it is when it
- *   undoes a step (docs/design/undo-history.md)
+ *   undoes a step (docs/DATA.md, « History of writes »)
  */
 data class StateField(
     val definition: FieldDefinition,
@@ -74,7 +74,7 @@ data class EntryFields(
 
 /**
  * What an entry starts as, for a tool type whose entries live by a status in their state
- * (docs/design/entry-start-state.md): whoever creates one gives its status, among [statuses], and
+ * (docs/DATA.md, « Fields and entries »): whoever creates one gives its status, among [statuses], and
  * the tool type sets the whole state from it with [state]. What the app writes itself keeps the
  * state it gives.
  *
@@ -114,7 +114,7 @@ class EntryStart(
 
         /**
          * The state of an entry created with [sent] as its state, in a tool type that declares
-         * [start] (docs/design/entry-start-state.md). Without a declaration, the state goes as it
+         * [start] (docs/DATA.md, « Fields and entries »). Without a declaration, the state goes as it
          * came. With one, an entry with no status is refused whoever writes it, nothing would ever
          * pick it up; what the app writes itself ([byTheApp]: a scheduler, the tool's own
          * operation, the demo) keeps the state it gives; any other creator, a screen, the AI, a

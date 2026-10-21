@@ -10,7 +10,7 @@ import org.junit.Test
 
 /**
  * The Swiss palettes are read, one per mode, and every text they draw is legible where it is
- * drawn at every hue shift (docs/design/swiss-theme.md): at one OKLCH lightness, the measured
+ * drawn at every hue shift (docs/themes/swiss.md): at one OKLCH lightness, the measured
  * contrast changes with the hue, so the red is held at each step of 15 degrees, as its bench
  * measures it. A palette retouched by eye can otherwise lose a contrast nobody notices until it
  * is on the phone.

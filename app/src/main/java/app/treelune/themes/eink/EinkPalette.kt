@@ -20,7 +20,7 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 
 /*
- * The e-reader theme's palettes and patterns (docs/design/eink-theme.md): pure black and white,
+ * The e-reader theme's palettes and patterns (docs/themes/eink.md): pure black and white,
  * no grey anywhere. A light palette, black ink on white, and a dark one, its reverse; nothing to
  * set, so no palettes.json, and no hue to turn. Whatever the core gives in colour becomes a
  * pattern of the ink on the ground: a tag's colour, an icon's, a chart's series; a quantity (a

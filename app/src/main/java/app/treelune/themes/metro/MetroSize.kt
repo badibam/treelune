@@ -22,7 +22,7 @@ import app.treelune.R
 import app.treelune.core.themes.CurrentTheme
 
 /**
- * The metro theme's sizes (docs/design/metro-theme.md): every length and every text of the
+ * The metro theme's sizes (docs/themes/metro.md): every length and every text of the
  * mockup, on a pitch of 8 dp, times the factor of the size step the user chose
  * (CurrentTheme.sizeStep), but for the spaces between pieces, the margin and the grid's gaps,
  * which stay in plain dp (the theme's spacing). Texts are in sp, so Android's text size enlarges

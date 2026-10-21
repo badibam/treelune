@@ -5,7 +5,7 @@ import app.treelune.core.database.entities.AppSettingCategories
 import org.json.JSONObject
 
 /**
- * The history of writes (docs/design/undo-history.md): its two tables, empty, the history beginning
+ * The history of writes (docs/DATA.md, « History of writes »): its two tables, empty, the history beginning
  * with the first write after the update; and its depth, joining the data settings: 30 days, 500 MB.
  * A backup carries no history: its import gains the depth alone (dataSettings, through
  * JsonTransformers.transformAppConfig).

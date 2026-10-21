@@ -12,7 +12,7 @@ import java.net.URLEncoder
 import java.util.Base64
 
 /**
- * The authorization and the addresses of the MCP server (docs/design/mcp-server.md, « L'autorisation »),
+ * The authorization and the addresses of the MCP server (docs/EXTERNAL_ACCESS.md, « The authorisation »),
  * as a client meets them through the relay, with the phone's screen played by the test.
  */
 class McpHttpTest {

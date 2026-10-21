@@ -73,7 +73,7 @@ object ToolConfigSettings {
     /** The setting that says whether the user's fields show their names. */
     const val SHOW_FIELD_LABELS = "show_field_labels"
 
-    /** Whether the tool's data is protected: the AI asks before writing its entries (docs/design/validation.md). */
+    /** Whether the tool's data is protected: the AI asks before writing its entries (docs/AI.md, « Levels »). */
     const val VALIDATE_DATA = "validate_data"
 
     /**

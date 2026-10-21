@@ -3,7 +3,7 @@ package app.treelune.tools.sequence
 import org.json.JSONArray
 import org.json.JSONObject
 
-/** How a step ends (docs/design/sequence-tool.md). */
+/** How a step ends (docs/TOOLS.md, « Session (Sequence) »). */
 enum class StepEnd(val key: String) {
     /** The timer counts down, then the next step comes by itself. */
     TIMED("timed"),

@@ -37,7 +37,7 @@ import kotlin.math.roundToInt
 import kotlin.math.sin
 
 /**
- * Lucide cut with scissors (docs/design/paper-theme.md, line 9), as the icon bench cuts it
+ * Lucide cut with scissors (docs/themes/paper.md, line 9), as the icon bench cuts it
  * (themes/paper/bench/scissors.js), with the same numbers: each stroke the core reads
  * (IconStrokes) cut again in straight facets, a point kept wherever the stroke truly turns and
  * between two of them one every facet's length of the grid of 24; laid as a strip of its width,

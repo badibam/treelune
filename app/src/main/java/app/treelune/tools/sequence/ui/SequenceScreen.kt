@@ -123,7 +123,7 @@ internal fun stepClock(run: SequenceRun, now: Long): String {
 internal fun roundsText(step: PlannedStep): String = SequenceSteps.roundsOf(step).orEmpty()
 
 /**
- * A session's screen (docs/design/sequence-tool.md, « L'écran »).
+ * A session's screen (docs/TOOLS.md, « Session (Sequence) »).
  *
  * Without a session running: « Start » (saying since when a planned one waited) and « Note after
  * the fact », the planned sessions with « Ignore all », the run read one line per step, the blocks

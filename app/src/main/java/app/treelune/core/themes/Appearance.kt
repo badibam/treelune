@@ -22,7 +22,7 @@ enum class AppearanceMode { LIGHT, DARK, SYSTEM }
  * @property oneColumn The grids shown in one column, a half of the screen taking its whole width
  *   (Grid.oneColumn), for a narrow screen; the places stored stay those of the grid
  * @property textureIntensity How strongly the motifs of tiles and page headers show
- *   (docs/design/tool-texture.md), for the whole app
+ *   (docs/THEMES.md, « What a theme is in the app »), for the whole app
  * @property homeTitle The app's name and mark shown on the home screen under its buttons, which
  *   stay without it
  */

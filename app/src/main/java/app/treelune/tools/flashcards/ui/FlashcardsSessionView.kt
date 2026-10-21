@@ -40,7 +40,7 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 
 /**
- * A session under way (docs/design/flashcards.md, « La séance », « La face d'une carte »): the card's
+ * A session under way (docs/TOOLS.md, « Flashcards », « La séance », « La face d'une carte »): the card's
  * front; touched, its back under a line, the front kept, and the four ratings under it. Each rating
  * is written at once (flashcards.review); undoing goes back to the card before, its back hidden, its
  * rating deleted. Leaving stops the session where it stands: a failed card not passed again stays due.

@@ -87,6 +87,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.treelune.R
 import app.treelune.core.ai.data.MessageSender
 import app.treelune.core.icons.IconSource
 import app.treelune.core.icons.Icons
@@ -132,7 +133,7 @@ import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
- * The metro theme (docs/design/metro-theme.md): the app as a metro's signage. Each tool is a line
+ * The metro theme (docs/themes/metro.md): the app as a metro's signage. Each tool is a line
  * in its icon's colour: a white panel with corners of 4 dp under a thick line of that colour, its
  * icon in a roundel of it, what is drawn inside the tile (a gauge, a checked box, a chart) in it
  * too. A page's header is a night-blue band, its title in white, as a station's name on its sign;
@@ -175,8 +176,17 @@ object MetroTheme : ThemeContract {
     @Composable
     override fun gridRowGapPx(): Int = with(LocalDensity.current) { 12f.dp.roundToPx() }
 
-    /** Silent: the theme's sounds are chosen apart (docs/THEMES.md, The sounds). */
-    override fun sound(signal: UISignal): Int? = null
+    override fun sound(signal: UISignal): Int? = when (signal) {
+        UISignal.CONFIRM -> R.raw.metro_confirm
+        UISignal.ENTER -> R.raw.metro_enter
+        UISignal.BACK -> R.raw.metro_back
+        UISignal.OPEN -> R.raw.metro_open
+        UISignal.CLOSE -> R.raw.metro_close
+        UISignal.TOGGLE -> R.raw.metro_toggle
+        UISignal.STEP -> R.raw.metro_step
+        UISignal.SCROLL_END -> R.raw.metro_scroll_end
+        UISignal.REFUSE -> R.raw.metro_refuse
+    }
 
     /** A tile's name centered in the width its icon leaves. */
     override fun tileNameAlign(): TextAlign = TextAlign.Center
@@ -1693,7 +1703,7 @@ object MetroTheme : ThemeContract {
 
 
     /**
-     * How the motifs are laid (docs/design/tool-texture.md): a cell's unit a dp at the size step,
+     * How the motifs are laid (docs/THEMES.md, « What a theme is in the app »): a cell's unit a dp at the size step,
      * smoothed, so a motif grows with everything else; an ICON motif's icon sixteen units, sixteen
      * around it.
      */

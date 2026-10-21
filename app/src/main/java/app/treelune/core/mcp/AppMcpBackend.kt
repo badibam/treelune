@@ -25,7 +25,7 @@ import java.util.UUID
  * The app behind its MCP server: each command of AICommands is a tool named by its type in lower
  * case, described by its text and typed by its declaration, and runs the way the built-in AI's
  * does — AICommandProcessor, then CommandExecutor — as Source.EXTERNAL, with no session: no schema
- * is held back until sent. A write the protections guard (docs/design/validation.md) waits for the
+ * is held back until sent. A write the protections guard (docs/AI.md, « Levels ») waits for the
  * user's approval, asked by a notification (McpApprovals); the client may ask before its calls too.
  * Its answer is the text the built-in AI would read, held to the chat's data threshold: an
  * action's results cut where the room ends (withinChars), the action being done; a read whole,

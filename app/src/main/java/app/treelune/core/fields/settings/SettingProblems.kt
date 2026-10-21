@@ -8,7 +8,7 @@ import org.json.JSONObject
 
 /**
  * What the form judges alone in an object of settings, without the service
- * (docs/design/settings-pages.md, « Les problèmes enfouis »): a required setting left empty, a
+ * (docs/DATA.md, « Fields and entries »): a required setting left empty, a
  * number out of its bounds, a list under its fewest elements, a condition or a term half written.
  * The line of a page says it, and so does each line above it up to the root, since a page holds the
  * pages under it. A refusal of the service's own (a chart's rule) stays its message on saving.

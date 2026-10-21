@@ -14,7 +14,7 @@ data class Zone(
     val icon_name: String? = null,
     /** Its icon's colour, a name of IconColor.NAMES; null for a neutral icon. */
     val icon_color: String? = null,
-    /** The motif of its tile and its page's header, a name of Texture.NAMES; null for none (docs/design/tool-texture.md). */
+    /** The motif of its tile and its page's header, a name of Texture.NAMES; null for none (docs/THEMES.md, « What a theme is in the app »). */
     val texture: String? = null,
     val active: Boolean = true,
     /** How its tile shows on the home screen: ICON, MINIMAL, LINE or CONDENSED (ZonePositions.MODES). */
@@ -40,12 +40,12 @@ data class Zone(
     val group: String? = null,
 
     /**
-     * Whether the zone's content is protected (docs/design/validation.md): the AI asks before it
+     * Whether the zone's content is protected (docs/AI.md, « Levels »): the AI asks before it
      * creates, changes or deletes a tool of it, its tool groups, its automations or its variables.
      * Changed by a person alone (Protections).
      */
     val validate: Boolean = false,
 
-    /** The identity its tile opens a conversation with (docs/design/incarnations.md); null for none. */
+    /** The identity its tile opens a conversation with (docs/AI.md, « Identities »); null for none. */
     val identity_id: String? = null
 )

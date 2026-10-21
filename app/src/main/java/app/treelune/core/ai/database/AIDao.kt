@@ -57,12 +57,12 @@ interface AIDao {
     suspend fun updateSessionState(sessionId: String, phase: String, totalRoundtrips: Int, lastEventTime: Long,
         lastUserInteractionTime: Long, lastActivity: Long, isActive: Boolean, endReason: String?)
 
-    /** The session seen by the user at [at] (docs/design/waiting-sources.md). */
+    /** The session seen by the user at [at] (docs/BRICKS.md, « Waiting »). */
     @Query("UPDATE ai_sessions SET seen_at = :at WHERE id = :sessionId")
     suspend fun updateSeenAt(sessionId: String, at: Long?)
 
     /**
-     * A routine's runs that wait for the user (docs/design/waiting-sources.md): over for good,
+     * A routine's runs that wait for the user (docs/AI.md, « Summary of the run »): over for good,
      * not yet seen. AISessionEntity.runWaits says the same of one run.
      */
     @Query("""

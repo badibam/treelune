@@ -10,7 +10,7 @@ import app.treelune.core.utils.DateUtils
 import org.json.JSONObject
 
 /**
- * Undoing a step, and redoing it (docs/design/undo-history.md, « Annuler et rétablir »).
+ * Undoing a step, and redoing it (docs/DATA.md, « History of writes »).
  *
  * An undo puts each row the step touched back as it was before it; a redo, as the step left it.
  * Neither is a step: each changes the state of the step it acts on, and writes its rows past the

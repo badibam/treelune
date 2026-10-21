@@ -3,7 +3,7 @@ package app.treelune.core.markup
 /** A text with its selection, [start] to [end]; one place, the cursor, when they are equal. */
 data class MarkedInput(val text: String, val start: Int, val end: Int)
 
-/** The two lists the input sets on its lines (docs/design/text-formatting.md). */
+/** The two lists the input sets on its lines (docs/UI.md, « Long texts »). */
 enum class ListKind { BULLET, NUMBERED }
 
 /** The two emphases the selection bar puts around a selection, by their mark. */

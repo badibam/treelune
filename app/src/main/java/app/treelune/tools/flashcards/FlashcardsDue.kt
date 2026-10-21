@@ -1,8 +1,7 @@
 package app.treelune.tools.flashcards
 
 /**
- * The one calculation of a deck's cards to offer (docs/design/flashcards.md, « Le calcul des cartes
- * à proposer »), whence the tile, the page, the launch window and the session all come: at an
+ * The one calculation of a deck's cards to offer (docs/TOOLS.md, « Flashcards »), whence the tile, the page, the launch window and the session all come: at an
  * instant, from the source's lines, the last review of each card and the deck's config.
  *
  * - Due: a card whose last review falls due before today ends, or was failed — a failed card not

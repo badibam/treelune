@@ -30,7 +30,7 @@ import app.treelune.tools.chart.ChartToolType
 import org.json.JSONObject
 
 /**
- * A chart's screen (docs/design/missing-tools.md, « Graphique »): the chart, its legend under it,
+ * A chart's screen (docs/TOOLS.md, « Chart »): the chart, its legend under it,
  * and under that what a touch found — every column of the row, or why a value is missing and the
  * entries to correct. No period is set here: a chart is made for one need, its period is its
  * config's, relative to the moment it is shown.

@@ -444,7 +444,7 @@ object PromptManager {
     }
 
     /**
-     * Level 2: the data of the tools marked always_send, read now (docs/design/always-send.md).
+     * Level 2: the data of the tools marked always_send, read now (docs/AI.md, « 2 levels of context »).
      * Above their threshold they go only in a CHAT whose user accepted them; otherwise (refused,
      * an AUTOMATION, an outside AI, or not asked yet) the AI is given their list to read them.
      *

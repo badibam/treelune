@@ -12,7 +12,7 @@ enum class Met { YES, NO, UNKNOWN }
 
 /**
  * One criterion: a condition (the Condition brick, docs/BRICKS.md) and, when it is entered, the
- * value it declares (docs/design/missing-tools.md, « Objectif »). A read criterion's condition is
+ * value it declares (docs/TOOLS.md, « Goal »). A read criterion's condition is
  * judged once, its sides terms read at the end of the attempt; an entered one's is put on the
  * attempt, its left side the value entered, stored under [key].
  *
@@ -110,7 +110,7 @@ data class Judgement(
 )
 
 /**
- * A goal judged by counting (docs/design/missing-tools.md, « Objectif »): every node is met or
+ * A goal judged by counting (docs/TOOLS.md, « Goal »): every node is met or
  * not. A node with children asks at least N of them, all by default, and each essential one: an
  * essential child not met fails its parent, and it alone. A node with children still unknown is
  * unknown until what is known settles it.

@@ -13,7 +13,7 @@ import java.io.File
 import java.util.UUID
 
 /**
- * An entry's images kept in step with its IMAGE fields at each write (docs/design/image-field.md):
+ * An entry's images kept in step with its IMAGE fields at each write (docs/DATA.md, « IMAGE »):
  * the ids its fields hold after the write are compared with the images the entry owns.
  *
  * - An id the entry owns stays.

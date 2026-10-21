@@ -7,7 +7,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
 /**
- * The app's Tailscale node, in Go (app/src/main/go, docs/design/funnel-access.md), through JNI.
+ * The app's Tailscale node, in Go (app/src/main/go, docs/EXTERNAL_ACCESS.md, « The Tailscale node »), through JNI.
  * The library exists for arm64 only: [available] says whether it loaded, and nothing else here
  * may be called when it did not.
  */

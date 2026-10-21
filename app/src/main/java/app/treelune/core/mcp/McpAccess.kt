@@ -27,11 +27,11 @@ import java.io.File
 import java.security.SecureRandom
 
 /**
- * The external access, for the whole app (docs/design/mcp-server.md, « L'accès ouvert »): opened
+ * The external access, for the whole app (docs/EXTERNAL_ACCESS.md, « The access open »): opened
  * by hand, it runs the relay's loop in a foreground service (McpAccessService) until half an hour
  * passes without a call, the person closes it, or the relay refuses the app. The requests come
  * through the app's own Tailscale node or through a relay, as the access mode says
- * (docs/design/funnel-access.md). It holds the OAuth server, whose request waiting for its code
+ * (docs/EXTERNAL_ACCESS.md, « The Tailscale node »). It holds the OAuth server, whose request waiting for its code
  * the screens show (McpApprovalDialog).
  */
 object McpAccess {

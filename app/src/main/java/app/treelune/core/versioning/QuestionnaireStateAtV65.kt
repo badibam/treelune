@@ -4,7 +4,7 @@ import org.json.JSONObject
 
 /**
  * Brings a questionnaire's entries to their v65 form, where every entry has its status
- * (docs/design/entry-start-state.md). One written with no state, by the AI passing it in a chat
+ * (docs/DATA.md, « Fields and entries »). One written with no state, by the AI passing it in a chat
  * or by an import, was shown filled by the questionnaire's screen alone: it now says so in its
  * state, for the tile and the filters too. Its moment of filling is not known, and stays unset.
  *

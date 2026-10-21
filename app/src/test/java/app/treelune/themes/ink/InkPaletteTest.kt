@@ -10,7 +10,7 @@ import org.junit.Test
 
 /**
  * The ink palettes are read, one per mode, and every text they draw is legible where it is
- * drawn at every hue shift (docs/design/ink-theme.md), as its bench measures it: on the paper,
+ * drawn at every hue shift (docs/themes/ink.md), as its bench measures it: on the paper,
  * on the washes a text stands on (a tile's heart, a card, a track under a disabled button's word)
  * and on what is filled (a main button, a toast). At one OKLCH lightness the measured contrast
  * changes with the hue, so each is held at every step of 15 degrees.

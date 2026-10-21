@@ -29,7 +29,7 @@ import app.treelune.core.ui.*
 import kotlinx.coroutines.launch
 
 /**
- * The input of an IMAGE field (docs/design/image-field.md): its images in a row, each with
+ * The input of an IMAGE field (docs/DATA.md, « IMAGE »): its images in a row, each with
  * buttons to move it left or right and to take it off, and the phone's camera and photo picker,
  * as in the composer, while the field holds fewer than its max. A photo added is prepared at once
  * (files.prepare_image), its file set aside until the entry is written; an image taken off goes

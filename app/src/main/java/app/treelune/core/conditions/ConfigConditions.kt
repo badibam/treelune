@@ -9,7 +9,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * The conditions a config holds, found through its declaration (docs/design/typed-conditions.md):
+ * The conditions a config holds, found through its declaration (docs/BRICKS.md, « Condition »):
  * the walk follows the SettingNodes along with the value, and hands each condition with what its
  * sides may name. A tool type declaring conditions has them found without writing anything.
  *

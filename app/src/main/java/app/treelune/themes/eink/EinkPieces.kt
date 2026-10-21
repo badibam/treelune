@@ -21,7 +21,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 
 /*
- * The pieces every e-reader component is made of (docs/design/eink-theme.md): outlines and rules
+ * The pieces every e-reader component is made of (docs/themes/eink.md): outlines and rules
  * of whole pixels, never a rounding nor a soft shadow; nothing moves. Under the finger a piece
  * inverts at once, with no ripple; a window appears and leaves at once; a window and a lifted
  * piece stand on a full shadow of the ink, offset down and to the right.

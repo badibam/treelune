@@ -9,7 +9,7 @@ import org.json.JSONObject
  * The view of a schema handed to the model.
  *
  * The app stores instants and durations as milliseconds and speaks ISO 8601 to the model
- * (docs/design/date-boundary.md), so the two ends have different forms on purpose. A schema
+ * (docs/reference.md, the rule of dates and durations), so the two ends have different forms on purpose. A schema
  * describes the form at its own end: the stored one says a number, and this one says the string
  * the model actually receives and is expected to send back. ModelValues converts the values the
  * same way, from the same marks.

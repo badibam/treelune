@@ -103,7 +103,7 @@ object CommandTransformer {
                         ExecutableCommand(resource = "files", operation = "show_images", params = mapOf("ids" to ids))
                     }
                     "IMPORT_PLAN" -> transformImportPlanCommand(command)
-                    // The identities (docs/design/incarnations.md): a null, an id missing, is said by the loop as invalid params
+                    // The identities (docs/AI.md, « Identities »): a null, an id missing, is said by the loop as invalid params
                     "IDENTITIES" -> ExecutableCommand(resource = "identities", operation = "list", params = emptyMap())
                     "IDENTITY" -> (command.params["id"] as? String)?.let { id ->
                         ExecutableCommand(resource = "identities", operation = "read", params = buildMap {
@@ -227,7 +227,7 @@ object CommandTransformer {
         })
     }
 
-    /** The steps of the history of writes (docs/design/undo-history.md), of a tool, a zone, a period. */
+    /** The steps of the history of writes (docs/DATA.md, « History of writes »), of a tool, a zone, a period. */
     private fun transformHistoryCommand(command: DataCommand, s: StringsContext, reference: Long): ExecutableCommand {
         val resolver = TimeResolver.at(reference)
         @Suppress("UNCHECKED_CAST")

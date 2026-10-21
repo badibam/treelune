@@ -2,5 +2,5 @@
 <resources>
     <string name="name">Suisse</string>
     <!-- What the theme looks like, said to the user: the README -->
-    <string name="tagline">Comme une affiche suisse : une grille stricte, noir et blanc et un seul rouge, les chiffres en grand</string>
+    <string name="tagline">Comme une affiche suisse : une grille stricte, noir et blanc et un seul rouge, les chiffres en grand, ses propres sons</string>
 </resources>

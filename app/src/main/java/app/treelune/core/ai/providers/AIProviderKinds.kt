@@ -4,7 +4,7 @@ import android.content.Context
 import app.treelune.core.utils.LogManager
 
 /**
- * The kinds of AI provider the app knows (docs/design/ai-providers.md): the code that speaks to
+ * The kinds of AI provider the app knows (docs/AI.md, « Provider abstraction »): the code that speaks to
  * one API. The providers themselves are the user's, created of a kind and stored with it
  * (AIProviderConfigService).
  */

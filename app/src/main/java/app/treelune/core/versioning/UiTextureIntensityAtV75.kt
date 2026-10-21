@@ -6,7 +6,7 @@ import org.json.JSONObject
 
 /**
  * Brings the interface settings to their v75 form: the textures' intensity joins them, subtle
- * (docs/design/tool-texture.md). No thing has a texture yet, so nothing shows differently.
+ * (docs/THEMES.md, « What a theme is in the app »). No thing has a texture yet, so nothing shows differently.
  *
  * Shared by the database migration and the backup import (JsonTransformers.transformAppConfig).
  */

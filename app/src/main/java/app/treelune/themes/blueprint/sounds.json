@@ -1,0 +1,104 @@
+{
+  "_about": "The blueprint theme's interface sounds, one per UISignal chosen, made by scripts/theme_sounds.py from sounds-choice.json beside this file (docs/THEMES.md); their source and licence.",
+  "sounds": {
+    "res/raw/blueprint_confirm.flac": {
+      "made": "sox trim 0.39 0.42",
+      "from": [
+        {
+          "title": "BigSoundBank · pencil_3233",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/pencil-2-s3233.html"
+        }
+      ]
+    },
+    "res/raw/blueprint_enter.flac": {
+      "made": "sox trim 6.05 0.7",
+      "from": [
+        {
+          "title": "BigSoundBank · page_1250",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/news-paper-pages-s1250.html"
+        }
+      ]
+    },
+    "res/raw/blueprint_back.flac": {
+      "made": "sox trim 17.5 0.65",
+      "from": [
+        {
+          "title": "BigSoundBank · page_1250",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/news-paper-pages-s1250.html"
+        }
+      ]
+    },
+    "res/raw/blueprint_open.flac": {
+      "made": "sox trim 3.91 0.25",
+      "from": [
+        {
+          "title": "BigSoundBank · sharpener_0051",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/sharpener-s0051.html"
+        }
+      ]
+    },
+    "res/raw/blueprint_close.flac": {
+      "made": "sox trim 0.23 0.24",
+      "from": [
+        {
+          "title": "BigSoundBank · sharpener_0051",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/sharpener-s0051.html"
+        }
+      ]
+    },
+    "res/raw/blueprint_toggle.flac": {
+      "made": "sox trim 21.32 0.46",
+      "from": [
+        {
+          "title": "BigSoundBank · typewriter_2836",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/typewriter-3-s2836.html"
+        }
+      ]
+    },
+    "res/raw/blueprint_step.flac": {
+      "made": "sox trim 6.74 0.2",
+      "from": [
+        {
+          "title": "BigSoundBank · sharpener_0051",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/sharpener-s0051.html"
+        }
+      ]
+    },
+    "res/raw/blueprint_scroll_end.flac": {
+      "made": "sox trim 10.45 0.18",
+      "from": [
+        {
+          "title": "BigSoundBank · page_1250",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/news-paper-pages-s1250.html"
+        }
+      ]
+    },
+    "res/raw/blueprint_refuse.flac": {
+      "made": "sox trim 0.05 0.8",
+      "from": [
+        {
+          "title": "Freesound · ruler_817401",
+          "author": "Chaos-Kid",
+          "licence": "CC0 1.0",
+          "page": "https://freesound.org/people/Chaos-Kid/sounds/817401/"
+        }
+      ]
+    }
+  }
+}

@@ -4,7 +4,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * The ids a value holds, read without knowing its form (docs/design/share.md, « Les liens »): an
+ * The ids a value holds, read without knowing its form (docs/DATA.md, « A part of the app »): an
  * id stands as a whole word, a run of `[A-Za-z0-9_-]`, anywhere in a text. The value is walked as
  * JSON, and a text that is itself a JSON object or list (a config, an entry's fields, kept in a
  * column as a string) is walked in turn, so that no escape of a level (`\n` before an id) glues

@@ -2315,7 +2315,7 @@
     <string name="time_short_hours">%1$d h</string>
     <string name="time_short_days">%1$d j</string>
 
-    <!-- Identities (docs/design/incarnations.md) -->
+    <!-- Identities (docs/AI.md, « Identities ») -->
     <string name="identity_error_param">Identité : le paramètre %1$s est obligatoire</string>
     <string name="identity_error_not_found">Aucune identité n'a l'id %1$s</string>
     <string name="identity_error_language">La langue %1$s n'est pas une de celles de %2$s (%3$s)</string>
@@ -2390,7 +2390,7 @@
     <string name="identity_delete_confirm">Supprimer l'identité « %1$s » ?</string>
     <string name="identity_saved">Enregistré</string>
 
-    <!-- L'historique des écritures (docs/design/undo-history.md) -->
+    <!-- L'historique des écritures (docs/DATA.md, « History of writes ») -->
     <string name="history_error_step_not_found">Changement introuvable dans l'historique : %1$s</string>
     <string name="history_error_not_a_step">Ce que l'app écrit d'elle-même ne s'annule pas</string>
     <string name="history_error_already_undone">Ce changement est déjà annulé</string>

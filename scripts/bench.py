@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The bench (docs/design/local-models.md): free models played on the app's scenarios.
+"""The bench (docs/AI.md, « Free models and the bench »): free models played on the app's scenarios.
 
 The app plays each scenario itself on the emulator (app/src/androidTest/.../BenchScenario.kt):
 the base emptied, the OpenAI-compatible provider set to OpenRouter and the model, the demo
@@ -525,7 +525,7 @@ def model_dir(model):
     return model.replace("/", "__")
 
 
-# Campaign 1's models, one per class of machine (docs/design/local-models.md)
+# Campaign 1's models, one per class of machine (docs/AI.md, « Free models and the bench »)
 CAMPAIGN_MODELS = (
     ("téléphone", "mistralai/ministral-3b-2512"),
     ("portable 32 Go", "qwen/qwen3.6-35b-a3b"),

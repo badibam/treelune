@@ -2,5 +2,5 @@
 <resources>
     <string name="name">Encre et lavis</string>
     <!-- What the theme looks like, said to the user: the README -->
-    <string name="tagline">Comme un lavis à l'encre : un papier crème, l'encre noire et un seul rouge de sceau, beaucoup de vide</string>
+    <string name="tagline">Comme un lavis à l'encre : un papier crème, l'encre noire et un seul rouge de sceau, beaucoup de vide, ses propres sons</string>
 </resources>

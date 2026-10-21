@@ -9,7 +9,7 @@ import org.junit.Test
 
 /**
  * The metro palettes are read, one per mode, and every text they draw is legible where it is
- * drawn at every hue shift (docs/design/metro-theme.md): at one OKLCH lightness, the measured
+ * drawn at every hue shift (docs/themes/metro.md): at one OKLCH lightness, the measured
  * contrast changes with the hue, so the night blue and the red are held at each step of 15
  * degrees, as the bench measures them. What is written on a line (an icon in its roundel, a tag's
  * word) is white or the deep night blue, whichever reads better; a text there holds 4.5 too.

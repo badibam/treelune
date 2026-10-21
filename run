@@ -739,7 +739,7 @@ def task_clean():
 
 
 def task_bench(*args):
-    """Free models played on the app's scenarios, on the emulator (docs/design/local-models.md).
+    """Free models played on the app's scenarios, on the emulator (docs/AI.md, « Free models and the bench »).
 
     Bare, it asks which models and levels and shows the cost before playing; with arguments,
     they go to scripts/bench.py as they are.

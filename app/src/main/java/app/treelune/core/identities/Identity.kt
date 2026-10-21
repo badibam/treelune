@@ -78,7 +78,7 @@ data class IdentityLanguage(
 }
 
 /**
- * An identity the app's AI may speak as (docs/design/incarnations.md): an object of the app, which
+ * An identity the app's AI may speak as (docs/AI.md, « Identities »): an object of the app, which
  * an identity file fills (docs/IDENTITY_FILE.md) and which is edited by hand or by the AI.
  *
  * @property id The file's for an imported one, the app's own for one written here

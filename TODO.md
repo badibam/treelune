@@ -13,24 +13,17 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs
 
-- La démo nomme chaque repas par son moment, que sa valeur dit aussi : la tuile de Repas montre « Dîner Dîner ».
 - La fin d'un événement de l'Agenda est son début plus sa durée en temps écoulé : un événement de plusieurs jours qui traverse un changement d'heure finit une heure avant ou après — l'ajouter sur le calendrier (`TimeResolver.after`, comme l'Objectif), la grille des jours et les séries lisant cette fin.
 - L'accès Tailscale dit son adresse « prête » dès que les serveurs de `ts.net` la publient, mais un client qui l'a cherchée pendant que l'accès était fermé garde « ce nom n'existe pas » jusqu'à 300 s (le TTL négatif de la zone) et reçoit un 502 (claude.ai le 2026-10-21) : sous « Adresse publiée », un compte à rebours jusqu'à « joignable de partout » (publication + le TTL lu dans le SOA de `ts.net`), passé à zéro dès qu'une requête arrive.
+- Une session de routine restée en `AWAITING_SESSION_CLOSURE` à la fermeture de l'app est close au démarrage (`AIStateRepository.initializeFromDb`) sans passer par `RunEnd` : son résumé n'est pas gardé, et elle attend quel que soit son réglage « Me signaler la fin ».
+- Le dialogue « la démo n'est pas installée » du Guide : le fermer sans choisir (retour, toucher à côté) saute les étapes de la démo, comme son bouton.
 
 ## À passer sur le téléphone
 
 Codé, jamais vu sur l'appareil.
 
-- La recette, `docs/design/device-checks.md` : chaque section dit quoi faire et quoi voir, une ligne vue en sort ; une section vidée, la spec qu'elle nomme s'élague, ses garanties devenant des tests.
-- Les specs que la recette ne nomme pas, à élaguer une fois leurs lignes passées : `missing-tools.md` (Champs RÉFÉRENCE, Variables, Données structurées, Objectif, Questionnaire, Graphique), `icon-colors.md`, `settings-pages.md` (Réglages et affichage), `message-images.md` (Chat IA, la ligne « Images »), `sequence-tool.md` (Séance), `entry-start-state.md`, `always-send.md`, `bug-report.md` (Mise à jour et démarrage), `validation.md` (Validation), `mcp-server.md` (Accès externe), `funnel-poc.md` avec `funnel-access.md`, `custom-fields-display.md` (Outils et saisie) ; `unified-fields.md` (Lecture seule pour l'IA), dont la section part dans `docs/DATA.md` ; `image-field.md`, sa propre section « À passer sur le téléphone », la migration 82 sur la release d'abord.
-- Les passes sur le téléphone de `docs/THEMES.md`, puis ce que la spec de chaque thème garde dans « Ce qui reste ouvert » :
-  - le rétro (`retro-theme.md`), vu le 2026-10-01 (écran d'une zone, palette pâle, marges reprises) : écran par écran, les graduations en pointillé de ses graphiques et le damier du mode d'édition de la grille compris ;
-  - le cosy (`cosy-theme.md`, maquettes liées dedans) : le banc des palettes d'abord, les icônes retracées (leur coût à l'ouverture d'une page, celles qui se bouchent à 24 dp), le bandeau des messages qui se distingue mal de ses cartes crème ;
-  - l'encre et lavis (`ink-theme.md`) : ce qui a changé le 2026-10-17 après la première passe : le lavis d'une tuile qui déborde et s'éteint à son bord, sa texture estompée avec lui, la carte en lavis au bord fondu (des marches dans le fondu ?), la gouache sous les icônes et les tags, les ronds peints à la main (boutons, case, sceaux), le coût d'ouverture d'une zone aux tuiles texturées ;
-  - le métro (`metro-theme.md`) ;
-  - le papier découpé (`paper-theme.md`) : les icônes découpées d'abord (leur coût, celles qui se bouchent) ;
-  - le plan d'architecte (`blueprint-theme.md`) : le débord des icônes d'abord ;
-  - la liseuse (`eink-theme.md`) : les trames d'abord (deux couleurs au pixel près, la discrète des textures), la bande d'encre et ses boutons d'abord dans « Ce qui reste ouvert ».
+- La recette, `docs/design/device-checks.md` : ce que seul le téléphone juge, une ligne vue en sort.
+- Les passes des thèmes sur le téléphone : ce que la spec de chaque thème garde dans « What stays open » (`docs/themes/<id>.md`), sa passe de `docs/THEMES.md` (« The pass on the phone ») en tête.
 
 ## Décidé, à coder
 
@@ -38,7 +31,9 @@ Codé, jamais vu sur l'appareil.
 
 ## À concevoir
 
-- Les events du cœur : quel premier usage — un événement de l'Agenda qui commence, une entrée écrite, une condition devenue vraie (l'Alerte) ? L'automation directe (le relevé, `docs/design/missing-tools.md`) attend la même brique.
+- Le Guide : les sujets d'Approfondissement suivants (formules et variables, conditions et filtres, champs et leur migration…), ce qui marque « fait » un chapitre sans étape à faire (ouvert, ou lu jusqu'au bout), et l'étape « demandez-lui son avis » de Brancher une IA, qui se lit au lieu d'attendre l'envoi : un message à l'IA ne passe pas par le dispatcher (`AIOrchestrator.sendMessage` le range lui-même).
+- Un contrôle « qui dépend de ça ? » avant de supprimer une chose (une condition, une variable, un pointeur qui la visent), écrit une fois, appelé par le service qui supprime et par l'annulation qui supprime une ligne.
+- Les events du cœur : quel premier usage — un événement de l'Agenda qui commence, une entrée écrite, une condition devenue vraie (l'Alerte) ? L'automation directe attend la même brique : sans IA, elle exécute elle-même ses commandes ; son premier usage, le relevé, garde une valeur telle qu'elle était (une variable `imc` écrite chaque semaine dans un Suivi), là où une variable se relit à tout jour passé avec les données d'aujourd'hui.
 - Des outils montrés sur la tuile d'une zone de l'accueil (le poids du jour sur « Santé ») : leur résumé ou un raccourci selon la place de la tuile — lesquels, dans quel ordre, un outil montré à deux endroits.
 - Des rythmes que la planification (`ScheduleConfig`, commune à tous les outils et aux routines) ne sait pas dire : « tous les N jours à partir d'une date », « une semaine sur deux », plusieurs jours d'un mois (« le 1er et le 15 »).
 - Une réponse coupée par la limite de longueur (`max_tokens` chez Claude et DeepSeek, un `status` incomplet chez OpenAI, `finish_reason` « length » chez un autre serveur) : refusée, son texte jeté et ses tokens mis à 0, le coût affiché la compte gratuite alors qu'elle est facturée — que garder du texte, et où le montrer.
@@ -50,6 +45,7 @@ Codé, jamais vu sur l'appareil.
 - `AutomationScheduler.getNextExecutionForAutomation()` appelé depuis l'écran, sans le service.
 - Des conversions JSON refaites sur place au lieu de `JsonUtils` (`toValueMap`, `jsonToValue`, `toFieldConfigValue`…).
 - `shared.xml` (~1 900 lignes) à découper.
+- Les garanties sorties de la recette, `docs/design/device-check-tests.md` : chacune un test, ou sortie si un test la tient déjà.
 - `RetroPaletteTest` et `CosyPaletteTest` à parcourir par pas de 15° de teinte, comme `SwissPaletteTest`.
 - `TextType.SUBTITLE` sans rang dans le contrat des thèmes : lui en donner un, aligner les thèmes et ses 71 usages.
 - `scripts/check_chat_space.py` ne voit que l'écran d'usage d'un outil, pas ceux qu'il ouvre dans son lieu (la saisie du Journal, une séance Flashcards, corrigées à la main le 2026-10-20) : les lui faire lire.
@@ -64,7 +60,7 @@ Ce qui doit monter dans un module de sagesse (`/update push`).
 
 ## Bloqué par autre chose
 
-- Le correctif Tailscale de la route `cert/` (PR #21720) : fusionné, monter de version et retirer la correction de `scripts/vendor_go.py` ; refusé, noter pourquoi dans `funnel-poc.md`.
+- Le correctif Tailscale de la route `cert/` (PR #21720) : fusionné, monter de version et retirer la correction de `scripts/vendor_go.py` ; refusé, noter pourquoi dans `docs/EXTERNAL_ACCESS.md`.
 - L'import d'une incarnation depuis personae (la dernière section de la recette, l'identité de Stan Prokopenko) : quand personae exportera au format 2 du fichier d'identité (`docs/IDENTITY_FILE.md`), le format 1 n'étant plus lu.
 
 ## À surveiller
@@ -81,10 +77,18 @@ Ce qui doit monter dans un module de sagesse (`/update push`).
 
 ## Idée sans besoin
 
+- Le champ Image : la galerie comme affichage d'un outil (la grille des premières images de ses entrées), les images d'une entrée lues par le connecteur MCP.
+- Le relais de l'accès externe (le projet `relay`) servi à d'autres : il n'a pas de licence aujourd'hui.
+- Flashcards : les statistiques (cartes acquises, prévision des jours à venir), la liste des cartes et leur état, la réponse tapée, le jugement d'une réponse libre par l'IA, une face en image, les révisions d'une ligne disparue de la source.
+- Le texte d'une image d'un message (un ticket) transcrit par un modèle qui lit les images, réglé à part, pour un modèle qui ne les lit pas : modifiable dans son bloc, il part à la place de l'image.
+- Une tentative passée d'un Objectif, enregistrée à la main ou importée (refusée aujourd'hui) : la réponse d'Objectif poserait son état (la période où tombe la date, une tentative déjà là, le verdict, la définition à copier).
+- Un champ obligatoire dans `extra` : une saisie rapide ouvrirait alors la fenêtre d'édition préremplie.
+- Les quasi-doublons d'un CHOICE ouvert (« Travail » / « travail » / « boulot ») : aujourd'hui chacun devient une option.
+- Corriger une proposition de l'IA avant de la valider, avec le composant de saisie : l'IA apprendrait ce qui a été changé.
 - Des modèles d'outils prédéfinis.
 - Lire un long texte du connecteur MCP par section (le sommaire des titres `##`, puis une section par son titre), en plus des tranches.
-- Des niveaux de prompt pour un modèle plus petit (`docs/design/local-models.md`).
-- Une entrée précise comme cible d'un pointeur (`docs/design/pointer.md`).
+- Un modèle sous la classe 30B, ou dans l'app sur le téléphone (la campagne 1 du banc : `docs/AI.md`) : un prompt par portée de tâche plutôt que par taille de modèle, une session bornée à une zone ou un outil, le forçage par schéma seul, des exemples choisis selon la demande, un aiguillage vers un mini-prompt, l'appel de fonctions natif, des modèles mélangés par session, un fine-tuning léger en dernier recours — aucune piste mesurée.
+- Une entrée précise comme cible d'un pointeur : `{"kind": "ENTRY", "id"}`, lue par `tool_data.get_single`, nommée par sa date puis son nom ou le début de son premier texte (qu'un type d'outil peut remplacer : « 26/09 08:12 — Pesée : 72,4 kg »), choisie dans la liste des entrées d'un outil, 30 par 30.
 - Des valeurs de champs de l'utilisateur recopiées dans chaque occurrence d'une série d'Agenda.
 - Un pointeur touché dans un message ouvre sa cible.
 - Le sens « out » : l'app confie une tâche lourde à une IA extérieure et en reprend le résultat.

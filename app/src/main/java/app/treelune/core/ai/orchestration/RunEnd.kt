@@ -13,7 +13,7 @@ import app.treelune.core.strings.StringsContext
 import app.treelune.core.utils.LogManager
 
 /**
- * The end of a routine's run (docs/design/waiting-sources.md): the summary its AI gave, the facts
+ * The end of a routine's run (docs/AI.md, « Summary of the run »): the summary its AI gave, the facts
  * the app counts beside it, and whether the run waits for the user to read it, as the routine's
  * setting says (AutomationSettings.NOTIFY_*). A run that waits is notified, the notification
  * opening it.

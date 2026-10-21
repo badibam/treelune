@@ -44,7 +44,7 @@ sealed class WaitingContext {
      * @param dataChars Size of its data text, as the AI would receive it
      * @param maxDataChars The threshold it went over
      * @param alwaysSend Whether the data is that of the tools sent always, asked once for the
-     *   whole session before the AI is called (docs/design/always-send.md), rather than data
+     *   whole session before the AI is called (docs/AI.md, « 2 levels of context »), rather than data
      *   the AI asked for
      */
     data class DataConfirmation(

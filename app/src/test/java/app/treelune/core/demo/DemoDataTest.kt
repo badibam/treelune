@@ -15,7 +15,7 @@ import java.time.ZonedDateTime
  * Covers the demo's entries, generated at fixed moments: the same demo from
  * the same moment, nothing dated after the install but due dates and appointments, one stopwatch running, every
  * text given in both languages and every text used, every reference landing on a card, the rush
- * week showing across the zones, and what the free models' bench reads (docs/design/local-models.md).
+ * week showing across the zones, and what the free models' bench reads (docs/AI.md, « Free models and the bench »).
  */
 class DemoDataTest {
 

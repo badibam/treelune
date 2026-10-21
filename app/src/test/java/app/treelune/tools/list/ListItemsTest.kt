@@ -7,8 +7,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
- * Covers how a list shows its items and where a dragged item lands (docs/design/missing-tools.md,
- * "Liste"): the items left in the manual order, the checked ones below in the order they were
+ * Covers how a list shows its items and where a dragged item lands (docs/TOOLS.md, « List »): the items left in the manual order, the checked ones below in the order they were
  * checked, and a drop among the items left kept by the service's order although checked items
  * hold positions between them.
  */

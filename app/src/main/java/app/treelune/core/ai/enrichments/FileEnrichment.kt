@@ -5,7 +5,7 @@ import app.treelune.core.strings.StringsContext
 import org.json.JSONObject
 
 /**
- * A FILE enrichment: a text file joined to a message (docs/design/missing-tools.md, « L'import »),
+ * A FILE enrichment: a text file joined to a message (docs/DATA.md, « Import »),
  * kept by the files service under [fileId]. [whole] sends its whole text with the message;
  * otherwise its first [PREVIEW_LINES] lines, the AI reading the rest with FILE if it needs to.
  * Stored as `{"file_id", "name", "line_count", "whole"}`.

@@ -22,7 +22,7 @@ import app.treelune.tools.questionnaire.ui.QuestionnaireScreen
 import org.json.JSONObject
 
 /**
- * A questionnaire (docs/design/missing-tools.md, « Questionnaire »): its questions are the user's
+ * A questionnaire (docs/TOOLS.md, « Questionnaire »): its questions are the user's
  * fields of a dated entry. What makes it a tool: the passing, one question per screen; the planned
  * invitation; the passing by the AI in a chat, which speaks the same field types.
  *

@@ -8,7 +8,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Covers the session tool (docs/design/sequence-tool.md): the run unrolled from its config, blocks
+ * Covers the session tool (docs/TOOLS.md, « Session (Sequence) »): the run unrolled from its config, blocks
  * repeated and a step skipped at its block's last round; what each gesture does to the clock,
  * `back` undoing a passage as if it had not happened, a pause leaving the times untouched; timers
  * caught up after a sleep without shifting what follows; the countdown's beeps.

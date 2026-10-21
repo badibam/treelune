@@ -11,7 +11,7 @@ import org.junit.Test
 
 /**
  * Covers how an entry starts in a tool type whose entries live by a status
- * (docs/design/entry-start-state.md): the creator gives the status, the tool type sets the rest
+ * (docs/DATA.md, « Fields and entries »): the creator gives the status, the tool type sets the rest
  * or refuses, and an entry nothing would ever pick up is never written.
  */
 class EntryStartTest {

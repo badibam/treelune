@@ -12,7 +12,7 @@ import java.math.BigDecimal
 import java.time.ZoneId
 
 /**
- * The entries of a tool as a CSV to read in a spreadsheet (docs/design/export.md): RFC 4180,
+ * The entries of a tool as a CSV to read in a spreadsheet (docs/DATA.md, « Export »): RFC 4180,
  * UTF-8, a fixed form whatever the phone's language — a point for decimals, ISO 8601 for dates —
  * but for its first line, the fields' labels in the app's language, written for whoever reads it.
  *

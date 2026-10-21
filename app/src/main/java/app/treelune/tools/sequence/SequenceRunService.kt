@@ -33,7 +33,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONObject
 
 /**
- * The session running (docs/design/sequence-tool.md, « Pendant la séance »): a foreground service
+ * The session running (docs/TOOLS.md, « Session (Sequence) »): a foreground service
  * from start to end, screen on or off, which alone sounds the signals and passes a timed step at
  * its end. Its notification, which Android requires, shows the step and its time, with « Done »
  * and « Pause ».

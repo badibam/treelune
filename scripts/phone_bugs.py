@@ -5,7 +5,7 @@ The bugs are the entries of the tool "Treelune" in the zone "Dev" of the release
 they are noted. They are read and deleted through the app's MCP server, as Claude reaches it: the
 claude.ai connector "Treelune", whose tools Claude Code names mcp__claude_ai_Treelune__<command>.
 The relay hands each request to whichever build polls it, so the external access must be open in
-the release alone (docs/design/mcp-server.md), and the connector authorised once against it.
+the release alone (docs/EXTERNAL_ACCESS.md), and the connector authorised once against it.
 
 Claude only reads and deletes, and answers in JSON; this script shows the list, asks once, writes
 TODO.md, and checks that every entry it wrote is the one Claude deleted. TODO.md is written before

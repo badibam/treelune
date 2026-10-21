@@ -35,7 +35,7 @@ import org.json.JSONObject
 import java.text.Normalizer
 
 /**
- * A deck of flashcards (docs/design/flashcards.md): the lines of another tool, its source, reviewed
+ * A deck of flashcards (docs/TOOLS.md, « Flashcards »): the lines of another tool, its source, reviewed
  * by spaced repetition, each card coming back just before it is forgotten (Fsrs). It holds none of
  * the words: a card is a line of the source in one of the deck's directions, and its only data of
  * its own are its reviews, the deck's entries.

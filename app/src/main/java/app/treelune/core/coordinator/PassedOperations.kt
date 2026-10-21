@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.SharedFlow
 /**
  * The operations that passed through the coordinator and succeeded, as they pass: asked from
  * outside (a screen, the AI, an outside client, a scheduler), never one a service runs from inside
- * its own. What the Guide's steps wait for (docs/design/user-journey.md): « add an outing » is
+ * its own. What the Guide's steps wait for (docs/GUIDE.md): « add an outing » is
  * done when tool_data.create passes on that tool, asked by the user.
  */
 object PassedOperations {

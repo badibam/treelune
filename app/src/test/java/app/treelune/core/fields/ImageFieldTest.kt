@@ -11,7 +11,7 @@ import org.junit.Test
 import java.time.ZoneId
 
 /**
- * What docs/design/image-field.md promised of an IMAGE field outside its storage: a list of ids,
+ * What docs/DATA.md (« IMAGE ») promises of an IMAGE field outside its storage: a list of ids,
  * its max held by the schema, filtered on present and absent only, and the AI reading each id with
  * its size, never the image, and writing back the ids it read.
  */

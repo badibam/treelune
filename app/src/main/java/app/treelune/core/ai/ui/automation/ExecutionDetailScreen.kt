@@ -30,7 +30,7 @@ import app.treelune.core.ui.*
  * - No validation/communication module interactions
  * - Messages displayed for audit and transparency
  *
- * Opening it reads the run: it no longer waits (docs/design/waiting-sources.md).
+ * Opening it reads the run: it no longer waits (docs/AI.md, « Summary of the run »).
  *
  * Usage: Accessed from ExecutionCard VIEW button in AutomationScreen, and from the notification
  * of a run that waits

@@ -71,7 +71,7 @@ data class AISessionEntity(
     @ColumnInfo(name = "end_reason") val endReason: String? = null,          // SessionEndReason as string (null = crash/incomplete)
 
     /**
-     * When the user last saw this session (docs/design/waiting-sources.md): a chat shown on
+     * When the user last saw this session (docs/BRICKS.md, « Waiting »): a chat shown on
      * screen, a routine's run opened. A chat waits while an AI message is newer; a routine's run
      * waits while it has none.
      */
@@ -89,7 +89,7 @@ data class AISessionEntity(
     @ColumnInfo(name = "app_state_snapshot") val appStateSnapshot: String? = null,
 
     /**
-     * The identity it speaks as (docs/design/incarnations.md), fixed at its first message; null
+     * The identity it speaks as (docs/AI.md, « Identities »), fixed at its first message; null
      * for the app's own AI.
      */
     @ColumnInfo(name = "identity_id") val identityId: String? = null

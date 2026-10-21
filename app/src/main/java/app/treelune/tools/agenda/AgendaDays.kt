@@ -9,8 +9,8 @@ import java.time.LocalDate
 import java.time.ZoneId
 
 /**
- * A calendar's events laid by day, as its screen and its tile show them (docs/design/agenda-tool.md,
- * « L'écran »): an event at a time on the day it starts, the day starting at the hour the user set;
+ * A calendar's events laid by day, as its screen and its tile show them (docs/TOOLS.md,
+ * « Agenda »): an event at a time on the day it starts, the day starting at the hour the user set;
  * a whole day on each of its calendar days.
  */
 object AgendaDays {

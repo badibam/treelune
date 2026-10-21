@@ -7,7 +7,7 @@ import app.treelune.core.database.entities.ToolDataEntity
 import org.json.JSONObject
 
 /**
- * A deck's journal read in SQL (docs/design/flashcards.md, « Les entrées : une par révision »): the
+ * A deck's journal read in SQL (docs/TOOLS.md, « Flashcards »): the
  * state of each card is that of its last review, and its first review says when it was started.
  * No table of cards and no count stored: nothing can drift from the journal.
  */

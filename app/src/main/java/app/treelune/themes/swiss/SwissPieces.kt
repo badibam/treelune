@@ -24,7 +24,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 
 /*
- * The pieces every Swiss component is made of (docs/design/swiss-theme.md): rules and outlines of
+ * The pieces every Swiss component is made of (docs/themes/swiss.md): rules and outlines of
  * whole pixels, never a shadow nor a rounding; motion is a clean cut. Under the finger a piece
  * inverts, ink and ground exchanged, with no transition and no ripple; a window fades in, linear,
  * and leaves at once; a lifted piece takes an outline and stands off up and to the left.

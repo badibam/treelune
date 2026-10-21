@@ -140,7 +140,7 @@ import java.time.format.TextStyle as DateTextStyle
 import java.util.Locale
 
 /**
- * The blueprint theme (docs/design/blueprint-theme.md): the app as an architect's plan. Fine lines
+ * The blueprint theme (docs/themes/blueprint.md): the app as an architect's plan. Fine lines
  * drawn with a ruler on grid paper, each side of a frame running past its corners as on a sketch;
  * hatching for what is filled (a gauge's progress, a chart's bars, a piece pressed); a title block
  * for a window; a revision triangle for what waits. The light palette is a whiteprint, the dark a
@@ -182,8 +182,17 @@ object BlueprintTheme : ThemeContract {
     @Composable
     override fun gridRowGapPx(): Int = with(LocalDensity.current) { 12f.dp.roundToPx() }
 
-    /** Silent: the theme's sounds are chosen apart (docs/THEMES.md, The sounds). */
-    override fun sound(signal: UISignal): Int? = null
+    override fun sound(signal: UISignal): Int? = when (signal) {
+        UISignal.CONFIRM -> R.raw.blueprint_confirm
+        UISignal.ENTER -> R.raw.blueprint_enter
+        UISignal.BACK -> R.raw.blueprint_back
+        UISignal.OPEN -> R.raw.blueprint_open
+        UISignal.CLOSE -> R.raw.blueprint_close
+        UISignal.TOGGLE -> R.raw.blueprint_toggle
+        UISignal.STEP -> R.raw.blueprint_step
+        UISignal.SCROLL_END -> R.raw.blueprint_scroll_end
+        UISignal.REFUSE -> R.raw.blueprint_refuse
+    }
 
     /** A tile's name centered in the width its icon leaves. */
     override fun tileNameAlign(): TextAlign = TextAlign.Center
@@ -1727,7 +1736,7 @@ object BlueprintTheme : ThemeContract {
         Lch(HUE_SAMPLE_LIGHTNESS, HUE_SAMPLE_CHROMA, BlueprintPalettes.colors(mode, shift).numbers.blueHue).srgb
 
     /**
-     * How the motifs are laid (docs/design/tool-texture.md): a cell's unit a dp at the size step,
+     * How the motifs are laid (docs/THEMES.md, « What a theme is in the app »): a cell's unit a dp at the size step,
      * smoothed, so a motif grows with everything else; an ICON motif's icon sixteen units, sixteen
      * around it.
      */

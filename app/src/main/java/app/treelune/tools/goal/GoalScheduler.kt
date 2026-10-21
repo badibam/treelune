@@ -12,7 +12,7 @@ import app.treelune.core.utils.StoredSchedule
 import org.json.JSONObject
 
 /**
- * The life of goals' attempts, at each tick (docs/design/missing-tools.md, « Objectif »):
+ * The life of goals' attempts, at each tick (docs/TOOLS.md, « Goal »):
  *
  * 1. An attempt whose period ended is to be validated: its verdict waits to be confirmed, so a
  *    criterion forgotten is caught up rather than turned into a false failure. One notification

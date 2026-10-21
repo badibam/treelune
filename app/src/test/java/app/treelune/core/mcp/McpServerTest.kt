@@ -8,7 +8,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** The MCP server's promises (docs/design/mcp-server.md), with the app replaced by a fake. */
+/** The MCP server's promises (docs/EXTERNAL_ACCESS.md), with the app replaced by a fake. */
 class McpServerTest {
 
     private var clock = 1_000_000L

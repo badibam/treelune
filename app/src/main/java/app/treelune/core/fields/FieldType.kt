@@ -111,7 +111,7 @@ enum class FieldType {
 
     /**
      * Images, always a list of their ids, in their order, even for one: a single stored form, a
-     * single way to enter and show it (docs/design/image-field.md). Each id names a row of the
+     * single way to enter and show it (docs/DATA.md, « IMAGE »). Each id names a row of the
      * images table the entry owns; the service keeps the two in step at each write (EntryImages).
      * Config: {max?} (whole number, at least 1; absent, no limit)
      * Example: the photos of a plant's sheet, a diagram in a note

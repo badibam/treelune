@@ -12,8 +12,7 @@ import app.treelune.core.utils.DataChangeNotifier
 import org.json.JSONObject
 
 /**
- * The history of writes as the screen and the AI read and act on it (docs/design/undo-history.md,
- * « Le service history »): the same three operations for both.
+ * The history of writes as the screen and the AI read and act on it (docs/DATA.md, « History of writes »): the same three operations for both.
  *
  * Operations:
  * - list: the steps, the most recent first; tool_instance_id or zone_id narrows them to those

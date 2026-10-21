@@ -6,7 +6,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** An icon's colour (docs/design/icon-colors.md): the tags' names but grey, or none. */
+/** An icon's colour (docs/reference.md, « Icons »): the tags' names but grey, or none. */
 class IconColorTest {
 
     @Test

@@ -1,0 +1,168 @@
+{
+  "gain_db": -10,
+  "families": [
+    "BigSoundBank · switch",
+    "BigSoundBank · stapler",
+    "BigSoundBank · pen",
+    "BigSoundBank · drawer",
+    "BigSoundBank · calculator",
+    "Freesound · stamp"
+  ],
+  "signals": {
+    "confirm": {
+      "choice": "recipe · stamp_178650-take2",
+      "offset_db": -6,
+      "shortlist": [
+        "recipe · stamp_178650-take2"
+      ]
+    },
+    "enter": {
+      "choice": "recipe · drawer_0793-take4",
+      "offset_db": 0,
+      "shortlist": [
+        "recipe · drawer_0793-take4"
+      ]
+    },
+    "back": {
+      "choice": "recipe · drawer_0793-take8",
+      "offset_db": 0,
+      "shortlist": [
+        "recipe · drawer_0793-take8"
+      ]
+    },
+    "open": {
+      "choice": "recipe · drawer_0793-take23",
+      "offset_db": 0,
+      "shortlist": [
+        "recipe · drawer_0793-take23"
+      ]
+    },
+    "close": {
+      "choice": "recipe · drawer_0793-take24",
+      "offset_db": 0,
+      "shortlist": [
+        "recipe · drawer_0793-take24"
+      ]
+    },
+    "toggle": {
+      "choice": "recipe · pen_0613-take5",
+      "offset_db": 0,
+      "shortlist": [
+        "recipe · pen_0613-take5"
+      ]
+    },
+    "step": {
+      "choice": "recipe · pen_0054-take3",
+      "offset_db": 0,
+      "shortlist": [
+        "recipe · pen_0054-take3"
+      ]
+    },
+    "scroll_end": {
+      "choice": "recipe · drawer_0793-take29",
+      "offset_db": 0,
+      "shortlist": [
+        "recipe · drawer_0793-take29"
+      ]
+    },
+    "refuse": {
+      "choice": "BigSoundBank · switch_2028",
+      "offset_db": 0,
+      "shortlist": [
+        "BigSoundBank · switch_2028"
+      ]
+    }
+  },
+  "recipes": {
+    "stamp_178650-take2": {
+      "inputs": [
+        "Freesound · stamp_178650"
+      ],
+      "effects": [
+        "trim",
+        1.31,
+        0.4
+      ]
+    },
+    "drawer_0793-take1": {
+      "inputs": [
+        "BigSoundBank · drawer_0793"
+      ],
+      "effects": [
+        "trim",
+        0.1,
+        0.78
+      ]
+    },
+    "drawer_0793-take4": {
+      "inputs": [
+        "BigSoundBank · drawer_0793"
+      ],
+      "effects": [
+        "trim",
+        2.77,
+        0.32
+      ]
+    },
+    "drawer_0793-take8": {
+      "inputs": [
+        "BigSoundBank · drawer_0793"
+      ],
+      "effects": [
+        "trim",
+        4.69,
+        0.4
+      ]
+    },
+    "drawer_0793-take23": {
+      "inputs": [
+        "BigSoundBank · drawer_0793"
+      ],
+      "effects": [
+        "trim",
+        18.21,
+        0.47
+      ]
+    },
+    "drawer_0793-take24": {
+      "inputs": [
+        "BigSoundBank · drawer_0793"
+      ],
+      "effects": [
+        "trim",
+        18.81,
+        0.39
+      ]
+    },
+    "pen_0613-take5": {
+      "inputs": [
+        "BigSoundBank · pen_0613"
+      ],
+      "effects": [
+        "trim",
+        6.02,
+        0.47
+      ]
+    },
+    "pen_0054-take3": {
+      "inputs": [
+        "BigSoundBank · pen_0054"
+      ],
+      "effects": [
+        "trim",
+        2.25,
+        0.12
+      ]
+    },
+    "drawer_0793-take29": {
+      "inputs": [
+        "BigSoundBank · drawer_0793"
+      ],
+      "effects": [
+        "trim",
+        22.95,
+        0.28
+      ]
+    }
+  }
+}

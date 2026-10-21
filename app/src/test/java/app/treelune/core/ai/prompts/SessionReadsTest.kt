@@ -12,7 +12,7 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 /**
- * The reads a session sends once (docs/design/incarnations.md, « Le bagage »): a text the model
+ * The reads a session sends once (docs/AI.md, « Identities »): a text the model
  * holds is not sent again, one that changed since is, and what it holds is read back from the
  * session's stored results.
  */

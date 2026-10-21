@@ -1,4 +1,4 @@
-"""The bench's scenarios (docs/design/local-models.md), on the demo in French.
+"""The bench's scenarios (docs/AI.md, « Free models and the bench »), on the demo in French.
 
 A chat scenario is the message the user sends; an automation scenario is a demo automation run
 now. What each must leave is checked by scripts/bench_checks.py, under the same name; "expects"

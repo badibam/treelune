@@ -614,11 +614,11 @@ private fun AddMenu(
             UI.Text(title, TextType.CAPTION, fillMaxWidth = true)
             // Two tiles a row, each two cells wide and one high, as the settings' tiles
             app.treelune.core.ui.components.GridLayout(
+                choices,
                 choices.mapIndexed { i, choice -> app.treelune.core.grid.Grid.Tile(choice.id, (i % 2) * 2, i / 2, 2, 1) },
                 choices.map { false },
                 edit = null
-            ) { i ->
-                val choice = choices[i]
+            ) { choice ->
                 app.treelune.core.themes.CurrentTheme.current.ZoneCardContainer(texture = null, color = null, seed = choice.id, onClick = choice.onClick, onLongClick = {}) {
                     UI.TileHeader(choice.icon, null, choice.label, waiting = false, running = false, textType = TextType.LABEL)
                 }

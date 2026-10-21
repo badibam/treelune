@@ -40,7 +40,7 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 
 /**
- * A deck's page (docs/design/flashcards.md, « Les écrans »): a line « Everything », then a line per
+ * A deck's page (docs/TOOLS.md, « Flashcards »): a line « Everything », then a line per
  * group, each with its due and new cards. Touching one opens the launch window, a line per direction
  * and « Both », with their numbers; touching one starts the session. A deck of one direction starts
  * at once. The session takes the page's place until it ends or is left.

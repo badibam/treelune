@@ -138,7 +138,7 @@ import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
- * The e-reader theme (docs/design/eink-theme.md): the app as on an e-reader. Pure black and white,
+ * The e-reader theme (docs/themes/eink.md): the app as on an e-reader. Pure black and white,
  * no grey: a frame of 2 dp round every tile and card, square; a group's title in capitals over a
  * rule of 3 dp; a page's title in a band of ink. Whatever the core gives in colour becomes a
  * pattern of the ink (EinkPalette): a tag's colour, an icon's, a chart's series. Nothing moves:
@@ -1581,7 +1581,7 @@ object EinkTheme : ThemeContract {
         if (!aside) this else this.then(Modifier.drawWithContent { drawContent(); drawRect(screen) })
 
     /**
-     * How the motifs are laid (docs/design/tool-texture.md): a cell's unit a dp at the size step,
+     * How the motifs are laid (docs/THEMES.md, « What a theme is in the app »): a cell's unit a dp at the size step,
      * so a motif grows with everything else, its cells on the pitch of 8 dp; an ICON motif's icon
      * sixteen units, sixteen around it. Not smoothed: a motif stays two colours.
      */

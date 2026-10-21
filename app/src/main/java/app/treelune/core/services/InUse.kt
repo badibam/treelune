@@ -5,7 +5,7 @@ import app.treelune.core.strings.StringsContext
 
 /**
  * What still names a thing about to be deleted -- an identity, an AI provider -- for its deletion
- * to be refused while anything does, naming them (docs/design/incarnations.md, « Suppression »).
+ * to be refused while anything does, naming them (docs/AI.md, « Identities »).
  * One check for both: each says which of its kind's fields name it. Nothing is deleted with it,
  * every zone and routine being changed by hand first. A past session naming it stays readable and
  * cannot continue (SessionUsable).

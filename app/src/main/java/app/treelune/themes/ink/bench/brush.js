@@ -1,6 +1,6 @@
 "use strict";
 /*
-  The ink theme's brush (docs/design/ink-theme.md, line 9), shared by its benches: any SVG drawing
+  The ink theme's brush (docs/themes/ink.md, line 9), shared by its benches: any SVG drawing
   (a Lucide icon, a rule, a ring) walked along its strokes and stamped in discs whose size follows
   the brush. Held at a slant, it presses where it lands and where the stroke turns, swells once
   slowly over a stroke and lifts off in a point. The theme does the same on the phone with the

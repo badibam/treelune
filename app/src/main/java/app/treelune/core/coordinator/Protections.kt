@@ -3,7 +3,7 @@ package app.treelune.core.coordinator
 import app.treelune.core.strings.StringsContext
 
 /**
- * What protects against the AI (docs/design/validation.md: a zone's protection, a tool's) is
+ * What protects against the AI (docs/AI.md, « Levels »: a zone's protection, a tool's) is
  * changed by a person, or by the app itself (a restore, the demo): the AI, an AI outside the app
  * or a scheduled task that tries is refused, whatever else it may change. Left unchanged, it may
  * be sent back as it is by anyone.

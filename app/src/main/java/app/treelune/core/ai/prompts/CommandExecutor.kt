@@ -27,7 +27,7 @@ data class PromptCommandResult(
     val formattedData: String,     // JSON formatted data for prompt
     /**
      * Whether it is left out of the session's data threshold: an identity read, whose size is
-     * known and shown on the identity's screen (docs/design/incarnations.md, « Le bagage »)
+     * known and shown on the identity's screen (docs/AI.md, « Identities »)
      */
     val sizeExempt: Boolean = false
 )
@@ -860,7 +860,7 @@ class CommandExecutor(private val context: Context) {
 
         // This is where a result becomes the text the model reads, so this is where the
         // milliseconds everything else speaks turn into the ISO 8601 the model does
-        // (docs/design/date-boundary.md). Entries were converted above by their schema;
+        // (docs/reference.md, the rule of dates and durations). Entries were converted above by their schema;
         // any other result carries its dates under the few names DateTimeConverter knows.
         val json = org.json.JSONObject(reordered as Map<*, *>)
         return if (command.resource == "tool_data") json.toString(2)

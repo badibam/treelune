@@ -133,7 +133,7 @@ import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
- * The ink theme (docs/design/ink-theme.md): the app as an ink wash painting. Cream paper, black
+ * The ink theme (docs/themes/ink.md): the app as an ink wash painting. Cream paper, black
  * ink and a single seal red, plenty of empty space: a tile is a wash of irregular edge with no
  * outline, a group's title is spaced over a stroke of the brush, and every line, the icons
  * included, is traced by one brush (InkBrush) in Literata's company (InkSize). Under the finger a
@@ -174,8 +174,17 @@ object InkTheme : ThemeContract {
     @Composable
     override fun gridRowGapPx(): Int = with(LocalDensity.current) { 20f.dp.roundToPx() }
 
-    /** Silent: the theme's sounds are chosen apart (docs/THEMES.md, The sounds). */
-    override fun sound(signal: UISignal): Int? = null
+    override fun sound(signal: UISignal): Int? = when (signal) {
+        UISignal.CONFIRM -> R.raw.ink_confirm
+        UISignal.ENTER -> R.raw.ink_enter
+        UISignal.BACK -> R.raw.ink_back
+        UISignal.OPEN -> R.raw.ink_open
+        UISignal.CLOSE -> R.raw.ink_close
+        UISignal.TOGGLE -> R.raw.ink_toggle
+        UISignal.STEP -> R.raw.ink_step
+        UISignal.SCROLL_END -> R.raw.ink_scroll_end
+        UISignal.REFUSE -> R.raw.ink_refuse
+    }
 
     /** A tile's name centered in the width its icon leaves. */
     override fun tileNameAlign(): TextAlign = TextAlign.Center
@@ -1474,7 +1483,7 @@ object InkTheme : ThemeContract {
     }
 
     /**
-     * How the motifs are laid (docs/design/tool-texture.md): a cell's unit a dp at the size step,
+     * How the motifs are laid (docs/THEMES.md, « What a theme is in the app »): a cell's unit a dp at the size step,
      * smoothed, so a motif grows with everything else; an ICON motif's icon sixteen units, sixteen
      * around it.
      */

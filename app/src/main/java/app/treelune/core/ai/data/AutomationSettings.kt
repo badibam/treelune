@@ -29,7 +29,7 @@ object AutomationSettings {
     const val UNLIMITED = "unlimited"
 
     /**
-     * When a run waits for the user to read it (docs/design/waiting-sources.md), stored under
+     * When a run waits for the user to read it (docs/AI.md, « Summary of the run »), stored under
      * "notify_end": every run, a run with a problem (NOTIFY_ON_PROBLEM, RunEnd.problem), none. Its
      * summary is kept whatever the choice.
      */

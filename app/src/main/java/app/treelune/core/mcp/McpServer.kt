@@ -35,7 +35,7 @@ interface McpBackend {
 }
 
 /**
- * The app's MCP server, as JSON-RPC messages in and out (docs/design/mcp-server.md): it answers
+ * The app's MCP server, as JSON-RPC messages in and out (docs/EXTERNAL_ACCESS.md): it answers
  * initialize, ping, tools/list and tools/call, and nothing else. Transport, authorization and the
  * access window are around it, not in it. It presumes nothing of its client.
  *

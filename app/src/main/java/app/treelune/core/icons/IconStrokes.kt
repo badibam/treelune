@@ -10,7 +10,7 @@ import org.xmlpull.v1.XmlPullParser
 
 /**
  * A Lucide icon's drawing as strokes, for a theme that traces Lucide its own way rather than
- * showing its even stroke (docs/design/ink-theme.md, line 9): each contour of each path walked
+ * showing its even stroke (docs/themes/ink.md, line 9): each contour of each path walked
  * along its length, a point every [IconDrawing.step] units of the icon's grid of 24, and the
  * paths Lucide fills, kept whole. The drawable is read as the XML it is (generate_icons.py writes
  * paths only, no group nor transform), so that what is filled is told by its fill colour.

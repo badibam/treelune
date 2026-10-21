@@ -21,7 +21,7 @@ import app.treelune.R
 import app.treelune.core.themes.CurrentTheme
 
 /**
- * The ink theme's sizes (docs/design/ink-theme.md): every length and every text of the mockup,
+ * The ink theme's sizes (docs/themes/ink.md): every length and every text of the mockup,
  * with more air than the Swiss one, times the factor of the size step the user chose
  * (CurrentTheme.sizeStep), but for the spaces between pieces, the margin and the grid's gaps, which stay in plain dp (the theme's spacing). Texts are in sp, so Android's text size enlarges them on top, for the
  * text alone. Titles are spaced, as a brush leaves room between its characters.

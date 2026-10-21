@@ -63,7 +63,7 @@ enum class MigrationStrategy {
 
     /**
      * The value kept in the field's new form, removed only when it cannot take it
-     * (docs/design/config-change.md).
+     * (docs/DATA.md, « Config change »).
      *
      * Applied to:
      * - FieldChange.ScaleRangeChanged: a value inside the new bounds kept, read between them

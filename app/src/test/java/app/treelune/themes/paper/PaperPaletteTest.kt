@@ -9,7 +9,7 @@ import org.junit.Test
 
 /**
  * The cut paper palettes are read, one per mode, and every text they draw is legible where it is
- * drawn at every hue shift (docs/design/paper-theme.md): at one OKLCH lightness, the measured
+ * drawn at every hue shift (docs/themes/paper.md): at one OKLCH lightness, the measured
  * contrast changes with the hue, so the kraft, the coral and the night blue are held at each step
  * of 15 degrees, as the bench measures them. What is written on a coloured sheet or on the coral
  * is the cream or the dark ink, whichever reads better; a text there holds 4.5 too. The brown

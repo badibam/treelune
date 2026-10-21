@@ -29,7 +29,7 @@ import app.treelune.core.drawing.TextAnchor
 import app.treelune.core.drawing.TextBaseline
 
 /**
- * The blueprint theme's drawings (docs/design/blueprint-theme.md, line 10): a box (a bar) is an
+ * The blueprint theme's drawings (docs/themes/blueprint.md, line 10): a box (a bar) is an
  * outline hatched at 45 degrees, as a section through a wall; a curve a fine line; a round point
  * a small cross; a dashed line (a goal) the dash and dot of an axis; labels in Plex Mono. The
  * colours the user gives a chart's series are kept, in the palette's pencils. The strong ink is

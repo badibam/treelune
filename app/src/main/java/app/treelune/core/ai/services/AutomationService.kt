@@ -728,7 +728,7 @@ class AutomationService(private val context: Context) : ExecutableService {
     }
 
     /**
-     * What waits for the user among the routines (docs/design/waiting-sources.md): how many runs
+     * What waits for the user among the routines (docs/AI.md, « Summary of the run »): how many runs
      * of each routine are over and not yet seen, the routines of `zone_id` or all of them, and the
      * sum by zone; the first form of the waiting brick, beside tools.waiting.
      */

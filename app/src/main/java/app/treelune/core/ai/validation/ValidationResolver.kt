@@ -13,7 +13,7 @@ import app.treelune.core.utils.LogManager
 
 /**
  * Whether the actions of an AI message wait for the user's approval, and what the approval shows
- * (docs/design/validation.md).
+ * (docs/AI.md, « Levels »).
  *
  * Three levels, each guarding what it holds directly, nothing by default:
  * - the app (validation_config): the zones and the home screen's groups;
@@ -152,7 +152,7 @@ class ValidationResolver(private val context: Context) {
     /**
      * Why a config change waits for approval for what it does to the recorded entries, null when
      * it touches none of them or the protection is off: its counts, read by a dry run of the
-     * change (docs/design/config-change.md).
+     * change (docs/DATA.md, « Config change »).
      */
     private suspend fun pastDataReason(action: DataCommand, levels: Levels): String? {
         if (!levels.app.validatePastData || action.params["config"] == null) return null

@@ -6,7 +6,7 @@ import org.json.JSONObject
 
 /**
  * The copies the history of writes keeps of a table's rows, brought to the form a migration gives
- * the table (docs/design/undo-history.md, « Migrations »): an undo puts a copy back as it is, so a
+ * the table (docs/DATA.md, « History of writes »): an undo puts a copy back as it is, so a
  * copy left in an older form would write it into the newer table.
  *
  * A migration that renames or removes a column of a covered table, or rewrites the JSON it holds,

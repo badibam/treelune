@@ -32,7 +32,7 @@ import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
 
 /**
- * The bug report (docs/design/bug-report.md): a free text the user writes, then the report
+ * The bug report (docs/CORE.md, « Bug report »): a free text the user writes, then the report
  * exactly as it will go, sent by mail to the developer or through the share menu to wherever
  * the user chooses. What is shown is what is sent: both are
  * [BugReport.Sources.text] of the same sources and the same free text.

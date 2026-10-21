@@ -6,7 +6,7 @@ import org.json.JSONObject
 
 /**
  * Brings the external access settings to their v68 form: they gain the access mode
- * (docs/design/funnel-access.md). A relay set, address and secret, keeps the relay; otherwise the
+ * (docs/EXTERNAL_ACCESS.md, « The Tailscale node »). A relay set, address and secret, keeps the relay; otherwise the
  * app's own Tailscale node, as for a new install.
  *
  * Shared by the database migration and the backup import (JsonTransformers.transformAppConfig).

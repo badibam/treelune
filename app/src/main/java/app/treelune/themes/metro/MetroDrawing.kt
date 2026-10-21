@@ -31,7 +31,7 @@ import app.treelune.core.drawing.TextAnchor
 import app.treelune.core.drawing.TextBaseline
 
 /**
- * The metro theme's drawings (docs/design/metro-theme.md): a curve is a metro line, its strokes
+ * The metro theme's drawings (docs/themes/metro.md): a curve is a metro line, its strokes
  * with round ends and joins, its points stops (a round of the panel ringed in its colour); a box
  * has its corners rounded by up to [BOX_RADIUS_DP] dp; labels in Overpass's figures of one width.
  * The colours the user gives a chart's series are kept, in the palette's line colours. The strong

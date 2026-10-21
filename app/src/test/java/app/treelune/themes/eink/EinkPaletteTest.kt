@@ -10,7 +10,7 @@ import org.junit.Test
 
 /**
  * The e-reader palettes are black and white alone, every text legible on them, and the
- * colours the core gives stay told apart once turned into patterns (docs/design/eink-theme.md):
+ * colours the core gives stay told apart once turned into patterns (docs/themes/eink.md):
  * two series of a chart differ by their dashes on a line and by how much of the ground they
  * cover on a quantity, so a chart of several colours still reads.
  */

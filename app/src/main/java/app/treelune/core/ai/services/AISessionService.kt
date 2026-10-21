@@ -86,7 +86,7 @@ class AISessionService(private val context: Context) : ExecutableService {
                 // Session state updates (V2 - managed by AIStateRepository)
                 "set_end_reason" -> setEndReason(params, token)
 
-                // What waits for the user (docs/design/waiting-sources.md)
+                // What waits for the user (docs/BRICKS.md, « Waiting »)
                 "seen" -> markSeen(params, token)
                 "end_run" -> endRun(params, token)
                 "chat_waiting" -> OperationResult.success(mapOf("waits" to aiDao.chatWaits()))
@@ -104,7 +104,7 @@ class AISessionService(private val context: Context) : ExecutableService {
     /**
      * The identity a CHAT session speaks as: `session_id`, `identity_id` (null for the app's own
      * AI). Refused once the user has sent a message: from there it is fixed, another conversation
-     * changing who speaks (docs/design/incarnations.md).
+     * changing who speaks (docs/AI.md, « Identities »).
      */
     private suspend fun setIdentity(params: JSONObject): OperationResult {
         val sessionId = params.optString("session_id").takeIf { it.isNotEmpty() }
@@ -947,7 +947,7 @@ class AISessionService(private val context: Context) : ExecutableService {
     }
 
     /**
-     * Sets the provider conversation [params] calls (docs/design/ai-providers.md), from its next
+     * Sets the provider conversation [params] calls (docs/AI.md, « Provider abstraction »), from its next
      * message on: one that exists, never on a routine's run nor a seed, which take their routine's.
      * Its own reasoning goes: what one model offers another may refuse; it follows its new
      * provider's config until set again.

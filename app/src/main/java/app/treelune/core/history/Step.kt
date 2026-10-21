@@ -10,7 +10,7 @@ import kotlin.coroutines.coroutineContext
  * The step of the history an operation writes into, carried by the coroutine running it as its
  * origin is (Origin): the coordinator opens one for an operation asked from outside, and every
  * operation called from inside it writes into the same one, whatever instance of the coordinator
- * runs it (docs/design/undo-history.md, « Le pas »).
+ * runs it (docs/DATA.md, « History of writes »).
  *
  * Its row in history_steps is written with the first row it touches, in that write's transaction
  * (Writes): an operation that writes nothing leaves no step, and a transaction rolled back takes

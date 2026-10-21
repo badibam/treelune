@@ -9,7 +9,7 @@ import androidx.room.PrimaryKey
 import androidx.room.Query
 
 /**
- * A step of the history (docs/design/undo-history.md): one operation asked from outside, or the
+ * A step of the history (docs/DATA.md, « History of writes »): one operation asked from outside, or the
  * app's own writes noted under one (isStep false). Its rows are in history_rows.
  *
  * Steps are ordered by their time, then by the order they were written in (rowid).

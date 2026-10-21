@@ -18,7 +18,7 @@ import org.json.JSONObject
 
 /**
  * A list: the present state of what is left to do — shopping, tasks, a checklist — without
- * a history of what was done, which is a tracking's role (docs/design/missing-tools.md, "Liste").
+ * a history of what was done, which is a tracking's role (docs/TOOLS.md, « List »).
  *
  * An item is a name, the list's own fields, and two things in its state: its place in the
  * manual order, kept by the service (ManualOrder), and when it was checked. Checked is having a

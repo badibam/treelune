@@ -25,9 +25,9 @@ object AppSettingCategories {
     const val MAIN_SCREEN = "main_screen"
     const val DEMO = "demo"
     const val UI = "ui"
-    /** The MCP server's relay (docs/design/mcp-server.md) */
+    /** The MCP server's relay (docs/EXTERNAL_ACCESS.md) */
     const val EXTERNAL_ACCESS = "external_access"
-    /** The Guide's progress: the first-launch screen seen, each chapter's step (docs/design/user-journey.md) */
+    /** The Guide's progress: the first-launch screen seen, each chapter's step (docs/GUIDE.md) */
     const val GUIDE = "guide"
     /** The phone's folder the app writes its backups into, and the automatic backup (docs/DATA.md, « Automatic backup ») */
     const val DATA = "data"

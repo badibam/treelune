@@ -21,7 +21,7 @@ import java.time.Instant
 import java.time.format.DateTimeFormatter
 
 /**
- * Files written out of the app for people to read (docs/design/export.md), into the app's folder
+ * Files written out of the app for people to read (docs/DATA.md, « Export »), into the app's folder
  * chosen once in Settings › Data (AppSettings.DATA_FOLDER, the automatic backups' too), without
  * asking anything: the same from a screen, the AI or a routine.
  *

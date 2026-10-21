@@ -11,7 +11,7 @@ data class PartElement(val kind: Kind, val id: String) {
 }
 
 /**
- * An element kept that names one left out (docs/design/share.md, « Les liens »).
+ * An element kept that names one left out (docs/DATA.md, « A part of the app »).
  *
  * A tool, its entries or a variable would arrive broken without its target: the link blocks the
  * file. A routine arrives in a state the app knows (switched off, without provider nor identity,

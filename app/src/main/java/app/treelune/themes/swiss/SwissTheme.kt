@@ -134,7 +134,7 @@ import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
- * The Swiss theme (docs/design/swiss-theme.md): the app as a Swiss poster. A strict grid on a
+ * The Swiss theme (docs/themes/swiss.md): the app as a Swiss poster. A strict grid on a
  * pitch of 8 dp, black ink on an off-white ground and a single red for the app's signals, no
  * shadow and no rounding: a tile is a thick rule over its content, flush left; the numbers large,
  * in Archivo's black weight (SwissSize). Under the finger a piece inverts, and a window fades in
@@ -174,8 +174,17 @@ object SwissTheme : ThemeContract {
     @Composable
     override fun gridRowGapPx(): Int = with(LocalDensity.current) { 16f.dp.roundToPx() }
 
-    /** Silent: the theme's sounds are chosen apart (docs/THEMES.md, The sounds). */
-    override fun sound(signal: UISignal): Int? = null
+    override fun sound(signal: UISignal): Int? = when (signal) {
+        UISignal.CONFIRM -> R.raw.swiss_confirm
+        UISignal.ENTER -> R.raw.swiss_enter
+        UISignal.BACK -> R.raw.swiss_back
+        UISignal.OPEN -> R.raw.swiss_open
+        UISignal.CLOSE -> R.raw.swiss_close
+        UISignal.TOGGLE -> R.raw.swiss_toggle
+        UISignal.STEP -> R.raw.swiss_step
+        UISignal.SCROLL_END -> R.raw.swiss_scroll_end
+        UISignal.REFUSE -> R.raw.swiss_refuse
+    }
 
     /** A tile's name flush with its icon's side, on the grid's left line, as every text of the theme. */
     override fun tileNameAlign(): TextAlign = TextAlign.Start
@@ -1529,7 +1538,7 @@ object SwissTheme : ThemeContract {
 
 
     /**
-     * How the motifs are laid (docs/design/tool-texture.md): a cell's unit a dp at the size step,
+     * How the motifs are laid (docs/THEMES.md, « What a theme is in the app »): a cell's unit a dp at the size step,
      * smoothed, so a motif grows with everything else, its cells on the pitch of 8 dp; an ICON
      * motif's icon sixteen units, sixteen around it.
      */

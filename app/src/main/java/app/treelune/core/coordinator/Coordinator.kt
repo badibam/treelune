@@ -152,7 +152,7 @@ class Coordinator(private val context: Context) {
 
             // The origin goes with the operation, for its service and every call made from it, and
             // so does its step of the history: opened here for an operation asked from outside,
-            // kept by every operation it calls (docs/design/undo-history.md, « Le pas »)
+            // kept by every operation it calls (docs/DATA.md, « History of writes »)
             val running = kotlin.coroutines.coroutineContext[app.treelune.core.history.Step]
             val step = running ?: app.treelune.core.history.Step(
                 source = command.source,

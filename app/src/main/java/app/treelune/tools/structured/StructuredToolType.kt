@@ -16,7 +16,7 @@ import org.json.JSONObject
 
 /**
  * Structured data: sheets of what the user declares (foods and their calories, books, contacts),
- * each found by its name (docs/design/missing-tools.md, « Données structurées »).
+ * each found by its name (docs/TOOLS.md, « Structured data »).
  *
  * Its columns are the user's fields (extra), declared in the instance's config; the tool type
  * declares none, and an entry has no date. The name is required and unique in the instance, the

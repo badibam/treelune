@@ -2,5 +2,5 @@
 <resources>
     <string name="name">Cut paper</string>
     <!-- What the theme looks like, said to the user: the README -->
-    <string name="tagline">Coloured sheets cut with scissors, laid askew on kraft paper</string>
+    <string name="tagline">Coloured sheets cut with scissors, laid askew on kraft paper, its own sounds</string>
 </resources>

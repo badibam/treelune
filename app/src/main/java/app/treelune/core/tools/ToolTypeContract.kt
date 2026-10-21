@@ -35,7 +35,7 @@ interface ToolTypeContract {
     /**
      * The Guide's chapter on this type, beside its usage, in the Guide's markup (Markup):
      * every setting of its own config, and every button of its screen, one mention each
-     * (docs/design/user-journey.md, « Prise en main »). None until written.
+     * (docs/GUIDE.md, « Getting started »). None until written.
      */
     fun getGuideConfig(context: Context): String? = null
     fun getGuideScreen(context: Context): String? = null
@@ -243,7 +243,7 @@ interface ToolTypeContract {
 
     /**
      * Whether [entry] keeps the values it was judged or made with when the config changes
-     * (docs/design/config-change.md): a change of config leaves it as it is. By default, an entry
+     * (docs/DATA.md, « Config change »): a change of config leaves it as it is. By default, an entry
      * no ordinary write may change; a goal's reopened attempt too, which keeps its copy.
      */
     fun keepsItsPast(entry: ToolDataEntity, context: Context): Boolean = refuseChange(entry, context) != null

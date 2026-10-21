@@ -1,0 +1,89 @@
+{
+  "_about": "The ink theme's interface sounds, one per UISignal chosen, made by scripts/theme_sounds.py from sounds-choice.json beside this file (docs/THEMES.md); their source and licence.",
+  "sounds": {
+    "res/raw/ink_confirm.flac": {
+      "made": "sox trim 0.11 0.36",
+      "from": [
+        {
+          "title": "Freesound · brush_655539",
+          "author": "221227",
+          "licence": "CC BY 4.0",
+          "page": "https://freesound.org/people/221227/sounds/655539/"
+        }
+      ]
+    },
+    "res/raw/ink_enter.flac": {
+      "made": "sox trim 0.06 0.08",
+      "from": [
+        {
+          "title": "BigSoundBank · page_2210",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/pages-that-turn-3-s2210.html"
+        }
+      ]
+    },
+    "res/raw/ink_back.flac": {
+      "made": "sox trim 10.45 0.18",
+      "from": [
+        {
+          "title": "BigSoundBank · page_1250",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/news-paper-pages-s1250.html"
+        }
+      ]
+    },
+    "res/raw/ink_open.flac": {
+      "made": "sox trim 16.26 0.27",
+      "from": [
+        {
+          "title": "BigSoundBank · drop_1385",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/drops-of-water-2-s1385.html"
+        }
+      ]
+    },
+    "res/raw/ink_close.flac": {
+      "made": "sox trim 9.06 0.35",
+      "from": [
+        {
+          "title": "BigSoundBank · drop_1385",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/drops-of-water-2-s1385.html"
+        }
+      ]
+    },
+    "res/raw/ink_toggle.flac": {
+      "title": "Interface Sounds · glass_006",
+      "author": "Kenney",
+      "licence": "CC0 1.0",
+      "page": "https://kenney.nl/assets/interface-sounds"
+    },
+    "res/raw/ink_step.flac": {
+      "title": "Interface Sounds · glass_005",
+      "author": "Kenney",
+      "licence": "CC0 1.0",
+      "page": "https://kenney.nl/assets/interface-sounds"
+    },
+    "res/raw/ink_scroll_end.flac": {
+      "made": "sox trim 11.35 0.06",
+      "from": [
+        {
+          "title": "BigSoundBank · drop_1384",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/drops-of-water-1-s1384.html"
+        }
+      ]
+    },
+    "res/raw/ink_refuse.flac": {
+      "title": "Interface Sounds · glass_003",
+      "author": "Kenney",
+      "licence": "CC0 1.0",
+      "page": "https://kenney.nl/assets/interface-sounds"
+    }
+  }
+}

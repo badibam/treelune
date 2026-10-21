@@ -1,0 +1,94 @@
+{
+  "_about": "The paper theme's interface sounds, one per UISignal chosen, made by scripts/theme_sounds.py from sounds-choice.json beside this file (docs/THEMES.md); their source and licence.",
+  "sounds": {
+    "res/raw/paper_confirm.flac": {
+      "made": "sox trim 1.4 0.36",
+      "from": [
+        {
+          "title": "BigSoundBank · pencil_3233",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/pencil-2-s3233.html"
+        }
+      ]
+    },
+    "res/raw/paper_enter.flac": {
+      "title": "BigSoundBank · page_0164",
+      "author": "Joseph Sardin",
+      "licence": "CC0 1.0",
+      "page": "https://bigsoundbank.com/turned-page-s0164.html"
+    },
+    "res/raw/paper_back.flac": {
+      "title": "BigSoundBank · page_2210",
+      "author": "Joseph Sardin",
+      "licence": "CC0 1.0",
+      "page": "https://bigsoundbank.com/pages-that-turn-3-s2210.html"
+    },
+    "res/raw/paper_open.flac": {
+      "made": "sox trim 9.47 0.17",
+      "from": [
+        {
+          "title": "BigSoundBank · sharpener_0051",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/sharpener-s0051.html"
+        }
+      ]
+    },
+    "res/raw/paper_close.flac": {
+      "made": "sox trim 4.65 0.26",
+      "from": [
+        {
+          "title": "BigSoundBank · sharpener_0051",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/sharpener-s0051.html"
+        }
+      ]
+    },
+    "res/raw/paper_toggle.flac": {
+      "made": "sox trim 1.57 0.31",
+      "from": [
+        {
+          "title": "BigSoundBank · stapler_0009",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/stapler-s0009.html"
+        }
+      ]
+    },
+    "res/raw/paper_step.flac": {
+      "made": "sox trim 3.46 0.26",
+      "from": [
+        {
+          "title": "BigSoundBank · stapler_0009",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/stapler-s0009.html"
+        }
+      ]
+    },
+    "res/raw/paper_scroll_end.flac": {
+      "made": "sox trim 10.5 0.18",
+      "from": [
+        {
+          "title": "BigSoundBank · page_1250",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/news-paper-pages-s1250.html"
+        }
+      ]
+    },
+    "res/raw/paper_refuse.flac": {
+      "made": "sox trim 3.57 0.56",
+      "from": [
+        {
+          "title": "BigSoundBank · paper_0018",
+          "author": "Joseph Sardin",
+          "licence": "CC0 1.0",
+          "page": "https://bigsoundbank.com/torn-paper-s0018.html"
+        }
+      ]
+    }
+  }
+}

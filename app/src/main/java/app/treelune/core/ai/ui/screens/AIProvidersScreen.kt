@@ -25,7 +25,7 @@ fun providerLabel(provider: Map<*, *>): String =
     provider["name"] as String + ((provider["model"] as String?)?.let { " · $it" } ?: "")
 
 /**
- * The AI providers the user created (docs/design/ai-providers.md): one card each, its name, its
+ * The AI providers the user created (docs/AI.md, « Provider abstraction »): one card each, its name, its
  * model and its kind, the default marked; touched, its config (Place.AIProvider). "Add a provider"
  * opens the choice of a kind (Place.AIProviderKind), which gives way to the config of a new one,
  * named after its kind.

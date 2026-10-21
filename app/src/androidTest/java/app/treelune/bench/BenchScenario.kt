@@ -24,7 +24,7 @@ import org.junit.runner.RunWith
 import java.io.File
 
 /**
- * One scenario of the bench (docs/design/local-models.md), played by the app itself: the base
+ * One scenario of the bench (docs/AI.md, « Free models and the bench »), played by the app itself: the base
  * emptied, an Other server provider created from the arguments, the demo installed, then
  * a chat message sent or an automation run, through the real orchestrator, until the session
  * rests. What it leaves is judged elsewhere: the base is copied before and after

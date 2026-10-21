@@ -82,7 +82,7 @@ object AppSettings {
     )
 
     /**
-     * The categories the AI reads and writes (APP_CONFIG, UPDATE_APP_CONFIG; docs/design/validation.md),
+     * The categories the AI reads and writes (APP_CONFIG, UPDATE_APP_CONFIG; docs/AI.md, « Levels »),
      * the app's level of validation guarding the writes: the home screen's groups alone. Never one
      * holding a secret, nor the look, which is the user's to see.
      */
@@ -104,12 +104,12 @@ object AppSettings {
     const val DATA_AUTO_BACKUP = "auto_backup"
     /** The case of the automatic backup last looked at in Settings › Data (AutoBackup.seen) */
     const val DATA_SEEN = "seen"
-    /** How many days the history of writes keeps its steps (docs/design/undo-history.md, HistoryDepth) */
+    /** How many days the history of writes keeps its steps (docs/DATA.md, « History of writes », HistoryDepth) */
     const val DATA_HISTORY_DAYS = "history_days"
     /** How many megabytes the history of writes takes at most, its latest step kept whatever its size */
     const val DATA_HISTORY_MEGABYTES = "history_megabytes"
 
-    /** How an outside AI reaches the app: through its own Tailscale node, or through a relay (docs/design/funnel-access.md). */
+    /** How an outside AI reaches the app: through its own Tailscale node, or through a relay (docs/EXTERNAL_ACCESS.md, « The Tailscale node »). */
     const val ACCESS_MODE = "access_mode"
     const val ACCESS_MODE_TAILSCALE = "TAILSCALE"
     const val ACCESS_MODE_RELAY = "RELAY"

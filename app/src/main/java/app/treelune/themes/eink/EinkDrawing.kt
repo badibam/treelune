@@ -29,7 +29,7 @@ import app.treelune.core.drawing.TextAnchor
 import app.treelune.core.drawing.TextBaseline
 
 /**
- * The e-reader theme's drawings (docs/design/eink-theme.md), in the ink and the ground alone. A
+ * The e-reader theme's drawings (docs/themes/eink.md), in the ink and the ground alone. A
  * series' colour becomes its pattern on a fill (a bar, a slice) and its dashes on a line, unless
  * the chart gives the line its own; a quantity coloured between two colours (DrawColor.Mix) a
  * screen of dots as dense as it is far toward the second; an opacity, that share of the shape's

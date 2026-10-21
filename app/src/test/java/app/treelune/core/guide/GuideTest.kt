@@ -11,7 +11,7 @@ import org.junit.Test
 import java.io.File
 
 /**
- * What the Guide promises (docs/design/user-journey.md): its chapters read from their file, the
+ * What the Guide promises (docs/GUIDE.md): its chapters read from their file, the
  * journey first; a step's place filled with what earlier steps kept; the demo's tutorials known
  * from their steps; the progress written and read back the same; the way to a place, from the
  * places open or from the home screen.

@@ -29,7 +29,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.LayoutDirection
 
 /**
- * How a theme lays its motifs (docs/design/tool-texture.md): the size of a cell's unit on the
+ * How a theme lays its motifs (docs/THEMES.md, « What a theme is in the app »): the size of a cell's unit on the
  * screen, whether the cell is drawn in whole pixels, and the icon an ICON motif repeats.
  *
  * @property unitPx Screen pixels a cell's unit takes: a dp in a smooth theme, a drawing pixel

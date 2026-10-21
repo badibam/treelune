@@ -38,7 +38,7 @@ import app.treelune.core.utils.DateUtils
 import kotlinx.coroutines.launch
 
 /**
- * The external access (docs/design/mcp-server.md, docs/design/funnel-access.md): the way in,
+ * The external access (docs/EXTERNAL_ACCESS.md): the way in,
  * Tailscale or a relay, and the relay's address and secret; the access opened and closed and
  * where it stands -- with Tailscale, the one step its node reports missing and what to do; the
  * address to give the outside AI; the clients authorized, each revoked once confirmed.

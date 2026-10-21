@@ -6,7 +6,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Covers what docs/design/message-images.md and docs/design/image-field.md promised of a kept
+ * Covers what docs/AI.md (« Images ») and docs/DATA.md (« IMAGE ») promised of a kept
  * image: reduced to 1 568 px on its longest side and never enlarged, decoded at a fraction that
  * never falls under that size, its format kept (JPEG a JPEG, PNG a PNG, another one by its
  * transparency), an animated one told apart, and the startup sweep removing only the parts and

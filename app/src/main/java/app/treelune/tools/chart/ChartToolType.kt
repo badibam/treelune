@@ -24,7 +24,7 @@ import app.treelune.core.tools.ToolTile
 import org.json.JSONObject
 
 /**
- * A chart (docs/design/missing-tools.md, « Graphique »): a view of other tools' entries and of
+ * A chart (docs/TOOLS.md, « Chart »): a view of other tools' entries and of
  * variables, which draws and computes nothing. Its config is a subset of Vega-Lite, the AI's
  * own grammar, declared setting by setting so that its form and schema are generated like any
  * other: a displayed period, layers each reading one source — a tool's entries, or a grid of

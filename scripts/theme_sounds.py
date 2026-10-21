@@ -294,7 +294,7 @@ def task_library():
 # ----------------------------------------------------------------------------------------------
 
 # What a finish may hold, each step named and applied only when there: what holds a theme's
-# sounds together whatever their source (docs/design/theme-sounds.md).
+# sounds together whatever their source (docs/themes/sounds.md).
 FINISH = {
     "mono": "one channel",
     "rate": "the sampling rate, in Hz",

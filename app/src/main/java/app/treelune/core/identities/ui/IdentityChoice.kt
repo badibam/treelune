@@ -101,8 +101,7 @@ fun IdentitySelector(
 }
 
 /**
- * The tile at the top of a zone that has an identity (docs/design/incarnations.md, « Où elle
- * intervient »): its icon, its name, and a button opening a new conversation with it -- the gesture
+ * The tile at the top of a zone that has an identity (docs/AI.md, « Identities »): its icon, its name, and a button opening a new conversation with it -- the gesture
  * that opens one from a zone, with its rules. Nothing of the zone is attached: a pointer adds it.
  */
 @Composable

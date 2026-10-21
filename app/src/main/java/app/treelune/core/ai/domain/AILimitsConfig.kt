@@ -38,7 +38,7 @@ data class AILimitsConfig(
     /**
      * Size, in characters of the text the AI receives, of the tools marked always_send together
      * above which a CHAT asks once per session whether to send them, and an AUTOMATION or an
-     * outside AI gets their list instead (docs/design/always-send.md). Distinct from the data
+     * outside AI gets their list instead (docs/AI.md, « 2 levels of context »). Distinct from the data
      * thresholds, which guard what the AI asks for: this one guards a cost the user chose and
      * that grows unseen, paid at every call.
      */

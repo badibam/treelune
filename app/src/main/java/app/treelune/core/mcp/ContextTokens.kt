@@ -5,7 +5,7 @@ import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
 /**
- * The context token app_context hands out, which every other tool requires (docs/design/mcp-server.md):
+ * The context token app_context hands out, which every other tool requires (docs/EXTERNAL_ACCESS.md):
  * an AI cannot act in the app before it has read what the app is. It carries the instant it was
  * handed out and the app's signature of it, so the app recognizes its own tokens without keeping
  * them; one older than [validity] is refused, and a conversation resumed later reads the context

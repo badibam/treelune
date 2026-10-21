@@ -9,7 +9,7 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 /**
- * An automation's access mask (docs/design/validation.md): what each level gives, what a zone
+ * An automation's access mask (docs/AI.md, « Levels »): what each level gives, what a zone
  * gives its tools, what each operation needs, and the refusal of what goes beyond.
  */
 class AccessTest {
