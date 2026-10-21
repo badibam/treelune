@@ -77,29 +77,16 @@
   header nav a { color: var(--muted); text-decoration: none; }
   @media (max-width: 640px) { header nav a.opt { display: none; } }
 
-  /* Opening band: the only place a theme dresses the page; it fills the screen under the header exactly */
-  .band {
-    transition: background .35s, color .35s;
-    height: calc(100svh - 56px); display: flex; flex-direction: column;
-  }
+  /* Opening band: the only place a theme dresses the page.
+     Desktop: one screen under the header, three columns (pitch, phone, picker).
+     Phone upright: two screens, the pitch, then the phone with a folded picker.
+     Short landscape: the pitch screen, then the picker on the left beside a phone sized by the width. */
+  .band { transition: background .35s, color .35s; height: calc(100svh - 56px); display: flex; flex-direction: column; }
   .band .hero {
     flex: 1; min-height: 0; width: 100%; display: grid; grid-template-columns: 1.15fr auto auto;
     grid-template-rows: minmax(0, 1fr); gap: 48px; align-items: center; padding-top: 24px; padding-bottom: 24px;
   }
-  .band .showcase { display: contents; }
-  @media (max-width: 820px) {
-    .band .hero { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); gap: 14px; padding-top: 16px; padding-bottom: 16px; }
-    /* The showcase takes the room left and never asks for more: its size is the grid's, not its content's */
-    .band .showcase { display: flex; gap: 16px; height: 100%; min-height: 0; justify-content: center; align-items: center; container-type: size; }
-    .band h1 { font-size: min(23px, 3.2svh); margin-bottom: 8px; }
-    .band .ai { font-size: min(15px, 2.1svh); margin-bottom: 12px; }
-    .band .btn { padding: 8px 12px; font-size: 14px; }
-    .band .buttons { flex-wrap: nowrap; gap: 8px; }
-    /* The phone leaves the picker its ~170px: its width is capped, its height follows */
-    .band .showcase .phone { height: min(100cqh, calc((100cqw - 186px) * 2.0125)); }
-    .picker button { font-size: min(16px, 2.3svh); padding: 0 8px; }
-    .picker-intro { font-size: min(13px, 2svh); max-width: 150px; }
-  }
+  .band .showcase, .band .phone-box { display: contents; }
   /* Sizes follow the height as much as the width: the band never overflows a short screen */
   .band h1 { font-size: clamp(20px, min(4.4vw, 6.2svh), 46px); line-height: 1.12; margin: 0 0 min(18px, 2svh); }
   .band .ai { font-size: clamp(14px, min(1.9vw, 2.9svh), 19px); opacity: .85; margin: 0 0 min(28px, 3svh); max-width: 520px; }
@@ -111,16 +98,24 @@
   }
   .btn.ghost { background: transparent; color: inherit; border: 1.5px solid currentColor; }
   .band .phone { height: 100%; width: auto; }
-
-  /* The picker: a column, each theme's name written in its own font, the light/dark switch under it */
-  .picker { display: flex; flex-direction: column; gap: min(4px, .5svh); }
-  .picker-intro { font-size: min(14px, 2.2svh); opacity: .75; margin: 0 0 min(8px, 1svh); max-width: 180px; }
-  .picker button {
-    font-size: min(18px, 2.7svh); line-height: 1.35; text-align: left; padding: 1px 10px; cursor: pointer;
-    border: none; border-left: 3px solid transparent; background: transparent; color: inherit; opacity: .6; white-space: nowrap;
+  .more {
+    display: none; font: 600 15px system-ui, sans-serif; color: inherit; background: transparent; border: none;
+    cursor: pointer; opacity: .8; padding: 8px 12px; white-space: nowrap;
   }
-  .picker button:hover { opacity: .9; }
-  .picker button[aria-pressed="true"] { opacity: 1; border-left-color: currentColor; }
+  .more span { display: block; font-size: 22px; line-height: 1; animation: nudge 1.8s ease-in-out infinite; }
+  @keyframes nudge { 50% { transform: translateY(5px); } }
+
+  /* The picker: each theme's name written in its own font, the light/dark switch under it */
+  .picker { display: flex; flex-direction: column; gap: min(4px, .5svh); position: relative; }
+  .picker-intro { font-size: min(14px, 2.2svh); opacity: .75; margin: 0 0 min(8px, 1svh); max-width: 180px; }
+  .picker-list { display: flex; flex-direction: column; gap: min(4px, .5svh); }
+  .picker-list button {
+    font-size: min(18px, 2.7svh); line-height: 1.35; text-align: left; padding: 1px 10px; cursor: pointer; white-space: nowrap;
+    border: none; border-left: 3px solid transparent; background: transparent; color: inherit; opacity: .6;
+  }
+  .picker-list button:hover { opacity: .9; }
+  .picker-list button[aria-pressed="true"] { opacity: 1; border-left-color: currentColor; }
+  .picker-toggle { display: none; }
   .mode-switch { display: flex; margin-top: min(14px, 1.8svh); border: 1.5px solid currentColor; border-radius: 999px; overflow: hidden; align-self: flex-start; }
   .mode-switch button {
     font: 600 min(13px, 2svh) system-ui, sans-serif; padding: min(6px, .8svh) 12px; border: none; cursor: pointer;
@@ -128,6 +123,53 @@
   }
   .mode-switch button[aria-pressed="true"] { background: currentColor; }
   .mode-switch button[aria-pressed="true"] span { color: var(--band-bg); }
+
+  /* Phone upright, and short landscape: the band becomes two screens, the first one the pitch alone */
+  @media (max-width: 820px) and (orientation: portrait), (max-height: 500px) and (orientation: landscape) {
+    .band { height: auto; }
+    .band .hero { display: block; padding: 0 16px; }
+    .band .pitch {
+      height: calc(100svh - 56px); min-height: 300px; display: flex; flex-direction: column; justify-content: center;
+      position: relative; padding: 16px 0 80px;
+    }
+    .band h1 { font-size: clamp(24px, min(8vw, 6svh), 40px); margin-bottom: 16px; }
+    .band .ai { font-size: clamp(15px, min(4.4vw, 3.4svh), 19px); margin-bottom: 24px; }
+    .band .btn { padding: 11px 18px; }
+    .more { display: block; position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); text-align: center; }
+    .band .showcase { scroll-margin-top: 56px; }
+  }
+
+  /* Phone upright, screen 2: the phone as tall as the room left, then one line, the folded picker and the switch */
+  @media (max-width: 820px) and (orientation: portrait) {
+    .band .showcase { display: flex; flex-direction: column; height: calc(100svh - 56px); padding: 16px 0; gap: 14px; }
+    .band .phone-box { display: flex; flex: 1; min-height: 0; justify-content: center; container-type: size; }
+    .band .showcase .phone { height: min(100cqh, calc(100cqw * 2.0125)); width: auto; }
+    .band .picker { flex-direction: row; align-items: center; justify-content: center; gap: 12px; }
+    .picker-intro { display: none; }
+    .picker-toggle {
+      display: block; font-size: 18px; padding: 6px 14px; border-radius: 10px; cursor: pointer;
+      border: 1.5px solid currentColor; background: transparent; color: inherit;
+    }
+    .picker-toggle::after { content: " ▾"; font-family: system-ui, sans-serif; }
+    .picker-list {
+      display: none; position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+      padding: 10px 6px; border-radius: 12px; background: var(--band-bg); border: 1.5px solid currentColor;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25); z-index: 5;
+    }
+    .picker.open .picker-list { display: flex; }
+    .picker-list button { font-size: 18px; padding: 4px 12px; }
+    .mode-switch { margin-top: 0; align-self: center; }
+    .mode-switch button { font-size: 13px; padding: 6px 12px; }
+  }
+
+  /* Short landscape, screen 2: the unfolded picker on the left, kept in view, the phone sized by the width */
+  @media (max-height: 500px) and (orientation: landscape) {
+    .band .showcase { display: flex; justify-content: center; align-items: flex-start; gap: 40px; padding: 24px 0 32px; }
+    .band .phone-box { display: block; order: 2; }
+    .band .showcase .phone { width: 34vw; height: auto; }
+    .band .picker { order: 1; position: sticky; top: 72px; }
+    .picker-intro, .picker-list button, .mode-switch button { font-size: 16px; }
+  }
 
   /* A phone frame: thin, drawn, no real device */
   .phone {
@@ -240,18 +282,21 @@
 <!-- 1. Opening -->
 <div class="band" id="band">
   <div class="wrap hero">
-    <div>
+    <div class="pitch">
       <h1>Chaque app de suivi fait une chose, à sa façon. Treelune te donne les pièces, et tu construis celle qu'il te faut.</h1>
       <p class="ai">Une IA de ton choix se sert des mêmes pièces que toi. Elle peut par exemple créer un outil, noter une entrée ou préparer le bilan de la semaine.</p>
       <div class="buttons">
         <a class="btn" href="#installer">Installer</a>
         <a class="btn ghost" href="#zone">Voir comment ça marche</a>
       </div>
+      <button class="more" id="more">Découvre les ambiances<span>↓</span></button>
     </div>
-    <div class="showcase">
-      <div class="phone"><img id="band-shot" alt=""></div>
+    <div class="showcase" id="showcase">
+      <div class="phone-box"><div class="phone"><img id="band-shot" alt=""></div></div>
       <div class="picker" id="picker" role="group" aria-label="Ambiance">
         <p class="picker-intro">L'app se décline en plusieurs ambiances :</p>
+        <button class="picker-toggle" id="picker-toggle" aria-expanded="false"></button>
+        <div class="picker-list" id="picker-list"></div>
         <div class="mode-switch" id="mode-switch" role="group" aria-label="Clair ou sombre">
           <button data-mode="light"><span>Clair</span></button>
           <button data-mode="dark"><span>Sombre</span></button>
@@ -384,6 +429,8 @@
   const band = document.getElementById("band");
   const picker = document.getElementById("picker");
   const modeSwitch = document.getElementById("mode-switch");
+  const pickerList = document.getElementById("picker-list");
+  const pickerToggle = document.getElementById("picker-toggle");
   function applyTheme(t) {
     current = t;
     const [bg, ink] = t[mode];
@@ -394,7 +441,9 @@
     band.style.color = ink;
     band.style.setProperty("--band-bg", bg);
     document.getElementById("band-shot").src = SHOTS + t.shot + ".png";
-    picker.querySelectorAll("button[data-id]").forEach(b => b.setAttribute("aria-pressed", b.dataset.id === t.id));
+    pickerList.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.id === t.id));
+    pickerToggle.textContent = t.name;
+    pickerToggle.style.fontFamily = `"${t.font}", system-ui, sans-serif`;
   }
   function applyMode(m) {
     mode = m;
@@ -407,9 +456,21 @@
     b.dataset.id = t.id;
     b.textContent = t.name;
     b.style.fontFamily = `"${t.font}", system-ui, sans-serif`;
-    b.onclick = () => applyTheme(t);
-    picker.insertBefore(b, modeSwitch);
+    b.onclick = () => { applyTheme(t); foldPicker(); };
+    pickerList.appendChild(b);
   });
+
+  // The folded picker of a phone held upright: the toggle unfolds the list, a choice or a touch elsewhere folds it
+  function foldPicker() { picker.classList.remove("open"); pickerToggle.setAttribute("aria-expanded", "false"); }
+  pickerToggle.onclick = e => {
+    e.stopPropagation();
+    const open = picker.classList.toggle("open");
+    pickerToggle.setAttribute("aria-expanded", open);
+  };
+  document.addEventListener("click", e => { if (!picker.contains(e.target)) foldPicker(); });
+
+  // The nudge at the bottom of the pitch screen brings the second screen right under the header
+  document.getElementById("more").onclick = () => document.getElementById("showcase").scrollIntoView({ behavior: "smooth" });
   modeSwitch.querySelectorAll("button").forEach(b => b.onclick = () => {
     try { localStorage.setItem("mode", b.dataset.mode); } catch (e) {}
     applyMode(b.dataset.mode);
