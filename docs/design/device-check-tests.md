@@ -48,7 +48,7 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 
 ## L'export des entrées (branche post-release)
 
-- Une routine dont le message demande l'export de la semaine : le fichier paraît dans le dossier à chaque exécution.
+- Le dossier choisi dans Réglages › Données : le fichier d'un export y paraît (le sélecteur de dossiers d'Android, qu'un test ne simule pas).
 
 ## Partager une partie de l'app (branche post-release)
 

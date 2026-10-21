@@ -93,6 +93,23 @@ class RunAccessTest {
     }
 
     @Test
+    fun `a routine given a tool to read reaches its export, the folder its first refusal`() = runBlocking {
+        val sessionId = run(listOf(grant("TOOL_INSTANCE", weightId, "read")))
+        val command = app.treelune.core.ai.processing.AICommandProcessor(context).processActionCommands(listOf(
+            app.treelune.core.ai.data.DataCommand(id = "export", type = "EXPORT_DATA", params = mapOf("tool_instance_id" to weightId))
+        )).executableCommands.single()
+        val export = execute(sessionId, command)
+        // No folder is chosen in a test: the export went past the access to the service, which asks for one
+        assertEquals(CommandStatus.FAILED, export.status)
+        assertEquals(app.treelune.core.strings.Strings.`for`(context = context).shared("export_error_no_folder"), export.error)
+
+        val elsewhere = run(listOf(grant("ZONE", otherZoneId, "full")))
+        val refused = execute(elsewhere, command)
+        assertEquals(CommandStatus.FAILED, refused.status)
+        assertTrue(refused.error, refused.error!!.contains("Weekly"))
+    }
+
+    @Test
     fun `a routine with a zone in full creates a routine within its access, never one wider or open`() = runBlocking {
         val sessionId = run(listOf(grant("ZONE", zoneId, "full")))
         val create: (List<Map<String, Any>>) -> ExecutableCommand = { access ->
