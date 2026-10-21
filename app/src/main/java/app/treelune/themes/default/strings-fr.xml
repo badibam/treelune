@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="name">Par défaut</string>
+    <string name="name">Material</string>
     <!-- What the theme looks like, said to the user: the README -->
     <string name="tagline">Clair et sobre, dans la teinte de ton choix</string>
 </resources>

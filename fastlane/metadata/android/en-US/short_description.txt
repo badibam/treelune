@@ -1,1 +1,1 @@
-Build the app you need, from pieces that fit together
+A made-to-measure tracking app, built from tools that fit together

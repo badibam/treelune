@@ -10,7 +10,7 @@
     <string name="guide_config">## The sheets\nA sheet has a name, plus the tool\'s fields, added in the common settings.\n\n## The table\n- Columns of the table: how many fields show after the name</string>
     <string name="guide_screen">## The table\n- Search by name\n- Filters\nTouch a column\'s title to sort by it, and touch it again to reverse the order.\n- {plus} New sheet\n- Import a file: a CSV table, one row per sheet\n\n## A sheet\nTouch a row to open its sheet.\n- {chevron-left} Previous sheet\n- {chevron-right} Next sheet\n- Change\n- {trash} Deletes the sheet</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
-    <string name="tagline">Sheets of your own fields, each found by its name: foods, books, plants</string>
+    <string name="tagline">Sheets with the fields you choose, each found by its name, for foods, books, plants or anything else</string>
 
     <!-- Setting -->
     <string name="field_table_columns">Columns of the table</string>

@@ -10,7 +10,7 @@ Un suivi, un carnet, une liste, des fiches, un objectif, un graphique, des flash
 
 Chaque pan de ta vie devient une zone, avec ses propres outils : le sport, un projet, un potager, une langue, et tout ce que tu voudras y ajouter.
 
-Si tu veux un coup de main, une IA connaît les mêmes pièces que toi. Demande-lui « monte-moi de quoi préparer un semi-marathon », et elle crée la zone, les outils et leurs liens. Elle peut ensuite noter avec toi, répondre sur tes données, ou travailler seule à heure fixe, pour un bilan chaque dimanche soir par exemple. Si tu le demandes, elle attend ton accord avant chaque changement. Tu choisis le fournisseur et tu apportes ta clé : Claude, OpenAI, DeepSeek, ou un modèle qui tourne chez toi. Sans IA, rien ne manque.
+Si tu veux un coup de main, une IA connaît les mêmes pièces que toi. Demande-lui « monte-moi de quoi préparer un semi-marathon », et elle crée la zone, les outils et leurs liens. Elle peut ensuite noter avec toi, répondre sur tes données, ou travailler seule à heure fixe, pour un bilan chaque dimanche soir par exemple. Si tu le demandes, elle attend ton accord avant chaque changement. Tu choisis le fournisseur et tu apportes ta clé : les principaux fournisseurs d'IA, ou une IA hébergée localement. Tout reste possible sans IA.
 
 Et pour que ça te ressemble : une icône et une couleur par outil, des tuiles à disposer, des thèmes qui vont du pixel art au lavis à l'encre.
 
@@ -18,16 +18,18 @@ Tout reste sur ton téléphone. Pas de compte, pas de publicité, pas de pistage
 
 Pour voir ce que ça donne, ouvre la démo : douze semaines dans la vie de Camille, entre semi-marathon, clients, potager sur le balcon et italien avant Rome.
 
-Les pièces :
-- Suivi — Des chiffres, des notes sur une échelle, des choix ou des durées chronométrées, notés au fil des jours : poids, sommeil, humeur, verres d'eau
+Treelune est encore jeune, et n'a été essayée que sur quelques téléphones. Pour qu'un problème soit corrigé, signale-le depuis Réglages › Signaler un bug.
+
+Les outils :
+- Suivi — Des chiffres, des notes sur une échelle, des choix ou des durées chronométrées, notés au fil des jours, comme le poids, le sommeil, l'humeur ou les verres d'eau
 - Notes — Des notes, chacune avec son titre, rangées là où elles servent
 - Journal — Un carnet daté, pour raconter ses journées
 - Messages — Des rappels et des notifications, une fois ou selon un planning
 - Liste — Ce qui reste à faire, coché au fur et à mesure, avec des échéances si tu veux
-- Données structurées — Des fiches faites de tes champs, retrouvées par leur nom : aliments, livres, plantes
+- Données structurées — Des fiches aux champs que tu choisis, chacune retrouvée par son nom, pour des aliments, des livres, des plantes ou autre chose
 - Objectif — Un objectif jugé chaque jour, semaine ou mois sur les critères que tu fixes, lus dans tes entrées
 - Questionnaire — Des questions posées une par écran, quand tu veux ou à heures prévues
 - Graphique — Tes entrées et tes chiffres dessinés en courbes, barres, camemberts ou calendriers
-- Séance — Des étapes préparées à l'avance, suivies à l'écran avec un minuteur et un signal à chaque changement : un entraînement, une recette
+- Séance — Des étapes préparées à l'avance, suivies à l'écran avec un minuteur et un signal à chaque changement, comme un entraînement ou une recette
 - Agenda — Les rendez-vous et les événements à heure, qui passent d'eux-mêmes, avec leurs rappels
 - Flashcards — Des cartes à réviser tirées d'un autre outil, chacune revenant juste avant d'être oubliée

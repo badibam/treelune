@@ -579,7 +579,7 @@
     <!-- App Config - Format Settings labels -->
     <string name="app_config_format_week_start_day">Jour de début de semaine</string>
     <string name="app_config_format_day_start_hour">Heure de début de journée</string>
-    <string name="app_config_format_locale_override">Locale personnalisée</string>
+    <string name="app_config_format_locale_override">Convention d\'écriture</string>
     <string name="app_config_format_timezone_override">Fuseau horaire personnalisé</string>
     <string name="app_config_format_date_format_pattern">Pattern de format de date</string>
     <string name="app_config_format_time_separator">Séparateur d\'heure</string>
@@ -802,7 +802,7 @@
     <string name="field_time_am">AM</string>
     <string name="field_time_pm">PM</string>
     <string name="field_choice_none">Aucun</string>
-    <string name="field_choice_search">Chercher dans la liste</string>
+    <string name="field_choice_search">Filtrer la liste</string>
     <string name="field_length_count">%1$d / %2$d</string>
     <string name="field_choice_new_value">Nouvelle option</string>
     <string name="field_config_option_value">Option</string>
@@ -910,7 +910,7 @@
     <!-- APP CONFIG SCHEMA - Descriptions pour validation configuration application -->
     <string name="app_config_schema_format_week_start_day">Jour de début de semaine</string>
     <string name="app_config_schema_format_day_start_hour">Heure de début de journée pour calcul des périodes</string>
-    <string name="app_config_schema_format_locale_override">Locale personnalisée (null pour utiliser locale système)</string>
+    <string name="app_config_schema_format_locale_override">La façon d\'écrire les nombres et les dates (séparateur décimal, noms des mois), en étiquette de langue et de région comme fr-FR ; absente, celle du téléphone. La langue des textes n\'en dépend pas</string>
     <string name="app_config_schema_format_timezone_override">Fuseau horaire personnalisé (null pour utiliser fuseau système)</string>
     <string name="app_config_schema_format_use_24_hour_format">Format 24h pour affichage heure (null pour utiliser défaut locale)</string>
     <string name="app_config_schema_format_date_format_pattern">Pattern de format de date (null pour utiliser défaut locale)</string>
@@ -1042,8 +1042,7 @@
     <string name="settings_format_description">Configurer les formats temporels et d\'affichage</string>
     <string name="settings_format_subtitle">Configuration date/heure</string>
     <string name="settings_format_timezone">Fuseau horaire</string>
-    <string name="settings_format_locale_section">Langue et région</string>
-    <string name="settings_format_display_section">Formats d\'affichage</string>
+    <string name="settings_format_locale_section">Nombres et dates</string>
     <string name="settings_format_24h">Format 24h (sinon 12h)</string>
     <string name="settings_format_business_section">Logique métier (périodes)</string>
     <string name="settings_format_relative_section">Labels relatifs (périodes)</string>

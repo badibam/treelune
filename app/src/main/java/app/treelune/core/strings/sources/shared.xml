@@ -579,7 +579,7 @@
     <!-- App Config - Format Settings labels -->
     <string name="app_config_format_week_start_day">Day the week starts on</string>
     <string name="app_config_format_day_start_hour">Hour the day starts at</string>
-    <string name="app_config_format_locale_override">Custom locale</string>
+    <string name="app_config_format_locale_override">Writing convention</string>
     <string name="app_config_format_timezone_override">Custom time zone</string>
     <string name="app_config_format_date_format_pattern">Date format pattern</string>
     <string name="app_config_format_time_separator">Time separator</string>
@@ -802,7 +802,7 @@
     <string name="field_time_am">AM</string>
     <string name="field_time_pm">PM</string>
     <string name="field_choice_none">None</string>
-    <string name="field_choice_search">Search the list</string>
+    <string name="field_choice_search">Filter the list</string>
     <string name="field_length_count">%1$d / %2$d</string>
     <string name="field_choice_new_value">New option</string>
     <string name="field_config_option_value">Option</string>
@@ -910,7 +910,7 @@
     <!-- APP CONFIG SCHEMA - Descriptions for application configuration validation -->
     <string name="app_config_schema_format_week_start_day">Day the week starts on</string>
     <string name="app_config_schema_format_day_start_hour">Hour the day starts at, for period calculation</string>
-    <string name="app_config_schema_format_locale_override">Custom locale (null to use the system locale)</string>
+    <string name="app_config_schema_format_locale_override">How numbers and dates are written (decimal separator, names of months), as a language and region tag such as en-US; absent, the phone\'s. The language of the texts does not depend on it</string>
     <string name="app_config_schema_format_timezone_override">Custom time zone (null to use the system time zone)</string>
     <string name="app_config_schema_format_use_24_hour_format">24h format for time display (null to use the locale default)</string>
     <string name="app_config_schema_format_date_format_pattern">Date format pattern (null to use the locale default)</string>
@@ -1042,8 +1042,7 @@
     <string name="settings_format_description">Configure the time and display formats</string>
     <string name="settings_format_subtitle">Date/time configuration</string>
     <string name="settings_format_timezone">Time zone</string>
-    <string name="settings_format_locale_section">Language and region</string>
-    <string name="settings_format_display_section">Display formats</string>
+    <string name="settings_format_locale_section">Numbers and dates</string>
     <string name="settings_format_24h">24h format (otherwise 12h)</string>
     <string name="settings_format_business_section">Business logic (periods)</string>
     <string name="settings_format_relative_section">Relative labels (periods)</string>

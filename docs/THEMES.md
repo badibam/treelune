@@ -118,7 +118,7 @@ Each one cost a round trip on the device; the code of the three themes respects 
 - **The inks hold a contrast of 4.5 on their background in both modes**, the secondary included (descriptions, labels), and the text in a button takes the button's ink: a pale ink on the primary colour could no longer be read.
 - **The default theme names each of Material's colour roles**: those it leaves out, Material fills with its purples (a chosen segment, a menu, a date picker).
 - **Everything the finger takes is 48 dp at the least** (a button, a field, a checkbox, a list row; an icon-only button, a square of that size); three cells were 28 dp.
-- **A word wider than its line is cut at syllables** (`Hyphens.Auto`), never at any letter.
+- **A word wider than its line is cut at syllables** (`Hyphens.Auto`), never at any letter. A heading (a tile's name, a section's title) is broken between words first, hyphenated only once a word does not hold on its line (`HeadingBreak`): evening its lines, Android wrote « Day's calor- / ies ».
 - **A character missing from the font** is taken by Android from a system font: to check on the French text, the narrow space (U+202F) first.
 - **A floating window holds above the keyboard itself** (`FloatingDialog`): left to Android, its buttons went under the keys.
 - **The hue band shows saturated colours**: in the grey of the frames' background, one shift could not be told from another.
