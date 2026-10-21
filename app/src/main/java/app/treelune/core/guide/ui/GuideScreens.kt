@@ -335,7 +335,10 @@ fun GuideStartDialog(chapter: GuideChapter) {
     )
 }
 
-/** A tutorial asked for while the demo it begins in is not installed: reinstall it, or skip those steps. */
+/**
+ * A tutorial asked for while the demo it begins in is not installed: reinstall it, or skip those
+ * steps. Closed without a choice, nothing begins.
+ */
 @Composable
 fun GuideDemoMissingDialog(chapter: GuideChapter) {
     val context = LocalContext.current
@@ -354,6 +357,7 @@ fun GuideDemoMissingDialog(chapter: GuideChapter) {
                 else UI.Toast(result.error ?: s.shared("error_operation_failed"), Duration.LONG)
             }
         },
-        onDismiss = { Guide.skipDemo(chapter) }
+        onCancel = { Guide.skipDemo(chapter) },
+        onDismiss = { Guide.demoMissingFor = null }
     )
 }
