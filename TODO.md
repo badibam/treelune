@@ -31,7 +31,6 @@ Codé, jamais vu sur l'appareil.
 
 ## À concevoir
 
-- Le Guide : les sujets d'Approfondissement suivants (formules et variables, conditions et filtres, champs et leur migration…), ce qui marque « fait » un chapitre sans étape à faire (ouvert, ou lu jusqu'au bout), et l'étape « demandez-lui son avis » de Brancher une IA, qui se lit au lieu d'attendre l'envoi : un message à l'IA ne passe pas par le dispatcher (`AIOrchestrator.sendMessage` le range lui-même).
 - Un contrôle « qui dépend de ça ? » avant de supprimer une chose (une condition, une variable, un pointeur qui la visent), écrit une fois, appelé par le service qui supprime et par l'annulation qui supprime une ligne.
 - Les events du cœur : quel premier usage — un événement de l'Agenda qui commence, une entrée écrite, une condition devenue vraie (l'Alerte) ? L'automation directe attend la même brique : sans IA, elle exécute elle-même ses commandes ; son premier usage, le relevé, garde une valeur telle qu'elle était (une variable `imc` écrite chaque semaine dans un Suivi), là où une variable se relit à tout jour passé avec les données d'aujourd'hui.
 - Des outils montrés sur la tuile d'une zone de l'accueil (le poids du jour sur « Santé ») : leur résumé ou un raccourci selon la place de la tuile — lesquels, dans quel ordre, un outil montré à deux endroits.
