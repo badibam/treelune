@@ -14,6 +14,7 @@ import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -39,6 +40,17 @@ class MessagesUnreadableScheduleTest {
     private fun status(entry: app.treelune.core.database.entities.ToolDataEntity) = JSONObject(entry.state!!).getString("status")
 
     /** A pass of the scheduler as the core scheduler's tick runs it, as the app (CoreScheduler.tick). */
+    /** The zone of this test, deleted after it with its tools: scheduled, a later test's tick would act on them. */
+    private var zoneId: String? = null
+
+    @After
+    fun tearDown() = runBlocking<Unit> {
+        zoneId?.let {
+            val deleted = Coordinator(context).processUserAction("zones.delete", mapOf("zone_id" to it))
+            assertTrue(deleted.error, deleted.isSuccess)
+        }
+    }
+
     private suspend fun tick() = withContext(Origin(Source.SCHEDULER)) { MessageScheduler.checkScheduled(context) }
 
     /**
@@ -62,6 +74,7 @@ class MessagesUnreadableScheduleTest {
         val coordinator = Coordinator(context)
         val zone = coordinator.processUserAction("zones.create", mapOf("name" to "Home"))
         assertTrue(zone.error, zone.isSuccess)
+        zoneId = zone.data!!["zone_id"] as String
         val tool = coordinator.processUserAction("tools.create", mapOf(
             "zone_id" to zone.data!!["zone_id"], "tooltype" to "messages",
             "config" to mapOf(

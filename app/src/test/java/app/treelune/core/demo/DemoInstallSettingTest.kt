@@ -45,7 +45,7 @@ class DemoInstallSettingTest {
 
     @Test
     fun `switched off, the demo stays and an update leaves it, switched on, nothing before the next update`() = runBlocking {
-        assertNull(DemoStartup.run(context))
+        DemoFixture.installed(context)
         val zones = demoZones()
         assertTrue(zones > 0)
 

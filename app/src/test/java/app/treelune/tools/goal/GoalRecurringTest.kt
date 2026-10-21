@@ -14,6 +14,7 @@ import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -37,6 +38,17 @@ class GoalRecurringTest {
     private val day = 86_400_000L
 
     /** A pass of the scheduler as the core scheduler's tick runs it, as the app (CoreScheduler.tick). */
+    /** The zone of this test, deleted after it with its tools: scheduled, a later test's tick would act on them. */
+    private var zoneId: String? = null
+
+    @After
+    fun tearDown() = runBlocking<Unit> {
+        zoneId?.let {
+            val deleted = Coordinator(context).processUserAction("zones.delete", mapOf("zone_id" to it))
+            assertTrue(deleted.error, deleted.isSuccess)
+        }
+    }
+
     private suspend fun tick() = withContext(Origin(Source.SCHEDULER)) { GoalScheduler.checkScheduled(context) }
 
     /**
@@ -72,6 +84,7 @@ class GoalRecurringTest {
         val coordinator = Coordinator(context)
         val zone = coordinator.processUserAction("zones.create", mapOf("name" to "Course"))
         assertTrue(zone.error, zone.isSuccess)
+        zoneId = zone.data!!["zone_id"] as String
         val runs = coordinator.processUserAction("tools.create", mapOf(
             "zone_id" to zone.data!!["zone_id"], "tooltype" to "tracking",
             "config" to mapOf("name" to "Runs", "type" to "numeric", "value" to mapOf("decimals" to 0), "units" to emptyList<String>())

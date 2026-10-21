@@ -13,7 +13,9 @@ import app.treelune.core.services.BackupService
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.After
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -31,6 +33,21 @@ class BackupImagesTest {
 
     private val context: Context get() = RuntimeEnvironment.getApplication()
     private val images get() = AppDatabase.getDatabase(context).imageDao()
+    private val before get() = File(context.cacheDir, "before_images.zip")
+
+    /** The base outlives the class: the app as it was is backed up first, and restored after. */
+    @Before
+    fun backUp() = runBlocking {
+        val service = BackupService(context)
+        val token = CancellationToken()
+        assertTrue(service.writeZip(before.outputStream(), service.build(token)!!, token))
+    }
+
+    @After
+    fun restore() = runBlocking {
+        val restored = Coordinator(context).processUserAction("backup.import", mapOf("uri" to Uri.fromFile(before).toString()))
+        assertTrue(restored.error, restored.isSuccess)
+    }
 
     @Test
     fun `an entry's image and a message's come back, each to its owner`() = runBlocking {

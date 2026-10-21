@@ -6,7 +6,7 @@ import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.AppDatabase
 import app.treelune.core.demo.DemoContent
-import app.treelune.core.demo.DemoStartup
+import app.treelune.core.demo.DemoFixture
 import app.treelune.core.images.Images
 import app.treelune.core.services.BackupService
 import app.treelune.core.utils.JsonUtils
@@ -46,7 +46,7 @@ class PartImportTest {
      * app's folder, a document tree, has no stand-in here): its uri.
      */
     private suspend fun demoExported(): Uri {
-        assertNull(DemoStartup.run(context))
+        DemoFixture.installed(context)
         val file = File(context.cacheDir, "backup.zip")
         val service = BackupService(context)
         val token = CancellationToken()

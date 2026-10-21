@@ -29,7 +29,7 @@ class DemoUndoTest {
     @Before
     fun setUp() = runBlocking {
         context = RuntimeEnvironment.getApplication()
-        DemoStartup.run(context)
+        DemoFixture.installed(context)
         coordinator = Coordinator(context)
     }
 
