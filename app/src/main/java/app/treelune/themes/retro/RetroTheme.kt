@@ -316,8 +316,8 @@ object RetroTheme : ThemeContract {
         val s = retroSurface
         val override = LocalRetroInk.current
         val (style, ink) = when (type) {
-            TextType.HEADING -> retroGridUp().text to (override ?: s.strong.srgb)
-            TextType.TITLE, TextType.SUBTITLE, TextType.STRONG -> grid.text to (override ?: s.strong.srgb)
+            TextType.HEADING, TextType.SUBTITLE -> retroGridUp().text to (override ?: s.strong.srgb)
+            TextType.TITLE, TextType.STRONG -> grid.text to (override ?: s.strong.srgb)
             TextType.BODY -> grid.text to (override ?: s.ink.srgb)
             TextType.CAPTION, TextType.LABEL -> grid.thin to (override ?: s.dim.srgb)
             TextType.ERROR -> grid.text to s.error.srgb
