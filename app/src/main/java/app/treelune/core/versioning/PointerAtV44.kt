@@ -103,7 +103,9 @@ object PointerAtV44 {
             val segment = segments.getJSONObject(i)
             if (segment.optString("type") != "enrichment" || segment.optString("enrichment_type") != "POINTER") continue
             try {
-                val next = config(JSONObject(segment.getString("config")), calendar) ?: continue
+                // A pointer written before v28 keeps its keys in camelCase: its config is a string
+                // inside the message's, which renaming the message (KeyCaseRenames) does not reach
+                val next = config(JSONObject(KeyCaseRenames.rename(segment.getString("config"))), calendar) ?: continue
                 segment.put("config", next.toString())
                 changed = true
             } catch (e: Exception) {
