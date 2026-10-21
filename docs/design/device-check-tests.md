@@ -45,10 +45,6 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 
 - Planifiée chaque jour à une heure passée : au tick, une entrée prévue, une notification qui ouvre l'outil, le point d'attente sur la tuile ; « Commencer » la reprend, « Faite » la marque faite à son heure prévue ; une absence de plusieurs jours, « Tout ignorer ».
 
-## Agenda (branche agenda)
-
-- « Se répète » chaque mardi 18 h : les champs supplémentaires disparaissent ; des occurrences sur 90 jours apparaissent aussitôt l'enregistrement (une série créée par l'IA ou par la roue dentée aussi), chacune avec l'icône de répétition. Une occurrence : « Retirer » la fait passer sous « Retirées (1) », « Rétablir » la remet ; « Supprimer » n'y est pas.
-
 ## L'IA et les routines (branche ai-routines)
 
 - Une routine à l'accès limité à une zone en `full`, dont le message demande de créer une routine : créée avec un accès dans le sien, refusée avec un accès vide ou plus large, la raison dans son historique.
