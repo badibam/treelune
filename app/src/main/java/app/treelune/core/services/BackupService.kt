@@ -210,8 +210,8 @@ class BackupService(private val context: Context) : ExecutableService {
 
     /**
      * [built] written into [folder] as a backup zip named after [title] and the minute, never over
-     * another file (AppFolder). Answer: `file_name`, `uri`, `elements` (its tools, variables and
-     * routines), `entries`, `missing_images`.
+     * another file (AppFolder). Answer: `file_name`, `uri`, `elements` (its tools, variables,
+     * routines and identities, as the export's screen counts them), `entries`, `missing_images`.
      */
     private fun writeIntoFolder(folder: android.net.Uri, built: Built, title: String, token: CancellationToken): OperationResult {
         val zone = app.treelune.core.utils.AppConfigManager.getDateTimeConfig().getZoneId()
@@ -234,7 +234,7 @@ class BackupService(private val context: Context) : ExecutableService {
         }
 
         val data = built.json.getJSONObject("data")
-        val elements = listOf("tool_instances", "variables", "automations").sumOf { data.optJSONArray(it)?.length() ?: 0 }
+        val elements = listOf("tool_instances", "variables", "automations", "identities").sumOf { data.optJSONArray(it)?.length() ?: 0 }
         val entries = data.optJSONArray("tool_data")?.length() ?: 0
         LogManager.service("Backup: ${written.second} written, $elements elements, $entries entries, ${built.images.size} images, ${built.missing} without their file")
         return OperationResult.success(mapOf(

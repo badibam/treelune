@@ -379,7 +379,7 @@ private fun EventRow(event: AgendaEvent, config: JSONObject, now: Long, onOpen: 
         UI.Text(AgendaDays.timeLabel(event, s), if (event.isOngoing(now, zone)) TextType.STRONG else TextType.BODY)
         Column(modifier = Modifier.weight(1f)) {
             val name = if (event.isPlanned) event.name else s.tool("cancelled_name").format(event.name)
-            UI.Text(name, if (event.isPlanned) TextType.SUBTITLE else TextType.CAPTION)
+            UI.Text(name, if (event.isPlanned) TextType.STRONG else TextType.CAPTION)
             AgendaDays.lengthLabel(event, s)?.let { UI.Text(it, TextType.CAPTION) }
             if (event.isOngoing(now, zone) && event.isPlanned) UI.Text(s.tool("ongoing"), TextType.STRONG)
             CustomFieldsDisplay(AgendaToolType, config, event.extra, FieldsLayout.COMPACT, context)
