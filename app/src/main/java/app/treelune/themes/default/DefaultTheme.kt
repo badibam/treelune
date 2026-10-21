@@ -924,12 +924,13 @@ object DefaultTheme : ThemeContract {
         confirmText: String?,
         cancelText: String?,
         onConfirm: () -> Unit,
+        onCancel: () -> Unit,
         onDismiss: () -> Unit
     ) {
         val context = androidx.compose.ui.platform.LocalContext.current
         val s = app.treelune.core.strings.Strings.`for`(context = context)
         DialogWindow(onDismiss = onDismiss, actions = {
-            DialogTextButton(cancelText ?: s.shared("action_cancel"), onDismiss)
+            DialogTextButton(cancelText ?: s.shared("action_cancel"), onCancel)
             DialogMainButton(confirmText ?: s.shared("action_confirm"), onConfirm)
         }) {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {

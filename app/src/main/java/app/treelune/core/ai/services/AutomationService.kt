@@ -42,6 +42,7 @@ import java.util.*
  * - create (with its seed session and message), update, delete, get
  * - config: its settings, access and message as they are written
  * - list (by zone), list_all
+ * - next_execution: when it runs next
  * - enable, disable
  * - execute_manual (triggers manual execution via AIOrchestrator)
  */
@@ -78,6 +79,7 @@ class AutomationService(private val context: Context) : ExecutableService {
                 "config" -> getConfig(params, token)
                 "list" -> listAutomations(params, token)
                 "list_all" -> listAllAutomations(token)
+                "next_execution" -> nextExecution(params, token)
                 "waiting" -> waiting(params)
                 "enable" -> setEnabled(params, token, true)
                 "disable" -> setEnabled(params, token, false)
@@ -657,6 +659,21 @@ class AutomationService(private val context: Context) : ExecutableService {
     }
 
     /**
+     * When an automation runs next (AutomationScheduler.nextExecutionAt): `next_execution_at` left
+     * out when it will not run (disabled, without a schedule, its schedule ended).
+     */
+    private suspend fun nextExecution(params: JSONObject, token: CancellationToken): OperationResult {
+        if (token.isCancelled) return OperationResult.cancelled()
+
+        val automationId = params.optString("automation_id").takeIf { it.isNotEmpty() }
+            ?: return OperationResult.error(s.shared("error_param_automation_id_required"))
+        dao.getAutomationById(automationId) ?: return OperationResult.error(s.shared("error_automation_not_found"))
+
+        val at = app.treelune.core.ai.scheduling.AutomationScheduler(context).nextExecutionAt(automationId)
+        return OperationResult.success(mapOf("automation_id" to automationId) + (at?.let { mapOf("next_execution_at" to it) } ?: emptyMap()))
+    }
+
+    /**
      * Enable or disable automation
      */
     private suspend fun setEnabled(
@@ -769,6 +786,7 @@ class AutomationService(private val context: Context) : ExecutableService {
             "update" -> s.shared("action_verbalize_automations_update").format(name)
             "delete" -> s.shared("action_verbalize_automations_delete").format(name)
             "config", "get" -> s.shared("action_verbalize_automations_config").format(name)
+            "next_execution" -> s.shared("action_verbalize_automations_next_execution").format(name)
             "list", "list_all" -> s.shared("action_verbalize_automations_list")
             "waiting" -> s.shared("action_verbalize_automations_waiting")
             else -> s.shared("action_verbalize_unknown")

@@ -297,6 +297,7 @@ interface ThemeContract {
         onAction: (() -> Unit)?
     )
 
+    /** [onCancel] for its cancel button, [onDismiss] for a close without a choice (back, a touch beside it). */
     @Composable
     fun ConfirmDialog(
         title: String,
@@ -304,6 +305,7 @@ interface ThemeContract {
         confirmText: String?,
         cancelText: String?,
         onConfirm: () -> Unit,
+        onCancel: () -> Unit,
         onDismiss: () -> Unit
     )
 

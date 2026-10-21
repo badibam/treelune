@@ -54,8 +54,12 @@ keytool -genkeypair \
     -keypass "$KEY_PASSWORD" \
     -dname "CN=$CN, OU=Android Development, O=$O, L=$L, ST=$ST, C=$C"
 
-# What ./run release reads. Written here so the passwords are never retyped, and never
-# printed.
+# The passwords go to the session's keyring, where ./run release reads them: never retyped,
+# never printed, never in a file
+printf %s "$KEYSTORE_PASSWORD" | secret-tool store --label 'treelune : TREELUNE_KEYSTORE_PASSWORD' projet treelune var TREELUNE_KEYSTORE_PASSWORD
+printf %s "$KEY_PASSWORD" | secret-tool store --label 'treelune : TREELUNE_KEY_PASSWORD' projet treelune var TREELUNE_KEY_PASSWORD
+
+# What ./run release reads besides: the keystore and its alias
 cat > "$SIGNING_ENV" <<EOF
 # La clé de release de Treelune. Hors du dépôt, et hors de sa portée : un fichier
 # gitignoré à la racine se ferait quand même emporter par un \`git clean -xdf\`.
@@ -65,18 +69,17 @@ cat > "$SIGNING_ENV" <<EOF
 # Cette clé est l'identité de l'app pour qui l'installe depuis GitHub. Perdue, plus
 # aucune mise à jour ne s'installe par-dessus — il faut désinstaller, ce qui efface
 # les données. À sauvegarder ailleurs que sur ce disque.
+# Ses deux mots de passe sont au trousseau de la session (secret-tool, projet treelune).
 export TREELUNE_KEYSTORE=$KEYSTORE_FILE
-export TREELUNE_KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD
 export TREELUNE_KEY_ALIAS=$KEY_ALIAS
-export TREELUNE_KEY_PASSWORD=$KEY_PASSWORD
 EOF
 
 chmod 600 "$KEYSTORE_FILE" "$SIGNING_ENV"
 
 echo "Key generated: $KEYSTORE_FILE"
-echo "Its passwords are in $SIGNING_ENV, readable by you alone."
+echo "Its passwords are in the keyring (secret-tool lookup projet treelune var TREELUNE_KEYSTORE_PASSWORD)."
 echo ""
-echo "Back both files up somewhere other than this disk. Lost, the app can never be"
+echo "Back the keystore and its passwords up somewhere other than this disk. Lost, the app can never be"
 echo "updated on any phone that installed it: only uninstalled, which erases its data."
 echo ""
 echo "Contents:"

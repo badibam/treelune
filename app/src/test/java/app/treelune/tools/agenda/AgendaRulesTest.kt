@@ -107,6 +107,15 @@ class AgendaRulesTest {
     }
 
     @Test
+    fun `an event over several days ends at its time of the clock across a change of hour`() {
+        // From Saturday 24 October 10:00 for two days and an hour: the clocks go back on the 25th
+        val retreat = event(at(2026, 10, 24, 10), duration = (2L * 24 + 1) * 3_600_000L)
+        assertEquals(at(2026, 10, 26, 11), retreat.end(midnight))
+        // Under a day, elapsed time: 23:00 for 5 hours across the change is 3:00
+        assertEquals(at(2026, 10, 25, 3), event(at(2026, 10, 24, 23), duration = 5 * 3_600_000L).end(midnight))
+    }
+
+    @Test
     fun `a whole day written at another time is put at the start of the user's day, its reminders' mark read against it`() {
         val data = JSONObject().put(AgendaToolType.ALL_DAY, true).put(AgendaToolType.DAYS, 1).toString()
         val written = ToolDataEntity("b", "agenda", "agenda", at(2026, 10, 17), "Birthday", data, 0L, 0L)

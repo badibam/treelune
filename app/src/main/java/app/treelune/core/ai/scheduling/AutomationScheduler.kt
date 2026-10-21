@@ -5,8 +5,6 @@ import app.treelune.core.ai.database.AISessionEntity
 import app.treelune.core.ai.database.AutomationEntity
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.database.AppDatabase
-import app.treelune.core.strings.Strings
-import app.treelune.core.utils.FormatUtils
 import app.treelune.core.utils.LogManager
 import app.treelune.core.utils.ScheduleCalculator
 import app.treelune.core.utils.ScheduleConfig
@@ -299,88 +297,23 @@ class AutomationScheduler(private val context: Context) {
     }
 
     /**
-     * Get next execution info for a specific automation
-     * Used by AutomationScreen to display "Prochaine exécution: dans 2h"
-     *
-     * @param automationId ID of the automation
-     * @return NextExecution with scheduled time and message, or null if no next execution
+     * When the automation [automationId] runs next, as getNextSession will start it; null when it
+     * will not run (disabled, without a schedule, its schedule ended). Read by automations.next_execution.
      */
-    suspend fun getNextExecutionForAutomation(automationId: String): NextExecution? {
-        try {
-            val s = Strings.`for`(context = context)
+    suspend fun nextExecutionAt(automationId: String): Long? {
+        val automation = aiDao.getAutomationById(automationId)
+            ?: throw IllegalArgumentException("Automation not found: $automationId")
+        if (!automation.isEnabled) return null
+        val scheduleJson = automation.scheduleJson?.takeIf { it.isNotEmpty() } ?: return null
+        // Checked when written (AutomationService.withSettings): a schedule unreadable here is corrupt
+        val schedule = json.decodeFromString<ScheduleConfig>(scheduleJson)
 
-            LogManager.aiSession("AutomationScheduler: Calculating next execution for automation $automationId", "DEBUG")
-
-            // Load automation
-            val automation = aiDao.getAutomationById(automationId)
-            if (automation == null) {
-                LogManager.aiSession("AutomationScheduler: Automation not found: $automationId", "WARN")
-                return null
-            }
-
-            // Check if active
-            if (!automation.isEnabled) {
-                LogManager.aiSession("AutomationScheduler: Automation $automationId is disabled", "DEBUG")
-                return null
-            }
-
-            // Check if has schedule configuration
-            if (automation.scheduleJson.isNullOrEmpty()) {
-                LogManager.aiSession("AutomationScheduler: Automation $automationId has no schedule (manual execution only)", "DEBUG")
-                return null
-            }
-
-            // Parse schedule
-            val schedule = try {
-                json.decodeFromString<ScheduleConfig>(automation.scheduleJson)
-            } catch (e: Exception) {
-                LogManager.aiSession("AutomationScheduler: Failed to parse schedule for automation $automationId: ${e.message}", "ERROR", e)
-                return null
-            }
-
-            // Get last completed session to calculate next execution time
-            val lastCompletedSession = aiDao.getLastCompletedAutomationSession(automationId)
-
-            // Same start of search as getNextSession, so the screen announces the run that
-            // will actually happen and not one the window has already ruled out
-            val fromTimestamp = catchUpSearchStart(automation, schedule, lastCompletedSession, System.currentTimeMillis())
-
-            LogManager.aiSession(
-                "AutomationScheduler: Calculating next execution for automation $automationId " +
-                "(lastCompleted=${lastCompletedSession?.scheduledExecutionTime?.let { formatTimestamp(it) }}, " +
-                "updatedAt=${formatTimestamp(automation.updatedAt)}, " +
-                "fromTimestamp=${formatTimestamp(fromTimestamp)})",
-                "DEBUG"
-            )
-
-            val nextExecutionTime = ScheduleCalculator.calculateNextExecution(
-                pattern = schedule.pattern,
-                fromTimestamp = fromTimestamp
-            )
-
-            if (nextExecutionTime == null) {
-                LogManager.aiSession("AutomationScheduler: No more executions for automation $automationId (schedule ended or invalid)", "DEBUG")
-                return null
-            }
-
-            // Format message with relative time
-            val relativeTime = FormatUtils.formatRelativeTime(nextExecutionTime, context)
-            val message = s.shared("automation_next_execution").format(relativeTime)
-
-            LogManager.aiSession(
-                "AutomationScheduler: Next execution for automation $automationId: ${formatTimestamp(nextExecutionTime)} ($relativeTime)",
-                "INFO"
-            )
-
-            return NextExecution(
-                scheduledTime = nextExecutionTime,
-                message = message
-            )
-
-        } catch (e: Exception) {
-            LogManager.aiSession("AutomationScheduler: Error calculating next execution for automation $automationId: ${e.message}", "ERROR", e)
-            return null
-        }
+        // Same start of search as getNextSession, so the screen announces the run that will
+        // actually happen and not one the window has already ruled out
+        val lastCompletedSession = aiDao.getLastCompletedAutomationSession(automationId)
+        val fromTimestamp = catchUpSearchStart(automation, schedule, lastCompletedSession, System.currentTimeMillis())
+        return ScheduleCalculator.calculateNextExecution(pattern = schedule.pattern, fromTimestamp = fromTimestamp)
+            .also { LogManager.aiSession("AutomationScheduler: next execution of $automationId from ${formatTimestamp(fromTimestamp)}: ${it?.let(::formatTimestamp)}", "DEBUG") }
     }
 }
 
@@ -408,12 +341,3 @@ sealed class NextSession {
      */
     object None : NextSession()
 }
-
-/**
- * Next execution info for a specific automation
- * Used by AutomationScreen to display next scheduled execution
- */
-data class NextExecution(
-    val scheduledTime: Long,  // Timestamp when next execution is scheduled
-    val message: String       // Formatted message like "Prochaine exécution: dans 2h"
-)

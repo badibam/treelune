@@ -139,7 +139,6 @@ class Coordinator(private val context: Context) {
         service: ExecutableService,
         operation: String
     ): CommandResult {
-        LogManager.coordination("executeServiceOperation: operation=$operation", "VERBOSE")
         val opId = command.id ?: "op_${System.currentTimeMillis()}"
         val token = CancellationToken()
         tokens[opId] = token
@@ -166,7 +165,9 @@ class Coordinator(private val context: Context) {
                 val named = gone?.let { JSONObject(params.toString()).put("name", it) } ?: params
                 service.verbalize(operation, named, context)
             }
-            LogManager.coordination("Service result: success=${result.success}, error=${result.error}", "VERBOSE")
+            // One line per operation, which it names: the commonest line of the log, a failure kept longer
+            if (result.success) LogManager.coordination("${command.action}: ok", "VERBOSE")
+            else LogManager.coordination("${command.action} failed: ${result.error}", "INFO")
             // Asked from outside and done: said to whoever waits for it (the Guide's steps)
             if (result.success && !command.byTheApp) {
                 PassedOperations.pass(PassedOperations.Passed(command.action, command.source, command.params, result.data ?: emptyMap()))

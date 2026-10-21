@@ -29,8 +29,8 @@
         {"kind": "do", "target": "settings/ai_providers",
           "await": {"operation": "ai_provider_config.create", "origin": "USER"}},
         {"kind": "read"},
-        {"kind": "read", "target": "chat"},
-        {"kind": "read", "target": "chat"}
+        {"kind": "do", "target": "chat", "await": {"message": "any"}},
+        {"kind": "do", "target": "chat", "await": {"message": "pointer_tool"}}
       ]
     },
     {
@@ -190,6 +190,9 @@
     },
     {"id": "relative_dates", "part": "deeper", "icon": "calendar-range", "minutes": 3, "text": true, "steps": []},
     {"id": "protections", "part": "deeper", "icon": "shield", "minutes": 4, "text": true, "steps": []},
-    {"id": "field_types", "part": "deeper", "icon": "list-tree", "minutes": 4, "text": true, "steps": []}
+    {"id": "field_types", "part": "deeper", "icon": "list-tree", "minutes": 4, "text": true, "steps": []},
+    {"id": "formulas", "part": "deeper", "icon": "sigma", "minutes": 4, "text": true, "steps": []},
+    {"id": "conditions", "part": "deeper", "icon": "funnel", "minutes": 4, "text": true, "steps": []},
+    {"id": "field_changes", "part": "deeper", "icon": "replace", "minutes": 4, "text": true, "steps": []}
   ]
 }

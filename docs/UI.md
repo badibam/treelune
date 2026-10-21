@@ -58,7 +58,7 @@ UI.PageHeader supports a title (one line: the header keeps its height), an optio
 ## Simplified text system
 
 ### UI.Text - 4 parameters at most
-Takes text, type (TITLE, SUBTITLE, HEADING, BODY, STRONG, CAPTION, LABEL, ERROR, WARNING), fillMaxWidth and an optional textAlign. STRONG is running text that must stand out from its neighbours (an unread message): bold in the default theme. HEADING names a tile or a section of tiles (the name of a tool, a zone, a group), one step above running text.
+Takes text, type (TITLE, SUBTITLE, HEADING, BODY, STRONG, CAPTION, LABEL, ERROR, WARNING), fillMaxWidth and an optional textAlign. STRONG is running text that must stand out from its neighbours (an unread message): bold in the default theme. The titles rank TITLE (a screen's), SUBTITLE (a section of a screen, a card's), then HEADING, which names a tile or a section of tiles (the name of a tool, a zone, a group), one step above running text: a theme may draw two of them at one size, never one below the next.
 
 ### Separating layout and content
 **Principle**: UI.Text for rendering, Box+Modifier for layout and interactions.

@@ -530,11 +530,22 @@ def task_install():
     return code
 
 
+# The key's two passwords, kept in the session's keyring (secret-tool), never in a file
+SIGNING_SECRETS = ("TREELUNE_KEYSTORE_PASSWORD", "TREELUNE_KEY_PASSWORD")
+
+
+def keyring_store_command(name):
+    """The command that stores the secret [name] in the keyring, as bench.py names its own."""
+    return f"secret-tool store --label 'treelune : {name}' projet treelune var {name}"
+
+
 def signing():
     """Read the signing key's environment, or None when there is none.
 
-    Parsed rather than sourced: this only ever needs four `export NAME=value` lines, and
-    handing a file to a shell to run is a much larger thing to allow than reading it.
+    signing.env names the keystore and its alias; the two passwords come from the keyring.
+    Parsed rather than sourced: this only ever needs `export NAME=value` lines, and handing a
+    file to a shell to run is a much larger thing to allow than reading it. A password still
+    in the file, or missing from the keyring, stops the release, saying how to put it there.
     """
     if not SIGNING.is_file():
         return None
@@ -545,6 +556,17 @@ def signing():
             continue
         name, _, value = line[len("export "):].partition("=")
         values[name.strip()] = value.strip().strip("'\"")
+    in_file = [name for name in SIGNING_SECRETS if name in values]
+    if in_file:
+        sys.exit(f"{SIGNING} still holds {', '.join(in_file)} in clear: store each in the keyring\n"
+                 + "".join(f"  {keyring_store_command(name)}\n" for name in in_file)
+                 + "then delete its line from the file.")
+    for name in SIGNING_SECRETS:
+        found = subprocess.run(["secret-tool", "lookup", "projet", "treelune", "var", name],
+                               capture_output=True, text=True, check=False)
+        if found.returncode != 0 or not found.stdout:
+            sys.exit(f"No {name} in the keyring: store it with\n  {keyring_store_command(name)}")
+        values[name] = found.stdout
     return values
 
 

@@ -127,7 +127,7 @@ private fun state(chapter: GuideChapter): String {
     return when {
         // A chapter without steps nor text is still to be written (docs/GUIDE.md)
         chapter.isStub -> s.shared("guide_state_stub")
-        !chapter.isTutorial -> s.shared("guide_state_read")
+        !chapter.isTutorial -> s.shared(if (at?.done == true) "guide_state_was_read" else "guide_state_read")
         at?.done == true -> s.shared("guide_state_done")
         at != null && chapter.isTutorial -> s.shared("guide_state_progress").format(at.step + 1, chapter.steps.size)
         else -> s.shared("guide_state_todo")
@@ -163,6 +163,13 @@ fun ChapterScreen(id: String, demoInstalled: Boolean) {
                 chapter.body(context)?.let { MarkupText(it, icons = true) }
                 chapter.toolConfig(context)?.let { Part("settings", s.shared("guide_tool_config")); MarkupText(s.shared("guide_tool_config_open") + "\n" + it, icons = true) }
                 chapter.toolScreen(context)?.let { Part("smartphone", s.shared("guide_tool_screen")); MarkupText(it, icons = true) }
+                // Read is a mark the user sets, and takes back
+                val read = at?.done == true
+                app.treelune.core.ui.components.ButtonRow {
+                    UI.Button(type = if (read) ButtonType.DEFAULT else ButtonType.PRIMARY, onClick = { Guide.markRead(chapter, !read) }) {
+                        UI.Text(s.shared(if (read) "guide_mark_unread" else "guide_mark_read"), TextType.LABEL)
+                    }
+                }
                 return@Column
             }
             if (chapter.usesDemo && !demoInstalled) DemoMissingLine()
@@ -328,7 +335,10 @@ fun GuideStartDialog(chapter: GuideChapter) {
     )
 }
 
-/** A tutorial asked for while the demo it begins in is not installed: reinstall it, or skip those steps. */
+/**
+ * A tutorial asked for while the demo it begins in is not installed: reinstall it, or skip those
+ * steps. Closed without a choice, nothing begins.
+ */
 @Composable
 fun GuideDemoMissingDialog(chapter: GuideChapter) {
     val context = LocalContext.current
@@ -347,6 +357,7 @@ fun GuideDemoMissingDialog(chapter: GuideChapter) {
                 else UI.Toast(result.error ?: s.shared("error_operation_failed"), Duration.LONG)
             }
         },
-        onDismiss = { Guide.skipDemo(chapter) }
+        onCancel = { Guide.skipDemo(chapter) },
+        onDismiss = { Guide.demoMissingFor = null }
     )
 }

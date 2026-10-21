@@ -31,12 +31,7 @@ object ToolTypeManager {
      * @return Service instance or null if tool type doesn't have a service
      */
     fun getServiceForToolType(toolTypeId: String, context: Context): ExecutableService? {
-        LogManager.service("getServiceForToolType: $toolTypeId")
-        val toolType = getToolType(toolTypeId)
-        LogManager.service("Found tool type: $toolType")
-        val service = toolType?.getService(context)
-        LogManager.service("Created service: $service")
-        return service
+        return getToolType(toolTypeId)?.getService(context)
     }
     
     /**

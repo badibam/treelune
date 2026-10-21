@@ -1643,6 +1643,13 @@ class AIEventProcessor(
             else emit(AIEvent.AIRoundInterrupted)
             return
         }
+        // A routine closed with the app while its closure was counting down is closed at once,
+        // its end the one it had reached: its summary kept and its end signalled (RunEnd)
+        if (state.phase == Phase.AWAITING_SESSION_CLOSURE) {
+            LogManager.aiSession("Session ${state.sessionId} restored awaiting closure: closed", "WARN")
+            emit(AIEvent.SessionCompleted(checkNotNull(state.endReason) { "Session ${state.sessionId} awaiting closure without an end reason" }))
+            return
+        }
         // A CHAT restored in the middle of a round waits for the user rather than taking the
         // round up at start: a round that brought the app down would bring it down at every
         // start. An AUTOMATION is taken up, the scheduler's way; an error stops it (stopRoundOnError).
@@ -1682,9 +1689,11 @@ class AIEventProcessor(
     }
 
     /**
-     * Schedule session closure with 5s delay (AUTOMATION only)
+     * Schedule session closure with 5s delay (AUTOMATION only), with the end the session reached
+     * that phase with: completed, or its roundtrips used up.
      */
     private fun scheduleSessionClosure(state: AIState) {
+        val endReason = checkNotNull(state.endReason) { "Session ${state.sessionId} awaiting closure without an end reason" }
         // Cancel previous closure job if any
         sessionClosureJob?.cancel()
 
@@ -1694,8 +1703,7 @@ class AIEventProcessor(
             // Check if session is still in AWAITING_SESSION_CLOSURE phase
             val currentState = stateRepository.currentState
             if (currentState.phase == Phase.AWAITING_SESSION_CLOSURE) {
-                // Close session with COMPLETED reason
-                emit(AIEvent.SessionCompleted(SessionEndReason.COMPLETED))
+                emit(AIEvent.SessionCompleted(endReason))
             }
         }
 

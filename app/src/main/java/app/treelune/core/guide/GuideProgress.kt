@@ -24,6 +24,8 @@ data class GuideProgress(
 
     fun with(chapter: ChapterProgress) = copy(chapters = chapters + (chapter.id to chapter))
 
+    fun without(id: String) = copy(chapters = chapters - id)
+
     fun toJson(): JSONObject = JSONObject()
         .put(AppSettings.GUIDE_WELCOME_SEEN, welcomeSeen)
         .put(AppSettings.GUIDE_BAND_HIDDEN, bandHidden)
