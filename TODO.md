@@ -10,9 +10,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs du téléphone
 
-- La barre de navigation d'Android (trois boutons) dessinée par-dessus la barre d'outils du message dans la conversation, quand elle apparaît (vu le 2026-10-21, `navigationBars:[0,0,0,168]` au journal).
-- Encre et lavis : le nom d'une tuile coupé par un trait d'union au milieu d'un mot (« Day's calor- / ies » dans Kitchen).
-- Réglages › Format, « Langue et région » : « Locale personnalisée » ne change que l'écriture des nombres et des dates, la langue des textes suivant le téléphone ou le réglage d'Android par app ; un nom et une phrase qui le disent. Le filtre au-dessus d'une longue liste de choix (« Chercher dans la liste ») pris pour un réglage : « Filtrer la liste », une loupe.
 
 ## Bugs
 
@@ -21,6 +18,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 Codé, jamais vu sur l'appareil.
 
+- Les titres coupés entre les mots (`HeadingBreak`) en Cosy, Encre et lavis, Métro, Papier découpé et Plan d'architecte : les noms de tuiles de la démo, un mot trop long pour sa ligne d'une demi-tuile (« Observations ») coupé à ses syllabes.
 - La recette, `docs/design/device-checks.md` : ce que seul le téléphone juge, une ligne vue en sort.
 - Le Guide : les étapes 4 et 5 de Brancher une IA, cochées par un message envoyé puis par un pointeur vers un outil (pas vers une zone) ; « Marquer comme lu » d'un chapitre d'Approfondissement ; dans les nouveaux chapitres, la couleur d'un Graphique qui suit une Condition, la date dans le nom d'un champ gardé (« Humeur (avant le 21 octobre) »), un choix multiple repassé en simple qui retire les listes de plusieurs réponses.
 - Les usages de `TextType.SUBTITLE` (56 fichiers), maintenant sous `TITLE` et sur `HEADING` dans chaque thème, le rétro compris : un SUBTITLE placé sous un HEADING passe en STRONG, comme les intertitres du Guide.
