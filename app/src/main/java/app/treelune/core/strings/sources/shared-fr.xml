@@ -1502,6 +1502,7 @@
     <string name="share_file_name">treelune_partage</string>
     <string name="share_error_selection">Ce qui est coché ne se lit pas : %1$s</string>
     <string name="share_error_file_name">Le nom de la zone, « %1$s », ne peut pas nommer un fichier : renomme la zone pour la partager.</string>
+    <string name="share_error_identity">L\'identité « %1$s » ne peut pas partir : %2$s.</string>
     <string name="share_link_element_to_element">« %1$s » lit « %2$s ». Coche aussi « %2$s », ou décoche « %1$s ».</string>
     <string name="share_link_element_to_entries">« %1$s » lit des entrées de « %2$s ». Allume les entrées de « %2$s », ou décoche « %1$s ».</string>
     <string name="share_link_entries_to_element">Des entrées de « %1$s » désignent « %2$s ». Coche aussi « %2$s », ou éteins les entrées de « %1$s ».</string>
@@ -1510,7 +1511,10 @@
     <string name="share_import_refused">L\'import s\'est arrêté et rien n\'a été ajouté. Raison : %1$s</string>
     <string name="backup_file_name">treelune_sauvegarde</string>
     <string name="share_link_routine">« %1$s » vise « %2$s », hors de la sélection. Sur un autre téléphone, ce lien ne mènera à rien.</string>
-    <string name="share_link_routine_alone">« %1$s » arrivera éteinte, sans fournisseur d\'IA ni identité. Il faudra les choisir avant de l\'allumer.</string>
+    <string name="share_link_routine_alone">« %1$s » arrivera éteinte, sans fournisseur d\'IA. Il faudra en choisir un avant de l\'allumer.</string>
+    <string name="share_link_routine_identity">« %1$s » arrivera sans son identité « %2$s » : elle parlera comme l\'IA de l\'app.</string>
+    <string name="share_link_zone_identity">La zone « %1$s » arrivera sans son identité « %2$s » : ses conversations se feront avec l\'IA de l\'app.</string>
+    <string name="share_element_identity">Identité « %1$s »</string>
     <string name="share_export_title">Exporter</string>
     <string name="share_export_card">Une partie de l\'app à partager, ou toute l\'app.</string>
     <string name="share_export_open">Exporter…</string>
@@ -1537,7 +1541,7 @@
     <string name="share_import_title">Importer</string>
     <string name="share_import_open">Importer…</string>
     <string name="share_import_card">Reprends une partie d\'un fichier, ou restaure toute l\'app depuis une sauvegarde.</string>
-    <string name="share_import_part_help">Ce que tu coches s\'ajoute à ce que tu as. Rien n\'est remplacé.</string>
+    <string name="share_import_part_help">Ce que tu coches s\'ajoute à ce que tu as. Rien n\'est remplacé, sauf une identité que tu choisis de remplacer.</string>
     <string name="share_import_mode">Ce que fait l\'import</string>
     <string name="share_import_part_mode">Reprendre une partie</string>
     <string name="share_import_restore_mode">Tout restaurer</string>
@@ -1547,6 +1551,14 @@
     <string name="share_import_existing_zone">Une zone existante</string>
     <string name="share_import_zone_pick">Zone d\'arrivée</string>
     <string name="share_import_variable_renamed">Ce nom est déjà pris, elle arrive donc sous « %1$s ».</string>
+    <string name="share_import_identity_new">Cette identité sera ajoutée à l\'app.</string>
+    <string name="share_import_identity_same">Cette identité est déjà dans l\'app, la même : celle en place sert.</string>
+    <string name="share_import_identity_differs">Une identité du même id est déjà dans l\'app, différente de celle-ci.</string>
+    <string name="share_import_identity_choice">L\'identité de l\'app</string>
+    <string name="share_import_identity_keep">La garder</string>
+    <string name="share_import_identity_replace">La remplacer</string>
+    <string name="share_import_identity_replace_help">Celle en place est remplacée entière, les retouches faites dans l\'app perdues.</string>
+    <string name="share_import_done_identities">Identités ajoutées : %1$d. Remplacées : %2$d.</string>
     <string name="share_import_notifications">Cet outil peut envoyer des notifications, réglées comme dans le fichier.</string>
     <string name="share_import_links_left_one">1 lien à régler avant d\'importer.</string>
     <string name="share_import_links_left_other">%1$d liens à régler avant d\'importer.</string>

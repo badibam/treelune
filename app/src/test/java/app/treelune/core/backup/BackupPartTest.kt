@@ -11,7 +11,8 @@ import org.junit.Test
 /**
  * What a part of the app shared promises (docs/DATA.md, « A part of the app »): the backup's
  * format marked partial, holding only what is ticked, a tool's entries only when asked, and never
- * the settings, the AI providers, the identities, the conversations.
+ * the settings, the AI providers, the conversations; an identity only ticked, with a zone that
+ * speaks as it.
  */
 class BackupPartTest {
 
@@ -57,7 +58,7 @@ class BackupPartTest {
 
     @Test
     fun `a part is marked partial and keeps the backup's versions`() {
-        val part = BackupPart.cut(backup(), PartSelection(setOf("z2"), emptyMap(), emptySet(), emptySet()))
+        val part = BackupPart.cut(backup(), PartSelection(setOf("z2"), emptyMap(), emptySet(), emptySet(), emptySet()))
         assertTrue(BackupPart.isPartial(part))
         assertFalse(BackupPart.isPartial(backup()))
         assertEquals(86, part.getJSONObject("metadata").getInt("db_schema_version"))
@@ -66,7 +67,7 @@ class BackupPartTest {
 
     @Test
     fun `only what is ticked goes, a tool's entries and their images only when asked`() {
-        val data = BackupPart.cut(backup(), PartSelection(setOf("z1"), mapOf("meals" to true, "foods" to false), emptySet(), emptySet())).getJSONObject("data")
+        val data = BackupPart.cut(backup(), PartSelection(setOf("z1"), mapOf("meals" to true, "foods" to false), emptySet(), emptySet(), emptySet())).getJSONObject("data")
         assertEquals(listOf("z1"), ids(data, "zones"))
         assertEquals(listOf("meals", "foods"), ids(data, "tool_instances"))
         assertEquals(listOf("e1"), ids(data, "tool_data"))
@@ -75,9 +76,10 @@ class BackupPartTest {
     }
 
     @Test
-    fun `the settings, providers, identities, conversations and joined files never go`() {
-        val data = BackupPart.cut(backup(), PartSelection(setOf("z1"), mapOf("meals" to true), setOf("v1"), setOf("a1"))).getJSONObject("data")
-        listOf("app_settings_categories", "ai_provider_configs", "identities", "attached_files").forEach { assertFalse(it, data.has(it)) }
+    fun `the settings, providers, conversations and joined files never go, an identity unticked neither`() {
+        val data = BackupPart.cut(backup(), PartSelection(setOf("z1"), mapOf("meals" to true), setOf("v1"), setOf("a1"), emptySet())).getJSONObject("data")
+        listOf("app_settings_categories", "ai_provider_configs", "attached_files").forEach { assertFalse(it, data.has(it)) }
+        assertEquals(emptyList<String>(), ids(data, "identities"))
         assertEquals(listOf("seed"), ids(data, "ai_sessions"))
         assertEquals(listOf("m1"), ids(data, "session_messages"))
         assertTrue(row("zones", data, "z1").isNull("identity_id"))
@@ -85,40 +87,60 @@ class BackupPartTest {
 
     @Test
     fun `a routine goes with its message, without its provider, its identity or its runs`() {
-        val routine = row("automations", BackupPart.cut(backup(), PartSelection(setOf("z1"), emptyMap(), emptySet(), setOf("a1"))).getJSONObject("data"), "a1")
+        val routine = row("automations", BackupPart.cut(backup(), PartSelection(setOf("z1"), emptyMap(), emptySet(), setOf("a1"), emptySet())).getJSONObject("data"), "a1")
         assertEquals("seed", routine.getString("seed_session_id"))
         listOf("provider_id", "identity_id", "last_execution_id").forEach { assertTrue(it, routine.isNull(it)) }
         assertEquals("[]", routine.getString("execution_history_json"))
     }
 
     @Test
+    fun `an identity ticked goes, its zone and routine speaking as it`() {
+        val data = BackupPart.cut(backup(), PartSelection(setOf("z1"), emptyMap(), emptySet(), setOf("a1"), setOf("i1"))).getJSONObject("data")
+        assertEquals(listOf("i1"), ids(data, "identities"))
+        assertEquals("i1", row("zones", data, "z1").getString("identity_id"))
+        val routine = row("automations", data, "a1")
+        assertEquals("i1", routine.getString("identity_id"))
+        assertTrue(routine.isNull("provider_id"))
+    }
+
+    @Test
+    fun `an identity goes only with a zone that speaks as it, or one of its routines`() {
+        assertThrows(IllegalArgumentException::class.java) { BackupPart.cut(backup(), PartSelection(setOf("z2"), emptyMap(), emptySet(), emptySet(), setOf("i1"))) }
+        assertThrows(IllegalArgumentException::class.java) { BackupPart.cut(backup(), PartSelection(setOf("z1"), emptyMap(), emptySet(), emptySet(), setOf("i9"))) }
+        // The zone speaking as another, its routine still as i1: the identity goes with the zone
+        val whole = backup()
+        whole.getJSONObject("data").getJSONArray("zones").getJSONObject(0).put("identity_id", JSONObject.NULL)
+        assertEquals(listOf("i1"), ids(BackupPart.cut(whole, PartSelection(setOf("z1"), emptyMap(), emptySet(), emptySet(), setOf("i1"))).getJSONObject("data"), "identities"))
+    }
+
+    @Test
     fun `a zone keeps the tool groups its kept elements hold, an empty zone none`() {
-        val tools = BackupPart.cut(backup(), PartSelection(setOf("z1"), mapOf("meals" to false), emptySet(), emptySet())).getJSONObject("data")
+        val tools = BackupPart.cut(backup(), PartSelection(setOf("z1"), mapOf("meals" to false), emptySet(), emptySet(), emptySet())).getJSONObject("data")
         assertEquals(JSONArray(listOf("Repas")).toString(), row("zones", tools, "z1").getString("tool_groups"))
-        val variable = BackupPart.cut(backup(), PartSelection(setOf("z1"), emptyMap(), setOf("v1"), emptySet())).getJSONObject("data")
+        val variable = BackupPart.cut(backup(), PartSelection(setOf("z1"), emptyMap(), setOf("v1"), emptySet(), emptySet())).getJSONObject("data")
         assertEquals(JSONArray(listOf("Analyse")).toString(), row("zones", variable, "z1").getString("tool_groups"))
-        val empty = BackupPart.cut(backup(), PartSelection(setOf("z1"), emptyMap(), emptySet(), emptySet())).getJSONObject("data")
+        val empty = BackupPart.cut(backup(), PartSelection(setOf("z1"), emptyMap(), emptySet(), emptySet(), emptySet())).getJSONObject("data")
         assertFalse(row("zones", empty, "z1").has("tool_groups"))
     }
 
     @Test
     fun `an element without its zone, or one the backup does not hold, is refused`() {
-        assertThrows(IllegalArgumentException::class.java) { BackupPart.cut(backup(), PartSelection(setOf("z1"), mapOf("runs" to false), emptySet(), emptySet())) }
-        assertThrows(IllegalArgumentException::class.java) { BackupPart.cut(backup(), PartSelection(setOf("z1"), mapOf("gone" to false), emptySet(), emptySet())) }
-        assertThrows(IllegalArgumentException::class.java) { BackupPart.cut(backup(), PartSelection(setOf("z9"), emptyMap(), emptySet(), emptySet())) }
+        assertThrows(IllegalArgumentException::class.java) { BackupPart.cut(backup(), PartSelection(setOf("z1"), mapOf("runs" to false), emptySet(), emptySet(), emptySet())) }
+        assertThrows(IllegalArgumentException::class.java) { BackupPart.cut(backup(), PartSelection(setOf("z1"), mapOf("gone" to false), emptySet(), emptySet(), emptySet())) }
+        assertThrows(IllegalArgumentException::class.java) { BackupPart.cut(backup(), PartSelection(setOf("z9"), emptyMap(), emptySet(), emptySet(), emptySet())) }
     }
 
     @Test
     fun `the cut leaves the whole backup as it was`() {
         val whole = backup()
         val before = whole.toString()
-        BackupPart.cut(whole, PartSelection(setOf("z1"), mapOf("meals" to true), setOf("v1"), setOf("a1")))
+        BackupPart.cut(whole, PartSelection(setOf("z1"), mapOf("meals" to true), setOf("v1"), setOf("a1"), emptySet()))
         assertEquals(before, whole.toString())
     }
 
     @Test
     fun `a selection reads back from its stored form`() {
-        val selection = PartSelection(setOf("z1"), mapOf("meals" to true, "foods" to false), setOf("v1"), setOf("a1"))
+        val selection = PartSelection(setOf("z1"), mapOf("meals" to true, "foods" to false), setOf("v1"), setOf("a1"), setOf("i1"))
         assertEquals(selection, PartSelection.read(JSONObject(selection.toJson().toString())))
     }
 }

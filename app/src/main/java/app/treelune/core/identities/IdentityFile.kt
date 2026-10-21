@@ -85,7 +85,7 @@ object IdentityFile {
      *   language left
      */
     fun write(identity: Identity, today: LocalDate): String {
-        val written = identity.languages.filterValues { it.pieces().isNotEmpty() || it.resources.isNotEmpty() }
+        val written = identity.languages.filterValues { it.holds() }
         written.entries.firstOrNull { it.value.pieces().isEmpty() }?.let { throw Refused("identity_export_no_text", it.key) }
         if (written.isEmpty()) throw Refused("identity_export_empty", identity.name)
         val publishedAt = if (identity.importedAt != null && identity.retouched().isEmpty()) identity.publishedAt else today.toString()
