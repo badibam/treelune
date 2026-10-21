@@ -92,12 +92,12 @@ object CurrentTheme {
      * offers only those ThemeScanner knows.
      *
      * Logged, so which call put a theme on the screen can be read afterwards; a preview only when
-     * it changes the theme, not at each move of the hue slider.
+     * it changes the theme or the mode, not at each move of the hue slider.
      */
     fun apply(appearance: Appearance, reason: Reason) {
         val theme = ThemeScanner.getTheme(appearance.theme) ?: error("No theme '${appearance.theme}'")
-        if (reason != Reason.PREVIEW || appearance.theme != themeId) {
-            app.treelune.core.utils.LogManager.ui("Theme applied ($reason): $appearance, was $themeId")
+        if (reason != Reason.PREVIEW || appearance.theme != themeId || appearance.mode != mode) {
+            app.treelune.core.utils.LogManager.ui("Theme applied ($reason): $appearance, was $themeId $mode")
         }
         current = theme
         themeId = appearance.theme

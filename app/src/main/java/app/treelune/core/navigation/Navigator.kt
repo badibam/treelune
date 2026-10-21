@@ -95,42 +95,42 @@ object Navigator {
 
     fun push(place: Place, opening: EntryToOpen? = null) {
         opening?.let { openings[place.address] = it }
-        set(PlaceStack.push(stack, place))
+        set(PlaceStack.push(stack, place), "push")
         if (!place.overlay) UISounds.play(UISignal.ENTER)
     }
 
     fun pop() {
         if (stack.size == 1) return
         val leaving = top
-        set(PlaceStack.pop(stack))
+        set(PlaceStack.pop(stack), "pop")
         if (!leaving.overlay) UISounds.play(UISignal.BACK)
     }
 
     /** The top replaced by [place]: a kind chosen gives way to the new provider's config. */
     fun replace(place: Place) {
-        set(PlaceStack.replace(stack, place))
+        set(PlaceStack.replace(stack, place), "replace")
         if (!place.overlay) UISounds.play(UISignal.ENTER)
     }
 
     /** Back to the place at [index] of the stack, from the breadcrumb. */
     fun popTo(index: Int) {
         if (index >= stack.size - 1) return
-        set(PlaceStack.popTo(stack, index))
+        set(PlaceStack.popTo(stack, index), "popTo")
         UISounds.play(UISignal.BACK)
     }
 
     /** [place] opened from outside the screen on display: a notification, a tool asked for elsewhere. */
     fun open(place: Place, opening: EntryToOpen? = null) {
         opening?.let { openings[place.address] = it }
-        set(PlaceStack.open(stack, place))
+        set(PlaceStack.open(stack, place), "open")
         if (!place.overlay) UISounds.play(UISignal.ENTER)
     }
 
     /** The zone [zoneId] deleted: every place of it leaves the stack. */
-    fun dropZone(zoneId: String) = set(PlaceStack.dropZone(stack, zoneId))
+    fun dropZone(zoneId: String) = set(PlaceStack.dropZone(stack, zoneId), "dropZone")
 
     /** [place] gone from under the screen (a tool deleted, a zone not found): it leaves, silently. */
-    fun drop(place: Place) = set(stack.filter { it != place }.ifEmpty { listOf(Place.Home) })
+    fun drop(place: Place) = set(stack.filter { it != place }.ifEmpty { listOf(Place.Home) }, "drop")
 
     /** The entry [place] opens on, removed as it is handed: null once taken. */
     fun take(place: Place): EntryToOpen? = openings.remove(place.address)
@@ -146,10 +146,14 @@ object Navigator {
     fun restore(addresses: List<String>) {
         val places = addresses.map { Place.of(it) }
         require(places.firstOrNull() == Place.Home) { "A saved stack starts with the home screen: $addresses" }
-        set(places)
+        set(places, "restore")
     }
 
-    private fun set(places: List<Place>) {
+    /** The stack becomes [places]; each change logged with the [operation] that made it, to tell what closed a screen. */
+    private fun set(places: List<Place>, operation: String) {
+        if (places != stack.toList()) {
+            app.treelune.core.utils.LogManager.ui("Navigator $operation: ${stack.map { it.address }} -> ${places.map { it.address }}")
+        }
         // Openings of places no longer in the stack are dropped with them
         val kept = places.map { it.address }.toSet()
         openings.keys.filter { it !in kept }.forEach { openings.remove(it) }

@@ -65,6 +65,9 @@ fun AppSettingsScreen(
     // The settings as stored, which the interface's look goes back to when it is left unsaved
     var stored by rememberSaveable(category, stateSaver = JsonObjectSaver) { mutableStateOf(JSONObject()) }
     var saved by remember { mutableStateOf(false) }
+    // This instance of the screen, named in the log with what it does, to tell what closed it
+    val instance = remember { Integer.toHexString(System.identityHashCode(Any())) }
+    fun log(message: String) = app.treelune.core.utils.LogManager.ui("Settings $category #$instance: $message")
 
     val load = rememberLoadOnce(category) {
         val result = coordinator.processUserAction("app_config.get", mapOf("category" to category))
@@ -102,8 +105,7 @@ fun AppSettingsScreen(
             }
             CurrentTheme.apply(chosen, CurrentTheme.Reason.PREVIEW)
         }
-        // Each instance of the screen named in the log, with what it holds when it goes
-        val instance = remember { Integer.toHexString(System.identityHashCode(Any())) }
+        // What the screen holds when it opens and when it goes, in the log
         DisposableEffect(Unit) {
             app.treelune.core.utils.LogManager.ui("Interface settings #$instance: opened, stored ${Appearance.from(stored)?.theme}, theme ${CurrentTheme.themeId}")
             onDispose {
@@ -127,7 +129,14 @@ fun AppSettingsScreen(
     suspend fun write(): Boolean {
         val renames = if (category != AppSettingCategories.MAIN_SCREEN) emptyMap()
             else mapOf("zone_groups" to origins.renames("zone_groups", settings.optJSONArray("zone_groups")))
-        val result = coordinator.processUserAction("app_config.set", mapOf("category" to category, "settings" to JsonUtils.toMap(settings), "renames" to renames))
+        log("writing")
+        val result = try {
+            coordinator.processUserAction("app_config.set", mapOf("category" to category, "settings" to JsonUtils.toMap(settings), "renames" to renames))
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            log("write cancelled")
+            throw e
+        }
+        log("written: ${result.isSuccess}")
         if (!result.isSuccess) {
             UI.Toast(result.error ?: s.shared("error_operation_failed"), Duration.LONG)
             return false
@@ -137,6 +146,7 @@ fun AppSettingsScreen(
     }
 
     fun save() {
+        log("save pressed")
         isSaving = true
         scope.launch {
             val written = write()
@@ -169,7 +179,7 @@ fun AppSettingsScreen(
             title = AppSettings.title(category, context),
             subtitle = AppSettings.description(category, context),
             leftButton = ButtonAction.BACK,
-            onLeftClick = onBack
+            onLeftClick = { log("back pressed"); onBack() }
         )
 
         if (load == LoadState.LOADING) {
@@ -190,7 +200,7 @@ fun AppSettingsScreen(
         // The actions on the root page alone: under it, the back arrow goes up (SettingsPages)
         if (pages.atRoot) UI.FormActions {
             UI.ActionButton(action = ButtonAction.SAVE, enabled = !isSaving && load == LoadState.LOADED, onClick = { save() })
-            UI.ActionButton(action = ButtonAction.CANCEL, onClick = onBack)
+            UI.ActionButton(action = ButtonAction.CANCEL, onClick = { log("cancel pressed"); onBack() })
         }
     }
 }
