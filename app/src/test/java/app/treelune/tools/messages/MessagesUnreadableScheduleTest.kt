@@ -10,6 +10,8 @@ import app.treelune.core.scheduling.SchedulersHeld
 import app.treelune.core.utils.JsonUtils
 import app.treelune.tools.messages.scheduler.MessageScheduler
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
@@ -39,6 +41,19 @@ class MessagesUnreadableScheduleTest {
     /** A pass of the scheduler as the core scheduler's tick runs it, as the app (CoreScheduler.tick). */
     private suspend fun tick() = withContext(Origin(Source.SCHEDULER)) { MessageScheduler.checkScheduled(context) }
 
+    /**
+     * Passes run until [done] holds: the base and the schedulers outlive a test class, and a pass
+     * an earlier test's write started may still hold the scheduler's lock, the one run here then
+     * leaving without doing anything.
+     */
+    private suspend fun tickUntil(done: suspend () -> Boolean) = withTimeout(10_000) {
+        while (true) {
+            tick()
+            if (done()) break
+            delay(50)
+        }
+    }
+
     @Test
     fun `an unreadable recurrence keeps what is pending, sends it at its time, and is not saved over`() = runBlocking<Unit> {
         // The tick a tool's write launches in the background (ToolInstanceService) held off: the
@@ -57,7 +72,7 @@ class MessagesUnreadableScheduleTest {
         assertTrue(tool.error, tool.isSuccess)
         val toolId = tool.data!!["tool_instance_id"] as String
 
-        tick()
+        tickUntil { occurrences(toolId).isNotEmpty() }
         val pending = occurrences(toolId)
         assertTrue("the recurrence created its occurrences", pending.isNotEmpty())
         assertTrue(pending.all { status(it) == "pending" })
@@ -73,7 +88,7 @@ class MessagesUnreadableScheduleTest {
         // One of them come due: it goes out
         val first = pending.minBy { it.timestamp!! }
         database.toolDataDao().update(first.copy(timestamp = System.currentTimeMillis() - 60_000))
-        tick()
+        tickUntil { status(occurrences(toolId).single { it.id == first.id }) != "pending" }
         assertEquals("sent", status(occurrences(toolId).single { it.id == first.id }))
 
         // Saved as it stands, the config is refused and stays as it was

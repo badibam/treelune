@@ -11,6 +11,8 @@ import app.treelune.core.scheduling.SchedulersHeld
 import app.treelune.core.database.entities.ToolDataEntity
 import app.treelune.core.utils.AppConfigManager
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
@@ -40,8 +42,23 @@ class QuestionnaireScheduleTest {
     /** A pass of the scheduler as the core scheduler's tick runs it, as the app (CoreScheduler.tick). */
     private suspend fun tick() = withContext(Origin(Source.SCHEDULER)) { QuestionnaireScheduler.checkScheduled(context) }
 
+    /**
+     * Passes run until [done] holds: the base and the schedulers outlive a test class, and a pass
+     * an earlier test's write started may still hold the scheduler's lock, the one run here then
+     * leaving without doing anything.
+     */
+    private suspend fun tickUntil(done: suspend () -> Boolean) = withTimeout(10_000) {
+        while (true) {
+            tick()
+            if (done()) break
+            delay(50)
+        }
+    }
+
     private fun status(entry: ToolDataEntity) = JSONObject(entry.state!!).getString(QuestionnaireToolType.STATUS)
-    private fun shown() = shadowOf(context.getSystemService(NotificationManager::class.java)).allNotifications.size
+    /** This test's notifications: an earlier test's tools, still in the base, may be told of by a pass of theirs. */
+    private fun shown() = shadowOf(context.getSystemService(NotificationManager::class.java)).allNotifications
+        .count { it.extras.getString(android.app.Notification.EXTRA_TITLE) == "Evening" }
 
     @Test
     fun `back from an absence, an entry to fill for each time passed, one notification, all ignored at once`() = runBlocking<Unit> {
@@ -68,7 +85,7 @@ class QuestionnaireScheduleTest {
         val instance = database.toolInstanceDao().getToolInstanceById(toolId)!!
         database.toolInstanceDao().updateToolInstance(instance.copy(created_at = System.currentTimeMillis() - 4 * day))
 
-        tick()
+        tickUntil { database.toolDataDao().getByToolInstance(toolId).isNotEmpty() }
         val entries = database.toolDataDao().getByToolInstance(toolId)
         assertTrue("one entry for each day passed: ${entries.size}", entries.size in 3..4)
         val timezone = AppConfigManager.getDateTimeConfig().getZoneId()

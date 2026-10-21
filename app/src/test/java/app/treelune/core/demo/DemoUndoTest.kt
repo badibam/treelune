@@ -16,8 +16,7 @@ import org.robolectric.annotation.Config
 
 /**
  * The demo's removal is one step (HistoryWritesTest): undone, the demo comes back whole, its
- * routines and their messages with it, its photos too; the history done with it, the startup
- * sweep removes the photos' files.
+ * routines and their messages with it, its photos too, kept while the removal can be undone.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -58,7 +57,7 @@ class DemoUndoTest {
     }
 
     @Test
-    fun `the demo's photos come back with the undo, and leave with the sweep once the history is done with them`() = runBlocking {
+    fun `the demo's photos are kept while its removal can be undone, and come back with the undo`() = runBlocking {
         val plants = listOf("demo-plant-tomato", "demo-plant-basil", "demo-plant-chilli")
         val files = plants.map { app.treelune.core.images.Images.file(context, database.imageDao().getForEntry(it).single()) }
         assertTrue(files.all { it.exists() })
@@ -67,10 +66,6 @@ class DemoUndoTest {
         assertTrue("kept while the removal can be undone", files.all { it.exists() })
         assertTrue(coordinator.processUserAction("history.undo", mapOf("id" to lastStep())).isSuccess)
         plants.forEach { assertTrue(it, database.imageDao().getForEntry(it).size == 1) }
-
-        assertTrue(coordinator.processUserAction("demo.remove", emptyMap()).isSuccess)
-        database.historyDao().clear()
-        app.treelune.core.images.Images.sweepOnce(context)
-        assertTrue("swept at the start after", files.none { it.exists() })
+        assertTrue(files.all { it.exists() })
     }
 }

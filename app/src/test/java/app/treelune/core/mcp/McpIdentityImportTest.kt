@@ -14,6 +14,7 @@ import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -48,6 +49,13 @@ class McpIdentityImportTest {
     fun setUp() = runBlocking {
         context = RuntimeEnvironment.getApplication()
         coordinator = Coordinator(context)
+        dao.deleteById("teacher")
+        protection(false)
+    }
+
+    /** The base outlives the class too: the next tests find the protection off and no identity of this one. */
+    @After
+    fun tearDown() = runBlocking {
         dao.deleteById("teacher")
         protection(false)
     }

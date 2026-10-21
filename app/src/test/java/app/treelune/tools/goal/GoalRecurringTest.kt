@@ -10,6 +10,8 @@ import app.treelune.core.database.AppDatabase
 import app.treelune.core.scheduling.SchedulersHeld
 import app.treelune.core.database.entities.ToolDataEntity
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
@@ -37,8 +39,23 @@ class GoalRecurringTest {
     /** A pass of the scheduler as the core scheduler's tick runs it, as the app (CoreScheduler.tick). */
     private suspend fun tick() = withContext(Origin(Source.SCHEDULER)) { GoalScheduler.checkScheduled(context) }
 
+    /**
+     * Passes run until [done] holds: the base and the schedulers outlive a test class, and a pass
+     * an earlier test's write started may still hold the scheduler's lock, the one run here then
+     * leaving without doing anything.
+     */
+    private suspend fun tickUntil(done: suspend () -> Boolean) = withTimeout(10_000) {
+        while (true) {
+            tick()
+            if (done()) break
+            delay(50)
+        }
+    }
+
     private fun status(entry: ToolDataEntity) = JSONObject(entry.state!!).getString(GoalToolType.STATUS)
-    private fun shown() = shadowOf(context.getSystemService(NotificationManager::class.java)).allNotifications.size
+    /** This test's notifications: an earlier test's tools, still in the base, may be told of by a pass of theirs. */
+    private fun shown() = shadowOf(context.getSystemService(NotificationManager::class.java)).allNotifications
+        .count { it.extras.getString(android.app.Notification.EXTRA_TITLE) == "Run daily" }
 
     /** [entry] as if [by] had passed: its start and its period's end that much earlier. */
     private suspend fun aged(entry: ToolDataEntity, by: Long) {
@@ -82,13 +99,13 @@ class GoalRecurringTest {
         suspend fun attempts() = database.toolDataDao().getByToolInstance(goalId).sortedBy { it.timestamp }
 
         // The last day's attempt alone, the days before it not caught up
-        tick()
+        tickUntil { attempts().isNotEmpty() }
         val first = attempts().single()
         assertEquals(GoalToolType.Status.ACTIVE, status(first))
 
         // A day later: the one over to validate, the day's opened beside it, one notification
         aged(first, day)
-        tick()
+        tickUntil { attempts().size == 2 }
         val (over, today) = attempts().also { assertEquals(2, it.size) }
         assertEquals(first.id, over.id)
         assertEquals(GoalToolType.Status.TO_VALIDATE, status(over))
@@ -99,7 +116,7 @@ class GoalRecurringTest {
 
         // Left past the delay: expired
         aged(database.toolDataDao().getById(over.id)!!, day)
-        tick()
+        tickUntil { status(database.toolDataDao().getById(over.id)!!) != GoalToolType.Status.TO_VALIDATE }
         assertEquals(GoalToolType.Status.EXPIRED, status(database.toolDataDao().getById(over.id)!!))
 
         // Stopped: a day later, none opens
