@@ -13,6 +13,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs
 
+- Une exécution de routine lancée à la main s'affiche « Prévue : » à l'heure du clic dans l'historique (`ExecutionCard`) : la session ne garde pas son déclencheur (`ExecutionTrigger.MANUAL` n'est pas stocké), l'heure du clic tenant lieu d'heure prévue pour le planificateur — une colonne à ajouter, par migration.
 - La fin d'un événement de l'Agenda est son début plus sa durée en temps écoulé : un événement de plusieurs jours qui traverse un changement d'heure finit une heure avant ou après — l'ajouter sur le calendrier (`TimeResolver.after`, comme l'Objectif), la grille des jours et les séries lisant cette fin.
 - Une session de routine restée en `AWAITING_SESSION_CLOSURE` à la fermeture de l'app est close au démarrage (`AIStateRepository.initializeFromDb`) sans passer par `RunEnd` : son résumé n'est pas gardé, et elle attend quel que soit son réglage « Me signaler la fin ».
 - Le dialogue « la démo n'est pas installée » du Guide : le fermer sans choisir (retour, toucher à côté) saute les étapes de la démo, comme son bouton.
