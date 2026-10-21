@@ -13,7 +13,7 @@ Public : les curieux un peu techniques (celui qui installe depuis F-Droid), et c
 5. Les outils : leur liste, la capture de l'outil choisi, sa phrase `tagline`, comme `scripts/make_readme.py`. Puis les autres pièces, en cartes de texte : routines, variables, identités, conditions et alertes, pointeurs, accès depuis l'ordinateur, ambiances.
 6. Les données en version longue, l'installation, et peut-être des pages à lire sur l'ordinateur (brancher une IA, l'accès externe, brancher un client MCP) : leur présence et leur contenu se décident sur la maquette.
 
-Les parties 1, 3, 4 et 5 partagent un motif, le geste du site : une liste de choix à côté d'un téléphone, et choisir change ce que le téléphone montre, avec sa légende sous la liste. La liste change de côté d'une partie à l'autre. Sur un téléphone tenu droit, le téléphone d'abord, puis la liste repliée et la légende ; sur un écran couché et bas, la liste reste à l'écran à côté d'un téléphone calculé sur la largeur.
+Les parties 1, 3, 4 et 5 partagent un motif, le geste du site : des choix à côté d'un téléphone, et choisir change ce que le téléphone montre. Les ambiances se choisissent dans une liste ; ailleurs, les choix sont des tuiles, plusieurs par ligne, et le détail du choix s'affiche dessous dans une boîte de taille fixe, marquée de bleu nuit, pour que rien ne saute et que l'œil y aille. Les choix changent de côté d'une partie à l'autre. Sur un téléphone tenu droit, le téléphone d'abord, puis les choix repliés en menu et le détail ; sur un écran couché et bas, la liste reste à l'écran à côté d'un téléphone calculé sur la largeur.
 
 Français et anglais, comme l'app, textes selon `docs/WRITING.md`.
 

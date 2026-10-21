@@ -207,18 +207,24 @@
   .ex-stage { display: flex; justify-content: center; background: var(--shot-ground); border-radius: 18px; padding: 28px 40px; }
   .ex-stage .phone { height: min(600px, 76svh); width: auto; }
   .ex-stage .computer { height: min(320px, 50svh); aspect-ratio: 16 / 10; border-radius: 12px; border: 8px solid #11161F; }
-  .ex-list { display: flex; flex-direction: column; gap: 2px; }
+  /* The choices are tiles, several per row; the details sit in a box of fixed size, so nothing jumps and the eye goes there */
+  .ex-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
   .ex-list button {
-    font: 600 18px/1.35 system-ui, sans-serif; text-align: left; padding: 6px 14px; cursor: pointer;
-    border: none; border-left: 3px solid transparent; background: transparent; color: var(--muted);
+    font: 600 16px/1.3 system-ui, sans-serif; text-align: left; padding: 12px 14px; cursor: pointer; min-height: 64px;
+    border: 1.5px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink);
+    transition: border-color .2s, background .2s, transform .2s;
   }
-  .ex-list button small { font-weight: 400; font-size: 13px; margin-left: 8px; opacity: .8; }
-  .ex-list button:hover { color: var(--ink); }
-  .ex-list button[aria-pressed="true"] { color: var(--ink); border-left-color: var(--accent); }
-  .ex-caption { margin-top: 24px; padding-left: 17px; min-height: 120px; }
-  .ex-caption h3 { margin: 0 0 6px; font-size: 20px; }
-  .ex-caption p { margin: 0; color: var(--muted); max-width: 440px; }
-  .ex-caption .theme-label { display: block; margin-top: 10px; font-size: 13px; }
+  .ex-list button small { display: block; font-weight: 400; font-size: 13px; margin-top: 3px; color: var(--muted); }
+  .ex-list button:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .ex-list button[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); box-shadow: inset 0 0 0 1px var(--accent); }
+  .ex-caption {
+    margin-top: 18px; height: 190px; overflow: hidden; padding: 20px 22px; border-radius: 14px;
+    background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent);
+    box-shadow: 0 6px 20px rgba(20, 30, 60, .06);
+  }
+  .ex-caption h3 { margin: 0 0 8px; font-size: 20px; }
+  .ex-caption p { margin: 0; color: var(--muted); }
+  .ex-caption .theme-label { display: block; margin-top: 10px; font-size: 13px; color: var(--muted); }
   .ex-toggle { display: none; }
 
   /* The drawn zone screen, its chosen tile outlined, the others dimmed */
@@ -249,13 +255,16 @@
     }
     .ex-toggle::after { content: " ▾"; }
     .ex-list {
+      grid-template-columns: 1fr; gap: 2px;
       display: none; position: absolute; top: calc(100% - 8px); left: 50%; transform: translate(-50%, -100%);
       bottom: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 8px 4px;
       box-shadow: 0 10px 30px rgba(0,0,0,.2); z-index: 5; width: max-content; max-width: calc(100vw - 32px);
     }
     .ex-side.open .ex-list { display: flex; top: -8px; }
-    .ex-caption { margin-top: 14px; padding-left: 0; text-align: center; min-height: 0; }
-    .ex-caption p { margin: 0 auto; }
+    .ex-list button { border: none; border-left: 3px solid transparent; border-radius: 0; min-height: 0; padding: 6px 14px; background: transparent; box-shadow: none; transform: none; }
+    .ex-list button small { display: inline; margin-left: 8px; }
+    .ex-list button[aria-pressed="true"] { border-left-color: var(--accent); background: transparent; box-shadow: none; }
+    .ex-caption { margin-top: 14px; height: auto; width: 100%; }
   }
 
   /* Short landscape: the list kept in view beside a phone sized by the width */
@@ -263,8 +272,9 @@
     .explorer { align-items: start; }
     .ex-side { position: sticky; top: calc(56px + 4svh); }
     .ex-stage .phone { height: auto; width: 30vw; }
-    .ex-list button { font-size: min(17px, 4.4svh); padding: .6svh 12px; }
-    .ex-caption { margin-top: 3svh; min-height: 0; }
+    .ex-list { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1.5svh; }
+    .ex-list button { font-size: min(15px, 4svh); padding: 1.5svh 10px; min-height: 0; }
+    .ex-caption { margin-top: 2svh; height: auto; max-height: 40svh; padding: 2.5svh 16px; }
     .ex-caption p { font-size: min(16px, 4.2svh); }
   }
 
