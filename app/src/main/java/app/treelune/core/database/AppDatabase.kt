@@ -108,7 +108,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 88
+        const val VERSION = 89
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2008,6 +2008,38 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** A routine becomes a tile of its section, among the tools and the variables: see AutomationsAtV89. */
+        private val MIGRATION_88_89 = object : ConnectionMigration(88, 89) {
+            override fun migrate(database: MigrationDatabase) {
+                val a = app.treelune.core.versioning.AutomationsAtV89
+                // A tool whose config cannot be read is left out of the placing, logged
+                val tiles = buildList {
+                    database.query("SELECT id, zone_id, config_json, grid_y FROM tool_instances").use { cursor ->
+                        while (cursor.moveToNext()) {
+                            try {
+                                val config = org.json.JSONObject(cursor.getString(2))
+                                add(a.below(cursor.getString(1), config.optString("group"), cursor.getInt(3), config.getString("display_mode")))
+                            } catch (e: Exception) {
+                                LogManager.database("MIGRATION 88->89: tool ${cursor.getString(0)} left out of the placing: ${e.message}", "ERROR", e)
+                            }
+                        }
+                    }
+                    database.query("SELECT zone_id, `group`, grid_y, display_mode FROM variables").use { cursor ->
+                        while (cursor.moveToNext()) add(a.below(cursor.getString(0), if (cursor.isNull(1)) null else cursor.getString(1), cursor.getInt(2), cursor.getString(3)))
+                    }
+                }
+                val routines = database.query("SELECT id, zone_id, `group`, created_at FROM automations").use { cursor ->
+                    buildList {
+                        while (cursor.moveToNext()) add(app.treelune.core.versioning.AutomationsAtV89.Routine(cursor.getString(0), cursor.getString(1),
+                            if (cursor.isNull(2)) null else cursor.getString(2), cursor.getLong(3)))
+                    }
+                }
+                a.STATEMENTS.forEach { database.execSQL(it) }
+                a.placed(routines, tiles).forEach { (id, row) -> database.execSQL("UPDATE automations SET grid_y = ? WHERE id = ?", arrayOf<Any?>(row, id)) }
+                LogManager.database("MIGRATION 88->89: ${routines.size} routine(s) placed among their section's tools", "INFO")
+            }
+        }
+
         /** The connector gains its own data threshold: see ExternalAccessDataAtV84. */
         private val MIGRATION_83_84 = object : ConnectionMigration(83, 84) {
             override fun migrate(database: MigrationDatabase) {
@@ -3043,7 +3075,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_84_85,
                     MIGRATION_85_86,
                     MIGRATION_86_87,
-                    MIGRATION_87_88
+                    MIGRATION_87_88,
+                    MIGRATION_88_89
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

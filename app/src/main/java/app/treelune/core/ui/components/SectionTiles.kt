@@ -9,7 +9,7 @@ import app.treelune.core.ui.variables.VariableCard
 import app.treelune.core.ui.variables.VariableRow
 import org.json.JSONObject
 
-/** One tile of a section as the screen holds it: a tool, or a variable. */
+/** One tile of a section as the screen holds it: a tool, a variable or a routine. */
 sealed interface SectionTile {
     val id: String
     val tile: app.treelune.core.grid.Grid.Tile
@@ -26,10 +26,16 @@ sealed interface SectionTile {
         override val tile get() = variable.tile
         override val mode get() = variable.look.displayMode
     }
+
+    data class Routine(val automation: app.treelune.core.ai.data.Automation) : SectionTile {
+        override val id get() = automation.id
+        override val tile get() = automation.tile
+        override val mode get() = automation.look.displayMode
+    }
 }
 
 /**
- * The tiles of one group section laid on their grid (GridLayout), tools and variables together,
+ * The tiles of one group section laid on their grid (GridLayout), tools, variables and routines together,
  * each at its column and row as many cells as its mode takes, in edit mode when [edit] is given.
  * A tile of four cells' width with a body (EXTENDED, SQUARE, FULL) is as tall as its content
  * (GridLayout's grows), EXTENDED and SQUARE at most their cells (SectionCard); in edit mode
@@ -42,6 +48,8 @@ fun SectionTiles(
     onToolLongClick: (ToolInstance) -> Unit,
     onOpenEntry: (ToolInstance, app.treelune.core.tools.EntryToOpen) -> Unit,
     onOpenVariable: (String) -> Unit,
+    automationActions: app.treelune.core.ai.ui.automation.AutomationActions,
+    onAutomationLongClick: (app.treelune.core.ai.data.Automation) -> Unit,
     edit: GridEdit? = null
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -57,6 +65,7 @@ fun SectionTiles(
             )
             // A long touch opens it too: its settings are on its page
             is SectionTile.Variable -> VariableCard(tile.variable, onOpen = { onOpenVariable(tile.variable.id) }, onLongClick = { onOpenVariable(tile.variable.id) })
+            is SectionTile.Routine -> app.treelune.core.ai.ui.automation.AutomationTile(tile.automation, automationActions) { onAutomationLongClick(tile.automation) }
         }
     }
 }

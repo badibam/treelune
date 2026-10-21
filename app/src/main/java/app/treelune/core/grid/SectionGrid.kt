@@ -20,7 +20,7 @@ data class SectionItem(
     val row: Int,
     val size: Grid.Size
 ) {
-    enum class Kind { TOOL, VARIABLE }
+    enum class Kind { TOOL, VARIABLE, AUTOMATION }
 
     val tile: Grid.Tile get() = Grid.Tile(id, column, row, size.width, size.height)
 
@@ -33,6 +33,9 @@ data class SectionItem(
 
         fun of(variable: VariableEntity): SectionItem = SectionItem(variable.id, Kind.VARIABLE, variable.zoneId, variable.group,
             variable.gridX, variable.gridY, Grid.size(DisplayMode.valueOf(variable.displayMode)))
+
+        fun of(automation: app.treelune.core.ai.database.AutomationEntity): SectionItem = SectionItem(automation.id, Kind.AUTOMATION, automation.zoneId,
+            automation.group, automation.gridX, automation.gridY, Grid.size(DisplayMode.valueOf(automation.displayMode)))
     }
 }
 
@@ -71,10 +74,11 @@ class SectionGrid(context: Context) {
     private val database = AppDatabase.getDatabase(context)
     private val writes = app.treelune.core.history.Writes(context)
 
-    /** Every tile of zone [zoneId], tools and variables. */
+    /** Every tile of zone [zoneId], tools, variables and routines. */
     suspend fun items(zoneId: String): List<SectionItem> =
         database.toolInstanceDao().getToolInstancesByZone(zoneId).map { SectionItem.of(it) } +
-            database.variableDao().getByZone(zoneId).map { SectionItem.of(it) }
+            database.variableDao().getByZone(zoneId).map { SectionItem.of(it) } +
+            database.aiDao().getAutomationsByZone(zoneId).map { SectionItem.of(it) }
 
     /** The tiles of [items] shown in [section] of a zone whose groups are [zoneGroups]. */
     fun tiles(items: List<SectionItem>, zoneGroups: List<String>, section: String?): List<Grid.Tile> =
@@ -140,6 +144,7 @@ class SectionGrid(context: Context) {
         when (item.kind) {
             SectionItem.Kind.TOOL -> writes.moveTool(item.id, item.column, item.row)
             SectionItem.Kind.VARIABLE -> writes.moveVariable(item.id, item.column, item.row)
+            SectionItem.Kind.AUTOMATION -> writes.moveAutomation(item.id, item.column, item.row)
         }
         item.id
     }

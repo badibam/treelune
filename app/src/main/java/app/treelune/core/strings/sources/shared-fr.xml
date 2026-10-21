@@ -1733,6 +1733,12 @@
     <string name="label_config">Configuration</string>
 
     <!-- AUTOMATIONS - General -->
+    <string name="automation_schema_name">Nom de la routine, montré sur sa tuile</string>
+    <string name="automation_schema_description">Description facultative de ce que fait la routine</string>
+    <string name="automation_schema_icon_name">Nom de l\'icône de la routine (un nom d\'icône Lucide) ; bot si absent</string>
+    <string name="automation_schema_icon_color">Couleur de l\'icône de la routine, parmi RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, PURPLE, PINK ; null ou absent pour une icône neutre. Chaque thème la dessine à sa façon</string>
+    <string name="automation_schema_texture">Motif posé sur la tuile de la routine, parmi LINES, DIAGONALS, GRID, ZIGZAG, WAVES, DOTS, CROSSES, STARS, RINGS, DIAMONDS, CONFETTI, CHECKER, BRICKS, SCALES, ICON (ICON répète l\'icône de la routine) ; null ou absent pour aucun. Une affaire de goût : à poser quand la personne le demande</string>
+    <string name="automation_schema_display_mode">Comment la tuile de la routine s\'affiche parmi les outils de sa section : ICON (son icône), MINIMAL (icône et nom), LINE et CONDENSED (son état et son interrupteur à côté ou dessous), EXTENDED (avec ses boutons, par défaut), SQUARE (avec ses dernières exécutions)</string>
     <string name="automation_display_name">Routine</string>
     <string name="automation_runs_display_name">Exécutions d\'une routine</string>
     <string name="automation_message_placeholder">Message de démarrage de la routine...</string>

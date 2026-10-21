@@ -106,7 +106,15 @@ class BackupService(private val context: Context) : ExecutableService {
             // Absent from a backup made before version 76: every run signalled, as the migration does
             notifyEnd = item.optString("notify_end", app.treelune.core.ai.data.AutomationSettings.NOTIFY_ALWAYS),
             // Absent from a backup made before version 77: the app's own AI, as the migration does
-            identityId = item.nullableString("identity_id")
+            identityId = item.nullableString("identity_id"),
+            // A backup older than v89 is brought to this form first (AutomationsAtV89)
+            description = item.nullableString("description"),
+            iconName = item.getString("icon_name"),
+            iconColor = item.nullableString("icon_color"),
+            texture = item.nullableString("texture"),
+            displayMode = item.getString("display_mode"),
+            gridX = item.getInt("grid_x"),
+            gridY = item.getInt("grid_y")
         )
     }
 
@@ -540,6 +548,13 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("access_json", automation.accessJson)
                                 put("notify_end", automation.notifyEnd)
                                 put("identity_id", automation.identityId ?: JSONObject.NULL)
+                                automation.description?.let { put("description", it) }
+                                put("icon_name", automation.iconName)
+                                automation.iconColor?.let { put("icon_color", it) }
+                                automation.texture?.let { put("texture", it) }
+                                put("display_mode", automation.displayMode)
+                                put("grid_x", automation.gridX)
+                                put("grid_y", automation.gridY)
                                 if (automation.group != null) {
                                     put("group", automation.group)
                                 }
@@ -1342,6 +1357,9 @@ class BackupService(private val context: Context) : ExecutableService {
             }
             if (fromVersion < 88 && toVersion >= 88) {
                 app.treelune.core.versioning.VariablesAtV88.backup(data)
+            }
+            if (fromVersion < 89 && toVersion >= 89) {
+                app.treelune.core.versioning.AutomationsAtV89.backup(data)
             }
 
             // Transform app settings

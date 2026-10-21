@@ -50,16 +50,20 @@ fun CreateAutomationDialog(
     val isEditMode = automation != null
 
     // Form states - initialize with existing values in EDIT mode
-    // Name, provider, group and end signal, as the automation's declaration describes them (AutomationSettings)
+    // Its look, provider, group and end signal, as the automation's declaration describes them (AutomationSettings)
+    val lookKeys = remember { app.treelune.core.look.Looks.keys(app.treelune.core.ai.data.AutomationSettings.LOOK) }
     var settings by rememberSaveable(stateSaver = app.treelune.core.ui.JsonObjectSaver) {
         mutableStateOf(org.json.JSONObject().apply {
             if (isEditMode) {
-                (automation?.get("name") as? String)?.let { put("name", it) }
+                lookKeys.forEach { key -> automation?.get(key)?.let { put(key, it) } }
                 (automation?.get("provider_id") as? String)?.let { put("provider_id", it) }
                 (automation?.get("group") as? String)?.let { put("group", it) }
                 (automation?.get("notify_end") as? String)?.let { put("notify_end", it) }
                 (automation?.get(app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID) as? String)?.let { put(app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID, it) }
             } else {
+                // A new routine's look at its declared defaults (the icon bot, EXTENDED)
+                put(app.treelune.core.look.Looks.ICON, app.treelune.core.ai.data.AutomationSettings.DEFAULT_ICON)
+                put(app.treelune.core.look.Looks.DISPLAY_MODE, app.treelune.core.ai.data.AutomationSettings.DEFAULT_MODE)
                 preSelectedGroup?.let { put("group", it) }
             }
         })
@@ -69,7 +73,7 @@ fun CreateAutomationDialog(
     val selectedGroup = settings.optString("group").ifEmpty { null }
     val settingsNodes = remember {
         app.treelune.core.ai.data.AutomationSettings.nodes(context).filter { node ->
-            node is app.treelune.core.fields.settings.SettingNode.Field && node.definition.name in setOf("name", "provider_id", app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID, "group", "notify_end")
+            node is app.treelune.core.fields.settings.SettingNode.Field && node.definition.name in lookKeys + setOf("provider_id", app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID, "group", "notify_end")
         }
     }
     var selectedZoneId by rememberSaveable {
@@ -170,12 +174,13 @@ fun CreateAutomationDialog(
                         // as null, which removes it
                         val updateParams = mutableMapOf<String, Any>(
                             "automation_id" to automationId,
-                            "name" to name,
                             "provider_id" to (selectedProvider ?: org.json.JSONObject.NULL),
                             "group" to (selectedGroup ?: org.json.JSONObject.NULL),
                             "notify_end" to (settings.optString("notify_end").ifEmpty { null } ?: org.json.JSONObject.NULL),
                             app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID to (settings.optString(app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID).ifEmpty { null } ?: org.json.JSONObject.NULL)
                         )
+                        // Its look, each setting sent, an absent one as null, which empties it
+                        lookKeys.forEach { key -> updateParams[key] = settings.opt(key) ?: org.json.JSONObject.NULL }
                         // Add zone_id if changed
                         if (selectedZoneId != currentZoneId) {
                             updateParams["zone_id"] = selectedZoneId
@@ -196,12 +201,12 @@ fun CreateAutomationDialog(
                         // CREATE MODE: the routine, with its seed session and its message still
                         // empty, written by the editor it opens next
                         val createParams = mutableMapOf<String, Any>(
-                            "name" to name,
                             "zone_id" to zoneId,
                             "provider_id" to (selectedProvider ?: org.json.JSONObject.NULL),
                             "is_enabled" to (selectedProvider != null)
                         )
                         selectedGroup?.let { createParams["group"] = it }
+                        lookKeys.forEach { key -> settings.opt(key)?.let { createParams[key] = it } }
                         createParams[app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID] =
                             settings.optString(app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID).ifEmpty { null } ?: org.json.JSONObject.NULL
                         settings.optString("notify_end").ifEmpty { null }?.let { createParams["notify_end"] = it }
@@ -246,8 +251,10 @@ fun CreateAutomationDialog(
                 type = TextType.TITLE
             )
 
-            // Name, provider among the user's, group among the zone's, which runs wait to be read
-            app.treelune.core.fields.settings.SettingsForm(settingsNodes, settings, { settings = it }, context, mapOf(
+            // Its look (its icon, colour and texture as every look's), provider among the user's, group
+            // among the zone's, which runs wait to be read
+            app.treelune.core.fields.settings.SettingsForm(settingsNodes, settings, { settings = it }, context,
+                app.treelune.core.look.ui.lookEditors(app.treelune.core.ai.data.AutomationSettings.LOOK, settings, s) { settings = it } + mapOf(
                 "provider_id" to object : app.treelune.core.fields.settings.SettingEditor {
                     @Composable
                     override fun Edit(value: Any?, onChange: (Any?) -> Unit) {

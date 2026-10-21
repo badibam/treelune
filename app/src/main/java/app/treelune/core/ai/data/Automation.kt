@@ -42,8 +42,16 @@ data class Automation(
     val lastExecutionId: String?,           // ID of most recent execution session
     val executionHistory: List<String>,     // IDs of execution sessions (newest first)
     /** What its AI may reach (docs/AI.md, « Levels »): empty, everything */
-    val access: app.treelune.core.access.AccessMask = app.treelune.core.access.AccessMask()
+    val access: app.treelune.core.access.AccessMask = app.treelune.core.access.AccessMask(),
+    /** How its tile shows (AutomationSettings.LOOK), its name among it */
+    val look: app.treelune.core.look.Look,
+    /** Its place in the grid of its group's section (SectionGrid) */
+    val gridX: Int,
+    val gridY: Int
 ) {
+    val tile: app.treelune.core.grid.Grid.Tile
+        get() = app.treelune.core.grid.Grid.size(look.displayMode).let { app.treelune.core.grid.Grid.Tile(id, gridX, gridY, it.width, it.height) }
+
     companion object {
         /**
          * An automation as the automations service gives it in a result: the single reader of
@@ -76,7 +84,11 @@ data class Automation(
                 updatedAt = (map["updated_at"] as Number).toLong(),
                 lastExecutionId = map["last_execution_id"] as String?,
                 executionHistory = (map["execution_history"] as List<*>).map { it as String },
-                access = app.treelune.core.access.AccessMask.fromJson(org.json.JSONArray(map["access"] as List<*>).toString())
+                access = app.treelune.core.access.AccessMask.fromJson(org.json.JSONArray(map["access"] as List<*>).toString()),
+                look = app.treelune.core.look.Looks.read(AutomationSettings.LOOK,
+                    app.treelune.core.utils.JsonUtils.toJSONObject(map.entries.associate { it.key.toString() to it.value })),
+                gridX = (map["grid_x"] as Number).toInt(),
+                gridY = (map["grid_y"] as Number).toInt()
             )
         }
     }

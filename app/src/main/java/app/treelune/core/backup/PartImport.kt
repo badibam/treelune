@@ -176,18 +176,6 @@ class PartImport(private val context: Context) {
                 if (zone in existing) written.inExisting += "variables.delete" to JSONObject().put("variable_id", element.getString("id"))
             }
         }
-        // The tools and the variables of a new zone at the places they had, section by section
-        val tiles = rows(data, "tool_instances").map { it to JSONObject(it.getString("config_json")).optString("group") } +
-            rows(data, "variables").map { it to it.optString("group") }
-        tiles.filter { (item, _) -> item.getString("zone_id") !in existing }
-            .groupBy({ (item, group) -> item.getString("zone_id") to group.takeIf { it.isNotEmpty() } }, { it.first })
-            .forEach { (section, items) ->
-                run("zones.place_section", JSONObject()
-                    .put("zone_id", section.first)
-                    .apply { section.second?.let { put("group", it) } }
-                    .put("places", JSONObject().apply { items.forEach { put(it.getString("id"), JSONObject().put("grid_x", it.getInt("grid_x")).put("grid_y", it.getInt("grid_y"))) } }))
-            }
-
         // The routines, off, with no provider nor identity: both are the user's to choose
         val messages = rows(data, "session_messages").groupBy { it.getString("session_id") }
         rows(data, "automations").forEach { automation ->
@@ -204,6 +192,19 @@ class PartImport(private val context: Context) {
             })
             if (automation.getString("zone_id") in existing) written.inExisting += "automations.delete" to JSONObject().put("automation_id", automation.getString("id"))
         }
+
+        // The tools, the variables and the routines of a new zone at the places they had, section by section
+        val tiles = rows(data, "tool_instances").map { it to JSONObject(it.getString("config_json")).optString("group") } +
+            rows(data, "variables").map { it to it.optString("group") } +
+            rows(data, "automations").map { it to it.optString("group") }
+        tiles.filter { (item, _) -> item.getString("zone_id") !in existing }
+            .groupBy({ (item, group) -> item.getString("zone_id") to group.takeIf { it.isNotEmpty() } }, { it.first })
+            .forEach { (section, items) ->
+                run("zones.place_section", JSONObject()
+                    .put("zone_id", section.first)
+                    .apply { section.second?.let { put("group", it) } }
+                    .put("places", JSONObject().apply { items.forEach { put(it.getString("id"), JSONObject().put("grid_x", it.getInt("grid_x")).put("grid_y", it.getInt("grid_y"))) } }))
+            }
 
         // The entries, each after the ones it designates, a tool's together
         val entries = ordered(rows(data, "tool_data"))

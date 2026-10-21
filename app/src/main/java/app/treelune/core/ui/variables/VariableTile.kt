@@ -97,7 +97,8 @@ fun VariableCard(variable: VariableRow, onOpen: () -> Unit, onLongClick: () -> U
     fun Value() = UI.Text(value ?: s.shared("tools_loading"), TextType.BODY, maxLines = 2)
     UI.SectionCard(
         look = variable.look,
-        subtitle = null,
+        // Its kind under its label, as a tool's type under its name
+        subtitle = s.shared("variable_display_name"),
         seed = variable.id,
         waiting = false,
         running = false,

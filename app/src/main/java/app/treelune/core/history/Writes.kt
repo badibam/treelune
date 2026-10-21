@@ -79,6 +79,9 @@ class Writes(private val context: Context) {
 
     suspend fun updateVariable(variable: VariableEntity) = write(CoveredTable.VARIABLES, variable.id) { database.variableDao().update(variable) }
 
+    suspend fun moveAutomation(id: String, gridX: Int, gridY: Int) =
+        write(CoveredTable.AUTOMATIONS, id) { database.aiDao().updateAutomationPosition(id, gridX, gridY) }
+
     suspend fun moveVariable(id: String, gridX: Int, gridY: Int) =
         write(CoveredTable.VARIABLES, id) { database.variableDao().updatePosition(id, gridX, gridY) }
 
