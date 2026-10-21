@@ -470,5 +470,12 @@
   "lexicon_partire": "partir",
   "lexicon_arrivare": "arriver",
   "lexicon_vicino": "proche",
-  "lexicon_veloce": "rapide"
+  "lexicon_veloce": "rapide",
+  "var_km_target_label": "Objectif de distance de la semaine",
+  "var_km_week_label": "Distance de la semaine",
+  "var_weight_7d_label": "Poids moyen sur 7 jours",
+  "var_kcal_target_label": "Objectif calorique",
+  "var_kcal_day_label": "Calories du jour",
+  "var_kcal_left_label": "Calories restantes",
+  "var_hours_week_label": "Heures de la semaine"
 }

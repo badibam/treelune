@@ -851,46 +851,68 @@ object UI {
         if (titleShown) Selectable { CurrentTheme.current.PageHeader(title, subtitle, icon, iconColor, appMark) }
     }
     
-    /** The header of a tool's tile: its icon with its marks, and its name. */
-    @Composable
-    fun ToolCardHeader(
-        tool: ToolInstance,
-        context: android.content.Context,
-        waiting: Boolean,
-        running: Boolean
-    ) {
-        val settings = app.treelune.core.tools.ToolConfigSettings.read(tool.tooltype, JSONObject(tool.config_json), context)
-        // The name a size up, its tool type under it
-        TileHeader(settings.string("icon_name"), IconColor.of(settings.string(IconColor.KEY)), settings.string("name")!!, waiting, running, TextType.HEADING,
-            subtitle = app.treelune.core.tools.ToolTypeManager.getToolTypeName(tool.tooltype, context))
-    }
-
     /**
-     * A tool's tile, laid out by its display mode: the header (icon and name) the core draws, the
-     * summary and the body its tool type draws (ToolTile), each on whole cells of the grid.
+     * A tool's tile, its look read from its config (ToolConfigSettings.look): the header the core
+     * draws, its type's name under its name, the summary, the preview and the body its tool type
+     * draws (ToolTile), laid out by SectionCard.
      *
      * @param onOpenEntry Opens the tool on one of its entries, touched on the tile
      */
     @Composable
     fun ToolCard(
         tool: ToolInstance,
-        displayMode: DisplayMode,
         context: android.content.Context,
         onClick: () -> Unit,
         onLongClick: () -> Unit = { },
         onOpenEntry: (app.treelune.core.tools.EntryToOpen) -> Unit = { }
     ) {
-        // Something waiting among its entries, or a stopwatch running on one, is marked on its icon
-        val waiting = LocalWaiting.current.tool(tool.id)
-        val running = LocalRunning.current.tool(tool.id)
         val toolType = requireNotNull(ToolTypeManager.getToolType(tool.tooltype)) { "No tool type '${tool.tooltype}' for tool ${tool.id}" }
         val tile = toolType.rememberTile(tool, onOpenEntry)
-        val toolSettings = app.treelune.core.tools.ToolConfigSettings.read(tool.tooltype, JSONObject(tool.config_json), context)
+        val look = app.treelune.core.look.Looks.read(app.treelune.core.tools.ToolConfigSettings.look(toolType), JSONObject(tool.config_json))
+        // Something waiting among its entries, or a stopwatch running on one, is marked on its icon
+        SectionCard(
+            look = look,
+            subtitle = ToolTypeManager.getToolTypeName(tool.tooltype, context),
+            seed = tool.id,
+            waiting = LocalWaiting.current.tool(tool.id),
+            running = LocalRunning.current.tool(tool.id),
+            onClick = onClick,
+            onLongClick = onLongClick,
+            summary = { tile.Summary() },
+            glance = { tile.Glance() },
+            body = { rows -> tile.Body(rows) }
+        )
+    }
+
+    /**
+     * A tile of a zone's section, a tool's or a variable's, laid out by its look's display mode
+     * (Looks), each part on whole cells of the grid: its icon alone (ICON); its header, icon and
+     * name with [subtitle] under it (MINIMAL); [glance] beside the header (LINE) or under it
+     * (CONDENSED); the header and [summary] side by side, [body] under them on the rows its mode
+     * gives (EXTENDED, SQUARE, FULL).
+     */
+    @Composable
+    fun SectionCard(
+        look: app.treelune.core.look.Look,
+        subtitle: String?,
+        seed: String,
+        waiting: Boolean,
+        running: Boolean,
+        onClick: () -> Unit,
+        onLongClick: () -> Unit,
+        summary: @Composable () -> Unit,
+        glance: @Composable () -> Unit,
+        body: @Composable (Int?) -> Unit
+    ) {
+        val displayMode = look.displayMode
+        val color = IconColor.of(look.iconColor)
+        @Composable
+        fun Header() = TileHeader(look.iconName, color, look.name, waiting, running, TextType.HEADING, subtitle = subtitle)
         CurrentTheme.current.ToolCardContainer(
             displayMode = displayMode,
-            texture = ItemTexture.of(toolSettings.string(app.treelune.core.themes.Texture.KEY), toolSettings.string("icon_name"), IconColor.of(toolSettings.string(IconColor.KEY))),
-            color = IconColor.of(toolSettings.string(IconColor.KEY)),
-            seed = tool.id,
+            texture = ItemTexture.of(look.texture, look.iconName, color),
+            color = color,
+            seed = seed,
             onClick = onClick,
             onLongClick = onLongClick
         ) {
@@ -910,34 +932,17 @@ object UI {
                 }
             }
 
-            // The header and the summary side by side, each on half the width
-            @Composable
-            fun HeaderAndSummary(modifier: Modifier) = Halves(modifier, { ToolCardHeader(tool, context, waiting, running) }, { tile.Summary() })
-
             when (displayMode) {
-                DisplayMode.ICON -> {
-                    // The icon alone, centered in its cell
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        val settings = app.treelune.core.tools.ToolConfigSettings.read(tool.tooltype, JSONObject(tool.config_json), context)
-                        TileIcon(settings.string("icon_name"), IconColor.of(settings.string(IconColor.KEY)), waiting, running)
-                    }
+                // The icon alone, centered in its cell
+                DisplayMode.ICON -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    TileIcon(look.iconName, color, waiting, running)
                 }
-                DisplayMode.MINIMAL -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) {
-                        ToolCardHeader(tool, context, waiting, running)
-                    }
-                }
+                DisplayMode.MINIMAL -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) { Header() }
                 // The smallest space between the two halves, so that their texts never touch
-                DisplayMode.LINE -> Halves(Modifier.fillMaxSize(), { ToolCardHeader(tool, context, waiting, running) }, { tile.Glance() })
-                DisplayMode.CONDENSED -> {
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
-                            ToolCardHeader(tool, context, waiting, running)
-                        }
-                        Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                            tile.Glance()
-                        }
-                    }
+                DisplayMode.LINE -> Halves(Modifier.fillMaxSize(), { Header() }, glance)
+                DisplayMode.CONDENSED -> Column(modifier = Modifier.fillMaxSize()) {
+                    Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.CenterStart) { Header() }
+                    Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { glance() }
                 }
                 DisplayMode.EXTENDED, DisplayMode.SQUARE, DisplayMode.FULL -> {
                     // As tall as the body needs, to a whole pixel of the theme (GridLayout): the
@@ -954,9 +959,9 @@ object UI {
                     }
                     val gap = with(androidx.compose.ui.platform.LocalDensity.current) { CurrentTheme.current.gridRowGapPx().toDp() }
                     Column(modifier = Modifier.fillMaxWidth()) {
-                        HeaderAndSummary(Modifier.fillMaxWidth().height(row * headerRows - CurrentTheme.current.tileFrame(displayMode)))
+                        Halves(Modifier.fillMaxWidth().height(row * headerRows - CurrentTheme.current.tileFrame(displayMode)), { Header() }, summary)
                         Box(modifier = Modifier.fillMaxWidth().let { m -> rows?.let { m.heightIn(max = (row + gap) * it) } ?: m }) {
-                            tile.Body(rows)
+                            body(rows)
                         }
                     }
                 }

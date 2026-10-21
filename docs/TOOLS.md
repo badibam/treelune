@@ -221,7 +221,7 @@ Added in ToolTypeScanner.getAllToolTypes() for automatic discovery.
 
 ## Display modes for tool cards
 
-The tools of a group's section are laid on a grid of four columns of square cells (`ToolGrid`), whose side the theme gives according to the width available (`gridCellPx`: a quarter, the grid at most 480 dp wide, in the default theme). Each tool sits there at `grid_x`/`grid_y` (`tool_instances`), placed by `ToolPositions` and `Grid`; its size in cells comes from its `display_mode`, which its config always holds:
+The tools of a group's section are laid on a grid of four columns of square cells (`SectionTiles`), with its variables among them, whose side the theme gives according to the width available (`gridCellPx`: a quarter, the grid at most 480 dp wide, in the default theme). Each tool sits there at `grid_x`/`grid_y` (`tool_instances`), placed by `SectionGrid` and `Grid`; its size in cells comes from its `display_mode`, which its config always holds (its look, `Looks`):
 
 - **ICON** (1×1): the icon alone
 - **MINIMAL** (2×1): the header, icon and name

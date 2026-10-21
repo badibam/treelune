@@ -167,19 +167,25 @@ class PartImport(private val context: Context) {
                     .put("id", element.getString("id"))
                     .put("zone_id", zone)
                     .put("name", names.getValue(element.getString("id")))
-                    .apply { element.optString("group").takeIf { it.isNotEmpty() }?.let { put("group", it) } }
+                    .apply {
+                        listOf("label", "description", "group", "icon_name", "icon_color", "texture", "display_mode").forEach { key ->
+                            element.optString(key).takeIf { it.isNotEmpty() }?.let { put(key, it) }
+                        }
+                    }
                     .put("definition", given(JSONObject(element.getString("definition_json")), names)))
                 if (zone in existing) written.inExisting += "variables.delete" to JSONObject().put("variable_id", element.getString("id"))
             }
         }
-        // The tools of a new zone at the places they had, section by section
-        rows(data, "tool_instances").filter { it.getString("zone_id") !in existing }
-            .groupBy { it.getString("zone_id") to JSONObject(it.getString("config_json")).optString("group").takeIf { g -> g.isNotEmpty() } }
-            .forEach { (section, tools) ->
-                run("tools.place", JSONObject()
+        // The tools and the variables of a new zone at the places they had, section by section
+        val tiles = rows(data, "tool_instances").map { it to JSONObject(it.getString("config_json")).optString("group") } +
+            rows(data, "variables").map { it to it.optString("group") }
+        tiles.filter { (item, _) -> item.getString("zone_id") !in existing }
+            .groupBy({ (item, group) -> item.getString("zone_id") to group.takeIf { it.isNotEmpty() } }, { it.first })
+            .forEach { (section, items) ->
+                run("zones.place_section", JSONObject()
                     .put("zone_id", section.first)
                     .apply { section.second?.let { put("group", it) } }
-                    .put("places", JSONObject().apply { tools.forEach { put(it.getString("id"), JSONObject().put("grid_x", it.getInt("grid_x")).put("grid_y", it.getInt("grid_y"))) } }))
+                    .put("places", JSONObject().apply { items.forEach { put(it.getString("id"), JSONObject().put("grid_x", it.getInt("grid_x")).put("grid_y", it.getInt("grid_y"))) } }))
             }
 
         // The routines, off, with no provider nor identity: both are the user's to choose

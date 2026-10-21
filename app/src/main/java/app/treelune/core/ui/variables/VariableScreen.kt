@@ -43,7 +43,9 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 
 /**
- * A variable seen and changed (docs/DATA.md, « Variables »): its name, a constant or a formula
+ * A variable seen and changed (docs/DATA.md, « Variables »): its name, its look (Looks: its label,
+ * description, icon, colour, texture and the mode of its tile, the colour and the texture each on
+ * a page of the form, which then fills the screen), a constant or a formula
  * written in text with buttons inserting the names and a check at each keystroke, its terms each
  * with its period relative to the instant it is read at, the type of its value, and its value now.
  * The service checks it again when it is saved, as it checks the AI's.
@@ -61,6 +63,10 @@ fun VariableScreen(zoneId: String, variableId: String?, group: String?, onDone: 
     val scope = rememberCoroutineScope()
 
     var name by rememberSaveable { mutableStateOf("") }
+    // Its look, a new variable's at its declared defaults (the icon variable, LINE)
+    val lookNodes = remember { app.treelune.core.look.Looks.nodes(app.treelune.core.variables.VariableLook.SPEC, s::shared) }
+    var look by rememberSaveable(stateSaver = app.treelune.core.ui.JsonObjectSaver) { mutableStateOf(app.treelune.core.fields.settings.SettingDefaults.of(lookNodes)) }
+    val pages = app.treelune.core.fields.settings.rememberSettingsPages()
     var draft by rememberSaveable { mutableStateOf(JSONObject().put("kind", "FORMULA").put("formula", "").put("terms", JSONObject()).toString()) }
     var loaded by rememberSaveable { mutableStateOf(variableId == null) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -76,6 +82,9 @@ fun VariableScreen(zoneId: String, variableId: String?, group: String?, onDone: 
             val variable = result.data?.get("variable") as? Map<*, *>
             if (variable != null) {
                 name = variable["name"] as String
+                look = JSONObject().apply {
+                    app.treelune.core.look.Looks.keys(app.treelune.core.variables.VariableLook.SPEC).forEach { key -> variable[key]?.let { put(key, it) } }
+                }
                 @Suppress("UNCHECKED_CAST")
                 val definition = JsonUtils.toJSONObject(variable["definition"] as Map<String, Any?>)
                 // Shown with each function in the app's language, as it is written here
@@ -113,7 +122,7 @@ fun VariableScreen(zoneId: String, variableId: String?, group: String?, onDone: 
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         UI.PageHeader(
-            title = name.ifBlank { s.shared("variable_new") },
+            title = look.optString("label").ifBlank { name.ifBlank { s.shared("variable_new") } },
             leftButton = ButtonAction.BACK,
             onLeftClick = onDone
         )
@@ -121,9 +130,14 @@ fun VariableScreen(zoneId: String, variableId: String?, group: String?, onDone: 
             UI.LoadingIndicator()
             return@Column
         }
-        current?.let { UI.Text(text = s.shared("variable_value_now").format(it), type = TextType.SUBTITLE) }
-
-        UI.FormField(label = s.shared("label_name"), value = name, onChange = { name = it }, required = true)
+        if (pages.atRoot) {
+            current?.let { UI.Text(text = s.shared("variable_value_now").format(it), type = TextType.SUBTITLE) }
+            UI.FormField(label = s.shared("label_name"), value = name, onChange = { name = it }, required = true)
+        }
+        app.treelune.core.fields.settings.SettingsForm(lookNodes, look, { look = it }, context,
+            app.treelune.core.look.ui.lookEditors(app.treelune.core.variables.VariableLook.SPEC, look, s) { look = it }, pages = pages)
+        // A page of the look open, the rest waits for its return
+        if (!pages.atRoot) return@Column
 
         val kinds = listOf("FORMULA" to s.shared("variable_kind_formula"), "CONSTANT" to s.shared("variable_kind_constant"))
         UI.FormSelection(
@@ -175,7 +189,9 @@ fun VariableScreen(zoneId: String, variableId: String?, group: String?, onDone: 
         UI.FormActions {
             UI.Button(type = ButtonType.PRIMARY, onClick = {
                 scope.launch {
+                    // Every setting of its look is sent: an absent one as null, which empties it
                     val params = mutableMapOf<String, Any>("name" to name, "definition" to JsonUtils.toMap(JSONObject(draft)))
+                    app.treelune.core.look.Looks.keys(app.treelune.core.variables.VariableLook.SPEC).forEach { key -> params[key] = look.opt(key) ?: JSONObject.NULL }
                     val result = if (variableId == null) {
                         coordinator.processUserAction("variables.create", params + ("zone_id" to zoneId) + (group?.let { mapOf("group" to it) } ?: emptyMap()))
                     } else coordinator.processUserAction("variables.update", params + ("variable_id" to variableId))

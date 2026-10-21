@@ -26,7 +26,7 @@ Codé, jamais vu sur l'appareil.
 ## Décidé, à coder
 
 - Un filtre qui compare un champ à une variable ou une lecture (« kcal > objectif_calorique ») : le terme lu une fois à la référence du contexte (`TermReader`, `docs/BRICKS.md`), puis le filtre SQL comme aujourd'hui ; `EntryFilters.parse` et `ConditionPicker` le prennent.
-- La grille d'une section accepte des variables, chacune avec un libellé et un mode (MINIMAL, LINE, CONDENSED), placées parmi les outils ; puis les automations dans le même modèle, leur tuile ouvrant leur page, où passent les boutons de leur carte. Reste à concevoir : où ranger la position d'une variable, le placement de deux sortes d'éléments.
+- Les automations sur la grille d'une section, parmi les outils et les variables (`SectionGrid`, `SectionTile`) : leur apparence par la brique Look (libellé, description, icône, couleur, texture, mode), leur tuile ouvrant leur page, où passent les boutons de leur carte ; la tuile d'une zone (`UI.ZoneCard`) sur `UI.SectionCard` aussi, si son conteneur de thème le permet.
 
 ## À concevoir
 

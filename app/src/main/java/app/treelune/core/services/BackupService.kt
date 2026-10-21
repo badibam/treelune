@@ -554,8 +554,15 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("id", variable.id)
                                 put("zone_id", variable.zoneId)
                                 put("name", variable.name)
+                                put("label", variable.label)
+                                variable.description?.let { put("description", it) }
                                 variable.group?.let { put("group", it) }
-                                put("order_index", variable.orderIndex)
+                                put("icon_name", variable.iconName)
+                                variable.iconColor?.let { put("icon_color", it) }
+                                variable.texture?.let { put("texture", it) }
+                                put("display_mode", variable.displayMode)
+                                put("grid_x", variable.gridX)
+                                put("grid_y", variable.gridY)
                                 put("definition_json", variable.definitionJson)
                                 put("created_at", variable.createdAt)
                                 put("updated_at", variable.updatedAt)
@@ -1119,8 +1126,15 @@ class BackupService(private val context: Context) : ExecutableService {
                         id = item.getString("id"),
                         zoneId = item.getString("zone_id"),
                         name = item.getString("name"),
+                        label = item.getString("label"),
+                        description = item.optString("description").takeIf { it.isNotEmpty() },
                         group = item.optString("group").takeIf { it.isNotEmpty() },
-                        orderIndex = item.getInt("order_index"),
+                        iconName = item.getString("icon_name"),
+                        iconColor = item.optString("icon_color").takeIf { it.isNotEmpty() },
+                        texture = item.optString("texture").takeIf { it.isNotEmpty() },
+                        displayMode = item.getString("display_mode"),
+                        gridX = item.getInt("grid_x"),
+                        gridY = item.getInt("grid_y"),
                         definitionJson = item.getString("definition_json"),
                         createdAt = item.getLong("created_at"),
                         updatedAt = item.getLong("updated_at")
@@ -1325,6 +1339,9 @@ class BackupService(private val context: Context) : ExecutableService {
             }
             if (fromVersion < 86 && toVersion >= 86) {
                 app.treelune.core.versioning.DurationUnitsAtV86.backup(data)
+            }
+            if (fromVersion < 88 && toVersion >= 88) {
+                app.treelune.core.versioning.VariablesAtV88.backup(data)
             }
 
             // Transform app settings
