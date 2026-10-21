@@ -38,7 +38,7 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 
 - Critères : un critère lu « Repas › kcal, somme ≤ 2100 » se juge sur la journée de la tentative sans toucher à la période (« Aucune choisie : celle de la tentative ») ; « ≤ » une variable à droite se juge aussi ; un critère saisi (Durée « ≥ 7 h », Choix « = bonne ») se remplit dans la tentative et se juge ; retirer la valeur saisie (bouton du groupe) ramène un critère lu. La ligne d'un critère dit sa valeur face à ce qu'elle compare, avec une jauge pour un nombre ou une durée.
 - Une tentative validée : la modifier par l'IA est refusé ; « Rouvrir » la remet à valider et garde la date de réouverture.
-- Renommer un critère saisi : sa valeur reste ; le supprimer puis le recréer : la confirmation de la config compte la valeur retirée.
+- Le supprimer puis le recréer : la confirmation de la config compte la valeur retirée.
 - Un objectif récurrent quotidien : une tentative par jour ; à la fin de la période, une notification et l'onglet « En cours (1) », la tentative à valider au-dessus de celle du jour ; sans validation, expirée après le délai. Arrêté, plus aucune ne s'ouvre.
 
 ## Questionnaire
@@ -76,11 +76,11 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 
 ## Les bugs du 2026-10-20 et les unités des durées (branche bugs)
 
-- Un Objectif récurrent : une tentative en cours dit « reste 40m » dans sa dernière heure ; la démo réinstallée, la semaine d'italien finit le lundi 26 octobre à 00:00, malgré le changement d'heure du 25.
+- Un Objectif récurrent : une tentative en cours dit « reste 40m » dans sa dernière heure.
 
 ## L'export des entrées (branche post-release)
 
-- Une routine dont le message demande l'export de la semaine : le fichier paraît dans le dossier à chaque exécution, sans écraser le précédent.
+- Une routine dont le message demande l'export de la semaine : le fichier paraît dans le dossier à chaque exécution.
 
 ## Partager une partie de l'app (branche post-release)
 
