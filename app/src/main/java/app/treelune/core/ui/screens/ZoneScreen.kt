@@ -573,6 +573,60 @@ fun ZoneScreen(zone: Zone) {
     }
 }
 
+/** A tile of the add menu: its id, its Lucide icon, its name, what touching it does. */
+private class AddChoice(val id: String, val icon: String, val label: String, val onClick: () -> Unit)
+
+/**
+ * What can be added to section [groupName], titled by it: the tool types by family (ToolFamily,
+ * each type saying its own, in the order the app finds them within it), then a variable and a
+ * routine, then a copy of a tool or a routine. Each a tile of the settings' kind, an icon and a
+ * name two cells wide, two a row, one under the other in one column.
+ */
+@Composable
+private fun AddMenu(
+    groupName: String,
+    onSelectToolType: (String) -> Unit,
+    onCreateVariable: () -> Unit,
+    onCreateAutomation: () -> Unit,
+    onDuplicateTool: () -> Unit,
+    onDuplicateAutomation: () -> Unit,
+    context: android.content.Context
+) {
+    val s = remember { Strings.`for`(context = context) }
+    val types = ToolTypeManager.getAllToolTypes()
+    val sections = app.treelune.core.tools.ToolFamily.entries.map { family ->
+        s.shared(family.labelKey) to types.filterValues { it.getFamily() == family }.map { (id, type) ->
+            AddChoice(id, type.getDefaultIconName(), type.getDisplayName(context)) { onSelectToolType(id) }
+        }
+    } + listOf(
+        s.shared("add_section_link") to listOf(
+            AddChoice("variable", "variable", s.shared("variable_display_name"), onCreateVariable),
+            AddChoice("automation", "calendar-clock", s.shared("automation_display_name"), onCreateAutomation)
+        ),
+        s.shared("add_section_copy") to listOf(
+            AddChoice("copy_tool", "copy", s.shared("add_copy_tool"), onDuplicateTool),
+            AddChoice("copy_automation", "copy", s.shared("add_copy_automation"), onDuplicateAutomation)
+        )
+    )
+    Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+        UI.Text(s.shared("add_title").format(groupName), TextType.SUBTITLE, fillMaxWidth = true)
+        sections.filter { it.second.isNotEmpty() }.forEach { (title, choices) ->
+            UI.Text(title, TextType.CAPTION, fillMaxWidth = true)
+            // Two tiles a row, each two cells wide and one high, as the settings' tiles
+            app.treelune.core.ui.components.GridLayout(
+                choices.mapIndexed { i, choice -> app.treelune.core.grid.Grid.Tile(choice.id, (i % 2) * 2, i / 2, 2, 1) },
+                choices.map { false },
+                edit = null
+            ) { i ->
+                val choice = choices[i]
+                app.treelune.core.themes.CurrentTheme.current.ZoneCardContainer(texture = null, color = null, seed = choice.id, onClick = choice.onClick, onLongClick = {}) {
+                    UI.TileHeader(choice.icon, null, choice.label, waiting = false, running = false, textType = TextType.LABEL)
+                }
+            }
+        }
+    }
+}
+
 /**
  * Display a group section with its tools and automations
  */
@@ -628,103 +682,17 @@ private fun GroupSection(
         }
     }
 
-    // Available tools/automations list (shown conditionally)
+    // What can be added to the section, under its + (AddMenu)
     if (showAvailableToolsForGroup == groupName && !editor.anyEditing) {
-        UI.Card(type = CardType.DEFAULT) {
-            Column(
-                modifier = Modifier.padding(UI.Space.L),
-                verticalArrangement = Arrangement.spacedBy(UI.Space.S)
-            ) {
-                UI.Text(
-                    text = s.shared("message_available_tool_types"),
-                    type = TextType.BODY,
-                    fillMaxWidth = true,
-                    textAlign = TextAlign.Center
-                )
-
-                // Duplicate automation button (SECONDARY, first)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    UI.Button(
-                        type = ButtonType.SECONDARY,
-                        onClick = onDuplicateAutomation
-                    ) {
-                        UI.Text(
-                            text = s.shared("action_duplicate_automation"),
-                            type = TextType.LABEL
-                        )
-                    }
-                }
-
-                // Duplicate tool button (PRIMARY, second)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    UI.Button(
-                        type = ButtonType.PRIMARY,
-                        onClick = onDuplicateTool
-                    ) {
-                        UI.Text(
-                            text = s.shared("action_duplicate_tool"),
-                            type = TextType.LABEL
-                        )
-                    }
-                }
-
-                // Variable button (SECONDARY)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    UI.Button(
-                        type = ButtonType.SECONDARY,
-                        onClick = onCreateVariable
-                    ) {
-                        UI.Text(
-                            text = s.shared("variable_display_name"),
-                            type = TextType.LABEL
-                        )
-                    }
-                }
-
-                // Automation button (SECONDARY)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    UI.Button(
-                        type = ButtonType.SECONDARY,
-                        onClick = onCreateAutomation
-                    ) {
-                        UI.Text(
-                            text = s.shared("automation_display_name"),
-                            type = TextType.LABEL
-                        )
-                    }
-                }
-
-                // List all available tool types (PRIMARY)
-                ToolTypeManager.getAllToolTypes().forEach { (toolTypeId, toolType) ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        UI.Button(
-                            type = ButtonType.PRIMARY,
-                            onClick = { onSelectToolType(toolTypeId) }
-                        ) {
-                            UI.Text(
-                                text = toolType.getDisplayName(context),
-                                type = TextType.LABEL
-                            )
-                        }
-                    }
-                }
-            }
-        }
+        AddMenu(
+            groupName = groupName,
+            onSelectToolType = onSelectToolType,
+            onCreateVariable = onCreateVariable,
+            onCreateAutomation = onCreateAutomation,
+            onDuplicateTool = onDuplicateTool,
+            onDuplicateAutomation = onDuplicateAutomation,
+            context = context
+        )
     }
 
     // The group's tools on their grid
@@ -817,103 +785,17 @@ private fun UngroupedSection(
         }
     }
 
-    // Available tools/automations list (shown conditionally)
+    // What can be added to the section, under its + (AddMenu)
     if (showAvailableToolsForGroup == "" && !editor.anyEditing) {
-        UI.Card(type = CardType.DEFAULT) {
-            Column(
-                modifier = Modifier.padding(UI.Space.L),
-                verticalArrangement = Arrangement.spacedBy(UI.Space.S)
-            ) {
-                UI.Text(
-                    text = s.shared("message_available_tool_types"),
-                    type = TextType.BODY,
-                    fillMaxWidth = true,
-                    textAlign = TextAlign.Center
-                )
-
-                // Duplicate automation button (SECONDARY, first)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    UI.Button(
-                        type = ButtonType.SECONDARY,
-                        onClick = onDuplicateAutomation
-                    ) {
-                        UI.Text(
-                            text = s.shared("action_duplicate_automation"),
-                            type = TextType.LABEL
-                        )
-                    }
-                }
-
-                // Duplicate tool button (PRIMARY, second)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    UI.Button(
-                        type = ButtonType.PRIMARY,
-                        onClick = onDuplicateTool
-                    ) {
-                        UI.Text(
-                            text = s.shared("action_duplicate_tool"),
-                            type = TextType.LABEL
-                        )
-                    }
-                }
-
-                // Variable button (SECONDARY)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    UI.Button(
-                        type = ButtonType.SECONDARY,
-                        onClick = onCreateVariable
-                    ) {
-                        UI.Text(
-                            text = s.shared("variable_display_name"),
-                            type = TextType.LABEL
-                        )
-                    }
-                }
-
-                // Automation button (SECONDARY)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    UI.Button(
-                        type = ButtonType.SECONDARY,
-                        onClick = onCreateAutomation
-                    ) {
-                        UI.Text(
-                            text = s.shared("automation_display_name"),
-                            type = TextType.LABEL
-                        )
-                    }
-                }
-
-                // List all available tool types (PRIMARY)
-                ToolTypeManager.getAllToolTypes().forEach { (toolTypeId, toolType) ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        UI.Button(
-                            type = ButtonType.PRIMARY,
-                            onClick = { onSelectToolType(toolTypeId) }
-                        ) {
-                            UI.Text(
-                                text = toolType.getDisplayName(context),
-                                type = TextType.LABEL
-                            )
-                        }
-                    }
-                }
-            }
-        }
+        AddMenu(
+            groupName = sectionLabel,
+            onSelectToolType = onSelectToolType,
+            onCreateVariable = onCreateVariable,
+            onCreateAutomation = onCreateAutomation,
+            onDuplicateTool = onDuplicateTool,
+            onDuplicateAutomation = onDuplicateAutomation,
+            context = context
+        )
     }
 
     // The ungrouped tools on their grid

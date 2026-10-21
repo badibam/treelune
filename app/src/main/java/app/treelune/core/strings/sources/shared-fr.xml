@@ -51,8 +51,6 @@
     <string name="action_start">Démarrer</string>
     <string name="action_view">Voir</string>
     <string name="action_duplicate">Dupliquer</string>
-    <string name="action_duplicate_tool">Dupliquer un outil</string>
-    <string name="action_duplicate_automation">Dupliquer une routine</string>
 
     <!-- AI Interface - Composer and Enrichments -->
     <string name="ai_composer_placeholder">Écris ton message...</string>
@@ -600,7 +598,15 @@
     <string name="message_error">Erreur: %1$s</string>
     <string name="message_delete_zone_confirmation">Supprimer la zone "%1$s" ?</string>
     <string name="message_no_zones_created">Aucune zone créée</string>
-    <string name="message_available_tool_types">Types d'outils disponibles</string>
+    <!-- The add menu of a zone's section: the tool types by family, a variable, a routine, a copy -->
+    <string name="add_title">Ajouter dans « %1$s »</string>
+    <string name="add_family_note">Noter</string>
+    <string name="add_family_plan">Planifier</string>
+    <string name="add_family_use">Tirer parti</string>
+    <string name="add_section_link">Relier et automatiser</string>
+    <string name="add_section_copy">Copier</string>
+    <string name="add_copy_tool">Un outil</string>
+    <string name="add_copy_automation">Une routine</string>
     <string name="message_no_tools_in_zone">Aucun outil dans cette zone</string>
     <string name="message_no_items_in_group">Aucun élément dans ce groupe</string>
     <string name="error_tooltype_not_found">Type d'outil '%1$s' introuvable</string>

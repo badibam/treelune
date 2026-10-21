@@ -55,6 +55,8 @@ object FlashcardsToolType : ToolTypeContract {
     override fun getGuideScreen(context: Context): String = s(context).tool("guide_screen")
     override fun getUsage(context: Context): String = s(context).tool("usage")
     override fun getAIDetail(context: Context): String = s(context).tool("ai_detail")
+    override fun getFamily() = app.treelune.core.tools.ToolFamily.USE
+
     override fun getDefaultDisplayMode(): String = "LINE"
     override fun getDefaultShowFieldLabels(): Boolean = false
     override fun getDefaultIconName(): String = "layers"

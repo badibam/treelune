@@ -92,6 +92,8 @@ object GoalToolType : ToolTypeContract {
     override fun getGuideConfig(context: Context): String = Strings.`for`(tool = "goal", context = context).tool("guide_config")
     override fun getGuideScreen(context: Context): String = Strings.`for`(tool = "goal", context = context).tool("guide_screen")
     override fun getUsage(context: Context): String = s(context).tool("usage")
+    override fun getFamily() = app.treelune.core.tools.ToolFamily.USE
+
     override fun getDefaultDisplayMode(): String = "LINE"
     override fun getDefaultShowFieldLabels(): Boolean = true
     override fun getDefaultIconName(): String = "target"
