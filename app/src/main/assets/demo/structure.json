@@ -2763,6 +2763,24 @@
       }
     },
     {
+      "id": "demo-var-kcal-left",
+      "zone_id": "demo-kitchen",
+      "group": "@kitchen_group_meals",
+      "name": "kcal_restantes_demo",
+      "definition": {
+        "kind": "FORMULA",
+        "formula": "objectif_calorique_demo - kcal_jour_demo",
+        "terms": {},
+        "field": {
+          "type": "NUMERIC",
+          "config": {
+            "decimals": 0,
+            "unit": "kcal"
+          }
+        }
+      }
+    },
+    {
       "id": "demo-var-hours-week",
       "zone_id": "demo-work",
       "name": "heures_semaine_demo",
