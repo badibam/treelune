@@ -14,7 +14,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 ## Bugs
 
 - La fin d'un événement de l'Agenda est son début plus sa durée en temps écoulé : un événement de plusieurs jours qui traverse un changement d'heure finit une heure avant ou après — l'ajouter sur le calendrier (`TimeResolver.after`, comme l'Objectif), la grille des jours et les séries lisant cette fin.
-- L'accès Tailscale dit son adresse « prête » dès que les serveurs de `ts.net` la publient, mais un client qui l'a cherchée pendant que l'accès était fermé garde « ce nom n'existe pas » jusqu'à 300 s (le TTL négatif de la zone) et reçoit un 502 (claude.ai le 2026-10-21) : sous « Adresse publiée », un compte à rebours jusqu'à « joignable de partout » (publication + le TTL lu dans le SOA de `ts.net`), passé à zéro dès qu'une requête arrive.
 - Une session de routine restée en `AWAITING_SESSION_CLOSURE` à la fermeture de l'app est close au démarrage (`AIStateRepository.initializeFromDb`) sans passer par `RunEnd` : son résumé n'est pas gardé, et elle attend quel que soit son réglage « Me signaler la fin ».
 - Le dialogue « la démo n'est pas installée » du Guide : le fermer sans choisir (retour, toucher à côté) saute les étapes de la démo, comme son bouton.
 
