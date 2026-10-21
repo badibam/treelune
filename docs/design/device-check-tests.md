@@ -31,7 +31,6 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 
 ## Objectif
 
-- Un critère lu se juge sur la journée de la tentative sans toucher à la période (« Aucune choisie : celle de la tentative »).
 - Un objectif récurrent quotidien : une tentative par jour ; à la fin de la période, une notification et l'onglet « En cours (1) », la tentative à valider au-dessus de celle du jour ; sans validation, expirée après le délai. Arrêté, plus aucune ne s'ouvre.
 
 ## Questionnaire
