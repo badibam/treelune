@@ -14,7 +14,7 @@ import app.treelune.core.utils.StoredSchedule
 import org.json.JSONObject
 
 /**
- * The calendars' work in time (docs/design/agenda-tool.md): each series gives its occurrences up
+ * The calendars' work in time (docs/TOOLS.md, « Agenda »): each series gives its occurrences up
  * to 90 days ahead, the next one always (AgendaRules.timesToGive), never before the last one it
  * gave; each event still planned sends its reminders when they come, one notification for those
  * due together, late too while the event is not over. Its next reminder is the core's next

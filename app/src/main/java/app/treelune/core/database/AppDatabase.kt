@@ -1730,7 +1730,7 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /**
-         * Textures (docs/design/tool-texture.md): a zone's column, empty, and the interface
+         * Textures (docs/THEMES.md, « What a theme is in the app »): a zone's column, empty, and the interface
          * settings' intensity, subtle (UiTextureIntensityAtV75). A tool's texture is a key of its
          * config, absent until chosen.
          */
@@ -1756,7 +1756,7 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /**
-         * What waits for the user among the sessions (docs/design/waiting-sources.md): when each
+         * What waits for the user among the sessions (docs/BRICKS.md, « Waiting »): when each
          * was last seen, a routine's summary, and whether a routine signals its end. Every past
          * session seen at its last activity, every routine signalling its end: nothing starts
          * waiting with the update.
@@ -1833,7 +1833,7 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /**
-         * AI providers created by the user (docs/design/ai-providers.md, ProvidersAtV80): the fixed
+         * AI providers created by the user (docs/AI.md, « Provider abstraction », ProvidersAtV80): the fixed
          * ids configured become providers of their kind, under their name, the active one the
          * default; a routine and a session may have none. Refused while the foreign keys are on:
          * rebuilding the sessions' table would then delete every message with it.
@@ -2252,7 +2252,7 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        /** A zone's icon colour (docs/design/icon-colors.md): a new column, empty, every icon staying neutral. */
+        /** A zone's icon colour (docs/reference.md, « Icons »): a new column, empty, every icon staying neutral. */
         private val MIGRATION_63_64 = object : ConnectionMigration(63, 64) {
             override fun migrate(database: MigrationDatabase) {
                 // ai_limits gains the threshold of the tools sent always: see AILimitsAtV64.

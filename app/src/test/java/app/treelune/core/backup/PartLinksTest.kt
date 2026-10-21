@@ -9,7 +9,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * What the links of a part promise (docs/design/share.md, « Les liens »): a kept element naming
+ * What the links of a part promise (docs/DATA.md, « A part of the app »): a kept element naming
  * one left out is found wherever its id stands, blocks the file unless it is a routine's, and
  * nothing ticked holds no link.
  */

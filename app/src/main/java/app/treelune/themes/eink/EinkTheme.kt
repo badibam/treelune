@@ -1581,7 +1581,7 @@ object EinkTheme : ThemeContract {
         if (!aside) this else this.then(Modifier.drawWithContent { drawContent(); drawRect(screen) })
 
     /**
-     * How the motifs are laid (docs/design/tool-texture.md): a cell's unit a dp at the size step,
+     * How the motifs are laid (docs/THEMES.md, « What a theme is in the app »): a cell's unit a dp at the size step,
      * so a motif grows with everything else, its cells on the pitch of 8 dp; an ICON motif's icon
      * sixteen units, sixteen around it. Not smoothed: a motif stays two colours.
      */

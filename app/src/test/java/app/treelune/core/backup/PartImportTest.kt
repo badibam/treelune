@@ -25,7 +25,7 @@ import java.io.File
 import java.util.zip.ZipInputStream
 
 /**
- * What taking a part of a backup back promises (docs/design/share.md, « À l'arrivée »): the demo,
+ * What taking a part of a backup back promises (docs/DATA.md, « A part of the app »): the demo,
  * exported whole then brought back whole, arrives a second time through the services, each thing
  * under a new id that the things reading it follow, a variable whose name is taken under `_2`, a
  * routine off without provider nor identity; one step of the history, undone at once; and a step

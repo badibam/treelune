@@ -16,7 +16,7 @@ import java.time.LocalTime
 import java.time.ZoneId
 
 /**
- * What docs/design/agenda-tool.md promises a calendar's series and reminders: occurrences given up
+ * What docs/TOOLS.md (« Agenda ») promises a calendar's series and reminders: occurrences given up
  * to 90 days ahead, never the past, never again after the last one given; reminders sent while the
  * event is not over, once for the start they were sent for; a schedule changed remaking the
  * occurrences to come, another change handed to those that still had the former value.

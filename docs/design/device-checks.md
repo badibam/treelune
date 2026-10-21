@@ -4,7 +4,7 @@ Ce que seul le téléphone juge : l'œil, l'oreille, le doigt, et ce qu'un vrai 
 
 ## Mise à jour et démarrage
 
-- Après un plantage (`adb shell am crash app.treelune.debug`, à vérifier qu'il passe par le gestionnaire de l'app ; `bug-report.md`) : au lancement suivant, l'écran « L'app s'est arrêtée » avant tout le reste ; « Voir le rapport » montre la pile d'appels, « Envoyer » ouvre le menu de partage avec le rapport entier ; « Continuer » démarre l'app, et l'écran ne revient pas au lancement d'après.
+- Après un plantage (`adb shell am crash app.treelune.debug`, à vérifier qu'il passe par le gestionnaire de l'app) : au lancement suivant, l'écran « L'app s'est arrêtée » avant tout le reste ; « Voir le rapport » montre la pile d'appels, « Envoyer » ouvre le menu de partage avec le rapport entier ; « Continuer » démarre l'app, et l'écran ne revient pas au lancement d'après.
 - Une sauvegarde faite après la migration 72, importée après avoir désinstallé puis réinstallé l'app (la clé du Keystore change) : l'écran du fournisseur dit que la clé ne s'ouvre pas et la montre vide ; un message à l'IA est refusé en le disant ; la clé ressaisie, tout repart.
 - Installation neuve, app en « Optimisée » : après l'écran de bienvenue du Guide, un seul dialogue (« L'app peut être arrêtée en arrière-plan »), son bouton ouvre la demande d'Android ; acceptée, il ne revient plus ; « Plus tard », il ne revient pas au démarrage suivant, la carte reste en tête de Réglages.
 - App quittée et téléphone verrouillé depuis plus d'une heure : un message de l'outil Messages prévu à une heure donnée arrive dans les 10 minutes qui suivent, sans ouvrir l'app ; de même après un redémarrage du téléphone, sans l'avoir ouverte depuis.
@@ -31,7 +31,7 @@ Ce que seul le téléphone juge : l'œil, l'oreille, le doigt, et ce qu'un vrai 
 - Fermer l'app de force pendant une attente (validation, question, données volumineuses), la rouvrir : les boutons reviennent.
 - Recréation pendant la composition : deux blocs, un pointeur ouvert sur le second avec un outil, ses cases et une période choisis. Après la recréation, la fenêtre et les choix sont là, et le pointeur arrive dans le second bloc.
 - Une question de l'IA : « Ajouter une précision » ouvre un texte, envoyé avec la réponse, et l'IA en tient compte. « Répondre par un message » débloque le composeur, le formulaire reste répondable ; envoyer un message avec un pointeur ferme le formulaire, « Vous avez répondu à la question de l'IA par un message » apparaît et l'IA répond au message. Recréer l'écran entre-temps garde la précision.
-- Images (`docs/design/message-images.md`) : « Photo » ouvre l'appareil photo sans demande d'autorisation, « Galerie » le sélecteur de photos ; la vignette arrive après le bloc actif, l'image entière au toucher, droite pour une photo prise en portrait ; avec Claude, la réponse parle de la photo, et une question au tour suivant sur un détail de la photo trouve sa réponse ; DeepSeek : `deepseek-flash` reçoit l'image, `deepseek-v4-pro` (sans images) : le bloc le dit, l'envoi est refusé ; rouvrir et enregistrer une config Claude montre « Lit les images : oui » ; supprimer la session efface ses fichiers (`files/attachments`) ; exporter une sauvegarde avec images, la réimporter, les vignettes reviennent ; un ancien `.json` s'importe encore.
+- Images : « Photo » ouvre l'appareil photo sans demande d'autorisation, « Galerie » le sélecteur de photos ; la vignette arrive après le bloc actif, l'image entière au toucher, droite pour une photo prise en portrait ; avec Claude, la réponse parle de la photo, et une question au tour suivant sur un détail de la photo trouve sa réponse ; DeepSeek : `deepseek-flash` reçoit l'image, `deepseek-v4-pro` (sans images) : le bloc le dit, l'envoi est refusé ; rouvrir et enregistrer une config Claude montre « Lit les images : oui » ; supprimer la session efface ses fichiers (`files/attachments`) ; exporter une sauvegarde avec images, la réimporter, les vignettes reviennent ; un ancien `.json` s'importe encore.
 
 ## Accès externe (serveur MCP)
 
@@ -90,9 +90,9 @@ Avec le relais en place (son projet `relay`, en ligne sur `https://relay.badibam
 - Forcer l'arrêt de l'app pendant une séance, rouvrir l'outil : « Cette séance s'est arrêtée avec l'app » ; « Reprendre » relance l'étape, « Arrêter » la clôt.
 - L'écran de la séance en cours et la tuile, dans les trois thèmes.
 
-## Agenda (`docs/design/agenda-tool.md`, branche agenda)
+## Agenda (branche agenda)
 
-- Réglages › Rappels : « 15 min avant » (Minute, −15, Même moment) ; « Rappels des journées entières » : « La veille, 18:00 » (Jour, −1, À une heure). Un événement dans 20 min : la notification part à l'heure, app fermée, écran éteint, téléphone posé à plat ; la toucher ouvre la fiche de l'événement. Deux rappels à 3 min d'écart : le second à l'heure, ou son retard noté (`docs/design/agenda-tool.md`, « Le réveil précis »).
+- Réglages › Rappels : « 15 min avant » (Minute, −15, Même moment) ; « Rappels des journées entières » : « La veille, 18:00 » (Jour, −1, À une heure). Un événement dans 20 min : la notification part à l'heure, app fermée, écran éteint, téléphone posé à plat ; la toucher ouvre la fiche de l'événement. Deux rappels à 3 min d'écart : le second à l'heure, ou son retard noté : s'il y en a, le repli est `setAlarmClock` pour les seuls rappels, qu'Android montre comme un réveil (une horloge dans la barre d'état).
 - Téléphone éteint pendant un rappel, rallumé avant la fin de l'événement : le rappel part ; rallumé après : rien.
 - L'écran et la tuile, dans les trois thèmes.
 - Installer la démo : chaque outil planifié créé fait tourner aussitôt le planificateur de son type (`CoreScheduler.runTool`) ; l'installation a pris ~50 s le 2026-10-20 (du toucher à « Demo installed »), à comparer avec une mesure d'avant la fusion de la branche agenda.
@@ -105,17 +105,17 @@ Avec le relais en place (son projet `relay`, en ligne sur `https://relay.badibam
 
 - La barre d'un texte sélectionné, dans les trois thèmes et les deux modes : un passage d'une note lue, d'une erreur, d'un titre de page, du Guide, puis d'un champ (au clavier ouvert, le curseur et le clavier restent) et d'un champ dans une fenêtre flottante. La barre du thème et jamais celle d'Android ; au-dessus de la sélection, dessous quand elle touche le haut ; Copier, Coller, Couper, Tout sélectionner dans la langue de l'app ; une appli de traduction installée ajoute son action ; tout tient à la ligne sur un écran étroit ; un toucher hors de la barre la ferme. Rétro : le mot pressé s'inverse ; cosy : la barre s'enfonce.
 
-## Lecture seule pour l'IA (branche user-only, `docs/design/unified-fields.md`)
+## Lecture seule pour l'IA (branche user-only)
 
 - La case « Lecture seule pour l'IA » : sur un champ ajouté à un Journal, après « Toujours afficher » ; sur un critère saisi d'Objectif, une fois le type choisi, absente d'un critère lu ; « Validation fermée à l'IA » dans la section Temps de l'Objectif. Cochée, enregistrée, la config rouverte : toujours cochée ; changer la case ne demande aucune confirmation.
 
-## Les textures (`docs/design/tool-texture.md`, branches tool-texture et texture-background)
+## Les textures (branches tool-texture et texture-background)
 
 - Dans les trois thèmes, aux deux modes, une zone dont les tuiles portent chacune un motif, sans et avec couleur d'icône : chacune se reconnaît, aucune ne gêne la lecture de son nom ni de son résumé (un Graphique compris), et les quinze se voient à peu près autant ; puis Textures sur « Marquées ». Ce qui ne va pas se règle au banc des textures (`./run themes`).
 - Une page texturée, dans les trois thèmes, aux deux modes, aux deux intensités : la tête de page comme sur toute page (sans bande dans le défaut et le rétro, la pilule du cosy unie) ; le titre, un titre de section et la phrase d'une liste vide se lisent sur le motif ; les cartes des entrées sont pleines, aucun motif dessous ; dans le cosy, les petits points du sable ne se voient pas sous le motif, et reviennent sur une page sans texture. Ce qui se lit mal se juge d'abord à la vue « page » du banc des textures (`./run themes`).
 - Rétro : un motif tombe sur les pixels du thème, sans flou, aux crans de taille 0 et 3, sur la tuile comme sur le fond de la page (une bande de quelques pixels sans motif peut rester aux deux bords, la marge que le thème laisse hors de sa grille) ; en mode d'édition de la grille, une tuile `CHECKER` mise à l'écart se distingue encore du damier.
 
-## Les sources de l'attente (branche waiting-sources, `docs/design/waiting-sources.md`)
+## Les sources de l'attente (branche waiting-sources)
 
 - Envoyer un message, passer l'app en arrière-plan pendant la réponse, revenir sur la conversation ouverte : pas de point ensuite. Revenir sur un autre écran : le point est là.
 - Une routine lancée à la main, réglée « Toujours » : à sa fin, une notification au nom de la routine avec le début du résumé ; la toucher ouvre l'exécution, le résumé et la ligne de faits en tête. Avant de la toucher : le point sur la tuile de la zone, la carte de la routine et sa ligne dans l'historique, la première phrase du résumé sous sa date ; ouverte, les trois points s'effacent.
@@ -133,7 +133,7 @@ Avec le relais en place (son projet `relay`, en ligne sur `https://relay.badibam
 
 - Une identité en Markdown (`**gras**`, `*italique*`, `***les deux***`, un gras dans un titre `##`), puis le Guide, dans les cinq thèmes et les deux modes : le gras et l'italique se voient sans casser la ligne ; défaut, suisse et encre en vrai italique, cosy penché par Android (la pente de la planche du 2026-10-17), rétro le gras à l'encre vive et l'italique de Cartouche, ses pixels entiers, ni coupé au début ni à la fin d'une ligne, ni collé à la lettre droite qui le suit ; un titre de section du suisse reste en capitales.
 
-## La mise en forme des textes longs (branche text-formatting, `docs/design/text-formatting.md`)
+## La mise en forme des textes longs (branche text-formatting)
 
 - Une note, puis un champ texte long de l'utilisateur, au clavier Android : après « - lait », Entrée commence « - » ; après « 2. Mélanger », « 3. » ; Entrée sur un élément vide retire sa marque et finit la liste ; Entrée au milieu d'un élément porte la fin dans le suivant ; la suggestion de mot du clavier en cours ne casse rien.
 - Les deux boutons au bout de la ligne du label (note, entrée de Journal, champ de l'utilisateur, message d'une routine) : sur la ligne du curseur, puis sur plusieurs lignes sélectionnées ; touché deux fois, la marque repart ; le clavier reste ouvert, le curseur à sa place. Absents de la zone d'écriture du chat, qui garde la continuation.
@@ -152,7 +152,7 @@ Avec le relais en place (son projet `relay`, en ligne sur `https://relay.badibam
 - Les boutons de la fenêtre d'une date au cran de taille 3, dans chaque thème sauf Métro : côte à côte s'ils tiennent, sinon l'un sous l'autre, l'action principale en haut (le rétro les empile sans les étendre à toute la largeur : à juger).
 - Un outil à moitié rempli en Étendu, en Carré et en Complet : la tuile s'arrête sous sa dernière ligne ; plein, et un Graphique, elle a sa hauteur d'avant ; en mode d'édition de la grille, Étendu et Carré montrent toutes leurs cases ; un outil vide, sa ligne d'en-tête seule, dans les sept thèmes autres que Métro, en une colonne aussi.
 
-## Flashcards (branche flashcards, `docs/design/flashcards.md`)
+## Flashcards (branche flashcards)
 
 - La durée du calcul (« Flashcards: deck … read in N ms ») sur le lexique réel (sur la démo, de 26 à 152 ms) ; au-delà de 300 ms, le dire.
 
@@ -168,13 +168,13 @@ Avec le relais en place (son projet `relay`, en ligne sur `https://relay.badibam
 
 - Les boutons à libellé à la plus grande taille de texte d'Android, dans les thèmes autres que le défaut : la validation d'une action de l'IA dans le chat, les formulaires d'une variable et d'une entrée du Journal, la duplication d'un outil, une fiche de Données structurées : côte à côte quand ils tiennent, l'un sous l'autre sinon, jamais un coupé ; l'entrée du Journal et une séance Flashcards laissent sous leurs boutons la place du bouton de conversation.
 
-## L'export des entrées (branche post-release, `docs/design/export.md`)
+## L'export des entrées (branche post-release)
 
 - Le fichier d'un export de Repas ouvert dans un tableur par son dialogue d'import (virgule, UTF-8) : la première ligne en libellés (« Nom », « Date »…), les accents justes, une ligne par entrée, l'aliment par son nom, un choix par son libellé (« Dîner »).
 - Le fichier partagé joint à un mail arrive entier.
 - Au chat, « Partager » de la carte d'un export ouvre le menu d'Android.
 
-## Partager une partie de l'app (branche post-release, `docs/design/share.md`)
+## Partager une partie de l'app (branche post-release)
 
 - Le fichier écrit : la fenêtre dit son nom (celui de la zone, ou treelune_partage) et ses comptes, Partager ouvre le menu de partage avec le zip. Exporter, Tout : même chose, sous treelune_sauvegarde.
 - Importer… sur une sauvegarde complète : rien coché, le choix « Reprendre une partie » / « Tout restaurer » en tête ; Tout restaurer cache les cases, dit ce qui est remplacé, demande confirmation, puis l'app redémarre sur la sauvegarde.

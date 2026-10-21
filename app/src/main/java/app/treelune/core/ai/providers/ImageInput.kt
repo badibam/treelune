@@ -10,7 +10,7 @@ import app.treelune.core.strings.StringsContext
 import org.json.JSONObject
 
 /**
- * Whether a provider's model reads images (docs/design/message-images.md). The provider's model
+ * Whether a provider's model reads images (docs/AI.md, « Images »). The provider's model
  * list says so for some (Anthropic: capabilities.image_input; OpenRouter: input_modalities): the
  * config screen stores what it said in [READS_IMAGES] when the config is saved. When it says
  * nothing, an input fact of provider-facts may, read at each use. A model nothing is known of is

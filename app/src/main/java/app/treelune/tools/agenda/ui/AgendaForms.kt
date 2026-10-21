@@ -125,7 +125,7 @@ internal fun NewEventDialog(
             DraftFields(draft, withStart = !repeats, context = context) { draft = it }
             UI.Checkbox(checked = repeats, onCheckedChange = { repeats = it }, label = s.tool("field_repeats"))
             if (repeats) remember { ScheduleSettingEditor(s.tool("field_series_schedule"), s) }.Edit(schedule) { schedule = it as? JSONObject }
-            // The calendar's fields go with an event of its own: a series gives none (docs/design/agenda-tool.md)
+            // The calendar's fields go with an event of its own: a series gives none (docs/TOOLS.md, « Agenda »)
             else if (fields.isNotEmpty()) {
                 UI.Divider()
                 CustomFieldsInput(customFieldsMetadata = fields, values = extra, onValuesChange = { extra = it }, context = context, newEntry = true)

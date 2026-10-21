@@ -47,7 +47,7 @@ enum class TextLength {
 
     /**
      * Whether a text of this length is written in the app's markup (Markup): helped at the input,
-     * drawn formatted when read (docs/design/text-formatting.md). A shorter one stays as typed.
+     * drawn formatted when read (docs/UI.md, « Long texts »). A shorter one stays as typed.
      */
     val formatted: Boolean get() = this == LONG || this == UNLIMITED
 

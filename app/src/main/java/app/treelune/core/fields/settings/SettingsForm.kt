@@ -50,7 +50,7 @@ interface SettingEditor {
 }
 
 /**
- * A setting edited on a page of its own (docs/design/settings-pages.md): a choice of one value among
+ * A setting edited on a page of its own (docs/DATA.md, « Fields and entries »): a choice of one value among
  * many (an icon's colour, a texture). The form draws its line, its [label] over its [Summary], and
  * touched, opens its page under the path, where [Edit] draws the choices; a value taken there
  * closes the page, back on the one it was opened from.
@@ -189,7 +189,7 @@ private val LocalListOrigins = androidx.compose.runtime.compositionLocalOf<ListO
 
 /**
  * Whether settings hold more than values — a group, a list, or a brick drawn by its selector —
- * which makes the object holding them a page of its own (docs/design/settings-pages.md). A
+ * which makes the object holding them a page of its own (docs/DATA.md, « Fields and entries »). A
  * variant counts by all its options, so that an object does not turn from a page into a card
  * when another one is chosen.
  */
@@ -297,7 +297,7 @@ private fun replaced(container: Any, keys: List<Any>, value: Any): Any {
  * is entered masked; a schedule (ScheduleSettings.group) opens its own editor.
  *
  * A group, or an element of a list, holding more than values is a page of its own
- * (docs/design/settings-pages.md): one line in its parent's page, which opens it full width under
+ * (docs/DATA.md, « Fields and entries »): one line in its parent's page, which opens it full width under
  * the path from the root; the phone's back goes up one page. Every page edits the same [config].
  *
  * Stateless: [config] is the object being edited, and every change hands a new one to [onChange];

@@ -1,6 +1,6 @@
 # Champ Image
 
-Une ou plusieurs images dans un champ d'une entrée : les photos d'une fiche de plante, un schéma dans une note. Venu des bugs du téléphone. Conçu le 2026-10-19. Repose sur ce qu'ont posé les images d'un message (`docs/design/message-images.md`).
+Une ou plusieurs images dans un champ d'une entrée : les photos d'une fiche de plante, un schéma dans une note. Venu des bugs du téléphone. Conçu le 2026-10-19. Repose sur ce qu'ont posé les images d'un message (`docs/AI.md`, « Images »).
 
 ## Le champ
 
@@ -41,7 +41,7 @@ Une ou plusieurs images dans un champ d'une entrée : les photos d'une fiche de 
 - La galerie comme affichage d'un outil : la grille des premières images de ses entrées.
 - Les images d'une entrée lues par le connecteur MCP.
 - L'import d'un CSV ne remplit pas un champ Image : sa colonne est écartée, en le disant.
-- La face d'une carte de Flashcards montrant une image (`docs/design/flashcards.md`).
+- La face d'une carte de Flashcards montrant une image (`docs/TOOLS.md`, « Flashcards »).
 
 ## À passer sur le téléphone
 

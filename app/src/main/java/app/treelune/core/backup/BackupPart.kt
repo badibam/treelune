@@ -6,7 +6,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * What is ticked of the app to share (docs/design/share.md): zones, and in them tools — each with
+ * What is ticked of the app to share (docs/DATA.md, « A part of the app »): zones, and in them tools — each with
  * its entries or without —, variables and routines. An element is kept only with its zone; a
  * zone may be kept alone, empty.
  */

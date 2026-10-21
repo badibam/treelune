@@ -9,7 +9,7 @@ import app.treelune.core.strings.Strings
 import app.treelune.core.utils.LogManager
 
 /**
- * Which provider a session calls, checked before its prompt is built (docs/design/ai-providers.md).
+ * Which provider a session calls, checked before its prompt is built (docs/AI.md, « Provider abstraction »).
  *
  * A session calls its own provider: a run its routine's, given at its launch; a conversation the
  * one it took. A conversation that has none yet takes the default at its first call and keeps it;

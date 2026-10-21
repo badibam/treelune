@@ -9,7 +9,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * What docs/design/flashcards.md promises of a session: a failed card comes back after a few others
+ * What docs/TOOLS.md, « Flashcards » promises of a session: a failed card comes back after a few others
  * and at least a minute, at once when nothing else waits; Hard, Good and Easy pass a card; the
  * session is over when no card is left on a failure; undoing goes back up the session, card by card.
  */

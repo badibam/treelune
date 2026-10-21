@@ -7,7 +7,7 @@ import org.json.JSONObject
 
 /**
  * A kind of AI provider (Claude, OpenAI, DeepSeek, Other server): the code that speaks to one API.
- * The user creates providers of a kind, each with its name and config (docs/design/ai-providers.md).
+ * The user creates providers of a kind, each with its name and config (docs/AI.md, « Provider abstraction »).
  *
  * A kind declares its settings with the fields (docs/DATA.md): the schema a provider's config is
  * held to (AIProviderSettings) and its config screen (AIProviderConfigScreen) are generated from

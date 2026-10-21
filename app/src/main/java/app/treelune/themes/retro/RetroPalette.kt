@@ -70,7 +70,7 @@ class RetroColors(val numbers: PaletteNumbers) {
     }
 
     /**
-     * An item's icon colour (docs/design/icon-colors.md) on [surface]: its tag's hue at the
+     * An item's icon colour (docs/reference.md, « Icons ») on [surface]: its tag's hue at the
      * lightness of the states there, which read on it, and at their chroma.
      */
     fun icon(color: TagColor, surface: Surface): Lch = Lch(surface.success.l, numbers.statusChroma, TAG_HUES.getValue(color))

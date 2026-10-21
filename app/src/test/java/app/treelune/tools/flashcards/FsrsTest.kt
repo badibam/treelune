@@ -7,7 +7,7 @@ import org.junit.Test
 import kotlin.math.abs
 
 /**
- * What docs/design/flashcards.md promises of FSRS: the port gives, review after review, the state
+ * What docs/TOOLS.md, « Flashcards » promises of FSRS: the port gives, review after review, the state
  * the reference implementation gives on the same ratings at the same instants — stability,
  * difficulty and due date. The suites are py-fsrs's own answers (scripts/make_fsrs_reference.py),
  * run without learning steps nor fuzz as the tool runs it.

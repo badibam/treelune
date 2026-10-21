@@ -82,7 +82,7 @@ internal fun Raised(
     padding: Dp = 0.dp,
     /** The content's own size within the piece: filling it, for a tile the grid sizes. */
     contentModifier: Modifier = Modifier,
-    /** A motif laid on the face, over its fill (docs/design/tool-texture.md); none when null. */
+    /** A motif laid on the face, over its fill (docs/THEMES.md, « What a theme is in the app »); none when null. */
     texture: androidx.compose.ui.graphics.Brush? = null,
     content: @Composable BoxScope.() -> Unit
 ) {

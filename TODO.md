@@ -16,6 +16,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 - Les dates sous l'axe d'un Graphique se chevauchent quand la place manque (« 31 août14 sept.28 sept. » au cran 3 du plan d'architecte, la tuile des récoltes) : le nombre de graduations à régler sur la largeur de leurs libellés.
 - La démo nomme chaque repas par son moment, que sa valeur dit aussi : la tuile de Repas montre « Dîner Dîner ».
 - La fin d'un événement de l'Agenda est son début plus sa durée en temps écoulé : un événement de plusieurs jours qui traverse un changement d'heure finit une heure avant ou après — l'ajouter sur le calendrier (`TimeResolver.after`, comme l'Objectif), la grille des jours et les séries lisant cette fin.
+- Une session de routine restée en `AWAITING_SESSION_CLOSURE` à la fermeture de l'app est close au démarrage (`AIStateRepository.initializeFromDb`) sans passer par `RunEnd` : son résumé n'est pas gardé, et elle attend quel que soit son réglage « Me signaler la fin ».
 - Au cran 3 dans certains thèmes, les marques sur les icônes deviennent trop grandes proportionnellement aux icônes et les recouvrent presque entièrement. La proportion devrait rester la même.
 
 ## À passer sur le téléphone
@@ -23,7 +24,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 Codé, jamais vu sur l'appareil.
 
 - La recette, `docs/design/device-checks.md` : ce que seul le téléphone juge, une ligne vue en sort.
-- Les specs que la recette ne nomme pas, à élaguer une fois leurs lignes passées : `missing-tools.md` (Champs RÉFÉRENCE, Variables, Données structurées, Objectif, Questionnaire, Graphique), `icon-colors.md`, `settings-pages.md` (Réglages et affichage), `message-images.md` (Chat IA, la ligne « Images »), `sequence-tool.md` (Séance), `entry-start-state.md`, `always-send.md`, `bug-report.md` (Mise à jour et démarrage), `validation.md` (Validation), `mcp-server.md` (Accès externe), `funnel-poc.md` avec `funnel-access.md`, `custom-fields-display.md` (Outils et saisie) ; `unified-fields.md` (Lecture seule pour l'IA), dont la section part dans `docs/DATA.md` ; `image-field.md`, sa propre section « À passer sur le téléphone », la migration 82 sur la release d'abord.
 - Les passes des thèmes sur le téléphone : ce que la spec de chaque thème garde dans « Ce qui reste ouvert » (`docs/design/<id>-theme.md`), sa passe de `docs/THEMES.md` (« The pass on the phone ») en tête.
 
 ## Décidé, à coder
@@ -45,6 +45,7 @@ Codé, jamais vu sur l'appareil.
 - `AutomationScheduler.getNextExecutionForAutomation()` appelé depuis l'écran, sans le service.
 - Des conversions JSON refaites sur place au lieu de `JsonUtils` (`toValueMap`, `jsonToValue`, `toFieldConfigValue`…).
 - `shared.xml` (~1 900 lignes) à découper.
+- Les specs de `docs/design/` dont le code est en place, à élaguer une ou deux par séance : leur part durable dans `docs/`, les commentaires qui les citent redirigés, leur partie non faite au TODO — `undo-history.md`, `validation.md`, `mcp-server.md`, `funnel-access.md` avec `funnel-poc.md`, `incarnations.md`, `missing-tools.md`, `image-field.md` (la migration 82 sur la release d'abord).
 - Les garanties sorties de la recette, `docs/design/device-check-tests.md` : chacune un test, ou sortie si un test la tient déjà.
 - `RetroPaletteTest` et `CosyPaletteTest` à parcourir par pas de 15° de teinte, comme `SwissPaletteTest`.
 - `TextType.SUBTITLE` sans rang dans le contrat des thèmes : lui en donner un, aligner les thèmes et ses 71 usages.
@@ -77,6 +78,12 @@ Ce qui doit monter dans un module de sagesse (`/update push`).
 
 ## Idée sans besoin
 
+- Flashcards : les statistiques (cartes acquises, prévision des jours à venir), la liste des cartes et leur état, la réponse tapée, le jugement d'une réponse libre par l'IA, une face en image, les révisions d'une ligne disparue de la source.
+- Le texte d'une image d'un message (un ticket) transcrit par un modèle qui lit les images, réglé à part, pour un modèle qui ne les lit pas : modifiable dans son bloc, il part à la place de l'image.
+- Une tentative passée d'un Objectif, enregistrée à la main ou importée (refusée aujourd'hui) : la réponse d'Objectif poserait son état (la période où tombe la date, une tentative déjà là, le verdict, la définition à copier).
+- Un champ obligatoire dans `extra` : une saisie rapide ouvrirait alors la fenêtre d'édition préremplie.
+- Les quasi-doublons d'un CHOICE ouvert (« Travail » / « travail » / « boulot ») : aujourd'hui chacun devient une option.
+- Corriger une proposition de l'IA avant de la valider, avec le composant de saisie : l'IA apprendrait ce qui a été changé.
 - Des modèles d'outils prédéfinis.
 - Lire un long texte du connecteur MCP par section (le sommaire des titres `##`, puis une section par son titre), en plus des tranches.
 - Des niveaux de prompt pour un modèle plus petit (`docs/design/local-models.md`).

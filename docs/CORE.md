@@ -275,6 +275,9 @@ A line goes to the console at once, and to the database through a single bounded
 - Optional throwable with stack trace
 - Compatible with Android and tests
 
+### Bug report
+A report the app assembles, shown word for word and sent by the user (`BugReport`, `BugReportScreen`, Settings › System › Report a bug), in English: the free text the user writes, the device (app version, maker and model, Android and API level, language, theme), the last crash with its stack, then the WARN and ERROR lines of the last 2 hours, 300 at most, the most recent kept — never VERBOSE, DEBUG nor INFO, which copy the services' results and the prompts; 200,000 characters at most, the oldest lines leaving first, counted. The messages and stacks are cleaned mechanically, the free text is not: a UUID becomes `#1`, `#2`… (the same one the same number), a text quoted between `'` or `"` becomes `«text»`; the screen says it is no guaranteed anonymisation. A handler of uncaught exceptions, set first in `TreeluneApplication`, writes the crash into a single file of `filesDir` (date, version, raw stack) and hands over to Android's; at the next launch, before the AI, the scheduler and the home screen, a crash not yet seen opens the screen "The app stopped", whose "Continue" marks it seen. "Send to the developer" opens the e-mail app (`BugReport.DEVELOPER_EMAIL`), "Share…" Android's menu; one function produces the text shown and the one sent.
+
 ### Debugging guide for service resolution
 **Common problems**:
 1. **"Service not found"**: add logs in the service

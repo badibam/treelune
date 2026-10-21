@@ -27,7 +27,7 @@ import app.treelune.tools.sequence.ui.rememberSequenceTile
 import org.json.JSONObject
 
 /**
- * A session (docs/design/sequence-tool.md): a run of steps prepared ahead, then done following
+ * A session (docs/TOOLS.md, « Session (Sequence) »): a run of steps prepared ahead, then done following
  * the screen, a timer or « Done » per step, a signal at each change. It guides; it measures
  * nothing. An entry says that a session took place: when, how long, how far.
  *

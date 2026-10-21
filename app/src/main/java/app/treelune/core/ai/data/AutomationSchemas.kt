@@ -13,7 +13,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * What the AI reads and writes of a routine (docs/design/ai-routines.md), each described by a
+ * What the AI reads and writes of a routine (docs/AI.md), each described by a
  * schema: its config, read by AUTOMATION_CONFIG and written by CREATE_AUTOMATION and
  * UPDATE_AUTOMATION in the same shape, and its runs, read by AUTOMATION_RUNS. Their instants and
  * durations are marked (FieldValueSchema), and so reach the AI in ISO 8601 and come back in

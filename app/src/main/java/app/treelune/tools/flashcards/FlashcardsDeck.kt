@@ -5,7 +5,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * A deck's config read (docs/design/flashcards.md, « La config »): the source's entries it points
+ * A deck's config read (docs/TOOLS.md, « Flashcards »): the source's entries it points
  * at, the field that cuts it into groups, its directions, and the day's limits.
  *
  * @property source The source's entries, without a period; the fields it keeps are not read

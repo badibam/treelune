@@ -787,7 +787,7 @@ object RetroTheme : ThemeContract {
     }
 
     /**
-     * How the motifs are laid (docs/design/tool-texture.md): a cell's unit is a drawing pixel,
+     * How the motifs are laid (docs/THEMES.md, « What a theme is in the app »): a cell's unit is a drawing pixel,
      * never smoothed, every cell of whole pixels (TextureCellsTest); an ICON motif's icon in its own
      * pixels, an icon's box, ten pixels around it.
      */

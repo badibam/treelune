@@ -5,7 +5,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * A routine's message as it is read and written outside the screen (docs/design/ai-routines.md):
+ * A routine's message as it is read and written outside the screen (docs/AI.md):
  * a list of blocks, `{"type": "text", "text"}` and `{"type": "pointer", "pointer": {"selection",
  * "attach": {"config", "entries"}}}`, the pointer in the stored form of PointerConfig. The same
  * form both ways: what is read is sent back as it is.

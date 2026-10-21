@@ -62,7 +62,7 @@ private fun ThingTile(iconName: String, color: TagColor?, texture: Texture?, sid
 }
 
 /**
- * One choice of an appearance page (docs/design/tool-texture.md): the thing's tile as it would
+ * One choice of an appearance page (docs/THEMES.md, « What a theme is in the app »): the thing's tile as it would
  * look with it, its [name] under it, after a check when [chosen], so the choice reads without
  * its colour.
  */
@@ -92,7 +92,7 @@ private fun textureName(texture: Texture?, s: app.treelune.core.strings.StringsC
     s.shared(texture?.let { "texture_${it.name.lowercase()}" } ?: "texture_none")
 
 /**
- * A zone's or a tool's texture (docs/design/tool-texture.md): none, then each of Texture.NAMES,
+ * A zone's or a tool's texture (docs/THEMES.md, « What a theme is in the app »): none, then each of Texture.NAMES,
  * every choice a small tile of the thing as the theme draws it with that motif, in its icon's
  * colour and at the intensity set, its name under it, the chosen one marked. ICON is offered only
  * to a thing with an icon, which it repeats.

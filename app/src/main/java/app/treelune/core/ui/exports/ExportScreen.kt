@@ -57,7 +57,7 @@ private val SelectionSaver: Saver<PartSelection, String> = Saver(
 private val NOTHING = PartSelection(emptySet(), emptyMap(), emptySet(), emptySet())
 
 /**
- * The export (docs/design/share.md, « Les écrans »): a part of the app, ticked zone by zone, to
+ * The export (docs/DATA.md, « A part of the app »): a part of the app, ticked zone by zone, to
  * share or take back elsewhere, or the whole app, a backup. The file is written into the app's
  * folder, chosen here when there is none; the screen then says its name and what it holds, with
  * Share.

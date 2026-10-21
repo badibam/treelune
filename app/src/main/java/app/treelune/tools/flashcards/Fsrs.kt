@@ -13,7 +13,7 @@ import kotlin.math.pow
  * the desired retention.
  *
  * Ported from py-fsrs 6.3.2 (FSRS-6), its default parameters, run as the flashcards tool needs it
- * (docs/design/flashcards.md): no learning nor relearning steps, a session bringing a failed card
+ * (docs/TOOLS.md, « Flashcards »): no learning nor relearning steps, a session bringing a failed card
  * back itself, so every review gives a due date in whole days; no fuzz, so that one suite of
  * ratings always gives the same dates. FsrsTest compares it with py-fsrs on the same suites
  * (scripts/make_fsrs_reference.py): a wrong port gives wrong dates and breaks nothing else.

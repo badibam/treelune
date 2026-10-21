@@ -37,7 +37,7 @@ import org.json.JSONObject
  *
  * An attempt still open follows the goal's current definition; a locked one keeps the copy it was
  * judged by, and so does a reopened one: reopening judges it again by the rules it had, never by
- * the goal's current ones (docs/design/config-change.md).
+ * the goal's current ones (docs/DATA.md, « Config change »).
  */
 class GoalService(private val context: Context) : ExecutableService {
 

@@ -7,7 +7,7 @@ when it is due. The suites cover a first review of each rating, reviews on time,
 several in one day (FSRS's short-term formula), long gaps, three desired retentions, and random
 suites from a fixed seed.
 
-The scheduler is the one the flashcards tool runs (docs/design/flashcards.md): FSRS's default
+The scheduler is the one the flashcards tool runs (docs/TOOLS.md, « Flashcards »): FSRS's default
 parameters, no learning nor relearning steps — a session brings a failed card back itself, every
 review giving a due date in days — and no fuzz, so that one suite always gives the same dates.
 

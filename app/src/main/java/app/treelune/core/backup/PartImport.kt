@@ -25,7 +25,7 @@ import java.io.File
 import java.util.UUID
 
 /**
- * A part of a backup brought into the app (docs/design/share.md, « À l'arrivée »): everything is
+ * A part of a backup brought into the app (docs/DATA.md, « A part of the app »): everything is
  * added, nothing replaced, through the ordinary services as the app itself, so that what arrives
  * is checked as anything written.
  *

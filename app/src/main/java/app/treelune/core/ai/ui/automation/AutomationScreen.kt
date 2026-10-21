@@ -476,5 +476,5 @@ data class ExecutionSummary(
     val cost: Double,
     val costIsLowerBound: Boolean, // Some calls have an unknown cost: cost only covers the others
     val summary: String?,          // What its AI said of the run (RunEnd)
-    val waits: Boolean             // Over and not yet read (docs/design/waiting-sources.md)
+    val waits: Boolean             // Over and not yet read (docs/AI.md, « Summary of the run »)
 )

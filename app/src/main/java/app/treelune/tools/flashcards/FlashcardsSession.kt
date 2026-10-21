@@ -4,7 +4,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * A session (docs/design/flashcards.md, « La séance »): a list fixed at its launch, each card asked,
+ * A session (docs/TOOLS.md, « Flashcards »): a list fixed at its launch, each card asked,
  * turned and rated. A failed card comes back later in the session, after [GAP] other cards and at
  * least [WAIT] ms; when nothing else waits, it comes back at once: a session never makes one wait.
  * The session is over when no card is left on a failure — Hard, Good and Easy pass a card.

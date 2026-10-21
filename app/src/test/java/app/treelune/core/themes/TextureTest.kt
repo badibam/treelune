@@ -7,7 +7,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** A texture's names (docs/design/tool-texture.md): fifteen motifs, or none; ICON only with an icon. */
+/** A texture's names (docs/THEMES.md, « What a theme is in the app »): fifteen motifs, or none; ICON only with an icon. */
 class TextureTest {
 
     private val text: (String) -> String = { key -> "$key %s %s" }

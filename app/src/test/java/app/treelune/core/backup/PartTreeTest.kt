@@ -10,7 +10,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * What the export's screen shows and does (docs/design/share.md, « Les écrans »): the zones in
+ * What the export's screen shows and does (docs/DATA.md, « A part of the app »): the zones in
  * the home screen's order under their group, their elements under their tool group, the entries
  * counted; a zone ticked takes all it holds, an element ticked takes its zone, a zone unticked
  * lets all of it go.

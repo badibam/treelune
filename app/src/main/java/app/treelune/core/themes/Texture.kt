@@ -1,7 +1,7 @@
 package app.treelune.core.themes
 
 /**
- * A motif a zone's or a tool's tile and page header can carry (`texture`, docs/design/tool-texture.md):
+ * A motif a zone's or a tool's tile and page header can carry (`texture`, docs/THEMES.md, « What a theme is in the app »):
  * a name the core fixes and each theme draws its own way, from its own cell of each
  * (TextureCell), at a tone of its own (TextureTones). ICON has no cell: the thing's icon is its cell.
  */

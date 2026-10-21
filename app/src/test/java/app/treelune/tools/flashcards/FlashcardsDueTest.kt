@@ -11,7 +11,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
- * What docs/design/flashcards.md promises of the cards to offer: due from the start of the day
+ * What docs/TOOLS.md, « Flashcards » promises of the cards to offer: due from the start of the day
  * their due date falls in, a failed card due until passed again, the new ones in the source's
  * order, the day's limits counted in cards for the whole deck, two directions of a line never the
  * same day, one direction after another, the groups as views of the deck.

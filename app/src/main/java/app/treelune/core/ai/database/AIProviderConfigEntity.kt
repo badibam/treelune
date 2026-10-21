@@ -3,7 +3,7 @@ package app.treelune.core.ai.database
 import androidx.room.*
 
 /**
- * An AI provider the user created (docs/design/ai-providers.md): a kind (AIProviderKinds), a
+ * An AI provider the user created (docs/AI.md, « Provider abstraction »): a kind (AIProviderKinds), a
  * name, unique, and its config, its secrets sealed (SecretSettings). At most one is the default,
  * which a new conversation takes (enforced by AIProviderConfigService).
  */

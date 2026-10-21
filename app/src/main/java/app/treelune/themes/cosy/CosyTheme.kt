@@ -1500,7 +1500,7 @@ object CosyTheme : ThemeContract {
     private const val ITEM_ROUND = 1.5f
 
     /**
-     * How the motifs are laid (docs/design/tool-texture.md): a cell's unit a dp at the size step,
+     * How the motifs are laid (docs/THEMES.md, « What a theme is in the app »): a cell's unit a dp at the size step,
      * smoothed, so a motif grows with everything else; an ICON motif's icon fourteen units,
      * sixteen around it.
      */

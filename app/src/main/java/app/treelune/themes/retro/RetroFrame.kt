@@ -74,7 +74,7 @@ internal fun Framed(
     fillContent: Boolean = false,
     filled: Boolean = false,
     off: Boolean = false,
-    /** A motif laid inside the frame, over its fill, from the panel's corner (docs/design/tool-texture.md); none when null. */
+    /** A motif laid inside the frame, over its fill, from the panel's corner (docs/THEMES.md, « What a theme is in the app »); none when null. */
     texture: androidx.compose.ui.graphics.Brush? = null,
     content: @Composable BoxScope.() -> Unit,
 ) {

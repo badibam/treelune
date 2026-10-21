@@ -39,7 +39,7 @@ import app.treelune.tools.agenda.AgendaToolType
 import org.json.JSONObject
 
 /**
- * A calendar's tile (docs/design/agenda-tool.md, « La tuile »): the summary says the event going
+ * A calendar's tile (docs/TOOLS.md, « Agenda »): the summary says the event going
  * on or the next one, its name and its moment in relative words, « Nothing coming » otherwise; the
  * body lists the events to come, one line each, the moment at the start, the name, the
  * calendar's fields below; in FULL, all of them. A cancelled event says so, a removed one

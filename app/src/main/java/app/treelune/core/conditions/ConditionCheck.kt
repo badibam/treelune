@@ -15,7 +15,7 @@ import org.json.JSONObject
 
 /**
  * The check every config holding conditions passes when it is written, whoever writes it
- * (docs/design/typed-conditions.md): each condition found (ConfigConditions) has sides of known
+ * (docs/BRICKS.md, « Condition »): each condition found (ConfigConditions) has sides of known
  * types, read from declarations and never from data, and is refused, named, when
  * 1. its operator is not one the type takes (EntryFilters.operatorsFor);
  * 2. a written value does not read in the type it faces (a number facing a number, milliseconds

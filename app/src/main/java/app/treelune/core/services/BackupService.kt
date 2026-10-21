@@ -54,7 +54,7 @@ import app.treelune.core.ai.data.LegacyCatchUp
  * Operations:
  * - export: the backup of all data, written into the app's folder (AppFolder) under
  *   `treelune_backup` and the minute. Or, given `selection` (PartSelection's stored form), the
- *   part of the app ticked (BackupPart, docs/design/share.md), under the name of its zone when
+ *   part of the app ticked (BackupPart, docs/DATA.md, « A part of the app »), under the name of its zone when
  *   there is one, `treelune_share` otherwise; refused while an element kept names one left out
  *   (PartLinks, a blocking link). Answer: `file_name`, `uri`, `elements`, `entries`,
  *   `missing_images`

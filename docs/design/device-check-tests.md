@@ -55,23 +55,23 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 
 - Planifiée chaque jour à une heure passée : au tick, une entrée prévue, une notification qui ouvre l'outil, le point d'attente sur la tuile ; « Commencer » la reprend, « Faite » la marque faite à son heure prévue ; une absence de plusieurs jours, « Tout ignorer ».
 
-## Agenda (`docs/design/agenda-tool.md`, branche agenda)
+## Agenda (branche agenda)
 
 - « Se répète » chaque mardi 18 h : les champs supplémentaires disparaissent ; des occurrences sur 90 jours apparaissent aussitôt l'enregistrement (une série créée par l'IA ou par la roue dentée aussi), chacune avec l'icône de répétition. Une occurrence : « Retirer » la fait passer sous « Retirées (1) », « Rétablir » la remet ; « Supprimer » n'y est pas.
 - « Modifier la série » : changer la durée, enregistrer sans confirmation ; les occurrences restées à l'ancienne durée la prennent, celle réglée à la main garde la sienne. Changer le jour : la confirmation compte les occurrences à venir ; acceptée, elles reviennent sur le nouveau jour, le passé intact.
 - Déplacer un événement déjà rappelé à plus tard : son rappel repart à la nouvelle heure.
 
-## L'IA et les routines (branche ai-routines, `docs/design/ai-routines.md`)
+## L'IA et les routines (branche ai-routines)
 
 - Une routine à l'accès limité à une zone en `full`, dont le message demande de créer une routine : créée avec un accès dans le sien, refusée avec un accès vide ou plus large, la raison dans son historique.
 - Par le connecteur MCP : `automations` et `automation_config` répondent ; une création sur une zone hors du masque du client est refusée.
 
-## Les bugs du téléphone du 2026-10-16 et le changement de config (`docs/design/config-change.md`)
+## Les bugs du téléphone du 2026-10-16 et le changement de config
 
 - Demander à l'IA de resserrer une échelle (conversation) : la carte de validation dit les comptes, même dans une zone non protégée ; refusée, rien ne change ; acceptée, les valeurs hors bornes partent. « Protéger les données passées » décoché : l'IA est refusée et doit renvoyer avec `confirm_migration`. Par le connecteur : la notification d'accord. Une routine qui le fait : passe si son accès le permet.
 - Objectif : valider une tentative, changer un critère (seuil, critère retiré), rouvrir la tentative : elle est jugée selon ses anciens critères, la valeur saisie du critère retiré toujours là ; revalidée, son jugement aussi.
 
-## Lecture seule pour l'IA (branche user-only, `docs/design/unified-fields.md`)
+## Lecture seule pour l'IA (branche user-only)
 
 - Le champ coché se remplit toujours à l'écran. Demander à l'IA, en conversation, de le remplir : refusé, elle dit que le champ lui est fermé, rien n'est écrit, pas même le reste de l'entrée. Lui demander de décocher la case : refusé ; de la cocher sur un autre champ : fait.
 - Un Objectif fermé à l'IA : elle dit où en est la tentative, mais « valide-la » et « rouvre-la » sont refusés ; validée et rouverte à l'écran, sans changement.
@@ -83,11 +83,11 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 - Modifier la voix, enregistrer : « écrit dans l'app » ; réimporter le fichier : la confirmation nomme `fr · voice` parmi les retouches perdues, et confirmée, la voix revient. Choisir une autre icône et une couleur, enregistrer : la tuile les montre.
 - Supprimer Stan Prokopenko tant que la zone ou la routine le nomme : refusé, en les nommant. Les retirer, supprimer : la conversation passée se relit, son composeur remplacé par la raison. Supprimer un fournisseur d'IA qu'une routine utilise : refusé de même.
 
-## Les conditions typées à l'écriture (branche typed-conditions, `docs/design/typed-conditions.md`)
+## Les conditions typées à l'écriture (branche typed-conditions)
 
 - Un Objectif « sommeil moyen d'au moins 7 h » créé par l'IA : sa config, rouverte à l'écran, montre 7 h, et la tentative se juge sans erreur.
 
-## Les fournisseurs créés (branche ai-providers, `docs/design/ai-providers.md`)
+## Les fournisseurs créés (branche ai-providers)
 
 - Supprimer un fournisseur qu'une routine nomme : refusé, la routine nommée. Supprimer le défaut quand un autre reste : la fenêtre demande lequel le remplace ; le dernier supprimé : une nouvelle conversation dit d'en ajouter un.
 
@@ -107,11 +107,11 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 
 - Un Objectif récurrent : une tentative en cours dit « reste 40m » dans sa dernière heure ; la démo réinstallée, la semaine d'italien finit le lundi 26 octobre à 00:00, malgré le changement d'heure du 25.
 
-## L'export des entrées (branche post-release, `docs/design/export.md`)
+## L'export des entrées (branche post-release)
 
 - Une routine dont le message demande l'export de la semaine : le fichier paraît dans le dossier à chaque exécution, sans écraser le précédent.
 
-## Partager une partie de l'app (branche post-release, `docs/design/share.md`)
+## Partager une partie de l'app (branche post-release)
 
 - Importer… sur ce fichier : tout coché, entrées comprises, sans le choix « Tout restaurer ». Une zone dans « Une zone existante » : celle du même nom en tête de liste. Une variable dont le nom est pris dit son nouveau nom ; un outil Messages ou Agenda dit qu'il peut envoyer des notifications.
 - Importer : la fenêtre dit les zones créées, les éléments et les entrées ; tout est là, une routine éteinte sans fournisseur ; Réglages › Historique montre un seul pas, et l'annuler retire tout.

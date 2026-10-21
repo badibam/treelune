@@ -25,7 +25,7 @@ private const val SEARCH_RESULTS_SHOWN = 60
 private const val ICON_SAMPLE = "calendar"
 
 /**
- * An icon's colour (docs/design/icon-colors.md): none, then each of IconColor.NAMES, every
+ * An icon's colour (docs/reference.md, « Icons »): none, then each of IconColor.NAMES, every
  * choice a small tile of the thing as the theme draws it, its icon in that colour and its
  * [texture] on it, the colour's name under it, the chosen one marked.
  *

@@ -21,7 +21,7 @@ import java.util.UUID
  *   file's name, type, size and line count. Without them, the whole file.
  * - delete: `id`: a file taken off the composer before its message went.
  *
- * And the images (docs/design/message-images.md, docs/design/image-field.md), a reduced file each
+ * And the images (docs/AI.md, « Images », docs/design/image-field.md), a reduced file each
  * (Images), described by a row (ImageEntity):
  * - attach_image: `session_id`, `uri` (the photo taken or picked): the image prepared and kept
  *   with the session, its file written before its row; its `id`, `width`, `height`,

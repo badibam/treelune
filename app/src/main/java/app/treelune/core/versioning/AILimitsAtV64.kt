@@ -4,7 +4,7 @@ import org.json.JSONObject
 
 /**
  * Brings stored ai_limits settings to their v64 form: the threshold of the tools sent always
- * joins them (docs/design/always-send.md). A stored value is kept; a missing one gets the value
+ * joins them (docs/AI.md, « 2 levels of context »). A stored value is kept; a missing one gets the value
  * decided at v64, 15 000 characters. The single place that says so, shared by the database
  * migration and the backup import.
  *

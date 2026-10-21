@@ -14,7 +14,7 @@ data class Zone(
     val icon_name: String? = null,
     /** Its icon's colour, a name of IconColor.NAMES; null for a neutral icon. */
     val icon_color: String? = null,
-    /** The motif of its tile and its page's header, a name of Texture.NAMES; null for none (docs/design/tool-texture.md). */
+    /** The motif of its tile and its page's header, a name of Texture.NAMES; null for none (docs/THEMES.md, « What a theme is in the app »). */
     val texture: String? = null,
     val active: Boolean = true,
     /** How its tile shows on the home screen: ICON, MINIMAL, LINE or CONDENSED (ZonePositions.MODES). */

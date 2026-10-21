@@ -13,7 +13,7 @@ enum class Outcome(val key: String) { DONE("done"), SKIPPED("skipped") }
 data class Left(val outcome: Outcome, val by: LeftBy, val stepStart: Long, val extended: Long)
 
 /**
- * A session running (docs/design/sequence-tool.md), as its entry keeps it: every time is an
+ * A session running (docs/TOOLS.md, « Session (Sequence) »), as its entry keeps it: every time is an
  * instant recorded, never a counter, so a session read again after the app was killed stands
  * right.
  *
@@ -139,7 +139,7 @@ sealed class Step {
 }
 
 /**
- * What each gesture does to a run (docs/design/sequence-tool.md, « Les opérations »). Pure: the
+ * What each gesture does to a run (docs/TOOLS.md, « Session (Sequence) »). Pure: the
  * service reads the run, applies one of these, and writes the result.
  */
 object SequenceGestures {
@@ -217,7 +217,7 @@ object SequenceGestures {
     }
 }
 
-/** The beeps of a run, at the instants they sound (docs/design/sequence-tool.md, « Les signaux »). */
+/** The beeps of a run, at the instants they sound (docs/TOOLS.md, « Session (Sequence) »). */
 object SequenceSignals {
 
     /** The countdown: 3, 2 and 1 second before a timed step's end, or before the first step. */

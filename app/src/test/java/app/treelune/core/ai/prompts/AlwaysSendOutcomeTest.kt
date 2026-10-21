@@ -7,7 +7,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
- * What becomes of the tools sent always (docs/design/always-send.md): within the threshold they
+ * What becomes of the tools sent always (docs/AI.md, « 2 levels of context »): within the threshold they
  * go; above it a CHAT asks once and follows the answer, the others get the list.
  */
 class AlwaysSendOutcomeTest {

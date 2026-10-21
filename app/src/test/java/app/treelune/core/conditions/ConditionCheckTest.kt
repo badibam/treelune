@@ -13,7 +13,7 @@ import org.junit.Test
 
 /**
  * A config's conditions are found through its declaration and checked when it is written
- * (docs/design/typed-conditions.md): each side's type known without reading an entry, the
+ * (docs/BRICKS.md, « Condition »): each side's type known without reading an entry, the
  * operator its type takes, a written value that reads in the type it faces, two read sides of one
  * type, a choice's values among its options. A refusal is the key of its text here.
  */

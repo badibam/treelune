@@ -1,6 +1,6 @@
 # Le pointeur — conception
 
-Conçu le 2026-09-26. Bloc D de `unified-fields.md`. Le pointeur est le bloc qu'on insère dans un message à l'IA (chat, ou message de départ d'une automation) pour dire « regarde ça ». Aujourd'hui il désigne une zone ou un outil par un chemin et des noms, et joint selon un contexte (GENERIC, CONFIG, DATA) des ressources cochées une à une, sur une période.
+Conçu le 2026-09-26. Le pointeur est le bloc qu'on insère dans un message à l'IA (chat, ou message de départ d'une automation) pour dire « regarde ça ». Aujourd'hui il désigne une zone ou un outil par un chemin et des noms, et joint selon un contexte (GENERIC, CONFIG, DATA) des ressources cochées une à une, sur une période.
 
 ## Deux choix indépendants
 
@@ -9,7 +9,7 @@ Un pointeur, c'est **ce qu'on désigne** et **ce qu'on en joint**.
 ### Ce qu'on désigne
 
 - **Une cible** : l'app, une zone, un outil ou une entrée. Pas de niveau « champ » : une colonne, c'est un outil avec un choix de champs ; un champ d'une seule entrée, c'est l'entrée.
-- **Une adresse faite d'identifiants seulement**, l'identifiant le plus précis : `{"kind": "TOOL", "id": "t_4c0"}`, `{"kind": "ENTRY", "id": "e_91f"}`, `{"kind": "ZONE", "id": …}`, `{"kind": "APP"}`. Le chemin (zone, outil) se retrouve à la lecture, les noms aussi : renommer ou déplacer un outil de zone ne casse rien. Une cible supprimée garde son adresse et s'affiche « supprimé ». Cette cible deviendra une valeur RÉFÉRENCE, `TOOL` y devenant `TOOL_INSTANCE` (`unified-fields.md`).
+- **Une adresse faite d'identifiants seulement**, l'identifiant le plus précis : `{"kind": "TOOL", "id": "t_4c0"}`, `{"kind": "ENTRY", "id": "e_91f"}`, `{"kind": "ZONE", "id": …}`, `{"kind": "APP"}`. Le chemin (zone, outil) se retrouve à la lecture, les noms aussi : renommer ou déplacer un outil de zone ne casse rien. Une cible supprimée garde son adresse et s'affiche « supprimé ». Cette cible deviendra une valeur RÉFÉRENCE, `TOOL` y devenant `TOOL_INSTANCE` (`docs/DATA.md`).
 - **Une étiquette pour toute entrée** : son nom, sinon sa date et le début de son texte. Chaque type d'outil dit comment s'intitule une de ses entrées (une note n'a de nom que si sa config lui donne un titre).
 - **Pour un ensemble d'entrées** :
   - **Période** : un filtre sur `timestamp`, montré en tête sous ce nom.

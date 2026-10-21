@@ -28,7 +28,7 @@ import org.json.JSONObject
 import java.text.Normalizer
 
 /**
- * A calendar (docs/design/agenda-tool.md): events that have a time and pass by themselves — an
+ * A calendar (docs/TOOLS.md, « Agenda »): events that have a time and pass by themselves — an
  * appointment happens, then it is past, nothing to check. An entry is an event, its timestamp its
  * start; it lasts a duration, or whole days, and is planned, cancelled, or removed (an occurrence
  * of a series only).

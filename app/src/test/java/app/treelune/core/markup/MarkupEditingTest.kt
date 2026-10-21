@@ -5,7 +5,7 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 /**
- * The help of a long text's input (docs/design/text-formatting.md): a list continued on a new line,
+ * The help of a long text's input (docs/UI.md, « Long texts »): a list continued on a new line,
  * the two list buttons, bold and italic around a selection. A `|` in a text below is the cursor,
  * `[` and `]` the edges of a selection.
  */

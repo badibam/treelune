@@ -45,7 +45,7 @@ private val DraftSaver: Saver<SelectionDraft?, String> = Saver(
 )
 
 /**
- * "Export the entries…" of a tool (docs/design/export.md): its period, its filters and the
+ * "Export the entries…" of a tool (docs/DATA.md, « Export »): its period, its filters and the
  * fields kept, chosen by SelectionPicker held on the tool, then the file written by
  * `exports.csv` into the app's folder; a window then says its name and its number of entries,
  * with Share, which hands the file to the app the user chooses.

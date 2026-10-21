@@ -152,7 +152,7 @@ class ValidationResolver(private val context: Context) {
     /**
      * Why a config change waits for approval for what it does to the recorded entries, null when
      * it touches none of them or the protection is off: its counts, read by a dry run of the
-     * change (docs/design/config-change.md).
+     * change (docs/DATA.md, « Config change »).
      */
     private suspend fun pastDataReason(action: DataCommand, levels: Levels): String? {
         if (!levels.app.validatePastData || action.params["config"] == null) return null

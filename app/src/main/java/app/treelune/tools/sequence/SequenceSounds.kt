@@ -14,7 +14,7 @@ import app.treelune.R
 import app.treelune.core.utils.LogManager
 
 /**
- * The session's signals (docs/design/sequence-tool.md, « Les signaux »): three marimba sounds
+ * The session's signals (docs/TOOLS.md, « Session (Sequence) »): three marimba sounds
  * (scripts/make_sequence_sounds.py), a vibration, and the voice of Android's speech synthesis.
  *
  * The sounds go through the media channel, the music lowered a moment while they play. Silent

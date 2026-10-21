@@ -1976,7 +1976,7 @@ class AIEventProcessor(
     }
 
     /**
-     * The tools sent always, before the AI is called (docs/design/always-send.md). Sent, their
+     * The tools sent always, before the AI is called (docs/AI.md, « 2 levels of context »). Sent, their
      * schemas the AI lacks are stored in the session once, as any schema received. Above their
      * threshold, a CHAT without a choice yet asks for one, the choice holding for the session;
      * an AUTOMATION says once in its history that they were not sent, the AI getting their list

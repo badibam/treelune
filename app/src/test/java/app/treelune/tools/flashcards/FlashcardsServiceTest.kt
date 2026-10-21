@@ -15,7 +15,7 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 /**
- * What docs/design/flashcards.md promises of a deck's writes, on the demo's deck Ripasso and its
+ * What docs/TOOLS.md, « Flashcards » promises of a deck's writes, on the demo's deck Ripasso and its
  * lexicon, through the dispatcher as a screen calls it: a review written by flashcards.review
  * alone, an ordinary write refused; a review never changed; only a card's last review undone; the
  * cards due counted on the tile's dot; the counts of the page and its groups, by their labels.

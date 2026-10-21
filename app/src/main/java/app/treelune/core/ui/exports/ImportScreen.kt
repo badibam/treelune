@@ -61,7 +61,7 @@ private val ArrivalsSaver: Saver<Map<String, String>, String> = Saver(
 )
 
 /**
- * The import of the file at [uri] (docs/design/share.md, « Les écrans »). A whole backup offers
+ * The import of the file at [uri] (docs/DATA.md, « A part of the app »). A whole backup offers
  * to take a part back, the default, or to restore everything, which replaces the whole app after
  * a confirmation and restarts it; a share only offers a part. A part is taken with the same boxes
  * as the export's, a share ticked whole, a whole backup not at all; each zone ticked goes into a

@@ -8,7 +8,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The problems the form judges alone (docs/design/settings-pages.md): what marks a page's line, and
+ * The problems the form judges alone (docs/DATA.md, « Fields and entries »): what marks a page's line, and
  * every line above it, since a page holds those under it.
  */
 class SettingProblemsTest {

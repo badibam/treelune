@@ -5,7 +5,7 @@ import org.json.JSONObject
 
 /**
  * A change of meaning taken as a new field rather than applied to the recorded values
- * (docs/design/config-change.md): the field as edited goes without its key, so that the service
+ * (docs/DATA.md, « Config change »): the field as edited goes without its key, so that the service
  * gives it a new one under which nothing recorded is read, and the field as it was stays beside
  * it, its key, its values and its settings kept, renamed so that both read apart.
  */

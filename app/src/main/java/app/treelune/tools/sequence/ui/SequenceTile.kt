@@ -34,7 +34,7 @@ import kotlinx.coroutines.delay
 import org.json.JSONObject
 
 /**
- * A session's tile (docs/design/sequence-tool.md, « L'écran »). During a session, the summary is
+ * A session's tile (docs/TOOLS.md, « Session (Sequence) »). During a session, the summary is
  * its step and its clock; otherwise the planned session waiting and since when, or the next one
  * planned, or the last one done. The body lists the last sessions, one per line: when, state,
  * length, how far.

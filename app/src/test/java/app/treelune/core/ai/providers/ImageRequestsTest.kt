@@ -13,7 +13,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
- * Covers a message with images on its way to each provider (docs/design/message-images.md): the
+ * Covers a message with images on its way to each provider (docs/AI.md, « Images »): the
  * images go where the user put them among the text, as base64 in Claude's image block, as a
  * `data:` URL in OpenAI's input_image and in Chat Completions' image_url, each under the media
  * type of its format (docs/design/image-field.md): a photo a JPEG, a screenshot a PNG.

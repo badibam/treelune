@@ -13,7 +13,7 @@ import java.time.Instant
 import java.time.ZoneId
 
 /**
- * An event of a calendar as its entry holds it (docs/design/agenda-tool.md, « L'événement »): its
+ * An event of a calendar as its entry holds it (docs/TOOLS.md, « Agenda »): its
  * start is the entry's timestamp, for a whole day the start of the user's day on its date; in data, its duration, or for a whole day the number of days;
  * in state, its status, the series that gave it and when, and the reminders already sent.
  *

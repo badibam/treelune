@@ -13,7 +13,7 @@ import java.sql.Connection
 import java.sql.DriverManager
 
 /**
- * The AI providers brought to their v80 form (docs/design/ai-providers.md): the migration's
+ * The AI providers brought to their v80 form (docs/AI.md, « Provider abstraction »): the migration's
  * statements run on SQLite over the v79 tables, and a backup made before v80. What was configured
  * stays, under its id and name, of the kind its id named, the active one the default; what was
  * never configured goes, and a routine that named it is left without a provider, off.

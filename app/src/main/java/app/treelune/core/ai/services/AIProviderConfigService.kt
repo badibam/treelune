@@ -21,7 +21,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
 /**
- * The AI providers the user created (docs/design/ai-providers.md): each of a kind
+ * The AI providers the user created (docs/AI.md, « Provider abstraction »): each of a kind
  * (AIProviderKinds), a name unique among them, and its config, checked against the schema its
  * kind declares, its secrets sealed. At most one is the default, which a new conversation takes:
  * the first one created becomes it.

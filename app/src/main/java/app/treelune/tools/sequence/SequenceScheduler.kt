@@ -11,7 +11,7 @@ import app.treelune.core.utils.ScheduleCalculator
 import app.treelune.core.utils.StoredSchedule
 
 /**
- * The planned sessions (docs/design/sequence-tool.md, « Le planning »), as a questionnaire's
+ * The planned sessions (docs/TOOLS.md, « Session (Sequence) »), as a questionnaire's
  * invitations: at each time its schedule gives, one entry « planned », dated from that time, and
  * one notification. The times that came while the app did not run are created too, for « Ignore
  * all » on the way back from an absence, the notification only for the last one. A planned

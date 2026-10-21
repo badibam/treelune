@@ -1,5 +1,5 @@
 {
-  "_about": "The session tool's signals, made by scripts/make_sequence_sounds.py from three marimba notes of VSCO 2 CE copied in third_party/vsco2-marimba/ (docs/design/sequence-tool.md); their source and licence, checked when added.",
+  "_about": "The session tool's signals, made by scripts/make_sequence_sounds.py from three marimba notes of VSCO 2 CE copied in third_party/vsco2-marimba/ (docs/TOOLS.md, « Session (Sequence) »); their source and licence, checked when added.",
   "sounds": {
     "res/raw/sequence_countdown.flac": {
       "title": "VSCO 2 CE · Marimba, C6",

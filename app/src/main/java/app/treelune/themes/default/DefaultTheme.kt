@@ -1007,7 +1007,7 @@ object DefaultTheme : ThemeContract {
     private const val ITEM_BADGE_SCALE = 1.5f
 
     /**
-     * How the motifs are laid (docs/design/tool-texture.md): a cell's unit is a dp, smoothed; an
+     * How the motifs are laid (docs/THEMES.md, « What a theme is in the app »): a cell's unit is a dp, smoothed; an
      * ICON motif's icon twelve units, fourteen around it.
      */
     @Composable

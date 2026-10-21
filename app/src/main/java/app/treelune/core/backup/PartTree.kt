@@ -5,7 +5,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * What a backup holds, as the screens of sharing tick it (docs/design/share.md, « Les écrans »):
+ * What a backup holds, as the screens of sharing tick it (docs/DATA.md, « A part of the app »):
  * its zones in the home screen's order, under their group, and in each its elements under their
  * tool group; with every link between them (PartLinks.all), which the screen filters as the boxes
  * change. Read from the app's own backup to export, from a file to import.

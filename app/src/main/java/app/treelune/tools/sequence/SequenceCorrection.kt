@@ -9,7 +9,7 @@ data class StepCounts(val done: Int, val skipped: Int, val notDone: Int) {
 }
 
 /**
- * A session over, corrected after the fact (docs/design/sequence-tool.md, « Les opérations »):
+ * A session over, corrected after the fact (docs/TOOLS.md, « Session (Sequence) »):
  * its counts stay those of the same session, their sum the number of its steps, and its state
  * follows them. Pure: the service reads the entry, applies this, writes the result.
  */

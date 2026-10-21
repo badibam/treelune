@@ -325,7 +325,7 @@ interface ThemeContract {
     
     /**
      * The icon a zone or a tool is shown by, drawn [size] across, in its [color]: null for a
-     * neutral icon (docs/design/icon-colors.md). How a colour shows is the theme's, and it may
+     * neutral icon (docs/reference.md, « Icons »). How a colour shows is the theme's, and it may
      * set the icon on a badge larger than [size]: a neutral icon then takes the same room, so
      * the names beside icons line up whatever their colours.
      */
@@ -371,7 +371,7 @@ interface ThemeContract {
 
     /**
      * The ground of a page of the stack, around it (PlaceScreen): with the [texture] of a zone's
-     * or a tool's page (docs/design/tool-texture.md), the theme covers the page's whole area with
+     * or a tool's page (docs/THEMES.md, « What a theme is in the app »), the theme covers the page's whole area with
      * its screen's ground and the motif at its tone on that ground, hiding whatever else it lays
      * on that ground (the cosy's dots), as on the thing's tile; with null, it draws nothing and
      * FullScreen's ground shows. Every theme draws it: a textured page is the tile one has just
@@ -390,12 +390,12 @@ interface ThemeContract {
 
     /**
      * A zone's tile, filling the cells the home screen's grid gives it, as a tool's does; its
-     * [texture] laid inside its frame, behind its content (docs/design/tool-texture.md), none when null.
+     * [texture] laid inside its frame, behind its content (docs/THEMES.md, « What a theme is in the app »), none when null.
      */
     @Composable
     fun ZoneCardContainer(
         texture: ItemTexture?,
-        /** The colour of the zone's icon (docs/design/icon-colors.md), null for a neutral one: a theme may draw the tile in it. */
+        /** The colour of the zone's icon (docs/reference.md, « Icons »), null for a neutral one: a theme may draw the tile in it. */
         color: TagColor?,
         /**
          * The identifier of the thing the tile stands for (a tool's, a zone's, a settings entry's):
@@ -438,7 +438,7 @@ interface ThemeContract {
     fun ToolCardContainer(
         displayMode: DisplayMode,
         texture: ItemTexture?,
-        /** The colour of the tool's icon (docs/design/icon-colors.md), null for a neutral one: a theme may draw the tile in it. */
+        /** The colour of the tool's icon (docs/reference.md, « Icons »), null for a neutral one: a theme may draw the tile in it. */
         color: TagColor?,
         /**
          * The identifier of the thing the tile stands for (a tool's, a zone's, a settings entry's):

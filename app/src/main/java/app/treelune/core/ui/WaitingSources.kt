@@ -6,7 +6,7 @@ import androidx.compose.runtime.getValue
 
 /**
  * The app's single things that wait for the user (docs/BRICKS.md, Attente, its second form;
- * docs/design/waiting-sources.md). Each says at all times whether it waits and keeps its own
+ * docs/BRICKS.md, « Waiting »). Each says at all times whether it waits and keeps its own
  * rule of what makes it seen; what belongs to a zone (a tool's entries, a routine's runs) is the
  * first form, counted by zone ([Waiting]).
  */

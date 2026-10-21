@@ -75,7 +75,7 @@
             </intent-filter>
         </receiver>
         <!-- The external access (docs/design/mcp-server.md): its loop, and its quick settings tile -->
-        <!-- A session running (docs/design/sequence-tool.md): its timers and signals, screen on or off -->
+        <!-- A session running (docs/TOOLS.md, « Session (Sequence) »): its timers and signals, screen on or off -->
         <service
             android:name=".tools.sequence.SequenceRunService"
             android:exported="false"

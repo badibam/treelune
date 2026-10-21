@@ -471,7 +471,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
 
     /**
      * The refusal of [plan], or null when it can be applied: values it removes, entries it deletes
-     * and values it reads otherwise need [confirmed] (docs/design/config-change.md), and an entry
+     * and values it reads otherwise need [confirmed] (docs/DATA.md, « Config change »), and an entry
      * left without the value of a field now required is never stored: the caller gives one in
      * "fill_values".
      *
@@ -500,7 +500,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
      * protection of recorded data is off: with it on (Réglages › Validation), an AI's change
      * reaches here past ValidationResolver, which asked the person whenever the change touches
      * the past (in a chat, through the connector), or from a routine, which its access lets do it
-     * (docs/design/config-change.md).
+     * (docs/DATA.md, « Config change »).
      */
     private suspend fun migrationAgreed(params: JSONObject): Boolean {
         val asked = params.optBoolean("confirm_migration", false)
