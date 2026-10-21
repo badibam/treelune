@@ -108,7 +108,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 86
+        const val VERSION = 89
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -1951,6 +1951,81 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** A tool can own images, those its config holds: see ImagesAtV87. No other table names images. */
+        private val MIGRATION_86_87 = object : ConnectionMigration(86, 87) {
+            override fun migrate(database: MigrationDatabase) {
+                app.treelune.core.versioning.ImagesAtV87.STATEMENTS.forEach { database.execSQL(it) }
+                LogManager.database("MIGRATION 86->87: images gain tool_instance_id", "INFO")
+            }
+        }
+
+        /** A variable becomes a tile of its section, among the tools: see VariablesAtV88. */
+        private val MIGRATION_87_88 = object : ConnectionMigration(87, 88) {
+            override fun migrate(database: MigrationDatabase) {
+                val v = app.treelune.core.versioning.VariablesAtV88
+                // A tool whose config cannot be read is left out of the placing, logged
+                val tools = database.query("SELECT id, zone_id, config_json, grid_y FROM tool_instances").use { cursor ->
+                    buildList {
+                        while (cursor.moveToNext()) {
+                            try {
+                                add(v.toolRow(cursor.getString(1), cursor.getString(2), cursor.getInt(3)))
+                            } catch (e: Exception) {
+                                LogManager.database("MIGRATION 87->88: tool ${cursor.getString(0)} left out of the placing: ${e.message}", "ERROR", e)
+                            }
+                        }
+                    }
+                }
+                val lines = database.query("SELECT id, zone_id, `group`, order_index FROM variables").use { cursor ->
+                    buildList {
+                        while (cursor.moveToNext()) add(app.treelune.core.versioning.VariablesAtV88.Line(cursor.getString(0), cursor.getString(1), if (cursor.isNull(2)) null else cursor.getString(2), cursor.getInt(3)))
+                    }
+                }
+                val placed = v.placed(lines, tools)
+                v.CREATE.forEach { database.execSQL(it) }
+                database.execSQL(
+                    "INSERT INTO variables_new (id, zone_id, name, label, description, `group`, icon_name, icon_color, texture, display_mode, grid_x, grid_y, definition_json, created_at, updated_at) " +
+                        "SELECT id, zone_id, name, name, NULL, `group`, ?, NULL, NULL, ?, 0, 0, definition_json, created_at, updated_at FROM variables",
+                    arrayOf<Any?>(v.ICON, v.MODE)
+                )
+                placed.forEach { (id, row) -> database.execSQL("UPDATE variables_new SET grid_y = ? WHERE id = ?", arrayOf<Any?>(row, id)) }
+                v.REPLACE.forEach { database.execSQL(it) }
+                app.treelune.core.versioning.HistoryCopies.rewrite(database, "variables") { v.copy(it, placed[it.optString("id")] ?: 0) }
+                LogManager.database("MIGRATION 87->88: ${lines.size} variable(s) placed among their section's tools", "INFO")
+            }
+        }
+
+        /** A routine becomes a tile of its section, among the tools and the variables: see AutomationsAtV89. */
+        private val MIGRATION_88_89 = object : ConnectionMigration(88, 89) {
+            override fun migrate(database: MigrationDatabase) {
+                val a = app.treelune.core.versioning.AutomationsAtV89
+                // A tool whose config cannot be read is left out of the placing, logged
+                val tiles = buildList {
+                    database.query("SELECT id, zone_id, config_json, grid_y FROM tool_instances").use { cursor ->
+                        while (cursor.moveToNext()) {
+                            try {
+                                val config = org.json.JSONObject(cursor.getString(2))
+                                add(a.below(cursor.getString(1), config.optString("group"), cursor.getInt(3), config.getString("display_mode")))
+                            } catch (e: Exception) {
+                                LogManager.database("MIGRATION 88->89: tool ${cursor.getString(0)} left out of the placing: ${e.message}", "ERROR", e)
+                            }
+                        }
+                    }
+                    database.query("SELECT zone_id, `group`, grid_y, display_mode FROM variables").use { cursor ->
+                        while (cursor.moveToNext()) add(a.below(cursor.getString(0), if (cursor.isNull(1)) null else cursor.getString(1), cursor.getInt(2), cursor.getString(3)))
+                    }
+                }
+                val routines = database.query("SELECT id, zone_id, `group`, created_at FROM automations").use { cursor ->
+                    buildList {
+                        while (cursor.moveToNext()) add(app.treelune.core.versioning.AutomationsAtV89.Routine(cursor.getString(0), cursor.getString(1),
+                            if (cursor.isNull(2)) null else cursor.getString(2), cursor.getLong(3)))
+                    }
+                }
+                a.STATEMENTS.forEach { database.execSQL(it) }
+                a.placed(routines, tiles).forEach { (id, row) -> database.execSQL("UPDATE automations SET grid_y = ? WHERE id = ?", arrayOf<Any?>(row, id)) }
+                LogManager.database("MIGRATION 88->89: ${routines.size} routine(s) placed among their section's tools", "INFO")
+            }
+        }
+
         /** The connector gains its own data threshold: see ExternalAccessDataAtV84. */
         private val MIGRATION_83_84 = object : ConnectionMigration(83, 84) {
             override fun migrate(database: MigrationDatabase) {
@@ -2984,7 +3059,10 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_82_83,
                     MIGRATION_83_84,
                     MIGRATION_84_85,
-                    MIGRATION_85_86
+                    MIGRATION_85_86,
+                    MIGRATION_86_87,
+                    MIGRATION_87_88,
+                    MIGRATION_88_89
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

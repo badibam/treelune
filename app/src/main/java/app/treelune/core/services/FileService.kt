@@ -27,7 +27,7 @@ import java.util.UUID
  *   with the session, its file written before its row; its `id`, `width`, `height`,
  *   `size_bytes`, `format` and `animated` (only its first frame kept).
  * - prepare_image: `uri`: the image prepared for an entry's IMAGE field, its file set aside
- *   without a row until the entry is written (ToolDataService, EntryImages); the same answer.
+ *   without a row until the entry is written (ToolDataService, OwnedImages); the same answer.
  * - delete_image: `id`: an image taken off the composer; its row deleted before its file.
  * - show_images: `session_id`, `ids`: images of entries brought into the conversation, as if the
  *   user had joined them, for the model to see them (the AI's IMAGES): each copied as an image
@@ -77,6 +77,7 @@ class FileService(private val context: Context) : ExecutableService {
             id = UUID.randomUUID().toString(),
             sessionId = sessionId,
             entryId = null,
+            toolInstanceId = null,
             format = prepared.format.name,
             sizeBytes = prepared.bytes.size.toLong(),
             width = prepared.width,

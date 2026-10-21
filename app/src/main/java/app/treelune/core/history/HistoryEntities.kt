@@ -125,9 +125,12 @@ interface HistoryDao {
     @Query("SELECT DISTINCT row_id FROM history_rows WHERE table_name = 'images'")
     suspend fun keptImages(): List<String>
 
-    /** Whether an entry's copy of the history names [imageId]: an id is a UUID, found in a copy's text only as a value. */
-    @Query("SELECT EXISTS (SELECT 1 FROM history_rows WHERE table_name = 'tool_data' AND (before LIKE '%' || :imageId || '%' OR after LIKE '%' || :imageId || '%'))")
-    suspend fun entriesName(imageId: String): Boolean
+    /**
+     * Whether a copy of the history of an entry or a tool names [imageId]: an id is a UUID, found
+     * in a copy's text only as a value.
+     */
+    @Query("SELECT EXISTS (SELECT 1 FROM history_rows WHERE table_name IN ('tool_data', 'tool_instances') AND (before LIKE '%' || :imageId || '%' OR after LIKE '%' || :imageId || '%'))")
+    suspend fun ownersName(imageId: String): Boolean
 
     /** Each step and noted write with the room its rows take, the most recent first. */
     @Query("""

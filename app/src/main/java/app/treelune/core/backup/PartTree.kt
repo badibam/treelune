@@ -75,7 +75,7 @@ data class PartTree(val zones: List<Zone>, val links: Set<PartLink>) {
                     val config = JSONObject(tool.getString("config_json"))
                     Element(PartElement.Kind.TOOL, tool.getString("id"), config.optString("name"), config.optString("group").ifEmpty { null },
                         tool.getString("tooltype"), entries[tool.getString("id")] ?: 0)
-                } + variables[id].orEmpty().sortedBy { it.optInt("order_index") }.map { variable ->
+                } + variables[id].orEmpty().sortedWith(compareBy({ it.optInt("grid_y") }, { it.optInt("grid_x") })).map { variable ->
                     Element(PartElement.Kind.VARIABLE, variable.getString("id"), variable.getString("name"), variable.group(), null, 0)
                 } + routines[id].orEmpty().sortedBy { it.getString("name") }.map { routine ->
                     Element(PartElement.Kind.ROUTINE, routine.getString("id"), routine.getString("name"), routine.group(), null, 0)

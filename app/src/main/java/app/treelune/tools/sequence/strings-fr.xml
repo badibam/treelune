@@ -5,8 +5,8 @@
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
     <string name="usage">Pour ce qui se fait étape par étape en suivant l\'écran : un entraînement, une recette, des étirements. Chaque étape se termine sur un minuteur ou sur « Fait », avec un son, une vibration ou une voix à chaque changement.\n## Ce qu\'il fait\n- Son propre planning : à chaque heure prévue, une notification et une séance prête\n- Chaque séance faite est gardée, avec sa durée et les étapes faites ou sautées\n- Une séance prévue mais jamais faite apparaît comme manquée\n## Pas fait pour\n- Un rappel sans rien à suivre (Messages)\n- Une valeur notée seule (Suivi)</string>
     <!-- The Guide's chapter, beside the usage: every setting of the config, every button of the screen (Markup) -->
-    <string name="guide_config">## Les étapes\nChaque élément est une étape ou un bloc. Une étape a un nom et une consigne, affichée pendant l\'étape et lue à voix haute (« 10 × 60 kg »). Elle se termine de trois façons :\n- Au minuteur : l\'étape suivante démarre d\'elle-même\n- À la main : un chrono tourne jusqu\'à ce que tu touches « Fait »\n- Au minuteur, puis à la main : le minuteur sonne, et le chrono continue jusqu\'à « Fait »\n\n## Les blocs\nUn bloc répète ses étapes un certain nombre de tours.\n- Sautée au dernier tour : l\'étape n\'est pas faite au dernier tour du bloc, comme un repos après lequel il ne reste rien\n\n## Les signaux\n- À chaque changement d\'étape : son et vibration, son seul, vibration seule, ou rien\n- Décompte : un bip à 3, 2 et 1 seconde de la fin d\'une étape au minuteur\n- Voix : annonce l\'étape qui commence et sa consigne\n\n## Le planning\n- Séances prévues : aux heures choisies, chacune avec sa notification\n- Activée : décochée, plus aucune séance n\'est prévue</string>
-    <string name="guide_screen">## Avant\n- Commencer : lance la séance, après un « Prépare-toi »\nPour une séance prévue en attente :\n- Faite : tu l\'as faite sans suivre l\'écran\n- Ignorer : elle ne compte pas\n- Tout ignorer : pour celles qui se sont accumulées pendant une absence\n\n## Pendant\n- Pause, puis Reprendre\n- Fait : termine l\'étape à la main\n- Passer : saute l\'étape\n- Retour : revient à l\'étape précédente\n- +15 s : allonge le minuteur\n- Recommencer l\'étape\n- {square} Arrêter : les étapes pas encore atteintes restent non faites\nSi l\'app se ferme pendant une séance, la séance reprend à son étape, et le temps passé compte comme une pause.\n\n## Après\nChaque séance est gardée dans l\'historique, avec sa durée et ses étapes. Touche une séance pour corriger ses étapes : faites, sautées, non atteintes.</string>
+    <string name="guide_config">## Les étapes\nChaque élément est une étape ou un bloc. Une étape a un nom et une consigne, affichée pendant l\'étape et lue à voix haute (« 10 × 60 kg »), et des Images, montrées pendant l\'étape aussi, la première en grand (une posture, un plat). Elle se termine de trois façons :\n- Au minuteur : l\'étape suivante démarre d\'elle-même\n- À la main : un chrono tourne jusqu\'à ce que tu touches « Fait »\n- Au minuteur, puis à la main : le minuteur sonne, et le chrono continue jusqu\'à « Fait »\n\n## Les blocs\nUn bloc répète ses étapes un certain nombre de tours.\n- Sautée au dernier tour : l\'étape n\'est pas faite au dernier tour du bloc, comme un repos après lequel il ne reste rien\n\n## Les signaux\n- À chaque changement d\'étape : son et vibration, son seul, vibration seule, ou rien\n- Décompte : un bip à 3, 2 et 1 seconde de la fin d\'une étape au minuteur\n- Voix : annonce l\'étape qui commence et sa consigne\n\n## Le planning\n- Séances prévues : aux heures choisies, chacune avec sa notification\n- Activée : décochée, plus aucune séance n\'est prévue</string>
+    <string name="guide_screen">## Avant\n- Commencer : lance la séance, après un « Prépare-toi »\nPour une séance prévue en attente :\n- Faite : tu l\'as faite sans suivre l\'écran\n- Ignorer : elle ne compte pas\n- Tout ignorer : pour celles qui se sont accumulées pendant une absence\n\n## Pendant\n- Pause, puis Reprendre\n- Fait : termine l\'étape à la main\n- Passer : saute l\'étape\n- Retour : revient à l\'étape précédente\n- +15 s : allonge le minuteur\n- Recommencer l\'étape\n- {square} Arrêter : les étapes pas encore atteintes restent non faites\nSi l\'app se ferme pendant une séance, la séance reprend à son étape, et le temps passé compte comme une pause.\n\n## Après\n- Terminer la séance : sous tes champs si l\'outil en a ; jusque-là la séance attend, et une autre ne peut pas commencer\nChaque séance est gardée dans l\'historique, avec sa durée et ses étapes. Touche une séance pour corriger ses étapes (faites, sautées, non atteintes) et tes champs.</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Des étapes préparées à l\'avance, suivies à l\'écran avec un minuteur et un signal à chaque changement : un entraînement, une recette</string>
     <string name="section_steps">Déroulé</string>
@@ -23,6 +23,8 @@
     <string name="field_step_name">Nom de l\'étape</string>
     <string name="field_instruction">Consigne</string>
     <string name="schema_instruction">Montrée pendant l\'étape, et dite par la voix si elle est activée (« 10 × 60 kg », « Pendant ce temps : la sauce »)</string>
+    <string name="field_step_images">Images</string>
+    <string name="schema_step_images">Montrées pendant l\'étape, la première en grand (une posture, un plat) : des ids d\'images, comme un champ IMAGE les garde</string>
     <string name="field_end">Fin</string>
     <string name="schema_end">timed : le minuteur descend, puis l\'étape suivante vient d\'office ; manual : un chrono monte jusqu\'à « Fait » ; timed_then_manual : le minuteur sonne, puis le chrono continue jusqu\'à « Fait »</string>
     <string name="end_timed">Au temps</string>
@@ -46,9 +48,10 @@
     <string name="field_enabled">Activée</string>
     <string name="schema_enabled">Désactivée, aucune séance n\'est prévue</string>
     <string name="field_status">État</string>
-    <string name="schema_status">planned, running, done, stopped ou ignored</string>
+    <string name="schema_status">planned, running, to_finish (finie, en attente de « Terminer la séance »), done, stopped ou ignored</string>
     <string name="status_planned">Prévue</string>
     <string name="status_running">En cours</string>
+    <string name="status_to_finish">À terminer</string>
     <string name="status_done">Faite</string>
     <string name="status_stopped">Arrêtée</string>
     <string name="status_ignored">Ignorée</string>
@@ -74,6 +77,9 @@
     <string name="error_gesture_origin">Commencer une séance et ses gestes appartiennent à qui la fait</string>
     <string name="error_already_running">Cette séance est déjà en cours</string>
     <string name="error_running_elsewhere">Une séance est déjà en cours : %1$s</string>
+    <string name="error_to_finish">Cette séance est finie et attend d\'être terminée : touche « Terminer la séance »</string>
+    <string name="error_to_finish_elsewhere">Une séance finie attend d\'être terminée : %1$s</string>
+    <string name="error_not_to_finish">Cette séance n\'attend pas d\'être terminée</string>
     <string name="error_no_steps">La séance n\'a aucune étape</string>
     <string name="error_not_running">Cette séance n\'est pas en cours</string>
     <string name="error_not_planned">Cette séance n\'est pas une séance prévue</string>
@@ -93,6 +99,8 @@
     <string name="action_resume_interrupted">Reprendre</string>
     <string name="confirm_stop">Arrêter la séance ? Les étapes non atteintes resteront non faites.</string>
     <string name="interrupted">Cette séance s\'est arrêtée avec l\'app. La reprendre : son étape recommence, le temps écoulé compte comme une pause.</string>
+    <string name="closing_title">Séance finie</string>
+    <string name="action_finish">Terminer la séance</string>
     <string name="running_position">Étape %1$d / %2$d</string>
     <string name="running_get_ready">Prépare-toi</string>
     <string name="running_paused">En pause</string>
@@ -104,11 +112,13 @@
     <string name="history_empty">Aucune séance pour l\'instant</string>
     <string name="steps_of">%1$d / %2$d étapes</string>
     <string name="tile_planned">Prévue</string>
+    <string name="tile_to_finish">À terminer</string>
     <string name="tile_next">Prochaine</string>
     <string name="tile_last">Dernière</string>
     <string name="channel">Séance en cours</string>
     <string name="notification_starting">Démarrage</string>
     <string name="notification_paused">%1$s · en pause</string>
+    <string name="notification_to_finish">Séance finie : touche pour la terminer</string>
     <string name="notification_planned">Une séance est prévue</string>
     <string name="field_when">Quand</string>
     <string name="schema_complete_id">La séance prévue faite ; absent pour une séance qui n\'était pas prévue</string>

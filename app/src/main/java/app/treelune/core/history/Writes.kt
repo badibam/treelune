@@ -79,6 +79,12 @@ class Writes(private val context: Context) {
 
     suspend fun updateVariable(variable: VariableEntity) = write(CoveredTable.VARIABLES, variable.id) { database.variableDao().update(variable) }
 
+    suspend fun moveAutomation(id: String, gridX: Int, gridY: Int) =
+        write(CoveredTable.AUTOMATIONS, id) { database.aiDao().updateAutomationPosition(id, gridX, gridY) }
+
+    suspend fun moveVariable(id: String, gridX: Int, gridY: Int) =
+        write(CoveredTable.VARIABLES, id) { database.variableDao().updatePosition(id, gridX, gridY) }
+
     suspend fun deleteVariable(id: String) = delete(CoveredTable.VARIABLES, id) { database.variableDao().deleteById(id) }
 
     // ── Automations ──
@@ -296,9 +302,11 @@ class Writes(private val context: Context) {
         CoveredTable.VARIABLES, CoveredTable.AUTOMATIONS -> Place(null, row.getString("zone_id"))
         CoveredTable.AI_SESSIONS -> sessionPlace(row.getString("id"))
         CoveredTable.SESSION_MESSAGES -> sessionPlace(row.getString("session_id"))
-        CoveredTable.IMAGES -> if (!row.isNull("entry_id")) {
-            Rows.read(database, CoveredTable.TOOL_DATA, row.getString("entry_id"))?.let { toolPlace(it.getString("tool_instance_id")) }
-        } else sessionPlace(row.getString("session_id"))
+        CoveredTable.IMAGES -> when {
+            !row.isNull("entry_id") -> Rows.read(database, CoveredTable.TOOL_DATA, row.getString("entry_id"))?.let { toolPlace(it.getString("tool_instance_id")) }
+            !row.isNull("tool_instance_id") -> toolPlace(row.getString("tool_instance_id"))
+            else -> sessionPlace(row.getString("session_id"))
+        }
         CoveredTable.IDENTITIES, CoveredTable.MCP_CLIENTS, CoveredTable.APP_SETTINGS -> null
     }
 

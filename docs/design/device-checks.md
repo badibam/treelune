@@ -69,6 +69,12 @@ Avec le relais en place (son projet `relay`, en ligne sur `https://relay.badibam
 - « Pause » : le temps s'arrête, la notification dit « en pause », aucun bip ; « Reprendre » repart d'où il en était.
 - Téléphone en silencieux ou en vibreur : aucun son ni voix, la vibration reste.
 - Forcer l'arrêt de l'app pendant une séance, rouvrir l'outil : « Cette séance s'est arrêtée avec l'app » ; « Reprendre » relance l'étape, « Arrêter » la clôt.
+- Les variables parmi les outils : une zone de la démo réinstallée, ses variables en tuiles à leur place (Cuisine : Objectif calorique et Calories du jour côte à côte en Compact) ; une variable mise à jour d'avant garde sa valeur, son nom comme libellé, en Ligne sous les outils de sa section ; Disposer la déplace parmi les outils ; son icône, sa couleur, sa texture et son mode changés sur sa page ; une variable passée dans un autre groupe change de grille.
+- L'accueil dans chaque thème, ses zones dans chacun des quatre modes (une sans icône en ICON) : à l'identique d'avant, la tuile d'une zone passant par la tuile commune (`UI.LookCard`).
+- Une routine lancée : la marque « en cours » sur son icône et sur la tuile de sa zone à l'accueil, partie à la fin de l'exécution.
+- Les routines parmi les outils : une mise à jour d'avant les montre en Étendu sous les outils et variables de leur section, « Routine » sous leur nom ; leurs quatre boutons, l'interrupteur et l'état marchent sur la tuile ; en Carré, leurs trois dernières exécutions avec leur résumé, chacune s'ouvre ; en Ligne et Compact, un toucher ouvre leur page, qui a l'état, l'interrupteur et les boutons (Réglages à la place d'Historique) ; un appui long ouvre leurs réglages, leur apparence comprise ; en file d'attente, Annuler à la place de Lancer.
+- Des images sur une étape (la config de la Séance, une photo prise et une de la galerie) : pendant la séance, la première en grand sous la consigne, les autres petites dessous, chacune ouverte en grand au toucher ; la première petite au bout de sa ligne dans le déroulé ; l'outil dupliqué garde ses images, une image retirée de l'étape disparaît.
+- Une séance finie écran éteint (dernière étape au temps) : la notification devient « Séance finie : touche pour la terminer », le point sur l'outil et la zone ; la toucher ouvre la page de fin, tes champs dessous ; « Terminer la séance » retire la notification et le point, la séance « Faite » dans l'historique ; « Commencer » refusé tant qu'elle attend. Pareil après « Arrêter », la séance « Arrêtée ».
 
 ## Agenda
 

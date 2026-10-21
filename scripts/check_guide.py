@@ -64,6 +64,11 @@ SHARED = {"English": CORE / "strings" / "sources" / "shared.xml", "French": CORE
 # SettingNode.ListOf("name", text("label")…), and ZoneSettings' field("name", "label"…)
 LABEL_CALL = re.compile(r'\b\w+\(\s*(?:"[^"]*"|[A-Za-z_][\w.]*)\s*,\s*(?:s\.shared|text)\("([a-z0-9_]+)"\)')
 LABEL_RAW = re.compile(r'\bfield\(\s*"[^"]+"\s*,\s*"([a-z0-9_]+)"')
+# A look's settings (core/look/Look.kt, Looks.nodes), spread into a declaration: its name, labelled by
+# the owner's spec (nameLabel = "…", in the same file), then the labels every look shares
+LOOK_NODES = re.compile(r"\bLooks\.nodes\(")
+LOOK_NAME = re.compile(r'\bnameLabel\s*=\s*"([a-z0-9_]+)"')
+LOOK_LABELS = ["label_description", "label_icon", "label_icon_color", "label_texture", "tools_config_label_display_mode"]
 
 
 def markup_problems(where, text, icons):
@@ -157,6 +162,8 @@ def main():
                 problems.append(f"{cid}: the declaration of '{form}' is not found where FORMS says")
                 continue
             labels = LABEL_CALL.findall(body) + LABEL_RAW.findall(body)
+            if LOOK_NODES.search(body):
+                labels += LOOK_NAME.findall(FORMS[form][0].read_text(encoding="utf-8")) + LOOK_LABELS
             if not labels:
                 problems.append(f"{cid}: no setting read in the declaration of '{form}'")
             for lang in TEXTS:

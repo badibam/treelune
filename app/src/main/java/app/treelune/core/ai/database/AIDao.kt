@@ -162,6 +162,9 @@ interface AIDao {
     @Query("SELECT * FROM automations WHERE is_enabled = 1")
     suspend fun getAllEnabledAutomations(): List<AutomationEntity>
 
+    @Query("UPDATE automations SET grid_x = :gridX, grid_y = :gridY WHERE id = :id")
+    suspend fun updateAutomationPosition(id: String, gridX: Int, gridY: Int)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAutomation(automation: AutomationEntity)
 

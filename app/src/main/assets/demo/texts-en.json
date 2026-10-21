@@ -470,5 +470,12 @@
   "lexicon_partire": "to leave",
   "lexicon_arrivare": "to arrive",
   "lexicon_vicino": "near",
-  "lexicon_veloce": "fast"
+  "lexicon_veloce": "fast",
+  "var_km_target_label": "Weekly distance goal",
+  "var_km_week_label": "Distance this week",
+  "var_weight_7d_label": "Average weight, 7 days",
+  "var_kcal_target_label": "Calorie goal",
+  "var_kcal_day_label": "Calories today",
+  "var_kcal_left_label": "Calories left",
+  "var_hours_week_label": "Hours this week"
 }

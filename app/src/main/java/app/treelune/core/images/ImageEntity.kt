@@ -3,12 +3,13 @@ package app.treelune.core.images
 import androidx.room.*
 import app.treelune.core.ai.database.AISessionEntity
 import app.treelune.core.database.entities.ToolDataEntity
+import app.treelune.core.database.entities.ToolInstance
 
 /**
  * An image the app keeps, as a file of its own (Images), which this row describes: an image joined
- * to a message of a session, or one of an entry's IMAGE fields. Each row has exactly one owner,
- * [sessionId] or [entryId], never both, never none: the service that writes it says which. Its
- * row goes with its owner by cascade.
+ * to a message of a session, one of an entry's IMAGE fields, or one of a tool's config (a step's
+ * images). Each row has exactly one owner, [sessionId], [entryId] or [toolInstanceId], never two,
+ * never none: the service that writes it says which. Its row goes with its owner by cascade.
  *
  * The path follows from the owner's kind, the id and the format: none is stored. The file is
  * written before the row and deleted after it, so an orphan can only be a file, which the startup
@@ -28,16 +29,24 @@ import app.treelune.core.database.entities.ToolDataEntity
             parentColumns = ["id"],
             childColumns = ["entry_id"],
             onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = ToolInstance::class,
+            parentColumns = ["id"],
+            childColumns = ["tool_instance_id"],
+            onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index(value = ["session_id"]), Index(value = ["entry_id"])]
+    indices = [Index(value = ["session_id"]), Index(value = ["entry_id"]), Index(value = ["tool_instance_id"])]
 )
 data class ImageEntity(
     @PrimaryKey val id: String,
     /** The session whose message joined it; null for an entry's image */
     @ColumnInfo(name = "session_id") val sessionId: String?,
-    /** The entry whose IMAGE field holds it; null for a message's image */
+    /** The entry whose IMAGE field holds it; null otherwise */
     @ColumnInfo(name = "entry_id") val entryId: String?,
+    /** The tool whose config holds it in an IMAGE setting; null otherwise */
+    @ColumnInfo(name = "tool_instance_id") val toolInstanceId: String?,
     /** An ImageFormat's name: what its file is written as */
     val format: String,
     /** The size of its file */
@@ -47,7 +56,7 @@ data class ImageEntity(
     @ColumnInfo(name = "created_at") val createdAt: Long
 ) {
     init {
-        require((sessionId == null) != (entryId == null)) { "Image $id: one owner, a session or an entry" }
+        require(listOfNotNull(sessionId, entryId, toolInstanceId).size == 1) { "Image $id: one owner, a session, an entry or a tool" }
     }
 }
 
@@ -68,6 +77,9 @@ interface ImageDao {
     @Query("SELECT * FROM images WHERE entry_id = :entryId")
     suspend fun getForEntry(entryId: String): List<ImageEntity>
 
+    @Query("SELECT * FROM images WHERE tool_instance_id = :toolInstanceId")
+    suspend fun getForTool(toolInstanceId: String): List<ImageEntity>
+
     /** Every image, for a backup and for the startup sweep to tell the files no row names. */
     @Query("SELECT * FROM images")
     suspend fun getAll(): List<ImageEntity>
@@ -82,6 +94,13 @@ interface ImageDao {
         WHERE instr(tool_data.data, images.id) = 0 AND instr(COALESCE(tool_data.extra, ''), images.id) = 0
     """)
     suspend fun unnamedByTheirEntry(): List<ImageEntity>
+
+    /** The tools' images their tool's config no longer names: a setting removed, as unnamedByTheirEntry. */
+    @Query("""
+        SELECT images.* FROM images JOIN tool_instances ON tool_instances.id = images.tool_instance_id
+        WHERE instr(tool_instances.config_json, images.id) = 0
+    """)
+    suspend fun unnamedByTheirTool(): List<ImageEntity>
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(image: ImageEntity)

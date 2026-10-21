@@ -396,7 +396,7 @@
     <string name="action_verbalize_unknown">Unknown action</string>
     <string name="action_verbalize_tools_running">Find the running stopwatches in the tools</string>
     <string name="action_verbalize_zones_place">Move zones in their group</string>
-    <string name="action_verbalize_tools_place">Move tools in their group</string>
+    <string name="action_verbalize_zones_place_section">Move tools and variables in their group</string>
     <string name="action_verbalize_tools_waiting">Count what waits in the tools</string>
     <string name="action_verbalize_automations_waiting">Count the routines\' runs not yet read</string>
 
@@ -821,7 +821,6 @@
 
     <!-- Tools CONFIG - Strings shared by the tooltypes for configuration -->
     <string name="tools_config_label_name">Name</string>
-    <string name="tools_config_label_description">Description</string>
     <string name="tools_config_label_display_mode">Display mode</string>
     <string name="tools_config_label_icon">Icon</string>
 
@@ -1415,6 +1414,14 @@
     <string name="reading_failure_source_not_found">the tool read no longer exists</string>
     <string name="action_verbalize_readings_read">Reading a value from entries</string>
     <string name="variable_error_param">A variable needs "%1$s".</string>
+    <string name="look_error_display_mode">This tile shows as %2$s, not “%1$s”.</string>
+    <string name="variable_label_label">Label</string>
+    <string name="variable_schema_label">What the variable\'s tile and page show, free text (“Calories left”); required, never made from its name, which formulas write</string>
+    <string name="variable_schema_description">Optional description of what the variable is for, shown on its page</string>
+    <string name="variable_schema_icon_name">Name of the variable\'s icon (a Lucide icon name); variable when left out</string>
+    <string name="variable_schema_icon_color">Colour of the variable\'s icon, one of RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, PURPLE, PINK; null or absent for a neutral icon. Each theme draws it its own way</string>
+    <string name="variable_schema_texture">Motif laid on the variable\'s tile, one of LINES, DIAGONALS, GRID, ZIGZAG, WAVES, DOTS, CROSSES, STARS, RINGS, DIAMONDS, CONFETTI, CHECKER, BRICKS, SCALES, ICON (ICON repeats the variable\'s icon); null or absent for none. A matter of taste: set it when the person asks</string>
+    <string name="variable_schema_display_mode">How the variable\'s tile shows among its section\'s tools: ICON (its icon), MINIMAL (icon and label), LINE (its value beside), CONDENSED (its value below); LINE when left out</string>
     <string name="variable_error_not_found">No variable with the id %1$s.</string>
     <string name="variable_error_name">"%1$s" cannot be a name in a formula: a letter or _, then letters, digits or _.</string>
     <string name="variable_error_name_taken">A variable is already named %1$s: names are unique in the app.</string>
@@ -1738,6 +1745,12 @@
     <string name="label_config">Configuration</string>
 
     <!-- AUTOMATIONS - General -->
+    <string name="automation_schema_name">Name of the routine, shown on its tile</string>
+    <string name="automation_schema_description">Optional description of what the routine does</string>
+    <string name="automation_schema_icon_name">Name of the routine\'s icon (a Lucide icon name); bot when left out</string>
+    <string name="automation_schema_icon_color">Colour of the routine\'s icon, one of RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, PURPLE, PINK; null or absent for a neutral icon. Each theme draws it its own way</string>
+    <string name="automation_schema_texture">Motif laid on the routine\'s tile, one of LINES, DIAGONALS, GRID, ZIGZAG, WAVES, DOTS, CROSSES, STARS, RINGS, DIAMONDS, CONFETTI, CHECKER, BRICKS, SCALES, ICON (ICON repeats the routine\'s icon); null or absent for none. A matter of taste: set it when the person asks</string>
+    <string name="automation_schema_display_mode">How the routine\'s tile shows among its section\'s tools: ICON (its icon), MINIMAL (icon and name), LINE and CONDENSED (its state and its switch beside or below), EXTENDED (with its buttons, the default), SQUARE (with its last runs)</string>
     <string name="automation_display_name">Routine</string>
     <string name="automation_runs_display_name">Runs of a routine</string>
     <string name="automation_message_placeholder">Start message of the routine...</string>

@@ -151,13 +151,8 @@ fun ToolConfigScreen(
         return
     }
 
-    val editors = mapOf(
-        "icon_name" to iconEditor(toolType.getSuggestedIcons(), toolType.getDefaultIconName(), app.treelune.core.themes.IconColor.of(config.optString(app.treelune.core.themes.IconColor.KEY))),
-        // The colour and the texture each chosen on a page of the form, shown on the tool's icon, its type's for none
-        app.treelune.core.themes.IconColor.KEY to app.treelune.core.ui.components.iconColorPage(s.shared("label_icon_color"),
-            config.optString("icon_name").ifBlank { toolType.getDefaultIconName() }, config.optString(app.treelune.core.themes.Texture.KEY).ifBlank { null }),
-        app.treelune.core.themes.Texture.KEY to app.treelune.core.ui.components.texturePage(s.shared("label_texture"),
-            config.optString("icon_name").ifBlank { toolType.getDefaultIconName() }, config.optString(app.treelune.core.themes.IconColor.KEY).ifBlank { null }),
+    // Its icon, colour and texture, as every look's (Looks), shown on its type's icon for none
+    val editors = app.treelune.core.look.ui.lookEditors(app.treelune.core.tools.ToolConfigSettings.look(toolType), config, s) { config = it } + mapOf(
         "group" to groupEditor(groups, s.shared("label_group"))
     )
 
@@ -304,18 +299,6 @@ fun ToolConfigScreen(
                 }
             }
         }
-    }
-}
-
-/**
- * The icon picker, the type's suggestions first; an absent icon shows the type's own, in [color].
- * Another one chosen can be taken away, which brings the type's back.
- */
-private fun iconEditor(suggested: List<String>, default: String, color: app.treelune.core.themes.TagColor?) = object : SettingEditor {
-    @Composable
-    override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
-        IconSelector(current = value as? String ?: default, color = color, suggested = suggested, onChange = { onChange(it) },
-            onClear = (value as? String)?.takeIf { it.isNotBlank() && it != default }?.let { { onChange(null) } })
     }
 }
 

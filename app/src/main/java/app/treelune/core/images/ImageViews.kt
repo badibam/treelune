@@ -42,6 +42,9 @@ import kotlin.math.max
 /** The height of an image shown in place: a thumbnail, the whole image a touch away. */
 val IMAGE_THUMBNAIL_HEIGHT: Dp = 96.dp
 
+/** The height of an image shown large in place: a step's during a session. */
+val IMAGE_LARGE_HEIGHT: Dp = 280.dp
+
 /** The height of an image in a short form: a tile, a table's cell, a note's card. */
 val IMAGE_SMALL_HEIGHT: Dp = 40.dp
 

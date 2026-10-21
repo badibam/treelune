@@ -75,7 +75,7 @@ class BackupImagesTest {
         val sessionId = session.data!!["session_id"] as String
         val messageBytes = byteArrayOf(4, 5, 6, 7)
         Images.write(Images.sessionFile(context, "ticket", ImageFormat.JPEG), messageBytes)
-        images.insert(ImageEntity("ticket", sessionId, null, ImageFormat.JPEG.name, messageBytes.size.toLong(), 10, 10, 0L))
+        images.insert(ImageEntity("ticket", sessionId, null, null, ImageFormat.JPEG.name, messageBytes.size.toLong(), 10, 10, 0L))
 
         // The backup written as the export writes it, then the images gone from the app
         val file = File(context.cacheDir, "backup.zip")

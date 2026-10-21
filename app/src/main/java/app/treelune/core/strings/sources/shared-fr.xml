@@ -396,7 +396,7 @@
     <string name="action_verbalize_unknown">Action inconnue</string>
     <string name="action_verbalize_tools_running">Recherche des chronomètres en cours dans les outils</string>
     <string name="action_verbalize_zones_place">Déplacement de zones dans leur groupe</string>
-    <string name="action_verbalize_tools_place">Déplacement d\'outils dans leur groupe</string>
+    <string name="action_verbalize_zones_place_section">Déplacement d\'outils et de variables dans leur groupe</string>
     <string name="action_verbalize_tools_waiting">Compte de ce qui attend dans les outils</string>
     <string name="action_verbalize_automations_waiting">Compte des exécutions de routines pas encore lues</string>
 
@@ -821,7 +821,6 @@
 
     <!-- Tools CONFIG - Chaînes communes aux tooltypes pour la configuration -->
     <string name="tools_config_label_name">Nom</string>
-    <string name="tools_config_label_description">Description</string>
     <string name="tools_config_label_display_mode">Mode d\'affichage</string>
     <string name="tools_config_label_icon">Icône</string>
 
@@ -1415,6 +1414,14 @@
     <string name="reading_failure_source_not_found">l\'outil lu n\'existe plus</string>
     <string name="action_verbalize_readings_read">Lecture d\'une valeur dans des entrées</string>
     <string name="variable_error_param">Une variable demande "%1$s".</string>
+    <string name="look_error_display_mode">Cette tuile s\'affiche en %2$s, pas en « %1$s ».</string>
+    <string name="variable_label_label">Libellé</string>
+    <string name="variable_schema_label">Ce que montrent la tuile et la page de la variable, texte libre (« Calories restantes ») ; obligatoire, jamais tiré de son nom, que les formules écrivent</string>
+    <string name="variable_schema_description">Description facultative de ce à quoi sert la variable, montrée sur sa page</string>
+    <string name="variable_schema_icon_name">Nom de l\'icône de la variable (un nom d\'icône Lucide) ; variable si absent</string>
+    <string name="variable_schema_icon_color">Couleur de l\'icône de la variable, parmi RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, PURPLE, PINK ; null ou absent pour une icône neutre. Chaque thème la dessine à sa façon</string>
+    <string name="variable_schema_texture">Motif posé sur la tuile de la variable, parmi LINES, DIAGONALS, GRID, ZIGZAG, WAVES, DOTS, CROSSES, STARS, RINGS, DIAMONDS, CONFETTI, CHECKER, BRICKS, SCALES, ICON (ICON répète l\'icône de la variable) ; null ou absent pour aucun. Une affaire de goût : à poser quand la personne le demande</string>
+    <string name="variable_schema_display_mode">Comment la tuile de la variable s\'affiche parmi les outils de sa section : ICON (son icône), MINIMAL (icône et libellé), LINE (sa valeur à côté), CONDENSED (sa valeur dessous) ; LINE si absent</string>
     <string name="variable_error_not_found">Aucune variable n\'a l\'id %1$s.</string>
     <string name="variable_error_name">« %1$s » ne peut pas être un nom dans une formule : une lettre ou _, puis lettres, chiffres ou _.</string>
     <string name="variable_error_name_taken">Une variable s\'appelle déjà %1$s : les noms sont uniques dans l\'app.</string>
@@ -1738,6 +1745,12 @@
     <string name="label_config">Configuration</string>
 
     <!-- AUTOMATIONS - General -->
+    <string name="automation_schema_name">Nom de la routine, montré sur sa tuile</string>
+    <string name="automation_schema_description">Description facultative de ce que fait la routine</string>
+    <string name="automation_schema_icon_name">Nom de l\'icône de la routine (un nom d\'icône Lucide) ; bot si absent</string>
+    <string name="automation_schema_icon_color">Couleur de l\'icône de la routine, parmi RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, PURPLE, PINK ; null ou absent pour une icône neutre. Chaque thème la dessine à sa façon</string>
+    <string name="automation_schema_texture">Motif posé sur la tuile de la routine, parmi LINES, DIAGONALS, GRID, ZIGZAG, WAVES, DOTS, CROSSES, STARS, RINGS, DIAMONDS, CONFETTI, CHECKER, BRICKS, SCALES, ICON (ICON répète l\'icône de la routine) ; null ou absent pour aucun. Une affaire de goût : à poser quand la personne le demande</string>
+    <string name="automation_schema_display_mode">Comment la tuile de la routine s\'affiche parmi les outils de sa section : ICON (son icône), MINIMAL (icône et nom), LINE et CONDENSED (son état et son interrupteur à côté ou dessous), EXTENDED (avec ses boutons, par défaut), SQUARE (avec ses dernières exécutions)</string>
     <string name="automation_display_name">Routine</string>
     <string name="automation_runs_display_name">Exécutions d\'une routine</string>
     <string name="automation_message_placeholder">Message de démarrage de la routine...</string>

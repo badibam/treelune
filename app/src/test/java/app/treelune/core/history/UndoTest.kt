@@ -130,6 +130,7 @@ class UndoTest {
         val variable = coordinator.processUserAction("variables.create", mapOf(
             "zone_id" to zoneId,
             "name" to "objectif_calorique",
+            "label" to "Objectif calorique",
             "definition" to mapOf("kind" to "CONSTANT", "value" to 2100, "field" to mapOf("type" to "NUMERIC"))
         ))
         assertTrue(variable.error, variable.isSuccess)

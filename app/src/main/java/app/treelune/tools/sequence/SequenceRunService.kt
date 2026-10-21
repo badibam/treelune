@@ -24,11 +24,13 @@ import app.treelune.core.utils.LogManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONObject
 
@@ -113,7 +115,18 @@ class SequenceRunService : Service() {
             } finally {
                 SequenceLive.setRunning(null)
                 releaseWakeLock()
-                stopForeground(STOP_FOREGROUND_REMOVE)
+                // A session over waiting for « Finish the session » leaves its notification, which
+                // says so; finishing it removes it (clearEnded)
+                val toFinish = withContext(NonCancellable) {
+                    AppDatabase.getDatabase(applicationContext).toolDataDao().getById(id)
+                        ?.let { SequenceService.statusOf(it) } == SequenceToolType.Status.TO_FINISH
+                }
+                if (toFinish) {
+                    getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, ended())
+                    stopForeground(STOP_FOREGROUND_DETACH)
+                } else {
+                    stopForeground(STOP_FOREGROUND_REMOVE)
+                }
                 stopSelf()
             }
         }
@@ -231,14 +244,10 @@ class SequenceRunService : Service() {
         if (manager.getNotificationChannel(CHANNEL) == null) {
             manager.createNotificationChannel(NotificationChannel(CHANNEL, s.tool("channel"), NotificationManager.IMPORTANCE_LOW))
         }
-        val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            toolInstanceId?.let { putExtra(MainActivity.EXTRA_TOOL_INSTANCE_ID, it) }
-        }, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         val builder = NotificationCompat.Builder(this, CHANNEL)
             .setSmallIcon(Icons.lucideDrawable(this, settings.icon) ?: android.R.drawable.ic_media_play)
             .setContentTitle(settings.name.ifEmpty { s.tool("display_name") })
-            .setContentIntent(open)
+            .setContentIntent(openTool())
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setSilent(true)
@@ -261,6 +270,24 @@ class SequenceRunService : Service() {
         return builder.build()
     }
 
+    /** The notification of a session over, until « Finish the session »: touched, it opens the tool. */
+    private fun ended(): Notification {
+        val s = Strings.`for`(tool = "sequence", context = this)
+        return NotificationCompat.Builder(this, CHANNEL)
+            .setSmallIcon(Icons.lucideDrawable(this, settings.icon) ?: android.R.drawable.ic_media_play)
+            .setContentTitle(settings.name.ifEmpty { s.tool("display_name") })
+            .setContentText(s.tool("notification_to_finish"))
+            .setContentIntent(openTool())
+            .setSilent(true)
+            .build()
+    }
+
+    /** Opens the app on the session's tool. */
+    private fun openTool(): PendingIntent = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java).apply {
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        toolInstanceId?.let { putExtra(MainActivity.EXTRA_TOOL_INSTANCE_ID, it) }
+    }, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+
     private fun gesture(operation: String, requestCode: Int): PendingIntent = PendingIntent.getService(this, requestCode,
         Intent(this, SequenceRunService::class.java).setAction(ACTION_GESTURE).putExtra(EXTRA_OPERATION, operation),
         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
@@ -282,5 +309,10 @@ class SequenceRunService : Service() {
 
         /** The longest the service sleeps without a signal due: the notification is redrawn then. */
         private const val IDLE_WAIT = 60_000L
+
+        /** The notification of a session over removed, once it is finished. */
+        fun clearEnded(context: android.content.Context) {
+            context.getSystemService(NotificationManager::class.java).cancel(NOTIFICATION_ID)
+        }
     }
 }

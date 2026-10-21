@@ -108,7 +108,15 @@ class BackupService(private val context: Context) : ExecutableService {
             // Absent from a backup made before version 76: every run signalled, as the migration does
             notifyEnd = item.optString("notify_end", app.treelune.core.ai.data.AutomationSettings.NOTIFY_ALWAYS),
             // Absent from a backup made before version 77: the app's own AI, as the migration does
-            identityId = item.nullableString("identity_id")
+            identityId = item.nullableString("identity_id"),
+            // A backup older than v89 is brought to this form first (AutomationsAtV89)
+            description = item.nullableString("description"),
+            iconName = item.getString("icon_name"),
+            iconColor = item.nullableString("icon_color"),
+            texture = item.nullableString("texture"),
+            displayMode = item.getString("display_mode"),
+            gridX = item.getInt("grid_x"),
+            gridY = item.getInt("grid_y")
         )
     }
 
@@ -358,12 +366,12 @@ class BackupService(private val context: Context) : ExecutableService {
             val identities = database.identityDao().getAll()
             // The files joined to messages, with their session
             val attachedFiles = aiSessions.flatMap { database.attachedFileDao().getForSession(it.id) }
-            // The images of messages and entries: their rows in the JSON, their files beside it.
+            // The images of messages, entries and tools: their rows in the JSON, their files beside it.
             // An image whose file is missing is an error the backup copies as it is, neither
             // hidden nor repaired: its row goes, named in missing_images, and the export says how many
             val images = database.imageDao().getAll()
             val missingImages = images.filter { !Images.file(context, it).exists() }
-            missingImages.forEach { LogManager.service("Backup export: the file of image ${it.id} (${it.sessionId?.let { s -> "session $s" } ?: "entry ${it.entryId}"}) is missing", "WARN") }
+            missingImages.forEach { LogManager.service("Backup export: the file of image ${it.id} (${it.sessionId?.let { s -> "session $s" } ?: it.entryId?.let { e -> "entry $e" } ?: "tool ${it.toolInstanceId}"}) is missing", "WARN") }
 
             // Check cancellation before building JSON
             if (token.isCancelled) return null
@@ -556,6 +564,13 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("access_json", automation.accessJson)
                                 put("notify_end", automation.notifyEnd)
                                 put("identity_id", automation.identityId ?: JSONObject.NULL)
+                                automation.description?.let { put("description", it) }
+                                put("icon_name", automation.iconName)
+                                automation.iconColor?.let { put("icon_color", it) }
+                                automation.texture?.let { put("texture", it) }
+                                put("display_mode", automation.displayMode)
+                                put("grid_x", automation.gridX)
+                                put("grid_y", automation.gridY)
                                 if (automation.group != null) {
                                     put("group", automation.group)
                                 }
@@ -570,8 +585,15 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("id", variable.id)
                                 put("zone_id", variable.zoneId)
                                 put("name", variable.name)
+                                put("label", variable.label)
+                                variable.description?.let { put("description", it) }
                                 variable.group?.let { put("group", it) }
-                                put("order_index", variable.orderIndex)
+                                put("icon_name", variable.iconName)
+                                variable.iconColor?.let { put("icon_color", it) }
+                                variable.texture?.let { put("texture", it) }
+                                put("display_mode", variable.displayMode)
+                                put("grid_x", variable.gridX)
+                                put("grid_y", variable.gridY)
                                 put("definition_json", variable.definitionJson)
                                 put("created_at", variable.createdAt)
                                 put("updated_at", variable.updatedAt)
@@ -616,13 +638,14 @@ class BackupService(private val context: Context) : ExecutableService {
                     // The images whose file was missing at the export: their rows go without one
                     put("missing_images", JSONArray(missingImages.map { it.id }))
 
-                    // Images of messages and entries: their files are entries of the zip
+                    // Images of messages, entries and tools: their files are entries of the zip
                     put("images", JSONArray().apply {
                         images.forEach { image ->
                             put(JSONObject().apply {
                                 put("id", image.id)
                                 image.sessionId?.let { put("session_id", it) }
                                 image.entryId?.let { put("entry_id", it) }
+                                image.toolInstanceId?.let { put("tool_instance_id", it) }
                                 put("format", image.format)
                                 put("size_bytes", image.sizeBytes)
                                 put("width", image.width)
@@ -678,11 +701,12 @@ class BackupService(private val context: Context) : ExecutableService {
                 return OperationResult.error("Operation cancelled")
             }
 
+            // An entry's or a tool's image, not a message's
             val entryImages = data.optJSONArray("images")?.let { images ->
-                (0 until images.length()).map { images.getJSONObject(it) }.filter { it.has("entry_id") }
+                (0 until images.length()).map { images.getJSONObject(it) }.filter { !it.has("session_id") }
                     .map { app.treelune.core.images.ImageFormat.valueOf(it.getString("format")).fileName(it.getString("id")) }
             }.orEmpty()
-            // An entry's image goes into the entries' folder, a message's stays flat
+            // An entry's or a tool's image goes into the entries' folder, a message's stays flat
             Images.sortImport(staging, entryImages)
 
             // Wipe all tables in reverse dependency order, then insert data
@@ -1123,8 +1147,15 @@ class BackupService(private val context: Context) : ExecutableService {
                         id = item.getString("id"),
                         zoneId = item.getString("zone_id"),
                         name = item.getString("name"),
+                        label = item.getString("label"),
+                        description = item.optString("description").takeIf { it.isNotEmpty() },
                         group = item.optString("group").takeIf { it.isNotEmpty() },
-                        orderIndex = item.getInt("order_index"),
+                        iconName = item.getString("icon_name"),
+                        iconColor = item.optString("icon_color").takeIf { it.isNotEmpty() },
+                        texture = item.optString("texture").takeIf { it.isNotEmpty() },
+                        displayMode = item.getString("display_mode"),
+                        gridX = item.getInt("grid_x"),
+                        gridY = item.getInt("grid_y"),
                         definitionJson = item.getString("definition_json"),
                         createdAt = item.getLong("created_at"),
                         updatedAt = item.getLong("updated_at")
@@ -1133,7 +1164,7 @@ class BackupService(private val context: Context) : ExecutableService {
             }
         }
 
-        // Images of messages and entries, after the sessions and the entries they belong to;
+        // Images of messages, entries and tools, after the sessions, entries and tools they belong to;
         // absent before v59. Their files are already set aside (performImport)
         data.optJSONArray("images")?.let { array ->
             for (i in 0 until array.length()) {
@@ -1143,6 +1174,7 @@ class BackupService(private val context: Context) : ExecutableService {
                         id = item.getString("id"),
                         sessionId = item.optString("session_id").takeIf { it.isNotEmpty() },
                         entryId = item.optString("entry_id").takeIf { it.isNotEmpty() },
+                        toolInstanceId = item.optString("tool_instance_id").takeIf { it.isNotEmpty() },
                         format = item.getString("format"),
                         sizeBytes = item.getLong("size_bytes"),
                         width = item.getInt("width"),
@@ -1333,6 +1365,12 @@ class BackupService(private val context: Context) : ExecutableService {
             }
             if (fromVersion < 86 && toVersion >= 86) {
                 app.treelune.core.versioning.DurationUnitsAtV86.backup(data)
+            }
+            if (fromVersion < 88 && toVersion >= 88) {
+                app.treelune.core.versioning.VariablesAtV88.backup(data)
+            }
+            if (fromVersion < 89 && toVersion >= 89) {
+                app.treelune.core.versioning.AutomationsAtV89.backup(data)
             }
 
             // Transform app settings

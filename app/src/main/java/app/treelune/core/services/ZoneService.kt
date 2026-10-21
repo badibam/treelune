@@ -4,7 +4,8 @@ import app.treelune.core.themes.IconColor
 import app.treelune.core.themes.Texture
 import app.treelune.core.utils.JsonUtils
 import android.content.Context
-import app.treelune.core.icons.Icons
+import app.treelune.core.look.Looks
+import app.treelune.core.schemas.ZoneSettings
 import app.treelune.core.database.AppDatabase
 import app.treelune.core.database.entities.Zone
 import app.treelune.core.coordinator.CancellationToken
@@ -49,6 +50,7 @@ class ZoneService(private val context: Context) : ExecutableService {
                 "get" -> handleGet(params, token)
                 "list" -> handleList(params, token)
                 "place" -> handlePlace(params)
+                "place_section" -> handlePlaceSection(params)
                 else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
             }
         } catch (e: Exception) {
@@ -71,17 +73,13 @@ class ZoneService(private val context: Context) : ExecutableService {
             is app.treelune.core.coordinator.GivenId.Read.Refused -> return OperationResult.error(s.shared("service_error_id_not_given").format(given.id))
         }
 
-        val description = params.givenText("description")
-
-        val icon = storedIcon(params.givenText("icon_name"))
-        if (icon is StoredIcon.Refused) return OperationResult.error(icon.message)
-        icon as StoredIcon.Kept
-
-        val iconColor = params.givenText(IconColor.KEY)
-        iconColorRefusal(iconColor)?.let { return OperationResult.error(it) }
-
-        val texture = params.givenText(Texture.KEY)
-        Texture.refusal(texture, icon.name, s::shared)?.let { return OperationResult.error(it) }
+        // Its name, description, icon, colour, texture and mode (Looks)
+        val lookValues = JSONObject().apply { Looks.keys(ZoneSettings.LOOK).forEach { key -> if (params.has(key)) put(key, params.get(key)) } }
+        val icon = when (val checked = Looks.check(ZoneSettings.LOOK, lookValues, null, context)) {
+            is Looks.Checked.Refused -> return OperationResult.error(checked.message)
+            is Looks.Checked.Kept -> checked
+        }
+        val look = Looks.read(ZoneSettings.LOOK, lookValues)
 
         // Parse tool_groups if provided (checked with the rest, checkZone)
         val toolGroupsJson = if (params.has("tool_groups")) {
@@ -105,11 +103,11 @@ class ZoneService(private val context: Context) : ExecutableService {
         val placing = Zone(
             id = zoneId,
             name = name,
-            description = description,
-            icon_name = icon.name,
-            icon_color = iconColor,
-            texture = texture,
-            display_mode = params.givenText("display_mode") ?: "LINE",
+            description = look.description,
+            icon_name = look.iconName,
+            icon_color = look.iconColor,
+            texture = look.texture,
+            display_mode = look.displayMode.name,
             grid_x = 0,
             grid_y = 0,
             tool_groups = toolGroupsJson,
@@ -139,29 +137,14 @@ class ZoneService(private val context: Context) : ExecutableService {
         ) + icon.report())
     }
     
-    /** What storing a zone's icon name comes to: kept, maybe under its current name, or refused. */
-    private sealed interface StoredIcon {
-        /** Stored as [name]; [renamedFrom] is the former name it was given, if it was one. */
-        data class Kept(val name: String?, val renamedFrom: String? = null) : StoredIcon
-        data class Refused(val message: String) : StoredIcon
-
-        /** Said in the result when a former name was stored under the current one. */
-        fun report(): Map<String, Any> {
-            val kept = this as? Kept ?: return emptyMap()
-            val from = kept.renamedFrom ?: return emptyMap()
-            return mapOf("icon_renamed" to mapOf("from" to from, "to" to kept.name))
-        }
-    }
-
-    /**
-     * An icon name is a Lucide name. A former one is stored under the name it became, and a
-     * name that designates no icon is refused rather than stored and shown as two letters.
-     */
-    private fun storedIcon(given: String?): StoredIcon {
-        if (given == null) return StoredIcon.Kept(null)
-        val stored = Icons.storedName(context, given)
-            ?: return StoredIcon.Refused(s.shared("service_error_icon_unknown").format(given))
-        return StoredIcon.Kept(stored, renamedFrom = given.takeIf { it != stored })
+    /** A zone's look as its columns keep it, for Looks. */
+    private fun lookOf(zone: Zone): JSONObject = JSONObject().apply {
+        put("name", zone.name)
+        zone.description?.let { put(Looks.DESCRIPTION, it) }
+        zone.icon_name?.let { put(Looks.ICON, it) }
+        zone.icon_color?.let { put(IconColor.KEY, it) }
+        zone.texture?.let { put(Texture.KEY, it) }
+        put(Looks.DISPLAY_MODE, zone.display_mode)
     }
 
     /** A zone's identity is one that exists, or none. */
@@ -176,11 +159,6 @@ class ZoneService(private val context: Context) : ExecutableService {
         // One deleted in a way the service refuses would read here as named by its id alone
         into["identity_name"] = database.identityDao().getById(id)?.name
     }
-
-    /** An icon colour is one of IconColor.NAMES, or none: any other name is refused with them. */
-    private fun iconColorRefusal(given: String?): String? =
-        if (IconColor.accepts(given)) null
-        else s.shared("service_error_icon_color_unknown").format(given, IconColor.NAMES.joinToString(", "))
 
     /**
      * Check a zone's settings exactly as they are about to be stored, against the schema
@@ -267,6 +245,25 @@ class ZoneService(private val context: Context) : ExecutableService {
     }
 
     /**
+     * The tiles of one of a zone's sections put where the grid editor leaves them, tools and
+     * variables together (SectionGrid): `zone_id`, `group` (none: the ungrouped section),
+     * `places` (each tile's id -> `grid_x`, `grid_y`), every tile of the section named once.
+     */
+    private suspend fun handlePlaceSection(params: JSONObject): OperationResult {
+        val zone = zoneDao.getZoneById(params.optString("zone_id"))
+            ?: return OperationResult.error(s.shared("service_error_zone_not_found"))
+        val groups = ToolPositions.zoneGroups(zone.tool_groups)
+        val section = ToolPositions.section(params.optString("group").takeIf { it.isNotEmpty() }, groups)
+        val places = params.optJSONObject("places") ?: return OperationResult.error(s.shared("service_error_grid_places"))
+        val given = places.keys().asSequence().associateWith { id -> places.getJSONObject(id).let { it.getInt("grid_x") to it.getInt("grid_y") } }
+        val placed = database.transaction { app.treelune.core.grid.SectionGrid(context).place(zone.id, groups, section, given) }
+        if (!placed) return OperationResult.error(s.shared("service_error_grid_places"))
+        DataChangeNotifier.notifyToolsChanged(zone.id)
+        DataChangeNotifier.notifyVariablesChanged()
+        return OperationResult.success(mapOf("zone_id" to zone.id, "count" to given.size))
+    }
+
+    /**
      * Update existing zone
      */
     private suspend fun handleUpdate(params: JSONObject, token: CancellationToken): OperationResult {
@@ -304,25 +301,17 @@ class ZoneService(private val context: Context) : ExecutableService {
         val name = if (params.has("name")) {
             params.givenText("name") ?: return OperationResult.error(s.shared("service_error_zone_name_required"))
         } else existingZone.name
-        val description = if (params.has("description")) params.givenText("description") else existingZone.description
-
-        // Only an icon that changes is checked, like a tool's: saving a zone again with the
-        // icon it has is always allowed.
-        val icon = if (params.has("icon_name")) {
-            val givenIcon = params.givenText("icon_name")
-            if (givenIcon == existingZone.icon_name) StoredIcon.Kept(givenIcon) else storedIcon(givenIcon)
-        } else StoredIcon.Kept(existingZone.icon_name)
-        if (icon is StoredIcon.Refused) return OperationResult.error(icon.message)
-        icon as StoredIcon.Kept
-
-        val iconColor = if (params.has(IconColor.KEY)) params.givenText(IconColor.KEY) else existingZone.icon_color
-        iconColorRefusal(iconColor)?.let { return OperationResult.error(it) }
-
-        // Checked against the icon the zone will have: removing the icon of an ICON texture is refused too
-        val texture = if (params.has(Texture.KEY)) params.givenText(Texture.KEY) else existingZone.texture
-        Texture.refusal(texture, icon.name, s::shared)?.let { return OperationResult.error(it) }
-
-        val displayMode = if (params.has("display_mode")) params.givenText("display_mode") ?: existingZone.display_mode else existingZone.display_mode
+        // Its look as it is, each setting given replacing its own (Looks): a texture checked
+        // against the icon the zone will have, removing the icon of an ICON texture refused too
+        val lookBefore = lookOf(existingZone)
+        val lookValues = JSONObject(lookBefore.toString()).apply { Looks.keys(ZoneSettings.LOOK).forEach { key -> if (params.has(key)) put(key, params.get(key)) } }
+        val icon = when (val checked = Looks.check(ZoneSettings.LOOK, lookValues, lookBefore, context)) {
+            is Looks.Checked.Refused -> return OperationResult.error(checked.message)
+            is Looks.Checked.Kept -> checked
+        }
+        // A mode given as null keeps the zone's
+        if (!lookValues.has(Looks.DISPLAY_MODE) || lookValues.isNull(Looks.DISPLAY_MODE)) lookValues.put(Looks.DISPLAY_MODE, existingZone.display_mode)
+        val look = Looks.read(ZoneSettings.LOOK, lookValues)
         val validate = if (params.has("validate")) params.optBoolean("validate") else existingZone.validate
         app.treelune.core.coordinator.Protections.refusal(s.shared("label_zone_validate"), existingZone.validate, validate, s)?.let { return OperationResult.error(it) }
         val identityId = if (params.has("identity_id")) params.givenText("identity_id") else existingZone.identity_id
@@ -330,11 +319,11 @@ class ZoneService(private val context: Context) : ExecutableService {
         if (identityId != existingZone.identity_id) identityRefusal(identityId)?.let { return OperationResult.error(it) }
         val updatedZone = existingZone.copy(
             name = name,
-            description = description,
-            icon_name = icon.name,
-            icon_color = iconColor,
-            texture = texture,
-            display_mode = displayMode,
+            description = look.description,
+            icon_name = look.iconName,
+            icon_color = look.iconColor,
+            texture = look.texture,
+            display_mode = look.displayMode.name,
             tool_groups = toolGroupsJson,
             group = group,
             validate = validate,
@@ -361,8 +350,8 @@ class ZoneService(private val context: Context) : ExecutableService {
             s
         )?.let { return OperationResult.error(it) }
 
-        // A tool whose group the zone gains or loses changes section, and so grid: the zone,
-        // the names it changes and the places it changes are one write
+        // A tool or a variable whose group the zone gains or loses changes section, and so grid:
+        // the zone, the names it changes and the places it changes are one write
         val regrouped = database.transaction {
             val renamedTools = tools.map { tool ->
                 val config = JSONObject(tool.config_json)
@@ -371,9 +360,12 @@ class ZoneService(private val context: Context) : ExecutableService {
                 else tool.copy(config_json = config.put("group", group).toString()).also { writes.updateTool(it) }
             }
             automations.filter { change.held(it.group) != it.group }.forEach { writes.updateAutomation(it.copy(group = change.held(it.group))) }
-            variables.filter { change.held(it.group) != it.group }.forEach { writes.updateVariable(it.copy(group = change.held(it.group))) }
-            val moved = if (change.beforeRenamed == change.after) emptyList() else ToolPositions.regroup(renamedTools, change.beforeRenamed, change.after)
-            moved.forEach { writes.moveTool(it.id, it.grid_x, it.grid_y) }
+            val renamedVariables = variables.map { variable ->
+                if (change.held(variable.group) == variable.group) variable
+                else variable.copy(group = change.held(variable.group)).also { writes.updateVariable(it) }
+            }
+            val items = renamedTools.map { app.treelune.core.grid.SectionItem.of(it) } + renamedVariables.map { app.treelune.core.grid.SectionItem.of(it) }
+            val moved = if (change.beforeRenamed == change.after) emptyList() else app.treelune.core.grid.SectionGrid(context).regroup(items, change.beforeRenamed, change.after)
             writes.updateZone(move(existingZone, updatedZone))
             moved
         }
@@ -381,7 +373,7 @@ class ZoneService(private val context: Context) : ExecutableService {
         // Notify UI of zones change
         DataChangeNotifier.notifyZonesChanged()
         if (regrouped.isNotEmpty() || change.renames.isNotEmpty()) DataChangeNotifier.notifyToolsChanged(zoneId)
-        if (change.renames.isNotEmpty()) DataChangeNotifier.notifyVariablesChanged()
+        if (regrouped.isNotEmpty() || change.renames.isNotEmpty()) DataChangeNotifier.notifyVariablesChanged()
 
         return OperationResult.success(mapOf(
             "zone_id" to updatedZone.id,
@@ -544,6 +536,7 @@ class ZoneService(private val context: Context) : ExecutableService {
                 s.shared("action_verbalize_delete_zone").format(zoneName)
             }
             "place" -> s.shared("action_verbalize_zones_place")
+            "place_section" -> s.shared("action_verbalize_zones_place_section")
             else -> s.shared("action_verbalize_unknown")
         }
     }

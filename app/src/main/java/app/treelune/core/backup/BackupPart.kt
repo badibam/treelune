@@ -115,8 +115,11 @@ object BackupPart {
         val seeds = keptAutomations.map { it.getString("seed_session_id") }.toSet()
         val sessions = rows(data, "ai_sessions").filter { it.getString("id") in seeds }
         val messages = rows(data, "session_messages").filter { it.getString("session_id") in seeds }
-        // The images of the entries kept, and of the routines' messages
-        val images = rows(data, "images").filter { it.optString("entry_id") in entryIds || it.optString("session_id") in seeds }
+        // The images of the entries and the tools kept, and of the routines' messages
+        val toolIds = keptTools.map { it.getString("id") }.toSet()
+        val images = rows(data, "images").filter {
+            it.optString("entry_id") in entryIds || it.optString("tool_instance_id") in toolIds || it.optString("session_id") in seeds
+        }
         val imageIds = images.map { it.getString("id") }.toSet()
         val missing = data.optJSONArray("missing_images")?.let { ids -> (0 until ids.length()).map { ids.getString(it) } }.orEmpty().filter { it in imageIds }
 
