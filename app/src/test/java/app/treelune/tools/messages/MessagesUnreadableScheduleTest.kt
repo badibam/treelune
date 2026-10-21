@@ -6,6 +6,7 @@ import app.treelune.core.coordinator.Origin
 import app.treelune.core.coordinator.Source
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.AppDatabase
+import app.treelune.core.scheduling.SchedulersHeld
 import app.treelune.core.utils.JsonUtils
 import app.treelune.tools.messages.scheduler.MessageScheduler
 import kotlinx.coroutines.runBlocking
@@ -39,7 +40,10 @@ class MessagesUnreadableScheduleTest {
     private suspend fun tick() = withContext(Origin(Source.SCHEDULER)) { MessageScheduler.checkScheduled(context) }
 
     @Test
-    fun `an unreadable recurrence keeps what is pending, sends it at its time, and is not saved over`() = runBlocking {
+    fun `an unreadable recurrence keeps what is pending, sends it at its time, and is not saved over`() = runBlocking<Unit> {
+        // The tick a tool's write launches in the background (ToolInstanceService) held off: the
+        // scheduler runs here alone, when the test says
+        SchedulersHeld.during {
         val coordinator = Coordinator(context)
         val zone = coordinator.processUserAction("zones.create", mapOf("name" to "Home"))
         assertTrue(zone.error, zone.isSuccess)
@@ -76,5 +80,6 @@ class MessagesUnreadableScheduleTest {
         val saved = coordinator.processUserAction("tools.update", mapOf("tool_instance_id" to toolId, "config" to JsonUtils.toMap(broken)))
         assertFalse(saved.isSuccess)
         assertEquals(broken.toString(), database.toolInstanceDao().getToolInstanceById(toolId)!!.config_json)
+        }
     }
 }

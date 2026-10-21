@@ -7,6 +7,7 @@ import app.treelune.core.coordinator.Origin
 import app.treelune.core.coordinator.Source
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.AppDatabase
+import app.treelune.core.scheduling.SchedulersHeld
 import app.treelune.core.database.entities.ToolDataEntity
 import app.treelune.core.utils.AppConfigManager
 import kotlinx.coroutines.runBlocking
@@ -43,7 +44,10 @@ class QuestionnaireScheduleTest {
     private fun shown() = shadowOf(context.getSystemService(NotificationManager::class.java)).allNotifications.size
 
     @Test
-    fun `back from an absence, an entry to fill for each time passed, one notification, all ignored at once`() = runBlocking {
+    fun `back from an absence, an entry to fill for each time passed, one notification, all ignored at once`() = runBlocking<Unit> {
+        // The tick a tool's write launches in the background (ToolInstanceService) held off: the
+        // scheduler runs here alone, when the test says
+        SchedulersHeld.during {
         val coordinator = Coordinator(context)
         val zone = coordinator.processUserAction("zones.create", mapOf("name" to "Italian"))
         assertTrue(zone.error, zone.isSuccess)
@@ -89,5 +93,6 @@ class QuestionnaireScheduleTest {
         val ignored = coordinator.processUserAction("questionnaire.ignore_all", mapOf("tool_instance_id" to toolId))
         assertTrue(ignored.error, ignored.isSuccess)
         assertTrue(database.toolDataDao().getByToolInstance(toolId).all { status(it) == QuestionnaireToolType.Status.IGNORED })
+        }
     }
 }

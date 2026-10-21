@@ -7,6 +7,7 @@ import app.treelune.core.coordinator.Origin
 import app.treelune.core.coordinator.Source
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.AppDatabase
+import app.treelune.core.scheduling.SchedulersHeld
 import app.treelune.core.database.entities.ToolDataEntity
 import app.treelune.core.utils.AppConfigManager
 import kotlinx.coroutines.runBlocking
@@ -43,7 +44,10 @@ class SequenceScheduleTest {
     private fun shown() = shadowOf(context.getSystemService(NotificationManager::class.java)).allNotifications.size
 
     @Test
-    fun `back from an absence, a planned entry for each time passed, done at its time, started, the rest ignored`() = runBlocking {
+    fun `back from an absence, a planned entry for each time passed, done at its time, started, the rest ignored`() = runBlocking<Unit> {
+        // The tick a tool's write launches in the background (ToolInstanceService) held off: the
+        // scheduler runs here alone, when the test says
+        SchedulersHeld.during {
         val coordinator = Coordinator(context)
         val zone = coordinator.processUserAction("zones.create", mapOf("name" to "Course"))
         assertTrue(zone.error, zone.isSuccess)
@@ -93,5 +97,6 @@ class SequenceScheduleTest {
         assertEquals(SequenceToolType.Status.DONE, after[oldest.id])
         assertEquals(SequenceToolType.Status.RUNNING, after[entries.last().id])
         entries.drop(1).dropLast(1).forEach { assertEquals(SequenceToolType.Status.IGNORED, after[it.id]) }
+        }
     }
 }
