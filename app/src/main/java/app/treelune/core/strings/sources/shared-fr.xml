@@ -2338,6 +2338,7 @@
     <string name="action_verbalize_identity_update">Modification de l'identité « %1$s »</string>
     <string name="action_verbalize_identity_delete">Suppression de l'identité « %1$s »</string>
     <string name="action_verbalize_identity_import">Import d'une identité</string>
+    <string name="action_verbalize_identity_export">Export de l'identité « %1$s »</string>
     <string name="label_zone_identity">Identité</string>
     <string name="zone_schema_identity_id">L'identité avec laquelle sa tuile ouvre une conversation : son id (IDENTITIES)</string>
     <string name="label_identity">Identité</string>
@@ -2369,6 +2370,11 @@
     <string name="identity_import_language_lost">La langue dans laquelle elle parlait, %1$s, n'est pas dans ce fichier : choisis-en une autre.</string>
     <string name="identity_import_done">Identité importée</string>
     <string name="identity_import_unreadable">Le fichier n'a pas pu être lu : %1$s</string>
+    <string name="identity_export">Exporter</string>
+    <string name="identity_export_written">Le fichier %1$s est écrit dans le dossier de l\'app : il s\'importe dans Réglages › Identités › Importer.</string>
+    <string name="identity_export_no_text">La langue %1$s contient des ressources et aucun texte : écris-lui une voix, un esprit ou un portrait pour l\'exporter</string>
+    <string name="identity_export_empty">L\'identité « %1$s » ne contient encore aucun texte : écris-lui une voix, un esprit ou un portrait pour l\'exporter</string>
+    <string name="identity_export_file_name">Le nom de l\'identité, « %1$s », ne peut pas nommer un fichier : renomme-la pour l\'exporter.</string>
     <string name="identity_language">Langue dans laquelle elle parle</string>
     <string name="identity_language_code">Langue (un code : fr, en)</string>
     <string name="identity_section">Textes en</string>

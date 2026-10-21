@@ -13,12 +13,15 @@ import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
 import java.io.File
+import java.time.LocalDate
 
 /**
  * What docs/IDENTITY_FILE.md promises any producer: the example it gives reads, and its JSON
  * Schema agrees with the reader on it; an unknown format refused; a field required and missing
  * or of another type refused by its path; a field more passed over; a language without a text
- * refused; the resources kept in their order; every text read marked imported.
+ * refused; the resources kept in their order; every text read marked imported. What the app
+ * writes of an identity reads back, its schema agreeing, with the date of its author's version
+ * while nothing is retouched.
  */
 class IdentityFileTest {
 
@@ -120,5 +123,48 @@ class IdentityFileTest {
         assertFalse(IdentitiesAtV78.languages(stored).contains("address"))
         assertEquals(5L, IdentitiesAtV78.importedAt("2026-10-16", 5L))
         assertNull(IdentitiesAtV78.importedAt(null, 5L))
+    }
+
+    private val today = LocalDate.of(2026, 10, 21)
+
+    private fun identity(languages: Map<String, IdentityLanguage>, publishedAt: String? = "2026-10-16", importedAt: Long? = 1L) = Identity(
+        id = "0f8fad5b-d9cb-469f-a165-70867728950e", name = "Teacher", iconName = Identity.DEFAULT_ICON, iconColor = null,
+        language = languages.keys.first(), languages = languages, publishedAt = publishedAt, importedAt = importedAt, createdAt = 1L, updatedAt = 1L)
+
+    @Test
+    fun `an identity written reads back whole, its schema agreeing`() {
+        val en = IdentityLanguage(voice = IdentityPiece("Short.", imported = true), portrait = IdentityPiece("Taught.", imported = true),
+            resources = linkedMapOf("b" to IdentityResource("B", "When b", "bb", true), "a" to IdentityResource("A", "When a", "aa", true)))
+        val fr = IdentityLanguage(mind = IdentityPiece("Pense.", imported = true))
+        val text = IdentityFile.write(identity(mapOf("en" to en, "fr" to fr)), today)
+        assertTrue(text, valid(text))
+        val read = IdentityFile.read(text)
+        assertEquals("0f8fad5b-d9cb-469f-a165-70867728950e", read.id)
+        assertEquals("Teacher", read.name)
+        assertEquals(mapOf("en" to en, "fr" to fr), read.languages)
+        assertEquals(listOf("b", "a"), read.languages.getValue("en").resources.keys.toList())
+    }
+
+    @Test
+    fun `the date is its author's until a text is retouched, today's for one written in the app`() {
+        val untouched = mapOf("en" to IdentityLanguage(voice = IdentityPiece("v", imported = true)))
+        val retouched = mapOf("en" to IdentityLanguage(voice = IdentityPiece("v", imported = true), mind = IdentityPiece("m")))
+        fun date(identity: Identity) = IdentityFile.read(IdentityFile.write(identity, today)).publishedAt
+        assertEquals("2026-10-16", date(identity(untouched)))
+        assertNull(date(identity(untouched, publishedAt = null)))
+        assertEquals("2026-10-21", date(identity(retouched)))
+        assertEquals("2026-10-21", date(identity(mapOf("en" to IdentityLanguage(voice = IdentityPiece("v"))), publishedAt = null, importedAt = null)))
+    }
+
+    @Test
+    fun `a language holding nothing is left out, one with resources and no text refused`() {
+        val voice = IdentityLanguage(voice = IdentityPiece("v"))
+        assertEquals(setOf("en"), IdentityFile.read(IdentityFile.write(identity(mapOf("en" to voice, "de" to IdentityLanguage())), today)).languages.keys)
+        val resourcesOnly = IdentityLanguage(resources = mapOf("k" to IdentityResource("t", "d", "c")))
+        val refused = try { IdentityFile.write(identity(mapOf("en" to voice, "de" to resourcesOnly)), today); fail(); throw IllegalStateException() } catch (e: IdentityFile.Refused) { e }
+        assertEquals("identity_export_no_text", refused.key)
+        assertEquals("de", refused.args[0])
+        val empty = try { IdentityFile.write(identity(mapOf("en" to IdentityLanguage())), today); fail(); throw IllegalStateException() } catch (e: IdentityFile.Refused) { e }
+        assertEquals("identity_export_empty", empty.key)
     }
 }

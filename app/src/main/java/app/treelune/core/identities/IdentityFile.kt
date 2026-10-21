@@ -6,7 +6,10 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.put
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
 
@@ -19,6 +22,8 @@ import java.time.format.DateTimeParseException
  * A [format] the app does not know is refused. At the one it knows, a field required and missing
  * or of another type is refused, naming its path; a field more is passed over, a producer adding
  * its own without raising the format. Nothing is ever read in part.
+ *
+ * The app writes one too, from an identity it holds ([write]): what it exports reads back here.
  */
 object IdentityFile {
 
@@ -66,6 +71,52 @@ object IdentityFile {
         if (languages.isEmpty()) throw Refused("identity_import_no_language")
         return Read(id, name, publishedAt, languages.mapValues { (code, section) -> section(code, section) })
     }
+
+    /**
+     * The file of [identity], every language it holds: what an import gives back, its icon and
+     * the language it speaks aside, which are the app's. A language holding nothing (no text, no
+     * resource, as one chosen and never written) is left out, nothing of it lost; one holding
+     * resources and no text is refused, a file's language holding at least one text.
+     * `published_at` is the file's it came from while none of its texts is retouched, still its
+     * author's version; [today] (the app's day) once one is, or for one written in the app, a
+     * version of its own; absent when it came from a file that did not say.
+     *
+     * @throws Refused when it cannot be written: a language with resources and no text, or no
+     *   language left
+     */
+    fun write(identity: Identity, today: LocalDate): String {
+        val written = identity.languages.filterValues { it.pieces().isNotEmpty() || it.resources.isNotEmpty() }
+        written.entries.firstOrNull { it.value.pieces().isEmpty() }?.let { throw Refused("identity_export_no_text", it.key) }
+        if (written.isEmpty()) throw Refused("identity_export_empty", identity.name)
+        val publishedAt = if (identity.importedAt != null && identity.retouched().isEmpty()) identity.publishedAt else today.toString()
+        val file = buildJsonObject {
+            put("format", FORMAT)
+            put("id", identity.id)
+            put("name", identity.name)
+            publishedAt?.let { put("published_at", it) }
+            put("languages", buildJsonObject {
+                written.forEach { (code, section) ->
+                    put(code, buildJsonObject {
+                        section.pieces().forEach { (key, piece) -> put(key, buildJsonObject { put("content", piece.content) }) }
+                        if (section.resources.isNotEmpty()) put("resources", buildJsonArray {
+                            section.resources.forEach { (key, resource) ->
+                                add(buildJsonObject {
+                                    put("key", key)
+                                    put("title", resource.title)
+                                    put("description", resource.description)
+                                    put("content", resource.content)
+                                })
+                            }
+                        })
+                    })
+                }
+            })
+        }
+        return WRITER.encodeToString(JsonObject.serializer(), file)
+    }
+
+    /** Indented, for a file a person may open and read. */
+    private val WRITER = Json { prettyPrint = true }
 
     private fun section(code: String, element: JsonElement): IdentityLanguage {
         val path = "languages.$code"

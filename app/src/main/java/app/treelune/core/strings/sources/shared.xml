@@ -2338,6 +2338,7 @@
     <string name="action_verbalize_identity_update">Changing the identity "%1$s"</string>
     <string name="action_verbalize_identity_delete">Deleting the identity "%1$s"</string>
     <string name="action_verbalize_identity_import">Importing an identity</string>
+    <string name="action_verbalize_identity_export">Exporting the identity “%1$s”</string>
     <string name="label_zone_identity">Identity</string>
     <string name="zone_schema_identity_id">The identity its tile opens a conversation with: its id (IDENTITIES)</string>
     <string name="label_identity">Identity</string>
@@ -2369,6 +2370,11 @@
     <string name="identity_import_language_lost">The language it spoke, %1$s, is not in this file: choose another.</string>
     <string name="identity_import_done">Identity imported</string>
     <string name="identity_import_unreadable">The file could not be read: %1$s</string>
+    <string name="identity_export">Export</string>
+    <string name="identity_export_written">The file %1$s is written in the app\'s folder: it is imported in Settings › Identities › Import.</string>
+    <string name="identity_export_no_text">The language %1$s holds resources and no text: write it a voice, a mind or a portrait to export it</string>
+    <string name="identity_export_empty">The identity “%1$s” holds no text yet: write it a voice, a mind or a portrait to export it</string>
+    <string name="identity_export_file_name">The identity\'s name, “%1$s”, cannot name a file: rename it to export it.</string>
     <string name="identity_language">Language it speaks</string>
     <string name="identity_language_code">Language (a code: fr, en)</string>
     <string name="identity_section">Texts in</string>

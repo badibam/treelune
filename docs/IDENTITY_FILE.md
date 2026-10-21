@@ -58,3 +58,4 @@ Every text is non-empty. The texts are written as Markdown is: the app lays out 
 - **Replacing.** Before importing a file whose identity is already there, the app says what replacing loses: the languages gone, and the texts retouched in the app since the last import.
 - **The language.** The person importing chooses the language the identity speaks, among the file's; every language is kept.
 - **After the import**, the identity belongs to the app: its texts are changed there, by hand or by the AI. The file is not read again until it is imported again.
+- **Exported**, from the identity's screen, it is this same file again, every language holding a text: `published_at` stays its author's while none of its texts is retouched, and becomes the day of the export once one is, or for an identity written in the app.
