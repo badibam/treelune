@@ -313,16 +313,18 @@ private fun PlaceScreen(place: Place, zones: ZonesState, demoInstalled: Boolean)
                 app.treelune.core.ui.variables.VariableScreen(zoneId = place.zoneId, variableId = place.variableId, group = place.group, onDone = back)
             }
             is Place.Automation -> {
-                name(s.shared("nav_automation"))
                 app.treelune.core.ai.ui.automation.AutomationScreen(
                     automationId = place.id,
+                    onName = { Navigator.name(place, it) },
                     onNavigateBack = back,
                     onNavigateToExecution = { sessionId -> Navigator.push(Place.Execution(sessionId, place.id, place.zoneId)) }
                 )
             }
             is Place.Execution -> {
                 name(s.shared("nav_execution"))
-                app.treelune.core.ai.ui.automation.ExecutionDetailScreen(sessionId = place.sessionId, onNavigateBack = back)
+                // Its routine named too: opened from a notification, the run is stacked alone and the
+                // breadcrumb names the routine it belongs to
+                app.treelune.core.ai.ui.automation.ExecutionDetailScreen(sessionId = place.sessionId, onRoutineName = { Navigator.name(place.parent(), it) }, onNavigateBack = back)
             }
             is Place.Seed -> {
                 name(s.shared("nav_seed"))

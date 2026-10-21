@@ -999,6 +999,12 @@ class AIEventProcessor(
                     formatErrors.add(s.shared("ai_error_validation_request_without_actions"))
                 }
 
+                // Rule 2b: a post_text says the actions are done, so it comes only with them; one
+                // written without actions is sent back, the AI putting its text in pre_text
+                if (cleanedAIMessage.postText != null && !hasActionCommands) {
+                    formatErrors.add(s.shared("ai_error_post_text_without_actions"))
+                }
+
                 // Rule 3: nobody answers a routine's question while it runs; refused so that its
                 // AI carries on alone, its summary saying what it assumed
                 if (hasCommunicationModule && state.sessionType == SessionType.AUTOMATION) {
@@ -1057,9 +1063,6 @@ class AIEventProcessor(
                 // Update message in DB with parsed AIMessage (follows pattern of enrichments/actions storage)
                 val updatedMessage = lastAIMessage.copy(aiMessage = cleanedAIMessage, aiMessageJson = cleanedJson)
                 messageRepository.updateMessage(sessionId, updatedMessage)
-
-                // Without actions, nothing for post_text to wait for: shown at once, after pre_text
-                if (!hasActionCommands) cleanedAIMessage.postText?.let { storePostText(sessionId, it) }
 
                 // Writes on tools whose schema the AI lacks go no further, not even to validation
                 if (holdWritesForSchemas(sessionId, cleanedAIMessage)) return
@@ -2218,7 +2221,8 @@ class AIEventProcessor(
                 // For SCHEDULED: scheduledFor = planned execution time from scheduler
                 app.treelune.core.ai.orchestration.AIOrchestrator.executeAutomation(
                     nextSession.automationId!!,
-                    scheduledFor = nextSession.scheduledFor!!
+                    scheduledFor = nextSession.scheduledFor!!,
+                    trigger = app.treelune.core.ai.data.ExecutionTrigger.SCHEDULED
                 )
             }
         }

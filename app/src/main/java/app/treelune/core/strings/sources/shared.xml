@@ -199,6 +199,7 @@
     <!-- AI Response Validation Errors -->
     <string name="ai_error_validation_multiple_action_types">Several command types present: %1$s. Only one type is allowed per answer.</string>
     <string name="ai_error_validation_request_without_actions">validation_request present without action_commands. validation_request is only allowed together with action_commands.</string>
+    <string name="ai_error_post_text_without_actions">post_text present without action_commands. post_text is only allowed together with action_commands: without actions, put all your text in pre_text.</string>
     <string name="ai_error_communication_module_in_automation">communication_module in a routine: nobody answers during a run. Decide from what you can read, carry on, and say in your summary what you assumed.</string>
 
     <!-- Custom fields - Technical name -->
@@ -1774,11 +1775,11 @@
     <string name="ai_status_completed">Finished</string>
 
     <!-- AUTOMATIONS - Execution card labels -->
-    <string name="automation_scheduled_label">Planned</string>
+    <string name="automation_scheduled_label">Planned: %1$s</string>
     <string name="automation_manual_execution">Manual run</string>
-    <string name="automation_started_label">Started</string>
-    <string name="automation_duration_label">Duration</string>
-    <string name="automation_roundtrips_label">%1$d roundtrips</string>
+    <string name="automation_started_label">Started: %1$s</string>
+    <string name="automation_duration_label">Duration: %1$s</string>
+    <string name="automation_roundtrips_label">%1$d round trips</string>
     <string name="automation_tokens_label">tokens</string>
     <string name="automation_next_execution_title">Next run</string>
     <string name="automation_no_executions">No run found</string>
@@ -2167,7 +2168,7 @@
     <string name="error_validation_required">Required field</string>
     <string name="error_param_name_required">The name is required</string>
     <string name="error_load_failed">Loading failed</string>
-    <string name="secrets_unreadable">%1$s does not open on this phone: it was saved on another one (a restored backup). Enter it again.</string>
+    <string name="secrets_unreadable">The field “%1$s” does not open on this phone: it was saved on another one (a restored backup). Enter it again.</string>
     <string name="error_load_data_failed">Unable to load the data</string>
     <string name="error_update_failed">Update failed</string>
     <string name="error_rename_failed">Renaming failed</string>
@@ -2321,7 +2322,6 @@
     <string name="nav_new_tool">New tool</string>
     <string name="nav_variable">Variable</string>
     <string name="nav_new_variable">New variable</string>
-    <string name="nav_automation">Routine</string>
     <string name="nav_execution">Execution</string>
     <string name="nav_seed">Starting message</string>
     <string name="nav_chat">Conversation</string>

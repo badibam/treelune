@@ -42,6 +42,7 @@ import app.treelune.core.ui.UI
 import app.treelune.core.ui.components.GridLayout
 import app.treelune.core.utils.DataChangeEvent
 import app.treelune.core.utils.DataChangeNotifier
+import app.treelune.core.utils.DateUtils
 import kotlinx.coroutines.launch
 
 /**
@@ -180,11 +181,12 @@ private fun ImportDialog(preview: Map<*, *>, onDismiss: () -> Unit, onConfirm: (
     UI.Dialog(type = DialogType.CONFIRM, confirmEnabled = language != null, onConfirm = { language?.let(onConfirm) }, onCancel = onDismiss) {
         Column(verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
             UI.Text(s.shared("identity_import_title").format(preview["name"] as String), TextType.TITLE)
-            val published = preview["published_at"] as? String
+            // A day as the app writes days: the file's is checked to be one at reading
+            val published = (preview["published_at"] as? String)?.let { checkNotNull(DateUtils.formatIsoDate(it)) }
             UI.Text(if (published != null) s.shared("identity_import_published").format(published, languages.joinToString(", "))
                 else s.shared("identity_import_languages").format(languages.joinToString(", ")), TextType.BODY)
             if (existing != null) {
-                val publishedBefore = existing["published_at"] as? String
+                val publishedBefore = (existing["published_at"] as? String)?.let { checkNotNull(DateUtils.formatIsoDate(it)) }
                 UI.Text(when {
                     publishedBefore != null -> s.shared("identity_import_replaces").format(publishedBefore)
                     existing["imported_at"] != null -> s.shared("identity_import_replaces_imported")

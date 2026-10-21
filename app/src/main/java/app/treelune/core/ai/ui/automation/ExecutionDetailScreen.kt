@@ -38,6 +38,7 @@ import app.treelune.core.ui.*
 @Composable
 fun ExecutionDetailScreen(
     sessionId: String,
+    onRoutineName: (String) -> Unit,
     onNavigateBack: () -> Unit
 ) {
     val context = LocalContext.current
@@ -57,6 +58,12 @@ fun ExecutionDetailScreen(
             return@LaunchedEffect
         }
         end = (session["end_reason"] as String?)?.let { app.treelune.core.ai.data.SessionEndReason.valueOf(it) } to session["summary"] as String?
+        // The routine it is a run of, named for the breadcrumb
+        (session["automation_id"] as? String)?.let { automationId ->
+            val routine = coordinator.processUserAction("automations.get", mapOf("automation_id" to automationId))
+            ((routine.data?.get("automation") as? Map<*, *>)?.get("name") as? String)?.let(onRoutineName)
+                ?: app.treelune.core.utils.LogManager.aiUI("ExecutionDetailScreen: routine $automationId of run $sessionId not read: ${routine.error}", "WARN")
+        }
         val seen = coordinator.processUserAction("ai_sessions.seen", mapOf("session_id" to sessionId))
         if (seen.status != app.treelune.core.commands.CommandStatus.SUCCESS) app.treelune.core.utils.LogManager.aiUI("ExecutionDetailScreen: run $sessionId not marked read: ${seen.error}", "ERROR")
     }

@@ -684,6 +684,7 @@ object AIOrchestrator {
      *
      * @param automationId Automation to execute
      * @param scheduledFor Scheduled execution timestamp (MANUAL: click time, SCHEDULED: planned time)
+     * @param trigger What started it, kept with the run for its history to say
      */
     /** Whether an automation's starting message ([seedSessionId]'s) says nothing (RichMessage.isEmpty). */
     suspend fun isSeedEmpty(seedSessionId: String): Boolean =
@@ -692,7 +693,7 @@ object AIOrchestrator {
     private fun isSeedEmpty(userMessages: List<app.treelune.core.ai.database.SessionMessageEntity>): Boolean =
         userMessages.all { message -> message.richContentJson?.let { app.treelune.core.ai.data.RichMessage.fromJson(it) }?.isEmpty != false }
 
-    suspend fun executeAutomation(automationId: String, scheduledFor: Long) {
+    suspend fun executeAutomation(automationId: String, scheduledFor: Long, trigger: ExecutionTrigger) {
         LogManager.aiSession("executeAutomation called: $automationId", "INFO")
 
         try {
@@ -745,7 +746,8 @@ object AIOrchestrator {
                 isActive = false, // Will be activated by SessionActivationRequested
                 endReason = null,
                 // Its routine's identity as it is at the run: one changed later speaks at the next
-                identityId = automation.identityId
+                identityId = automation.identityId,
+                triggeredBy = trigger.name
             )
 
             aiDao.insertSession(session)
