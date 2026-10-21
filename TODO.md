@@ -23,6 +23,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 Codé, jamais vu sur l'appareil.
 
 - La recette, `docs/design/device-checks.md` : ce que seul le téléphone juge, une ligne vue en sort.
+- Le Guide : les étapes 4 et 5 de Brancher une IA, cochées par un message envoyé puis par un pointeur vers un outil (pas vers une zone) ; « Marquer comme lu » d'un chapitre d'Approfondissement ; dans les nouveaux chapitres, la couleur d'un Graphique qui suit une Condition, la date dans le nom d'un champ gardé (« Humeur (avant le 21 octobre) »), un choix multiple repassé en simple qui retire les listes de plusieurs réponses.
 - Les passes des thèmes sur le téléphone : ce que la spec de chaque thème garde dans « What stays open » (`docs/themes/<id>.md`), sa passe de `docs/THEMES.md` (« The pass on the phone ») en tête.
 
 ## Décidé, à coder
