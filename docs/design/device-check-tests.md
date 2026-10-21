@@ -69,11 +69,6 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 - Demander à l'IA de resserrer une échelle (conversation) : la carte de validation dit les comptes, même dans une zone non protégée ; refusée, rien ne change ; acceptée, les valeurs hors bornes partent. « Protéger les données passées » décoché : l'IA est refusée et doit renvoyer avec `confirm_migration`. Par le connecteur : la notification d'accord. Une routine qui le fait : passe si son accès le permet.
 - Objectif : valider une tentative, changer un critère (seuil, critère retiré), rouvrir la tentative : elle est jugée selon ses anciens critères, la valeur saisie du critère retiré toujours là ; revalidée, son jugement aussi.
 
-## Lecture seule pour l'IA (branche user-only)
-
-- Le champ coché se remplit toujours à l'écran. Demander à l'IA, en conversation, de le remplir : refusé, elle dit que le champ lui est fermé, rien n'est écrit, pas même le reste de l'entrée. Lui demander de décocher la case : refusé ; de la cocher sur un autre champ : fait.
-- Par le connecteur, et par une routine qui écrit ce champ : refusé, l'erreur dans la réponse du connecteur, dans l'historique d'exécution de la routine.
-
 ## Les incarnations (branche incarnations)
 
 - Par le connecteur (un client à l'accès « toute l'app ») : `import_identity` avec le texte d'un fichier au format 2 crée l'identité, ses textes « importé » ; la même encore, sans `replace`, est refusée en disant les retouches et langues perdues ; avec `replace: true`, remplacée. La protection du niveau de l'app active, la notification d'accord vient d'abord. Un client limité à des zones est refusé.
