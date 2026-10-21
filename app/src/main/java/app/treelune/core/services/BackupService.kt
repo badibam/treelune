@@ -1193,6 +1193,11 @@ class BackupService(private val context: Context) : ExecutableService {
                 jsonData
             }
             val data = document.getJSONObject("data")
+            // The JSON a column holds is a string in the document, which renaming it whole does
+            // not reach: the columns the database migration renames, renamed one by one
+            if (fromVersion < 28) KeyCaseRenames.backup(data) { table, column, reason ->
+                LogManager.service("Backup import: a value of $table.$column left as is, its keys not renamed ($reason)", "WARN")
+            }
 
             // The column transformations run up to v35. From there an entry changes as a whole
             // (columns renamed, state moved out of data, tracking reshaped against its tool's

@@ -8,7 +8,8 @@ import org.junit.Test
 
 /**
  * KeyCaseRenames.rename() is what migration 26 to 27 runs over every JSON column of the
- * database, and what the backup import runs over a whole backup file. A mistake in it does not
+ * database, and what the backup import runs over a whole backup file, then over the same columns
+ * of its rows (backup), each a string the first pass does not reach. A mistake in it does not
  * fail loudly: it writes a document that still parses, with a key nothing reads any more.
  */
 class KeyCaseRenamesTest {
@@ -85,6 +86,22 @@ class KeyCaseRenamesTest {
     fun `leaves text alone when what it wraps is not JSON`() {
         val stored = "see {this} and nothing else"
         assertEquals(stored, KeyCaseRenames.rename(stored))
+    }
+
+    @Test
+    fun `a backup's columns holding JSON are renamed, as the database migration renames them`() {
+        val schedule = """{"pattern":{"type":"DailyMultiple","times":["04:10"]},"startDate":1}"""
+        val limits = """{"chatMaxActionRetries":3}"""
+        val data = JSONObject()
+            .put("automations", JSONArray().put(JSONObject().put("id", "a").put("schedule_json", schedule)))
+            .put("app_settings_categories", JSONArray().put(JSONObject().put("category", "ai_limits").put("settings", limits)))
+            .put("tool_instances", JSONArray().put(JSONObject().put("id", "t").put("config_json", JSONObject.NULL)))
+        KeyCaseRenames.backup(data) { table, column, reason -> throw AssertionError("$table.$column: $reason") }
+        val renamed = JSONObject(data.getJSONArray("automations").getJSONObject(0).getString("schedule_json"))
+        assertEquals(1, renamed.getInt("start_date"))
+        assertTrue(renamed.isNull("startDate"))
+        assertEquals(3, JSONObject(data.getJSONArray("app_settings_categories").getJSONObject(0).getString("settings")).getInt("chat_max_action_retries"))
+        assertTrue("an empty column stays empty", data.getJSONArray("tool_instances").getJSONObject(0).isNull("config_json"))
     }
 
     @Test

@@ -176,6 +176,45 @@ object KeyCaseRenames {
     )
 
     /**
+     * The columns whose JSON carries these keys, by table: its key column, then those columns.
+     * The database migrations 26->27 and 27->28 rename each value in place, and the backup import
+     * the same columns of its document, which renaming the document whole does not reach: each
+     * holds its JSON as a string.
+     */
+    val JSON_COLUMNS: List<Triple<String, String, List<String>>> = listOf(
+        Triple("ai_sessions", "id", listOf("waiting_context_json", "tokens_json", "cost_json", "app_state_snapshot")),
+        Triple("session_messages", "id", listOf("rich_content_json", "ai_message_json", "ai_message_parsed_json", "system_message_json", "execution_metadata_json")),
+        Triple("automations", "id", listOf("schedule_json")),
+        Triple("tool_instances", "id", listOf("config_json")),
+        Triple("tool_data", "id", listOf("data", "custom_fields")),
+        Triple("app_settings_categories", "category", listOf("settings"))
+    )
+
+    /**
+     * The JSON the [JSON_COLUMNS] of a backup document's [data] hold, renamed in place as the
+     * database migrations rename it: a value that does not read is left as it is, as there, and
+     * said to [leftAsIs] with its table, its column and why.
+     */
+    fun backup(data: JSONObject, leftAsIs: (table: String, column: String, reason: String?) -> Unit) {
+        for ((table, _, columns) in JSON_COLUMNS) {
+            val rows = data.optJSONArray(table) ?: continue
+            for (i in 0 until rows.length()) {
+                val row = rows.getJSONObject(i)
+                for (column in columns) {
+                    val before = row.optString(column).takeIf { !row.isNull(column) && it.isNotEmpty() } ?: continue
+                    val after = try {
+                        rename(before)
+                    } catch (e: Exception) {
+                        leftAsIs(table, column, e.message)
+                        continue
+                    }
+                    row.put(column, after)
+                }
+            }
+        }
+    }
+
+    /**
      * Rewrites the keys of a JSON document, at every depth, and leaves the values alone.
      *
      * The document is not always bare: a model's reply is stored exactly as it came, and it
