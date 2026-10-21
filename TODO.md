@@ -4,10 +4,11 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Release F-Droid
 
-- La recette proposée à `fdroiddata` : merge request d'inclusion sur GitLab.
+- La relecture de la merge request d'inclusion, https://gitlab.com/fdroid/fdroiddata/-/merge_requests/53578 (CI verte sur la 0.9.1, le 2026-10-21) : une demande du relecteur se corrige dans `scripts/fdroid/app.treelune.yml`, se recopie dans le clone `~/fdroid-test/fdroiddata-fork` (branche `app.treelune`, clé SSH réglée) et se pousse. Publiée, le README cesse de dire « It is not on F-Droid yet ».
 
 ## Bugs du téléphone
 
+- Un thème ou un mode choisi puis enregistré, que l'écran des réglages d'interface remet à l'ancien en se fermant sans enregistrer (vu le 2026-10-21 à 13:31 et 13:51) : les appuis, l'écriture et la pile de navigation sont maintenant au journal, à lire au prochain cas.
 
 ## Bugs
 
