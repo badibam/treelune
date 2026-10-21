@@ -15,7 +15,6 @@ import app.treelune.core.ai.utils.toEndReasonStatus
 import app.treelune.core.strings.Strings
 import app.treelune.core.ui.*
 import app.treelune.core.utils.DateUtils
-import app.treelune.core.utils.FormatUtils
 
 /**
  * ExecutionCard - Display automation execution summary
@@ -85,7 +84,7 @@ fun ExecutionCard(
                     if (waits) UI.WaitingMark()
                     UI.Text(
                         text = if (scheduledExecutionTime != null) {
-                            "${s.shared("automation_scheduled_label")}: ${app.treelune.core.utils.DateTimeFormatter.formatForDisplay(scheduledExecutionTime, context)}"
+                            s.shared("automation_scheduled_label").format(app.treelune.core.utils.DateTimeFormatter.formatForDisplay(scheduledExecutionTime, context))
                         } else {
                             s.shared("automation_manual_execution")
                         },
@@ -119,7 +118,7 @@ fun ExecutionCard(
                 // Left column: Started time
                 Box(modifier = Modifier.weight(1f)) {
                     UI.Text(
-                        text = "${s.shared("automation_started_label")}: ${app.treelune.core.utils.DateTimeFormatter.formatForDisplay(createdAt, context)}",
+                        text = s.shared("automation_started_label").format(app.treelune.core.utils.DateTimeFormatter.formatForDisplay(createdAt, context)),
                         type = TextType.CAPTION
                     )
                 }
@@ -139,7 +138,7 @@ fun ExecutionCard(
                 // Left column: Duration
                 Box(modifier = Modifier.weight(1f)) {
                     UI.Text(
-                        text = "${s.shared("automation_duration_label")}: ${FormatUtils.formatDuration(duration)}",
+                        text = s.shared("automation_duration_label").format(app.treelune.core.fields.Durations.format(duration, app.treelune.core.fields.DurationUnits.HOUR_MINUTE_SECOND.units, s)),
                         type = TextType.CAPTION
                     )
                 }
