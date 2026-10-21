@@ -82,10 +82,10 @@ class EinkSize(val factor: Float) {
     }
 }
 
-/** The size of the step the user chose. */
+/** The size of the step the user chose, or of step 0 on a tile's icon (CurrentTheme.drawnStep). */
 @Composable
 fun einkSize(): EinkSize {
-    val step = CurrentTheme.sizeStep
+    val step = CurrentTheme.drawnStep()
     return remember(step) { EinkSize(EinkSize.FACTORS[step.coerceIn(0, EinkSize.FACTORS.lastIndex)]) }
 }
 

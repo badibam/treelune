@@ -77,10 +77,10 @@ class InkSize(val factor: Float) {
     }
 }
 
-/** The size of the step the user chose. */
+/** The size of the step the user chose, or of step 0 on a tile's icon (CurrentTheme.drawnStep). */
 @Composable
 fun inkSize(): InkSize {
-    val step = CurrentTheme.sizeStep
+    val step = CurrentTheme.drawnStep()
     return remember(step) { InkSize(InkSize.FACTORS[step.coerceIn(0, InkSize.FACTORS.lastIndex)]) }
 }
 

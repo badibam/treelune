@@ -48,11 +48,11 @@ fun SettingsScreen(onBack: () -> Unit, onOpen: (String) -> Unit) {
             }
             // Two tiles a row, each two cells wide and one high
             GridLayout(
+                entries,
                 entries.mapIndexed { i, entry -> Grid.Tile(entry.id, (i % 2) * 2, i / 2, 2, 1) },
                 entries.map { false },
                 edit = null
-            ) { i ->
-                val entry = entries[i]
+            ) { entry ->
                 CurrentTheme.current.ZoneCardContainer(texture = null, color = null, seed = entry.id, onClick = { onOpen(entry.id) }, onLongClick = {}) {
                     UI.TileHeader(entry.icon, null, s.shared(entry.label), waiting = entry.id == "data" && backupPending, running = false, textType = TextType.HEADING)
                 }

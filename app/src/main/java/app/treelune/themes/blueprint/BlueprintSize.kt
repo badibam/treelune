@@ -89,10 +89,10 @@ class BlueprintSize(val factor: Float) {
     }
 }
 
-/** The size of the step the user chose. */
+/** The size of the step the user chose, or of step 0 on a tile's icon (CurrentTheme.drawnStep). */
 @Composable
 fun blueprintSize(): BlueprintSize {
-    val step = CurrentTheme.sizeStep
+    val step = CurrentTheme.drawnStep()
     return remember(step) { BlueprintSize(BlueprintSize.FACTORS[step.coerceIn(0, BlueprintSize.FACTORS.lastIndex)]) }
 }
 

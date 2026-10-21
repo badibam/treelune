@@ -40,6 +40,19 @@ object CurrentTheme {
     var sizeStep: Int by mutableStateOf(0)
         private set
 
+    /**
+     * Whether what is drawn here sits on a tile's icon (UI.MarkedIcon, its marks): that icon is
+     * sized by the grid, from the screen's width, and does not grow with [sizeStep]. A theme whose
+     * sizes follow the step draws there at step 0, so that its marks keep their proportion to the
+     * icon whatever the step; one whose icons grow with the step too (the retro's whole pixels)
+     * does not read it.
+     */
+    val LocalOnTileIcon = androidx.compose.runtime.staticCompositionLocalOf { false }
+
+    /** The size step to draw at here: [sizeStep], or 0 on a tile's icon ([LocalOnTileIcon]). */
+    @androidx.compose.runtime.Composable
+    fun drawnStep(): Int = if (LocalOnTileIcon.current) 0 else sizeStep
+
     /** Whether the grids show in one column (Appearance.oneColumn). */
     var oneColumn: Boolean by mutableStateOf(false)
         private set

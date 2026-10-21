@@ -13,9 +13,9 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs
 
-- Les dates sous l'axe d'un Graphique se chevauchent quand la place manque (« 31 août14 sept.28 sept. » au cran 3 du plan d'architecte, la tuile des récoltes) : le nombre de graduations à régler sur la largeur de leurs libellés.
 - La démo nomme chaque repas par son moment, que sa valeur dit aussi : la tuile de Repas montre « Dîner Dîner ».
 - La fin d'un événement de l'Agenda est son début plus sa durée en temps écoulé : un événement de plusieurs jours qui traverse un changement d'heure finit une heure avant ou après — l'ajouter sur le calendrier (`TimeResolver.after`, comme l'Objectif), la grille des jours et les séries lisant cette fin.
+- L'accès Tailscale dit son adresse « prête » dès que les serveurs de `ts.net` la publient, mais un client qui l'a cherchée pendant que l'accès était fermé garde « ce nom n'existe pas » jusqu'à 300 s (le TTL négatif de la zone) et reçoit un 502 (claude.ai le 2026-10-21) : sous « Adresse publiée », un compte à rebours jusqu'à « joignable de partout » (publication + le TTL lu dans le SOA de `ts.net`), passé à zéro dès qu'une requête arrive.
 
 ## À passer sur le téléphone
 

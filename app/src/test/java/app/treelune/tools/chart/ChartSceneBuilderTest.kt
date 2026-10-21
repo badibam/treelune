@@ -182,5 +182,21 @@ class ChartSceneBuilderTest {
         val left = layout.drawing.shapes.filterIsInstance<DrawShape.Label>().filter { it.anchor == app.treelune.core.drawing.TextAnchor.END }
         assertTrue(left.size in 2..4)
     }
-}
 
+    @Test
+    fun `the dates under the axis never touch, however wide their labels`() {
+        // A label is an instant's 13 figures, 91 px: one graduation per 72 px would overlap them
+        val table = ChartTable(mapOf("timestamp" to timestamp, "kcal" to numeric("kcal")),
+            (1..29).map { d -> Row(mapOf("timestamp" to Cell.Value(day(d)), "kcal" to Cell.Value(1500.0)), day(d) to day(d + 1) - 1) })
+        val layer = """{"source": "grid", "step": "day", "columns": [{"name": "a", "term": {"variable": "v"}}],
+            "mark": {"type": "bar"}, "encoding": {"x": {"field": "timestamp"}, "y": {"field": "kcal"}}}"""
+        val scene = builder().build(spec(layer), listOf(table), day(1) to day(30) - 1, 400f)
+        val dates = scene.drawing.shapes.filterIsInstance<DrawShape.Label>()
+            .filter { it.anchor == app.treelune.core.drawing.TextAnchor.MIDDLE && it.text.toLongOrNull() != null }
+            .sortedBy { it.at.x }
+        assertTrue(dates.size >= 2)
+        dates.zipWithNext().forEach { (a, b) ->
+            assertTrue("${a.text} at ${a.at.x} touches ${b.text} at ${b.at.x}", b.at.x - a.at.x >= (text.width(a.text) + text.width(b.text)) / 2)
+        }
+    }
+}

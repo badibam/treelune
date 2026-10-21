@@ -81,10 +81,10 @@ class SwissSize(val factor: Float) {
     }
 }
 
-/** The size of the step the user chose. */
+/** The size of the step the user chose, or of step 0 on a tile's icon (CurrentTheme.drawnStep). */
 @Composable
 fun swissSize(): SwissSize {
-    val step = CurrentTheme.sizeStep
+    val step = CurrentTheme.drawnStep()
     return remember(step) { SwissSize(SwissSize.FACTORS[step.coerceIn(0, SwissSize.FACTORS.lastIndex)]) }
 }
 

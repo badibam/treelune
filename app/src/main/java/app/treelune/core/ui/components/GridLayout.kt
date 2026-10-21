@@ -43,8 +43,10 @@ val LocalGridRow = androidx.compose.runtime.staticCompositionLocalOf<androidx.co
 val LocalGridIconRow = androidx.compose.runtime.staticCompositionLocalOf<androidx.compose.ui.unit.Dp> { error("No grid around this tile") }
 
 /**
- * Tiles laid on a grid: four columns of cells, each [tiles] at its place, [item] drawing the one
- * at an index. The theme sizes a cell from the width there is (gridCellPx), a row's height from
+ * Tiles laid on a grid: four columns of cells, each of [items] at its place in [stored] (the same
+ * order), [item] drawing it. A tile is handed its item, never its index: a tile leaving (its zone
+ * deleted) may draw once more on its own before the grid recomposes without it, and an index it
+ * kept would then be read against the shorter list. The theme sizes a cell from the width there is (gridCellPx), a row's height from
  * the cell's width (gridRowPx), and the gaps between two columns and two rows (gridColumnGapPx,
  * gridRowGapPx), which a tile spanning several cells covers; the grid is centered in what it
  * leaves.
@@ -75,7 +77,8 @@ val LocalGridIconRow = androidx.compose.runtime.staticCompositionLocalOf<android
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun GridLayout(stored: List<Grid.Tile>, grows: List<Boolean>, edit: GridEdit?, item: @Composable (Int) -> Unit) {
+fun <T> GridLayout(items: List<T>, stored: List<Grid.Tile>, grows: List<Boolean>, edit: GridEdit?, item: @Composable (T) -> Unit) {
+    require(items.size == stored.size && items.size == grows.size) { "GridLayout: ${items.size} items for ${stored.size} tiles and ${grows.size} growths" }
     if (stored.isEmpty()) return
     val placesById = edit?.places?.associateBy { it.id }
     // In one column (Appearance.oneColumn), the grid as that column shows it, its places read from the grid's
@@ -122,7 +125,7 @@ fun GridLayout(stored: List<Grid.Tile>, grows: List<Boolean>, edit: GridEdit?, i
                                 androidx.compose.runtime.CompositionLocalProvider(
                                     LocalGridRow provides with(LocalDensity.current) { rowPx.toDp() },
                                     LocalGridIconRow provides iconRow
-                                ) { item(i) }
+                                ) { item(items[i]) }
                             }
                             // In edit mode the tile's own gestures give way to a touch that selects
                             if (edit != null) {

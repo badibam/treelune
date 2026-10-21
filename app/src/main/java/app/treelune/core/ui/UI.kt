@@ -733,13 +733,17 @@ object UI {
      * A tool's or a zone's icon in its colour, with its two marks, each in its corner: something
      * waiting at the top, a stopwatch running at the bottom. The marks show without an icon too.
      * The theme may set the icon on a badge larger than [size] (ItemIcon), which the marks follow.
+     * The marks are drawn on the icon (CurrentTheme.LocalOnTileIcon): the icon does not grow with
+     * the size step, so neither do they, and they keep covering the same part of it.
      */
     @Composable
     fun MarkedIcon(iconName: String?, iconColor: TagColor?, waiting: Boolean, running: Boolean, size: Dp = 24.dp) {
         Box(modifier = Modifier.defaultMinSize(minWidth = size, minHeight = size)) {
             if (!iconName.isNullOrBlank()) ItemIcon(iconName, iconColor, size)
-            if (waiting) Box(modifier = Modifier.align(Alignment.TopEnd).offset(x = 4.dp, y = (-4).dp)) { WaitingMark() }
-            if (running) Box(modifier = Modifier.align(Alignment.BottomEnd).offset(x = 4.dp, y = 4.dp)) { RunningMark() }
+            androidx.compose.runtime.CompositionLocalProvider(CurrentTheme.LocalOnTileIcon provides true) {
+                if (waiting) Box(modifier = Modifier.align(Alignment.TopEnd).offset(x = 4.dp, y = (-4).dp)) { WaitingMark() }
+                if (running) Box(modifier = Modifier.align(Alignment.BottomEnd).offset(x = 4.dp, y = 4.dp)) { RunningMark() }
+            }
         }
     }
 
