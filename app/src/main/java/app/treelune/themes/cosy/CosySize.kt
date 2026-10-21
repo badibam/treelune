@@ -73,10 +73,10 @@ class CosySize(val factor: Float) {
     }
 }
 
-/** The size of the step the user chose. */
+/** The size of the step the user chose, or of step 0 on a tile's icon (CurrentTheme.drawnStep). */
 @Composable
 fun cosySize(): CosySize {
-    val step = CurrentTheme.sizeStep
+    val step = CurrentTheme.drawnStep()
     return remember(step) { CosySize(CosySize.FACTORS[step.coerceIn(0, CosySize.FACTORS.lastIndex)]) }
 }
 
