@@ -26,6 +26,9 @@ Codé, jamais vu sur l'appareil.
 ## Décidé, à coder
 
 - Un filtre qui compare un champ à une variable ou une lecture (« kcal > objectif_calorique ») : le terme lu une fois à la référence du contexte (`TermReader`, `docs/BRICKS.md`), puis le filtre SQL comme aujourd'hui ; `EntryFilters.parse` et `ConditionPicker` le prennent.
+- Séance : les champs de l'utilisateur demandés à la fin d'une séance, comme un questionnaire, et dans la fenêtre de correction d'une séance finie — aujourd'hui aucun écran ne les montre.
+- Séance : des images par étape (une posture de yoga), montrées en grand pendant la séance ; une image peut appartenir à la config d'un outil, écrit une fois pour tous les outils (enregistrement, nettoyage au démarrage, sauvegarde, import d'une partie, historique).
+- La grille d'une section accepte des variables, chacune avec un libellé et un mode (MINIMAL, LINE, CONDENSED), placées parmi les outils ; puis les automations dans le même modèle, leur tuile ouvrant leur page, où passent les boutons de leur carte. Reste à concevoir : où ranger la position d'une variable, le placement de deux sortes d'éléments.
 
 ## À concevoir
 
@@ -53,6 +56,7 @@ Ce qui doit monter dans un module de sagesse (`/update push`).
 
 ## À surveiller
 
+- Gemini essayé par le type « Autre serveur » (son point d'accès compatible OpenAI) : un type de fournisseur à lui seulement pour ce qui y manque, noté.
 - Des durées à relever sur le téléphone : l'installation de la démo (~50 s le 2026-10-20, chaque outil planifié faisant tourner son planificateur, `CoreScheduler.runTool`) ; le calcul d'un paquet de Flashcards sur le lexique réel (« Flashcards: deck … read in N ms », de 26 à 152 ms sur la démo, à dire au-delà de 300 ms) ; un gros import (64 659 lignes, 3 min 19 s avant l'historique des écritures), la place prise par l'historique ensuite, et son annulation.
 - Une zone lente à s'afficher, à l'ouverture comme au retour, qui relit tout (~1 s en debug le 2026-10-01, le graphique Calories de Panorama de 0,75 à 1,2 s).
 - Le bouton de liste d'un texte long touché pendant une dictée : Gboard réécrit son texte encore souligné une seconde fois au curseur (mesuré le 2026-10-20), le bouton rendant le champ sans la place de ce texte (`composition` nulle) ; la garder, décalée par `MarkupEditing.apply` comme le curseur.
