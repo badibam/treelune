@@ -67,7 +67,7 @@ or from any service that speaks OpenAI's API (Ollama, LM Studio, OpenRouter…).
 You lay out each zone's tiles as you like, choose each tool's icon and colour, and the look of the whole app:
 
 <!-- themes -->
-- **Default** — Clear and sober, in the colour of your choice
+- **Material** — Clear and sober, in the colour of your choice
 - **Retro** — Pixel art: whole pixels, a drawn font, pixel icons, its own sounds
 - **Cosy** — Like a phone in a gentle game: round and plump, everything bounces, its own sounds
 - **Swiss** — Like a Swiss poster: a strict grid, black and white and a single red, the numbers large, its own sounds
