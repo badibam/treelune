@@ -148,7 +148,7 @@
     <string name="guide_organize_intro">When zones and tools pile up, you can sort them. Sorting works the same way at two levels: zones in groups on the home screen, and tools in groups within a zone.</string>
     <string name="guide_organize_outro">Zones and tools are now sorted your way. Everything can be changed at any time, with the same gestures.</string>
     <string name="guide_organize_1_goal">Two levels of sorting</string>
-    <string name="guide_organize_1_text">On the home screen, zones are sorted into groups, each in its own section. In a zone, tools are sorted the same way. A zone or a tool without a group goes into the “Ungrouped” section.\n\nIn each section, tiles are placed on a grid, and their size depends on their display mode.</string>
+    <string name="guide_organize_1_text">On the home screen, zones are sorted into groups, each in its own section. In a zone, tools, variables and routines are sorted the same way. A zone or a tool without a group goes into the “Ungrouped” section.\n\nIn each section, tiles are placed on a grid, and their size depends on their display mode.</string>
     <string name="guide_organize_2_goal">Create a group of zones</string>
     <string name="guide_organize_2_text">On the home screen, touch the gear at the top right to open the Home settings. Under Zone groups, add a Group, for example “Health”, then save. The home screen now shows one section per group, each with its own +.</string>
     <string name="guide_organize_3_goal">Put a zone in that group</string>

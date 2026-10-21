@@ -148,7 +148,7 @@
     <string name="guide_organize_intro">Quand les zones et les outils se multiplient, tu peux les ranger. Le rangement se fait de la même façon à deux niveaux : les zones en groupes sur l\'accueil, et les outils en groupes dans une zone.</string>
     <string name="guide_organize_outro">Zones et outils sont maintenant rangés à ta façon. Tout se change à tout moment, avec les mêmes gestes.</string>
     <string name="guide_organize_1_goal">Deux niveaux de rangement</string>
-    <string name="guide_organize_1_text">Sur l\'accueil, les zones se rangent en groupes, chacun dans sa section. Dans une zone, les outils se rangent de la même façon. Une zone ou un outil sans groupe va dans la section « Hors groupe ».\n\nDans chaque section, les tuiles se placent sur une grille, et leur taille dépend de leur mode d\'affichage.</string>
+    <string name="guide_organize_1_text">Sur l\'accueil, les zones se rangent en groupes, chacun dans sa section. Dans une zone, les outils, les variables et les routines se rangent de la même façon. Une zone ou un outil sans groupe va dans la section « Hors groupe ».\n\nDans chaque section, les tuiles se placent sur une grille, et leur taille dépend de leur mode d\'affichage.</string>
     <string name="guide_organize_2_goal">Crée un groupe de zones</string>
     <string name="guide_organize_2_text">Sur l\'accueil, touche l\'engrenage en haut à droite pour ouvrir les Réglages de l\'accueil. Sous Groupes de zones, ajoute un Groupe, par exemple « Santé », puis enregistre. L\'accueil montre maintenant une section par groupe, avec son propre +.</string>
     <string name="guide_organize_3_goal">Range une zone dans ce groupe</string>
