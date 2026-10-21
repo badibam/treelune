@@ -497,6 +497,7 @@ object AIStateMachine {
                 // Second completed=true, with its summary or after the reminder - actually complete the session
                 state.copy(
                     phase = Phase.AWAITING_SESSION_CLOSURE,
+                    endReason = SessionEndReason.COMPLETED,
                     awaitingCompletionConfirmation = false, // Reset flag
                     lastEventTime = currentTime
                 )

@@ -13,7 +13,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs
 
-- Une session de routine restée en `AWAITING_SESSION_CLOSURE` à la fermeture de l'app est close au démarrage (`AIStateRepository.initializeFromDb`) sans passer par `RunEnd` : son résumé n'est pas gardé, et elle attend quel que soit son réglage « Me signaler la fin ».
 
 ## À passer sur le téléphone
 
