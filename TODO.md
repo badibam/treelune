@@ -10,12 +10,16 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs du téléphone
 
+- Est ce que liste en mode complet affiche bien toutes les entrées quel que soit leur nombre
+- java.lang.IndexOutOfBoundsException: Index 3 out of bounds for length 3 at jdk.internal.util.Preconditions.outOfBounds(Preconditions.java:64) at J'ai eu ça lors de la suppression d'une zone qui ne contenait plus d'outils
+- java.lang.IllegalStateException: AppConfigManager not initialized. Call initialize(context) at app startup. J'ai eu ça en cliquant sur recommencer dans la première étape du guide qui est premier pas. L'app a crashé. C'était le premier démarrage suite à une installation du code le plus récent.
 
 ## Bugs
 
 - Les dates sous l'axe d'un Graphique se chevauchent quand la place manque (« 31 août14 sept.28 sept. » au cran 3 du plan d'architecte, la tuile des récoltes) : le nombre de graduations à régler sur la largeur de leurs libellés.
 - La démo nomme chaque repas par son moment, que sa valeur dit aussi : la tuile de Repas montre « Dîner Dîner ».
 - La fin d'un événement de l'Agenda est son début plus sa durée en temps écoulé : un événement de plusieurs jours qui traverse un changement d'heure finit une heure avant ou après — l'ajouter sur le calendrier (`TimeResolver.after`, comme l'Objectif), la grille des jours et les séries lisant cette fin.
+- Au cran 3 dans certains thèmes, les marques sur les icônes deviennent trop grandes proportionnellement aux icônes et les recouvrent presque encitèrement. La proportion devrait rester la même
 
 ## À passer sur le téléphone
 
