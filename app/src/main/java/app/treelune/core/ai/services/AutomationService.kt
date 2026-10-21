@@ -713,7 +713,7 @@ class AutomationService(private val context: Context) : ExecutableService {
         // For MANUAL: scheduledFor = click time
         try {
             val clickTime = System.currentTimeMillis()
-            AIOrchestrator.executeAutomation(automationId, scheduledFor = clickTime)
+            AIOrchestrator.executeAutomation(automationId, scheduledFor = clickTime, trigger = app.treelune.core.ai.data.ExecutionTrigger.MANUAL)
 
             LogManager.service("Successfully triggered automation: $automationId", "INFO")
 

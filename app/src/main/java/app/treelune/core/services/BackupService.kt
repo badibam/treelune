@@ -467,6 +467,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("seen_at", session.seenAt ?: JSONObject.NULL)
                                 put("summary", session.summary ?: JSONObject.NULL)
                                 put("identity_id", session.identityId ?: JSONObject.NULL)
+                                put("triggered_by", session.triggeredBy ?: JSONObject.NULL)
                                 if (session.appStateSnapshot != null) {
                                     put("app_state_snapshot", session.appStateSnapshot)
                                 }
@@ -1040,6 +1041,9 @@ class BackupService(private val context: Context) : ExecutableService {
                         summary = if (item.isNull("summary")) null else item.getString("summary"),
                         // Absent from a backup made before version 77: the app's own AI, as the migration does
                         identityId = item.nullableString("identity_id"),
+                        // Absent from a backup made before version 87: a run taken as planned, as the migration does
+                        triggeredBy = if (item.has("triggered_by")) item.nullableString("triggered_by")
+                            else if (item.getString("type") == SessionType.AUTOMATION.name) app.treelune.core.ai.data.ExecutionTrigger.SCHEDULED.name else null,
                         appStateSnapshot = item.optString("app_state_snapshot", null)
                     )
                 )

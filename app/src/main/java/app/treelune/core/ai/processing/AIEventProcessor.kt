@@ -2226,7 +2226,8 @@ class AIEventProcessor(
                 // For SCHEDULED: scheduledFor = planned execution time from scheduler
                 app.treelune.core.ai.orchestration.AIOrchestrator.executeAutomation(
                     nextSession.automationId!!,
-                    scheduledFor = nextSession.scheduledFor!!
+                    scheduledFor = nextSession.scheduledFor!!,
+                    trigger = app.treelune.core.ai.data.ExecutionTrigger.SCHEDULED
                 )
             }
         }

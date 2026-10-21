@@ -92,7 +92,14 @@ data class AISessionEntity(
      * The identity it speaks as (docs/AI.md, « Identities »), fixed at its first message; null
      * for the app's own AI.
      */
-    @ColumnInfo(name = "identity_id") val identityId: String? = null
+    @ColumnInfo(name = "identity_id") val identityId: String? = null,
+
+    /**
+     * What started a routine's run (ExecutionTrigger: SCHEDULED or MANUAL); null for a chat or a
+     * seed. A run started by hand holds the time of the click as its scheduled time, which the
+     * scheduler reads: this is what tells it apart from a planned one.
+     */
+    @ColumnInfo(name = "triggered_by") val triggeredBy: String? = null
 )
 
 /**
