@@ -25,9 +25,9 @@ Repo: https://github.com/badibam/treelune.git
 Binaries: https://github.com/badibam/treelune/releases/download/v%v/treelune-v%v.apk
 
 Builds:
-  - versionName: 0.9.0
-    versionCode: 32
-    commit: v0.9.0
+  - versionName: 0.9.1
+    versionCode: 33
+    commit: v0.9.1
     subdir: app
     sudo:
       - apt-get update
@@ -50,5 +50,5 @@ AllowedAPKSigningKeys: d7600b93fb6500a3231565cfb839ceee4f8b8728e632feec8e4a49883
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 0.9.0
-CurrentVersionCode: 32
+CurrentVersion: 0.9.1
+CurrentVersionCode: 33

@@ -1,0 +1,2 @@
+- Treelune ne s'installe plus que sur un téléphone 64 bits (arm64), comme presque tous les téléphones récents
+- L'APK est plus léger de 3 Mo
