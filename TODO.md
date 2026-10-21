@@ -10,7 +10,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs du téléphone
 
-- Est ce que liste en mode complet affiche bien toutes les entrées quel que soit leur nombre
 
 ## Bugs
 
