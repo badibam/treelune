@@ -61,6 +61,7 @@ Avec le relais en place (son projet `relay`, en ligne sur `https://relay.badibam
 - « Pause » : le temps s'arrête, la notification dit « en pause », aucun bip ; « Reprendre » repart d'où il en était.
 - Téléphone en silencieux ou en vibreur : aucun son ni voix, la vibration reste.
 - Forcer l'arrêt de l'app pendant une séance, rouvrir l'outil : « Cette séance s'est arrêtée avec l'app » ; « Reprendre » relance l'étape, « Arrêter » la clôt.
+- Une séance finie écran éteint (dernière étape au temps) : la notification devient « Séance finie : touche pour la terminer », le point sur l'outil et la zone ; la toucher ouvre la page de fin, tes champs dessous ; « Terminer la séance » retire la notification et le point, la séance « Faite » dans l'historique ; « Commencer » refusé tant qu'elle attend. Pareil après « Arrêter », la séance « Arrêtée ».
 
 ## Agenda
 
