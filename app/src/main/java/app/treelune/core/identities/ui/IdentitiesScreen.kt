@@ -404,7 +404,7 @@ private fun ResourceCard(resource: Map<*, *>, onEdit: () -> Unit, onDelete: () -
     val content = resource["content"] as String
     UI.Card(type = CardType.DEFAULT) {
         Column(modifier = Modifier.fillMaxWidth().padding(UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
-            UI.Text(resource["title"] as String, TextType.SUBTITLE)
+            UI.Text(resource["title"] as String, TextType.STRONG)
             UI.Text(origin(s, content.length, resource["imported"] == true), TextType.CAPTION)
             UI.Text(resource["description"] as String, TextType.BODY, selectable = true)
             if (open) MarkupText(content, icons = false)
