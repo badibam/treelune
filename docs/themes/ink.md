@@ -66,5 +66,4 @@ What the code made precise among the decisions:
 - The pass of `docs/THEMES.md`, on what changed 2026-10-17 after the first: a tile's wash that spills and goes out at its edge, its texture faded with it, the card in wash with a faded edge (steps in the fade?), the gouache under the icons and the tags, the hand-painted rounds (buttons, box, seals), the cost of opening a zone with textured tiles; the cost of the brushed icons (a page full of icons at its first opening) and the icons that clog.
 - A tile's name stays centred by the core (`UI.TileHeader`), as the mock-up wants it.
 - The textures' tones, to set on the textures bench (`./run themes`).
-- The sounds, on the phone: their level by ear.
 - Once the redrawn Lucide is held on the phone (cost, icons that clog): the third way of line 9 of the recipe, `docs/THEMES.md`.

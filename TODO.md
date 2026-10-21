@@ -23,7 +23,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 Codé, jamais vu sur l'appareil.
 
 - La recette, `docs/design/device-checks.md` : ce que seul le téléphone juge, une ligne vue en sort.
-- Les passes des thèmes sur le téléphone : ce que la spec de chaque thème garde dans « What stays open » (`docs/themes/<id>.md`), sa passe de `docs/THEMES.md` (« The pass on the phone ») en tête.
+- Les passes des thèmes sur le téléphone : la tournée de `docs/THEMES.md` (« The pass on the phone ») pour chaque thème, puis ce que sa spec garde à juger sur l'appareil dans « What stays open » (`docs/themes/<id>.md`), le niveau des sons dans `docs/themes/sounds.md`.
 
 ## Décidé, à coder
 

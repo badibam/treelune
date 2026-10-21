@@ -52,4 +52,3 @@ What the code made precise among the decisions:
 ## What stays open
 
 - The textures' tones are the default theme's, copied: to set on the textures bench (`./run themes`).
-- The sounds, on the phone: their level by ear.

@@ -56,4 +56,3 @@ What the code made precise among the decisions:
 - The hyphenation without U+2010 in the font: the hyphen Android lays in its place, to see on the phone.
 - The textures' cells and tones are the metro's, copied: the paper patterns of line 7 (fibres, Canson weft, confetti) stay to draw, and their tones to set on the textures bench.
 - A tile's name stays centred: the core places it (`UI.TileHeader`).
-- The sounds, on the phone: their level by ear.
