@@ -59,4 +59,4 @@ Ce que le code a précisé des décisions :
 ## Ce qui reste ouvert
 
 - La rangée des boutons dans la bande d'encre, comme dans la maquette : un ajout au contrat (la pièce qui porte les boutons du haut de page), à décider.
-- Rien n'a tourné sur un téléphone : la passe de `docs/THEMES.md`.
+- La passe de `docs/THEMES.md`, les trames d'abord : deux couleurs au pixel près, la discrète des textures.

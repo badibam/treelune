@@ -32,7 +32,7 @@ Maquettes (écran d'une zone, à côté des autres pistes de thème, en attente)
 
 ## Ce qui reste ouvert
 
-- Rien n'a tourné sur un téléphone : le thème entier s'y juge, le ressort et le niveau des sons compris, et ce que deviennent les ressorts quand les animations sont coupées dans Android (Compose est censé les sauter, non vérifié).
+- La passe de `docs/THEMES.md`, le banc des palettes d'abord : le ressort et le niveau des sons, ce que deviennent les ressorts quand les animations sont coupées dans Android (Compose est censé les sauter, non vérifié), les icônes retracées (leur coût à l'ouverture d'une page, celles qui se bouchent à 24 dp), le bandeau des messages, qui se distingue mal de ses cartes crème.
 - Le banc des palettes (`./run themes`) n'a pas encore le cosy : ses nombres ont été lus sur la maquette et la nuit d'été est posée sans l'avoir vue.
 - Le Graphique passe par le dessin du thème par défaut (`DefaultDrawing`), ses couleurs comprises, dans la police du cosy : à dessiner dans le registre, comme le rétro a fait le sien (`RetroDrawing`).
 - Un bloc qui se déplie n'est pas au contrat des thèmes : son glissement reste celui du cœur.

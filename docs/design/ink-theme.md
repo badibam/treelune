@@ -63,7 +63,7 @@ Ce que le code a précisé des décisions :
 
 ## Ce qui reste ouvert
 
-- Rien n'a tourné sur un téléphone : le thème entier s'y juge, la passe de `docs/THEMES.md` d'abord, le coût des icônes au pinceau (une page pleine d'icônes à sa première ouverture) et les icônes qui se bouchent compris.
+- La passe de `docs/THEMES.md`, sur ce qui a changé le 2026-10-17 après la première : le lavis d'une tuile qui déborde et s'éteint à son bord, sa texture estompée avec lui, la carte en lavis au bord fondu (des marches dans le fondu ?), la gouache sous les icônes et les tags, les ronds peints à la main (boutons, case, sceaux), le coût d'ouverture d'une zone aux tuiles texturées ; le coût des icônes au pinceau (une page pleine d'icônes à sa première ouverture) et les icônes qui se bouchent.
 - Le nom d'une tuile reste centré par le cœur (`UI.TileHeader`), comme le veut la maquette.
 - Les tons des textures, à régler au banc des textures (`./run themes`).
 - Les sons, au téléphone : leur niveau à l'oreille.

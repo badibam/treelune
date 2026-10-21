@@ -27,7 +27,7 @@ Conçu à partir du 2026-09-29. Un second thème, à côté du thème par défau
 
 ## Ce qui reste ouvert
 
-- Rien n'a tourné sur un téléphone : tout ce qui suit se juge là, et le niveau des sons (repris de Saylune, 10 dB sous Kenney) à l'oreille.
+- La passe de `docs/THEMES.md` : vu le 2026-10-01 l'écran d'une zone, la palette pâle, les marges reprises ; reste écran par écran, les graduations en pointillé des graphiques et le damier du mode d'édition de la grille compris, et le niveau des sons (repris de Saylune, 10 dB sous Kenney) à l'oreille.
 - Les icônes : les retouches au fil de l'usage, d'abord celles que l'utilisateur choisit (deux à ce jour, `refresh-cw` et `rotate-ccw`, la pointe collée au bout de l'arc). Puis des icônes au trait de 4 pixels, la graisse normale de Saylune, sur la même planche.
 - Au cran 3, sur un écran de 1080, une case fait quatre cellules : une tuile ICON n'a plus qu'une cellule dedans, moins que son icône.
 - Le thème par défaut ne suit pas encore le cran de taille ; l'aide du réglage le dit.

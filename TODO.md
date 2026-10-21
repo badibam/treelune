@@ -16,22 +16,15 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 - Les dates sous l'axe d'un Graphique se chevauchent quand la place manque (« 31 août14 sept.28 sept. » au cran 3 du plan d'architecte, la tuile des récoltes) : le nombre de graduations à régler sur la largeur de leurs libellés.
 - La démo nomme chaque repas par son moment, que sa valeur dit aussi : la tuile de Repas montre « Dîner Dîner ».
 - La fin d'un événement de l'Agenda est son début plus sa durée en temps écoulé : un événement de plusieurs jours qui traverse un changement d'heure finit une heure avant ou après — l'ajouter sur le calendrier (`TimeResolver.after`, comme l'Objectif), la grille des jours et les séries lisant cette fin.
+- Au cran 3 dans certains thèmes, les marques sur les icônes deviennent trop grandes proportionnellement aux icônes et les recouvrent presque entièrement. La proportion devrait rester la même.
 
 ## À passer sur le téléphone
 
 Codé, jamais vu sur l'appareil.
 
-- La recette, `docs/design/device-checks.md` : chaque section dit quoi faire et quoi voir, une ligne vue en sort ; une section vidée, la spec qu'elle nomme s'élague, ses garanties devenant des tests.
+- La recette, `docs/design/device-checks.md` : ce que seul le téléphone juge, une ligne vue en sort.
 - Les specs que la recette ne nomme pas, à élaguer une fois leurs lignes passées : `missing-tools.md` (Champs RÉFÉRENCE, Variables, Données structurées, Objectif, Questionnaire, Graphique), `icon-colors.md`, `settings-pages.md` (Réglages et affichage), `message-images.md` (Chat IA, la ligne « Images »), `sequence-tool.md` (Séance), `entry-start-state.md`, `always-send.md`, `bug-report.md` (Mise à jour et démarrage), `validation.md` (Validation), `mcp-server.md` (Accès externe), `funnel-poc.md` avec `funnel-access.md`, `custom-fields-display.md` (Outils et saisie) ; `unified-fields.md` (Lecture seule pour l'IA), dont la section part dans `docs/DATA.md` ; `image-field.md`, sa propre section « À passer sur le téléphone », la migration 82 sur la release d'abord.
-- Un modèle libre chez soi : un Ollama sur l'ordinateur, servi en https par `tailscale serve`, branché comme Autre serveur depuis le téléphone avec un modèle de la classe 30B, prix à 0 ; mesurer le temps d'une réponse (la lecture d'un prompt de ~29k tokens sur la machine). Passé, une page du Guide « Brancher un modèle libre » d'après ce qui a été fait.
-- Les passes sur le téléphone de `docs/THEMES.md`, puis ce que la spec de chaque thème garde dans « Ce qui reste ouvert » :
-  - le rétro (`retro-theme.md`), vu le 2026-10-01 (écran d'une zone, palette pâle, marges reprises) : écran par écran, les graduations en pointillé de ses graphiques et le damier du mode d'édition de la grille compris ;
-  - le cosy (`cosy-theme.md`, maquettes liées dedans) : le banc des palettes d'abord, les icônes retracées (leur coût à l'ouverture d'une page, celles qui se bouchent à 24 dp), le bandeau des messages qui se distingue mal de ses cartes crème ;
-  - l'encre et lavis (`ink-theme.md`) : ce qui a changé le 2026-10-17 après la première passe : le lavis d'une tuile qui déborde et s'éteint à son bord, sa texture estompée avec lui, la carte en lavis au bord fondu (des marches dans le fondu ?), la gouache sous les icônes et les tags, les ronds peints à la main (boutons, case, sceaux), le coût d'ouverture d'une zone aux tuiles texturées ;
-  - le métro (`metro-theme.md`) ;
-  - le papier découpé (`paper-theme.md`) : les icônes découpées d'abord (leur coût, celles qui se bouchent) ;
-  - le plan d'architecte (`blueprint-theme.md`) : le débord des icônes d'abord ;
-  - la liseuse (`eink-theme.md`) : les trames d'abord (deux couleurs au pixel près, la discrète des textures), la bande d'encre et ses boutons d'abord dans « Ce qui reste ouvert ».
+- Les passes des thèmes sur le téléphone : ce que la spec de chaque thème garde dans « Ce qui reste ouvert » (`docs/design/<id>-theme.md`), sa passe de `docs/THEMES.md` (« The pass on the phone ») en tête.
 
 ## Décidé, à coder
 
@@ -39,6 +32,7 @@ Codé, jamais vu sur l'appareil.
 
 ## À concevoir
 
+- Un modèle libre chez soi : un Ollama sur l'ordinateur, servi en https par `tailscale serve`, branché comme Autre serveur depuis le téléphone avec un modèle de la classe 30B, prix à 0 ; mesurer le temps d'une réponse (la lecture d'un prompt de ~29k tokens sur la machine). Passé, une page du Guide « Brancher un modèle libre » d'après ce qui a été fait.
 - Les events du cœur : quel premier usage — un événement de l'Agenda qui commence, une entrée écrite, une condition devenue vraie (l'Alerte) ? L'automation directe (le relevé, `docs/design/missing-tools.md`) attend la même brique.
 - Des outils montrés sur la tuile d'une zone de l'accueil (le poids du jour sur « Santé ») : leur résumé ou un raccourci selon la place de la tuile — lesquels, dans quel ordre, un outil montré à deux endroits.
 - Des rythmes que la planification (`ScheduleConfig`, commune à tous les outils et aux routines) ne sait pas dire : « tous les N jours à partir d'une date », « une semaine sur deux », plusieurs jours d'un mois (« le 1er et le 15 »).
@@ -51,6 +45,7 @@ Codé, jamais vu sur l'appareil.
 - `AutomationScheduler.getNextExecutionForAutomation()` appelé depuis l'écran, sans le service.
 - Des conversions JSON refaites sur place au lieu de `JsonUtils` (`toValueMap`, `jsonToValue`, `toFieldConfigValue`…).
 - `shared.xml` (~1 900 lignes) à découper.
+- Les garanties sorties de la recette, `docs/design/device-check-tests.md` : chacune un test, ou sortie si un test la tient déjà.
 - `RetroPaletteTest` et `CosyPaletteTest` à parcourir par pas de 15° de teinte, comme `SwissPaletteTest`.
 - `TextType.SUBTITLE` sans rang dans le contrat des thèmes : lui en donner un, aligner les thèmes et ses 71 usages.
 - `scripts/check_chat_space.py` ne voit que l'écran d'usage d'un outil, pas ceux qu'il ouvre dans son lieu (la saisie du Journal, une séance Flashcards, corrigées à la main le 2026-10-20) : les lui faire lire.
