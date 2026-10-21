@@ -78,7 +78,7 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 
 - Par le connecteur (un client à l'accès « toute l'app ») : `import_identity` avec le texte d'un fichier au format 2 crée l'identité, ses textes « importé » ; la même encore, sans `replace`, est refusée en disant les retouches et langues perdues ; avec `replace: true`, remplacée. La protection du niveau de l'app active, la notification d'accord vient d'abord. Un client limité à des zones est refusé.
 - Modifier la voix, enregistrer : « écrit dans l'app » ; réimporter le fichier : la confirmation nomme `fr · voice` parmi les retouches perdues, et confirmée, la voix revient. Choisir une autre icône et une couleur, enregistrer : la tuile les montre.
-- Supprimer Stan Prokopenko tant que la zone ou la routine le nomme : refusé, en les nommant. Les retirer, supprimer : la conversation passée se relit, son composeur remplacé par la raison. Supprimer un fournisseur d'IA qu'une routine utilise : refusé de même.
+- Les retirer, supprimer : la conversation passée se relit, son composeur remplacé par la raison.
 
 ## Les conditions typées à l'écriture (branche typed-conditions)
 
@@ -86,7 +86,6 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 
 ## Les fournisseurs créés (branche ai-providers)
 
-- Supprimer un fournisseur qu'une routine nomme : refusé, la routine nommée. Supprimer le défaut quand un autre reste : la fenêtre demande lequel le remplace ; le dernier supprimé : une nouvelle conversation dit d'en ajouter un.
 
 ## L'historique des écritures (branche undo-history)
 
