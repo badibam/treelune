@@ -22,7 +22,7 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 
 ## Données structurées
 
-- « Importer un fichier » sur une table d'aliments avec un CSV (nom ; kcal en décimale virgule ; une date jour/mois ; une catégorie à quelques valeurs) : chaque colonne est proposée avec son type, son écriture et un exemple lu ; un fichier dont les dates ne tranchent pas jour/mois le signale ; importer crée les champs dans l'ordre, met à jour les fiches dont le nom existe, et le compte-rendu nomme les lignes refusées. Réimporter le même fichier : tout est mis à jour, rien n'est dupliqué. Un import avec une colonne nouvelle se termine (les appels imbriqués dans la transaction ne bloquent pas), et l'écran relit la table une fois fini.
+- « Importer un fichier » sur une table d'aliments : l'écran relit la table une fois l'import fini.
 
 ## Objectif
 
