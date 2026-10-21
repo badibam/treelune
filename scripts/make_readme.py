@@ -8,7 +8,7 @@ blocks between HTML comments that say what the code says and would go stale othe
     <!-- tools -->      the tool types, in the registry's order, each with its name and tagline
     <!-- providers -->  the AI providers one brings a key for, by their name
     <!-- themes -->     the themes, in the registry's order, each with its name and tagline
-    <!-- status -->     the version, the lowest Android, the languages
+    <!-- status -->     the version, the lowest Android, the processor, the languages
 
 A block ends at its closing comment (<!-- /tools -->). Names and taglines come from the tools'
 and the themes' own strings, in the README's language; a tool or a theme added to its registry
@@ -67,11 +67,11 @@ ANDROID_RELEASES = {
 # The words the status block is made of, in each README's language.
 WORDS = {
     "": {
-        "version": "Version", "android": "Android", "or_later": "or later",
+        "version": "Version", "android": "Android", "or_later": "or later", "arm64": "A 64-bit phone (arm64)",
         "languages": "Languages:", "lang": {"en": "English", "fr": "French"},
     },
     "-fr": {
-        "version": "Version", "android": "Android", "or_later": "ou plus récent",
+        "version": "Version", "android": "Android", "or_later": "ou plus récent", "arm64": "Un téléphone 64 bits (arm64)",
         "languages": "Langues :", "lang": {"en": "anglais", "fr": "français"},
     },
 }
@@ -136,7 +136,7 @@ def providers(suffix):
 
 
 def status(suffix):
-    """The version, the lowest Android and the languages, one line each."""
+    """The version, the lowest Android, the processor and the languages, one line each."""
     gradle = GRADLE.read_text(encoding="utf-8")
     version = re.search(r'versionName = "([^"]+)"', gradle).group(1)
     min_sdk = int(re.search(r"minSdk = (\d+)", gradle).group(1))
@@ -147,6 +147,8 @@ def status(suffix):
     return [
         f"- {words['version']} {version}",
         f"- {words['android']} {ANDROID_RELEASES[min_sdk]} {words['or_later']}",
+        # The APK holds arm64's native libraries alone (abiFilters)
+        *([f"- {words['arm64']}"] if 'abiFilters += "arm64-v8a"' in gradle else []),
         f"- {words['languages']} {languages}",
     ]
 

@@ -23,8 +23,14 @@ android {
         applicationId = "app.treelune"
         minSdk = 26
         targetSdk = 34
-        versionCode = 32
-        versionName = "0.9.0"
+        versionCode = 33
+        versionName = "0.9.1"
+
+        // arm64 alone: the Tailscale node's library is compiled for it only (buildGoLibrary), and
+        // an APK whose processors carry different native libraries is refused by F-Droid's checks
+        ndk {
+            abiFilters += "arm64-v8a"
+        }
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -32,6 +38,13 @@ android {
         }
     }
     
+    // Without the dependencies block Google's tools add to an APK, encrypted with Google's key:
+    // nobody else can read it, and F-Droid's checks report it
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
+
     // Release signing. The keystore and its passwords live outside the repository and
     // reach the build through the environment: a gitignored file at the root would still
     // be swept away by `git clean -xdf`, and this key cannot be regenerated -- it is the
@@ -376,8 +389,7 @@ tasks.withType<Test>().configureEach {
  * Compiles the app's Tailscale node (src/main/go, docs/design/funnel-access.md) into
  * libtreelune_funnel.so for arm64, with the NDK. It builds from the module's vendor/ alone, the
  * network off, so that the build is the same offline and on F-Droid's server; and reproducibly:
- * no paths, no VCS stamp, no build id, no symbols. Elsewhere than arm64 the app has no library,
- * and offers the relay only.
+ * no paths, no VCS stamp, no build id, no symbols. The APK is arm64 alone (abiFilters).
  */
 abstract class GoLibraryTask : DefaultTask() {
     @get:InputDirectory

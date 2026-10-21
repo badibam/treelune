@@ -13,7 +13,7 @@ import org.json.JSONObject
  */
 object FunnelNative {
 
-    /** Whether the library loaded; elsewhere than arm64 it is not in the APK, and only the relay is offered. */
+    /** Whether the library loaded: the APK is arm64 alone and carries it, a failure to load it leaving the relay alone offered. */
     val available: Boolean by lazy {
         try {
             System.loadLibrary("treelune_funnel")
