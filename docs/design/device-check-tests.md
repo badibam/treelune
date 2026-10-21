@@ -8,7 +8,6 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 
 ## Validation
 
-- Donner à un client du connecteur un accès limité (bouton « Accès » de sa ligne) : une lecture hors de la liste est refusée, et `app_context` dit son accès.
 
 ## Démo
 
@@ -42,7 +41,6 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 
 ## L'IA et les routines (branche ai-routines)
 
-- Par le connecteur MCP : `automations` et `automation_config` répondent ; une création sur une zone hors du masque du client est refusée.
 
 ## Les bugs du téléphone du 2026-10-16 et le changement de config
 
