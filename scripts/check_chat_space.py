@@ -8,7 +8,11 @@ content padding; without it, its last line hides under the button, and only a ph
 
 The places marked in Place.kt are mapped to their screens' files below; a place marked and not
 mapped fails, so that a new place gets its screen named here. A tool place stands for every tool
-type's screen, found from the tool type's getUsageScreen.
+type's screen, found from the tool type's getUsageScreen, and for the screens it opens in its
+place (the Journal's entry, a Flashcards session): every composable of the tool's package it
+calls, and those they call, is read, and one that scrolls on its own needs the room too. A dialog
+(a function named …Dialog) floats above the button and is not followed; a function that hides
+the button (HideChatButton) needs no room.
 
 Usage:
     ./scripts/check_chat_space.py
@@ -34,20 +38,43 @@ SCREENS = {
 }
 
 ROOM = re.compile(r"\.chatButtonSpace\(\)|chatButtonEnd\(\)")
+SCROLLS = re.compile(r"\.verticalScroll\(|\bLazyColumn\(|\bLazyVerticalGrid\(")
+TOP_FUN = re.compile(r"^(?:(?:private|internal) )?fun (?:[\w.]+\.)?([A-Z]\w*)\(", re.M)
+
+
+def functions(package):
+    """The top-level composables of a tool's package, by name: their file and their body, which
+    runs to the next line closing at the margin."""
+    found = {}
+    for path in sorted(package.rglob("*.kt")):
+        text = path.read_text(encoding="utf-8")
+        for match in TOP_FUN.finditer(text):
+            end = text.find("\n}", match.end())
+            found[match.group(1)] = (path, text[match.start():end if end != -1 else len(text)])
+    return found
 
 
 def tool_screens():
-    """Each tool type's usage screen file, from the composable its getUsageScreen calls."""
-    files = []
+    """Each tool type's screens under the button: the composable its getUsageScreen calls, and
+    the composables of its package reached from it, dialogs left out; by (file, name, body)."""
+    screens = []
     for tool_type in sorted(TOOLS.glob("*/*ToolType.kt")):
         text = tool_type.read_text(encoding="utf-8")
         body = text[text.index("override fun getUsageScreen"):]
         called = re.search(r"\b([A-Z]\w+Screen)\(", body).group(1)
-        found = [p for p in tool_type.parent.rglob("*.kt") if re.search(rf"^fun {called}\(", p.read_text(encoding="utf-8"), re.M)]
-        if not found:
+        known = functions(tool_type.parent)
+        if called not in known:
             raise SystemExit(f"check_chat_space: no file holds {called}, the screen of {tool_type.parent.name}")
-        files.append(found[0])
-    return files
+        seen, todo = set(), [called]
+        while todo:
+            name = todo.pop()
+            if name in seen or name.endswith("Dialog"):
+                continue
+            seen.add(name)
+            path, fun_body = known[name]
+            screens.append((path, name, fun_body))
+            todo += [n for n in re.findall(r"\b([A-Z]\w*)\(", fun_body[len(name) + 5:]) if n in known]
+    return screens
 
 
 def marked_kinds():
@@ -65,7 +92,13 @@ def main():
     problems = []
     checked = set()
     for kind in marked_kinds():
-        files = tool_screens() if kind == "tool" else SCREENS.get(kind)
+        if kind == "tool":
+            for path, name, body in tool_screens():
+                checked.add(path)
+                if SCROLLS.search(body) and not ROOM.search(body) and "HideChatButton" not in body:
+                    problems.append(f"{path.relative_to(ROOT)}: {name} scrolls with no room for the chat's button (chatButtonSpace / chatButtonEnd)")
+            continue
+        files = SCREENS.get(kind)
         if files is None:
             problems.append(f"place '{kind}' has the chat's button and no screen named in check_chat_space.py")
             continue

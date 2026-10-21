@@ -23,6 +23,7 @@ Codé, jamais vu sur l'appareil.
 
 - La recette, `docs/design/device-checks.md` : ce que seul le téléphone juge, une ligne vue en sort.
 - Le Guide : les étapes 4 et 5 de Brancher une IA, cochées par un message envoyé puis par un pointeur vers un outil (pas vers une zone) ; « Marquer comme lu » d'un chapitre d'Approfondissement ; dans les nouveaux chapitres, la couleur d'un Graphique qui suit une Condition, la date dans le nom d'un champ gardé (« Humeur (avant le 21 octobre) »), un choix multiple repassé en simple qui retire les listes de plusieurs réponses.
+- Les usages de `TextType.SUBTITLE` (56 fichiers), maintenant sous `TITLE` et sur `HEADING` dans chaque thème, le rétro compris : un SUBTITLE placé sous un HEADING passe en STRONG, comme les intertitres du Guide.
 - Les passes des thèmes sur le téléphone : la tournée de `docs/THEMES.md` (« The pass on the phone ») pour chaque thème, puis ce que sa spec garde à juger sur l'appareil dans « What stays open » (`docs/themes/<id>.md`), le niveau des sons dans `docs/themes/sounds.md`.
 
 ## Décidé, à coder
@@ -39,16 +40,7 @@ Codé, jamais vu sur l'appareil.
 
 ## Dette de code
 
-- Les mots de passe de `~/.config/treelune/signing.env` en clair : au trousseau (`secret-tool`).
-- `CommandExecutor` lit la base directement, hors du coordinateur.
-- `AutomationScheduler.getNextExecutionForAutomation()` appelé depuis l'écran, sans le service.
-- Des conversions JSON refaites sur place au lieu de `JsonUtils` (`toValueMap`, `jsonToValue`, `toFieldConfigValue`…).
-- `shared.xml` (~1 900 lignes) à découper.
 - Les garanties sorties de la recette, `docs/design/device-check-tests.md` : chacune un test, ou sortie si un test la tient déjà.
-- `RetroPaletteTest` et `CosyPaletteTest` à parcourir par pas de 15° de teinte, comme `SwissPaletteTest`.
-- `TextType.SUBTITLE` sans rang dans le contrat des thèmes : lui en donner un, aligner les thèmes et ses 71 usages.
-- `scripts/check_chat_space.py` ne voit que l'écran d'usage d'un outil, pas ceux qu'il ouvre dans son lieu (la saisie du Journal, une séance Flashcards, corrigées à la main le 2026-10-20) : les lui faire lire.
-- Le journal ne garde que ~24 min d'usage (12 000 lignes le 2026-10-01, dont 3 782 « Service result » en VERBOSE) : les lignes utiles à la recette en sortent avant d'être lues ; réduire VERBOSE et DEBUG, « Service result » d'abord.
 - Des écrans encore ouverts à l'intérieur d'un lieu, hors de la pile (`Place`, `docs/UI.md`) : la config d'un fournisseur d'IA, les pages d'un formulaire de config, les écrans internes d'un outil (fiche, historique), l'historique des conversations — à passer en lieux, au plus tard quand un tutoriel, une notification ou un pointeur doit les viser.
 
 ## Sagesse

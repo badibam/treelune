@@ -45,6 +45,14 @@ class JsonUtilsTest {
         assertTrue(json.get("map") is JSONObject)
     }
 
+    /** A JSON value inside a Kotlin map or list is converted too, a null in an array kept. */
+    @Test
+    fun jsonInsideKotlinContainers_isConverted() {
+        val read = JsonUtils.toMap(mapOf("outer" to mapOf("inner" to JSONObject("""{"a": [1, null]}"""))))
+
+        assertEquals(mapOf("outer" to mapOf("inner" to mapOf("a" to listOf(1, null)))), read)
+    }
+
     /** A null is kept as JSON null and read back as null: how a command empties a field. */
     @Test
     fun aNull_isKeptAndReadBackAsNull() {

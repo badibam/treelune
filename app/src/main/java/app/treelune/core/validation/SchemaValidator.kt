@@ -80,7 +80,7 @@ object SchemaValidator {
         return try {
             // Checked as handed: a writer whose null means "not given" takes it out first
             // (JsonNulls), so what is checked is what is stored
-            val cleanData = convertJsonObjectsToMaps(data)
+            val cleanData = app.treelune.core.utils.JsonUtils.toMap(data)
 
             val schemaContent = schema.content
 
@@ -115,73 +115,6 @@ object SchemaValidator {
         }
     }
     
-    
-    /**
-     * Converts Android JSONObjects to Maps for Jackson compatibility
-     * Recursively handles nested structures
-     *
-     * IMPORTANT: Preserves null values - schemas may explicitly allow null for certain fields
-     */
-    private fun convertJsonObjectsToMaps(data: Map<String, Any?>): Map<String, Any?> {
-        return data.mapValues { (_, value) ->
-            convertAnyJsonObjectToMap(value)  // Returns null for null values, no fallback to ""
-        }
-    }
-    
-    /**
-     * Recursively converts any JSONObject, JSONArray, or nested structures
-     *
-     * IMPORTANT: Preserves null values - schemas may explicitly allow null for certain fields
-     */
-    private fun convertAnyJsonObjectToMap(value: Any?): Any? {
-        return when (value) {
-            // Explicit null handling - preserve null values
-            null -> null
-
-            // Convert JSONObject.NULL to Kotlin null
-            org.json.JSONObject.NULL -> null
-
-            is org.json.JSONObject -> {
-                val map = mutableMapOf<String, Any?>()
-                value.keys().forEach { key ->
-                    val rawValue = value.get(key)
-                    // Recursively convert, preserving null values
-                    val convertedValue = if (rawValue == org.json.JSONObject.NULL) {
-                        null
-                    } else {
-                        convertAnyJsonObjectToMap(rawValue)
-                    }
-                    map[key] = convertedValue  // Add even if null - schema may allow it
-                }
-                map
-            }
-            is org.json.JSONArray -> {
-                val list = mutableListOf<Any?>()
-                for (i in 0 until value.length()) {
-                    val rawValue = value.get(i)
-                    val convertedValue = if (rawValue == org.json.JSONObject.NULL) {
-                        null
-                    } else {
-                        convertAnyJsonObjectToMap(rawValue)
-                    }
-                    if (convertedValue != null) {
-                        list.add(convertedValue)
-                    }
-                }
-                list
-            }
-            is Map<*, *> -> {
-                @Suppress("UNCHECKED_CAST")
-                val originalMap = value as Map<String, Any?>
-                // Preserve null values in nested Maps - no fallback to ""
-                originalMap.mapValues { (_, v) -> convertAnyJsonObjectToMap(v) }
-            }
-            is List<*> -> {
-                value.map { convertAnyJsonObjectToMap(it) }
-            }
-            else -> value
-        }
-    }
     
     /**
      * Gets or compiles schema with optional caching

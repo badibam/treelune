@@ -202,8 +202,9 @@ object JsonUtils {
                 else -> value.toLong()
             }
 
-            // Already converted Map/List - keep as-is
-            value is Map<*, *> || value is List<*> -> value
+            // A Kotlin Map or List may still hold JSON values (a map built around a JSONObject)
+            value is Map<*, *> -> value.entries.associate { (k, v) -> k as String to fromJSONValue(v) }.toMutableMap()
+            value is List<*> -> value.map { fromJSONValue(it) }
 
             else -> throw IllegalArgumentException("Not a JSON value: a ${value.javaClass.name}")
         }

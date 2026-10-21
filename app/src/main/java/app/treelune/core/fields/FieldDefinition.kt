@@ -99,17 +99,9 @@ fun JSONObject.toFieldDefinition(): FieldDefinition {
  * JSONArrays become Lists and JSONObjects become Maps, inside a list too (a CHOICE's options are
  * a list of groups).
  */
-fun JSONObject.toFieldConfig(): Map<String, Any> {
-    val map = mutableMapOf<String, Any>()
-    keys().forEach { key -> map[key] = toFieldConfigValue(get(key)) }
-    return map
-}
-
-private fun toFieldConfigValue(value: Any): Any = when (value) {
-    is JSONArray -> (0 until value.length()).map { toFieldConfigValue(value.get(it)) }
-    is JSONObject -> value.toFieldConfig()
-    else -> value
-}
+fun JSONObject.toFieldConfig(): Map<String, Any> =
+    // A setting set to null reads as one left out, by every reader of a config
+    @Suppress("UNCHECKED_CAST") (app.treelune.core.utils.JsonUtils.toMap(this).filterValues { it != null } as Map<String, Any>)
 
 /**
  * Parses a list of FieldDefinitions from a JSONArray.

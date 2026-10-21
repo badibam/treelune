@@ -503,12 +503,7 @@ class ToolDataService(private val context: Context) : ExecutableService {
     private suspend fun getEntries(params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
 
-        // Debug logging
-        LogManager.service("ToolDataService.getEntries - Received params: $params")
-
         val toolInstanceId = params.optString("tool_instance_id")
-        LogManager.service("ToolDataService.getEntries - toolInstanceId='$toolInstanceId' (length=${toolInstanceId.length})")
-        LogManager.service("ToolDataService.getEntries - params keys: ${params.keys().asSequence().toList()}")
 
         if (toolInstanceId.isEmpty()) {
             LogManager.service("ToolDataService.getEntries - toolInstanceId is empty, returning error", "ERROR")

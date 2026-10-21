@@ -1457,6 +1457,7 @@
     <string name="action_verbalize_automations_update">Modification de la routine %1$s</string>
     <string name="action_verbalize_automations_delete">Suppression de la routine %1$s</string>
     <string name="action_verbalize_automations_config">Lecture de la routine %1$s</string>
+    <string name="action_verbalize_automations_next_execution">Prochaine exécution de la routine %1$s</string>
     <string name="action_verbalize_automations_list">Lecture des routines</string>
     <string name="action_verbalize_runs_list">Lecture des exécutions de la routine %1$s</string>
     <string name="action_verbalize_run_history">Lecture d\'une exécution de la routine %1$s</string>
