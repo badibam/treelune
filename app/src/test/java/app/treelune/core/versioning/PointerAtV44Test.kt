@@ -113,6 +113,19 @@ class PointerAtV44Test {
     }
 
     @Test
+    fun `a pointer written before v28, its config's keys still in camelCase, is rewritten`() {
+        val config = JSONObject().put("selectedPath", "tools.t1").put("selectionLevel", "INSTANCE")
+            .put("selectedContext", "DATA").put("selectedResources", JSONArray().put("data"))
+        val pointer = JSONObject().put("type", "enrichment").put("enrichment_type", "POINTER").put("config", config.toString())
+        val message = JSONObject().put("segments", JSONArray().put(pointer))
+
+        val next = JSONObject(PointerAtV44.richContent(message.toString(), calendar) { throw it }!!)
+        val rewritten = JSONObject(next.getJSONArray("segments").getJSONObject(0).getString("config"))
+        assertEquals("t1", id(rewritten))
+        assertTrue(attached(rewritten, "entries"))
+    }
+
+    @Test
     fun `a message without an old pointer is not rewritten`() {
         val message = JSONObject().put("segments", JSONArray().put(JSONObject().put("type", "text").put("content", "hi")))
         assertNull(PointerAtV44.richContent(message.toString(), calendar) { throw it })

@@ -49,7 +49,7 @@ data class ColumnDeclaration(
 /** What the detection proposes for a column, to confirm or correct before importing. */
 data class ColumnProposal(
     val declaration: ColumnDeclaration,
-    /** The writings that read every cell with different results: left for the user to choose */
+    /** The writings that read every cell, or as many as the best one, with different results: left for the user to choose */
     val ambiguous: List<Writing> = emptyList(),
     /** A cell and what the writing reads in it, chosen to show the reading */
     val example: Pair<String, Any?>? = null,
@@ -122,7 +122,10 @@ object ImportPlanner {
     private fun names(label: String, path: String, displayName: String): Boolean =
         path.substringAfter('.').equals(label, ignoreCase = true) || displayName.equals(label, ignoreCase = true)
 
-    /** The first type of [types] some writing reads every cell of; the writing, or none when several disagree. */
+    /**
+     * The first type of [types] some writing reads every cell of; the writing, or none when several
+     * disagree. When none does, the writing of the first type that reads the most cells.
+     */
     private fun propose(header: String, cells: List<String>, types: List<FieldType>, zone: ZoneId, declare: (Writing?) -> ColumnDeclaration): ColumnProposal {
         val filled = cells.withIndex().filter { it.value.isNotBlank() }
         for (type in types) {
@@ -134,12 +137,23 @@ object ImportPlanner {
             val example = pickExample(filled.map { it.value })?.let { cell -> cell to chosen?.let { (it.read(cell, zone) as? CellRead.Value)?.value } }
             return ColumnProposal(declare(chosen), ambiguous = if (chosen == null) reading else emptyList(), example = example)
         }
-        // No writing of its type reads every cell: the lines it does not read are named
+        // No writing of its type reads every cell: the one that reads the most, so that a single
+        // bad cell does not refuse the lines it would read; two reading as many cells differently
+        // are left to choose. The lines it does not read, or none of them reads, are named
         val type = types.first()
-        val writing = Writing.of(type).firstOrNull()
-        return ColumnProposal(declare(writing),
-            unreadable = filled.filter { writing == null || writing.read(it.value, zone) !is CellRead.Value }.map { it.index + 1 },
-            example = pickExample(filled.map { it.value })?.let { it to null })
+        val writings = Writing.of(type)
+        fun read(writing: Writing) = filled.filter { writing.read(it.value, zone) is CellRead.Value }
+        val most = writings.maxOfOrNull { read(it).size } ?: 0
+        if (most == 0) {
+            val writing = writings.firstOrNull()
+            return ColumnProposal(declare(writing), unreadable = filled.map { it.index + 1 }, example = pickExample(filled.map { it.value })?.let { it to null })
+        }
+        val best = writings.filter { read(it).size == most }
+        val distinct = best.distinctBy { writing -> read(writing).map { it.index to (writing.read(it.value, zone) as CellRead.Value).value } }
+        val chosen = distinct.singleOrNull()
+        val unreadable = filled.filter { cell -> (chosen?.let { listOf(it) } ?: best).none { it.read(cell.value, zone) is CellRead.Value } }.map { it.index + 1 }
+        val example = pickExample(filled.map { it.value })?.let { cell -> cell to chosen?.let { (it.read(cell, zone) as? CellRead.Value)?.value } }
+        return ColumnProposal(declare(chosen), ambiguous = if (chosen == null) best else emptyList(), example = example, unreadable = unreadable)
     }
 
     /** A choice is proposed when the values are few, each repeated. */

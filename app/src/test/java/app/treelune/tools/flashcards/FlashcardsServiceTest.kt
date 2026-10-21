@@ -2,7 +2,6 @@ package app.treelune.tools.flashcards
 
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
-import app.treelune.core.demo.DemoStartup
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -29,7 +28,7 @@ class FlashcardsServiceTest {
     @Test
     fun `a deck's reviews are written by its own operation alone, undone from the last`() = runBlocking {
         val context = RuntimeEnvironment.getApplication()
-        assertNull(DemoStartup.run(context))
+        app.treelune.core.demo.DemoFixture.installed(context)
         val coordinator = Coordinator(context)
 
         // The page's counts: the whole deck, and a group per theme, named by its label

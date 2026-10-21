@@ -94,5 +94,27 @@ data class AccessMask(val grants: List<AccessGrant> = emptyList(), private val n
  * @property holder What the mask belongs to, named in a refusal (the automation's name)
  */
 class AccessScope(val mask: AccessMask, val holder: String) : AbstractCoroutineContextElement(Key) {
-    companion object Key : CoroutineContext.Key<AccessScope>
+    companion object Key : CoroutineContext.Key<AccessScope> {
+
+        /**
+         * The scope of the automation whose run is the session [sessionId]: the automation its row
+         * names, written when the session was created. An automation that cannot be read reaches
+         * nothing: its commands are refused, saying so.
+         */
+        suspend fun ofRun(context: android.content.Context, sessionId: String?): AccessScope {
+            val aiDao = app.treelune.core.database.AppDatabase.getDatabase(context).aiDao()
+            val automationId = sessionId?.let { aiDao.getSession(it) }?.automationId
+            val automation = automationId?.let { aiDao.getAutomationById(it) }
+            val mask = automation?.let {
+                try {
+                    AccessMask.fromJson(it.accessJson)
+                } catch (e: Exception) {
+                    app.treelune.core.utils.LogManager.aiSession("Access of automation ${it.id} unreadable: ${e.message}", "ERROR", e)
+                    null
+                }
+            } ?: AccessMask.NOTHING
+            val holder = automation?.name ?: app.treelune.core.strings.Strings.`for`(context = context).shared("automation_unknown")
+            return AccessScope(mask, holder)
+        }
+    }
 }
