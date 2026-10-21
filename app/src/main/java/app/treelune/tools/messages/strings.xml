@@ -104,6 +104,7 @@
     <string name="label_content">Content of the day</string>
     <string name="occurrence_due_at">Due on %1$s</string>
     <string name="occurrence_nothing_written">Nothing written for this sending: only the common part will go out</string>
+    <string name="removed_prepared">%1$d prepared sending(s) deleted with what was written in them (%2$s), no longer at a time of the recurrence; %3$d prepared kept</string>
 
     <!-- OPERATIONS - What the AI reads of each operation -->
     <string name="operation_execute">Sends the message now, with a title and content for this sending alone; without them only the common part goes out.</string>

@@ -253,6 +253,43 @@ object MessageToolType : ToolTypeContract {
         app.treelune.core.conditions.Conditions.onField("state.read", "=", false)
     )
 
+    /**
+     * The sends prepared by hand that a change of the recurrence deletes: a pending occurrence
+     * the recurrence made, still to come, holding what was written for it, and no longer at a time
+     * the new recurrence gives within its horizon. The scheduler's next pass would delete it with
+     * what it holds (MessageScheduler.reconcilePending); said here, the change waits for the
+     * user's agreement, told the times and how many prepared sends are kept. An empty one goes
+     * unsaid: the recurrence makes it again, nothing of it is lost. A suspended template or an
+     * unreadable recurrence deletes nothing, so neither does this.
+     */
+    override fun entriesRemovedByConfig(previous: JSONObject, config: JSONObject, entries: List<ToolDataEntity>, context: Context): List<app.treelune.core.tools.RemovedByConfig> {
+        val settings = app.treelune.core.tools.ToolConfigSettings.read(this, config, context)
+        if (!settings.boolean("enabled")) return emptyList()
+        val schedule = when (val stored = app.treelune.core.utils.StoredSchedule.of(config)) {
+            is app.treelune.core.utils.StoredSchedule.Unreadable -> return emptyList()
+            is app.treelune.core.utils.StoredSchedule.Readable -> stored.schedule
+            app.treelune.core.utils.StoredSchedule.None -> null
+        }
+        val horizon = settings.number("creation_horizon")?.toLong() ?: 0L
+        if (horizon <= 0) return emptyList()
+        val now = System.currentTimeMillis()
+        val expected = schedule?.let { MessageScheduler.expectedOccurrences(it, now, now + horizon, entries.firstOrNull()?.toolInstanceId.orEmpty()) }.orEmpty().toSet()
+
+        val prepared = entries.filter { entry ->
+            val state = entry.state?.let { JSONObject(it) } ?: return@filter false
+            val due = entry.timestamp ?: return@filter false
+            state.optString("status") == "pending" && state.optString("triggered_by") == "SCHEDULE" && due > now &&
+                (JSONObject(entry.data).length() > 0 || !entry.extra.isNullOrEmpty() && JSONObject(entry.extra).length() > 0)
+        }
+        val (kept, removed) = prepared.partition { it.timestamp in expected }
+        if (removed.isEmpty()) return emptyList()
+        val s = Strings.`for`(tool = "messages", context = context)
+        val times = removed.sortedBy { it.timestamp }.joinToString(", ") { app.treelune.core.utils.DateUtils.formatFullDateTime(it.timestamp!!) }
+        return listOf(app.treelune.core.tools.RemovedByConfig(removed) { count ->
+            s.tool("removed_prepared").format(count, times, kept.size)
+        })
+    }
+
     override fun getService(context: Context): ExecutableService {
         return MessageService(context)
     }

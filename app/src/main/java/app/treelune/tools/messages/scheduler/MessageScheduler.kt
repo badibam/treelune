@@ -232,9 +232,10 @@ object MessageScheduler : ToolScheduler {
      *
      * ScheduleCalculator answers "next execution strictly after this instant", so walking it
      * forward gives the whole set. The iteration cap and the non-progress check are guards, not
-     * fallbacks: if either triggers, the pattern is wrong and the log says so.
+     * fallbacks: if either triggers, the pattern is wrong and the log says so. The config check
+     * (MessageToolType.entriesRemovedByConfig) reads it too, to say before a change what it deletes.
      */
-    private fun expectedOccurrences(
+    internal fun expectedOccurrences(
         schedule: ScheduleConfig,
         now: Long,
         horizonEnd: Long,
