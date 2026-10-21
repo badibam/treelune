@@ -460,8 +460,33 @@ class ChartSceneBuilder(
      * their categories in order, or their extent — the displayed period on a time axis, zero
      * included when the scale says so (Vega-Lite's default), fixed bounds when given, rounded to
      * graduations when nice.
+     *
+     * Its graduations: one per 40 dp on a vertical axis, 72 dp on a horizontal one, three at most
+     * in a reduced chart. A horizontal axis's labels stand side by side, and grow with the size step
+     * and Android's text size when the axis does not: as long as two neighbours would touch, the
+     * axis is laid again with one graduation less, down to one.
      */
     private fun axis(layers: List<Prepared>, vertical: Boolean, kind: AxisKind, start: Float, end: Float): Axis {
+        var count = ((abs(end - start)) / metrics.dp(if (vertical) 40f else 72f)).toInt().coerceAtLeast(2)
+            .let { if (detail == ChartDetail.REDUCED) it.coerceAtMost(3) else it }
+        while (true) {
+            val axis = axisWith(layers, vertical, kind, start, end, count)
+            if (vertical || count <= 1 || labelsApart(axis)) return axis
+            count--
+        }
+    }
+
+    /** Whether no two neighbouring labels of a horizontal [axis] touch, centred under their graduations. */
+    private fun labelsApart(axis: Axis): Boolean {
+        val placed = axis.ticks.mapNotNull { tick ->
+            val x = (if (axis.kind == AxisKind.BAND) axis.band?.center(categoryOf(axis, tick)) else axis.number(tick.value)) ?: return@mapNotNull null
+            x to text.width(tick.label)
+        }.sortedBy { it.first }
+        return placed.zipWithNext().all { (a, b) -> b.first - a.first >= (a.second + b.second) / 2 + metrics.gap }
+    }
+
+    /** [axis] with [count] graduations at most. */
+    private fun axisWith(layers: List<Prepared>, vertical: Boolean, kind: AxisKind, start: Float, end: Float, count: Int): Axis {
         fun defOf(p: Prepared) = if (vertical) p.yDef else p.xDef
         fun measureOf(p: Prepared) = if (vertical) p.yMeasure else p.xMeasure
         fun fieldOf(p: Prepared) = if (vertical) p.yField else p.xField
@@ -469,8 +494,6 @@ class ChartSceneBuilder(
         val field = onAxis.firstNotNullOfOrNull { fieldOf(it) }
         val normalized = onAxis.any { it.stack == Stack.NORMALIZE && it.horizontal != vertical }
         val axis = Axis(kind, field, normalized)
-        val count = ((abs(end - start)) / metrics.dp(if (vertical) 40f else 72f)).toInt().coerceAtLeast(2)
-            .let { if (detail == ChartDetail.REDUCED) it.coerceAtMost(3) else it }
         val scale = onAxis.firstOrNull()?.let { defOf(it) }?.scale ?: ScaleDef()
 
         when (kind) {
