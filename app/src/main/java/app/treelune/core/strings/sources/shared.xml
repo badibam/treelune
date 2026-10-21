@@ -2141,7 +2141,7 @@
     <string name="error_validation_required">Required field</string>
     <string name="error_param_name_required">The name is required</string>
     <string name="error_load_failed">Loading failed</string>
-    <string name="secrets_unreadable">%1$s does not open on this phone: it was saved on another one (a restored backup). Enter it again.</string>
+    <string name="secrets_unreadable">The field “%1$s” does not open on this phone: it was saved on another one (a restored backup). Enter it again.</string>
     <string name="error_load_data_failed">Unable to load the data</string>
     <string name="error_update_failed">Update failed</string>
     <string name="error_rename_failed">Renaming failed</string>

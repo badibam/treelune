@@ -2141,7 +2141,7 @@
     <string name="error_validation_required">Champ obligatoire</string>
     <string name="error_param_name_required">Le nom est obligatoire</string>
     <string name="error_load_failed">Échec du chargement</string>
-    <string name="secrets_unreadable">%1$s ne s\'ouvre pas sur ce téléphone : enregistré sur un autre (une sauvegarde restaurée). Saisis-le à nouveau.</string>
+    <string name="secrets_unreadable">Le champ « %1$s » ne s\'ouvre pas sur ce téléphone : il a été enregistré sur un autre (une sauvegarde restaurée). Saisis-le à nouveau.</string>
     <string name="error_load_data_failed">Impossible de charger les données</string>
     <string name="error_update_failed">Échec de la mise à jour</string>
     <string name="error_rename_failed">Échec du renommage</string>
