@@ -3,6 +3,8 @@ package app.treelune.tools.messages
 import android.content.Context
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
+import app.treelune.core.utils.ScheduleConfig
+import app.treelune.core.utils.SchedulePattern
 import app.treelune.tools.messages.scheduler.MessageScheduler
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -26,33 +28,37 @@ class PreparedSendsTest {
     private val context: Context get() = RuntimeEnvironment.getApplication()
     private val horizon = 2 * 86_400_000L
 
-    private fun config(times: List<String>) = mapOf(
+    private fun config(times: List<String>, enabled: Boolean = true) = mapOf(
         "name" to "Watering",
-        "enabled" to true,
+        "enabled" to enabled,
         "priority" to "default",
         "external_notifications" to true,
         "creation_horizon" to horizon,
         "schedule" to mapOf("pattern" to mapOf("type" to "DailyMultiple", "times" to times))
     )
 
-    /** A tool due daily at 09:00, its next two sends pending: the first written for, the second empty. */
+    /**
+     * A tool due daily at 09:00, its next two sends pending: the first written for, the second
+     * empty. The tool is made suspended, so that no pass of its scheduler, which its creation runs
+     * in the background, makes sends of its own; the two are made as the scheduler makes them, by
+     * the app, and the changes below switch it back on.
+     */
     private fun prepared(coordinator: Coordinator): Pair<String, List<String>> = runBlocking {
         val zone = coordinator.processUserAction("zones.create", mapOf("name" to "Balcony")).data!!["zone_id"] as String
         val tool = coordinator.processUserAction("tools.create", mapOf(
-            "zone_id" to zone, "tooltype" to "messages", "config" to config(listOf("09:00"))
+            "zone_id" to zone, "tooltype" to "messages", "config" to config(listOf("09:00"), enabled = false)
         )).data!!["tool_instance_id"] as String
-        // The sends to come, made by the scheduler as in the app: creating the tool already runs
-        // it in the background, so a pass asked here may find it busy and leave it the work
-        fun pending() = (runBlocking { coordinator.processUserAction("tool_data.get", mapOf("tool_instance_id" to tool)) }.data!!["entries"] as List<*>)
-            .map { it as Map<*, *> }.sortedBy { (it["timestamp"] as Number).toLong() }
-        val deadline = System.currentTimeMillis() + 10_000
-        while (pending().size < 2 && System.currentTimeMillis() < deadline) {
-            MessageScheduler.checkScheduled(context)
-            Thread.sleep(50)
+        val now = System.currentTimeMillis()
+        val due = MessageScheduler.expectedOccurrences(ScheduleConfig(SchedulePattern.DailyMultiple(listOf("09:00"))), now, now + horizon, tool)
+        assertEquals(2, due.size)
+        val ids = due.map { at ->
+            val created = coordinator.processScheduledTask("tool_data.create", mapOf(
+                "tool_instance_id" to tool, "tooltype" to "messages", "name" to "Watering", "timestamp" to at,
+                "data" to emptyMap<String, Any>(), "state" to mapOf("status" to "pending", "triggered_by" to "SCHEDULE")
+            ))
+            assertTrue(created.error, created.isSuccess)
+            created.data!!["id"] as String
         }
-        val pending = pending()
-        assertEquals(2, pending.size)
-        val ids = pending.map { it["id"] as String }
         val written = coordinator.processUserAction("tool_data.update", mapOf("id" to ids[0], "data" to mapOf("content" to "The basil first")))
         assertTrue(written.error, written.isSuccess)
         tool to ids
