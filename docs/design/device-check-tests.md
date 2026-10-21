@@ -57,10 +57,6 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 - Modifier la voix, enregistrer : « écrit dans l'app » ; réimporter le fichier : la confirmation nomme `fr · voice` parmi les retouches perdues, et confirmée, la voix revient. Choisir une autre icône et une couleur, enregistrer : la tuile les montre.
 - Les retirer, supprimer : la conversation passée se relit, son composeur remplacé par la raison.
 
-## L'historique des écritures (branche undo-history)
-
-- Un rappel d'Agenda envoyé, puis annuler le renommage de son événement : l'ancien nom revient, le rappel ne repart pas.
-
 ## L'export des entrées (branche post-release)
 
 - Une routine dont le message demande l'export de la semaine : le fichier paraît dans le dossier à chaque exécution.
