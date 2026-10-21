@@ -7,6 +7,7 @@ each chapter and step:
 
 - an operation waited for is `resource.operation`, the resource registered (ServiceRegistry)
   and the operation answered by its service (a `"operation" ->` branch in its file);
+- a message waited for says what it carries as MessageWait names it (GuideChapters.kt);
 - an origin is a Source;
 - a place's address begins with a kind Place.of reads, a name in braces kept by an earlier step;
 - every text the Guide reads by name exists in English and in French (guide.xml, guide-fr.xml):
@@ -38,6 +39,7 @@ CORE = ROOT / "app" / "src" / "main" / "java" / "app" / "treelune" / "core"
 REGISTRY = CORE / "coordinator" / "ServiceRegistry.kt"
 PLACE = CORE / "navigation" / "Place.kt"
 SOURCE = CORE / "coordinator" / "Source.kt"
+GUIDE_CHAPTERS = CORE / "guide" / "GuideChapters.kt"
 TEXTS = {"English": CORE / "strings" / "sources" / "guide.xml", "French": CORE / "strings" / "sources" / "guide-fr.xml"}
 SOURCES = ROOT / "app" / "src" / "main" / "java"
 DEMO = ROOT / "app" / "src" / "main" / "assets" / "demo" / "structure.json"
@@ -126,6 +128,8 @@ def main():
     chapters = json.loads(CHAPTERS.read_text(encoding="utf-8"))["chapters"]
     registered = services()
     kinds = set(re.findall(r'^\s+"([a-z_]+)" ->', PLACE.read_text(encoding="utf-8"), re.M))
+    enum = re.search(r"enum class MessageWait\(.*?\n\}", GUIDE_CHAPTERS.read_text(encoding="utf-8"), re.S).group(0)
+    message_waits = set(re.findall(r'^\s+[A-Z_]+\("([a-z_]+)"\)', enum, re.M))
     origins = set(re.findall(r"^\s+([A-Z]+),?$", SOURCE.read_text(encoding="utf-8"), re.M))
     texts = {lang: set(re.findall(r'<string name="([^"]+)"', path.read_text(encoding="utf-8"))) for lang, path in TEXTS.items()}
     demo = json.loads(DEMO.read_text(encoding="utf-8"))
@@ -185,8 +189,11 @@ def main():
                         problems.append(f"{where}: '{{{name}}}' kept by no earlier step")
             wait = step.get("await")
             if (step["kind"] == "do") != (wait is not None):
-                problems.append(f"{where}: a do step waits for an operation, and only it")
-            if wait:
+                problems.append(f"{where}: a do step waits for an operation or a message, and only it")
+            if wait and "message" in wait:
+                if wait["message"] not in message_waits:
+                    problems.append(f"{where}: no message wait '{wait['message']}'")
+            elif wait:
                 resource, _, operation = wait["operation"].partition(".")
                 service = registered.get(resource)
                 if resource not in registered:

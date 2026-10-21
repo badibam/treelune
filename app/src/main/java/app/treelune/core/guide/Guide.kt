@@ -1,6 +1,11 @@
 package app.treelune.core.guide
 
 import android.content.Context
+import app.treelune.core.ai.data.EnrichmentType
+import app.treelune.core.ai.data.MessageSegment
+import app.treelune.core.ai.data.RichMessage
+import app.treelune.core.ai.enrichments.PointerConfig
+import app.treelune.core.ai.orchestration.SentMessages
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -12,6 +17,8 @@ import app.treelune.core.database.entities.AppSettingCategories
 import app.treelune.core.navigation.Navigator
 import app.treelune.core.navigation.Place
 import app.treelune.core.navigation.PlaceStack
+import app.treelune.core.selection.ReferenceKind
+import app.treelune.core.strings.Strings
 import app.treelune.core.utils.JsonUtils
 import app.treelune.core.utils.LogManager
 import kotlinx.coroutines.CoroutineScope
@@ -22,7 +29,8 @@ import kotlinx.coroutines.launch
 /**
  * The tutorial in progress and the Guide's progress (docs/GUIDE.md). A GO step is
  * done when its place is on screen, a DO step when the operation it waits for passes through the
- * dispatcher (PassedOperations), asked by whom it says, a READ step by Next. Each change is
+ * dispatcher (PassedOperations), asked by whom it says, or when the user sends the AI the message
+ * it waits for (SentMessages), a READ step by Next. Each change is
  * written to the settings (category guide) as it happens.
  *
  * Started once, by the main screen ([start]); until the progress is read, [progress] is null and
@@ -65,6 +73,7 @@ object Guide {
             checkPlace()
         }
         scope.launch { PassedOperations.flow.collect { passed(it) } }
+        scope.launch { SentMessages.flow.collect { sent(it) } }
         scope.launch { snapshotFlow { Navigator.stack.toList() }.collect { checkPlace() } }
     }
 
@@ -168,7 +177,7 @@ object Guide {
     /** A DO step whose operation just passed, asked by whom it says, with the params it says, is done. */
     private fun passed(op: PassedOperations.Passed) {
         val (chapter, step) = current ?: return
-        val await = step.await ?: return
+        val await = step.await as? Await.Operation ?: return
         if (op.action != await.operation || op.source != await.origin) return
         val kept = kept(chapter)
         val matches = await.params.all { (key, expected) ->
@@ -180,6 +189,30 @@ object Guide {
         val keeping = step.keep.mapValues { (_, key) -> (op.result[key] ?: op.params[key])?.toString() }
             .filterValues { it != null }.mapValues { it.value!! }
         advance(chapter, keeping)
+    }
+
+    /** A DO step waiting for a message is done when the user sends one carrying what it says. */
+    private fun sent(message: RichMessage) {
+        val (chapter, step) = current ?: return
+        val await = step.await as? Await.Message ?: return
+        val carries = when (await.carrying) {
+            MessageWait.ANY -> true
+            MessageWait.POINTER_TOOL -> {
+                val s = Strings.`for`(context = appContext)
+                message.segments.filterIsInstance<MessageSegment.EnrichmentBlock>()
+                    .filter { it.type == EnrichmentType.POINTER }
+                    .any { block ->
+                        // A pointer that does not read leaves the step waiting, said in the logs: thrown, it would end the listening
+                        try {
+                            PointerConfig.fromJson(block.config) { key -> s.shared(key) }.target.kind == ReferenceKind.TOOL_INSTANCE
+                        } catch (e: IllegalArgumentException) {
+                            LogManager.ui("Guide: pointer not read: ${e.message}", "ERROR")
+                            false
+                        }
+                    }
+            }
+        }
+        if (carries) advance(chapter, emptyMap())
     }
 
     private fun advance(chapter: GuideChapter, keeping: Map<String, String>) {

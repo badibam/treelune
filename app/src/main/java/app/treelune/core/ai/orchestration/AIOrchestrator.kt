@@ -322,6 +322,7 @@ object AIOrchestrator {
         )
 
         messageRepository.storeMessage(sessionId, userMessage)
+        SentMessages.sent(richMessage)
 
         // Emit UserMessageSent event
         // Event processor will transition to EXECUTING_ENRICHMENTS

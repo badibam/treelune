@@ -27,11 +27,29 @@ enum class GuidePart(val key: String, val ordered: Boolean) {
 enum class StepKind { GO, DO, READ }
 
 /**
- * The operation a DO step waits for: its action, who must ask it (the user, or the AI when the
- * step is to have the AI do it), and params it must carry, each value an exact one or the name
- * of what an earlier step kept (`{zone}`).
+ * What a DO step waits for: an operation the dispatcher sees pass, or a message the user sends
+ * the AI, which goes through the AI's orchestrator instead (SentMessages).
  */
-data class Await(val operation: String, val origin: Source, val params: Map<String, String>)
+sealed interface Await {
+
+    /**
+     * An operation: its action, who must ask it (the user, or the AI when the step is to have the
+     * AI do it), and params it must carry, each value an exact one or the name of what an earlier
+     * step kept (`{zone}`).
+     */
+    data class Operation(val operation: String, val origin: Source, val params: Map<String, String>) : Await
+
+    /** A message sent to the AI, carrying what [carrying] says. */
+    data class Message(val carrying: MessageWait) : Await
+}
+
+/** What a message a step waits for must carry; [key] names it in chapters.json. */
+enum class MessageWait(val key: String) {
+    /** Anything: a message sent. */
+    ANY("any"),
+    /** A pointer whose target is a tool. */
+    POINTER_TOOL("pointer_tool")
+}
 
 /**
  * A step of a chapter, its texts named after its chapter and its number from 1
@@ -51,7 +69,7 @@ data class GuideStep(
 ) {
     /** Whether the step is about the demo: its place or what it waits for names a demo id. */
     val usesDemo: Boolean
-        get() = target.orEmpty().contains(DEMO_PREFIX) || await?.params?.values?.any { it.startsWith(DEMO_PREFIX) } == true
+        get() = target.orEmpty().contains(DEMO_PREFIX) || (await as? Await.Operation)?.params?.values?.any { it.startsWith(DEMO_PREFIX) } == true
 }
 
 /**
@@ -153,16 +171,22 @@ object GuideChapters {
                         kind = StepKind.valueOf(st.getString("kind").uppercase()),
                         target = if (st.has("target")) st.getString("target") else null,
                         await = st.optJSONObject("await")?.let { a ->
-                            val params = a.optJSONObject("params")
-                            Await(
-                                operation = a.getString("operation"),
-                                origin = Source.valueOf(a.getString("origin")),
-                                params = params?.keys()?.asSequence()?.associateWith { params.getString(it) } ?: emptyMap()
-                            )
+                            if (a.has("message")) {
+                                val key = a.getString("message")
+                                Await.Message(MessageWait.entries.firstOrNull { it.key == key }
+                                    ?: throw IllegalArgumentException("Step ${n + 1} of '${c.getString("id")}': no message wait '$key'"))
+                            } else {
+                                val params = a.optJSONObject("params")
+                                Await.Operation(
+                                    operation = a.getString("operation"),
+                                    origin = Source.valueOf(a.getString("origin")),
+                                    params = params?.keys()?.asSequence()?.associateWith { params.getString(it) } ?: emptyMap()
+                                )
+                            }
                         },
                         keep = st.optJSONObject("keep")?.let { k -> k.keys().asSequence().associateWith { k.getString(it) } } ?: emptyMap()
                     ).also {
-                        require((it.kind == StepKind.DO) == (it.await != null)) { "Step ${it.number} of '${c.getString("id")}': a DO step waits for an operation, and only it" }
+                        require((it.kind == StepKind.DO) == (it.await != null)) { "Step ${it.number} of '${c.getString("id")}': a DO step waits for an operation or a message, and only it" }
                         require(it.kind != StepKind.GO || it.target != null) { "Step ${it.number} of '${c.getString("id")}': a GO step has a place" }
                     }
                 }

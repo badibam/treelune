@@ -68,7 +68,7 @@ Each kind of screen of the stack knows its parent and the sentence that leads th
 Three kinds:
 
 - **go**: done when the target screen is at the top of the stack;
-- **do**: done when the expected operation passes through the dispatcher, with its origin (`currentOrigin()`) — `tool_data.create` on a tool, of user origin; "ask the AI to create a tool" waits for `tools.create` of AI origin, and does not tick if the user creates it themselves;
+- **do**: done when the expected operation passes through the dispatcher, with its origin (`currentOrigin()`) — `tool_data.create` on a tool, of user origin; "ask the AI to create a tool" waits for `tools.create` of AI origin, and does not tick if the user creates it themselves; or when the user sends the AI the expected message, which goes through `AIOrchestrator`, not the dispatcher (`SentMessages`): any message (`"await": {"message": "any"}`), or one carrying a pointer to a tool (`"pointer_tool"`);
 - **read**: an explanation and "Next".
 
 A step waits for an operation done while it is underway, not a state already there. It can:

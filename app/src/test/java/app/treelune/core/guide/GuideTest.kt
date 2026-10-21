@@ -51,9 +51,11 @@ class GuideTest {
     fun aStepWaitsForWhatItSays() {
         val add = chapters.first { it.id == "first_steps" }.steps[1]
         assertEquals(StepKind.DO, add.kind)
-        assertEquals(Await("tool_data.create", Source.USER, mapOf("tool_instance_id" to "demo-course-runs")), add.await)
+        assertEquals(Await.Operation("tool_data.create", Source.USER, mapOf("tool_instance_id" to "demo-course-runs")), add.await)
         val byTheAi = chapters.first { it.id == "build_with_ai" }.steps[1]
-        assertEquals(Source.AI, byTheAi.await!!.origin)
+        assertEquals(Source.AI, (byTheAi.await as Await.Operation).origin)
+        val pointer = chapters.first { it.id == "connect_ai" }.steps[4]
+        assertEquals(Await.Message(MessageWait.POINTER_TOOL), pointer.await)
     }
 
     @Test
