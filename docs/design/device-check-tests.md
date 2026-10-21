@@ -59,7 +59,6 @@ Sorties de la recette sur l'appareil (`device-checks.md`) le 2026-10-21 : chacun
 
 ## L'historique des écritures (branche undo-history)
 
-- Supprimer la démo puis l'annuler : la démo revient entière, ses routines et leurs messages compris.
 - Un rappel d'Agenda envoyé, puis annuler le renommage de son événement : l'ancien nom revient, le rappel ne repart pas.
 
 ## L'export des entrées (branche post-release)
