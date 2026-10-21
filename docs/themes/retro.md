@@ -23,7 +23,7 @@ Designed from 2026-09-29. A second theme, beside the default theme, in Saylune's
 
 ## What is coded
 
-`themes/retro/`: the palette (`RetroPalette`, `PaletteFile`, its bench), the grid and the font (`RetroGrid`), the frame (`RetroFrame`), each contract component (`RetroTheme`), its icons (`icons/`, from `scripts/pixelize_icons.py`, shown at a whole multiple of their box), the sounds (`res/raw/retro_*.flac`, credits in `sounds.json`), the drawings (`RetroRaster`, `RetroDrawing`). The choice is made in the "Interface" settings: the appearance (a theme's palette, named by the theme itself) and the size step, saved since the base's v55.
+`themes/retro/`: the palette (`RetroPalette`, `PaletteFile`, its bench), the grid and the font (`RetroGrid`), the frame (`RetroFrame`), each contract component (`RetroTheme`), its icons (`icons/`, from `scripts/pixelize_icons.py`, shown at a whole multiple of their box), the sounds (`res/raw/retro_*.flac`, credits in `sounds.json`), the drawings (`RetroRaster`, `RetroDrawing`). `RetroPaletteTest` holds the palettes to the bench's derivation and their contrasts at every 15° shift, the states at 3 (their texts short), the rest at 4.5. The choice is made in the "Interface" settings: the appearance (a theme's palette, named by the theme itself) and the size step, saved since the base's v55.
 
 ## What stays open
 
