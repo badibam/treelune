@@ -661,13 +661,30 @@ DeepSeek goes through `ClaudeProviderCore` on its `/anthropic` endpoint (`Messag
 - The answer starts with a `thinking` block: the parsing reads the `text` block.
 
 ### Other server - Chat Completions at a settable address
-`OpenAICompatibleProviderCore` serves any server that speaks `/chat/completions`: Ollama, llama.cpp, vLLM, LM Studio, OpenRouter. The OpenAI provider stays on `/v1/responses`, which these servers do not all serve. Kind `compatible`, named "Other server" on screen. Why it exists: `docs/design/local-models.md`.
+`OpenAICompatibleProviderCore` serves any server that speaks `/chat/completions`: Ollama, llama.cpp, vLLM, LM Studio, OpenRouter. The OpenAI provider stays on `/v1/responses`, which these servers do not all serve. Kind `compatible`, named "Other server" on screen. Why it exists: « Free models and the bench », below.
 - Base address (`base_url`, the one before `/chat/completions`, often ending in `/v1`) **in https only**: the prompt holds the user's data. Refused on saving (`configError`), on listing the models and on calling. No cleartext traffic exception is declared in the app.
 - Optional key, sent as `Bearer` when it exists. The models are listed through `GET /models` as soon as the address is filled.
 - Output forcing (`output_forcing`), a required choice: `none`, `json` (`response_format: json_object`), `schema` (`json_schema` holding the schema of the AI's answer as the model reads it, `SchemaModelView`). A server that refuses the level returns an error, shown as is.
 - L1, L2 and L3 go as **a single** system message: some chat templates refuse a second system message.
 - An answer cut by the limit (`finish_reason: length`) is refused. `prompt_tokens` and `completion_tokens` are required, `cached_tokens` optional.
 - Cost: a "Prices" choice (`prices`), the LiteLLM list as elsewhere (`list`, a model it does not know has an unknown cost) or set by hand (`manual`): input, cached input, output, in dollars per million tokens (`price_input`, `price_cached_input`, `price_output`), read by `ownPrices`. An empty price is unknown: a call that has tokens of its kind has an unknown cost (`SessionCost`), 0 says free. No cache writing in Chat Completions, no tiers.
+
+### Free models and the bench
+The aim: the app's AI running on a free model, on a computer or a server of one's own, for privacy and to depend on no proprietary provider; a home server goes through "Other server", served in https by `tailscale serve` or a reverse proxy. The bench measures what a model does with the app's real prompt, on every use, configuration included.
+
+- **Played by the app itself** (`./run bench`, `scripts/bench.py`): an instrumentation test that knows no scenario (`BenchScenario`) empties the base, sets the provider from its arguments, installs the demo, sends the message or starts the routine, waits for the session at rest, and copies the base; `scripts/bench_checks.py` judges each scenario on the final state of the test zone ("an entry of 300 in Calories, dated today"), a different but valid path succeeding. The scenarios (`scripts/bench_scenarios.py`, on the demo in French): about twenty, in four families after the uses — entering, reading, automation, configuration — each from simple to tricky.
+- **Campaign 1** (2026-10-04, on the emulator through OpenRouter, one run per cell, 19 scenarios; read again by a judge on 2026-10-17), successes without forcing / at the exact schema:
+
+| Model (class of machine) | Without forcing | At the schema |
+|---|---|---|
+| `ministral-3b-2512` (phone) | 2/19 | 8/19 |
+| `qwen3.6-35b-a3b` (laptop, 32 GB) | 8/19 | 9/19 |
+| `gemma-4-31b-it` (24 GB GPU) | 18/19 | 16/19 |
+| `gpt-oss-120b` (server, 64-128 GB) | 14/19 | 14/19 |
+| `deepseek-v4-flash` (hosted only) | 19/19 | 4/19 |
+
+  qwen and ministral had answers cut by the output limit (16,000 tokens), which the app does not keep. Not measured: the variance (one run per cell), the speed on a machine of one's own.
+- **Decided on 2026-10-17**: a single prompt for every model, no levels; the bench stays in `scripts/`, without a campaign planned.
 
 ### Configuration
 Providers managed by `AIProviderConfigService` (`ai_provider_config.kinds`, `list`, `get`, `create`, `update`, `delete`, `set_default`, `get_default`), kinds found by `AIProviderKinds`, `AIClient` goes through the coordinator (no direct DB access).

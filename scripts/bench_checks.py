@@ -1,4 +1,4 @@
-"""What each bench scenario must leave (docs/design/local-models.md), judged on the copies of the
+"""What each bench scenario must leave (docs/AI.md, « Free models and the bench »), judged on the copies of the
 base the app wrote before and after it (scripts/bench.py).
 
 A check reads the expected answer from the base itself: the demo's figures come from a seed and its
