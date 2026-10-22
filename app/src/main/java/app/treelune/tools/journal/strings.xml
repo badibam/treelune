@@ -12,12 +12,6 @@
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">A dated diary, for writing about your days</string>
 
-    <!-- SCHEMAS - Display names for schema identification -->
-    <string name="schema_config_display_name">Journal configuration</string>
-    <string name="schema_config_description">Configuration schema for journal instances</string>
-    <string name="schema_data_display_name">Journal data</string>
-    <string name="schema_data_description">Validation schema for journal entries</string>
-
     <!-- SCHEMAS CONFIG - Descriptions for AI validation -->
     <string name="schema_config_sort_order">Sort order of the entries (ascending or descending)</string>
 
@@ -67,5 +61,5 @@
     <!-- What each part of an entry is in this type (EntryMeanings) -->
     <string name="entry_name">The entry\'s title</string>
     <string name="entry_timestamp">The day or moment the entry is about, which can be in the past</string>
-    <string name="entry_extra">Details noted with each entry, shown on its card: a mood, a place</string>
+    <string name="entry_extra">Details noted with each entry and shown on its card, such as a mood or a place</string>
 </resources>

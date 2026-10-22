@@ -150,6 +150,6 @@
     <!-- What each part of an entry is in this type (EntryMeanings) -->
     <string name="entry_timestamp">Quand la séance a commencé, ou son heure prévue</string>
     <string name="entry_data">Comment la séance s\'est passée, écrit par l\'app à sa fin : sa durée, ses pauses, ses étapes faites, passées ou pas faites</string>
-    <string name="entry_extra">Les champs de l\'utilisateur, remplis quand une séance est terminée : comment elle s\'est passée, l\'effort ressenti</string>
+    <string name="entry_extra">Les champs de l\'utilisateur, remplis quand une séance est terminée, par exemple comment elle s\'est passée ou l\'effort ressenti</string>
     <string name="entry_state">Où en est la séance : prévue, en cours, à terminer, faite, arrêtée ou ignorée ; son début et sa fin, et pendant qu\'elle se déroule, son parcours</string>
 </resources>

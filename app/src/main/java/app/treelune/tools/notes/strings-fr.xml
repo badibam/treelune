@@ -12,11 +12,6 @@
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Des notes, chacune avec son titre, rangées là où elles servent</string>
 
-    <!-- SCHEMAS - Display names for schema identification -->
-    <string name="schema_config_display_name">Configuration de notes</string>
-    <string name="schema_data_display_name">Données de note</string>
-    <string name="schema_data_description">Schéma de validation pour les entrées de notes</string>
-
     <!-- SCHEMAS DATA - Descriptions pour validation IA -->
     <string name="schema_data_content">Contenu de la note</string>
     <string name="schema_data_position">Place dans la liste, 0 en haut. Une position déjà prise y place la note et décale les suivantes ; sans position, la note va en dernier. Les positions restent 0, 1, 2… sans trou</string>
@@ -59,7 +54,6 @@
     <string name="error_save">Erreur lors de la sauvegarde</string>
 
     <!-- Schéma -->
-    <string name="schema_config_description">Schéma de configuration pour les instances de notes</string>
 
     <!-- What each part of an entry is in this type (EntryMeanings) -->
     <string name="entry_name">Le titre de la note, au-dessus de son texte ; là seulement quand les titres de l\'outil sont activés (titles)</string>

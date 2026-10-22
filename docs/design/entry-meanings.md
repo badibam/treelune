@@ -82,6 +82,26 @@ Un suivi sans raccourci : une entrée libre prend d'office le nom du suivi, modi
 - Prompt fixe : la commande SCHEMA dit qu'elle amène l'entrée du type ; le passage des champs ajoutés dit qu'ils s'ajoutent à ce que l'entrée du type porte déjà.
 - Suivi : `ai_detail` (un suivi d'une seule chose a un raccourci à son nom) ; l'entrée libre d'un suivi sans raccourci préremplie du nom du suivi.
 
+## Une description à chaque niveau de la config
+
+Dans `SettingNode`, seule la feuille (`Field`) portait une description ; ce qui assemble des réglages n'avait qu'un libellé : un groupe (`Group`), une liste (`ListOf`), l'élément groupe d'une liste (`Item.Of`), le cas d'une option d'une variante. D'où des contournements : le groupe `value` du Suivi met sa description à la place de son libellé, le sélecteur `end` d'une étape de Séance entasse le sens de chaque option dans sa propre description.
+
+- Chaque nœud qui devient une valeur du schéma porte sa description, à son niveau : un groupe dit ce qu'il rassemble, une liste ce qu'elle est, un élément ce qu'est l'un d'eux, le cas d'une option ce qu'elle signifie (écrit par la notation sur sa ligne : `if end = timed: …`) ; le sélecteur ne dit plus que ce qu'est le choix. Une section (`Section`), qui n'est que de l'écran, n'en a pas.
+- Un test parcourt chaque déclaration de l'app (les configs des types d'outils, la zone, les réglages de l'app, les routines, les modules de communication, les réglages des types de champs) et nomme chaque nœud sans description.
+- Chaque texte s'écrit en lisant le code qui se sert du nœud, et suit `docs/WRITING.md` : une liste d'exemples dit qu'elle en est une (« such as », « par exemple »).
+
+## Le Tableau devient Collection
+
+Le type « Données structurées » (« Structured data ») s'appelle « Collection », une entrée une « fiche » (« record » en anglais : « card » se confondrait avec les Flashcards, « sheet » fait penser à un tableur), partout, ce que lit l'IA compris. L'identifiant `structured` reste : aucune donnée à migrer.
+
+## Les champs de l'utilisateur d'un Objectif
+
+Remplis pendant la tentative, puisqu'elle s'étale et qu'une remarque s'écrit quand elle vient : sur la tentative en cours, en lecture, avec un crayon qui ouvre le formulaire d'entrée de l'app, tous les champs préremplis, « Enregistrer » faisant une écriture. Pas à chaque modification comme un critère saisi (`FieldInput`) : un texte ferait une écriture par lettre. Une tentative validée ou expirée les garde figés avec son jugement.
+
+## Les textes de schéma orphelins
+
+Les noms et descriptions de schémas du Suivi, du Journal, des Messages et des Notes (`schema_config_*_display_name`, `schema_data_description`, et d'autres) ne sont lus par aucun code : supprimés.
+
 Vu en lisant le code : un Objectif prend des champs de l'utilisateur (`takesUserFields` par défaut) qu'aucun de ses écrans ne montre ; son niveau 1 garde le texte générique, et la question va au `TODO.md`.
 
 ## Le test

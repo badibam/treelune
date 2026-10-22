@@ -12,12 +12,6 @@
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Un carnet daté, pour raconter ses journées</string>
 
-    <!-- SCHEMAS - Display names for schema identification -->
-    <string name="schema_config_display_name">Configuration Journal</string>
-    <string name="schema_config_description">Schéma de configuration pour les instances de journal</string>
-    <string name="schema_data_display_name">Données Journal</string>
-    <string name="schema_data_description">Schéma de validation pour les entrées de journal</string>
-
     <!-- SCHEMAS CONFIG - Descriptions pour validation IA -->
     <string name="schema_config_sort_order">Ordre de tri des entrées (ascending ou descending)</string>
 
@@ -67,5 +61,5 @@
     <!-- What each part of an entry is in this type (EntryMeanings) -->
     <string name="entry_name">Le titre de l\'entrée</string>
     <string name="entry_timestamp">Le jour ou le moment dont parle l\'entrée, qui peut être passé</string>
-    <string name="entry_extra">Des détails notés avec chaque entrée, montrés sur sa carte : une humeur, un lieu</string>
+    <string name="entry_extra">Des détails notés avec chaque entrée et montrés sur sa carte, par exemple une humeur ou un lieu</string>
 </resources>

@@ -150,6 +150,6 @@
     <!-- What each part of an entry is in this type (EntryMeanings) -->
     <string name="entry_timestamp">When the session started, or its planned time</string>
     <string name="entry_data">How the session went, written by the app when it ends: its duration, its pauses, its steps done, skipped or not done</string>
-    <string name="entry_extra">The user\'s fields, filled in when a session is finished: how it went, the effort felt</string>
+    <string name="entry_extra">The user\'s fields, filled in when a session is finished, such as how it went or the effort felt</string>
     <string name="entry_state">Where the session stands: planned, running, to finish, done, stopped or ignored; its start and end, and while it runs, its course</string>
 </resources>
