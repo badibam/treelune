@@ -10,8 +10,8 @@ put on the phone, then:
                             down to 720 px wide, saved as WebP
     the zone's capture      the same, and in English each tool's tile framed from the screen's
                             layout (uiautomator), written into layout.json's zone.tiles
-    a phone video (.mp4)    its scenario played (site/scenarios/<id>.txt): one step per Enter, the
-                            texts typed by adb; filmed by screenrecord between start and stop,
+    a phone video (.mp4)    its scenario shown whole, then played (site/scenarios/<id>.txt): one
+                            step per Enter, the texts typed by adb; filmed by screenrecord between start and stop,
                             silent, 720 px wide, H.264, its first image kept as the poster (.webp)
     the outside AI's video  a screen recording made on the computer, whose path is asked, its
                             scenario shown as what to record
@@ -272,7 +272,7 @@ def play(steps, video_path):
     for i, (kind, text) in enumerate(steps):
         following = f"   (then: {describe(*steps[i + 1])})" if i + 1 < len(steps) else ""
         prompt = {"do": "Enter once done", "type": "Enter to type"}.get(kind, "Enter")
-        input(f"  {describe(kind, text)}{following}\n    {prompt} ")
+        input(f"  {i + 1}/{len(steps)} {describe(kind, text)}{following}\n    {prompt} ")
         if kind == "start":
             show_touches(True)
             recorder = subprocess.Popen(["adb", "shell", "screenrecord", "--bit-rate", "8000000",
@@ -312,10 +312,11 @@ def session(lang, layout):
         if path in videos:
             video = videos[path]
             steps = scenario(video["id"], lang)
+            # The whole scenario first, numbered, so that where it goes is known before it starts
             print(f"\n{what}")
+            for number, (kind, text) in enumerate(steps, 1):
+                print(f"  {number:2}. {describe(kind, text)}")
             if video["frame"] == "computer":
-                for kind, text in steps:
-                    print(f"  {describe(kind, text)}")
                 source = input("  Path of the computer's screen recording, 16:9 (empty: skip) ").strip()
                 if not source:
                     continue
