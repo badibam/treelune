@@ -814,11 +814,7 @@ Actions run in order and stop at the first failure: the ones after it are cancel
     <!-- C.4 Custom fields [DEGREE 1] -->
     <string name="ai_chunk_custom_fields"><![CDATA[## Fields
 
-Every value of the app is a field of a field type:
-
-{{CUSTOM_FIELD_TYPES}}
-
-A **field definition** says a field\'s label, its type and its type\'s settings. Wherever a schema says "list of field definitions (see Fields)", each element is:
+Every value of the app is a field of a field type. A **field definition** says a field\'s label, its type, what a value of that type is, and the type\'s settings. Wherever a schema says "list of field definitions (see Fields)", each element is:
 
 {{FIELD_DEFINITION}}
 

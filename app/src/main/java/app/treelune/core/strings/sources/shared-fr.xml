@@ -1670,7 +1670,7 @@
     <!-- CUSTOM FIELDS - Schema descriptions (used by AI) -->
     <string name="field_type_schema_name_description">Identifiant technique du champ, clé sous laquelle les valeurs sont stockées. Attribué par l\'app à la création, à partir de l\'intitulé, et immuable ensuite. À omettre pour un nouveau champ ; à reprendre tel quel pour désigner un champ existant. Le renommer détruirait les valeurs déjà enregistrées, c\'est l\'intitulé qui se modifie librement.</string>
     <string name="field_type_schema_display_name_description">Nom affiché à l\'utilisateur pour ce champ personnalisé</string>
-    <string name="field_type_schema_type_description">Type de champ personnalisé. Doit correspondre à l\'un des types disponibles (voir liste des field types supportés).</string>
+    <string name="field_type_schema_type_description">Ce qu\'est une valeur du champ, et donc quels réglages le champ a</string>
     <string name="field_type_schema_always_visible_description">Si true, ce champ est toujours affiché dans l\'interface (même s\'il est vide). Si false, il n\'est affiché que lorsqu\'il contient une valeur.</string>
     <string name="field_default_value">Valeur par défaut</string>
     <string name="field_type_schema_default_value_description">Une valeur de ce champ proposée pour une nouvelle entrée : le formulaire la préremplit et une saisie rapide l\'applique. L\'app ne l\'écrit jamais d\'elle-même ; absente, une nouvelle entrée part sans réponse.</string>
@@ -2477,4 +2477,55 @@
     <string name="settings_data_history_days_help">Combien de temps un changement reste dans l'historique, pour être annulé.</string>
     <string name="settings_data_history_megabytes">Place pour l'historique (Mo)</string>
     <string name="settings_data_history_megabytes_help">Au-delà, les changements les plus anciens sortent de l'historique en premier. Le dernier reste toujours.</string>
+
+    <!-- Field settings, for the AI that reads their schema -->
+    <string name="field_type_image_description">Des images jointes à une entrée, au plus le nombre fixé</string>
+    <string name="field_type_schema_field_description">Ce que contient le champ, que l\'IA lit avec les entrées</string>
+    <string name="field_type_schema_config_description">Comment les valeurs de ce type sont faites et montrées</string>
+    <string name="field_type_unit_description">L\'unité de toutes les valeurs, montrée après elles</string>
+    <string name="field_type_min_description">La plus petite valeur acceptée</string>
+    <string name="field_type_max_description">La plus grande valeur acceptée</string>
+    <string name="field_type_decimals_description">Décimales qu\'une valeur garde ; une valeur qui en a plus est arrondie à l\'écriture</string>
+    <string name="field_type_scale_min_description">La plus basse valeur de l\'échelle</string>
+    <string name="field_type_scale_max_description">La plus haute valeur de l\'échelle</string>
+    <string name="field_type_scale_min_label_description">Le mot montré à l\'extrémité basse, par exemple « Très mal »</string>
+    <string name="field_type_scale_max_label_description">Le mot montré à l\'extrémité haute, par exemple « Très bien »</string>
+    <string name="field_type_scale_step_description">L\'écart entre deux crans du curseur ; une valeur en est un multiple</string>
+    <string name="field_type_range_min_description">La plus petite valeur acceptée à chaque bout</string>
+    <string name="field_type_range_max_description">La plus grande valeur acceptée à chaque bout</string>
+    <string name="field_type_options_description">Les valeurs que le champ peut prendre</string>
+    <string name="field_type_option_description">Une option : ce qui est enregistré, et comment c\'est montré</string>
+    <string name="field_type_option_value_description">Ce que les entrées enregistrent et que les filtres comparent</string>
+    <string name="field_type_option_label_description">Montré à la place de la valeur ; la valeur elle-même s\'il manque</string>
+    <string name="field_type_option_color_description">La couleur de sa pastille, partout où la valeur s\'affiche</string>
+    <string name="field_type_true_label_description">Montré pour oui, à la place de « Oui »</string>
+    <string name="field_type_false_label_description">Montré pour non, à la place de « Non »</string>
+    <string name="field_type_time_format_description">Comment l\'heure s\'affiche : 24h (14:30) ou 12h (2:30 PM)</string>
+    <string name="field_type_reference_target_description">Ce que la référence peut désigner</string>
+
+    <!-- A schedule's settings, for the AI that reads their schema -->
+    <string name="schedule_description">Quand cela a lieu, selon un rythme qui se répète</string>
+    <string name="schedule_pattern_description">Le rythme : son genre, puis les moments de ce genre</string>
+    <string name="schedule_type_description">Le genre de rythme</string>
+    <string name="schedule_pattern_DailyMultiple_description">Chaque jour, à chacune des heures</string>
+    <string name="schedule_pattern_WeeklySimple_description">Les jours de la semaine choisis, à une heure</string>
+    <string name="schedule_pattern_MonthlyRecurrent_description">Les mois choisis, un jour du mois, à une heure</string>
+    <string name="schedule_pattern_WeeklyCustom_description">À des moments de la semaine, chacun avec son jour et son heure</string>
+    <string name="schedule_pattern_YearlyRecurrent_description">Chaque année, à chacune des dates, à son heure</string>
+    <string name="schedule_pattern_SpecificDates_description">Une fois à chacun des instants</string>
+    <string name="schedule_times_description">Les heures de chaque jour</string>
+    <string name="schedule_time_description">Une heure du jour, dans le fuseau de l\'app</string>
+    <string name="schedule_days_of_week_description">Les jours de la semaine</string>
+    <string name="schedule_day_of_week_description">1 est lundi, 7 dimanche</string>
+    <string name="schedule_months_description">Les mois de l\'année</string>
+    <string name="schedule_month_description">1 est janvier, 12 décembre</string>
+    <string name="schedule_day_of_month_description">Le jour du mois ; un mois qui ne l\'a pas est sauté</string>
+    <string name="schedule_moments_description">Les moments de la semaine</string>
+    <string name="schedule_moment_description">Un jour de la semaine et une heure</string>
+    <string name="schedule_dates_description">Les dates de l\'année</string>
+    <string name="schedule_date_description">Un jour d\'un mois, et une heure</string>
+    <string name="schedule_timestamps_description">Les instants, chacun ayant lieu une fois</string>
+    <string name="schedule_timestamp_description">Un instant où cela a lieu</string>
+
+    <string name="field_type_reference_tool_instances_list_description">Les outils dont elle peut désigner les entrées</string>
 </resources>

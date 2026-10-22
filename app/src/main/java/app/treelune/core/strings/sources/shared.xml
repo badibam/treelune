@@ -1670,7 +1670,7 @@
     <!-- CUSTOM FIELDS - Schema descriptions (used by AI) -->
     <string name="field_type_schema_name_description">Technical identifier of the field, the key the values are stored under. Assigned by the app at creation, from the label, and immutable afterwards. Omit it for a new field; repeat it as is to designate an existing field. Renaming it would destroy the values already recorded, the label is the one that can be changed freely.</string>
     <string name="field_type_schema_display_name_description">Name shown to the user for this custom field</string>
-    <string name="field_type_schema_type_description">Type of the custom field. Must match one of the available types (see the list of supported field types).</string>
+    <string name="field_type_schema_type_description">What a value of the field is, and so which settings the field has</string>
     <string name="field_type_schema_always_visible_description">If true, this field is always shown in the interface (even when it is empty). If false, it is only shown when it holds a value.</string>
     <string name="field_default_value">Default value</string>
     <string name="field_type_schema_default_value_description">A value of this field suggested for a new entry: the form prefills it and a quick entry applies it. The app never writes it on its own; absent, a new entry starts with no answer.</string>
@@ -2477,4 +2477,55 @@
     <string name="settings_data_history_days_help">How long a change stays in the history, to be undone.</string>
     <string name="settings_data_history_megabytes">Room for the history (MB)</string>
     <string name="settings_data_history_megabytes_help">Past this, the oldest changes leave the history first. The latest always stays.</string>
+
+    <!-- Field settings, for the AI that reads their schema -->
+    <string name="field_type_image_description">Images attached to an entry, at most the number set</string>
+    <string name="field_type_schema_field_description">What the field holds, which the AI reads with the entries</string>
+    <string name="field_type_schema_config_description">How the values of this type are made and shown</string>
+    <string name="field_type_unit_description">The unit every value is in, shown after it</string>
+    <string name="field_type_min_description">Smallest value accepted</string>
+    <string name="field_type_max_description">Largest value accepted</string>
+    <string name="field_type_decimals_description">Decimals a value keeps; a value with more is rounded when written</string>
+    <string name="field_type_scale_min_description">The scale\'s lowest value</string>
+    <string name="field_type_scale_max_description">The scale\'s highest value</string>
+    <string name="field_type_scale_min_label_description">Word shown at the lowest end, such as “Very bad”</string>
+    <string name="field_type_scale_max_label_description">Word shown at the highest end, such as “Very good”</string>
+    <string name="field_type_scale_step_description">Gap between two stops of the slider; a value is a multiple of it</string>
+    <string name="field_type_range_min_description">Smallest value accepted at either end</string>
+    <string name="field_type_range_max_description">Largest value accepted at either end</string>
+    <string name="field_type_options_description">The values the field can take</string>
+    <string name="field_type_option_description">One option: what is stored, and how it is shown</string>
+    <string name="field_type_option_value_description">What the entries store and filters compare</string>
+    <string name="field_type_option_label_description">Shown in place of the value; the value itself when absent</string>
+    <string name="field_type_option_color_description">Colour of its swatch, wherever the value shows</string>
+    <string name="field_type_true_label_description">Shown for yes, in place of “Yes”</string>
+    <string name="field_type_false_label_description">Shown for no, in place of “No”</string>
+    <string name="field_type_time_format_description">How the time is shown: 24h (14:30) or 12h (2:30 PM)</string>
+    <string name="field_type_reference_target_description">What the reference can point to</string>
+
+    <!-- A schedule's settings, for the AI that reads their schema -->
+    <string name="schedule_description">When it happens, by a rhythm that repeats</string>
+    <string name="schedule_pattern_description">The rhythm: its kind, then that kind\'s moments</string>
+    <string name="schedule_type_description">The kind of rhythm</string>
+    <string name="schedule_pattern_DailyMultiple_description">Every day, at each of the times</string>
+    <string name="schedule_pattern_WeeklySimple_description">On the days of the week chosen, at one time</string>
+    <string name="schedule_pattern_MonthlyRecurrent_description">In the months chosen, on one day of the month, at one time</string>
+    <string name="schedule_pattern_WeeklyCustom_description">At moments of the week, each with its own day and time</string>
+    <string name="schedule_pattern_YearlyRecurrent_description">Each year, on each of the dates, at its time</string>
+    <string name="schedule_pattern_SpecificDates_description">Once at each of the instants</string>
+    <string name="schedule_times_description">The times of each day</string>
+    <string name="schedule_time_description">A time of day, in the app\'s time zone</string>
+    <string name="schedule_days_of_week_description">The days of the week</string>
+    <string name="schedule_day_of_week_description">1 is Monday, 7 Sunday</string>
+    <string name="schedule_months_description">The months of the year</string>
+    <string name="schedule_month_description">1 is January, 12 December</string>
+    <string name="schedule_day_of_month_description">The day of the month; a month without it is skipped</string>
+    <string name="schedule_moments_description">The moments of the week</string>
+    <string name="schedule_moment_description">A day of the week and a time</string>
+    <string name="schedule_dates_description">The dates of the year</string>
+    <string name="schedule_date_description">A day of a month, and a time</string>
+    <string name="schedule_timestamps_description">The instants, each happening once</string>
+    <string name="schedule_timestamp_description">An instant at which it happens</string>
+
+    <string name="field_type_reference_tool_instances_list_description">The tools whose entries it can point to</string>
 </resources>

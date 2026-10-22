@@ -237,28 +237,19 @@ object PromptChunks {
         return replacePlaceholders(texts.joinToString("\n\n"), context)
     }
 
-    /** The field types, each with the description its schema carries, listed for the prompt. */
-    private fun buildCustomFieldTypesList(context: Context): String {
-        return app.treelune.core.fields.FieldType.entries.joinToString("\n") { type ->
-            val schema = app.treelune.core.fields.settings.FieldTypeSchemas.getSchema("field_type_${type.name}", context, null)
-            val description = schema?.description ?: type.name
-            "- **${type.name}** : $description"
-        }
-    }
-
     /**
-     * Build custom fields chunk with dynamic type list
+     * The chunk of the fields: a field definition in the notation, each type's meaning on its
+     * option, so that the types are said in one place
      */
     private suspend fun buildCustomFieldsChunk(context: Context): String {
         val s = Strings.`for`(context = context)
         val content = s.shared("ai_chunk_custom_fields")
-        val typesList = buildCustomFieldTypesList(context)
         val definition = SchemaNotation.render(SchemaModelView.forModel(
             JSONObject(app.treelune.core.fields.settings.FieldTypeSchemas.anyDefinition(context)),
             AppConfigManager.getDateTimeConfig().getZoneId()
         ))
 
-        return content.replace("{{CUSTOM_FIELD_TYPES}}", typesList).replace("{{FIELD_DEFINITION}}", "```\n$definition\n```")
+        return content.replace("{{FIELD_DEFINITION}}", "```\n$definition\n```")
     }
 
     // ================================================================
