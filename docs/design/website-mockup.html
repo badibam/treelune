@@ -108,6 +108,9 @@
     cursor: pointer; opacity: .8; padding: 8px 12px; white-space: nowrap;
   }
   .more span { display: block; font-size: 28px; line-height: 1; animation: nudge 1.8s ease-in-out infinite; }
+  .pitch-mark { display: none; }
+  .brand { transition: opacity .3s; }
+  .brand.away { opacity: 0; pointer-events: none; }
   @keyframes nudge { 50% { transform: translateY(5px); } }
 
   /* The picker: each theme's name written in its own font, the light/dark switch under it */
@@ -140,8 +143,19 @@
     .band h1 { font-size: clamp(24px, min(8vw, 6svh), 40px); margin-bottom: 16px; }
     .band .ai { font-size: clamp(15px, min(4.4vw, 3.4svh), 19px); margin-bottom: 24px; }
     .band .btn { padding: 11px 18px; }
-    .more { display: block; position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); text-align: center; }
+    .more {
+      display: grid; place-items: center; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+      width: 64px; height: 64px; border-radius: 50%; border: 1.5px solid currentColor; opacity: .85; padding: 0;
+    }
+    .more span { font-size: 34px; }
     .band .showcase { scroll-margin-top: 56px; }
+  }
+
+  /* Phone upright, screen 1: the app's mark and name, large, above the pitch; the header's own mark waits until it is scrolled away */
+  @media (max-width: 820px) and (orientation: portrait) {
+    .pitch-mark { display: flex; align-items: center; gap: 16px; margin-bottom: 4svh; }
+    .pitch-mark svg { width: min(104px, 13svh); height: min(104px, 13svh); filter: drop-shadow(0 8px 18px rgba(30, 42, 71, .25)); }
+    .pitch-mark span { font-size: min(34px, 4.6svh); font-weight: 700; }
   }
 
   /* Phone upright, screen 2: the phone as tall as the room left, then one line, the folded picker and the switch */
@@ -372,7 +386,7 @@
 
 <header>
   <div class="wrap">
-    <a class="brand" href="#"><svg width="28" height="28"><use href="#mark"/></svg>Treelune</a>
+    <a class="brand" id="brand" href="#"><svg width="28" height="28"><use href="#mark"/></svg>Treelune</a>
     <nav>
       <a class="opt" href="#zone">Découvrir</a>
       <a class="opt" href="#action">En action</a>
@@ -387,11 +401,11 @@
 <div class="band" id="band">
   <div class="wrap hero">
     <div class="pitch">
+      <div class="pitch-mark"><svg><use href="#mark"/></svg><span>Treelune</span></div>
       <h1>Chaque app de suivi fait une chose, à sa façon. Treelune te donne les pièces, et tu construis celle qu'il te faut.</h1>
       <p class="ai">Une IA de ton choix se sert des mêmes pièces que toi. Elle peut par exemple créer un outil, noter une entrée ou préparer le bilan de la semaine.</p>
       <div class="buttons">
         <a class="btn" href="#installer">Installer</a>
-        <a class="btn ghost" href="#zone">Voir comment ça marche</a>
       </div>
       <button class="more" id="more" aria-label="Voir les ambiances"><span>↓</span></button>
     </div>
@@ -568,6 +582,13 @@
   const stepTheme = d => applyTheme(THEMES[(THEMES.indexOf(current) + d + THEMES.length) % THEMES.length]);
   document.querySelectorAll("#band-carousel .arrow").forEach(b => b.onclick = () => stepTheme(+b.dataset.step));
   onSwipe(document.querySelector(".band .phone-box"), stepTheme);
+
+  // On a phone held upright, the header's mark stays away while the large one of the pitch screen is in view
+  const upright = window.matchMedia("(max-width: 820px) and (orientation: portrait)");
+  const brand = document.getElementById("brand");
+  new IntersectionObserver(([e]) => brand.classList.toggle("away", upright.matches && e.isIntersecting), { threshold: .4 })
+    .observe(document.querySelector(".pitch-mark").parentElement);
+  brand.classList.toggle("away", upright.matches && window.scrollY < window.innerHeight / 2);
 
   // The nudge at the bottom of the pitch screen brings the second screen right under the header
   document.getElementById("more").onclick = () => document.getElementById("showcase").scrollIntoView({ behavior: "smooth" });

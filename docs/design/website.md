@@ -6,7 +6,7 @@ Public : les curieux un peu techniques (celui qui installe depuis F-Droid), et c
 
 ## La page
 
-1. Ouverture : la phrase du README (« Chaque app de suivi fait une chose, à sa façon. Treelune te donne les pièces, et tu construis celle qu'il te faut. »), puis l'IA en deuxième idée ; la capture de l'accueil et le sélecteur de thème.
+1. Ouverture : sur un téléphone tenu droit, le logo et le nom en grand au-dessus du texte, celui de l'en-tête masqué tant que ce premier écran est là ; la phrase du README (« Chaque app de suivi fait une chose, à sa façon. Treelune te donne les pièces, et tu construis celle qu'il te faut. »), puis l'IA en deuxième idée ; la capture de l'accueil et le sélecteur de thème.
 2. « Tes données restent chez toi » : un titre et trois lignes, chacune avec son icône, un écran entier sur un téléphone tenu droit : pas de compte ; l'IA que tu choisis, ta clé ou ton propre serveur ; l'accès depuis l'extérieur passe par ton réseau.
 3. La zone Italien : ses outils et sa routine en liste ; le choix entoure sa tuile sur la capture de la zone et dit à quoi il sert. Elle n'entre pas dans les outils, que la partie 5 montre.
 4. En action : des vidéos courtes, sans son, en boucle, une à la fois dans le même cadre de téléphone, choisies dans la liste. Pour commencer : l'IA crée un outil et on le valide, une saisie rapide, une vraie discussion, une routine (le « Bilan de la semaine » de Course), un client MCP sur l'ordinateur qui lit et écrit dans l'app. Ensuite : créer un outil à la main, ranger une zone, lire un graphique, réviser des Flashcards, une alerte, annuler une écriture, importer un fichier.
@@ -47,6 +47,8 @@ Français et anglais, comme l'app, textes selon `docs/WRITING.md`.
 
 - `www.treelune.app` : son entrée du Multisite, puis le certificat régénéré pour couvrir les deux noms.
 - Les pages pour l'ordinateur, sur la maquette.
+- « Depuis l'ordinateur » dans En action : la place du téléphone exploitée autrement qu'avec une capture d'ordinateur en 16:9, à préciser.
+- Sur ordinateur, ce qui mène de l'ouverture à la suite, le bouton « Voir comment ça marche » retiré.
 
 ## La maquette
 
