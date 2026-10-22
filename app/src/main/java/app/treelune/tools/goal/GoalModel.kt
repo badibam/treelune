@@ -59,6 +59,8 @@ data class Criterion(
         )
 
         const val ENTERED = "field"
+        /** The name a criterion is written under once in the schema the AI reads, the same in a sub-goal. */
+        const val DEFINITION = "Criterion"
         const val CONDITION = "condition"
     }
 }

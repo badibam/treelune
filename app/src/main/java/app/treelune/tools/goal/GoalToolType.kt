@@ -127,7 +127,7 @@ object GoalToolType : ToolTypeContract {
     override fun getConfigSettings(context: Context): List<SettingNode> {
         val s = s(context)
         val shared = Strings.`for`(context = context)
-        val criteria = SettingNode.ListOf("criteria", s.tool("field_criteria"), SettingNode.Item.Of(criterionNodes(context), description = s.tool("schema_criterion")),
+        val criteria = SettingNode.ListOf("criteria", s.tool("field_criteria"), SettingNode.Item.Of(criterionNodes(context), description = s.tool("schema_criterion"), definition = Criterion.DEFINITION),
             summary = listOf("name"), description = s.tool("schema_criteria"))
         return listOf(
             SettingNode.Section(s.tool("section_definition"), listOf(
