@@ -342,6 +342,11 @@ $links = $layout['links'];
       <div class="card"><h3><?= pill($icons, $piece['icon'], $piece['color']) ?><?= $t("pieces.{$piece['id']}.name") ?></h3><p><?= $t("pieces.{$piece['id']}.text") ?></p></div>
 <?php endforeach ?>
     </div>
+    <div class="carousel pieces-carousel">
+      <button type="button" class="arrow" data-step="-1" aria-label="<?= $t('common.previous') ?>">‹</button>
+      <div class="current"><span class="rank">1 / <?= count($layout['pieces']) ?></span></div>
+      <button type="button" class="arrow" data-step="1" aria-label="<?= $t('common.next') ?>">›</button>
+    </div>
   </div>
 </section>
 

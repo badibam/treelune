@@ -147,3 +147,49 @@ document.addEventListener("click", e => {
 });
 lightbox.addEventListener("click", () => lightbox.close());
 lightbox.addEventListener("close", () => lightboxBody.replaceChildren());
+
+// ---- The other pieces, a sideways row on a phone and a low screen: the carousel's arrows and rank ----
+
+const piecesRow = document.querySelector(".pieces .grid");
+const piecesCards = [...piecesRow.children];
+const piecesRank = document.querySelector(".pieces-carousel .rank");
+const nearestCard = () => {
+  const middle = piecesRow.scrollLeft + piecesRow.clientWidth / 2;
+  return piecesCards.reduce((best, card, i) =>
+    Math.abs(card.offsetLeft + card.offsetWidth / 2 - middle) < Math.abs(piecesCards[best].offsetLeft + piecesCards[best].offsetWidth / 2 - middle) ? i : best, 0);
+};
+piecesRow.addEventListener("scroll", () => { piecesRank.textContent = `${nearestCard() + 1} / ${piecesCards.length}`; }, { passive: true });
+document.querySelectorAll(".pieces-carousel .arrow").forEach(b => b.onclick = () => {
+  const card = piecesCards[(nearestCard() + +b.dataset.step + piecesCards.length) % piecesCards.length];
+  piecesRow.scrollTo({ left: card.offsetLeft - (piecesRow.clientWidth - card.offsetWidth) / 2, behavior: "smooth" });
+});
+
+// ---- The keyboard: the up and down arrows, and page up and down, go to the previous or the next section ----
+
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+// The points the scrolling settles on, as laid out now: a section's start, or each screen of the
+// opening on a phone held upright or a low screen; two at the same height count once
+function sectionStarts() {
+  const starts = [];
+  document.querySelectorAll(".band, .band .pitch, .band .showcase, main section").forEach(el => {
+    if (!getComputedStyle(el).scrollSnapAlign.includes("start")) return;
+    const top = el.getBoundingClientRect().top + window.scrollY;
+    if (!starts.some(s => Math.abs(s.top - top) < 2)) starts.push({ el, top });
+  });
+  return starts.sort((a, b) => a.top - b.top);
+}
+document.addEventListener("keydown", e => {
+  if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || lightbox.open) return;
+  const step = { ArrowDown: 1, PageDown: 1, ArrowUp: -1, PageUp: -1 }[e.key];
+  if (!step || e.target.closest("input, textarea, select, [contenteditable]")) return;
+  const header = document.querySelector("header").offsetHeight;
+  const starts = sectionStarts();
+  const at = window.scrollY + header;
+  // The section on screen: the last one starting at or above the header's bottom
+  let current = 0;
+  starts.forEach((s, i) => { if (s.top <= at + 2) current = i; });
+  const next = starts[current + step];
+  if (!next) return;
+  e.preventDefault();
+  next.el.scrollIntoView({ behavior: reducedMotion.matches ? "auto" : "smooth", block: "start" });
+});
