@@ -103,10 +103,11 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") setMenu(fals
 // laid out without a box of their own, in the opening's one screen
 const boxOf = el => getComputedStyle(el).display === "contents" ? el.closest(".band") : el;
 const sectionLinks = [...nav.querySelectorAll('a[href^="#"]')].map(a => ({ a, section: document.getElementById(a.hash.slice(1)) }));
+// A link scrolls smoothly to its section, unless the visitor asked for less motion
+const lessMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 sectionLinks.forEach(({ a, section }) => a.addEventListener("click", e => {
-  if (boxOf(section) === section) return;
   e.preventDefault();
-  boxOf(section).scrollIntoView({ block: "start" });
+  boxOf(section).scrollIntoView({ behavior: lessMotion.matches ? "auto" : "smooth", block: "start" });
 }));
 // The section on screen: the last one of the menu starting at or above the header's bottom; none on the pitch
 function showWhere() {
@@ -206,7 +207,6 @@ document.querySelectorAll(".pieces-carousel .arrow").forEach(b => b.onclick = ()
 
 // ---- The keyboard: the up and down arrows, and page up and down, go to the previous or the next section ----
 
-const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 // The points the scrolling settles on, as laid out now: a section's start, or each screen of the
 // opening on a phone held upright or a low screen; two at the same height count once
 function sectionStarts() {
@@ -231,5 +231,5 @@ document.addEventListener("keydown", e => {
   const next = starts[current + step];
   if (!next) return;
   e.preventDefault();
-  next.el.scrollIntoView({ behavior: reducedMotion.matches ? "auto" : "smooth", block: "start" });
+  next.el.scrollIntoView({ behavior: lessMotion.matches ? "auto" : "smooth", block: "start" });
 });
