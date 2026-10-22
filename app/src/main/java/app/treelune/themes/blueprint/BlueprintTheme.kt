@@ -718,12 +718,11 @@ object BlueprintTheme : ThemeContract {
     override fun ZoneCardContainer(texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
         Tile(DisplayMode.CONDENSED, texture, color, onClick, onLongClick, content)
 
-    /** A revision triangle of the alert's colour, an exclamation mark in the paper. */
+    /** A revision triangle of the alert's colour, empty: something to read, not an alarm. */
     @Composable
     override fun WaitingMark() {
         val size = blueprintSize()
-        val c = blueprintColors
-        val alert = c.alert.srgb
+        val alert = blueprintColors.alert.srgb
         Box(
             modifier = Modifier.size(size.dp(22f), size.dp(20f)).drawBehind {
                 drawPath(Path().apply {
@@ -732,11 +731,8 @@ object BlueprintTheme : ThemeContract {
                     lineTo(0f, this@drawBehind.size.height)
                     close()
                 }, alert)
-            }.padding(top = size.dp(6f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Line("!", size.caption.copy(fontWeight = FontWeight.Medium, fontSize = size.caption.fontSize * 0.95f), c.paper.srgb)
-        }
+            }
+        )
     }
 
     /** A cell of the grid in edit mode: a frame dashed in the secondary ink. */

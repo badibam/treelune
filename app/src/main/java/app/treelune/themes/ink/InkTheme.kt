@@ -686,7 +686,7 @@ object InkTheme : ThemeContract {
 
     /** A round seal of red with an exclamation mark. */
     @Composable
-    override fun WaitingMark() = Seal(inkSize().dp(20f), "!", round = true)
+    override fun WaitingMark() = Seal(inkSize().dp(20f), null, round = true)
 
     /** A cell of the grid in edit mode: a round of very pale wash. */
     @Composable

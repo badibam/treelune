@@ -11,7 +11,7 @@ Mock-ups (the screen of a zone, beside the other theme tracks, on hold): `docs/t
 - A group title on the background, followed by a rounded dotted line.
 - The tags in pastel pills; a ticked box is a solid circle marked with a tick, an empty box a hollow circle; the gauge is a striped pill.
 - An icon alone on its tile sits in a circle of a pale colour.
-- The "waiting" mark is an orange bubble with a "!", on its own shadow.
+- The "waiting" mark is a bubble of the accent, empty, on its own shadow.
 - A round, bold font (Baloo 2 in the mock-up).
 
 ## What is decided

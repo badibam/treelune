@@ -711,14 +711,10 @@ object SwissTheme : ThemeContract {
     override fun ZoneCardContainer(texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
         Tile(DisplayMode.CONDENSED, texture, onClick, onLongClick, content)
 
-    /** A square of red with an exclamation mark in heavy figures. */
+    /** A square of red, empty: something to read, not an alarm. */
     @Composable
     override fun WaitingMark() {
-        val size = swissSize()
-        val c = swissColors
-        Box(modifier = Modifier.size(size.dp(18f)).background(c.accent.srgb), contentAlignment = Alignment.Center) {
-            Line("!", size.button.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Black, letterSpacing = 0.sp), c.onAccent.srgb)
-        }
+        Box(modifier = Modifier.size(swissSize().dp(18f)).background(swissColors.accent.srgb))
     }
 
     /** A cell of the grid in edit mode: a square outline of 1 dp, the ink at a fifth. */

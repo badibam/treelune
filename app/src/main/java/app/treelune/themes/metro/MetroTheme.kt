@@ -757,15 +757,9 @@ object MetroTheme : ThemeContract {
     override fun ZoneCardContainer(texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
         Tile(DisplayMode.CONDENSED, texture, color, onClick, onLongClick, content)
 
-    /** A round of the red ringed with the panel, an exclamation mark in heavy white. */
+    /** A round of the red ringed with the panel, empty: something to read, not an alarm. */
     @Composable
-    override fun WaitingMark() {
-        val size = metroSize()
-        val c = metroColors
-        Mark(c.accent.srgb) {
-            Line("!", size.button.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold, letterSpacing = 0.sp), c.onFill.srgb)
-        }
-    }
+    override fun WaitingMark() = Mark(metroColors.accent.srgb) {}
 
     /** A cell of the grid in edit mode: a rectangle with corners of 4 dp, dashed in the grey of a rail. */
     @Composable

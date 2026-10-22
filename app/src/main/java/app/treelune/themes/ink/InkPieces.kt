@@ -345,7 +345,7 @@ internal fun InkIcon(resourceId: Int, size: Dp, tint: Color, description: String
 
 /**
  * A seal pressed by hand: a square of red, its corners pressed unevenly and its sides trembling a
- * little, or [round], a disc painted by hand; holding [text] (an initial, a "!") or nothing.
+ * little, or [round], a disc painted by hand; holding [text] (an initial) or nothing.
  */
 @Composable
 internal fun Seal(side: Dp, text: String?, round: Boolean = false) {

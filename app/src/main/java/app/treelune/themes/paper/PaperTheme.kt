@@ -723,15 +723,9 @@ object PaperTheme : ThemeContract {
     override fun ZoneCardContainer(texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
         Tile(DisplayMode.CONDENSED, texture, color, seed, onClick, onLongClick, content)
 
-    /** A round of coral cut by hand, askew on its shadow, an exclamation mark in heavy ink (the mockup). */
+    /** A round of coral cut by hand, askew on its shadow, empty: something to read, not an alarm. */
     @Composable
-    override fun WaitingMark() {
-        val size = paperSize()
-        val c = paperColors
-        Mark(c.accent.srgb, WAIT_TILT) {
-            Line("!", size.button.copy(letterSpacing = 0.sp), c.onAccent.srgb)
-        }
-    }
+    override fun WaitingMark() = Mark(paperColors.accent.srgb, WAIT_TILT) {}
 
     /** A cell of the grid in edit mode: a rectangle dashed in brown on the kraft. */
     @Composable

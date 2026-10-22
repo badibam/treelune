@@ -703,20 +703,16 @@ object CosyTheme : ThemeContract {
     override fun ZoneCardContainer(texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
         Tile(DisplayMode.CONDENSED, texture, onClick, onLongClick, content)
 
-    /** An orange bubble with an exclamation mark, on its own small shadow. */
+    /** A bubble of the accent, on its own small shadow, empty: something to read, not an alarm. */
     @Composable
     override fun WaitingMark() {
         val size = cosySize()
         val c = cosyColors
         Raised(
             modifier = Modifier.size(size.dp(18f) + size.dp(2f)),
-            shape = CircleShape, fill = c.warning.srgb, shadow = c.shadow.srgb, depth = size.dp(2f),
+            shape = CircleShape, fill = c.accent.srgb, shadow = c.shadow.srgb, depth = size.dp(2f),
             contentModifier = Modifier.size(size.dp(18f))
-        ) {
-            Box(modifier = Modifier.matchParentSize(), contentAlignment = Alignment.Center) {
-                Line("!", size.label, c.tile.srgb)
-            }
-        }
+        ) {}
     }
 
     /** A cell of the grid in edit mode: a dashed rounded outline in the shadows' colour. */
