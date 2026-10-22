@@ -9,9 +9,11 @@ Public : les curieux un peu techniques (celui qui installe depuis F-Droid), et c
 1. Ouverture : sur un téléphone tenu droit, le logo et le nom en grand au-dessus du texte, celui de l'en-tête masqué tant que ce premier écran est là ; la phrase du README (« Chaque app de suivi fait une chose, à sa façon. Treelune te donne les pièces, et tu construis celle qu'il te faut. »), puis l'IA en deuxième idée ; la capture de l'accueil et le sélecteur de thème.
 2. « Tes données restent chez toi » : un titre et trois lignes, chacune avec son icône, un écran entier sur un téléphone tenu droit : pas de compte ; l'IA que tu choisis, ta clé ou ton propre serveur ; avec l'accès externe, une IA extérieure lit et écrit dans l'app, la connexion arrivant sur le téléphone sans serveur de Treelune.
 3. La zone Italien : ses outils et sa routine en liste ; le choix entoure sa tuile sur la capture de la zone et dit à quoi il sert. Elle n'entre pas dans les outils, que la partie 5 montre.
-4. En action : des vidéos courtes, sans son, en boucle, une à la fois dans le même cadre de téléphone, choisies dans la liste. Pour commencer : l'IA crée un outil et on le valide, une saisie rapide, une vraie discussion, une routine (le « Bilan de la semaine » de Course), une IA extérieure qui lit et écrit dans l'app par l'accès externe. Ensuite : créer un outil à la main, ranger une zone, lire un graphique, réviser des Flashcards, une alerte, annuler une écriture, importer un fichier.
+4. En action : des vidéos courtes, sans son, en boucle, une à la fois dans le même cadre de téléphone, choisies dans la liste. Pour commencer : l'IA crée un outil et on le valide, une saisie rapide, une vraie discussion, une routine (le « Bilan de la semaine » de Course), une IA extérieure qui lit et écrit dans l'app par l'accès externe, dans un cadre d'ordinateur en 16:9 réduit à la place du téléphone. Ensuite : créer un outil à la main, ranger une zone, lire un graphique, réviser des Flashcards, une alerte, annuler une écriture, importer un fichier.
 5. Les outils : leur liste, la capture de l'outil choisi, sa phrase `tagline`, comme `scripts/make_readme.py`. Puis les autres pièces, en cartes de texte, chacune avec son icône : routines, variables, identités, conditions et alertes, pointeurs, accès externe, ambiances.
 6. L'installation, un écran : le logo en signature, F-Droid et l'APK de GitHub, ce qu'il faut (Android 8.0 ou plus récent, un téléphone 64 bits), et la phrase du README sur une app encore jeune. Pas de version longue sur les données, que les trois lignes du haut disent. Puis le pied de page : licence, aucun traceur, code source, signaler un bug, l'autre langue.
+
+Une capture ou une vidéo touchée s'affiche seule en plein écran, sans flèches vers la voisine ; un toucher ou Échap la referme.
 
 Une seule page. Des pages pour l'ordinateur (brancher l'IA de l'app, ouvrir l'accès externe) viendront plus tard, si le besoin s'en montre.
 
@@ -19,7 +21,7 @@ Le défilement se cale sur le début d'une partie quand il s'arrête près d'une
 
 Les parties 1, 3, 4 et 5 partagent un motif, le geste du site : des choix à côté d'un téléphone, et choisir change ce que le téléphone montre. Les ambiances se choisissent dans une liste ; ailleurs, les choix sont des tuiles, plusieurs par ligne, chacune avec son icône Lucide sur une pastille de sa couleur d'étiquette, et le détail du choix s'affiche dessous dans une boîte de taille fixe, marquée de bleu nuit, pour que rien ne saute et que l'œil y aille. Les choix changent de côté d'une partie à l'autre. Sur un téléphone tenu droit, une telle partie tient en un écran, sans sa phrase d'introduction : son titre, le téléphone, un détail court de quatre lignes au plus, puis un carrousel : le choix en place entre deux flèches de place fixe, son rang (« 3 / 12 »), et un balayage sur le téléphone qui passe au suivant ; sur un écran couché et bas aussi, une telle partie tient en un écran, sans sa phrase d'introduction : son titre, puis les tuiles et le détail à côté d'un téléphone aussi haut que la place laissée.
 
-Français et anglais, comme l'app, textes selon `docs/WRITING.md`. Les mots sont ceux de l'app : « l'IA de l'app » (celle qu'on règle dans l'app, qui exécute les routines et seule incarne une identité), « l'accès externe » et « une IA extérieure » (une IA qui tourne ailleurs, avec les exemples du Guide : « comme Claude, ChatGPT ou un modèle libre sur ton ordinateur avec LM Studio », jamais une seule marque).
+Français et anglais, comme l'app, textes selon `docs/WRITING.md` : `/` en anglais, `/fr/` en français, chacune avec un lien vers l'autre et sa jumelle déclarée (`hreflang`), sans redirection selon la langue du navigateur. Les mots sont ceux de l'app : « l'IA de l'app » (celle qu'on règle dans l'app, qui exécute les routines et seule incarne une identité), « l'accès externe » et « une IA extérieure » (une IA qui tourne ailleurs, avec les exemples du Guide : « comme Claude, ChatGPT ou un modèle libre sur ton ordinateur avec LM Studio », jamais une seule marque).
 
 ## Les thèmes
 
@@ -34,6 +36,8 @@ Français et anglais, comme l'app, textes selon `docs/WRITING.md`. Les mots sont
 ## Les captures
 
 - Prises sur un téléphone qui n'a que la démo, jamais sur des données réelles.
+- La liste des captures et des vidéos est déclarée une fois (`site/private/media.php`) : son fichier, son thème, son mode. Une absente tient sa place en local par une capture F-Droid ou un écran dessiné, marqué comme tel, et `./run site-deploy` refuse d'envoyer tant qu'il en manque une.
+- `./run site-shots` les prend sur le téléphone vidé, une par une : il dit quel écran mettre, prend la capture ou filme, et range le fichier.
 - Le pilotage par adb de `scripts/phone_ui.sh` les prend, et `adb shell screenrecord` filme les vidéos dont les gestes se rejouent ; la vraie discussion avec l'IA se filme une fois.
 
 ## Rester d'accord avec la démo
@@ -50,7 +54,6 @@ Français et anglais, comme l'app, textes selon `docs/WRITING.md`. Les mots sont
 ## Ouvert
 
 - `www.treelune.app` : son entrée du Multisite, puis le certificat régénéré pour couvrir les deux noms.
-- « Avec une IA extérieure » dans En action : la place du téléphone exploitée autrement qu'avec une capture d'écran de navigateur en 16:9, à préciser.
 
 ## La maquette
 
