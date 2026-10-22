@@ -102,7 +102,6 @@ Remplis pendant la tentative, puisqu'elle s'étale et qu'une remarque s'écrit q
 
 Les noms et descriptions de schémas du Suivi, du Journal, des Messages et des Notes (`schema_config_*_display_name`, `schema_data_description`, et d'autres) ne sont lus par aucun code : supprimés.
 
-Vu en lisant le code : un Objectif prend des champs de l'utilisateur (`takesUserFields` par défaut) qu'aucun de ses écrans ne montre ; son niveau 1 garde le texte générique, et la question va au `TODO.md`.
 
 ## Le test
 
