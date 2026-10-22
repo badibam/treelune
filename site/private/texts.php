@@ -90,7 +90,7 @@ return [
             ],
         ],
         'tools' => [
-            'title' => 'Les pièces',
+            'title' => 'Les outils',
             'lead' => "Chaque type d'outil se règle à ton idée, et les entrées d'un outil peuvent servir à un autre.",
             'shot_alt' => "Un outil %s dans l'app",
             'pieces_title' => 'Et ce qui les relie',
@@ -208,7 +208,7 @@ return [
             ],
         ],
         'tools' => [
-            'title' => 'The pieces',
+            'title' => 'The tools',
             'lead' => 'Each tool type is set up your way, and one tool’s entries can serve another.',
             'shot_alt' => 'A %s tool in the app',
             'pieces_title' => 'And what ties them together',
