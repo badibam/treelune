@@ -1796,10 +1796,11 @@ class AIEventProcessor(
     }
 
     /**
-     * Hold back the writes of [message] when they touch a tool whose entries schema the AI has
-     * not received in the session: a SCHEMA_REQUIRED message brings the missing schemas, and
-     * SchemaRequired sends the AI back to its writes. Checked before validation, so the user
-     * never approves writes that were worded without their schema.
+     * Hold back the actions of [message] when they write in a tool whose entries schema the AI
+     * has not received in the session, or create a tool of a type whose config schema it has
+     * not: a SCHEMA_REQUIRED message brings the missing schemas, with the first level of their
+     * type's entry, and SchemaRequired sends the AI back to its actions. Checked before
+     * validation, so the user never approves actions worded without their schema.
      *
      * Deleting needs no schema: it reads no value. The schemas are stored whatever their size —
      * the threshold guards the user's data, and a schema refused would leave the AI stuck.
@@ -1810,13 +1811,13 @@ class AIEventProcessor(
      * @return true when the writes were held back, so the caller must not carry on
      */
     private suspend fun holdWritesForSchemas(sessionId: String, message: AIMessage): Boolean {
-        val writtenTools = message.actionCommands.orEmpty()
-            .filter { it.type in WRITES_READING_SCHEMA }
-            .mapNotNull { it.params["tool_instance_id"] as? String }
-        if (writtenTools.isEmpty()) return false
+        val actions = message.actionCommands.orEmpty()
+        val writtenTools = actions.filter { it.type in WRITES_READING_SCHEMA }.mapNotNull { it.params["tool_instance_id"] as? String }
+        val createdTypes = actions.filter { it.type == "CREATE_TOOL" }.mapNotNull { it.params["tooltype"] as? String }
+        if (writtenTools.isEmpty() && createdTypes.isEmpty()) return false
 
         val systemMessage = try {
-            commandExecutor.schemaRequiredForWrites(writtenTools, sessionId) ?: return false
+            commandExecutor.schemaRequiredForActions(writtenTools, createdTypes, sessionId) ?: return false
         } catch (e: CommandExecutor.UnreadableSchema) {
             LogManager.aiSession("Writes refused: ${e.message}", "WARN")
             val s = app.treelune.core.strings.Strings.`for`(context = context)

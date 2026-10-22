@@ -138,27 +138,36 @@ object SequenceToolType : ToolTypeContract {
                 cases = mapOf(
                     SequencePlan.KIND_STEP to stepNodes(text, inBlock = depth > 0),
                     SequencePlan.KIND_BLOCK to listOf(
-                        SettingNode.Field(field(SequencePlan.NAME, text("field_block_name"), FieldType.TEXT, config = mapOf("length" to TextLength.SHORT.name)), required = true),
+                        SettingNode.Field(field(SequencePlan.NAME, text("field_block_name"), FieldType.TEXT, text("schema_block_name"), mapOf("length" to TextLength.SHORT.name)), required = true),
                         SettingNode.Field(field(SequencePlan.REPEAT, text("field_repeat"), FieldType.NUMERIC, text("schema_repeat"), mapOf("min" to 1, "decimals" to 0)), required = true, default = 2),
                         stepList(text, depth + 1)
                     )
-                )
+                ),
+                descriptions = mapOf(SequencePlan.KIND_STEP to text("schema_kind_step"), SequencePlan.KIND_BLOCK to text("schema_kind_block"))
             )
         )
-        return SettingNode.ListOf(SequencePlan.STEPS, text("field_steps"), SettingNode.Item.Of(item), required = true, minItems = 1, summary = listOf(SequencePlan.NAME))
+        // The session's course at the top, a block's steps below; at the deepest, steps only
+        val element = when {
+            depth == 0 -> "schema_element"
+            depth == SequencePlan.MAX_DEPTH -> "schema_inner_element"
+            else -> "schema_block_element"
+        }
+        return SettingNode.ListOf(SequencePlan.STEPS, text("field_steps"), SettingNode.Item.Of(item, description = text(element)), required = true, minItems = 1,
+            summary = listOf(SequencePlan.NAME), description = text(if (depth == 0) "schema_steps" else "schema_block_steps"))
     }
 
     /** A step: its name, its instruction, its images, how it ends; in a block, whether its last round leaves it out. */
     private fun stepNodes(text: (String) -> String, inBlock: Boolean): List<SettingNode> {
-        val duration = listOf(SettingNode.Field(field(SequencePlan.DURATION, text("field_step_duration"), FieldType.DURATION, config = STEP_UNITS), required = true))
+        val duration = listOf(SettingNode.Field(field(SequencePlan.DURATION, text("field_step_duration"), FieldType.DURATION, text("schema_step_duration"), STEP_UNITS), required = true))
         return listOfNotNull(
-            SettingNode.Field(field(SequencePlan.NAME, text("field_step_name"), FieldType.TEXT, config = mapOf("length" to TextLength.SHORT.name)), required = true),
+            SettingNode.Field(field(SequencePlan.NAME, text("field_step_name"), FieldType.TEXT, text("schema_step_name"), mapOf("length" to TextLength.SHORT.name)), required = true),
             SettingNode.Field(field(SequencePlan.INSTRUCTION, text("field_instruction"), FieldType.TEXT, text("schema_instruction"), mapOf("length" to TextLength.LONG.name))),
             SettingNode.Field(field(SequencePlan.IMAGES, text("field_step_images"), FieldType.IMAGE, text("schema_step_images"))),
             SettingNode.Variant(
                 selector = SettingNode.Field(field(SequencePlan.END, text("field_end"), FieldType.CHOICE, text("schema_end"),
                     choice(StepEnd.KEYS) { text("end_$it") }), required = true, default = StepEnd.MANUAL.key),
-                cases = mapOf(StepEnd.TIMED.key to duration, StepEnd.TIMED_THEN_MANUAL.key to duration, StepEnd.MANUAL.key to emptyList())
+                cases = mapOf(StepEnd.TIMED.key to duration, StepEnd.TIMED_THEN_MANUAL.key to duration, StepEnd.MANUAL.key to emptyList()),
+                descriptions = StepEnd.KEYS.associateWith { text("schema_end_$it") }
             ),
             if (inBlock) SettingNode.Field(field(SequencePlan.SKIP_LAST_ROUND, text("field_skip_last_round"), FieldType.BOOLEAN, text("schema_skip_last_round")), default = false) else null
         )
@@ -187,12 +196,22 @@ object SequenceToolType : ToolTypeContract {
             ),
             state = listOf(
                 StateField(field(STATUS, s.tool("field_status"), FieldType.CHOICE, s.tool("schema_status"), choice(Status.ALL) { s.tool("status_$it") }), filterable = true),
-                StateField(field(STARTED_AT, s.tool("field_started_at"), FieldType.DATETIME), filterable = false),
-                StateField(field(ENDED_AT, s.tool("field_ended_at"), FieldType.DATETIME), filterable = false),
+                StateField(field(STARTED_AT, s.tool("field_started_at"), FieldType.DATETIME, s.tool("schema_started_at")), filterable = false),
+                StateField(field(ENDED_AT, s.tool("field_ended_at"), FieldType.DATETIME, s.tool("schema_ended_at")), filterable = false),
                 StateField(field(RUN, s.tool("field_run"), FieldType.TEXT, s.tool("schema_run"), mapOf("length" to TextLength.UNLIMITED.name)), filterable = false)
             ),
             // A session is planned, started or noted by the tool's own operations
             start = app.treelune.core.fields.EntryStart(emptyList(), refusal = s.tool("start_refused"))
+        )
+    }
+
+    override fun getEntryMeanings(context: Context): app.treelune.core.fields.EntryMeanings {
+        val s = Strings.`for`(tool = "sequence", context = context)
+        return app.treelune.core.fields.EntryMeanings(
+            timestamp = s.tool("entry_timestamp"),
+            data = s.tool("entry_data"),
+            extra = s.tool("entry_extra"),
+            state = s.tool("entry_state")
         )
     }
 
@@ -204,7 +223,7 @@ object SequenceToolType : ToolTypeContract {
      */
     override fun getOperations(context: Context): List<ToolOperation> {
         val s = s(context)
-        val id = SettingNode.Field(field("id", s.tool("field_entry"), FieldType.TEXT, config = mapOf("length" to TextLength.SHORT.name)), required = true)
+        val id = SettingNode.Field(field("id", s.tool("field_entry"), FieldType.TEXT, Strings.`for`(context = context).shared("tool_operation_entry_id"), mapOf("length" to TextLength.SHORT.name)), required = true)
         val count = mapOf("min" to 0, "decimals" to 0)
         return listOf(
             ToolOperation(SequenceService.COMPLETE, s.tool("operation_complete"), listOf(
@@ -214,14 +233,14 @@ object SequenceToolType : ToolTypeContract {
             )),
             ToolOperation(SequenceService.CORRECT, s.tool("operation_correct"), listOf(
                 id,
-                SettingNode.Field(field("timestamp", s.tool("field_when"), FieldType.DATETIME)),
-                SettingNode.Field(field(DURATION, s.tool("field_duration"), FieldType.DURATION, config = SESSION_UNITS)),
-                SettingNode.Field(field(STEPS_DONE, s.tool("field_steps_done"), FieldType.NUMERIC, config = count)),
-                SettingNode.Field(field(STEPS_SKIPPED, s.tool("field_steps_skipped"), FieldType.NUMERIC, config = count)),
-                SettingNode.Field(field(STEPS_NOT_DONE, s.tool("field_steps_not_done"), FieldType.NUMERIC, config = count)),
+                SettingNode.Field(field("timestamp", s.tool("field_when"), FieldType.DATETIME, s.tool("schema_correct_timestamp"))),
+                SettingNode.Field(field(DURATION, s.tool("field_duration"), FieldType.DURATION, s.tool("schema_correct_duration"), SESSION_UNITS)),
+                SettingNode.Field(field(STEPS_DONE, s.tool("field_steps_done"), FieldType.NUMERIC, s.tool("schema_correct_steps_done"), count)),
+                SettingNode.Field(field(STEPS_SKIPPED, s.tool("field_steps_skipped"), FieldType.NUMERIC, s.tool("schema_correct_steps_skipped"), count)),
+                SettingNode.Field(field(STEPS_NOT_DONE, s.tool("field_steps_not_done"), FieldType.NUMERIC, s.tool("schema_correct_steps_not_done"), count)),
                 // A session that keeps its steps is corrected step by step, its counts following
                 SettingNode.ListOf(STEP_STATUSES, s.tool("field_step_statuses"), SettingNode.Item.Value(field("status", s.tool("field_step_status"), FieldType.CHOICE,
-                    s.tool("schema_step_statuses"), choice(SequenceSteps.STATUSES) { s.tool("step_status_$it") })))
+                    s.tool("schema_step_statuses"), choice(SequenceSteps.STATUSES) { s.tool("step_status_$it") })), description = s.tool("schema_step_statuses_list"))
             )),
             ToolOperation(SequenceService.IGNORE, s.tool("operation_ignore"), listOf(id)),
             ToolOperation(SequenceService.IGNORE_ALL, s.tool("operation_ignore_all"), emptyList())

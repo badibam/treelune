@@ -84,19 +84,21 @@ object TrackingToolType : ToolTypeContract {
                     // A number needs its decimals, a scale its bounds and a choice its options:
                     // their value settings are required. A numeric entry takes its unit from "units".
                     kind.valueType?.let { valueType ->
-                        SettingNode.Group("value", s.tool("schema_config_value"),
+                        SettingNode.Group("value", s.tool("field_value"),
                             FieldTypeSettings.configNodes(valueType, shared::shared),
-                            required = kind == TrackingKind.NUMERIC || kind == TrackingKind.SCALE || kind == TrackingKind.CHOICE)
+                            required = kind == TrackingKind.NUMERIC || kind == TrackingKind.SCALE || kind == TrackingKind.CHOICE,
+                            description = s.tool("schema_config_value"))
                     },
                     if (kind == TrackingKind.NUMERIC)
                         SettingNode.ListOf("units", s.tool("field_units"),
                             SettingNode.Item.Value(FieldDefinition("unit", s.tool("field_unit"), s.tool("schema_config_units"), FieldType.TEXT, false, short)),
-                            distinct = true)
+                            distinct = true, description = s.tool("schema_config_units_list"))
                     else null,
-                    SettingNode.ListOf("items", s.tool("field_items"), SettingNode.Item.Of(item),
-                        summary = item.map { it.definition.name })
+                    SettingNode.ListOf("items", s.tool("field_items"), SettingNode.Item.Of(item, description = s.tool("schema_config_item")),
+                        summary = item.map { it.definition.name }, description = s.tool("schema_config_items"))
                 )
-            }
+            },
+            descriptions = TrackingKind.entries.associate { it.key to s.tool("schema_config_type_${it.key}") }
         ))
     }
 
@@ -150,6 +152,17 @@ object TrackingToolType : ToolTypeContract {
         }
 
         return EntryFields(name = CoreFieldUsage.REQUIRED, timestamp = CoreFieldUsage.OPTIONAL, data = fields)
+    }
+
+    override fun getAIDetail(context: Context): String = Strings.`for`(tool = "tracking", context = context).tool("ai_detail")
+
+    override fun getEntryMeanings(context: Context): app.treelune.core.fields.EntryMeanings {
+        val s = Strings.`for`(tool = "tracking", context = context)
+        return app.treelune.core.fields.EntryMeanings(
+            name = s.tool("entry_name"),
+            timestamp = s.tool("entry_timestamp"),
+            extra = s.tool("entry_extra")
+        )
     }
 
     /** A new unit given with a numeric entry joins the end of the units. */

@@ -103,11 +103,12 @@ object AgendaToolType : ToolTypeContract {
                 SettingNode.ListOf(SERIES_LIST, s.tool("field_series"), SettingNode.Item.Of(listOf(
                     SettingNode.Field(field("key", "key", FieldType.TEXT, s.tool("schema_series_key"), mapOf("length" to TextLength.SHORT.name)), systemWritten = true),
                     SettingNode.Field(field("name", s.tool("field_name"), FieldType.TEXT, s.tool("schema_series_name"), mapOf("length" to TextLength.SHORT.name)), required = true),
-                    SettingNode.Group(ScheduleSettings.NAME, s.tool("field_series_schedule"), ScheduleSettings.nodes(shared::shared), required = true),
+                    SettingNode.Group(ScheduleSettings.NAME, s.tool("field_series_schedule"), ScheduleSettings.nodes(shared::shared), required = true,
+                        description = shared.shared("schedule_description")),
                     SettingNode.Field(field(ALL_DAY, s.tool("field_all_day"), FieldType.BOOLEAN, s.tool("schema_all_day")), default = false),
                     SettingNode.Field(field(DURATION, s.tool("field_duration"), FieldType.DURATION, s.tool("schema_duration"), DURATION_UNITS)),
                     SettingNode.Field(field(DAYS, s.tool("field_days"), FieldType.NUMERIC, s.tool("schema_days"), daysConfig))
-                )), summary = listOf("name"))
+                ), description = s.tool("schema_series_element")), summary = listOf("name"), description = s.tool("schema_series_list"))
             ))
         )
     }
@@ -186,12 +187,22 @@ object AgendaToolType : ToolTypeContract {
         )
     }
 
+    override fun getEntryMeanings(context: Context): app.treelune.core.fields.EntryMeanings {
+        val s = Strings.`for`(tool = "agenda", context = context)
+        return app.treelune.core.fields.EntryMeanings(
+            name = s.tool("entry_name"),
+            timestamp = s.tool("entry_timestamp"),
+            extra = s.tool("entry_extra"),
+            state = s.tool("entry_state")
+        )
+    }
+
     /** An event is created planned; cancelling, removing and restoring are the tool's operations. */
     val START = EntryStart(listOf(Status.PLANNED))
 
     override fun getOperations(context: Context): List<ToolOperation> {
         val s = s(context)
-        val id = SettingNode.Field(field("id", s.tool("field_event"), FieldType.TEXT, config = mapOf("length" to TextLength.SHORT.name)), required = true)
+        val id = SettingNode.Field(field("id", s.tool("field_event"), FieldType.TEXT, Strings.`for`(context = context).shared("tool_operation_entry_id"), mapOf("length" to TextLength.SHORT.name)), required = true)
         return listOf(
             ToolOperation("cancel", s.tool("operation_cancel"), listOf(id)),
             ToolOperation("remove", s.tool("operation_remove"), listOf(id)),

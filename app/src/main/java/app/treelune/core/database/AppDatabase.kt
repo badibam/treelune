@@ -108,7 +108,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 90
+        const val VERSION = 91
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2037,6 +2037,42 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** A number's step, which nothing read, leaves every field: see NumericStepAtV91. */
+        private val MIGRATION_90_91 = object : ConnectionMigration(90, 91) {
+            override fun migrate(database: MigrationDatabase) {
+                val step = app.treelune.core.versioning.NumericStepAtV91
+                var rewritten = 0
+                // A row that cannot be read stays as it was and is logged: reading it then fails with the reason
+                fun each(sql: String, update: String, transform: (android.database.Cursor) -> String?) {
+                    database.query(sql).use { cursor ->
+                        while (cursor.moveToNext()) {
+                            val id = cursor.getString(0)
+                            try {
+                                transform(cursor)?.let { database.execSQL(update, arrayOf<Any?>(it, id)); rewritten++ }
+                            } catch (e: Exception) {
+                                LogManager.database("MIGRATION 90->91: row $id left as it was: ${e.message}", "ERROR", e)
+                            }
+                        }
+                    }
+                }
+                each("SELECT id, tooltype, config_json FROM tool_instances", "UPDATE tool_instances SET config_json = ? WHERE id = ?") {
+                    step.toolConfig(it.getString(1), it.getString(2))
+                }
+                each("SELECT id, definition_json FROM variables", "UPDATE variables SET definition_json = ? WHERE id = ?") {
+                    step.text(it.getString(1))
+                }
+                app.treelune.core.versioning.DurationUnitsAtV86.MESSAGE_COLUMNS.forEach { column ->
+                    each("SELECT id, $column FROM session_messages WHERE $column IS NOT NULL", "UPDATE session_messages SET $column = ? WHERE id = ?") {
+                        step.messageText(it.getString(1))
+                    }
+                }
+                listOf("tool_instances", "variables", "session_messages").forEach { table ->
+                    app.treelune.core.versioning.HistoryCopies.rewrite(database, table) { step.historyCopy(table, it) }
+                }
+                LogManager.database("MIGRATION 90->91: $rewritten row(s) without a number's step", "INFO")
+            }
+        }
+
         /** The connector gains its own data threshold: see ExternalAccessDataAtV84. */
         private val MIGRATION_83_84 = object : ConnectionMigration(83, 84) {
             override fun migrate(database: MigrationDatabase) {
@@ -3074,7 +3110,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_86_87,
                     MIGRATION_87_88,
                     MIGRATION_88_89,
-                    MIGRATION_89_90
+                    MIGRATION_89_90,
+                    MIGRATION_90_91
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

@@ -59,9 +59,10 @@ object ToolConfigSettings {
         return listOf(SettingNode.Section(text("custom_fields_section_title"), listOf(
             field(SHOW_FIELD_LABELS, text("tools_config_label_show_field_labels"), FieldType.BOOLEAN,
                 text("tools_base_schema_config_show_field_labels"), default = toolType.getDefaultShowFieldLabels()),
+            // What they are for in the type is the entry's first level (EntryDescription), which comes with this schema
             SettingNode.ListOf("extra_fields", text("custom_fields_list"),
                 SettingNode.Item.Of(FieldTypeSettings.definitionNodes(text)), fieldDefinitions = true,
-                summary = listOf("display_name", "type"))
+                summary = listOf("display_name", "type"), description = text("tools_base_schema_config_extra_fields"))
         )))
     }
 

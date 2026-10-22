@@ -70,46 +70,22 @@
     <string name="error_entry_saving">Error while saving</string>
     <string name="error_entry_update_failed">Unable to update the entry</string>
     
-    <!-- SCHEMAS CONFIG - Display names for schema identification -->
-    <string name="schema_config_numeric_display_name">Tracking configuration (numeric)</string>
-    <string name="schema_config_timer_display_name">Tracking configuration (timer)</string>
-    <string name="schema_config_choice_display_name">Tracking configuration (choice)</string>
-    <string name="schema_config_scale_display_name">Tracking configuration (scale)</string>
-    <string name="schema_config_boolean_display_name">Tracking configuration (yes/no)</string>
-    <string name="schema_config_text_display_name">Tracking configuration (text)</string>
-
-    <!-- SCHEMAS CONFIG - Descriptions for schema identification -->
-    <string name="schema_config_numeric_description">Configuration schema for numeric tracking</string>
-    <string name="schema_config_timer_description">Configuration schema for timer tracking</string>
-    <string name="schema_config_choice_description">Configuration schema for choice tracking</string>
-    <string name="schema_config_scale_description">Configuration schema for scale tracking</string>
-    <string name="schema_config_boolean_description">Configuration schema for yes/no tracking</string>
-    <string name="schema_config_text_description">Configuration schema for text tracking</string>
-
     <!-- SCHEMAS CONFIG - Descriptions for AI validation -->
-    <string name="schema_config_type">Kind of value this tracking records; fixed by the schema</string>
-    <string name="schema_config_occurrence_display_name">Tracking configuration (occurrence)</string>
-    <string name="schema_config_occurrence_description">Configuration schema for occurrence tracking: each entry is the fact that something happened</string>
+    <string name="schema_config_type">Kind of value this tracking records, chosen at its creation and never changed</string>
     <string name="schema_config_value">Settings of the value the entries record, those of its field type</string>
     <string name="schema_config_units">Units a value can be in; each entry records one of them</string>
-    <string name="schema_config_items">Shortcuts, offered for quick entry</string>
+    <string name="schema_config_items">Shortcuts, each noting one thing in one touch</string>
     <string name="schema_config_item_name">Name of the shortcut, given to the entries it creates</string>
     <string name="schema_config_item_value">Value the shortcut enters at a touch; without one, the touch opens the entry dialog</string>
     <string name="schema_config_item_unit">Unit of the value the shortcut enters, one of the units</string>
     
     <!-- SCHEMAS DATA - Display names for schema identification -->
-    <string name="schema_data_display_name">Tracking entry</string>
-    <string name="schema_data_description">An entry of a tracking tool: a name, a moment, and its value</string>
     <string name="schema_data_value">The value recorded</string>
     <string name="schema_data_unit">Unit of the value</string>
     <string name="field_value">Value</string>
     <string name="field_units">Units</string>
     <string name="field_items">Shortcuts</string>
 
-    <!-- SCHEMAS DATA - Descriptions for schema identification -->
-
-    <!-- SCHEMAS DATA - Descriptions for AI validation -->
-    
     <!-- VALIDATION - Field names for display -->
     <string name="field_name">Name</string>
     <string name="field_unit">Unit</string>
@@ -123,4 +99,21 @@
     <!-- DISPLAY FORMAT - Formatted display of the data -->
 
     <!-- Config warnings: choice options -->
+
+    <string name="ai_detail">A tracking that follows a single thing has one shortcut named after it, so that each value is noted in one touch.</string>
+
+    <!-- What each part of an entry is in this type (EntryMeanings) -->
+    <string name="entry_name">What was noted: the name of a shortcut, or one typed for a free entry. The entries of one thing share it, which lets one tool follow several things, such as push-ups and squats</string>
+    <string name="entry_timestamp">When it was measured or happened; for a stopwatch, when it started</string>
+    <string name="entry_extra">Details noted with each value, beside it, such as the context of a weighing or the quality of a night</string>
+
+    <string name="schema_config_type_numeric">A number, in one of the units</string>
+    <string name="schema_config_type_scale">A rating on a scale between two bounds</string>
+    <string name="schema_config_type_choice">One option, or several, among a list</string>
+    <string name="schema_config_type_boolean">Yes or no</string>
+    <string name="schema_config_type_text">A text</string>
+    <string name="schema_config_type_timer">A duration, timed by a stopwatch or entered</string>
+    <string name="schema_config_type_occurrence">No value: the entry is the fact that the thing happened</string>
+    <string name="schema_config_units_list">The units a value can be in; a unit entered with an entry joins them</string>
+    <string name="schema_config_item">One shortcut: the name its entries take, and for a number the value and unit it enters</string>
 </resources>

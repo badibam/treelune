@@ -119,13 +119,13 @@ fun TrackingQuickEntry(
             }
         }
 
-        // A free entry, whose name is typed and which can become a shortcut
+        // A free entry, which can become a shortcut
         Box(modifier = Modifier.fillMaxWidth()) {
             UI.ActionButton(
                 action = ButtonAction.ADD,
                 display = ButtonDisplay.ICON,
                 enabled = !actions.isSaving,
-                onClick = { actions.openDialog("", null, null, nameEditable = true, offerShortcut = true, timestamp = customTimestamp) }
+                onClick = { actions.openFreeEntry(customTimestamp) }
             )
         }
     }

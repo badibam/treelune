@@ -12,12 +12,6 @@
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Reminders and notifications, once or on a schedule</string>
 
-    <!-- SCHEMAS - Display names for schema identification -->
-    <string name="schema_config_display_name">Message configuration</string>
-    <string name="schema_data_display_name">Message data</string>
-    <string name="schema_config_description">Validation schema of the message template</string>
-    <string name="schema_data_description">Validation schema of the occurrences (sendings) of a message</string>
-
     <!-- SCHEMAS CONFIG - The message template (the part every sending shares) -->
     <string name="schema_config_enabled">Template active: suspended, nothing from this instance goes out any more</string>
     <string name="schema_config_common_title">Common title shown on every notification (optional, combined with the title of the sending itself)</string>
@@ -132,4 +126,11 @@
     <string name="error_delete">Error while deleting</string>
 
     <string name="schedule_unreadable_warning">The recurrence cannot be read, so no new message is being scheduled; those already planned still go out (%1$s). Open the configuration to set it again.</string>
+
+    <!-- What each part of an entry is in this type (EntryMeanings) -->
+    <string name="entry_name">The message\'s name, the same for all its sendings: the tool\'s name</string>
+    <string name="entry_timestamp">When this sending goes out</string>
+    <string name="entry_data">What this sending says: its own title and text, and once gone, the common part copied from the message</string>
+    <string name="entry_extra">Details of one sending, written with it</string>
+    <string name="entry_state">Where the sending stands: pending, sent, expired or cancelled; whether its notification went out, whether it was read or archived</string>
 </resources>

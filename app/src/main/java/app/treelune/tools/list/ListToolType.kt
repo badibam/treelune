@@ -146,6 +146,16 @@ object ListToolType : ToolTypeContract {
         )
     }
 
+    override fun getEntryMeanings(context: Context): app.treelune.core.fields.EntryMeanings {
+        val s = Strings.`for`(tool = "list", context = context)
+        return app.treelune.core.fields.EntryMeanings(
+            name = s.tool("entry_name"),
+            timestamp = s.tool("entry_timestamp"),
+            extra = s.tool("entry_extra"),
+            state = s.tool("entry_state")
+        )
+    }
+
     /** An item's due date, as its data declares it and its form enters it. */
     fun dueAtField(context: Context) = FieldDefinition(
         name = DUE_AT,
@@ -173,7 +183,7 @@ object ListToolType : ToolTypeContract {
 
     override fun getOperations(context: Context): List<app.treelune.core.tools.ToolOperation> {
         val s = Strings.`for`(tool = "list", context = context)
-        val id = app.treelune.core.fields.settings.SettingNode.Field(FieldDefinition("id", s.tool("field_item"), null, FieldType.TEXT, false,
+        val id = app.treelune.core.fields.settings.SettingNode.Field(FieldDefinition("id", s.tool("field_item"), app.treelune.core.strings.Strings.`for`(context = context).shared("tool_operation_entry_id"), FieldType.TEXT, false,
             mapOf("length" to app.treelune.core.fields.TextLength.SHORT.name)), required = true)
         return listOf(
             app.treelune.core.tools.ToolOperation("check", s.tool("operation_check"), listOf(id)),

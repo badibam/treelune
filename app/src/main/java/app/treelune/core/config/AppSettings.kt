@@ -184,7 +184,8 @@ object AppSettings {
                     choice("week_start_day", text("app_config_format_week_start_day"), text("app_config_schema_format_week_start_day"), WEEK_DAYS,
                         labels = WEEK_DAYS.mapIndexed { i, day -> day to text("day_of_week_${i + 1}") }.toMap(), required = true)
                 )),
-                SettingNode.Group("relative_label_limits", text("settings_format_relative_section"), required = true, nodes = listOf(
+                SettingNode.Group("relative_label_limits", text("settings_format_relative_section"), required = true,
+                    description = text("app_config_schema_relative_label_limits"), nodes = listOf(
                     scale("hour_limit", text("app_config_format_hour_limit"), text("app_config_schema_format_hour_limit"), HOUR_LIMIT_RANGE),
                     scale("day_limit", text("app_config_format_day_limit"), text("app_config_schema_format_day_limit"), DAY_LIMIT_RANGE),
                     scale("week_limit", text("app_config_format_week_limit"), text("app_config_schema_format_week_limit"), WEEK_LIMIT_RANGE),
@@ -209,7 +210,7 @@ object AppSettings {
                 SettingNode.ListOf("zone_groups", text("label_zone_groups"),
                     SettingNode.Item.Value(FieldDefinition("zone_group", text("label_group"), text("message_zone_groups_description"),
                         FieldType.TEXT, false, mapOf("length" to TextLength.SHORT.name))),
-                    required = true, distinct = true)
+                    required = true, distinct = true, description = text("app_config_schema_zone_groups"))
             )
             // The relay's address and secret are shown in the relay mode only, and kept under
             // Tailscale: going back to the relay finds them as they were
@@ -227,27 +228,25 @@ object AppSettings {
                 ), shownWith = SettingNode.ShownWith(ACCESS_MODE, ACCESS_MODE_RELAY)),
                 scale(MCP_MAX_DATA_CHARS, text("settings_external_access_max_data"), text("settings_external_access_max_data_help"), MCP_DATA_RANGE))
             AppSettingCategories.GUIDE -> listOf(
-                field(GUIDE_WELCOME_SEEN, text("guide_setting_welcome_seen"), null, FieldType.BOOLEAN, required = true),
-                field(GUIDE_BAND_HIDDEN, text("guide_setting_band_hidden"), null, FieldType.BOOLEAN, required = true),
-                // A chapter's id; absent while no tutorial is in progress
-                field(GUIDE_CURRENT, text("guide_setting_current"), null, FieldType.TEXT, config = mapOf("length" to TextLength.SHORT.name)),
+                field(GUIDE_WELCOME_SEEN, text("guide_setting_welcome_seen"), text("guide_schema_welcome_seen"), FieldType.BOOLEAN, required = true),
+                field(GUIDE_BAND_HIDDEN, text("guide_setting_band_hidden"), text("guide_schema_band_hidden"), FieldType.BOOLEAN, required = true),
+                field(GUIDE_CURRENT, text("guide_setting_current"), text("guide_schema_current"), FieldType.TEXT, config = mapOf("length" to TextLength.SHORT.name)),
                 SettingNode.ListOf(GUIDE_CHAPTERS, text("guide_setting_chapters"), SettingNode.Item.Of(listOf(
-                    field("id", text("guide_setting_chapter"), null, FieldType.TEXT, required = true, config = mapOf("length" to TextLength.SHORT.name)),
+                    field("id", text("guide_setting_chapter"), text("guide_schema_chapter_id"), FieldType.TEXT, required = true, config = mapOf("length" to TextLength.SHORT.name)),
                     scale("step", text("guide_setting_step"), text("guide_setting_step_help"), 0..99),
-                    field("done", text("guide_setting_done"), null, FieldType.BOOLEAN, required = true),
-                    // What a step kept for the next ones: the zone it created, by its id
+                    field("done", text("guide_setting_done"), text("guide_schema_done"), FieldType.BOOLEAN, required = true),
                     SettingNode.ListOf("kept", text("guide_setting_kept"), SettingNode.Item.Of(listOf(
-                        field("name", text("guide_setting_kept_name"), null, FieldType.TEXT, required = true, config = mapOf("length" to TextLength.SHORT.name)),
-                        field("value", text("guide_setting_kept_value"), null, FieldType.TEXT, required = true, config = mapOf("length" to TextLength.SHORT.name))
-                    )), required = true, summary = listOf("name"))
-                )), required = true, summary = listOf("id"))
+                        field("name", text("guide_setting_kept_name"), text("guide_schema_kept_name"), FieldType.TEXT, required = true, config = mapOf("length" to TextLength.SHORT.name)),
+                        field("value", text("guide_setting_kept_value"), text("guide_schema_kept_value"), FieldType.TEXT, required = true, config = mapOf("length" to TextLength.SHORT.name))
+                    ), description = text("guide_schema_kept_element")), required = true, summary = listOf("name"), description = text("guide_schema_kept"))
+                ), description = text("guide_schema_chapter")), required = true, summary = listOf("id"), description = text("guide_schema_chapters"))
             )
             AppSettingCategories.DATA -> listOf(
                 // Chosen in Android's folder picker, never typed
-                field(DATA_FOLDER, text("settings_data_folder"), null, FieldType.TEXT, config = mapOf("length" to TextLength.UNLIMITED.name)),
+                field(DATA_FOLDER, text("settings_data_folder"), text("settings_data_schema_folder"), FieldType.TEXT, config = mapOf("length" to TextLength.UNLIMITED.name)),
                 field(DATA_AUTO_BACKUP, text("settings_data_auto_backup"), text("settings_data_auto_backup_help"), FieldType.BOOLEAN, required = true),
                 // Written by the screen that showed it, never entered
-                field(DATA_SEEN, text("settings_data_seen"), null, FieldType.TEXT, config = mapOf("length" to TextLength.UNLIMITED.name), systemWritten = true),
+                field(DATA_SEEN, text("settings_data_seen"), text("settings_data_schema_seen"), FieldType.TEXT, config = mapOf("length" to TextLength.UNLIMITED.name), systemWritten = true),
                 scale(DATA_HISTORY_DAYS, text("settings_data_history_days"), text("settings_data_history_days_help"), HISTORY_DAYS_RANGE),
                 scale(DATA_HISTORY_MEGABYTES, text("settings_data_history_megabytes"), text("settings_data_history_megabytes_help"), HISTORY_MEGABYTES_RANGE)
             )

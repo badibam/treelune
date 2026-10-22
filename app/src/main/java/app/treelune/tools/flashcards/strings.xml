@@ -111,4 +111,15 @@
     <string name="session_over_plural">Session over: %1$d cards reviewed.</string>
     <string name="session_back">Back to the deck</string>
     <string name="action_undo">Go back</string>
+
+    <!-- What each part of an entry is in this type (EntryMeanings) -->
+    <string name="entry_timestamp">When the card was reviewed</string>
+    <string name="entry_data">Which card was reviewed, a row of the source in one of the deck\'s directions, and how it was rated</string>
+    <string name="entry_state">The card\'s memory after this review: its stability, its difficulty, and when it is due again</string>
+
+    <!-- Settings, for the AI that reads their schema -->
+    <string name="schema_directions">The ways a row is asked, each making a card of its own</string>
+    <string name="schema_face_field">A field of the source\'s rows, by its path</string>
+
+    <string name="schema_direction_element">One direction: what is shown first, then what is to be found</string>
 </resources>

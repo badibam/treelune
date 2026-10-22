@@ -45,12 +45,20 @@ sealed class SettingNode {
         val rowField: Boolean = false
     ) : SettingNode()
 
-    /** Settings stored together as one object under [name]. */
+    /**
+     * Settings stored together as one object under [name].
+     *
+     * @property description What the settings it gathers make together, for the AI that reads its schema
+     * @property definition The name its settings are written under once, at the end of the
+     *   schema the AI reads, where it stands in several places (SchemaNotation)
+     */
     data class Group(
         val name: String,
         val label: String,
         val nodes: List<SettingNode>,
-        val required: Boolean = false
+        val required: Boolean = false,
+        val description: String? = null,
+        val definition: String? = null
     ) : SettingNode()
 
     /**
@@ -67,6 +75,7 @@ sealed class SettingNode {
      * @property shownWith The option of a setting beside it the list serves: the form shows the
      *   list only while that option is chosen, or while the list still holds elements, to be
      *   emptied. The screen's alone: the schema and the service know nothing of it
+     * @property description What the list is, for the AI that reads its schema
      */
     data class ListOf(
         val name: String,
@@ -77,7 +86,8 @@ sealed class SettingNode {
         val distinct: Boolean = false,
         val fieldDefinitions: Boolean = false,
         val summary: List<String> = emptyList(),
-        val shownWith: ShownWith? = null
+        val shownWith: ShownWith? = null,
+        val description: String? = null
     ) : SettingNode() {
         init {
             if (item is Item.Of) {
@@ -107,8 +117,11 @@ sealed class SettingNode {
 
     /** What one element of a [ListOf] is. */
     sealed class Item {
-        /** An object of settings. */
-        data class Of(val nodes: List<SettingNode>) : Item()
+        /**
+         * An object of settings; [description] says what one element is, the list saying what they
+         * make together; [definition], the name it is written under once, as Group.definition.
+         */
+        data class Of(val nodes: List<SettingNode>, val description: String? = null, val definition: String? = null) : Item()
         /**
          * A single value; the field's name is not stored, only its value. With [rowField], the
          * name of a field of the rows, as SettingNode.Field.rowField.
@@ -119,11 +132,19 @@ sealed class SettingNode {
     /**
      * Settings that depend on a choice: [selector] is a CHOICE field, and each of its options
      * brings its own nodes. They are stored flat, beside the selector, in the object that holds it.
+     *
+     * @property descriptions What each option means, by option, for the AI that reads the schema:
+     *   the selector's own description says what the choice is, not what each option is
      */
     data class Variant(
         val selector: Field,
-        val cases: Map<String, List<SettingNode>>
-    ) : SettingNode()
+        val cases: Map<String, List<SettingNode>>,
+        val descriptions: Map<String, String> = emptyMap()
+    ) : SettingNode() {
+        init {
+            require(cases.keys.containsAll(descriptions.keys)) { "The variant '${selector.definition.name}' describes options it does not have: ${descriptions.keys - cases.keys}" }
+        }
+    }
 
     /**
      * A condition stored under [name] (the Condition brick, docs/BRICKS.md): `{"left", "op", "right"}`,

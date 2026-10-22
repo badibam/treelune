@@ -52,4 +52,10 @@
     <string name="tile_left_many">%1$s restants</string>
     <string name="tile_late_one">1 en retard</string>
     <string name="tile_late_many">%1$s en retard</string>
+
+    <!-- What each part of an entry is in this type (EntryMeanings) -->
+    <string name="entry_name">L\'élément : ce qu\'il reste à faire ou à acheter</string>
+    <string name="entry_timestamp">Quand l\'élément a été ajouté</string>
+    <string name="entry_extra">Ce qu\'un élément porte à côté de son nom, par exemple une quantité ou un magasin</string>
+    <string name="entry_state">Sa place dans la liste, et quand il a été coché</string>
 </resources>

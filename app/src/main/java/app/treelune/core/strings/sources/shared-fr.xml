@@ -271,7 +271,7 @@
     <string name="ai_command_not_run">Commande non exécutée</string>
     <string name="ai_command_app_error">une erreur de l\'app l\'a arrêtée</string>
     <string name="ai_schema_required_shown">L\'IA reçoit d\'abord le format des outils qu\'elle veut lire, puis refait sa demande.</string>
-    <string name="ai_schema_required_for_writes_shown">Les écritures de l\'IA n\'ont pas été faites : elle reçoit d\'abord le format des outils visés, puis les renverra.</string>
+    <string name="ai_schema_required_for_actions_shown">Les actions de l\'IA n\'ont pas été faites : elle reçoit d\'abord le format de ce qu\'elles visent, puis les renverra.</string>
     <string name="ai_schema_always_send_shown">L\'IA reçoit le format des outils toujours envoyés.</string>
     <string name="ai_system_data_refused_by_user_shown">Données non envoyées à l\'IA : tu as refusé ses %1$d caractères. Elle peut demander moins, ou te demander ce qu\'il faut.</string>
     <string name="ai_system_data_too_large_automation_shown">Données non envoyées à l\'IA : %1$d caractères, au-delà du seuil des routines (%2$d). Elle peut demander moins.</string>
@@ -891,10 +891,12 @@
     <string name="tools_base_schema_data_timestamp">Moment auquel se rapporte l\'entrée ; maintenant s\'il est omis, et peut être dans le passé</string>
     <string name="tools_base_schema_data_created_at">Date de création de l\'entrée, posée par le système</string>
     <string name="tools_base_schema_data_updated_at">Date de dernière modification de l\'entrée, posée par le système</string>
-    <string name="tools_base_schema_data_data">Données spécifiques au type d\'outil</string>
     <string name="entry_schema_extra">Champs ajoutés à cet outil par l\'utilisateur</string>
     <string name="entry_schema_state">État de l\'entrée, écrit par ses actions et par l\'app, jamais directement</string>
-    <string name="entry_schema_state_start">État de l\'entrée, écrit par l\'app. À la création d\'une entrée, donner son statut seul, parmi : %s ; l\'app pose le reste. À la modification, ne jamais l\'écrire</string>
+    <string name="entry_description_intro">Ce qu\'est chaque partie d\'une entrée d\'un outil %1$s, quel que soit l\'outil ; le schéma des entrées d\'un outil dit quelles parties ses entrées ont, et leurs champs :</string>
+    <string name="entry_start_statuses">Une entrée se crée avec son seul statut, parmi : %s ; l\'app pose le reste de son état.</string>
+    <string name="tools_base_schema_config_extra_fields">Les champs propres à l\'utilisateur, dont chaque entrée porte les valeurs sous extra ; ce à quoi ils servent dans ce type est dans la description de son entrée</string>
+    <string name="ai_entry_description_title">Entrée d\'un outil %1$s</string>
     <string name="service_error_start_status">Une entrée de cet outil se crée avec son statut dans state.status, parmi : %2$s (donné : %1$s)</string>
     <string name="service_error_start_state_fields">À la création d\'une entrée, seul son statut se donne dans son état ; l\'app écrit le reste (donné : %s)</string>
     <string name="service_error_status_changed">Le statut d\'une entrée de cet outil ne se change pas directement : il avance par les opérations de l\'outil (TOOL_OPERATION, listées avec son schéma de données) et par l\'app elle-même</string>
@@ -996,7 +998,7 @@
     <string name="ai_system_actions_all_failed">Aucune action n\'a abouti (%1$d en échec)</string>
     <string name="ai_system_actions_partial">%1$d actions faites, %2$d en échec</string>
     <string name="ai_schema_required_summary">Les schémas de données suivants sont nécessaires pour formuler correctement la requête TOOL_DATA (%1$d schéma(s)) :\n%2$s\n\nLes schémas sont inclus ci-dessous. Merci de renouveler ta requête en en tenant compte.</string>
-    <string name="ai_schema_required_for_writes_summary">Tes écritures n\'ont pas été exécutées : elles touchent des outils dont tu n\'as pas reçu le schéma de données dans cette session (%1$d schéma(s)) :\n%2$s\n\nLes schémas sont inclus ci-dessous. Lis-les, puis renvoie tes écritures.</string>
+    <string name="ai_schema_required_for_actions_summary">Tes actions n\'ont pas été faites : elles demandent des schémas que tu n\'as pas reçus dans cette session (%1$d schéma(s)) :\n%2$s\n\nLes schémas sont ci-dessous. Lis-les, puis renvoie tes actions.</string>
     <string name="ai_schema_always_send_summary">Schémas de données des outils que l\'utilisateur envoie toujours, dont les données sont au Level 2 (%1$d schéma(s)) :\n%2$s\n\nLes schémas sont inclus ci-dessous.</string>
     <string name="ai_error_tool_operation_unknown">Le type d\'outil %2$s n\'a pas d\'opération « %1$s ». Ses opérations : %3$s</string>
     <string name="ai_error_tool_operation_none">aucune</string>
@@ -1030,7 +1032,7 @@
     <!-- THEME/UI COMPONENTS - Labels pour composants d\'interface -->
 
     <!-- SETTINGS - Configuration screens -->
-    <string name="settings_title">Paramètres</string>
+    <string name="settings_title">Réglages</string>
     <string name="settings_section_app">App</string>
     <string name="settings_section_ai">IA</string>
     <string name="settings_section_data">Données</string>
@@ -1102,7 +1104,7 @@
     <string name="auto_backup_choose_folder">Choisir le dossier</string>
     <string name="auto_backup_change_folder">Changer de dossier</string>
     <string name="auto_backup_folder_refused">Android ne laisse pas l\'app écrire durablement dans ce dossier : choisis-en un autre.</string>
-    <string name="auto_backup_lost_content">L\'app ne peut plus écrire dans le dossier des sauvegardes : choisis-le de nouveau dans Réglages › Données.</string>
+    <string name="auto_backup_lost_content">L\'app ne peut plus écrire dans le dossier des sauvegardes : choisis-le de nouveau dans Réglages › Gestion des données.</string>
     <string name="auto_backup_error_write">La copie %1$s n\'a pas pu s\'écrire dans le dossier des sauvegardes</string>
 
     <!-- SETTINGS - Stub placeholders -->
@@ -1500,8 +1502,8 @@
     <string name="file_share">Partager</string>
     <string name="export_csv_range_start">%1$s (début)</string>
     <string name="export_csv_range_end">%1$s (fin)</string>
-    <string name="export_error_no_folder">Aucun dossier n\'est choisi pour l\'app : choisis-en un dans Réglages › Données pour y écrire le fichier.</string>
-    <string name="export_error_folder_lost">Le dossier de l\'app n\'est plus accessible en écriture : choisis-le à nouveau dans Réglages › Données.</string>
+    <string name="export_error_no_folder">Aucun dossier n\'est choisi pour l\'app : choisis-en un dans Réglages › Gestion des données pour y écrire le fichier.</string>
+    <string name="export_error_folder_lost">Le dossier de l\'app n\'est plus accessible en écriture : choisis-le à nouveau dans Réglages › Gestion des données.</string>
     <string name="export_error_unknown_field">Cet outil n\'a pas de champ %1$s. Ses champs : %2$s</string>
     <string name="export_error_read">Les entrées n\'ont pas pu être lues.</string>
     <string name="export_error_write">Le fichier %1$s n\'a pas pu être écrit dans le dossier de l\'app.</string>
@@ -1668,7 +1670,7 @@
     <!-- CUSTOM FIELDS - Schema descriptions (used by AI) -->
     <string name="field_type_schema_name_description">Identifiant technique du champ, clé sous laquelle les valeurs sont stockées. Attribué par l\'app à la création, à partir de l\'intitulé, et immuable ensuite. À omettre pour un nouveau champ ; à reprendre tel quel pour désigner un champ existant. Le renommer détruirait les valeurs déjà enregistrées, c\'est l\'intitulé qui se modifie librement.</string>
     <string name="field_type_schema_display_name_description">Nom affiché à l\'utilisateur pour ce champ personnalisé</string>
-    <string name="field_type_schema_type_description">Type de champ personnalisé. Doit correspondre à l\'un des types disponibles (voir liste des field types supportés).</string>
+    <string name="field_type_schema_type_description">Ce qu\'est une valeur du champ, et donc quels réglages le champ a</string>
     <string name="field_type_schema_always_visible_description">Si true, ce champ est toujours affiché dans l\'interface (même s\'il est vide). Si false, il n\'est affiché que lorsqu\'il contient une valeur.</string>
     <string name="field_default_value">Valeur par défaut</string>
     <string name="field_type_schema_default_value_description">Une valeur de ce champ proposée pour une nouvelle entrée : le formulaire la préremplit et une saisie rapide l\'applique. L\'app ne l\'écrit jamais d\'elle-même ; absente, une nouvelle entrée part sans réponse.</string>
@@ -1689,7 +1691,6 @@
     <string name="field_validation_text_length_invalid">La longueur de texte \'%1$s\' est invalide. Valeurs possibles : SHORT, MEDIUM, LONG, UNLIMITED</string>
     <string name="field_validation_numeric_min_max">La valeur minimale doit être inférieure ou égale à la valeur maximale</string>
     <string name="field_validation_numeric_decimals">Le nombre de décimales est obligatoire : 0 pour un nombre entier, ou plus</string>
-    <string name="field_validation_numeric_step">L\'incrément doit être supérieur à 0</string>
     <string name="field_validation_scale_min_max_required">Le type SCALE nécessite les valeurs min et max</string>
     <string name="field_validation_scale_min_max_order">La valeur minimale doit être strictement inférieure à la valeur maximale</string>
     <string name="field_validation_scale_step">L\'incrément doit être supérieur à 0</string>
@@ -2475,4 +2476,87 @@
     <string name="settings_data_history_days_help">Combien de temps un changement reste dans l'historique, pour être annulé.</string>
     <string name="settings_data_history_megabytes">Place pour l'historique (Mo)</string>
     <string name="settings_data_history_megabytes_help">Au-delà, les changements les plus anciens sortent de l'historique en premier. Le dernier reste toujours.</string>
+
+    <!-- Field settings, for the AI that reads their schema -->
+    <string name="field_type_image_description">Des images jointes à une entrée, au plus le nombre fixé</string>
+    <string name="field_type_schema_field_description">Ce que contient le champ, que l\'IA lit avec les entrées</string>
+    <string name="field_type_schema_config_description">Comment les valeurs de ce type sont faites et montrées</string>
+    <string name="field_type_unit_description">L\'unité de toutes les valeurs, montrée après elles</string>
+    <string name="field_type_min_description">La plus petite valeur acceptée</string>
+    <string name="field_type_max_description">La plus grande valeur acceptée</string>
+    <string name="field_type_decimals_description">Décimales qu\'une valeur garde ; une valeur qui en a plus est arrondie à l\'écriture</string>
+    <string name="field_type_scale_min_description">La plus basse valeur de l\'échelle</string>
+    <string name="field_type_scale_max_description">La plus haute valeur de l\'échelle</string>
+    <string name="field_type_scale_min_label_description">Le mot montré à l\'extrémité basse, par exemple « Très mal »</string>
+    <string name="field_type_scale_max_label_description">Le mot montré à l\'extrémité haute, par exemple « Très bien »</string>
+    <string name="field_type_scale_step_description">L\'écart entre deux crans du curseur ; une valeur en est un multiple</string>
+    <string name="field_type_range_min_description">La plus petite valeur acceptée à chaque bout</string>
+    <string name="field_type_range_max_description">La plus grande valeur acceptée à chaque bout</string>
+    <string name="field_type_options_description">Les valeurs que le champ peut prendre</string>
+    <string name="field_type_option_description">Une option : ce qui est enregistré, et comment c\'est montré</string>
+    <string name="field_type_option_value_description">Ce que les entrées enregistrent et que les filtres comparent</string>
+    <string name="field_type_option_label_description">Montré à la place de la valeur ; la valeur elle-même s\'il manque</string>
+    <string name="field_type_option_color_description">La couleur de sa pastille, partout où la valeur s\'affiche</string>
+    <string name="field_type_true_label_description">Montré pour oui, à la place de « Oui »</string>
+    <string name="field_type_false_label_description">Montré pour non, à la place de « Non »</string>
+    <string name="field_type_time_format_description">Comment l\'heure s\'affiche : 24h (14:30) ou 12h (2:30 PM)</string>
+    <string name="field_type_reference_target_description">Ce que la référence peut désigner</string>
+
+    <!-- A schedule's settings, for the AI that reads their schema -->
+    <string name="schedule_description">Quand cela a lieu, selon un rythme qui se répète</string>
+    <string name="schedule_pattern_description">Le rythme : son genre, puis les moments de ce genre</string>
+    <string name="schedule_type_description">Le genre de rythme</string>
+    <string name="schedule_pattern_DailyMultiple_description">Chaque jour, à chacune des heures</string>
+    <string name="schedule_pattern_WeeklySimple_description">Les jours de la semaine choisis, à une heure</string>
+    <string name="schedule_pattern_MonthlyRecurrent_description">Les mois choisis, un jour du mois, à une heure</string>
+    <string name="schedule_pattern_WeeklyCustom_description">À des moments de la semaine, chacun avec son jour et son heure</string>
+    <string name="schedule_pattern_YearlyRecurrent_description">Chaque année, à chacune des dates, à son heure</string>
+    <string name="schedule_pattern_SpecificDates_description">Une fois à chacun des instants</string>
+    <string name="schedule_times_description">Les heures de chaque jour</string>
+    <string name="schedule_time_description">Une heure du jour, dans le fuseau de l\'app</string>
+    <string name="schedule_days_of_week_description">Les jours de la semaine</string>
+    <string name="schedule_day_of_week_description">1 est lundi, 7 dimanche</string>
+    <string name="schedule_months_description">Les mois de l\'année</string>
+    <string name="schedule_month_description">1 est janvier, 12 décembre</string>
+    <string name="schedule_day_of_month_description">Le jour du mois ; un mois qui ne l\'a pas est sauté</string>
+    <string name="schedule_moments_description">Les moments de la semaine</string>
+    <string name="schedule_moment_description">Un jour de la semaine et une heure</string>
+    <string name="schedule_dates_description">Les dates de l\'année</string>
+    <string name="schedule_date_description">Un jour d\'un mois, et une heure</string>
+    <string name="schedule_timestamps_description">Les instants, chacun ayant lieu une fois</string>
+    <string name="schedule_timestamp_description">Un instant où cela a lieu</string>
+
+    <string name="field_type_reference_tool_instances_list_description">Les outils dont elle peut désigner les entrées</string>
+
+    <string name="tool_operation_entry_id">L\'identifiant de l\'entrée sur laquelle elle agit</string>
+
+    <!-- App, zone, routine and module settings, for the AI that reads their schema -->
+    <string name="app_config_schema_relative_label_limits">Jusqu\'à quelle distance une date se dit par rapport à aujourd\'hui (« dans 3 jours ») plutôt qu\'en entier</string>
+    <string name="app_config_schema_zone_groups">Les groupes de zones de l\'accueil, dans leur ordre</string>
+    <string name="zone_schema_tool_groups_list">Les groupes dans lesquels les outils de la zone sont rangés, dans leur ordre</string>
+    <string name="ai_module_fields_description">Les champs que l\'utilisateur remplit ; aucun pour une simple confirmation</string>
+    <string name="guide_schema_welcome_seen">Si l\'écran du premier lancement a été vu</string>
+    <string name="guide_schema_band_hidden">Si la bande du tutoriel est masquée</string>
+    <string name="guide_schema_current">Le chapitre dont le tutoriel est en cours ; absent sinon</string>
+    <string name="guide_schema_chapters">La progression de chaque chapitre</string>
+    <string name="guide_schema_chapter">La progression d\'un chapitre</string>
+    <string name="guide_schema_chapter_id">L\'identifiant du chapitre</string>
+    <string name="guide_schema_done">Si le chapitre est fait</string>
+    <string name="guide_schema_kept">Ce qu\'une étape a gardé pour les suivantes, par exemple la zone qu\'elle a créée</string>
+    <string name="guide_schema_kept_element">Une chose gardée, par son nom</string>
+    <string name="guide_schema_kept_name">Ce qu\'est la chose gardée</string>
+    <string name="guide_schema_kept_value">Son identifiant</string>
+    <string name="settings_data_schema_folder">Le dossier du téléphone choisi une fois, où l\'app écrit sans demander ; absent tant qu\'il n\'est pas choisi</string>
+    <string name="settings_data_schema_seen">L\'état de la copie automatique vu la dernière fois dans Réglages › Gestion des données</string>
+    <string name="automation_schema_provider_id">L\'identifiant d\'un des fournisseurs d\'IA de l\'utilisateur ; sans lui la routine n\'est pas active et ne tourne pas</string>
+    <string name="automation_schema_identity_id">L\'identifiant de l\'identité au nom de laquelle ses exécutions parlent ; l\'IA de l\'app quand il manque</string>
+    <string name="automation_schema_group">Un des groupes d\'outils de sa zone, où se tient sa tuile</string>
+    <string name="automation_schema_is_enabled">Si son planning la lance</string>
+    <string name="automation_schema_notify_end">Quand la fin d\'une exécution est notifiée : toujours, sur un problème seulement, ou jamais</string>
+    <string name="automation_schema_catch_up">Ce qu\'elle fait des exécutions manquées, téléphone éteint ou app arrêtée ; présent avec un planning seulement</string>
+    <string name="automation_schema_catch_up_limit">Jusqu\'où les exécutions manquées sont rattrapées</string>
+    <string name="automation_schema_catch_up_limited">Seulement celles dans le délai</string>
+    <string name="automation_schema_catch_up_unlimited">Toutes</string>
+    <string name="automation_schema_catch_up_window">Combien de temps après son heure une exécution manquée est encore rattrapée</string>
+    <string name="automation_schema_dismiss_older">Si seule la dernière exécution manquée est rattrapée, plutôt que chacune</string>
 </resources>

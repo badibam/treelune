@@ -271,7 +271,7 @@
     <string name="ai_command_not_run">Command not carried out</string>
     <string name="ai_command_app_error">an error of the app stopped it</string>
     <string name="ai_schema_required_shown">The AI first gets the format of the tools it wants to read, then asks again.</string>
-    <string name="ai_schema_required_for_writes_shown">The AI\'s writes were not made: it first gets the format of the tools they aim at, then will send them again.</string>
+    <string name="ai_schema_required_for_actions_shown">The AI\'s actions were not made: it first gets the format of what they aim at, then will send them again.</string>
     <string name="ai_schema_always_send_shown">The AI gets the format of the tools always sent.</string>
     <string name="ai_system_data_refused_by_user_shown">Data not sent to the AI: you refused its %1$d characters. It can ask for less, or ask you what is needed.</string>
     <string name="ai_system_data_too_large_automation_shown">Data not sent to the AI: %1$d characters, above the routines\' threshold (%2$d). It can ask for less.</string>
@@ -891,10 +891,12 @@
     <string name="tools_base_schema_data_timestamp">Moment the entry refers to; the present if omitted, and can be set in the past</string>
     <string name="tools_base_schema_data_created_at">When the entry was created, set by the system</string>
     <string name="tools_base_schema_data_updated_at">When the entry was last changed, set by the system</string>
-    <string name="tools_base_schema_data_data">Data specific to the tool type</string>
     <string name="entry_schema_extra">Fields the user added to this tool</string>
     <string name="entry_schema_state">State of the entry, written by its actions and by the app, never directly</string>
-    <string name="entry_schema_state_start">State of the entry, written by the app. Creating an entry, give its status alone, one of: %s; the app sets the rest. Changing an entry, never write it</string>
+    <string name="entry_description_intro">What each part of an entry of a %1$s tool is, whatever the tool; a tool\'s entries schema gives which parts its entries have and their fields:</string>
+    <string name="entry_start_statuses">An entry is created with its status alone, one of: %s; the app sets the rest of its state.</string>
+    <string name="tools_base_schema_config_extra_fields">The user\'s own fields, whose values each entry holds under extra; what they are for in this type is in the description of its entry</string>
+    <string name="ai_entry_description_title">Entry of a %1$s tool</string>
     <string name="service_error_start_status">An entry of this tool is created with its status in state.status, one of: %2$s (given: %1$s)</string>
     <string name="service_error_start_state_fields">Creating an entry, only its status is given in its state; the app writes the rest (given: %s)</string>
     <string name="service_error_status_changed">The status of an entry of this tool is not changed directly: it moves through the tool's operations (TOOL_OPERATION, listed with its data schema) and the app itself</string>
@@ -996,7 +998,7 @@
     <string name="ai_system_actions_all_failed">No action went through (%1$d failed)</string>
     <string name="ai_system_actions_partial">%1$d actions done, %2$d failed</string>
     <string name="ai_schema_required_summary">The following data schemas are needed to word the TOOL_DATA request correctly (%1$d schema(s)):\n%2$s\n\nThe schemas are included below. Please make your request again taking them into account.</string>
-    <string name="ai_schema_required_for_writes_summary">Your writes were not carried out: they touch tools whose data schema you have not received in this session (%1$d schema(s)):\n%2$s\n\nThe schemas are included below. Read them, then send your writes again.</string>
+    <string name="ai_schema_required_for_actions_summary">Your actions were not carried out: they need schemas you have not received in this session (%1$d schema(s)):\n%2$s\n\nThe schemas are included below. Read them, then send your actions again.</string>
     <string name="ai_schema_always_send_summary">Data schemas of the tools the user sends always, whose data is in Level 2 (%1$d schema(s)):\n%2$s\n\nThe schemas are included below.</string>
     <string name="ai_error_tool_operation_unknown">The tool type %2$s has no operation "%1$s". Its operations: %3$s</string>
     <string name="ai_error_tool_operation_none">none</string>
@@ -1102,7 +1104,7 @@
     <string name="auto_backup_choose_folder">Choose the folder</string>
     <string name="auto_backup_change_folder">Change the folder</string>
     <string name="auto_backup_folder_refused">Android does not let the app keep writing in this folder: choose another one.</string>
-    <string name="auto_backup_lost_content">The app can no longer write in the backup folder: choose it again in Settings › Data.</string>
+    <string name="auto_backup_lost_content">The app can no longer write in the backup folder: choose it again in Settings › Data management.</string>
     <string name="auto_backup_error_write">The copy %1$s could not be written in the backup folder</string>
 
     <!-- SETTINGS - Stub placeholders -->
@@ -1500,8 +1502,8 @@
     <string name="file_share">Share</string>
     <string name="export_csv_range_start">%1$s (start)</string>
     <string name="export_csv_range_end">%1$s (end)</string>
-    <string name="export_error_no_folder">No folder is chosen for the app: choose one in Settings › Data to write the file there.</string>
-    <string name="export_error_folder_lost">The app\'s folder can no longer be written in: choose it again in Settings › Data.</string>
+    <string name="export_error_no_folder">No folder is chosen for the app: choose one in Settings › Data management to write the file there.</string>
+    <string name="export_error_folder_lost">The app\'s folder can no longer be written in: choose it again in Settings › Data management.</string>
     <string name="export_error_unknown_field">This tool has no field %1$s. Its fields: %2$s</string>
     <string name="export_error_read">The entries could not be read.</string>
     <string name="export_error_write">The file %1$s could not be written in the app\'s folder.</string>
@@ -1579,7 +1581,7 @@
     <string name="import_title">Import</string>
     <string name="import_lines">%1$d line(s) in the file</string>
     <string name="import_target">Goes to</string>
-    <string name="import_target_key">The name (finds the sheet)</string>
+    <string name="import_target_key">The name (finds the record)</string>
     <string name="import_target_field">An existing field</string>
     <string name="import_target_new">A new field</string>
     <string name="import_target_ignore">Left out</string>
@@ -1668,7 +1670,7 @@
     <!-- CUSTOM FIELDS - Schema descriptions (used by AI) -->
     <string name="field_type_schema_name_description">Technical identifier of the field, the key the values are stored under. Assigned by the app at creation, from the label, and immutable afterwards. Omit it for a new field; repeat it as is to designate an existing field. Renaming it would destroy the values already recorded, the label is the one that can be changed freely.</string>
     <string name="field_type_schema_display_name_description">Name shown to the user for this custom field</string>
-    <string name="field_type_schema_type_description">Type of the custom field. Must match one of the available types (see the list of supported field types).</string>
+    <string name="field_type_schema_type_description">What a value of the field is, and so which settings the field has</string>
     <string name="field_type_schema_always_visible_description">If true, this field is always shown in the interface (even when it is empty). If false, it is only shown when it holds a value.</string>
     <string name="field_default_value">Default value</string>
     <string name="field_type_schema_default_value_description">A value of this field suggested for a new entry: the form prefills it and a quick entry applies it. The app never writes it on its own; absent, a new entry starts with no answer.</string>
@@ -1689,7 +1691,6 @@
     <string name="field_validation_text_length_invalid">The text length \'%1$s\' is invalid. Possible values: SHORT, MEDIUM, LONG, UNLIMITED</string>
     <string name="field_validation_numeric_min_max">The minimum value must be less than or equal to the maximum value</string>
     <string name="field_validation_numeric_decimals">The number of decimals is required: 0 for a whole number, or more</string>
-    <string name="field_validation_numeric_step">The step must be greater than 0</string>
     <string name="field_validation_scale_min_max_required">The SCALE type needs the min and max values</string>
     <string name="field_validation_scale_min_max_order">The minimum value must be strictly less than the maximum value</string>
     <string name="field_validation_scale_step">The step must be greater than 0</string>
@@ -2475,4 +2476,87 @@
     <string name="settings_data_history_days_help">How long a change stays in the history, to be undone.</string>
     <string name="settings_data_history_megabytes">Room for the history (MB)</string>
     <string name="settings_data_history_megabytes_help">Past this, the oldest changes leave the history first. The latest always stays.</string>
+
+    <!-- Field settings, for the AI that reads their schema -->
+    <string name="field_type_image_description">Images attached to an entry, at most the number set</string>
+    <string name="field_type_schema_field_description">What the field holds, which the AI reads with the entries</string>
+    <string name="field_type_schema_config_description">How the values of this type are made and shown</string>
+    <string name="field_type_unit_description">The unit every value is in, shown after it</string>
+    <string name="field_type_min_description">Smallest value accepted</string>
+    <string name="field_type_max_description">Largest value accepted</string>
+    <string name="field_type_decimals_description">Decimals a value keeps; a value with more is rounded when written</string>
+    <string name="field_type_scale_min_description">The scale\'s lowest value</string>
+    <string name="field_type_scale_max_description">The scale\'s highest value</string>
+    <string name="field_type_scale_min_label_description">Word shown at the lowest end, such as “Very bad”</string>
+    <string name="field_type_scale_max_label_description">Word shown at the highest end, such as “Very good”</string>
+    <string name="field_type_scale_step_description">Gap between two stops of the slider; a value is a multiple of it</string>
+    <string name="field_type_range_min_description">Smallest value accepted at either end</string>
+    <string name="field_type_range_max_description">Largest value accepted at either end</string>
+    <string name="field_type_options_description">The values the field can take</string>
+    <string name="field_type_option_description">One option: what is stored, and how it is shown</string>
+    <string name="field_type_option_value_description">What the entries store and filters compare</string>
+    <string name="field_type_option_label_description">Shown in place of the value; the value itself when absent</string>
+    <string name="field_type_option_color_description">Colour of its swatch, wherever the value shows</string>
+    <string name="field_type_true_label_description">Shown for yes, in place of “Yes”</string>
+    <string name="field_type_false_label_description">Shown for no, in place of “No”</string>
+    <string name="field_type_time_format_description">How the time is shown: 24h (14:30) or 12h (2:30 PM)</string>
+    <string name="field_type_reference_target_description">What the reference can point to</string>
+
+    <!-- A schedule's settings, for the AI that reads their schema -->
+    <string name="schedule_description">When it happens, by a rhythm that repeats</string>
+    <string name="schedule_pattern_description">The rhythm: its kind, then that kind\'s moments</string>
+    <string name="schedule_type_description">The kind of rhythm</string>
+    <string name="schedule_pattern_DailyMultiple_description">Every day, at each of the times</string>
+    <string name="schedule_pattern_WeeklySimple_description">On the days of the week chosen, at one time</string>
+    <string name="schedule_pattern_MonthlyRecurrent_description">In the months chosen, on one day of the month, at one time</string>
+    <string name="schedule_pattern_WeeklyCustom_description">At moments of the week, each with its own day and time</string>
+    <string name="schedule_pattern_YearlyRecurrent_description">Each year, on each of the dates, at its time</string>
+    <string name="schedule_pattern_SpecificDates_description">Once at each of the instants</string>
+    <string name="schedule_times_description">The times of each day</string>
+    <string name="schedule_time_description">A time of day, in the app\'s time zone</string>
+    <string name="schedule_days_of_week_description">The days of the week</string>
+    <string name="schedule_day_of_week_description">1 is Monday, 7 Sunday</string>
+    <string name="schedule_months_description">The months of the year</string>
+    <string name="schedule_month_description">1 is January, 12 December</string>
+    <string name="schedule_day_of_month_description">The day of the month; a month without it is skipped</string>
+    <string name="schedule_moments_description">The moments of the week</string>
+    <string name="schedule_moment_description">A day of the week and a time</string>
+    <string name="schedule_dates_description">The dates of the year</string>
+    <string name="schedule_date_description">A day of a month, and a time</string>
+    <string name="schedule_timestamps_description">The instants, each happening once</string>
+    <string name="schedule_timestamp_description">An instant at which it happens</string>
+
+    <string name="field_type_reference_tool_instances_list_description">The tools whose entries it can point to</string>
+
+    <string name="tool_operation_entry_id">Id of the entry it acts on</string>
+
+    <!-- App, zone, routine and module settings, for the AI that reads their schema -->
+    <string name="app_config_schema_relative_label_limits">Up to which distance a date is said relative to today (“in 3 days”) rather than in full</string>
+    <string name="app_config_schema_zone_groups">The groups of zones on the home screen, in their order</string>
+    <string name="zone_schema_tool_groups_list">The groups the zone\'s tools are sorted into, in their order</string>
+    <string name="ai_module_fields_description">The fields the user fills in; none for a plain confirmation</string>
+    <string name="guide_schema_welcome_seen">Whether the first-launch screen was seen</string>
+    <string name="guide_schema_band_hidden">Whether the tutorial band is hidden</string>
+    <string name="guide_schema_current">The chapter whose tutorial is in progress; absent otherwise</string>
+    <string name="guide_schema_chapters">Each chapter\'s progress</string>
+    <string name="guide_schema_chapter">One chapter\'s progress</string>
+    <string name="guide_schema_chapter_id">The chapter\'s id</string>
+    <string name="guide_schema_done">Whether the chapter is done</string>
+    <string name="guide_schema_kept">What a step kept for the next ones, such as the zone it created</string>
+    <string name="guide_schema_kept_element">One thing kept, by its name</string>
+    <string name="guide_schema_kept_name">What the thing kept is</string>
+    <string name="guide_schema_kept_value">Its id</string>
+    <string name="settings_data_schema_folder">The phone\'s folder chosen once, where the app writes without asking; absent until chosen</string>
+    <string name="settings_data_schema_seen">The automatic backup\'s state last looked at in Settings › Data management</string>
+    <string name="automation_schema_provider_id">Id of one of the user\'s AI providers; without one the routine neither is on nor runs</string>
+    <string name="automation_schema_identity_id">Id of the identity its runs speak as; the app\'s own AI when absent</string>
+    <string name="automation_schema_group">One of the tool groups of its zone, where its tile stands</string>
+    <string name="automation_schema_is_enabled">Whether its schedule runs it</string>
+    <string name="automation_schema_notify_end">When the end of a run is notified: always, on a problem only, or never</string>
+    <string name="automation_schema_catch_up">What it does about the runs it missed, the phone off or the app stopped; present with a schedule only</string>
+    <string name="automation_schema_catch_up_limit">How far back missed runs are caught up</string>
+    <string name="automation_schema_catch_up_limited">Only those within the window</string>
+    <string name="automation_schema_catch_up_unlimited">All of them</string>
+    <string name="automation_schema_catch_up_window">How long after its time a missed run is still caught up</string>
+    <string name="automation_schema_dismiss_older">Whether only the latest missed run is caught up, rather than each</string>
 </resources>

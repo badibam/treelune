@@ -74,11 +74,17 @@ class RunAccessTest {
         return session.data!!["session_id"] as String
     }
 
-    /** The results [command] gives in the run [sessionId], under its access, as the AI's actions are executed. */
+    /**
+     * The result [command] gives in the run [sessionId], under its access, as the AI's actions are
+     * executed; a read waiting on its tool's schema gives that schema, after the first level of
+     * its type's entry (EntryDescription), which is left aside here.
+     */
     private suspend fun execute(sessionId: String, command: ExecutableCommand) =
         withContext(AccessScope.ofRun(context, sessionId)) {
             CommandExecutor(context).executeCommands(listOf(command), SystemMessageType.ACTIONS_EXECUTED, Source.AI, "ai_actions", sessionId)
-        }.systemMessage.commandResults.single()
+        }.systemMessage.commandResults
+            .filterNot { (it.data?.get(app.treelune.core.ai.prompts.SessionReads.TARGET) as? String)?.startsWith("entry:") == true }
+            .single()
 
     @Test
     fun `a routine given a tool to read is refused a write to it, the refusal in its run`() = runBlocking {

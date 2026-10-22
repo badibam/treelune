@@ -13,7 +13,7 @@ Ce que seul le téléphone juge : l'œil, l'oreille, le doigt, et ce qu'un vrai 
 ## Démo
 
 - Sur l'OPPO A5 2020 (Android 10, ColorOS 7.1), dont la SQLite n'a pas `json_extract` : l'app désinstallée puis installée à neuf, la démo s'installe au premier démarrage sans toast d'erreur ; l'Objectif de la zone Italien montre ses tentatives validées, un Graphique de la démo se dessine, un chrono lancé s'affiche en cours sur sa tuile.
-- Pendant l'import d'un gros fichier dans une table (Données structurées) : la bande compte les lignes écrites, par 500.
+- Pendant l'import d'un gros fichier dans une table (Fiches) : la bande compte les lignes écrites, par 500.
 
 ## Chat IA
 

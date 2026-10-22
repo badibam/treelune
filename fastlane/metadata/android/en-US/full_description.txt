@@ -26,7 +26,7 @@ The tools:
 - Journal — A dated diary, for writing about your days
 - Messages — Reminders and notifications, once or on a schedule
 - List — What is left to do, checked off as it is done, with due dates if you want
-- Structured data — Sheets with the fields you choose, each found by its name, for foods, books, plants or anything else
+- Records — The fields you choose, each record found by its name, for foods, books, plants or anything else
 - Goal — A goal judged each day, week or month by the criteria you set, read from your entries
 - Questionnaire — Questions asked one per screen, when you want or at planned times
 - Chart — Your entries and figures drawn as lines, bars, pies or calendars

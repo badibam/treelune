@@ -135,6 +135,13 @@ class TrackingActions internal constructor(
         dialog.value = DialogDraft(name, value, unit, nameEditable, offerShortcut, timestamp ?: System.currentTimeMillis())
     }
 
+    /**
+     * The form of a free entry, whose name is typed and which can become a shortcut. A tracking
+     * without shortcuts follows one thing: the name is the tracking's, to change if need be.
+     */
+    fun openFreeEntry(timestamp: Long? = null) =
+        openDialog(if (shortcuts.isEmpty()) config.optString("name") else "", null, null, nameEditable = true, offerShortcut = true, timestamp = timestamp)
+
     fun stop(entry: RunningEntry) = save {
         val result = coordinator.processUserAction("tool_data.stop_duration", mapOf("id" to entry.id, "container" to "data", "field" to "value"))
         if (!result.isSuccess) UI.Toast(result.error ?: s.tool("error_entry_update_failed"), Duration.LONG)

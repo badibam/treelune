@@ -86,14 +86,14 @@ object ChartToolType : ToolTypeContract {
                         ChartKeys.FACET to listOf(
                             SettingNode.Group(ChartKeys.FACET, s.tool("field_facet"), listOf(
                                 SettingNode.Field(field(ChartKeys.FIELD, s.tool("field_facet_field"), FieldType.TEXT, s.tool("schema_facet_field"), short()), required = true, rowField = true)
-                            ), required = true),
+                            ), required = true, description = s.tool("schema_facet")),
                             columns(context),
                             layers(context)
                         ),
                         ChartKeys.REPEAT to listOf(
                             SettingNode.ListOf(ChartKeys.REPEAT, s.tool("field_repeat"),
                                 SettingNode.Item.Value(field(ChartKeys.REPEAT, s.tool("field_repeat_field"), FieldType.TEXT, s.tool("schema_repeat"), short()), rowField = true),
-                                required = true, minItems = 1),
+                                required = true, minItems = 1, description = s.tool("schema_repeat_list")),
                             columns(context),
                             layers(context)
                         )
@@ -102,10 +102,11 @@ object ChartToolType : ToolTypeContract {
                             SettingNode.ListOf(direction.key, s.tool("field_views"), SettingNode.Item.Of(listOf(
                                 SettingNode.Field(field(ChartKeys.TITLE, s.tool("field_view_title"), FieldType.TEXT, s.tool("schema_view_title"), short())),
                                 layers(context)
-                            )), required = true, minItems = 1, summary = listOf(ChartKeys.TITLE)),
+                            ), description = s.tool("schema_view")), required = true, minItems = 1, summary = listOf(ChartKeys.TITLE), description = s.tool("schema_views")),
                             columns(context).takeIf { direction == ConcatDirection.WRAP }
                         )
-                    }
+                    },
+                    descriptions = ChartKeys.COMPOSITIONS.associateWith { s.tool("schema_composition_$it") }
                 )
             ))
         )
@@ -120,8 +121,8 @@ object ChartToolType : ToolTypeContract {
     /** The layers of a view, drawn over one another. */
     private fun layers(context: Context): SettingNode.ListOf {
         val s = s(context)
-        return SettingNode.ListOf(ChartKeys.LAYER, s.tool("field_layers"), SettingNode.Item.Of(layerNodes(context)),
-            required = true, minItems = 1, summary = listOf(ChartKeys.DESCRIPTION, ChartKeys.SOURCE))
+        return SettingNode.ListOf(ChartKeys.LAYER, s.tool("field_layers"), SettingNode.Item.Of(layerNodes(context), description = s.tool("schema_layer"), definition = ChartKeys.LAYER_DEFINITION),
+            required = true, minItems = 1, summary = listOf(ChartKeys.DESCRIPTION, ChartKeys.SOURCE), description = s.tool("schema_layers"))
     }
 
     private fun layerNodes(context: Context): List<SettingNode> {
@@ -142,17 +143,21 @@ object ChartToolType : ToolTypeContract {
                             SettingNode.Field(field(ChartKeys.NAME, s.tool("field_column_name"), FieldType.TEXT, s.tool("schema_column_name"), short()), required = true),
                             SettingNode.Term(ChartKeys.TERM, s.tool("field_column_term"), setOf(Term.Kind.VARIABLE, Term.Kind.READING),
                                 s.tool("reference_step"), s.tool("empty_period_step"), required = true)
-                        )), required = true, minItems = 1, summary = listOf(ChartKeys.NAME))
+                        ), description = s.tool("schema_grid_column")), required = true, minItems = 1, summary = listOf(ChartKeys.NAME), description = s.tool("schema_grid_columns"))
                     )
-                )
+                ),
+                descriptions = listOf(ChartKeys.GRID, ChartKeys.ENTRIES).associateWith { s.tool("schema_source_$it") }
             ),
             SettingNode.ListOf(ChartKeys.TRANSFORM, s.tool("field_transform"), SettingNode.Item.Of(listOf(
-                SettingNode.ListOf(ChartKeys.FOLD, s.tool("field_fold"), SettingNode.Item.Value(field(ChartKeys.FOLD, s.tool("field_column"), FieldType.TEXT, s.tool("schema_fold"), short()), rowField = true)),
-                SettingNode.ListOf(ChartKeys.AS, s.tool("field_as"), SettingNode.Item.Value(field(ChartKeys.AS, s.tool("field_column_name"), FieldType.TEXT, s.tool("schema_as"), short()))),
-                SettingNode.ListOf(ChartKeys.FLATTEN, s.tool("field_flatten"), SettingNode.Item.Value(field(ChartKeys.FLATTEN, s.tool("field_column"), FieldType.TEXT, s.tool("schema_flatten"), short()), rowField = true))
-            )), summary = listOf(ChartKeys.FOLD, ChartKeys.FLATTEN)),
-            SettingNode.Group(ChartKeys.MARK, s.tool("field_mark"), listOf(markVariant(context)), required = true),
-            SettingNode.Group(ChartKeys.ENCODING, s.tool("field_encoding"), listOf(
+                SettingNode.ListOf(ChartKeys.FOLD, s.tool("field_fold"), SettingNode.Item.Value(field(ChartKeys.FOLD, s.tool("field_column"), FieldType.TEXT, s.tool("schema_fold"), short()), rowField = true),
+                    description = s.tool("schema_fold_list")),
+                SettingNode.ListOf(ChartKeys.AS, s.tool("field_as"), SettingNode.Item.Value(field(ChartKeys.AS, s.tool("field_column_name"), FieldType.TEXT, s.tool("schema_as"), short())),
+                    description = s.tool("schema_as_list")),
+                SettingNode.ListOf(ChartKeys.FLATTEN, s.tool("field_flatten"), SettingNode.Item.Value(field(ChartKeys.FLATTEN, s.tool("field_column"), FieldType.TEXT, s.tool("schema_flatten"), short()), rowField = true),
+                    description = s.tool("schema_flatten_list"))
+            ), description = s.tool("schema_transform_element")), summary = listOf(ChartKeys.FOLD, ChartKeys.FLATTEN), description = s.tool("schema_transform")),
+            SettingNode.Group(ChartKeys.MARK, s.tool("field_mark"), listOf(markVariant(context)), required = true, description = s.tool("schema_mark")),
+            SettingNode.Group(ChartKeys.ENCODING, s.tool("field_encoding"), description = s.tool("schema_encoding"), nodes = listOf(
                 channel(Channel.X, context), channel(Channel.Y, context), channel(Channel.COLOR, context),
                 SettingNode.Section(s.tool("section_more_channels"), listOf(
                     Channel.X2, Channel.Y2, Channel.SIZE, Channel.SHAPE, Channel.OPACITY, Channel.STROKE_DASH,
@@ -170,7 +175,8 @@ object ChartToolType : ToolTypeContract {
         val opacity = SettingNode.Field(field(ChartKeys.OPACITY, s.tool("field_opacity"), FieldType.NUMERIC, s.tool("schema_opacity"), mapOf("min" to 0, "max" to 1, "decimals" to 2)))
         val strokeWidth = SettingNode.Field(field(ChartKeys.STROKE_WIDTH, s.tool("field_stroke_width"), FieldType.NUMERIC, s.tool("schema_stroke_width"), mapOf("min" to 0.5, "max" to 12, "decimals" to 1)))
         val strokeDash = SettingNode.ListOf(ChartKeys.STROKE_DASH, s.tool("field_stroke_dash"),
-            SettingNode.Item.Value(field(ChartKeys.STROKE_DASH, s.tool("field_dash_length"), FieldType.NUMERIC, s.tool("schema_stroke_dash"), mapOf("min" to 1, "max" to 40, "decimals" to 0))))
+            SettingNode.Item.Value(field(ChartKeys.STROKE_DASH, s.tool("field_dash_length"), FieldType.NUMERIC, s.tool("schema_stroke_dash"), mapOf("min" to 1, "max" to 40, "decimals" to 0))),
+            description = s.tool("schema_stroke_dash_list"))
         val shape = SettingNode.Field(field(ChartKeys.SHAPE, s.tool("field_shape"), FieldType.CHOICE, s.tool("schema_shape"), choice(Shape.entries.map { it.key }) { s.tool("shape_$it") }))
         return SettingNode.Variant(
             selector = SettingNode.Field(field(ChartKeys.TYPE, s.tool("field_mark_type"), FieldType.CHOICE, s.tool("schema_mark_type"),
@@ -187,7 +193,8 @@ object ChartToolType : ToolTypeContract {
                 MarkType.ARC.key to listOf(opacity),
                 MarkType.TICK.key to listOf(strokeWidth, opacity),
                 MarkType.RECT.key to listOf(opacity)
-            )
+            ),
+            descriptions = MarkType.entries.associate { it.key to s.tool("schema_mark_${it.key}") }
         )
     }
 
@@ -202,19 +209,20 @@ object ChartToolType : ToolTypeContract {
         fun condition(value: SettingNode.Field) = SettingNode.Group(ChartKeys.CONDITION, s.tool("field_condition"), listOf(
             SettingNode.Condition(ChartKeys.TEST, s.tool("field_test"), reference = "", emptyPeriod = null, required = true, onRow = true),
             value.copy(required = true)
-        ))
+        ), description = s.tool("schema_condition"))
         val stack = SettingNode.Field(field(ChartKeys.STACK, s.tool("field_stack"), FieldType.CHOICE, s.tool("schema_stack"),
             choice(Stack.entries.map { it.key }) { s.tool("stack_$it") }))
         val nodes: List<SettingNode> = when (channel) {
             Channel.X, Channel.Y -> listOfNotNull(
                 fieldNode, type,
-                SettingNode.Group(ChartKeys.SCALE, s.tool("field_scale"), listOf(
-                    SettingNode.ListOf(ChartKeys.DOMAIN, s.tool("field_domain"), SettingNode.Item.Value(field(ChartKeys.DOMAIN, s.tool("field_bound"), FieldType.NUMERIC, s.tool("schema_domain"), mapOf("decimals" to 2)))),
+                SettingNode.Group(ChartKeys.SCALE, s.tool("field_scale"), description = s.tool("schema_scale"), nodes = listOf(
+                    SettingNode.ListOf(ChartKeys.DOMAIN, s.tool("field_domain"), SettingNode.Item.Value(field(ChartKeys.DOMAIN, s.tool("field_bound"), FieldType.NUMERIC, s.tool("schema_domain"), mapOf("decimals" to 2))),
+                        description = s.tool("schema_domain_list")),
                     SettingNode.Field(field(ChartKeys.ZERO, s.tool("field_zero"), FieldType.BOOLEAN, s.tool("schema_zero"))),
                     SettingNode.Field(field(ChartKeys.NICE, s.tool("field_nice"), FieldType.BOOLEAN, s.tool("schema_nice"))),
                     SettingNode.Field(field(ChartKeys.REVERSE, s.tool("field_reverse"), FieldType.BOOLEAN, s.tool("schema_reverse")))
                 )),
-                SettingNode.Group(ChartKeys.AXIS, s.tool("field_axis"), listOfNotNull(
+                SettingNode.Group(ChartKeys.AXIS, s.tool("field_axis"), description = s.tool("schema_axis"), nodes = listOfNotNull(
                     SettingNode.Field(field(ChartKeys.GRID_LINES, s.tool("field_grid"), FieldType.BOOLEAN, s.tool("schema_grid"))),
                     SettingNode.Field(field(ChartKeys.ORIENT, s.tool("field_orient"), FieldType.CHOICE, s.tool("schema_orient"),
                         choice(Orient.entries.map { it.key }) { s.tool("orient_$it") })).takeIf { channel == Channel.Y }
@@ -225,9 +233,11 @@ object ChartToolType : ToolTypeContract {
                 val colorValue = SettingNode.Field(colorChoice(ChartKeys.VALUE, s.tool("field_color"), s.tool("schema_value_color"), context))
                 listOf(
                     fieldNode, type,
-                    SettingNode.Group(ChartKeys.SCALE, s.tool("field_scale"), listOf(
-                        SettingNode.ListOf(ChartKeys.DOMAIN, s.tool("field_categories"), SettingNode.Item.Value(field(ChartKeys.DOMAIN, s.tool("field_category"), FieldType.TEXT, s.tool("schema_color_domain"), short()))),
-                        SettingNode.ListOf(ChartKeys.RANGE, s.tool("field_range"), SettingNode.Item.Value(colorChoice(ChartKeys.RANGE, s.tool("field_color"), s.tool("schema_range"), context)))
+                    SettingNode.Group(ChartKeys.SCALE, s.tool("field_scale"), description = s.tool("schema_color_scale"), nodes = listOf(
+                        SettingNode.ListOf(ChartKeys.DOMAIN, s.tool("field_categories"), SettingNode.Item.Value(field(ChartKeys.DOMAIN, s.tool("field_category"), FieldType.TEXT, s.tool("schema_color_domain"), short())),
+                            description = s.tool("schema_color_domain_list")),
+                        SettingNode.ListOf(ChartKeys.RANGE, s.tool("field_range"), SettingNode.Item.Value(colorChoice(ChartKeys.RANGE, s.tool("field_color"), s.tool("schema_range"), context)),
+                            description = s.tool("schema_range_list"))
                     )),
                     legend, condition(colorValue), colorValue
                 )
@@ -245,7 +255,7 @@ object ChartToolType : ToolTypeContract {
             Channel.THETA -> listOf(fieldNode, type)
             Channel.X2, Channel.Y2, Channel.DETAIL, Channel.ORDER, Channel.TEXT, Channel.RADIUS -> listOf(fieldNode)
         }
-        return SettingNode.Group(key, s.tool("channel_${key.lowercase()}"), nodes)
+        return SettingNode.Group(key, s.tool("channel_${key.lowercase()}"), nodes, description = s.tool("schema_channel_${key.lowercase()}"))
     }
 
     // -----------------------------------------------------------------------------------------

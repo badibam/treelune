@@ -408,7 +408,7 @@ Retrieves the current date and time.
 **Returns** `timestamp`: ISO 8601 with a timezone offset (e.g. `"2025-11-23T14:30:00+01:00"`). Use it before writing an entry dated "now" or "yesterday".]]></string>
     <string name="ai_command_schema"><![CDATA[### SCHEMA
 
-Retrieves a JSON schema, asked for by what it describes. **Exactly one** parameter:
+Retrieves a JSON schema, asked for by what it describes. A tool type's schema, its config's or a tool's entries', comes after the description of an entry of that type: what its name, timestamp, data, extra and state are in the type, sent once in a session. **Exactly one** parameter:
 
 - `tooltype` (string, optional): the config of a tool of that type, with every variant (a tracking\'s `type` decides its settings)
 - `tool_instance_id` (string, optional): the entries of that tool, its extra fields included
@@ -733,7 +733,7 @@ Imports a joined file into a tool, following a complete declaration: the new fie
 A new table for a file: CREATE_TOOL first, then IMPORT_PLAN and IMPORT_DATA at the next turn, with the id it returned.]]></string>
     <string name="ai_command_export_data"><![CDATA[### EXPORT_DATA
 
-Writes the entries of a tool as a CSV file into the app\'s folder, which the user chose in Settings › Data, to read in a spreadsheet or send. Nothing in the app changes and no file is written over: it runs without asking. The answer gives the file\'s name and its number of entries, never its content; the user shares it from the card.
+Writes the entries of a tool as a CSV file into the app\'s folder, which the user chose in Settings › Data management, to read in a spreadsheet or send. Nothing in the app changes and no file is written over: it runs without asking. The answer gives the file\'s name and its number of entries, never its content; the user shares it from the card.
 
 **Parameters**:
 
@@ -742,7 +742,7 @@ Writes the entries of a tool as a CSV file into the app\'s folder, which the use
 - `filters` (array, optional): as in TOOL_DATA
 - `fields` (array, optional): the paths kept, as in TOOL_DATA; every field when absent
 
-No folder chosen is refused: tell the user to choose one in Settings › Data.]]></string>
+No folder chosen is refused: tell the user to choose one in Settings › Data management.]]></string>
     <string name="ai_command_update_app_config"><![CDATA[### UPDATE_APP_CONFIG
 
 Changes the settings of a category open to you, written **whole**: read them first with APP_CONFIG.
@@ -811,14 +811,17 @@ Actions run in order and stop at the first failure: the ones after it are cancel
 
 **The id of what an action creates is only known at the next turn**, in `command_results`: an action cannot use the id of another action of the same answer (no placeholder such as `"zone_id": "NEW_ZONE"`). Create first; use the id returned in your next answer.]]></string>
 
+    <!-- The app's words in the user's language, beside the English this prompt uses; filled only when the app speaks another language -->
+    <string name="ai_chunk_vocabulary"><![CDATA[## The app's words
+
+The app shows its words in the user's language. This prompt names them in English; talking to the user, name each one as their screen shows it:
+
+%1$s]]></string>
+
     <!-- C.4 Custom fields [DEGREE 1] -->
     <string name="ai_chunk_custom_fields"><![CDATA[## Fields
 
-Every value of the app is a field of a field type:
-
-{{CUSTOM_FIELD_TYPES}}
-
-A **field definition** says a field\'s label, its type and its type\'s settings. Wherever a schema says "list of field definitions (see Fields)", each element is:
+Every value of the app is a field of a field type. A **field definition** says a field\'s label, its type, what a value of that type is, and the type\'s settings. Wherever a schema says "list of field definitions (see Fields)", each element is:
 
 {{FIELD_DEFINITION}}
 
@@ -846,7 +849,7 @@ A REFERENCE points to another thing of the app by its kind and id, never its nam
 
 ### The user\'s extra fields
 
-Every tool can carry extra fields, listed in its config under `extra_fields`; their values live in the entries\' `extra`.
+Every tool can carry extra fields, listed in its config under `extra_fields`; their values live in the entries\' `extra`. They add to what an entry of the tool\'s type already holds, which the description of its entry says, and what they are for depends on the type: a questionnaire\'s questions, a table\'s columns, details beside a tracking\'s value.
 
 ```json
 "extra_fields": [
@@ -1085,7 +1088,9 @@ A schema is written one value per line, what a value holds indented under it:
 - `default …`: in a config, what an absent value means: leave it out to take it, write it only to choose another. In an entry, a value suggested for a new entry, never filled in for you: write it when it is what the user means, or the value stays without an answer
 - `suggested …`: on a required value, what to write when you mean nothing else
 - `written by the app, never sent`: read it, never write it
-- `if type = X:` what the value named just above adds when it is X
+- `if type = X: …` what X means, then, indented under it, what the value named just above adds when it is X
+- `list of … Each element: …`: what the list is, then what one of its elements is
+- `Name (see Name)`: a value written once, under `Name:` at the end of the schema, as it stands in each place that names it
 - The label and the description say what a value means: its unit, what the bounds of a scale mean, the options of a choice
 - Only the keys listed are accepted]]></string>
 

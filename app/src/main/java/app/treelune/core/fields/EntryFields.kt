@@ -56,7 +56,7 @@ data class StateField(
  * instance's config and are not part of the declaration.
  *
  * @property nameUnique Whether no two entries of a tool instance share a name, the case and the
- *   spaces around not counted: the name is what finds an entry (a sheet of structured data), and
+ *   spaces around not counted: the name is what finds an entry (a record of a Records tool), and
  *   the service refuses a duplicate, naming the entry that has it
  * @property nameLabel The shared key of the name's label: a name, or the title a journal entry and
  *   a note have, so that a form and a refusal call it what it is
@@ -70,6 +70,25 @@ data class EntryFields(
     val data: List<FixedField> = emptyList(),
     val state: List<StateField> = emptyList(),
     val start: EntryStart? = null
+)
+
+/**
+ * What each part every entry has means in one tool type, beside the core's text that holds for
+ * all: the name is what a tracking noted, a record's key, an event's title; the timestamp when a
+ * measure was taken, a session started, an event begins. Each says what the part is in the type,
+ * never what not to do with it. Null keeps the core's text; data is left null when its fields
+ * say it already.
+ *
+ * @property extra What the user's fields are for in the type: a questionnaire's questions, a
+ *   table's columns, details noted beside a tracking's value. The same text describes the
+ *   setting that declares them (extra_fields) and the values each entry holds (extra)
+ */
+data class EntryMeanings(
+    val name: String? = null,
+    val timestamp: String? = null,
+    val data: String? = null,
+    val extra: String? = null,
+    val state: String? = null
 )
 
 /**
@@ -223,6 +242,11 @@ object CoreFields {
  *
  * What locates an entry (id, tool_instance_id, tooltype) is described but is not a
  * field. Everything else is: the core's fields at the root, then "data", "extra" and "state".
+ *
+ * What the parts every entry has mean in the tool's type — name, timestamp, data, extra, state —
+ * is the entry's first level (EntryDescription), which the AI reads beside this schema: here
+ * they carry their label and what they are held to, and the fields inside them their own
+ * descriptions.
  */
 object EntrySchemaGenerator {
 
@@ -249,8 +273,9 @@ object EntrySchemaGenerator {
         properties.put("tooltype", locator(text("tools_base_schema_data_tooltype"), systemManaged = true))
 
         // The core's fields. An ABSENT one is not declared, and additionalProperties refuses it.
-        coreField(properties, required, CoreFields.name(text, label = declared.nameLabel), declared.name, text)?.put("minLength", 1)
-        coreField(properties, required, CoreFields.timestamp(text), declared.timestamp, text)
+        // Their meaning in the type is the first level's (EntryDescription)
+        coreField(properties, required, CoreFields.name(text, label = declared.nameLabel).copy(description = null), declared.name, text)?.put("minLength", 1)
+        coreField(properties, required, CoreFields.timestamp(text).copy(description = null), declared.timestamp, text)
         properties.put("created_at", FieldValueSchema.forReader(CoreFields.createdAt(text), text).put("system_managed", true))
         properties.put("updated_at", FieldValueSchema.forReader(CoreFields.updatedAt(text), text).put("system_managed", true))
 
@@ -265,7 +290,7 @@ object EntrySchemaGenerator {
                 }
             },
             required = dataRequired,
-            description = text("tools_base_schema_data_data")
+            description = null
         ))
         if (dataRequired.isNotEmpty()) required.add("data")
 
@@ -273,11 +298,12 @@ object EntrySchemaGenerator {
         properties.put("extra", objectOf(
             fields = extra.associate { it.name to FieldValueSchema.forReader(it, text) },
             required = emptyList(),
-            description = text("entry_schema_extra")
+            description = null
         ))
 
         // The entry's state, and the DURATION fields running now. Written by the app, but for the
-        // status an entry is created with where the tool type lets its creator give one (EntryStart)
+        // status an entry is created with where the tool type lets its creator give one (EntryStart),
+        // which the first level says
         val start = declared.start
         val givenStatus = start?.statuses?.isNotEmpty() == true
         val state = objectOf(
@@ -287,11 +313,7 @@ object EntrySchemaGenerator {
                 }
             },
             required = emptyList(),
-            description = when {
-                givenStatus -> text("entry_schema_state_start").format(start!!.statuses.joinToString(", "))
-                start != null -> text("entry_schema_state") + " " + start.refusal
-                else -> text("entry_schema_state")
-            }
+            description = null
         )
         runningSchema(declared, extra, text)?.let { state.getJSONObject("properties").put(RUNNING_KEY, it.put("system_managed", true)) }
         if (!givenStatus) state.put("system_managed", true)
@@ -323,12 +345,12 @@ object EntrySchemaGenerator {
             if (systemManaged) it.put("system_managed", true)
         }
 
-    private fun objectOf(fields: Map<String, JSONObject>, required: List<String>, description: String): JSONObject {
+    private fun objectOf(fields: Map<String, JSONObject>, required: List<String>, description: String?): JSONObject {
         val properties = JSONObject()
         fields.forEach { (name, schema) -> properties.put(name, schema) }
         return JSONObject()
             .put("type", "object")
-            .put("description", description)
+            .also { if (description != null) it.put("description", description) }
             .put("properties", properties)
             .put("additionalProperties", false)
             .also { if (required.isNotEmpty()) it.put("required", JSONArray(required)) }

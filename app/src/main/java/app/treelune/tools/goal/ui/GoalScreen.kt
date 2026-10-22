@@ -41,6 +41,14 @@ import app.treelune.core.utils.DataChangeNotifier
 import app.treelune.core.utils.DateUtils
 import app.treelune.core.utils.JsonUtils
 import app.treelune.core.fields.toFieldDefinition
+import app.treelune.core.fields.toFieldDefinitions
+import app.treelune.core.fields.CustomFieldsDisplay
+import app.treelune.core.fields.CustomFieldsInput
+import app.treelune.core.fields.FieldsLayout
+import app.treelune.core.ui.ButtonDisplay
+import app.treelune.core.ui.DialogType
+import app.treelune.core.ui.FieldValuesSaver
+import androidx.compose.ui.Alignment
 import app.treelune.tools.goal.GoalDefinition
 import app.treelune.tools.goal.GoalToolType
 import app.treelune.tools.goal.Met
@@ -48,7 +56,7 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 
 /** An attempt as the screen lists it. */
-data class AttemptRow(val id: String, val start: Long, val status: String, val periodEnd: Long?, val validatedBy: String?)
+data class AttemptRow(val id: String, val start: Long, val status: String, val periodEnd: Long?, val validatedBy: String?, val extra: Map<String, Any?> = emptyMap())
 
 /**
  * A goal's screen (docs/TOOLS.md, « Goal »), in two tabs, always there, the
@@ -82,7 +90,8 @@ fun GoalScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureCl
         attempts = (result.data?.get("entries") as? List<*> ?: emptyList<Any>()).filterIsInstance<Map<*, *>>().map { e ->
             val state = e["state"] as? Map<*, *> ?: emptyMap<String, Any>()
             AttemptRow(e["id"] as String, (e["timestamp"] as Number).toLong(), state[GoalToolType.STATUS] as? String ?: "",
-                (state[GoalToolType.PERIOD_END] as? Number)?.toLong(), state[GoalToolType.VALIDATED_BY] as? String)
+                (state[GoalToolType.PERIOD_END] as? Number)?.toLong(), state[GoalToolType.VALIDATED_BY] as? String,
+                (e["extra"] as? Map<*, *>)?.entries?.associate { it.key.toString() to it.value } ?: emptyMap())
         }
     }
     LaunchedEffect(toolInstanceId) {
@@ -249,10 +258,53 @@ private fun AttemptCard(
             (loaded["sub_goals"] as? Map<*, *>)?.forEach { (name, subMet) ->
                 UI.Text("$name · " + s.tool("met_${(subMet as String).lowercase()}"), TextType.CAPTION)
             }
+            UserFields(attempt, config, locked, onError, onSaved = { local++ })
             app.treelune.core.ui.components.ButtonRow {
                 if (!locked) UI.Button(type = ButtonType.PRIMARY, onClick = onValidate) { UI.Text(s.tool("action_validate"), TextType.LABEL) }
                 else UI.Button(type = ButtonType.SECONDARY, onClick = onReopen) { UI.Text(s.tool("action_reopen"), TextType.LABEL) }
             }
+        }
+    }
+}
+
+/**
+ * The user's fields of an attempt, noted while it runs since it can stretch over weeks: shown as
+ * written, a pencil opening them all in a form whose saving is one write, never one per letter.
+ * A validated or expired attempt keeps them frozen with its judgement.
+ */
+@Composable
+private fun UserFields(attempt: AttemptRow, config: JSONObject, locked: Boolean, onError: (String?) -> Unit, onSaved: () -> Unit) {
+    val fields = config.optJSONArray("extra_fields")?.toFieldDefinitions() ?: emptyList()
+    if (fields.isEmpty()) return
+    val context = LocalContext.current
+    val coordinator = remember { Coordinator(context) }
+    val scope = rememberCoroutineScope()
+    var editing by rememberSaveable(attempt.id) { mutableStateOf(false) }
+
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+        Column(modifier = Modifier.weight(1f)) {
+            CustomFieldsDisplay(GoalToolType, config, attempt.extra, FieldsLayout.COMPACT, context)
+        }
+        if (!locked) UI.ActionButton(action = ButtonAction.EDIT, display = ButtonDisplay.ICON, onClick = { editing = true })
+    }
+    if (editing) UserFieldsDialog(attempt, fields, onCancel = { editing = false }) { values ->
+        editing = false
+        scope.launch {
+            val result = coordinator.processUserAction("tool_data.update", mapOf("id" to attempt.id, "extra" to values))
+            if (!result.isSuccess) onError(result.error) else onSaved()
+        }
+    }
+}
+
+/** The form of an attempt's user fields, prefilled; [onSave] gets every field's value. */
+@Composable
+private fun UserFieldsDialog(attempt: AttemptRow, fields: List<FieldDefinition>, onCancel: () -> Unit, onSave: (Map<String, Any?>) -> Unit) {
+    val context = LocalContext.current
+    var values by rememberSaveable(attempt.id, stateSaver = FieldValuesSaver) { mutableStateOf(attempt.extra) }
+    UI.Dialog(type = DialogType.EDIT, onConfirm = { onSave(fields.associate { it.name to values[it.name] }) }, onCancel = onCancel) {
+        Column(modifier = Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
+            UI.Text(Strings.`for`(context = context).shared("custom_fields_section_title"), TextType.SUBTITLE)
+            CustomFieldsInput(customFieldsMetadata = fields, values = values, onValuesChange = { values = it }, context = context)
         }
     }
 }

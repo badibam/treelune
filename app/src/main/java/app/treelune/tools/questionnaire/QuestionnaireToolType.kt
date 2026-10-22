@@ -83,6 +83,15 @@ object QuestionnaireToolType : ToolTypeContract {
         )
     }
 
+    override fun getEntryMeanings(context: Context): app.treelune.core.fields.EntryMeanings {
+        val s = Strings.`for`(tool = "questionnaire", context = context)
+        return app.treelune.core.fields.EntryMeanings(
+            timestamp = s.tool("entry_timestamp"),
+            extra = s.tool("entry_extra"),
+            state = s.tool("entry_state")
+        )
+    }
+
     /**
      * A questionnaire written by someone is either passed, its answers in it (blank ones
      * included, a question left unanswered is still answered so), or put to fill later. Ignoring
@@ -95,7 +104,7 @@ object QuestionnaireToolType : ToolTypeContract {
     /** Filling and ignoring an entry, for the screen and the AI alike. */
     override fun getOperations(context: Context): List<ToolOperation> {
         val s = s(context)
-        val id = SettingNode.Field(FieldDefinition("id", s.tool("field_entry"), null, FieldType.TEXT, false, mapOf("length" to TextLength.SHORT.name)), required = true)
+        val id = SettingNode.Field(FieldDefinition("id", s.tool("field_entry"), app.treelune.core.strings.Strings.`for`(context = context).shared("tool_operation_entry_id"), FieldType.TEXT, false, mapOf("length" to TextLength.SHORT.name)), required = true)
         return listOf(
             ToolOperation("complete", s.tool("operation_complete"), listOf(id)),
             ToolOperation("ignore", s.tool("operation_ignore"), listOf(id)),

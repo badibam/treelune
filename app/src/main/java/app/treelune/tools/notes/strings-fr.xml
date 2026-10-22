@@ -5,22 +5,14 @@
     <!-- Métadonnées -->
     <string name="display_name">Notes</string>
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
-    <string name="usage">Pour garder des textes qu\'on relit et qu\'on retouche, chacun sous son titre : idées, procédures, mémos.\n## Ce qu\'il fait\n- Les notes se rangent à la main, dans l\'ordre qu\'on veut\n## Pas fait pour\n- Ce qui est daté (Journal)\n- Ce qu\'on coche (Liste)\n- Des fiches qui ont toutes les mêmes champs (Données structurées)</string>
+    <string name="usage">Pour garder des textes qu\'on relit et qu\'on retouche, chacun sous son titre : idées, procédures, mémos.\n## Ce qu\'il fait\n- Les notes se rangent à la main, dans l\'ordre qu\'on veut\n## Pas fait pour\n- Ce qui est daté (Journal)\n- Ce qu\'on coche (Liste)\n- Des fiches qui ont toutes les mêmes champs (Fiches)</string>
     <!-- The Guide's chapter, beside the usage: every setting of the config, every button of the screen (Markup) -->
     <string name="guide_config">## Les titres\n- Titres : chaque note peut avoir un titre au-dessus de son texte</string>
     <string name="guide_screen">## Les notes\n- {plus} Crée une note\nTouche une note pour la modifier. Pour la déplacer, fais-la glisser par la bande en haut de la note.\n\n## Appui long sur une note\n- {plus} Ajoute une note au-dessus\n- {copy} Copie son titre et son texte\n- {trash} La supprime</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Des notes, chacune avec son titre, rangées là où elles servent</string>
 
-    <!-- SCHEMAS - Display names for schema identification -->
-    <string name="schema_config_display_name">Configuration de notes</string>
-    <string name="schema_data_display_name">Données de note</string>
-    <string name="schema_data_description">Schéma de validation pour les entrées de notes</string>
-
     <!-- SCHEMAS DATA - Descriptions pour validation IA -->
-    <string name="schema_data_name">Nom de l\'entrée de note</string>
-    <string name="schema_data_timestamp">Horodatage de création de la note</string>
-    <string name="schema_data_data">Données de contenu de la note</string>
     <string name="schema_data_content">Contenu de la note</string>
     <string name="schema_data_position">Place dans la liste, 0 en haut. Une position déjà prise y place la note et décale les suivantes ; sans position, la note va en dernier. Les positions restent 0, 1, 2… sans trou</string>
 
@@ -62,5 +54,10 @@
     <string name="error_save">Erreur lors de la sauvegarde</string>
 
     <!-- Schéma -->
-    <string name="schema_config_description">Schéma de configuration pour les instances de notes</string>
+
+    <!-- What each part of an entry is in this type (EntryMeanings) -->
+    <string name="entry_name">Le titre de la note, au-dessus de son texte ; là seulement quand les titres de l\'outil sont activés (titles)</string>
+    <string name="entry_timestamp">Quand la note a été écrite ; les notes suivent leur place dans la liste, pas ce moment</string>
+    <string name="entry_extra">Des détails notés avec chaque note, montrés sur sa carte</string>
+    <string name="entry_state">Sa place dans la liste, que l\'app tient</string>
 </resources>

@@ -125,6 +125,13 @@ interface ToolTypeContract {
     fun getEntryFields(config: JSONObject, context: Context): app.treelune.core.fields.EntryFields
 
     /**
+     * What each common part of an entry is in this type (EntryMeanings), whatever the config: the
+     * first level of the entry, which the AI reads with the type's config schema and with a
+     * tool's entries schema (EntryDescription). A part left null keeps the core's text.
+     */
+    fun getEntryMeanings(context: Context): app.treelune.core.fields.EntryMeanings = app.treelune.core.fields.EntryMeanings()
+
+    /**
      * The settings of this tool type's config, beside the ones every tool has
      * (ToolConfigSettings): the config's schema and checking are generated from them.
      */

@@ -120,7 +120,7 @@ fun rememberTrackingTile(tool: ToolInstance): ToolTile {
                             Line {
                                 Box(modifier = Modifier.weight(1f))
                                 QuickButton(ButtonAction.ADD, !actions.isSaving) {
-                                    actions.openDialog("", null, null, nameEditable = true, offerShortcut = true)
+                                    actions.openFreeEntry()
                                 }
                             }
                         }

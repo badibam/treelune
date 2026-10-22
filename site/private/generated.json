@@ -65,12 +65,12 @@
       "id": "structured",
       "icon": "table",
       "name": {
-        "en": "Structured data",
-        "fr": "Données structurées"
+        "en": "Records",
+        "fr": "Fiches"
       },
       "tagline": {
-        "en": "Sheets with the fields you choose, each found by its name, for foods, books, plants or anything else",
-        "fr": "Des fiches aux champs que tu choisis, chacune retrouvée par son nom, pour des aliments, des livres, des plantes ou autre chose"
+        "en": "The fields you choose, each record found by its name, for foods, books, plants or anything else",
+        "fr": "Les champs que tu choisis, chaque fiche retrouvée par son nom, pour des aliments, des livres, des plantes ou autre chose"
       }
     },
     {
@@ -340,7 +340,7 @@
     "images/chilli.jpg": "f01c34ab00673b6c500e68c9f99b18fa6ef39e2d878cb488591c19f22c0463b2",
     "images/tomato.jpg": "7d7da0da4f450f7a085de6f5d1de80c5fac2b1da6ad3f2815041a0fca0fc65c6",
     "structure.json": "73b2be2d3cf94b1683174f244debffda17df06c6a208b6da7398ea2b3f1628ef",
-    "texts-en.json": "cc99fd06b8a98719d5a28956ab3d103af5dcfc5f2d53dc4c59067311a087fd4e",
+    "texts-en.json": "1e3e42bd65783969a370e4e6518e5e2ee3178b60d380608b6e4e8b2604fc9831",
     "texts-fr.json": "4c480e9519f12f97aa91109f38598e3c56aecd74ffdf1ec8445f432b22eda502"
   }
 }

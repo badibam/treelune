@@ -50,4 +50,9 @@
     <string name="tile_up_to_date">À jour</string>
     <string name="tile_next">Prochain : %1$s</string>
     <string name="tile_last">Dernier : %1$s</string>
+
+    <!-- What each part of an entry is in this type (EntryMeanings) -->
+    <string name="entry_timestamp">Le moment dont parle la passation : l\'heure prévue d\'une invitation, ou le moment choisi quand elle est remplie sans invitation</string>
+    <string name="entry_extra">Les réponses : chaque champ de l\'utilisateur est une question du questionnaire, posée une par écran</string>
+    <string name="entry_state">Si la passation est à remplir, remplie ou ignorée, et quand elle a été remplie</string>
 </resources>

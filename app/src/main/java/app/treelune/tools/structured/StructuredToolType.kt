@@ -15,8 +15,8 @@ import app.treelune.tools.structured.ui.StructuredScreen
 import org.json.JSONObject
 
 /**
- * Structured data: sheets of what the user declares (foods and their calories, books, contacts),
- * each found by its name (docs/TOOLS.md, « Structured data »).
+ * Records: records of what the user declares (foods and their calories, books, contacts),
+ * each found by its name (docs/TOOLS.md, « Records »).
  *
  * Its columns are the user's fields (extra), declared in the instance's config; the tool type
  * declares none, and an entry has no date. The name is required and unique in the instance, the
@@ -58,6 +58,14 @@ object StructuredToolType : ToolTypeContract {
         nameUnique = true,
         timestamp = CoreFieldUsage.ABSENT
     )
+
+    override fun getEntryMeanings(context: Context): app.treelune.core.fields.EntryMeanings {
+        val s = Strings.`for`(tool = "structured", context = context)
+        return app.treelune.core.fields.EntryMeanings(
+            name = s.tool("entry_name"),
+            extra = s.tool("entry_extra")
+        )
+    }
 
     override fun getDefaultIconName(): String = "table"
 

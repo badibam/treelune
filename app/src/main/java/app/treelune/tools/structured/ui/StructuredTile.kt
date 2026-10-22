@@ -37,7 +37,7 @@ private const val FULL_SHEETS = 10
 private data class TileSheet(val id: String, val name: String, val updatedAt: Long)
 
 /**
- * Structured data's tile. The summary is how many sheets it holds and a button that opens the
+ * A Records tool's tile. The summary is how many records it holds and a button that opens the
  * tool on a new sheet; the body the sheets last changed, one per line, their name alone, ten in
  * FULL. Touching a sheet opens it.
  */
