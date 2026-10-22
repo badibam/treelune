@@ -56,7 +56,7 @@ data class StateField(
  * instance's config and are not part of the declaration.
  *
  * @property nameUnique Whether no two entries of a tool instance share a name, the case and the
- *   spaces around not counted: the name is what finds an entry (a sheet of structured data), and
+ *   spaces around not counted: the name is what finds an entry (a record of a Collection), and
  *   the service refuses a duplicate, naming the entry that has it
  * @property nameLabel The shared key of the name's label: a name, or the title a journal entry and
  *   a note have, so that a form and a refusal call it what it is

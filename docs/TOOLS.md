@@ -13,7 +13,7 @@ A guide to understanding and creating tools in the modular architecture.
 - **Goal**: 1 goal with sub-goals and criteria
 - **Chart**: 1 chart, which can layer several layers or repeat by category
 - **List**: 1 themed list (shopping, tasks)
-- **Structured data**: 1 table of records (foods, books, contacts)
+- **Collection**: 1 table of records (foods, books, contacts)
 - **Journal**: 1 kind of journal (reflections, dreams)
 - **Note**: 1 individual note
 - **Message**: 1 scheduled message/reminder
@@ -137,7 +137,7 @@ Added in ToolTypeScanner.getAllToolTypes() for automatic discovery.
 
 ### Nutrition flow
 1. Food TRACKING (manual) → meals entered
-2. Nutrition STRUCTURED DATA (AI) → reference table of foods + RDA
+2. Nutrition COLLECTION (AI) → reference table of foods + RDA
 3. Nutrition TRACKING (AI + #1 + #2) → automatic computations
 4. JOURNAL (AI, based on #3) → daily reports
 5. VARIABLES (core, based on #3) → totals of the day, periodic averages
@@ -201,7 +201,7 @@ Added in ToolTypeScanner.getAllToolTypes() for automatic discovery.
 **Configuration**: `source`, an Entry selection without a period (`SettingNode.Selection`); `group_by`, a field of the source each value of which makes a group; `directions`, each a key given at its creation (`completeConfig`), a name, its front and back fields (`front`, `back`), chosen among the source's (`FlashcardsRowFields`); `one_direction_after_another`, `new_per_day`, `reviews_per_day`, `desired_retention`. `refuseConfig` refuses a source that is not a tool keeping entries, or a deck, and a field it does not have; changing the source deletes the reviews, removing a direction deletes its own (`entriesRemovedByConfig`). No user fields (`takesUserFields`)
 **Data**: one entry per review, its `timestamp` the instant; `data`: `source_entry` (a REFERENCE to the row), `direction`, `rating`, written by the app alone (`EntryStart` without a status); `state`: the card's FSRS state after it, `stability`, `difficulty`, `due`, `fsrs_version`. A review is not changed (`refuseUpdate`), only a card's last one is deleted (`refuseDelete`), which undoes it. `Fsrs`: FSRS-6 ported from py-fsrs 6.3.2, without learning steps or fuzz, tested against its suites (`FsrsTest`, `scripts/make_fsrs_reference.py`). `FlashcardsJournal` reads in SQL the first and the last review of each card, `FlashcardsSource` the source's filtered rows, and `FlashcardsDue` draws from them the cards to offer: due from the start of the day of their due date or failed, new in the order added, the day's caps in cards across the whole deck, two directions of a row never on the same day, one direction after the other (learnt = a stability of at least 7 days). `FlashcardsService`: `due` (a group, a direction, the faces), `counts` (All, each group by its label, each direction), `review`. The session (`FlashcardsSession`): a list fixed at the start, a failed card coming back after three cards and a minute, Hard, Good and Easy finishing a card, undoing by going back. The screen: All then one line per group, the start window per direction, the session (front, back under a line on touch, the four ratings, Back). The tile: "N to review · M new", one line per group, the dot counted by the deck (`countWaiting`)
 
-### Structured data
+### Collection
 **Use**: records made of the user's fields, each found again by its name (the foods and their calories, which a meal's REFERENCE reads)
 **Configuration**: the columns are the user's fields (`extra_fields`); `table_columns`, how many of them the table shows after the name (2 by default)
 **Data**: one entry per record: its name, required and unique in the tool ignoring case and the spaces around (`EntryFields.nameUnique`: `ToolDataService` refuses a duplicate in its transaction naming the existing record, a filter on `name` compares the same way), no date, `data` empty. The screen (`StructuredScreen`): a table sorted by touching a header, a record's screen where a swipe leads to the neighbours, a filter header common to both (search, filters, sort) folded into a line that sums them up with the position, kept for the length of the visit; a record is changed whole and written at once, a new one nothing before "Save". The tile counts the records

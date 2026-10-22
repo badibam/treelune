@@ -1,38 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Strings of the structured data tooltype -->
+    <!-- Strings of the Collection tooltype -->
 
     <!-- Metadata -->
-    <string name="display_name">Structured data</string>
+    <string name="display_name">Collection</string>
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
-    <string name="usage">For sheets with fields one chooses, each found by its name: foods and their calories, books, plants, contacts.\n## What it does\n- Other tools can name a sheet, like a meal naming its foods\n- Importing a table\n## Not made for\n- What is noted over time (Tracking, Journal)</string>
+    <string name="usage">For records with fields one chooses, each found by its name: foods and their calories, books, plants, contacts.\n## What it does\n- Other tools can name a record, like a meal naming its foods\n- Importing a table\n## Not made for\n- What is noted over time (Tracking, Journal)</string>
     <!-- The Guide's chapter, beside the usage: every setting of the config, every button of the screen (Markup) -->
-    <string name="guide_config">## The sheets\nA sheet has a name, plus the tool\'s fields, added in the common settings.\n\n## The table\n- Columns of the table: how many fields show after the name</string>
-    <string name="guide_screen">## The table\n- Search by name\n- Filters\nTouch a column\'s title to sort by it, and touch it again to reverse the order.\n- {plus} New sheet\n- Import a file: a CSV table, one row per sheet\n\n## A sheet\nTouch a row to open its sheet.\n- {chevron-left} Previous sheet\n- {chevron-right} Next sheet\n- Change\n- {trash} Deletes the sheet</string>
+    <string name="guide_config">## The records\nA record has a name, plus the tool\'s fields, added in the common settings.\n\n## The table\n- Columns of the table: how many fields show after the name</string>
+    <string name="guide_screen">## The table\n- Search by name\n- Filters\nTouch a column\'s title to sort by it, and touch it again to reverse the order.\n- {plus} New record\n- Import a file: a CSV table, one row per record\n\n## A record\nTouch a row to open its record.\n- {chevron-left} Previous record\n- {chevron-right} Next record\n- Change\n- {trash} Deletes the record</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
-    <string name="tagline">Sheets with the fields you choose, each found by its name, for foods, books, plants or anything else</string>
+    <string name="tagline">Records with the fields you choose, each found by its name, for foods, books, plants or anything else</string>
 
     <!-- Setting -->
     <string name="field_table_columns">Columns of the table</string>
     <string name="schema_config_table_columns">How many of the user\'s fields (extra_fields, in their order) the table shows after the name</string>
 
     <!-- Screen -->
-    <string name="table_empty">No sheet yet</string>
-    <string name="no_match">No sheet matches</string>
+    <string name="table_empty">No record yet</string>
+    <string name="no_match">No record matches</string>
     <string name="search">Search by name</string>
     <string name="filters">Filters</string>
     <string name="sort_by">Sorted by %1$s</string>
     <string name="position">%1$d / %2$d</string>
-    <string name="count">%1$d sheet(s)</string>
-    <string name="new_sheet">New sheet</string>
+    <string name="count">%1$d record(s)</string>
+    <string name="new_sheet">New record</string>
     <string name="action_edit">Change</string>
     <string name="delete_confirm">Delete “%1$s”?</string>
     <string name="previous">Previous</string>
     <string name="next">Next</string>
 
     <!-- Tile on a zone -->
-    <string name="tile_count_one">1 sheet</string>
-    <string name="tile_count_many">%1$s sheets</string>
+    <string name="tile_count_one">1 record</string>
+    <string name="tile_count_many">%1$s records</string>
 
     <!-- What each part of an entry is in this type (EntryMeanings) -->
     <string name="entry_name">The record\'s name, unique in the tool: what finds it, and what a reference to it shows</string>

@@ -26,7 +26,7 @@ Les outils :
 - Journal — Un carnet daté, pour raconter ses journées
 - Messages — Des rappels et des notifications, une fois ou selon un planning
 - Liste — Ce qui reste à faire, coché au fur et à mesure, avec des échéances si tu veux
-- Données structurées — Des fiches aux champs que tu choisis, chacune retrouvée par son nom, pour des aliments, des livres, des plantes ou autre chose
+- Collection — Des fiches aux champs que tu choisis, chacune retrouvée par son nom, pour des aliments, des livres, des plantes ou autre chose
 - Objectif — Un objectif jugé chaque jour, semaine ou mois sur les critères que tu fixes, lus dans tes entrées
 - Questionnaire — Des questions posées une par écran, quand tu veux ou à heures prévues
 - Graphique — Tes entrées et tes chiffres dessinés en courbes, barres, camemberts ou calendriers

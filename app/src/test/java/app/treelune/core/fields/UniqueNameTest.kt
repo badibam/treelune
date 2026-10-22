@@ -10,7 +10,7 @@ import java.sql.Connection
 import java.sql.DriverManager
 
 /**
- * A name unique in its tool (structured data): compared without the case nor the spaces around,
+ * A name unique in its tool (a Collection): compared without the case nor the spaces around,
  * by the service that refuses a duplicate and by a filter on the name alike.
  */
 class UniqueNameTest {

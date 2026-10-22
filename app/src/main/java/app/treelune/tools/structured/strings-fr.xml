@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Strings of the structured data tooltype -->
+    <!-- Strings of the Collection tooltype -->
 
     <!-- Metadata -->
-    <string name="display_name">Données structurées</string>
+    <string name="display_name">Collection</string>
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
     <string name="usage">Pour des fiches dont on choisit les champs, chacune retrouvée par son nom : aliments et leurs calories, livres, plantes, contacts.\n## Ce qu\'il fait\n- Les autres outils peuvent désigner une fiche par son nom, comme un repas qui nomme ses aliments\n- L\'import d\'un tableau\n## Pas fait pour\n- Ce qui se note dans le temps (Suivi, Journal)</string>
     <!-- The Guide's chapter, beside the usage: every setting of the config, every button of the screen (Markup) -->

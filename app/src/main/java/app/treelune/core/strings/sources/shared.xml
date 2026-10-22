@@ -1581,7 +1581,7 @@
     <string name="import_title">Import</string>
     <string name="import_lines">%1$d line(s) in the file</string>
     <string name="import_target">Goes to</string>
-    <string name="import_target_key">The name (finds the sheet)</string>
+    <string name="import_target_key">The name (finds the record)</string>
     <string name="import_target_field">An existing field</string>
     <string name="import_target_new">A new field</string>
     <string name="import_target_ignore">Left out</string>

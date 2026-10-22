@@ -20,15 +20,15 @@ Système générique permettant à l'IA d'utiliser diverses sources de données 
 ```
 Architecture en 2 couches pour éviter les appels API répétés :
 
-COUCHE 1 - Base de données statique (Tool type "Données structurées") :
+COUCHE 1 - Base de données statique (Tool type "Collection") :
 1. IA analyse nouveaux aliments du "Tracking alimentaire"
 2. IA vérifie correspondance avec "Recettes configurées" (salade césar = tomate + laitue + parmesan)
-3. Pour recettes trouvées : calcule nutrition via recette → "Données structurées nutrition"
-4. Pour aliments inconnus : USDA Search → USDA Details → "Données structurées nutrition"
+3. Pour recettes trouvées : calcule nutrition via recette → "Collection nutrition"
+4. Pour aliments inconnus : USDA Search → USDA Details → "Collection nutrition"
 
 COUCHE 2 - Calcul quotidien (Tool type "Tracking nutrition") :
 5. IA quotidienne analyse "Tracking alimentaire" du jour
-6. IA fait correspondances avec "Données structurées nutrition" (cache local)
+6. IA fait correspondances avec "Collection nutrition" (cache local)
 7. IA calcule agrégations (calories totales, vitamines, minéraux)
 8. IA met à jour "Tracking nutrition" avec totaux quotidiens
 
@@ -475,7 +475,7 @@ Mise à jour de la liste complète après l'analyse du système API :
 
 **🌐 Système transversal :**
 - **API** - Configuration et utilisation d'APIs externes (intégré dans architecture existante)
-- **Données structurées** - Base de données statique pour cache local (ex: nutrition USDA)
+- **Collection** - Base de données statique pour cache local (ex: nutrition USDA)
 
 ---
 

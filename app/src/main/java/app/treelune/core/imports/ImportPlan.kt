@@ -11,7 +11,7 @@ import java.time.ZoneId
 
 /** Where a column goes. */
 enum class ColumnTarget {
-    /** The name, which finds an entry already there (structured data): it is updated, not duplicated */
+    /** The name, which finds an entry already there (a Collection's record): it is updated, not duplicated */
     KEY,
     /** A field the tool has: its path ("extra.kcal", "timestamp") */
     FIELD,

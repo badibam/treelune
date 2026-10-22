@@ -433,7 +433,7 @@
   "giulia_verbs_description": "To read when Camille stumbles on a verb in the passato prossimo, or to offer a travel sentence in the past.",
   "giulia_verbs": "- andare: sono andata (I went)\n- venire: sono venuta (I came)\n- fare: ho fatto (I did)\n- prendere: ho preso (I took)\n- vedere: ho visto (I saw)\n- mangiare: ho mangiato (I ate)\n- bere: ho bevuto (I drank)\n- dire: ho detto (I said)",
   "lexicon_name": "Lessico",
-  "lexicon_description": "Giulia's words, one per sheet, with their translation, their kind and their theme. The Ripasso deck has them reviewed.",
+  "lexicon_description": "Giulia's words, one per record, with their translation, their kind and their theme. The Ripasso deck has them reviewed.",
   "lexicon_field_translation": "Translation",
   "lexicon_field_nature": "Kind",
   "lexicon_field_theme": "Theme",
