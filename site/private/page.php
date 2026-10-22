@@ -250,8 +250,9 @@ $markSymbol = '<symbol id="mark" viewBox="' . h($mark[1]) . '">' . $mark[2] . '<
   <div class="wrap">
     <a class="brand" id="brand" href="<?= h(LANGUAGE_PATHS[$lang]) ?>"><svg width="28" height="28" aria-hidden="true"><use href="#mark"/></svg>Treelune<span class="where" id="where" aria-hidden="true"></span></a>
     <button type="button" class="menu-toggle" id="menu-toggle" aria-label="<?= $t('nav.menu') ?>" aria-expanded="false" aria-controls="nav"><span></span><span></span><span></span></button>
-    <!-- Every section but the opening, which the brand leads back to; on a phone, a panel the button opens -->
+    <!-- Every section but the opening's pitch, which the brand leads back to; on a phone, a panel the button opens -->
     <nav id="nav">
+      <a href="#showcase"><?= $t('nav.themes') ?></a>
       <a href="#data"><?= $t('nav.data') ?></a>
       <a href="#zone"><?= $t('nav.discover') ?></a>
       <a href="#action"><?= $t('nav.action') ?></a>

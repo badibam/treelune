@@ -99,12 +99,20 @@ nav.querySelectorAll("a").forEach(a => a.addEventListener("click", () => setMenu
 document.addEventListener("click", e => { if (!e.target.closest("header")) setMenu(false); });
 document.addEventListener("keydown", e => { if (e.key === "Escape") setMenu(false); });
 
-// The section on screen: the last one of the menu starting at or above the header's bottom; none on the opening
+// What a link leads to: its section, or the opening whole for the themes, which on a computer are
+// laid out without a box of their own, in the opening's one screen
+const boxOf = el => getComputedStyle(el).display === "contents" ? el.closest(".band") : el;
 const sectionLinks = [...nav.querySelectorAll('a[href^="#"]')].map(a => ({ a, section: document.getElementById(a.hash.slice(1)) }));
+sectionLinks.forEach(({ a, section }) => a.addEventListener("click", e => {
+  if (boxOf(section) === section) return;
+  e.preventDefault();
+  boxOf(section).scrollIntoView({ block: "start" });
+}));
+// The section on screen: the last one of the menu starting at or above the header's bottom; none on the pitch
 function showWhere() {
   const line = window.scrollY + document.querySelector("header").offsetHeight + 2;
   let on = null;
-  sectionLinks.forEach(link => { if (link.section.getBoundingClientRect().top + window.scrollY <= line) on = link; });
+  sectionLinks.forEach(link => { if (boxOf(link.section).getBoundingClientRect().top + window.scrollY <= line) on = link; });
   sectionLinks.forEach(link => link.a.setAttribute("aria-current", link === on));
   where.textContent = on ? on.a.textContent : "";
 }

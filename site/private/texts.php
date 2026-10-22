@@ -17,6 +17,7 @@ return [
             'other_language' => 'English',
         ],
         'nav' => [
+            'themes' => 'Thèmes',
             'data' => 'Tes données',
             'discover' => 'Découvrir',
             'action' => 'En action',
@@ -138,6 +139,7 @@ return [
             'other_language' => 'Français',
         ],
         'nav' => [
+            'themes' => 'Themes',
             'data' => 'Your data',
             'discover' => 'Discover',
             'action' => 'In action',
