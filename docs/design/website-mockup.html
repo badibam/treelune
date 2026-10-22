@@ -437,7 +437,7 @@
   <ul>
     <li><span data-icon="user-round-x" data-color="blue"></span><div><b>Pas de compte</b>Les données restent sur le téléphone, sans compte ni publicité.</div></li>
     <li><span data-icon="key-round" data-color="purple"></span><div><b>L'IA que tu choisis</b>Elle s'utilise avec ta propre clé, ou sur ton propre serveur. L'app marche aussi sans IA.</div></li>
-    <li><span data-icon="network" data-color="green"></span><div><b>Ton réseau, pas le nôtre</b>Depuis l'ordinateur, l'accès passe par ton propre réseau privé.</div></li>
+    <li><span data-icon="network" data-color="green"></span><div><b>Ouverte à une autre IA</b>Une IA extérieure, comme Claude sur claude.ai, peut lire et écrire dans l'app le temps que tu ouvres l'accès. La connexion arrive sur le téléphone, sans passer par un serveur de Treelune.</div></li>
   </ul>
  </div>
 </section>
@@ -445,7 +445,7 @@
 <!-- 3. The Italian zone, explored tool by tool -->
 <section data-explore id="zone">
   <div class="wrap">
-    <h2>Une zone, des pièces qui s'emboîtent</h2>
+    <h2>Des outils qui s'emboîtent au sein d'une zone</h2>
     <p class="lead">Dans la démo, la zone Italien prépare un voyage à Rome, avec une soirée d'italien chaque soir. Ce qui est noté dans un outil sert aussi aux autres.</p>
     <div class="explorer" data-set="zone"></div>
     <span class="note">Maquette : la vraie capture de la zone Italien remplace l'écran dessiné.</span>
@@ -668,7 +668,7 @@
       { name: "Une saisie rapide", icon: "zap", color: "orange", stage: empty("Vidéo : une saisie rapide"), text: "Une sortie de 7,4 km se note depuis la tuile, sans ouvrir l'outil. L'Objectif de la semaine avance aussitôt.", theme: "Suisse" },
       { name: "Une vraie discussion", icon: "message-circle", color: "blue", stage: shot(5), text: "« Est-ce que je dors moins quand je travaille beaucoup ? » L'IA lit les deux outils et répond, chiffres à l'appui.", theme: "Liseuse" },
       { name: "Une routine", icon: "repeat", color: "teal", stage: empty("Vidéo : une routine"), text: "Chaque dimanche, l'IA fait seule le bilan de la semaine d'entraînement. Une notification arrive quand il est prêt.", theme: "Métro" },
-      { name: "Depuis l'ordinateur", icon: "laptop", color: "green", stage: `<div class="computer empty">Vidéo : une IA de l'ordinateur dans l'app</div>`, text: "Une IA installée sur l'ordinateur, comme Claude Desktop, peut lire les données de l'app et y écrire, avec ton accord.", theme: "écran d'ordinateur" },
+      { name: "Depuis une autre IA", icon: "network", color: "green", stage: `<div class="computer empty">Vidéo : Claude sur claude.ai, dans l'app</div>`, text: "Dans une conversation sur claude.ai, Claude lit les données de l'app et y écrit. Pour un outil protégé, une notification demande ton accord.", theme: "conversation sur claude.ai" },
     ],
     tools: [
       ["Suivi", "activity", "orange", "Des chiffres, des notes sur une échelle, des choix ou des durées chronométrées, notés au fil des jours, comme le poids, le sommeil, l'humeur ou les verres d'eau", "Cosy", 2],
@@ -736,7 +736,7 @@
     ["Conditions et alertes", "bell-ring", "red", "Une notification arrive quand une condition devient vraie, par exemple un poids au-dessus d'un seuil."],
     ["Identités", "venetian-mask", "purple", "L'IA peut jouer un personnage, par exemple une professeure d'italien ou un coach."],
     ["Pointeurs", "mouse-pointer-click", "blue", "Dans un message, un outil ou une zone se désigne directement, pour que l'IA sache de quoi il s'agit."],
-    ["Depuis l'ordinateur", "laptop", "green", "Une IA installée sur l'ordinateur peut lire et écrire dans l'app, par ton propre réseau privé."],
+    ["Accès externe", "network", "green", "Une IA extérieure, comme Claude sur claude.ai, peut lire et écrire dans l'app, le temps que tu ouvres l'accès."],
     ["Ambiances", "palette", "pink", "La même app se décline en neuf ambiances, presque toutes avec leurs propres sons."],
   ];
   document.getElementById("pieces").innerHTML = PIECES.map(([name, icon, color, text]) => `
