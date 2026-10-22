@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Strings of the Collection tooltype -->
+    <!-- Strings of the Records tooltype -->
 
     <!-- Metadata -->
-    <string name="display_name">Collection</string>
+    <string name="display_name">Records</string>
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
     <string name="usage">For records with fields one chooses, each found by its name: foods and their calories, books, plants, contacts.\n## What it does\n- Other tools can name a record, like a meal naming its foods\n- Importing a table\n## Not made for\n- What is noted over time (Tracking, Journal)</string>
     <!-- The Guide's chapter, beside the usage: every setting of the config, every button of the screen (Markup) -->
     <string name="guide_config">## The records\nA record has a name, plus the tool\'s fields, added in the common settings.\n\n## The table\n- Columns of the table: how many fields show after the name</string>
     <string name="guide_screen">## The table\n- Search by name\n- Filters\nTouch a column\'s title to sort by it, and touch it again to reverse the order.\n- {plus} New record\n- Import a file: a CSV table, one row per record\n\n## A record\nTouch a row to open its record.\n- {chevron-left} Previous record\n- {chevron-right} Next record\n- Change\n- {trash} Deletes the record</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
-    <string name="tagline">Records with the fields you choose, each found by its name, for foods, books, plants or anything else</string>
+    <string name="tagline">The fields you choose, each record found by its name, for foods, books, plants or anything else</string>
 
     <!-- Setting -->
     <string name="field_table_columns">Columns of the table</string>

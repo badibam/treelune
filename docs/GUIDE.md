@@ -114,7 +114,7 @@ One chapter per subject, read in any order one wants, tutorial optional:
 - Connect tools: variables, readings, pointers.
 - Talk to the AI: the pointer, the questions and validations, the cost.
 - Appearance: the User interface screen alone (theme, mode, hue, size, one column, sounds); an icon's colour is set in its zone's or its tool's configuration.
-- Your data: the Data management screen (automatic backup, export, restore, reset) and the History, where a change is undone; the import of a table belongs to the Collection chapter.
+- Your data: the Data management screen (automatic backup, export, restore, reset) and the History, where a change is undone; the import of a table belongs to the Records chapter.
 - External access: the connector.
 - When something goes wrong: logs, bug report.
 

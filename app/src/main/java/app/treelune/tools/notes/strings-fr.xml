@@ -5,7 +5,7 @@
     <!-- Métadonnées -->
     <string name="display_name">Notes</string>
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
-    <string name="usage">Pour garder des textes qu\'on relit et qu\'on retouche, chacun sous son titre : idées, procédures, mémos.\n## Ce qu\'il fait\n- Les notes se rangent à la main, dans l\'ordre qu\'on veut\n## Pas fait pour\n- Ce qui est daté (Journal)\n- Ce qu\'on coche (Liste)\n- Des fiches qui ont toutes les mêmes champs (Collection)</string>
+    <string name="usage">Pour garder des textes qu\'on relit et qu\'on retouche, chacun sous son titre : idées, procédures, mémos.\n## Ce qu\'il fait\n- Les notes se rangent à la main, dans l\'ordre qu\'on veut\n## Pas fait pour\n- Ce qui est daté (Journal)\n- Ce qu\'on coche (Liste)\n- Des fiches qui ont toutes les mêmes champs (Fiches)</string>
     <!-- The Guide's chapter, beside the usage: every setting of the config, every button of the screen (Markup) -->
     <string name="guide_config">## Les titres\n- Titres : chaque note peut avoir un titre au-dessus de son texte</string>
     <string name="guide_screen">## Les notes\n- {plus} Crée une note\nTouche une note pour la modifier. Pour la déplacer, fais-la glisser par la bande en haut de la note.\n\n## Appui long sur une note\n- {plus} Ajoute une note au-dessus\n- {copy} Copie son titre et son texte\n- {trash} La supprime</string>

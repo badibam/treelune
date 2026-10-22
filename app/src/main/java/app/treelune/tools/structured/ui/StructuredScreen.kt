@@ -73,7 +73,7 @@ data class Sheet(val id: String, val name: String, val extra: Map<String, Any?>)
 private const val BY_NAME = "name"
 
 /**
- * The screen of a Collection (docs/TOOLS.md, « Collection »): a table
+ * The screen of a Records tool (docs/TOOLS.md, « Records »): a table
  * of the sheets — the name, then the first fields of the config, sorted by touching a column's
  * header — and the screen of one sheet, all its fields, a swipe or a button leading to its
  * neighbours. One filter header serves both: search by name, filters, sort, folded into one line

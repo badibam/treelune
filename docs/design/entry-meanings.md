@@ -90,9 +90,9 @@ Dans `SettingNode`, seule la feuille (`Field`) portait une description ; ce qui 
 - Un test parcourt chaque déclaration de l'app (les configs des types d'outils, la zone, les réglages de l'app, les routines, les modules de communication, les réglages des types de champs) et nomme chaque nœud sans description.
 - Chaque texte s'écrit en lisant le code qui se sert du nœud, et suit `docs/WRITING.md` : une liste d'exemples dit qu'elle en est une (« such as », « par exemple »).
 
-## Le Tableau devient Collection
+## Les Données structurées deviennent Fiches
 
-Le type « Données structurées » (« Structured data ») s'appelle « Collection », une entrée une « fiche » (« record » en anglais : « card » se confondrait avec les Flashcards, « sheet » fait penser à un tableur), partout, ce que lit l'IA compris. L'identifiant `structured` reste : aucune donnée à migrer.
+Le type « Données structurées » (« Structured data ») s'appelle « Fiches » (« Records »), comme les Notes, du nom de ce qu'il contient ; une entrée est une « fiche » (« record » : « card » se confondrait avec les Flashcards, « sheet » fait penser à un tableur), partout, ce que lit l'IA compris. L'identifiant `structured` reste : aucune donnée à migrer.
 
 ## Les champs de l'utilisateur d'un Objectif
 

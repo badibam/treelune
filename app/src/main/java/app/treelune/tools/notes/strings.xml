@@ -5,7 +5,7 @@
     <!-- Metadata -->
     <string name="display_name">Notes</string>
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
-    <string name="usage">For keeping texts that are read again and reworked, each under its title: ideas, procedures, memos.\n## What it does\n- Notes are arranged by hand, in any order\n## Not made for\n- What is dated (Journal)\n- What is checked off (List)\n- Records that all have the same fields (Collection)</string>
+    <string name="usage">For keeping texts that are read again and reworked, each under its title: ideas, procedures, memos.\n## What it does\n- Notes are arranged by hand, in any order\n## Not made for\n- What is dated (Journal)\n- What is checked off (List)\n- Records that all have the same fields (Records)</string>
     <!-- The Guide's chapter, beside the usage: every setting of the config, every button of the screen (Markup) -->
     <string name="guide_config">## The titles\n- Titles: each note may have a title above its text</string>
     <string name="guide_screen">## The notes\n- {plus} Creates a note\nTouch a note to change it. To move it, drag it by the band at the top of the note.\n\n## Long press on a note\n- {plus} Adds a note above it\n- {copy} Copies its title and text\n- {trash} Deletes it</string>
