@@ -1,0 +1,19 @@
+# Access to the hosting account: copy to deploy_config.sh, which git ignores.
+#
+# DEPLOY_URL: sftp:// on OVH shared hosting. Its explicit FTPS is not usable: the server announces
+# AUTH TLS, then answers "500 This security scheme is not implemented" when asked for it. SFTP
+# answers on port 22 of the same host and really encrypts. The scripts refuse any other scheme.
+#
+# First SFTP connection: open it once by hand to check the server's fingerprint and record it in
+# ~/.ssh/known_hosts.
+#   sftp coursmp@ftp.cluster100.hosting.ovh.net
+#
+# DEPLOY_REMOTE_ROOT: the folder where public_html/ and private/ are laid side by side, the parent
+# of the served folder. The Multisite entry of treelune.app points at treelune/public_html, out of
+# www/, which the technical domain serves whole: private/ beside it is served by no address.
+#
+# The password is not here: ./run sftp-password stores it in the KDE wallet (folder sftp, entry
+# DEPLOY_USER@host) once it has opened the account, and ./run site-deploy reads it there.
+DEPLOY_URL="sftp://ftp.cluster100.hosting.ovh.net"
+DEPLOY_USER="coursmp"
+DEPLOY_REMOTE_ROOT="/home/coursmp/treelune"

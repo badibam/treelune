@@ -112,6 +112,13 @@ FRENCH_ADDRESS_CHECK = ROOT / "scripts" / "check_french_address.py"
 # sound comes from a source whose licence the app takes; a file swapped by hand would not say so.
 THEME_SOUNDS = ROOT / "scripts" / "theme_sounds.py"
 
+# The site treelune.app (docs/design/website.md): its served folder, its scripts (deploy, captures),
+# and the script that draws from the app what its pages read.
+SITE = ROOT / "site"
+SITE_BIN = SITE / "bin"
+SITE_DATA = ROOT / "scripts" / "make_site_data.py"
+SITE_PORT = 8080
+
 
 def gradle(*args):
     """Delegate to the wrapper, never to a system-wide gradle."""
@@ -642,6 +649,7 @@ def task_release_tag(tag=None):
     keys = signing_or_refuse()
     if keys is None:
         return 1
+    site_check()
     clone = RELEASE_CLONES / tag
     if clone.exists():
         shutil.rmtree(clone)
@@ -758,6 +766,54 @@ def task_provider_facts():
 
 def task_clean():
     return gradle("clean")
+
+
+def site_check():
+    """Say, without stopping the release, that the site no longer matches the app or its demo.
+
+    The site's texts speak of the demo; once it changed, they are read again by hand, then
+    `./run site-data` renews what the site draws from the app and its fingerprint of the demo.
+    """
+    result = subprocess.run([sys.executable, str(SITE_DATA), "--check"], cwd=ROOT,
+                            capture_output=True, text=True, check=False)
+    if result.returncode != 0:
+        print("The site treelune.app is behind the app:\n" + result.stdout.rstrip()
+              + "\nThe release goes on; the site is updated by hand (./run site-data, then ./run site-deploy).\n",
+              flush=True)
+
+
+def task_site():
+    """Serve the site locally as OVH serves it, and open it; Ctrl+C stops the server.
+
+    php -S mirrors the host's Apache; the router adds the F-Droid captures that stand in for the
+    ones not taken yet, marked on their frame.
+    """
+    url = f"http://localhost:{SITE_PORT}"
+    print(f"{url} (English) and {url}/fr/ (French)\nCtrl+C to stop.")
+    subprocess.Popen(["sh", "-c", f"sleep 1 && xdg-open {url}"], stdout=subprocess.DEVNULL,
+                     stderr=subprocess.DEVNULL)
+    return subprocess.run(["php", "-S", f"localhost:{SITE_PORT}", str(SITE_BIN / "serve_router.php")],
+                          cwd=SITE / "public_html", check=False).returncode
+
+
+def task_site_data(*args):
+    """Write under site/ what its pages read from the app; --check only says what is stale."""
+    return subprocess.run([sys.executable, str(SITE_DATA), *args], cwd=ROOT, check=False).returncode
+
+
+def task_site_shots():
+    """Take the site's missing captures and videos on the phone holding the demo alone."""
+    return subprocess.run([sys.executable, str(SITE_BIN / "shots.py")], cwd=ROOT, check=False).returncode
+
+
+def task_site_deploy(*args):
+    """Send the site to OVH over SFTP, the changed files only; --dry-run, --all, --yes."""
+    return subprocess.run([str(SITE_BIN / "deploy.sh"), *args], cwd=ROOT, check=False).returncode
+
+
+def task_sftp_password():
+    """Store the hosting account's password in the KDE wallet, once it has opened the account."""
+    return subprocess.run([str(SITE_BIN / "sftp_password.sh")], cwd=ROOT, check=False).returncode
 
 
 def task_bench(*args):
@@ -929,6 +985,11 @@ ACTIONS = {
     "bugs": task_bugs,
     "themes": task_themes,
     "tracks": task_tracks,
+    "site": task_site,
+    "site-data": task_site_data,
+    "site-shots": task_site_shots,
+    "site-deploy": task_site_deploy,
+    "sftp-password": task_sftp_password,
     "clean": task_clean,
 }
 
@@ -949,6 +1010,11 @@ LABELS = {
     "bugs": "bugs       the bugs noted on the phone (Dev › Treelune) into TODO.md, then deleted there",
     "themes": "themes     the themes' benches: their colours, their palettes and their sounds set and saved",
     "tracks": "tracks     the theme tracks mocked up, noted and ranked in the order they will be made",
+    "site": "site       serve the site treelune.app locally and open it",
+    "site-data": "site-data  write under site/ what its pages read from the app (--check: say what is stale)",
+    "site-shots": "site-shots        take the site's missing captures and videos on the phone holding the demo",
+    "site-deploy": "site-deploy       send the site to OVH, the changed files only (--dry-run, --all, --yes)",
+    "sftp-password": "sftp-password     store the hosting password in the KDE wallet, once it opens the account",
     "clean": "clean      drop build outputs",
 }
 
@@ -995,6 +1061,8 @@ def menu():
     choices += [Choice(LABELS[k], k) for k in ("release", "install-release", "release-tag", "provider-facts")]
     choices += [Separator("Theme")]
     choices += [Choice(LABELS[k], k) for k in ("themes", "tracks")]
+    choices += [Separator("Site")]
+    choices += [Choice(LABELS[k], k) for k in ("site", "site-data", "site-shots", "site-deploy", "sftp-password")]
     choices += [Separator(""), Choice(LABELS["clean"], "clean")]
     choices += [Choice("quit", _QUIT)]
 

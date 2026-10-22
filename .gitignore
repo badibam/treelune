@@ -56,6 +56,9 @@ icons-source/
 tmp/
 .claude/settings.local.json
 
+# The hosting account of the site treelune.app (its password is in the KDE wallet)
+site/bin/deploy_config.sh
+
 # Rebuilt by preBuild (generateStringResources)
 app/src/main/res/values*/strings_generated.xml
 
