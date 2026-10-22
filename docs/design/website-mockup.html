@@ -149,10 +149,12 @@
     .band .showcase { display: flex; flex-direction: column; height: calc(100svh - 56px); padding: 16px 0; gap: 14px; }
     .band .phone-box { display: flex; flex: 1; min-height: 0; justify-content: center; container-type: size; }
     .band .showcase .phone { height: min(100cqh, calc(100cqw * 2.0125)); width: auto; }
-    .band .picker { flex-direction: row; align-items: center; justify-content: center; gap: 12px; }
+    .band .picker { flex-direction: column; align-items: stretch; gap: 10px; }
+    .band .carousel { display: flex; }
+    .band .carousel .current b { font-size: 22px; font-weight: 400; }
     .picker-intro { display: none; }
     .picker-toggle {
-      display: block; font-size: 18px; padding: 6px 14px; border-radius: 10px; cursor: pointer;
+      display: none !important; font-size: 18px; padding: 6px 14px; border-radius: 10px; cursor: pointer;
       border: 1.5px solid currentColor; background: transparent; color: inherit;
     }
     .picker-toggle::after { content: " ▾"; font-family: system-ui, sans-serif; }
@@ -164,6 +166,7 @@
     .picker.open .picker-list { display: flex; }
     .picker-list button { font-size: 18px; padding: 4px 12px; }
     .mode-switch { margin-top: 0; align-self: center; }
+    .band .showcase .picker-list { display: none !important; }
     .mode-switch button { font-size: 13px; padding: 6px 12px; }
   }
 
@@ -243,6 +246,16 @@
   .ex-caption .theme-label { display: block; margin-top: 10px; font-size: 13px; color: var(--muted); }
   .ex-toggle { display: none; }
 
+  /* The carousel of a phone held upright: the choice in place between two arrows, its rank, and a swipe on the phone */
+  .carousel { display: none; align-items: center; justify-content: center; gap: 10px; }
+  .carousel .arrow {
+    flex: none; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; font: 600 22px/1 system-ui, sans-serif;
+    border: 1.5px solid currentColor; background: transparent; color: inherit;
+  }
+  .carousel .current { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 10px; text-align: center; }
+  .carousel .current b { font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .carousel .rank { font-size: 12px; opacity: .65; white-space: nowrap; }
+
   /* The drawn zone screen, its chosen tile outlined, the others dimmed */
   .zone-screen {
     width: 100%; height: 100%; border-radius: 21px; background: #FFF8EE; color: #2b2b2b;
@@ -266,7 +279,7 @@
     .ex-stage .phone { height: min(560px, 62svh); }
     .ex-side { position: relative; display: flex; flex-direction: column; align-items: center; }
     .ex-toggle {
-      display: block; font: 600 17px system-ui, sans-serif; padding: 8px 16px; border-radius: 10px; cursor: pointer;
+      display: none !important; font: 600 17px system-ui, sans-serif; padding: 8px 16px; border-radius: 10px; cursor: pointer;
       border: 1.5px solid var(--accent); background: var(--surface); color: var(--ink);
     }
     .ex-toggle::after { content: " ▾"; }
@@ -301,6 +314,8 @@
     }
     section[data-explore] .ex-caption p { font-size: 14px; }
     section[data-explore] .ex-caption .theme-label { display: none; }
+    section[data-explore] .carousel { display: flex; color: var(--ink); }
+    section[data-explore] .carousel .pill { width: 30px; height: 30px; } section[data-explore] .carousel .pill svg { width: 17px; height: 17px; }
   }
 
   /* Short landscape: the list kept in view beside a phone sized by the width */
@@ -376,6 +391,11 @@
       <div class="picker" id="picker" role="group" aria-label="Ambiance">
         <p class="picker-intro">L'app se décline en plusieurs ambiances :</p>
         <button class="picker-toggle" id="picker-toggle" aria-expanded="false"></button>
+        <div class="carousel" id="band-carousel">
+          <button class="arrow" data-step="-1" aria-label="Ambiance précédente">‹</button>
+          <div class="current"><b id="band-current"></b><span class="rank" id="band-rank"></span></div>
+          <button class="arrow" data-step="1" aria-label="Ambiance suivante">›</button>
+        </div>
         <div class="picker-list" id="picker-list"></div>
         <div class="mode-switch" id="mode-switch" role="group" aria-label="Clair ou sombre">
           <button data-mode="light"><span>Clair</span></button>
@@ -492,6 +512,10 @@
     document.getElementById("band-shot").src = SHOTS + t.shot + ".png";
     pickerList.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.id === t.id));
     pickerToggle.textContent = t.name;
+    const cur = document.getElementById("band-current");
+    cur.textContent = t.name;
+    cur.style.fontFamily = `"${t.font}", system-ui, sans-serif`;
+    document.getElementById("band-rank").textContent = `${THEMES.indexOf(t) + 1} / ${THEMES.length}`;
     pickerToggle.style.fontFamily = `"${t.font}", system-ui, sans-serif`;
   }
   function applyMode(m) {
@@ -517,6 +541,21 @@
     pickerToggle.setAttribute("aria-expanded", open);
   };
   document.addEventListener("click", e => { if (!picker.contains(e.target)) foldPicker(); });
+
+  // A horizontal swipe on an element calls step(-1) or step(1)
+  function onSwipe(el, step) {
+    let x0 = null, y0 = null;
+    el.addEventListener("touchstart", e => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+    el.addEventListener("touchend", e => {
+      if (x0 === null) return;
+      const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) step(dx < 0 ? 1 : -1);
+      x0 = null;
+    });
+  }
+  const stepTheme = d => applyTheme(THEMES[(THEMES.indexOf(current) + d + THEMES.length) % THEMES.length]);
+  document.querySelectorAll("#band-carousel .arrow").forEach(b => b.onclick = () => stepTheme(+b.dataset.step));
+  onSwipe(document.querySelector(".band .phone-box"), stepTheme);
 
   // The nudge at the bottom of the pitch screen brings the second screen right under the header
   document.getElementById("more").onclick = () => document.getElementById("showcase").scrollIntoView({ behavior: "smooth" });
@@ -619,6 +658,11 @@
     root.innerHTML = `
       <div class="ex-side">
         <button class="ex-toggle" aria-expanded="false"></button>
+        <div class="carousel">
+          <button class="arrow" data-step="-1" aria-label="Précédent">‹</button>
+          <div class="current"></div>
+          <button class="arrow" data-step="1" aria-label="Suivant">›</button>
+        </div>
         <div class="ex-list"></div>
         <div class="ex-caption"><h3></h3><p></p><span class="theme-label"></span></div>
       </div>
@@ -627,8 +671,11 @@
     const list = root.querySelector(".ex-list");
     const toggle = root.querySelector(".ex-toggle");
     const fold = () => { side.classList.remove("open"); toggle.setAttribute("aria-expanded", "false"); };
+    let at = 0;
     function choose(i) {
+      at = i;
       const it = items[i];
+      root.querySelector(".carousel .current").innerHTML = pill(it.icon, it.color) + `<b>${it.name}</b><span class="rank">${i + 1} / ${items.length}</span>`;
       root.querySelector(".ex-stage").innerHTML = it.stage;
       root.querySelector(".ex-caption h3").textContent = it.name;
       root.querySelector(".ex-caption p").textContent = it.text;
@@ -642,6 +689,9 @@
       b.onclick = () => { choose(i); fold(); };
       list.appendChild(b);
     });
+    const step = d => choose((at + d + items.length) % items.length);
+    root.querySelectorAll(".carousel .arrow").forEach(b => b.onclick = () => step(+b.dataset.step));
+    onSwipe(root.querySelector(".ex-stage"), step);
     toggle.onclick = e => { e.stopPropagation(); toggle.setAttribute("aria-expanded", side.classList.toggle("open")); };
     document.addEventListener("click", e => { if (!side.contains(e.target)) fold(); });
     choose(0);
