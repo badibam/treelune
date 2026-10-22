@@ -85,19 +85,11 @@ new IntersectionObserver(([e]) => brand.classList.toggle("away", upright.matches
   .observe(document.querySelector(".pitch"));
 brand.classList.toggle("away", upright.matches && window.scrollY < window.innerHeight / 2);
 
-// ---- The header's menu: the section on screen, and on a phone the panel the button opens ----
+// ---- The header's menu: the section on screen, its link marked, and on a phone its name and rank ----
 
 const nav = document.getElementById("nav");
-const menuToggle = document.getElementById("menu-toggle");
 const where = document.getElementById("where");
-function setMenu(open) {
-  nav.classList.toggle("open", open);
-  menuToggle.setAttribute("aria-expanded", open);
-}
-menuToggle.onclick = () => setMenu(!nav.classList.contains("open"));
-nav.querySelectorAll("a").forEach(a => a.addEventListener("click", () => setMenu(false)));
-document.addEventListener("click", e => { if (!e.target.closest("header")) setMenu(false); });
-document.addEventListener("keydown", e => { if (e.key === "Escape") setMenu(false); });
+const whereRank = document.getElementById("where-rank");
 
 // What a link leads to: its section, or the opening whole for the themes, which on a computer are
 // laid out without a box of their own, in the opening's one screen
@@ -116,6 +108,7 @@ function showWhere() {
   sectionLinks.forEach(link => { if (boxOf(link.section).getBoundingClientRect().top + window.scrollY <= line) on = link; });
   sectionLinks.forEach(link => link.a.setAttribute("aria-current", link === on));
   where.textContent = on ? on.a.textContent : "";
+  whereRank.textContent = on ? `${sectionLinks.indexOf(on) + 1} / ${sectionLinks.length}` : "";
 }
 let whereQueued = false;
 window.addEventListener("scroll", () => {

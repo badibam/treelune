@@ -248,9 +248,8 @@ $markSymbol = '<symbol id="mark" viewBox="' . h($mark[1]) . '">' . $mark[2] . '<
 
 <header>
   <div class="wrap">
-    <a class="brand" id="brand" href="<?= h(LANGUAGE_PATHS[$lang]) ?>"><svg width="28" height="28" aria-hidden="true"><use href="#mark"/></svg>Treelune<span class="where" id="where" aria-hidden="true"></span></a>
-    <button type="button" class="menu-toggle" id="menu-toggle" aria-label="<?= $t('nav.menu') ?>" aria-expanded="false" aria-controls="nav"><span></span><span></span><span></span></button>
-    <!-- Every section but the opening's pitch, which the brand leads back to; on a phone, a panel the button opens -->
+    <a class="brand" id="brand" href="<?= h(LANGUAGE_PATHS[$lang]) ?>"><svg width="28" height="28" aria-hidden="true"><use href="#mark"/></svg><span class="brand-name">Treelune</span><span class="where" id="where" aria-hidden="true"></span><span class="where-rank" id="where-rank" aria-hidden="true"></span></a>
+    <!-- Every section but the opening's pitch, which the brand leads back to; on a phone, Install and the other language only -->
     <nav id="nav">
       <a href="#showcase"><?= $t('nav.themes') ?></a>
       <a href="#data"><?= $t('nav.data') ?></a>
@@ -258,8 +257,8 @@ $markSymbol = '<symbol id="mark" viewBox="' . h($mark[1]) . '">' . $mark[2] . '<
       <a href="#action"><?= $t('nav.action') ?></a>
       <a href="#tools"><?= $t('nav.tools') ?></a>
       <a href="#pieces"><?= $t('nav.more') ?></a>
-      <a class="cta" href="#install"><?= $t('nav.install') ?></a>
-      <a class="language" href="<?= h(LANGUAGE_PATHS[$otherLang]) ?>" hreflang="<?= h($otherLang) ?>" lang="<?= h($otherLang) ?>" title="<?= $t('meta.other_language') ?>"><span class="short"><?= h(strtoupper($otherLang)) ?></span><span class="long"><?= $t('meta.other_language') ?></span></a>
+      <a class="always" href="#install"><?= $t('nav.install') ?></a>
+      <a class="always" href="<?= h(LANGUAGE_PATHS[$otherLang]) ?>" hreflang="<?= h($otherLang) ?>" lang="<?= h($otherLang) ?>" title="<?= $t('meta.other_language') ?>"><?= h(strtoupper($otherLang)) ?></a>
     </nav>
   </div>
 </header>

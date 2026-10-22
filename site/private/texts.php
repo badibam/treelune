@@ -24,7 +24,6 @@ return [
             'tools' => 'Outils',
             'more' => 'Et aussi',
             'install' => 'Installer',
-            'menu' => 'Menu',
         ],
         'band' => [
             'pitch' => "Chaque app de suivi fait une chose, à sa façon. Treelune te donne les pièces, et tu construis celle qu'il te faut.",
@@ -146,7 +145,6 @@ return [
             'tools' => 'Tools',
             'more' => 'And more',
             'install' => 'Install',
-            'menu' => 'Menu',
         ],
         'band' => [
             'pitch' => 'Every tracking app does one thing, its own way. Treelune gives you the pieces, and you build the one you need.',
