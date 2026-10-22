@@ -245,7 +245,7 @@ object PromptChunks {
         val s = Strings.`for`(context = context)
         val content = s.shared("ai_chunk_custom_fields")
         val definition = SchemaNotation.render(SchemaModelView.forModel(
-            JSONObject(app.treelune.core.fields.settings.FieldTypeSchemas.anyDefinition(context)),
+            JSONObject(AiLanguage.schema(context) { app.treelune.core.fields.settings.FieldTypeSchemas.anyDefinition(it) }),
             AppConfigManager.getDateTimeConfig().getZoneId()
         ))
 
@@ -304,9 +304,7 @@ object PromptChunks {
      */
     private fun buildTooltypesList(context: Context): String {
         val s = Strings.`for`(context = context)
-        val english = context.createConfigurationContext(
-            android.content.res.Configuration(context.resources.configuration).apply { setLocale(java.util.Locale.ENGLISH) }
-        )
+        val english = AiLanguage.english(context)
         val sb = StringBuilder()
 
         sb.appendLine(s.shared("ai_chunk_tooltypes_header"))

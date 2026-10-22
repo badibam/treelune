@@ -909,15 +909,18 @@ class CommandExecutor(private val context: Context) {
      */
     private fun operationsForModel(tooltype: String?): String {
         val toolType = tooltype?.let { app.treelune.core.tools.ToolTypeManager.getToolType(it) } ?: return ""
-        val operations = toolType.getOperations(context)
+        // In English, their parameters' labels with the app's beside (AiLanguage)
+        val operations = toolType.getOperations(AiLanguage.english(context))
         if (operations.isEmpty()) return ""
         return buildString {
             append("\n\n## ").append(s.shared("ai_chunk_tool_operations_header"))
             for (operation in operations) {
                 append("\n\n### ").append(operation.name).append("\n").append(operation.description)
                 if (operation.params.isNotEmpty()) {
-                    val schema = app.treelune.core.tools.ToolOperations.schema(tooltype, operation, context)
-                    append("\n").append(schemaForModel(schema.content))
+                    val content = AiLanguage.schema(context) { language ->
+                        app.treelune.core.tools.ToolOperations.schema(tooltype, toolType.getOperations(language).first { it.name == operation.name }, language).content
+                    }
+                    append("\n").append(schemaForModel(content))
                 }
             }
         }
@@ -1145,13 +1148,15 @@ class CommandExecutor(private val context: Context) {
      */
     private fun entryDescriptionRead(tooltype: String, held: Map<String, String>): EntryRead? {
         val toolType = app.treelune.core.tools.ToolTypeManager.getToolType(tooltype) ?: return null
-        val text = app.treelune.core.fields.EntryDescription.text(toolType, context) ?: return null
+        // In English, as everything made for the AI (AiLanguage)
+        val english = AiLanguage.english(context)
+        val text = app.treelune.core.fields.EntryDescription.text(toolType, english) ?: return null
         val target = app.treelune.core.fields.EntryDescription.target(tooltype)
         val fingerprint = SessionReads.fingerprint(text)
         val outcome = SessionReads.outcome(held[target], fingerprint)
         LogManager.aiPrompt("Entry of $tooltype held by the model: $outcome", "DEBUG")
         if (outcome == SessionReads.Outcome.SAME) return null
-        val title = s.shared("ai_entry_description_title").format(toolType.getDisplayName(context))
+        val title = Strings.`for`(context = english).shared("ai_entry_description_title").format(toolType.getDisplayName(english))
         val shown = if (outcome == SessionReads.Outcome.CHANGED) s.shared("ai_read_replaces") + "\n\n" + text else text
         return EntryRead(
             result = InternalCommandResult(
@@ -1159,7 +1164,8 @@ class CommandExecutor(private val context: Context) {
                 commandResult = app.treelune.core.ai.data.CommandResult(
                     command = "schemas.get",
                     status = CommandStatus.SUCCESS,
-                    details = title,
+                    // The user's line, in the app's language
+                    details = s.shared("ai_entry_description_title").format(toolType.getDisplayName(context)),
                     data = mapOf("schema_id" to target, SessionReads.TARGET to target, SessionReads.FINGERPRINT to fingerprint),
                     error = null,
                     isActionCommand = false
