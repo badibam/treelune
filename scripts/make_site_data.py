@@ -6,7 +6,8 @@ app's own words. What can be read from the sources is read here, never copied by
 
     site/private/generated.json   the tool types (name, tagline, icon), the themes' names, the
                                   demo's Italian zone (its tools, its routine), the Lucide icons the
-                                  page draws, and the fingerprint of the demo's files
+                                  page draws, the lowest Android, and the fingerprint of the demo's
+                                  files
     site/public_html/fonts/       the theme fonts the opening band writes the themes' names in,
                                   each with its licence
 
@@ -36,6 +37,7 @@ DEMO = ROOT / "app" / "src" / "main" / "assets" / "demo"
 FONTS = ROOT / "app" / "src" / "main" / "res" / "font"
 FONT_LICENCES = ROOT / "app" / "src" / "main" / "assets" / "fonts"
 LUCIDE = ROOT / "third_party" / "lucide" / "icons"
+GRADLE = ROOT / "app" / "build.gradle.kts"
 
 SITE = ROOT / "site"
 LAYOUT = SITE / "private" / "layout.json"
@@ -47,6 +49,12 @@ ZONE = "demo-italian"
 
 # A language of the site and the suffix of the strings files it reads.
 LANGUAGES = {"en": "", "fr": "-fr"}
+
+# The Android release each API level the app may require as its lowest.
+ANDROID_RELEASES = {
+    24: "7.0", 25: "7.1", 26: "8.0", 27: "8.1", 28: "9", 29: "10", 30: "11", 31: "12",
+    32: "12L", 33: "13", 34: "14", 35: "15", 36: "16",
+}
 
 STRING = re.compile(r'<string name="([^"]+)">(.*?)</string>', re.S)
 REGISTRY_ENTRY = re.compile(r'"([a-z_]+)" to \w+')
@@ -93,6 +101,12 @@ def themes():
         {"id": id_, "name": {lang: strings(SOURCES / "themes" / id_, suffix)["name"] for lang, suffix in LANGUAGES.items()}}
         for id_ in registry(THEME_REGISTRY)
     ]
+
+
+def lowest_android():
+    """The lowest Android release the app installs on, from its minSdk."""
+    min_sdk = int(re.search(r"minSdk = (\d+)", GRADLE.read_text(encoding="utf-8")).group(1))
+    return ANDROID_RELEASES[min_sdk]
 
 
 def demo_text(texts, value):
@@ -218,6 +232,7 @@ def main():
         "themes": theme_list,
         "zone": demo_zone,
         "icons": icons(layout, tool_types, demo_zone),
+        "android": lowest_android(),
         "demo_fingerprint": fingerprint(),
     }
     text = json.dumps(data, ensure_ascii=False, indent=2) + "\n"
