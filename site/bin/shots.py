@@ -51,7 +51,7 @@ WIDTH = 720
 # A capture whose proportion differs from layout.json's "screen" by more than this is refused: the
 # frames are drawn to that proportion, and a capture of another phone would be cropped.
 RATIO_TOLERANCE = 0.01
-# The pause between two typed words, so that the text is seen being written.
+# The pause between two typed words, the letters coming as fast as adb sends them.
 WORD_PAUSE = 0.25
 # screenrecord stops by itself after this many seconds.
 RECORD_LIMIT = 180
@@ -123,7 +123,9 @@ def show_touches(on):
 # ---- Typing ----
 
 def type_text(text):
-    """Typed word by word into the focused field: ASCII by `input text`, the rest by ADBKeyBoard."""
+    """Typed into the focused field letter by letter, a pause between words, so that it is seen
+    being written: ASCII by `input text`, which replays one key per letter, the rest by ADBKeyBoard,
+    sent one letter at a time to look the same."""
     if text.isascii():
         for i, word in enumerate(text.split(" ")):
             if i:
@@ -136,12 +138,11 @@ def type_text(text):
             f"“{text}” is not ASCII: adb types it through ADBKeyBoard, which is not the phone's keyboard.\n"
             f"Install it, then: adb shell ime enable {ADB_KEYBOARD} && adb shell ime set {ADB_KEYBOARD}"
         )
-    words = text.split(" ")
-    for i, word in enumerate(words):
-        piece = word if i == len(words) - 1 else word + " "
-        encoded = base64.b64encode(piece.encode("utf-8")).decode("ascii")
+    for letter in text:
+        encoded = base64.b64encode(letter.encode("utf-8")).decode("ascii")
         adb_shell(f"am broadcast -a ADB_INPUT_B64 --es msg {encoded}")
-        time.sleep(WORD_PAUSE)
+        if letter == " ":
+            time.sleep(WORD_PAUSE)
 
 
 # ---- Captures ----
