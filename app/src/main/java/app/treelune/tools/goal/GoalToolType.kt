@@ -199,6 +199,7 @@ object GoalToolType : ToolTypeContract {
             name = s.tool("entry_name"),
             timestamp = s.tool("entry_timestamp"),
             data = s.tool("entry_data"),
+            extra = s.tool("entry_extra"),
             state = s.tool("entry_state")
         )
     }

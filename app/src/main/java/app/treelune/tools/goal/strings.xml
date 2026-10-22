@@ -121,4 +121,7 @@
     <string name="schema_validated_at">When the attempt was validated</string>
     <string name="schema_reopened_at">When the attempt was reopened after its validation</string>
     <string name="schema_notified">Whether the attempt to validate was notified</string>
+
+    <!-- What the user's fields are in an attempt -->
+    <string name="entry_extra">Notes on the attempt, written while it runs, such as a remark on the period</string>
 </resources>

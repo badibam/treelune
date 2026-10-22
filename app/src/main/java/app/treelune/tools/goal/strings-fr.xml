@@ -121,4 +121,7 @@
     <string name="schema_validated_at">Quand la tentative a été validée</string>
     <string name="schema_reopened_at">Quand la tentative a été rouverte après sa validation</string>
     <string name="schema_notified">Si la tentative à valider a été notifiée</string>
+
+    <!-- What the user's fields are in an attempt -->
+    <string name="entry_extra">Des notes sur la tentative, écrites pendant qu\'elle court, par exemple une remarque sur la période</string>
 </resources>
