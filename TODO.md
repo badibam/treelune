@@ -4,6 +4,9 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Release F-Droid
 
+
+- une phrase est incorrecte : "External access, also optional, goes through Tailscale's coordination
+      server." -> il manque la mention d'un relais quelconque, y compris auto-hébergé.
 - La relecture de la merge request d'inclusion, https://gitlab.com/fdroid/fdroiddata/-/merge_requests/53578 (CI verte sur la 0.9.1, le 2026-10-21) : une demande du relecteur se corrige dans `scripts/fdroid/app.treelune.yml`, se recopie dans le clone `~/fdroid-test/fdroiddata-fork` (branche `app.treelune`, clé SSH réglée) et se pousse. Publiée, le README cesse de dire « It is not on F-Droid yet ».
 
 ## Site treelune.app
@@ -30,10 +33,10 @@ Codé, jamais vu sur l'appareil.
 
 ## Décidé, à coder
 
+- Le test de la même phrase, avant et après ce que l'IA lit d'un type d'outil (la branche `entry-meanings`) : « I'd like to track my resting heart rate each morning. » (`site/scenarios/ai_creates_tool.txt`), sur la démo, le même modèle ; regarder si l'IA pose la question de l'heure, ajoute un champ d'heure, crée un raccourci.
 - Un filtre qui compare un champ à une variable ou une lecture (« kcal > objectif_calorique ») : le terme lu une fois à la référence du contexte (`TermReader`, `docs/BRICKS.md`), puis le filtre SQL comme aujourd'hui ; `EntryFilters.parse` et `ConditionPicker` le prennent.
 
 ## À concevoir
-- Ce que l'IA lit d'un type d'outil, `docs/design/entry-meanings.md` : le sens propre au type de chaque case de l'entrée et des réglages communs, l'entrée en deux niveaux, le niveau 1 en lecture à part, les astuces dans `ai_detail`, le nom d'office d'une entrée libre d'un suivi sans raccourci ; puis le test de la même phrase, avant et après.
 
 - Un contrôle « qui dépend de ça ? » avant de supprimer une chose (une condition, une variable, un pointeur qui la visent), écrit une fois, appelé par le service qui supprime et par l'annulation qui supprime une ligne.
 - Les events du cœur : quel premier usage — un événement de l'Agenda qui commence, une entrée écrite, une condition devenue vraie (l'Alerte) ? L'automation directe attend la même brique : sans IA, elle exécute elle-même ses commandes ; son premier usage, le relevé, garde une valeur telle qu'elle était (une variable `imc` écrite chaque semaine dans un Suivi), là où une variable se relit à tout jour passé avec les données d'aujourd'hui.
