@@ -72,6 +72,18 @@ Un suivi sans raccourci : une entrée libre prend d'office le nom du suivi, modi
 
 À vérifier : le sens de `timestamp` pour un chronomètre (son départ ?).
 
+## Mise en œuvre
+
+- `EntryMeanings` (`core/fields/EntryFields.kt`) : le sens de `name`, `timestamp`, `data`, `extra`, `state` dans un type, nul pour garder le texte du noyau. `ToolTypeContract.getEntryMeanings(context)`, sans config : le niveau 1 ne dépend pas d'elle. Les textes sous `entry_*` dans le `strings.xml` du type, en anglais et en français comme ses autres textes de schéma.
+- `EntryDescription` (`core/fields`) écrit le niveau 1 d'un type : une ligne par case que le type emploie dans sa config par défaut, ou dont il déclare le sens (le titre des Notes) ; `extra` pour un type qui prend des champs de l'utilisateur ; la règle de départ d'une entrée (`EntryStart`) sous `state`. Rien pour un type sans entrées (le Graphique).
+- `EntrySchemaGenerator` ne met plus de description à `name`, `timestamp`, `data`, `extra`, `state` : leur sens est au niveau 1. Le libellé et les contraintes restent.
+- `SettingNode.ListOf` prend une description : `extra_fields` renvoie au niveau 1, `items` du Suivi reprend `schema_config_items`.
+- `CommandExecutor` : un `schemas.get` réussi d'un type (config) ou d'un outil (entrées) amène avant lui le niveau 1 de ce type, cible `entry:<tooltype>`, s'il n'est pas déjà reçu dans la conversation ou dans le lot ; le message SCHEMA_REQUIRED de même. Sans conversation (l'IA extérieure), dédoublonné dans un lot seulement.
+- Prompt fixe : la commande SCHEMA dit qu'elle amène l'entrée du type ; le passage des champs ajoutés dit qu'ils s'ajoutent à ce que l'entrée du type porte déjà.
+- Suivi : `ai_detail` (un suivi d'une seule chose a un raccourci à son nom) ; l'entrée libre d'un suivi sans raccourci préremplie du nom du suivi.
+
+Vu en lisant le code : un Objectif prend des champs de l'utilisateur (`takesUserFields` par défaut) qu'aucun de ses écrans ne montre ; son niveau 1 garde le texte générique, et la question va au `TODO.md`.
+
 ## Le test
 
 Celui que prévoit `docs/AI.md` après un changement de ce que lit l'IA : la même phrase, sur la démo, le même modèle, avant et après. Regarder si elle pose la question de l'heure, si elle ajoute un champ d'heure, si elle crée un raccourci.

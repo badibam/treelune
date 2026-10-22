@@ -33,4 +33,8 @@
     <!-- Tile on a zone -->
     <string name="tile_count_one">1 fiche</string>
     <string name="tile_count_many">%1$s fiches</string>
+
+    <!-- What each part of an entry is in this type (EntryMeanings) -->
+    <string name="entry_name">Le nom de la fiche, unique dans l\'outil : ce qui la retrouve, et ce que montre une référence vers elle</string>
+    <string name="entry_extra">Les colonnes de la fiche : chacune de ses valeurs est un champ de l\'utilisateur</string>
 </resources>

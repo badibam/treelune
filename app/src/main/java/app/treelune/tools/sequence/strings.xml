@@ -146,4 +146,10 @@
     <string name="error_counts_kept_steps">This session keeps its steps: correct it with step_statuses, the state of each step, not with its counts</string>
     <string name="error_step_statuses">step_statuses gives the state of each step, in order: %1$d states, each done, skipped or not_done</string>
     <string name="error_no_kept_steps">This session does not keep its steps, finished before they were kept: correct its counts</string>
+
+    <!-- What each part of an entry is in this type (EntryMeanings) -->
+    <string name="entry_timestamp">When the session started, or its planned time</string>
+    <string name="entry_data">How the session went, written by the app when it ends: its duration, its pauses, its steps done, skipped or not done</string>
+    <string name="entry_extra">The user\'s fields, filled in when a session is finished: how it went, the effort felt</string>
+    <string name="entry_state">Where the session stands: planned, running, to finish, done, stopped or ignored; its start and end, and while it runs, its course</string>
 </resources>

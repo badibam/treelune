@@ -74,7 +74,7 @@ Events triggering transitions: `SessionActivationRequested`, `UserMessageSent`, 
 ### Result types
 - **OperationResult**: services with `.success: Boolean`
 - **CommandResult**: Coordinator with `.status: CommandStatus` (SUCCESS, FAILED, CANCELLED, CACHED)
-- **Reads sent once per session** (`SessionReads`): a schema, an identity, a resource of its baggage. Each read runs; its result keeps its target (`entries:<id>`, `tracking_config`, `identity_resource:<id>:<language>:<key>`) and the fingerprint of its text. A text identical to the last one received for the same target becomes CACHED, without data; a changed text goes out whole again, preceded by the sentence saying it replaces the previous read (`ai_read_replaces`).
+- **Reads sent once per session** (`SessionReads`): a schema, an identity, a resource of its baggage. Each read runs; its result keeps its target (`entries:<id>`, `tracking_config`, `identity_resource:<id>:<language>:<key>`) and the fingerprint of its text. A text identical to the last one received for the same target becomes CACHED, without data; a changed text goes out whole again, preceded by the sentence saying it replaces the previous read (`ai_read_replaces`). A schema of a tool type, its config's or a tool's entries', comes after the first level of that type's entry (`EntryDescription`, target `entry:<tooltype>`): what its name, timestamp, data, extra and state are in the type, which neither schema says; itself a read sent once, whichever schema brings it first, in a SCHEMA command's results or a SCHEMA_REQUIRED message. Without a session (an outside AI), once per batch of commands.
 
 ### AISessionEntity (DB)
 ```kotlin

@@ -191,6 +191,16 @@ object GoalToolType : ToolTypeContract {
         )
     }
 
+    override fun getEntryMeanings(context: Context): app.treelune.core.fields.EntryMeanings {
+        val s = Strings.`for`(tool = "goal", context = context)
+        return app.treelune.core.fields.EntryMeanings(
+            name = s.tool("entry_name"),
+            timestamp = s.tool("entry_timestamp"),
+            data = s.tool("entry_data"),
+            state = s.tool("entry_state")
+        )
+    }
+
     /**
      * Validating and reopening an attempt, for the screen and the AI alike. Who validated is the
      * call's origin (currentOrigin): a person or the AI, never a scheduler.

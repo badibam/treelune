@@ -104,6 +104,16 @@ object NotesToolType : ToolTypeContract {
         )
     }
 
+    override fun getEntryMeanings(context: Context): app.treelune.core.fields.EntryMeanings {
+        val s = Strings.`for`(tool = "notes", context = context)
+        return app.treelune.core.fields.EntryMeanings(
+            name = s.tool("entry_name"),
+            timestamp = s.tool("entry_timestamp"),
+            extra = s.tool("entry_extra"),
+            state = s.tool("entry_state")
+        )
+    }
+
     override fun getDefaultIconName(): String {
         return "sticky-note"
     }

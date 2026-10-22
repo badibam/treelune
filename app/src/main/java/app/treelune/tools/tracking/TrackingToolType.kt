@@ -94,7 +94,7 @@ object TrackingToolType : ToolTypeContract {
                             distinct = true)
                     else null,
                     SettingNode.ListOf("items", s.tool("field_items"), SettingNode.Item.Of(item),
-                        summary = item.map { it.definition.name })
+                        summary = item.map { it.definition.name }, description = s.tool("schema_config_items"))
                 )
             }
         ))
@@ -150,6 +150,17 @@ object TrackingToolType : ToolTypeContract {
         }
 
         return EntryFields(name = CoreFieldUsage.REQUIRED, timestamp = CoreFieldUsage.OPTIONAL, data = fields)
+    }
+
+    override fun getAIDetail(context: Context): String = Strings.`for`(tool = "tracking", context = context).tool("ai_detail")
+
+    override fun getEntryMeanings(context: Context): app.treelune.core.fields.EntryMeanings {
+        val s = Strings.`for`(tool = "tracking", context = context)
+        return app.treelune.core.fields.EntryMeanings(
+            name = s.tool("entry_name"),
+            timestamp = s.tool("entry_timestamp"),
+            extra = s.tool("entry_extra")
+        )
     }
 
     /** A new unit given with a numeric entry joins the end of the units. */

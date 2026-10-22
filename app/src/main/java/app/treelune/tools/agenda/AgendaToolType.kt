@@ -186,6 +186,16 @@ object AgendaToolType : ToolTypeContract {
         )
     }
 
+    override fun getEntryMeanings(context: Context): app.treelune.core.fields.EntryMeanings {
+        val s = Strings.`for`(tool = "agenda", context = context)
+        return app.treelune.core.fields.EntryMeanings(
+            name = s.tool("entry_name"),
+            timestamp = s.tool("entry_timestamp"),
+            extra = s.tool("entry_extra"),
+            state = s.tool("entry_state")
+        )
+    }
+
     /** An event is created planned; cancelling, removing and restoring are the tool's operations. */
     val START = EntryStart(listOf(Status.PLANNED))
 

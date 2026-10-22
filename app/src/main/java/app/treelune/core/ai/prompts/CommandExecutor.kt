@@ -68,6 +68,8 @@ data class CommandExecutionResult(
  * - Track success/failure status for each command
  * - Send a read once in a session (SessionReads): a schema, an identity, a resource of its
  *   bagage, its text not sent again while unchanged, sent again whole when it changed
+ * - Put before a schema of a tool type, its config's or a tool's entries', the first level of
+ *   that type's entry (EntryDescription), itself a read sent once
  */
 class CommandExecutor(private val context: Context) {
 
@@ -118,7 +120,7 @@ class CommandExecutor(private val context: Context) {
                 LogManager.aiPrompt("Schema verification failed: ${missingSchemas.size} schemas missing", "WARN")
                 return CommandExecutionResult(
                     promptResults = emptyList(),
-                    systemMessage = schemaRequiredMessage(missingSchemas, "ai_schema_required_shown", "ai_schema_required_summary")
+                    systemMessage = schemaRequiredMessage(missingSchemas, sent, "ai_schema_required_shown", "ai_schema_required_summary")
                 )
             }
         }
@@ -152,6 +154,18 @@ class CommandExecutor(private val context: Context) {
             var result = if (sessionId != null) {
                 kotlinx.coroutines.withContext(app.treelune.core.history.StepSession(sessionId)) { executeCommand(run, origin) }
             } else executeCommand(run, origin)
+
+            // A schema of a tool type comes after the first level of its entry, unless the model
+            // holds it already: what the parts of an entry mean in the type, which neither the
+            // config's schema nor the entries' says
+            if (command.resource == "schemas" && command.operation == "get" && result?.commandResult?.status == CommandStatus.SUCCESS) {
+                val tooltype = command.params["tooltype"] as? String ?: result.commandResult.data?.get("tooltype") as? String
+                tooltype?.let { entryDescriptionRead(it, sent + sentInBatch) }?.let { read ->
+                    sentInBatch[read.target] = read.fingerprint
+                    promptResults.add(read.result.promptResult)
+                    commandResults.add(read.result.commandResult)
+                }
+            }
 
             val fingerprint = result?.commandResult?.takeIf { it.status == CommandStatus.SUCCESS }
                 ?.data?.get(SessionReads.FINGERPRINT) as? String
@@ -453,10 +467,12 @@ class CommandExecutor(private val context: Context) {
         return when (resource) {
             "schemas" -> {
                 // Schemas: keep schema_id + tool_instance_id for deduplication, remove large 'content'
-                // tool_instance_id is needed for data/execution schemas (custom_fields enrichment)
+                // tool_instance_id is needed for data/execution schemas (custom_fields enrichment);
+                // the tooltype of a tool's entries, whose entry's first level comes before them
                 val filtered = mutableMapOf<String, Any>()
                 data["schema_id"]?.let { filtered["schema_id"] = it }
                 data["tool_instance_id"]?.let { filtered["tool_instance_id"] = it }
+                data["tooltype"]?.let { filtered["tooltype"] = it }
                 if (filtered.isEmpty()) null else filtered
             }
             // Images shown: their ids in the conversation, which PromptManager sends after the message
@@ -996,10 +1012,11 @@ class CommandExecutor(private val context: Context) {
      * schema tells it. The caller checks before the user is asked to validate the writes.
      */
     suspend fun schemaRequiredForWrites(toolInstanceIds: Collection<String>, sessionId: String): SystemMessage? {
-        val missingSchemas = missingEntrySchemas(toolInstanceIds, loadSentReads(sessionId))
+        val sent = loadSentReads(sessionId)
+        val missingSchemas = missingEntrySchemas(toolInstanceIds, sent)
         if (missingSchemas.isEmpty()) return null
         LogManager.aiPrompt("Writes held back: ${missingSchemas.size} entries schemas missing", "WARN")
-        return schemaRequiredMessage(missingSchemas, "ai_schema_required_for_writes_shown", "ai_schema_required_for_writes_summary")
+        return schemaRequiredMessage(missingSchemas, sent, "ai_schema_required_for_writes_shown", "ai_schema_required_for_writes_summary")
     }
 
     /**
@@ -1009,18 +1026,20 @@ class CommandExecutor(private val context: Context) {
      * data, and the model's queries and writes on them find their schema in the session.
      */
     suspend fun schemasForAlwaysSent(toolInstanceIds: Collection<String>, sessionId: String): SystemMessage? {
-        val missingSchemas = missingEntrySchemas(toolInstanceIds, loadSentReads(sessionId))
+        val sent = loadSentReads(sessionId)
+        val missingSchemas = missingEntrySchemas(toolInstanceIds, sent)
         if (missingSchemas.isEmpty()) return null
         LogManager.aiPrompt("Tools sent always: ${missingSchemas.size} entries schemas brought into the session", "INFO")
-        return schemaRequiredMessage(missingSchemas, "ai_schema_always_send_shown", "ai_schema_always_send_summary")
+        return schemaRequiredMessage(missingSchemas, sent, "ai_schema_always_send_shown", "ai_schema_always_send_summary")
     }
 
     /**
      * The SCHEMA_REQUIRED message holding [missingSchemas]: the chat shows [shownKey]'s sentence,
-     * the AI reads [forAIKey]'s, naming the schemas, ahead of the schemas themselves.
-     * Each schema is recorded as a schemas.get result, so the session counts it as sent.
+     * the AI reads [forAIKey]'s, naming the schemas, ahead of the schemas themselves, and ahead of
+     * those, the first level of each of their types' entry the model does not hold ([sent]).
+     * Each is recorded as a schemas.get result, so the session counts it as sent.
      */
-    private suspend fun schemaRequiredMessage(missingSchemas: List<MissingSchemaInfo>, shownKey: String, forAIKey: String): SystemMessage {
+    private suspend fun schemaRequiredMessage(missingSchemas: List<MissingSchemaInfo>, sent: Map<String, String>, shownKey: String, forAIKey: String): SystemMessage {
         val schemaSummary = missingSchemas.joinToString("\n") { schema ->
             "- ${schema.schemaId} (tool instance: ${schema.toolInstanceId})"
         }
@@ -1028,6 +1047,13 @@ class CommandExecutor(private val context: Context) {
         val schemasText = StringBuilder()
         schemasText.appendLine(s.shared(forAIKey).format(missingSchemas.size, schemaSummary))
         schemasText.appendLine()
+        val entryReads = missingSchemas.mapNotNull { it.tooltype }.distinct().mapNotNull { entryDescriptionRead(it, sent) }
+        for (read in entryReads) {
+            schemasText.appendLine("## ${read.result.promptResult.dataTitle}")
+            schemasText.appendLine()
+            schemasText.appendLine(read.result.promptResult.formattedData)
+            schemasText.appendLine()
+        }
         for (schema in missingSchemas) {
             schemasText.appendLine("## Schema: ${schema.schemaId}")
             schemasText.appendLine("Tool Instance: ${schema.toolInstanceId}")
@@ -1059,7 +1085,7 @@ class CommandExecutor(private val context: Context) {
 
         return SystemMessage(
             type = SystemMessageType.SCHEMA_REQUIRED,
-            commandResults = schemaCommandResults,
+            commandResults = entryReads.map { it.result.commandResult } + schemaCommandResults,
             summary = s.shared(shownKey),
             formattedData = schemasText.toString()
         )
@@ -1106,6 +1132,42 @@ class CommandExecutor(private val context: Context) {
         }
 
         return missingSchemas
+    }
+
+    /** The first level of a tool type's entry, read for the model, with its read target and its text's fingerprint. */
+    private class EntryRead(val result: InternalCommandResult, val target: String, val fingerprint: String)
+
+    /**
+     * The first level of [tooltype]'s entry (EntryDescription), to go before a schema of that
+     * type, or null when the model holds it as it is now ([held], the fingerprints it holds by
+     * target) or the type keeps no entries. Recorded as a schemas.get result, so that the session
+     * counts it as sent; a text changed since says it replaces the earlier one.
+     */
+    private fun entryDescriptionRead(tooltype: String, held: Map<String, String>): EntryRead? {
+        val toolType = app.treelune.core.tools.ToolTypeManager.getToolType(tooltype) ?: return null
+        val text = app.treelune.core.fields.EntryDescription.text(toolType, context) ?: return null
+        val target = app.treelune.core.fields.EntryDescription.target(tooltype)
+        val fingerprint = SessionReads.fingerprint(text)
+        val outcome = SessionReads.outcome(held[target], fingerprint)
+        LogManager.aiPrompt("Entry of $tooltype held by the model: $outcome", "DEBUG")
+        if (outcome == SessionReads.Outcome.SAME) return null
+        val title = s.shared("ai_entry_description_title").format(toolType.getDisplayName(context))
+        val shown = if (outcome == SessionReads.Outcome.CHANGED) s.shared("ai_read_replaces") + "\n\n" + text else text
+        return EntryRead(
+            result = InternalCommandResult(
+                promptResult = PromptCommandResult(title, shown),
+                commandResult = app.treelune.core.ai.data.CommandResult(
+                    command = "schemas.get",
+                    status = CommandStatus.SUCCESS,
+                    details = title,
+                    data = mapOf("schema_id" to target, SessionReads.TARGET to target, SessionReads.FINGERPRINT to fingerprint),
+                    error = null,
+                    isActionCommand = false
+                )
+            ),
+            target = target,
+            fingerprint = fingerprint
+        )
     }
 
     /** The entries schema of the tool [toolInstanceId] could not be read, for [reason] (the service's words). */

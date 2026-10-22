@@ -18,9 +18,6 @@
     <string name="schema_data_description">Validation schema for note entries</string>
 
     <!-- SCHEMAS DATA - Descriptions for AI validation -->
-    <string name="schema_data_name">Name of the note entry</string>
-    <string name="schema_data_timestamp">Creation timestamp of the note</string>
-    <string name="schema_data_data">Content data of the note</string>
     <string name="schema_data_content">Content of the note</string>
     <string name="schema_data_position">Place in the list, 0 at the top. A position already taken puts the note there and moves the following ones down; without a position the note goes last. Positions stay 0, 1, 2… with no gap</string>
 
@@ -63,4 +60,10 @@
 
     <!-- Schema -->
     <string name="schema_config_description">Configuration schema for notes instances</string>
+
+    <!-- What each part of an entry is in this type (EntryMeanings) -->
+    <string name="entry_name">The note\'s title, above its text; there only while the tool\'s titles are on (titles)</string>
+    <string name="entry_timestamp">When the note was written; the notes follow their place in the list, not this moment</string>
+    <string name="entry_extra">Details noted with each note, shown on its card</string>
+    <string name="entry_state">Its place in the list, which the app keeps</string>
 </resources>

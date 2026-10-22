@@ -196,6 +196,16 @@ object SequenceToolType : ToolTypeContract {
         )
     }
 
+    override fun getEntryMeanings(context: Context): app.treelune.core.fields.EntryMeanings {
+        val s = Strings.`for`(tool = "sequence", context = context)
+        return app.treelune.core.fields.EntryMeanings(
+            timestamp = s.tool("entry_timestamp"),
+            data = s.tool("entry_data"),
+            extra = s.tool("entry_extra"),
+            state = s.tool("entry_state")
+        )
+    }
+
     /**
      * What the AI may do: mark a session done, a planned one or one that was not, correct one
      * over, ignore a planned one. Starting and every gesture of a session running belong to

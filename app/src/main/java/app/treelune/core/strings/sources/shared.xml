@@ -891,10 +891,12 @@
     <string name="tools_base_schema_data_timestamp">Moment the entry refers to; the present if omitted, and can be set in the past</string>
     <string name="tools_base_schema_data_created_at">When the entry was created, set by the system</string>
     <string name="tools_base_schema_data_updated_at">When the entry was last changed, set by the system</string>
-    <string name="tools_base_schema_data_data">Data specific to the tool type</string>
     <string name="entry_schema_extra">Fields the user added to this tool</string>
     <string name="entry_schema_state">State of the entry, written by its actions and by the app, never directly</string>
-    <string name="entry_schema_state_start">State of the entry, written by the app. Creating an entry, give its status alone, one of: %s; the app sets the rest. Changing an entry, never write it</string>
+    <string name="entry_description_intro">What each part of an entry of a %1$s tool is, whatever the tool; a tool\'s entries schema gives which parts its entries have and their fields:</string>
+    <string name="entry_start_statuses">An entry is created with its status alone, one of: %s; the app sets the rest of its state.</string>
+    <string name="tools_base_schema_config_extra_fields">The user\'s own fields, whose values each entry holds under extra; what they are for in this type is in the description of its entry</string>
+    <string name="ai_entry_description_title">Entry of a %1$s tool</string>
     <string name="service_error_start_status">An entry of this tool is created with its status in state.status, one of: %2$s (given: %1$s)</string>
     <string name="service_error_start_state_fields">Creating an entry, only its status is given in its state; the app writes the rest (given: %s)</string>
     <string name="service_error_status_changed">The status of an entry of this tool is not changed directly: it moves through the tool's operations (TOOL_OPERATION, listed with its data schema) and the app itself</string>

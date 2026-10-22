@@ -83,6 +83,15 @@ object QuestionnaireToolType : ToolTypeContract {
         )
     }
 
+    override fun getEntryMeanings(context: Context): app.treelune.core.fields.EntryMeanings {
+        val s = Strings.`for`(tool = "questionnaire", context = context)
+        return app.treelune.core.fields.EntryMeanings(
+            timestamp = s.tool("entry_timestamp"),
+            extra = s.tool("entry_extra"),
+            state = s.tool("entry_state")
+        )
+    }
+
     /**
      * A questionnaire written by someone is either passed, its answers in it (blank ones
      * included, a question left unanswered is still answered so), or put to fill later. Ignoring

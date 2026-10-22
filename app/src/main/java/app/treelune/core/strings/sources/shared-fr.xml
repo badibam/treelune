@@ -891,10 +891,12 @@
     <string name="tools_base_schema_data_timestamp">Moment auquel se rapporte l\'entrée ; maintenant s\'il est omis, et peut être dans le passé</string>
     <string name="tools_base_schema_data_created_at">Date de création de l\'entrée, posée par le système</string>
     <string name="tools_base_schema_data_updated_at">Date de dernière modification de l\'entrée, posée par le système</string>
-    <string name="tools_base_schema_data_data">Données spécifiques au type d\'outil</string>
     <string name="entry_schema_extra">Champs ajoutés à cet outil par l\'utilisateur</string>
     <string name="entry_schema_state">État de l\'entrée, écrit par ses actions et par l\'app, jamais directement</string>
-    <string name="entry_schema_state_start">État de l\'entrée, écrit par l\'app. À la création d\'une entrée, donner son statut seul, parmi : %s ; l\'app pose le reste. À la modification, ne jamais l\'écrire</string>
+    <string name="entry_description_intro">Ce qu\'est chaque partie d\'une entrée d\'un outil %1$s, quel que soit l\'outil ; le schéma des entrées d\'un outil dit quelles parties ses entrées ont, et leurs champs :</string>
+    <string name="entry_start_statuses">Une entrée se crée avec son seul statut, parmi : %s ; l\'app pose le reste de son état.</string>
+    <string name="tools_base_schema_config_extra_fields">Les champs propres à l\'utilisateur, dont chaque entrée porte les valeurs sous extra ; ce à quoi ils servent dans ce type est dans la description de son entrée</string>
+    <string name="ai_entry_description_title">Entrée d\'un outil %1$s</string>
     <string name="service_error_start_status">Une entrée de cet outil se crée avec son statut dans state.status, parmi : %2$s (donné : %1$s)</string>
     <string name="service_error_start_state_fields">À la création d\'une entrée, seul son statut se donne dans son état ; l\'app écrit le reste (donné : %s)</string>
     <string name="service_error_status_changed">Le statut d\'une entrée de cet outil ne se change pas directement : il avance par les opérations de l\'outil (TOOL_OPERATION, listées avec son schéma de données) et par l\'app elle-même</string>

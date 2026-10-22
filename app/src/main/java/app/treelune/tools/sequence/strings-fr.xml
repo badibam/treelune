@@ -146,4 +146,10 @@
     <string name="error_counts_kept_steps">Cette séance garde ses étapes : corrige-la par step_statuses, l\'état de chaque étape, et non par ses comptes</string>
     <string name="error_step_statuses">step_statuses donne l\'état de chaque étape, dans l\'ordre : %1$d états, chacun done, skipped ou not_done</string>
     <string name="error_no_kept_steps">Cette séance ne garde pas ses étapes, finie avant qu\'elles soient gardées : corrige ses comptes</string>
+
+    <!-- What each part of an entry is in this type (EntryMeanings) -->
+    <string name="entry_timestamp">Quand la séance a commencé, ou son heure prévue</string>
+    <string name="entry_data">Comment la séance s\'est passée, écrit par l\'app à sa fin : sa durée, ses pauses, ses étapes faites, passées ou pas faites</string>
+    <string name="entry_extra">Les champs de l\'utilisateur, remplis quand une séance est terminée : comment elle s\'est passée, l\'effort ressenti</string>
+    <string name="entry_state">Où en est la séance : prévue, en cours, à terminer, faite, arrêtée ou ignorée ; son début et sa fin, et pendant qu\'elle se déroule, son parcours</string>
 </resources>

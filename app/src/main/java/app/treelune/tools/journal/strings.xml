@@ -22,9 +22,6 @@
     <string name="schema_config_sort_order">Sort order of the entries (ascending or descending)</string>
 
     <!-- SCHEMAS DATA - Descriptions for AI validation -->
-    <string name="schema_data_name">Title of the journal entry</string>
-    <string name="schema_data_timestamp">Timestamp of the journal entry (editable)</string>
-    <string name="schema_data_data">Content data of the entry</string>
     <string name="schema_data_content">Text content of the entry (no length limit)</string>
 
     <!-- VALIDATION - Field names for display -->
@@ -66,4 +63,9 @@
     <string name="error_validation">Validation error</string>
 
     <!-- Configuration -->
+
+    <!-- What each part of an entry is in this type (EntryMeanings) -->
+    <string name="entry_name">The entry\'s title</string>
+    <string name="entry_timestamp">The day or moment the entry is about, which can be in the past</string>
+    <string name="entry_extra">Details noted with each entry, shown on its card: a mood, a place</string>
 </resources>

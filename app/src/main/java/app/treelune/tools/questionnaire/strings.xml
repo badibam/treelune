@@ -50,4 +50,9 @@
     <string name="tile_up_to_date">Up to date</string>
     <string name="tile_next">Next: %1$s</string>
     <string name="tile_last">Last: %1$s</string>
+
+    <!-- What each part of an entry is in this type (EntryMeanings) -->
+    <string name="entry_timestamp">The moment the sitting is about: the planned time of an invitation, or the moment chosen when it is filled in without one</string>
+    <string name="entry_extra">The answers: each of the user\'s fields is a question of the questionnaire, asked one per screen</string>
+    <string name="entry_state">Whether the sitting is to fill, filled or ignored, and when it was filled</string>
 </resources>

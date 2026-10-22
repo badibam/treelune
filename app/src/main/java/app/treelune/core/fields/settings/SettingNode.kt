@@ -67,6 +67,7 @@ sealed class SettingNode {
      * @property shownWith The option of a setting beside it the list serves: the form shows the
      *   list only while that option is chosen, or while the list still holds elements, to be
      *   emptied. The screen's alone: the schema and the service know nothing of it
+     * @property description What the list is, for the AI that reads its schema
      */
     data class ListOf(
         val name: String,
@@ -77,7 +78,8 @@ sealed class SettingNode {
         val distinct: Boolean = false,
         val fieldDefinitions: Boolean = false,
         val summary: List<String> = emptyList(),
-        val shownWith: ShownWith? = null
+        val shownWith: ShownWith? = null,
+        val description: String? = null
     ) : SettingNode() {
         init {
             if (item is Item.Of) {

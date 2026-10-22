@@ -92,7 +92,7 @@
     <string name="schema_config_occurrence_description">Configuration schema for occurrence tracking: each entry is the fact that something happened</string>
     <string name="schema_config_value">Settings of the value the entries record, those of its field type</string>
     <string name="schema_config_units">Units a value can be in; each entry records one of them</string>
-    <string name="schema_config_items">Shortcuts, offered for quick entry</string>
+    <string name="schema_config_items">Shortcuts, each noting one thing in one touch</string>
     <string name="schema_config_item_name">Name of the shortcut, given to the entries it creates</string>
     <string name="schema_config_item_value">Value the shortcut enters at a touch; without one, the touch opens the entry dialog</string>
     <string name="schema_config_item_unit">Unit of the value the shortcut enters, one of the units</string>
@@ -123,4 +123,11 @@
     <!-- DISPLAY FORMAT - Formatted display of the data -->
 
     <!-- Config warnings: choice options -->
+
+    <string name="ai_detail">A tracking that follows a single thing has one shortcut named after it, so that each value is noted in one touch.</string>
+
+    <!-- What each part of an entry is in this type (EntryMeanings) -->
+    <string name="entry_name">What was noted: the name of a shortcut, or one typed for a free entry. The entries of one thing share it, which lets one tool follow several things (Push-ups, Squats)</string>
+    <string name="entry_timestamp">When it was measured or happened; for a stopwatch, when it started</string>
+    <string name="entry_extra">Details noted with each value, beside it: the context of a weighing, the quality of a night</string>
 </resources>

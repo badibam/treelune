@@ -204,6 +204,15 @@ object FlashcardsToolType : ToolTypeContract {
         )
     }
 
+    override fun getEntryMeanings(context: Context): app.treelune.core.fields.EntryMeanings {
+        val s = Strings.`for`(tool = "flashcards", context = context)
+        return app.treelune.core.fields.EntryMeanings(
+            timestamp = s.tool("entry_timestamp"),
+            data = s.tool("entry_data"),
+            state = s.tool("entry_state")
+        )
+    }
+
     /** A review is written once: undoing it deletes it. */
     override fun refuseUpdate(entry: ToolDataEntity, context: Context): String = s(context).tool("error_review_changed")
 

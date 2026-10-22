@@ -22,9 +22,6 @@
     <string name="schema_config_sort_order">Ordre de tri des entrées (ascending ou descending)</string>
 
     <!-- SCHEMAS DATA - Descriptions pour validation IA -->
-    <string name="schema_data_name">Titre de l\'entrée de journal</string>
-    <string name="schema_data_timestamp">Horodatage de l\'entrée de journal (modifiable)</string>
-    <string name="schema_data_data">Données de contenu de l\'entrée</string>
     <string name="schema_data_content">Contenu texte de l\'entrée (sans limite de longueur)</string>
 
     <!-- VALIDATION - Noms de champs pour affichage -->
@@ -66,4 +63,9 @@
     <string name="error_validation">Erreur de validation</string>
 
     <!-- Configuration -->
+
+    <!-- What each part of an entry is in this type (EntryMeanings) -->
+    <string name="entry_name">Le titre de l\'entrée</string>
+    <string name="entry_timestamp">Le jour ou le moment dont parle l\'entrée, qui peut être passé</string>
+    <string name="entry_extra">Des détails notés avec chaque entrée, montrés sur sa carte : une humeur, un lieu</string>
 </resources>

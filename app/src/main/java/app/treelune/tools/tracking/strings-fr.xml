@@ -92,7 +92,7 @@
     <string name="schema_config_occurrence_description">Schéma de configuration d\'un suivi d\'occurrences : chaque entrée est le fait qu\'une chose a eu lieu</string>
     <string name="schema_config_value">Réglages de la valeur que les entrées enregistrent, ceux de son type de champ</string>
     <string name="schema_config_units">Unités possibles d\'une valeur ; chaque entrée enregistre l\'une d\'elles</string>
-    <string name="schema_config_items">Raccourcis, proposés pour une saisie rapide</string>
+    <string name="schema_config_items">Raccourcis, chacun notant une chose d\'un toucher</string>
     <string name="schema_config_item_name">Nom du raccourci, donné aux entrées qu\'il crée</string>
     <string name="schema_config_item_value">Valeur que le raccourci saisit d\'un toucher ; sans elle, le toucher ouvre la saisie</string>
     <string name="schema_config_item_unit">Unité de la valeur que saisit le raccourci, l\'une des unités</string>
@@ -123,4 +123,11 @@
     <!-- DISPLAY FORMAT - Affichage formaté des données -->
 
     <!-- Avertissements de config : options de choix -->
+
+    <string name="ai_detail">Un suivi d\'une seule chose a un raccourci à son nom, pour que chaque valeur se note d\'un toucher.</string>
+
+    <!-- What each part of an entry is in this type (EntryMeanings) -->
+    <string name="entry_name">Ce qui a été noté : le nom d\'un raccourci, ou un nom tapé pour une entrée libre. Les entrées d\'une même chose le partagent, ce qui permet à un outil d\'en suivre plusieurs (Pompes, Squats)</string>
+    <string name="entry_timestamp">Quand la mesure a été prise ou la chose a eu lieu ; pour un chronomètre, quand il a démarré</string>
+    <string name="entry_extra">Des détails notés avec chaque valeur, à côté d\'elle : le contexte d\'une pesée, la qualité d\'une nuit</string>
 </resources>

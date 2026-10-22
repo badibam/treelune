@@ -90,4 +90,10 @@
     <string name="in_minutes">dans %1$d min</string>
     <string name="in_hours">dans %1$d h</string>
     <string name="series_delete_count">Les %1$d occurrences à venir de cette série seront supprimées, les passées restent.</string>
+
+    <!-- What each part of an entry is in this type (EntryMeanings) -->
+    <string name="entry_name">Le nom de l\'événement ; une occurrence d\'une série a le nom de la série</string>
+    <string name="entry_timestamp">Quand l\'événement commence ; pour une journée entière, le début du jour de l\'app à sa première date</string>
+    <string name="entry_extra">Des détails d\'un événement, écrits avec lui</string>
+    <string name="entry_state">Si l\'événement est prévu, annulé ou retiré ; pour une occurrence d\'une série, sa série et le moment que la série lui a donné</string>
 </resources>

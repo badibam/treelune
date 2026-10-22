@@ -84,6 +84,15 @@ object JournalToolType : ToolTypeContract {
         )
     }
 
+    override fun getEntryMeanings(context: Context): app.treelune.core.fields.EntryMeanings {
+        val s = Strings.`for`(tool = "journal", context = context)
+        return app.treelune.core.fields.EntryMeanings(
+            name = s.tool("entry_name"),
+            timestamp = s.tool("entry_timestamp"),
+            extra = s.tool("entry_extra")
+        )
+    }
+
     override fun getDefaultIconName(): String {
         return "book-open"
     }

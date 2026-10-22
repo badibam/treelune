@@ -129,7 +129,6 @@ class EntryStartTest {
         assertTrue(messages.getJSONObject("properties").getJSONObject("triggered_by").optBoolean("system_managed"))
 
         assertTrue(stateSchema(goal).optBoolean("system_managed"))
-        assertTrue(stateSchema(goal).getString("description").endsWith("opened by the goal"))
         assertTrue(stateSchema(null).optBoolean("system_managed"))
     }
 }

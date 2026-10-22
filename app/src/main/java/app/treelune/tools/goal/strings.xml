@@ -99,4 +99,10 @@
     <string name="error_criterion_constants">The criterion %1$s compares two written values: one side must be read (a reading, a variable) or entered.</string>
     <string name="error_no_definition">This attempt kept no copy of the goal it was judged by: it was opened before the copy was kept</string>
     <string name="start_refused">An attempt is not created: the goal opens it itself, switched on (enabled) from its start, for each period of its schedule. To start one, switch the goal on or set its start (UPDATE_TOOL).</string>
+
+    <!-- What each part of an entry is in this type (EntryMeanings) -->
+    <string name="entry_name">The goal\'s name, copied on each attempt</string>
+    <string name="entry_timestamp">The start of the attempt\'s period</string>
+    <string name="entry_data">The copy of the definition that judges the attempt, then the value of each criterion entered by hand</string>
+    <string name="entry_state">Where the attempt stands (active, to validate, succeeded, failed, expired), the end of its period, and once validated, its judgement</string>
 </resources>

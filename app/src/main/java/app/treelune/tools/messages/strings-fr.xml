@@ -132,4 +132,11 @@
     <string name="error_delete">Erreur lors de la suppression</string>
 
     <string name="schedule_unreadable_warning">La récurrence est illisible : aucun nouveau message n\'est planifié, ceux déjà prévus partent quand même (%1$s). Rouvre la configuration pour la refaire.</string>
+
+    <!-- What each part of an entry is in this type (EntryMeanings) -->
+    <string name="entry_name">Le nom du message, le même pour tous ses envois : celui de l\'outil</string>
+    <string name="entry_timestamp">Quand cet envoi part</string>
+    <string name="entry_data">Ce que dit cet envoi : son titre et son texte à lui, et une fois parti, la partie commune recopiée du message</string>
+    <string name="entry_extra">Des détails d\'un envoi, écrits avec lui</string>
+    <string name="entry_state">Où en est l\'envoi : en attente, envoyé, expiré ou annulé ; si sa notification est partie, s\'il a été lu ou archivé</string>
 </resources>

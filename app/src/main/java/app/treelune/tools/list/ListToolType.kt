@@ -146,6 +146,16 @@ object ListToolType : ToolTypeContract {
         )
     }
 
+    override fun getEntryMeanings(context: Context): app.treelune.core.fields.EntryMeanings {
+        val s = Strings.`for`(tool = "list", context = context)
+        return app.treelune.core.fields.EntryMeanings(
+            name = s.tool("entry_name"),
+            timestamp = s.tool("entry_timestamp"),
+            extra = s.tool("entry_extra"),
+            state = s.tool("entry_state")
+        )
+    }
+
     /** An item's due date, as its data declares it and its form enters it. */
     fun dueAtField(context: Context) = FieldDefinition(
         name = DUE_AT,

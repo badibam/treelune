@@ -408,7 +408,7 @@ Retrieves the current date and time.
 **Returns** `timestamp`: ISO 8601 with a timezone offset (e.g. `"2025-11-23T14:30:00+01:00"`). Use it before writing an entry dated "now" or "yesterday".]]></string>
     <string name="ai_command_schema"><![CDATA[### SCHEMA
 
-Retrieves a JSON schema, asked for by what it describes. **Exactly one** parameter:
+Retrieves a JSON schema, asked for by what it describes. A tool type's schema, its config's or a tool's entries', comes after the description of an entry of that type: what its name, timestamp, data, extra and state are in the type, sent once in a session. **Exactly one** parameter:
 
 - `tooltype` (string, optional): the config of a tool of that type, with every variant (a tracking\'s `type` decides its settings)
 - `tool_instance_id` (string, optional): the entries of that tool, its extra fields included
@@ -846,7 +846,7 @@ A REFERENCE points to another thing of the app by its kind and id, never its nam
 
 ### The user\'s extra fields
 
-Every tool can carry extra fields, listed in its config under `extra_fields`; their values live in the entries\' `extra`.
+Every tool can carry extra fields, listed in its config under `extra_fields`; their values live in the entries\' `extra`. They add to what an entry of the tool\'s type already holds, which the description of its entry says, and what they are for depends on the type: a questionnaire\'s questions, a table\'s columns, details beside a tracking\'s value.
 
 ```json
 "extra_fields": [

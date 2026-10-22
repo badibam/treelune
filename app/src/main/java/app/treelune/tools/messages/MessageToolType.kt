@@ -209,6 +209,17 @@ object MessageToolType : ToolTypeContract {
         )
     }
 
+    override fun getEntryMeanings(context: Context): app.treelune.core.fields.EntryMeanings {
+        val s = Strings.`for`(tool = "messages", context = context)
+        return app.treelune.core.fields.EntryMeanings(
+            name = s.tool("entry_name"),
+            timestamp = s.tool("entry_timestamp"),
+            data = s.tool("entry_data"),
+            extra = s.tool("entry_extra"),
+            state = s.tool("entry_state")
+        )
+    }
+
     /**
      * A message written by someone, the AI or a screen, is one to send at its time, the same as
      * one the recurrence creates but placed by hand: the scheduler sends it when it is due.

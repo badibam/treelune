@@ -59,6 +59,14 @@ object StructuredToolType : ToolTypeContract {
         timestamp = CoreFieldUsage.ABSENT
     )
 
+    override fun getEntryMeanings(context: Context): app.treelune.core.fields.EntryMeanings {
+        val s = Strings.`for`(tool = "structured", context = context)
+        return app.treelune.core.fields.EntryMeanings(
+            name = s.tool("entry_name"),
+            extra = s.tool("entry_extra")
+        )
+    }
+
     override fun getDefaultIconName(): String = "table"
 
     override fun getSuggestedIcons(): List<String> = listOf("table", "database", "book-open", "apple", "contact")

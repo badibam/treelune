@@ -18,9 +18,6 @@
     <string name="schema_data_description">Schéma de validation pour les entrées de notes</string>
 
     <!-- SCHEMAS DATA - Descriptions pour validation IA -->
-    <string name="schema_data_name">Nom de l\'entrée de note</string>
-    <string name="schema_data_timestamp">Horodatage de création de la note</string>
-    <string name="schema_data_data">Données de contenu de la note</string>
     <string name="schema_data_content">Contenu de la note</string>
     <string name="schema_data_position">Place dans la liste, 0 en haut. Une position déjà prise y place la note et décale les suivantes ; sans position, la note va en dernier. Les positions restent 0, 1, 2… sans trou</string>
 
@@ -63,4 +60,10 @@
 
     <!-- Schéma -->
     <string name="schema_config_description">Schéma de configuration pour les instances de notes</string>
+
+    <!-- What each part of an entry is in this type (EntryMeanings) -->
+    <string name="entry_name">Le titre de la note, au-dessus de son texte ; là seulement quand les titres de l\'outil sont activés (titles)</string>
+    <string name="entry_timestamp">Quand la note a été écrite ; les notes suivent leur place dans la liste, pas ce moment</string>
+    <string name="entry_extra">Des détails notés avec chaque note, montrés sur sa carte</string>
+    <string name="entry_state">Sa place dans la liste, que l\'app tient</string>
 </resources>

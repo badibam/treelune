@@ -131,6 +131,7 @@ object SettingsSchemaGenerator {
             .put("title", list.label)
             .put("items", items)
             .also {
+                list.description?.let { description -> it.put("description", description) }
                 if (list.minItems > 0) it.put("minItems", list.minItems)
                 if (list.distinct) it.put("uniqueItems", true)
                 if (list.fieldDefinitions) it.put(FIELD_DEFINITIONS, true)

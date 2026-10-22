@@ -99,4 +99,10 @@
     <string name="error_criterion_constants">Le critère %1$s compare deux valeurs écrites : un côté doit être lu (une lecture, une variable) ou saisi.</string>
     <string name="error_no_definition">Cette tentative n\'a pas gardé de copie de l\'objectif qui la jugeait : elle a été ouverte avant que la copie soit gardée</string>
     <string name="start_refused">Une tentative ne se crée pas : l\'objectif l\'ouvre lui-même, activé (enabled) à partir de son début, pour chaque période de son rythme. Pour en lancer une, activer l\'objectif ou changer son début (UPDATE_TOOL).</string>
+
+    <!-- What each part of an entry is in this type (EntryMeanings) -->
+    <string name="entry_name">Le nom de l\'objectif, recopié sur chaque tentative</string>
+    <string name="entry_timestamp">Le début de la période de la tentative</string>
+    <string name="entry_data">La copie de la définition qui juge la tentative, puis la valeur de chaque critère saisi à la main</string>
+    <string name="entry_state">Où en est la tentative (en cours, à valider, réussie, échouée, expirée), la fin de sa période, et une fois validée, son jugement</string>
 </resources>

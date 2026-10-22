@@ -94,4 +94,10 @@
     <string name="in_minutes">in %1$d min</string>
     <string name="in_hours">in %1$d h</string>
     <string name="series_delete_count">The %1$d occurrences to come of this series will be deleted, the past ones stay.</string>
+
+    <!-- What each part of an entry is in this type (EntryMeanings) -->
+    <string name="entry_name">The event\'s name; an occurrence of a series has the series\' name</string>
+    <string name="entry_timestamp">When the event starts; for a whole day, the start of the app\'s day on its first date</string>
+    <string name="entry_extra">Details of one event, written with it</string>
+    <string name="entry_state">Whether the event is planned, cancelled or removed; for an occurrence of a series, its series and the moment the series gave it</string>
 </resources>
