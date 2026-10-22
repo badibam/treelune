@@ -248,13 +248,17 @@ $markSymbol = '<symbol id="mark" viewBox="' . h($mark[1]) . '">' . $mark[2] . '<
 
 <header>
   <div class="wrap">
-    <a class="brand" id="brand" href="<?= h(LANGUAGE_PATHS[$lang]) ?>"><svg width="28" height="28" aria-hidden="true"><use href="#mark"/></svg>Treelune</a>
-    <nav>
-      <a class="opt" href="#zone"><?= $t('nav.discover') ?></a>
-      <a class="opt" href="#action"><?= $t('nav.action') ?></a>
-      <a class="opt" href="#tools"><?= $t('nav.tools') ?></a>
-      <a href="#install"><?= $t('nav.install') ?></a>
-      <a href="<?= h(LANGUAGE_PATHS[$otherLang]) ?>" hreflang="<?= h($otherLang) ?>" lang="<?= h($otherLang) ?>" title="<?= $t('meta.other_language') ?>"><?= h(strtoupper($otherLang)) ?></a>
+    <a class="brand" id="brand" href="<?= h(LANGUAGE_PATHS[$lang]) ?>"><svg width="28" height="28" aria-hidden="true"><use href="#mark"/></svg>Treelune<span class="where" id="where" aria-hidden="true"></span></a>
+    <button type="button" class="menu-toggle" id="menu-toggle" aria-label="<?= $t('nav.menu') ?>" aria-expanded="false" aria-controls="nav"><span></span><span></span><span></span></button>
+    <!-- Every section but the opening, which the brand leads back to; on a phone, a panel the button opens -->
+    <nav id="nav">
+      <a href="#data"><?= $t('nav.data') ?></a>
+      <a href="#zone"><?= $t('nav.discover') ?></a>
+      <a href="#action"><?= $t('nav.action') ?></a>
+      <a href="#tools"><?= $t('nav.tools') ?></a>
+      <a href="#pieces"><?= $t('nav.more') ?></a>
+      <a class="cta" href="#install"><?= $t('nav.install') ?></a>
+      <a class="language" href="<?= h(LANGUAGE_PATHS[$otherLang]) ?>" hreflang="<?= h($otherLang) ?>" lang="<?= h($otherLang) ?>" title="<?= $t('meta.other_language') ?>"><span class="short"><?= h(strtoupper($otherLang)) ?></span><span class="long"><?= $t('meta.other_language') ?></span></a>
     </nav>
   </div>
 </header>
@@ -295,7 +299,7 @@ $markSymbol = '<symbol id="mark" viewBox="' . h($mark[1]) . '">' . $mark[2] . '<
 </div>
 
 <!-- 2. Three lines on the data -->
-<section class="privacy">
+<section class="privacy" id="data">
   <div class="wrap">
     <h2><?= $t('privacy.title') ?></h2>
     <ul>
@@ -333,7 +337,7 @@ $markSymbol = '<symbol id="mark" viewBox="' . h($mark[1]) . '">' . $mark[2] . '<
   </div>
 </section>
 
-<section class="pieces">
+<section class="pieces" id="pieces">
   <div class="wrap">
     <h2><?= $t('tools.pieces_title') ?></h2>
     <div class="grid">

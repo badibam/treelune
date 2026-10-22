@@ -17,10 +17,13 @@ return [
             'other_language' => 'English',
         ],
         'nav' => [
+            'data' => 'Tes données',
             'discover' => 'Découvrir',
             'action' => 'En action',
             'tools' => 'Outils',
+            'more' => 'Et aussi',
             'install' => 'Installer',
+            'menu' => 'Menu',
         ],
         'band' => [
             'pitch' => "Chaque app de suivi fait une chose, à sa façon. Treelune te donne les pièces, et tu construis celle qu'il te faut.",
@@ -135,10 +138,13 @@ return [
             'other_language' => 'Français',
         ],
         'nav' => [
+            'data' => 'Your data',
             'discover' => 'Discover',
             'action' => 'In action',
             'tools' => 'Tools',
+            'more' => 'And more',
             'install' => 'Install',
+            'menu' => 'Menu',
         ],
         'band' => [
             'pitch' => 'Every tracking app does one thing, its own way. Treelune gives you the pieces, and you build the one you need.',

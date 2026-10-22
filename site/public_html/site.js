@@ -85,6 +85,38 @@ new IntersectionObserver(([e]) => brand.classList.toggle("away", upright.matches
   .observe(document.querySelector(".pitch"));
 brand.classList.toggle("away", upright.matches && window.scrollY < window.innerHeight / 2);
 
+// ---- The header's menu: the section on screen, and on a phone the panel the button opens ----
+
+const nav = document.getElementById("nav");
+const menuToggle = document.getElementById("menu-toggle");
+const where = document.getElementById("where");
+function setMenu(open) {
+  nav.classList.toggle("open", open);
+  menuToggle.setAttribute("aria-expanded", open);
+}
+menuToggle.onclick = () => setMenu(!nav.classList.contains("open"));
+nav.querySelectorAll("a").forEach(a => a.addEventListener("click", () => setMenu(false)));
+document.addEventListener("click", e => { if (!e.target.closest("header")) setMenu(false); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") setMenu(false); });
+
+// The section on screen: the last one of the menu starting at or above the header's bottom; none on the opening
+const sectionLinks = [...nav.querySelectorAll('a[href^="#"]')].map(a => ({ a, section: document.getElementById(a.hash.slice(1)) }));
+function showWhere() {
+  const line = window.scrollY + document.querySelector("header").offsetHeight + 2;
+  let on = null;
+  sectionLinks.forEach(link => { if (link.section.getBoundingClientRect().top + window.scrollY <= line) on = link; });
+  sectionLinks.forEach(link => link.a.setAttribute("aria-current", link === on));
+  where.textContent = on ? on.a.textContent : "";
+}
+let whereQueued = false;
+window.addEventListener("scroll", () => {
+  if (whereQueued) return;
+  whereQueued = true;
+  requestAnimationFrame(() => { whereQueued = false; showWhere(); });
+}, { passive: true });
+window.addEventListener("resize", showWhere);
+showWhere();
+
 // The arrow at the bottom of the pitch brings the next screen right under the header
 document.getElementById("more").onclick = () => {
   const showcase = document.getElementById("showcase");
