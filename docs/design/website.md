@@ -37,8 +37,11 @@ Français et anglais, comme l'app, textes selon `docs/WRITING.md` : `/` en angla
 
 - Prises sur un téléphone qui n'a que la démo, jamais sur des données réelles.
 - La liste des captures et des vidéos est déclarée une fois (`site/private/layout.json`) : son fichier, son thème, son mode. Une absente tient sa place en local par une capture F-Droid ou un écran dessiné, marqué comme tel, et `./run site-deploy` refuse d'envoyer tant qu'il en manque une.
-- `./run site-shots` les prend sur le téléphone vidé, une par une : il dit quel écran mettre, prend la capture ou filme, et range le fichier.
-- Le pilotage par adb de `scripts/phone_ui.sh` les prend, et `adb shell screenrecord` filme les vidéos dont les gestes se rejouent ; la vraie discussion avec l'IA se filme une fois.
+- En deux langues, l'anglais d'abord : la page de chaque langue montre les siennes (`shots/en/`, `shots/fr/`, de même pour `videos/`). Tant que `layout.json` déclare `"fr_media": "en"`, la page française montre les anglaises et l'envoi n'exige que l'anglais ; ce réglage retiré, il exige les deux. Les cadres des tuiles de la zone se relèvent une fois, sur la capture anglaise.
+- `./run site-shots en` (puis `fr`) les prend sur le téléphone vidé, une par une : il dit quel écran mettre, prend la capture ou filme, et range le fichier.
+- Une vidéo suit son scénario écrit d'avance (`site/scenarios/<id>.txt`), une étape par touche Entrée, l'étape suivante toujours affichée : `setup:` l'écran de départ, `start` et `stop` le film, `do:` un geste fait au doigt, `type en:` ou `type fr:` un texte que le script tape par adb, mot par mot, dans le champ déjà touché. `adb input text` ne tape que l'ASCII : un texte accentué passe par ADBKeyBoard, installé sur le téléphone pour la séance française, que le script vérifie actif.
+- Pendant la séance, la barre d'état passe en mode démo (heure fixe, batterie pleine, aucune notification), et les touchers se voient pendant un film (« Afficher les appuis ») ; tout revient comme avant à la fin.
+- La vraie discussion avec l'IA se filme une fois par langue. La vidéo de l'IA extérieure est un enregistrement de l'écran de l'ordinateur, dont le script demande le chemin.
 
 ## Rester d'accord avec la démo
 
