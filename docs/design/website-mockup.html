@@ -57,6 +57,9 @@
   }
 
   * { box-sizing: border-box; }
+  /* Semi-guided scrolling: settles on a section's start when it stops near a border, free inside a taller one */
+  html { scroll-snap-type: y proximity; scroll-padding-top: 56px; }
+  .band, .band .pitch, .band .showcase, .privacy, section, footer { scroll-snap-align: start; }
   body {
     margin: 0; background: var(--bg); color: var(--ink);
     font: 17px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -86,10 +89,10 @@
      Desktop: one screen under the header, three columns (pitch, phone, picker).
      Phone upright: two screens, the pitch, then the phone with a folded picker.
      Short landscape: the pitch screen, then the picker on the left beside a phone sized by the width. */
-  .band { transition: background .35s, color .35s; height: calc(100svh - 56px); display: flex; flex-direction: column; }
+  .band { transition: background .35s, color .35s; height: calc(100svh - 56px); display: flex; flex-direction: column; position: relative; }
   .band .hero {
     flex: 1; min-height: 0; width: 100%; display: grid; grid-template-columns: 1.15fr auto auto;
-    grid-template-rows: minmax(0, 1fr); gap: 48px; align-items: center; padding-top: 24px; padding-bottom: 24px;
+    grid-template-rows: minmax(0, 1fr); gap: 48px; align-items: center; padding-top: 24px; padding-bottom: min(84px, 11svh);
   }
   .band .showcase, .band .phone-box { display: contents; }
   /* Sizes follow the height as much as the width: the band never overflows a short screen */
@@ -104,10 +107,11 @@
   .btn.ghost { background: transparent; color: inherit; border: 1.5px solid currentColor; }
   .band .phone { height: 100%; width: auto; }
   .more {
-    display: none; font: 600 15px system-ui, sans-serif; color: inherit; background: transparent; border: none;
-    cursor: pointer; opacity: .8; padding: 8px 12px; white-space: nowrap;
+    display: grid; place-items: center; position: absolute; bottom: min(16px, 2svh); left: 50%; transform: translateX(-50%);
+    width: min(56px, 8svh); height: min(56px, 8svh); border-radius: 50%; border: 1.5px solid currentColor; padding: 0;
+    color: inherit; background: transparent; cursor: pointer; opacity: .8;
   }
-  .more span { display: block; font-size: 28px; line-height: 1; animation: nudge 1.8s ease-in-out infinite; }
+  .more span { display: block; font-size: min(28px, 4.4svh); line-height: 1; animation: nudge 1.8s ease-in-out infinite; }
   .pitch-mark { display: none; }
   .brand { transition: opacity .3s; }
   .brand.away { opacity: 0; pointer-events: none; }
@@ -616,7 +620,11 @@
   brand.classList.toggle("away", upright.matches && window.scrollY < window.innerHeight / 2);
 
   // The nudge at the bottom of the pitch screen brings the second screen right under the header
-  document.getElementById("more").onclick = () => document.getElementById("showcase").scrollIntoView({ behavior: "smooth" });
+  document.getElementById("more").onclick = () => {
+    const showcase = document.getElementById("showcase");
+    const next = getComputedStyle(showcase).display === "contents" ? document.querySelector(".privacy") : showcase;
+    next.scrollIntoView({ behavior: "smooth" });
+  };
   modeSwitch.querySelectorAll("button").forEach(b => b.onclick = () => {
     try { localStorage.setItem("mode", b.dataset.mode); } catch (e) {}
     applyMode(b.dataset.mode);

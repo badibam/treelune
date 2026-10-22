@@ -13,6 +13,8 @@ Public : les curieux un peu techniques (celui qui installe depuis F-Droid), et c
 5. Les outils : leur liste, la capture de l'outil choisi, sa phrase `tagline`, comme `scripts/make_readme.py`. Puis les autres pièces, en cartes de texte, chacune avec son icône : routines, variables, identités, conditions et alertes, pointeurs, accès externe, ambiances.
 6. Les données en version longue, l'installation, et peut-être des pages à lire sur l'ordinateur (brancher une IA, l'accès externe, brancher un client MCP) : leur présence et leur contenu se décident sur la maquette.
 
+Le défilement se cale sur le début d'une partie quand il s'arrête près d'une frontière (en CSS, `scroll-snap-type: y proximity`), libre ailleurs et à l'intérieur d'une partie plus haute que l'écran. Une seule flèche ↓, au bas de l'ouverture, sur ordinateur comme sur téléphone : rien d'autre sur ce premier écran ne dit qu'il y a une suite ; dans les parties suivantes, elle prendrait la place du téléphone.
+
 Les parties 1, 3, 4 et 5 partagent un motif, le geste du site : des choix à côté d'un téléphone, et choisir change ce que le téléphone montre. Les ambiances se choisissent dans une liste ; ailleurs, les choix sont des tuiles, plusieurs par ligne, chacune avec son icône Lucide sur une pastille de sa couleur d'étiquette, et le détail du choix s'affiche dessous dans une boîte de taille fixe, marquée de bleu nuit, pour que rien ne saute et que l'œil y aille. Les choix changent de côté d'une partie à l'autre. Sur un téléphone tenu droit, une telle partie tient en un écran, sans sa phrase d'introduction : son titre, le téléphone, un détail court de quatre lignes au plus, puis un carrousel : le choix en place entre deux flèches de place fixe, son rang (« 3 / 12 »), et un balayage sur le téléphone qui passe au suivant ; sur un écran couché et bas aussi, une telle partie tient en un écran, sans sa phrase d'introduction : son titre, puis les tuiles et le détail à côté d'un téléphone aussi haut que la place laissée.
 
 Français et anglais, comme l'app, textes selon `docs/WRITING.md`. Les mots sont ceux de l'app : « l'IA de l'app » (celle qu'on règle dans l'app, qui exécute les routines et seule incarne une identité), « l'accès externe » et « une IA extérieure » (une IA qui tourne ailleurs, avec les exemples du Guide : « comme Claude, ChatGPT ou un modèle libre sur ton ordinateur avec LM Studio », jamais une seule marque).
@@ -48,7 +50,6 @@ Français et anglais, comme l'app, textes selon `docs/WRITING.md`. Les mots sont
 - `www.treelune.app` : son entrée du Multisite, puis le certificat régénéré pour couvrir les deux noms.
 - Les pages pour l'ordinateur, sur la maquette.
 - « Avec une IA extérieure » dans En action : la place du téléphone exploitée autrement qu'avec une capture d'écran de navigateur en 16:9, à préciser.
-- Sur ordinateur, ce qui mène de l'ouverture à la suite, le bouton « Voir comment ça marche » retiré.
 
 ## La maquette
 
