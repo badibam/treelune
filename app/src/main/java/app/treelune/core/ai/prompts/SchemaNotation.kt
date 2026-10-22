@@ -84,9 +84,11 @@ object SchemaNotation {
     }
 
     /**
-     * A oneOf: when one property holds a const in every branch, it is the selector, and what
-     * every branch holds alike is written once, the rest under "if <selector> = <option>".
-     * Otherwise each branch is written whole.
+     * A oneOf: when one property holds a different const in every branch, it is the selector,
+     * and what every branch holds alike is written once, the rest under "if <selector> =
+     * <option>". Otherwise each branch is written whole. A const the same in every branch (a
+     * step's kind, around the variant of its end) is not the selector: it is written once, as
+     * what the branches share.
      */
     private fun variantLines(branches: JSONArray, indent: String, path: String, definitions: Definitions): List<String> {
         val all = (0 until branches.length()).map { branches.getJSONObject(it) }
@@ -94,7 +96,8 @@ object SchemaNotation {
         val props = all.map { it.optJSONObject("properties") }
         if (props.any { it == null }) return oneOfWhole(all, indent, path, definitions)
         val selector = props[0]!!.keys().asSequence().firstOrNull { key ->
-            props.all { it!!.optJSONObject(key)?.has("const") == true }
+            props.all { it!!.optJSONObject(key)?.has("const") == true } &&
+                props.map { it!!.getJSONObject(key).get("const").toString() }.distinct().size == props.size
         } ?: return oneOfWhole(all, indent, path, definitions)
 
         val requireds = all.map { stringSet(it.optJSONArray("required")) }
@@ -170,10 +173,11 @@ object SchemaNotation {
     private fun isObject(schema: JSONObject) =
         (schema.has("properties") || schema.has("oneOf")) && schema.optString("format") != FieldValueSchema.REFERENCE
 
-    /** What kind of value: its options, its format, or its type. */
+    /** What kind of value: the one it is held to, its options, its format, or its type. */
     private fun kind(schema: JSONObject): String {
-        schema.optJSONArray("enum")?.let { options -> return (0 until options.length()).joinToString("|") { options.get(it).toString() } }
+        // A selector held to one option inside a branch keeps its options beside
         if (schema.has("const")) return "always ${schema.get("const")}"
+        schema.optJSONArray("enum")?.let { options -> return (0 until options.length()).joinToString("|") { options.get(it).toString() } }
         when (schema.optString("format")) {
             "date-time" -> return "ISO 8601 date-time with offset"
             "duration" -> return "ISO 8601 duration"

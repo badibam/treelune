@@ -119,6 +119,29 @@ class SchemaNotationTest {
         assertTrue(notation, notation.contains("if type = two: nothing more"))
     }
 
+    /** A variant inside an option, whose branches all hold the outer selector to that option. */
+    @Test
+    fun aVariantInsideAnOptionIsToldApartByItsOwnSelector() {
+        fun choice(name: String, vararg options: String) = SettingNode.Field(field(name, FieldType.CHOICE,
+            mapOf("options" to options.map { mapOf("value" to it) })), required = true)
+        val nodes = listOf(SettingNode.Variant(
+            selector = choice("kind", "step", "block"),
+            cases = mapOf(
+                "step" to listOf(SettingNode.Variant(
+                    selector = choice("end", "timed", "manual"),
+                    cases = mapOf("timed" to listOf(SettingNode.Field(field("duration", FieldType.DURATION), required = true)), "manual" to emptyList())
+                )),
+                "block" to listOf(SettingNode.Field(field("repeat", FieldType.NUMERIC, mapOf("decimals" to 0)), required = true))
+            )
+        ))
+        val notation = SchemaNotation.render(modelView(SettingsSchemaGenerator.generate(nodes, text)))
+
+        assertTrue(notation, notation.contains("kind*: always step"))
+        assertTrue(notation, notation.contains("if end = timed:"))
+        assertTrue(notation, notation.contains("if end = manual: nothing more"))
+        assertTrue(notation, "if kind = step" !in notation)
+    }
+
     @Test
     fun aListOfFieldDefinitionsPointsToThePrompt() {
         val notation = SchemaNotation.render(generated.getValue("settings"))
