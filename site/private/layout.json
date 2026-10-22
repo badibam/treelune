@@ -1,0 +1,76 @@
+{
+  "_comment": "The page without its words: what each section shows, its icons and colours, and every capture and video it declares. The words live in texts.php, by the same ids; what comes from the app (tools, themes, the demo's zone) in generated.json, written by scripts/make_site_data.py. A capture or video declared here and missing from public_html/ stands in locally and blocks ./run site-deploy.",
+  "screen": [1440, 2898],
+  "themes": [
+    {"id": "cosy", "font": "baloo2_extrabold.ttf", "family": "Baloo 2", "licence": "baloo2", "light": ["#D0F0EF", "#1F3B3A"], "dark": ["#1B2A3A", "#E8F3F2"], "fdroid": 2},
+    {"id": "default", "font": null, "family": "system-ui", "licence": null, "light": ["#FFFFFF", "#1B2233"], "dark": ["#141218", "#E6E1E9"], "fdroid": 1},
+    {"id": "swiss", "font": "archivo_black.ttf", "family": "Archivo Black", "licence": "archivo", "light": ["#F2F0EB", "#111111"], "dark": ["#141414", "#F2F0EB"], "fdroid": 3},
+    {"id": "ink", "font": "literata_semibold.ttf", "family": "Literata", "licence": "literata", "light": ["#F3EEE2", "#1D1C1A"], "dark": ["#1D1C1A", "#EDE7DA"], "fdroid": 4},
+    {"id": "eink", "font": "atkinson_extrabold.ttf", "family": "Atkinson", "licence": "atkinson-next", "light": ["#FFFFFF", "#000000"], "dark": ["#000000", "#FFFFFF"], "fdroid": 5},
+    {"id": "metro", "font": "overpass_extrabold.ttf", "family": "Overpass", "licence": "overpass", "light": ["#F5F6F8", "#122446"], "dark": ["#0E1730", "#F5F6F8"], "fdroid": 6},
+    {"id": "blueprint", "font": "architects_daughter.ttf", "family": "Architects Daughter", "licence": "architects-daughter", "light": ["#F3F2ED", "#1F4A8A"], "dark": ["#1F4F8F", "#EAF2FF"], "fdroid": 7, "grid": true},
+    {"id": "paper", "font": "bricolage_title.ttf", "family": "Bricolage", "licence": "bricolage", "light": ["#D6B688", "#2A2118"], "dark": ["#2A1F17", "#F3E6D0"], "fdroid": 8},
+    {"id": "retro", "font": "cartouche_regular.ttf", "family": "Cartouche", "licence": "cartouche", "light": ["#FFF3E4", "#2A1A0A"], "dark": ["#1E1914", "#F6ECD2"], "fdroid": 9}
+  ],
+  "privacy": [
+    {"id": "no_account", "icon": "user-round-x", "color": "blue"},
+    {"id": "your_ai", "icon": "key-round", "color": "purple"},
+    {"id": "outside_ai", "icon": "network", "color": "green"}
+  ],
+  "zone": {
+    "shot": {"file": "shots/zone-italian.webp", "theme": "ink", "mode": "light"},
+    "_tiles": "Each tool's tile on the capture, as [left, top, width, height] in fractions of the image; written by ./run site-shots from the screen's layout, null until then.",
+    "tiles": {
+      "demo-italian-evening": null,
+      "demo-italian-goal": null,
+      "demo-italian-chart": null,
+      "demo-italian-lexicon": null,
+      "demo-italian-deck": null,
+      "demo-italian-phrases": null,
+      "demo-italian-suitcase": null
+    },
+    "colors": {
+      "demo-italian-evening": "blue",
+      "demo-italian-phrases": "pink",
+      "demo-italian-chart": "green",
+      "demo-italian-lexicon": "orange"
+    }
+  },
+  "videos": [
+    {"id": "ai_creates_tool", "icon": "sparkles", "color": "purple", "file": "videos/ai-creates-tool.mp4", "poster": "videos/ai-creates-tool.webp", "theme": "cosy", "mode": "dark", "frame": "phone"},
+    {"id": "quick_entry", "icon": "zap", "color": "orange", "file": "videos/quick-entry.mp4", "poster": "videos/quick-entry.webp", "theme": "swiss", "mode": "light", "frame": "phone"},
+    {"id": "discussion", "icon": "message-circle", "color": "blue", "file": "videos/discussion.mp4", "poster": "videos/discussion.webp", "theme": "eink", "mode": "dark", "frame": "phone"},
+    {"id": "routine", "icon": "repeat", "color": "teal", "file": "videos/routine.mp4", "poster": "videos/routine.webp", "theme": "metro", "mode": "light", "frame": "phone"},
+    {"id": "outside_ai", "icon": "network", "color": "green", "file": "videos/outside-ai.mp4", "poster": "videos/outside-ai.webp", "theme": null, "mode": null, "frame": "computer"}
+  ],
+  "_tools": "The tool types in the site's order, each with its colour and its capture; scripts/make_site_data.py --check fails when the app has a tool type missing here.",
+  "tools": [
+    {"id": "tracking", "color": "orange", "shot": {"file": "shots/tool-tracking.webp", "theme": "cosy", "mode": "light"}},
+    {"id": "goal", "color": "yellow", "shot": {"file": "shots/tool-goal.webp", "theme": "swiss", "mode": "dark"}},
+    {"id": "chart", "color": "green", "shot": {"file": "shots/tool-chart.webp", "theme": "ink", "mode": "light"}},
+    {"id": "flashcards", "color": "teal", "shot": {"file": "shots/tool-flashcards.webp", "theme": "metro", "mode": "dark"}},
+    {"id": "agenda", "color": "blue", "shot": {"file": "shots/tool-agenda.webp", "theme": "blueprint", "mode": "light"}},
+    {"id": "sequence", "color": "red", "shot": {"file": "shots/tool-sequence.webp", "theme": "paper", "mode": "dark"}},
+    {"id": "structured", "color": "purple", "shot": {"file": "shots/tool-structured.webp", "theme": "retro", "mode": "light"}},
+    {"id": "questionnaire", "color": "pink", "shot": {"file": "shots/tool-questionnaire.webp", "theme": "eink", "mode": "dark"}},
+    {"id": "list", "color": "teal", "shot": {"file": "shots/tool-list.webp", "theme": "default", "mode": "light"}},
+    {"id": "journal", "color": "orange", "shot": {"file": "shots/tool-journal.webp", "theme": "ink", "mode": "dark"}},
+    {"id": "notes", "color": "yellow", "shot": {"file": "shots/tool-notes.webp", "theme": "cosy", "mode": "light"}},
+    {"id": "messages", "color": "red", "shot": {"file": "shots/tool-messages.webp", "theme": "swiss", "mode": "dark"}}
+  ],
+  "pieces": [
+    {"id": "routines", "icon": "calendar-clock", "color": "teal"},
+    {"id": "variables", "icon": "variable", "color": "orange"},
+    {"id": "conditions", "icon": "bell-ring", "color": "red"},
+    {"id": "identities", "icon": "venetian-mask", "color": "purple"},
+    {"id": "pointers", "icon": "mouse-pointer-click", "color": "blue"},
+    {"id": "external_access", "icon": "network", "color": "green"},
+    {"id": "themes", "icon": "palette", "color": "pink"}
+  ],
+  "links": {
+    "fdroid": "https://f-droid.org/packages/app.treelune/",
+    "apk": "https://github.com/badibam/treelune/releases/latest",
+    "source": "https://github.com/badibam/treelune",
+    "bug": "https://github.com/badibam/treelune/issues"
+  }
+}
