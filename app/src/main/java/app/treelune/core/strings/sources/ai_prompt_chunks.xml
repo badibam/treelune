@@ -1081,7 +1081,8 @@ A schema is written one value per line, what a value holds indented under it:
 - `default …`: in a config, what an absent value means: leave it out to take it, write it only to choose another. In an entry, a value suggested for a new entry, never filled in for you: write it when it is what the user means, or the value stays without an answer
 - `suggested …`: on a required value, what to write when you mean nothing else
 - `written by the app, never sent`: read it, never write it
-- `if type = X:` what the value named just above adds when it is X
+- `if type = X: …` what X means, then, indented under it, what the value named just above adds when it is X
+- `list of … Each element: …`: what the list is, then what one of its elements is
 - The label and the description say what a value means: its unit, what the bounds of a scale mean, the options of a choice
 - Only the keys listed are accepted]]></string>
 

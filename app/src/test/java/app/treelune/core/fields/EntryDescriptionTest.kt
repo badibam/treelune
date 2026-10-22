@@ -115,4 +115,12 @@ class EntryDescriptionTest {
         assertEquals(level1("tracking"), executed.promptResults.first().formattedData)
         assertNotNull(executed.promptResults.drop(1).firstOrNull { it.formattedData.contains("tracking_config") })
     }
+
+    @Test
+    fun `a tool created without its type's config schema waits for it, its entry's first level before it`() = runBlocking {
+        val held = CommandExecutor(context).schemaRequiredForActions(emptyList(), listOf("tracking"), "no-session")!!
+        val targets = held.commandResults.map { it.data?.get(SessionReads.TARGET) }
+        assertEquals(listOf(EntryDescription.target("tracking"), "tracking_config"), targets)
+        assertTrue(held.formattedData!!.contains("tooltype: tracking"))
+    }
 }

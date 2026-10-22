@@ -995,11 +995,13 @@ class CommandExecutor(private val context: Context) {
      */
     private data class MissingSchemaInfo(
         val schemaId: String,
-        val toolInstanceId: String,
-        val schemaContent: String,  // Full JSON schema content
-        val tooltype: String?,      // Whose operations come with the schema
-        val fingerprint: String,    // Of its text, as a SCHEMA command's result reads (schemaText)
-        val replacesEarlier: Boolean // The model received another version of it in the session
+        val target: String,             // Its read target (SessionReads)
+        val params: Map<String, String>, // What it is asked by, as a SCHEMA command: a tool's id, or a tool type
+        val schemaContent: String,      // Full JSON schema content
+        val tooltype: String?,          // Whose entry's first level comes before it
+        val withOperations: Boolean,    // A tool's entries schema, which its type's operations follow
+        val fingerprint: String,        // Of its text, as a SCHEMA command's result reads (schemaText)
+        val replacesEarlier: Boolean    // The model received another version of it in the session
     )
 
     /** A schema as the model reads it: its id, its notation, its tooltype's operations. */
@@ -1007,19 +1009,22 @@ class CommandExecutor(private val context: Context) {
         "schema_id: $schemaId\n" + schemaForModel(content) + operationsForModel(tooltype)
 
     /**
-     * The SCHEMA_REQUIRED message for the AI's writes: the entries schemas of the tools among
-     * [toolInstanceIds] the model has not received in [sessionId], or null when it holds them all.
+     * The SCHEMA_REQUIRED message for the AI's actions: the entries schemas of the tools among
+     * [toolInstanceIds] they write, and the config schemas of the tool types among [tooltypes]
+     * they create a tool of, those the model has not received in [sessionId]; null when it holds
+     * them all.
      *
      * A write waits on the schema as a query does. A value that fits the schema can still be
      * wrong in meaning — a unit, the ends of a scale, what an option stands for — and only the
-     * schema tells it. The caller checks before the user is asked to validate the writes.
+     * schema tells it; a tool's config as much, which the schema of its type and the first level
+     * of its entry explain. The caller checks before the user is asked to validate the actions.
      */
-    suspend fun schemaRequiredForWrites(toolInstanceIds: Collection<String>, sessionId: String): SystemMessage? {
+    suspend fun schemaRequiredForActions(toolInstanceIds: Collection<String>, tooltypes: Collection<String>, sessionId: String): SystemMessage? {
         val sent = loadSentReads(sessionId)
-        val missingSchemas = missingEntrySchemas(toolInstanceIds, sent)
+        val missingSchemas = missingEntrySchemas(toolInstanceIds, sent) + missingConfigSchemas(tooltypes, sent)
         if (missingSchemas.isEmpty()) return null
-        LogManager.aiPrompt("Writes held back: ${missingSchemas.size} entries schemas missing", "WARN")
-        return schemaRequiredMessage(missingSchemas, sent, "ai_schema_required_for_writes_shown", "ai_schema_required_for_writes_summary")
+        LogManager.aiPrompt("Actions held back: ${missingSchemas.size} schemas missing", "WARN")
+        return schemaRequiredMessage(missingSchemas, sent, "ai_schema_required_for_actions_shown", "ai_schema_required_for_actions_summary")
     }
 
     /**
@@ -1044,7 +1049,7 @@ class CommandExecutor(private val context: Context) {
      */
     private suspend fun schemaRequiredMessage(missingSchemas: List<MissingSchemaInfo>, sent: Map<String, String>, shownKey: String, forAIKey: String): SystemMessage {
         val schemaSummary = missingSchemas.joinToString("\n") { schema ->
-            "- ${schema.schemaId} (tool instance: ${schema.toolInstanceId})"
+            "- ${schema.schemaId} (" + schema.params.entries.joinToString { (key, value) -> "$key: $value" } + ")"
         }
 
         val schemasText = StringBuilder()
@@ -1059,10 +1064,10 @@ class CommandExecutor(private val context: Context) {
         }
         for (schema in missingSchemas) {
             schemasText.appendLine("## Schema: ${schema.schemaId}")
-            schemasText.appendLine("Tool Instance: ${schema.toolInstanceId}")
+            schema.params.forEach { (key, value) -> schemasText.appendLine("$key: $value") }
             if (schema.replacesEarlier) schemasText.appendLine(s.shared("ai_read_replaces"))
             schemasText.appendLine()
-            schemasText.appendLine(schemaForModel(schema.schemaContent) + operationsForModel(schema.tooltype))
+            schemasText.appendLine(schemaForModel(schema.schemaContent) + operationsForModel(schema.tooltype.takeIf { schema.withOperations }))
             schemasText.appendLine()
         }
         LogManager.aiPrompt("SCHEMA_REQUIRED formattedData length: ${schemasText.length}", "DEBUG")
@@ -1070,17 +1075,15 @@ class CommandExecutor(private val context: Context) {
         // Verbalized by SchemaService, as a SCHEMA command's result is
         val schemaService = app.treelune.core.services.SchemaService(context)
         val schemaCommandResults = missingSchemas.map { schema ->
-            val params = JSONObject().put("tool_instance_id", schema.toolInstanceId)
             app.treelune.core.ai.data.CommandResult(
                 command = "schemas.get",
                 status = CommandStatus.SUCCESS,
-                details = schemaService.verbalize("get", params, context),
-                data = mapOf(
+                details = schemaService.verbalize("get", JSONObject(schema.params), context),
+                data = mapOf<String, Any>(
                     "schema_id" to schema.schemaId,
-                    "tool_instance_id" to schema.toolInstanceId,
-                    SessionReads.TARGET to SessionReads.entriesSchemaTarget(schema.toolInstanceId),
+                    SessionReads.TARGET to schema.target,
                     SessionReads.FINGERPRINT to schema.fingerprint
-                ),
+                ) + schema.params,
                 error = null,
                 isActionCommand = false
             )
@@ -1126,9 +1129,11 @@ class CommandExecutor(private val context: Context) {
 
             missingSchemas.add(MissingSchemaInfo(
                 schemaId = schemaId,
-                toolInstanceId = toolInstanceId,
+                target = target,
+                params = mapOf("tool_instance_id" to toolInstanceId),
                 schemaContent = schemaContent,
                 tooltype = tooltype,
+                withOperations = true,
                 fingerprint = fingerprint,
                 replacesEarlier = outcome == SessionReads.Outcome.CHANGED
             ))
@@ -1136,6 +1141,28 @@ class CommandExecutor(private val context: Context) {
 
         return missingSchemas
     }
+
+    /**
+     * The config schemas of the tool types among [tooltypes] the model does not hold as they are
+     * now ([sent]), as missingEntrySchemas does for a tool's entries.
+     *
+     * @throws UnreadableSchema when one of them cannot be read (a tool type that does not exist)
+     */
+    private suspend fun missingConfigSchemas(tooltypes: Collection<String>, sent: Map<String, String>): List<MissingSchemaInfo> =
+        tooltypes.distinct().mapNotNull { tooltype ->
+            val params = mapOf("tooltype" to tooltype)
+            val target = SessionReads.target("schemas", "get", params)!!
+            val schemaResult = coordinator.processUserAction("schemas.get", params)
+            val schemaContent = (schemaResult.data?.get("content") as? String)?.takeIf { it.isNotEmpty() }
+            if (!schemaResult.isSuccess || schemaContent == null) throw UnreadableSchema(tooltype, schemaResult.error ?: "no content")
+            val schemaId = schemaResult.data?.get("schema_id") as? String ?: target
+            // As a SCHEMA command's result reads it: a config's schema carries no operations
+            val fingerprint = SessionReads.fingerprint(schemaText(schemaId, schemaContent, null))
+            val outcome = SessionReads.outcome(sent[target], fingerprint)
+            LogManager.aiPrompt("Schema $target held by the model: $outcome", "DEBUG")
+            if (outcome == SessionReads.Outcome.SAME) null
+            else MissingSchemaInfo(schemaId, target, params, schemaContent, tooltype, withOperations = false, fingerprint, outcome == SessionReads.Outcome.CHANGED)
+        }
 
     /** The first level of a tool type's entry, read for the model, with its read target and its text's fingerprint. */
     private class EntryRead(val result: InternalCommandResult, val target: String, val fingerprint: String)
@@ -1176,9 +1203,9 @@ class CommandExecutor(private val context: Context) {
         )
     }
 
-    /** The entries schema of the tool [toolInstanceId] could not be read, for [reason] (the service's words). */
-    class UnreadableSchema(val toolInstanceId: String, val reason: String) :
-        IllegalStateException("Cannot read the entries schema of tool $toolInstanceId: $reason")
+    /** The schema of [what], a tool or a tool type, could not be read, for [reason] (the service's words). */
+    class UnreadableSchema(val what: String, val reason: String) :
+        IllegalStateException("Cannot read the schema of $what: $reason")
 
     /** The fingerprints the model last received in [sessionId], by target (SessionReads.sent). */
     private suspend fun loadSentReads(sessionId: String): Map<String, String> {

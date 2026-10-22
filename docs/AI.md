@@ -433,10 +433,10 @@ Event AIResponseParsed:
 Event DataQueriesExecuted:
   → transition CALLING_AI, emit a new round
 
-Event SchemaRequired (writes on a tool whose entries' schema, as it stands, the AI has not received in the session):
+Event SchemaRequired (writes on a tool whose entries' schema, as it stands, the AI has not received in the session; the creation of a tool of a type whose config schema it has not):
   → emitted by parseAIResponse, before validation: nothing is run nor submitted to the user
-  → SCHEMA_REQUIRED message with the missing schemas, transition CALLING_AI
-  → an unreadable schema (a tool that does not exist) refuses the writes as a wrong command, in the service's words: ParseErrorOccurred
+  → SCHEMA_REQUIRED message with the missing schemas, each after the first level of its type's entry, transition CALLING_AI
+  → an unreadable schema (a tool or a tool type that does not exist) refuses the actions as a wrong command, in the service's words: ParseErrorOccurred
 
 Event DataConfirmationRequested (CHAT, data beyond the threshold):
   → transition WAITING_DATA_CONFIRMATION
