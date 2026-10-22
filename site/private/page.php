@@ -345,9 +345,9 @@ $links = $layout['links'];
   </div>
 </section>
 
-<!-- 6. Install -->
+<!-- 6. Install, the footer at the bottom of its screen -->
 <section id="install" class="install">
-  <div class="wrap">
+  <div class="wrap install-body">
     <div class="signature"><svg width="120" height="120" aria-hidden="true"><use href="#mark"/></svg></div>
     <h2><?= $t('install.title') ?></h2>
     <p class="lead"><?= $t('install.lead') ?></p>
@@ -361,15 +361,14 @@ $links = $layout['links'];
     </div>
     <p class="young"><?= $t('install.young') ?></p>
   </div>
+  <footer>
+    <div class="wrap">
+      <span><?= $t('footer.licence') ?></span>
+      <span><a href="<?= h($links['source']) ?>"><?= $t('footer.source') ?></a> · <a href="<?= h($links['bug']) ?>"><?= $t('footer.bug') ?></a> · <a href="<?= h(LANGUAGE_PATHS[$otherLang]) ?>" hreflang="<?= h($otherLang) ?>" lang="<?= h($otherLang) ?>"><?= $t('meta.other_language') ?></a></span>
+    </div>
+  </footer>
 </section>
 </main>
-
-<footer>
-  <div class="wrap">
-    <span><?= $t('footer.licence') ?></span>
-    <span><a href="<?= h($links['source']) ?>"><?= $t('footer.source') ?></a> · <a href="<?= h($links['bug']) ?>"><?= $t('footer.bug') ?></a> · <a href="<?= h(LANGUAGE_PATHS[$otherLang]) ?>" hreflang="<?= h($otherLang) ?>" lang="<?= h($otherLang) ?>"><?= $t('meta.other_language') ?></a></span>
-  </div>
-</footer>
 
 <dialog id="lightbox" aria-label="<?= $t('common.enlarge') ?>">
   <button type="button" class="lb-close" aria-label="<?= $t('common.close') ?>">×</button>
