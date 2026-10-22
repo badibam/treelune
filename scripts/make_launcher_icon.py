@@ -13,6 +13,10 @@ the build never needs this script nor shapely:
   - res/drawable/app_mark_retro.xml, the retro theme's mark beside the home screen's title, in
     pixels, from the grid of themes/retro/app-mark.txt.
 
+It also writes site/public_html/mark.svg, the mark of the site treelune.app: the launcher's view
+of the icon, the same shapes on the night, in a square with rounded corners; the site's page
+draws it from that file, in its header, its install screen and the browser's tab.
+
 `--store` draws the same shapes in PNG for the F-Droid listing, in
 fastlane/metadata/android/en-US/images/ (the other locales fall back to it): icon.png, the
 launcher's view of the icon in 512 x 512, and featureGraphic.png, the moon and the tree beside
@@ -33,7 +37,7 @@ Changing the icon = changing the shapes or colours below, running this script (i
 environment that has shapely: `pip install shapely`), committing.
 
 Usage:
-    ./scripts/make_launcher_icon.py            write the four drawables
+    ./scripts/make_launcher_icon.py            write the four drawables and the site's mark
     ./scripts/make_launcher_icon.py --pixel    print the shapes' grid in pixels
     ./scripts/make_launcher_icon.py --store    draw the store listing's icon and feature graphic
 """
@@ -49,6 +53,7 @@ ROOT = Path(__file__).resolve().parent.parent
 STORE_IMAGES = ROOT / "fastlane" / "metadata" / "android" / "en-US" / "images"
 WORDMARK_FONT = ROOT / "app" / "src" / "main" / "res" / "font" / "baloo2_semibold.ttf"
 DRAWABLE = ROOT / "app" / "src" / "main" / "res" / "drawable"
+SITE_MARK = ROOT / "site" / "public_html" / "mark.svg"
 PIXEL_GRID = ROOT / "app" / "src" / "main" / "java" / "app" / "treelune" / "themes" / "retro" / "app-mark.txt"
 
 BACKGROUND = "#1E2A47"
@@ -76,6 +81,9 @@ PIXELS = 22
 PIXEL_WINDOW = (18.8, 16.8, 89.2, 87.2)
 PIXEL_COVERAGE = 0.45
 
+
+# The site's mark: the corners' radius, in units of the launcher's 72.
+SITE_MARK_CORNER = 16
 
 # The store images: drawn this many times larger, then reduced, which smooths their edges.
 SUPERSAMPLE = 4
@@ -186,6 +194,22 @@ def vector(paths, comment):
         f"{body}\n</vector>\n")
 
 
+def site_mark():
+    """The launcher's view of the icon as an SVG: the night in a square with rounded corners, the
+    moon and the tree on it."""
+    moon, trunk, crown = shapes()
+    low, high = ICON_WINDOW
+    side = high - low
+    paths = "\n".join(
+        f'  <path fill="{color}" fill-rule="evenodd" d="{path_data(geometry)}"/>'
+        for color, geometry in ((MOON, moon), (TRUNK, trunk), (LEAVES, crown)))
+    return (
+        "<!-- The app's mark, the launcher icon's shapes. Written by scripts/make_launcher_icon.py: change it there. -->\n"
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{low} {low} {side} {side}">\n'
+        f'  <rect x="{low}" y="{low}" width="{side}" height="{side}" rx="{SITE_MARK_CORNER}" fill="{BACKGROUND}"/>\n'
+        f"{paths}\n</svg>\n")
+
+
 def draw_shapes(image, scale, offset):
     """Paints the moon and the tree on image, a unit becoming scale pixels, (0, 0) at offset."""
     from PIL import Image, ImageDraw
@@ -268,6 +292,10 @@ def main():
         staged.write_text(text, encoding="utf-8")
         staged.replace(target)
         print(f"wrote {name}")
+    staged = SITE_MARK.with_name(SITE_MARK.name + ".part")
+    staged.write_text(site_mark(), encoding="utf-8")
+    staged.replace(SITE_MARK)
+    print(f"wrote {SITE_MARK.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":

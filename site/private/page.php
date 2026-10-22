@@ -206,6 +206,11 @@ $bandIndex = array_search($bandFirst, $bandThemes, true);
 $fontFamily = fn(string $family): string => $family === 'system-ui' ? 'system-ui, sans-serif' : '"' . $family . '", system-ui, sans-serif';
 
 $links = $layout['links'];
+
+// The app's mark, drawn by scripts/make_launcher_icon.py from the launcher icon's shapes, made a
+// symbol the page reuses small and large; the file is trusted, written by that script.
+preg_match('#<svg[^>]*viewBox="([^"]+)"[^>]*>(.*)</svg>#s', file_get_contents(SITE_PUBLIC . '/mark.svg'), $mark);
+$markSymbol = '<symbol id="mark" viewBox="' . h($mark[1]) . '">' . $mark[2] . '</symbol>';
 ?>
 <!doctype html>
 <html lang="<?= h($lang) ?>">
@@ -234,17 +239,7 @@ $links = $layout['links'];
 <body>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <defs>
-    <symbol id="mark" viewBox="0 0 100 100">
-      <rect width="100" height="100" rx="22" fill="#1E2A47"/>
-      <mask id="crescent"><rect width="100" height="100" fill="#fff"/><circle cx="70" cy="30" r="22" fill="#000"/></mask>
-      <circle cx="58" cy="38" r="24" fill="#F2E6BF" mask="url(#crescent)"/>
-      <rect x="45" y="56" width="8" height="28" rx="2" fill="#558B58"/>
-      <circle cx="49" cy="52" r="17" fill="#76B578"/>
-      <circle cx="37" cy="60" r="11" fill="#76B578"/>
-      <circle cx="61" cy="60" r="11" fill="#76B578"/>
-    </symbol>
-  </defs>
+  <defs><?= $markSymbol ?></defs>
 </svg>
 
 <header>
