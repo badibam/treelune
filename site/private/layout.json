@@ -1,6 +1,7 @@
 {
   "_comment": "The page without its words: what each section shows, its icons and colours, and every capture and video it declares. The words live in texts.php, by the same ids; what comes from the app (tools, themes, the demo's zone) in generated.json, written by scripts/make_site_data.py. A capture or video declared here and missing from public_html/ stands in locally and blocks ./run site-deploy.",
-  "screen": [1440, 2898],
+  "_screen": "The phone's screen in pixels, held upright, the site's frames drawn to its proportion; written by ./run site-shots from the phone.",
+  "screen": [1440, 3040],
   "_fr_media": "While \"en\", the French page shows the English captures and videos, and the deploy waits for the English ones only; removed once the French ones are taken.",
   "fr_media": "en",
   "_band_theme": "The theme the opening band shows first.",

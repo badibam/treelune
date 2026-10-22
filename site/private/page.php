@@ -232,6 +232,8 @@ $markSymbol = '<symbol id="mark" viewBox="' . h($mark[1]) . '">' . $mark[2] . '<
   try { var m = localStorage.getItem("mode"); if (m === "light" || m === "dark") document.documentElement.dataset.theme = m; } catch (e) {}
 </script>
 <style>
+  /* The phone's screen, width over height: the captures' own proportion (layout.json "screen") */
+  :root { --screen: calc(<?= (int) $layout['screen'][0] ?> / <?= (int) $layout['screen'][1] ?>); }
 <?php foreach ($layout['themes'] as $theme): if ($theme['font']): ?>
   @font-face { font-family: "<?= h($theme['family']) ?>"; src: url("<?= h(asset('fonts/' . $theme['font'])) ?>") format("truetype"); font-display: swap; }
 <?php endif; endforeach ?>

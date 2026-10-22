@@ -16,6 +16,9 @@ put on the phone, then:
     the outside AI's video  a screen recording made on the computer, whose path is asked, its
                             scenario shown as what to record
 
+layout.json's "screen" is the phone's, written by the first session; a phone of another size is
+refused once captures or videos exist, the site's frames drawn to one proportion.
+
 For the session, the status bar is in Android's demo mode (a fixed time, a full battery, no
 notification), and while filming the touches show on screen; both are put back at the end.
 
@@ -160,14 +163,42 @@ def save_shot(image, path, screen):
     expected = screen[0] / screen[1]
     if abs(ratio - expected) / expected > RATIO_TOLERANCE:
         sys.exit(
-            f"The capture is {image.width}×{image.height}, layout.json's \"screen\" says {screen[0]}×{screen[1]}: "
-            "set \"screen\" to this phone's, once, and run site-shots again"
+            f"The capture is {image.width}×{image.height}, the phone's screen {screen[0]}×{screen[1]}: "
+            "is the phone held sideways, or was its resolution changed during the session?"
         )
     height = round(WIDTH * image.height / image.width)
     target = PUBLIC / path
     target.parent.mkdir(parents=True, exist_ok=True)
     image.resize((WIDTH, height)).save(target, "WEBP", quality=85, method=6)
     print(f"  {path}: {target.stat().st_size // 1024} KB")
+
+
+def phone_screen():
+    """The phone's screen size in pixels, held upright: its override if one is set, its physical size otherwise."""
+    sizes = dict(re.findall(r"(Physical|Override) size: (\d+x\d+)", adb_shell("wm size")))
+    width, height = map(int, sizes.get("Override", sizes["Physical"]).split("x"))
+    return [min(width, height), max(width, height)]
+
+
+def check_screen(layout):
+    """layout.json's "screen" set to the phone's; refused if captures or videos taken on another exist."""
+    screen = phone_screen()
+    if layout["screen"] == screen:
+        return
+    taken = [p for folder in ("shots", "videos") if (PUBLIC / folder).exists() for p in (PUBLIC / folder).rglob("*") if p.is_file()]
+    if taken:
+        sys.exit(
+            f"This phone's screen is {screen[0]}×{screen[1]}, layout.json's \"screen\" {layout['screen'][0]}×{layout['screen'][1]}, "
+            f"the size of the {len(taken)} captures and videos already in site/public_html/: take them on that phone, "
+            "or delete them all to take them again on this one"
+        )
+    text = LAYOUT.read_text(encoding="utf-8")
+    text = re.sub(r'"screen": \[[^\]]*\]', f'"screen": {json.dumps(screen)}', text, count=1)
+    partial = LAYOUT.with_name(LAYOUT.name + ".part")
+    partial.write_text(text, encoding="utf-8")
+    partial.replace(LAYOUT)
+    print(f"layout.json: \"screen\" set to this phone's, {screen[0]}×{screen[1]}")
+    layout["screen"] = screen
 
 
 def tile_frames(screen_size):
@@ -349,6 +380,7 @@ def main():
         return
     print(f"{len(todo)} missing in {lang}. The phone is set to that language and holds the demo alone.")
     device_ready()
+    check_screen(layout)
     global touches_before
     touches_before = adb_shell("settings get system show_touches") or "0"
     demo_mode(True)

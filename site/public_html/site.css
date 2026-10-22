@@ -12,8 +12,6 @@
   --line: #DDE1E8;
   --accent: var(--night);
   --header: 56px;
-  /* The phone's screen, width over height: the captures' own proportion (layout.json "screen") */
-  --screen: calc(1440 / 2898);
   /* Tag colours, the default theme's (DefaultDrawing.kt) */
   --red: #C94A4A; --orange: #D9772B; --yellow: #B8961A; --green: #4E9A45;
   --teal: #2E8F84; --blue: #3D6FC6; --purple: #7A55B0; --pink: #C4508D; --grey: #8C8699;
