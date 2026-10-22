@@ -183,10 +183,10 @@ object GoalToolType : ToolTypeContract {
                     choice(Status.ALL) { s.tool("status_$it") }), filterable = true),
                 StateField(field(PERIOD_END, s.tool("field_period_end"), FieldType.DATETIME, s.tool("schema_period_end")), filterable = true),
                 StateField(field(JUDGEMENT, s.tool("field_judgement"), FieldType.TEXT, s.tool("schema_judgement"), mapOf("length" to TextLength.UNLIMITED.name)), filterable = false),
-                StateField(field(VALIDATED_BY, s.tool("field_validated_by"), FieldType.TEXT, config = mapOf("length" to TextLength.SHORT.name)), filterable = false),
-                StateField(field(VALIDATED_AT, s.tool("field_validated_at"), FieldType.DATETIME), filterable = false),
-                StateField(field(REOPENED_AT, s.tool("field_reopened_at"), FieldType.DATETIME), filterable = false),
-                StateField(field(NOTIFIED, s.tool("field_notified"), FieldType.BOOLEAN), filterable = false)
+                StateField(field(VALIDATED_BY, s.tool("field_validated_by"), FieldType.TEXT, s.tool("schema_validated_by"), mapOf("length" to TextLength.SHORT.name)), filterable = false),
+                StateField(field(VALIDATED_AT, s.tool("field_validated_at"), FieldType.DATETIME, s.tool("schema_validated_at")), filterable = false),
+                StateField(field(REOPENED_AT, s.tool("field_reopened_at"), FieldType.DATETIME, s.tool("schema_reopened_at")), filterable = false),
+                StateField(field(NOTIFIED, s.tool("field_notified"), FieldType.BOOLEAN, s.tool("schema_notified")), filterable = false)
             ),
             // An attempt is opened by the goal itself, which sets its period and copies its definition
             start = app.treelune.core.fields.EntryStart(emptyList(), refusal = s.tool("start_refused"))

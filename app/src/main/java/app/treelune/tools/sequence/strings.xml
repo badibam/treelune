@@ -173,4 +173,7 @@
     <string name="schema_correct_steps_skipped">Steps skipped, for a session that does not keep its steps</string>
     <string name="schema_correct_steps_not_done">Steps not reached, for a session that does not keep its steps</string>
     <string name="schema_step_statuses_list">The state of each step, in order</string>
+
+    <string name="schema_started_at">When the session started</string>
+    <string name="schema_ended_at">When the session ended</string>
 </resources>

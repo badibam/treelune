@@ -116,4 +116,9 @@
     <string name="schema_sub_goal_name">Le nom du sous-objectif, montré avec son verdict</string>
     <string name="schema_recurrence_once">Une seule tentative, à partir de son début</string>
     <string name="schema_recurrence_recurring">Une tentative à chaque occurrence du planning, durant la durée</string>
+
+    <string name="schema_validated_by">Qui a validé la tentative : une personne ou l\'IA</string>
+    <string name="schema_validated_at">Quand la tentative a été validée</string>
+    <string name="schema_reopened_at">Quand la tentative a été rouverte après sa validation</string>
+    <string name="schema_notified">Si la tentative à valider a été notifiée</string>
 </resources>

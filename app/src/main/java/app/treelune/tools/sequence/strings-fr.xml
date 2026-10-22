@@ -173,4 +173,7 @@
     <string name="schema_correct_steps_skipped">Les étapes passées, pour une séance qui ne garde pas ses étapes</string>
     <string name="schema_correct_steps_not_done">Les étapes pas atteintes, pour une séance qui ne garde pas ses étapes</string>
     <string name="schema_step_statuses_list">L\'état de chaque étape, dans l\'ordre</string>
+
+    <string name="schema_started_at">Quand la séance a commencé</string>
+    <string name="schema_ended_at">Quand la séance s\'est terminée</string>
 </resources>

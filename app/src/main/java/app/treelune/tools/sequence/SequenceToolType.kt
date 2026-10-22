@@ -196,8 +196,8 @@ object SequenceToolType : ToolTypeContract {
             ),
             state = listOf(
                 StateField(field(STATUS, s.tool("field_status"), FieldType.CHOICE, s.tool("schema_status"), choice(Status.ALL) { s.tool("status_$it") }), filterable = true),
-                StateField(field(STARTED_AT, s.tool("field_started_at"), FieldType.DATETIME), filterable = false),
-                StateField(field(ENDED_AT, s.tool("field_ended_at"), FieldType.DATETIME), filterable = false),
+                StateField(field(STARTED_AT, s.tool("field_started_at"), FieldType.DATETIME, s.tool("schema_started_at")), filterable = false),
+                StateField(field(ENDED_AT, s.tool("field_ended_at"), FieldType.DATETIME, s.tool("schema_ended_at")), filterable = false),
                 StateField(field(RUN, s.tool("field_run"), FieldType.TEXT, s.tool("schema_run"), mapOf("length" to TextLength.UNLIMITED.name)), filterable = false)
             ),
             // A session is planned, started or noted by the tool's own operations
