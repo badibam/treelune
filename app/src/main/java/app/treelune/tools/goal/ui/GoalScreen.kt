@@ -36,7 +36,6 @@ import app.treelune.core.ui.CardType
 import app.treelune.core.ui.Duration
 import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
-import app.treelune.core.utils.DataChangeEvent
 import app.treelune.core.utils.DataChangeNotifier
 import app.treelune.core.utils.DateUtils
 import app.treelune.core.utils.JsonUtils
@@ -95,13 +94,8 @@ fun GoalScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureCl
         }
     }
     LaunchedEffect(toolInstanceId) {
-        DataChangeNotifier.changes.collect { event ->
-            when (event) {
-                is DataChangeEvent.ToolDataChanged -> if (event.toolInstanceId == toolInstanceId) version++
-                is DataChangeEvent.ToolsChanged, DataChangeEvent.VariablesChanged -> version++
-                else -> {}
-            }
-        }
+        // Its criteria read other tools' entries and variables
+        DataChangeNotifier.changes.collect { event -> if (event.mayChangeReadings()) version++ }
     }
     errorMessage?.let { message -> LaunchedEffect(message) { UI.Toast(message, Duration.LONG); errorMessage = null } }
 

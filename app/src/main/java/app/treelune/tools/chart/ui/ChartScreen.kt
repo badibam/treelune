@@ -23,7 +23,6 @@ import app.treelune.core.tools.ToolConfigSettings
 import app.treelune.core.ui.ButtonAction
 import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
-import app.treelune.core.utils.DataChangeEvent
 import app.treelune.core.utils.DataChangeNotifier
 import app.treelune.core.utils.JsonUtils
 import app.treelune.tools.chart.ChartToolType
@@ -58,12 +57,7 @@ fun ChartScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureC
         touched = null
     }
     LaunchedEffect(toolInstanceId) {
-        DataChangeNotifier.changes.collect { event ->
-            when (event) {
-                is DataChangeEvent.ToolDataChanged, is DataChangeEvent.ToolsChanged -> version++
-                else -> {}
-            }
-        }
+        DataChangeNotifier.changes.collect { event -> if (event.mayChangeReadings()) version++ }
     }
 
     Column(

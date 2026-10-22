@@ -25,7 +25,6 @@ import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
 import app.treelune.core.selection.PeriodType
 import app.treelune.core.ui.selectors.PointerDescription
-import app.treelune.core.utils.DataChangeEvent
 import app.treelune.core.utils.DataChangeNotifier
 import app.treelune.core.utils.DateUtils
 import app.treelune.core.utils.FormatUtils
@@ -57,7 +56,7 @@ fun rememberChartTile(tool: ToolInstance): ToolTile {
     var version by remember { mutableIntStateOf(0) }
     LaunchedEffect(tool.id, config.toString(), version) { reading = ChartReading.of(config, context) }
     LaunchedEffect(tool.id) {
-        DataChangeNotifier.changes.collect { event -> if (event is DataChangeEvent.ToolDataChanged) version++ }
+        DataChangeNotifier.changes.collect { event -> if (event.mayChangeReadings()) version++ }
     }
 
     return remember(tool.id, config.toString()) {

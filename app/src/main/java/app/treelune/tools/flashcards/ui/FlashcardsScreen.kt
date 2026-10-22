@@ -32,7 +32,6 @@ import app.treelune.core.ui.Duration
 import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
 import app.treelune.core.ui.chatButtonSpace
-import app.treelune.core.utils.DataChangeEvent
 import app.treelune.core.utils.DataChangeNotifier
 import app.treelune.core.utils.JsonUtils
 import app.treelune.tools.flashcards.FlashcardsToolType
@@ -72,9 +71,7 @@ fun FlashcardsScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
         if (result.isSuccess) { counts = DeckCounts.of(result.data); problem = null } else problem = result.error
     }
     LaunchedEffect(toolInstanceId) {
-        DataChangeNotifier.changes.collect { event ->
-            if (event is DataChangeEvent.ToolDataChanged || event is DataChangeEvent.ToolsChanged) version++
-        }
+        DataChangeNotifier.changes.collect { event -> if (event.mayChangeReadings()) version++ }
     }
 
     /** A session over [group] (null for the whole deck) and [direction] (null for every one), its cards read now. */

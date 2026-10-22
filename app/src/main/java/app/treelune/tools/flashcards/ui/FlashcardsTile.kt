@@ -21,7 +21,6 @@ import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
 import app.treelune.core.ui.components.TileGrid
 import app.treelune.core.ui.components.TileLine
-import app.treelune.core.utils.DataChangeEvent
 import app.treelune.core.utils.DataChangeNotifier
 import app.treelune.core.utils.LogManager
 
@@ -50,9 +49,7 @@ fun rememberFlashcardsTile(tool: ToolInstance): ToolTile {
         problem = null
     }
     LaunchedEffect(tool.id) {
-        DataChangeNotifier.changes.collect { event ->
-            if (event is DataChangeEvent.ToolDataChanged || event is DataChangeEvent.ToolsChanged) version++
-        }
+        DataChangeNotifier.changes.collect { event -> if (event.mayChangeReadings()) version++ }
     }
 
     return remember(tool.id) {

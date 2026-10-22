@@ -24,7 +24,6 @@ import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
 import app.treelune.core.ui.components.TileLine
 import app.treelune.core.ui.components.TileGrid
-import app.treelune.core.utils.DataChangeEvent
 import app.treelune.core.utils.DataChangeNotifier
 import app.treelune.core.utils.DateUtils
 import app.treelune.core.utils.FormatUtils
@@ -88,10 +87,9 @@ fun rememberGoalTile(tool: ToolInstance): ToolTile {
         }
         attempts = read
     }
+    // Its criteria read other tools' entries and variables
     LaunchedEffect(tool.id) {
-        DataChangeNotifier.changes.collect { event ->
-            if ((event is DataChangeEvent.ToolDataChanged && event.toolInstanceId == tool.id) || event is DataChangeEvent.VariablesChanged) version++
-        }
+        DataChangeNotifier.changes.collect { event -> if (event.mayChangeReadings()) version++ }
     }
 
     /** The two lines of the summary. */

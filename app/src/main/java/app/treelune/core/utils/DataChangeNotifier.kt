@@ -146,4 +146,11 @@ sealed class DataChangeEvent {
      * @param automationId ID of the automation whose sessions changed, or null for all automations
      */
     data class AISessionsChanged(val automationId: String?) : DataChangeEvent()
+
+    /**
+     * Whether this may change what a reader of other tools shows: a chart, a goal, flashcards.
+     * Such a reader reads again at any of these rather than sorting by what it reads, so that a
+     * source it forgot cannot leave it stale.
+     */
+    fun mayChangeReadings(): Boolean = this is ToolDataChanged || this is ToolsChanged || this == VariablesChanged
 }
