@@ -391,7 +391,15 @@
   /* Bottom */
   .install { text-align: center; }
   .install .buttons { justify-content: center; margin: 24px 0 8px; }
-  .signature { display: flex; justify-content: center; margin: 56px 0 8px; }
+  .signature { display: flex; justify-content: center; margin: 0 0 24px; }
+  .signature svg { filter: drop-shadow(0 10px 24px rgba(30, 42, 71, .25)); }
+  .needs { list-style: none; padding: 0; margin: 0 0 4px; color: var(--muted); font-size: 15px; }
+  .young { color: var(--muted); font-size: 14px; max-width: 520px; margin: 18px auto 0; }
+  /* Phone upright: the install screen is one screen, centred */
+  @media (max-width: 820px) and (orientation: portrait) {
+    .install { min-height: calc(100svh - 56px - 72px); display: flex; align-items: center; padding: 24px 0; }
+    .install .wrap { width: 100%; }
+  }
   footer { border-top: 1px solid var(--line); padding: 24px 0; color: var(--muted); font-size: 14px; }
   footer .wrap { display: flex; gap: 18px; flex-wrap: wrap; justify-content: space-between; }
 </style>
@@ -510,20 +518,24 @@
 <!-- 6. Data, install -->
 <section id="installer" class="install">
   <div class="wrap">
+    <div class="signature"><svg width="120" height="120"><use href="#mark"/></svg></div>
     <h2>Installer Treelune</h2>
-    <p class="lead" style="margin:0 auto">Une application Android libre, pour un téléphone 64 bits. Treelune est encore jeune, et n'a été essayée que sur quelques téléphones.</p>
+    <p class="lead" style="margin:0 auto 8px">Une application Android libre, sans compte ni publicité.</p>
+    <ul class="needs">
+      <li>Android 8.0 ou plus récent</li>
+      <li>Un téléphone 64 bits</li>
+    </ul>
     <div class="buttons">
       <a class="btn" href="#">F-Droid</a>
       <a class="btn ghost" href="#">APK sur GitHub</a>
     </div>
-    <span class="note">À décider sur la maquette : la version longue sur les données, et les pages pour l'ordinateur (brancher une IA, l'accès externe, brancher un client MCP).</span>
-    <div class="signature"><svg width="120" height="120"><use href="#mark"/></svg></div>
+    <p class="young">Treelune est encore jeune, et n'a été essayée que sur quelques téléphones. Pour qu'un problème soit corrigé, signale-le depuis Réglages › Signaler un bug.</p>
   </div>
 </section>
 
 <footer>
   <div class="wrap">
-    <span>Treelune — libre, sans compte, sans traceur.</span>
+    <span>Treelune, sous licence GPL-3.0. Ce site n'a aucun traceur.</span>
     <span><a href="#">Code source</a> · <a href="#">Signaler un bug</a> · <a href="#">English</a></span>
   </div>
 </footer>

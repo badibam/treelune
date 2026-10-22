@@ -11,7 +11,9 @@ Public : les curieux un peu techniques (celui qui installe depuis F-Droid), et c
 3. La zone Italien : ses outils et sa routine en liste ; le choix entoure sa tuile sur la capture de la zone et dit à quoi il sert. Elle n'entre pas dans les outils, que la partie 5 montre.
 4. En action : des vidéos courtes, sans son, en boucle, une à la fois dans le même cadre de téléphone, choisies dans la liste. Pour commencer : l'IA crée un outil et on le valide, une saisie rapide, une vraie discussion, une routine (le « Bilan de la semaine » de Course), une IA extérieure qui lit et écrit dans l'app par l'accès externe. Ensuite : créer un outil à la main, ranger une zone, lire un graphique, réviser des Flashcards, une alerte, annuler une écriture, importer un fichier.
 5. Les outils : leur liste, la capture de l'outil choisi, sa phrase `tagline`, comme `scripts/make_readme.py`. Puis les autres pièces, en cartes de texte, chacune avec son icône : routines, variables, identités, conditions et alertes, pointeurs, accès externe, ambiances.
-6. Les données en version longue, l'installation, et peut-être des pages à lire sur l'ordinateur (brancher une IA, l'accès externe, brancher un client MCP) : leur présence et leur contenu se décident sur la maquette.
+6. L'installation, un écran : le logo en signature, F-Droid et l'APK de GitHub, ce qu'il faut (Android 8.0 ou plus récent, un téléphone 64 bits), et la phrase du README sur une app encore jeune. Pas de version longue sur les données, que les trois lignes du haut disent. Puis le pied de page : licence, aucun traceur, code source, signaler un bug, l'autre langue.
+
+Une seule page. Des pages pour l'ordinateur (brancher l'IA de l'app, ouvrir l'accès externe) viendront plus tard, si le besoin s'en montre.
 
 Le défilement se cale sur le début d'une partie quand il s'arrête près d'une frontière (en CSS, `scroll-snap-type: y proximity`), libre ailleurs et à l'intérieur d'une partie plus haute que l'écran. Une seule flèche ↓, au bas de l'ouverture, sur ordinateur comme sur téléphone : rien d'autre sur ce premier écran ne dit qu'il y a une suite ; dans les parties suivantes, elle prendrait la place du téléphone.
 
@@ -48,7 +50,6 @@ Français et anglais, comme l'app, textes selon `docs/WRITING.md`. Les mots sont
 ## Ouvert
 
 - `www.treelune.app` : son entrée du Multisite, puis le certificat régénéré pour couvrir les deux noms.
-- Les pages pour l'ordinateur, sur la maquette.
 - « Avec une IA extérieure » dans En action : la place du téléphone exploitée autrement qu'avec une capture d'écran de navigateur en 16:9, à préciser.
 
 ## La maquette
