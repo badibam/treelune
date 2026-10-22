@@ -13,8 +13,9 @@ put on the phone, then:
     a phone video (.mp4)    its gestures shown whole, then played (site/scenarios/<id>.txt): one
                             Enter per gesture made by hand, after which the script does at once what
                             follows on its own (texts typed by adb, filming started or stopped), then
-                            hands back; filmed by screenrecord between start and stop, silent, 720 px
-                            wide, H.264, its first image kept as the poster (.webp)
+                            hands back; filmed by screenrecord between start and stop at 720 px wide,
+                            silent, H.264, its first image kept as the poster (.webp), the
+                            recording as made kept in tmp/site-videos/
     the outside AI's video  a screen recording made on the computer, whose path is asked, its
                             scenario shown as what to record
 
@@ -316,6 +317,12 @@ def save_poster(video_path, poster_path):
     print(f"  {poster_path}: first image of the video")
 
 
+def record_size():
+    """The phone's screen brought down to WIDTH, its height even, as the encoder wants it."""
+    width, height = phone_screen()
+    return f"{WIDTH}x{round(height * WIDTH / width / 2) * 2}"
+
+
 def play(steps, video_path):
     """The scenario turn by turn: the gesture, when to press Enter, what the script then does on its
     own, done at once before handing back; filmed between start and stop."""
@@ -334,7 +341,8 @@ def play(steps, video_path):
         for kind, text in automatic:
             if kind == "start":
                 show_touches(True)
-                recorder = subprocess.Popen(["adb", "shell", "screenrecord", "--bit-rate", "8000000",
+                # Filmed at the site's width: at the phone's full size, its encoder drops frames
+                recorder = subprocess.Popen(["adb", "shell", "screenrecord", "--size", record_size(), "--bit-rate", "8000000",
                                              "--time-limit", str(RECORD_LIMIT), remote])
                 print(f"        Filming (at most {RECORD_LIMIT} s).")
             elif kind == "stop":
@@ -353,6 +361,10 @@ def play(steps, video_path):
     with tempfile.TemporaryDirectory() as scratch:
         local = Path(scratch) / "raw.mp4"
         adb("pull", remote, str(local), capture_output=True)
+        # The recording as the phone made it, to measure its frames (tmp/ is not versioned)
+        raw = ROOT / "tmp" / "site-videos" / video_path
+        raw.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(local, raw)
         encode_video(local, video_path)
 
 
