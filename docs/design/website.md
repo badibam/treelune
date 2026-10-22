@@ -8,12 +8,12 @@ Public : les curieux un peu techniques (celui qui installe depuis F-Droid), et c
 
 1. Ouverture : sur un téléphone tenu droit, le logo et le nom en grand au-dessus du texte, celui de l'en-tête masqué tant que ce premier écran est là ; la phrase du README (« Chaque app de suivi fait une chose, à sa façon. Treelune te donne les pièces, et tu construis celle qu'il te faut. »), puis l'IA en deuxième idée ; la capture de l'accueil et le sélecteur de thème.
 2. « Tes données restent chez toi » : un titre et trois lignes, chacune avec son icône, un écran entier sur un téléphone tenu droit : pas de compte ; l'IA que tu choisis, ta clé ou ton propre serveur ; avec l'accès externe, une IA extérieure lit et écrit dans l'app, la connexion arrivant sur le téléphone sans serveur de Treelune.
-3. La zone Italien : ses outils et sa routine en liste ; le choix entoure sa tuile sur la capture de la zone et dit à quoi il sert. Elle n'entre pas dans les outils, que la partie 5 montre.
+3. La zone Italien : ses outils et sa routine en liste ; le choix entoure sa tuile sur la capture de la zone et dit à quoi il sert ; toucher une tuile sur la capture la choisit aussi, et cette capture ne s'ouvre donc pas en plein écran. Elle n'entre pas dans les outils, que la partie 5 montre.
 4. En action : des vidéos courtes, sans son, en boucle, une à la fois dans le même cadre de téléphone, choisies dans la liste. Pour commencer : l'IA crée un outil et on le valide, une saisie rapide, une vraie discussion, une routine (le « Bilan de la semaine » de Course), une IA extérieure qui lit et écrit dans l'app par l'accès externe, dans un cadre d'ordinateur en 16:9 réduit à la place du téléphone. Ensuite : créer un outil à la main, ranger une zone, lire un graphique, réviser des Flashcards, une alerte, annuler une écriture, importer un fichier.
 5. Les outils : leur liste, la capture de l'outil choisi, sa phrase `tagline`, comme `scripts/make_readme.py`. Puis les autres pièces, en cartes de texte, chacune avec son icône : routines, variables, identités, conditions et alertes, pointeurs, accès externe, ambiances.
 6. L'installation, un écran : le logo en signature, F-Droid et l'APK de GitHub, ce qu'il faut (Android 8.0 ou plus récent, un téléphone 64 bits), et la phrase du README sur une app encore jeune. Pas de version longue sur les données, que les trois lignes du haut disent. Puis le pied de page : licence, aucun traceur, code source, signaler un bug, l'autre langue.
 
-Une capture ou une vidéo touchée s'affiche seule en plein écran, sans flèches vers la voisine ; un toucher ou Échap la referme.
+Une capture ou une vidéo touchée, hors la zone Italien, s'affiche seule en plein écran, sans flèches vers la voisine ; un toucher ou Échap la referme.
 
 Une seule page. Des pages pour l'ordinateur (brancher l'IA de l'app, ouvrir l'accès externe) viendront plus tard, si le besoin s'en montre.
 
