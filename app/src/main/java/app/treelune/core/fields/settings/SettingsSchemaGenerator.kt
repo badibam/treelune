@@ -26,6 +26,12 @@ object SettingsSchemaGenerator {
     const val FIELD_DEFINITIONS = "field_definitions"
 
     /**
+     * Custom keyword naming an object that stands in several places of one schema: the model
+     * reads it once, under this name, at the end of the schema (SchemaNotation).
+     */
+    const val DEFINITION = "definition"
+
+    /**
      * @param nodes The declaration
      * @param text The shared string of a key (s::shared), for what the schema says of a value
      * @throws IllegalStateException when two settings of one object share a name: the one
@@ -74,7 +80,10 @@ object SettingsSchemaGenerator {
             val (name, isRequired, schema) = when (node) {
                 is SettingNode.Field -> Triple(node.definition.name, node.required, fieldSchema(node, text))
                 is SettingNode.Group -> Triple(node.name, node.required, objectOf(node.nodes, text).put("title", node.label)
-                    .also { schema -> node.description?.let { schema.put("description", it) } })
+                    .also { schema ->
+                        node.description?.let { schema.put("description", it) }
+                        node.definition?.let { schema.put(DEFINITION, it) }
+                    })
                 is SettingNode.ListOf -> Triple(node.name, node.required, listSchema(node, text))
                 is SettingNode.Condition -> Triple(node.name, node.required, conditionSchema(node, text))
                 is SettingNode.Term -> Triple(node.name, node.required, termSchema(node, text))
@@ -125,7 +134,10 @@ object SettingsSchemaGenerator {
 
     private fun listSchema(list: SettingNode.ListOf, text: (String) -> String): JSONObject {
         val items = when (val item = list.item) {
-            is SettingNode.Item.Of -> objectOf(item.nodes, text).also { schema -> item.description?.let { schema.put("description", it) } }
+            is SettingNode.Item.Of -> objectOf(item.nodes, text).also { schema ->
+                item.description?.let { schema.put("description", it) }
+                item.definition?.let { schema.put(DEFINITION, it) }
+            }
             is SettingNode.Item.Value -> FieldValueSchema.forReader(item.definition, text)
         }
         return JSONObject()

@@ -137,6 +137,39 @@ class SchemaNotationTest {
         assertTrue(settings, Regex("decimals\\*: .*suggested 0").containsMatchIn(settings))
     }
 
+    /** A list's element named "Item" in two places, a group named "Pair" inside it. */
+    private fun named(otherLabel: String = "label of inner"): List<SettingNode> {
+        fun item(innerLabel: String) = SettingNode.Item.Of(listOf(
+            SettingNode.Field(field("inner", FieldType.TEXT).copy(displayName = innerLabel), required = true),
+            SettingNode.Group("pair", "Pair label", listOf(SettingNode.Field(field("left", FieldType.BOOLEAN))), description = "what a pair is", definition = "Pair")
+        ), description = "what an item is", definition = "Item")
+        return listOf(
+            SettingNode.ListOf("first", "First", item("label of inner"), summary = listOf("inner"), description = "the first list"),
+            SettingNode.ListOf("second", "Second", item(otherLabel), summary = listOf("inner"), description = "the second list")
+        )
+    }
+
+    @Test
+    fun aNamedObjectIsWrittenOnceAtTheEnd() {
+        val schema = modelView(SettingsSchemaGenerator.generate(named(), text))
+        val notation = SchemaNotation.render(schema)
+
+        assertTrue(notation, notation.contains("first: list of Item (see Item) — First. the first list"))
+        assertTrue(notation, notation.contains("second: list of Item (see Item) — Second. the second list"))
+        assertEquals(notation, 1, Regex("description of inner").findAll(notation).count())
+        // Its definition after the schema, what one is beside its name; one met inside another after it
+        assertTrue(notation, notation.contains("\n\nItem: what an item is\ninner*: "))
+        assertTrue(notation, notation.contains("pair: Pair (see Pair) — Pair label"))
+        assertTrue(notation, notation.indexOf("\n\nPair: what a pair is\nleft:") > notation.indexOf("\n\nItem:"))
+        val missing = said(schema).filterNot { it in notation }
+        assertEquals("loses: $missing", emptyList<String>(), missing)
+    }
+
+    @Test(expected = IllegalStateException::class)
+    fun twoObjectsUnderOneNameMustBeAlike() {
+        SchemaNotation.render(modelView(SettingsSchemaGenerator.generate(named(otherLabel = "another label"), text)))
+    }
+
     @Test(expected = SchemaNotation.UnknownKeyword::class)
     fun anUnknownKeywordFails() {
         SchemaNotation.render(JSONObject("""{"type":"object","properties":{"x":{"type":"string","dependentRequired":{}}}}"""))

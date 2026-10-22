@@ -1090,6 +1090,7 @@ A schema is written one value per line, what a value holds indented under it:
 - `written by the app, never sent`: read it, never write it
 - `if type = X: …` what X means, then, indented under it, what the value named just above adds when it is X
 - `list of … Each element: …`: what the list is, then what one of its elements is
+- `Name (see Name)`: a value written once, under `Name:` at the end of the schema, as it stands in each place that names it
 - The label and the description say what a value means: its unit, what the bounds of a scale mean, the options of a choice
 - Only the keys listed are accepted]]></string>
 

@@ -19,18 +19,24 @@ import org.json.JSONObject
  * It reads the model's view of a schema (SchemaModelView.forModel): dates and durations are
  * already ISO 8601 strings there.
  *
+ * An object named as a definition (SettingsSchemaGenerator.DEFINITION), which stands in several
+ * places, is written once at the end of the schema under its name, each place saying "Name (see
+ * Name)" in its stead.
+ *
  * Every keyword a schema holds is either written or deliberately implied; an unknown one fails
  * rather than vanishes from what the model reads (UnknownKeyword).
  */
 object SchemaNotation {
 
     private const val FIELD_DEFINITIONS = SettingsSchemaGenerator.FIELD_DEFINITIONS
+    private const val DEFINITION = SettingsSchemaGenerator.DEFINITION
 
     /** What a keyword is to the notation. */
     private val WRITTEN = setOf(
         "type", "properties", "required", "title", "description", "default", "enum", "const",
         "oneOf", "items", "minimum", "maximum", "minLength", "maxLength", "minItems", "maxItems",
-        "uniqueItems", "multipleOf", "pattern", "format", "system_managed", app.treelune.core.fields.AI_READ_ONLY, SettingsSchemaGenerator.SECRET, FIELD_DEFINITIONS
+        "uniqueItems", "multipleOf", "pattern", "format", "system_managed", app.treelune.core.fields.AI_READ_ONLY, SettingsSchemaGenerator.SECRET, FIELD_DEFINITIONS,
+        DEFINITION
     )
 
     /** Implied by the legend: only the keys listed are accepted. */
@@ -40,16 +46,40 @@ object SchemaNotation {
     class UnknownKeyword(keyword: String, path: String) :
         IllegalStateException("Schema keyword '$keyword' at $path has no notation for the model")
 
-    /** [schema], an object's schema, as the notation. */
-    fun render(schema: JSONObject): String = objectLines(schema, "", "$").joinToString("\n")
+    /** [schema], an object's schema, as the notation, its definitions after it. */
+    fun render(schema: JSONObject): String {
+        val definitions = Definitions()
+        val lines = objectLines(schema, "", "$", definitions).toMutableList()
+        // Written in the order first met; one may name another, met while it is written
+        var written = 0
+        while (written < definitions.byName.size) {
+            val (name, definition) = definitions.byName.entries.elementAt(written++)
+            lines += ""
+            lines += "$name:" + (definition.optString("description").takeIf { it.isNotBlank() }?.let { " $it" } ?: "")
+            lines += objectLines(definition, "", "$name", definitions)
+        }
+        return lines.joinToString("\n")
+    }
 
-    private fun objectLines(schema: JSONObject, indent: String, path: String): List<String> {
+    /** The definitions met in one schema, by name, each the object it stands for. */
+    private class Definitions {
+        val byName = LinkedHashMap<String, JSONObject>()
+
+        /** [name] for [schema], which every other place under that name must hold alike. */
+        fun meet(name: String, schema: JSONObject, path: String): String {
+            val known = byName.getOrPut(name) { schema }
+            check(known.toString() == schema.toString()) { "The definition '$name' at $path differs from the one met first" }
+            return "$name (see $name)"
+        }
+    }
+
+    private fun objectLines(schema: JSONObject, indent: String, path: String, definitions: Definitions): List<String> {
         check(schema, path)
-        schema.optJSONArray("oneOf")?.let { return variantLines(it, indent, path) }
+        schema.optJSONArray("oneOf")?.let { return variantLines(it, indent, path, definitions) }
         val properties = schema.optJSONObject("properties") ?: return emptyList()
         val required = stringSet(schema.optJSONArray("required"))
         return properties.keys().asSequence().toList().flatMap { name ->
-            valueLines(name, properties.getJSONObject(name), name in required, indent, "$path.$name")
+            valueLines(name, properties.getJSONObject(name), name in required, indent, "$path.$name", definitions)
         }
     }
 
@@ -58,14 +88,14 @@ object SchemaNotation {
      * every branch holds alike is written once, the rest under "if <selector> = <option>".
      * Otherwise each branch is written whole.
      */
-    private fun variantLines(branches: JSONArray, indent: String, path: String): List<String> {
+    private fun variantLines(branches: JSONArray, indent: String, path: String, definitions: Definitions): List<String> {
         val all = (0 until branches.length()).map { branches.getJSONObject(it) }
         all.forEachIndexed { i, branch -> check(branch, "$path.oneOf[$i]") }
         val props = all.map { it.optJSONObject("properties") }
-        if (props.any { it == null }) return oneOfWhole(all, indent, path)
+        if (props.any { it == null }) return oneOfWhole(all, indent, path, definitions)
         val selector = props[0]!!.keys().asSequence().firstOrNull { key ->
             props.all { it!!.optJSONObject(key)?.has("const") == true }
-        } ?: return oneOfWhole(all, indent, path)
+        } ?: return oneOfWhole(all, indent, path, definitions)
 
         val requireds = all.map { stringSet(it.optJSONArray("required")) }
         fun same(key: String): Boolean {
@@ -76,13 +106,13 @@ object SchemaNotation {
         val shared = props[0]!!.keys().asSequence().filter { it != selector && same(it) }.toList()
 
         val lines = mutableListOf<String>()
-        shared.forEach { lines += valueLines(it, props[0]!!.getJSONObject(it), it in requireds[0], indent, "$path.$it") }
+        shared.forEach { lines += valueLines(it, props[0]!!.getJSONObject(it), it in requireds[0], indent, "$path.$it", definitions) }
 
         // The selector, with every option
         val selectorSchema = JSONObject(props[0]!!.getJSONObject(selector).toString())
         selectorSchema.remove("const")
         selectorSchema.put("enum", JSONArray(props.map { it!!.getJSONObject(selector).get("const") }))
-        lines += valueLines(selector, selectorSchema, true, indent, "$path.$selector")
+        lines += valueLines(selector, selectorSchema, true, indent, "$path.$selector", definitions)
 
         all.forEachIndexed { i, branch ->
             val option = props[i]!!.getJSONObject(selector).get("const")
@@ -92,21 +122,21 @@ object SchemaNotation {
             lines += "$indent  if $selector = $option:" + listOfNotNull(meaning, if (own.isEmpty()) "nothing more" else null)
                 .joinToString(". ").let { if (it.isEmpty()) "" else " $it" }
             own.forEach { key ->
-                lines += valueLines(key, props[i]!!.getJSONObject(key), key in requireds[i], "$indent    ", "$path.$key")
+                lines += valueLines(key, props[i]!!.getJSONObject(key), key in requireds[i], "$indent    ", "$path.$key", definitions)
             }
             // A variant inside this option's own settings
-            branch.optJSONArray("oneOf")?.let { lines += variantLines(it, "$indent    ", path) }
+            branch.optJSONArray("oneOf")?.let { lines += variantLines(it, "$indent    ", path, definitions) }
         }
         return lines
     }
 
-    private fun oneOfWhole(branches: List<JSONObject>, indent: String, path: String): List<String> =
+    private fun oneOfWhole(branches: List<JSONObject>, indent: String, path: String, definitions: Definitions): List<String> =
         branches.flatMapIndexed { i, branch ->
-            listOf("$indent  one of (${i + 1}):") + objectLines(branch, "$indent    ", "$path.oneOf[$i]")
+            listOf("$indent  one of (${i + 1}):") + objectLines(branch, "$indent    ", "$path.oneOf[$i]", definitions)
         }
 
     /** One value under [name], then what it holds, indented. */
-    private fun valueLines(name: String, schema: JSONObject, required: Boolean, indent: String, path: String): List<String> {
+    private fun valueLines(name: String, schema: JSONObject, required: Boolean, indent: String, path: String, definitions: Definitions): List<String> {
         check(schema, path)
         val head = "$indent$name${if (required) "*" else ""}"
         val text = text(schema)
@@ -119,12 +149,19 @@ object SchemaNotation {
             schema.optString("type") == "array" -> {
                 val items = schema.optJSONObject("items") ?: JSONObject()
                 check(items, "$path[]")
+                // A named element: what it is goes with its definition
+                if (isObject(items) && items.has(DEFINITION)) {
+                    return listOf("$head: list of ${definitions.meet(items.getString(DEFINITION), items, "$path[]")}$constraints$text")
+                }
                 // What one element is, after what the list is
                 val each = items.optString("description").takeIf { it.isNotBlank() }?.let { " Each element: $it" } ?: ""
-                if (isObject(items)) listOf("$head: list of$constraints$text$each") + objectLines(items, "$indent  ", "$path[]")
+                if (isObject(items)) listOf("$head: list of$constraints$text$each") + objectLines(items, "$indent  ", "$path[]", definitions)
                 else listOf("$head: list of ${kind(items)}${constraints(items)}${text(items)}$constraints$text")
             }
-            isObject(schema) -> listOf("$head:$constraints$text") + objectLines(schema, "$indent  ", path)
+            // A named group: its label here, what it is with its definition
+            isObject(schema) && schema.has(DEFINITION) ->
+                listOf("$head: ${definitions.meet(schema.getString(DEFINITION), schema, path)}$constraints${text(schema.optString("title"))}")
+            isObject(schema) -> listOf("$head:$constraints$text") + objectLines(schema, "$indent  ", path, definitions)
             else -> listOf("$head: ${kind(schema)}$constraints$text")
         }
     }
@@ -177,9 +214,11 @@ object SchemaNotation {
     }
 
     /** Its label and description, after a dash. */
-    private fun text(schema: JSONObject): String {
-        val parts = listOf(schema.optString("title"), schema.optString("description")).filter { it.isNotBlank() }
-        return if (parts.isEmpty()) "" else " — " + parts.joinToString(". ")
+    private fun text(schema: JSONObject): String = text(schema.optString("title"), schema.optString("description"))
+
+    private fun text(vararg parts: String): String {
+        val written = parts.filter { it.isNotBlank() }
+        return if (written.isEmpty()) "" else " — " + written.joinToString(". ")
     }
 
     /** Fails on a keyword the notation neither writes nor implies. */

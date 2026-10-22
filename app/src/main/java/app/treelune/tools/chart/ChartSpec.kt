@@ -183,6 +183,8 @@ object ChartKeys {
     const val DESCRIPTION = "description"
     const val COMPOSITION = "composition"
     const val LAYER = "layer"
+    /** The name a layer is written under once in the schema the AI reads, the same in every composition. */
+    const val LAYER_DEFINITION = "Layer"
     const val FACET = "facet"
     const val REPEAT = "repeat"
     const val COLUMNS = "columns"

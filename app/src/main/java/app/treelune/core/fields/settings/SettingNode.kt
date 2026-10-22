@@ -49,13 +49,16 @@ sealed class SettingNode {
      * Settings stored together as one object under [name].
      *
      * @property description What the settings it gathers make together, for the AI that reads its schema
+     * @property definition The name its settings are written under once, at the end of the
+     *   schema the AI reads, where it stands in several places (SchemaNotation)
      */
     data class Group(
         val name: String,
         val label: String,
         val nodes: List<SettingNode>,
         val required: Boolean = false,
-        val description: String? = null
+        val description: String? = null,
+        val definition: String? = null
     ) : SettingNode()
 
     /**
@@ -114,8 +117,11 @@ sealed class SettingNode {
 
     /** What one element of a [ListOf] is. */
     sealed class Item {
-        /** An object of settings; [description] says what one element is, the list saying what they make together. */
-        data class Of(val nodes: List<SettingNode>, val description: String? = null) : Item()
+        /**
+         * An object of settings; [description] says what one element is, the list saying what they
+         * make together; [definition], the name it is written under once, as Group.definition.
+         */
+        data class Of(val nodes: List<SettingNode>, val description: String? = null, val definition: String? = null) : Item()
         /**
          * A single value; the field's name is not stored, only its value. With [rowField], the
          * name of a field of the rows, as SettingNode.Field.rowField.

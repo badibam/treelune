@@ -121,7 +121,7 @@ object ChartToolType : ToolTypeContract {
     /** The layers of a view, drawn over one another. */
     private fun layers(context: Context): SettingNode.ListOf {
         val s = s(context)
-        return SettingNode.ListOf(ChartKeys.LAYER, s.tool("field_layers"), SettingNode.Item.Of(layerNodes(context), description = s.tool("schema_layer")),
+        return SettingNode.ListOf(ChartKeys.LAYER, s.tool("field_layers"), SettingNode.Item.Of(layerNodes(context), description = s.tool("schema_layer"), definition = ChartKeys.LAYER_DEFINITION),
             required = true, minItems = 1, summary = listOf(ChartKeys.DESCRIPTION, ChartKeys.SOURCE), description = s.tool("schema_layers"))
     }
 
