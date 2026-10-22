@@ -9,3 +9,5 @@ One file per video of `site/private/layout.json`, named by its id. `./run site-s
 - `#` a comment
 
 The `do:` steps say what the demo shows; a step that no longer matches the app is corrected here.
+
+What a scenario asks the AI to create is absent from the demo: the phone holds the demo alone, and a demo tool other tools use (Sleep, read by two charts and the discussion) cannot be deleted to make room for it.

@@ -70,7 +70,7 @@ return [
             'lead' => "Quelques secondes de l'app pendant qu'on s'en sert.",
             'ai_creates_tool' => [
                 'name' => "L'IA crée un outil",
-                'text' => "« Je voudrais suivre mon sommeil. » L'IA propose un Suivi déjà réglé. Une fois validé, sa tuile apparaît dans la zone.",
+                'text' => "« Je voudrais suivre mon pouls au repos chaque matin. » L'IA propose un Suivi déjà réglé. Une fois validé, sa tuile apparaît dans la zone.",
             ],
             'quick_entry' => [
                 'name' => 'Une saisie rapide',
@@ -188,7 +188,7 @@ return [
             'lead' => 'A few seconds of the app while it is being used.',
             'ai_creates_tool' => [
                 'name' => 'The AI creates a tool',
-                'text' => '“I’d like to track my sleep.” The AI offers a Tracking already set up. Once approved, its tile appears in the zone.',
+                'text' => '“I’d like to track my resting heart rate each morning.” The AI offers a Tracking already set up. Once approved, its tile appears in the zone.',
             ],
             'quick_entry' => [
                 'name' => 'A quick entry',

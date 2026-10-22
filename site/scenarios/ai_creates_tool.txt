@@ -2,8 +2,8 @@
 setup: Theme Cosy, dark. The Running zone open, the conversation closed.
 start
 do: Touch the conversation bubble, then the message field
-type en: I'd like to track my sleep.
-type fr: Je voudrais suivre mon sommeil.
+type en: I'd like to track my resting heart rate each morning.
+type fr: Je voudrais suivre mon pouls au repos chaque matin.
 do: Touch Send, wait for the proposed Tracking, then approve it
 do: Go back to the zone, its new tile in view, and hold a second
 stop
