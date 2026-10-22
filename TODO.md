@@ -33,7 +33,6 @@ Codé, jamais vu sur l'appareil.
 
 ## Décidé, à coder
 
-- Le test de la même phrase, avant et après ce que l'IA lit d'un type d'outil (la branche `entry-meanings`) : « I'd like to track my resting heart rate each morning. » (`site/scenarios/ai_creates_tool.txt`), sur la démo, le même modèle ; regarder si l'IA pose la question de l'heure, ajoute un champ d'heure, crée un raccourci.
 - Un filtre qui compare un champ à une variable ou une lecture (« kcal > objectif_calorique ») : le terme lu une fois à la référence du contexte (`TermReader`, `docs/BRICKS.md`), puis le filtre SQL comme aujourd'hui ; `EntryFilters.parse` et `ConditionPicker` le prennent.
 
 ## À concevoir
