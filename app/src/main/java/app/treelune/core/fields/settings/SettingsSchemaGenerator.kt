@@ -46,6 +46,7 @@ object SettingsSchemaGenerator {
             val selector = variant.selector.copy(required = true)
             val branch = objectOf(others + selector + caseNodes, text)
             pin(branch, selector.definition.name, option)
+            variant.descriptions[option]?.let { branch.put("description", it) }
             branches.put(branch)
         }
         return JSONObject().put("type", "object").put("oneOf", branches)
@@ -72,7 +73,8 @@ object SettingsSchemaGenerator {
         nodes.forEach { node ->
             val (name, isRequired, schema) = when (node) {
                 is SettingNode.Field -> Triple(node.definition.name, node.required, fieldSchema(node, text))
-                is SettingNode.Group -> Triple(node.name, node.required, objectOf(node.nodes, text).put("title", node.label))
+                is SettingNode.Group -> Triple(node.name, node.required, objectOf(node.nodes, text).put("title", node.label)
+                    .also { schema -> node.description?.let { schema.put("description", it) } })
                 is SettingNode.ListOf -> Triple(node.name, node.required, listSchema(node, text))
                 is SettingNode.Condition -> Triple(node.name, node.required, conditionSchema(node, text))
                 is SettingNode.Term -> Triple(node.name, node.required, termSchema(node, text))
@@ -123,7 +125,7 @@ object SettingsSchemaGenerator {
 
     private fun listSchema(list: SettingNode.ListOf, text: (String) -> String): JSONObject {
         val items = when (val item = list.item) {
-            is SettingNode.Item.Of -> objectOf(item.nodes, text)
+            is SettingNode.Item.Of -> objectOf(item.nodes, text).also { schema -> item.description?.let { schema.put("description", it) } }
             is SettingNode.Item.Value -> FieldValueSchema.forReader(item.definition, text)
         }
         return JSONObject()

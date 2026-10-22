@@ -87,7 +87,10 @@ object SchemaNotation {
         all.forEachIndexed { i, branch ->
             val option = props[i]!!.getJSONObject(selector).get("const")
             val own = props[i]!!.keys().asSequence().filter { it != selector && it !in shared }.toList()
-            lines += "$indent  if $selector = $option:" + if (own.isEmpty()) " nothing more" else ""
+            // What the option means, which the selector's description leaves to each option
+            val meaning = all[i].optString("description").takeIf { it.isNotBlank() }
+            lines += "$indent  if $selector = $option:" + listOfNotNull(meaning, if (own.isEmpty()) "nothing more" else null)
+                .joinToString(". ").let { if (it.isEmpty()) "" else " $it" }
             own.forEach { key ->
                 lines += valueLines(key, props[i]!!.getJSONObject(key), key in requireds[i], "$indent    ", "$path.$key")
             }
@@ -116,7 +119,9 @@ object SchemaNotation {
             schema.optString("type") == "array" -> {
                 val items = schema.optJSONObject("items") ?: JSONObject()
                 check(items, "$path[]")
-                if (isObject(items)) listOf("$head: list of$constraints$text") + objectLines(items, "$indent  ", "$path[]")
+                // What one element is, after what the list is
+                val each = items.optString("description").takeIf { it.isNotBlank() }?.let { " Each element: $it" } ?: ""
+                if (isObject(items)) listOf("$head: list of$constraints$text$each") + objectLines(items, "$indent  ", "$path[]")
                 else listOf("$head: list of ${kind(items)}${constraints(items)}${text(items)}$constraints$text")
             }
             isObject(schema) -> listOf("$head:$constraints$text") + objectLines(schema, "$indent  ", path)
