@@ -117,7 +117,8 @@ THEME_SOUNDS = ROOT / "scripts" / "theme_sounds.py"
 SITE = ROOT / "site"
 SITE_BIN = SITE / "bin"
 SITE_DATA = ROOT / "scripts" / "make_site_data.py"
-SITE_PORT = 8080
+# Not 8080, which Caddy holds on this machine for the local Ollama.
+SITE_PORT = 8686
 
 
 def gradle(*args):
