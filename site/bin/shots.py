@@ -1,24 +1,36 @@
 #!/usr/bin/env python3
-"""Take the site's missing captures and videos on the phone, one by one (./run site-shots).
+"""Take the site's missing captures and videos in one language, on the phone (./run site-shots en|fr).
 
-The phone holds the demo alone, never real data (docs/design/website.md, « Les captures »). What is
-missing is what site/bin/missing_media.php lists from layout.json, the one declaration of every
-capture and video; for each, this says which screen to put on the phone, then:
+The phone holds the demo alone, never real data, and is set to the language taken (docs/design/
+website.md, « Les captures »). What is missing is what site/bin/missing_media.php lists from
+layout.json, the one declaration of every capture and video; for each, this says which screen to
+put on the phone, then:
 
-    a capture (.webp)       screencap, checked against layout.json's "screen" proportion,
-                            brought down to 720 px wide, saved as WebP
-    the zone's capture      the same, and each tool's tile framed from the screen's layout
-                            (uiautomator), written into layout.json's zone.tiles
-    a phone video (.mp4)    filmed by screenrecord between two Enter, silent, 720 px wide, H.264,
-                            its first image kept as the poster (.webp)
-    the outside AI's video  a screen recording made on the computer, whose path is asked
+    a capture (.webp)       screencap, checked against layout.json's "screen" proportion, brought
+                            down to 720 px wide, saved as WebP
+    the zone's capture      the same, and in English each tool's tile framed from the screen's
+                            layout (uiautomator), written into layout.json's zone.tiles
+    a phone video (.mp4)    its scenario played (site/scenarios/<id>.txt): one step per Enter, the
+                            texts typed by adb; filmed by screenrecord between start and stop,
+                            silent, 720 px wide, H.264, its first image kept as the poster (.webp)
+    the outside AI's video  a screen recording made on the computer, whose path is asked, its
+                            scenario shown as what to record
 
-Enter takes, s skips, q stops. Nothing is committed: the files are left in site/public_html/ to be
-looked at, then committed by hand.
+For the session, the status bar is in Android's demo mode (a fixed time, a full battery, no
+notification), and while filming the touches show on screen; both are put back at the end.
+
+A text adb types goes through `input text`, which takes ASCII alone; an accented one needs
+ADBKeyBoard as the phone's keyboard, checked before it is typed.
+
+Enter goes on, s skips, q stops. Nothing is committed: the files are left in site/public_html/ to
+be looked at, then committed by hand.
 """
 
+import base64
+import io
 import json
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -32,16 +44,23 @@ SITE = ROOT / "site"
 PUBLIC = SITE / "public_html"
 LAYOUT = SITE / "private" / "layout.json"
 GENERATED = SITE / "private" / "generated.json"
+SCENARIOS = SITE / "scenarios"
+LANGUAGES = ("en", "fr")
 
 WIDTH = 720
 # A capture whose proportion differs from layout.json's "screen" by more than this is refused: the
 # frames are drawn to that proportion, and a capture of another phone would be cropped.
 RATIO_TOLERANCE = 0.01
+# The pause between two typed words, so that the text is seen being written.
+WORD_PAUSE = 0.25
+# screenrecord stops by itself after this many seconds.
+RECORD_LIMIT = 180
+ADB_KEYBOARD = "com.android.adbkeyboard/.AdbIME"
 
 
-def missing():
-    """What missing_media.php lists, as (path, description) pairs."""
-    result = subprocess.run(["php", str(SITE / "bin" / "missing_media.php")], capture_output=True, text=True)
+def missing(lang):
+    """What missing_media.php lists in one language, as (path, description) pairs."""
+    result = subprocess.run(["php", str(SITE / "bin" / "missing_media.php"), lang], capture_output=True, text=True)
     if result.returncode not in (0, 1):
         sys.exit(result.stderr or "missing_media.php failed")
     pairs = []
@@ -52,15 +71,20 @@ def missing():
 
 
 def ask(prompt):
-    """Enter → True, s → False, q → quit."""
+    """Enter → True, s → False, q → quit (the phone put back as it was, by main's finally)."""
     answer = input(f"{prompt} [Enter: go, s: skip, q: quit] ").strip().lower()
     if answer == "q":
-        sys.exit(0)
+        raise KeyboardInterrupt
     return answer != "s"
 
 
 def adb(*args, **kwargs):
     return subprocess.run(["adb", *args], check=True, **kwargs)
+
+
+def adb_shell(command):
+    """A command run by the phone's shell, its output as text."""
+    return adb("shell", command, capture_output=True, text=True).stdout.strip()
 
 
 def device_ready():
@@ -70,10 +94,61 @@ def device_ready():
         sys.exit(f"site-shots needs exactly one phone ready over adb, found {len(devices)}")
 
 
+# ---- The phone's state for the session ----
+
+def demo_mode(on):
+    """Android's demo mode for the status bar: a fixed time, a full battery, no notification."""
+    if not on:
+        adb_shell("am broadcast -a com.android.systemui.demo -e command exit")
+        return
+    adb_shell("settings put global sysui_demo_allowed 1")
+    for extras in (
+        "-e command enter",
+        "-e command clock -e hhmm 1000",
+        "-e command battery -e level 100 -e plugged false",
+        "-e command network -e wifi show -e level 4 -e mobile show -e level 4",
+        "-e command notifications -e visible false",
+    ):
+        adb_shell(f"am broadcast -a com.android.systemui.demo {extras}")
+
+
+# The phone's own "Show taps" setting, read at the session's start and put back after each film.
+touches_before = "0"
+
+
+def show_touches(on):
+    adb_shell(f"settings put system show_touches {1 if on else touches_before}")
+
+
+# ---- Typing ----
+
+def type_text(text):
+    """Typed word by word into the focused field: ASCII by `input text`, the rest by ADBKeyBoard."""
+    if text.isascii():
+        for i, word in enumerate(text.split(" ")):
+            if i:
+                adb_shell("input keyevent 62")
+            adb_shell("input text " + shlex.quote(word))
+            time.sleep(WORD_PAUSE)
+        return
+    if adb_shell("settings get secure default_input_method") != ADB_KEYBOARD:
+        sys.exit(
+            f"“{text}” is not ASCII: adb types it through ADBKeyBoard, which is not the phone's keyboard.\n"
+            f"Install it, then: adb shell ime enable {ADB_KEYBOARD} && adb shell ime set {ADB_KEYBOARD}"
+        )
+    words = text.split(" ")
+    for i, word in enumerate(words):
+        piece = word if i == len(words) - 1 else word + " "
+        encoded = base64.b64encode(piece.encode("utf-8")).decode("ascii")
+        adb_shell(f"am broadcast -a ADB_INPUT_B64 --es msg {encoded}")
+        time.sleep(WORD_PAUSE)
+
+
+# ---- Captures ----
+
 def screencap():
     """The phone's screen as a Pillow image."""
     from PIL import Image
-    import io
     data = adb("exec-out", "screencap", "-p", capture_output=True).stdout
     return Image.open(io.BytesIO(data)).convert("RGB")
 
@@ -130,8 +205,45 @@ def write_tiles(frames):
     print(f"  layout.json: {len(frames)} tile frames written")
 
 
+# ---- Videos ----
+
+def scenario(video_id, lang):
+    """A video's steps in one language, as (kind, text) pairs: setup, start, stop, do, type."""
+    path = SCENARIOS / f"{video_id}.txt"
+    if not path.exists():
+        sys.exit(f"No scenario for the video {video_id}: write {path.relative_to(ROOT)} (site/scenarios/README.md)")
+    steps = []
+    for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line in ("start", "stop"):
+            steps.append((line, ""))
+            continue
+        kind, _, text = line.partition(":")
+        kind, text = kind.strip(), text.strip()
+        if kind in ("setup", "do"):
+            steps.append((kind, text))
+        elif kind in (f"type {code}" for code in LANGUAGES):
+            if kind == f"type {lang}":
+                steps.append(("type", text))
+        else:
+            sys.exit(f"{path.relative_to(ROOT)}:{number}: unknown step “{line}”")
+    return steps
+
+
+def describe(kind, text):
+    return {
+        "setup": f"Put the phone on: {text}",
+        "start": "Start filming",
+        "stop": "Stop filming",
+        "do": f"You: {text}",
+        "type": f"adb types: {text}",
+    }[kind]
+
+
 def encode_video(source, video_path):
-    """Silent, WIDTH wide, H.264 ready to play while it loads; its first image kept as the poster."""
+    """Silent, WIDTH wide, H.264 ready to play while it loads."""
     target = PUBLIC / video_path
     target.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run([
@@ -147,66 +259,107 @@ def save_poster(video_path, poster_path):
     with tempfile.TemporaryDirectory() as scratch:
         frame = Path(scratch) / "first.png"
         subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", str(PUBLIC / video_path), "-frames:v", "1", str(frame)], check=True)
-        Image.open(frame).convert("RGB").save(PUBLIC / poster_path, "WEBP", quality=85, method=6)
+        target = PUBLIC / poster_path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        Image.open(frame).convert("RGB").save(target, "WEBP", quality=85, method=6)
     print(f"  {poster_path}: first image of the video")
 
 
-def film(video_path):
-    """screenrecord between two Enter, pulled and encoded."""
+def play(steps, video_path):
+    """The scenario, one step per Enter, the next one always shown; filmed between start and stop."""
     remote = "/sdcard/site-video.mp4"
-    recorder = subprocess.Popen(["adb", "shell", "screenrecord", "--bit-rate", "8000000", remote])
-    input("  Filming… Enter to stop. ")
-    subprocess.run(["adb", "shell", "pkill", "-INT", "screenrecord"], check=False)
-    recorder.wait()
-    time.sleep(1)  # screenrecord finishes writing the file after its signal
+    recorder = None
+    for i, (kind, text) in enumerate(steps):
+        following = f"   (then: {describe(*steps[i + 1])})" if i + 1 < len(steps) else ""
+        prompt = {"do": "Enter once done", "type": "Enter to type"}.get(kind, "Enter")
+        input(f"  {describe(kind, text)}{following}\n    {prompt} ")
+        if kind == "start":
+            show_touches(True)
+            recorder = subprocess.Popen(["adb", "shell", "screenrecord", "--bit-rate", "8000000",
+                                         "--time-limit", str(RECORD_LIMIT), remote])
+            print(f"    Filming (at most {RECORD_LIMIT} s).")
+        elif kind == "stop":
+            subprocess.run(["adb", "shell", "pkill", "-INT", "screenrecord"], check=False)
+            recorder.wait()
+            recorder = None
+            show_touches(False)
+            time.sleep(1)  # screenrecord finishes writing the file after its signal
+        elif kind == "type":
+            type_text(text)
+    if recorder is not None:
+        sys.exit("The scenario has a start without a stop")
     with tempfile.TemporaryDirectory() as scratch:
         local = Path(scratch) / "raw.mp4"
         adb("pull", remote, str(local), capture_output=True)
         encode_video(local, video_path)
 
 
-def main():
-    if not shutil.which("adb") or not shutil.which("ffmpeg"):
-        sys.exit("site-shots needs adb and ffmpeg")
-    layout = json.loads(LAYOUT.read_text(encoding="utf-8"))
-    videos = {v["file"]: v for v in layout["videos"]}
-    posters = {v["poster"]: v for v in layout["videos"]}
-    todo = missing()
-    if not todo:
-        print("Nothing is missing: every capture, video and tile frame is there.")
-        return
-    print(f"{len(todo)} missing. The phone holds the demo alone.\n")
-    device_ready()
-    zone_file = layout["zone"]["shot"]["file"]
-    for path, what in todo:
+# ---- The session ----
+
+def session(lang, layout):
+    videos = {v["file"].replace("/", f"/{lang}/", 1): v for v in layout["videos"]}
+    posters = {v["poster"].replace("/", f"/{lang}/", 1): v for v in layout["videos"]}
+    zone_file = layout["zone"]["shot"]["file"].replace("/", f"/{lang}/", 1)
+    for path, what in missing(lang):
         if path.startswith("layout.json"):
-            continue  # tile frames come with the zone's capture
+            continue  # tile frames come with the English zone capture
         if path in posters:
             video = posters[path]
-            if (PUBLIC / video["file"]).exists():
-                save_poster(video["file"], path)
+            video_file = video["file"].replace("/", f"/{lang}/", 1)
+            if (PUBLIC / video_file).exists():
+                save_poster(video_file, path)
             continue  # otherwise it comes with its video
         if path in videos:
             video = videos[path]
+            steps = scenario(video["id"], lang)
+            print(f"\n{what}")
             if video["frame"] == "computer":
-                source = input(f"{what}: path of the computer's screen recording (empty: skip) ").strip()
+                for kind, text in steps:
+                    print(f"  {describe(kind, text)}")
+                source = input("  Path of the computer's screen recording, 16:9 (empty: skip) ").strip()
                 if not source:
                     continue
                 encode_video(Path(source).expanduser(), path)
             else:
-                if not ask(f"{what}: put the phone on the start of the scene"):
+                if not ask("  Film it now?"):
                     continue
-                film(path)
-            save_poster(path, video["poster"])
+                play(steps, path)
+            save_poster(path, video["poster"].replace("/", f"/{lang}/", 1))
             continue
-        if not ask(f"{what}: put the phone on this screen"):
+        if not ask(f"\n{what}: put the phone on this screen"):
             continue
         image = screencap()
         save_shot(image, path, layout["screen"])
-        if path == zone_file:
+        if path == zone_file and lang == "en":
             write_tiles(tile_frames(image.size))
-    left = missing()
-    print(f"\nDone; {len(left)} still missing. Look at the files in site/public_html/, then commit them.")
+
+
+def main():
+    if len(sys.argv) != 2 or sys.argv[1] not in LANGUAGES:
+        sys.exit("Usage: ./run site-shots en|fr  (the phone set to that language, holding the demo alone)")
+    lang = sys.argv[1]
+    if not shutil.which("adb") or not shutil.which("ffmpeg"):
+        sys.exit("site-shots needs adb and ffmpeg")
+    layout = json.loads(LAYOUT.read_text(encoding="utf-8"))
+    todo = missing(lang)
+    if not todo:
+        print(f"Nothing is missing in {lang}: every capture, video and tile frame is there.")
+        return
+    print(f"{len(todo)} missing in {lang}. The phone is set to that language and holds the demo alone.")
+    device_ready()
+    global touches_before
+    touches_before = adb_shell("settings get system show_touches") or "0"
+    demo_mode(True)
+    try:
+        session(lang, layout)
+    except KeyboardInterrupt:
+        print("\nStopped.")
+    finally:
+        subprocess.run(["adb", "shell", "pkill", "-INT", "screenrecord"], capture_output=True, check=False)
+        show_touches(False)
+        demo_mode(False)
+    left = missing(lang)
+    print(f"\n{len(left)} still missing in {lang}. Look at the files in site/public_html/, then commit them.")
 
 
 if __name__ == "__main__":

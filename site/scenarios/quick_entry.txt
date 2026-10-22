@@ -1,0 +1,8 @@
+# A quick entry: a run noted from the tile, the week's Goal moving at once.
+setup: Theme Swiss, light. The Running zone open, the Runs tile and the week's Goal in view.
+start
+do: On the Runs tile, touch the pencil of a run, then the distance field
+type en: 7.4
+type fr: 7,4
+do: Save, then hold a second on the Goal's tile as it moves
+stop

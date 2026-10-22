@@ -1,0 +1,7 @@
+# A routine: the Weekly review of Running, done by the app's AI on its own, a notification when ready.
+setup: Theme Metro, light. The Running zone's routines open, the Weekly review in view.
+start
+do: Run the Weekly review now, then go to the home screen
+do: Wait for the notification, then touch it
+do: Scroll slowly through the review, then hold a second
+stop

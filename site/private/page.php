@@ -16,7 +16,9 @@ const SITE_URL = 'https://treelune.app';
 const LANGUAGE_PATHS = ['en' => '/', 'fr' => '/fr/'];
 
 $texts = (require __DIR__ . '/texts.php')[$lang];
+// The captures and videos this page shows: its language's, or the English ones (layout.json fr_media)
 $layout = readJson('layout.json');
+$layout = localizeLayout($layout, mediaLanguage($layout, $lang));
 $generated = readJson('generated.json');
 $icons = $generated['icons'];
 
@@ -192,8 +194,8 @@ $bandThemes = [];
 foreach ($layout['themes'] as $theme) {
     $shots = [];
     foreach (['light', 'dark'] as $mode) {
-        $shots[$mode] = shotSource(homeShot($theme['id'], $mode), $theme['id'], $fdroidShots)
-            + ['file' => homeShot($theme['id'], $mode)];
+        $file = homeShot($theme['id'], $mode, $layout['media_language']);
+        $shots[$mode] = shotSource($file, $theme['id'], $fdroidShots) + ['file' => $file];
     }
     $bandThemes[] = [
         'id' => $theme['id'], 'name' => $themeNames[$theme['id']], 'family' => $theme['family'],

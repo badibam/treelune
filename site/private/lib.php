@@ -51,22 +51,68 @@ function pill(array $icons, string $name, ?string $color): string
         . 'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $icons[$name] . '</svg></span>';
 }
 
-/** The home screen's capture of a theme in a mode: the only captures taken in both modes. */
-function homeShot(string $theme, string $mode): string
+/** The languages captures and videos are taken in, the order they are taken in. */
+const MEDIA_LANGUAGES = ['en', 'fr'];
+
+/**
+ * The language whose captures a page shows: its own, but the English ones on the French page while
+ * layout.json declares "fr_media": "en" (the French ones not taken yet).
+ */
+function mediaLanguage(array $layout, string $lang): string
 {
-    return "shots/home-$theme-$mode.webp";
+    $frMedia = $layout['fr_media'] ?? null;
+    if ($frMedia !== null && $frMedia !== 'en') {
+        throw new RuntimeException('layout.json: fr_media is "en" or absent');
+    }
+    return $lang === 'fr' && $frMedia === 'en' ? 'en' : $lang;
+}
+
+/** The languages the deploy waits for: English, and French unless its page shows the English ones. */
+function requiredMediaLanguages(array $layout): array
+{
+    return mediaLanguage($layout, 'fr') === 'fr' ? MEDIA_LANGUAGES : ['en'];
+}
+
+/** A file of layout.json in one language's folder: shots/x.webp → shots/en/x.webp. */
+function localized(string $file, string $lang): string
+{
+    return dirname($file) . '/' . $lang . '/' . basename($file);
+}
+
+/** layout.json with every capture's and video's path in one language's folder. */
+function localizeLayout(array $layout, string $lang): array
+{
+    $layout['zone']['shot']['file'] = localized($layout['zone']['shot']['file'], $lang);
+    foreach ($layout['videos'] as &$video) {
+        $video['file'] = localized($video['file'], $lang);
+        $video['poster'] = localized($video['poster'], $lang);
+    }
+    unset($video);
+    foreach ($layout['tools'] as &$tool) {
+        $tool['shot']['file'] = localized($tool['shot']['file'], $lang);
+    }
+    unset($tool);
+    $layout['media_language'] = $lang;
+    return $layout;
+}
+
+/** The home screen's capture of a theme in a mode: the only captures taken in both modes. */
+function homeShot(string $theme, string $mode, string $lang): string
+{
+    return localized("shots/home-$theme-$mode.webp", $lang);
 }
 
 /**
- * Every file the page shows, published path → what it is, in the page's order. A file of this
- * list missing from public_html/ stands in locally and blocks the deploy.
+ * Every file the page shows in one language, published path → what it is, in the page's order. A
+ * file of this list missing from public_html/ stands in locally and blocks the deploy.
  */
-function declaredMedia(array $layout): array
+function declaredMedia(array $layout, string $lang): array
 {
+    $layout = localizeLayout($layout, $lang);
     $media = [];
     foreach ($layout['themes'] as $theme) {
         foreach (['light', 'dark'] as $mode) {
-            $media[homeShot($theme['id'], $mode)] = "home screen, theme {$theme['id']}, $mode";
+            $media[homeShot($theme['id'], $mode, $lang)] = "home screen, theme {$theme['id']}, $mode";
         }
     }
     $zone = $layout['zone']['shot'];
@@ -88,15 +134,17 @@ function mediaPresent(string $file): bool
 }
 
 /**
- * What the deploy waits for: each declared file missing, and each tile of the zone's capture not
- * yet framed, as one line each.
+ * What is missing in the given languages: each declared file, and each tile of the zone's capture
+ * not yet framed (once, on the English capture), as one line each.
  */
-function missingMedia(array $layout): array
+function missingMedia(array $layout, array $languages): array
 {
     $missing = [];
-    foreach (declaredMedia($layout) as $file => $what) {
-        if (!mediaPresent($file)) {
-            $missing[] = "$file  ($what)";
+    foreach ($languages as $lang) {
+        foreach (declaredMedia($layout, $lang) as $file => $what) {
+            if (!mediaPresent($file)) {
+                $missing[] = "$file  ($what)";
+            }
         }
     }
     foreach ($layout['zone']['tiles'] as $tool => $frame) {

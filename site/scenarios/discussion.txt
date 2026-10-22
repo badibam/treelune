@@ -1,0 +1,9 @@
+# A real conversation: the AI reads two tools and answers with figures. Filmed once per language.
+setup: Theme E-reader, dark. The Running zone open, the conversation closed, the app's AI set up.
+start
+do: Touch the conversation bubble, then the message field
+type en: Do I sleep less when I work a lot?
+type fr: Est-ce que je dors moins quand je travaille beaucoup ?
+do: Touch Send, and wait until the answer is complete
+do: Scroll slowly through the answer, then hold a second
+stop

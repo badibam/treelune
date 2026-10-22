@@ -802,9 +802,13 @@ def task_site_data(*args):
     return subprocess.run([sys.executable, str(SITE_DATA), *args], cwd=ROOT, check=False).returncode
 
 
-def task_site_shots():
-    """Take the site's missing captures and videos on the phone holding the demo alone."""
-    return subprocess.run([sys.executable, str(SITE_BIN / "shots.py")], cwd=ROOT, check=False).returncode
+def task_site_shots(*args):
+    """Take the site's missing captures and videos in one language (en, then fr), on the phone
+    holding the demo alone and set to that language; bare, it asks which."""
+    if not args:
+        answer = input("Language to take, en or fr: ").strip()
+        args = (answer,)
+    return subprocess.run([sys.executable, str(SITE_BIN / "shots.py"), *args], cwd=ROOT, check=False).returncode
 
 
 def task_site_deploy(*args):
@@ -1013,7 +1017,7 @@ LABELS = {
     "tracks": "tracks     the theme tracks mocked up, noted and ranked in the order they will be made",
     "site": "site       serve the site treelune.app locally and open it",
     "site-data": "site-data  write under site/ what its pages read from the app (--check: say what is stale)",
-    "site-shots": "site-shots        take the site's missing captures and videos on the phone holding the demo",
+    "site-shots": "site-shots        take the site's missing captures and videos in en or fr, on the phone holding the demo",
     "site-deploy": "site-deploy       send the site to OVH, the changed files only (--dry-run, --all, --yes)",
     "sftp-password": "sftp-password     store the hosting password in the KDE wallet, once it opens the account",
     "clean": "clean      drop build outputs",

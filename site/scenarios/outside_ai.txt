@@ -1,0 +1,6 @@
+# With an outside AI: recorded on the computer's screen, in 16:9, not on the phone. site-shots asks
+# for the recording's path; these steps are what to record.
+setup: The phone's external access open; claude.ai (or another outside AI) connected to it, a new conversation.
+do: Ask it what the week's runs were, and let it read the app
+do: Ask it to note a run of 6 km today in the Runs tool
+do: On the phone, approve the request if the tool is protected, then show the new entry
