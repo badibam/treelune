@@ -18,8 +18,6 @@ put on the phone, then:
                             every still longer than STILL_MAX cut to STILL_KEPT, silent, H.264, its
                             first image kept as the poster (.webp), the recording as made kept in
                             tmp/site-videos/
-    the outside AI's video  a screen recording made on the computer, whose path is asked, its
-                            scenario shown as what to record
 
 layout.json's "screen" is the phone's, written by the first session; a phone of another size is
 refused once captures or videos exist, the site's frames drawn to one proportion.
@@ -472,12 +470,7 @@ def session(lang, layout):
             print(f"  {len(gestures)} steps for you:")
             for number, gesture in enumerate(gestures, 1):
                 print(f"  {number}. {'; then '.join(gesture)}")
-            if video["frame"] == "computer":
-                source = input("  Path of the computer's screen recording, 16:9 (empty: skip) ").strip()
-                if not source:
-                    continue
-                encode_video(Path(source).expanduser(), path)
-            elif not play(steps, path):
+            if not play(steps, path):
                 continue
             save_poster(path, video["poster"].replace("/", f"/{lang}/", 1))
             continue

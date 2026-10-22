@@ -41,7 +41,7 @@ Français et anglais, comme l'app, textes selon `docs/WRITING.md` : `/` en angla
 - `./run site-shots en` (puis `fr`) les prend sur le téléphone vidé, une par une : il dit quel écran mettre, prend la capture ou filme, et range le fichier.
 - Une vidéo suit son scénario écrit d'avance (`site/scenarios/<id>.txt`), une étape par touche Entrée, l'étape suivante toujours affichée : `setup:` l'écran de départ, `start` et `stop` le film, `do:` un geste fait au doigt, `type en:` ou `type fr:` un texte que le script tape par adb, lettre à lettre avec une pause entre les mots, dans le champ déjà touché. `adb input text` ne tape que l'ASCII : un texte accentué passe par ADBKeyBoard, installé sur le téléphone pour la séance française, que le script vérifie actif.
 - Pendant la séance, la barre d'état passe en mode démo (heure fixe, batterie pleine, aucune notification), et les touchers se voient pendant un film (« Afficher les appuis ») ; tout revient comme avant à la fin.
-- La vraie discussion avec l'IA se filme une fois par langue. La vidéo de l'IA extérieure est un enregistrement de l'écran de l'ordinateur, dont le script demande le chemin.
+- La vraie discussion avec l'IA se filme une fois par langue. L'IA extérieure se filme sur le téléphone aussi, dans l'app Claude : une conversation neuve, son panneau des conversations fermé, rien du compte à l'écran.
 
 ## Rester d'accord avec la démo
 

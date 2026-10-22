@@ -55,14 +55,13 @@ $phoneShot = function (array $shot, string $alt) use ($fdroidShots, $standIn): s
         . ($source['stand_in'] ? $standIn($shot['file']) : '') . '</div>';
 };
 
-/** A video in its frame, a phone or a computer, silent and looping, enlarged when touched. */
+/** A video in a phone frame, silent and looping, enlarged when touched. */
 $videoFrame = function (array $video) use ($standIn): string {
-    $frame = $video['frame'] === 'computer' ? 'computer' : 'phone';
     if (!mediaPresent($video['file']) || !mediaPresent($video['poster'])) {
         $file = mediaPresent($video['file']) ? $video['poster'] : $video['file'];
-        return '<div class="' . $frame . '"><div class="empty"></div>' . $standIn($file) . '</div>';
+        return '<div class="phone"><div class="empty"></div>' . $standIn($file) . '</div>';
     }
-    return '<div class="' . $frame . '"><video class="zoomable" src="' . h(asset($video['file'])) . '" poster="'
+    return '<div class="phone"><video class="zoomable" src="' . h(asset($video['file'])) . '" poster="'
         . h(asset($video['poster'])) . '" autoplay muted loop playsinline preload="metadata"></video></div>';
 };
 
@@ -160,7 +159,7 @@ if (mediaPresent($zoneShot['file']) && count($tiles) === count($layout['zone']['
         . $drawn . '</div></div>' . $standIn($zoneShot['file']) . '</div>';
 }
 
-// 4. In action: one video at a time, in a phone, or in a computer for the outside AI
+// 4. In action: one video at a time, in a phone
 $actionItems = [];
 foreach ($layout['videos'] as $video) {
     $actionItems[] = [

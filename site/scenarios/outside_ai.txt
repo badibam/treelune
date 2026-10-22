@@ -1,7 +1,10 @@
-# With an outside AI: recorded on the computer's screen, in 16:9, not on the phone. site-shots asks
-# for the recording's path; these steps are what to record.
-story: Starts in an outside AI's conversation, connected to the phone. Asks it for the week's runs, then to note a run. Ends on the phone, the new entry shown.
-setup: The phone's external access open; claude.ai (or another outside AI) connected to it, a new conversation.
-do: Ask it what the week's runs were, and let it read the app
-do: Ask it to note a run of 6 km today in the Runs tool
-do: On the phone, approve the request if the tool is protected, then show the new entry
+# With an outside AI: the external access opened in the app, then the Claude app on the same phone asked in one message.
+story: Starts in the app, its external access opened. Switches to the Claude app and, in one message, asks for the week's runs and to note a run of 6 km today. Ends in the Claude app, the request done.
+setup: Theme Cut paper, light. The app on Settings › External access, closed. The Claude app connected to the app's external access, on a new conversation, its conversations panel closed and nothing of the account on screen.
+start
+do: Open the external access
+do: Switch to the Claude app, then touch its message field
+type en: What were my runs this week? Then note a run of 6 km today in Runs.
+type fr: Quelles ont été mes courses cette semaine ? Puis note une course de 6 km aujourd'hui dans Runs.
+do: Send, wait until the answer is complete, the run noted, and hold a second
+stop

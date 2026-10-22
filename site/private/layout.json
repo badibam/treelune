@@ -42,11 +42,11 @@
     }
   },
   "videos": [
-    {"id": "ai_creates_tool", "icon": "sparkles", "color": "purple", "file": "videos/ai-creates-tool.mp4", "poster": "videos/ai-creates-tool.webp", "theme": "cosy", "mode": "dark", "frame": "phone"},
-    {"id": "quick_entry", "icon": "zap", "color": "orange", "file": "videos/quick-entry.mp4", "poster": "videos/quick-entry.webp", "theme": "swiss", "mode": "light", "frame": "phone"},
-    {"id": "discussion", "icon": "message-circle", "color": "blue", "file": "videos/discussion.mp4", "poster": "videos/discussion.webp", "theme": "eink", "mode": "dark", "frame": "phone"},
-    {"id": "routine", "icon": "repeat", "color": "teal", "file": "videos/routine.mp4", "poster": "videos/routine.webp", "theme": "metro", "mode": "light", "frame": "phone"},
-    {"id": "outside_ai", "icon": "network", "color": "green", "file": "videos/outside-ai.mp4", "poster": "videos/outside-ai.webp", "theme": null, "mode": null, "frame": "computer"}
+    {"id": "ai_creates_tool", "icon": "sparkles", "color": "purple", "file": "videos/ai-creates-tool.mp4", "poster": "videos/ai-creates-tool.webp", "theme": "cosy", "mode": "dark"},
+    {"id": "quick_entry", "icon": "zap", "color": "orange", "file": "videos/quick-entry.mp4", "poster": "videos/quick-entry.webp", "theme": "swiss", "mode": "light"},
+    {"id": "discussion", "icon": "message-circle", "color": "blue", "file": "videos/discussion.mp4", "poster": "videos/discussion.webp", "theme": "eink", "mode": "dark"},
+    {"id": "routine", "icon": "repeat", "color": "teal", "file": "videos/routine.mp4", "poster": "videos/routine.webp", "theme": "metro", "mode": "light"},
+    {"id": "outside_ai", "icon": "network", "color": "green", "file": "videos/outside-ai.mp4", "poster": "videos/outside-ai.webp", "theme": "paper", "mode": "light"}
   ],
   "_tools": "The tool types in the site's order, each with its colour and its capture; scripts/make_site_data.py --check fails when the app has a tool type missing here.",
   "tools": [
