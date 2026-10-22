@@ -229,15 +229,18 @@ header nav a[aria-current="true"] { color: var(--accent); text-decoration: under
 .privacy li { font-size: 16px; display: flex; gap: 14px; align-items: flex-start; }
 .privacy b { display: block; font-size: 18px; }
 @media (max-width: 820px) and (orientation: portrait) { .privacy ul { gap: 28px; } }
-/* Short landscape: three cards as the other pieces' are, the icon and the name centred above the text */
+/* Short landscape: three cards as the other pieces' are, the icon and the name centred on one line above the text */
 @media (max-height: 500px) and (orientation: landscape) {
   .privacy h2 { margin-bottom: 2svh; }
   .privacy ul { gap: 16px; }
   .privacy li {
-    font-size: 13px; line-height: 1.4; flex-direction: column; align-items: center; gap: 1.5svh;
+    font-size: 13px; line-height: 1.4; display: grid; grid-template-columns: 1fr auto auto 1fr; align-items: center; align-content: start; gap: 1.5svh 10px;
     background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 2.5svh 16px;
   }
-  .privacy b { font-size: 15px; text-align: center; margin-bottom: .8svh; }
+  .privacy li .pill { grid-column: 2; }
+  .privacy li div { display: contents; }
+  .privacy b { grid-column: 3; font-size: 15px; }
+  .privacy li span { grid-column: 1 / -1; align-self: start; }
 }
 
 /* The explorer, the site's pattern: choices beside a phone; choosing changes what the phone shows.
@@ -361,14 +364,14 @@ section[data-explore] > .wrap { flex: 1; display: flex; flex-direction: column; 
   }
   .grid::-webkit-scrollbar { display: none; }
   .card { flex: 0 0 var(--card); scroll-snap-align: center; text-align: center; }
-  .card h3 { flex-direction: column; font-size: 18px; } .card p { font-size: 15px; }
+  .card h3 { justify-content: center; font-size: 18px; } .card p { font-size: 15px; }
   .pieces .carousel { display: flex; color: var(--ink); margin-top: min(16px, 2svh); }
 }
 /* Phone upright: tall cards, so that the row fills the screen as the other sections do */
 @media (max-width: 820px) and (orientation: portrait) {
   .grid { --card: min(80vw, 340px); }
   .card { min-height: min(50svh, 440px); justify-content: center; gap: 18px; padding: 28px 24px; }
-  .card h3 { gap: 16px; font-size: 24px; }
+  .card h3 { flex-direction: column; gap: 16px; font-size: 24px; }
   .card .pill { width: 56px; height: 56px; } .card .pill svg { width: 30px; height: 30px; }
   .card p { font-size: 17px; }
 }

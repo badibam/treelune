@@ -304,7 +304,7 @@ $markSymbol = '<symbol id="mark" viewBox="' . h($mark[1]) . '">' . $mark[2] . '<
     <h2><?= $t('privacy.title') ?></h2>
     <ul>
 <?php foreach ($layout['privacy'] as $item): ?>
-      <li><?= pill($icons, $item['icon'], $item['color']) ?><div><b><?= $t("privacy.{$item['id']}.title") ?></b><?= $t("privacy.{$item['id']}.text") ?></div></li>
+      <li><?= pill($icons, $item['icon'], $item['color']) ?><div><b><?= $t("privacy.{$item['id']}.title") ?></b><span><?= $t("privacy.{$item['id']}.text") ?></span></div></li>
 <?php endforeach ?>
     </ul>
   </div>
