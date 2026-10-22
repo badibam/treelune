@@ -1,10 +1,10 @@
 # Video scenarios
 
-One file per video of `site/private/layout.json`, named by its id. `./run site-shots en` (then `fr`) plays it, one step per Enter, the next step always shown:
+One file per video of `site/private/layout.json`, named by its id. `./run site-shots en` (then `fr`) plays it turn by turn: for each gesture made by hand, what to do, Enter once it is done, and what the script then does on its own (type a text, start or stop filming), done at once before it hands back:
 
 - `setup: …` the screen to start from, before filming
 - `start` / `stop` the filming, touches shown on screen in between
-- `do: …` a gesture made by hand; Enter once it is done
+- `do: …` a gesture made by hand, like `setup`; Enter once it is done
 - `type en: …` / `type fr: …` a text adb types, word by word, into the field already touched; the other language's line is skipped
 - `#` a comment
 

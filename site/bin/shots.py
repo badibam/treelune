@@ -10,9 +10,11 @@ put on the phone, then:
                             down to 720 px wide, saved as WebP
     the zone's capture      the same, and in English each tool's tile framed from the screen's
                             layout (uiautomator), written into layout.json's zone.tiles
-    a phone video (.mp4)    its scenario shown whole, then played (site/scenarios/<id>.txt): one
-                            step per Enter, the texts typed by adb; filmed by screenrecord between start and stop,
-                            silent, 720 px wide, H.264, its first image kept as the poster (.webp)
+    a phone video (.mp4)    its gestures shown whole, then played (site/scenarios/<id>.txt): one
+                            Enter per gesture made by hand, after which the script does at once what
+                            follows on its own (texts typed by adb, filming started or stopped), then
+                            hands back; filmed by screenrecord between start and stop, silent, 720 px
+                            wide, H.264, its first image kept as the poster (.webp)
     the outside AI's video  a screen recording made on the computer, whose path is asked, its
                             scenario shown as what to record
 
@@ -264,14 +266,31 @@ def scenario(video_id, lang):
     return steps
 
 
-def describe(kind, text):
-    return {
-        "setup": f"Put the phone on: {text}",
-        "start": "Start filming",
-        "stop": "Stop filming",
-        "do": f"You: {text}",
-        "type": f"adb types: {text}",
-    }[kind]
+# A step the user makes by hand, Enter once it is done; the others the script does on its own.
+MANUAL = ("setup", "do")
+
+
+def turns(steps):
+    """The steps as the user's turns: each gesture made by hand with the steps the script then does
+    on its own, until the next gesture; steps before the first gesture come under None."""
+    groups = []
+    for kind, text in steps:
+        if kind in MANUAL:
+            groups.append((text, []))
+        else:
+            if not groups:
+                groups.append((None, []))
+            groups[-1][1].append((kind, text))
+    return groups
+
+
+def what_follows(automatic, last):
+    """What the script does after a turn's Enter, in a sentence."""
+    actions = [{"start": "starts filming, touches shown", "stop": "stops filming", "type": f"types “{text}”"}[kind]
+               for kind, text in automatic]
+    if last:
+        actions.append("saves the video and its first image")
+    return "the script " + ", then ".join(actions) if actions else "nothing, the next step"
 
 
 def encode_video(source, video_path):
@@ -298,26 +317,37 @@ def save_poster(video_path, poster_path):
 
 
 def play(steps, video_path):
-    """The scenario, one step per Enter, the next one always shown; filmed between start and stop."""
+    """The scenario turn by turn: the gesture, when to press Enter, what the script then does on its
+    own, done at once before handing back; filmed between start and stop."""
     remote = "/sdcard/site-video.mp4"
     recorder = None
-    for i, (kind, text) in enumerate(steps):
-        following = f"   (then: {describe(*steps[i + 1])})" if i + 1 < len(steps) else ""
-        prompt = {"do": "Enter once done", "type": "Enter to type"}.get(kind, "Enter")
-        input(f"  {i + 1}/{len(steps)} {describe(kind, text)}{following}\n    {prompt} ")
-        if kind == "start":
-            show_touches(True)
-            recorder = subprocess.Popen(["adb", "shell", "screenrecord", "--bit-rate", "8000000",
-                                         "--time-limit", str(RECORD_LIMIT), remote])
-            print(f"    Filming (at most {RECORD_LIMIT} s).")
-        elif kind == "stop":
-            subprocess.run(["adb", "shell", "pkill", "-INT", "screenrecord"], check=False)
-            recorder.wait()
-            recorder = None
-            show_touches(False)
-            time.sleep(1)  # screenrecord finishes writing the file after its signal
-        elif kind == "type":
-            type_text(text)
+    groups = turns(steps)
+    gestures = sum(1 for gesture, _ in groups if gesture is not None)
+    number = 0
+    for i, (gesture, automatic) in enumerate(groups):
+        if gesture is not None:
+            number += 1
+            print(f"\n  [{number}/{gestures}] Do:   {gesture}")
+            print("        Once done: Enter")
+            print(f"        Then:  {what_follows(automatic, i == len(groups) - 1)}")
+            input("  > ")
+        for kind, text in automatic:
+            if kind == "start":
+                show_touches(True)
+                recorder = subprocess.Popen(["adb", "shell", "screenrecord", "--bit-rate", "8000000",
+                                             "--time-limit", str(RECORD_LIMIT), remote])
+                print(f"        Filming (at most {RECORD_LIMIT} s).")
+            elif kind == "stop":
+                subprocess.run(["adb", "shell", "pkill", "-INT", "screenrecord"], check=False)
+                recorder.wait()
+                recorder = None
+                show_touches(False)
+                time.sleep(1)  # screenrecord finishes writing the file after its signal
+                print("        Stopped.")
+            elif kind == "type":
+                print("        Typing…", end="", flush=True)
+                type_text(text)
+                print(" done.")
     if recorder is not None:
         sys.exit("The scenario has a start without a stop")
     with tempfile.TemporaryDirectory() as scratch:
@@ -344,10 +374,11 @@ def session(lang, layout):
         if path in videos:
             video = videos[path]
             steps = scenario(video["id"], lang)
-            # The whole scenario first, numbered, so that where it goes is known before it starts
-            print(f"\n{what}")
-            for number, (kind, text) in enumerate(steps, 1):
-                print(f"  {number:2}. {describe(kind, text)}")
+            # The gestures first, numbered, so that where it goes is known before it starts
+            gestures = [gesture for gesture, _ in turns(steps) if gesture is not None]
+            print(f"\n{what}, {len(gestures)} steps for you:")
+            for number, gesture in enumerate(gestures, 1):
+                print(f"  {number}. {gesture}")
             if video["frame"] == "computer":
                 source = input("  Path of the computer's screen recording, 16:9 (empty: skip) ").strip()
                 if not source:
