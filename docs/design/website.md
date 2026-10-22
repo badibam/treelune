@@ -7,15 +7,15 @@ Public : les curieux un peu techniques (celui qui installe depuis F-Droid), et c
 ## La page
 
 1. Ouverture : sur un téléphone tenu droit, le logo et le nom en grand au-dessus du texte, celui de l'en-tête masqué tant que ce premier écran est là ; la phrase du README (« Chaque app de suivi fait une chose, à sa façon. Treelune te donne les pièces, et tu construis celle qu'il te faut. »), puis l'IA en deuxième idée ; la capture de l'accueil et le sélecteur de thème.
-2. « Tes données restent chez toi » : un titre et trois lignes, chacune avec son icône, un écran entier sur un téléphone tenu droit : pas de compte ; l'IA que tu choisis, ta clé ou ton propre serveur ; une IA extérieure (claude.ai en premier) entre dans l'app le temps que l'accès est ouvert, la connexion arrivant sur le téléphone sans serveur de Treelune.
+2. « Tes données restent chez toi » : un titre et trois lignes, chacune avec son icône, un écran entier sur un téléphone tenu droit : pas de compte ; l'IA que tu choisis, ta clé ou ton propre serveur ; avec l'accès externe, une IA extérieure lit et écrit dans l'app, la connexion arrivant sur le téléphone sans serveur de Treelune.
 3. La zone Italien : ses outils et sa routine en liste ; le choix entoure sa tuile sur la capture de la zone et dit à quoi il sert. Elle n'entre pas dans les outils, que la partie 5 montre.
-4. En action : des vidéos courtes, sans son, en boucle, une à la fois dans le même cadre de téléphone, choisies dans la liste. Pour commencer : l'IA crée un outil et on le valide, une saisie rapide, une vraie discussion, une routine (le « Bilan de la semaine » de Course), Claude sur claude.ai qui lit et écrit dans l'app par l'accès externe. Ensuite : créer un outil à la main, ranger une zone, lire un graphique, réviser des Flashcards, une alerte, annuler une écriture, importer un fichier.
+4. En action : des vidéos courtes, sans son, en boucle, une à la fois dans le même cadre de téléphone, choisies dans la liste. Pour commencer : l'IA crée un outil et on le valide, une saisie rapide, une vraie discussion, une routine (le « Bilan de la semaine » de Course), une IA extérieure qui lit et écrit dans l'app par l'accès externe. Ensuite : créer un outil à la main, ranger une zone, lire un graphique, réviser des Flashcards, une alerte, annuler une écriture, importer un fichier.
 5. Les outils : leur liste, la capture de l'outil choisi, sa phrase `tagline`, comme `scripts/make_readme.py`. Puis les autres pièces, en cartes de texte, chacune avec son icône : routines, variables, identités, conditions et alertes, pointeurs, accès externe, ambiances.
 6. Les données en version longue, l'installation, et peut-être des pages à lire sur l'ordinateur (brancher une IA, l'accès externe, brancher un client MCP) : leur présence et leur contenu se décident sur la maquette.
 
 Les parties 1, 3, 4 et 5 partagent un motif, le geste du site : des choix à côté d'un téléphone, et choisir change ce que le téléphone montre. Les ambiances se choisissent dans une liste ; ailleurs, les choix sont des tuiles, plusieurs par ligne, chacune avec son icône Lucide sur une pastille de sa couleur d'étiquette, et le détail du choix s'affiche dessous dans une boîte de taille fixe, marquée de bleu nuit, pour que rien ne saute et que l'œil y aille. Les choix changent de côté d'une partie à l'autre. Sur un téléphone tenu droit, une telle partie tient en un écran, sans sa phrase d'introduction : son titre, le téléphone, un détail court de quatre lignes au plus, puis un carrousel : le choix en place entre deux flèches de place fixe, son rang (« 3 / 12 »), et un balayage sur le téléphone qui passe au suivant ; sur un écran couché et bas aussi, une telle partie tient en un écran, sans sa phrase d'introduction : son titre, puis les tuiles et le détail à côté d'un téléphone aussi haut que la place laissée.
 
-Français et anglais, comme l'app, textes selon `docs/WRITING.md`.
+Français et anglais, comme l'app, textes selon `docs/WRITING.md`. Les mots sont ceux de l'app : « l'IA de l'app » (celle qu'on règle dans l'app, qui exécute les routines et seule incarne une identité), « l'accès externe » et « une IA extérieure » (une IA qui tourne ailleurs, avec les exemples du Guide : « comme Claude, ChatGPT ou un modèle libre sur ton ordinateur avec LM Studio », jamais une seule marque).
 
 ## Les thèmes
 
@@ -47,7 +47,7 @@ Français et anglais, comme l'app, textes selon `docs/WRITING.md`.
 
 - `www.treelune.app` : son entrée du Multisite, puis le certificat régénéré pour couvrir les deux noms.
 - Les pages pour l'ordinateur, sur la maquette.
-- « Depuis une autre IA » dans En action : la place du téléphone exploitée autrement qu'avec une capture d'écran de navigateur en 16:9, à préciser.
+- « Avec une IA extérieure » dans En action : la place du téléphone exploitée autrement qu'avec une capture d'écran de navigateur en 16:9, à préciser.
 - Sur ordinateur, ce qui mène de l'ouverture à la suite, le bouton « Voir comment ça marche » retiré.
 
 ## La maquette

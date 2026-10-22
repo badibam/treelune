@@ -462,7 +462,7 @@
   <ul>
     <li><span data-icon="user-round-x" data-color="blue"></span><div><b>Pas de compte</b>Les données restent sur le téléphone, sans compte ni publicité.</div></li>
     <li><span data-icon="key-round" data-color="purple"></span><div><b>L'IA que tu choisis</b>Elle s'utilise avec ta propre clé, ou sur ton propre serveur. L'app marche aussi sans IA.</div></li>
-    <li><span data-icon="network" data-color="green"></span><div><b>Ouverte à une autre IA</b>Une IA extérieure, comme Claude sur claude.ai, peut lire et écrire dans l'app le temps que tu ouvres l'accès. La connexion arrive sur le téléphone, sans passer par un serveur de Treelune.</div></li>
+    <li><span data-icon="network" data-color="green"></span><div><b>Ouverte à une IA extérieure</b>Avec l'accès externe, une IA qui tourne ailleurs, comme Claude, ChatGPT ou un modèle libre sur ton ordinateur avec LM Studio, peut lire et écrire dans l'app. La connexion arrive sur le téléphone, sans passer par un serveur de Treelune.</div></li>
   </ul>
  </div>
 </section>
@@ -686,14 +686,14 @@
       { name: "Ripasso", icon: "layers", color: "teal", tag: "Flashcards", stage: zoneScreen("ripasso"), text: "Des Flashcards tirées du Lessico. Chaque mot revient juste avant d'être oublié." },
       { name: "Phrases utiles", icon: "message-square-quote", color: "pink", tag: "Notes", stage: zoneScreen("phrases"), text: "Des Notes à garder sous la main à Rome." },
       { name: "Valise pour Rome", icon: "luggage", color: "purple", tag: "Liste", stage: zoneScreen("suitcase"), text: "Une Liste à cocher avant le départ." },
-      { name: "Leçon du dimanche", icon: "book-open-text", color: "teal", tag: "Routine", stage: zoneScreen(null), text: "Chaque dimanche, l'IA prépare seule la leçon de la semaine, dans le rôle de Giulia, une professeure d'italien." },
+      { name: "Leçon du dimanche", icon: "book-open-text", color: "teal", tag: "Routine", stage: zoneScreen(null), text: "Chaque dimanche à 10 h, l'IA de l'app, dans le rôle de Giulia, une professeure d'italien, fait le point de la semaine et ajoute aux Phrases utiles trois phrases pour Rome." },
     ],
     action: [
       { name: "L'IA crée un outil", icon: "sparkles", color: "purple", stage: empty("Vidéo de 10 à 20 s : l'IA crée un outil"), text: "« Je voudrais suivre mon sommeil. » L'IA propose un Suivi déjà réglé. Une fois validé, sa tuile apparaît dans la zone.", theme: "Cosy" },
       { name: "Une saisie rapide", icon: "zap", color: "orange", stage: empty("Vidéo : une saisie rapide"), text: "Une sortie de 7,4 km se note depuis la tuile, sans ouvrir l'outil. L'Objectif de la semaine avance aussitôt.", theme: "Suisse" },
       { name: "Une vraie discussion", icon: "message-circle", color: "blue", stage: shot(5), text: "« Est-ce que je dors moins quand je travaille beaucoup ? » L'IA lit les deux outils et répond, chiffres à l'appui.", theme: "Liseuse" },
-      { name: "Une routine", icon: "repeat", color: "teal", stage: empty("Vidéo : une routine"), text: "Chaque dimanche, l'IA fait seule le bilan de la semaine d'entraînement. Une notification arrive quand il est prêt.", theme: "Métro" },
-      { name: "Depuis une autre IA", icon: "network", color: "green", stage: `<div class="computer empty">Vidéo : Claude sur claude.ai, dans l'app</div>`, text: "Dans une conversation sur claude.ai, Claude lit les données de l'app et y écrit. Pour un outil protégé, une notification demande ton accord.", theme: "conversation sur claude.ai" },
+      { name: "Une routine", icon: "repeat", color: "teal", stage: empty("Vidéo : une routine"), text: "Chaque dimanche, l'IA de l'app fait seule le bilan de la semaine d'entraînement. Une notification arrive quand il est prêt.", theme: "Métro" },
+      { name: "Avec une IA extérieure", icon: "network", color: "green", stage: `<div class="computer empty">Vidéo : une IA extérieure dans l'app</div>`, text: "Par l'accès externe, une IA qui tourne ailleurs lit les données de l'app et y écrit. Pour un outil protégé, une notification demande ton accord.", theme: "l'écran de l'IA extérieure" },
     ],
     tools: [
       ["Suivi", "activity", "orange", "Des chiffres, des notes sur une échelle, des choix ou des durées chronométrées, notés au fil des jours, comme le poids, le sommeil, l'humeur ou les verres d'eau", "Cosy", 2],
@@ -756,12 +756,12 @@
   });
 
   const PIECES = [
-    ["Routines", "calendar-clock", "teal", "L'IA travaille seule à l'heure prévue, par exemple pour un bilan, un menu ou une leçon."],
+    ["Routines", "calendar-clock", "teal", "L'IA de l'app travaille seule à l'heure prévue, par exemple pour un bilan, un menu ou une leçon."],
     ["Variables", "variable", "orange", "Un chiffre se calcule une fois et sert partout, comme les calories du jour ou les km de la semaine."],
     ["Conditions et alertes", "bell-ring", "red", "Une notification arrive quand une condition devient vraie, par exemple un poids au-dessus d'un seuil."],
-    ["Identités", "venetian-mask", "purple", "L'IA peut jouer un personnage, par exemple une professeure d'italien ou un coach."],
+    ["Identités", "venetian-mask", "purple", "L'IA de l'app peut incarner un personnage, par exemple une professeure d'italien ou un coach."],
     ["Pointeurs", "mouse-pointer-click", "blue", "Dans un message, un outil ou une zone se désigne directement, pour que l'IA sache de quoi il s'agit."],
-    ["Accès externe", "network", "green", "Une IA extérieure, comme Claude sur claude.ai, peut lire et écrire dans l'app, le temps que tu ouvres l'accès."],
+    ["Accès externe", "network", "green", "Une IA qui tourne ailleurs, comme Claude, ChatGPT ou un modèle libre sur ton ordinateur avec LM Studio, peut lire et écrire dans l'app, le temps que tu ouvres l'accès."],
     ["Ambiances", "palette", "pink", "La même app se décline en neuf ambiances, presque toutes avec leurs propres sons."],
   ];
   document.getElementById("pieces").innerHTML = PIECES.map(([name, icon, color, text]) => `
