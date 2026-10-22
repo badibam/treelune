@@ -36,7 +36,7 @@ Français et anglais, comme l'app, textes selon `docs/WRITING.md` : `/` en angla
 ## Les captures
 
 - Prises sur un téléphone qui n'a que la démo, jamais sur des données réelles.
-- La liste des captures et des vidéos est déclarée une fois (`site/private/media.php`) : son fichier, son thème, son mode. Une absente tient sa place en local par une capture F-Droid ou un écran dessiné, marqué comme tel, et `./run site-deploy` refuse d'envoyer tant qu'il en manque une.
+- La liste des captures et des vidéos est déclarée une fois (`site/private/layout.json`) : son fichier, son thème, son mode. Une absente tient sa place en local par une capture F-Droid ou un écran dessiné, marqué comme tel, et `./run site-deploy` refuse d'envoyer tant qu'il en manque une.
 - `./run site-shots` les prend sur le téléphone vidé, une par une : il dit quel écran mettre, prend la capture ou filme, et range le fichier.
 - Le pilotage par adb de `scripts/phone_ui.sh` les prend, et `adb shell screenrecord` filme les vidéos dont les gestes se rejouent ; la vraie discussion avec l'IA se filme une fois.
 

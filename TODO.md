@@ -8,7 +8,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Site treelune.app
 
-- L'implémentation de `docs/design/website.md` sous `site/`, la maquette `docs/design/website-mockup.html` comme référence de mise en page ; d'abord `/update pull php-heberge-leger`, le module abonné à zéro.
+- Les captures et les vidéos du site (48 manquent, `./run site-shots` sur le téléphone vidé, qui n'a que la démo), puis leur commit et le premier `./run site-deploy`, qui crée `treelune/` sur le compte (absent le 2026-10-22) ; `/update pull php-heberge-leger`, le module abonné sans point de départ.
 - `www.treelune.app` : son entrée du Multisite OVH (racine `treelune/public_html`), puis le certificat régénéré ; le 2026-10-22, le certificat ne couvre que `treelune.app` et `www` pointe sur la page de parking.
 
 ## Bugs du téléphone

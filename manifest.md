@@ -11,3 +11,4 @@
 ## pixel-ui @ 0db9979
 ## ia-service-distant @ 85554e4
 ## php-heberge-leger @
+- 500a48b3  getSiteText has no default: a text missing from one language fails the page, the project allowing no fallback without validation
