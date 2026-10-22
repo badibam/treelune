@@ -71,14 +71,12 @@ class SettingDescriptionsTest {
     @Test
     fun `every field of an entry says what it is`() {
         val gaps = entryGaps()
-        java.io.File(System.getProperty("user.dir")).resolve("../tmp/entry-gaps.txt").writeText(gaps.joinToString("\n"))
         assertTrue("${gaps.size} without a description:\n" + gaps.joinToString("\n"), gaps.isEmpty())
     }
 
     @Test
     fun `every value of a declaration says what it is`() {
         val gaps = declarations().flatMap { (name, nodes) -> missing(nodes, name) }.distinct()
-        java.io.File(System.getProperty("user.dir")).resolve("../tmp/setting-gaps.txt").writeText(gaps.joinToString("\n"))
         assertTrue("${gaps.size} without a description:\n" + gaps.joinToString("\n"), gaps.isEmpty())
     }
 }
