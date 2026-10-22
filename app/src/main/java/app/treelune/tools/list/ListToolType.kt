@@ -183,7 +183,7 @@ object ListToolType : ToolTypeContract {
 
     override fun getOperations(context: Context): List<app.treelune.core.tools.ToolOperation> {
         val s = Strings.`for`(tool = "list", context = context)
-        val id = app.treelune.core.fields.settings.SettingNode.Field(FieldDefinition("id", s.tool("field_item"), null, FieldType.TEXT, false,
+        val id = app.treelune.core.fields.settings.SettingNode.Field(FieldDefinition("id", s.tool("field_item"), app.treelune.core.strings.Strings.`for`(context = context).shared("tool_operation_entry_id"), FieldType.TEXT, false,
             mapOf("length" to app.treelune.core.fields.TextLength.SHORT.name)), required = true)
         return listOf(
             app.treelune.core.tools.ToolOperation("check", s.tool("operation_check"), listOf(id)),

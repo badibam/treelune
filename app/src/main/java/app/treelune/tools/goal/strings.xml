@@ -22,7 +22,7 @@
     <string name="schema_instructions">What to enter, for whoever fills the attempt: the user or the AI</string>
     <string name="schema_key">The criterion's key, written by the app when it is created and never changed: its values are stored under it</string>
     <string name="field_recurrence">Repeats</string>
-    <string name="schema_recurrence">Once: a single attempt, from its start to its deadline. Recurring: an attempt at each occurrence of its schedule, lasting its duration</string>
+    <string name="schema_recurrence">How often an attempt opens</string>
     <string name="recurrence_once">Once</string>
     <string name="recurrence_recurring">Recurring</string>
     <string name="field_start">Start</string>
@@ -105,4 +105,15 @@
     <string name="entry_timestamp">The start of the attempt\'s period</string>
     <string name="entry_data">The copy of the definition that judges the attempt, then the value of each criterion entered by hand</string>
     <string name="entry_state">Where the attempt stands (active, to validate, succeeded, failed, expired), the end of its period, and once validated, its judgement</string>
+
+    <!-- Settings, for the AI that reads their schema -->
+    <string name="schema_criteria">The criteria an attempt is judged by</string>
+    <string name="schema_criterion">One criterion: a value, and the condition it must meet</string>
+    <string name="schema_criterion_name">The criterion\'s name, shown with its verdict</string>
+    <string name="schema_entered">A value entered by hand in each attempt, which the condition reads; left out for a value read elsewhere</string>
+    <string name="schema_sub_goals">Sets of criteria, each met when enough of its own are, then counted as one criterion</string>
+    <string name="schema_sub_goal">One sub-goal: its name, its criteria and how many must be met</string>
+    <string name="schema_sub_goal_name">The sub-goal\'s name, shown with its verdict</string>
+    <string name="schema_recurrence_once">A single attempt, from its start</string>
+    <string name="schema_recurrence_recurring">An attempt at each occurrence of the schedule, lasting the duration</string>
 </resources>

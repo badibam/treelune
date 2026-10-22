@@ -71,7 +71,7 @@
     <string name="error_entry_update_failed">Impossible de mettre à jour l\'entrée</string>
     
     <!-- SCHEMAS CONFIG - Descriptions pour validation IA -->
-    <string name="schema_config_type">Nature de la valeur que ce suivi enregistre ; fixée par le schéma</string>
+    <string name="schema_config_type">Le genre de valeur que ce suivi enregistre, choisi à sa création et jamais changé</string>
     <string name="schema_config_value">Réglages de la valeur que les entrées enregistrent, ceux de son type de champ</string>
     <string name="schema_config_units">Unités possibles d\'une valeur ; chaque entrée enregistre l\'une d\'elles</string>
     <string name="schema_config_items">Raccourcis, chacun notant une chose d\'un toucher</string>
@@ -106,4 +106,14 @@
     <string name="entry_name">Ce qui a été noté : le nom d\'un raccourci, ou un nom tapé pour une entrée libre. Les entrées d\'une même chose le partagent, ce qui permet à un outil d\'en suivre plusieurs, par exemple des pompes et des squats</string>
     <string name="entry_timestamp">Quand la mesure a été prise ou la chose a eu lieu ; pour un chronomètre, quand il a démarré</string>
     <string name="entry_extra">Des détails notés avec chaque valeur, à côté d\'elle, par exemple le contexte d\'une pesée ou la qualité d\'une nuit</string>
+
+    <string name="schema_config_type_numeric">Un nombre, dans une des unités</string>
+    <string name="schema_config_type_scale">Une note sur une échelle entre deux bornes</string>
+    <string name="schema_config_type_choice">Une option, ou plusieurs, parmi une liste</string>
+    <string name="schema_config_type_boolean">Oui ou non</string>
+    <string name="schema_config_type_text">Un texte</string>
+    <string name="schema_config_type_timer">Une durée, chronométrée ou saisie</string>
+    <string name="schema_config_type_occurrence">Pas de valeur : l\'entrée est le fait que la chose a eu lieu</string>
+    <string name="schema_config_units_list">Les unités d\'une valeur ; une unité saisie avec une entrée les rejoint</string>
+    <string name="schema_config_item">Un raccourci : le nom que prennent ses entrées, et pour un nombre la valeur et l\'unité qu\'il saisit</string>
 </resources>

@@ -2528,4 +2528,36 @@
     <string name="schedule_timestamp_description">Un instant où cela a lieu</string>
 
     <string name="field_type_reference_tool_instances_list_description">Les outils dont elle peut désigner les entrées</string>
+
+    <string name="tool_operation_entry_id">L\'identifiant de l\'entrée sur laquelle elle agit</string>
+
+    <!-- App, zone, routine and module settings, for the AI that reads their schema -->
+    <string name="app_config_schema_relative_label_limits">Jusqu\'à quelle distance une date se dit par rapport à aujourd\'hui (« dans 3 jours ») plutôt qu\'en entier</string>
+    <string name="app_config_schema_zone_groups">Les groupes de zones de l\'accueil, dans leur ordre</string>
+    <string name="zone_schema_tool_groups_list">Les groupes dans lesquels les outils de la zone sont rangés, dans leur ordre</string>
+    <string name="ai_module_fields_description">Les champs que l\'utilisateur remplit ; aucun pour une simple confirmation</string>
+    <string name="guide_schema_welcome_seen">Si l\'écran du premier lancement a été vu</string>
+    <string name="guide_schema_band_hidden">Si la bande du tutoriel est masquée</string>
+    <string name="guide_schema_current">Le chapitre dont le tutoriel est en cours ; absent sinon</string>
+    <string name="guide_schema_chapters">La progression de chaque chapitre</string>
+    <string name="guide_schema_chapter">La progression d\'un chapitre</string>
+    <string name="guide_schema_chapter_id">L\'identifiant du chapitre</string>
+    <string name="guide_schema_done">Si le chapitre est fait</string>
+    <string name="guide_schema_kept">Ce qu\'une étape a gardé pour les suivantes, par exemple la zone qu\'elle a créée</string>
+    <string name="guide_schema_kept_element">Une chose gardée, par son nom</string>
+    <string name="guide_schema_kept_name">Ce qu\'est la chose gardée</string>
+    <string name="guide_schema_kept_value">Son identifiant</string>
+    <string name="settings_data_schema_folder">Le dossier du téléphone choisi une fois, où l\'app écrit sans demander ; absent tant qu\'il n\'est pas choisi</string>
+    <string name="settings_data_schema_seen">L\'état de la copie automatique vu la dernière fois dans Réglages › Données</string>
+    <string name="automation_schema_provider_id">L\'identifiant d\'un des fournisseurs d\'IA de l\'utilisateur ; sans lui la routine n\'est pas active et ne tourne pas</string>
+    <string name="automation_schema_identity_id">L\'identifiant de l\'identité au nom de laquelle ses exécutions parlent ; l\'IA de l\'app quand il manque</string>
+    <string name="automation_schema_group">Un des groupes d\'outils de sa zone, où se tient sa tuile</string>
+    <string name="automation_schema_is_enabled">Si son planning la lance</string>
+    <string name="automation_schema_notify_end">Quand la fin d\'une exécution est notifiée : toujours, sur un problème seulement, ou jamais</string>
+    <string name="automation_schema_catch_up">Ce qu\'elle fait des exécutions manquées, téléphone éteint ou app arrêtée ; présent avec un planning seulement</string>
+    <string name="automation_schema_catch_up_limit">Jusqu\'où les exécutions manquées sont rattrapées</string>
+    <string name="automation_schema_catch_up_limited">Seulement celles dans le délai</string>
+    <string name="automation_schema_catch_up_unlimited">Toutes</string>
+    <string name="automation_schema_catch_up_window">Combien de temps après son heure une exécution manquée est encore rattrapée</string>
+    <string name="automation_schema_dismiss_older">Si seule la dernière exécution manquée est rattrapée, plutôt que chacune</string>
 </resources>

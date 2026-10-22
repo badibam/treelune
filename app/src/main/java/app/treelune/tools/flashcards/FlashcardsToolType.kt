@@ -77,8 +77,8 @@ object FlashcardsToolType : ToolTypeContract {
     override fun getConfigSettings(context: Context): List<SettingNode> {
         val s = s(context)
         val face = { name: String, label: String, description: String ->
-            SettingNode.ListOf(name, label, SettingNode.Item.Value(field(name, s.tool("field_face_field"), FieldType.TEXT, description, short()), rowField = true),
-                required = true, minItems = 1, distinct = true)
+            SettingNode.ListOf(name, label, SettingNode.Item.Value(field(name, s.tool("field_face_field"), FieldType.TEXT, s.tool("schema_face_field"), short()), rowField = true),
+                required = true, minItems = 1, distinct = true, description = description)
         }
         return listOf(
             SettingNode.Section(s.tool("section_source"), listOf(
@@ -91,7 +91,8 @@ object FlashcardsToolType : ToolTypeContract {
                     SettingNode.Field(field(FlashcardsDeck.NAME, s.tool("field_direction_name"), FieldType.TEXT, s.tool("schema_direction_name"), short()), required = true),
                     face(FlashcardsDeck.FRONT, s.tool("field_front"), s.tool("schema_front")),
                     face(FlashcardsDeck.BACK, s.tool("field_back"), s.tool("schema_back"))
-                )), required = true, minItems = 1, summary = listOf(FlashcardsDeck.NAME)),
+                ), description = s.tool("schema_direction_element")), required = true, minItems = 1, summary = listOf(FlashcardsDeck.NAME),
+                    description = s.tool("schema_directions")),
                 SettingNode.Field(field(FlashcardsDeck.AFTER_ANOTHER, s.tool("field_after_another"), FieldType.BOOLEAN, s.tool("schema_after_another")), required = true, default = false)
             )),
             SettingNode.Section(s.tool("section_day"), listOf(

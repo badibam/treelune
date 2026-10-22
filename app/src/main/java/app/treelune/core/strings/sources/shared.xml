@@ -2528,4 +2528,36 @@
     <string name="schedule_timestamp_description">An instant at which it happens</string>
 
     <string name="field_type_reference_tool_instances_list_description">The tools whose entries it can point to</string>
+
+    <string name="tool_operation_entry_id">Id of the entry it acts on</string>
+
+    <!-- App, zone, routine and module settings, for the AI that reads their schema -->
+    <string name="app_config_schema_relative_label_limits">Up to which distance a date is said relative to today (“in 3 days”) rather than in full</string>
+    <string name="app_config_schema_zone_groups">The groups of zones on the home screen, in their order</string>
+    <string name="zone_schema_tool_groups_list">The groups the zone\'s tools are sorted into, in their order</string>
+    <string name="ai_module_fields_description">The fields the user fills in; none for a plain confirmation</string>
+    <string name="guide_schema_welcome_seen">Whether the first-launch screen was seen</string>
+    <string name="guide_schema_band_hidden">Whether the tutorial band is hidden</string>
+    <string name="guide_schema_current">The chapter whose tutorial is in progress; absent otherwise</string>
+    <string name="guide_schema_chapters">Each chapter\'s progress</string>
+    <string name="guide_schema_chapter">One chapter\'s progress</string>
+    <string name="guide_schema_chapter_id">The chapter\'s id</string>
+    <string name="guide_schema_done">Whether the chapter is done</string>
+    <string name="guide_schema_kept">What a step kept for the next ones, such as the zone it created</string>
+    <string name="guide_schema_kept_element">One thing kept, by its name</string>
+    <string name="guide_schema_kept_name">What the thing kept is</string>
+    <string name="guide_schema_kept_value">Its id</string>
+    <string name="settings_data_schema_folder">The phone\'s folder chosen once, where the app writes without asking; absent until chosen</string>
+    <string name="settings_data_schema_seen">The automatic backup\'s state last looked at in Settings › Data</string>
+    <string name="automation_schema_provider_id">Id of one of the user\'s AI providers; without one the routine neither is on nor runs</string>
+    <string name="automation_schema_identity_id">Id of the identity its runs speak as; the app\'s own AI when absent</string>
+    <string name="automation_schema_group">One of the tool groups of its zone, where its tile stands</string>
+    <string name="automation_schema_is_enabled">Whether its schedule runs it</string>
+    <string name="automation_schema_notify_end">When the end of a run is notified: always, on a problem only, or never</string>
+    <string name="automation_schema_catch_up">What it does about the runs it missed, the phone off or the app stopped; present with a schedule only</string>
+    <string name="automation_schema_catch_up_limit">How far back missed runs are caught up</string>
+    <string name="automation_schema_catch_up_limited">Only those within the window</string>
+    <string name="automation_schema_catch_up_unlimited">All of them</string>
+    <string name="automation_schema_catch_up_window">How long after its time a missed run is still caught up</string>
+    <string name="automation_schema_dismiss_older">Whether only the latest missed run is caught up, rather than each</string>
 </resources>

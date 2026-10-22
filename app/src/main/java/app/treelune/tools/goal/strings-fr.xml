@@ -22,7 +22,7 @@
     <string name="schema_instructions">Ce qu\'il faut saisir, pour qui remplit la tentative : l\'utilisateur ou l\'IA</string>
     <string name="schema_key">La clé du critère, écrite par l\'app à sa création et jamais changée : ses valeurs sont rangées sous elle</string>
     <string name="field_recurrence">Répétition</string>
-    <string name="schema_recurrence">Une fois : une seule tentative, de son début à son échéance. Récurrent : une tentative à chaque occurrence de sa récurrence, qui dure sa durée</string>
+    <string name="schema_recurrence">À quel rythme une tentative s\'ouvre</string>
     <string name="recurrence_once">Une fois</string>
     <string name="recurrence_recurring">Récurrent</string>
     <string name="field_start">Début</string>
@@ -105,4 +105,15 @@
     <string name="entry_timestamp">Le début de la période de la tentative</string>
     <string name="entry_data">La copie de la définition qui juge la tentative, puis la valeur de chaque critère saisi à la main</string>
     <string name="entry_state">Où en est la tentative (en cours, à valider, réussie, échouée, expirée), la fin de sa période, et une fois validée, son jugement</string>
+
+    <!-- Settings, for the AI that reads their schema -->
+    <string name="schema_criteria">Les critères sur lesquels une tentative est jugée</string>
+    <string name="schema_criterion">Un critère : une valeur, et la condition qu\'elle doit remplir</string>
+    <string name="schema_criterion_name">Le nom du critère, montré avec son verdict</string>
+    <string name="schema_entered">Une valeur saisie à la main dans chaque tentative, que la condition lit ; absente pour une valeur lue ailleurs</string>
+    <string name="schema_sub_goals">Des ensembles de critères, chacun rempli quand assez des siens le sont, puis compté comme un critère</string>
+    <string name="schema_sub_goal">Un sous-objectif : son nom, ses critères et combien doivent être remplis</string>
+    <string name="schema_sub_goal_name">Le nom du sous-objectif, montré avec son verdict</string>
+    <string name="schema_recurrence_once">Une seule tentative, à partir de son début</string>
+    <string name="schema_recurrence_recurring">Une tentative à chaque occurrence du planning, durant la durée</string>
 </resources>

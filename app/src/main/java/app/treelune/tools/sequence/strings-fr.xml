@@ -14,7 +14,7 @@
     <string name="section_schedule">Planning</string>
     <string name="field_steps">Déroulé</string>
     <string name="field_kind">Nature</string>
-    <string name="schema_kind">step : une étape ; block : des étapes répétées, un bloc dans un bloc ne contenant que des étapes</string>
+    <string name="schema_kind">S\'il s\'agit d\'une étape ou d\'un bloc</string>
     <string name="kind_step">Étape</string>
     <string name="kind_block">Bloc</string>
     <string name="field_block_name">Nom du bloc</string>
@@ -26,7 +26,7 @@
     <string name="field_step_images">Images</string>
     <string name="schema_step_images">Montrées pendant l\'étape, la première en grand (une posture, un plat) : des ids d\'images, comme un champ IMAGE les garde</string>
     <string name="field_end">Fin</string>
-    <string name="schema_end">timed : le minuteur descend, puis l\'étape suivante vient d\'office ; manual : un chrono monte jusqu\'à « Fait » ; timed_then_manual : le minuteur sonne, puis le chrono continue jusqu\'à « Fait »</string>
+    <string name="schema_end">Comment l\'étape se termine</string>
     <string name="end_timed">Au temps</string>
     <string name="end_manual">À la main</string>
     <string name="end_timed_then_manual">Au temps, puis à la main</string>
@@ -152,4 +152,25 @@
     <string name="entry_data">Comment la séance s\'est passée, écrit par l\'app à sa fin : sa durée, ses pauses, ses étapes faites, passées ou pas faites</string>
     <string name="entry_extra">Les champs de l\'utilisateur, remplis quand une séance est terminée, par exemple comment elle s\'est passée ou l\'effort ressenti</string>
     <string name="entry_state">Où en est la séance : prévue, en cours, à terminer, faite, arrêtée ou ignorée ; son début et sa fin, et pendant qu\'elle se déroule, son parcours</string>
+
+    <!-- Settings and operation parameters, for the AI that reads their schema -->
+    <string name="schema_steps">Le parcours de la séance, dans l\'ordre</string>
+    <string name="schema_element">Une étape, suivie à l\'écran, ou un bloc d\'étapes répétées</string>
+    <string name="schema_block_steps">Les étapes du bloc, dans l\'ordre, refaites à chaque tour</string>
+    <string name="schema_block_element">Une étape du bloc, ou un bloc à l\'intérieur</string>
+    <string name="schema_inner_element">Une étape du bloc</string>
+    <string name="schema_kind_step">Une étape, suivie à l\'écran jusqu\'à sa fin</string>
+    <string name="schema_kind_block">Des étapes refaites plusieurs tours de suite ; un bloc dans un bloc ne contient que des étapes</string>
+    <string name="schema_block_name">Le nom du bloc, montré pendant qu\'il se déroule</string>
+    <string name="schema_step_name">Le nom de l\'étape, montré pendant qu\'elle se déroule et gardé dans l\'historique</string>
+    <string name="schema_end_timed">Le minuteur décompte, puis l\'étape suivante vient d\'elle-même</string>
+    <string name="schema_end_manual">Un chronomètre compte jusqu\'à « Fait »</string>
+    <string name="schema_end_timed_then_manual">Le minuteur sonne, puis le chronomètre continue jusqu\'à « Fait »</string>
+    <string name="schema_step_duration">Le temps que décompte le minuteur</string>
+    <string name="schema_correct_timestamp">Quand elle a eu lieu</string>
+    <string name="schema_correct_duration">Combien de temps elle a duré</string>
+    <string name="schema_correct_steps_done">Les étapes faites, pour une séance qui ne garde pas ses étapes</string>
+    <string name="schema_correct_steps_skipped">Les étapes passées, pour une séance qui ne garde pas ses étapes</string>
+    <string name="schema_correct_steps_not_done">Les étapes pas atteintes, pour une séance qui ne garde pas ses étapes</string>
+    <string name="schema_step_statuses_list">L\'état de chaque étape, dans l\'ordre</string>
 </resources>

@@ -115,9 +115,9 @@ object GoalToolType : ToolTypeContract {
         return listOf(
             // Written by the app when the criterion is created (completeConfig), sent back unchanged
             SettingNode.Field(field("key", "key", FieldType.TEXT, s.tool("schema_key"), mapOf("length" to TextLength.SHORT.name)), systemWritten = true),
-            SettingNode.Field(field("name", shared.shared("label_name"), FieldType.TEXT, config = mapOf("length" to TextLength.SHORT.name)), required = true),
+            SettingNode.Field(field("name", shared.shared("label_name"), FieldType.TEXT, s.tool("schema_criterion_name"), mapOf("length" to TextLength.SHORT.name)), required = true),
             SettingNode.Field(field("essential", s.tool("field_essential"), FieldType.BOOLEAN, s.tool("schema_essential")), default = false),
-            SettingNode.Group(Criterion.ENTERED, s.tool("field_field"), FieldTypeSettings.valueNodes(shared::shared, ENTERED_TYPES)),
+            SettingNode.Group(Criterion.ENTERED, s.tool("field_field"), FieldTypeSettings.valueNodes(shared::shared, ENTERED_TYPES), description = s.tool("schema_entered")),
             SettingNode.Field(field("instructions", s.tool("field_instructions"), FieldType.TEXT, s.tool("schema_instructions"), mapOf("length" to TextLength.MEDIUM.name))),
             SettingNode.Condition(Criterion.CONDITION, s.tool("field_condition"), reference = s.tool("reference_attempt_end"),
                 emptyPeriod = s.tool("period_of_attempt"), required = true, enteredField = Criterion.ENTERED)
@@ -127,16 +127,17 @@ object GoalToolType : ToolTypeContract {
     override fun getConfigSettings(context: Context): List<SettingNode> {
         val s = s(context)
         val shared = Strings.`for`(context = context)
-        val criteria = SettingNode.ListOf("criteria", s.tool("field_criteria"), SettingNode.Item.Of(criterionNodes(context)), summary = listOf("name"))
+        val criteria = SettingNode.ListOf("criteria", s.tool("field_criteria"), SettingNode.Item.Of(criterionNodes(context), description = s.tool("schema_criterion")),
+            summary = listOf("name"), description = s.tool("schema_criteria"))
         return listOf(
             SettingNode.Section(s.tool("section_definition"), listOf(
                 criteria,
                 SettingNode.ListOf("sub_goals", s.tool("field_sub_goals"), SettingNode.Item.Of(listOf(
-                    SettingNode.Field(field("name", shared.shared("label_name"), FieldType.TEXT, config = mapOf("length" to TextLength.SHORT.name)), required = true),
+                    SettingNode.Field(field("name", shared.shared("label_name"), FieldType.TEXT, s.tool("schema_sub_goal_name"), mapOf("length" to TextLength.SHORT.name)), required = true),
                     SettingNode.Field(field("at_least", s.tool("field_at_least"), FieldType.NUMERIC, s.tool("schema_at_least"), mapOf("min" to 0, "decimals" to 0))),
                     SettingNode.Field(field("essential", s.tool("field_essential"), FieldType.BOOLEAN, s.tool("schema_essential")), default = false),
                     criteria
-                )), summary = listOf("name")),
+                ), description = s.tool("schema_sub_goal")), summary = listOf("name"), description = s.tool("schema_sub_goals")),
                 SettingNode.Field(field("at_least", s.tool("field_at_least"), FieldType.NUMERIC, s.tool("schema_at_least"), mapOf("min" to 0, "decimals" to 0)))
             )),
             SettingNode.Section(s.tool("section_time"), listOf(
@@ -153,7 +154,8 @@ object GoalToolType : ToolTypeContract {
                             ScheduleSettings.group(s.tool("field_schedule"), shared::shared).copy(required = true),
                             SettingNode.Field(field("duration", s.tool("field_duration"), FieldType.DURATION, s.tool("schema_duration"), DURATION_UNITS))
                         )
-                    )
+                    ),
+                    descriptions = listOf(Recurrence.ONCE, Recurrence.RECURRING).associateWith { s.tool("schema_${RECURRENCE}_$it") }
                 ),
                 SettingNode.Field(field("enabled", s.tool("field_enabled"), FieldType.BOOLEAN, s.tool("schema_enabled")), required = true, default = true),
                 SettingNode.Field(field("expiry_delay", s.tool("field_expiry_delay"), FieldType.DURATION, s.tool("schema_expiry_delay"), DURATION_UNITS), required = true, default = DEFAULT_EXPIRY),
@@ -207,7 +209,7 @@ object GoalToolType : ToolTypeContract {
      */
     override fun getOperations(context: Context): List<ToolOperation> {
         val s = s(context)
-        val id = SettingNode.Field(field("id", s.tool("field_attempt"), FieldType.TEXT, config = mapOf("length" to TextLength.SHORT.name)), required = true)
+        val id = SettingNode.Field(field("id", s.tool("field_attempt"), FieldType.TEXT, Strings.`for`(context = context).shared("tool_operation_entry_id"), mapOf("length" to TextLength.SHORT.name)), required = true)
         return listOf(
             ToolOperation("validate", s.tool("operation_validate"), listOf(id)),
             ToolOperation("reopen", s.tool("operation_reopen"), listOf(id))

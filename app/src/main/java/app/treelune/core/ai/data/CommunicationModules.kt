@@ -74,7 +74,8 @@ object CommunicationModules {
             label = text("ai_module_fields"),
             item = SettingNode.Item.Of(fieldNodes(text)),
             fieldDefinitions = true,
-            summary = listOf("display_name", "type")
+            summary = listOf("display_name", "type"),
+            description = text("ai_module_fields_description")
         )
     )
 

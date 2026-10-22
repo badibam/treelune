@@ -80,17 +80,18 @@ object AutomationSettings {
         val limits = listOf(LIMITED, UNLIMITED)
         return listOf(
             SettingNode.Variant(
-                selector = SettingNode.Field(FieldDefinition("limit", s.shared("automation_catch_up_window"), null, FieldType.CHOICE, false,
+                selector = SettingNode.Field(FieldDefinition("limit", s.shared("automation_catch_up_window"), s.shared("automation_schema_catch_up_limit"), FieldType.CHOICE, false,
                     mapOf("options" to ChoiceSettings.storedOptions(limits, mapOf(
                         LIMITED to s.shared("automation_catch_up_limited"),
                         UNLIMITED to s.shared("automation_catch_up_unlimited"))))), required = true),
                 cases = mapOf(
-                    LIMITED to listOf(SettingNode.Field(FieldDefinition("window", s.shared("automation_catch_up_delay"), null, FieldType.DURATION, false,
+                    LIMITED to listOf(SettingNode.Field(FieldDefinition("window", s.shared("automation_catch_up_delay"), s.shared("automation_schema_catch_up_window"), FieldType.DURATION, false,
                         app.treelune.core.fields.DurationUnits.DAY_HOUR_MINUTE.config()), required = true)),
                     UNLIMITED to emptyList()
-                )
+                ),
+                descriptions = mapOf(LIMITED to s.shared("automation_schema_catch_up_limited"), UNLIMITED to s.shared("automation_schema_catch_up_unlimited"))
             ),
-            SettingNode.Field(FieldDefinition("dismiss_older_instances", s.shared("automation_catch_up_run_every"), null, FieldType.BOOLEAN, false,
+            SettingNode.Field(FieldDefinition("dismiss_older_instances", s.shared("automation_catch_up_run_every"), s.shared("automation_schema_dismiss_older"), FieldType.BOOLEAN, false,
                 mapOf("true_label" to s.shared("automation_catch_up_latest_only"), "false_label" to s.shared("automation_catch_up_every_occurrence"))),
                 default = false)
         )
@@ -101,17 +102,17 @@ object AutomationSettings {
         return app.treelune.core.look.Looks.nodes(LOOK, s::shared) + listOf(
             // One of the providers the user created, absent for none: the routine is then neither
             // on nor run; checked to exist by the service, as the identity
-            SettingNode.Field(FieldDefinition(PROVIDER_ID, s.shared("label_ai_provider"), null, FieldType.TEXT, false,
+            SettingNode.Field(FieldDefinition(PROVIDER_ID, s.shared("label_ai_provider"), s.shared("automation_schema_provider_id"), FieldType.TEXT, false,
                 mapOf("length" to TextLength.SHORT.name))),
             // The identity its runs speak as, absent for the app's own AI; checked to exist by the service
-            SettingNode.Field(FieldDefinition(IDENTITY_ID, s.shared("label_identity"), null, FieldType.TEXT, false,
+            SettingNode.Field(FieldDefinition(IDENTITY_ID, s.shared("label_identity"), s.shared("automation_schema_identity_id"), FieldType.TEXT, false,
                 mapOf("length" to TextLength.SHORT.name))),
             // One of the tool groups of the automation's zone
-            SettingNode.Field(FieldDefinition("group", s.shared("label_group"), null, FieldType.TEXT, false,
+            SettingNode.Field(FieldDefinition("group", s.shared("label_group"), s.shared("automation_schema_group"), FieldType.TEXT, false,
                 mapOf("length" to TextLength.SHORT.name))),
-            SettingNode.Field(FieldDefinition("is_enabled", s.shared("automation_is_enabled"), null, FieldType.BOOLEAN, false, null), default = true),
+            SettingNode.Field(FieldDefinition("is_enabled", s.shared("automation_is_enabled"), s.shared("automation_schema_is_enabled"), FieldType.BOOLEAN, false, null), default = true),
             // A new routine's runs all wait: one wants to see what a routine just made does
-            SettingNode.Field(FieldDefinition("notify_end", s.shared("automation_notify_end"), null, FieldType.CHOICE, false,
+            SettingNode.Field(FieldDefinition("notify_end", s.shared("automation_notify_end"), s.shared("automation_schema_notify_end"), FieldType.CHOICE, false,
                 mapOf("options" to ChoiceSettings.storedOptions(listOf(NOTIFY_ALWAYS, NOTIFY_ON_PROBLEM, NOTIFY_NEVER), mapOf(
                     NOTIFY_ALWAYS to s.shared("automation_notify_end_always"),
                     NOTIFY_ON_PROBLEM to s.shared("automation_notify_end_on_problem"),
@@ -119,7 +120,7 @@ object AutomationSettings {
             // Absent: the automation runs on demand only
             ScheduleSettings.group(s.shared("automation_schedule"), s::shared),
             // Present with the schedule, and only with it (AutomationService)
-            SettingNode.Group("catch_up", s.shared("automation_catch_up_title"), catchUpNodes(context))
+            SettingNode.Group("catch_up", s.shared("automation_catch_up_title"), catchUpNodes(context), description = s.shared("automation_schema_catch_up"))
         )
     }
 

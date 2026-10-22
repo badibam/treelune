@@ -104,7 +104,7 @@ object QuestionnaireToolType : ToolTypeContract {
     /** Filling and ignoring an entry, for the screen and the AI alike. */
     override fun getOperations(context: Context): List<ToolOperation> {
         val s = s(context)
-        val id = SettingNode.Field(FieldDefinition("id", s.tool("field_entry"), null, FieldType.TEXT, false, mapOf("length" to TextLength.SHORT.name)), required = true)
+        val id = SettingNode.Field(FieldDefinition("id", s.tool("field_entry"), app.treelune.core.strings.Strings.`for`(context = context).shared("tool_operation_entry_id"), FieldType.TEXT, false, mapOf("length" to TextLength.SHORT.name)), required = true)
         return listOf(
             ToolOperation("complete", s.tool("operation_complete"), listOf(id)),
             ToolOperation("ignore", s.tool("operation_ignore"), listOf(id)),

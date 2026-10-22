@@ -110,4 +110,10 @@
     <string name="entry_timestamp">Quand la carte a été révisée</string>
     <string name="entry_data">Quelle carte a été révisée, une ligne de la source dans un des sens du paquet, et comment elle a été notée</string>
     <string name="entry_state">La mémoire de la carte après cette révision : sa stabilité, sa difficulté, et quand elle revient</string>
+
+    <!-- Settings, for the AI that reads their schema -->
+    <string name="schema_directions">Les façons dont une ligne est demandée, chacune faisant une carte à part</string>
+    <string name="schema_face_field">Un champ des lignes de la source, par son chemin</string>
+
+    <string name="schema_direction_element">Un sens : ce qui est montré d\'abord, puis ce qui est à trouver</string>
 </resources>
