@@ -42,4 +42,12 @@ class AiLanguageTest {
         assertEquals("Name (Nom)", merged.getJSONObject("properties").getJSONObject("a").getString("title"))
         assertEquals("x", merged.getJSONObject("properties").getJSONObject("a").getString("description"))
     }
+
+    @Test
+    fun `the prompt of a French app gives the app's words as its screens show them`() = runBlocking {
+        val notions = PromptChunks.buildAppNotions(context)
+        assertTrue(notions, notions.contains("- Tracking (tool type tracking): Suivi"))
+        assertTrue(notions, notions.contains("- Records (tool type structured): Fiches"))
+        assertTrue(notions, notions.contains("- Settings › Data management: Réglages › Gestion des données"))
+    }
 }

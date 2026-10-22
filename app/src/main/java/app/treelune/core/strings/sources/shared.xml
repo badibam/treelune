@@ -1104,7 +1104,7 @@
     <string name="auto_backup_choose_folder">Choose the folder</string>
     <string name="auto_backup_change_folder">Change the folder</string>
     <string name="auto_backup_folder_refused">Android does not let the app keep writing in this folder: choose another one.</string>
-    <string name="auto_backup_lost_content">The app can no longer write in the backup folder: choose it again in Settings › Data.</string>
+    <string name="auto_backup_lost_content">The app can no longer write in the backup folder: choose it again in Settings › Data management.</string>
     <string name="auto_backup_error_write">The copy %1$s could not be written in the backup folder</string>
 
     <!-- SETTINGS - Stub placeholders -->
@@ -1502,8 +1502,8 @@
     <string name="file_share">Share</string>
     <string name="export_csv_range_start">%1$s (start)</string>
     <string name="export_csv_range_end">%1$s (end)</string>
-    <string name="export_error_no_folder">No folder is chosen for the app: choose one in Settings › Data to write the file there.</string>
-    <string name="export_error_folder_lost">The app\'s folder can no longer be written in: choose it again in Settings › Data.</string>
+    <string name="export_error_no_folder">No folder is chosen for the app: choose one in Settings › Data management to write the file there.</string>
+    <string name="export_error_folder_lost">The app\'s folder can no longer be written in: choose it again in Settings › Data management.</string>
     <string name="export_error_unknown_field">This tool has no field %1$s. Its fields: %2$s</string>
     <string name="export_error_read">The entries could not be read.</string>
     <string name="export_error_write">The file %1$s could not be written in the app\'s folder.</string>
@@ -2547,7 +2547,7 @@
     <string name="guide_schema_kept_name">What the thing kept is</string>
     <string name="guide_schema_kept_value">Its id</string>
     <string name="settings_data_schema_folder">The phone\'s folder chosen once, where the app writes without asking; absent until chosen</string>
-    <string name="settings_data_schema_seen">The automatic backup\'s state last looked at in Settings › Data</string>
+    <string name="settings_data_schema_seen">The automatic backup\'s state last looked at in Settings › Data management</string>
     <string name="automation_schema_provider_id">Id of one of the user\'s AI providers; without one the routine neither is on nor runs</string>
     <string name="automation_schema_identity_id">Id of the identity its runs speak as; the app\'s own AI when absent</string>
     <string name="automation_schema_group">One of the tool groups of its zone, where its tile stands</string>

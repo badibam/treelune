@@ -1032,7 +1032,7 @@
     <!-- THEME/UI COMPONENTS - Labels pour composants d\'interface -->
 
     <!-- SETTINGS - Configuration screens -->
-    <string name="settings_title">Paramètres</string>
+    <string name="settings_title">Réglages</string>
     <string name="settings_section_app">App</string>
     <string name="settings_section_ai">IA</string>
     <string name="settings_section_data">Données</string>
@@ -1104,7 +1104,7 @@
     <string name="auto_backup_choose_folder">Choisir le dossier</string>
     <string name="auto_backup_change_folder">Changer de dossier</string>
     <string name="auto_backup_folder_refused">Android ne laisse pas l\'app écrire durablement dans ce dossier : choisis-en un autre.</string>
-    <string name="auto_backup_lost_content">L\'app ne peut plus écrire dans le dossier des sauvegardes : choisis-le de nouveau dans Réglages › Données.</string>
+    <string name="auto_backup_lost_content">L\'app ne peut plus écrire dans le dossier des sauvegardes : choisis-le de nouveau dans Réglages › Gestion des données.</string>
     <string name="auto_backup_error_write">La copie %1$s n\'a pas pu s\'écrire dans le dossier des sauvegardes</string>
 
     <!-- SETTINGS - Stub placeholders -->
@@ -1502,8 +1502,8 @@
     <string name="file_share">Partager</string>
     <string name="export_csv_range_start">%1$s (début)</string>
     <string name="export_csv_range_end">%1$s (fin)</string>
-    <string name="export_error_no_folder">Aucun dossier n\'est choisi pour l\'app : choisis-en un dans Réglages › Données pour y écrire le fichier.</string>
-    <string name="export_error_folder_lost">Le dossier de l\'app n\'est plus accessible en écriture : choisis-le à nouveau dans Réglages › Données.</string>
+    <string name="export_error_no_folder">Aucun dossier n\'est choisi pour l\'app : choisis-en un dans Réglages › Gestion des données pour y écrire le fichier.</string>
+    <string name="export_error_folder_lost">Le dossier de l\'app n\'est plus accessible en écriture : choisis-le à nouveau dans Réglages › Gestion des données.</string>
     <string name="export_error_unknown_field">Cet outil n\'a pas de champ %1$s. Ses champs : %2$s</string>
     <string name="export_error_read">Les entrées n\'ont pas pu être lues.</string>
     <string name="export_error_write">Le fichier %1$s n\'a pas pu être écrit dans le dossier de l\'app.</string>
@@ -2547,7 +2547,7 @@
     <string name="guide_schema_kept_name">Ce qu\'est la chose gardée</string>
     <string name="guide_schema_kept_value">Son identifiant</string>
     <string name="settings_data_schema_folder">Le dossier du téléphone choisi une fois, où l\'app écrit sans demander ; absent tant qu\'il n\'est pas choisi</string>
-    <string name="settings_data_schema_seen">L\'état de la copie automatique vu la dernière fois dans Réglages › Données</string>
+    <string name="settings_data_schema_seen">L\'état de la copie automatique vu la dernière fois dans Réglages › Gestion des données</string>
     <string name="automation_schema_provider_id">L\'identifiant d\'un des fournisseurs d\'IA de l\'utilisateur ; sans lui la routine n\'est pas active et ne tourne pas</string>
     <string name="automation_schema_identity_id">L\'identifiant de l\'identité au nom de laquelle ses exécutions parlent ; l\'IA de l\'app quand il manque</string>
     <string name="automation_schema_group">Un des groupes d\'outils de sa zone, où se tient sa tuile</string>

@@ -733,7 +733,7 @@ Imports a joined file into a tool, following a complete declaration: the new fie
 A new table for a file: CREATE_TOOL first, then IMPORT_PLAN and IMPORT_DATA at the next turn, with the id it returned.]]></string>
     <string name="ai_command_export_data"><![CDATA[### EXPORT_DATA
 
-Writes the entries of a tool as a CSV file into the app\'s folder, which the user chose in Settings › Data, to read in a spreadsheet or send. Nothing in the app changes and no file is written over: it runs without asking. The answer gives the file\'s name and its number of entries, never its content; the user shares it from the card.
+Writes the entries of a tool as a CSV file into the app\'s folder, which the user chose in Settings › Data management, to read in a spreadsheet or send. Nothing in the app changes and no file is written over: it runs without asking. The answer gives the file\'s name and its number of entries, never its content; the user shares it from the card.
 
 **Parameters**:
 
@@ -742,7 +742,7 @@ Writes the entries of a tool as a CSV file into the app\'s folder, which the use
 - `filters` (array, optional): as in TOOL_DATA
 - `fields` (array, optional): the paths kept, as in TOOL_DATA; every field when absent
 
-No folder chosen is refused: tell the user to choose one in Settings › Data.]]></string>
+No folder chosen is refused: tell the user to choose one in Settings › Data management.]]></string>
     <string name="ai_command_update_app_config"><![CDATA[### UPDATE_APP_CONFIG
 
 Changes the settings of a category open to you, written **whole**: read them first with APP_CONFIG.
@@ -810,6 +810,13 @@ Actions return a system message of type `ACTIONS_EXECUTED` holding:
 Actions run in order and stop at the first failure: the ones after it are cancelled. If every action succeeds, your `post_text` is shown; if one fails, it is not, and the results say so.
 
 **The id of what an action creates is only known at the next turn**, in `command_results`: an action cannot use the id of another action of the same answer (no placeholder such as `"zone_id": "NEW_ZONE"`). Create first; use the id returned in your next answer.]]></string>
+
+    <!-- The app's words in the user's language, beside the English this prompt uses; filled only when the app speaks another language -->
+    <string name="ai_chunk_vocabulary"><![CDATA[## The app's words
+
+The app shows its words in the user's language. This prompt names them in English; talking to the user, name each one as their screen shows it:
+
+%1$s]]></string>
 
     <!-- C.4 Custom fields [DEGREE 1] -->
     <string name="ai_chunk_custom_fields"><![CDATA[## Fields

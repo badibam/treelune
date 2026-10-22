@@ -60,6 +60,7 @@ object PromptChunks {
         // PARTIE A : INTRODUCTION & CONFIGURATION
         Chunk("intro_role", 1) { ctx, _ -> buildIntroRole(ctx) },
         Chunk("environment", 1, shared = true) { ctx, _ -> buildChunk("environment", ctx) },
+        Chunk("vocabulary", 1, shared = true) { ctx, _ -> buildVocabulary(ctx) },
         Chunk("session_types", 1) { ctx, sessionType -> buildSessionTypes(ctx, sessionType) },
         Chunk("automation_completion", 1) { ctx, sessionType -> buildAutomationCompletion(ctx, sessionType) },
 
@@ -321,6 +322,43 @@ object PromptChunks {
 
         return sb.toString()
     }
+
+    /**
+     * The app's words as its screens show them, each beside the English this prompt uses: the
+     * tool types, the field types, the app's notions and its settings screens, read from the
+     * texts the app shows, so that the AI names a thing as the user sees it. Empty when the app
+     * speaks English.
+     */
+    private fun buildVocabulary(context: Context): String {
+        if (AiLanguage.appIsEnglish(context)) return ""
+        val english = AiLanguage.english(context)
+        val en = Strings.`for`(context = english)
+        val local = Strings.`for`(context = context)
+        val words = buildList {
+            ToolTypeManager.getAllToolTypes().forEach { (id, type) -> add("${type.getDisplayName(english)} (tool type $id)" to type.getDisplayName(context)) }
+            app.treelune.core.fields.FieldType.entries.forEach { type ->
+                val key = "field_type_${type.name.lowercase()}_display_name"
+                add("${en.shared(key)} (field type ${type.name})" to local.shared(key))
+            }
+            VOCABULARY.forEach { key -> add(en.shared(key) to local.shared(key)) }
+            SETTINGS_SCREENS.forEach { key -> add("${en.shared("settings_title")} › ${en.shared(key)}" to "${local.shared("settings_title")} › ${local.shared(key)}") }
+        }
+        // A word the same in both languages needs no line
+        return local.shared("ai_chunk_vocabulary").format(words.filter { (word, shown) -> word.substringBefore(" (") != shown }
+            .joinToString("\n") { (word, shown) -> "- $word: $shown" })
+    }
+
+    /** The app's notions, by the key of the text that names them on screen. */
+    private val VOCABULARY = listOf(
+        "label_zone", "label_tool", "reference_kind_entry", "variable_display_name", "automation_display_name", "label_identity",
+        "label_group", "label_zone_group", "label_tool_group", "nav_home", "nav_chat", "guide_title", "custom_fields_section_title"
+    )
+
+    /** The settings screens, by the key of their title. */
+    private val SETTINGS_SCREENS = listOf(
+        "settings_ui", "settings_format", "settings_validation", "settings_ai_providers", "settings_ai_limits", "settings_identities",
+        "settings_external_access", "settings_data", "settings_write_history", "settings_demo"
+    )
 
     /**
      * Build automation completion instructions (AUTOMATION sessions only)
