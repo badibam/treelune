@@ -1,9 +1,13 @@
-# The AI creates a tool: asked in a sentence, approved, its tile appears in the zone.
+# The AI creates a tool: asked in a sentence, approved, then opened from its zone and used once.
+story: Starts in the Running zone. Asks the AI for a tool, answers its question if it asks one, approves the tool, then opens it from its zone and notes a first value with its shortcut. Ends on the tracking's history.
 setup: Theme Cosy, dark. The Running zone open, the conversation closed.
 start
 do: Touch the conversation bubble, then the message field
 type en: I'd like to track my resting heart rate each morning.
 type fr: Je voudrais suivre mon pouls au repos chaque matin.
-do: Touch Send, wait for the proposed Tracking, then approve it
-do: Go back to the zone, its new tile in view, and hold a second
+do: Touch Send; if the AI asks which zone, choose Running and confirm; wait for the proposed Tracking, then approve it
+do: Close the conversation, find the new tile in the Running zone, open it, touch its shortcut, then the value field
+type en: 58
+type fr: 58
+do: Save, the value shown in the history, and hold a second
 stop

@@ -10,12 +10,14 @@ put on the phone, then:
                             down to 720 px wide, saved as WebP
     the zone's capture      the same, and in English each tool's tile framed from the screen's
                             layout (uiautomator), written into layout.json's zone.tiles
-    a phone video (.mp4)    its gestures shown whole, then played (site/scenarios/<id>.txt): one
-                            Enter per gesture made by hand, after which the script does at once what
-                            follows on its own (texts typed by adb, filming started or stopped), then
-                            hands back; filmed by screenrecord between start and stop at 720 px wide,
-                            silent, H.264, its first image kept as the poster (.webp), the
-                            recording as made kept in tmp/site-videos/
+    a phone video (.mp4)    its story and its gestures shown whole, then played (site/scenarios/
+                            <id>.txt): one Enter per gesture made by hand, after which the script
+                            does at once what follows on its own (texts typed by adb, filming
+                            started or stopped), then hands back; filmed on the computer by scrcpy
+                            between start and stop, its window showing the phone, at 720 px wide;
+                            every still longer than STILL_MAX cut to STILL_KEPT, silent, H.264, its
+                            first image kept as the poster (.webp), the recording as made kept in
+                            tmp/site-videos/
     the outside AI's video  a screen recording made on the computer, whose path is asked, its
                             scenario shown as what to record
 
@@ -38,6 +40,7 @@ import json
 import re
 import shlex
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -59,8 +62,12 @@ WIDTH = 720
 RATIO_TOLERANCE = 0.01
 # The pause between two typed words, the letters coming as fast as adb sends them.
 WORD_PAUSE = 0.25
-# screenrecord stops by itself after this many seconds.
-RECORD_LIMIT = 180
+# A still of the screen longer than STILL_MAX seconds (a wait for the AI, the time to read the
+# next step) is cut to STILL_KEPT: nothing changes on screen in what is cut.
+STILL_MAX = 2.0
+STILL_KEPT = 1.0
+# The site's videos play at this rate, a still repeating its frame.
+FPS = 30
 ADB_KEYBOARD = "com.android.adbkeyboard/.AdbIME"
 
 
@@ -243,7 +250,7 @@ def write_tiles(frames):
 # ---- Videos ----
 
 def scenario(video_id, lang):
-    """A video's steps in one language, as (kind, text) pairs: setup, start, stop, do, type."""
+    """A video's steps in one language, as (kind, text) pairs: story, setup, start, stop, do, type."""
     path = SCENARIOS / f"{video_id}.txt"
     if not path.exists():
         sys.exit(f"No scenario for the video {video_id}: write {path.relative_to(ROOT)} (site/scenarios/README.md)")
@@ -257,7 +264,7 @@ def scenario(video_id, lang):
             continue
         kind, _, text = line.partition(":")
         kind, text = kind.strip(), text.strip()
-        if kind in ("setup", "do"):
+        if kind in ("story", "setup", "do"):
             steps.append((kind, text))
         elif kind in (f"type {code}" for code in LANGUAGES):
             if kind == f"type {lang}":
@@ -276,6 +283,8 @@ def turns(steps):
     on its own, until the next gesture; steps before the first gesture come under None."""
     groups = []
     for kind, text in steps:
+        if kind == "story":
+            continue
         if kind in MANUAL:
             groups.append((text, []))
         else:
@@ -285,22 +294,30 @@ def turns(steps):
     return groups
 
 
-def what_follows(automatic, last):
-    """What the script does after a turn's Enter, in a sentence."""
-    actions = [{"start": "starts filming, touches shown", "stop": "stops filming", "type": f"types “{text}”"}[kind]
-               for kind, text in automatic]
-    if last:
-        actions.append("saves the video and its first image")
-    return "the script " + ", then ".join(actions) if actions else "nothing, the next step"
+def what_follows(automatic, following):
+    """What comes after a turn's Enter, in a sentence: what the script does on its own, then the
+    next gesture, or the video saved when there is none."""
+    actions = [{"start": "the script starts filming, touches shown", "stop": "the script stops filming",
+                "type": f"the script types “{text}”"}[kind] for kind, text in automatic]
+    actions.append(f"you: {following}" if following is not None else "the script saves the video and its first image")
+    return ", then ".join(actions)
 
 
-def encode_video(source, video_path):
-    """Silent, WIDTH wide, H.264 ready to play while it loads."""
+def encode_video(source, video_path, spans=None):
+    """Silent, WIDTH wide, FPS a second, H.264 ready to play while it loads; only [spans] of
+    [source] when given, (start, end) in seconds, end None for the rest, joined."""
     target = PUBLIC / video_path
     target.parent.mkdir(parents=True, exist_ok=True)
+    spans = spans or [(0.0, None)]
+    cuts = "".join(
+        f"[0:v]trim=start={start}" + (f":end={end}" if end is not None else "") + f",setpts=PTS-STARTPTS[s{i}];"
+        for i, (start, end) in enumerate(spans)
+    )
+    joined = "".join(f"[s{i}]" for i in range(len(spans))) + f"concat=n={len(spans)}:v=1:a=0"
     subprocess.run([
         "ffmpeg", "-loglevel", "error", "-y", "-i", str(source), "-an",
-        "-vf", f"scale={WIDTH}:-2", "-c:v", "libx264", "-preset", "slow", "-crf", "28",
+        "-filter_complex", f"{cuts}{joined},fps={FPS},scale={WIDTH}:-2[v]", "-map", "[v]",
+        "-c:v", "libx264", "-preset", "slow", "-crf", "28",
         "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(target),
     ], check=True)
     print(f"  {video_path}: {target.stat().st_size // 1024} KB")
@@ -317,55 +334,102 @@ def save_poster(video_path, poster_path):
     print(f"  {poster_path}: first image of the video")
 
 
-def record_size():
-    """The phone's screen brought down to WIDTH, its height even, as the encoder wants it."""
-    width, height = phone_screen()
-    return f"{WIDTH}x{round(height * WIDTH / width / 2) * 2}"
+class Recorder:
+    """scrcpy filming the phone into a file on the computer, its window showing what is filmed:
+    30 to 60 frames a second while typing and scrolling (measured on 2026-10-22, a Galaxy S10+)."""
+
+    def __init__(self):
+        self.process = None
+        self.started = None
+
+    def start(self, target):
+        show_touches(True)
+        width, height = phone_screen()
+        # --max-size bounds the longer side: the height that makes the width WIDTH
+        self.process = subprocess.Popen(
+            ["scrcpy", "--max-size", str(round(height * WIDTH / width)), "--no-audio", "--record", str(target),
+             "--window-title", "site-shots: filming"],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        self.started = time.monotonic()
+
+    def stop(self):
+        """scrcpy writes the end of its file when it is interrupted, as by Ctrl+C."""
+        if self.process is None:
+            return
+        self.process.send_signal(signal.SIGINT)
+        self.process.wait()
+        self.process = None
+        self.started = None
+        show_touches(False)
+
+    def state(self):
+        """What a prompt starts with: whether it is filming, and for how long."""
+        if self.started is None:
+            return "○ not filming"
+        elapsed = int(time.monotonic() - self.started)
+        return f"● REC {elapsed // 60}:{elapsed % 60:02d}"
+
+
+recorder = Recorder()
 
 
 def play(steps, video_path):
-    """The scenario turn by turn: the gesture, when to press Enter, what the script then does on its
-    own, done at once before handing back; filmed between start and stop."""
-    remote = "/sdcard/site-video.mp4"
-    recorder = None
+    """The scenario turn by turn: the gesture, when to press Enter, what follows, done at once by the
+    script when it is its own before handing back; filmed between start and stop."""
     groups = turns(steps)
     gestures = sum(1 for gesture, _ in groups if gesture is not None)
     number = 0
-    for i, (gesture, automatic) in enumerate(groups):
-        if gesture is not None:
-            number += 1
-            print(f"\n  [{number}/{gestures}] Do:   {gesture}")
-            print("        Once done: Enter")
-            print(f"        Then:  {what_follows(automatic, i == len(groups) - 1)}")
-            input("  > ")
-        for kind, text in automatic:
-            if kind == "start":
-                show_touches(True)
-                # Filmed at the site's width: at the phone's full size, its encoder drops frames
-                recorder = subprocess.Popen(["adb", "shell", "screenrecord", "--size", record_size(), "--bit-rate", "8000000",
-                                             "--time-limit", str(RECORD_LIMIT), remote])
-                print(f"        Filming (at most {RECORD_LIMIT} s).")
-            elif kind == "stop":
-                subprocess.run(["adb", "shell", "pkill", "-INT", "screenrecord"], check=False)
-                recorder.wait()
-                recorder = None
-                show_touches(False)
-                time.sleep(1)  # screenrecord finishes writing the file after its signal
-                print("        Stopped.")
-            elif kind == "type":
-                print("        Typing…", end="", flush=True)
-                type_text(text)
-                print(" done.")
-    if recorder is not None:
-        sys.exit("The scenario has a start without a stop")
     with tempfile.TemporaryDirectory() as scratch:
         local = Path(scratch) / "raw.mp4"
-        adb("pull", remote, str(local), capture_output=True)
-        # The recording as the phone made it, to measure its frames (tmp/ is not versioned)
+        for i, (gesture, automatic) in enumerate(groups):
+            if gesture is not None:
+                number += 1
+                following = next((g for g, _ in groups[i + 1:] if g is not None), None)
+                print(f"\n  {recorder.state()}  [{number}/{gestures}] Do:   {gesture}")
+                print("        Once done: Enter")
+                print(f"        Then:  {what_follows(automatic, following)}")
+                input("  > ")
+            for kind, text in automatic:
+                if kind == "start":
+                    recorder.start(local)
+                    print(f"        {recorder.state()}  filming, in the window “site-shots: filming”")
+                elif kind == "stop":
+                    recorder.stop()
+                    print(f"        {recorder.state()}  stopped")
+                elif kind == "type":
+                    print("        Typing…", end="", flush=True)
+                    type_text(text)
+                    print(" done.")
+        if recorder.started is not None:
+            recorder.stop()
+            sys.exit("The scenario has a start without a stop")
+        # The recording as made, to measure its frames (tmp/ is not versioned)
         raw = ROOT / "tmp" / "site-videos" / video_path
         raw.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(local, raw)
-        encode_video(local, video_path)
+        encode_video(local, video_path, kept_spans(local))
+
+
+def frame_times(source):
+    """When each frame of [source] appears, in seconds: a recording holds a frame only when the
+    screen changes, so a long gap between two is a still."""
+    out = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "frame=pts_time",
+                          "-of", "csv=p=0", str(source)], capture_output=True, text=True, check=True).stdout
+    return [float(line.split(",")[0]) for line in out.splitlines() if line.strip()]
+
+
+def kept_spans(source):
+    """The spans of [source] kept, as (start, end) in seconds: all of it but the end of each still
+    longer than STILL_MAX, which is cut to STILL_KEPT."""
+    times = frame_times(source)
+    spans, start = [], 0.0
+    for current, following in zip(times, times[1:]):
+        if following - current > STILL_MAX:
+            spans.append((start, current + STILL_KEPT))
+            start = following
+    spans.append((start, None))
+    return spans
 
 
 # ---- The session ----
@@ -388,7 +452,11 @@ def session(lang, layout):
             steps = scenario(video["id"], lang)
             # The gestures first, numbered, so that where it goes is known before it starts
             gestures = [gesture for gesture, _ in turns(steps) if gesture is not None]
-            print(f"\n{what}, {len(gestures)} steps for you:")
+            print(f"\n{what}")
+            for kind, text in steps:
+                if kind == "story":
+                    print(f"  {text}")
+            print(f"  {len(gestures)} steps for you:")
             for number, gesture in enumerate(gestures, 1):
                 print(f"  {number}. {gesture}")
             if video["frame"] == "computer":
@@ -414,8 +482,8 @@ def main():
     if len(sys.argv) != 2 or sys.argv[1] not in LANGUAGES:
         sys.exit("Usage: ./run site-shots en|fr  (the phone set to that language, holding the demo alone)")
     lang = sys.argv[1]
-    if not shutil.which("adb") or not shutil.which("ffmpeg"):
-        sys.exit("site-shots needs adb and ffmpeg")
+    if not all(shutil.which(tool) for tool in ("adb", "ffmpeg", "scrcpy")):
+        sys.exit("site-shots needs adb, ffmpeg and scrcpy (trixie-backports: sudo apt install -t trixie-backports scrcpy)")
     layout = json.loads(LAYOUT.read_text(encoding="utf-8"))
     todo = missing(lang)
     if not todo:
@@ -432,7 +500,7 @@ def main():
     except KeyboardInterrupt:
         print("\nStopped.")
     finally:
-        subprocess.run(["adb", "shell", "pkill", "-INT", "screenrecord"], capture_output=True, check=False)
+        recorder.stop()
         show_touches(False)
         demo_mode(False)
     left = missing(lang)
