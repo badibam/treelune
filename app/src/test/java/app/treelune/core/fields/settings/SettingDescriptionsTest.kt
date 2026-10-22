@@ -17,7 +17,7 @@ import org.robolectric.annotation.Config
 
 /**
  * Every value a settings declaration puts in a schema the AI reads carries what it is, at its own
- * level (docs/design/entry-meanings.md): a setting, a group, a list and one of its elements, each
+ * level: a setting, a group, a list and one of its elements, each
  * option of a variant. A section, the screen's alone, has none; a brick (a condition, a term, a
  * selection, a period, instants) writes its own.
  */

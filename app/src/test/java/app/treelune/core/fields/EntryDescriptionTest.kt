@@ -26,7 +26,7 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 /**
- * The first level of a tool type's entry (docs/design/entry-meanings.md): what each part every
+ * The first level of a tool type's entry: what each part every
  * entry has means in the type, written once by the type, said once to the AI. The entries schema
  * no longer says it; a schema of a type, its config's or a tool's entries', comes after it, once
  * in a batch or a session.
