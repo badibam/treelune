@@ -1,4 +1,5 @@
 # A quick entry: a run noted from the tile, the week's Goal moving at once.
+story: Starts in the Running zone, the Runs tile and the week's Goal in view. Notes a run of 7.4 km from the tile. Ends on the Goal's tile, moved at once.
 setup: Theme Swiss, light. The Running zone open, the Runs tile and the week's Goal in view.
 start
 do: On the Runs tile, touch the pencil of a run, then the distance field

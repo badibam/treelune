@@ -1,4 +1,5 @@
 # A routine: the Weekly review of Running, done by the app's AI on its own, a notification when ready.
+story: Starts on the Running zone's routines. Runs the Weekly review by hand and leaves for the home screen; the app's AI writes the review on its own and a notification comes. Ends on the review, scrolled through.
 setup: Theme Metro, light. The Running zone's routines open, the Weekly review in view.
 start
 do: Run the Weekly review now, then go to the home screen

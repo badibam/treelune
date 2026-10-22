@@ -1,4 +1,5 @@
 # A real conversation: the AI reads two tools and answers with figures. Filmed once per language.
+story: Starts in the Running zone. Asks the AI whether sleep drops on busy work days; it reads two tools and answers with figures. Ends on the answer, scrolled through.
 setup: Theme E-reader, dark. The Running zone open, the conversation closed, the app's AI set up.
 start
 do: Touch the conversation bubble, then the message field

@@ -279,14 +279,19 @@ MANUAL = ("setup", "do")
 
 
 def turns(steps):
-    """The steps as the user's turns: each gesture made by hand with the steps the script then does
-    on its own, until the next gesture; steps before the first gesture come under None."""
+    """The steps as the user's turns: the gestures made by hand with the steps the script then does
+    on its own; gestures following one another with nothing for the script between are one turn,
+    since an Enter is only worth pressing for what the script does next. Steps before the first
+    gesture come under None."""
     groups = []
     for kind, text in steps:
         if kind == "story":
             continue
         if kind in MANUAL:
-            groups.append((text, []))
+            if groups and groups[-1][0] is not None and not groups[-1][1]:
+                groups[-1][0].append(text)
+            else:
+                groups.append(([text], []))
         else:
             if not groups:
                 groups.append((None, []))
@@ -299,7 +304,7 @@ def what_follows(automatic, following):
     next gesture, or the video saved when there is none."""
     actions = [{"start": "the script starts filming, touches shown", "stop": "the script stops filming",
                 "type": f"the script types “{text}”"}[kind] for kind, text in automatic]
-    actions.append(f"you: {following}" if following is not None else "the script saves the video and its first image")
+    actions.append(f"you: {'; then '.join(following)}" if following is not None else "the script saves the video and its first image")
     return ", then ".join(actions)
 
 
@@ -335,8 +340,9 @@ def save_poster(video_path, poster_path):
 
 
 class Recorder:
-    """scrcpy filming the phone into a file on the computer, its window showing what is filmed:
-    30 to 60 frames a second while typing and scrolling (measured on 2026-10-22, a Galaxy S10+)."""
+    """scrcpy filming the phone into a file on the computer, without a window, which would take the
+    focus from the terminal: 30 to 60 frames a second while typing and scrolling (measured on
+    2026-10-22, a Galaxy S10+)."""
 
     def __init__(self):
         self.process = None
@@ -347,8 +353,7 @@ class Recorder:
         width, height = phone_screen()
         # --max-size bounds the longer side: the height that makes the width WIDTH
         self.process = subprocess.Popen(
-            ["scrcpy", "--max-size", str(round(height * WIDTH / width)), "--no-audio", "--record", str(target),
-             "--window-title", "site-shots: filming"],
+            ["scrcpy", "--max-size", str(round(height * WIDTH / width)), "--no-audio", "--no-window", "--record", str(target)],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
         self.started = time.monotonic()
@@ -375,8 +380,9 @@ recorder = Recorder()
 
 
 def play(steps, video_path):
-    """The scenario turn by turn: the gesture, when to press Enter, what follows, done at once by the
-    script when it is its own before handing back; filmed between start and stop."""
+    """The scenario turn by turn: the gestures, when to press Enter, what follows, done at once by the
+    script when it is its own before handing back; filmed between start and stop. The first turn's
+    Enter can be s, to skip the video. Whether it was filmed."""
     groups = turns(steps)
     gestures = sum(1 for gesture, _ in groups if gesture is not None)
     number = 0
@@ -386,14 +392,20 @@ def play(steps, video_path):
             if gesture is not None:
                 number += 1
                 following = next((g for g, _ in groups[i + 1:] if g is not None), None)
-                print(f"\n  {recorder.state()}  [{number}/{gestures}] Do:   {gesture}")
-                print("        Once done: Enter")
+                print(f"\n  {recorder.state()}  [{number}/{gestures}] Do:")
+                for letter, text in zip("abcdefghij", gesture):
+                    print(f"        {letter}. {text}" if len(gesture) > 1 else f"        {text}")
                 print(f"        Then:  {what_follows(automatic, following)}")
-                input("  > ")
+                if number == 1:
+                    if not ask("  Once done:"):
+                        return False
+                else:
+                    if input("  Once done: Enter [q: quit] ").strip().lower() == "q":
+                        raise KeyboardInterrupt
             for kind, text in automatic:
                 if kind == "start":
                     recorder.start(local)
-                    print(f"        {recorder.state()}  filming, in the window “site-shots: filming”")
+                    print(f"        {recorder.state()}  filming")
                 elif kind == "stop":
                     recorder.stop()
                     print(f"        {recorder.state()}  stopped")
@@ -409,6 +421,7 @@ def play(steps, video_path):
         raw.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(local, raw)
         encode_video(local, video_path, kept_spans(local))
+    return True
 
 
 def frame_times(source):
@@ -458,16 +471,14 @@ def session(lang, layout):
                     print(f"  {text}")
             print(f"  {len(gestures)} steps for you:")
             for number, gesture in enumerate(gestures, 1):
-                print(f"  {number}. {gesture}")
+                print(f"  {number}. {'; then '.join(gesture)}")
             if video["frame"] == "computer":
                 source = input("  Path of the computer's screen recording, 16:9 (empty: skip) ").strip()
                 if not source:
                     continue
                 encode_video(Path(source).expanduser(), path)
-            else:
-                if not ask("  Film it now?"):
-                    continue
-                play(steps, path)
+            elif not play(steps, path):
+                continue
             save_poster(path, video["poster"].replace("/", f"/{lang}/", 1))
             continue
         if not ask(f"\n{what}: put the phone on this screen"):
