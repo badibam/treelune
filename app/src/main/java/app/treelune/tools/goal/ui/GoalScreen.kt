@@ -287,19 +287,21 @@ private fun UserFields(attempt: AttemptRow, config: JSONObject, locked: Boolean,
         }
         if (!locked) UI.ActionButton(action = ButtonAction.EDIT, display = ButtonDisplay.ICON, onClick = { editing = true })
     }
-    if (!editing) return
+    if (editing) UserFieldsDialog(attempt, fields, onCancel = { editing = false }) { values ->
+        editing = false
+        scope.launch {
+            val result = coordinator.processUserAction("tool_data.update", mapOf("id" to attempt.id, "extra" to values))
+            if (!result.isSuccess) onError(result.error) else onSaved()
+        }
+    }
+}
+
+/** The form of an attempt's user fields, prefilled; [onSave] gets every field's value. */
+@Composable
+private fun UserFieldsDialog(attempt: AttemptRow, fields: List<FieldDefinition>, onCancel: () -> Unit, onSave: (Map<String, Any?>) -> Unit) {
+    val context = LocalContext.current
     var values by rememberSaveable(attempt.id, stateSaver = FieldValuesSaver) { mutableStateOf(attempt.extra) }
-    UI.Dialog(
-        type = DialogType.EDIT,
-        onConfirm = {
-            editing = false
-            scope.launch {
-                val result = coordinator.processUserAction("tool_data.update", mapOf("id" to attempt.id, "extra" to fields.associate { it.name to values[it.name] }))
-                if (!result.isSuccess) onError(result.error) else onSaved()
-            }
-        },
-        onCancel = { editing = false }
-    ) {
+    UI.Dialog(type = DialogType.EDIT, onConfirm = { onSave(fields.associate { it.name to values[it.name] }) }, onCancel = onCancel) {
         Column(modifier = Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
             UI.Text(Strings.`for`(context = context).shared("custom_fields_section_title"), TextType.SUBTITLE)
             CustomFieldsInput(customFieldsMetadata = fields, values = values, onValuesChange = { values = it }, context = context)
