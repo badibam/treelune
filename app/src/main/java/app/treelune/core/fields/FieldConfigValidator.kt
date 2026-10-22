@@ -204,7 +204,7 @@ object FieldConfigValidator {
 
     /**
      * Validates NUMERIC field config.
-     * Config: {unit?, min?, max?, decimals, step?}
+     * Config: {unit?, min?, max?, decimals}
      */
     private fun validateNumericConfig(config: Map<String, Any>?, s: app.treelune.core.strings.StringsContext): ValidationResult {
 
@@ -224,15 +224,6 @@ object FieldConfigValidator {
             return ValidationResult(
                 isValid = false,
                 errorMessage = s.shared("field_validation_numeric_decimals")
-            )
-        }
-
-        // Validate step > 0 if defined
-        val step = config?.get("step") as? Number
-        if (step != null && step.toDouble() <= 0) {
-            return ValidationResult(
-                isValid = false,
-                errorMessage = s.shared("field_validation_numeric_step")
             )
         }
 

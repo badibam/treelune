@@ -121,8 +121,7 @@ object FieldTypeSettings {
         FieldType.NUMERIC -> listOf(
             number("min", "field_config_min", text, description = "field_type_min_description"),
             number("max", "field_config_max", text, description = "field_type_max_description"),
-            wholeNumber("decimals", "field_config_decimals", text, default = 0, required = true),
-            number("step", "field_config_step", text)
+            wholeNumber("decimals", "field_config_decimals", text, default = 0, required = true)
         )
         FieldType.SCALE -> listOf(
             number("min", "field_config_min", text, required = true, description = "field_type_scale_min_description"),
