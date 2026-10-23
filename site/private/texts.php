@@ -66,7 +66,7 @@ return [
             'demo-italian-deck' => "Des Flashcards tirées du Lessico. Chaque mot revient juste avant d'être oublié, dans les deux sens, de l'italien et vers l'italien.",
             'demo-italian-phrases' => "Des Notes à garder sous la main à Rome. La Leçon du dimanche en ajoute trois chaque semaine.",
             'demo-italian-suitcase' => "Une Liste à cocher avant le départ. Sa tuile compte ce qui reste à mettre dans la valise.",
-            'demo-auto-italian-lesson' => "Chaque dimanche à 10 h, l'IA de l'app, dans le rôle de Giulia, une professeure d'italien, fait le point de la semaine et ajoute aux Phrases utiles trois phrases pour Rome. Elle est éteinte dans la démo, et le bouton de lecture la lance une fois.",
+            'demo-auto-italian-lesson' => "Chaque dimanche à 10 h, l'IA de l'app, dans le rôle de Giulia, une professeure d'italien, fait le point de la semaine et ajoute aux Phrases utiles trois phrases pour Rome. Elle est éteinte dans la démo : l'allumer la fait tourner chaque dimanche.",
         ],
         'action' => [
             'title' => 'En action',
@@ -187,7 +187,7 @@ return [
             'demo-italian-deck' => 'Flashcards drawn from the Lessico. Each word comes back just before it is forgotten, both ways, from Italian and into Italian.',
             'demo-italian-phrases' => 'Notes to keep at hand in Rome. The Sunday lesson adds three every week.',
             'demo-italian-suitcase' => 'A List to tick before leaving. Its tile counts what is still to pack.',
-            'demo-auto-italian-lesson' => 'Every Sunday at 10 am, the app’s AI, as Giulia, an Italian teacher, reviews the week and adds three phrases for Rome to the Useful phrases. It is off in the demo, and the play button runs it once.',
+            'demo-auto-italian-lesson' => 'Every Sunday at 10 am, the app’s AI, as Giulia, an Italian teacher, reviews the week and adds three phrases for Rome to the Useful phrases. It is off in the demo: switching it on runs it every Sunday.',
         ],
         'action' => [
             'title' => 'In action',
