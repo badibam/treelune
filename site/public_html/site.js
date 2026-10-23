@@ -166,9 +166,12 @@ document.querySelectorAll(".explorer").forEach(root => {
 });
 
 // ---- A capture or a video touched: shown alone, full screen, closed by a touch or Escape ----
+// A video goes on in the copy where it was, the one in the phone paused meanwhile; closed, the
+// one in the phone takes up where the copy stopped, so that only one ever plays.
 
 const lightbox = document.getElementById("lightbox");
 const lightboxBody = lightbox.querySelector(".lb-body");
+let pausedVideo = null;
 document.addEventListener("click", e => {
   const media = e.target.closest(".zoomable");
   if (!media) return;
@@ -176,11 +179,24 @@ document.addEventListener("click", e => {
   copy.classList.remove("zoomable");
   copy.removeAttribute("id");
   lightboxBody.replaceChildren(copy);
-  if (copy.tagName === "VIDEO") copy.play().catch(() => {});
+  if (copy.tagName === "VIDEO") {
+    media.pause();
+    pausedVideo = media;
+    copy.currentTime = media.currentTime;
+    copy.play().catch(() => {});
+  }
   lightbox.showModal();
 });
 lightbox.addEventListener("click", () => lightbox.close());
-lightbox.addEventListener("close", () => lightboxBody.replaceChildren());
+lightbox.addEventListener("close", () => {
+  const copy = lightboxBody.querySelector("video");
+  if (pausedVideo) {
+    if (copy) pausedVideo.currentTime = copy.currentTime;
+    pausedVideo.play().catch(() => {});
+    pausedVideo = null;
+  }
+  lightboxBody.replaceChildren();
+});
 
 // ---- The other pieces, a sideways row on a phone and a low screen: the carousel's arrows and rank ----
 
