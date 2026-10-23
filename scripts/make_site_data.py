@@ -117,7 +117,7 @@ def demo_text(texts, value):
 
 
 def zone():
-    """The demo's Italian zone: its name, its tools in the demo's order, and its routine."""
+    """The demo's Italian zone: its name, its identity, its tools in the demo's order, and its routine."""
     structure = json.loads((DEMO / "structure.json").read_text(encoding="utf-8"))
     texts = {lang: json.loads((DEMO / f"texts-{lang}.json").read_text(encoding="utf-8")) for lang in LANGUAGES}
     found = [z for z in structure["zones"] if z["id"] == ZONE]
@@ -128,9 +128,19 @@ def zone():
     if len(routines) != 1:
         raise SystemExit(f"make_site_data: the zone {ZONE} has {len(routines)} routines, the site shows one")
     routine = routines[0]
+    identities = [i for i in structure["identities"] if i["id"] == found[0].get("identity_id")]
+    if not identities:
+        raise SystemExit(f"make_site_data: the zone {ZONE} has no identity, the site shows one")
+    identity = identities[0]
     return {
         "id": ZONE,
         "name": named(found[0]["name"]),
+        "identity": {
+            "id": identity["id"],
+            "icon": identity["icon_name"],
+            "color": (identity.get("icon_color") or "").lower() or None,
+            "name": named(identity["name"]),
+        },
         "tools": [
             {
                 "id": t["id"],
@@ -163,7 +173,7 @@ def icon_body(name):
 def icons(layout, tool_types, demo_zone):
     """Every icon the page draws, by name."""
     names = {t["icon"] for t in tool_types}
-    names |= {t["icon"] for t in demo_zone["tools"]} | {demo_zone["routine"]["icon"]}
+    names |= {t["icon"] for t in demo_zone["tools"]} | {demo_zone["routine"]["icon"], demo_zone["identity"]["icon"]}
     for section in ("privacy", "videos", "pieces"):
         names |= {item["icon"] for item in layout[section]}
     return {name: icon_body(name) for name in sorted(names)}
@@ -203,8 +213,8 @@ def layout_problems(layout, tool_types, demo_zone, theme_list):
         problems.append(f"layout.json: the theme {id_} is missing from themes")
     for id_ in sorted(set(site_themes) - app_themes):
         problems.append(f"layout.json: themes names {id_}, which the app does not have")
-    # A tile per tool of the zone, and one for its routine
-    zone_tiles = {t["id"] for t in demo_zone["tools"]} | {demo_zone["routine"]["id"]}
+    # A tile per tool of the zone, one for its routine and one for its identity's card
+    zone_tiles = {t["id"] for t in demo_zone["tools"]} | {demo_zone["routine"]["id"], demo_zone["identity"]["id"]}
     for id_ in sorted(zone_tiles ^ set(layout["zone"]["tiles"])):
         problems.append(f"layout.json: zone.tiles and the demo's zone disagree on {id_}")
     for t in demo_zone["tools"]:

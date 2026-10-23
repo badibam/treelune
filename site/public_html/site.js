@@ -147,7 +147,7 @@ document.querySelectorAll(".explorer").forEach(root => {
     if (template) {
       stage.replaceChildren(template.content.cloneNode(true));
     } else {
-      // The zone: one capture for all, the chosen tool's or routine's tile outlined
+      // The zone: one capture for all, the chosen piece's tile outlined
       stage.querySelectorAll("[data-tile]").forEach(tile => tile.setAttribute("aria-current", tile.dataset.tile === item.tile));
       stage.querySelector(".zone-screen")?.classList.toggle("focus", item.tile !== null);
     }

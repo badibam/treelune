@@ -210,7 +210,7 @@ def check_screen(layout):
 
 
 def tile_frames(screen_size):
-    """Each zone tool's tile and the routine's on the screen, as fractions: the clickable element holding its name."""
+    """Each zone tool's tile, the routine's and the identity's card on the screen, as fractions: the clickable element holding its name."""
     generated = json.loads(GENERATED.read_text(encoding="utf-8"))
     adb("shell", "uiautomator", "dump", "/sdcard/site-ui.xml", capture_output=True)
     xml = adb("exec-out", "cat", "/sdcard/site-ui.xml", capture_output=True).stdout
@@ -218,7 +218,8 @@ def tile_frames(screen_size):
     parents = {child: parent for parent in tree.iter() for child in parent}
     width, height = screen_size
     frames = {}
-    for tool in generated["zone"]["tools"] + [generated["zone"]["routine"]]:
+    zone = generated["zone"]
+    for tool in [zone["identity"], *zone["tools"], zone["routine"]]:
         names = set(tool["name"].values())
         node = next((n for n in tree.iter("node") if n.get("text") in names or n.get("content-desc") in names), None)
         while node is not None and node.get("clickable") != "true":

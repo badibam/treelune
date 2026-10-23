@@ -110,10 +110,19 @@ function explorer(string $set, array $items, string $stage, callable $t): string
 
 $plainTheme = fn(?string $theme): string => $theme ? sprintf(getSiteText($texts, 'common.theme'), $themeNames[$theme]) : '';
 
-// 3. The Italian zone: its tools and its routine, outlined on one capture; one theme, not named
+// 3. The Italian zone: its identity, its tools and its routine, outlined on one capture; one theme, not named
 $zone = $generated['zone'];
 $zoneShot = $layout['zone']['shot'];
-$zoneItems = [];
+$identity = $zone['identity'];
+$zoneItems = [[
+    'name' => $identity['name'][$lang],
+    'tag' => getSiteText($texts, 'zone.identity'),
+    'pill' => pill($icons, $identity['icon'], $identity['color']),
+    'text' => getSiteText($texts, 'zone.' . $identity['id']),
+    'theme' => '',
+    'stage' => null,
+    'tile' => $identity['id'],
+]];
 foreach ($zone['tools'] as $tool) {
     $zoneItems[] = [
         'name' => $tool['name'][$lang],
@@ -139,7 +148,7 @@ $tiles = array_filter($layout['zone']['tiles']);
 if (mediaPresent($zoneShot['file']) && count($tiles) === count($layout['zone']['tiles'])) {
     // The capture, each tile a button over it: touching one chooses its tool. Never enlarged.
     $hits = '';
-    foreach ([...$zone['tools'], $routine] as $tile) {
+    foreach ([$identity, ...$zone['tools'], $routine] as $tile) {
         [$left, $top, $width, $height] = $layout['zone']['tiles'][$tile['id']];
         $hits .= sprintf(
             '<button type="button" class="tile-hit" data-tile="%s" aria-label="%s" style="left:%.3f%%;top:%.3f%%;width:%.3f%%;height:%.3f%%"></button>',
@@ -150,7 +159,8 @@ if (mediaPresent($zoneShot['file']) && count($tiles) === count($layout['zone']['
         . $t('zone.shot_alt') . '">' . $hits . '</div></div>';
 } else {
     // Not taken yet: the zone drawn from the demo, its tiles touchable the same way.
-    $drawn = '';
+    $drawn = '<button type="button" class="tile" data-tile="' . h($identity['id']) . '">' . h($identity['name'][$lang])
+        . '<small>' . $t('zone.identity') . '</small></button>';
     foreach ($zone['tools'] as $tool) {
         $drawn .= '<button type="button" class="tile" data-tile="' . h($tool['id']) . '">' . h($tool['name'][$lang])
             . '<small>' . h($toolTypes[$tool['type']]['name'][$lang]) . '</small></button>';
