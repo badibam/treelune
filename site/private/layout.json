@@ -26,15 +26,15 @@
     "shot": {"file": "shots/zone-italian.webp", "theme": "ink", "mode": "light"},
     "_tiles": "Each tool's tile, the routine's and the identity's card on the English capture, the same in both languages, as [left, top, width, height] in fractions of the image; written by ./run site-shots from the screen's layout, null until then.",
     "tiles": {
-      "demo-identity-giulia": null,
-      "demo-italian-evening": [0.0389, 0.2523, 0.9222, 0.0954],
-      "demo-italian-goal": [0.5194, 0.4891, 0.4417, 0.0954],
-      "demo-italian-chart": [0.0389, 0.3707, 0.4417, 0.2138],
-      "demo-italian-lexicon": [0.0389, 0.6076, 0.4417, 0.0954],
-      "demo-italian-deck": [0.0389, 0.726, 0.4417, 0.0954],
-      "demo-italian-phrases": [0.5194, 0.3707, 0.4417, 0.0954],
-      "demo-italian-suitcase": [0.5194, 0.6076, 0.4417, 0.2138],
-      "demo-auto-italian-lesson": [0.0389, 0.8444, 0.9222, 0.0954]
+      "demo-identity-giulia": [0.0389, 0.1237, 0.9222, 0.125],
+      "demo-italian-evening": [0.0389, 0.4049, 0.4417, 0.0954],
+      "demo-italian-goal": [0.5194, 0.6418, 0.4417, 0.0954],
+      "demo-italian-chart": [0.0389, 0.5234, 0.4417, 0.2138],
+      "demo-italian-lexicon": [0.0389, 0.7602, 0.4417, 0.0954],
+      "demo-italian-deck": [0.5194, 0.7602, 0.4417, 0.0954],
+      "demo-italian-phrases": [0.5194, 0.5234, 0.4417, 0.0954],
+      "demo-italian-suitcase": [0.5194, 0.4049, 0.4417, 0.0954],
+      "demo-auto-italian-lesson": [0.0389, 0.8786, 0.9222, 0.0954]
     },
     "colors": {
       "demo-italian-evening": "blue",
