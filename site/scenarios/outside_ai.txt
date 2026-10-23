@@ -4,7 +4,7 @@ setup: Theme Cut paper, light. The app on Settings › External access, closed. 
 start
 do: Open the external access
 do: Switch to the Claude app, then touch its message field
-type en: What were my runs this week? Then note a run of 6 km today in Runs.
-type fr: Quelles ont été mes courses cette semaine ? Puis note une course de 6 km aujourd'hui dans Runs.
+type en: Use the Treelune connector: what were my runs this week? Then note a run of 6 km today in Runs.
+type fr: Utilise le connecteur Treelune : quelles ont été mes courses cette semaine ? Puis note une course de 6 km aujourd'hui dans Runs.
 do: Send, wait until the answer is complete, the run noted, and hold a second
 stop
