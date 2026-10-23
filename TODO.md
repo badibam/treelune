@@ -11,7 +11,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Site treelune.app
 
-- Les captures et les vidéos du site : les scénarios de `site/scenarios/` relus contre l'app, `./run site-shots en` sur le téléphone vidé (48 manquent), leur commit, le premier `./run site-deploy` (il crée `treelune/` sur le compte, absent le 2026-10-22) ; puis `./run site-shots fr`, ADBKeyBoard installé, et `fr_media` retiré de `layout.json`. `/update pull php-heberge-leger`, le module abonné sans point de départ.
+- Les captures et les vidéos françaises du site : `./run site-shots fr`, ADBKeyBoard installé, puis `fr_media` retiré de `layout.json` et `./run site-deploy` (en ligne en anglais depuis le 2026-10-23). `/update pull php-heberge-leger`, le module abonné sans point de départ.
 - `www.treelune.app` : son entrée du Multisite OVH (racine `treelune/public_html`), puis le certificat régénéré ; le 2026-10-22, le certificat ne couvre que `treelune.app` et `www` pointe sur la page de parking.
 
 ## Bugs du téléphone
