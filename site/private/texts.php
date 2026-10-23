@@ -65,8 +65,8 @@ return [
             'demo-italian-lexicon' => "Le vocabulaire, avec une fiche par mot. Un mot ajouté ici entre de lui-même dans les Flashcards Ripasso.",
             'demo-italian-deck' => "Des Flashcards tirées du Lessico, sans recopier un seul mot. Chaque mot revient juste avant d'être oublié.",
             'demo-italian-phrases' => "Des Notes à relire dans le train pour Rome. La Leçon du dimanche y ajoute chaque semaine trois phrases sur ce qui a été le plus dur.",
-            'demo-italian-suitcase' => "Une Liste à cocher avant le départ. Giulia lit toute la zone, la valise comprise, et peut dire ce qui manque encore.",
-            'demo-auto-italian-lesson' => "Chaque dimanche à 10 h, l'IA de l'app, dans le rôle de Giulia, une professeure d'italien, lit les soirées de la semaine et l'Objectif. Elle dit ce qui avance et ce qui coince, puis ajoute aux Phrases utiles trois phrases pour Rome.",
+            'demo-italian-suitcase' => "Une Liste à cocher avant le départ.",
+            'demo-auto-italian-lesson' => "Chaque dimanche à 10 h, l'IA de l'app, dans le rôle d'une professeure d'italien, lit les soirées de la semaine et l'Objectif. Elle dit ce qui avance et ce qui coince, puis ajoute aux Phrases utiles trois phrases pour Rome.",
         ],
         'action' => [
             'title' => 'En action',
@@ -186,8 +186,8 @@ return [
             'demo-italian-lexicon' => 'The vocabulary, with one record per word. A word added here goes into the Ripasso Flashcards by itself.',
             'demo-italian-deck' => 'Flashcards drawn from the Lessico, without copying a single word. Each word comes back just before it is forgotten.',
             'demo-italian-phrases' => 'Notes to read again on the train to Rome. Every week, the Sunday lesson adds three phrases about what was hardest.',
-            'demo-italian-suitcase' => 'A List to tick before leaving. Giulia reads the whole zone, the suitcase included, and can say what is still missing.',
-            'demo-auto-italian-lesson' => 'Every Sunday at 10 am, the app’s AI, as Giulia, an Italian teacher, reads the week’s evenings and the Goal. It says what moves forward and what gets stuck, then adds three phrases for Rome to the Useful phrases.',
+            'demo-italian-suitcase' => 'A List to tick before leaving.',
+            'demo-auto-italian-lesson' => 'Every Sunday at 10 am, the app’s AI, as an Italian teacher, reads the week’s evenings and the Goal. It says what moves forward and what gets stuck, then adds three phrases for Rome to the Useful phrases.',
         ],
         'action' => [
             'title' => 'In action',
