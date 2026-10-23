@@ -16,7 +16,7 @@ put on the phone, then:
                             started or stopped), then hands back; filmed on the computer by scrcpy
                             between start and stop, its window showing the phone, at 720 px wide;
                             every still longer than STILL_MAX cut to STILL_KEPT, silent, H.264, its
-                            first image kept as the poster (.webp), the recording as made kept in
+                            last image, its result, kept as the poster (.webp), the recording as made kept in
                             tmp/site-videos/
 
 layout.json's "screen" is the phone's, written by the first session; a phone of another size is
@@ -302,7 +302,7 @@ def what_follows(automatic, following):
     next gesture, or the video saved when there is none."""
     actions = [{"start": "the script starts filming, touches shown", "stop": "the script stops filming",
                 "type": f"the script types “{text}”"}[kind] for kind, text in automatic]
-    actions.append(f"you: {'; then '.join(following)}" if following is not None else "the script saves the video and its first image")
+    actions.append(f"you: {'; then '.join(following)}" if following is not None else "the script saves the video and its last image")
     return ", then ".join(actions)
 
 
@@ -329,12 +329,13 @@ def encode_video(source, video_path, spans=None):
 def save_poster(video_path, poster_path):
     from PIL import Image
     with tempfile.TemporaryDirectory() as scratch:
-        frame = Path(scratch) / "first.png"
-        subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", str(PUBLIC / video_path), "-frames:v", "1", str(frame)], check=True)
+        frame = Path(scratch) / "last.png"
+        # The last image: every scenario ends on its result, held a second
+        subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-sseof", "-0.2", "-i", str(PUBLIC / video_path), "-update", "1", str(frame)], check=True)
         target = PUBLIC / poster_path
         target.parent.mkdir(parents=True, exist_ok=True)
         Image.open(frame).convert("RGB").save(target, "WEBP", quality=85, method=6)
-    print(f"  {poster_path}: first image of the video")
+    print(f"  {poster_path}: last image of the video")
 
 
 class Recorder:
