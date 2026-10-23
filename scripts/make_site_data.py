@@ -203,8 +203,9 @@ def layout_problems(layout, tool_types, demo_zone, theme_list):
         problems.append(f"layout.json: the theme {id_} is missing from themes")
     for id_ in sorted(set(site_themes) - app_themes):
         problems.append(f"layout.json: themes names {id_}, which the app does not have")
-    zone_tools = {t["id"] for t in demo_zone["tools"]}
-    for id_ in sorted(zone_tools ^ set(layout["zone"]["tiles"])):
+    # A tile per tool of the zone, and one for its routine
+    zone_tiles = {t["id"] for t in demo_zone["tools"]} | {demo_zone["routine"]["id"]}
+    for id_ in sorted(zone_tiles ^ set(layout["zone"]["tiles"])):
         problems.append(f"layout.json: zone.tiles and the demo's zone disagree on {id_}")
     for t in demo_zone["tools"]:
         if not t["color"] and t["id"] not in layout["zone"]["colors"]:
