@@ -238,7 +238,7 @@ def write_tiles(frames):
     end = text.index("}", start)
     block = text[start:end]
     for tool, frame in frames.items():
-        block = re.sub(rf'("{re.escape(tool)}": )[^,\n]*', lambda m: m.group(1) + json.dumps(frame), block)
+        block = re.sub(rf'("{re.escape(tool)}": )(null|\[[^\]]*\])', lambda m: m.group(1) + json.dumps(frame), block)
     partial = LAYOUT.with_name(LAYOUT.name + ".part")
     partial.write_text(text[:start] + block + text[end:], encoding="utf-8")
     partial.replace(LAYOUT)
