@@ -110,7 +110,7 @@ function explorer(string $set, array $items, string $stage, callable $t): string
 
 $plainTheme = fn(?string $theme): string => $theme ? sprintf(getSiteText($texts, 'common.theme'), $themeNames[$theme]) : '';
 
-// 3. The Italian zone: its tools and its routine, outlined on one capture
+// 3. The Italian zone: its tools and its routine, outlined on one capture; one theme, not named
 $zone = $generated['zone'];
 $zoneShot = $layout['zone']['shot'];
 $zoneItems = [];
@@ -120,7 +120,7 @@ foreach ($zone['tools'] as $tool) {
         'tag' => $toolTypes[$tool['type']]['name'][$lang],
         'pill' => pill($icons, $tool['icon'], $tool['color'] ?? $layout['zone']['colors'][$tool['id']]),
         'text' => getSiteText($texts, 'zone.' . $tool['id']),
-        'theme' => $plainTheme($zoneShot['theme']),
+        'theme' => '',
         'stage' => null,
         'tile' => $tool['id'],
     ];
@@ -131,19 +131,19 @@ $zoneItems[] = [
     'tag' => getSiteText($texts, 'zone.routine'),
     'pill' => pill($icons, $routine['icon'], $routine['color']),
     'text' => getSiteText($texts, 'zone.' . $routine['id']),
-    'theme' => $plainTheme($zoneShot['theme']),
+    'theme' => '',
     'stage' => null,
-    'tile' => null,
+    'tile' => $routine['id'],
 ];
 $tiles = array_filter($layout['zone']['tiles']);
 if (mediaPresent($zoneShot['file']) && count($tiles) === count($layout['zone']['tiles'])) {
     // The capture, each tile a button over it: touching one chooses its tool. Never enlarged.
     $hits = '';
-    foreach ($zone['tools'] as $tool) {
-        [$left, $top, $width, $height] = $layout['zone']['tiles'][$tool['id']];
+    foreach ([...$zone['tools'], $routine] as $tile) {
+        [$left, $top, $width, $height] = $layout['zone']['tiles'][$tile['id']];
         $hits .= sprintf(
             '<button type="button" class="tile-hit" data-tile="%s" aria-label="%s" style="left:%.3f%%;top:%.3f%%;width:%.3f%%;height:%.3f%%"></button>',
-            h($tool['id']), h($tool['name'][$lang]), $left * 100, $top * 100, $width * 100, $height * 100
+            h($tile['id']), h($tile['name'][$lang]), $left * 100, $top * 100, $width * 100, $height * 100
         );
     }
     $zoneStage = '<div class="phone"><div class="zone-frame"><img src="' . h(asset($zoneShot['file'])) . '" alt="'
@@ -155,6 +155,8 @@ if (mediaPresent($zoneShot['file']) && count($tiles) === count($layout['zone']['
         $drawn .= '<button type="button" class="tile" data-tile="' . h($tool['id']) . '">' . h($tool['name'][$lang])
             . '<small>' . h($toolTypes[$tool['type']]['name'][$lang]) . '</small></button>';
     }
+    $drawn .= '<button type="button" class="tile" data-tile="' . h($routine['id']) . '">' . h($routine['name'][$lang])
+        . '<small>' . $t('zone.routine') . '</small></button>';
     $zoneStage = '<div class="phone"><div class="zone-screen"><h4>' . h($zone['name'][$lang]) . '</h4><div class="tiles">'
         . $drawn . '</div></div>' . $standIn($zoneShot['file']) . '</div>';
 }
