@@ -85,8 +85,9 @@ fun ZoneScreen(zone: Zone) {
     var showDuplicateToolDialog by rememberSaveable { mutableStateOf(false) }
     var showDuplicateAutomationDialog by rememberSaveable { mutableStateOf(false) }
 
-    // Load tool instances on first composition and when zone changes
-    LaunchedEffect(zone.id) {
+    // The zone's tools, variables and automations, read through the dispatcher
+    var variables by remember { mutableStateOf<List<app.treelune.core.ui.variables.VariableRow>>(emptyList()) }
+    val loadTools: suspend () -> Unit = {
         coordinator.executeWithLoading(
             operation = "tools.list",
             params = mapOf(
@@ -100,98 +101,46 @@ fun ZoneScreen(zone: Zone) {
             toolInstances = result.mapData("tool_instances") { toolInstanceOf(it) }
         }
     }
-
-    // The zone's variables, reread whenever variables change anywhere (one may read another)
-    var variables by remember { mutableStateOf<List<app.treelune.core.ui.variables.VariableRow>>(emptyList()) }
-    var variablesVersion by remember { mutableStateOf(0) }
-    LaunchedEffect(zone.id, variablesVersion) {
+    val loadVariables: suspend () -> Unit = {
         val result = coordinator.processUserAction("variables.list", mapOf("zone_id" to zone.id))
         if (result.status == CommandStatus.SUCCESS) {
             variables = (result.data?.get("variables") as? List<*> ?: emptyList<Any>())
                 .filterIsInstance<Map<*, *>>().map { app.treelune.core.ui.variables.VariableRow.of(it) }
         } else errorMessage = result.error
     }
-    LaunchedEffect(zone.id) {
-        DataChangeNotifier.changes.collect { event -> if (event is DataChangeEvent.VariablesChanged) variablesVersion++ }
-    }
-    // A variable opened on top of the zone: its id, "" for a new one, in the group chosen for it
-    val openVariable = { id: String -> Navigator.push(Place.Variable(zone.id, id.ifEmpty { null }, preSelectedGroup)) }
-
-    // Load automations for this zone
-    LaunchedEffect(zone.id) {
+    val loadAutomations: suspend () -> Unit = {
         coordinator.executeWithLoading(
             operation = "automations.list",
             params = mapOf("zone_id" to zone.id),
             onLoading = { isLoadingAutomations = it },
             onError = { error -> errorMessage = error }
         )?.let { result ->
-            @Suppress("UNCHECKED_CAST")
-            val automationsList = result.data?.get("automations") as? List<Map<String, Any>> ?: emptyList()
-            automations = automationsList.map { map ->
-                app.treelune.core.ai.data.Automation.fromResult(map)
-            }
+            val automationsList = result.data?.get("automations") as? List<*> ?: emptyList<Any>()
+            automations = automationsList.map { app.treelune.core.ai.data.Automation.fromResult(it as Map<*, *>) }
         }
     }
 
-    // Observe data changes and reload tools/automations automatically for this zone
+    // Tools, variables and automations share their section's grid (SectionGrid): a write to one
+    // can move the others' tiles there (a size changed, a tile placed, one leaving), so a change to
+    // any of them rereads all three. Variables change anywhere (one may read another); a zone
+    // change includes an automation switched on, updated or deleted.
     LaunchedEffect(zone.id) {
+        launch { loadTools() }
+        launch { loadVariables() }
+        launch { loadAutomations() }
         DataChangeNotifier.changes.collect { event ->
-            when (event) {
-                is DataChangeEvent.ToolsChanged -> {
-                    // Only reload if the change affects this zone
-                    if (event.zoneId == zone.id) {
-                        coordinator.executeWithLoading(
-                            operation = "tools.list",
-                            params = mapOf(
-                                "zone_id" to zone.id,
-                                "include_config" to true,
-                                "include_position" to true
-                            ),
-                            onLoading = { isLoading = it },
-                            onError = { error -> errorMessage = error }
-                        )?.let { result ->
-                            toolInstances = result.mapData("tool_instances") { toolInstanceOf(it) }
-                        }
-                    }
-                }
-                is DataChangeEvent.ZonesChanged -> {
-                    // Reload automations when zones change (includes automation enable/disable/update/delete)
-                    coordinator.executeWithLoading(
-                        operation = "automations.list",
-                        params = mapOf("zone_id" to zone.id),
-                        onLoading = { isLoadingAutomations = it },
-                        onError = { error -> errorMessage = error }
-                    )?.let { result ->
-                        @Suppress("UNCHECKED_CAST")
-                        val automationsList = result.data?.get("automations") as? List<Map<String, Any>> ?: emptyList()
-                        automations = automationsList.map { map ->
-                            app.treelune.core.ai.data.Automation.fromResult(map)
-                        }
-                    }
-                }
-                else -> {} // Ignore other events
+            val tiles = (event is DataChangeEvent.ToolsChanged && event.zoneId == zone.id) ||
+                event is DataChangeEvent.ZonesChanged || event is DataChangeEvent.VariablesChanged
+            if (tiles) {
+                loadTools()
+                loadVariables()
+                loadAutomations()
             }
         }
     }
+    // A variable opened on top of the zone: its id, "" for a new one, in the group chosen for it
+    val openVariable = { id: String -> Navigator.push(Place.Variable(zone.id, id.ifEmpty { null }, preSelectedGroup)) }
 
-    // Function to reload tool instances after operations
-    val reloadToolInstances = {
-        coroutineScope.launch {
-            coordinator.executeWithLoading(
-                operation = "tools.list",
-                params = mapOf(
-                    "zone_id" to zone.id,
-                    "include_config" to true,
-                    "include_position" to true
-                ),
-                onLoading = { isLoading = it },
-                onError = { error -> errorMessage = error }
-            )?.let { result ->
-                toolInstances = result.mapData("tool_instances") { toolInstanceOf(it) }
-            }
-        }
-    }
-    
     // Parse zone tool_groups from config
     val zoneToolGroups = remember(zone.tool_groups) {
         LogManager.ui("Parsing tool_groups for zone ${zone.id}: tool_groups = '${zone.tool_groups}'", "DEBUG")
@@ -390,20 +339,7 @@ fun ZoneScreen(zone: Zone) {
                 showCreateAutomationDialog = false
                 preSelectedGroup = null
                 // Reload automations to show the new one
-                coroutineScope.launch {
-                    coordinator.executeWithLoading(
-                        operation = "automations.list",
-                        params = mapOf("zone_id" to zone.id),
-                        onLoading = { isLoadingAutomations = it },
-                        onError = { error -> errorMessage = error }
-                    )?.let { result ->
-                        @Suppress("UNCHECKED_CAST")
-                        val automationsList = result.data?.get("automations") as? List<Map<String, Any>> ?: emptyList()
-                        automations = automationsList.map { map ->
-                            app.treelune.core.ai.data.Automation.fromResult(map)
-                        }
-                    }
-                }
+                coroutineScope.launch { loadAutomations() }
                 // Navigate to SEED editor
                 Navigator.push(Place.Seed(seedSessionId, zone.id))
             }
@@ -492,15 +428,7 @@ fun ZoneScreen(zone: Zone) {
                             UI.Toast(s.shared("duplicate_success_automation"))
                             showDuplicateAutomationDialog = false
                             // Reload automations to show the new one
-                            coordinator.executeWithLoading(
-                                operation = "automations.list",
-                                params = mapOf("zone_id" to zone.id),
-                                onLoading = { isLoadingAutomations = it },
-                                onError = { error -> errorMessage = error }
-                            )?.let { result ->
-                                val automationsList = result.data?.get("automations") as? List<*> ?: emptyList<Any>()
-                                automations = automationsList.map { app.treelune.core.ai.data.Automation.fromResult(it as Map<*, *>) }
-                            }
+                            loadAutomations()
                         } else {
                             errorMessage = result.error ?: s.shared("duplicate_error").format("")
                         }
