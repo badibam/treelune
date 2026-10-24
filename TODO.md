@@ -32,12 +32,13 @@ Codé, jamais vu sur l'appareil.
 
 ## Décidé, à coder
 
+- Tâches, API et médias (`docs/design/tasks-apis-media.md`), dans l'ordre de sa dernière partie : les médias audio et vidéo, le pointeur vers une entrée avec la Lecture d'un média et la valeur par défaut, puis les API et les Tâches. Une Tâche planifiée fait aussi le relevé : une valeur gardée telle qu'elle était (une variable `imc` écrite chaque semaine dans un Suivi), là où une variable se relit à tout jour passé avec les données d'aujourd'hui.
 - Un filtre qui compare un champ à une variable ou une lecture (« kcal > objectif_calorique ») : le terme lu une fois à la référence du contexte (`TermReader`, `docs/BRICKS.md`), puis le filtre SQL comme aujourd'hui ; `EntryFilters.parse` et `ConditionPicker` le prennent.
 
 ## À concevoir
 
 - Un contrôle « qui dépend de ça ? » avant de supprimer une chose (une condition, une variable, un pointeur qui la visent), écrit une fois, appelé par le service qui supprime et par l'annulation qui supprime une ligne.
-- Les events du cœur : quel premier usage — un événement de l'Agenda qui commence, une entrée écrite, une condition devenue vraie (l'Alerte) ? L'automation directe attend la même brique : sans IA, elle exécute elle-même ses commandes ; son premier usage, le relevé, garde une valeur telle qu'elle était (une variable `imc` écrite chaque semaine dans un Suivi), là où une variable se relit à tout jour passé avec les données d'aujourd'hui.
+- Les événements du cœur, un déclencheur des routines et des Tâches à côté du planning (`ExecutionTrigger.EVENT`) : quel premier usage — un événement de l'Agenda qui commence, une entrée écrite, une condition devenue vraie (l'Alerte), une séance terminée ?
 - Des outils montrés sur la tuile d'une zone de l'accueil (le poids du jour sur « Santé ») : leur résumé ou un raccourci selon la place de la tuile — lesquels, dans quel ordre, un outil montré à deux endroits.
 - Des rythmes que la planification (`ScheduleConfig`, commune à tous les outils et aux routines) ne sait pas dire : « tous les N jours à partir d'une date », « une semaine sur deux », plusieurs jours d'un mois (« le 1er et le 15 »).
 - Une réponse coupée par la limite de longueur (`max_tokens` chez Claude et DeepSeek, un `status` incomplet chez OpenAI, `finish_reason` « length » chez un autre serveur) : refusée, son texte jeté et ses tokens mis à 0, le coût affiché la compte gratuite alors qu'elle est facturée — que garder du texte, et où le montrer.
@@ -86,10 +87,8 @@ Ce qui doit monter dans un module de sagesse (`/update push`).
 - Des modèles d'outils prédéfinis.
 - Lire un long texte du connecteur MCP par section (le sommaire des titres `##`, puis une section par son titre), en plus des tranches.
 - Un modèle sous la classe 30B, ou dans l'app sur le téléphone (la campagne 1 du banc : `docs/AI.md`) : un prompt par portée de tâche plutôt que par taille de modèle, une session bornée à une zone ou un outil, le forçage par schéma seul, des exemples choisis selon la demande, un aiguillage vers un mini-prompt, l'appel de fonctions natif, des modèles mélangés par session, un fine-tuning léger en dernier recours — aucune piste mesurée.
-- Une entrée précise comme cible d'un pointeur : `{"kind": "ENTRY", "id"}`, lue par `tool_data.get_single`, nommée par sa date puis son nom ou le début de son premier texte (qu'un type d'outil peut remplacer : « 26/09 08:12 — Pesée : 72,4 kg »), choisie dans la liste des entrées d'un outil, 30 par 30.
 - Des valeurs de champs de l'utilisateur recopiées dans chaque occurrence d'une série d'Agenda.
 - Un pointeur touché dans un message ouvre sa cible.
-- Le sens « out » : l'app confie une tâche lourde à une IA extérieure et en reprend le résultat.
 
 ## Écarté
 
