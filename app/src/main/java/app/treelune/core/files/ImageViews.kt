@@ -1,4 +1,4 @@
-package app.treelune.core.images
+package app.treelune.core.files
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -56,7 +56,7 @@ private sealed class ImageLoad {
 }
 
 /**
- * The image [imageId] read from its file, wherever it is (Images.locate), decoded no larger than
+ * The image [imageId] read from its file, wherever it is (Files.locate), decoded no larger than
  * [heightPx] needs (null: whole). A missing file is said as such: a row without its file is an
  * error, never hidden.
  */
@@ -65,7 +65,7 @@ private fun rememberImage(imageId: String, heightPx: Int?): ImageLoad {
     val context = LocalContext.current
     val load by produceState<ImageLoad>(initialValue = ImageLoad.Loading, imageId, heightPx) {
         value = withContext(Dispatchers.IO) {
-            val file = Images.locate(context, imageId)
+            val file = Files.locate(context, imageId)
             if (file == null) {
                 LogManager.service("Image $imageId: its file is missing", "ERROR")
                 return@withContext ImageLoad.Missing

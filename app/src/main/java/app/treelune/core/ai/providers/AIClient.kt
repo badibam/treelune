@@ -70,7 +70,7 @@ class AIClient(private val context: Context) {
                 val images = promptData.sessionMessages.flatMap { it.promptParts.orEmpty() }
                     .filterIsInstance<app.treelune.core.ai.data.PromptPart.Image>()
                 val imageRefusal = ImageInput.refusal(images.size, provider.readsImages(config, context)) { s.shared(it) }
-                    ?: images.firstOrNull { !app.treelune.core.images.Images.sessionFile(context, it.imageId, it.format).exists() }
+                    ?: images.firstOrNull { !app.treelune.core.files.Files.sessionFile(context, it.imageId, it.format).exists() }
                         ?.let { s.shared("ai_image_error_missing") }
                 if (imageRefusal != null) {
                     LogManager.aiService("Request with ${images.size} images refused: $imageRefusal", "WARN")

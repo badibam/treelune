@@ -31,7 +31,6 @@ class BackupPartTest {
             .put("app_settings_categories", JSONArray().put(JSONObject().put("category", "ai").put("settings", "{}")))
             .put("ai_provider_configs", JSONArray().put(JSONObject().put("id", "p1")))
             .put("identities", JSONArray().put(JSONObject().put("id", "i1")))
-            .put("attached_files", JSONArray().put(JSONObject().put("id", "f1").put("session_id", "chat")))
             .put("zones", JSONArray()
                 .put(JSONObject().put("id", "z1").put("name", "Cuisine").put("identity_id", "i1").put("tool_groups", JSONArray(listOf("Repas", "Analyse")).toString()))
                 .put(JSONObject().put("id", "z2").put("name", "Sport")))
@@ -50,11 +49,12 @@ class BackupPartTest {
             .put("session_messages", JSONArray()
                 .put(JSONObject().put("id", "m1").put("session_id", "seed"))
                 .put(JSONObject().put("id", "m2").put("session_id", "chat")))
-            .put("images", JSONArray()
+            .put("files", JSONArray()
                 .put(JSONObject().put("id", "img1").put("entry_id", "e1"))
                 .put(JSONObject().put("id", "img2").put("entry_id", "e3"))
-                .put(JSONObject().put("id", "img3").put("session_id", "chat")))
-            .put("missing_images", JSONArray(listOf("img1", "img2"))))
+                .put(JSONObject().put("id", "img3").put("session_id", "chat"))
+                .put(JSONObject().put("id", "f1").put("session_id", "chat").put("kind", "TEXT")))
+            .put("missing_files", JSONArray(listOf("img1", "img2"))))
 
     @Test
     fun `a part is marked partial and keeps the backup's versions`() {
@@ -71,14 +71,15 @@ class BackupPartTest {
         assertEquals(listOf("z1"), ids(data, "zones"))
         assertEquals(listOf("meals", "foods"), ids(data, "tool_instances"))
         assertEquals(listOf("e1"), ids(data, "tool_data"))
-        assertEquals(listOf("img1"), ids(data, "images"))
-        assertEquals(listOf("img1"), data.getJSONArray("missing_images").let { a -> (0 until a.length()).map { a.getString(it) } })
+        assertEquals(listOf("img1"), ids(data, "files"))
+        assertEquals(listOf("img1"), data.getJSONArray("missing_files").let { a -> (0 until a.length()).map { a.getString(it) } })
     }
 
     @Test
     fun `the settings, providers, conversations and joined files never go, an identity unticked neither`() {
         val data = BackupPart.cut(backup(), PartSelection(setOf("z1"), mapOf("meals" to true), setOf("v1"), setOf("a1"), emptySet())).getJSONObject("data")
-        listOf("app_settings_categories", "ai_provider_configs", "attached_files").forEach { assertFalse(it, data.has(it)) }
+        listOf("app_settings_categories", "ai_provider_configs").forEach { assertFalse(it, data.has(it)) }
+        assertFalse("a conversation's joined text", "f1" in ids(data, "files"))
         assertEquals(emptyList<String>(), ids(data, "identities"))
         assertEquals(listOf("seed"), ids(data, "ai_sessions"))
         assertEquals(listOf("m1"), ids(data, "session_messages"))

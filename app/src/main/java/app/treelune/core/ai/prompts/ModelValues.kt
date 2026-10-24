@@ -102,7 +102,7 @@ object ModelValues {
      * with the width and height of its image ([images], by id), never the image itself; an id no
      * image has is written alone, `"missing": true`.
      */
-    fun withImageSizes(value: Any?, schema: JSONObject, images: Map<String, app.treelune.core.images.ImageEntity>): Any? =
+    fun withImageSizes(value: Any?, schema: JSONObject, images: Map<String, app.treelune.core.files.FileEntity>): Any? =
         walk(value, schema) { format, node ->
             if (format != FieldValueSchema.IMAGES) return@walk node
             val shown = idsOf(node).map { id ->

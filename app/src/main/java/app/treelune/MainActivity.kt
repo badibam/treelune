@@ -119,7 +119,7 @@ class MainActivity : ComponentActivity() {
         // nothing can be joining an image nor writing an entry yet
         kotlinx.coroutines.runBlocking(Dispatchers.IO) {
             try {
-                app.treelune.core.images.Images.sweepOnce(this@MainActivity)
+                app.treelune.core.files.Files.sweepOnce(this@MainActivity)
             } catch (e: Exception) {
                 LogManager.service("Startup sweep of the images failed: ${e.message}", "ERROR", e)
             }

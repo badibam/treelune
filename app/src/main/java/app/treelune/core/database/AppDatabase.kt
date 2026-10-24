@@ -21,10 +21,8 @@ import app.treelune.core.database.entities.VariableEntity
 import app.treelune.core.ai.database.AIDao
 import app.treelune.core.ai.database.AISessionEntity
 import app.treelune.core.ai.database.SessionMessageEntity
-import app.treelune.core.ai.database.AttachedFileEntity
-import app.treelune.core.ai.database.AttachedFileDao
-import app.treelune.core.images.ImageEntity
-import app.treelune.core.images.ImageDao
+import app.treelune.core.files.FileEntity
+import app.treelune.core.files.FileDao
 import app.treelune.core.ai.database.AIProviderConfigEntity
 import app.treelune.core.ai.database.AutomationEntity
 import app.treelune.core.ai.database.AITypeConverters
@@ -72,8 +70,7 @@ import app.treelune.core.ai.data.LegacyCatchUp
         AutomationEntity::class,
         LogEntry::class,
         VariableEntity::class,
-        AttachedFileEntity::class,
-        ImageEntity::class,
+        FileEntity::class,
         app.treelune.core.mcp.McpClientEntity::class,
         app.treelune.core.mcp.McpTokenEntity::class,
         app.treelune.core.identities.IdentityEntity::class,
@@ -97,8 +94,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun aiDao(): AIDao
     abstract fun logDao(): LogDao
     abstract fun variableDao(): VariableDao
-    abstract fun attachedFileDao(): AttachedFileDao
-    abstract fun imageDao(): ImageDao
+    abstract fun fileDao(): FileDao
     abstract fun mcpDao(): app.treelune.core.mcp.McpDao
     abstract fun identityDao(): app.treelune.core.identities.IdentityDao
     abstract fun historyDao(): app.treelune.core.history.HistoryDao
@@ -108,7 +104,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 91
+        const val VERSION = 92
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2073,6 +2069,33 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * The images and the texts joined to messages become one table of files: see FilesAtV92.
+         * Each text's content is written into its file before its row, so an interruption leaves
+         * only files no row names, which the startup sweep removes.
+         */
+        private fun migration91to92(context: Context) = object : ConnectionMigration(91, 92) {
+            override fun migrate(database: MigrationDatabase) {
+                val v = app.treelune.core.versioning.FilesAtV92
+                v.CREATE.forEach { database.execSQL(it) }
+                app.treelune.core.versioning.HistoryCopies.rewrite(database, "files") { v.copy(it) }
+                var texts = 0
+                database.query("SELECT id, session_id, name, size_bytes, line_count, content, created_at FROM attached_files").use { cursor ->
+                    while (cursor.moveToNext()) {
+                        val id = cursor.getString(0)
+                        app.treelune.core.files.Files.write(
+                            app.treelune.core.files.Files.sessionFile(context, id, app.treelune.core.files.FileFormat.TEXT),
+                            cursor.getString(5).toByteArray(Charsets.UTF_8)
+                        )
+                        database.execSQL(v.INSERT_TEXT, arrayOf<Any?>(id, cursor.getString(1), cursor.getString(2), cursor.getLong(3), cursor.getInt(4), cursor.getLong(6)))
+                        texts++
+                    }
+                }
+                database.execSQL(v.DROP_TEXTS)
+                LogManager.database("MIGRATION 91->92: images and $texts joined text(s) in files", "INFO")
+            }
+        }
+
         /** The connector gains its own data threshold: see ExternalAccessDataAtV84. */
         private val MIGRATION_83_84 = object : ConnectionMigration(83, 84) {
             override fun migrate(database: MigrationDatabase) {
@@ -3111,7 +3134,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_87_88,
                     MIGRATION_88_89,
                     MIGRATION_89_90,
-                    MIGRATION_90_91
+                    MIGRATION_90_91,
+                    migration91to92(context)
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

@@ -38,10 +38,10 @@ import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldInput
 import app.treelune.core.fields.FieldType
 import app.treelune.core.fields.toFieldDefinitions
-import app.treelune.core.images.IMAGE_LARGE_HEIGHT
-import app.treelune.core.images.IMAGE_SMALL_HEIGHT
-import app.treelune.core.images.ImageThumbnail
-import app.treelune.core.images.ImageViewer
+import app.treelune.core.files.IMAGE_LARGE_HEIGHT
+import app.treelune.core.files.IMAGE_SMALL_HEIGHT
+import app.treelune.core.files.ImageThumbnail
+import app.treelune.core.files.ImageViewer
 import app.treelune.core.strings.Strings
 import app.treelune.core.strings.StringsContext
 import app.treelune.core.tools.ToolConfigSettings

@@ -4,7 +4,7 @@ import app.treelune.core.ai.data.MessageSender
 import app.treelune.core.ai.data.PromptData
 import app.treelune.core.ai.data.PromptPart
 import app.treelune.core.ai.data.SessionMessage
-import app.treelune.core.images.ImageFormat
+import app.treelune.core.files.FileFormat
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -24,7 +24,7 @@ class ImageRequestsTest {
     private val withImages = SessionMessage(
         id = "m", timestamp = 0L, sender = MessageSender.USER, richContent = null, textContent = null,
         aiMessage = null, aiMessageJson = null, systemMessage = null,
-        promptParts = listOf(PromptPart.Text("compare"), PromptPart.Image("a", ImageFormat.JPEG), PromptPart.Text("with"), PromptPart.Image("b", ImageFormat.PNG))
+        promptParts = listOf(PromptPart.Text("compare"), PromptPart.Image("a", FileFormat.JPEG), PromptPart.Text("with"), PromptPart.Image("b", FileFormat.PNG))
     )
     private val prompt = PromptData("L1", "L2", "L3", listOf(withImages))
     private val imageData: ImageData = { "BASE64-${it.imageId}" }

@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import app.treelune.core.ai.data.MessageSegment
 import app.treelune.core.ai.data.RichMessage
-import app.treelune.core.images.ImageRow
+import app.treelune.core.files.ImageRow
 import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
 

@@ -90,7 +90,7 @@ fun rememberAgendaTile(tool: ToolInstance, open: (EntryToOpen) -> Unit): ToolTil
                         modifier = Modifier.clickable { open(EntryToOpen.Existing(event.id)) },
                         secondary = fieldsLine(event, fields, context),
                         leading = { UI.Text(shortWhen(event, now, s), TextType.LABEL) },
-                        trailing = images(event, fields).takeIf { it.isNotEmpty() }?.let { ids -> { app.treelune.core.images.ImageAbbreviation(ids) } }
+                        trailing = images(event, fields).takeIf { it.isNotEmpty() }?.let { ids -> { app.treelune.core.files.ImageAbbreviation(ids) } }
                     )
                 }
             }

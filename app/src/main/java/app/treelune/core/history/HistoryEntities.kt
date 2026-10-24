@@ -64,7 +64,7 @@ data class HistoryRowEntity(
     @ColumnInfo(name = "zone_id") val zoneId: String?,
     val before: String?,
     val after: String?,
-    /** The room it takes: its two copies, and the file of an image it names */
+    /** The room it takes: its two copies, and the kept file it names */
     @ColumnInfo(name = "size_bytes") val sizeBytes: Long
 )
 
@@ -113,7 +113,7 @@ interface HistoryDao {
     @Query("SELECT DISTINCT table_name, tool_instance_id, zone_id FROM history_rows WHERE step_id = :stepId")
     suspend fun placesOf(stepId: String): List<StepPlace>
 
-    /** The room the history takes, its copies and the files of the images it keeps. */
+    /** The room the history takes, its copies and the files it keeps. */
     @Query("SELECT COALESCE(SUM(size_bytes), 0) FROM history_rows")
     suspend fun totalSize(): Long
 
@@ -121,16 +121,16 @@ interface HistoryDao {
     @Query("SELECT MIN(at) FROM history_steps WHERE is_step = 1")
     suspend fun oldestStep(): Long?
 
-    /** The images a copy of the history keeps, whose files stay while it does. */
-    @Query("SELECT DISTINCT row_id FROM history_rows WHERE table_name = 'images'")
-    suspend fun keptImages(): List<String>
+    /** The files a copy of the history keeps, which stay on the disk while it does. */
+    @Query("SELECT DISTINCT row_id FROM history_rows WHERE table_name = 'files'")
+    suspend fun keptFiles(): List<String>
 
     /**
-     * Whether a copy of the history of an entry or a tool names [imageId]: an id is a UUID, found
+     * Whether a copy of the history of an entry or a tool names [fileId]: an id is a UUID, found
      * in a copy's text only as a value.
      */
-    @Query("SELECT EXISTS (SELECT 1 FROM history_rows WHERE table_name IN ('tool_data', 'tool_instances') AND (before LIKE '%' || :imageId || '%' OR after LIKE '%' || :imageId || '%'))")
-    suspend fun ownersName(imageId: String): Boolean
+    @Query("SELECT EXISTS (SELECT 1 FROM history_rows WHERE table_name IN ('tool_data', 'tool_instances') AND (before LIKE '%' || :fileId || '%' OR after LIKE '%' || :fileId || '%'))")
+    suspend fun ownersName(fileId: String): Boolean
 
     /** Each step and noted write with the room its rows take, the most recent first. */
     @Query("""

@@ -9,7 +9,7 @@ import app.treelune.core.database.AppDatabase
 import app.treelune.core.database.entities.AppSettingsCategory
 import app.treelune.core.database.entities.ToolDataEntity
 import app.treelune.core.identities.IdentityEntity
-import app.treelune.core.images.ImageEntity
+import app.treelune.core.files.FileEntity
 import app.treelune.core.mcp.McpClientEntity
 import app.treelune.core.database.entities.ToolInstance
 import app.treelune.core.database.entities.VariableEntity
@@ -137,11 +137,11 @@ class Writes(private val context: Context) {
 
     suspend fun deleteClient(id: String) = delete(CoveredTable.MCP_CLIENTS, id) { database.mcpDao().deleteClient(id) }
 
-    // ── Images ──
+    // ── Files ──
 
-    suspend fun insertImage(image: ImageEntity) = write(CoveredTable.IMAGES, image.id) { database.imageDao().insert(image) }
+    suspend fun insertFile(file: FileEntity) = write(CoveredTable.FILES, file.id) { database.fileDao().insert(file) }
 
-    suspend fun deleteImage(id: String) = delete(CoveredTable.IMAGES, id) { database.imageDao().delete(id) }
+    suspend fun deleteFile(id: String) = delete(CoveredTable.FILES, id) { database.fileDao().delete(id) }
 
     // ── A selection ──
 
@@ -273,19 +273,19 @@ class Writes(private val context: Context) {
     /** A row's copy as the history keeps it: whole, but for its secrets. */
     private fun copyOf(table: CoveredTable, row: JSONObject): String = kept.without(row, kept.secrets(table, row)).toString()
 
-    /** The room the file of an image takes, kept on the disk while the history names its row; 0 for any other row. */
+    /** The room a kept file takes, on the disk while the history names its row; 0 for any other row. */
     private fun fileSize(t: Touched): Long =
-        if (t.table == CoveredTable.IMAGES) (t.before ?: t.after)!!.optLong("size_bytes", 0) else 0
+        if (t.table == CoveredTable.FILES) (t.before ?: t.after)!!.optLong("size_bytes", 0) else 0
 
     /**
      * Whether the history keeps [row] of [table]: every covered row but a conversation's — a
-     * session that is not a routine's message, its messages, its images — and the Guide's progress.
+     * session that is not a routine's message, its messages, its files — and the Guide's progress.
      */
     private suspend fun covers(table: CoveredTable, row: JSONObject): Boolean {
         return when (table) {
             CoveredTable.AI_SESSIONS -> row.optString("type") == SEED
             CoveredTable.SESSION_MESSAGES -> isSeed(row.getString("session_id"))
-            CoveredTable.IMAGES -> row.isNull("session_id") || isSeed(row.getString("session_id"))
+            CoveredTable.FILES -> row.isNull("session_id") || isSeed(row.getString("session_id"))
             CoveredTable.APP_SETTINGS -> row.getString("category") != app.treelune.core.database.entities.AppSettingCategories.GUIDE
             else -> true
         }
@@ -302,7 +302,7 @@ class Writes(private val context: Context) {
         CoveredTable.VARIABLES, CoveredTable.AUTOMATIONS -> Place(null, row.getString("zone_id"))
         CoveredTable.AI_SESSIONS -> sessionPlace(row.getString("id"))
         CoveredTable.SESSION_MESSAGES -> sessionPlace(row.getString("session_id"))
-        CoveredTable.IMAGES -> when {
+        CoveredTable.FILES -> when {
             !row.isNull("entry_id") -> Rows.read(database, CoveredTable.TOOL_DATA, row.getString("entry_id"))?.let { toolPlace(it.getString("tool_instance_id")) }
             !row.isNull("tool_instance_id") -> toolPlace(row.getString("tool_instance_id"))
             else -> sessionPlace(row.getString("session_id"))

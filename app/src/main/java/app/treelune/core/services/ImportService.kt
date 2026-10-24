@@ -1,7 +1,6 @@
 package app.treelune.core.services
 
 import android.content.Context
-import app.treelune.core.ai.database.getById
 import app.treelune.core.coordinator.CancellationToken
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.LongOperation
@@ -54,7 +53,7 @@ class ImportService(private val context: Context) : ExecutableService {
         val toolInstanceId = params.optString("tool_instance_id").takeIf { it.isNotEmpty() }
             ?: return OperationResult.error(s.shared("service_error_missing_tool_instance_id"))
         val text = params.optString("file").takeIf { it.isNotEmpty() }?.let { fileId ->
-            AppDatabase.getDatabase(context).attachedFileDao().getById(fileId)?.content
+            app.treelune.core.files.Files.textOf(context, fileId)
                 ?: return OperationResult.error(s.shared("file_error_not_found").format(fileId))
         } ?: params.optString("csv")
         val table = try {
@@ -224,7 +223,7 @@ class ImportService(private val context: Context) : ExecutableService {
         val s = Strings.`for`(context = context)
         if (operation == "detect") return s.shared("action_verbalize_imports_detect")
         // A joined file is named, with its lines and the tool it goes into, for the validation card
-        val file = params.optString("file").takeIf { it.isNotEmpty() }?.let { AppDatabase.getDatabase(context).attachedFileDao().getInfo(it) }
+        val file = params.optString("file").takeIf { it.isNotEmpty() }?.let { AppDatabase.getDatabase(context).fileDao().getById(it) }?.takeIf { it.lineCount != null }
             ?: return s.shared("action_verbalize_imports_apply")
         val tool = Coordinator(context).processUserAction("tools.get", mapOf("tool_instance_id" to params.optString("tool_instance_id")))
         @Suppress("UNCHECKED_CAST")

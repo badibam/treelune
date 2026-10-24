@@ -203,7 +203,7 @@ internal class OpenAICompatibleProviderCore(
                 forcing = forcing,
                 responseSchema = if (forcing == OutputForcing.SCHEMA) responseSchemaForModel() else null,
                 datetimeText = promptData.buildDatetimeMessage(context),
-                imageData = { app.treelune.core.images.Images.base64(context, it.imageId, it.format) }
+                imageData = { app.treelune.core.files.Images.base64(context, it.imageId, it.format) }
             )
             val requestBody = requestJson.toString()
             LogManager.aiService("Built Chat Completions request: ${requestBody.length} characters")

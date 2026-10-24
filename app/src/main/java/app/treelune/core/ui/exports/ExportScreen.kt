@@ -47,7 +47,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
 /** A file written, as the export answers it. */
-private data class FileWritten(val name: String, val uri: String, val elements: Int, val entries: Int, val missingImages: Int)
+private data class FileWritten(val name: String, val uri: String, val elements: Int, val entries: Int, val missingFiles: Int)
 
 private val SelectionSaver: Saver<PartSelection, String> = Saver(
     save = { it.toJson().toString() },
@@ -162,7 +162,7 @@ fun ExportScreen(onBack: () -> Unit) {
                             if (result.isSuccess) {
                                 val data = result.data!!
                                 written = FileWritten(data["file_name"] as String, data["uri"] as String, (data["elements"] as Number).toInt(),
-                                    (data["entries"] as Number).toInt(), (data["missing_images"] as Number).toInt())
+                                    (data["entries"] as Number).toInt(), (data["missing_files"] as Number).toInt())
                             } else UI.Toast(result.error ?: "", app.treelune.core.ui.Duration.LONG)
                         }
                     }
@@ -178,7 +178,7 @@ fun ExportScreen(onBack: () -> Unit) {
             Column(verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
                 UI.Text(s.shared("share_written").format(done.name), TextType.BODY)
                 UI.Text(s.shared("share_written_counts").format(done.elements, done.entries), TextType.CAPTION)
-                if (done.missingImages > 0) UI.Text(s.shared("share_written_missing_images").format(done.missingImages), TextType.WARNING)
+                if (done.missingFiles > 0) UI.Text(s.shared("share_written_missing_files").format(done.missingFiles), TextType.WARNING)
                 UI.Button(type = ButtonType.PRIMARY, onClick = { shareFile(context, done.uri, "application/zip") }) {
                     UI.Text(s.shared("file_share"), TextType.LABEL)
                 }

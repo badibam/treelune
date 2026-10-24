@@ -1,8 +1,8 @@
 package app.treelune.core.services
 
-import app.treelune.core.images.ImageEntity
-import app.treelune.core.images.Images
-import app.treelune.core.images.imageFormat
+import app.treelune.core.files.FileEntity
+import app.treelune.core.files.Files
+import app.treelune.core.files.fileFormat
 import android.content.Context
 import app.treelune.core.utils.LogManager
 import app.treelune.core.coordinator.CancellationToken
@@ -46,8 +46,8 @@ import app.treelune.core.ai.data.LegacyCatchUp
 /**
  * Backup service - handles export, import and reset operations
  *
- * A backup is a zip: `backup.json`, every table as JSON, and `images/<id>.jpg` or `.png`, the
- * images of messages and of entries, copied file by file without going through the JSON — 200
+ * A backup is a zip: `backup.json`, every table as JSON, and `files/<id>.<extension>`, the kept
+ * files (docs/DATA.md, « FILE »), copied file by file without going through the JSON — 200
  * photos in base64 would not fit in memory beside it. An export writes into the app's folder; an
  * import reads the file the user chose (SAF), given by its `uri`.
  *
@@ -57,7 +57,7 @@ import app.treelune.core.ai.data.LegacyCatchUp
  *   part of the app ticked (BackupPart, docs/DATA.md, « A part of the app »), under the name of its zone when
  *   there is one, `treelune_share` otherwise; refused while an element kept names one left out
  *   (PartLinks, a blocking link). Answer: `file_name`, `uri`, `elements`, `entries`,
- *   `missing_images`
+ *   `missing_files`
  * - tree: what the app holds, its zones and their elements with every link between them
  *   (PartTree's stored form under `tree`), for the export's screen; given `uri`, what the backup
  *   there holds, for the import's, with `partial`, `taken_variable_names` and `identities`, each
@@ -68,9 +68,9 @@ import app.treelune.core.ai.data.LegacyCatchUp
  *   there added to the app (performImportPart, PartImport), one step of the history; an identity
  *   the app holds kept unless listed in `replace_identities`. Answer: `zones` (the new ones),
  *   `elements`, `entries`, `renamed` (each variable's name in the file and the one it took),
- *   `images_missing`, `identities_added`, `identities_replaced`
+ *   `files_missing`, `identities_added`, `identities_replaced`
  * - import: `uri`: data restored from a backup there (with version migrations): a zip, or the
- *   `.json` of the backups made before images, still readable
+ *   `.json` of the backups made before files, still readable
  * - reset: Wipe all data and restore defaults
  */
 class BackupService(private val context: Context) : ExecutableService {
@@ -81,8 +81,10 @@ class BackupService(private val context: Context) : ExecutableService {
     companion object {
         /** The tables, in the zip */
         private const val BACKUP_JSON = "backup.json"
-        /** The images' folder, in the zip */
-        private const val IMAGES_DIR = "images/"
+        /** The files' folder, in the zip */
+        private const val FILES_DIR = "files/"
+        /** The folder a backup before v92 held its images in, read as the files' */
+        private const val FORMER_IMAGES_DIR = "images/"
 
         /** A routine as a backup's [item] holds it, in the form of the current schema. */
         fun automationOf(item: JSONObject): AutomationEntity = AutomationEntity(
@@ -155,7 +157,7 @@ class BackupService(private val context: Context) : ExecutableService {
 
     /**
      * The part of the app [params]' `selection` ticks, written into the app's folder: built as a
-     * whole backup, then cut (BackupPart); its images' files beside it.
+     * whole backup, then cut (BackupPart); its files beside it.
      */
     private suspend fun performExportPart(params: JSONObject, token: CancellationToken): OperationResult {
         val selection = try {
@@ -187,8 +189,8 @@ class BackupService(private val context: Context) : ExecutableService {
                 return OperationResult.error(s.shared("share_error_identity").format(identity.name, s.shared(e.key).format(*e.args)))
             }
         }
-        val kept = app.treelune.core.backup.BackupPart.imageIds(part)
-        val built = Built(part, whole.images.filter { it.id in kept }, whole.missingIds intersect kept)
+        val kept = app.treelune.core.backup.BackupPart.fileIds(part)
+        val built = Built(part, whole.files.filter { it.id in kept }, whole.missingIds intersect kept)
 
         // Named after its zone when it holds one, the share's name otherwise
         val zones = part.getJSONObject("data").getJSONArray("zones")
@@ -236,13 +238,13 @@ class BackupService(private val context: Context) : ExecutableService {
         val data = built.json.getJSONObject("data")
         val elements = listOf("tool_instances", "variables", "automations", "identities").sumOf { data.optJSONArray(it)?.length() ?: 0 }
         val entries = data.optJSONArray("tool_data")?.length() ?: 0
-        LogManager.service("Backup: ${written.second} written, $elements elements, $entries entries, ${built.images.size} images, ${built.missing} without their file")
+        LogManager.service("Backup: ${written.second} written, $elements elements, $entries entries, ${built.files.size} files, ${built.missing} without their file")
         return OperationResult.success(mapOf(
             "file_name" to written.second,
             "uri" to written.first.toString(),
             "elements" to elements,
             "entries" to entries,
-            "missing_images" to built.missing
+            "missing_files" to built.missing
         ))
     }
 
@@ -257,7 +259,7 @@ class BackupService(private val context: Context) : ExecutableService {
             val built = build(token) ?: return OperationResult.cancelled()
             return OperationResult.success(mapOf("tree" to app.treelune.core.utils.JsonUtils.toMap(app.treelune.core.backup.PartTree.of(built.json).toJson())))
         }
-        val staging = Images.importDir(context)
+        val staging = Files.importDir(context)
         return try {
             val document = when (val opened = open(params.getString("uri"), staging)) {
                 is Opened.Refused -> return OperationResult.error(opened.message)
@@ -337,16 +339,16 @@ class BackupService(private val context: Context) : ExecutableService {
         // The files of the rolling in excess, left by a rolling that did not run: one copy per slot is kept
         state.extra.forEach { android.provider.DocumentsContract.deleteDocument(resolver, it.document) }
         app.treelune.core.backup.AutoBackup.copied(context, hash)
-        LogManager.service("Auto backup: $name written in ${System.currentTimeMillis() - now} ms, ${built.images.size} images")
+        LogManager.service("Auto backup: $name written in ${System.currentTimeMillis() - now} ms, ${built.files.size} files")
         return OperationResult.success(mapOf("written" to true))
     }
 
-    /** A backup ready to write: its JSON, the images whose files go beside it, how many had none and which. */
-    internal class Built(val json: JSONObject, val images: List<ImageEntity>, val missingIds: Set<String>) {
+    /** A backup ready to write: its JSON, the rows whose files go beside it, how many had none and which. */
+    internal class Built(val json: JSONObject, val files: List<FileEntity>, val missingIds: Set<String>) {
         val missing: Int get() = missingIds.size
     }
 
-    /** Every table read into a backup's JSON, the images listed; null when [token] stops it. */
+    /** Every table read into a backup's JSON, the files listed; null when [token] stops it. */
     internal suspend fun build(token: CancellationToken): Built? {
             // Query all tables in dependency order
             val appSettings = database.appSettingsCategoryDao().getAllSettings()
@@ -364,14 +366,12 @@ class BackupService(private val context: Context) : ExecutableService {
             val automations = database.aiDao().getAllAutomations()
             val variables = database.variableDao().getAll()
             val identities = database.identityDao().getAll()
-            // The files joined to messages, with their session
-            val attachedFiles = aiSessions.flatMap { database.attachedFileDao().getForSession(it.id) }
-            // The images of messages, entries and tools: their rows in the JSON, their files beside it.
-            // An image whose file is missing is an error the backup copies as it is, neither
-            // hidden nor repaired: its row goes, named in missing_images, and the export says how many
-            val images = database.imageDao().getAll()
-            val missingImages = images.filter { !Images.file(context, it).exists() }
-            missingImages.forEach { LogManager.service("Backup export: the file of image ${it.id} (${it.sessionId?.let { s -> "session $s" } ?: it.entryId?.let { e -> "entry $e" } ?: "tool ${it.toolInstanceId}"}) is missing", "WARN") }
+            // The files of messages, entries and tools: their rows in the JSON, their files beside it.
+            // A row whose file is missing is an error the backup copies as it is, neither
+            // hidden nor repaired: its row goes, named in missing_files, and the export says how many
+            val files = database.fileDao().getAll()
+            val missingFiles = files.filter { !Files.file(context, it).exists() }
+            missingFiles.forEach { LogManager.service("Backup export: the file of ${it.id} (${it.sessionId?.let { s -> "session $s" } ?: it.entryId?.let { e -> "entry $e" } ?: "tool ${it.toolInstanceId}"}) is missing", "WARN") }
 
             // Check cancellation before building JSON
             if (token.isCancelled) return null
@@ -620,38 +620,26 @@ class BackupService(private val context: Context) : ExecutableService {
                         }
                     })
 
-                    // Files joined to messages
-                    put("attached_files", JSONArray().apply {
-                        attachedFiles.forEach { file ->
+                    // The files whose file was missing at the export: their rows go without one
+                    put("missing_files", JSONArray(missingFiles.map { it.id }))
+
+                    // Files of messages, entries and tools: their files are entries of the zip
+                    put("files", JSONArray().apply {
+                        files.forEach { file ->
                             put(JSONObject().apply {
                                 put("id", file.id)
-                                put("session_id", file.sessionId)
-                                put("name", file.name)
-                                put("mime_type", file.mimeType)
+                                file.sessionId?.let { put("session_id", it) }
+                                file.entryId?.let { put("entry_id", it) }
+                                file.toolInstanceId?.let { put("tool_instance_id", it) }
+                                put("kind", file.kind)
+                                put("format", file.format)
+                                file.name?.let { put("name", it) }
                                 put("size_bytes", file.sizeBytes)
-                                put("line_count", file.lineCount)
-                                put("content", file.content)
+                                file.width?.let { put("width", it) }
+                                file.height?.let { put("height", it) }
+                                file.durationMs?.let { put("duration_ms", it) }
+                                file.lineCount?.let { put("line_count", it) }
                                 put("created_at", file.createdAt)
-                            })
-                        }
-                    })
-
-                    // The images whose file was missing at the export: their rows go without one
-                    put("missing_images", JSONArray(missingImages.map { it.id }))
-
-                    // Images of messages, entries and tools: their files are entries of the zip
-                    put("images", JSONArray().apply {
-                        images.forEach { image ->
-                            put(JSONObject().apply {
-                                put("id", image.id)
-                                image.sessionId?.let { put("session_id", it) }
-                                image.entryId?.let { put("entry_id", it) }
-                                image.toolInstanceId?.let { put("tool_instance_id", it) }
-                                put("format", image.format)
-                                put("size_bytes", image.sizeBytes)
-                                put("width", image.width)
-                                put("height", image.height)
-                                put("created_at", image.createdAt)
                             })
                         }
                     })
@@ -659,7 +647,7 @@ class BackupService(private val context: Context) : ExecutableService {
                 })
             }
 
-            return Built(backupJson, images - missingImages.toSet(), missingImages.map { it.id }.toSet())
+            return Built(backupJson, files - missingFiles.toSet(), missingFiles.map { it.id }.toSet())
     }
 
     /** [built] written to [output] as a backup zip, closed after; false when [token] stopped it midway. */
@@ -669,10 +657,10 @@ class BackupService(private val context: Context) : ExecutableService {
             zip.putNextEntry(java.util.zip.ZipEntry(BACKUP_JSON))
             zip.write(jsonString.toByteArray(Charsets.UTF_8))
             zip.closeEntry()
-            for (image in built.images) {
+            for (file in built.files) {
                 if (token.isCancelled) return false
-                zip.putNextEntry(java.util.zip.ZipEntry("$IMAGES_DIR${image.imageFormat.fileName(image.id)}"))
-                Images.file(context, image).inputStream().use { it.copyTo(zip) }
+                zip.putNextEntry(java.util.zip.ZipEntry("$FILES_DIR${file.fileFormat.fileName(file.id)}"))
+                Files.file(context, file).inputStream().use { it.copyTo(zip) }
                 zip.closeEntry()
             }
         }
@@ -680,12 +668,12 @@ class BackupService(private val context: Context) : ExecutableService {
     }
 
     /**
-     * Import data from the backup at [uri]: a zip, whose images are set aside in a folder of their
+     * Import data from the backup at [uri]: a zip, whose files are set aside in a folder of their
      * own until the tables are in, or the `.json` of an older backup, which has none.
      * Validates version and applies transformations if needed
      */
     private suspend fun performImport(uri: String, token: CancellationToken): OperationResult {
-        val staging = Images.importDir(context)
+        val staging = Files.importDir(context)
         return try {
             LogManager.service("Starting backup import")
 
@@ -702,13 +690,13 @@ class BackupService(private val context: Context) : ExecutableService {
                 return OperationResult.error("Operation cancelled")
             }
 
-            // An entry's or a tool's image, not a message's
-            val entryImages = data.optJSONArray("images")?.let { images ->
-                (0 until images.length()).map { images.getJSONObject(it) }.filter { !it.has("session_id") }
-                    .map { app.treelune.core.images.ImageFormat.valueOf(it.getString("format")).fileName(it.getString("id")) }
+            // An entry's or a tool's file, not a message's
+            val ownedByEntries = data.optJSONArray("files")?.let { files ->
+                (0 until files.length()).map { files.getJSONObject(it) }.filter { !it.has("session_id") }
+                    .map { app.treelune.core.files.FileFormat.valueOf(it.getString("format")).fileName(it.getString("id")) }
             }.orEmpty()
-            // An entry's or a tool's image goes into the entries' folder, a message's stays flat
-            Images.sortImport(staging, entryImages)
+            // An entry's or a tool's file goes into the entries' folder, a message's stays flat
+            Files.sortImport(staging, ownedByEntries)
 
             // Wipe all tables in reverse dependency order, then insert data
             // This operation is wrapped in a Room transaction for atomicity
@@ -724,9 +712,9 @@ class BackupService(private val context: Context) : ExecutableService {
                 // Insert data in dependency order (preserving original IDs)
                 insertImportedData(data)
 
-                // The images' folder emptied and given the backup's, in the same move as the
+                // The files' folder emptied and given the backup's, in the same move as the
                 // tables: left to the next sweep, hundreds of files would be orphans
-                Images.replaceDir(context, staging)
+                Files.replaceDir(context, staging)
             }
 
             LogManager.service("Backup import completed successfully")
@@ -747,7 +735,7 @@ class BackupService(private val context: Context) : ExecutableService {
      * blocking link (PartLinks). A whole backup or a part, the same way.
      */
     private suspend fun performImportPart(params: JSONObject, token: CancellationToken): OperationResult {
-        val staging = Images.importDir(context)
+        val staging = Files.importDir(context)
         return try {
             val document = when (val opened = open(params.optString("uri"), staging)) {
                 is Opened.Refused -> return OperationResult.error(opened.message)
@@ -777,13 +765,13 @@ class BackupService(private val context: Context) : ExecutableService {
                 return OperationResult.error(s.shared("share_import_refused").format(e.message ?: ""))
             }
             app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
-            LogManager.service("Part imported: ${report.zones} new zones, ${report.elements} elements, ${report.entries} entries, ${report.renamed.size} variables renamed, ${report.imagesMissing} images missing, ${report.identitiesAdded} identities added, ${report.identitiesReplaced} replaced")
+            LogManager.service("Part imported: ${report.zones} new zones, ${report.elements} elements, ${report.entries} entries, ${report.renamed.size} variables renamed, ${report.filesMissing} files missing, ${report.identitiesAdded} identities added, ${report.identitiesReplaced} replaced")
             OperationResult.success(mapOf(
                 "zones" to report.zones,
                 "elements" to report.elements,
                 "entries" to report.entries,
                 "renamed" to report.renamed,
-                "images_missing" to report.imagesMissing,
+                "files_missing" to report.filesMissing,
                 "identities_added" to report.identitiesAdded,
                 "identities_replaced" to report.identitiesReplaced
             ))
@@ -802,10 +790,11 @@ class BackupService(private val context: Context) : ExecutableService {
     }
 
     /**
-     * The backup at [uri] read, its images' files into [staging] emptied first: refused when it is
-     * no backup, comes from a newer app, or names an image whose file is absent though the export
-     * did not say it was missing (a zip cut short); otherwise brought to the current version
-     * (transformBackupData), whose failure throws.
+     * The backup at [uri] read, its files into [staging] emptied first: refused when it is no
+     * backup, comes from a newer app, or names a file absent though the export did not say it was
+     * missing (a zip cut short); otherwise brought to the current version (transformBackupData),
+     * whose failure throws. A text a backup before v92 held in its JSON is written into its file
+     * there (FilesAtV92).
      */
     private fun open(uri: String, staging: java.io.File): Opened {
         staging.deleteRecursively()
@@ -831,16 +820,20 @@ class BackupService(private val context: Context) : ExecutableService {
             backupJson
         }
 
-        // Every image the tables name has its file, unless the export said it was missing then
+        // Every file the tables name is there, unless the export said it was missing then
         val data = document.getJSONObject("data")
-        val missingAtExport = data.optJSONArray("missing_images")?.let { ids -> (0 until ids.length()).map { ids.getString(it) }.toSet() } ?: emptySet()
-        data.optJSONArray("images")?.let { images ->
-            for (i in 0 until images.length()) {
-                val image = images.getJSONObject(i)
-                val id = image.getString("id")
-                val name = app.treelune.core.images.ImageFormat.valueOf(image.getString("format")).fileName(id)
-                if (id !in missingAtExport && !java.io.File(staging, name).exists()) {
-                    return Opened.Refused(s.shared("backup_import_image_missing").format(id))
+        val missingAtExport = data.optJSONArray("missing_files")?.let { ids -> (0 until ids.length()).map { ids.getString(it) }.toSet() } ?: emptySet()
+        data.optJSONArray("files")?.let { files ->
+            for (i in 0 until files.length()) {
+                val file = files.getJSONObject(i)
+                val id = file.getString("id")
+                val target = java.io.File(staging, app.treelune.core.files.FileFormat.valueOf(file.getString("format")).fileName(id))
+                if (file.has(app.treelune.core.versioning.FilesAtV92.CONTENT)) {
+                    staging.mkdirs()
+                    Files.write(target, (file.remove(app.treelune.core.versioning.FilesAtV92.CONTENT) as String).toByteArray(Charsets.UTF_8))
+                }
+                if (id !in missingAtExport && !target.exists()) {
+                    return Opened.Refused(s.shared("backup_import_file_missing").format(id))
                 }
             }
         }
@@ -848,9 +841,9 @@ class BackupService(private val context: Context) : ExecutableService {
     }
 
     /**
-     * The JSON of the backup at [uri], its images written into [staging]: a zip holds
-     * `backup.json` and `images/<id>.jpg` or `.png`, anything else in it refuses it; a file that is not a zip
-     * is the JSON itself. Null when the file cannot be read or holds no JSON.
+     * The JSON of the backup at [uri], its files written into [staging]: a zip holds `backup.json`
+     * and `files/<id>.<extension>` (`images/` before v92), anything else in it refuses it; a file
+     * that is not a zip is the JSON itself. Null when the file cannot be read or holds no JSON.
      */
     private fun readBackup(uri: android.net.Uri, staging: java.io.File): String? {
         val input = context.contentResolver.openInputStream(uri)?.buffered() ?: return null
@@ -867,10 +860,14 @@ class BackupService(private val context: Context) : ExecutableService {
                     val name = entry.name
                     when {
                         name == BACKUP_JSON -> json = zip.readBytes().toString(Charsets.UTF_8)
-                        name.startsWith(IMAGES_DIR) && '/' !in name.removePrefix(IMAGES_DIR) &&
-                            app.treelune.core.images.ImageFormat.ofExtension(name.substringAfterLast('.')) != null ->
-                            java.io.File(staging, name.removePrefix(IMAGES_DIR)).outputStream().use { zip.copyTo(it) }
-                        else -> throw IllegalArgumentException("Unexpected entry in the backup: $name")
+                        else -> {
+                            val dir = listOf(FILES_DIR, FORMER_IMAGES_DIR).firstOrNull { name.startsWith(it) }
+                            val file = dir?.let { name.removePrefix(it) }
+                            if (file == null || '/' in file || app.treelune.core.files.FileFormat.ofExtension(file.substringAfterLast('.')) == null) {
+                                throw IllegalArgumentException("Unexpected entry in the backup: $name")
+                            }
+                            java.io.File(staging, file).outputStream().use { zip.copyTo(it) }
+                        }
                     }
                 }
             }
@@ -901,8 +898,8 @@ class BackupService(private val context: Context) : ExecutableService {
 
                 insertDefaultAppConfig()
 
-                // No session nor entry is left, so no image either
-                Images.replaceDir(context, null)
+                // No session nor entry is left, so no file either
+                Files.replaceDir(context, null)
             }
 
             LogManager.service("Database reset completed successfully")
@@ -1168,40 +1165,25 @@ class BackupService(private val context: Context) : ExecutableService {
             }
         }
 
-        // Images of messages, entries and tools, after the sessions, entries and tools they belong to;
-        // absent before v59. Their files are already set aside (performImport)
-        data.optJSONArray("images")?.let { array ->
+        // Files of messages, entries and tools, after the sessions, entries and tools they belong
+        // to; absent before v59. Their files are already set aside (performImport)
+        data.optJSONArray("files")?.let { array ->
             for (i in 0 until array.length()) {
                 val item = array.getJSONObject(i)
-                database.imageDao().insert(
-                    ImageEntity(
+                database.fileDao().insert(
+                    FileEntity(
                         id = item.getString("id"),
                         sessionId = item.optString("session_id").takeIf { it.isNotEmpty() },
                         entryId = item.optString("entry_id").takeIf { it.isNotEmpty() },
                         toolInstanceId = item.optString("tool_instance_id").takeIf { it.isNotEmpty() },
+                        kind = item.getString("kind"),
                         format = item.getString("format"),
+                        name = item.optString("name").takeIf { it.isNotEmpty() },
                         sizeBytes = item.getLong("size_bytes"),
-                        width = item.getInt("width"),
-                        height = item.getInt("height"),
-                        createdAt = item.getLong("created_at")
-                    )
-                )
-            }
-        }
-
-        // Files joined to messages, after the sessions they belong to; absent before v50
-        data.optJSONArray("attached_files")?.let { array ->
-            for (i in 0 until array.length()) {
-                val item = array.getJSONObject(i)
-                database.attachedFileDao().insert(
-                    app.treelune.core.ai.database.AttachedFileEntity(
-                        id = item.getString("id"),
-                        sessionId = item.getString("session_id"),
-                        name = item.getString("name"),
-                        mimeType = item.getString("mime_type"),
-                        sizeBytes = item.getLong("size_bytes"),
-                        lineCount = item.getInt("line_count"),
-                        content = item.getString("content"),
+                        width = if (item.has("width") && !item.isNull("width")) item.getInt("width") else null,
+                        height = if (item.has("height") && !item.isNull("height")) item.getInt("height") else null,
+                        durationMs = if (item.has("duration_ms") && !item.isNull("duration_ms")) item.getLong("duration_ms") else null,
+                        lineCount = if (item.has("line_count") && !item.isNull("line_count")) item.getInt("line_count") else null,
                         createdAt = item.getLong("created_at")
                     )
                 )
@@ -1378,6 +1360,9 @@ class BackupService(private val context: Context) : ExecutableService {
             }
             if (fromVersion < 91 && toVersion >= 91) {
                 app.treelune.core.versioning.NumericStepAtV91.backup(data)
+            }
+            if (fromVersion < 92 && toVersion >= 92) {
+                app.treelune.core.versioning.FilesAtV92.backup(data)
             }
 
             // Transform app settings

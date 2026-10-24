@@ -327,7 +327,7 @@ object FieldValueSchema {
             FieldType.IMAGE -> {
                 JSONObject().apply {
                     // The ids of images the entry owns, in their order: that each one is an image
-                    // the entry may hold is the service's to check, with the database (OwnedImages)
+                    // the entry may hold is the service's to check, with the database (OwnedFiles)
                     put("type", "array")
                     put("items", JSONObject().put("type", "string").put("minLength", 1))
                     put("uniqueItems", true)

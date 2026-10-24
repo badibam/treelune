@@ -1,4 +1,4 @@
-package app.treelune.core.images
+package app.treelune.core.files
 
 import android.content.Context
 import app.treelune.core.coordinator.Coordinator
@@ -28,12 +28,12 @@ import java.io.File
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
-class OwnedImagesTest {
+class OwnedFilesTest {
 
     private lateinit var context: Context
     private lateinit var coordinator: Coordinator
     private lateinit var toolId: String
-    private val dao get() = AppDatabase.getDatabase(context).imageDao()
+    private val dao get() = AppDatabase.getDatabase(context).fileDao()
 
     @Before
     fun setUp() = runBlocking {
@@ -54,8 +54,8 @@ class OwnedImagesTest {
     }
 
     /** An image prepared as a form prepares it: its file alone, in the pending folder. */
-    private fun pending(id: String): File = File(Images.pendingDir(context), ImageFormat.PNG.fileName(id)).also {
-        Images.write(it, byteArrayOf(1, 2, 3))
+    private fun pending(id: String): File = File(Files.pendingDir(context), FileFormat.PNG.fileName(id)).also {
+        Files.write(it, byteArrayOf(1, 2, 3))
     }
 
     private suspend fun create(extra: Map<String, Any?>) =
@@ -79,7 +79,7 @@ class OwnedImagesTest {
         assertEquals(null, image.sessionId)
         assertEquals("PNG", image.format)
         assertFalse(file.exists())
-        assertTrue(Images.file(context, image).exists())
+        assertTrue(Files.file(context, image).exists())
     }
 
     @Test
@@ -94,7 +94,7 @@ class OwnedImagesTest {
         assertNotEquals("p2", copied)
         assertEquals(secondId, dao.getById(copied)!!.entryId)
         assertEquals(first, dao.getById("p2")!!.entryId)
-        assertTrue(Images.file(context, dao.getById(copied)!!).exists())
+        assertTrue(Files.file(context, dao.getById(copied)!!).exists())
     }
 
     @Test
@@ -102,7 +102,7 @@ class OwnedImagesTest {
         pending("p3")
         pending("p4")
         val entryId = create(mapOf("photos" to listOf("p3", "p4"))).data!!["id"] as String
-        val file = Images.file(context, dao.getById("p3")!!)
+        val file = Files.file(context, dao.getById("p3")!!)
 
         val updated = coordinator.processUserAction("tool_data.update", mapOf("id" to entryId, "extra" to mapOf("photos" to listOf("p4"))))
         assertTrue(updated.error, updated.isSuccess)
@@ -115,7 +115,7 @@ class OwnedImagesTest {
     fun `an entry deleted comes back by an undo, its images with it`() = runBlocking {
         pending("p6")
         val entryId = create(mapOf("photos" to listOf("p6"))).data!!["id"] as String
-        val file = Images.file(context, dao.getById("p6")!!)
+        val file = Files.file(context, dao.getById("p6")!!)
         assertTrue(coordinator.processUserAction("tool_data.delete", mapOf("id" to entryId)).isSuccess)
         assertEquals(null, dao.getById("p6"))
 
@@ -138,7 +138,7 @@ class OwnedImagesTest {
     fun `an entry deleted takes its rows, the sweep its files once the history is done with them`() = runBlocking {
         pending("p5")
         val entryId = create(mapOf("photos" to listOf("p5"))).data!!["id"] as String
-        val file = Images.file(context, dao.getById("p5")!!)
+        val file = Files.file(context, dao.getById("p5")!!)
         pending("never-written")
 
         assertTrue(coordinator.processUserAction("tool_data.delete", mapOf("id" to entryId)).isSuccess)
@@ -147,9 +147,9 @@ class OwnedImagesTest {
 
         // The history pruned, nothing names the image any more
         AppDatabase.getDatabase(context).historyDao().clear()
-        Images.sweepOnce(context)
+        Files.sweepOnce(context)
         assertFalse(file.exists())
-        assertEquals(null, Images.pendingFile(context, "never-written"))
+        assertEquals(null, Files.pendingFile(context, "never-written"))
     }
 
     /** A session whose one step shows [images]. */
@@ -176,7 +176,7 @@ class OwnedImagesTest {
         assertEquals(sessionId, image.toolInstanceId)
         assertEquals(null, image.entryId)
         assertFalse(file.exists())
-        assertTrue(Images.file(context, image).exists())
+        assertTrue(Files.file(context, image).exists())
     }
 
     @Test

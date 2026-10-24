@@ -26,7 +26,7 @@ import app.treelune.core.fields.ValidationException
 import app.treelune.core.fields.migration.EntryMigration
 import app.treelune.core.fields.migration.MigrationCounts
 import app.treelune.core.database.transaction
-import app.treelune.core.images.OwnedImages
+import app.treelune.core.files.OwnedFiles
 import app.treelune.core.look.Looks
 import app.treelune.core.grid.SectionItem
 import app.treelune.core.scheduling.CoreScheduler
@@ -163,8 +163,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         // Its IMAGE settings' ids made its images: a form's prepared, a conversation's copied
         val config = JSONObject(storedConfigJson)
         val images = when (val plan = imagesOf(toolType, toolId, config)) {
-            is OwnedImages.Plan.Refused -> return OperationResult.error(plan.error)
-            is OwnedImages.Plan.Ready -> plan.images
+            is OwnedFiles.Plan.Refused -> return OperationResult.error(plan.error)
+            is OwnedFiles.Plan.Ready -> plan.files
         }
         val writtenConfigJson = if (images.rewritten) config.toString() else storedConfigJson
 
@@ -303,8 +303,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         // A config given: its IMAGE settings' ids compared with the images the tool owns, the new
         // ones made its, the ones gone deleted
         val images = if (configJson.isBlank()) null else when (val plan = imagesOf(existingTool.tooltype, existingTool.id, storedConfig)) {
-            is OwnedImages.Plan.Refused -> return OperationResult.error(plan.error)
-            is OwnedImages.Plan.Ready -> plan.images
+            is OwnedFiles.Plan.Refused -> return OperationResult.error(plan.error)
+            is OwnedFiles.Plan.Ready -> plan.files
         }
 
         val changedTool = existingTool.copy(
@@ -572,7 +572,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
      * @return The error to hand back, or null when the config is valid
      */
     /**
-     * What writing tool [toolId] of [tooltype] with [config] does to its images (OwnedImages): the
+     * What writing tool [toolId] of [tooltype] with [config] does to its images (OwnedFiles): the
      * IMAGE settings its config declares, a copy's new id written in [config].
      */
     /** [config]'s look checked and brought to its stored form, in place, against [before]'s (Looks). */
@@ -580,9 +580,9 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         ToolTypeManager.getToolType(tooltype)?.let { Looks.check(app.treelune.core.tools.ToolConfigSettings.look(it), config, before, context) }
             ?: Looks.Checked.Kept()
 
-    private suspend fun imagesOf(tooltype: String, toolId: String, config: JSONObject): OwnedImages.Plan {
+    private suspend fun imagesOf(tooltype: String, toolId: String, config: JSONObject): OwnedFiles.Plan {
         val nodes = ToolTypeManager.getToolType(tooltype)?.let { app.treelune.core.tools.ToolConfigSettings.nodes(it, context) }.orEmpty()
-        return OwnedImages.plan(context, OwnedImages.Owner.Tool(toolId), OwnedImages.configSlots(nodes, config)) {
+        return OwnedFiles.plan(context, OwnedFiles.Owner.Tool(toolId), OwnedFiles.configSlots(nodes, config)) {
             s.shared("image_error_not_found").format(it)
         }
     }
@@ -730,8 +730,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         // The source's images copied for the copy, their new ids in its config
         val copyId = java.util.UUID.randomUUID().toString()
         val images = when (val plan = imagesOf(sourceTool.tooltype, copyId, sourceConfig)) {
-            is OwnedImages.Plan.Refused -> return OperationResult.error(plan.error)
-            is OwnedImages.Plan.Ready -> plan.images
+            is OwnedFiles.Plan.Refused -> return OperationResult.error(plan.error)
+            is OwnedFiles.Plan.Ready -> plan.files
         }
 
         // Create new tool instance in target zone, at the bottom of its section's grid

@@ -45,7 +45,7 @@ import app.treelune.core.fields.toJsonArray
 import app.treelune.core.fields.withOptionsAdded
 import app.treelune.core.fields.toFieldDefinitions
 import app.treelune.core.utils.LogManager
-import app.treelune.core.images.OwnedImages
+import app.treelune.core.files.OwnedFiles
 
 /**
  * Centralized service for all tool_data operations
@@ -158,8 +158,8 @@ class ToolDataService(private val context: Context) : ExecutableService {
         // Its IMAGE fields' ids made its images: a form's prepared, a conversation's copied
         val planned = PlannedValues(finalDataJson, finalExtraJson)
         val images = when (val plan = imagesOf(checked, entryId, planned)) {
-            is OwnedImages.Plan.Refused -> return OperationResult.error(plan.error)
-            is OwnedImages.Plan.Ready -> plan.images
+            is OwnedFiles.Plan.Refused -> return OperationResult.error(plan.error)
+            is OwnedFiles.Plan.Ready -> plan.files
         }
 
         val now = System.currentTimeMillis()
@@ -432,8 +432,8 @@ class ToolDataService(private val context: Context) : ExecutableService {
         // ones gone deleted
         val planned = PlannedValues(updatedEntity.data, updatedEntity.extra)
         val images = when (val plan = imagesOf(checked, entryId, planned)) {
-            is OwnedImages.Plan.Refused -> return OperationResult.error(plan.error)
-            is OwnedImages.Plan.Ready -> plan.images
+            is OwnedFiles.Plan.Refused -> return OperationResult.error(plan.error)
+            is OwnedFiles.Plan.Ready -> plan.files
         }
         val written = updatedEntity.copy(data = planned.dataJson(images), extra = planned.extraJson(images))
 
@@ -1269,13 +1269,13 @@ class ToolDataService(private val context: Context) : ExecutableService {
     private class PlannedValues(private val dataJson: String, private val extraJson: String?) {
         val data = JSONObject(dataJson)
         val extra = extraJson?.let { JSONObject(it) }
-        fun dataJson(images: OwnedImages) = if (images.rewritten) data.toString() else dataJson
-        fun extraJson(images: OwnedImages) = if (images.rewritten) extra?.toString() else extraJson
+        fun dataJson(images: OwnedFiles) = if (images.rewritten) data.toString() else dataJson
+        fun extraJson(images: OwnedFiles) = if (images.rewritten) extra?.toString() else extraJson
     }
 
-    /** What writing entry [entryId] of [target] with [values] does to its images (OwnedImages). */
-    private suspend fun imagesOf(target: WriteTarget.Ready, entryId: String, values: PlannedValues): OwnedImages.Plan =
-        OwnedImages.plan(context, OwnedImages.Owner.Entry(entryId), OwnedImages.entrySlots(values.data, declaredFields(target), values.extra, userFields(target))) {
+    /** What writing entry [entryId] of [target] with [values] does to its images (OwnedFiles). */
+    private suspend fun imagesOf(target: WriteTarget.Ready, entryId: String, values: PlannedValues): OwnedFiles.Plan =
+        OwnedFiles.plan(context, OwnedFiles.Owner.Entry(entryId), OwnedFiles.entrySlots(values.data, declaredFields(target), values.extra, userFields(target))) {
             s.shared("image_error_not_found").format(it)
         }
 

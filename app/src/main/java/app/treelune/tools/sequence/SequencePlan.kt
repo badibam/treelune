@@ -29,7 +29,7 @@ data class Round(val block: String, val round: Int, val of: Int)
  * around it, outermost first.
  *
  * @property duration The timer's length, null for a step ended by hand
- * @property images Its images' ids, owned by the tool (OwnedImages), the first shown large
+ * @property images Its images' ids, owned by the tool (OwnedFiles), the first shown large
  */
 data class PlannedStep(
     val name: String,

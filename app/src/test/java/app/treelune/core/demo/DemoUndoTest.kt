@@ -59,13 +59,13 @@ class DemoUndoTest {
     @Test
     fun `the demo's photos are kept while its removal can be undone, and come back with the undo`() = runBlocking {
         val plants = listOf("demo-plant-tomato", "demo-plant-basil", "demo-plant-chilli")
-        val files = plants.map { app.treelune.core.images.Images.file(context, database.imageDao().getForEntry(it).single()) }
+        val files = plants.map { app.treelune.core.files.Files.file(context, database.fileDao().getForEntry(it).single()) }
         assertTrue(files.all { it.exists() })
 
         assertTrue(coordinator.processUserAction("demo.remove", emptyMap()).isSuccess)
         assertTrue("kept while the removal can be undone", files.all { it.exists() })
         assertTrue(coordinator.processUserAction("history.undo", mapOf("id" to lastStep())).isSuccess)
-        plants.forEach { assertTrue(it, database.imageDao().getForEntry(it).size == 1) }
+        plants.forEach { assertTrue(it, database.fileDao().getForEntry(it).size == 1) }
         assertTrue(files.all { it.exists() })
     }
 }

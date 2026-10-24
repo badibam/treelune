@@ -203,7 +203,7 @@ internal class OpenAIProviderCore(
                 maxOutputTokens = settings.number("max_output_tokens")!!.toInt(),
                 effort = settings.string(ReasoningSettings.EFFORT),
                 datetimeText = promptData.buildDatetimeMessage(context),
-                imageData = { app.treelune.core.images.Images.base64(context, it.imageId, it.format) }
+                imageData = { app.treelune.core.files.Images.base64(context, it.imageId, it.format) }
             )
             val requestBody = requestJson.toString()
 

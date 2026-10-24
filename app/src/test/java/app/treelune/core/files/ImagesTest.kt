@@ -1,4 +1,4 @@
-package app.treelune.core.images
+package app.treelune.core.files
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -37,16 +37,16 @@ class ImagesTest {
 
     @Test
     fun `a JPEG stays a JPEG and a PNG a PNG, transparent or not`() {
-        assertEquals(ImageFormat.JPEG, Images.formatFor("image/jpeg", hasAlpha = false))
-        assertEquals(ImageFormat.PNG, Images.formatFor("image/png", hasAlpha = true))
-        assertEquals(ImageFormat.PNG, Images.formatFor("image/png", hasAlpha = false))
+        assertEquals(FileFormat.JPEG, Images.formatFor("image/jpeg", hasAlpha = false))
+        assertEquals(FileFormat.PNG, Images.formatFor("image/png", hasAlpha = true))
+        assertEquals(FileFormat.PNG, Images.formatFor("image/png", hasAlpha = false))
     }
 
     @Test
     fun `another format becomes a PNG with transparency, a JPEG without`() {
-        assertEquals(ImageFormat.PNG, Images.formatFor("image/webp", hasAlpha = true))
-        assertEquals(ImageFormat.JPEG, Images.formatFor("image/webp", hasAlpha = false))
-        assertEquals(ImageFormat.JPEG, Images.formatFor("image/heif", hasAlpha = false))
+        assertEquals(FileFormat.PNG, Images.formatFor("image/webp", hasAlpha = true))
+        assertEquals(FileFormat.JPEG, Images.formatFor("image/webp", hasAlpha = false))
+        assertEquals(FileFormat.JPEG, Images.formatFor("image/heif", hasAlpha = false))
     }
 
     @Test
@@ -69,12 +69,12 @@ class ImagesTest {
     }
 
     @Test
-    fun `the sweep removes the parts and the images no row names, nothing else`() {
-        val sweep = Images.sweep(
-            names = listOf("a.jpg", "b.jpg", "c.png", "d.png", "c.jpg.part", "notes.txt", "entries", "pending"),
+    fun `the sweep removes the parts and the kept files no row names, nothing else`() {
+        val sweep = Files.sweep(
+            names = listOf("a.jpg", "b.jpg", "c.png", "d.png", "e.txt", "c.jpg.part", "notes.md", "entries", "pending"),
             expected = setOf("a.jpg", "c.png")
         )
         assertEquals(listOf("c.jpg.part"), sweep.parts)
-        assertEquals(listOf("b.jpg", "d.png"), sweep.orphans)
+        assertEquals(listOf("b.jpg", "d.png", "e.txt"), sweep.orphans)
     }
 }

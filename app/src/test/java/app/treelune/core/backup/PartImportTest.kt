@@ -7,7 +7,7 @@ import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.AppDatabase
 import app.treelune.core.demo.DemoContent
 import app.treelune.core.demo.DemoFixture
-import app.treelune.core.images.Images
+import app.treelune.core.files.Files
 import app.treelune.core.services.BackupService
 import app.treelune.core.utils.JsonUtils
 import kotlinx.coroutines.runBlocking
@@ -85,7 +85,7 @@ class PartImportTest {
         val groups = database.appSettingsCategoryDao().getAllSettings().map { it.category to it.settings }
 
         val refused = try {
-            PartImport(context).run(part, Images.importDir(context), emptyMap(), emptySet())
+            PartImport(context).run(part, Files.importDir(context), emptyMap(), emptySet())
             null
         } catch (e: PartImport.Refused) {
             e

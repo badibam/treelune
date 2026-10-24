@@ -11,7 +11,7 @@ This check finds the DAO methods that write a covered table, from the DAOs thems
 @Insert, @Update, @Delete or @Upsert of a covered entity, an @Query that inserts, updates or
 deletes in a covered table), and refuses a call to one outside the door: a call on the DAO
 AppDatabase hands out (`database.zoneDao().insertZone(...)`), or on a value holding it
-(`val dao = database.imageDao()`, a parameter typed with the DAO). It refuses as well a
+(`val dao = database.fileDao()`, a parameter typed with the DAO). It refuses as well a
 statement that writes a covered table in plain SQL.
 
 Allowed besides the door: the migrations (core/versioning, AppDatabase.kt), which bring the
@@ -35,7 +35,7 @@ SOURCES = ROOT / "app" / "src" / "main" / "java"
 DATABASE = SOURCES / "app" / "treelune" / "core" / "database" / "AppDatabase.kt"
 
 COVERED = {
-    "zones", "tool_instances", "tool_data", "variables", "automations", "images",
+    "zones", "tool_instances", "tool_data", "variables", "automations", "files",
     "identities", "mcp_clients", "app_settings_categories",
 }
 

@@ -443,15 +443,15 @@ class AISessionService(private val context: Context) : ExecutableService {
                 return OperationResult.error(s.shared("ai_error_session_not_found").format(sessionId))
             }
 
-            // Its images, whose rows go with it by cascade and whose files go after them
-            val images = database.imageDao().getForSession(sessionId)
+            // Its files, images and texts, whose rows go with it by cascade and whose files go after them
+            val files = database.fileDao().getForSession(sessionId)
 
             // Delete all messages for this session first
             database.aiDao().deleteMessagesForSession(sessionId)
 
             // Delete the session
             database.aiDao().deleteSession(sessionEntity)
-            images.forEach { app.treelune.core.images.Images.delete(context, it) }
+            files.forEach { app.treelune.core.files.Files.delete(context, it) }
 
             LogManager.aiSession("Successfully deleted session: $sessionId", "INFO")
 
@@ -1221,12 +1221,12 @@ class AISessionService(private val context: Context) : ExecutableService {
                 return OperationResult.error("Cannot delete non-CHAT session")
             }
 
-            // Its images, whose rows go with it by cascade and whose files go after them
-            val images = database.imageDao().getForSession(sessionId)
+            // Its files, images and texts, whose rows go with it by cascade and whose files go after them
+            val files = database.fileDao().getForSession(sessionId)
 
             // Delete session (CASCADE DELETE will handle messages automatically)
             dao.deleteSessionById(sessionId)
-            images.forEach { app.treelune.core.images.Images.delete(context, it) }
+            files.forEach { app.treelune.core.files.Files.delete(context, it) }
 
             LogManager.aiSession("Successfully deleted CHAT session: $sessionId", "INFO")
 

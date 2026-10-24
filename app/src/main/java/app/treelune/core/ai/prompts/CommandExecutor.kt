@@ -793,7 +793,7 @@ class CommandExecutor(private val context: Context) {
                     // Each image by its id and its size, never the image (IMAGES shows it)
                     val imageIds = converted.flatMap { ModelValues.imageIds(it, schema) }.distinct()
                     val images = if (imageIds.isEmpty()) emptyMap() else runBlocking {
-                        app.treelune.core.database.AppDatabase.getDatabase(context).imageDao().getByIds(imageIds)
+                        app.treelune.core.database.AppDatabase.getDatabase(context).fileDao().getByIds(imageIds)
                     }.associateBy { it.id }
                     reordered["entries"] = converted.map { ModelValues.withImageSizes(ModelValues.withReferenceNames(it, schema, names), schema, images)!! }
                 }

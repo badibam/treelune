@@ -19,7 +19,7 @@ data class FileEnrichment(val fileId: String, val name: String, val lineCount: I
     fun summary(s: StringsContext): String =
         s.shared(if (whole) "file_summary_whole" else "file_summary_preview").format(name, lineCount)
 
-    /** What goes with the message: the FILE read, whole or its first lines, which carries its id, name and type. */
+    /** What goes with the message: the FILE read, whole or its first lines, which carries its id, name and size. */
     fun query(isRelative: Boolean) = DataCommand(
         id = "file.$fileId" + if (whole) "" else ".preview",
         type = "FILE",

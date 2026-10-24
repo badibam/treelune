@@ -184,7 +184,7 @@ class ValidationResolver(private val context: Context) {
         if (places.isEmpty()) error(s.shared("validation_reason_no_target"))
         for (place in places) {
             val reason = when (place.tableName) {
-                "tool_data", "images" -> place.toolInstanceId?.let { dataReason(it, levels) } ?: place.zoneId?.let { zoneReason(it, levels) }
+                "tool_data", "files" -> place.toolInstanceId?.let { dataReason(it, levels) } ?: place.zoneId?.let { zoneReason(it, levels) }
                 "tool_instances", "variables", "automations", "ai_sessions", "session_messages" -> place.zoneId?.let { zoneReason(it, levels) } ?: appReason(levels)
                 else -> appReason(levels)
             }

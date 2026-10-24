@@ -1,4 +1,4 @@
-package app.treelune.core.images
+package app.treelune.core.files
 
 import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult

@@ -52,7 +52,7 @@ class EnrichmentText private constructor(
      *
      * @throws IllegalStateException for an image [formats] does not hold: its row is gone
      */
-    suspend fun promptParts(message: RichMessage, formats: Map<String, app.treelune.core.images.ImageFormat>): List<PromptPart> {
+    suspend fun promptParts(message: RichMessage, formats: Map<String, app.treelune.core.files.FileFormat>): List<PromptPart> {
         val parts = mutableListOf<PromptPart>()
         val run = mutableListOf<String>()
         fun closeRun() {

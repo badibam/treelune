@@ -52,7 +52,7 @@ private data class Read(val tree: PartTree, val partial: Boolean, val takenNames
 private data class AppZone(val id: String, val name: String, val group: String?)
 
 /** What arrived, as the import answers it. */
-private data class Imported(val zones: Int, val elements: Int, val entries: Int, val imagesMissing: Int, val identitiesAdded: Int, val identitiesReplaced: Int)
+private data class Imported(val zones: Int, val elements: Int, val entries: Int, val filesMissing: Int, val identitiesAdded: Int, val identitiesReplaced: Int)
 
 private val SelectionSaver: Saver<PartSelection?, String> = Saver(
     save = { it?.toJson()?.toString() ?: "" },
@@ -200,7 +200,7 @@ fun ImportScreen(uri: String, onBack: () -> Unit) {
                                     if (result.isSuccess) {
                                         val data = result.data!!
                                         imported = Imported((data["zones"] as Number).toInt(), (data["elements"] as Number).toInt(),
-                                            (data["entries"] as Number).toInt(), (data["images_missing"] as Number).toInt(),
+                                            (data["entries"] as Number).toInt(), (data["files_missing"] as Number).toInt(),
                                             (data["identities_added"] as Number).toInt(), (data["identities_replaced"] as Number).toInt())
                                     } else UI.Toast(result.error ?: "", app.treelune.core.ui.Duration.LONG)
                                 }
@@ -246,7 +246,7 @@ fun ImportScreen(uri: String, onBack: () -> Unit) {
                 UI.Text(s.shared("share_import_done_counts").format(done.zones, done.elements, done.entries), TextType.CAPTION)
                 if (done.identitiesAdded + done.identitiesReplaced > 0)
                     UI.Text(s.shared("share_import_done_identities").format(done.identitiesAdded, done.identitiesReplaced), TextType.CAPTION)
-                if (done.imagesMissing > 0) UI.Text(s.shared("share_import_images_missing").format(done.imagesMissing), TextType.WARNING)
+                if (done.filesMissing > 0) UI.Text(s.shared("share_import_files_missing").format(done.filesMissing), TextType.WARNING)
             }
         }
     }

@@ -115,13 +115,13 @@ object BackupPart {
         val seeds = keptAutomations.map { it.getString("seed_session_id") }.toSet()
         val sessions = rows(data, "ai_sessions").filter { it.getString("id") in seeds }
         val messages = rows(data, "session_messages").filter { it.getString("session_id") in seeds }
-        // The images of the entries and the tools kept, and of the routines' messages
+        // The files of the entries and the tools kept, and of the routines' messages
         val toolIds = keptTools.map { it.getString("id") }.toSet()
-        val images = rows(data, "images").filter {
+        val files = rows(data, "files").filter {
             it.optString("entry_id") in entryIds || it.optString("tool_instance_id") in toolIds || it.optString("session_id") in seeds
         }
-        val imageIds = images.map { it.getString("id") }.toSet()
-        val missing = data.optJSONArray("missing_images")?.let { ids -> (0 until ids.length()).map { ids.getString(it) } }.orEmpty().filter { it in imageIds }
+        val fileIds = files.map { it.getString("id") }.toSet()
+        val missing = data.optJSONArray("missing_files")?.let { ids -> (0 until ids.length()).map { ids.getString(it) } }.orEmpty().filter { it in fileIds }
 
         return JSONObject()
             .put("metadata", copy(document.getJSONObject("metadata")).put(PARTIAL, true))
@@ -134,13 +134,13 @@ object BackupPart {
                 .put("identities", JSONArray(identities.filter { it.getString("id") in selection.identities }))
                 .put("ai_sessions", JSONArray(sessions))
                 .put("session_messages", JSONArray(messages))
-                .put("images", JSONArray(images))
-                .put("missing_images", JSONArray(missing)))
+                .put("files", JSONArray(files))
+                .put("missing_files", JSONArray(missing)))
     }
 
-    /** The ids of the images [part] holds, whose files go beside it. */
-    fun imageIds(part: JSONObject): Set<String> =
-        rows(part.getJSONObject("data"), "images").map { it.getString("id") }.toSet()
+    /** The ids of the files [part] holds, which go beside it. */
+    fun fileIds(part: JSONObject): Set<String> =
+        rows(part.getJSONObject("data"), "files").map { it.getString("id") }.toSet()
 
     /** The identity a backup's [row] of `identities` holds. */
     fun identity(row: JSONObject): app.treelune.core.identities.Identity = app.treelune.core.identities.Identity(

@@ -1,4 +1,4 @@
-package app.treelune.core.images
+package app.treelune.core.files
 
 import android.content.Context
 import android.graphics.BitmapFactory
@@ -33,14 +33,14 @@ import java.util.UUID
  * leaves a file no row names, which the startup sweep removes. A write that fails puts the files
  * back where they were ([undo]).
  */
-class OwnedImages private constructor(
+class OwnedFiles private constructor(
     private val context: Context,
     private val owner: Owner,
     /** Whether a copy's new id was written in place of what was sent, in the values planned */
     val rewritten: Boolean,
     private val moves: List<Pair<String, File>>,
-    private val copies: List<Pair<ImageEntity, String>>,
-    private val removed: List<ImageEntity>
+    private val copies: List<Pair<FileEntity, String>>,
+    private val removed: List<FileEntity>
 ) {
     /** Who owns the images: an entry or a tool. */
     sealed interface Owner {
@@ -53,7 +53,7 @@ class OwnedImages private constructor(
     private val placed = mutableListOf<Pair<File, File?>>()
 
     /** The rows [place] wrote the files of, written by [store]. */
-    private val rows = mutableListOf<ImageEntity>()
+    private val rows = mutableListOf<FileEntity>()
 
     /** Whether the write changes nothing of the owner's images. */
     val unchanged: Boolean get() = moves.isEmpty() && copies.isEmpty() && removed.isEmpty()
@@ -61,25 +61,25 @@ class OwnedImages private constructor(
     private val entryId = (owner as? Owner.Entry)?.id
     private val toolInstanceId = (owner as? Owner.Tool)?.id
 
-    private fun owned(image: ImageEntity) = image.copy(sessionId = null, entryId = entryId, toolInstanceId = toolInstanceId)
+    private fun owned(image: FileEntity) = image.copy(sessionId = null, entryId = entryId, toolInstanceId = toolInstanceId)
 
     /** The files of the new images put in the entries' folder, before the transaction. */
     fun place() {
         val now = System.currentTimeMillis()
-        val dir = Images.entriesDir(context).apply { mkdirs() }
+        val dir = Files.entriesDir(context).apply { mkdirs() }
         moves.forEach { (id, pending) ->
             val target = File(dir, pending.name)
             check(pending.renameTo(target)) { "Image $id: not moved from the pending folder" }
             placed.add(target to pending)
-            val format = ImageFormat.ofExtension(pending.extension) ?: error("Image $id: ${pending.name} is no image file")
+            val format = FileFormat.ofExtension(pending.extension)?.takeIf { it.kind == FileKind.IMAGE } ?: error("File $id: ${pending.name} is no image file")
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             BitmapFactory.decodeFile(target.path, bounds)
-            rows.add(ImageEntity(id, null, entryId, toolInstanceId, format.name, target.length(), bounds.outWidth, bounds.outHeight, now))
+            rows.add(FileEntity.image(id, null, entryId, toolInstanceId, format, target.length(), bounds.outWidth, bounds.outHeight, now))
         }
         copies.forEach { (source, newId) ->
             val copy = owned(source).copy(id = newId, createdAt = now)
-            val target = Images.file(context, copy)
-            Images.copy(Images.file(context, source), target)
+            val target = Files.file(context, copy)
+            Files.copy(Files.file(context, source), target)
             placed.add(target to null)
             rows.add(copy)
         }
@@ -88,28 +88,28 @@ class OwnedImages private constructor(
     /** The rows of the new images written and the removed ones deleted, inside the owner's transaction, after the owner. */
     suspend fun store() {
         val writes = app.treelune.core.history.Writes(context)
-        rows.forEach { writes.insertImage(it) }
-        removed.forEach { writes.deleteImage(it.id) }
+        rows.forEach { writes.insertFile(it) }
+        removed.forEach { writes.deleteFile(it.id) }
     }
 
     /** Once the transaction is done: what changed, logged. */
     fun done() {
         // The files of the removed images stay: the history keeps their rows, an undo puts them
-        // back, and the startup sweep deletes a file once nothing names it (Images.sweepOnce)
+        // back, and the startup sweep deletes a file once nothing names it (Files.sweepOnce)
         if (!unchanged) LogManager.service("$owner: ${rows.size} images added, ${removed.size} removed", "DEBUG")
     }
 
     /** The write failed: a moved file back in the pending folder, a copy deleted. */
     fun undo() {
         placed.forEach { (target, from) ->
-            if (from != null) target.renameTo(from) else Images.deleteFile(target)
+            if (from != null) target.renameTo(from) else Files.deleteFile(target)
         }
         placed.clear()
     }
 
     /** What a write does to its owner's images, or why it is refused. */
     sealed interface Plan {
-        class Ready(val images: OwnedImages) : Plan
+        class Ready(val files: OwnedFiles) : Plan
         class Refused(val error: String) : Plan
     }
 
@@ -146,19 +146,19 @@ class OwnedImages private constructor(
 
         /**
          * What writing [owner] with the image lists at [slots] does to its images. A copy's new id
-         * is written in its slot, in place ([OwnedImages.rewritten]).
+         * is written in its slot, in place ([OwnedFiles.rewritten]).
          *
          * @param notFound The refusal of an id that names no image, given that id
          */
         suspend fun plan(context: Context, owner: Owner, slots: List<Slot>, notFound: (String) -> String): Plan {
-            val dao = AppDatabase.getDatabase(context).imageDao()
+            val dao = AppDatabase.getDatabase(context).fileDao()
             val owned = when (owner) {
                 is Owner.Entry -> dao.getForEntry(owner.id)
                 is Owner.Tool -> dao.getForTool(owner.id)
             }.associateBy { it.id }
 
             val moves = mutableListOf<Pair<String, File>>()
-            val copies = mutableListOf<Pair<ImageEntity, String>>()
+            val copies = mutableListOf<Pair<FileEntity, String>>()
             val held = mutableSetOf<String>()
             var rewritten = false
             for ((values, key) in slots.distinct().filter { (values, key) -> values.has(key) && !values.isNull(key) }) {
@@ -167,7 +167,7 @@ class OwnedImages private constructor(
                     when {
                         id in owned -> id
                         moves.any { it.first == id } -> id
-                        else -> Images.pendingFile(context, id)?.let { file -> moves.add(id to file); id }
+                        else -> Files.pendingFile(context, id)?.let { file -> moves.add(id to file); id }
                             ?: dao.getById(id)?.let { source -> UUID.randomUUID().toString().also { copies.add(source to it) } }
                             ?: return Plan.Refused(notFound(id))
                     }
@@ -176,7 +176,7 @@ class OwnedImages private constructor(
                 if (written != ids) { values.put(key, JSONArray(written)); rewritten = true }
             }
             val removed = owned.values.filter { it.id !in held }
-            return Plan.Ready(OwnedImages(context, owner, rewritten, moves, copies, removed))
+            return Plan.Ready(OwnedFiles(context, owner, rewritten, moves, copies, removed))
         }
     }
 }

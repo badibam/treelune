@@ -1,6 +1,6 @@
 package app.treelune.core.ai.prompts
 
-import app.treelune.core.images.imageFormat
+import app.treelune.core.files.fileFormat
 import app.treelune.core.utils.JsonUtils
 import android.content.Context
 import app.treelune.core.ai.data.*
@@ -201,7 +201,7 @@ object PromptManager {
         // user joined, and those of entries IMAGES brought in
         val imageIds = sessionMessages.flatMap { it.richContent?.imageIds.orEmpty() + shownImages(it) }
         val formats = if (imageIds.isEmpty()) emptyMap()
-            else app.treelune.core.database.AppDatabase.getDatabase(context).imageDao().getByIds(imageIds).associate { it.id to it.imageFormat }
+            else app.treelune.core.database.AppDatabase.getDatabase(context).fileDao().getByIds(imageIds).associate { it.id to it.fileFormat }
         return sessionMessages.map { message ->
             message.richContent?.let { rich ->
                 val parts = enrichmentText.promptParts(rich, formats)

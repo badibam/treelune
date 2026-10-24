@@ -116,7 +116,7 @@ fun UI.RichComposer(
     /** The file or the image of [block], if it is one, deleted: taken off the composer, it will never go. */
     fun deleteFile(block: ComposerBlock) {
         val (operation, id) = when (val segment = block.segment) {
-            is MessageSegment.Image -> "files.delete_image" to segment.imageId
+            is MessageSegment.Image -> "files.delete" to segment.imageId
             is MessageSegment.EnrichmentBlock ->
                 if (segment.type == EnrichmentType.FILE) "files.delete" to app.treelune.core.ai.enrichments.FileEnrichment.fromJson(segment.config).fileId
                 else return
@@ -501,7 +501,7 @@ private fun ImageBlockContent(imageId: String, readsImages: Boolean?) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
-        app.treelune.core.images.ImageRow(listOf(imageId))
+        app.treelune.core.files.ImageRow(listOf(imageId))
         when (readsImages) {
             true -> {}
             false -> UI.Text(s.shared("ai_image_model_does_not_read"), TextType.WARNING)

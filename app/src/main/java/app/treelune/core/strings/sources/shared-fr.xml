@@ -1118,7 +1118,7 @@
     <string name="backup_reset_success">Réinitialisation réussie, redémarrage...</string>
     <string name="backup_version_too_recent">Ce fichier provient d\'une version plus récente de l\'application</string>
     <string name="backup_invalid_file">Fichier de sauvegarde invalide</string>
-    <string name="backup_import_image_missing">La sauvegarde nomme l\'image %1$s sans en contenir le fichier, qui ne manquait pas à l\'export : la sauvegarde est abîmée, rien n\'a été importé.</string>
+    <string name="backup_import_file_missing">La sauvegarde nomme le fichier %1$s sans le contenir, alors qu\'il ne manquait pas à l\'export : la sauvegarde est abîmée, rien n\'a été importé.</string>
     <string name="backup_reset_failed">Échec de la réinitialisation</string>
 
     <!-- AI PROVIDERS - Provider management -->
@@ -1405,7 +1405,6 @@
     <string name="action_verbalize_files_delete">Retrait d\'un fichier joint</string>
     <string name="action_verbalize_files_attach_image">Ajout d\'une image</string>
     <string name="action_verbalize_files_prepare_image">Préparation d\'une image</string>
-    <string name="action_verbalize_files_delete_image">Retrait d\'une image jointe</string>
     <string name="service_error_reading_param">Une lecture demande "%1$s".</string>
     <string name="service_error_reading_source">Une lecture lit les entrées d\'une instance d\'outil, pas d\'un %1$s.</string>
     <string name="service_error_reading_source_unread">L\'outil lu n\'a pas pu être lu ; rien ne dit qu\'il a été supprimé.</string>
@@ -1546,7 +1545,7 @@
     <string name="share_create">Créer le fichier</string>
     <string name="share_written">Le fichier %1$s est écrit dans le dossier de l\'app.</string>
     <string name="share_written_counts">Éléments : %1$d. Entrées : %2$d.</string>
-    <string name="share_written_missing_images">%1$d images manquaient déjà sur le téléphone, et le fichier part sans elles.</string>
+    <string name="share_written_missing_files">%1$d fichiers manquaient déjà sur le téléphone, et l\'export part sans eux.</string>
     <string name="share_import_title">Importer</string>
     <string name="share_import_open">Importer…</string>
     <string name="share_import_card">Reprends une partie d\'un fichier, ou restaure toute l\'app depuis une sauvegarde.</string>
@@ -1574,7 +1573,7 @@
     <string name="share_import_button">Importer</string>
     <string name="share_import_done">La partie est ajoutée à l\'app.</string>
     <string name="share_import_done_counts">Zones créées : %1$d. Éléments : %2$d. Entrées : %3$d.</string>
-    <string name="share_import_images_missing">%1$d images manquaient déjà dans le fichier, et leurs entrées arrivent sans elles.</string>
+    <string name="share_import_files_missing">%1$d fichiers manquaient déjà dans ce que tu as importé, et leurs entrées arrivent sans eux.</string>
     <string name="action_verbalize_exports_csv">Export des entrées</string>
     <string name="action_verbalize_exports_csv_tool">Export des entrées de « %1$s »</string>
     <string name="import_action">Importer un fichier</string>

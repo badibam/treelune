@@ -35,7 +35,7 @@ class DemoInstallTest {
         assertTrue("no goal attempt validated", validated.isNotEmpty())
         // The photos shipped, each prepared and owned by its plant's card
         for (plant in listOf("demo-plant-tomato", "demo-plant-basil", "demo-plant-chilli")) {
-            assertEquals("$plant's photo", 1, database.imageDao().getForEntry(plant).size)
+            assertEquals("$plant's photo", 1, database.fileDao().getForEntry(plant).size)
         }
         assertEquals("the start installs it once", null, DemoStartup.run(context))
     }

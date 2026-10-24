@@ -70,7 +70,6 @@ fun FileEnrichmentDialog(
             val result = coordinator.processUserAction("files.attach", mapOf(
                 "session_id" to sessionId,
                 "name" to name,
-                "mime_type" to (context.contentResolver.getType(uri) ?: "text/plain"),
                 "content" to text
             ))
             if (!result.isSuccess) { error = result.error; return@launch }
@@ -87,7 +86,6 @@ fun FileEnrichmentDialog(
         if (!result.isSuccess) { error = result.error; return@LaunchedEffect }
         val size = (result.data?.get("size_bytes") as? Number)?.toLong()
         details = listOfNotNull(
-            result.data?.get("mime_type") as? String,
             size?.let { FormatUtils.formatFileSize(it, context) },
             s.shared("file_line_count").format(current.lineCount)
         ).joinToString(" · ") to (result.data?.get("text") as? String ?: "")

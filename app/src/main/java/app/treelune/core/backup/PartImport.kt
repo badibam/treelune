@@ -11,8 +11,8 @@ import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.AppDatabase
 import app.treelune.core.grid.HomeGroups
 import app.treelune.core.grid.ToolPositions
-import app.treelune.core.images.ImageFormat
-import app.treelune.core.images.Images
+import app.treelune.core.files.FileFormat
+import app.treelune.core.files.Files
 import app.treelune.core.scheduling.SchedulersHeld
 import app.treelune.core.services.BackupService
 import app.treelune.core.utils.JsonUtils
@@ -53,11 +53,11 @@ class PartImport(private val context: Context) {
      * What arrived.
      *
      * @property renamed Each variable's name in the file, and the one it arrived under when taken
-     * @property imagesMissing The images taken out of their entries and tools, missing already at the export
+     * @property filesMissing The files taken out of their entries and tools, missing already at the export
      * @property identitiesAdded The identities the app did not hold
      * @property identitiesReplaced The identities it held, replaced
      */
-    data class Report(val zones: Int, val elements: Int, val entries: Int, val renamed: Map<String, String>, val imagesMissing: Int,
+    data class Report(val zones: Int, val elements: Int, val entries: Int, val renamed: Map<String, String>, val filesMissing: Int,
         val identitiesAdded: Int, val identitiesReplaced: Int)
 
     private val coordinator = Coordinator(context)
@@ -79,15 +79,15 @@ class PartImport(private val context: Context) {
         arrivals.values.firstOrNull { database.zoneDao().getZoneById(it) == null }?.let { throw Refused("No zone $it to arrive in") }
 
         // The images already missing at the export, taken out of the entries and the tools that held them
-        val missing = data.optJSONArray("missing_images")?.let { ids -> (0 until ids.length()).map { ids.getString(it) }.toSet() }.orEmpty()
-        val imagesMissing = rows(data, "tool_data").sumOf { withoutImages(it, missing) } +
+        val missing = data.optJSONArray("missing_files")?.let { ids -> (0 until ids.length()).map { ids.getString(it) }.toSet() }.orEmpty()
+        val filesMissing = rows(data, "tool_data").sumOf { withoutImages(it, missing) } +
             rows(data, "tool_instances").sumOf { withoutConfigImages(it, missing) }
 
         // A new id for each thing brought, the zone of arrival's for a zone going into one
         val ids = HashMap<String, String>()
         rows(data, "zones").forEach { zone -> ids[zone.getString("id")] = arrivals[zone.getString("id")] ?: newId() }
         listOf("tool_instances", "tool_data", "variables", "automations").forEach { table -> rows(data, table).forEach { ids[it.getString("id")] = newId() } }
-        val images = rows(data, "images").filter { !it.has("session_id") && it.getString("id") !in missing }
+        val images = rows(data, "files").filter { !it.has("session_id") && it.getString("id") !in missing }
         images.forEach { ids[it.getString("id")] = newId() }
         val former = images.associate { ids.getValue(it.getString("id")) to it.getString("id") }
         IdWords.replace(data, ids)
@@ -97,7 +97,7 @@ class PartImport(private val context: Context) {
         return try {
             withContext(GivenId.Made(made)) {
                 SchedulersHeld.during { write(data, staging, former, arrivals.values.toSet(), replaced, written) }
-            }.copy(imagesMissing = imagesMissing)
+            }.copy(filesMissing = filesMissing)
         } catch (e: Refused) {
             undo(written)
             throw e
@@ -171,10 +171,10 @@ class PartImport(private val context: Context) {
 
         // The images of the entries and the tools waiting where a form leaves one, which their
         // owner then takes
-        val imageRows = rows(data, "images").filter { !it.has("session_id") && it.getString("id") in former }
-        imageRows.forEach { image ->
-            val format = ImageFormat.valueOf(image.getString("format"))
-            Images.copy(File(staging, format.fileName(former.getValue(image.getString("id")))), pending(image))
+        val fileRows = rows(data, "files").filter { !it.has("session_id") && it.getString("id") in former }
+        fileRows.forEach { image ->
+            val format = FileFormat.valueOf(image.getString("format"))
+            Files.copy(File(staging, format.fileName(former.getValue(image.getString("id")))), pending(image))
         }
 
         // The tools and the variables, each after what it reads, a variable whose name is taken
@@ -381,7 +381,7 @@ class PartImport(private val context: Context) {
 
     /** Where [image]'s file waits for its owner. */
     private fun pending(image: JSONObject): File =
-        File(Images.pendingDir(context).apply { mkdirs() }, ImageFormat.valueOf(image.getString("format")).fileName(image.getString("id")))
+        File(Files.pendingDir(context).apply { mkdirs() }, FileFormat.valueOf(image.getString("format")).fileName(image.getString("id")))
 
     /** Runs [action] as the app itself, its data on success; a refusal stops the import, naming the step. */
     private suspend fun run(action: String, params: JSONObject): Map<String, Any?> {

@@ -144,5 +144,5 @@ data class SessionReasoning(val thinkingOff: Boolean, val effort: String?) {
  */
 sealed class PromptPart {
     data class Text(val text: String) : PromptPart()
-    data class Image(val imageId: String, val format: app.treelune.core.images.ImageFormat) : PromptPart()
+    data class Image(val imageId: String, val format: app.treelune.core.files.FileFormat) : PromptPart()
 }
