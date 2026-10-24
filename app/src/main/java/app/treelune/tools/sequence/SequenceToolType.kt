@@ -10,6 +10,8 @@ import app.treelune.core.fields.CoreFieldUsage
 import app.treelune.core.fields.EntryFields
 import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldType
+import app.treelune.core.fields.FileField
+import app.treelune.core.files.FileKind
 import app.treelune.core.fields.FixedField
 import app.treelune.core.fields.StateField
 import app.treelune.core.fields.TextLength
@@ -162,7 +164,7 @@ object SequenceToolType : ToolTypeContract {
         return listOfNotNull(
             SettingNode.Field(field(SequencePlan.NAME, text("field_step_name"), FieldType.TEXT, text("schema_step_name"), mapOf("length" to TextLength.SHORT.name)), required = true),
             SettingNode.Field(field(SequencePlan.INSTRUCTION, text("field_instruction"), FieldType.TEXT, text("schema_instruction"), mapOf("length" to TextLength.LONG.name))),
-            SettingNode.Field(field(SequencePlan.IMAGES, text("field_step_images"), FieldType.IMAGE, text("schema_step_images"))),
+            SettingNode.Field(field(SequencePlan.IMAGES, text("field_step_images"), FieldType.FILE, text("schema_step_images"), FileField.config(listOf(FileKind.IMAGE)))),
             SettingNode.Variant(
                 selector = SettingNode.Field(field(SequencePlan.END, text("field_end"), FieldType.CHOICE, text("schema_end"),
                     choice(StepEnd.KEYS) { text("end_$it") }), required = true, default = StepEnd.MANUAL.key),

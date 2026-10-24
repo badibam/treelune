@@ -76,7 +76,7 @@ class EntriesCsvTest {
             EntriesCsv.Column("extra.pulse", field("pulse", "Pouls", FieldType.RANGE)),
             EntriesCsv.Column("extra.food", field("food", "Aliment", FieldType.REFERENCE)),
             EntriesCsv.Column("extra.other", field("other", "Autre", FieldType.REFERENCE)),
-            EntriesCsv.Column("extra.photos", field("photos", "Photos", FieldType.IMAGE)),
+            EntriesCsv.Column("extra.photos", field("photos", "Photos", FieldType.FILE)),
             EntriesCsv.Column("extra.empty", field("empty", "Vide", FieldType.TEXT))
         )
         val entry = mapOf(

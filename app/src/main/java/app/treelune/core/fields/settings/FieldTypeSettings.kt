@@ -5,7 +5,8 @@ import app.treelune.core.fields.ChoiceSettings
 import app.treelune.core.fields.DurationUnits
 import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldType
-import app.treelune.core.fields.ImageField
+import app.treelune.core.files.FileKind
+import app.treelune.core.fields.FileField
 import app.treelune.core.fields.ReferenceTarget
 import app.treelune.core.fields.TextLength
 import app.treelune.core.selection.ReferenceKind
@@ -59,8 +60,8 @@ object FieldTypeSettings {
     private fun caseNodes(type: FieldType, text: (String) -> String, labels: TextLength): List<SettingNode> {
         val config = configGroup(type, text, labels)
         // A fixed day or instant is hardly a suggestion for every new entry: dates have none, nor
-        // a reference, one thing for all the entries to come, nor images, each owned by one entry
-        val default = if (type in setOf(FieldType.DATE, FieldType.DATETIME, FieldType.REFERENCE, FieldType.IMAGE)) null
+        // a reference, one thing for all the entries to come, nor files, each owned by one entry
+        val default = if (type in setOf(FieldType.DATE, FieldType.DATETIME, FieldType.REFERENCE, FieldType.FILE)) null
             else field("default_value", "field_default_value", type, text, description = "field_type_schema_default_value_description")
                 .copy(valueOfDefined = true)
         return listOfNotNull(config, default)
@@ -100,7 +101,7 @@ object FieldTypeSettings {
         // or a range needs its decimals, a scale its bounds and a choice its options: their
         // config is required
         return if (settings.isEmpty()) null else SettingNode.Group("config", text("field_config_section_title").format(text("field_type_${type.name.lowercase()}_display_name")), settings,
-            required = type in setOf(FieldType.NUMERIC, FieldType.RANGE, FieldType.SCALE, FieldType.CHOICE, FieldType.REFERENCE),
+            required = type in setOf(FieldType.NUMERIC, FieldType.RANGE, FieldType.SCALE, FieldType.CHOICE, FieldType.REFERENCE, FieldType.FILE),
             description = text("field_type_schema_config_description"))
     }
 
@@ -193,9 +194,13 @@ object FieldTypeSettings {
                 )
             ), required = true, description = text("field_type_reference_target_description"))
         )
-        FieldType.IMAGE -> listOf(
-            field(ImageField.MAX, "field_config_image_max", FieldType.NUMERIC, text,
-                description = "field_type_image_max_description", config = mapOf("min" to 1, "decimals" to 0))
+        FieldType.FILE -> listOf(
+            field(FileField.KINDS, "field_config_file_kinds", FieldType.CHOICE, text, required = true,
+                default = listOf(FileKind.IMAGE.name), description = "field_type_file_kinds_description",
+                config = choice(FileField.FIELD_KINDS.map { it.name },
+                    FileField.FIELD_KINDS.associate { it.name to text("file_kind_${it.name.lowercase()}") }) + ("multiple" to true)),
+            field(FileField.MAX, "field_config_file_max", FieldType.NUMERIC, text,
+                description = "field_type_file_max_description", config = mapOf("min" to 1, "decimals" to 0))
         )
     }
 

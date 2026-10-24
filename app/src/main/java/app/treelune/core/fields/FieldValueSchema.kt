@@ -36,10 +36,10 @@ object FieldValueSchema {
     const val MARKUP = "markup"
 
     /**
-     * The mark of a value that is a list of image ids (an IMAGE field): who shows it to the model
-     * gives each id its width and height, never the image (ModelValues.withImageSizes).
+     * The mark of a value that is a list of file ids (a FILE field): who shows it to the model
+     * gives each id what it reads of its file, never the file (ModelValues.withFileDescriptions).
      */
-    const val IMAGES = "images"
+    const val FILES = "files"
 
     /**
      * The schema of a field's value as a reader gets it -- the AI, an entry or a setting alike:
@@ -108,9 +108,9 @@ object FieldValueSchema {
                     target.toolInstances.takeIf { it.isNotEmpty() }?.let { text("field_reading_reference_tools").format(it.joinToString(", ")) }
                 )
             }
-            FieldType.IMAGE -> listOfNotNull(
-                text("field_reading_images"),
-                ImageField.max(config)?.let { text("field_reading_images_max").format(it) }
+            FieldType.FILE -> listOfNotNull(
+                text("field_reading_files").format(FileField.kinds(config).joinToString(", ") { it.name }),
+                FileField.max(config)?.let { text("field_reading_files_max").format(it) }
             )
             else -> emptyList()
         }
@@ -324,15 +324,15 @@ object FieldValueSchema {
                 }
             }
 
-            FieldType.IMAGE -> {
+            FieldType.FILE -> {
                 JSONObject().apply {
-                    // The ids of images the entry owns, in their order: that each one is an image
+                    // The ids of files the entry owns, in their order: that each one is a file
                     // the entry may hold is the service's to check, with the database (OwnedFiles)
                     put("type", "array")
                     put("items", JSONObject().put("type", "string").put("minLength", 1))
                     put("uniqueItems", true)
-                    ImageField.max(fieldDef.config)?.let { put("maxItems", it) }
-                    put("format", IMAGES)
+                    FileField.max(fieldDef.config)?.let { put("maxItems", it) }
+                    put("format", FILES)
                     if (fieldDef.description != null) {
                         put("description", fieldDef.description)
                     }

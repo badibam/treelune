@@ -2077,9 +2077,13 @@
           {
             "name": "photos",
             "display_name": "@plants_field_photos",
-            "type": "IMAGE",
+            "type": "FILE",
             "always_visible": false,
-            "config": {}
+            "config": {
+              "kinds": [
+                "IMAGE"
+              ]
+            }
           }
         ]
       },

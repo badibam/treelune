@@ -19,7 +19,7 @@ import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.entities.ToolInstance
 import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldType
-import app.treelune.core.fields.ImageField
+import app.treelune.core.fields.FileField
 import app.treelune.core.fields.formatValue
 import app.treelune.core.fields.toFieldDefinitions
 import app.treelune.core.strings.Strings
@@ -106,12 +106,12 @@ private fun coming(events: List<AgendaEvent>, now: Long): List<AgendaEvent> {
 
 /** The calendar's fields of [event] on one line, its images apart ([images]), or nothing when it has none. */
 private fun fieldsLine(event: AgendaEvent, fields: List<FieldDefinition>, context: android.content.Context): String? =
-    fields.filter { it.type != FieldType.IMAGE }.mapNotNull { field -> event.extra[field.name]?.let { field.formatValue(it, context) } }
+    fields.filter { it.type != FieldType.FILE }.mapNotNull { field -> event.extra[field.name]?.let { field.formatValue(it, context) } }
         .filter { it.isNotBlank() }.joinToString(" · ").ifEmpty { null }
 
 /** The images of [event]'s image fields, in the order of the fields, shown at the end of its line. */
 private fun images(event: AgendaEvent, fields: List<FieldDefinition>): List<String> =
-    fields.filter { it.type == FieldType.IMAGE }.flatMap { field -> event.extra[field.name]?.let { ImageField.ids(it) }.orEmpty() }
+    fields.filter { it.type == FieldType.FILE }.flatMap { field -> event.extra[field.name]?.let { FileField.ids(it) }.orEmpty() }
 
 /** When an event is, for the summary: « going on », « in 2 h », « tomorrow 14:30 », « Thu 23 ». */
 private fun whenLabel(event: AgendaEvent, now: Long, s: StringsContext): String {

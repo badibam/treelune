@@ -122,7 +122,7 @@ object EntriesCsv {
                 val read = ReferenceTarget.referenceOf(reference) ?: error("A reference that does not read: $reference")
                 names[read] ?: text("pointer_target_deleted")
             }
-            FieldType.IMAGE -> listOfValues(value).size.toString()
+            FieldType.FILE -> listOfValues(value).size.toString()
             FieldType.RANGE -> error("A range is two cells")
         })
     }

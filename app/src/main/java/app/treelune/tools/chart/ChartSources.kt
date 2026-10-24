@@ -56,7 +56,7 @@ class ChartSources(private val context: Context) {
 
     /** The fields of a tool a chart draws: all but its images, which are no value on an axis. */
     private fun drawable(fields: Map<String, FieldDefinition>): Map<String, FieldDefinition> =
-        fields.filterValues { it.type != FieldType.IMAGE }
+        fields.filterValues { it.type != FieldType.FILE }
 
     /** The columns every row of a grid gives, beside its own. */
     fun gridColumns(): Map<String, FieldDefinition> {

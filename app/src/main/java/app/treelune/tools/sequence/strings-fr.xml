@@ -24,7 +24,7 @@
     <string name="field_instruction">Consigne</string>
     <string name="schema_instruction">Montrée pendant l\'étape, et dite par la voix si elle est activée (« 10 × 60 kg », « Pendant ce temps : la sauce »)</string>
     <string name="field_step_images">Images</string>
-    <string name="schema_step_images">Montrées pendant l\'étape, la première en grand (une posture, un plat) : des ids d\'images, comme un champ IMAGE les garde</string>
+    <string name="schema_step_images">Montrées pendant l\'étape, la première en grand (une posture, un plat) : des ids d\'images, comme un champ FILE les garde</string>
     <string name="field_end">Fin</string>
     <string name="schema_end">Comment l\'étape se termine</string>
     <string name="end_timed">Au temps</string>

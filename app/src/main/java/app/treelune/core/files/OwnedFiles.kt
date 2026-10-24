@@ -5,7 +5,7 @@ import android.graphics.BitmapFactory
 import app.treelune.core.database.AppDatabase
 import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldType
-import app.treelune.core.fields.ImageField
+import app.treelune.core.fields.FileField
 import app.treelune.core.fields.settings.SettingNode
 import app.treelune.core.utils.LogManager
 import org.json.JSONArray
@@ -14,19 +14,21 @@ import java.io.File
 import java.util.UUID
 
 /**
- * The images of an entry or of a tool kept in step with its IMAGE values at each write
- * (docs/DATA.md, « IMAGE »): the ids its values hold after the write are compared with the images
- * it owns. An entry holds them in its IMAGE fields, a tool in the IMAGE settings of its config (a
+ * The files of an entry or of a tool kept in step with its FILE values at each write
+ * (docs/DATA.md, « FILE »): the ids its values hold after the write are compared with the files
+ * it owns. An entry holds them in its FILE fields, a tool in the FILE settings of its config (a
  * step's images).
  *
  * - An id the owner owns stays.
  * - An id prepared in a form (files.prepare_image) becomes the owner's: its file moves from the
  *   pending folder to the entries' one, and its row is written.
- * - An id of an image another owns, a photo of the conversation the AI files, an image of another
+ * - An id of a file another owns, a photo of the conversation the AI files, an image of another
  *   entry, of the tool a copy is made from, is copied: the copy belongs to the owner, under a new
  *   id written in its place.
- * - Any other id refuses the write, naming it.
- * - An image the owner owned that no value holds any more is deleted, its row with the owner's
+ * - Any other id refuses the write, naming it; so does a new file of a kind its place does not
+ *   take. A file already owned stays whatever its place takes now: a kind no longer taken holds
+ *   only what is added.
+ * - A file the owner owned that no value holds any more is deleted, its row with the owner's
  *   write, its file after.
  *
  * The files are placed before the transaction that writes the owner and the rows: an interruption
@@ -42,7 +44,7 @@ class OwnedFiles private constructor(
     private val copies: List<Pair<FileEntity, String>>,
     private val removed: List<FileEntity>
 ) {
-    /** Who owns the images: an entry or a tool. */
+    /** Who owns the files: an entry or a tool. */
     sealed interface Owner {
         val id: String
         data class Entry(override val id: String) : Owner
@@ -55,7 +57,7 @@ class OwnedFiles private constructor(
     /** The rows [place] wrote the files of, written by [store]. */
     private val rows = mutableListOf<FileEntity>()
 
-    /** Whether the write changes nothing of the owner's images. */
+    /** Whether the write changes nothing of the owner's files. */
     val unchanged: Boolean get() = moves.isEmpty() && copies.isEmpty() && removed.isEmpty()
 
     private val entryId = (owner as? Owner.Entry)?.id
@@ -63,13 +65,13 @@ class OwnedFiles private constructor(
 
     private fun owned(image: FileEntity) = image.copy(sessionId = null, entryId = entryId, toolInstanceId = toolInstanceId)
 
-    /** The files of the new images put in the entries' folder, before the transaction. */
+    /** The new files put in the entries' folder, before the transaction. */
     fun place() {
         val now = System.currentTimeMillis()
         val dir = Files.entriesDir(context).apply { mkdirs() }
         moves.forEach { (id, pending) ->
             val target = File(dir, pending.name)
-            check(pending.renameTo(target)) { "Image $id: not moved from the pending folder" }
+            check(pending.renameTo(target)) { "File $id: not moved from the pending folder" }
             placed.add(target to pending)
             val format = FileFormat.ofExtension(pending.extension)?.takeIf { it.kind == FileKind.IMAGE } ?: error("File $id: ${pending.name} is no image file")
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
@@ -85,7 +87,7 @@ class OwnedFiles private constructor(
         }
     }
 
-    /** The rows of the new images written and the removed ones deleted, inside the owner's transaction, after the owner. */
+    /** The rows of the new files written and the removed ones deleted, inside the owner's transaction, after the owner. */
     suspend fun store() {
         val writes = app.treelune.core.history.Writes(context)
         rows.forEach { writes.insertFile(it) }
@@ -94,9 +96,9 @@ class OwnedFiles private constructor(
 
     /** Once the transaction is done: what changed, logged. */
     fun done() {
-        // The files of the removed images stay: the history keeps their rows, an undo puts them
+        // The removed files stay on the disk: the history keeps their rows, an undo puts them
         // back, and the startup sweep deletes a file once nothing names it (Files.sweepOnce)
-        if (!unchanged) LogManager.service("$owner: ${rows.size} images added, ${removed.size} removed", "DEBUG")
+        if (!unchanged) LogManager.service("$owner: ${rows.size} files added, ${removed.size} removed", "DEBUG")
     }
 
     /** The write failed: a moved file back in the pending folder, a copy deleted. */
@@ -107,30 +109,30 @@ class OwnedFiles private constructor(
         placed.clear()
     }
 
-    /** What a write does to its owner's images, or why it is refused. */
+    /** What a write does to its owner's files, or why it is refused. */
     sealed interface Plan {
         class Ready(val files: OwnedFiles) : Plan
         class Refused(val error: String) : Plan
     }
 
-    /** Where an image list stands: the object that holds it and its key there. */
-    data class Slot(val values: JSONObject, val key: String)
+    /** Where a file list stands: the object that holds it, its key there, and the kinds its place takes. */
+    data class Slot(val values: JSONObject, val key: String, val kinds: List<FileKind>)
 
     companion object {
 
-        /** The slots of an entry's IMAGE fields among [declared] (in [data]) and [user] (in [extra]). */
+        /** The slots of an entry's FILE fields among [declared] (in [data]) and [user] (in [extra]). */
         fun entrySlots(data: JSONObject, declared: List<FieldDefinition>, extra: JSONObject?, user: List<FieldDefinition>): List<Slot> =
             listOf(data to declared, extra to user).flatMap { (values, fields) ->
-                if (values == null) emptyList() else fields.filter { it.type == FieldType.IMAGE }.map { Slot(values, it.name) }
+                if (values == null) emptyList() else fields.filter { it.type == FieldType.FILE }.map { Slot(values, it.name, FileField.kinds(it.config)) }
             }
 
         /**
-         * The slots of the IMAGE settings [nodes] declare in [config], down its groups, its lists
+         * The slots of the FILE settings [nodes] declare in [config], down its groups, its lists
          * of groups and every case of its variants (a case not chosen still holds what it holds).
          */
         fun configSlots(nodes: List<SettingNode>, config: JSONObject): List<Slot> = nodes.flatMap { node ->
             when (node) {
-                is SettingNode.Field -> if (node.definition.type == FieldType.IMAGE) listOf(Slot(config, node.definition.name)) else emptyList()
+                is SettingNode.Field -> if (node.definition.type == FieldType.FILE) listOf(Slot(config, node.definition.name, FileField.kinds(node.definition.config))) else emptyList()
                 is SettingNode.Group -> config.optJSONObject(node.name)?.let { configSlots(node.nodes, it) }.orEmpty()
                 is SettingNode.ListOf -> (node.item as? SettingNode.Item.Of)?.let { item ->
                     config.optJSONArray(node.name)?.let { list ->
@@ -145,12 +147,12 @@ class OwnedFiles private constructor(
         }
 
         /**
-         * What writing [owner] with the image lists at [slots] does to its images. A copy's new id
+         * What writing [owner] with the file lists at [slots] does to its files. A copy's new id
          * is written in its slot, in place ([OwnedFiles.rewritten]).
          *
-         * @param notFound The refusal of an id that names no image, given that id
+         * @param text The shared strings, for the refusal
          */
-        suspend fun plan(context: Context, owner: Owner, slots: List<Slot>, notFound: (String) -> String): Plan {
+        suspend fun plan(context: Context, owner: Owner, slots: List<Slot>, text: (String) -> String): Plan {
             val dao = AppDatabase.getDatabase(context).fileDao()
             val owned = when (owner) {
                 is Owner.Entry -> dao.getForEntry(owner.id)
@@ -161,15 +163,24 @@ class OwnedFiles private constructor(
             val copies = mutableListOf<Pair<FileEntity, String>>()
             val held = mutableSetOf<String>()
             var rewritten = false
-            for ((values, key) in slots.distinct().filter { (values, key) -> values.has(key) && !values.isNull(key) }) {
-                val ids = ImageField.ids(values.get(key))
+            /** The refusal of [id], new in [slot], of [kind], when its place does not take it. */
+            fun wrongKind(id: String, kind: FileKind, slot: Slot): Plan.Refused? = if (kind in slot.kinds) null
+                else Plan.Refused(text("file_error_kind").format(id, kind.name, slot.key, slot.kinds.joinToString(", ") { it.name }))
+
+            for (slot in slots.distinct().filter { (values, key) -> values.has(key) && !values.isNull(key) }) {
+                val (values, key) = slot
+                val ids = FileField.ids(values.get(key))
                 val written = ids.map { id ->
                     when {
                         id in owned -> id
                         moves.any { it.first == id } -> id
-                        else -> Files.pendingFile(context, id)?.let { file -> moves.add(id to file); id }
-                            ?: dao.getById(id)?.let { source -> UUID.randomUUID().toString().also { copies.add(source to it) } }
-                            ?: return Plan.Refused(notFound(id))
+                        else -> Files.pendingFile(context, id)?.let { file ->
+                            FileFormat.ofExtension(file.extension)?.let { wrongKind(id, it.kind, slot) }?.let { return it }
+                            moves.add(id to file); id
+                        } ?: dao.getById(id)?.let { source ->
+                            wrongKind(id, source.fileKind, slot)?.let { return it }
+                            UUID.randomUUID().toString().also { copies.add(source to it) }
+                        } ?: return Plan.Refused(text("file_error_unknown").format(id))
                     }
                 }
                 held.addAll(written)

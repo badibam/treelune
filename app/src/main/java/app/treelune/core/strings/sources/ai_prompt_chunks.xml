@@ -382,13 +382,13 @@ Reads a file the user joined to a message, by lines.
 Returns `name`, `mime_type`, `line_count`, `start_line`, `lines` (how many were read) and `text`. A long file is read in parts: each answer is held to the same size threshold as any data.]]></string>
     <string name="ai_command_images"><![CDATA[### IMAGES
 
-Shows you images of entries: they join the conversation after this answer, as if the user had joined them, each after `[image <id>]`, its id in the conversation. An entry's IMAGE field gives you its images' ids and sizes, never the images: ask for those you need to see, each one costs as much as a photo the user sends.
+Shows you images of entries: they join the conversation after this answer, as if the user had joined them, each after `[image <id>]`, its id in the conversation. An entry's FILE field gives you its files' ids, kinds and sizes, never the images: ask for those you need to see, each one costs as much as a photo the user sends.
 
 **Parameters**:
 
 - `ids` (array, **required**): the ids of the images, as the entry gives them
 
-Refused when the model of this conversation does not read images. To file an image of the conversation in an entry, write its id in the entry's IMAGE field: the entry gets its own copy.]]></string>
+Refused when the model of this conversation does not read images. To file an image of the conversation in an entry, write its id in the entry's FILE field: the entry gets its own copy.]]></string>
     <string name="ai_command_import_plan"><![CDATA[### IMPORT_PLAN
 
 Proposes how to import a joined file (a CSV) into a tool: what IMPORT_DATA will need, column by column.

@@ -23,7 +23,7 @@ import androidx.compose.ui.Modifier
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.fields.FieldDefinition
-import app.treelune.core.fields.ImageField
+import app.treelune.core.fields.FileField
 import app.treelune.core.strings.Strings
 import app.treelune.core.ui.*
 import kotlinx.coroutines.launch
@@ -41,10 +41,10 @@ import kotlinx.coroutines.launch
 fun ImageInput(fieldDef: FieldDefinition, value: Any?, onChange: (Any?) -> Unit, context: Context) {
     val s = remember { Strings.`for`(context = context) }
     val scope = rememberCoroutineScope()
-    val ids = ImageField.ids(value)
+    val ids = FileField.ids(value)
     // The value as it is when a photo comes back prepared, which may be after other changes
     val current by rememberUpdatedState(ids)
-    val max = ImageField.max(fieldDef.config)
+    val max = FileField.max(fieldDef.config)
     var open by rememberSaveable { mutableStateOf<Int?>(null) }
 
     fun changed(next: List<String>) = onChange(next.takeIf { it.isNotEmpty() })

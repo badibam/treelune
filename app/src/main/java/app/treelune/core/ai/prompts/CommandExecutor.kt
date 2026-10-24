@@ -790,12 +790,12 @@ class CommandExecutor(private val context: Context) {
                     val references = converted.flatMap { ModelValues.references(it, schema) }.distinct()
                     val names = runBlocking { loadReferenceNames(references, context) }
                         .mapValues { (_, name) -> (name as? ReferenceName.Named)?.name }
-                    // Each image by its id and its size, never the image (IMAGES shows it)
-                    val imageIds = converted.flatMap { ModelValues.imageIds(it, schema) }.distinct()
-                    val images = if (imageIds.isEmpty()) emptyMap() else runBlocking {
-                        app.treelune.core.database.AppDatabase.getDatabase(context).fileDao().getByIds(imageIds)
+                    // Each file by its id and what is read of it, never the file (IMAGES shows an image)
+                    val fileIds = converted.flatMap { ModelValues.fileIds(it, schema) }.distinct()
+                    val files = if (fileIds.isEmpty()) emptyMap() else runBlocking {
+                        app.treelune.core.database.AppDatabase.getDatabase(context).fileDao().getByIds(fileIds)
                     }.associateBy { it.id }
-                    reordered["entries"] = converted.map { ModelValues.withImageSizes(ModelValues.withReferenceNames(it, schema, names), schema, images)!! }
+                    reordered["entries"] = converted.map { ModelValues.withFileDescriptions(ModelValues.withReferenceNames(it, schema, names), schema, files)!! }
                 }
 
                 // Add pagination if present

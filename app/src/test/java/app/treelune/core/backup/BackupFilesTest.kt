@@ -57,7 +57,7 @@ class BackupFilesTest {
         assertTrue(zone.error, zone.isSuccess)
         val tool = coordinator.processUserAction("tools.create", mapOf(
             "zone_id" to zone.data!!["zone_id"], "tooltype" to "notes",
-            "config" to mapOf("name" to "Plants", "extra_fields" to listOf(mapOf("display_name" to "Photos", "type" to "IMAGE", "always_visible" to false)))
+            "config" to mapOf("name" to "Plants", "extra_fields" to listOf(mapOf("display_name" to "Photos", "type" to "FILE", "always_visible" to false, "config" to mapOf("kinds" to listOf("IMAGE")))))
         ))
         assertTrue(tool.error, tool.isSuccess)
 

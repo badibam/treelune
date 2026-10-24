@@ -26,7 +26,7 @@ object ChartValues {
         FieldType.DATETIME, FieldType.DATE -> Measure.TEMPORAL
         FieldType.TEXT, FieldType.CHOICE, FieldType.BOOLEAN, FieldType.REFERENCE -> Measure.NOMINAL
         // An image is not drawn: no column is ever one (ChartSources.drawable)
-        FieldType.IMAGE -> throw IllegalStateException("an image field is no column of a chart")
+        FieldType.FILE -> throw IllegalStateException("a file field is no column of a chart")
     }
 
     /**

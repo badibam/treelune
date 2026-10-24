@@ -53,8 +53,8 @@ object ModelValues {
             // A reference sent back as it was read carries the name it was shown with: only
             // its kind and id are stored
             if (format == FieldValueSchema.REFERENCE) return@walk withoutName(leaf)
-            // Images sent back as they were read, each with its size: only the ids are stored
-            if (format == FieldValueSchema.IMAGES) return@walk idsOf(leaf).let { if (leaf is JSONArray) JSONArray(it) else it }
+            // Files sent back as they were read, each with its description: only the ids are stored
+            if (format == FieldValueSchema.FILES) return@walk idsOf(leaf).let { if (leaf is JSONArray) JSONArray(it) else it }
             if (leaf !is String) return@walk leaf
             when (format) {
                 FieldValueSchema.EPOCH_MILLIS -> DateTimeConverter.isoToTimestamp(leaf, zone)
@@ -87,35 +87,38 @@ object ModelValues {
             shown
         }
 
-    /** The image ids [value] holds where [schema] marks a list of images (FieldValueSchema.IMAGES). */
-    fun imageIds(value: Any?, schema: JSONObject): List<String> {
+    /** The file ids [value] holds where [schema] marks a list of files (FieldValueSchema.FILES). */
+    fun fileIds(value: Any?, schema: JSONObject): List<String> {
         val found = mutableListOf<String>()
         walk(value, schema) { format, node ->
-            if (format == FieldValueSchema.IMAGES) found.addAll(idsOf(node).filterIsInstance<String>())
+            if (format == FieldValueSchema.FILES) found.addAll(idsOf(node).filterIsInstance<String>())
             node
         }
         return found
     }
 
     /**
-     * [value] with each list of images the [schema] marks written as the model reads it: each id
-     * with the width and height of its image ([images], by id), never the image itself; an id no
-     * image has is written alone, `"missing": true`.
+     * [value] with each list of files the [schema] marks written as the model reads it: each id
+     * with its kind, its size and what goes with its kind ([files], by id) — an image's width
+     * and height —, never the file itself; an id no file has is written alone, `"missing": true`.
      */
-    fun withImageSizes(value: Any?, schema: JSONObject, images: Map<String, app.treelune.core.files.FileEntity>): Any? =
+    fun withFileDescriptions(value: Any?, schema: JSONObject, files: Map<String, app.treelune.core.files.FileEntity>): Any? =
         walk(value, schema) { format, node ->
-            if (format != FieldValueSchema.IMAGES) return@walk node
+            if (format != FieldValueSchema.FILES) return@walk node
             val shown = idsOf(node).map { id ->
-                val image = images[id]
-                if (image == null) linkedMapOf("id" to id, "missing" to true)
-                else linkedMapOf("id" to id, "width" to image.width, "height" to image.height)
+                val file = files[id]
+                if (file == null) linkedMapOf("id" to id, "missing" to true)
+                else linkedMapOf<String, Any?>("id" to id, "kind" to file.kind, "size_bytes" to file.sizeBytes).apply {
+                    file.width?.let { put("width", it) }
+                    file.height?.let { put("height", it) }
+                }
             }
             if (node is JSONArray) JSONArray(shown.map { JSONObject(it as Map<*, *>) }) else shown
         }
 
     /**
-     * The ids of a list of images, each written as its id or as the object it was read as
-     * (`{"id", "width", "height"}`); anything else is left for the validation to refuse.
+     * The ids of a list of files, each written as its id or as the object it was read as
+     * (`{"id", "kind", …}`); anything else is left for the validation to refuse.
      */
     private fun idsOf(node: Any): List<Any?> {
         val items: List<Any?> = when (node) {
@@ -147,9 +150,9 @@ object ModelValues {
         if (schema.optString("format") == FieldValueSchema.REFERENCE && value != null && value != JSONObject.NULL) {
             return convert(FieldValueSchema.REFERENCE, value)
         }
-        // A list of images goes through [convert] whole, being read with more than its ids
-        if (schema.optString("format") == FieldValueSchema.IMAGES && value != null && value != JSONObject.NULL) {
-            return convert(FieldValueSchema.IMAGES, value)
+        // A list of files goes through [convert] whole, being read with more than its ids
+        if (schema.optString("format") == FieldValueSchema.FILES && value != null && value != JSONObject.NULL) {
+            return convert(FieldValueSchema.FILES, value)
         }
         // A variant: the branch whose selector the value holds. None or several leave the value
         // as it is, for the validation to name what is wrong with it.

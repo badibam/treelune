@@ -104,7 +104,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 92
+        const val VERSION = 93
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2096,6 +2096,36 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** An IMAGE field becomes a FILE field taking images: see FileFieldAtV93. */
+        private val MIGRATION_92_93 = object : ConnectionMigration(92, 93) {
+            override fun migrate(database: MigrationDatabase) {
+                val v = app.treelune.core.versioning.FileFieldAtV93
+                var rewritten = 0
+                // A row that cannot be read stays as it was and is logged: reading it then fails with the reason
+                fun each(sql: String, update: String, transform: (String) -> String?) {
+                    database.query(sql).use { cursor ->
+                        while (cursor.moveToNext()) {
+                            val id = cursor.getString(0)
+                            try {
+                                transform(cursor.getString(1))?.let { database.execSQL(update, arrayOf<Any?>(it, id)); rewritten++ }
+                            } catch (e: Exception) {
+                                LogManager.database("MIGRATION 92->93: row $id left as it was: ${e.message}", "ERROR", e)
+                            }
+                        }
+                    }
+                }
+                each("SELECT id, config_json FROM tool_instances", "UPDATE tool_instances SET config_json = ? WHERE id = ?", v::text)
+                each("SELECT id, definition_json FROM variables", "UPDATE variables SET definition_json = ? WHERE id = ?", v::text)
+                app.treelune.core.versioning.DurationUnitsAtV86.MESSAGE_COLUMNS.forEach { column ->
+                    each("SELECT id, $column FROM session_messages WHERE $column IS NOT NULL", "UPDATE session_messages SET $column = ? WHERE id = ?", v::messageText)
+                }
+                listOf("tool_instances", "variables", "session_messages").forEach { table ->
+                    app.treelune.core.versioning.HistoryCopies.rewrite(database, table) { v.historyCopy(table, it) }
+                }
+                LogManager.database("MIGRATION 92->93: $rewritten row(s) with their image fields as file fields", "INFO")
+            }
+        }
+
         /** The connector gains its own data threshold: see ExternalAccessDataAtV84. */
         private val MIGRATION_83_84 = object : ConnectionMigration(83, 84) {
             override fun migrate(database: MigrationDatabase) {
@@ -3135,7 +3165,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_88_89,
                     MIGRATION_89_90,
                     MIGRATION_90_91,
-                    migration91to92(context)
+                    migration91to92(context),
+                    MIGRATION_92_93
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

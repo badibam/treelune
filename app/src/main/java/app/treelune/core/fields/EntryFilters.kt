@@ -85,7 +85,7 @@ object EntryFilters {
         // The same thing, by its id
         FieldType.REFERENCE -> setOf(FilterOperator.EQUAL) + PRESENCE
         // Images or none: what is in them is no value to compare
-        FieldType.IMAGE -> PRESENCE
+        FieldType.FILE -> PRESENCE
     }
 
     /**
@@ -178,7 +178,7 @@ object EntryFilters {
         FieldType.BOOLEAN -> value as? Boolean
         // A reference is compared by the id of what it designates, ids being unique across kinds
         FieldType.REFERENCE -> ReferenceTarget.referenceOf(value)?.id
-        FieldType.CHOICE, FieldType.RANGE, FieldType.IMAGE -> null
+        FieldType.CHOICE, FieldType.RANGE, FieldType.FILE -> null
     }
 
     /** The key of the string saying what value a condition on a field of [type] takes. */
@@ -252,7 +252,7 @@ object EntryFilters {
         val key = filter.field.substringAfter('.')
         val jsonPath = "$.\"$key\""
         // An empty list is no answer, as a missing key is: no option chosen, no image
-        val isList = (field.type == FieldType.CHOICE && ChoiceSettings.fromConfig(field.config).shape.isList) || field.type == FieldType.IMAGE
+        val isList = (field.type == FieldType.CHOICE && ChoiceSettings.fromConfig(field.config).shape.isList) || field.type == FieldType.FILE
 
         // The value as SQL, with the arguments it binds itself
         val (expr, exprArgs) = valueExpr(filter.field)

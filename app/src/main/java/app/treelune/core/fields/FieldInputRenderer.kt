@@ -233,7 +233,7 @@ fun FieldInput(
             ReferenceInput(fieldDef, value, onChange, context, required)
         }
 
-        app.treelune.core.fields.FieldType.IMAGE -> {
+        app.treelune.core.fields.FieldType.FILE -> {
             app.treelune.core.files.ImageInput(fieldDef, value, onChange, context)
         }
     }

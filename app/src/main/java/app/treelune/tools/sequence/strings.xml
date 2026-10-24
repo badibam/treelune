@@ -24,7 +24,7 @@
     <string name="field_instruction">Instruction</string>
     <string name="schema_instruction">Shown during the step, and said by the voice when it is on (“10 × 60 kg”, “Meanwhile: the sauce”)</string>
     <string name="field_step_images">Images</string>
-    <string name="schema_step_images">Shown during the step, the first one large (a posture, a dish): image ids, as an IMAGE field holds them</string>
+    <string name="schema_step_images">Shown during the step, the first one large (a posture, a dish): image ids, as a FILE field holds them</string>
     <string name="field_end">Ends</string>
     <string name="schema_end">How the step ends</string>
     <string name="end_timed">Timed</string>

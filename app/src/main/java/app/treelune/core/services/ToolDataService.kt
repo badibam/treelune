@@ -1273,11 +1273,9 @@ class ToolDataService(private val context: Context) : ExecutableService {
         fun extraJson(images: OwnedFiles) = if (images.rewritten) extra?.toString() else extraJson
     }
 
-    /** What writing entry [entryId] of [target] with [values] does to its images (OwnedFiles). */
+    /** What writing entry [entryId] of [target] with [values] does to its files (OwnedFiles). */
     private suspend fun imagesOf(target: WriteTarget.Ready, entryId: String, values: PlannedValues): OwnedFiles.Plan =
-        OwnedFiles.plan(context, OwnedFiles.Owner.Entry(entryId), OwnedFiles.entrySlots(values.data, declaredFields(target), values.extra, userFields(target))) {
-            s.shared("image_error_not_found").format(it)
-        }
+        OwnedFiles.plan(context, OwnedFiles.Owner.Entry(entryId), OwnedFiles.entrySlots(values.data, declaredFields(target), values.extra, userFields(target)), s::shared)
 
     /** The fields the tool type declares in the entries' data, for [target]'s config. */
     private fun declaredFields(target: WriteTarget.Ready): List<FieldDefinition> = target.declaredFields

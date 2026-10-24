@@ -159,9 +159,10 @@ fun FieldDefinition.formatValue(value: Any?, context: Context): String {
         FieldType.DURATION -> (value as? Number)?.let { Durations.format(it.toLong(), config, s) } ?: s.shared("label_no_value")
         // Its text is the name of what it designates, which only a read gives (ReferenceValue)
         FieldType.REFERENCE -> throw IllegalStateException("a reference is shown by ReferenceValue, which reads its name")
-        // How many images, the images themselves shown by FieldValue
-        FieldType.IMAGE -> ImageField.ids(value).size.let { count ->
-            if (count == 1) s.shared("field_image_count_one") else s.shared("field_image_count").format(count)
+        // How many files, named by their kind when the field takes one; the files themselves shown by FieldValue
+        FieldType.FILE -> FileField.ids(value).size.let { count ->
+            val noun = FileField.kinds(config).singleOrNull()?.name?.lowercase() ?: "file"
+            if (count == 1) s.shared("field_${noun}_count_one") else s.shared("field_${noun}_count").format(count)
         }
     }
 }

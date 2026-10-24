@@ -582,9 +582,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
 
     private suspend fun imagesOf(tooltype: String, toolId: String, config: JSONObject): OwnedFiles.Plan {
         val nodes = ToolTypeManager.getToolType(tooltype)?.let { app.treelune.core.tools.ToolConfigSettings.nodes(it, context) }.orEmpty()
-        return OwnedFiles.plan(context, OwnedFiles.Owner.Tool(toolId), OwnedFiles.configSlots(nodes, config)) {
-            s.shared("image_error_not_found").format(it)
-        }
+        return OwnedFiles.plan(context, OwnedFiles.Owner.Tool(toolId), OwnedFiles.configSlots(nodes, config), s::shared)
     }
 
     private fun checkConfig(tooltype: String, configJson: String): String? {

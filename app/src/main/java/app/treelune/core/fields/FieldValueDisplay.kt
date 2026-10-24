@@ -123,9 +123,9 @@ fun FieldValue(
             MarkupText(value.toString(), icons = false, selectable = false)
         else UI.Text(text = fieldDef.formatValue(value, context), type = TextType.BODY)
 
-        FieldType.IMAGE ->
-            if (short || oneLine) app.treelune.core.files.ImageAbbreviation(ImageField.ids(value))
-            else app.treelune.core.files.ImageRow(ImageField.ids(value))
+        FieldType.FILE ->
+            if (short || oneLine) app.treelune.core.files.ImageAbbreviation(FileField.ids(value))
+            else app.treelune.core.files.ImageRow(FileField.ids(value))
 
         else -> UI.Text(text = fieldDef.formatValue(value, context), type = TextType.BODY)
     }

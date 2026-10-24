@@ -1346,12 +1346,18 @@
     <string name="reference_kind_variable">Variable</string>
     <string name="field_reading_reference">Désigne : %1$s, écrit {"kind", "id"}.</string>
     <string name="field_reading_reference_tools">Seulement les entrées des outils %1$s.</string>
-    <string name="field_type_image_display_name">Image</string>
-    <string name="field_reading_images">Une liste d\'ids d\'images, dans leur ordre. À la lecture, chacune vient avec sa largeur et sa hauteur en pixels, jamais l\'image elle-même : IMAGES les montre. À l\'écriture, les ids seuls ; une image de la conversation entre par son id, copiée pour l\'entrée.</string>
-    <string name="field_reading_images_max">%1$d images au plus.</string>
-    <string name="field_validation_image_max">Le nombre maximum d\'images d\'un champ est un nombre entier, au moins 1 : %1$s n\'en est pas un.</string>
-    <string name="field_config_image_max">Nombre maximum d\'images</string>
-    <string name="field_type_image_max_description">Combien d\'images le champ garde au plus : 1 pour une seule photo ; vide, sans limite</string>
+    <string name="field_type_file_display_name">Fichier</string>
+    <string name="field_reading_files">Une liste d\'ids de fichiers, dans leur ordre, chacun d\'une sorte parmi %1$s. À la lecture, chacun vient avec sa sorte, sa taille en octets et, pour une image, sa largeur et sa hauteur en pixels, jamais le fichier lui-même : IMAGES montre les images. À l\'écriture, les ids seuls ; une image de la conversation entre par son id, copiée pour l\'entrée.</string>
+    <string name="field_reading_files_max">%1$d fichiers au plus.</string>
+    <string name="field_validation_file_max">Le nombre maximum de fichiers d\'un champ est un nombre entier, au moins 1 : %1$s n\'en est pas un.</string>
+    <string name="field_validation_file_kinds">Les sortes qu\'un champ fichier accepte sont données une fois chacune, au moins une, parmi %2$s : %1$s ne convient pas.</string>
+    <string name="field_config_file_kinds">Accepte</string>
+    <string name="field_type_file_kinds_description">Les sortes de fichiers que le champ accepte</string>
+    <string name="file_kind_image">Images</string>
+    <string name="field_config_file_max">Nombre maximum de fichiers</string>
+    <string name="field_type_file_max_description">Combien de fichiers le champ garde au plus : 1 pour une seule photo ; vide, sans limite</string>
+    <string name="field_file_count_one">1 fichier</string>
+    <string name="field_file_count">%1$d fichiers</string>
     <string name="field_image_count_one">1 image</string>
     <string name="field_image_count">%1$d images</string>
     <string name="field_image_input_label_max">%1$s (%2$d sur %3$d)</string>
@@ -1370,6 +1376,8 @@
     <string name="action_verbalize_references_choices">Liste de ce qu\'un lien peut désigner</string>
     <string name="file_error_not_text">%1$s n\'est pas un fichier texte : seul du texte se joint (CSV, texte brut, Markdown, JSON).</string>
     <string name="image_error_not_read">Cette image n\'a pas pu être lue : %1$s</string>
+    <string name="file_error_unknown">Aucun fichier n\'a l\'id %1$s</string>
+    <string name="file_error_kind">Le fichier %1$s est de la sorte %2$s, que %3$s n\'accepte pas : il accepte %4$s</string>
     <string name="image_error_not_found">Aucune image n\'a l\'id %1$s</string>
     <string name="image_error_no_conversation">Les images ne se montrent que dans une conversation</string>
     <string name="action_verbalize_files_show_images">Affichage d\'images</string>
@@ -2477,7 +2485,7 @@
     <string name="settings_data_history_megabytes_help">Au-delà, les changements les plus anciens sortent de l'historique en premier. Le dernier reste toujours.</string>
 
     <!-- Field settings, for the AI that reads their schema -->
-    <string name="field_type_image_description">Des images jointes à une entrée, au plus le nombre fixé</string>
+    <string name="field_type_file_description">Des fichiers joints à une entrée, des sortes que le champ accepte, au plus le nombre fixé</string>
     <string name="field_type_schema_field_description">Ce que contient le champ, que l\'IA lit avec les entrées</string>
     <string name="field_type_schema_config_description">Comment les valeurs de ce type sont faites et montrées</string>
     <string name="field_type_unit_description">L\'unité de toutes les valeurs, montrée après elles</string>

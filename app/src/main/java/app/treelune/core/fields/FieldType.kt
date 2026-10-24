@@ -110,13 +110,14 @@ enum class FieldType {
     REFERENCE,
 
     /**
-     * Images, always a list of their ids, in their order, even for one: a single stored form, a
-     * single way to enter and show it (docs/DATA.md, « IMAGE »). Each id names a row of the
-     * images table the entry owns; the service keeps the two in step at each write (OwnedFiles).
-     * Config: {max?} (whole number, at least 1; absent, no limit)
+     * Files, always a list of their ids, in their order, even for one: a single stored form, a
+     * single way to enter and show it (docs/DATA.md, « FILE »). Each id names a row of the
+     * files table the entry owns; the service keeps the two in step at each write (OwnedFiles).
+     * Config: {kinds (required, among FileField.FIELD_KINDS), max? (whole number, at least 1;
+     * absent, no limit)}
      * Example: the photos of a plant's sheet, a diagram in a note
      */
-    IMAGE;
+    FILE;
 
     /**
      * Get the localized display name for this field type.
@@ -139,7 +140,7 @@ enum class FieldType {
             DATETIME -> s.shared("field_type_datetime_display_name")
             DURATION -> s.shared("field_type_duration_display_name")
             REFERENCE -> s.shared("field_type_reference_display_name")
-            IMAGE -> s.shared("field_type_image_display_name")
+            FILE -> s.shared("field_type_file_display_name")
         }
     }
 
@@ -158,7 +159,7 @@ enum class FieldType {
         get() = when (this) {
             TEXT -> setOf("length")
             NUMERIC -> setOf("min", "max", "decimals")
-            IMAGE -> setOf(ImageField.MAX)
+            FILE -> setOf(FileField.KINDS, FileField.MAX)
             else -> emptySet()
         }
 
@@ -194,8 +195,10 @@ enum class FieldType {
                 }
             }
 
-            // Fewer images allowed: a value holding more no longer fits
-            IMAGE -> ImageField.max(config)?.let { ImageField.ids(value).size <= it } ?: true
+            // Fewer files allowed: a value holding more no longer fits. A kind no longer taken
+            // leaves the files there as they are: the field shows them, and only adding is held
+            // to the kinds
+            FILE -> FileField.max(config)?.let { FileField.ids(value).size <= it } ?: true
 
             else -> true
         }

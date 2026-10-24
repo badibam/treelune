@@ -18,9 +18,10 @@ import org.robolectric.annotation.Config
 import java.io.File
 
 /**
- * What docs/DATA.md (« IMAGE ») promises of an entry's write, and of a tool's config the same way: a form's prepared image becomes
+ * What docs/DATA.md (« FILE ») promises of an entry's write, and of a tool's config the same way: a form's prepared image becomes
  * the entry's, a conversation's is copied under a new id, an image taken off the field loses its
- * row, an id that names no image refuses the write, and an entry deleted takes its rows with it.
+ * row, an id that names no file refuses the write, so does a file of a kind the field does not
+ * take, and an entry deleted takes its rows with it. A FILE field names the kinds it takes.
  * A file stays while the history of writes names its image (docs/DATA.md, « History of writes »): an undo
  * puts the entry back with its images; the history done with it, the startup sweep removes it.
  * A tool owns the images its config holds (a step's): a copy of the tool gets copies of them, and
@@ -46,7 +47,7 @@ class OwnedFilesTest {
             "tooltype" to "notes",
             "config" to mapOf(
                 "name" to "Plants",
-                "extra_fields" to listOf(mapOf("display_name" to "Photos", "type" to "IMAGE", "always_visible" to false))
+                "extra_fields" to listOf(mapOf("display_name" to "Photos", "type" to "FILE", "always_visible" to false, "config" to mapOf("kinds" to listOf("IMAGE"))))
             )
         ))
         assertTrue(tool.error, tool.isSuccess)
@@ -80,6 +81,29 @@ class OwnedFilesTest {
         assertEquals("PNG", image.format)
         assertFalse(file.exists())
         assertTrue(Files.file(context, image).exists())
+    }
+
+    @Test
+    fun `a file of a kind the field does not take refuses the write`() = runBlocking {
+        val session = coordinator.processUserAction("ai_sessions.create_session", mapOf("name" to "Chat", "type" to "CHAT"))
+        assertTrue(session.error, session.isSuccess)
+        val joined = coordinator.processUserAction("files.attach", mapOf("session_id" to session.data!!["session_id"], "name" to "notes.txt", "content" to "a\n"))
+        assertTrue(joined.error, joined.isSuccess)
+        val created = create(mapOf("photos" to listOf(joined.data!!["id"])))
+        assertFalse("a text in an image field", created.isSuccess)
+    }
+
+    @Test
+    fun `a file field names the kinds it takes, each once, among those a field takes`() = runBlocking {
+        fun field(config: Map<String, Any>) = mapOf("display_name" to "Photos", "type" to "FILE", "always_visible" to false, "config" to config)
+        suspend fun update(config: Map<String, Any>) = coordinator.processUserAction("tools.update", mapOf(
+            "tool_instance_id" to toolId, "config" to mapOf("name" to "Plants", "extra_fields" to listOf(field(config)))
+        ))
+        assertFalse("no kind", update(mapOf("max" to 2)).isSuccess)
+        assertFalse("a kind twice", update(mapOf("kinds" to listOf("IMAGE", "IMAGE"))).isSuccess)
+        assertFalse("no such kind", update(mapOf("kinds" to listOf("SOUND"))).isSuccess)
+        val kept = update(mapOf("kinds" to listOf("IMAGE"), "max" to 2))
+        assertTrue(kept.error, kept.isSuccess)
     }
 
     @Test
