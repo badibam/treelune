@@ -32,7 +32,7 @@ Codé, jamais vu sur l'appareil.
 
 ## Décidé, à coder
 
-- Tâches, API et médias (`docs/design/tasks-apis-media.md`), dans l'ordre de sa dernière partie : les médias audio et vidéo, le pointeur vers une entrée avec la Lecture d'un média et la valeur par défaut, puis les API et les Tâches. Une Tâche planifiée fait aussi le relevé : une valeur gardée telle qu'elle était (une variable `imc` écrite chaque semaine dans un Suivi), là où une variable se relit à tout jour passé avec les données d'aujourd'hui.
+- Tâches, API et fichiers (`docs/design/tasks-apis-files.md`), dans l'ordre de sa dernière partie : les fichiers, la désignation jusqu'au champ avec la Lecture d'un fichier et la valeur par défaut, puis les API et les Tâches. Une Tâche planifiée fait aussi le relevé : une valeur gardée telle qu'elle était (une variable `imc` écrite chaque semaine dans un Suivi), là où une variable se relit à tout jour passé avec les données d'aujourd'hui.
 - Un filtre qui compare un champ à une variable ou une lecture (« kcal > objectif_calorique ») : le terme lu une fois à la référence du contexte (`TermReader`, `docs/BRICKS.md`), puis le filtre SQL comme aujourd'hui ; `EntryFilters.parse` et `ConditionPicker` le prennent.
 
 ## À concevoir
