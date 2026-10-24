@@ -78,12 +78,15 @@ modeSwitch.querySelectorAll("button").forEach(b => b.onclick = () => {
 prefersDark.addEventListener("change", e => { if (!storedMode()) applyMode(e.matches ? "dark" : "light"); });
 applyMode(mode);
 
+// The page scrolls in the body, not in the window (site.css, « One section, one screen »)
+const scroller = document.body;
+
 // On a phone held upright, the header's mark stays away while the large one of the pitch screen is in view
 const upright = window.matchMedia("(max-width: 820px) and (orientation: portrait), (max-height: 500px) and (orientation: landscape)");
 const brand = document.getElementById("brand");
 new IntersectionObserver(([e]) => brand.classList.toggle("away", upright.matches && e.isIntersecting), { threshold: .4 })
   .observe(document.querySelector(".pitch"));
-brand.classList.toggle("away", upright.matches && window.scrollY < window.innerHeight / 2);
+brand.classList.toggle("away", upright.matches && scroller.scrollTop < window.innerHeight / 2);
 
 // ---- The header's menu: the section on screen, its link marked, and on a phone its name and rank ----
 
@@ -103,15 +106,15 @@ sectionLinks.forEach(({ a, section }) => a.addEventListener("click", e => {
 }));
 // The section on screen: the last one of the menu starting at or above the header's bottom; none on the pitch
 function showWhere() {
-  const line = window.scrollY + document.querySelector("header").offsetHeight + 2;
+  const line = scroller.scrollTop + document.querySelector("header").offsetHeight + 2;
   let on = null;
-  sectionLinks.forEach(link => { if (boxOf(link.section).getBoundingClientRect().top + window.scrollY <= line) on = link; });
+  sectionLinks.forEach(link => { if (boxOf(link.section).getBoundingClientRect().top + scroller.scrollTop <= line) on = link; });
   sectionLinks.forEach(link => link.a.setAttribute("aria-current", link === on));
   where.textContent = on ? on.a.textContent : "";
   whereRank.textContent = on ? `${sectionLinks.indexOf(on) + 1} / ${sectionLinks.length}` : "";
 }
 let whereQueued = false;
-window.addEventListener("scroll", () => {
+scroller.addEventListener("scroll", () => {
   if (whereQueued) return;
   whereQueued = true;
   requestAnimationFrame(() => { whereQueued = false; showWhere(); });
@@ -222,7 +225,7 @@ function sectionStarts() {
   const starts = [];
   document.querySelectorAll(".band, .band .pitch, .band .showcase, main section").forEach(el => {
     if (!getComputedStyle(el).scrollSnapAlign.includes("start")) return;
-    const top = el.getBoundingClientRect().top + window.scrollY;
+    const top = el.getBoundingClientRect().top + scroller.scrollTop;
     if (!starts.some(s => Math.abs(s.top - top) < 2)) starts.push({ el, top });
   });
   return starts.sort((a, b) => a.top - b.top);
@@ -233,7 +236,7 @@ document.addEventListener("keydown", e => {
   if (!step || e.target.closest("input, textarea, select, [contenteditable]")) return;
   const header = document.querySelector("header").offsetHeight;
   const starts = sectionStarts();
-  const at = window.scrollY + header;
+  const at = scroller.scrollTop + header;
   // The section on screen: the last one starting at or above the header's bottom
   let current = 0;
   starts.forEach((s, i) => { if (s.top <= at + 2) current = i; });

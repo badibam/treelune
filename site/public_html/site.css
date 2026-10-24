@@ -31,10 +31,11 @@
 
 * { box-sizing: border-box; }
 /* One section, one screen: each fills the screen under the header, and the scrolling always settles
-   on a section's start. The header's height is counted once, by the page's scroll-padding. A
-   section's height follows the screen as it shows (dvh): a browser's bar hidden while scrolling
-   gives it the room, where the next section would show under it. */
-html { scroll-snap-type: y mandatory; scroll-padding-top: var(--header); }
+   on a section's start. The header's height is counted once, by the page's scroll-padding. The page
+   scrolls in the body, not in the window: a phone's browser folds its address bar away only as the
+   window scrolls, so it keeps it, and the screen keeps its height and the sections their starts. */
+html { height: 100%; overflow: hidden; }
+body { height: 100%; overflow-y: auto; scroll-snap-type: y mandatory; scroll-padding-top: var(--header); }
 .band, .privacy, section { scroll-snap-align: start; }
 body {
   margin: 0; background: var(--bg); color: var(--ink);
@@ -44,7 +45,7 @@ a { color: var(--accent); }
 .wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
 /* A section's content is laid out in the screen's height: what does not fit is made smaller, never left below */
 section {
-  height: calc(100dvh - var(--header)); padding: clamp(16px, 5svh, 56px) 0; display: flex; flex-direction: column; justify-content: center;
+  height: calc(100svh - var(--header)); padding: clamp(16px, 5svh, 56px) 0; display: flex; flex-direction: column; justify-content: center;
 }
 section > .wrap { width: 100%; min-height: 0; }
 h2 { font-size: min(30px, 4.4svh); line-height: 1.2; margin: 0 0 min(12px, 1.4svh); }
@@ -108,7 +109,7 @@ header nav a[aria-current="true"] { color: var(--accent); text-decoration: under
    Desktop: one screen under the header, three columns (pitch, phone, picker).
    Phone upright: two screens, the pitch, then the phone with its carousel.
    Short landscape: the pitch screen, then the picker on the left beside a phone sized by the width. */
-.band { transition: background .35s, color .35s; height: calc(100dvh - var(--header)); display: flex; flex-direction: column; position: relative; }
+.band { transition: background .35s, color .35s; height: calc(100svh - var(--header)); display: flex; flex-direction: column; position: relative; }
 .band .hero {
   flex: 1; min-height: 0; width: 100%; display: grid; grid-template-columns: 1.15fr auto auto;
   grid-template-rows: minmax(0, 1fr); gap: 48px; align-items: center; padding-top: 24px; padding-bottom: min(84px, 11svh);
@@ -163,7 +164,7 @@ header nav a[aria-current="true"] { color: var(--accent); text-decoration: under
   .band { height: auto; scroll-snap-align: none; }
   .band .hero { display: block; padding: 0 16px; }
   .band .pitch {
-    height: calc(100dvh - var(--header)); min-height: 300px; display: flex; flex-direction: column; justify-content: center;
+    height: calc(100svh - var(--header)); min-height: 300px; display: flex; flex-direction: column; justify-content: center;
     position: relative; padding: 16px 0 80px;
   }
   .band h1 { font-size: clamp(24px, min(8vw, 6svh), 40px); margin-bottom: 16px; }
@@ -183,7 +184,7 @@ header nav a[aria-current="true"] { color: var(--accent); text-decoration: under
 
 /* Phone upright, screen 2: the phone as tall as the room left, then the carousel and the switch */
 @media (max-width: 820px) and (orientation: portrait) {
-  .band .showcase { display: flex; flex-direction: column; height: calc(100dvh - var(--header)); padding: 16px 0; gap: 14px; }
+  .band .showcase { display: flex; flex-direction: column; height: calc(100svh - var(--header)); padding: 16px 0; gap: 14px; }
   .band .phone-box { display: flex; flex: 1; min-height: 0; justify-content: center; container-type: size; }
   .band .showcase .phone { height: min(100cqh, calc(100cqw / var(--screen))); width: auto; }
   .band .picker { flex-direction: column; align-items: stretch; gap: 10px; }
@@ -206,7 +207,7 @@ header nav a[aria-current="true"] { color: var(--accent); text-decoration: under
 
 /* Short landscape, screen 2: the unfolded picker on the left, the phone as tall as the screen allows */
 @media (max-height: 500px) and (orientation: landscape) {
-  .band .showcase { display: flex; justify-content: center; align-items: center; gap: 40px; height: calc(100dvh - var(--header)); padding: 4svh 0; }
+  .band .showcase { display: flex; justify-content: center; align-items: center; gap: 40px; height: calc(100svh - var(--header)); padding: 4svh 0; }
   .band .phone-box { display: block; order: 2; height: 100%; }
   .band .showcase .phone { height: 100%; width: auto; }
   .band .picker { order: 1; gap: .4svh; }
