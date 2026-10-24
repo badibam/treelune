@@ -615,7 +615,7 @@
             "name": "feeling",
             "display_name": "@course_goal_field_feeling",
             "type": "TEXT",
-            "always_visible": false,
+            "always_visible": true,
             "config": {
               "length": "MEDIUM"
             }
