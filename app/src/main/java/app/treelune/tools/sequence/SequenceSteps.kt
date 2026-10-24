@@ -5,7 +5,8 @@ import org.json.JSONObject
 
 /**
  * A finished session's steps as it keeps them (docs/DATA.md, « Config change »): each
- * step's name, what became of it, and the time it ran on the session's clock, copied from its run
+ * step's name, what became of it, the time it ran on the session's clock, and where its files were
+ * read from when they followed a field (« Session of the 24 › Induction »), copied from its run
  * when it ends, so that changing the tool's steps afterwards leaves the session as it was. Its
  * counts follow from them: correcting the session is changing a step's state. Pure.
  */
@@ -18,9 +19,10 @@ object SequenceSteps {
 
     /**
      * One step of a finished session; [time] null for a step not reached, or noted without the
-     * screen; [rounds] the rounds of the blocks around it, « Intervals 2 / 8 », null outside one.
+     * screen; [rounds] the rounds of the blocks around it, « Intervals 2 / 8 », null outside one;
+     * [source] where its files were read from, null for files of its own.
      */
-    data class Kept(val name: String, val status: String, val time: Long?, val rounds: String? = null)
+    data class Kept(val name: String, val status: String, val time: Long?, val rounds: String? = null, val source: String? = null)
 
     /** The rounds of the blocks around [step], outermost first: « Intervals 2 / 8 · Set 1 / 3 ». */
     fun roundsOf(step: PlannedStep): String? = step.rounds.takeIf { it.isNotEmpty() }?.joinToString(" · ") { "${it.block} ${it.round} / ${it.of}" }
@@ -36,13 +38,13 @@ object SequenceSteps {
         val starts = run.left.map { it.stepStart } + (if (finished.completed) run.clock(finished.endedAt) else run.stepStart)
         return run.steps.mapIndexed { i, step ->
             val left = run.left.getOrNull(i)
-            if (left == null) Kept(step.name, NOT_DONE, null, roundsOf(step))
-            else Kept(step.name, if (left.outcome == Outcome.DONE) DONE else SKIPPED, (starts[i + 1] - starts[i]).coerceAtLeast(0L), roundsOf(step))
+            if (left == null) Kept(step.name, NOT_DONE, null, roundsOf(step), step.source)
+            else Kept(step.name, if (left.outcome == Outcome.DONE) DONE else SKIPPED, (starts[i + 1] - starts[i]).coerceAtLeast(0L), roundsOf(step), step.source)
         }
     }
 
     /** A session noted done without the screen: the tool's steps as they stand, all done, no time. */
-    fun allDone(steps: List<PlannedStep>): List<Kept> = steps.map { Kept(it.name, DONE, null, roundsOf(it)) }
+    fun allDone(steps: List<PlannedStep>): List<Kept> = steps.map { Kept(it.name, DONE, null, roundsOf(it), it.source) }
 
     /** What the steps say in counts, the session's state following them. */
     fun counts(steps: List<Kept>) = StepCounts(steps.count { it.status == DONE }, steps.count { it.status == SKIPPED }, steps.count { it.status == NOT_DONE })
@@ -52,6 +54,7 @@ object SequenceSteps {
         JSONObject().put("name", step.name).put("status", step.status).apply {
             step.time?.let { put("time", it) }
             step.rounds?.let { put("rounds", it) }
+            step.source?.let { put("source", it) }
         }
     }).toString()
 
@@ -62,7 +65,7 @@ object SequenceSteps {
         return (0 until array.length()).map { i ->
             val step = array.getJSONObject(i)
             Kept(step.getString("name"), step.getString("status"), if (step.has("time")) step.getLong("time") else null,
-                step.optString("rounds").takeIf { it.isNotEmpty() })
+                step.optString("rounds").takeIf { it.isNotEmpty() }, step.optString("source").takeIf { it.isNotEmpty() })
         }
     }
 

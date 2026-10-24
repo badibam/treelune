@@ -37,8 +37,8 @@ import org.json.JSONObject
 /**
  * The session running (docs/TOOLS.md, « Session (Sequence) »): a foreground service
  * from start to end, screen on or off, which alone sounds the signals and passes a timed step at
- * its end. Its notification, which Android requires, shows the step and its time, with « Done »
- * and « Pause ».
+ * its end, and plays a step's sound (SequenceAudio). Its notification, which Android requires,
+ * shows the step and its time, with « Done » and « Pause ».
  *
  * A wake lock keeps the processor on while the session runs, the screen staying off: without it,
  * the processor sleeps with the screen off and a signal comes late. It is released while paused,
@@ -56,6 +56,7 @@ class SequenceRunService : Service() {
     private val wake = Channel<Unit>(Channel.CONFLATED)
     private var wakeLock: PowerManager.WakeLock? = null
     private var signals: SequenceSounds? = null
+    private var audio: SequenceAudio? = null
     private var settings = Settings(JSONObject())
 
     /** What the tool's config says of its signals and its notification. */
@@ -175,6 +176,8 @@ class SequenceRunService : Service() {
                     continue
                 }
                 cursor = now
+                // The step's sound, from where its clock stands, paused with the session
+                (audio ?: SequenceAudio(applicationContext).also { audio = it }).follow(run, now)
                 if (run.isPaused) releaseWakeLock() else acquireWakeLock()
                 getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification(run))
                 val next = (SequenceSignals.beeps(run, now) + listOfNotNull(end, run.stepBegins(now))).filter { it > now }.minOrNull()
@@ -183,6 +186,7 @@ class SequenceRunService : Service() {
             }
         } finally {
             gestures.cancel()
+            audio?.stop()
         }
     }
 
@@ -230,6 +234,7 @@ class SequenceRunService : Service() {
         scope.cancel()
         releaseWakeLock()
         signals?.release()
+        audio?.stop()
         SequenceLive.setRunning(null)
         super.onDestroy()
     }

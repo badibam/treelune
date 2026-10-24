@@ -24,7 +24,12 @@
     <string name="field_instruction">Instruction</string>
     <string name="schema_instruction">Shown during the step, and said by the voice when it is on (“10 × 60 kg”, “Meanwhile: the sauce”)</string>
     <string name="field_step_images">Images</string>
-    <string name="schema_step_images">Shown during the step, the first one large (a posture, a dish): image ids, as a FILE field holds them</string>
+    <string name="schema_step_images">Shown during the step, the first one large (a posture, a dish): images, the tool\'s own or the field of an entry followed</string>
+    <string name="field_step_media">Sound or video</string>
+    <string name="schema_step_media">Played during the step, a sound with the screen off, a video on the session\'s screen: one audio or video file, the tool\'s own or the field of an entry followed</string>
+    <string name="end_media">At the end of the sound or video</string>
+    <string name="schema_end_media">The step lasts its sound or its video, then the next step comes by itself; with nothing to play, it is ended by hand</string>
+    <string name="reference_session_start">the start of the session</string>
     <string name="field_end">Ends</string>
     <string name="schema_end">How the step ends</string>
     <string name="end_timed">Timed</string>

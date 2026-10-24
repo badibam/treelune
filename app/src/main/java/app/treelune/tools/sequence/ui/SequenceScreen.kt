@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -248,6 +249,9 @@ private fun Running(id: String, run: SequenceRun, s: StringsContext, gesture: (S
             if (run.isPaused) UI.Text(s.tool("running_paused"), TextType.WARNING)
             else if (run.held) UI.Text(s.tool("running_held"), TextType.CAPTION)
             step.instruction?.let { MarkupText(it, icons = false, selectable = false) }
+            // Where its files were read from, or that what it followed is gone
+            step.source?.let { UI.Text(it, TextType.CAPTION) }
+            step.media?.let { media -> if (media.isVideo) StepVideo(media, run, now) else UI.Icon("audio-lines", contentDescription = s.tool("field_step_media")) }
             if (step.images.isNotEmpty()) StepImages(step.images)
         }
     }
@@ -295,6 +299,33 @@ private fun StepImages(ids: List<String>) {
         ids.drop(1).forEachIndexed { i, id -> ImageThumbnail(id, height = IMAGE_SMALL_HEIGHT, onClick = { open = i + 1 }) }
     }
     open?.let { start -> ImageViewer(ids, start) { open = null } }
+}
+
+/**
+ * A step's video, played on the session's screen as the step's clock stands: from where it is
+ * once the step has begun, paused with the session, from its place again after `back` or `restart`.
+ */
+@Composable
+private fun StepVideo(media: app.treelune.tools.sequence.StepMedia, run: SequenceRun, now: Long) {
+    val context = LocalContext.current
+    val file by androidx.compose.runtime.produceState<java.io.File?>(initialValue = null, media.id) {
+        value = app.treelune.core.files.Files.locate(context, media.id)
+    }
+    val path = file?.path ?: return
+    val key = run.position to run.stepStart
+    val elapsed = run.elapsed(now)
+    val playing = !run.isPaused && !run.held && elapsed >= 0 && elapsed < media.durationMs
+    val started = androidx.compose.runtime.remember(key) { androidx.compose.runtime.mutableStateOf(false) }
+    androidx.compose.ui.viewinterop.AndroidView(
+        factory = { android.widget.VideoView(it).apply { setVideoPath(path) } },
+        update = { view ->
+            when {
+                playing && (!view.isPlaying || !started.value) -> { view.seekTo(elapsed.toInt()); view.start(); started.value = true }
+                !playing && view.isPlaying -> view.pause()
+            }
+        },
+        modifier = Modifier.fillMaxWidth().height(IMAGE_LARGE_HEIGHT)
+    )
 }
 
 /** A session the app stopped mid-way: resumed, its step starting again, or stopped. */
@@ -374,12 +405,13 @@ private fun StepLines(elements: JSONArray?, depth: Int, s: StringsContext) {
             val end = runCatching { StepEnd.of(element.optString(SequencePlan.END)) }.getOrNull()
             val how = when (end) {
                 StepEnd.MANUAL -> s.tool("end_manual")
+                StepEnd.MEDIA -> s.tool("end_media")
                 null -> ""
                 else -> clockText(element.optLong(SequencePlan.DURATION)) + if (end == StepEnd.TIMED_THEN_MANUAL) " · " + s.tool("end_then_manual_short") else ""
             }
             Row(modifier = indent.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(UI.Space.S), verticalAlignment = Alignment.CenterVertically) {
                 Box(modifier = Modifier.weight(1f)) { UI.Text(listOf(element.optString(SequencePlan.NAME), how).filter { it.isNotEmpty() }.joinToString(" · "), TextType.BODY) }
-                SequencePlan.ids(element.optJSONArray(SequencePlan.IMAGES)).firstOrNull()?.let { ImageThumbnail(it, height = IMAGE_SMALL_HEIGHT) }
+                SequencePlan.fixed(element.optJSONObject(SequencePlan.IMAGES)).firstOrNull()?.let { ImageThumbnail(it, height = IMAGE_SMALL_HEIGHT) }
             }
         }
     }
@@ -455,7 +487,7 @@ private fun KeptStepsView(
     FieldInput(field(SequenceToolType.DURATION, FieldType.DURATION, SequenceToolType.SESSION_UNITS), duration, onDuration, context)
     // One line a step: its name, its round, its time as the label of its state
     kept.forEachIndexed { i, step ->
-        FieldInput(state.copy(name = "status_$i", displayName = listOfNotNull(step.name, step.rounds, step.time?.let { clockText(it) }).joinToString(" · ")),
+        FieldInput(state.copy(name = "status_$i", displayName = listOfNotNull(step.name, step.rounds, step.source, step.time?.let { clockText(it) }).joinToString(" · ")),
             chosen.getOrElse(i) { step.status }, { value ->
                 val status = value as? String ?: return@FieldInput
                 statuses = chosen.mapIndexed { j, current -> if (j == i) status else current }.joinToString(",")

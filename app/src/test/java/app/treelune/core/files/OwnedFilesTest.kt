@@ -24,7 +24,7 @@ import java.io.File
  * take, and an entry deleted takes its rows with it. A FILE field names the kinds it takes.
  * A file stays while the history of writes names its image (docs/DATA.md, « History of writes »): an undo
  * puts the entry back with its images; the history done with it, the startup sweep removes it.
- * A tool owns the images its config holds (a step's): a copy of the tool gets copies of them, and
+ * A tool owns the images its config holds (a step's, the fixed value of its term): a copy of the tool gets copies of them, and
  * the tool deleted takes their rows.
  */
 @RunWith(RobolectricTestRunner::class)
@@ -180,12 +180,12 @@ class OwnedFilesTest {
     private suspend fun session(images: List<String>) = coordinator.processUserAction("tools.create", mapOf(
         "zone_id" to AppDatabase.getDatabase(context).toolInstanceDao().getToolInstanceById(toolId)!!.zone_id,
         "tooltype" to "sequence",
-        "config" to mapOf("name" to "Yoga", "steps" to listOf(mapOf("kind" to "step", "name" to "Tree", "end" to "manual", "images" to images)))
+        "config" to mapOf("name" to "Yoga", "steps" to listOf(mapOf("kind" to "step", "name" to "Tree", "end" to "manual", "images" to mapOf("constant" to images))))
     ))
 
     private suspend fun stepImages(sessionId: String): List<String> {
         val tool = AppDatabase.getDatabase(context).toolInstanceDao().getToolInstanceById(sessionId)!!
-        val array = org.json.JSONObject(tool.config_json).getJSONArray("steps").getJSONObject(0).getJSONArray("images")
+        val array = org.json.JSONObject(tool.config_json).getJSONArray("steps").getJSONObject(0).getJSONObject("images").getJSONArray("constant")
         return (0 until array.length()).map { array.getString(it) }
     }
 
@@ -224,7 +224,7 @@ class OwnedFilesTest {
         pending("s4")
         val sessionId = session(listOf("s3", "s4")).data!!["tool_instance_id"] as String
         val config = org.json.JSONObject(AppDatabase.getDatabase(context).toolInstanceDao().getToolInstanceById(sessionId)!!.config_json)
-        config.getJSONArray("steps").getJSONObject(0).put("images", org.json.JSONArray(listOf("s4")))
+        config.getJSONArray("steps").getJSONObject(0).put("images", org.json.JSONObject().put("constant", org.json.JSONArray(listOf("s4"))))
 
         val updated = coordinator.processUserAction("tools.update", mapOf("tool_instance_id" to sessionId, "config" to app.treelune.core.utils.JsonUtils.toMap(config)))
         assertTrue(updated.error, updated.isSuccess)

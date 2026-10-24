@@ -93,6 +93,16 @@ object SequenceToolType : ToolTypeContract {
     private fun field(name: String, label: String, type: FieldType, description: String? = null, config: Map<String, Any>? = null) =
         FieldDefinition(name, label, description, type, false, config)
 
+    /**
+     * A step's files as a term: a fixed value, the tool's own files of [config]'s kinds, or one
+     * entry's field followed, read when a session starts.
+     */
+    private fun fileTerm(name: String, label: String, description: String, config: Map<String, Any>, text: (String) -> String) = SettingNode.Term(
+        name, label, setOf(app.treelune.core.terms.Term.Kind.CONSTANT, app.treelune.core.terms.Term.Kind.READING),
+        reference = text("reference_session_start"), emptyPeriod = null,
+        value = field(name, label, FieldType.FILE, description, config)
+    )
+
     private fun choice(values: List<String>, labels: (String) -> String): Map<String, Any> =
         mapOf("options" to ChoiceSettings.storedOptions(values, values.associateWith(labels), emptyMap()))
 
@@ -158,17 +168,22 @@ object SequenceToolType : ToolTypeContract {
             summary = listOf(SequencePlan.NAME), description = text(if (depth == 0) "schema_steps" else "schema_block_steps"))
     }
 
-    /** A step: its name, its instruction, its images, how it ends; in a block, whether its last round leaves it out. */
+    /**
+     * A step: its name, its instruction, its images and its sound or video, each file a term (its
+     * own files, or one entry's field followed), how it ends; in a block, whether its last round
+     * leaves it out.
+     */
     private fun stepNodes(text: (String) -> String, inBlock: Boolean): List<SettingNode> {
         val duration = listOf(SettingNode.Field(field(SequencePlan.DURATION, text("field_step_duration"), FieldType.DURATION, text("schema_step_duration"), STEP_UNITS), required = true))
         return listOfNotNull(
             SettingNode.Field(field(SequencePlan.NAME, text("field_step_name"), FieldType.TEXT, text("schema_step_name"), mapOf("length" to TextLength.SHORT.name)), required = true),
             SettingNode.Field(field(SequencePlan.INSTRUCTION, text("field_instruction"), FieldType.TEXT, text("schema_instruction"), mapOf("length" to TextLength.LONG.name))),
-            SettingNode.Field(field(SequencePlan.IMAGES, text("field_step_images"), FieldType.FILE, text("schema_step_images"), FileField.config(listOf(FileKind.IMAGE)))),
+            fileTerm(SequencePlan.IMAGES, text("field_step_images"), text("schema_step_images"), FileField.config(listOf(FileKind.IMAGE)), text),
+            fileTerm(SequencePlan.MEDIA, text("field_step_media"), text("schema_step_media"), FileField.config(listOf(FileKind.AUDIO, FileKind.VIDEO), max = 1), text),
             SettingNode.Variant(
                 selector = SettingNode.Field(field(SequencePlan.END, text("field_end"), FieldType.CHOICE, text("schema_end"),
                     choice(StepEnd.KEYS) { text("end_$it") }), required = true, default = StepEnd.MANUAL.key),
-                cases = mapOf(StepEnd.TIMED.key to duration, StepEnd.TIMED_THEN_MANUAL.key to duration, StepEnd.MANUAL.key to emptyList()),
+                cases = mapOf(StepEnd.TIMED.key to duration, StepEnd.TIMED_THEN_MANUAL.key to duration, StepEnd.MANUAL.key to emptyList(), StepEnd.MEDIA.key to emptyList()),
                 descriptions = StepEnd.KEYS.associateWith { text("schema_end_$it") }
             ),
             if (inBlock) SettingNode.Field(field(SequencePlan.SKIP_LAST_ROUND, text("field_skip_last_round"), FieldType.BOOLEAN, text("schema_skip_last_round")), default = false) else null

@@ -74,9 +74,10 @@ class SequenceService(private val context: Context) : ExecutableService {
             })
         }
         val config = configOf(toolInstanceId)
-        val steps = SequencePlan.unroll(config)
-        if (steps.isEmpty()) return OperationResult.error(s.tool("error_no_steps"))
         val now = System.currentTimeMillis()
+        // Each step's files read now, the fields it follows included, and kept with the run
+        val steps = SequenceMedia.resolve(context, SequencePlan.unroll(config), now, s.shared("term_source_deleted"))
+        if (steps.isEmpty()) return OperationResult.error(s.tool("error_no_steps"))
         val run = SequenceRun.start(steps, now)
         val state = mapOf(
             SequenceToolType.STATUS to SequenceToolType.Status.RUNNING,
@@ -193,7 +194,7 @@ class SequenceService(private val context: Context) : ExecutableService {
         val timestamp = (params.opt("timestamp") as? Number)?.toLong()
         val plannedId = params.optString("id").takeIf { it.isNotEmpty() }
         if (plannedId == null && timestamp == null) return OperationResult.error(s.tool("error_complete_without_time"))
-        val steps = SequencePlan.unroll(configOf(toolInstanceId))
+        val steps = SequenceMedia.resolve(context, SequencePlan.unroll(configOf(toolInstanceId)), System.currentTimeMillis(), s.shared("term_source_deleted"))
         if (steps.isEmpty()) return OperationResult.error(s.tool("error_no_steps"))
         val data = mutableMapOf<String, Any>(
             SequenceToolType.STEPS_DONE to steps.size,

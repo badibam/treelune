@@ -24,7 +24,12 @@
     <string name="field_instruction">Consigne</string>
     <string name="schema_instruction">Montrée pendant l\'étape, et dite par la voix si elle est activée (« 10 × 60 kg », « Pendant ce temps : la sauce »)</string>
     <string name="field_step_images">Images</string>
-    <string name="schema_step_images">Montrées pendant l\'étape, la première en grand (une posture, un plat) : des ids d\'images, comme un champ FILE les garde</string>
+    <string name="schema_step_images">Montrées pendant l\'étape, la première en grand (une posture, un plat) : des images, celles de l\'outil ou le champ d\'une entrée suivi</string>
+    <string name="field_step_media">Son ou vidéo</string>
+    <string name="schema_step_media">Joué pendant l\'étape, un son écran éteint, une vidéo à l\'écran de la séance : un fichier audio ou vidéo, celui de l\'outil ou le champ d\'une entrée suivi</string>
+    <string name="end_media">À la fin du son ou de la vidéo</string>
+    <string name="schema_end_media">L\'étape dure son son ou sa vidéo, puis l\'étape suivante vient d\'elle-même ; sans rien à jouer, elle se termine à la main</string>
+    <string name="reference_session_start">le début de la séance</string>
     <string name="field_end">Fin</string>
     <string name="schema_end">Comment l\'étape se termine</string>
     <string name="end_timed">Au temps</string>

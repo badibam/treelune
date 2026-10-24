@@ -10,9 +10,15 @@ enum class StepEnd(val key: String) {
     /** A stopwatch counts up until « Done ». */
     MANUAL("manual"),
     /** The timer counts down and sounds, then the stopwatch goes on in overtime until « Done ». */
-    TIMED_THEN_MANUAL("timed_then_manual");
+    TIMED_THEN_MANUAL("timed_then_manual"),
+    /**
+     * The step lasts its sound or its video: a session read it when it starts, and goes through it
+     * as a timer of that length; a step with nothing to play is ended by hand (SequenceMedia).
+     */
+    MEDIA("media");
 
-    val timed: Boolean get() = this != MANUAL
+    /** Whether the config gives it a duration; a step ending with its medium takes the medium's. */
+    val timed: Boolean get() = this == TIMED || this == TIMED_THEN_MANUAL
 
     companion object {
         val KEYS = entries.map { it.key }
@@ -24,12 +30,27 @@ enum class StepEnd(val key: String) {
 /** The round of a block a step is done in: « Intervals 2 / 8 ». */
 data class Round(val block: String, val round: Int, val of: Int)
 
+/** A step's sound or video as a session plays it: the file, its kind, its length. */
+data class StepMedia(val id: String, val kind: String, val durationMs: Long) {
+    val isVideo: Boolean get() = kind == app.treelune.core.files.FileKind.VIDEO.name
+}
+
+/**
+ * A step's files as its config holds them, each a term (the Terme brick): a fixed value, the
+ * tool's own files, or one entry's field followed, read when a session starts (SequenceMedia).
+ */
+data class StepTerms(val images: JSONObject?, val media: JSONObject?)
+
 /**
  * One step as a session goes through it: the config's step, with the rounds of the blocks
  * around it, outermost first.
  *
  * @property duration The timer's length, null for a step ended by hand
- * @property images Its images' ids, owned by the tool (OwnedFiles), the first shown large
+ * @property images Its images' ids, the first shown large: the tool's own, or those of the field it follows
+ * @property media Its sound or its video, played during the step
+ * @property source Where its files were read from, « Session of the 24 › Induction », or that
+ *   what it followed is gone; null for files of its own
+ * @property terms Its files as the config holds them, until a session reads them; never kept in a run
  */
 data class PlannedStep(
     val name: String,
@@ -37,7 +58,10 @@ data class PlannedStep(
     val end: StepEnd,
     val duration: Long?,
     val rounds: List<Round>,
-    val images: List<String> = emptyList()
+    val images: List<String> = emptyList(),
+    val media: StepMedia? = null,
+    val source: String? = null,
+    val terms: StepTerms? = null
 )
 
 /**
@@ -45,8 +69,8 @@ data class PlannedStep(
  * skip_last_round left out of its block's last round. The session copies it when it starts, so a
  * config changed meanwhile does not change it.
  *
- * The config's elements: a step {"kind": "step", "name", "instruction", "images", "end",
- * "duration", "skip_last_round"} or a block {"kind": "block", "name", "repeat", "steps"}; a block holds steps
+ * The config's elements: a step {"kind": "step", "name", "instruction", "images", "media", "end",
+ * "duration", "skip_last_round"}, its images and its medium each a term, or a block {"kind": "block", "name", "repeat", "steps"}; a block holds steps
  * or blocks, the latter steps only, stored without their kind.
  */
 object SequencePlan {
@@ -58,6 +82,8 @@ object SequencePlan {
     const val NAME = "name"
     const val INSTRUCTION = "instruction"
     const val IMAGES = "images"
+    const val MEDIA = "media"
+    const val SOURCE = "source"
     const val END = "end"
     const val DURATION = "duration"
     const val SKIP_LAST_ROUND = "skip_last_round"
@@ -96,12 +122,17 @@ object SequencePlan {
             end = end,
             duration = if (end.timed) element.getLong(DURATION) else null,
             rounds = rounds,
-            images = ids(element.optJSONArray(IMAGES))
+            images = fixed(element.optJSONObject(IMAGES)),
+            // A step with files to read has its terms until a session reads them; one without, none
+            terms = StepTerms(element.optJSONObject(IMAGES), element.optJSONObject(MEDIA)).takeIf { it.images != null || it.media != null }
         )
     }
 
     /** The ids of a list of images, none when it is absent. */
     fun ids(array: JSONArray?): List<String> = if (array == null) emptyList() else (0 until array.length()).map { array.getString(it) }
+
+    /** The files a term holds as a fixed value; none for a term that follows a field, or none at all. */
+    fun fixed(term: JSONObject?): List<String> = ids(term?.optJSONArray(app.treelune.core.terms.Term.Kind.CONSTANT.key))
 
     private fun elements(array: JSONArray?): List<JSONObject> =
         if (array == null) emptyList() else (0 until array.length()).map { array.getJSONObject(it) }
@@ -115,6 +146,8 @@ object SequencePlan {
                 .put(END, step.end.key)
                 .put(DURATION, step.duration ?: JSONObject.NULL)
                 .put(IMAGES, JSONArray(step.images))
+                .put(MEDIA, step.media?.let { JSONObject().put("id", it.id).put("kind", it.kind).put("duration_ms", it.durationMs) } ?: JSONObject.NULL)
+                .put(SOURCE, step.source ?: JSONObject.NULL)
                 .put("rounds", JSONArray().apply {
                     step.rounds.forEach { put(JSONObject().put("block", it.block).put("round", it.round).put("of", it.of)) }
                 }))
@@ -132,8 +165,10 @@ object SequencePlan {
             rounds = (0 until rounds.length()).map { r ->
                 rounds.getJSONObject(r).let { Round(it.getString("block"), it.getInt("round"), it.getInt("of")) }
             },
-            // A run started before steps had images holds none
-            images = ids(o.optJSONArray(IMAGES))
+            // A run started before steps had images holds none, nor a medium
+            images = ids(o.optJSONArray(IMAGES)),
+            media = o.optJSONObject(MEDIA)?.let { StepMedia(it.getString("id"), it.getString("kind"), it.getLong("duration_ms")) },
+            source = if (o.isNull(SOURCE)) null else o.optString(SOURCE).takeIf { it.isNotEmpty() }
         )
     }
 }

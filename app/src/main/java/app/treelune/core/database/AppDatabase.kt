@@ -104,7 +104,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 93
+        const val VERSION = 94
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2126,6 +2126,27 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** A Sequence step's images become a term, beside its sound or video: see StepFilesAtV94. */
+        private val MIGRATION_93_94 = object : ConnectionMigration(93, 94) {
+            override fun migrate(database: MigrationDatabase) {
+                val v = app.treelune.core.versioning.StepFilesAtV94
+                var rewritten = 0
+                database.query("SELECT id, tooltype, config_json FROM tool_instances").use { cursor ->
+                    while (cursor.moveToNext()) {
+                        val id = cursor.getString(0)
+                        // A config that cannot be read stays as it was and is logged: reading it then fails with the reason
+                        try {
+                            v.toolConfig(cursor.getString(1), cursor.getString(2))?.let { database.execSQL("UPDATE tool_instances SET config_json = ? WHERE id = ?", arrayOf<Any?>(it, id)); rewritten++ }
+                        } catch (e: Exception) {
+                            LogManager.database("MIGRATION 93->94: tool $id left as it was: ${e.message}", "ERROR", e)
+                        }
+                    }
+                }
+                app.treelune.core.versioning.HistoryCopies.rewrite(database, "tool_instances") { v.historyCopy(it) }
+                LogManager.database("MIGRATION 93->94: $rewritten sequence(s) with their steps' images as terms", "INFO")
+            }
+        }
+
         /** The connector gains its own data threshold: see ExternalAccessDataAtV84. */
         private val MIGRATION_83_84 = object : ConnectionMigration(83, 84) {
             override fun migrate(database: MigrationDatabase) {
@@ -3166,7 +3187,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_89_90,
                     MIGRATION_90_91,
                     migration91to92(context),
-                    MIGRATION_92_93
+                    MIGRATION_92_93,
+                    MIGRATION_93_94
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the
