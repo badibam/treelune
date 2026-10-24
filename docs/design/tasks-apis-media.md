@@ -10,10 +10,11 @@ La brique Image (`docs/DATA.md`, « IMAGE ») s'étend au son et à la vidéo : 
 - Dans une configuration (les médias d'une étape), chaque média est un Terme : un fichier à soi (une constante) ou le champ média d'une entrée suivi (une Lecture, partie 2). Les images d'une étape y passent aussi ; leurs valeurs actuelles sont des constantes.
 
 - Une étape de Séquence porte une consigne écrite facultative, des images, et au plus un audio ou une vidéo. La vidéo se joue écran allumé, à l'écran de la séance. Une fin d'étape de plus : « à la fin du média ». L'audio se joue écran éteint, par le service qui fait déjà tourner une séance (`SequenceRunService`).
-- Là où un média est attendu, rien d'autre ne l'est : le sélecteur ne montre jamais une valeur à taper. Deux gestes :
-  - **Ajouter un fichier**, une constante : depuis l'appareil, enregistrer (le micro, la caméra), ou copier depuis un outil (on va jusqu'au champ d'une entrée, le fichier est copié et devient celui de l'étape, par la règle actuelle des images).
-  - **Suivre celui d'un outil**, une Lecture : l'étape garde l'adresse d'un champ d'une entrée (partie 2) et joue ce qu'il contient au moment de jouer.
-- Les libellés disent l'effet (copier, suivre), pas la provenance : les deux gestes passent par le même parcours jusqu'au champ et donnent des résultats opposés.
+- Le sélecteur d'un Terme, le même pour tous les types, ne montre que ce qui convient au type attendu :
+  - **Valeur fixe** : saisir (taper un nombre, un texte, une date ; pour un média, ajouter un fichier depuis l'appareil, plus tard l'enregistrer), ou **copier depuis un outil** (on va jusqu'au champ d'une entrée, sa valeur du moment est recopiée une fois ; un média copié devient le fichier de l'étape, par la règle actuelle des images).
+  - **Lecture** : suivre un champ d'une entrée (partie 2), relu à chaque usage ; pour une étape, ce qu'il contient au moment de jouer.
+  - **Variable**, là où une variable du type existe (aucune ne tient un média aujourd'hui).
+- Copier et suivre passent par le même parcours jusqu'au champ et donnent des résultats opposés : les libellés disent l'effet.
 
 - La copie d'un média étranger reste ce que fait une constante : une valeur possède son fichier. Elle est silencieuse aujourd'hui (l'IA qui écrit l'identifiant d'une photo de la conversation ne sait pas qu'elle a pris une copie) : le résultat de l'écriture le dit.
 
@@ -23,7 +24,8 @@ La brique Image (`docs/DATA.md`, « IMAGE ») s'étend au son et à la vidéo : 
 
 Une référence garde une adresse et suit sa source ; une copie prend une valeur et coupe le lien. Le Terme (`docs/BRICKS.md`) porte déjà les deux : une constante est une valeur, une Lecture une adresse relue à chaque usage. Suivre le média d'un outil est une Lecture.
 
-- Viser une entrée précise : la sélection d'entrées gagne une entrée choisie par son identifiant (l'idée `{"kind": "ENTRY", "id"}`, nommée par sa date puis son nom ou le début de son premier texte, choisie dans la liste des entrées d'un outil).
+- Une Référence désigne une chose de l'app (l'app, une zone, un outil, une variable, une entrée : `docs/DATA.md`, « REFERENCE »), choisie par le fil d'Ariane App › zone › outil › entrée ; elle dit laquelle, jamais ce qu'elle contient, et ne descend pas dans un champ. Une Lecture va chercher le contenu d'un champ, et ne vit que dans une configuration : une entrée est la trace du passé, et un champ qui suivrait une source la ferait changer après coup ; une entrée qui doit dire de quoi elle parle tient une Référence (une récolte de la démo désigne sa plante).
+- L'entrée existe déjà comme chose (`{"kind": "ENTRY", "id"}`). Ce qui manque : une sélection d'entrées qui parte d'une entrée choisie, pas seulement d'un outil ou d'une zone (`docs/BRICKS.md`, « Entry selection »).
 - La Lecture d'un champ média, sur une entrée précise, avec la réduction « sa valeur ». Aujourd'hui `Reduction.forType` n'en donne aucune à IMAGE (`core/reading/FieldReading.kt`).
 - La référence vise le champ, pas le fichier : un audio remplacé dans la Fiche est suivi, comme sa suppression. Pointer l'identifiant du fichier ne suivrait que la suppression, et le fichier remplacé disparaît avec la règle de propriété.
 - Un champ média tient une liste. Une Lecture n'en vise qu'un limité à un seul média (`max` 1).
