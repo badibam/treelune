@@ -91,7 +91,17 @@ Une séance guidée audio, régénérée chaque nuit d'après les retours notés
 - Une Tâche chaque nuit : appeler l'API de la boîte aux lettres avec le contexte et les derniers retours et scripts, lus par des Lectures ; attendre ; le script relu et validé par l'utilisateur avant que la voix et le montage soient faits (partie 5, à trancher) ; créer la Fiche avec ce que l'API rend ; faire suivre à chaque étape le champ de cette Fiche, et lui donner la valeur par défaut de la Référence.
 - Hors de l'app : la boîte aux lettres, qui garde le travail et son résultat et déclenche le service ; le service, qui écrit le script, le fait dire par une synthèse vocale et monte l'audio.
 
+## L'envoi d'un fichier par le connecteur
+
+Les octets ne passent pas par l'IA : les paramètres d'un outil, c'est elle qui les écrit, et un fichier de quelques Mo ne tient pas dans sa sortie. Le client du connecteur tient sa clé d'accès sans que le modèle puisse la lire : un outil délivre donc une adresse d'envoi à usage unique, valable quelques minutes. Depuis Claude Code (une conversation de claude.ai n'a ni les fichiers de l'ordinateur ni de quoi les envoyer) :
+
+1. L'IA demande une adresse : `files.upload_address {"kind": "AUDIO", "name": "induction.mp3"}` → `{"upload_url", "expires_in": 300}`.
+2. Le client y envoie le fichier (`curl -X PUT --data-binary @induction.mp3 <upload_url>`) ; l'app vérifie sorte, format et taille, le met de côté et rend `{"file_id", "kind", "format", "size_bytes", "duration_ms"}`.
+3. L'IA écrit l'entrée avec cet identifiant dans un champ fichier (`tool_data.create`, `"extra": {"induction": ["<file_id>"]}`) : le fichier mis de côté devient sa valeur fixe, comme une photo d'un formulaire.
+
+Un fichier envoyé que nulle écriture ne prend est effacé au démarrage suivant, comme une photo d'un formulaire abandonné. L'IA de l'app n'en a pas besoin : les fichiers lui arrivent par la conversation. Les noms d'outils et de paramètres sont à confronter à ce que le connecteur expose.
+
 ## Découpage
 
-- **A** : les parties 1 à 3 entières, l'option posséder ou retenir comprise (tranchée pendant A), et l'envoi d'un fichier par le connecteur. Les octets ne passent pas par l'IA (les paramètres d'un outil, c'est elle qui les écrit) : un outil du connecteur donne une adresse d'envoi à usage unique et de courte durée, le client y envoie le fichier (Claude Code par `curl`, une conversation de claude.ai ne le peut pas), l'app le met de côté et rend son identifiant d'attente, sa sorte, son format, sa taille ; l'écriture d'une entrée qui le met dans un champ en fait sa valeur fixe, comme une photo d'un formulaire. L'IA de l'app n'en a pas besoin : les fichiers lui arrivent par la conversation. Le montage de la partie 6 se fait alors à la main par le connecteur externe : une IA extérieure dépose les audios dans une Fiche et fait suivre la Séquence.
+- **A** : les parties 1 à 3 entières, l'option posséder ou retenir comprise (tranchée pendant A), et l'envoi d'un fichier par le connecteur (ci-dessous). Le montage de la partie 6 se fait alors à la main par le connecteur externe : une IA extérieure dépose les audios dans une Fiche et fait suivre la Séquence.
 - **B** : les API (partie 4) et les Tâches (partie 5), avec lesquelles la boucle tourne seule.
