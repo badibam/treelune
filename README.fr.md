@@ -14,6 +14,8 @@ Un suivi, un carnet, une liste, des fiches, un objectif, un graphique, des flash
 
 Une application Android libre, sans compte ni publicité. Les données restent sur le téléphone.
 
+Le site, avec l'app en action : [treelune.app](https://treelune.app/fr/)
+
 Treelune est encore jeune, et n'a été essayée que sur quelques téléphones. Pour qu'un problème soit corrigé, signale-le depuis Réglages › Signaler un bug.
 
 <p>
@@ -59,7 +61,7 @@ Une IA connaît les mêmes pièces que toi. Demande-lui « monte-moi de quoi pr�
 - Quand il lui manque une information, elle te pose la question sous forme de champ à remplir.
 - Elle peut parler sous une **identité**, avec sa voix et son caractère, créée dans l'app ou importée d'un fichier, choisie pour une zone, une routine ou une conversation.
 - Avec une **routine**, elle travaille seule, sur un planning : « chaque dimanche soir, fais-moi le bilan de la semaine ». Elle sait aussi en créer.
-- Claude peut aussi se brancher à l'app depuis l'extérieur, comme connecteur, et travailler sur les outils depuis claude.ai.
+- Une IA qui tourne ailleurs, comme Claude, ChatGPT ou un modèle libre sur ton ordinateur avec LM Studio, peut aussi se brancher à l'app comme connecteur, et travailler sur les outils depuis là-bas.
 
 Tu apportes ta propre clé d'API, chez l'un de ces fournisseurs :
 
@@ -104,7 +106,7 @@ Au premier lancement, une **démo** t'attend : douze semaines de la vie de Camil
 L'app est en développement actif. Elle sert tous les jours, mais tout peut encore changer, la forme des données comprise. Garde des sauvegardes.
 
 <!-- status -->
-- Version 0.9.1
+- Version 0.9.2
 - Android 8.0 ou plus récent
 - Un téléphone 64 bits (arm64)
 - Langues : anglais, français

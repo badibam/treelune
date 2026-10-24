@@ -1,0 +1,6 @@
+- Les Données structurées s'appellent maintenant Fiches
+- Une tentative d'objectif peut avoir ses propres champs, notés pendant qu'elle court
+- Sans raccourci, la saisie libre d'un suivi porte le nom du suivi
+- Graphiques, objectifs et flashcards se mettent à jour à tout changement des outils qu'ils lisent
+- Corrigé : des rangées vides au-dessus d'une routine après avoir changé la taille des tuiles d'une zone
+- L'IA lit chaque type d'outil sous une forme plus claire et plus courte

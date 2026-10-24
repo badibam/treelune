@@ -14,6 +14,8 @@ A tracker, a journal, a list, records, a goal, a chart, flashcards, a calendar�
 
 A free and open source Android app, with no account and no ads. The data stays on the phone.
 
+The site, with the app at work: [treelune.app](https://treelune.app)
+
 Treelune is still young, and has been tried on only a few phones. To get a problem fixed, report it from Settings › Report a bug.
 
 <p>
@@ -59,7 +61,7 @@ An AI knows the same pieces you do. Ask it “set me up to train for a half mara
 - When it lacks some information, it asks you as a field to fill in.
 - It can speak as an **identity**, with its own voice and character, created in the app or imported from a file, chosen for a zone, a routine or a conversation.
 - With a **routine**, it works on its own, on a schedule: “every Sunday evening, sum up my week”. It can create routines too.
-- Claude can also plug into the app from outside, as a connector, and work on the tools from claude.ai.
+- An AI running elsewhere, such as Claude, ChatGPT or a free model on your computer with LM Studio, can also plug into the app as a connector, and work on the tools from there.
 
 You bring your own API key, from one of these providers:
 
@@ -104,7 +106,7 @@ On first launch, a **demo** is waiting: twelve weeks in the life of Camille, who
 The app is in active development. It is used every day, but anything may still change, the shape of the data included. Keep backups.
 
 <!-- status -->
-- Version 0.9.1
+- Version 0.9.2
 - Android 8.0 or later
 - A 64-bit phone (arm64)
 - Languages: English, French
@@ -121,7 +123,7 @@ cd treelune
 ./run build      # the debug APK
 ```
 
-The technical documentation starts at [`docs/reference.md`](docs/reference.md). It is written in French.
+The technical documentation starts at [`docs/reference.md`](docs/reference.md).
 
 ## Licence
 

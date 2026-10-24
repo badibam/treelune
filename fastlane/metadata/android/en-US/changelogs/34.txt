@@ -1,0 +1,6 @@
+- Structured data is now called Records
+- A goal attempt can hold fields of your own, noted while it runs
+- Without shortcuts, a tracking's free entry bears the tracking's name
+- Charts, goals and flashcards update at any change in the tools they read
+- Fixed: empty rows left above a routine after resizing a zone's tiles
+- The AI reads each tool type in a clearer, shorter form
