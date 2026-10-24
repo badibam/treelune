@@ -127,8 +127,9 @@ class OwnedFiles private constructor(
             }
 
         /**
-         * The slots of the FILE settings [nodes] declare in [config], down its groups, its lists
-         * of groups and every case of its variants (a case not chosen still holds what it holds).
+         * The slots of the FILE settings [nodes] declare in [config], and of the constants of its
+         * file terms, down its groups, its lists of groups and every case of its variants (a case
+         * not chosen still holds what it holds).
          */
         fun configSlots(nodes: List<SettingNode>, config: JSONObject): List<Slot> = nodes.flatMap { node ->
             when (node) {
@@ -141,8 +142,12 @@ class OwnedFiles private constructor(
                 }.orEmpty()
                 is SettingNode.Variant -> node.cases.values.flatMap { configSlots(it, config) }
                 is SettingNode.Section -> configSlots(node.nodes, config)
-                is SettingNode.Condition, is SettingNode.Term, is SettingNode.Selection,
-                is SettingNode.Period, is SettingNode.Instants -> emptyList()
+                // A file's term holds its fixed files as its constant, the tool's own
+                is SettingNode.Term -> node.value?.takeIf { it.type == FieldType.FILE }?.let { value ->
+                    config.optJSONObject(node.name)?.takeIf { it.has(app.treelune.core.terms.Term.Kind.CONSTANT.key) }
+                        ?.let { listOf(Slot(it, app.treelune.core.terms.Term.Kind.CONSTANT.key, FileField.kinds(value.config))) }
+                }.orEmpty()
+                is SettingNode.Condition, is SettingNode.Selection, is SettingNode.Period, is SettingNode.Instants -> emptyList()
             }
         }
 

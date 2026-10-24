@@ -711,8 +711,8 @@ private fun NodeForm(
                 UI.Text(text = node.label, type = TextType.SUBTITLE)
                 app.treelune.core.ui.selectors.TermPicker(
                     term = config.optJSONObject(node.name) ?: JSONObject(),
-                    // A constant here has no other side to take its type from: a number
-                    constantField = app.treelune.core.fields.FieldDefinition(node.name, node.label, null, app.treelune.core.fields.FieldType.NUMERIC, false, null),
+                    // A constant here has no other side to take its type from: what the term declares, a number by default
+                    constantField = node.value ?: app.treelune.core.fields.FieldDefinition(node.name, node.label, null, app.treelune.core.fields.FieldType.NUMERIC, false, null),
                     onChange = { set(node.name, it) },
                     s = s,
                     where = app.treelune.core.ui.selectors.ReadingContext(node.reference, node.emptyPeriod, perEntry = false),

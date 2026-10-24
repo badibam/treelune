@@ -37,8 +37,8 @@ import kotlinx.coroutines.withContext
  * The input of a FILE field (docs/DATA.md, « FILE »): its files in a row, each with buttons to
  * move it left or right and to take it off, and, while the field holds fewer than its max, a
  * button per way to add what it takes — a photo taken (IMAGE), a video filmed (VIDEO), a sound
- * recorded (AUDIO), each by the phone's own app, and a file chosen on the phone among the kinds
- * it takes. An image is reduced, unless « Keep the original » is ticked: the images added then are
+ * recorded (AUDIO), each by the phone's own app, a file chosen on the phone among the kinds it
+ * takes, and the files of another entry's field copied once (« Copy from a tool »). An image is reduced, unless « Keep the original » is ticked: the images added then are
  * kept byte for byte. A file added is set aside at once (files.prepare), until the entry is written; a file
  * taken off goes from the value, and the entry's write deletes it.
  *
@@ -54,6 +54,7 @@ fun FileInput(fieldDef: FieldDefinition, value: Any?, onChange: (Any?) -> Unit, 
     val max = FileField.max(fieldDef.config)
     val kinds = FileField.kinds(fieldDef.config)
     var open by remember { mutableStateOf<Int?>(null) }
+    var copying by remember { mutableStateOf(false) }
     // The images added next kept whole, their metadata with them, rather than reduced
     var original by rememberSaveable { mutableStateOf(false) }
 
@@ -126,6 +127,7 @@ fun FileInput(fieldDef: FieldDefinition, value: Any?, onChange: (Any?) -> Unit, 
                         UI.Toast(s.shared("file_no_recorder"), Duration.LONG)
                     }
                 })
+                UI.ActionButton(action = ButtonAction.COPY, display = ButtonDisplay.ICON, size = Size.S, onClick = { copying = true })
                 UI.ActionButton(action = ButtonAction.DEVICE, display = ButtonDisplay.ICON, size = Size.S, onClick = {
                     // The photo and video picker when the field takes nothing else, the phone's files otherwise
                     val media = when {
@@ -180,6 +182,36 @@ fun FileInput(fieldDef: FieldDefinition, value: Any?, onChange: (Any?) -> Unit, 
     }
 
     open?.let { index -> Opened(ids, index) { open = null } }
+
+    if (copying) {
+        app.treelune.core.ui.selectors.EntryFieldPicker(
+            title = s.shared("file_copy_from_tool"),
+            // A file field of a kind this one takes; what each file is gets checked on writing
+            accepts = { it.type == app.treelune.core.fields.FieldType.FILE && FileField.kinds(it.config).any { kind -> kind in kinds } },
+            onDismiss = { copying = false },
+            onPick = { picked ->
+                copying = false
+                scope.launch {
+                    val copied = FileCopies.of(context, picked)
+                    if (copied == null) UI.Toast(s.shared("error_loading_options"), Duration.LONG)
+                    // Its value as it is now, copied once: the write makes each file this place's own
+                    else changed((current + copied).distinct().let { all -> max?.let { all.take(it) } ?: all })
+                }
+            }
+        )
+    }
+}
+
+/** What copying from a tool reads: an entry's file field's value as it is now. */
+object FileCopies {
+    /** The file ids the field of the entry [designated] holds; null when they cannot be read. */
+    suspend fun of(context: Context, designated: app.treelune.core.selection.Reference): List<String>? {
+        val result = Coordinator(context).processUserAction("tool_data.get_single", mapOf("entry_id" to designated.id))
+        if (!result.isSuccess) return null
+        @Suppress("UNCHECKED_CAST")
+        val entry = result.data?.get("entry") as? Map<String, Any?> ?: return null
+        return FileField.ids(app.treelune.core.reading.FieldReading.valueAt(entry, designated.field ?: return null))
+    }
 }
 
 /** File [index] of [ids] opened over the screen: an image among the images, a video playing, a text to read. */

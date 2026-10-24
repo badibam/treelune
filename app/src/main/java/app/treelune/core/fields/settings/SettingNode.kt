@@ -176,6 +176,9 @@ sealed class SettingNode {
      *
      * @property reference The name of the instant it is read at, which its relative dates resolve against
      * @property emptyPeriod What a reading without a period of its own reads there
+     * @property value What its values are, a field the constant is entered as; null for a number.
+     *   A FILE value's constant is files the tool owns (OwnedFiles), its reading a field of an
+     *   entry followed, a file field of a single file of the kinds it takes (ConfigTerms)
      */
     data class Term(
         val name: String,
@@ -183,7 +186,8 @@ sealed class SettingNode {
         val kinds: Set<app.treelune.core.terms.Term.Kind>,
         val reference: String,
         val emptyPeriod: String?,
-        val required: Boolean = false
+        val required: Boolean = false,
+        val value: FieldDefinition? = null
     ) : SettingNode()
 
     /**

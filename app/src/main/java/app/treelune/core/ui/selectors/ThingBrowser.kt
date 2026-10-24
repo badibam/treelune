@@ -38,11 +38,14 @@ private data class Place(
  * zone, its tools then its variables, group by group as its screen shows them, those outside any
  * group last. An entry is searched by its label.
  *
+ * With [fields], an entry has a last notch: its fields that [fields] accepts (a file field of
+ * the kinds expected), one of which the path then reaches.
+ *
  * It only moves [path]: what the place reached means, and whether it can be chosen, is the
  * caller's.
  */
 @Composable
-fun ThingBrowser(path: ThingPath, onPath: (ThingPath) -> Unit, target: ReferenceTarget) {
+fun ThingBrowser(path: ThingPath, onPath: (ThingPath) -> Unit, target: ReferenceTarget, fields: ((app.treelune.core.fields.FieldDefinition) -> Boolean)? = null) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     var query by rememberSaveable(path.tool?.id) { mutableStateOf("") }
@@ -51,14 +54,18 @@ fun ThingBrowser(path: ThingPath, onPath: (ThingPath) -> Unit, target: Reference
     var groups by remember { mutableStateOf<List<String>>(emptyList()) }
     var failed by remember { mutableStateOf(false) }
     val searching = path.kind == ReferenceKind.TOOL_INSTANCE && ReferenceKind.ENTRY in target.kinds
+    // An entry's fields, the last notch, when asked for
+    val fieldNotch = fields != null && path.entry != null && path.field == null
+    val entryFields = rememberToolFields(path.tool?.id?.takeIf { fieldNotch })
     // Nothing is listed below a place when nothing deeper is taken (a tool, for the pointer)
-    val deeper = target.kinds.any { it in path.kind.below }
+    val deeper = target.kinds.any { it in path.kind.below } || fieldNotch
 
     LaunchedEffect(path.zone?.id, path.tool?.id, path.variable?.id, path.entry?.id, query) {
         places = null
         groups = emptyList()
         failed = false
         if (!deeper) { places = emptyList(); return@LaunchedEffect }
+        if (fieldNotch) return@LaunchedEffect
         val result = Coordinator(context).processUserAction("references.choices", buildMap {
             put("kinds", target.kinds.map { it.name })
             if (target.toolInstances.isNotEmpty()) put("tool_instances", target.toolInstances)
@@ -94,7 +101,7 @@ fun ThingBrowser(path: ThingPath, onPath: (ThingPath) -> Unit, target: Reference
         if (searching) {
             UI.FormField(label = s.shared("field_reference_search"), value = query, onChange = { query = it }, required = false)
         }
-        val current = places
+        val current = if (fieldNotch) entryFields.filterValues { fields!!(it) }.map { (key, field) -> Place(path.copy(field = Named(key, field.displayName))) } else places
         when {
             failed -> UI.Text(text = s.shared("error_loading_options"), type = TextType.ERROR)
             !deeper -> Unit
@@ -125,7 +132,7 @@ private fun PlaceRow(place: Place, onPath: (ThingPath) -> Unit) {
     ) {
         place.icon?.takeIf { it.isNotBlank() }?.let { UI.ItemIcon(iconName = it, color = place.iconColor) }
         Column(modifier = Modifier.weight(1f)) {
-            UI.Text(text = place.path.entry?.name ?: place.path.variable?.name ?: place.path.tool?.name ?: place.path.zone!!.name, type = TextType.BODY)
+            UI.Text(text = place.path.field?.name ?: place.path.entry?.name ?: place.path.variable?.name ?: place.path.tool?.name ?: place.path.zone!!.name, type = TextType.BODY)
             place.detail?.let { UI.Text(text = it, type = TextType.CAPTION) }
         }
         UI.ActionButton(action = ButtonAction.SELECT, onClick = { onPath(place.path) })
@@ -140,13 +147,15 @@ private fun Trail(path: ThingPath, appName: String, onUp: (ReferenceKind) -> Uni
         path.zone?.let { ReferenceKind.ZONE to it.name },
         path.tool?.let { ReferenceKind.TOOL_INSTANCE to it.name },
         path.variable?.let { ReferenceKind.VARIABLE to it.name },
-        path.entry?.let { ReferenceKind.ENTRY to it.name }
+        path.entry?.let { ReferenceKind.ENTRY to it.name },
+        // The field, the last notch, goes back up to its entry like any step
+        path.field?.let { null to it.name }
     )
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
         steps.forEachIndexed { i, (kind, name) ->
             if (i > 0) UI.Icon(iconName = "chevron-right", size = 20.dp)
             val last = i == steps.lastIndex
-            Box(modifier = if (last) Modifier else Modifier.clickable { onUp(kind) }) {
+            Box(modifier = if (last || kind == null) Modifier else Modifier.clickable { onUp(kind) }) {
                 UI.Text(text = name, type = if (last) TextType.SUBTITLE else TextType.BODY)
             }
         }

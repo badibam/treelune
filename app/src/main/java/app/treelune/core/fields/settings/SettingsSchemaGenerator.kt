@@ -179,11 +179,14 @@ object SettingsSchemaGenerator {
         val properties = JSONObject()
         val forms = node.kinds.sortedBy { it.ordinal }.map { kind ->
             properties.put(kind.key, when (kind) {
-                app.treelune.core.terms.Term.Kind.CONSTANT -> JSONObject().put("type", JSONArray().put("number").put("string").put("boolean").put("array"))
+                app.treelune.core.terms.Term.Kind.CONSTANT -> node.value?.let { FieldValueSchema.of(it) }
+                    ?: JSONObject().put("type", JSONArray().put("number").put("string").put("boolean").put("array"))
                 app.treelune.core.terms.Term.Kind.VARIABLE -> JSONObject().put("type", "string")
                 app.treelune.core.terms.Term.Kind.READING -> JSONObject().put("type", "object")
             })
-            text("term_schema_${kind.key}")
+            // A file's reading follows one entry's field, said apart
+            if (kind == app.treelune.core.terms.Term.Kind.READING && node.value?.type == app.treelune.core.fields.FieldType.FILE) text("term_schema_reading_file")
+            else text("term_schema_${kind.key}")
         }
         return JSONObject()
             .put("type", "object")

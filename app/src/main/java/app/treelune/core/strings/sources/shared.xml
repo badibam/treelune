@@ -230,6 +230,7 @@
     <string name="term_schema_constant">{\"constant\": ...}, a written value, a date or a duration as everywhere (Part E)</string>
     <string name="term_schema_variable">{\"variable\": \"id\"}, a variable by its id</string>
     <string name="term_schema_reading">{\"reading\": {\"selection\", \"field\"?, \"reduction\"}}, a field of a tool reduced across its entries, counted without a field; its selection\'s period is relative to the instant read, and without one it reads the period the context gives</string>
+    <string name="term_schema_reading_file">{\"reading\": {\"selection\": {\"target\": {\"kind\": \"ENTRY\", \"id\"}}, \"field\", \"reduction\": \"LAST\"}}, a file field of one entry followed, holding a single file of the kinds taken, read again at each use</string>
     <string name="selection_schema_description">Entries of one tool: {\"target\": {\"kind\": \"TOOL_INSTANCE\", \"id\"}, \"filters\"?: [conditions on each entry], \"fields\"?: [paths kept]}; its period is given elsewhere.</string>
     <string name="period_schema_description">A period, {\"start\"?, \"end\"?}, both inclusive, a bound absent for no limit: a fixed instant, or a relative date, {\"relative\": {\"unit\": \"DAY\", \"offset\": -29, \"edge\": \"START\"}} or {\"relative\": \"NOW\"}.</string>
     <string name="instants_schema_description">Instants, each a relative date against the moment the setting says, never a fixed one: {\"relative\": {\"unit\": \"HOUR\", \"offset\": -1, \"edge\": \"SAME\"}} for an hour before, {\"relative\": {\"unit\": \"MINUTE\", \"offset\": -15, \"edge\": \"SAME\"}}, {\"relative\": {\"unit\": \"DAY\", \"offset\": -1, \"edge\": {\"at\": \"18:00\"}}} for the day before at 18:00, {\"relative\": \"NOW\"} for the moment itself.</string>
@@ -1355,6 +1356,7 @@
     <string name="field_type_file_kinds_description">The kinds of file the field takes</string>
     <string name="file_kind_image">Images</string>
     <string name="file_keep_original">Keep the original</string>
+    <string name="file_copy_from_tool">Copy the files of a field</string>
     <string name="image_error_original_format">The original cannot be kept in this format: %1$s</string>
     <string name="file_kind_audio">Audio</string>
     <string name="file_kind_video">Videos</string>
@@ -1664,6 +1666,13 @@
     <string name="variable_term_kind">Kind of term</string>
     <string name="variable_term_reading">Reading of entries</string>
     <string name="variable_term_constant">Fixed value</string>
+    <string name="term_error_file_follow">%1$s: a file is followed in one entry\'s field, {\"selection\": {\"target\": {\"kind\": \"ENTRY\", \"id\"}}, \"field\", \"reduction\": \"LAST\"}.</string>
+    <string name="term_error_file_source">%1$s: the entry followed cannot be read: %2$s</string>
+    <string name="term_error_file_field">%1$s: the field %2$s does not hold a single file of the kinds taken here (%3$s).</string>
+    <string name="term_follow_field">Follow a field</string>
+    <string name="term_follow_pick">Follow the field of an entry</string>
+    <string name="term_follows">Follows: %1$s</string>
+    <string name="term_source_deleted">Source deleted</string>
     <string name="variable_term_variable">Other variable</string>
     <string name="variable_reading_what">What is read</string>
     <string name="variable_reading_count">The entries, counted</string>
