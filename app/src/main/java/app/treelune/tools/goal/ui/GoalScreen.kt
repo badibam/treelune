@@ -214,7 +214,10 @@ private fun AttemptCard(
             UI.Text(s.tool("status_${attempt.status}") + (attempt.validatedBy?.let { " · " + s.tool("validated_by_$it") } ?: ""), TextType.LABEL)
             if (loaded == null) { UI.LoadingIndicator(); return@Column }
             val criteria = (loaded["criteria"] as? List<*> ?: emptyList<Any>()).filterIsInstance<Map<*, *>>()
-            UI.Text(s.tool("count").format(loaded["met"], loaded["required"]) + " · " + s.tool("verdict_${(loaded["verdict"] as? String ?: "UNKNOWN").lowercase()}"), TextType.SUBTITLE)
+            // A verdict "no" while the attempt runs is not a failure yet: its time is not up
+            val verdict = (loaded["verdict"] as? String ?: "UNKNOWN").lowercase()
+                .let { if (it == "no" && attempt.status == GoalToolType.Status.ACTIVE) "not_yet" else it }
+            UI.Text(s.tool("count").format(loaded["met"], loaded["required"]) + " · " + s.tool("verdict_$verdict"), TextType.SUBTITLE)
             attempt.periodEnd?.takeIf { attempt.status == GoalToolType.Status.ACTIVE }?.let { end ->
                 val left = end - System.currentTimeMillis()
                 // In the units of the goal's duration, days and hours; in minutes for the last hour, which would read 0 h

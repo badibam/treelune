@@ -86,6 +86,7 @@
     <string name="time_left">reste %1$s</string>
     <string name="verdict_yes">Atteint</string>
     <string name="verdict_no">Manqué</string>
+    <string name="verdict_not_yet">Pas encore atteint</string>
     <string name="verdict_unknown">Pas encore connu</string>
     <string name="met_yes">rempli</string>
     <string name="met_no">non rempli</string>
