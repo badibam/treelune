@@ -20,6 +20,13 @@ La brique Image (`docs/DATA.md`, « IMAGE ») s'étend au son et à la vidéo : 
 
 À trancher : les formats gardés, la taille au-delà de laquelle un fichier est refusé, la réduction (une vidéo réduite comme une photo l'est), ce que l'IA lit d'un média (sa durée et sa taille, comme une image ses dimensions).
 
+Option non tranchée, posséder ou retenir : un endroit tient un fichier en le possédant (il part avec lui, est supprimé quand on le retire) ou en le retenant (il le nomme sans le posséder, et le fichier ne peut disparaître tant qu'il le nomme) ; un fichier vit tant qu'il a un propriétaire ou une rétention. Chaque endroit déclare sa manière : un choix, pas une exception. L'annulation retient déjà, sans le dire (le nettoyage au démarrage recalcule ce que l'historique des écritures nomme, `Images.kt`).
+
+- En base : la table des médias (l'actuelle `images`, avec `kind` et `duration_ms`) garde au plus un propriétaire, qui ne l'emporte plus en partant (`ON DELETE SET NULL`) ; une table `media_retentions` (`media_id`, `reason`, l'entrée ou l'étape de l'historique qui retient, en cascade).
+- Ce qui n'est plus que retenu se liste par raison, avec sa taille (« 14 fichiers, 230 Mo, gardés par l'historique des séances »), et se libère en supprimant ces rétentions.
+- Premier usage possible : l'historique d'une séance qui garde, pour chaque étape jouée, d'où venait son média (une Référence qui descend jusqu'à un champ, « Fiche du 24 › Induction », elle aussi non tranchée) et retient le fichier joué, pour qu'une séance faite ne change plus.
+- À mesurer : ce que coûte de faire écrire ses rétentions à l'historique des écritures.
+
 ## 2. Le pointeur vers une entrée, la Lecture d'un média
 
 Une référence garde une adresse et suit sa source ; une copie prend une valeur et coupe le lien. Le Terme (`docs/BRICKS.md`) porte déjà les deux : une constante est une valeur, une Lecture une adresse relue à chaque usage. Suivre le média d'un outil est une Lecture.
