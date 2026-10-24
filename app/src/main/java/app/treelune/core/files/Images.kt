@@ -158,4 +158,47 @@ object Images {
         check(file.exists()) { "Image $id: its file is missing" }
         return java.util.Base64.getEncoder().encodeToString(file.readBytes())
     }
+
+    /**
+     * Whether the image file [file] is turned a quarter by its EXIF: an original keeps the turn the
+     * camera noted, which only the showing applies; a reduced image is written upright, without it.
+     */
+    fun quarterTurned(file: java.io.File): Boolean = orientationOf(file) in setOf(
+        ExifInterface.ORIENTATION_ROTATE_90, ExifInterface.ORIENTATION_ROTATE_270,
+        ExifInterface.ORIENTATION_TRANSPOSE, ExifInterface.ORIENTATION_TRANSVERSE
+    )
+
+    /** The EXIF orientation of the image file [file]; normal for one that holds none or cannot say. */
+    fun orientationOf(file: java.io.File): Int = try {
+        ExifInterface(file.path).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+    } catch (e: java.io.IOException) {
+        ExifInterface.ORIENTATION_NORMAL
+    }
+
+    /** [bitmap] turned and mirrored as [orientation] asks, to be shown upright; itself when normal. */
+    fun upright(bitmap: Bitmap, orientation: Int): Bitmap {
+        if (orientation == ExifInterface.ORIENTATION_NORMAL || orientation == ExifInterface.ORIENTATION_UNDEFINED) return bitmap
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, orientationMatrix(orientation), true)
+    }
+
+    /**
+     * Whether the image [row] goes to a model as it is: a JPEG or a PNG no larger than [LONG_SIDE].
+     * An original that is not is reduced on its way into a conversation (FileService.show_images),
+     * the original itself left intact.
+     */
+    fun readyForModel(row: FileEntity): Boolean =
+        (row.fileFormat == FileFormat.JPEG || row.fileFormat == FileFormat.PNG) && max(row.width ?: 0, row.height ?: 0) <= LONG_SIDE
+
+    /**
+     * The image at [uri] kept as the original, byte for byte, its metadata with it, the GPS
+     * position included: its format by its [mediaType] or its [name], among those an image keeps.
+     *
+     * @throws IllegalArgumentException if it is not one of these formats
+     */
+    fun original(resolver: ContentResolver, uri: Uri, mediaType: String?, name: String?): Pair<FileFormat, ByteArray> {
+        val format = FileFormat.ofOriginalImage(mediaType, name) ?: throw IllegalArgumentException(
+            "${name ?: uri}: ${FileFormat.entries.filter { it.kind == FileKind.IMAGE }.joinToString(", ") { it.name }}")
+        val bytes = resolver.openInputStream(uri)?.use { it.readBytes() } ?: throw IllegalArgumentException("${name ?: uri} not read")
+        return format to bytes
+    }
 }

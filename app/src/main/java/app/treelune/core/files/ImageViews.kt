@@ -78,7 +78,8 @@ private fun rememberImage(imageId: String, heightPx: Int?): ImageLoad {
                 while (bounds.outHeight / (sample * 2) >= heightPx) sample *= 2
                 options.inSampleSize = max(1, sample)
             }
-            BitmapFactory.decodeFile(file.path, options)?.let { ImageLoad.Loaded(it) } ?: ImageLoad.Missing
+            // An original keeps the turn its camera noted, applied here
+            BitmapFactory.decodeFile(file.path, options)?.let { ImageLoad.Loaded(Images.upright(it, Images.orientationOf(file))) } ?: ImageLoad.Missing
         }
     }
     return load

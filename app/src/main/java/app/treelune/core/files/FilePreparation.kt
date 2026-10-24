@@ -16,7 +16,8 @@ import java.util.UUID
  * the tool that holds it is written (OwnedFiles). Its name, when it came with one, waits beside it
  * (Files.pendingName).
  *
- * - An image is reduced as a photo is (Images.prepare); the name of a photo is left behind.
+ * - An image is reduced as a photo is (Images.prepare), or kept as the original, byte for byte,
+ *   when asked (Images.original); the name of a photo is left behind.
  * - An audio or a video is copied as it came, never encoded again, held to its kind's size, and
  *   refused when Android cannot play it (FileDescription.read).
  * - A text is read as UTF-8, its byte order mark left out; a file that is not text is refused.
@@ -48,11 +49,11 @@ object FilePreparation {
     }.distinct().toTypedArray()
 
     /**
-     * The file at [uri] set aside, if it is of one of [kinds].
+     * The file at [uri] set aside, if it is of one of [kinds]; an image kept whole when [original].
      *
      * @param text The shared strings, for a refusal
      */
-    fun prepare(context: Context, uri: Uri, kinds: Collection<FileKind>, text: (String) -> String): Result {
+    fun prepare(context: Context, uri: Uri, kinds: Collection<FileKind>, original: Boolean = false, text: (String) -> String): Result {
         val resolver = context.contentResolver
         val (name, knownSize) = resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE), null, null, null)?.use { cursor ->
             if (cursor.moveToFirst()) (if (cursor.isNull(0)) null else cursor.getString(0)) to (if (cursor.isNull(1)) null else cursor.getLong(1))
@@ -75,7 +76,19 @@ object FilePreparation {
         val id = UUID.randomUUID().toString()
         val dir = Files.pendingDir(context).apply { mkdirs() }
         return when (kind) {
-            FileKind.IMAGE -> try {
+            FileKind.IMAGE -> if (original) try {
+                val (format, bytes) = Images.original(resolver, uri, mediaType, name)
+                val target = File(dir, format.fileName(id))
+                Files.write(target, bytes)
+                try {
+                    Result.Done(id, FileDescription.read(target, format, null), animated = Images.animated(bytes.copyOf(minOf(bytes.size, 64 * 1024))))
+                } catch (e: IllegalArgumentException) {
+                    Files.deleteFile(target)
+                    Result.Refused(text("image_error_not_read").format(e.message ?: ""))
+                }
+            } catch (e: IllegalArgumentException) {
+                Result.Refused(text("image_error_original_format").format(e.message ?: ""))
+            } else try {
                 val prepared = Images.prepare(resolver, uri)
                 Files.write(File(dir, prepared.format.fileName(id)), prepared.bytes)
                 Result.Done(id, FileDescription(prepared.format, null, prepared.bytes.size.toLong(), width = prepared.width, height = prepared.height), prepared.animated)

@@ -44,8 +44,11 @@ data class FileDescription(
             FileKind.IMAGE -> {
                 val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
                 BitmapFactory.decodeFile(file.path, bounds)
-                require(bounds.outWidth > 0 && bounds.outHeight > 0) { "${file.name} is no image" }
-                FileDescription(format, name, file.length(), width = bounds.outWidth, height = bounds.outHeight)
+                require(bounds.outWidth > 0 && bounds.outHeight > 0) { "${file.name} is no image this phone reads" }
+                // An original turned a quarter by its EXIF is as wide as it is shown, not as it is stored
+                val turned = Images.quarterTurned(file)
+                FileDescription(format, name, file.length(),
+                    width = if (turned) bounds.outHeight else bounds.outWidth, height = if (turned) bounds.outWidth else bounds.outHeight)
             }
             FileKind.AUDIO, FileKind.VIDEO -> FileDescription(format, name, file.length(), durationMs = mediaDuration(file, format.kind))
             FileKind.TEXT -> FileDescription(format, name, file.length(), lineCount = FileLines.count(file.readText(Charsets.UTF_8)))

@@ -35,12 +35,14 @@ import java.util.UUID
  *   `size_bytes`, `format` and `animated` (only its first frame kept).
  * - show_images: `session_id`, `ids`: images of entries brought into the conversation, as if the
  *   user had joined them, for the model to see them (the AI's IMAGES): each copied as an image
- *   of the session, one already the session's kept as it is. Refused for a model that does not
+ *   of the session, reduced on the way when it is an original a model does not read as it is
+ *   (Images.readyForModel), one already the session's kept as it is. Refused for a model that does not
  *   read images, or of which nothing says it does. Answer: `images` (each one's `id` in the
  *   conversation, its `source_id`, `width` and `height`) and `image_ids`, the conversation's.
  *
  * The files of a form (docs/DATA.md, « FILE »):
- * - prepare: `uri`, `kinds` (the FileKind names its place takes): the file of the phone set aside
+ * - prepare: `uri`, `kinds` (the FileKind names its place takes), `original` (an image kept byte
+ *   for byte, its metadata with it, not reduced): the file of the phone set aside
  *   without a row until the entry or the tool is written (FilePreparation, OwnedFiles). Answer:
  *   its `id`, `kind`, `format`, `size_bytes`, and what goes with its kind: `width`, `height` and
  *   `animated` for an image, `duration_ms` for an audio or a video, `name` and `line_count` for a
@@ -102,7 +104,7 @@ class FileService(private val context: Context) : ExecutableService {
             ?: return OperationResult.error(s.shared("service_error_missing_required_params").format("uri"))
         val kinds = params.optJSONArray("kinds")?.let { array -> (0 until array.length()).mapNotNull { i -> FileKind.entries.firstOrNull { it.name == array.getString(i) } } }
             ?.takeIf { it.isNotEmpty() } ?: return OperationResult.error(s.shared("service_error_missing_required_params").format("kinds"))
-        return when (val prepared = FilePreparation.prepare(context, android.net.Uri.parse(uri), kinds, s::shared)) {
+        return when (val prepared = FilePreparation.prepare(context, android.net.Uri.parse(uri), kinds, original = params.optBoolean("original"), text = s::shared)) {
             is FilePreparation.Result.Refused -> OperationResult.error(prepared.message)
             is FilePreparation.Result.Done -> {
                 val d = prepared.description
@@ -123,14 +125,21 @@ class FileService(private val context: Context) : ExecutableService {
         // Never shown to a model that would not see them: it would answer on images it never saw
         val reads = app.treelune.core.ai.providers.ImageInput.sessionModelReadsImages(context, sessionId)
         app.treelune.core.ai.providers.ImageInput.refusal(ids.size, reads) { s.shared(it) }?.let { return OperationResult.error(it) }
-        val sources = ids.map { id -> dao.getById(id) ?: return OperationResult.error(s.shared("image_error_not_found").format(id)) }
+        val sources = ids.map { id -> dao.getById(id)?.takeIf { it.fileKind == FileKind.IMAGE } ?: return OperationResult.error(s.shared("image_error_not_found").format(id)) }
         val now = System.currentTimeMillis()
         val shown = sources.map { source ->
             if (source.sessionId == sessionId) source
-            else source.copy(id = UUID.randomUUID().toString(), sessionId = sessionId, entryId = null, createdAt = now).also { copy ->
+            else if (Images.readyForModel(source)) source.copy(id = UUID.randomUUID().toString(), sessionId = sessionId, entryId = null, toolInstanceId = null, createdAt = now).also { copy ->
                 // The file first, as for any image: an interruption leaves a file the sweep removes
                 Files.copy(Files.file(context, source), Files.file(context, copy))
                 writes.insertFile(copy)
+            } else {
+                // An original goes to the model reduced, as a photo joined would; it stays whole in its entry
+                val reduced = Images.prepare(context.contentResolver, android.net.Uri.fromFile(Files.file(context, source)))
+                FileEntity.image(UUID.randomUUID().toString(), sessionId, null, null, reduced.format, reduced.bytes.size.toLong(), reduced.width, reduced.height, now).also { copy ->
+                    Files.write(Files.file(context, copy), reduced.bytes)
+                    writes.insertFile(copy)
+                }
             }
         }
         return OperationResult.success(mapOf(

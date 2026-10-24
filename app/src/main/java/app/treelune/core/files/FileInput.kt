@@ -38,7 +38,8 @@ import kotlinx.coroutines.withContext
  * move it left or right and to take it off, and, while the field holds fewer than its max, a
  * button per way to add what it takes — a photo taken (IMAGE), a video filmed (VIDEO), a sound
  * recorded (AUDIO), each by the phone's own app, and a file chosen on the phone among the kinds
- * it takes. A file added is set aside at once (files.prepare), until the entry is written; a file
+ * it takes. An image is reduced, unless « Keep the original » is ticked: the images added then are
+ * kept byte for byte. A file added is set aside at once (files.prepare), until the entry is written; a file
  * taken off goes from the value, and the entry's write deletes it.
  *
  * The value is the list of ids, null once empty: no file is no answer.
@@ -53,13 +54,15 @@ fun FileInput(fieldDef: FieldDefinition, value: Any?, onChange: (Any?) -> Unit, 
     val max = FileField.max(fieldDef.config)
     val kinds = FileField.kinds(fieldDef.config)
     var open by remember { mutableStateOf<Int?>(null) }
+    // The images added next kept whole, their metadata with them, rather than reduced
+    var original by rememberSaveable { mutableStateOf(false) }
 
     fun changed(next: List<String>) = onChange(next.takeIf { it.isNotEmpty() })
 
     /** The file at [uri] set aside and added after the others, then [afterwards]. */
     fun add(uri: android.net.Uri, afterwards: () -> Unit = {}) {
         scope.launch {
-            val result = Coordinator(context).processUserAction("files.prepare", mapOf("uri" to uri.toString(), "kinds" to kinds.map { it.name }))
+            val result = Coordinator(context).processUserAction("files.prepare", mapOf("uri" to uri.toString(), "kinds" to kinds.map { it.name }, "original" to original))
             afterwards()
             if (result.isSuccess) {
                 changed(current + (result.data!!["id"] as String))
@@ -134,6 +137,10 @@ fun FileInput(fieldDef: FieldDefinition, value: Any?, onChange: (Any?) -> Unit, 
                     if (media != null) visual.launch(PickVisualMediaRequest(media)) else document.launch(FilePreparation.pickerTypes(kinds))
                 })
             }
+        }
+
+        if (FileKind.IMAGE in kinds && (max == null || ids.size < max)) {
+            UI.Checkbox(checked = original, onCheckedChange = { original = it }, label = s.shared("file_keep_original"))
         }
 
         if (ids.isNotEmpty()) {

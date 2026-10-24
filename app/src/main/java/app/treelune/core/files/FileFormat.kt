@@ -17,7 +17,8 @@ enum class FileKind(val maxBytes: Long?) {
 /**
  * What a kept file is written as, which says its kind. A photo stays a JPEG; a PNG stays a PNG,
  * without loss, its transparency kept: a screenshot or a diagram would blur as a JPEG. Any other
- * image format becomes one of the two (Images.formatFor). An audio and a video are kept as they
+ * image format becomes one of the two (Images.formatFor), but for an image kept as the original,
+ * byte for byte, in its own format among these (Images.original). An audio and a video are kept as they
  * came, never encoded again, in a format Android plays without anything added: their [mediaTypes]
  * and [extensions] are how a file is recognised. A text is kept as UTF-8, its name on the phone
  * saying what it holds ("aliments.csv").
@@ -29,6 +30,9 @@ enum class FileKind(val maxBytes: Long?) {
 enum class FileFormat(val kind: FileKind, val extension: String, val mediaTypes: List<String>, val extensions: List<String> = listOf(extension)) {
     JPEG(FileKind.IMAGE, "jpg", listOf("image/jpeg")),
     PNG(FileKind.IMAGE, "png", listOf("image/png")),
+    WEBP(FileKind.IMAGE, "webp", listOf("image/webp")),
+    HEIC(FileKind.IMAGE, "heic", listOf("image/heic", "image/heif"), listOf("heic", "heif")),
+    GIF(FileKind.IMAGE, "gif", listOf("image/gif")),
     MP3(FileKind.AUDIO, "mp3", listOf("audio/mpeg", "audio/mp3")),
     M4A(FileKind.AUDIO, "m4a", listOf("audio/mp4", "audio/x-m4a", "audio/m4a")),
     AAC(FileKind.AUDIO, "aac", listOf("audio/aac", "audio/aacp", "audio/x-aac")),
@@ -44,6 +48,14 @@ enum class FileFormat(val kind: FileKind, val extension: String, val mediaTypes:
     fun fileName(id: String): String = "$id.$extension"
 
     companion object {
+        /** The image format of an original that comes as [mediaType], named [name]; null for any other. */
+        fun ofOriginalImage(mediaType: String?, name: String?): FileFormat? {
+            val images = entries.filter { it.kind == FileKind.IMAGE }
+            mediaType?.lowercase()?.let { type -> images.firstOrNull { type in it.mediaTypes }?.let { return it } }
+            val extension = name?.substringAfterLast('.', "")?.lowercase()?.takeIf { it.isNotEmpty() } ?: return null
+            return images.firstOrNull { extension in it.extensions || (it == JPEG && extension == "jpeg") }
+        }
+
         /** The format whose kept files end with [extension], null for any other. */
         fun ofExtension(extension: String): FileFormat? = entries.firstOrNull { it.extension == extension }
 

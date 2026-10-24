@@ -20,7 +20,8 @@ import java.io.File
 /**
  * What docs/DATA.md (« FILE ») promises of a file of the phone added to a form: its kind told from
  * its type or its name, held to the kinds its place takes; a text read as UTF-8 and set aside with
- * its name, which the entry's row then keeps; an audio or a video known by its type or its name.
+ * its name, which the entry's row then keeps; an audio or a video known by its type or its name;
+ * an image kept as the original byte for byte, reduced only on its way to a model.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -55,6 +56,24 @@ class FilePreparationTest {
         assertTrue(latin is FilePreparation.Result.Refused)
         val binary = FilePreparation.prepare(context, phoneFile("bin.txt", byteArrayOf(0x61, 0x00, 0x62)), listOf(FileKind.TEXT)) { it }
         assertTrue(binary is FilePreparation.Result.Refused)
+    }
+
+    @Test
+    fun `an image kept as the original is kept byte for byte, in its own format`() {
+        val bytes = byteArrayOf(0x52, 0x49, 0x46, 0x46, 1, 2, 3, 4)
+        val prepared = FilePreparation.prepare(context, phoneFile("garden.webp", bytes), listOf(FileKind.IMAGE), original = true) { it }
+        val done = prepared as FilePreparation.Result.Done
+        assertEquals(FileFormat.WEBP, done.description.format)
+        val kept = Files.pendingFile(context, done.id)!!
+        assertTrue(bytes.contentEquals(kept.readBytes()))
+    }
+
+    @Test
+    fun `an image goes to a model as it is only as a JPEG or a PNG within the long side`() {
+        fun image(format: FileFormat, side: Int) = FileEntity.image("i", null, "e", null, format, 1, side, side / 2, 0)
+        assertTrue(Images.readyForModel(image(FileFormat.JPEG, Images.LONG_SIDE)))
+        assertFalse(Images.readyForModel(image(FileFormat.JPEG, Images.LONG_SIDE + 1)))
+        assertFalse(Images.readyForModel(image(FileFormat.HEIC, 800)))
     }
 
     @Test

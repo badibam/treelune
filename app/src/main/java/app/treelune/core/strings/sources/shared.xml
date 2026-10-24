@@ -1354,6 +1354,8 @@
     <string name="field_config_file_kinds">Takes</string>
     <string name="field_type_file_kinds_description">The kinds of file the field takes</string>
     <string name="file_kind_image">Images</string>
+    <string name="file_keep_original">Keep the original</string>
+    <string name="image_error_original_format">The original cannot be kept in this format: %1$s</string>
     <string name="file_kind_audio">Audio</string>
     <string name="file_kind_video">Videos</string>
     <string name="file_kind_text">Texts</string>

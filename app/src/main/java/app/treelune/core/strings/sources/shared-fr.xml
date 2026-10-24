@@ -1354,6 +1354,8 @@
     <string name="field_config_file_kinds">Accepte</string>
     <string name="field_type_file_kinds_description">Les sortes de fichiers que le champ accepte</string>
     <string name="file_kind_image">Images</string>
+    <string name="file_keep_original">Garder l\'original</string>
+    <string name="image_error_original_format">L\'original ne peut pas être gardé dans ce format : %1$s</string>
     <string name="file_kind_audio">Audios</string>
     <string name="file_kind_video">Vidéos</string>
     <string name="file_kind_text">Textes</string>
