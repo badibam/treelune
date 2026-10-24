@@ -35,12 +35,7 @@ La brique Image (`docs/DATA.md`, « IMAGE ») devient la brique Fichier : une ta
 - Formats acceptés : ce qu'Android lit sans rien ajouter — MP3, M4A/AAC, Opus, WAV pour l'audio, MP4 pour la vidéo. Une taille maximale par sorte (de l'ordre de 50 Mo pour un audio, 200 Mo pour une vidéo), refusée en le disant.
 - Un audio et une vidéo sont gardés tels quels, jamais réencodés. Une image est réduite comme aujourd'hui, sauf **Garder l'original**, une case cochée à chaque ajout ; une image gardée en original est réduite au moment de partir vers l'IA (1 568 px), le fichier gardé intact.
 
-Option explorée pendant A, posséder ou retenir : un endroit tient un fichier en le possédant (il part avec lui, est supprimé quand on le retire) ou en le retenant (il le nomme sans le posséder, et le fichier ne peut disparaître tant qu'il le nomme) ; un fichier vit tant qu'il a un propriétaire ou une rétention. Chaque endroit déclare sa manière : un choix, pas une exception. Seul ce qui désigne un fichier sans en être l'endroit retient : un historique. L'annulation retient déjà, sans le dire (le nettoyage au démarrage recalcule ce que l'historique des écritures nomme, `Images.kt`). Un fichier n'est jamais modifié sur place (le remplacer en crée un autre), si bien que rien dans l'app n'altère ce qui est retenu.
-
-- En base : la table des fichiers garde au plus un propriétaire, qui ne l'emporte plus en partant (`ON DELETE SET NULL`) ; une table `file_retentions` (`file_id`, `reason`, l'entrée ou l'étape de l'historique qui retient, en cascade).
-- Ce qui n'est plus que retenu se liste par raison, avec sa taille (« 14 fichiers, 230 Mo, gardés par l'historique des séances »), et se libère en supprimant ces rétentions ; l'historique garde alors la désignation et dit que le fichier a été supprimé.
-- Premier usage possible : l'historique d'une séance qui garde, pour chaque étape jouée, d'où venait son fichier (« Fiche du 24 › Induction ») et retient le fichier joué, pour qu'une séance faite ne change plus, sans copie par séance.
-- À mesurer : ce que coûte de faire écrire ses rétentions à l'historique des écritures.
+Posséder ou retenir, tranché pendant A : posséder seulement. Un fichier a un propriétaire, qui l'emporte en partant, comme aujourd'hui ; une séance finie note pour chaque étape d'où venait son média, en texte (« Fiche du 24 › Induction »). La rétention attend un usage (`TODO.md`, « Idée sans besoin »).
 
 ## 2. La désignation jusqu'au champ, la Lecture d'un fichier
 
@@ -103,5 +98,5 @@ Un fichier envoyé que nulle écriture ne prend est effacé au démarrage suivan
 
 ## Découpage
 
-- **A** : les parties 1 à 3 entières, l'option posséder ou retenir comprise (tranchée pendant A), et l'envoi d'un fichier par le connecteur (ci-dessous). Le montage de la partie 6 se fait alors à la main par le connecteur externe : une IA extérieure dépose les audios dans une Fiche et fait suivre la Séquence.
+- **A** : les parties 1 à 3 entières, et l'envoi d'un fichier par le connecteur (ci-dessous). Le montage de la partie 6 se fait alors à la main par le connecteur externe : une IA extérieure dépose les audios dans une Fiche et fait suivre la Séquence.
 - **B** : les API (partie 4) et les Tâches (partie 5), avec lesquelles la boucle tourne seule.

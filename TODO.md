@@ -88,6 +88,7 @@ Ce qui doit monter dans un module de sagesse (`/update push`).
 - Lire un long texte du connecteur MCP par section (le sommaire des titres `##`, puis une section par son titre), en plus des tranches.
 - Un modèle sous la classe 30B, ou dans l'app sur le téléphone (la campagne 1 du banc : `docs/AI.md`) : un prompt par portée de tâche plutôt que par taille de modèle, une session bornée à une zone ou un outil, le forçage par schéma seul, des exemples choisis selon la demande, un aiguillage vers un mini-prompt, l'appel de fonctions natif, des modèles mélangés par session, un fine-tuning léger en dernier recours — aucune piste mesurée.
 - Des valeurs de champs de l'utilisateur recopiées dans chaque occurrence d'une série d'Agenda.
+- Retenir un fichier sans le posséder (un historique qui le nomme, le fichier gardé tant qu'il le nomme) : une table `file_retentions` (`file_id`, `reason`, ce qui retient), le propriétaire d'un fichier qui ne l'emporte plus en partant (`ON DELETE SET NULL`), ce qui n'est plus que retenu listé par raison avec sa taille et libéré ; premier usage, une séance passée qui rejoue le média de chaque étape. Aujourd'hui un fichier n'a qu'un propriétaire, et une séance note d'où venait chaque média en texte.
 - Un pointeur touché dans un message ouvre sa cible.
 
 ## Écarté
