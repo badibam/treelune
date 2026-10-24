@@ -255,7 +255,7 @@ The query commands read the data without changing it.
 
 Data the user attached (POINTER enrichments) is already in your context, as earlier system messages, complete for the tool, period and filters it names. Use it directly; query only what is missing, filtered differently, or changed since.
 
-A file the user joined (FILE enrichment) comes as a system message too: its `id`, `name`, `mime_type` and `line_count`, with its whole text, or only its first lines when the user chose a preview. Read the rest with FILE; import a table from it with IMPORT_PLAN then IMPORT_DATA, which read the file themselves: never copy its lines into CREATE_DATA.]]></string>
+A file the user joined (FILE enrichment) comes as a system message too: its `id`, `name` and `line_count`, with its whole text, or only its first lines when the user chose a preview. Read the rest with FILE; import a table from it with IMPORT_PLAN then IMPORT_DATA, which read the file themselves: never copy its lines into CREATE_DATA.]]></string>
     <string name="ai_command_tool_data"><![CDATA[### TOOL_DATA
 
 Retrieves the entries of one tool.
@@ -371,7 +371,7 @@ Retrieves one run as its AI received it, message after message: the routine\'s m
 - `messages` (string, optional): `all` (the default), or `errors`: only the app\'s messages telling a failure, each after the answer that led to it]]></string>
     <string name="ai_command_file"><![CDATA[### FILE
 
-Reads a file the user joined to a message, by lines.
+Reads a text by lines: a file the user joined to a message, or a text an entry's FILE field holds, read as that entry is.
 
 **Parameters**:
 
@@ -379,7 +379,7 @@ Reads a file the user joined to a message, by lines.
 - `start_line` (integer, optional): the first line to read, from 1; 1 by default
 - `lines` (integer, optional): how many lines; the rest of the file by default
 
-Returns `name`, `mime_type`, `line_count`, `start_line`, `lines` (how many were read) and `text`. A long file is read in parts: each answer is held to the same size threshold as any data.]]></string>
+Returns `name`, `line_count`, `start_line`, `lines` (how many were read) and `text`. A long file is read in parts: each answer is held to the same size threshold as any data.]]></string>
     <string name="ai_command_images"><![CDATA[### IMAGES
 
 Shows you images of entries: they join the conversation after this answer, as if the user had joined them, each after `[image <id>]`, its id in the conversation. An entry's FILE field gives you its files' ids, kinds and sizes, never the images: ask for those you need to see, each one costs as much as a photo the user sends.

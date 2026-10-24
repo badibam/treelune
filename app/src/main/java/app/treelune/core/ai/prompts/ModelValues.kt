@@ -100,7 +100,7 @@ object ModelValues {
     /**
      * [value] with each list of files the [schema] marks written as the model reads it: each id
      * with its kind, its size and what goes with its kind ([files], by id) — an image's width
-     * and height —, never the file itself; an id no file has is written alone, `"missing": true`.
+     * and height, a medium's length, a text's name and lines —, never the file itself; an id no file has is written alone, `"missing": true`.
      */
     fun withFileDescriptions(value: Any?, schema: JSONObject, files: Map<String, app.treelune.core.files.FileEntity>): Any? =
         walk(value, schema) { format, node ->
@@ -111,6 +111,10 @@ object ModelValues {
                 else linkedMapOf<String, Any?>("id" to id, "kind" to file.kind, "size_bytes" to file.sizeBytes).apply {
                     file.width?.let { put("width", it) }
                     file.height?.let { put("height", it) }
+                    // A length faces the AI in ISO 8601, as every duration does
+                    file.durationMs?.let { put("duration", Duration.ofMillis(it).toString()) }
+                    file.name?.let { put("name", it) }
+                    file.lineCount?.let { put("line_count", it) }
                 }
             }
             if (node is JSONArray) JSONArray(shown.map { JSONObject(it as Map<*, *>) }) else shown

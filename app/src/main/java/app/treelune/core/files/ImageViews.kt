@@ -148,18 +148,3 @@ fun ImageRow(ids: List<String>, modifier: Modifier = Modifier) {
     }
     open?.let { start -> ImageViewer(ids, start) { open = null } }
 }
-
-/**
- * Images [ids] in a short form (a tile, a table's cell, a note's card): the first one small, and
- * how many others there are (+3). Nothing to touch: the entry opens where it is shown.
- */
-@Composable
-fun ImageAbbreviation(ids: List<String>) {
-    val context = LocalContext.current
-    val s = remember { Strings.`for`(context = context) }
-    val first = ids.firstOrNull() ?: return
-    Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.XS), verticalAlignment = Alignment.CenterVertically) {
-        ImageThumbnail(first, height = IMAGE_SMALL_HEIGHT)
-        if (ids.size > 1) UI.Text(s.shared("field_image_others").format(ids.size - 1), TextType.CAPTION)
-    }
-}

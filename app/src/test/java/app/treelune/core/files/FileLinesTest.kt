@@ -1,4 +1,4 @@
-package app.treelune.core.services
+package app.treelune.core.files
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

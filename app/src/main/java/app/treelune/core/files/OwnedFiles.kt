@@ -1,7 +1,6 @@
 package app.treelune.core.files
 
 import android.content.Context
-import android.graphics.BitmapFactory
 import app.treelune.core.database.AppDatabase
 import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldType
@@ -20,7 +19,7 @@ import java.util.UUID
  * step's images).
  *
  * - An id the owner owns stays.
- * - An id prepared in a form (files.prepare_image) becomes the owner's: its file moves from the
+ * - An id prepared in a form (files.prepare) becomes the owner's: its file moves from the
  *   pending folder to the entries' one, and its row is written.
  * - An id of a file another owns, a photo of the conversation the AI files, an image of another
  *   entry, of the tool a copy is made from, is copied: the copy belongs to the owner, under a new
@@ -73,10 +72,10 @@ class OwnedFiles private constructor(
             val target = File(dir, pending.name)
             check(pending.renameTo(target)) { "File $id: not moved from the pending folder" }
             placed.add(target to pending)
-            val format = FileFormat.ofExtension(pending.extension)?.takeIf { it.kind == FileKind.IMAGE } ?: error("File $id: ${pending.name} is no image file")
-            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-            BitmapFactory.decodeFile(target.path, bounds)
-            rows.add(FileEntity.image(id, null, entryId, toolInstanceId, format, target.length(), bounds.outWidth, bounds.outHeight, now))
+            val format = FileFormat.ofExtension(pending.extension) ?: error("File $id: ${pending.name} is no kept file")
+            // Its name, when it came with one, waits beside it until the write is done
+            val name = Files.pendingName(context, id).takeIf { it.exists() }?.readText(Charsets.UTF_8)
+            rows.add(FileDescription.read(target, format, name).row(id, null, entryId, toolInstanceId, now))
         }
         copies.forEach { (source, newId) ->
             val copy = owned(source).copy(id = newId, createdAt = now)
@@ -94,8 +93,9 @@ class OwnedFiles private constructor(
         removed.forEach { writes.deleteFile(it.id) }
     }
 
-    /** Once the transaction is done: what changed, logged. */
+    /** Once the transaction is done: what changed, logged, and the names that waited beside the moved files gone. */
     fun done() {
+        moves.forEach { (id, _) -> Files.pendingName(context, id).delete() }
         // The removed files stay on the disk: the history keeps their rows, an undo puts them
         // back, and the startup sweep deletes a file once nothing names it (Files.sweepOnce)
         if (!unchanged) LogManager.service("$owner: ${rows.size} files added, ${removed.size} removed", "DEBUG")

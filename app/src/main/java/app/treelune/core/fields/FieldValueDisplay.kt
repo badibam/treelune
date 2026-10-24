@@ -21,7 +21,7 @@ import app.treelune.core.ui.UI
  *
  * Most types are their short text form (FieldDefinition.formatValue). Four draw more than text:
  * a SCALE is a gauge between its bounds, a colored CHOICE is tags, a ranking is its options
- * numbered in order, IMAGE its images in a row of thumbnails.
+ * numbered in order, FILE its files in a row (an image's thumbnail, a medium's length, a text's name).
  *
  * A long text (TextLength.formatted) is drawn from its markup; [oneLine], where it stands among
  * others in a row (a cell of a table, a line of fields), it is its words on one line, marks taken off.
@@ -124,8 +124,8 @@ fun FieldValue(
         else UI.Text(text = fieldDef.formatValue(value, context), type = TextType.BODY)
 
         FieldType.FILE ->
-            if (short || oneLine) app.treelune.core.files.ImageAbbreviation(FileField.ids(value))
-            else app.treelune.core.files.ImageRow(FileField.ids(value))
+            if (short || oneLine) app.treelune.core.files.FileAbbreviation(FileField.ids(value))
+            else app.treelune.core.files.FileRow(FileField.ids(value))
 
         else -> UI.Text(text = fieldDef.formatValue(value, context), type = TextType.BODY)
     }

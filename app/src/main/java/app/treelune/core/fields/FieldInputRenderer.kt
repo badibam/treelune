@@ -234,7 +234,7 @@ fun FieldInput(
         }
 
         app.treelune.core.fields.FieldType.FILE -> {
-            app.treelune.core.files.ImageInput(fieldDef, value, onChange, context)
+            app.treelune.core.files.FileInput(fieldDef, value, onChange, context)
         }
     }
 }

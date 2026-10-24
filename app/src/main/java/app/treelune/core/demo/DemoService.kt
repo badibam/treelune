@@ -190,14 +190,14 @@ class DemoService(private val context: Context) : ExecutableService {
 
     /**
      * The image [name] of assets/demo/images prepared for an entry as a photo picked in the
-     * gallery is (files.prepare_image), from a copy in the cache: its id, which the entry's write
+     * gallery is (files.prepare), from a copy in the cache: its id, which the entry's write
      * makes the entry's.
      */
     private suspend fun prepareImage(name: String): String {
         val copy = java.io.File(context.cacheDir, "demo-image-$name")
         try {
             context.assets.open("demo/images/$name").use { input -> copy.outputStream().use { input.copyTo(it) } }
-            return run("files.prepare_image", JSONObject().put("uri", android.net.Uri.fromFile(copy).toString()))["id"] as String
+            return run("files.prepare", JSONObject().put("uri", android.net.Uri.fromFile(copy).toString()).put("kinds", org.json.JSONArray(listOf("IMAGE"))))["id"] as String
         } finally {
             copy.delete()
         }

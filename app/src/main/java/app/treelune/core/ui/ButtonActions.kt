@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 fun ButtonAction.defaultType(): ButtonType {
     return when (this) {
         // PRIMARY: Actions critiques/importantes
-        ButtonAction.SAVE, ButtonAction.CREATE, ButtonAction.ADD, ButtonAction.CONFIGURE, ButtonAction.SELECT, ButtonAction.EDIT, ButtonAction.UPDATE, ButtonAction.CONFIRM, ButtonAction.AI_CHAT, ButtonAction.START, ButtonAction.ATTACH, ButtonAction.POINTER, ButtonAction.TEXT, ButtonAction.SEND, ButtonAction.PHOTO, ButtonAction.GALLERY, ButtonAction.REPEAT, ButtonAction.SETTINGS -> ButtonType.PRIMARY
+        ButtonAction.SAVE, ButtonAction.CREATE, ButtonAction.ADD, ButtonAction.CONFIGURE, ButtonAction.SELECT, ButtonAction.EDIT, ButtonAction.UPDATE, ButtonAction.CONFIRM, ButtonAction.AI_CHAT, ButtonAction.START, ButtonAction.ATTACH, ButtonAction.POINTER, ButtonAction.TEXT, ButtonAction.SEND, ButtonAction.PHOTO, ButtonAction.GALLERY, ButtonAction.VIDEO, ButtonAction.RECORD, ButtonAction.DEVICE, ButtonAction.REPEAT, ButtonAction.SETTINGS -> ButtonType.PRIMARY
 
         // DANGER: destructive actions, behind a confirmation
         ButtonAction.DELETE, ButtonAction.STOP -> ButtonType.DANGER
@@ -55,6 +55,9 @@ fun ButtonAction.label(): String {
         ButtonAction.PHOTO -> s.shared("action_photo")
         ButtonAction.TEXT -> s.shared("action_text")
         ButtonAction.GALLERY -> s.shared("action_gallery")
+        ButtonAction.VIDEO -> s.shared("action_video")
+        ButtonAction.RECORD -> s.shared("action_record")
+        ButtonAction.DEVICE -> s.shared("action_device")
         ButtonAction.REPEAT -> s.shared("action_repeat")
         ButtonAction.ARRANGE -> s.shared("action_arrange")
         ButtonAction.UP -> s.shared("action_up")

@@ -36,7 +36,7 @@ enum class UISignal {
 fun ButtonAction.signal(): UISignal? = when (this) {
     ButtonAction.BACK, ButtonAction.CONFIGURE, ButtonAction.VIEW, ButtonAction.AI_CHAT, ButtonAction.GUIDE -> null
     ButtonAction.CANCEL -> UISignal.CLOSE
-    ButtonAction.ATTACH, ButtonAction.PHOTO, ButtonAction.GALLERY -> UISignal.OPEN
+    ButtonAction.ATTACH, ButtonAction.PHOTO, ButtonAction.GALLERY, ButtonAction.VIDEO, ButtonAction.RECORD, ButtonAction.DEVICE -> UISignal.OPEN
     ButtonAction.LEFT, ButtonAction.RIGHT, ButtonAction.UP, ButtonAction.DOWN -> UISignal.STEP
     else -> UISignal.CONFIRM
 }

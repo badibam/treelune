@@ -24,6 +24,7 @@ object Files {
     private const val ENTRIES = "entries"
     private const val PENDING = "pending"
     private const val PART = ".part"
+    private const val NAME = ".name"
 
     /** The folder of the messages' files, holding the two others. */
     fun dir(context: Context): File = File(context.filesDir, DIR)
@@ -43,6 +44,9 @@ object Files {
     fun pendingFile(context: Context, id: String): File? =
         FileFormat.entries.map { File(pendingDir(context), it.fileName(id)) }.firstOrNull { it.exists() }
 
+    /** Where the name of the file prepared as [id] waits beside it, for a file that came with one. */
+    fun pendingName(context: Context, id: String): File = File(pendingDir(context), "$id$NAME")
+
     /**
      * The file [id] wherever it is: its row's, or the one a form prepared. Null when neither
      * exists: a row without its file is an error the caller says.
@@ -50,6 +54,29 @@ object Files {
     suspend fun locate(context: Context, id: String): File? {
         AppDatabase.getDatabase(context).fileDao().getById(id)?.let { return file(context, it).takeIf { it.exists() } }
         return pendingFile(context, id)
+    }
+
+    /** A kept file found: where it is, and what is known of it. */
+    class Found(val file: File, val description: FileDescription)
+
+    /**
+     * The file [id] wherever it is, with its description: its row's, or, for one a form prepared,
+     * read from its file and its name beside it. Null when neither exists, or a prepared file no
+     * longer reads as its kind: a row without its file is an error the caller says.
+     */
+    suspend fun inspect(context: Context, id: String): Found? {
+        AppDatabase.getDatabase(context).fileDao().getById(id)?.let { row ->
+            return file(context, row).takeIf { it.exists() }?.let { Found(it, FileDescription.of(row)) }
+        }
+        val pending = pendingFile(context, id) ?: return null
+        val format = FileFormat.ofExtension(pending.extension) ?: return null
+        val name = pendingName(context, id).takeIf { it.exists() }?.readText(Charsets.UTF_8)
+        return try {
+            Found(pending, FileDescription.read(pending, format, name))
+        } catch (e: IllegalArgumentException) {
+            LogManager.service("File $id prepared but no longer read: ${e.message}", "ERROR")
+            null
+        }
     }
 
     /**

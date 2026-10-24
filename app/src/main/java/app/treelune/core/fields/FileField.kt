@@ -16,7 +16,7 @@ object FileField {
     const val MAX = "max"
 
     /** The kinds a field may take: those the field's input knows how to add and show. */
-    val FIELD_KINDS = listOf(FileKind.IMAGE)
+    val FIELD_KINDS = listOf(FileKind.IMAGE, FileKind.AUDIO, FileKind.VIDEO, FileKind.TEXT)
 
     /** The kinds a field of [config] takes; none when its config does not say. */
     fun kinds(config: Map<String, Any>?): List<FileKind> =

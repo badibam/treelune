@@ -18,8 +18,16 @@ sealed class Reach {
     data class Automation(val id: String, val level: AccessLevel) : Reach()
     /** A routine's run, held by the zone of its routine */
     data class Run(val id: String, val level: AccessLevel) : Reach()
+    /** A kept file: an entry's or a tool's held as that tool, a message's free as its conversation is */
+    data class File(val id: String, val level: AccessLevel) : Reach()
     /** An operation these rules do not know: refused under a mask, rather than let through */
     data class Unknown(val action: String) : Reach()
+}
+
+/** Who holds a kept file, for the mask: a conversation, or the tool of the entry or of the config. */
+sealed interface FileHolder {
+    object Conversation : FileHolder
+    data class Tool(val id: String) : FileHolder
 }
 
 /** What the rules read to place what an operation names. */
@@ -29,6 +37,8 @@ interface AccessLookups {
     suspend fun automationZone(automationId: String): String?
     /** The routine run [runId] belongs to. */
     suspend fun runAutomation(runId: String): String?
+    /** Who holds the kept file [fileId], null when there is no such file. */
+    suspend fun fileHolder(fileId: String): FileHolder?
     suspend fun zoneName(zoneId: String): String?
     suspend fun toolName(toolId: String): String?
     /** Whether [resource] is a tool type, whose service runs the type's own operations on a tool. */
@@ -114,7 +124,8 @@ object AccessRules {
                 "create", "update", "delete", "import", "export" -> listOf(Reach.App)
                 else -> listOf(Reach.Unknown("$resource.$operation"))
             }
-            "files" -> if (operation == "read") listOf(Reach.Free) else listOf(Reach.Unknown("$resource.$operation"))
+            "files" -> if (operation == "read") listOf(text("id")?.let { Reach.File(it, AccessLevel.READ) } ?: Reach.Unknown("$resource.$operation"))
+                else listOf(Reach.Unknown("$resource.$operation"))
             // The history of one tool or zone is read as it is; the whole of it, and an undo, whose rows may be anywhere, as the app
             "history" -> when (operation) {
                 "list" -> listOf(text("tool_instance_id")?.let { toolAt(AccessLevel.READ) } ?: text("zone_id")?.let { zoneAt("zone_id", AccessLevel.READ) } ?: Reach.App)
@@ -161,6 +172,15 @@ object AccessRules {
                 }
                 is Reach.Automation -> automationRefusal(reach.id, reach.id, reach.level)?.let { return it }
                 is Reach.Run -> automationRefusal(reach.id, lookups.runAutomation(reach.id), reach.level)?.let { return it }
+                is Reach.File -> when (val holder = lookups.fileHolder(reach.id)) {
+                    // An unknown id is the service's to refuse, naming it
+                    null, FileHolder.Conversation -> Unit
+                    is FileHolder.Tool -> {
+                        val zoneId = lookups.toolZone(holder.id) ?: return refused(tool(holder.id, lookups, text), reach.level)
+                        if ((mask.tool(holder.id, zoneId) ?: return refused(tool(holder.id, lookups, text), reach.level)) < reach.level)
+                            return refused(tool(holder.id, lookups, text), reach.level)
+                    }
+                }
             }
         }
         return null
@@ -209,6 +229,15 @@ class DatabaseAccessLookups(context: Context) : AccessLookups {
     override suspend fun automationZone(automationId: String) = database.aiDao().getAutomationById(automationId)?.zoneId
 
     override suspend fun runAutomation(runId: String) = database.aiDao().getSession(runId)?.automationId
+
+    override suspend fun fileHolder(fileId: String): FileHolder? {
+        val file = database.fileDao().getById(fileId) ?: return null
+        return when {
+            file.toolInstanceId != null -> FileHolder.Tool(file.toolInstanceId)
+            file.entryId != null -> database.toolDataDao().getById(file.entryId)?.let { FileHolder.Tool(it.toolInstanceId) }
+            else -> FileHolder.Conversation
+        }
+    }
 
     override suspend fun zoneName(zoneId: String) = database.zoneDao().getZoneById(zoneId)?.name
 

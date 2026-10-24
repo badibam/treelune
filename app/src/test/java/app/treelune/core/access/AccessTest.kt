@@ -19,13 +19,15 @@ class AccessTest {
 
     /**
      * Health holds weight and meals, the variable kcal and the routine weekly, whose run is r1;
-     * garden is elsewhere.
+     * garden is elsewhere, with seeds. The file scan is an entry's of weight, plot one of seeds,
+     * joined a conversation's.
      */
     private val lookups = object : AccessLookups {
         override suspend fun toolZone(toolId: String) = mapOf("weight" to "health", "meals" to "health", "seeds" to "garden")[toolId]
         override suspend fun variableZone(idOrName: String, byName: Boolean) = if (idOrName in setOf("kcal", "v-kcal")) "health" else "garden"
         override suspend fun automationZone(automationId: String) = mapOf("weekly" to "health", "watering" to "garden")[automationId]
         override suspend fun runAutomation(runId: String) = mapOf("r1" to "weekly")[runId]
+        override suspend fun fileHolder(fileId: String) = mapOf("scan" to FileHolder.Tool("weight"), "plot" to FileHolder.Tool("seeds"), "joined" to FileHolder.Conversation)[fileId]
         override suspend fun zoneName(zoneId: String) = zoneId
         override suspend fun toolName(toolId: String) = toolId
         override fun isToolType(resource: String) = resource == "goal"
@@ -70,6 +72,14 @@ class AccessTest {
         assertNotNull(refusal(mask, "tool_data", "get", mapOf("id" to "meals")))
         // A tool type's own operation writes the tool's entries
         assertNotNull(refusal(mask, "goal", "validate", mapOf("tool_instance_id" to "weight")))
+    }
+
+    @Test
+    fun aKeptFileIsReadAsTheToolHoldingItAJoinedOneFreely() {
+        val mask = AccessMask(listOf(tool("weight", AccessLevel.READ)))
+        assertNull(refusal(mask, "files", "read", mapOf("id" to "scan")))
+        assertNotNull(refusal(mask, "files", "read", mapOf("id" to "plot")))
+        assertNull(refusal(mask, "files", "read", mapOf("id" to "joined")))
     }
 
     @Test

@@ -6,6 +6,8 @@ import app.treelune.core.files.FileFormat
 import app.treelune.core.files.FileKind
 import app.treelune.core.files.Files
 import app.treelune.core.files.fileKind
+import app.treelune.core.files.FileLines
+import app.treelune.core.files.FilePreparation
 import app.treelune.core.files.Images
 import app.treelune.core.coordinator.CancellationToken
 import app.treelune.core.database.AppDatabase
@@ -14,27 +16,35 @@ import org.json.JSONObject
 import java.util.UUID
 
 /**
- * The files joined to messages (docs/DATA.md, « Import »): text read once
- * when it is joined, kept with its session (AttachedFileEntity).
+ * The files the app keeps (docs/DATA.md, « Kept files »), one file each (Files), described by a
+ * row (FileEntity).
  *
- * - attach: `session_id`, `name`, `mime_type`, `content`: the file kept; its `id` and `line_count`.
- *   A content that is not text (a NUL character in it) is refused.
+ * The texts joined to messages (docs/DATA.md, « Import »): read once when joined, kept with their
+ * session, a TEXT file each.
+ * - attach: `session_id`, `name`, `content`: the text kept; its `id`, `line_count` and
+ *   `size_bytes`. A content that is not text (a NUL character in it) is refused.
  * - read: `id`, and `start_line` (from 1) and `lines` to read a part: that part's text, with the
- *   file's name, type, size and line count. Without them, the whole file.
- * - delete: `id`: a file taken off the composer before its message went.
+ *   file's name, size and line count. Without them, the whole file. Any text kept, a message's
+ *   or an entry's; under an access mask, an entry's or a tool's as its tool is (AccessRules).
+ * - delete: `id`: a file taken off the composer before its message went; its row deleted
+ *   before its file.
  *
- * And the images (docs/AI.md, « Images », and docs/DATA.md, « IMAGE »), a reduced file each
- * (Images), described by a row (FileEntity):
+ * The images joined to messages (docs/AI.md, « Images »), reduced when added (Images):
  * - attach_image: `session_id`, `uri` (the photo taken or picked): the image prepared and kept
  *   with the session, its file written before its row; its `id`, `width`, `height`,
  *   `size_bytes`, `format` and `animated` (only its first frame kept).
- * - prepare_image: `uri`: the image prepared for an entry's IMAGE field, its file set aside
- *   without a row until the entry is written (ToolDataService, OwnedFiles); the same answer.
  * - show_images: `session_id`, `ids`: images of entries brought into the conversation, as if the
  *   user had joined them, for the model to see them (the AI's IMAGES): each copied as an image
  *   of the session, one already the session's kept as it is. Refused for a model that does not
  *   read images, or of which nothing says it does. Answer: `images` (each one's `id` in the
  *   conversation, its `source_id`, `width` and `height`) and `image_ids`, the conversation's.
+ *
+ * The files of a form (docs/DATA.md, « FILE »):
+ * - prepare: `uri`, `kinds` (the FileKind names its place takes): the file of the phone set aside
+ *   without a row until the entry or the tool is written (FilePreparation, OwnedFiles). Answer:
+ *   its `id`, `kind`, `format`, `size_bytes`, and what goes with its kind: `width`, `height` and
+ *   `animated` for an image, `duration_ms` for an audio or a video, `name` and `line_count` for a
+ *   text.
  */
 class FileService(private val context: Context) : ExecutableService {
 
@@ -49,14 +59,14 @@ class FileService(private val context: Context) : ExecutableService {
             "read" -> read(params)
             "delete" -> {
                 val id = params.optString("id").takeIf { it.isNotEmpty() } ?: return OperationResult.error(s.shared("service_error_missing_id"))
-                val file = dao.getById(id) ?: return OperationResult.error(s.shared("file_error_not_found").format(id))
+                val file = dao.getById(id) ?: return OperationResult.error(s.shared("file_error_unknown").format(id))
                 writes.deleteFile(id)
                 // A routine's message's file the history keeps stays, for an undo to put it back
                 if (file.id !in AppDatabase.getDatabase(context).historyDao().keptFiles()) Files.delete(context, file)
                 OperationResult.success()
             }
             "attach_image" -> attachImage(params)
-            "prepare_image" -> prepareImage(params)
+            "prepare" -> prepare(params)
             "show_images" -> showImages(params)
             else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
         }
@@ -86,19 +96,24 @@ class FileService(private val context: Context) : ExecutableService {
         return OperationResult.success(answer(image.id, prepared))
     }
 
-    /**
-     * An image prepared for an entry: its file in the folder of the images no entry holds yet,
-     * where the entry's write finds it by its id, and the startup sweep removes it if the form
-     * is never saved.
-     */
-    private fun prepareImage(params: JSONObject): OperationResult {
-        val prepared = when (val done = prepared(params)) {
-            is Preparation.Failed -> return OperationResult.error(done.error)
-            is Preparation.Done -> done.image
+    /** A file of the phone set aside for a form, as [FilePreparation] does it. */
+    private fun prepare(params: JSONObject): OperationResult {
+        val uri = params.optString("uri").takeIf { it.isNotEmpty() }
+            ?: return OperationResult.error(s.shared("service_error_missing_required_params").format("uri"))
+        val kinds = params.optJSONArray("kinds")?.let { array -> (0 until array.length()).mapNotNull { i -> FileKind.entries.firstOrNull { it.name == array.getString(i) } } }
+            ?.takeIf { it.isNotEmpty() } ?: return OperationResult.error(s.shared("service_error_missing_required_params").format("kinds"))
+        return when (val prepared = FilePreparation.prepare(context, android.net.Uri.parse(uri), kinds, s::shared)) {
+            is FilePreparation.Result.Refused -> OperationResult.error(prepared.message)
+            is FilePreparation.Result.Done -> {
+                val d = prepared.description
+                OperationResult.success(listOfNotNull(
+                    "id" to prepared.id, "kind" to d.kind.name, "format" to d.format.name, "size_bytes" to d.sizeBytes,
+                    d.width?.let { "width" to it }, d.height?.let { "height" to it },
+                    ("animated" to prepared.animated).takeIf { d.kind == FileKind.IMAGE },
+                    d.durationMs?.let { "duration_ms" to it }, d.name?.let { "name" to it }, d.lineCount?.let { "line_count" to it }
+                ).toMap())
+            }
         }
-        val id = UUID.randomUUID().toString()
-        Files.write(java.io.File(Files.pendingDir(context), prepared.format.fileName(id)), prepared.bytes)
-        return OperationResult.success(answer(id, prepared))
     }
 
     private suspend fun showImages(params: JSONObject): OperationResult {
@@ -200,33 +215,9 @@ class FileService(private val context: Context) : ExecutableService {
             "read" -> s.shared("action_verbalize_files_read")
             "delete" -> s.shared("action_verbalize_files_delete")
             "attach_image" -> s.shared("action_verbalize_files_attach_image")
-            "prepare_image" -> s.shared("action_verbalize_files_prepare_image")
+            "prepare" -> s.shared("action_verbalize_files_prepare")
             "show_images" -> s.shared("action_verbalize_files_show_images")
             else -> s.shared("action_verbalize_unknown")
         }
-    }
-}
-
-/** A file's text counted and cut by lines, whatever ends them (\n, \r\n, \r). */
-object FileLines {
-
-    /** A part of a file: its text, and how many lines it holds. */
-    data class Part(val text: String, val lines: Int)
-
-    private val BREAK = Regex("\r\n|\r|\n")
-
-    /** The lines of [content]; a last line break closes the last line, it does not open one. */
-    fun split(content: String): List<String> =
-        if (content.isEmpty()) emptyList() else content.split(BREAK).let { if (it.last().isEmpty()) it.dropLast(1) else it }
-
-    fun count(content: String): Int = split(content).size
-
-    /** The [count] lines from line [start] (from 1), all the rest when [count] is null; nothing past the end. */
-    fun window(content: String, start: Int, count: Int?): Part {
-        val all = split(content)
-        val from = (start - 1).coerceAtMost(all.size)
-        val to = if (count == null) all.size else (from + count).coerceAtMost(all.size)
-        val kept = all.subList(from, to)
-        return Part(kept.joinToString("\n"), kept.size)
     }
 }
