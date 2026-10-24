@@ -60,7 +60,17 @@ class ReferenceFieldTest {
     }
 
     @Test
-    fun `the value schema takes the kinds of the target and nothing but kind and id`() {
+    fun `an entry alone is designated down to one of its fields, kept through its stored form`() {
+        val induction = Reference(ReferenceKind.ENTRY, "s24", "extra.induction")
+        assertEquals(induction, ReferenceTarget.referenceOf(mapOf("kind" to "ENTRY", "id" to "s24", "field" to "extra.induction")))
+        assertEquals(induction, Reference.fromJson(induction.toJson()))
+        assertEquals("extra.induction", induction.toJson().getString("field"))
+        assertNull("a tool has no field to go down to", ReferenceTarget.referenceOf(mapOf("kind" to "TOOL_INSTANCE", "id" to "foods", "field" to "data.x")))
+        assertTrue(app.treelune.core.selection.EntrySelection(induction).problem { it } == "selection_problem_field")
+    }
+
+    @Test
+    fun `the value schema takes the kinds of the target and nothing but kind, id and field`() {
         val schema = FieldValueSchema.of(field(config(listOf("ENTRY", "ZONE"))))
         assertEquals("object", schema.getString("type"))
         assertEquals(JSONArray(listOf("ENTRY", "ZONE")).toString(), schema.getJSONObject("properties").getJSONObject("kind").getJSONArray("enum").toString())

@@ -1383,6 +1383,7 @@
     <string name="field_value_reference_invalid">Not a reference: %1$s. Expected {"kind": "ENTRY", "id": "..."}, with no id for the app.</string>
     <string name="field_value_reference_kind">Points to a %1$s, which this field does not take (it takes %2$s).</string>
     <string name="field_value_reference_not_found">Nothing of kind %1$s has the id %2$s.</string>
+    <string name="field_value_reference_no_field">The entry has no field %1$s: its fields are %2$s.</string>
     <string name="field_value_reference_wrong_tool">The entry %2$s belongs to a tool this field does not take.</string>
     <string name="field_reference_unreadable">Unreadable</string>
     <string name="field_reference_pick">Choose</string>
@@ -1504,6 +1505,7 @@
     <string name="selection_problem_filters">Filters and fields narrow the entries of a tool instance, not of a %1$s.</string>
     <string name="selection_problem_period">A period narrows the entries of a tool instance or a zone, not of a %1$s.</string>
     <string name="selection_problem_variable">A variable has no entries to select: it is read, as a term or with READING.</string>
+    <string name="selection_problem_field">A selection takes a thing, without a field: the field read is said beside it.</string>
     <string name="import_missing_column">column "%1$s": not declared</string>
     <string name="import_missing_in_file">column "%1$s": not in the file</string>
     <string name="import_missing_key">column "%1$s": this tool does not find its entries by name</string>

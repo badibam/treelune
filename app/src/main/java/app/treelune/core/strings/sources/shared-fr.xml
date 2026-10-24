@@ -1383,6 +1383,7 @@
     <string name="field_value_reference_invalid">Pas une référence : %1$s. Attendu {"kind": "ENTRY", "id": "..."}, sans id pour l\'app.</string>
     <string name="field_value_reference_kind">Désigne un %1$s, que ce champ n\'accepte pas (il accepte %2$s).</string>
     <string name="field_value_reference_not_found">Rien de la sorte %1$s n\'a l\'id %2$s.</string>
+    <string name="field_value_reference_no_field">L\'entrée n\'a pas de champ %1$s : ses champs sont %2$s.</string>
     <string name="field_value_reference_wrong_tool">L\'entrée %2$s appartient à un outil que ce champ n\'accepte pas.</string>
     <string name="field_reference_unreadable">Illisible</string>
     <string name="field_reference_pick">Choisir</string>
@@ -1504,6 +1505,7 @@
     <string name="selection_problem_filters">Filtres et champs restreignent les entrées d\'une instance d\'outil, pas d\'un %1$s.</string>
     <string name="selection_problem_period">Une période restreint les entrées d\'une instance d\'outil ou d\'une zone, pas d\'un %1$s.</string>
     <string name="selection_problem_variable">Une variable n\'a pas d\'entrées à sélectionner : elle se lit, comme terme ou par READING.</string>
+    <string name="selection_problem_field">Une sélection prend une chose, sans champ : le champ lu se dit à côté.</string>
     <string name="import_missing_column">colonne « %1$s » : non déclarée</string>
     <string name="import_missing_in_file">colonne « %1$s » : absente du fichier</string>
     <string name="import_missing_key">colonne « %1$s » : cet outil ne retrouve pas ses entrées par leur nom</string>

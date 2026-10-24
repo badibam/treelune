@@ -83,6 +83,7 @@ object ModelValues {
             val reference = ReferenceTarget.referenceOf(node).takeIf { format == FieldValueSchema.REFERENCE } ?: return@walk node
             val shown = linkedMapOf<String, Any?>("kind" to reference.kind.name)
             reference.id?.let { shown["id"] = it }
+            reference.field?.let { shown["field"] = it }
             names[reference]?.let { shown["name"] = it } ?: run { shown["deleted"] = true }
             shown
         }

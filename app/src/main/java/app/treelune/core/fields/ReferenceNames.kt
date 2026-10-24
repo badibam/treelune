@@ -20,7 +20,7 @@ suspend fun loadReferenceNames(references: Collection<Reference>, context: Conte
     if (references.isEmpty()) return emptyMap()
     val result = Coordinator(context).processUserAction(
         "references.names",
-        mapOf("references" to references.map { mapOf("kind" to it.kind.name, "id" to it.id) })
+        mapOf("references" to references.map { app.treelune.core.utils.JsonUtils.toMap(it.toJson()) })
     )
     if (!result.isSuccess) throw IllegalStateException("Reference names not read: ${result.error}")
     return (result.data?.get("references") as? List<*> ?: emptyList<Any>()).filterIsInstance<Map<*, *>>().associate { row ->

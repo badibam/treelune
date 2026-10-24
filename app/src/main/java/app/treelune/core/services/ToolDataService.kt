@@ -1366,6 +1366,10 @@ class ToolDataService(private val context: Context) : ExecutableService {
                     ReferenceKind.ENTRY -> when (val entry = getToolDataDao().getById(reference.id!!)) {
                         null -> s.shared("field_value_reference_not_found")
                         else -> s.shared("field_value_reference_wrong_tool").takeIf { !ReferenceTarget.fromConfig(field.config).acceptsEntryOf(entry.toolInstanceId) }
+                            ?: reference.field?.let { path ->
+                                val fields = app.treelune.core.fields.ToolFields.filterable(entry.toolInstanceId, context, s)
+                                s.shared("field_value_reference_no_field").format(path, fields.keys.joinToString(", ")).takeIf { path !in fields }
+                            }
                     }
                 }
                 if (error != null) {

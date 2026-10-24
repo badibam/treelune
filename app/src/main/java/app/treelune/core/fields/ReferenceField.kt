@@ -42,13 +42,14 @@ data class ReferenceTarget(val kinds: Set<ReferenceKind>, val toolInstances: Lis
         fun referenceOf(value: Any?): Reference? {
             val kindName: Any?
             val id: Any?
+            val field: Any?
             when (value) {
-                is Map<*, *> -> { kindName = value["kind"]; id = value["id"] }
-                is JSONObject -> { kindName = value.opt("kind"); id = value.opt("id") }
+                is Map<*, *> -> { kindName = value["kind"]; id = value["id"]; field = value["field"] }
+                is JSONObject -> { kindName = value.opt("kind"); id = value.opt("id"); field = value.opt("field") }
                 else -> return null
             }
             val kind = ReferenceKind.entries.firstOrNull { it.name == kindName } ?: return null
-            return runCatching { Reference(kind, (id as? String)?.takeIf { it.isNotEmpty() }) }.getOrNull()
+            return runCatching { Reference(kind, (id as? String)?.takeIf { it.isNotEmpty() }, (field as? String)?.takeIf { it.isNotEmpty() }) }.getOrNull()
         }
     }
 }

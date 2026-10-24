@@ -314,7 +314,9 @@ object FieldValueSchema {
                     put("properties", JSONObject()
                         .put("kind", JSONObject().put("type", "string")
                             .put("enum", JSONArray(ReferenceTarget.fromConfig(fieldDef.config).kinds.map { it.name })))
-                        .put("id", JSONObject().put("type", "string").put("minLength", 1)))
+                        .put("id", JSONObject().put("type", "string").put("minLength", 1))
+                        // An entry designated down to one of its fields, by its path
+                        .put("field", JSONObject().put("type", "string").put("minLength", 1)))
                     put("required", JSONArray().put("kind"))
                     put("additionalProperties", false)
                     put("format", REFERENCE)

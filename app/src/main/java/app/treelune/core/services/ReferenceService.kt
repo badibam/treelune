@@ -18,8 +18,10 @@ import org.json.JSONObject
  * What a reference designates, read in the database: the core's service for the things a
  * REFERENCE field or a selection points to (docs/DATA.md).
  *
- * - names: the current name of each reference in `references` ([{kind, id}]), or that it was
- *   deleted: the screen and the AI show a reference by it, never by a stored name.
+ * - names: the current name of each reference in `references` ([{kind, id, field?}]), or that
+ *   it was deleted: the screen and the AI show a reference by it, never by a stored name. An
+ *   entry's field is named after its entry (« Séance du 24 › Induction »), deleted with it or
+ *   once the field is gone from its tool: the one place a designation is said deleted.
  * - choices: what is one level down from where the input of a thing stands (ThingBrowser), among
  *   what leads to something of `kinds`, the entries restricted to those of `tool_instances` when
  *   given: at the app, the zones, or when only such restricted entries are taken, those tools
@@ -50,7 +52,7 @@ class ReferenceService(private val context: Context) : ExecutableService {
         }
         return OperationResult.success(mapOf("references" to references.distinct().map { reference ->
             val name = nameOf(reference)
-            mapOf("kind" to reference.kind.name, "id" to reference.id, "name" to name, "deleted" to (name == null))
+            mapOf("kind" to reference.kind.name, "id" to reference.id, "field" to reference.field, "name" to name, "deleted" to (name == null))
         }))
     }
 
@@ -59,7 +61,10 @@ class ReferenceService(private val context: Context) : ExecutableService {
         ReferenceKind.APP -> s.shared("pointer_level_app")
         ReferenceKind.ZONE -> database.zoneDao().getZoneById(reference.id!!)?.name
         ReferenceKind.TOOL_INSTANCE -> database.toolInstanceDao().getToolInstanceById(reference.id!!)?.let { toolName(it) }
-        ReferenceKind.ENTRY -> database.toolDataDao().getById(reference.id!!)?.let { entryLabel(it) }
+        ReferenceKind.ENTRY -> database.toolDataDao().getById(reference.id!!)?.let { entry ->
+            val field = reference.field ?: return@let entryLabel(entry)
+            app.treelune.core.fields.ToolFields.filterable(entry.toolInstanceId, context, s)[field]?.let { "${entryLabel(entry)} › ${it.displayName}" }
+        }
         ReferenceKind.VARIABLE -> database.variableDao().getById(reference.id!!)?.name
     }
 
