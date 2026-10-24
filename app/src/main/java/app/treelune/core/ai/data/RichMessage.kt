@@ -21,6 +21,10 @@ data class RichMessage(
     val imageIds: List<String>
         get() = segments.filterIsInstance<MessageSegment.Image>().map { it.imageId }
 
+    /** The ids of the sounds and videos it carries, in order. */
+    val mediaIds: List<String>
+        get() = segments.filterIsInstance<MessageSegment.Media>().map { it.fileId }
+
     /**
      * Serialize RichMessage to JSON string for storage
      */
@@ -36,6 +40,10 @@ data class RichMessage(
                 is MessageSegment.Image -> {
                     segmentJson.put("type", "image")
                     segmentJson.put("image_id", segment.imageId)
+                }
+                is MessageSegment.Media -> {
+                    segmentJson.put("type", "media")
+                    segmentJson.put("file_id", segment.fileId)
                 }
                 is MessageSegment.EnrichmentBlock -> {
                     segmentJson.put("type", "enrichment")
@@ -61,6 +69,7 @@ data class RichMessage(
                     when (segmentJson.getString("type")) {
                         "text" -> MessageSegment.Text(content = segmentJson.getString("content"))
                         "image" -> MessageSegment.Image(imageId = segmentJson.getString("image_id"))
+                        "media" -> MessageSegment.Media(fileId = segmentJson.getString("file_id"))
                         "enrichment" -> MessageSegment.EnrichmentBlock(
                             type = EnrichmentType.valueOf(segmentJson.getString("enrichment_type")),
                             config = segmentJson.getString("config")
@@ -95,4 +104,10 @@ sealed class MessageSegment {
      * to the model as an image, never as text.
      */
     data class Image(val imageId: String) : MessageSegment()
+
+    /**
+     * A sound or a video the user joined, where they put it. Its file is kept with the session; a
+     * model reads it as text, its kind, name and length by its id, by which it files it in an entry.
+     */
+    data class Media(val fileId: String) : MessageSegment()
 }

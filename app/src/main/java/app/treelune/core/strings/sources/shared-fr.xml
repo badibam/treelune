@@ -55,6 +55,7 @@
     <!-- AI Interface - Composer and Enrichments -->
     <string name="ai_composer_placeholder">Écris ton message...</string>
     <string name="ai_image_block">Image</string>
+    <string name="ai_media_block">Son ou vidéo</string>
     <string name="ai_image_missing">Le fichier de cette image est introuvable</string>
     <string name="ai_image_no_camera">Aucune application de ce téléphone ne prend de photo pour une autre</string>
     <string name="ai_image_model_does_not_read">Ce modèle ne lit pas les images : le message ne partira pas avec elle</string>
@@ -1357,6 +1358,8 @@
     <string name="file_kind_image">Images</string>
     <string name="file_keep_original">Garder l\'original</string>
     <string name="file_copy_from_tool">Copier les fichiers d\'un champ</string>
+    <string name="join_title">Joindre</string>
+    <string name="file_copy_from_tool_short">Copier depuis un outil</string>
     <string name="image_error_original_format">L\'original ne peut pas être gardé dans ce format : %1$s</string>
     <string name="file_kind_audio">Audios</string>
     <string name="file_kind_video">Vidéos</string>
@@ -1401,6 +1404,7 @@
     <string name="image_error_not_found">Aucune image n\'a l\'id %1$s</string>
     <string name="image_error_no_conversation">Les images ne se montrent que dans une conversation</string>
     <string name="action_verbalize_files_show_images">Affichage d\'images</string>
+    <string name="action_verbalize_files_join">Ajout d\'un fichier joint</string>
     <string name="image_animated_first_frame">Cette image est animée : seule sa première image est gardée</string>
     <string name="field_image_others">+%1$d</string>
     <string name="ai_image_error_model_does_not_read">Ce modèle ne lit pas les images : retire-les du message, ou choisis un modèle qui les lit.</string>
@@ -1420,7 +1424,6 @@
     <string name="action_pointer">Désigner une zone ou un outil</string>
     <string name="action_photo">Photo</string>
     <string name="action_text">Ajouter un texte</string>
-    <string name="action_gallery">Galerie</string>
     <string name="action_video">Vidéo</string>
     <string name="action_record">Enregistrer</string>
     <string name="action_device">Depuis le téléphone</string>

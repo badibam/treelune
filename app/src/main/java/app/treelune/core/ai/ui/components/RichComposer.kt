@@ -61,6 +61,7 @@ private val NullableEnrichmentDialogStateSaver: Saver<EnrichmentDialogState?, St
             JSONObject()
                 .put("type", it.type.name)
                 .put("edited_block_id", it.editedBlockId ?: JSONObject.NULL)
+                .put("joined", it.joined ?: JSONObject.NULL)
                 .toString()
         }
     },
@@ -68,7 +69,8 @@ private val NullableEnrichmentDialogStateSaver: Saver<EnrichmentDialogState?, St
         val json = JSONObject(saved)
         EnrichmentDialogState(
             type = EnrichmentType.valueOf(json.getString("type")),
-            editedBlockId = if (json.isNull("edited_block_id")) null else json.getString("edited_block_id")
+            editedBlockId = if (json.isNull("edited_block_id")) null else json.getString("edited_block_id"),
+            joined = if (json.isNull("joined")) null else json.optString("joined").takeIf { it.isNotEmpty() }
         )
     }
 )
@@ -83,9 +85,11 @@ private val NullableEnrichmentDialogStateSaver: Saver<EnrichmentDialogState?, St
  * - Deleting the active block activates the one before it (the one after when it was the
  *   first); the list is never empty: an empty text replaces the last block deleted.
  * - An empty text does not go with the message.
- * - An image, taken with the phone's camera or picked in its photos, is a block of its own, kept
- *   with the session; with none, none can be joined. The block says when the model does not
- *   read images, and the message is refused while it holds one then.
+ * - « Join » keeps with the session a photo, a video or a sound taken now, a file of the phone,
+ *   or the files of a tool's field copied; with no session, none can be joined. An image is a
+ *   block of its own, which says when the model does not read images (the message is refused
+ *   while it holds one then); a sound or a video a block too, read by the AI as text; a text
+ *   goes through its dialog (whole or its first lines). The pointer keeps its own button.
  * The rules live in [ComposerBlocks]; this composable shows the blocks and wires the gestures.
  *
  * [boundedBlocks]: the blocks scroll in a third of the screen, under the controls that stay in
@@ -110,13 +114,14 @@ fun UI.RichComposer(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    // A file is kept with its session: without one, none can be joined
-    val offeredTypes = enrichmentTypes.filter { it != EnrichmentType.FILE || sessionId != null }
+    // A text joined comes through « Join », with the other files: the pointer alone has its button
+    val offeredTypes = enrichmentTypes.filter { it != EnrichmentType.FILE }
 
     /** The file or the image of [block], if it is one, deleted: taken off the composer, it will never go. */
     fun deleteFile(block: ComposerBlock) {
         val (operation, id) = when (val segment = block.segment) {
             is MessageSegment.Image -> "files.delete" to segment.imageId
+            is MessageSegment.Media -> "files.delete" to segment.fileId
             is MessageSegment.EnrichmentBlock ->
                 if (segment.type == EnrichmentType.FILE) "files.delete" to app.treelune.core.ai.enrichments.FileEnrichment.fromJson(segment.config).fileId
                 else return
@@ -203,17 +208,65 @@ fun UI.RichComposer(
         }
     }
 
-    // The camera writes into a file of the app's cache, handed to it by the FileProvider; the
-    // file is kept until the photo is prepared, then deleted. Its path survives the app being
-    // stopped while the camera is open.
-    var capturePath by rememberSaveable { mutableStateOf<String?>(null) }
-    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { taken ->
-        val file = capturePath?.let { java.io.File(it) } ?: return@rememberLauncherForActivityResult
-        capturePath = null
-        if (taken) attachImage(android.net.Uri.fromFile(file)) { file.delete() } else file.delete()
+    /** The files [joined] answered added where they go: an image or a medium as a block, a text through its dialog. */
+    fun added(joined: List<Map<*, *>>) {
+        joined.forEach { file ->
+            val id = file["id"] as String
+            when (file["kind"]) {
+                app.treelune.core.files.FileKind.IMAGE.name -> {
+                    add(ComposerBlock(MessageSegment.Image(id)))
+                    // An animated image keeps its first frame, which is said
+                    if (file["animated"] == true) UI.Toast(s.shared("image_animated_first_frame"), Duration.LONG)
+                }
+                app.treelune.core.files.FileKind.TEXT.name -> showEnrichmentDialog = EnrichmentDialogState(EnrichmentType.FILE, editedBlockId = null,
+                    joined = app.treelune.core.ai.enrichments.FileEnrichment(id, file["name"] as String, (file["line_count"] as Number).toInt()).toJson().toString())
+                else -> add(ComposerBlock(MessageSegment.Media(id)))
+            }
+        }
     }
-    val gallery = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) attachImage(uri)
+
+    /** Files joined to the session by [params] (a file of the phone, or copies of a tool's), then [afterwards]. */
+    fun join(params: Map<String, Any?>, afterwards: () -> Unit = {}) {
+        val session = checkNotNull(sessionId) { "a file is joined within a session" }
+        scope.launch {
+            val result = Coordinator(context).processUserAction("files.join", params + ("session_id" to session))
+            afterwards()
+            if (result.isSuccess) added((result.data?.get("files") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>())
+            else UI.Toast(result.error ?: "", Duration.LONG)
+        }
+    }
+
+    // The camera writes into a file of the app's cache, handed to it by the FileProvider; the
+    // file is kept until it is joined, then deleted. Its path survives the app being stopped
+    // while the camera is open.
+    var capturePath by rememberSaveable { mutableStateOf<String?>(null) }
+    fun captured(taken: Boolean, joinIt: (android.net.Uri, () -> Unit) -> Unit) {
+        val file = capturePath?.let { java.io.File(it) } ?: return
+        capturePath = null
+        if (taken) joinIt(android.net.Uri.fromFile(file)) { file.delete() } else file.delete()
+    }
+    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { captured(it, ::attachImage) }
+    val videoCamera = rememberLauncherForActivityResult(ActivityResultContracts.CaptureVideo()) { taken ->
+        captured(taken) { uri, done -> join(mapOf("uri" to uri.toString()), done) }
+    }
+    val recorder = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        result.data?.data?.let { join(mapOf("uri" to it.toString())) }
+    }
+    val document = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> if (uri != null) join(mapOf("uri" to uri.toString())) }
+    var joining by rememberSaveable { mutableStateOf(false) }
+    var copying by rememberSaveable { mutableStateOf(false) }
+
+    /** The phone's camera into a file of the cache ending with [extension], by [launch]. */
+    fun capture(extension: String, launch: (android.net.Uri) -> Unit) {
+        val file = java.io.File(context.cacheDir, "camera/${java.util.UUID.randomUUID()}.$extension").apply { parentFile?.mkdirs() }
+        capturePath = file.path
+        try {
+            launch(androidx.core.content.FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file))
+        } catch (e: android.content.ActivityNotFoundException) {
+            capturePath = null
+            file.delete()
+            UI.Toast(s.shared("ai_image_no_camera"), Duration.LONG)
+        }
     }
 
     val blocksScrollState = rememberScrollState()
@@ -283,6 +336,7 @@ fun UI.RichComposer(
                             }
                         )
                         is MessageSegment.Image -> ImageBlockContent(imageId = segment.imageId, readsImages = readsImages)
+                        is MessageSegment.Media -> app.treelune.core.files.FileRow(listOf(segment.fileId))
                         is MessageSegment.EnrichmentBlock -> EnrichmentBlockContent(
                             block = segment,
                             onEdit = {
@@ -329,31 +383,15 @@ fun UI.RichComposer(
                 }
             }
 
-            // Images: the phone's camera and its photo picker, within a session alone
+            // Join: a photo, a video, a sound taken now, a file of the phone, or the files of a
+            // tool's field copied, kept with the session; within a session alone
             if (showEnrichmentButtons && sessionId != null) {
                 UI.ActionButton(
-                    action = ButtonAction.PHOTO,
+                    action = ButtonAction.ATTACH,
                     display = ButtonDisplay.ICON,
                     type = ButtonType.DEFAULT,
                     size = Size.M,
-                    onClick = {
-                        val file = java.io.File(context.cacheDir, "camera/${java.util.UUID.randomUUID()}.jpg").apply { parentFile?.mkdirs() }
-                        capturePath = file.path
-                        try {
-                            camera.launch(androidx.core.content.FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file))
-                        } catch (e: android.content.ActivityNotFoundException) {
-                            capturePath = null
-                            file.delete()
-                            UI.Toast(s.shared("ai_image_no_camera"), Duration.LONG)
-                        }
-                    }
-                )
-                UI.ActionButton(
-                    action = ButtonAction.GALLERY,
-                    display = ButtonDisplay.ICON,
-                    type = ButtonType.DEFAULT,
-                    size = Size.M,
-                    onClick = { gallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
+                    onClick = { joining = true }
                 )
             }
 
@@ -381,6 +419,35 @@ fun UI.RichComposer(
         }
     }
 
+    if (joining) JoinMenu(
+        onDismiss = { joining = false },
+        onPhoto = { joining = false; capture("jpg") { camera.launch(it) } },
+        onVideo = { joining = false; capture("mp4") { videoCamera.launch(it) } },
+        onRecord = {
+            joining = false
+            try {
+                recorder.launch(android.content.Intent(android.provider.MediaStore.Audio.Media.RECORD_SOUND_ACTION))
+            } catch (e: android.content.ActivityNotFoundException) {
+                UI.Toast(s.shared("file_no_recorder"), Duration.LONG)
+            }
+        },
+        onDevice = { joining = false; document.launch(app.treelune.core.files.FilePreparation.pickerTypes(app.treelune.core.files.FileKind.entries)) },
+        onCopy = { joining = false; copying = true }
+    )
+    if (copying) app.treelune.core.ui.selectors.EntryFieldPicker(
+        title = s.shared("file_copy_from_tool"),
+        accepts = { it.type == app.treelune.core.fields.FieldType.FILE },
+        onDismiss = { copying = false },
+        onPick = { picked ->
+            copying = false
+            scope.launch {
+                val ids = app.treelune.core.files.FileCopies.of(context, picked)
+                if (ids == null) UI.Toast(s.shared("error_loading_options"), Duration.LONG)
+                else if (ids.isNotEmpty()) join(mapOf("ids" to ids))
+            }
+        }
+    )
+
     // Enrichment configuration dialog
     showEnrichmentDialog?.let { dialogState ->
         val edited = dialogState.editedBlockId?.let { id ->
@@ -388,7 +455,8 @@ fun UI.RichComposer(
         }
         EnrichmentConfigDialog(
             type = dialogState.type,
-            existingConfig = (edited?.segment as? MessageSegment.EnrichmentBlock)?.config,
+            existingConfig = (edited?.segment as? MessageSegment.EnrichmentBlock)?.config ?: dialogState.joined,
+            joined = dialogState.joined != null,
             onDismiss = { showEnrichmentDialog = null },
             onConfirm = { config ->
                 val enrichment = MessageSegment.EnrichmentBlock(type = dialogState.type, config = config)
@@ -410,7 +478,9 @@ fun UI.RichComposer(
  */
 private data class EnrichmentDialogState(
     val type: EnrichmentType,
-    val editedBlockId: String?
+    val editedBlockId: String?,
+    /** A text just joined, its FileEnrichment as stored, which cancelling deletes */
+    val joined: String? = null
 )
 
 /**
@@ -561,6 +631,7 @@ private fun getEnrichmentButtonAction(type: EnrichmentType): ButtonAction {
 private fun EnrichmentConfigDialog(
     type: EnrichmentType,
     existingConfig: String?,
+    joined: Boolean,
     onDismiss: () -> Unit,
     onConfirm: (config: String) -> Unit,
     sessionType: SessionType = SessionType.CHAT,
@@ -568,8 +639,8 @@ private fun EnrichmentConfigDialog(
 ) {
     when (type) {
         EnrichmentType.FILE -> FileEnrichmentDialog(
-            existingConfig = existingConfig,
-            sessionId = checkNotNull(sessionId) { "a file is joined within a session" },
+            config = checkNotNull(existingConfig) { "a text's dialog opens on a text joined" },
+            joined = joined,
             onDismiss = onDismiss,
             onConfirm = onConfirm
         )
@@ -599,4 +670,21 @@ private fun PointerEnrichmentDialog(
         onDismiss = onDismiss,
         onConfirm = onConfirm
     )
+}
+
+/** What « Join » offers: a photo, a video, a sound taken now, a file of the phone, the files of a tool's field. */
+@Composable
+private fun JoinMenu(onDismiss: () -> Unit, onPhoto: () -> Unit, onVideo: () -> Unit, onRecord: () -> Unit, onDevice: () -> Unit, onCopy: () -> Unit) {
+    val context = LocalContext.current
+    val s = remember { Strings.`for`(context = context) }
+    UI.Dialog(type = DialogType.SELECTION, onConfirm = onDismiss, onCancel = onDismiss) {
+        Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+            UI.Text(text = s.shared("join_title"), type = TextType.TITLE, fillMaxWidth = true)
+            UI.ActionButton(action = ButtonAction.PHOTO, type = ButtonType.DEFAULT, onClick = onPhoto)
+            UI.ActionButton(action = ButtonAction.VIDEO, type = ButtonType.DEFAULT, onClick = onVideo)
+            UI.ActionButton(action = ButtonAction.RECORD, type = ButtonType.DEFAULT, onClick = onRecord)
+            UI.ActionButton(action = ButtonAction.DEVICE, type = ButtonType.DEFAULT, onClick = onDevice)
+            UI.Button(type = ButtonType.DEFAULT, onClick = onCopy) { UI.Text(s.shared("file_copy_from_tool_short"), TextType.LABEL) }
+        }
+    }
 }

@@ -33,6 +33,9 @@ import java.util.UUID
  * - attach_image: `session_id`, `uri` (the photo taken or picked): the image prepared and kept
  *   with the session, its file written before its row; its `id`, `width`, `height`,
  *   `size_bytes`, `format` and `animated` (only its first frame kept).
+ * - join: `session_id`, and `uri` (a file of the phone, of any kind, an image reduced) or `ids`
+ *   (files of entries or tools, copied, « Copy from a tool »): the files kept with the session;
+ *   `files`, each with its `id`, `kind`, `animated`, and a text's `name` and `line_count`.
  * - show_images: `session_id`, `ids`: images of entries brought into the conversation, as if the
  *   user had joined them, for the model to see them (the AI's IMAGES): each copied as an image
  *   of the session, reduced on the way when it is an original a model does not read as it is
@@ -70,6 +73,7 @@ class FileService(private val context: Context) : ExecutableService {
             "attach_image" -> attachImage(params)
             "prepare" -> prepare(params)
             "show_images" -> showImages(params)
+            "join" -> join(params)
             else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
         }
     }
@@ -126,28 +130,66 @@ class FileService(private val context: Context) : ExecutableService {
         val reads = app.treelune.core.ai.providers.ImageInput.sessionModelReadsImages(context, sessionId)
         app.treelune.core.ai.providers.ImageInput.refusal(ids.size, reads) { s.shared(it) }?.let { return OperationResult.error(it) }
         val sources = ids.map { id -> dao.getById(id)?.takeIf { it.fileKind == FileKind.IMAGE } ?: return OperationResult.error(s.shared("image_error_not_found").format(id)) }
-        val now = System.currentTimeMillis()
-        val shown = sources.map { source ->
-            if (source.sessionId == sessionId) source
-            else if (Images.readyForModel(source)) source.copy(id = UUID.randomUUID().toString(), sessionId = sessionId, entryId = null, toolInstanceId = null, createdAt = now).also { copy ->
-                // The file first, as for any image: an interruption leaves a file the sweep removes
-                Files.copy(Files.file(context, source), Files.file(context, copy))
-                writes.insertFile(copy)
-            } else {
-                // An original goes to the model reduced, as a photo joined would; it stays whole in its entry
-                val reduced = Images.prepare(context.contentResolver, android.net.Uri.fromFile(Files.file(context, source)))
-                FileEntity.image(UUID.randomUUID().toString(), sessionId, null, null, reduced.format, reduced.bytes.size.toLong(), reduced.width, reduced.height, now).also { copy ->
-                    Files.write(Files.file(context, copy), reduced.bytes)
-                    writes.insertFile(copy)
-                }
-            }
-        }
+        val shown = sources.map { source -> if (source.sessionId == sessionId) source else intoSession(source, sessionId) }
         return OperationResult.success(mapOf(
             "images" to shown.zip(sources).map { (image, source) ->
                 mapOf("id" to image.id, "source_id" to source.id, "width" to image.width!!, "height" to image.height!!)
             },
             "image_ids" to shown.map { it.id }
         ))
+    }
+
+    /**
+     * A copy of [source], another owner's file, made the session [sessionId]'s: byte for byte, but
+     * for an image a model would not read as it is (an original), reduced on its way as a photo
+     * joined is, the original left whole where it was.
+     */
+    private suspend fun intoSession(source: FileEntity, sessionId: String): FileEntity {
+        val now = System.currentTimeMillis()
+        if (source.fileKind == FileKind.IMAGE && !Images.readyForModel(source)) {
+            val reduced = Images.prepare(context.contentResolver, android.net.Uri.fromFile(Files.file(context, source)))
+            return FileEntity.image(UUID.randomUUID().toString(), sessionId, null, null, reduced.format, reduced.bytes.size.toLong(), reduced.width, reduced.height, now).also { copy ->
+                Files.write(Files.file(context, copy), reduced.bytes)
+                writes.insertFile(copy)
+            }
+        }
+        return source.copy(id = UUID.randomUUID().toString(), sessionId = sessionId, entryId = null, toolInstanceId = null, createdAt = now).also { copy ->
+            // The file first, as for any file: an interruption leaves a file the sweep removes
+            Files.copy(Files.file(context, source), Files.file(context, copy))
+            writes.insertFile(copy)
+        }
+    }
+
+    /**
+     * Files joined to the session `session_id`: the file of the phone at `uri`, of any kind, set
+     * aside as a form's would be then made the session's; or copies of the files `ids` other
+     * owners hold (« Copy from a tool »). Each answered with its id and what goes with its kind.
+     */
+    private suspend fun join(params: JSONObject): OperationResult {
+        val sessionId = params.optString("session_id").takeIf { it.isNotEmpty() } ?: return OperationResult.error(s.shared("image_error_no_conversation"))
+        val joined: List<Pair<FileEntity, Boolean>> = params.optString("uri").takeIf { it.isNotEmpty() }?.let { uri ->
+            when (val prepared = FilePreparation.prepare(context, android.net.Uri.parse(uri), FileKind.entries, text = s::shared)) {
+                is FilePreparation.Result.Refused -> return OperationResult.error(prepared.message)
+                is FilePreparation.Result.Done -> {
+                    val row = prepared.description.row(prepared.id, sessionId, null, null, System.currentTimeMillis())
+                    val pending = Files.pendingFile(context, prepared.id) ?: return OperationResult.error(s.shared("file_error_unknown").format(prepared.id))
+                    // The file moved first, its row after: an interruption leaves a file the sweep removes
+                    check(pending.renameTo(Files.file(context, row).apply { parentFile?.mkdirs() })) { "File ${row.id}: not moved into its session" }
+                    Files.pendingName(context, prepared.id).delete()
+                    writes.insertFile(row)
+                    listOf(row to prepared.animated)
+                }
+            }
+        } ?: params.optJSONArray("ids")?.let { array ->
+            (0 until array.length()).map { i ->
+                val source = dao.getById(array.getString(i)) ?: return OperationResult.error(s.shared("file_error_unknown").format(array.getString(i)))
+                (if (source.sessionId == sessionId) source else intoSession(source, sessionId)) to false
+            }
+        } ?: return OperationResult.error(s.shared("service_error_missing_required_params").format("uri"))
+        return OperationResult.success(mapOf("files" to joined.map { (row, animated) ->
+            listOfNotNull("id" to row.id, "kind" to row.kind, "animated" to animated,
+                row.name?.let { "name" to it }, row.lineCount?.let { "line_count" to it }).toMap()
+        }))
     }
 
     /** An image prepared, or why it could not be. */
@@ -226,6 +268,7 @@ class FileService(private val context: Context) : ExecutableService {
             "attach_image" -> s.shared("action_verbalize_files_attach_image")
             "prepare" -> s.shared("action_verbalize_files_prepare")
             "show_images" -> s.shared("action_verbalize_files_show_images")
+            "join" -> s.shared("action_verbalize_files_join")
             else -> s.shared("action_verbalize_unknown")
         }
     }

@@ -55,6 +55,7 @@
     <!-- AI Interface - Composer and Enrichments -->
     <string name="ai_composer_placeholder">Write your message...</string>
     <string name="ai_image_block">Image</string>
+    <string name="ai_media_block">Sound or video</string>
     <string name="ai_image_missing">The file of this image is missing</string>
     <string name="ai_image_no_camera">No camera app on this phone takes a photo for another app</string>
     <string name="ai_image_model_does_not_read">This model does not read images: the message will not go with it</string>
@@ -1357,6 +1358,8 @@
     <string name="file_kind_image">Images</string>
     <string name="file_keep_original">Keep the original</string>
     <string name="file_copy_from_tool">Copy the files of a field</string>
+    <string name="join_title">Join</string>
+    <string name="file_copy_from_tool_short">Copy from a tool</string>
     <string name="image_error_original_format">The original cannot be kept in this format: %1$s</string>
     <string name="file_kind_audio">Audio</string>
     <string name="file_kind_video">Videos</string>
@@ -1401,6 +1404,7 @@
     <string name="image_error_not_found">No image has the id %1$s</string>
     <string name="image_error_no_conversation">Images are shown within a conversation only</string>
     <string name="action_verbalize_files_show_images">Showing images</string>
+    <string name="action_verbalize_files_join">Joining a file</string>
     <string name="image_animated_first_frame">This image is animated: only its first frame is kept</string>
     <string name="field_image_others">+%1$d</string>
     <string name="ai_image_error_model_does_not_read">This model does not read images: take them off the message, or choose a model that reads them.</string>
@@ -1420,7 +1424,6 @@
     <string name="action_pointer">Point at a zone or a tool</string>
     <string name="action_photo">Photo</string>
     <string name="action_text">Add a text</string>
-    <string name="action_gallery">Gallery</string>
     <string name="action_video">Video</string>
     <string name="action_record">Record</string>
     <string name="action_device">From the phone</string>

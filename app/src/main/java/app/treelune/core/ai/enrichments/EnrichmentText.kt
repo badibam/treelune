@@ -1,5 +1,7 @@
 package app.treelune.core.ai.enrichments
 
+import app.treelune.core.files.fileFormat
+
 import android.content.Context
 import app.treelune.core.ai.data.EnrichmentType
 import app.treelune.core.ai.data.MessageSegment
@@ -42,17 +44,19 @@ class EnrichmentText private constructor(
             is MessageSegment.Text -> segment.content
             is MessageSegment.EnrichmentBlock -> "[${display(segment)}]"
             is MessageSegment.Image -> "[${s.shared("ai_image_block")}]"
+            is MessageSegment.Media -> "[${s.shared("ai_media_block")}]"
         }
     }.trim()
 
     /**
      * What the AI reads of [message], in parts: its text, each block in brackets with its ids,
-     * and each image as a part of its own, where the user put it, written as [formats] says by
-     * its id. A message without images is a single text part.
+     * each image as a part of its own, where the user put it, written as its row in [files] says
+     * by its id, and each sound or video as a line of text, its kind, name and length by its id.
+     * A message without images is a single text part.
      *
-     * @throws IllegalStateException for an image [formats] does not hold: its row is gone
+     * @throws IllegalStateException for a file [files] does not hold: its row is gone
      */
-    suspend fun promptParts(message: RichMessage, formats: Map<String, app.treelune.core.files.FileFormat>): List<PromptPart> {
+    suspend fun promptParts(message: RichMessage, files: Map<String, app.treelune.core.files.FileEntity>): List<PromptPart> {
         val parts = mutableListOf<PromptPart>()
         val run = mutableListOf<String>()
         fun closeRun() {
@@ -65,17 +69,25 @@ class EnrichmentText private constructor(
                 is MessageSegment.EnrichmentBlock -> run.add("[${prompt(segment)}]")
                 is MessageSegment.Image -> {
                     closeRun()
-                    val format = checkNotNull(formats[segment.imageId]) { "Image ${segment.imageId}: its row is missing" }
+                    val format = checkNotNull(files[segment.imageId]) { "Image ${segment.imageId}: its row is missing" }.fileFormat
                     // Its id before it, by which the AI files it in an entry
                     run.add(imageLabel(segment.imageId))
                     closeRun()
                     parts.add(PromptPart.Image(segment.imageId, format))
+                }
+                is MessageSegment.Media -> {
+                    val file = checkNotNull(files[segment.fileId]) { "File ${segment.fileId}: its row is missing" }
+                    run.add(mediaLabel(file))
                 }
             }
         }
         closeRun()
         return parts
     }
+
+    /** A sound or a video as the AI reads it: its kind, its id, its name, its length in ISO 8601, as any duration. */
+    private fun mediaLabel(file: app.treelune.core.files.FileEntity): String =
+        "[" + listOfNotNull("${file.kind.lowercase()} ${file.id}", file.name, file.durationMs?.let { java.time.Duration.ofMillis(it).toString() }).joinToString(", ") + "]"
 
     /** A block's text for the screen. */
     fun display(block: MessageSegment.EnrichmentBlock): String = when (block.type) {

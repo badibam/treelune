@@ -171,7 +171,7 @@ enum class ButtonAction(val iconName: String) {
     CONFIGURE("settings"), ADD("plus"), EDIT("pencil"), REFRESH("refresh-cw"), SELECT("check"), CONFIRM("check"),
     LEFT("chevron-left"), RIGHT("chevron-right"),
     AI_CHAT("message-circle"), RESET("rotate-ccw"), INTERRUPT("pause"), STOP("square"), PAUSE("pause"),
-    RESUME("play"), START("play"), VIEW("eye"), ATTACH("paperclip"), POINTER("crosshair"), TEXT("type"), PHOTO("camera"), GALLERY("image"), VIDEO("video"), RECORD("mic"), DEVICE("folder-open"), REPEAT("repeat"), ARRANGE("layout-grid"), UP("chevron-up"), DOWN("chevron-down"),
+    RESUME("play"), START("play"), VIEW("eye"), ATTACH("paperclip"), POINTER("crosshair"), TEXT("type"), PHOTO("camera"), VIDEO("video"), RECORD("mic"), DEVICE("folder-open"), REPEAT("repeat"), ARRANGE("layout-grid"), UP("chevron-up"), DOWN("chevron-down"),
     SETTINGS("sliders-horizontal"), HISTORY("rotate-ccw-clock"), GUIDE("book-open"), COPY("copy"), IDENTITY("user-round"), SEND("send"), STATS("chart-column"),
     BULLET_LIST("list"), NUMBERED_LIST("list-ordered")
 }

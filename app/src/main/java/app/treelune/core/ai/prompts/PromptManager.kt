@@ -197,14 +197,14 @@ object PromptManager {
         // with images reaches it in parts, each image where the user put it
         val enrichmentText = app.treelune.core.ai.enrichments.EnrichmentText.load(context,
             app.treelune.core.ai.enrichments.EnrichmentText.blocksOf(sessionMessages.mapNotNull { it.richContent }))
-        // The format of each image the messages hold, which says how its file is read: those the
-        // user joined, and those of entries IMAGES brought in
-        val imageIds = sessionMessages.flatMap { it.richContent?.imageIds.orEmpty() + shownImages(it) }
-        val formats = if (imageIds.isEmpty()) emptyMap()
-            else app.treelune.core.database.AppDatabase.getDatabase(context).fileDao().getByIds(imageIds).associate { it.id to it.fileFormat }
+        // The row of each file the messages hold, which says how it is read: the images the user
+        // joined and those of entries IMAGES brought in, the sounds and videos joined
+        val fileIds = sessionMessages.flatMap { it.richContent?.imageIds.orEmpty() + it.richContent?.mediaIds.orEmpty() + shownImages(it) }
+        val files = if (fileIds.isEmpty()) emptyMap()
+            else app.treelune.core.database.AppDatabase.getDatabase(context).fileDao().getByIds(fileIds).associateBy { it.id }
         return sessionMessages.map { message ->
             message.richContent?.let { rich ->
-                val parts = enrichmentText.promptParts(rich, formats)
+                val parts = enrichmentText.promptParts(rich, files)
                 if (parts.none { it is app.treelune.core.ai.data.PromptPart.Image })
                     message.copy(richContent = null, textContent = (parts.singleOrNull() as? app.treelune.core.ai.data.PromptPart.Text)?.text ?: "")
                 else message.copy(richContent = null, textContent = null, promptParts = parts)
@@ -219,7 +219,7 @@ object PromptManager {
                 ?: message.systemMessage?.let { system ->
                     shownImages(message).takeIf { it.isNotEmpty() }?.let { ids ->
                         message.copy(promptParts = listOf(PromptPart.Text(system.toPromptText())) + ids.flatMap { id ->
-                            val format = checkNotNull(formats[id]) { "Image $id: its row is missing" }
+                            val format = checkNotNull(files[id]) { "Image $id: its row is missing" }.fileFormat
                             listOf(PromptPart.Text(app.treelune.core.ai.enrichments.EnrichmentText.imageLabel(id)), PromptPart.Image(id, format))
                         })
                     }

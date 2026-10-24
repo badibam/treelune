@@ -21,7 +21,7 @@ fun RichMessageWithImages(message: RichMessage) {
         buildList<Any> {
             val run = mutableListOf<MessageSegment>()
             for (segment in message.segments) {
-                if (segment is MessageSegment.Image) {
+                if (segment is MessageSegment.Image || segment is MessageSegment.Media) {
                     if (run.isNotEmpty()) { add(RichMessage(run.toList())); run.clear() }
                     add(segment)
                 } else run.add(segment)
@@ -33,6 +33,7 @@ fun RichMessageWithImages(message: RichMessage) {
         pieces.forEach { piece ->
             when (piece) {
                 is MessageSegment.Image -> ImageRow(listOf(piece.imageId))
+                is MessageSegment.Media -> app.treelune.core.files.FileRow(listOf(piece.fileId))
                 is RichMessage -> rememberDisplayText(piece).takeIf { it.isNotEmpty() }?.let { UI.Text(it, TextType.BODY) }
             }
         }
