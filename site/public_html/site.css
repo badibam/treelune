@@ -80,6 +80,8 @@ header nav a[aria-current="true"] { color: var(--accent); text-decoration: under
   background: var(--night); color: #fff;
 }
 .btn.ghost { background: transparent; color: inherit; border: 1.5px solid currentColor; }
+/* A button for what is not there yet: shown, faded, never touched */
+.btn.soon { opacity: .5; cursor: default; }
 
 /* An icon on a pill of its colour, as the default theme draws a tool's icon */
 .pill {

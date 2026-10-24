@@ -375,8 +375,13 @@ $markSymbol = '<symbol id="mark" viewBox="' . h($mark[1]) . '">' . $mark[2] . '<
       <li><?= $t('install.arm64') ?></li>
     </ul>
     <div class="buttons">
+<?php if ($links['fdroid'] !== null): ?>
       <a class="btn" href="<?= h($links['fdroid']) ?>"><?= $t('install.fdroid') ?></a>
       <a class="btn ghost" href="<?= h($links['apk']) ?>"><?= $t('install.apk') ?></a>
+<?php else: ?>
+      <a class="btn" href="<?= h($links['apk']) ?>"><?= $t('install.apk') ?></a>
+      <span class="btn ghost soon" aria-disabled="true"><?= $t('install.fdroid_soon') ?></span>
+<?php endif ?>
     </div>
     <p class="young"><?= $t('install.young') ?></p>
   </div>

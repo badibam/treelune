@@ -74,8 +74,9 @@
     {"id": "external_access", "icon": "network", "color": "green"},
     {"id": "themes", "icon": "palette", "color": "pink"}
   ],
+  "_fdroid": "links.fdroid stays null until the app is published on F-Droid: its button then shows as coming soon, and the APK's is the main one. Its address then: https://f-droid.org/packages/app.treelune/",
   "links": {
-    "fdroid": "https://f-droid.org/packages/app.treelune/",
+    "fdroid": null,
     "apk": "https://github.com/badibam/treelune/releases/latest",
     "source": "https://github.com/badibam/treelune",
     "bug": "https://github.com/badibam/treelune/issues"
