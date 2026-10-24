@@ -5,9 +5,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 ## Release F-Droid
 
 
-- une phrase est incorrecte : "External access, also optional, goes through Tailscale's coordination
-      server." -> il manque la mention d'un relais quelconque, y compris auto-hébergé.
-- La relecture de la merge request d'inclusion, https://gitlab.com/fdroid/fdroiddata/-/merge_requests/53578 (CI verte sur la 0.9.1, le 2026-10-21) : une demande du relecteur se corrige dans `scripts/fdroid/app.treelune.yml`, se recopie dans le clone `~/fdroid-test/fdroiddata-fork` (branche `app.treelune`, clé SSH réglée) et se pousse. Publiée, le README cesse de dire « It is not on F-Droid yet ».
+- La relecture de la merge request d'inclusion, https://gitlab.com/fdroid/fdroiddata/-/merge_requests/53578 (0.9.2 poussée le 2026-10-24, avec le site en `WebSite` : sa CI à regarder) : une demande du relecteur se corrige dans `scripts/fdroid/app.treelune.yml`, se recopie dans le clone `~/fdroid-test/fdroiddata-fork` (branche `app.treelune`, clé SSH réglée) et se pousse. Publiée, le README cesse de dire « It is not on F-Droid yet », et treelune.app s'annonce (r/fossdroid, Lemmy, forum F-Droid, Show HN, LinuxFr, Mastodon).
 
 ## Site treelune.app
 
