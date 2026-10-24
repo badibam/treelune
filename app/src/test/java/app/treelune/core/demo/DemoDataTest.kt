@@ -70,7 +70,7 @@ class DemoDataTest {
         }
         collect(asset("structure.json"))
         collect(hand)
-        moments.forEach { now -> all(now).forEach(::collect) }
+        moments.forEach { now -> all(now).forEach(::collect); data(now).attempts(goals).forEach { collect(it.extra) } }
         for (language in listOf("texts-en.json", "texts-fr.json")) {
             val texts = asset(language)
             assertEquals(language, emptySet<String>(), used - texts.keys().asSequence().toSet())

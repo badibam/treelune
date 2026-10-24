@@ -170,6 +170,7 @@ class DemoService(private val context: Context) : ExecutableService {
                 .put("name", config.getString("name"))
                 .put("timestamp", attempt.start)
                 .put("data", JSONObject(attempt.entered.toString()).put(GoalToolType.DEFINITION, GoalDefinition.copyOf(config).toString()))
+                .apply { if (attempt.extra.length() > 0) put("extra", DemoContent.resolve(attempt.extra, texts)) }
                 .put("state", JSONObject().put(GoalToolType.STATUS, attempt.status).put(GoalToolType.PERIOD_END, attempt.end)))
             // Validated by the user, as Camille would: a goal's validation is a person's or the AI's
             if (attempt.validate) withContext(Origin(Source.USER, byTheApp = true)) {

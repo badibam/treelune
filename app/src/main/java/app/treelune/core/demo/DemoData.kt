@@ -59,8 +59,11 @@ class DemoData(private val time: TimeResolver, private val hand: JSONObject) {
     private val today: LocalDate = time.dateOf(now)
     private val weekStart: LocalDate = time.dateOf(time.instant(TimePoint.Relative(PeriodType.WEEK, 0, Edge.START)))
 
-    /** A goal attempt to open: its period, the values entered in it, and whether it is validated. */
-    data class Attempt(val toolId: String, val start: Long, val end: Long, val entered: JSONObject, val status: String, val validate: Boolean)
+    /**
+     * A goal attempt to open: its period, the values entered in its criteria, its user fields
+     * ([extra], texts as "@key"), and whether it is validated.
+     */
+    data class Attempt(val toolId: String, val start: Long, val end: Long, val entered: JSONObject, val extra: JSONObject, val status: String, val validate: Boolean)
 
     // ------------------------------------------------------------------ time
 
@@ -542,7 +545,8 @@ class DemoData(private val time: TimeResolver, private val hand: JSONObject) {
 
     /**
      * The goals' attempts, one a week: those before last validated, last week's left to validate,
-     * the current one open. Running's "No pain" is ticked but in the rush week.
+     * the current one open. Running's "No pain" is ticked but in the rush week, and how its week
+     * felt is noted on each past one, the current one waiting for it.
      *
      * They follow each goal's own schedule, read from its config [goals] (by tool id) as the goals'
      * scheduler reads it (GoalScheduler): its occurrences up to now, the last the current one,
@@ -560,10 +564,16 @@ class DemoData(private val time: TimeResolver, private val hand: JSONObject) {
             val back = starts.lastIndex - i
             val end = duration?.let { time.after(start, it) } ?: (next(start)!! - 1)
             val entered = if (tool == "demo-course-goal") json("c_no_pain" to (back != RUSH)) else JSONObject()
+            val feeling = when {
+                tool != "demo-course-goal" || back == 0 -> null
+                back == RUSH -> "@course_goal_feeling_rush"
+                else -> "@course_goal_feeling_${back % 3 + 1}"
+            }
+            val extra = json("feeling" to feeling)
             when (back) {
-                0 -> Attempt(tool, start, end, entered, "active", validate = false)
-                1 -> Attempt(tool, start, end, entered, "to_validate", validate = false)
-                else -> Attempt(tool, start, end, entered, "to_validate", validate = true)
+                0 -> Attempt(tool, start, end, entered, extra, "active", validate = false)
+                1 -> Attempt(tool, start, end, entered, extra, "to_validate", validate = false)
+                else -> Attempt(tool, start, end, entered, extra, "to_validate", validate = true)
             }
         }
     }

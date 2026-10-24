@@ -610,6 +610,17 @@
             "time": "00:00"
           }
         },
+        "extra_fields": [
+          {
+            "name": "feeling",
+            "display_name": "@course_goal_field_feeling",
+            "type": "TEXT",
+            "always_visible": false,
+            "config": {
+              "length": "MEDIUM"
+            }
+          }
+        ],
         "criteria": [
           {
             "key": "c_runs",
