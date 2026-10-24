@@ -28,12 +28,14 @@ La brique Image (`docs/DATA.md`, « IMAGE ») devient la brique Fichier : une ta
   - **Lecture** : suivre un champ d'une entrée, relu à chaque usage ; pour une étape, ce qu'il contient au moment de jouer.
   - **Variable**, là où une variable du type existe (aucune ne tient un fichier aujourd'hui).
 - Copier et suivre passent par le même parcours jusqu'au champ et donnent des résultats opposés : les libellés disent l'effet.
-- La zone de saisie d'une conversation a deux gestes : **Pointer** (désigner, l'IA lit au moment de l'envoi) et **Joindre** (le sélecteur de valeur fixe : depuis l'appareil, ou copier depuis un outil ; la conversation possède ce qu'elle joint). Il n'y a pas de Lecture dans un message.
+- La zone de saisie d'une conversation a deux gestes : **Pointer** (désigner, l'IA lit au moment de l'envoi), son bouton à part, et **Joindre**, un bouton qui ouvre le sélecteur de valeur fixe : Photo, Vidéo, Audio (prendre ou enregistrer maintenant), Depuis l'appareil (le sélecteur de fichiers du téléphone, les sortes acceptées seules), Copier depuis un outil. La conversation possède ce qu'elle joint. Il n'y a pas de Lecture dans un message.
+- Image, audio et vidéo sont symétriques partout où l'on ajoute un fichier : chacun se prend ou s'enregistre par l'application du téléphone (l'appareil photo, le micro), comme une photo aujourd'hui, ou se choisit dans l'appareil.
 - La copie d'un fichier qui appartient à un autre reste ce que fait une valeur fixe : elle possède son fichier. Elle est silencieuse aujourd'hui (l'IA qui écrit l'identifiant d'une photo de la conversation ne sait pas qu'elle a pris une copie) : le résultat de l'écriture le dit.
 
-À trancher : les formats gardés, la taille au-delà de laquelle un fichier est refusé, la réduction (une vidéo réduite comme une photo l'est).
+- Formats acceptés : ce qu'Android lit sans rien ajouter — MP3, M4A/AAC, Opus, WAV pour l'audio, MP4 pour la vidéo. Une taille maximale par sorte (de l'ordre de 50 Mo pour un audio, 200 Mo pour une vidéo), refusée en le disant.
+- Un audio et une vidéo sont gardés tels quels, jamais réencodés. Une image est réduite comme aujourd'hui, sauf **Garder l'original**, une case cochée à chaque ajout ; une image gardée en original est réduite au moment de partir vers l'IA (1 568 px), le fichier gardé intact.
 
-Option non tranchée, posséder ou retenir : un endroit tient un fichier en le possédant (il part avec lui, est supprimé quand on le retire) ou en le retenant (il le nomme sans le posséder, et le fichier ne peut disparaître tant qu'il le nomme) ; un fichier vit tant qu'il a un propriétaire ou une rétention. Chaque endroit déclare sa manière : un choix, pas une exception. Seul ce qui désigne un fichier sans en être l'endroit retient : un historique. L'annulation retient déjà, sans le dire (le nettoyage au démarrage recalcule ce que l'historique des écritures nomme, `Images.kt`). Un fichier n'est jamais modifié sur place (le remplacer en crée un autre), si bien que rien dans l'app n'altère ce qui est retenu.
+Option explorée pendant A, posséder ou retenir : un endroit tient un fichier en le possédant (il part avec lui, est supprimé quand on le retire) ou en le retenant (il le nomme sans le posséder, et le fichier ne peut disparaître tant qu'il le nomme) ; un fichier vit tant qu'il a un propriétaire ou une rétention. Chaque endroit déclare sa manière : un choix, pas une exception. Seul ce qui désigne un fichier sans en être l'endroit retient : un historique. L'annulation retient déjà, sans le dire (le nettoyage au démarrage recalcule ce que l'historique des écritures nomme, `Images.kt`). Un fichier n'est jamais modifié sur place (le remplacer en crée un autre), si bien que rien dans l'app n'altère ce qui est retenu.
 
 - En base : la table des fichiers garde au plus un propriétaire, qui ne l'emporte plus en partant (`ON DELETE SET NULL`) ; une table `file_retentions` (`file_id`, `reason`, l'entrée ou l'étape de l'historique qui retient, en cascade).
 - Ce qui n'est plus que retenu se liste par raison, avec sa taille (« 14 fichiers, 230 Mo, gardés par l'historique des séances »), et se libère en supprimant ces rétentions ; l'historique garde alors la désignation et dit que le fichier a été supprimé.
@@ -46,15 +48,13 @@ Option non tranchée, posséder ou retenir : un endroit tient un fichier en le p
 - Une Lecture part aujourd'hui d'une sélection d'entrées qui part d'un outil ou d'une zone (`docs/BRICKS.md`, « Entry selection ») : elle part aussi d'une entrée précise, l'entrée étant déjà une chose (`{"kind": "ENTRY", "id"}`). Le pointeur d'un message, construit sur la même sélection, vise alors une entrée.
 - La Lecture d'un champ fichier, avec la réduction « sa valeur ». Aujourd'hui `Reduction.forType` n'en donne aucune à IMAGE (`core/reading/FieldReading.kt`). Elle ne vise qu'un champ d'un seul fichier (`max` 1).
 - La Lecture vise le champ, pas le fichier : un audio remplacé dans la Fiche est suivi, comme sa suppression.
-- Une source supprimée laisse l'étape sans fichier : c'est le cas de la vérification « qui dépend de ça ? » avant de supprimer (`TODO.md`, « À concevoir »).
+- Une désignation dont la cible est supprimée garde son adresse et se lit « supprimée », comme une Référence aujourd'hui (`"deleted": true`, `docs/DATA.md`), une seule fois pour la Référence, la Lecture et le pointeur : une étape qui suivait l'audio d'une Fiche supprimée dit « Source supprimée » et ne joue rien. La vérification « qui dépend de ça ? » avant de supprimer reste à concevoir à part (`TODO.md`, « À concevoir »).
 
 ## 3. La valeur par défaut
 
 - Permise sur une Référence. `docs/DATA.md` l'exclut aujourd'hui avec DATE, DATETIME et IMAGE : retrouver pourquoi avant de lever l'exclusion.
 - Pré-remplie la première fois qu'on remplit une entrée née du système, dans les champs encore vides : l'écran « Terminer la séance » de Séquence, la réponse à une invitation de Questionnaire, les champs d'une tentative d'Objectif. Aujourd'hui ces trois formulaires partent des valeurs de l'entrée seules (`CustomFieldsInput` sans `newEntry`) ; la Liste, les Notes, le Journal, les Fiches, l'Agenda et le Suivi pré-remplissent déjà à la création. Une valeur par défaut est posée pour une raison : son absence là était un oubli.
 - Une séance marquée faite sans l'écran (`complete`) ne passe par aucun formulaire et ne la reçoit pas.
-
-À trancher : un champ montré à la fin d'une séance sans être à saisir (un texte lu, pas une réponse).
 
 ## 4. Les API
 
@@ -93,5 +93,5 @@ Une séance guidée audio, régénérée chaque nuit d'après les retours notés
 
 ## Découpage
 
-- **A** : les parties 1 à 3 entières, l'option posséder ou retenir comprise (tranchée pendant A), et l'envoi d'un fichier par le connecteur en deux temps (une adresse à côté de `/mcp`, la même autorisation, un identifiant d'attente que l'écriture de l'entrée rend propriétaire). Le montage de la partie 6 se fait alors à la main par le connecteur externe : une IA extérieure dépose les audios dans une Fiche et fait suivre la Séquence.
+- **A** : les parties 1 à 3 entières, l'option posséder ou retenir comprise (tranchée pendant A), et l'envoi d'un fichier par le connecteur. Les octets ne passent pas par l'IA (les paramètres d'un outil, c'est elle qui les écrit) : un outil du connecteur donne une adresse d'envoi à usage unique et de courte durée, le client y envoie le fichier (Claude Code par `curl`, une conversation de claude.ai ne le peut pas), l'app le met de côté et rend son identifiant d'attente, sa sorte, son format, sa taille ; l'écriture d'une entrée qui le met dans un champ en fait sa valeur fixe, comme une photo d'un formulaire. L'IA de l'app n'en a pas besoin : les fichiers lui arrivent par la conversation. Le montage de la partie 6 se fait alors à la main par le connecteur externe : une IA extérieure dépose les audios dans une Fiche et fait suivre la Séquence.
 - **B** : les API (partie 4) et les Tâches (partie 5), avec lesquelles la boucle tourne seule.
