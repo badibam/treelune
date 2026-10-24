@@ -20,8 +20,9 @@ import app.treelune.core.utils.JsonUtils
 import org.json.JSONObject
 
 /**
- * The core's reading: one value from the entries of one tool instance (docs/DATA.md, « Reading
- * of the core »), the door every reader goes through -- a goal's criterion, a variable's term.
+ * The core's reading: one value from the entries of one tool instance, or from one entry
+ * (docs/DATA.md, « Reading of the core »), the door every reader goes through -- a goal's
+ * criterion, a variable's term, a step's file.
  *
  * - read, a variable: `variable` (its name) and `at`, the instants to read it at (milliseconds);
  *   a value or a failure per instant, in the same order (the variables service computes it).
@@ -63,7 +64,8 @@ class ReadingService(private val context: Context) : ExecutableService {
         } catch (e: IllegalArgumentException) {
             return OperationResult.error(e.message ?: s.shared("service_error_reading_param").format("selection"))
         }
-        if (selection.target.kind != ReferenceKind.TOOL_INSTANCE) {
+        selection.problem { s.shared(it) }?.let { return OperationResult.error(it) }
+        if (selection.target.kind != ReferenceKind.TOOL_INSTANCE && selection.target.kind != ReferenceKind.ENTRY) {
             return OperationResult.error(s.shared("service_error_reading_source").format(selection.target.kind.name))
         }
         // One instant, or several read in one go
@@ -75,11 +77,9 @@ class ReadingService(private val context: Context) : ExecutableService {
         val reduction = Reduction.entries.firstOrNull { it.name == params.optString("reduction") }
             ?: return OperationResult.error(s.shared("service_error_reading_reduction").format(
                 params.optString("reduction"), Reduction.entries.joinToString(", ") { it.name }))
-        val toolInstanceId = selection.target.id!!
-
         // A source deleted since is an answer, not an error: whoever reads decides what it means.
         // A read that fails is an error, never taken for a deletion
-        when (sourceGone(toolInstanceId)) {
+        when (sourceGone(selection.target)) {
             null -> return OperationResult.error(s.shared("service_error_reading_source_unread"))
             true -> {
                 val gone = failure(ReadingResult.Failure(FailureReason.SOURCE_NOT_FOUND, null))
@@ -87,14 +87,23 @@ class ReadingService(private val context: Context) : ExecutableService {
             }
             false -> {}
         }
+        // One entry read is the only entry of its reading, in its tool; a tool's are those its filters keep
+        val entry = if (selection.target.kind == ReferenceKind.ENTRY) {
+            app.treelune.core.database.AppDatabase.getDatabase(context).toolDataDao().getById(selection.target.id!!)
+                ?.let { app.treelune.core.services.ToolDataEntries.toMap(it) }
+                ?: return OperationResult.error(s.shared("service_error_entry_not_found").format(selection.target.id))
+        } else null
+        val toolInstanceId = entry?.get("tool_instance_id") as? String ?: selection.target.id!!
+        suspend fun entries(toolInstanceId: String, filters: org.json.JSONArray): List<Map<String, Any?>> =
+            if (entry != null) listOf(entry) else readEntries(toolInstanceId, filters)
 
         val fields = ToolFields.filterable(toolInstanceId, context, s)
         val path = params.optString("field").takeIf { it.isNotEmpty() }
         val field = path?.let { fields[it] ?: return OperationResult.error(
             s.shared("service_error_filter_unknown_field").format(it, fields.keys.joinToString(", "))) }
-        if (reduction !in Reduction.forType(field?.type)) {
+        if (reduction !in Reduction.forField(field)) {
             return OperationResult.error(s.shared("service_error_reading_reduction_type").format(
-                reduction.name, field?.type?.name ?: "-", Reduction.forType(field?.type).joinToString(", ") { it.name }))
+                reduction.name, field?.type?.name ?: "-", Reduction.forField(field).joinToString(", ") { it.name }))
         }
 
         if (instants == null) {
@@ -143,7 +152,7 @@ class ReadingService(private val context: Context) : ExecutableService {
      *
      * @throws IllegalStateException when they cannot be read
      */
-    private suspend fun entries(toolInstanceId: String, filters: org.json.JSONArray): List<Map<String, Any?>> {
+    private suspend fun readEntries(toolInstanceId: String, filters: org.json.JSONArray): List<Map<String, Any?>> {
         val entries = Coordinator(context).processUserAction("tool_data.get", mapOf(
             "tool_instance_id" to toolInstanceId,
             "filters" to JsonUtils.toList(filters)
@@ -158,9 +167,9 @@ class ReadingService(private val context: Context) : ExecutableService {
         is ReadingResult.Failure -> failure(result)
     }
 
-    /** Whether the tool instance was deleted; null when that cannot be read. */
-    private suspend fun sourceGone(toolInstanceId: String): Boolean? {
-        val result = Coordinator(context).processUserAction("references.names", mapOf("references" to listOf(mapOf("kind" to "TOOL_INSTANCE", "id" to toolInstanceId))))
+    /** Whether the tool instance or the entry read was deleted; null when that cannot be read. */
+    private suspend fun sourceGone(source: app.treelune.core.selection.Reference): Boolean? {
+        val result = Coordinator(context).processUserAction("references.names", mapOf("references" to listOf(JsonUtils.toMap(source.toJson()))))
         if (!result.isSuccess) return null
         return ((result.data?.get("references") as? List<*>)?.firstOrNull() as? Map<*, *>)?.get("deleted") as? Boolean
     }

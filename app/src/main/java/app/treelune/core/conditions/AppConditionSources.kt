@@ -23,6 +23,8 @@ class AppConditionSources(private val context: Context, private val rows: RowFie
 
     override suspend fun toolFields(toolInstanceId: String): Map<String, FieldDefinition> = ToolFields.filterable(toolInstanceId, context, s)
 
+    override suspend fun targetFields(target: app.treelune.core.selection.Reference): Map<String, FieldDefinition> = ToolFields.ofTarget(target, context, s)
+
     override suspend fun variableField(id: String): FieldDefinition? {
         val result = Coordinator(context).processUserAction("variables.get", mapOf("variable_id" to id))
         if (!result.isSuccess) return null

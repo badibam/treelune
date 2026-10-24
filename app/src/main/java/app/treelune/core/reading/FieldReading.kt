@@ -15,14 +15,23 @@ enum class Reduction {
          * The reductions a field of [type] takes; null is no field, which is counting entries.
          * An average of hours is refused: 23:30 and 00:30 would give 12:00.
          */
-        fun forType(type: FieldType?): Set<Reduction> = when (type) {
+        private fun forType(type: FieldType?): Set<Reduction> = when (type) {
             null -> setOf(COUNT)
             FieldType.NUMERIC, FieldType.DURATION -> setOf(LAST, SUM, AVERAGE, MIN, MAX)
             FieldType.SCALE -> setOf(LAST, AVERAGE, MIN, MAX)
             FieldType.BOOLEAN, FieldType.CHOICE, FieldType.TEXT -> setOf(LAST)
             FieldType.DATE, FieldType.DATETIME, FieldType.TIME -> setOf(LAST, EARLIEST, LATEST)
-            FieldType.RANGE, FieldType.REFERENCE, FieldType.FILE -> emptySet()
+            FieldType.RANGE, FieldType.REFERENCE -> emptySet()
+            // A file field's value read as it is, its file followed; only one of a single file
+            FieldType.FILE -> setOf(LAST)
         }
+
+        /**
+         * The reductions [field] takes; null is no field, which is counting entries. A file field
+         * holding more than one file takes none: a reading gives one file.
+         */
+        fun forField(field: FieldDefinition?): Set<Reduction> =
+            if (field?.type == FieldType.FILE && app.treelune.core.fields.FileField.max(field.config) != 1) emptySet() else forType(field?.type)
     }
 }
 
@@ -32,7 +41,7 @@ enum class FailureReason {
     NO_ENTRY,
     /** Entries without an answer to the field reduced: left out, they would bend the value */
     MISSING_VALUE,
-    /** The tool read no longer exists */
+    /** The tool or the entry read no longer exists */
     SOURCE_NOT_FOUND
 }
 
@@ -69,7 +78,7 @@ object FieldReading {
      * @param at The instant read at, up to which a running DURATION counts
      */
     fun reduce(entries: List<Map<String, Any?>>, path: String?, field: FieldDefinition?, reduction: Reduction, at: Long): ReadingResult {
-        require(reduction in Reduction.forType(field?.type)) { "$reduction does not reduce a ${field?.type ?: "count"}" }
+        require(reduction in Reduction.forField(field)) { "$reduction does not reduce a ${field?.type ?: "count"}" }
         if (reduction == Reduction.COUNT) return ReadingResult.Value(entries.size, COUNT_FIELD)
         path!!; field!!
 

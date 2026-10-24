@@ -1441,7 +1441,7 @@
     <string name="service_error_reading_reduction_type">%1$s ne réduit pas un champ de type %2$s. Il accepte : %3$s.</string>
     <string name="reading_failure_no_entry">%1$s : aucune entrée dans la période</string>
     <string name="reading_failure_missing_value">%1$d entrée(s) sans réponse à %2$s</string>
-    <string name="reading_failure_source_not_found">l\'outil lu n\'existe plus</string>
+    <string name="reading_failure_source_not_found">ce qui est lu n\'existe plus</string>
     <string name="action_verbalize_readings_read">Lecture d\'une valeur dans des entrées</string>
     <string name="variable_error_param">Une variable demande "%1$s".</string>
     <string name="look_error_display_mode">Cette tuile s\'affiche en %2$s, pas en « %1$s ».</string>

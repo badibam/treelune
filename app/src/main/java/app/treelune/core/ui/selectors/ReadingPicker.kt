@@ -87,23 +87,23 @@ fun ReadingPicker(reading: JSONObject, s: StringsContext, where: ReadingContext,
                     FieldPick.Other(PER_ENTRY) -> { put("per_entry", ""); put("reduction", Reduction.SUM.name) }
                     is FieldPick.Path -> {
                         put("field", pick.path)
-                        put("reduction", Reduction.forType(fields.getValue(pick.path).type).first().name)
+                        put("reduction", Reduction.forField(fields.getValue(pick.path)).first().name)
                     }
                     is FieldPick.Other -> error("No reading choice '${pick.key}'")
                 }
             }
         },
-        accepts = { Reduction.forType(it.type).isNotEmpty() },
+        accepts = { Reduction.forField(it).isNotEmpty() },
         others = mapOf(COUNT to s.shared("variable_reading_count")) + (if (where.perEntry) mapOf(PER_ENTRY to s.shared("variable_reading_per_entry")) else emptyMap())
     )
     if (perEntry) {
         UI.FormField(label = s.shared("variable_reading_per_entry"), value = reading.optString("per_entry"), onChange = { v -> edit { put("per_entry", v) } }, required = true)
     }
-    val fieldType = reading.optString("field").takeIf { it.isNotEmpty() }?.let { fields[it]?.type }
+    val readField = reading.optString("field").takeIf { it.isNotEmpty() }?.let { fields[it] }
     val reductions = when {
         perEntry -> listOf(Reduction.SUM, Reduction.AVERAGE, Reduction.MIN, Reduction.MAX, Reduction.LAST, Reduction.COUNT)
         // Nothing to offer until the field is read
-        reading.has("field") -> fieldType?.let { Reduction.forType(it).toList() } ?: emptyList()
+        reading.has("field") -> readField?.let { Reduction.forField(it).toList() } ?: emptyList()
         else -> listOf(Reduction.COUNT)
     }
     ReductionPicker(

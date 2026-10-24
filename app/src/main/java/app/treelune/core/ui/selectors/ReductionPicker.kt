@@ -8,7 +8,7 @@ import app.treelune.core.ui.UI
 
 /**
  * The Réduction brick's selector (docs/BRICKS.md): one of [reductions], those the field chosen
- * takes (Reduction.forType). A single one is said rather than offered in a list; none, nothing shows.
+ * takes (Reduction.forField). A single one is said rather than offered in a list; none, nothing shows.
  */
 @Composable
 fun ReductionPicker(

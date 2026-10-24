@@ -117,7 +117,7 @@ class ConditionCheck(private val sources: ConfigConditions.Sources, private val 
     /** The field a term judged once gives values of: a formula per entry is a variable's alone. */
     private suspend fun termField(term: Term, label: String): FieldDefinition? {
         if (term is Term.Reading && term.perEntry != null) throw IllegalArgumentException(text("condition_error_per_entry").format(label))
-        return TermFields.of(term, label, text, sources::toolFields, sources::variableField)
+        return TermFields.of(term, label, text, sources::targetFields, sources::variableField)
     }
 
     /** Two sides compare when they are of one type, a number and a scale both being numbers. */

@@ -98,7 +98,15 @@ class FieldReadingTest {
     fun `a reduction a type does not take is refused`() {
         assertThrows(IllegalArgumentException::class.java) { FieldReading.reduce(entries, "data.mood", mood, Reduction.SUM, 0L) }
         assertThrows(IllegalArgumentException::class.java) { FieldReading.reduce(entries, "data.bedtime", bedtime, Reduction.AVERAGE, 0L) }
-        assertTrue(Reduction.forType(FieldType.RANGE).isEmpty())
+        assertTrue(Reduction.forField(FieldDefinition("r", "R", null, FieldType.RANGE, false, null)).isEmpty())
+    }
+
+    @Test
+    fun `a file field is read as its value, only when it holds a single file`() {
+        fun file(max: Int?) = FieldDefinition("f", "F", null, FieldType.FILE, false, app.treelune.core.fields.FileField.config(listOf(app.treelune.core.files.FileKind.AUDIO), max))
+        assertEquals(setOf(Reduction.LAST), Reduction.forField(file(1)))
+        assertTrue(Reduction.forField(file(3)).isEmpty())
+        assertTrue(Reduction.forField(file(null)).isEmpty())
     }
 
     @Test

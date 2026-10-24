@@ -30,6 +30,14 @@ class ConfigConditions(private val sources: Sources) {
          */
         suspend fun toolFields(toolInstanceId: String): Map<String, FieldDefinition>
 
+        /**
+         * The fields of the entries a reading's [target] holds: a tool instance's, or for one
+         * entry, its tool's.
+         *
+         * @throws IllegalStateException when they cannot be read
+         */
+        suspend fun targetFields(target: app.treelune.core.selection.Reference): Map<String, FieldDefinition> = toolFields(target.id!!)
+
         /** The field of the variable [id] as its definition stores it; null when there is none. */
         suspend fun variableField(id: String): FieldDefinition?
 

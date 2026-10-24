@@ -1441,7 +1441,7 @@
     <string name="service_error_reading_reduction_type">%1$s does not reduce a field of type %2$s. It takes: %3$s.</string>
     <string name="reading_failure_no_entry">%1$s: no entry in the period</string>
     <string name="reading_failure_missing_value">%1$d entr(ies) without an answer to %2$s</string>
-    <string name="reading_failure_source_not_found">the tool read no longer exists</string>
+    <string name="reading_failure_source_not_found">what is read no longer exists</string>
     <string name="action_verbalize_readings_read">Reading a value from entries</string>
     <string name="variable_error_param">A variable needs "%1$s".</string>
     <string name="look_error_display_mode">This tile shows as %2$s, not “%1$s”.</string>
