@@ -2,15 +2,20 @@
 
 Cinq briques qui se construisent l'une après l'autre, chacune utile seule : des médias audio et vidéo, le pointeur vers une entrée, la valeur par défaut étendue, les API, les Tâches. Elles naissent d'un même cas, une séance guidée audio régénérée chaque nuit par un service extérieur d'après les retours notés à la fin de la précédente (dernière partie), mais aucune ne lui est propre.
 
-## 1. Médias audio et vidéo
+## 1. Médias : image, audio, vidéo
 
-La brique Image (`docs/DATA.md`, « IMAGE ») s'étend au son et à la vidéo : la même table de fichiers, les mêmes règles de propriété (un fichier appartient à une entrée ou à un outil, part avec lui, est supprimé quand on le retire), le même usage aux deux endroits : un champ d'entrée (une Fiche peut avoir un champ Audio) et un réglage de configuration (les médias d'une étape).
+La brique Image (`docs/DATA.md`, « IMAGE ») s'étend au son et à la vidéo : une seule brique, des médias, la même table de fichiers, les mêmes règles de propriété (un fichier appartient à une entrée ou à un outil, part avec lui, est supprimé quand on le retire), le même usage aux deux endroits. L'identifiant d'un média est la façon dont son fichier est rangé, pas une référence.
 
-- Une étape de Séquence porte une consigne écrite facultative, des images, et au plus un audio ou une vidéo. Une fin d'étape de plus : « à la fin du média ». L'audio se joue écran éteint, par le service qui fait déjà tourner une séance (`SequenceRunService`).
+- Dans une entrée (le champ Audio d'une Fiche), un champ média tient ses propres fichiers : une entrée stocke des valeurs, comme pour ses autres champs ; seul un champ Référence y est une adresse.
+- Dans une configuration (les médias d'une étape), chaque média est un Terme : un fichier à soi (une constante) ou le champ média d'une entrée suivi (une Lecture, partie 2). Les images d'une étape y passent aussi ; leurs valeurs actuelles sont des constantes.
+
+- Une étape de Séquence porte une consigne écrite facultative, des images, et au plus un audio ou une vidéo. La vidéo se joue écran allumé, à l'écran de la séance. Une fin d'étape de plus : « à la fin du média ». L'audio se joue écran éteint, par le service qui fait déjà tourner une séance (`SequenceRunService`).
 - Là où un média est attendu, rien d'autre ne l'est : le sélecteur ne montre jamais une valeur à taper. Deux gestes :
-  - **Ajouter un fichier** : depuis l'appareil, enregistrer (le micro, la caméra), ou copier depuis un outil (on va jusqu'au champ d'une entrée, le fichier est copié et devient celui de l'étape, par la règle actuelle des images).
-  - **Suivre celui d'un outil** : l'étape garde l'adresse d'un champ d'une entrée (partie 2) et joue ce qu'il contient au moment de jouer.
+  - **Ajouter un fichier**, une constante : depuis l'appareil, enregistrer (le micro, la caméra), ou copier depuis un outil (on va jusqu'au champ d'une entrée, le fichier est copié et devient celui de l'étape, par la règle actuelle des images).
+  - **Suivre celui d'un outil**, une Lecture : l'étape garde l'adresse d'un champ d'une entrée (partie 2) et joue ce qu'il contient au moment de jouer.
 - Les libellés disent l'effet (copier, suivre), pas la provenance : les deux gestes passent par le même parcours jusqu'au champ et donnent des résultats opposés.
+
+- La copie d'un média étranger reste ce que fait une constante : une valeur possède son fichier. Elle est silencieuse aujourd'hui (l'IA qui écrit l'identifiant d'une photo de la conversation ne sait pas qu'elle a pris une copie) : le résultat de l'écriture le dit.
 
 À trancher : les formats gardés, la taille au-delà de laquelle un fichier est refusé, la réduction (une vidéo réduite comme une photo l'est), ce que l'IA lit d'un média (sa durée et sa taille, comme une image ses dimensions).
 
@@ -66,5 +71,7 @@ Une séance guidée audio, régénérée chaque nuit d'après les retours notés
 - Une Séquence : une étape par partie, chacune suivant l'audio d'une Fiche (partie 2), une pause entre elles ; ses champs supplémentaires : une Référence à la Fiche jouée, dont la valeur par défaut est la Fiche du jour (partie 3), et les retours.
 - Une Tâche chaque nuit : appeler l'API de la boîte aux lettres avec le contexte et les derniers retours et scripts, lus par des Lectures ; attendre ; le script relu et validé par l'utilisateur avant que la voix et le montage soient faits (partie 5, à trancher) ; créer la Fiche avec ce que l'API rend ; faire suivre à chaque étape le champ de cette Fiche, et lui donner la valeur par défaut de la Référence.
 - Hors de l'app : la boîte aux lettres, qui garde le travail et son résultat et déclenche le service ; le service, qui écrit le script, le fait dire par une synthèse vocale et monte l'audio.
+
+Premier usage, hors de l'app et à la main par le connecteur externe : le champ média (image, audio, vidéo ; saisie depuis l'appareil, affichage, lecture, ce que l'IA en lit), l'envoi d'un fichier par le connecteur en deux temps (une adresse à côté de `/mcp`, la même autorisation, un identifiant d'attente que l'écriture de l'entrée rend propriétaire), le pointeur vers une entrée et la Lecture d'un média, les médias d'une étape en Terme (« Suivre celui d'un outil » compris), la valeur par défaut ; « Copier depuis un outil » et l'enregistrement attendent.
 
 Ordre de construction : les médias (un audio posé à la main dans une étape sert déjà) ; le pointeur vers une entrée, la Lecture d'un média et la valeur par défaut (le montage complet, à la main) ; les API et les Tâches (la boucle tourne seule).
