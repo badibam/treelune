@@ -60,8 +60,9 @@ object FieldTypeSettings {
     private fun caseNodes(type: FieldType, text: (String) -> String, labels: TextLength): List<SettingNode> {
         val config = configGroup(type, text, labels)
         // A fixed day or instant is hardly a suggestion for every new entry: dates have none, nor
-        // a reference, one thing for all the entries to come, nor files, each owned by one entry
-        val default = if (type in setOf(FieldType.DATE, FieldType.DATETIME, FieldType.REFERENCE, FieldType.FILE)) null
+        // files, each owned by one entry. A reference has one: the thing most entries name (the
+        // sheet a session plays), which the form proposes and the user changes
+        val default = if (type in setOf(FieldType.DATE, FieldType.DATETIME, FieldType.FILE)) null
             else field("default_value", "field_default_value", type, text, description = "field_type_schema_default_value_description")
                 .copy(valueOfDefined = true)
         return listOfNotNull(config, default)

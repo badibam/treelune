@@ -282,7 +282,8 @@ private fun Closing(entry: SequenceEntry, fields: List<FieldDefinition>, s: Stri
         entry.duration?.let { clockText(it) },
         if (entry.stepsDone != null && entry.stepsTotal != null) s.tool("steps_of").format(entry.stepsDone, entry.stepsTotal) else null
     ).joinToString(" · "), TextType.BODY)
-    if (fields.isNotEmpty()) CustomFieldsInput(customFieldsMetadata = fields, values = values, onValuesChange = { values = it }, context = context)
+    // Its fields filled for the first time: their default values proposed where they are empty
+    if (fields.isNotEmpty()) CustomFieldsInput(customFieldsMetadata = fields, values = values, onValuesChange = { values = it }, context = context, newEntry = true)
     UI.Button(type = ButtonType.PRIMARY, onClick = { onFinish(fields.associate { it.name to values[it.name] }) }) { UI.Text(s.tool("action_finish"), TextType.LABEL) }
 }
 

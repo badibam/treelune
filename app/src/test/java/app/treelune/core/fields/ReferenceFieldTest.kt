@@ -60,6 +60,18 @@ class ReferenceFieldTest {
     }
 
     @Test
+    fun `a reference takes a default value, a date and a file none`() {
+        fun takesDefault(type: FieldType): Boolean {
+            val variant = app.treelune.core.fields.settings.FieldTypeSettings.definitionNodes({ it }, listOf(type))
+                .filterIsInstance<app.treelune.core.fields.settings.SettingNode.Variant>().single()
+            return variant.cases.getValue(type.name).any { it is app.treelune.core.fields.settings.SettingNode.Field && it.definition.name == "default_value" }
+        }
+        assertTrue(takesDefault(FieldType.REFERENCE))
+        assertFalse(takesDefault(FieldType.DATE))
+        assertFalse(takesDefault(FieldType.FILE))
+    }
+
+    @Test
     fun `an entry alone is designated down to one of its fields, kept through its stored form`() {
         val induction = Reference(ReferenceKind.ENTRY, "s24", "extra.induction")
         assertEquals(induction, ReferenceTarget.referenceOf(mapOf("kind" to "ENTRY", "id" to "s24", "field" to "extra.induction")))

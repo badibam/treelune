@@ -301,7 +301,9 @@ private fun UserFieldsDialog(attempt: AttemptRow, fields: List<FieldDefinition>,
     UI.Dialog(type = DialogType.EDIT, onConfirm = { onSave(fields.associate { it.name to values[it.name] }) }, onCancel = onCancel) {
         Column(modifier = Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
             UI.Text(Strings.`for`(context = context).shared("custom_fields_section_title"), TextType.SUBTITLE)
-            CustomFieldsInput(customFieldsMetadata = fields, values = values, onValuesChange = { values = it }, context = context)
+            // An attempt's fields never filled yet: their default values proposed where they are empty
+            CustomFieldsInput(customFieldsMetadata = fields, values = values, onValuesChange = { values = it }, context = context,
+                newEntry = fields.none { attempt.extra[it.name] != null })
         }
     }
 }

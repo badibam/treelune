@@ -1,5 +1,6 @@
 package app.treelune.tools.questionnaire.ui
 
+import app.treelune.core.fields.defaultValues
 import app.treelune.core.ui.components.ButtonRow
 import app.treelune.core.ui.chatButtonSpace
 import androidx.compose.foundation.clickable
@@ -246,7 +247,11 @@ private fun Passing(
     onFinish: (Map<String, Any?>) -> Unit
 ) {
     val context = LocalContext.current
-    var answers by rememberSaveable(stateSaver = app.treelune.core.ui.FieldValuesSaver) { mutableStateOf(entry?.answers ?: emptyMap()) }
+    // A question without an answer yet proposes its default value, saved once the question is passed
+    var answers by rememberSaveable(stateSaver = app.treelune.core.ui.FieldValuesSaver) {
+        val given = entry?.answers.orEmpty()
+        mutableStateOf(questions.filter { it.name !in given }.defaultValues() + given)
+    }
     var index by rememberSaveable { mutableIntStateOf(questions.indexOfFirst { entry?.answers?.get(it.name) == null }.coerceAtLeast(0)) }
     Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).chatButtonSpace().padding(vertical = UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.L)) {
         UI.PageHeader(title = s.tool("passing_title").format(index + 1, questions.size), leftButton = ButtonAction.BACK, onLeftClick = onCancel)

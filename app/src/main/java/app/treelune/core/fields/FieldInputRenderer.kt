@@ -349,9 +349,9 @@ private fun DurationInput(
  * @param values Current values map (fieldName -> value)
  * @param onValuesChange Callback when any value changes (receives updated full map)
  * @param context Android context for strings and formatting
- * @param newEntry Whether the entry is being created: each field's default value is then filled
- *   in once, when the fields are known, where no value is set; a value emptied after that stays
- *   empty
+ * @param newEntry Whether the entry is filled for the first time, created now or born of the
+ *   app (a session over, an attempt): each field's default value is then filled in once, when the
+ *   fields are known, where no value is set; a value emptied after that stays empty
  */
 @Composable
 fun CustomFieldsInput(
