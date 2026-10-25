@@ -42,7 +42,15 @@ data class AILimitsConfig(
      * thresholds, which guard what the AI asks for: this one guards a cost the user chose and
      * that grows unseen, paid at every call.
      */
-    val alwaysSendMaxChars: Int = 15_000
+    val alwaysSendMaxChars: Int = 15_000,
+
+    /**
+     * Runs of Tasks and routines one chain holds at most (Chains, docs/CORE.md, « Chains »): what
+     * runs by itself, one run starting the next, without a person or an hour between them. Counted
+     * over the whole chain, not the links in a row: two runs that each start two double at every
+     * turn. 50 lets a back and forth between two routines go 25 times.
+     */
+    val chainMaxRuns: Int = 50
 ) {
     /**
      * Get limits for specific session type
@@ -74,6 +82,7 @@ data class AILimitsConfig(
         put(KEY_CHAT_DATA, chatMaxDataChars)
         put(KEY_AUTOMATION_DATA, automationMaxDataChars)
         put(KEY_ALWAYS_SEND, alwaysSendMaxChars)
+        put(KEY_CHAIN, chainMaxRuns)
     }.toString()
 
     companion object {
@@ -82,6 +91,7 @@ data class AILimitsConfig(
         const val KEY_CHAT_DATA = "chat_max_data_chars"
         const val KEY_AUTOMATION_DATA = "automation_max_data_chars"
         const val KEY_ALWAYS_SEND = "always_send_max_chars"
+        const val KEY_CHAIN = "chain_max_runs"
 
         fun default() = AILimitsConfig()
 
@@ -95,7 +105,8 @@ data class AILimitsConfig(
             automationMaxAutonomousRoundtrips = settings.getInt(KEY_AUTOMATION),
             chatMaxDataChars = settings.getInt(KEY_CHAT_DATA),
             automationMaxDataChars = settings.getInt(KEY_AUTOMATION_DATA),
-            alwaysSendMaxChars = settings.getInt(KEY_ALWAYS_SEND)
+            alwaysSendMaxChars = settings.getInt(KEY_ALWAYS_SEND),
+            chainMaxRuns = settings.getInt(KEY_CHAIN)
         )
     }
 }

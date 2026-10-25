@@ -757,7 +757,13 @@ class AutomationService(private val context: Context) : ExecutableService {
             val clickTime = System.currentTimeMillis()
             // What a Task passes it, joined to its message
             val data = params.opt("data")?.takeIf { it != JSONObject.NULL }?.toString()
-            AIOrchestrator.executeAutomation(automationId, scheduledFor = clickTime, trigger = app.treelune.core.ai.data.ExecutionTrigger.MANUAL, data = data)
+            // Asked by a Task's step, it continues that run's chain, refused past its cap
+            val chainId = when (val admission = app.treelune.core.coordinator.Chains.admit(context, entity.name)) {
+                is app.treelune.core.coordinator.Chains.Admission.Capped -> return OperationResult.error(admission.message)
+                is app.treelune.core.coordinator.Chains.Admission.Continues -> admission.chainId
+                app.treelune.core.coordinator.Chains.Admission.Starts -> null
+            }
+            AIOrchestrator.executeAutomation(automationId, scheduledFor = clickTime, trigger = app.treelune.core.ai.data.ExecutionTrigger.MANUAL, data = data, chainId = chainId)
 
             LogManager.service("Successfully triggered automation: $automationId", "INFO")
 

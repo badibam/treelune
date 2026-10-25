@@ -1065,6 +1065,8 @@
     <string name="settings_ai_data_automation_help">Au-delà, les données ne partent pas : l\'IA est invitée à resserrer sa demande. Visible dans l\'historique d\'exécution.</string>
     <string name="app_config_ai_always_send">Taille des outils toujours envoyés avant confirmation (caractères)</string>
     <string name="settings_ai_always_send_help">Les outils marqués « toujours envoyer » partent avec chaque message à l\'IA. Au-delà de cette taille à eux tous, un chat te demande une fois par session s\'il faut les envoyer ; une routine, ou une IA extérieure à l\'app, n\'en reçoit que la liste et peut les lire au besoin.</string>
+    <string name="app_config_chain_max_runs">Exécutions à la suite (Tâches et routines)</string>
+    <string name="settings_chain_max_runs_help">Une Tâche ou une routine qui en lance une autre, qui en lance une autre, et ainsi de suite, sans toi ni une heure prévue entre elles. Au-delà de ce nombre compté depuis la première, plus rien ne part : ça arrête une boucle qui tournerait sans fin.</string>
 
     <string name="settings_validation">Validation IA</string>
     <string name="settings_validation_description">Ce que l\'IA doit te demander avant de le modifier</string>
@@ -2719,6 +2721,7 @@
     <string name="task_error_not_found">Cette Tâche n\'existe plus</string>
     <string name="task_error_run_not_found">Cette exécution n\'existe plus</string>
     <string name="task_error_running">« %1$s » tourne déjà : attends la fin de son exécution</string>
+    <string name="chain_capped">« %1$s » n\'est pas partie : %2$s exécutions se sont suivies, chacune lancée par la précédente, sans toi ni une heure prévue entre elles. Le plafond est dans Réglages › Limites IA.</string>
     <string name="task_error_steps">Les étapes d\'une Tâche sont une liste</string>
     <string name="task_error_step">L\'étape %1$s n\'est pas un objet</string>
     <string name="task_error_input">L\'entrée %1$s ne se lit pas</string>

@@ -1065,6 +1065,8 @@
     <string name="settings_ai_data_automation_help">Above this size the data is not sent: the AI is told to narrow its request. Visible in the execution history.</string>
     <string name="app_config_ai_always_send">Size of the tools sent always before asking (characters)</string>
     <string name="settings_ai_always_send_help">Tools marked “always send” go with every message to the AI. Above this size together, a chat asks you once per session whether to send them; a routine, or an AI outside the app, gets only their list and can read them when it needs.</string>
+    <string name="app_config_chain_max_runs">Runs one after another (Tasks and routines)</string>
+    <string name="settings_chain_max_runs_help">A Task or a routine that starts another, which starts another, and so on, without you or a planned time in between. Past this number counted from the first, nothing more starts: it stops a loop that would run forever.</string>
 
     <string name="settings_validation">AI validation</string>
     <string name="settings_validation_description">What the AI asks you before changing it</string>
@@ -2719,6 +2721,7 @@
     <string name="task_error_not_found">This Task no longer exists</string>
     <string name="task_error_run_not_found">This run no longer exists</string>
     <string name="task_error_running">“%1$s” is already running: wait for its run to end</string>
+    <string name="chain_capped">“%1$s” did not start: %2$s runs followed one another, each started by the one before, without you or a planned time in between. The cap is in Settings › AI limits.</string>
     <string name="task_error_steps">A Task\'s steps are a list</string>
     <string name="task_error_step">Step %1$s is not an object</string>
     <string name="task_error_input">The input %1$s does not read</string>

@@ -215,7 +215,9 @@ data class AILimitsConfig(
     val chatMaxAutonomousRoundtrips: Int = 10,
     val automationMaxAutonomousRoundtrips: Int = 20,
     val chatMaxDataChars: Int = 15_000,
-    val automationMaxDataChars: Int = 100_000
+    val automationMaxDataChars: Int = 100_000,
+    val alwaysSendMaxChars: Int = 15_000,
+    val chainMaxRuns: Int = 50
 )
 ```
 
@@ -228,7 +230,9 @@ The data size thresholds are described with the waiting for confirmation, sectio
 
 **Rationale**: each call is billed, and nothing else stops an AI that calls itself in a loop — in CHAT as in AUTOMATION. No separate limits on format errors or action failures: the AI must correct itself, and the roundtrip limit is enough as a net.
 
-**Storage**: the defaults of `AILimitsConfig` are the only ones. A new install or a reset writes them through `toSettingsJson()`; `fromSettingsJson()` requires the four keys and fails if one is missing.
+**Runs per chain** (`chainMaxRuns`): the runs of Tasks and routines one chain holds, each started by the one before (docs/CORE.md, « Chains »). The roundtrip limit bounds one run; a loop from run to run, each with its counter at zero, is bounded by this one.
+
+**Storage**: the defaults of `AILimitsConfig` are the only ones. A new install or a reset writes them through `toSettingsJson()`; `fromSettingsJson()` requires every key and fails if one is missing.
 
 **API**: `AppConfigService.getAILimits()`, `AppConfigManager.getAILimits()` (volatile cache).
 

@@ -54,7 +54,7 @@ data class TaskEntity(
 @Entity(
     tableName = "task_runs",
     foreignKeys = [ForeignKey(entity = TaskEntity::class, parentColumns = ["id"], childColumns = ["task_id"], onDelete = ForeignKey.CASCADE)],
-    indices = [Index(value = ["task_id"]), Index(value = ["state"])]
+    indices = [Index(value = ["task_id"]), Index(value = ["state"]), Index(value = ["chain_id"])]
 )
 data class TaskRunEntity(
     @PrimaryKey val id: String,
@@ -74,7 +74,9 @@ data class TaskRunEntity(
     /** While waiting: the API followed, the job's id, when to ask again, at what pace, until when */
     @ColumnInfo(name = "wait_json") val waitJson: String?,
     /** When the user read its end; null while it waits to be read */
-    @ColumnInfo(name = "seen_at") val seenAt: Long?
+    @ColumnInfo(name = "seen_at") val seenAt: Long?,
+    /** The chain it continues (Chains): the id of the run that started it; null for a run that starts its own */
+    @ColumnInfo(name = "chain_id") val chainId: String? = null
 )
 
 @Dao
@@ -115,6 +117,10 @@ interface TaskDao {
 
     @Query("SELECT * FROM task_runs WHERE seen_at IS NULL AND ended_at IS NOT NULL")
     suspend fun getUnseenRuns(): List<TaskRunEntity>
+
+    /** The Task runs of the chain [chainId] (Chains): the run it is named after, and those that continue it. */
+    @Query("SELECT COUNT(*) FROM task_runs WHERE id = :chainId OR chain_id = :chainId")
+    suspend fun countInChain(chainId: String): Int
 
     @Insert
     suspend fun insertRun(run: TaskRunEntity)

@@ -118,6 +118,10 @@ interface AIDao {
     @Query("SELECT COUNT(*) FROM ai_sessions WHERE type = :type")
     suspend fun getSessionCountByType(type: String): Int
 
+    /** The routine runs of the chain [chainId] (Chains): the run it is named after, and those that continue it. */
+    @Query("SELECT COUNT(*) FROM ai_sessions WHERE type = 'AUTOMATION' AND (id = :chainId OR chain_id = :chainId)")
+    suspend fun countInChain(chainId: String): Int
+
     @Query("SELECT COUNT(*) FROM session_messages WHERE session_id = :sessionId")
     suspend fun getMessageCountForSession(sessionId: String): Int
 

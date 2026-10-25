@@ -494,6 +494,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("summary", session.summary ?: JSONObject.NULL)
                                 put("identity_id", session.identityId ?: JSONObject.NULL)
                                 put("triggered_by", session.triggeredBy ?: JSONObject.NULL)
+                                // Not its chain (chain_id): the trace of a moment, a restored run starting its own
                                 if (session.appStateSnapshot != null) {
                                     put("app_state_snapshot", session.appStateSnapshot)
                                 }

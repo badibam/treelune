@@ -21,7 +21,7 @@ class AILimitsAtV64Test {
         val rewritten = AILimitsAtV64.rewrite(v63)
 
         assertEquals(15_000, rewritten.getInt("always_send_max_chars"))
-        assertEquals(15_000, AILimitsConfig.fromSettingsJson(rewritten).alwaysSendMaxChars)
+        assertEquals(15_000, AILimitsConfig.fromSettingsJson(AILimitsAtV98.rewrite(rewritten)).alwaysSendMaxChars)
         assertFalse(v63.has("always_send_max_chars"))
     }
 

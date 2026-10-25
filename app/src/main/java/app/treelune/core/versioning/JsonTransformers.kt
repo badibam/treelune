@@ -164,6 +164,7 @@ object JsonTransformers {
                     80 -> UiHomeTitleAtV81.rewrite(category, transformed)
                     82 -> HistoryAtV83.dataSettings(category, transformed)
                     83 -> ExternalAccessDataAtV84.rewrite(category, transformed)
+                    97 -> if (category == AppSettingCategories.AI_LIMITS) AILimitsAtV98.rewrite(transformed) else transformed
                     // Example future migration:
                     // 10 -> migrateAppConfigFrom10To11(transformed)
                     else -> transformed // No migrations

@@ -157,7 +157,13 @@ class TaskService(private val context: Context) : ExecutableService {
             return OperationResult.error(s.shared("task_error_running").format(task.name))
         }
         val trigger = if (app.treelune.core.coordinator.currentOrigin() == app.treelune.core.coordinator.Source.AI) TaskRun.Trigger.AI else TaskRun.Trigger.MANUAL
-        val runId = TaskRunner.start(context, task, trigger, System.currentTimeMillis(), awaited = false)
+        // Asked by a routine's AI, it continues that run's chain, refused past its cap
+        val chainId = when (val admission = app.treelune.core.coordinator.Chains.admit(context, task.name)) {
+            is app.treelune.core.coordinator.Chains.Admission.Capped -> return OperationResult.error(admission.message)
+            is app.treelune.core.coordinator.Chains.Admission.Continues -> admission.chainId
+            app.treelune.core.coordinator.Chains.Admission.Starts -> null
+        }
+        val runId = TaskRunner.start(context, task, trigger, System.currentTimeMillis(), awaited = false, chainId = chainId)
         return OperationResult.success(mapOf("run_id" to runId, "task_id" to task.id))
     }
 

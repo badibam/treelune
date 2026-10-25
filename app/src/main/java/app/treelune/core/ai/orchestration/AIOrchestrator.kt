@@ -696,8 +696,9 @@ object AIOrchestrator {
     /**
      * A run of routine [automationId] created from its seed's message and asked for. [data], what
      * a Task passes it (docs/CORE.md, « Tasks »), joins the end of its message as a text of its own.
+     * [chainId], the chain it continues (Chains); null, it starts its own.
      */
-    suspend fun executeAutomation(automationId: String, scheduledFor: Long, trigger: ExecutionTrigger, data: String? = null) {
+    suspend fun executeAutomation(automationId: String, scheduledFor: Long, trigger: ExecutionTrigger, data: String? = null, chainId: String? = null) {
         LogManager.aiSession("executeAutomation called: $automationId", "INFO")
 
         try {
@@ -751,7 +752,8 @@ object AIOrchestrator {
                 endReason = null,
                 // Its routine's identity as it is at the run: one changed later speaks at the next
                 identityId = automation.identityId,
-                triggeredBy = trigger.name
+                triggeredBy = trigger.name,
+                chainId = chainId
             )
 
             aiDao.insertSession(session)

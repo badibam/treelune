@@ -31,6 +31,7 @@ import app.treelune.core.utils.LogManager
 import app.treelune.core.versioning.AILimitsAtV32
 import app.treelune.core.versioning.AILimitsAtV34
 import app.treelune.core.versioning.AILimitsAtV64
+import app.treelune.core.versioning.AILimitsAtV98
 import app.treelune.core.versioning.DateFieldBounds
 import app.treelune.core.versioning.SettingsAtV33
 import app.treelune.core.versioning.ChoiceOptionsAtV37
@@ -109,7 +110,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 97
+        const val VERSION = 98
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2194,6 +2195,34 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * The chains of runs (docs/CORE.md, « Chains »): a Task's run and a routine's say which chain
+         * they continue, every run so far starting its own; ai_limits gains the cap per chain, see
+         * AILimitsAtV98.
+         */
+        private val MIGRATION_97_98 = object : ConnectionMigration(97, 98) {
+            override fun migrate(database: MigrationDatabase) {
+                database.execSQL("ALTER TABLE ai_sessions ADD COLUMN chain_id TEXT")
+                database.execSQL("CREATE INDEX IF NOT EXISTS `index_ai_sessions_chain_id` ON `ai_sessions` (`chain_id`)")
+                database.execSQL("ALTER TABLE task_runs ADD COLUMN chain_id TEXT")
+                database.execSQL("CREATE INDEX IF NOT EXISTS `index_task_runs_chain_id` ON `task_runs` (`chain_id`)")
+                // Settings that cannot be read are left as they are; reading them then fails with the reason.
+                database.query("SELECT settings FROM app_settings_categories WHERE category = 'ai_limits'").use { cursor ->
+                    if (!cursor.moveToFirst()) {
+                        LogManager.database("MIGRATION 97->98: chain_id added, no ai_limits stored", "INFO")
+                        return
+                    }
+                    try {
+                        val rewritten = AILimitsAtV98.rewrite(org.json.JSONObject(cursor.getString(0)))
+                        database.execSQL("UPDATE app_settings_categories SET settings = ? WHERE category = 'ai_limits'", arrayOf(rewritten.toString()))
+                        LogManager.database("MIGRATION 97->98: chain_id added, ai_limits rewritten to $rewritten", "INFO")
+                    } catch (e: Exception) {
+                        LogManager.database("MIGRATION 97->98: chain_id added, ai_limits left as is (${e.message})", "ERROR")
+                    }
+                }
+            }
+        }
+
         /** The connector gains its own data threshold: see ExternalAccessDataAtV84. */
         private val MIGRATION_83_84 = object : ConnectionMigration(83, 84) {
             override fun migrate(database: MigrationDatabase) {
@@ -3238,7 +3267,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_93_94,
                     MIGRATION_94_95,
                     MIGRATION_95_96,
-                    MIGRATION_96_97
+                    MIGRATION_96_97,
+                    MIGRATION_97_98
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the
