@@ -247,7 +247,9 @@ private fun PlaceScreen(place: Place, zones: ZonesState, demoInstalled: Boolean)
                     "apis" -> app.treelune.core.apis.ui.ApisScreen(onBack = back)
                     "identities" -> app.treelune.core.identities.ui.IdentitiesScreen(onBack = back)
                     "format" -> AppSettingsScreen(category = AppSettingCategories.FORMAT, onBack = back)
-                    "ai_limits" -> AppSettingsScreen(category = AppSettingCategories.AI_LIMITS, onBack = back)
+                    // Under its limits, what the day spent and the providers the budget cannot count
+                    "ai_limits" -> AppSettingsScreen(category = AppSettingCategories.AI_LIMITS, onBack = back,
+                        below = { app.treelune.core.ai.budget.ui.BudgetCard() })
                     "validation" -> AppSettingsScreen(category = AppSettingCategories.VALIDATION_CONFIG, onBack = back)
                     "ui" -> AppSettingsScreen(category = AppSettingCategories.UI, onBack = back)
                     "demo" -> DemoSettingsScreen(onBack = back)

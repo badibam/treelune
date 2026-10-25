@@ -1067,6 +1067,16 @@
     <string name="settings_ai_always_send_help">Tools marked “always send” go with every message to the AI. Above this size together, a chat asks you once per session whether to send them; a routine, or an AI outside the app, gets only their list and can read them when it needs.</string>
     <string name="app_config_chain_max_runs">Runs one after another (Tasks and routines)</string>
     <string name="settings_chain_max_runs_help">A Task or a routine that starts another, which starts another, and so on, without you or a planned time in between. Past this number counted from the first, nothing more starts: it stops a loop that would run forever.</string>
+    <string name="app_config_daily_budget">Daily budget of the AI (dollars)</string>
+    <string name="settings_daily_budget_help">Every AI call of the day counts, conversations included, the day starting at the hour you set. Past it, no call starts until tomorrow: a conversation tells you so, a routine's run ends. Empty: no budget.</string>
+    <string name="app_config_budget_alert">Warn at (% of the budget)</string>
+    <string name="settings_budget_alert_help">A notification once a day when the day's spending passes this share of the budget. Empty: no warning.</string>
+    <string name="budget_title">Daily budget of the AI</string>
+    <string name="budget_reached">The day's budget of the AI is reached (%1$s): no call starts until tomorrow. You can raise it in Settings › AI limits.</string>
+    <string name="budget_alert">%1$s%% of the day's budget spent: %2$s of %3$s.</string>
+    <string name="budget_today">Today: %1$s</string>
+    <string name="budget_today_of">Today: %1$s of %2$s</string>
+    <string name="budget_unpriced">These providers' models have no price, neither in the list of prices nor set by hand: their calls count for nothing in the budget. %1$s</string>
 
     <string name="settings_validation">AI validation</string>
     <string name="settings_validation_description">What the AI asks you before changing it</string>

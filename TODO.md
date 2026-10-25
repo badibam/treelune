@@ -26,6 +26,7 @@ Codé, jamais vu sur l'appareil.
 
 - Les titres coupés entre les mots (`HeadingBreak`) en Cosy, Encre et lavis, Métro, Papier découpé et Plan d'architecte : les noms de tuiles de la démo, un mot trop long pour sa ligne d'une demi-tuile (« Observations ») coupé à ses syllabes.
 - La marque « en attente » sans « ! » (Métro, Suisse, Encre et lavis, Papier découpé, Plan d'architecte, Cosy en accent) : vide, se lit-elle encore comme « à lire », à sa taille de 18 à 22 dp, et la bulle du Cosy se détache-t-elle de ses boutons ?
+- Le budget du jour : réglé dans Limites IA, la ligne « Aujourd'hui » sous les limites et en tête des coûts d'une conversation, en couleur d'avertissement au-delà du seuil ; une conversation qui le dépasse et le dit, la routine qui se termine, les deux notifications une seule fois dans la journée ; le nom d'un fournisseur sans prix.
 - Les événements : « Émettre aussi l'événement » dans la config d'un outil qui prévient (un rappel de l'Agenda qui fait partir une Tâche), à la fin d'une routine ; la carte sous l'identité de la zone et son éditeur, « Nouvel événement… » du navigateur, une Tâche qui émet « séance prête » avec une Fiche et une autre qui l'écoute et lit la Fiche reçue, une routine qui l'écoute et reçoit la Fiche jointe.
 - Les déclencheurs : une Tâche et une routine qui partent sur une entrée écrite (créée, modifiée, supprimée, avec un filtre), le formulaire « Part aussi quand… » des réglages d'une Tâche et du bouton éclair d'une routine, l'étape qui lit « L'entrée écrite » ; la routine qui reçoit l'entrée jointe dans son message ; une Tâche qui écrit là où elle écoute, arrêtée après 50 exécutions avec sa notification.
 - La recette, `docs/design/device-checks.md` : ce que seul le téléphone juge, une ligne vue en sort.
@@ -37,7 +38,7 @@ Codé, jamais vu sur l'appareil.
 
 ## Décidé, à coder
 
-- Les événements (`docs/design/events.md`) : le « quand ? » des outils actifs (une entrée écrite, en place pour les Tâches et les routines), une condition devenue vraie, « ne pas prévenir » au rappel de l'Agenda, à l'échéance de la Liste, à l'invitation du Questionnaire et à la séance prévue, le budget du jour (les événements, l'étape « émettre » et l'émission là où l'app prévient, en place).
+- Les événements (`docs/design/events.md`) : le « quand ? » des outils actifs (une entrée écrite, en place pour les Tâches et les routines), une condition devenue vraie, « ne pas prévenir » au rappel de l'Agenda, à l'échéance de la Liste, à l'invitation du Questionnaire et à la séance prévue, le seuil du budget qui émet (les événements, l'émission là où l'app prévient et le budget du jour, en place).
 - Un filtre qui compare un champ à une variable ou une lecture (« kcal > objectif_calorique ») : le terme lu une fois à la référence du contexte (`TermReader`, `docs/BRICKS.md`), puis le filtre SQL comme aujourd'hui ; `EntryFilters.parse` et `ConditionPicker` le prennent.
 
 ## À concevoir

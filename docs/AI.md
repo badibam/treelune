@@ -217,7 +217,9 @@ data class AILimitsConfig(
     val chatMaxDataChars: Int = 15_000,
     val automationMaxDataChars: Int = 100_000,
     val alwaysSendMaxChars: Int = 15_000,
-    val chainMaxRuns: Int = 50
+    val chainMaxRuns: Int = 50,
+    val dailyBudget: Double? = null,
+    val budgetAlertPercent: Int? = null
 )
 ```
 
@@ -230,9 +232,11 @@ The data size thresholds are described with the waiting for confirmation, sectio
 
 **Rationale**: each call is billed, and nothing else stops an AI that calls itself in a loop — in CHAT as in AUTOMATION. No separate limits on format errors or action failures: the AI must correct itself, and the roundtrip limit is enough as a net.
 
+**Daily budget** (`dailyBudget`, `budgetAlertPercent`, each absent for none; `core/ai/budget`): every AI call of the app counts, conversations, routines and what a Task makes them run alike, summed over the app's day (it starts at the hour the user set) from the messages' costs (`AIDao.getCallUsagesSince`, `SessionCost`). Reached, no call starts any more (`callAI`): its session says so in a system message out of the prompt, a conversation handing back, a routine's run ending; a call in progress finishes, the overrun at most one call. Past the alert, then once reached, a notification each, once in the day (their marks on the phone alone). A call of unknown cost counts for nothing: the day's sum shows « ≥ », and under the AI limits the providers whose model has no price, neither set by hand nor in the list of prices, are named (`Budget.unpriced`). The day's spending shows under the AI limits and atop each session's costs (`BudgetLine`). The outside AI of the connector costs the app nothing.
+
 **Runs per chain** (`chainMaxRuns`): the runs of Tasks and routines one chain holds, each started by the one before (docs/CORE.md, « Chains »). The roundtrip limit bounds one run; a loop from run to run, each with its counter at zero, is bounded by this one.
 
-**Storage**: the defaults of `AILimitsConfig` are the only ones. A new install or a reset writes them through `toSettingsJson()`; `fromSettingsJson()` requires every key and fails if one is missing.
+**Storage**: the defaults of `AILimitsConfig` are the only ones. A new install or a reset writes them through `toSettingsJson()`; `fromSettingsJson()` requires every key but the budget's two, absent when none, and fails if one is missing.
 
 **API**: `AppConfigService.getAILimits()`, `AppConfigManager.getAILimits()` (volatile cache).
 

@@ -70,7 +70,7 @@ Deux, tous deux dans l'écran des limites de l'IA, à côté des appels par exé
 - Une chaîne neuve : la routine du dimanche, chaque dimanche ; le rappel d'un rendez-vous qu'une Tâche a créé ; une condition que les jours font basculer ; une entrée qu'une Tâche a créée et que tu modifies ; ce qu'une Tâche émet après « attendre jusqu'à demain 7 h », le cycle quotidien voulu.
 - Arrêtés : une Tâche qui écrit où elle écoute ; deux routines qui se relancent sans conclure (Rédaction et Critique : 25 allers-retours) ; deux Tâches qui doublent leurs écritures. Bloqué à tort : quelque chose qui écrit plus de 50 entrées d'un coup dans un outil écouté, le plafond se relève alors.
 
-**Le budget du jour**, en argent, facultatif : tous les appels d'IA de l'app, conversations comprises (l'IA extérieure du connecteur ne coûte rien à l'app), sur le jour de l'app (`TimeResolver`), comptés par `SessionCost`. Atteint, plus rien ne démarre : une exécution qui devait partir est notée manquée dans son historique, sans report au lendemain ; une conversation n'envoie pas, avec « budget du jour atteint » et un bouton vers l'écran des limites ; une IA qui enchaîne seule s'arrête avant son appel suivant. Le dépassement est au plus celui d'un appel en cours, dont le coût n'est connu qu'à sa réponse. Un seuil d'alerte facultatif, en pourcentage, prévient une fois par jour et peut émettre (partie 3). L'écran du coût des conversations rappelle « Aujourd'hui : 0,42 $ sur 2,00 $ », à la couleur d'avertissement du thème au-delà du seuil.
+**Le budget du jour**, en place (`docs/AI.md`, « Daily budget ») ; un appel au coût inconnu compte pour 0, et la page du budget nomme les fournisseurs dont le modèle n'a pas de prix. Reste son seuil d'alerte comme endroit qui émet. En argent, facultatif : tous les appels d'IA de l'app, conversations comprises (l'IA extérieure du connecteur ne coûte rien à l'app), sur le jour de l'app (`TimeResolver`), comptés par `SessionCost`. Atteint, plus rien ne démarre : une exécution qui devait partir est notée manquée dans son historique, sans report au lendemain ; une conversation n'envoie pas, avec « budget du jour atteint » et un bouton vers l'écran des limites ; une IA qui enchaîne seule s'arrête avant son appel suivant. Le dépassement est au plus celui d'un appel en cours, dont le coût n'est connu qu'à sa réponse. Un seuil d'alerte facultatif, en pourcentage, prévient une fois par jour et peut émettre (partie 3). L'écran du coût des conversations rappelle « Aujourd'hui : 0,42 $ sur 2,00 $ », à la couleur d'avertissement du thème au-delà du seuil.
 
 ## Écarté
 
@@ -83,7 +83,6 @@ Deux, tous deux dans l'écran des limites de l'IA, à côté des appels par exé
 
 - La sorte « à une date des données » (10 min avant chaque entrée d'un outil, le lendemain d'une échéance), commune avec les rappels de l'Agenda : tant que les endroits où l'app prévient suffisent, pas faite.
 - L'IA qui émet un événement, et si elle lance une Tâche (elle ne lance pas une routine aujourd'hui).
-- Une routine sous budget dont le modèle n'a pas de prix connu (`SessionCost` en « ≥ ») : refusée, ou hors du compte.
 - Supprimer un événement écouté ou une chose qu'un « quand ? » vise : le contrôle « qui dépend de ça ? » de `TODO.md`.
 
 ## Découpage
@@ -92,4 +91,4 @@ Deux, tous deux dans l'écran des limites de l'IA, à côté des appels par exé
 2. Les événements et l'étape « émettre » ; ce que reçoit ce qui part (fait).
 3. Les endroits où l'app prévient (fait, sauf « ne pas prévenir » là où il n'existait pas).
 4. La condition qui devient vraie, avec l'Alerte.
-5. Le budget du jour, indépendant, à tout moment.
+5. Le budget du jour (fait, sauf son seuil qui émet).

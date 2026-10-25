@@ -1067,6 +1067,16 @@
     <string name="settings_ai_always_send_help">Les outils marqués « toujours envoyer » partent avec chaque message à l\'IA. Au-delà de cette taille à eux tous, un chat te demande une fois par session s\'il faut les envoyer ; une routine, ou une IA extérieure à l\'app, n\'en reçoit que la liste et peut les lire au besoin.</string>
     <string name="app_config_chain_max_runs">Exécutions à la suite (Tâches et routines)</string>
     <string name="settings_chain_max_runs_help">Une Tâche ou une routine qui en lance une autre, qui en lance une autre, et ainsi de suite, sans toi ni une heure prévue entre elles. Au-delà de ce nombre compté depuis la première, plus rien ne part : ça arrête une boucle qui tournerait sans fin.</string>
+    <string name="app_config_daily_budget">Budget du jour de l\'IA (dollars)</string>
+    <string name="settings_daily_budget_help">Chaque appel d\'IA du jour compte, conversations comprises, le jour commençant à l\'heure que tu as réglée. Au-delà, plus aucun appel ne part avant demain : une conversation te le dit, l\'exécution d\'une routine se termine. Vide : pas de budget.</string>
+    <string name="app_config_budget_alert">Prévenir à (% du budget)</string>
+    <string name="settings_budget_alert_help">Une notification, une fois par jour, quand la dépense du jour dépasse cette part du budget. Vide : pas d\'alerte.</string>
+    <string name="budget_title">Budget du jour de l\'IA</string>
+    <string name="budget_reached">Le budget du jour de l\'IA est atteint (%1$s) : plus aucun appel ne part avant demain. Tu peux le relever dans Réglages › Limites IA.</string>
+    <string name="budget_alert">%1$s %% du budget du jour dépensés : %2$s sur %3$s.</string>
+    <string name="budget_today">Aujourd\'hui : %1$s</string>
+    <string name="budget_today_of">Aujourd\'hui : %1$s sur %2$s</string>
+    <string name="budget_unpriced">Les modèles de ces fournisseurs n\'ont pas de prix, ni dans la liste des prix ni saisi à la main : leurs appels ne comptent pour rien dans le budget. %1$s</string>
 
     <string name="settings_validation">Validation IA</string>
     <string name="settings_validation_description">Ce que l\'IA doit te demander avant de le modifier</string>
