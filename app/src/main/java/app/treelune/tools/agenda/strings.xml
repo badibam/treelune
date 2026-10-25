@@ -7,7 +7,7 @@
     <!-- What only the AI reads -->
     <string name="ai_detail">An event is created with state {\"status\": \"planned\"}; it is cancelled, removed (an occurrence of a series only) and planned again by the calendar\'s operations cancel, remove and restore, never by an ordinary write. An occurrence of a series is not deleted: remove it. A series is in the config (series: name, schedule, duration, or all_day with days); changing its schedule deletes and gives again its occurrences to come, which asks the person first. Reminders are relative instants against an event\'s start, in the config only.</string>
     <!-- The Guide's chapter, beside the usage: every setting of the config, every button of the screen (Markup) -->
-    <string name="guide_config">## Reminders\n- Reminders: when you are reminded of an event at a time, before its start: 15 minutes before, the day before at 18:00\n- Whole day reminders: the same for an event that takes whole days\n\n## Series\n- Series: the events that come back, each with its name, its schedule, and a duration or whole days. They are made and changed from the calendar\'s screen too</string>
+    <string name="guide_config">## Reminders\n- Reminders: when you are reminded of an event at a time, before its start: 15 minutes before, the day before at 18:00\n- Whole day reminders: the same for an event that takes whole days\n- Notify: unchecked, the reminders come without a notification\n\n## Series\n- Series: the events that come back, each with its name, its schedule, and a duration or whole days. They are made and changed from the calendar\'s screen too</string>
     <string name="guide_screen">## What it shows\n- Upcoming: the events going on and to come, day by day\n- Day, Week, Month: one of them, with its arrows to move and its calendar\n\n## An event\n- +: a new event, or a series with Repeats\n- Cancel: it stays, marked cancelled, without reminders\n- Remove: an occurrence of a series taken off; it comes back from Removed\n- Edit series: changes every occurrence to come</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Appointments and events at a time, which pass by themselves, with reminders</string>
@@ -104,4 +104,6 @@
     <!-- Settings, for the AI that reads their schema -->
     <string name="schema_series_list">Events that repeat, each giving its occurrences by its schedule</string>
     <string name="schema_series_element">One series: its name, its schedule, and how long each occurrence lasts</string>
+    <string name="field_notify">Notify</string>
+    <string name="schema_notify">A notification at each reminder of an appointment</string>
 </resources>

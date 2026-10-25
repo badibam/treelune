@@ -1071,6 +1071,8 @@
     <string name="settings_daily_budget_help">Every AI call of the day counts, conversations included, the day starting at the hour you set. Past it, no call starts until tomorrow: a conversation tells you so, a routine's run ends. Empty: no budget.</string>
     <string name="app_config_budget_alert">Warn at (% of the budget)</string>
     <string name="settings_budget_alert_help">A notification once a day when the day's spending passes this share of the budget. Empty: no warning.</string>
+    <string name="app_config_budget_event">Also emit the event</string>
+    <string name="settings_budget_event_help">An event emitted once a day when the day's spending passes the share above, with its notification: a Task or a routine that listens to it can pause what costs. One that carries nothing.</string>
     <string name="budget_title">Daily budget of the AI</string>
     <string name="budget_reached">The day's budget of the AI is reached (%1$s): no call starts until tomorrow. You can raise it in Settings › AI limits.</string>
     <string name="budget_alert">%1$s%% of the day's budget spent: %2$s of %3$s.</string>
@@ -2801,6 +2803,7 @@
     <string name="event_point">Also emit the event</string>
     <string name="event_point_schema">An event emitted at that moment beside what the app tells, {"kind": "EVENT", "id"}: one that carries nothing, or a single value, an entry of this tool (the one concerned); for a routine or a Task, at the end of a run that went well, one that carries nothing</string>
     <string name="event_point_error">“%1$s” cannot be emitted here: it must carry nothing, or a single value, an entry of this tool</string>
+    <string name="event_point_error_values">“%1$s” cannot be emitted here: it must carry nothing</string>
     <string name="event_values">What it carries</string>
     <string name="event_values_none">carries nothing</string>
     <string name="event_value_type">Type</string>

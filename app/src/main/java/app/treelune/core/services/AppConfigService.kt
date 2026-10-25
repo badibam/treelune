@@ -113,6 +113,9 @@ class AppConfigService(private val context: Context) : ExecutableService {
         val settings = app.treelune.core.utils.JsonNulls.withoutNullKeys(sent)
         val validation = SchemaValidator.validate(AppSettings.schema(category, context), JsonUtils.toMap(settings), context)
         if (!validation.isValid) return validation.errorMessage ?: s.shared("message_validation_error_simple")
+        if (category == AppSettingCategories.AI_LIMITS) {
+            app.treelune.core.events.EventPoints.refusalCarryingNothing(settings.opt(app.treelune.core.ai.domain.AILimitsConfig.KEY_BUDGET_EVENT), context, s)?.let { return it }
+        }
 
         val previous = readSettings(category) // a category never written gets its row first
         fun groups(json: JSONObject) = json.optJSONArray("zone_groups")?.let { a -> (0 until a.length()).map { a.getString(it) } } ?: emptyList()

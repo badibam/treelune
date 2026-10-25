@@ -53,15 +53,17 @@ object ListDueScheduler : ToolScheduler {
             return
         }
         for (item in DueNotice.toNotify(items, now)) {
-            val sent = coordinator.processUserAction("notifications.send", mapOf(
-                "title" to config.getString("name"),
-                "content" to item.name,
-                "priority" to "default",
-                "icon_name" to config.optString("icon_name").ifEmpty { ListToolType.getDefaultIconName() },
-                "tool_instance_id" to toolInstanceId
-            ))
-            if (!sent.isSuccess) LogManager.service("ListDueScheduler: notification of ${item.id} failed: ${sent.error}", "WARN")
-            // The event a due date passed emits, carrying the item
+            if (config.optBoolean(ListToolType.NOTIFY, true)) {
+                val sent = coordinator.processUserAction("notifications.send", mapOf(
+                    "title" to config.getString("name"),
+                    "content" to item.name,
+                    "priority" to "default",
+                    "icon_name" to config.optString("icon_name").ifEmpty { ListToolType.getDefaultIconName() },
+                    "tool_instance_id" to toolInstanceId
+                ))
+                if (!sent.isSuccess) LogManager.service("ListDueScheduler: notification of ${item.id} failed: ${sent.error}", "WARN")
+            }
+            // The event a due date passed emits, carrying the item, notified or not
             app.treelune.core.events.EventPoints.emit(context, config, item.id)
             // Marked even when the notification failed: the item waits all the same, and a
             // notification retried at every pass would come late and repeated

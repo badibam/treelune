@@ -145,16 +145,18 @@ object AgendaScheduler : ToolScheduler {
             }
             val due = AgendaRules.dueReminders(event, AgendaRules.reminderTimes(event, reminders, ::resolve), now, AgendaToolType.calendar(zone))
             if (due.isEmpty()) continue
-            val sent = coordinator.processUserAction("notifications.send", mapOf(
-                "title" to event.name,
-                "content" to momentOf(event, s),
-                "priority" to "high",
-                "icon_name" to tool.config.optString("icon_name").ifEmpty { AgendaToolType.getDefaultIconName() },
-                "tool_instance_id" to tool.id,
-                "entry_id" to event.id
-            ))
-            if (!sent.isSuccess) LogManager.service("AgendaScheduler: reminder of ${event.id} failed: ${sent.error}", "WARN")
-            // The event the reminders emit, carrying the appointment
+            if (tool.config.optBoolean("notify", true)) {
+                val sent = coordinator.processUserAction("notifications.send", mapOf(
+                    "title" to event.name,
+                    "content" to momentOf(event, s),
+                    "priority" to "high",
+                    "icon_name" to tool.config.optString("icon_name").ifEmpty { AgendaToolType.getDefaultIconName() },
+                    "tool_instance_id" to tool.id,
+                    "entry_id" to event.id
+                ))
+                if (!sent.isSuccess) LogManager.service("AgendaScheduler: reminder of ${event.id} failed: ${sent.error}", "WARN")
+            }
+            // The event the reminders emit, carrying the appointment, notified or not
             app.treelune.core.events.EventPoints.emit(context, tool.config, event.id)
             // Marked even when the notification failed: retried at every pass, it would come late and repeated
             val marked = coordinator.processUserAction("tool_data.update", mapOf(

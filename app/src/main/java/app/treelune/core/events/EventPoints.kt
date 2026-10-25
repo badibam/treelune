@@ -18,7 +18,8 @@ import org.json.JSONObject
  * reminder, a List's due date passed, a Goal's attempt to validate, a Questionnaire's
  * invitation, a Sequence's planned session, a Message sent. Each may also emit an event, chosen in
  * its config under `emit_event` (`{"kind": "EVENT", "id"}`), which carries nothing or the entry
- * concerned: one value, an entry of that very tool.
+ * concerned: one value, an entry of that very tool. The budget's alert threshold may too, an event
+ * carrying nothing (AILimitsConfig.budgetAlertEvent).
  */
 object EventPoints {
 
@@ -45,6 +46,17 @@ object EventPoints {
         val values = EventValues.read(event.valuesJson)
         val fits = values.isEmpty() || (values.size == 1 && values[0].type == EventValues.Type.ENTRY && values[0].toolInstanceId == toolInstanceId)
         return if (fits) null else s.shared("event_point_error").format(event.name)
+    }
+
+    /**
+     * Why the event [chosen] designates (the stored value of a setting) cannot be emitted where no
+     * entry is concerned, as the budget's alert; null when it can, or none is chosen: it exists, and
+     * carries nothing.
+     */
+    suspend fun refusalCarryingNothing(chosen: Any?, context: Context, s: StringsContext): String? {
+        val reference = ReferenceTarget.referenceOf(chosen) ?: return null
+        val event = AppDatabase.getDatabase(context).eventDao().get(reference.id ?: "") ?: return s.shared("trigger_error_event").format(reference.id)
+        return if (EventValues.read(event.valuesJson).isEmpty()) null else s.shared("event_point_error_values").format(event.name)
     }
 
     /**

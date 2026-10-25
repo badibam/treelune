@@ -49,7 +49,8 @@ object Budget {
 
     /**
      * After a call: the notification of the alert threshold crossed, then of the budget reached,
-     * each once in the app's day (its marks kept on this phone alone).
+     * each once in the app's day (its marks kept on this phone alone), and the event the threshold
+     * emits, if one is chosen, once a day as well.
      */
     suspend fun afterCall(context: Context) {
         val today = today(context)
@@ -70,6 +71,13 @@ object Budget {
         when {
             today.reached -> once(REACHED, s.shared("budget_reached").format(money(today.budget)))
             today.alerted -> once(ALERTED, s.shared("budget_alert").format(today.alertPercent!!, money(today.spent), money(today.budget)))
+        }
+        // The threshold's event, once a day too, even when one call went past the budget at once
+        val event = AppConfigManager.getAILimits().budgetAlertEvent
+        if (today.alerted && event != null && marks.getString(EMITTED, null) != day) {
+            marks.edit().putString(EMITTED, day).apply()
+            app.treelune.core.events.EventPoints.emit(context, app.treelune.core.events.EventPoints.stored(event), null)
+            LogManager.aiSession("Budget: alert event emitted for $day", "INFO")
         }
     }
 
@@ -97,4 +105,5 @@ object Budget {
     private const val MARKS = "budget_marks"
     private const val ALERTED = "alerted_on"
     private const val REACHED = "reached_on"
+    private const val EMITTED = "event_emitted_on"
 }

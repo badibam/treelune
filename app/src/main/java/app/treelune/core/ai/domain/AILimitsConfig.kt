@@ -59,7 +59,13 @@ data class AILimitsConfig(
     val dailyBudget: Double? = null,
 
     /** The share of [dailyBudget], in percent, past which a notification says so; null for none. */
-    val budgetAlertPercent: Int? = null
+    val budgetAlertPercent: Int? = null,
+
+    /**
+     * The event emitted once a day as the alert threshold is crossed (EventPoints), its id; one that
+     * carries nothing, null for none.
+     */
+    val budgetAlertEvent: String? = null
 ) {
     /**
      * Get limits for specific session type
@@ -94,6 +100,7 @@ data class AILimitsConfig(
         put(KEY_CHAIN, chainMaxRuns)
         dailyBudget?.let { put(KEY_BUDGET, it) }
         budgetAlertPercent?.let { put(KEY_BUDGET_ALERT, it) }
+        app.treelune.core.events.EventPoints.stored(budgetAlertEvent)?.let { put(KEY_BUDGET_EVENT, it) }
     }.toString()
 
     companion object {
@@ -105,11 +112,12 @@ data class AILimitsConfig(
         const val KEY_CHAIN = "chain_max_runs"
         const val KEY_BUDGET = "daily_budget"
         const val KEY_BUDGET_ALERT = "budget_alert_percent"
+        const val KEY_BUDGET_EVENT = "budget_alert_event"
 
         fun default() = AILimitsConfig()
 
         /**
-         * Read the stored ai_limits settings. Every key but the budget's is required: a missing one throws
+         * Read the stored ai_limits settings. Every key but the budget's three is required: a missing one throws
          * rather than standing for a default, since the database is written from default()
          * and migrated to carry them all.
          */
@@ -120,9 +128,10 @@ data class AILimitsConfig(
             automationMaxDataChars = settings.getInt(KEY_AUTOMATION_DATA),
             alwaysSendMaxChars = settings.getInt(KEY_ALWAYS_SEND),
             chainMaxRuns = settings.getInt(KEY_CHAIN),
-            // The budget and its alert alone may be left out: absent, none
+            // The budget, its alert and its event alone may be left out: absent, none
             dailyBudget = if (settings.has(KEY_BUDGET) && !settings.isNull(KEY_BUDGET)) settings.getDouble(KEY_BUDGET) else null,
-            budgetAlertPercent = if (settings.has(KEY_BUDGET_ALERT) && !settings.isNull(KEY_BUDGET_ALERT)) settings.getInt(KEY_BUDGET_ALERT) else null
+            budgetAlertPercent = if (settings.has(KEY_BUDGET_ALERT) && !settings.isNull(KEY_BUDGET_ALERT)) settings.getInt(KEY_BUDGET_ALERT) else null,
+            budgetAlertEvent = app.treelune.core.fields.ReferenceTarget.referenceOf(settings.opt(KEY_BUDGET_EVENT))?.id
         )
     }
 }
