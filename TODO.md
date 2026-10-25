@@ -15,6 +15,8 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 ## Bugs du téléphone
 
 - Un thème ou un mode choisi puis enregistré, que l'écran des réglages d'interface remet à l'ancien en se fermant sans enregistrer (vu le 2026-10-21 à 13:31 et 13:51) : les appuis, l'écriture et la pile de navigation sont maintenant au journal, à lire au prochain cas.
+- Dans config de champ de type refere'ce : 1) si j'edite celui de recoltes je voos la partie de restriction à tel outil 2) si je cree un aitre champ refere'ce, je ne vois pas cette partie-là — UI — Bug
+- Navigation clunky pour automation : paramtre via 2 ecrans, distinction paramètre et éditer discutavle. Bref à revoir. Aussi dans tuile : " pas de fournisseur n'a pas ma place, pourqupi pas une marque d'icone plutot ? — UI — Amélioration
 
 ## Bugs
 
