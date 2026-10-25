@@ -1,8 +1,11 @@
 package app.treelune.core.apis
 
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -50,5 +53,16 @@ class ApiCallTest {
     @Test(expected = ApiCall.Failure::class)
     fun anAnswerInError_isAFailure() {
         ApiCall.parse(ApiCall.Reply(500, "{}"))
+    }
+
+    @Test
+    fun aFileOnTheApisServer_isAskedWithItsKey_elsewhereWithout() {
+        val own = listOf("https://hypnogen.example/jobs.php", "https://status.example/jobs.php?job={id}")
+        assertTrue(ApiCall.sameServer("https://hypnogen.example/jobs.php/abc/audio.ogg".toHttpUrl(), own))
+        assertTrue(ApiCall.sameServer("https://status.example/files/a.ogg".toHttpUrl(), own))
+        assertFalse(ApiCall.sameServer("https://other.example/a.ogg".toHttpUrl(), own))
+        assertFalse(ApiCall.sameServer("https://cdn.hypnogen.example/a.ogg".toHttpUrl(), own))
+        assertFalse(ApiCall.sameServer("http://hypnogen.example/a.ogg".toHttpUrl(), own))
+        assertFalse(ApiCall.sameServer("https://hypnogen.example:8443/a.ogg".toHttpUrl(), own))
     }
 }

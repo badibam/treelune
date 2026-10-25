@@ -49,6 +49,18 @@ class ApiCall(private val config: JSONObject, private val values: SettingValues)
         return send(Request.Builder().url(url).withKey().get().build())
     }
 
+    /**
+     * The request that downloads a file this API's answer gave at [address]: with its key when the
+     * file is on the API's own server (the scheme, host and port of its address or of its status
+     * address), without it anywhere else, so that an answer never sends the key to another site.
+     */
+    fun fileRequest(address: String): Request {
+        val url = address.toHttpUrlOrNull() ?: throw Failure("api_error_url", address)
+        val own = listOfNotNull(values.string(ApiSettings.URL), values.string(ApiSettings.STATUS_URL)?.takeIf { deferred })
+        if (!sameServer(url, own)) return Request.Builder().url(url).get().build()
+        return Request.Builder().url(address(address, emptyMap())).withKey().get().build()
+    }
+
     /** Whether the API answers later: its first answer is then an id to follow. */
     val deferred: Boolean get() = values.string(ApiSettings.RESPONSE) == ApiSettings.DEFERRED
 
@@ -152,6 +164,11 @@ class ApiCall(private val config: JSONObject, private val values: SettingValues)
                 throw Failure("api_error_not_json")
             }
         }
+
+        /** Whether [url] is on the server of one of [addresses]: same scheme, host and port. */
+        fun sameServer(url: HttpUrl, addresses: List<String>): Boolean =
+            addresses.mapNotNull { it.replace(ApiSettings.ID_MARK, "id").toHttpUrlOrNull() }
+                .any { it.scheme == url.scheme && it.host == url.host && it.port == url.port }
 
         /**
          * What [json] holds at [path]: names and indexes joined by dots, an index also written in

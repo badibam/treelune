@@ -149,6 +149,21 @@ class ApiService(private val context: Context) : ExecutableService {
         })
     }
 
+    /**
+     * The request that downloads [address], a file the answer of the API [apiId] gave
+     * (ApiCall.fileRequest), for a Task's step: not an operation, the run doing the download.
+     * Throws, said in words, when the API is gone or its key does not open on this phone.
+     */
+    suspend fun fileRequest(apiId: String, address: String): okhttp3.Request = withContext(Dispatchers.IO) {
+        val api = dao.get(apiId) ?: throw IllegalStateException(s.shared("api_error_not_found").format(apiId))
+        val call = callOf(api) ?: throw IllegalStateException(s.shared("api_error_key_unreadable").format(api.name))
+        try {
+            call.fileRequest(address)
+        } catch (e: ApiCall.Failure) {
+            throw IllegalStateException(failure(e))
+        }
+    }
+
     // ========================================================================================
 
     private suspend fun stored(params: JSONObject): ApiEntity? = params.optString("api_id").ifEmpty { null }?.let { dao.get(it) }

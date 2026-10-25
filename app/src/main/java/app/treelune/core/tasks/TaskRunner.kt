@@ -3,6 +3,7 @@ package app.treelune.core.tasks
 import android.content.Context
 import android.net.Uri
 import app.treelune.core.ai.data.AutomationSettings
+import app.treelune.core.apis.ApiService
 import app.treelune.core.apis.ApiSettings
 import app.treelune.core.coordinator.ChainLink
 import app.treelune.core.coordinator.Coordinator
@@ -115,7 +116,7 @@ object TaskRunner {
             val step = steps.getJSONObject(run.step)
             val results = TaskRun.results(run.resultsJson)
             val outcome = try {
-                Outcome.Done(runStep(context, step, results, run.scheduledAt, run.receivedJson?.let { TaskRun.Received.of(it) }))
+                Outcome.Done(runStep(context, step, steps, results, run.scheduledAt, run.receivedJson?.let { TaskRun.Received.of(it) }))
             } catch (e: StepFailed) {
                 Outcome.Failed(e.message ?: "", e.raw)
             } catch (e: Waits) {
@@ -271,7 +272,7 @@ object TaskRunner {
     }
 
     /** [step] run: its inputs read, its operation through the dispatcher, what it gave. */
-    private suspend fun runStep(context: Context, step: JSONObject, results: List<TaskRun.StepResult>, at: Long, received: TaskRun.Received?): TaskRun.StepResult {
+    private suspend fun runStep(context: Context, step: JSONObject, steps: org.json.JSONArray, results: List<TaskRun.StepResult>, at: Long, received: TaskRun.Received?): TaskRun.StepResult {
         val s = Strings.`for`(context = context)
         val kind = step.getString(TaskSteps.KIND)
         // The fields an entry's values go to, for a file to come down into one
@@ -285,11 +286,12 @@ object TaskRunner {
         }
         val resolved = buildMap<String, Any?> {
             holder?.keys()?.forEach { key ->
-                val value = resolve(context, TaskSteps.input(holder.getJSONObject(key), key) { s.shared(it) }, results, at, received)
+                val input = TaskSteps.input(holder.getJSONObject(key), key) { s.shared(it) }
+                val value = resolve(context, input, results, at, received)
                 val field = fields[key]
                 put(key, when {
-                    // A file an API gives comes down into the field
-                    field?.type == FieldType.FILE && value is String -> listOf(download(context, value, FileField.kinds(field.config)))
+                    // A file an API gives comes down into the field, with that API's key on its server
+                    field?.type == FieldType.FILE && value is String -> listOf(download(context, value, FileField.kinds(field.config), apiOf(input, steps)))
                     // The entry a step created, designated in a field that holds a Reference
                     field?.type == FieldType.REFERENCE && value is String -> mapOf("kind" to "ENTRY", "id" to value)
                     // An operation's entry, given by its id; an entry an event carries, too
@@ -324,6 +326,11 @@ object TaskRunner {
             else -> TaskRun.StepResult(summary, at = now)
         }
     }
+
+    /** The API whose answer [input] reads, when it is a value an earlier step's call gave. */
+    private fun apiOf(input: TaskSteps.Input, steps: org.json.JSONArray): String? =
+        (input as? TaskSteps.Input.Result)?.let { steps.optJSONObject(it.step) }
+            ?.takeIf { it.optString(TaskSteps.KIND) == TaskSteps.CALL_API }?.optString(TaskSteps.API_ID)?.ifEmpty { null }
 
     /** An entry's id, from its id or a Reference designating it. */
     private fun idOf(value: Any?): Any? = (value as? Map<*, *>)?.get("id") ?: value
@@ -367,15 +374,21 @@ object TaskRunner {
 
     /**
      * The file at [address] downloaded and set aside for the entry the step writes, of one of
-     * [kinds] (FilePreparation): its id, until the entry owns it.
+     * [kinds] (FilePreparation): its id, until the entry owns it. Given by the API [apiId]'s answer,
+     * it is asked as that API asks it (ApiService.fileRequest: its key on its own server).
      */
-    private suspend fun download(context: Context, address: String, kinds: Collection<app.treelune.core.files.FileKind>): String = withContext(Dispatchers.IO) {
+    private suspend fun download(context: Context, address: String, kinds: Collection<app.treelune.core.files.FileKind>, apiId: String?): String = withContext(Dispatchers.IO) {
         val s = Strings.`for`(context = context)
         val name = Uri.parse(address).lastPathSegment?.takeIf { it.contains('.') } ?: "download"
         val dir = File(context.cacheDir, "task_downloads").apply { mkdirs() }
         val file = File(dir, "${UUID.randomUUID()}-$name")
+        val request = try {
+            apiId?.let { ApiService(context).fileRequest(it, address) } ?: Request.Builder().url(address).get().build()
+        } catch (e: IllegalStateException) {
+            throw StepFailed(s.shared("task_error_download").format(address, e.message ?: ""))
+        }
         try {
-            DOWNLOADS.newCall(Request.Builder().url(address).get().build()).execute().use { response ->
+            DOWNLOADS.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) throw StepFailed(s.shared("task_error_download").format(address, response.code.toString()))
                 response.body?.byteStream()?.use { input -> file.outputStream().use { input.copyTo(it) } }
                     ?: throw StepFailed(s.shared("task_error_download").format(address, "-"))
