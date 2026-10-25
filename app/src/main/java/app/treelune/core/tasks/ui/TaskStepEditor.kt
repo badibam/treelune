@@ -46,7 +46,7 @@ internal fun StepEditor(step: JSONObject, earlier: Earlier, onChange: (JSONObjec
             TaskSteps.CALL_API -> CallApi(step, earlier, s, ::with)
             TaskSteps.CREATE_ENTRY, TaskSteps.UPDATE_ENTRY -> WriteEntry(step, earlier, s, ::with)
             TaskSteps.TOOL_OPERATION -> ToolOperation(step, earlier, s, ::with)
-            TaskSteps.RUN_ROUTINE -> RunRoutine(step, s, ::with)
+            TaskSteps.RUN_ROUTINE -> RunRoutine(step, earlier, s, ::with)
         }
     }
 }
@@ -154,7 +154,7 @@ private fun ToolOperation(step: JSONObject, earlier: Earlier, s: StringsContext,
 }
 
 @Composable
-private fun RunRoutine(step: JSONObject, s: StringsContext, with: (JSONObject.() -> Unit) -> Unit) {
+private fun RunRoutine(step: JSONObject, earlier: Earlier, s: StringsContext, with: (JSONObject.() -> Unit) -> Unit) {
     val context = LocalContext.current
     var routines by remember { mutableStateOf<List<Map<*, *>>>(emptyList()) }
     LaunchedEffect(Unit) {
@@ -163,6 +163,9 @@ private fun RunRoutine(step: JSONObject, s: StringsContext, with: (JSONObject.()
     Choice(s.shared("task_step_routine"), routines.map { it["id"] as String to it["name"] as String }, step.optString(TaskSteps.AUTOMATION_ID).ifEmpty { null }) { id ->
         with { put(TaskSteps.AUTOMATION_ID, id) }
     }
+    // What its run's message is joined: a text, often what an earlier step gave
+    val data = remember { FieldDefinition(TaskSteps.DATA, s.shared("task_step_data"), null, FieldType.TEXT, false, mapOf("length" to TextLength.UNLIMITED.name)) }
+    Inputs(step.optJSONObject(TaskSteps.INPUTS) ?: JSONObject(), listOf(data), earlier, s) { with { put(TaskSteps.INPUTS, it) } }
 }
 
 /** The inputs of [fields], each its own input in [inputs] by name; one left empty is not given. */

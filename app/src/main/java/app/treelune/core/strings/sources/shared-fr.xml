@@ -2784,4 +2784,8 @@
     <string name="task_run_next_poll">Redemandé %1$s</string>
     <string name="task_run_cancel">Annuler l\'exécution</string>
     <string name="task_run_entry_created">Entrée créée</string>
+
+    <!-- A routine run with data (Tasks) -->
+    <string name="automation_run_data">Ce que la Tâche passe à cette exécution :\n%1$s</string>
+    <string name="task_step_data">Donnée passée</string>
 </resources>

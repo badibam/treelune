@@ -223,7 +223,10 @@ object TaskRunner {
                 ?: throw StepFailed(Strings.`for`(context = context).shared("task_error_tool").format("", step.getString(TaskSteps.TOOL_INSTANCE_ID)))
             "${tool.tooltype}.${step.getString(TaskSteps.OPERATION)}" to (resolved + ("tool_instance_id" to tool.id))
         }
-        TaskSteps.RUN_ROUTINE -> "automations.execute_manual" to mapOf("automation_id" to step.getString(TaskSteps.AUTOMATION_ID))
+        TaskSteps.RUN_ROUTINE -> "automations.execute_manual" to buildMap {
+            put("automation_id", step.getString(TaskSteps.AUTOMATION_ID))
+            resolved[TaskSteps.DATA]?.let { put("data", it.toString()) }
+        }
         else -> throw StepFailed(step.getString(TaskSteps.KIND))
     }
 
@@ -248,7 +251,7 @@ object TaskRunner {
         val fields = if (kind == TaskSteps.CREATE_ENTRY || kind == TaskSteps.UPDATE_ENTRY)
             TaskSteps.writableFields(step.getString(TaskSteps.TOOL_INSTANCE_ID), context, s) else emptyMap()
         val holder = when (kind) {
-            TaskSteps.CALL_API -> step.optJSONObject(TaskSteps.INPUTS)
+            TaskSteps.CALL_API, TaskSteps.RUN_ROUTINE -> step.optJSONObject(TaskSteps.INPUTS)
             TaskSteps.CREATE_ENTRY, TaskSteps.UPDATE_ENTRY -> step.optJSONObject(TaskSteps.VALUES)
             TaskSteps.TOOL_OPERATION -> step.optJSONObject(TaskSteps.PARAMS)
             else -> null

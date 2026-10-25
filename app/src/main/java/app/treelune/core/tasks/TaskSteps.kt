@@ -20,7 +20,7 @@ import org.json.JSONObject
  * - `create_entry`: `tool_instance_id`, `values` (by the field's path: `name`, `timestamp`, `data.x`, `extra.x`)
  * - `update_entry`: `tool_instance_id`, `entry` (an input giving an entry), `values` as above
  * - `tool_operation`: `tool_instance_id`, `operation` (one the tool type declares), `params` (by name)
- * - `run_routine`: `automation_id`
+ * - `run_routine`: `automation_id`, `inputs` (`data`, what its run's message is joined)
  *
  * An input is a Term (`{"constant"}`, `{"variable"}`, `{"reading"}`), or what an earlier step gave:
  * `{"result": {"step": 0, "value": "temperature"}}` for a value of an API's answer,
@@ -46,6 +46,8 @@ object TaskSteps {
     const val OPERATION = "operation"
     const val PARAMS = "params"
     const val AUTOMATION_ID = "automation_id"
+    /** The one input of a routine run: what joins its message. */
+    const val DATA = "data"
 
     const val RESULT = "result"
     const val STEP = "step"
@@ -157,8 +159,11 @@ object TaskSteps {
                         ?: return s.shared("task_error_operation").format(number, step.optString(OPERATION))
                     inputs(step.optJSONObject(PARAMS), params.map { it.name }.toSet())?.let { return it }
                 }
-                RUN_ROUTINE -> database.aiDao().getAutomationById(step.optString(AUTOMATION_ID))
-                    ?: return s.shared("task_error_routine").format(number, step.optString(AUTOMATION_ID))
+                RUN_ROUTINE -> {
+                    database.aiDao().getAutomationById(step.optString(AUTOMATION_ID))
+                        ?: return s.shared("task_error_routine").format(number, step.optString(AUTOMATION_ID))
+                    inputs(step.optJSONObject(INPUTS), setOf(DATA))?.let { return it }
+                }
                 else -> return s.shared("task_error_kind").format(number, step.optString(KIND), KINDS.joinToString(", "))
             }
             given += outputs(step, context)

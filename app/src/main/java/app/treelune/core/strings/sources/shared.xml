@@ -2784,4 +2784,8 @@
     <string name="task_run_next_poll">Asked again %1$s</string>
     <string name="task_run_cancel">Cancel the run</string>
     <string name="task_run_entry_created">Entry created</string>
+
+    <!-- A routine run with data (Tasks) -->
+    <string name="automation_run_data">What the Task passes this run:\n%1$s</string>
+    <string name="task_step_data">Data passed</string>
 </resources>

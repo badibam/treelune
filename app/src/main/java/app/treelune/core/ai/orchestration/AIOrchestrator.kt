@@ -693,7 +693,11 @@ object AIOrchestrator {
     private fun isSeedEmpty(userMessages: List<app.treelune.core.ai.database.SessionMessageEntity>): Boolean =
         userMessages.all { message -> message.richContentJson?.let { app.treelune.core.ai.data.RichMessage.fromJson(it) }?.isEmpty != false }
 
-    suspend fun executeAutomation(automationId: String, scheduledFor: Long, trigger: ExecutionTrigger) {
+    /**
+     * A run of routine [automationId] created from its seed's message and asked for. [data], what
+     * a Task passes it (docs/CORE.md, « Tasks »), joins the end of its message as a text of its own.
+     */
+    suspend fun executeAutomation(automationId: String, scheduledFor: Long, trigger: ExecutionTrigger, data: String? = null) {
         LogManager.aiSession("executeAutomation called: $automationId", "INFO")
 
         try {
@@ -753,12 +757,19 @@ object AIOrchestrator {
             aiDao.insertSession(session)
             LogManager.aiSession("Created AUTOMATION session: $newSessionId", "INFO")
 
-            // Copy USER messages from SEED to new session
-            for (userMsg in userMessages) {
+            // Copy USER messages from SEED to new session, the data given joined to the last
+            val joined = data?.let { app.treelune.core.strings.Strings.`for`(context = context).shared("automation_run_data").format(it) }
+            userMessages.forEachIndexed { index, userMsg ->
+                val content = if (joined != null && index == userMessages.lastIndex) userMsg.richContentJson?.let { json ->
+                    app.treelune.core.ai.data.RichMessage.fromJson(json)?.let { message ->
+                        app.treelune.core.ai.data.RichMessage(message.segments + app.treelune.core.ai.data.MessageSegment.Text(joined)).toJson()
+                    }
+                } ?: userMsg.richContentJson else userMsg.richContentJson
                 aiDao.insertMessage(userMsg.copy(
                     id = java.util.UUID.randomUUID().toString(),
                     sessionId = newSessionId,
-                    timestamp = now
+                    timestamp = now,
+                    richContentJson = content
                 ))
             }
 

@@ -45,7 +45,7 @@ import java.util.*
  * - list (by zone), list_all
  * - next_execution: when it runs next
  * - enable, disable
- * - execute_manual (triggers manual execution via AIOrchestrator)
+ * - execute_manual (triggers manual execution via AIOrchestrator), with `data` a Task passes it, joined to its message
  */
 class AutomationService(private val context: Context) : ExecutableService {
 
@@ -755,7 +755,9 @@ class AutomationService(private val context: Context) : ExecutableService {
         // For MANUAL: scheduledFor = click time
         try {
             val clickTime = System.currentTimeMillis()
-            AIOrchestrator.executeAutomation(automationId, scheduledFor = clickTime, trigger = app.treelune.core.ai.data.ExecutionTrigger.MANUAL)
+            // What a Task passes it, joined to its message
+            val data = params.opt("data")?.takeIf { it != JSONObject.NULL }?.toString()
+            AIOrchestrator.executeAutomation(automationId, scheduledFor = clickTime, trigger = app.treelune.core.ai.data.ExecutionTrigger.MANUAL, data = data)
 
             LogManager.service("Successfully triggered automation: $automationId", "INFO")
 
