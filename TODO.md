@@ -35,7 +35,7 @@ Codé, jamais vu sur l'appareil.
 
 ## Décidé, à coder
 
-- Les événements (`docs/design/events.md`) : le « quand ? » en liste à la place du planning (une heure, une entrée écrite, une condition devenue vraie, un événement), les événements d'une zone, émettre là où l'app prévient, le plafond par chaîne et le budget du jour ; le « quand ? » naît avec les Tâches.
+- Les événements (`docs/design/events.md`) : le « quand ? » en liste à la place du planning (une heure, une entrée écrite, une condition devenue vraie, un événement), les événements d'une zone, émettre là où l'app prévient, le plafond par chaîne et le budget du jour ; le « quand ? » naît avec les Tâches. Le plafond est attendu dès maintenant : une IA sans masque écrit une Tâche qui lance une routine et la lance (`RUN_TASK`), l'IA de cette routine peut relancer la Tâche, une boucle sans fin que rien n'arrête aujourd'hui (l'étape ne fait que mettre la routine en file, l'exécution de la Tâche finit aussitôt).
 - Un filtre qui compare un champ à une variable ou une lecture (« kcal > objectif_calorique ») : le terme lu une fois à la référence du contexte (`TermReader`, `docs/BRICKS.md`), puis le filtre SQL comme aujourd'hui ; `EntryFilters.parse` et `ConditionPicker` le prennent.
 
 ## À concevoir

@@ -2,6 +2,8 @@
 
 Ce qui fait partir une routine, une Tâche ou un outil actif autrement qu'à une heure : une entrée écrite, une condition devenue vraie, un événement émis. Conçu pendant les Tâches (`docs/CORE.md`, « Tasks »), pour qu'elles reçoivent la forme de déclenchement qui l'accueille.
 
+Déjà ouvert sans plafond, avant ce code : une IA sans masque écrit et lance une Tâche dont une étape lance une routine, dont l'IA peut relancer la Tâche ; la boucle n'a pas de fin tant que le plafond par chaîne n'existe pas.
+
 ## 1. Le « quand ? »
 
 Partout où l'app a aujourd'hui un planning (`ScheduleConfig`), ce planning devient une liste de déclencheurs : routine, Tâche, invitations d'un Questionnaire, envois d'un Message, séances prévues d'une Séquence, tentatives d'un Objectif. Les séries de l'Agenda gardent leur planning seul : une série montre ses rendez-vous 90 jours à l'avance, ce qu'un événement ne permet pas. Le bouton « Exécuter », à la main, reste à côté, hors de la liste.
