@@ -68,6 +68,7 @@ Ce qui doit monter dans un module de sagesse (`/update push`).
 - Une zone lente à s'afficher, à l'ouverture comme au retour, qui relit tout (~1 s en debug le 2026-10-01, le graphique Calories de Panorama de 0,75 à 1,2 s).
 - Le bouton de liste d'un texte long touché pendant une dictée : Gboard réécrit son texte encore souligné une seconde fois au curseur (mesuré le 2026-10-20), le bouton rendant le champ sans la place de ce texte (`composition` nulle) ; la garder, décalée par `MarkupEditing.apply` comme le curseur.
 - Une copie automatique dont la rotation n'a rien fait (le 2026-10-20 à 21h21, juste après le choix du dossier) : la ligne « Auto backup: copies found … » dit maintenant ce qu'elle a trouvé et prévu.
+- Une étape défaite puis rétablie qui refait partir ce qui écoute son écriture (`docs/design/events.md`) : une seconde Fiche créée par la Tâche de régénération, une fois les événements en place ; si ça gêne, ce que défaire et rétablir devraient faire de ce qu'une écriture a fait partir.
 - Un `DATA_REFUSED` légitime dans une routine : un seuil par routine.
 - Un Graphique, un Objectif ou des Flashcards affichés qui relisent tout à chaque écriture dans n'importe quel outil, à chaque changement d'outil ou de variable (`DataChangeEvent.mayChangeReadings`) : une tuile qui rame quand on écrit ailleurs les fera trier par ce qu'ils lisent, comme une tuile de variable (`tools_read`).
 - Un calcul lourd qui fige l'app : lire, calculer sans bloquer, écrire.

@@ -52,6 +52,8 @@ Une exécution reçoit une seule chose, jamais une liste : l'entrée écrite (so
 
 Un import, la restauration d'une sauvegarde et l'installation de la démo ne font rien partir : l'app recharge des données, personne ne les note.
 
+Défaire et rétablir une étape (`history.undo`, `history.redo`) sont des écritures faites par toi, en chaîne neuve : défaire une création fait partir ce qui écoute une suppression, défaire une modification ce qui écoute une modification, et une condition se rejuge. Sinon ce qui recopie ou résume diverge sans bruit (une durée recopiée dans un Suivi garderait la valeur défaite). Ce qu'une écriture a fait partir n'est pas défait avec elle, comme une notification envoyée ou un appel payé : une séance défaite puis rétablie refait partir la Tâche qui l'écoute.
+
 ## 5. Les garde-fous
 
 Deux, tous deux dans l'écran des limites de l'IA, à côté des appels par exécution (`AILimitsConfig`).
@@ -76,7 +78,6 @@ Deux, tous deux dans l'écran des limites de l'IA, à côté des appels par exé
 - La sorte « à une date des données » (10 min avant chaque entrée d'un outil, le lendemain d'une échéance), commune avec les rappels de l'Agenda : tant que les endroits où l'app prévient suffisent, pas faite.
 - L'IA qui émet un événement, et si elle lance une Tâche (elle ne lance pas une routine aujourd'hui).
 - L'IA extérieure du connecteur : ce qu'elle écrit commence-t-il une chaîne neuve, comme une personne ?
-- L'annulation d'une écriture par l'utilisateur : fait-elle partir ce qui écoute l'écriture qu'elle défait ?
 - Une routine sous budget dont le modèle n'a pas de prix connu (`SessionCost` en « ≥ ») : refusée, ou hors du compte.
 - Où se voient les événements d'une zone, et leur création depuis le sélecteur du « quand ? » sans quitter l'écran.
 - Supprimer un événement écouté ou une chose qu'un « quand ? » vise : le contrôle « qui dépend de ça ? » de `TODO.md`.
