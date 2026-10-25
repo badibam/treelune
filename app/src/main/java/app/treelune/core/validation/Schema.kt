@@ -60,6 +60,9 @@ enum class SchemaCategory {
     /** Automation settings schemas */
     AUTOMATION_CONFIG,
 
+    /** API configuration schemas */
+    API_CONFIG,
+
     /** Custom field type definition schemas */
     FIELD_TYPE,
 

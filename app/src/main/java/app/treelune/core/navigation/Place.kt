@@ -97,6 +97,13 @@ sealed class Place {
         override fun parent() = SettingsPage("ai_providers")
     }
 
+    /** An API's config: a stored one's when [id] is set, a new one's otherwise, copied from [copyOf] when duplicated. */
+    data class Api(val id: String?, val copyOf: String?) : Place() {
+        override val kind = "api"
+        override val parameters get() = listOf(id, copyOf)
+        override fun parent() = SettingsPage("apis")
+    }
+
     /** An identity, opened from the identities' settings page. */
     data class Identity(val id: String) : Place() {
         override val kind = "identity"
@@ -207,6 +214,7 @@ sealed class Place {
                 "identity" -> Identity(r(1))
                 "ai_provider_kind" -> AIProviderKind
                 "ai_provider" -> AIProvider(p(1), p(2), p(3))
+                "api" -> Api(p(1), p(2))
                 "zone_new" -> CreateZone(p(1))
                 "zone" -> Zone(r(1))
                 "zone_config" -> ZoneConfig(r(1))

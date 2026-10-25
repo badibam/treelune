@@ -366,6 +366,7 @@ class BackupService(private val context: Context) : ExecutableService {
             val automations = database.aiDao().getAllAutomations()
             val variables = database.variableDao().getAll()
             val identities = database.identityDao().getAll()
+            val apis = database.apiDao().getAll()
             // The files of messages, entries and tools: their rows in the JSON, their files beside it.
             // A row whose file is missing is an error the backup copies as it is, neither
             // hidden nor repaired: its row goes, named in missing_files, and the export says how many
@@ -616,6 +617,19 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("imported_at", identity.importedAt ?: JSONObject.NULL)
                                 put("created_at", identity.createdAt)
                                 put("updated_at", identity.updatedAt)
+                            })
+                        }
+                    })
+
+                    // APIs, their key sealed as a provider's: it opens on this phone alone
+                    put("apis", JSONArray().apply {
+                        apis.forEach { api ->
+                            put(JSONObject().apply {
+                                put("id", api.id)
+                                put("name", api.name)
+                                put("config_json", api.configJson)
+                                put("created_at", api.createdAt)
+                                put("updated_at", api.updatedAt)
                             })
                         }
                     })
@@ -1044,6 +1058,20 @@ class BackupService(private val context: Context) : ExecutableService {
                         updatedAt = item.getLong("updated_at")
                     )
                 )
+            }
+        }
+
+        // APIs: absent from a backup made before version 96
+        data.optJSONArray("apis")?.let { array ->
+            for (i in 0 until array.length()) {
+                val item = array.getJSONObject(i)
+                database.apiDao().insert(app.treelune.core.apis.ApiEntity(
+                    id = item.getString("id"),
+                    name = item.getString("name"),
+                    configJson = item.getString("config_json"),
+                    createdAt = item.getLong("created_at"),
+                    updatedAt = item.getLong("updated_at")
+                ))
             }
         }
 

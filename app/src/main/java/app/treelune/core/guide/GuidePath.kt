@@ -53,6 +53,7 @@ object GuidePath {
             Place.Export -> t("guide_path_settings_page", t("share_export_open"))
             is Place.Import -> t("guide_path_settings_page", t("share_import_open"))
             is Place.AIProvider -> t("guide_path_settings_page", n)
+            is Place.Api -> t("guide_path_settings_page", n)
             Place.Guide -> t("guide_path_guide")
             is Place.Chapter -> t("guide_path_chapter", n)
             Place.Chat -> t("guide_path_chat")

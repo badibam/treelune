@@ -244,6 +244,7 @@ private fun PlaceScreen(place: Place, zones: ZonesState, demoInstalled: Boolean)
                 name(s.shared("settings_${place.id}"))
                 when (place.id) {
                     "ai_providers" -> AIProvidersScreen(onBack = back)
+                    "apis" -> app.treelune.core.apis.ui.ApisScreen(onBack = back)
                     "identities" -> app.treelune.core.identities.ui.IdentitiesScreen(onBack = back)
                     "format" -> AppSettingsScreen(category = AppSettingCategories.FORMAT, onBack = back)
                     "ai_limits" -> AppSettingsScreen(category = AppSettingCategories.AI_LIMITS, onBack = back)
@@ -271,6 +272,7 @@ private fun PlaceScreen(place: Place, zones: ZonesState, demoInstalled: Boolean)
                 app.treelune.core.ai.ui.screens.AIProviderKindScreen(onBack = back)
             }
             is Place.AIProvider -> app.treelune.core.ai.ui.screens.AIProviderScreen(place, onName = { name(it) }, onBack = back)
+            is Place.Api -> app.treelune.core.apis.ui.ApiScreen(place, onName = { name(it) }, onBack = back)
             is Place.Identity -> app.treelune.core.identities.ui.IdentityScreen(
                 place.id,
                 onName = { name(it) },
