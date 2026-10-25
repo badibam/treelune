@@ -318,6 +318,7 @@ The AI lists the Tasks (`TASKS`, one line each: how many triggers start it, its 
 - **MANUAL**: the user clicks Execute → `executeAutomation(id)` → queued if the slot is taken
 - **SCHEDULED**: tick() computes the next run → created only if the slot is free + the queue empty
 - **ENTRY**: an entry written that one of its triggers hears (docs/CORE.md, « Triggers ») → `executeAutomation` with the entry attached → queued if the slot is taken
+- **EVENT**, **CONDITION**: an event emitted, a condition become true, that one of its triggers names → the same, a line joined saying what it carried, what was read
 
 **tick() triggers**:
 - Periodic: AIOrchestrator coroutine (1 min, app open) + `SchedulerAlarm` (10 min, app closed)

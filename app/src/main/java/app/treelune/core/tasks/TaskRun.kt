@@ -13,7 +13,9 @@ object TaskRun {
         /** An entry written that one of its triggers listens to (Triggers) */
         ENTRY("entry"),
         /** An event emitted that one of its triggers listens to (Triggers) */
-        EVENT("event");
+        EVENT("event"),
+        /** A condition one of its triggers names become true (ConditionTriggers) */
+        CONDITION("condition");
 
         companion object {
             fun of(key: String) = entries.first { it.key == key }
@@ -91,9 +93,19 @@ object TaskRun {
             override fun toJson(): String = JSONObject().put("event_id", eventId).put("values", JsonUtils.toJSONObject(values)).toString()
         }
 
+        /**
+         * The [condition] become true, and the [values] read on its sides when it did, `left` and
+         * `right` (a pair for between, none for absent and present); [said], them in words
+         * ("82.4 > 80"), as the run's notification says them.
+         */
+        data class Condition(val condition: JSONObject, val values: Map<String, Any?>, val said: String) : Received {
+            override fun toJson(): String = JSONObject().put("condition", condition).put("values", JsonUtils.toJSONObject(values)).put("said", said).toString()
+        }
+
         companion object {
             fun of(json: String): Received = JSONObject(json).let {
                 if (it.has("event_id")) Event(it.getString("event_id"), JsonUtils.toMap(it.optJSONObject("values") ?: JSONObject()))
+                else if (it.has("condition")) Condition(it.getJSONObject("condition"), JsonUtils.toMap(it.optJSONObject("values") ?: JSONObject()), it.getString("said"))
                 else Entry(it.getString("entry_id"), it.getString("tool_instance_id"), app.treelune.core.triggers.Triggers.Write.of(it.getString("write")))
             }
         }

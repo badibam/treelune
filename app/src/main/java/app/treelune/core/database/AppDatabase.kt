@@ -80,7 +80,8 @@ import app.treelune.core.ai.data.LegacyCatchUp
         app.treelune.core.apis.ApiEntity::class,
         app.treelune.core.tasks.TaskEntity::class,
         app.treelune.core.tasks.TaskRunEntity::class,
-        app.treelune.core.events.EventEntity::class
+        app.treelune.core.events.EventEntity::class,
+        app.treelune.core.triggers.ConditionJudgementEntity::class
         // Note: Tool entities will be added dynamically
         // via build system and ToolTypeRegistry
     ],
@@ -106,13 +107,14 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun apiDao(): app.treelune.core.apis.ApiDao
     abstract fun taskDao(): app.treelune.core.tasks.TaskDao
     abstract fun eventDao(): app.treelune.core.events.EventDao
+    abstract fun conditionJudgementDao(): app.treelune.core.triggers.ConditionJudgementDao
 
     companion object {
         /**
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 103
+        const val VERSION = 104
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2279,6 +2281,14 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** The last judgement of the conditions a trigger names (ConditionTriggers), none so far. */
+        private val MIGRATION_103_104 = object : ConnectionMigration(103, 104) {
+            override fun migrate(database: MigrationDatabase) {
+                database.execSQL("CREATE TABLE IF NOT EXISTS `condition_judgements` (`owner_kind` TEXT NOT NULL, `owner_id` TEXT NOT NULL, `condition_key` TEXT NOT NULL, `verdict` INTEGER, `judged_at` INTEGER NOT NULL, `failure` TEXT, `failed_since` INTEGER, PRIMARY KEY(`owner_kind`, `owner_id`, `condition_key`))")
+                LogManager.database("MIGRATION 103->104: condition_judgements added, none", "INFO")
+            }
+        }
+
         /** The connector gains its own data threshold: see ExternalAccessDataAtV84. */
         private val MIGRATION_83_84 = object : ConnectionMigration(83, 84) {
             override fun migrate(database: MigrationDatabase) {
@@ -3329,7 +3339,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_99_100,
                     MIGRATION_100_101,
                     MIGRATION_101_102,
-                    MIGRATION_102_103
+                    MIGRATION_102_103,
+                    MIGRATION_103_104
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

@@ -4,7 +4,7 @@ Ce qui fait partir une routine, une Tâche ou un outil actif autrement qu'à une
 
 ## 1. Le « quand ? »
 
-En place pour les Tâches et les routines : la sorte 2, une entrée écrite (`docs/CORE.md`, « Triggers »), stockée en liste à côté du planning, qui garde sa forme et son rattrapage. Restent les outils actifs (Questionnaire, Messages, Séquence, Objectif), et les sortes 3 et 4.
+En place pour les Tâches et les routines : les sortes 2, 3 et 4 (`docs/CORE.md`, « Triggers »), stockées en liste à côté du planning, qui garde sa forme et son rattrapage. Restent les outils actifs (Questionnaire, Messages, Séquence, Objectif).
 
 Partout où l'app a aujourd'hui un planning (`ScheduleConfig`), ce planning devient une liste de déclencheurs : routine, Tâche, invitations d'un Questionnaire, envois d'un Message, séances prévues d'une Séquence, tentatives d'un Objectif. Les séries de l'Agenda gardent leur planning seul : une série montre ses rendez-vous 90 jours à l'avance, ce qu'un événement ne permet pas. Le bouton « Exécuter », à la main, reste à côté, hors de la liste.
 
@@ -94,5 +94,5 @@ Deux, tous deux dans l'écran des limites de l'IA, à côté des appels par exé
 1. Le « quand ? » des outils actifs, avec les entrées écrites (fait pour les Tâches et les routines).
 2. Les événements et l'étape « émettre » ; ce que reçoit ce qui part (fait).
 3. Les endroits où l'app prévient (fait).
-4. La condition qui devient vraie, pour les Tâches et les routines. L'Alerte n'est pas un outil : une Tâche sans étape qui écoute une condition, prévenue à la fin, a déjà sa tuile, ses exécutions à lire, sa notification et son émission.
+4. La condition qui devient vraie, pour les Tâches et les routines (fait). L'Alerte n'est pas un outil : une Tâche sans étape qui écoute une condition, prévenue à la fin, a déjà sa tuile, ses exécutions à lire, sa notification et son émission.
 5. Le budget du jour (fait).

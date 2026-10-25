@@ -10,8 +10,9 @@ import org.json.JSONObject
 /**
  * The « when? » of what runs by itself, beside its schedule (docs/CORE.md, « Triggers »): a list
  * of what makes it start, each one kind: an entry written in a tool — created, changed or
- * deleted, passing the entry's filters when it has some —, or an event emitted
- * (`{"kind": "event", "event": {"kind": "EVENT", "id"}}`).
+ * deleted, passing the entry's filters when it has some —, an event emitted
+ * (`{"kind": "event", "event": {"kind": "EVENT", "id"}}`), or a condition judged once become true
+ * (`{"kind": "condition", "condition": {"left", "op", "right"}}`, ConditionTriggers).
  *
  * Stored under `triggers`: `[{"kind": "entry_written", "writes": ["created", "updated"],
  * "entries": {"target": {"kind": "TOOL_INSTANCE", "id"}, "filters": [...]}}]`. Declared with the settings
@@ -25,6 +26,7 @@ object Triggers {
     const val WRITES = "writes"
     const val ENTRIES = "entries"
     const val EVENT = "event"
+    const val CONDITION = "condition"
 
     /** What happens to an entry. */
     enum class Write(val key: String) {
@@ -41,6 +43,13 @@ object Triggers {
         data class EntryWritten(val toolInstanceId: String, val writes: Set<Write>, val filters: JSONArray) : Trigger
         /** The event [eventId] emitted (docs/CORE.md, « Events ») */
         data class EventEmitted(val eventId: String) : Trigger
+        /**
+         * The [condition] (the Condition brick, judged once at the moment it is judged) become
+         * true; [key], its stored text, names it where its last judgement is kept (ConditionTriggers).
+         */
+        data class ConditionBecameTrue(val condition: JSONObject) : Trigger {
+            val key: String = condition.toString()
+        }
     }
 
     /** The list's declaration, [text] the shared string of a key. */
@@ -50,7 +59,8 @@ object Triggers {
         item = SettingNode.Item.Of(listOf(
             SettingNode.Variant(
                 selector = SettingNode.Field(FieldDefinition(KIND, text("trigger_kind"), text("trigger_schema_kind"), FieldType.CHOICE, true,
-                    mapOf("options" to ChoiceSettings.storedOptions(listOf(ENTRY_WRITTEN, EVENT), mapOf(ENTRY_WRITTEN to text("trigger_kind_entry_written"), EVENT to text("trigger_kind_event")))))),
+                    mapOf("options" to ChoiceSettings.storedOptions(listOf(ENTRY_WRITTEN, EVENT, CONDITION),
+                    mapOf(ENTRY_WRITTEN to text("trigger_kind_entry_written"), EVENT to text("trigger_kind_event"), CONDITION to text("trigger_kind_condition")))))),
                 cases = mapOf(EVENT to listOf(
                     SettingNode.Field(FieldDefinition(EVENT, text("trigger_event"), text("trigger_schema_event"), FieldType.REFERENCE, true,
                         mapOf(app.treelune.core.fields.ReferenceTarget.TARGET to mapOf(app.treelune.core.fields.ReferenceTarget.KINDS to listOf(app.treelune.core.selection.ReferenceKind.EVENT.name)))))
@@ -58,8 +68,11 @@ object Triggers {
                     SettingNode.Field(FieldDefinition(WRITES, text("trigger_writes"), text("trigger_schema_writes"), FieldType.CHOICE, true,
                         mapOf("options" to ChoiceSettings.storedOptions(Write.entries.map { it.key }, Write.entries.associate { it.key to text("trigger_write_${it.key}") })) + ("multiple" to true))),
                     SettingNode.Selection(ENTRIES, text("trigger_entries"), text("trigger_reference"), required = true)
+                ), CONDITION to listOf(
+                    // Judged at the moment of judging; a reading without a period reads its whole history
+                    SettingNode.Condition(CONDITION, text("trigger_condition"), reference = text("trigger_condition_reference"), emptyPeriod = null, required = true)
                 )),
-                descriptions = mapOf(ENTRY_WRITTEN to text("trigger_schema_entry_written"), EVENT to text("trigger_schema_kind_event"))
+                descriptions = mapOf(ENTRY_WRITTEN to text("trigger_schema_entry_written"), EVENT to text("trigger_schema_kind_event"), CONDITION to text("trigger_schema_kind_condition"))
             )
         ), description = text("trigger_schema_item")),
         summary = listOf(KIND),
@@ -87,6 +100,7 @@ object Triggers {
             }
             EVENT -> Trigger.EventEmitted(app.treelune.core.fields.ReferenceTarget.referenceOf(trigger.opt(EVENT))?.takeIf { it.kind == app.treelune.core.selection.ReferenceKind.EVENT }?.id
                 ?: throw IllegalArgumentException("A trigger on an event names no event"))
+            CONDITION -> Trigger.ConditionBecameTrue(trigger.optJSONObject(CONDITION) ?: throw IllegalArgumentException("A trigger on a condition holds no condition"))
             else -> throw IllegalArgumentException("Unknown trigger kind '$kind'")
         }
     }
@@ -96,8 +110,9 @@ object Triggers {
 
     /**
      * Why the triggers of [settings], declared among [nodes], cannot be stored; null when they
-     * can: each one reads, its tool exists, its filters read in that tool's fields
-     * (ConditionCheck); an AI held to a mask listens only to tools it may read.
+     * can: each one reads, its tool exists, its filters and its condition read (ConditionCheck);
+     * an AI held to a mask listens only to tools and events it may read, and to conditions whose
+     * readings and variables it may read.
      */
     suspend fun refusal(settings: JSONObject, nodes: List<SettingNode>, context: android.content.Context, s: app.treelune.core.strings.StringsContext): String? {
         val read = try {
@@ -116,7 +131,8 @@ object Triggers {
         kotlin.coroutines.coroutineContext[app.treelune.core.access.AccessScope]?.let { scope ->
             val lookups = app.treelune.core.access.DatabaseAccessLookups(context)
             val reaches = heard.flatMap { app.treelune.core.access.AccessRules.reach("tool_data", "get", mapOf("tool_instance_id" to it.toolInstanceId), lookups::isToolType) } +
-                listened.flatMap { app.treelune.core.access.AccessRules.reach("events", "get", mapOf("event_id" to it.eventId), lookups::isToolType) }
+                listened.flatMap { app.treelune.core.access.AccessRules.reach("events", "get", mapOf("event_id" to it.eventId), lookups::isToolType) } +
+                read.filterIsInstance<Trigger.ConditionBecameTrue>().flatMap { ConditionTriggers.reaches(it.condition, lookups::isToolType) }
             app.treelune.core.access.AccessRules.refusal(scope.mask, scope.holder, reaches, lookups, s::shared)?.let { return it }
         }
         return null

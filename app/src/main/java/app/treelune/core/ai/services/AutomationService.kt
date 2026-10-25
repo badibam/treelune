@@ -596,7 +596,8 @@ class AutomationService(private val context: Context) : ExecutableService {
             ?: return OperationResult.error(s.shared("error_automation_not_found"))
 
         return OperationResult.success(mapOf(
-            "automation" to automationToMap(entity)
+            "automation" to automationToMap(entity) + ("condition_judgements" to
+                app.treelune.core.triggers.ConditionTriggers.judgements(context, app.treelune.core.triggers.ConditionTriggers.ROUTINE, entity.id, entity.triggersJson))
         ))
     }
 

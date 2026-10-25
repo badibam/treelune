@@ -10,9 +10,10 @@ import app.treelune.core.utils.LogManager
 /**
  * What the entries a step wrote start (docs/CORE.md, « Triggers »): each Task switched on whose
  * triggers listen to one of them, once per entry and trigger it passes, the run receiving the
- * entry. Called once the step is done — by the coordinator for an operation, by the history for
- * an undo or a redo — inside the context of whoever wrote, so that a run started continues the
- * writer's chain (Chains), refused past its cap.
+ * entry; then the conditions listened to that read a tool written, judged again
+ * (ConditionTriggers). Called once the step is done — by the coordinator for an operation, by the
+ * history for an undo or a redo — inside the context of whoever wrote, so that a run started
+ * continues the writer's chain (Chains), refused past its cap.
  *
  * A long operation (an import, a backup restored, the demo installed) starts nothing: the app
  * reloads data, nobody notes it.
@@ -24,6 +25,13 @@ object EntryTriggers {
         val database = AppDatabase.getDatabase(context)
         val tasks = database.taskDao().getAll().filter { it.isEnabled && it.triggersJson != null }
         val routines = database.aiDao().getAllAutomations().filter { it.isEnabled && it.triggersJson != "[]" }
+        val conditions = (tasks.map { it.triggersJson } + routines.map { it.triggersJson }).any { json ->
+            try {
+                Triggers.read(json).any { it is Triggers.Trigger.ConditionBecameTrue }
+            } catch (e: IllegalArgumentException) {
+                false
+            }
+        }
         if (tasks.isEmpty() && routines.isEmpty()) return
         val writes = written()
         if (writes.isEmpty()) return
@@ -41,6 +49,7 @@ object EntryTriggers {
                     trigger = app.treelune.core.ai.data.ExecutionTrigger.ENTRY, chainId = chainId.id, attached = attached(context, write))
             }
         }
+        if (conditions) ConditionTriggers.dispatch(context, writes.map { it.toolInstanceId }.toSet())
     }
 
     /** The writes among [writes] the triggers stored in [triggersJson] hear: one per entry, whichever trigger it passes first. */

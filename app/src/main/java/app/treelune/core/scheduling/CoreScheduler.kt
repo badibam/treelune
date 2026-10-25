@@ -152,6 +152,15 @@ object CoreScheduler {
             LogManager.service("CoreScheduler: task scheduling error: ${e.message}", "ERROR", e)
         }
 
+        try {
+            // The conditions the triggers listen to, all judged again: what time makes true starts (ConditionTriggers)
+            app.treelune.core.triggers.ConditionTriggers.dispatch(context, null)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            LogManager.service("CoreScheduler: condition triggers error: ${e.message}", "ERROR", e)
+        }
+
         // The alarm set again after every tick, the minute's included: what the screen added while
         // the app was open is known to it before the app closes
         armForNextAction(context)

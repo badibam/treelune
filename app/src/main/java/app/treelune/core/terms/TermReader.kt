@@ -20,8 +20,12 @@ class TermReader(private val context: Context) {
     sealed interface Read {
         /** A value, and the field it is a value of; none for a constant, which has no type of its own. */
         data class Value(val value: Any?, val field: FieldDefinition?) : Read
-        /** No value, and why in words: a reading without entries, a variable that failed. */
-        data class Failed(val message: String) : Read
+        /**
+         * No value, and why in words: a reading without entries, a variable that failed.
+         * [broken] when a cause is not the data's — what it reads gone (a tool, a variable), a
+         * loop, a name unknown —, which the data filling in will not mend.
+         */
+        data class Failed(val message: String, val broken: Boolean = false) : Read
     }
 
     /**
@@ -39,7 +43,10 @@ class TermReader(private val context: Context) {
             if (!result.isSuccess) throw IllegalStateException(result.error ?: "")
             val row = (result.data?.get("values") as? List<*>)?.firstOrNull() as? Map<*, *>
             val field = (result.data?.get("field") as? Map<*, *>)?.let { fieldOf(it, result.data?.get("name") as? String ?: term.id) }
-            (row?.get("failure") as? Map<*, *>)?.let { Read.Failed(it["message"] as? String ?: "") } ?: Read.Value(row?.get("value"), field)
+            (row?.get("failure") as? Map<*, *>)?.let { failure ->
+                val reasons = (failure["causes"] as? List<*>).orEmpty().mapNotNull { (it as? Map<*, *>)?.get("reason")?.toString() }
+                Read.Failed(failure["message"] as? String ?: "", reasons.any { it !in DATA_REASONS })
+            } ?: Read.Value(row?.get("value"), field)
         }
         is Term.Reading -> {
             if (term.perEntry != null) throw IllegalStateException("a formula per entry is read in a variable")
@@ -51,7 +58,7 @@ class TermReader(private val context: Context) {
                 put("reference", at)
             })
             if (!result.isSuccess) throw IllegalStateException(result.error ?: "")
-            (result.data?.get("failure") as? Map<*, *>)?.let { Read.Failed(it["message"] as? String ?: "") }
+            (result.data?.get("failure") as? Map<*, *>)?.let { Read.Failed(it["message"] as? String ?: "", it["reason"]?.toString().let { reason -> reason != null && reason !in DATA_REASONS }) }
                 // A count has no field: it is a number
                 ?: Read.Value(result.data?.get("value"), (result.data?.get("field") as? Map<*, *>)?.let { fieldOf(it, term.field ?: "") }
                     ?: FieldDefinition("count", "count", null, FieldType.NUMERIC, false, mapOf("decimals" to 0)))
@@ -63,5 +70,10 @@ class TermReader(private val context: Context) {
         if (!obj.has("name")) obj.put("name", name)
         if (!obj.has("display_name")) obj.put("display_name", name)
         return obj.toFieldDefinition()
+    }
+
+    private companion object {
+        /** The causes of a failure the data make, which entries written later may mend (FailureReason, a variable's causes). */
+        val DATA_REASONS = setOf("NO_ENTRY", "MISSING_VALUE", "DIVISION_BY_ZERO")
     }
 }

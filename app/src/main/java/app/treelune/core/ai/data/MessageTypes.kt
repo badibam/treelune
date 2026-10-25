@@ -63,7 +63,8 @@ enum class ExecutionTrigger {
     SCHEDULED,  // Created by AutomationScheduler (never goes through queue)
     MANUAL,     // User clicked execute (goes to queue if slot occupied)
     ENTRY,      // An entry written that one of its triggers listens to (Triggers): goes through the queue as MANUAL
-    EVENT       // An event emitted that one of its triggers listens to (docs/CORE.md, « Events »): the same
+    EVENT,      // An event emitted that one of its triggers listens to (docs/CORE.md, « Events »): the same
+    CONDITION   // A condition one of its triggers names become true (ConditionTriggers): the same
 }
 
 /**

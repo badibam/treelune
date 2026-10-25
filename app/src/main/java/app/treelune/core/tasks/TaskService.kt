@@ -89,7 +89,8 @@ class TaskService(private val context: Context) : ExecutableService {
             "grid_x" to task.gridX,
             "grid_y" to task.gridY,
             "updated_at" to task.updatedAt,
-            "last_run" to last?.let { runOf(it) }
+            "last_run" to last?.let { runOf(it) },
+            "condition_judgements" to app.treelune.core.triggers.ConditionTriggers.judgements(context, app.treelune.core.triggers.ConditionTriggers.TASK, task.id, task.triggersJson)
         )
     }
 
@@ -104,7 +105,9 @@ class TaskService(private val context: Context) : ExecutableService {
         "step" to run.step,
         "results" to JsonUtils.toList(JSONArray(run.resultsJson)),
         "next_poll_at" to run.waitJson?.let { TaskRun.Wait.of(it).nextAt },
-        "waits" to (run.endedAt != null && run.seenAt == null)
+        "waits" to (run.endedAt != null && run.seenAt == null),
+        // Started by a condition: what it read, in words
+        "condition_said" to (run.receivedJson?.let { TaskRun.Received.of(it) } as? TaskRun.Received.Condition)?.said
     )
 
     private suspend fun create(params: JSONObject): OperationResult {

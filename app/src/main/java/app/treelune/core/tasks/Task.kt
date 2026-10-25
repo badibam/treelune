@@ -21,7 +21,9 @@ data class Task(
     val steps: JSONArray,
     val gridX: Int,
     val gridY: Int,
-    val updatedAt: Long
+    val updatedAt: Long,
+    /** The last judgement of each condition its triggers name */
+    val conditionJudgements: List<app.treelune.core.triggers.ui.ConditionJudgementLine> = emptyList()
 ) {
     val name: String get() = look.name
 
@@ -61,7 +63,8 @@ data class Task(
                 steps = JsonUtils.toJSONArray(map["steps"] as List<*>),
                 gridX = (map["grid_x"] as Number).toInt(),
                 gridY = (map["grid_y"] as Number).toInt(),
-                updatedAt = (map["updated_at"] as Number).toLong()
+                updatedAt = (map["updated_at"] as Number).toLong(),
+                conditionJudgements = app.treelune.core.triggers.ui.ConditionJudgementLine.list(map["condition_judgements"])
             )
         }
     }

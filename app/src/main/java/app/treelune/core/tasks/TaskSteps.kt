@@ -136,16 +136,21 @@ object TaskSteps {
     }
 
     /**
-     * The values an event a trigger listens to gives a run of the Task whose [triggers] they
-     * are, by name, as the field each is entered as: those every event listened to declares
-     * with one type; null when no trigger listens to an event.
+     * The values a trigger gives a run of the Task whose [triggers] they are, by name, as the
+     * field each is entered as: an event's, those it declares; a condition's, the sides read
+     * (ConditionTriggers.values). Those every such trigger gives with one type; null when no
+     * trigger gives values.
      */
     suspend fun receivedValues(triggers: List<app.treelune.core.triggers.Triggers.Trigger>, context: Context): Map<String, FieldDefinition>? {
-        val events = triggers.filterIsInstance<app.treelune.core.triggers.Triggers.Trigger.EventEmitted>().map { it.eventId }.distinct()
-        if (events.isEmpty()) return null
         val dao = AppDatabase.getDatabase(context).eventDao()
-        val each = events.map { id -> dao.get(id)?.let { app.treelune.core.events.EventValues.read(it.valuesJson) }.orEmpty().associateBy { it.name } }
-        return each.first().filter { (name, value) -> each.all { it[name] == value } }.mapValues { (_, value) -> app.treelune.core.events.EventValues.field(value) }
+        val events = triggers.filterIsInstance<app.treelune.core.triggers.Triggers.Trigger.EventEmitted>().map { it.eventId }.distinct().map { id ->
+            dao.get(id)?.let { app.treelune.core.events.EventValues.read(it.valuesJson) }.orEmpty().associate { it.name to app.treelune.core.events.EventValues.field(it) }
+        }
+        val conditions = triggers.filterIsInstance<app.treelune.core.triggers.Triggers.Trigger.ConditionBecameTrue>().distinctBy { it.key }
+            .map { app.treelune.core.triggers.ConditionTriggers.values(context, it.condition) }
+        val each = events + conditions
+        if (each.isEmpty()) return null
+        return each.first().filter { (name, field) -> each.all { it[name] == field } }
     }
 
     /** The fields a step may write in the entries of [toolInstanceId], by path. */

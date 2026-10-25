@@ -298,6 +298,7 @@ fun AutomationScreen(
             UI.Card(type = CardType.DEFAULT) {
                 Column(modifier = Modifier.fillMaxWidth().padding(UI.Space.M), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
                     AutomationStateLine(routine, state, actions)
+                    app.treelune.core.triggers.ui.ConditionJudgementLines(app.treelune.core.triggers.ui.ConditionJudgementLine.list(automationMap?.get("condition_judgements")))
                     AutomationButtons(routine, state, actions, onSettings = { showSettings = true })
                 }
             }

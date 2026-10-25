@@ -223,7 +223,9 @@ object TaskRunner {
         val s = Strings.`for`(context = context)
         Coordinator(context).processScheduledTask("notifications.send", mapOf(
             "title" to task.name,
-            "content" to s.shared("task_run_end_${state.key}"),
+            // Started by a condition, the end says what it read: "82.4 > 80"
+            "content" to s.shared("task_run_end_${state.key}") +
+                ((run.receivedJson?.let { TaskRun.Received.of(it) } as? TaskRun.Received.Condition)?.let { " · " + s.shared("task_run_end_condition").format(it.said) } ?: ""),
             "priority" to "default",
             "icon_name" to task.iconName,
             "place" to app.treelune.core.navigation.Place.TaskRun(run.id, task.id, task.zoneId).address
@@ -331,7 +333,11 @@ object TaskRunner {
         val s = Strings.`for`(context = context)
         return when (input) {
             is TaskSteps.Input.Received -> when {
-                input.value != null -> (received as? TaskRun.Received.Event ?: throw StepFailed(s.shared("task_error_received_no_event"))).values[input.value]
+                input.value != null -> when (received) {
+                    is TaskRun.Received.Event -> received.values[input.value]
+                    is TaskRun.Received.Condition -> received.values[input.value]
+                    else -> throw StepFailed(s.shared("task_error_received_no_event"))
+                }
                 else -> {
                     val entry = received as? TaskRun.Received.Entry ?: throw StepFailed(s.shared("task_error_received_none"))
                     if (input.field == null) return entry.entryId

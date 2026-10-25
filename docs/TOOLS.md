@@ -17,7 +17,6 @@ A guide to understanding and creating tools in the modular architecture.
 - **Journal**: 1 kind of journal (reflections, dreams)
 - **Note**: 1 individual note
 - **Message**: 1 scheduled message/reminder
-- **Alert**: 1 automatic alert rule
 - **Agenda**: 1 themed calendar (medical, personal)
 - **Flashcards**: 1 deck of cards to review, drawn from the rows of another tool
 
@@ -126,7 +125,7 @@ override fun enrichData(data: Map<String, Any>, context: Context): Map<String, A
 
 **Passive** (Tracking, Journal, Note): the user writes into tool_data.
 
-**Active** (Messages, future Alerts, Goals): the system writes into tool_data, driven by the config. An active tooltype exposes an `execute` operation (`{tooltype}.execute` with `tool_instance_id`), declared in getOperations(), and usually a `getScheduler()`. Its occurrences are ordinary tool_data entries: queryable, open to statistics, migratable, visible to the AI, like any other entry.
+**Active** (Messages, Goals): the system writes into tool_data, driven by the config. An active tooltype exposes an `execute` operation (`{tooltype}.execute` with `tool_instance_id`), declared in getOperations(), and usually a `getScheduler()`. Its occurrences are ordinary tool_data entries: queryable, open to statistics, migratable, visible to the AI, like any other entry.
 
 **Occurrences with a life cycle**: an occurrence is not necessarily instantaneous. It can live (created → active → closed), in which case its data schema holds a `status` field and its requirements depend on it. The `status` filter of `tool_data.get` exists for these tooltypes.
 
@@ -214,10 +213,6 @@ Added in ToolTypeScanner.getAllToolTypes() for automatic discovery.
 **Use**: a notification message and its sends
 **Configuration**: common title and body, priority, recurrence, days of advance creation, validity window
 **Data**: one entry per send (`pending`, `sent`, `expired`, `cancelled`), holding the part written for that day and, once gone, the common part copied
-
-### Alert
-**Use**: automatic triggering on thresholds
-**Configuration**: data source, conditions, actions
 
 ## Display modes for tool cards
 

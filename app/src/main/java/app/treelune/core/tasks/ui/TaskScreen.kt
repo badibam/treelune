@@ -149,6 +149,7 @@ fun TaskScreen(place: Place.Task, onName: (String) -> Unit, onBack: () -> Unit) 
         UI.Card(type = CardType.DEFAULT, size = Size.M) {
             Column(modifier = Modifier.fillMaxWidth().padding(UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
                 TaskStateLine(shown, runs.firstOrNull()) { actions.toggle(shown, it) }
+                app.treelune.core.triggers.ui.ConditionJudgementLines(shown.conditionJudgements)
                 UI.Button(type = ButtonType.PRIMARY, onClick = { if (changed) UI.Toast(s.shared("task_save_first"), Duration.SHORT) else actions.run(shown) }) {
                     UI.Text(s.shared("task_run_now"), TextType.BODY)
                 }
