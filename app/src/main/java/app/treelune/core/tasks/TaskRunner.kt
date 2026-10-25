@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import app.treelune.core.ai.data.AutomationSettings
 import app.treelune.core.apis.ApiSettings
+import app.treelune.core.coordinator.ChainLink
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.ServiceRegistry
 import app.treelune.core.coordinator.isSuccess
@@ -56,62 +57,88 @@ object TaskRunner {
     private class StepFailed(message: String, val raw: String? = null) : Exception(message)
 
     /**
-     * A run of [task] started by [trigger], reading at [at]: its row written, then its steps run,
-     * awaited when [awaited] (the scheduler's tick, which the phone stays awake for), in the app's
-     * own scope otherwise. Its id.
+     * A run of [task] started by [trigger], reading at [at], continuing the chain [chainId] or
+     * starting its own when null (Chains), [received] what a trigger gave it: its row written,
+     * then its steps run, awaited when [awaited] (the scheduler's tick, which the phone stays
+     * awake for), in the app's own scope otherwise. Asked while another run of the Task goes on,
+     * a trigger's run waits its turn (queued), started once that one ends. Its id.
      */
-    suspend fun start(context: Context, task: TaskEntity, trigger: TaskRun.Trigger, at: Long, awaited: Boolean): String {
+    suspend fun start(context: Context, task: TaskEntity, trigger: TaskRun.Trigger, at: Long, awaited: Boolean, chainId: String? = null, received: TaskRun.Received? = null): String {
         val now = System.currentTimeMillis()
-        val run = TaskRunEntity(UUID.randomUUID().toString(), task.id, trigger.key, at, now, null, TaskRun.State.RUNNING.key, 0, "[]", null, null)
         val dao = AppDatabase.getDatabase(context).taskDao()
+        val busy = dao.getRunsIn(listOf(TaskRun.State.QUEUED.key, TaskRun.State.RUNNING.key, TaskRun.State.WAITING.key)).any { it.taskId == task.id }
+        val state = if (busy) TaskRun.State.QUEUED else TaskRun.State.RUNNING
+        val run = TaskRunEntity(UUID.randomUUID().toString(), task.id, trigger.key, at, now, null, state.key, 0, "[]", null, null, chainId, received?.toJson())
         dao.insertRun(run)
-        LogManager.service("Task ${task.id} run ${run.id} started (${trigger.key})", "INFO")
+        LogManager.service("Task ${task.id} run ${run.id} ${state.key} (${trigger.key})", "INFO")
         app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
+        if (busy) return run.id
         if (awaited) proceed(context, run.id) else scope.launch { proceed(context, run.id) }
         return run.id
     }
 
-    /** Run [runId] going on from the step it stands at, until it ends or waits. */
+    /** The oldest run of [taskId] waiting its turn started, when there is one. */
+    suspend fun next(context: Context, taskId: String) {
+        val dao = AppDatabase.getDatabase(context).taskDao()
+        val queued = dao.getNextQueued(taskId) ?: return
+        // Its reading instant is when it was asked: what it reads is what was there then
+        dao.updateRun(queued.copy(state = TaskRun.State.RUNNING.key))
+        LogManager.service("Task $taskId run ${queued.id} takes its turn", "INFO")
+        scope.launch { proceed(context, queued.id) }
+    }
+
+    /**
+     * Run [runId] going on from the step it stands at, until it ends or waits; what its steps
+     * start continues its chain (ChainLink).
+     */
     suspend fun proceed(context: Context, runId: String) {
         if (!active.add(runId)) return
         try {
             val dao = AppDatabase.getDatabase(context).taskDao()
-            var run = dao.getRun(runId) ?: return
-            val task = dao.get(run.taskId) ?: return
-            val steps = org.json.JSONArray(task.stepsJson)
-            while (run.step < steps.length()) {
-                // A run cancelled meanwhile stops before its next step
-                if (TaskRun.State.of(dao.getRun(runId)?.state ?: return).ended) return
-                val step = steps.getJSONObject(run.step)
-                val results = TaskRun.results(run.resultsJson)
-                val outcome = try {
-                    Outcome.Done(runStep(context, step, results, run.scheduledAt))
-                } catch (e: StepFailed) {
-                    Outcome.Failed(e.message ?: "", e.raw)
-                } catch (e: Waits) {
-                    Outcome.Waiting(e.result, e.wait)
-                } catch (e: kotlinx.coroutines.CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    LogManager.service("Task ${task.id} run $runId step ${run.step + 1}: ${e.message}", "ERROR", e)
-                    Outcome.Failed(e.message ?: e.javaClass.simpleName, null)
-                }
-                run = when (outcome) {
-                    is Outcome.Done -> run.copy(step = run.step + 1, resultsJson = TaskRun.resultsJson(results + outcome.result))
-                    is Outcome.Waiting -> run.copy(state = TaskRun.State.WAITING.key, resultsJson = TaskRun.resultsJson(results + outcome.result), waitJson = outcome.wait.toJson())
-                    is Outcome.Failed -> run.copy(resultsJson = TaskRun.resultsJson(results + TaskRun.StepResult(summary(context, step), raw = outcome.raw, error = outcome.message, at = System.currentTimeMillis())))
-                }
-                dao.updateRun(run)
-                when (outcome) {
-                    is Outcome.Waiting -> { LogManager.service("Task ${task.id} run $runId waits on step ${run.step + 1}", "INFO"); return }
-                    is Outcome.Failed -> { end(context, task, run, TaskRun.State.FAILED); return }
-                    is Outcome.Done -> Unit
-                }
-            }
-            end(context, task, run, TaskRun.State.DONE)
+            val started = dao.getRun(runId) ?: return
+            withContext(ChainLink(started.chainId ?: started.id)) { steps(context, started) }
         } finally {
             active.remove(runId)
         }
+    }
+
+    /** The steps of [started] run from the one it stands at, until it ends or waits. */
+    private suspend fun steps(context: Context, started: TaskRunEntity) {
+        val runId = started.id
+        val dao = AppDatabase.getDatabase(context).taskDao()
+        var run = started
+        val task = dao.get(run.taskId) ?: return
+        val steps = org.json.JSONArray(task.stepsJson)
+        while (run.step < steps.length()) {
+            // A run cancelled meanwhile stops before its next step
+            if (TaskRun.State.of(dao.getRun(runId)?.state ?: return).ended) return
+            val step = steps.getJSONObject(run.step)
+            val results = TaskRun.results(run.resultsJson)
+            val outcome = try {
+                Outcome.Done(runStep(context, step, results, run.scheduledAt, run.receivedJson?.let { TaskRun.Received.of(it) }))
+            } catch (e: StepFailed) {
+                Outcome.Failed(e.message ?: "", e.raw)
+            } catch (e: Waits) {
+                Outcome.Waiting(e.result, e.wait)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                LogManager.service("Task ${task.id} run $runId step ${run.step + 1}: ${e.message}", "ERROR", e)
+                Outcome.Failed(e.message ?: e.javaClass.simpleName, null)
+            }
+            run = when (outcome) {
+                is Outcome.Done -> run.copy(step = run.step + 1, resultsJson = TaskRun.resultsJson(results + outcome.result))
+                is Outcome.Waiting -> run.copy(state = TaskRun.State.WAITING.key, resultsJson = TaskRun.resultsJson(results + outcome.result), waitJson = outcome.wait.toJson())
+                is Outcome.Failed -> run.copy(resultsJson = TaskRun.resultsJson(results + TaskRun.StepResult(summary(context, step), raw = outcome.raw, error = outcome.message, at = System.currentTimeMillis())))
+            }
+            dao.updateRun(run)
+            when (outcome) {
+                is Outcome.Waiting -> { LogManager.service("Task ${task.id} run $runId waits on step ${run.step + 1}", "INFO"); return }
+                is Outcome.Failed -> { end(context, task, run, TaskRun.State.FAILED); return }
+                is Outcome.Done -> Unit
+            }
+        }
+        end(context, task, run, TaskRun.State.DONE)
     }
 
     private sealed interface Outcome {
@@ -186,6 +213,12 @@ object TaskRunner {
         AppDatabase.getDatabase(context).taskDao().updateRun(run.copy(state = state.key, endedAt = now, waitJson = null, seenAt = if (waits) null else now))
         LogManager.service("Task ${task.id} run ${run.id} ended: ${state.key}", "INFO")
         app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
+        // A run cancelled before its turn leaves the one going on in place
+        if (TaskRun.State.of(run.state) != TaskRun.State.QUEUED) next(context, task.id)
+        // A run that ends well emits its event, in its chain
+        if (state == TaskRun.State.DONE && task.emitEvent != null) withContext(ChainLink(run.chainId ?: run.id)) {
+            app.treelune.core.events.EventPoints.emit(context, app.treelune.core.events.EventPoints.stored(task.emitEvent), null)
+        }
         if (!waits) return
         val s = Strings.`for`(context = context)
         Coordinator(context).processScheduledTask("notifications.send", mapOf(
@@ -218,6 +251,7 @@ object TaskRunner {
             put("automation_id", step.getString(TaskSteps.AUTOMATION_ID))
             resolved[TaskSteps.DATA]?.let { put("data", it.toString()) }
         }
+        TaskSteps.EMIT_EVENT -> "events.emit" to mapOf("event_id" to step.getString(TaskSteps.EVENT_ID), "values" to resolved)
         else -> throw StepFailed(step.getString(TaskSteps.KIND))
     }
 
@@ -235,33 +269,34 @@ object TaskRunner {
     }
 
     /** [step] run: its inputs read, its operation through the dispatcher, what it gave. */
-    private suspend fun runStep(context: Context, step: JSONObject, results: List<TaskRun.StepResult>, at: Long): TaskRun.StepResult {
+    private suspend fun runStep(context: Context, step: JSONObject, results: List<TaskRun.StepResult>, at: Long, received: TaskRun.Received?): TaskRun.StepResult {
         val s = Strings.`for`(context = context)
         val kind = step.getString(TaskSteps.KIND)
         // The fields an entry's values go to, for a file to come down into one
         val fields = if (kind == TaskSteps.CREATE_ENTRY || kind == TaskSteps.UPDATE_ENTRY)
             TaskSteps.writableFields(step.getString(TaskSteps.TOOL_INSTANCE_ID), context, s) else emptyMap()
         val holder = when (kind) {
-            TaskSteps.CALL_API, TaskSteps.RUN_ROUTINE -> step.optJSONObject(TaskSteps.INPUTS)
+            TaskSteps.CALL_API, TaskSteps.RUN_ROUTINE, TaskSteps.EMIT_EVENT -> step.optJSONObject(TaskSteps.INPUTS)
             TaskSteps.CREATE_ENTRY, TaskSteps.UPDATE_ENTRY -> step.optJSONObject(TaskSteps.VALUES)
             TaskSteps.TOOL_OPERATION -> step.optJSONObject(TaskSteps.PARAMS)
             else -> null
         }
         val resolved = buildMap<String, Any?> {
             holder?.keys()?.forEach { key ->
-                val value = resolve(context, TaskSteps.input(holder.getJSONObject(key), key) { s.shared(it) }, results, at)
+                val value = resolve(context, TaskSteps.input(holder.getJSONObject(key), key) { s.shared(it) }, results, at, received)
                 val field = fields[key]
                 put(key, when {
                     // A file an API gives comes down into the field
                     field?.type == FieldType.FILE && value is String -> listOf(download(context, value, FileField.kinds(field.config)))
                     // The entry a step created, designated in a field that holds a Reference
                     field?.type == FieldType.REFERENCE && value is String -> mapOf("kind" to "ENTRY", "id" to value)
-                    // An operation's entry, given by its id
+                    // An operation's entry, given by its id; an entry an event carries, too
                     kind == TaskSteps.TOOL_OPERATION && key == "id" -> idOf(value)
+                    kind == TaskSteps.EMIT_EVENT -> idOf(value)
                     else -> value
                 })
             }
-            if (kind == TaskSteps.UPDATE_ENTRY) put(TaskSteps.ENTRY, idOf(resolve(context, TaskSteps.input(step.getJSONObject(TaskSteps.ENTRY), TaskSteps.ENTRY) { s.shared(it) }, results, at)))
+            if (kind == TaskSteps.UPDATE_ENTRY) put(TaskSteps.ENTRY, idOf(resolve(context, TaskSteps.input(step.getJSONObject(TaskSteps.ENTRY), TaskSteps.ENTRY) { s.shared(it) }, results, at, received)))
         }
         val (action, params) = actionOf(step, resolved, context)
         val summary = summary(context, step)
@@ -291,10 +326,20 @@ object TaskRunner {
     /** An entry's id, from its id or a Reference designating it. */
     private fun idOf(value: Any?): Any? = (value as? Map<*, *>)?.get("id") ?: value
 
-    /** What [input] gives: a term read at [at], what an earlier step gave. */
-    private suspend fun resolve(context: Context, input: TaskSteps.Input, results: List<TaskRun.StepResult>, at: Long): Any? {
+    /** What [input] gives: a term read at [at], what an earlier step gave, the entry [received] as it is now. */
+    private suspend fun resolve(context: Context, input: TaskSteps.Input, results: List<TaskRun.StepResult>, at: Long, received: TaskRun.Received?): Any? {
         val s = Strings.`for`(context = context)
         return when (input) {
+            is TaskSteps.Input.Received -> when {
+                input.value != null -> (received as? TaskRun.Received.Event ?: throw StepFailed(s.shared("task_error_received_no_event"))).values[input.value]
+                else -> {
+                    val entry = received as? TaskRun.Received.Entry ?: throw StepFailed(s.shared("task_error_received_none"))
+                    if (input.field == null) return entry.entryId
+                    val row = AppDatabase.getDatabase(context).toolDataDao().getById(entry.entryId)
+                        ?: throw StepFailed(s.shared("task_error_received_gone"))
+                    app.treelune.core.reading.FieldReading.valueAt(TaskSteps.entryMap(row), input.field)
+                }
+            }
             is TaskSteps.Input.Result -> {
                 val given = results.getOrNull(input.step) ?: throw StepFailed(s.shared("task_error_result_step").format("", input.step + 1))
                 if (input.value == null) given.entryId ?: throw StepFailed(s.shared("task_error_result_value").format("", input.step + 1, s.shared("task_output_entry")))

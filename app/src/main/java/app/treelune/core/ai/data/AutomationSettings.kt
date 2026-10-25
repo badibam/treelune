@@ -120,7 +120,11 @@ object AutomationSettings {
             // Absent: the automation runs on demand only
             ScheduleSettings.group(s.shared("automation_schedule"), s::shared),
             // Present with the schedule, and only with it (AutomationService)
-            SettingNode.Group("catch_up", s.shared("automation_catch_up_title"), catchUpNodes(context), description = s.shared("automation_schema_catch_up"))
+            SettingNode.Group("catch_up", s.shared("automation_catch_up_title"), catchUpNodes(context), description = s.shared("automation_schema_catch_up")),
+            // What starts it beside its schedule: an entry written
+            app.treelune.core.triggers.Triggers.node(s::shared),
+            // What a run that ends well emits
+            app.treelune.core.events.EventPoints.node(s::shared)
         )
     }
 
@@ -149,6 +153,8 @@ object AutomationSettings {
         put("is_enabled", entity.isEnabled)
         put("notify_end", entity.notifyEnd)
         entity.scheduleJson?.let { put("schedule", JSONObject(it)) }
+        org.json.JSONArray(entity.triggersJson).takeIf { it.length() > 0 }?.let { put(app.treelune.core.triggers.Triggers.KEY, it) }
+        app.treelune.core.events.EventPoints.stored(entity.emitEvent)?.let { put(app.treelune.core.events.EventPoints.KEY, it) }
         entity.catchUp?.let { limit ->
             put("catch_up", JSONObject().apply {
                 put("limit", limit)

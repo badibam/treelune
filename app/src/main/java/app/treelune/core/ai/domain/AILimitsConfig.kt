@@ -42,7 +42,24 @@ data class AILimitsConfig(
      * thresholds, which guard what the AI asks for: this one guards a cost the user chose and
      * that grows unseen, paid at every call.
      */
-    val alwaysSendMaxChars: Int = 15_000
+    val alwaysSendMaxChars: Int = 15_000,
+
+    /**
+     * Runs of Tasks and routines one chain holds at most (Chains, docs/CORE.md, « Chains »): what
+     * runs by itself, one run starting the next, without a person or an hour between them. Counted
+     * over the whole chain, not the links in a row: two runs that each start two double at every
+     * turn. 50 lets a back and forth between two routines go 25 times.
+     */
+    val chainMaxRuns: Int = 50,
+
+    /**
+     * The day's budget of every AI call, in dollars (docs/AI.md, « Daily budget »); null for none,
+     * a setting left out when stored.
+     */
+    val dailyBudget: Double? = null,
+
+    /** The share of [dailyBudget], in percent, past which a notification says so; null for none. */
+    val budgetAlertPercent: Int? = null
 ) {
     /**
      * Get limits for specific session type
@@ -74,6 +91,9 @@ data class AILimitsConfig(
         put(KEY_CHAT_DATA, chatMaxDataChars)
         put(KEY_AUTOMATION_DATA, automationMaxDataChars)
         put(KEY_ALWAYS_SEND, alwaysSendMaxChars)
+        put(KEY_CHAIN, chainMaxRuns)
+        dailyBudget?.let { put(KEY_BUDGET, it) }
+        budgetAlertPercent?.let { put(KEY_BUDGET_ALERT, it) }
     }.toString()
 
     companion object {
@@ -82,11 +102,14 @@ data class AILimitsConfig(
         const val KEY_CHAT_DATA = "chat_max_data_chars"
         const val KEY_AUTOMATION_DATA = "automation_max_data_chars"
         const val KEY_ALWAYS_SEND = "always_send_max_chars"
+        const val KEY_CHAIN = "chain_max_runs"
+        const val KEY_BUDGET = "daily_budget"
+        const val KEY_BUDGET_ALERT = "budget_alert_percent"
 
         fun default() = AILimitsConfig()
 
         /**
-         * Read the stored ai_limits settings. Every key is required: a missing one throws
+         * Read the stored ai_limits settings. Every key but the budget's is required: a missing one throws
          * rather than standing for a default, since the database is written from default()
          * and migrated to carry them all.
          */
@@ -95,7 +118,11 @@ data class AILimitsConfig(
             automationMaxAutonomousRoundtrips = settings.getInt(KEY_AUTOMATION),
             chatMaxDataChars = settings.getInt(KEY_CHAT_DATA),
             automationMaxDataChars = settings.getInt(KEY_AUTOMATION_DATA),
-            alwaysSendMaxChars = settings.getInt(KEY_ALWAYS_SEND)
+            alwaysSendMaxChars = settings.getInt(KEY_ALWAYS_SEND),
+            chainMaxRuns = settings.getInt(KEY_CHAIN),
+            // The budget and its alert alone may be left out: absent, none
+            dailyBudget = if (settings.has(KEY_BUDGET) && !settings.isNull(KEY_BUDGET)) settings.getDouble(KEY_BUDGET) else null,
+            budgetAlertPercent = if (settings.has(KEY_BUDGET_ALERT) && !settings.isNull(KEY_BUDGET_ALERT)) settings.getInt(KEY_BUDGET_ALERT) else null
         )
     }
 }

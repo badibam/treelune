@@ -43,7 +43,11 @@ data class TaskEntity(
     /** Its steps, TaskSteps' stored form */
     @ColumnInfo(name = "steps_json") val stepsJson: String,
     @ColumnInfo(name = "created_at") val createdAt: Long,
-    @ColumnInfo(name = "updated_at") val updatedAt: Long
+    @ColumnInfo(name = "updated_at") val updatedAt: Long,
+    /** What starts it beside its schedule, Triggers' stored form; null when nothing does */
+    @ColumnInfo(name = "triggers_json") val triggersJson: String? = null,
+    /** The event a run that ends well emits (EventPoints), its id; null for none */
+    @ColumnInfo(name = "emit_event") val emitEvent: String? = null
 )
 
 /**
@@ -54,12 +58,12 @@ data class TaskEntity(
 @Entity(
     tableName = "task_runs",
     foreignKeys = [ForeignKey(entity = TaskEntity::class, parentColumns = ["id"], childColumns = ["task_id"], onDelete = ForeignKey.CASCADE)],
-    indices = [Index(value = ["task_id"]), Index(value = ["state"])]
+    indices = [Index(value = ["task_id"]), Index(value = ["state"]), Index(value = ["chain_id"])]
 )
 data class TaskRunEntity(
     @PrimaryKey val id: String,
     @ColumnInfo(name = "task_id") val taskId: String,
-    /** TaskRun.Trigger's key: manual, scheduled, ai */
+    /** TaskRun.Trigger's key: manual, scheduled, ai, entry */
     val trigger: String,
     /** The instant its readings resolve against: its occurrence's for a scheduled run, its start's otherwise */
     @ColumnInfo(name = "scheduled_at") val scheduledAt: Long,
@@ -74,7 +78,11 @@ data class TaskRunEntity(
     /** While waiting: the API followed, the job's id, when to ask again, at what pace, until when */
     @ColumnInfo(name = "wait_json") val waitJson: String?,
     /** When the user read its end; null while it waits to be read */
-    @ColumnInfo(name = "seen_at") val seenAt: Long?
+    @ColumnInfo(name = "seen_at") val seenAt: Long?,
+    /** The chain it continues (Chains): the id of the run that started it; null for a run that starts its own */
+    @ColumnInfo(name = "chain_id") val chainId: String? = null,
+    /** What a trigger gave it, TaskRun.Received's stored form; null for a run no trigger started */
+    @ColumnInfo(name = "received_json") val receivedJson: String? = null
 )
 
 @Dao
@@ -113,8 +121,16 @@ interface TaskDao {
     @Query("SELECT * FROM task_runs WHERE task_id = :taskId AND trigger = 'scheduled' ORDER BY scheduled_at DESC LIMIT 1")
     suspend fun getLastScheduledRun(taskId: String): TaskRunEntity?
 
+    /** The oldest run of [taskId] asked while another went on: the next to start. */
+    @Query("SELECT * FROM task_runs WHERE task_id = :taskId AND state = 'queued' ORDER BY started_at ASC LIMIT 1")
+    suspend fun getNextQueued(taskId: String): TaskRunEntity?
+
     @Query("SELECT * FROM task_runs WHERE seen_at IS NULL AND ended_at IS NOT NULL")
     suspend fun getUnseenRuns(): List<TaskRunEntity>
+
+    /** The Task runs of the chain [chainId] (Chains): the run it is named after, and those that continue it. */
+    @Query("SELECT COUNT(*) FROM task_runs WHERE id = :chainId OR chain_id = :chainId")
+    suspend fun countInChain(chainId: String): Int
 
     @Insert
     suspend fun insertRun(run: TaskRunEntity)

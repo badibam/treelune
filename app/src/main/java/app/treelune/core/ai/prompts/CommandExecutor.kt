@@ -702,6 +702,7 @@ class CommandExecutor(private val context: Context) {
                 "list" -> "Routines in zone '${resolveZoneName(command.params["zone_id"] as String)}'"
                 else -> "All routines"
             }
+            "events" -> (command.params["zone_id"] as? String)?.let { "Events in zone '${resolveZoneName(it)}'" } ?: "All events"
             "tasks" -> when (command.operation) {
                 "get" -> "Configuration for Task '${((data["task"] as? Map<*, *>)?.get("settings") as? Map<*, *>)?.get("name")}'"
                 "list" -> "Tasks in zone '${resolveZoneName(command.params["zone_id"] as String)}'"

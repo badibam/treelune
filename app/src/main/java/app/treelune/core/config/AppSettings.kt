@@ -31,6 +31,7 @@ object AppSettings {
     /** The bounds of the AI limits: at least one call, and below a runaway, since each call is paid for */
     val AI_LIMITS_CHAT_RANGE = 1..50
     val AI_LIMITS_AUTOMATION_RANGE = 1..100
+    val CHAIN_RANGE = IntProgression.fromClosedRange(10, 500, 10)
 
     /** The data size thresholds, in characters, and their step */
     val AI_DATA_CHAT_RANGE = IntProgression.fromClosedRange(5_000, 100_000, 5_000)
@@ -198,7 +199,11 @@ object AppSettings {
                 scale("automation_max_autonomous_roundtrips", text("app_config_ai_limits_automation"), text("settings_ai_limits_automation_help"), AI_LIMITS_AUTOMATION_RANGE),
                 scale("chat_max_data_chars", text("app_config_ai_data_chat"), text("settings_ai_data_chat_help"), AI_DATA_CHAT_RANGE),
                 scale("automation_max_data_chars", text("app_config_ai_data_automation"), text("settings_ai_data_automation_help"), AI_DATA_AUTOMATION_RANGE),
-                scale("always_send_max_chars", text("app_config_ai_always_send"), text("settings_ai_always_send_help"), AI_DATA_CHAT_RANGE)
+                scale("always_send_max_chars", text("app_config_ai_always_send"), text("settings_ai_always_send_help"), AI_DATA_CHAT_RANGE),
+                scale("chain_max_runs", text("app_config_chain_max_runs"), text("settings_chain_max_runs_help"), CHAIN_RANGE),
+                // The day's budget, none when left empty, and its alert
+                field("daily_budget", text("app_config_daily_budget"), text("settings_daily_budget_help"), FieldType.NUMERIC, config = mapOf("min" to 0, "decimals" to 2)),
+                field("budget_alert_percent", text("app_config_budget_alert"), text("settings_budget_alert_help"), FieldType.NUMERIC, config = mapOf("min" to 1, "max" to 99, "decimals" to 0))
             )
             // The app's level alone: a zone and a tool carry theirs in their own settings
             AppSettingCategories.VALIDATION_CONFIG -> listOf(

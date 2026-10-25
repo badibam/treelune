@@ -50,7 +50,7 @@ class TaskService(private val context: Context) : ExecutableService {
     private val json = Json { ignoreUnknownKeys = true }
 
     /** The keys of a Task's settings, beside its zone and steps. */
-    private val SETTING_KEYS = Looks.keys(TaskSettings.LOOK) + listOf("group", "is_enabled", "notify_end", "schedule", "catch_up")
+    private val SETTING_KEYS = Looks.keys(TaskSettings.LOOK) + listOf("group", "is_enabled", "notify_end", "schedule", "catch_up", app.treelune.core.triggers.Triggers.KEY, app.treelune.core.events.EventPoints.KEY)
 
     override suspend fun execute(operation: String, params: JSONObject, token: CancellationToken): OperationResult = try {
         when (operation) {
@@ -157,7 +157,13 @@ class TaskService(private val context: Context) : ExecutableService {
             return OperationResult.error(s.shared("task_error_running").format(task.name))
         }
         val trigger = if (app.treelune.core.coordinator.currentOrigin() == app.treelune.core.coordinator.Source.AI) TaskRun.Trigger.AI else TaskRun.Trigger.MANUAL
-        val runId = TaskRunner.start(context, task, trigger, System.currentTimeMillis(), awaited = false)
+        // Asked by a routine's AI, it continues that run's chain, refused past its cap
+        val chainId = when (val admission = app.treelune.core.coordinator.Chains.admit(context, task.name)) {
+            is app.treelune.core.coordinator.Chains.Admission.Capped -> return OperationResult.error(admission.message)
+            is app.treelune.core.coordinator.Chains.Admission.Continues -> admission.chainId
+            app.treelune.core.coordinator.Chains.Admission.Starts -> null
+        }
+        val runId = TaskRunner.start(context, task, trigger, System.currentTimeMillis(), awaited = false, chainId = chainId)
         return OperationResult.success(mapOf("run_id" to runId, "task_id" to task.id))
     }
 
@@ -216,8 +222,15 @@ class TaskService(private val context: Context) : ExecutableService {
         val zone = database.zoneDao().getZoneById(task.zoneId) ?: return refused(s.shared("service_error_zone_not_found"))
         Groups.refusal(group, ToolPositions.zoneGroups(zone.tool_groups), s)?.let { return refused(it) }
 
+        // What starts it (Triggers.refusal), and the entry it then gives the steps
+        app.treelune.core.triggers.Triggers.refusal(settings, TaskSettings.nodes(context), context, s)?.let { return refused(it) }
+        // What a run that ends well emits carries nothing: no entry is the run's
+        app.treelune.core.events.EventPoints.refusal(settings, null, context, s)?.let { return refused(it) }
+        val triggers = app.treelune.core.triggers.Triggers.of(settings)
+        val read = app.treelune.core.triggers.Triggers.read(triggers)
+
         val steps = if (params.has("steps")) params.optJSONArray("steps") ?: return refused(s.shared("task_error_steps")) else JSONArray(task.stepsJson)
-        TaskSteps.refusal(steps, context, s)?.let { return refused(it) }
+        TaskSteps.refusal(steps, context, s, TaskSteps.receivedFields(read, context, s), TaskSteps.receivedValues(read, context))?.let { return refused(it) }
 
         // An AI held to a mask writes only steps it could take itself: the Task never reaches further than it
         kotlin.coroutines.coroutineContext[app.treelune.core.access.AccessScope]?.let { scope ->
@@ -239,7 +252,9 @@ class TaskService(private val context: Context) : ExecutableService {
             catchUp = catchUp?.getString("limit"),
             catchUpWindow = catchUp?.takeIf { it.has("window") }?.getLong("window"),
             dismissOlderInstances = SettingValues(app.treelune.core.ai.data.AutomationSettings.catchUpNodes(context), catchUp ?: JSONObject()).boolean("dismiss_older_instances"),
-            stepsJson = steps.toString()
+            stepsJson = steps.toString(),
+            triggersJson = triggers?.toString(),
+            emitEvent = app.treelune.core.events.EventPoints.idIn(settings)
         ))
     }
 

@@ -31,6 +31,7 @@ import app.treelune.core.utils.LogManager
 import app.treelune.core.versioning.AILimitsAtV32
 import app.treelune.core.versioning.AILimitsAtV34
 import app.treelune.core.versioning.AILimitsAtV64
+import app.treelune.core.versioning.AILimitsAtV98
 import app.treelune.core.versioning.DateFieldBounds
 import app.treelune.core.versioning.SettingsAtV33
 import app.treelune.core.versioning.ChoiceOptionsAtV37
@@ -78,7 +79,8 @@ import app.treelune.core.ai.data.LegacyCatchUp
         app.treelune.core.history.HistoryRowEntity::class,
         app.treelune.core.apis.ApiEntity::class,
         app.treelune.core.tasks.TaskEntity::class,
-        app.treelune.core.tasks.TaskRunEntity::class
+        app.treelune.core.tasks.TaskRunEntity::class,
+        app.treelune.core.events.EventEntity::class
         // Note: Tool entities will be added dynamically
         // via build system and ToolTypeRegistry
     ],
@@ -103,13 +105,14 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun historyDao(): app.treelune.core.history.HistoryDao
     abstract fun apiDao(): app.treelune.core.apis.ApiDao
     abstract fun taskDao(): app.treelune.core.tasks.TaskDao
+    abstract fun eventDao(): app.treelune.core.events.EventDao
 
     companion object {
         /**
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 97
+        const val VERSION = 103
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2194,6 +2197,88 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * The chains of runs (docs/CORE.md, « Chains »): a Task's run and a routine's say which chain
+         * they continue, every run so far starting its own; ai_limits gains the cap per chain, see
+         * AILimitsAtV98.
+         */
+        private val MIGRATION_97_98 = object : ConnectionMigration(97, 98) {
+            override fun migrate(database: MigrationDatabase) {
+                database.execSQL("ALTER TABLE ai_sessions ADD COLUMN chain_id TEXT")
+                database.execSQL("CREATE INDEX IF NOT EXISTS `index_ai_sessions_chain_id` ON `ai_sessions` (`chain_id`)")
+                database.execSQL("ALTER TABLE task_runs ADD COLUMN chain_id TEXT")
+                database.execSQL("CREATE INDEX IF NOT EXISTS `index_task_runs_chain_id` ON `task_runs` (`chain_id`)")
+                // Settings that cannot be read are left as they are; reading them then fails with the reason.
+                database.query("SELECT settings FROM app_settings_categories WHERE category = 'ai_limits'").use { cursor ->
+                    if (!cursor.moveToFirst()) {
+                        LogManager.database("MIGRATION 97->98: chain_id added, no ai_limits stored", "INFO")
+                        return
+                    }
+                    try {
+                        val rewritten = AILimitsAtV98.rewrite(org.json.JSONObject(cursor.getString(0)))
+                        database.execSQL("UPDATE app_settings_categories SET settings = ? WHERE category = 'ai_limits'", arrayOf(rewritten.toString()))
+                        LogManager.database("MIGRATION 97->98: chain_id added, ai_limits rewritten to $rewritten", "INFO")
+                    } catch (e: Exception) {
+                        LogManager.database("MIGRATION 97->98: chain_id added, ai_limits left as is (${e.message})", "ERROR")
+                    }
+                }
+            }
+        }
+
+        /**
+         * A Task's triggers (docs/CORE.md, « Triggers »), none so far; a run keeps the entry a
+         * trigger gave it, none so far.
+         */
+        private val MIGRATION_98_99 = object : ConnectionMigration(98, 99) {
+            override fun migrate(database: MigrationDatabase) {
+                database.execSQL("ALTER TABLE tasks ADD COLUMN triggers_json TEXT")
+                database.execSQL("ALTER TABLE task_runs ADD COLUMN received_json TEXT")
+                LogManager.database("MIGRATION 98->99: tasks.triggers_json and task_runs.received_json added, none", "INFO")
+            }
+        }
+
+        /**
+         * A routine's triggers (docs/CORE.md, « Triggers »), in the column that held trigger ids
+         * nothing ever gave: renamed, every routine started by nothing but its schedule, its
+         * history copies following.
+         */
+        private val MIGRATION_99_100 = object : ConnectionMigration(99, 100) {
+            override fun migrate(database: MigrationDatabase) {
+                database.execSQL("ALTER TABLE automations RENAME COLUMN trigger_ids_json TO triggers_json")
+                database.execSQL("UPDATE automations SET triggers_json = '[]'")
+                app.treelune.core.versioning.HistoryCopies.rewrite(database, "automations") { copy ->
+                    copy.apply { remove("trigger_ids_json"); put("triggers_json", "[]") }
+                }
+                LogManager.database("MIGRATION 99->100: automations.trigger_ids_json now triggers_json, none", "INFO")
+            }
+        }
+
+        /** The events of the zones (docs/CORE.md, « Events »), none so far. */
+        private val MIGRATION_100_101 = object : ConnectionMigration(100, 101) {
+            override fun migrate(database: MigrationDatabase) {
+                database.execSQL("CREATE TABLE IF NOT EXISTS `events` (`id` TEXT NOT NULL, `zone_id` TEXT NOT NULL, `name` TEXT NOT NULL, `values_json` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`zone_id`) REFERENCES `zones`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )")
+                database.execSQL("CREATE INDEX IF NOT EXISTS `index_events_zone_id` ON `events` (`zone_id`)")
+                LogManager.database("MIGRATION 100->101: events added, none", "INFO")
+            }
+        }
+
+        /** The event a routine's or a Task's run that ends well emits (docs/CORE.md, « Events »), none so far. */
+        private val MIGRATION_101_102 = object : ConnectionMigration(101, 102) {
+            override fun migrate(database: MigrationDatabase) {
+                database.execSQL("ALTER TABLE automations ADD COLUMN emit_event TEXT")
+                database.execSQL("ALTER TABLE tasks ADD COLUMN emit_event TEXT")
+                LogManager.database("MIGRATION 101->102: automations.emit_event and tasks.emit_event added, none", "INFO")
+            }
+        }
+
+        /** An event's description (docs/CORE.md, « Events »), none so far. */
+        private val MIGRATION_102_103 = object : ConnectionMigration(102, 103) {
+            override fun migrate(database: MigrationDatabase) {
+                database.execSQL("ALTER TABLE events ADD COLUMN description TEXT")
+                LogManager.database("MIGRATION 102->103: events.description added, none", "INFO")
+            }
+        }
+
         /** The connector gains its own data threshold: see ExternalAccessDataAtV84. */
         private val MIGRATION_83_84 = object : ConnectionMigration(83, 84) {
             override fun migrate(database: MigrationDatabase) {
@@ -3238,7 +3323,13 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_93_94,
                     MIGRATION_94_95,
                     MIGRATION_95_96,
-                    MIGRATION_96_97
+                    MIGRATION_96_97,
+                    MIGRATION_97_98,
+                    MIGRATION_98_99,
+                    MIGRATION_99_100,
+                    MIGRATION_100_101,
+                    MIGRATION_101_102,
+                    MIGRATION_102_103
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

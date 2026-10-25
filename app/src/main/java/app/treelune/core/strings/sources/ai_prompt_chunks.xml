@@ -371,18 +371,25 @@ Retrieves one run as its AI received it, message after message: the routine\'s m
 - `messages` (string, optional): `all` (the default), or `errors`: only the app\'s messages telling a failure, each after the answer that led to it]]></string>
     <string name="ai_command_tasks"><![CDATA[### TASKS
 
-Lists the Tasks: steps the app runs itself, one after another, without an AI (an API called, an entry created or changed, a tool\'s operation, a routine run). Each with its id, name, zone, group, whether its schedule runs it, and the kinds of its steps. The user writes them; you may run one with RUN_TASK.
+Lists the Tasks: steps the app runs itself, one after another, without an AI (an API called, an entry created or changed, a tool\'s operation, a routine run, an event emitted). Each with its id, name, zone, group, whether its schedule runs it, how many triggers start it, and the kinds of its steps. The user writes them; you may run one with RUN_TASK.
 
 **Parameters**:
 
 - `zone_id` (string, optional): the Tasks of that zone alone]]></string>
     <string name="ai_command_task_config"><![CDATA[### TASK_CONFIG
 
-Retrieves a Task whole, in the form CREATE_TASK and UPDATE_TASK write it: `zone_id`, `settings` (name, group, on or off, schedule, what is done of missed runs) and `steps`. Its schema: `SCHEMA` with `id` `task_config`.
+Retrieves a Task whole, in the form CREATE_TASK and UPDATE_TASK write it: `zone_id`, `settings` (name, group, on or off, schedule, what is done of missed runs, its triggers, the event it emits when a run ends well) and `steps`. Its schema: `SCHEMA` with `id` `task_config`.
 
 **Parameters**:
 
 - `id` (string, **required**)]]></string>
+    <string name="ai_command_events"><![CDATA[### EVENTS
+
+Lists the events of the zones: names a Task\'s step emits and that Tasks and routines listen to, wiring between what makes something no write says (a session ready) and what reacts to it. Each with its id, zone, name, description (what it means, when it is emitted) and the values it carries, each a `name` and a `type` (`text`, `number`, `yes_no`, `entry` with the `tool_instance_id` of its tool).
+
+**Parameters**:
+
+- `zone_id` (string, optional): the events of that zone alone]]></string>
     <string name="ai_command_file"><![CDATA[### FILE
 
 Reads a text by lines: a file the user joined to a message, or a text an entry's FILE field holds, read as that entry is.
@@ -743,13 +750,14 @@ Creates a Task in a zone: steps the app runs itself, one after another, without 
 - `update_entry`: `tool_instance_id`, `entry` (the entry), `values` as above, only what changes
 - `tool_operation`: `tool_instance_id`, `operation` (one of its type\'s, read in its entries schema), `params` by name
 - `run_routine`: `automation_id`, `inputs` with `data` (what joins its run\'s message)
+- `emit_event`: `event_id` (one of EVENTS), `inputs` by the event\'s value names, every one given
 
-Each input is a term — `{"constant": value}` (a date or a duration in ISO 8601, an entry `{"kind": "ENTRY", "id"}`), `{"variable": "<id>"}`, `{"reading": {"selection", "field", "reduction"}}` read when the step runs — or what an earlier step gave: `{"result": {"step": 0, "value": "<name>"}}` for a value an API answered, `{"result": {"step": 0}}` for the entry a step created; steps count from 0. Every step you write must be one you could make yourself: what it writes and reads stays within your access.
+Each input is a term — `{"constant": value}` (a date or a duration in ISO 8601, an entry `{"kind": "ENTRY", "id"}`), `{"variable": "<id>"}`, `{"reading": {"selection", "field", "reduction"}}` read when the step runs — or what an earlier step gave: `{"result": {"step": 0, "value": "<name>"}}` for a value an API answered, `{"result": {"step": 0}}` for the entry a step created; steps count from 0. A run its triggers started also reads what it received: `{"received": {}}` the entry written, `{"received": {"field": "data.<field>"}}` one of its fields, `{"received": {"value": "<name>"}}` a value the event carried. Every step you write must be one you could make yourself: what it writes and reads stays within your access.
 
 **Parameters**:
 
 - `zone_id` (string, **required**)
-- `settings` (object, **required**): `name` at least; `schedule` with `catch_up` to run it by itself
+- `settings` (object, **required**): `name` at least; `schedule` with `catch_up` to run it by itself; `triggers` to run it when an entry is written (`{"kind": "entry_written", "writes": ["created"], "entries": {"target": {"kind": "TOOL_INSTANCE", "id"}, "filters": []}}`) or an event emitted (`{"kind": "event", "event": {"kind": "EVENT", "id"}}`); `emit_event` (`{"kind": "EVENT", "id"}`), an event carrying nothing emitted when a run ends well
 - `steps` (array, **required**)
 
 **Example**: the weather every morning in a tracking.
@@ -791,6 +799,33 @@ Runs a Task now, as its own button does: its steps run one after another, in the
 **Parameters**:
 
 - `task_id` (string, **required**)]]></string>
+    <string name="ai_command_create_event"><![CDATA[### CREATE_EVENT
+
+Creates an event in a zone, for Tasks to emit and Tasks and routines to listen to. Its name is unique in its zone; its description says what it means and when it is emitted, for the user and for you later.
+
+**Parameters**:
+
+- `zone_id` (string, **required**)
+- `name` (string, **required**)
+- `description` (string, optional)
+- `values` (array, optional): what each emission carries, every one given each time, each `{"name", "type"}`, `type` one of `text`, `number`, `yes_no`, `entry`; an `entry` names its tool, `"tool_instance_id": {"kind": "TOOL_INSTANCE", "id": "<id>"}`]]></string>
+    <string name="ai_command_update_event"><![CDATA[### UPDATE_EVENT
+
+Changes an event: each parameter given replaces its value, `description` at `null` empties it. Changing its values changes what each step that emits it must give.
+
+**Parameters**:
+
+- `event_id` (string, **required**)
+- `name` (string, optional)
+- `description` (string, optional)
+- `values` (array, optional): as CREATE_EVENT]]></string>
+    <string name="ai_command_delete_event"><![CDATA[### DELETE_EVENT
+
+Deletes an event; refused, naming them, while a trigger listens to it or something emits it.
+
+**Parameters**:
+
+- `event_id` (string, **required**)]]></string>
     <string name="ai_command_import_data"><![CDATA[### IMPORT_DATA
 
 Imports a joined file into a tool, following a complete declaration: the new fields are created in the order of the columns, then each line is written, an entry found by its name updated when the tool\'s names are unique, the others created. A cell that does not read refuses its line alone; a name twice in the file refuses the whole import. The answer counts the lines created, updated and refused, each refusal with its reason.

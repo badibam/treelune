@@ -177,8 +177,9 @@ object FieldTypeSettings {
             SettingNode.Group(ReferenceTarget.TARGET, text("field_config_reference_target"), listOf(
                 field(ReferenceTarget.KINDS, "field_config_reference_kinds", FieldType.CHOICE, text, required = true,
                     description = "field_type_reference_kinds_description",
-                    config = choice(ReferenceKind.entries.map { it.name },
-                        ReferenceKind.entries.associate { it.name to text("reference_kind_${it.name.lowercase()}") }) + ("multiple" to true)),
+                    // An event is wiring, designated by a trigger alone: never a field's value
+                    config = choice((ReferenceKind.entries - ReferenceKind.EVENT).map { it.name },
+                        (ReferenceKind.entries - ReferenceKind.EVENT).associate { it.name to text("reference_kind_${it.name.lowercase()}") }) + ("multiple" to true)),
                 // The tools whose entries it takes, each a reference to a tool instance
                 SettingNode.ListOf(
                     name = ReferenceTarget.TOOL_INSTANCES,

@@ -69,6 +69,8 @@ object GoalScheduler : ToolScheduler {
             when (attempt.state.optString(GoalToolType.STATUS)) {
                 GoalToolType.Status.ACTIVE -> if (end <= now) {
                     setState(coordinator, attempt.id, mapOf(GoalToolType.STATUS to GoalToolType.Status.TO_VALIDATE))
+                    // The event an attempt to validate emits, carrying it, told or not
+                    app.treelune.core.events.EventPoints.emit(context, config, attempt.id)
                     if (config.optBoolean("notify", true) && !attempt.state.optBoolean(GoalToolType.NOTIFIED)) {
                         coordinator.processUserAction("notifications.send", mapOf(
                             "title" to (config.optString("name").ifEmpty { s.tool("display_name") }),

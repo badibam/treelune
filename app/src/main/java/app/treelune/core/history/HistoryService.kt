@@ -73,6 +73,8 @@ class HistoryService(private val context: Context) : ExecutableService {
             is Undo.Outcome.Refused -> OperationResult.error(outcome.reason)
             Undo.Outcome.Done -> {
                 tell(id)
+                // Undone or redone, its entries are written again: what listens to them starts
+                app.treelune.core.triggers.EntryTriggers.dispatch(context) { app.treelune.core.triggers.EntryWrites.ofStep(context, id, undone = operation == "undo") }
                 val step = dao.getStep(id)!!
                 OperationResult.success(mapOf("id" to id, "state" to step.state, "phrase" to (step.phrase ?: "")))
             }

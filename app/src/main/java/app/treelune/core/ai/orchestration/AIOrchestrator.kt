@@ -696,8 +696,11 @@ object AIOrchestrator {
     /**
      * A run of routine [automationId] created from its seed's message and asked for. [data], what
      * a Task passes it (docs/CORE.md, « Tasks »), joins the end of its message as a text of its own.
+     * [chainId], the chain it continues (Chains); null, it starts its own. [attached], what a
+     * trigger gives it (the entry written, EntryTriggers), joins the end of its message after it.
      */
-    suspend fun executeAutomation(automationId: String, scheduledFor: Long, trigger: ExecutionTrigger, data: String? = null) {
+    suspend fun executeAutomation(automationId: String, scheduledFor: Long, trigger: ExecutionTrigger, data: String? = null, chainId: String? = null,
+                                  attached: List<app.treelune.core.ai.data.MessageSegment> = emptyList()) {
         LogManager.aiSession("executeAutomation called: $automationId", "INFO")
 
         try {
@@ -751,18 +754,21 @@ object AIOrchestrator {
                 endReason = null,
                 // Its routine's identity as it is at the run: one changed later speaks at the next
                 identityId = automation.identityId,
-                triggeredBy = trigger.name
+                triggeredBy = trigger.name,
+                chainId = chainId
             )
 
             aiDao.insertSession(session)
             LogManager.aiSession("Created AUTOMATION session: $newSessionId", "INFO")
 
             // Copy USER messages from SEED to new session, the data given joined to the last
-            val joined = data?.let { app.treelune.core.strings.Strings.`for`(context = context).shared("automation_run_data").format(it) }
+            val joined = listOfNotNull(data?.let {
+                app.treelune.core.ai.data.MessageSegment.Text(app.treelune.core.strings.Strings.`for`(context = context).shared("automation_run_data").format(it))
+            }) + attached
             userMessages.forEachIndexed { index, userMsg ->
-                val content = if (joined != null && index == userMessages.lastIndex) userMsg.richContentJson?.let { json ->
+                val content = if (joined.isNotEmpty() && index == userMessages.lastIndex) userMsg.richContentJson?.let { json ->
                     app.treelune.core.ai.data.RichMessage.fromJson(json)?.let { message ->
-                        app.treelune.core.ai.data.RichMessage(message.segments + app.treelune.core.ai.data.MessageSegment.Text(joined)).toJson()
+                        app.treelune.core.ai.data.RichMessage(message.segments + joined).toJson()
                     }
                 } ?: userMsg.richContentJson else userMsg.richContentJson
                 aiDao.insertMessage(userMsg.copy(

@@ -23,7 +23,8 @@ import app.treelune.core.ai.data.SessionType
         Index(value = ["last_activity"]),
         Index(value = ["automation_id"]),
         Index(value = ["phase"]),
-        Index(value = ["end_reason"])
+        Index(value = ["end_reason"]),
+        Index(value = ["chain_id"])
     ]
 )
 data class AISessionEntity(
@@ -99,7 +100,13 @@ data class AISessionEntity(
      * seed. A run started by hand holds the time of the click as its scheduled time, which the
      * scheduler reads: this is what tells it apart from a planned one.
      */
-    @ColumnInfo(name = "triggered_by") val triggeredBy: String? = null
+    @ColumnInfo(name = "triggered_by") val triggeredBy: String? = null,
+
+    /**
+     * The chain a routine's run continues (Chains): the id of the run that started it, a Task's
+     * or a routine's; null for a run that starts its own, and for a chat or a seed.
+     */
+    @ColumnInfo(name = "chain_id") val chainId: String? = null
 )
 
 /**

@@ -83,6 +83,11 @@ object CommandTransformer {
                     "TASK_CONFIG" -> (command.params["id"] as? String)?.let { id ->
                         ExecutableCommand(resource = "tasks", operation = "get", params = mapOf("task_id" to id))
                     }
+                    "EVENTS" -> ExecutableCommand(
+                        resource = "events",
+                        operation = "list",
+                        params = command.params.filterKeys { it == "zone_id" }.mapValues { it.value!! }
+                    )
                     "TASKS" -> ExecutableCommand(
                         resource = "tasks",
                         operation = if (command.params["zone_id"] is String) "list" else "list_all",

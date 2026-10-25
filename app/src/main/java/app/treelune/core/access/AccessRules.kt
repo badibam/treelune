@@ -18,6 +18,8 @@ sealed class Reach {
     data class Automation(val id: String, val level: AccessLevel) : Reach()
     /** A Task, held by its zone */
     data class Task(val id: String, val level: AccessLevel) : Reach()
+    /** An event, held by its zone (docs/CORE.md, « Events ») */
+    data class Event(val id: String, val level: AccessLevel) : Reach()
     /** A routine's run, held by the zone of its routine */
     data class Run(val id: String, val level: AccessLevel) : Reach()
     /** An entry, held as its tool */
@@ -40,6 +42,7 @@ interface AccessLookups {
     suspend fun variableZone(idOrName: String, byName: Boolean): String?
     suspend fun automationZone(automationId: String): String?
     suspend fun taskZone(taskId: String): String?
+    suspend fun eventZone(eventId: String): String?
     /** The routine run [runId] belongs to. */
     suspend fun runAutomation(runId: String): String?
     /** The tool entry [entryId] belongs to, null when there is no such entry. */
@@ -111,6 +114,17 @@ object AccessRules {
             }
             // A zone's Tasks, as its routines: read with the zone, run as a use of it, written in full;
             // what their steps reach is checked when an AI writes them (TaskSteps.reachRefusal)
+            // An event is wiring of its zone: read with it, made, changed and emitted by who may use it
+            "events" -> {
+                fun eventAt(level: AccessLevel) = text("event_id")?.let { Reach.Event(it, level) } ?: Reach.Unknown("$resource.$operation")
+                when (operation) {
+                    "list" -> listOf(Reach.Free)
+                    "get" -> listOf(eventAt(AccessLevel.READ))
+                    "create" -> listOf(zoneAt("zone_id", AccessLevel.USE))
+                    "update", "delete", "emit" -> listOf(eventAt(AccessLevel.USE))
+                    else -> listOf(Reach.Unknown("$resource.$operation"))
+                }
+            }
             "tasks" -> {
                 fun taskAt(level: AccessLevel) = text("task_id")?.let { Reach.Task(it, level) } ?: Reach.Unknown("$resource.$operation")
                 when (operation) {
@@ -214,6 +228,11 @@ object AccessRules {
                         return refused(tool(toolId, lookups, text), reach.level)
                 }
                 is Reach.Automation -> automationRefusal(reach.id, reach.id, reach.level)?.let { return it }
+                is Reach.Event -> {
+                    val zoneId = lookups.eventZone(reach.id) ?: return refused(reach.id, reach.level)
+                    val held = mask.zone(zoneId)
+                    if (held == null || held < reach.level) return refused(zone(zoneId, lookups, text), reach.level)
+                }
                 is Reach.Task -> {
                     val zoneId = lookups.taskZone(reach.id) ?: return refused(reach.id, reach.level)
                     val held = mask.zone(zoneId)
@@ -277,6 +296,7 @@ class DatabaseAccessLookups(context: Context) : AccessLookups {
     override suspend fun automationZone(automationId: String) = database.aiDao().getAutomationById(automationId)?.zoneId
 
     override suspend fun taskZone(taskId: String) = database.taskDao().get(taskId)?.zoneId
+    override suspend fun eventZone(eventId: String) = database.eventDao().get(eventId)?.zoneId
 
     override suspend fun runAutomation(runId: String) = database.aiDao().getSession(runId)?.automationId
 

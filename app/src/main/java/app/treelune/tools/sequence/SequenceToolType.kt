@@ -130,6 +130,8 @@ object SequenceToolType : ToolTypeContract {
             )),
             SettingNode.Section(s.tool("section_schedule"), listOf(
                 ScheduleSettings.group(s.tool("field_schedule"), shared::shared),
+                // A planned session may emit an event besides its notification
+                app.treelune.core.events.EventPoints.node(shared::shared),
                 SettingNode.Field(field(ENABLED, s.tool("field_enabled"), FieldType.BOOLEAN, s.tool("schema_enabled")), required = true, default = true)
             ))
         )

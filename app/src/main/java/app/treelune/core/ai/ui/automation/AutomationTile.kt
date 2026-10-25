@@ -104,11 +104,11 @@ fun rememberAutomationState(automation: Automation): AutomationState {
         automation.providerId == null -> s.shared("automation_status_no_provider")
         !automation.isEnabled -> s.shared("label_disabled")
         nextExecution != null -> nextExecution!!
-        automation.schedule == null && automation.triggerIds.isEmpty() -> s.shared("automation_status_manual")
-        automation.schedule != null && automation.triggerIds.isNotEmpty() ->
-            "${scheduleSummary(automation.schedule, s)} + ${s.shared("automation_triggers_count").format(automation.triggerIds.size)}"
+        automation.schedule == null && (automation.triggers == 0) -> s.shared("automation_status_manual")
+        automation.schedule != null && (automation.triggers > 0) ->
+            "${scheduleSummary(automation.schedule, s)} + ${s.shared("automation_triggers_count").format(automation.triggers)}"
         automation.schedule != null -> scheduleSummary(automation.schedule, s)
-        else -> s.shared("automation_triggers_count").format(automation.triggerIds.size)
+        else -> s.shared("automation_triggers_count").format(automation.triggers)
     }
     return AutomationState(line, queued)
 }

@@ -166,7 +166,7 @@ object MessageScheduler : ToolScheduler {
 
         // Reconciliation only ever touches occurrences still in the future, so the due set is
         // exactly what was loaded above — nothing it did can have added to or removed from it.
-        firePending(coordinator, toolInstanceId, settings, enabled, pending, now)
+        firePending(context, coordinator, toolInstanceId, settings, enabled, pending, now)
     }
 
     // ========================================
@@ -338,6 +338,7 @@ object MessageScheduler : ToolScheduler {
      * does. Naming that expired would say "too late" about something that was never written.
      */
     private suspend fun firePending(
+        context: Context,
         coordinator: Coordinator,
         toolInstanceId: String,
         settings: SettingValues,
@@ -360,7 +361,7 @@ object MessageScheduler : ToolScheduler {
                     resolveWithoutSending(coordinator, occurrence, "expired")
 
                 else ->
-                    send(coordinator, toolInstanceId, settings, occurrence)
+                    send(context, coordinator, toolInstanceId, settings, occurrence)
             }
         }
     }
@@ -374,6 +375,7 @@ object MessageScheduler : ToolScheduler {
      * needs nothing written per send: its common part alone goes out.
      */
     private suspend fun send(
+        context: Context,
         coordinator: Coordinator,
         toolInstanceId: String,
         settings: SettingValues,
@@ -431,6 +433,8 @@ object MessageScheduler : ToolScheduler {
         }
 
         updateOccurrence(coordinator, occurrence, data, state, "sent")
+        // The event a message sent emits, carrying the occurrence, told or not
+        app.treelune.core.events.EventPoints.emit(context, settings.value(app.treelune.core.events.EventPoints.KEY), occurrence.id)
     }
 
     /** Marks an occurrence resolved without a notification, keeping the part already written. */
