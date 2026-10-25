@@ -154,6 +154,8 @@ object AgendaScheduler : ToolScheduler {
                 "entry_id" to event.id
             ))
             if (!sent.isSuccess) LogManager.service("AgendaScheduler: reminder of ${event.id} failed: ${sent.error}", "WARN")
+            // The event the reminders emit, carrying the appointment
+            app.treelune.core.events.EventPoints.emit(context, tool.config, event.id)
             // Marked even when the notification failed: retried at every pass, it would come late and repeated
             val marked = coordinator.processUserAction("tool_data.update", mapOf(
                 "id" to event.id,

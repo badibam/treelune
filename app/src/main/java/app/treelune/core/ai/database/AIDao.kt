@@ -95,6 +95,15 @@ interface AIDao {
     """)
     suspend fun getCallUsages(sessionIds: List<String>): List<CallUsageRow>
 
+    /** What the messages since [since] say about their AI calls' cost, every session alike: the day's budget (Budget). */
+    @Query("""
+        SELECT session_id, input_tokens, cache_write_tokens, cache_read_tokens, output_tokens,
+               model_id, input_price, cache_write_price, cache_read_price, output_price, usage_unknown
+        FROM session_messages
+        WHERE timestamp >= :since AND (sender = 'AI' OR usage_unknown = 1)
+    """)
+    suspend fun getCallUsagesSince(since: Long): List<CallUsageRow>
+
     @Query("SELECT * FROM session_messages WHERE session_id = :sessionId ORDER BY timestamp ASC")
     suspend fun getMessagesForSession(sessionId: String): List<SessionMessageEntity>
 
@@ -117,6 +126,10 @@ interface AIDao {
 
     @Query("SELECT COUNT(*) FROM ai_sessions WHERE type = :type")
     suspend fun getSessionCountByType(type: String): Int
+
+    /** The routine runs of the chain [chainId] (Chains): the run it is named after, and those that continue it. */
+    @Query("SELECT COUNT(*) FROM ai_sessions WHERE type = 'AUTOMATION' AND (id = :chainId OR chain_id = :chainId)")
+    suspend fun countInChain(chainId: String): Int
 
     @Query("SELECT COUNT(*) FROM session_messages WHERE session_id = :sessionId")
     suspend fun getMessageCountForSession(sessionId: String): Int

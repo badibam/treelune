@@ -153,6 +153,10 @@ class ValidationResolver(private val context: Context) {
             // A Task's run writes in its zone, as a tool's writes do
             "RUN_TASK" -> zoneReason(read("tasks.get", mapOf("task_id" to (params["task_id"] as? String ?: error(s.shared("validation_reason_no_target")))), "task")["zone_id"] as? String
                 ?: error("task without its zone"), levels)
+            // A zone's events, as its variables
+            "CREATE_EVENT" -> zoneReason(params["zone_id"] as? String ?: error(s.shared("validation_reason_no_target")), levels)
+            "UPDATE_EVENT", "DELETE_EVENT" -> zoneReason(read("events.get", mapOf("event_id" to (params["event_id"] as? String ?: error(s.shared("validation_reason_no_target")))), "event")["zone_id"] as? String
+                ?: error("event without its zone"), levels)
             "UNDO_STEP", "REDO_STEP" -> stepReason(params["id"] as? String ?: error(s.shared("validation_reason_no_target")), levels)
 
             // An action this resolver does not know is asked rather than let through

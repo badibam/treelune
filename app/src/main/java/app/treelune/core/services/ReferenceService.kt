@@ -66,6 +66,7 @@ class ReferenceService(private val context: Context) : ExecutableService {
             app.treelune.core.fields.ToolFields.filterable(entry.toolInstanceId, context, s)[field]?.let { "${entryLabel(entry)} › ${it.displayName}" }
         }
         ReferenceKind.VARIABLE -> database.variableDao().getById(reference.id!!)?.name
+        ReferenceKind.EVENT -> database.eventDao().get(reference.id!!)?.name
     }
 
     private suspend fun choices(params: JSONObject): OperationResult {
@@ -80,6 +81,7 @@ class ReferenceService(private val context: Context) : ExecutableService {
         val zoneNames = zones.associate { it.id to it.name }
         val tools = database.toolInstanceDao().getAllToolInstances()
         val variables = if (ReferenceKind.VARIABLE in kinds) database.variableDao().getAll() else emptyList()
+        val events = if (ReferenceKind.EVENT in kinds) database.eventDao().getAll() else emptyList()
         // A tool leads somewhere when it is taken itself, or when its entries are
         fun leads(tool: ToolInstance) = ReferenceKind.TOOL_INSTANCE in kinds ||
             (ReferenceKind.ENTRY in kinds && (restricted.isEmpty() || tool.id in restricted))
@@ -111,13 +113,15 @@ class ReferenceService(private val context: Context) : ExecutableService {
                     "tool_instances" to toolRows(tools.filter { it.zone_id == zoneId && leads(it) }, groups),
                     "variables" to variables.filter { it.zoneId == zoneId }.map { variable ->
                         mapOf("id" to variable.id, "name" to variable.name, "group" to variable.group?.takeIf { it in groups })
-                    }
+                    },
+                    "events" to events.filter { it.zoneId == zoneId }.map { mapOf("id" to it.id, "name" to it.name) }
                 )
             }
             // Only the entries of some tools taken: those tools, wherever they are
             kinds == setOf(ReferenceKind.ENTRY) && restricted.isNotEmpty() -> mapOf("tool_instances" to toolRows(tools.filter { it.id in restricted }))
             else -> mapOf("zones" to zones
-                .filter { zone -> ReferenceKind.ZONE in kinds || tools.any { it.zone_id == zone.id && leads(it) } || variables.any { it.zoneId == zone.id } }
+                .filter { zone -> ReferenceKind.ZONE in kinds || tools.any { it.zone_id == zone.id && leads(it) } || variables.any { it.zoneId == zone.id } ||
+                    ReferenceKind.EVENT in kinds }
                 .map { mapOf("id" to it.id, "name" to it.name, "icon_name" to it.icon_name, IconColor.KEY to it.icon_color) })
         })
     }

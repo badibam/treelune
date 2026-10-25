@@ -160,6 +160,8 @@ object GoalToolType : ToolTypeContract {
                 SettingNode.Field(field("enabled", s.tool("field_enabled"), FieldType.BOOLEAN, s.tool("schema_enabled")), required = true, default = true),
                 SettingNode.Field(field("expiry_delay", s.tool("field_expiry_delay"), FieldType.DURATION, s.tool("schema_expiry_delay"), DURATION_UNITS), required = true, default = DEFAULT_EXPIRY),
                 SettingNode.Field(field("notify", s.tool("field_notify"), FieldType.BOOLEAN, s.tool("schema_notify")), required = true, default = true),
+                // An attempt to validate may emit an event besides its notification
+                app.treelune.core.events.EventPoints.node(shared::shared),
                 SettingNode.Field(field(AI_NO_VALIDATION, s.tool("field_$AI_NO_VALIDATION"), FieldType.BOOLEAN, s.tool("schema_$AI_NO_VALIDATION")), default = false)
             ))
         )

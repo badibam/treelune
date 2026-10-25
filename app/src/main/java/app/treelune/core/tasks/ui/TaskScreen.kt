@@ -67,6 +67,7 @@ fun TaskScreen(place: Place.Task, onName: (String) -> Unit, onBack: () -> Unit) 
     var settingsOpen by remember { mutableStateOf(false) }
     var confirmLeave by remember { mutableStateOf(false) }
     var outputs by remember { mutableStateOf<List<List<app.treelune.core.tasks.TaskSteps.Output>>>(emptyList()) }
+    var received by remember { mutableStateOf(Receivable(null, null)) }
 
     suspend fun load() {
         val result = coordinator.processUserAction("tasks.get", mapOf("task_id" to place.id))
@@ -85,6 +86,17 @@ fun TaskScreen(place: Place.Task, onName: (String) -> Unit, onBack: () -> Unit) 
     LaunchedEffect(place.id) {
         load()
         app.treelune.core.utils.DataChangeNotifier.changes.collect { if (it is app.treelune.core.utils.DataChangeEvent.ZonesChanged) load() }
+    }
+    // The fields of the entry a trigger gives, read again as the triggers change
+    val triggers = app.treelune.core.triggers.Triggers.of(settings)?.toString()
+    LaunchedEffect(triggers) {
+        received = try {
+            val read = app.treelune.core.triggers.Triggers.read(triggers)
+            Receivable(TaskSteps.receivedFields(read, context, s), TaskSteps.receivedValues(read, context))
+        } catch (e: IllegalArgumentException) {
+            // A trigger the form is still filling gives nothing yet
+            Receivable(null, null)
+        }
     }
     // What each step gives the ones after it, read again as the steps change
     LaunchedEffect(steps.toString()) {
@@ -167,7 +179,9 @@ fun TaskScreen(place: Place.Task, onName: (String) -> Unit, onBack: () -> Unit) 
                     }
                     if (open == index) {
                         val earlier = (0 until index).map { it to outputs.getOrElse(it) { emptyList() } }
-                        StepEditor(step, earlier) { next -> edit(JSONArray(steps.toString()).put(index, next)) }
+                        androidx.compose.runtime.CompositionLocalProvider(LocalReceived provides received) {
+                            StepEditor(step, earlier) { next -> edit(JSONArray(steps.toString()).put(index, next)) }
+                        }
                     }
                 }
             }

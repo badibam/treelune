@@ -666,6 +666,30 @@ class AIEventProcessor(
                 return
             }
 
+            // The day's budget reached, no call starts: a conversation hands back, a routine's run ends
+            app.treelune.core.ai.budget.Budget.refusal(context)?.let { refusal ->
+                LogManager.aiSession("callAI: the day's budget is reached", "WARN")
+                messageRepository.storeMessage(sessionId, SessionMessage(
+                    id = java.util.UUID.randomUUID().toString(),
+                    timestamp = System.currentTimeMillis(),
+                    sender = MessageSender.SYSTEM,
+                    richContent = null,
+                    textContent = null,
+                    aiMessage = null,
+                    aiMessageJson = null,
+                    systemMessage = app.treelune.core.ai.data.SystemMessage(
+                        type = SystemMessageType.PROVIDER_ERROR,
+                        commandResults = emptyList(),
+                        summary = refusal,
+                        formattedData = null
+                    ),
+                    executionMetadata = null,
+                    excludeFromPrompt = true
+                ))
+                emit(AIEvent.ProviderErrorOccurred(refusal))
+                return
+            }
+
             // 2. The provider the check found: the session's own, a conversation's first call
             // having taken the default
             val providerId: String = providerCheckResult.providerId!!
@@ -773,6 +797,8 @@ class AIEventProcessor(
                 )
 
                 messageRepository.storeMessage(sessionId, aiMessage)
+                // The day's budget: its alert, then its end, each told once a day
+                app.treelune.core.ai.budget.Budget.afterCall(context)
 
                 // Emit success → triggers parsing
                 emit(AIEvent.AIResponseReceived(response.content))

@@ -30,7 +30,7 @@ data class Task(
     companion object {
         /**
          * A Task of a list as the AI reads it (TASKS): its id, name, zone and group, whether its
-         * schedule runs it, and its steps by their kind.
+         * schedule runs it, how many triggers start it, and its steps by their kind.
          */
         @Suppress("UNCHECKED_CAST")
         fun listed(map: Map<*, *>): Map<String, Any?> {
@@ -42,6 +42,7 @@ data class Task(
                 settings["group"]?.let { put("group", it) }
                 put("is_enabled", settings["is_enabled"])
                 put("scheduled", settings.containsKey("schedule"))
+                put("triggers", (settings[app.treelune.core.triggers.Triggers.KEY] as? List<*>)?.size ?: 0)
                 put("steps", (map["steps"] as List<*>).map { (it as Map<*, *>)["kind"] })
             }
         }

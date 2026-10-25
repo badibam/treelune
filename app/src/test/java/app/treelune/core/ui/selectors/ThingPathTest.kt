@@ -56,8 +56,10 @@ class ThingPathTest {
     /** A browser at a tool leads to its entries alone; at a variable, to nothing. */
     @Test
     fun `what lies below each kind`() {
-        assertEquals(setOf(ReferenceKind.TOOL_INSTANCE, ReferenceKind.VARIABLE, ReferenceKind.ENTRY), ReferenceKind.ZONE.below)
+        // An event is reached through its zone, beside its tools and its variables
+        assertEquals(setOf(ReferenceKind.TOOL_INSTANCE, ReferenceKind.VARIABLE, ReferenceKind.ENTRY, ReferenceKind.EVENT), ReferenceKind.ZONE.below)
         assertEquals(setOf(ReferenceKind.ENTRY), ReferenceKind.TOOL_INSTANCE.below)
         assertEquals(emptySet<ReferenceKind>(), ReferenceKind.VARIABLE.below)
+        assertEquals(emptySet<ReferenceKind>(), ReferenceKind.EVENT.below)
     }
 }

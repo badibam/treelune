@@ -14,7 +14,10 @@ data class Automation(
     val zoneId: String,                     // Automation attached to a zone
     val seedSessionId: String,              // Points to SEED session with initial message
     val schedule: ScheduleConfig?,          // null = no time-based triggering
-    val triggerIds: List<String>,           // Empty = no event-based triggering
+    /** How many triggers start it beside its schedule (Triggers); 0 when none does */
+    val triggers: Int,
+    /** The event a run that ends well emits (EventPoints), its id; null for none */
+    val emitEvent: String? = null,
     /** A scheduled automation's choice about missed runs (AutomationSettings.LIMITED or UNLIMITED); null without schedule */
     val catchUp: String? = null,
 
@@ -70,7 +73,8 @@ data class Automation(
                 zoneId = map["zone_id"] as String,
                 seedSessionId = map["seed_session_id"] as String,
                 schedule = schedule,
-                triggerIds = (map["trigger_ids"] as List<*>).map { it as String },
+                triggers = (map[app.treelune.core.triggers.Triggers.KEY] as List<*>?)?.size ?: 0,
+                emitEvent = (map[app.treelune.core.events.EventPoints.KEY] as Map<*, *>?)?.get("id") as String?,
                 catchUp = catchUp?.get("limit") as String?,
                 catchUpWindow = (catchUp?.get("window") as Number?)?.toLong(),
                 // Without a schedule nothing is missed, and the setting is absent
@@ -93,15 +97,6 @@ data class Automation(
         }
     }
 }
-
-/**
- * Trigger logic deduced from configuration:
- *
- * - schedule == null && triggerIds.isEmpty() → MANUAL only (execute via UI button)
- * - schedule != null && triggerIds.isEmpty() → SCHEDULE only (time-based)
- * - schedule == null && triggerIds.isNotEmpty() → TRIGGER only (event-based, OR between triggers)
- * - schedule != null && triggerIds.isNotEmpty() → HYBRID (schedule OR any trigger)
- */
 
 /**
  * What a scheduled automation saved before catch-up settings existed is read as.

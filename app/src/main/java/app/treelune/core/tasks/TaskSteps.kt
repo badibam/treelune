@@ -21,10 +21,14 @@ import org.json.JSONObject
  * - `update_entry`: `tool_instance_id`, `entry` (an input giving an entry), `values` as above
  * - `tool_operation`: `tool_instance_id`, `operation` (one the tool type declares), `params` (by name)
  * - `run_routine`: `automation_id`, `inputs` (`data`, what its run's message is joined)
+ * - `emit_event`: `event_id`, `inputs` (by the value's name the event declares, every one given)
  *
  * An input is a Term (`{"constant"}`, `{"variable"}`, `{"reading"}`), or what an earlier step gave:
  * `{"result": {"step": 0, "value": "temperature"}}` for a value of an API's answer,
- * `{"result": {"step": 1}}` for the entry a step created. An entry given as a constant is a
+ * `{"result": {"step": 1}}` for the entry a step created; or what a trigger gave the run
+ * (Triggers): `{"received": {}}` for the entry written, `{"received": {"field": "data.x"}}` for
+ * one of its fields, read as the entry is when the step runs, `{"received": {"value": "fiche"}}`
+ * for a value the event emitted carried. An entry given as a constant is a
  * Reference (`{"kind": "ENTRY", "id"}`).
  */
 object TaskSteps {
@@ -34,8 +38,9 @@ object TaskSteps {
     const val UPDATE_ENTRY = "update_entry"
     const val TOOL_OPERATION = "tool_operation"
     const val RUN_ROUTINE = "run_routine"
+    const val EMIT_EVENT = "emit_event"
 
-    val KINDS = listOf(CALL_API, CREATE_ENTRY, UPDATE_ENTRY, TOOL_OPERATION, RUN_ROUTINE)
+    val KINDS = listOf(CALL_API, CREATE_ENTRY, UPDATE_ENTRY, TOOL_OPERATION, RUN_ROUTINE, EMIT_EVENT)
 
     const val KIND = "kind"
     const val API_ID = "api_id"
@@ -46,12 +51,15 @@ object TaskSteps {
     const val OPERATION = "operation"
     const val PARAMS = "params"
     const val AUTOMATION_ID = "automation_id"
+    const val EVENT_ID = "event_id"
     /** The one input of a routine run: what joins its message. */
     const val DATA = "data"
 
     const val RESULT = "result"
     const val STEP = "step"
     const val VALUE = "value"
+    const val RECEIVED = "received"
+    const val FIELD = "field"
 
     /** The paths of an entry a step writes, beside its fields under data and extra. */
     private val WRITTEN_TOP = setOf("name", "timestamp")
@@ -64,6 +72,11 @@ object TaskSteps {
         data class Of(val term: Term) : Input
         /** [value] of step [step]'s answer; null for the entry it created */
         data class Result(val step: Int, val value: String?) : Input
+        /**
+         * What a trigger gave the run: the entry written, or its [field] by path; or [value], one
+         * an event carried by name
+         */
+        data class Received(val field: String?, val value: String? = null) : Input
     }
 
     /**
@@ -72,6 +85,7 @@ object TaskSteps {
      * @throws IllegalArgumentException naming what does not read
      */
     fun input(json: JSONObject, name: String, text: (String) -> String): Input {
+        json.optJSONObject(RECEIVED)?.let { return Input.Received(it.optString(FIELD).ifEmpty { null }, it.optString(VALUE).ifEmpty { null }) }
         json.optJSONObject(RESULT)?.let { result ->
             if (!result.has(STEP)) throw IllegalArgumentException(text("task_error_input").format(name))
             return Input.Result(result.getInt(STEP), result.optString(VALUE).ifEmpty { null })
@@ -91,6 +105,47 @@ object TaskSteps {
         }.orEmpty()
         CREATE_ENTRY -> listOf(Output(null, ENTRY))
         else -> emptyList()
+    }
+
+    /** [entry] as a path reads it (FieldReading.valueAt): its columns, data, extra and state as objects. */
+    fun entryMap(entry: app.treelune.core.database.entities.ToolDataEntity): Map<String, Any?> = mapOf(
+        "id" to entry.id,
+        "name" to entry.name,
+        "timestamp" to entry.timestamp,
+        "data" to app.treelune.core.utils.JsonUtils.toMap(JSONObject(entry.data)),
+        "extra" to entry.extra?.let { app.treelune.core.utils.JsonUtils.toMap(JSONObject(it)) },
+        "state" to entry.state?.let { app.treelune.core.utils.JsonUtils.toMap(JSONObject(it)) }
+    )
+
+    /**
+     * The fields of the entry a trigger gives a run of the Task whose [triggers] they are, by
+     * path: those every tool listened to has, the entry being any of theirs; null when no trigger
+     * gives an entry.
+     */
+    suspend fun receivedFields(triggers: List<app.treelune.core.triggers.Triggers.Trigger>, context: Context, s: StringsContext): Map<String, FieldDefinition>? {
+        val tools = triggers.filterIsInstance<app.treelune.core.triggers.Triggers.Trigger.EntryWritten>().map { it.toolInstanceId }.distinct()
+        if (tools.isEmpty()) return null
+        val each = tools.map { id ->
+            try {
+                ToolFields.filterable(id, context, s)
+            } catch (e: IllegalStateException) {
+                emptyMap()
+            }
+        }
+        return each.first().filterKeys { path -> each.all { path in it } }
+    }
+
+    /**
+     * The values an event a trigger listens to gives a run of the Task whose [triggers] they
+     * are, by name, as the field each is entered as: those every event listened to declares
+     * with one type; null when no trigger listens to an event.
+     */
+    suspend fun receivedValues(triggers: List<app.treelune.core.triggers.Triggers.Trigger>, context: Context): Map<String, FieldDefinition>? {
+        val events = triggers.filterIsInstance<app.treelune.core.triggers.Triggers.Trigger.EventEmitted>().map { it.eventId }.distinct()
+        if (events.isEmpty()) return null
+        val dao = AppDatabase.getDatabase(context).eventDao()
+        val each = events.map { id -> dao.get(id)?.let { app.treelune.core.events.EventValues.read(it.valuesJson) }.orEmpty().associateBy { it.name } }
+        return each.first().filter { (name, value) -> each.all { it[name] == value } }.mapValues { (_, value) -> app.treelune.core.events.EventValues.field(value) }
     }
 
     /** The fields a step may write in the entries of [toolInstanceId], by path. */
@@ -118,6 +173,7 @@ object TaskSteps {
             CREATE_ENTRY, UPDATE_ENTRY -> reach("tool_data.create", mapOf("tool_instance_id" to tool))
             TOOL_OPERATION -> reach("${tooltypeOf(tool) ?: "?"}.${step.optString(OPERATION)}", mapOf("tool_instance_id" to tool))
             RUN_ROUTINE -> reach("automations.execute_manual", mapOf("automation_id" to step.optString(AUTOMATION_ID)))
+            EMIT_EVENT -> reach("events.emit", mapOf("event_id" to step.optString(EVENT_ID)))
             else -> emptyList()
         }
         val reads = listOf(INPUTS, VALUES, PARAMS).mapNotNull { step.optJSONObject(it) }
@@ -149,9 +205,10 @@ object TaskSteps {
     /**
      * Why [steps] cannot be stored; null when they can. Each step of a kind it knows, naming what
      * exists (an API, a tool, an operation of its type, a routine), and each input readable and
-     * naming an earlier step that gives what it reads.
+     * naming an earlier step that gives what it reads, or a field of the entry a trigger gives
+     * ([received], receivedFields; null when no trigger gives one).
      */
-    suspend fun refusal(steps: JSONArray, context: Context, s: StringsContext): String? {
+    suspend fun refusal(steps: JSONArray, context: Context, s: StringsContext, received: Map<String, FieldDefinition>? = null, values: Map<String, FieldDefinition>? = null): String? {
         val database = AppDatabase.getDatabase(context)
         val given = mutableListOf<List<Output>>()
         for (index in 0 until steps.length()) {
@@ -166,6 +223,13 @@ object TaskSteps {
                         input(json, "$number › $key") { s.shared(it) }
                     } catch (e: IllegalArgumentException) {
                         return e.message
+                    }
+                    if (input is Input.Received && input.value != null) {
+                        values ?: return s.shared("task_error_received_untriggered").format(number)
+                        if (input.value !in values) return s.shared("task_error_received_value").format(number, input.value, values.keys.joinToString(", ").ifEmpty { "-" })
+                    } else if (input is Input.Received) {
+                        received ?: return s.shared("task_error_received_untriggered").format(number)
+                        if (input.field != null && input.field !in received) return s.shared("task_error_received_field").format(number, input.field, received.keys.joinToString(", "))
                     }
                     if (input is Input.Result) {
                         val earlier = given.getOrNull(input.step) ?: return s.shared("task_error_result_step").format(number, input.step + 1)
@@ -205,6 +269,13 @@ object TaskSteps {
                     database.aiDao().getAutomationById(step.optString(AUTOMATION_ID))
                         ?: return s.shared("task_error_routine").format(number, step.optString(AUTOMATION_ID))
                     inputs(step.optJSONObject(INPUTS), setOf(DATA))?.let { return it }
+                }
+                EMIT_EVENT -> {
+                    val event = database.eventDao().get(step.optString(EVENT_ID))
+                        ?: return s.shared("task_error_event").format(number, step.optString(EVENT_ID))
+                    val declared = app.treelune.core.events.EventValues.read(event.valuesJson).map { it.name }
+                    inputs(step.optJSONObject(INPUTS), declared.toSet())?.let { return it }
+                    declared.firstOrNull { step.optJSONObject(INPUTS)?.has(it) != true }?.let { return s.shared("task_error_event_value").format(number, it, event.name) }
                 }
                 else -> return s.shared("task_error_kind").format(number, step.optString(KIND), KINDS.joinToString(", "))
             }

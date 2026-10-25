@@ -2,9 +2,9 @@
 
 Ce qui fait partir une routine, une Tâche ou un outil actif autrement qu'à une heure : une entrée écrite, une condition devenue vraie, un événement émis. Conçu pendant les Tâches (`docs/CORE.md`, « Tasks »), pour qu'elles reçoivent la forme de déclenchement qui l'accueille.
 
-Déjà ouvert sans plafond, avant ce code : une IA sans masque écrit et lance une Tâche dont une étape lance une routine, dont l'IA peut relancer la Tâche ; la boucle n'a pas de fin tant que le plafond par chaîne n'existe pas.
-
 ## 1. Le « quand ? »
+
+En place pour les Tâches et les routines : la sorte 2, une entrée écrite (`docs/CORE.md`, « Triggers »), stockée en liste à côté du planning, qui garde sa forme et son rattrapage. Restent les outils actifs (Questionnaire, Messages, Séquence, Objectif), et les sortes 3 et 4.
 
 Partout où l'app a aujourd'hui un planning (`ScheduleConfig`), ce planning devient une liste de déclencheurs : routine, Tâche, invitations d'un Questionnaire, envois d'un Message, séances prévues d'une Séquence, tentatives d'un Objectif. Les séries de l'Agenda gardent leur planning seul : une série montre ses rendez-vous 90 jours à l'avance, ce qu'un événement ne permet pas. Le bouton « Exécuter », à la main, reste à côté, hors de la liste.
 
@@ -19,6 +19,8 @@ La différence entre 2 et 3 : tu notes 81, puis 82. « Un poids noté au-dessus 
 
 ## 2. Les événements
 
+En place (`docs/CORE.md`, « Events ») : la carte de la zone, l'étape « émettre », le déclencheur, les valeurs reçues. Restent l'émission par l'IA, un bouton, l'IA extérieure, et les endroits où l'app prévient (partie 3).
+
 Un événement est une chose de l'app, dans une zone, comme une variable : un nom (« séance prête ») et les valeurs qu'il porte, déclarées comme les valeurs d'une API (un nom, un type : `fiche`, une entrée de Fiches de séances ; `duree`, une durée), aucune s'il n'en porte pas. Il sert à ce qu'aucune écriture ne dit (une Tâche a fini de fabriquer l'audio), et à ce que plusieurs choses écoutent sous un même nom ; une écriture, elle, s'écoute directement par la sorte 2.
 
 Qui émet :
@@ -29,6 +31,8 @@ Qui émet :
 Le masque d'accès s'y applique sans rien de nouveau : émettre un événement demande le niveau « usage » sur sa zone, l'écouter (le mettre dans un « quand ? ») de pouvoir lire sa zone. Une IA ne peut pas donner à ce qu'elle crée ou change un « quand ? » ni un masque plus large que le sien (`AccessRules.widening`, comme pour les routines aujourd'hui). Ce que porte une émission est vérifié chez celui qui émet : une IA n'émet pas « séance prête » avec une Fiche qu'elle ne peut pas lire, sinon elle choisirait la cible d'une Tâche plus puissante qu'elle. Ce qui part agit ensuite avec ses propres droits, quel que soit l'émetteur.
 
 ## 3. Les endroits où l'app prévient
+
+En place (`docs/CORE.md`, « Events », `EventPoints`) : « émettre » aux sept endroits, la routine et la Tâche à la fin d'une exécution qui s'est bien passée. « Prévenir : non » n'existe qu'où il y était déjà (l'Objectif, les Messages, la fin d'une routine ou d'une Tâche) ; pas encore pour le rappel de l'Agenda, l'échéance de la Liste, l'invitation du Questionnaire, la séance prévue. Le seuil du budget attend le budget.
 
 Chacun prend deux réglages indépendants : **prévenir** (oui, non) et **émettre** (aucun événement, ou un événement choisi par le sélecteur des choses de l'app, toutes zones). Ce qui est émis porte l'entrée concernée.
 
@@ -60,13 +64,13 @@ Défaire et rétablir une étape (`history.undo`, `history.redo`) sont des écri
 
 Deux, tous deux dans l'écran des limites de l'IA, à côté des appels par exécution (`AILimitsConfig`).
 
-**Le plafond par chaîne**, 50 par défaut, réglable. Une exécution appartient à la chaîne de ce qui l'a fait partir : celui qui a écrit l'entrée, émis l'événement, ou dont l'écriture a rendu la condition vraie. Une heure (un planning, une étape « attendre jusqu'à », le temps qui fait basculer une condition) ou une personne (un geste à l'écran, un message envoyé dans une conversation) commencent une chaîne neuve ; une écriture de l'IA extérieure par le connecteur aussi, que l'app ne rappelle jamais et par laquelle aucune boucle ne passe (une écriture protégée fait partir ce qui l'écoute une fois acceptée, quand elle a lieu). Le plafond compte toutes les exécutions d'une chaîne, pas les maillons d'affilée : deux Tâches qui se renvoient chacune deux entrées doublent à chaque tour. Atteint, ce que la dernière exécution écrit ou émet ne fait plus rien partir ; son historique le dit, une notification aussi ; les autres chaînes ne sont pas touchées, et la chaîne arrêtée ne reprend pas.
+**Le plafond par chaîne**, en place entre Tâches et routines (`docs/CORE.md`, « Chains ») et pour les entrées écrites qu'une Tâche écoute ; reste à y faire entrer les conditions et les émissions, chacune continuant la chaîne de l'exécution qui l'a faite. Une exécution appartient à la chaîne de ce qui l'a fait partir : celui qui a écrit l'entrée, émis l'événement, ou dont l'écriture a rendu la condition vraie. Une heure (un planning, une étape « attendre jusqu'à », le temps qui fait basculer une condition) ou une personne (un geste à l'écran, un message envoyé dans une conversation) commencent une chaîne neuve ; une écriture de l'IA extérieure par le connecteur aussi, que l'app ne rappelle jamais et par laquelle aucune boucle ne passe (une écriture protégée fait partir ce qui l'écoute une fois acceptée, quand elle a lieu). Le plafond compte toutes les exécutions d'une chaîne, pas les maillons d'affilée : deux Tâches qui se renvoient chacune deux entrées doublent à chaque tour. Atteint, ce que la dernière exécution écrit ou émet ne fait plus rien partir ; son historique le dit, une notification aussi ; les autres chaînes ne sont pas touchées, et la chaîne arrêtée ne reprend pas.
 
 - Dans la même chaîne : une Tâche écrit dans Journal, une autre l'écoute ; une routine émet, une Tâche l'écoute ; une Tâche note un poids qui rend une condition vraie ; une Tâche attend 2 h la réponse d'une API puis émet (l'attente d'une réponse n'est pas une heure choisie) ; l'IA d'une conversation crée une entrée écoutée (la conversation est la première exécution).
 - Une chaîne neuve : la routine du dimanche, chaque dimanche ; le rappel d'un rendez-vous qu'une Tâche a créé ; une condition que les jours font basculer ; une entrée qu'une Tâche a créée et que tu modifies ; ce qu'une Tâche émet après « attendre jusqu'à demain 7 h », le cycle quotidien voulu.
 - Arrêtés : une Tâche qui écrit où elle écoute ; deux routines qui se relancent sans conclure (Rédaction et Critique : 25 allers-retours) ; deux Tâches qui doublent leurs écritures. Bloqué à tort : quelque chose qui écrit plus de 50 entrées d'un coup dans un outil écouté, le plafond se relève alors.
 
-**Le budget du jour**, en argent, facultatif : tous les appels d'IA de l'app, conversations comprises (l'IA extérieure du connecteur ne coûte rien à l'app), sur le jour de l'app (`TimeResolver`), comptés par `SessionCost`. Atteint, plus rien ne démarre : une exécution qui devait partir est notée manquée dans son historique, sans report au lendemain ; une conversation n'envoie pas, avec « budget du jour atteint » et un bouton vers l'écran des limites ; une IA qui enchaîne seule s'arrête avant son appel suivant. Le dépassement est au plus celui d'un appel en cours, dont le coût n'est connu qu'à sa réponse. Un seuil d'alerte facultatif, en pourcentage, prévient une fois par jour et peut émettre (partie 3). L'écran du coût des conversations rappelle « Aujourd'hui : 0,42 $ sur 2,00 $ », à la couleur d'avertissement du thème au-delà du seuil.
+**Le budget du jour**, en place (`docs/AI.md`, « Daily budget ») ; un appel au coût inconnu compte pour 0, et la page du budget nomme les fournisseurs dont le modèle n'a pas de prix. Reste son seuil d'alerte comme endroit qui émet. En argent, facultatif : tous les appels d'IA de l'app, conversations comprises (l'IA extérieure du connecteur ne coûte rien à l'app), sur le jour de l'app (`TimeResolver`), comptés par `SessionCost`. Atteint, plus rien ne démarre : une exécution qui devait partir est notée manquée dans son historique, sans report au lendemain ; une conversation n'envoie pas, avec « budget du jour atteint » et un bouton vers l'écran des limites ; une IA qui enchaîne seule s'arrête avant son appel suivant. Le dépassement est au plus celui d'un appel en cours, dont le coût n'est connu qu'à sa réponse. Un seuil d'alerte facultatif, en pourcentage, prévient une fois par jour et peut émettre (partie 3). L'écran du coût des conversations rappelle « Aujourd'hui : 0,42 $ sur 2,00 $ », à la couleur d'avertissement du thème au-delà du seuil.
 
 ## Écarté
 
@@ -79,14 +83,12 @@ Deux, tous deux dans l'écran des limites de l'IA, à côté des appels par exé
 
 - La sorte « à une date des données » (10 min avant chaque entrée d'un outil, le lendemain d'une échéance), commune avec les rappels de l'Agenda : tant que les endroits où l'app prévient suffisent, pas faite.
 - L'IA qui émet un événement, et si elle lance une Tâche (elle ne lance pas une routine aujourd'hui).
-- Une routine sous budget dont le modèle n'a pas de prix connu (`SessionCost` en « ≥ ») : refusée, ou hors du compte.
-- Où se voient les événements d'une zone, et leur création depuis le sélecteur du « quand ? » sans quitter l'écran.
 - Supprimer un événement écouté ou une chose qu'un « quand ? » vise : le contrôle « qui dépend de ça ? » de `TODO.md`.
 
 ## Découpage
 
-1. Le « quand ? » comme liste, avec les heures et les entrées écrites, né avec les Tâches ; la chaîne et son plafond dès qu'une écriture fait partir quelque chose.
-2. Les événements et l'étape « émettre » ; ce que reçoit ce qui part.
-3. Les endroits où l'app prévient.
+1. Le « quand ? » des outils actifs, avec les entrées écrites (fait pour les Tâches et les routines).
+2. Les événements et l'étape « émettre » ; ce que reçoit ce qui part (fait).
+3. Les endroits où l'app prévient (fait, sauf « ne pas prévenir » là où il n'existait pas).
 4. La condition qui devient vraie, avec l'Alerte.
-5. Le budget du jour, indépendant, à tout moment.
+5. Le budget du jour (fait, sauf son seuil qui émet).

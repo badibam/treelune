@@ -181,9 +181,9 @@ fun AutomationScreen(
 
                         ExecutionSummary(
                             sessionId = sessionMap["id"] as String,
-                            // A run started by hand was planned for nothing: its card says so
+                            // A run started by hand or by an entry was planned for nothing: its card says so
                             scheduledExecutionTime = (sessionMap["scheduled_execution_time"] as? Long)
-                                .takeIf { sessionMap["triggered_by"] != app.treelune.core.ai.data.ExecutionTrigger.MANUAL.name },
+                                .takeIf { sessionMap["triggered_by"] == app.treelune.core.ai.data.ExecutionTrigger.SCHEDULED.name },
                             createdAt = createdAtValue,
                             phase = phase,
                             endReason = sessionMap["end_reason"] as? String,

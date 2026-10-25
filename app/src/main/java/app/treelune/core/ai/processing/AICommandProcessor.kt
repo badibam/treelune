@@ -264,6 +264,13 @@ class AICommandProcessor(private val context: Context) {
             "UNDO_STEP", "REDO_STEP" -> historyCommand(command)
             // A Task run now: its steps run as the Task's, held to its access (TaskService)
             "RUN_TASK" -> ExecutableCommand(resource = "tasks", operation = "run", params = command.params, isActionCommand = true)
+            // An event of a zone, written as EVENTS reads it
+            "CREATE_EVENT", "UPDATE_EVENT", "DELETE_EVENT" -> ExecutableCommand(
+                resource = "events",
+                operation = command.type.substringBefore('_').lowercase(),
+                params = command.params,
+                isActionCommand = true
+            )
 
             else -> {
                 LogManager.aiService("Unknown action command type: ${command.type}", "WARN")
@@ -372,6 +379,13 @@ class AICommandProcessor(private val context: Context) {
             "UNDO_STEP", "REDO_STEP" -> historyCommand(command)
             // A Task run now: its steps run as the Task's, held to its access (TaskService)
             "RUN_TASK" -> ExecutableCommand(resource = "tasks", operation = "run", params = command.params, isActionCommand = true)
+            // An event of a zone, written as EVENTS reads it
+            "CREATE_EVENT", "UPDATE_EVENT", "DELETE_EVENT" -> ExecutableCommand(
+                resource = "events",
+                operation = command.type.substringBefore('_').lowercase(),
+                params = command.params,
+                isActionCommand = true
+            )
 
             else -> {
                 LogManager.aiService("Unknown action command type for verbalization: ${command.type}", "WARN")

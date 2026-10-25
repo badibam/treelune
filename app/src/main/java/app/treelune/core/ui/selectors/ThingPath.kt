@@ -19,19 +19,22 @@ data class Named(val id: String, val name: String, val tooltype: String? = null)
  * entry of that tool, one of that entry's fields (its path as id, its label as name). The thing
  * designated is the deepest one reached.
  */
-data class ThingPath(val zone: Named? = null, val tool: Named? = null, val entry: Named? = null, val variable: Named? = null, val field: Named? = null) {
+data class ThingPath(val zone: Named? = null, val tool: Named? = null, val entry: Named? = null, val variable: Named? = null, val field: Named? = null,
+                     val event: Named? = null) {
 
     init {
         require(tool == null || zone != null) { "a tool is reached through its zone" }
         require(entry == null || tool != null) { "an entry is reached through its tool" }
         require(field == null || entry != null) { "a field is reached through its entry" }
         require(variable == null || (zone != null && tool == null)) { "a variable is reached through its zone, beside its tools" }
+        require(event == null || (zone != null && tool == null && variable == null)) { "an event is reached through its zone, beside its tools" }
     }
 
     /** The kind of the deepest thing reached. */
     val kind: ReferenceKind get() = when {
         entry != null -> ReferenceKind.ENTRY
         variable != null -> ReferenceKind.VARIABLE
+        event != null -> ReferenceKind.EVENT
         tool != null -> ReferenceKind.TOOL_INSTANCE
         zone != null -> ReferenceKind.ZONE
         else -> ReferenceKind.APP
@@ -44,6 +47,7 @@ data class ThingPath(val zone: Named? = null, val tool: Named? = null, val entry
         ReferenceKind.TOOL_INSTANCE -> Reference(ReferenceKind.TOOL_INSTANCE, tool!!.id)
         ReferenceKind.ENTRY -> Reference(ReferenceKind.ENTRY, entry!!.id, this.field?.id)
         ReferenceKind.VARIABLE -> Reference(ReferenceKind.VARIABLE, variable!!.id)
+        ReferenceKind.EVENT -> Reference(ReferenceKind.EVENT, event!!.id)
     }
 
     /** Back up to [kind]: what lies below it is left. */
@@ -52,7 +56,7 @@ data class ThingPath(val zone: Named? = null, val tool: Named? = null, val entry
         ReferenceKind.ZONE -> ThingPath(zone)
         ReferenceKind.TOOL_INSTANCE -> ThingPath(zone, tool)
         ReferenceKind.ENTRY -> copy(field = null)
-        ReferenceKind.VARIABLE -> this
+        ReferenceKind.VARIABLE, ReferenceKind.EVENT -> this
     }
 
     fun toJson(): String = JSONObject().apply {
@@ -60,6 +64,7 @@ data class ThingPath(val zone: Named? = null, val tool: Named? = null, val entry
         tool?.let { put("tool", it.toJson()) }
         entry?.let { put("entry", it.toJson()) }
         variable?.let { put("variable", it.toJson()) }
+        event?.let { put("event", it.toJson()) }
         field?.let { put("field", it.toJson()) }
     }.toString()
 
@@ -67,7 +72,7 @@ data class ThingPath(val zone: Named? = null, val tool: Named? = null, val entry
         fun fromJson(saved: String): ThingPath {
             val json = JSONObject(saved)
             fun named(key: String) = json.optJSONObject(key)?.let { Named.fromJson(it) }
-            return ThingPath(named("zone"), named("tool"), named("entry"), named("variable"), named("field"))
+            return ThingPath(named("zone"), named("tool"), named("entry"), named("variable"), named("field"), named("event"))
         }
     }
 }

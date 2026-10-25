@@ -41,6 +41,8 @@ fun SessionStatsDialog(sessionId: String, sessionName: String, onDismiss: () -> 
                 UI.Text(text = s.shared("action_stats"), type = TextType.TITLE, fillMaxWidth = true)
                 UI.Text(text = sessionName, type = TextType.CAPTION)
             }
+            // What the whole day has spent, every conversation and routine together
+            app.treelune.core.ai.budget.ui.BudgetLine()
             val data = stats
             when {
                 error != null -> UI.Text(text = error!!, type = TextType.ERROR)

@@ -27,6 +27,7 @@ class AccessTest {
         override suspend fun variableZone(idOrName: String, byName: Boolean) = if (idOrName in setOf("kcal", "v-kcal")) "health" else "garden"
         override suspend fun automationZone(automationId: String) = mapOf("weekly" to "health", "watering" to "garden")[automationId]
         override suspend fun taskZone(taskId: String) = mapOf("nightly" to "health")[taskId]
+        override suspend fun eventZone(eventId: String) = mapOf("ready" to "health")[eventId]
         override suspend fun runAutomation(runId: String) = mapOf("r1" to "weekly")[runId]
         override suspend fun entryTool(entryId: String) = mapOf("w1" to "weight", "s1" to "seeds")[entryId]
         override suspend fun fileHolder(fileId: String) = mapOf("scan" to FileHolder.Tool("weight"), "plot" to FileHolder.Tool("seeds"), "joined" to FileHolder.Conversation)[fileId]

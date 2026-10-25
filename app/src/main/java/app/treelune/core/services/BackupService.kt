@@ -93,7 +93,10 @@ class BackupService(private val context: Context) : ExecutableService {
             zoneId = item.getString("zone_id"),
             seedSessionId = item.getString("seed_session_id"),
             scheduleJson = item.optString("schedule_json", null),
-            triggerIdsJson = item.optString("trigger_ids_json", "[]"),
+            // Absent from a backup made before version 100: started by nothing but its schedule
+            triggersJson = item.optString("triggers_json", "[]"),
+            // Absent from a backup made before version 102, or without one
+            emitEvent = item.optString("emit_event").ifEmpty { null },
             // A backup older than v41 is brought to this form first (CatchUpAtV41)
             catchUp = item.optString("catch_up").takeIf { it.isNotEmpty() },
             catchUpWindow = if (item.has("catch_up_window")) item.getLong("catch_up_window") else null,
@@ -368,6 +371,7 @@ class BackupService(private val context: Context) : ExecutableService {
             val identities = database.identityDao().getAll()
             val apis = database.apiDao().getAll()
             val tasks = database.taskDao().getAll()
+            val events = database.eventDao().getAll()
             // The files of messages, entries and tools: their rows in the JSON, their files beside it.
             // A row whose file is missing is an error the backup copies as it is, neither
             // hidden nor repaired: its row goes, named in missing_files, and the export says how many
@@ -494,6 +498,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("summary", session.summary ?: JSONObject.NULL)
                                 put("identity_id", session.identityId ?: JSONObject.NULL)
                                 put("triggered_by", session.triggeredBy ?: JSONObject.NULL)
+                                // Not its chain (chain_id): the trace of a moment, a restored run starting its own
                                 if (session.appStateSnapshot != null) {
                                     put("app_state_snapshot", session.appStateSnapshot)
                                 }
@@ -554,7 +559,8 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("zone_id", automation.zoneId)
                                 put("seed_session_id", automation.seedSessionId)
                                 put("schedule_json", automation.scheduleJson)
-                                put("trigger_ids_json", automation.triggerIdsJson)
+                                put("triggers_json", automation.triggersJson)
+                                automation.emitEvent?.let { put("emit_event", it) }
                                 automation.catchUp?.let { put("catch_up", it) }
                                 automation.catchUpWindow?.let { put("catch_up_window", it) }
                                 put("dismiss_older_instances", automation.dismissOlderInstances)
@@ -657,8 +663,25 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("dismiss_older_instances", task.dismissOlderInstances)
                                 put("notify_end", task.notifyEnd)
                                 put("steps_json", task.stepsJson)
+                                put("triggers_json", task.triggersJson ?: JSONObject.NULL)
+                                put("emit_event", task.emitEvent ?: JSONObject.NULL)
                                 put("created_at", task.createdAt)
                                 put("updated_at", task.updatedAt)
+                            })
+                        }
+                    })
+
+                    // The events of the zones: wiring, kept with what listens to it and emits it
+                    put("events", JSONArray().apply {
+                        events.forEach { event ->
+                            put(JSONObject().apply {
+                                put("id", event.id)
+                                put("zone_id", event.zoneId)
+                                put("name", event.name)
+                                put("values_json", event.valuesJson)
+                                put("description", event.description ?: JSONObject.NULL)
+                                put("created_at", event.createdAt)
+                                put("updated_at", event.updatedAt)
                             })
                         }
                     })
@@ -1115,7 +1138,28 @@ class BackupService(private val context: Context) : ExecutableService {
                     notifyEnd = item.getString("notify_end"),
                     stepsJson = item.getString("steps_json"),
                     createdAt = item.getLong("created_at"),
-                    updatedAt = item.getLong("updated_at")
+                    updatedAt = item.getLong("updated_at"),
+                    // Absent from a backup made before version 99: started by nothing but its schedule
+                    triggersJson = if (item.has("triggers_json")) item.text("triggers_json") else null,
+                    // Absent from a backup made before version 102: it emits nothing
+                    emitEvent = if (item.has("emit_event")) item.text("emit_event") else null
+                ))
+            }
+        }
+
+        // Events: absent from a backup made before version 101
+        data.optJSONArray("events")?.let { array ->
+            for (i in 0 until array.length()) {
+                val item = array.getJSONObject(i)
+                database.eventDao().insert(app.treelune.core.events.EventEntity(
+                    id = item.getString("id"),
+                    zoneId = item.getString("zone_id"),
+                    name = item.getString("name"),
+                    valuesJson = item.getString("values_json"),
+                    createdAt = item.getLong("created_at"),
+                    updatedAt = item.getLong("updated_at"),
+                    // Absent from a backup made before version 103
+                    description = if (item.has("description") && !item.isNull("description")) item.getString("description") else null
                 ))
             }
         }

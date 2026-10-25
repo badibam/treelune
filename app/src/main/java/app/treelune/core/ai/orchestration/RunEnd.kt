@@ -83,6 +83,15 @@ object RunEnd {
             LogManager.aiSession("RunEnd: end of run $sessionId not written: ${result.error}", "ERROR")
             return
         }
+        // A run that ends well emits its routine's event, in its chain
+        if (!problem(facts, summary)) {
+            val database = app.treelune.core.database.AppDatabase.getDatabase(context)
+            val session = database.aiDao().getSession(sessionId)
+            val event = session?.automationId?.let { database.aiDao().getAutomationById(it) }?.emitEvent
+            if (session != null && event != null) kotlinx.coroutines.withContext(app.treelune.core.coordinator.ChainLink(session.chainId ?: session.id)) {
+                app.treelune.core.events.EventPoints.emit(context, app.treelune.core.events.EventPoints.stored(event), null)
+            }
+        }
         if (result.data?.get("waits") != true) return
 
         val s = app.treelune.core.strings.Strings.`for`(context = context)

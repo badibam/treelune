@@ -215,7 +215,11 @@ data class AILimitsConfig(
     val chatMaxAutonomousRoundtrips: Int = 10,
     val automationMaxAutonomousRoundtrips: Int = 20,
     val chatMaxDataChars: Int = 15_000,
-    val automationMaxDataChars: Int = 100_000
+    val automationMaxDataChars: Int = 100_000,
+    val alwaysSendMaxChars: Int = 15_000,
+    val chainMaxRuns: Int = 50,
+    val dailyBudget: Double? = null,
+    val budgetAlertPercent: Int? = null
 )
 ```
 
@@ -228,7 +232,11 @@ The data size thresholds are described with the waiting for confirmation, sectio
 
 **Rationale**: each call is billed, and nothing else stops an AI that calls itself in a loop — in CHAT as in AUTOMATION. No separate limits on format errors or action failures: the AI must correct itself, and the roundtrip limit is enough as a net.
 
-**Storage**: the defaults of `AILimitsConfig` are the only ones. A new install or a reset writes them through `toSettingsJson()`; `fromSettingsJson()` requires the four keys and fails if one is missing.
+**Daily budget** (`dailyBudget`, `budgetAlertPercent`, each absent for none; `core/ai/budget`): every AI call of the app counts, conversations, routines and what a Task makes them run alike, summed over the app's day (it starts at the hour the user set) from the messages' costs (`AIDao.getCallUsagesSince`, `SessionCost`). Reached, no call starts any more (`callAI`): its session says so in a system message out of the prompt, a conversation handing back, a routine's run ending; a call in progress finishes, the overrun at most one call. Past the alert, then once reached, a notification each, once in the day (their marks on the phone alone). A call of unknown cost counts for nothing: the day's sum shows « ≥ », and under the AI limits the providers whose model has no price, neither set by hand nor in the list of prices, are named (`Budget.unpriced`). The day's spending shows under the AI limits and atop each session's costs (`BudgetLine`). The outside AI of the connector costs the app nothing.
+
+**Runs per chain** (`chainMaxRuns`): the runs of Tasks and routines one chain holds, each started by the one before (docs/CORE.md, « Chains »). The roundtrip limit bounds one run; a loop from run to run, each with its counter at zero, is bounded by this one.
+
+**Storage**: the defaults of `AILimitsConfig` are the only ones. A new install or a reset writes them through `toSettingsJson()`; `fromSettingsJson()` requires every key but the budget's two, absent when none, and fails if one is missing.
 
 **API**: `AppConfigService.getAILimits()`, `AppConfigManager.getAILimits()` (volatile cache).
 
@@ -303,13 +311,13 @@ AUTOMATION sessions created from a SEED template (user message + enrichments). A
 The AI reads, creates, changes and deletes the routines, and reads their runs (`AUTOMATIONS`, `AUTOMATION_CONFIG`, `AUTOMATION_RUNS`, `AUTOMATION_RUN`, `CREATE_AUTOMATION`, `UPDATE_AUTOMATION`, `DELETE_AUTOMATION`); it does not start a routine. Its config is written in the form it is read in (`AutomationSchemas`, schema `automation_config`): `zone_id`, `settings`, `access`, `message` in blocks; the instants and durations pass into ISO there through that schema (`ModelValues`), those of the runs through the schema `automation_runs`. A run is read again as its AI received it (`PromptManager.runHistory`), the data attached at the start replaced by the mention of their pointers. The routines count at their zone's validation level; under a mask, they are written with the zone at `full`, and the mask an AI gives a routine, or leaves it, is never wider than its own (`AccessRules.widening`). `APP_STATE` and the level 3 snapshot carry them in one line each (`AutomationSchemas.listed`), without their message.
 
 ### The AI and the Tasks
-The AI lists the Tasks (`TASKS`, one line each: its steps by their kind), reads one whole (`TASK_CONFIG`, schema `task_config`, `TaskSchemas`), writes them (`CREATE_TASK`, `UPDATE_TASK`, `DELETE_TASK`) and runs one now (`RUN_TASK`, which answers the run's id, not its outcome). Its settings' instants and durations pass in ISO 8601 through their schema; a step's constant does too, as the field it fills says (a tool's field, an API's input), never by the look of the value. Under a mask, it writes only steps it could take itself — never one that runs a routine, which the screens alone start — and runs a Task of a zone it may use (docs/CORE.md, « Tasks »). Its writes ask for approval as a write in the Task's zone, a run too. A routine run by a Task receives what it is passed joined to the end of its message (`execute_manual`'s `data`).
+The AI lists the Tasks (`TASKS`, one line each: how many triggers start it, its steps by their kind), reads one whole (`TASK_CONFIG`, schema `task_config`, `TaskSchemas`), writes them (`CREATE_TASK`, `UPDATE_TASK`, `DELETE_TASK`) and runs one now (`RUN_TASK`, which answers the run's id, not its outcome). It reads and writes the events their steps emit and their triggers listen to (`EVENTS`, `CREATE_EVENT`, `UPDATE_EVENT`, `DELETE_EVENT`, docs/CORE.md, « Events »), and never emits one itself. Its settings' instants and durations pass in ISO 8601 through their schema; a step's constant does too, as the field it fills says (a tool's field, an API's input), never by the look of the value. Under a mask, it writes only steps it could take itself — never one that runs a routine, which the screens alone start — and runs a Task of a zone it may use (docs/CORE.md, « Tasks »). Its writes ask for approval as a write in the Task's zone, a run too. A routine run by a Task receives what it is passed joined to the end of its message (`execute_manual`'s `data`).
 
 ### Triggering
 **ExecutionTrigger** distinguishes the origin:
 - **MANUAL**: the user clicks Execute → `executeAutomation(id)` → queued if the slot is taken
 - **SCHEDULED**: tick() computes the next run → created only if the slot is free + the queue empty
-- **EVENT**: future (unscheduled triggers)
+- **ENTRY**: an entry written that one of its triggers hears (docs/CORE.md, « Triggers ») → `executeAutomation` with the entry attached → queued if the slot is taken
 
 **tick() triggers**:
 - Periodic: AIOrchestrator coroutine (1 min, app open) + `SchedulerAlarm` (10 min, app closed)

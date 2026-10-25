@@ -36,7 +36,7 @@ object ListDueScheduler : ToolScheduler {
                 if (!ListToolType.hasDueDates(config)) continue
                 // One list that fails must not stop the others
                 try {
-                    notifyDue(coordinator, tool["id"] as String, config, now)
+                    notifyDue(context, coordinator, tool["id"] as String, config, now)
                 } catch (e: Exception) {
                     LogManager.service("ListDueScheduler: list ${tool["id"]} failed: ${e.message}", "ERROR", e)
                 }
@@ -46,7 +46,7 @@ object ListDueScheduler : ToolScheduler {
         }
     }
 
-    private suspend fun notifyDue(coordinator: Coordinator, toolInstanceId: String, config: JSONObject, now: Long) {
+    private suspend fun notifyDue(context: Context, coordinator: Coordinator, toolInstanceId: String, config: JSONObject, now: Long) {
         val items = ListItems.load(coordinator, toolInstanceId)
         if (items == null) {
             LogManager.service("ListDueScheduler: items of $toolInstanceId not read", "ERROR")
@@ -61,6 +61,8 @@ object ListDueScheduler : ToolScheduler {
                 "tool_instance_id" to toolInstanceId
             ))
             if (!sent.isSuccess) LogManager.service("ListDueScheduler: notification of ${item.id} failed: ${sent.error}", "WARN")
+            // The event a due date passed emits, carrying the item
+            app.treelune.core.events.EventPoints.emit(context, config, item.id)
             // Marked even when the notification failed: the item waits all the same, and a
             // notification retried at every pass would come late and repeated
             val marked = coordinator.processUserAction("tool_data.update", mapOf(

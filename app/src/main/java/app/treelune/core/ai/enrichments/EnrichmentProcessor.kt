@@ -190,7 +190,7 @@ class EnrichmentProcessor(
                 }
             }
             // No selector designates them
-            ReferenceKind.APP, ReferenceKind.VARIABLE -> {
+            ReferenceKind.APP, ReferenceKind.VARIABLE, ReferenceKind.EVENT -> {
                 LogManager.aiEnrichment("POINTER: a ${pointer.target.kind} target cannot be read yet", "WARN")
                 emptyList()
             }

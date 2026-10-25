@@ -83,6 +83,8 @@ object SequenceScheduler : ToolScheduler {
         // or left out on purpose, the oldest when more than MAX_PER_PASS came at once
         val lastGiven = times.filter { it in dated }.maxOrNull()
         val due = times.filter { it !in dated && (lastGiven == null || it > lastGiven) }.takeLast(MAX_PER_PASS)
+        // The last one created: what the notification tells, and the event carries
+        var last: String? = null
         due.forEach { time ->
             val created = coordinator.processUserAction("tool_data.create", mapOf(
                 "tool_instance_id" to id,
@@ -91,6 +93,7 @@ object SequenceScheduler : ToolScheduler {
                 "state" to mapOf(SequenceToolType.STATUS to SequenceToolType.Status.PLANNED)
             ))
             if (!created.isSuccess) LogManager.service("SequenceScheduler: entry of $id at $time not created: ${created.error}", "ERROR")
+            else last = created.data?.get("id") as? String
         }
         if (due.isNotEmpty()) {
             val s = Strings.`for`(tool = "sequence", context = context)
@@ -101,6 +104,7 @@ object SequenceScheduler : ToolScheduler {
                 "icon_name" to config.optString("icon_name").ifEmpty { SequenceToolType.getDefaultIconName() },
                 "tool_instance_id" to id
             ))
+            app.treelune.core.events.EventPoints.emit(context, config, last)
         }
     }
 }

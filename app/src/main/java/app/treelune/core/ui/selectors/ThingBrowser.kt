@@ -10,6 +10,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
+import kotlinx.coroutines.launch
 import app.treelune.core.fields.ReferenceTarget
 import app.treelune.core.selection.ReferenceKind
 import app.treelune.core.strings.Strings
@@ -59,6 +60,7 @@ fun ThingBrowser(path: ThingPath, onPath: (ThingPath) -> Unit, target: Reference
     val entryFields = rememberToolFields(path.tool?.id?.takeIf { fieldNotch })
     // Nothing is listed below a place when nothing deeper is taken (a tool, for the pointer)
     val deeper = target.kinds.any { it in path.kind.below } || fieldNotch
+    val creatingEvent = ReferenceKind.EVENT in target.kinds && path.kind == ReferenceKind.ZONE
 
     LaunchedEffect(path.zone?.id, path.tool?.id, path.variable?.id, path.entry?.id, query) {
         places = null
@@ -93,11 +95,14 @@ fun ThingBrowser(path: ThingPath, onPath: (ThingPath) -> Unit, target: Reference
                     icon(row), iconColor(row))
             } +
             rows("variables").map { row -> Place(ThingPath(path.zone, variable = named(row)), s.shared("reference_kind_variable"), row["group"] as? String) } +
+            rows("events").map { row -> Place(ThingPath(path.zone, event = named(row)), s.shared("reference_kind_event"), icon = "zap") } +
             rows("entries").map { Place(path.copy(entry = named(it))) }
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
         Trail(path, s.shared("pointer_level_app")) { onPath(path.upTo(it)) }
+        // An event is made where it is chosen, without leaving: its name now, its values in its zone's card
+        if (creatingEvent) NewEvent(path.zone!!) { onPath(ThingPath(path.zone, event = it)) }
         if (searching) {
             UI.FormField(label = s.shared("field_reference_search"), value = query, onChange = { query = it }, required = false)
         }
@@ -106,7 +111,7 @@ fun ThingBrowser(path: ThingPath, onPath: (ThingPath) -> Unit, target: Reference
             failed -> UI.Text(text = s.shared("error_loading_options"), type = TextType.ERROR)
             !deeper -> Unit
             current == null -> UI.LoadingIndicator()
-            current.isEmpty() -> UI.Text(text = s.shared("scope_no_options"), type = TextType.BODY)
+            current.isEmpty() && !creatingEvent -> UI.Text(text = s.shared("scope_no_options"), type = TextType.BODY)
             // Without groups, one list; with them, a title over each group holding something
             groups.isEmpty() -> current.forEach { PlaceRow(it, onPath) }
             else -> {
@@ -132,10 +137,32 @@ private fun PlaceRow(place: Place, onPath: (ThingPath) -> Unit) {
     ) {
         place.icon?.takeIf { it.isNotBlank() }?.let { UI.ItemIcon(iconName = it, color = place.iconColor) }
         Column(modifier = Modifier.weight(1f)) {
-            UI.Text(text = place.path.field?.name ?: place.path.entry?.name ?: place.path.variable?.name ?: place.path.tool?.name ?: place.path.zone!!.name, type = TextType.BODY)
+            UI.Text(text = place.path.field?.name ?: place.path.entry?.name ?: place.path.variable?.name ?: place.path.event?.name ?: place.path.tool?.name ?: place.path.zone!!.name, type = TextType.BODY)
             place.detail?.let { UI.Text(text = it, type = TextType.CAPTION) }
         }
         UI.ActionButton(action = ButtonAction.SELECT, onClick = { onPath(place.path) })
+    }
+}
+
+/** « New event… » in [zone]: a name, the event created (events.create), then [onCreated] with it. */
+@Composable
+private fun NewEvent(zone: Named, onCreated: (Named) -> Unit) {
+    val context = LocalContext.current
+    val s = remember { Strings.`for`(context = context) }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    var naming by remember { mutableStateOf(false) }
+    var name by remember { mutableStateOf("") }
+    UI.Button(type = app.treelune.core.ui.ButtonType.SECONDARY, onClick = { naming = true }) { UI.Text(s.shared("event_new"), TextType.BODY) }
+    if (naming) app.treelune.core.ui.UI.Dialog(type = app.treelune.core.ui.DialogType.CREATE, onConfirm = {
+        scope.launch {
+            val result = Coordinator(context).processUserAction("events.create", mapOf("zone_id" to zone.id, "name" to name))
+            if (result.isSuccess) {
+                naming = false
+                onCreated(Named(result.data!!["event_id"] as String, name.trim()))
+            } else UI.Toast(result.error ?: s.shared("error_unknown"))
+        }
+    }, onCancel = { naming = false }) {
+        UI.FormField(label = s.shared("label_name"), value = name, onChange = { name = it }, required = true)
     }
 }
 
@@ -147,6 +174,7 @@ private fun Trail(path: ThingPath, appName: String, onUp: (ReferenceKind) -> Uni
         path.zone?.let { ReferenceKind.ZONE to it.name },
         path.tool?.let { ReferenceKind.TOOL_INSTANCE to it.name },
         path.variable?.let { ReferenceKind.VARIABLE to it.name },
+        path.event?.let { ReferenceKind.EVENT to it.name },
         path.entry?.let { ReferenceKind.ENTRY to it.name },
         // The field, the last notch, goes back up to its entry like any step
         path.field?.let { null to it.name }

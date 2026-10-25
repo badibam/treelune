@@ -127,10 +127,6 @@ class AutomationService(private val context: Context) : ExecutableService {
             MessageGiven.None -> RichMessage(emptyList())
         }
 
-        // Parse trigger IDs
-        val triggerIdsArray = params.optJSONArray("trigger_ids") ?: JSONArray()
-        val triggerIds = (0 until triggerIdsArray.length()).map { triggerIdsArray.getString(it) }
-
         // The app's own demo gives its ids, its seed session's too; every other caller gets them made here
         val automationId = when (val given = app.treelune.core.coordinator.GivenId.read(params)) {
             app.treelune.core.coordinator.GivenId.Read.None -> UUID.randomUUID().toString()
@@ -150,7 +146,7 @@ class AutomationService(private val context: Context) : ExecutableService {
             zoneId = zoneId,
             seedSessionId = seedSessionId,
             scheduleJson = null,
-            triggerIdsJson = json.encodeToString(triggerIds),
+            triggersJson = "[]",
             catchUp = null,
             catchUpWindow = null,
             dismissOlderInstances = false,
@@ -167,6 +163,8 @@ class AutomationService(private val context: Context) : ExecutableService {
             }
         ), settingsGiven(params, null), null).getOrElse { return OperationResult.error(it.message ?: s.shared("message_validation_error_simple")) }
         groupRefusal(entity.group, zoneId)?.let { return OperationResult.error(it) }
+        app.treelune.core.triggers.Triggers.refusal(settingsGiven(params, null), AutomationSettings.nodes(context), context, s)?.let { return OperationResult.error(it) }
+        app.treelune.core.events.EventPoints.refusal(settingsGiven(params, null), null, context, s)?.let { return OperationResult.error(it) }
         // Given, null for the app's own AI: never taken from the zone without the caller saying so
         if (!params.has(AutomationSettings.IDENTITY_ID)) return OperationResult.error(s.shared("automation_identity_required"))
         identityRefusal(entity.identityId)?.let { return OperationResult.error(it) }
@@ -265,11 +263,6 @@ class AutomationService(private val context: Context) : ExecutableService {
 
         val newZoneId = params.optString("zone_id").takeIf { it.isNotBlank() }
 
-        // Parse trigger IDs if provided
-        val triggerIdsArray = params.optJSONArray("trigger_ids")
-        val triggerIdsJson = triggerIdsArray?.let { array -> json.encodeToString((0 until array.length()).map { array.getString(it) }) }
-            ?: entity.triggerIdsJson
-
         // An automation changing zone without a group given leaves its group behind
         val settings = settingsGiven(params, AutomationSettings.of(entity))
         val emptiedGroup = entity.group?.takeIf { newZoneId != null && newZoneId != entity.zoneId && !params.has("group") }
@@ -287,11 +280,12 @@ class AutomationService(private val context: Context) : ExecutableService {
 
         val updatedEntity = withSettings(entity.copy(
             zoneId = newZoneId ?: entity.zoneId,
-            triggerIdsJson = triggerIdsJson,
             accessJson = accessJson,
             updatedAt = System.currentTimeMillis()
         ), settings, AutomationSettings.of(entity)).getOrElse { return OperationResult.error(it.message ?: s.shared("message_validation_error_simple")) }
         groupRefusal(updatedEntity.group, updatedEntity.zoneId)?.let { return OperationResult.error(it) }
+        app.treelune.core.triggers.Triggers.refusal(settings, AutomationSettings.nodes(context), context, s)?.let { return OperationResult.error(it) }
+        app.treelune.core.events.EventPoints.refusal(settings, null, context, s)?.let { return OperationResult.error(it) }
         // Only an identity that changes is checked: a routine saved again keeps the one it has
         if (updatedEntity.identityId != entity.identityId) identityRefusal(updatedEntity.identityId)?.let { return OperationResult.error(it) }
         providerRefusal(updatedEntity)?.let { return OperationResult.error(it) }
@@ -381,7 +375,7 @@ class AutomationService(private val context: Context) : ExecutableService {
      */
     private fun settingsGiven(params: JSONObject, stored: JSONObject?): JSONObject {
         val settings = stored?.let { JSONObject(it.toString()) } ?: JSONObject()
-        (app.treelune.core.look.Looks.keys(AutomationSettings.LOOK) + listOf("provider_id", AutomationSettings.IDENTITY_ID, "group", "is_enabled", "notify_end", "schedule", "catch_up")).forEach { key ->
+        (app.treelune.core.look.Looks.keys(AutomationSettings.LOOK) + listOf("provider_id", AutomationSettings.IDENTITY_ID, "group", "is_enabled", "notify_end", "schedule", "catch_up", app.treelune.core.triggers.Triggers.KEY, app.treelune.core.events.EventPoints.KEY)).forEach { key ->
             if (!params.has(key)) return@forEach
             if (params.isNull(key)) settings.remove(key) else settings.put(key, params.get(key))
         }
@@ -436,7 +430,9 @@ class AutomationService(private val context: Context) : ExecutableService {
             catchUp = catchUp?.getString("limit"),
             catchUpWindow = catchUp?.takeIf { it.has("window") }?.getLong("window"),
             // Without a schedule nothing is missed: the column holds its declared default
-            dismissOlderInstances = SettingValues(AutomationSettings.catchUpNodes(context), catchUp ?: JSONObject()).boolean("dismiss_older_instances")
+            dismissOlderInstances = SettingValues(AutomationSettings.catchUpNodes(context), catchUp ?: JSONObject()).boolean("dismiss_older_instances"),
+            triggersJson = (app.treelune.core.triggers.Triggers.of(settings) ?: JSONArray()).toString(),
+            emitEvent = app.treelune.core.events.EventPoints.idIn(settings)
         ))
     }
 
@@ -757,7 +753,13 @@ class AutomationService(private val context: Context) : ExecutableService {
             val clickTime = System.currentTimeMillis()
             // What a Task passes it, joined to its message
             val data = params.opt("data")?.takeIf { it != JSONObject.NULL }?.toString()
-            AIOrchestrator.executeAutomation(automationId, scheduledFor = clickTime, trigger = app.treelune.core.ai.data.ExecutionTrigger.MANUAL, data = data)
+            // Asked by a Task's step, it continues that run's chain, refused past its cap
+            val chainId = when (val admission = app.treelune.core.coordinator.Chains.admit(context, entity.name)) {
+                is app.treelune.core.coordinator.Chains.Admission.Capped -> return OperationResult.error(admission.message)
+                is app.treelune.core.coordinator.Chains.Admission.Continues -> admission.chainId
+                app.treelune.core.coordinator.Chains.Admission.Starts -> null
+            }
+            AIOrchestrator.executeAutomation(automationId, scheduledFor = clickTime, trigger = app.treelune.core.ai.data.ExecutionTrigger.MANUAL, data = data, chainId = chainId)
 
             LogManager.service("Successfully triggered automation: $automationId", "INFO")
 
@@ -794,7 +796,6 @@ class AutomationService(private val context: Context) : ExecutableService {
         "id" to entity.id,
         "zone_id" to entity.zoneId,
         "seed_session_id" to entity.seedSessionId,
-        "trigger_ids" to json.decodeFromString<List<String>>(entity.triggerIdsJson),
         "created_at" to entity.createdAt,
         "updated_at" to entity.updatedAt,
         "last_execution_id" to entity.lastExecutionId,

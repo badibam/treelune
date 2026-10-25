@@ -22,6 +22,9 @@ object TaskScheduler {
         val dao = AppDatabase.getDatabase(context).taskDao()
         val now = System.currentTimeMillis()
         dao.getRunsIn(listOf(TaskRun.State.RUNNING.key)).filter { !TaskRunner.isActive(it.id) }.forEach { TaskRunner.interrupted(context, it) }
+        // A run waiting its turn whose Task runs nothing (the app stopped meanwhile) takes it
+        val going = dao.getRunsIn(listOf(TaskRun.State.RUNNING.key, TaskRun.State.WAITING.key)).map { it.taskId }.toSet()
+        dao.getRunsIn(listOf(TaskRun.State.QUEUED.key)).map { it.taskId }.distinct().filter { it !in going }.forEach { TaskRunner.next(context, it) }
         dao.getRunsIn(listOf(TaskRun.State.WAITING.key)).forEach { run ->
             try {
                 TaskRunner.poll(context, run, now)

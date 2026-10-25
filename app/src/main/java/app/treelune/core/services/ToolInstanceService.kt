@@ -152,6 +152,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         checkConfig(toolType, storedConfigJson)?.let { return OperationResult.error(it) }
         ToolTypeManager.getToolType(toolType)?.refuseConfig(JSONObject(storedConfigJson), context)?.let { return OperationResult.error(it) }
         refuseConditions(toolType, storedConfigJson)?.let { return OperationResult.error(it) }
+        app.treelune.core.events.EventPoints.refusal(JSONObject(storedConfigJson), null, context, s)?.let { return OperationResult.error(it) }
 
         val zone = zoneDao.getZoneById(zoneId)
             ?: return OperationResult.error(s.shared("service_error_zone_not_found"))
@@ -265,6 +266,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             configJson = withDisplayMode(configJson, JSONObject(existingTool.config_json).getString("display_mode"))
             ToolTypeManager.getToolType(existingTool.tooltype)?.refuseConfig(JSONObject(configJson), context)?.let { return OperationResult.error(it) }
             refuseConditions(existingTool.tooltype, configJson)?.let { return OperationResult.error(it) }
+            app.treelune.core.events.EventPoints.refusal(JSONObject(configJson), existingTool.id, context, s)?.let { return OperationResult.error(it) }
         }
 
         // What the change does to the recorded entries: refused while it loses something the

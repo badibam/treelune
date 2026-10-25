@@ -8,14 +8,16 @@ enum class ReferenceKind {
     ZONE,
     TOOL_INSTANCE,
     ENTRY,
-    VARIABLE;
+    VARIABLE,
+    /** An event of a zone (docs/CORE.md, « Events »), reached through its zone beside its tools */
+    EVENT;
 
     /** The kinds reached by going down from this one: what a browser standing here can still lead to. */
     val below: Set<ReferenceKind> get() = when (this) {
-        APP -> setOf(ZONE, TOOL_INSTANCE, VARIABLE, ENTRY)
-        ZONE -> setOf(TOOL_INSTANCE, VARIABLE, ENTRY)
+        APP -> setOf(ZONE, TOOL_INSTANCE, VARIABLE, ENTRY, EVENT)
+        ZONE -> setOf(TOOL_INSTANCE, VARIABLE, ENTRY, EVENT)
         TOOL_INSTANCE -> setOf(ENTRY)
-        ENTRY, VARIABLE -> emptySet()
+        ENTRY, VARIABLE, EVENT -> emptySet()
     }
 }
 
