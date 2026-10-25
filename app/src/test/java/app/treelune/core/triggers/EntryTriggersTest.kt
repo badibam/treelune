@@ -87,7 +87,7 @@ class EntryTriggersTest {
 
         val run = ended(taskId).single()
         assertEquals(TaskRun.Trigger.ENTRY.key, run.trigger)
-        assertEquals(TaskRun.Received(entry, weightId, Triggers.Write.CREATED), TaskRun.Received.of(run.receivedJson!!))
+        assertEquals(TaskRun.Received.Entry(entry, weightId, Triggers.Write.CREATED), TaskRun.Received.of(run.receivedJson!!))
     }
 
     @Test
@@ -99,7 +99,7 @@ class EntryTriggersTest {
         ok("tool_data.update", mapOf("id" to heavy, "data" to mapOf("value" to 83, "unit" to "kg")))
         ok("tool_data.create", mapOf("tool_instance_id" to notesId, "data" to mapOf("content" to "elsewhere")))
 
-        assertEquals(listOf(heavy), ended(taskId).map { TaskRun.Received.of(it.receivedJson!!).entryId })
+        assertEquals(listOf(heavy), ended(taskId).map { (TaskRun.Received.of(it.receivedJson!!) as TaskRun.Received.Entry).entryId })
     }
 
     @Test
@@ -111,7 +111,7 @@ class EntryTriggersTest {
         ok("tool_data.delete", mapOf("id" to heavy))
 
         val run = ended(taskId).single()
-        assertEquals(TaskRun.Received(heavy, weightId, Triggers.Write.DELETED), TaskRun.Received.of(run.receivedJson!!))
+        assertEquals(TaskRun.Received.Entry(heavy, weightId, Triggers.Write.DELETED), TaskRun.Received.of(run.receivedJson!!))
     }
 
     @Test
@@ -131,7 +131,7 @@ class EntryTriggersTest {
         val taskId = task(listOf(onWeight(listOf("deleted"))))
         ok("history.undo", mapOf("id" to stepId))
 
-        assertEquals(Triggers.Write.DELETED, TaskRun.Received.of(ended(taskId).single().receivedJson!!).write)
+        assertEquals(Triggers.Write.DELETED, (TaskRun.Received.of(ended(taskId).single().receivedJson!!) as TaskRun.Received.Entry).write)
     }
 
     @Test

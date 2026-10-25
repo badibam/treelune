@@ -11,7 +11,9 @@ object TaskRun {
     enum class Trigger(val key: String) {
         MANUAL("manual"), SCHEDULED("scheduled"), AI("ai"),
         /** An entry written that one of its triggers listens to (Triggers) */
-        ENTRY("entry");
+        ENTRY("entry"),
+        /** An event emitted that one of its triggers listens to (Triggers) */
+        EVENT("event");
 
         companion object {
             fun of(key: String) = entries.first { it.key == key }
@@ -75,17 +77,24 @@ object TaskRun {
         }
     }
 
-    /**
-     * What a run started by a trigger received (Triggers): the entry [entryId] of
-     * [toolInstanceId], and what became of it, [write]. Its steps read it as it is when they run
-     * (TaskSteps.Input.Received), deleted said so.
-     */
-    data class Received(val entryId: String, val toolInstanceId: String, val write: app.treelune.core.triggers.Triggers.Write) {
-        fun toJson(): String = JSONObject().put("entry_id", entryId).put("tool_instance_id", toolInstanceId).put("write", write.key).toString()
+    /** What a run started by a trigger received (Triggers), which its steps read (TaskSteps.Input.Received). */
+    sealed interface Received {
+        fun toJson(): String
+
+        /** The entry [entryId] of [toolInstanceId], and what became of it, [write]: read as it is when a step runs, deleted said so. */
+        data class Entry(val entryId: String, val toolInstanceId: String, val write: app.treelune.core.triggers.Triggers.Write) : Received {
+            override fun toJson(): String = JSONObject().put("entry_id", entryId).put("tool_instance_id", toolInstanceId).put("write", write.key).toString()
+        }
+
+        /** The event [eventId] emitted, and the [values] it carried, by name. */
+        data class Event(val eventId: String, val values: Map<String, Any?>) : Received {
+            override fun toJson(): String = JSONObject().put("event_id", eventId).put("values", JsonUtils.toJSONObject(values)).toString()
+        }
 
         companion object {
-            fun of(json: String) = JSONObject(json).let {
-                Received(it.getString("entry_id"), it.getString("tool_instance_id"), app.treelune.core.triggers.Triggers.Write.of(it.getString("write")))
+            fun of(json: String): Received = JSONObject(json).let {
+                if (it.has("event_id")) Event(it.getString("event_id"), JsonUtils.toMap(it.optJSONObject("values") ?: JSONObject()))
+                else Entry(it.getString("entry_id"), it.getString("tool_instance_id"), app.treelune.core.triggers.Triggers.Write.of(it.getString("write")))
             }
         }
     }

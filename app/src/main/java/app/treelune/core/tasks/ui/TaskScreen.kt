@@ -67,7 +67,7 @@ fun TaskScreen(place: Place.Task, onName: (String) -> Unit, onBack: () -> Unit) 
     var settingsOpen by remember { mutableStateOf(false) }
     var confirmLeave by remember { mutableStateOf(false) }
     var outputs by remember { mutableStateOf<List<List<app.treelune.core.tasks.TaskSteps.Output>>>(emptyList()) }
-    var received by remember { mutableStateOf<Map<String, app.treelune.core.fields.FieldDefinition>?>(null) }
+    var received by remember { mutableStateOf(Receivable(null, null)) }
 
     suspend fun load() {
         val result = coordinator.processUserAction("tasks.get", mapOf("task_id" to place.id))
@@ -91,10 +91,11 @@ fun TaskScreen(place: Place.Task, onName: (String) -> Unit, onBack: () -> Unit) 
     val triggers = app.treelune.core.triggers.Triggers.of(settings)?.toString()
     LaunchedEffect(triggers) {
         received = try {
-            TaskSteps.receivedFields(app.treelune.core.triggers.Triggers.read(triggers), context, s)
+            val read = app.treelune.core.triggers.Triggers.read(triggers)
+            Receivable(TaskSteps.receivedFields(read, context, s), TaskSteps.receivedValues(read, context))
         } catch (e: IllegalArgumentException) {
             // A trigger the form is still filling gives nothing yet
-            null
+            Receivable(null, null)
         }
     }
     // What each step gives the ones after it, read again as the steps change

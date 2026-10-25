@@ -9,8 +9,9 @@ import org.json.JSONObject
 
 /**
  * The « when? » of what runs by itself, beside its schedule (docs/CORE.md, « Triggers »): a list
- * of what makes it start, each one kind. Today one kind, an entry written in a tool — created,
- * changed or deleted, passing the entry's filters when it has some.
+ * of what makes it start, each one kind: an entry written in a tool — created, changed or
+ * deleted, passing the entry's filters when it has some —, or an event emitted
+ * (`{"kind": "event", "event": {"kind": "EVENT", "id"}}`).
  *
  * Stored under `triggers`: `[{"kind": "entry_written", "writes": ["created", "updated"],
  * "entries": {"target": {"kind": "TOOL_INSTANCE", "id"}, "filters": [...]}}]`. Declared with the settings
@@ -23,6 +24,7 @@ object Triggers {
     const val ENTRY_WRITTEN = "entry_written"
     const val WRITES = "writes"
     const val ENTRIES = "entries"
+    const val EVENT = "event"
 
     /** What happens to an entry. */
     enum class Write(val key: String) {
@@ -37,6 +39,8 @@ object Triggers {
     sealed interface Trigger {
         /** An entry of [toolInstanceId] written in one of [writes], passing [filters] (Conditions put on the entry). */
         data class EntryWritten(val toolInstanceId: String, val writes: Set<Write>, val filters: JSONArray) : Trigger
+        /** The event [eventId] emitted (docs/CORE.md, « Events ») */
+        data class EventEmitted(val eventId: String) : Trigger
     }
 
     /** The list's declaration, [text] the shared string of a key. */
@@ -46,16 +50,19 @@ object Triggers {
         item = SettingNode.Item.Of(listOf(
             SettingNode.Variant(
                 selector = SettingNode.Field(FieldDefinition(KIND, text("trigger_kind"), text("trigger_schema_kind"), FieldType.CHOICE, true,
-                    mapOf("options" to ChoiceSettings.storedOptions(listOf(ENTRY_WRITTEN), mapOf(ENTRY_WRITTEN to text("trigger_kind_entry_written")))))),
-                cases = mapOf(ENTRY_WRITTEN to listOf(
+                    mapOf("options" to ChoiceSettings.storedOptions(listOf(ENTRY_WRITTEN, EVENT), mapOf(ENTRY_WRITTEN to text("trigger_kind_entry_written"), EVENT to text("trigger_kind_event")))))),
+                cases = mapOf(EVENT to listOf(
+                    SettingNode.Field(FieldDefinition(EVENT, text("trigger_event"), text("trigger_schema_event"), FieldType.REFERENCE, true,
+                        mapOf(app.treelune.core.fields.ReferenceTarget.TARGET to mapOf(app.treelune.core.fields.ReferenceTarget.KINDS to listOf(app.treelune.core.selection.ReferenceKind.EVENT.name)))))
+                ), ENTRY_WRITTEN to listOf(
                     SettingNode.Field(FieldDefinition(WRITES, text("trigger_writes"), text("trigger_schema_writes"), FieldType.CHOICE, true,
                         mapOf("options" to ChoiceSettings.storedOptions(Write.entries.map { it.key }, Write.entries.associate { it.key to text("trigger_write_${it.key}") })) + ("multiple" to true))),
                     SettingNode.Selection(ENTRIES, text("trigger_entries"), text("trigger_reference"), required = true)
                 )),
-                descriptions = mapOf(ENTRY_WRITTEN to text("trigger_schema_entry_written"))
+                descriptions = mapOf(ENTRY_WRITTEN to text("trigger_schema_entry_written"), EVENT to text("trigger_schema_kind_event"))
             )
         ), description = text("trigger_schema_item")),
-        summary = listOf(KIND, WRITES),
+        summary = listOf(KIND),
         description = text("trigger_schema_list")
     )
 
@@ -78,6 +85,8 @@ object Triggers {
                     filters = entries.optJSONArray("filters") ?: JSONArray()
                 )
             }
+            EVENT -> Trigger.EventEmitted(app.treelune.core.fields.ReferenceTarget.referenceOf(trigger.opt(EVENT))?.takeIf { it.kind == app.treelune.core.selection.ReferenceKind.EVENT }?.id
+                ?: throw IllegalArgumentException("A trigger on an event names no event"))
             else -> throw IllegalArgumentException("Unknown trigger kind '$kind'")
         }
     }
@@ -99,11 +108,15 @@ object Triggers {
         val heard = read.filterIsInstance<Trigger.EntryWritten>()
         val tools = app.treelune.core.database.AppDatabase.getDatabase(context).toolInstanceDao()
         heard.forEach { trigger -> tools.getToolInstanceById(trigger.toolInstanceId) ?: return s.shared("trigger_error_tool").format(trigger.toolInstanceId) }
+        val events = app.treelune.core.database.AppDatabase.getDatabase(context).eventDao()
+        val listened = read.filterIsInstance<Trigger.EventEmitted>()
+        listened.forEach { trigger -> events.get(trigger.eventId) ?: return s.shared("trigger_error_event").format(trigger.eventId) }
         app.treelune.core.conditions.ConditionCheck(app.treelune.core.conditions.AppConditionSources(context, null)) { s.shared(it) }
             .refuse(nodes, settings)?.let { return it }
         kotlin.coroutines.coroutineContext[app.treelune.core.access.AccessScope]?.let { scope ->
             val lookups = app.treelune.core.access.DatabaseAccessLookups(context)
-            val reaches = heard.flatMap { app.treelune.core.access.AccessRules.reach("tool_data", "get", mapOf("tool_instance_id" to it.toolInstanceId), lookups::isToolType) }
+            val reaches = heard.flatMap { app.treelune.core.access.AccessRules.reach("tool_data", "get", mapOf("tool_instance_id" to it.toolInstanceId), lookups::isToolType) } +
+                listened.flatMap { app.treelune.core.access.AccessRules.reach("events", "get", mapOf("event_id" to it.eventId), lookups::isToolType) }
             app.treelune.core.access.AccessRules.refusal(scope.mask, scope.holder, reaches, lookups, s::shared)?.let { return it }
         }
         return null

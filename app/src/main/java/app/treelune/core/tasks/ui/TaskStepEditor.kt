@@ -33,10 +33,13 @@ import org.json.JSONObject
 internal typealias Earlier = List<Pair<Int, List<TaskSteps.Output>>>
 
 /**
- * The fields of the entry a trigger gives the Task's runs, by path (TaskSteps.receivedFields):
- * what an input may take from it; null when no trigger gives one.
+ * What a trigger gives the Task's runs, which an input may take: the fields of the entry written
+ * by path (TaskSteps.receivedFields), the values of the event emitted by name
+ * (TaskSteps.receivedValues); each null when no trigger gives it.
  */
-internal val LocalReceived = androidx.compose.runtime.staticCompositionLocalOf<Map<String, FieldDefinition>?> { null }
+internal data class Receivable(val entry: Map<String, FieldDefinition>?, val values: Map<String, FieldDefinition>?)
+
+internal val LocalReceived = androidx.compose.runtime.staticCompositionLocalOf { Receivable(null, null) }
 
 /**
  * The form of one step, [step] in its stored form (TaskSteps), its kind already chosen: what it
@@ -53,6 +56,7 @@ internal fun StepEditor(step: JSONObject, earlier: Earlier, onChange: (JSONObjec
             TaskSteps.CREATE_ENTRY, TaskSteps.UPDATE_ENTRY -> WriteEntry(step, earlier, s, ::with)
             TaskSteps.TOOL_OPERATION -> ToolOperation(step, earlier, s, ::with)
             TaskSteps.RUN_ROUTINE -> RunRoutine(step, earlier, s, ::with)
+            TaskSteps.EMIT_EVENT -> EmitEvent(step, earlier, s, ::with)
         }
     }
 }
@@ -174,6 +178,29 @@ private fun RunRoutine(step: JSONObject, earlier: Earlier, s: StringsContext, wi
     Inputs(step.optJSONObject(TaskSteps.INPUTS) ?: JSONObject(), listOf(data), earlier, s) { with { put(TaskSteps.INPUTS, it) } }
 }
 
+/** The event a step emits, chosen among the events of the zones, then each value it carries. */
+@Composable
+private fun EmitEvent(step: JSONObject, earlier: Earlier, s: StringsContext, with: (JSONObject.() -> Unit) -> Unit) {
+    val context = LocalContext.current
+    var events by remember { mutableStateOf<List<Map<*, *>>>(emptyList()) }
+    LaunchedEffect(Unit) {
+        events = (Coordinator(context).processUserAction("events.list").data?.get("events") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>()
+    }
+    Choice(s.shared("task_step_event"), events.map { it["id"] as String to it["name"] as String }, step.optString(TaskSteps.EVENT_ID).ifEmpty { null }) { id ->
+        with { put(TaskSteps.EVENT_ID, id); remove(TaskSteps.INPUTS) }
+    }
+    val event = events.firstOrNull { it["id"] == step.optString(TaskSteps.EVENT_ID) } ?: return
+    val values = remember(event) { app.treelune.core.events.EventValues.read(JsonUtils.toJSONArray(event["values"] as? List<*> ?: emptyList<Any>()).toString()) }
+    // Every value it declares is given: none is left out
+    val inputs = step.optJSONObject(TaskSteps.INPUTS) ?: JSONObject()
+    values.forEach { value ->
+        val field = app.treelune.core.events.EventValues.field(value)
+        StepInput(inputs.optJSONObject(value.name), field, earlier, s, optional = false) { input ->
+            with { put(TaskSteps.INPUTS, JSONObject(inputs.toString()).apply { if (input == null) remove(value.name) else put(value.name, input) }) }
+        }
+    }
+}
+
 /** The inputs of [fields], each its own input in [inputs] by name; one left empty is not given. */
 @Composable
 private fun Inputs(inputs: JSONObject, fields: List<FieldDefinition>, earlier: Earlier, s: StringsContext, onChange: (JSONObject) -> Unit) {
@@ -198,13 +225,15 @@ private fun StepInput(input: JSONObject?, field: FieldDefinition, earlier: Earli
         }
     }
     // The entry a trigger gives, for an entry; its fields of the same type, for any other value
-    val receivedFields = LocalReceived.current
+    val given = LocalReceived.current
     val receivable = when {
-        receivedFields == null -> emptyList()
+        given.entry == null -> emptyList()
         field.type == FieldType.REFERENCE -> listOf(JSONObject().put(TaskSteps.RECEIVED, JSONObject()) to s.shared("task_input_received_entry"))
-        else -> receivedFields.filterValues { it.type == field.type }.map { (path, definition) ->
+        else -> given.entry.filterValues { it.type == field.type }.map { (path, definition) ->
             JSONObject().put(TaskSteps.RECEIVED, JSONObject().put(TaskSteps.FIELD, path)) to s.shared("task_input_received_field").format(definition.displayName)
         }
+    } + given.values.orEmpty().filterValues { it.type == field.type }.map { (name, _) ->
+        JSONObject().put(TaskSteps.RECEIVED, JSONObject().put(TaskSteps.VALUE, name)) to s.shared("task_input_received_value").format(name)
     }
     val sources = listOfNotNull(
         (NONE to s.shared("task_input_none")).takeIf { optional },

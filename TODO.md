@@ -26,6 +26,7 @@ Codé, jamais vu sur l'appareil.
 
 - Les titres coupés entre les mots (`HeadingBreak`) en Cosy, Encre et lavis, Métro, Papier découpé et Plan d'architecte : les noms de tuiles de la démo, un mot trop long pour sa ligne d'une demi-tuile (« Observations ») coupé à ses syllabes.
 - La marque « en attente » sans « ! » (Métro, Suisse, Encre et lavis, Papier découpé, Plan d'architecte, Cosy en accent) : vide, se lit-elle encore comme « à lire », à sa taille de 18 à 22 dp, et la bulle du Cosy se détache-t-elle de ses boutons ?
+- Les événements : la carte sous l'identité de la zone et son éditeur, « Nouvel événement… » du navigateur, une Tâche qui émet « séance prête » avec une Fiche et une autre qui l'écoute et lit la Fiche reçue, une routine qui l'écoute et reçoit la Fiche jointe.
 - Les déclencheurs : une Tâche et une routine qui partent sur une entrée écrite (créée, modifiée, supprimée, avec un filtre), le formulaire « Part aussi quand… » des réglages d'une Tâche et du bouton éclair d'une routine, l'étape qui lit « L'entrée écrite » ; la routine qui reçoit l'entrée jointe dans son message ; une Tâche qui écrit là où elle écoute, arrêtée après 50 exécutions avec sa notification.
 - La recette, `docs/design/device-checks.md` : ce que seul le téléphone juge, une ligne vue en sort.
 - Les fichiers : un audio enregistré par l'app du téléphone (`RECORD_SOUND_ACTION`, et ce qu'elle rend, peut-être du 3GP, que l'app refuse aujourd'hui), une vidéo filmée, un texte choisi, leurs tuiles et leurs lecteurs ; « Garder l'original » d'une photo, montrée droite, puis réduite en entrant dans une conversation ; une étape de Séquence qui suit l'audio d'une Fiche, jouée écran éteint par le service (type `specialUse`), sa vidéo à l'écran, la pause et « Retour » ; Joindre dans une conversation, ses cinq gestes ; un envoi par le connecteur via le nœud Tailscale, `curl -X PUT` d'un audio de quelques dizaines de Mo, que la bibliothèque Go recompilée écrit sur disque.
@@ -36,12 +37,13 @@ Codé, jamais vu sur l'appareil.
 
 ## Décidé, à coder
 
-- Les événements (`docs/design/events.md`) : le « quand ? » des outils actifs (une entrée écrite, en place pour les Tâches et les routines), une condition devenue vraie, les événements d'une zone, émettre là où l'app prévient, le budget du jour.
+- Les événements (`docs/design/events.md`) : le « quand ? » des outils actifs (une entrée écrite, en place pour les Tâches et les routines), une condition devenue vraie, émettre là où l'app prévient, le budget du jour (les événements d'une zone et l'étape « émettre », en place).
 - Un filtre qui compare un champ à une variable ou une lecture (« kcal > objectif_calorique ») : le terme lu une fois à la référence du contexte (`TermReader`, `docs/BRICKS.md`), puis le filtre SQL comme aujourd'hui ; `EntryFilters.parse` et `ConditionPicker` le prennent.
 
 ## À concevoir
 
 - Une Lecture qui rend plusieurs valeurs (les trois derniers retours, joints) pour l'entrée d'une API : une Lecture réduit aujourd'hui à une seule valeur.
+- L'IA et les événements : elle écrit une Tâche qui en émet ou en écoute, mais ne les lit nulle part (ni `EVENTS`, ni l'état de la zone) et ne peut donc pas en nommer un ; ni elle ni l'IA extérieure n'émettent.
 - Un contrôle « qui dépend de ça ? » avant de supprimer une chose (une condition, une variable, un pointeur qui la visent), écrit une fois, appelé par le service qui supprime et par l'annulation qui supprime une ligne.
 - Des outils montrés sur la tuile d'une zone de l'accueil (le poids du jour sur « Santé ») : leur résumé ou un raccourci selon la place de la tuile — lesquels, dans quel ordre, un outil montré à deux endroits.
 - Des rythmes que la planification (`ScheduleConfig`, commune à tous les outils et aux routines) ne sait pas dire : « tous les N jours à partir d'une date », « une semaine sur deux », plusieurs jours d'un mois (« le 1er et le 15 »).

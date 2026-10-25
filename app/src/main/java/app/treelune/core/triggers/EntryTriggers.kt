@@ -31,7 +31,7 @@ object EntryTriggers {
             for (write in heard(context, "Task ${task.id}", task.triggersJson, writes)) {
                 val chainId = chainOf(context, task.name) ?: continue
                 TaskRunner.start(context, task, TaskRun.Trigger.ENTRY, System.currentTimeMillis(), awaited = false, chainId = chainId.id,
-                    received = TaskRun.Received(write.entryId, write.toolInstanceId, write.write))
+                    received = TaskRun.Received.Entry(write.entryId, write.toolInstanceId, write.write))
             }
         }
         for (routine in routines) {

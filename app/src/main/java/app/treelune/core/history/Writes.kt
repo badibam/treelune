@@ -87,6 +87,14 @@ class Writes(private val context: Context) {
 
     suspend fun deleteVariable(id: String) = delete(CoveredTable.VARIABLES, id) { database.variableDao().deleteById(id) }
 
+    // ── Events ──
+
+    suspend fun insertEvent(event: app.treelune.core.events.EventEntity) = write(CoveredTable.EVENTS, event.id) { database.eventDao().insert(event) }
+
+    suspend fun updateEvent(event: app.treelune.core.events.EventEntity) = write(CoveredTable.EVENTS, event.id) { database.eventDao().update(event) }
+
+    suspend fun deleteEvent(id: String) = delete(CoveredTable.EVENTS, id) { database.eventDao().deleteById(id) }
+
     // ── Automations ──
 
     suspend fun insertAutomation(automation: AutomationEntity) =
@@ -299,7 +307,7 @@ class Writes(private val context: Context) {
         CoveredTable.ZONES -> Place(null, row.getString("id"))
         CoveredTable.TOOL_INSTANCES -> Place(row.getString("id"), row.getString("zone_id"))
         CoveredTable.TOOL_DATA -> toolPlace(row.getString("tool_instance_id"))
-        CoveredTable.VARIABLES, CoveredTable.AUTOMATIONS -> Place(null, row.getString("zone_id"))
+        CoveredTable.VARIABLES, CoveredTable.AUTOMATIONS, CoveredTable.EVENTS -> Place(null, row.getString("zone_id"))
         CoveredTable.AI_SESSIONS -> sessionPlace(row.getString("id"))
         CoveredTable.SESSION_MESSAGES -> sessionPlace(row.getString("session_id"))
         CoveredTable.FILES -> when {

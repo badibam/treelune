@@ -19,6 +19,8 @@ La différence entre 2 et 3 : tu notes 81, puis 82. « Un poids noté au-dessus 
 
 ## 2. Les événements
 
+En place (`docs/CORE.md`, « Events ») : la carte de la zone, l'étape « émettre », le déclencheur, les valeurs reçues. Restent l'émission par l'IA, un bouton, l'IA extérieure, et les endroits où l'app prévient (partie 3).
+
 Un événement est une chose de l'app, dans une zone, comme une variable : un nom (« séance prête ») et les valeurs qu'il porte, déclarées comme les valeurs d'une API (un nom, un type : `fiche`, une entrée de Fiches de séances ; `duree`, une durée), aucune s'il n'en porte pas. Il sert à ce qu'aucune écriture ne dit (une Tâche a fini de fabriquer l'audio), et à ce que plusieurs choses écoutent sous un même nom ; une écriture, elle, s'écoute directement par la sorte 2.
 
 Qui émet :
@@ -80,13 +82,12 @@ Deux, tous deux dans l'écran des limites de l'IA, à côté des appels par exé
 - La sorte « à une date des données » (10 min avant chaque entrée d'un outil, le lendemain d'une échéance), commune avec les rappels de l'Agenda : tant que les endroits où l'app prévient suffisent, pas faite.
 - L'IA qui émet un événement, et si elle lance une Tâche (elle ne lance pas une routine aujourd'hui).
 - Une routine sous budget dont le modèle n'a pas de prix connu (`SessionCost` en « ≥ ») : refusée, ou hors du compte.
-- Où se voient les événements d'une zone, et leur création depuis le sélecteur du « quand ? » sans quitter l'écran.
 - Supprimer un événement écouté ou une chose qu'un « quand ? » vise : le contrôle « qui dépend de ça ? » de `TODO.md`.
 
 ## Découpage
 
 1. Le « quand ? » des outils actifs, avec les entrées écrites (fait pour les Tâches et les routines).
-2. Les événements et l'étape « émettre » ; ce que reçoit ce qui part.
+2. Les événements et l'étape « émettre » ; ce que reçoit ce qui part (fait).
 3. Les endroits où l'app prévient.
 4. La condition qui devient vraie, avec l'Alerte.
 5. Le budget du jour, indépendant, à tout moment.

@@ -369,6 +369,7 @@ class BackupService(private val context: Context) : ExecutableService {
             val identities = database.identityDao().getAll()
             val apis = database.apiDao().getAll()
             val tasks = database.taskDao().getAll()
+            val events = database.eventDao().getAll()
             // The files of messages, entries and tools: their rows in the JSON, their files beside it.
             // A row whose file is missing is an error the backup copies as it is, neither
             // hidden nor repaired: its row goes, named in missing_files, and the export says how many
@@ -662,6 +663,20 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("triggers_json", task.triggersJson ?: JSONObject.NULL)
                                 put("created_at", task.createdAt)
                                 put("updated_at", task.updatedAt)
+                            })
+                        }
+                    })
+
+                    // The events of the zones: wiring, kept with what listens to it and emits it
+                    put("events", JSONArray().apply {
+                        events.forEach { event ->
+                            put(JSONObject().apply {
+                                put("id", event.id)
+                                put("zone_id", event.zoneId)
+                                put("name", event.name)
+                                put("values_json", event.valuesJson)
+                                put("created_at", event.createdAt)
+                                put("updated_at", event.updatedAt)
                             })
                         }
                     })
@@ -1121,6 +1136,21 @@ class BackupService(private val context: Context) : ExecutableService {
                     updatedAt = item.getLong("updated_at"),
                     // Absent from a backup made before version 99: started by nothing but its schedule
                     triggersJson = if (item.has("triggers_json")) item.text("triggers_json") else null
+                ))
+            }
+        }
+
+        // Events: absent from a backup made before version 101
+        data.optJSONArray("events")?.let { array ->
+            for (i in 0 until array.length()) {
+                val item = array.getJSONObject(i)
+                database.eventDao().insert(app.treelune.core.events.EventEntity(
+                    id = item.getString("id"),
+                    zoneId = item.getString("zone_id"),
+                    name = item.getString("name"),
+                    valuesJson = item.getString("values_json"),
+                    createdAt = item.getLong("created_at"),
+                    updatedAt = item.getLong("updated_at")
                 ))
             }
         }

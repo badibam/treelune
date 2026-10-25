@@ -79,7 +79,8 @@ import app.treelune.core.ai.data.LegacyCatchUp
         app.treelune.core.history.HistoryRowEntity::class,
         app.treelune.core.apis.ApiEntity::class,
         app.treelune.core.tasks.TaskEntity::class,
-        app.treelune.core.tasks.TaskRunEntity::class
+        app.treelune.core.tasks.TaskRunEntity::class,
+        app.treelune.core.events.EventEntity::class
         // Note: Tool entities will be added dynamically
         // via build system and ToolTypeRegistry
     ],
@@ -104,13 +105,14 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun historyDao(): app.treelune.core.history.HistoryDao
     abstract fun apiDao(): app.treelune.core.apis.ApiDao
     abstract fun taskDao(): app.treelune.core.tasks.TaskDao
+    abstract fun eventDao(): app.treelune.core.events.EventDao
 
     companion object {
         /**
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 100
+        const val VERSION = 101
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2251,6 +2253,15 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** The events of the zones (docs/CORE.md, « Events »), none so far. */
+        private val MIGRATION_100_101 = object : ConnectionMigration(100, 101) {
+            override fun migrate(database: MigrationDatabase) {
+                database.execSQL("CREATE TABLE IF NOT EXISTS `events` (`id` TEXT NOT NULL, `zone_id` TEXT NOT NULL, `name` TEXT NOT NULL, `values_json` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`zone_id`) REFERENCES `zones`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )")
+                database.execSQL("CREATE INDEX IF NOT EXISTS `index_events_zone_id` ON `events` (`zone_id`)")
+                LogManager.database("MIGRATION 100->101: events added, none", "INFO")
+            }
+        }
+
         /** The connector gains its own data threshold: see ExternalAccessDataAtV84. */
         private val MIGRATION_83_84 = object : ConnectionMigration(83, 84) {
             override fun migrate(database: MigrationDatabase) {
@@ -3298,7 +3309,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_96_97,
                     MIGRATION_97_98,
                     MIGRATION_98_99,
-                    MIGRATION_99_100
+                    MIGRATION_99_100,
+                    MIGRATION_100_101
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

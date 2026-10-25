@@ -247,6 +247,7 @@ object TaskRunner {
             put("automation_id", step.getString(TaskSteps.AUTOMATION_ID))
             resolved[TaskSteps.DATA]?.let { put("data", it.toString()) }
         }
+        TaskSteps.EMIT_EVENT -> "events.emit" to mapOf("event_id" to step.getString(TaskSteps.EVENT_ID), "values" to resolved)
         else -> throw StepFailed(step.getString(TaskSteps.KIND))
     }
 
@@ -271,7 +272,7 @@ object TaskRunner {
         val fields = if (kind == TaskSteps.CREATE_ENTRY || kind == TaskSteps.UPDATE_ENTRY)
             TaskSteps.writableFields(step.getString(TaskSteps.TOOL_INSTANCE_ID), context, s) else emptyMap()
         val holder = when (kind) {
-            TaskSteps.CALL_API, TaskSteps.RUN_ROUTINE -> step.optJSONObject(TaskSteps.INPUTS)
+            TaskSteps.CALL_API, TaskSteps.RUN_ROUTINE, TaskSteps.EMIT_EVENT -> step.optJSONObject(TaskSteps.INPUTS)
             TaskSteps.CREATE_ENTRY, TaskSteps.UPDATE_ENTRY -> step.optJSONObject(TaskSteps.VALUES)
             TaskSteps.TOOL_OPERATION -> step.optJSONObject(TaskSteps.PARAMS)
             else -> null
@@ -285,8 +286,9 @@ object TaskRunner {
                     field?.type == FieldType.FILE && value is String -> listOf(download(context, value, FileField.kinds(field.config)))
                     // The entry a step created, designated in a field that holds a Reference
                     field?.type == FieldType.REFERENCE && value is String -> mapOf("kind" to "ENTRY", "id" to value)
-                    // An operation's entry, given by its id
+                    // An operation's entry, given by its id; an entry an event carries, too
                     kind == TaskSteps.TOOL_OPERATION && key == "id" -> idOf(value)
+                    kind == TaskSteps.EMIT_EVENT -> idOf(value)
                     else -> value
                 })
             }
@@ -324,12 +326,15 @@ object TaskRunner {
     private suspend fun resolve(context: Context, input: TaskSteps.Input, results: List<TaskRun.StepResult>, at: Long, received: TaskRun.Received?): Any? {
         val s = Strings.`for`(context = context)
         return when (input) {
-            is TaskSteps.Input.Received -> {
-                received ?: throw StepFailed(s.shared("task_error_received_none"))
-                if (input.field == null) return received.entryId
-                val entry = AppDatabase.getDatabase(context).toolDataDao().getById(received.entryId)
-                    ?: throw StepFailed(s.shared("task_error_received_gone"))
-                app.treelune.core.reading.FieldReading.valueAt(TaskSteps.entryMap(entry), input.field)
+            is TaskSteps.Input.Received -> when {
+                input.value != null -> (received as? TaskRun.Received.Event ?: throw StepFailed(s.shared("task_error_received_no_event"))).values[input.value]
+                else -> {
+                    val entry = received as? TaskRun.Received.Entry ?: throw StepFailed(s.shared("task_error_received_none"))
+                    if (input.field == null) return entry.entryId
+                    val row = AppDatabase.getDatabase(context).toolDataDao().getById(entry.entryId)
+                        ?: throw StepFailed(s.shared("task_error_received_gone"))
+                    app.treelune.core.reading.FieldReading.valueAt(TaskSteps.entryMap(row), input.field)
+                }
             }
             is TaskSteps.Input.Result -> {
                 val given = results.getOrNull(input.step) ?: throw StepFailed(s.shared("task_error_result_step").format("", input.step + 1))

@@ -228,7 +228,7 @@ class TaskService(private val context: Context) : ExecutableService {
         val read = app.treelune.core.triggers.Triggers.read(triggers)
 
         val steps = if (params.has("steps")) params.optJSONArray("steps") ?: return refused(s.shared("task_error_steps")) else JSONArray(task.stepsJson)
-        TaskSteps.refusal(steps, context, s, TaskSteps.receivedFields(read, context, s))?.let { return refused(it) }
+        TaskSteps.refusal(steps, context, s, TaskSteps.receivedFields(read, context, s), TaskSteps.receivedValues(read, context))?.let { return refused(it) }
 
         // An AI held to a mask writes only steps it could take itself: the Task never reaches further than it
         kotlin.coroutines.coroutineContext[app.treelune.core.access.AccessScope]?.let { scope ->

@@ -35,7 +35,7 @@ SOURCES = ROOT / "app" / "src" / "main" / "java"
 DATABASE = SOURCES / "app" / "treelune" / "core" / "database" / "AppDatabase.kt"
 
 COVERED = {
-    "zones", "tool_instances", "tool_data", "variables", "automations", "files",
+    "zones", "tool_instances", "tool_data", "variables", "events", "automations", "files",
     "identities", "mcp_clients", "app_settings_categories",
 }
 

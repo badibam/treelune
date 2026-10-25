@@ -231,6 +231,8 @@ fun ZoneScreen(zone: Zone) {
         // The identity its tile opens a conversation with, under its header
         val identities = app.treelune.core.identities.ui.rememberIdentities()
         identities?.firstOrNull { it.id == zone.identity_id }?.let { app.treelune.core.identities.ui.IdentityTile(it) }
+        // Its events, one card naming them, under its identity
+        app.treelune.core.events.ui.EventsCard(zone.id)
 
         // Display sections by group
         if (!loadedOnce) {
