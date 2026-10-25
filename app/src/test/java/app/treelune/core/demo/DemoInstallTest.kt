@@ -37,6 +37,10 @@ class DemoInstallTest {
         for (plant in listOf("demo-plant-tomato", "demo-plant-basil", "demo-plant-chilli")) {
             assertEquals("$plant's photo", 1, database.fileDao().getForEntry(plant).size)
         }
+        // Its Tasks, the event one emits and a routine listens to, the API one calls
+        assertEquals(setOf("demo-t-weather", "demo-t-heat", "demo-t-busy-week"), database.taskDao().getAll().map { it.id }.toSet())
+        assertTrue("no demo event", database.eventDao().get("demo-event-busy-week") != null)
+        assertTrue("no demo API", database.apiDao().get("demo-api-weather") != null)
         assertEquals("the start installs it once", null, DemoStartup.run(context))
     }
 }

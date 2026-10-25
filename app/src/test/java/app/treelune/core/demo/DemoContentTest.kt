@@ -123,7 +123,7 @@ class DemoContentTest {
     fun `the automations are off, each with its instruction, a catch-up with a schedule only, in a group its zone has`() {
         for (language in languages) {
             val content = read(language)
-            assertEquals(4, content.automations.size)
+            assertEquals(5, content.automations.size)
             val groups = content.zones.associate { it.getString("id") to it.getJSONArray("tool_groups").strings() }
             content.automations.forEach { automation ->
                 assertFalse(automation.getBoolean("is_enabled"))
@@ -137,6 +137,20 @@ class DemoContentTest {
                 }
                 assertEquals(automation.has("schedule"), automation.has("catch_up"))
                 automation.optString("group").takeIf { it.isNotEmpty() }?.let { assertTrue(it in groups.getValue(automation.getString("zone_id"))) }
+            }
+        }
+    }
+
+    @Test
+    fun `a Task that calls an API is off, sending nothing out of the phone before one switches it on, and a catch-up with a schedule only`() {
+        for (language in languages) {
+            val content = read(language)
+            assertTrue(content.tasks.isNotEmpty())
+            content.tasks.forEach { task ->
+                val steps = task.getJSONArray("steps")
+                val calls = (0 until steps.length()).any { steps.getJSONObject(it).getString("kind") == "call_api" }
+                if (calls) assertFalse(task.getString("id"), task.getBoolean("is_enabled"))
+                assertEquals(task.has("schedule"), task.has("catch_up"))
             }
         }
     }
