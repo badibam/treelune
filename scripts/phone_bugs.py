@@ -3,9 +3,9 @@
 
 The bugs are the entries of the tool "Treelune" in the zone "Dev" of the release build, where
 they are noted. They are read and deleted through the app's MCP server, as Claude reaches it: the
-claude.ai connector "Treelune", whose tools Claude Code names mcp__claude_ai_Treelune__<command>.
-The relay hands each request to whichever build polls it, so the external access must be open in
-the release alone (docs/EXTERNAL_ACCESS.md), and the connector authorised once against it.
+claude.ai connector "Treelune Tailscale", whose tools Claude Code names
+mcp__claude_ai_Treelune_Tailscale__<command>. The external access must be open in the release
+(docs/EXTERNAL_ACCESS.md), and the connector authorised once against it.
 
 Claude only reads and deletes, and answers in JSON; this script shows the list, asks once, writes
 TODO.md, and checks that every entry it wrote is the one Claude deleted. TODO.md is written before
@@ -28,7 +28,7 @@ TOOL = "Treelune"
 SECTION = "## Bugs du téléphone"
 NEXT_SECTION = "## En attente d'un déclencheur"
 
-CONNECTOR = "mcp__claude_ai_Treelune__"
+CONNECTOR = "mcp__claude_ai_Treelune_Tailscale__"
 # ToolSearch: headless, the connectors are still connecting when the model starts, and only
 # ToolSearch waits for them and loads their tools.
 READ_TOOLS = ["ToolSearch"] + [CONNECTOR + name for name in ("app_context", "zones", "tool_instances", "tool_data")]
