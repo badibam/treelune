@@ -169,6 +169,18 @@ class EventsTest {
     }
 
     @Test
+    fun aPlaceNotToldOf_emitsAllTheSame() = runBlocking {
+        val invited = ok("events.create", mapOf("zone_id" to zoneId, "name" to "Invited"))["event_id"] as String
+        val listener = ok("tasks.create", mapOf("zone_id" to zoneId, "name" to "Listener", "triggers" to listening(invited)))["task_id"] as String
+        val questionnaire = ok("tools.create", mapOf("zone_id" to zoneId, "tooltype" to "questionnaire",
+            "config" to mapOf("name" to "Evening", "notify" to false, EventPoints.KEY to mapOf("kind" to "EVENT", "id" to invited))))["tool_instance_id"] as String
+
+        ok("questionnaire.invite", mapOf("tool_instance_id" to questionnaire))
+
+        assertEquals(TaskRun.Trigger.EVENT.key, ended(listener).single().trigger)
+    }
+
+    @Test
     fun aTaskThatEndsWell_emits_inItsChain() = runBlocking {
         val eventId = ok("events.create", mapOf("zone_id" to zoneId, "name" to "Done"))["event_id"] as String
         val listener = ok("tasks.create", mapOf("zone_id" to zoneId, "name" to "Listener", "triggers" to listening(eventId)))["task_id"] as String

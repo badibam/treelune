@@ -115,6 +115,18 @@ class EntryTriggersTest {
     }
 
     @Test
+    fun anImport_startsNothing() = runBlocking {
+        val taskId = task(listOf(mapOf("kind" to Triggers.ENTRY_WRITTEN, "writes" to listOf("created"),
+            "entries" to mapOf("target" to mapOf("kind" to "TOOL_INSTANCE", "id" to notesId), "filters" to emptyList<Any>()))))
+        val csv = "content\nfirst\nsecond\n"
+        val detected = ok("imports.detect", mapOf("tool_instance_id" to notesId, "csv" to csv))
+        ok("imports.apply", mapOf("tool_instance_id" to notesId, "csv" to csv, "columns" to detected["columns"]))
+
+        assertEquals(2, (ok("tool_data.get", mapOf("tool_instance_id" to notesId))["entries"] as List<*>).size)
+        assertTrue(runs(taskId).isEmpty())
+    }
+
+    @Test
     fun aWriteInsideARun_continuesItsChain() = runBlocking {
         val taskId = task(listOf(onWeight(listOf("created"))))
         withContext(ChainLink("earlier-run")) {

@@ -48,7 +48,7 @@ Codé, jamais vu sur l'appareil.
 ## À concevoir
 
 - Une Lecture qui rend plusieurs valeurs (les trois derniers retours, joints) pour l'entrée d'une API : une Lecture réduit aujourd'hui à une seule valeur.
-- Un contrôle « qui dépend de ça ? » avant de supprimer une chose (une condition, une variable, un pointeur qui la visent), écrit une fois, appelé par le service qui supprime et par l'annulation qui supprime une ligne.
+- Un contrôle « qui dépend de ça ? » avant de supprimer une chose (une condition, une variable, un pointeur qui la visent, la condition d'un déclencheur qui lit un outil ou une variable), écrit une fois, appelé par le service qui supprime et par l'annulation qui supprime une ligne ; le modèle existe pour les événements (`EventUses` : le refus nomme ce qui écoute ou émet).
 - Des outils montrés sur la tuile d'une zone de l'accueil (le poids du jour sur « Santé ») : leur résumé ou un raccourci selon la place de la tuile — lesquels, dans quel ordre, un outil montré à deux endroits.
 - Des rythmes que la planification (`ScheduleConfig`, commune à tous les outils et aux routines) ne sait pas dire : « tous les N jours à partir d'une date », « une semaine sur deux », plusieurs jours d'un mois (« le 1er et le 15 »).
 - Une réponse coupée par la limite de longueur (`max_tokens` chez Claude et DeepSeek, un `status` incomplet chez OpenAI, `finish_reason` « length » chez un autre serveur) : refusée, son texte jeté et ses tokens mis à 0, le coût affiché la compte gratuite alors qu'elle est facturée — que garder du texte, et où le montrer.
@@ -79,7 +79,7 @@ Ce qui doit monter dans un module de sagesse (`/update push`).
 - Une zone lente à s'afficher, à l'ouverture comme au retour, qui relit tout (~1 s en debug le 2026-10-01, le graphique Calories de Panorama de 0,75 à 1,2 s).
 - Le bouton de liste d'un texte long touché pendant une dictée : Gboard réécrit son texte encore souligné une seconde fois au curseur (mesuré le 2026-10-20), le bouton rendant le champ sans la place de ce texte (`composition` nulle) ; la garder, décalée par `MarkupEditing.apply` comme le curseur.
 - Une copie automatique dont la rotation n'a rien fait (le 2026-10-20 à 21h21, juste après le choix du dossier) : la ligne « Auto backup: copies found … » dit maintenant ce qu'elle a trouvé et prévu.
-- Une étape défaite puis rétablie qui refait partir ce qui écoute son écriture (`docs/design/events.md`) : une seconde Fiche créée par la Tâche de régénération, une fois les événements en place ; si ça gêne, ce que défaire et rétablir devraient faire de ce qu'une écriture a fait partir.
+- Une étape défaite puis rétablie qui refait partir ce qui écoute son écriture (`docs/CORE.md`, « Triggers ») : une seconde Fiche créée par la Tâche de régénération, une fois les événements en place ; si ça gêne, ce que défaire et rétablir devraient faire de ce qu'une écriture a fait partir.
 - Un `DATA_REFUSED` légitime dans une routine : un seuil par routine.
 - Un Graphique, un Objectif ou des Flashcards affichés qui relisent tout à chaque écriture dans n'importe quel outil, à chaque changement d'outil ou de variable (`DataChangeEvent.mayChangeReadings`) : une tuile qui rame quand on écrit ailleurs les fera trier par ce qu'ils lisent, comme une tuile de variable (`tools_read`).
 - Un calcul lourd qui fige l'app : lire, calculer sans bloquer, écrire.
@@ -112,3 +112,9 @@ Ce qui doit monter dans un module de sagesse (`/update push`).
 - Un Suivi « étiquette » : le type « choix » le couvre.
 - Le nombre d'entrées en attente sur la tuile, au lieu du point : le résumé des tuiles donne déjà ce compte.
 - Un fichier joint au message de départ d'une routine : un pointeur vers un outil qui garde le contenu fait mieux, relu à chaque exécution.
+- Un bouton qui émet un événement : une Tâche qui émet, lancée à la main, est ce bouton ; des valeurs à saisir au moment d'appuyer passent par une entrée écrite, qu'une Tâche écoute.
+- Un déclencheur « à une date des données » (3 jours avant une péremption, un anniversaire) : une condition sur un comptage (« entrées dont la date approche > 0 ») le couvre. Ses limites, à rouvrir sur un cas qui gêne : un second élément ne repart pas tant que le premier attend, ce qui revient chaque année ne se dit pas en filtre, la précision est celle du tic.
+- Un délai minimum entre deux départs d'un déclencheur : il ralentit une boucle sans l'arrêter, et les départs arrivés pendant, jetés ou regroupés, font plus de cas tordus qu'ils n'en règlent ; le plafond par chaîne arrête les boucles, le budget du jour les routines chères.
+- Un « quand ? » qui n'écoute que des événements, écritures et conditions transformées en événements ailleurs : ça doublerait le « quand ? » ; une Tâche d'une étape « émettre » fait la règle « ceci arrive → émettre ».
+- Une condition pour les rendez-vous de l'Agenda (« prochain Yoga ≤ dans 10 min ») : en retard du tic, aveugle au second de deux rendez-vous proches ; le rappel de l'Agenda émet.
+- Interdire qu'une même chose repasse dans une chaîne : bloque le va-et-vient voulu entre deux routines et une Tâche qui aiguille.

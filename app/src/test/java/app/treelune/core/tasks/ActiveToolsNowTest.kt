@@ -17,7 +17,7 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 /**
- * What an active tool does now, beside its schedule, for a Task's step to call (docs/design/events.md):
+ * What an active tool does now, beside its schedule, for a Task's step to call (docs/CORE.md, « Triggers »):
  * a questionnaire invites (an entry to fill, dated now), a sequence plans a session (an entry
  * planned, dated now) — the « when? » being the Task's.
  */
