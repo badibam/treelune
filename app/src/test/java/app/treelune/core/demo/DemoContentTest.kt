@@ -160,9 +160,9 @@ class DemoContentTest {
         assertTrue(choices.any { it.optBoolean("multiple") && it.optBoolean("open") })
         assertTrue(choices.any { it.optBoolean("ordered") })
         assertTrue(choices.any { c -> c.getJSONArray("options").let { o -> (0 until o.length()).any { o.getJSONObject(it).has("color") } } })
-        // A goal judged once, one recurring, one whose validation is closed to the AI, one with sub-goals
+        // A goal launched by hand, one with a schedule, one whose validation is closed to the AI, one with sub-goals
         val goals = content.tools.filter { it.getString("tooltype") == "goal" }.map { it.getJSONObject("config") }
-        assertEquals(setOf("once", "recurring"), goals.map { it.getString("recurrence") }.toSet())
+        assertTrue(goals.any { !it.has("schedule") } && goals.any { it.has("schedule") })
         assertTrue(goals.any { it.optBoolean("ai_no_validation") } && goals.any { it.has("sub_goals") })
         // A chart of each mark the demo stands for: a pie among them
         assertTrue(content.tools.toString().contains("\"arc\""))
@@ -177,16 +177,15 @@ class DemoContentTest {
     }
 
     @Test
-    fun `a moment of a config lands in the demo's weeks`() {
+    fun `the race's attempt runs from the training's start to the race`() {
         val zone = java.time.ZoneId.of("Europe/Paris")
         val now = java.time.ZonedDateTime.of(2026, 10, 14, 15, 0, 0, 0, zone).toInstant().toEpochMilli()
         val data = DemoData(app.treelune.core.selection.TimeResolver(now, zone, 4, "MONDAY"), JSONObject())
-        val race = read().tools.single { it.getString("id") == "demo-course-race" }
-        val config = (DemoContent.dated(race, data::place) as JSONObject).getJSONObject("config")
+        val race = data.attempts(read().tools.associate { it.getString("id") to it.getJSONObject("config") }).single { it.toolId == "demo-course-race" }
         // Started eleven weeks back on a Monday, run on a Sunday six weeks ahead
-        assertEquals(java.time.ZonedDateTime.of(2026, 7, 27, 0, 0, 0, 0, zone).toInstant().toEpochMilli(), config.getLong("start"))
-        assertEquals(java.time.ZonedDateTime.of(2026, 11, 29, 9, 0, 0, 0, zone).toInstant().toEpochMilli(), config.getLong("deadline"))
-        assertFalse(config.toString().contains(DemoContent.AT))
+        assertEquals(java.time.ZonedDateTime.of(2026, 7, 27, 0, 0, 0, 0, zone).toInstant().toEpochMilli(), race.start)
+        assertEquals(java.time.ZonedDateTime.of(2026, 11, 29, 9, 0, 0, 0, zone).toInstant().toEpochMilli(), race.end)
+        assertEquals("active", race.status)
     }
 
     @Test

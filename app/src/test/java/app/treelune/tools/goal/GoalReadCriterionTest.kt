@@ -47,7 +47,7 @@ class GoalReadCriterionTest {
         val goal = coordinator.processUserAction("tools.create", mapOf(
             "zone_id" to zoneId, "tooltype" to "goal",
             "config" to mapOf(
-                "name" to "Course", "recurrence" to "once",
+                "name" to "Course",
                 "criteria" to listOf(mapOf(
                     "key" to "c_sum", "name" to "Sum",
                     "condition" to mapOf(

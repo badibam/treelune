@@ -122,7 +122,8 @@ class DemoDataTest {
 
     @Test
     fun `each goal has a week's attempt for twelve weeks, the current one open, last week's to validate`() {
-        val attempts = data(moments[0]).attempts(goals).groupBy { it.toolId }
+        // The weekly goals; the race's, launched once, is the demo's content test's
+        val attempts = data(moments[0]).attempts(goals).filter { it.toolId != "demo-course-race" }.groupBy { it.toolId }
         assertEquals(setOf("demo-course-goal", "demo-italian-goal"), attempts.keys)
         attempts.values.forEach { list ->
             assertEquals(DemoData.WEEKS, list.size)
@@ -174,7 +175,7 @@ class DemoDataTest {
         // A Sunday afternoon, the week's first day; a Monday just past midnight, still Sunday for the app
         for (now in listOf(at("2026-10-04T15:30"), at("2026-10-05T00:30"))) {
             val data = data(now, weekStart = "sunday")
-            val attempts = data.attempts(goals)
+            val attempts = data.attempts(goals).filter { it.toolId != "demo-course-race" }
             attempts.forEach { attempt ->
                 val start = java.time.Instant.ofEpochMilli(attempt.start).atZone(zone)
                 assertEquals(DayOfWeek.MONDAY, start.dayOfWeek)

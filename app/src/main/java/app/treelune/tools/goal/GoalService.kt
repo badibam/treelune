@@ -31,6 +31,8 @@ import org.json.JSONObject
  * - validate: `id` — computes and freezes the verdict and the values read, who validated (the
  *   call's origin: a person or the AI, never a scheduler) and when; refused while a value is missing
  * - reopen: `id` — a validated or expired attempt back to be validated, which stays in its history
+ * - launch: `tool_instance_id` — an attempt opened now, the one open sent to be validated
+   (GoalScheduler.launch); its id
  *
  * A goal that closes its validation to the AI (GoalToolType.AI_NO_VALIDATION) refuses validate and
  * reopen to the AI, a routine and an AI come through the MCP server; evaluate stays open to them.
@@ -46,6 +48,7 @@ class GoalService(private val context: Context) : ExecutableService {
 
     override suspend fun execute(operation: String, params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
+        if (operation == "launch") return launch(params)
         val id = params.optString("id").takeIf { it.isNotEmpty() } ?: return OperationResult.error(s.shared("service_error_missing_id"))
         val attempt = loadAttempt(id) ?: return OperationResult.error(s.shared("service_error_entry_not_found").format(id))
         return try {
@@ -59,6 +62,16 @@ class GoalService(private val context: Context) : ExecutableService {
             // A read that failed: the operation's error, never a criterion's cause
             OperationResult.error(e.message ?: "")
         }
+    }
+
+    private suspend fun launch(params: JSONObject): OperationResult {
+        val toolInstanceId = params.optString("tool_instance_id").ifEmpty { return OperationResult.error(s.shared("service_error_missing_tool_instance_id")) }
+        val tool = coordinator.processUserAction("tools.get", mapOf("tool_instance_id" to toolInstanceId))
+        @Suppress("UNCHECKED_CAST")
+        val config = ((tool.data?.get("tool_instance") as? Map<*, *>)?.get("config") as? Map<String, Any?>)?.let { JsonUtils.toJSONObject(it) }
+            ?: return OperationResult.error(tool.error ?: s.shared("service_error_tool_instance_not_found"))
+        val id = GoalScheduler.launch(context, toolInstanceId, config) ?: return OperationResult.error(s.tool("error_launch"))
+        return OperationResult.success(mapOf("id" to id))
     }
 
     /** An attempt as the service needs it. */

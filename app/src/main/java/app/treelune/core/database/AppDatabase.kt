@@ -114,7 +114,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 104
+        const val VERSION = 105
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2289,6 +2289,34 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** A goal as a routine: an optional schedule, « Launch now » beside it, the one-off gone (GoalLaunchAtV105). */
+        private val MIGRATION_104_105 = object : ConnectionMigration(104, 105) {
+            override fun migrate(database: MigrationDatabase) {
+                val withAttempts = mutableSetOf<String>()
+                database.query("SELECT DISTINCT tool_instance_id FROM tool_data WHERE tooltype = 'goal'").use { cursor ->
+                    while (cursor.moveToNext()) withAttempts.add(cursor.getString(0))
+                }
+                var count = 0
+                database.query("SELECT id, config_json, created_at FROM tool_instances WHERE tooltype = 'goal'").use { cursor ->
+                    while (cursor.moveToNext()) {
+                        val id = cursor.getString(0)
+                        // A config that cannot be read stays as it was and is logged
+                        try {
+                            val config = org.json.JSONObject(cursor.getString(1))
+                            val next = app.treelune.core.versioning.GoalLaunchAtV105.config("goal", config, cursor.getLong(2), id in withAttempts)
+                            if (next === config) continue
+                            database.execSQL("UPDATE tool_instances SET config_json = ? WHERE id = ?", arrayOf<Any?>(next.toString(), id))
+                            count++
+                        } catch (e: Exception) {
+                            LogManager.database("MIGRATION 104->105: config of goal $id left as it was: ${e.message}", "ERROR", e)
+                        }
+                    }
+                }
+                app.treelune.core.versioning.HistoryCopies.rewrite(database, "tool_instances") { app.treelune.core.versioning.GoalLaunchAtV105.historyCopy(it) { id -> id in withAttempts } }
+                LogManager.database("MIGRATION 104->105: $count goal(s) with an optional schedule, the one-off gone", "INFO")
+            }
+        }
+
         /** The connector gains its own data threshold: see ExternalAccessDataAtV84. */
         private val MIGRATION_83_84 = object : ConnectionMigration(83, 84) {
             override fun migrate(database: MigrationDatabase) {
@@ -3340,7 +3368,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_100_101,
                     MIGRATION_101_102,
                     MIGRATION_102_103,
-                    MIGRATION_103_104
+                    MIGRATION_103_104,
+                    MIGRATION_104_105
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

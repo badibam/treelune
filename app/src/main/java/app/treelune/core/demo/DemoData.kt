@@ -77,6 +77,12 @@ class DemoData(private val time: TimeResolver, private val hand: JSONObject) {
 
     private fun at(date: LocalDate, time: String): Long = time.split(":").let { at(date, it[0].toInt(), it[1].toInt()) }
 
+    /**
+     * The half-marathon's attempt, launched once by hand: from the Monday the training started,
+     * eleven weeks back, to the race, a Sunday at 9:00 six weeks ahead; open, nothing entered yet.
+     */
+    private fun race() = Attempt("demo-course-race", at(day(11, 1), 0, 0), at(day(-6, 7), 9, 0), JSONObject(), JSONObject(), "active", validate = false)
+
     /** A place `[weeks back, weekday, "HH:MM"]` as an instant. */
     fun place(place: JSONArray): Long = at(day(place.getInt(0), place.getInt(1)), place.getString(2))
 
@@ -553,7 +559,7 @@ class DemoData(private val time: TimeResolver, private val hand: JSONObject) {
      * each lasting the goal's duration or up to the next. The scheduler opens the next ones from
      * there, and an attempt off the schedule would not be recognised as the one it is.
      */
-    fun attempts(goals: Map<String, JSONObject>): List<Attempt> = listOf("demo-course-goal", "demo-italian-goal").flatMap { tool ->
+    fun attempts(goals: Map<String, JSONObject>): List<Attempt> = listOf(race()) + listOf("demo-course-goal", "demo-italian-goal").flatMap { tool ->
         val config = goals.getValue(tool)
         val pattern = (StoredSchedule.of(config) as StoredSchedule.Readable).schedule.pattern
         val duration = (config.opt("duration") as? Number)?.toLong()

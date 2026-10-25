@@ -9,6 +9,7 @@ import app.treelune.core.utils.JsonUtils
 import app.treelune.core.utils.LogManager
 import app.treelune.core.utils.ScheduleCalculator
 import app.treelune.core.utils.StoredSchedule
+import kotlinx.coroutines.sync.withLock
 import org.json.JSONObject
 
 /**
@@ -18,10 +19,11 @@ import org.json.JSONObject
  *    criterion forgotten is caught up rather than turned into a false failure. One notification
  *    tells it, once, unless the goal says not to.
  * 2. An attempt left to validate past the goal's delay expires, which is not a failure.
- * 3. A goal switched on opens its attempt, as its recurrence says: a goal set once opens one, from
- *    its start to its deadline; a recurring one opens one at the last occurrence of its schedule
- *    that came, the ones in between not caught up, lasting the goal's duration, or until the next
- *    occurrence. An attempt to validate does not hold the next one back: periods would slide.
+ * 3. A goal switched on with a schedule opens an attempt at the last occurrence that came, the
+ *    ones in between not caught up; one launched by hand opens now (launch). An attempt lasts
+ *    the goal's duration, without an end of its own when it has none: any start sends the open
+ *    one to be validated, its period ending there. An attempt to validate does not hold the next
+ *    one back: periods would slide.
  */
 object GoalScheduler : ToolScheduler {
 
@@ -59,7 +61,6 @@ object GoalScheduler : ToolScheduler {
         val config = JsonUtils.toJSONObject(tool["config"] as Map<String, Any?>)
         val now = System.currentTimeMillis()
         val attempts = attemptsOf(coordinator, id)
-        val s = Strings.`for`(tool = "goal", context = context)
 
         // 1 and 2: periods ended, delays passed; a duration's days counted on the calendar
         val calendar = app.treelune.core.selection.TimeResolver.at(now)
@@ -67,87 +68,100 @@ object GoalScheduler : ToolScheduler {
         for (attempt in attempts) {
             val end = (attempt.state.opt(GoalToolType.PERIOD_END) as? Number)?.toLong() ?: continue
             when (attempt.state.optString(GoalToolType.STATUS)) {
-                GoalToolType.Status.ACTIVE -> if (end <= now) {
-                    setState(coordinator, attempt.id, mapOf(GoalToolType.STATUS to GoalToolType.Status.TO_VALIDATE))
-                    // The event an attempt to validate emits, carrying it, told or not
-                    app.treelune.core.events.EventPoints.emit(context, config, attempt.id)
-                    if (config.optBoolean("notify", true) && !attempt.state.optBoolean(GoalToolType.NOTIFIED)) {
-                        coordinator.processUserAction("notifications.send", mapOf(
-                            "title" to (config.optString("name").ifEmpty { s.tool("display_name") }),
-                            "content" to s.tool("notification_to_validate"),
-                            "priority" to "default",
-                            "icon_name" to config.optString("icon_name").ifEmpty { GoalToolType.getDefaultIconName() },
-                            "tool_instance_id" to id
-                        ))
-                        setState(coordinator, attempt.id, mapOf(GoalToolType.NOTIFIED to true))
-                    }
-                }
+                GoalToolType.Status.ACTIVE -> if (end <= now) toValidate(context, coordinator, id, config, attempt, null)
                 GoalToolType.Status.TO_VALIDATE -> if (calendar.after(end, expiry) <= now) {
                     setState(coordinator, attempt.id, mapOf(GoalToolType.STATUS to GoalToolType.Status.EXPIRED))
                 }
             }
         }
 
-        // 3: the attempt to open, if any
+        // 3: the attempt its schedule opens, if any: the last occurrence come since the last
+        // attempt (since the goal was made, for the first), the ones in between not caught up
         if (!config.optBoolean("enabled", true)) return
-        val opening: Pair<Long, Long?>? = when (val recurrence = config.optString(GoalToolType.RECURRENCE)) {
-            GoalToolType.Recurrence.ONCE -> {
-                val start = (config.opt("start") as? Number)?.toLong() ?: ((tool["created_at"] as? Number)?.toLong() ?: now)
-                if (attempts.isEmpty() && start <= now) start to (config.opt("deadline") as? Number)?.toLong()
-                else null
+        val schedule = when (val stored = StoredSchedule.of(config)) {
+            is StoredSchedule.Unreadable -> {
+                LogManager.service("GoalScheduler: schedule of goal $id unreadable (${stored.cause}), nothing opened", "ERROR")
+                return
             }
-            GoalToolType.Recurrence.RECURRING -> when (val stored = StoredSchedule.of(config)) {
-                is StoredSchedule.Unreadable -> {
-                    LogManager.service("GoalScheduler: schedule of goal $id unreadable (${stored.cause}), nothing opened", "ERROR")
-                    null
-                }
-                StoredSchedule.None -> {
-                    LogManager.service("GoalScheduler: recurring goal $id has no schedule, nothing opened", "ERROR")
-                    null
-                }
-                is StoredSchedule.Readable -> {
-                    val schedule = stored.schedule
-                    val duration = (config.opt("duration") as? Number)?.toLong()
-                    val latest = attempts.maxOfOrNull { it.start }
-                    // The last occurrence that came since the last attempt (since the goal was made, for the first)
-                    var cursor = latest ?: ((tool["created_at"] as? Number)?.toLong() ?: now)
-                    var due: Long? = null
-                    var steps = 0
-                    while (steps++ < MAX_STEPS) {
-                        val next = ScheduleCalculator.calculateNextExecution(schedule.pattern, cursor) ?: break
-                        if (next > now || next <= cursor) break
-                        due = next
-                        cursor = next
-                    }
-                    due?.takeIf { d -> attempts.none { it.start == d } }?.let { start ->
-                        val end = duration?.let { calendar.after(start, it) }
-                            ?: ScheduleCalculator.calculateNextExecution(schedule.pattern, start)?.let { it - 1 }
-                        start to end
-                    }
-                }
-            }
-            else -> {
-                LogManager.service("GoalScheduler: goal $id says neither once nor recurring ('$recurrence'), nothing opened", "ERROR")
-                null
-            }
+            // Launched by hand alone
+            StoredSchedule.None -> return
+            is StoredSchedule.Readable -> stored.schedule
         }
-        opening?.let { (start, end) ->
-            // One active attempt at a time: the one before goes to be validated
-            attempts.filter { it.state.optString(GoalToolType.STATUS) == GoalToolType.Status.ACTIVE }.forEach {
-                setState(coordinator, it.id, mapOf(GoalToolType.STATUS to GoalToolType.Status.TO_VALIDATE))
+        val latest = attempts.maxOfOrNull { it.start }
+        var cursor = latest ?: ((tool["created_at"] as? Number)?.toLong() ?: now)
+        var due: Long? = null
+        var steps = 0
+        while (steps++ < MAX_STEPS) {
+            val next = ScheduleCalculator.calculateNextExecution(schedule.pattern, cursor) ?: break
+            if (next > now || next <= cursor) break
+            due = next
+            cursor = next
+        }
+        due?.takeIf { d -> attempts.none { it.start == d } }?.let { open(context, coordinator, id, config, attempts, it) }
+    }
+
+    /**
+     * An attempt of the goal [toolInstanceId] opened now by hand (« Launch now »: its page, a
+     * Task's step, the AI), its schedule left as it is: the next occurrence will send it to be
+     * validated as any start does.
+     */
+    suspend fun launch(context: Context, toolInstanceId: String, config: JSONObject): String? = passLock.withLock {
+        val coordinator = Coordinator(context)
+        open(context, coordinator, toolInstanceId, config, attemptsOf(coordinator, toolInstanceId), System.currentTimeMillis())
+    }
+
+    /**
+     * An attempt of [toolInstanceId] opened at [start], ending at [start] plus the goal's
+     * duration, without an end of its own otherwise: any start — its schedule's or a launch —
+     * sends the attempt open to be validated, its period ending there. Its id; null when it was
+     * not written, which the log says.
+     */
+    private suspend fun open(context: Context, coordinator: Coordinator, toolInstanceId: String, config: JSONObject, attempts: List<AttemptState>, start: Long): String? {
+        val s = Strings.`for`(tool = "goal", context = context)
+        attempts.filter { it.state.optString(GoalToolType.STATUS) == GoalToolType.Status.ACTIVE }.forEach {
+            toValidate(context, coordinator, toolInstanceId, config, it, start)
+        }
+        val end = (config.opt("duration") as? Number)?.toLong()?.let { app.treelune.core.selection.TimeResolver.at(start).after(start, it) }
+        // As the scheduler: the copy of the definition is the app's to write
+        val created = coordinator.processScheduledTask("tool_data.create", mapOf(
+            "tool_instance_id" to toolInstanceId,
+            "name" to (config.optString("name").ifEmpty { s.tool("display_name") }),
+            "timestamp" to start,
+            "data" to mapOf(GoalToolType.DEFINITION to GoalDefinition.copyOf(config).toString()),
+            "state" to buildMap {
+                put(GoalToolType.STATUS, GoalToolType.Status.ACTIVE)
+                end?.let { put(GoalToolType.PERIOD_END, it) }
             }
-            // As the scheduler: the copy of the definition is the app's to write
-            val created = coordinator.processScheduledTask("tool_data.create", mapOf(
-                "tool_instance_id" to id,
-                "name" to (config.optString("name").ifEmpty { s.tool("display_name") }),
-                "timestamp" to start,
-                "data" to mapOf(GoalToolType.DEFINITION to GoalDefinition.copyOf(config).toString()),
-                "state" to buildMap {
-                    put(GoalToolType.STATUS, GoalToolType.Status.ACTIVE)
-                    end?.let { put(GoalToolType.PERIOD_END, it) }
-                }
+        ))
+        if (!created.isSuccess) {
+            LogManager.service("GoalScheduler: attempt of goal $toolInstanceId not opened: ${created.error}", "ERROR")
+            return null
+        }
+        return created.data?.get("id") as? String
+    }
+
+    /**
+     * [attempt] sent to be validated, its period ending at [cutAt] when a start cuts it short
+     * (null: at its own end): its event emitted, carrying it, told or not, and its notification
+     * sent once unless the goal says not to.
+     */
+    private suspend fun toValidate(context: Context, coordinator: Coordinator, toolInstanceId: String, config: JSONObject, attempt: AttemptState, cutAt: Long?) {
+        val s = Strings.`for`(tool = "goal", context = context)
+        val end = (attempt.state.opt(GoalToolType.PERIOD_END) as? Number)?.toLong()
+        setState(coordinator, attempt.id, buildMap {
+            put(GoalToolType.STATUS, GoalToolType.Status.TO_VALIDATE)
+            if (cutAt != null && (end == null || end > cutAt)) put(GoalToolType.PERIOD_END, cutAt)
+        })
+        app.treelune.core.events.EventPoints.emit(context, config, attempt.id)
+        if (config.optBoolean("notify", true) && !attempt.state.optBoolean(GoalToolType.NOTIFIED)) {
+            coordinator.processUserAction("notifications.send", mapOf(
+                "title" to (config.optString("name").ifEmpty { s.tool("display_name") }),
+                "content" to s.tool("notification_to_validate"),
+                "priority" to "default",
+                "icon_name" to config.optString("icon_name").ifEmpty { GoalToolType.getDefaultIconName() },
+                "tool_instance_id" to toolInstanceId
             ))
-            if (!created.isSuccess) LogManager.service("GoalScheduler: attempt of goal $id not opened: ${created.error}", "ERROR")
+            setState(coordinator, attempt.id, mapOf(GoalToolType.NOTIFIED to true))
         }
     }
 

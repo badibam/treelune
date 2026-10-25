@@ -569,21 +569,6 @@
             ]
           }
         ],
-        "recurrence": "once",
-        "start": {
-          "demo_at": [
-            11,
-            1,
-            "00:00"
-          ]
-        },
-        "deadline": {
-          "demo_at": [
-            -6,
-            7,
-            "09:00"
-          ]
-        },
         "enabled": true,
         "notify": true,
         "ai_no_validation": true
@@ -603,7 +588,6 @@
         "group": "@course_group_analysis",
         "enabled": true,
         "notify": true,
-        "recurrence": "recurring",
         "duration": 604800000,
         "schedule": {
           "pattern": {
@@ -2441,7 +2425,6 @@
         "display_mode": "CONDENSED",
         "enabled": true,
         "notify": true,
-        "recurrence": "recurring",
         "duration": 604800000,
         "schedule": {
           "pattern": {

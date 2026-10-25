@@ -13,10 +13,6 @@ import org.json.JSONObject
  * A zone or a tool carries its place in its grid section beside its parameters, as `grid_x` and
  * `grid_y`; the installer places them once the section is built.
  *
- * A moment of a config, as a goal's start, is written `{"demo_at": [weeks back, ISO weekday,
- * "HH:MM"]}`, the weeks counted back from the current one as the entries are (DemoData.place), a
- * negative number for the weeks to come: the installer puts the instant in its place.
- *
  * @property group The name of the home screen's zone group the demo's zones stand in
  * @property identities The `identities.create` parameters of each identity, with `texts`, the
  *           `identities.update` parameters that write its voice, mind, portrait and bagage, beside them
@@ -47,9 +43,6 @@ class DemoContent(
 
         /** The keys of a zone's or a tool's place, which are no parameter of its create. */
         val PLACE = listOf("grid_x", "grid_y")
-
-        /** The key of a moment placed in the demo's weeks, in a config. */
-        const val AT = "demo_at"
 
         /** The key of an image shipped in assets/demo/images, by its file's name, in an entry's IMAGE field. */
         const val IMAGE = "demo_image"
@@ -96,14 +89,6 @@ class DemoContent(
 
         private fun text(key: String, texts: JSONObject): String =
             texts.optString(key).takeIf { it.isNotEmpty() } ?: error("Demo text '$key' missing")
-
-        /** [value] with each `{"demo_at": […]}` replaced by the instant [place] gives it, at any depth. */
-        fun dated(value: Any?, place: (JSONArray) -> Long): Any? = when (value) {
-            is JSONObject -> if (value.has(AT)) place(value.getJSONArray(AT))
-                else JSONObject().also { out -> value.keys().forEach { out.put(it, dated(value.get(it), place)) } }
-            is JSONArray -> JSONArray().also { out -> (0 until value.length()).forEach { out.put(dated(value.get(it), place)) } }
-            else -> value
-        }
 
         /**
          * [value] with each `{"demo_image": "tomato.jpg"}` replaced by the id [prepare] gives that

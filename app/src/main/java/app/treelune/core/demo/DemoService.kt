@@ -103,7 +103,7 @@ class DemoService(private val context: Context) : ExecutableService {
         var created = 0
         suspend fun create(tool: JSONObject) {
             LongOperation.at(s.shared("demo_phase_tools").format((created++).toString(), content.tools.size.toString()))
-            run("tools.create", DemoContent.paramsOf(DemoContent.dated(tool, data::place) as JSONObject))
+            run("tools.create", DemoContent.paramsOf(tool))
         }
         others.forEach { create(it) }
         content.variables.forEach { run("variables.create", it) }

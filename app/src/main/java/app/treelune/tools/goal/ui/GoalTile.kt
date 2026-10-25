@@ -108,17 +108,14 @@ fun rememberGoalTile(tool: ToolInstance): ToolTile {
             }
             !config.optBoolean("enabled", true) ->
                 s.tool("tile_stopped") to (last?.let { s.tool("status_${it.status}") } ?: "")
-            config.optString(GoalToolType.RECURRENCE) == GoalToolType.Recurrence.ONCE && last != null ->
-                s.tool("status_${last.status}") to DateUtils.formatDateForDisplay(last.start)
-            else -> {
-                val next = when (config.optString(GoalToolType.RECURRENCE)) {
-                    GoalToolType.Recurrence.ONCE -> (config.opt("start") as? Number)?.toLong()
-                    GoalToolType.Recurrence.RECURRING -> (StoredSchedule.of(config) as? StoredSchedule.Readable)?.let {
-                        ScheduleCalculator.calculateNextExecution(it.schedule.pattern, System.currentTimeMillis())
-                    }
-                    else -> null
+            else -> when (val stored = StoredSchedule.of(config)) {
+                // Its schedule opens the next one
+                is StoredSchedule.Readable -> {
+                    val next = ScheduleCalculator.calculateNextExecution(stored.schedule.pattern, System.currentTimeMillis())
+                    s.tool("tile_between") to (next?.let { s.tool("tile_next").format(FormatUtils.formatRelativeTime(it, context)) } ?: "")
                 }
-                s.tool("tile_between") to (next?.let { s.tool("tile_next").format(FormatUtils.formatRelativeTime(it, context)) } ?: "")
+                // Launched by hand: the last one, or none yet
+                else -> last?.let { s.tool("status_${it.status}") to DateUtils.formatDateForDisplay(it.start) } ?: (s.tool("tile_to_launch") to "")
             }
         }
     }

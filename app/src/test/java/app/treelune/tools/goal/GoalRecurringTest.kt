@@ -91,7 +91,7 @@ class GoalRecurringTest {
         ))
         assertTrue(runs.error, runs.isSuccess)
         val config = mutableMapOf<String, Any?>(
-            "name" to "Run daily", "recurrence" to "recurring", "enabled" to true, "expiry_delay" to day,
+            "name" to "Run daily", "enabled" to true, "expiry_delay" to day,
             "schedule" to mapOf("pattern" to mapOf("type" to "DailyMultiple", "times" to listOf("06:00"))),
             "criteria" to listOf(mapOf(
                 "key" to "c_sum", "name" to "Sum",

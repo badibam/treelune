@@ -78,6 +78,7 @@ fun GoalScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureCl
     // An attempt opened from the tile, one to validate, or none
     var openId by rememberSaveable { mutableStateOf(openEntryId) }
     var tab by rememberSaveable { mutableIntStateOf(0) }
+    var confirmLaunch by remember { mutableStateOf(false) }
 
     LaunchedEffect(toolInstanceId, version) {
         val tool = coordinator.processUserAction("tools.get", mapOf("tool_instance_id" to toolInstanceId))
@@ -102,6 +103,14 @@ fun GoalScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureCl
     fun operation(name: String, id: String) {
         scope.launch {
             val result = coordinator.processUserAction("goal.$name", mapOf("tool_instance_id" to toolInstanceId, "id" to id))
+            if (!result.isSuccess) errorMessage = result.error else version++
+        }
+    }
+
+    // « Launch now »: an attempt opened at once, the one open going to be validated
+    fun launch() {
+        scope.launch {
+            val result = coordinator.processUserAction("goal.launch", mapOf("tool_instance_id" to toolInstanceId))
             if (!result.isSuccess) errorMessage = result.error else version++
         }
     }
@@ -154,6 +163,15 @@ fun GoalScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfigureCl
                 if (current != null) AttemptCard(current, loadedConfig, toolInstanceId, version, s, onError = { errorMessage = it },
                     onValidate = { operation("validate", current.id) }, onReopen = {})
                 else UI.Text(s.tool("no_attempt"), TextType.CAPTION)
+                UI.Button(type = ButtonType.SECONDARY, onClick = { if (current != null) confirmLaunch = true else launch() }) {
+                    UI.Text(s.tool("launch_now"), TextType.BODY)
+                }
+                if (confirmLaunch) UI.ConfirmDialog(
+                    title = s.tool("launch_now"),
+                    message = s.tool("launch_confirm"),
+                    onConfirm = { confirmLaunch = false; launch() },
+                    onDismiss = { confirmLaunch = false }
+                )
             }
             else -> {
                 if (history.isEmpty()) UI.Text(s.tool("history_empty"), TextType.CAPTION)
