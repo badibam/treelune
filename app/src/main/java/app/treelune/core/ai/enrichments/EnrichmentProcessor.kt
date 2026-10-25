@@ -4,7 +4,9 @@ import android.content.Context
 import app.treelune.core.ai.data.DataCommand
 import app.treelune.core.ai.data.EnrichmentType
 import app.treelune.core.coordinator.isSuccess
+import app.treelune.core.conditions.Conditions
 import app.treelune.core.selection.EntrySelection
+import app.treelune.core.selection.Reference
 import app.treelune.core.selection.ReferenceKind
 import app.treelune.core.strings.Strings
 import app.treelune.core.utils.LogManager
@@ -172,8 +174,23 @@ class EnrichmentProcessor(
                 }
                 if (pointer.entries) addAll(entriesQueries(toolInstanceId, pointer.selection, isRelative))
             }
-            // No selector designates them yet
-            ReferenceKind.APP, ReferenceKind.ENTRY, ReferenceKind.VARIABLE -> {
+            // One entry: its tool's config, and that entry alone, read by its id
+            ReferenceKind.ENTRY -> buildList {
+                val toolInstanceId = app.treelune.core.database.AppDatabase.getDatabase(context).toolDataDao().getById(id!!)?.toolInstanceId
+                    ?: return@buildList LogManager.aiEnrichment("POINTER: entry $id no longer exists, nothing attached", "INFO")
+                if (pointer.config) {
+                    val params = mapOf<String, Any>("id" to toolInstanceId)
+                    add(DataCommand(id = buildQueryId("tool_config", params), type = "TOOL_CONFIG", params = params, isRelative = isRelative))
+                    add(configSchemaQuery(resolveTooltype(toolInstanceId), isRelative))
+                }
+                if (pointer.entries) {
+                    val one = EntrySelection(Reference(ReferenceKind.TOOL_INSTANCE, toolInstanceId),
+                        filters = org.json.JSONArray().put(Conditions.onField(app.treelune.core.fields.EntryFilters.ID, "=", id)))
+                    addAll(entriesQueries(toolInstanceId, one, isRelative))
+                }
+            }
+            // No selector designates them
+            ReferenceKind.APP, ReferenceKind.VARIABLE -> {
                 LogManager.aiEnrichment("POINTER: a ${pointer.target.kind} target cannot be read yet", "WARN")
                 emptyList()
             }

@@ -13,6 +13,7 @@ import org.json.JSONObject
  *
  * A zone takes a period, applied to each of its tools; a tool a period, conditions on its entries
  * and a choice of fields, which are a tool's own: they have no sense across the tools of a zone.
+ * An entry, where its context takes one (a message's pointer), is that entry alone: nothing narrows it.
  *
  * @property filters Conditions put on each entry (Conditions), the period apart
  * @property fields The fields kept, all of them when null
@@ -20,19 +21,21 @@ import org.json.JSONObject
 data class SelectionDraft(
     val zone: Named? = null,
     val tool: Named? = null,
+    val entry: Named? = null,
     val period: EntryPeriod = EntryPeriod(),
     val filters: JSONArray = JSONArray(),
     val fields: List<String>? = null
 ) {
     /** The kind of the deepest place reached: the app until a zone is chosen. */
     val level: ReferenceKind get() = when {
+        entry != null -> ReferenceKind.ENTRY
         tool != null -> ReferenceKind.TOOL_INSTANCE
         zone != null -> ReferenceKind.ZONE
         else -> ReferenceKind.APP
     }
 
     /** Where the picker stands, for its browser. */
-    val path: ThingPath get() = ThingPath(zone, tool)
+    val path: ThingPath get() = ThingPath(zone, tool, entry)
 
     /** Whether the entries are narrowed, by a period or a condition. */
     val narrowed: Boolean get() = !period.isEmpty || filters.length() > 0
@@ -41,8 +44,8 @@ data class SelectionDraft(
     fun at(path: ThingPath): SelectionDraft = when {
         path.zone == null -> upTo(ReferenceKind.APP)
         path.tool == null -> if (path.zone == zone) upTo(ReferenceKind.ZONE) else intoZone(path.zone)
-        path.tool == tool -> this
-        else -> (if (path.zone == zone) this else intoZone(path.zone)).intoTool(path.tool)
+        path.tool == tool -> if (path.entry == null) copy(entry = null) else copy(entry = path.entry)
+        else -> (if (path.zone == zone) this else intoZone(path.zone)).intoTool(path.tool).copy(entry = path.entry)
     }
 
     /** Into [zone]: the period stays, which a zone takes as well. */
@@ -55,6 +58,7 @@ data class SelectionDraft(
     fun upTo(level: ReferenceKind): SelectionDraft = when (level) {
         ReferenceKind.APP -> SelectionDraft()
         ReferenceKind.ZONE -> SelectionDraft(zone = zone, period = period)
+        ReferenceKind.TOOL_INSTANCE -> copy(entry = null)
         else -> this
     }
 
@@ -65,6 +69,8 @@ data class SelectionDraft(
      */
     fun selection(): EntrySelection {
         val isTool = level == ReferenceKind.TOOL_INSTANCE
+        // One entry is that entry: no period, no condition, all its fields
+        if (level == ReferenceKind.ENTRY) return EntrySelection(Reference(ReferenceKind.ENTRY, entry!!.id))
         return EntrySelection(
             target = when (level) {
                 ReferenceKind.TOOL_INSTANCE -> Reference(ReferenceKind.TOOL_INSTANCE, tool!!.id)
@@ -80,6 +86,7 @@ data class SelectionDraft(
     fun toJson(): JSONObject = JSONObject().apply {
         zone?.let { put("zone", it.toJson()) }
         tool?.let { put("tool", it.toJson()) }
+        entry?.let { put("entry", it.toJson()) }
         put("period", period.toJson())
         put("filters", filters)
         fields?.let { put("fields", JSONArray(it)) }
@@ -89,6 +96,7 @@ data class SelectionDraft(
         fun fromJson(json: JSONObject) = SelectionDraft(
             zone = json.optJSONObject("zone")?.let { Named.fromJson(it) },
             tool = json.optJSONObject("tool")?.let { Named.fromJson(it) },
+            entry = json.optJSONObject("entry")?.let { Named.fromJson(it) },
             // The picker's own state, written by toJson: its dates read
             period = EntryPeriod.fromJson(json.getJSONObject("period")) { it },
             filters = json.getJSONArray("filters"),
@@ -99,6 +107,7 @@ data class SelectionDraft(
         fun of(selection: EntrySelection, path: ThingPath) = SelectionDraft(
             zone = path.zone,
             tool = path.tool,
+            entry = path.entry,
             period = selection.period,
             filters = selection.filters,
             fields = selection.fields

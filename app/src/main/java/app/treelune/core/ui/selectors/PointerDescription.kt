@@ -125,7 +125,7 @@ object PointerDescription {
         draft.fields?.let { kept -> add(s.shared("pointer_part_fields").format(fieldLabels(fields).let { labels -> kept.joinToString(", ") { labels[it] ?: it } })) }
     }
 
-    /** The name of the place the selection reached. */
+    /** The name of the place the selection reached, an entry's tool for its config. */
     private fun targetName(draft: SelectionDraft): String = draft.tool?.name ?: draft.zone?.name ?: ""
 
     /**
@@ -135,7 +135,8 @@ object PointerDescription {
     fun summary(selection: PointerSelection, fields: Map<String, FieldDefinition>, s: StringsContext): String {
         val name = targetName(selection.draft)
         val narrowing = narrowing(selection.draft, fields, s)
-        val entries = (listOf(s.shared("pointer_part_entries").format(name)) + narrowing).joinToString(", ")
+        val entries = selection.draft.entry?.let { s.shared("pointer_part_entry").format(it.name) }
+            ?: (listOf(s.shared("pointer_part_entries").format(name)) + narrowing).joinToString(", ")
         return when {
             !selection.config && !selection.entries && narrowing.isEmpty() -> s.shared("pointer_summary_mention")
             !selection.config && !selection.entries -> s.shared("pointer_summary_mention_entries").format(entries)

@@ -84,7 +84,7 @@ A brick does not know the screen that uses it; the screen gives it what it needs
 |---|---|---|
 | REFERENCE field of an entry | Thing | done |
 | DATE or DATETIME field of an entry | Instant, without reference | done |
-| Pointer of a message to the AI | Thing (zone, tool) + Period + Filters + fields + attach or mention | done, its selection assembled by hand |
+| Pointer of a message to the AI | Thing (zone, tool, or one entry, read by its id) + Period + Filters + fields + attach or mention | done, its selection assembled by hand |
 | Access mask of an automation or of a connector's client | a list of Things (zone, tool), each with a level (`AccessMask`, `{"target", "level"}`) | done, chosen by the REFERENCE field's selector |
 | Term of a variable | Term, the period of its Reading relative to the instant read | done, with its own selectors |
 | A Sequence step's images and sound or video | a Term of files each: a fixed value the tool owns, or one entry's file field followed, read when a session starts | done |

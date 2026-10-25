@@ -14,8 +14,8 @@ data class PointerSelection(
     val config: Boolean = false,
     val entries: Boolean = false
 ) {
-    /** A pointer can be made once a zone or a tool is reached. */
-    val complete: Boolean get() = draft.level == ReferenceKind.ZONE || draft.level == ReferenceKind.TOOL_INSTANCE
+    /** A pointer can be made once a zone, a tool or one of its entries is reached. */
+    val complete: Boolean get() = draft.level == ReferenceKind.ZONE || draft.level == ReferenceKind.TOOL_INSTANCE || draft.level == ReferenceKind.ENTRY
 
     /** The pointer to store: a selection of the core, its period apart from its conditions. */
     fun pointer(): PointerConfig = PointerConfig(selection = draft.selection(), config = config, entries = entries)

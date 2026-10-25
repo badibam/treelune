@@ -79,6 +79,8 @@
     <string name="pointer_choose_fields">Choisir les champs</string>
     <string name="pointer_part_config">la config de %1$s</string>
     <string name="pointer_part_entries">les entrées de %1$s</string>
+    <string name="pointer_part_entry">l\'entrée %1$s</string>
+    <string name="selection_entry_in_tool">%1$s, dans %2$s</string>
     <string name="pointer_part_fields">champs : %1$s</string>
     <string name="pointer_summary_mention">Mention seule : l\'IA voit le nom, rien n\'est joint</string>
     <string name="pointer_summary_mention_entries">Mention : %1$s. Rien n\'est joint, l\'IA peut les demander</string>

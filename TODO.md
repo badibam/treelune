@@ -39,7 +39,6 @@ Codé, jamais vu sur l'appareil.
 
 ## À concevoir
 
-- Le pointeur d'un message vers une entrée précise (le sélecteur en offre aujourd'hui une zone ou un outil) : l'IA n'a pas de lecture d'une entrée par son id, à ajouter à `TOOL_DATA` (paramètre, prompt, exemples vérifiés) ou en commande à part, avant de l'offrir au bouton Pointer.
 - Un contrôle « qui dépend de ça ? » avant de supprimer une chose (une condition, une variable, un pointeur qui la visent), écrit une fois, appelé par le service qui supprime et par l'annulation qui supprime une ligne.
 - Les événements du cœur, un déclencheur des routines et des Tâches à côté du planning (`ExecutionTrigger.EVENT`) : quel premier usage — un événement de l'Agenda qui commence, une entrée écrite, une condition devenue vraie (l'Alerte), une séance terminée ?
 - Des outils montrés sur la tuile d'une zone de l'accueil (le poids du jour sur « Santé ») : leur résumé ou un raccourci selon la place de la tuile — lesquels, dans quel ordre, un outil montré à deux endroits.
