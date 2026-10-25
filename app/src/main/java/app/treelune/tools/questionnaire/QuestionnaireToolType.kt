@@ -111,7 +111,8 @@ object QuestionnaireToolType : ToolTypeContract {
         return listOf(
             ToolOperation("complete", s.tool("operation_complete"), listOf(id)),
             ToolOperation("ignore", s.tool("operation_ignore"), listOf(id)),
-            ToolOperation("ignore_all", s.tool("operation_ignore_all"), emptyList())
+            ToolOperation("ignore_all", s.tool("operation_ignore_all"), emptyList()),
+            ToolOperation("invite", s.tool("operation_invite"), emptyList())
         )
     }
 

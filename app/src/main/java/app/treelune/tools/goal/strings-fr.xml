@@ -120,4 +120,5 @@
     <string name="error_launch">La tentative n\'a pas été ouverte</string>
     <string name="launch_now">Lancer maintenant</string>
     <string name="launch_confirm">Une tentative est en cours : en lancer une la passe à valider.</string>
+    <string name="verbalize_launch">Lancement d\'une tentative</string>
 </resources>

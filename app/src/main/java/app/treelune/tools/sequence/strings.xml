@@ -185,4 +185,7 @@
     <string name="schema_ended_at">When the session ended</string>
     <string name="field_notify">Notify</string>
     <string name="schema_notify">A notification at each planned session</string>
+    <string name="operation_plan">Plans a session now, beside the schedule: an entry planned dated now, its notification and its event as a scheduled session's</string>
+    <string name="error_plan">The session was not planned</string>
+    <string name="verbalize_plan">Session planned now</string>
 </resources>

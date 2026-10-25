@@ -57,4 +57,7 @@
     <string name="entry_state">Whether the sitting is to fill, filled or ignored, and when it was filled</string>
     <string name="field_notify">Notify</string>
     <string name="schema_notify">A notification at each invitation</string>
+    <string name="operation_invite">Invites to fill the questionnaire now, beside its schedule: an entry to fill dated now, its notification and its event as a planned invitation's</string>
+    <string name="error_invite">The invitation was not created</string>
+    <string name="verbalize_invite">Invitation to fill now</string>
 </resources>

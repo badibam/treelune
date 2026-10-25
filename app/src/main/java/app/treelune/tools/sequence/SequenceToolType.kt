@@ -265,7 +265,8 @@ object SequenceToolType : ToolTypeContract {
                     s.tool("schema_step_statuses"), choice(SequenceSteps.STATUSES) { s.tool("step_status_$it") })), description = s.tool("schema_step_statuses_list"))
             )),
             ToolOperation(SequenceService.IGNORE, s.tool("operation_ignore"), listOf(id)),
-            ToolOperation(SequenceService.IGNORE_ALL, s.tool("operation_ignore_all"), emptyList())
+            ToolOperation(SequenceService.IGNORE_ALL, s.tool("operation_ignore_all"), emptyList()),
+            ToolOperation(SequenceService.PLAN, s.tool("operation_plan"), emptyList())
         )
     }
 

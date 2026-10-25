@@ -27,6 +27,7 @@ class QuestionnaireService(private val context: Context) : ExecutableService {
             "complete" -> setStatus(params.optString("id"), QuestionnaireToolType.Status.FILLED)
             "ignore" -> setStatus(params.optString("id"), QuestionnaireToolType.Status.IGNORED)
             "ignore_all" -> ignoreAll(params.optString("tool_instance_id"))
+            "invite" -> invite(params.optString("tool_instance_id"))
             else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
         }
     }
@@ -37,6 +38,17 @@ class QuestionnaireService(private val context: Context) : ExecutableService {
         if (status == QuestionnaireToolType.Status.FILLED) state[QuestionnaireToolType.FILLED_AT] = System.currentTimeMillis()
         val result = coordinator.processUserAction("tool_data.update", mapOf("id" to id, "state" to state))
         return if (result.isSuccess) OperationResult.success(mapOf("id" to id, "status" to status)) else OperationResult.error(result.error ?: "")
+    }
+
+    /** An invitation asked now, beside the schedule (QuestionnaireScheduler.invite): its id. */
+    private suspend fun invite(toolInstanceId: String): OperationResult {
+        if (toolInstanceId.isEmpty()) return OperationResult.error(s.shared("service_error_missing_tool_instance_id"))
+        val tool = coordinator.processUserAction("tools.get", mapOf("tool_instance_id" to toolInstanceId))
+        @Suppress("UNCHECKED_CAST")
+        val config = ((tool.data?.get("tool_instance") as? Map<*, *>)?.get("config") as? Map<String, Any?>)?.let { app.treelune.core.utils.JsonUtils.toJSONObject(it) }
+            ?: return OperationResult.error(tool.error ?: s.shared("service_error_tool_instance_not_found"))
+        val id = QuestionnaireScheduler.invite(context, toolInstanceId, config) ?: return OperationResult.error(s.tool("error_invite"))
+        return OperationResult.success(mapOf("id" to id))
     }
 
     private suspend fun ignoreAll(toolInstanceId: String): OperationResult {
@@ -57,6 +69,6 @@ class QuestionnaireService(private val context: Context) : ExecutableService {
 
     override suspend fun verbalize(operation: String, params: JSONObject, context: Context): String {
         val s = Strings.`for`(tool = "questionnaire", context = context)
-        return s.tool("verbalize_$operation").takeIf { operation in setOf("complete", "ignore", "ignore_all") } ?: s.shared("action_verbalize_unknown")
+        return s.tool("verbalize_$operation").takeIf { operation in setOf("complete", "ignore", "ignore_all", "invite") } ?: s.shared("action_verbalize_unknown")
     }
 }

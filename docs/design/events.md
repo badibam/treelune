@@ -97,7 +97,7 @@ Deux, tous deux dans l'écran des limites de l'IA, à côté des appels par exé
 
 ## Découpage
 
-1. Le « quand ? » des Tâches et des routines (fait) ; les opérations « maintenant » des outils actifs, l'Objectif comme une routine.
+1. Le « quand ? » des Tâches et des routines ; les opérations « maintenant » des outils actifs, l'Objectif comme une routine (fait).
 2. Les événements et l'étape « émettre » ; ce que reçoit ce qui part (fait).
 3. Les endroits où l'app prévient (fait).
 4. La condition qui devient vraie, pour les Tâches et les routines (fait). L'Alerte n'est pas un outil : une Tâche sans étape qui écoute une condition, prévenue à la fin, a déjà sa tuile, ses exécutions à lire, sa notification et son émission.

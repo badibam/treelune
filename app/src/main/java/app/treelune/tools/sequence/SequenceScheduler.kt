@@ -15,7 +15,8 @@ import app.treelune.core.utils.StoredSchedule
  * invitations: at each time its schedule gives, one entry « planned », dated from that time, and
  * one notification. The times that came while the app did not run are created too, for « Ignore
  * all » on the way back from an absence, the notification only for the last one. A planned
- * session never done stays planned: « missed » is read from it.
+ * session never done stays planned: « missed » is read from it. A session planned now (plan: a
+ * Task's step, the AI) is one more, dated from its asking, which no time of the schedule matches.
  */
 object SequenceScheduler : ToolScheduler {
 
@@ -95,19 +96,43 @@ object SequenceScheduler : ToolScheduler {
             if (!created.isSuccess) LogManager.service("SequenceScheduler: entry of $id at $time not created: ${created.error}", "ERROR")
             else last = created.data?.get("id") as? String
         }
-        if (due.isNotEmpty()) {
-            if (config.optBoolean("notify", true)) {
-                val s = Strings.`for`(tool = "sequence", context = context)
-                coordinator.processUserAction("notifications.send", mapOf(
-                    "title" to (config.optString("name").ifEmpty { s.tool("display_name") }),
-                    "content" to s.tool("notification_planned"),
-                    "priority" to "default",
-                    "icon_name" to config.optString("icon_name").ifEmpty { SequenceToolType.getDefaultIconName() },
-                    "tool_instance_id" to id
-                ))
-            }
-            // Notified or not
-            app.treelune.core.events.EventPoints.emit(context, config, last)
+        if (due.isNotEmpty()) told(context, coordinator, id, config, last)
+    }
+
+    /**
+     * A session of [toolInstanceId] planned now, beside its schedule: its entry « planned », dated
+     * now, its notification and its event as a scheduled one's. Its id; null when it was not
+     * written, which the log says.
+     */
+    suspend fun plan(context: Context, toolInstanceId: String, config: org.json.JSONObject): String? {
+        val coordinator = Coordinator(context)
+        val created = coordinator.processUserAction("tool_data.create", mapOf(
+            "tool_instance_id" to toolInstanceId,
+            "timestamp" to System.currentTimeMillis(),
+            "data" to emptyMap<String, Any>(),
+            "state" to mapOf(SequenceToolType.STATUS to SequenceToolType.Status.PLANNED)
+        ))
+        if (!created.isSuccess) {
+            LogManager.service("SequenceScheduler: session of $toolInstanceId not planned: ${created.error}", "ERROR")
+            return null
         }
+        val id = created.data?.get("id") as? String
+        told(context, coordinator, toolInstanceId, config, id)
+        return id
+    }
+
+    /** The planned session [entryId] told, unless the sequence says not to, and its event emitted, told or not. */
+    private suspend fun told(context: Context, coordinator: Coordinator, toolInstanceId: String, config: org.json.JSONObject, entryId: String?) {
+        if (config.optBoolean("notify", true)) {
+            val s = Strings.`for`(tool = "sequence", context = context)
+            coordinator.processUserAction("notifications.send", mapOf(
+                "title" to (config.optString("name").ifEmpty { s.tool("display_name") }),
+                "content" to s.tool("notification_planned"),
+                "priority" to "default",
+                "icon_name" to config.optString("icon_name").ifEmpty { SequenceToolType.getDefaultIconName() },
+                "tool_instance_id" to toolInstanceId
+            ))
+        }
+        app.treelune.core.events.EventPoints.emit(context, config, entryId)
     }
 }

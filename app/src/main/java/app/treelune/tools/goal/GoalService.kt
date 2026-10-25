@@ -249,6 +249,7 @@ class GoalService(private val context: Context) : ExecutableService {
         return when (operation) {
             "validate" -> s.tool("verbalize_validate")
             "reopen" -> s.tool("verbalize_reopen")
+            "launch" -> s.tool("verbalize_launch")
             else -> s.tool("verbalize_evaluate")
         }
     }

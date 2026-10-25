@@ -185,4 +185,7 @@
     <string name="schema_ended_at">Quand la séance s\'est terminée</string>
     <string name="field_notify">Prévenir</string>
     <string name="schema_notify">Une notification à chaque séance prévue</string>
+    <string name="operation_plan">Prévoit une séance maintenant, à côté du planning : une entrée prévue datée de maintenant, sa notification et son événement comme une séance planifiée</string>
+    <string name="error_plan">La séance n\'a pas été prévue</string>
+    <string name="verbalize_plan">Séance prévue maintenant</string>
 </resources>

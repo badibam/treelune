@@ -120,4 +120,5 @@
     <string name="error_launch">The attempt was not opened</string>
     <string name="launch_now">Launch now</string>
     <string name="launch_confirm">An attempt is open: launching one sends it to be validated.</string>
+    <string name="verbalize_launch">Launching an attempt</string>
 </resources>

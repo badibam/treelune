@@ -59,9 +59,21 @@ class SequenceService(private val context: Context) : ExecutableService {
             FINISH -> finish(params)
             IGNORE -> ignore(params.optString("id"))
             IGNORE_ALL -> ignoreAll(params.optString("tool_instance_id"))
+            PLAN -> plan(params.optString("tool_instance_id"))
             in GESTURES -> gesture(operation, params.optString("id"))
             else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
         }
+    }
+
+    /** A session planned now, beside the schedule (SequenceScheduler.plan): its id. */
+    private suspend fun plan(toolInstanceId: String): OperationResult {
+        if (toolInstanceId.isEmpty()) return OperationResult.error(s.shared("service_error_missing_tool_instance_id"))
+        val tool = coordinator.processUserAction("tools.get", mapOf("tool_instance_id" to toolInstanceId))
+        @Suppress("UNCHECKED_CAST")
+        val config = ((tool.data?.get("tool_instance") as? Map<*, *>)?.get("config") as? Map<String, Any?>)?.let { app.treelune.core.utils.JsonUtils.toJSONObject(it) }
+            ?: return OperationResult.error(tool.error ?: s.shared("service_error_tool_instance_not_found"))
+        val id = SequenceScheduler.plan(context, toolInstanceId, config) ?: return OperationResult.error(s.tool("error_plan"))
+        return OperationResult.success(mapOf("id" to id))
     }
 
     private suspend fun start(toolInstanceId: String): OperationResult {
@@ -332,7 +344,7 @@ class SequenceService(private val context: Context) : ExecutableService {
 
     override suspend fun verbalize(operation: String, params: JSONObject, context: Context): String {
         val s = Strings.`for`(tool = "sequence", context = context)
-        return if (operation in setOf(COMPLETE, CORRECT, IGNORE, IGNORE_ALL)) s.tool("verbalize_$operation") else s.shared("action_verbalize_unknown")
+        return if (operation in setOf(COMPLETE, CORRECT, IGNORE, IGNORE_ALL, PLAN)) s.tool("verbalize_$operation") else s.shared("action_verbalize_unknown")
     }
 
     companion object {
@@ -342,6 +354,7 @@ class SequenceService(private val context: Context) : ExecutableService {
         const val FINISH = "finish"
         const val IGNORE = "ignore"
         const val IGNORE_ALL = "ignore_all"
+        const val PLAN = "plan"
         const val DONE = "done"
         const val SKIP = "skip"
         const val BACK = "back"

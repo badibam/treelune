@@ -57,4 +57,7 @@
     <string name="entry_state">Si la passation est à remplir, remplie ou ignorée, et quand elle a été remplie</string>
     <string name="field_notify">Prévenir</string>
     <string name="schema_notify">Une notification à chaque invitation</string>
+    <string name="operation_invite">Invite à remplir le questionnaire maintenant, à côté de son planning : une entrée à remplir datée de maintenant, sa notification et son événement comme une invitation prévue</string>
+    <string name="error_invite">L\'invitation n\'a pas été créée</string>
+    <string name="verbalize_invite">Invitation à remplir maintenant</string>
 </resources>
