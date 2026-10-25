@@ -14,7 +14,7 @@ Technical guide to the central system architecture.
 - app_config.get - Application configuration
 
 ### ServiceRegistry
-**Core services**: zones → ZoneService, tools → ToolInstanceService, tool_data → ToolDataService, app_config → AppConfigService, backup → BackupService, ai_provider_config → AIProviderConfigService, notifications → NotificationService
+**Core services**: zones → ZoneService, tools → ToolInstanceService, tool_data → ToolDataService, app_config → AppConfigService, backup → BackupService, ai_provider_config → AIProviderConfigService, notifications → NotificationService, apis → ApiService, tasks → TaskService
 
 **Tool services** (dynamic discovery): tracking → ToolTypeManager.getServiceForToolType()
 
@@ -66,6 +66,28 @@ interface ToolScheduler {
 Part of `ToolTypeContract.getScheduler(): ToolScheduler?` (default null)
 
 **Tool extension**: return a scheduler in the ToolTypeContract, no change to the core needed.
+
+## APIs
+
+The app hands a piece of work to a service on the web and takes back its result, always calling, never called: a phone is a good client and a bad server. The external access is the opposite door, the outside coming to the app (`docs/EXTERNAL_ACCESS.md`).
+
+- **Declared** in Settings › APIs (`core/apis`, service `apis`, table `apis`): a name, unique, and a config declared with the settings nodes (`ApiSettings`), its form, its schema and its sealed key coming from there, as an AI provider's. A backup carries it, its key sealed: it opens on this phone alone.
+- **What it is given**: named inputs, each text, number or yes/no; in the address for GET, a flat JSON object for POST. The key in a header (its name, a prefix like `Bearer `) or in a parameter of the address.
+- **What it gives**: named values, each with a type (text, number, yes/no, file) and a path in the JSON answer (`current.temperature_2m`, `results.0.url`); a file's path gives the address it is downloaded from. A path the answer does not hold, or a value not of its type, fails the call, said in words (`ApiCall`). An API knows no tool: a Task's steps say where its values go.
+- **Immediate or deferred**: a deferred API's first answer gives an id at its path; its status address (`{id}` where the id goes, called with GET) is asked until a path says « ready » (or « failed »), within a longest wait.
+- **Operations**: `call` (an immediate answer's `values`, a deferred one's `job_id`), `status`, and `try`, which calls a config not saved and shows the raw answer beside what each path gives, writing nothing (« Try » on its screen). A call keeps the start of the raw answer (`raw`, 4,000 characters) for a failure to be understood.
+- Out of reach, left to a small adapter outside the app: answers in pages, OAuth, transformed values, nested JSON given, a file sent.
+
+## Tasks
+
+A Task is a list of steps the app runs itself, one after another, without an AI (`core/tasks`, service `tasks`): the routine's sister, the routine making an AI decide, the Task doing what is written.
+
+- **Its envelope** is the routine's: a tile of its group's section among the tools (`TaskTile`, `SectionGrid`), its look, its switch, a schedule with its missed runs caught up (`CatchUpPolicy`), which of its runs wait to be read (`notify_end`, on a problem by default), its page (`TaskScreen`): its steps, its settings, its runs. It is created from a section's +, deleted with its zone. It is outside the history of writes: a change of its config is not undone.
+- **A step** (`TaskSteps`) is one of five kinds, each with its form: call an API, create an entry, change an entry, a tool's operation (`ToolOperation`, its parameters declared with the settings nodes), run a routine passing it a text. The configuration of things (zones, tools, variables, routines) stays out: it is the screen's or the AI's.
+- **An input** is a Term (a constant, a variable, a reading, read at the run's instant) or what an earlier step gave: a value of an API's answer, the entry a step created (`{"result": {"step", "value"}}`). Written, the steps are checked: what they name exists, each input reads, a result names an earlier step that gives it.
+- **A run** (`TaskRunner`, table `task_runs`) runs each step through the dispatcher as the Task's (`Coordinator.processTaskStep`): checked as any write, a step of the history of its own, undone as one. A deferred API leaves it waiting; each tick of the scheduler (`TaskScheduler`) asks where its job stands, from a minute after, doubling up to half an hour, until ready, failed or past its longest wait. A file an API gives comes down into the FILE field it goes to, set aside until the entry owns it. A run is written after each step: one found going on at the next start is said interrupted, its step never made twice. One run of a Task at a time; an occurrence due meanwhile runs once it ends. Its screen (`TaskRunScreen`) shows each step's result, the values, the error, the raw answer.
+- **Access**: a Task has none of its own. Running it takes using its zone (`AccessRules`, `tasks.run`); an AI held to a mask writes one only with steps it could take itself, each operation and each reading held to its mask (`TaskSteps.reachRefusal`). The AI reads, writes and runs Tasks (`docs/AI.md`, « The AI and the Tasks »).
+- **A human in the loop** is two Tasks with an entry between them, not a step that waits: the first writes what is to be read into an entry (a script, a text), the user reads and corrects it there as any entry, the waiting mark of the tool calling them if a field says « to read »; the second, run by hand once they agree, reads it through a Reading (the last entry) and goes on. Refusing is not running it, redoing is running the first again.
 
 ## Discovery pattern
 

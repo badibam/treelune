@@ -94,6 +94,7 @@ A brick does not know the screen that uses it; the screen gives it what it needs
 | Waiting, what belongs to a zone (the mark of a tile or a card, what the tile and the notification open) | the conditions of a tool's entries that wait (`getWaiting`, `tools.waiting`), or the count a tool type makes itself (`countWaiting`, a deck's due cards) and a routine's runs finished and not read yet (`seen_at` empty, `automations.waiting`), counted by thing and by zone (`Waiting`); a dot of the theme (`WaitingMark`) at the icon's corner or beside the name; the tile, and the notification that names the tool, open it on the oldest (`getUsageScreen(openEntry)`); a run's notification opens it | done |
 | Waiting, what is unique in the app (the mark of a button) | a named source (`WaitingSource`: the active conversation, the automatic backup, the Guide) that says continuously whether it waits and keeps its own rule of "seen"; the button names the sources it leads to (`waiting(...)`) and bears the dot when one waits | done |
 | Chart | per layer, an Entry selection or a grid of Terms, each row read at its instant; a Period shown; its drawing conditions, Conditions on the row's columns | done (`tools/chart`, drawn by `core/drawing`) |
-| Goal attempts, Questionnaire invitations, Messages sends, automations | Schedule | done |
-| Reading recorded (direct automation) | Term + Thing (a Tracking) + Field + Instant | to design |
+| Goal attempts, Questionnaire invitations, Messages sends, automations, Tasks | Schedule | done |
+| A Task step's input | a Term read at the run's instant, or what an earlier step gave (`{"result": {"step", "value"}}`: an API's value, the entry created), drawn by `TermPicker` beside the choice of a step (`TaskStepEditor`) | done |
+| Reading recorded (a value kept as it was: a variable written each week into a Tracking) | a Task: a step creating an entry, its field filled by the Term | done |
 | Alert | Condition judged once | to design |

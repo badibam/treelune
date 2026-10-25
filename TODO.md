@@ -30,15 +30,16 @@ Codé, jamais vu sur l'appareil.
 - Les fichiers : un audio enregistré par l'app du téléphone (`RECORD_SOUND_ACTION`, et ce qu'elle rend, peut-être du 3GP, que l'app refuse aujourd'hui), une vidéo filmée, un texte choisi, leurs tuiles et leurs lecteurs ; « Garder l'original » d'une photo, montrée droite, puis réduite en entrant dans une conversation ; une étape de Séquence qui suit l'audio d'une Fiche, jouée écran éteint par le service (type `specialUse`), sa vidéo à l'écran, la pause et « Retour » ; Joindre dans une conversation, ses cinq gestes ; un envoi par le connecteur via le nœud Tailscale, `curl -X PUT` d'un audio de quelques dizaines de Mo, que la bibliothèque Go recompilée écrit sur disque.
 - Le Guide : les étapes 4 et 5 de Brancher une IA, cochées par un message envoyé puis par un pointeur vers un outil (pas vers une zone) ; « Marquer comme lu » d'un chapitre d'Approfondissement ; dans les nouveaux chapitres, la couleur d'un Graphique qui suit une Condition, la date dans le nom d'un champ gardé (« Humeur (avant le 21 octobre) »), un choix multiple repassé en simple qui retire les listes de plusieurs réponses.
 - Les usages de `TextType.SUBTITLE` (56 fichiers), maintenant sous `TITLE` et sur `HEADING` dans chaque thème, le rétro compris : un SUBTITLE placé sous un HEADING passe en STRONG, comme les intertitres du Guide.
+- Les API et les Tâches : une API Open-Meteo essayée, puis appelée par une Tâche à la main et par son planning, sa valeur écrite dans un Suivi ; une API différée attendue app fermée, et une exécution coupée par un redémarrage dite interrompue ; un audio rendu par une API, téléchargé dans le champ d'une Fiche ; la notification d'un échec ; l'IA qui écrit une Tâche sous un masque, puis la lance ; le cas de départ monté en deux Tâches, le script relu dans la Fiche entre elles.
 - Les passes des thèmes sur le téléphone : la tournée de `docs/THEMES.md` (« The pass on the phone ») pour chaque thème, puis ce que sa spec garde à juger sur l'appareil dans « What stays open » (`docs/themes/<id>.md`), le niveau des sons dans `docs/themes/sounds.md`.
 
 ## Décidé, à coder
 
-- Les API et les Tâches (`docs/design/tasks-apis.md`), la partie B : les fichiers, la désignation jusqu'au champ, la valeur par défaut et l'envoi par le connecteur sont en place. Une Tâche planifiée fait aussi le relevé : une valeur gardée telle qu'elle était (une variable `imc` écrite chaque semaine dans un Suivi), là où une variable se relit à tout jour passé avec les données d'aujourd'hui.
 - Un filtre qui compare un champ à une variable ou une lecture (« kcal > objectif_calorique ») : le terme lu une fois à la référence du contexte (`TermReader`, `docs/BRICKS.md`), puis le filtre SQL comme aujourd'hui ; `EntryFilters.parse` et `ConditionPicker` le prennent.
 
 ## À concevoir
 
+- Une Lecture qui rend plusieurs valeurs (les trois derniers retours, joints) pour l'entrée d'une API : une Lecture réduit aujourd'hui à une seule valeur.
 - Le pointeur d'un message vers une entrée précise (le sélecteur en offre aujourd'hui une zone ou un outil) : l'IA n'a pas de lecture d'une entrée par son id, à ajouter à `TOOL_DATA` (paramètre, prompt, exemples vérifiés) ou en commande à part, avant de l'offrir au bouton Pointer.
 - Un contrôle « qui dépend de ça ? » avant de supprimer une chose (une condition, une variable, un pointeur qui la visent), écrit une fois, appelé par le service qui supprime et par l'annulation qui supprime une ligne.
 - Les événements du cœur, un déclencheur des routines et des Tâches à côté du planning (`ExecutionTrigger.EVENT`) : quel premier usage — un événement de l'Agenda qui commence, une entrée écrite, une condition devenue vraie (l'Alerte), une séance terminée ?
@@ -48,6 +49,7 @@ Codé, jamais vu sur l'appareil.
 
 ## Dette de code
 
+- Les Tâches hors de l'historique des écritures (une config changée ne s'annule pas, une Tâche supprimée avec sa zone ne revient pas par l'annulation) et hors de l'export d'une partie ; une étape déplacée garde les numéros d'étape que lisent les suivantes, l'enregistrement refusant alors en le disant.
 - Des écrans encore ouverts à l'intérieur d'un lieu, hors de la pile (`Place`, `docs/UI.md`) : la config d'un fournisseur d'IA, les pages d'un formulaire de config, les écrans internes d'un outil (fiche, historique), l'historique des conversations — à passer en lieux, au plus tard quand un tutoriel, une notification ou un pointeur doit les viser.
 
 ## Sagesse
@@ -64,6 +66,7 @@ Ce qui doit monter dans un module de sagesse (`/update push`).
 
 ## À surveiller
 
+- Un appel d'API long fait par le planificateur pendant le réveil de l'alarme (50 s au plus), sans service au premier plan comme celui des routines : une Tâche planifiée dont l'appel dépasse peut être coupée par Android, son exécution dite interrompue au réveil suivant.
 - Gemini essayé par le type « Autre serveur » (son point d'accès compatible OpenAI) : un type de fournisseur à lui seulement pour ce qui y manque, noté.
 - Des durées à relever sur le téléphone : l'installation de la démo (~50 s le 2026-10-20, chaque outil planifié faisant tourner son planificateur, `CoreScheduler.runTool`) ; le calcul d'un paquet de Flashcards sur le lexique réel (« Flashcards: deck … read in N ms », de 26 à 152 ms sur la démo, à dire au-delà de 300 ms) ; un gros import (64 659 lignes, 3 min 19 s avant l'historique des écritures), la place prise par l'historique ensuite, et son annulation.
 - Une zone lente à s'afficher, à l'ouverture comme au retour, qui relit tout (~1 s en debug le 2026-10-01, le graphique Calories de Panorama de 0,75 à 1,2 s).
