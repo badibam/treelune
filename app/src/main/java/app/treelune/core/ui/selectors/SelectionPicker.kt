@@ -73,16 +73,18 @@ fun SelectionPicker(
         } else {
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
                 Box(modifier = Modifier.weight(1f)) {
-                    UI.Text(text = listOfNotNull(draft.tool?.name, draft.zone?.name).let { names ->
-                        if (names.size == 2) s.shared("selection_place_in_zone").format(names[0], names[1]) else names.firstOrNull() ?: ""
-                    }, type = TextType.SUBTITLE)
+                    UI.Text(text = draft.entry?.let { s.shared("selection_entry_in_tool").format(it.name, draft.tool?.name ?: "") }
+                        ?: listOfNotNull(draft.tool?.name, draft.zone?.name).let { names ->
+                            if (names.size == 2) s.shared("selection_place_in_zone").format(names[0], names[1]) else names.firstOrNull() ?: ""
+                        }, type = TextType.SUBTITLE)
                 }
                 if (!fixed) UI.Button(type = ButtonType.DEFAULT, onClick = { browsing = draft.path.upTo(ReferenceKind.ZONE) }) {
                     UI.Text(text = s.shared("selection_change"), type = TextType.LABEL)
                 }
             }
         }
-        if (!chosen) return@Column
+        // One entry is that entry: nothing narrows it
+        if (!chosen || draft.level == ReferenceKind.ENTRY) return@Column
 
         if (offerPeriod) {
             UI.Text(text = s.shared("pointer_period"), type = TextType.SUBTITLE)

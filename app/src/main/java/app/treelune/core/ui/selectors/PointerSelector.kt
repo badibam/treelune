@@ -30,7 +30,7 @@ private val PointerSelectionSaver: Saver<PointerSelection, String> = Saver(
 
 /**
  * The POINTER selector, on one screen (docs/DATA.md, « The pointer »): the selection of entries
- * (SelectionPicker), then once a zone or a tool is reached the config and the entries to attach,
+ * (SelectionPicker), then once a zone, a tool or an entry is reached the config and the entries to attach,
  * with the sentence that says what will go.
  *
  * @param reference The name of what its relative dates resolve against when the pointer is
@@ -75,5 +75,5 @@ fun PointerSelector(
     }
 }
 
-/** What a pointer designates: a zone, or a tool; an entry is only pointed at by the app. */
-private val POINTED = ReferenceTarget(setOf(ReferenceKind.ZONE, ReferenceKind.TOOL_INSTANCE), emptyList())
+/** What a pointer designates: a zone, a tool, or one of its entries. */
+private val POINTED = ReferenceTarget(setOf(ReferenceKind.ZONE, ReferenceKind.TOOL_INSTANCE, ReferenceKind.ENTRY), emptyList())

@@ -47,7 +47,7 @@ data class SqlCondition(val clause: String, val args: List<Any>)
  * A filter is a condition put on each entry (Conditions): a field on the left, written values on
  * the right, `{"left": {"field": "data.duration"}, "op": "<", "right": {"constant": 21600000}}`.
  * The field is any path the entry schema describes and FieldPatternGrammar reads, among the ones
- * a filter may name (filterableFields). A variable or a reading on the right is refused: the
+ * a filter may name (filterableFields), or the entry's id ([ID]). A variable or a reading on the right is refused: the
  * context reads it first, and hands the value it gave. Filters combine with AND: an OR exists only within a field, as IN over a
  * CHOICE's options or BETWEEN over a range. A period is a filter on timestamp like any other.
  *
@@ -59,6 +59,17 @@ data class SqlCondition(val clause: String, val args: List<Any>)
  */
 object EntryFilters {
 
+    /**
+     * The path of an entry's id: a filter takes it (`=` one entry, `in` several), to read entries
+     * already designated — a message's pointer to one entry, the AI reading one it knows. It is no
+     * field of the tool: never offered among the fields a screen lists (filterableFields).
+     */
+    const val ID = "id"
+
+    /** The id as a filter reads it: a text, met exactly. */
+    private val ID_FIELD = FieldDefinition(name = ID, displayName = ID, description = null, type = FieldType.TEXT, alwaysVisible = false, config = null)
+    private val ID_OPERATORS = setOf(FilterOperator.EQUAL, FilterOperator.IN)
+
     private val PRESENCE = setOf(FilterOperator.ABSENT, FilterOperator.PRESENT)
     private val ORDERED = setOf(
         FilterOperator.LESS, FilterOperator.LESS_OR_EQUAL, FilterOperator.EQUAL,
@@ -66,7 +77,7 @@ object EntryFilters {
     )
 
     /** The columns of tool_data a root path names, which are all the root fields a filter takes. */
-    private val COLUMNS = setOf("name", "timestamp", "created_at", "updated_at")
+    private val COLUMNS = setOf(ID, "name", "timestamp", "created_at", "updated_at")
 
     private val DATE_PATTERN = Regex("^\\d{4}-\\d{2}-\\d{2}$")
     private val TIME_PATTERN = Regex("^([01]?[0-9]|2[0-3]):[0-5][0-9]$")
@@ -107,6 +118,10 @@ object EntryFilters {
         declared.state.filter { it.filterable }.forEach { put("state.${it.definition.name}", it.definition) }
     }
 
+    /** The field [path] names among [fields], the entry's id included; null for none. */
+    private fun fieldAt(path: String, fields: Map<String, FieldDefinition>): FieldDefinition? =
+        fields[path] ?: ID_FIELD.takeIf { path == ID }
+
     /** The filters of a query, or why they cannot be run. */
     sealed interface Parsed {
         data class Ready(val filters: List<EntryFilter>) : Parsed
@@ -128,13 +143,14 @@ object EntryFilters {
                 ?: return Parsed.Refused(text("service_error_filter_unreadable").format(raw.toString()))
             val path = Conditions.fieldOf(filter)
                 ?: return Parsed.Refused(text("service_error_filter_unreadable").format(filter.toString()))
-            val field = fields[path]
-                ?: return Parsed.Refused(text("service_error_filter_unknown_field").format(path, fields.keys.joinToString(", ")))
+            val field = fieldAt(path, fields)
+                ?: return Parsed.Refused(text("service_error_filter_unknown_field").format(path, (fields.keys + ID).joinToString(", ")))
+            val allowed = if (path == ID) ID_OPERATORS else operatorsFor(field.type)
             val operator = FilterOperator.of(filter.optString(Conditions.OP))
-                ?.takeIf { it in operatorsFor(field.type) }
+                ?.takeIf { it in allowed }
                 ?: return Parsed.Refused(text("service_error_filter_operator").format(
                     path, filter.optString(Conditions.OP), field.type.name,
-                    operatorsFor(field.type).joinToString(", ") { it.key }
+                    allowed.joinToString(", ") { it.key }
                 ))
             val value = when (val right = Conditions.right(filter)) {
                 Conditions.Right.None -> null
@@ -238,7 +254,7 @@ object EntryFilters {
 
     private fun where(toolInstanceId: String, filters: List<EntryFilter>, fields: Map<String, FieldDefinition>): SqlCondition {
         val conditions = listOf(SqlCondition("tool_instance_id = ?", listOf(toolInstanceId))) +
-            filters.map { condition(it, fields.getValue(it.field)) }
+            filters.map { condition(it, fieldAt(it.field, fields)!!) }
         return SqlCondition(conditions.joinToString(" AND ") { "(${it.clause})" }, conditions.flatMap { it.args })
     }
 

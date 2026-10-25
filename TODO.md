@@ -35,14 +35,13 @@ Codé, jamais vu sur l'appareil.
 
 ## Décidé, à coder
 
+- Les événements (`docs/design/events.md`) : le « quand ? » en liste à la place du planning (une heure, une entrée écrite, une condition devenue vraie, un événement), les événements d'une zone, émettre là où l'app prévient, le plafond par chaîne et le budget du jour ; le « quand ? » naît avec les Tâches.
 - Un filtre qui compare un champ à une variable ou une lecture (« kcal > objectif_calorique ») : le terme lu une fois à la référence du contexte (`TermReader`, `docs/BRICKS.md`), puis le filtre SQL comme aujourd'hui ; `EntryFilters.parse` et `ConditionPicker` le prennent.
 
 ## À concevoir
 
 - Une Lecture qui rend plusieurs valeurs (les trois derniers retours, joints) pour l'entrée d'une API : une Lecture réduit aujourd'hui à une seule valeur.
-- Le pointeur d'un message vers une entrée précise (le sélecteur en offre aujourd'hui une zone ou un outil) : l'IA n'a pas de lecture d'une entrée par son id, à ajouter à `TOOL_DATA` (paramètre, prompt, exemples vérifiés) ou en commande à part, avant de l'offrir au bouton Pointer.
 - Un contrôle « qui dépend de ça ? » avant de supprimer une chose (une condition, une variable, un pointeur qui la visent), écrit une fois, appelé par le service qui supprime et par l'annulation qui supprime une ligne.
-- Les événements du cœur, un déclencheur des routines et des Tâches à côté du planning (`ExecutionTrigger.EVENT`) : quel premier usage — un événement de l'Agenda qui commence, une entrée écrite, une condition devenue vraie (l'Alerte), une séance terminée ?
 - Des outils montrés sur la tuile d'une zone de l'accueil (le poids du jour sur « Santé ») : leur résumé ou un raccourci selon la place de la tuile — lesquels, dans quel ordre, un outil montré à deux endroits.
 - Des rythmes que la planification (`ScheduleConfig`, commune à tous les outils et aux routines) ne sait pas dire : « tous les N jours à partir d'une date », « une semaine sur deux », plusieurs jours d'un mois (« le 1er et le 15 »).
 - Une réponse coupée par la limite de longueur (`max_tokens` chez Claude et DeepSeek, un `status` incomplet chez OpenAI, `finish_reason` « length » chez un autre serveur) : refusée, son texte jeté et ses tokens mis à 0, le coût affiché la compte gratuite alors qu'elle est facturée — que garder du texte, et où le montrer.
@@ -67,11 +66,13 @@ Ce qui doit monter dans un module de sagesse (`/update push`).
 ## À surveiller
 
 - Un appel d'API long fait par le planificateur pendant le réveil de l'alarme (50 s au plus), sans service au premier plan comme celui des routines : une Tâche planifiée dont l'appel dépasse peut être coupée par Android, son exécution dite interrompue au réveil suivant.
+- L'adresse Tailscale lente à revenir à l'ouverture de l'accès (5 min 14 s le 2026-10-25 au matin, après la nuit) : son nom public reste chez les serveurs DNS de `ts.net` après la fermeture, au moins 9 h mesurées ce jour-là (nœud hors ligne de 06:59 à 16:05, réouverture instantanée après 8 min), puis Tailscale le retire et le republie en minutes à l'ouverture suivante. Le seuil exact n'est pas mesuré. Piste si ça gêne : réveiller brièvement le nœud, accès fermé, avant ce seuil (WorkManager, 15 min au plus souvent) — à condition qu'une connexion brève remette le compteur à zéro chez Tailscale, non vérifié. Écartés : le relais et le PC en porte d'entrée (trop compliqués pour l'utilisateur), l'accès ouvert en permanence. Tailscale perd parfois le nom d'un nœud en ligne de lui-même (tickets #21746, #21852) : hors de notre main.
 - Gemini essayé par le type « Autre serveur » (son point d'accès compatible OpenAI) : un type de fournisseur à lui seulement pour ce qui y manque, noté.
 - Des durées à relever sur le téléphone : l'installation de la démo (~50 s le 2026-10-20, chaque outil planifié faisant tourner son planificateur, `CoreScheduler.runTool`) ; le calcul d'un paquet de Flashcards sur le lexique réel (« Flashcards: deck … read in N ms », de 26 à 152 ms sur la démo, à dire au-delà de 300 ms) ; un gros import (64 659 lignes, 3 min 19 s avant l'historique des écritures), la place prise par l'historique ensuite, et son annulation.
 - Une zone lente à s'afficher, à l'ouverture comme au retour, qui relit tout (~1 s en debug le 2026-10-01, le graphique Calories de Panorama de 0,75 à 1,2 s).
 - Le bouton de liste d'un texte long touché pendant une dictée : Gboard réécrit son texte encore souligné une seconde fois au curseur (mesuré le 2026-10-20), le bouton rendant le champ sans la place de ce texte (`composition` nulle) ; la garder, décalée par `MarkupEditing.apply` comme le curseur.
 - Une copie automatique dont la rotation n'a rien fait (le 2026-10-20 à 21h21, juste après le choix du dossier) : la ligne « Auto backup: copies found … » dit maintenant ce qu'elle a trouvé et prévu.
+- Une étape défaite puis rétablie qui refait partir ce qui écoute son écriture (`docs/design/events.md`) : une seconde Fiche créée par la Tâche de régénération, une fois les événements en place ; si ça gêne, ce que défaire et rétablir devraient faire de ce qu'une écriture a fait partir.
 - Un `DATA_REFUSED` légitime dans une routine : un seuil par routine.
 - Un Graphique, un Objectif ou des Flashcards affichés qui relisent tout à chaque écriture dans n'importe quel outil, à chaque changement d'outil ou de variable (`DataChangeEvent.mayChangeReadings`) : une tuile qui rame quand on écrit ailleurs les fera trier par ce qu'ils lisent, comme une tuile de variable (`tools_read`).
 - Un calcul lourd qui fige l'app : lire, calculer sans bloquer, écrire.

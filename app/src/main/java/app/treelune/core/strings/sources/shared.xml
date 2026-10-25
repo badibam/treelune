@@ -79,6 +79,8 @@
     <string name="pointer_choose_fields">Choose the fields</string>
     <string name="pointer_part_config">the config of %1$s</string>
     <string name="pointer_part_entries">the entries of %1$s</string>
+    <string name="pointer_part_entry">the entry %1$s</string>
+    <string name="selection_entry_in_tool">%1$s, in %2$s</string>
     <string name="pointer_part_fields">fields: %1$s</string>
     <string name="pointer_summary_mention">Mention only: the AI sees the name, nothing is attached</string>
     <string name="pointer_summary_mention_entries">Mention: %1$s. Nothing is attached, the AI can ask for them</string>
