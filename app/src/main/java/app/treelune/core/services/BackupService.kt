@@ -93,7 +93,8 @@ class BackupService(private val context: Context) : ExecutableService {
             zoneId = item.getString("zone_id"),
             seedSessionId = item.getString("seed_session_id"),
             scheduleJson = item.optString("schedule_json", null),
-            triggerIdsJson = item.optString("trigger_ids_json", "[]"),
+            // Absent from a backup made before version 100: started by nothing but its schedule
+            triggersJson = item.optString("triggers_json", "[]"),
             // A backup older than v41 is brought to this form first (CatchUpAtV41)
             catchUp = item.optString("catch_up").takeIf { it.isNotEmpty() },
             catchUpWindow = if (item.has("catch_up_window")) item.getLong("catch_up_window") else null,
@@ -555,7 +556,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("zone_id", automation.zoneId)
                                 put("seed_session_id", automation.seedSessionId)
                                 put("schedule_json", automation.scheduleJson)
-                                put("trigger_ids_json", automation.triggerIdsJson)
+                                put("triggers_json", automation.triggersJson)
                                 automation.catchUp?.let { put("catch_up", it) }
                                 automation.catchUpWindow?.let { put("catch_up_window", it) }
                                 put("dismiss_older_instances", automation.dismissOlderInstances)

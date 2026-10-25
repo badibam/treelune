@@ -417,7 +417,8 @@ private fun SeedMode(
     // What the automation does about missed runs, as its declaration describes it
     // (AutomationSettings.catchUpNodes): edited while a schedule is set, sent with it
     var catchUp by remember { mutableStateOf(org.json.JSONObject()) }
-    var triggersCount by remember { mutableStateOf(0) }
+    // What starts it beside its schedule (Triggers), as its declaration describes it: {"triggers": [...]}
+    var triggers by remember { mutableStateOf(org.json.JSONObject()) }
     // What the automation's AI may reach (AccessMask), sent with the rest when it is saved
     var access by remember { mutableStateOf(app.treelune.core.access.AccessMask()) }
     var userMessageId by remember { mutableStateOf<String?>(null) } // ID of the USER message in SEED session
@@ -430,6 +431,7 @@ private fun SeedMode(
     var showAccessEditor by rememberSaveable { mutableStateOf(false) }
     // What the schedule's and the access' windows edit, kept until they are confirmed
     var catchUpDraft by remember { mutableStateOf(org.json.JSONObject()) }
+    var triggersDraft by remember { mutableStateOf(org.json.JSONObject()) }
     var accessDraft by remember { mutableStateOf(app.treelune.core.access.AccessMask()) }
     var showEditAutomation by rememberSaveable { mutableStateOf(false) }
     var showDeleteConfirmation by rememberSaveable { mutableStateOf(false) }
@@ -454,7 +456,9 @@ private fun SeedMode(
                     catchUp = (automationMap["catch_up"] as? Map<*, *>)
                         ?.let { app.treelune.core.utils.JsonUtils.toJSONObject(app.treelune.core.utils.JsonUtils.toMap(it)) }
                         ?: org.json.JSONObject()
-                    triggersCount = automation?.triggerIds?.size ?: 0
+                    triggers = org.json.JSONObject().apply {
+                        (automationMap[app.treelune.core.triggers.Triggers.KEY] as? List<*>)?.let { put(app.treelune.core.triggers.Triggers.KEY, app.treelune.core.utils.JsonUtils.toJSONArray(it)) }
+                    }
                     access = automation?.access ?: app.treelune.core.access.AccessMask()
 
                     LogManager.aiUI("SeedMode loaded automation: ${automation?.id}", "DEBUG")
@@ -603,24 +607,27 @@ private fun SeedMode(
         }
     }
 
-    // Triggers editor dialog (stub)
+    // What starts it beside its schedule: an entry written (Triggers)
     if (showTriggersEditor) {
         UI.Dialog(
             type = DialogType.CONFIGURE,
-            onConfirm = { showTriggersEditor = false },
+            onConfirm = {
+                triggers = triggersDraft
+                showTriggersEditor = false
+            },
             onCancel = { showTriggersEditor = false }
         ) {
             Column(
-                modifier = Modifier.padding(UI.Space.L),
+                modifier = Modifier.padding(UI.Space.L).verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(UI.Space.L)
             ) {
                 UI.Text(
                     text = s.shared("automation_triggers_config_title"),
                     type = TextType.TITLE
                 )
-                UI.Text(
-                    text = s.shared("automation_triggers_coming_soon"),
-                    type = TextType.BODY
+                app.treelune.core.fields.settings.SettingsForm(
+                    remember { listOf(app.treelune.core.triggers.Triggers.node(s::shared)) },
+                    triggersDraft, { triggersDraft = it }, context
                 )
             }
         }
@@ -752,8 +759,11 @@ private fun SeedMode(
                     catchUpDraft = catchUp
                     showScheduleEditor = true
                 },
-                triggersCount = triggersCount,
-                onConfigureTriggers = { showTriggersEditor = true },
+                triggersCount = triggers.optJSONArray(app.treelune.core.triggers.Triggers.KEY)?.length() ?: 0,
+                onConfigureTriggers = {
+                    triggersDraft = org.json.JSONObject(triggers.toString())
+                    showTriggersEditor = true
+                },
                 access = access,
                 onConfigureAccess = {
                     accessDraft = access
@@ -796,6 +806,7 @@ private fun SeedMode(
                             } ?: org.json.JSONObject.NULL
                             updateParams["catch_up"] = if (scheduleConfig != null) catchUp else org.json.JSONObject.NULL
                             updateParams["access"] = access.toJson()
+                            updateParams[app.treelune.core.triggers.Triggers.KEY] = app.treelune.core.triggers.Triggers.of(triggers) ?: org.json.JSONObject.NULL
 
                             val result = coordinator.processUserAction("automations.update", updateParams)
                             if (result.status == CommandStatus.SUCCESS) {

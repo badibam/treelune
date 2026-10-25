@@ -62,7 +62,7 @@ enum class SessionEndReason {
 enum class ExecutionTrigger {
     SCHEDULED,  // Created by AutomationScheduler (never goes through queue)
     MANUAL,     // User clicked execute (goes to queue if slot occupied)
-    EVENT       // Triggered by event (future use)
+    ENTRY       // An entry written that one of its triggers listens to (Triggers): goes through the queue as MANUAL
 }
 
 /**

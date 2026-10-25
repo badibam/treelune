@@ -110,7 +110,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 99
+        const val VERSION = 100
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2235,6 +2235,22 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * A routine's triggers (docs/CORE.md, « Triggers »), in the column that held trigger ids
+         * nothing ever gave: renamed, every routine started by nothing but its schedule, its
+         * history copies following.
+         */
+        private val MIGRATION_99_100 = object : ConnectionMigration(99, 100) {
+            override fun migrate(database: MigrationDatabase) {
+                database.execSQL("ALTER TABLE automations RENAME COLUMN trigger_ids_json TO triggers_json")
+                database.execSQL("UPDATE automations SET triggers_json = '[]'")
+                app.treelune.core.versioning.HistoryCopies.rewrite(database, "automations") { copy ->
+                    copy.apply { remove("trigger_ids_json"); put("triggers_json", "[]") }
+                }
+                LogManager.database("MIGRATION 99->100: automations.trigger_ids_json now triggers_json, none", "INFO")
+            }
+        }
+
         /** The connector gains its own data threshold: see ExternalAccessDataAtV84. */
         private val MIGRATION_83_84 = object : ConnectionMigration(83, 84) {
             override fun migrate(database: MigrationDatabase) {
@@ -3281,7 +3297,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_95_96,
                     MIGRATION_96_97,
                     MIGRATION_97_98,
-                    MIGRATION_98_99
+                    MIGRATION_98_99,
+                    MIGRATION_99_100
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

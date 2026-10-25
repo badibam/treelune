@@ -85,6 +85,30 @@ object Triggers {
     /** The triggers stored in [json], a Task's or a routine's column; none when null. */
     fun read(json: String?): List<Trigger> = read(json?.let { JSONArray(it) })
 
+    /**
+     * Why the triggers of [settings], declared among [nodes], cannot be stored; null when they
+     * can: each one reads, its tool exists, its filters read in that tool's fields
+     * (ConditionCheck); an AI held to a mask listens only to tools it may read.
+     */
+    suspend fun refusal(settings: JSONObject, nodes: List<SettingNode>, context: android.content.Context, s: app.treelune.core.strings.StringsContext): String? {
+        val read = try {
+            read(of(settings))
+        } catch (e: Exception) {
+            return e.message ?: s.shared("message_validation_error_simple")
+        }
+        val heard = read.filterIsInstance<Trigger.EntryWritten>()
+        val tools = app.treelune.core.database.AppDatabase.getDatabase(context).toolInstanceDao()
+        heard.forEach { trigger -> tools.getToolInstanceById(trigger.toolInstanceId) ?: return s.shared("trigger_error_tool").format(trigger.toolInstanceId) }
+        app.treelune.core.conditions.ConditionCheck(app.treelune.core.conditions.AppConditionSources(context, null)) { s.shared(it) }
+            .refuse(nodes, settings)?.let { return it }
+        kotlin.coroutines.coroutineContext[app.treelune.core.access.AccessScope]?.let { scope ->
+            val lookups = app.treelune.core.access.DatabaseAccessLookups(context)
+            val reaches = heard.flatMap { app.treelune.core.access.AccessRules.reach("tool_data", "get", mapOf("tool_instance_id" to it.toolInstanceId), lookups::isToolType) }
+            app.treelune.core.access.AccessRules.refusal(scope.mask, scope.holder, reaches, lookups, s::shared)?.let { return it }
+        }
+        return null
+    }
+
     /** Whether [settings] hold triggers: what keeps them as their column. */
     fun of(settings: JSONObject): JSONArray? = settings.optJSONArray(KEY)?.takeIf { it.length() > 0 }
 }

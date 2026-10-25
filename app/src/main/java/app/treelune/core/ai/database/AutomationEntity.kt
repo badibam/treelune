@@ -5,7 +5,7 @@ import app.treelune.core.ai.data.AutomationSettings
 
 /**
  * Automation database entity
- * Complex structures (schedule, triggerIds, executionHistory) stored as JSON
+ * Complex structures (schedule, triggers, executionHistory) stored as JSON
  *
  * Stored in common AppDatabase alongside AI sessions and provider configs
  */
@@ -23,7 +23,8 @@ data class AutomationEntity(
     @ColumnInfo(name = "zone_id") val zoneId: String,
     @ColumnInfo(name = "seed_session_id") val seedSessionId: String,
     @ColumnInfo(name = "schedule_json") val scheduleJson: String?,              // JSON of ScheduleConfig
-    @ColumnInfo(name = "trigger_ids_json") val triggerIdsJson: String,             // JSON array of trigger IDs
+    /** What starts it beside its schedule, Triggers' stored form: `[]` when nothing does */
+    @ColumnInfo(name = "triggers_json") val triggersJson: String,
     // A scheduled automation's choice about missed runs, "limited" or "unlimited"; null without schedule
     @ColumnInfo(name = "catch_up") val catchUp: String?,
     // How late an occurrence may still run, in milliseconds, for a "limited" catch-up

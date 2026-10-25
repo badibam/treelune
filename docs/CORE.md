@@ -92,11 +92,11 @@ A Task is a list of steps the app runs itself, one after another, without an AI 
 
 ## Triggers
 
-What starts a Task beside its schedule (`core/triggers`, settings key `triggers`, column `triggers_json`), declared with the settings nodes (`Triggers.node`): a list, each one kind; today one, `entry_written` — an entry of a tool created, changed or deleted (`writes`), passing the filters of its selection (`entries`: `{"target", "filters"}`), checked as every config's conditions (`ConditionCheck`). An AI held to a mask listens only to tools it may read.
+What starts a Task or a routine beside its schedule (`core/triggers`, settings key `triggers`, column `triggers_json`), declared with the settings nodes (`Triggers.node`): a list, each one kind; today one, `entry_written` — an entry of a tool created, changed or deleted (`writes`), passing the filters of its selection (`entries`: `{"target", "filters"}`), checked as every config's conditions (`ConditionCheck`). An AI held to a mask listens only to tools it may read.
 
 - **What is heard**: the entries a step of the history wrote (`EntryWrites.ofStep`, from its copies), one per entry over the step (created then changed is created), a change the history does not keep (a part the app alone writes, a reminder marked sent) not one. The coordinator hears them once an operation asked from outside is done; the history once an undo or a redo is (`history.undo` writes its entries again, backwards). A long operation (an import, a backup restored, the demo) starts nothing: the app reloads data, nobody notes it.
 - **The filters** are judged on the entry's copy as SQL judges the tool's entries (`EntryFilters`, the copy standing for the table in a `WITH tool_data`): a deleted entry is judged as it was.
-- **The run** (`EntryTriggers`, trigger `entry`) receives the entry (`received_json`: its id, its tool, what became of it), once per entry and Task whichever of its triggers hears it first. It is started in the writer's context, so that it continues the writer's chain (« Chains »), refused past its cap.
+- **The run** (`EntryTriggers`) gets the entry once per entry and Task or routine, whichever of its triggers hears it first: a Task's (trigger `entry`) receives it (`received_json`: its id, its tool, what became of it); a routine's (`ExecutionTrigger.ENTRY`, through the queue as a run by hand) has a line joined to its message saying what started it, then the entry attached as a pointer — deleted, as it was in the line itself. It is started in the writer's context, so that it continues the writer's chain (« Chains »), refused past its cap.
 
 ## Chains
 

@@ -1804,7 +1804,6 @@
     <string name="automation_triggers_none">Aucun déclencheur</string>
     <string name="automation_triggers_count">%1$d déclencheur(s)</string>
     <string name="automation_triggers_config_title">Configuration déclencheurs</string>
-    <string name="automation_triggers_coming_soon">Les déclencheurs seront disponibles prochainement</string>
 
     <!-- AUTOMATIONS - Actions -->
     <string name="automation_execute_now">Déclencher maintenant</string>
@@ -2816,6 +2815,9 @@
 
     <!-- A routine run with data (Tasks) -->
     <string name="automation_run_data">Ce que la Tâche passe à cette exécution :\n%1$s</string>
+    <string name="automation_run_entry_created">Cette exécution est partie d\'une entrée créée dans « %1$s », jointe ici :</string>
+    <string name="automation_run_entry_updated">Cette exécution est partie d\'une entrée modifiée dans « %1$s », jointe ici telle qu\'elle est maintenant :</string>
+    <string name="automation_run_entry_deleted">Cette exécution est partie d\'une entrée supprimée de « %1$s », qu\'on ne peut plus lire ; telle qu\'elle était : %2$s</string>
     <string name="task_step_data">Donnée passée</string>
 
     <!-- The AI's reads of Tasks -->

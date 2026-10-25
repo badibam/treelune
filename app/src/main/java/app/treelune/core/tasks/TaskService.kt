@@ -222,31 +222,17 @@ class TaskService(private val context: Context) : ExecutableService {
         val zone = database.zoneDao().getZoneById(task.zoneId) ?: return refused(s.shared("service_error_zone_not_found"))
         Groups.refusal(group, ToolPositions.zoneGroups(zone.tool_groups), s)?.let { return refused(it) }
 
-        // What starts it: each trigger's tool there, its filters reading in that tool's fields
+        // What starts it (Triggers.refusal), and the entry it then gives the steps
+        app.treelune.core.triggers.Triggers.refusal(settings, TaskSettings.nodes(context), context, s)?.let { return refused(it) }
         val triggers = app.treelune.core.triggers.Triggers.of(settings)
-        val read = try {
-            app.treelune.core.triggers.Triggers.read(triggers)
-        } catch (e: Exception) {
-            return refused(e.message ?: s.shared("message_validation_error_simple"))
-        }
-        read.filterIsInstance<app.treelune.core.triggers.Triggers.Trigger.EntryWritten>().forEach { trigger ->
-            database.toolInstanceDao().getToolInstanceById(trigger.toolInstanceId) ?: return refused(s.shared("trigger_error_tool").format(trigger.toolInstanceId))
-        }
-        app.treelune.core.conditions.ConditionCheck(app.treelune.core.conditions.AppConditionSources(context, null)) { s.shared(it) }
-            .refuse(TaskSettings.nodes(context), settings)?.let { return refused(it) }
+        val read = app.treelune.core.triggers.Triggers.read(triggers)
 
         val steps = if (params.has("steps")) params.optJSONArray("steps") ?: return refused(s.shared("task_error_steps")) else JSONArray(task.stepsJson)
         TaskSteps.refusal(steps, context, s, TaskSteps.receivedFields(read, context, s))?.let { return refused(it) }
 
-        // An AI held to a mask writes only steps it could take itself, and listens only to what it
-        // could read: the Task never reaches further than it
+        // An AI held to a mask writes only steps it could take itself: the Task never reaches further than it
         kotlin.coroutines.coroutineContext[app.treelune.core.access.AccessScope]?.let { scope ->
             TaskSteps.reachRefusal(steps, scope, context, s)?.let { return refused(it) }
-            val lookups = app.treelune.core.access.DatabaseAccessLookups(context)
-            val heard = read.filterIsInstance<app.treelune.core.triggers.Triggers.Trigger.EntryWritten>().flatMap { trigger ->
-                app.treelune.core.access.AccessRules.reach("tool_data", "get", mapOf("tool_instance_id" to trigger.toolInstanceId), lookups::isToolType)
-            }
-            app.treelune.core.access.AccessRules.refusal(scope.mask, scope.holder, heard, lookups, s::shared)?.let { return refused(it) }
         }
 
         val values = SettingValues(TaskSettings.nodes(context), settings)

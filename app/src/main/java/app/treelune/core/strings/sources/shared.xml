@@ -1804,7 +1804,6 @@
     <string name="automation_triggers_none">No trigger</string>
     <string name="automation_triggers_count">%1$d trigger(s)</string>
     <string name="automation_triggers_config_title">Trigger configuration</string>
-    <string name="automation_triggers_coming_soon">Triggers will be available soon</string>
 
     <!-- AUTOMATIONS - Actions -->
     <string name="automation_execute_now">Trigger now</string>
@@ -2816,6 +2815,9 @@
 
     <!-- A routine run with data (Tasks) -->
     <string name="automation_run_data">What the Task passes this run:\n%1$s</string>
+    <string name="automation_run_entry_created">This run was started by an entry created in “%1$s”, attached here:</string>
+    <string name="automation_run_entry_updated">This run was started by an entry changed in “%1$s”, attached here as it is now:</string>
+    <string name="automation_run_entry_deleted">This run was started by an entry deleted from “%1$s”, which can no longer be read; as it was: %2$s</string>
     <string name="task_step_data">Data passed</string>
 
     <!-- The AI's reads of Tasks -->

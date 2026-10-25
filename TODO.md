@@ -26,6 +26,7 @@ Codé, jamais vu sur l'appareil.
 
 - Les titres coupés entre les mots (`HeadingBreak`) en Cosy, Encre et lavis, Métro, Papier découpé et Plan d'architecte : les noms de tuiles de la démo, un mot trop long pour sa ligne d'une demi-tuile (« Observations ») coupé à ses syllabes.
 - La marque « en attente » sans « ! » (Métro, Suisse, Encre et lavis, Papier découpé, Plan d'architecte, Cosy en accent) : vide, se lit-elle encore comme « à lire », à sa taille de 18 à 22 dp, et la bulle du Cosy se détache-t-elle de ses boutons ?
+- Les déclencheurs : une Tâche et une routine qui partent sur une entrée écrite (créée, modifiée, supprimée, avec un filtre), le formulaire « Part aussi quand… » des réglages d'une Tâche et du bouton éclair d'une routine, l'étape qui lit « L'entrée écrite » ; la routine qui reçoit l'entrée jointe dans son message ; une Tâche qui écrit là où elle écoute, arrêtée après 50 exécutions avec sa notification.
 - La recette, `docs/design/device-checks.md` : ce que seul le téléphone juge, une ligne vue en sort.
 - Les fichiers : un audio enregistré par l'app du téléphone (`RECORD_SOUND_ACTION`, et ce qu'elle rend, peut-être du 3GP, que l'app refuse aujourd'hui), une vidéo filmée, un texte choisi, leurs tuiles et leurs lecteurs ; « Garder l'original » d'une photo, montrée droite, puis réduite en entrant dans une conversation ; une étape de Séquence qui suit l'audio d'une Fiche, jouée écran éteint par le service (type `specialUse`), sa vidéo à l'écran, la pause et « Retour » ; Joindre dans une conversation, ses cinq gestes ; un envoi par le connecteur via le nœud Tailscale, `curl -X PUT` d'un audio de quelques dizaines de Mo, que la bibliothèque Go recompilée écrit sur disque.
 - Le Guide : les étapes 4 et 5 de Brancher une IA, cochées par un message envoyé puis par un pointeur vers un outil (pas vers une zone) ; « Marquer comme lu » d'un chapitre d'Approfondissement ; dans les nouveaux chapitres, la couleur d'un Graphique qui suit une Condition, la date dans le nom d'un champ gardé (« Humeur (avant le 21 octobre) »), un choix multiple repassé en simple qui retire les listes de plusieurs réponses.
@@ -35,7 +36,7 @@ Codé, jamais vu sur l'appareil.
 
 ## Décidé, à coder
 
-- Les événements (`docs/design/events.md`) : le « quand ? » des routines et des outils actifs (une entrée écrite, en place pour les Tâches), une condition devenue vraie, les événements d'une zone, émettre là où l'app prévient, le budget du jour.
+- Les événements (`docs/design/events.md`) : le « quand ? » des outils actifs (une entrée écrite, en place pour les Tâches et les routines), une condition devenue vraie, les événements d'une zone, émettre là où l'app prévient, le budget du jour.
 - Un filtre qui compare un champ à une variable ou une lecture (« kcal > objectif_calorique ») : le terme lu une fois à la référence du contexte (`TermReader`, `docs/BRICKS.md`), puis le filtre SQL comme aujourd'hui ; `EntryFilters.parse` et `ConditionPicker` le prennent.
 
 ## À concevoir
