@@ -109,8 +109,10 @@ const funnelRetry = 5 * time.Second
 
 func listen(s *tsnet.Server) {
 	for {
-		// Blocks while the node waits for its login, which state() reads meanwhile
-		ln, err := s.ListenFunnel("tcp", ":443", tsnet.FunnelOnly())
+		// Blocks while the node waits for its login, which state() reads meanwhile. The tailnet is
+		// served too: on a device of the person's own tailnet, the address leads to the node itself,
+		// not to the Funnel, and the client's browser opens the authorisation page from there.
+		ln, err := s.ListenFunnel("tcp", ":443")
 		if err != nil && funnelStep(err) != "" {
 			// Funnel off in the account: Tailscale's page to turn it on, asked once, then wait for it
 			mu.Lock()
