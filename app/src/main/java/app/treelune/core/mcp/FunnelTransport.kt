@@ -44,6 +44,12 @@ object FunnelNative {
     /** The oldest request received through the Funnel, as the relay's JSON, or "" after [waitSeconds]. */
     @JvmStatic external fun next(waitSeconds: Int): String
 
+    /**
+     * The upload address [token] expected for [seconds]: a PUT there is written into [path], at
+     * most [maxBytes], and handed over as that path (McpUploads).
+     */
+    @JvmStatic external fun expectUpload(token: String, path: String, maxBytes: Long, seconds: Int)
+
     /** The answer to the request [id], as the relay's JSON. */
     @JvmStatic external fun reply(id: String, response: String)
 }

@@ -12,7 +12,9 @@ data class HttpRequest(
     val path: String,
     val query: String,
     val headers: Map<String, String>,
-    val body: ByteArray
+    val body: ByteArray,
+    /** Where the app's Tailscale node wrote the body of a PUT to an upload address (McpUploads), in place of [body] */
+    val file: String? = null
 ) {
     /** A header by its name, whatever its case. */
     fun header(name: String): String? = headers.entries.firstOrNull { it.key.equals(name, ignoreCase = true) }?.value
@@ -30,7 +32,8 @@ data class HttpRequest(
             path = json.getString("path"),
             query = json.optString("query"),
             headers = json.optJSONObject("headers")?.let { h -> h.keys().asSequence().associateWith { h.getString(it) } } ?: emptyMap(),
-            body = Base64.getDecoder().decode(json.optString("body"))
+            body = Base64.getDecoder().decode(json.optString("body")),
+            file = json.optString("file").takeIf { it.isNotEmpty() }
         )
 
         private fun form(text: String): Map<String, String> = text.split('&').filter { it.isNotEmpty() }.associate { pair ->
@@ -61,7 +64,8 @@ data class HttpResponse(val status: Int, val headers: Map<String, String> = empt
 /**
  * Every address the server answers under the relay's public one ([base]): the two OAuth
  * descriptions, the client registration, the authorization page and its status, the token
- * endpoint, and /mcp, which only an access token opens. Nothing else exists.
+ * endpoint, /mcp, which only an access token opens, and the upload addresses, each handed out by
+ * a call through /mcp and good for one file ([upload]). Nothing else exists.
  *
  * @param text A text for the person, on the authorization page (the strings system)
  * @param onCall Told of each call that does something: /mcp let through, an authorization page
@@ -77,6 +81,8 @@ class McpHttp(
      * for tokens did and why: never a query, a body or a token
      */
     private val log: (String) -> Unit = {},
+    /** The file sent to an upload address (McpUploads.receive) */
+    private val upload: (HttpRequest) -> HttpResponse = { HttpResponse(404) },
     private val onCall: () -> Unit = {}
 ) {
     private val resource get() = "$base$MCP_PATH"
@@ -116,6 +122,7 @@ class McpHttp(
             request.path == "/authorize/status" && request.method == "GET" -> authorizationStatus(request)
             request.path == "/token" && request.method == "POST" -> token(request)
             request.path == MCP_PATH -> mcp(request)
+            request.path.startsWith(McpUploads.PATH) -> upload(request).also { if (it.status == 200) onCall() }
             else -> HttpResponse(404)
         }
     } catch (e: OAuthServer.OAuthError) {

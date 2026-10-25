@@ -49,16 +49,19 @@ object FilePreparation {
     }.distinct().toTypedArray()
 
     /**
-     * The file at [uri] set aside, if it is of one of [kinds]; an image kept whole when [original].
+     * The file at [uri] set aside, if it is of one of [kinds]; an image kept whole when [original];
+     * [name], when given, its name rather than the one the phone gives.
      *
      * @param text The shared strings, for a refusal
      */
-    fun prepare(context: Context, uri: Uri, kinds: Collection<FileKind>, original: Boolean = false, text: (String) -> String): Result {
+    fun prepare(context: Context, uri: Uri, kinds: Collection<FileKind>, original: Boolean = false, name: String? = null, text: (String) -> String): Result {
         val resolver = context.contentResolver
-        val (name, knownSize) = resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE), null, null, null)?.use { cursor ->
+        val (shown, knownSize) = resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE), null, null, null)?.use { cursor ->
             if (cursor.moveToFirst()) (if (cursor.isNull(0)) null else cursor.getString(0)) to (if (cursor.isNull(1)) null else cursor.getLong(1))
             else null to null
         } ?: (uri.lastPathSegment to null)
+        // A name given (an upload's, asked with its address) says what the file is better than its path
+        val name = name ?: shown
         val mediaType = resolver.getType(uri)?.lowercase()
         val extension = name?.substringAfterLast('.', "")?.lowercase().orEmpty()
         val media = FileFormat.ofMedia(mediaType, name)

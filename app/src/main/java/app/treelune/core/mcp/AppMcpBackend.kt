@@ -35,7 +35,7 @@ class AppMcpBackend(private val context: Context) : McpBackend {
 
     private val s = Strings.`for`(context = context)
 
-    override suspend fun tools(): List<McpTool> = AICommands.ALL.map { command ->
+    override suspend fun tools(): List<McpTool> = listOf(uploadTool()) + AICommands.ALL.map { command ->
         McpTool(
             name = command.type.lowercase(),
             description = PromptChunks.commandText(context, command),
@@ -57,7 +57,36 @@ class AppMcpBackend(private val context: Context) : McpBackend {
         PromptManager.buildAppStateContent(context)
     ).joinToString("\n\n")
 
+    /**
+     * The connector's own tool, which the app's AI has no use for: an address to send a file to,
+     * once, beside the model (McpUploads), the bytes never written by the AI itself.
+     */
+    private fun uploadTool() = McpTool(
+        name = UPLOAD_TOOL,
+        description = s.shared("ai_mcp_upload_description").format(McpUploads.TTL_SECONDS / 60),
+        inputSchema = JSONObject()
+            .put("type", "object")
+            .put("properties", JSONObject()
+                .put("kind", JSONObject().put("type", "string").put("enum", org.json.JSONArray(app.treelune.core.files.FileKind.entries.map { it.name })))
+                .put("name", JSONObject().put("type", "string").put("minLength", 1).put("description", s.shared("ai_mcp_upload_name"))))
+            .put("required", org.json.JSONArray().put("kind").put("name"))
+            .put("additionalProperties", false),
+        readOnly = false
+    )
+
+    private fun upload(arguments: JSONObject): McpToolResult {
+        val kind = app.treelune.core.files.FileKind.entries.firstOrNull { it.name == arguments.optString("kind") }
+            ?: return McpToolResult(s.shared("ai_error_param_type").format("kind", app.treelune.core.files.FileKind.entries.joinToString(", ") { it.name }), isError = true)
+        val name = arguments.optString("name").takeIf { it.isNotBlank() }
+            ?: return McpToolResult(s.shared("service_error_missing_required_params").format("name"), isError = true)
+        return when (val address = McpUploads.address(context, kind, name, s::shared)) {
+            is McpUploads.Address.Refused -> McpToolResult(address.message, isError = true)
+            is McpUploads.Address.Ready -> McpToolResult(JSONObject().put("upload_url", address.url).put("expires_in", McpUploads.TTL_SECONDS).toString(), isError = false)
+        }
+    }
+
     override suspend fun call(name: String, arguments: JSONObject, caller: McpCaller): McpToolResult {
+        if (name == UPLOAD_TOOL) return upload(arguments)
         val command = AICommands.find(name.uppercase())
             ?: return McpToolResult(s.shared("ai_error_command_unknown_type").format(name), isError = true)
 
@@ -138,4 +167,8 @@ class AppMcpBackend(private val context: Context) : McpBackend {
     }
 
     override fun text(key: String): String = s.shared(key)
+
+    private companion object {
+        const val UPLOAD_TOOL = "upload_address"
+    }
 }

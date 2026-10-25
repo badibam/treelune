@@ -310,12 +310,97 @@ func networkChanged(name string, servers []string) {
 	}
 }
 
-// serve hands a request received through the Funnel to Kotlin, and writes back its answer.
-func serve(w http.ResponseWriter, r *http.Request) {
-	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, maxBody))
+// upload is a file the app expects at /upload/<token>, once, until it expires: written to path,
+// at most max bytes (docs/EXTERNAL_ACCESS.md, « Sending a file »).
+type upload struct {
+	path    string
+	max     int64
+	expires time.Time
+}
+
+var (
+	uploadsMu sync.Mutex
+	uploads   = map[string]upload{}
+)
+
+// expectUpload is called by Kotlin when it hands out an upload address.
+func expectUpload(token, path string, max int64, seconds int) {
+	uploadsMu.Lock()
+	defer uploadsMu.Unlock()
+	now := time.Now()
+	// The addresses past their time go, so that the map holds only what may still come
+	for t, u := range uploads {
+		if now.After(u.expires) {
+			delete(uploads, t)
+		}
+	}
+	uploads[token] = upload{path: path, max: max, expires: now.Add(time.Duration(seconds) * time.Second)}
+}
+
+// receiveUpload writes the body of a PUT to an upload address into the file Kotlin named, through
+// a part renamed, without holding it in memory; the address is spent whatever comes of it. It
+// answers the client itself on a refusal, and returns false then.
+func receiveUpload(w http.ResponseWriter, r *http.Request, token string) (string, bool) {
+	uploadsMu.Lock()
+	u, ok := uploads[token]
+	delete(uploads, token)
+	uploadsMu.Unlock()
+	if !ok || time.Now().After(u.expires) {
+		http.Error(w, "no such upload address, or it expired", http.StatusNotFound)
+		return "", false
+	}
+	if r.Method != http.MethodPut {
+		w.Header().Set("Allow", http.MethodPut)
+		http.Error(w, "an upload is a PUT", http.StatusMethodNotAllowed)
+		return "", false
+	}
+	if err := os.MkdirAll(filepath.Dir(u.path), 0o700); err != nil {
+		http.Error(w, "upload not written", http.StatusInternalServerError)
+		return "", false
+	}
+	part := u.path + ".part"
+	f, err := os.Create(part)
 	if err != nil {
-		http.Error(w, "request too large", http.StatusRequestEntityTooLarge)
-		return
+		http.Error(w, "upload not written", http.StatusInternalServerError)
+		return "", false
+	}
+	n, err := io.Copy(f, io.LimitReader(r.Body, u.max+1))
+	f.Close()
+	if err != nil || n > u.max {
+		os.Remove(part)
+		if n > u.max {
+			http.Error(w, "file too large", http.StatusRequestEntityTooLarge)
+		} else {
+			http.Error(w, "upload interrupted", http.StatusBadRequest)
+		}
+		return "", false
+	}
+	if err := os.Rename(part, u.path); err != nil {
+		os.Remove(part)
+		http.Error(w, "upload not written", http.StatusInternalServerError)
+		return "", false
+	}
+	return u.path, true
+}
+
+// serve hands a request received through the Funnel to Kotlin, and writes back its answer. A PUT
+// to an upload address goes to a file, and Kotlin gets its path instead of the body.
+func serve(w http.ResponseWriter, r *http.Request) {
+	var body []byte
+	file := ""
+	if token, ok := strings.CutPrefix(r.URL.Path, "/upload/"); ok {
+		path, received := receiveUpload(w, r, token)
+		if !received {
+			return
+		}
+		file = path
+	} else {
+		read, err := io.ReadAll(http.MaxBytesReader(w, r.Body, maxBody))
+		if err != nil {
+			http.Error(w, "request too large", http.StatusRequestEntityTooLarge)
+			return
+		}
+		body = read
 	}
 	headers := map[string]string{}
 	for k, v := range r.Header {
@@ -326,7 +411,7 @@ func serve(w http.ResponseWriter, r *http.Request) {
 	id := randomID()
 	js, _ := json.Marshal(map[string]any{
 		"id": id, "method": r.Method, "path": r.URL.Path, "query": r.URL.RawQuery,
-		"headers": headers, "body": base64.StdEncoding.EncodeToString(body),
+		"headers": headers, "body": base64.StdEncoding.EncodeToString(body), "file": file,
 	})
 	p := &pending{id: id, json: string(js), done: make(chan response, 1)}
 	mu.Lock()

@@ -64,4 +64,9 @@ func Java_app_treelune_core_mcp_FunnelNative_reply(env *C.JNIEnv, cls C.jclass, 
 	reply(goString(env, id), goString(env, response))
 }
 
+//export Java_app_treelune_core_mcp_FunnelNative_expectUpload
+func Java_app_treelune_core_mcp_FunnelNative_expectUpload(env *C.JNIEnv, cls C.jclass, token, path C.jstring, maxBytes C.jlong, seconds C.jint) {
+	expectUpload(goString(env, token), goString(env, path), int64(maxBytes), int(seconds))
+}
+
 func main() {}

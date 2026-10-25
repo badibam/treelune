@@ -187,7 +187,9 @@ object McpAccess {
         var lastActivity = openedAt
         advance(State.Open(base, openedAt, null))
         val server = McpServer(AppMcpBackend(context), ContextTokens(contextKey(context), System::currentTimeMillis), versionName(context))
-        val http = McpHttp(base, oauth(context), server, s::shared, log = { LogManager.service("External access: $it", "INFO") }) {
+        McpUploads.open(base, streamed = transport is FunnelTransport)
+        val http = McpHttp(base, oauth(context), server, s::shared, log = { LogManager.service("External access: $it", "INFO") },
+            upload = { McpUploads.receive(context, it, s::shared) }) {
             lastActivity = System.currentTimeMillis()
             advance(State.Open(base, openedAt, lastActivity))
             onActivity(lastActivity)
@@ -204,6 +206,7 @@ object McpAccess {
         } catch (e: RelayRefused) {
             _state.value = State.Failed(s.shared("external_access_relay_refused"))
         } finally {
+            McpUploads.close()
             if (_state.value is State.Open || _state.value is State.Closing) _state.value = State.Closed
         }
     }
