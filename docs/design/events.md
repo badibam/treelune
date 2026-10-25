@@ -29,7 +29,7 @@ La différence entre 2 et 3 : tu notes 81, puis 82. « Un poids noté au-dessus 
 
 ## 2. Les événements
 
-En place (`docs/CORE.md`, « Events ») : la carte de la zone, l'étape « émettre », le déclencheur, les valeurs reçues. Restent l'émission par l'IA, un bouton, l'IA extérieure, et les endroits où l'app prévient (partie 3).
+En place (`docs/CORE.md`, « Events ») : la carte de la zone, l'étape « émettre », le déclencheur, les valeurs reçues, les endroits où l'app prévient (partie 3). Restent l'émission par l'IA, et un bouton.
 
 Un événement est une chose de l'app, dans une zone, comme une variable : un nom (« séance prête ») et les valeurs qu'il porte, déclarées comme les valeurs d'une API (un nom, un type : `fiche`, une entrée de Fiches de séances ; `duree`, une durée), aucune s'il n'en porte pas. Il sert à ce qu'aucune écriture ne dit (une Tâche a fini de fabriquer l'audio), et à ce que plusieurs choses écoutent sous un même nom ; une écriture, elle, s'écoute directement par la sorte 2.
 
@@ -39,6 +39,10 @@ Qui émet :
 - plus tard l'IA, un bouton, l'IA extérieure par le connecteur.
 
 Le masque d'accès s'y applique sans rien de nouveau : émettre un événement demande le niveau « usage » sur sa zone, l'écouter (le mettre dans un « quand ? ») de pouvoir lire sa zone. Une IA ne peut pas donner à ce qu'elle crée ou change un « quand ? » ni un masque plus large que le sien (`AccessRules.widening`, comme pour les routines aujourd'hui). Ce que porte une émission est vérifié chez celui qui émet : une IA n'émet pas « séance prête » avec une Fiche qu'elle ne peut pas lire, sinon elle choisirait la cible d'une Tâche plus puissante qu'elle. Ce qui part agit ensuite avec ses propres droits, quel que soit l'émetteur.
+
+**L'IA émet** (`EMIT_EVENT`) avec les règles d'une étape « émettre » : chaque valeur déclarée donnée, de son type, rien d'autre ; sous un masque, « usage » sur la zone de l'événement et la lecture de chaque entrée portée. Son accord est demandé au niveau de la zone de l'événement, comme `RUN_TASK`. Faite par une routine, l'émission continue sa chaîne ; dans une conversation, elle en commence une. Ce qui écoute peut être une routine : c'est toi qui l'as branchée.
+
+**L'IA lance une routine** (`RUN_AUTOMATION`), sur le modèle de `RUN_TASK` : accord au niveau de sa zone, « usage » sur sa zone sous un masque, un texte joint facultatif à la fin de son message, la réponse l'id de l'exécution ; la chaîne de la routine qui la lance continue. L'interdiction d'aujourd'hui (rien ne la justifiait, et les chemins indirects existaient) tombe, avec elle celle d'écrire sous un masque une étape de Tâche qui exécute une routine.
 
 ## 3. Les endroits où l'app prévient
 
@@ -92,7 +96,6 @@ Deux, tous deux dans l'écran des limites de l'IA, à côté des appels par exé
 ## À trancher
 
 - La sorte « à une date des données » (10 min avant chaque entrée d'un outil, le lendemain d'une échéance), commune avec les rappels de l'Agenda : tant que les endroits où l'app prévient suffisent, pas faite.
-- L'IA qui émet un événement, et si elle lance une Tâche (elle ne lance pas une routine aujourd'hui).
 - Supprimer un événement écouté ou une chose qu'un « quand ? » vise : le contrôle « qui dépend de ça ? » de `TODO.md`.
 
 ## Découpage
