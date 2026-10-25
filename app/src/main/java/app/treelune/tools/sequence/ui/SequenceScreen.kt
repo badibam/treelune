@@ -65,6 +65,7 @@ import app.treelune.tools.sequence.SequenceService
 import app.treelune.tools.sequence.SequenceSteps
 import app.treelune.tools.sequence.SequenceToolType
 import app.treelune.tools.sequence.StepEnd
+import app.treelune.tools.sequence.StepLength
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.json.JSONArray
@@ -403,12 +404,13 @@ private fun StepLines(elements: JSONArray?, depth: Int, s: StringsContext) {
             Box(modifier = indent) { UI.Text("${element.optString(SequencePlan.NAME)} × ${element.optInt(SequencePlan.REPEAT, 1)}", TextType.STRONG) }
             StepLines(element.optJSONArray(SequencePlan.STEPS), depth + 1, s)
         } else {
-            val end = runCatching { StepEnd.of(element.optString(SequencePlan.END)) }.getOrNull()
-            val how = when (end) {
-                StepEnd.MANUAL -> s.tool("end_manual")
-                StepEnd.MEDIA -> s.tool("end_media")
+            val length = runCatching { StepLength.of(element.optString(SequencePlan.LENGTH)) }.getOrNull()
+            val byHand = !element.optBoolean(SequencePlan.AUTO_NEXT, false)
+            val how = when (length) {
+                StepLength.NONE -> s.tool("end_manual")
+                StepLength.FIXED -> clockText(element.optLong(SequencePlan.DURATION)) + if (byHand) " · " + s.tool("end_then_manual_short") else ""
+                StepLength.MEDIA -> s.tool("length_media") + if (byHand) " · " + s.tool("end_then_manual_short") else ""
                 null -> ""
-                else -> clockText(element.optLong(SequencePlan.DURATION)) + if (end == StepEnd.TIMED_THEN_MANUAL) " · " + s.tool("end_then_manual_short") else ""
             }
             Row(modifier = indent.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(UI.Space.S), verticalAlignment = Alignment.CenterVertically) {
                 Box(modifier = Modifier.weight(1f)) { UI.Text(listOf(element.optString(SequencePlan.NAME), how).filter { it.isNotEmpty() }.joinToString(" · "), TextType.BODY) }

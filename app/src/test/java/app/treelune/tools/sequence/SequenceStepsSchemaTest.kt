@@ -28,14 +28,21 @@ class SequenceStepsSchemaTest {
 
     private val intervals = """
         {"steps": [
-          {"kind": "step", "name": "Warm-up", "end": "manual"},
+          {"kind": "step", "name": "Warm-up", "length": "none", "auto_next": false},
           {"kind": "block", "name": "Intervals", "repeat": 8, "steps": [
-            {"kind": "step", "name": "Run", "end": "timed", "duration": 30000, "instruction": "5 km pace"},
-            {"kind": "step", "name": "Rest", "end": "timed", "duration": 90000, "skip_last_round": true}
+            {"kind": "step", "name": "Run", "length": "fixed", "auto_next": true, "duration": 30000, "instruction": "5 km pace"},
+            {"kind": "step", "name": "Rest", "length": "fixed", "auto_next": true, "duration": 90000, "skip_last_round": true}
           ]},
-          {"kind": "step", "name": "Cool-down", "end": "timed_then_manual", "duration": 300000}
+          {"kind": "step", "name": "Cool-down", "length": "fixed", "auto_next": false, "duration": 300000}
         ]}
     """
+
+    @Test
+    fun `a step without a time of its own that would pass by itself is found, nothing ending it`() {
+        assertEquals("Wait", SequencePlan.endless(JSONObject("""{"steps": [{"kind": "block", "name": "B", "repeat": 2, "steps": [
+            {"kind": "step", "name": "Wait", "length": "none", "auto_next": true}]}]}""")))
+        assertEquals(null, SequencePlan.endless(JSONObject(intervals)))
+    }
 
     @Test
     fun `a session the schema lets through unrolls`() {
@@ -47,7 +54,7 @@ class SequenceStepsSchemaTest {
     fun `a block in a block holds steps stored without their kind`() {
         val nested = """
             {"steps": [{"kind": "block", "name": "Circuit", "repeat": 2, "steps": [
-              {"kind": "block", "name": "Set", "repeat": 3, "steps": [{"name": "Squat", "end": "manual"}]}
+              {"kind": "block", "name": "Set", "repeat": 3, "steps": [{"name": "Squat", "length": "none", "auto_next": false}]}
             ]}]}
         """
         assertTrue(passes(nested))
@@ -59,7 +66,7 @@ class SequenceStepsSchemaTest {
         assertFalse(passes("""
             {"steps": [{"kind": "block", "name": "A", "repeat": 2, "steps": [
               {"kind": "block", "name": "B", "repeat": 2, "steps": [
-                {"kind": "block", "name": "C", "repeat": 2, "steps": [{"name": "X", "end": "manual"}]}
+                {"kind": "block", "name": "C", "repeat": 2, "steps": [{"name": "X", "length": "none", "auto_next": false}]}
               ]}
             ]}]}
         """))
@@ -67,13 +74,13 @@ class SequenceStepsSchemaTest {
 
     @Test
     fun `a timer without its length, an empty run, a block without rounds are refused`() {
-        assertFalse(passes("""{"steps": [{"kind": "step", "name": "Run", "end": "timed"}]}"""))
+        assertFalse(passes("""{"steps": [{"kind": "step", "name": "Run", "length": "fixed", "auto_next": true}]}"""))
         assertFalse(passes("""{"steps": []}"""))
-        assertFalse(passes("""{"steps": [{"kind": "block", "name": "B", "steps": [{"kind": "step", "name": "X", "end": "manual"}]}]}"""))
+        assertFalse(passes("""{"steps": [{"kind": "block", "name": "B", "steps": [{"kind": "step", "name": "X", "length": "none", "auto_next": false}]}]}"""))
     }
 
     @Test
     fun `a step outside a block is never skipped at a last round`() {
-        assertFalse(passes("""{"steps": [{"kind": "step", "name": "X", "end": "manual", "skip_last_round": true}]}"""))
+        assertFalse(passes("""{"steps": [{"kind": "step", "name": "X", "length": "none", "auto_next": false, "skip_last_round": true}]}"""))
     }
 }

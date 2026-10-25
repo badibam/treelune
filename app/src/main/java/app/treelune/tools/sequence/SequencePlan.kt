@@ -3,7 +3,27 @@ package app.treelune.tools.sequence
 import org.json.JSONArray
 import org.json.JSONObject
 
-/** How a step ends (docs/TOOLS.md, « Session (Sequence) »). */
+/**
+ * How long a step lasts, as its config says (docs/TOOLS.md, « Session (Sequence) »): no time of
+ * its own, a duration written, or its sound or video's. Whether the next step then comes by
+ * itself is the step's other setting, `auto_next`.
+ */
+enum class StepLength(val key: String) {
+    NONE("none"), FIXED("fixed"), MEDIA("media");
+
+    companion object {
+        val KEYS = entries.map { it.key }
+        fun of(key: String): StepLength = entries.firstOrNull { it.key == key }
+            ?: throw IllegalArgumentException("unknown step length '$key'")
+    }
+}
+
+/**
+ * How a step ends as a session goes through it, from its length and `auto_next` (StepLength):
+ * kept in the run, never in the config. A step lasting its medium is [MEDIA] or
+ * [MEDIA_THEN_MANUAL] until a session reads its medium, then a timer of that length, or ended by
+ * hand when it has nothing to play (SequenceMedia).
+ */
 enum class StepEnd(val key: String) {
     /** The timer counts down, then the next step comes by itself. */
     TIMED("timed"),
@@ -11,19 +31,24 @@ enum class StepEnd(val key: String) {
     MANUAL("manual"),
     /** The timer counts down and sounds, then the stopwatch goes on in overtime until « Done ». */
     TIMED_THEN_MANUAL("timed_then_manual"),
-    /**
-     * The step lasts its sound or its video: a session read it when it starts, and goes through it
-     * as a timer of that length; a step with nothing to play is ended by hand (SequenceMedia).
-     */
-    MEDIA("media");
+    /** Its medium's length, then the next step by itself: TIMED once the medium is read. */
+    MEDIA("media"),
+    /** Its medium's length, then overtime until « Done »: TIMED_THEN_MANUAL once the medium is read. */
+    MEDIA_THEN_MANUAL("media_then_manual");
 
-    /** Whether the config gives it a duration; a step ending with its medium takes the medium's. */
+    /** Whether it counts down a duration of its own, written in the config. */
     val timed: Boolean get() = this == TIMED || this == TIMED_THEN_MANUAL
 
     companion object {
-        val KEYS = entries.map { it.key }
         fun of(key: String): StepEnd = entries.firstOrNull { it.key == key }
             ?: throw IllegalArgumentException("unknown step end '$key'")
+
+        /** The end of a step lasting [length], the next step coming by itself when [autoNext]. */
+        fun of(length: StepLength, autoNext: Boolean): StepEnd = when (length) {
+            StepLength.NONE -> MANUAL
+            StepLength.FIXED -> if (autoNext) TIMED else TIMED_THEN_MANUAL
+            StepLength.MEDIA -> if (autoNext) MEDIA else MEDIA_THEN_MANUAL
+        }
     }
 }
 
@@ -69,8 +94,8 @@ data class PlannedStep(
  * skip_last_round left out of its block's last round. The session copies it when it starts, so a
  * config changed meanwhile does not change it.
  *
- * The config's elements: a step {"kind": "step", "name", "instruction", "images", "media", "end",
- * "duration", "skip_last_round"}, its images and its medium each a term, or a block {"kind": "block", "name", "repeat", "steps"}; a block holds steps
+ * The config's elements: a step {"kind": "step", "name", "instruction", "images", "media", "length",
+ * "duration", "auto_next", "skip_last_round"}, its images and its medium each a term, or a block {"kind": "block", "name", "repeat", "steps"}; a block holds steps
  * or blocks, the latter steps only, stored without their kind.
  */
 object SequencePlan {
@@ -85,6 +110,8 @@ object SequencePlan {
     const val MEDIA = "media"
     const val SOURCE = "source"
     const val END = "end"
+    const val LENGTH = "length"
+    const val AUTO_NEXT = "auto_next"
     const val DURATION = "duration"
     const val SKIP_LAST_ROUND = "skip_last_round"
     const val REPEAT = "repeat"
@@ -115,7 +142,7 @@ object SequencePlan {
     }
 
     private fun step(element: JSONObject, rounds: List<Round>): PlannedStep {
-        val end = StepEnd.of(element.optString(END))
+        val end = StepEnd.of(StepLength.of(element.optString(LENGTH)), element.optBoolean(AUTO_NEXT, false))
         return PlannedStep(
             name = element.optString(NAME),
             instruction = element.optString(INSTRUCTION).takeIf { it.isNotBlank() },
@@ -126,6 +153,21 @@ object SequencePlan {
             // A step with files to read has its terms until a session reads them; one without, none
             terms = StepTerms(element.optJSONObject(IMAGES), element.optJSONObject(MEDIA)).takeIf { it.images != null || it.media != null }
         )
+    }
+
+    /**
+     * The name of the first step of [config], down every block, without a length of its own that
+     * would pass by itself, which nothing would end; null when there is none.
+     */
+    fun endless(config: JSONObject): String? {
+        fun walk(elements: JSONArray?): String? {
+            for (element in elements(elements)) {
+                walk(element.optJSONArray(STEPS))?.let { return it }
+                if (element.optString(LENGTH) == StepLength.NONE.key && element.optBoolean(AUTO_NEXT, false)) return element.optString(NAME)
+            }
+            return null
+        }
+        return walk(config.optJSONArray(STEPS))
     }
 
     /** The ids of a list of images, none when it is absent. */

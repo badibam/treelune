@@ -17,9 +17,9 @@ import org.json.JSONObject
 /**
  * A step's files read when a session starts (docs/TOOLS.md, « Session (Sequence) »): each term
  * gives its fixed files, or what the field it follows holds then (readings.read), which the run
- * keeps as it starts, so a field changed meanwhile does not change the session. A step that ends
- * with its medium becomes a timer of the medium's length, or a step ended by hand when it has
- * nothing to play. What a step read from is noted with it, by its name then, or as gone.
+ * keeps as it starts, so a field changed meanwhile does not change the session. A step that lasts
+ * its medium becomes a timer of the medium's length, passing by itself or then in overtime as its
+ * `auto_next` says, or a step ended by hand when it has nothing to play. What a step read from is noted with it, by its name then, or as gone.
  */
 object SequenceMedia {
 
@@ -40,14 +40,16 @@ object SequenceMedia {
             val media = mediaId?.let { dao.getById(it) }
                 ?.takeIf { it.kind == FileKind.AUDIO.name || it.kind == FileKind.VIDEO.name }
                 ?.let { row -> row.durationMs?.let { StepMedia(row.id, row.kind, it) } }
+            val lastsItsMedium = step.end == StepEnd.MEDIA || step.end == StepEnd.MEDIA_THEN_MANUAL
             val end = when {
-                step.end != StepEnd.MEDIA -> step.end
-                media != null -> StepEnd.TIMED
-                else -> StepEnd.MANUAL
+                !lastsItsMedium -> step.end
+                media == null -> StepEnd.MANUAL
+                step.end == StepEnd.MEDIA -> StepEnd.TIMED
+                else -> StepEnd.TIMED_THEN_MANUAL
             }
             step.copy(
                 end = end,
-                duration = if (step.end == StepEnd.MEDIA) media?.durationMs else step.duration,
+                duration = if (lastsItsMedium) media?.durationMs else step.duration,
                 images = images?.ids ?: step.images,
                 media = media,
                 source = followed?.source ?: images?.source,

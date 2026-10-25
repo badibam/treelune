@@ -170,8 +170,9 @@ object SequenceToolType : ToolTypeContract {
 
     /**
      * A step: its name, its instruction, its images and its sound or video, each file a term (its
-     * own files, or one entry's field followed), how it ends; in a block, whether its last round
-     * leaves it out.
+     * own files, or one entry's field followed), how long it lasts — no time of its own, a duration
+     * written, its medium's — and whether the next step then comes by itself; in a block, whether
+     * its last round leaves it out.
      */
     private fun stepNodes(text: (String) -> String, inBlock: Boolean): List<SettingNode> {
         val duration = listOf(SettingNode.Field(field(SequencePlan.DURATION, text("field_step_duration"), FieldType.DURATION, text("schema_step_duration"), STEP_UNITS), required = true))
@@ -181,11 +182,12 @@ object SequenceToolType : ToolTypeContract {
             fileTerm(SequencePlan.IMAGES, text("field_step_images"), text("schema_step_images"), FileField.config(listOf(FileKind.IMAGE)), text),
             fileTerm(SequencePlan.MEDIA, text("field_step_media"), text("schema_step_media"), FileField.config(listOf(FileKind.AUDIO, FileKind.VIDEO), max = 1), text),
             SettingNode.Variant(
-                selector = SettingNode.Field(field(SequencePlan.END, text("field_end"), FieldType.CHOICE, text("schema_end"),
-                    choice(StepEnd.KEYS) { text("end_$it") }), required = true, default = StepEnd.MANUAL.key),
-                cases = mapOf(StepEnd.TIMED.key to duration, StepEnd.TIMED_THEN_MANUAL.key to duration, StepEnd.MANUAL.key to emptyList(), StepEnd.MEDIA.key to emptyList()),
-                descriptions = StepEnd.KEYS.associateWith { text("schema_end_$it") }
+                selector = SettingNode.Field(field(SequencePlan.LENGTH, text("field_length"), FieldType.CHOICE, text("schema_length"),
+                    choice(StepLength.KEYS) { text("length_$it") }), required = true, default = StepLength.NONE.key),
+                cases = mapOf(StepLength.NONE.key to emptyList(), StepLength.FIXED.key to duration, StepLength.MEDIA.key to emptyList()),
+                descriptions = StepLength.KEYS.associateWith { text("schema_length_$it") }
             ),
+            SettingNode.Field(field(SequencePlan.AUTO_NEXT, text("field_auto_next"), FieldType.BOOLEAN, text("schema_auto_next")), required = true, default = false),
             if (inBlock) SettingNode.Field(field(SequencePlan.SKIP_LAST_ROUND, text("field_skip_last_round"), FieldType.BOOLEAN, text("schema_skip_last_round")), default = false) else null
         )
     }
@@ -269,6 +271,10 @@ object SequenceToolType : ToolTypeContract {
         listOf(Conditions.onField("state.$STATUS", "in", listOf(Status.PLANNED, Status.TO_FINISH)))
 
     override fun getService(context: Context): ExecutableService = SequenceService(context)
+
+    /** A step without a length of its own that would pass by itself: nothing would ever end it. */
+    override suspend fun refuseConfig(config: JSONObject, context: Context): String? =
+        SequencePlan.endless(config)?.let { s(context).tool("error_auto_next_without_length").format(it) }
     override fun getScheduler(): ToolScheduler = SequenceScheduler
 
     override fun getDatabaseEntities(): List<Class<*>> = listOf(ToolDataEntity::class.java)

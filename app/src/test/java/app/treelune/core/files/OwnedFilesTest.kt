@@ -180,7 +180,7 @@ class OwnedFilesTest {
     private suspend fun session(images: List<String>) = coordinator.processUserAction("tools.create", mapOf(
         "zone_id" to AppDatabase.getDatabase(context).toolInstanceDao().getToolInstanceById(toolId)!!.zone_id,
         "tooltype" to "sequence",
-        "config" to mapOf("name" to "Yoga", "steps" to listOf(mapOf("kind" to "step", "name" to "Tree", "end" to "manual", "images" to mapOf("constant" to images))))
+        "config" to mapOf("name" to "Yoga", "steps" to listOf(mapOf("kind" to "step", "name" to "Tree", "length" to "none", "auto_next" to false, "images" to mapOf("constant" to images))))
     ))
 
     private suspend fun stepImages(sessionId: String): List<String> {

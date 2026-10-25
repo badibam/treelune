@@ -17,12 +17,12 @@ class SequenceRunTest {
 
     private val intervals = JSONObject("""
         {"steps": [
-          {"kind": "step", "name": "Warm-up", "end": "manual"},
+          {"kind": "step", "name": "Warm-up", "length": "none", "auto_next": false},
           {"kind": "block", "name": "Intervals", "repeat": 3, "steps": [
-            {"kind": "step", "name": "Run", "end": "timed", "duration": 30000},
-            {"kind": "step", "name": "Rest", "end": "timed", "duration": 90000, "skip_last_round": true}
+            {"kind": "step", "name": "Run", "length": "fixed", "auto_next": true, "duration": 30000},
+            {"kind": "step", "name": "Rest", "length": "fixed", "auto_next": true, "duration": 90000, "skip_last_round": true}
           ]},
-          {"kind": "step", "name": "Cool-down", "end": "timed_then_manual", "duration": 300000}
+          {"kind": "step", "name": "Cool-down", "length": "fixed", "auto_next": false, "duration": 300000}
         ]}
     """)
 
@@ -46,7 +46,7 @@ class SequenceRunTest {
     fun `a block in a block keeps both rounds, its steps stored without their kind`() {
         val config = JSONObject("""
             {"steps": [{"kind": "block", "name": "Circuit", "repeat": 2, "steps": [
-              {"kind": "block", "name": "Set", "repeat": 2, "steps": [{"name": "Squat", "end": "manual"}]}
+              {"kind": "block", "name": "Set", "repeat": 2, "steps": [{"name": "Squat", "length": "none", "auto_next": false}]}
             ]}]}
         """)
         val steps = SequencePlan.unroll(config)

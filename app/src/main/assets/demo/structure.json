@@ -256,7 +256,8 @@
           {
             "kind": "step",
             "name": "@intervals_step_warmup",
-            "end": "timed",
+            "length": "fixed",
+            "auto_next": true,
             "duration": 600000,
             "instruction": "@intervals_warmup_instruction"
           },
@@ -268,14 +269,16 @@
               {
                 "kind": "step",
                 "name": "@intervals_step_run",
-                "end": "timed",
+                "length": "fixed",
+                "auto_next": true,
                 "duration": 60000,
                 "instruction": "@intervals_run_instruction"
               },
               {
                 "kind": "step",
                 "name": "@intervals_step_recovery",
-                "end": "timed",
+                "length": "fixed",
+                "auto_next": true,
                 "duration": 90000,
                 "instruction": "@intervals_recovery_instruction",
                 "skip_last_round": true
@@ -285,7 +288,8 @@
           {
             "kind": "step",
             "name": "@intervals_step_cooldown",
-            "end": "timed_then_manual",
+            "length": "fixed",
+            "auto_next": false,
             "duration": 600000,
             "instruction": "@intervals_cooldown_instruction"
           }

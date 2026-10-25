@@ -85,7 +85,7 @@ class SequenceScheduleTest {
             "zone_id" to zone.data!!["zone_id"], "tooltype" to "sequence",
             "config" to mapOf(
                 "name" to "Intervals", "enabled" to true,
-                "steps" to listOf(mapOf("kind" to "step", "name" to "Run", "end" to "timed", "duration" to 60_000)),
+                "steps" to listOf(mapOf("kind" to "step", "name" to "Run", "length" to "fixed", "auto_next" to true, "duration" to 60_000)),
                 "schedule" to mapOf("pattern" to mapOf("type" to "DailyMultiple", "times" to listOf("09:00")))
             )
         ))

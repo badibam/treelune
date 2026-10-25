@@ -48,7 +48,7 @@ class SequenceMediaTest {
             .put("selection", JSONObject().put("target", JSONObject().put("kind", "ENTRY").put("id", entryId)))
             .put("field", "extra.induction").put("reduction", "LAST"))
         val config = JSONObject().put("steps", org.json.JSONArray().put(JSONObject()
-            .put("kind", "step").put("name", "Induction").put("end", "media").put("media", follows)))
+            .put("kind", "step").put("name", "Induction").put("length", "media").put("auto_next", true).put("media", follows)))
         val session = coordinator.processUserAction("tools.create", mapOf("zone_id" to zone.data!!["zone_id"], "tooltype" to "sequence",
             "config" to app.treelune.core.utils.JsonUtils.toMap(JSONObject(config.toString()).put("name", "Calm session"))))
         assertTrue("the term follows a sound field of a single file: ${session.error}", session.isSuccess)
@@ -58,6 +58,12 @@ class SequenceMediaTest {
         assertEquals(95_000L, step.duration)
         assertEquals("induction1", step.media!!.id)
         assertTrue(step.source!!.endsWith(" › Induction"))
+
+        // Its sound then overtime until « Done », when the next step does not come by itself
+        val byHand = JSONObject(config.toString()).apply { getJSONArray("steps").getJSONObject(0).put("auto_next", false) }
+        val then = SequenceMedia.resolve(context, SequencePlan.unroll(byHand), 0L, "deleted").single()
+        assertEquals(StepEnd.TIMED_THEN_MANUAL, then.end)
+        assertEquals(95_000L, then.duration)
 
         assertTrue(coordinator.processUserAction("tool_data.delete", mapOf("id" to entryId)).isSuccess)
         val gone = SequenceMedia.resolve(context, SequencePlan.unroll(config), 0L, "deleted").single()
