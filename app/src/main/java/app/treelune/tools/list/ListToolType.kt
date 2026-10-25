@@ -82,7 +82,8 @@ object ListToolType : ToolTypeContract {
             required = true,
             default = false
         )
-        return listOf(switch(REMOVE_WHEN_CHECKED), switch(DUE_DATES), switch(SHORT_ITEMS))
+        // A due date passed may emit an event besides its notification
+        return listOf(switch(REMOVE_WHEN_CHECKED), switch(DUE_DATES), switch(SHORT_ITEMS), app.treelune.core.events.EventPoints.node(Strings.`for`(context = context)::shared))
     }
 
     /** Set to remove what is checked, a list removes the items checked before it was. */

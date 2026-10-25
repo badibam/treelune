@@ -45,7 +45,9 @@ data class TaskEntity(
     @ColumnInfo(name = "created_at") val createdAt: Long,
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
     /** What starts it beside its schedule, Triggers' stored form; null when nothing does */
-    @ColumnInfo(name = "triggers_json") val triggersJson: String? = null
+    @ColumnInfo(name = "triggers_json") val triggersJson: String? = null,
+    /** The event a run that ends well emits (EventPoints), its id; null for none */
+    @ColumnInfo(name = "emit_event") val emitEvent: String? = null
 )
 
 /**

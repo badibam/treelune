@@ -164,6 +164,7 @@ class AutomationService(private val context: Context) : ExecutableService {
         ), settingsGiven(params, null), null).getOrElse { return OperationResult.error(it.message ?: s.shared("message_validation_error_simple")) }
         groupRefusal(entity.group, zoneId)?.let { return OperationResult.error(it) }
         app.treelune.core.triggers.Triggers.refusal(settingsGiven(params, null), AutomationSettings.nodes(context), context, s)?.let { return OperationResult.error(it) }
+        app.treelune.core.events.EventPoints.refusal(settingsGiven(params, null), null, context, s)?.let { return OperationResult.error(it) }
         // Given, null for the app's own AI: never taken from the zone without the caller saying so
         if (!params.has(AutomationSettings.IDENTITY_ID)) return OperationResult.error(s.shared("automation_identity_required"))
         identityRefusal(entity.identityId)?.let { return OperationResult.error(it) }
@@ -284,6 +285,7 @@ class AutomationService(private val context: Context) : ExecutableService {
         ), settings, AutomationSettings.of(entity)).getOrElse { return OperationResult.error(it.message ?: s.shared("message_validation_error_simple")) }
         groupRefusal(updatedEntity.group, updatedEntity.zoneId)?.let { return OperationResult.error(it) }
         app.treelune.core.triggers.Triggers.refusal(settings, AutomationSettings.nodes(context), context, s)?.let { return OperationResult.error(it) }
+        app.treelune.core.events.EventPoints.refusal(settings, null, context, s)?.let { return OperationResult.error(it) }
         // Only an identity that changes is checked: a routine saved again keeps the one it has
         if (updatedEntity.identityId != entity.identityId) identityRefusal(updatedEntity.identityId)?.let { return OperationResult.error(it) }
         providerRefusal(updatedEntity)?.let { return OperationResult.error(it) }
@@ -373,7 +375,7 @@ class AutomationService(private val context: Context) : ExecutableService {
      */
     private fun settingsGiven(params: JSONObject, stored: JSONObject?): JSONObject {
         val settings = stored?.let { JSONObject(it.toString()) } ?: JSONObject()
-        (app.treelune.core.look.Looks.keys(AutomationSettings.LOOK) + listOf("provider_id", AutomationSettings.IDENTITY_ID, "group", "is_enabled", "notify_end", "schedule", "catch_up", app.treelune.core.triggers.Triggers.KEY)).forEach { key ->
+        (app.treelune.core.look.Looks.keys(AutomationSettings.LOOK) + listOf("provider_id", AutomationSettings.IDENTITY_ID, "group", "is_enabled", "notify_end", "schedule", "catch_up", app.treelune.core.triggers.Triggers.KEY, app.treelune.core.events.EventPoints.KEY)).forEach { key ->
             if (!params.has(key)) return@forEach
             if (params.isNull(key)) settings.remove(key) else settings.put(key, params.get(key))
         }
@@ -429,7 +431,8 @@ class AutomationService(private val context: Context) : ExecutableService {
             catchUpWindow = catchUp?.takeIf { it.has("window") }?.getLong("window"),
             // Without a schedule nothing is missed: the column holds its declared default
             dismissOlderInstances = SettingValues(AutomationSettings.catchUpNodes(context), catchUp ?: JSONObject()).boolean("dismiss_older_instances"),
-            triggersJson = (app.treelune.core.triggers.Triggers.of(settings) ?: JSONArray()).toString()
+            triggersJson = (app.treelune.core.triggers.Triggers.of(settings) ?: JSONArray()).toString(),
+            emitEvent = app.treelune.core.events.EventPoints.idIn(settings)
         ))
     }
 

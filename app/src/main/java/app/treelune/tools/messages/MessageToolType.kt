@@ -120,7 +120,9 @@ object MessageToolType : ToolTypeContract {
                 field("enabled", FieldType.BOOLEAN, default = true),
                 field("priority", FieldType.CHOICE, default = "default",
                     config = mapOf("options" to ChoiceSettings.storedOptions(priorities, priorities.associateWith { s.tool("priority_$it") }))),
-                field("external_notifications", FieldType.BOOLEAN, default = true)
+                field("external_notifications", FieldType.BOOLEAN, default = true),
+                // A message sent may emit an event besides its notification
+                app.treelune.core.events.EventPoints.node(shared::shared)
             )),
             // The recurrence and the life of the occurrences it creates
             SettingNode.Section(s.tool("section_schedule"), listOf(

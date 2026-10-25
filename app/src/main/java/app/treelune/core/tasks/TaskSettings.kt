@@ -58,7 +58,9 @@ object TaskSettings {
             // Present with the schedule, and only with it (TaskService)
             SettingNode.Group("catch_up", s.shared("automation_catch_up_title"), AutomationSettings.catchUpNodes(context), description = s.shared("automation_schema_catch_up")),
             // What starts it beside its schedule: an entry written
-            app.treelune.core.triggers.Triggers.node(s::shared)
+            app.treelune.core.triggers.Triggers.node(s::shared),
+            // What a run that ends well emits
+            app.treelune.core.events.EventPoints.node(s::shared)
         )
     }
 
@@ -80,6 +82,7 @@ object TaskSettings {
         put("notify_end", task.notifyEnd)
         task.scheduleJson?.let { put("schedule", JSONObject(it)) }
         task.triggersJson?.let { put(app.treelune.core.triggers.Triggers.KEY, org.json.JSONArray(it)) }
+        app.treelune.core.events.EventPoints.stored(task.emitEvent)?.let { put(app.treelune.core.events.EventPoints.KEY, it) }
         task.catchUp?.let { limit ->
             put("catch_up", JSONObject().apply {
                 put("limit", limit)

@@ -25,6 +25,8 @@ data class AutomationEntity(
     @ColumnInfo(name = "schedule_json") val scheduleJson: String?,              // JSON of ScheduleConfig
     /** What starts it beside its schedule, Triggers' stored form: `[]` when nothing does */
     @ColumnInfo(name = "triggers_json") val triggersJson: String,
+    /** The event a run that ends well emits (EventPoints), its id; null for none */
+    @ColumnInfo(name = "emit_event") val emitEvent: String? = null,
     // A scheduled automation's choice about missed runs, "limited" or "unlimited"; null without schedule
     @ColumnInfo(name = "catch_up") val catchUp: String?,
     // How late an occurrence may still run, in milliseconds, for a "limited" catch-up

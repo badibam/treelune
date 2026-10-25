@@ -59,6 +59,7 @@ fun CreateAutomationDialog(
                 (automation?.get("provider_id") as? String)?.let { put("provider_id", it) }
                 (automation?.get("group") as? String)?.let { put("group", it) }
                 (automation?.get("notify_end") as? String)?.let { put("notify_end", it) }
+                (automation?.get(app.treelune.core.events.EventPoints.KEY) as? String)?.let { put(app.treelune.core.events.EventPoints.KEY, app.treelune.core.events.EventPoints.stored(it)) }
                 (automation?.get(app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID) as? String)?.let { put(app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID, it) }
             } else {
                 // A new routine's look at its declared defaults (the icon bot, EXTENDED)
@@ -73,7 +74,7 @@ fun CreateAutomationDialog(
     val selectedGroup = settings.optString("group").ifEmpty { null }
     val settingsNodes = remember {
         app.treelune.core.ai.data.AutomationSettings.nodes(context).filter { node ->
-            node is app.treelune.core.fields.settings.SettingNode.Field && node.definition.name in lookKeys + setOf("provider_id", app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID, "group", "notify_end")
+            node is app.treelune.core.fields.settings.SettingNode.Field && node.definition.name in lookKeys + setOf("provider_id", app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID, "group", "notify_end", app.treelune.core.events.EventPoints.KEY)
         }
     }
     var selectedZoneId by rememberSaveable {
@@ -177,6 +178,7 @@ fun CreateAutomationDialog(
                             "provider_id" to (selectedProvider ?: org.json.JSONObject.NULL),
                             "group" to (selectedGroup ?: org.json.JSONObject.NULL),
                             "notify_end" to (settings.optString("notify_end").ifEmpty { null } ?: org.json.JSONObject.NULL),
+                            app.treelune.core.events.EventPoints.KEY to (settings.optJSONObject(app.treelune.core.events.EventPoints.KEY) ?: org.json.JSONObject.NULL),
                             app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID to (settings.optString(app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID).ifEmpty { null } ?: org.json.JSONObject.NULL)
                         )
                         // Its look, each setting sent, an absent one as null, which empties it
@@ -210,6 +212,7 @@ fun CreateAutomationDialog(
                         createParams[app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID] =
                             settings.optString(app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID).ifEmpty { null } ?: org.json.JSONObject.NULL
                         settings.optString("notify_end").ifEmpty { null }?.let { createParams["notify_end"] = it }
+                        settings.optJSONObject(app.treelune.core.events.EventPoints.KEY)?.let { createParams[app.treelune.core.events.EventPoints.KEY] = it }
 
                         val createAutomationResult = coordinator.processUserAction("automations.create", createParams)
 

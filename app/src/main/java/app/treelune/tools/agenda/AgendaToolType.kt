@@ -97,7 +97,9 @@ object AgendaToolType : ToolTypeContract {
         return listOf(
             SettingNode.Section(s.tool("section_reminders"), listOf(
                 SettingNode.Instants(REMINDERS, s.tool("field_reminders"), s.tool("reference_event_start")),
-                SettingNode.Instants(ALL_DAY_REMINDERS, s.tool("field_all_day_reminders"), s.tool("reference_event_start"))
+                SettingNode.Instants(ALL_DAY_REMINDERS, s.tool("field_all_day_reminders"), s.tool("reference_event_start")),
+                // A reminder sent may emit an event besides its notification
+                app.treelune.core.events.EventPoints.node(shared::shared)
             )),
             SettingNode.Section(s.tool("section_series"), listOf(
                 SettingNode.ListOf(SERIES_LIST, s.tool("field_series"), SettingNode.Item.Of(listOf(

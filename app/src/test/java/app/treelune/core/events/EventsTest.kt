@@ -109,4 +109,42 @@ class EventsTest {
         ok("tasks.delete", mapOf("task_id" to listener))
         assertTrue(AppDatabase.getDatabase(context).eventDao().get(ok("events.delete", mapOf("event_id" to eventId))["event_id"] as String) == null)
     }
+
+    @Test
+    fun aToolEmits_onlyAnEventCarryingNothingOrOneOfItsEntries() = runBlocking {
+        // A List tells of a due date passed: it may emit there
+        val list = ok("tools.create", mapOf("zone_id" to zoneId, "tooltype" to "list", "config" to mapOf("name" to "Errands")))["tool_instance_id"] as String
+        suspend fun carrying(name: String, tool: String) = ok("events.create", mapOf("zone_id" to zoneId, "name" to name, "values" to listOf(
+            mapOf("name" to "item", "type" to "entry", "tool_instance_id" to mapOf("kind" to "TOOL_INSTANCE", "id" to tool)))))["event_id"] as String
+        val ofNotes = carrying("Of notes", notesId)
+        val ofList = carrying("Of the list", list)
+        val config = (ok("tools.get", mapOf("tool_instance_id" to list))["tool_instance"] as Map<*, *>)["config"] as Map<*, *>
+        fun withEvent(id: String) = mapOf("tool_instance_id" to list, "config" to config + (EventPoints.KEY to mapOf("kind" to "EVENT", "id" to id)))
+
+        assertFalse(coordinator.processUserAction("tools.update", withEvent(ofNotes)).isSuccess)
+        val accepted = coordinator.processUserAction("tools.update", withEvent(ofList))
+        assertTrue(accepted.error, accepted.isSuccess)
+    }
+
+    @Test
+    fun aPlaceEmits_carryingTheEntryConcerned() = runBlocking {
+        val ofNotes = ok("events.create", mapOf("zone_id" to zoneId, "name" to "Noted", "values" to listOf(
+            mapOf("name" to "note", "type" to "entry", "tool_instance_id" to mapOf("kind" to "TOOL_INSTANCE", "id" to notesId)))))["event_id"] as String
+        val listener = ok("tasks.create", mapOf("zone_id" to zoneId, "name" to "Listener", "triggers" to listening(ofNotes)))["task_id"] as String
+        val entry = ok("tool_data.create", mapOf("tool_instance_id" to notesId, "data" to mapOf("content" to "hello")))["id"] as String
+
+        EventPoints.emit(context, EventPoints.stored(ofNotes), entry)
+
+        assertEquals(TaskRun.Received.Event(ofNotes, mapOf("note" to entry)), TaskRun.Received.of(ended(listener).single().receivedJson!!))
+    }
+
+    @Test
+    fun aTaskThatEndsWell_emits_inItsChain() = runBlocking {
+        val eventId = ok("events.create", mapOf("zone_id" to zoneId, "name" to "Done"))["event_id"] as String
+        val listener = ok("tasks.create", mapOf("zone_id" to zoneId, "name" to "Listener", "triggers" to listening(eventId)))["task_id"] as String
+        val first = ok("tasks.create", mapOf("zone_id" to zoneId, "name" to "First", EventPoints.KEY to mapOf("kind" to "EVENT", "id" to eventId)))["task_id"] as String
+        val runId = ok("tasks.run", mapOf("task_id" to first))["run_id"] as String
+
+        assertEquals(runId, ended(listener).single().chainId)
+    }
 }

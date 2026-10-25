@@ -644,7 +644,7 @@ private fun SeedMode(
                     "name" to currentAutomation.name,
                     "seed_session_id" to currentAutomation.seedSessionId,
                     "notify_end" to currentAutomation.notifyEnd
-                ) + listOfNotNull(currentAutomation.providerId?.let { "provider_id" to it }, currentAutomation.group?.let { "group" to it },
+                ) + listOfNotNull(currentAutomation.emitEvent?.let { app.treelune.core.events.EventPoints.KEY to it },currentAutomation.providerId?.let { "provider_id" to it }, currentAutomation.group?.let { "group" to it },
                     currentAutomation.identityId?.let { app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID to it }),
                 onDismiss = { showEditAutomation = false },
                 onSuccess = { _ ->

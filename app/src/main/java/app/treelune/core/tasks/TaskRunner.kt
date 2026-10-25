@@ -215,6 +215,10 @@ object TaskRunner {
         app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
         // A run cancelled before its turn leaves the one going on in place
         if (TaskRun.State.of(run.state) != TaskRun.State.QUEUED) next(context, task.id)
+        // A run that ends well emits its event, in its chain
+        if (state == TaskRun.State.DONE && task.emitEvent != null) withContext(ChainLink(run.chainId ?: run.id)) {
+            app.treelune.core.events.EventPoints.emit(context, app.treelune.core.events.EventPoints.stored(task.emitEvent), null)
+        }
         if (!waits) return
         val s = Strings.`for`(context = context)
         Coordinator(context).processScheduledTask("notifications.send", mapOf(

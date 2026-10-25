@@ -2788,6 +2788,9 @@
     <string name="event_display_name">Événement</string>
     <string name="event_card_title">Événements</string>
     <string name="event_new">Nouvel événement…</string>
+    <string name="event_point">Émettre aussi l\'événement</string>
+    <string name="event_point_schema">Un événement émis à ce moment à côté de ce que l\'app dit, {"kind": "EVENT", "id"} : un qui ne porte rien, ou une seule valeur, une entrée de cet outil (celle concernée) ; pour une routine ou une Tâche, à la fin d\'une exécution qui s\'est bien passée, un qui ne porte rien</string>
+    <string name="event_point_error">« %1$s » ne peut pas être émis ici : il doit ne rien porter, ou une seule valeur, une entrée de cet outil</string>
     <string name="event_values">Ce qu\'il porte</string>
     <string name="event_values_none">ne porte rien</string>
     <string name="event_value_type">Type</string>

@@ -95,6 +95,8 @@ class BackupService(private val context: Context) : ExecutableService {
             scheduleJson = item.optString("schedule_json", null),
             // Absent from a backup made before version 100: started by nothing but its schedule
             triggersJson = item.optString("triggers_json", "[]"),
+            // Absent from a backup made before version 102, or without one
+            emitEvent = item.optString("emit_event").ifEmpty { null },
             // A backup older than v41 is brought to this form first (CatchUpAtV41)
             catchUp = item.optString("catch_up").takeIf { it.isNotEmpty() },
             catchUpWindow = if (item.has("catch_up_window")) item.getLong("catch_up_window") else null,
@@ -558,6 +560,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("seed_session_id", automation.seedSessionId)
                                 put("schedule_json", automation.scheduleJson)
                                 put("triggers_json", automation.triggersJson)
+                                automation.emitEvent?.let { put("emit_event", it) }
                                 automation.catchUp?.let { put("catch_up", it) }
                                 automation.catchUpWindow?.let { put("catch_up_window", it) }
                                 put("dismiss_older_instances", automation.dismissOlderInstances)
@@ -661,6 +664,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("notify_end", task.notifyEnd)
                                 put("steps_json", task.stepsJson)
                                 put("triggers_json", task.triggersJson ?: JSONObject.NULL)
+                                put("emit_event", task.emitEvent ?: JSONObject.NULL)
                                 put("created_at", task.createdAt)
                                 put("updated_at", task.updatedAt)
                             })
@@ -1135,7 +1139,9 @@ class BackupService(private val context: Context) : ExecutableService {
                     createdAt = item.getLong("created_at"),
                     updatedAt = item.getLong("updated_at"),
                     // Absent from a backup made before version 99: started by nothing but its schedule
-                    triggersJson = if (item.has("triggers_json")) item.text("triggers_json") else null
+                    triggersJson = if (item.has("triggers_json")) item.text("triggers_json") else null,
+                    // Absent from a backup made before version 102: it emits nothing
+                    emitEvent = if (item.has("emit_event")) item.text("emit_event") else null
                 ))
             }
         }

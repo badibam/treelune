@@ -50,7 +50,7 @@ class TaskService(private val context: Context) : ExecutableService {
     private val json = Json { ignoreUnknownKeys = true }
 
     /** The keys of a Task's settings, beside its zone and steps. */
-    private val SETTING_KEYS = Looks.keys(TaskSettings.LOOK) + listOf("group", "is_enabled", "notify_end", "schedule", "catch_up", app.treelune.core.triggers.Triggers.KEY)
+    private val SETTING_KEYS = Looks.keys(TaskSettings.LOOK) + listOf("group", "is_enabled", "notify_end", "schedule", "catch_up", app.treelune.core.triggers.Triggers.KEY, app.treelune.core.events.EventPoints.KEY)
 
     override suspend fun execute(operation: String, params: JSONObject, token: CancellationToken): OperationResult = try {
         when (operation) {
@@ -224,6 +224,8 @@ class TaskService(private val context: Context) : ExecutableService {
 
         // What starts it (Triggers.refusal), and the entry it then gives the steps
         app.treelune.core.triggers.Triggers.refusal(settings, TaskSettings.nodes(context), context, s)?.let { return refused(it) }
+        // What a run that ends well emits carries nothing: no entry is the run's
+        app.treelune.core.events.EventPoints.refusal(settings, null, context, s)?.let { return refused(it) }
         val triggers = app.treelune.core.triggers.Triggers.of(settings)
         val read = app.treelune.core.triggers.Triggers.read(triggers)
 
@@ -251,7 +253,8 @@ class TaskService(private val context: Context) : ExecutableService {
             catchUpWindow = catchUp?.takeIf { it.has("window") }?.getLong("window"),
             dismissOlderInstances = SettingValues(app.treelune.core.ai.data.AutomationSettings.catchUpNodes(context), catchUp ?: JSONObject()).boolean("dismiss_older_instances"),
             stepsJson = steps.toString(),
-            triggersJson = triggers?.toString()
+            triggersJson = triggers?.toString(),
+            emitEvent = app.treelune.core.events.EventPoints.idIn(settings)
         ))
     }
 
