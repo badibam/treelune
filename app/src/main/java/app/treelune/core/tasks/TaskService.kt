@@ -113,8 +113,14 @@ class TaskService(private val context: Context) : ExecutableService {
     private suspend fun create(params: JSONObject): OperationResult {
         val zoneId = params.optString("zone_id").ifEmpty { return OperationResult.error(s.shared("error_param_zone_id_required")) }
         val zone = database.zoneDao().getZoneById(zoneId) ?: return OperationResult.error(s.shared("service_error_zone_not_found"))
+        // The app's own demo gives its ids; every other caller gets one made here
+        val taskId = when (val given = app.treelune.core.coordinator.GivenId.read(params)) {
+            app.treelune.core.coordinator.GivenId.Read.None -> UUID.randomUUID().toString()
+            is app.treelune.core.coordinator.GivenId.Read.Accepted -> given.id
+            is app.treelune.core.coordinator.GivenId.Read.Refused -> return OperationResult.error(s.shared("service_error_id_not_given").format(given.id))
+        }
         val now = System.currentTimeMillis()
-        val base = TaskEntity(UUID.randomUUID().toString(), zoneId, "", null, TaskSettings.DEFAULT_ICON, null, null, TaskSettings.DEFAULT_MODE,
+        val base = TaskEntity(taskId, zoneId, "", null, TaskSettings.DEFAULT_ICON, null, null, TaskSettings.DEFAULT_MODE,
             null, 0, 0, true, null, null, null, false, "", "[]", now, now)
         val task = checked(base, given(params, null), null, params).getOrElse { return OperationResult.error(it.message ?: s.shared("message_validation_error_simple")) }
         database.transaction {

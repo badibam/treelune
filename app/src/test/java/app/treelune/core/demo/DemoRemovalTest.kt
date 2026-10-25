@@ -10,7 +10,7 @@ import java.sql.DriverManager
 /**
  * A reinstall of the demo removes all of it — its own rows, and what the user put in a demo zone
  * or tool — and touches nothing else, the demo's identity staying while a zone or a routine of the
- * user's names it: the selections of DemoRemoval, run on SQLite in their order over the columns
+ * user's names it, its API while a Task of the user's calls it: the selections of DemoRemoval, run on SQLite in their order over the columns
  * they read, each id they give deleted before the next one is read.
  */
 class DemoRemovalTest {
@@ -27,7 +27,10 @@ class DemoRemovalTest {
             "CREATE TABLE variables (id TEXT, zone_id TEXT)",
             "CREATE TABLE automations (id TEXT, zone_id TEXT, identity_id TEXT)",
             "CREATE TABLE ai_sessions (id TEXT, automation_id TEXT)",
-            "CREATE TABLE identities (id TEXT)"
+            "CREATE TABLE identities (id TEXT)",
+            "CREATE TABLE tasks (id TEXT, zone_id TEXT, steps_json TEXT)",
+            "CREATE TABLE apis (id TEXT)",
+            "CREATE TABLE condition_judgements (owner_id TEXT)"
         ).forEach { db.createStatement().execute(it) }
 
         // The user's own, outside the demo
@@ -60,6 +63,17 @@ class DemoRemovalTest {
         db.createStatement().execute("UPDATE zones SET identity_id = 'demo-identity' WHERE id = 'demo-zone'")
         db.createStatement().execute("UPDATE zones SET identity_id = 'demo-identity-zone' WHERE id = 'zone'")
         db.createStatement().execute("UPDATE automations SET identity_id = 'demo-identity-routine' WHERE id = 'automation'")
+
+        // The Tasks and the APIs: the user's, the demo's, one put in the demo; the demo's second API called by a Task of the user's
+        listOf("api", "demo-api", "demo-api-kept").forEach { db.createStatement().execute("INSERT INTO apis VALUES ('$it')") }
+        listOf(
+            Triple("task", "zone", """[{"kind": "call_api", "api_id": "demo-api-kept"}]"""),
+            Triple("demo-task", "demo-zone", """[{"kind": "call_api", "api_id": "demo-api"}]"""),
+            Triple("added-task", "demo-zone", "[]")
+        ).forEach { (id, zone, steps) ->
+            db.prepareStatement("INSERT INTO tasks VALUES (?, ?, ?)").apply { setString(1, id); setString(2, zone); setString(3, steps); execute() }
+        }
+        listOf("task", "demo-task", "added-task", "automation", "added-automation").forEach { db.createStatement().execute("INSERT INTO condition_judgements VALUES ('$it')") }
     }
 
     @After
@@ -86,6 +100,7 @@ class DemoRemovalTest {
 
     @Test
     fun `a removal takes the demo and what was put in it, and leaves everything else`() {
+        DemoRemoval.OUTSIDE_HISTORY.forEach { db.createStatement().execute(it) }
         DemoRemoval.SELECTIONS.forEach { (table, query) ->
             val selected = db.createStatement().executeQuery(query).use { rows -> buildList { while (rows.next()) add(rows.getString(1)) } }
             selected.forEach { id -> db.prepareStatement("DELETE FROM $table WHERE id = ?").apply { setString(1, id); execute() } }
@@ -97,5 +112,10 @@ class DemoRemovalTest {
         assertEquals(setOf("automation"), ids("automations"))
         assertEquals(setOf("session", "chat"), ids("ai_sessions"))
         assertEquals(setOf("identity", "demo-identity-zone", "demo-identity-routine"), ids("identities"))
+        assertEquals(setOf("task"), ids("tasks"))
+        assertEquals(setOf("api", "demo-api-kept"), ids("apis"))
+        assertEquals(setOf("task", "automation"), db.createStatement().executeQuery("SELECT owner_id FROM condition_judgements").use { rows ->
+            buildSet { while (rows.next()) add(rows.getString(1)) }
+        })
     }
 }

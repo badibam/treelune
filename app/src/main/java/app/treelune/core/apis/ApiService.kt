@@ -77,8 +77,13 @@ class ApiService(private val context: Context) : ExecutableService {
     private suspend fun create(params: JSONObject): OperationResult {
         val name = checkedName(params, null).let { (name, refusal) -> refusal?.let { return OperationResult.error(it) }; name!! }
         val config = checkedConfig(params).let { (config, refusal) -> refusal?.let { return OperationResult.error(it) }; config!! }
+        // The app's own demo gives its ids; every other caller gets one made here
+        val id = when (val given = app.treelune.core.coordinator.GivenId.read(params)) {
+            app.treelune.core.coordinator.GivenId.Read.None -> java.util.UUID.randomUUID().toString()
+            is app.treelune.core.coordinator.GivenId.Read.Accepted -> given.id
+            is app.treelune.core.coordinator.GivenId.Read.Refused -> return OperationResult.error(s.shared("service_error_id_not_given").format(given.id))
+        }
         val now = System.currentTimeMillis()
-        val id = java.util.UUID.randomUUID().toString()
         dao.insert(ApiEntity(id, name, config, now, now))
         LogManager.service("API $id created: \"$name\"", "INFO")
         return OperationResult.success(mapOf("api_id" to id))
