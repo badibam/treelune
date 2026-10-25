@@ -106,6 +106,8 @@ object AccessRules {
             "automations" -> when (operation) {
                 "list", "list_all", "waiting" -> listOf(Reach.Free)
                 "get", "config", "next_execution" -> listOf(automationAt(AccessLevel.READ))
+                // Run now, as a Task is: a use of its zone
+                "execute_manual" -> listOf(automationAt(AccessLevel.USE))
                 "create" -> listOf(zoneAt("zone_id", AccessLevel.FULL))
                 // A routine moved goes into the zone it is moved to
                 "update" -> listOfNotNull(automationAt(AccessLevel.FULL), text("zone_id")?.let { Reach.Zone(it, AccessLevel.FULL) })

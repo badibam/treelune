@@ -153,6 +153,11 @@ class ValidationResolver(private val context: Context) {
             // A Task's run writes in its zone, as a tool's writes do
             "RUN_TASK" -> zoneReason(read("tasks.get", mapOf("task_id" to (params["task_id"] as? String ?: error(s.shared("validation_reason_no_target")))), "task")["zone_id"] as? String
                 ?: error("task without its zone"), levels)
+            // A routine's run writes in its zone, as a Task's
+            "RUN_AUTOMATION" -> zoneReason(automationZone(params["automation_id"] as? String ?: error(s.shared("validation_reason_no_target"))), levels)
+            // What an event emitted starts belongs to its zone's wiring
+            "EMIT_EVENT" -> zoneReason(read("events.get", mapOf("event_id" to (params["event_id"] as? String ?: error(s.shared("validation_reason_no_target")))), "event")["zone_id"] as? String
+                ?: error("event without its zone"), levels)
             // A zone's events, as its variables
             "CREATE_EVENT" -> zoneReason(params["zone_id"] as? String ?: error(s.shared("validation_reason_no_target")), levels)
             "UPDATE_EVENT", "DELETE_EVENT" -> zoneReason(read("events.get", mapOf("event_id" to (params["event_id"] as? String ?: error(s.shared("validation_reason_no_target")))), "event")["zone_id"] as? String

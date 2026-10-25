@@ -29,7 +29,7 @@ La différence entre 2 et 3 : tu notes 81, puis 82. « Un poids noté au-dessus 
 
 ## 2. Les événements
 
-En place (`docs/CORE.md`, « Events ») : la carte de la zone, l'étape « émettre », le déclencheur, les valeurs reçues, les endroits où l'app prévient (partie 3). Restent l'émission par l'IA, et un bouton.
+En place (`docs/CORE.md`, « Events ») : la carte de la zone, l'étape « émettre », le déclencheur, les valeurs reçues, les endroits où l'app prévient (partie 3). L'IA émet aussi (`EMIT_EVENT`). Reste un bouton.
 
 Un événement est une chose de l'app, dans une zone, comme une variable : un nom (« séance prête ») et les valeurs qu'il porte, déclarées comme les valeurs d'une API (un nom, un type : `fiche`, une entrée de Fiches de séances ; `duree`, une durée), aucune s'il n'en porte pas. Il sert à ce qu'aucune écriture ne dit (une Tâche a fini de fabriquer l'audio), et à ce que plusieurs choses écoutent sous un même nom ; une écriture, elle, s'écoute directement par la sorte 2.
 

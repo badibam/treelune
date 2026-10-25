@@ -116,7 +116,16 @@ class EventService(private val context: Context) : ExecutableService {
     private suspend fun emit(params: JSONObject): OperationResult {
         val event = event(params) ?: return notFound()
         val values = params.optJSONObject(EventValues.VALUES) ?: JSONObject()
-        EventValues.refusal(EventValues.read(event.valuesJson), values, s::shared)?.let { return OperationResult.error(it) }
+        val declared = EventValues.read(event.valuesJson)
+        EventValues.refusal(declared, values, s::shared)?.let { return OperationResult.error(it) }
+        // What it carries is checked at the emitter's: an AI held to a mask carries only entries it
+        // may read, or it would choose the target of a Task stronger than itself
+        kotlin.coroutines.coroutineContext[app.treelune.core.access.AccessScope]?.let { scope ->
+            val carried = declared.filter { it.type == EventValues.Type.ENTRY }.mapNotNull { values.optString(it.name).ifEmpty { null } }
+                .map { app.treelune.core.access.Reach.Entry(it, app.treelune.core.access.AccessLevel.READ) }
+            app.treelune.core.access.AccessRules.refusal(scope.mask, scope.holder, carried, app.treelune.core.access.DatabaseAccessLookups(context), s::shared)
+                ?.let { return OperationResult.error(it) }
+        }
         EventTriggers.dispatch(context, event, values)
         return OperationResult.success(mapOf("event_id" to event.id, "name" to event.name))
     }

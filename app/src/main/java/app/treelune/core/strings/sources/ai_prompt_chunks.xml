@@ -385,7 +385,7 @@ Retrieves a Task whole, in the form CREATE_TASK and UPDATE_TASK write it: `zone_
 - `id` (string, **required**)]]></string>
     <string name="ai_command_events"><![CDATA[### EVENTS
 
-Lists the events of the zones: names a Task\'s step emits and that Tasks and routines listen to, wiring between what makes something no write says (a session ready) and what reacts to it. Each with its id, zone, name, description (what it means, when it is emitted) and the values it carries, each a `name` and a `type` (`text`, `number`, `yes_no`, `entry` with the `tool_instance_id` of its tool).
+Lists the events of the zones: names a Task\'s step or you (EMIT_EVENT) emit and that Tasks and routines listen to, wiring between what makes something no write says (a session ready) and what reacts to it. Each with its id, zone, name, description (what it means, when it is emitted) and the values it carries, each a `name` and a `type` (`text`, `number`, `yes_no`, `entry` with the `tool_instance_id` of its tool).
 
 **Parameters**:
 
@@ -690,7 +690,7 @@ Deletes a variable. A formula naming it no longer computes.
 - `variable_id` (string, **required**)]]></string>
     <string name="ai_command_create_automation"><![CDATA[### CREATE_AUTOMATION
 
-Creates a routine in a zone: a message the app sends to an AI on its own, on a schedule or when the user starts it. You cannot start one yourself.
+Creates a routine in a zone: a message the app sends to an AI on its own, on a schedule, when the user starts it, or with RUN_AUTOMATION.
 
 **Parameters**:
 
@@ -799,9 +799,25 @@ Runs a Task now, as its own button does: its steps run one after another, in the
 **Parameters**:
 
 - `task_id` (string, **required**)]]></string>
+    <string name="ai_command_run_automation"><![CDATA[### RUN_AUTOMATION
+
+Starts a routine now, as its own button does: its AI runs in the background with the routine\'s message, `data` joined to its end. Starting it takes using its zone. The answer says it started, not its outcome: read it later with AUTOMATION_RUNS. Started by a routine\'s run, it counts in that run\'s chain: a chain stops past the cap of runs the AI limits set.
+
+**Parameters**:
+
+- `automation_id` (string, **required**)
+- `data` (string, optional): what joins the end of its message]]></string>
+    <string name="ai_command_emit_event"><![CDATA[### EMIT_EVENT
+
+Emits an event of EVENTS: every Task and routine whose triggers listen to it starts, each receiving the values. Say what happened, not who should react: the user wired what listens. Emitting takes using its zone; an `entry` value must be one you may read. Emitted by a routine\'s run, what it starts counts in that run\'s chain.
+
+**Parameters**:
+
+- `event_id` (string, **required**)
+- `values` (object, optional): by the event\'s value names, every one it declares given, of its type, nothing else; an `entry` value is the entry\'s id]]></string>
     <string name="ai_command_create_event"><![CDATA[### CREATE_EVENT
 
-Creates an event in a zone, for Tasks to emit and Tasks and routines to listen to. Its name is unique in its zone; its description says what it means and when it is emitted, for the user and for you later.
+Creates an event in a zone, for Tasks and you to emit and Tasks and routines to listen to. Its name is unique in its zone; its description says what it means and when it is emitted, for the user and for you later.
 
 **Parameters**:
 

@@ -9,6 +9,7 @@ import app.treelune.core.tasks.TaskRunEntity
 import app.treelune.core.triggers.Triggers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -97,6 +98,24 @@ class EventsTest {
         assertEquals(TaskRun.State.DONE.key, run.state)
         val notes = ok("tool_data.get", mapOf("tool_instance_id" to notesId))["entries"] as List<*>
         assertEquals(listOf("Morning breath"), notes.map { ((it as Map<*, *>)["data"] as Map<*, *>)["content"] })
+    }
+
+    @Test
+    fun anAiHeldToAMask_carriesOnlyEntriesItMayRead() = runBlocking {
+        val gardenId = ok("zones.create", mapOf("name" to "Garden"))["zone_id"] as String
+        val seedsId = ok("tools.create", mapOf("zone_id" to gardenId, "tooltype" to "notes", "config" to mapOf("name" to "Seeds")))["tool_instance_id"] as String
+        val seed = ok("tool_data.create", mapOf("tool_instance_id" to seedsId, "data" to mapOf("content" to "Basil")))["id"] as String
+        val eventId = ok("events.create", mapOf("zone_id" to zoneId, "name" to "Sown",
+            "values" to listOf(mapOf("name" to "seed", "type" to "entry", "tool_instance_id" to mapOf("kind" to "TOOL_INSTANCE", "id" to seedsId)))))["event_id"] as String
+        val sessionsOnly = app.treelune.core.access.AccessScope(app.treelune.core.access.AccessMask(listOf(app.treelune.core.access.AccessGrant(
+            app.treelune.core.selection.Reference(app.treelune.core.selection.ReferenceKind.ZONE, zoneId), app.treelune.core.access.AccessLevel.USE))), "Weekly")
+        val gardenToo = app.treelune.core.access.AccessScope(app.treelune.core.access.AccessMask(listOf(
+            app.treelune.core.access.AccessGrant(app.treelune.core.selection.Reference(app.treelune.core.selection.ReferenceKind.ZONE, zoneId), app.treelune.core.access.AccessLevel.USE),
+            app.treelune.core.access.AccessGrant(app.treelune.core.selection.Reference(app.treelune.core.selection.ReferenceKind.ZONE, gardenId), app.treelune.core.access.AccessLevel.READ))), "Weekly")
+        val params = mapOf("event_id" to eventId, "values" to mapOf("seed" to seed))
+
+        assertFalse(withContext(sessionsOnly) { coordinator.processUserAction("events.emit", params) }.isSuccess)
+        assertTrue(withContext(gardenToo) { coordinator.processUserAction("events.emit", params) }.isSuccess)
     }
 
     @Test

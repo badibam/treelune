@@ -264,6 +264,10 @@ class AICommandProcessor(private val context: Context) {
             "UNDO_STEP", "REDO_STEP" -> historyCommand(command)
             // A Task run now: its steps run as the Task's, held to its access (TaskService)
             "RUN_TASK" -> ExecutableCommand(resource = "tasks", operation = "run", params = command.params, isActionCommand = true)
+            // A routine run now, as its own button does, what is given joined to its message
+            "RUN_AUTOMATION" -> ExecutableCommand(resource = "automations", operation = "execute_manual", params = command.params, isActionCommand = true)
+            // An event emitted, with the values it declares: what listens to it starts (EventTriggers)
+            "EMIT_EVENT" -> ExecutableCommand(resource = "events", operation = "emit", params = command.params, isActionCommand = true)
             // An event of a zone, written as EVENTS reads it
             "CREATE_EVENT", "UPDATE_EVENT", "DELETE_EVENT" -> ExecutableCommand(
                 resource = "events",
@@ -379,6 +383,10 @@ class AICommandProcessor(private val context: Context) {
             "UNDO_STEP", "REDO_STEP" -> historyCommand(command)
             // A Task run now: its steps run as the Task's, held to its access (TaskService)
             "RUN_TASK" -> ExecutableCommand(resource = "tasks", operation = "run", params = command.params, isActionCommand = true)
+            // A routine run now, as its own button does, what is given joined to its message
+            "RUN_AUTOMATION" -> ExecutableCommand(resource = "automations", operation = "execute_manual", params = command.params, isActionCommand = true)
+            // An event emitted, with the values it declares: what listens to it starts (EventTriggers)
+            "EMIT_EVENT" -> ExecutableCommand(resource = "events", operation = "emit", params = command.params, isActionCommand = true)
             // An event of a zone, written as EVENTS reads it
             "CREATE_EVENT", "UPDATE_EVENT", "DELETE_EVENT" -> ExecutableCommand(
                 resource = "events",

@@ -130,8 +130,10 @@ class AccessTest {
         // A routine moved into a zone out of reach, a run of an unknown routine
         assertNotNull(refusal(full, "automations", "update", mapOf("automation_id" to "weekly", "zone_id" to "garden")))
         assertNotNull(refusal(full, "ai_sessions", "run_history", mapOf("session_id" to "r9")))
-        // What the screens alone do
-        assertNotNull(refusal(full, "automations", "execute_manual", mapOf("automation_id" to "weekly")))
+        // A routine run now, as a Task: a use of its zone
+        assertNull(refusal(used, "automations", "execute_manual", mapOf("automation_id" to "weekly")))
+        assertNotNull(refusal(read, "automations", "execute_manual", mapOf("automation_id" to "weekly")))
+        assertNotNull(refusal(full, "automations", "execute_manual", mapOf("automation_id" to "watering")))
     }
 
     private fun widening(given: AccessMask, holder: AccessMask) = runBlocking { AccessRules.widening(given, holder, "Weekly", lookups, ::text) }

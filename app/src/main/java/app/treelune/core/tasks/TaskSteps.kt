@@ -166,8 +166,8 @@ object TaskSteps {
 
     /**
      * What [step] reaches, as the operations it runs and the reads its inputs make
-     * (AccessRules.reach): an entry written or an operation, its tool used; a routine run, what the
-     * screens alone do, out of any mask's reach; a reading or a variable, read; an API, nothing of the app.
+     * (AccessRules.reach): an entry written or an operation, its tool used; a routine run, its zone
+     * used; a reading or a variable, read; an API, nothing of the app.
      */
     fun reaches(step: JSONObject, tooltypeOf: (String) -> String?, isToolType: (String) -> Boolean): List<app.treelune.core.access.Reach> {
         fun reach(action: String, params: Map<String, Any?>) = action.split('.', limit = 2).let { (resource, operation) ->

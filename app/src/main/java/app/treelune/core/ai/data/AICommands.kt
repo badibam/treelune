@@ -154,6 +154,8 @@ object AICommands {
         action("UPDATE_TASK", p("task_id", "string", true), p("zone_id", "string"), p("settings", "object"), p("steps", "array")),
         action("DELETE_TASK", p("task_id", "string", true)),
         action("RUN_TASK", p("task_id", "string", true)),
+        action("RUN_AUTOMATION", p("automation_id", "string", true), p("data", "string")),
+        action("EMIT_EVENT", p("event_id", "string", true), p("values", "object")),
         action("CREATE_EVENT", p("zone_id", "string", true), p("name", "string", true), p("description", "string"), p("values", "array")),
         action("UPDATE_EVENT", p("event_id", "string", true), p("name", "string"), p("description", "string"), p("values", "array")),
         action("DELETE_EVENT", p("event_id", "string", true)),
