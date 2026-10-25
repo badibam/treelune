@@ -9,7 +9,7 @@ import app.treelune.core.ui.variables.VariableCard
 import app.treelune.core.ui.variables.VariableRow
 import org.json.JSONObject
 
-/** One tile of a section as the screen holds it: a tool, a variable or a routine. */
+/** One tile of a section as the screen holds it: a tool, a variable, a routine or a Task. */
 sealed interface SectionTile {
     val id: String
     val tile: app.treelune.core.grid.Grid.Tile
@@ -32,10 +32,16 @@ sealed interface SectionTile {
         override val tile get() = automation.tile
         override val mode get() = automation.look.displayMode
     }
+
+    data class TaskTile(val task: app.treelune.core.tasks.Task) : SectionTile {
+        override val id get() = task.id
+        override val tile get() = task.tile
+        override val mode get() = task.look.displayMode
+    }
 }
 
 /**
- * The tiles of one group section laid on their grid (GridLayout), tools, variables and routines together,
+ * The tiles of one group section laid on their grid (GridLayout), tools, variables, routines and Tasks together,
  * each at its column and row as many cells as its mode takes, in edit mode when [edit] is given.
  * A tile of four cells' width with a body (EXTENDED, SQUARE, FULL) is as tall as its content
  * (GridLayout's grows), EXTENDED and SQUARE at most their cells (LookCard); in edit mode
@@ -66,6 +72,7 @@ fun SectionTiles(
             // A long touch opens it too: its settings are on its page
             is SectionTile.Variable -> VariableCard(tile.variable, onOpen = { onOpenVariable(tile.variable.id) }, onLongClick = { onOpenVariable(tile.variable.id) })
             is SectionTile.Routine -> app.treelune.core.ai.ui.automation.AutomationTile(tile.automation, automationActions) { onAutomationLongClick(tile.automation) }
+            is SectionTile.TaskTile -> app.treelune.core.tasks.ui.TaskTile(tile.task)
         }
     }
 }

@@ -367,6 +367,7 @@ class BackupService(private val context: Context) : ExecutableService {
             val variables = database.variableDao().getAll()
             val identities = database.identityDao().getAll()
             val apis = database.apiDao().getAll()
+            val tasks = database.taskDao().getAll()
             // The files of messages, entries and tools: their rows in the JSON, their files beside it.
             // A row whose file is missing is an error the backup copies as it is, neither
             // hidden nor repaired: its row goes, named in missing_files, and the export says how many
@@ -630,6 +631,35 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("config_json", api.configJson)
                                 put("created_at", api.createdAt)
                                 put("updated_at", api.updatedAt)
+                            })
+                        }
+                    })
+
+                    // Tasks, without their runs: a run is the trace of one phone's day
+                    put("tasks", JSONArray().apply {
+                        tasks.forEach { task ->
+                            put(JSONObject().apply {
+                                put("id", task.id)
+                                put("zone_id", task.zoneId)
+                                put("name", task.name)
+                                put("description", task.description ?: JSONObject.NULL)
+                                put("icon_name", task.iconName)
+                                put("icon_color", task.iconColor ?: JSONObject.NULL)
+                                put("texture", task.texture ?: JSONObject.NULL)
+                                put("display_mode", task.displayMode)
+                                put("group", task.group ?: JSONObject.NULL)
+                                put("grid_x", task.gridX)
+                                put("grid_y", task.gridY)
+                                put("is_enabled", task.isEnabled)
+                                put("schedule_json", task.scheduleJson ?: JSONObject.NULL)
+                                put("catch_up", task.catchUp ?: JSONObject.NULL)
+                                put("catch_up_window", task.catchUpWindow ?: JSONObject.NULL)
+                                put("dismiss_older_instances", task.dismissOlderInstances)
+                                put("notify_end", task.notifyEnd)
+                                put("access_json", task.accessJson)
+                                put("steps_json", task.stepsJson)
+                                put("created_at", task.createdAt)
+                                put("updated_at", task.updatedAt)
                             })
                         }
                     })
@@ -1058,6 +1088,37 @@ class BackupService(private val context: Context) : ExecutableService {
                         updatedAt = item.getLong("updated_at")
                     )
                 )
+            }
+        }
+
+        // Tasks, after their zones: absent from a backup made before version 97
+        data.optJSONArray("tasks")?.let { array ->
+            fun JSONObject.text(key: String) = if (isNull(key)) null else getString(key)
+            for (i in 0 until array.length()) {
+                val item = array.getJSONObject(i)
+                database.taskDao().insert(app.treelune.core.tasks.TaskEntity(
+                    id = item.getString("id"),
+                    zoneId = item.getString("zone_id"),
+                    name = item.getString("name"),
+                    description = item.text("description"),
+                    iconName = item.getString("icon_name"),
+                    iconColor = item.text("icon_color"),
+                    texture = item.text("texture"),
+                    displayMode = item.getString("display_mode"),
+                    group = item.text("group"),
+                    gridX = item.getInt("grid_x"),
+                    gridY = item.getInt("grid_y"),
+                    isEnabled = item.getBoolean("is_enabled"),
+                    scheduleJson = item.text("schedule_json"),
+                    catchUp = item.text("catch_up"),
+                    catchUpWindow = if (item.isNull("catch_up_window")) null else item.getLong("catch_up_window"),
+                    dismissOlderInstances = item.getBoolean("dismiss_older_instances"),
+                    notifyEnd = item.getString("notify_end"),
+                    accessJson = item.getString("access_json"),
+                    stepsJson = item.getString("steps_json"),
+                    createdAt = item.getLong("created_at"),
+                    updatedAt = item.getLong("updated_at")
+                ))
             }
         }
 

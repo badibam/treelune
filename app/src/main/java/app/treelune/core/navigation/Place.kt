@@ -170,6 +170,22 @@ sealed class Place {
         override fun parent() = Automation(automationId, zoneId)
     }
 
+    /** A Task: its steps, its settings and its runs. */
+    data class Task(val id: String, override val zoneId: String) : Place() {
+        override val kind = "task"
+        override val chatButton = true
+        override val parameters get() = listOf(id, zoneId)
+        override fun parent() = Zone(zoneId)
+    }
+
+    /** One run of a Task: each step and what it gave. */
+    data class TaskRun(val runId: String, val taskId: String, override val zoneId: String) : Place() {
+        override val kind = "task_run"
+        override val chatButton = true
+        override val parameters get() = listOf(runId, taskId, zoneId)
+        override fun parent() = Task(taskId, zoneId)
+    }
+
     /** An automation's starting message, edited in its seed session. */
     data class Seed(val sessionId: String, override val zoneId: String) : Place() {
         override val kind = "seed"
@@ -224,6 +240,8 @@ sealed class Place {
                 "automation" -> Automation(r(1), r(2))
                 "execution" -> Execution(r(1), r(2), r(3))
                 "seed" -> Seed(r(1), r(2))
+                "task" -> Task(r(1), r(2))
+                "task_run" -> TaskRun(r(1), r(2), r(3))
                 "guide" -> Guide
                 "chapter" -> Chapter(r(1))
                 "chat" -> Chat

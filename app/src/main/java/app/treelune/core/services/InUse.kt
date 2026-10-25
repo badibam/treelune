@@ -24,16 +24,26 @@ object InUse {
         routines = database.aiDao().getAllAutomations().filter { it.providerId == providerId }.map { it.name }
     )
 
+    /** The Tasks one of whose steps calls API [apiId], by name. */
+    suspend fun api(database: AppDatabase, apiId: String): Users = Users(
+        zones = emptyList(),
+        routines = emptyList(),
+        tasks = database.taskDao().getAll().filter { task ->
+            org.json.JSONArray(task.stepsJson).let { steps -> (0 until steps.length()).any { steps.getJSONObject(it).optString("api_id") == apiId } }
+        }.map { it.name }
+    )
+
     /** What names a thing, by kind. */
-    data class Users(val zones: List<String>, val routines: List<String>) {
-        val none: Boolean get() = zones.isEmpty() && routines.isEmpty()
+    data class Users(val zones: List<String>, val routines: List<String>, val tasks: List<String> = emptyList()) {
+        val none: Boolean get() = zones.isEmpty() && routines.isEmpty() && tasks.isEmpty()
 
         /** The refusal of [what]'s deletion, naming each; null when nothing names it. */
         fun refusal(what: String, s: StringsContext): String? {
             if (none) return null
             val named = listOfNotNull(
                 zones.takeIf { it.isNotEmpty() }?.let { s.shared("in_use_zones").format(it.joinToString(", ")) },
-                routines.takeIf { it.isNotEmpty() }?.let { s.shared("in_use_routines").format(it.joinToString(", ")) }
+                routines.takeIf { it.isNotEmpty() }?.let { s.shared("in_use_routines").format(it.joinToString(", ")) },
+                tasks.takeIf { it.isNotEmpty() }?.let { s.shared("in_use_tasks").format(it.joinToString(", ")) }
             )
             return s.shared("in_use_refused").format(what, named.joinToString(" ; "))
         }

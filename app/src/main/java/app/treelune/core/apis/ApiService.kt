@@ -24,7 +24,7 @@ import org.json.JSONObject
  * - apis.list: each with its `id`, `name`, `url` and whether it answers later (`deferred`)
  * - .get (api_id): one, its config with its key opened
  * - .create (name, config), .update (api_id, name, config)
- * - .delete (api_id): refused while a Task calls it
+ * - .delete (api_id): refused while a Task calls it (InUse)
  * - .call (api_id, inputs): the call made. An immediate API answers `values` by name; a deferred
  *   one, the `job_id` to follow with .status. Both with `raw`, the answer's start. A failure
  *   says why, with `raw` when an answer came.
@@ -95,6 +95,7 @@ class ApiService(private val context: Context) : ExecutableService {
 
     private suspend fun delete(params: JSONObject): OperationResult {
         val api = stored(params) ?: return notFound(params)
+        app.treelune.core.services.InUse.api(AppDatabase.getDatabase(context), api.id).refusal(api.name, s)?.let { return OperationResult.error(it) }
         dao.delete(api.id)
         LogManager.service("API ${api.id} deleted", "INFO")
         return OperationResult.success(mapOf("api_id" to api.id, "deleted" to true))

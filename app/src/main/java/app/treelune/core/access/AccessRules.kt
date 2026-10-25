@@ -18,6 +18,8 @@ sealed class Reach {
     data class Automation(val id: String, val level: AccessLevel) : Reach()
     /** A routine's run, held by the zone of its routine */
     data class Run(val id: String, val level: AccessLevel) : Reach()
+    /** An entry, held as its tool */
+    data class Entry(val id: String, val level: AccessLevel) : Reach()
     /** A kept file: an entry's or a tool's held as that tool, a message's free as its conversation is */
     data class File(val id: String, val level: AccessLevel) : Reach()
     /** An operation these rules do not know: refused under a mask, rather than let through */
@@ -37,6 +39,8 @@ interface AccessLookups {
     suspend fun automationZone(automationId: String): String?
     /** The routine run [runId] belongs to. */
     suspend fun runAutomation(runId: String): String?
+    /** The tool entry [entryId] belongs to, null when there is no such entry. */
+    suspend fun entryTool(entryId: String): String?
     /** Who holds the kept file [fileId], null when there is no such file. */
     suspend fun fileHolder(fileId: String): FileHolder?
     suspend fun zoneName(zoneId: String): String?
@@ -86,7 +90,7 @@ object AccessRules {
             }
             "variables" -> when (operation) {
                 "list", "list_all" -> listOf(Reach.Free)
-                "get" -> listOf(variableAt(AccessLevel.READ))
+                "get", "evaluate" -> listOf(variableAt(AccessLevel.READ))
                 "create" -> listOf(zoneAt("zone_id", AccessLevel.USE))
                 "update" -> listOfNotNull(variableAt(AccessLevel.USE), text("zone_id")?.let { Reach.Zone(it, AccessLevel.USE) })
                 "delete" -> listOf(variableAt(AccessLevel.USE))
@@ -100,7 +104,14 @@ object AccessRules {
                 // A routine moved goes into the zone it is moved to
                 "update" -> listOfNotNull(automationAt(AccessLevel.FULL), text("zone_id")?.let { Reach.Zone(it, AccessLevel.FULL) })
                 "delete" -> listOf(automationAt(AccessLevel.FULL))
+                // A routine run uses its zone, as a Task's step does
+                "execute_manual" -> listOf(automationAt(AccessLevel.USE))
                 else -> listOf(Reach.Unknown("$resource.$operation"))
+            }
+            // An API reaches no data of the app: what it is given was read under the mask first
+            "apis" -> when (operation) {
+                "list", "call", "status" -> listOf(Reach.Free)
+                else -> listOf(Reach.App)
             }
             // A routine's runs, read as the routine is; every other session is the screens'
             "ai_sessions" -> when (operation) {
@@ -108,7 +119,18 @@ object AccessRules {
                 "run_history" -> listOf(text("session_id")?.let { Reach.Run(it, AccessLevel.READ) } ?: Reach.Unknown("$resource.$operation"))
                 else -> listOf(Reach.Unknown("$resource.$operation"))
             }
-            "readings" -> listOf(text("variable")?.let { Reach.Variable(it, true, AccessLevel.READ) } ?: Reach.Unknown("$resource.$operation"))
+            // A reading of a variable by its name, or of a selection's target: a tool, a zone, one entry
+            "readings" -> listOf(text("variable")?.let { Reach.Variable(it, true, AccessLevel.READ) }
+                ?: ((params["selection"] as? Map<*, *>)?.get("target") as? Map<*, *>)?.let { target ->
+                    val id = target["id"] as? String
+                    when (target["kind"]) {
+                        "TOOL_INSTANCE" -> id?.let { Reach.Tool(it, AccessLevel.READ) }
+                        "ZONE" -> id?.let { Reach.Zone(it, AccessLevel.READ) }
+                        "ENTRY" -> id?.let { Reach.Entry(it, AccessLevel.READ) }
+                        else -> null
+                    }
+                }
+                ?: Reach.Unknown("$resource.$operation"))
             "app_config" -> if (operation == "get_current_datetime") listOf(Reach.Free) else listOf(Reach.App)
             "imports" -> when (operation) {
                 "detect" -> listOf(toolAt(AccessLevel.READ))
@@ -170,6 +192,12 @@ object AccessRules {
                     if ((mask.zone(zoneId) ?: return refused(zone(zoneId, lookups, text), reach.level)) < reach.level)
                         return refused(zone(zoneId, lookups, text), reach.level)
                 }
+                is Reach.Entry -> {
+                    val toolId = lookups.entryTool(reach.id) ?: return refused(reach.id, reach.level)
+                    val zoneId = lookups.toolZone(toolId) ?: return refused(tool(toolId, lookups, text), reach.level)
+                    if ((mask.tool(toolId, zoneId) ?: return refused(tool(toolId, lookups, text), reach.level)) < reach.level)
+                        return refused(tool(toolId, lookups, text), reach.level)
+                }
                 is Reach.Automation -> automationRefusal(reach.id, reach.id, reach.level)?.let { return it }
                 is Reach.Run -> automationRefusal(reach.id, lookups.runAutomation(reach.id), reach.level)?.let { return it }
                 is Reach.File -> when (val holder = lookups.fileHolder(reach.id)) {
@@ -229,6 +257,8 @@ class DatabaseAccessLookups(context: Context) : AccessLookups {
     override suspend fun automationZone(automationId: String) = database.aiDao().getAutomationById(automationId)?.zoneId
 
     override suspend fun runAutomation(runId: String) = database.aiDao().getSession(runId)?.automationId
+
+    override suspend fun entryTool(entryId: String) = database.toolDataDao().getById(entryId)?.toolInstanceId
 
     override suspend fun fileHolder(fileId: String): FileHolder? {
         val file = database.fileDao().getById(fileId) ?: return null

@@ -145,6 +145,13 @@ object CoreScheduler {
             LogManager.service("CoreScheduler: Tool scheduling error: ${e.message}", "ERROR", e)
         }
 
+        try {
+            // The Tasks: runs cut or waiting on an API, occurrences due (TaskScheduler)
+            app.treelune.core.tasks.TaskScheduler.tick(context)
+        } catch (e: Exception) {
+            LogManager.service("CoreScheduler: task scheduling error: ${e.message}", "ERROR", e)
+        }
+
         // The alarm set again after every tick, the minute's included: what the screen added while
         // the app was open is known to it before the app closes
         armForNextAction(context)

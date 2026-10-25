@@ -52,6 +52,8 @@
     <string name="guide_path_tool_config">touch and hold the tool\'s title</string>
     <string name="guide_path_variable">touch the variable</string>
     <string name="guide_path_automation">touch the routine</string>
+    <string name="guide_path_task">touch the Task “%1$s”</string>
+    <string name="guide_path_task_run">touch the run</string>
     <string name="guide_path_execution">touch an execution</string>
     <string name="guide_path_seed">touch the pencil of the routine</string>
     <string name="guide_path_home_config">touch the gear at the top right</string>

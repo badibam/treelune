@@ -43,6 +43,8 @@ object GuidePath {
             is Place.Automation -> t("guide_path_automation")
             is Place.Execution -> t("guide_path_execution")
             is Place.Seed -> t("guide_path_seed")
+            is Place.Task -> t("guide_path_task", n)
+            is Place.TaskRun -> t("guide_path_task_run")
             Place.HomeConfig -> t("guide_path_home_config")
             Place.Settings -> t("guide_path_settings")
             is Place.SettingsPage -> t("guide_path_settings_page", n)

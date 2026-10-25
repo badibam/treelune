@@ -63,6 +63,9 @@ enum class SchemaCategory {
     /** API configuration schemas */
     API_CONFIG,
 
+    /** Task settings schemas */
+    TASK_CONFIG,
+
     /** Custom field type definition schemas */
     FIELD_TYPE,
 

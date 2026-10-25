@@ -55,6 +55,14 @@ class Coordinator(private val context: Context) {
         Source.SYSTEM -> execute(convertToDispatchCommand(action, params, Source.SYSTEM, byTheApp = true))
     }
 
+    /**
+     * A step of a Task (docs/CORE.md, « Tasks »): the scheduler's, no one watching, yet held to the
+     * Task's access mask (AccessScope) and written as a step of the history of its own, undone
+     * as one — what an automation's AI command is, without the AI.
+     */
+    suspend fun processTaskStep(action: String, params: Map<String, Any?>): CommandResult =
+        execute(convertToDispatchCommand(action, params, Source.SCHEDULER))
+
     /** A task of a scheduler, which no one is watching. */
     suspend fun processScheduledTask(task: String, params: Map<String, Any?> = emptyMap()): CommandResult {
         val command = convertToDispatchCommand(task, params, Source.SCHEDULER, byTheApp = true)

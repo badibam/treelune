@@ -35,6 +35,8 @@ SCREENS = {
     "chapter": [APP / "core" / "guide" / "ui" / "GuideScreens.kt"],
     "automation": [APP / "core" / "ai" / "ui" / "automation" / "AutomationScreen.kt"],
     "execution": [APP / "core" / "ai" / "ui" / "automation" / "ExecutionDetailScreen.kt"],
+    "task": [APP / "core" / "tasks" / "ui" / "TaskScreen.kt"],
+    "task_run": [APP / "core" / "tasks" / "ui" / "TaskRunScreen.kt"],
 }
 
 ROOM = re.compile(r"\.chatButtonSpace\(\)|chatButtonEnd\(\)")

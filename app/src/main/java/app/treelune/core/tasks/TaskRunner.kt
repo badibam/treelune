@@ -1,0 +1,348 @@
+package app.treelune.core.tasks
+
+import android.content.Context
+import android.net.Uri
+import app.treelune.core.access.AccessMask
+import app.treelune.core.access.AccessScope
+import app.treelune.core.ai.data.AutomationSettings
+import app.treelune.core.apis.ApiSettings
+import app.treelune.core.coordinator.Coordinator
+import app.treelune.core.coordinator.ServiceRegistry
+import app.treelune.core.coordinator.isSuccess
+import app.treelune.core.database.AppDatabase
+import app.treelune.core.fields.FieldType
+import app.treelune.core.fields.FileField
+import app.treelune.core.files.FilePreparation
+import app.treelune.core.strings.Strings
+import app.treelune.core.terms.Term
+import app.treelune.core.terms.TermReader
+import app.treelune.core.utils.JsonUtils
+import app.treelune.core.utils.LogManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONObject
+import java.io.File
+import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
+
+/**
+ * Runs a Task's steps (docs/CORE.md, « Tasks »), one after another, each through the dispatcher
+ * as the Task's (Coordinator.processTaskStep, held to its access mask), its inputs read first: a
+ * term at the run's instant, what an earlier step gave. A step that fails ends the run; a deferred
+ * API's leaves it waiting, asked again by the scheduler (TaskScheduler) until ready.
+ *
+ * A run is written after each step: the app stopping between two steps leaves it as it was, and a
+ * run found going on at the next start is said interrupted rather than run again — a step made twice
+ * would write twice.
+ */
+object TaskRunner {
+
+    /** The runs going on in this process: one found going on and not here was cut by the app stopping. */
+    private val active: MutableSet<String> = ConcurrentHashMap.newKeySet()
+
+    /** Where a run asked from a screen goes on, the screen left or not. */
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /** The longest a file an API gives may take to come down. */
+    private val DOWNLOADS = OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).readTimeout(5, TimeUnit.MINUTES).build()
+
+    fun isActive(runId: String) = runId in active
+
+    /** A step's failure, said in words. */
+    private class StepFailed(message: String, val raw: String? = null) : Exception(message)
+
+    /**
+     * A run of [task] started by [trigger], reading at [at]: its row written, then its steps run,
+     * awaited when [awaited] (the scheduler's tick, which the phone stays awake for), in the app's
+     * own scope otherwise. Its id.
+     */
+    suspend fun start(context: Context, task: TaskEntity, trigger: TaskRun.Trigger, at: Long, awaited: Boolean): String {
+        val now = System.currentTimeMillis()
+        val run = TaskRunEntity(UUID.randomUUID().toString(), task.id, trigger.key, at, now, null, TaskRun.State.RUNNING.key, 0, "[]", null, null)
+        val dao = AppDatabase.getDatabase(context).taskDao()
+        dao.insertRun(run)
+        LogManager.service("Task ${task.id} run ${run.id} started (${trigger.key})", "INFO")
+        app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
+        if (awaited) proceed(context, run.id) else scope.launch { proceed(context, run.id) }
+        return run.id
+    }
+
+    /** Run [runId] going on from the step it stands at, until it ends or waits. */
+    suspend fun proceed(context: Context, runId: String) {
+        if (!active.add(runId)) return
+        try {
+            val dao = AppDatabase.getDatabase(context).taskDao()
+            var run = dao.getRun(runId) ?: return
+            val task = dao.get(run.taskId) ?: return
+            val steps = org.json.JSONArray(task.stepsJson)
+            val mask = try {
+                AccessMask.fromJson(task.accessJson)
+            } catch (e: Exception) {
+                AccessMask.NOTHING
+            }
+            withContext(AccessScope(mask, task.name)) {
+                while (run.step < steps.length()) {
+                    // A run cancelled meanwhile stops before its next step
+                    if (TaskRun.State.of(dao.getRun(runId)?.state ?: return@withContext).ended) return@withContext
+                    val step = steps.getJSONObject(run.step)
+                    val results = TaskRun.results(run.resultsJson)
+                    val outcome = try {
+                        Outcome.Done(runStep(context, step, results, run.scheduledAt))
+                    } catch (e: StepFailed) {
+                        Outcome.Failed(e.message ?: "", e.raw)
+                    } catch (e: Waits) {
+                        Outcome.Waiting(e.result, e.wait)
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        LogManager.service("Task ${task.id} run $runId step ${run.step + 1}: ${e.message}", "ERROR", e)
+                        Outcome.Failed(e.message ?: e.javaClass.simpleName, null)
+                    }
+                    run = when (outcome) {
+                        is Outcome.Done -> run.copy(step = run.step + 1, resultsJson = TaskRun.resultsJson(results + outcome.result))
+                        is Outcome.Waiting -> run.copy(state = TaskRun.State.WAITING.key, resultsJson = TaskRun.resultsJson(results + outcome.result), waitJson = outcome.wait.toJson())
+                        is Outcome.Failed -> run.copy(resultsJson = TaskRun.resultsJson(results + TaskRun.StepResult(summary(context, step), raw = outcome.raw, error = outcome.message, at = System.currentTimeMillis())))
+                    }
+                    dao.updateRun(run)
+                    when (outcome) {
+                        is Outcome.Waiting -> { LogManager.service("Task ${task.id} run $runId waits on step ${run.step + 1}", "INFO"); return@withContext }
+                        is Outcome.Failed -> { end(context, task, run, TaskRun.State.FAILED); return@withContext }
+                        is Outcome.Done -> Unit
+                    }
+                }
+                end(context, task, run, TaskRun.State.DONE)
+            }
+        } finally {
+            active.remove(runId)
+        }
+    }
+
+    private sealed interface Outcome {
+        data class Done(val result: TaskRun.StepResult) : Outcome
+        data class Waiting(val result: TaskRun.StepResult, val wait: TaskRun.Wait) : Outcome
+        data class Failed(val message: String, val raw: String?) : Outcome
+    }
+
+    /** A step that started a deferred job: its result so far, and the wait. */
+    private class Waits(val result: TaskRun.StepResult, val wait: TaskRun.Wait) : Exception()
+
+    /**
+     * The waiting run [run] asked where its job stands, at [now]: not ready, it waits longer, up to
+     * its deadline; failed or past it, the run fails; ready, the values join the step's result and
+     * the run goes on.
+     */
+    suspend fun poll(context: Context, run: TaskRunEntity, now: Long) {
+        if (run.id in active) return
+        val dao = AppDatabase.getDatabase(context).taskDao()
+        val task = dao.get(run.taskId) ?: return
+        val s = Strings.`for`(context = context)
+        val wait = TaskRun.Wait.of(run.waitJson ?: return)
+        if (now < wait.nextAt) return
+        val results = TaskRun.results(run.resultsJson)
+        fun withLast(result: TaskRun.StepResult) = TaskRun.resultsJson(results.dropLast(1) + result)
+        val asked = Coordinator(context).processScheduledTask("apis.status", mapOf("api_id" to wait.apiId, "job_id" to wait.jobId))
+        val last = results.last()
+        val raw = (asked.data?.get("raw") as? String) ?: last.raw
+        when {
+            !asked.isSuccess || asked.data?.get("status") == "failed" -> {
+                val failed = run.copy(resultsJson = withLast(last.copy(raw = raw, error = asked.error ?: s.shared("task_error_job_failed"))), waitJson = null)
+                dao.updateRun(failed)
+                end(context, task, failed, TaskRun.State.FAILED)
+            }
+            asked.data?.get("status") == "ready" -> {
+                @Suppress("UNCHECKED_CAST")
+                val values = asked.data?.get("values") as Map<String, Any?>
+                dao.updateRun(run.copy(state = TaskRun.State.RUNNING.key, step = run.step + 1, waitJson = null,
+                    resultsJson = withLast(last.copy(values = values, raw = raw, at = now))))
+                LogManager.service("Task ${task.id} run ${run.id}: job ${wait.jobId} ready", "INFO")
+                proceed(context, run.id)
+            }
+            now >= wait.deadline -> {
+                val failed = run.copy(resultsJson = withLast(last.copy(raw = raw, error = s.shared("task_error_job_late"))), waitJson = null)
+                dao.updateRun(failed)
+                end(context, task, failed, TaskRun.State.FAILED)
+            }
+            else -> dao.updateRun(run.copy(waitJson = wait.again(now).toJson(), resultsJson = withLast(last.copy(raw = raw))))
+        }
+    }
+
+    /**
+     * A run found going on when no process runs it: cut by the app stopping. Said interrupted, its
+     * step not run twice.
+     */
+    suspend fun interrupted(context: Context, run: TaskRunEntity) {
+        if (run.id in active) return
+        val task = AppDatabase.getDatabase(context).taskDao().get(run.taskId) ?: return
+        LogManager.service("Task ${task.id} run ${run.id} found cut at step ${run.step + 1}", "WARN")
+        end(context, task, run, TaskRun.State.INTERRUPTED)
+    }
+
+    /** [run] ended as [state]: written, and waiting to be read or not as its Task's setting says, a notification with it. */
+    suspend fun end(context: Context, task: TaskEntity, run: TaskRunEntity, state: TaskRun.State) {
+        val now = System.currentTimeMillis()
+        val problem = state != TaskRun.State.DONE
+        val waits = when (task.notifyEnd) {
+            AutomationSettings.NOTIFY_ALWAYS -> state != TaskRun.State.CANCELLED
+            AutomationSettings.NOTIFY_ON_PROBLEM -> problem && state != TaskRun.State.CANCELLED
+            else -> false
+        }
+        AppDatabase.getDatabase(context).taskDao().updateRun(run.copy(state = state.key, endedAt = now, waitJson = null, seenAt = if (waits) null else now))
+        LogManager.service("Task ${task.id} run ${run.id} ended: ${state.key}", "INFO")
+        app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
+        if (!waits) return
+        val s = Strings.`for`(context = context)
+        Coordinator(context).processScheduledTask("notifications.send", mapOf(
+            "title" to task.name,
+            "content" to s.shared("task_run_end_${state.key}"),
+            "priority" to "default",
+            "icon_name" to task.iconName,
+            "place" to app.treelune.core.navigation.Place.TaskRun(run.id, task.id, task.zoneId).address
+        ))
+    }
+
+    /** What [step] does, said in words: its service's verbalization of it. */
+    private suspend fun summary(context: Context, step: JSONObject): String {
+        val (action, params) = actionOf(step, emptyMap(), context)
+        val (resource, operation) = action.split('.', limit = 2).let { it[0] to it[1] }
+        return ServiceRegistry(context).getService(resource)?.verbalize(operation, JsonUtils.toJSONObject(params), context) ?: action
+    }
+
+    /** The operation [step] runs and its params, its inputs given as [resolved] (by name, a path for an entry's values). */
+    private suspend fun actionOf(step: JSONObject, resolved: Map<String, Any?>, context: Context): Pair<String, Map<String, Any?>> = when (step.getString(TaskSteps.KIND)) {
+        TaskSteps.CALL_API -> "apis.call" to mapOf("api_id" to step.getString(TaskSteps.API_ID), "inputs" to resolved)
+        TaskSteps.CREATE_ENTRY -> "tool_data.create" to entryParams(step.getString(TaskSteps.TOOL_INSTANCE_ID), resolved)
+        TaskSteps.UPDATE_ENTRY -> "tool_data.update" to entryParams(step.getString(TaskSteps.TOOL_INSTANCE_ID), resolved - TaskSteps.ENTRY) + ("id" to resolved[TaskSteps.ENTRY])
+        TaskSteps.TOOL_OPERATION -> {
+            val tool = AppDatabase.getDatabase(context).toolInstanceDao().getToolInstanceById(step.getString(TaskSteps.TOOL_INSTANCE_ID))
+                ?: throw StepFailed(Strings.`for`(context = context).shared("task_error_tool").format("", step.getString(TaskSteps.TOOL_INSTANCE_ID)))
+            "${tool.tooltype}.${step.getString(TaskSteps.OPERATION)}" to (resolved + ("tool_instance_id" to tool.id))
+        }
+        TaskSteps.RUN_ROUTINE -> "automations.execute_manual" to mapOf("automation_id" to step.getString(TaskSteps.AUTOMATION_ID))
+        else -> throw StepFailed(step.getString(TaskSteps.KIND))
+    }
+
+    /** An entry's params from its values by path: name and timestamp at the top, the others in data and extra. */
+    private fun entryParams(toolId: String, values: Map<String, Any?>): Map<String, Any?> {
+        val data = values.filterKeys { it.startsWith("data.") }.mapKeys { it.key.removePrefix("data.") }
+        val extra = values.filterKeys { it.startsWith("extra.") }.mapKeys { it.key.removePrefix("extra.") }
+        return buildMap {
+            put("tool_instance_id", toolId)
+            values["name"]?.let { put("name", it) }
+            values["timestamp"]?.let { put("timestamp", it) }
+            if (data.isNotEmpty()) put("data", data)
+            if (extra.isNotEmpty()) put("extra", extra)
+        }
+    }
+
+    /** [step] run: its inputs read, its operation through the dispatcher, what it gave. */
+    private suspend fun runStep(context: Context, step: JSONObject, results: List<TaskRun.StepResult>, at: Long): TaskRun.StepResult {
+        val s = Strings.`for`(context = context)
+        val kind = step.getString(TaskSteps.KIND)
+        // The fields an entry's values go to, for a file to come down into one
+        val fields = if (kind == TaskSteps.CREATE_ENTRY || kind == TaskSteps.UPDATE_ENTRY)
+            TaskSteps.writableFields(step.getString(TaskSteps.TOOL_INSTANCE_ID), context, s) else emptyMap()
+        val holder = when (kind) {
+            TaskSteps.CALL_API -> step.optJSONObject(TaskSteps.INPUTS)
+            TaskSteps.CREATE_ENTRY, TaskSteps.UPDATE_ENTRY -> step.optJSONObject(TaskSteps.VALUES)
+            TaskSteps.TOOL_OPERATION -> step.optJSONObject(TaskSteps.PARAMS)
+            else -> null
+        }
+        val resolved = buildMap<String, Any?> {
+            holder?.keys()?.forEach { key ->
+                val value = resolve(context, TaskSteps.input(holder.getJSONObject(key), key) { s.shared(it) }, results, at)
+                val field = fields[key]
+                put(key, when {
+                    // A file an API gives comes down into the field
+                    field?.type == FieldType.FILE && value is String -> listOf(download(context, value, FileField.kinds(field.config)))
+                    // The entry a step created, designated in a field that holds a Reference
+                    field?.type == FieldType.REFERENCE && value is String -> mapOf("kind" to "ENTRY", "id" to value)
+                    // An operation's entry, given by its id
+                    kind == TaskSteps.TOOL_OPERATION && key == "id" -> idOf(value)
+                    else -> value
+                })
+            }
+            if (kind == TaskSteps.UPDATE_ENTRY) put(TaskSteps.ENTRY, idOf(resolve(context, TaskSteps.input(step.getJSONObject(TaskSteps.ENTRY), TaskSteps.ENTRY) { s.shared(it) }, results, at)))
+        }
+        val (action, params) = actionOf(step, resolved, context)
+        val summary = summary(context, step)
+        val done = Coordinator(context).processTaskStep(action, params)
+        val raw = done.data?.get("raw") as? String
+        if (!done.isSuccess) throw StepFailed(done.error ?: s.shared("error_unknown"), raw)
+        val now = System.currentTimeMillis()
+        return when (kind) {
+            TaskSteps.CALL_API -> {
+                val api = AppDatabase.getDatabase(context).apiDao().get(step.getString(TaskSteps.API_ID))
+                val config = JSONObject(api?.configJson ?: "{}")
+                val types = TaskSteps.outputs(step, context).associate { it.value!! to it.type }
+                val job = done.data?.get("job_id") as? String
+                if (job != null) {
+                    val limit = (ApiSettings.read(config, context).number(ApiSettings.WAIT_LIMIT) ?: 0).toLong()
+                    throw Waits(TaskRun.StepResult(summary, types = types, raw = raw, at = now),
+                        TaskRun.Wait(step.getString(TaskSteps.API_ID), job, now + TaskRun.Wait.FIRST_INTERVAL, TaskRun.Wait.FIRST_INTERVAL, now + limit))
+                }
+                @Suppress("UNCHECKED_CAST")
+                TaskRun.StepResult(summary, values = done.data?.get("values") as Map<String, Any?>, types = types, raw = raw, at = now)
+            }
+            TaskSteps.CREATE_ENTRY -> TaskRun.StepResult(summary, entryId = done.data?.get("id") as? String, at = now)
+            else -> TaskRun.StepResult(summary, at = now)
+        }
+    }
+
+    /** An entry's id, from its id or a Reference designating it. */
+    private fun idOf(value: Any?): Any? = (value as? Map<*, *>)?.get("id") ?: value
+
+    /** What [input] gives: a term read at [at], what an earlier step gave. */
+    private suspend fun resolve(context: Context, input: TaskSteps.Input, results: List<TaskRun.StepResult>, at: Long): Any? {
+        val s = Strings.`for`(context = context)
+        return when (input) {
+            is TaskSteps.Input.Result -> {
+                val given = results.getOrNull(input.step) ?: throw StepFailed(s.shared("task_error_result_step").format("", input.step + 1))
+                if (input.value == null) given.entryId ?: throw StepFailed(s.shared("task_error_result_value").format("", input.step + 1, s.shared("task_output_entry")))
+                else given.values[input.value]
+            }
+            is TaskSteps.Input.Of -> when (val term = input.term) {
+                is Term.Constant -> term.value
+                else -> try {
+                    when (val read = TermReader(context).read(term, at, null)) {
+                        is TermReader.Read.Value -> read.value
+                        is TermReader.Read.Failed -> throw StepFailed(read.message)
+                    }
+                } catch (e: IllegalStateException) {
+                    throw StepFailed(e.message ?: "")
+                }
+            }
+        }
+    }
+
+    /**
+     * The file at [address] downloaded and set aside for the entry the step writes, of one of
+     * [kinds] (FilePreparation): its id, until the entry owns it.
+     */
+    private suspend fun download(context: Context, address: String, kinds: Collection<app.treelune.core.files.FileKind>): String = withContext(Dispatchers.IO) {
+        val s = Strings.`for`(context = context)
+        val name = Uri.parse(address).lastPathSegment?.takeIf { it.contains('.') } ?: "download"
+        val dir = File(context.cacheDir, "task_downloads").apply { mkdirs() }
+        val file = File(dir, "${UUID.randomUUID()}-$name")
+        try {
+            DOWNLOADS.newCall(Request.Builder().url(address).get().build()).execute().use { response ->
+                if (!response.isSuccessful) throw StepFailed(s.shared("task_error_download").format(address, response.code.toString()))
+                response.body?.byteStream()?.use { input -> file.outputStream().use { input.copyTo(it) } }
+                    ?: throw StepFailed(s.shared("task_error_download").format(address, "-"))
+            }
+            when (val prepared = FilePreparation.prepare(context, Uri.fromFile(file), kinds, name = name) { s.shared(it) }) {
+                is FilePreparation.Result.Done -> prepared.id
+                is FilePreparation.Result.Refused -> throw StepFailed(prepared.message)
+            }
+        } catch (e: java.io.IOException) {
+            throw StepFailed(s.shared("task_error_download").format(address, e.message ?: ""))
+        } finally {
+            file.delete()
+        }
+    }
+}

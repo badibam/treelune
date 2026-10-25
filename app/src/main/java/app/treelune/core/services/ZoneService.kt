@@ -344,9 +344,10 @@ class ZoneService(private val context: Context) : ExecutableService {
         val tools = toolDao.getToolInstancesByZone(zoneId)
         val automations = automationDao.getAutomationsByZone(zoneId)
         val variables = variableDao.getByZone(zoneId)
+        val tasks = database.taskDao().getByZone(zoneId)
         Groups.changeRefusal(change,
             tools.map { JSONObject(it.config_json).optString("name") to Groups.held(JSONObject(it.config_json)) } +
-                automations.map { it.name to it.group } + variables.map { it.name to it.group },
+                automations.map { it.name to it.group } + variables.map { it.name to it.group } + tasks.map { it.name to it.group },
             s
         )?.let { return OperationResult.error(it) }
 
@@ -360,6 +361,8 @@ class ZoneService(private val context: Context) : ExecutableService {
                 else tool.copy(config_json = config.put("group", group).toString()).also { writes.updateTool(it) }
             }
             automations.filter { change.held(it.group) != it.group }.forEach { writes.updateAutomation(it.copy(group = change.held(it.group))) }
+            // A Task is outside the history of writes: its group is written as it is
+            tasks.filter { change.held(it.group) != it.group }.forEach { database.taskDao().update(it.copy(group = change.held(it.group))) }
             val renamedVariables = variables.map { variable ->
                 if (change.held(variable.group) == variable.group) variable
                 else variable.copy(group = change.held(variable.group)).also { writes.updateVariable(it) }

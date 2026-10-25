@@ -27,6 +27,7 @@ class AccessTest {
         override suspend fun variableZone(idOrName: String, byName: Boolean) = if (idOrName in setOf("kcal", "v-kcal")) "health" else "garden"
         override suspend fun automationZone(automationId: String) = mapOf("weekly" to "health", "watering" to "garden")[automationId]
         override suspend fun runAutomation(runId: String) = mapOf("r1" to "weekly")[runId]
+        override suspend fun entryTool(entryId: String) = mapOf("w1" to "weight", "s1" to "seeds")[entryId]
         override suspend fun fileHolder(fileId: String) = mapOf("scan" to FileHolder.Tool("weight"), "plot" to FileHolder.Tool("seeds"), "joined" to FileHolder.Conversation)[fileId]
         override suspend fun zoneName(zoneId: String) = zoneId
         override suspend fun toolName(toolId: String) = toolId
@@ -167,5 +168,15 @@ class AccessTest {
     @Test(expected = IllegalArgumentException::class)
     fun anAccessIsGivenOnAZoneOrAToolAlone() {
         AccessGrant(Reference(ReferenceKind.VARIABLE, "kcal"), AccessLevel.READ)
+    }
+
+    @Test
+    fun aReadingOfASelection_isHeldAsItsTarget() {
+        val mask = AccessMask(listOf(zone("health", AccessLevel.READ)))
+        fun reading(kind: String, id: String) = refusal(mask, "readings", "read", mapOf("selection" to mapOf("target" to mapOf("kind" to kind, "id" to id))))
+        assertNull(reading("TOOL_INSTANCE", "weight"))
+        assertNull(reading("ENTRY", "w1"))
+        assertNotNull(reading("ENTRY", "s1"))
+        assertNotNull(reading("ZONE", "garden"))
     }
 }

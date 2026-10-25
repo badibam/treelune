@@ -20,7 +20,7 @@ data class SectionItem(
     val row: Int,
     val size: Grid.Size
 ) {
-    enum class Kind { TOOL, VARIABLE, AUTOMATION }
+    enum class Kind { TOOL, VARIABLE, AUTOMATION, TASK }
 
     val tile: Grid.Tile get() = Grid.Tile(id, column, row, size.width, size.height)
 
@@ -36,6 +36,9 @@ data class SectionItem(
 
         fun of(automation: app.treelune.core.ai.database.AutomationEntity): SectionItem = SectionItem(automation.id, Kind.AUTOMATION, automation.zoneId,
             automation.group, automation.gridX, automation.gridY, Grid.size(DisplayMode.valueOf(automation.displayMode)))
+
+        fun of(task: app.treelune.core.tasks.TaskEntity): SectionItem = SectionItem(task.id, Kind.TASK, task.zoneId,
+            task.group, task.gridX, task.gridY, Grid.size(DisplayMode.valueOf(task.displayMode)))
     }
 }
 
@@ -74,11 +77,12 @@ class SectionGrid(context: Context) {
     private val database = AppDatabase.getDatabase(context)
     private val writes = app.treelune.core.history.Writes(context)
 
-    /** Every tile of zone [zoneId], tools, variables and routines. */
+    /** Every tile of zone [zoneId], tools, variables, routines and Tasks. */
     suspend fun items(zoneId: String): List<SectionItem> =
         database.toolInstanceDao().getToolInstancesByZone(zoneId).map { SectionItem.of(it) } +
             database.variableDao().getByZone(zoneId).map { SectionItem.of(it) } +
-            database.aiDao().getAutomationsByZone(zoneId).map { SectionItem.of(it) }
+            database.aiDao().getAutomationsByZone(zoneId).map { SectionItem.of(it) } +
+            database.taskDao().getByZone(zoneId).map { SectionItem.of(it) }
 
     /** The tiles of [items] shown in [section] of a zone whose groups are [zoneGroups]. */
     fun tiles(items: List<SectionItem>, zoneGroups: List<String>, section: String?): List<Grid.Tile> =
@@ -145,6 +149,8 @@ class SectionGrid(context: Context) {
             SectionItem.Kind.TOOL -> writes.moveTool(item.id, item.column, item.row)
             SectionItem.Kind.VARIABLE -> writes.moveVariable(item.id, item.column, item.row)
             SectionItem.Kind.AUTOMATION -> writes.moveAutomation(item.id, item.column, item.row)
+            // A Task is outside the history of writes: its place is written as it is
+            SectionItem.Kind.TASK -> database.taskDao().updatePosition(item.id, item.column, item.row)
         }
         item.id
     }
