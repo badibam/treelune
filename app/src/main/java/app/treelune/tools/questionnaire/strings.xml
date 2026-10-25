@@ -5,7 +5,7 @@
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
     <string name="usage">For questions that come back, asked one per screen, answered whenever you like or at planned times: an evening review, a weekly check-in.\n## What it does\n- Its own schedule of invitations, each with a notification\n- Answering alone, or with the AI from a prepared message\n- An unanswered invitation stays visible, marked as ignored\n## Not made for\n- A single value noted quickly (Tracking)</string>
     <!-- The Guide's chapter, beside the usage: every setting of the config, every button of the screen (Markup) -->
-    <string name="guide_config">## The questions\nEach of the tool\'s fields is a question, in the order of the fields. Fields are added in the common settings, as for any tool.\n\n## The invitations\n- Invitations: the times the questionnaire is to be filled in, with a notification\n- Active: unchecked, no invitation is created any more\n\n## With the AI\n- Message to the AI: the message that opens the conversation when answering “With the AI”, to send as it is or to change</string>
+    <string name="guide_config">## The questions\nEach of the tool\'s fields is a question, in the order of the fields. Fields are added in the common settings, as for any tool.\n\n## The invitations\n- Invitations: the times the questionnaire is to be filled in, with a notification\n- Notify: unchecked, the invitations come without a notification\n- Active: unchecked, no invitation is created any more\n\n## With the AI\n- Message to the AI: the message that opens the conversation when answering “With the AI”, to send as it is or to change</string>
     <string name="guide_screen">## To fill\nThe invitations waiting.\n- Fill: the questions, one per screen, with Previous to go back\n- With the AI: a conversation where the AI asks you the questions\n- Ignore: skip this time, keeping it in the history\n- Ignore all: skip all those that piled up\n\n## Without an invitation\n- Fill in now, or With the AI\n\n## The history\nEach time, filled or ignored.\n- Change: corrects the answers of that time</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Questions asked one per screen, when you want or at planned times</string>
@@ -55,4 +55,6 @@
     <string name="entry_timestamp">The moment the sitting is about: the planned time of an invitation, or the moment chosen when it is filled in without one</string>
     <string name="entry_extra">The answers: each of the user\'s fields is a question of the questionnaire, asked one per screen</string>
     <string name="entry_state">Whether the sitting is to fill, filled or ignored, and when it was filled</string>
+    <string name="field_notify">Notify</string>
+    <string name="schema_notify">A notification at each invitation</string>
 </resources>

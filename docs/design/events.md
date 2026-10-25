@@ -32,7 +32,7 @@ Le masque d'accès s'y applique sans rien de nouveau : émettre un événement d
 
 ## 3. Les endroits où l'app prévient
 
-En place (`docs/CORE.md`, « Events », `EventPoints`) : « émettre » aux sept endroits, la routine et la Tâche à la fin d'une exécution qui s'est bien passée. « Prévenir : non » n'existe qu'où il y était déjà (l'Objectif, les Messages, la fin d'une routine ou d'une Tâche) ; pas encore pour le rappel de l'Agenda, l'échéance de la Liste, l'invitation du Questionnaire, la séance prévue. Le seuil du budget émet, sans réglage « prévenir » : sans seuil, rien ne prévient.
+En place (`docs/CORE.md`, « Events », `EventPoints`) : « émettre » aux sept endroits, la routine et la Tâche à la fin d'une exécution qui s'est bien passée. « Prévenir : non » partout (réglage `notify` de l'Agenda, de la Liste, du Questionnaire, de la Séquence et de l'Objectif). Le seuil du budget émet, sans réglage « prévenir » : sans seuil, rien ne prévient.
 
 Chacun prend deux réglages indépendants : **prévenir** (oui, non) et **émettre** (aucun événement, ou un événement choisi par le sélecteur des choses de l'app, toutes zones). Ce qui est émis porte l'entrée concernée.
 
@@ -89,6 +89,6 @@ Deux, tous deux dans l'écran des limites de l'IA, à côté des appels par exé
 
 1. Le « quand ? » des outils actifs, avec les entrées écrites (fait pour les Tâches et les routines).
 2. Les événements et l'étape « émettre » ; ce que reçoit ce qui part (fait).
-3. Les endroits où l'app prévient (fait, sauf « ne pas prévenir » là où il n'existait pas).
+3. Les endroits où l'app prévient (fait).
 4. La condition qui devient vraie, avec l'Alerte.
 5. Le budget du jour (fait).

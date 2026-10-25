@@ -8,7 +8,7 @@
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
     <string name="usage">Pour ce qui reste à faire, coché une fois fait : courses, choses à faire, check-list.\n## Ce qu\'il fait\n- Si on l\'active, une échéance par élément, avec une notification le moment venu, et l\'élément reste en attente tant qu\'il n\'est pas coché\n- Ou bien un élément qui disparaît dès qu\'il est coché, pratique pour les courses\n## Pas fait pour\n- Un rappel qui revient à rythme fixe (Messages)</string>
     <!-- The Guide's chapter, beside the usage: every setting of the config, every button of the screen (Markup) -->
-    <string name="guide_config">## Les éléments\n- Un élément coché est supprimé aussitôt : utile quand un élément fait n\'a plus d\'intérêt, comme pour les courses\n- Échéances : un élément peut avoir une échéance, avec une notification le moment venu\n- Éléments courts dans la tuile : une ligne par élément, pour en voir deux fois plus</string>
+    <string name="guide_config">## Les éléments\n- Un élément coché est supprimé aussitôt : utile quand un élément fait n\'a plus d\'intérêt, comme pour les courses\n- Échéances : un élément peut avoir une échéance, avec une notification le moment venu\n- Prévenir : décoché, une échéance arrive sans notification\n- Éléments courts dans la tuile : une ligne par élément, pour en voir deux fois plus</string>
     <string name="guide_screen">## La liste\n- {plus} Ajoute un élément\nCoche un élément quand il est fait : il passe en gris, sous ceux qui restent. Touche son texte pour le modifier ou lui donner une échéance. Pour le déplacer, fais-le glisser par sa poignée. Un élément en retard est signalé, et reste en attente jusqu\'à ce qu\'il soit coché. Un appui long copie son nom et ses champs.\n\n## Les éléments cochés\n- Tout décocher : remet la liste à zéro, par exemple pour les courses de la semaine suivante\n- {trash} Supprime un élément</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Ce qui reste à faire, coché au fur et à mesure, avec des échéances si tu veux</string>
@@ -58,4 +58,6 @@
     <string name="entry_timestamp">Quand l\'élément a été ajouté</string>
     <string name="entry_extra">Ce qu\'un élément porte à côté de son nom, par exemple une quantité ou un magasin</string>
     <string name="entry_state">Sa place dans la liste, et quand il a été coché</string>
+    <string name="field_notify">Prévenir</string>
+    <string name="schema_notify">Une notification quand l\'échéance d\'un élément arrive</string>
 </resources>

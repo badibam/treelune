@@ -38,6 +38,8 @@ object ListToolType : ToolTypeContract {
 
     /** The setting under which the tile gives each item a single line, twice as many in its height. */
     const val SHORT_ITEMS = "short_items"
+    /** Whether a due date passed sends a notification */
+    const val NOTIFY = "notify"
 
     /** The data key of an item's due date, declared only while the list has due dates. */
     const val DUE_AT = "due_at"
@@ -82,8 +84,10 @@ object ListToolType : ToolTypeContract {
             required = true,
             default = false
         )
-        // A due date passed may emit an event besides its notification
-        return listOf(switch(REMOVE_WHEN_CHECKED), switch(DUE_DATES), switch(SHORT_ITEMS), app.treelune.core.events.EventPoints.node(Strings.`for`(context = context)::shared))
+        // A due date passed notifies, emits an event, or both
+        val notify = app.treelune.core.fields.settings.SettingNode.Field(
+            FieldDefinition(NOTIFY, s.tool("field_notify"), s.tool("schema_notify"), FieldType.BOOLEAN, false, null), required = true, default = true)
+        return listOf(switch(REMOVE_WHEN_CHECKED), switch(DUE_DATES), switch(SHORT_ITEMS), notify, app.treelune.core.events.EventPoints.node(Strings.`for`(context = context)::shared))
     }
 
     /** Set to remove what is checked, a list removes the items checked before it was. */

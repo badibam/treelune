@@ -95,14 +95,17 @@ object QuestionnaireScheduler : ToolScheduler {
             else last = created.data?.get("id") as? String
         }
         if (due.isNotEmpty()) {
-            val s = Strings.`for`(tool = "questionnaire", context = context)
-            coordinator.processUserAction("notifications.send", mapOf(
-                "title" to (config.optString("name").ifEmpty { s.tool("display_name") }),
-                "content" to s.tool("notification_to_fill"),
-                "priority" to "default",
-                "icon_name" to config.optString("icon_name").ifEmpty { QuestionnaireToolType.getDefaultIconName() },
-                "tool_instance_id" to id
-            ))
+            if (config.optBoolean("notify", true)) {
+                val s = Strings.`for`(tool = "questionnaire", context = context)
+                coordinator.processUserAction("notifications.send", mapOf(
+                    "title" to (config.optString("name").ifEmpty { s.tool("display_name") }),
+                    "content" to s.tool("notification_to_fill"),
+                    "priority" to "default",
+                    "icon_name" to config.optString("icon_name").ifEmpty { QuestionnaireToolType.getDefaultIconName() },
+                    "tool_instance_id" to id
+                ))
+            }
+            // Notified or not
             app.treelune.core.events.EventPoints.emit(context, config, last)
         }
     }

@@ -62,7 +62,8 @@ object QuestionnaireToolType : ToolTypeContract {
         val shared = Strings.`for`(context = context)
         return listOf(
             ScheduleSettings.group(s.tool("field_schedule"), shared::shared),
-            // An invitation may emit an event besides its notification
+            // An invitation notifies, emits an event, or both
+            SettingNode.Field(FieldDefinition("notify", s.tool("field_notify"), s.tool("schema_notify"), FieldType.BOOLEAN, false, null), required = true, default = true),
             app.treelune.core.events.EventPoints.node(shared::shared),
             SettingNode.Field(FieldDefinition("enabled", s.tool("field_enabled"), s.tool("schema_enabled"), FieldType.BOOLEAN, false, null), required = true, default = true),
             SettingNode.Field(FieldDefinition(AI_MESSAGE, s.tool("field_ai_message"), s.tool("schema_ai_message"), FieldType.TEXT, false,

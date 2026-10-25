@@ -96,14 +96,17 @@ object SequenceScheduler : ToolScheduler {
             else last = created.data?.get("id") as? String
         }
         if (due.isNotEmpty()) {
-            val s = Strings.`for`(tool = "sequence", context = context)
-            coordinator.processUserAction("notifications.send", mapOf(
-                "title" to (config.optString("name").ifEmpty { s.tool("display_name") }),
-                "content" to s.tool("notification_planned"),
-                "priority" to "default",
-                "icon_name" to config.optString("icon_name").ifEmpty { SequenceToolType.getDefaultIconName() },
-                "tool_instance_id" to id
-            ))
+            if (config.optBoolean("notify", true)) {
+                val s = Strings.`for`(tool = "sequence", context = context)
+                coordinator.processUserAction("notifications.send", mapOf(
+                    "title" to (config.optString("name").ifEmpty { s.tool("display_name") }),
+                    "content" to s.tool("notification_planned"),
+                    "priority" to "default",
+                    "icon_name" to config.optString("icon_name").ifEmpty { SequenceToolType.getDefaultIconName() },
+                    "tool_instance_id" to id
+                ))
+            }
+            // Notified or not
             app.treelune.core.events.EventPoints.emit(context, config, last)
         }
     }
