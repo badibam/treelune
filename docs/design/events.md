@@ -84,6 +84,7 @@ Deux, tous deux dans l'écran des limites de l'IA, à côté des appels par exé
 - La sorte « à une date des données » (10 min avant chaque entrée d'un outil, le lendemain d'une échéance), commune avec les rappels de l'Agenda : tant que les endroits où l'app prévient suffisent, pas faite.
 - L'IA qui émet un événement, et si elle lance une Tâche (elle ne lance pas une routine aujourd'hui).
 - Supprimer un événement écouté ou une chose qu'un « quand ? » vise : le contrôle « qui dépend de ça ? » de `TODO.md`.
+- Où garder le dernier jugement d'une condition (sorte 3) : proposé chez ce qui écoute (une table déclencheur → dernier jugement), pas sur la Condition, pour que chaque écouteur parte de son propre premier jugement sans rien faire partir à son ajout.
 
 ## Découpage
 
