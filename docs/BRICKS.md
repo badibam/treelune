@@ -15,13 +15,24 @@ Base bricks: **Instant**, **Thing**, **Field**, **Reduction**, **Value of a fiel
 ```
 Period              = Instant + Instant
 Reading             = Entry selection + Field (or none, to count) + Reduction
-Term                = Value of a field (a constant) | Thing (a variable) | Reading
+Term                = Value of a field (a constant) | Thing (a variable) | Reading (a file's term: one entry's file field followed)
 Side                = Term | Field (only when the condition is put on each entry)
 Condition           = Side + operator + Side
 Entry selection     = Thing (a tool, or a zone) + Period + Conditions put on each entry + Fields kept
 ```
 
 A filter is not a brick of its own: it is a Condition put on each entry.
+
+## Designating, reading, fixing
+
+- **Designating** says what it is about, without reading anything: a thing of the app (the app, a zone, a tool, a variable, an entry), and for an entry, optionally one of its fields, `{"kind": "ENTRY", "id", "field"?}` (`Reference`). A designation whose target is gone keeps its address and reads « deleted », said in one place, `references.names`, for every use.
+- **A Reference** is a designation kept as a value, in a REFERENCE field: « Plant: the cherry tomatoes », « Session played: Session of the 24 ». It says which, never what it holds.
+- **A Reading** is a selection, a field and a reduction, read again at each use, from a tool's entries or from one entry; its value serves at that moment and is written nowhere, unless an operation writes it.
+- **A fixed value** is set once: entered, or copied from an entry's field (« Copy from a tool »), after which nothing tells it from one entered; a file copied becomes its place's own.
+- **A message's pointer** is a designation the AI reads when the message is sent; it copies nothing.
+- **Where each lives**: a config says what will be done, and holds fixed values and Readings (a step's file, followed in an entry's field); an entry and a message are the trace of what happened, and hold values, References among them, never a Reading, or the past would change afterwards.
+- **A file's id** is how the file is kept (`docs/DATA.md`, « Kept files »), not a designation: an id written in a value is a file owned by that value's place.
+- **One browser** leads to things, the trail App › zone › tool › entry (`ThingBrowser`), with a last notch, an entry's field, where only the fields of the kind expected show (`EntryFieldPicker`); it stops where the use asks: a thing for a Reference or a pointer, a field for a copy or a Reading.
 
 ## What the context supplies
 
@@ -76,6 +87,8 @@ A brick does not know the screen that uses it; the screen gives it what it needs
 | Pointer of a message to the AI | Thing (zone, tool) + Period + Filters + fields + attach or mention | done, its selection assembled by hand |
 | Access mask of an automation or of a connector's client | a list of Things (zone, tool), each with a level (`AccessMask`, `{"target", "level"}`) | done, chosen by the REFERENCE field's selector |
 | Term of a variable | Term, the period of its Reading relative to the instant read | done, with its own selectors |
+| A Sequence step's images and sound or video | a Term of files each: a fixed value the tool owns, or one entry's file field followed, read when a session starts | done |
+| Copy from a tool (a FILE field's input, « Join » in a conversation) | Thing down to a field, its value copied once | done |
 | Read criterion of a Goal | Condition judged once, "Relative to: the end of the attempt (now while it runs)"; a Reading without a period reads the attempt's, a period chosen replaces it | done |
 | Entered criterion of a Goal | Condition put on the attempt: the entered field on one side | done |
 | Waiting, what belongs to a zone (the mark of a tile or a card, what the tile and the notification open) | the conditions of a tool's entries that wait (`getWaiting`, `tools.waiting`), or the count a tool type makes itself (`countWaiting`, a deck's due cards) and a routine's runs finished and not read yet (`seen_at` empty, `automations.waiting`), counted by thing and by zone (`Waiting`); a dot of the theme (`WaitingMark`) at the icon's corner or beside the name; the tile, and the notification that names the tool, open it on the oldest (`getUsageScreen(openEntry)`); a run's notification opens it | done |
