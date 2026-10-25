@@ -43,7 +43,6 @@ Codé, jamais vu sur l'appareil.
 ## À concevoir
 
 - Une Lecture qui rend plusieurs valeurs (les trois derniers retours, joints) pour l'entrée d'une API : une Lecture réduit aujourd'hui à une seule valeur.
-- L'IA et les événements : elle écrit une Tâche qui en émet ou en écoute, mais ne les lit nulle part (ni `EVENTS`, ni l'état de la zone) et ne peut donc pas en nommer un ; ni elle ni l'IA extérieure n'émettent.
 - Un contrôle « qui dépend de ça ? » avant de supprimer une chose (une condition, une variable, un pointeur qui la visent), écrit une fois, appelé par le service qui supprime et par l'annulation qui supprime une ligne.
 - Des outils montrés sur la tuile d'une zone de l'accueil (le poids du jour sur « Santé ») : leur résumé ou un raccourci selon la place de la tuile — lesquels, dans quel ordre, un outil montré à deux endroits.
 - Des rythmes que la planification (`ScheduleConfig`, commune à tous les outils et aux routines) ne sait pas dire : « tous les N jours à partir d'une date », « une semaine sur deux », plusieurs jours d'un mois (« le 1er et le 15 »).

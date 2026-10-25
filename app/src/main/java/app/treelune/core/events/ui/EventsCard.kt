@@ -90,10 +90,12 @@ private fun EventsEditor(zoneId: String, events: List<Map<*, *>>, s: StringsCont
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
                     Column(modifier = Modifier.weight(1f)) {
                         UI.Text(text = event["name"] as String, type = TextType.BODY)
+                        (event[EventValues.DESCRIPTION] as? String)?.let { UI.Text(text = it, type = TextType.CAPTION) }
                         UI.Text(text = summary(event["values"] as? List<*>, s), type = TextType.CAPTION)
                     }
                     UI.ActionButton(action = ButtonAction.EDIT, display = ButtonDisplay.ICON, size = Size.S, onClick = {
                         open = event["id"] as String to JSONObject().put(EventValues.NAME, event["name"]).put(EventValues.VALUES, JsonUtils.toJSONArray(event["values"] as? List<*> ?: emptyList<Any>()))
+                            .apply { (event[EventValues.DESCRIPTION] as? String)?.let { put(EventValues.DESCRIPTION, it) } }
                     })
                     UI.ActionButton(action = ButtonAction.DELETE, display = ButtonDisplay.ICON, size = Size.S, requireConfirmation = true, onClick = {
                         scope.launch {
@@ -114,7 +116,9 @@ private fun EventsEditor(zoneId: String, events: List<Map<*, *>>, s: StringsCont
         var draft by remember(id) { mutableStateOf(held) }
         UI.Dialog(type = if (id == null) DialogType.CREATE else DialogType.EDIT, onConfirm = {
             scope.launch {
-                val params = JsonUtils.toMap(draft) + (if (id == null) mapOf("zone_id" to zoneId) else mapOf("event_id" to id))
+                // A description the form emptied is sent as null, which removes it
+                val params = JsonUtils.toMap(draft) + (if (id == null) mapOf("zone_id" to zoneId) else mapOf("event_id" to id)) +
+                    (if (id != null && !draft.has(EventValues.DESCRIPTION)) mapOf(EventValues.DESCRIPTION to null) else emptyMap())
                 val result = Coordinator(context).processUserAction(if (id == null) "events.create" else "events.update", params)
                 if (result.isSuccess) open = null else UI.Toast(result.error ?: s.shared("error_unknown"))
             }

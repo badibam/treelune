@@ -64,6 +64,17 @@ class EventsTest {
     }
 
     @Test
+    fun aDescription_isKept_andEmptiedByNull() = runBlocking {
+        val id = ok("events.create", mapOf("zone_id" to zoneId, "name" to "Ready", "description" to "The day's sheet can be played"))["event_id"] as String
+        fun described() = runBlocking { (ok("events.get", mapOf("event_id" to id))["event"] as Map<*, *>)["description"] }
+        assertEquals("The day's sheet can be played", described())
+        ok("events.update", mapOf("event_id" to id, "name" to "Ready now"))
+        assertEquals("The day's sheet can be played", described())
+        ok("events.update", mapOf("event_id" to id, "description" to null))
+        assertEquals(null, described())
+    }
+
+    @Test
     fun aName_isUniqueInItsZone() = runBlocking {
         ready()
         assertFalse(coordinator.processUserAction("events.create", mapOf("zone_id" to zoneId, "name" to "session ready")).isSuccess)

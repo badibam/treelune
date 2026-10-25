@@ -112,7 +112,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 102
+        const val VERSION = 103
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2271,6 +2271,14 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** An event's description (docs/CORE.md, « Events »), none so far. */
+        private val MIGRATION_102_103 = object : ConnectionMigration(102, 103) {
+            override fun migrate(database: MigrationDatabase) {
+                database.execSQL("ALTER TABLE events ADD COLUMN description TEXT")
+                LogManager.database("MIGRATION 102->103: events.description added, none", "INFO")
+            }
+        }
+
         /** The connector gains its own data threshold: see ExternalAccessDataAtV84. */
         private val MIGRATION_83_84 = object : ConnectionMigration(83, 84) {
             override fun migrate(database: MigrationDatabase) {
@@ -3320,7 +3328,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_98_99,
                     MIGRATION_99_100,
                     MIGRATION_100_101,
-                    MIGRATION_101_102
+                    MIGRATION_101_102,
+                    MIGRATION_102_103
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

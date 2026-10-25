@@ -29,7 +29,9 @@ data class EventEntity(
     /** The values it carries, EventValues' stored form: `[]` when it carries none */
     @ColumnInfo(name = "values_json") val valuesJson: String,
     @ColumnInfo(name = "created_at") val createdAt: Long,
-    @ColumnInfo(name = "updated_at") val updatedAt: Long
+    @ColumnInfo(name = "updated_at") val updatedAt: Long,
+    /** What it means, when it is emitted and what for: for the user and the AI alike; null for none */
+    val description: String? = null
 )
 
 @Dao

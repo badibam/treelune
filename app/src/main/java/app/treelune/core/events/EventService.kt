@@ -18,8 +18,8 @@ import java.util.UUID
  * The events of the zones (docs/CORE.md, « Events »), for the screens and the AI alike.
  *
  * - list (`zone_id`, all of them without), get (`event_id`): each with its zone, its name, its values
- * - create: `zone_id`, `name` (unique in its zone), `values` (EventValues), none when left out
- * - update: `event_id`, `name` and `values`, each kept when left out
+ * - create: `zone_id`, `name` (unique in its zone), `description`?, `values` (EventValues), none when left out
+ * - update: `event_id`, `name`, `description` (null empties it) and `values`, each kept when left out
  * - delete: `event_id`; refused while something listens to it or emits it, named
  * - emit: `event_id`, `values` (by name, each of its type): what listens to it starts, in the
  *   emitter's context for its chain
@@ -54,6 +54,7 @@ class EventService(private val context: Context) : ExecutableService {
         "id" to event.id,
         "zone_id" to event.zoneId,
         EventValues.NAME to event.name,
+        EventValues.DESCRIPTION to event.description,
         EventValues.VALUES to JsonUtils.toList(event.valuesJson)
     )
 
@@ -66,7 +67,8 @@ class EventService(private val context: Context) : ExecutableService {
         fun refused(message: String) = Result.failure<EventEntity>(IllegalArgumentException(message))
         val name = if (params.has(EventValues.NAME)) params.optString(EventValues.NAME).trim() else event.name
         val values = if (params.has(EventValues.VALUES)) params.optJSONArray(EventValues.VALUES) ?: return refused(s.shared("event_error_values")) else JSONArray(event.valuesJson)
-        val settings = JSONObject().put(EventValues.NAME, name).put(EventValues.VALUES, values)
+        val description = if (params.has(EventValues.DESCRIPTION)) params.optString(EventValues.DESCRIPTION).trim().takeUnless { params.isNull(EventValues.DESCRIPTION) || it.isEmpty() } else event.description
+        val settings = JSONObject().put(EventValues.NAME, name).put(EventValues.VALUES, values).apply { description?.let { put(EventValues.DESCRIPTION, it) } }
         val validation = app.treelune.core.validation.SchemaValidator.validate(schema(), JsonUtils.toMap(settings), context)
         if (!validation.isValid) return refused(validation.errorMessage ?: s.shared("message_validation_error_simple"))
         val declared = try {
@@ -78,7 +80,7 @@ class EventService(private val context: Context) : ExecutableService {
         val tools = AppDatabase.getDatabase(context).toolInstanceDao()
         declared.mapNotNull { it.toolInstanceId }.forEach { tools.getToolInstanceById(it) ?: return refused(s.shared("trigger_error_tool").format(it)) }
         if (dao.getByZone(event.zoneId).any { it.id != event.id && it.name.equals(name, ignoreCase = true) }) return refused(s.shared("event_error_name_taken").format(name))
-        return Result.success(event.copy(name = name, valuesJson = values.toString()))
+        return Result.success(event.copy(name = name, description = description, valuesJson = values.toString()))
     }
 
     private suspend fun create(params: JSONObject): OperationResult {

@@ -11,7 +11,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * An event's declaration (docs/CORE.md, « Events »): its name and the values it carries, each a
+ * An event's declaration (docs/CORE.md, « Events »): its name, what it means, and the values it carries, each a
  * name and a type — a text, a number, a yes or no, an entry of one tool. Stored as
  * `[{"name": "fiche", "type": "entry", "tool_instance_id": {"kind": "TOOL_INSTANCE", "id"}}]`,
  * declared with the settings nodes ([nodes]): the form of its editor and its schema.
@@ -19,6 +19,7 @@ import org.json.JSONObject
 object EventValues {
 
     const val NAME = "name"
+    const val DESCRIPTION = "description"
     const val VALUES = "values"
     const val TYPE = "type"
     const val TOOL = "tool_instance_id"
@@ -37,6 +38,7 @@ object EventValues {
     /** An event as its editor and its service take it: its name and its values. */
     fun nodes(text: (String) -> String): List<SettingNode> = listOf(
         SettingNode.Field(FieldDefinition(NAME, text("label_name"), text("event_schema_name"), FieldType.TEXT, true, mapOf("length" to TextLength.SHORT.name))),
+        SettingNode.Field(FieldDefinition(DESCRIPTION, text("label_description"), text("event_schema_description"), FieldType.TEXT, false, mapOf("length" to TextLength.LONG.name))),
         SettingNode.ListOf(
             name = VALUES,
             label = text("event_values"),

@@ -2800,6 +2800,7 @@
     <string name="event_value_type_entry">entry</string>
     <string name="event_value_tool">Entry of which tool</string>
     <string name="event_schema_name">The event\'s name, unique in its zone</string>
+    <string name="event_schema_description">What the event means, when it is emitted and what for: for the user and the AI alike</string>
     <string name="event_schema_values">The values the event carries, each given whenever it is emitted</string>
     <string name="event_schema_value">One value the event carries</string>
     <string name="event_schema_value_name">The value\'s name, unique in the event</string>

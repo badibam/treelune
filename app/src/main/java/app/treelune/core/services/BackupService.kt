@@ -679,6 +679,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("zone_id", event.zoneId)
                                 put("name", event.name)
                                 put("values_json", event.valuesJson)
+                                put("description", event.description ?: JSONObject.NULL)
                                 put("created_at", event.createdAt)
                                 put("updated_at", event.updatedAt)
                             })
@@ -1156,7 +1157,9 @@ class BackupService(private val context: Context) : ExecutableService {
                     name = item.getString("name"),
                     valuesJson = item.getString("values_json"),
                     createdAt = item.getLong("created_at"),
-                    updatedAt = item.getLong("updated_at")
+                    updatedAt = item.getLong("updated_at"),
+                    // Absent from a backup made before version 103
+                    description = if (item.has("description") && !item.isNull("description")) item.getString("description") else null
                 ))
             }
         }
