@@ -14,8 +14,9 @@ import app.treelune.core.database.entities.Zone
 /**
  * A Task (docs/CORE.md, « Tasks »): steps the app runs itself, without an AI, in a zone, shown as a
  * tile of its group's section as a routine is. Its look, its group, its switch, its schedule and
- * what it does about missed runs are its settings (TaskSettings); its steps a list (TaskSteps); its
- * access a mask (AccessMask) its steps are held to. Deleted with its zone.
+ * what it does about missed runs are its settings (TaskSettings); its steps a list (TaskSteps).
+ * It has no access of its own: running it takes using its zone, and an AI writes one only with
+ * steps it could take itself (TaskService). Deleted with its zone.
  */
 @Entity(
     tableName = "tasks",
@@ -43,8 +44,6 @@ data class TaskEntity(
     @ColumnInfo(name = "dismiss_older_instances") val dismissOlderInstances: Boolean,
     /** Which of its runs wait for the user once ended (AutomationSettings.NOTIFY_*) */
     @ColumnInfo(name = "notify_end") val notifyEnd: String,
-    /** AccessMask's stored form; empty, everything */
-    @ColumnInfo(name = "access_json") val accessJson: String,
     /** Its steps, TaskSteps' stored form */
     @ColumnInfo(name = "steps_json") val stepsJson: String,
     @ColumnInfo(name = "created_at") val createdAt: Long,

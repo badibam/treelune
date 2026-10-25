@@ -9,7 +9,7 @@ import org.json.JSONObject
 
 /**
  * A Task as the tasks service gives it in a result (TaskService.describe): what its tile and its
- * page show. Its settings as they are written, its steps and its access in their stored forms.
+ * page show. Its settings as they are written, its steps in their stored form.
  */
 data class Task(
     val id: String,
@@ -19,7 +19,6 @@ data class Task(
     val isEnabled: Boolean,
     val settings: JSONObject,
     val steps: JSONArray,
-    val access: JSONArray,
     val gridX: Int,
     val gridY: Int,
     val updatedAt: Long
@@ -59,7 +58,6 @@ data class Task(
                 isEnabled = settings.getBoolean("is_enabled"),
                 settings = settings,
                 steps = JsonUtils.toJSONArray(map["steps"] as List<*>),
-                access = JsonUtils.toJSONArray(map["access"] as List<*>),
                 gridX = (map["grid_x"] as Number).toInt(),
                 gridY = (map["grid_y"] as Number).toInt(),
                 updatedAt = (map["updated_at"] as Number).toLong()

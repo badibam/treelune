@@ -105,6 +105,48 @@ object TaskSteps {
     }
 
     /**
+     * What [step] reaches, as the operations it runs and the reads its inputs make
+     * (AccessRules.reach): an entry written or an operation, its tool used; a routine run, its zone
+     * used; a reading or a variable, read; an API, nothing of the app.
+     */
+    fun reaches(step: JSONObject, tooltypeOf: (String) -> String?, isToolType: (String) -> Boolean): List<app.treelune.core.access.Reach> {
+        fun reach(action: String, params: Map<String, Any?>) = action.split('.', limit = 2).let { (resource, operation) ->
+            app.treelune.core.access.AccessRules.reach(resource, operation, params, isToolType)
+        }
+        val tool = step.optString(TOOL_INSTANCE_ID)
+        val own = when (step.optString(KIND)) {
+            CREATE_ENTRY, UPDATE_ENTRY -> reach("tool_data.create", mapOf("tool_instance_id" to tool))
+            TOOL_OPERATION -> reach("${tooltypeOf(tool) ?: "?"}.${step.optString(OPERATION)}", mapOf("tool_instance_id" to tool))
+            RUN_ROUTINE -> reach("automations.execute_manual", mapOf("automation_id" to step.optString(AUTOMATION_ID)))
+            else -> emptyList()
+        }
+        val reads = listOf(INPUTS, VALUES, PARAMS).mapNotNull { step.optJSONObject(it) }
+            .flatMap { holder -> holder.keys().asSequence().mapNotNull { holder.optJSONObject(it) }.toList() } +
+            listOfNotNull(step.optJSONObject(ENTRY))
+        return own + reads.flatMap { input ->
+            when {
+                input.has(Term.Kind.READING.key) -> reach("readings.read", mapOf("selection" to
+                    app.treelune.core.utils.JsonUtils.toMap(input.getJSONObject(Term.Kind.READING.key).optJSONObject("selection") ?: JSONObject())))
+                input.has(Term.Kind.VARIABLE.key) -> reach("variables.evaluate", mapOf("variable_id" to input.getString(Term.Kind.VARIABLE.key)))
+                else -> emptyList()
+            }
+        }
+    }
+
+    /**
+     * Why [steps], written by whoever [scope] holds to a mask (an AI), reach further than it; null
+     * when each of them is one it could take itself.
+     */
+    suspend fun reachRefusal(steps: JSONArray, scope: app.treelune.core.access.AccessScope, context: Context, s: StringsContext): String? {
+        val tools = AppDatabase.getDatabase(context).toolInstanceDao()
+        val lookups = app.treelune.core.access.DatabaseAccessLookups(context)
+        val tooltypes = (0 until steps.length()).mapNotNull { steps.optJSONObject(it)?.optString(TOOL_INSTANCE_ID)?.ifEmpty { null } }
+            .associateWith { tools.getToolInstanceById(it)?.tooltype }
+        val reaches = (0 until steps.length()).mapNotNull { steps.optJSONObject(it) }.flatMap { reaches(it, { id -> tooltypes[id] }, lookups::isToolType) }
+        return app.treelune.core.access.AccessRules.refusal(scope.mask, scope.holder, reaches, lookups, s::shared)
+    }
+
+    /**
      * Why [steps] cannot be stored; null when they can. Each step of a kind it knows, naming what
      * exists (an API, a tool, an operation of its type, a routine), and each input readable and
      * naming an earlier step that gives what it reads.

@@ -21,7 +21,7 @@ import org.json.JSONObject
  * A Task's settings, declared with the fields: its look, its group, whether its schedule runs it,
  * which of its runs wait for the user, its schedule and what it does about the runs it missed —
  * the routine's envelope (AutomationSettings), without a provider nor an identity, a Task calling
- * no AI. Not its zone (its place), its steps (TaskSteps) nor its access (AccessMask).
+ * no AI, nor an access, its steps saying what they reach. Not its zone (its place) nor its steps (TaskSteps).
  */
 object TaskSettings {
 

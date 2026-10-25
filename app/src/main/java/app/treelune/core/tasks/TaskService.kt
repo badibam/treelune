@@ -1,7 +1,6 @@
 package app.treelune.core.tasks
 
 import android.content.Context
-import app.treelune.core.access.AccessMask
 import app.treelune.core.coordinator.CancellationToken
 import app.treelune.core.database.AppDatabase
 import app.treelune.core.database.transaction
@@ -26,12 +25,14 @@ import java.util.UUID
 
 /**
  * The Tasks (docs/CORE.md, « Tasks »): steps the app runs itself, in a zone, with a routine's
- * envelope — a tile of its section, a schedule, missed runs caught up, an access mask.
+ * envelope — a tile of its section, a schedule, missed runs caught up — and no access of its own:
+ * running one takes using its zone (AccessRules), and an AI held to a mask writes one only with
+ * steps it could take itself (TaskSteps.reachRefusal).
  *
  * Operations:
  * - tasks.list (zone_id): its Tasks (Task.fromResult); .list_all: every one; .get (task_id): one
- * - .create (zone_id, its settings at the top as TaskSettings declares them, `steps`, `access`)
- * - .update (task_id, what changes: a setting left out kept, one given null removed; `steps`, `access`, `zone_id`)
+ * - .create (zone_id, its settings at the top as TaskSettings declares them, `steps`)
+ * - .update (task_id, what changes: a setting left out kept, one given null removed; `steps`, `zone_id`)
  * - .delete (task_id), its runs with it
  * - .run (task_id): a run started now, its `run_id`; refused while one of its runs goes on
  * - .cancel (run_id): a run going on or waiting, stopped before its next step
@@ -48,7 +49,7 @@ class TaskService(private val context: Context) : ExecutableService {
     private val sections by lazy { app.treelune.core.grid.SectionGrid(context) }
     private val json = Json { ignoreUnknownKeys = true }
 
-    /** The keys of a Task's settings, beside its zone, steps and access. */
+    /** The keys of a Task's settings, beside its zone and steps. */
     private val SETTING_KEYS = Looks.keys(TaskSettings.LOOK) + listOf("group", "is_enabled", "notify_end", "schedule", "catch_up")
 
     override suspend fun execute(operation: String, params: JSONObject, token: CancellationToken): OperationResult = try {
@@ -85,7 +86,6 @@ class TaskService(private val context: Context) : ExecutableService {
             "zone_id" to task.zoneId,
             "settings" to JsonUtils.toMap(TaskSettings.of(task)),
             "steps" to JsonUtils.toList(JSONArray(task.stepsJson)),
-            "access" to JsonUtils.toList(JSONArray(task.accessJson)),
             "grid_x" to task.gridX,
             "grid_y" to task.gridY,
             "updated_at" to task.updatedAt,
@@ -112,7 +112,7 @@ class TaskService(private val context: Context) : ExecutableService {
         val zone = database.zoneDao().getZoneById(zoneId) ?: return OperationResult.error(s.shared("service_error_zone_not_found"))
         val now = System.currentTimeMillis()
         val base = TaskEntity(UUID.randomUUID().toString(), zoneId, "", null, TaskSettings.DEFAULT_ICON, null, null, TaskSettings.DEFAULT_MODE,
-            null, 0, 0, true, null, null, null, false, "", "[]", "[]", now, now)
+            null, 0, 0, true, null, null, null, false, "", "[]", now, now)
         val task = checked(base, given(params, null), null, params).getOrElse { return OperationResult.error(it.message ?: s.shared("message_validation_error_simple")) }
         database.transaction {
             // At the end of its section's grid, among the tools, the variables and the routines
@@ -156,11 +156,6 @@ class TaskService(private val context: Context) : ExecutableService {
         if (dao.getRunsIn(listOf(TaskRun.State.RUNNING.key, TaskRun.State.WAITING.key)).any { it.taskId == task.id }) {
             return OperationResult.error(s.shared("task_error_running").format(task.name))
         }
-        // The AI asking for a run gives its own mask: the Task's may not be wider (docs/CORE.md, « Tasks »)
-        kotlin.coroutines.coroutineContext[app.treelune.core.access.AccessScope]?.let { scope ->
-            app.treelune.core.access.AccessRules.widening(AccessMask.fromJson(task.accessJson), scope.mask, scope.holder,
-                app.treelune.core.access.DatabaseAccessLookups(context), s::shared)?.let { return OperationResult.error(it) }
-        }
         val trigger = if (app.treelune.core.coordinator.currentOrigin() == app.treelune.core.coordinator.Source.AI) TaskRun.Trigger.AI else TaskRun.Trigger.MANUAL
         val runId = TaskRunner.start(context, task, trigger, System.currentTimeMillis(), awaited = false)
         return OperationResult.success(mapOf("run_id" to runId, "task_id" to task.id))
@@ -192,10 +187,10 @@ class TaskService(private val context: Context) : ExecutableService {
     }
 
     /**
-     * [task] holding [sent] and what [params] give of its steps and access, checked: its settings
+     * [task] holding [sent] and what [params] give of its steps, checked: its settings
      * against their schema and its look as every look is, the catch-up with a schedule and only
-     * with it, its group one of its zone's, its steps (TaskSteps.refusal), its access readable and
-     * no wider than the mask of whoever writes it.
+     * with it, its group one of its zone's, its steps (TaskSteps.refusal), each within the mask of
+     * whoever writes them.
      */
     private suspend fun checked(task: TaskEntity, sent: JSONObject, before: JSONObject?, params: JSONObject): Result<TaskEntity> {
         fun refused(message: String) = Result.failure<TaskEntity>(IllegalArgumentException(message))
@@ -224,17 +219,9 @@ class TaskService(private val context: Context) : ExecutableService {
         val steps = if (params.has("steps")) params.optJSONArray("steps") ?: return refused(s.shared("task_error_steps")) else JSONArray(task.stepsJson)
         TaskSteps.refusal(steps, context, s)?.let { return refused(it) }
 
-        val access = if (params.has("access")) {
-            val given = params.optJSONArray("access") ?: return refused(s.shared("automation_access_unreadable").format(params.opt("access")))
-            try {
-                AccessMask.fromJson(given.toString())
-            } catch (e: Exception) {
-                return refused(s.shared("automation_access_unreadable").format(e.message ?: ""))
-            }
-        } else AccessMask.fromJson(task.accessJson)
+        // An AI held to a mask writes only steps it could take itself: the Task never reaches further than it
         kotlin.coroutines.coroutineContext[app.treelune.core.access.AccessScope]?.let { scope ->
-            app.treelune.core.access.AccessRules.widening(access, scope.mask, scope.holder, app.treelune.core.access.DatabaseAccessLookups(context), s::shared)
-                ?.let { return refused(it) }
+            TaskSteps.reachRefusal(steps, scope, context, s)?.let { return refused(it) }
         }
 
         val values = SettingValues(TaskSettings.nodes(context), settings)
@@ -252,7 +239,6 @@ class TaskService(private val context: Context) : ExecutableService {
             catchUp = catchUp?.getString("limit"),
             catchUpWindow = catchUp?.takeIf { it.has("window") }?.getLong("window"),
             dismissOlderInstances = SettingValues(app.treelune.core.ai.data.AutomationSettings.catchUpNodes(context), catchUp ?: JSONObject()).boolean("dismiss_older_instances"),
-            accessJson = access.toJson().toString(),
             stepsJson = steps.toString()
         ))
     }

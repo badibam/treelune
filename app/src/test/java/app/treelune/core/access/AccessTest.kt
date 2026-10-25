@@ -26,6 +26,7 @@ class AccessTest {
         override suspend fun toolZone(toolId: String) = mapOf("weight" to "health", "meals" to "health", "seeds" to "garden")[toolId]
         override suspend fun variableZone(idOrName: String, byName: Boolean) = if (idOrName in setOf("kcal", "v-kcal")) "health" else "garden"
         override suspend fun automationZone(automationId: String) = mapOf("weekly" to "health", "watering" to "garden")[automationId]
+        override suspend fun taskZone(taskId: String) = mapOf("nightly" to "health")[taskId]
         override suspend fun runAutomation(runId: String) = mapOf("r1" to "weekly")[runId]
         override suspend fun entryTool(entryId: String) = mapOf("w1" to "weight", "s1" to "seeds")[entryId]
         override suspend fun fileHolder(fileId: String) = mapOf("scan" to FileHolder.Tool("weight"), "plot" to FileHolder.Tool("seeds"), "joined" to FileHolder.Conversation)[fileId]
@@ -178,5 +179,24 @@ class AccessTest {
         assertNull(reading("ENTRY", "w1"))
         assertNotNull(reading("ENTRY", "s1"))
         assertNotNull(reading("ZONE", "garden"))
+    }
+
+    @Test
+    fun aTask_isRunAsAUseOfItsZone() {
+        assertNull(refusal(AccessMask(listOf(zone("health", AccessLevel.USE))), "tasks", "run", mapOf("task_id" to "nightly")))
+        assertNotNull(refusal(AccessMask(listOf(zone("health", AccessLevel.READ))), "tasks", "run", mapOf("task_id" to "nightly")))
+    }
+
+    @Test
+    fun aTaskWrittenUnderAMask_reachesNoFurtherThanIt() {
+        val mask = AccessMask(listOf(zone("health", AccessLevel.USE)))
+        fun step(json: String) = org.json.JSONObject(json)
+        fun reaches(json: String) = runBlocking {
+            AccessRules.refusal(mask, "Weekly", app.treelune.core.tasks.TaskSteps.reaches(step(json), { null }, lookups::isToolType), lookups, ::text)
+        }
+        assertNull(reaches("""{"kind": "create_entry", "tool_instance_id": "weight", "values": {"data.kg": {"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "meals"}}, "reduction": "LAST"}}}}"""))
+        assertNotNull(reaches("""{"kind": "create_entry", "tool_instance_id": "seeds"}"""))
+        assertNotNull(reaches("""{"kind": "call_api", "api_id": "a", "inputs": {"q": {"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "seeds"}}, "reduction": "LAST"}}}}"""))
+        assertNull(reaches("""{"kind": "call_api", "api_id": "a", "inputs": {"q": {"constant": "x"}}}"""))
     }
 }

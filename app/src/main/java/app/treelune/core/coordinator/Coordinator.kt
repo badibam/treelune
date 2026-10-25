@@ -56,9 +56,9 @@ class Coordinator(private val context: Context) {
     }
 
     /**
-     * A step of a Task (docs/CORE.md, « Tasks »): the scheduler's, no one watching, yet held to the
-     * Task's access mask (AccessScope) and written as a step of the history of its own, undone
-     * as one — what an automation's AI command is, without the AI.
+     * A step of a Task (docs/CORE.md, « Tasks »): the scheduler's, no one watching, yet written as
+     * a step of the history of its own and undone as one — what an automation's AI command is,
+     * without the AI.
      */
     suspend fun processTaskStep(action: String, params: Map<String, Any?>): CommandResult =
         execute(convertToDispatchCommand(action, params, Source.SCHEDULER))

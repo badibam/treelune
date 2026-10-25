@@ -2,8 +2,6 @@ package app.treelune.core.tasks
 
 import android.content.Context
 import android.net.Uri
-import app.treelune.core.access.AccessMask
-import app.treelune.core.access.AccessScope
 import app.treelune.core.ai.data.AutomationSettings
 import app.treelune.core.apis.ApiSettings
 import app.treelune.core.coordinator.Coordinator
@@ -33,7 +31,7 @@ import java.util.concurrent.TimeUnit
 
 /**
  * Runs a Task's steps (docs/CORE.md, « Tasks »), one after another, each through the dispatcher
- * as the Task's (Coordinator.processTaskStep, held to its access mask), its inputs read first: a
+ * as the Task's (Coordinator.processTaskStep: a step of the history of its own), its inputs read first: a
  * term at the run's instant, what an earlier step gave. A step that fails ends the run; a deferred
  * API's leaves it waiting, asked again by the scheduler (TaskScheduler) until ready.
  *
@@ -81,43 +79,36 @@ object TaskRunner {
             var run = dao.getRun(runId) ?: return
             val task = dao.get(run.taskId) ?: return
             val steps = org.json.JSONArray(task.stepsJson)
-            val mask = try {
-                AccessMask.fromJson(task.accessJson)
-            } catch (e: Exception) {
-                AccessMask.NOTHING
-            }
-            withContext(AccessScope(mask, task.name)) {
-                while (run.step < steps.length()) {
-                    // A run cancelled meanwhile stops before its next step
-                    if (TaskRun.State.of(dao.getRun(runId)?.state ?: return@withContext).ended) return@withContext
-                    val step = steps.getJSONObject(run.step)
-                    val results = TaskRun.results(run.resultsJson)
-                    val outcome = try {
-                        Outcome.Done(runStep(context, step, results, run.scheduledAt))
-                    } catch (e: StepFailed) {
-                        Outcome.Failed(e.message ?: "", e.raw)
-                    } catch (e: Waits) {
-                        Outcome.Waiting(e.result, e.wait)
-                    } catch (e: kotlinx.coroutines.CancellationException) {
-                        throw e
-                    } catch (e: Exception) {
-                        LogManager.service("Task ${task.id} run $runId step ${run.step + 1}: ${e.message}", "ERROR", e)
-                        Outcome.Failed(e.message ?: e.javaClass.simpleName, null)
-                    }
-                    run = when (outcome) {
-                        is Outcome.Done -> run.copy(step = run.step + 1, resultsJson = TaskRun.resultsJson(results + outcome.result))
-                        is Outcome.Waiting -> run.copy(state = TaskRun.State.WAITING.key, resultsJson = TaskRun.resultsJson(results + outcome.result), waitJson = outcome.wait.toJson())
-                        is Outcome.Failed -> run.copy(resultsJson = TaskRun.resultsJson(results + TaskRun.StepResult(summary(context, step), raw = outcome.raw, error = outcome.message, at = System.currentTimeMillis())))
-                    }
-                    dao.updateRun(run)
-                    when (outcome) {
-                        is Outcome.Waiting -> { LogManager.service("Task ${task.id} run $runId waits on step ${run.step + 1}", "INFO"); return@withContext }
-                        is Outcome.Failed -> { end(context, task, run, TaskRun.State.FAILED); return@withContext }
-                        is Outcome.Done -> Unit
-                    }
+            while (run.step < steps.length()) {
+                // A run cancelled meanwhile stops before its next step
+                if (TaskRun.State.of(dao.getRun(runId)?.state ?: return).ended) return
+                val step = steps.getJSONObject(run.step)
+                val results = TaskRun.results(run.resultsJson)
+                val outcome = try {
+                    Outcome.Done(runStep(context, step, results, run.scheduledAt))
+                } catch (e: StepFailed) {
+                    Outcome.Failed(e.message ?: "", e.raw)
+                } catch (e: Waits) {
+                    Outcome.Waiting(e.result, e.wait)
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    LogManager.service("Task ${task.id} run $runId step ${run.step + 1}: ${e.message}", "ERROR", e)
+                    Outcome.Failed(e.message ?: e.javaClass.simpleName, null)
                 }
-                end(context, task, run, TaskRun.State.DONE)
+                run = when (outcome) {
+                    is Outcome.Done -> run.copy(step = run.step + 1, resultsJson = TaskRun.resultsJson(results + outcome.result))
+                    is Outcome.Waiting -> run.copy(state = TaskRun.State.WAITING.key, resultsJson = TaskRun.resultsJson(results + outcome.result), waitJson = outcome.wait.toJson())
+                    is Outcome.Failed -> run.copy(resultsJson = TaskRun.resultsJson(results + TaskRun.StepResult(summary(context, step), raw = outcome.raw, error = outcome.message, at = System.currentTimeMillis())))
+                }
+                dao.updateRun(run)
+                when (outcome) {
+                    is Outcome.Waiting -> { LogManager.service("Task ${task.id} run $runId waits on step ${run.step + 1}", "INFO"); return }
+                    is Outcome.Failed -> { end(context, task, run, TaskRun.State.FAILED); return }
+                    is Outcome.Done -> Unit
+                }
             }
+            end(context, task, run, TaskRun.State.DONE)
         } finally {
             active.remove(runId)
         }

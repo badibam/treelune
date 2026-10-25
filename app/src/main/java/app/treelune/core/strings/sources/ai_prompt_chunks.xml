@@ -729,7 +729,7 @@ Deletes a routine.
 - `automation_id` (string, **required**)]]></string>
     <string name="ai_command_run_task"><![CDATA[### RUN_TASK
 
-Runs a Task now, as its own button does: its steps run one after another, in the background, held to the Task\'s access, which may not be wider than yours. The answer gives the run\'s id, not its outcome: an API that answers later keeps the run waiting for hours. Refused while a run of the same Task goes on.
+Runs a Task now, as its own button does: its steps run one after another, in the background. Running it takes using its zone. The answer gives the run\'s id, not its outcome: an API that answers later keeps the run waiting for hours. Refused while a run of the same Task goes on.
 
 **Parameters**:
 

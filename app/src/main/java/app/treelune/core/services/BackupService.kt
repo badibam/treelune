@@ -656,7 +656,6 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("catch_up_window", task.catchUpWindow ?: JSONObject.NULL)
                                 put("dismiss_older_instances", task.dismissOlderInstances)
                                 put("notify_end", task.notifyEnd)
-                                put("access_json", task.accessJson)
                                 put("steps_json", task.stepsJson)
                                 put("created_at", task.createdAt)
                                 put("updated_at", task.updatedAt)
@@ -1114,7 +1113,6 @@ class BackupService(private val context: Context) : ExecutableService {
                     catchUpWindow = if (item.isNull("catch_up_window")) null else item.getLong("catch_up_window"),
                     dismissOlderInstances = item.getBoolean("dismiss_older_instances"),
                     notifyEnd = item.getString("notify_end"),
-                    accessJson = item.getString("access_json"),
                     stepsJson = item.getString("steps_json"),
                     createdAt = item.getLong("created_at"),
                     updatedAt = item.getLong("updated_at")
