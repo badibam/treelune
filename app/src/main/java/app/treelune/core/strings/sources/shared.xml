@@ -2792,4 +2792,8 @@
     <!-- The AI's reads of Tasks -->
     <string name="ai_read_user_tasks">All Tasks read</string>
     <string name="ai_read_user_tasks_of">'%1$s': Tasks read</string>
+
+    <!-- The AI writes Tasks -->
+    <string name="ai_read_user_task">\'%1$s\': Task read</string>
+    <string name="task_schema_steps">Its steps, run one after another: each an object naming its kind (call_api, create_entry, update_entry, tool_operation, run_routine), its inputs terms or what an earlier step gave</string>
 </resources>

@@ -248,6 +248,8 @@ class AICommandProcessor(private val context: Context) {
 
             // Routine actions: its config written as AUTOMATION_CONFIG reads it, in the stored form
             "CREATE_AUTOMATION", "UPDATE_AUTOMATION", "DELETE_AUTOMATION" -> automationCommand(command, stored = true)
+            // A Task's config written as TASK_CONFIG reads it, in the stored form
+            "CREATE_TASK", "UPDATE_TASK", "DELETE_TASK" -> taskCommand(command, stored = true)
 
             // An import of a joined file, following the AI's declaration: the file read by the service itself
             "IMPORT_DATA" -> importCommand(command)
@@ -357,6 +359,7 @@ class AICommandProcessor(private val context: Context) {
             )
 
             "CREATE_AUTOMATION", "UPDATE_AUTOMATION", "DELETE_AUTOMATION" -> automationCommand(command, stored = false)
+            "CREATE_TASK", "UPDATE_TASK", "DELETE_TASK" -> taskCommand(command, stored = false)
             "IMPORT_DATA" -> importCommand(command)
             "EXPORT_DATA" -> exportCommand(command)
             "UPDATE_APP_CONFIG" -> appConfigCommand(command)
@@ -393,6 +396,33 @@ class AICommandProcessor(private val context: Context) {
      *
      * @throws IllegalArgumentException on a date or a duration that does not read, or settings that are not an object
      */
+    /**
+     * A Task's command as the tasks service takes it: its settings at the top, its zone and its
+     * steps beside, their dates and durations in milliseconds when [stored] (TaskSchemas), a
+     * setting a Task does not have refused.
+     */
+    private suspend fun taskCommand(command: DataCommand, stored: Boolean): ExecutableCommand {
+        val schema = JSONObject(app.treelune.core.tasks.TaskSchemas.config(context).content)
+        val zone = AppConfigManager.getDateTimeConfig().getZoneId()
+        val settingsSchema = schema.getJSONObject("properties").getJSONObject("settings")
+        val settings = when (val given = command.params["settings"]) {
+            null -> emptyMap()
+            is Map<*, *> -> (if (stored) ModelValues.fromModel(given, settingsSchema, zone) as Map<*, *> else given).entries.associate { (key, value) -> key.toString() to value }
+            else -> throw IllegalArgumentException(s.shared("ai_error_param_type").format("settings", "object"))
+        }
+        val known = settingsSchema.getJSONObject("properties").keys().asSequence().toList()
+        (settings.keys - known.toSet()).firstOrNull()?.let { throw IllegalArgumentException(s.shared("service_error_param_unknown").format(it, known.joinToString(", "))) }
+        val steps = (command.params["steps"] as? List<*>)?.let { given ->
+            if (!stored) given else JsonUtils.toList(app.treelune.core.tasks.TaskSchemas.stepsToStored(JsonUtils.toJSONArray(given), context))
+        }
+        return ExecutableCommand(
+            resource = "tasks",
+            operation = command.type.substringBefore('_').lowercase(),
+            params = settings + command.params.filterKeys { it in setOf("zone_id", "task_id") } + listOfNotNull(steps?.let { "steps" to it }),
+            isActionCommand = true
+        )
+    }
+
     private fun automationCommand(command: DataCommand, stored: Boolean): ExecutableCommand {
         val config = command.params.filterKeys { it in setOf("zone_id", "settings", "message", "access") }
         val schema = JSONObject(app.treelune.core.ai.data.AutomationSchemas.config(context).content)

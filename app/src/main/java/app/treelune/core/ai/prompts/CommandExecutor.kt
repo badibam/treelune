@@ -566,6 +566,7 @@ class CommandExecutor(private val context: Context) {
             "automations.config" -> line("routine", resolveAutomationName(params["automation_id"] as? String))
             "automations.list" -> line("routines_of", zone ?: "")
             "automations.list_all" -> line("routines")
+            "tasks.get" -> line("task", ((data["task"] as? Map<*, *>)?.get("settings") as? Map<*, *>)?.get("name") as? String ?: "")
             "tasks.list" -> line("tasks_of", zone ?: "")
             "tasks.list_all" -> line("tasks")
             "ai_sessions.list_sessions_for_automation" -> line("runs_of", resolveAutomationName(params["automation_id"] as? String))
@@ -702,6 +703,7 @@ class CommandExecutor(private val context: Context) {
                 else -> "All routines"
             }
             "tasks" -> when (command.operation) {
+                "get" -> "Configuration for Task '${((data["task"] as? Map<*, *>)?.get("settings") as? Map<*, *>)?.get("name")}'"
                 "list" -> "Tasks in zone '${resolveZoneName(command.params["zone_id"] as String)}'"
                 else -> "All Tasks"
             }
@@ -853,6 +855,8 @@ class CommandExecutor(private val context: Context) {
             }
             // The Tasks of a list each in a line: what they are and what their steps do, by kind
             "tasks" -> {
+                // One Task's config, in the form the model writes it back (TaskSchemas)
+                if (command.operation == "get") return JSONObject(app.treelune.core.tasks.TaskSchemas.forModel(data["task"] as Map<*, *>, context) as Map<*, *>).toString(2)
                 (data["tasks"] as? List<*>)?.let { list -> reordered["tasks"] = list.map { app.treelune.core.tasks.Task.listed(it as Map<*, *>) } }
                 return JSONObject(reordered as Map<*, *>).toString(2)
             }

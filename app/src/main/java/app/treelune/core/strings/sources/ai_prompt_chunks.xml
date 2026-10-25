@@ -376,6 +376,13 @@ Lists the Tasks: steps the app runs itself, one after another, without an AI (an
 **Parameters**:
 
 - `zone_id` (string, optional): the Tasks of that zone alone]]></string>
+    <string name="ai_command_task_config"><![CDATA[### TASK_CONFIG
+
+Retrieves a Task whole, in the form CREATE_TASK and UPDATE_TASK write it: `zone_id`, `settings` (name, group, on or off, schedule, what is done of missed runs) and `steps`. Its schema: `SCHEMA` with `id` `task_config`.
+
+**Parameters**:
+
+- `id` (string, **required**)]]></string>
     <string name="ai_command_file"><![CDATA[### FILE
 
 Reads a text by lines: a file the user joined to a message, or a text an entry's FILE field holds, read as that entry is.
@@ -727,6 +734,56 @@ Deletes a routine.
 **Parameters**:
 
 - `automation_id` (string, **required**)]]></string>
+    <string name="ai_command_create_task"><![CDATA[### CREATE_TASK
+
+Creates a Task in a zone: steps the app runs itself, one after another, without an AI, by hand, by its schedule or with RUN_TASK. A step that needs judging (summing up, choosing, writing) runs a routine, passing it what earlier steps gave. Each step is an object naming its `kind`:
+
+- `call_api`: `api_id` (an API the user declared in the settings), `inputs` by the API's input names
+- `create_entry`: `tool_instance_id`, `values` by the entry's path (`name`, `timestamp`, `data.<field>`, `extra.<field>`)
+- `update_entry`: `tool_instance_id`, `entry` (the entry), `values` as above, only what changes
+- `tool_operation`: `tool_instance_id`, `operation` (one of its type\'s, read in its entries schema), `params` by name
+- `run_routine`: `automation_id`, `inputs` with `data` (what joins its run\'s message)
+
+Each input is a term — `{"constant": value}` (a date or a duration in ISO 8601, an entry `{"kind": "ENTRY", "id"}`), `{"variable": "<id>"}`, `{"reading": {"selection", "field", "reduction"}}` read when the step runs — or what an earlier step gave: `{"result": {"step": 0, "value": "<name>"}}` for a value an API answered, `{"result": {"step": 0}}` for the entry a step created; steps count from 0. Every step you write must be one you could make yourself: what it writes and reads stays within your access.
+
+**Parameters**:
+
+- `zone_id` (string, **required**)
+- `settings` (object, **required**): `name` at least; `schedule` with `catch_up` to run it by itself
+- `steps` (array, **required**)
+
+**Example**: the weather every morning in a tracking.
+
+```json
+{
+  "type": "CREATE_TASK",
+  "params": {
+    "zone_id": "zone_garden",
+    "settings": { "name": "Morning weather", "schedule": { "pattern": { "type": "DailyMultiple", "times": ["07:00"] } }, "catch_up": { "limit": "limited", "window": "PT2H", "dismiss_older_instances": true } },
+    "steps": [
+      { "kind": "call_api", "api_id": "api_weather", "inputs": {} },
+      { "kind": "create_entry", "tool_instance_id": "tracking_weather", "values": { "data.temperature": { "result": { "step": 0, "value": "temperature" } } } }
+    ]
+  }
+}
+```]]></string>
+    <string name="ai_command_update_task"><![CDATA[### UPDATE_TASK
+
+Changes a Task, turns it on or off (`settings`, `{"is_enabled": false}`), or moves it to another zone. In `settings`, each setting given replaces its value and `null` removes it; `steps` given replace the whole of them, read first with TASK_CONFIG.
+
+**Parameters**:
+
+- `task_id` (string, **required**)
+- `zone_id` (string, optional)
+- `settings` (object, optional)
+- `steps` (array, optional): the **whole** list]]></string>
+    <string name="ai_command_delete_task"><![CDATA[### DELETE_TASK
+
+Deletes a Task, and its runs.
+
+**Parameters**:
+
+- `task_id` (string, **required**)]]></string>
     <string name="ai_command_run_task"><![CDATA[### RUN_TASK
 
 Runs a Task now, as its own button does: its steps run one after another, in the background. Running it takes using its zone. The answer gives the run\'s id, not its outcome: an API that answers later keeps the run waiting for hours. Refused while a run of the same Task goes on.

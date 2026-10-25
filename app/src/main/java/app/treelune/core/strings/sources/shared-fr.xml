@@ -2792,4 +2792,8 @@
     <!-- The AI's reads of Tasks -->
     <string name="ai_read_user_tasks">Toutes les Tâches lues</string>
     <string name="ai_read_user_tasks_of">« %1$s » : Tâches lues</string>
+
+    <!-- The AI writes Tasks -->
+    <string name="ai_read_user_task">« %1$s » : Tâche lue</string>
+    <string name="task_schema_steps">Ses étapes, lancées l\'une après l\'autre : chacune un objet qui nomme son genre (call_api, create_entry, update_entry, tool_operation, run_routine), ses entrées des termes ou ce qu\'une étape précédente a donné</string>
 </resources>

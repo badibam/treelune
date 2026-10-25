@@ -142,6 +142,14 @@ class ValidationResolver(private val context: Context) {
             "EXPORT_DATA" -> null
 
             // An undo writes what its step wrote: each row asks as its own write would
+            // A zone's Tasks, as its routines: one moved changes the zone it goes to as well
+            "CREATE_TASK" -> zoneReason(params["zone_id"] as? String ?: error(s.shared("validation_reason_no_target")), levels)
+            "UPDATE_TASK", "DELETE_TASK" -> {
+                val zoneId = read("tasks.get", mapOf("task_id" to (params["task_id"] as? String ?: error(s.shared("validation_reason_no_target")))), "task")["zone_id"] as? String
+                    ?: error("task without its zone")
+                val target = (params["zone_id"] as? String)?.takeIf { it != zoneId }
+                zoneReason(zoneId, levels) ?: target?.let { zoneReason(it, levels) }
+            }
             // A Task's run writes in its zone, as a tool's writes do
             "RUN_TASK" -> zoneReason(read("tasks.get", mapOf("task_id" to (params["task_id"] as? String ?: error(s.shared("validation_reason_no_target")))), "task")["zone_id"] as? String
                 ?: error("task without its zone"), levels)
