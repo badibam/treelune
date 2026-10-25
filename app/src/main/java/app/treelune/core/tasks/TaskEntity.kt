@@ -43,7 +43,9 @@ data class TaskEntity(
     /** Its steps, TaskSteps' stored form */
     @ColumnInfo(name = "steps_json") val stepsJson: String,
     @ColumnInfo(name = "created_at") val createdAt: Long,
-    @ColumnInfo(name = "updated_at") val updatedAt: Long
+    @ColumnInfo(name = "updated_at") val updatedAt: Long,
+    /** What starts it beside its schedule, Triggers' stored form; null when nothing does */
+    @ColumnInfo(name = "triggers_json") val triggersJson: String? = null
 )
 
 /**
@@ -59,7 +61,7 @@ data class TaskEntity(
 data class TaskRunEntity(
     @PrimaryKey val id: String,
     @ColumnInfo(name = "task_id") val taskId: String,
-    /** TaskRun.Trigger's key: manual, scheduled, ai */
+    /** TaskRun.Trigger's key: manual, scheduled, ai, entry */
     val trigger: String,
     /** The instant its readings resolve against: its occurrence's for a scheduled run, its start's otherwise */
     @ColumnInfo(name = "scheduled_at") val scheduledAt: Long,
@@ -76,7 +78,9 @@ data class TaskRunEntity(
     /** When the user read its end; null while it waits to be read */
     @ColumnInfo(name = "seen_at") val seenAt: Long?,
     /** The chain it continues (Chains): the id of the run that started it; null for a run that starts its own */
-    @ColumnInfo(name = "chain_id") val chainId: String? = null
+    @ColumnInfo(name = "chain_id") val chainId: String? = null,
+    /** What a trigger gave it, TaskRun.Received's stored form; null for a run no trigger started */
+    @ColumnInfo(name = "received_json") val receivedJson: String? = null
 )
 
 @Dao
@@ -114,6 +118,10 @@ interface TaskDao {
     /** The last run of [taskId] its schedule started, whatever its end: where its next occurrence is searched from. */
     @Query("SELECT * FROM task_runs WHERE task_id = :taskId AND trigger = 'scheduled' ORDER BY scheduled_at DESC LIMIT 1")
     suspend fun getLastScheduledRun(taskId: String): TaskRunEntity?
+
+    /** The oldest run of [taskId] asked while another went on: the next to start. */
+    @Query("SELECT * FROM task_runs WHERE task_id = :taskId AND state = 'queued' ORDER BY started_at ASC LIMIT 1")
+    suspend fun getNextQueued(taskId: String): TaskRunEntity?
 
     @Query("SELECT * FROM task_runs WHERE seen_at IS NULL AND ended_at IS NOT NULL")
     suspend fun getUnseenRuns(): List<TaskRunEntity>

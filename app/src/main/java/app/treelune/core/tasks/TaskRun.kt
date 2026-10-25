@@ -9,7 +9,9 @@ object TaskRun {
 
     /** What started a run. */
     enum class Trigger(val key: String) {
-        MANUAL("manual"), SCHEDULED("scheduled"), AI("ai");
+        MANUAL("manual"), SCHEDULED("scheduled"), AI("ai"),
+        /** An entry written that one of its triggers listens to (Triggers) */
+        ENTRY("entry");
 
         companion object {
             fun of(key: String) = entries.first { it.key == key }
@@ -18,6 +20,8 @@ object TaskRun {
 
     /** Where a run stands. */
     enum class State(val key: String) {
+        /** Asked while another run of its Task went on: started once that one ends */
+        QUEUED("queued"),
         /** Its steps are being run */
         RUNNING("running"),
         /** On a deferred API's job, asked again until it is ready */
@@ -28,7 +32,7 @@ object TaskRun {
         /** Found running when the app started again: its step may or may not have been done, and is not run twice */
         INTERRUPTED("interrupted");
 
-        val ended: Boolean get() = this != RUNNING && this != WAITING
+        val ended: Boolean get() = this != QUEUED && this != RUNNING && this != WAITING
 
         companion object {
             fun of(key: String) = entries.first { it.key == key }
@@ -68,6 +72,21 @@ object TaskRun {
                 error = json.optString("error").ifEmpty { null },
                 at = json.getLong("at")
             )
+        }
+    }
+
+    /**
+     * What a run started by a trigger received (Triggers): the entry [entryId] of
+     * [toolInstanceId], and what became of it, [write]. Its steps read it as it is when they run
+     * (TaskSteps.Input.Received), deleted said so.
+     */
+    data class Received(val entryId: String, val toolInstanceId: String, val write: app.treelune.core.triggers.Triggers.Write) {
+        fun toJson(): String = JSONObject().put("entry_id", entryId).put("tool_instance_id", toolInstanceId).put("write", write.key).toString()
+
+        companion object {
+            fun of(json: String) = JSONObject(json).let {
+                Received(it.getString("entry_id"), it.getString("tool_instance_id"), app.treelune.core.triggers.Triggers.Write.of(it.getString("write")))
+            }
         }
     }
 

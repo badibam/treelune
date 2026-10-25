@@ -35,7 +35,7 @@ Codé, jamais vu sur l'appareil.
 
 ## Décidé, à coder
 
-- Les événements (`docs/design/events.md`) : le « quand ? » en liste à la place du planning (une heure, une entrée écrite, une condition devenue vraie, un événement), les événements d'une zone, émettre là où l'app prévient, le plafond par chaîne étendu aux écritures (en place entre Tâches et routines) et le budget du jour.
+- Les événements (`docs/design/events.md`) : le « quand ? » des routines et des outils actifs (une entrée écrite, en place pour les Tâches), une condition devenue vraie, les événements d'une zone, émettre là où l'app prévient, le budget du jour.
 - Un filtre qui compare un champ à une variable ou une lecture (« kcal > objectif_calorique ») : le terme lu une fois à la référence du contexte (`TermReader`, `docs/BRICKS.md`), puis le filtre SQL comme aujourd'hui ; `EntryFilters.parse` et `ConditionPicker` le prennent.
 
 ## À concevoir

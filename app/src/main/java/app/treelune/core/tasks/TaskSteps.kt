@@ -24,7 +24,9 @@ import org.json.JSONObject
  *
  * An input is a Term (`{"constant"}`, `{"variable"}`, `{"reading"}`), or what an earlier step gave:
  * `{"result": {"step": 0, "value": "temperature"}}` for a value of an API's answer,
- * `{"result": {"step": 1}}` for the entry a step created. An entry given as a constant is a
+ * `{"result": {"step": 1}}` for the entry a step created; or what a trigger gave the run
+ * (Triggers): `{"received": {}}` for the entry written, `{"received": {"field": "data.x"}}` for
+ * one of its fields, read as the entry is when the step runs. An entry given as a constant is a
  * Reference (`{"kind": "ENTRY", "id"}`).
  */
 object TaskSteps {
@@ -52,6 +54,8 @@ object TaskSteps {
     const val RESULT = "result"
     const val STEP = "step"
     const val VALUE = "value"
+    const val RECEIVED = "received"
+    const val FIELD = "field"
 
     /** The paths of an entry a step writes, beside its fields under data and extra. */
     private val WRITTEN_TOP = setOf("name", "timestamp")
@@ -64,6 +68,8 @@ object TaskSteps {
         data class Of(val term: Term) : Input
         /** [value] of step [step]'s answer; null for the entry it created */
         data class Result(val step: Int, val value: String?) : Input
+        /** The entry a trigger gave the run, or its [field] by path; null for the entry itself */
+        data class Received(val field: String?) : Input
     }
 
     /**
@@ -72,6 +78,7 @@ object TaskSteps {
      * @throws IllegalArgumentException naming what does not read
      */
     fun input(json: JSONObject, name: String, text: (String) -> String): Input {
+        json.optJSONObject(RECEIVED)?.let { return Input.Received(it.optString(FIELD).ifEmpty { null }) }
         json.optJSONObject(RESULT)?.let { result ->
             if (!result.has(STEP)) throw IllegalArgumentException(text("task_error_input").format(name))
             return Input.Result(result.getInt(STEP), result.optString(VALUE).ifEmpty { null })
@@ -91,6 +98,34 @@ object TaskSteps {
         }.orEmpty()
         CREATE_ENTRY -> listOf(Output(null, ENTRY))
         else -> emptyList()
+    }
+
+    /** [entry] as a path reads it (FieldReading.valueAt): its columns, data, extra and state as objects. */
+    fun entryMap(entry: app.treelune.core.database.entities.ToolDataEntity): Map<String, Any?> = mapOf(
+        "id" to entry.id,
+        "name" to entry.name,
+        "timestamp" to entry.timestamp,
+        "data" to app.treelune.core.utils.JsonUtils.toMap(JSONObject(entry.data)),
+        "extra" to entry.extra?.let { app.treelune.core.utils.JsonUtils.toMap(JSONObject(it)) },
+        "state" to entry.state?.let { app.treelune.core.utils.JsonUtils.toMap(JSONObject(it)) }
+    )
+
+    /**
+     * The fields of the entry a trigger gives a run of the Task whose [triggers] they are, by
+     * path: those every tool listened to has, the entry being any of theirs; null when no trigger
+     * gives an entry.
+     */
+    suspend fun receivedFields(triggers: List<app.treelune.core.triggers.Triggers.Trigger>, context: Context, s: StringsContext): Map<String, FieldDefinition>? {
+        val tools = triggers.filterIsInstance<app.treelune.core.triggers.Triggers.Trigger.EntryWritten>().map { it.toolInstanceId }.distinct()
+        if (tools.isEmpty()) return null
+        val each = tools.map { id ->
+            try {
+                ToolFields.filterable(id, context, s)
+            } catch (e: IllegalStateException) {
+                emptyMap()
+            }
+        }
+        return each.first().filterKeys { path -> each.all { path in it } }
     }
 
     /** The fields a step may write in the entries of [toolInstanceId], by path. */
@@ -149,9 +184,10 @@ object TaskSteps {
     /**
      * Why [steps] cannot be stored; null when they can. Each step of a kind it knows, naming what
      * exists (an API, a tool, an operation of its type, a routine), and each input readable and
-     * naming an earlier step that gives what it reads.
+     * naming an earlier step that gives what it reads, or a field of the entry a trigger gives
+     * ([received], receivedFields; null when no trigger gives one).
      */
-    suspend fun refusal(steps: JSONArray, context: Context, s: StringsContext): String? {
+    suspend fun refusal(steps: JSONArray, context: Context, s: StringsContext, received: Map<String, FieldDefinition>? = null): String? {
         val database = AppDatabase.getDatabase(context)
         val given = mutableListOf<List<Output>>()
         for (index in 0 until steps.length()) {
@@ -166,6 +202,10 @@ object TaskSteps {
                         input(json, "$number › $key") { s.shared(it) }
                     } catch (e: IllegalArgumentException) {
                         return e.message
+                    }
+                    if (input is Input.Received) {
+                        received ?: return s.shared("task_error_received_untriggered").format(number)
+                        if (input.field != null && input.field !in received) return s.shared("task_error_received_field").format(number, input.field, received.keys.joinToString(", "))
                     }
                     if (input is Input.Result) {
                         val earlier = given.getOrNull(input.step) ?: return s.shared("task_error_result_step").format(number, input.step + 1)

@@ -4,6 +4,8 @@ Ce qui fait partir une routine, une Tâche ou un outil actif autrement qu'à une
 
 ## 1. Le « quand ? »
 
+En place pour les Tâches : la sorte 2, une entrée écrite (`docs/CORE.md`, « Triggers »), stockée en liste à côté du planning, qui garde sa forme et son rattrapage. Restent les routines et les outils actifs, et les sortes 3 et 4.
+
 Partout où l'app a aujourd'hui un planning (`ScheduleConfig`), ce planning devient une liste de déclencheurs : routine, Tâche, invitations d'un Questionnaire, envois d'un Message, séances prévues d'une Séquence, tentatives d'un Objectif. Les séries de l'Agenda gardent leur planning seul : une série montre ses rendez-vous 90 jours à l'avance, ce qu'un événement ne permet pas. Le bouton « Exécuter », à la main, reste à côté, hors de la liste.
 
 Une seule brique, son modèle et son sélecteur, la même à chacun de ces endroits ; c'est là que vit tout le vocabulaire de ce qui fait partir. Quatre sortes, qui se mélangent dans la liste (« chaque dimanche à 3 h, et aussi après chaque séance ») :
@@ -58,7 +60,7 @@ Défaire et rétablir une étape (`history.undo`, `history.redo`) sont des écri
 
 Deux, tous deux dans l'écran des limites de l'IA, à côté des appels par exécution (`AILimitsConfig`).
 
-**Le plafond par chaîne**, en place entre Tâches et routines (`docs/CORE.md`, « Chains ») ; reste à y faire entrer les écritures, les conditions et les émissions, chacune continuant la chaîne de l'exécution qui l'a faite. Une exécution appartient à la chaîne de ce qui l'a fait partir : celui qui a écrit l'entrée, émis l'événement, ou dont l'écriture a rendu la condition vraie. Une heure (un planning, une étape « attendre jusqu'à », le temps qui fait basculer une condition) ou une personne (un geste à l'écran, un message envoyé dans une conversation) commencent une chaîne neuve ; une écriture de l'IA extérieure par le connecteur aussi, que l'app ne rappelle jamais et par laquelle aucune boucle ne passe (une écriture protégée fait partir ce qui l'écoute une fois acceptée, quand elle a lieu). Le plafond compte toutes les exécutions d'une chaîne, pas les maillons d'affilée : deux Tâches qui se renvoient chacune deux entrées doublent à chaque tour. Atteint, ce que la dernière exécution écrit ou émet ne fait plus rien partir ; son historique le dit, une notification aussi ; les autres chaînes ne sont pas touchées, et la chaîne arrêtée ne reprend pas.
+**Le plafond par chaîne**, en place entre Tâches et routines (`docs/CORE.md`, « Chains ») et pour les entrées écrites qu'une Tâche écoute ; reste à y faire entrer les conditions et les émissions, chacune continuant la chaîne de l'exécution qui l'a faite. Une exécution appartient à la chaîne de ce qui l'a fait partir : celui qui a écrit l'entrée, émis l'événement, ou dont l'écriture a rendu la condition vraie. Une heure (un planning, une étape « attendre jusqu'à », le temps qui fait basculer une condition) ou une personne (un geste à l'écran, un message envoyé dans une conversation) commencent une chaîne neuve ; une écriture de l'IA extérieure par le connecteur aussi, que l'app ne rappelle jamais et par laquelle aucune boucle ne passe (une écriture protégée fait partir ce qui l'écoute une fois acceptée, quand elle a lieu). Le plafond compte toutes les exécutions d'une chaîne, pas les maillons d'affilée : deux Tâches qui se renvoient chacune deux entrées doublent à chaque tour. Atteint, ce que la dernière exécution écrit ou émet ne fait plus rien partir ; son historique le dit, une notification aussi ; les autres chaînes ne sont pas touchées, et la chaîne arrêtée ne reprend pas.
 
 - Dans la même chaîne : une Tâche écrit dans Journal, une autre l'écoute ; une routine émet, une Tâche l'écoute ; une Tâche note un poids qui rend une condition vraie ; une Tâche attend 2 h la réponse d'une API puis émet (l'attente d'une réponse n'est pas une heure choisie) ; l'IA d'une conversation crée une entrée écoutée (la conversation est la première exécution).
 - Une chaîne neuve : la routine du dimanche, chaque dimanche ; le rappel d'un rendez-vous qu'une Tâche a créé ; une condition que les jours font basculer ; une entrée qu'une Tâche a créée et que tu modifies ; ce qu'une Tâche émet après « attendre jusqu'à demain 7 h », le cycle quotidien voulu.
@@ -83,7 +85,7 @@ Deux, tous deux dans l'écran des limites de l'IA, à côté des appels par exé
 
 ## Découpage
 
-1. Le « quand ? » comme liste, avec les heures et les entrées écrites ; la chaîne y suit l'écriture.
+1. Le « quand ? » des routines et des outils actifs, avec les entrées écrites (fait pour les Tâches).
 2. Les événements et l'étape « émettre » ; ce que reçoit ce qui part.
 3. Les endroits où l'app prévient.
 4. La condition qui devient vraie, avec l'Alerte.

@@ -173,6 +173,17 @@ class Coordinator(private val context: Context) {
                 val named = gone?.let { JSONObject(params.toString()).put("name", it) } ?: params
                 service.verbalize(operation, named, context)
             }
+            // The entries the step wrote start what listens to them, in the writer's context for
+            // its chain; a long operation (an import, a backup, the demo) reloads data and starts nothing
+            if (running == null && result.success && operation !in service.longOperations) {
+                try {
+                    app.treelune.core.triggers.EntryTriggers.dispatch(context) { app.treelune.core.triggers.EntryWrites.ofStep(context, step.id) }
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    LogManager.coordination("Triggers of ${command.action} not run: ${e.message}", "ERROR")
+                }
+            }
             // One line per operation, which it names: the commonest line of the log, a failure kept longer
             if (result.success) LogManager.coordination("${command.action}: ok", "VERBOSE")
             else LogManager.coordination("${command.action} failed: ${result.error}", "INFO")

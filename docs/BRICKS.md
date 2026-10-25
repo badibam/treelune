@@ -95,6 +95,7 @@ A brick does not know the screen that uses it; the screen gives it what it needs
 | Waiting, what is unique in the app (the mark of a button) | a named source (`WaitingSource`: the active conversation, the automatic backup, the Guide) that says continuously whether it waits and keeps its own rule of "seen"; the button names the sources it leads to (`waiting(...)`) and bears the dot when one waits | done |
 | Chart | per layer, an Entry selection or a grid of Terms, each row read at its instant; a Period shown; its drawing conditions, Conditions on the row's columns | done (`tools/chart`, drawn by `core/drawing`) |
 | Goal attempts, Questionnaire invitations, Messages sends, automations, Tasks | Schedule | done |
-| A Task step's input | a Term read at the run's instant, or what an earlier step gave (`{"result": {"step", "value"}}`: an API's value, the entry created), drawn by `TermPicker` beside the choice of a step (`TaskStepEditor`) | done |
+| A Task step's input | a Term read at the run's instant, what an earlier step gave (`{"result": {"step", "value"}}`: an API's value, the entry created), or the entry a trigger gave (`{"received": {"field"}}`), drawn by `TermPicker` beside the choice of a step (`TaskStepEditor`) | done |
+| What starts a Task beside its schedule (`Triggers`) | per trigger, an Entry selection without its period (the tool and its Filters, judged on the entry written) and the writes heard | done, for the Tasks |
 | Reading recorded (a value kept as it was: a variable written each week into a Tracking) | a Task: a step creating an entry, its field filled by the Term | done |
 | Alert | Condition judged once | to design |

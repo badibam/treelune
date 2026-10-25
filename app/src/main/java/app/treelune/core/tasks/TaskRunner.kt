@@ -58,19 +58,33 @@ object TaskRunner {
 
     /**
      * A run of [task] started by [trigger], reading at [at], continuing the chain [chainId] or
-     * starting its own when null (Chains): its row written, then its steps run, awaited when
-     * [awaited] (the scheduler's tick, which the phone stays awake for), in the app's own scope
-     * otherwise. Its id.
+     * starting its own when null (Chains), [received] what a trigger gave it: its row written,
+     * then its steps run, awaited when [awaited] (the scheduler's tick, which the phone stays
+     * awake for), in the app's own scope otherwise. Asked while another run of the Task goes on,
+     * a trigger's run waits its turn (queued), started once that one ends. Its id.
      */
-    suspend fun start(context: Context, task: TaskEntity, trigger: TaskRun.Trigger, at: Long, awaited: Boolean, chainId: String? = null): String {
+    suspend fun start(context: Context, task: TaskEntity, trigger: TaskRun.Trigger, at: Long, awaited: Boolean, chainId: String? = null, received: TaskRun.Received? = null): String {
         val now = System.currentTimeMillis()
-        val run = TaskRunEntity(UUID.randomUUID().toString(), task.id, trigger.key, at, now, null, TaskRun.State.RUNNING.key, 0, "[]", null, null, chainId)
         val dao = AppDatabase.getDatabase(context).taskDao()
+        val busy = dao.getRunsIn(listOf(TaskRun.State.QUEUED.key, TaskRun.State.RUNNING.key, TaskRun.State.WAITING.key)).any { it.taskId == task.id }
+        val state = if (busy) TaskRun.State.QUEUED else TaskRun.State.RUNNING
+        val run = TaskRunEntity(UUID.randomUUID().toString(), task.id, trigger.key, at, now, null, state.key, 0, "[]", null, null, chainId, received?.toJson())
         dao.insertRun(run)
-        LogManager.service("Task ${task.id} run ${run.id} started (${trigger.key})", "INFO")
+        LogManager.service("Task ${task.id} run ${run.id} ${state.key} (${trigger.key})", "INFO")
         app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
+        if (busy) return run.id
         if (awaited) proceed(context, run.id) else scope.launch { proceed(context, run.id) }
         return run.id
+    }
+
+    /** The oldest run of [taskId] waiting its turn started, when there is one. */
+    suspend fun next(context: Context, taskId: String) {
+        val dao = AppDatabase.getDatabase(context).taskDao()
+        val queued = dao.getNextQueued(taskId) ?: return
+        // Its reading instant is when it was asked: what it reads is what was there then
+        dao.updateRun(queued.copy(state = TaskRun.State.RUNNING.key))
+        LogManager.service("Task $taskId run ${queued.id} takes its turn", "INFO")
+        scope.launch { proceed(context, queued.id) }
     }
 
     /**
@@ -101,7 +115,7 @@ object TaskRunner {
             val step = steps.getJSONObject(run.step)
             val results = TaskRun.results(run.resultsJson)
             val outcome = try {
-                Outcome.Done(runStep(context, step, results, run.scheduledAt))
+                Outcome.Done(runStep(context, step, results, run.scheduledAt, run.receivedJson?.let { TaskRun.Received.of(it) }))
             } catch (e: StepFailed) {
                 Outcome.Failed(e.message ?: "", e.raw)
             } catch (e: Waits) {
@@ -199,6 +213,8 @@ object TaskRunner {
         AppDatabase.getDatabase(context).taskDao().updateRun(run.copy(state = state.key, endedAt = now, waitJson = null, seenAt = if (waits) null else now))
         LogManager.service("Task ${task.id} run ${run.id} ended: ${state.key}", "INFO")
         app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
+        // A run cancelled before its turn leaves the one going on in place
+        if (TaskRun.State.of(run.state) != TaskRun.State.QUEUED) next(context, task.id)
         if (!waits) return
         val s = Strings.`for`(context = context)
         Coordinator(context).processScheduledTask("notifications.send", mapOf(
@@ -248,7 +264,7 @@ object TaskRunner {
     }
 
     /** [step] run: its inputs read, its operation through the dispatcher, what it gave. */
-    private suspend fun runStep(context: Context, step: JSONObject, results: List<TaskRun.StepResult>, at: Long): TaskRun.StepResult {
+    private suspend fun runStep(context: Context, step: JSONObject, results: List<TaskRun.StepResult>, at: Long, received: TaskRun.Received?): TaskRun.StepResult {
         val s = Strings.`for`(context = context)
         val kind = step.getString(TaskSteps.KIND)
         // The fields an entry's values go to, for a file to come down into one
@@ -262,7 +278,7 @@ object TaskRunner {
         }
         val resolved = buildMap<String, Any?> {
             holder?.keys()?.forEach { key ->
-                val value = resolve(context, TaskSteps.input(holder.getJSONObject(key), key) { s.shared(it) }, results, at)
+                val value = resolve(context, TaskSteps.input(holder.getJSONObject(key), key) { s.shared(it) }, results, at, received)
                 val field = fields[key]
                 put(key, when {
                     // A file an API gives comes down into the field
@@ -274,7 +290,7 @@ object TaskRunner {
                     else -> value
                 })
             }
-            if (kind == TaskSteps.UPDATE_ENTRY) put(TaskSteps.ENTRY, idOf(resolve(context, TaskSteps.input(step.getJSONObject(TaskSteps.ENTRY), TaskSteps.ENTRY) { s.shared(it) }, results, at)))
+            if (kind == TaskSteps.UPDATE_ENTRY) put(TaskSteps.ENTRY, idOf(resolve(context, TaskSteps.input(step.getJSONObject(TaskSteps.ENTRY), TaskSteps.ENTRY) { s.shared(it) }, results, at, received)))
         }
         val (action, params) = actionOf(step, resolved, context)
         val summary = summary(context, step)
@@ -304,10 +320,17 @@ object TaskRunner {
     /** An entry's id, from its id or a Reference designating it. */
     private fun idOf(value: Any?): Any? = (value as? Map<*, *>)?.get("id") ?: value
 
-    /** What [input] gives: a term read at [at], what an earlier step gave. */
-    private suspend fun resolve(context: Context, input: TaskSteps.Input, results: List<TaskRun.StepResult>, at: Long): Any? {
+    /** What [input] gives: a term read at [at], what an earlier step gave, the entry [received] as it is now. */
+    private suspend fun resolve(context: Context, input: TaskSteps.Input, results: List<TaskRun.StepResult>, at: Long, received: TaskRun.Received?): Any? {
         val s = Strings.`for`(context = context)
         return when (input) {
+            is TaskSteps.Input.Received -> {
+                received ?: throw StepFailed(s.shared("task_error_received_none"))
+                if (input.field == null) return received.entryId
+                val entry = AppDatabase.getDatabase(context).toolDataDao().getById(received.entryId)
+                    ?: throw StepFailed(s.shared("task_error_received_gone"))
+                app.treelune.core.reading.FieldReading.valueAt(TaskSteps.entryMap(entry), input.field)
+            }
             is TaskSteps.Input.Result -> {
                 val given = results.getOrNull(input.step) ?: throw StepFailed(s.shared("task_error_result_step").format("", input.step + 1))
                 if (input.value == null) given.entryId ?: throw StepFailed(s.shared("task_error_result_value").format("", input.step + 1, s.shared("task_output_entry")))

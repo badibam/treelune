@@ -110,7 +110,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 98
+        const val VERSION = 99
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2223,6 +2223,18 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * A Task's triggers (docs/CORE.md, « Triggers »), none so far; a run keeps the entry a
+         * trigger gave it, none so far.
+         */
+        private val MIGRATION_98_99 = object : ConnectionMigration(98, 99) {
+            override fun migrate(database: MigrationDatabase) {
+                database.execSQL("ALTER TABLE tasks ADD COLUMN triggers_json TEXT")
+                database.execSQL("ALTER TABLE task_runs ADD COLUMN received_json TEXT")
+                LogManager.database("MIGRATION 98->99: tasks.triggers_json and task_runs.received_json added, none", "INFO")
+            }
+        }
+
         /** The connector gains its own data threshold: see ExternalAccessDataAtV84. */
         private val MIGRATION_83_84 = object : ConnectionMigration(83, 84) {
             override fun migrate(database: MigrationDatabase) {
@@ -3268,7 +3280,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_94_95,
                     MIGRATION_95_96,
                     MIGRATION_96_97,
-                    MIGRATION_97_98
+                    MIGRATION_97_98,
+                    MIGRATION_98_99
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

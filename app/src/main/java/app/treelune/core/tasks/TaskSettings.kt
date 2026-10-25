@@ -19,7 +19,8 @@ import org.json.JSONObject
 
 /**
  * A Task's settings, declared with the fields: its look, its group, whether its schedule runs it,
- * which of its runs wait for the user, its schedule and what it does about the runs it missed —
+ * which of its runs wait for the user, its schedule and what it does about the runs it missed,
+ * what else starts it (Triggers) —
  * the routine's envelope (AutomationSettings), without a provider nor an identity, a Task calling
  * no AI, nor an access, its steps saying what they reach. Not its zone (its place) nor its steps (TaskSteps).
  */
@@ -55,7 +56,9 @@ object TaskSettings {
             // Absent: run on demand only
             ScheduleSettings.group(s.shared("automation_schedule"), s::shared),
             // Present with the schedule, and only with it (TaskService)
-            SettingNode.Group("catch_up", s.shared("automation_catch_up_title"), AutomationSettings.catchUpNodes(context), description = s.shared("automation_schema_catch_up"))
+            SettingNode.Group("catch_up", s.shared("automation_catch_up_title"), AutomationSettings.catchUpNodes(context), description = s.shared("automation_schema_catch_up")),
+            // What starts it beside its schedule: an entry written
+            app.treelune.core.triggers.Triggers.node(s::shared)
         )
     }
 
@@ -76,6 +79,7 @@ object TaskSettings {
         put("is_enabled", task.isEnabled)
         put("notify_end", task.notifyEnd)
         task.scheduleJson?.let { put("schedule", JSONObject(it)) }
+        task.triggersJson?.let { put(app.treelune.core.triggers.Triggers.KEY, org.json.JSONArray(it)) }
         task.catchUp?.let { limit ->
             put("catch_up", JSONObject().apply {
                 put("limit", limit)

@@ -658,6 +658,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("dismiss_older_instances", task.dismissOlderInstances)
                                 put("notify_end", task.notifyEnd)
                                 put("steps_json", task.stepsJson)
+                                put("triggers_json", task.triggersJson ?: JSONObject.NULL)
                                 put("created_at", task.createdAt)
                                 put("updated_at", task.updatedAt)
                             })
@@ -1116,7 +1117,9 @@ class BackupService(private val context: Context) : ExecutableService {
                     notifyEnd = item.getString("notify_end"),
                     stepsJson = item.getString("steps_json"),
                     createdAt = item.getLong("created_at"),
-                    updatedAt = item.getLong("updated_at")
+                    updatedAt = item.getLong("updated_at"),
+                    // Absent from a backup made before version 99: started by nothing but its schedule
+                    triggersJson = if (item.has("triggers_json")) item.text("triggers_json") else null
                 ))
             }
         }
