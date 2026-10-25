@@ -4,9 +4,15 @@ Ce qui fait partir une routine, une Tâche ou un outil actif autrement qu'à une
 
 ## 1. Le « quand ? »
 
-En place pour les Tâches et les routines : les sortes 2, 3 et 4 (`docs/CORE.md`, « Triggers »), stockées en liste à côté du planning, qui garde sa forme et son rattrapage. Restent les outils actifs (Questionnaire, Messages, Séquence, Objectif).
+En place pour les Tâches et les routines : les sortes 2, 3 et 4 (`docs/CORE.md`, « Triggers »), stockées en liste à côté du planning, qui garde sa forme et son rattrapage.
 
-Partout où l'app a aujourd'hui un planning (`ScheduleConfig`), ce planning devient une liste de déclencheurs : routine, Tâche, invitations d'un Questionnaire, envois d'un Message, séances prévues d'une Séquence, tentatives d'un Objectif. Les séries de l'Agenda gardent leur planning seul : une série montre ses rendez-vous 90 jours à l'avance, ce qu'un événement ne permet pas. Le bouton « Exécuter », à la main, reste à côté, hors de la liste.
+Les outils actifs (Questionnaire, Messages, Séquence, Objectif) n'ont pas de liste à eux : chacun offre une opération « maintenant », qu'une étape de Tâche appelle (« opération d'un outil »), et c'est la Tâche qui porte le « quand ? ». Les déclencheurs restent à un seul endroit, avec le plafond par chaîne et le masque. Messages a déjà `execute` ; le Questionnaire gagne « inviter maintenant », la Séquence « prévoir une séance maintenant », l'Objectif « lancer une tentative ». Exemple : après chaque séance de Yoga notée, une Tâche qui écoute l'outil Yoga invite au Questionnaire « Ressenti ». Si l'usage le demande : sur la page de l'outil, « Déclenché aussi par » la Tâche, et un raccourci qui crée la Tâche remplie. Les séries de l'Agenda gardent leur planning seul : une série montre ses rendez-vous 90 jours à l'avance, ce qu'un événement ne permet pas.
+
+**L'Objectif, comme une routine** : un planning facultatif et « Lancer maintenant » à côté, la récurrence « une fois » retirée (une tentative à vie, jamais relancée).
+- En config : le planning, facultatif ; la durée, facultative. Plus de date de début ni d'échéance, plus de choix « une fois / récurrent ».
+- Au lancement (le bouton de sa page, une étape de Tâche, l'IA) : rien à saisir.
+- Une tentative passe « à valider » à début + durée, ou au déclenchement suivant s'il vient avant : tout déclenchement, planning ou lancement, fait passer l'ouverte « à valider » et ouvre la nouvelle. Sans durée ni planning, elle reste ouverte jusqu'à « Valider ». Le bouton demande confirmation quand une tentative est ouverte ; la Tâche et l'IA non.
+- Migration : un « une fois » sans tentative prend sa date de début pour planning (date précise) et l'écart jusqu'à son échéance pour durée ; avec sa tentative, ni planning ni durée, sa tentative gardée.
 
 Une seule brique, son modèle et son sélecteur, la même à chacun de ces endroits ; c'est là que vit tout le vocabulaire de ce qui fait partir. Quatre sortes, qui se mélangent dans la liste (« chaque dimanche à 3 h, et aussi après chaque séance ») :
 
@@ -91,7 +97,7 @@ Deux, tous deux dans l'écran des limites de l'IA, à côté des appels par exé
 
 ## Découpage
 
-1. Le « quand ? » des outils actifs, avec les entrées écrites (fait pour les Tâches et les routines).
+1. Le « quand ? » des Tâches et des routines (fait) ; les opérations « maintenant » des outils actifs, l'Objectif comme une routine.
 2. Les événements et l'étape « émettre » ; ce que reçoit ce qui part (fait).
 3. Les endroits où l'app prévient (fait).
 4. La condition qui devient vraie, pour les Tâches et les routines (fait). L'Alerte n'est pas un outil : une Tâche sans étape qui écoute une condition, prévenue à la fin, a déjà sa tuile, ses exécutions à lire, sa notification et son émission.
