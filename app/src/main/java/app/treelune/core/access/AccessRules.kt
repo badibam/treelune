@@ -107,8 +107,6 @@ object AccessRules {
                 // A routine moved goes into the zone it is moved to
                 "update" -> listOfNotNull(automationAt(AccessLevel.FULL), text("zone_id")?.let { Reach.Zone(it, AccessLevel.FULL) })
                 "delete" -> listOf(automationAt(AccessLevel.FULL))
-                // A routine run uses its zone, as a Task's step does
-                "execute_manual" -> listOf(automationAt(AccessLevel.USE))
                 else -> listOf(Reach.Unknown("$resource.$operation"))
             }
             // A zone's Tasks, as its routines: read with the zone, run as a use of it, written in full;

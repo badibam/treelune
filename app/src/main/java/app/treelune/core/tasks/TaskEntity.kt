@@ -9,20 +9,16 @@ import androidx.room.Insert
 import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Update
-import app.treelune.core.database.entities.Zone
 
 /**
  * A Task (docs/CORE.md, « Tasks »): steps the app runs itself, without an AI, in a zone, shown as a
  * tile of its group's section as a routine is. Its look, its group, its switch, its schedule and
  * what it does about missed runs are its settings (TaskSettings); its steps a list (TaskSteps).
  * It has no access of its own: running it takes using its zone, and an AI writes one only with
- * steps it could take itself (TaskService). Deleted with its zone.
+ * steps it could take itself (TaskService). Deleted with its zone by the zones service, as a
+ * routine is: no foreign key ties it, a cascade the history of writes would not see.
  */
-@Entity(
-    tableName = "tasks",
-    foreignKeys = [ForeignKey(entity = Zone::class, parentColumns = ["id"], childColumns = ["zone_id"], onDelete = ForeignKey.CASCADE)],
-    indices = [Index(value = ["zone_id"])]
-)
+@Entity(tableName = "tasks", indices = [Index(value = ["zone_id"])])
 data class TaskEntity(
     @PrimaryKey val id: String,
     @ColumnInfo(name = "zone_id") val zoneId: String,

@@ -401,13 +401,15 @@ class ZoneService(private val context: Context) : ExecutableService {
         
         if (token.isCancelled) return OperationResult.cancelled()
         
-        // The zone, its routines (which no foreign key ties to it) and the rows its leaving closes
+        // The zone, its routines and its Tasks (which no foreign key ties to it) and the rows its leaving closes
         // on the home screen are one write
         database.transaction {
             val groups = zoneGroups()
             val zones = zoneDao.getAllZones()
             write(ZonePositions.moved(zones, Grid.leave(ZonePositions.tiles(zones, groups, ZonePositions.section(existingZone.group, groups)), zoneId)))
             database.aiDao().getAutomationsByZone(zoneId).forEach { writes.deleteAutomation(it.id) }
+            // A Task is outside the history of writes: deleted as it is, its runs with it
+            database.taskDao().getByZone(zoneId).forEach { database.taskDao().delete(it.id) }
             writes.deleteZone(zoneId)
         }
 
