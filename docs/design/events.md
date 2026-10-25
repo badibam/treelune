@@ -32,7 +32,7 @@ Le masque d'accès s'y applique sans rien de nouveau : émettre un événement d
 
 ## 3. Les endroits où l'app prévient
 
-En place (`docs/CORE.md`, « Events », `EventPoints`) : « émettre » aux sept endroits, la routine et la Tâche à la fin d'une exécution qui s'est bien passée. « Prévenir : non » n'existe qu'où il y était déjà (l'Objectif, les Messages, la fin d'une routine ou d'une Tâche) ; pas encore pour le rappel de l'Agenda, l'échéance de la Liste, l'invitation du Questionnaire, la séance prévue. Le seuil du budget attend le budget.
+En place (`docs/CORE.md`, « Events », `EventPoints`) : « émettre » aux sept endroits, la routine et la Tâche à la fin d'une exécution qui s'est bien passée. « Prévenir : non » n'existe qu'où il y était déjà (l'Objectif, les Messages, la fin d'une routine ou d'une Tâche) ; pas encore pour le rappel de l'Agenda, l'échéance de la Liste, l'invitation du Questionnaire, la séance prévue. Le seuil du budget émet, sans réglage « prévenir » : sans seuil, rien ne prévient.
 
 Chacun prend deux réglages indépendants : **prévenir** (oui, non) et **émettre** (aucun événement, ou un événement choisi par le sélecteur des choses de l'app, toutes zones). Ce qui est émis porte l'entrée concernée.
 
@@ -70,7 +70,7 @@ Deux, tous deux dans l'écran des limites de l'IA, à côté des appels par exé
 - Une chaîne neuve : la routine du dimanche, chaque dimanche ; le rappel d'un rendez-vous qu'une Tâche a créé ; une condition que les jours font basculer ; une entrée qu'une Tâche a créée et que tu modifies ; ce qu'une Tâche émet après « attendre jusqu'à demain 7 h », le cycle quotidien voulu.
 - Arrêtés : une Tâche qui écrit où elle écoute ; deux routines qui se relancent sans conclure (Rédaction et Critique : 25 allers-retours) ; deux Tâches qui doublent leurs écritures. Bloqué à tort : quelque chose qui écrit plus de 50 entrées d'un coup dans un outil écouté, le plafond se relève alors.
 
-**Le budget du jour**, en place (`docs/AI.md`, « Daily budget ») ; un appel au coût inconnu compte pour 0, et la page du budget nomme les fournisseurs dont le modèle n'a pas de prix. Reste son seuil d'alerte comme endroit qui émet. En argent, facultatif : tous les appels d'IA de l'app, conversations comprises (l'IA extérieure du connecteur ne coûte rien à l'app), sur le jour de l'app (`TimeResolver`), comptés par `SessionCost`. Atteint, plus rien ne démarre : une exécution qui devait partir est notée manquée dans son historique, sans report au lendemain ; une conversation n'envoie pas, avec « budget du jour atteint » et un bouton vers l'écran des limites ; une IA qui enchaîne seule s'arrête avant son appel suivant. Le dépassement est au plus celui d'un appel en cours, dont le coût n'est connu qu'à sa réponse. Un seuil d'alerte facultatif, en pourcentage, prévient une fois par jour et peut émettre (partie 3). L'écran du coût des conversations rappelle « Aujourd'hui : 0,42 $ sur 2,00 $ », à la couleur d'avertissement du thème au-delà du seuil.
+**Le budget du jour**, en place (`docs/AI.md`, « Daily budget ») ; un appel au coût inconnu compte pour 0, et la page du budget nomme les fournisseurs dont le modèle n'a pas de prix. En argent, facultatif : tous les appels d'IA de l'app, conversations comprises (l'IA extérieure du connecteur ne coûte rien à l'app), sur le jour de l'app (`TimeResolver`), comptés par `SessionCost`. Atteint, plus rien ne démarre : une exécution qui devait partir est notée manquée dans son historique, sans report au lendemain ; une conversation n'envoie pas, avec « budget du jour atteint » et un bouton vers l'écran des limites ; une IA qui enchaîne seule s'arrête avant son appel suivant. Le dépassement est au plus celui d'un appel en cours, dont le coût n'est connu qu'à sa réponse. Un seuil d'alerte facultatif, en pourcentage, prévient une fois par jour et peut émettre (partie 3). L'écran du coût des conversations rappelle « Aujourd'hui : 0,42 $ sur 2,00 $ », à la couleur d'avertissement du thème au-delà du seuil.
 
 ## Écarté
 
@@ -91,4 +91,4 @@ Deux, tous deux dans l'écran des limites de l'IA, à côté des appels par exé
 2. Les événements et l'étape « émettre » ; ce que reçoit ce qui part (fait).
 3. Les endroits où l'app prévient (fait, sauf « ne pas prévenir » là où il n'existait pas).
 4. La condition qui devient vraie, avec l'Alerte.
-5. Le budget du jour (fait, sauf son seuil qui émet).
+5. Le budget du jour (fait).

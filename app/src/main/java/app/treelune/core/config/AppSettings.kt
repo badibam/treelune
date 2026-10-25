@@ -203,7 +203,10 @@ object AppSettings {
                 scale("chain_max_runs", text("app_config_chain_max_runs"), text("settings_chain_max_runs_help"), CHAIN_RANGE),
                 // The day's budget, none when left empty, and its alert
                 field("daily_budget", text("app_config_daily_budget"), text("settings_daily_budget_help"), FieldType.NUMERIC, config = mapOf("min" to 0, "decimals" to 2)),
-                field("budget_alert_percent", text("app_config_budget_alert"), text("settings_budget_alert_help"), FieldType.NUMERIC, config = mapOf("min" to 1, "max" to 99, "decimals" to 0))
+                field("budget_alert_percent", text("app_config_budget_alert"), text("settings_budget_alert_help"), FieldType.NUMERIC, config = mapOf("min" to 1, "max" to 99, "decimals" to 0)),
+                // An event of any zone, carrying nothing, the setting service checking it exists (EventPoints)
+                field(app.treelune.core.ai.domain.AILimitsConfig.KEY_BUDGET_EVENT, text("app_config_budget_event"), text("settings_budget_event_help"), FieldType.REFERENCE,
+                    config = mapOf(app.treelune.core.fields.ReferenceTarget.TARGET to mapOf(app.treelune.core.fields.ReferenceTarget.KINDS to listOf(app.treelune.core.selection.ReferenceKind.EVENT.name))))
             )
             // The app's level alone: a zone and a tool carry theirs in their own settings
             AppSettingCategories.VALIDATION_CONFIG -> listOf(

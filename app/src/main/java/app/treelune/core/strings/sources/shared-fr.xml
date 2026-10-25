@@ -1071,6 +1071,8 @@
     <string name="settings_daily_budget_help">Chaque appel d\'IA du jour compte, conversations comprises, le jour commençant à l\'heure que tu as réglée. Au-delà, plus aucun appel ne part avant demain : une conversation te le dit, l\'exécution d\'une routine se termine. Vide : pas de budget.</string>
     <string name="app_config_budget_alert">Prévenir à (% du budget)</string>
     <string name="settings_budget_alert_help">Une notification, une fois par jour, quand la dépense du jour dépasse cette part du budget. Vide : pas d\'alerte.</string>
+    <string name="app_config_budget_event">Émettre aussi l\'événement</string>
+    <string name="settings_budget_event_help">Un événement émis une fois par jour quand la dépense du jour dépasse la part ci-dessus, avec sa notification : une Tâche ou une routine qui l\'écoute peut mettre en pause ce qui coûte. Un événement qui ne porte rien.</string>
     <string name="budget_title">Budget du jour de l\'IA</string>
     <string name="budget_reached">Le budget du jour de l\'IA est atteint (%1$s) : plus aucun appel ne part avant demain. Tu peux le relever dans Réglages › Limites IA.</string>
     <string name="budget_alert">%1$s %% du budget du jour dépensés : %2$s sur %3$s.</string>
@@ -2801,6 +2803,7 @@
     <string name="event_point">Émettre aussi l\'événement</string>
     <string name="event_point_schema">Un événement émis à ce moment à côté de ce que l\'app dit, {"kind": "EVENT", "id"} : un qui ne porte rien, ou une seule valeur, une entrée de cet outil (celle concernée) ; pour une routine ou une Tâche, à la fin d\'une exécution qui s\'est bien passée, un qui ne porte rien</string>
     <string name="event_point_error">« %1$s » ne peut pas être émis ici : il doit ne rien porter, ou une seule valeur, une entrée de cet outil</string>
+    <string name="event_point_error_values">« %1$s » ne peut pas être émis ici : il ne doit rien porter</string>
     <string name="event_values">Ce qu\'il porte</string>
     <string name="event_values_none">ne porte rien</string>
     <string name="event_value_type">Type</string>

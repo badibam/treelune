@@ -24,7 +24,8 @@ import java.util.UUID
 /**
  * The day's budget (docs/AI.md, « Daily budget »): absent, none, and stored only when set; the
  * day sums every session's calls since its start, a call of unknown cost counting for nothing
- * and said; reached and alerted as its amount and threshold say.
+ * and said; reached and alerted as its amount and threshold say; the event its threshold emits,
+ * stored as a reference and refused when it does not exist.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -38,8 +39,17 @@ class BudgetTest {
         assertFalse(stored.has(AILimitsConfig.KEY_BUDGET))
         assertNull(AILimitsConfig.fromSettingsJson(stored).dailyBudget)
 
-        val set = AILimitsConfig(dailyBudget = 2.0, budgetAlertPercent = 80)
-        assertEquals(set, AILimitsConfig.fromSettingsJson(JSONObject(set.toSettingsJson())))
+        val set = AILimitsConfig(dailyBudget = 2.0, budgetAlertPercent = 80, budgetAlertEvent = "e1")
+        val written = JSONObject(set.toSettingsJson())
+        assertEquals("EVENT", written.getJSONObject(AILimitsConfig.KEY_BUDGET_EVENT).getString("kind"))
+        assertEquals(set, AILimitsConfig.fromSettingsJson(written))
+    }
+
+    @Test
+    fun theAlertEvent_noneChosenPasses_oneGoneIsRefused() = runBlocking {
+        val s = app.treelune.core.strings.Strings.`for`(context = context)
+        assertNull(app.treelune.core.events.EventPoints.refusalCarryingNothing(null, context, s))
+        assertTrue(app.treelune.core.events.EventPoints.refusalCarryingNothing(JSONObject().put("kind", "EVENT").put("id", "gone"), context, s) != null)
     }
 
     @Test
