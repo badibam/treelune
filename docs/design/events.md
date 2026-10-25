@@ -12,7 +12,11 @@ Une seule brique, son modèle et son sélecteur, la même à chacun de ces endro
 
 1. **Une heure** : le planning d'aujourd'hui.
 2. **Une entrée écrite** dans un outil : créée, modifiée ou supprimée, avec un filtre facultatif sur l'entrée (`EntryFilters`). Part à chaque écriture qui passe le filtre : « une séance de Yoga passe à done », « un poids noté au-dessus de 80 ».
-3. **Une condition qui devient vraie** : une Condition jugée une fois (`ConditionJudge`), « moyenne 7 j > 80 ». Part au passage de faux à vrai, puis plus rien tant qu'elle ne redevient pas fausse ; ce qui écoute retient son dernier jugement. Rejugée après chaque écriture dans les outils que ses Lectures lisent, et au tic du planificateur pour celles que le temps fait bouger.
+3. **Une condition qui devient vraie** : une Condition jugée une fois (`ConditionJudge`), « moyenne 7 j > 80 ». Part au passage de faux à vrai, puis plus rien tant qu'elle ne redevient pas fausse.
+   - **Le dernier jugement** est gardé chez ce qui écoute, pas sur la Condition : une ligne par Tâche ou routine et par texte stocké de la condition. Réordonner la liste ne le perd pas ; une condition modifiée est une ligne neuve. Le premier jugement d'une ligne est noté sans rien faire partir : un déclencheur ajouté sur une condition déjà vraie attend qu'elle redevienne fausse puis vraie.
+   - **Rejugée** après une écriture dans un outil qu'elle lit, par une Lecture ou par une variable (comme `tools_read`), dans la chaîne de celui qui a écrit ; et toutes au tic du planificateur, en chaîne neuve, sans chercher celles que le temps fait bouger. Une variable ou une Lecture modifiée attend le tic.
+   - **Ni vrai ni faux** : sans réponse (une valeur manque), le verdict reste tel quel, inconnu n'est pas faux. En échec (une variable lue supprimée), le verdict reste aussi, l'échec est noté sur la ligne et montré sous le déclencheur, une notification le dit une fois, à son début.
+   - **Hors des sauvegardes** : après une restauration, chaque ligne repart de son premier jugement, rien ne part.
 4. **Un événement** émis (partie 2).
 
 La différence entre 2 et 3 : tu notes 81, puis 82. « Un poids noté au-dessus de 80 » part deux fois ; « le dernier poids passe à > 80 » une fois.
@@ -51,12 +55,12 @@ Le moment de l'Agenda et celui de la Liste ne sont pas des écritures (leurs mar
 
 ## 4. Ce que reçoit ce qui part
 
-Une exécution reçoit une seule chose, jamais une liste : l'entrée écrite (sorte 2), rien (sortes 1 et 3), les valeurs de l'événement (sorte 4). L'entrée est relue au départ, telle qu'elle est ; supprimée, elle est dite supprimée.
+Une exécution reçoit une seule chose, jamais une liste : l'entrée écrite (sorte 2), rien (sorte 1), les deux valeurs lues de la condition au moment où elle est devenue vraie (sorte 3 : `left`, `right`, « 82,4 » et « 80 »), les valeurs de l'événement (sorte 4). La notification de fin d'une exécution partie sur une condition la nomme avec sa valeur (« Poids moyen 7 j > 80 : 82,4 »). L'entrée est relue au départ, telle qu'elle est ; supprimée, elle est dite supprimée.
 
 - Une Tâche les lit par un Terme de plus, du même genre que « le résultat de l'étape 1 » : « l'entrée reçue », « `fiche` de l'événement », un champ de celles-ci.
 - Une routine les reçoit dans son message de départ comme une pièce jointe (la donnée qu'une Tâche passe à une routine, `docs/CORE.md`, « Tasks »), avec une ligne qui dit ce qui l'a fait partir.
 
-Un import, la restauration d'une sauvegarde et l'installation de la démo ne font rien partir : l'app recharge des données, personne ne les note.
+Un import, la restauration d'une sauvegarde et l'installation de la démo ne font rien partir : l'app recharge des données, personne ne les note. Une condition, elle, est rejugée au tic suivant : ce qu'un import dans un outil déjà lu rend vrai part, assumé (un outil importé est neuf, rien ne le lit encore).
 
 Défaire et rétablir une étape (`history.undo`, `history.redo`) sont des écritures faites par toi, en chaîne neuve : défaire une création fait partir ce qui écoute une suppression, défaire une modification ce qui écoute une modification, et une condition se rejuge. Sinon ce qui recopie ou résume diverge sans bruit (une durée recopiée dans un Suivi garderait la valeur défaite). Ce qu'une écriture a fait partir n'est pas défait avec elle, comme une notification envoyée ou un appel payé : une séance défaite puis rétablie refait partir la Tâche qui l'écoute.
 
@@ -84,12 +88,11 @@ Deux, tous deux dans l'écran des limites de l'IA, à côté des appels par exé
 - La sorte « à une date des données » (10 min avant chaque entrée d'un outil, le lendemain d'une échéance), commune avec les rappels de l'Agenda : tant que les endroits où l'app prévient suffisent, pas faite.
 - L'IA qui émet un événement, et si elle lance une Tâche (elle ne lance pas une routine aujourd'hui).
 - Supprimer un événement écouté ou une chose qu'un « quand ? » vise : le contrôle « qui dépend de ça ? » de `TODO.md`.
-- Où garder le dernier jugement d'une condition (sorte 3) : proposé chez ce qui écoute (une table déclencheur → dernier jugement), pas sur la Condition, pour que chaque écouteur parte de son propre premier jugement sans rien faire partir à son ajout.
 
 ## Découpage
 
 1. Le « quand ? » des outils actifs, avec les entrées écrites (fait pour les Tâches et les routines).
 2. Les événements et l'étape « émettre » ; ce que reçoit ce qui part (fait).
 3. Les endroits où l'app prévient (fait).
-4. La condition qui devient vraie, avec l'Alerte.
+4. La condition qui devient vraie, pour les Tâches et les routines. L'Alerte n'est pas un outil : une Tâche sans étape qui écoute une condition, prévenue à la fin, a déjà sa tuile, ses exécutions à lire, sa notification et son émission.
 5. Le budget du jour (fait).
