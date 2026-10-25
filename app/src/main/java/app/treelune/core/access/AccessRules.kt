@@ -108,6 +108,11 @@ object AccessRules {
                 "execute_manual" -> listOf(automationAt(AccessLevel.USE))
                 else -> listOf(Reach.Unknown("$resource.$operation"))
             }
+            // A Task run is held by the service itself: never wider than the mask asking for it (TaskService)
+            "tasks" -> when (operation) {
+                "list", "list_all", "run" -> listOf(Reach.Free)
+                else -> listOf(Reach.App)
+            }
             // An API reaches no data of the app: what it is given was read under the mask first
             "apis" -> when (operation) {
                 "list", "call", "status" -> listOf(Reach.Free)

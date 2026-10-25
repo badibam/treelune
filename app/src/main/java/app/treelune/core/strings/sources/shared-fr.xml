@@ -2788,4 +2788,8 @@
     <!-- A routine run with data (Tasks) -->
     <string name="automation_run_data">Ce que la Tâche passe à cette exécution :\n%1$s</string>
     <string name="task_step_data">Donnée passée</string>
+
+    <!-- The AI's reads of Tasks -->
+    <string name="ai_read_user_tasks">Toutes les Tâches lues</string>
+    <string name="ai_read_user_tasks_of">« %1$s » : Tâches lues</string>
 </resources>

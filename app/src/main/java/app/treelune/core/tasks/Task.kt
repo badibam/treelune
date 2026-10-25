@@ -25,11 +25,28 @@ data class Task(
     val updatedAt: Long
 ) {
     val name: String get() = look.name
-    val hasSchedule: Boolean get() = settings.has("schedule")
 
     val tile: Grid.Tile get() = Grid.size(look.displayMode).let { Grid.Tile(id, gridX, gridY, it.width, it.height) }
 
     companion object {
+        /**
+         * A Task of a list as the AI reads it (TASKS): its id, name, zone and group, whether its
+         * schedule runs it, and its steps by their kind.
+         */
+        @Suppress("UNCHECKED_CAST")
+        fun listed(map: Map<*, *>): Map<String, Any?> {
+            val settings = map["settings"] as Map<String, Any?>
+            return buildMap {
+                put("id", map["id"])
+                put("name", settings["name"])
+                put("zone_id", map["zone_id"])
+                settings["group"]?.let { put("group", it) }
+                put("is_enabled", settings["is_enabled"])
+                put("scheduled", settings.containsKey("schedule"))
+                put("steps", (map["steps"] as List<*>).map { (it as Map<*, *>)["kind"] })
+            }
+        }
+
         /** The single reader of a Task in a result; fails loudly on one that does not hold it. */
         @Suppress("UNCHECKED_CAST")
         fun fromResult(map: Map<*, *>): Task {

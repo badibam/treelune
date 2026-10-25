@@ -260,6 +260,8 @@ class AICommandProcessor(private val context: Context) {
                 isActionCommand = true
             )
             "UNDO_STEP", "REDO_STEP" -> historyCommand(command)
+            // A Task run now: its steps run as the Task's, held to its access (TaskService)
+            "RUN_TASK" -> ExecutableCommand(resource = "tasks", operation = "run", params = command.params, isActionCommand = true)
 
             else -> {
                 LogManager.aiService("Unknown action command type: ${command.type}", "WARN")
@@ -365,6 +367,8 @@ class AICommandProcessor(private val context: Context) {
                 isActionCommand = true
             )
             "UNDO_STEP", "REDO_STEP" -> historyCommand(command)
+            // A Task run now: its steps run as the Task's, held to its access (TaskService)
+            "RUN_TASK" -> ExecutableCommand(resource = "tasks", operation = "run", params = command.params, isActionCommand = true)
 
             else -> {
                 LogManager.aiService("Unknown action command type for verbalization: ${command.type}", "WARN")

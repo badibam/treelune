@@ -29,7 +29,7 @@ import java.util.UUID
  * envelope — a tile of its section, a schedule, missed runs caught up, an access mask.
  *
  * Operations:
- * - tasks.list (zone_id): its Tasks (Task.fromResult); .get (task_id): one
+ * - tasks.list (zone_id): its Tasks (Task.fromResult); .list_all: every one; .get (task_id): one
  * - .create (zone_id, its settings at the top as TaskSettings declares them, `steps`, `access`)
  * - .update (task_id, what changes: a setting left out kept, one given null removed; `steps`, `access`, `zone_id`)
  * - .delete (task_id), its runs with it
@@ -54,6 +54,7 @@ class TaskService(private val context: Context) : ExecutableService {
     override suspend fun execute(operation: String, params: JSONObject, token: CancellationToken): OperationResult = try {
         when (operation) {
             "list" -> OperationResult.success(mapOf("tasks" to dao.getByZone(params.optString("zone_id")).map { describe(it) }))
+            "list_all" -> OperationResult.success(mapOf("tasks" to dao.getAll().map { describe(it) }))
             "get" -> task(params)?.let { OperationResult.success(mapOf("task" to describe(it))) } ?: notFound()
             "create" -> create(params)
             "update" -> update(params)

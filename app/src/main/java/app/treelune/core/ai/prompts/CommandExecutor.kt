@@ -566,6 +566,8 @@ class CommandExecutor(private val context: Context) {
             "automations.config" -> line("routine", resolveAutomationName(params["automation_id"] as? String))
             "automations.list" -> line("routines_of", zone ?: "")
             "automations.list_all" -> line("routines")
+            "tasks.list" -> line("tasks_of", zone ?: "")
+            "tasks.list_all" -> line("tasks")
             "ai_sessions.list_sessions_for_automation" -> line("runs_of", resolveAutomationName(params["automation_id"] as? String))
             "ai_sessions.run_history" -> line("run")
             "files.read" -> line("file")
@@ -698,6 +700,10 @@ class CommandExecutor(private val context: Context) {
                 "config" -> "Configuration for routine '${resolveAutomationName(command.params["automation_id"] as? String)}'"
                 "list" -> "Routines in zone '${resolveZoneName(command.params["zone_id"] as String)}'"
                 else -> "All routines"
+            }
+            "tasks" -> when (command.operation) {
+                "list" -> "Tasks in zone '${resolveZoneName(command.params["zone_id"] as String)}'"
+                else -> "All Tasks"
             }
             "ai_sessions" -> when (command.operation) {
                 "list_sessions_for_automation" -> "Runs of routine '${resolveAutomationName(command.params["automation_id"] as? String)}'"
@@ -843,6 +849,11 @@ class CommandExecutor(private val context: Context) {
                 }
                 (data["automations"] as? List<*>)?.let { list -> reordered["automations"] = list.map { AutomationSchemas.listed(it as Map<*, *>, s) } }
                 data["zone_id"]?.let { reordered["zone_id"] = it }
+                return JSONObject(reordered as Map<*, *>).toString(2)
+            }
+            // The Tasks of a list each in a line: what they are and what their steps do, by kind
+            "tasks" -> {
+                (data["tasks"] as? List<*>)?.let { list -> reordered["tasks"] = list.map { app.treelune.core.tasks.Task.listed(it as Map<*, *>) } }
                 return JSONObject(reordered as Map<*, *>).toString(2)
             }
             // A routine's runs, by their declared schema; one run, the text its AI read

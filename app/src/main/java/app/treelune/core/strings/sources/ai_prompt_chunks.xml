@@ -369,6 +369,13 @@ Retrieves one run as its AI received it, message after message: the routine\'s m
 
 - `id` (string, **required**): the run\'s id, from AUTOMATION_RUNS
 - `messages` (string, optional): `all` (the default), or `errors`: only the app\'s messages telling a failure, each after the answer that led to it]]></string>
+    <string name="ai_command_tasks"><![CDATA[### TASKS
+
+Lists the Tasks: steps the app runs itself, one after another, without an AI (an API called, an entry created or changed, a tool\'s operation, a routine run). Each with its id, name, zone, group, whether its schedule runs it, and the kinds of its steps. The user writes them; you may run one with RUN_TASK.
+
+**Parameters**:
+
+- `zone_id` (string, optional): the Tasks of that zone alone]]></string>
     <string name="ai_command_file"><![CDATA[### FILE
 
 Reads a text by lines: a file the user joined to a message, or a text an entry's FILE field holds, read as that entry is.
@@ -720,6 +727,13 @@ Deletes a routine.
 **Parameters**:
 
 - `automation_id` (string, **required**)]]></string>
+    <string name="ai_command_run_task"><![CDATA[### RUN_TASK
+
+Runs a Task now, as its own button does: its steps run one after another, in the background, held to the Task\'s access, which may not be wider than yours. The answer gives the run\'s id, not its outcome: an API that answers later keeps the run waiting for hours. Refused while a run of the same Task goes on.
+
+**Parameters**:
+
+- `task_id` (string, **required**)]]></string>
     <string name="ai_command_import_data"><![CDATA[### IMPORT_DATA
 
 Imports a joined file into a tool, following a complete declaration: the new fields are created in the order of the columns, then each line is written, an entry found by its name updated when the tool\'s names are unique, the others created. A cell that does not read refuses its line alone; a name twice in the file refuses the whole import. The answer counts the lines created, updated and refused, each refusal with its reason.

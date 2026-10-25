@@ -80,6 +80,11 @@ object CommandTransformer {
                         params = command.params.filterKeys { it == "zone_id" }.mapValues { it.value!! }
                     )
                     "READING" -> transformReadingCommand(command, s, reference)
+                    "TASKS" -> ExecutableCommand(
+                        resource = "tasks",
+                        operation = if (command.params["zone_id"] is String) "list" else "list_all",
+                        params = command.params.filterKeys { it == "zone_id" }.mapValues { it.value!! }
+                    )
                     "AUTOMATIONS" -> ExecutableCommand(
                         resource = "automations",
                         operation = if (command.params["zone_id"] is String) "list" else "list_all",
