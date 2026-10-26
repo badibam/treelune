@@ -552,6 +552,8 @@ class AutomationService(private val context: Context) : ExecutableService {
             zoneId = targetZoneId, // Target zone, not source zone
             seedSessionId = newSeedSessionId,
             group = targetGroup, // Use target group (can be null for ungrouped)
+            // Born off: with a schedule or a trigger, it would run as a double of the original
+            isEnabled = false,
             createdAt = now,
             updatedAt = now,
             lastExecutionId = null, // Reset execution history

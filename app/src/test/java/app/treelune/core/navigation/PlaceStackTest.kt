@@ -23,7 +23,10 @@ class PlaceStackTest {
         Place.CreateZone(null), Place.CreateZone("Vie / perso"), course, Place.ZoneConfig("z-course"), runs,
         Place.ToolConfig("z-course", "tracking", "t-runs", null), Place.ToolConfig("z-course", "chart", null, "Analyse"),
         Place.Variable("z-course", null, "Corps"), Place.Variable("z-course", "v-1", null),
-        Place.Automation("a-1", "z-course"), Place.Execution("s-1", "a-1", "z-course"), Place.Seed("s-2", "z-course"),
+        Place.Automation("a-1", "z-course"), Place.Execution("s-1", "a-1", "z-course"),
+        Place.AutomationConfig("z-course", "a-1", null), Place.AutomationConfig("z-course", null, "Analyse"),
+        Place.Task("k-1", "z-course"), Place.TaskRun("r-1", "k-1", "z-course"),
+        Place.TaskConfig("z-course", "k-1", null), Place.TaskConfig("z-course", null, "Analyse"),
         Place.Guide, Place.Chapter("first_steps"), Place.Chat
     )
 

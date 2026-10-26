@@ -60,6 +60,7 @@ class TaskService(private val context: Context) : ExecutableService {
             "create" -> create(params)
             "update" -> update(params)
             "delete" -> delete(params)
+            "duplicate" -> duplicate(params)
             "run" -> run(params)
             "cancel" -> cancel(params)
             "runs" -> task(params)?.let { task -> OperationResult.success(mapOf("runs" to dao.getRuns(task.id, params.optInt("limit", 20)).map { runOf(it) })) } ?: notFound()
@@ -158,6 +159,28 @@ class TaskService(private val context: Context) : ExecutableService {
         }
         DataChangeNotifier.notifyZonesChanged()
         return OperationResult.success(mapOf("task_id" to task.id, "name" to task.name))
+    }
+
+    /**
+     * A copy of the Task in "task_id", « X (copy) », at the end of the section "target_group" of
+     * the zone "target_zone_id": its settings and its steps, neither its runs nor the judgements of
+     * its conditions. Born off: with a schedule or a trigger, it would run as a double of the original.
+     */
+    private suspend fun duplicate(params: JSONObject): OperationResult {
+        val source = task(params) ?: return notFound()
+        val zoneId = params.optString("target_zone_id").ifEmpty { return OperationResult.error(s.shared("error_param_zone_id_required")) }
+        val zone = database.zoneDao().getZoneById(zoneId) ?: return OperationResult.error(s.shared("service_error_zone_not_found"))
+        val group = params.optString("target_group").ifBlank { null }
+        Groups.refusal(group, ToolPositions.zoneGroups(zone.tool_groups), s)?.let { return OperationResult.error(it) }
+        val now = System.currentTimeMillis()
+        val copy = source.copy(id = UUID.randomUUID().toString(), zoneId = zoneId, name = s.shared("copy_name").format(source.name),
+            group = group, isEnabled = false, createdAt = now, updatedAt = now)
+        database.transaction {
+            val place = sections.arrive(SectionItem.of(copy), zone.tool_groups)
+            dao.insert(copy.copy(gridX = place.column, gridY = place.row))
+        }
+        DataChangeNotifier.notifyZonesChanged()
+        return OperationResult.success(mapOf("task_id" to copy.id, "name" to copy.name))
     }
 
     private suspend fun run(params: JSONObject): OperationResult {
@@ -274,6 +297,7 @@ class TaskService(private val context: Context) : ExecutableService {
             "create" -> s.shared("task_verbalize_create").format(name)
             "update" -> s.shared("task_verbalize_update").format(name)
             "delete" -> s.shared("task_verbalize_delete").format(name)
+            "duplicate" -> s.shared("task_verbalize_duplicate").format(name)
             "run" -> s.shared("task_verbalize_run").format(name)
             else -> s.shared("action_verbalize_unknown")
         }

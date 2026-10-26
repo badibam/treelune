@@ -259,8 +259,6 @@
     <string name="automation_catch_up_every_occurrence">Each one</string>
     <string name="automation_catch_up_latest_only">The most recent one</string>
     <string name="automation_catch_up_required">Say how far back a missed run is caught up before saving.</string>
-    <string name="automation_dialog_edit_hint">Changes the name, the provider, the group and the zone of the routine.</string>
-    <string name="automation_dialog_create_hint">Once created, the routine's message and schedule are set in its editor.</string>
     <string name="automation_catch_up_without_schedule">A routine without schedule has nothing to catch up: its catch-up settings come with a schedule.</string>
     <string name="automation_catch_up_limited">Up to a delay</string>
     <string name="automation_catch_up_delay">Delay</string>
@@ -612,6 +610,7 @@
     <string name="add_section_copy">Copy</string>
     <string name="add_copy_tool">A tool</string>
     <string name="add_copy_automation">A routine</string>
+    <string name="add_copy_task">A Task</string>
     <string name="message_no_tools_in_zone">No tool in this zone</string>
     <string name="message_no_items_in_group">No item in this group</string>
     <string name="error_tooltype_not_found">Tool type \'%1$s\' not found</string>
@@ -625,9 +624,11 @@
     <string name="text_selection_bold">Bold</string>
     <string name="text_selection_italic">Italic</string>
     <string name="duplicate_success_tool">Tool duplicated successfully</string>
-    <string name="duplicate_success_automation">Routine duplicated successfully</string>
+    <string name="duplicate_success_automation">Routine copied, off until you switch it on</string>
+    <string name="duplicate_success_task">Task copied, off until you switch it on</string>
     <string name="duplicate_no_tools">No tool available to duplicate</string>
     <string name="duplicate_no_automations">No routine available to duplicate</string>
+    <string name="duplicate_no_tasks">No Task available to duplicate</string>
     <string name="duplicate_error">Error while duplicating: %1$s</string>
 
     <!-- Confirmation messages -->
@@ -937,6 +938,7 @@
     <!-- DUPLICATE SELECTOR - Duplication navigation -->
     <string name="duplicate_selector_title_tool">Select the tool to duplicate</string>
     <string name="duplicate_selector_title_automation">Select the routine to duplicate</string>
+    <string name="duplicate_selector_title_task">Select the Task to duplicate</string>
     <string name="duplicate_select_zone">Select the zone</string>
     <string name="duplicate_select_instance">Select the instance</string>
 
@@ -1812,15 +1814,14 @@
     <string name="automation_display_name">Routine</string>
     <string name="automation_runs_display_name">Runs of a routine</string>
     <string name="automation_message_placeholder">Start message of the routine...</string>
+    <string name="automation_message">Message</string>
+    <string name="automation_new_name">New routine</string>
     <string name="automation_none_configured">No routine configured</string>
-    <string name="automation_triggers_none">No trigger</string>
     <string name="automation_triggers_count">%1$d trigger(s)</string>
-    <string name="automation_triggers_config_title">Trigger configuration</string>
 
     <!-- AUTOMATIONS - Actions -->
     <string name="automation_execute_now">Trigger now</string>
     <string name="automation_execution_triggered">Run triggered</string>
-    <string name="automation_saved_success">Routine saved</string>
     <string name="automation_save_failed">Saving failed</string>
 
     <!-- AUTOMATIONS - Status -->
@@ -1856,12 +1857,7 @@
     <string name="error_automation_not_found">Routine not found</string>
     <string name="error_automation_load_failed">Failed to load the routine</string>
     <string name="error_param_automation_id_required">Routine ID required</string>
-    <string name="error_automation_update_failed">Failed to update the routine</string>
     <string name="error_automation_delete_failed">Failed to delete the routine</string>
-    <string name="automation_updated_success">Routine updated</string>
-    <string name="automation_deleted_success">Routine deleted</string>
-    <string name="automation_delete_confirm_title">Delete the routine?</string>
-    <string name="automation_delete_confirm_message">The routine and its message will be deleted.</string>
     <string name="error_param_seed_session_required">SEED session ID required</string>
     <string name="error_param_zone_id_required">Zone ID required</string>
     <string name="error_param_icon_required">Icon required</string>
@@ -2384,7 +2380,6 @@
     <string name="nav_variable">Variable</string>
     <string name="nav_new_variable">New variable</string>
     <string name="nav_execution">Execution</string>
-    <string name="nav_seed">Starting message</string>
     <string name="nav_chat">Conversation</string>
     <string name="automation_run_channel">Routines running</string>
     <string name="automation_run_notification_text">Routine running</string>
@@ -2396,8 +2391,6 @@
     <string name="session_reasoning_help">Applies to the rest of this conversation, in place of the AI provider\'s setting.</string>
     <string name="session_reasoning_error">Failed to change the reasoning</string>
     <string name="ai_session_reasoning_refused_shown">The reasoning set for this conversation does not suit the AI\'s current model: change it in the conversation\'s settings.</string>
-    <string name="automation_access_all">Access: all</string>
-    <string name="automation_access_count">Access: %1$d</string>
     <string name="time_short_minutes">%1$d min</string>
     <string name="time_short_hours">%1$d h</string>
     <string name="time_short_days">%1$d d</string>
@@ -2719,6 +2712,9 @@
     <!-- Tasks (core/tasks) -->
     <string name="task_display_name">Task</string>
     <string name="task_new_name">New Task</string>
+    <string name="config_section_when">When</string>
+    <string name="config_section_end">At the end</string>
+    <string name="config_section_advanced">Advanced</string>
     <string name="task_schema_name">Name of the Task, shown on its tile</string>
     <string name="task_schema_description">Optional description of what the Task does</string>
     <string name="task_schema_icon_name">Name of the Task\'s icon (a Lucide icon name); list-ordered when left out</string>
@@ -2763,6 +2759,7 @@
     <string name="task_verbalize_create">Creation of the Task “%1$s”</string>
     <string name="task_verbalize_update">Change of the Task “%1$s”</string>
     <string name="task_verbalize_delete">Deletion of the Task “%1$s”</string>
+    <string name="task_verbalize_duplicate">Copy of the Task “%1$s”</string>
     <string name="task_verbalize_run">Run of the Task “%1$s”</string>
     <string name="in_use_tasks">Tasks: %1$s</string>
     <string name="task_step_api">API</string>
@@ -2778,8 +2775,6 @@
     <string name="task_input_from_step">What a step gave</string>
     <string name="task_input_source">From</string>
     <string name="task_reference_run">Relative to: the run\'s moment</string>
-    <string name="task_saved">Task saved</string>
-    <string name="task_save_first">Save the Task first</string>
     <string name="task_run_now">Run now</string>
     <string name="task_steps">Steps</string>
     <string name="task_steps_empty">No step yet: a Task does what its steps say, one after another, without an AI.</string>
@@ -2793,7 +2788,6 @@
     <string name="task_step_add">Add a step</string>
     <string name="task_runs">Runs</string>
     <string name="task_runs_empty">Not run yet</string>
-    <string name="task_leave_unsaved">Leave without saving the changes?</string>
     <string name="task_trigger_manual">by hand</string>
     <string name="task_trigger_scheduled">by its schedule</string>
     <string name="task_trigger_ai">by the AI</string>

@@ -55,7 +55,6 @@ fun SectionTiles(
     onOpenEntry: (ToolInstance, app.treelune.core.tools.EntryToOpen) -> Unit,
     onOpenVariable: (String) -> Unit,
     automationActions: app.treelune.core.ai.ui.automation.AutomationActions,
-    onAutomationLongClick: (app.treelune.core.ai.data.Automation) -> Unit,
     edit: GridEdit? = null
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -71,7 +70,7 @@ fun SectionTiles(
             )
             // A long touch opens it too: its settings are on its page
             is SectionTile.Variable -> VariableCard(tile.variable, onOpen = { onOpenVariable(tile.variable.id) }, onLongClick = { onOpenVariable(tile.variable.id) })
-            is SectionTile.Routine -> app.treelune.core.ai.ui.automation.AutomationTile(tile.automation, automationActions) { onAutomationLongClick(tile.automation) }
+            is SectionTile.Routine -> app.treelune.core.ai.ui.automation.AutomationTile(tile.automation, automationActions)
             is SectionTile.TaskTile -> app.treelune.core.tasks.ui.TaskTile(tile.task)
         }
     }

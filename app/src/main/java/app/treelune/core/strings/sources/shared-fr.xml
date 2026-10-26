@@ -259,8 +259,6 @@
     <string name="automation_catch_up_every_occurrence">Chacune</string>
     <string name="automation_catch_up_latest_only">La plus récente</string>
     <string name="automation_catch_up_required">Indique jusqu\'où rattraper une exécution manquée avant d\'enregistrer.</string>
-    <string name="automation_dialog_edit_hint">Modifie le nom, le fournisseur, le groupe et la zone de la routine.</string>
-    <string name="automation_dialog_create_hint">Une fois créée, le message et la planification de la routine se règlent dans son éditeur.</string>
     <string name="automation_catch_up_without_schedule">Une routine sans planification n\'a rien à rattraper : ses réglages de rattrapage vont avec une planification.</string>
     <string name="automation_catch_up_limited">Jusqu\'à un délai</string>
     <string name="automation_catch_up_delay">Délai</string>
@@ -612,6 +610,7 @@
     <string name="add_section_copy">Copier</string>
     <string name="add_copy_tool">Un outil</string>
     <string name="add_copy_automation">Une routine</string>
+    <string name="add_copy_task">Une Tâche</string>
     <string name="message_no_tools_in_zone">Aucun outil dans cette zone</string>
     <string name="message_no_items_in_group">Aucun élément dans ce groupe</string>
     <string name="error_tooltype_not_found">Type d'outil '%1$s' introuvable</string>
@@ -625,9 +624,11 @@
     <string name="text_selection_bold">Gras</string>
     <string name="text_selection_italic">Italique</string>
     <string name="duplicate_success_tool">Outil dupliqué avec succès</string>
-    <string name="duplicate_success_automation">Routine dupliquée avec succès</string>
+    <string name="duplicate_success_automation">Routine copiée, éteinte jusqu\'à ce que tu l\'allumes</string>
+    <string name="duplicate_success_task">Tâche copiée, éteinte jusqu\'à ce que tu l\'allumes</string>
     <string name="duplicate_no_tools">Aucun outil disponible à dupliquer</string>
     <string name="duplicate_no_automations">Aucune routine disponible à dupliquer</string>
+    <string name="duplicate_no_tasks">Aucune Tâche disponible à dupliquer</string>
     <string name="duplicate_error">Erreur lors de la duplication: %1$s</string>
 
     <!-- Confirmation messages -->
@@ -937,6 +938,7 @@
     <!-- DUPLICATE SELECTOR - Duplication navigation -->
     <string name="duplicate_selector_title_tool">Sélectionner l\'outil à dupliquer</string>
     <string name="duplicate_selector_title_automation">Sélectionner la routine à dupliquer</string>
+    <string name="duplicate_selector_title_task">Sélectionner la Tâche à dupliquer</string>
     <string name="duplicate_select_zone">Sélectionner la zone</string>
     <string name="duplicate_select_instance">Sélectionner l\'instance</string>
 
@@ -1812,15 +1814,14 @@
     <string name="automation_display_name">Routine</string>
     <string name="automation_runs_display_name">Exécutions d\'une routine</string>
     <string name="automation_message_placeholder">Message de démarrage de la routine...</string>
+    <string name="automation_message">Message</string>
+    <string name="automation_new_name">Nouvelle routine</string>
     <string name="automation_none_configured">Aucune routine configurée</string>
-    <string name="automation_triggers_none">Aucun déclencheur</string>
     <string name="automation_triggers_count">%1$d déclencheur(s)</string>
-    <string name="automation_triggers_config_title">Configuration déclencheurs</string>
 
     <!-- AUTOMATIONS - Actions -->
     <string name="automation_execute_now">Déclencher maintenant</string>
     <string name="automation_execution_triggered">Exécution déclenchée</string>
-    <string name="automation_saved_success">Routine sauvegardée</string>
     <string name="automation_save_failed">Échec de la sauvegarde</string>
 
     <!-- AUTOMATIONS - Status -->
@@ -1856,12 +1857,7 @@
     <string name="error_automation_not_found">Routine introuvable</string>
     <string name="error_automation_load_failed">Échec du chargement de la routine</string>
     <string name="error_param_automation_id_required">ID routine requis</string>
-    <string name="error_automation_update_failed">Échec de la mise à jour de la routine</string>
     <string name="error_automation_delete_failed">Échec de la suppression de la routine</string>
-    <string name="automation_updated_success">Routine mise à jour</string>
-    <string name="automation_deleted_success">Routine supprimée</string>
-    <string name="automation_delete_confirm_title">Supprimer la routine ?</string>
-    <string name="automation_delete_confirm_message">La routine et son message seront supprimés.</string>
     <string name="error_param_seed_session_required">ID session SEED requis</string>
     <string name="error_param_zone_id_required">ID zone requis</string>
     <string name="error_param_icon_required">Icône requise</string>
@@ -2384,7 +2380,6 @@
     <string name="nav_variable">Variable</string>
     <string name="nav_new_variable">Nouvelle variable</string>
     <string name="nav_execution">Exécution</string>
-    <string name="nav_seed">Message de départ</string>
     <string name="nav_chat">Conversation</string>
     <string name="automation_run_channel">Routines en cours</string>
     <string name="automation_run_notification_text">Routine en cours</string>
@@ -2396,8 +2391,6 @@
     <string name="session_reasoning_help">Vaut pour la suite de cette conversation, à la place du réglage du fournisseur d\'IA.</string>
     <string name="session_reasoning_error">Échec du changement de la réflexion</string>
     <string name="ai_session_reasoning_refused_shown">La réflexion réglée pour cette conversation ne convient pas au modèle actuel de l\'IA : change-la dans les paramètres de la conversation.</string>
-    <string name="automation_access_all">Accès : tout</string>
-    <string name="automation_access_count">Accès : %1$d</string>
     <string name="time_short_minutes">%1$d min</string>
     <string name="time_short_hours">%1$d h</string>
     <string name="time_short_days">%1$d j</string>
@@ -2719,6 +2712,9 @@
     <!-- Tasks (core/tasks) -->
     <string name="task_display_name">Tâche</string>
     <string name="task_new_name">Nouvelle Tâche</string>
+    <string name="config_section_when">Quand</string>
+    <string name="config_section_end">À la fin</string>
+    <string name="config_section_advanced">Avancé</string>
     <string name="task_schema_name">Nom de la Tâche, montré sur sa tuile</string>
     <string name="task_schema_description">Description facultative de ce que fait la Tâche</string>
     <string name="task_schema_icon_name">Nom de l\'icône de la Tâche (un nom d\'icône Lucide) ; list-ordered si absent</string>
@@ -2763,6 +2759,7 @@
     <string name="task_verbalize_create">Création de la Tâche « %1$s »</string>
     <string name="task_verbalize_update">Modification de la Tâche « %1$s »</string>
     <string name="task_verbalize_delete">Suppression de la Tâche « %1$s »</string>
+    <string name="task_verbalize_duplicate">Copie de la Tâche « %1$s »</string>
     <string name="task_verbalize_run">Exécution de la Tâche « %1$s »</string>
     <string name="in_use_tasks">Tâches : %1$s</string>
     <string name="task_step_api">API</string>
@@ -2778,8 +2775,6 @@
     <string name="task_input_from_step">Ce qu\'une étape a donné</string>
     <string name="task_input_source">Depuis</string>
     <string name="task_reference_run">Par rapport à : le moment de l\'exécution</string>
-    <string name="task_saved">Tâche enregistrée</string>
-    <string name="task_save_first">Enregistre d\'abord la Tâche</string>
     <string name="task_run_now">Lancer maintenant</string>
     <string name="task_steps">Étapes</string>
     <string name="task_steps_empty">Pas encore d\'étape : une Tâche fait ce que disent ses étapes, l\'une après l\'autre, sans IA.</string>
@@ -2793,7 +2788,6 @@
     <string name="task_step_add">Ajouter une étape</string>
     <string name="task_runs">Exécutions</string>
     <string name="task_runs_empty">Pas encore lancée</string>
-    <string name="task_leave_unsaved">Quitter sans enregistrer les changements ?</string>
     <string name="task_trigger_manual">à la main</string>
     <string name="task_trigger_scheduled">par son planning</string>
     <string name="task_trigger_ai">par l\'IA</string>

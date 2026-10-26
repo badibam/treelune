@@ -65,10 +65,9 @@ fun AutomationScreen(
 
     // Automation metadata (simple data, not full Automation object)
     var automationName by remember { mutableStateOf<String?>(null) }
-    // The routine itself, for what its tile does, and as the service gives it, for its settings
+    // The routine itself, for what its tile does, and as the service gives it, for its conditions' judgements
     var automation by remember { mutableStateOf<app.treelune.core.ai.data.Automation?>(null) }
     var automationMap by remember { mutableStateOf<Map<String, Any>?>(null) }
-    var showSettings by rememberSaveable { mutableStateOf(false) }
     val actions = rememberAutomationActions { errorMessage = it }
 
     // Execution list
@@ -255,18 +254,6 @@ fun AutomationScreen(
     // Real-time updates - Observe current AI state for active session highlighting
     val aiState by AIOrchestrator.currentState.collectAsState()
 
-    // Its settings, from its Settings button; the page reads it again on their change
-    val settingsOf = automationMap
-    if (showSettings && settingsOf != null) {
-        CreateAutomationDialog(
-            zoneId = settingsOf["zone_id"] as String,
-            zoneName = "",
-            automation = settingsOf,
-            onDismiss = { showSettings = false },
-            onSuccess = { showSettings = false }
-        )
-    }
-
     // Show error toast
     LaunchedEffect(errorMessage) {
         if (errorMessage != null) {
@@ -285,21 +272,25 @@ fun AutomationScreen(
         verticalArrangement = Arrangement.spacedBy(UI.Space.L)
     ) {
         // Header
+        // Its config behind the gear, once the routine is read
         UI.PageHeader(
             title = automationName ?: s.shared("tools_loading"),
+            subtitle = s.shared("automation_display_name"),
             leftButton = ButtonAction.BACK,
-            onLeftClick = onNavigateBack
+            rightButton = if (automation != null) ButtonAction.CONFIGURE else null,
+            onLeftClick = onNavigateBack,
+            onRightClick = { automation?.let { actions.configure(it) } }
         )
 
-        // What its tile does, all of it whatever its tile's mode: its state and switch, its buttons,
-        // its settings in place of its history, which is this page
+        // What its tile does, all of it whatever its tile's mode: its state and switch, its
+        // buttons but the one to this page, which is its history
         automation?.let { routine ->
             val state = rememberAutomationState(routine)
             UI.Card(type = CardType.DEFAULT) {
                 Column(modifier = Modifier.fillMaxWidth().padding(UI.Space.M), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
-                    AutomationStateLine(routine, state, actions)
+                    AutomationStateLine(routine, state, actions, withProblem = true)
                     app.treelune.core.triggers.ui.ConditionJudgementLines(app.treelune.core.triggers.ui.ConditionJudgementLine.list(automationMap?.get("condition_judgements")))
-                    AutomationButtons(routine, state, actions, onSettings = { showSettings = true })
+                    AutomationButtons(routine, state, actions, toPage = false)
                 }
             }
         }

@@ -97,9 +97,56 @@ object AutomationSettings {
         )
     }
 
-    fun nodes(context: Context): List<SettingNode> {
+    fun nodes(context: Context): List<SettingNode> = head(context) + whenNodes(context) + endNodes(context) + advancedNodes(context)
+
+    /** Its look and its group: the config's first part, above its message (AutomationConfigScreen). */
+    fun head(context: Context): List<SettingNode> {
         val s = Strings.`for`(context = context)
-        return app.treelune.core.look.Looks.nodes(LOOK, s::shared) + listOf(
+        return app.treelune.core.look.Looks.nodes(LOOK, s::shared) +
+            // One of the tool groups of the automation's zone
+            SettingNode.Field(FieldDefinition("group", s.shared("label_group"), s.shared("automation_schema_group"), FieldType.TEXT, false,
+                mapOf("length" to TextLength.SHORT.name)))
+    }
+
+    /** The rest, under its message, in the config's sections: what starts it, its end, the rest. */
+    fun sections(context: Context): List<SettingNode> {
+        val s = Strings.`for`(context = context)
+        return listOf(
+            SettingNode.Section(s.shared("config_section_when"), whenNodes(context)),
+            SettingNode.Section(s.shared("config_section_end"), endNodes(context)),
+            SettingNode.Section(s.shared("config_section_advanced"), advancedNodes(context))
+        )
+    }
+
+    private fun whenNodes(context: Context): List<SettingNode> {
+        val s = Strings.`for`(context = context)
+        return listOf(
+            // Absent: the automation runs on demand only
+            ScheduleSettings.group(s.shared("automation_schedule"), s::shared),
+            // Present with the schedule, and only with it (AutomationService)
+            SettingNode.Group("catch_up", s.shared("automation_catch_up_title"), catchUpNodes(context), description = s.shared("automation_schema_catch_up")),
+            // What starts it beside its schedule: an entry written
+            app.treelune.core.triggers.Triggers.node(s::shared)
+        )
+    }
+
+    private fun endNodes(context: Context): List<SettingNode> {
+        val s = Strings.`for`(context = context)
+        return listOf(
+            // A new routine's runs all wait: one wants to see what a routine just made does
+            SettingNode.Field(FieldDefinition("notify_end", s.shared("automation_notify_end"), s.shared("automation_schema_notify_end"), FieldType.CHOICE, false,
+                mapOf("options" to ChoiceSettings.storedOptions(listOf(NOTIFY_ALWAYS, NOTIFY_ON_PROBLEM, NOTIFY_NEVER), mapOf(
+                    NOTIFY_ALWAYS to s.shared("automation_notify_end_always"),
+                    NOTIFY_ON_PROBLEM to s.shared("automation_notify_end_on_problem"),
+                    NOTIFY_NEVER to s.shared("automation_notify_end_never"))))), default = NOTIFY_ALWAYS),
+            // What a run that ends well emits
+            app.treelune.core.events.EventPoints.node(s::shared)
+        )
+    }
+
+    private fun advancedNodes(context: Context): List<SettingNode> {
+        val s = Strings.`for`(context = context)
+        return listOf(
             // One of the providers the user created, absent for none: the routine is then neither
             // on nor run; checked to exist by the service, as the identity
             SettingNode.Field(FieldDefinition(PROVIDER_ID, s.shared("label_ai_provider"), s.shared("automation_schema_provider_id"), FieldType.TEXT, false,
@@ -107,24 +154,7 @@ object AutomationSettings {
             // The identity its runs speak as, absent for the app's own AI; checked to exist by the service
             SettingNode.Field(FieldDefinition(IDENTITY_ID, s.shared("label_identity"), s.shared("automation_schema_identity_id"), FieldType.TEXT, false,
                 mapOf("length" to TextLength.SHORT.name))),
-            // One of the tool groups of the automation's zone
-            SettingNode.Field(FieldDefinition("group", s.shared("label_group"), s.shared("automation_schema_group"), FieldType.TEXT, false,
-                mapOf("length" to TextLength.SHORT.name))),
-            SettingNode.Field(FieldDefinition("is_enabled", s.shared("automation_is_enabled"), s.shared("automation_schema_is_enabled"), FieldType.BOOLEAN, false, null), default = true),
-            // A new routine's runs all wait: one wants to see what a routine just made does
-            SettingNode.Field(FieldDefinition("notify_end", s.shared("automation_notify_end"), s.shared("automation_schema_notify_end"), FieldType.CHOICE, false,
-                mapOf("options" to ChoiceSettings.storedOptions(listOf(NOTIFY_ALWAYS, NOTIFY_ON_PROBLEM, NOTIFY_NEVER), mapOf(
-                    NOTIFY_ALWAYS to s.shared("automation_notify_end_always"),
-                    NOTIFY_ON_PROBLEM to s.shared("automation_notify_end_on_problem"),
-                    NOTIFY_NEVER to s.shared("automation_notify_end_never"))))), default = NOTIFY_ALWAYS),
-            // Absent: the automation runs on demand only
-            ScheduleSettings.group(s.shared("automation_schedule"), s::shared),
-            // Present with the schedule, and only with it (AutomationService)
-            SettingNode.Group("catch_up", s.shared("automation_catch_up_title"), catchUpNodes(context), description = s.shared("automation_schema_catch_up")),
-            // What starts it beside its schedule: an entry written
-            app.treelune.core.triggers.Triggers.node(s::shared),
-            // What a run that ends well emits
-            app.treelune.core.events.EventPoints.node(s::shared)
+            SettingNode.Field(FieldDefinition("is_enabled", s.shared("automation_is_enabled"), s.shared("automation_schema_is_enabled"), FieldType.BOOLEAN, false, null), default = true)
         )
     }
 

@@ -29,13 +29,13 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * Duplicate Selector - Simplified selector for duplicating tools or automations
+ * Duplicate Selector - Simplified selector for duplicating tools, automations or Tasks
  *
  * Navigation flow:
  * 1. Zone selection
- * 2. Instance selection (filtered by type: tool/automation)
+ * 2. Instance selection (filtered by type)
  *
- * @param type Type of element to duplicate (TOOL or AUTOMATION)
+ * @param type Type of element to duplicate
  * @param onDismiss Callback when dialog is dismissed
  * @param onConfirm Callback when selection is confirmed with (zoneId, instanceId)
  */
@@ -87,40 +87,30 @@ fun DuplicateSelector(
     // Load instances when zone is selected
     LaunchedEffect(selectedZoneId, currentStep) {
         if (currentStep == DuplicateStep.INSTANCE) {
-            val (operation, dataKey) = when (type) {
-                DuplicateType.TOOL -> "tools.list" to "tool_instances"
-                DuplicateType.AUTOMATION -> "automations.list" to "automations"
-            }
-
             coordinator.executeWithLoading(
-                operation = operation,
+                operation = type.listOperation,
                 // A tool's config, for the icon it is shown by
                 params = mapOf("zone_id" to selectedZoneId, "include_config" to (type == DuplicateType.TOOL)),
                 onLoading = { isLoading = it },
                 onError = { error -> errorMessage = error }
             )?.let { result ->
-                instances = result.mapData(dataKey) { map ->
-                    val settings = if (type == DuplicateType.TOOL) {
-                        app.treelune.core.tools.ToolConfigSettings.read(map["tooltype"] as String, org.json.JSONObject(map["config"] as Map<*, *>), context)
-                    } else null
-                    InstanceItem(
-                        id = map["id"] as String,
-                        name = map["name"] as String,
-                        toolType = if (type == DuplicateType.TOOL) {
-                            map["tooltype"] as? String
-                        } else null,
-                        icon = settings?.string("icon_name"),
-                        iconColor = app.treelune.core.themes.IconColor.of(settings?.string(app.treelune.core.themes.IconColor.KEY))
-                    )
-                }
-
-                if (instances.isEmpty()) {
-                    errorMessage = if (type == DuplicateType.TOOL) {
-                        s.shared("duplicate_no_tools")
-                    } else {
-                        s.shared("duplicate_no_automations")
+                instances = result.mapData(type.listKey) { map ->
+                    when (type) {
+                        DuplicateType.TOOL -> {
+                            val settings = app.treelune.core.tools.ToolConfigSettings.read(map["tooltype"] as String, org.json.JSONObject(map["config"] as Map<*, *>), context)
+                            InstanceItem(map["id"] as String, map["name"] as String, map["tooltype"] as? String, settings.string("icon_name"),
+                                app.treelune.core.themes.IconColor.of(settings.string(app.treelune.core.themes.IconColor.KEY)))
+                        }
+                        DuplicateType.AUTOMATION -> InstanceItem(map["id"] as String, map["name"] as String, null, null, null)
+                        // A Task's name and look are among its settings
+                        DuplicateType.TASK -> {
+                            val task = app.treelune.core.tasks.Task.fromResult(map)
+                            InstanceItem(task.id, task.name, null, task.look.iconName, app.treelune.core.themes.IconColor.of(task.look.iconColor))
+                        }
                     }
                 }
+
+                if (instances.isEmpty()) errorMessage = type.empty(s)
 
                 LogManager.ui("DuplicateSelector: Loaded ${instances.size} instances", "DEBUG")
             }
@@ -147,11 +137,7 @@ fun DuplicateSelector(
             ) {
                 // Title
                 UI.Text(
-                    text = if (type == DuplicateType.TOOL) {
-                        s.shared("duplicate_selector_title_tool")
-                    } else {
-                        s.shared("duplicate_selector_title_automation")
-                    },
+                    text = type.title(s),
                     type = TextType.TITLE,
                     fillMaxWidth = true
                 )
@@ -208,11 +194,7 @@ fun DuplicateSelector(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     UI.Text(
-                                        text = if (type == DuplicateType.TOOL) {
-                                            s.shared("duplicate_no_tools")
-                                        } else {
-                                            s.shared("duplicate_no_automations")
-                                        },
+                                        text = type.empty(s),
                                         type = TextType.BODY
                                     )
                                 }
@@ -341,12 +323,25 @@ private fun InstanceList(
     }
 }
 
-/**
- * Duplicate type enum
- */
-enum class DuplicateType {
-    TOOL,
-    AUTOMATION
+/** What is copied: the operation that lists a zone's, and the key of its list in the result. */
+enum class DuplicateType(val listOperation: String, val listKey: String) {
+    TOOL("tools.list", "tool_instances"),
+    AUTOMATION("automations.list", "automations"),
+    TASK("tasks.list", "tasks");
+
+    /** The picker's title; the keys written whole, for check_string_keys.py to read them. */
+    fun title(s: app.treelune.core.strings.StringsContext): String = when (this) {
+        TOOL -> s.shared("duplicate_selector_title_tool")
+        AUTOMATION -> s.shared("duplicate_selector_title_automation")
+        TASK -> s.shared("duplicate_selector_title_task")
+    }
+
+    /** What the picker says of a zone without any. */
+    fun empty(s: app.treelune.core.strings.StringsContext): String = when (this) {
+        TOOL -> s.shared("duplicate_no_tools")
+        AUTOMATION -> s.shared("duplicate_no_automations")
+        TASK -> s.shared("duplicate_no_tasks")
+    }
 }
 
 /**

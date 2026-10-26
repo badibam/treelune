@@ -41,26 +41,55 @@ object TaskSettings {
         suggestedIcons = listOf("list-ordered", "workflow", "webhook", "cloud-download", "calendar-clock", "moon", "repeat", "plug")
     )
 
-    fun nodes(context: Context): List<SettingNode> {
+    fun nodes(context: Context): List<SettingNode> = head(context) + whenNodes(context) + endNodes(context) + advancedNodes(context)
+
+    /** Its look and its group: the config's first part, above its steps (TaskConfigScreen). */
+    fun head(context: Context): List<SettingNode> {
         val s = Strings.`for`(context = context)
-        return Looks.nodes(LOOK, s::shared) + listOf(
-            SettingNode.Field(FieldDefinition("group", s.shared("label_group"), s.shared("task_schema_group"), FieldType.TEXT, false,
-                mapOf("length" to TextLength.SHORT.name))),
-            SettingNode.Field(FieldDefinition("is_enabled", s.shared("automation_is_enabled"), s.shared("task_schema_is_enabled"), FieldType.BOOLEAN, false, null), default = true),
+        return Looks.nodes(LOOK, s::shared) + SettingNode.Field(FieldDefinition("group", s.shared("label_group"), s.shared("task_schema_group"), FieldType.TEXT, false,
+            mapOf("length" to TextLength.SHORT.name)))
+    }
+
+    /** The rest, under its steps, in the config's sections: what starts it, its end, the rest. */
+    fun sections(context: Context): List<SettingNode> {
+        val s = Strings.`for`(context = context)
+        return listOf(
+            SettingNode.Section(s.shared("config_section_when"), whenNodes(context)),
+            SettingNode.Section(s.shared("config_section_end"), endNodes(context)),
+            SettingNode.Section(s.shared("config_section_advanced"), advancedNodes(context))
+        )
+    }
+
+    private fun whenNodes(context: Context): List<SettingNode> {
+        val s = Strings.`for`(context = context)
+        return listOf(
+            // Absent: run on demand only
+            ScheduleSettings.group(s.shared("automation_schedule"), s::shared),
+            // Present with the schedule, and only with it (TaskService)
+            SettingNode.Group("catch_up", s.shared("automation_catch_up_title"), AutomationSettings.catchUpNodes(context), description = s.shared("automation_schema_catch_up")),
+            // What starts it beside its schedule: an entry written
+            app.treelune.core.triggers.Triggers.node(s::shared)
+        )
+    }
+
+    private fun endNodes(context: Context): List<SettingNode> {
+        val s = Strings.`for`(context = context)
+        return listOf(
             // A run ended waits to be read when it failed, by default: one that went well says nothing
             SettingNode.Field(FieldDefinition("notify_end", s.shared("automation_notify_end"), s.shared("task_schema_notify_end"), FieldType.CHOICE, false,
                 mapOf("options" to ChoiceSettings.storedOptions(listOf(AutomationSettings.NOTIFY_ALWAYS, AutomationSettings.NOTIFY_ON_PROBLEM, AutomationSettings.NOTIFY_NEVER), mapOf(
                     AutomationSettings.NOTIFY_ALWAYS to s.shared("automation_notify_end_always"),
                     AutomationSettings.NOTIFY_ON_PROBLEM to s.shared("automation_notify_end_on_problem"),
                     AutomationSettings.NOTIFY_NEVER to s.shared("automation_notify_end_never"))))), default = AutomationSettings.NOTIFY_ON_PROBLEM),
-            // Absent: run on demand only
-            ScheduleSettings.group(s.shared("automation_schedule"), s::shared),
-            // Present with the schedule, and only with it (TaskService)
-            SettingNode.Group("catch_up", s.shared("automation_catch_up_title"), AutomationSettings.catchUpNodes(context), description = s.shared("automation_schema_catch_up")),
-            // What starts it beside its schedule: an entry written
-            app.treelune.core.triggers.Triggers.node(s::shared),
             // What a run that ends well emits
             app.treelune.core.events.EventPoints.node(s::shared)
+        )
+    }
+
+    private fun advancedNodes(context: Context): List<SettingNode> {
+        val s = Strings.`for`(context = context)
+        return listOf(
+            SettingNode.Field(FieldDefinition("is_enabled", s.shared("automation_is_enabled"), s.shared("task_schema_is_enabled"), FieldType.BOOLEAN, false, null), default = true)
         )
     }
 

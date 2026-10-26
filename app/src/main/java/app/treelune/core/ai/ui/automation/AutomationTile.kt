@@ -18,6 +18,7 @@ import app.treelune.core.navigation.Place
 import app.treelune.core.strings.Strings
 import app.treelune.core.ui.*
 import app.treelune.core.ui.components.TileLine
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -25,8 +26,8 @@ import kotlinx.coroutines.withContext
 
 /**
  * What a routine's tile and its page do, the same from both: run it now, take back its run
- * waiting in the queue, open a conversation started with its message, open its message to edit
- * it, open its history, switch it on or off. A refusal, or a run asked for, is said through
+ * waiting in the queue, open a conversation started with its message, open its config, open its
+ * history, switch it on or off. A refusal, or a run asked for, is said through
  * [onMessage].
  */
 class AutomationActions(
@@ -50,7 +51,7 @@ class AutomationActions(
         app.treelune.core.ai.orchestration.ChatRequests.open(prefill)
     }
 
-    fun edit(automation: Automation) = Navigator.push(Place.Seed(automation.seedSessionId, automation.zoneId))
+    fun configure(automation: Automation) = Navigator.push(Place.AutomationConfig(automation.zoneId, automation.id, null))
 
     fun history(automation: Automation) = Navigator.push(Place.Automation(automation.id, automation.zoneId))
 
@@ -69,10 +70,11 @@ fun rememberAutomationActions(onMessage: (String) -> Unit): AutomationActions {
 
 /**
  * Where a routine stands, in one line, the first that holds: its run waiting in the queue and
- * its place there, no provider, switched off, its next run, run on demand alone, its triggers;
- * and the queued run, taken back by its tile's and its page's Cancel.
+ * its place there, switched off, its next run, run on demand alone, its triggers; and the queued
+ * run, taken back by its tile's and its page's Cancel. What keeps it from running, [problem] (no
+ * provider), does not take the line: it says what the routine is set to do, under a warning icon.
  */
-data class AutomationState(val line: String, val queuedSessionId: String?)
+data class AutomationState(val line: String, val queuedSessionId: String?, val problem: String? = null)
 
 @Composable
 fun rememberAutomationState(automation: Automation): AutomationState {
@@ -98,37 +100,48 @@ fun rememberAutomationState(automation: Automation): AutomationState {
         }?.sessionId
     }
 
-    val line = when {
-        queued != null -> s.shared("ai_automation_queued_badge").format(queuedSessions.indexOfFirst { it.sessionId == queued } + 1)
-        // Neither on nor run until it has one
-        automation.providerId == null -> s.shared("automation_status_no_provider")
-        !automation.isEnabled -> s.shared("label_disabled")
-        nextExecution != null -> nextExecution!!
+    // What starts it: by hand alone, its schedule, its triggers
+    val starts = when {
         automation.schedule == null && (automation.triggers == 0) -> s.shared("automation_status_manual")
         automation.schedule != null && (automation.triggers > 0) ->
             "${scheduleSummary(automation.schedule, s)} + ${s.shared("automation_triggers_count").format(automation.triggers)}"
         automation.schedule != null -> scheduleSummary(automation.schedule, s)
         else -> s.shared("automation_triggers_count").format(automation.triggers)
     }
-    return AutomationState(line, queued)
+    // Neither on nor run until it has one
+    val problem = if (automation.providerId == null) s.shared("automation_status_no_provider") else null
+    val line = when {
+        queued != null -> s.shared("ai_automation_queued_badge").format(queuedSessions.indexOfFirst { it.sessionId == queued } + 1)
+        // Off for want of a provider, not by choice: what it would do once given one
+        problem != null -> starts
+        !automation.isEnabled -> s.shared("label_disabled")
+        nextExecution != null -> nextExecution!!
+        else -> starts
+    }
+    return AutomationState(line, queued, problem)
 }
 
-/** A routine's state and its switch, on one line: the state takes what the switch leaves. */
+/**
+ * A routine's state and its switch, on one line: the state takes what the switch leaves, under a
+ * warning icon when something keeps it from running, which its page says in full ([withProblem]).
+ */
 @Composable
-fun AutomationStateLine(automation: Automation, state: AutomationState, actions: AutomationActions) {
+fun AutomationStateLine(automation: Automation, state: AutomationState, actions: AutomationActions, withProblem: Boolean = false) {
+    if (withProblem && state.problem != null) UI.Text(state.problem, TextType.CAPTION)
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(UI.Space.S), verticalAlignment = Alignment.CenterVertically) {
+        if (state.problem != null) UI.Icon(iconName = "triangle-alert", size = 16.dp, contentDescription = state.problem, tint = UI.statusColor(app.treelune.core.ui.StatusColor.WARNING))
         Box(modifier = Modifier.weight(1f)) { UI.Text(state.line, TextType.CAPTION, maxLines = 2) }
         UI.BooleanField(label = "", value = automation.isEnabled, onValueChange = { actions.toggle(automation, it) })
     }
 }
 
 /**
- * A routine's four buttons across the whole width: run it now (Cancel while its run waits in
- * the queue), a conversation started with its message, its history, its message to edit. Its
- * page, which is its history, gives [onSettings], its settings in the history's place.
+ * A routine's buttons across the whole width: run it now (Cancel while its run waits in the
+ * queue), a conversation started with its message, and on its tile its page, the history
+ * ([toPage]); its page opens its config from its header.
  */
 @Composable
-fun AutomationButtons(automation: Automation, state: AutomationState, actions: AutomationActions, onSettings: (() -> Unit)? = null) {
+fun AutomationButtons(automation: Automation, state: AutomationState, actions: AutomationActions, toPage: Boolean = true) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
@@ -141,9 +154,7 @@ fun AutomationButtons(automation: Automation, state: AutomationState, actions: A
             UI.ActionButton(action = ButtonAction.START, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.run(automation) })
         }
         UI.ActionButton(action = ButtonAction.AI_CHAT, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.chat(automation) })
-        if (onSettings != null) UI.ActionButton(action = ButtonAction.CONFIGURE, display = ButtonDisplay.ICON, size = Size.S, onClick = onSettings)
-        else UI.ActionButton(action = ButtonAction.VIEW, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.history(automation) })
-        UI.ActionButton(action = ButtonAction.EDIT, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.edit(automation) })
+        if (toPage) UI.ActionButton(action = ButtonAction.VIEW, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.history(automation) })
     }
 }
 
@@ -151,11 +162,11 @@ fun AutomationButtons(automation: Automation, state: AutomationState, actions: A
  * A routine's tile among its section's tools (UI.LookCard), « Routine » under its name: its
  * state and its switch beside its header (LINE, EXTENDED, SQUARE) or under it (CONDENSED); its
  * buttons on a line of their own (EXTENDED, SQUARE); its last three runs under them (SQUARE), each
- * opening. A touch opens its history; a long touch, [onLongClick], its settings. A run of it that
- * waits to be read is marked on its icon, and its run going on now (LocalRunning).
+ * opening. A touch opens its page, its history; a long touch its config, as a tool's. A run of it
+ * that waits to be read is marked on its icon, and its run going on now (LocalRunning).
  */
 @Composable
-fun AutomationTile(automation: Automation, actions: AutomationActions, onLongClick: () -> Unit) {
+fun AutomationTile(automation: Automation, actions: AutomationActions) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     val state = rememberAutomationState(automation)
@@ -166,7 +177,7 @@ fun AutomationTile(automation: Automation, actions: AutomationActions, onLongCli
         waiting = LocalWaiting.current.automation(automation.id),
         running = LocalRunning.current.automation(automation.id),
         onClick = { actions.history(automation) },
-        onLongClick = onLongClick,
+        onLongClick = { actions.configure(automation) },
         summary = { AutomationStateLine(automation, state, actions) },
         glance = { AutomationStateLine(automation, state, actions) },
         body = { rows ->
