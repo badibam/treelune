@@ -205,65 +205,32 @@ object ScheduleCalculator {
     }
 
     /**
-     * Type 3: Monthly Recurrent - Specific months with fixed day
-     * Example: months=[1,3,6], dayOfMonth=15, time="10:00" → 15th of Jan/Mar/Jun at 10am
+     * Type 3: Monthly Recurrent - Specific months with fixed days
+     * Example: months=[1,3,6], daysOfMonth=[1,15], time="10:00" → 1st and 15th of Jan/Mar/Jun at 10am
      *
-     * Note: If day doesn't exist in month (e.g., Feb 31), skip that month
+     * Note: If a day doesn't exist in a month (e.g., Feb 31), skip it that month
      */
     private fun calculateMonthlyRecurrent(
         from: ZonedDateTime,
         pattern: SchedulePattern.MonthlyRecurrent,
         zoneId: ZoneId
     ): ZonedDateTime? {
-        if (pattern.months.isEmpty()) return null
+        if (pattern.months.isEmpty() || pattern.daysOfMonth.isEmpty()) return null
         val (hour, minute) = parseTime(pattern.time) ?: return null
+        val days = pattern.daysOfMonth.sorted()
 
-        // Try current month if it matches
-        val currentMonth = from.monthValue
-        val currentYear = from.year
-        if (currentMonth in pattern.months) {
-            val daysInMonth = from.toLocalDate().lengthOfMonth()
-            if (pattern.dayOfMonth <= daysInMonth) {
-                val candidate = ZonedDateTime.of(
-                    LocalDate.of(currentYear, currentMonth, pattern.dayOfMonth),
-                    LocalTime.of(hour, minute),
-                    zoneId
-                )
-                if (candidate.isAfter(from)) {
-                    return candidate
+        // Walk forward month by month from the current one; a candidate in it only counts if it
+        // is still ahead. Two years hold every month chosen with every day it has.
+        var month = YearMonth.from(from)
+        repeat(25) {
+            if (month.monthValue in pattern.months) {
+                for (day in days) {
+                    if (day > month.lengthOfMonth()) continue
+                    val candidate = ZonedDateTime.of(month.atDay(day), LocalTime.of(hour, minute), zoneId)
+                    if (candidate.isAfter(from)) return candidate
                 }
             }
-        }
-
-        // Find next valid month/year combination
-        val sortedMonths = pattern.months.sorted()
-        var testYear = currentYear
-        var testMonth = sortedMonths.firstOrNull { it > currentMonth } ?: run {
-            testYear = currentYear + 1
-            sortedMonths.first()
-        }
-
-        // Search up to 2 years ahead
-        for (attempt in 0..24) {
-            val testDate = LocalDate.of(testYear, testMonth, 1)
-            val daysInMonth = testDate.lengthOfMonth()
-
-            if (pattern.dayOfMonth <= daysInMonth) {
-                return ZonedDateTime.of(
-                    LocalDate.of(testYear, testMonth, pattern.dayOfMonth),
-                    LocalTime.of(hour, minute),
-                    zoneId
-                )
-            }
-
-            // Move to next matching month
-            val nextMonthIdx = sortedMonths.indexOf(testMonth) + 1
-            if (nextMonthIdx >= sortedMonths.size) {
-                testYear++
-                testMonth = sortedMonths.first()
-            } else {
-                testMonth = sortedMonths[nextMonthIdx]
-            }
+            month = month.plusMonths(1)
         }
 
         return null // Could not find valid date in 2 years

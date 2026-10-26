@@ -43,8 +43,9 @@ object ScheduleSettings {
                     ) + cycle("weeks", text),
                     "MonthlyRecurrent" to listOf(
                         values("months", text("schedule_month_label"), month(text), text("schedule_months_description")),
-                        field("day_of_month", text("schedule_day_of_month_label"), FieldType.NUMERIC, required = true, config = whole(1, 31),
-                            description = text("schedule_day_of_month_description")),
+                        values("days_of_month", text("schedule_days_of_month_label"),
+                            FieldDefinition("day_of_month", text("schedule_day_of_month_label"), text("schedule_day_of_month_description"), FieldType.NUMERIC, false, whole(1, 31)),
+                            text("schedule_days_of_month_description")),
                         timeField(text)
                     ),
                     "WeeklyCustom" to listOf(

@@ -69,21 +69,21 @@ sealed class SchedulePattern {
     }
 
     /**
-     * Type 3: Monthly Recurrent - Specific months with fixed day
-     * Example: "On the 15th of January, March, and June at 10am"
+     * Type 3: Monthly Recurrent - Specific months with fixed days
+     * Example: "On the 1st and the 15th of January, March, and June at 10am"
      *
      * Note: For days > 28, if month doesn't have that day (e.g., Feb 31),
      * the execution is skipped for that month
      *
      * @param months List of months (1-12)
-     * @param dayOfMonth Day of month (1-31)
+     * @param daysOfMonth Days of month (1-31)
      * @param time Time in HH:mm format (24h)
      */
     @Serializable
     @SerialName("MonthlyRecurrent")
     data class MonthlyRecurrent(
         val months: List<Int>,       // 1-12
-        @SerialName("day_of_month") val dayOfMonth: Int,  // 1-31
+        @SerialName("days_of_month") val daysOfMonth: List<Int>,  // 1-31
         val time: String
     ) : SchedulePattern()
 

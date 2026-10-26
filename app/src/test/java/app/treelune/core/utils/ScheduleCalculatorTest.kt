@@ -115,12 +115,12 @@ class ScheduleCalculatorTest {
         assertEquals(at(2025, 1, 20, 9, 0), next(mondaysOnly, from = at(2025, 1, 15, 10, 0)))
     }
 
-    // ==================== Type 3: certain months, a fixed day ====================
+    // ==================== Type 3: certain months, fixed days ====================
 
     /** The current month counts when the day and time are still ahead. */
     @Test
     fun monthly_takesTheCurrentMonthWhenItIsStillAhead() {
-        val pattern = SchedulePattern.MonthlyRecurrent(listOf(1, 3, 6), dayOfMonth = 15, time = "10:00")
+        val pattern = SchedulePattern.MonthlyRecurrent(listOf(1, 3, 6), daysOfMonth = listOf(15), time = "10:00")
 
         assertEquals(at(2025, 1, 15, 10, 0), next(pattern, from = at(2025, 1, 15, 9, 0)))
         assertEquals(at(2025, 3, 15, 10, 0), next(pattern, from = at(2025, 1, 15, 11, 0)))
@@ -129,7 +129,7 @@ class ScheduleCalculatorTest {
     /** A month too short for the day is passed over, not clamped to its last day. */
     @Test
     fun monthly_skipsAMonthTooShortForTheDay() {
-        val pattern = SchedulePattern.MonthlyRecurrent(listOf(2, 3), dayOfMonth = 31, time = "10:00")
+        val pattern = SchedulePattern.MonthlyRecurrent(listOf(2, 3), daysOfMonth = listOf(31), time = "10:00")
 
         assertEquals(at(2025, 3, 31, 10, 0), next(pattern, from = at(2025, 1, 1, 0, 0)))
     }
@@ -137,9 +137,29 @@ class ScheduleCalculatorTest {
     /** A day no listed month ever has schedules nothing at all. */
     @Test
     fun monthly_withADayNoListedMonthHas_hasNoNextExecution() {
-        val pattern = SchedulePattern.MonthlyRecurrent(listOf(2), dayOfMonth = 31, time = "10:00")
+        val pattern = SchedulePattern.MonthlyRecurrent(listOf(2), daysOfMonth = listOf(31), time = "10:00")
 
         assertNull(next(pattern, from = at(2025, 1, 1, 0, 0)))
+    }
+
+    /** "The 1st and the 15th": the next of the days still ahead this month, then the first one of the next. */
+    @Test
+    fun monthly_severalDays_takesTheNextOne() {
+        val pattern = SchedulePattern.MonthlyRecurrent((1..12).toList(), daysOfMonth = listOf(15, 1), time = "09:00")
+
+        assertEquals(at(2026, 10, 15, 9, 0), next(pattern, from = at(2026, 10, 1, 10, 0)))
+        assertEquals(at(2026, 11, 1, 9, 0), next(pattern, from = at(2026, 10, 15, 10, 0)))
+    }
+
+    /** A day a month does not have skips that day alone: the 30th and the 31st give 30 April. */
+    @Test
+    fun monthly_aDayTheMonthLacks_skipsThatDayAlone() {
+        val pattern = SchedulePattern.MonthlyRecurrent(listOf(4, 5), daysOfMonth = listOf(30, 31), time = "09:00")
+
+        assertEquals(listOf(at(2026, 4, 30, 9, 0), at(2026, 5, 30, 9, 0), at(2026, 5, 31, 9, 0)),
+            listOf(at(2026, 4, 1, 0, 0)).let { start ->
+                val a = next(pattern, start[0])!!; val b = next(pattern, a)!!; listOf(a, b, next(pattern, b)!!)
+            })
     }
 
     // ==================== Type 4: a time per day ====================

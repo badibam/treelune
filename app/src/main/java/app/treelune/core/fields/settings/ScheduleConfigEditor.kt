@@ -91,9 +91,9 @@ fun ScheduleConfigEditor(
             (existingConfig?.pattern as? SchedulePattern.MonthlyRecurrent)?.months ?: listOf(1)
         )
     }
-    var monthlyDay by rememberSaveable {
+    var monthlyDays by rememberSaveable(stateSaver = serializableSaver(kotlinx.serialization.builtins.ListSerializer(Int.serializer()))) {
         mutableStateOf(
-            (existingConfig?.pattern as? SchedulePattern.MonthlyRecurrent)?.dayOfMonth ?: 1
+            (existingConfig?.pattern as? SchedulePattern.MonthlyRecurrent)?.daysOfMonth ?: listOf(1)
         )
     }
     var monthlyTime by rememberSaveable {
@@ -140,7 +140,7 @@ fun ScheduleConfigEditor(
                 weeklyDays = weeklyDays,
                 weeklyTime = weeklyTime,
                 monthlyMonths = monthlyMonths,
-                monthlyDay = monthlyDay,
+                monthlyDays = monthlyDays,
                 monthlyTime = monthlyTime,
                     weeklyCustomMoments = weeklyCustomMoments,
                     yearlyDates = yearlyDates,
@@ -206,10 +206,10 @@ fun ScheduleConfigEditor(
                 )
                 "MonthlyRecurrent" -> MonthlyRecurrentEditor(
                     months = monthlyMonths,
-                    dayOfMonth = monthlyDay,
+                    days = monthlyDays,
                     time = monthlyTime,
                     onMonthsChange = { monthlyMonths = it },
-                    onDayChange = { monthlyDay = it },
+                    onDaysChange = { monthlyDays = it },
                     onTimeChange = { monthlyTime = it }
                 )
                 "WeeklyCustom" -> WeeklyCustomEditor(
@@ -235,7 +235,7 @@ fun ScheduleConfigEditor(
                     weeklyDays = weeklyDays,
                     weeklyTime = weeklyTime,
                     monthlyMonths = monthlyMonths,
-                    monthlyDay = monthlyDay,
+                    monthlyDays = monthlyDays,
                     monthlyTime = monthlyTime,
                     weeklyCustomMoments = weeklyCustomMoments,
                     yearlyDates = yearlyDates,
@@ -377,15 +377,15 @@ private fun WeeklySimpleEditor(
 
 /**
  * MonthlyRecurrent pattern editor
- * Specific months and day (e.g., 15th of January, March, June at 10:00)
+ * Specific months and days (e.g., 1st and 15th of January, March, June at 10:00)
  */
 @Composable
 private fun MonthlyRecurrentEditor(
     months: List<Int>,
-    dayOfMonth: Int,
+    days: List<Int>,
     time: String,
     onMonthsChange: (List<Int>) -> Unit,
-    onDayChange: (Int) -> Unit,
+    onDaysChange: (List<Int>) -> Unit,
     onTimeChange: (String) -> Unit
 ) {
     val context = LocalContext.current
@@ -424,17 +424,52 @@ private fun MonthlyRecurrentEditor(
             }
         }
 
-        // Day of month (1-31)
-        UI.FormField(
-            required = false,
-            label = s.shared("schedule_day_of_month_label"),
-            value = dayOfMonth.toString(),
-            onChange = { newDay ->
-                newDay.toIntOrNull()?.let { day ->
-                    if (day in 1..31) onDayChange(day)
+        // Days of the month (1-31), added and removed as the daily times are
+        UI.Text(
+            text = s.shared("schedule_days_of_month_label"),
+            type = TextType.SUBTITLE
+        )
+        days.forEachIndexed { index, day ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(UI.Space.S),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    UI.FormField(
+                        required = false,
+                        label = s.shared("schedule_day_of_month_label"),
+                        value = day.toString(),
+                        onChange = { newDay ->
+                            newDay.toIntOrNull()?.let { value ->
+                                if (value in 1..31) onDaysChange(days.toMutableList().apply { set(index, value) })
+                            }
+                        },
+                        fieldType = FieldType.NUMERIC
+                    )
                 }
-            },
-            fieldType = FieldType.NUMERIC
+
+                UI.ActionButton(
+                    action = ButtonAction.DELETE,
+                    display = ButtonDisplay.ICON,
+                    size = Size.S,
+                    onClick = {
+                        if (days.size > 1) {
+                            onDaysChange(days.filterIndexed { i, _ -> i != index })
+                        }
+                    }
+                )
+            }
+        }
+
+        UI.ActionButton(
+            action = ButtonAction.ADD,
+            display = ButtonDisplay.LABEL,
+            size = Size.M,
+            onClick = {
+                // The day after the last one, as the first one free from it
+                onDaysChange(days + ((days.maxOrNull() ?: 0) % 31 + 1))
+            }
         )
 
         // Time
@@ -807,7 +842,7 @@ private fun buildSchedulePattern(
     weeklyDays: List<Int>,
     weeklyTime: String,
     monthlyMonths: List<Int>,
-    monthlyDay: Int,
+    monthlyDays: List<Int>,
     monthlyTime: String,
     weeklyCustomMoments: List<WeekMoment>,
     yearlyDates: List<YearlyDate>,
@@ -816,7 +851,7 @@ private fun buildSchedulePattern(
     return when (patternType) {
         "DailyMultiple" -> SchedulePattern.DailyMultiple(dailyTimes)
         "WeeklySimple" -> SchedulePattern.WeeklySimple(weeklyDays, weeklyTime)
-        "MonthlyRecurrent" -> SchedulePattern.MonthlyRecurrent(monthlyMonths, monthlyDay, monthlyTime)
+        "MonthlyRecurrent" -> SchedulePattern.MonthlyRecurrent(monthlyMonths, monthlyDays.distinct().sorted(), monthlyTime)
         "WeeklyCustom" -> SchedulePattern.WeeklyCustom(weeklyCustomMoments)
         "YearlyRecurrent" -> SchedulePattern.YearlyRecurrent(yearlyDates)
         "SpecificDates" -> SchedulePattern.SpecificDates(specificTimestamps)
@@ -834,7 +869,7 @@ private fun generatePreviewLabel(
     weeklyDays: List<Int>,
     weeklyTime: String,
     monthlyMonths: List<Int>,
-    monthlyDay: Int,
+    monthlyDays: List<Int>,
     monthlyTime: String,
     weeklyCustomMoments: List<WeekMoment>,
     yearlyDates: List<YearlyDate>,
@@ -852,7 +887,7 @@ private fun generatePreviewLabel(
         }
         "MonthlyRecurrent" -> {
             val monthNames = monthlyMonths.map { s.shared("month_$it") }.joinToString(", ")
-            s.shared("schedule_preview_monthly").format(monthlyDay, monthNames, monthlyTime)
+            s.shared("schedule_preview_monthly").format(daysOfMonth(monthlyDays.distinct(), s), monthNames, monthlyTime)
         }
         "WeeklyCustom" -> {
             val momentsText = weeklyCustomMoments.joinToString(", ") { moment ->

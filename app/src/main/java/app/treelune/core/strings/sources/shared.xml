@@ -1861,7 +1861,7 @@
     <!-- AUTOMATIONS - Schedule patterns (short labels for buttons) -->
     <string name="schedule_summary_daily">Daily %1$s</string>
     <string name="schedule_summary_weekly">%1$s %2$s</string>
-    <string name="schedule_summary_monthly">On the %1$d of %2$s %3$s</string>
+    <string name="schedule_summary_monthly">On the %1$s of %2$s %3$s</string>
     <string name="schedule_summary_weekly_custom">%1$d times/week</string>
     <string name="schedule_summary_yearly">%1$d dates/year</string>
     <string name="schedule_summary_specific">%1$d specific dates</string>
@@ -1889,7 +1889,7 @@
     <string name="schedule_pattern_None">No schedule</string>
     <string name="schedule_pattern_DailyMultiple">Daily (several times)</string>
     <string name="schedule_pattern_WeeklySimple">Weekly (days + time)</string>
-    <string name="schedule_pattern_MonthlyRecurrent">Monthly (month + day)</string>
+    <string name="schedule_pattern_MonthlyRecurrent">Monthly (months + days)</string>
     <string name="schedule_pattern_WeeklyCustom">Weekly (custom moments)</string>
     <string name="schedule_pattern_YearlyRecurrent">Yearly (recurring dates)</string>
     <string name="schedule_pattern_SpecificDates">Specific dates</string>
@@ -1902,6 +1902,9 @@
     <string name="schedule_weekly_days_label">Days of the week</string>
     <string name="schedule_monthly_config_label">Monthly configuration</string>
     <string name="schedule_day_of_month_label">Day of the month (1-31)</string>
+    <string name="schedule_days_of_month_label">Days of the month</string>
+    <string name="schedule_days_separator">, the </string>
+    <string name="schedule_days_last_separator"> and the </string>
     <string name="schedule_weekly_custom_label">Weekly moments</string>
     <string name="schedule_day_label">Day</string>
     <string name="schedule_yearly_recurrent_label">Yearly dates</string>
@@ -1912,7 +1915,7 @@
     <!-- SCHEDULE CONFIG - Preview formats -->
     <string name="schedule_preview_daily">Daily: %1$s</string>
     <string name="schedule_preview_weekly_simple">%1$s at %2$s</string>
-    <string name="schedule_preview_monthly">On the %1$d of %2$s at %3$s</string>
+    <string name="schedule_preview_monthly">On the %1$s of %2$s at %3$s</string>
     <string name="schedule_preview_weekly_custom">%1$s</string>
     <string name="schedule_preview_yearly">%1$s every year</string>
     <string name="schedule_preview_specific">%1$d dates scheduled</string>
@@ -2578,7 +2581,7 @@
     <string name="schedule_type_description">The kind of rhythm</string>
     <string name="schedule_pattern_DailyMultiple_description">Every day, at each of the times</string>
     <string name="schedule_pattern_WeeklySimple_description">On the days of the week chosen, at one time</string>
-    <string name="schedule_pattern_MonthlyRecurrent_description">In the months chosen, on one day of the month, at one time</string>
+    <string name="schedule_pattern_MonthlyRecurrent_description">In the months chosen, on the days of the month chosen, at one time</string>
     <string name="schedule_pattern_WeeklyCustom_description">At moments of the week, each with its own day and time</string>
     <string name="schedule_pattern_YearlyRecurrent_description">Each year, on each of the dates, at its time</string>
     <string name="schedule_pattern_SpecificDates_description">Once at each of the instants</string>
@@ -2589,6 +2592,7 @@
     <string name="schedule_months_description">The months of the year</string>
     <string name="schedule_month_description">1 is January, 12 December</string>
     <string name="schedule_day_of_month_description">The day of the month; a month without it is skipped</string>
+    <string name="schedule_days_of_month_description">The days of the month, 1 to 31; a month without one of them skips it</string>
     <string name="schedule_moments_description">The moments of the week</string>
     <string name="schedule_moment_description">A day of the week and a time</string>
     <string name="schedule_dates_description">The dates of the year</string>

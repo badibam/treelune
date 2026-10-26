@@ -33,7 +33,7 @@ class ScheduleSettingsTest {
     private val onePerPattern = listOf(
         SchedulePattern.DailyMultiple(listOf("09:00", "18:30")),
         SchedulePattern.WeeklySimple(listOf(1, 3, 5), "07:15"),
-        SchedulePattern.MonthlyRecurrent(listOf(1, 6), 15, "10:00"),
+        SchedulePattern.MonthlyRecurrent(listOf(1, 6), listOf(1, 15), "10:00"),
         SchedulePattern.WeeklyCustom(listOf(WeekMoment(1, "09:00"), WeekMoment(7, "20:00"))),
         SchedulePattern.YearlyRecurrent(listOf(YearlyDate(12, 25, "08:00"))),
         SchedulePattern.SpecificDates(listOf(1_727_000_000_000L)),
@@ -56,7 +56,7 @@ class ScheduleSettingsTest {
         val written = listOf(
             """{"pattern":{"type":"DailyMultiple","times":["09:00","18:30"]}}""",
             """{"pattern":{"type":"WeeklySimple","days_of_week":[1,3,5],"time":"07:15"}}""",
-            """{"pattern":{"type":"MonthlyRecurrent","months":[1,6],"day_of_month":15,"time":"10:00"}}""",
+            """{"pattern":{"type":"MonthlyRecurrent","months":[1,6],"days_of_month":[1,15],"time":"10:00"}}""",
             """{"pattern":{"type":"WeeklyCustom","moments":[{"day_of_week":1,"time":"09:00"},{"day_of_week":7,"time":"20:00"}]}}""",
             """{"pattern":{"type":"YearlyRecurrent","dates":[{"month":12,"day":25,"time":"08:00"}]}}""",
             """{"pattern":{"type":"SpecificDates","timestamps":[1727000000000]}}"""

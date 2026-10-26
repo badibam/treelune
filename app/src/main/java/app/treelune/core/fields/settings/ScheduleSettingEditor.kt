@@ -63,8 +63,15 @@ fun scheduleSummary(schedule: ScheduleConfig, s: StringsContext): String = when 
     is SchedulePattern.WeeklySimple -> s.shared("schedule_summary_weekly")
         .format(pattern.daysOfWeek.joinToString("/") { s.shared("day_of_week_short_$it") }, pattern.time)
     is SchedulePattern.MonthlyRecurrent -> s.shared("schedule_summary_monthly")
-        .format(pattern.dayOfMonth, pattern.months.joinToString("/") { s.shared("month_short_$it") }, pattern.time)
+        .format(daysOfMonth(pattern.daysOfMonth, s), pattern.months.joinToString("/") { s.shared("month_short_$it") }, pattern.time)
     is SchedulePattern.WeeklyCustom -> s.shared("schedule_summary_weekly_custom").format(pattern.moments.size)
     is SchedulePattern.YearlyRecurrent -> s.shared("schedule_summary_yearly").format(pattern.dates.size)
     is SchedulePattern.SpecificDates -> s.shared("schedule_summary_specific").format(pattern.timestamps.size)
+}
+
+/** The days of a month, in order, as a sentence says them: "1, the 10 and the 20". */
+fun daysOfMonth(days: List<Int>, s: StringsContext): String {
+    val sorted = days.sorted().map { it.toString() }
+    if (sorted.size < 2) return sorted.joinToString()
+    return sorted.dropLast(1).joinToString(s.shared("schedule_days_separator")) + s.shared("schedule_days_last_separator") + sorted.last()
 }
