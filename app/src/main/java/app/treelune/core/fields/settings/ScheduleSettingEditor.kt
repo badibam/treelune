@@ -57,14 +57,35 @@ class ScheduleSettingEditor(private val label: String, private val s: StringsCon
     }
 }
 
-/** One line saying what [schedule] is, wherever a schedule is shown. */
-fun scheduleSummary(schedule: ScheduleConfig, s: StringsContext): String = when (val pattern = schedule.pattern) {
+/** One line saying what [schedule] is, wherever a schedule is shown: its cycle first, when it has one. */
+fun scheduleSummary(schedule: ScheduleConfig, s: StringsContext): String = withCycle(schedule.pattern, patternSummary(schedule.pattern, s), s)
+
+/** [said], what [pattern] does, after its cycle when it has one: "Every 3 weeks · Sun 08:00". */
+fun withCycle(pattern: SchedulePattern, said: String, s: StringsContext): String {
+    val every = when (pattern) {
+        is SchedulePattern.DailyMultiple -> pattern.every
+        is SchedulePattern.WeeklySimple -> pattern.every
+        is SchedulePattern.WeeklyCustom -> pattern.every
+        else -> 1
+    }
+    if (every == 1) return said
+    return s.shared(if (pattern is SchedulePattern.DailyMultiple) "schedule_every_days" else "schedule_every_weeks").format(every, said)
+}
+
+private fun patternSummary(pattern: SchedulePattern, s: StringsContext): String = when (pattern) {
     is SchedulePattern.DailyMultiple -> s.shared("schedule_summary_daily").format(pattern.times.joinToString(", "))
     is SchedulePattern.WeeklySimple -> s.shared("schedule_summary_weekly")
         .format(pattern.daysOfWeek.joinToString("/") { s.shared("day_of_week_short_$it") }, pattern.time)
     is SchedulePattern.MonthlyRecurrent -> s.shared("schedule_summary_monthly")
-        .format(pattern.dayOfMonth, pattern.months.joinToString("/") { s.shared("month_short_$it") }, pattern.time)
+        .format(daysOfMonth(pattern.daysOfMonth, s), pattern.months.joinToString("/") { s.shared("month_short_$it") }, pattern.time)
     is SchedulePattern.WeeklyCustom -> s.shared("schedule_summary_weekly_custom").format(pattern.moments.size)
     is SchedulePattern.YearlyRecurrent -> s.shared("schedule_summary_yearly").format(pattern.dates.size)
     is SchedulePattern.SpecificDates -> s.shared("schedule_summary_specific").format(pattern.timestamps.size)
+}
+
+/** The days of a month, in order, as a sentence says them: "1, the 10 and the 20". */
+fun daysOfMonth(days: List<Int>, s: StringsContext): String {
+    val sorted = days.sorted().map { it.toString() }
+    if (sorted.size < 2) return sorted.joinToString()
+    return sorted.dropLast(1).joinToString(s.shared("schedule_days_separator")) + s.shared("schedule_days_last_separator") + sorted.last()
 }

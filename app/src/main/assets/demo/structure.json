@@ -2270,7 +2270,9 @@
               11,
               12
             ],
-            "day_of_month": 1,
+            "days_of_month": [
+              1
+            ],
             "time": "10:00"
           }
         }

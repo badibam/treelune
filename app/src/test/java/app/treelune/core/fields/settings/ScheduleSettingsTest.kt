@@ -33,10 +33,12 @@ class ScheduleSettingsTest {
     private val onePerPattern = listOf(
         SchedulePattern.DailyMultiple(listOf("09:00", "18:30")),
         SchedulePattern.WeeklySimple(listOf(1, 3, 5), "07:15"),
-        SchedulePattern.MonthlyRecurrent(listOf(1, 6), 15, "10:00"),
+        SchedulePattern.MonthlyRecurrent(listOf(1, 6), listOf(1, 15), "10:00"),
         SchedulePattern.WeeklyCustom(listOf(WeekMoment(1, "09:00"), WeekMoment(7, "20:00"))),
         SchedulePattern.YearlyRecurrent(listOf(YearlyDate(12, 25, "08:00"))),
-        SchedulePattern.SpecificDates(listOf(1_727_000_000_000L))
+        SchedulePattern.SpecificDates(listOf(1_727_000_000_000L)),
+        SchedulePattern.WeeklySimple(listOf(7), "08:00", every = 3, startDate = "2026-11-01"),
+        SchedulePattern.DailyMultiple(listOf("08:00"), every = 4, startDate = "2026-10-27")
     )
 
     /** Each pattern, as the app encodes and stores it, passes the schema. */
@@ -54,7 +56,7 @@ class ScheduleSettingsTest {
         val written = listOf(
             """{"pattern":{"type":"DailyMultiple","times":["09:00","18:30"]}}""",
             """{"pattern":{"type":"WeeklySimple","days_of_week":[1,3,5],"time":"07:15"}}""",
-            """{"pattern":{"type":"MonthlyRecurrent","months":[1,6],"day_of_month":15,"time":"10:00"}}""",
+            """{"pattern":{"type":"MonthlyRecurrent","months":[1,6],"days_of_month":[1,15],"time":"10:00"}}""",
             """{"pattern":{"type":"WeeklyCustom","moments":[{"day_of_week":1,"time":"09:00"},{"day_of_week":7,"time":"20:00"}]}}""",
             """{"pattern":{"type":"YearlyRecurrent","dates":[{"month":12,"day":25,"time":"08:00"}]}}""",
             """{"pattern":{"type":"SpecificDates","timestamps":[1727000000000]}}"""
@@ -72,7 +74,7 @@ class ScheduleSettingsTest {
     @Test
     fun anUndeclaredKey_isRefused() {
         assertFalse(passes("""{"pattern":{"type":"DailyMultiple","times":["09:00"]},"enabled":true}"""))
-        assertFalse(passes("""{"pattern":{"type":"DailyMultiple","times":["09:00"],"every":2}}"""))
+        assertFalse(passes("""{"pattern":{"type":"DailyMultiple","times":["09:00"],"interval":2}}"""))
         assertFalse(passes("""{"pattern":{"type":"WeeklyCustom","moments":[{"day_of_week":1,"time":"09:00","note":"x"}]}}"""))
     }
 
@@ -82,5 +84,21 @@ class ScheduleSettingsTest {
         assertFalse(passes("""{"pattern":{"type":"DailyMultiple","times":["9h"]}}"""))
         assertFalse(passes("""{"pattern":{"type":"WeeklySimple","days_of_week":[8],"time":"09:00"}}"""))
         assertFalse(passes("""{"pattern":{"type":"DailyMultiple","times":[]}}"""))
+    }
+
+    /**
+     * A cycle passes the schema value by value; what holds between its values (a start date for
+     * every above 1, none at 1) is refused by the reading, as a tool's config is checked on writing.
+     */
+    @Test
+    fun aCycleWithoutItsStartDate_isRefusedOnWriting() {
+        val nodes = listOf(ScheduleSettings.group("schedule") { it })
+        fun refusal(pattern: String) = ScheduleSettings.refusal(nodes, org.json.JSONObject("""{"schedule":{"pattern":$pattern}}"""))
+
+        assertTrue(passes("""{"pattern":{"type":"WeeklySimple","days_of_week":[7],"time":"08:00","every":3}}"""))
+        assertTrue(refusal("""{"type":"WeeklySimple","days_of_week":[7],"time":"08:00","every":3}""")!!.contains("start_date"))
+        assertTrue(refusal("""{"type":"DailyMultiple","times":["08:00"],"every":1,"start_date":"2026-11-01"}""")!!.contains("start_date"))
+        assertEquals(null, refusal("""{"type":"WeeklySimple","days_of_week":[7],"time":"08:00","every":3,"start_date":"2026-11-01"}"""))
+        assertFalse(passes("""{"pattern":{"type":"WeeklySimple","days_of_week":[7],"time":"08:00","every":0,"start_date":"2026-11-01"}}"""))
     }
 }

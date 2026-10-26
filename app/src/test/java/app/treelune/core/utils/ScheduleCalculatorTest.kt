@@ -1,8 +1,12 @@
 package app.treelune.core.utils
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
@@ -111,12 +115,12 @@ class ScheduleCalculatorTest {
         assertEquals(at(2025, 1, 20, 9, 0), next(mondaysOnly, from = at(2025, 1, 15, 10, 0)))
     }
 
-    // ==================== Type 3: certain months, a fixed day ====================
+    // ==================== Type 3: certain months, fixed days ====================
 
     /** The current month counts when the day and time are still ahead. */
     @Test
     fun monthly_takesTheCurrentMonthWhenItIsStillAhead() {
-        val pattern = SchedulePattern.MonthlyRecurrent(listOf(1, 3, 6), dayOfMonth = 15, time = "10:00")
+        val pattern = SchedulePattern.MonthlyRecurrent(listOf(1, 3, 6), daysOfMonth = listOf(15), time = "10:00")
 
         assertEquals(at(2025, 1, 15, 10, 0), next(pattern, from = at(2025, 1, 15, 9, 0)))
         assertEquals(at(2025, 3, 15, 10, 0), next(pattern, from = at(2025, 1, 15, 11, 0)))
@@ -125,7 +129,7 @@ class ScheduleCalculatorTest {
     /** A month too short for the day is passed over, not clamped to its last day. */
     @Test
     fun monthly_skipsAMonthTooShortForTheDay() {
-        val pattern = SchedulePattern.MonthlyRecurrent(listOf(2, 3), dayOfMonth = 31, time = "10:00")
+        val pattern = SchedulePattern.MonthlyRecurrent(listOf(2, 3), daysOfMonth = listOf(31), time = "10:00")
 
         assertEquals(at(2025, 3, 31, 10, 0), next(pattern, from = at(2025, 1, 1, 0, 0)))
     }
@@ -133,9 +137,29 @@ class ScheduleCalculatorTest {
     /** A day no listed month ever has schedules nothing at all. */
     @Test
     fun monthly_withADayNoListedMonthHas_hasNoNextExecution() {
-        val pattern = SchedulePattern.MonthlyRecurrent(listOf(2), dayOfMonth = 31, time = "10:00")
+        val pattern = SchedulePattern.MonthlyRecurrent(listOf(2), daysOfMonth = listOf(31), time = "10:00")
 
         assertNull(next(pattern, from = at(2025, 1, 1, 0, 0)))
+    }
+
+    /** "The 1st and the 15th": the next of the days still ahead this month, then the first one of the next. */
+    @Test
+    fun monthly_severalDays_takesTheNextOne() {
+        val pattern = SchedulePattern.MonthlyRecurrent((1..12).toList(), daysOfMonth = listOf(15, 1), time = "09:00")
+
+        assertEquals(at(2026, 10, 15, 9, 0), next(pattern, from = at(2026, 10, 1, 10, 0)))
+        assertEquals(at(2026, 11, 1, 9, 0), next(pattern, from = at(2026, 10, 15, 10, 0)))
+    }
+
+    /** A day a month does not have skips that day alone: the 30th and the 31st give 30 April. */
+    @Test
+    fun monthly_aDayTheMonthLacks_skipsThatDayAlone() {
+        val pattern = SchedulePattern.MonthlyRecurrent(listOf(4, 5), daysOfMonth = listOf(30, 31), time = "09:00")
+
+        assertEquals(listOf(at(2026, 4, 30, 9, 0), at(2026, 5, 30, 9, 0), at(2026, 5, 31, 9, 0)),
+            listOf(at(2026, 4, 1, 0, 0)).let { start ->
+                val a = next(pattern, start[0])!!; val b = next(pattern, a)!!; listOf(a, b, next(pattern, b)!!)
+            })
     }
 
     // ==================== Type 4: a time per day ====================
@@ -268,5 +292,158 @@ class ScheduleCalculatorTest {
 
         // Paris is an hour ahead of UTC in January, so its 09:00 comes an hour earlier.
         assertEquals(3_600_000L, inUtc!! - inParis!!)
+    }
+
+    // ==================== A cycle of days or weeks (Cycle) ====================
+
+    /** With weeks starting on [weekStart], Monday unless given. */
+    private fun nextIn(pattern: SchedulePattern, from: Long, weekStart: DayOfWeek = DayOfWeek.MONDAY): Long? =
+        ScheduleCalculator.calculateNextExecution(pattern, from, paris, weekStart)
+
+    /** The [count] next times from [from], each from the one before. */
+    private fun series(pattern: SchedulePattern, from: Long, count: Int, weekStart: DayOfWeek = DayOfWeek.MONDAY): List<Long> {
+        val times = mutableListOf<Long>()
+        var cursor = from
+        repeat(count) { cursor = nextIn(pattern, cursor, weekStart)!!; times += cursor }
+        return times
+    }
+
+    /** "Every 3 weeks, on Sunday at 8:00", next time Sunday 1 November: then 22 November, 13 December. */
+    @Test
+    fun weekly_everyThreeWeeks_keepsOneSundayInThree() {
+        val pattern = SchedulePattern.WeeklySimple(listOf(7), "08:00", every = 3, startDate = "2026-11-01")
+
+        assertEquals(
+            listOf(at(2026, 11, 1, 8, 0), at(2026, 11, 22, 8, 0), at(2026, 12, 13, 8, 0)),
+            series(pattern, from = at(2026, 10, 26, 10, 0), count = 3)
+        )
+    }
+
+    /** The start date only places the cycle: a Sunday of the series long gone gives the same times. */
+    @Test
+    fun weekly_aStartDateInThePast_placesTheSameCycle() {
+        val placedLater = SchedulePattern.WeeklySimple(listOf(7), "08:00", every = 3, startDate = "2026-11-01")
+        val placedEarlier = SchedulePattern.WeeklySimple(listOf(7), "08:00", every = 3, startDate = "2026-01-11")
+
+        assertEquals(series(placedLater, at(2026, 10, 26, 10, 0), 4), series(placedEarlier, at(2026, 10, 26, 10, 0), 4))
+    }
+
+    /** "Monday and Thursday, one week in two": both days of a week kept, then both of the week after next. */
+    @Test
+    fun weekly_severalDays_oneWeekInTwo() {
+        val pattern = SchedulePattern.WeeklySimple(listOf(1, 4), "09:00", every = 2, startDate = "2026-10-26")
+
+        assertEquals(
+            listOf(at(2026, 10, 29, 9, 0), at(2026, 11, 9, 9, 0), at(2026, 11, 12, 9, 0), at(2026, 11, 23, 9, 0)),
+            series(pattern, from = at(2026, 10, 26, 10, 0), count = 4)
+        )
+    }
+
+    /**
+     * The weeks are the user's: Sunday and Wednesday one week in two go together when weeks start on
+     * Sunday, and a Wednesday with the Sunday after when they start on Monday.
+     */
+    @Test
+    fun weekly_theWeeksStartOnTheUsersDay() {
+        val pattern = SchedulePattern.WeeklySimple(listOf(3, 7), "09:00", every = 2, startDate = "2026-11-01")
+        val from = at(2026, 10, 31, 10, 0)
+
+        assertEquals(
+            listOf(at(2026, 11, 1, 9, 0), at(2026, 11, 4, 9, 0), at(2026, 11, 15, 9, 0)),
+            series(pattern, from, 3, weekStart = DayOfWeek.SUNDAY)
+        )
+        assertEquals(
+            listOf(at(2026, 11, 1, 9, 0), at(2026, 11, 11, 9, 0), at(2026, 11, 15, 9, 0)),
+            series(pattern, from, 3, weekStart = DayOfWeek.MONDAY)
+        )
+    }
+
+    /** Different times on different days, one week in two. */
+    @Test
+    fun weeklyCustom_oneWeekInTwo() {
+        val pattern = SchedulePattern.WeeklyCustom(listOf(WeekMoment(1, "09:00"), WeekMoment(5, "17:00")), every = 2, startDate = "2026-11-02")
+
+        assertEquals(
+            listOf(at(2026, 11, 2, 9, 0), at(2026, 11, 6, 17, 0), at(2026, 11, 16, 9, 0)),
+            series(pattern, from = at(2026, 10, 26, 10, 0), count = 3)
+        )
+    }
+
+    /** "Every 4 days at 8:00", next time Tuesday 27 October: 31 October, 4 November follow. */
+    @Test
+    fun daily_everyFourDays() {
+        val pattern = SchedulePattern.DailyMultiple(listOf("08:00"), every = 4, startDate = "2026-10-27")
+
+        assertEquals(
+            listOf(at(2026, 10, 27, 8, 0), at(2026, 10, 31, 8, 0), at(2026, 11, 4, 8, 0)),
+            series(pattern, from = at(2026, 10, 26, 10, 0), count = 3)
+        )
+    }
+
+    /** Every time of a day of the cycle is kept, none of the days between. */
+    @Test
+    fun daily_everyTwoDays_keepsEachTimeOfTheDay() {
+        val pattern = SchedulePattern.DailyMultiple(listOf("08:00", "20:00"), every = 2, startDate = "2026-10-26")
+
+        assertEquals(
+            listOf(at(2026, 10, 26, 20, 0), at(2026, 10, 28, 8, 0), at(2026, 10, 28, 20, 0)),
+            series(pattern, from = at(2026, 10, 26, 10, 0), count = 3)
+        )
+    }
+
+    /**
+     * The choices of the next time: one per place in the cycle, each the first time of its day. At
+     * 10:00 with a time at 8:00, today is not one: it would come back in 4 days, after the others.
+     */
+    @Test
+    fun cycleStarts_daily_beginTomorrowOnceTodaysTimeIsGone() {
+        val pattern = SchedulePattern.DailyMultiple(listOf("08:00"))
+
+        assertEquals(
+            listOf(LocalDate.of(2026, 10, 27), LocalDate.of(2026, 10, 28), LocalDate.of(2026, 10, 29), LocalDate.of(2026, 10, 30)),
+            ScheduleCalculator.cycleStarts(pattern, 4, at(2026, 10, 26, 10, 0), paris)
+        )
+    }
+
+    /** For weeks, the first time of each week: a Thursday this week, its Monday being gone. */
+    @Test
+    fun cycleStarts_weekly_oneByWeek() {
+        val pattern = SchedulePattern.WeeklySimple(listOf(1, 4), "09:00")
+
+        assertEquals(
+            listOf(LocalDate.of(2026, 10, 29), LocalDate.of(2026, 11, 2)),
+            ScheduleCalculator.cycleStarts(pattern, 2, at(2026, 10, 26, 10, 0), paris, DayOfWeek.MONDAY)
+        )
+    }
+
+    /** A start date stored long ago finds its place among the choices made today. */
+    @Test
+    fun sameCycle_findsTheChoiceOfAStoredStartDate() {
+        val pattern = SchedulePattern.WeeklySimple(listOf(7), "08:00")
+        val stored = LocalDate.of(2026, 1, 18)
+        val choices = ScheduleCalculator.cycleStarts(pattern, 3, at(2026, 10, 26, 10, 0), paris, DayOfWeek.MONDAY)
+
+        assertEquals(listOf(LocalDate.of(2026, 11, 8)), choices.filter { ScheduleCalculator.sameCycle(pattern, 3, stored, it, DayOfWeek.MONDAY) })
+    }
+
+    /** What a cycle refuses, said so that whoever wrote it knows what to give. */
+    @Test
+    fun cycle_refusesWhatDoesNotRead() {
+        assertThrows(IllegalArgumentException::class.java) { SchedulePattern.WeeklySimple(listOf(7), "08:00", every = 3) }
+        assertThrows(IllegalArgumentException::class.java) { SchedulePattern.WeeklySimple(listOf(7), "08:00", every = 1, startDate = "2026-11-01") }
+        assertThrows(IllegalArgumentException::class.java) { SchedulePattern.DailyMultiple(listOf("08:00"), every = 0) }
+        assertThrows(IllegalArgumentException::class.java) { SchedulePattern.DailyMultiple(listOf("08:00"), every = 2, startDate = "1 Nov") }
+    }
+
+    /** A schedule stored before the cycle, without every, runs every week as it did. */
+    @Test
+    fun cycle_absentFromAStoredSchedule_isEveryWeek() {
+        val stored = kotlinx.serialization.json.Json.decodeFromString(ScheduleConfig.serializer(),
+            """{"pattern":{"type":"WeeklySimple","days_of_week":[7],"time":"08:00"}}""")
+        val pattern = stored.pattern as SchedulePattern.WeeklySimple
+
+        assertEquals(1, pattern.every)
+        assertTrue(pattern.startDate == null)
+        assertFalse(kotlinx.serialization.json.Json.encodeToString(ScheduleConfig.serializer(), stored).contains("every"))
     }
 }

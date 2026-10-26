@@ -1861,11 +1861,17 @@
     <!-- AUTOMATIONS - Schedule patterns (short labels for buttons) -->
     <string name="schedule_summary_daily">Quotidien %1$s</string>
     <string name="schedule_summary_weekly">%1$s %2$s</string>
-    <string name="schedule_summary_monthly">Le %1$d de %2$s %3$s</string>
+    <string name="schedule_summary_monthly">Le %1$s de %2$s %3$s</string>
     <string name="schedule_summary_weekly_custom">%1$d moments/semaine</string>
     <string name="schedule_summary_yearly">%1$d dates/an</string>
     <string name="schedule_summary_specific">%1$d dates spécifiques</string>
     <string name="schedule_summary_none">Aucune récurrence</string>
+    <string name="schedule_every_days">Tous les %1$d jours · %2$s</string>
+    <string name="schedule_every_weeks">Toutes les %1$d semaines · %2$s</string>
+    <string name="schedule_every_days_field">Tous les … jours</string>
+    <string name="schedule_every_weeks_field">Toutes les … semaines</string>
+    <string name="schedule_next_times">Prochaines : %1$s</string>
+    <string name="schedule_next_none">Aucune date à venir</string>
     <string name="action_configure_schedule">Configurer la récurrence</string>
     <string name="schedule_unreadable">Récurrence enregistrée illisible (%1$s). Refais-la : sinon l\'enregistrement sera refusé, et elle restera telle quelle.</string>
 
@@ -1889,7 +1895,7 @@
     <string name="schedule_pattern_None">Aucune programmation</string>
     <string name="schedule_pattern_DailyMultiple">Quotidien (horaires multiples)</string>
     <string name="schedule_pattern_WeeklySimple">Hebdomadaire (jours + horaire)</string>
-    <string name="schedule_pattern_MonthlyRecurrent">Mensuel (mois + jour)</string>
+    <string name="schedule_pattern_MonthlyRecurrent">Mensuel (mois + jours)</string>
     <string name="schedule_pattern_WeeklyCustom">Hebdomadaire (moments personnalisés)</string>
     <string name="schedule_pattern_YearlyRecurrent">Annuel (dates récurrentes)</string>
     <string name="schedule_pattern_SpecificDates">Dates spécifiques</string>
@@ -1902,6 +1908,9 @@
     <string name="schedule_weekly_days_label">Jours de la semaine</string>
     <string name="schedule_monthly_config_label">Configuration mensuelle</string>
     <string name="schedule_day_of_month_label">Jour du mois (1-31)</string>
+    <string name="schedule_days_of_month_label">Jours du mois</string>
+    <string name="schedule_days_separator">, le </string>
+    <string name="schedule_days_last_separator"> et le </string>
     <string name="schedule_weekly_custom_label">Moments hebdomadaires</string>
     <string name="schedule_day_label">Jour</string>
     <string name="schedule_yearly_recurrent_label">Dates annuelles</string>
@@ -1912,7 +1921,7 @@
     <!-- SCHEDULE CONFIG - Preview formats -->
     <string name="schedule_preview_daily">Quotidien : %1$s</string>
     <string name="schedule_preview_weekly_simple">%1$s à %2$s</string>
-    <string name="schedule_preview_monthly">Le %1$d de %2$s à %3$s</string>
+    <string name="schedule_preview_monthly">Le %1$s de %2$s à %3$s</string>
     <string name="schedule_preview_weekly_custom">%1$s</string>
     <string name="schedule_preview_yearly">%1$s chaque année</string>
     <string name="schedule_preview_specific">%1$d dates programmées</string>
@@ -2578,7 +2587,7 @@
     <string name="schedule_type_description">Le genre de rythme</string>
     <string name="schedule_pattern_DailyMultiple_description">Chaque jour, à chacune des heures</string>
     <string name="schedule_pattern_WeeklySimple_description">Les jours de la semaine choisis, à une heure</string>
-    <string name="schedule_pattern_MonthlyRecurrent_description">Les mois choisis, un jour du mois, à une heure</string>
+    <string name="schedule_pattern_MonthlyRecurrent_description">Les mois choisis, les jours du mois choisis, à une heure</string>
     <string name="schedule_pattern_WeeklyCustom_description">À des moments de la semaine, chacun avec son jour et son heure</string>
     <string name="schedule_pattern_YearlyRecurrent_description">Chaque année, à chacune des dates, à son heure</string>
     <string name="schedule_pattern_SpecificDates_description">Une fois à chacun des instants</string>
@@ -2589,12 +2598,19 @@
     <string name="schedule_months_description">Les mois de l\'année</string>
     <string name="schedule_month_description">1 est janvier, 12 décembre</string>
     <string name="schedule_day_of_month_description">Le jour du mois ; un mois qui ne l\'a pas est sauté</string>
+    <string name="schedule_days_of_month_description">Les jours du mois, de 1 à 31 ; un mois qui n\'a pas l\'un d\'eux le saute</string>
     <string name="schedule_moments_description">Les moments de la semaine</string>
     <string name="schedule_moment_description">Un jour de la semaine et une heure</string>
     <string name="schedule_dates_description">Les dates de l\'année</string>
     <string name="schedule_date_description">Un jour d\'un mois, et une heure</string>
     <string name="schedule_timestamps_description">Les instants, chacun ayant lieu une fois</string>
     <string name="schedule_timestamp_description">Un instant où cela a lieu</string>
+    <string name="schedule_every_days_label">Tous les combien de jours</string>
+    <string name="schedule_every_weeks_label">Toutes les combien de semaines</string>
+    <string name="schedule_every_days_description">1, chaque jour ; au-dessus, un jour sur autant, placé par start_date</string>
+    <string name="schedule_every_weeks_description">1, chaque semaine ; au-dessus, une semaine sur autant, placée par start_date. Une semaine commence le jour que l\'utilisateur a réglé</string>
+    <string name="schedule_start_date_label">Prochaine fois</string>
+    <string name="schedule_start_date_description">Donné seulement quand every dépasse 1 : le jour de la prochaine fois, aaaa-MM-jj, qui place le cycle. Demander lequel à l\'utilisateur quand ce n\'est pas clair</string>
 
     <string name="field_type_reference_tool_instances_list_description">Les outils dont elle peut désigner les entrées</string>
 

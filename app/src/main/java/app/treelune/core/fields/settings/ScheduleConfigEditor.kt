@@ -15,6 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import app.treelune.core.strings.Strings
 import app.treelune.core.ui.*
+import app.treelune.core.utils.Cycle
+import app.treelune.core.utils.ScheduleCalculator
 import app.treelune.core.utils.ScheduleConfig
 import app.treelune.core.utils.SchedulePattern
 import app.treelune.core.utils.WeekMoment
@@ -91,9 +93,9 @@ fun ScheduleConfigEditor(
             (existingConfig?.pattern as? SchedulePattern.MonthlyRecurrent)?.months ?: listOf(1)
         )
     }
-    var monthlyDay by rememberSaveable {
+    var monthlyDays by rememberSaveable(stateSaver = serializableSaver(kotlinx.serialization.builtins.ListSerializer(Int.serializer()))) {
         mutableStateOf(
-            (existingConfig?.pattern as? SchedulePattern.MonthlyRecurrent)?.dayOfMonth ?: 1
+            (existingConfig?.pattern as? SchedulePattern.MonthlyRecurrent)?.daysOfMonth ?: listOf(1)
         )
     }
     var monthlyTime by rememberSaveable {
@@ -126,35 +128,44 @@ fun ScheduleConfigEditor(
         )
     }
 
-    // Common config fields (timezone now resolved from AppConfig globally)
+    // The cycle of a daily or weekly pattern (Cycle): one day or week in cycleEvery, placed by
+    // cycleStart, the day stored; shared by the three patterns that have one
+    val storedCycle = existingConfig?.pattern?.let { cycleOf(it) }
+    var cycleEvery by rememberSaveable { mutableStateOf(storedCycle?.first ?: 1) }
+    var cycleStart by rememberSaveable { mutableStateOf(storedCycle?.second) }
+
+    // The pattern as the editor stands, its cycle left aside: what the choices and the preview read
+    val base = if (selectedPatternType == "None") null else buildSchedulePattern(
+        patternType = selectedPatternType,
+        dailyTimes = dailyTimes,
+        weeklyDays = weeklyDays,
+        weeklyTime = weeklyTime,
+        monthlyMonths = monthlyMonths,
+        monthlyDays = monthlyDays,
+        monthlyTime = monthlyTime,
+        weeklyCustomMoments = weeklyCustomMoments,
+        yearlyDates = yearlyDates,
+        specificTimestamps = specificTimestamps
+    )
+    val cycled = base != null && Cycle.unitOf(base) != null && cycleEvery > 1
+    // The next times to choose from, one per place in the cycle; the one stored is the choice
+    // on the same place, found again whatever day it was stored on
+    val starts = remember(base, cycleEvery) {
+        if (base != null && cycled) ScheduleCalculator.cycleStarts(base, cycleEvery) else emptyList()
+    }
+    val start = starts.firstOrNull { day -> cycleStart?.let { ScheduleCalculator.sameCycle(base!!, cycleEvery, java.time.LocalDate.parse(it), day) } == true }
+        ?: starts.firstOrNull()
+    // The pattern the dialog gives. A pattern without any time to come has no choice: its start
+    // stays the one stored, or today, and the service refuses the empty pattern anyway
+    val pattern = base?.let {
+        if (!cycled) ScheduleCalculator.withCycle(it, 1, null)
+        else ScheduleCalculator.withCycle(it, cycleEvery, (start?.toString() ?: cycleStart ?: DateUtils.calendarToday().toString()))
+    }
 
     UI.Dialog(
         type = DialogType.CONFIGURE,
         onConfirm = {
-            val pattern = if (selectedPatternType == "None") {
-                null
-            } else {
-                buildSchedulePattern(
-                patternType = selectedPatternType,
-                dailyTimes = dailyTimes,
-                weeklyDays = weeklyDays,
-                weeklyTime = weeklyTime,
-                monthlyMonths = monthlyMonths,
-                monthlyDay = monthlyDay,
-                monthlyTime = monthlyTime,
-                    weeklyCustomMoments = weeklyCustomMoments,
-                    yearlyDates = yearlyDates,
-                    specificTimestamps = specificTimestamps
-                )
-            }
-
-            val scheduleConfig = if (pattern == null) {
-                null
-            } else {
-                ScheduleConfig(pattern = pattern)
-            }
-
-            onConfirm(scheduleConfig)
+            onConfirm(pattern?.let { ScheduleConfig(pattern = it) })
         },
         onCancel = onDismiss
     ) {
@@ -206,10 +217,10 @@ fun ScheduleConfigEditor(
                 )
                 "MonthlyRecurrent" -> MonthlyRecurrentEditor(
                     months = monthlyMonths,
-                    dayOfMonth = monthlyDay,
+                    days = monthlyDays,
                     time = monthlyTime,
                     onMonthsChange = { monthlyMonths = it },
-                    onDayChange = { monthlyDay = it },
+                    onDaysChange = { monthlyDays = it },
                     onTimeChange = { monthlyTime = it }
                 )
                 "WeeklyCustom" -> WeeklyCustomEditor(
@@ -226,21 +237,34 @@ fun ScheduleConfigEditor(
                 )
             }
 
+            // One day or week in N, and the next time when N is above 1
+            if (base != null && Cycle.unitOf(base) != null) {
+                CycleEditor(
+                    days = Cycle.unitOf(base) == Cycle.Unit.DAY,
+                    every = cycleEvery,
+                    starts = starts,
+                    start = start,
+                    onEveryChange = { cycleEvery = it },
+                    onStartChange = { cycleStart = it.toString() }
+                )
+            }
+
             // Preview label (only if not "None")
-            if (selectedPatternType != "None") {
-                val previewLabel = generatePreviewLabel(
+            if (pattern != null) {
+                val previewLabel = withCycle(pattern, generatePreviewLabel(
                     context = context,
                     patternType = selectedPatternType,
                     dailyTimes = dailyTimes,
                     weeklyDays = weeklyDays,
                     weeklyTime = weeklyTime,
                     monthlyMonths = monthlyMonths,
-                    monthlyDay = monthlyDay,
+                    monthlyDays = monthlyDays,
                     monthlyTime = monthlyTime,
                     weeklyCustomMoments = weeklyCustomMoments,
                     yearlyDates = yearlyDates,
                     specificTimestamps = specificTimestamps
-                )
+                ), s)
+                val nextTimes = remember(pattern) { nextTimes(pattern, 3) }
 
                 UI.Card(type = CardType.DEFAULT) {
                     Column(modifier = Modifier.padding(UI.Space.M)) {
@@ -252,12 +276,75 @@ fun ScheduleConfigEditor(
                             text = previewLabel,
                             type = TextType.BODY
                         )
+                        UI.Text(
+                            text = if (nextTimes.isEmpty()) s.shared("schedule_next_none")
+                                else s.shared("schedule_next_times").format(nextTimes.joinToString(" · ") {
+                                    DateUtils.format(it, "EEE d MMM HH:mm")
+                                }),
+                            type = TextType.CAPTION
+                        )
                     }
                 }
                 scheduled?.invoke()
             }
         }
     }
+}
+
+/**
+ * The cycle of a daily or weekly pattern: every how many [days] or weeks, and, above 1, which of
+ * the [starts] is the next time — one per place in the cycle, [start] the one chosen.
+ */
+@Composable
+private fun CycleEditor(
+    days: Boolean,
+    every: Int,
+    starts: List<java.time.LocalDate>,
+    start: java.time.LocalDate?,
+    onEveryChange: (Int) -> Unit,
+    onStartChange: (java.time.LocalDate) -> Unit
+) {
+    val context = LocalContext.current
+    val s = remember { Strings.`for`(context = context) }
+
+    Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+        UI.FormField(
+            required = false,
+            label = s.shared(if (days) "schedule_every_days_field" else "schedule_every_weeks_field"),
+            value = every.toString(),
+            onChange = { text -> text.toIntOrNull()?.takeIf { it >= 1 }?.let(onEveryChange) },
+            fieldType = FieldType.NUMERIC
+        )
+        if (every > 1 && starts.isNotEmpty()) {
+            val labels = starts.map { DateUtils.formatShortDay(it) }
+            UI.FormSelection(
+                required = false,
+                label = s.shared("schedule_start_date_label"),
+                options = labels,
+                selected = start?.let { labels[starts.indexOf(it)] } ?: labels.first(),
+                onSelect = { label -> onStartChange(starts[labels.indexOf(label)]) }
+            )
+        }
+    }
+}
+
+/** The cycle stored in [pattern], every how many and its start; null for a pattern without one. */
+private fun cycleOf(pattern: SchedulePattern): Pair<Int, String?>? = when (pattern) {
+    is SchedulePattern.DailyMultiple -> pattern.every to pattern.startDate
+    is SchedulePattern.WeeklySimple -> pattern.every to pattern.startDate
+    is SchedulePattern.WeeklyCustom -> pattern.every to pattern.startDate
+    else -> null
+}
+
+/** The [count] next times of [pattern] from now, fewer when it has no more. */
+private fun nextTimes(pattern: SchedulePattern, count: Int): List<Long> {
+    val times = mutableListOf<Long>()
+    var from = System.currentTimeMillis()
+    while (times.size < count) {
+        from = ScheduleCalculator.calculateNextExecution(pattern, from) ?: break
+        times += from
+    }
+    return times
 }
 
 /**
@@ -377,15 +464,15 @@ private fun WeeklySimpleEditor(
 
 /**
  * MonthlyRecurrent pattern editor
- * Specific months and day (e.g., 15th of January, March, June at 10:00)
+ * Specific months and days (e.g., 1st and 15th of January, March, June at 10:00)
  */
 @Composable
 private fun MonthlyRecurrentEditor(
     months: List<Int>,
-    dayOfMonth: Int,
+    days: List<Int>,
     time: String,
     onMonthsChange: (List<Int>) -> Unit,
-    onDayChange: (Int) -> Unit,
+    onDaysChange: (List<Int>) -> Unit,
     onTimeChange: (String) -> Unit
 ) {
     val context = LocalContext.current
@@ -424,17 +511,52 @@ private fun MonthlyRecurrentEditor(
             }
         }
 
-        // Day of month (1-31)
-        UI.FormField(
-            required = false,
-            label = s.shared("schedule_day_of_month_label"),
-            value = dayOfMonth.toString(),
-            onChange = { newDay ->
-                newDay.toIntOrNull()?.let { day ->
-                    if (day in 1..31) onDayChange(day)
+        // Days of the month (1-31), added and removed as the daily times are
+        UI.Text(
+            text = s.shared("schedule_days_of_month_label"),
+            type = TextType.SUBTITLE
+        )
+        days.forEachIndexed { index, day ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(UI.Space.S),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    UI.FormField(
+                        required = false,
+                        label = s.shared("schedule_day_of_month_label"),
+                        value = day.toString(),
+                        onChange = { newDay ->
+                            newDay.toIntOrNull()?.let { value ->
+                                if (value in 1..31) onDaysChange(days.toMutableList().apply { set(index, value) })
+                            }
+                        },
+                        fieldType = FieldType.NUMERIC
+                    )
                 }
-            },
-            fieldType = FieldType.NUMERIC
+
+                UI.ActionButton(
+                    action = ButtonAction.DELETE,
+                    display = ButtonDisplay.ICON,
+                    size = Size.S,
+                    onClick = {
+                        if (days.size > 1) {
+                            onDaysChange(days.filterIndexed { i, _ -> i != index })
+                        }
+                    }
+                )
+            }
+        }
+
+        UI.ActionButton(
+            action = ButtonAction.ADD,
+            display = ButtonDisplay.LABEL,
+            size = Size.M,
+            onClick = {
+                // The day after the last one, as the first one free from it
+                onDaysChange(days + ((days.maxOrNull() ?: 0) % 31 + 1))
+            }
         )
 
         // Time
@@ -807,7 +929,7 @@ private fun buildSchedulePattern(
     weeklyDays: List<Int>,
     weeklyTime: String,
     monthlyMonths: List<Int>,
-    monthlyDay: Int,
+    monthlyDays: List<Int>,
     monthlyTime: String,
     weeklyCustomMoments: List<WeekMoment>,
     yearlyDates: List<YearlyDate>,
@@ -816,7 +938,7 @@ private fun buildSchedulePattern(
     return when (patternType) {
         "DailyMultiple" -> SchedulePattern.DailyMultiple(dailyTimes)
         "WeeklySimple" -> SchedulePattern.WeeklySimple(weeklyDays, weeklyTime)
-        "MonthlyRecurrent" -> SchedulePattern.MonthlyRecurrent(monthlyMonths, monthlyDay, monthlyTime)
+        "MonthlyRecurrent" -> SchedulePattern.MonthlyRecurrent(monthlyMonths, monthlyDays.distinct().sorted(), monthlyTime)
         "WeeklyCustom" -> SchedulePattern.WeeklyCustom(weeklyCustomMoments)
         "YearlyRecurrent" -> SchedulePattern.YearlyRecurrent(yearlyDates)
         "SpecificDates" -> SchedulePattern.SpecificDates(specificTimestamps)
@@ -834,7 +956,7 @@ private fun generatePreviewLabel(
     weeklyDays: List<Int>,
     weeklyTime: String,
     monthlyMonths: List<Int>,
-    monthlyDay: Int,
+    monthlyDays: List<Int>,
     monthlyTime: String,
     weeklyCustomMoments: List<WeekMoment>,
     yearlyDates: List<YearlyDate>,
@@ -852,7 +974,7 @@ private fun generatePreviewLabel(
         }
         "MonthlyRecurrent" -> {
             val monthNames = monthlyMonths.map { s.shared("month_$it") }.joinToString(", ")
-            s.shared("schedule_preview_monthly").format(monthlyDay, monthNames, monthlyTime)
+            s.shared("schedule_preview_monthly").format(daysOfMonth(monthlyDays.distinct(), s), monthNames, monthlyTime)
         }
         "WeeklyCustom" -> {
             val momentsText = weeklyCustomMoments.joinToString(", ") { moment ->

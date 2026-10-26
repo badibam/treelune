@@ -595,7 +595,10 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             ?: return s.shared("error_tooltype_not_found").format(tooltype)
         val schema = app.treelune.core.tools.ToolConfigSettings.schema(toolType, "config:$tooltype", context)
         val result = SchemaValidator.validate(schema, JsonUtils.toMap(configJson), context)
-        return if (result.isValid) null else result.errorMessage ?: s.shared("message_validation_error_simple")
+        if (!result.isValid) return result.errorMessage ?: s.shared("message_validation_error_simple")
+        // A schedule the scheduler cannot read is refused here rather than failing each pass
+        return app.treelune.core.fields.settings.ScheduleSettings.refusal(
+            app.treelune.core.tools.ToolConfigSettings.nodes(toolType, context), JSONObject(configJson))
     }
 
     /**

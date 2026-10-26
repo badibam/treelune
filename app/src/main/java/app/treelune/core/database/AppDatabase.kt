@@ -114,7 +114,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 105
+        const val VERSION = 106
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2317,6 +2317,29 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** A monthly schedule runs on several days of the month: see MonthlyDaysAtV106. */
+        private val MIGRATION_105_106 = object : ConnectionMigration(105, 106) {
+            override fun migrate(database: MigrationDatabase) {
+                val v = app.treelune.core.versioning.MonthlyDaysAtV106
+                var rewritten = 0
+                for ((table, column) in v.COLUMNS) {
+                    database.query("SELECT id, $column FROM $table WHERE $column IS NOT NULL AND $column != ''").use { cursor ->
+                        while (cursor.moveToNext()) {
+                            val id = cursor.getString(0)
+                            // A row that cannot be read stays as it was and is logged: reading it then fails with the reason
+                            try {
+                                v.rewrite(cursor.getString(1))?.let { database.execSQL("UPDATE $table SET $column = ? WHERE id = ?", arrayOf<Any?>(it, id)); rewritten++ }
+                            } catch (e: Exception) {
+                                LogManager.database("MIGRATION 105->106: $table $id left as it was: ${e.message}", "ERROR", e)
+                            }
+                        }
+                    }
+                    app.treelune.core.versioning.HistoryCopies.rewrite(database, table) { v.historyCopy(table, it) }
+                }
+                LogManager.database("MIGRATION 105->106: $rewritten monthly schedule(s) with their days as a list", "INFO")
+            }
+        }
+
         /** The connector gains its own data threshold: see ExternalAccessDataAtV84. */
         private val MIGRATION_83_84 = object : ConnectionMigration(83, 84) {
             override fun migrate(database: MigrationDatabase) {
@@ -3369,7 +3392,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_101_102,
                     MIGRATION_102_103,
                     MIGRATION_103_104,
-                    MIGRATION_104_105
+                    MIGRATION_104_105,
+                    MIGRATION_105_106
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the
