@@ -54,4 +54,20 @@ class SequenceStepsTest {
         assertNull(SequenceSteps.corrected(kept, listOf(SequenceSteps.DONE)))
         assertNull(SequenceSteps.corrected(kept, listOf(SequenceSteps.DONE, "maybe")))
     }
+    /**
+     * A timed step keeps the timer it was set to beside the time it ran, an extension left out, and
+     * a step that read an entry's field keeps that entry designated beside its name then.
+     */
+    @Test
+    fun `a step keeps its planned timer and the entry it read, written and read back`() {
+        val entry = app.treelune.core.selection.Reference(app.treelune.core.selection.ReferenceKind.ENTRY, "e1", "data.audio")
+        val timed = PlannedStep("Breathing 3", null, StepEnd.TIMED, 120_000, emptyList(), source = "Library › Breathing 3", sourceEntry = entry)
+        val extended = SequenceGestures.extend(running(timed), 0)!!
+        val kept = SequenceSteps.of(SequenceGestures.done(extended, 165_000) as Step.Finished)
+
+        assertEquals(listOf(SequenceSteps.Kept("Breathing 3", SequenceSteps.DONE, 165_000, null, "Library › Breathing 3", 120_000, entry)), kept)
+        assertEquals(kept, SequenceSteps.read(SequenceSteps.toJson(kept)))
+        assertEquals(listOf(timed), SequencePlan.fromJson(SequencePlan.toJson(listOf(timed))))
+        assertNull(SequenceSteps.of(SequenceGestures.done(running(manual("Plank")), 5_000) as Step.Finished).single().planned)
+    }
 }

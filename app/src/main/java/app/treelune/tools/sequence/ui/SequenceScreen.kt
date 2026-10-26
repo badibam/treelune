@@ -64,6 +64,7 @@ import app.treelune.tools.sequence.SequenceRun
 import app.treelune.tools.sequence.SequenceService
 import app.treelune.tools.sequence.SequenceSteps
 import app.treelune.tools.sequence.SequenceToolType
+import app.treelune.tools.sequence.SequenceVariants
 import app.treelune.tools.sequence.StepEnd
 import app.treelune.tools.sequence.StepLength
 import kotlinx.coroutines.delay
@@ -137,9 +138,10 @@ internal fun roundsText(step: PlannedStep): String = SequenceSteps.roundsOf(step
 /**
  * A session's screen (docs/TOOLS.md, « Session (Sequence) »).
  *
- * Without a session running: « Start » (saying since when a planned one waited) and « Note after
- * the fact », the planned sessions with « Ignore all », the run read one line per step, the blocks
- * indented, then the history. During a session: the step large, its round, its clock, its
+ * Without a session running: « Start » (saying since when a planned one waited), the planned
+ * sessions with « Done », « Ignore » and « Ignore all », the run read one line per step, the
+ * blocks indented, or the timer's length, then the history. « Start » and « Done » first ask what
+ * the variant asks (LaunchDialog). During a session: the step large, its round, its clock, its
  * instruction, the next step small, the gestures. A session recorded as running that no service
  * runs was stopped with the app: resume or stop. A session over waits for « Finish the session »,
  * under the user's fields.
@@ -240,7 +242,8 @@ private fun Running(id: String, run: SequenceRun, s: StringsContext, gesture: (S
     val step = run.current
     val leadIn = run.elapsed(now) < 0
 
-    UI.Text(s.tool("running_position").format(run.position + 1, run.steps.size), TextType.CAPTION)
+    // A session of one step has no course to place it in
+    if (run.steps.size > 1) UI.Text(s.tool("running_position").format(run.position + 1, run.steps.size), TextType.CAPTION)
     UI.Card(type = CardType.DEFAULT) {
         Column(modifier = Modifier.fillMaxWidth().padding(UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
             if (leadIn) UI.Text(s.tool("running_get_ready"), TextType.CAPTION)
@@ -262,10 +265,11 @@ private fun Running(id: String, run: SequenceRun, s: StringsContext, gesture: (S
     FlowRow(horizontalArrangement = Arrangement.spacedBy(UI.Space.S), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
         if (run.isPaused) UI.Button(type = ButtonType.SECONDARY, onClick = { gesture(SequenceService.RESUME) }) { UI.Text(s.tool("action_resume"), TextType.LABEL) }
         else UI.Button(type = ButtonType.SECONDARY, onClick = { gesture(SequenceService.PAUSE) }) { UI.Text(s.tool("action_pause"), TextType.LABEL) }
-        UI.Button(type = ButtonType.DEFAULT, onClick = { gesture(SequenceService.SKIP) }) { UI.Text(s.tool("action_skip"), TextType.LABEL) }
+        // Skipping the only step is stopping
+        if (run.steps.size > 1) UI.Button(type = ButtonType.DEFAULT, onClick = { gesture(SequenceService.SKIP) }) { UI.Text(s.tool("action_skip"), TextType.LABEL) }
         if (run.position > 0) UI.Button(type = ButtonType.DEFAULT, onClick = { gesture(SequenceService.BACK) }) { UI.Text(s.tool("action_back"), TextType.LABEL) }
         UI.Button(type = ButtonType.DEFAULT, onClick = { gesture(SequenceService.RESTART) }) { UI.Text(s.tool("action_restart"), TextType.LABEL) }
-        if (step.end.timed) UI.Button(type = ButtonType.DEFAULT, onClick = { gesture(SequenceService.EXTEND) }) { UI.Text(s.tool("action_extend"), TextType.LABEL) }
+        if (app.treelune.tools.sequence.SequenceGestures.canExtend(step)) UI.Button(type = ButtonType.DEFAULT, onClick = { gesture(SequenceService.EXTEND) }) { UI.Text(s.tool("action_extend"), TextType.LABEL) }
     }
     UI.ActionButton(action = ButtonAction.STOP, requireConfirmation = true, confirmMessage = s.tool("confirm_stop")) { gesture(SequenceService.STOP) }
 }
@@ -281,7 +285,7 @@ private fun Closing(entry: SequenceEntry, fields: List<FieldDefinition>, s: Stri
     UI.Text(s.tool("closing_title"), TextType.SUBTITLE)
     UI.Text(listOfNotNull(
         entry.duration?.let { clockText(it) },
-        if (entry.stepsDone != null && entry.stepsTotal != null) s.tool("steps_of").format(entry.stepsDone, entry.stepsTotal) else null
+        stepsText(entry, s)
     ).joinToString(" · "), TextType.BODY)
     // Its fields filled for the first time: their default values proposed where they are empty
     if (fields.isNotEmpty()) CustomFieldsInput(customFieldsMetadata = fields, values = values, onValuesChange = { values = it }, context = context, newEntry = true)
@@ -350,8 +354,21 @@ private fun Idle(config: JSONObject, entries: List<SequenceEntry>, s: StringsCon
     val planned = entries.filter { it.status == SequenceToolType.Status.PLANNED }.sortedByDescending { it.timestamp }
     val history = entries.filter { it.status != SequenceToolType.Status.PLANNED && it.status != SequenceToolType.Status.TO_FINISH }.sortedByDescending { it.timestamp }
 
+    val variant = SequenceVariants.of(config)
+    // What the question opened for: starting, or a planned session done, by its id
+    var asking by rememberSaveable { mutableStateOf<String?>(null) }
+    fun launch(operation: String, params: Map<String, Any?>) {
+        if (variant == SequenceVariants.STEPS) call(operation, params) {} else asking = params["id"] as? String ?: SequenceService.START
+    }
+    asking?.let { forWhat ->
+        LaunchDialog(config, history, s, onAnswer = { answer ->
+            asking = null
+            if (forWhat == SequenceService.START) call(SequenceService.START, answer) {} else call(SequenceService.COMPLETE, answer + ("id" to forWhat)) {}
+        }, onCancel = { asking = null })
+    }
+
     planned.firstOrNull()?.let { UI.Text(s.tool("planned_waiting").format(FormatUtils.formatRelativeTimePast(it.timestamp, context)), TextType.CAPTION) }
-    UI.Button(type = ButtonType.PRIMARY, onClick = { call(SequenceService.START, emptyMap()) {} }) { UI.Text(s.tool("action_start"), TextType.LABEL) }
+    UI.Button(type = ButtonType.PRIMARY, onClick = { launch(SequenceService.START, emptyMap()) }) { UI.Text(s.tool("action_start"), TextType.LABEL) }
 
     if (planned.isNotEmpty()) {
         Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.M)) {
@@ -362,14 +379,19 @@ private fun Idle(config: JSONObject, entries: List<SequenceEntry>, s: StringsCon
             // The date across the width, its buttons under it
             UI.Text(DateTimeFormatter.formatForDisplay(entry.timestamp, context), TextType.BODY)
             app.treelune.core.ui.components.ButtonRow {
-                UI.Button(type = ButtonType.SECONDARY, onClick = { call(SequenceService.COMPLETE, mapOf("id" to entry.id)) {} }) { UI.Text(s.tool("action_mark_done"), TextType.LABEL) }
+                UI.Button(type = ButtonType.SECONDARY, onClick = { launch(SequenceService.COMPLETE, mapOf("id" to entry.id)) }) { UI.Text(s.tool("action_mark_done"), TextType.LABEL) }
                 UI.Button(type = ButtonType.DEFAULT, onClick = { call(SequenceService.IGNORE, mapOf("id" to entry.id)) {} }) { UI.Text(s.tool("action_ignore"), TextType.LABEL) }
             }
         }
     }
 
-    UI.Text(s.tool("field_steps"), TextType.SUBTITLE)
-    StepLines(config.optJSONArray(SequencePlan.STEPS), depth = 0, s)
+    when (variant) {
+        SequenceVariants.STEPS -> {
+            UI.Text(s.tool("field_steps"), TextType.SUBTITLE)
+            StepLines(config.optJSONArray(SequencePlan.STEPS), depth = 0, s)
+        }
+        SequenceVariants.TIMER -> UI.Text(s.tool("timer_proposed").format(clockText(config.optLong(SequenceVariants.TIMER_DURATION, SequenceVariants.DEFAULT_TIMER))), TextType.CAPTION)
+    }
 
     UI.Text(s.tool("history"), TextType.SUBTITLE)
     if (history.isEmpty()) UI.Text(s.tool("history_empty"), TextType.CAPTION)
@@ -381,12 +403,16 @@ private fun Idle(config: JSONObject, entries: List<SequenceEntry>, s: StringsCon
     }
 }
 
+/** How far a session went, « 3 of 5 steps »; nothing for one of a single step, whose state says it. */
+internal fun stepsText(entry: SequenceEntry, s: StringsContext): String? =
+    if (entry.stepsDone != null && entry.stepsTotal != null && entry.stepsTotal!! > 1) s.tool("steps_of").format(entry.stepsDone, entry.stepsTotal) else null
+
 /** One history line: when, its state, how long, how far. */
 internal fun historyLine(entry: SequenceEntry, s: StringsContext, context: Context): String = listOfNotNull(
     DateTimeFormatter.formatForDisplay(entry.timestamp, context),
     s.tool("status_${entry.status}"),
     entry.duration?.let { clockText(it) },
-    if (entry.stepsDone != null && entry.stepsTotal != null) s.tool("steps_of").format(entry.stepsDone, entry.stepsTotal) else null
+    stepsText(entry, s)
 ).joinToString(" · ")
 
 /**
@@ -488,9 +514,10 @@ private fun KeptStepsView(
     UI.Text(s.tool("status_${counts.status}"), TextType.SUBTITLE)
     FieldInput(field("when", FieldType.DATETIME), at, onAt, context, required = true)
     FieldInput(field(SequenceToolType.DURATION, FieldType.DURATION, SequenceToolType.SESSION_UNITS), duration, onDuration, context)
-    // One line a step: its name, its round, its time as the label of its state
+    // One line a step: its name, its round, its time beside the one planned, as the label of its state
     kept.forEachIndexed { i, step ->
-        FieldInput(state.copy(name = "status_$i", displayName = listOfNotNull(step.name, step.rounds, step.source, step.time?.let { clockText(it) }).joinToString(" · ")),
+        val time = step.time?.let { done -> step.planned?.let { s.tool("kept_time_of").format(clockText(done), clockText(it)) } ?: clockText(done) }
+        FieldInput(state.copy(name = "status_$i", displayName = listOfNotNull(step.name, step.rounds, step.source, time).joinToString(" · ")),
             chosen.getOrElse(i) { step.status }, { value ->
                 val status = value as? String ?: return@FieldInput
                 statuses = chosen.mapIndexed { j, current -> if (j == i) status else current }.joinToString(",")

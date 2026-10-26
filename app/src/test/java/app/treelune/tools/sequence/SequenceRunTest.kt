@@ -156,4 +156,12 @@ class SequenceRunTest {
         assertEquals(0L, back.elapsed(100_000))
         assertEquals(90_000L, back.paused)
     }
+    /** A timer that is its medium's has nothing after it to extend into; one of its own extends. */
+    @Test
+    fun `a step lasting its medium is not extended`() {
+        val medium = PlannedStep("Breathing 3", null, StepEnd.TIMED, 120_000, emptyList(), byMedium = true)
+        val own = medium.copy(byMedium = false)
+        assertEquals(null, SequenceGestures.extend(SequenceRun.start(listOf(medium), 0), 10_000))
+        assertEquals(120_000 + SequenceRun.EXTENSION, SequenceGestures.extend(SequenceRun.start(listOf(own), 0), 10_000)!!.timerLength())
+    }
 }

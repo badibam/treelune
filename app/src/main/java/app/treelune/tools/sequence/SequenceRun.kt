@@ -189,14 +189,17 @@ object SequenceGestures {
 
     /**
      * [SequenceRun.EXTENSION] more on the current step's timer; a held step starts again with that
-     * alone left. Null for a step without a timer.
+     * alone left. Null for a step without a timer, or whose timer is its medium's.
      */
     fun extend(run: SequenceRun, now: Long): SequenceRun? {
-        if (!run.current.end.timed) return null
+        if (!canExtend(run.current)) return null
         val extended = run.extended + SequenceRun.EXTENSION
         return if (run.held) run.copy(stepStart = run.clock(now) - run.timerLength(), extended = extended, held = false)
         else run.copy(extended = extended)
     }
+
+    /** Whether [step]'s timer can be extended: one of its own, not its medium's, after which there is only silence. */
+    fun canExtend(step: PlannedStep): Boolean = step.end.timed && !step.byMedium
 
     fun stop(run: SequenceRun, now: Long): Step.Finished = Step.Finished(run, now, completed = false)
 

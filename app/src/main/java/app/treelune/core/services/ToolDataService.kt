@@ -55,7 +55,7 @@ class ToolDataService(private val context: Context) : ExecutableService {
 
     companion object {
         /** The parameters of tool_data.get. */
-        private val GET_PARAMS = setOf("tool_instance_id", "fields", "filters", "limit", "page", "running")
+        private val GET_PARAMS = setOf("tool_instance_id", "fields", "filters", "sort", "limit", "page", "running")
         private val VALUES_PARAMS = setOf("tool_instance_id", "field", "limit")
         /** How many values a text field offers at most, the most frequent. */
         private const val VALUES_LIMIT = 20
@@ -554,8 +554,13 @@ class ToolDataService(private val context: Context) : ExecutableService {
                 is EntryFilters.Parsed.Refused -> return OperationResult.error(parsed.error)
                 is EntryFilters.Parsed.Ready -> parsed.filters
             }
+            // The order, newest first without one (EntrySort)
+            val sort = when (val parsed = app.treelune.core.fields.EntrySort.parse(params.optJSONArray("sort") ?: JSONArray(), fields) { s.shared(it) }) {
+                is app.treelune.core.fields.EntrySort.Parsed.Refused -> return OperationResult.error(parsed.error)
+                is app.treelune.core.fields.EntrySort.Parsed.Ready -> parsed.keys
+            }
 
-            val select = EntryFilters.select(toolInstanceId, filters, fields, limit.takeIf { hasLimit }, offset)
+            val select = EntryFilters.select(toolInstanceId, filters, fields, limit.takeIf { hasLimit }, offset, sort)
             val count = EntryFilters.count(toolInstanceId, filters, fields)
             Pair(
                 dao.getFiltered(SimpleSQLiteQuery(select.clause, select.args.toTypedArray())),

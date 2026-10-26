@@ -21,7 +21,7 @@ object SettingDefaults {
                     case.keys().forEach { config.put(it, case.get(it)) }
                 }
                 is SettingNode.ListOf, is SettingNode.Section, is SettingNode.Condition,
-                is SettingNode.Term, is SettingNode.Selection, is SettingNode.Period, is SettingNode.Instants -> Unit
+                is SettingNode.Term, is SettingNode.Selection, is SettingNode.Sort, is SettingNode.Period, is SettingNode.Instants -> Unit
             }
         }
         return config

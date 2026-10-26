@@ -9,7 +9,6 @@
     <string name="guide_screen">## Avant\n- Commencer : lance la séance, après un « Prépare-toi »\nPour une séance prévue en attente :\n- Faite : tu l\'as faite sans suivre l\'écran\n- Ignorer : elle ne compte pas\n- Tout ignorer : pour celles qui se sont accumulées pendant une absence\n\n## Pendant\n- Pause, puis Reprendre\n- Fait : termine l\'étape à la main\n- Passer : saute l\'étape\n- Retour : revient à l\'étape précédente\n- +15 s : allonge le minuteur\n- Recommencer l\'étape\n- {square} Arrêter : les étapes pas encore atteintes restent non faites\nSi l\'app se ferme pendant une séance, la séance reprend à son étape, et le temps passé compte comme une pause.\n\n## Après\n- Terminer la séance : sous tes champs si l\'outil en a ; jusque-là la séance attend, et une autre ne peut pas commencer\nChaque séance est gardée dans l\'historique, avec sa durée et ses étapes. Touche une séance pour corriger ses étapes (faites, sautées, non atteintes) et tes champs.</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Des étapes préparées à l\'avance, suivies à l\'écran avec un minuteur et un signal à chaque changement, comme un entraînement ou une recette</string>
-    <string name="section_steps">Déroulé</string>
     <string name="section_signals">Signaux</string>
     <string name="section_schedule">Planning</string>
     <string name="field_steps">Déroulé</string>
@@ -96,6 +95,7 @@
     <string name="error_not_planned">Cette séance n\'est pas une séance prévue</string>
     <string name="error_back_first">Aucune étape avant celle-ci</string>
     <string name="error_extend_manual">Cette étape n\'a pas de minuteur</string>
+    <string name="error_extend_medium">Cette étape dure son média : après lui, il ne reste rien à jouer</string>
     <string name="action_start">Commencer</string>
     <string name="action_ignore">Ignorer</string>
     <string name="action_ignore_all">Tout ignorer</string>
@@ -189,4 +189,32 @@
     <string name="operation_plan">Prévoit une séance maintenant, à côté du planning : une entrée prévue datée de maintenant, sa notification et son événement comme une séance planifiée</string>
     <string name="error_plan">La séance n\'a pas été prévue</string>
     <string name="verbalize_plan">Séance prévue maintenant</string>
+    <string name="kept_time_of">%1$s sur %2$s</string>
+    <string name="section_session">Déroulé</string>
+    <string name="field_variant">Sorte de séance</string>
+    <string name="schema_variant">Ce qui fait la séance : ses étapes, un minuteur, ou un son ou une vidéo</string>
+    <string name="variant_steps">Étapes</string>
+    <string name="variant_timer">Minuteur</string>
+    <string name="variant_media">Son ou vidéo</string>
+    <string name="schema_variant_steps">Ses étapes et ses blocs, passés l\'un après l\'autre</string>
+    <string name="schema_variant_timer">Un seul minuteur, sa durée demandée au démarrage, celle réglée ici proposée</string>
+    <string name="schema_variant_media">Un son ou une vidéo joué en entier, pris dans une entrée choisie au démarrage parmi celles d\'une sélection, dans le champ Fichier nommé</string>
+    <string name="field_timer_duration">Durée proposée</string>
+    <string name="schema_timer_duration">Le minuteur proposé au démarrage, et pris quand une séance est notée sans durée</string>
+    <string name="field_media_source">Entrées où choisir</string>
+    <string name="field_media_field">Fichier joué</string>
+    <string name="schema_media_field">Le chemin du champ Fichier de ces entrées qui tient le son ou la vidéo (« data.audio »)</string>
+    <string name="field_media_sort">Ordre</string>
+    <string name="field_media_entry">Entrée jouée</string>
+    <string name="schema_complete_entry">Pour une séance d\'un son ou d\'une vidéo, obligatoire : l\'id de l\'entrée jouée, une de sa sélection</string>
+    <string name="error_media_field">Le fichier joué, %1$s, n\'est pas un champ de sons ou de vidéos des entrées où choisir</string>
+    <string name="error_timer_length">Un minuteur dure plus que rien</string>
+    <string name="error_media_entry_missing">Dis quelle entrée est jouée : une séance d\'un son ou d\'une vidéo joue une de ses entrées</string>
+    <string name="error_media_entry_outside">Cette entrée n\'est pas parmi celles où choisir</string>
+    <string name="error_media_entry_no_file">Cette entrée n\'a ni son ni vidéo à jouer</string>
+    <string name="launch_timer">Combien de temps ?</string>
+    <string name="launch_media">Que jouer ?</string>
+    <string name="launch_media_none">Aucune entrée où choisir n\'a de son ni de vidéo</string>
+    <string name="launch_media_last">Jouée en dernier</string>
+    <string name="timer_proposed">Minuteur · %1$s proposé</string>
 </resources>

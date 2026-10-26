@@ -123,7 +123,7 @@ object SequenceToolType : ToolTypeContract {
         val s = s(context)
         val shared = Strings.`for`(context = context)
         return listOf(
-            SettingNode.Section(s.tool("section_steps"), listOf(steps(s::tool))),
+            SettingNode.Section(s.tool("section_session"), listOf(variant(s::tool))),
             SettingNode.Section(s.tool("section_signals"), listOf(
                 SettingNode.Field(field(STEP_SIGNAL, s.tool("field_step_signal"), FieldType.CHOICE, s.tool("schema_step_signal"),
                     choice(StepSignal.ALL) { s.tool("step_signal_$it") }), required = true, default = StepSignal.SOUND_AND_VIBRATION),
@@ -141,6 +141,33 @@ object SequenceToolType : ToolTypeContract {
             ))
         )
     }
+
+    /**
+     * What makes a session (SequenceVariants): its steps; a timer, its length proposed at launch;
+     * or a medium, played from an entry chosen at launch among a selection's, from the file field
+     * named, offered in the order of a sort.
+     */
+    private fun variant(text: (String) -> String) = SettingNode.Variant(
+        selector = SettingNode.Field(field(SequenceVariants.VARIANT, text("field_variant"), FieldType.CHOICE, text("schema_variant"),
+            choice(SequenceVariants.ALL) { text("variant_$it") }), required = true, default = SequenceVariants.STEPS),
+        cases = mapOf(
+            SequenceVariants.STEPS to listOf(steps(text)),
+            SequenceVariants.TIMER to listOf(
+                SettingNode.Field(field(SequenceVariants.TIMER_DURATION, text("field_timer_duration"), FieldType.DURATION, text("schema_timer_duration"), SESSION_UNITS),
+                    required = true, default = SequenceVariants.DEFAULT_TIMER)
+            ),
+            SequenceVariants.MEDIA to listOf(
+                SettingNode.Selection(SequenceVariants.MEDIA_SOURCE, text("field_media_source"), text("reference_session_start"), required = true),
+                SettingNode.Field(field(SequenceVariants.MEDIA_FIELD, text("field_media_field"), FieldType.TEXT, text("schema_media_field"), mapOf("length" to TextLength.SHORT.name)),
+                    required = true, fieldOf = SequenceVariants.MEDIA_SOURCE, fieldOfKinds = setOf(FileKind.AUDIO, FileKind.VIDEO)),
+                SettingNode.Sort(SequenceVariants.MEDIA_SORT, text("field_media_sort"), SequenceVariants.MEDIA_SOURCE)
+            )
+        ),
+        descriptions = SequenceVariants.ALL.associateWith { text("schema_variant_$it") }
+    )
+
+    /** The name a step in a block is written under once, for the AI that reads the schema (SchemaNotation). */
+    private const val BLOCK_STEP = "BlockStep"
 
     /** The steps of a session, as its config holds them under "steps"; [text] gives the tool's strings. */
     fun steps(text: (String) -> String): SettingNode.ListOf = stepList(text, depth = 0)
@@ -162,7 +189,9 @@ object SequenceToolType : ToolTypeContract {
                         stepList(text, depth + 1)
                     )
                 ),
-                descriptions = mapOf(SequencePlan.KIND_STEP to text("schema_kind_step"), SequencePlan.KIND_BLOCK to text("schema_kind_block"))
+                descriptions = mapOf(SequencePlan.KIND_STEP to text("schema_kind_step"), SequencePlan.KIND_BLOCK to text("schema_kind_block")),
+                // A block's step, here and in a block in a block, written once for the AI
+                definitions = if (depth > 0) mapOf(SequencePlan.KIND_STEP to BLOCK_STEP) else emptyMap()
             )
         )
         // The session's course at the top, a block's steps below; at the deepest, steps only
@@ -171,7 +200,8 @@ object SequenceToolType : ToolTypeContract {
             depth == SequencePlan.MAX_DEPTH -> "schema_inner_element"
             else -> "schema_block_element"
         }
-        return SettingNode.ListOf(SequencePlan.STEPS, text("field_steps"), SettingNode.Item.Of(item, description = text(element)), required = true, minItems = 1,
+        return SettingNode.ListOf(SequencePlan.STEPS, text("field_steps"),
+            SettingNode.Item.Of(item, description = text(element), definition = BLOCK_STEP.takeIf { depth == SequencePlan.MAX_DEPTH }), required = true, minItems = 1,
             summary = listOf(SequencePlan.NAME), description = text(if (depth == 0) "schema_steps" else "schema_block_steps"))
     }
 
@@ -255,7 +285,8 @@ object SequenceToolType : ToolTypeContract {
             ToolOperation(SequenceService.COMPLETE, s.tool("operation_complete"), listOf(
                 SettingNode.Field(field("id", s.tool("field_entry"), FieldType.TEXT, s.tool("schema_complete_id"), mapOf("length" to TextLength.SHORT.name))),
                 SettingNode.Field(field("timestamp", s.tool("field_when"), FieldType.DATETIME, s.tool("schema_complete_timestamp"))),
-                SettingNode.Field(field(DURATION, s.tool("field_duration"), FieldType.DURATION, s.tool("schema_complete_duration"), SESSION_UNITS))
+                SettingNode.Field(field(DURATION, s.tool("field_duration"), FieldType.DURATION, s.tool("schema_complete_duration"), SESSION_UNITS)),
+                SettingNode.Field(field("entry", s.tool("field_media_entry"), FieldType.TEXT, s.tool("schema_complete_entry"), mapOf("length" to TextLength.SHORT.name)))
             )),
             ToolOperation(SequenceService.CORRECT, s.tool("operation_correct"), listOf(
                 id,
@@ -280,9 +311,29 @@ object SequenceToolType : ToolTypeContract {
 
     override fun getService(context: Context): ExecutableService = SequenceService(context)
 
-    /** A step without a length of its own that would pass by itself: nothing would ever end it. */
-    override suspend fun refuseConfig(config: JSONObject, context: Context): String? =
-        SequencePlan.endless(config)?.let { s(context).tool("error_auto_next_without_length").format(it) }
+    /**
+     * A step without a length of its own that would pass by itself: nothing would ever end it. A
+     * medium's field: a file field of its selection's tool that takes sounds or videos.
+     */
+    override suspend fun refuseConfig(config: JSONObject, context: Context): String? = when (SequenceVariants.of(config)) {
+        SequenceVariants.STEPS -> SequencePlan.endless(config)?.let { s(context).tool("error_auto_next_without_length").format(it) }
+        SequenceVariants.MEDIA -> refuseMediaField(config, context)
+        else -> null
+    }
+
+    private suspend fun refuseMediaField(config: JSONObject, context: Context): String? {
+        val s = s(context)
+        val toolId = config.optJSONObject(SequenceVariants.MEDIA_SOURCE)?.optJSONObject("target")?.optString("id")?.takeIf { it.isNotEmpty() } ?: return null
+        val path = config.optString(SequenceVariants.MEDIA_FIELD)
+        val fields = try {
+            app.treelune.core.fields.ToolFields.filterable(toolId, context, s)
+        } catch (e: IllegalStateException) {
+            return e.message
+        }
+        val field = fields[path]
+        val plays = field != null && field.type == FieldType.FILE && FileField.kinds(field.config).any { it == FileKind.AUDIO || it == FileKind.VIDEO }
+        return if (plays) null else s.tool("error_media_field").format(path)
+    }
     override fun getScheduler(): ToolScheduler = SequenceScheduler
 
     override fun getDatabaseEntities(): List<Class<*>> = listOf(ToolDataEntity::class.java)

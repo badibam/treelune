@@ -28,8 +28,10 @@ sealed class SettingNode {
      *   options, bounds — which the form reads to enter it and the service to check it. Its
      *   schema is its type's alone, the config being set beside it
      * @property fieldOf The name of the setting beside it that designates a tool instance (a
-     *   REFERENCE): this one is the path of one of that tool's fields ("data.kcal"), which the form
-     *   offers to choose among rather than to type
+     *   REFERENCE, or a Selection, its target): this one is the path of one of that tool's fields
+     *   ("data.kcal"), which the form offers to choose among rather than to type
+     * @property fieldOfKinds With [fieldOf], the file fields alone that take one of these kinds
+     *   are offered; empty, every field
      * @property rowField A field of the rows the config describes where the setting stands (a
      *   column of a chart's layer), by name: the form offers those its owner gives (RowFields)
      */
@@ -42,6 +44,7 @@ sealed class SettingNode {
         val systemWritten: Boolean = false,
         val valueOfDefined: Boolean = false,
         val fieldOf: String? = null,
+        val fieldOfKinds: Set<app.treelune.core.files.FileKind> = emptySet(),
         val rowField: Boolean = false
     ) : SettingNode()
 
@@ -135,14 +138,19 @@ sealed class SettingNode {
      *
      * @property descriptions What each option means, by option, for the AI that reads the schema:
      *   the selector's own description says what the choice is, not what each option is
+     * @property definitions The name an option's settings are written under once, at the end of
+     *   the schema the AI reads, by option, where the same settings stand in several places (a
+     *   step in a block, inside a block in a block too), as Group.definition (SchemaNotation)
      */
     data class Variant(
         val selector: Field,
         val cases: Map<String, List<SettingNode>>,
-        val descriptions: Map<String, String> = emptyMap()
+        val descriptions: Map<String, String> = emptyMap(),
+        val definitions: Map<String, String> = emptyMap()
     ) : SettingNode() {
         init {
             require(cases.keys.containsAll(descriptions.keys)) { "The variant '${selector.definition.name}' describes options it does not have: ${descriptions.keys - cases.keys}" }
+            require(cases.keys.containsAll(definitions.keys)) { "The variant '${selector.definition.name}' names options it does not have: ${definitions.keys - cases.keys}" }
         }
     }
 
@@ -205,6 +213,19 @@ sealed class SettingNode {
     ) : SettingNode()
 
     /**
+     * The order of the entries a selection beside it holds, stored under [name] (the Sort brick,
+     * docs/BRICKS.md, EntrySort): `[{"field", "direction"}]`, each field one of that selection's
+     * tool, empty for the newest first; drawn by SortSetting.
+     *
+     * @property selection The name of the Selection setting beside it whose entries it orders
+     */
+    data class Sort(
+        val name: String,
+        val label: String,
+        val selection: String
+    ) : SettingNode()
+
+    /**
      * A period stored under [name] (the Période brick, docs/BRICKS.md): `{"start", "end"}`, each
      * bound an instant (TimePoint), absent for no limit; drawn by PeriodPicker.
      *
@@ -260,7 +281,7 @@ fun List<SettingNode>.storedField(name: String): FieldDefinition? {
                 ?: node.cases.values.firstNotNullOfOrNull { it.storedField(name) }
             is SettingNode.Section -> node.nodes.storedField(name)
             is SettingNode.Group, is SettingNode.ListOf, is SettingNode.Condition,
-            is SettingNode.Term, is SettingNode.Selection, is SettingNode.Period, is SettingNode.Instants -> null
+            is SettingNode.Term, is SettingNode.Selection, is SettingNode.Sort, is SettingNode.Period, is SettingNode.Instants -> null
         }
         if (found != null) return found
     }
@@ -301,6 +322,7 @@ fun List<SettingNode>.labelOf(name: String): String? {
             is SettingNode.Condition -> node.label.takeIf { node.name == name }
             is SettingNode.Term -> node.label.takeIf { node.name == name }
             is SettingNode.Selection -> node.label.takeIf { node.name == name }
+            is SettingNode.Sort -> node.label.takeIf { node.name == name }
             is SettingNode.Period -> node.label.takeIf { node.name == name }
             is SettingNode.Instants -> node.label.takeIf { node.name == name }
         }

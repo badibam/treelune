@@ -136,10 +136,12 @@ class SchemaNotationTest {
         ))
         val notation = SchemaNotation.render(modelView(SettingsSchemaGenerator.generate(nodes, text)))
 
-        assertTrue(notation, notation.contains("kind*: always step"))
-        assertTrue(notation, notation.contains("if end = timed:"))
-        assertTrue(notation, notation.contains("if end = manual: nothing more"))
-        assertTrue(notation, "if kind = step" !in notation)
+        assertTrue(notation, notation.contains("kind*: step|block"))
+        assertTrue(notation, notation.contains("  if kind = step:\n    end*: timed|manual"))
+        assertTrue(notation, notation.contains("      if end = timed:\n        duration*"))
+        assertTrue(notation, notation.contains("      if end = manual: nothing more"))
+        assertTrue(notation, notation.contains("  if kind = block:\n    repeat*"))
+        assertEquals(1, Regex("end\\*:").findAll(notation).count())
     }
 
     @Test
@@ -210,5 +212,49 @@ class SchemaNotationTest {
         }
         is JSONArray -> (0 until schema.length()).flatMap { said(schema.get(it)) }.toSet()
         else -> emptySet()
+    }
+
+    /**
+     * Two variants side by side, whose branches the generator crosses: what every branch holds is
+     * written once, and each option's own settings once, under it.
+     */
+    @Test
+    fun twoVariantsSideBySideWriteEachOptionOnce() {
+        fun choice(name: String, vararg options: String) = SettingNode.Field(field(name, FieldType.CHOICE,
+            mapOf("options" to options.map { mapOf("value" to it) })), required = true)
+        val nodes = listOf(
+            SettingNode.Field(field("name", FieldType.TEXT)),
+            SettingNode.Variant(choice("kind", "steps", "timer"), mapOf(
+                "steps" to listOf(SettingNode.Field(field("count", FieldType.NUMERIC, mapOf("decimals" to 0)), required = true)),
+                "timer" to listOf(SettingNode.Field(field("length", FieldType.DURATION), required = true)))),
+            SettingNode.Variant(choice("expiry", "never", "after"), mapOf(
+                "never" to emptyList(),
+                "after" to listOf(SettingNode.Field(field("delay", FieldType.DURATION), required = true))))
+        )
+        val notation = SchemaNotation.render(modelView(SettingsSchemaGenerator.generate(nodes, text)))
+
+        listOf("description of name", "description of count", "description of length", "description of delay").forEach {
+            assertEquals(notation, 1, Regex(it).findAll(notation).count())
+        }
+        assertTrue(notation, notation.contains("if kind = timer:\n    length*"))
+        assertTrue(notation, notation.contains("if expiry = after:\n    delay*"))
+        assertTrue(notation, notation.contains("if expiry = never: nothing more"))
+    }
+
+    /** An option named, and an object named the same elsewhere: written once, at the end. */
+    @Test
+    fun aNamedOptionIsWrittenOnceWithTheObjectOfItsName() {
+        fun choice(name: String, vararg options: String) = SettingNode.Field(field(name, FieldType.CHOICE,
+            mapOf("options" to options.map { mapOf("value" to it) })), required = true)
+        val step = listOf(SettingNode.Field(field("label", FieldType.TEXT), required = true), SettingNode.Field(field("weight", FieldType.NUMERIC, mapOf("decimals" to 0))))
+        val nodes = listOf(
+            SettingNode.Variant(choice("kind", "step", "none"), mapOf("step" to step, "none" to emptyList()), definitions = mapOf("step" to "Step")),
+            SettingNode.ListOf("more", "more", SettingNode.Item.Of(step, description = "one more", definition = "Step"), summary = listOf("label"), description = "more steps")
+        )
+        val notation = SchemaNotation.render(modelView(SettingsSchemaGenerator.generate(nodes, text)))
+
+        assertTrue(notation, notation.contains("if kind = step: Step (see Step)"))
+        assertTrue(notation, notation.contains("list of Step (see Step)"))
+        assertEquals(notation, 1, Regex("description of weight").findAll(notation).count())
     }
 }

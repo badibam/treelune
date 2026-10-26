@@ -33,7 +33,7 @@ object ConfigTerms {
             }.orEmpty()
             is SettingNode.Variant -> node.cases.values.flatMap { all(it, config) }
             is SettingNode.Section -> all(node.nodes, config)
-            is SettingNode.Field, is SettingNode.Condition, is SettingNode.Selection, is SettingNode.Period, is SettingNode.Instants -> emptyList()
+            is SettingNode.Field, is SettingNode.Condition, is SettingNode.Selection, is SettingNode.Sort, is SettingNode.Period, is SettingNode.Instants -> emptyList()
         }
     }
 

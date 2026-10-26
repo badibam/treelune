@@ -18,9 +18,12 @@ import org.json.JSONObject
  * A session's operations (docs/TOOLS.md, « Session (Sequence) »).
  *
  * For the screen, the notification and the AI:
- * - complete: `id`, `timestamp`, `duration` — a session done without following the screen, all
- *   its steps counted done: the planned one `id`, at its planned time unless `timestamp` is given;
- *   without `id`, one that was not planned, at `timestamp`, then required
+ * - complete: `id`, `timestamp`, `duration`, `entry` — a session done without following the
+ *   screen, all its steps counted done: the planned one `id`, at its planned time unless
+ *   `timestamp` is given; without `id`, one that was not planned, at `timestamp`, then required.
+ *   What its variant asks at launch is given as for `start` (SequenceVariants): a timer's
+ *   `duration`, its config's without one; a medium's `entry`, required, its length the
+ *   session's without a `duration`
  * - correct: `id`, `timestamp`, `duration`, and `step_statuses` for a session that keeps its steps
  *   (SequenceSteps), `steps_done`, `steps_skipped`, `steps_not_done` for one that does not — a
  *   session over corrected, each value kept when not given; its counts add up to its steps, its
@@ -30,7 +33,9 @@ import org.json.JSONObject
  *
  * For the screen and the notification only, refused to the AI and to an outside client: they
  * have a meaning only for whoever does the session.
- * - start: the session begins, on the planned entry waiting if there is one, a new one if not
+ * - start: `tool_instance_id`, and what its variant asks at launch (SequenceVariants): a timer's
+ *   `duration`, its config's without one; a medium's `entry`, the id of the entry played — the
+ *   session begins, on the planned entry waiting if there is one, a new one if not
  * - done, skip, back, restart, pause, resume, extend, stop: `id` — the gestures (SequenceGestures);
  *   the last step passed or the session stopped, it is written whole and waits « to finish »
  * - finish: `id`, `extra` — « Finish the session »: its user fields written, its state done or
@@ -53,7 +58,7 @@ class SequenceService(private val context: Context) : ExecutableService {
             if (origin != Source.USER && origin != Source.SYSTEM) return OperationResult.error(s.tool("error_gesture_origin"))
         }
         return when (operation) {
-            START -> start(params.optString("tool_instance_id"))
+            START -> start(params.optString("tool_instance_id"), answer(params))
             COMPLETE -> complete(params)
             CORRECT -> correct(params)
             FINISH -> finish(params)
@@ -76,7 +81,14 @@ class SequenceService(private val context: Context) : ExecutableService {
         return OperationResult.success(mapOf("id" to id))
     }
 
-    private suspend fun start(toolInstanceId: String): OperationResult {
+    /** What [params] answer to the launch's question, read as the config's variant asks it. */
+    private fun answer(params: JSONObject): SequenceVariants.Answer = when {
+        params.has("entry") -> SequenceVariants.Answer.Entry(params.optString("entry").takeIf { it.isNotEmpty() })
+        params.has(SequenceToolType.DURATION) -> SequenceVariants.Answer.Length((params.opt(SequenceToolType.DURATION) as? Number)?.toLong())
+        else -> SequenceVariants.Answer.None
+    }
+
+    private suspend fun start(toolInstanceId: String, answer: SequenceVariants.Answer): OperationResult {
         if (toolInstanceId.isEmpty()) return OperationResult.error(s.shared("service_error_missing_tool_instance_id"))
         unfinished()?.let { (tool, name, status) ->
             val here = tool == toolInstanceId
@@ -88,8 +100,10 @@ class SequenceService(private val context: Context) : ExecutableService {
         val config = configOf(toolInstanceId)
         val now = System.currentTimeMillis()
         // Each step's files read now, the fields it follows included, and kept with the run
-        val steps = SequenceMedia.resolve(context, SequencePlan.unroll(config), now, s.shared("term_source_deleted"))
-        if (steps.isEmpty()) return OperationResult.error(s.tool("error_no_steps"))
+        val steps = when (val made = SequenceVariants.steps(context, config, answer, now, s)) {
+            is SequenceVariants.Made.Refused -> return OperationResult.error(made.error)
+            is SequenceVariants.Made.Steps -> made.steps
+        }
         val run = SequenceRun.start(steps, now)
         val state = mapOf(
             SequenceToolType.STATUS to SequenceToolType.Status.RUNNING,
@@ -128,7 +142,7 @@ class SequenceService(private val context: Context) : ExecutableService {
             RESTART -> Step.Running(SequenceGestures.restart(run, now))
             PAUSE -> Step.Running(SequenceGestures.pause(run, now))
             RESUME -> Step.Running(SequenceGestures.resume(run, now))
-            EXTEND -> Step.Running(SequenceGestures.extend(run, now) ?: return OperationResult.error(s.tool("error_extend_manual")))
+            EXTEND -> Step.Running(SequenceGestures.extend(run, now) ?: return OperationResult.error(s.tool(if (run.current.byMedium) "error_extend_medium" else "error_extend_manual")))
             RESUME_INTERRUPTED -> Step.Running(SequenceGestures.resumeInterrupted(run, entry.updatedAt, now))
             else -> return OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
         }
@@ -206,15 +220,23 @@ class SequenceService(private val context: Context) : ExecutableService {
         val timestamp = (params.opt("timestamp") as? Number)?.toLong()
         val plannedId = params.optString("id").takeIf { it.isNotEmpty() }
         if (plannedId == null && timestamp == null) return OperationResult.error(s.tool("error_complete_without_time"))
-        val steps = SequenceMedia.resolve(context, SequencePlan.unroll(configOf(toolInstanceId)), System.currentTimeMillis(), s.shared("term_source_deleted"))
-        if (steps.isEmpty()) return OperationResult.error(s.tool("error_no_steps"))
+        val config = configOf(toolInstanceId)
+        // A timer's duration is both what was asked and what was done
+        val answer = if (SequenceVariants.of(config) == SequenceVariants.MEDIA) SequenceVariants.Answer.Entry(params.optString("entry").takeIf { it.isNotEmpty() })
+            else answer(params)
+        val steps = when (val made = SequenceVariants.steps(context, config, answer, System.currentTimeMillis(), s)) {
+            is SequenceVariants.Made.Refused -> return OperationResult.error(made.error)
+            is SequenceVariants.Made.Steps -> made.steps
+        }
         val data = mutableMapOf<String, Any>(
             SequenceToolType.STEPS_DONE to steps.size,
             SequenceToolType.STEPS_SKIPPED to 0,
             SequenceToolType.STEPS_NOT_DONE to 0,
             SequenceToolType.KEPT_STEPS to SequenceSteps.toJson(SequenceSteps.allDone(steps))
         )
-        (params.opt(SequenceToolType.DURATION) as? Number)?.let { data[SequenceToolType.DURATION] = it.toLong() }
+        // Without a duration given, a session of one timed step lasted it: a timer's, a medium's length
+        ((params.opt(SequenceToolType.DURATION) as? Number)?.toLong() ?: steps.singleOrNull()?.takeIf { it.end.timed && SequenceVariants.of(config) != SequenceVariants.STEPS }?.duration)
+            ?.let { data[SequenceToolType.DURATION] = it }
         val state = mapOf(SequenceToolType.STATUS to SequenceToolType.Status.DONE)
         val result = if (plannedId != null) {
             val planned = entryOf(plannedId) ?: return OperationResult.error(s.shared("service_error_entry_not_found").format(plannedId))
