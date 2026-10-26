@@ -9,7 +9,6 @@
     <string name="guide_screen">## Before\n- Start: begins the session, after a “Get ready”\nFor a planned session waiting:\n- Done: you did it without following the screen\n- Ignore: it does not count\n- Ignore all: for those that piled up during an absence\n\n## During\n- Pause, then Resume\n- Done: ends the step by hand\n- Skip: skips the step\n- Back: goes back to the step before\n- +15 s: makes the timer longer\n- Restart the step\n- {square} Stop: the steps not yet reached stay not done\nIf the app closes during a session, the session resumes at its step, and the time gone by counts as a pause.\n\n## After\n- Finish the session: under your fields if the tool has some; until then the session waits, and another cannot start\nEach session is kept in the history, with its duration and its steps. Touch a session to correct its steps (done, skipped, not reached) and your fields.</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Steps prepared ahead, then followed on screen with a timer and a signal at each change, such as a workout or a recipe</string>
-    <string name="section_steps">Steps</string>
     <string name="section_signals">Signals</string>
     <string name="section_schedule">Planning</string>
     <string name="field_steps">Steps</string>
@@ -191,4 +190,31 @@
     <string name="error_plan">The session was not planned</string>
     <string name="verbalize_plan">Session planned now</string>
     <string name="kept_time_of">%1$s of %2$s</string>
+    <string name="section_session">Session</string>
+    <string name="field_variant">Kind of session</string>
+    <string name="schema_variant">What makes the session: its steps, a timer, or a sound or a video</string>
+    <string name="variant_steps">Steps</string>
+    <string name="variant_timer">Timer</string>
+    <string name="variant_media">Sound or video</string>
+    <string name="schema_variant_steps">Its steps and blocks, gone through one after the other</string>
+    <string name="schema_variant_timer">A single timer, its length asked at start, the one set here proposed</string>
+    <string name="schema_variant_media">A sound or a video played whole, from an entry chosen at start among those of a selection, in the file field named</string>
+    <string name="field_timer_duration">Length proposed</string>
+    <string name="schema_timer_duration">The timer proposed at start, and taken when a session is noted without a length</string>
+    <string name="field_media_source">Entries to choose from</string>
+    <string name="field_media_field">File played</string>
+    <string name="schema_media_field">The path of the file field of those entries that holds the sound or the video (“data.audio”)</string>
+    <string name="field_media_sort">Order</string>
+    <string name="field_media_entry">Entry played</string>
+    <string name="schema_complete_entry">For a session of a sound or a video, required: the id of the entry played, one of its selection</string>
+    <string name="error_media_field">The file played, %1$s, is not a field of sounds or videos of the entries to choose from</string>
+    <string name="error_timer_length">A timer lasts more than nothing</string>
+    <string name="error_media_entry_missing">Say which entry is played: a session of a sound or a video plays one of its entries</string>
+    <string name="error_media_entry_outside">This entry is not among the ones to choose from</string>
+    <string name="error_media_entry_no_file">This entry has no sound or video to play</string>
+    <string name="launch_timer">How long?</string>
+    <string name="launch_media">What to play?</string>
+    <string name="launch_media_none">No entry to choose from holds a sound or a video</string>
+    <string name="launch_media_last">Played last</string>
+    <string name="timer_proposed">Timer · %1$s proposed</string>
 </resources>

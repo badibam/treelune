@@ -994,13 +994,14 @@ private fun Titled(label: String, onRemove: (() -> Unit)? = null, content: @Comp
 }
 
 /**
- * The choice of a field of the tool [tool] designates (SettingNode.Field.fieldOf), by FieldPicker;
+ * The choice of a field of the tool [tool] designates (SettingNode.Field.fieldOf), a reference or
+ * a selection's target, by FieldPicker, the file fields of its kinds alone when it names some;
  * nothing to choose before the tool is. The fields not read are said, never left out in silence.
  */
 @Composable
 private fun ToolFieldChoice(node: SettingNode.Field, tool: Any?, stored: String?, context: Context, onChange: (String?) -> Unit) {
     val s = remember { Strings.`for`(context = context) }
-    val toolId = app.treelune.core.fields.ReferenceTarget.referenceOf(tool)?.id
+    val toolId = app.treelune.core.fields.ReferenceTarget.referenceOf((tool as? JSONObject)?.optJSONObject("target") ?: tool)?.id
     var fields by remember { mutableStateOf<Map<String, app.treelune.core.fields.FieldDefinition>?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     androidx.compose.runtime.LaunchedEffect(toolId) {
@@ -1018,6 +1019,8 @@ private fun ToolFieldChoice(node: SettingNode.Field, tool: Any?, stored: String?
             fields = loaded,
             selected = stored?.let { app.treelune.core.ui.selectors.FieldPick.Path(it) },
             onSelect = { pick -> onChange((pick as app.treelune.core.ui.selectors.FieldPick.Path).path) },
+            accepts = { field -> node.fieldOfKinds.isEmpty() || (field.type == app.treelune.core.fields.FieldType.FILE &&
+                app.treelune.core.fields.FileField.kinds(field.config).any { it in node.fieldOfKinds }) },
             required = node.required
         )
     }

@@ -64,6 +64,7 @@ import app.treelune.tools.sequence.SequenceRun
 import app.treelune.tools.sequence.SequenceService
 import app.treelune.tools.sequence.SequenceSteps
 import app.treelune.tools.sequence.SequenceToolType
+import app.treelune.tools.sequence.SequenceVariants
 import app.treelune.tools.sequence.StepEnd
 import app.treelune.tools.sequence.StepLength
 import kotlinx.coroutines.delay
@@ -137,9 +138,10 @@ internal fun roundsText(step: PlannedStep): String = SequenceSteps.roundsOf(step
 /**
  * A session's screen (docs/TOOLS.md, « Session (Sequence) »).
  *
- * Without a session running: « Start » (saying since when a planned one waited) and « Note after
- * the fact », the planned sessions with « Ignore all », the run read one line per step, the blocks
- * indented, then the history. During a session: the step large, its round, its clock, its
+ * Without a session running: « Start » (saying since when a planned one waited), the planned
+ * sessions with « Done », « Ignore » and « Ignore all », the run read one line per step, the
+ * blocks indented, or the timer's length, then the history. « Start » and « Done » first ask what
+ * the variant asks (LaunchDialog). During a session: the step large, its round, its clock, its
  * instruction, the next step small, the gestures. A session recorded as running that no service
  * runs was stopped with the app: resume or stop. A session over waits for « Finish the session »,
  * under the user's fields.
@@ -352,8 +354,21 @@ private fun Idle(config: JSONObject, entries: List<SequenceEntry>, s: StringsCon
     val planned = entries.filter { it.status == SequenceToolType.Status.PLANNED }.sortedByDescending { it.timestamp }
     val history = entries.filter { it.status != SequenceToolType.Status.PLANNED && it.status != SequenceToolType.Status.TO_FINISH }.sortedByDescending { it.timestamp }
 
+    val variant = SequenceVariants.of(config)
+    // What the question opened for: starting, or a planned session done, by its id
+    var asking by rememberSaveable { mutableStateOf<String?>(null) }
+    fun launch(operation: String, params: Map<String, Any?>) {
+        if (variant == SequenceVariants.STEPS) call(operation, params) {} else asking = params["id"] as? String ?: SequenceService.START
+    }
+    asking?.let { forWhat ->
+        LaunchDialog(config, history, s, onAnswer = { answer ->
+            asking = null
+            if (forWhat == SequenceService.START) call(SequenceService.START, answer) {} else call(SequenceService.COMPLETE, answer + ("id" to forWhat)) {}
+        }, onCancel = { asking = null })
+    }
+
     planned.firstOrNull()?.let { UI.Text(s.tool("planned_waiting").format(FormatUtils.formatRelativeTimePast(it.timestamp, context)), TextType.CAPTION) }
-    UI.Button(type = ButtonType.PRIMARY, onClick = { call(SequenceService.START, emptyMap()) {} }) { UI.Text(s.tool("action_start"), TextType.LABEL) }
+    UI.Button(type = ButtonType.PRIMARY, onClick = { launch(SequenceService.START, emptyMap()) }) { UI.Text(s.tool("action_start"), TextType.LABEL) }
 
     if (planned.isNotEmpty()) {
         Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.M)) {
@@ -364,14 +379,19 @@ private fun Idle(config: JSONObject, entries: List<SequenceEntry>, s: StringsCon
             // The date across the width, its buttons under it
             UI.Text(DateTimeFormatter.formatForDisplay(entry.timestamp, context), TextType.BODY)
             app.treelune.core.ui.components.ButtonRow {
-                UI.Button(type = ButtonType.SECONDARY, onClick = { call(SequenceService.COMPLETE, mapOf("id" to entry.id)) {} }) { UI.Text(s.tool("action_mark_done"), TextType.LABEL) }
+                UI.Button(type = ButtonType.SECONDARY, onClick = { launch(SequenceService.COMPLETE, mapOf("id" to entry.id)) }) { UI.Text(s.tool("action_mark_done"), TextType.LABEL) }
                 UI.Button(type = ButtonType.DEFAULT, onClick = { call(SequenceService.IGNORE, mapOf("id" to entry.id)) {} }) { UI.Text(s.tool("action_ignore"), TextType.LABEL) }
             }
         }
     }
 
-    UI.Text(s.tool("field_steps"), TextType.SUBTITLE)
-    StepLines(config.optJSONArray(SequencePlan.STEPS), depth = 0, s)
+    when (variant) {
+        SequenceVariants.STEPS -> {
+            UI.Text(s.tool("field_steps"), TextType.SUBTITLE)
+            StepLines(config.optJSONArray(SequencePlan.STEPS), depth = 0, s)
+        }
+        SequenceVariants.TIMER -> UI.Text(s.tool("timer_proposed").format(clockText(config.optLong(SequenceVariants.TIMER_DURATION, SequenceVariants.DEFAULT_TIMER))), TextType.CAPTION)
+    }
 
     UI.Text(s.tool("history"), TextType.SUBTITLE)
     if (history.isEmpty()) UI.Text(s.tool("history_empty"), TextType.CAPTION)

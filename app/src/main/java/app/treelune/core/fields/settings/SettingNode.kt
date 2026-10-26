@@ -28,8 +28,10 @@ sealed class SettingNode {
      *   options, bounds — which the form reads to enter it and the service to check it. Its
      *   schema is its type's alone, the config being set beside it
      * @property fieldOf The name of the setting beside it that designates a tool instance (a
-     *   REFERENCE): this one is the path of one of that tool's fields ("data.kcal"), which the form
-     *   offers to choose among rather than to type
+     *   REFERENCE, or a Selection, its target): this one is the path of one of that tool's fields
+     *   ("data.kcal"), which the form offers to choose among rather than to type
+     * @property fieldOfKinds With [fieldOf], the file fields alone that take one of these kinds
+     *   are offered; empty, every field
      * @property rowField A field of the rows the config describes where the setting stands (a
      *   column of a chart's layer), by name: the form offers those its owner gives (RowFields)
      */
@@ -42,6 +44,7 @@ sealed class SettingNode {
         val systemWritten: Boolean = false,
         val valueOfDefined: Boolean = false,
         val fieldOf: String? = null,
+        val fieldOfKinds: Set<app.treelune.core.files.FileKind> = emptySet(),
         val rowField: Boolean = false
     ) : SettingNode()
 
