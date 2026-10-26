@@ -288,7 +288,7 @@ fun AutomationScreen(
             val state = rememberAutomationState(routine)
             UI.Card(type = CardType.DEFAULT) {
                 Column(modifier = Modifier.fillMaxWidth().padding(UI.Space.M), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
-                    AutomationStateLine(routine, state, actions)
+                    AutomationStateLine(routine, state, actions, withProblem = true)
                     app.treelune.core.triggers.ui.ConditionJudgementLines(app.treelune.core.triggers.ui.ConditionJudgementLine.list(automationMap?.get("condition_judgements")))
                     AutomationButtons(routine, state, actions, toPage = false)
                 }

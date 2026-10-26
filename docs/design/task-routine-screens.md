@@ -27,7 +27,7 @@ Ce qui disparaît : `CreateAutomationDialog`, le mode SEED de `AIScreen` et `Pla
 
 ## La tuile
 
-Un problème qui empêche de partir (une routine sans fournisseur) ne prend plus la ligne d'état : une icône d'alerte (`circle-alert`) la précède, la ligne garde ce qu'elle dirait sans lui (le planning, la prochaine exécution). La phrase entière se lit sur la page et dans la config. Aucune marque de thème nouvelle.
+Un problème qui empêche de partir (une routine sans fournisseur) ne prend plus la ligne d'état : l'icône d'alerte de l'app (`triangle-alert`, couleur d'avertissement) la précède, la ligne garde ce qu'elle dirait sans lui (le planning, la prochaine exécution). La phrase entière se lit sur la page et dans la config. Aucune marque de thème nouvelle.
 
 ## La copie
 
