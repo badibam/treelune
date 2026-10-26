@@ -2733,6 +2733,9 @@
     <string name="config_section_advanced">Advanced</string>
     <string name="expiry_label">Expires</string>
     <string name="expiry_schema">When an item left waiting expires: never, at the next one made (by the schedule or asked now), which leaves one alone to wait, or after a delay</string>
+    <string name="expiry_schema_never">An item waits until the user fills it, ignores it or starts it</string>
+    <string name="expiry_schema_next">Each item made expires the ones still waiting: one alone waits</string>
+    <string name="expiry_schema_after">An item expires once expiry_delay has passed since the time it is dated from</string>
     <string name="expiry_never">Never</string>
     <string name="expiry_next">At the next one</string>
     <string name="expiry_after">After a delay</string>

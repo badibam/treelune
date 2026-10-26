@@ -45,7 +45,8 @@ object WaitingExpiry {
                 NEXT to emptyList(),
                 AFTER to listOf(SettingNode.Field(FieldDefinition(DELAY, shared("expiry_delay_label"), shared("expiry_delay_schema"), FieldType.DURATION, false,
                     app.treelune.core.fields.DurationUnits.DAY_HOUR.config()), required = true, default = DEFAULT_DELAY))
-            )
+            ),
+            descriptions = mapOf(NEVER to shared("expiry_schema_never"), NEXT to shared("expiry_schema_next"), AFTER to shared("expiry_schema_after"))
         )
     }
 

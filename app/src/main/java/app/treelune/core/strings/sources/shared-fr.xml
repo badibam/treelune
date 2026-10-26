@@ -2733,6 +2733,9 @@
     <string name="config_section_advanced">Avancé</string>
     <string name="expiry_label">Expire</string>
     <string name="expiry_schema">Quand un élément resté en attente expire : jamais, au suivant créé (par le planning ou demandé tout de suite), qui en laisse un seul attendre, ou au bout d\'un délai</string>
+    <string name="expiry_schema_never">Un élément attend que la personne le remplisse, l\'ignore ou le commence</string>
+    <string name="expiry_schema_next">Chaque élément créé fait expirer ceux qui attendent encore : un seul attend</string>
+    <string name="expiry_schema_after">Un élément expire une fois expiry_delay passé depuis l\'heure dont il est daté</string>
     <string name="expiry_never">Jamais</string>
     <string name="expiry_next">Au déclenchement suivant</string>
     <string name="expiry_after">Au bout d\'un délai</string>
