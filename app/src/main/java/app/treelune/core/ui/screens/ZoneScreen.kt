@@ -127,17 +127,9 @@ fun ZoneScreen(zone: Zone) {
         if (result.status == CommandStatus.SUCCESS) tasks = (result.data?.get("tasks") as List<*>).map { app.treelune.core.tasks.Task.fromResult(it as Map<*, *>) }
         else errorMessage = result.error
     }
-    // A Task made in a section, named after its kind, then opened for its steps
+    // A Task's config opened for a new one in a section: nothing is made before it is saved
     val createTask = { group: String? ->
-        coroutineScope.launch {
-            val result = coordinator.processUserAction("tasks.create", buildMap {
-                put("zone_id", zone.id)
-                put("name", s.shared("task_new_name"))
-                group?.let { put("group", it) }
-            })
-            if (result.status == CommandStatus.SUCCESS) Navigator.push(Place.Task(result.data?.get("task_id") as String, zone.id))
-            else errorMessage = result.error
-        }
+        Navigator.push(Place.TaskConfig(zone.id, null, group))
         showAvailableToolsForGroup = null
     }
 

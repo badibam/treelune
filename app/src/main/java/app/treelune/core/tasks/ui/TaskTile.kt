@@ -130,7 +130,7 @@ internal fun RunRow(run: RunLine, task: Task) {
 /**
  * A Task's tile among its section's tools (UI.LookCard), « Task » under its name: its state and
  * its switch from LINE on, its button to run it from EXTENDED, its last three runs in SQUARE. A
- * touch, or a long one, opens its page, which holds its steps and its settings.
+ * touch opens its page, a long one its config, as a tool's.
  */
 @Composable
 fun TaskTile(task: Task) {
@@ -147,7 +147,7 @@ fun TaskTile(task: Task) {
         waiting = runs.any { it.waits },
         running = last != null && !last.state.ended,
         onClick = open,
-        onLongClick = open,
+        onLongClick = { Navigator.push(Place.TaskConfig(task.zoneId, task.id, null)) },
         summary = { TaskStateLine(task, last) { actions.toggle(task, it) } },
         glance = { TaskStateLine(task, last) { actions.toggle(task, it) } },
         body = { rows ->

@@ -2719,6 +2719,9 @@
     <!-- Tasks (core/tasks) -->
     <string name="task_display_name">Tâche</string>
     <string name="task_new_name">Nouvelle Tâche</string>
+    <string name="config_section_when">Quand</string>
+    <string name="config_section_end">À la fin</string>
+    <string name="config_section_advanced">Avancé</string>
     <string name="task_schema_name">Nom de la Tâche, montré sur sa tuile</string>
     <string name="task_schema_description">Description facultative de ce que fait la Tâche</string>
     <string name="task_schema_icon_name">Nom de l\'icône de la Tâche (un nom d\'icône Lucide) ; list-ordered si absent</string>
@@ -2778,8 +2781,6 @@
     <string name="task_input_from_step">Ce qu\'une étape a donné</string>
     <string name="task_input_source">Depuis</string>
     <string name="task_reference_run">Par rapport à : le moment de l\'exécution</string>
-    <string name="task_saved">Tâche enregistrée</string>
-    <string name="task_save_first">Enregistre d\'abord la Tâche</string>
     <string name="task_run_now">Lancer maintenant</string>
     <string name="task_steps">Étapes</string>
     <string name="task_steps_empty">Pas encore d\'étape : une Tâche fait ce que disent ses étapes, l\'une après l\'autre, sans IA.</string>
@@ -2793,7 +2794,6 @@
     <string name="task_step_add">Ajouter une étape</string>
     <string name="task_runs">Exécutions</string>
     <string name="task_runs_empty">Pas encore lancée</string>
-    <string name="task_leave_unsaved">Quitter sans enregistrer les changements ?</string>
     <string name="task_trigger_manual">à la main</string>
     <string name="task_trigger_scheduled">par son planning</string>
     <string name="task_trigger_ai">par l\'IA</string>

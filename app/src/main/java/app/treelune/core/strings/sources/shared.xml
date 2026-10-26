@@ -2719,6 +2719,9 @@
     <!-- Tasks (core/tasks) -->
     <string name="task_display_name">Task</string>
     <string name="task_new_name">New Task</string>
+    <string name="config_section_when">When</string>
+    <string name="config_section_end">At the end</string>
+    <string name="config_section_advanced">Advanced</string>
     <string name="task_schema_name">Name of the Task, shown on its tile</string>
     <string name="task_schema_description">Optional description of what the Task does</string>
     <string name="task_schema_icon_name">Name of the Task\'s icon (a Lucide icon name); list-ordered when left out</string>
@@ -2778,8 +2781,6 @@
     <string name="task_input_from_step">What a step gave</string>
     <string name="task_input_source">From</string>
     <string name="task_reference_run">Relative to: the run\'s moment</string>
-    <string name="task_saved">Task saved</string>
-    <string name="task_save_first">Save the Task first</string>
     <string name="task_run_now">Run now</string>
     <string name="task_steps">Steps</string>
     <string name="task_steps_empty">No step yet: a Task does what its steps say, one after another, without an AI.</string>
@@ -2793,7 +2794,6 @@
     <string name="task_step_add">Add a step</string>
     <string name="task_runs">Runs</string>
     <string name="task_runs_empty">Not run yet</string>
-    <string name="task_leave_unsaved">Leave without saving the changes?</string>
     <string name="task_trigger_manual">by hand</string>
     <string name="task_trigger_scheduled">by its schedule</string>
     <string name="task_trigger_ai">by the AI</string>

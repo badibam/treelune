@@ -302,8 +302,8 @@ fun ToolConfigScreen(
     }
 }
 
-/** The groups of the zone the tool is in, or none. */
-private fun groupEditor(groups: List<String>, label: String) = object : SettingEditor {
+/** The groups of the zone the tool (or the Task) is in, or none. */
+internal fun groupEditor(groups: List<String>, label: String) = object : SettingEditor {
     @Composable
     override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
         GroupSelector(availableGroups = groups, selectedGroup = value as? String, onGroupSelected = { onChange(it) }, label = label)

@@ -45,6 +45,7 @@ object GuidePath {
             is Place.Seed -> t("guide_path_seed")
             is Place.Task -> t("guide_path_task", n)
             is Place.TaskRun -> t("guide_path_task_run")
+            is Place.TaskConfig -> t(if (place.taskId != null) "guide_path_task_config" else "guide_path_task_new")
             Place.HomeConfig -> t("guide_path_home_config")
             Place.Settings -> t("guide_path_settings")
             is Place.SettingsPage -> t("guide_path_settings_page", n)
