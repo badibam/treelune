@@ -58,6 +58,7 @@ Codé, jamais vu sur l'appareil.
 - Des outils montrés sur la tuile d'une zone de l'accueil (le poids du jour sur « Santé ») : leur résumé ou un raccourci selon la place de la tuile — lesquels, dans quel ordre, un outil montré à deux endroits.
 - Des rythmes que la planification (`ScheduleConfig`, commune à tous les outils et aux routines) ne sait pas dire : « tous les N jours à partir d'une date », « une semaine sur deux », plusieurs jours d'un mois (« le 1er et le 15 »).
 - Une réponse coupée par la limite de longueur (`max_tokens` chez Claude et DeepSeek, un `status` incomplet chez OpenAI, `finish_reason` « length » chez un autre serveur) : refusée, son texte jeté et ses tokens mis à 0, le coût affiché la compte gratuite alors qu'elle est facturée — que garder du texte, et où le montrer.
+- Un type d'outil Schéma : des briques et des flèches entre elles (une organisation, une boucle, qui nourrit qui), écrit par la personne ou par l'IA. Une Note n'y suffit pas : l'app n'a aucune police à chasse fixe, un schéma en texte s'y décale. Sa forme (un texte qui se dessine, Mermaid ou autre, ou des briques posées à la main), et s'il peut viser des zones, des outils ou des groupes pour y mener.
 
 ## Dette de code
 
