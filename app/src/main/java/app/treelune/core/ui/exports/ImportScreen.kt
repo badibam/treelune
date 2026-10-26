@@ -45,14 +45,18 @@ import org.json.JSONObject
  * What the file holds, as the service read it.
  *
  * @property held Each identity of the file the app holds, by its id: whether the app's is the same
+ * @property heldApis Each API of the file the app holds, by its id: whether the app's is the same but for its key
+ * @property takenApiNames The names of the app's APIs, which one arriving cannot take
  */
-private data class Read(val tree: PartTree, val partial: Boolean, val takenNames: Set<String>, val held: Map<String, Boolean>)
+private data class Read(val tree: PartTree, val partial: Boolean, val takenNames: Set<String>, val held: Map<String, Boolean>,
+    val heldApis: Map<String, Boolean>, val takenApiNames: Set<String>)
 
 /** A zone of the app a zone of the file may go into. */
 private data class AppZone(val id: String, val name: String, val group: String?)
 
-/** What arrived, as the import answers it. */
-private data class Imported(val zones: Int, val elements: Int, val entries: Int, val filesMissing: Int, val identitiesAdded: Int, val identitiesReplaced: Int)
+/** What arrived, as the import answers it; [otherNames] each API and event arrived under another name. */
+private data class Imported(val zones: Int, val elements: Int, val entries: Int, val filesMissing: Int, val identitiesAdded: Int, val identitiesReplaced: Int,
+    val apisAdded: Int, val apisReplaced: Int, val otherNames: Map<String, String>)
 
 private val SelectionSaver: Saver<PartSelection?, String> = Saver(
     save = { it?.toJson()?.toString() ?: "" },
@@ -72,7 +76,8 @@ private val ArrivalsSaver: Saver<Map<String, String>, String> = Saver(
  * new zone or into one of the app's, one of the same name first in the list. Under an element,
  * how it will arrive: a variable whose name is taken under another, a tool that may send
  * notifications, an identity added, the same as the app's, or different from it — kept then, or
- * replaced when chosen. Everything else is added, nothing replaced (backup.import_part).
+ * replaced when chosen; an API likewise, or under another name when its own is taken, never with
+ * its key; a Task switched off. Everything else is added, nothing replaced (backup.import_part).
  */
 @Composable
 fun ImportScreen(uri: String, onBack: () -> Unit) {
@@ -88,6 +93,8 @@ fun ImportScreen(uri: String, onBack: () -> Unit) {
     var arrivals by rememberSaveable(stateSaver = ArrivalsSaver) { mutableStateOf(emptyMap<String, String>()) }
     // The identities the app holds, different, chosen to be replaced; the others kept
     var replaced by rememberSaveable { mutableStateOf(listOf<String>()) }
+    // The APIs the app holds, different, chosen to be replaced, as the identities
+    var replacedApis by rememberSaveable { mutableStateOf(listOf<String>()) }
     var opened by rememberSaveable { mutableStateOf(listOf<String>()) }
     var running by remember { mutableStateOf(false) }
     var imported by remember { mutableStateOf<Imported?>(null) }
@@ -118,7 +125,8 @@ fun ImportScreen(uri: String, onBack: () -> Unit) {
         val tree = PartTree.read(JsonUtils.toJSONObject(data["tree"] as Map<String, Any?>))
         val partial = data["partial"] as Boolean
         @Suppress("UNCHECKED_CAST")
-        read = Read(tree, partial, (data["taken_variable_names"] as List<String>).toSet(), (data["identities"] as Map<String, String>).mapValues { it.value == "same" })
+        read = Read(tree, partial, (data["taken_variable_names"] as List<String>).toSet(), (data["identities"] as Map<String, String>).mapValues { it.value == "same" },
+            (data["apis"] as Map<String, String>).mapValues { it.value == "same" }, (data["taken_api_names"] as List<String>).toSet())
         // A share is meant whole, its entries included; a whole backup is taken from piece by piece
         if (selection == null) selection = if (partial) everything(tree) else PartSelection(emptySet(), emptyMap(), emptySet(), emptySet(), emptySet())
     }
@@ -175,6 +183,10 @@ fun ImportScreen(uri: String, onBack: () -> Unit) {
                             element.kind == PartElement.Kind.IDENTITY -> IdentityArrival(shown.held[element.id], element.id in replaced) { on ->
                                 replaced = if (on) replaced + element.id else replaced - element.id
                             }
+                            element.kind == PartElement.Kind.API -> ApiArrival(shown.heldApis[element.id], PartImport.freeName(element.name, shown.takenApiNames),
+                                element.name, element.id in replacedApis) { on ->
+                                replacedApis = if (on) replacedApis + element.id else replacedApis - element.id
+                            }
                         }
                     }
                 )
@@ -185,7 +197,8 @@ fun ImportScreen(uri: String, onBack: () -> Unit) {
                         UI.Button(
                             type = ButtonType.PRIMARY,
                             size = Size.M,
-                            state = if (!running && chosen.zones.isNotEmpty() && blocking == 0) ComponentState.NORMAL else ComponentState.DISABLED,
+                            // A part brings a zone, or APIs alone
+                            state = if (!running && (chosen.zones.isNotEmpty() || chosen.apis.isNotEmpty()) && blocking == 0) ComponentState.NORMAL else ComponentState.DISABLED,
                             onClick = {
                                 running = true
                                 scope.launch {
@@ -194,14 +207,18 @@ fun ImportScreen(uri: String, onBack: () -> Unit) {
                                         "selection" to JsonUtils.toMap(chosen.toJson()),
                                         // Only the zones ticked arrive: an arrival kept for one unticked would name nothing
                                         "arrivals" to arrivals.filterKeys { it in chosen.zones },
-                                        "replace_identities" to replaced.filter { it in chosen.identities && shown.held[it] == false }
+                                        "replace_identities" to replaced.filter { it in chosen.identities && shown.held[it] == false },
+                                        "replace_apis" to replacedApis.filter { it in chosen.apis && shown.heldApis[it] == false }
                                     ))
                                     running = false
                                     if (result.isSuccess) {
                                         val data = result.data!!
+                                        @Suppress("UNCHECKED_CAST")
                                         imported = Imported((data["zones"] as Number).toInt(), (data["elements"] as Number).toInt(),
                                             (data["entries"] as Number).toInt(), (data["files_missing"] as Number).toInt(),
-                                            (data["identities_added"] as Number).toInt(), (data["identities_replaced"] as Number).toInt())
+                                            (data["identities_added"] as Number).toInt(), (data["identities_replaced"] as Number).toInt(),
+                                            (data["apis_added"] as Number).toInt(), (data["apis_replaced"] as Number).toInt(),
+                                            data["other_names"] as Map<String, String>)
                                     } else UI.Toast(result.error ?: "", app.treelune.core.ui.Duration.LONG)
                                 }
                             }
@@ -246,6 +263,9 @@ fun ImportScreen(uri: String, onBack: () -> Unit) {
                 UI.Text(s.shared("share_import_done_counts").format(done.zones, done.elements, done.entries), TextType.CAPTION)
                 if (done.identitiesAdded + done.identitiesReplaced > 0)
                     UI.Text(s.shared("share_import_done_identities").format(done.identitiesAdded, done.identitiesReplaced), TextType.CAPTION)
+                if (done.apisAdded + done.apisReplaced > 0)
+                    UI.Text(s.shared("share_import_done_apis").format(done.apisAdded, done.apisReplaced), TextType.CAPTION)
+                done.otherNames.forEach { (name, arrived) -> UI.Text(s.shared("share_import_done_renamed").format(name, arrived), TextType.CAPTION) }
                 if (done.filesMissing > 0) UI.Text(s.shared("share_import_files_missing").format(done.filesMissing), TextType.WARNING)
             }
         }
@@ -306,11 +326,39 @@ private fun IdentityArrival(same: Boolean?, replace: Boolean, onReplace: (Boolea
     }
 }
 
+/**
+ * How an API of the file arrives, as the app holds it: [same] null when it does not — under
+ * [arriving], its own [name] or a free one —, true when its own is the same, false when it
+ * differs — kept then, or replaced as [replace] says. Never with its key.
+ */
+@Composable
+private fun ApiArrival(same: Boolean?, arriving: String, name: String, replace: Boolean, onReplace: (Boolean) -> Unit) {
+    val context = LocalContext.current
+    val s = remember { Strings.`for`(context = context) }
+    when (same) {
+        null -> UI.Text(if (arriving == name) s.shared("share_import_api_new") else s.shared("share_import_api_renamed").format(arriving), TextType.CAPTION)
+        true -> UI.Text(s.shared("share_import_api_same"), TextType.CAPTION)
+        false -> Column(modifier = Modifier.padding(start = UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+            UI.Text(s.shared("share_import_api_differs"), TextType.CAPTION)
+            UI.BooleanField(
+                label = s.shared("share_import_api_choice"),
+                value = !replace,
+                onValueChange = { keep -> onReplace(!keep) },
+                trueLabel = s.shared("share_import_identity_keep"),
+                falseLabel = s.shared("share_import_identity_replace")
+            )
+            if (replace) UI.Text(s.shared("share_import_api_replace_help"), TextType.WARNING)
+        }
+    }
+}
+
 /** Everything [tree] holds ticked, each tool with its entries when it has some. */
 private fun everything(tree: PartTree): PartSelection = PartSelection(
     tree.zones.map { it.id }.toSet(),
     tree.elements.filter { it.kind == PartElement.Kind.TOOL }.associate { it.id to (it.entries > 0) },
     tree.elements.filter { it.kind == PartElement.Kind.VARIABLE }.map { it.id }.toSet(),
     tree.elements.filter { it.kind == PartElement.Kind.ROUTINE }.map { it.id }.toSet(),
-    tree.elements.filter { it.kind == PartElement.Kind.IDENTITY }.map { it.id }.toSet()
+    tree.elements.filter { it.kind == PartElement.Kind.IDENTITY }.map { it.id }.toSet(),
+    tree.elements.filter { it.kind == PartElement.Kind.TASK }.map { it.id }.toSet(),
+    tree.apis.map { it.id }.toSet()
 )

@@ -267,7 +267,7 @@ class BackupService(private val context: Context) : ExecutableService {
         }
 
         val data = built.json.getJSONObject("data")
-        val elements = listOf("tool_instances", "variables", "automations", "identities").sumOf { data.optJSONArray(it)?.length() ?: 0 }
+        val elements = listOf("tool_instances", "variables", "automations", "identities", "tasks", "apis").sumOf { data.optJSONArray(it)?.length() ?: 0 }
         val entries = data.optJSONArray("tool_data")?.length() ?: 0
         LogManager.service("Backup: ${written.second} written, $elements elements, $entries entries, ${built.files.size} files, ${built.missing} without their file")
         return OperationResult.success(mapOf(

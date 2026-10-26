@@ -28,6 +28,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 Codé, jamais vu sur l'appareil.
 
 - La page et la config d'une Tâche et d'une routine : l'appui long et l'engrenage qui ouvrent la config, le + d'une section qui l'ouvre sans rien créer, « Quitter sans enregistrer ? » ; une Tâche écrite de bout en bout dans sa config (nom, étapes, Quand, À la fin), une routine aussi (message avec un pointeur, planning, fournisseur, accès), puis changée de zone ; « Copier une Tâche » et « Copier une routine », la copie éteinte ; une routine sans fournisseur, l'icône d'alerte sur sa tuile et la phrase sur sa page ; les chapitres « Les routines » et « Les Tâches » du Guide suivis jusqu'au bout.
+- Une partie avec ses Tâches : la démo cochée entière, ses Tâches arrivées éteintes, son API gardée sans rien demander ; une API seule partagée, sa clé absente chez qui l'importe ; « L'événement … arrivera dans cette zone » quand sa zone n'est pas cochée, et le lien bloquant vers l'outil qu'il porte ; une API différente, gardée puis remplacée, sa clé restée.
 - Les titres coupés entre les mots (`HeadingBreak`) en Cosy, Encre et lavis, Métro, Papier découpé et Plan d'architecte : les noms de tuiles de la démo, un mot trop long pour sa ligne d'une demi-tuile (« Observations ») coupé à ses syllabes.
 - La marque « en attente » sans « ! » (Métro, Suisse, Encre et lavis, Papier découpé, Plan d'architecte, Cosy en accent) : vide, se lit-elle encore comme « à lire », à sa taille de 18 à 22 dp, et la bulle du Cosy se détache-t-elle de ses boutons ?
 - Le budget du jour : réglé dans Limites IA, la ligne « Aujourd'hui » sous les limites et en tête des coûts d'une conversation, en couleur d'avertissement au-delà du seuil ; une conversation qui le dépasse et le dit, la routine qui se termine, les deux notifications une seule fois dans la journée ; le nom d'un fournisseur sans prix ; l'événement choisi sous le seuil, émis une fois avec sa notification.
@@ -47,6 +48,7 @@ Codé, jamais vu sur l'appareil.
 
 ## Décidé, à coder
 
+- Bientôt : les Tâches et les API dans l'historique des écritures, par sa porte unique (`check_history_writes.py`) — une config de Tâche changée s'annule, une Tâche supprimée avec sa zone revient, et l'annulation d'un import de partie retire les API qu'il a créées (aujourd'hui elles restent, et une Tâche sans zone est seulement effacée, `TaskDao.deleteWithoutZone`, qu'un rétablissement ne ramène pas).
 - Un filtre qui compare un champ à une variable ou une lecture (« kcal > objectif_calorique ») : le terme lu une fois à la référence du contexte (`TermReader`, `docs/BRICKS.md`), puis le filtre SQL comme aujourd'hui ; `EntryFilters.parse` et `ConditionPicker` le prennent.
 
 ## À concevoir
@@ -59,7 +61,7 @@ Codé, jamais vu sur l'appareil.
 
 ## Dette de code
 
-- Les Tâches hors de l'historique des écritures (une config changée ne s'annule pas, une Tâche supprimée avec sa zone ne revient pas par l'annulation) et hors de l'export d'une partie ; une étape déplacée garde les numéros d'étape que lisent les suivantes, l'enregistrement refusant alors en le disant.
+- Une étape de Tâche déplacée garde les numéros d'étape que lisent les suivantes, l'enregistrement refusant alors en le disant.
 - Des écrans encore ouverts à l'intérieur d'un lieu, hors de la pile (`Place`, `docs/UI.md`) : la config d'un fournisseur d'IA, les pages d'un formulaire de config, les écrans internes d'un outil (fiche, historique), l'historique des conversations — à passer en lieux, au plus tard quand un tutoriel, une notification ou un pointeur doit les viser.
 
 ## Sagesse
