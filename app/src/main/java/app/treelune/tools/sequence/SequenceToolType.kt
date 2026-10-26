@@ -47,7 +47,9 @@ object SequenceToolType : ToolTypeContract {
         const val DONE = "done"
         const val STOPPED = "stopped"
         const val IGNORED = "ignored"
-        val ALL = listOf(PLANNED, RUNNING, TO_FINISH, DONE, STOPPED, IGNORED)
+        /** Planned and never started, ended by the sequence's expiry (WaitingExpiry) */
+        const val EXPIRED = "expired"
+        val ALL = listOf(PLANNED, RUNNING, TO_FINISH, DONE, STOPPED, IGNORED, EXPIRED)
     }
 
     /** The signal at each change of step. */
@@ -133,7 +135,9 @@ object SequenceToolType : ToolTypeContract {
                 // A planned session notifies, emits an event, or both
                 SettingNode.Field(FieldDefinition("notify", s.tool("field_notify"), s.tool("schema_notify"), FieldType.BOOLEAN, false, null), required = true, default = true),
                 app.treelune.core.events.EventPoints.node(shared::shared),
-                SettingNode.Field(field(ENABLED, s.tool("field_enabled"), FieldType.BOOLEAN, s.tool("schema_enabled")), required = true, default = true)
+                SettingNode.Field(field(ENABLED, s.tool("field_enabled"), FieldType.BOOLEAN, s.tool("schema_enabled")), required = true, default = true),
+                // When a session planned and never started expires: never by default
+                app.treelune.core.tools.WaitingExpiry.node(shared::shared)
             ))
         )
     }

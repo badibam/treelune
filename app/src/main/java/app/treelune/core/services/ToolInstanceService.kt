@@ -245,8 +245,11 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
                 is Looks.Checked.Kept -> checked
             }
             configJson = lookConfig.toString()
+            // A setting left out takes its declared default, as at the creation: a config stored
+            // before a setting was declared is saved again without having to name it
             ToolTypeManager.getToolType(existingTool.tooltype)?.let { type ->
-                configJson = type.completeConfig(JSONObject(configJson), JSONObject(existingTool.config_json)).toString()
+                configJson = type.completeConfig(app.treelune.core.tools.ToolConfigSettings.withDefaults(type, JSONObject(configJson), context),
+                    JSONObject(existingTool.config_json)).toString()
             }
             // The data protection is a person's to change (Protections): a config written whole
             // by anyone else without it keeps the tool's, one that changes it is refused

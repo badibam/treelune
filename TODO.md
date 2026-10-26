@@ -15,8 +15,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs du téléphone
 
-- Pour certains outils il y a mecanisme d'expiration, pourquoi pas le généraliser pour les outils qui ont des elements 'en attente' ? — Outils — Amélioration
-- Quand un questionnnaire se la'ce de manière auto (via notif) , on ne saot pas de quelle occirrence il s'agit. Si 2 en retard, on peut croire que c'est la dernière. Il faudrait un écran tampon dans ces cas là ou autre manière de savoir — UI — Amélioration
 
 ## Bugs
 
@@ -28,6 +26,7 @@ Codé, jamais vu sur l'appareil.
 
 - La page et la config d'une Tâche et d'une routine : l'appui long et l'engrenage qui ouvrent la config, le + d'une section qui l'ouvre sans rien créer, « Quitter sans enregistrer ? » ; une Tâche écrite de bout en bout dans sa config (nom, étapes, Quand, À la fin), une routine aussi (message avec un pointeur, planning, fournisseur, accès), puis changée de zone ; « Copier une Tâche » et « Copier une routine », la copie éteinte ; une routine sans fournisseur, l'icône d'alerte sur sa tuile et la phrase sur sa page ; les chapitres « Les routines » et « Les Tâches » du Guide suivis jusqu'au bout.
 - Une partie avec ses Tâches : la démo cochée entière, ses Tâches arrivées éteintes, son API gardée sans rien demander ; une API seule partagée, sa clé absente chez qui l'importe ; « L'événement … arrivera dans cette zone » quand sa zone n'est pas cochée, et le lien bloquant vers l'outil qu'il porte ; une API différente, gardée puis remplacée, sa clé restée.
+- L'expiration d'un Questionnaire et d'une Séquence : « Expire » réglé « Au déclenchement suivant », deux invitations (ou deux séances prévues) et la première « Expiré(e) » dans l'historique ; « Au bout d'un délai » d'un jour, une invitation de la veille expirée au tic suivant ; une séance commencée, pas terminée, qui attend toujours ; un ancien questionnaire réenregistré sans toucher à rien.
 - Les titres coupés entre les mots (`HeadingBreak`) en Cosy, Encre et lavis, Métro, Papier découpé et Plan d'architecte : les noms de tuiles de la démo, un mot trop long pour sa ligne d'une demi-tuile (« Observations ») coupé à ses syllabes.
 - La marque « en attente » sans « ! » (Métro, Suisse, Encre et lavis, Papier découpé, Plan d'architecte, Cosy en accent) : vide, se lit-elle encore comme « à lire », à sa taille de 18 à 22 dp, et la bulle du Cosy se détache-t-elle de ses boutons ?
 - Le budget du jour : réglé dans Limites IA, la ligne « Aujourd'hui » sous les limites et en tête des coûts d'une conversation, en couleur d'avertissement au-delà du seuil ; une conversation qui le dépasse et le dit, la routine qui se termine, les deux notifications une seule fois dans la journée ; le nom d'un fournisseur sans prix ; l'événement choisi sous le seuil, émis une fois avec sa notification.
@@ -95,6 +94,7 @@ Ce qui doit monter dans un module de sagesse (`/update push`).
 
 ## Idée sans besoin
 
+- L'occurrence d'un questionnaire ouvert par sa notification ou sa tuile, dite quand plusieurs attendent (deux en retard, on croit répondre à la dernière) : sur l'écran de saisie (« Prévu il y a 2 jours · 1 sur 2 à remplir »), ou un écran intermédiaire, la liste « À remplir », quand plusieurs attendent.
 - Le champ Image : la galerie comme affichage d'un outil (la grille des premières images de ses entrées), les images d'une entrée lues par le connecteur MCP.
 - Le relais de l'accès externe (le projet `relay`) servi à d'autres : il n'a pas de licence aujourd'hui.
 - Flashcards : les statistiques (cartes acquises, prévision des jours à venir), la liste des cartes et leur état, la réponse tapée, le jugement d'une réponse libre par l'IA, une face en image, les révisions d'une ligne disparue de la source.
