@@ -4,7 +4,7 @@
     <string name="guide_title">Guide</string>
     <string name="guide_description">Tutorials to do on the app itself, and chapters to read when you need them.</string>
     <string name="guide_part_discovery">Discovery</string>
-    <string name="guide_part_discovery_help">To follow in order: a look at the demo, a first tool, an AI connected, then a routine it handles on its own.</string>
+    <string name="guide_part_discovery_help">To follow in order: a look at the demo, a first tool, an AI connected, a routine it handles on its own, then Tasks that work without it.</string>
     <string name="guide_part_getting_started">Getting started</string>
     <string name="guide_part_getting_started_help">One feature per chapter, to read in any order.</string>
     <string name="guide_part_tools">The tools</string>
@@ -133,7 +133,7 @@
     <string name="guide_build_with_ai_5_text">In Settings › AI validation, you choose what the AI must show before acting. It then waits for your approval for each change, across the whole app, in a zone, in a tool or in a single conversation.</string>
     <string name="guide_automate_title">Routines</string>
     <string name="guide_automate_intro">With a routine, a message for the AI is prepared once and used again as often as you like.</string>
-    <string name="guide_automate_outro">The routine is ready. The AI will handle it on its schedule, and you can run it or talk it over at any time. The rest is in Getting started, to read in any order.</string>
+    <string name="guide_automate_outro">The routine is ready. The AI will handle it on its schedule, and you can run it or talk it over at any time.</string>
     <string name="guide_automate_1_goal">What a routine is</string>
     <string name="guide_automate_1_text">A routine\'s message serves in two ways.\n\nThe AI can handle it on its own. It reads the tools, writes in them if the message asks for it, and the result is there to read later. With a schedule, it takes care of it by itself, every Sunday evening for example.\n\nIt can also be used to start a conversation with the AI, handy for a talk that comes back often, like “let\'s look back on my week”.\n\nThe AI can also create or change a routine for you. Ask it for example “set up a routine that sums up my meals every evening”.</string>
     <string name="guide_automate_2_goal">Create a routine in a zone</string>
@@ -146,6 +146,19 @@
     <string name="guide_automate_5_text">Each run is kept in the routine\'s history. Touch one to see what the AI read, did and answered, and what it cost.</string>
     <string name="guide_automate_6_goal">Or talk it over</string>
     <string name="guide_automate_6_text">On its tile, touch the bubble to start a conversation with the routine\'s message. It can go as it is or be changed first. This is the right choice to think things through with the AI rather than let it work alone.</string>
+    <string name="guide_tasks_title">Tasks</string>
+    <string name="guide_tasks_intro">A Task carries out a series of steps on its own, without an AI: call a service on the web, write an entry, send a reminder. This chapter is done on the demo\'s Tasks.</string>
+    <string name="guide_tasks_outro">For a Task of your own, touch the + of a section in a zone and choose “Task”. The AI can also write one if you ask it. The chapter “APIs”, in Going further, says how to connect another service on the web. The rest is in Getting started, to read in any order.</string>
+    <string name="guide_tasks_1_goal">What a Task is</string>
+    <string name="guide_tasks_1_text">A routine gives a message to the AI, which decides what to do. A Task follows steps written in advance, always the same. It costs nothing, and you know what it will do.\n\nA Task starts when it is run, at the time of its schedule, or on a trigger:\n- a condition becomes true, such as “last temperature > 30”\n- an entry is written in a tool\n- an event is emitted, a signal a Task or a tool sends to the others\n\nLike a routine, a Task belongs to a zone, among the tools.</string>
+    <string name="guide_tasks_2_goal">Open Heatwave</string>
+    <string name="guide_tasks_2_text">In the zone Balcony, Heatwave watches the day\'s forecast. On its page, the line “Condition (trigger 1)” says whether its condition is true: the last entry of Weather is over 30 °C. When it becomes true, the Task starts.\n\nUnder Steps, touch “1. An operation of a tool” to open it. It sends the reminder of the tool Watering at once, without waiting for its time.\n\nTo see what starts the Task, touch the gear at the top right: its trigger is under “Also starts when…”.</string>
+    <string name="guide_tasks_3_goal">Run Morning weather</string>
+    <string name="guide_tasks_3_text">Morning weather has two steps. The first calls Open-Meteo, a forecast service on the web, with the place of a balcony in Lyon. The second writes its answer in Weather. Such a service, which the app calls and whose answer it reads, is called an API: the app\'s are declared in Settings › APIs.\n\nIts schedule would run it every morning at 7:00, but it is off: on, it would send this place to Open-Meteo every day. To see it work once, touch Run now. It needs an internet connection.</string>
+    <string name="guide_tasks_4_goal">Look at its run</string>
+    <string name="guide_tasks_4_text">Under Runs, touch the one that just started. Each step shows what it gave: the highest temperature and the rain read in Open-Meteo\'s answer, then the entry created in Weather. If the call fails, the error shows there instead.\n\nIf the forecast is over 30 °C, Heatwave starts in turn. A Task can start another this way.</string>
+    <string name="guide_tasks_5_goal">Open Busy week</string>
+    <string name="guide_tasks_5_text">In the zone Work, Busy week has no step. It watches a variable, the week\'s hours of work. When they go past 45, a notification says so, and the Task emits the event Busy week, set under “Also emit the event”.\n\nIn the zone Running, the routine Lighten the week listens to this event: in its editor, the button with the lightning counts its triggers. It would then ask the AI for a lighter plan for the days left. It is off, so that the demo spends nothing on your key.\n\nAn event links two zones this way: the Task that emits it does not know who listens.</string>
     <string name="guide_organize_title">Organize</string>
     <string name="guide_organize_intro">When zones and tools pile up, you can sort them. Sorting works the same way at two levels: zones in groups on the home screen, and tools in groups within a zone.</string>
     <string name="guide_organize_outro">Zones and tools are now sorted your way. Everything can be changed at any time, with the same gestures.</string>

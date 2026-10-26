@@ -4,7 +4,7 @@
     <string name="guide_title">Guide</string>
     <string name="guide_description">Des tutoriels à faire dans l\'app elle-même, et des chapitres à lire au besoin.</string>
     <string name="guide_part_discovery">Découverte</string>
-    <string name="guide_part_discovery_help">À suivre dans l\'ordre : un tour dans la démo, un premier outil, une IA branchée, puis une routine qu\'elle traite seule.</string>
+    <string name="guide_part_discovery_help">À suivre dans l\'ordre : un tour dans la démo, un premier outil, une IA branchée, une routine qu\'elle traite seule, puis des Tâches qui travaillent sans elle.</string>
     <string name="guide_part_getting_started">Prise en main</string>
     <string name="guide_part_getting_started_help">Une fonction par chapitre, à lire dans l\'ordre que tu veux.</string>
     <string name="guide_part_tools">Les outils</string>
@@ -133,7 +133,7 @@
     <string name="guide_build_with_ai_5_text">Dans Réglages › Validation IA, tu choisis ce que l\'IA doit montrer avant d\'agir. Elle attend alors ton accord pour chaque changement, sur toute l\'app, une zone, un outil ou une seule conversation.</string>
     <string name="guide_automate_title">Les routines</string>
     <string name="guide_automate_intro">Avec une routine, un message pour l\'IA se prépare une fois et se réutilise à volonté.</string>
-    <string name="guide_automate_outro">La routine est prête. L\'IA la traitera selon son planning, et tu peux la lancer ou en discuter à tout moment. La suite se trouve dans la Prise en main, à lire dans n\'importe quel ordre.</string>
+    <string name="guide_automate_outro">La routine est prête. L\'IA la traitera selon son planning, et tu peux la lancer ou en discuter à tout moment.</string>
     <string name="guide_automate_1_goal">Ce qu\'est une routine</string>
     <string name="guide_automate_1_text">Le message d\'une routine sert de deux façons.\n\nL\'IA peut le traiter seule. Elle lit les outils, y écrit si le message le demande, et le résultat se lit plus tard. Avec un planning, elle s\'en charge d\'elle-même, par exemple chaque dimanche soir.\n\nOn peut aussi s\'en servir pour commencer une conversation avec l\'IA, pratique pour une discussion qui revient souvent, comme « faisons le point sur ma semaine ».\n\nL\'IA peut aussi créer ou modifier une routine pour toi. Demande-lui par exemple « prépare une routine qui fait le bilan de mes repas chaque soir ».</string>
     <string name="guide_automate_2_goal">Crée une routine dans une zone</string>
@@ -146,6 +146,19 @@
     <string name="guide_automate_5_text">Chaque lancement est gardé dans l\'historique de la routine. Touche-en un pour voir ce que l\'IA a lu, fait et répondu, et ce que ça a coûté.</string>
     <string name="guide_automate_6_goal">Ou bien, discutes-en</string>
     <string name="guide_automate_6_text">Sur sa tuile, touche la bulle pour commencer une conversation avec le message de la routine. Il peut partir tel quel ou être modifié avant. C\'est le bon choix pour réfléchir avec l\'IA plutôt que la laisser faire seule.</string>
+    <string name="guide_tasks_title">Les Tâches</string>
+    <string name="guide_tasks_intro">Une Tâche fait seule une suite d\'étapes, sans IA : appeler un service du web, écrire une entrée, envoyer un rappel. Ce chapitre se fait sur les Tâches de la démo.</string>
+    <string name="guide_tasks_outro">Pour une Tâche à toi, touche le + d\'une section dans une zone et choisis « Tâche ». L\'IA peut aussi en écrire une si tu le lui demandes. Le chapitre « Les API », dans Approfondissement, dit comment brancher un autre service du web. La suite se trouve dans la Prise en main, à lire dans n\'importe quel ordre.</string>
+    <string name="guide_tasks_1_goal">Ce qu\'est une Tâche</string>
+    <string name="guide_tasks_1_text">Une routine donne un message à l\'IA, qui décide quoi faire. Une Tâche suit des étapes écrites à l\'avance, toujours les mêmes. Elle ne coûte rien, et on sait ce qu\'elle fera.\n\nUne Tâche part quand on la lance, à l\'heure de son planning, ou sur un déclencheur :\n- une condition devient vraie, comme « dernière température > 30 »\n- une entrée est écrite dans un outil\n- un événement est émis, un signal qu\'une Tâche ou un outil envoie aux autres\n\nComme une routine, une Tâche se range dans une zone, parmi les outils.</string>
+    <string name="guide_tasks_2_goal">Ouvre Canicule</string>
+    <string name="guide_tasks_2_text">Dans la zone Balcon, Canicule surveille la prévision du jour. Sur sa page, la ligne « Condition (déclencheur 1) » dit si sa condition est vraie : la dernière entrée de Météo dépasse 30 °C. Quand elle le devient, la Tâche part.\n\nSous Étapes, touche « 1. Une opération d\'outil » pour l\'ouvrir. Elle envoie tout de suite le rappel de l\'outil Arrosage, sans attendre son heure.\n\nPour voir ce qui fait partir la Tâche, touche l\'engrenage en haut à droite : son déclencheur est sous « Part aussi quand… ».</string>
+    <string name="guide_tasks_3_goal">Lance Météo du matin</string>
+    <string name="guide_tasks_3_text">Météo du matin a deux étapes. La première appelle Open-Meteo, un service de prévisions du web, avec la position d\'un balcon à Lyon. La seconde écrit sa réponse dans Météo. Un tel service, que l\'app appelle et dont elle lit la réponse, s\'appelle une API : celles de l\'app se déclarent dans Réglages › API.\n\nSon planning la lancerait chaque matin à 7 h, mais elle est éteinte : allumée, elle enverrait chaque jour cette position à Open-Meteo. Pour la voir travailler une fois, touche Lancer maintenant. Il faut une connexion à internet.</string>
+    <string name="guide_tasks_4_goal">Regarde son exécution</string>
+    <string name="guide_tasks_4_text">Sous Exécutions, touche celle qui vient de partir. Chaque étape y montre ce qu\'elle a donné : la température maximale et la pluie lues dans la réponse d\'Open-Meteo, puis l\'entrée créée dans Météo. Si l\'appel échoue, l\'erreur s\'y lit à la place.\n\nSi la prévision dépasse 30 °C, Canicule part à son tour. Une Tâche peut ainsi en faire partir une autre.</string>
+    <string name="guide_tasks_5_goal">Ouvre Semaine chargée</string>
+    <string name="guide_tasks_5_text">Dans la zone Travail, Semaine chargée n\'a aucune étape. Elle surveille une variable, les heures de travail de la semaine. Quand elles dépassent 45, une notification le dit, et la Tâche émet l\'événement Semaine chargée, réglé sous « Émettre aussi l\'événement ».\n\nDans la zone Course, la routine Alléger la semaine écoute cet événement : dans son éditeur, le bouton à l\'éclair compte ses déclencheurs. Elle demanderait alors à l\'IA un plan plus léger pour les jours qui restent. Elle est éteinte, pour que la démo ne dépense rien sur ta clé.\n\nUn événement relie ainsi deux zones : la Tâche qui l\'émet ne sait pas qui l\'écoute.</string>
     <string name="guide_organize_title">Organiser</string>
     <string name="guide_organize_intro">Quand les zones et les outils se multiplient, tu peux les ranger. Le rangement se fait de la même façon à deux niveaux : les zones en groupes sur l\'accueil, et les outils en groupes dans une zone.</string>
     <string name="guide_organize_outro">Zones et outils sont maintenant rangés à ta façon. Tout se change à tout moment, avec les mêmes gestes.</string>

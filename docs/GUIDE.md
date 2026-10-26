@@ -91,6 +91,7 @@ A step is written as data, not code. A check of `./run test` verifies that each 
 2. **Connect an AI**: choose a provider, paste their key, ask for an overview without attaching anything, then point at their tool with a pointer in a simple mention, each gesture named (the target, the zone, the tool, Confirm).
 3. **Build with the AI**: have it create a tool, validate what it proposes, let it link two tools (a variable, a Goal).
 4. **Routines**: its two uses, launch it (the AI alone) or discuss it (the bubble); create it, write its message (a step that waits for the editor's save, refused without a message), launch it, read its execution, then the bubble.
+5. **Tasks**, without an AI, on the demo's Tasks: what a Task is beside a routine; Heatwave (Balcony), its condition and its step; Morning weather run by hand (`tasks.run`, the run it starts kept), the text saying it sends the demo balcony's place to Open-Meteo; that run, the API's values then the entry of Weather; Busy week (Work), which watches a variable and emits the event the routine Lighten the week listens to.
 
 The content of tutorials 2 to 4 is written at their building: it names screens the stack does not have yet.
 
