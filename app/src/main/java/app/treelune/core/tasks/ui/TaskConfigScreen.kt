@@ -74,6 +74,7 @@ fun TaskConfigScreen(place: Place.TaskConfig, onDone: () -> Unit, onDeleted: () 
     }
     var stepsText by rememberSaveable { mutableStateOf("[]") }
     val steps = remember(stepsText) { JSONArray(stepsText) }
+    var zoneId by rememberSaveable { mutableStateOf(place.zoneId) }
     // The settings and the steps as read, to tell a change; and whether leaving with one is asked
     var asLoaded by rememberSaveable { mutableStateOf<String?>(null) }
     var leaving by rememberSaveable { mutableStateOf(false) }
@@ -83,7 +84,7 @@ fun TaskConfigScreen(place: Place.TaskConfig, onDone: () -> Unit, onDeleted: () 
     var outputs by remember { mutableStateOf<List<List<TaskSteps.Output>>>(emptyList()) }
     var received by remember { mutableStateOf(Receivable(null, null)) }
 
-    fun snapshot() = JSONObject().put("settings", settings).put("steps", steps).toString()
+    fun snapshot() = JSONObject().put("settings", settings).put("steps", steps).put("zone_id", zoneId).toString()
 
     LaunchedEffect(place.taskId) {
         if (asLoaded != null) return@LaunchedEffect
@@ -120,10 +121,10 @@ fun TaskConfigScreen(place: Place.TaskConfig, onDone: () -> Unit, onDeleted: () 
         }
     }
 
-    // The groups of the Task's zone
+    // The groups of the zone the Task is in
     var groups by remember { mutableStateOf<List<String>>(emptyList()) }
-    LaunchedEffect(place.zoneId) {
-        val result = coordinator.processUserAction("zones.get", mapOf("zone_id" to place.zoneId))
+    LaunchedEffect(zoneId) {
+        val result = coordinator.processUserAction("zones.get", mapOf("zone_id" to zoneId))
         groups = ((result.data?.get("zone") as? Map<*, *>)?.get("tool_groups") as? List<*>).orEmpty().mapNotNull { it as? String }
     }
 
@@ -145,7 +146,10 @@ fun TaskConfigScreen(place: Place.TaskConfig, onDone: () -> Unit, onDeleted: () 
             // A setting the form took out is given null, for the service to remove it
             val stored = JSONObject(asLoaded!!).getJSONObject("settings")
             val removed = stored.keys().asSequence().filter { !settings.has(it) }.associateWith { null }
-            coordinator.processUserAction("tasks.update", params + removed + mapOf("task_id" to place.taskId))
+            coordinator.processUserAction("tasks.update", params + removed + buildMap {
+                put("task_id", place.taskId)
+                if (zoneId != place.zoneId) put("zone_id", zoneId)
+            })
         }
         saving = false
         if (result.status == CommandStatus.SUCCESS) onDone()
@@ -176,7 +180,21 @@ fun TaskConfigScreen(place: Place.TaskConfig, onDone: () -> Unit, onDeleted: () 
             val editors = app.treelune.core.look.ui.lookEditors(TaskSettings.LOOK, settings, s) { settings = it } + mapOf(
                 "group" to app.treelune.core.tools.ui.groupEditor(groups, s.shared("label_group"))
             )
-            SettingsForm(head, settings, { settings = it }, context, editors, scroll = scroll, pages = headPages)
+            SettingsForm(head, settings, { settings = it }, context, editors, scroll = scroll, pages = headPages) {
+                // The zone is its place, not a setting: offered once the Task exists
+                if (place.taskId != null) app.treelune.core.ui.selectors.ZoneChoice(
+                    label = s.shared("label_zone"),
+                    selected = zoneId,
+                    onSelect = { id ->
+                        if (id != zoneId) {
+                            zoneId = id
+                            // Its group stays in the zone it leaves: the selector offers the new zone's
+                            settings = JSONObject(settings.toString()).apply { remove("group") }
+                        }
+                    },
+                    required = false
+                )
+            }
         }
         if (!headPages.atRoot) return@Column
 
