@@ -15,7 +15,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs du téléphone
 
-- Un thème ou un mode choisi puis enregistré, que l'écran des réglages d'interface remet à l'ancien en se fermant sans enregistrer (vu le 2026-10-21 à 13:31 et 13:51) : les appuis, l'écriture et la pile de navigation sont maintenant au journal, à lire au prochain cas.
 - Pour certains outils il y a mecanisme d'expiration, pourquoi pas le généraliser pour les outils qui ont des elements 'en attente' ? — Outils — Amélioration
 - Quand un questionnnaire se la'ce de manière auto (via notif) , on ne saot pas de quelle occirrence il s'agit. Si 2 en retard, on peut croire que c'est la dernière. Il faudrait un écran tampon dans ces cas là ou autre manière de savoir — UI — Amélioration
 
