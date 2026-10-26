@@ -13,8 +13,9 @@ each chapter and step:
 - every text the Guide reads by name exists in English and in French (guide.xml, guide-fr.xml):
   a chapter's title and introduction, a tutorial's end, each step's goal and explanation, a read
   chapter's body ("text": true);
-- every demo id a step names, in its place or in what it waits for, is a zone or a tool the demo
-  installs (assets/demo/structure.json), and a tool's place names the zone the demo puts it in:
+- every demo id a step names, in its place or in what it waits for, is a zone, a tool or a Task
+  the demo installs (assets/demo/structure.json), and a tool's or a Task's place names the zone
+  the demo puts it in:
   the demo rewritten, a tutorial would send the user to a place that is not there;
 - the Guide's texts, and the tool types' texts it shows (usage, guide_config, guide_screen), keep
   to its markup (core/markup/Markup.kt): an icon only as `{name}` at the head of a list line, a name of the
@@ -140,6 +141,7 @@ def main():
     demo = json.loads(DEMO.read_text(encoding="utf-8"))
     demo_zones = {z["id"] for z in demo["zones"]}
     demo_tools = {t["id"]: t["zone_id"] for t in demo["tools"]}
+    demo_tasks = {t["id"]: t["zone_id"] for t in demo["tasks"]}
     problems = []
 
     icons = {icon["name"] for icon in json.loads(ICONS.read_text(encoding="utf-8"))["icons"]}
@@ -182,12 +184,16 @@ def main():
             target = step.get("target")
             named = [target or ""] + list((step.get("await") or {}).get("params", {}).values())
             for demo_id in (i for text in named for i in DEMO_ID.findall(text)):
-                if demo_id not in demo_zones and demo_id not in demo_tools:
-                    problems.append(f"{where}: '{demo_id}' is no zone or tool of the demo")
-            if target is not None and target.startswith("tool/"):
+                if demo_id not in demo_zones and demo_id not in demo_tools and demo_id not in demo_tasks:
+                    problems.append(f"{where}: '{demo_id}' is no zone, tool or Task of the demo")
+            # A tool's place and a Task's end on their zone; a Task's run's on its Task, then its zone
+            placed = {"tool": demo_tools, "task": demo_tasks, "task_run": demo_tasks}
+            if target is not None and target.split("/")[0] in placed:
                 parts = target.split("/")
-                if parts[1] in demo_tools and demo_tools[parts[1]] != parts[2]:
-                    problems.append(f"{where}: the demo puts '{parts[1]}' in '{demo_tools[parts[1]]}', not '{parts[2]}'")
+                owner, zone = parts[-2], parts[-1]
+                where_put = placed[parts[0]]
+                if owner in where_put and where_put[owner] != zone:
+                    problems.append(f"{where}: the demo puts '{owner}' in '{where_put[owner]}', not '{zone}'")
             if target is not None:
                 if target.split("/")[0] not in kinds:
                     problems.append(f"{where}: no place of kind '{target.split('/')[0]}'")

@@ -91,6 +91,7 @@ A step is written as data, not code. A check of `./run test` verifies that each 
 2. **Connect an AI**: choose a provider, paste their key, ask for an overview without attaching anything, then point at their tool with a pointer in a simple mention, each gesture named (the target, the zone, the tool, Confirm).
 3. **Build with the AI**: have it create a tool, validate what it proposes, let it link two tools (a variable, a Goal).
 4. **Routines**: its two uses, launch it (the AI alone) or discuss it (the bubble); create it, write its message (a step that waits for the editor's save, refused without a message), launch it, read its execution, then the bubble.
+5. **Tasks**, without an AI, on the demo's Tasks: what a Task is beside a routine; Heatwave (Balcony), its condition and its step; Morning weather run by hand (`tasks.run`, the run it starts kept), the text saying it sends the demo balcony's place to Open-Meteo; that run, the API's values then the entry of Weather; Busy week (Work), which watches a variable and emits the event the routine Lighten the week listens to.
 
 The content of tutorials 2 to 4 is written at their building: it names screens the stack does not have yet.
 
@@ -148,7 +149,7 @@ In the app's settings: for each chapter, the step underway or "Done"; the band h
 
 - The chapters: `assets/guide/chapters.json`, one step per object (kind, address of the place, expected operation with its origin and its parameters, what it keeps). "Outside the demo" has no form of its own: a step targets the zone created at the step before (`{zone}`), never a demo zone. One chapter per tool type is added in the The tools part, drawn from the tool's name, `tagline`, `usage` and Guide texts; "The tools at a glance" is added at the head of Getting started.
 - The texts: `core/strings/sources/guide.xml` and `guide-fr.xml`, named after the chapter and the step; a tool chapter's, `usage`, `guide_config` and `guide_screen`, in the tool's texts.
-- A Going further chapter is a text to read, without steps: `"text": true` in `chapters.json`, its body `guide_<chapitre>_body`, written in the same formatting. Its subjects: the relative dates, the protections, the field types, formulas and variables, conditions and filters, changing a tool's fields. A new one comes with the feature it explains.
+- A Going further chapter is a text to read, without steps: `"text": true` in `chapters.json`, its body `guide_<chapitre>_body`, written in the same formatting. Its subjects: the relative dates, the protections, the field types, formulas and variables, conditions and filters, the APIs, changing a tool's fields. A new one comes with the feature it explains.
 - Their formatting (`Markup`, shown by `MarkupText`), a bit of Markdown: `## ` a subtitle, `- ` a list line, `{nom}` at the head of a list line the Lucide icon of the button it names, never elsewhere; short sentences under subtitles rather than blocks. `scripts/check_guide.py` checks it. A chapter's parts (steps, config, screen) are title tiles with their icon.
 - The engine: `core/guide/Guide.kt`, which listens to the successful operations asked from outside (`PassedOperations`, emitted by the coordinator) and the stack; the progress in the settings category `guide`.
 - The check: `scripts/check_guide.py`, in `./run test`.

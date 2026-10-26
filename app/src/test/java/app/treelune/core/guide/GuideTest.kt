@@ -23,7 +23,7 @@ class GuideTest {
     @Test
     fun theJourneyComesFirstInItsOrder() {
         val journey = chapters.takeWhile { it.part.ordered }
-        assertEquals(listOf("first_steps", "connect_ai", "build_with_ai", "automate"), journey.map { it.id })
+        assertEquals(listOf("first_steps", "connect_ai", "build_with_ai", "automate", "tasks"), journey.map { it.id })
         assertTrue(journey.all { it.part == GuidePart.DISCOVERY })
         // Getting started next, Configure a tool first, then going further, each of its chapters a text to read
         val rest = chapters.drop(journey.size)
@@ -35,7 +35,7 @@ class GuideTest {
 
     @Test
     fun everyPlaceOfTheJourneyReads() {
-        val kept = mapOf("zone" to "z", "tool" to "t", "automation" to "a")
+        val kept = mapOf("zone" to "z", "tool" to "t", "automation" to "a", "run" to "r")
         chapters.flatMap { it.steps }.mapNotNull { it.target }.forEach { Place.of(Guide.fill(it, kept)!!) }
     }
 

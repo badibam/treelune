@@ -3,8 +3,8 @@
 
 The bugs are the entries of the tool "Treelune" in the zone "Dev" of the release build, where
 they are noted. They are read and deleted through the app's MCP server, as Claude reaches it: the
-claude.ai connector "Treelune Tailscale", whose tools Claude Code names
-mcp__claude_ai_Treelune_Tailscale__<command>. The external access must be open in the release
+claude.ai connector, named "Treelune Tailscale" or "Treelune" depending on the Claude account, whose
+tools Claude Code names mcp__claude_ai_<name>__<command>. The external access must be open in the release
 (docs/EXTERNAL_ACCESS.md), and the connector authorised once against it.
 
 Claude only reads and deletes, and answers in JSON; this script shows the list, asks once, writes
@@ -28,11 +28,12 @@ TOOL = "Treelune"
 SECTION = "## Bugs du téléphone"
 NEXT_SECTION = "## En attente d'un déclencheur"
 
-CONNECTOR = "mcp__claude_ai_Treelune_Tailscale__"
+# The connector's names in the Claude accounts used; only the one the account holds connects.
+CONNECTORS = ("mcp__claude_ai_Treelune_Tailscale__", "mcp__claude_ai_Treelune__")
 # ToolSearch: headless, the connectors are still connecting when the model starts, and only
 # ToolSearch waits for them and loads their tools.
-READ_TOOLS = ["ToolSearch"] + [CONNECTOR + name for name in ("app_context", "zones", "tool_instances", "tool_data")]
-DELETE_TOOLS = ["ToolSearch"] + [CONNECTOR + name for name in ("app_context", "delete_data")]
+READ_TOOLS = ["ToolSearch"] + [c + name for c in CONNECTORS for name in ("app_context", "zones", "tool_instances", "tool_data")]
+DELETE_TOOLS = ["ToolSearch"] + [c + name for c in CONNECTORS for name in ("app_context", "delete_data")]
 
 MODEL = "sonnet"
 EFFORT = "low"

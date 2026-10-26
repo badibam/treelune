@@ -67,6 +67,9 @@
   ],
   "pieces": [
     {"id": "routines", "icon": "calendar-clock", "color": "teal"},
+    {"id": "tasks", "icon": "workflow", "color": "yellow"},
+    {"id": "apis", "icon": "webhook", "color": "blue"},
+    {"id": "events", "icon": "zap", "color": "orange"},
     {"id": "variables", "icon": "variable", "color": "orange"},
     {"id": "conditions", "icon": "bell-ring", "color": "red"},
     {"id": "identities", "icon": "venetian-mask", "color": "purple"},

@@ -66,6 +66,20 @@
       ]
     },
     {
+      "id": "tasks",
+      "part": "discovery",
+      "icon": "workflow",
+      "minutes": 8,
+      "steps": [
+        {"kind": "read"},
+        {"kind": "read", "target": "task/demo-t-heat/demo-balcony"},
+        {"kind": "do", "target": "task/demo-t-weather/demo-balcony",
+          "await": {"operation": "tasks.run", "origin": "USER", "params": {"task_id": "demo-t-weather"}}, "keep": {"run": "run_id"}},
+        {"kind": "read", "target": "task_run/{run}/demo-t-weather/demo-balcony"},
+        {"kind": "read", "target": "task/demo-t-busy-week/demo-work"}
+      ]
+    },
+    {
       "id": "configure_tool",
       "part": "getting_started",
       "icon": "settings",
@@ -193,6 +207,7 @@
     {"id": "field_types", "part": "deeper", "icon": "list-tree", "minutes": 4, "text": true, "steps": []},
     {"id": "formulas", "part": "deeper", "icon": "sigma", "minutes": 4, "text": true, "steps": []},
     {"id": "conditions", "part": "deeper", "icon": "funnel", "minutes": 4, "text": true, "steps": []},
+    {"id": "apis", "part": "deeper", "icon": "webhook", "minutes": 4, "text": true, "steps": []},
     {"id": "field_changes", "part": "deeper", "icon": "replace", "minutes": 4, "text": true, "steps": []}
   ]
 }
