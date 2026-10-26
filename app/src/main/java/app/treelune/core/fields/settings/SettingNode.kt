@@ -205,6 +205,19 @@ sealed class SettingNode {
     ) : SettingNode()
 
     /**
+     * The order of the entries a selection beside it holds, stored under [name] (the Sort brick,
+     * docs/BRICKS.md, EntrySort): `[{"field", "direction"}]`, each field one of that selection's
+     * tool, empty for the newest first; drawn by SortSetting.
+     *
+     * @property selection The name of the Selection setting beside it whose entries it orders
+     */
+    data class Sort(
+        val name: String,
+        val label: String,
+        val selection: String
+    ) : SettingNode()
+
+    /**
      * A period stored under [name] (the Période brick, docs/BRICKS.md): `{"start", "end"}`, each
      * bound an instant (TimePoint), absent for no limit; drawn by PeriodPicker.
      *
@@ -260,7 +273,7 @@ fun List<SettingNode>.storedField(name: String): FieldDefinition? {
                 ?: node.cases.values.firstNotNullOfOrNull { it.storedField(name) }
             is SettingNode.Section -> node.nodes.storedField(name)
             is SettingNode.Group, is SettingNode.ListOf, is SettingNode.Condition,
-            is SettingNode.Term, is SettingNode.Selection, is SettingNode.Period, is SettingNode.Instants -> null
+            is SettingNode.Term, is SettingNode.Selection, is SettingNode.Sort, is SettingNode.Period, is SettingNode.Instants -> null
         }
         if (found != null) return found
     }
@@ -301,6 +314,7 @@ fun List<SettingNode>.labelOf(name: String): String? {
             is SettingNode.Condition -> node.label.takeIf { node.name == name }
             is SettingNode.Term -> node.label.takeIf { node.name == name }
             is SettingNode.Selection -> node.label.takeIf { node.name == name }
+            is SettingNode.Sort -> node.label.takeIf { node.name == name }
             is SettingNode.Period -> node.label.takeIf { node.name == name }
             is SettingNode.Instants -> node.label.takeIf { node.name == name }
         }

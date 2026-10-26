@@ -199,7 +199,7 @@ private fun List<SettingNode>.isPage(): Boolean = any { node ->
         is SettingNode.Selection, is SettingNode.Condition -> true
         is SettingNode.Section -> node.nodes.isPage()
         is SettingNode.Variant -> node.cases.values.any { it.isPage() }
-        is SettingNode.Field, is SettingNode.Period, is SettingNode.Instants -> false
+        is SettingNode.Field, is SettingNode.Period, is SettingNode.Instants, is SettingNode.Sort -> false
     }
 }
 
@@ -734,6 +734,13 @@ private fun NodeForm(
             selection = config.optJSONObject(node.name),
             reference = node.reference,
             onChange = { set(node.name, it) }
+        )
+
+        is SettingNode.Sort -> app.treelune.core.ui.selectors.SortSetting(
+            label = node.label,
+            sort = config.optJSONArray(node.name) ?: JSONArray(),
+            selection = config.optJSONObject(node.selection),
+            onChange = { set(node.name, it.takeIf { sort -> sort.length() > 0 }) }
         )
 
         is SettingNode.Period -> {

@@ -235,9 +235,14 @@
     <string name="term_schema_reading">{\"reading\": {\"selection\", \"field\"?, \"reduction\"}}, un champ d\'un outil réduit sur ses entrées, compté sans champ ; la période de sa sélection est relative à l\'instant lu, et sans période elle lit celle que donne le contexte</string>
     <string name="term_schema_reading_file">{\"reading\": {\"selection\": {\"target\": {\"kind\": \"ENTRY\", \"id\"}}, \"field\", \"reduction\": \"LAST\"}}, le champ fichier d\'une entrée suivi, qui garde un seul fichier des sortes acceptées, relu à chaque usage</string>
     <string name="selection_schema_description">Des entrées d\'un outil : {\"target\": {\"kind\": \"TOOL_INSTANCE\", \"id\"}, \"filters\"?: [conditions sur chaque entrée], \"fields\"?: [chemins gardés]} ; sa période est donnée ailleurs.</string>
+    <string name="sort_schema_description">L\'ordre des entrées de la sélection \'%1$s\' : des clés appliquées l\'une après l\'autre, chacune un champ de son outil (\"name\", \"timestamp\", \"data.number\") et \"asc\" ou \"desc\" ; vide ou absent, la plus récente en tête. Les entrées sans valeur viennent en dernier.</string>
     <string name="period_schema_description">Une période, {\"start\"?, \"end\"?}, bornes comprises, une borne absente pour sans limite : un instant fixe, ou une date relative, {\"relative\": {\"unit\": \"DAY\", \"offset\": -29, \"edge\": \"START\"}} ou {\"relative\": \"NOW\"}.</string>
     <string name="instants_schema_description">Des instants, chacun une date relative au moment que dit le réglage, jamais une date fixe : {\"relative\": {\"unit\": \"HOUR\", \"offset\": -1, \"edge\": \"SAME\"}} pour une heure avant, {\"relative\": {\"unit\": \"MINUTE\", \"offset\": -15, \"edge\": \"SAME\"}}, {\"relative\": {\"unit\": \"DAY\", \"offset\": -1, \"edge\": {\"at\": \"18:00\"}}} pour la veille à 18:00, {\"relative\": \"NOW\"} pour le moment même.</string>
     <string name="service_error_filter_unknown_field">Filtre sur \'%1$s\' : les entrées de cet outil n\'ont pas ce champ à filtrer. Champs : %2$s</string>
+    <string name="service_error_sort_unreadable">Clé de tri illisible : %1$s. Une clé s\'écrit {\"field\": \"data.number\", \"direction\": \"asc\"}.</string>
+    <string name="service_error_sort_field">Tri sur \'%1$s\' : les entrées de cet outil n\'ont pas ce champ à mettre en ordre. Champs : %2$s</string>
+    <string name="service_error_sort_direction">Tri sur \'%1$s\' : \'%2$s\' n\'est pas un sens. Sens : %3$s</string>
+    <string name="service_error_sort_twice">Tri deux fois sur \'%1$s\' : un champ fait une seule clé.</string>
     <string name="service_error_values_not_text">« %1$s » n\'est pas un champ texte : seul un texte a des valeurs à proposer</string>
     <string name="service_error_filter_operator">Filtre sur \'%1$s\' : la condition \'%2$s\' ne s\'applique pas à un champ %3$s. Conditions : %4$s</string>
     <string name="service_error_filter_value">Filtre sur \'%1$s\' avec \'%2$s\' : valeur %3$s illisible, attendu %4$s</string>
@@ -1705,6 +1710,8 @@
     <string name="variable_term_constant">Valeur fixe</string>
     <string name="term_error_file_follow">%1$s : un fichier se suit dans le champ d\'une entrée, {\"selection\": {\"target\": {\"kind\": \"ENTRY\", \"id\"}}, \"field\", \"reduction\": \"LAST\"}.</string>
     <string name="term_error_file_source">%1$s : l\'entrée suivie ne se lit pas : %2$s</string>
+    <string name="sort_error_without_selection">%1$s : un tri ordonne les entrées d\'une sélection, qui n\'a pas encore d\'outil.</string>
+    <string name="sort_error_source">%1$s : l\'outil de la sélection ne se lit pas : %2$s</string>
     <string name="term_error_file_field">%1$s : le champ %2$s ne garde pas un seul fichier des sortes acceptées ici (%3$s).</string>
     <string name="term_follow_field">Suivre un champ</string>
     <string name="term_follow_pick">Suivre le champ d\'une entrée</string>
@@ -2233,6 +2240,9 @@
     <string name="label_yes">Oui</string>
     <string name="label_with_default">%1$s (par défaut : %2$s)</string>
     <string name="setting_field_of_tool_first">choisis d\'abord l\'outil</string>
+    <string name="sort_none">La plus récente en tête</string>
+    <string name="sort_direction_asc">Croissant</string>
+    <string name="sort_direction_desc">Décroissant</string>
     <string name="label_on">On</string>
     <string name="label_off">Off</string>
     <string name="label_no">Non</string>

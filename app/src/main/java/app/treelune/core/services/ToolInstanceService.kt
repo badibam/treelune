@@ -613,6 +613,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             .refuse(nodes, JSONObject(configJson))
             // A file's term follows one entry's file field (ConfigTerms)
             ?: app.treelune.core.terms.ConfigTerms.refuseFiles(nodes, JSONObject(configJson), context, s)
+            // A sort names fields of its selection's tool (ConfigSorts)
+            ?: app.treelune.core.fields.ConfigSorts.refuse(nodes, JSONObject(configJson), context, s)
     }
 
     /** [configJson] with [mode] as its display mode when it gives none: every config holds one. */

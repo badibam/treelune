@@ -215,16 +215,37 @@ object EntryFilters {
     }
 
     /**
-     * The entries of [toolInstanceId] that pass [filters], newest first, [limit] of them from
-     * [offset] (no limit when null).
+     * The entries of [toolInstanceId] that pass [filters], in the order of [sort] (EntrySort),
+     * newest first where it leaves them equal, [limit] of them from [offset] (no limit when null).
      */
-    fun select(toolInstanceId: String, filters: List<EntryFilter>, fields: Map<String, FieldDefinition>, limit: Int?, offset: Int): SqlCondition {
+    fun select(toolInstanceId: String, filters: List<EntryFilter>, fields: Map<String, FieldDefinition>, limit: Int?, offset: Int, sort: List<SortKey> = emptyList()): SqlCondition {
         val where = where(toolInstanceId, filters, fields)
+        val order = sort.map { orderBy(it, fields[it.field]!!) }
         val paging = if (limit != null) " LIMIT ? OFFSET ?" else ""
         return SqlCondition(
-            "SELECT * FROM tool_data WHERE ${where.clause} ORDER BY timestamp DESC$paging",
-            where.args + (if (limit != null) listOf(limit, offset) else emptyList())
+            "SELECT * FROM tool_data WHERE ${where.clause} ORDER BY ${(order.map { it.clause } + "timestamp DESC").joinToString(", ")}$paging",
+            where.args + order.flatMap { it.args } + (if (limit != null) listOf(limit, offset) else emptyList())
         )
+    }
+
+    /**
+     * One key of a sort as SQL: the entries without a value after the others, whatever the
+     * direction; a text without its case, a choice by its option's place, an option no longer
+     * listed after the listed ones.
+     */
+    private fun orderBy(key: SortKey, field: FieldDefinition): SqlCondition {
+        val (expr, args) = valueExpr(key.field)
+        val direction = if (key.ascending) "ASC" else "DESC"
+        return when (field.type) {
+            FieldType.CHOICE -> {
+                val options = ChoiceSettings.fromConfig(field.config).options
+                val cases = options.indices.joinToString(" ") { "WHEN ? THEN $it" }
+                val ranked = if (options.isEmpty()) "${options.size}" else "CASE $expr $cases ELSE ${options.size} END"
+                SqlCondition("($expr IS NULL), $ranked $direction", args + (if (options.isEmpty()) emptyList() else args + options))
+            }
+            FieldType.TEXT -> SqlCondition("($expr IS NULL), $expr COLLATE NOCASE $direction", args + args)
+            else -> SqlCondition("($expr IS NULL), $expr $direction", args + args)
+        }
     }
 
     /** How many entries of [toolInstanceId] pass [filters]. */

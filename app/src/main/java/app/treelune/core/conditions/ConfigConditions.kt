@@ -96,7 +96,7 @@ class ConfigConditions(private val sources: Sources) {
 
     private suspend fun walk(nodes: List<SettingNode>, obj: JSONObject, root: JSONObject, path: List<Any>, label: String, visit: suspend (Found) -> JSONObject) {
         for (node in nodes) when (node) {
-            is SettingNode.Field, is SettingNode.Period, is SettingNode.Instants -> Unit
+            is SettingNode.Field, is SettingNode.Period, is SettingNode.Instants, is SettingNode.Sort -> Unit
             is SettingNode.Group -> obj.optJSONObject(node.name)?.let { walk(node.nodes, it, root, path + node.name, under(label, node.label), visit) }
             is SettingNode.ListOf -> {
                 val item = node.item as? SettingNode.Item.Of ?: continue

@@ -235,9 +235,14 @@
     <string name="term_schema_reading">{\"reading\": {\"selection\", \"field\"?, \"reduction\"}}, a field of a tool reduced across its entries, counted without a field; its selection\'s period is relative to the instant read, and without one it reads the period the context gives</string>
     <string name="term_schema_reading_file">{\"reading\": {\"selection\": {\"target\": {\"kind\": \"ENTRY\", \"id\"}}, \"field\", \"reduction\": \"LAST\"}}, a file field of one entry followed, holding a single file of the kinds taken, read again at each use</string>
     <string name="selection_schema_description">Entries of one tool: {\"target\": {\"kind\": \"TOOL_INSTANCE\", \"id\"}, \"filters\"?: [conditions on each entry], \"fields\"?: [paths kept]}; its period is given elsewhere.</string>
+    <string name="sort_schema_description">The order of the entries of the selection \'%1$s\': keys applied one after the other, each a field of its tool (\"name\", \"timestamp\", \"data.number\") and \"asc\" or \"desc\"; empty or absent, the newest first. Entries without a value come last.</string>
     <string name="period_schema_description">A period, {\"start\"?, \"end\"?}, both inclusive, a bound absent for no limit: a fixed instant, or a relative date, {\"relative\": {\"unit\": \"DAY\", \"offset\": -29, \"edge\": \"START\"}} or {\"relative\": \"NOW\"}.</string>
     <string name="instants_schema_description">Instants, each a relative date against the moment the setting says, never a fixed one: {\"relative\": {\"unit\": \"HOUR\", \"offset\": -1, \"edge\": \"SAME\"}} for an hour before, {\"relative\": {\"unit\": \"MINUTE\", \"offset\": -15, \"edge\": \"SAME\"}}, {\"relative\": {\"unit\": \"DAY\", \"offset\": -1, \"edge\": {\"at\": \"18:00\"}}} for the day before at 18:00, {\"relative\": \"NOW\"} for the moment itself.</string>
     <string name="service_error_filter_unknown_field">Filter on \'%1$s\': the entries of this tool have no such field to filter on. Fields: %2$s</string>
+    <string name="service_error_sort_unreadable">Unreadable sort key: %1$s. A key is {\"field\": \"data.number\", \"direction\": \"asc\"}.</string>
+    <string name="service_error_sort_field">Sort on \'%1$s\': the entries of this tool have no such field to put in order. Fields: %2$s</string>
+    <string name="service_error_sort_direction">Sort on \'%1$s\': \'%2$s\' is no direction. Directions: %3$s</string>
+    <string name="service_error_sort_twice">Sort on \'%1$s\' twice: a field is one key.</string>
     <string name="service_error_values_not_text">'%1$s' is not a text field: only a text has values to offer</string>
     <string name="service_error_filter_operator">Filter on \'%1$s\': the condition \'%2$s\' does not apply to a %3$s field. Conditions: %4$s</string>
     <string name="service_error_filter_value">Filter on \'%1$s\' with \'%2$s\': value %3$s unreadable, expected %4$s</string>
@@ -1705,6 +1710,8 @@
     <string name="variable_term_constant">Fixed value</string>
     <string name="term_error_file_follow">%1$s: a file is followed in one entry\'s field, {\"selection\": {\"target\": {\"kind\": \"ENTRY\", \"id\"}}, \"field\", \"reduction\": \"LAST\"}.</string>
     <string name="term_error_file_source">%1$s: the entry followed cannot be read: %2$s</string>
+    <string name="sort_error_without_selection">%1$s: a sort orders the entries of a selection, which has no tool yet.</string>
+    <string name="sort_error_source">%1$s: the tool of the selection cannot be read: %2$s</string>
     <string name="term_error_file_field">%1$s: the field %2$s does not hold a single file of the kinds taken here (%3$s).</string>
     <string name="term_follow_field">Follow a field</string>
     <string name="term_follow_pick">Follow the field of an entry</string>
@@ -2233,6 +2240,9 @@
     <string name="label_yes">Yes</string>
     <string name="label_with_default">%1$s (default: %2$s)</string>
     <string name="setting_field_of_tool_first">choose the tool first</string>
+    <string name="sort_none">Newest first</string>
+    <string name="sort_direction_asc">Ascending</string>
+    <string name="sort_direction_desc">Descending</string>
     <string name="label_on">On</string>
     <string name="label_off">Off</string>
     <string name="label_no">No</string>

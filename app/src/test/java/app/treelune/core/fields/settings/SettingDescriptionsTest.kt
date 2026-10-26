@@ -56,7 +56,7 @@ class SettingDescriptionsTest {
                     missing(caseNodes, "$path(${node.selector.definition.name}=$option)")
             }
             is SettingNode.Section -> missing(node.nodes, path)
-            is SettingNode.Condition, is SettingNode.Term, is SettingNode.Selection, is SettingNode.Period, is SettingNode.Instants -> emptyList()
+            is SettingNode.Condition, is SettingNode.Term, is SettingNode.Selection, is SettingNode.Sort, is SettingNode.Period, is SettingNode.Instants -> emptyList()
         }
     }.distinct()
 

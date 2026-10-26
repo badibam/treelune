@@ -88,6 +88,7 @@ object SettingsSchemaGenerator {
                 is SettingNode.Condition -> Triple(node.name, node.required, conditionSchema(node, text))
                 is SettingNode.Term -> Triple(node.name, node.required, termSchema(node, text))
                 is SettingNode.Selection -> Triple(node.name, node.required, selectionSchema(node, text))
+                is SettingNode.Sort -> Triple(node.name, false, sortSchema(node, text))
                 is SettingNode.Period -> Triple(node.name, node.required, periodSchema(node, text))
                 is SettingNode.Instants -> Triple(node.name, node.required, instantsSchema(node, text))
                 is SettingNode.Variant, is SettingNode.Section -> error("flattened before")
@@ -207,6 +208,19 @@ object SettingsSchemaGenerator {
             .put("fields", JSONObject().put("type", "array").put("items", JSONObject().put("type", "string"))))
         .put("required", JSONArray().put("target"))
         .put("additionalProperties", false)
+
+    /** The order of a selection's entries: its keys, each a field of its tool and a direction (EntrySort). */
+    private fun sortSchema(node: SettingNode.Sort, text: (String) -> String): JSONObject = JSONObject()
+        .put("type", "array")
+        .put("title", node.label)
+        .put("description", text("sort_schema_description").format(node.selection))
+        .put("items", JSONObject()
+            .put("type", "object")
+            .put("properties", JSONObject()
+                .put(app.treelune.core.fields.EntrySort.FIELD, JSONObject().put("type", "string"))
+                .put(app.treelune.core.fields.EntrySort.DIRECTION, JSONObject().put("type", "string").put("enum", JSONArray(app.treelune.core.fields.EntrySort.DIRECTIONS))))
+            .put("required", JSONArray().put(app.treelune.core.fields.EntrySort.FIELD).put(app.treelune.core.fields.EntrySort.DIRECTION))
+            .put("additionalProperties", false))
 
     /**
      * A period: each bound a relative date, an object, or a fixed instant, which the model writes
