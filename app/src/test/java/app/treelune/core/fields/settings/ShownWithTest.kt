@@ -27,6 +27,13 @@ class ShownWithTest {
     }
 
     @Test
+    fun `chosen as soon as the form writes it, before the config is saved`() {
+        // A multiple choice's input hands a Kotlin list: the tools' list shows the moment ENTRY is ticked
+        assertTrue(withEntry.isChosenIn(withSetting(JSONObject(), "kinds", listOf("ZONE", "ENTRY"))))
+        assertFalse(withEntry.isChosenIn(withSetting(JSONObject(), "kinds", listOf("ZONE"))))
+    }
+
+    @Test
     fun `not chosen while the setting is absent or empty`() {
         assertFalse(withEntry.isChosenIn(JSONObject()))
         assertFalse(withEntry.isChosenIn(JSONObject().put("kinds", JSONObject.NULL)))
