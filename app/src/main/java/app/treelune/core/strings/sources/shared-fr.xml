@@ -1866,6 +1866,12 @@
     <string name="schedule_summary_yearly">%1$d dates/an</string>
     <string name="schedule_summary_specific">%1$d dates spécifiques</string>
     <string name="schedule_summary_none">Aucune récurrence</string>
+    <string name="schedule_every_days">Tous les %1$d jours · %2$s</string>
+    <string name="schedule_every_weeks">Toutes les %1$d semaines · %2$s</string>
+    <string name="schedule_every_days_field">Tous les … jours</string>
+    <string name="schedule_every_weeks_field">Toutes les … semaines</string>
+    <string name="schedule_next_times">Prochaines : %1$s</string>
+    <string name="schedule_next_none">Aucune date à venir</string>
     <string name="action_configure_schedule">Configurer la récurrence</string>
     <string name="schedule_unreadable">Récurrence enregistrée illisible (%1$s). Refais-la : sinon l\'enregistrement sera refusé, et elle restera telle quelle.</string>
 

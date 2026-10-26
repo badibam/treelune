@@ -1866,6 +1866,12 @@
     <string name="schedule_summary_yearly">%1$d dates/year</string>
     <string name="schedule_summary_specific">%1$d specific dates</string>
     <string name="schedule_summary_none">No recurrence</string>
+    <string name="schedule_every_days">Every %1$d days · %2$s</string>
+    <string name="schedule_every_weeks">Every %1$d weeks · %2$s</string>
+    <string name="schedule_every_days_field">Every … days</string>
+    <string name="schedule_every_weeks_field">Every … weeks</string>
+    <string name="schedule_next_times">Next: %1$s</string>
+    <string name="schedule_next_none">No time to come</string>
     <string name="action_configure_schedule">Configure the recurrence</string>
     <string name="schedule_unreadable">Stored recurrence unreadable (%1$s). Set it again: otherwise saving is refused and it stays as it is.</string>
 
