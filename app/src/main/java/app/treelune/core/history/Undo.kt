@@ -73,9 +73,6 @@ class Undo(private val context: Context) {
             val row = if (current == null) target else kept.over(target, current, kept.of(change.table, current))
             Rows.put(database, change.table, row)
         }
-        // A Task is outside the history: a zone the step takes out takes its Tasks, as
-        // zones.delete does, none left in a zone that no longer exists
-        database.taskDao().deleteWithoutZone()
 
         database.useWriterConnection { connection ->
             connection.usePrepared("UPDATE history_steps SET state = ?, state_by = ?, state_at = ? WHERE id = ?") {

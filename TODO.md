@@ -47,7 +47,6 @@ Codé, jamais vu sur l'appareil.
 
 ## Décidé, à coder
 
-- Bientôt : les Tâches et les API dans l'historique des écritures, par sa porte unique (`check_history_writes.py`) — une config de Tâche changée s'annule, une Tâche supprimée avec sa zone revient, et l'annulation d'un import de partie retire les API qu'il a créées (aujourd'hui elles restent, et une Tâche sans zone est seulement effacée, `TaskDao.deleteWithoutZone`, qu'un rétablissement ne ramène pas).
 - Un filtre qui compare un champ à une variable ou une lecture (« kcal > objectif_calorique ») : le terme lu une fois à la référence du contexte (`TermReader`, `docs/BRICKS.md`), puis le filtre SQL comme aujourd'hui ; `EntryFilters.parse` et `ConditionPicker` le prennent.
 
 ## À concevoir

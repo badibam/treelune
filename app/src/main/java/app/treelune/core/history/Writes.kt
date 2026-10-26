@@ -108,6 +108,24 @@ class Writes(private val context: Context) {
 
     suspend fun deleteAutomation(id: String) = delete(CoveredTable.AUTOMATIONS, id) { database.aiDao().deleteAutomationById(id) }
 
+    // ── Tasks: their runs stay out (CoveredTable.CHILDREN_LEFT_OUT) ──
+
+    suspend fun insertTask(task: app.treelune.core.tasks.TaskEntity) = write(CoveredTable.TASKS, task.id) { database.taskDao().insert(task) }
+
+    suspend fun updateTask(task: app.treelune.core.tasks.TaskEntity) = write(CoveredTable.TASKS, task.id) { database.taskDao().update(task) }
+
+    suspend fun moveTask(id: String, gridX: Int, gridY: Int) = write(CoveredTable.TASKS, id) { database.taskDao().updatePosition(id, gridX, gridY) }
+
+    suspend fun deleteTask(id: String) = delete(CoveredTable.TASKS, id) { database.taskDao().delete(id) }
+
+    // ── APIs: their key never copied (Kept.secrets) ──
+
+    suspend fun insertApi(api: app.treelune.core.apis.ApiEntity) = write(CoveredTable.APIS, api.id) { database.apiDao().insert(api) }
+
+    suspend fun updateApi(api: app.treelune.core.apis.ApiEntity) = write(CoveredTable.APIS, api.id) { database.apiDao().update(api) }
+
+    suspend fun deleteApi(id: String) = delete(CoveredTable.APIS, id) { database.apiDao().delete(id) }
+
     // ── Sessions and their messages: kept for a routine's message alone (covers) ──
 
     suspend fun insertSession(session: AISessionEntity) = write(CoveredTable.AI_SESSIONS, session.id) { database.aiDao().insertSession(session) }
@@ -307,7 +325,7 @@ class Writes(private val context: Context) {
         CoveredTable.ZONES -> Place(null, row.getString("id"))
         CoveredTable.TOOL_INSTANCES -> Place(row.getString("id"), row.getString("zone_id"))
         CoveredTable.TOOL_DATA -> toolPlace(row.getString("tool_instance_id"))
-        CoveredTable.VARIABLES, CoveredTable.AUTOMATIONS, CoveredTable.EVENTS -> Place(null, row.getString("zone_id"))
+        CoveredTable.VARIABLES, CoveredTable.AUTOMATIONS, CoveredTable.EVENTS, CoveredTable.TASKS -> Place(null, row.getString("zone_id"))
         CoveredTable.AI_SESSIONS -> sessionPlace(row.getString("id"))
         CoveredTable.SESSION_MESSAGES -> sessionPlace(row.getString("session_id"))
         CoveredTable.FILES -> when {
@@ -315,7 +333,7 @@ class Writes(private val context: Context) {
             !row.isNull("tool_instance_id") -> toolPlace(row.getString("tool_instance_id"))
             else -> sessionPlace(row.getString("session_id"))
         }
-        CoveredTable.IDENTITIES, CoveredTable.MCP_CLIENTS, CoveredTable.APP_SETTINGS -> null
+        CoveredTable.IDENTITIES, CoveredTable.MCP_CLIENTS, CoveredTable.APP_SETTINGS, CoveredTable.APIS -> null
     }
 
     private suspend fun toolPlace(toolInstanceId: String): Place =

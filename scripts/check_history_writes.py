@@ -36,7 +36,7 @@ DATABASE = SOURCES / "app" / "treelune" / "core" / "database" / "AppDatabase.kt"
 
 COVERED = {
     "zones", "tool_instances", "tool_data", "variables", "events", "automations", "files",
-    "identities", "mcp_clients", "app_settings_categories",
+    "identities", "mcp_clients", "app_settings_categories", "tasks", "apis",
 }
 
 ALLOWED_FILES = {
@@ -58,7 +58,7 @@ DAO_DECLARATION = re.compile(r'@Dao\s*(?:interface|abstract\s+class)\s+(\w+)')
 ACCESSOR = re.compile(r'abstract\s+fun\s+(\w+)\(\)\s*:\s*([\w.]+)')
 # Overlapping: in `database.zoneDao().insertZone(`, zoneDao is the method of one call and the receiver of the next
 CALL = re.compile(r'(?=\b(\w+)(\(\))?\s*\.\s*(\w+)\s*\()')
-HOLDER = re.compile(r'\b(?:val|var)\s+(\w+)\s*(?::\s*([\w.]+))?\s*(?:by\s+lazy\s*\{|=)([^\n]*)')
+HOLDER = re.compile(r'\b(?:val|var)\s+(\w+)\s*(?::\s*([\w.]+))?\s*(?:by\s+lazy\s*\{|get\(\)\s*=|=)([^\n]*)')
 PARAMETER = re.compile(r'\b(\w+)\s*:\s*([\w.]*Dao)\b')
 
 
