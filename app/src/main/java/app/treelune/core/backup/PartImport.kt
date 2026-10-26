@@ -9,20 +9,22 @@ import app.treelune.core.coordinator.GivenId
 import app.treelune.core.coordinator.Source
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.AppDatabase
-import app.treelune.core.grid.HomeGroups
-import app.treelune.core.grid.ToolPositions
 import app.treelune.core.files.FileFormat
 import app.treelune.core.files.Files
+import app.treelune.core.grid.Grid
+import app.treelune.core.grid.HomeGroups
+import app.treelune.core.grid.ToolPositions
 import app.treelune.core.scheduling.SchedulersHeld
 import app.treelune.core.services.BackupService
+import app.treelune.core.ui.DisplayMode
 import app.treelune.core.utils.JsonUtils
 import app.treelune.core.utils.LogManager
 import app.treelune.core.variables.Formula
+import java.io.File
+import java.util.UUID
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.File
-import java.util.UUID
 
 /**
  * A part of a backup brought into the app (docs/DATA.md, « A part of the app »): everything is
@@ -224,17 +226,22 @@ class PartImport(private val context: Context) {
             if (automation.getString("zone_id") in existing) written.inExisting += "automations.delete" to JSONObject().put("automation_id", automation.getString("id"))
         }
 
-        // The tools, the variables and the routines of a new zone at the places they had, section by section
-        val tiles = rows(data, "tool_instances").map { it to JSONObject(it.getString("config_json")).optString("group") } +
-            rows(data, "variables").map { it to it.optString("group") } +
-            rows(data, "automations").map { it to it.optString("group") }
+        // The tools, the variables and the routines of a new zone at the places they had, section by section;
+        // a Task, which a part does not carry, leaves its rows empty, closed as the grid closes them
+        val tiles = rows(data, "tool_instances").map { it to JSONObject(it.getString("config_json")).let { c -> c.optString("group") to c.getString("display_mode") } } +
+            rows(data, "variables").map { it to (it.optString("group") to it.getString("display_mode")) } +
+            rows(data, "automations").map { it to (it.optString("group") to it.getString("display_mode")) }
         tiles.filter { (item, _) -> item.getString("zone_id") !in existing }
-            .groupBy({ (item, group) -> item.getString("zone_id") to group.takeIf { it.isNotEmpty() } }, { it.first })
+            .groupBy({ (item, look) -> item.getString("zone_id") to look.first.takeIf { it.isNotEmpty() } }, { (item, look) -> item to look.second })
             .forEach { (section, items) ->
+                val placed = Grid.closeEmptyRows(items.map { (item, mode) ->
+                    val size = Grid.size(DisplayMode.valueOf(mode))
+                    Grid.Tile(item.getString("id"), item.getInt("grid_x"), item.getInt("grid_y"), size.width, size.height)
+                })
                 run("zones.place_section", JSONObject()
                     .put("zone_id", section.first)
                     .apply { section.second?.let { put("group", it) } }
-                    .put("places", JSONObject().apply { items.forEach { put(it.getString("id"), JSONObject().put("grid_x", it.getInt("grid_x")).put("grid_y", it.getInt("grid_y"))) } }))
+                    .put("places", JSONObject().apply { placed.forEach { put(it.id, JSONObject().put("grid_x", it.column).put("grid_y", it.row)) } }))
             }
 
         // The entries, each after the ones it designates, a tool's together

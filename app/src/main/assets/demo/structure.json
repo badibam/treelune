@@ -2128,6 +2128,46 @@
       "grid_y": 1
     },
     {
+      "id": "demo-balcony-weather",
+      "zone_id": "demo-balcony",
+      "tooltype": "tracking",
+      "config": {
+        "name": "@weather_name",
+        "description": "@weather_description",
+        "icon_name": "cloud-sun",
+        "icon_color": "YELLOW",
+        "display_mode": "LINE",
+        "type": "numeric",
+        "value": {
+          "decimals": 1
+        },
+        "units": [
+          "°C"
+        ],
+        "items": [
+          {
+            "name": "@weather_entry_name",
+            "unit": "°C"
+          }
+        ],
+        "show_field_labels": true,
+        "extra_fields": [
+          {
+            "name": "rain",
+            "display_name": "@weather_field_rain",
+            "type": "NUMERIC",
+            "always_visible": false,
+            "config": {
+              "unit": "mm",
+              "decimals": 1
+            }
+          }
+        ]
+      },
+      "grid_x": 0,
+      "grid_y": 2
+    },
+    {
       "id": "demo-balcony-observations",
       "zone_id": "demo-balcony",
       "tooltype": "tracking",
@@ -2147,7 +2187,7 @@
         ]
       },
       "grid_x": 0,
-      "grid_y": 2
+      "grid_y": 3
     },
     {
       "id": "demo-balcony-fed",
@@ -2166,7 +2206,7 @@
         ]
       },
       "grid_x": 2,
-      "grid_y": 2
+      "grid_y": 3
     },
     {
       "id": "demo-balcony-watering",
@@ -2197,7 +2237,7 @@
         }
       },
       "grid_x": 0,
-      "grid_y": 3
+      "grid_y": 4
     },
     {
       "id": "demo-balcony-feeding",
@@ -2236,7 +2276,7 @@
         }
       },
       "grid_x": 0,
-      "grid_y": 4
+      "grid_y": 5
     },
     {
       "id": "demo-balcony-todo",
@@ -2251,7 +2291,7 @@
         "due_dates": true
       },
       "grid_x": 0,
-      "grid_y": 5
+      "grid_y": 6
     },
     {
       "id": "demo-balcony-notebook",
@@ -2265,7 +2305,7 @@
         "sort_order": "descending"
       },
       "grid_x": 2,
-      "grid_y": 5
+      "grid_y": 6
     },
     {
       "id": "demo-balcony-chart",
@@ -2328,7 +2368,7 @@
         ]
       },
       "grid_x": 0,
-      "grid_y": 7
+      "grid_y": 8
     },
     {
       "id": "demo-italian-evening",
@@ -3140,6 +3180,287 @@
         }
       ],
       "seed": "@auto_lesson_seed"
+    },
+    {
+      "id": "demo-auto-lighten-week",
+      "seed_session_id": "demo-seed-lighten-week",
+      "zone_id": "demo-course",
+      "group": "@course_group_training",
+      "name": "@auto_lighten_name",
+      "icon_name": "feather",
+      "icon_color": "GREEN",
+      "triggers": [
+        {
+          "kind": "event",
+          "event": {
+            "kind": "EVENT",
+            "id": "demo-event-busy-week"
+          }
+        }
+      ],
+      "is_enabled": false,
+      "seed": "@auto_lighten_seed",
+      "pointers": [
+        {
+          "selection": {
+            "target": {
+              "kind": "TOOL_INSTANCE",
+              "id": "demo-course-runs"
+            },
+            "period": {
+              "start": {
+                "relative": {
+                  "unit": "WEEK",
+                  "offset": 0,
+                  "edge": "START"
+                }
+              },
+              "end": {
+                "relative": {
+                  "unit": "WEEK",
+                  "offset": 0,
+                  "edge": "END"
+                }
+              }
+            }
+          },
+          "attach": {
+            "config": false,
+            "entries": true
+          }
+        },
+        {
+          "selection": {
+            "target": {
+              "kind": "TOOL_INSTANCE",
+              "id": "demo-course-intervals"
+            },
+            "period": {
+              "start": {
+                "relative": {
+                  "unit": "WEEK",
+                  "offset": 0,
+                  "edge": "START"
+                }
+              },
+              "end": {
+                "relative": {
+                  "unit": "WEEK",
+                  "offset": 0,
+                  "edge": "END"
+                }
+              }
+            }
+          },
+          "attach": {
+            "config": true,
+            "entries": true
+          }
+        }
+      ],
+      "access": [
+        {
+          "target": {
+            "kind": "ZONE",
+            "id": "demo-course"
+          },
+          "level": "read"
+        },
+        {
+          "target": {
+            "kind": "TOOL_INSTANCE",
+            "id": "demo-course-notebook"
+          },
+          "level": "use"
+        }
+      ],
+      "notify_end": "always"
+    }
+  ],
+  "events": [
+    {
+      "id": "demo-event-busy-week",
+      "zone_id": "demo-work",
+      "name": "@event_busy_week_name",
+      "description": "@event_busy_week_description",
+      "values": []
+    }
+  ],
+  "apis": [
+    {
+      "id": "demo-api-weather",
+      "name": "@weather_api_name",
+      "config": {
+        "url": "https://api.open-meteo.com/v1/forecast?daily=temperature_2m_max,precipitation_sum&timezone=auto&forecast_days=1",
+        "method": "GET",
+        "key_in": "none",
+        "inputs": [
+          {
+            "name": "latitude",
+            "type": "number"
+          },
+          {
+            "name": "longitude",
+            "type": "number"
+          }
+        ],
+        "values": [
+          {
+            "name": "temp_max",
+            "type": "number",
+            "path": "daily.temperature_2m_max.0"
+          },
+          {
+            "name": "rain",
+            "type": "number",
+            "path": "daily.precipitation_sum.0"
+          }
+        ],
+        "response": "immediate"
+      }
+    }
+  ],
+  "tasks": [
+    {
+      "id": "demo-t-weather",
+      "zone_id": "demo-balcony",
+      "name": "@task_weather_name",
+      "description": "@task_weather_description",
+      "icon_name": "cloud-download",
+      "icon_color": "BLUE",
+      "display_mode": "LINE",
+      "is_enabled": false,
+      "schedule": {
+        "pattern": {
+          "type": "DailyMultiple",
+          "times": [
+            "07:00"
+          ]
+        }
+      },
+      "catch_up": {
+        "limit": "limited",
+        "window": 43200000,
+        "dismiss_older_instances": true
+      },
+      "notify_end": "on_problem",
+      "steps": [
+        {
+          "kind": "call_api",
+          "api_id": "demo-api-weather",
+          "inputs": {
+            "latitude": {
+              "constant": 45.77
+            },
+            "longitude": {
+              "constant": 4.88
+            }
+          }
+        },
+        {
+          "kind": "create_entry",
+          "tool_instance_id": "demo-balcony-weather",
+          "values": {
+            "name": {
+              "constant": "@weather_entry_name"
+            },
+            "data.value": {
+              "result": {
+                "step": 0,
+                "value": "temp_max"
+              }
+            },
+            "data.unit": {
+              "constant": "°C"
+            },
+            "extra.rain": {
+              "result": {
+                "step": 0,
+                "value": "rain"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "demo-t-heat",
+      "zone_id": "demo-balcony",
+      "name": "@task_heat_name",
+      "description": "@task_heat_description",
+      "icon_name": "thermometer-sun",
+      "icon_color": "RED",
+      "display_mode": "LINE",
+      "is_enabled": true,
+      "notify_end": "on_problem",
+      "triggers": [
+        {
+          "kind": "condition",
+          "condition": {
+            "left": {
+              "reading": {
+                "selection": {
+                  "target": {
+                    "kind": "TOOL_INSTANCE",
+                    "id": "demo-balcony-weather"
+                  }
+                },
+                "reduction": "LAST",
+                "field": "data.value"
+              }
+            },
+            "op": ">",
+            "right": {
+              "constant": 30
+            }
+          }
+        }
+      ],
+      "steps": [
+        {
+          "kind": "tool_operation",
+          "tool_instance_id": "demo-balcony-watering",
+          "operation": "execute",
+          "params": {
+            "title": {
+              "constant": "@task_heat_title"
+            },
+            "content": {
+              "constant": "@task_heat_content"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "demo-t-busy-week",
+      "zone_id": "demo-work",
+      "name": "@task_busy_name",
+      "description": "@task_busy_description",
+      "icon_name": "briefcase",
+      "icon_color": "ORANGE",
+      "display_mode": "LINE",
+      "is_enabled": true,
+      "notify_end": "always",
+      "triggers": [
+        {
+          "kind": "condition",
+          "condition": {
+            "left": {
+              "variable": "demo-var-hours-week"
+            },
+            "op": ">",
+            "right": {
+              "constant": 162000000
+            }
+          }
+        }
+      ],
+      "emit_event": {
+        "kind": "EVENT",
+        "id": "demo-event-busy-week"
+      },
+      "steps": []
     }
   ]
 }

@@ -17,6 +17,7 @@ import app.treelune.core.ui.DisplayMode
 import app.treelune.core.utils.DataChangeNotifier
 import app.treelune.core.utils.JsonUtils
 import app.treelune.core.utils.LogManager
+import androidx.room.useWriterConnection
 import app.treelune.tools.goal.GoalDefinition
 import app.treelune.tools.goal.GoalToolType
 import kotlinx.coroutines.withContext
@@ -75,7 +76,9 @@ class DemoService(private val context: Context) : ExecutableService {
         return try {
             app.treelune.core.grid.HomeGroups(::run).add(listOf(content.group))
             build(content, data)
+            wire(content)
             fill(texts, data, content)
+            tasks(content)
             automate(content)
             LogManager.service("Demo installed: ${content.identities.size} identities, ${content.zones.size} zones, ${content.tools.size} tools, ${content.variables.size} variables", "INFO")
             OperationResult.success(mapOf("zones" to content.zones.size, "tools" to content.tools.size, "variables" to content.variables.size))
@@ -116,6 +119,29 @@ class DemoService(private val context: Context) : ExecutableService {
                     .apply { section.second?.let { put("group", it) } }
                     .put("places", places(items)))
             }
+    }
+
+    /**
+     * The events, which the Tasks emit and the Tasks and routines listen to, and the APIs the Tasks
+     * call. The demo's API kept by a reinstall, a Task of the user's calling it (DemoRemoval), is
+     * written again as the demo ships it.
+     */
+    private suspend fun wire(content: DemoContent) {
+        content.events.forEach { run("events.create", it) }
+        for (api in content.apis) {
+            val id = api.getString("id")
+            if (database.apiDao().get(id) == null) run("apis.create", api)
+            else run("apis.update", JSONObject(api.toString()).apply { remove("id") }.put("api_id", id))
+        }
+    }
+
+    /**
+     * The Tasks, once the entries are written, each at the end of its section as a routine: none
+     * has a past, and a condition one listens to is judged a first time at the next tick, which
+     * starts nothing.
+     */
+    private suspend fun tasks(content: DemoContent) {
+        content.tasks.forEach { run("tasks.create", it) }
     }
 
     /**
@@ -254,6 +280,9 @@ class DemoService(private val context: Context) : ExecutableService {
             .mapNotNull { it.group }.toSet()
         val writes = app.treelune.core.history.Writes(context)
         database.transaction {
+            database.useWriterConnection { connection ->
+                DemoRemoval.OUTSIDE_HISTORY.forEach { sql -> connection.usePrepared(sql) { it.step() } }
+            }
             DemoRemoval.SELECTIONS.forEach { (table, query) -> writes.deleteSelected(table, query) }
         }
         val stillUsed = database.zoneDao().getAllZones().mapNotNull { it.group }.toSet()

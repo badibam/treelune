@@ -54,6 +54,8 @@ class DemoData(private val time: TimeResolver, private val hand: JSONObject) {
 
     private val random = java.util.Random(SEED)
     private val sessionRandom = java.util.Random(SEED + 1)
+    /** The forecasts' own draws, so that adding them moved none of the other numbers. */
+    private val weatherRandom = java.util.Random(SEED + 2)
     private val now = time.reference
     private val zone = time.zone
     private val today: LocalDate = time.dateOf(now)
@@ -130,6 +132,7 @@ class DemoData(private val time: TimeResolver, private val hand: JSONObject) {
         put("demo-kitchen-water", water())
         put("demo-work-hours", hours())
         put("demo-balcony-harvests", harvests())
+        put("demo-balcony-weather", weather())
         put("demo-balcony-fed", fed())
         put("demo-italian-evening", evenings())
         put("demo-italian-lexicon", cards("demo-italian-lexicon"))
@@ -383,6 +386,23 @@ class DemoData(private val time: TimeResolver, private val hand: JSONObject) {
             }
         }
         return picked
+    }
+
+    /**
+     * The forecast of each morning at 7:00, as the Morning weather Task would have written it:
+     * Lyon's highest temperature for the season of its date (about 6 °C mid-January, 29 °C
+     * mid-July) give or take 4 °C, so that a summer's demo crosses 30 °C some days; rain one day
+     * in three, rarer on a hot day.
+     */
+    private fun weather(): List<JSONObject> = days.mapIndexedNotNull { i, date ->
+        val time = at(date, 7, 0)
+        if (!past(time)) return@mapIndexedNotNull null
+        val season = 17.5 - 11.5 * kotlin.math.cos(2 * Math.PI * (date.dayOfYear - 15) / 365.0)
+        val max = round1(season + (weatherRandom.nextDouble() * 8 - 4))
+        val chance = if (max > 27) 0.15 else 0.33
+        val rains = weatherRandom.nextDouble() < chance
+        val rain = if (rains) round1(0.2 + weatherRandom.nextDouble() * 11.8) else 0.0
+        entry("demo-e-weather-$i", text("weather_entry_name"), time, json("value" to max, "unit" to "°C"), json("rain" to rain))
     }
 
     private fun firstOfMonths(): List<LocalDate> = days.filter { it.dayOfMonth == 1 }
