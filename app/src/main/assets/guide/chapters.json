@@ -207,6 +207,7 @@
     {"id": "field_types", "part": "deeper", "icon": "list-tree", "minutes": 4, "text": true, "steps": []},
     {"id": "formulas", "part": "deeper", "icon": "sigma", "minutes": 4, "text": true, "steps": []},
     {"id": "conditions", "part": "deeper", "icon": "funnel", "minutes": 4, "text": true, "steps": []},
+    {"id": "apis", "part": "deeper", "icon": "webhook", "minutes": 4, "text": true, "steps": []},
     {"id": "field_changes", "part": "deeper", "icon": "replace", "minutes": 4, "text": true, "steps": []}
   ]
 }
