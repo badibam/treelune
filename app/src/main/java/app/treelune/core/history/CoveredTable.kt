@@ -19,12 +19,15 @@ enum class CoveredTable(
     val children: List<Pair<String, String>> = emptyList()
 ) {
     IDENTITIES("identities"),
+    APIS("apis"),
     ZONES("zones", children = listOf("tool_instances" to "zone_id", "variables" to "zone_id", "events" to "zone_id")),
     TOOL_INSTANCES("tool_instances", children = listOf("tool_data" to "tool_instance_id", "files" to "tool_instance_id")),
     TOOL_DATA("tool_data", children = listOf("files" to "entry_id")),
     VARIABLES("variables"),
     EVENTS("events"),
     AUTOMATIONS("automations"),
+    // A Task hangs from its zone by its column alone: zones.delete takes it out row by row
+    TASKS("tasks"),
     AI_SESSIONS("ai_sessions", children = listOf("session_messages" to "session_id", "files" to "session_id")),
     SESSION_MESSAGES("session_messages"),
     FILES("files"),
@@ -38,8 +41,9 @@ enum class CoveredTable(
 
         /**
          * The tables SQLite deletes with a covered row that the history leaves out: a connector
-         * client's tokens, which are not restored with it.
+         * client's tokens, a Task's runs — traces of a moment, not settings —, which are not
+         * restored with it.
          */
-        val CHILDREN_LEFT_OUT = setOf("mcp_clients" to "mcp_tokens")
+        val CHILDREN_LEFT_OUT = setOf("mcp_clients" to "mcp_tokens", "tasks" to "task_runs")
     }
 }

@@ -37,6 +37,8 @@ class ApiService(private val context: Context) : ExecutableService {
 
     private val s = Strings.`for`(context = context)
     private val dao get() = AppDatabase.getDatabase(context).apiDao()
+    // Every write of an API goes through the history's one door, its key never copied
+    private val writes by lazy { app.treelune.core.history.Writes(context) }
 
     override suspend fun execute(operation: String, params: JSONObject, token: CancellationToken): OperationResult = withContext(Dispatchers.IO) {
         try {
@@ -84,7 +86,7 @@ class ApiService(private val context: Context) : ExecutableService {
             is app.treelune.core.coordinator.GivenId.Read.Refused -> return OperationResult.error(s.shared("service_error_id_not_given").format(given.id))
         }
         val now = System.currentTimeMillis()
-        dao.insert(ApiEntity(id, name, config, now, now))
+        writes.insertApi(ApiEntity(id, name, config, now, now))
         LogManager.service("API $id created: \"$name\"", "INFO")
         return OperationResult.success(mapOf("api_id" to id))
     }
@@ -93,7 +95,7 @@ class ApiService(private val context: Context) : ExecutableService {
         val api = stored(params) ?: return notFound(params)
         val name = checkedName(params, api.id).let { (name, refusal) -> refusal?.let { return OperationResult.error(it) }; name!! }
         val config = checkedConfig(params).let { (config, refusal) -> refusal?.let { return OperationResult.error(it) }; config!! }
-        dao.update(api.copy(name = name, configJson = config, updatedAt = System.currentTimeMillis()))
+        writes.updateApi(api.copy(name = name, configJson = config, updatedAt = System.currentTimeMillis()))
         LogManager.service("API ${api.id} updated", "INFO")
         return OperationResult.success(mapOf("api_id" to api.id))
     }
@@ -101,7 +103,7 @@ class ApiService(private val context: Context) : ExecutableService {
     private suspend fun delete(params: JSONObject): OperationResult {
         val api = stored(params) ?: return notFound(params)
         app.treelune.core.services.InUse.api(AppDatabase.getDatabase(context), api.id).refusal(api.name, s)?.let { return OperationResult.error(it) }
-        dao.delete(api.id)
+        writes.deleteApi(api.id)
         LogManager.service("API ${api.id} deleted", "INFO")
         return OperationResult.success(mapOf("api_id" to api.id, "deleted" to true))
     }

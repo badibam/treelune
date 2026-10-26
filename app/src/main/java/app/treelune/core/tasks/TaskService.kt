@@ -47,6 +47,8 @@ class TaskService(private val context: Context) : ExecutableService {
     private val database by lazy { AppDatabase.getDatabase(context) }
     private val dao by lazy { database.taskDao() }
     private val sections by lazy { app.treelune.core.grid.SectionGrid(context) }
+    // Every write of a Task goes through the history's one door
+    private val writes by lazy { app.treelune.core.history.Writes(context) }
     private val json = Json { ignoreUnknownKeys = true }
 
     /** The keys of a Task's settings, beside its zone and steps. */
@@ -127,7 +129,7 @@ class TaskService(private val context: Context) : ExecutableService {
         database.transaction {
             // At the end of its section's grid, among the tools, the variables and the routines
             val place = sections.arrive(SectionItem.of(task), zone.tool_groups)
-            dao.insert(task.copy(gridX = place.column, gridY = place.row))
+            writes.insertTask(task.copy(gridX = place.column, gridY = place.row))
         }
         DataChangeNotifier.notifyZonesChanged()
         LogManager.service("Task ${task.id} created in zone $zoneId", "INFO")
@@ -145,7 +147,7 @@ class TaskService(private val context: Context) : ExecutableService {
         database.transaction {
             val place = sections.move(SectionItem.of(task), SectionItem.of(updated),
                 database.zoneDao().getZoneById(task.zoneId)?.tool_groups, database.zoneDao().getZoneById(updated.zoneId)?.tool_groups)
-            dao.update(updated.copy(gridX = place.column, gridY = place.row))
+            writes.updateTask(updated.copy(gridX = place.column, gridY = place.row))
         }
         DataChangeNotifier.notifyZonesChanged()
         return OperationResult.success(mapOf("task_id" to task.id, "name" to updated.name))
@@ -155,7 +157,7 @@ class TaskService(private val context: Context) : ExecutableService {
         val task = task(params) ?: return notFound()
         database.transaction {
             sections.leave(SectionItem.of(task), database.zoneDao().getZoneById(task.zoneId)?.tool_groups)
-            dao.delete(task.id)
+            writes.deleteTask(task.id)
         }
         DataChangeNotifier.notifyZonesChanged()
         return OperationResult.success(mapOf("task_id" to task.id, "name" to task.name))
@@ -177,7 +179,7 @@ class TaskService(private val context: Context) : ExecutableService {
             group = group, isEnabled = false, createdAt = now, updatedAt = now)
         database.transaction {
             val place = sections.arrive(SectionItem.of(copy), zone.tool_groups)
-            dao.insert(copy.copy(gridX = place.column, gridY = place.row))
+            writes.insertTask(copy.copy(gridX = place.column, gridY = place.row))
         }
         DataChangeNotifier.notifyZonesChanged()
         return OperationResult.success(mapOf("task_id" to copy.id, "name" to copy.name))

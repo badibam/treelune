@@ -129,6 +129,26 @@ internal class ReadableChanges(private val context: Context, private val databas
             CoveredTable.AUTOMATIONS -> AutomationSettings.nodes(context).let { nodes ->
                 Describe { column, key -> if (key == null) nodes.describe(column.removeSuffix("_json")) else null }
             }
+            // A Task's as a routine's; its steps, which no setting describes, as a whole
+            CoveredTable.TASKS -> app.treelune.core.tasks.TaskSettings.nodes(context).let { nodes ->
+                Describe { column, key ->
+                    when {
+                        key != null -> null
+                        column == "steps_json" -> Described.Composite(s.shared("task_steps"))
+                        else -> nodes.describe(column.removeSuffix("_json"))
+                    }
+                }
+            }
+            // An API's settings in its config, as a tool's; its key is never copied
+            CoveredTable.APIS -> app.treelune.core.apis.ApiSettings.nodes(context).let { nodes ->
+                Describe { column, key ->
+                    when {
+                        column == "config_json" && key != null -> nodes.describe(key)
+                        column == "name" && key == null -> Described.Field(nameField())
+                        else -> null
+                    }
+                }
+            }
             else -> Describe { column, key -> if (column == "name" && key == null) Described.Field(nameField()) else null }
         }
 

@@ -12,22 +12,23 @@ package app.treelune.core.demo
  * writes (Writes), so that the removal is one step an undo puts back. Plain queries, which a test
  * runs on SQLite as they are.
  *
- * What lives outside that history — the Tasks, their runs (cascade) and the last judgements of
- * the conditions the demo's Tasks and routines listen to, the APIs — goes first, through plain
- * deletions ([OUTSIDE_HISTORY]): an undo of the removal does not bring it back, as it does not
- * bring back a Task deleted with its zone. The demo's API stays while a Task of the user's calls it.
+ * What lives outside that history — the last judgements of the conditions the demo's Tasks and
+ * routines listen to — goes first, through plain deletions ([OUTSIDE_HISTORY]): an undo of the
+ * removal does not bring it back, the next tick judging again. A Task's runs go with it (cascade),
+ * which the history leaves out. The demo's API stays while a Task of the user's calls it.
  */
 object DemoRemoval {
     val OUTSIDE_HISTORY = listOf(
         """DELETE FROM condition_judgements WHERE owner_id LIKE 'demo-%'
             OR owner_id IN (SELECT id FROM tasks WHERE zone_id LIKE 'demo-%')
-            OR owner_id IN (SELECT id FROM automations WHERE zone_id LIKE 'demo-%')""",
-        "DELETE FROM tasks WHERE id LIKE 'demo-%' OR zone_id LIKE 'demo-%'",
-        """DELETE FROM apis WHERE id LIKE 'demo-%' AND NOT EXISTS
-            (SELECT 1 FROM tasks WHERE tasks.steps_json LIKE '%"' || apis.id || '"%')"""
+            OR owner_id IN (SELECT id FROM automations WHERE zone_id LIKE 'demo-%')"""
     )
 
     val SELECTIONS = listOf(
+        "tasks" to "SELECT id FROM tasks WHERE id LIKE 'demo-%' OR zone_id LIKE 'demo-%'",
+        // Read once the demo's Tasks are gone: an API a Task of the user's calls stays
+        "apis" to """SELECT id FROM apis WHERE id LIKE 'demo-%' AND NOT EXISTS
+            (SELECT 1 FROM tasks WHERE tasks.steps_json LIKE '%"' || apis.id || '"%')""",
         "tool_data" to """SELECT id FROM tool_data WHERE id LIKE 'demo-%' OR tool_instance_id IN
             (SELECT id FROM tool_instances WHERE id LIKE 'demo-%' OR zone_id LIKE 'demo-%')""",
         "tool_instances" to "SELECT id FROM tool_instances WHERE id LIKE 'demo-%' OR zone_id LIKE 'demo-%'",

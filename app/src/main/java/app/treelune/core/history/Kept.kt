@@ -29,6 +29,7 @@ internal class Kept(private val context: Context, private val database: AppDatab
         CoveredTable.AI_SESSIONS -> SESSION_COLUMNS.map { Part(it) }
         CoveredTable.MCP_CLIENTS -> listOf(Part("secret_hash"), Part("last_used_at"))
         CoveredTable.APP_SETTINGS -> settingsParts(row.getString("category"), secrets = false)
+        CoveredTable.APIS -> apiSecrets()
         else -> emptyList()
     }
 
@@ -36,8 +37,13 @@ internal class Kept(private val context: Context, private val database: AppDatab
     fun secrets(table: CoveredTable, row: JSONObject): List<Part> = when (table) {
         CoveredTable.MCP_CLIENTS -> listOf(Part("secret_hash"))
         CoveredTable.APP_SETTINGS -> settingsParts(row.getString("category"), secrets = true)
+        CoveredTable.APIS -> apiSecrets()
         else -> emptyList()
     }
+
+    /** An API's secret settings, its key, in its config. */
+    private fun apiSecrets(): List<Part> =
+        SecretSettings.names(app.treelune.core.apis.ApiSettings.nodes(context)).map { Part("config_json", it) }
 
     /** [row] without [parts]. */
     fun without(row: JSONObject, parts: List<Part>): JSONObject {

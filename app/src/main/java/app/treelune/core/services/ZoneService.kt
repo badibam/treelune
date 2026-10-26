@@ -361,8 +361,7 @@ class ZoneService(private val context: Context) : ExecutableService {
                 else tool.copy(config_json = config.put("group", group).toString()).also { writes.updateTool(it) }
             }
             automations.filter { change.held(it.group) != it.group }.forEach { writes.updateAutomation(it.copy(group = change.held(it.group))) }
-            // A Task is outside the history of writes: its group is written as it is
-            tasks.filter { change.held(it.group) != it.group }.forEach { database.taskDao().update(it.copy(group = change.held(it.group))) }
+            tasks.filter { change.held(it.group) != it.group }.forEach { writes.updateTask(it.copy(group = change.held(it.group))) }
             val renamedVariables = variables.map { variable ->
                 if (change.held(variable.group) == variable.group) variable
                 else variable.copy(group = change.held(variable.group)).also { writes.updateVariable(it) }
@@ -408,8 +407,8 @@ class ZoneService(private val context: Context) : ExecutableService {
             val zones = zoneDao.getAllZones()
             write(ZonePositions.moved(zones, Grid.leave(ZonePositions.tiles(zones, groups, ZonePositions.section(existingZone.group, groups)), zoneId)))
             database.aiDao().getAutomationsByZone(zoneId).forEach { writes.deleteAutomation(it.id) }
-            // A Task is outside the history of writes: deleted as it is, its runs with it
-            database.taskDao().getByZone(zoneId).forEach { database.taskDao().delete(it.id) }
+            // A Task hangs from its zone by its column alone: deleted row by row, its runs going with it by cascade
+            database.taskDao().getByZone(zoneId).forEach { writes.deleteTask(it.id) }
             writes.deleteZone(zoneId)
         }
 

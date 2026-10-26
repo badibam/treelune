@@ -149,8 +149,7 @@ class SectionGrid(context: Context) {
             SectionItem.Kind.TOOL -> writes.moveTool(item.id, item.column, item.row)
             SectionItem.Kind.VARIABLE -> writes.moveVariable(item.id, item.column, item.row)
             SectionItem.Kind.AUTOMATION -> writes.moveAutomation(item.id, item.column, item.row)
-            // A Task is outside the history of writes: its place is written as it is
-            SectionItem.Kind.TASK -> database.taskDao().updatePosition(item.id, item.column, item.row)
+            SectionItem.Kind.TASK -> writes.moveTask(item.id, item.column, item.row)
         }
         item.id
     }
