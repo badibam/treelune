@@ -16,7 +16,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 ## Bugs du téléphone
 
 - Pour certains outils il y a mecanisme d'expiration, pourquoi pas le généraliser pour les outils qui ont des elements 'en attente' ? — Outils — Amélioration
-- Quand un questionnnaire se la'ce de manière auto (via notif) , on ne saot pas de quelle occirrence il s'agit. Si 2 en retard, on peut croire que c'est la dernière. Il faudrait un écran tampon dans ces cas là ou autre manière de savoir — UI — Amélioration
 
 ## Bugs
 
@@ -95,6 +94,7 @@ Ce qui doit monter dans un module de sagesse (`/update push`).
 
 ## Idée sans besoin
 
+- L'occurrence d'un questionnaire ouvert par sa notification ou sa tuile, dite quand plusieurs attendent (deux en retard, on croit répondre à la dernière) : sur l'écran de saisie (« Prévu il y a 2 jours · 1 sur 2 à remplir »), ou un écran intermédiaire, la liste « À remplir », quand plusieurs attendent.
 - Le champ Image : la galerie comme affichage d'un outil (la grille des premières images de ses entrées), les images d'une entrée lues par le connecteur MCP.
 - Le relais de l'accès externe (le projet `relay`) servi à d'autres : il n'a pas de licence aujourd'hui.
 - Flashcards : les statistiques (cartes acquises, prévision des jours à venir), la liste des cartes et leur état, la réponse tapée, le jugement d'une réponse libre par l'IA, une face en image, les révisions d'une ligne disparue de la source.
