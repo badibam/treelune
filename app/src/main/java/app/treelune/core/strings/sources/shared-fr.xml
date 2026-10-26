@@ -2731,6 +2731,13 @@
     <string name="config_section_when">Quand</string>
     <string name="config_section_end">À la fin</string>
     <string name="config_section_advanced">Avancé</string>
+    <string name="expiry_label">Expire</string>
+    <string name="expiry_schema">Quand un élément resté en attente expire : jamais, au suivant créé (par le planning ou demandé tout de suite), qui en laisse un seul attendre, ou au bout d\'un délai</string>
+    <string name="expiry_never">Jamais</string>
+    <string name="expiry_next">Au déclenchement suivant</string>
+    <string name="expiry_after">Au bout d\'un délai</string>
+    <string name="expiry_delay_label">Délai</string>
+    <string name="expiry_delay_schema">Combien de temps un élément attend avant d\'expirer, en millisecondes, les jours comptés sur le calendrier</string>
     <string name="task_schema_name">Nom de la Tâche, montré sur sa tuile</string>
     <string name="task_schema_description">Description facultative de ce que fait la Tâche</string>
     <string name="task_schema_icon_name">Nom de l\'icône de la Tâche (un nom d\'icône Lucide) ; list-ordered si absent</string>

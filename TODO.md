@@ -15,7 +15,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs du téléphone
 
-- Pour certains outils il y a mecanisme d'expiration, pourquoi pas le généraliser pour les outils qui ont des elements 'en attente' ? — Outils — Amélioration
 
 ## Bugs
 
@@ -27,6 +26,7 @@ Codé, jamais vu sur l'appareil.
 
 - La page et la config d'une Tâche et d'une routine : l'appui long et l'engrenage qui ouvrent la config, le + d'une section qui l'ouvre sans rien créer, « Quitter sans enregistrer ? » ; une Tâche écrite de bout en bout dans sa config (nom, étapes, Quand, À la fin), une routine aussi (message avec un pointeur, planning, fournisseur, accès), puis changée de zone ; « Copier une Tâche » et « Copier une routine », la copie éteinte ; une routine sans fournisseur, l'icône d'alerte sur sa tuile et la phrase sur sa page ; les chapitres « Les routines » et « Les Tâches » du Guide suivis jusqu'au bout.
 - Une partie avec ses Tâches : la démo cochée entière, ses Tâches arrivées éteintes, son API gardée sans rien demander ; une API seule partagée, sa clé absente chez qui l'importe ; « L'événement … arrivera dans cette zone » quand sa zone n'est pas cochée, et le lien bloquant vers l'outil qu'il porte ; une API différente, gardée puis remplacée, sa clé restée.
+- L'expiration d'un Questionnaire et d'une Séquence : « Expire » réglé « Au déclenchement suivant », deux invitations (ou deux séances prévues) et la première « Expiré(e) » dans l'historique ; « Au bout d'un délai » d'un jour, une invitation de la veille expirée au tic suivant ; une séance commencée, pas terminée, qui attend toujours ; un ancien questionnaire réenregistré sans toucher à rien.
 - Les titres coupés entre les mots (`HeadingBreak`) en Cosy, Encre et lavis, Métro, Papier découpé et Plan d'architecte : les noms de tuiles de la démo, un mot trop long pour sa ligne d'une demi-tuile (« Observations ») coupé à ses syllabes.
 - La marque « en attente » sans « ! » (Métro, Suisse, Encre et lavis, Papier découpé, Plan d'architecte, Cosy en accent) : vide, se lit-elle encore comme « à lire », à sa taille de 18 à 22 dp, et la bulle du Cosy se détache-t-elle de ses boutons ?
 - Le budget du jour : réglé dans Limites IA, la ligne « Aujourd'hui » sous les limites et en tête des coûts d'une conversation, en couleur d'avertissement au-delà du seuil ; une conversation qui le dépasse et le dit, la routine qui se termine, les deux notifications une seule fois dans la journée ; le nom d'un fournisseur sans prix ; l'événement choisi sous le seuil, émis une fois avec sa notification.

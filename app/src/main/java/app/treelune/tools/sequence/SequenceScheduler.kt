@@ -55,6 +55,8 @@ object SequenceScheduler : ToolScheduler {
         val id = tool["id"] as String
         @Suppress("UNCHECKED_CAST")
         val config = JsonUtils.toJSONObject(tool["config"] as Map<String, Any?>)
+        // What its delay expires, whatever planned its sessions, and whether it plans any still
+        expire(coordinator, id, config, null)
         if (!config.optBoolean("enabled", true)) return
         val schedule = when (val stored = StoredSchedule.of(config)) {
             StoredSchedule.None -> return
@@ -96,7 +98,30 @@ object SequenceScheduler : ToolScheduler {
             if (!created.isSuccess) LogManager.service("SequenceScheduler: entry of $id at $time not created: ${created.error}", "ERROR")
             else last = created.data?.get("id") as? String
         }
-        if (due.isNotEmpty()) told(context, coordinator, id, config, last)
+        if (due.isNotEmpty()) {
+            expire(coordinator, id, config, last)
+            told(context, coordinator, id, config, last)
+        }
+    }
+
+    /**
+     * The sessions of [toolInstanceId] planned and never started that its expiry ends
+     * (WaitingExpiry), [made] the one just planned, set expired; one to finish was started, and
+     * waits. What was not written is logged.
+     */
+    private suspend fun expire(coordinator: Coordinator, toolInstanceId: String, config: org.json.JSONObject, made: String?) {
+        val rule = app.treelune.core.tools.WaitingExpiry.of(config)
+        if (rule == app.treelune.core.tools.WaitingExpiry.Rule.Never) return
+        val read = coordinator.processUserAction("tool_data.get", mapOf("tool_instance_id" to toolInstanceId))
+        if (!read.isSuccess) throw IllegalStateException(read.error ?: "tool_data.get")
+        val waiting = (read.data?.get("entries") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>()
+            .filter { (it["state"] as? Map<*, *>)?.get(SequenceToolType.STATUS) == SequenceToolType.Status.PLANNED }
+            .map { it["id"] as String to (it["timestamp"] as Number).toLong() }
+        val now = System.currentTimeMillis()
+        app.treelune.core.tools.WaitingExpiry.expired(rule, waiting, made, now, app.treelune.core.selection.TimeResolver.at(now)::after).forEach { id ->
+            val done = coordinator.processUserAction("tool_data.update", mapOf("id" to id, "state" to mapOf(SequenceToolType.STATUS to SequenceToolType.Status.EXPIRED)))
+            if (!done.isSuccess) LogManager.service("SequenceScheduler: session $id not expired: ${done.error}", "ERROR")
+        }
     }
 
     /**
@@ -117,6 +142,7 @@ object SequenceScheduler : ToolScheduler {
             return null
         }
         val id = created.data?.get("id") as? String
+        expire(coordinator, toolInstanceId, config, id)
         told(context, coordinator, toolInstanceId, config, id)
         return id
     }

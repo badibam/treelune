@@ -28,8 +28,9 @@ import org.json.JSONObject
  *
  * On demand, nothing is written before the end of the passing. Planned, at the time due the app
  * creates the entry « to fill », dated from that time, and notifies; each answer is saved as it is
- * given, and the passing resumes at the first question without one. An entry is to fill, filled or
- * ignored; ignored is a gap chosen, kept in the history.
+ * given, and the passing resumes at the first question without one. An entry is to fill, filled,
+ * ignored or expired; ignored is a gap chosen, expired one the questionnaire's expiry made
+ * (WaitingExpiry), both kept in the history.
  */
 object QuestionnaireToolType : ToolTypeContract {
 
@@ -37,7 +38,8 @@ object QuestionnaireToolType : ToolTypeContract {
         const val TO_FILL = "to_fill"
         const val FILLED = "filled"
         const val IGNORED = "ignored"
-        val ALL = listOf(TO_FILL, FILLED, IGNORED)
+        const val EXPIRED = "expired"
+        val ALL = listOf(TO_FILL, FILLED, IGNORED, EXPIRED)
     }
 
     const val STATUS = "status"
@@ -66,6 +68,8 @@ object QuestionnaireToolType : ToolTypeContract {
             SettingNode.Field(FieldDefinition("notify", s.tool("field_notify"), s.tool("schema_notify"), FieldType.BOOLEAN, false, null), required = true, default = true),
             app.treelune.core.events.EventPoints.node(shared::shared),
             SettingNode.Field(FieldDefinition("enabled", s.tool("field_enabled"), s.tool("schema_enabled"), FieldType.BOOLEAN, false, null), required = true, default = true),
+            // When one left to fill expires: never by default
+            app.treelune.core.tools.WaitingExpiry.node(shared::shared),
             SettingNode.Field(FieldDefinition(AI_MESSAGE, s.tool("field_ai_message"), s.tool("schema_ai_message"), FieldType.TEXT, false,
                 mapOf("length" to TextLength.LONG.name)), required = true, default = s.tool("ai_message_default"))
         )

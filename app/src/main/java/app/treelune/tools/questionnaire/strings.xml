@@ -5,7 +5,7 @@
     <!-- What the tool is for, what it already does and what it is not for: the AI's prompt, always in English, and the Guide -->
     <string name="usage">For questions that come back, asked one per screen, answered whenever you like or at planned times: an evening review, a weekly check-in.\n## What it does\n- Its own schedule of invitations, each with a notification\n- Answering alone, or with the AI from a prepared message\n- An unanswered invitation stays visible, marked as ignored\n## Not made for\n- A single value noted quickly (Tracking)</string>
     <!-- The Guide's chapter, beside the usage: every setting of the config, every button of the screen (Markup) -->
-    <string name="guide_config">## The questions\nEach of the tool\'s fields is a question, in the order of the fields. Fields are added in the common settings, as for any tool.\n\n## The invitations\n- Invitations: the times the questionnaire is to be filled in, with a notification\n- Notify: unchecked, the invitations come without a notification\n- Active: unchecked, no invitation is created any more\n\n## With the AI\n- Message to the AI: the message that opens the conversation when answering “With the AI”, to send as it is or to change</string>
+    <string name="guide_config">## The questions\nEach of the tool\'s fields is a question, in the order of the fields. Fields are added in the common settings, as for any tool.\n\n## The invitations\n- Invitations: the times the questionnaire is to be filled in, with a notification\n- Notify: unchecked, the invitations come without a notification\n- Active: unchecked, no invitation is created any more\n- Expires: when an invitation left to fill expires — never, at the next one (one alone is then left to fill), or after a delay\n\n## With the AI\n- Message to the AI: the message that opens the conversation when answering “With the AI”, to send as it is or to change</string>
     <string name="guide_screen">## To fill\nThe invitations waiting.\n- Fill: the questions, one per screen, with Previous to go back\n- With the AI: a conversation where the AI asks you the questions\n- Ignore: skip this time, keeping it in the history\n- Ignore all: skip all those that piled up\n\n## Without an invitation\n- Fill in now, or With the AI\n\n## The history\nEach time, filled or ignored.\n- Change: corrects the answers of that time</string>
     <!-- What the tool is for, said to the user: the README and the Guide -->
     <string name="tagline">Questions asked one per screen, when you want or at planned times</string>
@@ -16,10 +16,11 @@
     <string name="schema_ai_message">What a chat “with the AI” opens with, to send or change; the pointer to what to fill goes with it</string>
     <string name="ai_message_default">Ask me the questions of this questionnaire one at a time. If an answer is vague, ask again. Before recording, show me the values you will write, then fill the entry and mark it filled.</string>
     <string name="field_status">State</string>
-    <string name="schema_status">to_fill, filled or ignored; an entry is filled by the questionnaire's operation complete, after its answers are written</string>
+    <string name="schema_status">to_fill, filled, ignored or expired (left to fill past the questionnaire\'s expiry); an entry is filled by the questionnaire's operation complete, after its answers are written</string>
     <string name="status_to_fill">To fill</string>
     <string name="status_filled">Filled</string>
     <string name="status_ignored">Ignored</string>
+    <string name="status_expired">Expired</string>
     <string name="field_filled_at">Filled on</string>
     <string name="schema_filled_at">When the entry was filled, which can be later than the moment it is about</string>
     <string name="field_entry">Entry</string>

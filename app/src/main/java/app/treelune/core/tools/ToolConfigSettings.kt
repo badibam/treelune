@@ -105,13 +105,14 @@ object ToolConfigSettings {
 
     /**
      * [config] with every setting of the first level it leaves out at its declared default: a
-     * default is also what a setting's absence means. Settings under a variant are left as
-     * they are, since which ones apply depends on the option the config chose.
+     * default is also what a setting's absence means, a variant's selector included. The
+     * settings of a variant's cases are left as they are, since which ones apply depends on the
+     * option the config chose.
      */
     fun withDefaults(toolType: ToolTypeContract, config: org.json.JSONObject, context: Context): org.json.JSONObject {
         val filled = org.json.JSONObject(config.toString())
         app.treelune.core.fields.settings.SettingsSchemaGenerator.flatten(nodes(toolType, context))
-            .filterIsInstance<SettingNode.Field>()
+            .mapNotNull { node -> (node as? SettingNode.Field) ?: (node as? SettingNode.Variant)?.selector }
             .forEach { node -> node.default?.let { if (!filled.has(node.definition.name)) filled.put(node.definition.name, it) } }
         return filled
     }
