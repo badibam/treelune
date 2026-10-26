@@ -612,6 +612,7 @@
     <string name="add_section_copy">Copy</string>
     <string name="add_copy_tool">A tool</string>
     <string name="add_copy_automation">A routine</string>
+    <string name="add_copy_task">A Task</string>
     <string name="message_no_tools_in_zone">No tool in this zone</string>
     <string name="message_no_items_in_group">No item in this group</string>
     <string name="error_tooltype_not_found">Tool type \'%1$s\' not found</string>
@@ -625,9 +626,11 @@
     <string name="text_selection_bold">Bold</string>
     <string name="text_selection_italic">Italic</string>
     <string name="duplicate_success_tool">Tool duplicated successfully</string>
-    <string name="duplicate_success_automation">Routine duplicated successfully</string>
+    <string name="duplicate_success_automation">Routine copied, off until you switch it on</string>
+    <string name="duplicate_success_task">Task copied, off until you switch it on</string>
     <string name="duplicate_no_tools">No tool available to duplicate</string>
     <string name="duplicate_no_automations">No routine available to duplicate</string>
+    <string name="duplicate_no_tasks">No Task available to duplicate</string>
     <string name="duplicate_error">Error while duplicating: %1$s</string>
 
     <!-- Confirmation messages -->
@@ -937,6 +940,7 @@
     <!-- DUPLICATE SELECTOR - Duplication navigation -->
     <string name="duplicate_selector_title_tool">Select the tool to duplicate</string>
     <string name="duplicate_selector_title_automation">Select the routine to duplicate</string>
+    <string name="duplicate_selector_title_task">Select the Task to duplicate</string>
     <string name="duplicate_select_zone">Select the zone</string>
     <string name="duplicate_select_instance">Select the instance</string>
 
@@ -2766,6 +2770,7 @@
     <string name="task_verbalize_create">Creation of the Task “%1$s”</string>
     <string name="task_verbalize_update">Change of the Task “%1$s”</string>
     <string name="task_verbalize_delete">Deletion of the Task “%1$s”</string>
+    <string name="task_verbalize_duplicate">Copy of the Task “%1$s”</string>
     <string name="task_verbalize_run">Run of the Task “%1$s”</string>
     <string name="in_use_tasks">Tasks: %1$s</string>
     <string name="task_step_api">API</string>

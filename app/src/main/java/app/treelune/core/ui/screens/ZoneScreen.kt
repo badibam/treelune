@@ -83,9 +83,8 @@ fun ZoneScreen(zone: Zone) {
     var showCreateAutomationDialog by rememberSaveable { mutableStateOf(false) }
     var preSelectedGroup by rememberSaveable { mutableStateOf<String?>(null) }
 
-    // State for duplication dialogs
-    var showDuplicateToolDialog by rememberSaveable { mutableStateOf(false) }
-    var showDuplicateAutomationDialog by rememberSaveable { mutableStateOf(false) }
+    // What is being copied into the section of preSelectedGroup, its picker open
+    var duplicating by rememberSaveable { mutableStateOf<app.treelune.core.ui.selectors.DuplicateType?>(null) }
 
     // The zone's tools, variables and automations, read through the dispatcher
     var variables by remember { mutableStateOf<List<app.treelune.core.ui.variables.VariableRow>>(emptyList()) }
@@ -262,14 +261,9 @@ fun ZoneScreen(zone: Zone) {
                         showCreateAutomationDialog = true
                         showAvailableToolsForGroup = null
                     },
-                    onDuplicateTool = {
+                    onDuplicate = { type ->
                         preSelectedGroup = groupName
-                        showDuplicateToolDialog = true
-                        showAvailableToolsForGroup = null
-                    },
-                    onDuplicateAutomation = {
-                        preSelectedGroup = groupName
-                        showDuplicateAutomationDialog = true
+                        duplicating = type
                         showAvailableToolsForGroup = null
                     },
                     onToolClick = { toolId -> openTool(toolId, waiting.oldest[toolId]?.let { app.treelune.core.tools.EntryToOpen.Existing(it) }) },
@@ -311,14 +305,9 @@ fun ZoneScreen(zone: Zone) {
                         showCreateAutomationDialog = true
                         showAvailableToolsForGroup = null
                     },
-                    onDuplicateTool = {
+                    onDuplicate = { type ->
                         preSelectedGroup = null
-                        showDuplicateToolDialog = true
-                        showAvailableToolsForGroup = null
-                    },
-                    onDuplicateAutomation = {
-                        preSelectedGroup = null
-                        showDuplicateAutomationDialog = true
+                        duplicating = type
                         showAvailableToolsForGroup = null
                     },
                     onToolClick = { toolId -> openTool(toolId, waiting.oldest[toolId]?.let { app.treelune.core.tools.EntryToOpen.Existing(it) }) },
@@ -379,78 +368,33 @@ fun ZoneScreen(zone: Zone) {
         )
     }
 
-    // Duplicate tool dialog
-    if (showDuplicateToolDialog) {
+    // A tool, a routine or a Task copied from any zone into the section it was asked from
+    duplicating?.let { type ->
         app.treelune.core.ui.selectors.DuplicateSelector(
-            type = app.treelune.core.ui.selectors.DuplicateType.TOOL,
-            onDismiss = {
-                showDuplicateToolDialog = false
-            },
-            onConfirm = { sourceZoneId, toolInstanceId ->
-                coroutineScope.launch {
-                    isLoading = true
-                    try {
-                        val result = coordinator.processUserAction(
-                            "tools.duplicate",
-                            mapOf(
-                                "tool_instance_id" to toolInstanceId,
-                                "target_zone_id" to zone.id,
-                                "target_group" to (preSelectedGroup ?: "")
-                            )
-                        )
-                        if (result.status == CommandStatus.SUCCESS) {
-                            UI.Toast(s.shared("duplicate_success_tool"))
-                            showDuplicateToolDialog = false
-                            // Reload tools to show the new one
-                            coordinator.executeWithLoading(
-                                operation = "tools.list",
-                                params = mapOf(
-                                    "zone_id" to zone.id,
-                                    "include_config" to true,
-                                    "include_position" to true
-                                ),
-                                onLoading = { isLoading = it },
-                                onError = { error -> errorMessage = error }
-                            )?.let { toolsResult ->
-                                toolInstances = toolsResult.mapData("tool_instances") { toolInstanceOf(it) }
-                            }
-                        } else {
-                            errorMessage = result.error ?: s.shared("duplicate_error").format("")
-                        }
-                    } catch (e: Exception) {
-                        errorMessage = s.shared("duplicate_error").format(e.message ?: "")
-                    } finally {
-                        isLoading = false
-                    }
+            type = type,
+            onDismiss = { duplicating = null },
+            onConfirm = { _, sourceId ->
+                // The operation, the source's parameter, and what is said once it is done
+                val (operation, idKey, done) = when (type) {
+                    app.treelune.core.ui.selectors.DuplicateType.TOOL -> Triple("tools.duplicate", "tool_instance_id", s.shared("duplicate_success_tool"))
+                    app.treelune.core.ui.selectors.DuplicateType.AUTOMATION -> Triple("automations.duplicate", "automation_id", s.shared("duplicate_success_automation"))
+                    app.treelune.core.ui.selectors.DuplicateType.TASK -> Triple("tasks.duplicate", "task_id", s.shared("duplicate_success_task"))
                 }
-            }
-        )
-    }
-
-    // Duplicate automation dialog
-    if (showDuplicateAutomationDialog) {
-        app.treelune.core.ui.selectors.DuplicateSelector(
-            type = app.treelune.core.ui.selectors.DuplicateType.AUTOMATION,
-            onDismiss = {
-                showDuplicateAutomationDialog = false
-            },
-            onConfirm = { sourceZoneId, automationId ->
                 coroutineScope.launch {
                     isLoading = true
                     try {
-                        val result = coordinator.processUserAction(
-                            "automations.duplicate",
-                            mapOf(
-                                "automation_id" to automationId,
-                                "target_zone_id" to zone.id,
-                                "target_group" to (preSelectedGroup ?: "")
-                            )
-                        )
+                        val result = coordinator.processUserAction(operation, mapOf(
+                            idKey to sourceId,
+                            "target_zone_id" to zone.id,
+                            "target_group" to (preSelectedGroup ?: "")
+                        ))
                         if (result.status == CommandStatus.SUCCESS) {
-                            UI.Toast(s.shared("duplicate_success_automation"))
-                            showDuplicateAutomationDialog = false
-                            // Reload automations to show the new one
+                            UI.Toast(done)
+                            duplicating = null
+                            // The copy among the section's tiles, which it may move
+                            loadTools()
                             loadAutomations()
+                            loadTasks()
                         } else {
                             errorMessage = result.error ?: s.shared("duplicate_error").format("")
                         }
@@ -479,7 +423,7 @@ private class AddChoice(val id: String, val icon: String, val label: String, val
 /**
  * What can be added to section [groupName], titled by it: the tool types by family (ToolFamily,
  * each type saying its own, in the order the app finds them within it), then a variable and a
- * routine, then a copy of a tool or a routine. Each a tile of the settings' kind, an icon and a
+ * routine and a Task, then a copy of a tool, a routine or a Task. Each a tile of the settings' kind, an icon and a
  * name two cells wide, two a row, one under the other in one column.
  */
 @Composable
@@ -489,8 +433,7 @@ private fun AddMenu(
     onCreateVariable: () -> Unit,
     onCreateAutomation: () -> Unit,
     onCreateTask: () -> Unit,
-    onDuplicateTool: () -> Unit,
-    onDuplicateAutomation: () -> Unit,
+    onDuplicate: (app.treelune.core.ui.selectors.DuplicateType) -> Unit,
     context: android.content.Context
 ) {
     val s = remember { Strings.`for`(context = context) }
@@ -506,8 +449,9 @@ private fun AddMenu(
             AddChoice("task", app.treelune.core.tasks.TaskSettings.DEFAULT_ICON, s.shared("task_display_name"), onCreateTask)
         ),
         s.shared("add_section_copy") to listOf(
-            AddChoice("copy_tool", "copy", s.shared("add_copy_tool"), onDuplicateTool),
-            AddChoice("copy_automation", "copy", s.shared("add_copy_automation"), onDuplicateAutomation)
+            AddChoice("copy_tool", "copy", s.shared("add_copy_tool")) { onDuplicate(app.treelune.core.ui.selectors.DuplicateType.TOOL) },
+            AddChoice("copy_automation", "copy", s.shared("add_copy_automation")) { onDuplicate(app.treelune.core.ui.selectors.DuplicateType.AUTOMATION) },
+            AddChoice("copy_task", "copy", s.shared("add_copy_task")) { onDuplicate(app.treelune.core.ui.selectors.DuplicateType.TASK) }
         )
     )
     Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
@@ -547,8 +491,7 @@ private fun GroupSection(
     onToggleToolsList: () -> Unit,
     onSelectToolType: (String) -> Unit,
     onCreateAutomation: () -> Unit,
-    onDuplicateTool: () -> Unit,
-    onDuplicateAutomation: () -> Unit,
+    onDuplicate: (app.treelune.core.ui.selectors.DuplicateType) -> Unit,
     onToolClick: (String) -> Unit,
     onOpenEntry: (ToolInstance, app.treelune.core.tools.EntryToOpen) -> Unit,
     editor: app.treelune.core.ui.components.GridEditor,
@@ -591,8 +534,7 @@ private fun GroupSection(
             onCreateVariable = onCreateVariable,
             onCreateAutomation = onCreateAutomation,
             onCreateTask = onCreateTask,
-            onDuplicateTool = onDuplicateTool,
-            onDuplicateAutomation = onDuplicateAutomation,
+            onDuplicate = onDuplicate,
             context = context
         )
     }
@@ -632,8 +574,7 @@ private fun UngroupedSection(
     onToggleToolsList: () -> Unit,
     onSelectToolType: (String) -> Unit,
     onCreateAutomation: () -> Unit,
-    onDuplicateTool: () -> Unit,
-    onDuplicateAutomation: () -> Unit,
+    onDuplicate: (app.treelune.core.ui.selectors.DuplicateType) -> Unit,
     onToolClick: (String) -> Unit,
     onOpenEntry: (ToolInstance, app.treelune.core.tools.EntryToOpen) -> Unit,
     editor: app.treelune.core.ui.components.GridEditor,
@@ -680,8 +621,7 @@ private fun UngroupedSection(
             onCreateVariable = onCreateVariable,
             onCreateAutomation = onCreateAutomation,
             onCreateTask = onCreateTask,
-            onDuplicateTool = onDuplicateTool,
-            onDuplicateAutomation = onDuplicateAutomation,
+            onDuplicate = onDuplicate,
             context = context
         )
     }
