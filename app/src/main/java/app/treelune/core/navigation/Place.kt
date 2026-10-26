@@ -193,11 +193,11 @@ sealed class Place {
         override fun parent() = Task(taskId, zoneId)
     }
 
-    /** An automation's starting message, edited in its seed session. */
-    data class Seed(val sessionId: String, override val zoneId: String) : Place() {
-        override val kind = "seed"
-        override val parameters get() = listOf(sessionId, zoneId)
-        override fun parent() = Zone(zoneId)
+    /** An automation's configuration, its message included: an existing one's when [automationId] is set, a new one's otherwise. */
+    data class AutomationConfig(override val zoneId: String, val automationId: String?, val group: String?) : Place() {
+        override val kind = "automation_config"
+        override val parameters get() = listOf(zoneId, automationId, group)
+        override fun parent() = automationId?.let { Automation(it, zoneId) } ?: Zone(zoneId)
     }
 
     /** The Guide's page: its journey, then its reference. */
@@ -246,7 +246,7 @@ sealed class Place {
                 "variable" -> Variable(r(1), p(2), p(3))
                 "automation" -> Automation(r(1), r(2))
                 "execution" -> Execution(r(1), r(2), r(3))
-                "seed" -> Seed(r(1), r(2))
+                "automation_config" -> AutomationConfig(r(1), p(2), p(3))
                 "task" -> Task(r(1), r(2))
                 "task_config" -> TaskConfig(r(1), p(2), p(3))
                 "task_run" -> TaskRun(r(1), r(2), r(3))

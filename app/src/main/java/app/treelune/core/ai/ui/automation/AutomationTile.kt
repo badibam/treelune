@@ -25,8 +25,8 @@ import kotlinx.coroutines.withContext
 
 /**
  * What a routine's tile and its page do, the same from both: run it now, take back its run
- * waiting in the queue, open a conversation started with its message, open its message to edit
- * it, open its history, switch it on or off. A refusal, or a run asked for, is said through
+ * waiting in the queue, open a conversation started with its message, open its config, open its
+ * history, switch it on or off. A refusal, or a run asked for, is said through
  * [onMessage].
  */
 class AutomationActions(
@@ -50,7 +50,7 @@ class AutomationActions(
         app.treelune.core.ai.orchestration.ChatRequests.open(prefill)
     }
 
-    fun edit(automation: Automation) = Navigator.push(Place.Seed(automation.seedSessionId, automation.zoneId))
+    fun configure(automation: Automation) = Navigator.push(Place.AutomationConfig(automation.zoneId, automation.id, null))
 
     fun history(automation: Automation) = Navigator.push(Place.Automation(automation.id, automation.zoneId))
 
@@ -123,12 +123,12 @@ fun AutomationStateLine(automation: Automation, state: AutomationState, actions:
 }
 
 /**
- * A routine's four buttons across the whole width: run it now (Cancel while its run waits in
- * the queue), a conversation started with its message, its history, its message to edit. Its
- * page, which is its history, gives [onSettings], its settings in the history's place.
+ * A routine's buttons across the whole width: run it now (Cancel while its run waits in the
+ * queue), a conversation started with its message, and on its tile its page, the history
+ * ([toPage]); its page opens its config from its header.
  */
 @Composable
-fun AutomationButtons(automation: Automation, state: AutomationState, actions: AutomationActions, onSettings: (() -> Unit)? = null) {
+fun AutomationButtons(automation: Automation, state: AutomationState, actions: AutomationActions, toPage: Boolean = true) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
@@ -141,9 +141,7 @@ fun AutomationButtons(automation: Automation, state: AutomationState, actions: A
             UI.ActionButton(action = ButtonAction.START, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.run(automation) })
         }
         UI.ActionButton(action = ButtonAction.AI_CHAT, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.chat(automation) })
-        if (onSettings != null) UI.ActionButton(action = ButtonAction.CONFIGURE, display = ButtonDisplay.ICON, size = Size.S, onClick = onSettings)
-        else UI.ActionButton(action = ButtonAction.VIEW, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.history(automation) })
-        UI.ActionButton(action = ButtonAction.EDIT, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.edit(automation) })
+        if (toPage) UI.ActionButton(action = ButtonAction.VIEW, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.history(automation) })
     }
 }
 
@@ -151,11 +149,11 @@ fun AutomationButtons(automation: Automation, state: AutomationState, actions: A
  * A routine's tile among its section's tools (UI.LookCard), « Routine » under its name: its
  * state and its switch beside its header (LINE, EXTENDED, SQUARE) or under it (CONDENSED); its
  * buttons on a line of their own (EXTENDED, SQUARE); its last three runs under them (SQUARE), each
- * opening. A touch opens its history; a long touch, [onLongClick], its settings. A run of it that
- * waits to be read is marked on its icon, and its run going on now (LocalRunning).
+ * opening. A touch opens its page, its history; a long touch its config, as a tool's. A run of it
+ * that waits to be read is marked on its icon, and its run going on now (LocalRunning).
  */
 @Composable
-fun AutomationTile(automation: Automation, actions: AutomationActions, onLongClick: () -> Unit) {
+fun AutomationTile(automation: Automation, actions: AutomationActions) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     val state = rememberAutomationState(automation)
@@ -166,7 +164,7 @@ fun AutomationTile(automation: Automation, actions: AutomationActions, onLongCli
         waiting = LocalWaiting.current.automation(automation.id),
         running = LocalRunning.current.automation(automation.id),
         onClick = { actions.history(automation) },
-        onLongClick = onLongClick,
+        onLongClick = { actions.configure(automation) },
         summary = { AutomationStateLine(automation, state, actions) },
         glance = { AutomationStateLine(automation, state, actions) },
         body = { rows ->

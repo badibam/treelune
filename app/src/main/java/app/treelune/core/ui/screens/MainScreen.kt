@@ -343,9 +343,13 @@ private fun PlaceScreen(place: Place, zones: ZonesState, demoInstalled: Boolean)
                 name(s.shared("nav_execution"))
                 app.treelune.core.tasks.ui.TaskRunScreen(place, onTaskName = { Navigator.name(place.parent(), it) }, onBack = back)
             }
-            is Place.Seed -> {
-                name(s.shared("nav_seed"))
-                app.treelune.core.ai.ui.screens.AIScreen(sessionId = place.sessionId, onClose = back)
+            is Place.AutomationConfig -> {
+                name(s.shared(if (place.automationId == null) "automation_new_name" else "nav_configuration"))
+                // Deleted, its page under the config goes with it
+                app.treelune.core.ai.ui.automation.AutomationConfigScreen(place, onDone = back, onDeleted = {
+                    place.automationId?.let { Navigator.drop(Place.Automation(it, place.zoneId)) }
+                    back()
+                })
             }
             Place.Guide -> {
                 name(s.shared("guide_title"))

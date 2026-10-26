@@ -57,7 +57,8 @@
     <string name="guide_path_task_config">touche l\'engrenage en haut à droite</string>
     <string name="guide_path_task_new">touche + à côté d\'une section, puis Tâche</string>
     <string name="guide_path_execution">touche une exécution</string>
-    <string name="guide_path_seed">touche le crayon de la routine</string>
+    <string name="guide_path_automation_config">touche l\'engrenage en haut à droite</string>
+    <string name="guide_path_automation_new">touche + à côté d\'une section, puis Routine</string>
     <string name="guide_path_home_config">touche l\'engrenage en haut à droite</string>
     <string name="guide_path_settings">touche les curseurs en haut à gauche</string>
     <string name="guide_path_settings_page">touche %1$s</string>
@@ -139,9 +140,9 @@
     <string name="guide_automate_1_goal">Ce qu\'est une routine</string>
     <string name="guide_automate_1_text">Le message d\'une routine sert de deux façons.\n\nL\'IA peut le traiter seule. Elle lit les outils, y écrit si le message le demande, et le résultat se lit plus tard. Avec un planning, elle s\'en charge d\'elle-même, par exemple chaque dimanche soir.\n\nOn peut aussi s\'en servir pour commencer une conversation avec l\'IA, pratique pour une discussion qui revient souvent, comme « faisons le point sur ma semaine ».\n\nL\'IA peut aussi créer ou modifier une routine pour toi. Demande-lui par exemple « prépare une routine qui fait le bilan de mes repas chaque soir ».</string>
     <string name="guide_automate_2_goal">Crée une routine dans une zone</string>
-    <string name="guide_automate_2_text">Une routine se range dans une zone, comme un outil. Dans la zone, touche le + d\'une section, choisis « Routine » et donne-lui un nom.</string>
-    <string name="guide_automate_3_goal">Écris son message</string>
-    <string name="guide_automate_3_text">Sa tuile se range dans la section parmi les outils, en Étendu par défaut : son état et son interrupteur en haut, ses quatre boutons dessous. Sur la tuile de la routine, touche le crayon. Écris ce que l\'IA doit faire, par exemple « fais-moi le bilan de ma semaine ». Pour qu\'elle se lance seule, ajoute un planning, comme chaque dimanche à 18 h. Avec Me signaler la fin, une notification te dit quand elle a fini. Enregistre.\n\nUn appui long sur sa tuile ouvre ses réglages : son nom, son apparence, son fournisseur. Affichée plus petite, sa tuile n\'a pas la place de ses boutons : touche-la, sa page les a tous.</string>
+    <string name="guide_automate_2_text">Une routine se range dans une zone, comme un outil. Dans la zone, touche le + d\'une section et choisis « Routine » : sa config s\'ouvre. Donne-lui un nom, puis écris son message, ce que l\'IA doit faire, par exemple « fais-moi le bilan de ma semaine ». Pour qu\'elle se lance seule, ajoute un planning sous Quand, comme chaque dimanche à 18 h. Sous À la fin, Me signaler la fin choisit quand une notification te dit qu\'elle a fini. Enregistre.</string>
+    <string name="guide_automate_3_goal">Retouche-la</string>
+    <string name="guide_automate_3_text">Sa tuile se range dans la section parmi les outils, en Étendu par défaut : son état et son interrupteur en haut, ses boutons dessous. Un appui long sur sa tuile rouvre sa config : change un mot de son message, ou son apparence, et enregistre.\n\nAffichée plus petite, sa tuile n\'a pas la place de ses boutons : touche-la, sa page les a tous, et son engrenage ouvre aussi sa config.</string>
     <string name="guide_automate_4_goal">Lance-la une fois</string>
     <string name="guide_automate_4_text">Pour voir ce qu\'elle donne sans attendre son planning, touche le bouton lecture sur sa tuile, ou sur sa page.</string>
     <string name="guide_automate_5_goal">Regarde ce qu\'elle a fait</string>
@@ -160,7 +161,7 @@
     <string name="guide_tasks_4_goal">Regarde son exécution</string>
     <string name="guide_tasks_4_text">Sous Exécutions, touche celle qui vient de partir. Chaque étape y montre ce qu\'elle a donné : la température maximale et la pluie lues dans la réponse d\'Open-Meteo, puis l\'entrée créée dans Météo. Si l\'appel échoue, l\'erreur s\'y lit à la place.\n\nSi la prévision dépasse 30 °C, Canicule part à son tour. Une Tâche peut ainsi en faire partir une autre.</string>
     <string name="guide_tasks_5_goal">Ouvre Semaine chargée</string>
-    <string name="guide_tasks_5_text">Dans la zone Travail, Semaine chargée n\'a aucune étape. Elle surveille une variable, les heures de travail de la semaine. Quand elles dépassent 45, une notification le dit, et la Tâche émet l\'événement Semaine chargée, réglé dans sa config sous « Émettre aussi l\'événement ».\n\nDans la zone Course, la routine Alléger la semaine écoute cet événement : dans son éditeur, le bouton à l\'éclair compte ses déclencheurs. Elle demanderait alors à l\'IA un plan plus léger pour les jours qui restent. Elle est éteinte, pour que la démo ne dépense rien sur ta clé.\n\nUn événement relie ainsi deux zones : la Tâche qui l\'émet ne sait pas qui l\'écoute.</string>
+    <string name="guide_tasks_5_text">Dans la zone Travail, Semaine chargée n\'a aucune étape. Elle surveille une variable, les heures de travail de la semaine. Quand elles dépassent 45, une notification le dit, et la Tâche émet l\'événement Semaine chargée, réglé dans sa config sous « Émettre aussi l\'événement ».\n\nDans la zone Course, la routine Alléger la semaine écoute cet événement : dans sa config, son déclencheur est sous Quand. Elle demanderait alors à l\'IA un plan plus léger pour les jours qui restent. Elle est éteinte, pour que la démo ne dépense rien sur ta clé.\n\nUn événement relie ainsi deux zones : la Tâche qui l\'émet ne sait pas qui l\'écoute.</string>
     <string name="guide_organize_title">Organiser</string>
     <string name="guide_organize_intro">Quand les zones et les outils se multiplient, tu peux les ranger. Le rangement se fait de la même façon à deux niveaux : les zones en groupes sur l\'accueil, et les outils en groupes dans une zone.</string>
     <string name="guide_organize_outro">Zones et outils sont maintenant rangés à ta façon. Tout se change à tout moment, avec les mêmes gestes.</string>

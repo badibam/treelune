@@ -259,8 +259,6 @@
     <string name="automation_catch_up_every_occurrence">Chacune</string>
     <string name="automation_catch_up_latest_only">La plus récente</string>
     <string name="automation_catch_up_required">Indique jusqu\'où rattraper une exécution manquée avant d\'enregistrer.</string>
-    <string name="automation_dialog_edit_hint">Modifie le nom, le fournisseur, le groupe et la zone de la routine.</string>
-    <string name="automation_dialog_create_hint">Une fois créée, le message et la planification de la routine se règlent dans son éditeur.</string>
     <string name="automation_catch_up_without_schedule">Une routine sans planification n\'a rien à rattraper : ses réglages de rattrapage vont avec une planification.</string>
     <string name="automation_catch_up_limited">Jusqu\'à un délai</string>
     <string name="automation_catch_up_delay">Délai</string>
@@ -1816,15 +1814,14 @@
     <string name="automation_display_name">Routine</string>
     <string name="automation_runs_display_name">Exécutions d\'une routine</string>
     <string name="automation_message_placeholder">Message de démarrage de la routine...</string>
+    <string name="automation_message">Message</string>
+    <string name="automation_new_name">Nouvelle routine</string>
     <string name="automation_none_configured">Aucune routine configurée</string>
-    <string name="automation_triggers_none">Aucun déclencheur</string>
     <string name="automation_triggers_count">%1$d déclencheur(s)</string>
-    <string name="automation_triggers_config_title">Configuration déclencheurs</string>
 
     <!-- AUTOMATIONS - Actions -->
     <string name="automation_execute_now">Déclencher maintenant</string>
     <string name="automation_execution_triggered">Exécution déclenchée</string>
-    <string name="automation_saved_success">Routine sauvegardée</string>
     <string name="automation_save_failed">Échec de la sauvegarde</string>
 
     <!-- AUTOMATIONS - Status -->
@@ -1860,12 +1857,7 @@
     <string name="error_automation_not_found">Routine introuvable</string>
     <string name="error_automation_load_failed">Échec du chargement de la routine</string>
     <string name="error_param_automation_id_required">ID routine requis</string>
-    <string name="error_automation_update_failed">Échec de la mise à jour de la routine</string>
     <string name="error_automation_delete_failed">Échec de la suppression de la routine</string>
-    <string name="automation_updated_success">Routine mise à jour</string>
-    <string name="automation_deleted_success">Routine supprimée</string>
-    <string name="automation_delete_confirm_title">Supprimer la routine ?</string>
-    <string name="automation_delete_confirm_message">La routine et son message seront supprimés.</string>
     <string name="error_param_seed_session_required">ID session SEED requis</string>
     <string name="error_param_zone_id_required">ID zone requis</string>
     <string name="error_param_icon_required">Icône requise</string>
@@ -2388,7 +2380,6 @@
     <string name="nav_variable">Variable</string>
     <string name="nav_new_variable">Nouvelle variable</string>
     <string name="nav_execution">Exécution</string>
-    <string name="nav_seed">Message de départ</string>
     <string name="nav_chat">Conversation</string>
     <string name="automation_run_channel">Routines en cours</string>
     <string name="automation_run_notification_text">Routine en cours</string>
@@ -2400,8 +2391,6 @@
     <string name="session_reasoning_help">Vaut pour la suite de cette conversation, à la place du réglage du fournisseur d\'IA.</string>
     <string name="session_reasoning_error">Échec du changement de la réflexion</string>
     <string name="ai_session_reasoning_refused_shown">La réflexion réglée pour cette conversation ne convient pas au modèle actuel de l\'IA : change-la dans les paramètres de la conversation.</string>
-    <string name="automation_access_all">Accès : tout</string>
-    <string name="automation_access_count">Accès : %1$d</string>
     <string name="time_short_minutes">%1$d min</string>
     <string name="time_short_hours">%1$d h</string>
     <string name="time_short_days">%1$d j</string>

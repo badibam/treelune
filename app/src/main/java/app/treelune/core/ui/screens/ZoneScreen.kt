@@ -66,21 +66,12 @@ fun ZoneScreen(zone: Zone) {
     // A tool opened on top of the zone, on the oldest entry that waits when its tile was touched with one
     val openTool = { toolId: String, entry: app.treelune.core.tools.EntryToOpen? -> Navigator.push(Place.Tool(toolId, zone.id), entry) }
     val configureTool = { tool: ToolInstance -> Navigator.push(Place.ToolConfig(zone.id, tool.tooltype, tool.id, null)) }
-    // What a routine's tile does (AutomationActions); a long touch opens its settings, read first
+    // What a routine's tile does (AutomationActions), its long touch opening its config
     val automationActions = app.treelune.core.ai.ui.automation.rememberAutomationActions { errorMessage = it }
-    var automationSettings by remember { mutableStateOf<Map<String, Any>?>(null) }
-    val openAutomationSettings = { automation: app.treelune.core.ai.data.Automation ->
-        coroutineScope.launch {
-            val result = coordinator.processUserAction("automations.get", mapOf("automation_id" to automation.id))
-            @Suppress("UNCHECKED_CAST")
-            if (result.status == CommandStatus.SUCCESS) automationSettings = result.data?.get("automation") as? Map<String, Any>
-            else errorMessage = result.error
-        }
-        Unit
-    }
+    // A routine's config opened for a new one in a section: nothing is made before it is saved
+    val createAutomation = { group: String? -> Navigator.push(Place.AutomationConfig(zone.id, null, group)) }
 
-    // State for automation creation dialog - with pre-selected group
-    var showCreateAutomationDialog by rememberSaveable { mutableStateOf(false) }
+    // The section a variable or a copy is asked for
     var preSelectedGroup by rememberSaveable { mutableStateOf<String?>(null) }
 
     // What is being copied into the section of preSelectedGroup, its picker open
@@ -257,8 +248,7 @@ fun ZoneScreen(zone: Zone) {
                         showAvailableToolsForGroup = null
                     },
                     onCreateAutomation = {
-                        preSelectedGroup = groupName
-                        showCreateAutomationDialog = true
+                        createAutomation(groupName)
                         showAvailableToolsForGroup = null
                     },
                     onDuplicate = { type ->
@@ -271,7 +261,6 @@ fun ZoneScreen(zone: Zone) {
                     editor = gridEditor,
                     onToolLongClick = configureTool,
                     automationActions = automationActions,
-                    onAutomationLongClick = openAutomationSettings,
                     context = context
                 )
             }
@@ -301,8 +290,7 @@ fun ZoneScreen(zone: Zone) {
                         showAvailableToolsForGroup = null
                     },
                     onCreateAutomation = {
-                        preSelectedGroup = null
-                        showCreateAutomationDialog = true
+                        createAutomation(null)
                         showAvailableToolsForGroup = null
                     },
                     onDuplicate = { type ->
@@ -315,7 +303,6 @@ fun ZoneScreen(zone: Zone) {
                     editor = gridEditor,
                     onToolLongClick = configureTool,
                     automationActions = automationActions,
-                    onAutomationLongClick = openAutomationSettings,
                     context = context
                 )
         }
@@ -334,38 +321,6 @@ fun ZoneScreen(zone: Zone) {
                 UI.Text(s.shared("grid_leave_message"), TextType.BODY)
             }
         }
-    }
-
-    // Create automation dialog
-    if (showCreateAutomationDialog) {
-        app.treelune.core.ai.ui.automation.CreateAutomationDialog(
-            zoneId = zone.id,
-            zoneName = zone.name,
-            preSelectedGroup = preSelectedGroup,
-            onDismiss = {
-                showCreateAutomationDialog = false
-                preSelectedGroup = null
-            },
-            onSuccess = { seedSessionId ->
-                showCreateAutomationDialog = false
-                preSelectedGroup = null
-                // Reload automations to show the new one
-                coroutineScope.launch { loadAutomations() }
-                // Navigate to SEED editor
-                Navigator.push(Place.Seed(seedSessionId, zone.id))
-            }
-        )
-    }
-
-    // A routine's settings, opened by a long touch on its tile; the zone reads its routines again on their change
-    automationSettings?.let { automation ->
-        app.treelune.core.ai.ui.automation.CreateAutomationDialog(
-            zoneId = zone.id,
-            zoneName = zone.name,
-            automation = automation,
-            onDismiss = { automationSettings = null },
-            onSuccess = { automationSettings = null }
-        )
     }
 
     // A tool, a routine or a Task copied from any zone into the section it was asked from
@@ -497,7 +452,6 @@ private fun GroupSection(
     editor: app.treelune.core.ui.components.GridEditor,
     onToolLongClick: (ToolInstance) -> Unit,
     automationActions: app.treelune.core.ai.ui.automation.AutomationActions,
-    onAutomationLongClick: (app.treelune.core.ai.data.Automation) -> Unit,
     context: android.content.Context
 ) {
     val s = remember { Strings.`for`(context = context) }
@@ -540,7 +494,7 @@ private fun GroupSection(
     }
 
     // The group's tools, variables and routines on their grid
-    SectionGrid(groupName, groupTools, variables, groupAutomations, tasks, editor, onToolClick, onToolLongClick, onOpenEntry, onOpenVariable, automationActions, onAutomationLongClick)
+    SectionGrid(groupName, groupTools, variables, groupAutomations, tasks, editor, onToolClick, onToolLongClick, onOpenEntry, onOpenVariable, automationActions)
 
 
     // Empty state if no tools/automations in this group (only when list is not showing)
@@ -580,7 +534,6 @@ private fun UngroupedSection(
     editor: app.treelune.core.ui.components.GridEditor,
     onToolLongClick: (ToolInstance) -> Unit,
     automationActions: app.treelune.core.ai.ui.automation.AutomationActions,
-    onAutomationLongClick: (app.treelune.core.ai.data.Automation) -> Unit,
     context: android.content.Context
 ) {
     val s = remember { Strings.`for`(context = context) }
@@ -627,7 +580,7 @@ private fun UngroupedSection(
     }
 
     // The ungrouped tools, variables and routines on their grid
-    SectionGrid("", toolInstances, variables, automations, tasks, editor, onToolClick, onToolLongClick, onOpenEntry, onOpenVariable, automationActions, onAutomationLongClick)
+    SectionGrid("", toolInstances, variables, automations, tasks, editor, onToolClick, onToolLongClick, onOpenEntry, onOpenVariable, automationActions)
 
 
     // Empty state (only when list is not showing)
@@ -667,8 +620,7 @@ private fun SectionGrid(
     onToolLongClick: (ToolInstance) -> Unit,
     onOpenEntry: (ToolInstance, app.treelune.core.tools.EntryToOpen) -> Unit,
     onOpenVariable: (String) -> Unit,
-    automationActions: app.treelune.core.ai.ui.automation.AutomationActions,
-    onAutomationLongClick: (app.treelune.core.ai.data.Automation) -> Unit
+    automationActions: app.treelune.core.ai.ui.automation.AutomationActions
 ) {
     val tiles = tools.map { app.treelune.core.ui.components.SectionTile.Tool(it) } +
         variables.map { app.treelune.core.ui.components.SectionTile.Variable(it) } +
@@ -676,6 +628,6 @@ private fun SectionGrid(
         tasks.map { app.treelune.core.ui.components.SectionTile.TaskTile(it) }
     app.treelune.core.ui.components.Faded(editor.anyEditing && !editor.isEditing(key)) {
         app.treelune.core.ui.components.SectionTiles(tiles, { onToolClick(it.id) }, onToolLongClick, onOpenEntry, onOpenVariable,
-            automationActions, onAutomationLongClick, editor.gridEdit(key))
+            automationActions, editor.gridEdit(key))
     }
 }

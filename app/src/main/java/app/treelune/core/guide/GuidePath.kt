@@ -42,7 +42,7 @@ object GuidePath {
             is Place.Variable -> t("guide_path_variable")
             is Place.Automation -> t("guide_path_automation")
             is Place.Execution -> t("guide_path_execution")
-            is Place.Seed -> t("guide_path_seed")
+            is Place.AutomationConfig -> t(if (place.automationId != null) "guide_path_automation_config" else "guide_path_automation_new")
             is Place.Task -> t("guide_path_task", n)
             is Place.TaskRun -> t("guide_path_task_run")
             is Place.TaskConfig -> t(if (place.taskId != null) "guide_path_task_config" else "guide_path_task_new")

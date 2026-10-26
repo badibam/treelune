@@ -259,8 +259,6 @@
     <string name="automation_catch_up_every_occurrence">Each one</string>
     <string name="automation_catch_up_latest_only">The most recent one</string>
     <string name="automation_catch_up_required">Say how far back a missed run is caught up before saving.</string>
-    <string name="automation_dialog_edit_hint">Changes the name, the provider, the group and the zone of the routine.</string>
-    <string name="automation_dialog_create_hint">Once created, the routine's message and schedule are set in its editor.</string>
     <string name="automation_catch_up_without_schedule">A routine without schedule has nothing to catch up: its catch-up settings come with a schedule.</string>
     <string name="automation_catch_up_limited">Up to a delay</string>
     <string name="automation_catch_up_delay">Delay</string>
@@ -1816,15 +1814,14 @@
     <string name="automation_display_name">Routine</string>
     <string name="automation_runs_display_name">Runs of a routine</string>
     <string name="automation_message_placeholder">Start message of the routine...</string>
+    <string name="automation_message">Message</string>
+    <string name="automation_new_name">New routine</string>
     <string name="automation_none_configured">No routine configured</string>
-    <string name="automation_triggers_none">No trigger</string>
     <string name="automation_triggers_count">%1$d trigger(s)</string>
-    <string name="automation_triggers_config_title">Trigger configuration</string>
 
     <!-- AUTOMATIONS - Actions -->
     <string name="automation_execute_now">Trigger now</string>
     <string name="automation_execution_triggered">Run triggered</string>
-    <string name="automation_saved_success">Routine saved</string>
     <string name="automation_save_failed">Saving failed</string>
 
     <!-- AUTOMATIONS - Status -->
@@ -1860,12 +1857,7 @@
     <string name="error_automation_not_found">Routine not found</string>
     <string name="error_automation_load_failed">Failed to load the routine</string>
     <string name="error_param_automation_id_required">Routine ID required</string>
-    <string name="error_automation_update_failed">Failed to update the routine</string>
     <string name="error_automation_delete_failed">Failed to delete the routine</string>
-    <string name="automation_updated_success">Routine updated</string>
-    <string name="automation_deleted_success">Routine deleted</string>
-    <string name="automation_delete_confirm_title">Delete the routine?</string>
-    <string name="automation_delete_confirm_message">The routine and its message will be deleted.</string>
     <string name="error_param_seed_session_required">SEED session ID required</string>
     <string name="error_param_zone_id_required">Zone ID required</string>
     <string name="error_param_icon_required">Icon required</string>
@@ -2388,7 +2380,6 @@
     <string name="nav_variable">Variable</string>
     <string name="nav_new_variable">New variable</string>
     <string name="nav_execution">Execution</string>
-    <string name="nav_seed">Starting message</string>
     <string name="nav_chat">Conversation</string>
     <string name="automation_run_channel">Routines running</string>
     <string name="automation_run_notification_text">Routine running</string>
@@ -2400,8 +2391,6 @@
     <string name="session_reasoning_help">Applies to the rest of this conversation, in place of the AI provider\'s setting.</string>
     <string name="session_reasoning_error">Failed to change the reasoning</string>
     <string name="ai_session_reasoning_refused_shown">The reasoning set for this conversation does not suit the AI\'s current model: change it in the conversation\'s settings.</string>
-    <string name="automation_access_all">Access: all</string>
-    <string name="automation_access_count">Access: %1$d</string>
     <string name="time_short_minutes">%1$d min</string>
     <string name="time_short_hours">%1$d h</string>
     <string name="time_short_days">%1$d d</string>
