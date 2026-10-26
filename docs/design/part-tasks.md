@@ -19,7 +19,8 @@ Une partie (`docs/DATA.md`, « A part of the app ») porte aujourd'hui zones, ou
 
 - Pas de case. Part chaque événement que nomme ce qui est coché : un outil qui prévient, une routine, une Tâche, qui l'émettent ou l'écoutent.
 - Sa zone d'arrivée : la sienne quand elle est cochée ; sinon celle du premier élément coché qui le nomme, dans l'ordre de la liste, l'écran de partage le disant par un avertissement qui ne bloque pas (« L'événement X arrivera dans la zone B »).
-- À l'import : un nouvel identifiant comme un outil, `events.create` avant tout ce qui peut le nommer.
+- Un événement peut déclarer une valeur qui est un outil (une Fiche jointe) : un lien de l'événement emporté vers cet outil **bloque**, sa création étant refusée sans lui.
+- À l'import : un nouvel identifiant comme un outil. Il est créé avant tout ce qui peut le nommer, sans ses valeurs d'outil, puis complété une fois les outils créés : un outil qui l'émet et l'outil qu'il porte peuvent ainsi se nommer l'un l'autre. Un nom déjà pris dans sa zone d'arrivée (un nom y est unique) le fait arriver sous « Nom (2) », dit à la fin de l'import.
 
 ## À reprendre ailleurs
 
