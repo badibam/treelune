@@ -128,7 +128,7 @@ class SequenceService(private val context: Context) : ExecutableService {
             RESTART -> Step.Running(SequenceGestures.restart(run, now))
             PAUSE -> Step.Running(SequenceGestures.pause(run, now))
             RESUME -> Step.Running(SequenceGestures.resume(run, now))
-            EXTEND -> Step.Running(SequenceGestures.extend(run, now) ?: return OperationResult.error(s.tool("error_extend_manual")))
+            EXTEND -> Step.Running(SequenceGestures.extend(run, now) ?: return OperationResult.error(s.tool(if (run.current.byMedium) "error_extend_medium" else "error_extend_manual")))
             RESUME_INTERRUPTED -> Step.Running(SequenceGestures.resumeInterrupted(run, entry.updatedAt, now))
             else -> return OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
         }

@@ -54,6 +54,7 @@ object SequenceMedia {
                 media = media,
                 source = followed?.source ?: images?.source,
                 sourceEntry = followed?.entry ?: images?.entry,
+                byMedium = lastsItsMedium && media != null,
                 terms = null
             )
         }

@@ -240,7 +240,8 @@ private fun Running(id: String, run: SequenceRun, s: StringsContext, gesture: (S
     val step = run.current
     val leadIn = run.elapsed(now) < 0
 
-    UI.Text(s.tool("running_position").format(run.position + 1, run.steps.size), TextType.CAPTION)
+    // A session of one step has no course to place it in
+    if (run.steps.size > 1) UI.Text(s.tool("running_position").format(run.position + 1, run.steps.size), TextType.CAPTION)
     UI.Card(type = CardType.DEFAULT) {
         Column(modifier = Modifier.fillMaxWidth().padding(UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
             if (leadIn) UI.Text(s.tool("running_get_ready"), TextType.CAPTION)
@@ -262,10 +263,11 @@ private fun Running(id: String, run: SequenceRun, s: StringsContext, gesture: (S
     FlowRow(horizontalArrangement = Arrangement.spacedBy(UI.Space.S), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
         if (run.isPaused) UI.Button(type = ButtonType.SECONDARY, onClick = { gesture(SequenceService.RESUME) }) { UI.Text(s.tool("action_resume"), TextType.LABEL) }
         else UI.Button(type = ButtonType.SECONDARY, onClick = { gesture(SequenceService.PAUSE) }) { UI.Text(s.tool("action_pause"), TextType.LABEL) }
-        UI.Button(type = ButtonType.DEFAULT, onClick = { gesture(SequenceService.SKIP) }) { UI.Text(s.tool("action_skip"), TextType.LABEL) }
+        // Skipping the only step is stopping
+        if (run.steps.size > 1) UI.Button(type = ButtonType.DEFAULT, onClick = { gesture(SequenceService.SKIP) }) { UI.Text(s.tool("action_skip"), TextType.LABEL) }
         if (run.position > 0) UI.Button(type = ButtonType.DEFAULT, onClick = { gesture(SequenceService.BACK) }) { UI.Text(s.tool("action_back"), TextType.LABEL) }
         UI.Button(type = ButtonType.DEFAULT, onClick = { gesture(SequenceService.RESTART) }) { UI.Text(s.tool("action_restart"), TextType.LABEL) }
-        if (step.end.timed) UI.Button(type = ButtonType.DEFAULT, onClick = { gesture(SequenceService.EXTEND) }) { UI.Text(s.tool("action_extend"), TextType.LABEL) }
+        if (app.treelune.tools.sequence.SequenceGestures.canExtend(step)) UI.Button(type = ButtonType.DEFAULT, onClick = { gesture(SequenceService.EXTEND) }) { UI.Text(s.tool("action_extend"), TextType.LABEL) }
     }
     UI.ActionButton(action = ButtonAction.STOP, requireConfirmation = true, confirmMessage = s.tool("confirm_stop")) { gesture(SequenceService.STOP) }
 }
@@ -281,7 +283,7 @@ private fun Closing(entry: SequenceEntry, fields: List<FieldDefinition>, s: Stri
     UI.Text(s.tool("closing_title"), TextType.SUBTITLE)
     UI.Text(listOfNotNull(
         entry.duration?.let { clockText(it) },
-        if (entry.stepsDone != null && entry.stepsTotal != null) s.tool("steps_of").format(entry.stepsDone, entry.stepsTotal) else null
+        stepsText(entry, s)
     ).joinToString(" · "), TextType.BODY)
     // Its fields filled for the first time: their default values proposed where they are empty
     if (fields.isNotEmpty()) CustomFieldsInput(customFieldsMetadata = fields, values = values, onValuesChange = { values = it }, context = context, newEntry = true)
@@ -381,12 +383,16 @@ private fun Idle(config: JSONObject, entries: List<SequenceEntry>, s: StringsCon
     }
 }
 
+/** How far a session went, « 3 of 5 steps »; nothing for one of a single step, whose state says it. */
+internal fun stepsText(entry: SequenceEntry, s: StringsContext): String? =
+    if (entry.stepsDone != null && entry.stepsTotal != null && entry.stepsTotal!! > 1) s.tool("steps_of").format(entry.stepsDone, entry.stepsTotal) else null
+
 /** One history line: when, its state, how long, how far. */
 internal fun historyLine(entry: SequenceEntry, s: StringsContext, context: Context): String = listOfNotNull(
     DateTimeFormatter.formatForDisplay(entry.timestamp, context),
     s.tool("status_${entry.status}"),
     entry.duration?.let { clockText(it) },
-    if (entry.stepsDone != null && entry.stepsTotal != null) s.tool("steps_of").format(entry.stepsDone, entry.stepsTotal) else null
+    stepsText(entry, s)
 ).joinToString(" · ")
 
 /**

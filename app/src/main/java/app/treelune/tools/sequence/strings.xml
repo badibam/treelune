@@ -96,6 +96,7 @@
     <string name="error_not_planned">This session is not a planned one</string>
     <string name="error_back_first">No step before this one</string>
     <string name="error_extend_manual">This step has no timer</string>
+    <string name="error_extend_medium">This step lasts its medium: after it, there is nothing left to play</string>
     <string name="action_start">Start</string>
     <string name="action_ignore">Ignore</string>
     <string name="action_ignore_all">Ignore all</string>

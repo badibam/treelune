@@ -96,6 +96,7 @@
     <string name="error_not_planned">Cette séance n\'est pas une séance prévue</string>
     <string name="error_back_first">Aucune étape avant celle-ci</string>
     <string name="error_extend_manual">Cette étape n\'a pas de minuteur</string>
+    <string name="error_extend_medium">Cette étape dure son média : après lui, il ne reste rien à jouer</string>
     <string name="action_start">Commencer</string>
     <string name="action_ignore">Ignorer</string>
     <string name="action_ignore_all">Tout ignorer</string>
