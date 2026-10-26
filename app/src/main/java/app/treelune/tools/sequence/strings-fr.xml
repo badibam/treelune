@@ -189,4 +189,5 @@
     <string name="operation_plan">Prévoit une séance maintenant, à côté du planning : une entrée prévue datée de maintenant, sa notification et son événement comme une séance planifiée</string>
     <string name="error_plan">La séance n\'a pas été prévue</string>
     <string name="verbalize_plan">Séance prévue maintenant</string>
+    <string name="kept_time_of">%1$s sur %2$s</string>
 </resources>

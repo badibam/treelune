@@ -53,13 +53,14 @@ object SequenceMedia {
                 images = images?.ids ?: step.images,
                 media = media,
                 source = followed?.source ?: images?.source,
+                sourceEntry = followed?.entry ?: images?.entry,
                 terms = null
             )
         }
     }
 
-    /** What a followed field gave: its files, and where they came from, by name or as gone. */
-    private class Read(val ids: List<String>, val source: String)
+    /** What a followed field gave: its files, where they came from, by name or as gone, and designated. */
+    private class Read(val ids: List<String>, val source: String, val entry: Reference?)
 
     /** The field [reading] follows, read at [now]. */
     private suspend fun follow(context: Context, reading: JSONObject, now: Long, deleted: String): Read {
@@ -79,6 +80,6 @@ object SequenceMedia {
             LogManager.service("Sequence: a step's field not read: ${result.error}", "WARN")
             emptyList()
         }
-        return Read(ids, source)
+        return Read(ids, source, designated)
     }
 }

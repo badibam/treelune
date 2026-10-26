@@ -488,9 +488,10 @@ private fun KeptStepsView(
     UI.Text(s.tool("status_${counts.status}"), TextType.SUBTITLE)
     FieldInput(field("when", FieldType.DATETIME), at, onAt, context, required = true)
     FieldInput(field(SequenceToolType.DURATION, FieldType.DURATION, SequenceToolType.SESSION_UNITS), duration, onDuration, context)
-    // One line a step: its name, its round, its time as the label of its state
+    // One line a step: its name, its round, its time beside the one planned, as the label of its state
     kept.forEachIndexed { i, step ->
-        FieldInput(state.copy(name = "status_$i", displayName = listOfNotNull(step.name, step.rounds, step.source, step.time?.let { clockText(it) }).joinToString(" · ")),
+        val time = step.time?.let { done -> step.planned?.let { s.tool("kept_time_of").format(clockText(done), clockText(it)) } ?: clockText(done) }
+        FieldInput(state.copy(name = "status_$i", displayName = listOfNotNull(step.name, step.rounds, step.source, time).joinToString(" · ")),
             chosen.getOrElse(i) { step.status }, { value ->
                 val status = value as? String ?: return@FieldInput
                 statuses = chosen.mapIndexed { j, current -> if (j == i) status else current }.joinToString(",")

@@ -189,4 +189,5 @@
     <string name="operation_plan">Plans a session now, beside the schedule: an entry planned dated now, its notification and its event as a scheduled session's</string>
     <string name="error_plan">The session was not planned</string>
     <string name="verbalize_plan">Session planned now</string>
+    <string name="kept_time_of">%1$s of %2$s</string>
 </resources>

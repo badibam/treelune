@@ -74,7 +74,9 @@ data class StepTerms(val images: JSONObject?, val media: JSONObject?)
  * @property images Its images' ids, the first shown large: the tool's own, or those of the field it follows
  * @property media Its sound or its video, played during the step
  * @property source Where its files were read from, « Session of the 24 › Induction », or that
- *   what it followed is gone; null for files of its own
+ *   what it followed is gone; null for files of its own. Its name then, which stays
+ * @property sourceEntry The entry's field its files were read from, designated (Reference), which
+ *   finds it again however it is named since; null for files of its own
  * @property terms Its files as the config holds them, until a session reads them; never kept in a run
  */
 data class PlannedStep(
@@ -86,6 +88,7 @@ data class PlannedStep(
     val images: List<String> = emptyList(),
     val media: StepMedia? = null,
     val source: String? = null,
+    val sourceEntry: app.treelune.core.selection.Reference? = null,
     val terms: StepTerms? = null
 )
 
@@ -109,6 +112,7 @@ object SequencePlan {
     const val IMAGES = "images"
     const val MEDIA = "media"
     const val SOURCE = "source"
+    const val SOURCE_ENTRY = "source_entry"
     const val END = "end"
     const val LENGTH = "length"
     const val AUTO_NEXT = "auto_next"
@@ -190,6 +194,7 @@ object SequencePlan {
                 .put(IMAGES, JSONArray(step.images))
                 .put(MEDIA, step.media?.let { JSONObject().put("id", it.id).put("kind", it.kind).put("duration_ms", it.durationMs) } ?: JSONObject.NULL)
                 .put(SOURCE, step.source ?: JSONObject.NULL)
+                .put(SOURCE_ENTRY, step.sourceEntry?.toJson() ?: JSONObject.NULL)
                 .put("rounds", JSONArray().apply {
                     step.rounds.forEach { put(JSONObject().put("block", it.block).put("round", it.round).put("of", it.of)) }
                 }))
@@ -210,7 +215,9 @@ object SequencePlan {
             // A run started before steps had images holds none, nor a medium
             images = ids(o.optJSONArray(IMAGES)),
             media = o.optJSONObject(MEDIA)?.let { StepMedia(it.getString("id"), it.getString("kind"), it.getLong("duration_ms")) },
-            source = if (o.isNull(SOURCE)) null else o.optString(SOURCE).takeIf { it.isNotEmpty() }
+            source = if (o.isNull(SOURCE)) null else o.optString(SOURCE).takeIf { it.isNotEmpty() },
+            // A run started before steps designated their source holds its name alone
+            sourceEntry = o.optJSONObject(SOURCE_ENTRY)?.let { app.treelune.core.selection.Reference.fromJson(it) }
         )
     }
 }
