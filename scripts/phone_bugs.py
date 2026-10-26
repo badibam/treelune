@@ -38,6 +38,9 @@ DELETE_TOOLS = ["ToolSearch"] + [c + name for c in CONNECTORS for name in ("app_
 MODEL = "sonnet"
 EFFORT = "low"
 TIMEOUT = 300
+# app_context answers some 70,000 characters on a full app, over Claude Code's default for an MCP
+# answer (25,000 tokens), past which the answer is saved to a file the model cannot read here.
+MCP_OUTPUT_TOKENS = "200000"
 
 READ_SCHEMA = {
     "type": "object",
@@ -97,6 +100,7 @@ def ask_claude(prompt, tools, schema):
         ["claude", "-p", "--model", MODEL, "--effort", EFFORT,
          "--allowedTools", *tools, "--json-schema", json.dumps(schema), "--output-format", "json"],
         input=prompt, capture_output=True, text=True, timeout=TIMEOUT, cwd=ROOT,
+        env={**os.environ, "MAX_MCP_OUTPUT_TOKENS": MCP_OUTPUT_TOKENS},
     )
     if process.returncode != 0:
         raise RuntimeError(f"claude failed ({process.returncode}): {process.stderr.strip() or process.stdout.strip()}")
