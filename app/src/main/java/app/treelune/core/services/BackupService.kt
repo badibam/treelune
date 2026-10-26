@@ -64,7 +64,7 @@ import app.treelune.core.ai.data.LegacyCatchUp
  *   identity of the file the app holds by its id, `same` or `different` (Identity.sameAs)
  * - auto: the automatic backup's copy (AutoBackup), into the folder chosen, rolled; none when the
  *   data did not change since the last one. Answer: `written`
- * - import_part: `uri`, `selection`, `arrivals`, `replace_identities`?: a part of the backup
+ * - import_part: `uri`, `selection`, `arrivals`, `replace_identities`?, `replace_apis`?: a part of the backup
  *   there added to the app (performImportPart, PartImport), one step of the history; an identity
  *   the app holds kept unless listed in `replace_identities`. Answer: `zones` (the new ones),
  *   `elements`, `entries`, `renamed` (each variable's name in the file and the one it took),
@@ -123,6 +123,34 @@ class BackupService(private val context: Context) : ExecutableService {
             gridX = item.getInt("grid_x"),
             gridY = item.getInt("grid_y")
         )
+
+        /** A Task as a backup's [item] holds it, in the form of the current schema. */
+        fun taskOf(item: JSONObject): app.treelune.core.tasks.TaskEntity = app.treelune.core.tasks.TaskEntity(
+            id = item.getString("id"),
+            zoneId = item.getString("zone_id"),
+            name = item.getString("name"),
+            description = item.nullableString("description"),
+            iconName = item.getString("icon_name"),
+            iconColor = item.nullableString("icon_color"),
+            texture = item.nullableString("texture"),
+            displayMode = item.getString("display_mode"),
+            group = item.nullableString("group"),
+            gridX = item.getInt("grid_x"),
+            gridY = item.getInt("grid_y"),
+            isEnabled = item.getBoolean("is_enabled"),
+            scheduleJson = item.nullableString("schedule_json"),
+            catchUp = item.nullableString("catch_up"),
+            catchUpWindow = if (item.isNull("catch_up_window")) null else item.getLong("catch_up_window"),
+            dismissOlderInstances = item.getBoolean("dismiss_older_instances"),
+            notifyEnd = item.getString("notify_end"),
+            stepsJson = item.getString("steps_json"),
+            createdAt = item.getLong("created_at"),
+            updatedAt = item.getLong("updated_at"),
+            // Absent from a backup made before version 99: started by nothing but its schedule
+            triggersJson = item.nullableString("triggers_json"),
+            // Absent from a backup made before version 102: it emits nothing
+            emitEvent = item.nullableString("emit_event")
+        )
     }
 
     /** Both read or rewrite the whole base: never with another, the demo or an import. */
@@ -175,7 +203,7 @@ class BackupService(private val context: Context) : ExecutableService {
         }
         val whole = build(token) ?: return OperationResult.cancelled()
         val part = try {
-            app.treelune.core.backup.BackupPart.cut(whole.json, selection)
+            app.treelune.core.backup.BackupPart.cut(whole.json, selection, app.treelune.core.secrets.SecretSettings.names(app.treelune.core.apis.ApiSettings.nodes(context)))
         } catch (e: IllegalArgumentException) {
             return OperationResult.error(s.shared("share_error_selection").format(e.message ?: ""))
         }
@@ -276,7 +304,18 @@ class BackupService(private val context: Context) : ExecutableService {
                     (0 until rows.length()).map { app.treelune.core.backup.BackupPart.identity(rows.getJSONObject(it)) }
                 }.mapNotNull { identity ->
                     database.identityDao().getById(identity.id)?.let { held -> identity.id to if (held.toIdentity().sameAs(identity)) "same" else "different" }
-                }.toMap()
+                }.toMap(),
+                // Each API of the file the app holds, whether it is the same but for the key, which never comes
+                "apis" to (document.getJSONObject("data").optJSONArray("apis") ?: JSONArray()).let { rows ->
+                    val secrets = app.treelune.core.secrets.SecretSettings.names(app.treelune.core.apis.ApiSettings.nodes(context))
+                    fun withoutKey(config: String) = app.treelune.core.utils.JsonUtils.toMap(JSONObject(config).apply { secrets.forEach { remove(it) } })
+                    (0 until rows.length()).map { rows.getJSONObject(it) }.mapNotNull { api ->
+                        database.apiDao().get(api.getString("id"))?.let { held ->
+                            api.getString("id") to if (held.name == api.getString("name") && withoutKey(held.configJson) == withoutKey(api.getString("config_json"))) "same" else "different"
+                        }
+                    }.toMap()
+                },
+                "taken_api_names" to database.apiDao().getAll().map { it.name }
             ))
         } catch (e: Exception) {
             LogManager.service("Backup not read: ${e.message}", "ERROR", e)
@@ -814,8 +853,9 @@ class BackupService(private val context: Context) : ExecutableService {
             }
             val arrivals = params.optJSONObject("arrivals")?.let { given -> given.keys().asSequence().associateWith { given.getString(it) } }.orEmpty()
             val replaced = params.optJSONArray("replace_identities")?.let { ids -> (0 until ids.length()).map { ids.getString(it) }.toSet() }.orEmpty()
+            val replacedApis = params.optJSONArray("replace_apis")?.let { ids -> (0 until ids.length()).map { ids.getString(it) }.toSet() }.orEmpty()
             val part = try {
-                app.treelune.core.backup.BackupPart.cut(document, selection)
+                app.treelune.core.backup.BackupPart.cut(document, selection, app.treelune.core.secrets.SecretSettings.names(app.treelune.core.apis.ApiSettings.nodes(context)))
             } catch (e: IllegalArgumentException) {
                 return OperationResult.error(s.shared("share_error_selection").format(e.message ?: ""))
             }
@@ -825,7 +865,7 @@ class BackupService(private val context: Context) : ExecutableService {
             if (token.isCancelled) return OperationResult.cancelled()
 
             val report = try {
-                app.treelune.core.backup.PartImport(context).run(part, staging, arrivals, replaced)
+                app.treelune.core.backup.PartImport(context).run(part, staging, arrivals, replaced, replacedApis)
             } catch (e: app.treelune.core.backup.PartImport.Refused) {
                 LogManager.service("Part import refused: ${e.message}", "ERROR")
                 return OperationResult.error(s.shared("share_import_refused").format(e.message ?: ""))
@@ -839,7 +879,10 @@ class BackupService(private val context: Context) : ExecutableService {
                 "renamed" to report.renamed,
                 "files_missing" to report.filesMissing,
                 "identities_added" to report.identitiesAdded,
-                "identities_replaced" to report.identitiesReplaced
+                "identities_replaced" to report.identitiesReplaced,
+                "apis_added" to report.apisAdded,
+                "apis_replaced" to report.apisReplaced,
+                "other_names" to report.otherNames
             ))
         } catch (e: Exception) {
             LogManager.service("Part import failed: ${e.message}", "ERROR", e)
@@ -1115,36 +1158,7 @@ class BackupService(private val context: Context) : ExecutableService {
 
         // Tasks, after their zones: absent from a backup made before version 97
         data.optJSONArray("tasks")?.let { array ->
-            fun JSONObject.text(key: String) = if (isNull(key)) null else getString(key)
-            for (i in 0 until array.length()) {
-                val item = array.getJSONObject(i)
-                database.taskDao().insert(app.treelune.core.tasks.TaskEntity(
-                    id = item.getString("id"),
-                    zoneId = item.getString("zone_id"),
-                    name = item.getString("name"),
-                    description = item.text("description"),
-                    iconName = item.getString("icon_name"),
-                    iconColor = item.text("icon_color"),
-                    texture = item.text("texture"),
-                    displayMode = item.getString("display_mode"),
-                    group = item.text("group"),
-                    gridX = item.getInt("grid_x"),
-                    gridY = item.getInt("grid_y"),
-                    isEnabled = item.getBoolean("is_enabled"),
-                    scheduleJson = item.text("schedule_json"),
-                    catchUp = item.text("catch_up"),
-                    catchUpWindow = if (item.isNull("catch_up_window")) null else item.getLong("catch_up_window"),
-                    dismissOlderInstances = item.getBoolean("dismiss_older_instances"),
-                    notifyEnd = item.getString("notify_end"),
-                    stepsJson = item.getString("steps_json"),
-                    createdAt = item.getLong("created_at"),
-                    updatedAt = item.getLong("updated_at"),
-                    // Absent from a backup made before version 99: started by nothing but its schedule
-                    triggersJson = if (item.has("triggers_json")) item.text("triggers_json") else null,
-                    // Absent from a backup made before version 102: it emits nothing
-                    emitEvent = if (item.has("emit_event")) item.text("emit_event") else null
-                ))
-            }
+            for (i in 0 until array.length()) database.taskDao().insert(taskOf(array.getJSONObject(i)))
         }
 
         // Events: absent from a backup made before version 101
