@@ -2595,6 +2595,12 @@
     <string name="schedule_date_description">Un jour d\'un mois, et une heure</string>
     <string name="schedule_timestamps_description">Les instants, chacun ayant lieu une fois</string>
     <string name="schedule_timestamp_description">Un instant où cela a lieu</string>
+    <string name="schedule_every_days_label">Tous les combien de jours</string>
+    <string name="schedule_every_weeks_label">Toutes les combien de semaines</string>
+    <string name="schedule_every_days_description">1, chaque jour ; au-dessus, un jour sur autant, placé par start_date</string>
+    <string name="schedule_every_weeks_description">1, chaque semaine ; au-dessus, une semaine sur autant, placée par start_date. Une semaine commence le jour que l\'utilisateur a réglé</string>
+    <string name="schedule_start_date_label">Prochaine fois</string>
+    <string name="schedule_start_date_description">Donné seulement quand every dépasse 1 : le jour de la prochaine fois, aaaa-MM-jj, qui place le cycle. Demander lequel à l\'utilisateur quand ce n\'est pas clair</string>
 
     <string name="field_type_reference_tool_instances_list_description">Les outils dont elle peut désigner les entrées</string>
 

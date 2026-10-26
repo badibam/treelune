@@ -2595,6 +2595,12 @@
     <string name="schedule_date_description">A day of a month, and a time</string>
     <string name="schedule_timestamps_description">The instants, each happening once</string>
     <string name="schedule_timestamp_description">An instant at which it happens</string>
+    <string name="schedule_every_days_label">Every how many days</string>
+    <string name="schedule_every_weeks_label">Every how many weeks</string>
+    <string name="schedule_every_days_description">1, every day; above, one day in that many, placed by start_date</string>
+    <string name="schedule_every_weeks_description">1, every week; above, one week in that many, placed by start_date. A week starts on the day the user set</string>
+    <string name="schedule_start_date_label">Next time</string>
+    <string name="schedule_start_date_description">Given only when every is above 1: the day of the next time, yyyy-MM-dd, which places the cycle. Ask the user which when it is not clear</string>
 
     <string name="field_type_reference_tool_instances_list_description">The tools whose entries it can point to</string>
 

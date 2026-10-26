@@ -28,27 +28,107 @@ object ScheduleCalculator {
      * @param zoneId Timezone the pattern's wall-clock times are read in (default = the
      *   user-configured global timezone). A caller passes it to compute in a stated zone
      *   rather than the app's; the default is what production uses.
+     * @param weekStart The first day of a week, for a weekly pattern's cycle (default = the
+     *   one the user set, read only when a cycle of weeks needs it)
      * @return Next execution timestamp in UTC milliseconds, or null if no more executions
      */
     fun calculateNextExecution(
         pattern: SchedulePattern,
         fromTimestamp: Long = System.currentTimeMillis(),
-        zoneId: ZoneId = AppConfigManager.getDateTimeConfig().getZoneId()
+        zoneId: ZoneId = AppConfigManager.getDateTimeConfig().getZoneId(),
+        weekStart: DayOfWeek? = null
     ): Long? {
-        val fromInstant = Instant.ofEpochMilli(fromTimestamp)
-        val fromZoned = ZonedDateTime.ofInstant(fromInstant, zoneId)
+        val fromZoned = ZonedDateTime.ofInstant(Instant.ofEpochMilli(fromTimestamp), zoneId)
+        var next = nextOfPattern(fromZoned, pattern, zoneId) ?: return null
 
-        // Calculate next execution based on pattern type
-        val nextZoned = when (pattern) {
-            is SchedulePattern.DailyMultiple -> calculateDailyMultiple(fromZoned, pattern, zoneId)
-            is SchedulePattern.WeeklySimple -> calculateWeeklySimple(fromZoned, pattern, zoneId)
-            is SchedulePattern.MonthlyRecurrent -> calculateMonthlyRecurrent(fromZoned, pattern, zoneId)
-            is SchedulePattern.WeeklyCustom -> calculateWeeklyCustom(fromZoned, pattern, zoneId)
-            is SchedulePattern.YearlyRecurrent -> calculateYearlyRecurrent(fromZoned, pattern, zoneId)
-            is SchedulePattern.SpecificDates -> calculateSpecificDates(fromTimestamp, pattern, zoneId)
-        } ?: return null
+        // A cycle of more than one day or week: the pattern's times, those on the cycle kept
+        val cycle = cycleOf(pattern, weekStart) ?: return next.toInstant().toEpochMilli()
+        // A whole cycle of the pattern's times holds one on it; beyond, none ever will
+        var left = cycle.every * timesPerUnit(pattern)
+        while (!cycle.holds(next.toLocalDate())) {
+            if (--left < 0) return null
+            next = nextOfPattern(next, pattern, zoneId) ?: return null
+        }
+        return next.toInstant().toEpochMilli()
+    }
 
-        return nextZoned.toInstant().toEpochMilli()
+    /**
+     * The days that can be the next time of [pattern] with a cycle of [every] (Cycle), from
+     * [fromTimestamp]: one per place in the cycle, earliest first, each the first time of the pattern
+     * on its day (a cycle of days) or in its week (of weeks). The one chosen is the start date.
+     * Empty when the pattern has no time to come.
+     */
+    fun cycleStarts(
+        pattern: SchedulePattern,
+        every: Int,
+        fromTimestamp: Long = System.currentTimeMillis(),
+        zoneId: ZoneId = AppConfigManager.getDateTimeConfig().getZoneId(),
+        weekStart: DayOfWeek? = null
+    ): List<LocalDate> {
+        val base = withCycle(pattern, 1, null)
+        val unit = Cycle.unitOf(base) ?: return emptyList()
+        val first = if (unit == Cycle.Unit.WEEK) weekStart ?: DateUtils.weekStart() else null
+        val starts = mutableListOf<LocalDate>()
+        var from = ZonedDateTime.ofInstant(Instant.ofEpochMilli(fromTimestamp), zoneId)
+        // A unit holds at most timesPerUnit times: past them, the next time is in another unit
+        var left = every * timesPerUnit(base) + timesPerUnit(base)
+        while (starts.size < every && left-- > 0) {
+            val next = nextOfPattern(from, base, zoneId) ?: break
+            val day = next.toLocalDate()
+            if (starts.none { Cycle.sameUnit(it, day, unit, first) }) starts += day
+            from = next
+        }
+        return starts
+    }
+
+    /**
+     * Whether [a] and [b] place a cycle of [every] alike for [pattern]: their days, or their
+     * weeks, a whole number of cycles apart.
+     */
+    fun sameCycle(pattern: SchedulePattern, every: Int, a: LocalDate, b: LocalDate, weekStart: DayOfWeek? = null): Boolean {
+        val unit = Cycle.unitOf(pattern) ?: return true
+        return Cycle.Placed(unit, every, a, if (unit == Cycle.Unit.WEEK) weekStart ?: DateUtils.weekStart() else null).holds(b)
+    }
+
+    /** [pattern] with the cycle [every], [startDate]; a pattern without cycle as it is. */
+    fun withCycle(pattern: SchedulePattern, every: Int, startDate: String?): SchedulePattern = when (pattern) {
+        is SchedulePattern.DailyMultiple -> pattern.copy(every = every, startDate = startDate)
+        is SchedulePattern.WeeklySimple -> pattern.copy(every = every, startDate = startDate)
+        is SchedulePattern.WeeklyCustom -> pattern.copy(every = every, startDate = startDate)
+        else -> pattern
+    }
+
+    /** The cycle [pattern] runs on, null when it runs every day or week (or has no cycle). */
+    private fun cycleOf(pattern: SchedulePattern, weekStart: DayOfWeek?): Cycle.Placed? {
+        val (every, startDate) = when (pattern) {
+            is SchedulePattern.DailyMultiple -> pattern.every to pattern.startDate
+            is SchedulePattern.WeeklySimple -> pattern.every to pattern.startDate
+            is SchedulePattern.WeeklyCustom -> pattern.every to pattern.startDate
+            else -> return null
+        }
+        if (every == 1) return null
+        val unit = Cycle.unitOf(pattern)!!
+        // Cycle.check made sure a start date is there and reads
+        val start = LocalDate.parse(startDate!!)
+        return Cycle.Placed(unit, every, start, if (unit == Cycle.Unit.WEEK) weekStart ?: DateUtils.weekStart() else null)
+    }
+
+    /** The most times [pattern] gives in one day (daily) or one week (weekly), at least 1. */
+    private fun timesPerUnit(pattern: SchedulePattern): Int = maxOf(1, when (pattern) {
+        is SchedulePattern.DailyMultiple -> pattern.times.size
+        is SchedulePattern.WeeklySimple -> pattern.daysOfWeek.size
+        is SchedulePattern.WeeklyCustom -> pattern.moments.size
+        else -> 1
+    })
+
+    /** The next time of [pattern] strictly after [from], its cycle left aside. */
+    private fun nextOfPattern(from: ZonedDateTime, pattern: SchedulePattern, zoneId: ZoneId): ZonedDateTime? = when (pattern) {
+        is SchedulePattern.DailyMultiple -> calculateDailyMultiple(from, pattern, zoneId)
+        is SchedulePattern.WeeklySimple -> calculateWeeklySimple(from, pattern, zoneId)
+        is SchedulePattern.MonthlyRecurrent -> calculateMonthlyRecurrent(from, pattern, zoneId)
+        is SchedulePattern.WeeklyCustom -> calculateWeeklyCustom(from, pattern, zoneId)
+        is SchedulePattern.YearlyRecurrent -> calculateYearlyRecurrent(from, pattern, zoneId)
+        is SchedulePattern.SpecificDates -> calculateSpecificDates(from.toInstant().toEpochMilli(), pattern, zoneId)
     }
 
     /**
