@@ -10,38 +10,60 @@ import org.json.JSONObject
  * tool group; with every link between them (PartLinks.all), which the screen filters as the boxes
  * change. Read from the app's own backup to export, from a file to import.
  */
-data class PartTree(val zones: List<Zone>, val links: Set<PartLink>) {
+data class PartTree(val zones: List<Zone>, val links: Set<PartLink>, val apis: List<Element> = emptyList(), val events: List<Event> = emptyList()) {
 
     data class Zone(val id: String, val name: String, val group: String?, val elements: List<Element>)
 
     /**
-     * A tool, a variable, a routine, under the tool group [group] of its zone or none, or an
-     * identity the zone or one of its routines speaks as, under none.
+     * A tool, a variable, a routine, a Task, under the tool group [group] of its zone or none, or an
+     * identity the zone or one of its routines speaks as, under none; or an API, beside the zones.
      *
      * @property tooltype A tool's type, null for anything else
      * @property entries A tool's number of entries, 0 for anything else
      */
     data class Element(val kind: PartElement.Kind, val id: String, val name: String, val group: String?, val tooltype: String?, val entries: Int)
 
+    /** An event of a zone, which goes with what names it (eventArrivals). */
+    data class Event(val id: String, val name: String, val zoneId: String)
+
     /** The name the user knows [element] by, a tool's for its entries. */
     fun name(element: PartElement): String = when (element.kind) {
         PartElement.Kind.ZONE -> zones.first { it.id == element.id }.name
         PartElement.Kind.ENTRIES -> elements.first { it.kind == PartElement.Kind.TOOL && it.id == element.id }.name
+        PartElement.Kind.API -> apis.first { it.id == element.id }.name
+        PartElement.Kind.EVENT -> events.first { it.id == element.id }.name
         else -> elements.first { it.kind == element.kind && it.id == element.id }.name
     }
 
     val elements: List<Element> get() = zones.flatMap { it.elements }
 
+    /**
+     * Each event [selection] carries — one a kept element names (PartLinks.carried) — and the zone
+     * it arrives in: its own when kept, otherwise the zone of the first element of the list kept
+     * that names it.
+     */
+    fun eventArrivals(selection: PartSelection): Map<String, String> {
+        val carried = PartLinks.carried(links, selection)
+        return events.filter { it.id in carried }.associate { event ->
+            event.id to (event.zoneId.takeIf { it in selection.zones } ?: zones.first { zone ->
+                zone.elements.any { element ->
+                    val from = PartElement(element.kind, element.id)
+                    PartLinks.kept(from, selection) && links.any { it.to == PartElement(PartElement.Kind.EVENT, event.id) && (it.from == from ||
+                        (element.kind == PartElement.Kind.TOOL && it.from == PartElement(PartElement.Kind.ENTRIES, element.id))) }
+                }
+            }.id)
+        }
+    }
+
     /** The stored form, which the service answers. */
     fun toJson(): JSONObject = JSONObject()
         .put("zones", JSONArray(zones.map { zone ->
             JSONObject().put("id", zone.id).put("name", zone.name).put("group", zone.group ?: JSONObject.NULL)
-                .put("elements", JSONArray(zone.elements.map { element ->
-                    JSONObject().put("kind", element.kind.name).put("id", element.id).put("name", element.name)
-                        .put("group", element.group ?: JSONObject.NULL).put("tooltype", element.tooltype ?: JSONObject.NULL).put("entries", element.entries)
-                }))
+                .put("elements", JSONArray(zone.elements.map { element(it) }))
         }))
         .put("links", JSONArray(links.map { link -> JSONObject().put("from", element(link.from)).put("to", element(link.to)) }))
+        .put("apis", JSONArray(apis.map { element(it) }))
+        .put("events", JSONArray(events.map { JSONObject().put("id", it.id).put("name", it.name).put("zone_id", it.zoneId) }))
 
     companion object {
 
@@ -51,7 +73,8 @@ data class PartTree(val zones: List<Zone>, val links: Set<PartLink>) {
          * part names in its zones' order, then the zones without a group; in a group by their
          * place. In a zone, the identities it and its routines speak as, its own first; then its
          * tool groups in its order then the elements without one: the tools by their place, the
-         * variables by theirs, the routines by name. An identity two zones speak as is under each.
+         * variables by theirs, the routines and the Tasks by name. An identity two zones speak as
+         * is under each. The APIs by name, beside the zones; the events, which go unticked.
          */
         fun of(document: JSONObject): PartTree {
             val data = document.getJSONObject("data")
@@ -65,6 +88,7 @@ data class PartTree(val zones: List<Zone>, val links: Set<PartLink>) {
             val tools = rows(data, "tool_instances").groupBy { it.getString("zone_id") }
             val variables = rows(data, "variables").groupBy { it.getString("zone_id") }
             val routines = rows(data, "automations").groupBy { it.getString("zone_id") }
+            val tasks = rows(data, "tasks").groupBy { it.getString("zone_id") }
             val identities = rows(data, "identities").associateBy { it.getString("id") }
 
             val ordered = zones.sortedWith(compareBy<JSONObject>({ zone -> zone.group()?.let { homeGroups.indexOf(it) } ?: Int.MAX_VALUE }, { it.optInt("grid_y") }, { it.optInt("grid_x") }))
@@ -79,12 +103,16 @@ data class PartTree(val zones: List<Zone>, val links: Set<PartLink>) {
                     Element(PartElement.Kind.VARIABLE, variable.getString("id"), variable.getString("name"), variable.group(), null, 0)
                 } + routines[id].orEmpty().sortedBy { it.getString("name") }.map { routine ->
                     Element(PartElement.Kind.ROUTINE, routine.getString("id"), routine.getString("name"), routine.group(), null, 0)
+                } + tasks[id].orEmpty().sortedBy { it.getString("name") }.map { task ->
+                    Element(PartElement.Kind.TASK, task.getString("id"), task.getString("name"), task.group(), null, 0)
                 }
                 // A part holds only the identities kept: one left out is named by no zone nor routine there
                 val spoken = (listOf(zone) + routines[id].orEmpty().sortedBy { it.getString("name") }).mapNotNull { BackupPart.identityOf(it) }.distinct()
                     .mapNotNull { identities[it] }.map { Element(PartElement.Kind.IDENTITY, it.getString("id"), it.getString("name"), null, null, 0) }
                 Zone(id, zone.getString("name"), zone.group(), spoken + elements.sortedBy { element -> element.group?.let { toolGroups.indexOf(it) } ?: Int.MAX_VALUE })
-            }, PartLinks.all(document))
+            }, PartLinks.all(document),
+                rows(data, "apis").sortedBy { it.getString("name").lowercase() }.map { Element(PartElement.Kind.API, it.getString("id"), it.getString("name"), null, null, 0) },
+                rows(data, "events").map { Event(it.getString("id"), it.getString("name"), it.getString("zone_id")) })
         }
 
         /** The tree in its stored form [json]; one that does not read throws (org.json's JSONException). */
@@ -92,10 +120,7 @@ data class PartTree(val zones: List<Zone>, val links: Set<PartLink>) {
             json.getJSONArray("zones").let { zones ->
                 (0 until zones.length()).map { zones.getJSONObject(it) }.map { zone ->
                     Zone(zone.getString("id"), zone.getString("name"), zone.text("group"), zone.getJSONArray("elements").let { elements ->
-                        (0 until elements.length()).map { elements.getJSONObject(it) }.map { element ->
-                            Element(PartElement.Kind.valueOf(element.getString("kind")), element.getString("id"), element.getString("name"),
-                                element.text("group"), element.text("tooltype"), element.getInt("entries"))
-                        }
+                        (0 until elements.length()).map { treeElement(elements.getJSONObject(it)) }
                     })
                 }
             },
@@ -103,10 +128,20 @@ data class PartTree(val zones: List<Zone>, val links: Set<PartLink>) {
                 (0 until links.length()).map { links.getJSONObject(it) }.mapTo(LinkedHashSet()) { link ->
                     PartLink(element(link.getJSONObject("from")), element(link.getJSONObject("to")))
                 }
+            },
+            json.getJSONArray("apis").let { apis -> (0 until apis.length()).map { treeElement(apis.getJSONObject(it)) } },
+            json.getJSONArray("events").let { events ->
+                (0 until events.length()).map { events.getJSONObject(it) }.map { Event(it.getString("id"), it.getString("name"), it.getString("zone_id")) }
             }
         )
 
         private fun element(element: PartElement): JSONObject = JSONObject().put("kind", element.kind.name).put("id", element.id)
+
+        private fun element(element: Element): JSONObject = JSONObject().put("kind", element.kind.name).put("id", element.id).put("name", element.name)
+            .put("group", element.group ?: JSONObject.NULL).put("tooltype", element.tooltype ?: JSONObject.NULL).put("entries", element.entries)
+
+        private fun treeElement(json: JSONObject): Element = Element(PartElement.Kind.valueOf(json.getString("kind")), json.getString("id"), json.getString("name"),
+            json.text("group"), json.text("tooltype"), json.getInt("entries"))
 
         private fun element(json: JSONObject): PartElement = PartElement(PartElement.Kind.valueOf(json.getString("kind")), json.getString("id"))
 

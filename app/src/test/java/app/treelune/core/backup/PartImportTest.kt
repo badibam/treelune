@@ -60,13 +60,17 @@ class PartImportTest {
         JSONObject(zip.readBytes().toString(Charsets.UTF_8))
     }
 
-    /** Everything of the demo ticked, each tool with its entries, and the identities its zones and routines speak as. */
+    /**
+     * Everything of the demo ticked, each tool with its entries, its Tasks and its APIs, and the
+     * identities its zones and routines speak as.
+     */
     private fun everything(document: JSONObject): PartSelection {
         val data = document.getJSONObject("data")
         fun rows(table: String) = data.getJSONArray(table).let { a -> (0 until a.length()).map { a.getJSONObject(it) } }.filter { it.getString("id").startsWith(DemoContent.PREFIX) }
         fun ids(table: String) = rows(table).map { it.getString("id") }
         val spoken = (rows("zones") + rows("automations")).mapNotNull { BackupPart.identityOf(it) }.toSet()
-        return PartSelection(ids("zones").toSet(), ids("tool_instances").associateWith { true }, ids("variables").toSet(), ids("automations").toSet(), spoken)
+        return PartSelection(ids("zones").toSet(), ids("tool_instances").associateWith { true }, ids("variables").toSet(), ids("automations").toSet(), spoken,
+            ids("tasks").toSet(), ids("apis").toSet())
     }
 
     // One test, the demo being installed once: a refused import first, then the whole one
@@ -76,7 +80,7 @@ class PartImportTest {
 
         // A step refused takes out what was written before it
         val whole = document(uri)
-        val part = BackupPart.cut(whole, everything(whole))
+        val part = BackupPart.cut(whole, everything(whole), listOf("key"))
         // The last tool of a type the app does not know: its creation is refused, after the others
         val tools = part.getJSONObject("data").getJSONArray("tool_instances")
         tools.getJSONObject(tools.length() - 1).put("tooltype", "nothing_such")
@@ -98,6 +102,11 @@ class PartImportTest {
         // The whole demo brought back, one of its identities retouched in the app since, and replaced
         val selection = everything(document(uri))
         assertTrue(selection.identities.isNotEmpty())
+        assertTrue(selection.tasks.isNotEmpty())
+        assertTrue(selection.apis.isNotEmpty())
+        val tasksBefore = database.taskDao().getAll()
+        val eventsBefore = database.eventDao().getAll().size
+        val apisBefore = database.apiDao().getAll().size
         val retouched = selection.identities.first()
         val original = database.identityDao().getById(retouched)!!.name
         assertTrue(Coordinator(context).processUserAction("identities.update", mapOf("identity_id" to retouched, "name" to "Retouched")).isSuccess)
@@ -147,12 +156,24 @@ class PartImportTest {
 
         // What the import's window counts: the zones created, the elements, the entries
         assertEquals(selection.zones.size, imported.data!!["zones"])
-        assertEquals(selection.tools.size + selection.variables.size + selection.automations.size, imported.data!!["elements"])
+        assertEquals(selection.tools.size + selection.variables.size + selection.automations.size + selection.tasks.size, imported.data!!["elements"])
         assertEquals(entriesBefore, imported.data!!["entries"])
 
+        // Each Task a second time, off, under a new id; the APIs, held already, kept as they are;
+        // the events the Tasks, routines and tools name, a second time
+        val tasks = database.taskDao().getAll().filter { !it.id.startsWith(DemoContent.PREFIX) }
+        assertEquals(tasksBefore.size, tasks.size)
+        tasks.forEach { task -> assertFalse(task.name, task.isEnabled) }
+        assertEquals(tasksBefore.map { it.name }.sorted(), tasks.map { it.name }.sorted())
+        assertEquals(0, imported.data!!["apis_added"])
+        assertEquals(apisBefore, database.apiDao().getAll().size)
+        assertTrue(database.eventDao().getAll().size > eventsBefore)
+
         // What arrived names nothing of the demo: each link followed its thing to its new id
-        val demoIds = (selection.zones + selection.tools.keys + selection.variables + selection.automations +
+        val demoIds = (selection.zones + selection.tools.keys + selection.variables + selection.automations + selection.tasks +
+            database.eventDao().getAll().filter { it.id.startsWith(DemoContent.PREFIX) }.map { it.id } +
             database.toolDataDao().getAllEntries().filter { it.id.startsWith(DemoContent.PREFIX) }.map { it.id }).toSet()
+        tasks.forEach { task -> assertFalse(task.stepsJson, IdWords.words(task.stepsJson).any { it in demoIds }) }
         val arrived = database.toolInstanceDao().getAllToolInstances().filter { !it.id.startsWith(DemoContent.PREFIX) }
         assertTrue(arrived.isNotEmpty())
         arrived.forEach { tool -> assertFalse(tool.config_json, IdWords.words(JSONObject(tool.config_json)).any { it in demoIds }) }
@@ -184,6 +205,8 @@ class PartImportTest {
         assertTrue("undo: ${undone.error}", undone.isSuccess)
         assertEquals(zonesBefore, database.zoneDao().getAllZones().size)
         assertEquals(entriesBefore, database.toolDataDao().getAllEntries().size)
+        assertEquals(tasksBefore.size, database.taskDao().getAll().size)
+        assertEquals(eventsBefore, database.eventDao().getAll().size)
         assertEquals("Retouched", database.identityDao().getById(retouched)!!.name)
     }
 }

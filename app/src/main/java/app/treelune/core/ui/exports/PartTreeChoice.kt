@@ -27,8 +27,9 @@ import app.treelune.core.ui.UI
 
 /**
  * The boxes of [tree]: its zones under their home group, each opened on its elements under their
- * tool group; [left] the links from what is ticked to what is not, each said under its element,
- * a zone's under the zone.
+ * tool group, then its APIs; [left] the links from what is ticked to what is not, each said under
+ * its element, a zone's under the zone, an event's under the zone it arrives in, with the event
+ * itself when it comes from another zone (PartTree.eventArrivals).
  * Under a zone ticked, [zoneExtra]; under an element ticked, [elementExtra]: what the screen adds
  * (where a zone arrives, how an element will).
  */
@@ -45,6 +46,7 @@ fun PartTreeChoice(
 ) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
+    val arrivals = tree.eventArrivals(selection)
     var group: String? = null
     tree.zones.forEachIndexed { index, zone ->
         // A home group's title above its first zone
@@ -78,6 +80,15 @@ fun PartTreeChoice(
                 // The identity it speaks as, left out
                 left.filter { it.from.kind == PartElement.Kind.ZONE && it.from.id == zone.id }
                     .forEach { link -> UI.Text(PartLinks.text(link, tree::name, s::shared), if (link.blocking) TextType.WARNING else TextType.CAPTION) }
+                // The events arriving here: one from another zone said, and what each lacks
+                arrivals.filterValues { it == zone.id }.keys.forEach { eventId ->
+                    val event = tree.events.first { it.id == eventId }
+                    if (event.zoneId != zone.id) tree.zones.firstOrNull { it.id == event.zoneId }?.let { from ->
+                        UI.Text(s.shared("share_event_arrives").format(event.name, from.name), TextType.CAPTION)
+                    }
+                    left.filter { it.from == PartElement(PartElement.Kind.EVENT, eventId) }
+                        .forEach { link -> UI.Text(PartLinks.text(link, tree::name, s::shared), TextType.WARNING) }
+                }
                 zoneExtra(zone)
             }
 
@@ -93,13 +104,24 @@ fun PartTreeChoice(
             }
         }
     }
+
+    // The APIs, beside the zones: each goes whatever is ticked, its key never
+    if (tree.apis.isNotEmpty()) {
+        UI.Card(type = CardType.SECTION_HEADER) {
+            Box(modifier = Modifier.fillMaxWidth().padding(UI.Space.M)) { UI.Text(s.shared("share_apis_title"), TextType.HEADING) }
+        }
+        Column(modifier = Modifier.padding(horizontal = UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+            UI.Text(s.shared("share_apis_help"), TextType.CAPTION)
+            tree.apis.forEach { api -> ElementChoice(tree, null, api, selection, onSelection, left, elementExtra) }
+        }
+    }
 }
 
-/** An element's box, a tool's switch for its entries, and what its links left say. */
+/** An element's box, a tool's switch for its entries, and what its links left say; a Task ticked, how it arrives. */
 @Composable
 private fun ElementChoice(
     tree: PartTree,
-    zone: PartTree.Zone,
+    zone: PartTree.Zone?,
     element: PartTree.Element,
     selection: PartSelection,
     onSelection: (PartSelection) -> Unit,
@@ -118,6 +140,8 @@ private fun ElementChoice(
                     element.tooltype?.let { ToolTypeManager.getToolType(it)?.getDisplayName(context) } ?: element.tooltype.orEmpty())
                 PartElement.Kind.VARIABLE -> s.shared("share_element_variable").format(element.name)
                 PartElement.Kind.IDENTITY -> s.shared("share_element_identity").format(element.name)
+                PartElement.Kind.TASK -> s.shared("share_element_task").format(element.name)
+                PartElement.Kind.API -> s.shared("share_element_api").format(element.name)
                 else -> s.shared("share_element_routine").format(element.name)
             }
         )
@@ -135,6 +159,7 @@ private fun ElementChoice(
             .map { link -> link.blocking to PartLinks.text(link, tree::name, s::shared) }
             .distinct()
             .forEach { (blocks, text) -> UI.Text(text, if (blocks) TextType.WARNING else TextType.CAPTION) }
+        if (ticked && element.kind == PartElement.Kind.TASK) UI.Text(s.shared("share_task_off"), TextType.CAPTION)
         if (ticked) extra(element)
     }
 }
@@ -146,7 +171,7 @@ private fun PartTree.Element.part() = PartElement(kind, id)
  * What a tick changes: a zone ticked takes all it holds, its tools without their entries and the
  * identities it and its routines speak as; a zone unticked lets all of it go, an identity another
  * zone ticked speaks as staying. An element ticked takes its zone, a routine its identity too;
- * unticked, its zone stays.
+ * unticked, its zone stays. An API, in no zone, goes or not on its own.
  */
 internal object Ticks {
 
@@ -156,12 +181,15 @@ internal object Ticks {
         val variables = ids[PartElement.Kind.VARIABLE].orEmpty()
         val routines = ids[PartElement.Kind.ROUTINE].orEmpty()
         val identities = ids[PartElement.Kind.IDENTITY].orEmpty()
+        val tasks = ids[PartElement.Kind.TASK].orEmpty()
         return if (on) PartSelection(
             selection.zones + zone.id,
             selection.tools + tools.filter { it !in selection.tools }.associateWith { false },
             selection.variables + variables,
             selection.automations + routines,
-            selection.identities + identities
+            selection.identities + identities,
+            selection.tasks + tasks,
+            selection.apis
         ) else PartSelection(
             selection.zones - zone.id,
             selection.tools - tools.toSet(),
@@ -169,16 +197,20 @@ internal object Ticks {
             selection.automations - routines.toSet(),
             selection.identities - identities.filter { identity ->
                 tree.zones.none { other -> other.id != zone.id && other.id in selection.zones && other.elements.any { it.kind == PartElement.Kind.IDENTITY && it.id == identity } }
-            }.toSet()
+            }.toSet(),
+            selection.tasks - tasks.toSet(),
+            selection.apis
         )
     }
 
-    fun element(selection: PartSelection, tree: PartTree, zone: PartTree.Zone, element: PartTree.Element, on: Boolean): PartSelection {
-        val zones = if (on) selection.zones + zone.id else selection.zones
+    fun element(selection: PartSelection, tree: PartTree, zone: PartTree.Zone?, element: PartTree.Element, on: Boolean): PartSelection {
+        val zones = if (on && zone != null) selection.zones + zone.id else selection.zones
         return when (element.kind) {
             PartElement.Kind.TOOL -> selection.copy(zones = zones, tools = if (on) selection.tools + (element.id to false) else selection.tools - element.id)
             PartElement.Kind.VARIABLE -> selection.copy(zones = zones, variables = if (on) selection.variables + element.id else selection.variables - element.id)
             PartElement.Kind.IDENTITY -> selection.copy(zones = zones, identities = if (on) selection.identities + element.id else selection.identities - element.id)
+            PartElement.Kind.TASK -> selection.copy(zones = zones, tasks = if (on) selection.tasks + element.id else selection.tasks - element.id)
+            PartElement.Kind.API -> selection.copy(apis = if (on) selection.apis + element.id else selection.apis - element.id)
             else -> {
                 // A routine ticked takes the identity it speaks as, which can be unticked on its own
                 val identity = tree.links.firstOrNull { it.from == PartElement(PartElement.Kind.ROUTINE, element.id) && it.to.kind == PartElement.Kind.IDENTITY }?.to?.id

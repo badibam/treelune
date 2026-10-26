@@ -43,6 +43,11 @@ import org.json.JSONObject
  * texts then marked imported. A new zone and a routine speak as the identity the part gives them;
  * a zone going into one of the app's leaves the app's zone as it speaks.
  *
+ * An API keeps its id too, and arrives without its key: one the app holds is kept, or replaced when
+ * asked, its key kept; one whose name another holds arrives under « Name (2) ». A Task arrives
+ * switched off. An event is made before what may name it, without the values that are a tool's,
+ * given back once the tools are made; its name taken in its zone, under « Name (2) ».
+ *
  * The part arrives whole or not at all: a step refused removes what was written before it, and the
  * refusal names the step. The schedulers are held off meanwhile (SchedulersHeld).
  */
@@ -58,9 +63,13 @@ class PartImport(private val context: Context) {
      * @property filesMissing The files taken out of their entries and tools, missing already at the export
      * @property identitiesAdded The identities the app did not hold
      * @property identitiesReplaced The identities it held, replaced
+     * @property apisAdded The APIs the app did not hold
+     * @property apisReplaced The APIs it held, replaced
+     * @property otherNames Each API's and event's name in the file, and the one it arrived under when taken
      */
     data class Report(val zones: Int, val elements: Int, val entries: Int, val renamed: Map<String, String>, val filesMissing: Int,
-        val identitiesAdded: Int, val identitiesReplaced: Int)
+        val identitiesAdded: Int, val identitiesReplaced: Int, val apisAdded: Int = 0, val apisReplaced: Int = 0,
+        val otherNames: Map<String, String> = emptyMap())
 
     private val coordinator = Coordinator(context)
     private val database = AppDatabase.getDatabase(context)
@@ -73,10 +82,11 @@ class PartImport(private val context: Context) {
      *   out goes into a new zone
      * @param replaced The identities of the part the app holds that replace its own; the others it
      *   holds are kept
+     * @param replacedApis The APIs of the part the app holds that replace its own, as [replaced]
      * @throws Refused when a zone of arrival is gone, an identity of the part does not make a file,
      *   or a service refuses a step
      */
-    suspend fun run(part: JSONObject, staging: File, arrivals: Map<String, String>, replaced: Set<String>): Report {
+    suspend fun run(part: JSONObject, staging: File, arrivals: Map<String, String>, replaced: Set<String>, replacedApis: Set<String> = emptySet()): Report {
         val data = JSONObject(part.getJSONObject("data").toString())
         arrivals.values.firstOrNull { database.zoneDao().getZoneById(it) == null }?.let { throw Refused("No zone $it to arrive in") }
 
@@ -88,17 +98,19 @@ class PartImport(private val context: Context) {
         // A new id for each thing brought, the zone of arrival's for a zone going into one
         val ids = HashMap<String, String>()
         rows(data, "zones").forEach { zone -> ids[zone.getString("id")] = arrivals[zone.getString("id")] ?: newId() }
-        listOf("tool_instances", "tool_data", "variables", "automations").forEach { table -> rows(data, table).forEach { ids[it.getString("id")] = newId() } }
+        listOf("tool_instances", "tool_data", "variables", "automations", "tasks", "events").forEach { table -> rows(data, table).forEach { ids[it.getString("id")] = newId() } }
         val images = rows(data, "files").filter { !it.has("session_id") && it.getString("id") !in missing }
         images.forEach { ids[it.getString("id")] = newId() }
         val former = images.associate { ids.getValue(it.getString("id")) to it.getString("id") }
         IdWords.replace(data, ids)
-        val made = ids.filterKeys { it !in arrivals }.values.toSet()
+        // An API keeps its id: the one the app lacks is made under it
+        val newApis = rows(data, "apis").map { it.getString("id") }.filter { database.apiDao().get(it) == null }.toSet()
+        val made = ids.filterKeys { it !in arrivals }.values.toSet() + newApis
 
         val written = Written()
         return try {
             withContext(GivenId.Made(made)) {
-                SchedulersHeld.during { write(data, staging, former, arrivals.values.toSet(), replaced, written) }
+                SchedulersHeld.during { write(data, staging, former, arrivals.values.toSet(), replaced, replacedApis, newApis, written) }
             }.copy(filesMissing = filesMissing)
         } catch (e: Refused) {
             undo(written)
@@ -116,6 +128,7 @@ class PartImport(private val context: Context) {
     private class Written {
         val homeGroups = mutableListOf<String>()
         val identities = mutableListOf<String>()
+        val apis = mutableListOf<String>()
         val zones = mutableListOf<String>()
         /** The app's zones whose tool groups grew, with the ones they had */
         val toolGroups = mutableMapOf<String, String?>()
@@ -123,7 +136,8 @@ class PartImport(private val context: Context) {
         val inExisting = mutableListOf<Pair<String, JSONObject>>()
     }
 
-    private suspend fun write(data: JSONObject, staging: File, former: Map<String, String>, existing: Set<String>, replaced: Set<String>, written: Written): Report {
+    private suspend fun write(data: JSONObject, staging: File, former: Map<String, String>, existing: Set<String>, replaced: Set<String>,
+        replacedApis: Set<String>, newApis: Set<String>, written: Written): Report {
         val zones = rows(data, "zones")
         val newZones = zones.filter { it.getString("id") !in existing }
 
@@ -171,6 +185,39 @@ class PartImport(private val context: Context) {
             written.toolGroups[id] = stored
         }
 
+        // The APIs the app lacks, under a free name, without their key; one it holds kept, or
+        // replaced last
+        val otherNames = linkedMapOf<String, String>()
+        val apiNames = database.apiDao().getAll().map { it.name }.toMutableList()
+        rows(data, "apis").filter { it.getString("id") in newApis }.forEach { api ->
+            val name = freeName(api.getString("name"), apiNames)
+            if (name != api.getString("name")) otherNames[api.getString("name")] = name
+            apiNames += name
+            run("apis.create", JSONObject().put("id", api.getString("id")).put("name", name).put("config", JSONObject(api.getString("config_json"))))
+            written.apis += api.getString("id")
+        }
+
+        // The events, before what may name them, without the values that are a tool's, which
+        // name what is not made yet; under a free name in their zone
+        val events = rows(data, "events")
+        val eventNames = HashMap<String, MutableList<String>>()
+        events.forEach { event ->
+            val zone = event.getString("zone_id")
+            val taken = eventNames.getOrPut(zone) { database.eventDao().getByZone(zone).map { it.name }.toMutableList() }
+            val name = freeName(event.getString("name"), taken)
+            if (name != event.getString("name")) otherNames[event.getString("name")] = name
+            taken += name
+            val values = JSONArray(event.getString("values_json"))
+            run("events.create", JSONObject()
+                .put("id", event.getString("id"))
+                .put("zone_id", zone)
+                .put(app.treelune.core.events.EventValues.NAME, name)
+                .put(app.treelune.core.events.EventValues.VALUES, JSONArray((0 until values.length()).map { values.getJSONObject(it) }
+                    .filter { !it.has(app.treelune.core.events.EventValues.TOOL) }))
+                .apply { if (!event.isNull("description")) put(app.treelune.core.events.EventValues.DESCRIPTION, event.getString("description")) })
+            if (zone in existing) written.inExisting += "events.delete" to JSONObject().put("event_id", event.getString("id"))
+        }
+
         // The images of the entries and the tools waiting where a form leaves one, which their
         // owner then takes
         val fileRows = rows(data, "files").filter { !it.has("session_id") && it.getString("id") in former }
@@ -209,6 +256,13 @@ class PartImport(private val context: Context) {
                 if (zone in existing) written.inExisting += "variables.delete" to JSONObject().put("variable_id", element.getString("id"))
             }
         }
+        // The events whole, the tools their values are now made
+        events.filter { event -> JSONArray(event.getString("values_json")).let { values -> (0 until values.length()).any { values.getJSONObject(it).has(app.treelune.core.events.EventValues.TOOL) } } }
+            .forEach { event ->
+                run("events.update", JSONObject().put("event_id", event.getString("id"))
+                    .put(app.treelune.core.events.EventValues.VALUES, JSONArray(event.getString("values_json"))))
+            }
+
         // The routines, off, with no provider, the user's to choose, and the identity the part gives them
         val messages = rows(data, "session_messages").groupBy { it.getString("session_id") }
         rows(data, "automations").forEach { automation ->
@@ -226,11 +280,24 @@ class PartImport(private val context: Context) {
             if (automation.getString("zone_id") in existing) written.inExisting += "automations.delete" to JSONObject().put("automation_id", automation.getString("id"))
         }
 
-        // The tools, the variables and the routines of a new zone at the places they had, section by section;
-        // a Task, which a part does not carry, leaves its rows empty, closed as the grid closes them
+        // The Tasks, off, after all their steps may name
+        rows(data, "tasks").forEach { task ->
+            run("tasks.create", app.treelune.core.tasks.TaskSettings.of(BackupService.taskOf(task)).apply {
+                put("id", task.getString("id"))
+                put("zone_id", task.getString("zone_id"))
+                put("is_enabled", false)
+                put("steps", JSONArray(task.getString("steps_json")))
+            })
+            if (task.getString("zone_id") in existing) written.inExisting += "tasks.delete" to JSONObject().put("task_id", task.getString("id"))
+        }
+
+        // The tools, the variables, the routines and the Tasks of a new zone at the places they
+        // had, section by section; a row left empty by what does not come is closed as the grid closes them
         val tiles = rows(data, "tool_instances").map { it to JSONObject(it.getString("config_json")).let { c -> c.optString("group") to c.getString("display_mode") } } +
             rows(data, "variables").map { it to (it.optString("group") to it.getString("display_mode")) } +
-            rows(data, "automations").map { it to (it.optString("group") to it.getString("display_mode")) }
+            rows(data, "automations").map { it to (it.optString("group") to it.getString("display_mode")) } +
+            // A Task's row holds no group as null, which optString would read as "null"
+            rows(data, "tasks").map { it to ((if (it.isNull("group")) "" else it.getString("group")) to it.getString("display_mode")) }
         tiles.filter { (item, _) -> item.getString("zone_id") !in existing }
             .groupBy({ (item, look) -> item.getString("zone_id") to look.first.takeIf { it.isNotEmpty() } }, { (item, look) -> item to look.second })
             .forEach { (section, items) ->
@@ -269,8 +336,18 @@ class PartImport(private val context: Context) {
         // The identities the app held, replaced last
         val replacing = identities.filter { it.identity.id in held && it.identity.id in replaced }
         replacing.forEach { run("identities.import", it.params(replace = true)) }
+        // The APIs it held, replaced last too, keeping their key, which is this phone's
+        val replacingApis = rows(data, "apis").filter { it.getString("id") !in newApis && it.getString("id") in replacedApis }
+        replacingApis.forEach { api ->
+            val held = database.apiDao().get(api.getString("id"))!!
+            val secrets = app.treelune.core.secrets.SecretSettings.names(app.treelune.core.apis.ApiSettings.nodes(context))
+            val key = app.treelune.core.secrets.SecretSettings.open(secrets, JSONObject(held.configJson), app.treelune.core.secrets.SecretBox.of()).settings
+            run("apis.update", JSONObject().put("api_id", held.id).put("name", held.name)
+                .put("config", JSONObject(api.getString("config_json")).apply { secrets.forEach { name -> key.opt(name)?.let { put(name, it) } } }))
+        }
 
-        return Report(newZones.size, elements.size + rows(data, "automations").size, entries.size, renamed, 0, written.identities.size, replacing.size)
+        return Report(newZones.size, elements.size + rows(data, "automations").size + rows(data, "tasks").size, entries.size, renamed, 0,
+            written.identities.size, replacing.size, written.apis.size, replacingApis.size, otherNames)
     }
 
     /** An identity of the part, as the file it imports from and the language it speaks. */
@@ -284,6 +361,12 @@ class PartImport(private val context: Context) {
     }
 
     companion object {
+        /** [name], or when [taken] holds it whatever its case, the first of « name (2) », « name (3) »… that is free. */
+        fun freeName(name: String, taken: Collection<String>): String {
+            val used = taken.map { it.lowercase() }.toSet()
+            return (sequenceOf(name) + generateSequence(2) { it + 1 }.map { "$name ($it)" }).first { it.lowercase() !in used }
+        }
+
         /**
          * The name each variable of [variables] (id and name, in order) arrives under: its own, or
          * when [taken] by the app or by one before it, the first of `_2`, `_3`… that is free.
@@ -313,8 +396,9 @@ class PartImport(private val context: Context) {
         try {
             written.inExisting.asReversed().forEach { (action, params) -> run(action, params) }
             written.zones.asReversed().forEach { run("zones.delete", JSONObject().put("zone_id", it)) }
-            // Once nothing speaks as them any more
+            // Once nothing speaks as them, nor calls them, any more
             written.identities.forEach { run("identities.delete", JSONObject().put("identity_id", it)) }
+            written.apis.forEach { run("apis.delete", JSONObject().put("api_id", it)) }
             written.toolGroups.forEach { (zone, groups) ->
                 run("zones.update", JSONObject().put("zone_id", zone).put("tool_groups", groups?.let { JSONArray(it) } ?: JSONObject.NULL))
             }

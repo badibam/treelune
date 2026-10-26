@@ -363,7 +363,7 @@ fun SettingsForm(
                 val setting = page.setting
                 // A value taken on a setting's page closes it, back on the root
                 if (setting != null) setting.second.Edit(config.opt(setting.first)?.takeIf { it != JSONObject.NULL }) { value ->
-                    onChange(JSONObject(config.toString()).apply { if (value == null) remove(setting.first) else put(setting.first, value) })
+                    onChange(withSetting(config, setting.first, value))
                     trail = shown.dropLast(1)
                 }
                 // Owners attach editors at the top level only
@@ -543,6 +543,16 @@ private fun NodesForm(
     }
 }
 
+/**
+ * [config] with [value] under [name], in its JSON form: an input hands a list (a multiple
+ * choice's options) or a map as Kotlin objects, which read back from the store as a JSONArray or
+ * a JSONObject; stored as given, what reads the config before it is saved (ShownWith) would not
+ * see them as such. Null, NULL or an empty object removes the setting.
+ */
+internal fun withSetting(config: JSONObject, name: String, value: Any?): JSONObject = JSONObject(config.toString()).apply {
+    if (value == null || value == JSONObject.NULL || (value is JSONObject && value.length() == 0)) remove(name) else put(name, JSONObject.wrap(value))
+}
+
 @Composable
 private fun NodeForm(
     node: SettingNode,
@@ -552,9 +562,7 @@ private fun NodeForm(
     context: Context,
     editors: Map<String, SettingEditor>
 ) {
-    fun set(name: String, value: Any?) = onChange(JSONObject(config.toString()).apply {
-        if (value == null || value == JSONObject.NULL || (value is JSONObject && value.length() == 0)) remove(name) else put(name, value)
-    })
+    fun set(name: String, value: Any?) = onChange(withSetting(config, name, value))
 
     when (node) {
         is SettingNode.Field -> {

@@ -7,8 +7,9 @@ import org.json.JSONObject
 
 /**
  * What is ticked of the app to share (docs/DATA.md, « A part of the app »): zones, and in them tools — each with
- * its entries or without —, variables, routines and the identities the zone or its routines speak
- * as. An element is kept only with its zone; a zone may be kept alone, empty.
+ * its entries or without —, variables, routines, Tasks and the identities the zone or its routines
+ * speak as; beside the zones, APIs. An element of a zone is kept only with its zone; a zone may be
+ * kept alone, empty. The events go with what names them, unticked.
  */
 data class PartSelection(
     val zones: Set<String>,
@@ -16,15 +17,22 @@ data class PartSelection(
     val tools: Map<String, Boolean>,
     val variables: Set<String>,
     val automations: Set<String>,
-    val identities: Set<String>
+    val identities: Set<String>,
+    val tasks: Set<String> = emptySet(),
+    val apis: Set<String> = emptySet()
 ) {
-    /** The stored form: `{"zones": [id], "tools": [{"id", "entries"}], "variables": [id], "automations": [id], "identities": [id]}`. */
+    /**
+     * The stored form: `{"zones": [id], "tools": [{"id", "entries"}], "variables": [id],
+     * "automations": [id], "identities": [id], "tasks": [id], "apis": [id]}`.
+     */
     fun toJson(): JSONObject = JSONObject()
         .put("zones", JSONArray(zones.toList()))
         .put("tools", JSONArray(tools.map { (id, entries) -> JSONObject().put("id", id).put("entries", entries) }))
         .put("variables", JSONArray(variables.toList()))
         .put("automations", JSONArray(automations.toList()))
         .put("identities", JSONArray(identities.toList()))
+        .put("tasks", JSONArray(tasks.toList()))
+        .put("apis", JSONArray(apis.toList()))
 
     companion object {
         /** The selection stored as [json]; a key missing or of the wrong form throws (org.json's JSONException). */
@@ -33,7 +41,7 @@ data class PartSelection(
             val tools = json.getJSONArray("tools").let { array ->
                 (0 until array.length()).associate { array.getJSONObject(it).let { tool -> tool.getString("id") to tool.getBoolean("entries") } }
             }
-            return PartSelection(ids("zones"), tools, ids("variables"), ids("automations"), ids("identities"))
+            return PartSelection(ids("zones"), tools, ids("variables"), ids("automations"), ids("identities"), ids("tasks"), ids("apis"))
         }
     }
 }
@@ -44,7 +52,9 @@ data class PartSelection(
  * ticked. What never goes is left out whole: the app's settings, the AI providers, the
  * conversations, the files joined to them; a routine keeps its seed session, the message each of
  * its runs starts from, and nothing of its runs. An identity goes when ticked, a zone and a routine
- * keeping it then, and speaking through the app's own AI otherwise.
+ * keeping it then, and speaking through the app's own AI otherwise. A Task goes switched off; an
+ * API without its secret settings, its key; an event when what goes names it, in the zone it
+ * arrives in (PartTree.eventArrivals).
  */
 object BackupPart {
 
@@ -58,16 +68,19 @@ object BackupPart {
     /**
      * [document], a whole backup at the current version, reduced to [selection].
      *
+     * @param apiSecrets The names of an API's secret settings (SecretSettings.names of ApiSettings), left out
      * @throws IllegalArgumentException when the selection names what the backup does not hold, an
      *   element without its zone, or an identity no zone kept speaks as, nor any of its routines
      */
-    fun cut(document: JSONObject, selection: PartSelection): JSONObject {
+    fun cut(document: JSONObject, selection: PartSelection, apiSecrets: List<String>): JSONObject {
         val data = document.getJSONObject("data")
         val zones = rows(data, "zones")
         val tools = rows(data, "tool_instances")
         val variables = rows(data, "variables")
         val automations = rows(data, "automations")
         val identities = rows(data, "identities")
+        val tasks = rows(data, "tasks")
+        val apis = rows(data, "apis")
 
         // Each element named exists, in a zone kept
         unknown(selection.zones, zones)?.let { throw IllegalArgumentException("No zone $it in the backup") }
@@ -75,10 +88,13 @@ object BackupPart {
         unknown(selection.variables, variables)?.let { throw IllegalArgumentException("No variable $it in the backup") }
         unknown(selection.automations, automations)?.let { throw IllegalArgumentException("No routine $it in the backup") }
         unknown(selection.identities, identities)?.let { throw IllegalArgumentException("No identity $it in the backup") }
+        unknown(selection.tasks, tasks)?.let { throw IllegalArgumentException("No Task $it in the backup") }
+        unknown(selection.apis, apis)?.let { throw IllegalArgumentException("No API $it in the backup") }
         val keptTools = tools.filter { it.getString("id") in selection.tools }
         val keptVariables = variables.filter { it.getString("id") in selection.variables }
         val keptAutomations = automations.filter { it.getString("id") in selection.automations }
-        (keptTools + keptVariables + keptAutomations).firstOrNull { it.getString("zone_id") !in selection.zones }?.let {
+        val keptTasks = tasks.filter { it.getString("id") in selection.tasks }
+        (keptTools + keptVariables + keptAutomations + keptTasks).firstOrNull { it.getString("zone_id") !in selection.zones }?.let {
             throw IllegalArgumentException("${it.getString("id")} is kept without its zone ${it.getString("zone_id")}")
         }
         // An identity goes with a zone kept that speaks as it, or one of whose routines does
@@ -90,7 +106,7 @@ object BackupPart {
 
         // A zone keeps the tool groups its kept elements hold, in its order
         val heldGroups = keptTools.mapNotNull { tool -> Groups.held(JSONObject(tool.getString("config_json")))?.let { tool.getString("zone_id") to it } } +
-            (keptVariables + keptAutomations).mapNotNull { element -> Groups.held(element)?.let { element.getString("zone_id") to it } }
+            (keptVariables + keptAutomations + keptTasks).mapNotNull { element -> Groups.held(element)?.let { element.getString("zone_id") to it } }
         val keptZones = zones.filter { it.getString("id") in selection.zones }.map { zone ->
             val id = zone.getString("id")
             val groups = ToolPositions.zoneGroups(zone.optString("tool_groups").takeIf { it.isNotEmpty() }).filter { (id to it) in heldGroups }
@@ -112,6 +128,15 @@ object BackupPart {
                 put("execution_history_json", "[]")
             }
         }
+        // A Task off, not to run where nobody has read it yet
+        val keptTaskRows = keptTasks.map { copy(it).put("is_enabled", false) }
+        // An API without its key, which is the user's own
+        val keptApis = apis.filter { it.getString("id") in selection.apis }.map { api ->
+            copy(api).put("config_json", JSONObject(api.getString("config_json")).apply { apiSecrets.forEach { remove(it) } }.toString())
+        }
+        // The events what goes names, each in the zone it arrives in
+        val arrivals = PartTree.of(document).eventArrivals(selection)
+        val keptEvents = rows(data, "events").filter { it.getString("id") in arrivals }.map { copy(it).put("zone_id", arrivals.getValue(it.getString("id"))) }
         val seeds = keptAutomations.map { it.getString("seed_session_id") }.toSet()
         val sessions = rows(data, "ai_sessions").filter { it.getString("id") in seeds }
         val messages = rows(data, "session_messages").filter { it.getString("session_id") in seeds }
@@ -131,6 +156,9 @@ object BackupPart {
                 .put("tool_data", JSONArray(entries))
                 .put("variables", JSONArray(keptVariables))
                 .put("automations", JSONArray(keptRoutines))
+                .put("tasks", JSONArray(keptTaskRows))
+                .put("apis", JSONArray(keptApis))
+                .put("events", JSONArray(keptEvents))
                 .put("identities", JSONArray(identities.filter { it.getString("id") in selection.identities }))
                 .put("ai_sessions", JSONArray(sessions))
                 .put("session_messages", JSONArray(messages))
