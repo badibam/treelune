@@ -21,7 +21,8 @@ import org.json.JSONObject
  *
  * An object named as a definition (SettingsSchemaGenerator.DEFINITION), which stands in several
  * places, is written once at the end of the schema under its name, each place saying "Name (see
- * Name)" in its stead.
+ * Name)" in its stead; an option of a variant may be named so too, its own settings then written
+ * there, as an object named the same elsewhere is (a step in a block).
  *
  * Every keyword a schema holds is either written or deliberately implied; an unknown one fails
  * rather than vanishes from what the model reads (UnknownKeyword).
@@ -55,20 +56,40 @@ object SchemaNotation {
         while (written < definitions.byName.size) {
             val (name, definition) = definitions.byName.entries.elementAt(written++)
             lines += ""
-            lines += "$name:" + (definition.optString("description").takeIf { it.isNotBlank() }?.let { " $it" } ?: "")
-            lines += objectLines(definition, "", "$name", definitions)
+            lines += "$name:" + (definition.description?.takeIf { it.isNotBlank() }?.let { " $it" } ?: "")
+            lines += definition.lines(definitions)
         }
         return lines.joinToString("\n")
     }
 
-    /** The definitions met in one schema, by name, each the object it stands for. */
+    /**
+     * A definition met: the object it stands for, written when the definitions are; or an
+     * option's settings, already written.
+     */
+    private class Definition(val description: String?, val schema: JSONObject?, val written: List<String>?) {
+        fun lines(definitions: Definitions): List<String> = written ?: objectLines(schema!!, "", "definition", definitions)
+    }
+
+    /** The definitions met in one schema, by name. */
     private class Definitions {
-        val byName = LinkedHashMap<String, JSONObject>()
+        val byName = LinkedHashMap<String, Definition>()
 
         /** [name] for [schema], which every other place under that name must hold alike. */
-        fun meet(name: String, schema: JSONObject, path: String): String {
-            val known = byName.getOrPut(name) { schema }
-            check(known.toString() == schema.toString()) { "The definition '$name' at $path differs from the one met first" }
+        fun meet(name: String, schema: JSONObject, path: String): String =
+            meet(name, Definition(schema.optString("description"), schema, null), path)
+
+        /** [name] for an option's settings written [lines], which every other place under that name must write alike. */
+        fun meet(name: String, description: String?, lines: List<String>, path: String): String =
+            meet(name, Definition(description, null, lines), path)
+
+        private fun meet(name: String, met: Definition, path: String): String {
+            val known = byName.getOrPut(name) { met }
+            if (known !== met) {
+                // Two objects compare as they are; an object and an option's settings, as written
+                val alike = if (known.schema != null && met.schema != null) known.schema.toString() == met.schema.toString()
+                    else known.lines(this) == met.lines(this)
+                check(alike) { "The definition '$name' at $path differs from the one met first" }
+            }
             return "$name (see $name)"
         }
     }
@@ -94,7 +115,8 @@ object SchemaNotation {
         val all = (0 until branches.length()).map { branches.getJSONObject(it) }
         all.forEachIndexed { i, branch -> check(branch, "$path.oneOf[$i]") }
         val props = all.map { it.optJSONObject("properties") }
-        if (props.any { it == null }) return oneOfWhole(all, indent, path, definitions)
+        // A branch that branches again: two selectors side by side, or one inside an option
+        if (props.any { it == null }) return Choices.of(all, path)?.lines(indent, path, definitions) ?: oneOfWhole(all, indent, path, definitions)
         val selector = props[0]!!.keys().asSequence().firstOrNull { key ->
             props.all { it!!.optJSONObject(key)?.has("const") == true } &&
                 props.map { it!!.getJSONObject(key).get("const").toString() }.distinct().size == props.size
@@ -122,15 +144,114 @@ object SchemaNotation {
             val own = props[i]!!.keys().asSequence().filter { it != selector && it !in shared }.toList()
             // What the option means, which the selector's description leaves to each option
             val meaning = all[i].optString("description").takeIf { it.isNotBlank() }
-            lines += "$indent  if $selector = $option:" + listOfNotNull(meaning, if (own.isEmpty()) "nothing more" else null)
-                .joinToString(". ").let { if (it.isEmpty()) "" else " $it" }
-            own.forEach { key ->
-                lines += valueLines(key, props[i]!!.getJSONObject(key), key in requireds[i], "$indent    ", "$path.$key", definitions)
-            }
-            // A variant inside this option's own settings
-            branch.optJSONArray("oneOf")?.let { lines += variantLines(it, "$indent    ", path, definitions) }
+            fun ownLines(at: String) = own.flatMap { key -> valueLines(key, props[i]!!.getJSONObject(key), key in requireds[i], at, "$path.$key", definitions) } +
+                // A variant inside this option's own settings
+                (branch.optJSONArray("oneOf")?.let { variantLines(it, at, path, definitions) } ?: emptyList())
+            val named = branch.optString(DEFINITION).takeIf { it.isNotEmpty() }
+            val text = listOfNotNull(meaning, named?.let { definitions.meet(it, meaning, ownLines(""), "$path.oneOf[$i]") }, if (own.isEmpty() && named == null) "nothing more" else null)
+            lines += "$indent  if $selector = $option:" + text.joinToString(". ").let { if (it.isEmpty()) "" else " $it" }
+            if (named == null) lines += ownLines("$indent    ")
         }
         return lines
+    }
+
+    /**
+     * A oneOf whose branches branch again, read through its leaves, every whole object it allows:
+     * two selectors side by side (a session's kind and its expiry), each option's settings
+     * written under it once, or a selector inside an option (a step's end, inside « kind = step »),
+     * read again under that option. What every leaf holds alike is written once.
+     *
+     * @property leaves Each whole object: its properties and its required names
+     * @property meanings What a branch says it is, by the leaves it holds
+     * @property names The name a branch's settings are written under once, by the leaves it holds
+     */
+    private class Choices(val leaves: List<Leaf>, val meanings: List<Pair<Set<Int>, String>>, val names: List<Pair<Set<Int>, String>>) {
+
+        class Leaf(val properties: JSONObject, val required: Set<String>)
+
+        companion object {
+            /** The leaves of [branches]; null when one branch is neither an object nor a oneOf. */
+            fun of(branches: List<JSONObject>, path: String): Choices? {
+                val leaves = mutableListOf<Leaf>()
+                val meanings = mutableListOf<Pair<Set<Int>, String>>()
+                val names = mutableListOf<Pair<Set<Int>, String>>()
+                fun walk(branch: JSONObject, at: String): Boolean {
+                    check(branch, at)
+                    val from = leaves.size
+                    val nested = branch.optJSONArray("oneOf")
+                    when {
+                        nested != null && !branch.has("properties") ->
+                            for (i in 0 until nested.length()) if (!walk(nested.getJSONObject(i), "$at.oneOf[$i]")) return false
+                        nested == null && branch.has("properties") ->
+                            leaves += Leaf(branch.getJSONObject("properties"), stringSet(branch.optJSONArray("required")))
+                        else -> return false
+                    }
+                    branch.optString("description").takeIf { it.isNotBlank() }?.let { meanings += (from until leaves.size).toSet() to it }
+                    branch.optString(DEFINITION).takeIf { it.isNotEmpty() }?.let { names += (from until leaves.size).toSet() to it }
+                    return true
+                }
+                branches.forEachIndexed { i, branch -> if (!walk(branch, "$path.oneOf[$i]")) return null }
+                return Choices(leaves, meanings, names)
+            }
+        }
+
+        /** The lines of every leaf; null when they cannot be told apart by selectors. */
+        fun lines(indent: String, path: String, definitions: Definitions): List<String>? =
+            lines(leaves.indices.toList(), emptySet(), indent, path, definitions)
+
+        /** Whether [key] is held alike, required alike, by every leaf of [group]. */
+        private fun same(key: String, group: List<Int>): Boolean {
+            val first = leaves[group[0]]
+            val schema = first.properties.optJSONObject(key)?.toString() ?: return false
+            return group.all { leaves[it].properties.optJSONObject(key)?.toString() == schema && (key in leaves[it].required) == (key in first.required) }
+        }
+
+        private fun const(leaf: Int, key: String): String? =
+            leaves[leaf].properties.optJSONObject(key)?.takeIf { it.has("const") }?.get("const")?.toString()
+
+        private fun lines(group: List<Int>, written: Set<String>, indent: String, path: String, definitions: Definitions): List<String>? {
+            val keys = LinkedHashSet<String>().apply { group.forEach { leaf -> leaves[leaf].properties.keys().forEach { add(it) } } } - written
+            // A selector holds a const in every leaf, and more than one
+            val selectors = keys.filter { key -> group.all { const(it, key) != null } && group.map { const(it, key) }.distinct().size > 1 }
+            if (selectors.isEmpty()) return null
+            val shared = keys.filter { it !in selectors && same(it, group) }
+            val first = leaves[group[0]]
+
+            // Each option's own settings, held alike by its leaves, claimed by the first selector that has them
+            val claimed = (written + shared + selectors).toMutableSet()
+            val options = selectors.associateWith { selector ->
+                group.groupBy { const(it, selector)!! }.map { (option, leavesOf) ->
+                    val own = keys.filter { it !in claimed && same(it, leavesOf) }
+                    Triple(option, leavesOf, own)
+                }.also { found -> found.forEach { claimed += it.third } }
+            }
+
+            val out = mutableListOf<String>()
+            shared.forEach { out += valueLines(it, first.properties.getJSONObject(it), it in first.required, indent, "$path.$it", definitions) }
+            for (selector in selectors) {
+                val selectorSchema = JSONObject(first.properties.getJSONObject(selector).toString())
+                selectorSchema.remove("const")
+                selectorSchema.put("enum", JSONArray(options.getValue(selector).map { it.first }))
+                out += valueLines(selector, selectorSchema, true, indent, "$path.$selector", definitions)
+                for ((option, leavesOf, own) in options.getValue(selector)) {
+                    // What the option means: the branch that holds exactly its leaves
+                    val meaning = meanings.firstOrNull { it.first == leavesOf.toSet() }?.second
+                    // Left over in this option: a selector inside it, read again under it
+                    val inner = keys.filter { it !in claimed && leavesOf.any { leaf -> leaves[leaf].properties.has(it) } }
+                    fun ownLines(at: String): List<String>? {
+                        val held = leaves[leavesOf[0]]
+                        val nested = if (inner.isEmpty()) emptyList() else lines(leavesOf, written + keys - inner.toSet(), at, path, definitions) ?: return null
+                        return own.flatMap { key -> valueLines(key, held.properties.getJSONObject(key), key in held.required, at, "$path.$key", definitions) } + nested
+                    }
+                    val named = names.firstOrNull { it.first == leavesOf.toSet() }?.second
+                    val seeAlso = named?.let { definitions.meet(it, meaning, ownLines("") ?: return null, "$path.$selector=$option") }
+                    out += "$indent  if $selector = $option:" + listOfNotNull(meaning, seeAlso, if (own.isEmpty() && inner.isEmpty()) "nothing more" else null)
+                        .joinToString(". ").let { if (it.isEmpty()) "" else " $it" }
+                    if (named == null) out += ownLines("$indent    ") ?: return null
+                }
+            }
+            return out
+        }
     }
 
     private fun oneOfWhole(branches: List<JSONObject>, indent: String, path: String, definitions: Definitions): List<String> =

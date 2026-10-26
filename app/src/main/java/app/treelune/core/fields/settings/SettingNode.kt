@@ -138,14 +138,19 @@ sealed class SettingNode {
      *
      * @property descriptions What each option means, by option, for the AI that reads the schema:
      *   the selector's own description says what the choice is, not what each option is
+     * @property definitions The name an option's settings are written under once, at the end of
+     *   the schema the AI reads, by option, where the same settings stand in several places (a
+     *   step in a block, inside a block in a block too), as Group.definition (SchemaNotation)
      */
     data class Variant(
         val selector: Field,
         val cases: Map<String, List<SettingNode>>,
-        val descriptions: Map<String, String> = emptyMap()
+        val descriptions: Map<String, String> = emptyMap(),
+        val definitions: Map<String, String> = emptyMap()
     ) : SettingNode() {
         init {
             require(cases.keys.containsAll(descriptions.keys)) { "The variant '${selector.definition.name}' describes options it does not have: ${descriptions.keys - cases.keys}" }
+            require(cases.keys.containsAll(definitions.keys)) { "The variant '${selector.definition.name}' names options it does not have: ${definitions.keys - cases.keys}" }
         }
     }
 

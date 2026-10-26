@@ -166,6 +166,9 @@ object SequenceToolType : ToolTypeContract {
         descriptions = SequenceVariants.ALL.associateWith { text("schema_variant_$it") }
     )
 
+    /** The name a step in a block is written under once, for the AI that reads the schema (SchemaNotation). */
+    private const val BLOCK_STEP = "BlockStep"
+
     /** The steps of a session, as its config holds them under "steps"; [text] gives the tool's strings. */
     fun steps(text: (String) -> String): SettingNode.ListOf = stepList(text, depth = 0)
 
@@ -186,7 +189,9 @@ object SequenceToolType : ToolTypeContract {
                         stepList(text, depth + 1)
                     )
                 ),
-                descriptions = mapOf(SequencePlan.KIND_STEP to text("schema_kind_step"), SequencePlan.KIND_BLOCK to text("schema_kind_block"))
+                descriptions = mapOf(SequencePlan.KIND_STEP to text("schema_kind_step"), SequencePlan.KIND_BLOCK to text("schema_kind_block")),
+                // A block's step, here and in a block in a block, written once for the AI
+                definitions = if (depth > 0) mapOf(SequencePlan.KIND_STEP to BLOCK_STEP) else emptyMap()
             )
         )
         // The session's course at the top, a block's steps below; at the deepest, steps only
@@ -195,7 +200,8 @@ object SequenceToolType : ToolTypeContract {
             depth == SequencePlan.MAX_DEPTH -> "schema_inner_element"
             else -> "schema_block_element"
         }
-        return SettingNode.ListOf(SequencePlan.STEPS, text("field_steps"), SettingNode.Item.Of(item, description = text(element)), required = true, minItems = 1,
+        return SettingNode.ListOf(SequencePlan.STEPS, text("field_steps"),
+            SettingNode.Item.Of(item, description = text(element), definition = BLOCK_STEP.takeIf { depth == SequencePlan.MAX_DEPTH }), required = true, minItems = 1,
             summary = listOf(SequencePlan.NAME), description = text(if (depth == 0) "schema_steps" else "schema_block_steps"))
     }
 

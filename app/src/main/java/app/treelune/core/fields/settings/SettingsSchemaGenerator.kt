@@ -53,6 +53,7 @@ object SettingsSchemaGenerator {
             val branch = objectOf(others + selector + caseNodes, text)
             pin(branch, selector.definition.name, option)
             variant.descriptions[option]?.let { branch.put("description", it) }
+            variant.definitions[option]?.let { branch.put(DEFINITION, it) }
             branches.put(branch)
         }
         return JSONObject().put("type", "object").put("oneOf", branches)
