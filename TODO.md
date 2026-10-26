@@ -17,7 +17,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 - Un thème ou un mode choisi puis enregistré, que l'écran des réglages d'interface remet à l'ancien en se fermant sans enregistrer (vu le 2026-10-21 à 13:31 et 13:51) : les appuis, l'écriture et la pile de navigation sont maintenant au journal, à lire au prochain cas.
 - Dans config de champ de type refere'ce : 1) si j'edite celui de recoltes je voos la partie de restriction à tel outil 2) si je cree un aitre champ refere'ce, je ne vois pas cette partie-là — UI — Bug
-- Navigation clunky pour automation : paramtre via 2 ecrans, distinction paramètre et éditer discutavle. Bref à revoir. Aussi dans tuile : " pas de fournisseur n'a pas ma place, pourqupi pas une marque d'icone plutot ? — UI — Amélioration
 - Pour certains outils il y a mecanisme d'expiration, pourquoi pas le généraliser pour les outils qui ont des elements 'en attente' ? — Outils — Amélioration
 - Quand un questionnnaire se la'ce de manière auto (via notif) , on ne saot pas de quelle occirrence il s'agit. Si 2 en retard, on peut croire que c'est la dernière. Il faudrait un écran tampon dans ces cas là ou autre manière de savoir — UI — Amélioration
 
@@ -29,6 +28,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 Codé, jamais vu sur l'appareil.
 
+- La page et la config d'une Tâche et d'une routine : l'appui long et l'engrenage qui ouvrent la config, le + d'une section qui l'ouvre sans rien créer, « Quitter sans enregistrer ? » ; une Tâche écrite de bout en bout dans sa config (nom, étapes, Quand, À la fin), une routine aussi (message avec un pointeur, planning, fournisseur, accès), puis changée de zone ; « Copier une Tâche » et « Copier une routine », la copie éteinte ; une routine sans fournisseur, l'icône d'alerte sur sa tuile et la phrase sur sa page ; les chapitres « Les routines » et « Les Tâches » du Guide suivis jusqu'au bout.
 - Les titres coupés entre les mots (`HeadingBreak`) en Cosy, Encre et lavis, Métro, Papier découpé et Plan d'architecte : les noms de tuiles de la démo, un mot trop long pour sa ligne d'une demi-tuile (« Observations ») coupé à ses syllabes.
 - La marque « en attente » sans « ! » (Métro, Suisse, Encre et lavis, Papier découpé, Plan d'architecte, Cosy en accent) : vide, se lit-elle encore comme « à lire », à sa taille de 18 à 22 dp, et la bulle du Cosy se détache-t-elle de ses boutons ?
 - Le budget du jour : réglé dans Limites IA, la ligne « Aujourd'hui » sous les limites et en tête des coûts d'une conversation, en couleur d'avertissement au-delà du seuil ; une conversation qui le dépasse et le dit, la routine qui se termine, les deux notifications une seule fois dans la journée ; le nom d'un fournisseur sans prix ; l'événement choisi sous le seuil, émis une fois avec sa notification.
