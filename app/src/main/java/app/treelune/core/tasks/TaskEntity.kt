@@ -108,6 +108,10 @@ interface TaskDao {
     @Query("DELETE FROM tasks WHERE id = :id")
     suspend fun delete(id: String)
 
+    /** The Tasks whose zone is gone, taken out as zones.delete takes them; how many. */
+    @Query("DELETE FROM tasks WHERE zone_id NOT IN (SELECT id FROM zones)")
+    suspend fun deleteWithoutZone(): Int
+
     @Query("SELECT * FROM task_runs WHERE id = :id")
     suspend fun getRun(id: String): TaskRunEntity?
 
