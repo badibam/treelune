@@ -61,7 +61,7 @@
     <string name="field_as">As</string>
     <string name="schema_as">A fold\'s two new columns, a key then a value; key and value by default</string>
     <string name="field_flatten">Flatten</string>
-    <string name="schema_flatten">Multiple choices spread into a row per option. Vega-Lite\'s flatten</string>
+    <string name="schema_flatten">Multiple choices or multiple references spread into a row per option or per thing. Vega-Lite\'s flatten</string>
     <string name="field_mark">Mark</string>
     <string name="field_encoding">Channels</string>
     <string name="section_more_channels">More channels</string>
@@ -174,7 +174,7 @@
     <string name="error_column_name">%1$s cannot name a column: letters, digits and _, not starting with a digit.</string>
     <string name="error_column_reserved">%1$s is a column every row of a grid already has (%2$s): name yours otherwise.</string>
     <string name="error_fold_mixed">A fold puts its columns on one axis: %1$s and %2$s are not of one sort.</string>
-    <string name="error_flatten_choice">A flatten spreads a multiple choice: %1$s is none.</string>
+    <string name="error_flatten_choice">A flatten spreads a multiple choice or a multiple reference: %1$s is neither.</string>
     <string name="error_channel_empty">The channel %1$s shows nothing: give it a field or a value, or remove it.</string>
     <string name="error_domain">The bounds of %1$s are two numbers, [min, max].</string>
     <string name="error_mark_needs">A %1$s needs the channel %2$s.</string>
@@ -260,7 +260,7 @@
     <string name="schema_transform_element">One transformation: a fold or a flatten</string>
     <string name="schema_fold_list">The columns turned into rows</string>
     <string name="schema_as_list">The names of the fold\'s two new columns</string>
-    <string name="schema_flatten_list">The multiple-choice columns spread into a row per option</string>
+    <string name="schema_flatten_list">The multiple-choice or multiple-reference columns spread into a row per option or per thing</string>
     <string name="schema_stroke_dash_list">The dash pattern; a solid line when absent</string>
     <string name="schema_domain_list">The axis\'s two fixed bounds</string>
     <string name="schema_color_domain_list">The categories, in the order they take the colors</string>

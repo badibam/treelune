@@ -69,7 +69,7 @@ class ChartCheck(private val context: Context) {
     private fun unknown(what: String, field: String, columns: Map<String, FieldDefinition>) =
         s.tool("error_unknown_column").format(what, field, columns.keys.joinToString(", "))
 
-    /** A fold's columns are of one sort, a flatten's are multiple choices. */
+    /** A fold's columns are of one sort, a flatten's are multiple choices or multiple references. */
     private fun transform(transform: Transform, columns: Map<String, FieldDefinition>): String? = when (transform) {
         is Transform.Fold -> {
             transform.fields.firstOrNull { it !in columns }?.let { unknown(ChartKeys.FOLD, it, columns) }
@@ -82,7 +82,8 @@ class ChartCheck(private val context: Context) {
         is Transform.Flatten -> transform.fields.firstOrNull { it !in columns }?.let { unknown(ChartKeys.FLATTEN, it, columns) }
             ?: transform.fields.firstOrNull { f ->
                 val field = columns.getValue(f)
-                field.type != FieldType.CHOICE || !ChoiceSettings.fromConfig(field.config).shape.isList
+                !(field.type == FieldType.CHOICE && ChoiceSettings.fromConfig(field.config).shape.isList) &&
+                    !(field.type == FieldType.REFERENCE && app.treelune.core.fields.ReferenceTarget.isMultiple(field.config))
             }?.let { s.tool("error_flatten_choice").format(it) }
     }
 

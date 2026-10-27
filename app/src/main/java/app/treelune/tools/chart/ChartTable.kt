@@ -64,14 +64,15 @@ data class ChartTable(val columns: Map<String, FieldDefinition>, val rows: List<
     }
 
     /**
-     * A multiple choice spread into a row per option; several fields are spread side by side,
-     * the shorter lists leaving no answer. A row without any option stays, with no answer.
+     * A multiple choice spread into a row per option, a multiple reference into a row per thing it
+     * designates; several fields are spread side by side, the shorter lists leaving no answer. A
+     * row without any stays, with no answer.
      */
     private fun flatten(flatten: Transform.Flatten): ChartTable {
         val spread = flatten.fields.associateWith { name -> columns[name] ?: error("flatten: no column $name") }
         return ChartTable(
             columns = columns + spread.mapValues { (_, field) ->
-                // One option per row now: the choice is single
+                // One option or one reference per row now: the field is single
                 field.copy(config = field.config?.minus(setOf("multiple", "ordered")))
             },
             rows = rows.flatMap { row ->

@@ -61,7 +61,7 @@
     <string name="field_as">As</string>
     <string name="schema_as">Les deux nouvelles colonnes d\'un fold, une clé puis une valeur ; key et value par défaut</string>
     <string name="field_flatten">Flatten</string>
-    <string name="schema_flatten">Des choix multiples dépliés en une ligne par option. Le flatten de Vega-Lite</string>
+    <string name="schema_flatten">Des choix ou des références multiples dépliés en une ligne par option ou par chose. Le flatten de Vega-Lite</string>
     <string name="field_mark">Marque</string>
     <string name="field_encoding">Canaux</string>
     <string name="section_more_channels">Autres canaux</string>
@@ -174,7 +174,7 @@
     <string name="error_column_name">%1$s ne peut pas nommer une colonne : des lettres, des chiffres et _, sans commencer par un chiffre.</string>
     <string name="error_column_reserved">%1$s est une colonne que toute ligne d\'une grille a déjà (%2$s) : nomme la tienne autrement.</string>
     <string name="error_fold_mixed">Un fold met ses colonnes sur un même axe : %1$s et %2$s ne sont pas de la même sorte.</string>
-    <string name="error_flatten_choice">Un flatten déplie un choix multiple : %1$s n\'en est pas un.</string>
+    <string name="error_flatten_choice">Un flatten déplie un choix multiple ou une référence multiple : %1$s n\'est ni l\'un ni l\'autre.</string>
     <string name="error_channel_empty">Le canal %1$s ne montre rien : donne-lui un field ou une value, ou retire-le.</string>
     <string name="error_domain">Les bornes de %1$s sont deux nombres, [min, max].</string>
     <string name="error_mark_needs">Un %1$s demande le canal %2$s.</string>
@@ -260,7 +260,7 @@
     <string name="schema_transform_element">Une transformation : un fold ou un flatten</string>
     <string name="schema_fold_list">Les colonnes changées en lignes</string>
     <string name="schema_as_list">Les noms des deux nouvelles colonnes du fold</string>
-    <string name="schema_flatten_list">Les colonnes à choix multiple étalées en une ligne par option</string>
+    <string name="schema_flatten_list">Les colonnes à choix ou à référence multiple étalées en une ligne par option ou par chose</string>
     <string name="schema_stroke_dash_list">Le motif du pointillé ; une ligne pleine s\'il manque</string>
     <string name="schema_domain_list">Les deux bornes fixes de l\'axe</string>
     <string name="schema_color_domain_list">Les catégories, dans l\'ordre où elles prennent les couleurs</string>
