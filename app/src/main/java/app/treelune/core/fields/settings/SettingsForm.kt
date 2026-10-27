@@ -972,8 +972,8 @@ private fun Summary(summary: List<String>, nodes: List<SettingNode>, element: JS
 
 /**
  * The name of an element in the path: its [SettingNode.ListOf.summary] values as text, each written
- * by its field (a choice by its option's label, not its stored value), or the list's label and its
- * position when they are empty.
+ * by its field (a choice by its option's label, not its stored value), or its position when they
+ * are empty.
  */
 private fun summaryText(list: SettingNode.ListOf, nodes: List<SettingNode>, element: JSONObject, index: Int, context: Context): String {
     val shown = list.summary.mapNotNull { key ->
@@ -984,7 +984,8 @@ private fun summaryText(list: SettingNode.ListOf, nodes: List<SettingNode>, elem
             else -> value.toString().takeIf { it.isNotEmpty() }?.let { requireNotNull(nodes.storedField(key)).formatValue(value, context) }
         }
     }
-    return shown.joinToString(" · ").ifEmpty { "${list.label} ${index + 1}" }
+    // Empty, it is named by its place: « Item 1 », the list's label read badly before a number (« Also starts when… 1 »)
+    return shown.joinToString(" · ").ifEmpty { Strings.`for`(context = context).shared("settings_list_element").format(index + 1) }
 }
 
 /** A card with [label] as its title, over [content]; with [onRemove], a button removing what it holds. */

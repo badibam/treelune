@@ -560,6 +560,7 @@
     <string name="list_item_untitled">Sans nom</string>
     <string name="list_item_summary_separator">·</string>
     <string name="settings_back_to_configuration">Retour à la configuration</string>
+    <string name="settings_list_element">Élément %1$d</string>
     <string name="settings_back_to">Retour à « %1$s »</string>
     <string name="settings_back_to_field">Retour au champ « %1$s »</string>
     <string name="settings_back_to_new_field">Retour au nouveau champ</string>
