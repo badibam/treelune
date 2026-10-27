@@ -35,7 +35,7 @@ object EntryMigration {
      * @property missing For each field of "data" now required and given no value, the entries without one
      * @property reinterpreted The values kept but read under another meaning (a scale's other bounds)
      * @property changedMeaning The user's fields whose values a change of meaning touches (its type,
-     *   a scale's bounds, the number of answers of a choice): those a new field can take instead
+     *   a scale's bounds, the number of answers of a choice or of things a reference designates): those a new field can take instead
      * @property removals Among [deleted], what the tool type's own rules remove, one sentence per
      *   reason, its count in it (RemovedByConfig); the rest lost the value of a required field
      * @property removedByRules How many of [deleted] the [removals] count
@@ -83,7 +83,7 @@ object EntryMigration {
         var removedValues = 0
         var filledValues = 0
         var reinterpreted = 0
-        val meaningChanges = extraChanges.filter { it is FieldChange.TypeChanged || it is FieldChange.ScaleRangeChanged || it is FieldChange.ChoiceShapeChanged }
+        val meaningChanges = extraChanges.filter { it is FieldChange.TypeChanged || it is FieldChange.ScaleRangeChanged || it is FieldChange.ChoiceShapeChanged || it is FieldChange.ReferenceShapeChanged }
         val changedMeaning = mutableSetOf<String>()
         val missing = mutableMapOf<String, Int>()
 
@@ -178,6 +178,7 @@ object EntryMigration {
             is FieldChange.ChoiceOptionsRemoved -> name
             is FieldChange.ScaleRangeChanged -> name
             is FieldChange.ChoiceShapeChanged -> name
+            is FieldChange.ReferenceShapeChanged -> name
             is FieldChange.CosmeticChange -> name
             is FieldChange.ConfigRestricted -> name
             is FieldChange.ReferenceTargetNarrowed -> name

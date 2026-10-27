@@ -69,6 +69,7 @@ enum class MigrationStrategy {
      * - FieldChange.ScaleRangeChanged: a value inside the new bounds kept, read between them
      * - FieldChange.ChoiceShapeChanged: one answer becomes a list of one; a list of one becomes its
      *   answer, a longer one goes; a list stays a list
+     * - FieldChange.ReferenceShapeChanged: the same, for one reference and a list of them
      */
     CONVERT
 }

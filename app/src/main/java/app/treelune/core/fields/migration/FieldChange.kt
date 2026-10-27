@@ -116,9 +116,23 @@ sealed class FieldChange {
     data class CosmeticChange(val name: String) : FieldChange()
 
     /**
+     * A REFERENCE field changed shape: between one reference and a list of them ("multiple").
+     * Strategy: CONVERT (one reference becomes a list of one; a list of one becomes its
+     * reference, a longer one goes, as with a choice)
+     *
+     * @param name The field name
+     * @param multiple Whether it now holds a list
+     */
+    data class ReferenceShapeChanged(
+        val name: String,
+        val multiple: Boolean
+    ) : FieldChange()
+
+    /**
      * What a REFERENCE field accepts changed: its kinds, or the tool instances whose entries it
      * takes. Strategy: STRIP_FIELD_IF_VALUE (only the values that no longer fit lose the field:
-     * a kind no longer taken, an entry of a tool no longer taken)
+     * a kind no longer taken, an entry of a tool no longer taken; for a list, one of them is
+     * enough, as with a multiple choice's removed option)
      *
      * @param name The field name
      * @param newConfig The config the stored values are measured against

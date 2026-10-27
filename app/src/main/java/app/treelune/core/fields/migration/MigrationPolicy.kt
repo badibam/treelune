@@ -11,7 +11,7 @@ package app.treelune.core.fields.migration
  * - Removed → STRIP_FIELD (remove from all entries)
  * - TypeChanged → STRIP_FIELD (a value of the former type means nothing to the new one)
  * - ChoiceOptionsRemoved → STRIP_FIELD_IF_VALUE (conditional removal)
- * - ScaleRangeChanged, ChoiceShapeChanged → CONVERT (kept where the new form takes the value)
+ * - ScaleRangeChanged, ChoiceShapeChanged, ReferenceShapeChanged → CONVERT (kept where the new form takes the value)
  * - CosmeticChange → NONE (no migration needed)
  *
  * Architecture:
@@ -51,6 +51,7 @@ object MigrationPolicy {
 
                 // One answer and a list of them convert where nothing is lost
                 is FieldChange.ChoiceShapeChanged -> MigrationStrategy.CONVERT
+                is FieldChange.ReferenceShapeChanged -> MigrationStrategy.CONVERT
 
                 // No action needed for cosmetic changes
                 is FieldChange.CosmeticChange -> MigrationStrategy.NONE

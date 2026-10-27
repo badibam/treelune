@@ -44,6 +44,7 @@ object FieldDataMigrator {
                     val name = when (change) {
                         is FieldChange.ScaleRangeChanged -> change.name
                         is FieldChange.ChoiceShapeChanged -> change.name
+                        is FieldChange.ReferenceShapeChanged -> change.name
                         else -> return@forEach // Strategy mismatch, should not happen
                     }
                     val value = result[name] ?: return@forEach
@@ -84,11 +85,13 @@ object FieldDataMigrator {
                             }
                         }
                         is FieldChange.ReferenceTargetNarrowed -> {
-                            val reference = app.treelune.core.fields.ReferenceTarget.referenceOf(result[change.name])
+                            // Every reference of a list must fit, as every option of a multiple choice must remain
                             val target = app.treelune.core.fields.ReferenceTarget.fromConfig(change.newConfig)
-                            val fits = reference == null || (target.acceptsKind(reference) &&
-                                (reference.kind != app.treelune.core.selection.ReferenceKind.ENTRY ||
-                                    entryInstance(reference.id!!)?.let { target.acceptsEntryOf(it) } ?: true))
+                            val fits = app.treelune.core.fields.ReferenceTarget.referencesOf(result[change.name]).all { reference ->
+                                target.acceptsKind(reference) &&
+                                    (reference.kind != app.treelune.core.selection.ReferenceKind.ENTRY ||
+                                        entryInstance(reference.id!!)?.let { target.acceptsEntryOf(it) } ?: true)
+                            }
                             if (!fits) result.remove(change.name)
                         }
                         else -> {} // Strategy mismatch, should not happen
@@ -113,6 +116,7 @@ object FieldDataMigrator {
             change.oldShape.isList && !change.newShape.isList -> (value as? List<*>)?.singleOrNull()
             else -> value
         }
+        is FieldChange.ReferenceShapeChanged -> if (change.multiple) (value as? List<*>) ?: listOf(value) else (value as? List<*>)?.singleOrNull() ?: value.takeIf { it !is List<*> }
         else -> value
     }
 

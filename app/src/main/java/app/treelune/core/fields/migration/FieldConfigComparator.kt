@@ -20,6 +20,7 @@ import app.treelune.core.fields.FieldDefinition
  * 3. Fields in both (same name):
  *    - Different type → TypeChanged
  *    - CHOICE with removed options → ChoiceOptionsRemoved
+ *    - REFERENCE between one and several → ReferenceShapeChanged; its target changed → ReferenceTargetNarrowed
  *    - Only display/description/visibility changed → CosmeticChange
  *
  * Architecture:
@@ -110,12 +111,16 @@ object FieldConfigComparator {
                 }
 
                 app.treelune.core.fields.FieldType.REFERENCE -> {
+                    // One reference or a list of them: converted first, then measured against
+                    // the target if it changed too
+                    val shapeChanged = app.treelune.core.fields.ReferenceTarget.isMultiple(oldField.config) !=
+                        app.treelune.core.fields.ReferenceTarget.isMultiple(newField.config)
+                    if (shapeChanged) changes.add(FieldChange.ReferenceShapeChanged(name, app.treelune.core.fields.ReferenceTarget.isMultiple(newField.config)))
                     // What it accepts changed: the values that no longer fit lose the field
-                    if (oldField.config?.get(app.treelune.core.fields.ReferenceTarget.TARGET) !=
-                        newField.config?.get(app.treelune.core.fields.ReferenceTarget.TARGET)) {
-                        changes.add(FieldChange.ReferenceTargetNarrowed(name, newField.config))
-                        return@forEach
-                    }
+                    val targetChanged = oldField.config?.get(app.treelune.core.fields.ReferenceTarget.TARGET) !=
+                        newField.config?.get(app.treelune.core.fields.ReferenceTarget.TARGET)
+                    if (targetChanged) changes.add(FieldChange.ReferenceTargetNarrowed(name, newField.config))
+                    if (shapeChanged || targetChanged) return@forEach
                 }
 
                 else -> {
