@@ -150,7 +150,7 @@ fun ExecutionCard(
                 // Right column: Roundtrips
                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
                     UI.Text(
-                        text = s.shared("automation_roundtrips_label").format(totalRoundtrips),
+                        text = if (totalRoundtrips == 1) s.shared("automation_roundtrips_one") else s.shared("automation_roundtrips_label").format(totalRoundtrips),
                         type = TextType.CAPTION
                     )
                 }

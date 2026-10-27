@@ -1867,6 +1867,7 @@
     <string name="automation_started_label">Started: %1$s</string>
     <string name="automation_duration_label">Duration: %1$s</string>
     <string name="automation_roundtrips_label">%1$d round trips</string>
+    <string name="automation_roundtrips_one">1 round trip</string>
     <string name="automation_tokens_label">tokens</string>
     <string name="automation_next_execution_title">Next run</string>
     <string name="automation_no_executions">No run found</string>
