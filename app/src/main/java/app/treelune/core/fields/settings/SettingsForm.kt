@@ -637,8 +637,10 @@ private fun NodeForm(
                     FieldInput(definition, shown, { typed = true; set(name, it) }, context, required = node.required)
                 }
                 // An absent setting shows the value its absence means. The input takes the Kotlin
-                // form of a value: a list of options, not the JSONArray they are stored as
-                else -> FieldInput(node.definition, JsonUtils.toValue(stored) ?: node.default, { set(name, it) }, context, required = node.required)
+                // form of a value: a list of options, not the JSONArray they are stored as. A choice
+                // with a default offers no « None »: emptied, it would stand for its default anyway
+                else -> FieldInput(node.definition, JsonUtils.toValue(stored) ?: node.default, { set(name, it) }, context,
+                    required = node.required || (node.default != null && node.definition.type == app.treelune.core.fields.FieldType.CHOICE))
             }
         }
 
