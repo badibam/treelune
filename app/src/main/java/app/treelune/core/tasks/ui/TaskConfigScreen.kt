@@ -154,7 +154,12 @@ fun TaskConfigScreen(place: Place.TaskConfig, onDone: () -> Unit, onDeleted: () 
             })
         }
         saving = false
-        if (result.status == CommandStatus.SUCCESS) onDone()
+        if (result.status == CommandStatus.SUCCESS) {
+            // Moved: its page and what leads to it now stand in its new zone
+            if (place.taskId != null && zoneId != place.zoneId) app.treelune.core.navigation.Navigator.moved(
+                app.treelune.core.navigation.Place.Task(place.taskId, place.zoneId), app.treelune.core.navigation.Place.Task(place.taskId, zoneId))
+            onDone()
+        }
         else UI.Toast(result.error ?: s.shared("error_unknown"), Duration.LONG)
     }
 

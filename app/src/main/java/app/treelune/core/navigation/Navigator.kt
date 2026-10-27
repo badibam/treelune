@@ -37,6 +37,12 @@ object PlaceStack {
     fun chain(place: Place): List<Place> =
         generateSequence(place) { it.parent() }.toList().reversed().let { if (it.first() == Place.Home) it else listOf(Place.Home) + it }
 
+    /** [from], moved to another zone as [to]: under it, [to]'s chain; over it, the same; the stack as it is without [from]. */
+    fun moved(stack: List<Place>, from: Place, to: Place): List<Place> {
+        val index = stack.indexOf(from)
+        return if (index < 0) stack else chain(to) + stack.drop(index + 1)
+    }
+
     /** Every place of zone [zoneId] taken off: the zone is gone. */
     fun dropZone(stack: List<Place>, zoneId: String): List<Place> = stack.filter { it.zoneId != zoneId }
 
@@ -128,6 +134,13 @@ object Navigator {
 
     /** The zone [zoneId] deleted: every place of it leaves the stack. */
     fun dropZone(zoneId: String) = set(PlaceStack.dropZone(stack, zoneId), "drop_zone")
+
+    /**
+     * [from] moved to another zone, now [to]: what is under it becomes [to]'s chain, its new zone
+     * in the breadcrumb, what is over it (its config being left) stays. Nothing when [from] is not
+     * in the stack.
+     */
+    fun moved(from: Place, to: Place) = set(PlaceStack.moved(stack, from, to), "moved")
 
     /** [place] gone from under the screen (a tool deleted, a zone not found): it leaves, silently. */
     fun drop(place: Place) = set(stack.filter { it != place }.ifEmpty { listOf(Place.Home) }, "drop")
