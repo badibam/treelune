@@ -1528,6 +1528,10 @@
     <string name="action_verbalize_automations_config">Lecture de la routine %1$s</string>
     <string name="action_verbalize_automations_next_execution">Prochaine exécution de la routine %1$s</string>
     <string name="action_verbalize_automations_list">Lecture des routines</string>
+    <string name="action_verbalize_automations_duplicate">Copie de la routine %1$s</string>
+    <string name="action_verbalize_automations_enable">Activation de la routine %1$s</string>
+    <string name="action_verbalize_automations_disable">Désactivation de la routine %1$s</string>
+    <string name="action_verbalize_automations_execute_manual">Lancement de la routine %1$s</string>
     <string name="action_verbalize_runs_list">Lecture des exécutions de la routine %1$s</string>
     <string name="action_verbalize_run_history">Lecture d\'une exécution de la routine %1$s</string>
     <string name="import_error_file">Le fichier ne se lit pas : %1$s</string>
