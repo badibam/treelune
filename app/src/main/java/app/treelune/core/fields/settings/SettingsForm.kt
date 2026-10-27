@@ -465,7 +465,8 @@ private fun brickPhrases(nodes: List<SettingNode>, config: JSONObject, context: 
  * The phrase of one brick as stored: `{"constant"}`, `{"variable"}`, `{"reading"}`, or a selection
  * wrapped as `{"selection"}`.
  *
- * @throws IllegalStateException when a name cannot be read
+ * @throws IllegalStateException when a name cannot be read, or when the brick has none of these
+ *   forms: its keys go to the logs, its line says it is not readable
  */
 private suspend fun brickPhrase(brick: JSONObject, context: Context): String {
     val s = Strings.`for`(context = context)
@@ -487,13 +488,17 @@ private suspend fun brickPhrase(brick: JSONObject, context: Context): String {
             s.shared("settings_phrase_filters").format(filters).takeIf { filters > 0 }
         )
     }
+    fun unreadable(): Nothing {
+        app.treelune.core.utils.LogManager.ui("Settings form: brick not readable, keys ${brick.keys().asSequence().toList()}", "ERROR")
+        throw IllegalStateException(s.shared("settings_phrase_unreadable"))
+    }
     return when {
         // Its two sides around its operator, "kcal > 2100"; a left the entry gives is not written
         brick.has("condition") -> {
-            val condition = brick.getJSONObject("condition")
+            val condition = brick.optJSONObject("condition") ?: unreadable()
             suspend fun side(side: Any?): String? = when (side) {
                 is JSONObject -> brickPhrase(side, context)
-                is JSONArray -> (0 until side.length()).map { brickPhrase(side.getJSONObject(it), context) }
+                is JSONArray -> (0 until side.length()).map { brickPhrase(side.optJSONObject(it) ?: unreadable(), context) }
                     .joinToString(" ${s.shared("settings_phrase_between")} ")
                 else -> null
             }
@@ -508,12 +513,13 @@ private suspend fun brickPhrase(brick: JSONObject, context: Context): String {
         brick.has("variable") -> brick.optString("variable").takeIf { it.isNotEmpty() }
             ?.let { name(app.treelune.core.selection.ReferenceKind.VARIABLE, it) } ?: ""
         brick.has("reading") -> {
-            val reading = brick.getJSONObject("reading")
+            val reading = brick.optJSONObject("reading") ?: unreadable()
             val parts = selection(reading.optJSONObject("selection") ?: JSONObject(), reading.optString("field").takeIf { it.isNotEmpty() }).toMutableList()
             reading.optString("reduction").takeIf { it.isNotEmpty() }?.let { parts.add(minOf(1, parts.size), s.shared("reduction_${it.lowercase()}")) }
             parts.joinToString(separator)
         }
-        else -> selection(brick.getJSONObject("selection"), null).joinToString(separator)
+        brick.has("selection") -> selection(brick.optJSONObject("selection") ?: unreadable(), null).joinToString(separator)
+        else -> unreadable()
     }
 }
 
