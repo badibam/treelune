@@ -33,7 +33,7 @@ object Triggers {
         CREATED("created"), UPDATED("updated"), DELETED("deleted");
 
         companion object {
-            fun of(key: String) = entries.first { it.key == key }
+            fun of(key: String) = entries.firstOrNull { it.key == key } ?: throw IllegalArgumentException("Unknown write '$key'")
         }
     }
 
@@ -88,12 +88,14 @@ object Triggers {
         val trigger = list!!.getJSONObject(index)
         when (val kind = trigger.optString(KIND)) {
             ENTRY_WRITTEN -> {
-                val entries = trigger.getJSONObject(ENTRIES)
-                val target = entries.getJSONObject("target")
+                // A form still filling the trigger holds no entries yet: said as a trigger that
+                // does not read, as the contract says, never as a JSONException
+                val entries = trigger.optJSONObject(ENTRIES) ?: throw IllegalArgumentException("A trigger on written entries names no entries")
+                val target = entries.optJSONObject("target") ?: throw IllegalArgumentException("A trigger's entries name no tool")
                 require(target.optString("kind") == app.treelune.core.selection.ReferenceKind.TOOL_INSTANCE.name) { "A trigger's entries are a tool's, not ${target.optString("kind")}" }
-                val writes = trigger.getJSONArray(WRITES)
+                val writes = trigger.optJSONArray(WRITES) ?: throw IllegalArgumentException("A trigger on written entries says no write")
                 Trigger.EntryWritten(
-                    toolInstanceId = target.getString("id"),
+                    toolInstanceId = target.optString("id").ifEmpty { throw IllegalArgumentException("A trigger's entries name no tool") },
                     writes = (0 until writes.length()).map { Write.of(writes.getString(it)) }.toSet(),
                     filters = entries.optJSONArray("filters") ?: JSONArray()
                 )
