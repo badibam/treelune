@@ -255,6 +255,22 @@ sealed class SettingNode {
     ) : SettingNode()
 
     /**
+     * Values of the user's fields the config defines at its root under [fields] (extra_fields),
+     * stored under [name] as an entry's extra holds them: `{"aliment": {"kind": "ENTRY", "id": …}}`,
+     * a field left out absent. Each value is checked as a value of its field (ConfigFieldValues),
+     * follows its field's changes as an entry's does, and leaves with the field. A file field
+     * takes none: its files belong to an entry.
+     *
+     * @property description What the values are for, for the AI that reads its schema
+     */
+    data class FieldValues(
+        val name: String,
+        val label: String,
+        val fields: String,
+        val description: String? = null
+    ) : SettingNode()
+
+    /**
      * Settings shown together on the screen; nothing of it is stored.
      *
      * @property shownWith The option of a setting beside it the section serves: the form shows it
@@ -281,7 +297,8 @@ fun List<SettingNode>.storedField(name: String): FieldDefinition? {
                 ?: node.cases.values.firstNotNullOfOrNull { it.storedField(name) }
             is SettingNode.Section -> node.nodes.storedField(name)
             is SettingNode.Group, is SettingNode.ListOf, is SettingNode.Condition,
-            is SettingNode.Term, is SettingNode.Selection, is SettingNode.Sort, is SettingNode.Period, is SettingNode.Instants -> null
+            is SettingNode.Term, is SettingNode.Selection, is SettingNode.Sort, is SettingNode.Period, is SettingNode.Instants,
+            is SettingNode.FieldValues -> null
         }
         if (found != null) return found
     }
@@ -325,6 +342,7 @@ fun List<SettingNode>.labelOf(name: String): String? {
             is SettingNode.Sort -> node.label.takeIf { node.name == name }
             is SettingNode.Period -> node.label.takeIf { node.name == name }
             is SettingNode.Instants -> node.label.takeIf { node.name == name }
+            is SettingNode.FieldValues -> node.label.takeIf { node.name == name }
         }
         if (found != null) return found
     }

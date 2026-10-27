@@ -1354,7 +1354,6 @@ class ToolDataService(private val context: Context) : ExecutableService {
      * @return The error to hand back, or null when every reference holds
      */
     private suspend fun checkReferences(target: WriteTarget.Ready, dataJson: String, extraJson: String?, before: ToolDataEntity?): String? {
-        val database = AppDatabase.getDatabase(context)
         val containers = listOf(
             Triple(declaredFields(target), JsonUtils.toMap(dataJson), before?.data?.let { JsonUtils.toMap(it) }),
             Triple(userFields(target), extraJson?.let { JsonUtils.toMap(it) } ?: emptyMap<String, Any?>(), before?.extra?.let { JsonUtils.toMap(it) })
@@ -1363,24 +1362,7 @@ class ToolDataService(private val context: Context) : ExecutableService {
             // Each reference of a multiple field, those it already held left unchecked
             for (field in fields.filter { it.type == FieldType.REFERENCE }) for (reference in ReferenceTarget.referencesOf(values[field.name])) {
                 if (reference in ReferenceTarget.referencesOf(previous?.get(field.name))) continue
-                val error = when (reference.kind) {
-                    ReferenceKind.APP -> null
-                    ReferenceKind.ZONE -> s.shared("field_value_reference_not_found").takeIf { database.zoneDao().getZoneById(reference.id!!) == null }
-                    ReferenceKind.TOOL_INSTANCE -> s.shared("field_value_reference_not_found").takeIf { database.toolInstanceDao().getToolInstanceById(reference.id!!) == null }
-                    ReferenceKind.VARIABLE -> s.shared("field_value_reference_not_found").takeIf { database.variableDao().getById(reference.id!!) == null }
-                    ReferenceKind.EVENT -> s.shared("field_value_reference_not_found").takeIf { database.eventDao().get(reference.id!!) == null }
-                    ReferenceKind.ENTRY -> when (val entry = getToolDataDao().getById(reference.id!!)) {
-                        null -> s.shared("field_value_reference_not_found")
-                        else -> s.shared("field_value_reference_wrong_tool").takeIf { !ReferenceTarget.fromConfig(field.config).acceptsEntryOf(entry.toolInstanceId) }
-                            ?: reference.field?.let { path ->
-                                val fields = app.treelune.core.fields.ToolFields.filterable(entry.toolInstanceId, context, s)
-                                s.shared("field_value_reference_no_field").format(path, fields.keys.joinToString(", ")).takeIf { path !in fields }
-                            }
-                    }
-                }
-                if (error != null) {
-                    return s.shared("error_custom_field_validation_failed").format(field.displayName, error.format(reference.kind.name, reference.id))
-                }
+                app.treelune.core.fields.ReferenceCheck.refusal(field, reference, context, s)?.let { return it }
             }
         }
         return null

@@ -92,6 +92,7 @@ object SettingsSchemaGenerator {
                 is SettingNode.Sort -> Triple(node.name, false, sortSchema(node, text))
                 is SettingNode.Period -> Triple(node.name, node.required, periodSchema(node, text))
                 is SettingNode.Instants -> Triple(node.name, node.required, instantsSchema(node, text))
+                is SettingNode.FieldValues -> Triple(node.name, false, fieldValuesSchema(node, text))
                 is SettingNode.Variant, is SettingNode.Section -> error("flattened before")
             }
             check(!properties.has(name)) { "Setting '$name' is declared twice in one object" }
@@ -250,6 +251,16 @@ object SettingsSchemaGenerator {
             .put("properties", JSONObject().put(app.treelune.core.selection.TimePoint.RELATIVE, JSONObject()))
             .put("required", JSONArray().put(app.treelune.core.selection.TimePoint.RELATIVE))
             .put("additionalProperties", false))
+
+    /**
+     * Values keyed by the names of fields the config defines beside it: which fields, and what
+     * each takes, is the config's to say, so any key is taken here and the service checks each
+     * value against its field (ConfigFieldValues).
+     */
+    private fun fieldValuesSchema(node: SettingNode.FieldValues, text: (String) -> String): JSONObject = JSONObject()
+        .put("type", "object")
+        .put("title", node.label)
+        .put("description", listOfNotNull(node.description, text("field_values_schema_description").format(node.fields)).joinToString(" "))
 
     /** The nodes stored in one object: sections opened, since they store nothing of their own. */
     internal fun flatten(nodes: List<SettingNode>): List<SettingNode> = nodes.flatMap { node ->
