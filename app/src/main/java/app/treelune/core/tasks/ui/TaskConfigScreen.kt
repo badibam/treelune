@@ -84,7 +84,9 @@ fun TaskConfigScreen(place: Place.TaskConfig, onDone: () -> Unit, onDeleted: () 
     var outputs by remember { mutableStateOf<List<List<TaskSteps.Output>>>(emptyList()) }
     var received by remember { mutableStateOf(Receivable(null, null)) }
 
-    fun snapshot() = JSONObject().put("settings", settings).put("steps", steps).put("zone_id", zoneId).toString()
+    // The steps read from their state, not from `steps`: that one is remembered at composition,
+    // and the load takes its snapshot before the next, the steps it just read not yet in it
+    fun snapshot() = JSONObject().put("settings", settings).put("steps", JSONArray(stepsText)).put("zone_id", zoneId).toString()
 
     LaunchedEffect(place.taskId) {
         if (asLoaded != null) return@LaunchedEffect
