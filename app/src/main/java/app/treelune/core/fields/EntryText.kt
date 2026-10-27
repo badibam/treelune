@@ -14,7 +14,7 @@ object EntryText {
     /**
      * [parts], the blank ones left out, then the fields of [config] that [extra] fills, one a line,
      * "Name : value" in the order the config lists them, each value written whole (describeValue),
-     * a reference by the name of what it designates.
+     * a reference by the name of what it designates, those of a list joined as a multiple choice's.
      */
     suspend fun of(parts: List<String?>, config: JSONObject?, extra: Map<String, Any?>, context: Context): String {
         val fields = config?.let { fieldLines(it, extra, context) }.orEmpty()
@@ -27,7 +27,7 @@ object EntryText {
         val s = Strings.`for`(context = context)
         val fields = config.optJSONArray("extra_fields")?.toFieldDefinitions().orEmpty()
             .filter { filled(extra[it.name]) }
-        val references = fields.filter { it.type == FieldType.REFERENCE }.mapNotNull { ReferenceTarget.referenceOf(extra[it.name]) }
+        val references = fields.filter { it.type == FieldType.REFERENCE }.flatMap { ReferenceTarget.referencesOf(extra[it.name]) }
         val names = try {
             loadReferenceNames(references, context)
         } catch (e: Exception) {
@@ -37,10 +37,12 @@ object EntryText {
         return fields.map { field ->
             val value = extra[field.name]
             val text = if (field.type == FieldType.REFERENCE) {
-                when (val name = ReferenceTarget.referenceOf(value)?.let { names?.get(it) }) {
-                    is ReferenceName.Named -> name.name
-                    ReferenceName.Deleted -> s.shared("pointer_target_deleted")
-                    null -> s.shared("field_reference_unreadable")
+                ReferenceTarget.referencesOf(value).ifEmpty { listOf(null) }.joinToString(", ") { reference ->
+                    when (val name = reference?.let { names?.get(it) }) {
+                        is ReferenceName.Named -> name.name
+                        ReferenceName.Deleted -> s.shared("pointer_target_deleted")
+                        null -> s.shared("field_reference_unreadable")
+                    }
                 }
             } else field.describeValue(value, context)
             s.shared("entry_text_field").format(field.displayName, text)

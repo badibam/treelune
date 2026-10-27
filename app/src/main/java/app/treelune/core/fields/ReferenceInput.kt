@@ -52,16 +52,20 @@ internal fun rememberReferenceName(reference: Reference?, context: Context): Str
     return shown
 }
 
-/** A REFERENCE value: the name of what it designates, as it is now. */
+/** A REFERENCE value: the name of what it designates, as it is now; each name of a list, one under the other. */
 @Composable
 fun ReferenceValue(value: Any?, context: Context) {
     val s = remember { Strings.`for`(context = context) }
-    val reference = ReferenceTarget.referenceOf(value)
-    if (reference == null) {
+    val references = ReferenceTarget.referencesOf(value)
+    if (references.isEmpty()) {
         UI.Text(text = value.toString(), type = TextType.BODY)
         return
     }
-    UI.Text(text = rememberReferenceName(reference, context) ?: s.shared("tools_loading"), type = TextType.BODY)
+    Column(verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
+        references.forEach { reference ->
+            UI.Text(text = rememberReferenceName(reference, context) ?: s.shared("tools_loading"), type = TextType.BODY)
+        }
+    }
 }
 
 /**
@@ -70,6 +74,7 @@ fun ReferenceValue(value: Any?, context: Context) {
  */
 @Composable
 fun ReferenceInput(fieldDef: FieldDefinition, value: Any?, onChange: (Any?) -> Unit, context: Context, required: Boolean) {
+    if (ReferenceTarget.isMultiple(fieldDef.config)) return MultipleReferenceInput(fieldDef, value, onChange, context, required)
     val reference = ReferenceTarget.referenceOf(value)
     val name = rememberReferenceName(reference, context)
     var picking by rememberSaveable { mutableStateOf(false) }
@@ -105,11 +110,65 @@ fun ReferenceInput(fieldDef: FieldDefinition, value: Any?, onChange: (Any?) -> U
             onDismiss = { picking = false },
             onPick = { picked ->
                 picking = false
-                onChange(mapOf("kind" to picked.kind.name) + (picked.id?.let { mapOf("id" to it) } ?: emptyMap()))
+                onChange(stored(picked))
             }
         )
     }
 }
+
+/**
+ * The input of a multiple REFERENCE field: each thing it designates by name, in the order it was
+ * added, with a button taking it out, then « + » opening the picker for one more. A thing already
+ * in the list is not added twice; the last one taken out empties the field.
+ */
+@Composable
+private fun MultipleReferenceInput(fieldDef: FieldDefinition, value: Any?, onChange: (Any?) -> Unit, context: Context, required: Boolean) {
+    val references = ReferenceTarget.referencesOf(value)
+    var picking by rememberSaveable { mutableStateOf(false) }
+
+    Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+        UI.FieldLabel(fieldDef.displayName, required)
+        references.forEach { reference ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(UI.Space.S),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    UI.Text(text = rememberReferenceName(reference, context) ?: "", type = TextType.BODY)
+                }
+                UI.ActionButton(
+                    action = ButtonAction.DELETE,
+                    display = app.treelune.core.ui.ButtonDisplay.ICON,
+                    size = app.treelune.core.ui.Size.S,
+                    onClick = { onChange((references - reference).map { stored(it) }.ifEmpty { null }) }
+                )
+            }
+        }
+        UI.ActionButton(
+            action = ButtonAction.ADD,
+            display = app.treelune.core.ui.ButtonDisplay.ICON,
+            size = app.treelune.core.ui.Size.S,
+            onClick = { picking = true }
+        )
+    }
+
+    if (picking) {
+        ReferencePicker(
+            target = ReferenceTarget.fromConfig(fieldDef.config),
+            onDismiss = { picking = false },
+            onPick = { picked ->
+                picking = false
+                if (picked !in references) onChange((references + picked).map { stored(it) })
+            }
+        )
+    }
+}
+
+/** [reference] in the stored form of a field's value: its kind, and its id unless it is the app. */
+private fun stored(reference: Reference): Map<String, Any> =
+    mapOf("kind" to reference.kind.name) + (reference.id?.let { mapOf("id" to it) } ?: emptyMap()) +
+        (reference.field?.let { mapOf("field" to it) } ?: emptyMap())
 
 /** Where the picker opens: a single tool whose entries alone are taken is entered at once. */
 private suspend fun startPath(target: ReferenceTarget, context: Context): ThingPath {

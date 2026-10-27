@@ -465,8 +465,8 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         val referenced = entries.flatMap { entry ->
             val data = JsonUtils.toMap(entry.data)
             val extra = JsonUtils.toMap(entry.extra?.takeIf { it.isNotBlank() })
-            dataReferences.mapNotNull { ReferenceTarget.referenceOf(data[it.name]) } +
-                extraReferences.mapNotNull { ReferenceTarget.referenceOf(extra[it.name]) }
+            dataReferences.flatMap { ReferenceTarget.referencesOf(data[it.name]) } +
+                extraReferences.flatMap { ReferenceTarget.referencesOf(extra[it.name]) }
         }.filter { it.kind == ReferenceKind.ENTRY }.mapNotNull { it.id }.distinct()
         val instances = referenced.associateWith { database.toolDataDao().getById(it)?.toolInstanceId }
         val plan = EntryMigration.plan(
