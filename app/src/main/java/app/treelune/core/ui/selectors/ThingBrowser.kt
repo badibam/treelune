@@ -127,11 +127,15 @@ fun ThingBrowser(path: ThingPath, onPath: (ThingPath) -> Unit, target: Reference
     }
 }
 
-/** A place, its icon before it and its detail under it, and the button that goes to it. */
+/**
+ * A place, its icon before it and its detail under it, and the chevron that goes into it: the
+ * whole row goes there, its name too. Going there is not choosing it — the dialog's Confirm does,
+ * on the place reached —, so the button says « open », not « select ».
+ */
 @Composable
 private fun PlaceRow(place: Place, onPath: (ThingPath) -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clickable { onPath(place.path) },
         horizontalArrangement = Arrangement.spacedBy(UI.Space.M),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -140,7 +144,7 @@ private fun PlaceRow(place: Place, onPath: (ThingPath) -> Unit) {
             UI.Text(text = place.path.field?.name ?: place.path.entry?.name ?: place.path.variable?.name ?: place.path.event?.name ?: place.path.tool?.name ?: place.path.zone!!.name, type = TextType.BODY)
             place.detail?.let { UI.Text(text = it, type = TextType.CAPTION) }
         }
-        UI.ActionButton(action = ButtonAction.SELECT, onClick = { onPath(place.path) })
+        UI.ActionButton(action = ButtonAction.RIGHT, display = app.treelune.core.ui.ButtonDisplay.ICON, onClick = { onPath(place.path) })
     }
 }
 
