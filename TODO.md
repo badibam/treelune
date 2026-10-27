@@ -53,6 +53,7 @@ Codé, jamais vu sur l'appareil.
 
 ## À concevoir
 
+- Les zones d'une partie importée : chacune arrive seule sur sa ligne, en colonne 0 (`Grid.arrive`, comme toute tuile nouvelle), deux zones côte à côte dans le fichier empilées avec un vide à droite ; garder leur disposition entre elles.
 - Une Lecture qui rend plusieurs valeurs (les trois derniers retours, joints) pour l'entrée d'une API : une Lecture réduit aujourd'hui à une seule valeur.
 - Un contrôle « qui dépend de ça ? » avant de supprimer une chose (une condition, une variable, un pointeur qui la visent, la condition d'un déclencheur qui lit un outil ou une variable), écrit une fois, appelé par le service qui supprime et par l'annulation qui supprime une ligne ; le modèle existe pour les événements (`EventUses` : le refus nomme ce qui écoute ou émet).
 - Des outils montrés sur la tuile d'une zone de l'accueil (le poids du jour sur « Santé ») : leur résumé ou un raccourci selon la place de la tuile — lesquels, dans quel ordre, un outil montré à deux endroits.
