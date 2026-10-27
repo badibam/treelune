@@ -793,7 +793,10 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             val type = ToolTypeManager.getToolType(tool.tooltype) ?: continue
             val conditions = type.getWaiting(JSONObject(tool.config_json))
             if (conditions.isEmpty()) {
-                val own = try { type.countWaiting(tool, context) } catch (e: IllegalStateException) {
+                val own = try { type.countWaiting(tool, context) } catch (e: kotlinx.coroutines.CancellationException) {
+                    // An IllegalStateException too: the screen that asked left, it goes on up, no error
+                    throw e
+                } catch (e: IllegalStateException) {
                     LogManager.service("ToolInstanceService: waiting of ${tool.id} not counted: ${e.message}", "ERROR")
                     null
                 }

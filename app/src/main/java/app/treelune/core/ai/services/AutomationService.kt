@@ -88,6 +88,9 @@ class AutomationService(private val context: Context) : ExecutableService {
                 "execute_manual" -> executeManual(params, token)
                 else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            // The screen that asked left: a cancellation goes on up, no error
+            throw e
         } catch (e: Exception) {
             LogManager.service("AutomationService.execute - Error: ${e.message}", "ERROR", e)
             OperationResult.error(s.shared("service_error_automation").format(e.message ?: ""))
