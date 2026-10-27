@@ -180,9 +180,12 @@ fun AutomationScreen(
 
                         ExecutionSummary(
                             sessionId = sessionMap["id"] as String,
-                            // A run started by hand or by an entry was planned for nothing: its card says so
+                            // A run started by hand or by a trigger was planned for nothing: its card says what started it
                             scheduledExecutionTime = (sessionMap["scheduled_execution_time"] as? Long)
                                 .takeIf { sessionMap["triggered_by"] == app.treelune.core.ai.data.ExecutionTrigger.SCHEDULED.name },
+                            trigger = (sessionMap["triggered_by"] as? String)?.let { name ->
+                                app.treelune.core.ai.data.ExecutionTrigger.entries.firstOrNull { it.name == name }
+                            },
                             createdAt = createdAtValue,
                             phase = phase,
                             endReason = sessionMap["end_reason"] as? String,
@@ -427,6 +430,7 @@ fun AutomationScreen(
                     ExecutionCard(
                         sessionId = session.sessionId,
                         scheduledExecutionTime = session.scheduledExecutionTime,
+                        trigger = session.trigger,
                         createdAt = session.createdAt,
                         phase = session.phase,
                         endReason = session.endReason,
@@ -461,6 +465,7 @@ fun AutomationScreen(
 data class ExecutionSummary(
     val sessionId: String,
     val scheduledExecutionTime: Long?,
+    val trigger: app.treelune.core.ai.data.ExecutionTrigger?, // What started it; null on a run older than the column
     val createdAt: Long,
     val phase: Phase,
     val endReason: String?,

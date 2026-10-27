@@ -39,6 +39,7 @@ import app.treelune.core.utils.DateUtils
 fun ExecutionCard(
     sessionId: String,
     scheduledExecutionTime: Long?,
+    trigger: app.treelune.core.ai.data.ExecutionTrigger?,
     createdAt: Long,
     phase: Phase,
     endReason: String?,
@@ -83,10 +84,13 @@ fun ExecutionCard(
                 ) {
                     if (waits) UI.WaitingMark()
                     UI.Text(
-                        text = if (scheduledExecutionTime != null) {
-                            s.shared("automation_scheduled_label").format(app.treelune.core.utils.DateTimeFormatter.formatForDisplay(scheduledExecutionTime, context))
-                        } else {
-                            s.shared("automation_manual_execution")
+                        // Planned, it says when; otherwise what started it: by hand, an entry, an event, a condition
+                        text = when {
+                            scheduledExecutionTime != null -> s.shared("automation_scheduled_label").format(app.treelune.core.utils.DateTimeFormatter.formatForDisplay(scheduledExecutionTime, context))
+                            trigger == app.treelune.core.ai.data.ExecutionTrigger.ENTRY -> s.shared("automation_entry_execution")
+                            trigger == app.treelune.core.ai.data.ExecutionTrigger.EVENT -> s.shared("automation_event_execution")
+                            trigger == app.treelune.core.ai.data.ExecutionTrigger.CONDITION -> s.shared("automation_condition_execution")
+                            else -> s.shared("automation_manual_execution")
                         },
                         type = TextType.CAPTION
                     )
