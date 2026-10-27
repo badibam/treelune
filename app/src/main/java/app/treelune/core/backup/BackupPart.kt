@@ -35,14 +35,14 @@ data class PartSelection(
         .put("apis", JSONArray(apis.toList()))
 
     /**
-     * The selection without the demo's zones and what they hold, which no part carries
-     * (PartTree.withoutDemo): one asked by the connector may name them. Its APIs and identities
-     * stay, taken only when asked for.
+     * The selection cut to what [tree] offers: a selection the connector gives may name what no
+     * screen offers, the demo first (PartTree.withoutDemo), which no part carries.
      */
-    fun withoutDemo(): PartSelection {
-        fun mine(id: String) = !id.startsWith(app.treelune.core.demo.DemoContent.PREFIX)
-        return copy(zones = zones.filter(::mine).toSet(), tools = tools.filterKeys(::mine), variables = variables.filter(::mine).toSet(),
-            automations = automations.filter(::mine).toSet(), tasks = tasks.filter(::mine).toSet())
+    fun within(tree: PartTree): PartSelection {
+        val offered = tree.elements.map { it.id }.toSet()
+        return PartSelection(zones.filter { id -> tree.zones.any { it.id == id } }.toSet(), tools.filterKeys { it in offered },
+            variables.filter { it in offered }.toSet(), automations.filter { it in offered }.toSet(), identities.filter { it in offered }.toSet(),
+            tasks.filter { it in offered }.toSet(), apis.filter { id -> tree.apis.any { it.id == id } }.toSet())
     }
 
     companion object {
