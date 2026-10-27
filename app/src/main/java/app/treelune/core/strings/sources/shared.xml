@@ -1084,7 +1084,7 @@
     <string name="settings_budget_event_help">An event emitted once a day when the day's spending passes the share above, with its notification: a Task or a routine that listens to it can pause what costs. One that carries nothing.</string>
     <string name="budget_title">Daily budget of the AI</string>
     <string name="budget_reached">The day's budget of the AI is reached (%1$s): no call starts until tomorrow. You can raise it in Settings › AI limits.</string>
-    <string name="budget_alert">%1$s%% of the day's budget spent: %2$s of %3$s.</string>
+    <string name="budget_alert">Over %1$s%% of the day's budget spent: %2$s of %3$s.</string>
     <string name="budget_today">Today: %1$s</string>
     <string name="budget_today_of">Today: %1$s of %2$s</string>
     <string name="budget_unpriced">These providers' models have no price, neither in the list of prices nor set by hand: their calls count for nothing in the budget. %1$s</string>
