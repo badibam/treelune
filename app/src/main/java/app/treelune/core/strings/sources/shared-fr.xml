@@ -2741,6 +2741,7 @@
     <string name="api_try_code">Statut %1$s</string>
     <string name="api_try_job">Identifiant</string>
     <string name="api_try_raw">Réponse brute</string>
+    <string name="api_raw_empty">(vide : le service n\'a rien répondu)</string>
     <string name="api_error">API : %1$s</string>
     <string name="api_error_id_required">Quelle API : api_id est requis</string>
     <string name="api_error_not_found">Aucune API %1$s</string>

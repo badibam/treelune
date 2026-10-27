@@ -2741,6 +2741,7 @@
     <string name="api_try_code">Status %1$s</string>
     <string name="api_try_job">Id</string>
     <string name="api_try_raw">Raw answer</string>
+    <string name="api_raw_empty">(empty: the service answered nothing)</string>
     <string name="api_error">API: %1$s</string>
     <string name="api_error_id_required">Which API: api_id is required</string>
     <string name="api_error_not_found">No API %1$s</string>

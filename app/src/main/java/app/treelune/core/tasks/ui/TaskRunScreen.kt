@@ -100,7 +100,8 @@ fun TaskRunScreen(place: Place.TaskRun, onTaskName: (String) -> Unit, onBack: ()
                     (result["error"] as? String)?.let { UI.Text(it, TextType.ERROR) }
                     (result["raw"] as? String)?.let { raw ->
                         UI.Text(s.shared("api_try_raw"), TextType.LABEL)
-                        UI.Text(raw, TextType.CAPTION)
+                        // An empty answer is said, not left as a blank under its label
+                        UI.Text(raw.ifEmpty { s.shared("api_raw_empty") }, TextType.CAPTION)
                     }
                 }
             }

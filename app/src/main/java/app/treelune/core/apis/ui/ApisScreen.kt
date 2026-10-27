@@ -220,7 +220,7 @@ private fun Tried(result: Map<String, Any?>, s: app.treelune.core.strings.String
         UI.Text(s.shared("label_value").format(value["name"], shown), if (value.containsKey("error")) TextType.ERROR else TextType.BODY)
     }
     UI.Text(s.shared("api_try_raw"), TextType.LABEL)
-    UI.Text((result["raw"] as String).take(SHOWN_RAW), TextType.CAPTION)
+    UI.Text((result["raw"] as String).take(SHOWN_RAW).ifEmpty { s.shared("api_raw_empty") }, TextType.CAPTION)
 }
 
 /** The most of a raw answer « Try » shows: enough to find a path, short enough to scroll past. */
