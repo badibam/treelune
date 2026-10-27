@@ -34,6 +34,17 @@ data class PartSelection(
         .put("tasks", JSONArray(tasks.toList()))
         .put("apis", JSONArray(apis.toList()))
 
+    /**
+     * The selection without the demo's zones and what they hold, which no part carries
+     * (PartTree.withoutDemo): one asked by the connector may name them. Its APIs and identities
+     * stay, taken only when asked for.
+     */
+    fun withoutDemo(): PartSelection {
+        fun mine(id: String) = !id.startsWith(app.treelune.core.demo.DemoContent.PREFIX)
+        return copy(zones = zones.filter(::mine).toSet(), tools = tools.filterKeys(::mine), variables = variables.filter(::mine).toSet(),
+            automations = automations.filter(::mine).toSet(), tasks = tasks.filter(::mine).toSet())
+    }
+
     companion object {
         /** The selection stored as [json]; a key missing or of the wrong form throws (org.json's JSONException). */
         fun read(json: JSONObject): PartSelection {

@@ -146,4 +146,24 @@ class PartTreeTest {
         val both = Ticks.zone(one, tree, garden, true)
         assertEquals(setOf("weather"), Ticks.zone(both, tree, balcony, false).apis)
     }
+
+    @Test
+    fun `the demo is left out of a part, its API kept when a Task of the user's calls it`() {
+        fun task(id: String) = PartTree.Element(Kind.TASK, id, id, null, null, 0)
+        val demoApi = PartTree.Element(Kind.API, "demo-api", "Demo API", null, null, 0)
+        val unused = PartTree.Element(Kind.API, "demo-unused", "Unused", null, null, 0)
+        val demo = PartTree.Zone("demo-balcony", "Balcony", "Demo", listOf(task("demo-weather")))
+        val mine = PartTree.Zone("mine", "Mine", null, listOf(task("call")))
+        val tree = PartTree(listOf(demo, mine), setOf(
+            PartLink(PartElement(Kind.TASK, "demo-weather"), PartElement(Kind.API, "demo-api")),
+            PartLink(PartElement(Kind.TASK, "call"), PartElement(Kind.API, "demo-api")),
+            PartLink(PartElement(Kind.TASK, "call"), PartElement(Kind.ZONE, "demo-balcony"))
+        ), apis = listOf(demoApi, unused), events = listOf(PartTree.Event("demo-busy", "Busy", "demo-balcony"))).withoutDemo()
+        assertEquals(listOf("mine"), tree.zones.map { it.id })
+        assertEquals(listOf("demo-api"), tree.apis.map { it.id })
+        assertEquals(setOf(PartLink(PartElement(Kind.TASK, "call"), PartElement(Kind.API, "demo-api"))), tree.links)
+        assertTrue(tree.events.isEmpty())
+        assertTrue(tree.demoLeftOut)
+        assertEquals(tree, PartTree.read(JSONObject(tree.toJson().toString())))
+    }
 }

@@ -192,7 +192,7 @@ class BackupService(private val context: Context) : ExecutableService {
      */
     private suspend fun performExportPart(params: JSONObject, token: CancellationToken): OperationResult {
         val selection = try {
-            app.treelune.core.backup.PartSelection.read(params.getJSONObject("selection"))
+            app.treelune.core.backup.PartSelection.read(params.getJSONObject("selection")).withoutDemo()
         } catch (e: org.json.JSONException) {
             return OperationResult.error(s.shared("share_error_selection").format(e.message ?: ""))
         }
@@ -847,7 +847,7 @@ class BackupService(private val context: Context) : ExecutableService {
                 is Opened.Read -> opened.document
             }
             val selection = try {
-                app.treelune.core.backup.PartSelection.read(params.getJSONObject("selection"))
+                app.treelune.core.backup.PartSelection.read(params.getJSONObject("selection")).withoutDemo()
             } catch (e: org.json.JSONException) {
                 return OperationResult.error(s.shared("share_error_selection").format(e.message ?: ""))
             }

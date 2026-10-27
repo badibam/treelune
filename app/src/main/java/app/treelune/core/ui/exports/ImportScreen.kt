@@ -192,6 +192,7 @@ fun ImportScreen(uri: String, onBack: () -> Unit) {
                 )
 
                 Column(modifier = Modifier.padding(horizontal = UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+                    if (shown.tree.demoLeftOut) UI.Text(s.shared("share_import_demo_left_out"), TextType.CAPTION)
                     BlockingLinks(shown.tree, left, "share_import_links_left_one", "share_import_links_left_other")
                     UI.FormActions {
                         UI.Button(

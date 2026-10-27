@@ -1612,6 +1612,8 @@
     <string name="share_entries_other">Its %1$d entries</string>
     <string name="share_links_left_one">1 link to settle before creating the file.</string>
     <string name="share_links_left_other">%1$d links to settle before creating the file.</string>
+    <string name="share_demo_left_out">The demo is not shared: each phone installs its own from Settings › Demo.</string>
+    <string name="share_import_demo_left_out">This file holds the demo: it is left out, each phone installing its own from Settings › Demo.</string>
     <string name="share_create">Create the file</string>
     <string name="share_written">The file %1$s is written in the app\'s folder.</string>
     <string name="share_written_counts">Items: %1$d. Entries: %2$d.</string>

@@ -1612,6 +1612,8 @@
     <string name="share_entries_other">Ses %1$d entrées</string>
     <string name="share_links_left_one">1 lien à régler avant de créer le fichier.</string>
     <string name="share_links_left_other">%1$d liens à régler avant de créer le fichier.</string>
+    <string name="share_demo_left_out">La démo ne se partage pas : chaque téléphone installe la sienne depuis Réglages › Démo.</string>
+    <string name="share_import_demo_left_out">Ce fichier porte la démo : elle est laissée de côté, chaque téléphone installe la sienne depuis Réglages › Démo.</string>
     <string name="share_create">Créer le fichier</string>
     <string name="share_written">Le fichier %1$s est écrit dans le dossier de l\'app.</string>
     <string name="share_written_counts">Éléments : %1$d. Entrées : %2$d.</string>

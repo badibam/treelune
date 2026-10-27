@@ -141,7 +141,10 @@ fun ExportScreen(onBack: () -> Unit) {
             when {
                 treeError != null -> UI.Text(treeError!!, TextType.ERROR)
                 shown == null -> UI.LoadingIndicator()
-                else -> PartTreeChoice(shown, selection, { selection = it }, opened, { opened = it }, left)
+                else -> {
+                    PartTreeChoice(shown, selection, { selection = it }, opened, { opened = it }, left)
+                    if (shown.demoLeftOut) Column(modifier = Modifier.padding(horizontal = UI.Space.L)) { UI.Text(s.shared("share_demo_left_out"), TextType.CAPTION) }
+                }
             }
         }
 
