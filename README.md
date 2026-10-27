@@ -52,6 +52,10 @@ Each tool can be set up: its fields, its units, its reminders, how it shows on t
 
 A **variable** is a figure worked out from the entries, such as the day's calories or the week's kilometres. A Goal compares it to its target, a Chart draws it, the AI reads it. An entry can also **point** to another one, a meal to the food's sheet, a harvest to its plant.
 
+### What happens by itself
+
+A **Task** is a series of steps the app runs itself, without an AI: call a service on the web (an **API**, such as a weather forecast), add or change an entry, run a routine. It starts by hand, on a schedule, or when something happens: an entry written, a figure crossing a threshold, an **event** such as a reminder or a session ready.
+
 ### With an AI, if you want
 
 An AI knows the same pieces you do. Ask it “set me up to train for a half marathon”, and it creates the zone, the tools and the links between them. It then reads the tools, adds entries to them, creates new ones and sets them up. Everything stays possible without AI.
@@ -60,7 +64,7 @@ An AI knows the same pieces you do. Ask it “set me up to train for a half mara
 - Before any change, you can require it to show what it is about to do and wait for your approval, for the whole app, a zone, a tool or a conversation.
 - When it lacks some information, it asks you as a field to fill in.
 - It can speak as an **identity**, with its own voice and character, created in the app or imported from a file, chosen for a zone, a routine or a conversation.
-- With a **routine**, it works on its own, on a schedule: “every Sunday evening, sum up my week”. It can create routines too.
+- With a **routine**, it works on its own, on a schedule or when something happens: “every Sunday evening, sum up my week”. It can create routines too.
 - An AI running elsewhere, such as Claude, ChatGPT or a free model on your computer with LM Studio, can also plug into the app as a connector, and work on the tools from there.
 
 You bring your own API key, from one of these providers:
@@ -97,6 +101,7 @@ On first launch, a **demo** is waiting: twelve weeks in the life of Camille, who
 
 - Everything is stored on the phone. No account, no telemetry, no ads.
 - Nothing goes to an AI unless you asked for it: when you write to it, or when a scheduled routine runs. What goes then is sent only to the chosen provider, with your key, which is stored encrypted on the phone.
+- An API is called only at the address you declared, with what the Task gives it.
 - To show what exchanges cost, the app downloads a public list of model prices (LiteLLM, on GitHub). It sends nothing.
 - Once the connector is enabled, its exchanges go through an HTTPS relay whose address you give, or through Tailscale Funnel with your own Tailscale account.
 - Everything is backed up and restored as one file, which the app copies after each change into a chosen folder.
@@ -106,7 +111,7 @@ On first launch, a **demo** is waiting: twelve weeks in the life of Camille, who
 The app is in active development. It is used every day, but anything may still change, the shape of the data included. Keep backups.
 
 <!-- status -->
-- Version 0.9.2
+- Version 0.9.3
 - Android 8.0 or later
 - A 64-bit phone (arm64)
 - Languages: English, French

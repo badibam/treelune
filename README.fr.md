@@ -52,6 +52,10 @@ Chaque outil se règle : ses champs, ses unités, ses rappels, son affichage sur
 
 Une **variable** est un chiffre calculé à partir des entrées, comme les calories du jour ou les kilomètres de la semaine. Un Objectif la compare à sa cible, un Graphique la dessine, l'IA la lit. Une entrée peut aussi **pointer** vers une autre, un repas vers la fiche de l'aliment, une récolte vers sa plante.
 
+### Ce qui part tout seul
+
+Une **Tâche** est une suite d'étapes que l'app exécute elle-même, sans IA : appeler un service du web (une **API**, comme une prévision météo), ajouter ou modifier une entrée, lancer une routine. Elle part à la main, sur un planning, ou quand quelque chose arrive : une entrée écrite, un chiffre qui passe un seuil, un **événement** comme un rappel ou une séance prête.
+
 ### Avec une IA, si tu veux
 
 Une IA connaît les mêmes pièces que toi. Demande-lui « monte-moi de quoi préparer un semi-marathon », et elle crée la zone, les outils et leurs liens. Elle lit ensuite les outils, y ajoute des entrées, en crée de nouveaux et les règle. Tout reste possible sans IA.
@@ -60,7 +64,7 @@ Une IA connaît les mêmes pièces que toi. Demande-lui « monte-moi de quoi pr�
 - Avant toute modification, tu peux exiger qu'elle montre ce qu'elle va faire et attende ton accord, pour toute l'app, une zone, un outil ou une conversation.
 - Quand il lui manque une information, elle te pose la question sous forme de champ à remplir.
 - Elle peut parler sous une **identité**, avec sa voix et son caractère, créée dans l'app ou importée d'un fichier, choisie pour une zone, une routine ou une conversation.
-- Avec une **routine**, elle travaille seule, sur un planning : « chaque dimanche soir, fais-moi le bilan de la semaine ». Elle sait aussi en créer.
+- Avec une **routine**, elle travaille seule, sur un planning ou quand quelque chose arrive : « chaque dimanche soir, fais-moi le bilan de la semaine ». Elle sait aussi en créer.
 - Une IA qui tourne ailleurs, comme Claude, ChatGPT ou un modèle libre sur ton ordinateur avec LM Studio, peut aussi se brancher à l'app comme connecteur, et travailler sur les outils depuis là-bas.
 
 Tu apportes ta propre clé d'API, chez l'un de ces fournisseurs :
@@ -97,6 +101,7 @@ Au premier lancement, une **démo** t'attend : douze semaines de la vie de Camil
 
 - Tout est enregistré sur le téléphone. Aucun compte, aucune télémétrie, aucune publicité.
 - Rien ne part vers une IA sans que tu l'aies demandé : quand tu lui écris, ou quand une routine programmée tourne. Ce qui part alors va au seul fournisseur choisi, avec ta clé, gardée chiffrée sur le téléphone.
+- Une API n'est appelée qu'à l'adresse que tu as déclarée, avec ce que la Tâche lui passe.
 - Pour afficher le coût des échanges, l'app télécharge une liste publique des prix des modèles (LiteLLM, sur GitHub). Elle n'envoie rien.
 - Une fois le connecteur activé, ses échanges passent par un relais HTTPS dont tu donnes l'adresse, ou par Tailscale Funnel avec ton propre compte Tailscale.
 - Tout se sauvegarde et se restaure en un fichier, que l'app recopie après chaque changement dans un dossier choisi.
@@ -106,7 +111,7 @@ Au premier lancement, une **démo** t'attend : douze semaines de la vie de Camil
 L'app est en développement actif. Elle sert tous les jours, mais tout peut encore changer, la forme des données comprise. Garde des sauvegardes.
 
 <!-- status -->
-- Version 0.9.2
+- Version 0.9.3
 - Android 8.0 ou plus récent
 - Un téléphone 64 bits (arm64)
 - Langues : anglais, français
