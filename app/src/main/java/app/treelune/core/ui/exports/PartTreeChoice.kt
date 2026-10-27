@@ -168,9 +168,9 @@ private fun ElementChoice(
 private fun PartTree.Element.part() = PartElement(kind, id)
 
 /**
- * What a tick changes: a zone ticked takes all it holds, its tools without their entries and the
- * identities it and its routines speak as; a zone unticked lets all of it go, an identity another
- * zone ticked speaks as staying. An element ticked takes its zone, a routine its identity too;
+ * What a tick changes: a zone ticked takes all it holds, its tools without their entries, the
+ * identities it and its routines speak as and the APIs its Tasks call; a zone unticked lets all of
+ * it go, an identity another zone ticked speaks as and an API another ticked Task calls staying. An element ticked takes its zone, a routine its identity too;
  * unticked, its zone stays. An API, in no zone, goes or not on its own.
  */
 internal object Ticks {
@@ -182,6 +182,8 @@ internal object Ticks {
         val routines = ids[PartElement.Kind.ROUTINE].orEmpty()
         val identities = ids[PartElement.Kind.IDENTITY].orEmpty()
         val tasks = ids[PartElement.Kind.TASK].orEmpty()
+        // The APIs its Tasks call go with it: no API ticked, its Tasks would block the file
+        val apis = tree.links.filter { it.from.kind == PartElement.Kind.TASK && it.from.id in tasks && it.to.kind == PartElement.Kind.API }.map { it.to.id }
         return if (on) PartSelection(
             selection.zones + zone.id,
             selection.tools + tools.filter { it !in selection.tools }.associateWith { false },
@@ -189,7 +191,7 @@ internal object Ticks {
             selection.automations + routines,
             selection.identities + identities,
             selection.tasks + tasks,
-            selection.apis
+            selection.apis + apis
         ) else PartSelection(
             selection.zones - zone.id,
             selection.tools - tools.toSet(),
@@ -199,7 +201,10 @@ internal object Ticks {
                 tree.zones.none { other -> other.id != zone.id && other.id in selection.zones && other.elements.any { it.kind == PartElement.Kind.IDENTITY && it.id == identity } }
             }.toSet(),
             selection.tasks - tasks.toSet(),
-            selection.apis
+            // An API another ticked Task still calls stays
+            selection.apis - apis.filter { api ->
+                tree.links.none { it.to.kind == PartElement.Kind.API && it.to.id == api && it.from.kind == PartElement.Kind.TASK && it.from.id !in tasks && it.from.id in selection.tasks }
+            }.toSet()
         )
     }
 
@@ -219,4 +224,18 @@ internal object Ticks {
             }
         }
     }
+}
+
+/**
+ * The links that keep the file from being made, said in full at the bottom of the screen: each
+ * is said under its element too, but that one may be folded in its zone, out of sight.
+ */
+@Composable
+internal fun BlockingLinks(tree: PartTree, left: Set<PartLink>, one: String, other: String) {
+    val context = LocalContext.current
+    val s = remember { Strings.`for`(context = context) }
+    val blocking = left.filter { it.blocking }.map { PartLinks.text(it, tree::name, s::shared) }.distinct()
+    if (blocking.isEmpty()) return
+    UI.Text(if (blocking.size == 1) s.shared(one) else s.shared(other).format(blocking.size), TextType.WARNING)
+    blocking.forEach { UI.Text(it, TextType.CAPTION) }
 }

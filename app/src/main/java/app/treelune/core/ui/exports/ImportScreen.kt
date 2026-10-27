@@ -192,7 +192,7 @@ fun ImportScreen(uri: String, onBack: () -> Unit) {
                 )
 
                 Column(modifier = Modifier.padding(horizontal = UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
-                    if (blocking > 0) UI.Text(if (blocking == 1) s.shared("share_import_links_left_one") else s.shared("share_import_links_left_other").format(blocking), TextType.WARNING)
+                    BlockingLinks(shown.tree, left, "share_import_links_left_one", "share_import_links_left_other")
                     UI.FormActions {
                         UI.Button(
                             type = ButtonType.PRIMARY,

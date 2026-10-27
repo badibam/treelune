@@ -146,9 +146,7 @@ fun ExportScreen(onBack: () -> Unit) {
         }
 
         Column(modifier = Modifier.padding(horizontal = UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
-            if (part && blocking > 0) {
-                UI.Text(if (blocking == 1) s.shared("share_links_left_one") else s.shared("share_links_left_other").format(blocking), TextType.WARNING)
-            }
+            if (part && shown != null) BlockingLinks(shown, left, "share_links_left_one", "share_links_left_other")
             UI.FormActions {
                 UI.Button(
                     type = ButtonType.PRIMARY,
