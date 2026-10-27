@@ -56,7 +56,7 @@ object TrackingToolType : ToolTypeContract {
      * - value: the settings of the entries' main field, those of its field type (FieldTypeSettings);
      * - units: the units a numeric value can be in;
      * - items: the shortcuts, each a name, and for a numeric tool the value it enters and its
-     *   unit, one of the units.
+     *   unit, one of the units, and values of the user's fields its entries take (extra).
      */
     override fun getConfigSettings(context: Context): List<SettingNode> {
         val s = Strings.`for`(tool = "tracking", context = context)
@@ -78,7 +78,8 @@ object TrackingToolType : ToolTypeContract {
                     else null,
                     if (kind == TrackingKind.NUMERIC)
                         field("unit", s.tool("field_unit"), s.tool("schema_config_item_unit"), FieldType.TEXT, config = short)
-                    else null
+                    else null,
+                    SettingNode.FieldValues(TrackingConfig.EXTRA, s.tool("config_label_item_extra"), "extra_fields", s.tool("schema_config_item_extra"))
                 )
                 kind.key to listOfNotNull(
                     // A number needs its decimals, a scale its bounds and a choice its options:
@@ -95,7 +96,7 @@ object TrackingToolType : ToolTypeContract {
                             distinct = true, description = s.tool("schema_config_units_list"))
                     else null,
                     SettingNode.ListOf("items", s.tool("field_items"), SettingNode.Item.Of(item, description = s.tool("schema_config_item")),
-                        summary = item.map { it.definition.name }, description = s.tool("schema_config_items"))
+                        summary = item.filterIsInstance<SettingNode.Field>().map { it.definition.name }, description = s.tool("schema_config_items"))
                 )
             },
             descriptions = TrackingKind.entries.associate { it.key to s.tool("schema_config_type_${it.key}") }
