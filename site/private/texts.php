@@ -110,7 +110,6 @@ return [
             'identities' => ['name' => 'Identités', 'text' => "L'IA de l'app peut incarner un personnage, par exemple une professeure d'italien ou un coach."],
             'pointers' => ['name' => 'Pointeurs', 'text' => "Dans un message, un outil ou une zone se désigne directement, pour que l'IA sache de quoi il s'agit."],
             'external_access' => ['name' => 'Accès externe', 'text' => "Une IA qui tourne ailleurs, comme Claude, ChatGPT ou un modèle libre sur ton ordinateur avec LM Studio, peut lire et écrire dans l'app, le temps que tu ouvres l'accès."],
-            'themes' => ['name' => 'Thèmes', 'text' => "La même app se décline en plusieurs thèmes, presque tous avec leurs propres sons."],
         ],
         'install' => [
             'title' => 'Installer Treelune',
@@ -237,7 +236,6 @@ return [
             'identities' => ['name' => 'Identities', 'text' => 'The app’s AI can play a character, for example an Italian teacher or a coach.'],
             'pointers' => ['name' => 'Pointers', 'text' => 'In a message, a tool or a zone is pointed to directly, so that the AI knows what it is about.'],
             'external_access' => ['name' => 'External access', 'text' => 'An AI running elsewhere, such as Claude, ChatGPT or a free model on your computer with LM Studio, can read and write in the app, for as long as you open the access.'],
-            'themes' => ['name' => 'Themes', 'text' => 'The same app comes in several themes, nearly all with their own sounds.'],
         ],
         'install' => [
             'title' => 'Install Treelune',
