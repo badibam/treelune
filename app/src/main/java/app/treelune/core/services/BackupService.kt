@@ -191,7 +191,7 @@ class BackupService(private val context: Context) : ExecutableService {
      * whole backup, then cut (BackupPart); its files beside it.
      */
     private suspend fun performExportPart(params: JSONObject, token: CancellationToken): OperationResult {
-        val selection = try {
+        val asked = try {
             app.treelune.core.backup.PartSelection.read(params.getJSONObject("selection"))
         } catch (e: org.json.JSONException) {
             return OperationResult.error(s.shared("share_error_selection").format(e.message ?: ""))
@@ -202,6 +202,8 @@ class BackupService(private val context: Context) : ExecutableService {
             is Folder.Ready -> read.folder
         }
         val whole = build(token) ?: return OperationResult.cancelled()
+        // Only what the export's screen would offer: the demo never goes
+        val selection = asked.within(app.treelune.core.backup.PartTree.of(whole.json))
         val part = try {
             app.treelune.core.backup.BackupPart.cut(whole.json, selection, app.treelune.core.secrets.SecretSettings.names(app.treelune.core.apis.ApiSettings.nodes(context)))
         } catch (e: IllegalArgumentException) {
@@ -848,6 +850,7 @@ class BackupService(private val context: Context) : ExecutableService {
             }
             val selection = try {
                 app.treelune.core.backup.PartSelection.read(params.getJSONObject("selection"))
+                    .within(app.treelune.core.backup.PartTree.of(document))
             } catch (e: org.json.JSONException) {
                 return OperationResult.error(s.shared("share_error_selection").format(e.message ?: ""))
             }

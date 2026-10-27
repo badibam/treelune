@@ -28,9 +28,18 @@ class HeadingBreak internal constructor(private val text: AnnotatedString) {
         if (hyphenated) style.copy(hyphens = Hyphens.Auto, lineBreak = LineBreak.Paragraph)
         else style.copy(hyphens = Hyphens.None, lineBreak = LineBreak.Heading)
 
-    /** Reads the lines laid between words: one that ends inside a word asks for the syllables. */
+    /**
+     * Reads the lines laid between words: one that ends inside a word asks for the syllables, and
+     * so does the last one cut by the ellipsis inside a word (« Week of train… » on its two lines),
+     * which the syllables may let hold.
+     */
     val onTextLayout: (TextLayoutResult) -> Unit = { layout ->
-        if (!hyphenated && (0 until layout.lineCount - 1).any { cutInsideWord(layout.getLineEnd(it)) }) hyphenated = true
+        if (!hyphenated) {
+            val last = layout.lineCount - 1
+            val cut = (0 until last).any { cutInsideWord(layout.getLineEnd(it)) } ||
+                (last >= 0 && layout.isLineEllipsized(last) && cutInsideWord(layout.getLineEnd(last, visibleEnd = true)))
+            if (cut) hyphenated = true
+        }
     }
 
     /** Whether a line ending at [end] (exclusive) cuts a word: a letter on both sides of it. */

@@ -718,19 +718,27 @@ object BlueprintTheme : ThemeContract {
     override fun ZoneCardContainer(texture: app.treelune.core.themes.ItemTexture?, color: TagColor?, seed: String, onClick: () -> Unit, onLongClick: () -> Unit, content: @Composable () -> Unit) =
         Tile(DisplayMode.CONDENSED, texture, color, onClick, onLongClick, content)
 
-    /** A revision triangle of the alert's colour, empty: something to read, not an alarm. */
+    /**
+     * A revision triangle drawn in the ink, empty on the paper: something to read, as a drawing's
+     * revision is marked, not a warning.
+     */
     @Composable
     override fun WaitingMark() {
         val size = blueprintSize()
-        val alert = blueprintColors.alert.srgb
+        val ink = blueprintColors.ink.srgb
+        val paper = blueprintColors.paper.srgb
+        val line = blueprintStroke(1.5f)
         Box(
             modifier = Modifier.size(size.dp(22f), size.dp(20f)).drawBehind {
-                drawPath(Path().apply {
-                    moveTo(this@drawBehind.size.width / 2, 0f)
-                    lineTo(this@drawBehind.size.width, this@drawBehind.size.height)
-                    lineTo(0f, this@drawBehind.size.height)
+                val width = line.toPx()
+                val triangle = Path().apply {
+                    moveTo(this@drawBehind.size.width / 2, width / 2)
+                    lineTo(this@drawBehind.size.width - width / 2, this@drawBehind.size.height - width / 2)
+                    lineTo(width / 2, this@drawBehind.size.height - width / 2)
                     close()
-                }, alert)
+                }
+                drawPath(triangle, paper)
+                drawPath(triangle, ink, style = androidx.compose.ui.graphics.drawscope.Stroke(width = width, join = androidx.compose.ui.graphics.StrokeJoin.Miter))
             }
         )
     }

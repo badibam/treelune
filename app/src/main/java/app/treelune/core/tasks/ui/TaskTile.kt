@@ -51,8 +51,8 @@ internal data class RunLine(val id: String, val state: TaskRun.State, val starte
 internal fun stateLabel(state: TaskRun.State, s: StringsContext) = s.shared("task_run_state_${state.key}")
 
 /**
- * Where a Task stands, in one line: its last run going on or waiting, off, its next run, run on
- * demand alone; and its switch.
+ * Where a Task stands, in one line: its last run going on or waiting, off, its next run, its
+ * triggers, run on demand alone; and its switch.
  */
 @Composable
 internal fun TaskStateLine(task: Task, last: RunLine?, onToggle: (Boolean) -> Unit) {
@@ -63,10 +63,13 @@ internal fun TaskStateLine(task: Task, last: RunLine?, onToggle: (Boolean) -> Un
         val result = Coordinator(context).processUserAction("tasks.next_execution", mapOf("task_id" to task.id))
         next = (result.data?.get("next_execution_at") as? Number)?.toLong()
     }
+    val triggers = app.treelune.core.triggers.Triggers.of(task.settings)?.length() ?: 0
     val line = when {
         last != null && !last.state.ended -> stateLabel(last.state, s)
         !task.isEnabled -> s.shared("label_disabled")
         next != null -> s.shared("automation_next_execution").format(FormatUtils.formatRelativeTime(next!!, context))
+        // Without a schedule, what starts it besides a hand: its triggers, as a routine's tile says them
+        triggers > 0 -> s.shared("automation_triggers_count").format(triggers)
         else -> s.shared("automation_status_manual")
     }
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(UI.Space.S), verticalAlignment = Alignment.CenterVertically) {

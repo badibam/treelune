@@ -178,18 +178,27 @@ private fun RunRoutine(step: JSONObject, earlier: Earlier, s: StringsContext, wi
     Inputs(step.optJSONObject(TaskSteps.INPUTS) ?: JSONObject(), listOf(data), earlier, s) { with { put(TaskSteps.INPUTS, it) } }
 }
 
-/** The event a step emits, chosen among the events of the zones, then each value it carries. */
+/**
+ * The event a step emits, chosen through the app's browser, in its zone — two events of one name
+ * told apart, a new one made there (« New event… ») —, then each value it carries.
+ */
 @Composable
 private fun EmitEvent(step: JSONObject, earlier: Earlier, s: StringsContext, with: (JSONObject.() -> Unit) -> Unit) {
     val context = LocalContext.current
+    val chosen = step.optString(TaskSteps.EVENT_ID).ifEmpty { null }
+    FieldInput(
+        FieldDefinition("event", s.shared("task_step_event"), null, FieldType.REFERENCE, false,
+            mapOf(ReferenceTarget.TARGET to mapOf(ReferenceTarget.KINDS to listOf(ReferenceKind.EVENT.name)))),
+        chosen?.let { mapOf("kind" to ReferenceKind.EVENT.name, "id" to it) },
+        { value -> ReferenceTarget.referenceOf(value)?.id?.let { id -> with { put(TaskSteps.EVENT_ID, id); remove(TaskSteps.INPUTS) } } },
+        context, required = true
+    )
+    // Read again as the choice changes: the event may have just been made in the browser
     var events by remember { mutableStateOf<List<Map<*, *>>>(emptyList()) }
-    LaunchedEffect(Unit) {
+    LaunchedEffect(chosen) {
         events = (Coordinator(context).processUserAction("events.list").data?.get("events") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>()
     }
-    Choice(s.shared("task_step_event"), events.map { it["id"] as String to it["name"] as String }, step.optString(TaskSteps.EVENT_ID).ifEmpty { null }) { id ->
-        with { put(TaskSteps.EVENT_ID, id); remove(TaskSteps.INPUTS) }
-    }
-    val event = events.firstOrNull { it["id"] == step.optString(TaskSteps.EVENT_ID) } ?: return
+    val event = events.firstOrNull { it["id"] == chosen } ?: return
     val values = remember(event) { app.treelune.core.events.EventValues.read(JsonUtils.toJSONArray(event["values"] as? List<*> ?: emptyList<Any>()).toString()) }
     // Every value it declares is given: none is left out
     val inputs = step.optJSONObject(TaskSteps.INPUTS) ?: JSONObject()

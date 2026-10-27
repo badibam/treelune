@@ -295,7 +295,8 @@ fun GuideEndDialog(chapter: GuideChapter, demoInstalled: Boolean) {
     val close = { Guide.ended = null }
     UI.ConfirmDialog(
         title = s.shared("guide_end_title").format(chapter.title(context)),
-        message = (chapter.outro(context)?.let { "$it\n\n" } ?: "") + (if (next == null) s.shared("guide_end_journey_done") else ""),
+        // The outro, then the journey's end once it is: a blank line between them only
+        message = listOfNotNull(chapter.outro(context), s.shared("guide_end_journey_done").takeIf { next == null }).joinToString("\n\n"),
         confirmText = if (next != null) s.shared("guide_end_continue").format(next.title(context)) else s.shared("guide_end_open"),
         cancelText = s.shared("guide_end_later"),
         onConfirm = {

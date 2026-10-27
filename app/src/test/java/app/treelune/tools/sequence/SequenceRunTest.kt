@@ -146,7 +146,8 @@ class SequenceRunTest {
         assertEquals(1, stopped.run.count(Outcome.SKIPPED))
         val two = SequenceGestures.done(SequenceGestures.done(one, 20_000).running(), 30_000)
         assertTrue((two as Step.Finished).completed)
-        assertEquals(30_000L + SequenceRun.LEAD_IN, two.duration)
+        // From the first step's start: the lead-in is not the session
+        assertEquals(30_000L, two.duration)
     }
 
     @Test

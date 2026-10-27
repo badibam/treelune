@@ -34,6 +34,17 @@ data class PartSelection(
         .put("tasks", JSONArray(tasks.toList()))
         .put("apis", JSONArray(apis.toList()))
 
+    /**
+     * The selection cut to what [tree] offers: a selection the connector gives may name what no
+     * screen offers, the demo first (PartTree.withoutDemo), which no part carries.
+     */
+    fun within(tree: PartTree): PartSelection {
+        val offered = tree.elements.map { it.id }.toSet()
+        return PartSelection(zones.filter { id -> tree.zones.any { it.id == id } }.toSet(), tools.filterKeys { it in offered },
+            variables.filter { it in offered }.toSet(), automations.filter { it in offered }.toSet(), identities.filter { it in offered }.toSet(),
+            tasks.filter { it in offered }.toSet(), apis.filter { id -> tree.apis.any { it.id == id } }.toSet())
+    }
+
     companion object {
         /** The selection stored as [json]; a key missing or of the wrong form throws (org.json's JSONException). */
         fun read(json: JSONObject): PartSelection {

@@ -10,7 +10,11 @@ import org.json.JSONObject
  * tool group; with every link between them (PartLinks.all), which the screen filters as the boxes
  * change. Read from the app's own backup to export, from a file to import.
  */
-data class PartTree(val zones: List<Zone>, val links: Set<PartLink>, val apis: List<Element> = emptyList(), val events: List<Event> = emptyList()) {
+/**
+ * @property demoLeftOut Whether the backup held the demo, which no part carries (withoutDemo)
+ */
+data class PartTree(val zones: List<Zone>, val links: Set<PartLink>, val apis: List<Element> = emptyList(), val events: List<Event> = emptyList(),
+                    val demoLeftOut: Boolean = false) {
 
     data class Zone(val id: String, val name: String, val group: String?, val elements: List<Element>)
 
@@ -64,6 +68,28 @@ data class PartTree(val zones: List<Zone>, val links: Set<PartLink>, val apis: L
         .put("links", JSONArray(links.map { link -> JSONObject().put("from", element(link.from)).put("to", element(link.to)) }))
         .put("apis", JSONArray(apis.map { element(it) }))
         .put("events", JSONArray(events.map { JSONObject().put("id", it.id).put("name", it.name).put("zone_id", it.zoneId) }))
+        .put("demo_left_out", demoLeftOut)
+
+    /**
+     * The tree without the demo: it is never shared, each phone installing its own from Settings ›
+     * Demo, in its language and up to date, and a copy of it would be a demo the reinstall does not
+     * know. Its zones go with all they hold, its events, the links from it and to it — what of the
+     * user's names it goes then as it names a thing deleted. An API or an identity of the demo
+     * stays offered when something of the user's calls it or speaks as it.
+     */
+    fun withoutDemo(): PartTree {
+        fun demo(element: PartElement) = element.id.startsWith(app.treelune.core.demo.DemoContent.PREFIX)
+        val kept = links.filter { !demo(it.from) && (!demo(it.to) || it.to.kind == PartElement.Kind.API || it.to.kind == PartElement.Kind.IDENTITY) }.toSet()
+        val called = kept.filter { it.to.kind == PartElement.Kind.API }.map { it.to.id }.toSet()
+        val demoZones = zones.filter { demo(PartElement(PartElement.Kind.ZONE, it.id)) }.map { it.id }.toSet()
+        return PartTree(
+            zones.filter { it.id !in demoZones },
+            kept,
+            apis.filter { !demo(PartElement(PartElement.Kind.API, it.id)) || it.id in called },
+            events.filter { it.zoneId !in demoZones },
+            demoLeftOut = demoZones.isNotEmpty()
+        )
+    }
 
     companion object {
 
@@ -74,7 +100,8 @@ data class PartTree(val zones: List<Zone>, val links: Set<PartLink>, val apis: L
          * place. In a zone, the identities it and its routines speak as, its own first; then its
          * tool groups in its order then the elements without one: the tools by their place, the
          * variables by theirs, the routines and the Tasks by name. An identity two zones speak as
-         * is under each. The APIs by name, beside the zones; the events, which go unticked.
+         * is under each. The APIs by name, beside the zones; the events, which go unticked. The
+         * demo left out (withoutDemo).
          */
         fun of(document: JSONObject): PartTree {
             val data = document.getJSONObject("data")
@@ -112,7 +139,7 @@ data class PartTree(val zones: List<Zone>, val links: Set<PartLink>, val apis: L
                 Zone(id, zone.getString("name"), zone.group(), spoken + elements.sortedBy { element -> element.group?.let { toolGroups.indexOf(it) } ?: Int.MAX_VALUE })
             }, PartLinks.all(document),
                 rows(data, "apis").sortedBy { it.getString("name").lowercase() }.map { Element(PartElement.Kind.API, it.getString("id"), it.getString("name"), null, null, 0) },
-                rows(data, "events").map { Event(it.getString("id"), it.getString("name"), it.getString("zone_id")) })
+                rows(data, "events").map { Event(it.getString("id"), it.getString("name"), it.getString("zone_id")) }).withoutDemo()
         }
 
         /** The tree in its stored form [json]; one that does not read throws (org.json's JSONException). */
@@ -132,7 +159,8 @@ data class PartTree(val zones: List<Zone>, val links: Set<PartLink>, val apis: L
             json.getJSONArray("apis").let { apis -> (0 until apis.length()).map { treeElement(apis.getJSONObject(it)) } },
             json.getJSONArray("events").let { events ->
                 (0 until events.length()).map { events.getJSONObject(it) }.map { Event(it.getString("id"), it.getString("name"), it.getString("zone_id")) }
-            }
+            },
+            json.getBoolean("demo_left_out")
         )
 
         private fun element(element: PartElement): JSONObject = JSONObject().put("kind", element.kind.name).put("id", element.id)

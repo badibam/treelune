@@ -84,7 +84,9 @@ fun TaskConfigScreen(place: Place.TaskConfig, onDone: () -> Unit, onDeleted: () 
     var outputs by remember { mutableStateOf<List<List<TaskSteps.Output>>>(emptyList()) }
     var received by remember { mutableStateOf(Receivable(null, null)) }
 
-    fun snapshot() = JSONObject().put("settings", settings).put("steps", steps).put("zone_id", zoneId).toString()
+    // The steps read from their state, not from `steps`: that one is remembered at composition,
+    // and the load takes its snapshot before the next, the steps it just read not yet in it
+    fun snapshot() = JSONObject().put("settings", settings).put("steps", JSONArray(stepsText)).put("zone_id", zoneId).toString()
 
     LaunchedEffect(place.taskId) {
         if (asLoaded != null) return@LaunchedEffect
@@ -152,7 +154,12 @@ fun TaskConfigScreen(place: Place.TaskConfig, onDone: () -> Unit, onDeleted: () 
             })
         }
         saving = false
-        if (result.status == CommandStatus.SUCCESS) onDone()
+        if (result.status == CommandStatus.SUCCESS) {
+            // Moved: its page and what leads to it now stand in its new zone
+            if (place.taskId != null && zoneId != place.zoneId) app.treelune.core.navigation.Navigator.moved(
+                app.treelune.core.navigation.Place.Task(place.taskId, place.zoneId), app.treelune.core.navigation.Place.Task(place.taskId, zoneId))
+            onDone()
+        }
         else UI.Toast(result.error ?: s.shared("error_unknown"), Duration.LONG)
     }
 

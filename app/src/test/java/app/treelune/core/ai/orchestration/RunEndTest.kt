@@ -78,4 +78,15 @@ class RunEndTest {
         assertFalse(RunEnd.waits(AutomationSettings.NOTIFY_ON_PROBLEM, problem = false))
         assertFalse(RunEnd.waits(AutomationSettings.NOTIFY_NEVER, problem = true))
     }
+
+    @Test
+    fun aRunEndedInErrorSaysTheProviderErrorThatStoppedIt() {
+        val refused = SessionMessage(
+            id = "refusal", timestamp = 0, sender = MessageSender.SYSTEM, richContent = null, textContent = null,
+            aiMessage = null, aiMessageJson = null, systemMessage = SystemMessage(SystemMessageType.PROVIDER_ERROR, emptyList(), "budget reached")
+        )
+        assertEquals("budget reached", RunEnd.cause(listOf(ai("answered"), refused), SessionEndReason.ERROR))
+        assertNull(RunEnd.cause(listOf(refused), SessionEndReason.COMPLETED))
+        assertNull(RunEnd.cause(listOf(ai("answered")), SessionEndReason.ERROR))
+    }
 }

@@ -141,14 +141,15 @@ fun ExportScreen(onBack: () -> Unit) {
             when {
                 treeError != null -> UI.Text(treeError!!, TextType.ERROR)
                 shown == null -> UI.LoadingIndicator()
-                else -> PartTreeChoice(shown, selection, { selection = it }, opened, { opened = it }, left)
+                else -> {
+                    PartTreeChoice(shown, selection, { selection = it }, opened, { opened = it }, left)
+                    if (shown.demoLeftOut) Column(modifier = Modifier.padding(horizontal = UI.Space.L)) { UI.Text(s.shared("share_demo_left_out"), TextType.CAPTION) }
+                }
             }
         }
 
         Column(modifier = Modifier.padding(horizontal = UI.Space.L), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
-            if (part && blocking > 0) {
-                UI.Text(if (blocking == 1) s.shared("share_links_left_one") else s.shared("share_links_left_other").format(blocking), TextType.WARNING)
-            }
+            if (part && shown != null) BlockingLinks(shown, left, "share_links_left_one", "share_links_left_other")
             UI.FormActions {
                 UI.Button(
                     type = ButtonType.PRIMARY,

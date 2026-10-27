@@ -131,8 +131,11 @@ sealed class Step {
      * @property completed Every step gone through, rather than stopped on the way
      */
     data class Finished(override val run: SequenceRun, val endedAt: Long, val completed: Boolean) : Step() {
-        /** Its length, the pauses left out. */
-        val duration: Long get() = run.clock(endedAt) - run.startedAt
+        /**
+         * Its length, from the start of its first step: the lead-in before it left out, as the
+         * pauses are — an 8 s timer lasts 8 s. Stopped during the lead-in, it lasted nothing.
+         */
+        val duration: Long get() = (run.clock(endedAt) - (run.left.firstOrNull()?.stepStart ?: run.stepStart)).coerceAtLeast(0L)
         val pauses: Long get() = run.pauses(endedAt)
         val notDone: Int get() = run.steps.size - run.left.size
     }

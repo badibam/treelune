@@ -120,4 +120,13 @@ class PlaceStackTest {
         assertEquals(app.treelune.core.tools.EntryToOpen.Existing("e-1"), Navigator.take(runs))
         assertNull(Navigator.take(runs))
     }
+
+    @Test
+    fun `a thing moved to another zone stands in it, what is over it kept`() {
+        val config = Place.AutomationConfig("old", "r", null)
+        val stack = listOf(Place.Home, Place.Zone("old"), Place.Automation("r", "old"), config)
+        assertEquals(listOf(Place.Home, Place.Zone("new"), Place.Automation("r", "new"), config),
+            PlaceStack.moved(stack, Place.Automation("r", "old"), Place.Automation("r", "new")))
+        assertEquals(stack, PlaceStack.moved(stack, Place.Task("t", "old"), Place.Task("t", "new")))
+    }
 }

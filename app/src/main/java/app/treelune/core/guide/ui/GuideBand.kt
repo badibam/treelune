@@ -59,7 +59,8 @@ fun GuideBand() {
     val gestures = target?.let { place ->
         GuidePath.gestures(open_, chatOpen, place, { Navigator.names[it.address] }) { key, args -> s.shared(key).format(*args) }
     }
-    val here = target != null && gestures.isNullOrEmpty()
+    // A step to read is read on its place, the chat over it, or a page it opens (Guide.readsAt)
+    val here = target != null && (if (step.kind == StepKind.READ) Guide.readsAt(target) else gestures.isNullOrEmpty())
 
     Box(modifier = Modifier.fillMaxWidth().padding(horizontal = UI.Space.S, vertical = UI.Space.XS)) {
         UI.Card(type = CardType.DEFAULT, size = app.treelune.core.ui.Size.S) {

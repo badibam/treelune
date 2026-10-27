@@ -1,5 +1,7 @@
 package app.treelune.core.ai.ui.automation
 
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
@@ -122,15 +124,19 @@ fun rememberAutomationState(automation: Automation): AutomationState {
 }
 
 /**
- * A routine's state and its switch, on one line: the state takes what the switch leaves, under a
- * warning icon when something keeps it from running, which its page says in full ([withProblem]).
+ * A routine's state and its switch, on one line: the state takes what the switch leaves. When
+ * something keeps it from running, its page says it in full under a warning icon
+ * ([withProblem]); a tile, too narrow to lose an icon's width beside its switch (« Toutes /
+ * s les… »), writes its state in the warning's colour instead, the problem its description.
  */
 @Composable
 fun AutomationStateLine(automation: Automation, state: AutomationState, actions: AutomationActions, withProblem: Boolean = false) {
     if (withProblem && state.problem != null) UI.Text(state.problem, TextType.CAPTION)
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(UI.Space.S), verticalAlignment = Alignment.CenterVertically) {
-        if (state.problem != null) UI.Icon(iconName = "triangle-alert", size = 16.dp, contentDescription = state.problem, tint = UI.statusColor(app.treelune.core.ui.StatusColor.WARNING))
-        Box(modifier = Modifier.weight(1f)) { UI.Text(state.line, TextType.CAPTION, maxLines = 2) }
+        if (withProblem && state.problem != null) UI.Icon(iconName = "triangle-alert", size = 16.dp, contentDescription = state.problem, tint = UI.statusColor(app.treelune.core.ui.StatusColor.WARNING))
+        Box(modifier = Modifier.weight(1f).then(if (state.problem != null) Modifier.semantics { contentDescription = state.problem } else Modifier)) {
+            UI.Text(state.line, if (!withProblem && state.problem != null) TextType.WARNING else TextType.CAPTION, maxLines = 2)
+        }
         UI.BooleanField(label = "", value = automation.isEnabled, onValueChange = { actions.toggle(automation, it) })
     }
 }

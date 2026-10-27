@@ -127,7 +127,12 @@ fun ToolConfigScreen(
             val missing = ((migration?.get("missing_values") as? Map<*, *>)?.get("data") as? Map<*, *>).orEmpty()
                 .map { (field, count) -> field.toString() to (count as Number).toInt() }.toMap()
             when {
-                result.isSuccess -> onDone()
+                result.isSuccess -> {
+                    // Moved: its page and what leads to it now stand in its new zone
+                    if (existingToolId != null && currentZoneId != zoneId) app.treelune.core.navigation.Navigator.moved(
+                        app.treelune.core.navigation.Place.Tool(existingToolId, zoneId), app.treelune.core.navigation.Place.Tool(existingToolId, currentZoneId))
+                    onDone()
+                }
                 // Refused for values the user can give: asked for them
                 missing.isNotEmpty() -> pendingFill = missing
                 // Refused for what it loses, and for nothing else: the user decides

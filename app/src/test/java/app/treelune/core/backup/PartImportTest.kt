@@ -38,6 +38,9 @@ import java.util.zip.ZipInputStream
 @Config(sdk = [34])
 class PartImportTest {
 
+    /** What the demo's ids start with in the file these tests import: the user's own (demoExported). */
+    private val OWN = "own-"
+
     private val context get() = RuntimeEnvironment.getApplication()
     private val database get() = AppDatabase.getDatabase(context)
 
@@ -45,12 +48,41 @@ class PartImportTest {
      * The demo installed, then the whole app written into a file as the export writes it (the
      * app's folder, a document tree, has no stand-in here): its uri.
      */
+    /**
+     * The app's backup, the demo installed, its things given ids of the user's own (OWN): a part
+     * never carries the demo (PartTree.withoutDemo), and these tests need a rich one to bring
+     * back. Its identities and APIs keep their ids, held by the app, which the tests compare.
+     */
     private suspend fun demoExported(): Uri {
         DemoFixture.installed(context)
-        val file = File(context.cacheDir, "backup.zip")
+        val built = File(context.cacheDir, "built.zip")
         val service = BackupService(context)
         val token = CancellationToken()
-        assertTrue(service.writeZip(file.outputStream(), service.build(token)!!, token))
+        assertTrue(service.writeZip(built.outputStream(), service.build(token)!!, token))
+        val file = File(context.cacheDir, "backup.zip")
+        ZipInputStream(built.inputStream()).use { input ->
+            java.util.zip.ZipOutputStream(file.outputStream()).use { output ->
+                generateSequence { input.nextEntry }.forEach { entry ->
+                    val bytes = input.readBytes()
+                    if (entry.name == "backup.json") {
+                        val document = JSONObject(bytes.toString(Charsets.UTF_8))
+                        val data = document.getJSONObject("data")
+                        val kept = listOf("identities", "apis").flatMap { table ->
+                            data.getJSONArray(table).let { a -> (0 until a.length()).map { a.getJSONObject(it).getString("id") } }
+                        }.toSet()
+                        val ids = IdWords.words(document).filter { it.startsWith(DemoContent.PREFIX) && it !in kept }.distinct()
+                            .associateWith { OWN + it.removePrefix(DemoContent.PREFIX) }
+                        IdWords.replace(document, ids)
+                        output.putNextEntry(java.util.zip.ZipEntry(entry.name))
+                        output.write(document.toString().toByteArray(Charsets.UTF_8))
+                    } else {
+                        output.putNextEntry(java.util.zip.ZipEntry(entry.name))
+                        output.write(bytes)
+                    }
+                    output.closeEntry()
+                }
+            }
+        }
         return Uri.fromFile(file)
     }
 
@@ -61,12 +93,12 @@ class PartImportTest {
     }
 
     /**
-     * Everything of the demo ticked, each tool with its entries, its Tasks and its APIs, and the
-     * identities its zones and routines speak as.
+     * Everything of the demo's ticked, by their ids of the user's own (OWN), each tool with its
+     * entries, its Tasks and its APIs, and the identities its zones and routines speak as.
      */
     private fun everything(document: JSONObject): PartSelection {
         val data = document.getJSONObject("data")
-        fun rows(table: String) = data.getJSONArray(table).let { a -> (0 until a.length()).map { a.getJSONObject(it) } }.filter { it.getString("id").startsWith(DemoContent.PREFIX) }
+        fun rows(table: String) = data.getJSONArray(table).let { a -> (0 until a.length()).map { a.getJSONObject(it) } }.filter { it.getString("id").startsWith(OWN) || (table == "apis" && it.getString("id").startsWith(DemoContent.PREFIX)) }
         fun ids(table: String) = rows(table).map { it.getString("id") }
         val spoken = (rows("zones") + rows("automations")).mapNotNull { BackupPart.identityOf(it) }.toSet()
         return PartSelection(ids("zones").toSet(), ids("tool_instances").associateWith { true }, ids("variables").toSet(), ids("automations").toSet(), spoken,
@@ -75,7 +107,7 @@ class PartImportTest {
 
     // One test, the demo being installed once: a refused import first, then the whole one
     @Test
-    fun `the demo brought back whole arrives a second time under new ids, one step undone at once, a refused step leaving nothing`() = runBlocking {
+    fun `the demo's things as the user's own, brought back whole, arrive a second time under new ids, one step undone at once, a refused step leaving nothing`() = runBlocking {
         val uri = demoExported()
 
         // A step refused takes out what was written before it

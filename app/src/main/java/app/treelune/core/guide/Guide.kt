@@ -102,6 +102,19 @@ object Guide {
         return if (place == Place.Chat) Navigator.top == Place.Chat else stack[PlaceStack.baseIndex(stack)] == place && Navigator.top != Place.Chat
     }
 
+    /**
+     * Whether a READ step at [place] is read here: on it, with or without the chat over it (a
+     * step can send there, as the routines' last does), or on a page it opens directly, as a
+     * routine's execution or a Task's run, which its step tells to open. The band says « here »
+     * and Next goes on by this one rule.
+     */
+    fun readsAt(place: Place): Boolean {
+        if (place == Place.Chat) return Navigator.top == Place.Chat
+        val stack = Navigator.stack
+        val base = stack[PlaceStack.baseIndex(stack)]
+        return base == place || base.parent() == place
+    }
+
     /** The next tutorial of the journey not done, null once the journey is. */
     fun nextOfJourney(): GuideChapter? {
         val p = progress ?: return null
@@ -167,7 +180,7 @@ object Guide {
     fun next() {
         val (chapter, step) = current ?: return
         if (step.kind != StepKind.READ) return
-        target(chapter, step)?.let { if (!isOn(it)) return }
+        target(chapter, step)?.let { if (!readsAt(it)) return }
         advance(chapter, emptyMap())
     }
 

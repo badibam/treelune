@@ -560,6 +560,7 @@
     <string name="list_item_untitled">Untitled</string>
     <string name="list_item_summary_separator">·</string>
     <string name="settings_back_to_configuration">Back to the configuration</string>
+    <string name="settings_list_element">Item %1$d</string>
     <string name="settings_back_to">Back to “%1$s”</string>
     <string name="settings_back_to_field">Back to the field “%1$s”</string>
     <string name="settings_back_to_new_field">Back to the new field</string>
@@ -1084,7 +1085,7 @@
     <string name="settings_budget_event_help">An event emitted once a day when the day's spending passes the share above, with its notification: a Task or a routine that listens to it can pause what costs. One that carries nothing.</string>
     <string name="budget_title">Daily budget of the AI</string>
     <string name="budget_reached">The day's budget of the AI is reached (%1$s): no call starts until tomorrow. You can raise it in Settings › AI limits.</string>
-    <string name="budget_alert">%1$s%% of the day's budget spent: %2$s of %3$s.</string>
+    <string name="budget_alert">Over %1$s%% of the day's budget spent: %2$s of %3$s.</string>
     <string name="budget_today">Today: %1$s</string>
     <string name="budget_today_of">Today: %1$s of %2$s</string>
     <string name="budget_unpriced">These providers' models have no price, neither in the list of prices nor set by hand: their calls count for nothing in the budget. %1$s</string>
@@ -1528,6 +1529,10 @@
     <string name="action_verbalize_automations_config">Reading the routine %1$s</string>
     <string name="action_verbalize_automations_next_execution">Next run of the routine %1$s</string>
     <string name="action_verbalize_automations_list">Reading the routines</string>
+    <string name="action_verbalize_automations_duplicate">Copying the routine %1$s</string>
+    <string name="action_verbalize_automations_enable">Switching on the routine %1$s</string>
+    <string name="action_verbalize_automations_disable">Switching off the routine %1$s</string>
+    <string name="action_verbalize_automations_execute_manual">Running the routine %1$s</string>
     <string name="action_verbalize_runs_list">Reading the runs of the routine %1$s</string>
     <string name="action_verbalize_run_history">Reading a run of the routine %1$s</string>
     <string name="import_error_file">The file does not read: %1$s</string>
@@ -1612,6 +1617,8 @@
     <string name="share_entries_other">Its %1$d entries</string>
     <string name="share_links_left_one">1 link to settle before creating the file.</string>
     <string name="share_links_left_other">%1$d links to settle before creating the file.</string>
+    <string name="share_demo_left_out">The demo is not shared: each phone installs its own from Settings › Demo.</string>
+    <string name="share_import_demo_left_out">This file holds the demo: it is left out, each phone installing its own from Settings › Demo.</string>
     <string name="share_create">Create the file</string>
     <string name="share_written">The file %1$s is written in the app\'s folder.</string>
     <string name="share_written_counts">Items: %1$d. Entries: %2$d.</string>
@@ -1861,9 +1868,13 @@
     <!-- AUTOMATIONS - Execution card labels -->
     <string name="automation_scheduled_label">Planned: %1$s</string>
     <string name="automation_manual_execution">Manual run</string>
+    <string name="automation_entry_execution">Started by an entry written</string>
+    <string name="automation_event_execution">Started by an event</string>
+    <string name="automation_condition_execution">Started by a condition</string>
     <string name="automation_started_label">Started: %1$s</string>
     <string name="automation_duration_label">Duration: %1$s</string>
     <string name="automation_roundtrips_label">%1$d round trips</string>
+    <string name="automation_roundtrips_one">1 round trip</string>
     <string name="automation_tokens_label">tokens</string>
     <string name="automation_next_execution_title">Next run</string>
     <string name="automation_no_executions">No run found</string>
@@ -2731,6 +2742,7 @@
     <string name="api_try_code">Status %1$s</string>
     <string name="api_try_job">Id</string>
     <string name="api_try_raw">Raw answer</string>
+    <string name="api_raw_empty">(empty: the service answered nothing)</string>
     <string name="api_error">API: %1$s</string>
     <string name="api_error_id_required">Which API: api_id is required</string>
     <string name="api_error_not_found">No API %1$s</string>
@@ -2936,7 +2948,7 @@
     <string name="task_error_received_field">Step %1$s reads “%2$s” from the entry received, which the tools listened to do not all have: %3$s</string>
     <string name="task_trigger_entry">by an entry written</string>
     <string name="task_run_state_queued">Waiting for its turn</string>
-    <string name="task_input_received">The entry received</string>
+    <string name="task_input_received">What it received</string>
     <string name="task_input_received_entry">The entry written</string>
     <string name="task_input_received_field">The entry written › %1$s</string>
     <string name="task_run_next_poll">Asked again %1$s</string>

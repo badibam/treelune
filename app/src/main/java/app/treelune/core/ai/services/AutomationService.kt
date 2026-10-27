@@ -88,6 +88,9 @@ class AutomationService(private val context: Context) : ExecutableService {
                 "execute_manual" -> executeManual(params, token)
                 else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            // The screen that asked left: a cancellation goes on up, no error
+            throw e
         } catch (e: Exception) {
             LogManager.service("AutomationService.execute - Error: ${e.message}", "ERROR", e)
             OperationResult.error(s.shared("service_error_automation").format(e.message ?: ""))
@@ -818,7 +821,11 @@ class AutomationService(private val context: Context) : ExecutableService {
             "create" -> s.shared("action_verbalize_automations_create").format(name)
             "update" -> s.shared("action_verbalize_automations_update").format(name)
             "delete" -> s.shared("action_verbalize_automations_delete").format(name)
-            "config", "get" -> s.shared("action_verbalize_automations_config").format(name)
+            "config", "get", "get_by_seed_session" -> s.shared("action_verbalize_automations_config").format(name)
+            "duplicate" -> s.shared("action_verbalize_automations_duplicate").format(name)
+            "enable" -> s.shared("action_verbalize_automations_enable").format(name)
+            "disable" -> s.shared("action_verbalize_automations_disable").format(name)
+            "execute_manual" -> s.shared("action_verbalize_automations_execute_manual").format(name)
             "next_execution" -> s.shared("action_verbalize_automations_next_execution").format(name)
             "list", "list_all" -> s.shared("action_verbalize_automations_list")
             "waiting" -> s.shared("action_verbalize_automations_waiting")

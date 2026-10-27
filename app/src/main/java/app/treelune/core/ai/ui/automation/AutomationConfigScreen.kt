@@ -160,7 +160,12 @@ fun AutomationConfigScreen(place: Place.AutomationConfig, onDone: () -> Unit, on
             })
         }
         saving = false
-        if (result.status == CommandStatus.SUCCESS) onDone()
+        if (result.status == CommandStatus.SUCCESS) {
+            // Moved: its page and what leads to it now stand in its new zone
+            if (place.automationId != null && zoneId != place.zoneId) app.treelune.core.navigation.Navigator.moved(
+                app.treelune.core.navigation.Place.Automation(place.automationId, place.zoneId), app.treelune.core.navigation.Place.Automation(place.automationId, zoneId))
+            onDone()
+        }
         else UI.Toast(result.error ?: s.shared("automation_save_failed"), Duration.LONG)
     }
 
