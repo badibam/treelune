@@ -2942,7 +2942,7 @@
     <string name="task_error_received_field">Step %1$s reads “%2$s” from the entry received, which the tools listened to do not all have: %3$s</string>
     <string name="task_trigger_entry">by an entry written</string>
     <string name="task_run_state_queued">Waiting for its turn</string>
-    <string name="task_input_received">The entry received</string>
+    <string name="task_input_received">What it received</string>
     <string name="task_input_received_entry">The entry written</string>
     <string name="task_input_received_field">The entry written › %1$s</string>
     <string name="task_run_next_poll">Asked again %1$s</string>
