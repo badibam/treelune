@@ -6,10 +6,14 @@ import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.fields.ChoiceSettings
 import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldType
+import app.treelune.core.fields.ReferenceName
+import app.treelune.core.fields.ReferenceTarget
+import app.treelune.core.fields.loadReferenceNames
 import app.treelune.core.fields.ToolFields
 import app.treelune.core.reading.FieldReading
 import app.treelune.core.reading.Reduction
 import app.treelune.core.selection.Edge
+import app.treelune.core.selection.Reference
 import app.treelune.core.selection.EntryPeriod
 import app.treelune.core.selection.TimePoint
 import app.treelune.core.selection.TimeResolver
@@ -118,8 +122,19 @@ class ChartSources(private val context: Context) {
             "filters" to JsonUtils.toList(selection.storedFilters(fields, TimeResolver.at(now)) { s.shared(it) })
         ))
         if (!result.isSuccess) throw IllegalStateException(result.error ?: s.shared("service_error_operation_failed"))
-        val rows = (result.data?.get("entries") as? List<*>).orEmpty().filterIsInstance<Map<String, Any?>>().map { entry ->
-            Row(columns.keys.associateWith { path -> Cell.Value(FieldReading.valueAt(entry, path)) }, entryId = entry["id"] as? String)
+        val read = (result.data?.get("entries") as? List<*>).orEmpty().filterIsInstance<Map<String, Any?>>()
+        // A reference shows the name of what it designates: the names read once for the whole
+        // table, a failed read failing the chart rather than taken for a deletion
+        val referencePaths = columns.filterValues { it.type == FieldType.REFERENCE }.keys
+        val references = read.flatMap { entry -> referencePaths.flatMap { ReferenceTarget.referencesOf(FieldReading.valueAt(entry, it)) } }.toSet()
+        val names = loadReferenceNames(references, context).mapValues { (_, name) ->
+            (name as? ReferenceName.Named)?.name ?: s.shared("pointer_target_deleted")
+        }
+        val rows = read.map { entry ->
+            Row(columns.keys.associateWith { path ->
+                val value = FieldReading.valueAt(entry, path)
+                Cell.Value(if (path in referencePaths) named(value, names) else value)
+            }, entryId = entry["id"] as? String)
         }
         return ChartTable(columns, rows)
     }
@@ -176,6 +191,17 @@ class ChartSources(private val context: Context) {
     }
 
     companion object {
+        /**
+         * A reference's stored [value] with the name [names] gives what it designates, under
+         * "name", which the chart's texts show: the reference alone, or each of a list (a
+         * multiple reference, which a flatten spreads a row each). Anything else is left as is.
+         */
+        internal fun named(value: Any?, names: Map<Reference, String>): Any? = when (value) {
+            is List<*> -> value.map { named(it, names) }
+            is Map<*, *> -> ReferenceTarget.referenceOf(value)?.let { names[it] }?.let { value + ("name" to it) } ?: value
+            else -> value
+        }
+
         /** The columns of a grid's row beside its own, which a grid's column may not be named. */
         const val TIMESTAMP = "timestamp"
         const val WEEKDAY = "weekday"
