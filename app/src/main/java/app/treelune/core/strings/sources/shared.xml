@@ -248,6 +248,7 @@
     <string name="service_error_filter_value">Filter on \'%1$s\' with \'%2$s\': value %3$s unreadable, expected %4$s</string>
     <string name="filter_value_none">no value</string>
     <string name="filter_value_options">a non-empty list of options</string>
+    <string name="filter_value_references">a non-empty list of references, each {"kind", "id"}</string>
     <string name="filter_value_pair">a list of two values, the lower first</string>
     <string name="filter_value_text">a text</string>
     <string name="filter_value_number">a number</string>

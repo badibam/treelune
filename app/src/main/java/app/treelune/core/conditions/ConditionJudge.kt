@@ -34,7 +34,11 @@ object ConditionJudge {
         val type = field.type
         val values = right.map { resolved(type, it!!, resolver, text) }
         return when (op) {
-            FilterOperator.IN -> {
+            FilterOperator.IN -> if (type == FieldType.REFERENCE) {
+                // A multiple reference holds one of the references, by its id
+                val ids = ReferenceTarget.referencesOf(list(values.single())).map { it.id }
+                ReferenceTarget.referencesOf(left).any { it.id in ids }
+            } else {
                 val options = list(values.single())
                 list(left).any { it in options }
             }

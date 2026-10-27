@@ -248,6 +248,7 @@
     <string name="service_error_filter_value">Filtre sur \'%1$s\' avec \'%2$s\' : valeur %3$s illisible, attendu %4$s</string>
     <string name="filter_value_none">aucune valeur</string>
     <string name="filter_value_options">une liste d\'options non vide</string>
+    <string name="filter_value_references">une liste de références non vide, chacune {"kind", "id"}</string>
     <string name="filter_value_pair">une liste de deux valeurs, la plus petite d\'abord</string>
     <string name="filter_value_text">un texte</string>
     <string name="filter_value_number">un nombre</string>

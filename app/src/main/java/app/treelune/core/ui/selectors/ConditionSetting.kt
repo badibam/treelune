@@ -58,7 +58,7 @@ fun ConditionSetting(
         }
         val field = entered ?: rememberTermField(left) ?: return@Column
 
-        val ops = EntryFilters.operatorsFor(field.type).toList()
+        val ops = EntryFilters.operatorsFor(field).toList()
         val op = FilterOperator.of(current.optString(Conditions.OP))?.takeIf { it in ops }
         UI.FormSelection(
             label = s.shared("pointer_filter_condition"),
@@ -160,7 +160,7 @@ fun RowConditionSetting(
         )
         if (field == null) return@Column
 
-        val ops = EntryFilters.operatorsFor(field.type).toList()
+        val ops = EntryFilters.operatorsFor(field).toList()
         val op = FilterOperator.of(current.optString(Conditions.OP))?.takeIf { it in ops }
         UI.FormSelection(
             label = s.shared("pointer_filter_condition"),

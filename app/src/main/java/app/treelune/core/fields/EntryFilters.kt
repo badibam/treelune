@@ -82,6 +82,14 @@ object EntryFilters {
     private val DATE_PATTERN = Regex("^\\d{4}-\\d{2}-\\d{2}$")
     private val TIME_PATTERN = Regex("^([01]?[0-9]|2[0-3]):[0-5][0-9]$")
 
+    /**
+     * The conditions [field] can be filtered with: its type's, and for a multiple reference
+     * « contains one of », as a multiple choice, its references compared by their ids.
+     */
+    fun operatorsFor(field: FieldDefinition): Set<FilterOperator> =
+        if (field.type == FieldType.REFERENCE && ReferenceTarget.isMultiple(field.config)) setOf(FilterOperator.IN) + PRESENCE
+        else operatorsFor(field.type)
+
     /** The conditions a field of [type] can be filtered with. */
     fun operatorsFor(type: FieldType): Set<FilterOperator> = when (type) {
         FieldType.NUMERIC, FieldType.SCALE, FieldType.DURATION,
@@ -145,7 +153,7 @@ object EntryFilters {
                 ?: return Parsed.Refused(text("service_error_filter_unreadable").format(filter.toString()))
             val field = fieldAt(path, fields)
                 ?: return Parsed.Refused(text("service_error_filter_unknown_field").format(path, (fields.keys + ID).joinToString(", ")))
-            val allowed = if (path == ID) ID_OPERATORS else operatorsFor(field.type)
+            val allowed = if (path == ID) ID_OPERATORS else operatorsFor(field)
             val operator = FilterOperator.of(filter.optString(Conditions.OP))
                 ?.takeIf { it in allowed }
                 ?: return Parsed.Refused(text("service_error_filter_operator").format(
@@ -169,8 +177,8 @@ object EntryFilters {
 
     /**
      * [value] as the query binds it, or null when it does not suit the field and the condition:
-     * a list for BETWEEN (two values) and IN (options). ABSENT and PRESENT reach here only with
-     * a value, which they do not take.
+     * a list for BETWEEN (two values) and IN (options, or the ids of references). ABSENT and
+     * PRESENT reach here only with a value, which they do not take.
      */
     private fun checkValue(field: FieldDefinition, operator: FilterOperator, value: Any?): Any? = when (operator) {
         FilterOperator.ABSENT, FilterOperator.PRESENT -> null
@@ -179,7 +187,7 @@ object EntryFilters {
             ?.let { pair -> listOf(pair.opt(0), pair.opt(1)).map { single(field.type, it) ?: return null } }
         FilterOperator.IN -> (value as? JSONArray)
             ?.takeIf { it.length() > 0 }
-            ?.let { list -> (0 until list.length()).map { list.opt(it) as? String ?: return null } }
+            ?.let { list -> (0 until list.length()).map { (if (field.type == FieldType.REFERENCE) single(field.type, list.opt(it)) else list.opt(it)) as? String ?: return null } }
         FilterOperator.CONTAINS -> (value as? String)?.takeIf { it.isNotEmpty() }
         else -> single(field.type, value)
     }
@@ -200,7 +208,7 @@ object EntryFilters {
     /** The key of the string saying what value a condition on a field of [type] takes. */
     fun expectedValueKey(type: FieldType, operator: FilterOperator): String = when (operator) {
         FilterOperator.ABSENT, FilterOperator.PRESENT -> "filter_value_none"
-        FilterOperator.IN -> "filter_value_options"
+        FilterOperator.IN -> if (type == FieldType.REFERENCE) "filter_value_references" else "filter_value_options"
         FilterOperator.BETWEEN -> "filter_value_pair"
         FilterOperator.CONTAINS -> "filter_value_text"
         else -> when (type) {
@@ -289,7 +297,8 @@ object EntryFilters {
         val key = filter.field.substringAfter('.')
         val jsonPath = "$.\"$key\""
         // An empty list is no answer, as a missing key is: no option chosen, no image
-        val isList = (field.type == FieldType.CHOICE && ChoiceSettings.fromConfig(field.config).shape.isList) || field.type == FieldType.FILE
+        val isList = (field.type == FieldType.CHOICE && ChoiceSettings.fromConfig(field.config).shape.isList) || field.type == FieldType.FILE ||
+            (field.type == FieldType.REFERENCE && ReferenceTarget.isMultiple(field.config))
 
         // The value as SQL, with the arguments it binds itself
         val (expr, exprArgs) = valueExpr(filter.field)
@@ -315,7 +324,13 @@ object EntryFilters {
             FilterOperator.IN -> {
                 val options = filter.value as List<*>
                 val placeholders = options.joinToString(", ") { "?" }
-                if (isList) {
+                if (field.type == FieldType.REFERENCE) {
+                    // One of the references of the list, by the id it holds
+                    SqlCondition(
+                        "EXISTS (SELECT 1 FROM json_each($container, ?) WHERE json_extract(json_each.value, '$.id') IN ($placeholders))",
+                        listOf(jsonPath) + options.map { it as String }
+                    )
+                } else if (isList) {
                     SqlCondition(
                         "EXISTS (SELECT 1 FROM json_each($container, ?) WHERE json_each.value IN ($placeholders))",
                         listOf(jsonPath) + options.map { it as String }

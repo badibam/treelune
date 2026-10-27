@@ -76,7 +76,7 @@ fun ConditionPicker(
     if (field == null) return
 
     // A date takes a period, or no answer, or an answer
-    val ops = if (isDate) listOf(FilterOperator.ABSENT, FilterOperator.PRESENT) else EntryFilters.operatorsFor(field.type).toList()
+    val ops = if (isDate) listOf(FilterOperator.ABSENT, FilterOperator.PRESENT) else EntryFilters.operatorsFor(field).toList()
     val periodLabel = s.shared("filter_op_period")
     val labels = (if (isDate) listOf(periodLabel) else emptyList()) + ops.map { PointerDescription.operator(it, s) }
     UI.FormSelection(
@@ -175,6 +175,8 @@ private fun ValueInput(field: FieldDefinition, op: FilterOperator, value: Any?, 
     val s = remember { Strings.`for`(context = context) }
     when {
         op == FilterOperator.ABSENT || op == FilterOperator.PRESENT -> Unit
+        // The references one of which an entry holds, chosen as the field's own are
+        op == FilterOperator.IN && field.type == FieldType.REFERENCE -> FieldInput(field, JsonUtils.toValue(value), onChange, context, required = true)
         op == FilterOperator.IN -> {
             val choice = ChoiceSettings.fromConfig(field.config)
             val ticked = (value as? JSONArray)?.let { a -> (0 until a.length()).map { a.getString(it) } } ?: emptyList()

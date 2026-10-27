@@ -57,7 +57,7 @@ class ConditionCheck(private val sources: ConfigConditions.Sources, private val 
 
         // The type compared is the first side's that has one
         val compared = fields.firstNotNullOfOrNull { it } ?: return text("condition_error_untyped").format(label)
-        val operators = EntryFilters.operatorsFor(compared.type)
+        val operators = EntryFilters.operatorsFor(compared)
         if (condition.op !in operators) {
             return text("condition_error_operator").format(label, condition.op.key, compared.displayName, compared.type.name, operators.joinToString(", ") { it.key })
         }
@@ -129,7 +129,8 @@ class ConditionCheck(private val sources: ConfigConditions.Sources, private val 
         val values = list(value)
         val reads = when (op) {
             FilterOperator.ABSENT, FilterOperator.PRESENT -> false
-            FilterOperator.IN -> values != null && values.isNotEmpty() && values.all { it is String }
+            FilterOperator.IN -> values != null && values.isNotEmpty() &&
+                values.all { if (field.type == FieldType.REFERENCE) EntryFilters.single(field.type, it) != null else it is String }
             FilterOperator.CONTAINS -> value is String && value.isNotEmpty()
             // A relative date is resolved when the condition is judged: it only has to read
             else -> if ((field.type == FieldType.DATE || field.type == FieldType.DATETIME) && TimePoint.isRelative(value)) {
