@@ -57,6 +57,16 @@ object RunEnd {
         else -> throw IllegalArgumentException("Unknown notify_end '$notifyEnd'")
     }
 
+    /**
+     * What stopped a run that ended in error, as its last provider error said it (the day's
+     * budget reached, a key refused): the line of its notification, which « Error » alone left
+     * unexplained. None when no such error ended it.
+     */
+    fun cause(messages: List<SessionMessage>, endReason: SessionEndReason?): String? {
+        if (endReason != SessionEndReason.ERROR) return null
+        return messages.lastOrNull { it.systemMessage?.type == SystemMessageType.PROVIDER_ERROR }?.systemMessage?.summary
+    }
+
     /** The facts in a line, the end said when it is not COMPLETED. */
     fun line(facts: Facts, s: StringsContext): String {
         val counts = s.shared("run_facts_writes").format(facts.written, facts.failed)
@@ -98,7 +108,7 @@ object RunEnd {
         val place = app.treelune.core.navigation.Place.Execution(sessionId, result.data["automation_id"] as String, result.data["zone_id"] as String)
         val sent = coordinator.processUserAction("notifications.send", mapOf(
             "title" to result.data["automation_name"] as String,
-            "content" to (summary ?: line(facts, s)),
+            "content" to (summary ?: cause(messages, endReason) ?: line(facts, s)),
             "priority" to "default",
             "place" to place.address
         ))
