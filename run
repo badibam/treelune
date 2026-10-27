@@ -34,6 +34,12 @@ SIGNING = Path.home() / ".config" / "treelune" / "signing.env"
 # builds on ext4.
 RELEASE_CLONES = Path.home() / ".cache" / "treelune" / "release"
 
+# Each release's R8 mapping, kept under the id R8 gives it (the "r8-map-id-..." a crash's stack
+# names), compressed: the next build overwrites app/build, and a stack read without the
+# mapping of its own build names nothing. The newest MAPPINGS_KEPT are kept.
+MAPPINGS = ROOT / "tmp" / "r8-mappings"
+MAPPINGS_KEPT = 30
+
 # What the compiler says that is worth reading: the errors, and the verdict.
 BUILD_LINES = ("e:", "Error:", "ERROR:", "BUILD SUCCESSFUL", "BUILD FAILED")
 
@@ -619,6 +625,7 @@ def task_release():
     code = gradle_env(keys, "assembleRelease")
     if code != 0:
         return code
+    keep_mapping()
     apk = release_apk()
     if apk is None:
         print("No release APK was produced.", file=sys.stderr)
@@ -666,6 +673,7 @@ def task_release_tag(tag=None):
                           env={**os.environ, **keys}).returncode
     if code != 0:
         return code
+    keep_mapping(clone)
     apk = release_apk(clone)
     if apk is None:
         print("No release APK was produced.", file=sys.stderr)
@@ -674,6 +682,84 @@ def task_release_tag(tag=None):
     if code == 0:
         print(f"Release APK: {apk}")
     return code
+
+
+def keep_mapping(root=ROOT):
+    """Copy the mapping gradle just wrote under root into MAPPINGS, by its id; the oldest beyond MAPPINGS_KEPT go.
+
+    Returns the id, or None when the build left no mapping, which is said.
+    """
+    import gzip
+    mapping = root / "app/build/outputs/mapping/release/mapping.txt"
+    map_id = None
+    if mapping.is_file():
+        with mapping.open(encoding="utf-8") as lines:
+            for line in lines:
+                if not line.startswith("#"):
+                    break
+                if line.startswith("# pg_map_id:"):
+                    map_id = line.split(":", 1)[1].strip()
+                    break
+    if map_id is None:
+        print(f"No R8 mapping with its id under {mapping.parent}: this build's crashes will not be decoded.",
+              file=sys.stderr)
+        return None
+    MAPPINGS.mkdir(parents=True, exist_ok=True)
+    kept = MAPPINGS / f"{map_id}.txt.gz"
+    if not kept.exists():
+        with mapping.open("rb") as source, gzip.open(kept, "wb") as target:
+            shutil.copyfileobj(source, target)
+    else:
+        kept.touch()
+    for old in sorted(MAPPINGS.glob("*.txt.gz"), key=lambda f: f.stat().st_mtime, reverse=True)[MAPPINGS_KEPT:]:
+        old.unlink()
+    print(f"R8 mapping kept: {kept}")
+    return map_id
+
+
+def task_retrace(path=None):
+    """Decode a crash's stack with the mapping of the build it came from.
+
+    The stack comes from a file, or is pasted then ended by Ctrl+D; its "r8-map-id-..." names
+    the mapping, looked for among those release builds kept. Decoded by the SDK's retrace.
+    """
+    import gzip
+    import re
+    import tempfile
+    if path is None:
+        print("Paste the stack, then Ctrl+D:", flush=True)
+        stack = sys.stdin.read()
+    else:
+        stack = Path(path).read_text(encoding="utf-8")
+    ids = set(re.findall(r"r8-map-id-([0-9a-f]+)", stack))
+    if len(ids) != 1:
+        print("The stack names no build (r8-map-id-...)." if not ids
+              else f"The stack names several builds: {', '.join(sorted(ids))}.", file=sys.stderr)
+        return 1
+    map_id = ids.pop()
+    kept = MAPPINGS / f"{map_id}.txt.gz"
+    if not kept.is_file():
+        print(f"No mapping kept for the build {map_id} under {MAPPINGS}: built before mappings were kept, "
+              f"or among the oldest dropped beyond {MAPPINGS_KEPT}.", file=sys.stderr)
+        return 1
+    sdk = None
+    properties = ROOT / "local.properties"
+    if properties.is_file():
+        for line in properties.read_text(encoding="utf-8").splitlines():
+            if line.startswith("sdk.dir="):
+                sdk = Path(line.split("=", 1)[1].strip())
+    retrace = sdk / "cmdline-tools" / "latest" / "bin" / "retrace" if sdk else None
+    if retrace is None or not retrace.is_file():
+        print(f"No retrace in the SDK's command-line tools ({retrace}): sdkmanager \"cmdline-tools;latest\".",
+              file=sys.stderr)
+        return 1
+    with tempfile.TemporaryDirectory() as work:
+        mapping = Path(work) / "mapping.txt"
+        with gzip.open(kept, "rb") as source, mapping.open("wb") as target:
+            shutil.copyfileobj(source, target)
+        trace = Path(work) / "stack.txt"
+        trace.write_text(stack, encoding="utf-8")
+        return subprocess.run([str(retrace), str(mapping), str(trace)], check=False).returncode
 
 
 def release_apk(root=ROOT):
@@ -985,6 +1071,7 @@ ACTIONS = {
     "release-tag": task_release_tag,
     "install-release": task_install_release,
     "provider-facts": task_provider_facts,
+    "retrace": task_retrace,
     "db": task_db,
     "bench": task_bench,
     "bugs": task_bugs,
@@ -1010,6 +1097,7 @@ LABELS = {
     "release-tag": "release-tag       assemble the signed release to publish, from a clean clone of the tag on HEAD",
     "install-release": "install-release   assemble, install and start the release",
     "provider-facts": "provider-facts    check the app against the providers' facts (run by release)",
+    "retrace": "retrace    decode a crash's stack with the R8 mapping of its build (a file, or pasted)",
     "db": "db         back up or restore the device database",
     "bench": "bench      free models played on the app's scenarios, on the emulator",
     "bugs": "bugs       the bugs noted on the phone (Dev › Treelune) into TODO.md, then deleted there",
@@ -1063,7 +1151,7 @@ def menu():
     choices += [Separator("Device")]
     choices += [Choice(LABELS[k], k) for k in ("logs", "devices", "db", "bench", "bugs")]
     choices += [Separator("Release")]
-    choices += [Choice(LABELS[k], k) for k in ("release", "install-release", "release-tag", "provider-facts")]
+    choices += [Choice(LABELS[k], k) for k in ("release", "install-release", "release-tag", "provider-facts", "retrace")]
     choices += [Separator("Theme")]
     choices += [Choice(LABELS[k], k) for k in ("themes", "tracks")]
     choices += [Separator("Site")]
