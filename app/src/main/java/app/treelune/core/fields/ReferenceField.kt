@@ -5,11 +5,14 @@ import app.treelune.core.selection.ReferenceKind
 import org.json.JSONObject
 
 /**
- * What a REFERENCE field accepts, from its config: `{"target": {"kinds": [...], "tool_instances": [...]}}`.
+ * What a REFERENCE field accepts, from its config: `{"target": {"kinds": [...], "tool_instances": [...]}, "multiple"?}`.
  *
  * [kinds] are the kinds of thing a value may designate; [toolInstances], with ENTRY among the
  * kinds, restricts the entries to those of these tool instances ("aliment": the entries of
  * Aliments and Recipes), and the input then lists their entries. Empty, any entry is accepted.
+ *
+ * A field set [MULTIPLE] holds a list of references, distinct, in the order they were added,
+ * without a limit; one without holds a single reference ([referencesOf] reads both).
  */
 data class ReferenceTarget(val kinds: Set<ReferenceKind>, val toolInstances: List<String>) {
 
@@ -23,6 +26,11 @@ data class ReferenceTarget(val kinds: Set<ReferenceKind>, val toolInstances: Lis
         const val TARGET = "target"
         const val KINDS = "kinds"
         const val TOOL_INSTANCES = "tool_instances"
+        /** Beside the target in a field's config, not inside it: a change of target narrows what the field takes */
+        const val MULTIPLE = "multiple"
+
+        /** Whether a field of [config] holds a list of references. */
+        fun isMultiple(config: Map<String, Any>?): Boolean = config?.get(MULTIPLE) == true
 
         /** The target of a field's [config]; no kind when the config says none, which its validation refuses. */
         fun fromConfig(config: Map<String, Any>?): ReferenceTarget {
@@ -50,6 +58,16 @@ data class ReferenceTarget(val kinds: Set<ReferenceKind>, val toolInstances: Lis
             }
             val kind = ReferenceKind.entries.firstOrNull { it.name == kindName } ?: return null
             return runCatching { Reference(kind, (id as? String)?.takeIf { it.isNotEmpty() }, (field as? String)?.takeIf { it.isNotEmpty() }) }.getOrNull()
+        }
+
+        /**
+         * The references a stored value holds, in their order: the one of a single reference, each
+         * of a list (a multiple field's), none for a value that holds none.
+         */
+        fun referencesOf(value: Any?): List<Reference> = when (value) {
+            is List<*> -> value.mapNotNull { referenceOf(it) }
+            is org.json.JSONArray -> (0 until value.length()).mapNotNull { referenceOf(value.opt(it)) }
+            else -> listOfNotNull(referenceOf(value))
         }
     }
 }

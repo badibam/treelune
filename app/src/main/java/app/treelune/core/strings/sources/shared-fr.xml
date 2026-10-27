@@ -1342,6 +1342,7 @@
     <string name="field_type_choice_display_name">Choix</string>
     <string name="field_type_choice_description">Choix unique ou multiple parmi des options prédéfinies</string>
     <string name="field_type_choice_multiple_description">La valeur est une liste d\'options, sans ordre</string>
+    <string name="field_type_reference_multiple_description">La valeur est une liste de références, chacune une fois, dans l\'ordre où elles ont été ajoutées</string>
     <string name="field_type_choice_ordered_description">La valeur est la liste des options dans l\'ordre choisi, un classement. Exclut multiple et open.</string>
     <string name="field_type_choice_open_description">Une valeur hors des options y est ajoutée par l\'écriture qui l\'apporte ; fermé, elle est refusée. Des tags sont un choix multiple ouvert.</string>
     <string name="field_type_boolean_display_name">Booléen</string>
@@ -1371,6 +1372,7 @@
     <string name="reference_kind_entry">Entrée</string>
     <string name="reference_kind_variable">Variable</string>
     <string name="field_reading_reference">Désigne : %1$s, écrit {"kind", "id"}.</string>
+    <string name="field_reading_reference_multiple">Une liste de références, chacune une fois.</string>
     <string name="field_reading_reference_tools">Seulement les entrées des outils %1$s.</string>
     <string name="field_type_file_display_name">Fichier</string>
     <string name="field_reading_files">Une liste d\'ids de fichiers, dans leur ordre, chacun d\'une sorte parmi %1$s. À la lecture, chacun vient avec sa sorte, sa taille en octets et ce qui va avec sa sorte — la largeur et la hauteur d\'une image en pixels, la durée d\'un audio ou d\'une vidéo, le nom et les lignes d\'un texte —, jamais le fichier lui-même : IMAGES montre les images, FILE lit un texte. À l\'écriture, les ids seuls ; une image de la conversation entre par son id, copiée pour l\'entrée.</string>

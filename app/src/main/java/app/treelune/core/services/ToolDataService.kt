@@ -1360,9 +1360,9 @@ class ToolDataService(private val context: Context) : ExecutableService {
             Triple(userFields(target), extraJson?.let { JsonUtils.toMap(it) } ?: emptyMap<String, Any?>(), before?.extra?.let { JsonUtils.toMap(it) })
         )
         for ((fields, values, previous) in containers) {
-            for (field in fields.filter { it.type == FieldType.REFERENCE }) {
-                val reference = ReferenceTarget.referenceOf(values[field.name]) ?: continue
-                if (ReferenceTarget.referenceOf(previous?.get(field.name)) == reference) continue
+            // Each reference of a multiple field, those it already held left unchecked
+            for (field in fields.filter { it.type == FieldType.REFERENCE }) for (reference in ReferenceTarget.referencesOf(values[field.name])) {
+                if (reference in ReferenceTarget.referencesOf(previous?.get(field.name))) continue
                 val error = when (reference.kind) {
                     ReferenceKind.APP -> null
                     ReferenceKind.ZONE -> s.shared("field_value_reference_not_found").takeIf { database.zoneDao().getZoneById(reference.id!!) == null }

@@ -1342,6 +1342,7 @@
     <string name="field_type_choice_display_name">Choice</string>
     <string name="field_type_choice_description">Single or multiple choice among predefined options</string>
     <string name="field_type_choice_multiple_description">The value is a list of options, in no particular order</string>
+    <string name="field_type_reference_multiple_description">The value is a list of references, each once, in the order they were added</string>
     <string name="field_type_choice_ordered_description">The value is a list of options in the order chosen, a ranking. Excludes multiple and open.</string>
     <string name="field_type_choice_open_description">A value outside the options is added to them by the write that brings it; closed, it is refused. Tags are a multiple open choice.</string>
     <string name="field_type_boolean_display_name">Boolean</string>
@@ -1371,6 +1372,7 @@
     <string name="reference_kind_entry">Entry</string>
     <string name="reference_kind_variable">Variable</string>
     <string name="field_reading_reference">Points to: %1$s, written {"kind", "id"}.</string>
+    <string name="field_reading_reference_multiple">A list of them, each once.</string>
     <string name="field_reading_reference_tools">Only the entries of the tools %1$s.</string>
     <string name="field_type_file_display_name">File</string>
     <string name="field_reading_files">A list of file ids, in their order, each of a kind among %1$s. Read, each comes with its kind, its size in bytes and what goes with its kind — an image's width and height in pixels, an audio's or a video's duration, a text's name and lines —, never the file itself: IMAGES shows the images, FILE reads a text. Written, the ids alone; an image of the conversation goes in by its id, copied for the entry.</string>

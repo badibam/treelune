@@ -114,15 +114,18 @@ object SettingsSchemaGenerator {
         }
 
     /**
-     * A value of the field being defined, of its type whatever its config: a choice's options are
-     * set beside it, so either shape of choice is taken here and the service checks the value
-     * against the field itself (FieldConfigValidator).
+     * A value of the field being defined, of its type whatever its config: a choice's options and
+     * a reference's shape are set beside it, so either shape is taken here and the service checks
+     * the value against the field itself (FieldConfigValidator).
      */
     private fun valueOfDefinedSchema(field: SettingNode.Field): JSONObject? {
         if (!field.valueOfDefined) return null
         val schema = if (field.definition.type == FieldType.CHOICE) {
             // One option, or a list of them for a multiple choice or a ranking
             JSONObject().put("type", org.json.JSONArray().put("string").put("array"))
+        } else if (field.definition.type == FieldType.REFERENCE) {
+            // One reference, or a list of them for a multiple reference
+            JSONObject().put("type", org.json.JSONArray().put("object").put("array"))
         } else {
             // A number's decimals are a precision rounded at the write, which its schema does
             // not hold: any will do to write it

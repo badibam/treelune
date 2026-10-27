@@ -105,6 +105,7 @@ object FieldValueSchema {
                 val target = ReferenceTarget.fromConfig(config)
                 listOfNotNull(
                     text("field_reading_reference").format(target.kinds.joinToString(", ") { it.name }),
+                    text("field_reading_reference_multiple").takeIf { ReferenceTarget.isMultiple(config) },
                     target.toolInstances.takeIf { it.isNotEmpty() }?.let { text("field_reading_reference_tools").format(it.joinToString(", ")) }
                 )
             }
@@ -306,7 +307,7 @@ object FieldValueSchema {
             }
 
             FieldType.REFERENCE -> {
-                JSONObject().apply {
+                val reference = JSONObject().apply {
                     // The thing's kind and id, never its name: the kinds the field takes, an id
                     // for anything but the app (FieldValueValidator), whose existence the service
                     // checks when the value is written
@@ -320,6 +321,10 @@ object FieldValueSchema {
                     put("required", JSONArray().put("kind"))
                     put("additionalProperties", false)
                     put("format", REFERENCE)
+                }
+                // A multiple field: a list of them, each once, the format on each item so that
+                // whatever walks the schema (ModelValues) finds every reference
+                (if (ReferenceTarget.isMultiple(fieldDef.config)) JSONObject().put("type", "array").put("items", reference).put("uniqueItems", true) else reference).apply {
                     if (fieldDef.description != null) {
                         put("description", fieldDef.description)
                     }

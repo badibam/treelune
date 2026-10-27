@@ -194,7 +194,8 @@ object FieldTypeSettings {
                     shownWith = SettingNode.ShownWith(ReferenceTarget.KINDS, ReferenceKind.ENTRY.name),
                     description = text("field_type_reference_tool_instances_list_description")
                 )
-            ), required = true, description = text("field_type_reference_target_description"))
+            ), required = true, description = text("field_type_reference_target_description")),
+            flag(ReferenceTarget.MULTIPLE, "field_config_multiple", "field_type_reference_multiple_description", text)
         )
         FieldType.FILE -> listOf(
             field(FileField.KINDS, "field_config_file_kinds", FieldType.CHOICE, text, required = true,

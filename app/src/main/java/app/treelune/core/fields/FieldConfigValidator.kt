@@ -170,7 +170,7 @@ object FieldConfigValidator {
 
     /**
      * Validates REFERENCE field config.
-     * Config: {target: {kinds (at least one), tool_instances? (with ENTRY among the kinds)}}
+     * Config: {target: {kinds (at least one), tool_instances? (with ENTRY among the kinds)}, multiple?}
      */
     private fun validateReferenceConfig(config: Map<String, Any>?, s: app.treelune.core.strings.StringsContext): ValidationResult {
         val target = ReferenceTarget.fromConfig(config)
@@ -179,6 +179,9 @@ object FieldConfigValidator {
         }
         if (target.toolInstances.isNotEmpty() && app.treelune.core.selection.ReferenceKind.ENTRY !in target.kinds) {
             return ValidationResult(isValid = false, errorMessage = s.shared("field_validation_reference_tool_instances"))
+        }
+        config?.get(ReferenceTarget.MULTIPLE)?.takeIf { it !is Boolean }?.let {
+            return ValidationResult(isValid = false, errorMessage = s.shared("field_validation_choice_flag_type").format(ReferenceTarget.MULTIPLE))
         }
         return ValidationResult(isValid = true)
     }
