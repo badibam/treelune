@@ -307,12 +307,19 @@ private fun CycleEditor(
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
 
+    // What is typed, kept apart from the cycle: emptied to type another number, it stays empty
+    // instead of showing the last valid one again; the cycle takes each whole number from 1
+    var typed by rememberSaveable { mutableStateOf(every.toString()) }
+    if (typed.toIntOrNull() != every && typed.isNotEmpty() && typed.toIntOrNull()?.let { it >= 1 } == true) typed = every.toString()
     Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
         UI.FormField(
             required = false,
             label = s.shared(if (days) "schedule_every_days_field" else "schedule_every_weeks_field"),
-            value = every.toString(),
-            onChange = { text -> text.toIntOrNull()?.takeIf { it >= 1 }?.let(onEveryChange) },
+            value = typed,
+            onChange = { text ->
+                typed = text
+                text.toIntOrNull()?.takeIf { it >= 1 }?.let(onEveryChange)
+            },
             fieldType = FieldType.NUMERIC
         )
         if (every > 1 && starts.isNotEmpty()) {
