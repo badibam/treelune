@@ -292,8 +292,10 @@ object TaskRunner {
                 put(key, when {
                     // A file an API gives comes down into the field, with that API's key on its server
                     field?.type == FieldType.FILE && value is String -> listOf(download(context, value, FileField.kinds(field.config), apiOf(input, steps)))
-                    // The entry a step created, designated in a field that holds a Reference
+                    // The entry a step created, designated in a field that holds a Reference; a
+                    // multiple one holds it as a list of one
                     field?.type == FieldType.REFERENCE && value is String -> mapOf("kind" to "ENTRY", "id" to value)
+                        .let { if (app.treelune.core.fields.ReferenceTarget.isMultiple(field.config)) listOf(it) else it }
                     // An operation's entry, given by its id; an entry an event carries, too
                     kind == TaskSteps.TOOL_OPERATION && key == "id" -> idOf(value)
                     kind == TaskSteps.EMIT_EVENT -> idOf(value)
