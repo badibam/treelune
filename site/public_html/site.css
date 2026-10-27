@@ -355,9 +355,10 @@ section[data-explore] > .wrap { flex: 1; display: flex; flex-direction: column; 
   .ex-caption .theme-label { display: none; }
 }
 
-/* Other pieces: text cards, a breath between the phones */
+/* Other pieces: text cards, a breath between the phones. Three columns: the nine cards fill three rows,
+   each text wide enough for its card to stay short, so that the section holds in the screen's height */
 .pieces h2 { margin-bottom: min(24px, 3svh); }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: min(20px, 2.4svh); }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: min(20px, 2.4svh); }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: min(18px, 2.2svh) 18px; display: flex; flex-direction: column; gap: 6px; }
 .card h3 { margin: 0; font-size: clamp(14px, 2.5svh, 18px); display: flex; align-items: center; gap: 12px; }
 .card p { margin: 0; color: var(--muted); font-size: clamp(12px, 2.1svh, 15px); }
