@@ -64,7 +64,7 @@ An AI knows the same pieces you do. Ask it “set me up to train for a half mara
 - Before any change, you can require it to show what it is about to do and wait for your approval, for the whole app, a zone, a tool or a conversation.
 - When it lacks some information, it asks you as a field to fill in.
 - It can speak as an **identity**, with its own voice and character, created in the app or imported from a file, chosen for a zone, a routine or a conversation.
-- With a **routine**, it works on its own, on a schedule or when something happens: “every Sunday evening, sum up my week”. It can create routines too.
+- A **routine** is a message for it, prepared once. It works on it on its own, on a schedule or when something happens: “every Sunday evening, sum up my week”. Or the routine opens a conversation you come back to: “let’s review my week”. It can create routines too.
 - An AI running elsewhere, such as Claude, ChatGPT or a free model on your computer with LM Studio, can also plug into the app as a connector, and work on the tools from there.
 
 You bring your own API key, from one of these providers:

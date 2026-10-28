@@ -64,7 +64,7 @@ Une IA connaît les mêmes pièces que toi. Demande-lui « monte-moi de quoi pr�
 - Avant toute modification, tu peux exiger qu'elle montre ce qu'elle va faire et attende ton accord, pour toute l'app, une zone, un outil ou une conversation.
 - Quand il lui manque une information, elle te pose la question sous forme de champ à remplir.
 - Elle peut parler sous une **identité**, avec sa voix et son caractère, créée dans l'app ou importée d'un fichier, choisie pour une zone, une routine ou une conversation.
-- Avec une **routine**, elle travaille seule, sur un planning ou quand quelque chose arrive : « chaque dimanche soir, fais-moi le bilan de la semaine ». Elle sait aussi en créer.
+- Une **routine** est un message pour elle, préparé une fois. Elle le traite seule, sur un planning ou quand quelque chose arrive : « chaque dimanche soir, fais-moi le bilan de la semaine ». Ou la routine ouvre une conversation qui revient : « faisons le point sur ma semaine ». Elle sait aussi en créer.
 - Une IA qui tourne ailleurs, comme Claude, ChatGPT ou un modèle libre sur ton ordinateur avec LM Studio, peut aussi se brancher à l'app comme connecteur, et travailler sur les outils depuis là-bas.
 
 Tu apportes ta propre clé d'API, chez l'un de ces fournisseurs :

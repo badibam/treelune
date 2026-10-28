@@ -101,7 +101,7 @@ return [
             'pieces_title' => 'Et ce qui les relie',
         ],
         'pieces' => [
-            'routines' => ['name' => 'Routines', 'text' => "L'IA de l'app travaille seule à l'heure prévue, par exemple pour un bilan, un menu ou une leçon."],
+            'routines' => ['name' => 'Routines', 'text' => "Un message préparé une fois : l'IA le traite seule à l'heure prévue, ou il ouvre une conversation."],
             'tasks' => ['name' => 'Tâches', 'text' => "Des étapes que l'app fait seule, sans IA, comme appeler un service du web ou noter une entrée."],
             'apis' => ['name' => 'API', 'text' => "Un service du web se déclare une fois, comme la météo du jour, et une Tâche l'appelle."],
             'events' => ['name' => 'Événements', 'text' => "Un rappel, une alerte ou une Tâche en fait partir d'autres, d'une zone à l'autre."],
@@ -227,7 +227,7 @@ return [
             'pieces_title' => 'And what ties them together',
         ],
         'pieces' => [
-            'routines' => ['name' => 'Routines', 'text' => 'The app’s AI works on its own at the set time, for example for a review, a menu or a lesson.'],
+            'routines' => ['name' => 'Routines', 'text' => 'A message prepared once: the AI handles it alone at the set time, or it opens a conversation.'],
             'tasks' => ['name' => 'Tasks', 'text' => 'Steps the app runs alone, without an AI, such as calling a web service or noting an entry.'],
             'apis' => ['name' => 'APIs', 'text' => 'A service on the web is declared once, such as the day’s weather, and a Task calls it.'],
             'events' => ['name' => 'Events', 'text' => 'A reminder, an alert or a Task sets others off, from one zone to another.'],
