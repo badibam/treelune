@@ -954,7 +954,10 @@ class CommandExecutor(private val context: Context) {
     private fun schemaForModel(content: String): String =
         SchemaNotation.render(SchemaModelView.forModel(JSONObject(content), AppConfigManager.getDateTimeConfig().getZoneId()))
 
-    /** A tool instance of a result, its config in the form the model reads, its conditions' values included (ConditionValues). */
+    /**
+     * A tool instance of a result, its config in the form the model reads, its conditions' values
+     * (ConditionValues) and the values of its fields (FieldValuesForModel) included.
+     */
     private suspend fun configForModel(instance: Any?, timezone: java.time.ZoneId): Any? {
         val map = instance as? Map<*, *> ?: return instance
         val config = map["config"] ?: return instance
@@ -962,8 +965,10 @@ class CommandExecutor(private val context: Context) {
         val toolType = app.treelune.core.tools.ToolTypeManager.getToolType(tooltype)
             ?: throw IllegalStateException("Unknown tooltype $tooltype")
         val schema = JSONObject(app.treelune.core.tools.ToolConfigSettings.schema(toolType, "${tooltype}_config", context).content)
-        val values = app.treelune.core.ai.processing.ConditionValues(app.treelune.core.conditions.AppConditionSources(context, toolType.getRowFields()), timezone) { s.shared(it) }
-            .toModel(app.treelune.core.tools.ToolConfigSettings.nodes(toolType, context), JsonUtils.toJSONObject(JsonUtils.toMap(config)))
+        val nodes = app.treelune.core.tools.ToolConfigSettings.nodes(toolType, context)
+        val conditions = app.treelune.core.ai.processing.ConditionValues(app.treelune.core.conditions.AppConditionSources(context, toolType.getRowFields()), timezone) { s.shared(it) }
+            .toModel(nodes, JsonUtils.toJSONObject(JsonUtils.toMap(config)))
+        val values = app.treelune.core.ai.processing.FieldValuesForModel.toModel(nodes, conditions, timezone)
         return map.toMutableMap().apply { put("config", ModelValues.toModel(JsonUtils.toMap(values), schema, timezone)) }
     }
 

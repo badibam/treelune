@@ -29,7 +29,7 @@ object SettingProblems {
             is SettingNode.Term -> config.optJSONObject(node.name)?.let { !termWritten(it) } ?: node.required
             is SettingNode.Selection -> node.required && config.optJSONObject(node.name) == null
             // An empty sort is the newest first
-            is SettingNode.Sort -> false
+            is SettingNode.Sort, is SettingNode.FieldValues -> false
             is SettingNode.Period -> node.required && config.optJSONObject(node.name) == null
             is SettingNode.Instants -> node.required && (config.optJSONArray(node.name)?.length() ?: 0) == 0
             is SettingNode.Section -> any(node.nodes, config)

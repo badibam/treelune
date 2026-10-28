@@ -19,7 +19,7 @@ import java.time.format.DateTimeParseException
  * and DURATION_MILLIS) and cannot disagree on where a date or a duration sits.
  *
  * A variant (oneOf, a generated config's shape per option) is followed by the branch whose
- * selector the value holds; a second variant, branching each of those again, by its own.
+ * selector the value holds.
  *
  * The schema says where to convert, never the look of a value: a TEXT field holding
  * "2026-09-25T10:00:00" or "PT1H" stays text. A property the schema does not describe is left
@@ -207,12 +207,15 @@ object ModelValues {
     }
 
     /**
-     * Whether [value] holds every constant [branch] requires of its properties. A branch a second
-     * variant split again (an API's key place, then its response) holds its constants in each of
-     * its own branches: one of them must be held.
+     * Whether [value] holds every constant [branch] requires of its properties, a selector left
+     * out holding its default, as the service reads it (ToolConfigSettings.withDefaults): a
+     * Sequence's expiry, beside its variant. A branch that branches again (two variants in one
+     * object) has no properties of its own: it holds when one of its branches does.
      */
     private fun holdsSelectors(value: Any?, branch: JSONObject): Boolean {
-        branch.optJSONArray("oneOf")?.let { nested -> return (0 until nested.length()).any { holdsSelectors(value, nested.getJSONObject(it)) } }
+        branch.optJSONArray("oneOf")?.takeIf { !branch.has("properties") }?.let { nested ->
+            return (0 until nested.length()).any { holdsSelectors(value, nested.getJSONObject(it)) }
+        }
         val properties = branch.optJSONObject("properties") ?: return false
         return properties.keys().asSequence().all { key ->
             val property = properties.getJSONObject(key)
@@ -221,7 +224,7 @@ object ModelValues {
                 is JSONObject -> value.opt(key)
                 is Map<*, *> -> value[key]
                 else -> null
-            }
+            }?.takeIf { it != JSONObject.NULL } ?: property.opt("default")
             held == property.get("const")
         }
     }

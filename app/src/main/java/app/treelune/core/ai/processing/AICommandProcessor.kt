@@ -645,7 +645,8 @@ class AICommandProcessor(private val context: Context) {
     /**
      * [params] with the config's dates and durations turned into milliseconds, where the
      * config schema of its tooltype marks them (a Messages tool's delays, its schedule's dates)
-     * or a condition's other side is one (ConditionValues),
+     * or a condition's other side is one (ConditionValues), or a value of the user's fields is
+     * given for a field holding one (FieldValuesForModel),
      * and those of "fill_values" where the new config's entry schema marks them.
      * The tooltype is the one injectTooltypeIfNeeded read from the tool for an update.
      */
@@ -658,8 +659,11 @@ class AICommandProcessor(private val context: Context) {
         // The written values of its conditions, by the type each faces (ConditionValues)
         @Suppress("UNCHECKED_CAST")
         val storedConfig = (ModelValues.fromModel(config, schema, zone) as? Map<String, Any?>)?.let { values ->
-            JsonUtils.toMap(ConditionValues(app.treelune.core.conditions.AppConditionSources(context, toolType.getRowFields()), zone) { s.shared(it) }
-                .toStored(app.treelune.core.tools.ToolConfigSettings.nodes(toolType, context), JsonUtils.toJSONObject(values)))
+            val nodes = app.treelune.core.tools.ToolConfigSettings.nodes(toolType, context)
+            val conditions = ConditionValues(app.treelune.core.conditions.AppConditionSources(context, toolType.getRowFields()), zone) { s.shared(it) }
+                .toStored(nodes, JsonUtils.toJSONObject(values))
+            // The values of its fields, by the field each is given for (FieldValuesForModel)
+            JsonUtils.toMap(FieldValuesForModel.toStored(nodes, conditions, zone))
         } ?: return params
         return params.toMutableMap().apply {
             put("config", storedConfig)

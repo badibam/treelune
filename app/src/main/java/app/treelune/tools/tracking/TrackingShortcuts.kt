@@ -4,13 +4,15 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * A shortcut of a tracking tool: a name given to the entries it creates, and for a numeric tool
- * the value it enters and its unit.
+ * A shortcut of a tracking tool: a name given to the entries it creates, for a numeric tool the
+ * value it enters and its unit, and values of the user's fields, by name ("Salmon" designating
+ * the salmon's card): its entries take them, a field it leaves out its default value.
  */
 data class TrackingShortcut(
     val name: String,
     val value: Number? = null,
-    val unit: String? = null
+    val unit: String? = null,
+    val extra: Map<String, Any?> = emptyMap()
 )
 
 /**
@@ -26,10 +28,14 @@ object TrackingConfig {
             TrackingShortcut(
                 name = item.getString("name"),
                 value = if (item.has("value")) item.get("value") as Number else null,
-                unit = item.optString("unit").takeIf { it.isNotEmpty() }
+                unit = item.optString("unit").takeIf { it.isNotEmpty() },
+                extra = item.optJSONObject(EXTRA)?.let { app.treelune.core.utils.JsonUtils.toMap(it) }.orEmpty()
             )
         }
     }
+
+    /** Where a shortcut holds the values of the user's fields its entries take. */
+    const val EXTRA = "extra"
 
     /** The units a numeric value can be in, in the order the config lists them. */
     fun units(config: JSONObject): List<String> {
@@ -45,6 +51,7 @@ object TrackingConfig {
             put("name", shortcut.name)
             shortcut.value?.let { put("value", it) }
             shortcut.unit?.let { put("unit", it) }
+            if (shortcut.extra.isNotEmpty()) put(EXTRA, app.treelune.core.utils.JsonUtils.toJSONObject(shortcut.extra))
         })
         next.put("items", items)
         return next
