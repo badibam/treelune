@@ -130,4 +130,22 @@ class ModelValuesTest {
 
         assertEquals("2025-03-15T14:30:00", out.get("elsewhere"))
     }
+
+    @Test
+    fun aVariantInsideAVariant_isFollowedToTheBranchItsValueHolds() {
+        // Two variants in one object, as a generated config gives them: branches of branches,
+        // without properties of their own at the first level (a Sequence's timer)
+        fun branch(variant: String, signal: String, extra: JSONObject) = JSONObject().put("type", "object").put("properties", extra
+            .put("variant", JSONObject().put("const", variant)).put("signal", JSONObject().put("const", signal)))
+        val duration = JSONObject().put("type", "integer").put("format", app.treelune.core.fields.FieldValueSchema.DURATION_MILLIS)
+        val nested = JSONObject().put("type", "object").put("oneOf", org.json.JSONArray()
+            .put(JSONObject().put("oneOf", org.json.JSONArray().put(branch("steps", "sound", JSONObject())).put(branch("steps", "none", JSONObject()))))
+            .put(JSONObject().put("oneOf", org.json.JSONArray()
+                .put(branch("timer", "sound", JSONObject().put("timer_duration", duration)))
+                .put(branch("timer", "none", JSONObject().put("timer_duration", duration))))))
+
+        val out = ModelValues.fromModel(JSONObject().put("variant", "timer").put("signal", "none").put("timer_duration", "PT15M"), nested, paris) as JSONObject
+
+        assertEquals(900_000L, (out.get("timer_duration") as Number).toLong())
+    }
 }
