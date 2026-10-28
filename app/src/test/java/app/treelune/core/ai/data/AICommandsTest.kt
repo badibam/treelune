@@ -59,4 +59,52 @@ class AICommandsTest {
     fun theTypesAreUnique() {
         assertEquals(AICommands.ALL.size, AICommands.ALL.map { it.type }.toSet().size)
     }
+
+    /**
+     * The body of the function declared by [declaration] in [path]: from its first brace to the
+     * one that closes it.
+     */
+    private fun body(path: String, declaration: String): String {
+        val text = File(path).readText()
+        val start = text.indexOf(declaration).also { assertTrue("$declaration not found in $path", it >= 0) }
+        val open = text.indexOf('{', start)
+        var depth = 0
+        for (i in open until text.length) {
+            when (text[i]) {
+                '{' -> depth++
+                '}' -> if (--depth == 0) return text.substring(open, i)
+            }
+        }
+        error("$declaration has no closing brace in $path")
+    }
+
+    /** The command types [body] switches on: the quoted names heading a `when` branch, or compared with `command.type ==`. */
+    private fun handled(body: String): Set<String> {
+        val branches = Regex("""^\s*((?:"[A-Z_]+"\s*,\s*)*"[A-Z_]+")\s*->""", RegexOption.MULTILINE).findAll(body)
+            .flatMap { Regex("\"([A-Z_]+)\"").findAll(it.groupValues[1]).map { name -> name.groupValues[1] } }
+        val compared = Regex("""command\.type == "([A-Z_]+)"""").findAll(body).map { it.groupValues[1] }
+        return (branches + compared).toSet()
+    }
+
+    /**
+     * The places that switch on a command's type, written as text the compiler does not check,
+     * each holding exactly the catalog's commands of its kind. A command missing from one falls
+     * into its unknown case (an action never run, a reason « unknown » to approve), a name the
+     * catalog no longer has is left behind by a rename.
+     */
+    @Test
+    fun everySwitchOnTheTypeHoldsExactlyTheCatalogsCommands() {
+        val root = "src/main/java/app/treelune/core/ai"
+        val queries = AICommands.ALL.filter { it.kind == CommandKind.QUERY }.map { it.type }.toSet()
+        val actions = AICommands.ALL.filter { it.kind == CommandKind.ACTION }.map { it.type }.toSet()
+        val switches = listOf(
+            Triple("$root/processing/CommandTransformer.kt", "suspend fun transformToExecutable(", queries),
+            Triple("$root/processing/AICommandProcessor.kt", "private suspend fun transformActionCommand(", actions),
+            Triple("$root/processing/AICommandProcessor.kt", "suspend fun transformActionForVerbalization(", actions),
+            Triple("$root/validation/ValidationResolver.kt", "private suspend fun reason(", actions)
+        )
+        for ((path, declaration, expected) in switches) {
+            assertEquals("${path.substringAfterLast('/')}, $declaration", expected.sorted(), handled(body(path, declaration)).sorted())
+        }
+    }
 }
