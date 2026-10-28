@@ -834,7 +834,7 @@
     <string name="error_custom_field_validation_failed">Field \'%1$s\': %2$s</string>
     <string name="config_field_values_refused">%1$s: %2$s</string>
     <string name="config_field_values_unknown">%1$s: “%2$s” is not a field a value can be given for here. The fields: %3$s.</string>
-    <string name="field_values_schema_description">Its keys are names of the fields defined in “%1$s”, each value written as an entry\'s “extra” holds it (a reference as an object, an instant or a duration in milliseconds); a field left out takes its default value. Not for a file field.</string>
+    <string name="field_values_schema_description">Its keys are names of the fields defined in “%1$s”, each value written as an entry\'s “extra” holds it (a reference as an object, an instant or a duration in ISO 8601); a field left out takes its default value. Not for a file field.</string>
 
     <!-- Tools CONFIG - Strings shared by the tooltypes for configuration -->
     <string name="tools_config_label_name">Name</string>

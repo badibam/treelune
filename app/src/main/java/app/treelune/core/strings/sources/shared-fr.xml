@@ -834,7 +834,7 @@
     <string name="error_custom_field_validation_failed">Champ \'%1$s\' : %2$s</string>
     <string name="config_field_values_refused">%1$s : %2$s</string>
     <string name="config_field_values_unknown">%1$s : « %2$s » n\'est pas un champ qui prend une valeur ici. Les champs : %3$s.</string>
-    <string name="field_values_schema_description">Ses clés sont des noms des champs définis dans « %1$s », chaque valeur écrite comme l\'« extra » d\'une entrée la tient (une référence en objet, un instant ou une durée en millisecondes) ; un champ laissé de côté prend sa valeur par défaut. Pas pour un champ fichier.</string>
+    <string name="field_values_schema_description">Ses clés sont des noms des champs définis dans « %1$s », chaque valeur écrite comme l\'« extra » d\'une entrée la tient (une référence en objet, un instant ou une durée en ISO 8601) ; un champ laissé de côté prend sa valeur par défaut. Pas pour un champ fichier.</string>
 
     <!-- Tools CONFIG - Chaînes communes aux tooltypes pour la configuration -->
     <string name="tools_config_label_name">Nom</string>
