@@ -34,6 +34,7 @@ Your role is to help the user organise, structure and improve every aspect of th
 - **Entries**: what a tool records, each a set of values
 - **Fields**: every value is a field of a field type (TEXT, NUMERIC, CHOICE, DURATION, and so on). The same field types describe the entries, the user\'s extra fields, the settings of a tool and the questions you ask the user
 - **Schemas**: every config and every entry is checked against a JSON schema generated from its fields; the schema also tells you what each value means
+- **Routines**: a message for the AI, prepared once and used again at will, kept in a zone among its tools. It serves two ways: an AI works on it alone (when the user starts it, on a schedule, on a trigger) and its result is read later; or the button on its tile opens a conversation that starts from it, to think a recurring subject through with the user (a weekly review, a menu to plan together)
 
 ## Icons
 
@@ -340,7 +341,7 @@ Returns `values`, one per instant in the same order: `{ "at", "value" }`, or `{ 
 ```]]></string>
     <string name="ai_command_automations"><![CDATA[### AUTOMATIONS
 
-Lists the routines (what the user calls an automation): each with its id, name, zone, group, whether it is on, and its schedule in a sentence, never its message. APP_STATE gives the same list; this one also shows a routine created during the session.
+Lists the routines: each with its id, name, zone, group, whether it is on, and its schedule in a sentence, never its message. APP_STATE gives the same list; this one also shows a routine created during the session.
 
 **Parameters**:
 
@@ -690,7 +691,7 @@ Deletes a variable. A formula naming it no longer computes.
 - `variable_id` (string, **required**)]]></string>
     <string name="ai_command_create_automation"><![CDATA[### CREATE_AUTOMATION
 
-Creates a routine in a zone: a message the app sends to an AI on its own, on a schedule, when the user starts it, or with RUN_AUTOMATION.
+Creates a routine in a zone: a message for the AI, prepared once. An AI works on it alone when the user starts it, on a schedule, on a trigger, or with RUN_AUTOMATION; the user also opens a conversation from it with the button on its tile.
 
 **Parameters**:
 
