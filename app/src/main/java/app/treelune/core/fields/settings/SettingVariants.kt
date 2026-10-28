@@ -47,6 +47,7 @@ object SettingVariants {
                     is SettingNode.Sort -> config.optJSONArray(node.name)?.let { kept.put(node.name, it) }
                     is SettingNode.Period -> config.optJSONObject(node.name)?.let { kept.put(node.name, it) }
                     is SettingNode.Instants -> config.optJSONArray(node.name)?.let { kept.put(node.name, it) }
+                    is SettingNode.FieldValues -> config.optJSONObject(node.name)?.let { kept.put(node.name, it) }
                     is SettingNode.Section -> Unit
                 }
             }

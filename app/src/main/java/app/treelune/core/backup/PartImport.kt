@@ -9,6 +9,7 @@ import app.treelune.core.coordinator.GivenId
 import app.treelune.core.coordinator.Source
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.AppDatabase
+import app.treelune.core.fields.ConfigFieldValues
 import app.treelune.core.files.FileFormat
 import app.treelune.core.files.Files
 import app.treelune.core.grid.Grid
@@ -16,6 +17,8 @@ import app.treelune.core.grid.HomeGroups
 import app.treelune.core.grid.ToolPositions
 import app.treelune.core.scheduling.SchedulersHeld
 import app.treelune.core.services.BackupService
+import app.treelune.core.tools.ToolConfigSettings
+import app.treelune.core.tools.ToolTypeManager
 import app.treelune.core.ui.DisplayMode
 import app.treelune.core.utils.JsonUtils
 import app.treelune.core.utils.LogManager
@@ -233,14 +236,21 @@ class PartImport(private val context: Context) {
         val renamed = variables.filter { names.getValue(it.getString("id")) != it.getString("name") }
             .associateTo(linkedMapOf()) { it.getString("name") to names.getValue(it.getString("id")) }
         val elements = rows(data, "tool_instances") + rows(data, "variables")
+        // The tools whose config holds values of their fields, created without them: a value may
+        // designate an entry, which comes after the tools (ConfigFieldValues), given back below
+        val withFieldValues = mutableListOf<JSONObject>()
         for (element in ordered(elements)) {
             val zone = element.getString("zone_id")
             if (element.has("tooltype")) {
+                val config = JSONObject(element.getString("config_json"))
+                val toolType = ToolTypeManager.getToolType(element.getString("tooltype")) ?: throw Refused("tools.create ${element.getString("id")}: unknown tooltype ${element.getString("tooltype")}")
+                val without = ConfigFieldValues.without(ToolConfigSettings.nodes(toolType, context), config)
+                if (without.toString() != config.toString()) withFieldValues += element
                 run("tools.create", JSONObject()
                     .put("id", element.getString("id"))
                     .put("zone_id", zone)
                     .put("tooltype", element.getString("tooltype"))
-                    .put("config", JSONObject(element.getString("config_json"))))
+                    .put("config", without))
                 if (zone in existing) written.inExisting += "tools.delete" to JSONObject().put("tool_instance_id", element.getString("id"))
             } else {
                 run("variables.create", JSONObject()
@@ -331,6 +341,11 @@ class PartImport(private val context: Context) {
                 })))
             if (((batch["failed_count"] as? Number)?.toInt() ?: 0) > 0) throw Refused("tool_data.batch_create $tool: ${batch["refusals"]}")
             start = end
+        }
+
+        // The values of the tools' fields, the entries they may designate now made
+        withFieldValues.forEach { tool ->
+            run("tools.update", JSONObject().put("tool_instance_id", tool.getString("id")).put("config", JSONObject(tool.getString("config_json"))))
         }
 
         // The identities the app held, replaced last

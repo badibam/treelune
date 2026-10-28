@@ -83,7 +83,10 @@ interface RowFields {
     fun dependsOn(root: JSONObject, path: List<Any>): Any = root.toString()
 }
 
-/** Where a form stands in the config it edits, for the settings that depend on it (RowFields). */
+/**
+ * Where a form stands in the config it edits, for the settings that depend on it: the rows' fields
+ * (RowFields), the fields a config defines at its root (SettingNode.FieldValues).
+ */
 private data class Place(val root: JSONObject, val path: List<Any>, val rows: RowFields?) {
     fun into(vararg steps: Any) = copy(path = path + steps)
 }
@@ -199,7 +202,8 @@ private fun List<SettingNode>.isPage(): Boolean = any { node ->
         is SettingNode.Selection, is SettingNode.Condition -> true
         is SettingNode.Section -> node.nodes.isPage()
         is SettingNode.Variant -> node.cases.values.any { it.isPage() }
-        is SettingNode.Field, is SettingNode.Period, is SettingNode.Instants, is SettingNode.Sort -> false
+        is SettingNode.Field, is SettingNode.Period, is SettingNode.Instants, is SettingNode.Sort,
+        is SettingNode.FieldValues -> false
     }
 }
 
@@ -349,7 +353,7 @@ fun SettingsForm(
     val page = reached.lastOrNull()
     androidx.compose.runtime.CompositionLocalProvider(
         LocalPages provides Pages(shown) { trail = it },
-        LocalPlace provides rows?.let { Place(config, keys, it) },
+        LocalPlace provides Place(config, keys, rows),
         LocalListOrigins provides origins
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
@@ -763,7 +767,37 @@ private fun NodeForm(
         }
 
         is SettingNode.Instants -> InstantsForm(node, config.optJSONArray(node.name) ?: JSONArray(), { set(node.name, it) }, context)
+
+        is SettingNode.FieldValues -> {
+            val root = requireNotNull(LocalPlace.current) { "A setting's values of fields are drawn inside a SettingsForm" }.root
+            val fields = definedFields(node, root)
+            if (fields.isNotEmpty()) Titled(node.label) {
+                val values = config.optJSONObject(node.name) ?: JSONObject()
+                fields.forEach { field ->
+                    // Each left empty by default: the entry then takes the field's default value
+                    FieldInput(field, JsonUtils.toValue(values.opt(field.name)), { value ->
+                        val next = JSONObject(values.toString())
+                        if (value == null) next.remove(field.name) else next.put(field.name, JSONObject.wrap(value))
+                        set(node.name, next.takeIf { it.length() > 0 })
+                    }, context, required = false)
+                }
+            }
+        }
     }
+}
+
+/**
+ * The fields [node] takes values of, as the config being edited defines them: a field being
+ * added, not named yet by the service or still without its label or type, is offered once saved
+ * (ConfigFieldValues.fieldsOf says which fields take one).
+ */
+private fun definedFields(node: SettingNode.FieldValues, root: JSONObject): List<app.treelune.core.fields.FieldDefinition> {
+    val defined = root.optJSONArray(node.fields) ?: return emptyList()
+    val complete = JSONArray((0 until defined.length()).mapNotNull { defined.optJSONObject(it) }.filter { field ->
+        field.optString("name").isNotEmpty() && field.optString("display_name").isNotEmpty() &&
+            app.treelune.core.fields.FieldType.entries.any { it.name == field.optString("type") }
+    })
+    return app.treelune.core.fields.ConfigFieldValues.fieldsOf(node, JSONObject().put(node.fields, complete))
 }
 
 /**

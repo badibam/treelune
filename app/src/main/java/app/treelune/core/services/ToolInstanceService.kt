@@ -150,6 +150,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         app.treelune.core.coordinator.Protections.refusal(s.shared("tools_config_label_data_validation"), false,
             JSONObject(storedConfigJson).optBoolean(app.treelune.core.tools.ToolConfigSettings.VALIDATE_DATA, false), s)?.let { return OperationResult.error(it) }
         checkConfig(toolType, storedConfigJson)?.let { return OperationResult.error(it) }
+        refuseFieldValues(toolType, JSONObject(storedConfigJson), null)?.let { return OperationResult.error(it) }
         ToolTypeManager.getToolType(toolType)?.refuseConfig(JSONObject(storedConfigJson), context)?.let { return OperationResult.error(it) }
         refuseConditions(toolType, storedConfigJson)?.let { return OperationResult.error(it) }
         app.treelune.core.events.EventPoints.refusal(JSONObject(storedConfigJson), null, context, s)?.let { return OperationResult.error(it) }
@@ -238,6 +239,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         // Its look checked against the icon the tool will have: removing the icon of an ICON
         // texture is refused too (Looks)
         var iconCheck = Looks.Checked.Kept()
+        var removedFieldValues = 0
         if (configJson.isNotBlank()) {
             val lookConfig = JSONObject(configJson)
             iconCheck = when (val checked = lookCheck(existingTool.tooltype, lookConfig, JSONObject(existingTool.config_json))) {
@@ -260,7 +262,12 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             }
             app.treelune.core.coordinator.Protections.refusal(s.shared("tools_config_label_data_validation"), protectedBefore,
                 JSONObject(configJson).optBoolean(app.treelune.core.tools.ToolConfigSettings.VALIDATE_DATA, false), s)?.let { return OperationResult.error(it) }
+            // The values of the user's fields it holds follow their fields' changes (ConfigFieldValues)
+            val followed = followFieldValues(existingTool, JSONObject(configJson))
+            configJson = followed.config.toString()
+            removedFieldValues = followed.removed
             checkConfig(existingTool.tooltype, configJson)?.let { return OperationResult.error(it) }
+            refuseFieldValues(existingTool.tooltype, JSONObject(configJson), JSONObject(existingTool.config_json))?.let { return OperationResult.error(it) }
             // What is closed to the AI and left out of a config written whole by anyone else is
             // kept, as the data protection is; only a setting sent open is refused below
             if (!app.treelune.core.coordinator.Protections.byAPerson()) configJson = keepClosedToAi(existingTool, JSONObject(configJson)).toString()
@@ -358,7 +365,27 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             "zone_id" to updatedTool.zone_id,
             "updated_at" to updatedTool.updated_at
         ) + iconCheck.report() + (migration?.let { report(it, aimedBy) } ?: emptyMap())
-            + (emptiedGroup?.let { mapOf("group_emptied" to it) } ?: emptyMap()))
+            + (emptiedGroup?.let { mapOf("group_emptied" to it) } ?: emptyMap())
+            + (removedFieldValues.takeIf { it > 0 }?.let { mapOf("removed_field_values" to it) } ?: emptyMap()))
+    }
+
+    /**
+     * [config], an update of [tool]'s, with the values of the user's fields it holds following
+     * the change of those fields, as the entries' do (ConfigFieldValues.migrated).
+     */
+    private suspend fun followFieldValues(tool: ToolInstance, config: JSONObject): app.treelune.core.fields.ConfigFieldValues.Migrated {
+        val toolType = ToolTypeManager.getToolType(tool.tooltype) ?: throw IllegalStateException("Unknown tooltype ${tool.tooltype}")
+        val nodes = app.treelune.core.tools.ToolConfigSettings.nodes(toolType, context)
+        // The tool of each entry a reference designates, for a field that narrows the tools it takes
+        val instances = app.treelune.core.fields.ConfigFieldValues.designatedEntries(nodes, config)
+            .associateWith { database.toolDataDao().getById(it)?.toolInstanceId }
+        return app.treelune.core.fields.ConfigFieldValues.migrated(nodes, JSONObject(tool.config_json), config) { instances[it] }
+    }
+
+    /** Why the values of the user's fields [config] holds cannot be stored (ConfigFieldValues.refusal); null when they can. */
+    private suspend fun refuseFieldValues(tooltype: String, config: JSONObject, previous: JSONObject?): String? {
+        val toolType = ToolTypeManager.getToolType(tooltype) ?: return s.shared("error_tooltype_not_found").format(tooltype)
+        return app.treelune.core.fields.ConfigFieldValues.refusal(app.treelune.core.tools.ToolConfigSettings.nodes(toolType, context), config, previous, context, s)
     }
 
     /**

@@ -54,8 +54,8 @@ data class RunningEntry(val id: String, val name: String, val startedAt: Long, v
 /**
  * What creates a tracking tool's entries, the same from its screen and from its tile: an entry
  * saved at once, a stopwatch started or stopped, the entry dialog. One save at a time: [isSaving]
- * holds the controls off meanwhile. What a quick action writes is the main field, "value", the
- * user's fields at their default values.
+ * holds the controls off meanwhile. What a quick action writes is the main field, "value", and
+ * the user's fields: a shortcut's values, a field it leaves out at its default value.
  */
 class TrackingActions internal constructor(
     val toolInstanceId: String,
@@ -78,13 +78,21 @@ class TrackingActions internal constructor(
     // another kind
     val choice: ChoiceSettings? = valueField?.takeIf { kind == TrackingKind.CHOICE }?.let { ChoiceSettings.fromConfig(it.config) }
 
+    private val userFields = config.optJSONArray("extra_fields")?.toFieldDefinitions().orEmpty()
+
     // A new entry takes the default values of the user's fields
-    val extraDefaults: Map<String, Any?> = config.optJSONArray("extra_fields")?.toFieldDefinitions()?.defaultValues() ?: emptyMap()
+    val extraDefaults: Map<String, Any?> = userFields.defaultValues()
+
+    /** The user's fields an entry of [shortcut] takes: its values, over the fields' default values. */
+    fun extraOf(shortcut: TrackingShortcut): Map<String, Any?> = extraDefaults + shortcut.extra
 
     val isSaving: Boolean get() = saving.value
 
-    /** The entry dialog opened with a draft: its name, value and unit, whether its name can change and it can become a shortcut. */
-    data class DialogDraft(val name: String, val value: Any?, val unit: String?, val nameEditable: Boolean, val offerShortcut: Boolean, val timestamp: Long)
+    /**
+     * The entry dialog opened with a draft: its name, value, unit and user's fields, whether its
+     * name can change and it can become a shortcut.
+     */
+    data class DialogDraft(val name: String, val value: Any?, val unit: String?, val extra: Map<String, Any?>, val nameEditable: Boolean, val offerShortcut: Boolean, val timestamp: Long)
 
     /** Creates an entry; on success returns its id. */
     suspend fun create(name: String, timestamp: Long, value: Any?, unit: String?, extra: Map<String, Any?> = extraDefaults): String? {
@@ -113,9 +121,9 @@ class TrackingActions internal constructor(
         }
     }
 
-    /** An entry named [name] holding [value] and [unit], saved at once, at [timestamp] or now. */
-    fun quickSave(name: String, value: Any?, unit: String?, timestamp: Long? = null) = save {
-        if (create(name, timestamp ?: System.currentTimeMillis(), value, unit) != null) {
+    /** An entry named [name] holding [value], [unit] and [extra], saved at once, at [timestamp] or now. */
+    fun quickSave(name: String, value: Any?, unit: String?, timestamp: Long? = null, extra: Map<String, Any?> = extraDefaults) = save {
+        if (create(name, timestamp ?: System.currentTimeMillis(), value, unit, extra) != null) {
             UI.Toast(s.tool("usage_entry_saved"), Duration.SHORT)
         }
     }
@@ -131,8 +139,8 @@ class TrackingActions internal constructor(
     fun openOptionDialog(option: String, timestamp: Long? = null) =
         openDialog(choice!!.labelOf(option), optionValue(option), null, nameEditable = false, offerShortcut = false, timestamp = timestamp)
 
-    fun openDialog(name: String, value: Any?, unit: String?, nameEditable: Boolean, offerShortcut: Boolean, timestamp: Long? = null) {
-        dialog.value = DialogDraft(name, value, unit, nameEditable, offerShortcut, timestamp ?: System.currentTimeMillis())
+    fun openDialog(name: String, value: Any?, unit: String?, nameEditable: Boolean, offerShortcut: Boolean, timestamp: Long? = null, extra: Map<String, Any?> = extraDefaults) {
+        dialog.value = DialogDraft(name, value, unit, extra, nameEditable, offerShortcut, timestamp ?: System.currentTimeMillis())
     }
 
     /**
@@ -148,8 +156,8 @@ class TrackingActions internal constructor(
     }
 
     // Starting one stops the one running: the service keeps that rule (TrackingStopwatch)
-    fun start(name: String) = save {
-        val id = create(name, System.currentTimeMillis(), null, null) ?: return@save
+    fun start(name: String, extra: Map<String, Any?> = extraDefaults) = save {
+        val id = create(name, System.currentTimeMillis(), null, null, extra) ?: return@save
         val result = coordinator.processUserAction("tool_data.start_duration", mapOf("id" to id, "container" to "data", "field" to "value"))
         if (!result.isSuccess) UI.Toast(result.error ?: s.tool("error_entry_saving"), Duration.LONG)
     }
@@ -183,7 +191,7 @@ class TrackingActions internal constructor(
                 timestamp = draft.timestamp,
                 value = draft.value,
                 unit = draft.unit,
-                extra = extraDefaults
+                extra = draft.extra
             ),
             nameEditable = draft.nameEditable,
             offerShortcut = draft.offerShortcut,
@@ -202,10 +210,14 @@ class TrackingActions internal constructor(
     private suspend fun addShortcut(entry: TrackingEntryDraft) {
         // A shortcut keeps a value only where it enters one at once
         val keepsValue = kind == TrackingKind.NUMERIC
+        // The user's fields it keeps are those filled otherwise than by default; a file field's
+        // files belong to the entry (ConfigFieldValues.fieldsOf)
+        val files = userFields.filter { it.type == app.treelune.core.fields.FieldType.FILE }.map { it.name }.toSet()
         val shortcut = TrackingShortcut(
             name = entry.name,
             value = if (keepsValue) entry.value as? Number else null,
-            unit = entry.unit
+            unit = entry.unit,
+            extra = entry.extra.filter { (name, value) -> value != null && name !in files && value != extraDefaults[name] }
         )
         // Read again: the entry just saved may have grown the config (a new unit)
         val current = coordinator.processUserAction("tools.get", mapOf("tool_instance_id" to toolInstanceId))
@@ -238,12 +250,13 @@ class DialogSlot internal constructor(
     private val values: MutableState<Map<String, Any?>>
 ) {
     var value: TrackingActions.DialogDraft?
-        get() = if (open.value) TrackingActions.DialogDraft(name.value, values.value["value"], values.value["unit"] as? String, nameEditable.value, offerShortcut.value, timestamp.value) else null
+        get() = if (open.value) TrackingActions.DialogDraft(name.value, values.value["value"], values.value["unit"] as? String,
+            @Suppress("UNCHECKED_CAST") (values.value["extra"] as? Map<String, Any?>).orEmpty(), nameEditable.value, offerShortcut.value, timestamp.value) else null
         set(draft) {
             open.value = draft != null
             if (draft == null) return
             name.value = draft.name
-            values.value = mapOf("value" to draft.value, "unit" to draft.unit)
+            values.value = mapOf("value" to draft.value, "unit" to draft.unit, "extra" to draft.extra)
             nameEditable.value = draft.nameEditable
             offerShortcut.value = draft.offerShortcut
             timestamp.value = draft.timestamp
@@ -287,13 +300,13 @@ fun ShortcutButtons(actions: TrackingActions, shortcut: TrackingShortcut, runnin
     Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.XS), verticalAlignment = Alignment.CenterVertically) {
         when (actions.kind) {
             TrackingKind.NUMERIC -> QuickButton(ButtonAction.ADD, enabled) {
-                if (shortcut.value != null) actions.quickSave(shortcut.name, shortcut.value, shortcut.unit, timestamp)
-                else actions.openDialog(shortcut.name, null, shortcut.unit, nameEditable = false, offerShortcut = false, timestamp = timestamp)
+                if (shortcut.value != null) actions.quickSave(shortcut.name, shortcut.value, shortcut.unit, timestamp, actions.extraOf(shortcut))
+                else actions.openDialog(shortcut.name, null, shortcut.unit, nameEditable = false, offerShortcut = false, timestamp = timestamp, extra = actions.extraOf(shortcut))
             }
             TrackingKind.BOOLEAN -> {
                 val labels = actions.valueField?.config
-                TextButton(labels?.get("true_label") as? String ?: s.shared("label_yes"), enabled) { actions.quickSave(shortcut.name, true, null, timestamp) }
-                TextButton(labels?.get("false_label") as? String ?: s.shared("label_no"), enabled) { actions.quickSave(shortcut.name, false, null, timestamp) }
+                TextButton(labels?.get("true_label") as? String ?: s.shared("label_yes"), enabled) { actions.quickSave(shortcut.name, true, null, timestamp, actions.extraOf(shortcut)) }
+                TextButton(labels?.get("false_label") as? String ?: s.shared("label_no"), enabled) { actions.quickSave(shortcut.name, false, null, timestamp, actions.extraOf(shortcut)) }
             }
             TrackingKind.TIMER -> {
                 val entry = running.firstOrNull { it.name == shortcut.name }
@@ -301,12 +314,12 @@ fun ShortcutButtons(actions: TrackingActions, shortcut: TrackingShortcut, runnin
                     if (withElapsed) ElapsedText(entry, actions.valueField?.config, s)
                     QuickButton(ButtonAction.STOP, enabled) { actions.stop(entry) }
                 } else {
-                    QuickButton(ButtonAction.START, enabled) { actions.start(shortcut.name) }
+                    QuickButton(ButtonAction.START, enabled) { actions.start(shortcut.name, actions.extraOf(shortcut)) }
                 }
             }
-            TrackingKind.OCCURRENCE -> QuickButton(ButtonAction.ADD, enabled) { actions.quickSave(shortcut.name, null, null, timestamp) }
+            TrackingKind.OCCURRENCE -> QuickButton(ButtonAction.ADD, enabled) { actions.quickSave(shortcut.name, null, null, timestamp, actions.extraOf(shortcut)) }
             TrackingKind.SCALE, TrackingKind.CHOICE, TrackingKind.TEXT -> QuickButton(ButtonAction.ADD, enabled) {
-                actions.openDialog(shortcut.name, null, null, nameEditable = false, offerShortcut = false, timestamp = timestamp)
+                actions.openDialog(shortcut.name, null, null, nameEditable = false, offerShortcut = false, timestamp = timestamp, extra = actions.extraOf(shortcut))
             }
         }
     }

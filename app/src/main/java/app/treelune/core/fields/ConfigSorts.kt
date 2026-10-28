@@ -29,7 +29,7 @@ object ConfigSorts {
                 }
                 is SettingNode.Section -> refuse(node.nodes, config, context, s)
                 is SettingNode.Field, is SettingNode.Condition, is SettingNode.Term, is SettingNode.Selection,
-                is SettingNode.Period, is SettingNode.Instants -> null
+                is SettingNode.Period, is SettingNode.Instants, is SettingNode.FieldValues -> null
             }
             if (refusal != null) return refusal
         }

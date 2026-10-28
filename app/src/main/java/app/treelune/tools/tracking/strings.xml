@@ -78,6 +78,8 @@
     <string name="schema_config_item_name">Name of the shortcut, given to the entries it creates</string>
     <string name="schema_config_item_value">Value the shortcut enters at a touch; without one, the touch opens the entry dialog</string>
     <string name="schema_config_item_unit">Unit of the value the shortcut enters, one of the units</string>
+    <string name="schema_config_item_extra">Values of the tool\'s own fields the shortcut\'s entries take (a food designated in a reference field); a field left out takes its default value</string>
+    <string name="config_label_item_extra">Its fields</string>
     
     <!-- SCHEMAS DATA - Display names for schema identification -->
     <string name="schema_data_value">The value recorded</string>

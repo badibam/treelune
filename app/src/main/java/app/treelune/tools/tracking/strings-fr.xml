@@ -78,6 +78,8 @@
     <string name="schema_config_item_name">Nom du raccourci, donné aux entrées qu\'il crée</string>
     <string name="schema_config_item_value">Valeur que le raccourci saisit d\'un toucher ; sans elle, le toucher ouvre la saisie</string>
     <string name="schema_config_item_unit">Unité de la valeur que saisit le raccourci, l\'une des unités</string>
+    <string name="schema_config_item_extra">Valeurs des champs propres à l\'outil que prennent les entrées du raccourci (un aliment désigné dans un champ référence) ; un champ laissé de côté prend sa valeur par défaut</string>
+    <string name="config_label_item_extra">Ses champs</string>
     
     <!-- SCHEMAS DATA - Display names for schema identification -->
     <string name="schema_data_value">La valeur enregistrée</string>

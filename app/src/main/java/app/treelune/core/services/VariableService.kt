@@ -264,7 +264,10 @@ class VariableService(private val context: Context) : ExecutableService {
     /** The functions under their names in the app's language, which a formula written on screen uses. */
     private val aliases: Map<String, Formula.Function> by lazy { Formula.Function.localized { s.shared(it) } }
 
-    /** A term that can be read: its tool and field, a reduction its type takes, a variable that exists. */
+    /**
+     * A term that can be read: its tool and field, a reduction its type takes, filters whose
+     * operators and values their fields take, a variable that exists.
+     */
     private suspend fun checkTerm(name: String, term: Term, others: List<VariableEntity>) {
         when (term) {
             // A formula computes on numbers
@@ -273,6 +276,11 @@ class VariableService(private val context: Context) : ExecutableService {
             is Term.Reading -> {
                 fieldOf(term, name)
                 if (term.perEntry != null && Formula.parse(term.perEntry, aliases) is Formula.Parsed.Unreadable) throw Refused(s.shared("variable_error_term").format(name))
+                // Its filters held to the operators and values their fields take, as the filters
+                // of any config are (ConditionCheck): the term stands as a config's term would
+                val node = app.treelune.core.fields.settings.SettingNode.Term(name, name, setOf(Term.Kind.READING), reference = "", emptyPeriod = null)
+                app.treelune.core.conditions.ConditionCheck(app.treelune.core.conditions.AppConditionSources(context, null)) { s.shared(it) }
+                    .refuse(listOf(node), JSONObject().put(name, term.toJson()))?.let { throw Refused(it) }
             }
         }
     }

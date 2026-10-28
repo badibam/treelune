@@ -28,8 +28,8 @@ import org.json.JSONObject
 
 /**
  * The quick ways a tracking tool creates entries: its shortcuts, laid out by what it follows,
- * and a free entry. What a quick action writes is always the main field, "value"; the user's
- * fields are filled in the entry dialog.
+ * and a free entry. What a quick action writes is always the main field, "value", and the
+ * shortcut's values of the user's fields; the others are filled in the entry dialog.
  *
  * - numeric: a shortcut with a value enters it at once, one without opens the dialog
  * - yes/no: one button per answer
@@ -99,7 +99,8 @@ fun TrackingQuickEntry(
                     else -> return@ShortcutRow
                 }
                 QuickButton(ButtonAction.EDIT, !actions.isSaving) {
-                    actions.openDialog(shortcut.name, edits, shortcut.unit.takeIf { actions.kind == TrackingKind.NUMERIC }, nameEditable = false, offerShortcut = false, timestamp = customTimestamp)
+                    actions.openDialog(shortcut.name, edits, shortcut.unit.takeIf { actions.kind == TrackingKind.NUMERIC }, nameEditable = false, offerShortcut = false,
+                        timestamp = customTimestamp, extra = actions.extraOf(shortcut))
                 }
             }
         }
