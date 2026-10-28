@@ -48,4 +48,18 @@ SCENARIOS = {
                     "expects": "Une option « trail » de plus au choix Type des Sorties ; les autres options et les entrées qui les portent intactes."},
     "config_reading_zone": {"kind": "chat", "message": "Crée une zone Lecture avec un suivi des pages lues et un graphique des pages par semaine",
                     "expects": "Une zone Lecture, un suivi numérique des pages lues, un graphique en barres par semaine qui le lit."},
+    # Design: a need said in the user's words, whose answer hides a gesture on screen. Proposed or
+    # built, either is right; what counts is the setup and telling what the user does with it.
+    "design_weekly_talk": {"kind": "chat", "message": "J'aimerais faire le point avec toi sur ma semaine chaque dimanche, tous les deux",
+                    "expects": "Conception : une routine sans planning (ou proposée telle), dont le bouton de conversation de la tuile ouvre une conversation avec son message ; l'IA dit ce bouton. Une routine planifiée seule, qui tourne sans l'utilisateur, ne répond pas au besoin."},
+    "design_km_glance": {"kind": "chat", "message": "Je veux voir d'un coup d'œil mes km de la semaine sur la zone Course",
+                    "expects": "Conception : la variable km_semaine_demo existe déjà ; sa tuile, dans la zone Course, montre sa valeur ; l'IA le dit, ou règle son affichage, sans créer de doublon."},
+    "design_weight_alert": {"kind": "chat", "message": "Préviens-moi si mon poids dépasse 75",
+                    "expects": "Conception : une condition sur le poids (dernière pesée ou poids_moyen_7j_demo > 75) qui envoie une notification quand elle devient vraie ; l'IA dit que la notification arrivera d'elle-même."},
+    "design_next_session": {"kind": "chat", "message": "Quand je note une sortie, prépare-moi la suivante",
+                    "expects": "Conception : un déclencheur sur une entrée écrite dans Sorties, qui fait partir une routine (ou une Tâche qui en lance une) préparant la sortie suivante ; l'IA dit que noter une sortie suffit à la faire partir."},
+    "design_coffee_gesture": {"kind": "chat", "message": "Je veux noter mon café en un seul geste",
+                    "expects": "Conception : un Suivi Café avec un raccourci qui note une tasse ; l'IA dit qu'un toucher sur le bouton du raccourci, sur la tuile, note la tasse."},
+    "design_weather_button": {"kind": "chat", "message": "Je voudrais pouvoir lancer moi-même la mise à jour de la météo quand j'en ai besoin",
+                    "expects": "Conception : la Tâche météo existe déjà ; son bouton sur sa tuile la lance à la main ; l'IA le dit, sans créer de doublon."},
 }

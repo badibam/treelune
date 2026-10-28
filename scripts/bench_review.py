@@ -66,6 +66,7 @@ GRID = {
     "unrequested_action": (["yes", "no"], "L'IA a-t-elle annoncé ou tenté une action que personne n'a demandée, même refusée ou sans effet ?"),
     "correction": (["none_needed", "one_turn", "groping", "repeats"], "Face à un refus de l'app : none_needed (aucun refus), one_turn (corrigé au tour suivant), groping (plusieurs essais différents), repeats (la même erreur renvoyée)."),
     "final_answer": (["right", "too_long", "confused", "none"], "La réponse finale à l'utilisateur : right (claire, à la bonne longueur), too_long, confused, none (aucune réponse finale)."),
+    "design_fit": (["right", "partial", "missed", "na"], "Pour un scénario de conception (son attendu commence par « Conception ») : right, l'IA a proposé ou monté les pièces attendues ET dit à l'utilisateur ce qu'il en fait à l'écran (le bouton, la tuile, la notification qui arrive seule) ; partial, l'un sans l'autre ; missed, ni l'un ni l'autre ; na, pas un scénario de conception."),
     "passed_but_not_good": (["yes", "no", "na"], "Le banc a dit réussi, mais le jeu ne tient que grâce à son jugement (un chiffre juste par hasard, une affirmation fausse à côté, une écriture de trop tentée, même sans effet) : yes. no : réussi et bon. na : le banc a dit échoué."),
 }
 

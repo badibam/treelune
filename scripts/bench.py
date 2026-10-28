@@ -25,7 +25,13 @@ after, and how the session ended; this script fetches them and judges them
         review.json, then review.md counting the grid per model and level; reviewed plays are kept
         unless --again
 
-The OpenRouter key comes from OPENROUTER_API_KEY, else from the keyring (projet=treelune var=OPENROUTER_API_KEY).
+A model is an OpenRouter id (deepseek/deepseek-v4-pro), played through an Other server provider,
+or deepseek:<model>:<effort>:<off|on> (deepseek:deepseek-v4-pro:max:off), played through the app's
+own DeepSeek provider with that effort and thinking off or on, as a user sets it; the forcing
+level means nothing to the latter, which has none.
+
+The OpenRouter key comes from OPENROUTER_API_KEY, else from the keyring (projet=treelune var=OPENROUTER_API_KEY);
+the DeepSeek key, for a deepseek: model, from DEEPSEEK_API_KEY the same way.
 """
 
 import base64
@@ -60,16 +66,26 @@ from bench_scenarios import SCENARIOS  # noqa: E402
 from bench_checks import check  # noqa: E402
 
 
-def api_key():
-    key = os.environ.get("OPENROUTER_API_KEY")
+def api_key(var="OPENROUTER_API_KEY"):
+    key = os.environ.get(var)
     if key:
         return key
-    found = subprocess.run(["secret-tool", "lookup", "projet", "treelune", "var", "OPENROUTER_API_KEY"],
+    found = subprocess.run(["secret-tool", "lookup", "projet", "treelune", "var", var],
                            capture_output=True, text=True)
     if found.returncode == 0 and found.stdout.strip():
         return found.stdout.strip()
-    sys.exit("No OpenRouter key: set OPENROUTER_API_KEY, or store it in the keyring "
-             "(secret-tool store --label 'treelune : OPENROUTER_API_KEY' projet treelune var OPENROUTER_API_KEY)")
+    sys.exit(f"No key: set {var}, or store it in the keyring "
+             f"(secret-tool store --label 'treelune : {var}' projet treelune var {var})")
+
+
+def deepseek(model):
+    """(model, effort, thinking off) of a deepseek:<model>:<effort>:<off|on> model, None for an OpenRouter one."""
+    if not model.startswith("deepseek:"):
+        return None
+    parts = model.split(":")
+    if len(parts) != 4 or parts[3] not in ("off", "on"):
+        sys.exit(f"A DeepSeek model is deepseek:<model>:<effort>:<off|on>, not {model}")
+    return parts[1], parts[2], parts[3] == "off"
 
 
 def adb(*args, check=True, capture=True):
@@ -115,8 +131,17 @@ def play(model, name, key, into, forcing=FORCING):
     [forcing] other than the campaign's is for diagnosing a model that fails with it.
     """
     scenario = SCENARIOS[name]
-    args = ["-e", "class", TEST, "-e", "base_url", BASE_URL, "-e", "api_key", key, "-e", "model", model,
-            "-e", "output_forcing", forcing, "-e", "timeout_minutes", str(TIMEOUT_MINUTES), "-e", "kind", scenario["kind"]]
+    own = deepseek(model)
+    if own:
+        # The app's DeepSeek provider, with its own key: [key] is OpenRouter's
+        key = api_key("DEEPSEEK_API_KEY")
+        provider = ["-e", "provider_kind", "deepseek", "-e", "model", own[0], "-e", "effort", own[1],
+                    "-e", "thinking_off", "true" if own[2] else "false"]
+    else:
+        provider = ["-e", "provider_kind", "compatible", "-e", "base_url", BASE_URL, "-e", "model", model,
+                    "-e", "output_forcing", forcing]
+    args = ["-e", "class", TEST, "-e", "api_key", key, *provider,
+            "-e", "timeout_minutes", str(TIMEOUT_MINUTES), "-e", "kind", scenario["kind"]]
     if scenario["kind"] == "chat":
         args += ["-e", "message_b64", base64.b64encode(scenario["message"].encode("utf-8")).decode("ascii")]
     else:
@@ -151,11 +176,20 @@ def prices():
 
 
 def cost(folder, price):
-    """What the scenario's calls cost, from the tokens the app stored and the model's prices."""
+    """What the scenario's calls cost, from the tokens the app stored and the model's prices.
+
+    [price] None (a model OpenRouter does not price, the app's own DeepSeek provider): the prices
+    the app stored with each call, those of its provider's list; a call without them counts nothing.
+    """
     import sqlite3
     if not (folder / "after.db").is_file():
         return 0.0
     db = sqlite3.connect(folder / "after.db")
+    if price is None:
+        return db.execute(
+            "SELECT COALESCE(SUM(input_tokens * COALESCE(input_price, 0) + cache_read_tokens * COALESCE(cache_read_price, 0) "
+            "+ cache_write_tokens * COALESCE(cache_write_price, 0) + output_tokens * COALESCE(output_price, 0)), 0) "
+            "FROM session_messages WHERE session_id NOT LIKE 'demo-%'").fetchone()[0]
     uncached, cached, output = db.execute(
         "SELECT COALESCE(SUM(input_tokens), 0), COALESCE(SUM(cache_read_tokens), 0), COALESCE(SUM(output_tokens), 0) "
         "FROM session_messages WHERE session_id NOT LIKE 'demo-%'").fetchone()
@@ -191,7 +225,7 @@ def new_campaign(models, forcings, names):
     """A campaign's folder, with what it plays, the code it starts on and the prices it is costed at,
     so that it can be resumed and read again later."""
     table = prices()
-    unknown = [m for m in models if m not in table]
+    unknown = [m for m in models if m not in table and not deepseek(m)]
     if unknown:
         sys.exit(f"Unknown OpenRouter models: {unknown}")
     folder = OUT / time.strftime("%Y-%m-%d_%H%M")
@@ -199,7 +233,7 @@ def new_campaign(models, forcings, names):
     write_json(folder / "campaign.json", {
         "models": models, "forcings": forcings, "scenarios": names, "code": code_version(),
         # $ per token: input, cached input, output, from OpenRouter's catalogue at the start
-        "prices": {m: table[m] for m in models}})
+        "prices": {m: table[m] for m in models if m in table}})
     return folder
 
 
@@ -254,7 +288,7 @@ def campaign(folder, key):
                     passed, details = check(name, into) if outcome.get("status") != "error" else (False, [outcome.get("detail")])
                 except Exception as e:  # a copy the check cannot read is a failed play, said as such
                     passed, details = False, [f"check failed: {e!r}"]
-                spent = cost(into, table[model])
+                spent = cost(into, table.get(model))
                 results.append({"model": model, "forcing": forcing, "scenario": name, "passed": passed,
                                 "status": outcome.get("status"), "seconds": round(outcome.get("elapsed_ms", 0) / 1000),
                                 "cost": spent, "details": details, "code": code})

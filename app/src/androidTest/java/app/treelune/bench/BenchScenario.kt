@@ -33,8 +33,10 @@ import java.io.File
  *
  * On the emulator only: it empties the app's base.
  *
- * Arguments (am instrument -e): base_url, api_key, model, output_forcing; kind ("chat" or
- * "routine"); message_b64 (the chat message, base64 UTF-8) or routine_id; timeout_minutes.
+ * Arguments (am instrument -e): api_key, model; provider_kind, "compatible" (Other server, by
+ * default) with base_url and output_forcing, or "deepseek" with effort and thinking_off ("true"
+ * or "false"), the user's own provider as they set it; kind ("chat" or "routine"); message_b64
+ * (the chat message, base64 UTF-8) or routine_id; timeout_minutes.
  */
 @RunWith(AndroidJUnit4::class)
 class BenchScenario {
@@ -72,13 +74,17 @@ class BenchScenario {
         AppDatabase.getDatabase(context).clearAllTables()
         AppConfigManager.initialize(context)
 
+        val kind = args.getString("provider_kind") ?: COMPATIBLE
         val config = JSONObject()
-            .put("base_url", arg("base_url"))
             .put("api_key", arg("api_key"))
             .put("model", arg("model"))
-            .put("output_forcing", arg("output_forcing"))
+        when (kind) {
+            COMPATIBLE -> config.put("base_url", arg("base_url")).put("output_forcing", arg("output_forcing"))
+            DEEPSEEK -> config.put("effort", arg("effort")).put("thinking_off", arg("thinking_off").toBooleanStrict())
+            else -> error("Unknown provider_kind '$kind'")
+        }
         succeed(coordinator.processUserAction("ai_provider_config.create", mapOf(
-            "kind" to PROVIDER_KIND, "name" to PROVIDER_NAME, "config" to config.keys().asSequence().associateWith { config.get(it) })), "provider creation")
+            "kind" to kind, "name" to PROVIDER_NAME, "config" to config.keys().asSequence().associateWith { config.get(it) })), "provider creation")
         // Installed after the provider: the demo's routines take the default
         succeed(coordinator.processUserAction("demo.install", emptyMap()), "demo install")
     }
@@ -126,7 +132,7 @@ class BenchScenario {
 
     /** The routine run now, waited on until its session ends. */
     private suspend fun playRoutine(context: Context, routineId: String, started: Long, deadline: Long): Outcome {
-        AIOrchestrator.executeRoutine(routineId, started)
+        AIOrchestrator.executeRoutine(routineId, started, app.treelune.core.ai.data.ExecutionTrigger.MANUAL)
         val db = AppDatabase.getDatabase(context)
         fun ended(): Boolean = kotlinx.coroutines.runBlocking {
             db.useReaderConnection { connection ->
@@ -179,7 +185,8 @@ class BenchScenario {
     }
 
     companion object {
-        private const val PROVIDER_KIND = app.treelune.core.ai.providers.OpenAICompatibleProvider.KIND
+        private const val COMPATIBLE = app.treelune.core.ai.providers.OpenAICompatibleProvider.KIND
+        private const val DEEPSEEK = app.treelune.core.ai.providers.DeepSeekProvider.KIND
         private const val PROVIDER_NAME = "Bench"
         private const val POLL_MS = 250L
         private const val REST_MS = 3_000L

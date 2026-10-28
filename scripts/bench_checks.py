@@ -17,7 +17,7 @@ from zoneinfo import ZoneInfo
 
 ZONE = ZoneInfo("Europe/Paris")  # the emulator's, which the bench does not change
 # Tables whose rows the AI may change, compared row by row (updated_at aside)
-WATCHED = ("tool_data", "tool_instances", "zones", "variables", "routines")
+WATCHED = ("tool_data", "tool_instances", "zones", "variables", "routines", "tasks")
 
 
 # ============================================================================================
@@ -404,7 +404,23 @@ def config_reading_zone(run):
     run.hold_still(lambda t, i: i in ids)
 
 
+def design(run):
+    """A design scenario: proposing and building are both right, so nothing here fails; what
+    changed is noted, and the reviewer judges the setup and the gesture (bench_review.py, design_fit)."""
+    changed = sorted(run.changes())
+    run.note(f"built: {changed[:8]}{' …' if len(changed) > 8 else ''}" if changed else "nothing built: proposed only")
+
+
+def design_weekly_talk(run): design(run)
+def design_km_glance(run): design(run)
+def design_weight_alert(run): design(run)
+def design_next_session(run): design(run)
+def design_coffee_gesture(run): design(run)
+def design_weather_button(run): design(run)
+
+
 CHECKS = {f.__name__: f for f in (
+    design_weekly_talk, design_km_glance, design_weight_alert, design_next_session, design_coffee_gesture, design_weather_button,
     entry_water, entry_run, entry_sleep, entry_meal, entry_shopping, entry_ambiguous,
     read_late_tasks, read_km_week, read_weight_7d, read_billable_hours, read_kcal_yesterday,
     auto_morning, auto_menu, auto_review,
