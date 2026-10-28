@@ -115,21 +115,24 @@ class ApiCall(private val config: JSONObject, private val values: SettingValues)
     private fun list(name: String): List<JSONObject> =
         config.optJSONArray(name)?.let { array -> (0 until array.length()).map { array.getJSONObject(it) } }.orEmpty()
 
+    /**
+     * The key, for an API that says where it goes. One it expects and that was never entered (an
+     * API the AI declared, which never gives a key) refuses the call before it leaves: sent
+     * without it, the service's refusal would read as a failure of the service.
+     */
+    private fun key(): String =
+        values.string(ApiSettings.KEY)?.takeIf { it.isNotBlank() } ?: throw Failure("api_error_key_missing")
+
     private fun Request.Builder.withKey(): Request.Builder {
-        val key = values.string(ApiSettings.KEY)?.takeIf { it.isNotBlank() } ?: return this
-        if (values.string(ApiSettings.KEY_IN) == ApiSettings.KEY_HEADER) {
-            header(values.string(ApiSettings.KEY_HEADER_NAME)!!, values.string(ApiSettings.KEY_PREFIX).orEmpty() + key)
-        }
-        return this
+        if (values.string(ApiSettings.KEY_IN) != ApiSettings.KEY_HEADER) return this
+        return header(values.string(ApiSettings.KEY_HEADER_NAME)!!, values.string(ApiSettings.KEY_PREFIX).orEmpty() + key())
     }
 
     /** [base] with [query] added, and the key when it goes in the address. */
     private fun address(base: String, query: Map<String, Any>): HttpUrl {
         val url = base.toHttpUrlOrNull()?.newBuilder() ?: throw Failure("api_error_url", base)
         query.forEach { (name, value) -> url.addQueryParameter(name, value.toString()) }
-        if (values.string(ApiSettings.KEY_IN) == ApiSettings.KEY_QUERY) {
-            values.string(ApiSettings.KEY)?.takeIf { it.isNotBlank() }?.let { url.addQueryParameter(values.string(ApiSettings.KEY_PARAM)!!, it) }
-        }
+        if (values.string(ApiSettings.KEY_IN) == ApiSettings.KEY_QUERY) url.addQueryParameter(values.string(ApiSettings.KEY_PARAM)!!, key())
         return url.build()
     }
 

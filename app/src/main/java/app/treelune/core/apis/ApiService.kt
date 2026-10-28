@@ -44,6 +44,7 @@ class ApiService(private val context: Context) : ExecutableService {
         try {
             when (operation) {
                 "list" -> OperationResult.success(mapOf("apis" to dao.getAll().map { summary(it) }))
+                "configs" -> configs()
                 "get" -> get(params)
                 "create" -> create(params)
                 "update" -> update(params)
@@ -64,8 +65,30 @@ class ApiService(private val context: Context) : ExecutableService {
     private fun summary(api: ApiEntity): Map<String, Any> {
         val config = JSONObject(api.configJson)
         return mapOf("id" to api.id, "name" to api.name, "url" to config.optString(ApiSettings.URL),
-            "deferred" to (config.optString(ApiSettings.RESPONSE) == ApiSettings.DEFERRED))
+            "deferred" to (config.optString(ApiSettings.RESPONSE) == ApiSettings.DEFERRED),
+            "key_missing" to keyMissing(config))
     }
+
+    /** Whether [config] says where a key goes and holds none: an API the AI declared, its key left to the user. */
+    private fun keyMissing(config: JSONObject): Boolean =
+        config.optString(ApiSettings.KEY_IN, ApiSettings.KEY_NONE) != ApiSettings.KEY_NONE && config.optString(ApiSettings.KEY).isBlank()
+
+    /**
+     * Every API as the AI reads it (APIS): its whole config but its key, which never leaves the
+     * phone, and for one that takes a key whether it is entered. Nothing is opened: a key sealed
+     * on another phone counts as entered, its call saying it does not open.
+     */
+    private suspend fun configs(): OperationResult = OperationResult.success(mapOf("apis" to dao.getAll().map { api ->
+        val config = JSONObject(api.configJson)
+        val takesKey = config.optString(ApiSettings.KEY_IN, ApiSettings.KEY_NONE) != ApiSettings.KEY_NONE
+        config.remove(ApiSettings.KEY)
+        buildMap {
+            put("id", api.id)
+            put("name", api.name)
+            put("config", JsonUtils.toMap(config))
+            if (takesKey) put("key_entered", !keyMissing(JSONObject(api.configJson)))
+        }
+    }))
 
     private suspend fun get(params: JSONObject): OperationResult {
         val api = stored(params) ?: return notFound(params)
@@ -94,10 +117,43 @@ class ApiService(private val context: Context) : ExecutableService {
     private suspend fun update(params: JSONObject): OperationResult {
         val api = stored(params) ?: return notFound(params)
         val name = checkedName(params, api.id).let { (name, refusal) -> refusal?.let { return OperationResult.error(it) }; name!! }
-        val config = checkedConfig(params).let { (config, refusal) -> refusal?.let { return OperationResult.error(it) }; config!! }
+        val checked = checkedConfig(params).let { (config, refusal) -> refusal?.let { return OperationResult.error(it) }; config!! }
+        val config = if (params.optBoolean(KEEP_KEY)) keptKey(JSONObject(api.configJson), JSONObject(checked)).toString() else checked
         writes.updateApi(api.copy(name = name, configJson = config, updatedAt = System.currentTimeMillis()))
         LogManager.service("API ${api.id} updated", "INFO")
         return OperationResult.success(mapOf("api_id" to api.id))
+    }
+
+    /**
+     * [given], a config written without its key (UPDATE_API), with the key [stored] holds, still
+     * sealed — unless [given] changes where it goes: an address, the status address, the header
+     * or the parameter that carries it. The key is then dropped, for the user to enter again: no
+     * change the AI writes, by mistake or because a text it read asked for it, sends a key to a
+     * server it was not entered for.
+     */
+    private fun keptKey(stored: JSONObject, given: JSONObject): JSONObject {
+        val key = stored.optString(ApiSettings.KEY).ifBlank { return given }
+        if (keyPlace(stored) != keyPlace(given)) return given
+        return JSONObject(given.toString()).put(ApiSettings.KEY, key)
+    }
+
+    /**
+     * Where [config] sends its key: its addresses, and the header or the parameter that carries
+     * it. Read through the declaration, a setting left out reading as its default; a setting of a
+     * variant not chosen does not exist, and is not read.
+     */
+    private fun keyPlace(config: JSONObject): List<String?> {
+        val values = ApiSettings.read(config, context)
+        val keyIn = values.string(ApiSettings.KEY_IN)
+        return listOf(
+            values.string(ApiSettings.URL),
+            if (values.string(ApiSettings.RESPONSE) == ApiSettings.DEFERRED) values.string(ApiSettings.STATUS_URL) else null,
+            keyIn
+        ) + when (keyIn) {
+            ApiSettings.KEY_HEADER -> listOf(values.string(ApiSettings.KEY_HEADER_NAME))
+            ApiSettings.KEY_QUERY -> listOf(values.string(ApiSettings.KEY_PARAM))
+            else -> emptyList()
+        }
     }
 
     private suspend fun delete(params: JSONObject): OperationResult {
@@ -228,7 +284,16 @@ class ApiService(private val context: Context) : ExecutableService {
         val name = params.optString("api_id").ifEmpty { null }?.let { dao.get(it)?.name } ?: "?"
         return when (operation) {
             "call" -> s.shared("api_verbalize_call").format(name)
+            "create" -> s.shared("api_verbalize_create").format(params.optString("name"))
+            "update" -> s.shared("api_verbalize_update").format(name)
+            "delete" -> s.shared("api_verbalize_delete").format(name)
+            "configs" -> s.shared("api_verbalize_list")
             else -> s.shared("action_verbalize_unknown")
         }
+    }
+
+    companion object {
+        /** The param of `update` that keeps the stored key, the config given without it (UPDATE_API, keptKey). */
+        const val KEEP_KEY = "keep_key"
     }
 }

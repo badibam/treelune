@@ -2765,7 +2765,14 @@
     <string name="api_error_not_deferred">The API “%1$s” answers at once: it has no status to follow</string>
     <string name="api_error_job_required">Which work: job_id is required</string>
     <string name="api_error_key_unreadable">The key of the API “%1$s” does not open on this phone: enter it again</string>
+    <string name="api_error_key_missing">The API\'s key is not entered: enter it in Settings › APIs</string>
+    <string name="api_key_missing">Key to enter</string>
+    <string name="ai_error_api_key_given">You never give an API\'s key: leave out `key`, say where it goes, and the user enters it in Settings › APIs</string>
     <string name="api_verbalize_call">Call of the API “%1$s”</string>
+    <string name="api_verbalize_create">Declare the API “%1$s”</string>
+    <string name="api_verbalize_update">Change the API “%1$s”</string>
+    <string name="api_verbalize_delete">Delete the API “%1$s”</string>
+    <string name="api_verbalize_list">Read the APIs</string>
 
     <!-- Tasks (core/tasks) -->
     <string name="task_display_name">Task</string>

@@ -703,6 +703,7 @@ class CommandExecutor(private val context: Context) {
                 else -> "All routines"
             }
             "events" -> (command.params["zone_id"] as? String)?.let { "Events in zone '${resolveZoneName(it)}'" } ?: "All events"
+            "apis" -> "All APIs"
             "tasks" -> when (command.operation) {
                 "get" -> "Configuration for Task '${((data["task"] as? Map<*, *>)?.get("settings") as? Map<*, *>)?.get("name")}'"
                 "list" -> "Tasks in zone '${resolveZoneName(command.params["zone_id"] as String)}'"
@@ -859,6 +860,14 @@ class CommandExecutor(private val context: Context) {
                 // One Task's config, in the form the model writes it back (TaskSchemas)
                 if (command.operation == "get") return JSONObject(app.treelune.core.tasks.TaskSchemas.forModel(data["task"] as Map<*, *>, context) as Map<*, *>).toString(2)
                 (data["tasks"] as? List<*>)?.let { list -> reordered["tasks"] = list.map { app.treelune.core.tasks.Task.listed(it as Map<*, *>) } }
+                return JSONObject(reordered as Map<*, *>).toString(2)
+            }
+            // The APIs' configs in the form CREATE_API and UPDATE_API write them: a wait limit in ISO 8601
+            "apis" -> data["apis"]?.let { apis ->
+                val schema = JSONObject(app.treelune.core.apis.ApiSettings.schema(context).content)
+                reordered["apis"] = (apis as List<*>).map { api ->
+                    (api as Map<*, *>).entries.associate { (key, value) -> key.toString() to if (key == "config") ModelValues.toModel(value, schema, timezone) else value }
+                }
                 return JSONObject(reordered as Map<*, *>).toString(2)
             }
             // A routine's runs, by their declared schema; one run, the text its AI read

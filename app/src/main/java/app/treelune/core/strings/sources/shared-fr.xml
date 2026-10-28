@@ -2765,7 +2765,14 @@
     <string name="api_error_not_deferred">L\'API « %1$s » répond tout de suite : elle n\'a pas de suivi</string>
     <string name="api_error_job_required">Quel travail : job_id est requis</string>
     <string name="api_error_key_unreadable">La clé de l\'API « %1$s » ne s\'ouvre pas sur ce téléphone : saisis-la à nouveau</string>
+    <string name="api_error_key_missing">La clé de l\'API n\'est pas saisie : saisis-la dans Réglages › API</string>
+    <string name="api_key_missing">Clé à saisir</string>
+    <string name="ai_error_api_key_given">Tu ne donnes jamais la clé d\'une API : laisse `key` de côté, dis où elle va, et l\'utilisateur la saisit dans Réglages › API</string>
     <string name="api_verbalize_call">Appel de l\'API « %1$s »</string>
+    <string name="api_verbalize_create">Déclarer l\'API « %1$s »</string>
+    <string name="api_verbalize_update">Modifier l\'API « %1$s »</string>
+    <string name="api_verbalize_delete">Supprimer l\'API « %1$s »</string>
+    <string name="api_verbalize_list">Lire les API</string>
 
     <!-- Tasks (core/tasks) -->
     <string name="task_display_name">Tâche</string>

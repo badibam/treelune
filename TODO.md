@@ -16,7 +16,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 ## Bugs du téléphone
 
 - Le filtre d'une Lecture de variable accepte `=` sur un champ Choix (`state.status` d'une Séance, vu le 2026-10-27 par le connecteur), que le filtre d'un déclencheur refuse (« = ne compare pas État (CHOICE). Il prend : in, absent, present ») : la même vérification des opérateurs pour les deux, à l'écriture de la variable.
-- L'IA, par le connecteur, ne peut pas écrire une Tâche qui appelle une API déclarée : aucune commande ne liste les API (`apis.list` existe, sans commande de l'IA), ni `APP_CONTEXT` ni le schéma `task_config` ne les nomment, et `CREATE_TASK` refuse le nom (« aucune API hypnogen », vu le 2026-10-27) ; dire leurs ids, noms, entrées et valeurs à l'IA (une commande `APIS`, ou une section du contexte).
 
 ## Bugs
 
@@ -44,6 +43,7 @@ Codé, jamais vu sur l'appareil.
 - Le Guide : les étapes 4 et 5 de Brancher une IA, cochées par un message envoyé puis par un pointeur vers un outil (pas vers une zone) ; dans les nouveaux chapitres, la couleur d'un Graphique qui suit une Condition, la date dans le nom d'un champ gardé (« Humeur (avant le 21 octobre) »), un choix multiple repassé en simple qui retire les listes de plusieurs réponses.
 - Les usages de `TextType.SUBTITLE` (56 fichiers), maintenant sous `TITLE` et sur `HEADING` dans chaque thème, le rétro compris : un SUBTITLE placé sous un HEADING passe en STRONG, comme les intertitres du Guide.
 - Les API et les Tâches : une API Open-Meteo essayée, puis appelée par une Tâche à la main et par son planning, sa valeur écrite dans un Suivi ; une API différée attendue app fermée, et une exécution coupée par un redémarrage dite interrompue ; un audio rendu par une API, téléchargé dans le champ d'une Fiche ; la notification d'un échec ; l'IA qui écrit une Tâche sous un masque, puis la lance ; le cas de départ monté en deux Tâches, le script relu dans la Fiche entre elles.
+- Les API écrites par l'IA : une API déclarée par le connecteur, « Clé à saisir » sur sa carte et son appel refusé avant de partir ; la clé saisie, puis l'API modifiée par l'IA (une entrée ajoutée), la clé restée ; son adresse changée, la clé partie ; une Séance Minuteur créée par le connecteur avec « PT15M ».
 - Les passes des thèmes sur le téléphone : la tournée de `docs/THEMES.md` (« The pass on the phone ») pour chaque thème, puis ce que sa spec garde à juger sur l'appareil dans « What stays open » (`docs/themes/<id>.md`), le niveau des sons dans `docs/themes/sounds.md`.
 
 ## Décidé, à coder
