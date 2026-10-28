@@ -18,7 +18,7 @@ import app.treelune.core.services.ReferenceService
 import app.treelune.core.services.VariableService
 import app.treelune.core.ai.services.AISessionService
 import app.treelune.core.ai.services.AIProviderConfigService
-import app.treelune.core.ai.services.AutomationService
+import app.treelune.core.ai.services.RoutineService
 import app.treelune.core.apis.ApiService
 import app.treelune.core.tasks.TaskService
 import app.treelune.core.events.EventService
@@ -53,7 +53,7 @@ class ServiceRegistry(private val context: Context) {
         "files" to ::FileService,
         "ai_sessions" to ::AISessionService,
         "ai_provider_config" to ::AIProviderConfigService,
-        "automations" to ::AutomationService,
+        "automations" to ::RoutineService,
         "apis" to ::ApiService,
         "tasks" to ::TaskService,
         "events" to ::EventService,

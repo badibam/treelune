@@ -14,7 +14,7 @@ import androidx.room.PrimaryKey
  * @property name Unique in the app: a formula and the AI name it alone
  * @property label What its tile shows, free; never made from the name (VariableLook)
  * @property description What it is for, shown under its label on its page; null for none
- * @property group The zone's group it sits in, as a tool or an automation; null outside any
+ * @property group The zone's group it sits in, as a tool or a routine; null outside any
  * @property iconName A Lucide icon name, stored under its current name
  * @property iconColor Its icon's colour, a name of IconColor.NAMES; null for a neutral icon
  * @property texture The motif of its tile, a name of Texture.NAMES; null for none

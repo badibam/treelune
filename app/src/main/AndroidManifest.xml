@@ -93,9 +93,9 @@
             android:name=".core.mcp.McpAccessService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
-        <!-- A routine running (AutomationRunService): its round, with no screen open -->
+        <!-- A routine running (RoutineRunService): its round, with no screen open -->
         <service
-            android:name=".core.ai.orchestration.AutomationRunService"
+            android:name=".core.ai.orchestration.RoutineRunService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
         <service

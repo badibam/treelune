@@ -7,7 +7,7 @@ import app.treelune.core.ui.StatusColor
 
 /**
  * Utility functions and extensions for AI Phase and SessionEndReason
- * Used by AutomationScreen and other AI UI components for consistent display
+ * Used by RoutineScreen and other AI UI components for consistent display
  */
 object PhaseUtils {
 

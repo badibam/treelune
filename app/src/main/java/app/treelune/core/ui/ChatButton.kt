@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 
 /**
  * The chat's floating button, at the bottom right of the places one reads (Place.chatButton): the
- * home screen, a zone, a tool, the Guide, an automation. It floats over the content, so a screen
+ * home screen, a zone, a tool, the Guide, a routine. It floats over the content, so a screen
  * of such a place leaves room for it at the end of what scrolls ([chatButtonSpace]), and what
  * holds fixed controls at the bottom while it shows (a tile being moved, a session running) hides
  * it ([HideChatButton]).

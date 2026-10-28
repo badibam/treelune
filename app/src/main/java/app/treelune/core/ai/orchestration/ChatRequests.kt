@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 
 /**
  * Asks for a chat opened with a content — text and pointers in its composer, sent by the user
- * when they choose — from any screen: an automation's card, a questionnaire's « Avec l'IA ». The
+ * when they choose — from any screen: a routine's card, a questionnaire's « Avec l'IA ». The
  * main screen, which holds the chat, opens it (AIOrchestrator.startNewChatSession).
  */
 object ChatRequests {

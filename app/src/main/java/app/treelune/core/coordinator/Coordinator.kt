@@ -36,7 +36,7 @@ class Coordinator(private val context: Context) {
         return execute(command)
     }
     
-    /** A command of the AI, whatever runs it: a chat, or an automation the scheduler started. */
+    /** A command of the AI, whatever runs it: a chat, or a routine the scheduler started. */
     suspend fun processAICommand(action: String, params: Map<String, Any?> = emptyMap()): CommandResult {
         val command = convertToDispatchCommand(action, params, Source.AI)
         return execute(command)
@@ -57,7 +57,7 @@ class Coordinator(private val context: Context) {
 
     /**
      * A step of a Task (docs/CORE.md, « Tasks »): the scheduler's, no one watching, yet written as
-     * a step of the history of its own and undone as one — what an automation's AI command is,
+     * a step of the history of its own and undone as one — what a routine's AI command is,
      * without the AI.
      */
     suspend fun processTaskStep(action: String, params: Map<String, Any?>): CommandResult =
@@ -128,7 +128,7 @@ class Coordinator(private val context: Context) {
 
     /**
      * Why [command] goes beyond the access mask of the operation running (AccessScope: an
-     * automation's AI), null when it does not or when there is none. What the app itself calls
+     * routine's AI), null when it does not or when there is none. What the app itself calls
      * from inside an operation is not held: the operation it serves was.
      */
     private suspend fun accessRefusal(command: DispatchCommand, resource: String, operation: String): String? {

@@ -97,13 +97,13 @@ object DataChangeNotifier {
 
     /**
      * Notify that AI sessions have changed (created, updated, completed)
-     * Triggers AutomationScreen reload for the specific automation or all automations
+     * Triggers RoutineScreen reload for the specific routine or all routines
      *
-     * @param automationId ID of the automation whose sessions changed, or null for all automations
+     * @param routineId ID of the routine whose sessions changed, or null for all routines
      */
-    fun notifyAISessionsChanged(automationId: String? = null) {
-        LogManager.coordination("DataChangeNotifier: AI sessions changed for automation ${automationId ?: "all"}", "DEBUG")
-        _changes.tryEmit(DataChangeEvent.AISessionsChanged(automationId))
+    fun notifyAISessionsChanged(routineId: String? = null) {
+        LogManager.coordination("DataChangeNotifier: AI sessions changed for automation ${routineId ?: "all"}", "DEBUG")
+        _changes.tryEmit(DataChangeEvent.AISessionsChanged(routineId))
     }
 }
 
@@ -143,9 +143,9 @@ sealed class DataChangeEvent {
 
     /**
      * AI sessions have changed (created, updated, completed)
-     * @param automationId ID of the automation whose sessions changed, or null for all automations
+     * @param routineId ID of the routine whose sessions changed, or null for all routines
      */
-    data class AISessionsChanged(val automationId: String?) : DataChangeEvent()
+    data class AISessionsChanged(val routineId: String?) : DataChangeEvent()
 
     /**
      * Whether this may change what a reader of other tools shows: a chart, a goal, flashcards.

@@ -6,7 +6,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * The group section a tool, a variable or an automation of a zone is shown in, and the zone's
+ * The group section a tool, a variable or a routine of a zone is shown in, and the zone's
  * groups. Pure; where their tiles stand is SectionGrid's.
  */
 object ToolPositions {

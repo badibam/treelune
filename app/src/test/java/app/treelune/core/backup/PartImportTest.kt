@@ -188,7 +188,7 @@ class PartImportTest {
 
         // What the import's window counts: the zones created, the elements, the entries
         assertEquals(selection.zones.size, imported.data!!["zones"])
-        assertEquals(selection.tools.size + selection.variables.size + selection.automations.size + selection.tasks.size, imported.data!!["elements"])
+        assertEquals(selection.tools.size + selection.variables.size + selection.routines.size + selection.tasks.size, imported.data!!["elements"])
         assertEquals(entriesBefore, imported.data!!["entries"])
 
         // Each Task a second time, off, under a new id; the APIs, held already, kept as they are;
@@ -202,7 +202,7 @@ class PartImportTest {
         assertTrue(database.eventDao().getAll().size > eventsBefore)
 
         // What arrived names nothing of the demo: each link followed its thing to its new id
-        val demoIds = (selection.zones + selection.tools.keys + selection.variables + selection.automations + selection.tasks +
+        val demoIds = (selection.zones + selection.tools.keys + selection.variables + selection.routines + selection.tasks +
             database.eventDao().getAll().filter { it.id.startsWith(DemoContent.PREFIX) }.map { it.id } +
             database.toolDataDao().getAllEntries().filter { it.id.startsWith(DemoContent.PREFIX) }.map { it.id }).toSet()
         tasks.forEach { task -> assertFalse(task.stepsJson, IdWords.words(task.stepsJson).any { it in demoIds }) }
@@ -217,9 +217,9 @@ class PartImportTest {
         }
 
         // A routine arrives off, without provider, speaking as its identity; a zone as its own
-        val demoRoutines = database.aiDao().getAllAutomations().filter { it.id.startsWith(DemoContent.PREFIX) }
-        val routines = database.aiDao().getAllAutomations().filter { !it.id.startsWith(DemoContent.PREFIX) }
-        assertEquals(selection.automations.size, routines.size)
+        val demoRoutines = database.aiDao().getAllRoutines().filter { it.id.startsWith(DemoContent.PREFIX) }
+        val routines = database.aiDao().getAllRoutines().filter { !it.id.startsWith(DemoContent.PREFIX) }
+        assertEquals(selection.routines.size, routines.size)
         routines.forEach { routine ->
             assertFalse(routine.isEnabled)
             assertNull(routine.providerId)

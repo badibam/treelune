@@ -1289,7 +1289,7 @@ class AIEventProcessor(
      * The instant this session's relative periods resolve against.
      *
      * An AUTOMATION reads the data of the run it was scheduled for, not of the moment it finally
-     * got to run: reopened after a long absence, a daily automation catching up on the 3rd of
+     * got to run: reopened after a long absence, a daily routine catching up on the 3rd of
      * August must read the 3rd of August. Everything else resolves against the clock.
      *
      * The scheduled time is read from the session rather than carried in the state, so a resumed
@@ -1884,7 +1884,7 @@ class AIEventProcessor(
     }
 
     /**
-     * [block] under the access mask of the automation whose AI the session runs (AccessScope:
+     * [block] under the access mask of the routine whose AI the session runs (AccessScope:
      * the coordinator refuses what goes beyond it, AccessScope.ofRun), as it is; a chat's AI is
      * held to none.
      */
@@ -2153,7 +2153,7 @@ class AIEventProcessor(
      * Handle scheduler heartbeat event.
      *
      * Watchdog logic:
-     * - If CHAT active: check timeout only if automation waiting
+     * - If CHAT active: check timeout only if routine waiting
      * - If AUTOMATION active: check global timeout + inactivity timeout
      * - If IDLE: try to activate next session
      */
@@ -2162,19 +2162,19 @@ class AIEventProcessor(
 
         when (currentState.sessionType) {
             SessionType.CHAT -> {
-                // Check if automation waiting (queue or scheduled)
+                // Check if routine waiting (queue or scheduled)
                 val queuedSessions = app.treelune.core.ai.orchestration.AIOrchestrator.queuedSessions.value
                 val nextSession = app.treelune.core.ai.scheduling.AISessionScheduler(
                     aiDao = app.treelune.core.database.AppDatabase.getDatabase(context).aiDao(),
-                    automationScheduler = app.treelune.core.ai.scheduling.AutomationScheduler(context)
+                    routineScheduler = app.treelune.core.ai.scheduling.RoutineScheduler(context)
                 ).getNextSession(queuedSessions)
 
-                val hasWaitingAutomations = nextSession != null
+                val hasWaitingRoutines = nextSession != null
 
-                if (hasWaitingAutomations) {
+                if (hasWaitingRoutines) {
                     if (app.treelune.core.ai.scheduling.SessionSlotPolicy.shouldTimeout(
                             currentState,
-                            hasWaitingAutomations = true,
+                            hasWaitingRoutines = true,
                             currentTime = System.currentTimeMillis()
                         )
                     ) {
@@ -2187,7 +2187,7 @@ class AIEventProcessor(
             SessionType.AUTOMATION -> {
                 if (app.treelune.core.ai.scheduling.SessionSlotPolicy.shouldTimeout(
                         currentState,
-                        hasWaitingAutomations = false,
+                        hasWaitingRoutines = false,
                         currentTime = System.currentTimeMillis()
                     )
                 ) {
@@ -2217,7 +2217,7 @@ class AIEventProcessor(
         val queuedSessions = app.treelune.core.ai.orchestration.AIOrchestrator.queuedSessions.value
         val sessionScheduler = app.treelune.core.ai.scheduling.AISessionScheduler(
             aiDao = app.treelune.core.database.AppDatabase.getDatabase(context).aiDao(),
-            automationScheduler = app.treelune.core.ai.scheduling.AutomationScheduler(context)
+            routineScheduler = app.treelune.core.ai.scheduling.RoutineScheduler(context)
         )
 
         val nextSession = sessionScheduler.getNextSession(queuedSessions)
@@ -2226,7 +2226,7 @@ class AIEventProcessor(
             val sessionInfo = if (nextSession.isResume()) {
                 "Resume session ${nextSession.sessionId}"
             } else {
-                "Create session from automation ${nextSession.automationId}"
+                "Create session from automation ${nextSession.routineId}"
             }
 
             LogManager.aiSession(
@@ -2244,10 +2244,10 @@ class AIEventProcessor(
                 // Resume existing session
                 emit(AIEvent.SessionActivationRequested(nextSession.sessionId!!, nextSession.sessionType))
             } else {
-                // Create new automation session from automation
+                // Create new routine session from routine
                 // For SCHEDULED: scheduledFor = planned execution time from scheduler
-                app.treelune.core.ai.orchestration.AIOrchestrator.executeAutomation(
-                    nextSession.automationId!!,
+                app.treelune.core.ai.orchestration.AIOrchestrator.executeRoutine(
+                    nextSession.routineId!!,
                     scheduledFor = nextSession.scheduledFor!!,
                     trigger = app.treelune.core.ai.data.ExecutionTrigger.SCHEDULED
                 )

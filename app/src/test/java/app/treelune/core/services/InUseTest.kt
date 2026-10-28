@@ -2,7 +2,7 @@ package app.treelune.core.services
 
 import android.content.Context
 import app.treelune.core.ai.database.AIProviderConfigEntity
-import app.treelune.core.ai.data.AutomationMessage
+import app.treelune.core.ai.data.RoutineMessage
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.AppDatabase
@@ -56,7 +56,7 @@ class InUseTest {
             "identity_id" to null,
             "provider_id" to providerId,
             "is_enabled" to false,
-            "message" to listOf(mapOf("type" to AutomationMessage.TEXT, "text" to "Hi"))
+            "message" to listOf(mapOf("type" to RoutineMessage.TEXT, "text" to "Hi"))
         ))
         assertTrue(created.error, created.isSuccess)
     }
@@ -107,7 +107,7 @@ class InUseTest {
             "identity_id" to identityId,
             "provider_id" to null,
             "is_enabled" to false,
-            "message" to listOf(mapOf("type" to AutomationMessage.TEXT, "text" to "Hi"))
+            "message" to listOf(mapOf("type" to RoutineMessage.TEXT, "text" to "Hi"))
         ))
         assertTrue(routine.error, routine.isSuccess)
 

@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
  * Centralized scheduler for all periodic background tasks.
  *
  * Architecture: Single point of entry for scheduling across the app
- * - AI automations (via AIOrchestrator)
+ * - AI routines (via AIOrchestrator)
  * - Tool schedulers (via discovery pattern)
  *
  * Heartbeat mechanism:
@@ -110,7 +110,7 @@ object CoreScheduler {
         }
 
         try {
-            // 1. AI scheduling (AIOrchestrator handles automations + session management), set up
+            // 1. AI scheduling (AIOrchestrator handles routines + session management), set up
             // here when the alarm started the process and no screen did
             AIOrchestrator.initialize(context)
             AIOrchestrator.tick()

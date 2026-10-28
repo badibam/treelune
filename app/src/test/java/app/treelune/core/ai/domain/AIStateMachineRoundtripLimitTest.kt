@@ -19,14 +19,14 @@ class AIStateMachineRoundtripLimitTest {
     // ==================== The productive loop ====================
 
     /**
-     * Actions that succeed send the automation back to the provider, and that is the loop
+     * Actions that succeed send the routine back to the provider, and that is the loop
      * the limit was written for: reaching it closes the session with LIMIT_REACHED.
      */
     @Test
     fun actionsExecuted_closesTheSessionOnceTheLimitIsReached() {
         // One below the limit: the session keeps going.
         val stillRunning = AIStateMachine.transition(
-            state = automationAt(Phase.EXECUTING_ACTIONS, roundtrips = 1),
+            state = routineAt(Phase.EXECUTING_ACTIONS, roundtrips = 1),
             event = AIEvent.ActionsExecuted(results = emptyList(), allSuccess = true, keepControl = null),
             limits = testLimits,
             currentTime = T0
@@ -36,7 +36,7 @@ class AIStateMachineRoundtripLimitTest {
 
         // Reaching the limit: the session closes and says why.
         val stopped = AIStateMachine.transition(
-            state = automationAt(Phase.EXECUTING_ACTIONS, roundtrips = 2),
+            state = routineAt(Phase.EXECUTING_ACTIONS, roundtrips = 2),
             event = AIEvent.ActionsExecuted(results = emptyList(), allSuccess = true, keepControl = null),
             limits = testLimits,
             currentTime = T0
@@ -84,7 +84,7 @@ class AIStateMachineRoundtripLimitTest {
     @Test
     fun actionsExecuted_asksForConfirmationWhenCompletionWasClaimed() {
         val state = AIStateMachine.transition(
-            state = automationAt(Phase.EXECUTING_ACTIONS, awaitingCompletionConfirmation = true),
+            state = routineAt(Phase.EXECUTING_ACTIONS, awaitingCompletionConfirmation = true),
             event = AIEvent.ActionsExecuted(results = emptyList(), allSuccess = true, keepControl = null),
             limits = testLimits,
             currentTime = T0
@@ -104,7 +104,7 @@ class AIStateMachineRoundtripLimitTest {
      */
     @Test
     fun parseErrorLoop_isStoppedOnTheCount() {
-        var state = automationAt(Phase.CALLING_AI)
+        var state = routineAt(Phase.CALLING_AI)
 
         repeat(CYCLES_WELL_PAST_THE_LIMIT) {
             if (state.phase != Phase.CALLING_AI) return@repeat
@@ -126,7 +126,7 @@ class AIStateMachineRoundtripLimitTest {
     /** Same for an action that keeps failing. */
     @Test
     fun actionFailureLoop_isStoppedOnTheCount() {
-        var state = automationAt(Phase.EXECUTING_ACTIONS)
+        var state = routineAt(Phase.EXECUTING_ACTIONS)
 
         repeat(CYCLES_WELL_PAST_THE_LIMIT) {
             if (state.phase != Phase.CALLING_AI && state.totalRoundtrips > 0) return@repeat
@@ -144,10 +144,10 @@ class AIStateMachineRoundtripLimitTest {
         assertEquals(SessionEndReason.LIMIT_REACHED, state.endReason)
     }
 
-    /** And for an automation that keeps answering without any command. */
+    /** And for a routine that keeps answering without any command. */
     @Test
     fun continuationLoop_isStoppedOnTheCount() {
-        var state = automationAt(Phase.PREPARING_CONTINUATION)
+        var state = routineAt(Phase.PREPARING_CONTINUATION)
 
         repeat(CYCLES_WELL_PAST_THE_LIMIT) {
             if (state.endReason != null) return@repeat
@@ -171,7 +171,7 @@ class AIStateMachineRoundtripLimitTest {
      */
     @Test
     fun aPhaseLeadingToACallIsCaughtOnItsWayThrough() {
-        val atTheLimit = automationAt(
+        val atTheLimit = routineAt(
             Phase.EXECUTING_ACTIONS,
             roundtrips = testLimits.maxAutonomousRoundtrips - 1,
             awaitingCompletionConfirmation = true
@@ -259,7 +259,7 @@ class AIStateMachineRoundtripLimitTest {
     /** Entering the guidance phase clears the reason that sent it there. */
     @Test
     fun continuationReady_clearsTheReasonItWasGuidedFor() {
-        val guided = automationAt(Phase.PREPARING_CONTINUATION)
+        val guided = routineAt(Phase.PREPARING_CONTINUATION)
             .copy(continuationReason = ContinuationReason.AUTOMATION_NO_COMMANDS)
 
         val state = AIStateMachine.transition(

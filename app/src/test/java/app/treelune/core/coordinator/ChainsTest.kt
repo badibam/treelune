@@ -39,7 +39,7 @@ class ChainsTest {
     private suspend fun session(type: SessionType, chainId: String? = null): String {
         val id = UUID.randomUUID().toString()
         database.aiDao().insertSession(AISessionEntity(
-            id = id, name = "Run", type = type, automationId = if (type == SessionType.AUTOMATION) "routine" else null,
+            id = id, name = "Run", type = type, routineId = if (type == SessionType.AUTOMATION) "routine" else null,
             scheduledExecutionTime = 0, providerId = null, providerSessionId = id, createdAt = 0, lastActivity = 0,
             isActive = false, chainId = chainId
         ))

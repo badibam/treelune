@@ -16,7 +16,7 @@ import java.time.ZonedDateTime
  * Covers the next-execution calculation for all six schedule patterns.
  *
  * Every case fixes both the clock and the timezone. That is the whole point of testing this
- * here: TODO.md still carries "check a real catch-up on the device, automation scheduled,
+ * here: TODO.md still carries "check a real catch-up on the device, routine scheduled,
  * app closed for several days", and a scheduling question that costs days to observe by
  * hand costs milliseconds with fromTimestamp set by hand.
  *

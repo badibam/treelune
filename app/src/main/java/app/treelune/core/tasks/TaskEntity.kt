@@ -38,7 +38,7 @@ data class TaskEntity(
     @ColumnInfo(name = "catch_up") val catchUp: String?,
     @ColumnInfo(name = "catch_up_window") val catchUpWindow: Long?,
     @ColumnInfo(name = "dismiss_older_instances") val dismissOlderInstances: Boolean,
-    /** Which of its runs wait for the user once ended (AutomationSettings.NOTIFY_*) */
+    /** Which of its runs wait for the user once ended (RoutineSettings.NOTIFY_*) */
     @ColumnInfo(name = "notify_end") val notifyEnd: String,
     /** Its steps, TaskSteps' stored form */
     @ColumnInfo(name = "steps_json") val stepsJson: String,

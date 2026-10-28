@@ -52,7 +52,7 @@ class AILimitsAtV32Test {
 
     /** The automation limit is kept as stored, and set to 20 only when absent. */
     @Test
-    fun theAutomationLimit_isKeptOrSetToTwenty() {
+    fun theRoutineLimit_isKeptOrSetToTwenty() {
         val kept = AILimitsAtV32.rewrite(JSONObject().put("automation_max_autonomous_roundtrips", 7))
         val absent = AILimitsAtV32.rewrite(JSONObject())
 

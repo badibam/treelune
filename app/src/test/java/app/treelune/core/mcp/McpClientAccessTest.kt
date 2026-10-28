@@ -1,7 +1,7 @@
 package app.treelune.core.mcp
 
 import android.content.Context
-import app.treelune.core.ai.data.AutomationMessage
+import app.treelune.core.ai.data.RoutineMessage
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
 import kotlinx.coroutines.runBlocking
@@ -45,7 +45,7 @@ class McpClientAccessTest {
         seedsId = tool(gardenId, "Seeds")
         val routine = coordinator.processUserAction("automations.create", mapOf(
             "zone_id" to healthId, "name" to "Weekly", "identity_id" to null, "provider_id" to null, "is_enabled" to false,
-            "message" to listOf(mapOf("type" to AutomationMessage.TEXT, "text" to "hi"))
+            "message" to listOf(mapOf("type" to RoutineMessage.TEXT, "text" to "hi"))
         ))
         assertTrue(routine.error, routine.isSuccess)
         routineId = routine.data!!["automation_id"] as String
@@ -107,7 +107,7 @@ class McpClientAccessTest {
         assertTrue(config.text, config.text.contains("Weekly"))
 
         val settings = JSONObject().put("name", "Elsewhere").put("is_enabled", false)
-        val message = JSONArray().put(JSONObject().put("type", AutomationMessage.TEXT).put("text", "hi"))
+        val message = JSONArray().put(JSONObject().put("type", RoutineMessage.TEXT).put("text", "hi"))
         val outside = call("create_routine", JSONObject().put("zone_id", gardenId).put("settings", settings).put("message", message))
         assertTrue(outside.text, outside.isError)
         assertTrue(outside.text, outside.text.contains("Claude"))

@@ -3,22 +3,22 @@ package app.treelune.core.ai.data
 import app.treelune.core.utils.ScheduleConfig
 
 /**
- * Automation configuration defining when and how AI should act automatically
+ * Routine configuration defining when and how AI should act automatically
  *
- * An automation is a template that creates AUTOMATION sessions when triggered.
+ * A routine is a template that creates AUTOMATION sessions when triggered.
  * It references a SEED session containing the initial user message/prompt.
  */
-data class Automation(
+data class Routine(
     val id: String,
     val name: String,
-    val zoneId: String,                     // Automation attached to a zone
+    val zoneId: String,                     // Routine attached to a zone
     val seedSessionId: String,              // Points to SEED session with initial message
     val schedule: ScheduleConfig?,          // null = no time-based triggering
     /** How many triggers start it beside its schedule (Triggers); 0 when none does */
     val triggers: Int,
     /** The event a run that ends well emits (EventPoints), its id; null for none */
     val emitEvent: String? = null,
-    /** A scheduled automation's choice about missed runs (AutomationSettings.LIMITED or UNLIMITED); null without schedule */
+    /** A scheduled routine's choice about missed runs (RoutineSettings.LIMITED or UNLIMITED); null without schedule */
     val catchUp: String? = null,
 
     /**
@@ -37,8 +37,8 @@ data class Automation(
     /** The identity its runs speak as; null for the app's own AI */
     val identityId: String? = null,
     val isEnabled: Boolean,
-    /** Which of its runs wait for the user (AutomationSettings.NOTIFY_*) */
-    val notifyEnd: String = AutomationSettings.NOTIFY_ALWAYS,
+    /** Which of its runs wait for the user (RoutineSettings.NOTIFY_*) */
+    val notifyEnd: String = RoutineSettings.NOTIFY_ALWAYS,
     val group: String? = null,              // Group within zone (null = ungrouped)
     val createdAt: Long,
     val updatedAt: Long,                    // Last modification timestamp (used to skip missed executions after disable)
@@ -46,7 +46,7 @@ data class Automation(
     val executionHistory: List<String>,     // IDs of execution sessions (newest first)
     /** What its AI may reach (docs/AI.md, « Levels »): empty, everything */
     val access: app.treelune.core.access.AccessMask = app.treelune.core.access.AccessMask(),
-    /** How its tile shows (AutomationSettings.LOOK), its name among it */
+    /** How its tile shows (RoutineSettings.LOOK), its name among it */
     val look: app.treelune.core.look.Look,
     /** Its place in the grid of its group's section (SectionGrid) */
     val gridX: Int,
@@ -57,17 +57,17 @@ data class Automation(
 
     companion object {
         /**
-         * An automation as the automations service gives it in a result: the single reader of
+         * A routine as the routines service gives it in a result: the single reader of
          * that form, which fails loudly on a result that does not have it.
          */
-        fun fromResult(map: Map<*, *>): Automation {
+        fun fromResult(map: Map<*, *>): Routine {
             @Suppress("UNCHECKED_CAST")
             val schedule = (map["schedule"] as Map<String, Any?>?)?.let {
                 kotlinx.serialization.json.Json.decodeFromString(ScheduleConfig.serializer(),
                     app.treelune.core.utils.JsonUtils.toJSONObject(it).toString())
             }
             val catchUp = map["catch_up"] as Map<*, *>?
-            return Automation(
+            return Routine(
                 id = map["id"] as String,
                 name = map["name"] as String,
                 zoneId = map["zone_id"] as String,
@@ -80,7 +80,7 @@ data class Automation(
                 // Without a schedule nothing is missed, and the setting is absent
                 dismissOlderInstances = catchUp?.get("dismiss_older_instances") as Boolean? ?: false,
                 providerId = map["provider_id"] as String?,
-                identityId = map[AutomationSettings.IDENTITY_ID] as String?,
+                identityId = map[RoutineSettings.IDENTITY_ID] as String?,
                 isEnabled = map["is_enabled"] as Boolean,
                 notifyEnd = map["notify_end"] as String,
                 group = map["group"] as String?,
@@ -89,7 +89,7 @@ data class Automation(
                 lastExecutionId = map["last_execution_id"] as String?,
                 executionHistory = (map["execution_history"] as List<*>).map { it as String },
                 access = app.treelune.core.access.AccessMask.fromJson(org.json.JSONArray(map["access"] as List<*>).toString()),
-                look = app.treelune.core.look.Looks.read(AutomationSettings.LOOK,
+                look = app.treelune.core.look.Looks.read(RoutineSettings.LOOK,
                     app.treelune.core.utils.JsonUtils.toJSONObject(map.entries.associate { it.key.toString() to it.value })),
                 gridX = (map["grid_x"] as Number).toInt(),
                 gridY = (map["grid_y"] as Number).toInt()
@@ -99,7 +99,7 @@ data class Automation(
 }
 
 /**
- * What a scheduled automation saved before catch-up settings existed is read as.
+ * What a scheduled routine saved before catch-up settings existed is read as.
  *
  * No window and the most recent occurrence only: back from a long absence it starts once,
  * and the user adjusts from there. This is a reading rule for old data, applied by the

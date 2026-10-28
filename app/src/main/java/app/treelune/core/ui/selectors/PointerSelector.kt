@@ -34,7 +34,7 @@ private val PointerSelectionSaver: Saver<PointerSelection, String> = Saver(
  * with the sentence that says what will go.
  *
  * @param reference The name of what its relative dates resolve against when the pointer is
- *   replayed later (an automation's starting message: its scheduled time); null in a chat, where
+ *   replayed later (a routine's starting message: its scheduled time); null in a chat, where
  *   a date is fixed when it is chosen
  * @param onConfirm The pointer's stored form, its text written each time the message is read
  */

@@ -5,8 +5,8 @@ package app.treelune.core.ai.data
  * 1. User Chat Normal: richContent with enrichments
  * 2. User Module Response: textContent simple (response to communication modules)
  * 3. AI Chat Response: aiMessage with preText + actions + postText + modules
- * 4. User Automation Prompt: richContent (modifiable initial prompt)
- * 5. AI Automation Execution: aiMessage + executionMetadata for tracking
+ * 4. User Routine Prompt: richContent (modifiable initial prompt)
+ * 5. AI Routine Execution: aiMessage + executionMetadata for tracking
  * 6. AI PostText Success: textContent with postText from successful actions (UI only, excluded from prompt)
  */
 data class SessionMessage(
@@ -18,7 +18,7 @@ data class SessionMessage(
     val aiMessage: AIMessage?,     // Parsed AI structure for UI/logic
     val aiMessageJson: String?,    // Original AI JSON for prompt history consistency
     val systemMessage: SystemMessage?, // System messages for AI operation results
-    val executionMetadata: ExecutionMetadata? = null, // For automation executions only
+    val executionMetadata: ExecutionMetadata? = null, // For routine executions only
     val excludeFromPrompt: Boolean = false, // Exclude from prompt generation (e.g., postText success messages)
     // A user message with images, as PromptManager prepares it for the model: its text and its
     // images in order. Null for any other message, whose text is textContent
@@ -48,16 +48,16 @@ data class CallPricing(
 )
 
 /**
- * Metadata for automation executions
+ * Metadata for routine executions
  */
 data class ExecutionMetadata(
-    val ruleId: String,        // Automation rule identifier
+    val ruleId: String,        // Routine rule identifier
     val triggeredAt: Long,     // Execution timestamp
     val feedback: ExecutionFeedback? = null // User feedback on execution
 )
 
 /**
- * User feedback on automation executions
+ * User feedback on routine executions
  */
 data class ExecutionFeedback(
     val comment: String,       // Short text feedback (255 chars)
@@ -66,7 +66,7 @@ data class ExecutionFeedback(
 )
 
 /**
- * AI Session structure unifying chat, automation, and seed sessions
+ * AI Session structure unifying chat, routine, and seed sessions
  */
 data class AISession(
     val id: String,
@@ -75,7 +75,7 @@ data class AISession(
     val validation: SessionValidation = SessionValidation(),
     val reasoning: SessionReasoning? = null,     // null: its provider's config
     val waitingStateJson: String? = null,        // Persisted waiting state for app closure (null = no waiting)
-    val automationId: String? = null,            // null for CHAT/SEED, automation ID for AUTOMATION
+    val routineId: String? = null,            // null for CHAT/SEED, routine ID for AUTOMATION
     val scheduledExecutionTime: Long? = null,    // For AUTOMATION: scheduled trigger time (not actual exec time)
     val providerId: String?,       // The provider it calls; null for a conversation not begun and a seed
     val providerSessionId: String, // Provider API session ID

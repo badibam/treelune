@@ -52,7 +52,7 @@ class AIStateMachineLifecycleTest {
 
     /** An AUTOMATION has nobody to wait for, so activation starts the work at once. */
     @Test
-    fun activatingAutomation_startsExecutingImmediately() {
+    fun activatingRoutine_startsExecutingImmediately() {
         val state = AIStateMachine.transition(
             state = AIState.idle(),
             event = AIEvent.SessionActivationRequested("new-automation", SessionType.AUTOMATION),
@@ -70,7 +70,7 @@ class AIStateMachineLifecycleTest {
      */
     @Test
     fun activatingWhileBusy_leavesTheStateUntouched() {
-        val busy = automationAt(Phase.CALLING_AI)
+        val busy = routineAt(Phase.CALLING_AI)
 
         val state = AIStateMachine.transition(
             state = busy,
@@ -160,7 +160,7 @@ class AIStateMachineLifecycleTest {
 
         for (phase in phases) {
             val state = AIStateMachine.transition(
-                state = automationAt(phase),
+                state = routineAt(phase),
                 event = AIEvent.SessionCompleted(SessionEndReason.CANCELLED),
                 limits = testLimits,
                 currentTime = T1
@@ -175,7 +175,7 @@ class AIStateMachineLifecycleTest {
     @Test
     fun systemError_closesWithErrorReason() {
         val state = AIStateMachine.transition(
-            state = automationAt(Phase.EXECUTING_ACTIONS),
+            state = routineAt(Phase.EXECUTING_ACTIONS),
             event = AIEvent.SystemErrorOccurred("unexpected"),
             limits = testLimits,
             currentTime = T1

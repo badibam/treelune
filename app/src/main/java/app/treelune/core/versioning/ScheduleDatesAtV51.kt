@@ -34,12 +34,12 @@ object ScheduleDatesAtV51 {
 
     /** Rewrites the backup document's automations and tool configs in place. */
     fun backup(data: JSONObject) {
-        data.optJSONArray("automations")?.let { automations ->
-            for (i in 0 until automations.length()) {
-                val automation = automations.getJSONObject(i)
-                val json = automation.optString("schedule_json").takeIf { !automation.isNull("schedule_json") && it.isNotEmpty() }
+        data.optJSONArray("automations")?.let { routines ->
+            for (i in 0 until routines.length()) {
+                val routine = routines.getJSONObject(i)
+                val json = routine.optString("schedule_json").takeIf { !routine.isNull("schedule_json") && it.isNotEmpty() }
                     ?: continue
-                automation.put("schedule_json", schedule(json))
+                routine.put("schedule_json", schedule(json))
             }
         }
         data.optJSONArray("tool_instances")?.let { tools ->

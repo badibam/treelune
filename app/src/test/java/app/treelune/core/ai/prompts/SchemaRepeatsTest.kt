@@ -1,7 +1,7 @@
 package app.treelune.core.ai.prompts
 
 import android.content.Context
-import app.treelune.core.ai.data.AutomationSettings
+import app.treelune.core.ai.data.RoutineSettings
 import app.treelune.core.ai.data.CommunicationModules
 import app.treelune.core.config.AppSettings
 import app.treelune.core.fields.settings.FieldTypeSettings
@@ -40,7 +40,7 @@ class SchemaRepeatsTest {
         }
         put("zone_config", ZoneSettings.nodes(context))
         AppSettings.CATEGORIES.forEach { put("app_config_$it", AppSettings.nodes(it, context)) }
-        put("automation_config", AutomationSettings.nodes(context))
+        put("automation_config", RoutineSettings.nodes(context))
         put("communication_module", CommunicationModules.declarationNodes(text))
         put("field_definitions", FieldTypeSettings.definitionNodes(text))
     }

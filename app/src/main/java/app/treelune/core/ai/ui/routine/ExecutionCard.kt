@@ -1,4 +1,4 @@
-package app.treelune.core.ai.ui.automation
+package app.treelune.core.ai.ui.routine
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
@@ -17,7 +17,7 @@ import app.treelune.core.ui.*
 import app.treelune.core.utils.DateUtils
 
 /**
- * ExecutionCard - Display automation execution summary
+ * ExecutionCard - Display routine execution summary
  *
  * Shows:
  * - Scheduled execution time
@@ -33,7 +33,7 @@ import app.treelune.core.utils.DateUtils
  *
  * Layout: 2 columns with data rows, VIEW button at bottom
  *
- * Usage: In AutomationScreen execution list
+ * Usage: In RoutineScreen execution list
  */
 @Composable
 fun ExecutionCard(

@@ -65,7 +65,7 @@ class BudgetTest {
     fun theDay_sumsEverySession_sinceItsStart_anUnknownCallSaid() = runBlocking {
         val dao = AppDatabase.getDatabase(context).aiDao()
         fun session(type: SessionType) = UUID.randomUUID().toString().also { id ->
-            runBlocking { dao.insertSession(AISessionEntity(id = id, name = "S", type = type, automationId = null, scheduledExecutionTime = null,
+            runBlocking { dao.insertSession(AISessionEntity(id = id, name = "S", type = type, routineId = null, scheduledExecutionTime = null,
                 providerId = null, providerSessionId = id, createdAt = 0, lastActivity = 0, isActive = false)) }
         }
         fun call(sessionId: String, at: Long, tokens: Int, price: Double?, unknown: Boolean = false) = runBlocking {

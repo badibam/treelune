@@ -6,7 +6,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * Brings the routines to their v89 form (docs/AI.md, « Automations »): a routine is a tile of its
+ * Brings the routines to their v89 form (docs/AI.md, « Routines »): a routine is a tile of its
  * group's section, among the tools and the variables. It gains a look (Looks): a description (none),
  * an icon (`bot`), a colour and a texture (none), a display mode (EXTENDED, the card it was); and
  * its place in the section's grid, under the section's tools and variables, one under the other
@@ -15,7 +15,7 @@ import org.json.JSONObject
  * Shared by the database migration (STATEMENTS, [placed]) and the backup import ([backup]); a
  * history's copy without the columns puts back their defaults.
  */
-object AutomationsAtV89 {
+object RoutinesAtV89 {
 
     const val ICON = "bot"
     const val MODE = "EXTENDED"
@@ -52,13 +52,13 @@ object AutomationsAtV89 {
 
     /** The backup's [data] with its routines in their v89 form, placed under its tools and variables. */
     fun backup(data: JSONObject) {
-        val automations = data.optJSONArray("automations") ?: return
+        val routines = data.optJSONArray("automations") ?: return
         fun rows(key: String) = data.optJSONArray(key)?.let { a -> (0 until a.length()).map { a.getJSONObject(it) } }.orEmpty()
         val tiles = rows("tool_instances").map { tool ->
             val config = JSONObject(tool.getString("config_json"))
             below(tool.getString("zone_id"), config.optString("group"), tool.getInt("grid_y"), config.getString("display_mode"))
         } + rows("variables").map { below(it.getString("zone_id"), it.optString("group"), it.getInt("grid_y"), it.getString("display_mode")) }
-        val list = (0 until automations.length()).map { automations.getJSONObject(it) }
+        val list = (0 until routines.length()).map { routines.getJSONObject(it) }
         val placed = placed(list.map { Routine(it.getString("id"), it.getString("zone_id"), it.optString("group").takeIf { g -> g.isNotEmpty() }, it.optLong("created_at")) }, tiles)
         data.put("automations", JSONArray(list.map { routine ->
             JSONObject(routine.toString()).apply {

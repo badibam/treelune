@@ -170,8 +170,8 @@ private fun RunRoutine(step: JSONObject, earlier: Earlier, s: StringsContext, wi
     LaunchedEffect(Unit) {
         routines = (Coordinator(context).processUserAction("automations.list_all").data?.get("automations") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>()
     }
-    Choice(s.shared("task_step_routine"), routines.map { it["id"] as String to it["name"] as String }, step.optString(TaskSteps.AUTOMATION_ID).ifEmpty { null }) { id ->
-        with { put(TaskSteps.AUTOMATION_ID, id) }
+    Choice(s.shared("task_step_routine"), routines.map { it["id"] as String to it["name"] as String }, step.optString(TaskSteps.ROUTINE_ID).ifEmpty { null }) { id ->
+        with { put(TaskSteps.ROUTINE_ID, id) }
     }
     // What its run's message is joined: a text, often what an earlier step gave
     val data = remember { FieldDefinition(TaskSteps.DATA, s.shared("task_step_data"), null, FieldType.TEXT, false, mapOf("length" to TextLength.UNLIMITED.name)) }

@@ -46,8 +46,8 @@ class PartLinksTest {
             .put("session_messages", JSONArray()
                 .put(JSONObject().put("id", "m1").put("session_id", "seed").put("rich_content_json", "{\"pointer\":\"weight\"}"))))
 
-    private fun links(zones: Set<String>, tools: Map<String, Boolean>, variables: Set<String> = emptySet(), automations: Set<String> = emptySet()) =
-        PartLinks.of(backup(), PartSelection(zones, tools, variables, automations, emptySet()))
+    private fun links(zones: Set<String>, tools: Map<String, Boolean>, variables: Set<String> = emptySet(), routines: Set<String> = emptySet()) =
+        PartLinks.of(backup(), PartSelection(zones, tools, variables, routines, emptySet()))
 
     private fun link(from: Kind, fromId: String, to: Kind, toId: String) = PartLink(PartElement(from, fromId), PartElement(to, toId))
 
@@ -73,7 +73,7 @@ class PartLinksTest {
 
     @Test
     fun `a routine's links only warn, its provider and identity among them`() {
-        val found = links(setOf("z1"), emptyMap(), automations = setOf("a1"))
+        val found = links(setOf("z1"), emptyMap(), routines = setOf("a1"))
         assertEquals(setOf(
             link(Kind.ROUTINE, "a1", Kind.ZONE, "z2"),
             link(Kind.ROUTINE, "a1", Kind.TOOL, "weight"),

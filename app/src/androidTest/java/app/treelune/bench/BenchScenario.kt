@@ -26,7 +26,7 @@ import java.io.File
 /**
  * One scenario of the bench (docs/AI.md, « Free models and the bench »), played by the app itself: the base
  * emptied, an Other server provider created from the arguments, the demo installed, then
- * a chat message sent or an automation run, through the real orchestrator, until the session
+ * a chat message sent or a routine run, through the real orchestrator, until the session
  * rests. What it leaves is judged elsewhere: the base is copied before and after
  * (files/bench/before.db, after.db), with how the session ended (files/bench/result.json), and
  * scripts/bench.py checks them. Nothing here knows a scenario.
@@ -34,7 +34,7 @@ import java.io.File
  * On the emulator only: it empties the app's base.
  *
  * Arguments (am instrument -e): base_url, api_key, model, output_forcing; kind ("chat" or
- * "automation"); message_b64 (the chat message, base64 UTF-8) or automation_id; timeout_minutes.
+ * "routine"); message_b64 (the chat message, base64 UTF-8) or routine_id; timeout_minutes.
  */
 @RunWith(AndroidJUnit4::class)
 class BenchScenario {
@@ -56,7 +56,7 @@ class BenchScenario {
         val deadline = started + arg("timeout_minutes").toLong() * 60_000
         val outcome = when (val kind = arg("kind")) {
             "chat" -> playChat(String(Base64.decode(arg("message_b64"), Base64.DEFAULT), Charsets.UTF_8), deadline)
-            "automation" -> playAutomation(context, arg("automation_id"), started, deadline)
+            "automation" -> playRoutine(context, arg("automation_id"), started, deadline)
             else -> error("Unknown kind '$kind'")
         }
         // A session still running is stopped, so the copy reads a base at rest
@@ -79,7 +79,7 @@ class BenchScenario {
             .put("output_forcing", arg("output_forcing"))
         succeed(coordinator.processUserAction("ai_provider_config.create", mapOf(
             "kind" to PROVIDER_KIND, "name" to PROVIDER_NAME, "config" to config.keys().asSequence().associateWith { config.get(it) })), "provider creation")
-        // Installed after the provider: the demo's automations take the default
+        // Installed after the provider: the demo's routines take the default
         succeed(coordinator.processUserAction("demo.install", emptyMap()), "demo install")
     }
 
@@ -124,14 +124,14 @@ class BenchScenario {
         return answerUntilRest(deadline) { state -> state.phase == Phase.IDLE || state.sessionId == null }
     }
 
-    /** The automation run now, waited on until its session ends. */
-    private suspend fun playAutomation(context: Context, automationId: String, started: Long, deadline: Long): Outcome {
-        AIOrchestrator.executeAutomation(automationId, started)
+    /** The routine run now, waited on until its session ends. */
+    private suspend fun playRoutine(context: Context, routineId: String, started: Long, deadline: Long): Outcome {
+        AIOrchestrator.executeRoutine(routineId, started)
         val db = AppDatabase.getDatabase(context)
         fun ended(): Boolean = kotlinx.coroutines.runBlocking {
             db.useReaderConnection { connection ->
                 connection.usePrepared("SELECT end_reason FROM ai_sessions WHERE automation_id = ? AND type = 'AUTOMATION' AND created_at >= ?") { statement ->
-                    statement.bindText(1, automationId)
+                    statement.bindText(1, routineId)
                     statement.bindLong(2, started)
                     statement.step() && !statement.isNull(0)
                 }

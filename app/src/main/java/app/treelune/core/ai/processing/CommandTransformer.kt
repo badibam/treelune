@@ -41,7 +41,7 @@ object CommandTransformer {
      * @param commands List of DataCommands to transform
      * @param context Android context for period resolution
      * @param reference Instant the relative periods and the NOW marker resolve against.
-     *   The clock for anything a user is watching; an automation's scheduled time for its run,
+     *   The clock for anything a user is watching; a routine's scheduled time for its run,
      *   so a run catching up on a past day reads that day and not today.
      * @return TransformationResult with executable commands and errors
      */
@@ -102,7 +102,7 @@ object CommandTransformer {
                     "ROUTINE_CONFIG" -> (command.params["id"] as? String)?.let { id ->
                         ExecutableCommand(resource = "automations", operation = "config", params = mapOf("automation_id" to id))
                     }
-                    "ROUTINE_RUNS" -> transformAutomationRunsCommand(command, s, reference)
+                    "ROUTINE_RUNS" -> transformRoutineRunsCommand(command, s, reference)
                     "HISTORY" -> transformHistoryCommand(command, s, reference)
                     "ROUTINE_RUN" -> (command.params["id"] as? String)?.let { id ->
                         ExecutableCommand(resource = "ai_sessions", operation = "run_history", params = buildMap {
@@ -224,16 +224,16 @@ object CommandTransformer {
     }
 
     /**
-     * A routine's runs, the most recent first: `automation_id`, `period` on when each started
+     * A routine's runs, the most recent first: `routine_id`, `period` on when each started
      * (bounds in ISO 8601 or relative to [reference]), `limit`, 10 when left out.
      */
-    private fun transformAutomationRunsCommand(command: DataCommand, s: StringsContext, reference: Long): ExecutableCommand? {
-        val automationId = command.params["automation_id"] as? String ?: return null
+    private fun transformRoutineRunsCommand(command: DataCommand, s: StringsContext, reference: Long): ExecutableCommand? {
+        val routineId = command.params["automation_id"] as? String ?: return null
         val resolver = TimeResolver.at(reference)
         @Suppress("UNCHECKED_CAST")
         val period = (command.params["period"] as? Map<String, Any?>)?.let { EntryPeriod.fromJson(JsonUtils.toJSONObject(it)) { key -> s.shared(key) } }
         return ExecutableCommand(resource = "ai_sessions", operation = "list_sessions_for_automation", params = buildMap {
-            put("automation_id", automationId)
+            put("automation_id", routineId)
             (command.params["limit"] as? Number)?.let { put("limit", it.toInt()) }
             period?.start?.let { put("start_time", resolver.instant(it)) }
             period?.end?.let { put("end_time", resolver.instant(it)) }

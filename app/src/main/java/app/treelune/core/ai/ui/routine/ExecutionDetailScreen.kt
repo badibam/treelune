@@ -1,4 +1,4 @@
-package app.treelune.core.ai.ui.automation
+package app.treelune.core.ai.ui.routine
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,7 +16,7 @@ import app.treelune.core.strings.Strings
 import app.treelune.core.ui.*
 
 /**
- * ExecutionDetailScreen - Display automation execution message history
+ * ExecutionDetailScreen - Display routine execution message history
  *
  * Shows:
  * - Page header with BACK button
@@ -32,7 +32,7 @@ import app.treelune.core.ui.*
  *
  * Opening it reads the run: it no longer waits (docs/AI.md, « Summary of the run »).
  *
- * Usage: Accessed from ExecutionCard VIEW button in AutomationScreen, and from the notification
+ * Usage: Accessed from ExecutionCard VIEW button in RoutineScreen, and from the notification
  * of a run that waits
  */
 @Composable
@@ -59,10 +59,10 @@ fun ExecutionDetailScreen(
         }
         end = (session["end_reason"] as String?)?.let { app.treelune.core.ai.data.SessionEndReason.valueOf(it) } to session["summary"] as String?
         // The routine it is a run of, named for the breadcrumb
-        (session["automation_id"] as? String)?.let { automationId ->
-            val routine = coordinator.processUserAction("automations.get", mapOf("automation_id" to automationId))
+        (session["automation_id"] as? String)?.let { routineId ->
+            val routine = coordinator.processUserAction("automations.get", mapOf("automation_id" to routineId))
             ((routine.data?.get("automation") as? Map<*, *>)?.get("name") as? String)?.let(onRoutineName)
-                ?: app.treelune.core.utils.LogManager.aiUI("ExecutionDetailScreen: routine $automationId of run $sessionId not read: ${routine.error}", "WARN")
+                ?: app.treelune.core.utils.LogManager.aiUI("ExecutionDetailScreen: routine $routineId of run $sessionId not read: ${routine.error}", "WARN")
         }
         val seen = coordinator.processUserAction("ai_sessions.seen", mapOf("session_id" to sessionId))
         if (seen.status != app.treelune.core.commands.CommandStatus.SUCCESS) app.treelune.core.utils.LogManager.aiUI("ExecutionDetailScreen: run $sessionId not marked read: ${seen.error}", "ERROR")

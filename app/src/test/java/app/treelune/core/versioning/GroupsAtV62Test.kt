@@ -47,7 +47,7 @@ class GroupsAtV62Test {
     }
 
     @Test
-    fun anAutomationsAndAVariablesGroupIsOneOfTheirZones() {
+    fun anRoutinesAndAVariablesGroupIsOneOfTheirZones() {
         val data = backup().also { GroupsAtV62.backup(it) }
 
         assertEquals("Sport", row(data, "automations", 0).getString("group"))

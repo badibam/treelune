@@ -215,7 +215,7 @@ class MainActivity : ComponentActivity() {
      * For app-open reactivity, CoreScheduler has internal 1-minute heartbeat.
      *
      * CoreScheduler handles:
-     * - AI automations (via AIOrchestrator)
+     * - AI routines (via AIOrchestrator)
      * - Tool schedulers (via discovery pattern)
      */
     /**

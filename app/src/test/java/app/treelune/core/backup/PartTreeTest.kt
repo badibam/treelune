@@ -73,7 +73,7 @@ class PartTreeTest {
         assertEquals(setOf("cuisine"), all.zones)
         assertEquals(mapOf("meals" to false, "foods" to false, "chart" to false), all.tools)
         assertEquals(setOf("v1"), all.variables)
-        assertEquals(setOf("a1"), all.automations)
+        assertEquals(setOf("a1"), all.routines)
         assertEquals(nothing, Ticks.zone(all, tree, cuisine, false))
     }
 

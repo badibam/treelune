@@ -213,7 +213,7 @@ sealed class AIEvent {
      *
      * CHAT: Stop immediately, no retry.
      * AUTOMATION: Retry every 30s, closing as NETWORK_ERROR (resumed later) after
-     * AIStateMachine.AUTOMATION_NETWORK_WAIT_LIMIT of waiting.
+     * AIStateMachine.ROUTINE_NETWORK_WAIT_LIMIT of waiting.
      *
      * @param attempt Retry attempt number (0 = first failure)
      */
@@ -278,7 +278,7 @@ sealed class AIEvent {
      * Triggers:
      * - Watchdog check (timeout detection)
      * - Queue processing (if slot free)
-     * - Scheduled automation check (if slot free + queue empty)
+     * - Scheduled routine check (if slot free + queue empty)
      */
     object SchedulerHeartbeat : AIEvent()
 }

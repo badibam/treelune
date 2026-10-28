@@ -12,7 +12,7 @@ import app.treelune.core.ai.prompts.PromptManager
 import app.treelune.core.ai.providers.AIClient
 import app.treelune.core.ai.scheduling.AISessionScheduler
 import app.treelune.core.ai.scheduling.SessionSlotPolicy
-import app.treelune.core.ai.scheduling.AutomationScheduler
+import app.treelune.core.ai.scheduling.RoutineScheduler
 import app.treelune.core.ai.state.AIMessageRepository
 import app.treelune.core.ai.state.AIStateRepository
 import app.treelune.core.ai.validation.ValidationResolver
@@ -63,7 +63,7 @@ object AIOrchestrator {
     // Note: promptManager is a singleton object, not a class instance
     private lateinit var aiClient: AIClient
     private lateinit var commandExecutor: CommandExecutor
-    private lateinit var automationScheduler: AutomationScheduler
+    private lateinit var routineScheduler: RoutineScheduler
 
     // Session queue (managed by scheduler)
     private val _queuedSessions = kotlinx.coroutines.flow.MutableStateFlow<List<app.treelune.core.ai.scheduling.QueuedSession>>(emptyList())
@@ -228,9 +228,9 @@ object AIOrchestrator {
         // promptManager is a singleton object, no initialization needed
         aiClient = AIClient(this.context)
         commandExecutor = CommandExecutor(this.context)
-        automationScheduler = AutomationScheduler(this.context)
+        routineScheduler = RoutineScheduler(this.context)
 
-        sessionScheduler = AISessionScheduler(aiDao, automationScheduler)
+        sessionScheduler = AISessionScheduler(aiDao, routineScheduler)
 
         eventProcessor = AIEventProcessor(
             context = this.context,
@@ -250,7 +250,7 @@ object AIOrchestrator {
         eventProcessor.initialize()
 
         // A routine running keeps the app awake until it is done
-        AutomationRun.follow(this.context, stateRepository.state, aiDao, orchestratorScope)
+        RoutineRun.follow(this.context, stateRepository.state, aiDao, orchestratorScope)
 
         initialized = true
         LogManager.aiSession("AIOrchestrator V2 initialized", "INFO")
@@ -351,7 +351,7 @@ object AIOrchestrator {
             totalRoundtrips = 0,
             lastEventTime = now,
             lastUserInteractionTime = now,
-            automationId = null,
+            routineId = null,
             scheduledExecutionTime = null,
             // None yet: its first call takes the default and keeps it (ProviderVerifier)
             providerId = null,
@@ -460,7 +460,7 @@ object AIOrchestrator {
      *
      * Used when:
      * - User clicks "Interrupt" in ChatOptionsDialog
-     * - A content opens a chat prefilled: an automation's starting message, a questionnaire's
+     * - A content opens a chat prefilled: a routine's starting message, a questionnaire's
      *   message to the AI with its pointer
      *
      * @param prefill What the composer of the new chat holds, sent by the user when they choose:
@@ -505,7 +505,7 @@ object AIOrchestrator {
                 // AUTOMATION active - enqueue and auto-suspend: a chat asked for now takes the slot
                 enqueueSession(sessionId, SessionType.CHAT, ExecutionTrigger.MANUAL, activationResult.priority)
 
-                // Auto-suspend AUTOMATION (specific behavior for automation button chat)
+                // Auto-suspend AUTOMATION (specific behavior for routine button chat)
                 if (currentState.sessionType == SessionType.AUTOMATION) {
                     eventProcessor.emit(AIEvent.SessionCompleted(SessionEndReason.SUSPENDED))
                     LogManager.aiSession("startNewChatSession: AUTOMATION auto-suspended, new CHAT enqueued", "INFO")
@@ -669,24 +669,24 @@ object AIOrchestrator {
     }
 
     // ========================================================================================
-    // Automation API
+    // Routine API
     // ========================================================================================
 
     /**
-     * Execute automation.
+     * Execute routine.
      *
      * Flow:
-     * 1. Load automation configuration
+     * 1. Load routine configuration
      * 2. Load SEED session messages
      * 3. Create new AUTOMATION session
      * 4. Copy USER messages from SEED
      * 5. Emit SessionActivationRequested event
      *
-     * @param automationId Automation to execute
+     * @param routineId Routine to execute
      * @param scheduledFor Scheduled execution timestamp (MANUAL: click time, SCHEDULED: planned time)
      * @param trigger What started it, kept with the run for its history to say
      */
-    /** Whether an automation's starting message ([seedSessionId]'s) says nothing (RichMessage.isEmpty). */
+    /** Whether a routine's starting message ([seedSessionId]'s) says nothing (RichMessage.isEmpty). */
     suspend fun isSeedEmpty(seedSessionId: String): Boolean =
         isSeedEmpty(aiDao.getMessagesForSession(seedSessionId).filter { it.sender == app.treelune.core.ai.data.MessageSender.USER })
 
@@ -694,27 +694,27 @@ object AIOrchestrator {
         userMessages.all { message -> message.richContentJson?.let { app.treelune.core.ai.data.RichMessage.fromJson(it) }?.isEmpty != false }
 
     /**
-     * A run of routine [automationId] created from its seed's message and asked for. [data], what
+     * A run of routine [routineId] created from its seed's message and asked for. [data], what
      * a Task passes it (docs/CORE.md, « Tasks »), joins the end of its message as a text of its own.
      * [chainId], the chain it continues (Chains); null, it starts its own. [attached], what a
      * trigger gives it (the entry written, EntryTriggers), joins the end of its message after it.
      */
-    suspend fun executeAutomation(automationId: String, scheduledFor: Long, trigger: ExecutionTrigger, data: String? = null, chainId: String? = null,
+    suspend fun executeRoutine(routineId: String, scheduledFor: Long, trigger: ExecutionTrigger, data: String? = null, chainId: String? = null,
                                   attached: List<app.treelune.core.ai.data.MessageSegment> = emptyList()) {
-        LogManager.aiSession("executeAutomation called: $automationId", "INFO")
+        LogManager.aiSession("executeAutomation called: $routineId", "INFO")
 
         try {
-            // Load automation
-            val automation = aiDao.getAutomationById(automationId)
-            if (automation == null) {
-                LogManager.aiSession("Automation not found: $automationId", "ERROR")
+            // Load routine
+            val routine = aiDao.getRoutineById(routineId)
+            if (routine == null) {
+                LogManager.aiSession("Automation not found: $routineId", "ERROR")
                 return
             }
 
-            val seedSessionId = automation.seedSessionId
+            val seedSessionId = routine.seedSessionId
             // Refused when it is switched on and when it is started: none here is a routine changed since
-            val providerId = automation.providerId ?: run {
-                LogManager.aiSession("Automation $automationId not run: it has no provider", "ERROR")
+            val providerId = routine.providerId ?: run {
+                LogManager.aiSession("Automation $routineId not run: it has no provider", "ERROR")
                 return
             }
 
@@ -728,7 +728,7 @@ object AIOrchestrator {
             }
             // An empty message would leave the AI to make up what to do: not run
             if (isSeedEmpty(userMessages)) {
-                LogManager.aiSession("Automation $automationId not run: its message is empty", "WARN")
+                LogManager.aiSession("Automation $routineId not run: its message is empty", "WARN")
                 return
             }
 
@@ -738,13 +738,13 @@ object AIOrchestrator {
 
             val session = AISessionEntity(
                 id = newSessionId,
-                name = "Execution ${automation.name}",
+                name = "Execution ${routine.name}",
                 type = SessionType.AUTOMATION,
                 phase = "IDLE",
                 totalRoundtrips = 0,
                 lastEventTime = now,
                 lastUserInteractionTime = now,
-                automationId = automationId,
+                routineId = routineId,
                 scheduledExecutionTime = scheduledFor, // Scheduled timestamp (MANUAL: click time, SCHEDULED: planned time)
                 providerId = providerId,
                 providerSessionId = java.util.UUID.randomUUID().toString(),
@@ -753,7 +753,7 @@ object AIOrchestrator {
                 isActive = false, // Will be activated by SessionActivationRequested
                 endReason = null,
                 // Its routine's identity as it is at the run: one changed later speaks at the next
-                identityId = automation.identityId,
+                identityId = routine.identityId,
                 triggeredBy = trigger.name,
                 chainId = chainId
             )

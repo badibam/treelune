@@ -9,7 +9,7 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 /**
- * An automation's access mask (docs/AI.md, « Levels »): what each level gives, what a zone
+ * A routine's access mask (docs/AI.md, « Levels »): what each level gives, what a zone
  * gives its tools, what each operation needs, and the refusal of what goes beyond.
  */
 class AccessTest {
@@ -25,10 +25,10 @@ class AccessTest {
     private val lookups = object : AccessLookups {
         override suspend fun toolZone(toolId: String) = mapOf("weight" to "health", "meals" to "health", "seeds" to "garden")[toolId]
         override suspend fun variableZone(idOrName: String, byName: Boolean) = if (idOrName in setOf("kcal", "v-kcal")) "health" else "garden"
-        override suspend fun automationZone(automationId: String) = mapOf("weekly" to "health", "watering" to "garden")[automationId]
+        override suspend fun routineZone(routineId: String) = mapOf("weekly" to "health", "watering" to "garden")[routineId]
         override suspend fun taskZone(taskId: String) = mapOf("nightly" to "health")[taskId]
         override suspend fun eventZone(eventId: String) = mapOf("ready" to "health")[eventId]
-        override suspend fun runAutomation(runId: String) = mapOf("r1" to "weekly")[runId]
+        override suspend fun runRoutine(runId: String) = mapOf("r1" to "weekly")[runId]
         override suspend fun entryTool(entryId: String) = mapOf("w1" to "weight", "s1" to "seeds")[entryId]
         override suspend fun fileHolder(fileId: String) = mapOf("scan" to FileHolder.Tool("weight"), "plot" to FileHolder.Tool("seeds"), "joined" to FileHolder.Conversation)[fileId]
         override suspend fun zoneName(zoneId: String) = zoneId

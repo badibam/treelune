@@ -19,11 +19,11 @@ import org.json.JSONObject
 object AILimitsAtV32 {
 
     private const val KEY_CHAT = "chat_max_autonomous_roundtrips"
-    private const val KEY_AUTOMATION = "automation_max_autonomous_roundtrips"
+    private const val KEY_ROUTINE = "automation_max_autonomous_roundtrips"
 
     /** @return the settings in their v32 form; [settings] is left untouched */
     fun rewrite(settings: JSONObject): JSONObject = JSONObject().apply {
         put(KEY_CHAT, 10)
-        put(KEY_AUTOMATION, if (settings.has(KEY_AUTOMATION)) settings.getInt(KEY_AUTOMATION) else 20)
+        put(KEY_ROUTINE, if (settings.has(KEY_ROUTINE)) settings.getInt(KEY_ROUTINE) else 20)
     }
 }

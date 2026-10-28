@@ -44,7 +44,7 @@ internal fun chatAt(
 )
 
 /** A running AUTOMATION session sitting at a given phase. */
-internal fun automationAt(
+internal fun routineAt(
     phase: Phase,
     roundtrips: Int = 0,
     waitingContext: WaitingContext? = null,

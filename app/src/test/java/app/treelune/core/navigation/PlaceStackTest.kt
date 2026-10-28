@@ -23,8 +23,8 @@ class PlaceStackTest {
         Place.CreateZone(null), Place.CreateZone("Vie / perso"), course, Place.ZoneConfig("z-course"), runs,
         Place.ToolConfig("z-course", "tracking", "t-runs", null), Place.ToolConfig("z-course", "chart", null, "Analyse"),
         Place.Variable("z-course", null, "Corps"), Place.Variable("z-course", "v-1", null),
-        Place.Automation("a-1", "z-course"), Place.Execution("s-1", "a-1", "z-course"),
-        Place.AutomationConfig("z-course", "a-1", null), Place.AutomationConfig("z-course", null, "Analyse"),
+        Place.Routine("a-1", "z-course"), Place.Execution("s-1", "a-1", "z-course"),
+        Place.RoutineConfig("z-course", "a-1", null), Place.RoutineConfig("z-course", null, "Analyse"),
         Place.Task("k-1", "z-course"), Place.TaskRun("r-1", "k-1", "z-course"),
         Place.TaskConfig("z-course", "k-1", null), Place.TaskConfig("z-course", null, "Analyse"),
         Place.Guide, Place.Chapter("first_steps"), Place.Chat
@@ -44,7 +44,7 @@ class PlaceStackTest {
     fun openedWithNothingOpenTheStackIsRebuiltFromTheParents() {
         assertEquals(listOf(home, course, runs), PlaceStack.open(listOf(home), runs))
         assertEquals(
-            listOf(home, course, Place.Automation("a-1", "z-course"), Place.Execution("s-1", "a-1", "z-course")),
+            listOf(home, course, Place.Routine("a-1", "z-course"), Place.Execution("s-1", "a-1", "z-course")),
             PlaceStack.open(listOf(home), Place.Execution("s-1", "a-1", "z-course"))
         )
     }
@@ -123,10 +123,10 @@ class PlaceStackTest {
 
     @Test
     fun `a thing moved to another zone stands in it, what is over it kept`() {
-        val config = Place.AutomationConfig("old", "r", null)
-        val stack = listOf(Place.Home, Place.Zone("old"), Place.Automation("r", "old"), config)
-        assertEquals(listOf(Place.Home, Place.Zone("new"), Place.Automation("r", "new"), config),
-            PlaceStack.moved(stack, Place.Automation("r", "old"), Place.Automation("r", "new")))
+        val config = Place.RoutineConfig("old", "r", null)
+        val stack = listOf(Place.Home, Place.Zone("old"), Place.Routine("r", "old"), config)
+        assertEquals(listOf(Place.Home, Place.Zone("new"), Place.Routine("r", "new"), config),
+            PlaceStack.moved(stack, Place.Routine("r", "old"), Place.Routine("r", "new")))
         assertEquals(stack, PlaceStack.moved(stack, Place.Task("t", "old"), Place.Task("t", "new")))
     }
 }

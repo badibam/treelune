@@ -2,7 +2,7 @@ package app.treelune.core.ai.scheduling
 
 import android.content.Context
 import app.treelune.core.ai.database.AISessionEntity
-import app.treelune.core.ai.database.AutomationEntity
+import app.treelune.core.ai.database.RoutineEntity
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.database.AppDatabase
 import app.treelune.core.utils.LogManager
@@ -11,17 +11,17 @@ import app.treelune.core.utils.ScheduleConfig
 import kotlinx.serialization.json.Json
 
 /**
- * Automation Scheduler - Pure calculation helper
+ * Routine Scheduler - Pure calculation helper
  *
  * Responsibilities:
- * - Calculate which automation should execute next (if any)
+ * - Calculate which routine should execute next (if any)
  * - Detect incomplete sessions to resume (crash, network error, suspended)
  * - Calculate next scheduled execution time from schedule configuration
  *
  * NO notion of slot/queue - just pure calculation
  * Called by AISessionScheduler when slot is free and queue is empty
  */
-class AutomationScheduler(private val context: Context) {
+class RoutineScheduler(private val context: Context) {
 
     private val coordinator = Coordinator(context)
     private val database = AppDatabase.getDatabase(context)
@@ -42,7 +42,7 @@ class AutomationScheduler(private val context: Context) {
      * an empty "skipped" one would be a shape to handle in every screen that reads it.
      */
     private fun catchUpSearchStart(
-        automation: AutomationEntity,
+        routine: RoutineEntity,
         schedule: ScheduleConfig,
         lastCompletedSession: AISessionEntity?,
         now: Long
@@ -50,21 +50,21 @@ class AutomationScheduler(private val context: Context) {
         val lastExecutionTime = lastCompletedSession?.scheduledExecutionTime ?: 0L
         val start = CatchUpPolicy.searchStart(
             lastExecutionTime = lastExecutionTime,
-            automationUpdatedAt = automation.updatedAt,
-            catchUpWindow = automation.catchUpWindow,
+            routineUpdatedAt = routine.updatedAt,
+            catchUpWindow = routine.catchUpWindow,
             now = now
         )
 
         if (CatchUpPolicy.windowSkippedOccurrences(
                 lastExecutionTime = lastExecutionTime,
-                automationUpdatedAt = automation.updatedAt,
-                catchUpWindow = automation.catchUpWindow,
+                routineUpdatedAt = routine.updatedAt,
+                catchUpWindow = routine.catchUpWindow,
                 now = now
             )
         ) {
             LogManager.aiSession(
-                "AutomationScheduler: Automation ${automation.id} skips what is older than its catch-up window " +
-                "of ${automation.catchUpWindow} ms (search starts at ${formatTimestamp(start)})",
+                "AutomationScheduler: Automation ${routine.id} skips what is older than its catch-up window " +
+                "of ${routine.catchUpWindow} ms (search starts at ${formatTimestamp(start)})",
                 "INFO"
             )
         }
@@ -73,13 +73,13 @@ class AutomationScheduler(private val context: Context) {
     }
 
     /**
-     * Get next automation session to execute
-     * Returns Resume/Create/None based on enabled automations and their states
+     * Get next routine session to execute
+     * Returns Resume/Create/None based on enabled routines and their states
      *
      * Logic:
-     * 1. Check ALL incomplete sessions (any automation, even disabled) → RESUME, unless closed
+     * 1. Check ALL incomplete sessions (any routine, even disabled) → RESUME, unless closed
      *    for the network less than SessionSlotPolicy.NETWORK_RESUME_PAUSE ago
-     * 2. For each enabled automation WITH schedule (without incomplete session):
+     * 2. For each enabled routine WITH schedule (without incomplete session):
      *    - Calculate next execution time from last completed → CREATE if time passed
      * 3. Sort all candidates by scheduledTime ASC (oldest first)
      * 4. Return first candidate or None
@@ -91,18 +91,18 @@ class AutomationScheduler(private val context: Context) {
             // Build list of candidates (resume or create)
             val candidates = mutableListOf<ScheduleCandidate>()
 
-            // Step 1: Check ALL incomplete sessions (any automation, even if disabled)
+            // Step 1: Check ALL incomplete sessions (any routine, even if disabled)
             // This ensures SUSPENDED sessions (from CHAT eviction) are always resumed
-            val incompleteSessions = aiDao.getAllIncompleteAutomationSessions()
+            val incompleteSessions = aiDao.getAllIncompleteRoutineSessions()
 
             LogManager.aiSession(
                 "AutomationScheduler: Found ${incompleteSessions.size} incomplete sessions to check",
                 "DEBUG"
             )
 
-            // Automations whose incomplete session is closed for the network and still in its
+            // Routines whose incomplete session is closed for the network and still in its
             // pause: neither resumed nor run anew meanwhile
-            val pausedAutomations = mutableSetOf<String>()
+            val pausedRoutines = mutableSetOf<String>()
 
             for (incompleteSession in incompleteSessions) {
                 // scheduledExecutionTime must not be null for AUTOMATION sessions
@@ -114,8 +114,8 @@ class AutomationScheduler(private val context: Context) {
                     continue
                 }
 
-                val automationId = incompleteSession.automationId
-                if (automationId == null) {
+                val routineId = incompleteSession.routineId
+                if (routineId == null) {
                     LogManager.aiSession(
                         "AutomationScheduler: Skipping incomplete session ${incompleteSession.id} - automationId is null (data error)",
                         "ERROR"
@@ -129,18 +129,18 @@ class AutomationScheduler(private val context: Context) {
                         "AutomationScheduler: Incomplete session ${incompleteSession.id} closed for the network, resumed after its pause",
                         "DEBUG"
                     )
-                    pausedAutomations.add(automationId)
+                    pausedRoutines.add(routineId)
                     continue
                 }
 
                 LogManager.aiSession(
-                    "AutomationScheduler: Found incomplete session ${incompleteSession.id} for automation $automationId " +
+                    "AutomationScheduler: Found incomplete session ${incompleteSession.id} for automation $routineId " +
                     "(endReason=${incompleteSession.endReason}, scheduled=${formatTimestamp(incompleteSession.scheduledExecutionTime)})",
                     "INFO"
                 )
                 candidates.add(
                     ScheduleCandidate(
-                        automationId = automationId,
+                        routineId = routineId,
                         scheduledTime = incompleteSession.scheduledExecutionTime,
                         action = CandidateAction.RESUME,
                         sessionId = incompleteSession.id
@@ -148,43 +148,43 @@ class AutomationScheduler(private val context: Context) {
                 )
             }
 
-            // Step 2: For enabled automations WITH schedule, calculate next scheduled execution
+            // Step 2: For enabled routines WITH schedule, calculate next scheduled execution
             // Only if no incomplete session was found above
-            val allEnabledAutomations = aiDao.getAllEnabledAutomations()
+            val allEnabledRoutines = aiDao.getAllEnabledRoutines()
 
-            if (allEnabledAutomations.isEmpty()) {
+            if (allEnabledRoutines.isEmpty()) {
                 LogManager.aiSession("AutomationScheduler: No enabled automations", "DEBUG")
             }
 
-            val automationsWithIncomplete = candidates.map { it.automationId }.toSet() + pausedAutomations
-            val automationsWithSchedule = allEnabledAutomations
-                .filter { !it.scheduleJson.isNullOrEmpty() && !automationsWithIncomplete.contains(it.id) }
+            val routinesWithIncomplete = candidates.map { it.routineId }.toSet() + pausedRoutines
+            val routinesWithSchedule = allEnabledRoutines
+                .filter { !it.scheduleJson.isNullOrEmpty() && !routinesWithIncomplete.contains(it.id) }
 
             LogManager.aiSession(
-                "AutomationScheduler: Found ${candidates.size} sessions to resume, checking ${automationsWithSchedule.size} scheduled automations",
+                "AutomationScheduler: Found ${candidates.size} sessions to resume, checking ${routinesWithSchedule.size} scheduled automations",
                 "DEBUG"
             )
 
-            for (automation in automationsWithSchedule) {
+            for (routine in routinesWithSchedule) {
                 // Parse schedule
                 val schedule = try {
-                    json.decodeFromString<ScheduleConfig>(automation.scheduleJson!!)
+                    json.decodeFromString<ScheduleConfig>(routine.scheduleJson!!)
                 } catch (e: Exception) {
-                    LogManager.aiSession("AutomationScheduler: Failed to parse schedule for automation ${automation.id}: ${e.message}", "ERROR", e)
+                    LogManager.aiSession("AutomationScheduler: Failed to parse schedule for automation ${routine.id}: ${e.message}", "ERROR", e)
                     continue
                 }
 
                 // Get last completed session to calculate next execution time
-                val lastCompletedSession = aiDao.getLastCompletedAutomationSession(automation.id)
+                val lastCompletedSession = aiDao.getLastCompletedRoutineSession(routine.id)
 
                 val now = System.currentTimeMillis()
-                val fromTimestamp = catchUpSearchStart(automation, schedule, lastCompletedSession, now)
+                val fromTimestamp = catchUpSearchStart(routine, schedule, lastCompletedSession, now)
 
                 LogManager.aiSession(
-                    "AutomationScheduler: Calculating next execution for automation ${automation.id} " +
+                    "AutomationScheduler: Calculating next execution for automation ${routine.id} " +
                     "(lastCompleted=${lastCompletedSession?.scheduledExecutionTime?.let { formatTimestamp(it) }}, " +
-                    "updatedAt=${formatTimestamp(automation.updatedAt)}, " +
-                    "catchUpWindow=${automation.catchUpWindow ?: "unlimited"}, " +
+                    "updatedAt=${formatTimestamp(routine.updatedAt)}, " +
+                    "catchUpWindow=${routine.catchUpWindow ?: "unlimited"}, " +
                     "fromTimestamp=${formatTimestamp(fromTimestamp)})",
                     "DEBUG"
                 )
@@ -195,14 +195,14 @@ class AutomationScheduler(private val context: Context) {
                 )
 
                 if (nextExecutionTime == null) {
-                    LogManager.aiSession("AutomationScheduler: No more executions for automation ${automation.id} (schedule ended or invalid)", "DEBUG")
+                    LogManager.aiSession("AutomationScheduler: No more executions for automation ${routine.id} (schedule ended or invalid)", "DEBUG")
                     continue
                 }
 
                 // Check if execution time has passed
                 if (nextExecutionTime <= now) {
                     // Among the occurrences that are due, run the most recent one or the oldest
-                    val dueTime = if (automation.dismissOlderInstances) {
+                    val dueTime = if (routine.dismissOlderInstances) {
                         CatchUpPolicy.lastDueOccurrence(schedule, fromTimestamp, now, nextExecutionTime)
                     } else {
                         nextExecutionTime
@@ -210,19 +210,19 @@ class AutomationScheduler(private val context: Context) {
 
                     if (dueTime != nextExecutionTime) {
                         LogManager.aiSession(
-                            "AutomationScheduler: Automation ${automation.id} set to the most recent due occurrence " +
+                            "AutomationScheduler: Automation ${routine.id} set to the most recent due occurrence " +
                             "(${formatTimestamp(dueTime)} instead of ${formatTimestamp(nextExecutionTime)}); the ones in between are dropped",
                             "INFO"
                         )
                     }
 
                     LogManager.aiSession(
-                        "AutomationScheduler: Automation ${automation.id} is due (scheduled=${formatTimestamp(dueTime)}, now=${formatTimestamp(now)})",
+                        "AutomationScheduler: Automation ${routine.id} is due (scheduled=${formatTimestamp(dueTime)}, now=${formatTimestamp(now)})",
                         "INFO"
                     )
                     candidates.add(
                         ScheduleCandidate(
-                            automationId = automation.id,
+                            routineId = routine.id,
                             scheduledTime = dueTime,
                             action = CandidateAction.CREATE,
                             sessionId = null
@@ -230,7 +230,7 @@ class AutomationScheduler(private val context: Context) {
                     )
                 } else {
                     LogManager.aiSession(
-                        "AutomationScheduler: Automation ${automation.id} not yet due (next=${formatTimestamp(nextExecutionTime)}, now=${formatTimestamp(now)})",
+                        "AutomationScheduler: Automation ${routine.id} not yet due (next=${formatTimestamp(nextExecutionTime)}, now=${formatTimestamp(now)})",
                         "DEBUG"
                     )
                 }
@@ -248,13 +248,13 @@ class AutomationScheduler(private val context: Context) {
                 else -> {
                     val first = sortedCandidates.first()
                     LogManager.aiSession(
-                        "AutomationScheduler: Selected ${first.action} for automation ${first.automationId} " +
+                        "AutomationScheduler: Selected ${first.action} for automation ${first.routineId} " +
                         "(scheduled=${formatTimestamp(first.scheduledTime)}${if (first.sessionId != null) ", sessionId=${first.sessionId}" else ""})",
                         "INFO"
                     )
                     when (first.action) {
                         CandidateAction.RESUME -> NextSession.Resume(first.sessionId!!)
-                        CandidateAction.CREATE -> NextSession.Create(first.automationId, first.scheduledTime)
+                        CandidateAction.CREATE -> NextSession.Create(first.routineId, first.scheduledTime)
                     }
                 }
             }
@@ -267,7 +267,7 @@ class AutomationScheduler(private val context: Context) {
     /**
      * Where the search for the next occurrence starts.
      *
-     * The base is the last completed run, or the automation's last modification, whichever is
+     * The base is the last completed run, or the routine's last modification, whichever is
      * later: a config change must not drag it back through occurrences that predate the change.
      * With neither, the schedule's start date, or now.
      *
@@ -282,7 +282,7 @@ class AutomationScheduler(private val context: Context) {
      * Internal candidate for scheduling decision
      */
     private data class ScheduleCandidate(
-        val automationId: String,
+        val routineId: String,
         val scheduledTime: Long,
         val action: CandidateAction,
         val sessionId: String?  // For RESUME, null for CREATE
@@ -297,23 +297,23 @@ class AutomationScheduler(private val context: Context) {
     }
 
     /**
-     * When the automation [automationId] runs next, as getNextSession will start it; null when it
-     * will not run (disabled, without a schedule, its schedule ended). Read by automations.next_execution.
+     * When the routine [routineId] runs next, as getNextSession will start it; null when it
+     * will not run (disabled, without a schedule, its schedule ended). Read by routines.next_execution.
      */
-    suspend fun nextExecutionAt(automationId: String): Long? {
-        val automation = aiDao.getAutomationById(automationId)
-            ?: throw IllegalArgumentException("Automation not found: $automationId")
-        if (!automation.isEnabled) return null
-        val scheduleJson = automation.scheduleJson?.takeIf { it.isNotEmpty() } ?: return null
-        // Checked when written (AutomationService.withSettings): a schedule unreadable here is corrupt
+    suspend fun nextExecutionAt(routineId: String): Long? {
+        val routine = aiDao.getRoutineById(routineId)
+            ?: throw IllegalArgumentException("Automation not found: $routineId")
+        if (!routine.isEnabled) return null
+        val scheduleJson = routine.scheduleJson?.takeIf { it.isNotEmpty() } ?: return null
+        // Checked when written (RoutineService.withSettings): a schedule unreadable here is corrupt
         val schedule = json.decodeFromString<ScheduleConfig>(scheduleJson)
 
         // Same start of search as getNextSession, so the screen announces the run that will
         // actually happen and not one the window has already ruled out
-        val lastCompletedSession = aiDao.getLastCompletedAutomationSession(automationId)
-        val fromTimestamp = catchUpSearchStart(automation, schedule, lastCompletedSession, System.currentTimeMillis())
+        val lastCompletedSession = aiDao.getLastCompletedRoutineSession(routineId)
+        val fromTimestamp = catchUpSearchStart(routine, schedule, lastCompletedSession, System.currentTimeMillis())
         return ScheduleCalculator.calculateNextExecution(pattern = schedule.pattern, fromTimestamp = fromTimestamp)
-            .also { LogManager.aiSession("AutomationScheduler: next execution of $automationId from ${formatTimestamp(fromTimestamp)}: ${it?.let(::formatTimestamp)}", "DEBUG") }
+            .also { LogManager.aiSession("AutomationScheduler: next execution of $routineId from ${formatTimestamp(fromTimestamp)}: ${it?.let(::formatTimestamp)}", "DEBUG") }
     }
 }
 
@@ -329,10 +329,10 @@ sealed class NextSession {
     data class Resume(val sessionId: String) : NextSession()
 
     /**
-     * Create new scheduled session for this automation
+     * Create new scheduled session for this routine
      */
     data class Create(
-        val automationId: String,
+        val routineId: String,
         val scheduledFor: Long  // Timestamp for scheduledExecutionTime
     ) : NextSession()
 

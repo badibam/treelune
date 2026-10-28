@@ -13,7 +13,7 @@ import org.json.JSONObject
  * The two choices do not depend on each other. The selection's period and filters narrow the
  * entries whether they are attached or only mentioned: a mention of narrowed entries hands the
  * AI the query without running it. A relative date in them is resolved at each send, so an
- * automation's pointer rereads its period at every run.
+ * routine's pointer rereads its period at every run.
  *
  * @property config Whether the target's config goes with the message, its schema with it
  * @property entries Whether the designated entries go with the message, their schema with them

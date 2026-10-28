@@ -35,7 +35,7 @@ sealed class Place {
 
     /**
      * Whether the chat's button floats over the place: a place one reads (home, zone, tool, the
-     * Guide, an automation), not a form, whose fixed buttons are at the bottom.
+     * Guide, a routine), not a form, whose fixed buttons are at the bottom.
      */
     open val chatButton: Boolean = false
 
@@ -154,20 +154,20 @@ sealed class Place {
         override fun parent() = Zone(zoneId)
     }
 
-    /** An automation and the history of its executions. */
-    data class Automation(val id: String, override val zoneId: String) : Place() {
+    /** A routine and the history of its executions. */
+    data class Routine(val id: String, override val zoneId: String) : Place() {
         override val kind = "automation"
         override val chatButton = true
         override val parameters get() = listOf(id, zoneId)
         override fun parent() = Zone(zoneId)
     }
 
-    /** One execution of an automation, by its session. */
-    data class Execution(val sessionId: String, val automationId: String, override val zoneId: String) : Place() {
+    /** One execution of a routine, by its session. */
+    data class Execution(val sessionId: String, val routineId: String, override val zoneId: String) : Place() {
         override val kind = "execution"
         override val chatButton = true
-        override val parameters get() = listOf(sessionId, automationId, zoneId)
-        override fun parent() = Automation(automationId, zoneId)
+        override val parameters get() = listOf(sessionId, routineId, zoneId)
+        override fun parent() = Routine(routineId, zoneId)
     }
 
     /** A Task: its state and its runs. */
@@ -193,11 +193,11 @@ sealed class Place {
         override fun parent() = Task(taskId, zoneId)
     }
 
-    /** An automation's configuration, its message included: an existing one's when [automationId] is set, a new one's otherwise. */
-    data class AutomationConfig(override val zoneId: String, val automationId: String?, val group: String?) : Place() {
+    /** A routine's configuration, its message included: an existing one's when [routineId] is set, a new one's otherwise. */
+    data class RoutineConfig(override val zoneId: String, val routineId: String?, val group: String?) : Place() {
         override val kind = "automation_config"
-        override val parameters get() = listOf(zoneId, automationId, group)
-        override fun parent() = automationId?.let { Automation(it, zoneId) } ?: Zone(zoneId)
+        override val parameters get() = listOf(zoneId, routineId, group)
+        override fun parent() = routineId?.let { Routine(it, zoneId) } ?: Zone(zoneId)
     }
 
     /** The Guide's page: its journey, then its reference. */
@@ -244,9 +244,9 @@ sealed class Place {
                 "tool" -> Tool(r(1), r(2))
                 "tool_config" -> ToolConfig(r(1), r(2), p(3), p(4))
                 "variable" -> Variable(r(1), p(2), p(3))
-                "automation" -> Automation(r(1), r(2))
+                "automation" -> Routine(r(1), r(2))
                 "execution" -> Execution(r(1), r(2), r(3))
-                "automation_config" -> AutomationConfig(r(1), p(2), p(3))
+                "automation_config" -> RoutineConfig(r(1), p(2), p(3))
                 "task" -> Task(r(1), r(2))
                 "task_config" -> TaskConfig(r(1), p(2), p(3))
                 "task_run" -> TaskRun(r(1), r(2), r(3))

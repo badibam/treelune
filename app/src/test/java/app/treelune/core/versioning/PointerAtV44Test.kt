@@ -62,7 +62,7 @@ class PointerAtV44Test {
     }
 
     @Test
-    fun `an automation's relative period and NOW stay as they are, resolved at each run`() {
+    fun `a routine's relative period and NOW stay as they are, resolved at each run`() {
         val period = JSONObject()
             .put("min_relative_period", JSONObject().put("offset", -7).put("type", "DAY"))
             .put("max_is_now", true)

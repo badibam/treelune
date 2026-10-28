@@ -440,7 +440,7 @@ object JsonTransformers {
      * New: "type":"SpecificDates"
      *
      * Used by:
-     * - Automation schedules (AutomationEntity.schedule column)
+     * - Automation schedules (RoutineEntity.schedule column)
      * - Messages tool data (ToolDataEntity.data column with schedule field)
      * - Any JSON containing ScheduleConfig
      *

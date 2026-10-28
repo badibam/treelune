@@ -81,7 +81,7 @@ class AIDomainTypesTest {
     }
 
     /**
-     * A retry phase is not counted as working, so an automation looping on a malformed
+     * A retry phase is not counted as working, so a routine looping on a malformed
      * reply is ticking towards the inactivity timeout between attempts rather than being
      * held open. That is the one thing stopping the loops the roundtrip counter misses.
      */
@@ -104,22 +104,22 @@ class AIDomainTypesTest {
         assertEquals(10, limits.maxAutonomousRoundtrips)
     }
 
-    /** An automation is, since nobody is watching it. */
+    /** A routine is, since nobody is watching it. */
     @Test
-    fun anAutomationIsLimited() {
+    fun anRoutineIsLimited() {
         val limits = AILimitsConfig.default().getLimitsForSessionType(SessionType.AUTOMATION)
 
         assertEquals(20, limits.maxAutonomousRoundtrips)
     }
 
     /**
-     * A SEED is a template that never runs, and it is given the automation's limit rather
+     * A SEED is a template that never runs, and it is given the routine's limit rather
      * than none: if one were ever executed, it would be stopped like the thing it is a
      * template for.
      */
     @Test
-    fun aSeedFallsBackToTheAutomationLimit() {
-        val config = AILimitsConfig(chatMaxAutonomousRoundtrips = 5, automationMaxAutonomousRoundtrips = 7)
+    fun aSeedFallsBackToTheRoutineLimit() {
+        val config = AILimitsConfig(chatMaxAutonomousRoundtrips = 5, routineMaxAutonomousRoundtrips = 7)
 
         assertEquals(7, config.getLimitsForSessionType(SessionType.SEED).maxAutonomousRoundtrips)
     }
@@ -127,7 +127,7 @@ class AIDomainTypesTest {
     /** The configured values are what comes back, not the defaults. */
     @Test
     fun theConfiguredValuesAreTheOnesUsed() {
-        val config = AILimitsConfig(chatMaxAutonomousRoundtrips = 5, automationMaxAutonomousRoundtrips = 7)
+        val config = AILimitsConfig(chatMaxAutonomousRoundtrips = 5, routineMaxAutonomousRoundtrips = 7)
 
         assertEquals(5, config.getLimitsForSessionType(SessionType.CHAT).maxAutonomousRoundtrips)
         assertEquals(7, config.getLimitsForSessionType(SessionType.AUTOMATION).maxAutonomousRoundtrips)
@@ -146,6 +146,6 @@ class AIDomainTypesTest {
     /** A missing limit is an error, not "no limit": it used to be read as unlimited. */
     @Test(expected = JSONException::class)
     fun aMissingLimitIsRefused() {
-        AILimitsConfig.fromSettingsJson(JSONObject().put(AILimitsConfig.KEY_AUTOMATION, 20))
+        AILimitsConfig.fromSettingsJson(JSONObject().put(AILimitsConfig.KEY_ROUTINE, 20))
     }
 }

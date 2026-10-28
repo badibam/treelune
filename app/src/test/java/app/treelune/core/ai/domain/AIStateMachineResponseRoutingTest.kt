@@ -32,8 +32,8 @@ class AIStateMachineResponseRoutingTest {
      * session: it sets the flag and sends the AI a request to confirm.
      */
     @Test
-    fun automationClaimingCompletion_asksForConfirmationFirst() {
-        val state = parsed(automationAt(Phase.PARSING_AI_RESPONSE), aiMessage(completed = true))
+    fun routineClaimingCompletion_asksForConfirmationFirst() {
+        val state = parsed(routineAt(Phase.PARSING_AI_RESPONSE), aiMessage(completed = true))
 
         assertEquals(Phase.PREPARING_CONTINUATION, state.phase)
         assertEquals(ContinuationReason.COMPLETION_CONFIRMATION_REQUIRED, state.continuationReason)
@@ -42,9 +42,9 @@ class AIStateMachineResponseRoutingTest {
 
     /** The second claim, with the flag already set and the run's summary, ends the session. */
     @Test
-    fun automationClaimingCompletionTwice_windsTheSessionDown() {
+    fun routineClaimingCompletionTwice_windsTheSessionDown() {
         val state = parsed(
-            automationAt(Phase.PARSING_AI_RESPONSE, awaitingCompletionConfirmation = true),
+            routineAt(Phase.PARSING_AI_RESPONSE, awaitingCompletionConfirmation = true),
             aiMessage(completed = true, summary = "Logged the weight.")
         )
 
@@ -56,9 +56,9 @@ class AIStateMachineResponseRoutingTest {
 
     /** A confirmation without the run's summary is sent back once, asking for it. */
     @Test
-    fun automationConfirmingWithoutSummary_isAskedForItOnce() {
+    fun routineConfirmingWithoutSummary_isAskedForItOnce() {
         val state = parsed(
-            automationAt(Phase.PARSING_AI_RESPONSE, awaitingCompletionConfirmation = true),
+            routineAt(Phase.PARSING_AI_RESPONSE, awaitingCompletionConfirmation = true),
             aiMessage(completed = true)
         )
 
@@ -70,9 +70,9 @@ class AIStateMachineResponseRoutingTest {
 
     /** Reminded once, a confirmation still without summary ends the session without one. */
     @Test
-    fun automationConfirmingWithoutSummaryAfterTheReminder_windsTheSessionDown() {
+    fun routineConfirmingWithoutSummaryAfterTheReminder_windsTheSessionDown() {
         val state = parsed(
-            automationAt(Phase.PARSING_AI_RESPONSE, awaitingCompletionConfirmation = true, summaryReminded = true),
+            routineAt(Phase.PARSING_AI_RESPONSE, awaitingCompletionConfirmation = true, summaryReminded = true),
             aiMessage(completed = true)
         )
 
@@ -81,9 +81,9 @@ class AIStateMachineResponseRoutingTest {
 
     /** A new confirmation asked clears the reminder: each confirmation may be reminded once. */
     @Test
-    fun automationClaimingCompletionAgain_clearsTheReminder() {
+    fun routineClaimingCompletionAgain_clearsTheReminder() {
         val state = parsed(
-            automationAt(Phase.PARSING_AI_RESPONSE, summaryReminded = true),
+            routineAt(Phase.PARSING_AI_RESPONSE, summaryReminded = true),
             aiMessage(completed = true)
         )
 
@@ -96,9 +96,9 @@ class AIStateMachineResponseRoutingTest {
      * carried so that the confirmation happens once they have succeeded.
      */
     @Test
-    fun automationClaimingCompletionWithActions_runsThemFirst() {
+    fun routineClaimingCompletionWithActions_runsThemFirst() {
         val state = parsed(
-            automationAt(Phase.PARSING_AI_RESPONSE),
+            routineAt(Phase.PARSING_AI_RESPONSE),
             aiMessage(completed = true, actionCommands = listOf(command("tool_data.create")))
         )
 
@@ -111,9 +111,9 @@ class AIStateMachineResponseRoutingTest {
      * queries are dropped and the confirmation is asked for anyway.
      */
     @Test
-    fun automationClaimingCompletionWithQueries_dropsTheQueries() {
+    fun routineClaimingCompletionWithQueries_dropsTheQueries() {
         val state = parsed(
-            automationAt(Phase.PARSING_AI_RESPONSE),
+            routineAt(Phase.PARSING_AI_RESPONSE),
             aiMessage(completed = true, dataCommands = listOf(command()))
         )
 
@@ -148,9 +148,9 @@ class AIStateMachineResponseRoutingTest {
      * what else it holds -- here nothing, so the AI is guided to produce commands.
      */
     @Test
-    fun automationAskingAQuestion_isIgnoredAndGuided() {
+    fun routineAskingAQuestion_isIgnoredAndGuided() {
         val state = parsed(
-            automationAt(Phase.PARSING_AI_RESPONSE),
+            routineAt(Phase.PARSING_AI_RESPONSE),
             aiMessage(communicationModule = question())
         )
 
@@ -163,7 +163,7 @@ class AIStateMachineResponseRoutingTest {
     /** Queries run the same way for both session types: nothing is written, so nothing to approve. */
     @Test
     fun queries_runWithoutApprovalForBothSessionTypes() {
-        for (state in listOf(chatAt(Phase.PARSING_AI_RESPONSE), automationAt(Phase.PARSING_AI_RESPONSE))) {
+        for (state in listOf(chatAt(Phase.PARSING_AI_RESPONSE), routineAt(Phase.PARSING_AI_RESPONSE))) {
             val after = parsed(state, aiMessage(dataCommands = listOf(command())))
 
             assertEquals("for ${state.sessionType}", Phase.EXECUTING_DATA_QUERIES, after.phase)
@@ -174,7 +174,7 @@ class AIStateMachineResponseRoutingTest {
     @Test
     fun queriesAfterAClaimedCompletion_withdrawTheClaim() {
         val state = parsed(
-            automationAt(Phase.PARSING_AI_RESPONSE, awaitingCompletionConfirmation = true),
+            routineAt(Phase.PARSING_AI_RESPONSE, awaitingCompletionConfirmation = true),
             aiMessage(dataCommands = listOf(command()))
         )
 
@@ -200,9 +200,9 @@ class AIStateMachineResponseRoutingTest {
 
     /** An AUTOMATION has nobody to ask, so its actions run straight away. */
     @Test
-    fun automationActions_runWithoutValidation() {
+    fun routineActions_runWithoutValidation() {
         val state = parsed(
-            automationAt(Phase.PARSING_AI_RESPONSE),
+            routineAt(Phase.PARSING_AI_RESPONSE),
             aiMessage(actionCommands = listOf(command("tool_data.create")))
         )
 
@@ -224,8 +224,8 @@ class AIStateMachineResponseRoutingTest {
      * saying so, rather than being left to stall.
      */
     @Test
-    fun automationAnsweringWithTextOnly_isGuidedBack() {
-        val state = parsed(automationAt(Phase.PARSING_AI_RESPONSE), aiMessage())
+    fun routineAnsweringWithTextOnly_isGuidedBack() {
+        val state = parsed(routineAt(Phase.PARSING_AI_RESPONSE), aiMessage())
 
         assertEquals(Phase.PREPARING_CONTINUATION, state.phase)
         assertEquals(ContinuationReason.AUTOMATION_NO_COMMANDS, state.continuationReason)
@@ -234,7 +234,7 @@ class AIStateMachineResponseRoutingTest {
     /** Parsing an answer is not a roundtrip: the counter moves when a call goes out. */
     @Test
     fun routingAnAnswer_doesNotCountARoundtrip() {
-        val state = parsed(automationAt(Phase.PARSING_AI_RESPONSE, roundtrips = 2), aiMessage())
+        val state = parsed(routineAt(Phase.PARSING_AI_RESPONSE, roundtrips = 2), aiMessage())
 
         assertEquals(2, state.totalRoundtrips)
     }
@@ -245,7 +245,7 @@ class AIStateMachineResponseRoutingTest {
     @Test
     fun dataQueriesExecuted_callsBackAndCountsARoundtrip() {
         val state = AIStateMachine.transition(
-            state = automationAt(Phase.EXECUTING_DATA_QUERIES, roundtrips = 1),
+            state = routineAt(Phase.EXECUTING_DATA_QUERIES, roundtrips = 1),
             event = AIEvent.DataQueriesExecuted(results = listOf(commandResult())),
             limits = testLimits,
             currentTime = T1
@@ -262,7 +262,7 @@ class AIStateMachineResponseRoutingTest {
     @Test
     fun dataQueriesExecuted_isStoppedOnceTheLimitIsReached() {
         val state = AIStateMachine.transition(
-            state = automationAt(Phase.EXECUTING_DATA_QUERIES, roundtrips = testLimits.maxAutonomousRoundtrips),
+            state = routineAt(Phase.EXECUTING_DATA_QUERIES, roundtrips = testLimits.maxAutonomousRoundtrips),
             event = AIEvent.DataQueriesExecuted(results = emptyList()),
             limits = testLimits,
             currentTime = T1
@@ -295,7 +295,7 @@ class AIStateMachineResponseRoutingTest {
     @Test
     fun schemaRequired_isStoppedOnceTheLimitIsReached() {
         val state = AIStateMachine.transition(
-            state = automationAt(Phase.PARSING_AI_RESPONSE, roundtrips = testLimits.maxAutonomousRoundtrips),
+            state = routineAt(Phase.PARSING_AI_RESPONSE, roundtrips = testLimits.maxAutonomousRoundtrips),
             event = AIEvent.SchemaRequired,
             limits = testLimits,
             currentTime = T1

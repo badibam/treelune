@@ -32,7 +32,7 @@ data class Period(
 }
 
 /**
- * Data class representing a relative period (for automation contexts)
+ * Data class representing a relative period (for routine contexts)
  * Offset is relative to "now": -1 = previous, 0 = current, 1 = next
  */
 data class RelativePeriod(
@@ -46,7 +46,7 @@ data class RelativePeriod(
  *
  * [reference] is mandatory on purpose. "Yesterday" only means something against some instant,
  * and which instant is a decision of the caller: the clock for anything the user is looking at,
- * the scheduled time for an automation run, which may be catching up on a day long past.
+ * the scheduled time for a routine run, which may be catching up on a day long past.
  * Reading the clock here by default is what made 47 catch-up runs read the same day's data.
  *
  * The day's start hour, the week's first day and the timezone are parameters defaulting to the

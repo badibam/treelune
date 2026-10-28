@@ -22,10 +22,10 @@ val LocalRunning = androidx.compose.runtime.staticCompositionLocalOf { Running()
  * The tools with a stopwatch running on one of their entries (tools.running), the routine whose
  * run the AI is doing now, and the zones holding one or the other.
  */
-data class Running(val tools: Set<String> = emptySet(), val zones: Set<String> = emptySet(), val automations: Set<String> = emptySet()) {
+data class Running(val tools: Set<String> = emptySet(), val zones: Set<String> = emptySet(), val routines: Set<String> = emptySet()) {
     fun tool(id: String): Boolean = id in tools
     fun zone(id: String): Boolean = id in zones
-    fun automation(id: String): Boolean = id in automations
+    fun routine(id: String): Boolean = id in routines
 }
 
 /**
@@ -45,12 +45,12 @@ fun rememberRunning(): Running {
         val sessionId = ai.sessionId
         routine = if (sessionId == null || ai.sessionType != app.treelune.core.ai.data.SessionType.AUTOMATION) null else {
             val coordinator = Coordinator(context)
-            val automationId = coordinator.processUserAction("ai_sessions.get", mapOf("id" to sessionId)).data?.get("automation_id") as? String
-            val automation = automationId?.let { coordinator.processUserAction("automations.get", mapOf("automation_id" to it)).data?.get("automation") as? Map<*, *> }
-            if (automationId == null || automation == null) {
+            val routineId = coordinator.processUserAction("ai_sessions.get", mapOf("id" to sessionId)).data?.get("automation_id") as? String
+            val found = routineId?.let { coordinator.processUserAction("automations.get", mapOf("automation_id" to it)).data?.get("automation") as? Map<*, *> }
+            if (routineId == null || found == null) {
                 LogManager.ui("rememberRunning: the routine of run $sessionId not read", "ERROR")
                 null
-            } else automationId to (automation["zone_id"] as String)
+            } else routineId to (found["zone_id"] as String)
         }
     }
     LaunchedEffect(Unit) {
@@ -68,5 +68,5 @@ fun rememberRunning(): Running {
         running = Running(ids("tools"), ids("zones"))
     }
     val now = routine ?: return running
-    return running.copy(zones = running.zones + now.second, automations = setOf(now.first))
+    return running.copy(zones = running.zones + now.second, routines = setOf(now.first))
 }

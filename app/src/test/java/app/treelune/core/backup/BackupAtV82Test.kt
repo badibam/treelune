@@ -91,7 +91,7 @@ class BackupAtV82Test {
         }
 
         // The routines' recurrences, and the pointers of their messages
-        val routines = database.aiDao().getAllAutomations()
+        val routines = database.aiDao().getAllRoutines()
         assertEquals(rows(data, "automations").size, routines.size)
         val scheduled = routines.mapNotNull { it.scheduleJson }
         assertTrue(scheduled.isNotEmpty())

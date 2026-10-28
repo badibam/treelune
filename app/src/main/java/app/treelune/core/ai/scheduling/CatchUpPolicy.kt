@@ -6,9 +6,9 @@ import app.treelune.core.utils.ScheduleConfig
 import java.time.ZoneId
 
 /**
- * Which missed occurrence an automation catches up on, when the phone was off or the app closed.
+ * Which missed occurrence a routine catches up on, when the phone was off or the app closed.
  *
- * Separated from AutomationScheduler so it can be checked: the scheduler needs a Context to build
+ * Separated from RoutineScheduler so it can be checked: the scheduler needs a Context to build
  * a Coordinator and open the database, and what is worth checking here is the arithmetic, not the
  * loading. Nothing below reads a clock, a setting or a row -- every value it uses is an argument.
  */
@@ -17,7 +17,7 @@ object CatchUpPolicy {
     /**
      * Where to start looking for occurrences that are due.
      *
-     * The base is the last completed run, or the automation's last modification, whichever is
+     * The base is the last completed run, or the routine's last modification, whichever is
      * later: a config change must not drag it back through occurrences that predate the change.
      * With neither, now.
      *
@@ -26,17 +26,17 @@ object CatchUpPolicy {
      * how 47 days of missed runs became 47 sessions.
      *
      * @param lastExecutionTime when the last completed run was scheduled for, or 0 if there is none
-     * @param automationUpdatedAt when the automation was last modified
+     * @param routineUpdatedAt when the routine was last modified
      * @param catchUpWindow how late an occurrence may still run, in milliseconds, or null for no limit
      * @return the instant to search from
      */
     fun searchStart(
         lastExecutionTime: Long,
-        automationUpdatedAt: Long,
+        routineUpdatedAt: Long,
         catchUpWindow: Long?,
         now: Long
     ): Long {
-        val referenceTime = maxOf(lastExecutionTime, automationUpdatedAt)
+        val referenceTime = maxOf(lastExecutionTime, routineUpdatedAt)
         val base = if (referenceTime > 0) referenceTime else now
 
         if (catchUpWindow == null) return base
@@ -53,18 +53,18 @@ object CatchUpPolicy {
      */
     fun windowSkippedOccurrences(
         lastExecutionTime: Long,
-        automationUpdatedAt: Long,
+        routineUpdatedAt: Long,
         catchUpWindow: Long?,
         now: Long
     ): Boolean {
         if (catchUpWindow == null) return false
-        val referenceTime = maxOf(lastExecutionTime, automationUpdatedAt)
+        val referenceTime = maxOf(lastExecutionTime, routineUpdatedAt)
         val base = if (referenceTime > 0) referenceTime else now
         return now - catchUpWindow > base
     }
 
     /**
-     * The most recent occurrence that is already due, for an automation set to run only the
+     * The most recent occurrence that is already due, for a routine set to run only the
      * latest one it missed.
      *
      * Found by bisecting on the start of the search rather than by walking occurrence by

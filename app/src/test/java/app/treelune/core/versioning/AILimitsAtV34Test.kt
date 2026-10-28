@@ -46,7 +46,7 @@ class AILimitsAtV34Test {
         val current = JSONObject(JsonTransformers.transformAppConfig(v31, "ai_limits", 31, 98))
 
         val config = AILimitsConfig.fromSettingsJson(current)
-        assertEquals(30, config.automationMaxAutonomousRoundtrips)
-        assertEquals(100_000, config.automationMaxDataChars)
+        assertEquals(30, config.routineMaxAutonomousRoundtrips)
+        assertEquals(100_000, config.routineMaxDataChars)
     }
 }

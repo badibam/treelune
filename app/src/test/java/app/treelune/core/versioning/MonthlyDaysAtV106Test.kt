@@ -37,7 +37,7 @@ class MonthlyDaysAtV106Test {
     }
 
     @Test
-    fun aBackup_itsToolsAutomationsAndTasks() {
+    fun aBackup_itsToolsRoutinesAndTasks() {
         val data = JSONObject()
             .put("tool_instances", JSONArray().put(JSONObject().put("tooltype", "messages").put("config_json", """{"schedule":$monthly}""")))
             .put("automations", JSONArray().put(JSONObject().put("schedule_json", monthly)).put(JSONObject().put("schedule_json", JSONObject.NULL)))

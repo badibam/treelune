@@ -20,7 +20,7 @@ import org.json.JSONObject
  * - `create_entry`: `tool_instance_id`, `values` (by the field's path: `name`, `timestamp`, `data.x`, `extra.x`)
  * - `update_entry`: `tool_instance_id`, `entry` (an input giving an entry), `values` as above
  * - `tool_operation`: `tool_instance_id`, `operation` (one the tool type declares), `params` (by name)
- * - `run_routine`: `automation_id`, `inputs` (`data`, what its run's message is joined)
+ * - `run_routine`: `routine_id`, `inputs` (`data`, what its run's message is joined)
  * - `emit_event`: `event_id`, `inputs` (by the value's name the event declares, every one given)
  *
  * An input is a Term (`{"constant"}`, `{"variable"}`, `{"reading"}`), or what an earlier step gave:
@@ -50,7 +50,7 @@ object TaskSteps {
     const val ENTRY = "entry"
     const val OPERATION = "operation"
     const val PARAMS = "params"
-    const val AUTOMATION_ID = "automation_id"
+    const val ROUTINE_ID = "automation_id"
     const val EVENT_ID = "event_id"
     /** The one input of a routine run: what joins its message. */
     const val DATA = "data"
@@ -177,7 +177,7 @@ object TaskSteps {
         val own = when (step.optString(KIND)) {
             CREATE_ENTRY, UPDATE_ENTRY -> reach("tool_data.create", mapOf("tool_instance_id" to tool))
             TOOL_OPERATION -> reach("${tooltypeOf(tool) ?: "?"}.${step.optString(OPERATION)}", mapOf("tool_instance_id" to tool))
-            RUN_ROUTINE -> reach("automations.execute_manual", mapOf("automation_id" to step.optString(AUTOMATION_ID)))
+            RUN_ROUTINE -> reach("automations.execute_manual", mapOf("automation_id" to step.optString(ROUTINE_ID)))
             EMIT_EVENT -> reach("events.emit", mapOf("event_id" to step.optString(EVENT_ID)))
             else -> emptyList()
         }
@@ -271,8 +271,8 @@ object TaskSteps {
                     inputs(step.optJSONObject(PARAMS), params.map { it.name }.toSet())?.let { return it }
                 }
                 RUN_ROUTINE -> {
-                    database.aiDao().getAutomationById(step.optString(AUTOMATION_ID))
-                        ?: return s.shared("task_error_routine").format(number, step.optString(AUTOMATION_ID))
+                    database.aiDao().getRoutineById(step.optString(ROUTINE_ID))
+                        ?: return s.shared("task_error_routine").format(number, step.optString(ROUTINE_ID))
                     inputs(step.optJSONObject(INPUTS), setOf(DATA))?.let { return it }
                 }
                 EMIT_EVENT -> {

@@ -30,12 +30,12 @@ object AppSettings {
 
     /** The bounds of the AI limits: at least one call, and below a runaway, since each call is paid for */
     val AI_LIMITS_CHAT_RANGE = 1..50
-    val AI_LIMITS_AUTOMATION_RANGE = 1..100
+    val AI_LIMITS_ROUTINE_RANGE = 1..100
     val CHAIN_RANGE = IntProgression.fromClosedRange(10, 500, 10)
 
     /** The data size thresholds, in characters, and their step */
     val AI_DATA_CHAT_RANGE = IntProgression.fromClosedRange(5_000, 100_000, 5_000)
-    val AI_DATA_AUTOMATION_RANGE = IntProgression.fromClosedRange(10_000, 500_000, 10_000)
+    val AI_DATA_ROUTINE_RANGE = IntProgression.fromClosedRange(10_000, 500_000, 10_000)
 
     private val WEEK_DAYS = listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
     /** The regions of the time zones offered, those of a place ("Europe/Lisbon"), not the old aliases ("US/Pacific", "EST"). */
@@ -196,9 +196,9 @@ object AppSettings {
             )
             AppSettingCategories.AI_LIMITS -> listOf(
                 scale("chat_max_autonomous_roundtrips", text("app_config_ai_limits_chat"), text("settings_ai_limits_chat_help"), AI_LIMITS_CHAT_RANGE),
-                scale("automation_max_autonomous_roundtrips", text("app_config_ai_limits_automation"), text("settings_ai_limits_automation_help"), AI_LIMITS_AUTOMATION_RANGE),
+                scale("automation_max_autonomous_roundtrips", text("app_config_ai_limits_automation"), text("settings_ai_limits_automation_help"), AI_LIMITS_ROUTINE_RANGE),
                 scale("chat_max_data_chars", text("app_config_ai_data_chat"), text("settings_ai_data_chat_help"), AI_DATA_CHAT_RANGE),
-                scale("automation_max_data_chars", text("app_config_ai_data_automation"), text("settings_ai_data_automation_help"), AI_DATA_AUTOMATION_RANGE),
+                scale("automation_max_data_chars", text("app_config_ai_data_automation"), text("settings_ai_data_automation_help"), AI_DATA_ROUTINE_RANGE),
                 scale("always_send_max_chars", text("app_config_ai_always_send"), text("settings_ai_always_send_help"), AI_DATA_CHAT_RANGE),
                 scale("chain_max_runs", text("app_config_chain_max_runs"), text("settings_chain_max_runs_help"), CHAIN_RANGE),
                 // The day's budget, none when left empty, and its alert

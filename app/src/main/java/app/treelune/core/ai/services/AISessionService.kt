@@ -53,7 +53,7 @@ class AISessionService(private val context: Context) : ExecutableService {
                 "get_active_session" -> getActiveSession(params, token)
                 "stop_active_session" -> stopActiveSession(params, token)
                 "list_sessions" -> listSessions(params, token)
-                "list_sessions_for_automation" -> listSessionsForAutomation(params, token)
+                "list_sessions_for_automation" -> listSessionsForRoutine(params, token)
                 "run_history" -> runHistory(params, token)
                 "update_session" -> updateSession(params, token)
                 "delete_session" -> deleteSession(params, token)
@@ -132,7 +132,7 @@ class AISessionService(private val context: Context) : ExecutableService {
         if (providerId != null && AppDatabase.getDatabase(context).aiDao().getProviderConfig(providerId) == null)
             return OperationResult.error(s.shared("ai_error_provider_not_found").format(providerId))
 
-        // A seed session is made with its routine and its message, by automations.create
+        // A seed session is made with its routine and its message, by routines.create
         if (type == SessionType.SEED.name) return OperationResult.error(s.shared("ai_error_seed_with_routine"))
 
         LogManager.aiSession("Creating AI session: name=$name, type=$type, providerId=$providerId", "DEBUG")
@@ -154,7 +154,7 @@ class AISessionService(private val context: Context) : ExecutableService {
             name = name,
             identityId = identityId,
             type = SessionType.valueOf(type),
-            automationId = params.optString("automation_id").takeIf { it.isNotEmpty() }, // null for CHAT
+            routineId = params.optString("automation_id").takeIf { it.isNotEmpty() }, // null for CHAT
             scheduledExecutionTime = if (params.has("scheduled_execution_time")) params.getLong("scheduled_execution_time") else null,
             providerId = providerId,
             providerSessionId = "",
@@ -213,7 +213,7 @@ class AISessionService(private val context: Context) : ExecutableService {
                     SessionValidation.KEY_ZONES to sessionEntity.validateZones,
                     SessionValidation.KEY_DATA to sessionEntity.validateData,
                     SessionReasoning.KEY to sessionEntity.reasoning()?.toMap(),
-                    "automation_id" to sessionEntity.automationId,
+                    "automation_id" to sessionEntity.routineId,
                     "scheduled_execution_time" to sessionEntity.scheduledExecutionTime,
                     "triggered_by" to sessionEntity.triggeredBy,
                     "provider_id" to sessionEntity.providerId,
@@ -301,17 +301,17 @@ class AISessionService(private val context: Context) : ExecutableService {
         }
     }
 
-    private suspend fun listSessionsForAutomation(params: JSONObject, token: CancellationToken): OperationResult {
+    private suspend fun listSessionsForRoutine(params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
 
-        val automationId = params.optString("automation_id").takeIf { it.isNotEmpty() }
+        val routineId = params.optString("automation_id").takeIf { it.isNotEmpty() }
             ?: return OperationResult.error(s.shared("ai_error_param_automation_id_required"))
         val limit = params.optInt("limit", 10)
         val page = params.optInt("page", 1)
         val startTime = if (params.has("start_time")) params.getLong("start_time") else null
         val endTime = if (params.has("end_time")) params.getLong("end_time") else null
 
-        LogManager.aiSession("Listing sessions for automation: automationId=$automationId, limit=$limit, page=$page, startTime=$startTime, endTime=$endTime", "DEBUG")
+        LogManager.aiSession("Listing sessions for automation: automationId=$routineId, limit=$limit, page=$page, startTime=$startTime, endTime=$endTime", "DEBUG")
 
         try {
             val database = AppDatabase.getDatabase(context)
@@ -321,8 +321,8 @@ class AISessionService(private val context: Context) : ExecutableService {
             val offset = (page - 1) * limit
 
             // Get paginated sessions
-            val sessionEntities = dao.getSessionsForAutomationPaginated(
-                automationId = automationId,
+            val sessionEntities = dao.getSessionsForRoutinePaginated(
+                routineId = routineId,
                 limit = limit,
                 offset = offset,
                 startTime = startTime,
@@ -330,15 +330,15 @@ class AISessionService(private val context: Context) : ExecutableService {
             )
 
             // Get total count for pagination
-            val totalEntries = dao.countSessionsForAutomation(
-                automationId = automationId,
+            val totalEntries = dao.countSessionsForRoutine(
+                routineId = routineId,
                 startTime = startTime,
                 endTime = endTime
             )
 
             val totalPages = if (totalEntries == 0) 0 else ((totalEntries - 1) / limit) + 1
 
-            LogManager.aiSession("Found ${sessionEntities.size} sessions for automation $automationId (total: $totalEntries, page: $page/$totalPages)", "DEBUG")
+            LogManager.aiSession("Found ${sessionEntities.size} sessions for automation $routineId (total: $totalEntries, page: $page/$totalPages)", "DEBUG")
 
             // Each session's cost, summed from its messages in one query for the page
             val costs = dao.getCallUsages(sessionEntities.map { it.id })
@@ -352,7 +352,7 @@ class AISessionService(private val context: Context) : ExecutableService {
                     "id" to session.id,
                     "name" to session.name,
                     "type" to session.type.name,
-                    "automation_id" to session.automationId,
+                    "automation_id" to session.routineId,
                     "scheduled_execution_time" to session.scheduledExecutionTime,
                     "triggered_by" to session.triggeredBy,
                     "provider_id" to session.providerId,
@@ -640,7 +640,7 @@ class AISessionService(private val context: Context) : ExecutableService {
                 aiMessageJson = aiMessageJson,
                 aiMessageParsedJson = null, // TODO: Parse AIMessage when implementing
                 systemMessageJson = systemMessageJson,
-                executionMetadataJson = null, // TODO: Implement automation metadata
+                executionMetadataJson = null, // TODO: Implement routine metadata
                 excludeFromPrompt = excludeFromPrompt,
                 // Token usage metrics for cost calculation
                 inputTokens = inputTokens,
@@ -984,13 +984,13 @@ class AISessionService(private val context: Context) : ExecutableService {
         val session = aiDao.getSession(sessionId)
             ?: return OperationResult.error(s.shared("ai_error_session_not_found").format(sessionId))
         aiDao.updateSeenAt(sessionId, System.currentTimeMillis())
-        app.treelune.core.utils.DataChangeNotifier.notifyAISessionsChanged(session.automationId)
+        app.treelune.core.utils.DataChangeNotifier.notifyAISessionsChanged(session.routineId)
         return OperationResult.success(mapOf("session_id" to sessionId))
     }
 
     /**
      * A routine's run over (RunEnd): its summary kept, and seen at once when its routine does not
-     * signal it ([params] `problem`, as RunEnd judged it; AutomationSettings.NOTIFY_*). Gives
+     * signal it ([params] `problem`, as RunEnd judged it; RoutineSettings.NOTIFY_*). Gives
      * whether it waits, with the routine and zone a notification opens it in.
      */
     private suspend fun endRun(params: JSONObject, token: CancellationToken): OperationResult {
@@ -999,19 +999,19 @@ class AISessionService(private val context: Context) : ExecutableService {
             ?: return OperationResult.error(s.shared("ai_error_param_session_id_required"))
         val session = aiDao.getSession(sessionId)
             ?: return OperationResult.error(s.shared("ai_error_session_not_found").format(sessionId))
-        val automation = session.automationId?.let { aiDao.getAutomationById(it) }
+        val routine = session.routineId?.let { aiDao.getRoutineById(it) }
             ?: return OperationResult.error(s.shared("error_automation_not_found"))
         if (!params.has("problem")) return OperationResult.error("Parameter 'problem' is required")
-        val waits = app.treelune.core.ai.orchestration.RunEnd.waits(automation.notifyEnd, params.getBoolean("problem"))
+        val waits = app.treelune.core.ai.orchestration.RunEnd.waits(routine.notifyEnd, params.getBoolean("problem"))
         val summary = params.optString("summary").takeIf { it.isNotEmpty() }
         aiDao.updateSession(session.copy(summary = summary, seenAt = if (waits) null else System.currentTimeMillis()))
-        app.treelune.core.utils.DataChangeNotifier.notifyAISessionsChanged(automation.id)
-        LogManager.aiSession("Run $sessionId of ${automation.id} over, ${if (waits) "waiting" else "seen"}, ${if (summary == null) "no summary" else "its summary kept"}", "INFO")
+        app.treelune.core.utils.DataChangeNotifier.notifyAISessionsChanged(routine.id)
+        LogManager.aiSession("Run $sessionId of ${routine.id} over, ${if (waits) "waiting" else "seen"}, ${if (summary == null) "no summary" else "its summary kept"}", "INFO")
         return OperationResult.success(mapOf(
             "waits" to waits,
-            "automation_id" to automation.id,
-            "automation_name" to automation.name,
-            "zone_id" to automation.zoneId
+            "automation_id" to routine.id,
+            "automation_name" to routine.name,
+            "zone_id" to routine.zoneId
         ))
     }
 
@@ -1058,7 +1058,7 @@ class AISessionService(private val context: Context) : ExecutableService {
 
     /**
      * List CHAT sessions with search and pagination (for History feature)
-     * Same pattern as list_sessions_for_automation
+     * Same pattern as list_sessions_for_routine
      */
     private suspend fun listChatSessions(params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
@@ -1257,9 +1257,9 @@ class AISessionService(private val context: Context) : ExecutableService {
         val dao = AppDatabase.getDatabase(context).aiDao()
         return when (operation) {
             "list_sessions_for_automation" -> s.shared("action_verbalize_runs_list")
-                .format(params.optString("automation_id").let { dao.getAutomationById(it)?.name ?: it })
+                .format(params.optString("automation_id").let { dao.getRoutineById(it)?.name ?: it })
             "run_history" -> s.shared("action_verbalize_run_history").format(params.optString("session_id").let { id ->
-                dao.getSession(id)?.automationId?.let { dao.getAutomationById(it)?.name } ?: id
+                dao.getSession(id)?.routineId?.let { dao.getRoutineById(it)?.name } ?: id
             })
             else -> s.shared("action_verbalize_unknown")
         }

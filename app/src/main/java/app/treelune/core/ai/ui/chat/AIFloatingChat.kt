@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
  * States (simplified from V1):
  * - IDLE: No active session → "Start Chat" button
  * - CHAT: Chat active → Normal chat interface (AIScreen)
- * - AUTOMATION: Automation active → Read-only view with interrupt/stop buttons
+ * - AUTOMATION: Routine active → Read-only view with interrupt/stop buttons
  *
  * V2 Simplifications:
  * - No queue management (handled internally by scheduler)

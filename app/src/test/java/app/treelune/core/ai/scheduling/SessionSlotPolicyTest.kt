@@ -6,7 +6,7 @@ import app.treelune.core.ai.data.SessionType
 import app.treelune.core.ai.domain.AIState
 import app.treelune.core.ai.domain.Phase
 import app.treelune.core.ai.domain.T0
-import app.treelune.core.ai.domain.automationAt
+import app.treelune.core.ai.domain.routineAt
 import app.treelune.core.ai.domain.chatAt
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -69,21 +69,21 @@ class SessionSlotPolicyTest {
     }
 
     /**
-     * A CHAT does not cut into a running automation. It queues, and the interface asks the
+     * A CHAT does not cut into a running routine. It queues, and the interface asks the
      * user whether to interrupt -- that question is not settled here.
      */
     @Test
-    fun chat_queuesBehindARunningAutomation() {
-        val result = request(SessionType.CHAT, ExecutionTrigger.MANUAL, automationAt(Phase.CALLING_AI))
+    fun chat_queuesBehindARunningRoutine() {
+        val result = request(SessionType.CHAT, ExecutionTrigger.MANUAL, routineAt(Phase.CALLING_AI))
 
         assertEquals(ActivationResult.Enqueue("asking-session", priority = 1), result)
     }
 
-    // ==================== An automation asks, a CHAT holds the slot ====================
+    // ==================== A routine asks, a CHAT holds the slot ====================
 
     /** A conversation nobody has touched for over five minutes gives way, and is suspended. */
     @Test
-    fun automation_evictsALongIdleChat() {
+    fun routine_evictsALongIdleChat() {
         for (trigger in listOf(ExecutionTrigger.MANUAL, ExecutionTrigger.SCHEDULED)) {
             val result = request(
                 SessionType.AUTOMATION,
@@ -102,7 +102,7 @@ class SessionSlotPolicyTest {
      * comes back at the next tick.
      */
     @Test
-    fun automation_waitsOrGivesUpOnAChatStillInUse() {
+    fun routine_waitsOrGivesUpOnAChatStillInUse() {
         val busyChat = chatIdleFor(SessionSlotPolicy.CHAT_INACTIVITY_TIMEOUT - 1_000L)
 
         assertEquals(
@@ -120,7 +120,7 @@ class SessionSlotPolicyTest {
      * out, so it cannot be evicted. Waiting on the provider is not the user being away.
      */
     @Test
-    fun automation_cannotEvictAChatThatIsMidCall() {
+    fun routine_cannotEvictAChatThatIsMidCall() {
         val callingForAges = chatAt(Phase.CALLING_AI)
             .copy(lastEventTime = T0 - 10 * SessionSlotPolicy.CHAT_INACTIVITY_TIMEOUT)
 
@@ -129,15 +129,15 @@ class SessionSlotPolicyTest {
         assertEquals(ActivationResult.Enqueue("asking-session", priority = 2), result)
     }
 
-    // ==================== An automation asks, an automation holds the slot ====================
+    // ==================== A routine asks, a routine holds the slot ====================
 
     /**
-     * One automation never evicts another, however long it has been running: the watchdog
+     * One routine never evicts another, however long it has been running: the watchdog
      * is what ends it. The asker queues or gives up depending on where it came from.
      */
     @Test
-    fun automation_neverEvictsAnotherAutomation() {
-        val running = automationAt(Phase.EXECUTING_ACTIONS)
+    fun routine_neverEvictsAnotherRoutine() {
+        val running = routineAt(Phase.EXECUTING_ACTIONS)
 
         assertEquals(
             ActivationResult.Enqueue("asking-session", priority = 2),
@@ -154,136 +154,136 @@ class SessionSlotPolicyTest {
     /** Nothing is running, so nothing can run out of time. */
     @Test
     fun noSession_neverTimesOut() {
-        assertFalse(SessionSlotPolicy.shouldTimeout(AIState.idle(), hasWaitingAutomations = true, currentTime = T0))
+        assertFalse(SessionSlotPolicy.shouldTimeout(AIState.idle(), hasWaitingRoutines = true, currentTime = T0))
     }
 
     /**
      * A conversation left open costs nothing while nothing else wants the slot, so it is
-     * only timed out when an automation is actually waiting for it.
+     * only timed out when a routine is actually waiting for it.
      */
     @Test
     fun chat_onlyTimesOutWhenSomethingIsWaiting() {
         val longIdle = chatIdleFor(SessionSlotPolicy.CHAT_INACTIVITY_TIMEOUT + 1_000L)
 
-        assertFalse(SessionSlotPolicy.shouldTimeout(longIdle, hasWaitingAutomations = false, currentTime = T0))
-        assertTrue(SessionSlotPolicy.shouldTimeout(longIdle, hasWaitingAutomations = true, currentTime = T0))
+        assertFalse(SessionSlotPolicy.shouldTimeout(longIdle, hasWaitingRoutines = false, currentTime = T0))
+        assertTrue(SessionSlotPolicy.shouldTimeout(longIdle, hasWaitingRoutines = true, currentTime = T0))
     }
 
-    /** Under five minutes, a waiting automation is not reason enough. */
+    /** Under five minutes, a waiting routine is not reason enough. */
     @Test
     fun chat_survivesAShortSilence() {
         val shortIdle = chatIdleFor(SessionSlotPolicy.CHAT_INACTIVITY_TIMEOUT - 1_000L)
 
-        assertFalse(SessionSlotPolicy.shouldTimeout(shortIdle, hasWaitingAutomations = true, currentTime = T0))
+        assertFalse(SessionSlotPolicy.shouldTimeout(shortIdle, hasWaitingRoutines = true, currentTime = T0))
     }
 
-    /** An automation that has been going for over ten minutes is stopped. */
+    /** A routine that has been going for over ten minutes is stopped. */
     @Test
-    fun automation_timesOutOnTheGlobalBudget() {
-        val started = automationAt(Phase.CALLING_AI)
-        val tenMinutesLater = started.sessionCreatedAt + SessionSlotPolicy.AUTOMATION_GLOBAL_TIMEOUT + 1_000L
+    fun routine_timesOutOnTheGlobalBudget() {
+        val started = routineAt(Phase.CALLING_AI)
+        val tenMinutesLater = started.sessionCreatedAt + SessionSlotPolicy.ROUTINE_GLOBAL_TIMEOUT + 1_000L
 
         assertTrue(
-            SessionSlotPolicy.shouldTimeout(started, hasWaitingAutomations = false, currentTime = tenMinutesLater)
+            SessionSlotPolicy.shouldTimeout(started, hasWaitingRoutines = false, currentTime = tenMinutesLater)
         )
     }
 
-    /** An automation that has stopped doing anything for two minutes is stopped too. */
+    /** A routine that has stopped doing anything for two minutes is stopped too. */
     @Test
-    fun automation_timesOutOnGoingQuiet() {
+    fun routine_timesOutOnGoingQuiet() {
         // PREPARING_CONTINUATION would report no inactivity; INTERRUPTED measures from the last event.
-        val quiet = automationAt(Phase.INTERRUPTED)
+        val quiet = routineAt(Phase.INTERRUPTED)
         val twoMinutesLater = quiet.lastEventTime + SessionSlotPolicy.AUTO_INACTIVITY_TIMEOUT + 1_000L
 
         assertTrue(
-            SessionSlotPolicy.shouldTimeout(quiet, hasWaitingAutomations = false, currentTime = twoMinutesLater)
+            SessionSlotPolicy.shouldTimeout(quiet, hasWaitingRoutines = false, currentTime = twoMinutesLater)
         )
     }
 
-    /** An automation getting on with the work is left alone until the global budget runs out. */
+    /** A routine getting on with the work is left alone until the global budget runs out. */
     @Test
-    fun automation_isLeftAloneWhileWorking() {
-        val working = automationAt(Phase.EXECUTING_ACTIONS)
+    fun routine_isLeftAloneWhileWorking() {
+        val working = routineAt(Phase.EXECUTING_ACTIONS)
         val fiveMinutesLater = working.sessionCreatedAt + 5 * 60_000L
 
         assertFalse(
-            SessionSlotPolicy.shouldTimeout(working, hasWaitingAutomations = false, currentTime = fiveMinutesLater)
+            SessionSlotPolicy.shouldTimeout(working, hasWaitingRoutines = false, currentTime = fiveMinutesLater)
         )
     }
 
-    /** An automation waiting out a network outage is never timed out, whatever the clock says. */
+    /** A routine waiting out a network outage is never timed out, whatever the clock says. */
     @Test
-    fun automation_isNeverTimedOutWhileWaitingOnTheNetwork() {
-        val offline = automationAt(Phase.WAITING_NETWORK_RETRY)
-        val hoursLater = offline.sessionCreatedAt + 100 * SessionSlotPolicy.AUTOMATION_GLOBAL_TIMEOUT
+    fun routine_isNeverTimedOutWhileWaitingOnTheNetwork() {
+        val offline = routineAt(Phase.WAITING_NETWORK_RETRY)
+        val hoursLater = offline.sessionCreatedAt + 100 * SessionSlotPolicy.ROUTINE_GLOBAL_TIMEOUT
 
         assertFalse(
-            SessionSlotPolicy.shouldTimeout(offline, hasWaitingAutomations = false, currentTime = hoursLater)
+            SessionSlotPolicy.shouldTimeout(offline, hasWaitingRoutines = false, currentTime = hoursLater)
         )
     }
 
     /**
-     * An outage that is over is not charged to the automation.
+     * An outage that is over is not charged to the routine.
      *
-     * The ten-minute budget is working time, not wall clock: an automation that spent eight of
+     * The ten-minute budget is working time, not wall clock: a routine that spent eight of
      * its first nine minutes offline comes back with its budget nearly intact. Reading the
      * downtime off the current phase used to make the subtraction unreachable, since the only
      * phase carrying one is the phase shouldTimeout returns on.
      */
     @Test
-    fun automation_isNotChargedForAnOutageItHasComeBackFrom() {
+    fun routine_isNotChargedForAnOutageItHasComeBackFrom() {
         val start = T0
         val outage = 8 * 60_000L
-        val justPastTheWallClockBudget = start + SessionSlotPolicy.AUTOMATION_GLOBAL_TIMEOUT + 1_000L
+        val justPastTheWallClockBudget = start + SessionSlotPolicy.ROUTINE_GLOBAL_TIMEOUT + 1_000L
 
-        val resumed = automationAt(Phase.CALLING_AI).copy(
+        val resumed = routineAt(Phase.CALLING_AI).copy(
             sessionCreatedAt = start,
             networkDownTime = outage,
             lastEventTime = justPastTheWallClockBudget
         )
 
         assertFalse(
-            SessionSlotPolicy.shouldTimeout(resumed, hasWaitingAutomations = false, currentTime = justPastTheWallClockBudget)
+            SessionSlotPolicy.shouldTimeout(resumed, hasWaitingRoutines = false, currentTime = justPastTheWallClockBudget)
         )
     }
 
     /** Once it has actually worked for ten minutes, outages aside, it is stopped. */
     @Test
-    fun automation_isStoppedAfterTenMinutesOfWorkingTime() {
+    fun routine_isStoppedAfterTenMinutesOfWorkingTime() {
         val start = T0
         val outage = 8 * 60_000L
-        val past = start + outage + SessionSlotPolicy.AUTOMATION_GLOBAL_TIMEOUT + 1_000L
+        val past = start + outage + SessionSlotPolicy.ROUTINE_GLOBAL_TIMEOUT + 1_000L
 
-        val resumed = automationAt(Phase.CALLING_AI).copy(
+        val resumed = routineAt(Phase.CALLING_AI).copy(
             sessionCreatedAt = start,
             networkDownTime = outage,
             lastEventTime = past
         )
 
         assertTrue(
-            SessionSlotPolicy.shouldTimeout(resumed, hasWaitingAutomations = false, currentTime = past)
+            SessionSlotPolicy.shouldTimeout(resumed, hasWaitingRoutines = false, currentTime = past)
         )
     }
 
     /** Several outages add up, rather than only the last one counting. */
     @Test
-    fun automation_addsUpTheOutagesItHasSatOut() {
+    fun routine_addsUpTheOutagesItHasSatOut() {
         val start = T0
         val outages = 3 * 60_000L + 4 * 60_000L
         val currentTime = start + outages + 9 * 60_000L
 
-        val resumed = automationAt(Phase.CALLING_AI).copy(
+        val resumed = routineAt(Phase.CALLING_AI).copy(
             sessionCreatedAt = start,
             networkDownTime = outages,
             lastEventTime = currentTime
         )
 
         assertFalse(
-            SessionSlotPolicy.shouldTimeout(resumed, hasWaitingAutomations = false, currentTime = currentTime)
+            SessionSlotPolicy.shouldTimeout(resumed, hasWaitingRoutines = false, currentTime = currentTime)
         )
     }
 
-    // ==================== Resuming an automation ====================
+    // ==================== Resuming a routine ====================
 
     /** One closed for the network waits out its pause, so it does not wait and close again in a loop. */
     @Test

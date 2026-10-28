@@ -1,8 +1,8 @@
 package app.treelune.core.backup
 
 import android.content.Context
-import app.treelune.core.ai.data.AutomationMessage
-import app.treelune.core.ai.data.AutomationSettings
+import app.treelune.core.ai.data.RoutineMessage
+import app.treelune.core.ai.data.RoutineSettings
 import app.treelune.core.ai.data.RichMessage
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.GivenId
@@ -275,19 +275,19 @@ class PartImport(private val context: Context) {
 
         // The routines, off, with no provider, the user's to choose, and the identity the part gives them
         val messages = rows(data, "session_messages").groupBy { it.getString("session_id") }
-        rows(data, "automations").forEach { automation ->
-            val seed = messages[automation.getString("seed_session_id")].orEmpty().firstOrNull { it.optString("sender") == "USER" }
+        rows(data, "automations").forEach { routine ->
+            val seed = messages[routine.getString("seed_session_id")].orEmpty().firstOrNull { it.optString("sender") == "USER" }
             val message = seed?.optString("rich_content_json")?.takeIf { it.isNotEmpty() }?.let { RichMessage.fromJson(it) }
-            run("automations.create", AutomationSettings.of(BackupService.automationOf(automation)).apply {
-                put("id", automation.getString("id"))
-                put("zone_id", automation.getString("zone_id"))
-                put(AutomationSettings.PROVIDER_ID, JSONObject.NULL)
-                put(AutomationSettings.IDENTITY_ID, BackupPart.identityOf(automation) ?: JSONObject.NULL)
+            run("automations.create", RoutineSettings.of(BackupService.routineOf(routine)).apply {
+                put("id", routine.getString("id"))
+                put("zone_id", routine.getString("zone_id"))
+                put(RoutineSettings.PROVIDER_ID, JSONObject.NULL)
+                put(RoutineSettings.IDENTITY_ID, BackupPart.identityOf(routine) ?: JSONObject.NULL)
                 put("is_enabled", false)
-                put("access", JSONArray(automation.optString("access_json", "[]")))
-                message?.let { put("message", AutomationMessage.toBlocks(it)) }
+                put("access", JSONArray(routine.optString("access_json", "[]")))
+                message?.let { put("message", RoutineMessage.toBlocks(it)) }
             })
-            if (automation.getString("zone_id") in existing) written.inExisting += "automations.delete" to JSONObject().put("automation_id", automation.getString("id"))
+            if (routine.getString("zone_id") in existing) written.inExisting += "automations.delete" to JSONObject().put("automation_id", routine.getString("id"))
         }
 
         // The Tasks, off, after all their steps may name

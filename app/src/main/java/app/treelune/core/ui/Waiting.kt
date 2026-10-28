@@ -19,18 +19,18 @@ val LocalWaiting = androidx.compose.runtime.staticCompositionLocalOf { Waiting()
 
 /**
  * What waits for the user in the zones (docs/BRICKS.md, Attente, its first form): the entries of
- * each tool and each tool's oldest (tools.waiting), the runs of each routine (automations.waiting),
+ * each tool and each tool's oldest (tools.waiting), the runs of each routine (routines.waiting),
  * and both summed by zone.
  */
 data class Waiting(
     val tools: Map<String, Int> = emptyMap(),
     val zones: Map<String, Int> = emptyMap(),
     val oldest: Map<String, String> = emptyMap(),
-    val automations: Map<String, Int> = emptyMap()
+    val routines: Map<String, Int> = emptyMap()
 ) {
     fun tool(id: String): Boolean = (tools[id] ?: 0) > 0
     fun zone(id: String): Boolean = (zones[id] ?: 0) > 0
-    fun automation(id: String): Boolean = (automations[id] ?: 0) > 0
+    fun routine(id: String): Boolean = (routines[id] ?: 0) > 0
 }
 
 /**

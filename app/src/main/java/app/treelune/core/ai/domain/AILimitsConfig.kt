@@ -19,7 +19,7 @@ data class AILimitsConfig(
     val chatMaxAutonomousRoundtrips: Int = 10,
 
     /** Maximum total autonomous roundtrips for AUTOMATION sessions (safety against infinite loops) */
-    val automationMaxAutonomousRoundtrips: Int = 20,
+    val routineMaxAutonomousRoundtrips: Int = 20,
 
     /**
      * Size, in characters of the text the AI receives, above which data asked for in a CHAT
@@ -30,10 +30,10 @@ data class AILimitsConfig(
 
     /**
      * Same, for an AUTOMATION, where data above it is refused outright: nobody is there to
-     * confirm. 100 000 is over twice what the automations of the 2026-09-18 backup send
+     * confirm. 100 000 is over twice what the routines of the 2026-09-18 backup send
      * (about 43 000 on nearly every run).
      */
-    val automationMaxDataChars: Int = 100_000,
+    val routineMaxDataChars: Int = 100_000,
 
     /**
      * Size, in characters of the text the AI receives, of the tools marked always_send together
@@ -77,14 +77,14 @@ data class AILimitsConfig(
                 maxDataChars = chatMaxDataChars
             )
             SessionType.AUTOMATION -> SessionLimits(
-                maxAutonomousRoundtrips = automationMaxAutonomousRoundtrips,
-                maxDataChars = automationMaxDataChars
+                maxAutonomousRoundtrips = routineMaxAutonomousRoundtrips,
+                maxDataChars = routineMaxDataChars
             )
             SessionType.SEED -> {
                 // SEED sessions are never executed, use AUTOMATION limits as fallback
                 SessionLimits(
-                    maxAutonomousRoundtrips = automationMaxAutonomousRoundtrips,
-                    maxDataChars = automationMaxDataChars
+                    maxAutonomousRoundtrips = routineMaxAutonomousRoundtrips,
+                    maxDataChars = routineMaxDataChars
                 )
             }
         }
@@ -93,9 +93,9 @@ data class AILimitsConfig(
     /** The ai_limits settings as stored in the database */
     fun toSettingsJson(): String = JSONObject().apply {
         put(KEY_CHAT, chatMaxAutonomousRoundtrips)
-        put(KEY_AUTOMATION, automationMaxAutonomousRoundtrips)
+        put(KEY_ROUTINE, routineMaxAutonomousRoundtrips)
         put(KEY_CHAT_DATA, chatMaxDataChars)
-        put(KEY_AUTOMATION_DATA, automationMaxDataChars)
+        put(KEY_ROUTINE_DATA, routineMaxDataChars)
         put(KEY_ALWAYS_SEND, alwaysSendMaxChars)
         put(KEY_CHAIN, chainMaxRuns)
         dailyBudget?.let { put(KEY_BUDGET, it) }
@@ -105,9 +105,9 @@ data class AILimitsConfig(
 
     companion object {
         const val KEY_CHAT = "chat_max_autonomous_roundtrips"
-        const val KEY_AUTOMATION = "automation_max_autonomous_roundtrips"
+        const val KEY_ROUTINE = "automation_max_autonomous_roundtrips"
         const val KEY_CHAT_DATA = "chat_max_data_chars"
-        const val KEY_AUTOMATION_DATA = "automation_max_data_chars"
+        const val KEY_ROUTINE_DATA = "automation_max_data_chars"
         const val KEY_ALWAYS_SEND = "always_send_max_chars"
         const val KEY_CHAIN = "chain_max_runs"
         const val KEY_BUDGET = "daily_budget"
@@ -123,9 +123,9 @@ data class AILimitsConfig(
          */
         fun fromSettingsJson(settings: JSONObject) = AILimitsConfig(
             chatMaxAutonomousRoundtrips = settings.getInt(KEY_CHAT),
-            automationMaxAutonomousRoundtrips = settings.getInt(KEY_AUTOMATION),
+            routineMaxAutonomousRoundtrips = settings.getInt(KEY_ROUTINE),
             chatMaxDataChars = settings.getInt(KEY_CHAT_DATA),
-            automationMaxDataChars = settings.getInt(KEY_AUTOMATION_DATA),
+            routineMaxDataChars = settings.getInt(KEY_ROUTINE_DATA),
             alwaysSendMaxChars = settings.getInt(KEY_ALWAYS_SEND),
             chainMaxRuns = settings.getInt(KEY_CHAIN),
             // The budget, its alert and its event alone may be left out: absent, none

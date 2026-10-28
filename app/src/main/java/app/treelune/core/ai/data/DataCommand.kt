@@ -16,7 +16,7 @@ package app.treelune.core.ai.data
  * AUTOMATION (isRelative = true):
  * - "cette semaine" → "nutrition.current_week"
  * - Resolves to current week at execution time
- * - Allows automation commands to adapt to execution date
+ * - Allows routine commands to adapt to execution date
  *
  * Custom date fields are always absolute regardless of session type.
  */
@@ -24,5 +24,5 @@ data class DataCommand(
     val id: String,              // Hash deterministic of (type + params + isRelative)
     val type: String,            // Standardized command type (see available types in AI.md)
     val params: Map<String, Any?>, // Absolute or relative parameters
-    val isRelative: Boolean = false // true for automation, false for chat
+    val isRelative: Boolean = false // true for routine, false for chat
 )

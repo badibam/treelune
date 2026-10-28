@@ -1,7 +1,7 @@
 package app.treelune.core.ai.orchestration
 
 import android.content.Context
-import app.treelune.core.ai.data.AutomationSettings
+import app.treelune.core.ai.data.RoutineSettings
 import app.treelune.core.ai.data.CommandStatus
 import app.treelune.core.ai.data.MessageSender
 import app.treelune.core.ai.data.SessionEndReason
@@ -15,7 +15,7 @@ import app.treelune.core.utils.LogManager
 /**
  * The end of a routine's run (docs/AI.md, « Summary of the run »): the summary its AI gave, the facts
  * the app counts beside it, and whether the run waits for the user to read it, as the routine's
- * setting says (AutomationSettings.NOTIFY_*). A run that waits is notified, the notification
+ * setting says (RoutineSettings.NOTIFY_*). A run that waits is notified, the notification
  * opening it.
  */
 object RunEnd {
@@ -51,9 +51,9 @@ object RunEnd {
 
     /** Whether the run waits for the user, as the routine's [notifyEnd] says. */
     fun waits(notifyEnd: String, problem: Boolean): Boolean = when (notifyEnd) {
-        AutomationSettings.NOTIFY_ALWAYS -> true
-        AutomationSettings.NOTIFY_ON_PROBLEM -> problem
-        AutomationSettings.NOTIFY_NEVER -> false
+        RoutineSettings.NOTIFY_ALWAYS -> true
+        RoutineSettings.NOTIFY_ON_PROBLEM -> problem
+        RoutineSettings.NOTIFY_NEVER -> false
         else -> throw IllegalArgumentException("Unknown notify_end '$notifyEnd'")
     }
 
@@ -97,7 +97,7 @@ object RunEnd {
         if (!problem(facts, summary)) {
             val database = app.treelune.core.database.AppDatabase.getDatabase(context)
             val session = database.aiDao().getSession(sessionId)
-            val event = session?.automationId?.let { database.aiDao().getAutomationById(it) }?.emitEvent
+            val event = session?.routineId?.let { database.aiDao().getRoutineById(it) }?.emitEvent
             if (session != null && event != null) kotlinx.coroutines.withContext(app.treelune.core.coordinator.ChainLink(session.chainId ?: session.id)) {
                 app.treelune.core.events.EventPoints.emit(context, app.treelune.core.events.EventPoints.stored(event), null)
             }

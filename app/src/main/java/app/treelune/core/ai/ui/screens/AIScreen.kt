@@ -35,9 +35,9 @@ import kotlinx.coroutines.launch
  *
  * Architecture:
  * - CHAT: Interactive conversation with user, message sending, validation toggles
- * - AUTOMATION: Read-only viewer for automation executions with interrupt capability
+ * - AUTOMATION: Read-only viewer for routine executions with interrupt capability
  * A SEED session holds a routine's message, written in the routine's config
- * (AutomationConfigScreen): it is never shown here.
+ * (RoutineConfigScreen): it is never shown here.
  *
  * This is a pure Composable (not a Dialog) for maximum flexibility:
  * - Used by AIFloatingChat as Dialog wrapper for active sessions
@@ -82,7 +82,7 @@ fun AIScreen(
                             validation = SessionValidation.fromMap(sessionData),
                             reasoning = SessionReasoning.fromMap(sessionData[SessionReasoning.KEY] as? Map<*, *>),
                             waitingStateJson = sessionData["waiting_state_json"] as? String,
-                            automationId = sessionData["automation_id"] as? String,
+                            routineId = sessionData["automation_id"] as? String,
                             scheduledExecutionTime = (sessionData["scheduled_execution_time"] as? Number)?.toLong(),
                             providerId = sessionData["provider_id"] as String?,
                             providerSessionId = sessionData["provider_session_id"] as String,
@@ -112,7 +112,7 @@ fun AIScreen(
                     name = "", // Name not needed for routing
                     type = aiState.sessionType!!,
                     waitingStateJson = null,
-                    automationId = null,
+                    routineId = null,
                     scheduledExecutionTime = null,
                     providerId = null,
                     providerSessionId = "",
@@ -125,7 +125,7 @@ fun AIScreen(
                 LogManager.aiUI("AIScreen using active session type from aiState: ${aiState.sessionType}")
                 // Its name and its routine, which the headers show, read once it is routed
                 val stored = coordinator.processUserAction("ai_sessions.get_session", mapOf("session_id" to sessionId)).data?.get("session") as? Map<*, *>
-                if (stored != null) session = session?.copy(name = stored["name"] as String, automationId = stored["automation_id"] as? String)
+                if (stored != null) session = session?.copy(name = stored["name"] as String, routineId = stored["automation_id"] as? String)
             }
         }
     }
@@ -179,7 +179,7 @@ fun AIScreen(
         }
         SessionType.SEED -> throw IllegalStateException("Seed session ${session!!.id} opened as a conversation: a routine's message is written in its config")
         SessionType.AUTOMATION -> {
-            AutomationMode(
+            RoutineMode(
                 session = session!!,
                 onClose = onClose,
                 onOpenHistory = onOpenHistory
@@ -390,7 +390,7 @@ private fun ChatMode(
  * AUTOMATION mode - Execution viewer (read-only)
  */
 @Composable
-private fun AutomationMode(
+private fun RoutineMode(
     session: AISession,
     onClose: () -> Unit,
     onOpenHistory: (() -> Unit)?
@@ -405,7 +405,7 @@ private fun AutomationMode(
     // Observe AIState from orchestrator
     val aiState by AIOrchestrator.currentState.collectAsState()
 
-    // Determine if this automation is the active session
+    // Determine if this routine is the active session
     val isActiveSession = aiState.sessionId == session.id
 
     // Chat options dialog
@@ -431,7 +431,7 @@ private fun AutomationMode(
         modifier = Modifier.fillMaxSize()
     ) {
         // Header
-        AutomationHeader(
+        RoutineHeader(
             session = session,
             aiState = aiState,
             isActiveSession = isActiveSession,
@@ -471,7 +471,7 @@ private fun AutomationMode(
 // ================================================================================================
 
 /**
- * Chat options dialog - Shown when user clicks Chat button during automation
+ * Chat options dialog - Shown when user clicks Chat button during routine
  * Allows choosing between interrupting immediately or waiting for completion
  */
 @Composable
@@ -770,10 +770,10 @@ private fun TitledHeaderBar(title: String, onRename: ((String) -> Unit)?, button
 }
 
 /**
- * Automation header - Simplified execution header with controls
+ * Routine header - Simplified execution header with controls
  */
 @Composable
-private fun AutomationHeader(
+private fun RoutineHeader(
     session: AISession,
     aiState: app.treelune.core.ai.domain.AIState,
     isActiveSession: Boolean,
@@ -787,13 +787,13 @@ private fun AutomationHeader(
     val scope = rememberCoroutineScope()
     // The routine's name once read, renamed by a touch on it; that it runs is said at the bottom (SessionStatusBar)
     var title by remember(session.id) { mutableStateOf(session.name) }
-    LaunchedEffect(session.automationId) {
-        val id = session.automationId ?: return@LaunchedEffect
+    LaunchedEffect(session.routineId) {
+        val id = session.routineId ?: return@LaunchedEffect
         val result = app.treelune.core.coordinator.Coordinator(context).processUserAction("automations.get", mapOf("automation_id" to id))
         ((result.data?.get("automation") as? Map<*, *>)?.get("name") as? String)?.let { title = it }
     }
 
-    TitledHeaderBar(title, onRename = session.automationId?.let { id ->
+    TitledHeaderBar(title, onRename = session.routineId?.let { id ->
         { name: String ->
             scope.launch {
                 val result = app.treelune.core.coordinator.Coordinator(context).processUserAction("automations.update", mapOf("automation_id" to id, "name" to name))
@@ -846,7 +846,7 @@ private fun AutomationHeader(
 
 /**
  * Message list - shared by CHAT and AUTOMATION modes
- * Made public for use in AIFloatingChat automation view
+ * Made public for use in AIFloatingChat routine view
  */
 @Composable
 fun ChatMessageList(

@@ -1,7 +1,7 @@
 package app.treelune.core.ai.data
 
 import android.content.Context
-import app.treelune.core.ai.database.AutomationEntity
+import app.treelune.core.ai.database.RoutineEntity
 import app.treelune.core.fields.ChoiceSettings
 import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldType
@@ -15,14 +15,14 @@ import app.treelune.core.validation.SchemaCategory
 import org.json.JSONObject
 
 /**
- * An automation's settings, declared with the fields (docs/DATA.md): its look (its name, a
+ * A routine's settings, declared with the fields (docs/DATA.md): its look (its name, a
  * description, an icon, a colour, a texture, a display mode; Looks), the provider it runs with, its group, whether it is on, which of its runs wait for the user,
  * its schedule, and what it does about the runs it missed. Not its zone (its place), its seed session (its message) nor its history.
  *
- * AutomationService checks every write against the schema generated from here, on the settings
+ * RoutineService checks every write against the schema generated from here, on the settings
  * as they are about to be stored.
  */
-object AutomationSettings {
+object RoutineSettings {
 
     /** Catch-up choices: missed runs are caught up to a delay, or whatever their delay. */
     const val LIMITED = "limited"
@@ -48,7 +48,7 @@ object AutomationSettings {
     /**
      * A routine's look (Looks): an icon always, `bot` until one is chosen; its tile among its
      * section's tools from ICON to SQUARE, its state, its switch and its buttons from LINE on,
-     * its last runs in SQUARE (AutomationTile).
+     * its last runs in SQUARE (RoutineTile).
      */
     val LOOK = app.treelune.core.look.LookSpec(
         nameKey = "name",
@@ -71,7 +71,7 @@ object AutomationSettings {
     const val IDENTITY_ID = "identity_id"
 
     /**
-     * What a scheduled automation does about the runs it missed, stored under "catch_up": the
+     * What a scheduled routine does about the runs it missed, stored under "catch_up": the
      * choice is required, with no default -- an hour and several weeks are equally common --, and a
      * limited catch-up says its delay.
      */
@@ -99,11 +99,11 @@ object AutomationSettings {
 
     fun nodes(context: Context): List<SettingNode> = head(context) + whenNodes(context) + endNodes(context) + advancedNodes(context)
 
-    /** Its look and its group: the config's first part, above its message (AutomationConfigScreen). */
+    /** Its look and its group: the config's first part, above its message (RoutineConfigScreen). */
     fun head(context: Context): List<SettingNode> {
         val s = Strings.`for`(context = context)
         return app.treelune.core.look.Looks.nodes(LOOK, s::shared) +
-            // One of the tool groups of the automation's zone
+            // One of the tool groups of the routine's zone
             SettingNode.Field(FieldDefinition("group", s.shared("label_group"), s.shared("automation_schema_group"), FieldType.TEXT, false,
                 mapOf("length" to TextLength.SHORT.name)))
     }
@@ -121,9 +121,9 @@ object AutomationSettings {
     private fun whenNodes(context: Context): List<SettingNode> {
         val s = Strings.`for`(context = context)
         return listOf(
-            // Absent: the automation runs on demand only
+            // Absent: the routine runs on demand only
             ScheduleSettings.group(s.shared("automation_schedule"), s::shared),
-            // Present with the schedule, and only with it (AutomationService)
+            // Present with the schedule, and only with it (RoutineService)
             SettingNode.Group("catch_up", s.shared("automation_catch_up_title"), catchUpNodes(context), description = s.shared("automation_schema_catch_up")),
             // What starts it beside its schedule: an entry written
             app.treelune.core.triggers.Triggers.node(s::shared)
@@ -170,7 +170,7 @@ object AutomationSettings {
     }
 
     /** The settings [entity] stores, as their declaration describes them: the form create and update take. */
-    fun of(entity: AutomationEntity): JSONObject = JSONObject().apply {
+    fun of(entity: RoutineEntity): JSONObject = JSONObject().apply {
         put("name", entity.name)
         entity.description?.let { put(app.treelune.core.look.Looks.DESCRIPTION, it) }
         put(app.treelune.core.look.Looks.ICON, entity.iconName)

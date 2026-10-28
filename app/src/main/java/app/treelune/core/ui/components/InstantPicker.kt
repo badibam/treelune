@@ -46,7 +46,7 @@ private val STORED_TIME = DateTimeFormatter.ofPattern("HH:mm")
  * and an offset ("the day before") with its moment, the start or the end of that period; now;
  * and, for a bound, no limit.
  *
- * With a reference (an automation's scheduled time, the instant a variable is read at), a
+ * With a reference (a routine's scheduled time, the instant a variable is read at), a
  * relative date and now are stored as they are, resolved each time against it, and now is
  * labelled "the moment itself". Without one (a chat, an entry), the clock is the reference at the
  * moment of the choice: what is stored is the date obtained, the relative choice being only the

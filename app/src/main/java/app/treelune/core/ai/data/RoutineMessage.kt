@@ -13,7 +13,7 @@ import org.json.JSONObject
  * A file and an image belong to a session, which a routine's message is not sent in: neither is
  * taken, and the composer of its screen does not offer them.
  */
-object AutomationMessage {
+object RoutineMessage {
 
     const val TEXT = "text"
     const val POINTER = "pointer"

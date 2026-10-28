@@ -58,7 +58,7 @@ data class AIState(
 
     /**
      * How long this session has spent waiting for the network, added up across outages.
-     * Subtracted from the global timeout so an automation gets its ten minutes of working time
+     * Subtracted from the global timeout so a routine gets its ten minutes of working time
      * rather than ten minutes of wall clock.
      */
     val networkDownTime: Long = 0L,

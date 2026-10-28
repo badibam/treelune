@@ -91,7 +91,7 @@ class DemoService(private val context: Context) : ExecutableService {
     }
 
     /**
-     * The identities, which the zones and the automations name, each created then written; the zones, placed; the tools that read no variable; the variables, which read those tools;
+     * The identities, which the zones and the routines name, each created then written; the zones, placed; the tools that read no variable; the variables, which read those tools;
      * the tools that read a variable (a goal, a chart); then every tool and variable placed, section by section.
      * A tool's moments are put in [data]'s weeks.
      */
@@ -145,22 +145,22 @@ class DemoService(private val context: Context) : ExecutableService {
     }
 
     /**
-     * The automations, off — on, an automation calls the AI at the user's cost: each one with its
+     * The routines, off — on, a routine calls the AI at the user's cost: each one with its
      * seed session, its message the instruction followed by its pointers (`pointers`, each in the
      * stored form of PointerConfig), its identity the one it names or none; none has a past. Their
      * provider is the default, or none when there is none: switching one on then says to choose one.
      */
     private suspend fun automate(content: DemoContent) {
-        if (content.automations.isEmpty()) return
+        if (content.routines.isEmpty()) return
         LongOperation.at(s.shared("demo_phase_automations"))
         val provider: Any = run("ai_provider_config.get_default", JSONObject())["provider_id"] ?: JSONObject.NULL
-        for (automation in content.automations) {
-            val message = org.json.JSONArray().put(JSONObject().put("type", app.treelune.core.ai.data.AutomationMessage.TEXT).put("text", automation.getString("seed")))
-            automation.optJSONArray("pointers")?.let { pointers ->
-                (0 until pointers.length()).forEach { message.put(JSONObject().put("type", app.treelune.core.ai.data.AutomationMessage.POINTER).put("pointer", pointers.getJSONObject(it))) }
+        for (routine in content.routines) {
+            val message = org.json.JSONArray().put(JSONObject().put("type", app.treelune.core.ai.data.RoutineMessage.TEXT).put("text", routine.getString("seed")))
+            routine.optJSONArray("pointers")?.let { pointers ->
+                (0 until pointers.length()).forEach { message.put(JSONObject().put("type", app.treelune.core.ai.data.RoutineMessage.POINTER).put("pointer", pointers.getJSONObject(it))) }
             }
-            val identity = automation.opt(app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID) ?: JSONObject.NULL
-            run("automations.create", JSONObject(automation.toString()).apply { remove("seed"); remove("pointers") }.put("provider_id", provider).put(app.treelune.core.ai.data.AutomationSettings.IDENTITY_ID, identity).put("message", message))
+            val identity = routine.opt(app.treelune.core.ai.data.RoutineSettings.IDENTITY_ID) ?: JSONObject.NULL
+            run("automations.create", JSONObject(routine.toString()).apply { remove("seed"); remove("pointers") }.put("provider_id", provider).put(app.treelune.core.ai.data.RoutineSettings.IDENTITY_ID, identity).put("message", message))
         }
     }
 

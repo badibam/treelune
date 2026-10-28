@@ -34,7 +34,7 @@ import java.util.*
  * - YearlyRecurrent: Recurring yearly dates
  * - SpecificDates: One-shot specific dates
  *
- * Opened by an automation's editor, and by ScheduleSettingEditor for a tool's schedule.
+ * Opened by a routine's editor, and by ScheduleSettingEditor for a tool's schedule.
  *
  * @param scheduled What belongs with a schedule and comes after it while one is chosen (a
  *   routine's missed runs); the caller keeps it as a draft until the dialog is confirmed

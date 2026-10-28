@@ -5,7 +5,7 @@ import org.json.JSONObject
 
 /**
  * The demo as the app ships it: `assets/demo/structure.json` holds the
- * parameters of the operations that build it — identities, zones, tools, variables, events, APIs, Tasks, automations — under ids the app gives
+ * parameters of the operations that build it — identities, zones, tools, variables, events, APIs, Tasks, routines — under ids the app gives
  * and with no text of its own: a string written `@key` is a text, given by
  * `assets/demo/texts-<lang>.json` in the phone's language. Pure: the service reads the files and
  * hands them here, and runs what comes back through the services.
@@ -21,7 +21,7 @@ import org.json.JSONObject
  *           are created: a tool another one names comes before it
  * @property variables The `variables.create` parameters of each variable, in the order they are
  *           created: a variable another one names comes before it
- * @property automations The `automations.create` parameters of each automation, with `seed`, the
+ * @property routines The `routines.create` parameters of each routine, with `seed`, the
  *           text of its seed session's message, beside them
  * @property events The `events.create` parameters of each event
  * @property apis The `apis.create` parameters of each API
@@ -33,7 +33,7 @@ class DemoContent(
     val zones: List<JSONObject>,
     val tools: List<JSONObject>,
     val variables: List<JSONObject>,
-    val automations: List<JSONObject>,
+    val routines: List<JSONObject>,
     val events: List<JSONObject> = emptyList(),
     val apis: List<JSONObject> = emptyList(),
     val tasks: List<JSONObject> = emptyList()
@@ -65,19 +65,19 @@ class DemoContent(
             val zones = list("zones")
             val tools = list("tools")
             val variables = list("variables")
-            val automations = list("automations")
+            val routines = list("automations")
             val identities = list("identities")
             val events = list("events")
             val apis = list("apis")
             val tasks = list("tasks")
-            ((identities + zones + tools + variables + automations + events + apis + tasks).map { it.getString("id") } + automations.map { it.getString("seed_session_id") }).forEach { id ->
+            ((identities + zones + tools + variables + routines + events + apis + tasks).map { it.getString("id") } + routines.map { it.getString("seed_session_id") }).forEach { id ->
                 check(id.startsWith(PREFIX)) { "Demo id '$id' lacks the prefix $PREFIX" }
             }
             variables.forEach { variable ->
                 val name = variable.getString("name")
                 check(name.endsWith(VARIABLE_SUFFIX)) { "Demo variable '$name' lacks the suffix $VARIABLE_SUFFIX" }
             }
-            return DemoContent(resolved.getString("zone_group"), identities, zones, tools, variables, automations, events, apis, tasks)
+            return DemoContent(resolved.getString("zone_group"), identities, zones, tools, variables, routines, events, apis, tasks)
         }
 
         /**

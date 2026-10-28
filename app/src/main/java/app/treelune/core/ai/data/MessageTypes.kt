@@ -13,7 +13,7 @@ enum class MessageSender {
 enum class SessionType {
     CHAT,       // Interactive conversation with user
     AUTOMATION, // Automated execution session
-    SEED        // Template session for automation (not executed)
+    SEED        // Template session for routine (not executed)
 }
 
 /**
@@ -46,7 +46,7 @@ enum class SessionEndReason {
 
     companion object {
         /**
-         * The reasons an automation session is taken up again for (AutomationScheduler); every
+         * The reasons a routine session is taken up again for (RoutineScheduler); every
          * other reason ends its occurrence, which the scheduler then counts as done. The SQL list
          * is what the queries read (AIDao), a constant so that an annotation can carry it.
          */
@@ -56,11 +56,11 @@ enum class SessionEndReason {
 }
 
 /**
- * Trigger type for automation executions
- * Used to distinguish manual vs scheduled vs event-triggered automations
+ * Trigger type for routine executions
+ * Used to distinguish manual vs scheduled vs event-triggered routines
  */
 enum class ExecutionTrigger {
-    SCHEDULED,  // Created by AutomationScheduler (never goes through queue)
+    SCHEDULED,  // Created by RoutineScheduler (never goes through queue)
     MANUAL,     // User clicked execute (goes to queue if slot occupied)
     ENTRY,      // An entry written that one of its triggers listens to (Triggers): goes through the queue as MANUAL
     EVENT,      // An event emitted that one of its triggers listens to (docs/CORE.md, « Events »): the same

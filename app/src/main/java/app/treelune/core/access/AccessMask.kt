@@ -38,7 +38,7 @@ data class AccessGrant(val target: Reference, val level: AccessLevel) {
 }
 
 /**
- * The access of an AI acting without the user: an automation's, set in its config. Empty, it may
+ * The access of an AI acting without the user: a routine's, set in its config. Empty, it may
  * go anywhere (the default); otherwise it reaches what is listed, at the level given, and nothing
  * else -- creating a zone or changing the home screen's groups included.
  *
@@ -73,7 +73,7 @@ data class AccessMask(val grants: List<AccessGrant> = emptyList(), private val n
     }
 
     companion object {
-        /** A mask reaching nothing: what is held to the mask of an automation that cannot be read. */
+        /** A mask reaching nothing: what is held to the mask of a routine that cannot be read. */
         val NOTHING = AccessMask(nothing = true)
 
         /** The mask stored as [json]; one that does not read throws. */
@@ -89,23 +89,23 @@ data class AccessMask(val grants: List<AccessGrant> = emptyList(), private val n
 
 /**
  * The mask the operation running is held to, carried by the coroutine running it, as its origin is
- * (Origin): set around the commands of an automation's AI, read by the coordinator.
+ * (Origin): set around the commands of a routine's AI, read by the coordinator.
  *
- * @property holder What the mask belongs to, named in a refusal (the automation's name)
+ * @property holder What the mask belongs to, named in a refusal (the routine's name)
  */
 class AccessScope(val mask: AccessMask, val holder: String) : AbstractCoroutineContextElement(Key) {
     companion object Key : CoroutineContext.Key<AccessScope> {
 
         /**
-         * The scope of the automation whose run is the session [sessionId]: the automation its row
-         * names, written when the session was created. An automation that cannot be read reaches
+         * The scope of the routine whose run is the session [sessionId]: the routine its row
+         * names, written when the session was created. A routine that cannot be read reaches
          * nothing: its commands are refused, saying so.
          */
         suspend fun ofRun(context: android.content.Context, sessionId: String?): AccessScope {
             val aiDao = app.treelune.core.database.AppDatabase.getDatabase(context).aiDao()
-            val automationId = sessionId?.let { aiDao.getSession(it) }?.automationId
-            val automation = automationId?.let { aiDao.getAutomationById(it) }
-            val mask = automation?.let {
+            val routineId = sessionId?.let { aiDao.getSession(it) }?.routineId
+            val routine = routineId?.let { aiDao.getRoutineById(it) }
+            val mask = routine?.let {
                 try {
                     AccessMask.fromJson(it.accessJson)
                 } catch (e: Exception) {
@@ -113,7 +113,7 @@ class AccessScope(val mask: AccessMask, val holder: String) : AbstractCoroutineC
                     null
                 }
             } ?: AccessMask.NOTHING
-            val holder = automation?.name ?: app.treelune.core.strings.Strings.`for`(context = context).shared("automation_unknown")
+            val holder = routine?.name ?: app.treelune.core.strings.Strings.`for`(context = context).shared("automation_unknown")
             return AccessScope(mask, holder)
         }
     }

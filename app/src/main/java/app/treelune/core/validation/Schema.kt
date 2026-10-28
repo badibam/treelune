@@ -57,7 +57,7 @@ enum class SchemaCategory {
     /** Zone configuration schemas */
     ZONE_CONFIG,
 
-    /** Automation settings schemas */
+    /** Routine settings schemas */
     AUTOMATION_CONFIG,
 
     /** API configuration schemas */

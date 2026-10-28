@@ -285,7 +285,7 @@ class TaskService(private val context: Context) : ExecutableService {
             scheduleJson = schedule?.toString(),
             catchUp = catchUp?.getString("limit"),
             catchUpWindow = catchUp?.takeIf { it.has("window") }?.getLong("window"),
-            dismissOlderInstances = SettingValues(app.treelune.core.ai.data.AutomationSettings.catchUpNodes(context), catchUp ?: JSONObject()).boolean("dismiss_older_instances"),
+            dismissOlderInstances = SettingValues(app.treelune.core.ai.data.RoutineSettings.catchUpNodes(context), catchUp ?: JSONObject()).boolean("dismiss_older_instances"),
             stepsJson = steps.toString(),
             triggersJson = triggers?.toString(),
             emitEvent = app.treelune.core.events.EventPoints.idIn(settings)

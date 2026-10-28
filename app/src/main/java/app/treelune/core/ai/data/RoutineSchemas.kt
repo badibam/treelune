@@ -19,19 +19,19 @@ import org.json.JSONObject
  * durations are marked (FieldValueSchema), and so reach the AI in ISO 8601 and come back in
  * milliseconds, by ModelValues as everything else's.
  */
-object AutomationSchemas {
+object RoutineSchemas {
 
     const val CONFIG_ID = "automation_config"
     const val RUNS_ID = "automation_runs"
 
-    /** A routine's config: its zone, its settings (AutomationSettings), its access (AccessMask) and its message (AutomationMessage). */
+    /** A routine's config: its zone, its settings (RoutineSettings), its access (AccessMask) and its message (RoutineMessage). */
     fun config(context: Context): Schema {
         val s = Strings.`for`(context = context)
         val content = JSONObject()
             .put("type", "object")
             .put("properties", JSONObject()
                 .put("zone_id", JSONObject().put("type", "string"))
-                .put("settings", SettingsSchemaGenerator.generate(AutomationSettings.nodes(context), s::shared))
+                .put("settings", SettingsSchemaGenerator.generate(RoutineSettings.nodes(context), s::shared))
                 .put("access", access())
                 .put("message", message(s::shared)))
             .put("additionalProperties", false)
@@ -65,14 +65,14 @@ object AutomationSchemas {
         val text = JSONObject()
             .put("type", "object")
             .put("properties", JSONObject()
-                .put("type", JSONObject().put("const", AutomationMessage.TEXT))
+                .put("type", JSONObject().put("const", RoutineMessage.TEXT))
                 .put("text", JSONObject().put("type", "string")))
             .put("required", JSONArray().put("type").put("text"))
             .put("additionalProperties", false)
         val pointer = JSONObject()
             .put("type", "object")
             .put("properties", JSONObject()
-                .put("type", JSONObject().put("const", AutomationMessage.POINTER))
+                .put("type", JSONObject().put("const", RoutineMessage.POINTER))
                 .put("pointer", JSONObject()
                     .put("type", "object")
                     .put("properties", JSONObject()
@@ -99,7 +99,7 @@ object AutomationSchemas {
         return JSONObject().put("type", "array").put("items", JSONObject().put("oneOf", JSONArray().put(text).put(pointer)))
     }
 
-    /** The keys of a run kept for the AI, as the sessions service names them (list_sessions_for_automation). */
+    /** The keys of a run kept for the AI, as the sessions service names them (list_sessions_for_routine). */
     val RUN_KEYS = listOf("id", "scheduled_execution_time", "created_at", "end_reason", "total_roundtrips", "total_cost", "cost_is_lower_bound")
 
     /**

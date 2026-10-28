@@ -27,7 +27,7 @@ object EventUses {
         val limits = if (app.treelune.core.utils.AppConfigManager.getAILimits().budgetAlertEvent == eventId)
             listOf(app.treelune.core.strings.Strings.`for`(context = context).shared("settings_ai_limits")) else emptyList()
         return database.taskDao().getAll().filter { listens(it.triggersJson) || emits(it.stepsJson) || it.emitEvent == eventId }.map { it.name } +
-            database.aiDao().getAllAutomations().filter { listens(it.triggersJson) || it.emitEvent == eventId }.map { it.name } +
+            database.aiDao().getAllRoutines().filter { listens(it.triggersJson) || it.emitEvent == eventId }.map { it.name } +
             tools.map { org.json.JSONObject(it.config_json).optString("name") } + limits
     }
 }

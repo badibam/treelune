@@ -1,7 +1,7 @@
 package app.treelune.core.access
 
 import android.content.Context
-import app.treelune.core.ai.data.AutomationMessage
+import app.treelune.core.ai.data.RoutineMessage
 import app.treelune.core.ai.data.CommandStatus
 import app.treelune.core.ai.data.ExecutableCommand
 import app.treelune.core.ai.data.SystemMessageType
@@ -21,7 +21,7 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 /**
- * An automation's run held to its access (AccessScope.ofRun, read from the session's row, as the
+ * A routine's run held to its access (AccessScope.ofRun, read from the session's row, as the
  * AI's commands are executed): what goes beyond it is refused, and the refusal is in the message
  * the run's history shows (SystemMessage.commandResults).
  */
@@ -59,16 +59,16 @@ class RunAccessTest {
 
     private fun routine(name: String, access: List<Map<String, Any>>) = mapOf(
         "zone_id" to zoneId, "name" to name, "identity_id" to null, "provider_id" to null, "is_enabled" to false,
-        "message" to listOf(mapOf("type" to AutomationMessage.TEXT, "text" to "hi")),
+        "message" to listOf(mapOf("type" to RoutineMessage.TEXT, "text" to "hi")),
         "access" to access
     )
 
     /** A run of a routine given [access]: its session, as the scheduler makes it. */
     private suspend fun run(access: List<Map<String, Any>>): String {
-        val automation = coordinator.processUserAction("automations.create", routine("Weekly", access))
-        assertTrue(automation.error, automation.isSuccess)
+        val created = coordinator.processUserAction("automations.create", routine("Weekly", access))
+        assertTrue(created.error, created.isSuccess)
         val session = coordinator.processUserAction("ai_sessions.create_session", mapOf(
-            "name" to "Weekly", "type" to "AUTOMATION", "automation_id" to automation.data!!["automation_id"]
+            "name" to "Weekly", "type" to "AUTOMATION", "automation_id" to created.data!!["automation_id"]
         ))
         assertTrue(session.error, session.isSuccess)
         return session.data!!["session_id"] as String

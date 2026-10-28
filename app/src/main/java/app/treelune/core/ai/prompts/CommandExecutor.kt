@@ -563,13 +563,13 @@ class CommandExecutor(private val context: Context) {
             "variables.list" -> line("variables_of", zone ?: "")
             "variables.list_all" -> line("variables")
             "readings.read" -> line("reading", params["variable"] as? String ?: "")
-            "automations.config" -> line("routine", resolveAutomationName(params["automation_id"] as? String))
+            "automations.config" -> line("routine", resolveRoutineName(params["automation_id"] as? String))
             "automations.list" -> line("routines_of", zone ?: "")
             "automations.list_all" -> line("routines")
             "tasks.get" -> line("task", ((data["task"] as? Map<*, *>)?.get("settings") as? Map<*, *>)?.get("name") as? String ?: "")
             "tasks.list" -> line("tasks_of", zone ?: "")
             "tasks.list_all" -> line("tasks")
-            "ai_sessions.list_sessions_for_automation" -> line("runs_of", resolveAutomationName(params["automation_id"] as? String))
+            "ai_sessions.list_sessions_for_automation" -> line("runs_of", resolveRoutineName(params["automation_id"] as? String))
             "ai_sessions.run_history" -> line("run")
             "files.read" -> line("file")
             "files.show_images" -> line("images", (data["images"] as? List<*>)?.size ?: 0)
@@ -698,7 +698,7 @@ class CommandExecutor(private val context: Context) {
                 }
             }
             "automations" -> when (command.operation) {
-                "config" -> "Configuration for routine '${resolveAutomationName(command.params["automation_id"] as? String)}'"
+                "config" -> "Configuration for routine '${resolveRoutineName(command.params["automation_id"] as? String)}'"
                 "list" -> "Routines in zone '${resolveZoneName(command.params["zone_id"] as String)}'"
                 else -> "All routines"
             }
@@ -709,7 +709,7 @@ class CommandExecutor(private val context: Context) {
                 else -> "All Tasks"
             }
             "ai_sessions" -> when (command.operation) {
-                "list_sessions_for_automation" -> "Runs of routine '${resolveAutomationName(command.params["automation_id"] as? String)}'"
+                "list_sessions_for_automation" -> "Runs of routine '${resolveRoutineName(command.params["automation_id"] as? String)}'"
                 else -> "Run ${command.params["session_id"]}, its messages as its AI received them"
             }
             "files" -> when (command.operation) {
@@ -749,13 +749,13 @@ class CommandExecutor(private val context: Context) {
             ?: throw IllegalStateException("tools.get result for $toolInstanceId without tool_instance.name")
     }
 
-    /** The name of routine [automationId], read by automations.get. */
-    private suspend fun resolveAutomationName(automationId: String?): String {
-        automationId ?: throw IllegalStateException("A routine command succeeded without an automation_id")
-        val result = coordinator.processUserAction("automations.get", mapOf("automation_id" to automationId))
-        check(result.isSuccess) { "Cannot read the name of routine $automationId: ${result.error}" }
+    /** The name of routine [routineId], read by routines.get. */
+    private suspend fun resolveRoutineName(routineId: String?): String {
+        routineId ?: throw IllegalStateException("A routine command succeeded without an automation_id")
+        val result = coordinator.processUserAction("automations.get", mapOf("automation_id" to routineId))
+        check(result.isSuccess) { "Cannot read the name of routine $routineId: ${result.error}" }
         return (result.data?.get("automation") as? Map<*, *>)?.get("name") as? String
-            ?: throw IllegalStateException("automations.get result for $automationId without automation.name")
+            ?: throw IllegalStateException("automations.get result for $routineId without automation.name")
     }
 
     /** The name of zone [zoneId], read by zones.get. */
@@ -843,14 +843,14 @@ class CommandExecutor(private val context: Context) {
                 (data["variables"] as? List<*>)?.let { list -> reordered["variables"] = list.map { variableForModel(it, timezone) } }
                 data["variable"]?.let { reordered["variable"] = variableForModel(it, timezone)!! }
             }
-            // A routine's config, in the form the model writes it back (AutomationSchemas); the
+            // A routine's config, in the form the model writes it back (RoutineSchemas); the
             // routines of a list each in a line: what they are, never their message
             "automations" -> {
                 if (command.operation == "config") {
-                    val schema = JSONObject(AutomationSchemas.config(context).content)
+                    val schema = JSONObject(RoutineSchemas.config(context).content)
                     return JSONObject(ModelValues.toModel(data, schema, timezone) as Map<*, *>).toString(2)
                 }
-                (data["automations"] as? List<*>)?.let { list -> reordered["automations"] = list.map { AutomationSchemas.listed(it as Map<*, *>, s) } }
+                (data["automations"] as? List<*>)?.let { list -> reordered["automations"] = list.map { RoutineSchemas.listed(it as Map<*, *>, s) } }
                 data["zone_id"]?.let { reordered["zone_id"] = it }
                 return JSONObject(reordered as Map<*, *>).toString(2)
             }
@@ -864,8 +864,8 @@ class CommandExecutor(private val context: Context) {
             // A routine's runs, by their declared schema; one run, the text its AI read
             "ai_sessions" -> {
                 if (command.operation == "run_history") return data["messages"] as String
-                val runs = (data["sessions"] as List<*>).map { run -> (run as Map<*, *>).filterKeys { it in AutomationSchemas.RUN_KEYS } }
-                val schema = JSONObject(AutomationSchemas.runs(context).content)
+                val runs = (data["sessions"] as List<*>).map { run -> (run as Map<*, *>).filterKeys { it in RoutineSchemas.RUN_KEYS } }
+                val schema = JSONObject(RoutineSchemas.runs(context).content)
                 reordered["runs"] = (ModelValues.toModel(mapOf("runs" to runs), schema, timezone) as Map<*, *>)["runs"]!!
                 data["pagination"]?.let { reordered["pagination"] = it }
                 return JSONObject(reordered as Map<*, *>).toString(2)

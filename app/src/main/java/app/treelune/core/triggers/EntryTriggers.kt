@@ -24,7 +24,7 @@ object EntryTriggers {
     suspend fun dispatch(context: Context, written: suspend () -> List<EntryWrites.EntryWrite>) {
         val database = AppDatabase.getDatabase(context)
         val tasks = database.taskDao().getAll().filter { it.isEnabled && it.triggersJson != null }
-        val routines = database.aiDao().getAllAutomations().filter { it.isEnabled && it.triggersJson != "[]" }
+        val routines = database.aiDao().getAllRoutines().filter { it.isEnabled && it.triggersJson != "[]" }
         val conditions = (tasks.map { it.triggersJson } + routines.map { it.triggersJson }).any { json ->
             try {
                 Triggers.read(json).any { it is Triggers.Trigger.ConditionBecameTrue }
@@ -45,7 +45,7 @@ object EntryTriggers {
         for (routine in routines) {
             for (write in heard(context, "Routine ${routine.id}", routine.triggersJson, writes)) {
                 val chainId = chainOf(context, routine.name) ?: continue
-                app.treelune.core.ai.orchestration.AIOrchestrator.executeAutomation(routine.id, scheduledFor = System.currentTimeMillis(),
+                app.treelune.core.ai.orchestration.AIOrchestrator.executeRoutine(routine.id, scheduledFor = System.currentTimeMillis(),
                     trigger = app.treelune.core.ai.data.ExecutionTrigger.ENTRY, chainId = chainId.id, attached = attached(context, write))
             }
         }

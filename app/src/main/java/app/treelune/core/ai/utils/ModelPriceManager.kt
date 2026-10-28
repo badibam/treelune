@@ -59,7 +59,7 @@ data class PriceTier(
  * Prices of AI models, from LiteLLM's public list, available whenever a call needs them.
  *
  * The last list downloaded is kept on the phone and read back on first use, network or not,
- * whichever way the app was started (screen or background automation). A list older than a day
+ * whichever way the app was started (screen or background routine). A list older than a day
  * is downloaded again in the background. A model missing from a list older than an hour is
  * looked up in a fresh download at once: it may be newer than the copy.
  *

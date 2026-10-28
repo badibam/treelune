@@ -34,7 +34,7 @@ class AlwaysSendOutcomeTest {
     }
 
     @Test
-    fun `above it an automation and an outside AI get the list`() {
+    fun `above it a routine and an outside AI get the list`() {
         assertEquals(AlwaysSendOutcome.LIST, outcome(40_000, SessionType.AUTOMATION))
         assertEquals(AlwaysSendOutcome.LIST, outcome(40_000, null))
     }

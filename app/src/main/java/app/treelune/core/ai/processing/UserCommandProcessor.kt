@@ -23,7 +23,7 @@ class UserCommandProcessor(private val context: Context) {
      *
      * @param commands List of DataCommands from user enrichments
      * @param reference Instant relative periods resolve against. The clock for a query a user
-     *   is building; an automation's scheduled time for the enrichments of its starting message.
+     *   is building; a routine's scheduled time for the enrichments of its starting message.
      * @return List of ExecutableCommands ready for coordinator dispatch (errors logged but not returned for user commands)
      */
     suspend fun processCommands(commands: List<DataCommand>, reference: Long): List<ExecutableCommand> {

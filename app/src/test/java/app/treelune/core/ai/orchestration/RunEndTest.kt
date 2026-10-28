@@ -1,7 +1,7 @@
 package app.treelune.core.ai.orchestration
 
 import app.treelune.core.ai.data.AIMessage
-import app.treelune.core.ai.data.AutomationSettings
+import app.treelune.core.ai.data.RoutineSettings
 import app.treelune.core.ai.data.CommandResult
 import app.treelune.core.ai.data.CommandStatus
 import app.treelune.core.ai.data.MessageSender
@@ -73,10 +73,10 @@ class RunEndTest {
 
     @Test
     fun aRunWaitsAsItsRoutineSays() {
-        assertTrue(RunEnd.waits(AutomationSettings.NOTIFY_ALWAYS, problem = false))
-        assertTrue(RunEnd.waits(AutomationSettings.NOTIFY_ON_PROBLEM, problem = true))
-        assertFalse(RunEnd.waits(AutomationSettings.NOTIFY_ON_PROBLEM, problem = false))
-        assertFalse(RunEnd.waits(AutomationSettings.NOTIFY_NEVER, problem = true))
+        assertTrue(RunEnd.waits(RoutineSettings.NOTIFY_ALWAYS, problem = false))
+        assertTrue(RunEnd.waits(RoutineSettings.NOTIFY_ON_PROBLEM, problem = true))
+        assertFalse(RunEnd.waits(RoutineSettings.NOTIFY_ON_PROBLEM, problem = false))
+        assertFalse(RunEnd.waits(RoutineSettings.NOTIFY_NEVER, problem = true))
     }
 
     @Test

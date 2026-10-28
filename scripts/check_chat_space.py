@@ -33,8 +33,8 @@ SCREENS = {
     "zone": [APP / "core" / "ui" / "screens" / "ZoneScreen.kt"],
     "guide": [APP / "core" / "guide" / "ui" / "GuideScreens.kt"],
     "chapter": [APP / "core" / "guide" / "ui" / "GuideScreens.kt"],
-    "automation": [APP / "core" / "ai" / "ui" / "automation" / "AutomationScreen.kt"],
-    "execution": [APP / "core" / "ai" / "ui" / "automation" / "ExecutionDetailScreen.kt"],
+    "automation": [APP / "core" / "ai" / "ui" / "routine" / "RoutineScreen.kt"],
+    "execution": [APP / "core" / "ai" / "ui" / "routine" / "ExecutionDetailScreen.kt"],
     "task": [APP / "core" / "tasks" / "ui" / "TaskScreen.kt"],
     "task_run": [APP / "core" / "tasks" / "ui" / "TaskRunScreen.kt"],
 }

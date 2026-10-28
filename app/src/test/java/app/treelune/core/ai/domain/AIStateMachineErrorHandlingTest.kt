@@ -22,9 +22,9 @@ class AIStateMachineErrorHandlingTest {
      * rate limit, exhausted credit. An AUTOMATION cannot act on any of those, so it closes.
      */
     @Test
-    fun providerError_closesAnAutomation() {
+    fun providerError_closesAnRoutine() {
         val state = AIStateMachine.transition(
-            state = automationAt(Phase.CALLING_AI),
+            state = routineAt(Phase.CALLING_AI),
             event = AIEvent.ProviderErrorOccurred("no credit left"),
             limits = testLimits,
             currentTime = T1
@@ -55,9 +55,9 @@ class AIStateMachineErrorHandlingTest {
 
     /** An AUTOMATION waits the network out rather than failing on it. */
     @Test
-    fun networkError_sendsAnAutomationToWait() {
+    fun networkError_sendsAnRoutineToWait() {
         val state = AIStateMachine.transition(
-            state = automationAt(Phase.CALLING_AI),
+            state = routineAt(Phase.CALLING_AI),
             event = AIEvent.NetworkErrorOccurred(attempt = 0),
             limits = testLimits,
             currentTime = T1
@@ -85,7 +85,7 @@ class AIStateMachineErrorHandlingTest {
     @Test
     fun networkRetryScheduled_callsAgain() {
         val state = AIStateMachine.transition(
-            state = automationAt(Phase.WAITING_NETWORK_RETRY),
+            state = routineAt(Phase.WAITING_NETWORK_RETRY),
             event = AIEvent.NetworkRetryScheduled,
             limits = testLimits,
             currentTime = T1
@@ -96,12 +96,12 @@ class AIStateMachineErrorHandlingTest {
 
     /**
      * The network coming back cuts the wait short and banks the outage it ends, so that time
-     * does not count against the automation's ten minutes of working time.
+     * does not count against the routine's ten minutes of working time.
      */
     @Test
     fun networkAvailable_callsAgainAndBanksTheOutage() {
         val offline = AIStateMachine.transition(
-            state = automationAt(Phase.CALLING_AI),
+            state = routineAt(Phase.CALLING_AI),
             event = AIEvent.NetworkErrorOccurred(0),
             limits = testLimits,
             currentTime = T1
@@ -124,7 +124,7 @@ class AIStateMachineErrorHandlingTest {
     @Test
     fun aFailedRetry_keepsTheSameOutageRunning() {
         var state = AIStateMachine.transition(
-            state = automationAt(Phase.CALLING_AI),
+            state = routineAt(Phase.CALLING_AI),
             event = AIEvent.NetworkErrorOccurred(0),
             limits = testLimits,
             currentTime = T1
@@ -139,7 +139,7 @@ class AIStateMachineErrorHandlingTest {
     /** Retrying is not a roundtrip: the counter moves on answers, not on attempts. */
     @Test
     fun networkRetries_doNotCountRoundtrips() {
-        var state = automationAt(Phase.CALLING_AI, roundtrips = 1)
+        var state = routineAt(Phase.CALLING_AI, roundtrips = 1)
 
         state = AIStateMachine.transition(state, AIEvent.NetworkErrorOccurred(0), testLimits, T1)
         state = AIStateMachine.transition(state, AIEvent.NetworkRetryScheduled, testLimits, T1)
@@ -154,8 +154,8 @@ class AIStateMachineErrorHandlingTest {
      * kept going, it would hold the phone awake for as long as the network stays away.
      */
     @Test
-    fun anAutomationOfflineTooLong_closesResumable() {
-        var state = automationAt(Phase.CALLING_AI)
+    fun anRoutineOfflineTooLong_closesResumable() {
+        var state = routineAt(Phase.CALLING_AI)
         var now = T1
         // Thirty-second retries that keep failing, the way scheduleNetworkRetry drives them
         while (state.phase != Phase.CLOSED) {
@@ -165,14 +165,14 @@ class AIStateMachineErrorHandlingTest {
         }
 
         assertEquals(SessionEndReason.NETWORK_ERROR, state.endReason)
-        assertEquals(AIStateMachine.AUTOMATION_NETWORK_WAIT_LIMIT, now - T1)
+        assertEquals(AIStateMachine.ROUTINE_NETWORK_WAIT_LIMIT, now - T1)
     }
 
     /** Below the limit, the retry goes out as before. */
     @Test
-    fun anAutomationOfflineBelowTheLimit_callsAgain() {
-        val offline = AIStateMachine.transition(automationAt(Phase.CALLING_AI), AIEvent.NetworkErrorOccurred(0), testLimits, T1)
-        val state = AIStateMachine.transition(offline, AIEvent.NetworkRetryScheduled, testLimits, T1 + AIStateMachine.AUTOMATION_NETWORK_WAIT_LIMIT - 1)
+    fun anRoutineOfflineBelowTheLimit_callsAgain() {
+        val offline = AIStateMachine.transition(routineAt(Phase.CALLING_AI), AIEvent.NetworkErrorOccurred(0), testLimits, T1)
+        val state = AIStateMachine.transition(offline, AIEvent.NetworkRetryScheduled, testLimits, T1 + AIStateMachine.ROUTINE_NETWORK_WAIT_LIMIT - 1)
 
         assertEquals(Phase.CALLING_AI, state.phase)
     }
@@ -181,7 +181,7 @@ class AIStateMachineErrorHandlingTest {
 
     /**
      * Waiting on the network is not idleness, and neither is working. Both report no
-     * inactivity, which is how an automation that is getting on with something avoids
+     * inactivity, which is how a routine that is getting on with something avoids
      * being closed by the watchdog.
      */
     @Test
@@ -197,7 +197,7 @@ class AIStateMachineErrorHandlingTest {
         )
 
         for (phase in busy) {
-            assertEquals("at $phase", 0L, automationAt(phase).calculateInactivity(T1))
+            assertEquals("at $phase", 0L, routineAt(phase).calculateInactivity(T1))
         }
     }
 

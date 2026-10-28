@@ -62,7 +62,7 @@ object PromptChunks {
         Chunk("environment", 1, shared = true) { ctx, _ -> buildChunk("environment", ctx) },
         Chunk("vocabulary", 1, shared = true) { ctx, _ -> buildVocabulary(ctx) },
         Chunk("session_types", 1) { ctx, sessionType -> buildSessionTypes(ctx, sessionType) },
-        Chunk("automation_completion", 1) { ctx, sessionType -> buildAutomationCompletion(ctx, sessionType) },
+        Chunk("automation_completion", 1) { ctx, sessionType -> buildRoutineCompletion(ctx, sessionType) },
 
         // PARTIE B : FORMAT DE RÉPONSE IA
         Chunk("response_structure", 1) { ctx, _ -> buildChunk("response_structure", ctx) },
@@ -361,11 +361,11 @@ object PromptChunks {
     )
 
     /**
-     * Build automation completion instructions (AUTOMATION sessions only)
+     * Build routine completion instructions (AUTOMATION sessions only)
      * Explains how to signal work completion using the completed flag
      * CRITICAL: Must be very explicit about when to use completed flag
      */
-    private fun buildAutomationCompletion(context: Context, sessionType: SessionType): String {
+    private fun buildRoutineCompletion(context: Context, sessionType: SessionType): String {
         // Only include for AUTOMATION sessions
         if (sessionType != SessionType.AUTOMATION) {
             return ""

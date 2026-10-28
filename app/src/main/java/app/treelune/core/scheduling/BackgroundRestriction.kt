@@ -10,7 +10,7 @@ import java.io.File
 /**
  * Whether the app runs in the background without Android holding it back: its Battery setting at
  * « Unrestricted », which the scheduler's alarm (SchedulerAlarm) is surest to ring under while the
- * app is closed. Below it, what is planned to happen app closed may not: scheduled automations,
+ * app is closed. Below it, what is planned to happen app closed may not: scheduled routines,
  * messages, lists' due dates, questionnaires' and sessions' invitations, goals' ends of period.
  *
  * Measured on a phone (Android 16): « Restricted » blocks the alarm, and as each ring sets the

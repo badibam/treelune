@@ -180,7 +180,7 @@ class EntryTriggersTest {
         val trigger = (read["triggers"] as List<*>).single() as Map<*, *>
 
         assertEquals(listOf("created"), trigger["writes"])
-        assertEquals(1, app.treelune.core.ai.data.Automation.fromResult(read).triggers)
+        assertEquals(1, app.treelune.core.ai.data.Routine.fromResult(read).triggers)
     }
 
     @Test

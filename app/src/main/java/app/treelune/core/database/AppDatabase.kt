@@ -24,7 +24,7 @@ import app.treelune.core.ai.database.SessionMessageEntity
 import app.treelune.core.files.FileEntity
 import app.treelune.core.files.FileDao
 import app.treelune.core.ai.database.AIProviderConfigEntity
-import app.treelune.core.ai.database.AutomationEntity
+import app.treelune.core.ai.database.RoutineEntity
 import app.treelune.core.ai.database.AITypeConverters
 import app.treelune.core.ai.database.MessageTypeConverters
 import app.treelune.core.utils.LogManager
@@ -68,7 +68,7 @@ import app.treelune.core.ai.data.LegacyCatchUp
         AISessionEntity::class,
         SessionMessageEntity::class,
         AIProviderConfigEntity::class,
-        AutomationEntity::class,
+        RoutineEntity::class,
         LogEntry::class,
         VariableEntity::class,
         FileEntity::class,
@@ -163,27 +163,27 @@ abstract class AppDatabase : RoomDatabase() {
                 }
                 tableExistsCursor.close()
 
-                var automationCount = 0
+                var routineCount = 0
                 if (tableName != null) {
-                    val automationCursor = database.query(
+                    val routineCursor = database.query(
                         "SELECT id, schedule FROM $tableName WHERE schedule IS NOT NULL AND schedule LIKE '%com.assistant.core.utils.SchedulePattern%'"
                     )
-                    while (automationCursor.moveToNext()) {
-                        val id = automationCursor.getString(0)
-                        val oldSchedule = automationCursor.getString(1)
+                    while (routineCursor.moveToNext()) {
+                        val id = routineCursor.getString(0)
+                        val oldSchedule = routineCursor.getString(1)
 
                         val newSchedule = app.treelune.core.versioning.JsonTransformers.fixSchedulePatternTypes(oldSchedule)
                         database.execSQL(
                             "UPDATE $tableName SET schedule = ? WHERE id = ?",
                             arrayOf(newSchedule, id)
                         )
-                        automationCount++
+                        routineCount++
                     }
-                    automationCursor.close()
+                    routineCursor.close()
                 } else {
                     LogManager.database("MIGRATION 10->11: No automations table found (fresh install or already migrated)")
                 }
-                LogManager.database("MIGRATION 10->11: Fixed $automationCount automation schedules")
+                LogManager.database("MIGRATION 10->11: Fixed $routineCount automation schedules")
 
                 // 2. Update tool_data table (data column, for Messages tool with schedule field)
                 val toolDataCursor = database.query(
@@ -551,13 +551,13 @@ abstract class AppDatabase : RoomDatabase() {
         /**
          * Migration 15 → 16: Add updatedAt column to automations table
          *
-         * Problem: AutomationScheduler uses lastExecutionTime to calculate next execution
+         * Problem: RoutineScheduler uses lastExecutionTime to calculate next execution
          * - When automation is disabled then re-enabled, it may execute for all missed periods
          * - No way to track when automation config/schedule was last modified
          *
          * Solution: Add updatedAt timestamp to track last modification
          * - Set on create, update, enable, disable operations
-         * - AutomationScheduler uses max(lastExecutionTime, updatedAt) as reference
+         * - RoutineScheduler uses max(lastExecutionTime, updatedAt) as reference
          * - Skips executions that would have occurred before last modification
          * - For existing automations at migration time: set to now (safe default)
          */
@@ -580,11 +580,11 @@ abstract class AppDatabase : RoomDatabase() {
                     WHERE updatedAt = 0
                 """)
 
-                val cursorAutomations = database.query("SELECT COUNT(*) FROM automations")
-                val automationsCount = if (cursorAutomations.moveToFirst()) cursorAutomations.getInt(0) else 0
-                cursorAutomations.close()
+                val cursorRoutines = database.query("SELECT COUNT(*) FROM automations")
+                val routinesCount = if (cursorRoutines.moveToFirst()) cursorRoutines.getInt(0) else 0
+                cursorRoutines.close()
 
-                LogManager.database("MIGRATION 15->16: Updated $automationsCount automations with updatedAt = now", "INFO")
+                LogManager.database("MIGRATION 15->16: Updated $routinesCount automations with updatedAt = now", "INFO")
 
                 // 3. Add appStateSnapshot column to ai_sessions (nullable, default NULL)
                 database.execSQL("""
@@ -708,7 +708,7 @@ abstract class AppDatabase : RoomDatabase() {
          * - Zone level: tool_groups (JSON array) for organizing tools and automations
          * - App level: zone_groups (in app_config JSON) for organizing zones
          * - Tool instances: group field (in config JSON via BaseSchemas)
-         * - Automations: group column (nullable string)
+         * - Routines: group column (nullable string)
          *
          * Implementation:
          * 1. Add tool_groups column to zones table (JSON array of group names)
@@ -764,7 +764,7 @@ abstract class AppDatabase : RoomDatabase() {
                 val zonesCount = database.query("SELECT COUNT(*) FROM zones").use { cursor ->
                     if (cursor.moveToFirst()) cursor.getInt(0) else 0
                 }
-                val automationsCount = database.query("SELECT COUNT(*) FROM automations").use { cursor ->
+                val routinesCount = database.query("SELECT COUNT(*) FROM automations").use { cursor ->
                     if (cursor.moveToFirst()) cursor.getInt(0) else 0
                 }
                 val sessionsCount = database.query("SELECT COUNT(*) FROM ai_sessions").use { cursor ->
@@ -774,7 +774,7 @@ abstract class AppDatabase : RoomDatabase() {
                     if (cursor.moveToFirst()) cursor.getInt(0) else 0
                 }
 
-                LogManager.database("MIGRATION 17->18: Completed - $zonesCount zones, $automationsCount automations, $sessionsCount sessions, and $toolDataCount tool_data entries ready", "INFO")
+                LogManager.database("MIGRATION 17->18: Completed - $zonesCount zones, $routinesCount automations, $sessionsCount sessions, and $toolDataCount tool_data entries ready", "INFO")
             }
         }
 
@@ -2000,10 +2000,10 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        /** A routine becomes a tile of its section, among the tools and the variables: see AutomationsAtV89. */
+        /** A routine becomes a tile of its section, among the tools and the variables: see RoutinesAtV89. */
         private val MIGRATION_88_89 = object : ConnectionMigration(88, 89) {
             override fun migrate(database: MigrationDatabase) {
-                val a = app.treelune.core.versioning.AutomationsAtV89
+                val a = app.treelune.core.versioning.RoutinesAtV89
                 // A tool whose config cannot be read is left out of the placing, logged
                 val tiles = buildList {
                     database.query("SELECT id, zone_id, config_json, grid_y FROM tool_instances").use { cursor ->
@@ -2022,7 +2022,7 @@ abstract class AppDatabase : RoomDatabase() {
                 }
                 val routines = database.query("SELECT id, zone_id, `group`, created_at FROM automations").use { cursor ->
                     buildList {
-                        while (cursor.moveToNext()) add(app.treelune.core.versioning.AutomationsAtV89.Routine(cursor.getString(0), cursor.getString(1),
+                        while (cursor.moveToNext()) add(app.treelune.core.versioning.RoutinesAtV89.Routine(cursor.getString(0), cursor.getString(1),
                             if (cursor.isNull(2)) null else cursor.getString(2), cursor.getLong(3)))
                     }
                 }

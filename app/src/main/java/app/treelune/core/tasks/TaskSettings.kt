@@ -1,7 +1,7 @@
 package app.treelune.core.tasks
 
 import android.content.Context
-import app.treelune.core.ai.data.AutomationSettings
+import app.treelune.core.ai.data.RoutineSettings
 import app.treelune.core.fields.ChoiceSettings
 import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldType
@@ -21,7 +21,7 @@ import org.json.JSONObject
  * A Task's settings, declared with the fields: its look, its group, whether its schedule runs it,
  * which of its runs wait for the user, its schedule and what it does about the runs it missed,
  * what else starts it (Triggers) —
- * the routine's envelope (AutomationSettings), without a provider nor an identity, a Task calling
+ * the routine's envelope (RoutineSettings), without a provider nor an identity, a Task calling
  * no AI, nor an access, its steps saying what they reach. Not its zone (its place) nor its steps (TaskSteps).
  */
 object TaskSettings {
@@ -66,7 +66,7 @@ object TaskSettings {
             // Absent: run on demand only
             ScheduleSettings.group(s.shared("automation_schedule"), s::shared),
             // Present with the schedule, and only with it (TaskService)
-            SettingNode.Group("catch_up", s.shared("automation_catch_up_title"), AutomationSettings.catchUpNodes(context), description = s.shared("automation_schema_catch_up")),
+            SettingNode.Group("catch_up", s.shared("automation_catch_up_title"), RoutineSettings.catchUpNodes(context), description = s.shared("automation_schema_catch_up")),
             // What starts it beside its schedule: an entry written
             app.treelune.core.triggers.Triggers.node(s::shared)
         )
@@ -77,10 +77,10 @@ object TaskSettings {
         return listOf(
             // A run ended waits to be read when it failed, by default: one that went well says nothing
             SettingNode.Field(FieldDefinition("notify_end", s.shared("automation_notify_end"), s.shared("task_schema_notify_end"), FieldType.CHOICE, false,
-                mapOf("options" to ChoiceSettings.storedOptions(listOf(AutomationSettings.NOTIFY_ALWAYS, AutomationSettings.NOTIFY_ON_PROBLEM, AutomationSettings.NOTIFY_NEVER), mapOf(
-                    AutomationSettings.NOTIFY_ALWAYS to s.shared("automation_notify_end_always"),
-                    AutomationSettings.NOTIFY_ON_PROBLEM to s.shared("automation_notify_end_on_problem"),
-                    AutomationSettings.NOTIFY_NEVER to s.shared("automation_notify_end_never"))))), default = AutomationSettings.NOTIFY_ON_PROBLEM),
+                mapOf("options" to ChoiceSettings.storedOptions(listOf(RoutineSettings.NOTIFY_ALWAYS, RoutineSettings.NOTIFY_ON_PROBLEM, RoutineSettings.NOTIFY_NEVER), mapOf(
+                    RoutineSettings.NOTIFY_ALWAYS to s.shared("automation_notify_end_always"),
+                    RoutineSettings.NOTIFY_ON_PROBLEM to s.shared("automation_notify_end_on_problem"),
+                    RoutineSettings.NOTIFY_NEVER to s.shared("automation_notify_end_never"))))), default = RoutineSettings.NOTIFY_ON_PROBLEM),
             // What a run that ends well emits
             app.treelune.core.events.EventPoints.node(s::shared)
         )

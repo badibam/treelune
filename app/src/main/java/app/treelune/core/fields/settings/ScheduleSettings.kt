@@ -10,14 +10,14 @@ import org.json.JSONObject
 
 /**
  * A schedule, declared with the fields: a recurrence pattern and a variant on its type. The form ScheduleConfig reads and writes; a Messages tool holds one,
- * and so does an automation.
+ * and so does a routine.
  */
 object ScheduleSettings {
 
     /** The name a schedule is stored under in the object holding it, and by which SettingsForm knows it. */
     const val NAME = "schedule"
 
-    /** A schedule labelled [label], as a config or an automation declares it. */
+    /** A schedule labelled [label], as a config or a routine declares it. */
     fun group(label: String, text: (String) -> String) = SettingNode.Group(NAME, label, nodes(text), description = text("schedule_description"))
 
     /** The pattern types, as ScheduleConfig's SchedulePattern names them. */

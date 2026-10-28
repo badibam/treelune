@@ -188,7 +188,7 @@ internal object Ticks {
             selection.zones + zone.id,
             selection.tools + tools.filter { it !in selection.tools }.associateWith { false },
             selection.variables + variables,
-            selection.automations + routines,
+            selection.routines + routines,
             selection.identities + identities,
             selection.tasks + tasks,
             selection.apis + apis
@@ -196,7 +196,7 @@ internal object Ticks {
             selection.zones - zone.id,
             selection.tools - tools.toSet(),
             selection.variables - variables.toSet(),
-            selection.automations - routines.toSet(),
+            selection.routines - routines.toSet(),
             selection.identities - identities.filter { identity ->
                 tree.zones.none { other -> other.id != zone.id && other.id in selection.zones && other.elements.any { it.kind == PartElement.Kind.IDENTITY && it.id == identity } }
             }.toSet(),
@@ -219,7 +219,7 @@ internal object Ticks {
             else -> {
                 // A routine ticked takes the identity it speaks as, which can be unticked on its own
                 val identity = tree.links.firstOrNull { it.from == PartElement(PartElement.Kind.ROUTINE, element.id) && it.to.kind == PartElement.Kind.IDENTITY }?.to?.id
-                selection.copy(zones = zones, automations = if (on) selection.automations + element.id else selection.automations - element.id,
+                selection.copy(zones = zones, routines = if (on) selection.routines + element.id else selection.routines - element.id,
                     identities = if (on && identity != null) selection.identities + identity else selection.identities)
             }
         }

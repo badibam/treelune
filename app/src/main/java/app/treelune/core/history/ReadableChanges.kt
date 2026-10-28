@@ -1,7 +1,7 @@
 package app.treelune.core.history
 
 import android.content.Context
-import app.treelune.core.ai.data.AutomationSettings
+import app.treelune.core.ai.data.RoutineSettings
 import app.treelune.core.config.AppSettings
 import app.treelune.core.database.AppDatabase
 import app.treelune.core.fields.CoreFieldUsage
@@ -30,7 +30,7 @@ import org.json.JSONTokener
  *
  * The labels come from the forms: a zone's (ZoneSettings), a tool's config (ToolConfigSettings),
  * an entry's fields (the core's, its type's, its tool's own), the app's settings (AppSettings), a
- * routine's (AutomationSettings); another row shows its name alone.
+ * routine's (RoutineSettings); another row shows its name alone.
  */
 internal class ReadableChanges(private val context: Context, private val database: AppDatabase) {
 
@@ -126,7 +126,7 @@ internal class ReadableChanges(private val context: Context, private val databas
                 Describe { column, key -> if (column == "settings" && key != null) nodes.describe(key) else null }
             }
             // A routine's setting stored as JSON lives in its column x_json
-            CoveredTable.AUTOMATIONS -> AutomationSettings.nodes(context).let { nodes ->
+            CoveredTable.AUTOMATIONS -> RoutineSettings.nodes(context).let { nodes ->
                 Describe { column, key -> if (key == null) nodes.describe(column.removeSuffix("_json")) else null }
             }
             // A Task's as a routine's; its steps, which no setting describes, as a whole
@@ -208,7 +208,7 @@ internal class ReadableChanges(private val context: Context, private val databas
         val IDS: Map<String, suspend (AppDatabase, String) -> String?> = mapOf(
             "zone_id" to { db, id -> db.zoneDao().getZoneById(id)?.name },
             "identity_id" to { db, id -> db.identityDao().getById(id)?.name },
-            AutomationSettings.PROVIDER_ID to { db, id -> db.aiDao().getProviderConfig(id)?.name }
+            RoutineSettings.PROVIDER_ID to { db, id -> db.aiDao().getProviderConfig(id)?.name }
         )
     }
 }

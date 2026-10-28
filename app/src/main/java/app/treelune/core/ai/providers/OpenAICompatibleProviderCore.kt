@@ -53,7 +53,7 @@ internal class OpenAICompatibleProviderCore(
         val MANUAL_PRICES = listOf(PRICE_INPUT, PRICE_CACHED_INPUT, PRICE_OUTPUT)
 
         // Failing to connect means nothing was sent: the sooner it is known, the sooner an
-        // automation waits for the network, at no cost
+        // routine waits for the network, at no cost
         private const val CONNECT_TIMEOUT_SECONDS = 15L
         // No streaming: nothing arrives until the whole answer is generated, so this covers
         // reading the prompt and generating a long answer, slower on a server of one's own

@@ -29,7 +29,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * Duplicate Selector - Simplified selector for duplicating tools, automations or Tasks
+ * Duplicate Selector - Simplified selector for duplicating tools, routines or Tasks
  *
  * Navigation flow:
  * 1. Zone selection
@@ -363,7 +363,7 @@ private data class ZoneItem(
     val iconColor: app.treelune.core.themes.TagColor? = null
 )
 
-/** A tool or an automation; a tool with its icon in its colour, an automation having none. */
+/** A tool or a routine; a tool with its icon in its colour, a routine having none. */
 private data class InstanceItem(
     val id: String,
     val name: String,

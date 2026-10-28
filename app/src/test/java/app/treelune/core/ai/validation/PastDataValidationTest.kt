@@ -2,7 +2,7 @@ package app.treelune.core.ai.validation
 
 import android.app.NotificationManager
 import android.content.Context
-import app.treelune.core.ai.data.AutomationMessage
+import app.treelune.core.ai.data.RoutineMessage
 import app.treelune.core.ai.data.CommandStatus
 import app.treelune.core.ai.data.DataCommand
 import app.treelune.core.ai.data.SessionValidation
@@ -109,12 +109,12 @@ class PastDataValidationTest {
 
     /** The results of the tightening run by a routine given [access], as its AI's actions run. */
     private suspend fun byRoutine(access: List<Map<String, Any>>): app.treelune.core.ai.data.CommandResult {
-        val automation = coordinator.processUserAction("automations.create", mapOf(
+        val created = coordinator.processUserAction("automations.create", mapOf(
             "zone_id" to zoneId, "name" to "Weekly", "identity_id" to null, "provider_id" to null, "is_enabled" to false,
-            "message" to listOf(mapOf("type" to AutomationMessage.TEXT, "text" to "hi")), "access" to access
+            "message" to listOf(mapOf("type" to RoutineMessage.TEXT, "text" to "hi")), "access" to access
         ))
-        assertTrue(automation.error, automation.isSuccess)
-        val session = coordinator.processUserAction("ai_sessions.create_session", mapOf("name" to "Weekly", "type" to "AUTOMATION", "automation_id" to automation.data!!["automation_id"]))
+        assertTrue(created.error, created.isSuccess)
+        val session = coordinator.processUserAction("ai_sessions.create_session", mapOf("name" to "Weekly", "type" to "AUTOMATION", "automation_id" to created.data!!["automation_id"]))
         assertTrue(session.error, session.isSuccess)
         val sessionId = session.data!!["session_id"] as String
         val command = AICommandProcessor(context).processActionCommands(listOf(tightening())).executableCommands.single()

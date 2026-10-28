@@ -87,7 +87,7 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
         // An active tooltype keeps its config and its scheduled work in step: the config IS the
         // definition, so changing it changes what is owed. Without this, editing a recurrence
         // leaves the screen empty until the next heartbeat, with no way to tell a slow tick from
-        // something broken. Mirrors what AutomationService does for automations.
+        // something broken. Mirrors what RoutineService does for routines.
         if (result.success && operation in listOf("create", "update", "delete", "duplicate")) {
             LogManager.service("ToolInstanceService: Triggering scheduler tick after $operation", "DEBUG")
             scope.launch {

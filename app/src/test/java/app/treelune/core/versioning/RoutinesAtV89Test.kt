@@ -6,11 +6,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
- * What the v89 migration promises (AutomationsAtV89): a routine becomes a tile of its section,
+ * What the v89 migration promises (RoutinesAtV89): a routine becomes a tile of its section,
  * in EXTENDED, the card it was, under the section's tools and variables, one under the other in
  * the order they were made; its icon `bot`.
  */
-class AutomationsAtV89Test {
+class RoutinesAtV89Test {
 
     @Test
     fun routinesGoUnderTheirSectionsToolsAndVariables_inTheOrderMade() {
@@ -22,7 +22,7 @@ class AutomationsAtV89Test {
                 .put(JSONObject().put("id", "late").put("zone_id", "z").put("group", "Evening").put("created_at", 20))
                 .put(JSONObject().put("id", "early").put("zone_id", "z").put("group", "Evening").put("created_at", 10))
                 .put(JSONObject().put("id", "loose").put("zone_id", "z").put("created_at", 5)))
-        AutomationsAtV89.backup(data)
+        RoutinesAtV89.backup(data)
         val byId = (0 until data.getJSONArray("automations").length()).map { data.getJSONArray("automations").getJSONObject(it) }.associateBy { it.getString("id") }
         // The variable, CONDENSED from row 1, ends at row 3; each routine two rows tall
         assertEquals(3, byId.getValue("early").getInt("grid_y"))
