@@ -19,6 +19,8 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs
 
+- `TASK_CONFIG` refuse de rendre la Tâche « Météo du matin » de la démo : « Le résultat n'a pas pu être mis dans la forme que tu lis : NUMERIC field 'latitude' declares no decimals » (vu au banc le 2026-10-28) ; un champ numérique d'une entrée d'API sans `decimals` doit se lire comme un nombre, ou se déclarer avec.
+
 - `GoalRecurringTest` échoue le jour du passage à l'heure d'hiver (vu le 2026-10-25, déjà avant la partie A) : il vieillit une tentative de 24 h exactes, alors que ce jour-là en dure 25 ; vieillir d'un jour du calendrier de l'app, pas d'une durée.
 
 ## À passer sur le téléphone
