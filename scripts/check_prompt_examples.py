@@ -17,7 +17,11 @@ This reads the prompt's JSON examples and asks six questions of them:
      copy from an example is a name the app accepts;
   6. does every key of a response exist in the response schema -- a model forced to that
      schema (OutputForcing.SCHEMA) cannot write a key it lacks, whatever the prompt asks:
-     `completed`, which ends an automation, was missing.
+     `completed`, which ends an automation, was missing;
+  7. does every command an example sends exist in the catalog of the AI's commands
+     (AICommands.kt) -- a command renamed there and left under its old name in an example
+     teaches the model a command the app refuses. It reads every `"type": "...", "params"`
+     pair of the raw text, elided examples included.
 
 Question 3 compares against the shape the *model* is given, not the stored one. A property
 the schema marks `"format": "epoch-millis"` is stored as a number and handed to the model as
@@ -65,6 +69,7 @@ FIELD_TYPE = ROOT / "app/src/main/java/app/treelune/core/fields/FieldType.kt"
 ENTRY_FIELDS = ROOT / "app/src/main/java/app/treelune/core/fields/EntryFields.kt"
 MESSAGE_SCHEMAS = ROOT / "app/src/main/java/app/treelune/core/ai/data/AIMessageSchemas.kt"
 ICON_INDEX = ROOT / "app/src/main/assets/icons/index.json"
+COMMANDS = ROOT / "app/src/main/java/app/treelune/core/ai/data/AICommands.kt"
 
 # What AICommandProcessor adds to an entry command itself, from the tool it names.
 INJECTED = {"tooltype"}
@@ -229,6 +234,11 @@ def required_problems(example, schemas):
     return problems
 
 
+def command_types():
+    """The types of the catalog's commands, each declared by a `query("...")` or an `action("...")`."""
+    return set(re.findall(r'\b(?:query|action)\("([A-Z_]+)"', COMMANDS.read_text(encoding="utf-8")))
+
+
 def walk(value, path=""):
     """Every (key, value) pair in a parsed example, at any depth."""
     if isinstance(value, dict):
@@ -299,6 +309,12 @@ def main():
             continue
         whole_count += 1
         problems.extend(required_problems(example, schemas))
+
+    # 7. every command an example sends is in the catalog
+    commands = command_types()
+    for sent in sorted(set(re.findall(r'"type"\s*:\s*"([A-Z_]+)"\s*,\s*"params"', unescape(text)))):
+        if sent not in commands:
+            problems.append(f'command "{sent}" is not in the catalog of the AI\'s commands')
 
     print(f"{parsed_count} JSON example(s) read, {shorthand_count} shorthand block(s) skipped.")
     print(f"{whole_count} whole example(s) read for required fields, {elided_count} elided one(s) skipped.")
