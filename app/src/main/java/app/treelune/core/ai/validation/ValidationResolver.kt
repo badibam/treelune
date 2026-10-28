@@ -106,6 +106,8 @@ class ValidationResolver(private val context: Context) {
             "CREATE_ZONE", "DELETE_ZONE", "UPDATE_APP_CONFIG" -> appReason(levels)
             // The identities are the app's, as its zones
             "CREATE_IDENTITY", "UPDATE_IDENTITY", "DELETE_IDENTITY", "IMPORT_IDENTITY" -> appReason(levels)
+            // An API belongs to no zone: the app's, as its settings
+            "CREATE_API", "UPDATE_API", "DELETE_API" -> appReason(levels)
             "UPDATE_ZONE" -> {
                 val zoneId = params["zone_id"] as? String ?: error(s.shared("validation_reason_no_target"))
                 val content = setOf("zone_id", "tool_groups", "renames")

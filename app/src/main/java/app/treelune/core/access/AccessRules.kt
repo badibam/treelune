@@ -141,7 +141,7 @@ object AccessRules {
             }
             // An API reaches no data of the app: what it is given was read under the mask first
             "apis" -> when (operation) {
-                "list", "call", "status" -> listOf(Reach.Free)
+                "list", "configs", "call", "status" -> listOf(Reach.Free)
                 else -> listOf(Reach.App)
             }
             // A routine's runs, read as the routine is; every other session is the screens'

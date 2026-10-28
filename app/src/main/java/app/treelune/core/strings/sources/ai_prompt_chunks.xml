@@ -390,6 +390,11 @@ Lists the events of the zones: names a Task\'s step or you (EMIT_EVENT) emit and
 **Parameters**:
 
 - `zone_id` (string, optional): the events of that zone alone]]></string>
+    <string name="ai_command_apis"><![CDATA[### APIS
+
+Lists the APIs, web services a Task\'s `call_api` step calls: each with its id, name and whole config but its key, which never leaves the phone — its address and method, where its key goes (`key_in`), the `inputs` a call is given, the `values` read from its answer (each a `name`, a `type` and the `path` where the answer holds it), and whether it answers at once or later (`response`). For one that takes a key, `key_entered` says whether the user entered it: without it, a call is refused before it leaves.
+
+**Parameters**: none]]></string>
     <string name="ai_command_file"><![CDATA[### FILE
 
 Reads a text by lines: a file the user joined to a message, or a text an entry's FILE field holds, read as that entry is.
@@ -745,7 +750,7 @@ Deletes a routine.
 
 Creates a Task in a zone: steps the app runs itself, one after another, without an AI, by hand, by its schedule or with RUN_TASK. A step that needs judging (summing up, choosing, writing) runs a routine, passing it what earlier steps gave. Each step is an object naming its `kind`:
 
-- `call_api`: `api_id` (an API the user declared in the settings), `inputs` by the API's input names
+- `call_api`: `api_id` (one of APIS), `inputs` by the API\'s input names
 - `create_entry`: `tool_instance_id`, `values` by the entry's path (`name`, `timestamp`, `data.<field>`, `extra.<field>`)
 - `update_entry`: `tool_instance_id`, `entry` (the entry), `values` as above, only what changes
 - `tool_operation`: `tool_instance_id`, `operation` (one of its type\'s, read in its entries schema), `params` by name
@@ -842,6 +847,30 @@ Deletes an event; refused, naming them, while a trigger listens to it or somethi
 **Parameters**:
 
 - `event_id` (string, **required**)]]></string>
+    <string name="ai_command_create_api"><![CDATA[### CREATE_API
+
+Declares an API, a web service a Task\'s `call_api` step calls. Its config is described by SCHEMA with `id` `api_config`. You never handle a key: `key` is refused. For a service that takes one, say where it goes (`key_in`, with `key_header` and `key_prefix`, or `key_param`) and tell the user to enter it in Settings › APIs: until then, a call is refused before it leaves. For a service that takes none, `key_in` `none`. You cannot try an API: the user does, from its screen, and can give you what it answered for you to correct a path.
+
+**Parameters**:
+
+- `name` (string, **required**): unique among the APIs
+- `config` (object, **required**)]]></string>
+    <string name="ai_command_update_api"><![CDATA[### UPDATE_API
+
+Changes an API: its name and its **whole** config, read first with APIS, without `key`. The key the user entered is kept, unless the change touches where it goes (`url`, `status_url`, `key_in`, `key_header`, `key_param`): it is then dropped, and the user enters it again. Changing its inputs or its values changes what the Tasks that call it give and read.
+
+**Parameters**:
+
+- `api_id` (string, **required**)
+- `name` (string, **required**)
+- `config` (object, **required**): the whole config]]></string>
+    <string name="ai_command_delete_api"><![CDATA[### DELETE_API
+
+Deletes an API; refused, naming them, while a Task calls it.
+
+**Parameters**:
+
+- `api_id` (string, **required**)]]></string>
     <string name="ai_command_import_data"><![CDATA[### IMPORT_DATA
 
 Imports a joined file into a tool, following a complete declaration: the new fields are created in the order of the columns, then each line is written, an entry found by its name updated when the tool\'s names are unique, the others created. A cell that does not read refuses its line alone; a name twice in the file refuses the whole import. The answer counts the lines created, updated and refused, each refusal with its reason.

@@ -41,8 +41,9 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 
 /**
- * The APIs the user declared (docs/CORE.md, « APIs »): one card each, its name and its address;
- * touched, its config (Place.Api). « Add an API » opens an empty one.
+ * The APIs the user or the AI declared (docs/CORE.md, « APIs »): one card each, its name, its
+ * address, and « Key to enter » when it takes a key and holds none; touched, its config
+ * (Place.Api). « Add an API » opens an empty one.
  */
 @Composable
 fun ApisScreen(onBack: () -> Unit) {
@@ -82,6 +83,8 @@ fun ApisScreen(onBack: () -> Unit) {
                     ) {
                         UI.Text(text = api["name"] as String, type = TextType.STRONG)
                         UI.Text(text = listOfNotNull(api["url"] as String, s.shared("api_response_deferred").takeIf { api["deferred"] == true }).joinToString(" · "), type = TextType.CAPTION)
+                        // An API that takes a key and holds none (declared by the AI): refused until it is entered
+                        if (api["key_missing"] == true) UI.Text(text = s.shared("api_key_missing"), type = TextType.WARNING)
                     }
                 }
             }

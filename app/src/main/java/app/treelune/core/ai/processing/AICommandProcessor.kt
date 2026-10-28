@@ -275,6 +275,7 @@ class AICommandProcessor(private val context: Context) {
                 params = command.params,
                 isActionCommand = true
             )
+            "CREATE_API", "UPDATE_API", "DELETE_API" -> apiCommand(command, stored = true)
 
             else -> {
                 LogManager.aiService("Unknown action command type: ${command.type}", "WARN")
@@ -394,6 +395,7 @@ class AICommandProcessor(private val context: Context) {
                 params = command.params,
                 isActionCommand = true
             )
+            "CREATE_API", "UPDATE_API", "DELETE_API" -> apiCommand(command, stored = false)
 
             else -> {
                 LogManager.aiService("Unknown action command type for verbalization: ${command.type}", "WARN")
@@ -472,6 +474,29 @@ class AICommandProcessor(private val context: Context) {
      * UPDATE_APP_CONFIG as the settings service takes it: the category, its settings written
      * whole, the renames of its lists; the service holds the category to those open to the AI.
      */
+    /**
+     * An API action as the APIs service takes it. The AI never handles a key: one given is
+     * refused, and a change keeps the key the user entered unless it changes where the key goes
+     * (ApiService.keptKey). With [stored], the wait limit the model writes in ISO 8601 turned into
+     * milliseconds, by the API's config schema.
+     *
+     * @throws IllegalArgumentException on a key given, or a duration that does not read
+     */
+    private fun apiCommand(command: DataCommand, stored: Boolean): ExecutableCommand {
+        val config = command.params["config"] as? Map<*, *>
+        if (config?.containsKey(app.treelune.core.apis.ApiSettings.KEY) == true) throw IllegalArgumentException(s.shared("ai_error_api_key_given"))
+        val schema = JSONObject(app.treelune.core.apis.ApiSettings.schema(context).content)
+        val written = if (config != null && stored) ModelValues.fromModel(config, schema, AppConfigManager.getDateTimeConfig().getZoneId()) else config
+        val operation = command.type.substringBefore('_').lowercase()
+        return ExecutableCommand(
+            resource = "apis",
+            operation = operation,
+            params = command.params.filterKeys { it in setOf("api_id", "name") } +
+                listOfNotNull(written?.let { "config" to it }, (app.treelune.core.apis.ApiService.KEEP_KEY to true).takeIf { operation == "update" }),
+            isActionCommand = true
+        )
+    }
+
     private fun appConfigCommand(command: DataCommand) = ExecutableCommand(
         resource = "app_config",
         operation = "set",
