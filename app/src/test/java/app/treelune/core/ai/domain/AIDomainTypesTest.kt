@@ -107,7 +107,7 @@ class AIDomainTypesTest {
     /** A routine is, since nobody is watching it. */
     @Test
     fun anRoutineIsLimited() {
-        val limits = AILimitsConfig.default().getLimitsForSessionType(SessionType.AUTOMATION)
+        val limits = AILimitsConfig.default().getLimitsForSessionType(SessionType.ROUTINE_RUN)
 
         assertEquals(20, limits.maxAutonomousRoundtrips)
     }
@@ -130,7 +130,7 @@ class AIDomainTypesTest {
         val config = AILimitsConfig(chatMaxAutonomousRoundtrips = 5, routineMaxAutonomousRoundtrips = 7)
 
         assertEquals(5, config.getLimitsForSessionType(SessionType.CHAT).maxAutonomousRoundtrips)
-        assertEquals(7, config.getLimitsForSessionType(SessionType.AUTOMATION).maxAutonomousRoundtrips)
+        assertEquals(7, config.getLimitsForSessionType(SessionType.ROUTINE_RUN).maxAutonomousRoundtrips)
     }
 
     // ==================== How the limits are stored ====================

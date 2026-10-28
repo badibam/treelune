@@ -50,18 +50,18 @@ class AIStateMachineLifecycleTest {
         assertEquals("resumed-chat", state.sessionId)
     }
 
-    /** An AUTOMATION has nobody to wait for, so activation starts the work at once. */
+    /** A ROUTINE_RUN has nobody to wait for, so activation starts the work at once. */
     @Test
     fun activatingRoutine_startsExecutingImmediately() {
         val state = AIStateMachine.transition(
             state = AIState.idle(),
-            event = AIEvent.SessionActivationRequested("new-automation", SessionType.AUTOMATION),
+            event = AIEvent.SessionActivationRequested("new-routine", SessionType.ROUTINE_RUN),
             limits = testLimits,
             currentTime = T0
         )
 
         assertEquals(Phase.EXECUTING_ENRICHMENTS, state.phase)
-        assertEquals(SessionType.AUTOMATION, state.sessionType)
+        assertEquals(SessionType.ROUTINE_RUN, state.sessionType)
     }
 
     /**

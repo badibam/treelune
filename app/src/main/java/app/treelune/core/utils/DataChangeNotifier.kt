@@ -102,7 +102,7 @@ object DataChangeNotifier {
      * @param routineId ID of the routine whose sessions changed, or null for all routines
      */
     fun notifyAISessionsChanged(routineId: String? = null) {
-        LogManager.coordination("DataChangeNotifier: AI sessions changed for automation ${routineId ?: "all"}", "DEBUG")
+        LogManager.coordination("DataChangeNotifier: AI sessions changed for routine ${routineId ?: "all"}", "DEBUG")
         _changes.tryEmit(DataChangeEvent.AISessionsChanged(routineId))
     }
 }

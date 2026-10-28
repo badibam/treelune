@@ -56,12 +56,12 @@
       "steps": [
         {"kind": "read"},
         {"kind": "do",
-          "await": {"operation": "automations.create", "origin": "USER"}, "keep": {"automation": "automation_id", "zone": "zone_id"}},
+          "await": {"operation": "routines.create", "origin": "USER"}, "keep": {"routine": "routine_id", "zone": "zone_id"}},
         {"kind": "do", "target": "zone/{zone}",
-          "await": {"operation": "automations.update", "origin": "USER", "params": {"automation_id": "{automation}"}}},
+          "await": {"operation": "routines.update", "origin": "USER", "params": {"routine_id": "{routine}"}}},
         {"kind": "do", "target": "zone/{zone}",
-          "await": {"operation": "automations.execute_manual", "origin": "USER", "params": {"automation_id": "{automation}"}}},
-        {"kind": "read", "target": "automation/{automation}/{zone}"},
+          "await": {"operation": "routines.execute_manual", "origin": "USER", "params": {"routine_id": "{routine}"}}},
+        {"kind": "read", "target": "routine/{routine}/{zone}"},
         {"kind": "read", "target": "zone/{zone}"}
       ]
     },

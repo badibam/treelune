@@ -50,7 +50,7 @@ object TaskSteps {
     const val ENTRY = "entry"
     const val OPERATION = "operation"
     const val PARAMS = "params"
-    const val ROUTINE_ID = "automation_id"
+    const val ROUTINE_ID = "routine_id"
     const val EVENT_ID = "event_id"
     /** The one input of a routine run: what joins its message. */
     const val DATA = "data"
@@ -177,7 +177,7 @@ object TaskSteps {
         val own = when (step.optString(KIND)) {
             CREATE_ENTRY, UPDATE_ENTRY -> reach("tool_data.create", mapOf("tool_instance_id" to tool))
             TOOL_OPERATION -> reach("${tooltypeOf(tool) ?: "?"}.${step.optString(OPERATION)}", mapOf("tool_instance_id" to tool))
-            RUN_ROUTINE -> reach("automations.execute_manual", mapOf("automation_id" to step.optString(ROUTINE_ID)))
+            RUN_ROUTINE -> reach("routines.execute_manual", mapOf("routine_id" to step.optString(ROUTINE_ID)))
             EMIT_EVENT -> reach("events.emit", mapOf("event_id" to step.optString(EVENT_ID)))
             else -> emptyList()
         }

@@ -44,7 +44,7 @@ class SessionSlotPolicyTest {
     /** Nothing is running: whoever asks, starts. */
     @Test
     fun anyRequest_startsWhenTheSlotIsFree() {
-        for (type in listOf(SessionType.CHAT, SessionType.AUTOMATION)) {
+        for (type in listOf(SessionType.CHAT, SessionType.ROUTINE_RUN)) {
             val result = request(type, ExecutionTrigger.MANUAL, AIState.idle())
 
             assertEquals(
@@ -86,7 +86,7 @@ class SessionSlotPolicyTest {
     fun routine_evictsALongIdleChat() {
         for (trigger in listOf(ExecutionTrigger.MANUAL, ExecutionTrigger.SCHEDULED)) {
             val result = request(
-                SessionType.AUTOMATION,
+                SessionType.ROUTINE_RUN,
                 trigger,
                 chatIdleFor(SessionSlotPolicy.CHAT_INACTIVITY_TIMEOUT + 1_000L)
             )
@@ -107,10 +107,10 @@ class SessionSlotPolicyTest {
 
         assertEquals(
             ActivationResult.Enqueue("asking-session", priority = 2),
-            request(SessionType.AUTOMATION, ExecutionTrigger.MANUAL, busyChat)
+            request(SessionType.ROUTINE_RUN, ExecutionTrigger.MANUAL, busyChat)
         )
         assertTrue(
-            request(SessionType.AUTOMATION, ExecutionTrigger.SCHEDULED, busyChat)
+            request(SessionType.ROUTINE_RUN, ExecutionTrigger.SCHEDULED, busyChat)
                 is ActivationResult.Skip
         )
     }
@@ -124,7 +124,7 @@ class SessionSlotPolicyTest {
         val callingForAges = chatAt(Phase.CALLING_AI)
             .copy(lastEventTime = T0 - 10 * SessionSlotPolicy.CHAT_INACTIVITY_TIMEOUT)
 
-        val result = request(SessionType.AUTOMATION, ExecutionTrigger.MANUAL, callingForAges)
+        val result = request(SessionType.ROUTINE_RUN, ExecutionTrigger.MANUAL, callingForAges)
 
         assertEquals(ActivationResult.Enqueue("asking-session", priority = 2), result)
     }
@@ -141,10 +141,10 @@ class SessionSlotPolicyTest {
 
         assertEquals(
             ActivationResult.Enqueue("asking-session", priority = 2),
-            request(SessionType.AUTOMATION, ExecutionTrigger.MANUAL, running)
+            request(SessionType.ROUTINE_RUN, ExecutionTrigger.MANUAL, running)
         )
         assertTrue(
-            request(SessionType.AUTOMATION, ExecutionTrigger.SCHEDULED, running)
+            request(SessionType.ROUTINE_RUN, ExecutionTrigger.SCHEDULED, running)
                 is ActivationResult.Skip
         )
     }

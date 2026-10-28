@@ -344,7 +344,7 @@ private fun PlaceScreen(place: Place, zones: ZonesState, demoInstalled: Boolean)
                 app.treelune.core.tasks.ui.TaskRunScreen(place, onTaskName = { Navigator.name(place.parent(), it) }, onBack = back)
             }
             is Place.RoutineConfig -> {
-                name(s.shared(if (place.routineId == null) "automation_new_name" else "nav_configuration"))
+                name(s.shared(if (place.routineId == null) "routine_new_name" else "nav_configuration"))
                 // Deleted, its page under the config goes with it
                 app.treelune.core.ai.ui.routine.RoutineConfigScreen(place, onDone = back, onDeleted = {
                     place.routineId?.let { Navigator.drop(Place.Routine(it, place.zoneId)) }

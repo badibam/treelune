@@ -22,7 +22,7 @@ class AILimitsAtV98Test {
         val rewritten = AILimitsAtV98.rewrite(v97)
 
         assertEquals(50, rewritten.getInt("chain_max_runs"))
-        assertEquals(50, AILimitsConfig.fromSettingsJson(rewritten).chainMaxRuns)
+        assertEquals(50, AILimitsConfig.fromSettingsJson(JSONObject(JsonTransformers.transformAppConfig(rewritten.toString(), "ai_limits", 98, 107))).chainMaxRuns)
         assertFalse(v97.has("chain_max_runs"))
     }
 

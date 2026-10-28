@@ -290,7 +290,7 @@ class AIEventProcessor(
     /**
      * An error nothing else caught, in [e], stops the current round: a CHAT goes back to idle,
      * its session open, with the error said in its messages (not to the AI: the app failed, not
-     * its answer); an AUTOMATION ends in error. Its own failure is only logged.
+     * its answer); a ROUTINE_RUN ends in error. Its own failure is only logged.
      */
     private suspend fun stopRoundOnError(e: Throwable) {
         LogManager.aiSession("AI round stopped by an unexpected error: ${e.message}", "ERROR", e)
@@ -298,7 +298,7 @@ class AIEventProcessor(
             val state = stateRepository.currentState
             val sessionId = state.sessionId ?: return
             val reason = e.message ?: e.javaClass.simpleName
-            if (state.sessionType == SessionType.AUTOMATION) {
+            if (state.sessionType == SessionType.ROUTINE_RUN) {
                 emit(AIEvent.SystemErrorOccurred(reason))
                 return
             }
@@ -525,7 +525,7 @@ class AIEventProcessor(
 
             // 3. Regenerate DataCommands from EnrichmentBlocks
             val enrichmentProcessor = app.treelune.core.ai.enrichments.EnrichmentProcessor(context, coordinator)
-            val isRelative = state.sessionType == SessionType.AUTOMATION
+            val isRelative = state.sessionType == SessionType.ROUTINE_RUN
             val allDataCommands = mutableListOf<app.treelune.core.ai.data.DataCommand>()
 
             for (segment in richContent.segments) {
@@ -593,7 +593,7 @@ class AIEventProcessor(
                     excludeFromPrompt = false
                 )
 
-                // Above the size threshold the data waits for the user (CHAT) or is refused (AUTOMATION)
+                // Above the size threshold the data waits for the user (CHAT) or is refused (ROUTINE_RUN)
                 if (storeDataWithinThreshold(state, sessionId, systemSessionMessage)) return
                 LogManager.aiSession("Stored enrichments SystemMessage with ${result.systemMessage.commandResults.size} results", "DEBUG")
             } else {
@@ -639,7 +639,7 @@ class AIEventProcessor(
             if (!providerCheckResult.isValid) {
                 LogManager.aiSession("callAI: Provider check failed: ${providerCheckResult.errorMessage}", "ERROR")
 
-                // Create system message for both CHAT and AUTOMATION (visible in UI, excluded from prompt)
+                // Create system message for both CHAT and ROUTINE_RUN (visible in UI, excluded from prompt)
                 val errorMessage = SessionMessage(
                     id = java.util.UUID.randomUUID().toString(),
                     timestamp = System.currentTimeMillis(),
@@ -659,9 +659,9 @@ class AIEventProcessor(
                 )
                 messageRepository.storeMessage(sessionId, errorMessage)
 
-                // Emit ProviderErrorOccurred - state machine handles CHAT vs AUTOMATION differently
+                // Emit ProviderErrorOccurred - state machine handles CHAT vs ROUTINE_RUN differently
                 // CHAT: returns to IDLE (session stays active)
-                // AUTOMATION: closes session with ERROR reason
+                // ROUTINE_RUN: closes session with ERROR reason
                 emit(AIEvent.ProviderErrorOccurred(providerCheckResult.errorMessage ?: "Provider error"))
                 return
             }
@@ -750,8 +750,8 @@ class AIEventProcessor(
                 )
                 messageRepository.storeMessage(sessionId, networkErrorMessage)
 
-                if (state.sessionType == SessionType.AUTOMATION) {
-                    // AUTOMATION: infinite retry with 30s delay
+                if (state.sessionType == SessionType.ROUTINE_RUN) {
+                    // ROUTINE_RUN: infinite retry with 30s delay
                     emit(AIEvent.NetworkErrorOccurred(0))
                 } else {
                     // CHAT: immediate failure
@@ -1033,8 +1033,8 @@ class AIEventProcessor(
 
                 // Rule 3: nobody answers a routine's question while it runs; refused so that its
                 // AI carries on alone, its summary saying what it assumed
-                if (hasCommunicationModule && state.sessionType == SessionType.AUTOMATION) {
-                    formatErrors.add(s.shared("ai_error_communication_module_in_automation"))
+                if (hasCommunicationModule && state.sessionType == SessionType.ROUTINE_RUN) {
+                    formatErrors.add(s.shared("ai_error_communication_module_in_routine"))
                 }
 
                 // Check the communication module's fields before anything reads them
@@ -1242,8 +1242,8 @@ class AIEventProcessor(
             // Determine guidance message based on reason
             // What the AI is told, and the plain sentence the chat shows for it
             val (type, shown, guidanceText) = when (reason) {
-                ContinuationReason.AUTOMATION_NO_COMMANDS -> Triple(
-                    SystemMessageType.AUTOMATION_NO_COMMANDS, s.shared("ai_automation_no_commands_shown"), s.shared("ai_automation_no_commands_guidance")
+                ContinuationReason.ROUTINE_NO_COMMANDS -> Triple(
+                    SystemMessageType.ROUTINE_NO_COMMANDS, s.shared("ai_routine_no_commands_shown"), s.shared("ai_routine_no_commands_guidance")
                 )
                 ContinuationReason.COMPLETION_CONFIRMATION_REQUIRED -> Triple(
                     SystemMessageType.COMPLETED_CONFIRMATION, s.shared("ai_completion_confirmation_shown"), s.shared("ai_completion_confirmation_required")
@@ -1288,7 +1288,7 @@ class AIEventProcessor(
     /**
      * The instant this session's relative periods resolve against.
      *
-     * An AUTOMATION reads the data of the run it was scheduled for, not of the moment it finally
+     * A ROUTINE_RUN reads the data of the run it was scheduled for, not of the moment it finally
      * got to run: reopened after a long absence, a daily routine catching up on the 3rd of
      * August must read the 3rd of August. Everything else resolves against the clock.
      *
@@ -1296,7 +1296,7 @@ class AIEventProcessor(
      * session gets the same answer as the run that started it.
      */
     private suspend fun periodReference(state: AIState, sessionId: String): Long {
-        if (state.sessionType != SessionType.AUTOMATION) {
+        if (state.sessionType != SessionType.ROUTINE_RUN) {
             return System.currentTimeMillis()
         }
 
@@ -1307,13 +1307,13 @@ class AIEventProcessor(
         val scheduled = sessionData?.get("scheduled_execution_time") as? Long
 
         if (scheduled == null) {
-            // An AUTOMATION session always carries one; without it the periods would silently
+            // A ROUTINE_RUN session always carries one; without it the periods would silently
             // move to today, which is the bug this exists to prevent.
-            LogManager.aiSession("periodReference: AUTOMATION session $sessionId has no scheduledExecutionTime, falling back to now (data error)", "ERROR")
+            LogManager.aiSession("periodReference: ROUTINE_RUN session $sessionId has no scheduledExecutionTime, falling back to now (data error)", "ERROR")
             return System.currentTimeMillis()
         }
 
-        LogManager.aiSession("periodReference: AUTOMATION session $sessionId resolves periods on its scheduled time", "DEBUG")
+        LogManager.aiSession("periodReference: ROUTINE_RUN session $sessionId resolves periods on its scheduled time", "DEBUG")
         return scheduled
     }
 
@@ -1460,7 +1460,7 @@ class AIEventProcessor(
                 excludeFromPrompt = false
             )
 
-            // Above the size threshold the data waits for the user (CHAT) or is refused (AUTOMATION)
+            // Above the size threshold the data waits for the user (CHAT) or is refused (ROUTINE_RUN)
             if (storeDataWithinThreshold(state, sessionId, systemSessionMessage)) return
 
             // Emit event
@@ -1518,7 +1518,7 @@ class AIEventProcessor(
             LogManager.aiSession("executeActions: Processing ${actionCommands.size} action commands", "DEBUG")
 
             // Validation has already been checked in WAITING_VALIDATION phase (CHAT)
-            // or skipped entirely (AUTOMATION)
+            // or skipped entirely (ROUTINE_RUN)
             // Now execute actions directly
 
             // Process via AICommandProcessor
@@ -1659,7 +1659,7 @@ class AIEventProcessor(
      * A session the app was closed on while it executed actions is not executed again: an
      * action replayed would be done twice (an entry created twice, an import run again). Its
      * restored state ends there, with a message that says so, to the AI as to the user: a CHAT
-     * goes back to idle, an AUTOMATION ends INTERRUPTED, which the scheduler does not resume.
+     * goes back to idle, a ROUTINE_RUN ends INTERRUPTED, which the scheduler does not resume.
      * Reads (enrichments, data queries) and the AI call are resumed as before: running them
      * again changes nothing.
      */
@@ -1668,7 +1668,7 @@ class AIEventProcessor(
         if (state.phase == Phase.EXECUTING_ACTIONS) {
             LogManager.aiSession("Session ${state.sessionId} restored while executing actions: not run again", "WARN")
             storeActionsCutMessage(state, "ai_actions_cut_by_app_closing")
-            if (state.sessionType == SessionType.AUTOMATION) emit(AIEvent.SessionCompleted(SessionEndReason.INTERRUPTED))
+            if (state.sessionType == SessionType.ROUTINE_RUN) emit(AIEvent.SessionCompleted(SessionEndReason.INTERRUPTED))
             else emit(AIEvent.AIRoundInterrupted)
             return
         }
@@ -1681,7 +1681,7 @@ class AIEventProcessor(
         }
         // A CHAT restored in the middle of a round waits for the user rather than taking the
         // round up at start: a round that brought the app down would bring it down at every
-        // start. An AUTOMATION is taken up, the scheduler's way; an error stops it (stopRoundOnError).
+        // start. A ROUTINE_RUN is taken up, the scheduler's way; an error stops it (stopRoundOnError).
         if (state.sessionType == SessionType.CHAT && state.phase in ROUND_PHASES) {
             LogManager.aiSession("CHAT ${state.sessionId} restored in ${state.phase}: round interrupted", "WARN")
             emit(AIEvent.AIRoundInterrupted)
@@ -1718,7 +1718,7 @@ class AIEventProcessor(
     }
 
     /**
-     * Schedule session closure with 5s delay (AUTOMATION only), with the end the session reached
+     * Schedule session closure with 5s delay (ROUTINE_RUN only), with the end the session reached
      * that phase with: completed, or its roundtrips used up.
      */
     private fun scheduleSessionClosure(state: AIState) {
@@ -1772,7 +1772,7 @@ class AIEventProcessor(
         }
 
         // A routine's run over for good: its summary kept, and whether it waits for the user (RunEnd)
-        if (state.sessionType == SessionType.AUTOMATION && endReason !in SessionEndReason.resumable) {
+        if (state.sessionType == SessionType.ROUTINE_RUN && endReason !in SessionEndReason.resumable) {
             app.treelune.core.ai.orchestration.RunEnd.end(context, sessionId, endReason, messageRepository.loadMessages(sessionId))
         }
 
@@ -1889,7 +1889,7 @@ class AIEventProcessor(
      * held to none.
      */
     private suspend fun <T> withinAccess(state: AIState, block: suspend () -> T): T {
-        if (state.sessionType != SessionType.AUTOMATION) return block()
+        if (state.sessionType != SessionType.ROUTINE_RUN) return block()
         return kotlinx.coroutines.withContext(app.treelune.core.access.AccessScope.ofRun(context, state.sessionId)) { block() }
     }
 
@@ -1961,7 +1961,7 @@ class AIEventProcessor(
      * The size is that of the data text as the AI would receive it. Within the threshold the
      * message is stored as it is and the caller carries on. Above it:
      * - CHAT: stored out of the prompt as DATA_AWAITING_CONFIRMATION, and the user is asked
-     * - AUTOMATION: nobody can be asked, so the data is not stored; the AI gets a DATA_REFUSED
+     * - ROUTINE_RUN: nobody can be asked, so the data is not stored; the AI gets a DATA_REFUSED
      *   message naming the size, the threshold and the requests, telling it to narrow them
      *
      * @return true when the flow now waits for the user, so the caller must not carry on
@@ -1993,8 +1993,8 @@ class AIEventProcessor(
         messageRepository.storeMessage(sessionId, message.copy(
             systemMessage = systemMessage.copy(
                 type = SystemMessageType.DATA_REFUSED,
-                summary = s.shared("ai_system_data_too_large_automation_shown").format(dataChars, maxDataChars),
-                formattedData = s.shared("ai_system_data_too_large_automation").format(dataChars, maxDataChars)
+                summary = s.shared("ai_system_data_too_large_routine_shown").format(dataChars, maxDataChars),
+                formattedData = s.shared("ai_system_data_too_large_routine").format(dataChars, maxDataChars)
             )
         ))
         return false
@@ -2004,7 +2004,7 @@ class AIEventProcessor(
      * The tools sent always, before the AI is called (docs/AI.md, « 2 levels of context »). Sent, their
      * schemas the AI lacks are stored in the session once, as any schema received. Above their
      * threshold, a CHAT without a choice yet asks for one, the choice holding for the session;
-     * an AUTOMATION says once in its history that they were not sent, the AI getting their list
+     * a ROUTINE_RUN says once in its history that they were not sent, the AI getting their list
      * (PromptManager.buildLevel2Content).
      *
      * @return true when the call waits for the user's choice, so the caller must not carry on
@@ -2056,11 +2056,11 @@ class AIEventProcessor(
             excludeFromPrompt = true
         )
 
-        if (state.sessionType == SessionType.AUTOMATION) {
+        if (state.sessionType == SessionType.ROUTINE_RUN) {
             // Said once per session: every call of it leaves them out alike
             val said = messages.any { message -> message.systemMessage?.commandResults?.any { it.command == "always_send" } == true }
             if (!said) messageRepository.storeMessage(sessionId, stored(
-                s.shared("ai_always_send_automation_refused").format(alwaysSent.chars, threshold), SystemMessageType.DATA_REFUSED
+                s.shared("ai_always_send_routine_refused").format(alwaysSent.chars, threshold), SystemMessageType.DATA_REFUSED
             ))
             return false
         }
@@ -2154,7 +2154,7 @@ class AIEventProcessor(
      *
      * Watchdog logic:
      * - If CHAT active: check timeout only if routine waiting
-     * - If AUTOMATION active: check global timeout + inactivity timeout
+     * - If ROUTINE_RUN active: check global timeout + inactivity timeout
      * - If IDLE: try to activate next session
      */
     private suspend fun handleSchedulerHeartbeat() {
@@ -2178,20 +2178,20 @@ class AIEventProcessor(
                             currentTime = System.currentTimeMillis()
                         )
                     ) {
-                        LogManager.aiSession("Heartbeat: CHAT timeout (automation waiting)", "INFO")
+                        LogManager.aiSession("Heartbeat: CHAT timeout (routine waiting)", "INFO")
                         emit(AIEvent.SessionCompleted(SessionEndReason.TIMEOUT))
                     }
                 }
             }
 
-            SessionType.AUTOMATION -> {
+            SessionType.ROUTINE_RUN -> {
                 if (app.treelune.core.ai.scheduling.SessionSlotPolicy.shouldTimeout(
                         currentState,
                         hasWaitingRoutines = false,
                         currentTime = System.currentTimeMillis()
                     )
                 ) {
-                    LogManager.aiSession("Heartbeat: AUTOMATION timeout", "INFO")
+                    LogManager.aiSession("Heartbeat: ROUTINE_RUN timeout", "INFO")
                     emit(AIEvent.SessionCompleted(SessionEndReason.TIMEOUT))
                 }
             }
@@ -2226,7 +2226,7 @@ class AIEventProcessor(
             val sessionInfo = if (nextSession.isResume()) {
                 "Resume session ${nextSession.sessionId}"
             } else {
-                "Create session from automation ${nextSession.routineId}"
+                "Create session from routine ${nextSession.routineId}"
             }
 
             LogManager.aiSession(

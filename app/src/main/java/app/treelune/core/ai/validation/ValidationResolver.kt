@@ -128,7 +128,7 @@ class ValidationResolver(private val context: Context) {
             // A zone's routines, as its tools: one moved changes the zone it goes to as well
             "CREATE_ROUTINE" -> zoneReason(params["zone_id"] as? String ?: error(s.shared("validation_reason_no_target")), levels)
             "UPDATE_ROUTINE", "DELETE_ROUTINE" -> {
-                val zoneId = routineZone(params["automation_id"] as? String ?: error(s.shared("validation_reason_no_target")))
+                val zoneId = routineZone(params["routine_id"] as? String ?: error(s.shared("validation_reason_no_target")))
                 val target = (params["zone_id"] as? String)?.takeIf { it != zoneId }
                 zoneReason(zoneId, levels) ?: target?.let { zoneReason(it, levels) }
             }
@@ -154,7 +154,7 @@ class ValidationResolver(private val context: Context) {
             "RUN_TASK" -> zoneReason(read("tasks.get", mapOf("task_id" to (params["task_id"] as? String ?: error(s.shared("validation_reason_no_target")))), "task")["zone_id"] as? String
                 ?: error("task without its zone"), levels)
             // A routine's run writes in its zone, as a Task's
-            "RUN_ROUTINE" -> zoneReason(routineZone(params["automation_id"] as? String ?: error(s.shared("validation_reason_no_target"))), levels)
+            "RUN_ROUTINE" -> zoneReason(routineZone(params["routine_id"] as? String ?: error(s.shared("validation_reason_no_target"))), levels)
             // What an event emitted starts belongs to its zone's wiring
             "EMIT_EVENT" -> zoneReason(read("events.get", mapOf("event_id" to (params["event_id"] as? String ?: error(s.shared("validation_reason_no_target")))), "event")["zone_id"] as? String
                 ?: error("event without its zone"), levels)
@@ -205,7 +205,7 @@ class ValidationResolver(private val context: Context) {
         for (place in places) {
             val reason = when (place.tableName) {
                 "tool_data", "files" -> place.toolInstanceId?.let { dataReason(it, levels) } ?: place.zoneId?.let { zoneReason(it, levels) }
-                "tool_instances", "variables", "automations", "ai_sessions", "session_messages" -> place.zoneId?.let { zoneReason(it, levels) } ?: appReason(levels)
+                "tool_instances", "variables", "routines", "ai_sessions", "session_messages" -> place.zoneId?.let { zoneReason(it, levels) } ?: appReason(levels)
                 else -> appReason(levels)
             }
             if (reason != null) return reason
@@ -248,7 +248,7 @@ class ValidationResolver(private val context: Context) {
 
     /** The zone routine [routineId] is in. */
     private suspend fun routineZone(routineId: String): String =
-        read("automations.get", mapOf("automation_id" to routineId), "automation")["zone_id"] as? String ?: error("routine $routineId without its zone")
+        read("routines.get", mapOf("routine_id" to routineId), "routine")["zone_id"] as? String ?: error("routine $routineId without its zone")
 
     /** The tool an action names. */
     private fun toolId(action: DataCommand): String =

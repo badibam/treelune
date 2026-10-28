@@ -21,7 +21,7 @@ data class AIState(
     /** Current execution phase */
     val phase: Phase,
 
-    /** Type of current session (CHAT, AUTOMATION, SEED), null if IDLE */
+    /** Type of current session (CHAT, ROUTINE_RUN, SEED), null if IDLE */
     val sessionType: SessionType?,
 
     /**
@@ -36,7 +36,7 @@ data class AIState(
     /**
      * AI calls made since the user last acted -- sent a message, answered a question or a
      * validation, cancelled, interrupted. Each of those starts the count over, so the limit
-     * bounds what the AI does on its own, never the length of a conversation. An AUTOMATION
+     * bounds what the AI does on its own, never the length of a conversation. A ROUTINE_RUN
      * has nobody acting on it, so there it counts the whole session.
      * Incremented on each AI call.
      */
@@ -46,7 +46,7 @@ data class AIState(
 
     /**
      * Timestamp when session was created.
-     * Used for global timeout calculation (AUTOMATION only).
+     * Used for global timeout calculation (ROUTINE_RUN only).
      */
     val sessionCreatedAt: Long = 0L,
 
@@ -86,14 +86,14 @@ data class AIState(
     // ==================== Continuation Context ====================
 
     /**
-     * Reason for entering PREPARING_CONTINUATION phase (AUTOMATION only).
+     * Reason for entering PREPARING_CONTINUATION phase (ROUTINE_RUN only).
      * Determines which guidance message to send to AI before continuing.
      * Null when not in PREPARING_CONTINUATION phase.
      */
     val continuationReason: ContinuationReason? = null,
 
     /**
-     * Flag indicating AI sent completed=true once (AUTOMATION only).
+     * Flag indicating AI sent completed=true once (ROUTINE_RUN only).
      * Used for double confirmation: first completed=true sets this flag,
      * second completed=true actually completes the session.
      * Reset to false if AI sends anything other than completed=true.
@@ -101,7 +101,7 @@ data class AIState(
     val awaitingCompletionConfirmation: Boolean = false,
 
     /**
-     * Whether the AI was asked once more for the summary its confirmation lacked (AUTOMATION
+     * Whether the AI was asked once more for the summary its confirmation lacked (ROUTINE_RUN
      * only); cleared each time a confirmation is asked. A second confirmation without it closes
      * the session with no summary.
      */

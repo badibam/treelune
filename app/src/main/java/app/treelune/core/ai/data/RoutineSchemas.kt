@@ -21,8 +21,8 @@ import org.json.JSONObject
  */
 object RoutineSchemas {
 
-    const val CONFIG_ID = "automation_config"
-    const val RUNS_ID = "automation_runs"
+    const val CONFIG_ID = "routine_config"
+    const val RUNS_ID = "routine_runs"
 
     /** A routine's config: its zone, its settings (RoutineSettings), its access (AccessMask) and its message (RoutineMessage). */
     fun config(context: Context): Schema {
@@ -35,7 +35,7 @@ object RoutineSchemas {
                 .put("access", access())
                 .put("message", message(s::shared)))
             .put("additionalProperties", false)
-        return Schema(CONFIG_ID, s.shared("automation_display_name"), "", SchemaCategory.AUTOMATION_CONFIG, content.toString())
+        return Schema(CONFIG_ID, s.shared("routine_display_name"), "", SchemaCategory.ROUTINE_CONFIG, content.toString())
     }
 
     /** A list of `{"target": {"kind", "id"}, "level"}`, empty for everything. */
@@ -109,7 +109,7 @@ object RoutineSchemas {
      */
     fun runs(context: Context): Schema {
         val s = Strings.`for`(context = context)
-        return Schema(RUNS_ID, s.shared("automation_runs_display_name"), "", SchemaCategory.AUTOMATION_CONFIG, runsContent().toString())
+        return Schema(RUNS_ID, s.shared("routine_runs_display_name"), "", SchemaCategory.ROUTINE_CONFIG, runsContent().toString())
     }
 
     /** The content of the runs' schema, which needs no context. */

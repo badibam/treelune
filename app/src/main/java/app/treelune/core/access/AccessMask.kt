@@ -109,11 +109,11 @@ class AccessScope(val mask: AccessMask, val holder: String) : AbstractCoroutineC
                 try {
                     AccessMask.fromJson(it.accessJson)
                 } catch (e: Exception) {
-                    app.treelune.core.utils.LogManager.aiSession("Access of automation ${it.id} unreadable: ${e.message}", "ERROR", e)
+                    app.treelune.core.utils.LogManager.aiSession("Access of routine ${it.id} unreadable: ${e.message}", "ERROR", e)
                     null
                 }
             } ?: AccessMask.NOTHING
-            val holder = routine?.name ?: app.treelune.core.strings.Strings.`for`(context = context).shared("automation_unknown")
+            val holder = routine?.name ?: app.treelune.core.strings.Strings.`for`(context = context).shared("routine_unknown")
             return AccessScope(mask, holder)
         }
     }

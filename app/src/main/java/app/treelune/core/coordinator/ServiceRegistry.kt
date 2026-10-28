@@ -53,7 +53,7 @@ class ServiceRegistry(private val context: Context) {
         "files" to ::FileService,
         "ai_sessions" to ::AISessionService,
         "ai_provider_config" to ::AIProviderConfigService,
-        "automations" to ::RoutineService,
+        "routines" to ::RoutineService,
         "apis" to ::ApiService,
         "tasks" to ::TaskService,
         "events" to ::EventService,

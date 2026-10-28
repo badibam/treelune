@@ -243,8 +243,8 @@ class TaskService(private val context: Context) : ExecutableService {
         if (!validation.isValid) return refused(validation.errorMessage ?: s.shared("message_validation_error_simple"))
         val schedule = settings.optJSONObject("schedule")
         val catchUp = settings.optJSONObject("catch_up")
-        if (schedule != null && catchUp == null) return refused(s.shared("automation_catch_up_required"))
-        if (schedule == null && catchUp != null) return refused(s.shared("automation_catch_up_without_schedule"))
+        if (schedule != null && catchUp == null) return refused(s.shared("routine_catch_up_required"))
+        if (schedule == null && catchUp != null) return refused(s.shared("routine_catch_up_without_schedule"))
         schedule?.let {
             try {
                 json.decodeFromString<ScheduleConfig>(it.toString())

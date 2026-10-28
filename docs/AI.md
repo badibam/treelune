@@ -7,8 +7,8 @@ All AI interactions use the same data structure `SessionMessage`, with 5 variant
 
 ### Session types
 - **CHAT**: real-time conversation, absolute queries, communication modules
-- **SEED**: automation template (user message + enrichments), never run
-- **AUTOMATION**: autonomous run, relative queries, copies the SEED messages at the start
+- **SEED**: routine template (user message + enrichments), never run
+- **ROUTINE_RUN**: autonomous run, relative queries, copies the SEED messages at the start
 
 ### Event-driven architecture (V2)
 The AI orchestrator works as a state machine driven by events. A single source of truth with atomic synchronisation memory + DB.
@@ -26,7 +26,7 @@ The AI orchestrator works as a state machine driven by events. A single source o
 - `observeMessages(sessionId): Flow<List<SessionMessage>>`: observable messages
 - `sendMessage(richMessage)`: send a user message
 - `requestChatSession()`: create/activate a CHAT session
-- `executeAutomation(automationId)`: start an automation
+- `executeRoutine(routineId)`: start a routine
 - `stopActiveSession()`: stop with CANCELLED
 - `resumeActiveSession()`: resume the session
 - `resumeWithValidation(approved)`: answer a validation
@@ -44,7 +44,7 @@ The AI orchestrator works as a state machine driven by events. A single source o
 - `WAITING_DATA_CONFIRMATION`: waiting for the user about data beyond the size threshold (CHAT)
 - `EXECUTING_DATA_QUERIES`: running data commands
 - `EXECUTING_ACTIONS`: running action commands
-- `WAITING_NETWORK_RETRY`: waiting for a network retry (AUTOMATION)
+- `WAITING_NETWORK_RETRY`: waiting for a network retry (ROUTINE_RUN)
 - `RETRYING_AFTER_FORMAT_ERROR`: retry after a format error
 - `RETRYING_AFTER_ACTION_FAILURE`: retry after failed actions
 - `COMPLETED`: session over
@@ -87,7 +87,7 @@ data class AISessionEntity(
     val totalRoundtrips: Int,
     val lastEventTime: Long,
     val lastUserInteractionTime: Long,
-    val automationId: String?,
+    val routineId: String?,
     val scheduledExecutionTime: Long?,
     val providerId: String,
     val providerSessionId: String,
@@ -110,7 +110,7 @@ data class SessionMessage(
     val aiMessage: AIMessage?, // AI structure parsed for the UI
     val aiMessageJson: String?, // Original JSON for the prompts' history
     val systemMessage: SystemMessage?, // System messages with results
-    val executionMetadata: ExecutionMetadata?, // Automations only
+    val executionMetadata: ExecutionMetadata?, // Routines only
     val excludeFromPrompt: Boolean = false // Excluded from the prompt (UI messages only)
 )
 ```
@@ -133,7 +133,7 @@ data class AIMessage(
     val postText: String?,
     val keepControl: Boolean?, // true = keeps control after the actions succeed
     val communicationModule: CommunicationModule?,
-    val completed: Boolean? // true = work finished (AUTOMATION only)
+    val completed: Boolean? // true = work finished (ROUTINE_RUN only)
 )
 ```
 
@@ -161,7 +161,7 @@ enum class SystemMessageType {
     SESSION_TIMEOUT, // Session watchdog timeout → filtered from the prompt, visible in the UI (audit + transparency)
     TEXT_OUTSIDE_JSON, // Text written around the answer's JSON, set aside → quoted to the user (summary), the AI receives only the mention (formattedData)
     COMPLETED_CONFIRMATION, // The AI says it has finished → the request for confirmation it receives (formattedData)
-    AUTOMATION_NO_COMMANDS, // An automation answers without a command → the reminder it receives (formattedData)
+    ROUTINE_NO_COMMANDS, // A routine answers without a command → the reminder it receives (formattedData)
     APP_ERROR // An error of the app stops the turn → its cause (formattedData), filtered from the prompt
 }
 ```
@@ -213,9 +213,9 @@ The global configuration of the AI's limits, stored in the settings category `ai
 ```kotlin
 data class AILimitsConfig(
     val chatMaxAutonomousRoundtrips: Int = 10,
-    val automationMaxAutonomousRoundtrips: Int = 20,
+    val routineMaxAutonomousRoundtrips: Int = 20,
     val chatMaxDataChars: Int = 15_000,
-    val automationMaxDataChars: Int = 100_000,
+    val routineMaxDataChars: Int = 100_000,
     val alwaysSendMaxChars: Int = 15_000,
     val chainMaxRuns: Int = 50,
     val dailyBudget: Double? = null,
@@ -226,11 +226,11 @@ data class AILimitsConfig(
 The data size thresholds are described with the waiting for confirmation, section "Validation and communication".
 
 **Limit of calls**:
-- **AutonomousRoundtrips**: the number of calls to the AI in a row. In CHAT, the limit reached hands control back to the user (back to IDLE, the session stays open); in AUTOMATION, it closes the session (`LIMIT_REACHED`).
+- **AutonomousRoundtrips**: the number of calls to the AI in a row. In CHAT, the limit reached hands control back to the user (back to IDLE, the session stays open); in ROUTINE_RUN, it closes the session (`LIMIT_REACHED`).
 
-**Counter**: `totalRoundtrips` counts the calls to the AI since the user's last intervention — a message, an answer to a question or a validation, a cancellation, an interruption. Each one resets it: the limit bounds what the AI does alone, never the length of a conversation. An AUTOMATION, with nobody to intervene, therefore counts its whole session.
+**Counter**: `totalRoundtrips` counts the calls to the AI since the user's last intervention — a message, an answer to a question or a validation, a cancellation, an interruption. Each one resets it: the limit bounds what the AI does alone, never the length of a conversation. A ROUTINE_RUN, with nobody to intervene, therefore counts its whole session.
 
-**Rationale**: each call is billed, and nothing else stops an AI that calls itself in a loop — in CHAT as in AUTOMATION. No separate limits on format errors or action failures: the AI must correct itself, and the roundtrip limit is enough as a net.
+**Rationale**: each call is billed, and nothing else stops an AI that calls itself in a loop — in CHAT as in ROUTINE_RUN. No separate limits on format errors or action failures: the AI must correct itself, and the roundtrip limit is enough as a net.
 
 **Daily budget** (`dailyBudget`, `budgetAlertPercent`, `budgetAlertEvent`, each absent for none; `core/ai/budget`): every AI call of the app counts, conversations, routines and what a Task makes them run alike, summed over the app's day (it starts at the hour the user set) from the messages' costs (`AIDao.getCallUsagesSince`, `SessionCost`). Reached, no call starts any more (`callAI`): its session says so in a system message out of the prompt, a conversation handing back, a routine's run ending; a call in progress finishes, the overrun at most one call. Past the alert, then once reached, a notification each, once in the day (their marks on the phone alone); past the alert too, once in the day, the event chosen (`budget_alert_event`, one that carries nothing, checked when the limits are written). A call of unknown cost counts for nothing: the day's sum shows « ≥ », and under the AI limits the providers whose model has no price, neither set by hand nor in the list of prices, are named (`Budget.unpriced`). The day's spending shows under the AI limits and atop each session's costs (`BudgetLine`). The outside AI of the connector costs the app nothing.
 
@@ -284,14 +284,14 @@ A session, a routine or a zone can name an identity (`identity_id`). A session t
 ## 5. Session control
 
 ### Exclusive active session
-A single active session at a time (CHAT or AUTOMATION). `AISessionScheduler` manages the queue and the activation.
+A single active session at a time (CHAT or ROUTINE_RUN). `AISessionScheduler` manages the queue and the activation.
 
 **Activation rules**:
-- **CHAT**: immediate interruption if another session is active (even an AUTOMATION)
-- **AUTOMATION MANUAL**: queued if the slot is taken, FIFO activation
-- **AUTOMATION SCHEDULED**: created on demand by `tick()` if the slot is free + the queue empty
+- **CHAT**: immediate interruption if another session is active (even a ROUTINE_RUN)
+- **ROUTINE_RUN MANUAL**: queued if the slot is taken, FIFO activation
+- **ROUTINE_RUN SCHEDULED**: created on demand by `tick()` if the slot is free + the queue empty
 
-**Scheduling**: double heartbeat (1 min coroutine with the app open + exact 10 min alarm with the app closed, `SchedulerAlarm`) + event-driven (CRUD of automations, end of a session).
+**Scheduling**: double heartbeat (1 min coroutine with the app open + exact 10 min alarm with the app closed, `SchedulerAlarm`) + event-driven (CRUD of routines, end of a session).
 
 **Inactivity**: computed through `AIState.calculateInactivity()`, the active phases (CALLING_AI, EXECUTING_*) never time out, the waiting phases use `lastUserInteractionTime`.
 
@@ -300,29 +300,29 @@ A single active session at a time (CHAT or AUTOMATION). `AISessionScheduler` man
 - Session evicted to make room for a CHAT
 - Resumes automatically when the slot is free (scheduler)
 
-## 6. Automations
+## 6. Routines
 
 ### Concept
-AUTOMATION sessions created from a SEED template (user message + enrichments). At each trigger: SEED messages copied → new AUTOMATION session → activation.
+ROUTINE_RUN sessions created from a SEED template (user message + enrichments). At each trigger: SEED messages copied → new ROUTINE_RUN session → activation.
 
-`automations.create` writes the routine, its SEED session and its message in a single transaction, or nothing; the message is given in blocks (`AutomationMessage`: text and pointers), empty when the screen writes it afterwards. `ai_sessions.create_session` refuses a SEED session alone.
+`routines.create` writes the routine, its SEED session and its message in a single transaction, or nothing; the message is given in blocks (`RoutineMessage`: text and pointers), empty when the screen writes it afterwards. `ai_sessions.create_session` refuses a SEED session alone.
 
 ### The AI and the routines
-The AI reads, creates, changes and deletes the routines, and reads their runs (`ROUTINES`, `ROUTINE_CONFIG`, `ROUTINE_RUNS`, `ROUTINE_RUN`, `CREATE_ROUTINE`, `UPDATE_ROUTINE`, `DELETE_ROUTINE`) and starts one now (`RUN_ROUTINE`, `automations.execute_manual`, its `data` joined to the end of its message, as a Task's step passes it): a use of its zone, asked for agreement at its zone's level, a run of a routine continuing its chain. Its config is written in the form it is read in (`AutomationSchemas`, schema `automation_config`): `zone_id`, `settings`, `access`, `message` in blocks; the instants and durations pass into ISO there through that schema (`ModelValues`), those of the runs through the schema `automation_runs`. A run is read again as its AI received it (`PromptManager.runHistory`), the data attached at the start replaced by the mention of their pointers. The routines count at their zone's validation level; under a mask, they are written with the zone at `full`, and the mask an AI gives a routine, or leaves it, is never wider than its own (`AccessRules.widening`). `APP_STATE` and the level 3 snapshot carry them in one line each (`AutomationSchemas.listed`), without their message.
+The AI reads, creates, changes and deletes the routines, and reads their runs (`ROUTINES`, `ROUTINE_CONFIG`, `ROUTINE_RUNS`, `ROUTINE_RUN`, `CREATE_ROUTINE`, `UPDATE_ROUTINE`, `DELETE_ROUTINE`) and starts one now (`RUN_ROUTINE`, `routines.execute_manual`, its `data` joined to the end of its message, as a Task's step passes it): a use of its zone, asked for agreement at its zone's level, a run of a routine continuing its chain. Its config is written in the form it is read in (`RoutineSchemas`, schema `routine_config`): `zone_id`, `settings`, `access`, `message` in blocks; the instants and durations pass into ISO there through that schema (`ModelValues`), those of the runs through the schema `routine_runs`. A run is read again as its AI received it (`PromptManager.runHistory`), the data attached at the start replaced by the mention of their pointers. The routines count at their zone's validation level; under a mask, they are written with the zone at `full`, and the mask an AI gives a routine, or leaves it, is never wider than its own (`AccessRules.widening`). `APP_STATE` and the level 3 snapshot carry them in one line each (`RoutineSchemas.listed`), without their message.
 
 ### The AI and the Tasks
 The AI lists the Tasks (`TASKS`, one line each: how many triggers start it, its steps by their kind), reads one whole (`TASK_CONFIG`, schema `task_config`, `TaskSchemas`), writes them (`CREATE_TASK`, `UPDATE_TASK`, `DELETE_TASK`) and runs one now (`RUN_TASK`, which answers the run's id, not its outcome). It reads and writes the events their steps emit and their triggers listen to (`EVENTS`, `CREATE_EVENT`, `UPDATE_EVENT`, `DELETE_EVENT`, docs/CORE.md, « Events »), and emits one (`EMIT_EVENT`, `events.emit`): every value it declares given, of its type; under a mask, using its zone and reading each entry it carries; asked for agreement at its zone's level, as `RUN_TASK`; what listens may be a routine, wired by the user. Its settings' instants and durations pass in ISO 8601 through their schema; a step's constant does too, as the field it fills says (a tool's field, an API's input), never by the look of the value. Under a mask, it writes only steps it could take itself — a routine's run among them, a use of its zone — and runs a Task of a zone it may use (docs/CORE.md, « Tasks »). Its writes ask for approval as a write in the Task's zone, a run too. A routine run by a Task receives what it is passed joined to the end of its message (`execute_manual`'s `data`).
 
 ### Triggering
 **ExecutionTrigger** distinguishes the origin:
-- **MANUAL**: the user clicks Execute → `executeAutomation(id)` → queued if the slot is taken
+- **MANUAL**: the user clicks Execute → `executeRoutine(id)` → queued if the slot is taken
 - **SCHEDULED**: tick() computes the next run → created only if the slot is free + the queue empty
-- **ENTRY**: an entry written that one of its triggers hears (docs/CORE.md, « Triggers ») → `executeAutomation` with the entry attached → queued if the slot is taken
+- **ENTRY**: an entry written that one of its triggers hears (docs/CORE.md, « Triggers ») → `executeRoutine` with the entry attached → queued if the slot is taken
 - **EVENT**, **CONDITION**: an event emitted, a condition become true, that one of its triggers names → the same, a line joined saying what it carried, what was read
 
 **tick() triggers**:
 - Periodic: AIOrchestrator coroutine (1 min, app open) + `SchedulerAlarm` (10 min, app closed)
-- Event-driven: CRUD of automations (create/update/enable/disable)
+- Event-driven: CRUD of routines (create/update/enable/disable)
 - End of a session: scheduler triggered after the slot is freed
 
 ### Pull-based architecture
@@ -331,46 +331,46 @@ tick() {
   if (slotTaken) return
   if (queueNotEmpty) processQueue()
   else {
-    nextSession = AutomationScheduler.getNextSession() // Dynamic computation
-    if (nextSession) executeAutomation(id)
+    nextSession = RoutineScheduler.getNextSession() // Dynamic computation
+    if (nextSession) executeRoutine(id)
   }
 }
 ```
 
-**AutomationScheduler**: a pure computation helper. Finds incomplete sessions (endReason null/NETWORK_ERROR/SUSPENDED) OR the next run from the history.
+**RoutineScheduler**: a pure computation helper. Finds incomplete sessions (endReason null/NETWORK_ERROR/SUSPENDED) OR the next run from the history.
 
 ### Missed runs
 
-When the app did not run at the planned time, the `catch_up` settings of a scheduled automation (declared in `AutomationSettings.catchUpNodes`, present with the schedule and only with it; `AutomationService` refuses the rest):
+When the app did not run at the planned time, the `catch_up` settings of a scheduled routine (declared in `RoutineSettings.catchUpNodes`, present with the schedule and only with it; `RoutineService` refuses the rest):
 
 - **`limit`**: `limited` or `unlimited`, chosen explicitly, without a default value. `limited` brings **`window`**, a DURATION in milliseconds: beyond that delay, the occurrence is skipped — a log line, no session (the history is made of sessions; an empty "skipped" session would be one more form to handle everywhere).
 - **`dismiss_older_instances`**: among the occurrences due, start only the most recent. Not deduced from the window.
 
-An automation's settings (its look, provider, group, activation, schedule, catching up) are declared in `AutomationSettings`; `AutomationService` checks every write against the generated schema, and `Automation.fromResult` is the only reader of its results. Its look is the Look brick's (`AutomationSettings.LOOK`: an icon, `bot` by default, from ICON to SQUARE, EXTENDED by default): a routine is a tile of its group's section among the tools and variables (`grid_x`, `grid_y`, `SectionGrid`), « Routine » under its name (`AutomationTile`): its state and its switch from LINE on, its buttons (run or cancel while queued, a conversation with its message, its page) on a line of their own from EXTENDED on, its last three runs with their summary in SQUARE. A touch opens its page (`AutomationScreen`), its history, which holds the same at its top whatever the mode, and its gear; a long touch, or the gear, opens its config. The actions are one class for both (`AutomationActions`).
+A routine's settings (its look, provider, group, activation, schedule, catching up) are declared in `RoutineSettings`; `RoutineService` checks every write against the generated schema, and `Routine.fromResult` is the only reader of its results. Its look is the Look brick's (`RoutineSettings.LOOK`: an icon, `bot` by default, from ICON to SQUARE, EXTENDED by default): a routine is a tile of its group's section among the tools and variables (`grid_x`, `grid_y`, `SectionGrid`), « Routine » under its name (`RoutineTile`): its state and its switch from LINE on, its buttons (run or cancel while queued, a conversation with its message, its page) on a line of their own from EXTENDED on, its last three runs with their summary in SQUARE. A touch opens its page (`RoutineScreen`), its history, which holds the same at its top whatever the mode, and its gear; a long touch, or the gear, opens its config. The actions are one class for both (`RoutineActions`).
 
-A routine's config (`AutomationConfigScreen`, `Place.AutomationConfig`) is a Task's: its look and group, then its message, written with its pointers (`RichComposer`), then its settings by section (`AutomationSettings.sections`: When, At the end, Advanced, the last ending with its access), read through `automations.config` and written in one call with Save — `automations.create` for a new routine, nothing being made before, `automations.update` otherwise. Its seed session holds the message and is never shown as a conversation.
+A routine's config (`RoutineConfigScreen`, `Place.RoutineConfig`) is a Task's: its look and group, then its message, written with its pointers (`RichComposer`), then its settings by section (`RoutineSettings.sections`: When, At the end, Advanced, the last ending with its access), read through `routines.config` and written in one call with Save — `routines.create` for a new routine, nothing being made before, `routines.update` otherwise. Its seed session holds the message and is never shown as a conversation.
 
-The search for the next occurrence starts at the earliest at `now − window` (`AutomationScheduler.searchStart`). The most recent one due is found by bisection on the search's start (`lastDueOccurrence`): the calculator answers only "the first after this instant", and that answer never decreases as the instant grows.
+The search for the next occurrence starts at the earliest at `now − window` (`RoutineScheduler.searchStart`). The most recent one due is found by bisection on the search's start (`lastDueOccurrence`): the calculator answers only "the first after this instant", and that answer never decreases as the instant grows.
 
-**Time resolution**: an AUTOMATION session resolves its relative dates, `{"relative": "NOW"}` included, on its `scheduledExecutionTime`, not on the clock — otherwise all the catch-up runs read the same day. The instant is chosen by `AIEventProcessor.periodReference()` and goes through `UserCommandProcessor`/`AICommandProcessor` down to `CommandTransformer`. `resolveRelativePeriod` requires it, without a default value. The prompt carries both dates (cf. §8): the data read is anchored on the planned date, what the AI does stays in the present.
+**Time resolution**: a ROUTINE_RUN session resolves its relative dates, `{"relative": "NOW"}` included, on its `scheduledExecutionTime`, not on the clock — otherwise all the catch-up runs read the same day. The instant is chosen by `AIEventProcessor.periodReference()` and goes through `UserCommandProcessor`/`AICommandProcessor` down to `CommandTransformer`. `resolveRelativePeriod` requires it, without a default value. The prompt carries both dates (cf. §8): the data read is anchored on the planned date, what the AI does stays in the present.
 
-**Earlier data**: a scheduled automation saved before these settings is read as "without limit, the most recent only" (`LegacyCatchUp`) — a rule applied by migration 22→23 and by the import of a backup that does not carry the field.
+**Earlier data**: a scheduled routine saved before these settings is read as "without limit, the most recent only" (`LegacyCatchUp`) — a rule applied by migration 22→23 and by the import of a backup that does not carry the field.
 
-### AUTOMATION specifics vs CHAT
+### ROUTINE_RUN specifics vs CHAT
 
 **Completed flag**: the AI signals the end with `completed: true`. The app does not take it at its word: it goes back to `PREPARING_CONTINUATION` with `COMPLETION_CONFIRMATION_REQUIRED` and sends the AI back to work once. If the next answer says `completed: true` again without holding a command, the session ends with `endReason=COMPLETED`. Any answer holding a command lowers the flag: an AI that goes on working starts again from zero.
 
 **Summary of the run**: the request for confirmation also asks for `summary`, what the AI did during the run and why, for the user. A confirmation without it is sent back once (`SUMMARY_REQUIRED`, `AIState.summaryReminded`), then the session closes anyway. At the end of a run for good (a reason outside `SessionEndReason.resumable`), `RunEnd` keeps the summary of the answer that confirmed (column `summary`), counts the writes made and refused or failed, and judges whether there is a problem (an end other than `COMPLETED`, no summary, a write missed); according to the routine's setting (`notify_end`: `always`, `on_problem`, `never`), the run waits for the user to read it (`seen_at` empty) and a notification opens it, or it is seen at once. Opening the run's screen reads it; it shows at the top the summary and the line of facts.
 
-**Automatic continuation**: after the actions succeed, an AUTOMATION continues automatically (no keepControl required).
+**Automatic continuation**: after the actions succeed, a ROUTINE_RUN continues automatically (no keepControl required).
 
-**Keeping alive**: while an AUTOMATION is active (phase neither `IDLE` nor `CLOSED`), `AutomationRun`, which follows the state from `AIOrchestrator.initialize`, holds the foreground service `AutomationRunService` and a partial wake lock: the scheduler's alarm keeps the app awake only for its tick (50 s at most). Its notification names the routine. It goes out 2 s after the end of the session, a routine that follows at once taking it up again: Android refuses to restart it from the background outside the alarm's moment. A routine started by the app's internal heartbeat once the app has been left does not have that right: the refusal is written to the log, the turn goes on without protection.
+**Keeping alive**: while a ROUTINE_RUN is active (phase neither `IDLE` nor `CLOSED`), `RoutineRun`, which follows the state from `AIOrchestrator.initialize`, holds the foreground service `RoutineRunService` and a partial wake lock: the scheduler's alarm keeps the app awake only for its tick (50 s at most). Its notification names the routine. It goes out 2 s after the end of the session, a routine that follows at once taking it up again: Android refuses to restart it from the background outside the alarm's moment. A routine started by the app's internal heartbeat once the app has been left does not have that right: the refusal is written to the log, the turn goes on without protection.
 
-**Network**: a new try every 30 s, phase `WAITING_NETWORK_RETRY` (the watchdog does not count it). After 2 min of waiting in all (`AIStateMachine.AUTOMATION_NETWORK_WAIT_LIMIT`), the session closes as `NETWORK_ERROR`, so as not to keep the phone awake while the network is missing; the scheduler resumes it 5 min later at the earliest (`SessionSlotPolicy.NETWORK_RESUME_PAUSE`) and starts no other occurrence of the same automation meanwhile.
+**Network**: a new try every 30 s, phase `WAITING_NETWORK_RETRY` (the watchdog does not count it). After 2 min of waiting in all (`AIStateMachine.ROUTINE_NETWORK_WAIT_LIMIT`), the session closes as `NETWORK_ERROR`, so as not to keep the phone awake while the network is missing; the scheduler resumes it 5 min later at the earliest (`SessionSlotPolicy.NETWORK_RESUME_PAUSE`) and starts no other occurrence of the same routine meanwhile.
 
-**Communication modules**: nobody answers during a run. An AUTOMATION's prompt does not present the modules and says so (`ai_chunk_automation_completion`); a module received is a FORMAT_ERROR (`ai_error_communication_module_in_automation`) that asks the AI to decide alone and to say in its summary what it assumed. A `validationRequest` is ignored there.
+**Communication modules**: nobody answers during a run. A ROUTINE_RUN's prompt does not present the modules and says so (`ai_chunk_routine_completion`); a module received is a FORMAT_ERROR (`ai_error_communication_module_in_routine`) that asks the AI to decide alone and to say in its summary what it assumed. A `validationRequest` is ignored there.
 
-### Stopping an AUTOMATION
+### Stopping a ROUTINE_RUN
 **UI buttons**:
 - **STOP**: `stopActiveSession()` → `endReason=CANCELLED` (will not resume); the AI call in progress is cut, without waiting for its answer
 
@@ -383,19 +383,19 @@ The search for the next occurrence starts at the earliest at `now − window` (`
 **CHAT**: NEVER closes automatically, always goes back to IDLE (except network/provider/system errors). Roundtrip limit = Int.MAX_VALUE.
 
 ### Resuming sessions
-Automatic detection of orphan sessions by AutomationScheduler:
-- **endReason null**: crash/interruption → an AUTOMATION resumes transparently, except during actions; a CHAT cut in the middle of a turn is interrupted (below)
+Automatic detection of orphan sessions by RoutineScheduler:
+- **endReason null**: crash/interruption → a ROUTINE_RUN resumes transparently, except during actions; a CHAT cut in the middle of a turn is interrupted (below)
 - **NETWORK_ERROR**: 2 min without network → resumed after a 5 min pause
 - **SUSPENDED**: system eviction → resumed when the slot is free
 
 **Transparency**: no system message, the AI does not know it resumes (goes on naturally).
 
-**Actions cut by the app closing**: a session restored in `EXECUTING_ACTIONS` never replays its actions, which a resumption would do twice (a creation, an import). A message, sent to the AI too, says that those finished before took place and the others did not; a CHAT goes back to `IDLE` through `INTERRUPTED`, an AUTOMATION closes as `INTERRUPTED`, which the AutomationScheduler does not resume. A CHAT restored in the middle of a turn (`ROUND_PHASES`: AI call, reads, retries…) is interrupted ("AI answer interrupted") and waits for the user: a turn that brought the app down would bring it down again at every start (`settleRoundCutByAppClosing`); an AUTOMATION resumes. An AUTOMATION restored in `AWAITING_SESSION_CLOSURE` closes at once with the end it had reached, written from the countdown on (`COMPLETED` or `LIMIT_REACHED`), through `RunEnd` like any end; a run waits for the user only once closed (`is_active` false).
+**Actions cut by the app closing**: a session restored in `EXECUTING_ACTIONS` never replays its actions, which a resumption would do twice (a creation, an import). A message, sent to the AI too, says that those finished before took place and the others did not; a CHAT goes back to `IDLE` through `INTERRUPTED`, a ROUTINE_RUN closes as `INTERRUPTED`, which the RoutineScheduler does not resume. A CHAT restored in the middle of a turn (`ROUND_PHASES`: AI call, reads, retries…) is interrupted ("AI answer interrupted") and waits for the user: a turn that brought the app down would bring it down again at every start (`settleRoundCutByAppClosing`); a ROUTINE_RUN resumes. A ROUTINE_RUN restored in `AWAITING_SESSION_CLOSURE` closes at once with the end it had reached, written from the countdown on (`COMPLETED` or `LIMIT_REACHED`), through `RunEnd` like any end; a run waits for the user only once closed (`is_active` false).
 
-**Unexpected error in a turn**: an exception that leaves the state loop or one of its jobs (AI call, actions, retry) stops the turn without killing the app (`stopRoundOnError`): a CHAT goes back to rest, its session open, the error said in its messages outside the prompt; an AUTOMATION ends in error.
+**Unexpected error in a turn**: an exception that leaves the state loop or one of its jobs (AI call, actions, retry) stops the turn without killing the app (`stopRoundOnError`): a CHAT goes back to rest, its session open, the error said in its messages outside the prompt; a ROUTINE_RUN ends in error.
 
 ### SessionEndReason
-The reason a session stopped (audit + resumption logic). An AUTOMATION resumes without a reason or for a reason of `SessionEndReason.resumable` (`SUSPENDED`, `NETWORK_ERROR`); any other reason closes its occurrence, which the AutomationScheduler counts as done and does not start again — the two queries of `AIDao` are the exact opposite of each other:
+The reason a session stopped (audit + resumption logic). A ROUTINE_RUN resumes without a reason or for a reason of `SessionEndReason.resumable` (`SUSPENDED`, `NETWORK_ERROR`); any other reason closes its occurrence, which the RoutineScheduler counts as done and does not start again — the two queries of `AIDao` are the exact opposite of each other:
 - **COMPLETED**: the AI has finished (completed=true)
 - **LIMIT_REACHED**: the maxAutonomousRoundtrips limit reached
 - **ERROR**: provider/system error
@@ -457,7 +457,7 @@ Event DataConfirmationReceived:
   → sent or refused, transition CALLING_AI, the call counter starts again at 1
 
 Event ActionsExecuted:
-  → if allSuccess + (keepControl OR AUTOMATION): transition CALLING_AI
+  → if allSuccess + (keepControl OR ROUTINE_RUN): transition CALLING_AI
   → otherwise (CHAT without keepControl): transition IDLE
   → if actions failed: emits ActionFailureOccurred
 
@@ -469,7 +469,7 @@ Event ParseErrorOccurred:
 
 Event NetworkErrorOccurred:
   → if CHAT: transition IDLE (the session stays active, the user must retry by hand)
-  → if AUTOMATION: transition WAITING_NETWORK_RETRY (automatic retry with a delay)
+  → if ROUTINE_RUN: transition WAITING_NETWORK_RETRY (automatic retry with a delay)
 ```
 
 ### Validation and communication
@@ -493,10 +493,10 @@ Event NetworkErrorOccurred:
 - Stores the answer, deletes the fallback, sends it back to the AI
 
 **Data size threshold**:
-- The data retrieved for the AI, by the user's pointers or by its own queries, is measured in characters of the text it would receive, against `chat_max_data_chars` or `automation_max_data_chars` (`ai_limits`, set in the AI limits screen).
+- The data retrieved for the AI, by the user's pointers or by its own queries, is measured in characters of the text it would receive, against `chat_max_data_chars` or `routine_max_data_chars` (`ai_limits`, set in the AI limits screen).
 - CHAT beyond: the data message is stored outside the prompt (`DATA_AWAITING_CONFIRMATION`), phase `WAITING_DATA_CONFIRMATION`. The waiting context is read again from this message, so the waiting survives a restart. "Send" turns it into `DATA_ADDED` and puts it in the prompt; "Refuse" turns it into `DATA_REFUSED`, without data, with a summary that asks the AI to narrow down.
 - Tools always sent beyond their own threshold: the same waiting and the same card, before the call to the AI, the choice holding for the session (`ALWAYS_SEND_AWAITING_CONFIRMATION`, then `ALWAYS_SEND_ACCEPTED` or `ALWAYS_SEND_REFUSED`, outside the prompt).
-- AUTOMATION beyond: the data is not stored; a `DATA_REFUSED` message goes to the AI with the size, the threshold and the queries concerned, and stays visible in the run's history.
+- ROUTINE_RUN beyond: the data is not stored; a `DATA_REFUSED` message goes to the AI with the size, the threshold and the queries concerned, and stays visible in the run's history.
 - Action results: they go without asking anything, the action being done; beyond the same threshold, `withinChars` cuts them where the room ends (summary and whole results first, in order), with the number of characters not sent.
 - Reads of the MCP connector, against its own threshold, `max_data_chars` of the external access settings (200,000 by default, `McpAccess.maxDataChars`, `McpReads`): a read's size weighs on the outside AI's memory and subscription, never on a key of the app's paid by the call, hence a threshold separate from the chat's. The reads are whole or refused, never cut. A read of entries beyond it is refused, the refusal saying its size and how to ask for less; any other read, and a single entry (`limit` 1), goes in slices: each read tool of the connector takes `text_from`, where the slice starts, the app filling up to the threshold and cutting at the end of a paragraph, a line or a word; the slice says where it stands in the whole and the `text_from` of the next one.
 - The data of the "always send" tools (level 2) is not measured: it is a configuration choice of the user.
@@ -517,7 +517,7 @@ Event NetworkErrorOccurred:
 
 **Nature of the failure**: `AIResponse.failure` (`AIFailure`), set by the provider where the failure happens — never deduced from the message's text. `NETWORK` (nothing reached the provider) = retry; `LOST` (request gone whole, answer never received: connection cut or read delay exceeded) = stop as for a refusal, since the provider may have billed it — `OkHttpClient.awaitReply()` tells the difference, and marks the body "one-shot" so that OkHttp never sends again by itself a request already gone; `REFUSED` (429, 529, credit exhausted) and `CONFIG` (key, model, request) = `ProviderErrorOccurred`, the session stops. A provider therefore no longer words its error messages to fall on the right side of a string test.
 
-**AUTOMATION**:
+**ROUTINE_RUN**:
 - Network check before the call → offline = phase `WAITING_NETWORK_RETRY`
 - 30 s delay + endless retry, reserved for `NETWORK` failures: as long as nothing goes out, nothing is billed
 - The watchdog does not time out during a network retry
@@ -532,7 +532,7 @@ Event NetworkErrorOccurred:
 
 ### Kinds of enrichments
 - **POINTER** - reference data (zones or instances)
-- **FILE** - a text file attached to the message (`FileEnrichment`: `{"file_id", "name", "line_count", "whole"}`), kept by the service `files` with its session (a TEXT file, `docs/DATA.md`, « Kept files »). It comes through « Join » (below), read once as UTF-8 (refused otherwise); the dialog (`FileEnrichmentDialog`) shows name, size, lines and beginning, and "Include whole in the context", checked. It goes as a FILE read, whole or its first 20 lines (FILE reads an entry's text too, under the mask that reads the entry), held to the data size threshold like every enrichment. Cancelled or removed from the composer before sending, the file is deleted; outside a session (an automation's starting message), nothing is joined.
+- **FILE** - a text file attached to the message (`FileEnrichment`: `{"file_id", "name", "line_count", "whole"}`), kept by the service `files` with its session (a TEXT file, `docs/DATA.md`, « Kept files »). It comes through « Join » (below), read once as UTF-8 (refused otherwise); the dialog (`FileEnrichmentDialog`) shows name, size, lines and beginning, and "Include whole in the context", checked. It goes as a FILE read, whole or its first 20 lines (FILE reads an entry's text too, under the mask that reads the entry), held to the data size threshold like every enrichment. Cancelled or removed from the composer before sending, the file is deleted; outside a session (a routine's starting message), nothing is joined.
 
 ### Images
 **Join**, one button of the composer, only in a session, keeps with it what the user joins (`files.join`): a photo (`TakePicture`, into a cache file passed through the `FileProvider`, without the `CAMERA` permission, then `files.attach_image`), a video (`CaptureVideo`) or a sound (the phone's recorder, `RECORD_SOUND_ACTION`) taken now, a file of the phone of any kind (`OpenDocument`), or the files of a tool's field copied (`EntryFieldPicker`, an original image reduced on its way). The pointer keeps its own button. An image (`MessageSegment.Image(image_id)`, `{"type": "image", "image_id"}`) is a block apart, not an enrichment: it never becomes text. A sound or a video (`MessageSegment.Media(file_id)`, `{"type": "media", "file_id"}`) is a block apart too, which the AI reads as a line of text, its kind, id, name and duration (ISO 8601), the id by which it files it in an entry; a text goes through the FILE enrichment's dialog.
@@ -544,7 +544,7 @@ Event NetworkErrorOccurred:
 ### A block's text
 A block stores only its type and its config; its text is written at each reading of the message (`EnrichmentText`), which reads again in two reads all the zones and all the tools. A pointer therefore names its target as it is called today, and a deleted target reads "deleted"; a reading failure shows as such, never as a deletion.
 - **On screen** (`display`, through `rememberDisplayText`): "Tool: Weight (Tracking), data, filtered period".
-- **For the AI** (`prompt`, in `PromptManager` at each sending): the same text with the target's id, and for a mention of narrowed entries the query that reads them. A user message goes to the AI as text; an automation therefore reads the names again at each run.
+- **For the AI** (`prompt`, in `PromptManager` at each sending): the same text with the target's id, and for a mention of narrowed entries the query that reads them. A user message goes to the AI as text; a routine therefore reads the names again at each run.
 
 ### EnrichmentProcessor
 ```kotlin
@@ -560,7 +560,7 @@ class EnrichmentProcessor {
 }
 ```
 
-**Periods**: CHAT (isRelative=false) → fixed dates, AUTOMATION (isRelative=true) → relative dates `{"relative": {"unit", "offset", "edge"}}` (`TimePoint`).
+**Periods**: CHAT (isRelative=false) → fixed dates, ROUTINE_RUN (isRelative=true) → relative dates `{"relative": {"unit", "offset", "edge"}}` (`TimePoint`).
 
 **Flow**: EnrichmentProcessor → DataCommand → CommandTransformer → CommandExecutor → SystemMessage.
 
@@ -578,8 +578,8 @@ class EnrichmentProcessor {
 **What a description says**: what the thing is, at its own level, never what not to do; a mistake of the AI is corrected by making right the description of what it misread. Every value a settings declaration puts in a schema carries one: a setting, a group, a list and one of its elements, each option of a variant (written by the notation on its line, `if end = timed: …`); a section, the screen's alone, has none (`SettingDescriptionsTest` names each value without). The parts every entry has take their meaning in the type at the entry's first level (`EntryDescription`), not in the entries schema. What the AI cannot draw from the descriptions, a type's ergonomic tips (a tracking of one thing gets a shortcut named after it), goes in its `ai_detail`, the only text of a type read before the first turn.
 
 ### 2 levels of context
-**Level 1: DOC** - generated by PromptChunks with configurable degrees of importance. Includes the AI's role, the API documentation, **dynamic AI limits** according to the SessionType, the legend of the schemas' notation, the definition of a field and the schemas of the AI's answer and of a zone, written in that notation (`SchemaNotation`, see `docs/DATA.md`). For AUTOMATION: documentation of the required `completed: true` flag + automatic continuation after the actions succeed.
-**Level 2: USER DATA** - data of the tool instances with `always_send: true`, read with their config (`include_config`) to find the marked tools; their data schemas enter the session once like any schema received (outside a session, `app_context` gives them along). Beyond `always_send_max_chars`, a CHAT asks once per session, an AUTOMATION and an outside AI receive their list.
+**Level 1: DOC** - generated by PromptChunks with configurable degrees of importance. Includes the AI's role, the API documentation, **dynamic AI limits** according to the SessionType, the legend of the schemas' notation, the definition of a field and the schemas of the AI's answer and of a zone, written in that notation (`SchemaNotation`, see `docs/DATA.md`). For ROUTINE_RUN: documentation of the required `completed: true` flag + automatic continuation after the actions succeed.
+**Level 2: USER DATA** - data of the tool instances with `always_send: true`, read with their config (`include_config`) to find the marked tools; their data schemas enter the session once like any schema received (outside a session, `app_context` gives them along). Beyond `always_send_max_chars`, a CHAT asks once per session, a ROUTINE_RUN and an outside AI receive their list.
 
 **APP_STATE**: the home screen's groups, the zones, the tool instances with each one's extra fields (name, label, type) and the variables (zones.list, tools.list_all, variables.list_all), sent as a matter of course with the first message.
 **Enrichments**: stored as a SessionMessage sender=SYSTEM, included in the history.
@@ -622,7 +622,7 @@ suspend fun buildPromptData(sessionId: String): PromptData {
 
 ### Dual resolution mode
 **CHAT** (isRelative=false): absolute periods (Period with fixed timestamps).
-**AUTOMATION** (isRelative=true): relative dates (`TimePoint`), resolved at each run by `TimeResolver` on the planned time.
+**ROUTINE_RUN** (isRelative=true): relative dates (`TimePoint`), resolved at each run by `TimeResolver` on the planned time.
 
 ## 11. Provider abstraction
 
@@ -688,7 +688,7 @@ DeepSeek goes through `ClaudeProviderCore` on its `/anthropic` endpoint (`Messag
 ### Free models and the bench
 The aim: the app's AI running on a free model, on a computer or a server of one's own, for privacy and to depend on no proprietary provider; a home server goes through "Other server", served in https by `tailscale serve` or a reverse proxy. The bench measures what a model does with the app's real prompt, on every use, configuration included.
 
-- **Played by the app itself** (`./run bench`, `scripts/bench.py`): an instrumentation test that knows no scenario (`BenchScenario`) empties the base, sets the provider from its arguments, installs the demo, sends the message or starts the routine, waits for the session at rest, and copies the base; `scripts/bench_checks.py` judges each scenario on the final state of the test zone ("an entry of 300 in Calories, dated today"), a different but valid path succeeding. The scenarios (`scripts/bench_scenarios.py`, on the demo in French): about twenty, in four families after the uses — entering, reading, automation, configuration — each from simple to tricky.
+- **Played by the app itself** (`./run bench`, `scripts/bench.py`): an instrumentation test that knows no scenario (`BenchScenario`) empties the base, sets the provider from its arguments, installs the demo, sends the message or starts the routine, waits for the session at rest, and copies the base; `scripts/bench_checks.py` judges each scenario on the final state of the test zone ("an entry of 300 in Calories, dated today"), a different but valid path succeeding. The scenarios (`scripts/bench_scenarios.py`, on the demo in French): about twenty, in four families after the uses — entering, reading, routine, configuration — each from simple to tricky.
 - **Campaign 1** (2026-10-04, on the emulator through OpenRouter, one run per cell, 19 scenarios; read again by a judge on 2026-10-17), successes without forcing / at the exact schema:
 
 | Model (class of machine) | Without forcing | At the schema |
@@ -707,7 +707,7 @@ Providers managed by `AIProviderConfigService` (`ai_provider_config.kinds`, `lis
 - **Name** required, prefilled with the kind's, unique ignoring case (unique index on `name`); a duplicate is refused saying so, never renamed.
 - **The default**: the first provider created becomes it; deleting the default while others remain asks which becomes it (`new_default_id`), the last one deleted leaves no default. The deletion is refused while a routine names it (`InUse.provider`), the refusal listing them.
 - **Who calls what** (`ProviderVerifier`, before building the prompt): a session calls its own provider (`ai_sessions.provider_id`). A conversation has none at its creation; its first call takes the default and keeps it (`ai_sessions.set_provider`), and its parameters change it, its own reasoning going with it. A routine's run takes the routine's provider at its start. Without a provider, a conversation is refused saying to add one; a provider deleted since refuses the conversation, which can be read again (`ai_session_provider_gone`). No fallback to another.
-- **A routine** can have no provider (`automations.provider_id` null): it is then neither enabled nor started, a refusal to back it, and its tile says so. `CREATE_ROUTINE` requires the key `provider_id`, `null` for none; the form prefills the default; the demo sets its routines with the default, without a provider if there is none.
+- **A routine** can have no provider (`routines.provider_id` null): it is then neither enabled nor started, a refusal to back it, and its tile says so. `CREATE_ROUTINE` requires the key `provider_id`, `null` for none; the form prefills the default; the demo sets its routines with the default, without a provider if there is none.
 - **The AI** reads the providers in the app's state (L3, `ai_providers`: `id`, `name`, `kind`, `is_default`), never their config.
 - **Migration 80** (`ProvidersAtV80`, shared with a backup's import): the eight fixed identifiers of before (`claude_standard`, `compatible_economic`…) that were configured become providers of their kind, under their id and their name, the active one becoming the default; a variant never configured disappears, and a routine that named it is left without a provider, switched off.
 
@@ -754,7 +754,7 @@ if (isLastAIMessage && aiState.waitingContext is WaitingContext.Communication) {
 7. Transition `CALLING_AI` → send back to the AI
 
 ### Validation of the AI's actions
-**Levels**: each keeps what it holds directly, nothing by default; the validation holds where someone is there to answer (the app's conversation, an outside AI through the connector, whose protected write waits for a notification with Accept and Refuse, 90 s at most under the relay's 120 s cut, `McpApprovals`), the access mask where nobody is (a routine, a connector's client). The app (`validation_config.validate_app`): the zones, the home screen's groups. A zone (`zones.validate`): its tools, their configs included, its tool groups, its variables. A tool (`validate_data` of its config): its entries. Apart from the levels, a config change that removes, deletes or reads differently recorded values asks for agreement as long as "Protect past data" is checked (`validation_config.validate_past_data`, on by default, `docs/DATA.md`, « Config change »), its counts read through a dry run (`tools.update` with `dry_run`). The session extends a level to all its objects (`SessionValidation`: three checkboxes, which only add); the AI can ask by itself (`validation_request` at `true`; `false` is worth its absence). An action is validated as soon as one of them asks for it; what the resolver cannot read to decide is asked too, with the reason. An automation asks nothing: it is bounded by its access mask (`AccessMask`, `automations.access_json`, empty by default: everything is reached), a list of zones and tools (the Thing brick) each in read, use or full; a zone in read gives its tools in read, in use or full gives them in full. On a zone, read reaches the zone, its tools, their data and its variables, use adds creating, changing and deleting its tools and variables, full its own config; on a tool, use adds writing its data, full its config. A list given, everything outside it is refused, creating a zone and changing the home screen's groups included. `AIEventProcessor` runs its AI's queries and actions under an `AccessScope`, which the coordinator reads for every command the app does not make itself: `AccessRules` says what each operation reaches and refuses what goes beyond, the app and what they cannot place included, the lists, schemas, icons and the date staying free. The prompt's level 2 tells the AI the mask. The "always send" tools reach it even outside the mask, in read: a context chosen for every AI, which the mask's card and the prompt say. The protections change only through the user or the app itself (`Protections`, according to the origin): the AI, the connector or the scheduler that changes them is refused, and a tool config they write without `validate_data` keeps the tool's.
+**Levels**: each keeps what it holds directly, nothing by default; the validation holds where someone is there to answer (the app's conversation, an outside AI through the connector, whose protected write waits for a notification with Accept and Refuse, 90 s at most under the relay's 120 s cut, `McpApprovals`), the access mask where nobody is (a routine, a connector's client). The app (`validation_config.validate_app`): the zones, the home screen's groups. A zone (`zones.validate`): its tools, their configs included, its tool groups, its variables. A tool (`validate_data` of its config): its entries. Apart from the levels, a config change that removes, deletes or reads differently recorded values asks for agreement as long as "Protect past data" is checked (`validation_config.validate_past_data`, on by default, `docs/DATA.md`, « Config change »), its counts read through a dry run (`tools.update` with `dry_run`). The session extends a level to all its objects (`SessionValidation`: three checkboxes, which only add); the AI can ask by itself (`validation_request` at `true`; `false` is worth its absence). An action is validated as soon as one of them asks for it; what the resolver cannot read to decide is asked too, with the reason. A routine asks nothing: it is bounded by its access mask (`AccessMask`, `routines.access_json`, empty by default: everything is reached), a list of zones and tools (the Thing brick) each in read, use or full; a zone in read gives its tools in read, in use or full gives them in full. On a zone, read reaches the zone, its tools, their data and its variables, use adds creating, changing and deleting its tools and variables, full its own config; on a tool, use adds writing its data, full its config. A list given, everything outside it is refused, creating a zone and changing the home screen's groups included. `AIEventProcessor` runs its AI's queries and actions under an `AccessScope`, which the coordinator reads for every command the app does not make itself: `AccessRules` says what each operation reaches and refuses what goes beyond, the app and what they cannot place included, the lists, schemas, icons and the date staying free. The prompt's level 2 tells the AI the mask. The "always send" tools reach it even outside the mask, in read: a context chosen for every AI, which the mask's card and the prompt say. The protections change only through the user or the app itself (`Protections`, according to the origin): the AI, the connector or the scheduler that changes them is refused, and a tool config they write without `validate_data` keeps the tool's.
 
 **Flow**: ValidationResolver analyses the actions → generates a ValidationContext (verbalised actions + reasons + config warnings) → `WaitingContext.Validation` created → the UI shows it inline → the user validates/refuses → `resumeWithValidation(validated)`.
 

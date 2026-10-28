@@ -109,12 +109,12 @@ class PastDataValidationTest {
 
     /** The results of the tightening run by a routine given [access], as its AI's actions run. */
     private suspend fun byRoutine(access: List<Map<String, Any>>): app.treelune.core.ai.data.CommandResult {
-        val created = coordinator.processUserAction("automations.create", mapOf(
+        val created = coordinator.processUserAction("routines.create", mapOf(
             "zone_id" to zoneId, "name" to "Weekly", "identity_id" to null, "provider_id" to null, "is_enabled" to false,
             "message" to listOf(mapOf("type" to RoutineMessage.TEXT, "text" to "hi")), "access" to access
         ))
         assertTrue(created.error, created.isSuccess)
-        val session = coordinator.processUserAction("ai_sessions.create_session", mapOf("name" to "Weekly", "type" to "AUTOMATION", "automation_id" to created.data!!["automation_id"]))
+        val session = coordinator.processUserAction("ai_sessions.create_session", mapOf("name" to "Weekly", "type" to "ROUTINE_RUN", "routine_id" to created.data!!["routine_id"]))
         assertTrue(session.error, session.isSuccess)
         val sessionId = session.data!!["session_id"] as String
         val command = AICommandProcessor(context).processActionCommands(listOf(tightening())).executableCommands.single()

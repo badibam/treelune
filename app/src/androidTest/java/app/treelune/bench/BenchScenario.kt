@@ -56,7 +56,7 @@ class BenchScenario {
         val deadline = started + arg("timeout_minutes").toLong() * 60_000
         val outcome = when (val kind = arg("kind")) {
             "chat" -> playChat(String(Base64.decode(arg("message_b64"), Base64.DEFAULT), Charsets.UTF_8), deadline)
-            "automation" -> playRoutine(context, arg("automation_id"), started, deadline)
+            "routine" -> playRoutine(context, arg("routine_id"), started, deadline)
             else -> error("Unknown kind '$kind'")
         }
         // A session still running is stopped, so the copy reads a base at rest
@@ -130,7 +130,7 @@ class BenchScenario {
         val db = AppDatabase.getDatabase(context)
         fun ended(): Boolean = kotlinx.coroutines.runBlocking {
             db.useReaderConnection { connection ->
-                connection.usePrepared("SELECT end_reason FROM ai_sessions WHERE automation_id = ? AND type = 'AUTOMATION' AND created_at >= ?") { statement ->
+                connection.usePrepared("SELECT end_reason FROM ai_sessions WHERE routine_id = ? AND type = 'ROUTINE_RUN' AND created_at >= ?") { statement ->
                     statement.bindText(1, routineId)
                     statement.bindLong(2, started)
                     statement.step() && !statement.isNull(0)

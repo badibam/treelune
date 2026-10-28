@@ -50,7 +50,7 @@ class BackupPartTest {
                 .put(JSONObject().put("id", "e2").put("tool_instance_id", "foods"))
                 .put(JSONObject().put("id", "e3").put("tool_instance_id", "runs")))
             .put("variables", JSONArray().put(JSONObject().put("id", "v1").put("name", "kcal").put("zone_id", "z1").put("group", "Analyse")))
-            .put("automations", JSONArray().put(JSONObject().put("id", "a1").put("name", "Bilan").put("zone_id", "z1").put("seed_session_id", "seed")
+            .put("routines", JSONArray().put(JSONObject().put("id", "a1").put("name", "Bilan").put("zone_id", "z1").put("seed_session_id", "seed")
                 .put("provider_id", "p1").put("identity_id", "i1").put("last_execution_id", "run").put("execution_history_json", "[\"run\"]")))
             .put("tasks", JSONArray().put(JSONObject().put("id", "t1").put("name", "Courses").put("zone_id", "z1").put("is_enabled", true)
                 .put("steps_json", JSONArray().put(JSONObject().put("kind", "call_api").put("api_id", "api1"))
@@ -103,7 +103,7 @@ class BackupPartTest {
 
     @Test
     fun `a routine goes with its message, without its provider, its identity or its runs`() {
-        val routine = row("automations", cut(backup(), PartSelection(setOf("z1"), emptyMap(), emptySet(), setOf("a1"), emptySet())).getJSONObject("data"), "a1")
+        val routine = row("routines", cut(backup(), PartSelection(setOf("z1"), emptyMap(), emptySet(), setOf("a1"), emptySet())).getJSONObject("data"), "a1")
         assertEquals("seed", routine.getString("seed_session_id"))
         listOf("provider_id", "identity_id", "last_execution_id").forEach { assertTrue(it, routine.isNull(it)) }
         assertEquals("[]", routine.getString("execution_history_json"))
@@ -114,7 +114,7 @@ class BackupPartTest {
         val data = cut(backup(), PartSelection(setOf("z1"), emptyMap(), emptySet(), setOf("a1"), setOf("i1"))).getJSONObject("data")
         assertEquals(listOf("i1"), ids(data, "identities"))
         assertEquals("i1", row("zones", data, "z1").getString("identity_id"))
-        val routine = row("automations", data, "a1")
+        val routine = row("routines", data, "a1")
         assertEquals("i1", routine.getString("identity_id"))
         assertTrue(routine.isNull("provider_id"))
     }

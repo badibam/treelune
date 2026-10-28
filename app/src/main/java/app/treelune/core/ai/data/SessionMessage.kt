@@ -71,12 +71,12 @@ data class ExecutionFeedback(
 data class AISession(
     val id: String,
     val name: String,
-    val type: SessionType,         // CHAT, AUTOMATION, SEED
+    val type: SessionType,         // CHAT, ROUTINE_RUN, SEED
     val validation: SessionValidation = SessionValidation(),
     val reasoning: SessionReasoning? = null,     // null: its provider's config
     val waitingStateJson: String? = null,        // Persisted waiting state for app closure (null = no waiting)
-    val routineId: String? = null,            // null for CHAT/SEED, routine ID for AUTOMATION
-    val scheduledExecutionTime: Long? = null,    // For AUTOMATION: scheduled trigger time (not actual exec time)
+    val routineId: String? = null,            // null for CHAT/SEED, routine ID for ROUTINE_RUN
+    val scheduledExecutionTime: Long? = null,    // For ROUTINE_RUN: scheduled trigger time (not actual exec time)
     val providerId: String?,       // The provider it calls; null for a conversation not begun and a seed
     val providerSessionId: String, // Provider API session ID
     val createdAt: Long,

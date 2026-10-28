@@ -49,7 +49,7 @@ object Chains {
         coroutineContext[ChainLink]?.let { return it.chainId }
         val sessionId = coroutineContext[StepSession]?.sessionId ?: return null
         val session = AppDatabase.getDatabase(context).aiDao().getSession(sessionId) ?: return null
-        if (session.type != SessionType.AUTOMATION) return null
+        if (session.type != SessionType.ROUTINE_RUN) return null
         return session.chainId ?: session.id
     }
 

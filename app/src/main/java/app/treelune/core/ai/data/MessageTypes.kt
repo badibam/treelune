@@ -12,7 +12,7 @@ enum class MessageSender {
 
 enum class SessionType {
     CHAT,       // Interactive conversation with user
-    AUTOMATION, // Automated execution session
+    ROUTINE_RUN, // Automated execution session
     SEED        // Template session for routine (not executed)
 }
 
@@ -36,10 +36,10 @@ enum class SessionState {
  */
 enum class SessionEndReason {
     COMPLETED,       // AI indicated completion with completed flag
-    LIMIT_REACHED,   // Autonomous loop limit reached (maxAutonomousRoundtrips for AUTOMATION)
+    LIMIT_REACHED,   // Autonomous loop limit reached (maxAutonomousRoundtrips for ROUTINE_RUN)
     TIMEOUT,         // Watchdog timeout (inactivity without network issue)
     ERROR,           // Fatal technical error (format errors maxed out, provider error, etc.)
-    CANCELLED,       // User clicked stop (or CHAT evicted by AUTOMATION)
+    CANCELLED,       // User clicked stop (or CHAT evicted by ROUTINE_RUN)
     INTERRUPTED,     // Legacy/alias for null (crash detected as orphan)
     NETWORK_ERROR,   // Timeout with network flag active (to resume)
     SUSPENDED;       // To resume later

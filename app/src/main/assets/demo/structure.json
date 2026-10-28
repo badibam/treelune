@@ -3007,7 +3007,7 @@
       }
     }
   ],
-  "automations": [
+  "routines": [
     {
       "id": "demo-auto-weekly-review",
       "seed_session_id": "demo-seed-weekly-review",

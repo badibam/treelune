@@ -8,7 +8,7 @@ import org.json.JSONObject
  *
  * One limit per session type: how many times the AI may be called on its own. The count
  * restarts at every user intervention in a CHAT, so the limit stops an AI that keeps calling
- * itself -- each call is paid for -- without bounding a conversation. An AUTOMATION has nobody
+ * itself -- each call is paid for -- without bounding a conversation. A ROUTINE_RUN has nobody
  * to intervene and counts its whole session.
  *
  * These defaults are the only ones: a fresh install or a reset writes them to the database
@@ -18,7 +18,7 @@ data class AILimitsConfig(
     /** Maximum AI calls in a row for CHAT sessions, counted from the last user intervention */
     val chatMaxAutonomousRoundtrips: Int = 10,
 
-    /** Maximum total autonomous roundtrips for AUTOMATION sessions (safety against infinite loops) */
+    /** Maximum total autonomous roundtrips for ROUTINE_RUN sessions (safety against infinite loops) */
     val routineMaxAutonomousRoundtrips: Int = 20,
 
     /**
@@ -29,7 +29,7 @@ data class AILimitsConfig(
     val chatMaxDataChars: Int = 15_000,
 
     /**
-     * Same, for an AUTOMATION, where data above it is refused outright: nobody is there to
+     * Same, for a ROUTINE_RUN, where data above it is refused outright: nobody is there to
      * confirm. 100 000 is over twice what the routines of the 2026-09-18 backup send
      * (about 43 000 on nearly every run).
      */
@@ -37,7 +37,7 @@ data class AILimitsConfig(
 
     /**
      * Size, in characters of the text the AI receives, of the tools marked always_send together
-     * above which a CHAT asks once per session whether to send them, and an AUTOMATION or an
+     * above which a CHAT asks once per session whether to send them, and a ROUTINE_RUN or an
      * outside AI gets their list instead (docs/AI.md, « 2 levels of context »). Distinct from the data
      * thresholds, which guard what the AI asks for: this one guards a cost the user chose and
      * that grows unseen, paid at every call.
@@ -76,12 +76,12 @@ data class AILimitsConfig(
                 maxAutonomousRoundtrips = chatMaxAutonomousRoundtrips,
                 maxDataChars = chatMaxDataChars
             )
-            SessionType.AUTOMATION -> SessionLimits(
+            SessionType.ROUTINE_RUN -> SessionLimits(
                 maxAutonomousRoundtrips = routineMaxAutonomousRoundtrips,
                 maxDataChars = routineMaxDataChars
             )
             SessionType.SEED -> {
-                // SEED sessions are never executed, use AUTOMATION limits as fallback
+                // SEED sessions are never executed, use ROUTINE_RUN limits as fallback
                 SessionLimits(
                     maxAutonomousRoundtrips = routineMaxAutonomousRoundtrips,
                     maxDataChars = routineMaxDataChars
@@ -105,9 +105,9 @@ data class AILimitsConfig(
 
     companion object {
         const val KEY_CHAT = "chat_max_autonomous_roundtrips"
-        const val KEY_ROUTINE = "automation_max_autonomous_roundtrips"
+        const val KEY_ROUTINE = "routine_max_autonomous_roundtrips"
         const val KEY_CHAT_DATA = "chat_max_data_chars"
-        const val KEY_ROUTINE_DATA = "automation_max_data_chars"
+        const val KEY_ROUTINE_DATA = "routine_max_data_chars"
         const val KEY_ALWAYS_SEND = "always_send_max_chars"
         const val KEY_CHAIN = "chain_max_runs"
         const val KEY_BUDGET = "daily_budget"
@@ -141,6 +141,6 @@ data class AILimitsConfig(
  */
 data class SessionLimits(
     val maxAutonomousRoundtrips: Int,
-    /** Characters of data text above which a CHAT asks for confirmation and an AUTOMATION refuses */
+    /** Characters of data text above which a CHAT asks for confirmation and a ROUTINE_RUN refuses */
     val maxDataChars: Int
 )

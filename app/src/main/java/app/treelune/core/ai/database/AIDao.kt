@@ -68,7 +68,7 @@ interface AIDao {
      */
     @Query("""
         SELECT * FROM ai_sessions
-        WHERE type = 'AUTOMATION' AND seen_at IS NULL AND is_active = 0
+        WHERE type = 'ROUTINE_RUN' AND seen_at IS NULL AND is_active = 0
           AND end_reason IS NOT NULL AND end_reason NOT IN ${SessionEndReason.RESUMABLE_SQL}
     """)
     suspend fun getWaitingRuns(): List<AISessionEntity>
@@ -128,7 +128,7 @@ interface AIDao {
     suspend fun getSessionCountByType(type: String): Int
 
     /** The routine runs of the chain [chainId] (Chains): the run it is named after, and those that continue it. */
-    @Query("SELECT COUNT(*) FROM ai_sessions WHERE type = 'AUTOMATION' AND (id = :chainId OR chain_id = :chainId)")
+    @Query("SELECT COUNT(*) FROM ai_sessions WHERE type = 'ROUTINE_RUN' AND (id = :chainId OR chain_id = :chainId)")
     suspend fun countInChain(chainId: String): Int
 
     @Query("SELECT COUNT(*) FROM session_messages WHERE session_id = :sessionId")
@@ -160,22 +160,22 @@ interface AIDao {
 
     // === Routines ===
 
-    @Query("SELECT * FROM automations WHERE id = :id")
+    @Query("SELECT * FROM routines WHERE id = :id")
     suspend fun getRoutineById(id: String): RoutineEntity?
 
-    @Query("SELECT * FROM automations WHERE zone_id = :zoneId ORDER BY created_at DESC")
+    @Query("SELECT * FROM routines WHERE zone_id = :zoneId ORDER BY created_at DESC")
     suspend fun getRoutinesByZone(zoneId: String): List<RoutineEntity>
 
-    @Query("SELECT * FROM automations WHERE seed_session_id = :seedSessionId")
+    @Query("SELECT * FROM routines WHERE seed_session_id = :seedSessionId")
     suspend fun getRoutineBySeedSession(seedSessionId: String): RoutineEntity?
 
-    @Query("SELECT * FROM automations ORDER BY created_at DESC")
+    @Query("SELECT * FROM routines ORDER BY created_at DESC")
     suspend fun getAllRoutines(): List<RoutineEntity>
 
-    @Query("SELECT * FROM automations WHERE is_enabled = 1")
+    @Query("SELECT * FROM routines WHERE is_enabled = 1")
     suspend fun getAllEnabledRoutines(): List<RoutineEntity>
 
-    @Query("UPDATE automations SET grid_x = :gridX, grid_y = :gridY WHERE id = :id")
+    @Query("UPDATE routines SET grid_x = :gridX, grid_y = :gridY WHERE id = :id")
     suspend fun updateRoutinePosition(id: String, gridX: Int, gridY: Int)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -184,10 +184,10 @@ interface AIDao {
     @Update
     suspend fun updateRoutine(routine: RoutineEntity)
 
-    @Query("DELETE FROM automations WHERE id = :id")
+    @Query("DELETE FROM routines WHERE id = :id")
     suspend fun deleteRoutineById(id: String)
 
-    @Query("UPDATE automations SET is_enabled = :enabled, updated_at = :updatedAt WHERE id = :id")
+    @Query("UPDATE routines SET is_enabled = :enabled, updated_at = :updatedAt WHERE id = :id")
     suspend fun setRoutineEnabled(id: String, enabled: Boolean, updatedAt: Long)
 
 
@@ -279,7 +279,7 @@ interface AIDao {
      */
     @Query("""
         SELECT * FROM ai_sessions
-        WHERE type = 'AUTOMATION'
+        WHERE type = 'ROUTINE_RUN'
           AND (end_reason IS NULL OR end_reason IN ${SessionEndReason.RESUMABLE_SQL})
           AND is_active = 0
         ORDER BY scheduled_execution_time ASC
@@ -293,8 +293,8 @@ interface AIDao {
      */
     @Query("""
         SELECT * FROM ai_sessions
-        WHERE automation_id = :routineId
-          AND type = 'AUTOMATION'
+        WHERE routine_id = :routineId
+          AND type = 'ROUTINE_RUN'
           AND (end_reason IS NULL OR end_reason IN ${SessionEndReason.RESUMABLE_SQL})
           AND is_active = 0
         ORDER BY scheduled_execution_time DESC
@@ -310,8 +310,8 @@ interface AIDao {
      */
     @Query("""
         SELECT * FROM ai_sessions
-        WHERE automation_id = :routineId
-          AND type = 'AUTOMATION'
+        WHERE routine_id = :routineId
+          AND type = 'ROUTINE_RUN'
           AND end_reason IS NOT NULL AND end_reason NOT IN ${SessionEndReason.RESUMABLE_SQL}
         ORDER BY scheduled_execution_time DESC
         LIMIT 1
@@ -325,8 +325,8 @@ interface AIDao {
      */
     @Query("""
         SELECT * FROM ai_sessions
-        WHERE automation_id = :routineId
-          AND type = 'AUTOMATION'
+        WHERE routine_id = :routineId
+          AND type = 'ROUTINE_RUN'
           AND (:startTime IS NULL OR created_at >= :startTime)
           AND (:endTime IS NULL OR created_at <= :endTime)
         ORDER BY scheduled_execution_time DESC
@@ -346,8 +346,8 @@ interface AIDao {
      */
     @Query("""
         SELECT COUNT(*) FROM ai_sessions
-        WHERE automation_id = :routineId
-          AND type = 'AUTOMATION'
+        WHERE routine_id = :routineId
+          AND type = 'ROUTINE_RUN'
           AND (:startTime IS NULL OR created_at >= :startTime)
           AND (:endTime IS NULL OR created_at <= :endTime)
     """)

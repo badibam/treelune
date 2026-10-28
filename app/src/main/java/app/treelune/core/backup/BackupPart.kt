@@ -29,7 +29,7 @@ data class PartSelection(
         .put("zones", JSONArray(zones.toList()))
         .put("tools", JSONArray(tools.map { (id, entries) -> JSONObject().put("id", id).put("entries", entries) }))
         .put("variables", JSONArray(variables.toList()))
-        .put("automations", JSONArray(routines.toList()))
+        .put("routines", JSONArray(routines.toList()))
         .put("identities", JSONArray(identities.toList()))
         .put("tasks", JSONArray(tasks.toList()))
         .put("apis", JSONArray(apis.toList()))
@@ -52,7 +52,7 @@ data class PartSelection(
             val tools = json.getJSONArray("tools").let { array ->
                 (0 until array.length()).associate { array.getJSONObject(it).let { tool -> tool.getString("id") to tool.getBoolean("entries") } }
             }
-            return PartSelection(ids("zones"), tools, ids("variables"), ids("automations"), ids("identities"), ids("tasks"), ids("apis"))
+            return PartSelection(ids("zones"), tools, ids("variables"), ids("routines"), ids("identities"), ids("tasks"), ids("apis"))
         }
     }
 }
@@ -88,7 +88,7 @@ object BackupPart {
         val zones = rows(data, "zones")
         val tools = rows(data, "tool_instances")
         val variables = rows(data, "variables")
-        val routines = rows(data, "automations")
+        val routines = rows(data, "routines")
         val identities = rows(data, "identities")
         val tasks = rows(data, "tasks")
         val apis = rows(data, "apis")
@@ -166,7 +166,7 @@ object BackupPart {
                 .put("tool_instances", JSONArray(keptTools))
                 .put("tool_data", JSONArray(entries))
                 .put("variables", JSONArray(keptVariables))
-                .put("automations", JSONArray(keptRoutines))
+                .put("routines", JSONArray(keptRoutines))
                 .put("tasks", JSONArray(keptTaskRows))
                 .put("apis", JSONArray(keptApis))
                 .put("events", JSONArray(keptEvents))

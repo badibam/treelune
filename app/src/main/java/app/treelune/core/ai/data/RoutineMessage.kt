@@ -42,21 +42,21 @@ object RoutineMessage {
      * @throws IllegalArgumentException naming the first block that does not read
      */
     fun fromBlocks(blocks: JSONArray, text: (String) -> String): RichMessage = RichMessage((0 until blocks.length()).map { i ->
-        val block = blocks.optJSONObject(i) ?: throw IllegalArgumentException(text("automation_message_block_unreadable").format(i, blocks.opt(i)))
+        val block = blocks.optJSONObject(i) ?: throw IllegalArgumentException(text("routine_message_block_unreadable").format(i, blocks.opt(i)))
         when (val type = block.optString("type")) {
             TEXT -> MessageSegment.Text(block.optString("text").takeIf { block.has("text") }
-                ?: throw IllegalArgumentException(text("automation_message_block_unreadable").format(i, block)))
+                ?: throw IllegalArgumentException(text("routine_message_block_unreadable").format(i, block)))
             POINTER -> {
-                val stored = block.optJSONObject("pointer") ?: throw IllegalArgumentException(text("automation_message_block_unreadable").format(i, block))
+                val stored = block.optJSONObject("pointer") ?: throw IllegalArgumentException(text("routine_message_block_unreadable").format(i, block))
                 val pointer = try {
                     PointerConfig.fromJson(stored, text)
                 } catch (e: Exception) {
-                    throw IllegalArgumentException(text("automation_message_block_unreadable").format(i, e.message ?: stored))
+                    throw IllegalArgumentException(text("routine_message_block_unreadable").format(i, e.message ?: stored))
                 }
-                pointer.selection.problem(text)?.let { throw IllegalArgumentException(text("automation_message_block_unreadable").format(i, it)) }
+                pointer.selection.problem(text)?.let { throw IllegalArgumentException(text("routine_message_block_unreadable").format(i, it)) }
                 MessageSegment.EnrichmentBlock(EnrichmentType.POINTER, pointer.toJson().toString())
             }
-            else -> throw IllegalArgumentException(text("automation_message_block_type").format(i, type))
+            else -> throw IllegalArgumentException(text("routine_message_block_type").format(i, type))
         }
     })
 }

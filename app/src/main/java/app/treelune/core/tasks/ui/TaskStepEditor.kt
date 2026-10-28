@@ -168,7 +168,7 @@ private fun RunRoutine(step: JSONObject, earlier: Earlier, s: StringsContext, wi
     val context = LocalContext.current
     var routines by remember { mutableStateOf<List<Map<*, *>>>(emptyList()) }
     LaunchedEffect(Unit) {
-        routines = (Coordinator(context).processUserAction("automations.list_all").data?.get("automations") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>()
+        routines = (Coordinator(context).processUserAction("routines.list_all").data?.get("routines") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>()
     }
     Choice(s.shared("task_step_routine"), routines.map { it["id"] as String to it["name"] as String }, step.optString(TaskSteps.ROUTINE_ID).ifEmpty { null }) { id ->
         with { put(TaskSteps.ROUTINE_ID, id) }

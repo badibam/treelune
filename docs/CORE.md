@@ -53,7 +53,7 @@ Each operation automatically receives a unique CancellationToken, created by the
 **Principle**: a single entry point for AI + Tools scheduling through the discovery pattern.
 
 **Heartbeat**: a 1 min coroutine (app open) + an exact 10 min alarm (`SchedulerAlarm`, app closed and phone asleep included), set again at each ring, at the phone's restart, at the app's update and after each tick; earlier when a tool's scheduler announces its next action (`ToolScheduler.nextAction`, an event's reminder), within Android's limit in deep sleep (one ring every ~9 min). A tool config created or changed runs its type's scheduler at once, as the scheduler (`CoreScheduler.runTool`, called by `ToolInstanceService`): a new Agenda series receives its occurrences without waiting for the tick, wherever it comes from. The process sets the scheduler's context (`CoreScheduler.attach`, in `TreeluneApplication`) and the tick initialises the AI orchestrator if it is not: the alarm can start the process without a screen.
-**Triggers**: periodic + event-driven (CRUD of automations, CRUD of tool instances, end of a session)
+**Triggers**: periodic + event-driven (CRUD of routines, CRUD of tool instances, end of a session)
 
 **Discovery**: `ToolTypeManager.getAllToolTypes().forEach { toolType.getScheduler()?.checkScheduled() }`
 
@@ -113,7 +113,7 @@ An event is a name of a zone that a Task's step emits and that Tasks and routine
 
 ## Chains
 
-A run of a Task or of a routine started by another run belongs to that run's chain (`Chains`, `core/coordinator/Chain.kt`): a routine's AI that runs a Task (`tasks.run`, inside its session, `StepSession`), a Task's step that runs a routine (`automations.execute_manual`, inside its run, `ChainLink`), an entry one of them writes or an event one of them emits that a trigger hears (« Triggers », « Events »). A person (a screen, a chat), an hour (a schedule, its catching up) and the connector start a chain of their own, whose id is the run's: a run stores its chain only when it continues one (`chain_id` of `task_runs` and `ai_sessions`, null otherwise; out of backups, the trace of a moment).
+A run of a Task or of a routine started by another run belongs to that run's chain (`Chains`, `core/coordinator/Chain.kt`): a routine's AI that runs a Task (`tasks.run`, inside its session, `StepSession`), a Task's step that runs a routine (`routines.execute_manual`, inside its run, `ChainLink`), an entry one of them writes or an event one of them emits that a trigger hears (« Triggers », « Events »). A person (a screen, a chat), an hour (a schedule, its catching up) and the connector start a chain of their own, whose id is the run's: a run stores its chain only when it continues one (`chain_id` of `task_runs` and `ai_sessions`, null otherwise; out of backups, the trace of a moment).
 
 - **The cap** (`chain_max_runs` of the AI limits, 50 by default): counted over every run of the chain, not the links in a row — two runs that each start two double at every turn. Past it, the start is refused: the operation fails saying so, which the run that asked shows (its step failed, its AI's command refused), and a notification says it; the other chains run on, and the stopped one does not resume.
 - **Why**: each run of a routine has its own roundtrip limit; nothing else stops a routine that runs a Task that runs it again, or two that start each other.

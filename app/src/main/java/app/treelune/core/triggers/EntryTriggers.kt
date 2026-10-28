@@ -86,14 +86,14 @@ object EntryTriggers {
         if (write.write == Triggers.Write.DELETED) {
             val copy = org.json.JSONObject()
             listOf("name", "timestamp", "data", "extra").forEach { key -> write.row.opt(key)?.takeIf { it != org.json.JSONObject.NULL }?.let { copy.put(key, it) } }
-            return listOf(app.treelune.core.ai.data.MessageSegment.Text(s.shared("automation_run_entry_deleted").format(toolName, copy.toString())))
+            return listOf(app.treelune.core.ai.data.MessageSegment.Text(s.shared("routine_run_entry_deleted").format(toolName, copy.toString())))
         }
         val pointer = app.treelune.core.ai.enrichments.PointerConfig(
             selection = app.treelune.core.selection.EntrySelection(target = app.treelune.core.selection.Reference(app.treelune.core.selection.ReferenceKind.ENTRY, write.entryId)),
             entries = true
         )
         return listOf(
-            app.treelune.core.ai.data.MessageSegment.Text(s.shared("automation_run_entry_${write.write.key}").format(toolName)),
+            app.treelune.core.ai.data.MessageSegment.Text(s.shared("routine_run_entry_${write.write.key}").format(toolName)),
             app.treelune.core.ai.data.MessageSegment.EnrichmentBlock(app.treelune.core.ai.data.EnrichmentType.POINTER, pointer.toJson().toString())
         )
     }

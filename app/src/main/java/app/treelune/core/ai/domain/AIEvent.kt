@@ -22,13 +22,13 @@ sealed class AIEvent {
 
     /**
      * Request to activate a session (make it the active session).
-     * Can be CHAT or AUTOMATION session.
+     * Can be CHAT or ROUTINE_RUN session.
      *
      * Scheduler decides if activation is immediate (slot free)
      * or requires eviction/queueing (slot occupied).
      *
      * @param sessionId ID of session to activate
-     * @param sessionType Type of session (CHAT, AUTOMATION, SEED)
+     * @param sessionType Type of session (CHAT, ROUTINE_RUN, SEED)
      * @param awaitingAnswer Whether the CHAT's last message is the AI's communication module, left
      *   unanswered: set by AIEventProcessor from the stored messages, never by the caller
      */
@@ -181,7 +181,7 @@ sealed class AIEvent {
     /**
      * Action commands executed (successfully or with failures).
      *
-     * If all successful and keepControl=true (or AUTOMATION), AI continues.
+     * If all successful and keepControl=true (or ROUTINE_RUN), AI continues.
      * If failures, retry logic applies.
      *
      * @param results Command execution results
@@ -194,7 +194,7 @@ sealed class AIEvent {
         val keepControl: Boolean?
     ) : AIEvent()
 
-    // ==================== Completion (AUTOMATION only) ====================
+    // ==================== Completion (ROUTINE_RUN only) ====================
 
     // ==================== Errors & Retry ====================
 
@@ -212,7 +212,7 @@ sealed class AIEvent {
      * Network error occurred while calling AI.
      *
      * CHAT: Stop immediately, no retry.
-     * AUTOMATION: Retry every 30s, closing as NETWORK_ERROR (resumed later) after
+     * ROUTINE_RUN: Retry every 30s, closing as NETWORK_ERROR (resumed later) after
      * AIStateMachine.ROUTINE_NETWORK_WAIT_LIMIT of waiting.
      *
      * @param attempt Retry attempt number (0 = first failure)

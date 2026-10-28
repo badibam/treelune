@@ -65,7 +65,7 @@ class DemoContent(
             val zones = list("zones")
             val tools = list("tools")
             val variables = list("variables")
-            val routines = list("automations")
+            val routines = list("routines")
             val identities = list("identities")
             val events = list("events")
             val apis = list("apis")

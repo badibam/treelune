@@ -43,10 +43,10 @@ fun rememberRunning(): Running {
     var routine by remember { mutableStateOf<Pair<String, String>?>(null) }
     LaunchedEffect(ai.sessionId, ai.sessionType) {
         val sessionId = ai.sessionId
-        routine = if (sessionId == null || ai.sessionType != app.treelune.core.ai.data.SessionType.AUTOMATION) null else {
+        routine = if (sessionId == null || ai.sessionType != app.treelune.core.ai.data.SessionType.ROUTINE_RUN) null else {
             val coordinator = Coordinator(context)
-            val routineId = coordinator.processUserAction("ai_sessions.get", mapOf("id" to sessionId)).data?.get("automation_id") as? String
-            val found = routineId?.let { coordinator.processUserAction("automations.get", mapOf("automation_id" to it)).data?.get("automation") as? Map<*, *> }
+            val routineId = coordinator.processUserAction("ai_sessions.get", mapOf("id" to sessionId)).data?.get("routine_id") as? String
+            val found = routineId?.let { coordinator.processUserAction("routines.get", mapOf("routine_id" to it)).data?.get("routine") as? Map<*, *> }
             if (routineId == null || found == null) {
                 LogManager.ui("rememberRunning: the routine of run $sessionId not read", "ERROR")
                 null

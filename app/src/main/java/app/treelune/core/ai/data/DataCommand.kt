@@ -13,7 +13,7 @@ package app.treelune.core.ai.data
  * - Ensures conversation context remains stable across days
  * - Reproducible results when reviewing old conversations
  *
- * AUTOMATION (isRelative = true):
+ * ROUTINE_RUN (isRelative = true):
  * - "cette semaine" → "nutrition.current_week"
  * - Resolves to current week at execution time
  * - Allows routine commands to adapt to execution date

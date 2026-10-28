@@ -288,7 +288,7 @@ object ConditionTriggers {
                 val s = Strings.`for`(context = context)
                 app.treelune.core.ai.orchestration.AIOrchestrator.executeRoutine(listener.id, scheduledFor = System.currentTimeMillis(),
                     trigger = app.treelune.core.ai.data.ExecutionTrigger.CONDITION, chainId = chain,
-                    attached = listOf(app.treelune.core.ai.data.MessageSegment.Text(s.shared("automation_run_condition").format(passage.answer.said))))
+                    attached = listOf(app.treelune.core.ai.data.MessageSegment.Text(s.shared("routine_run_condition").format(passage.answer.said))))
             }
         }
     }

@@ -17,7 +17,7 @@ from zoneinfo import ZoneInfo
 
 ZONE = ZoneInfo("Europe/Paris")  # the emulator's, which the bench does not change
 # Tables whose rows the AI may change, compared row by row (updated_at aside)
-WATCHED = ("tool_data", "tool_instances", "zones", "variables", "automations")
+WATCHED = ("tool_data", "tool_instances", "zones", "variables", "routines")
 
 
 # ============================================================================================

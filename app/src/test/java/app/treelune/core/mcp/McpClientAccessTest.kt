@@ -43,12 +43,12 @@ class McpClientAccessTest {
         gardenId = zone("Garden")
         weightId = tool(healthId, "Weight")
         seedsId = tool(gardenId, "Seeds")
-        val routine = coordinator.processUserAction("automations.create", mapOf(
+        val routine = coordinator.processUserAction("routines.create", mapOf(
             "zone_id" to healthId, "name" to "Weekly", "identity_id" to null, "provider_id" to null, "is_enabled" to false,
             "message" to listOf(mapOf("type" to RoutineMessage.TEXT, "text" to "hi"))
         ))
         assertTrue(routine.error, routine.isSuccess)
-        routineId = routine.data!!["automation_id"] as String
+        routineId = routine.data!!["routine_id"] as String
 
         val clientId = UUID.randomUUID().toString()
         RoomOAuthStore(context).addClient(OAuthClient(clientId, "Claude", listOf("https://claude.ai/cb"), "hash-of-secret", 1L, null))

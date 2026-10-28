@@ -152,7 +152,7 @@ class DemoService(private val context: Context) : ExecutableService {
      */
     private suspend fun automate(content: DemoContent) {
         if (content.routines.isEmpty()) return
-        LongOperation.at(s.shared("demo_phase_automations"))
+        LongOperation.at(s.shared("demo_phase_routines"))
         val provider: Any = run("ai_provider_config.get_default", JSONObject())["provider_id"] ?: JSONObject.NULL
         for (routine in content.routines) {
             val message = org.json.JSONArray().put(JSONObject().put("type", app.treelune.core.ai.data.RoutineMessage.TEXT).put("text", routine.getString("seed")))
@@ -160,7 +160,7 @@ class DemoService(private val context: Context) : ExecutableService {
                 (0 until pointers.length()).forEach { message.put(JSONObject().put("type", app.treelune.core.ai.data.RoutineMessage.POINTER).put("pointer", pointers.getJSONObject(it))) }
             }
             val identity = routine.opt(app.treelune.core.ai.data.RoutineSettings.IDENTITY_ID) ?: JSONObject.NULL
-            run("automations.create", JSONObject(routine.toString()).apply { remove("seed"); remove("pointers") }.put("provider_id", provider).put(app.treelune.core.ai.data.RoutineSettings.IDENTITY_ID, identity).put("message", message))
+            run("routines.create", JSONObject(routine.toString()).apply { remove("seed"); remove("pointers") }.put("provider_id", provider).put(app.treelune.core.ai.data.RoutineSettings.IDENTITY_ID, identity).put("message", message))
         }
     }
 

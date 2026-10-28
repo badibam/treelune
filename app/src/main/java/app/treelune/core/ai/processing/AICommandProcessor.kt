@@ -265,7 +265,7 @@ class AICommandProcessor(private val context: Context) {
             // A Task run now: its steps run as the Task's, held to its access (TaskService)
             "RUN_TASK" -> ExecutableCommand(resource = "tasks", operation = "run", params = command.params, isActionCommand = true)
             // A routine run now, as its own button does, what is given joined to its message
-            "RUN_ROUTINE" -> ExecutableCommand(resource = "automations", operation = "execute_manual", params = command.params, isActionCommand = true)
+            "RUN_ROUTINE" -> ExecutableCommand(resource = "routines", operation = "execute_manual", params = command.params, isActionCommand = true)
             // An event emitted, with the values it declares: what listens to it starts (EventTriggers)
             "EMIT_EVENT" -> ExecutableCommand(resource = "events", operation = "emit", params = command.params, isActionCommand = true)
             // An event of a zone, written as EVENTS reads it
@@ -384,7 +384,7 @@ class AICommandProcessor(private val context: Context) {
             // A Task run now: its steps run as the Task's, held to its access (TaskService)
             "RUN_TASK" -> ExecutableCommand(resource = "tasks", operation = "run", params = command.params, isActionCommand = true)
             // A routine run now, as its own button does, what is given joined to its message
-            "RUN_ROUTINE" -> ExecutableCommand(resource = "automations", operation = "execute_manual", params = command.params, isActionCommand = true)
+            "RUN_ROUTINE" -> ExecutableCommand(resource = "routines", operation = "execute_manual", params = command.params, isActionCommand = true)
             // An event emitted, with the values it declares: what listens to it starts (EventTriggers)
             "EMIT_EVENT" -> ExecutableCommand(resource = "events", operation = "emit", params = command.params, isActionCommand = true)
             // An event of a zone, written as EVENTS reads it
@@ -460,10 +460,10 @@ class AICommandProcessor(private val context: Context) {
         val known = schema.getJSONObject("properties").getJSONObject("settings").getJSONObject("properties").keys().asSequence().toList()
         (settings.keys - known.toSet()).firstOrNull()?.let { throw IllegalArgumentException(s.shared("service_error_param_unknown").format(it, known.joinToString(", "))) }
         return ExecutableCommand(
-            resource = "automations",
+            resource = "routines",
             operation = command.type.substringBefore('_').lowercase(),
             params = settings + written.filterKeys { it != "settings" } +
-                listOfNotNull(command.params["automation_id"]?.let { "automation_id" to it }),
+                listOfNotNull(command.params["routine_id"]?.let { "routine_id" to it }),
             isActionCommand = true
         )
     }

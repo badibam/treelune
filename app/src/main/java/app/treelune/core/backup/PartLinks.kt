@@ -48,7 +48,7 @@ object PartLinks {
         tools.forEach { targets[it.getString("id")] = PartElement(PartElement.Kind.TOOL, it.getString("id")) }
         entries.forEach { targets[it.getString("id")] = PartElement(PartElement.Kind.ENTRIES, it.getString("tool_instance_id")) }
         rows(data, "variables").forEach { targets[it.getString("id")] = PartElement(PartElement.Kind.VARIABLE, it.getString("id")) }
-        rows(data, "automations").forEach { targets[it.getString("id")] = PartElement(PartElement.Kind.ROUTINE, it.getString("id")) }
+        rows(data, "routines").forEach { targets[it.getString("id")] = PartElement(PartElement.Kind.ROUTINE, it.getString("id")) }
         rows(data, "apis").forEach { targets[it.getString("id")] = PartElement(PartElement.Kind.API, it.getString("id")) }
         rows(data, "events").forEach { targets[it.getString("id")] = PartElement(PartElement.Kind.EVENT, it.getString("id")) }
 
@@ -70,7 +70,7 @@ object PartLinks {
 
         // A routine: its row, and the message each of its runs starts from
         val messages = rows(data, "session_messages").groupBy { it.getString("session_id") }
-        rows(data, "automations").forEach { row ->
+        rows(data, "routines").forEach { row ->
             val routine = PartElement(PartElement.Kind.ROUTINE, row.getString("id"))
             scan(routine, row)
             messages[row.getString("seed_session_id")].orEmpty().forEach { scan(routine, it) }
@@ -156,7 +156,7 @@ object PartLinks {
             PartElement.Kind.ZONE -> find("zones").getString("name")
             PartElement.Kind.TOOL, PartElement.Kind.ENTRIES -> JSONObject(find("tool_instances").getString("config_json")).getString("name")
             PartElement.Kind.VARIABLE -> find("variables").getString("name")
-            PartElement.Kind.ROUTINE -> find("automations").getString("name")
+            PartElement.Kind.ROUTINE -> find("routines").getString("name")
             PartElement.Kind.IDENTITY -> find("identities").getString("name")
             PartElement.Kind.TASK -> find("tasks").getString("name")
             PartElement.Kind.API -> find("apis").getString("name")

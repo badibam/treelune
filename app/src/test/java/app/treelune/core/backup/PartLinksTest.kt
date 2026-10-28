@@ -40,7 +40,7 @@ class PartLinksTest {
                 .put(JSONObject().put("id", "e3").put("tool_instance_id", "weight").put("data", "{}")))
             .put("variables", JSONArray()
                 .put(JSONObject().put("id", "v1").put("zone_id", "z1").put("name", "objectif").put("definition_json", JSONObject().put("formula", "sum(foods.kcal)").toString())))
-            .put("automations", JSONArray()
+            .put("routines", JSONArray()
                 .put(JSONObject().put("id", "a1").put("zone_id", "z1").put("seed_session_id", "seed").put("provider_id", "p1").put("identity_id", "i1")
                     .put("access_json", JSONArray().put(JSONObject().put("target", JSONObject().put("kind", "ZONE").put("id", "z2")).put("level", "read")).toString())))
             .put("session_messages", JSONArray()

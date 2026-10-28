@@ -196,9 +196,9 @@ object AppSettings {
             )
             AppSettingCategories.AI_LIMITS -> listOf(
                 scale("chat_max_autonomous_roundtrips", text("app_config_ai_limits_chat"), text("settings_ai_limits_chat_help"), AI_LIMITS_CHAT_RANGE),
-                scale("automation_max_autonomous_roundtrips", text("app_config_ai_limits_automation"), text("settings_ai_limits_automation_help"), AI_LIMITS_ROUTINE_RANGE),
+                scale("routine_max_autonomous_roundtrips", text("app_config_ai_limits_routine"), text("settings_ai_limits_routine_help"), AI_LIMITS_ROUTINE_RANGE),
                 scale("chat_max_data_chars", text("app_config_ai_data_chat"), text("settings_ai_data_chat_help"), AI_DATA_CHAT_RANGE),
-                scale("automation_max_data_chars", text("app_config_ai_data_automation"), text("settings_ai_data_automation_help"), AI_DATA_ROUTINE_RANGE),
+                scale("routine_max_data_chars", text("app_config_ai_data_routine"), text("settings_ai_data_routine_help"), AI_DATA_ROUTINE_RANGE),
                 scale("always_send_max_chars", text("app_config_ai_always_send"), text("settings_ai_always_send_help"), AI_DATA_CHAT_RANGE),
                 scale("chain_max_runs", text("app_config_chain_max_runs"), text("settings_chain_max_runs_help"), CHAIN_RANGE),
                 // The day's budget, none when left empty, and its alert

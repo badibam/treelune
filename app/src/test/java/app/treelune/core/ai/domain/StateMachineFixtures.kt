@@ -43,7 +43,7 @@ internal fun chatAt(
     awaitingCompletionConfirmation = awaitingCompletionConfirmation
 )
 
-/** A running AUTOMATION session sitting at a given phase. */
+/** A running ROUTINE_RUN session sitting at a given phase. */
 internal fun routineAt(
     phase: Phase,
     roundtrips: Int = 0,
@@ -51,9 +51,9 @@ internal fun routineAt(
     awaitingCompletionConfirmation: Boolean = false,
     summaryReminded: Boolean = false
 ) = AIState(
-    sessionId = "automation-session",
+    sessionId = "routine-session",
     phase = phase,
-    sessionType = SessionType.AUTOMATION,
+    sessionType = SessionType.ROUTINE_RUN,
     totalRoundtrips = roundtrips,
     sessionCreatedAt = T0,
     lastEventTime = T0,

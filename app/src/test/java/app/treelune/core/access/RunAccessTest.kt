@@ -65,10 +65,10 @@ class RunAccessTest {
 
     /** A run of a routine given [access]: its session, as the scheduler makes it. */
     private suspend fun run(access: List<Map<String, Any>>): String {
-        val created = coordinator.processUserAction("automations.create", routine("Weekly", access))
+        val created = coordinator.processUserAction("routines.create", routine("Weekly", access))
         assertTrue(created.error, created.isSuccess)
         val session = coordinator.processUserAction("ai_sessions.create_session", mapOf(
-            "name" to "Weekly", "type" to "AUTOMATION", "automation_id" to created.data!!["automation_id"]
+            "name" to "Weekly", "type" to "ROUTINE_RUN", "routine_id" to created.data!!["routine_id"]
         ))
         assertTrue(session.error, session.isSuccess)
         return session.data!!["session_id"] as String
@@ -119,7 +119,7 @@ class RunAccessTest {
     fun `a routine with a zone in full creates a routine within its access, never one wider or open`() = runBlocking {
         val sessionId = run(listOf(grant("ZONE", zoneId, "full")))
         val create: (List<Map<String, Any>>) -> ExecutableCommand = { access ->
-            ExecutableCommand("automations", "create", routine("Child", access), isActionCommand = true)
+            ExecutableCommand("routines", "create", routine("Child", access), isActionCommand = true)
         }
 
         val within = execute(sessionId, create(listOf(grant("TOOL_INSTANCE", weightId, "use"))))

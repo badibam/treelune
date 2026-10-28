@@ -11,15 +11,15 @@ package app.treelune.core.ai.domain
  * - EXECUTING_ENRICHMENTS: Processing user message enrichments
  * - CALLING_AI: Sending prompt to AI provider
  * - PARSING_AI_RESPONSE: Parsing AI response JSON
- * - PREPARING_CONTINUATION: Preparing guidance message before continuing (AUTOMATION only)
+ * - PREPARING_CONTINUATION: Preparing guidance message before continuing (ROUTINE_RUN only)
  * - WAITING_VALIDATION: Waiting for user validation (CHAT only)
  * - WAITING_COMMUNICATION_RESPONSE: Waiting for user response to communication module (CHAT only)
  * - EXECUTING_DATA_QUERIES: Executing data query commands
  * - EXECUTING_ACTIONS: Executing action commands
- * - WAITING_NETWORK_RETRY: Waiting before network retry (infinite for AUTOMATION)
+ * - WAITING_NETWORK_RETRY: Waiting before network retry (infinite for ROUTINE_RUN)
  * - RETRYING_AFTER_FORMAT_ERROR: Retrying after AI format error
  * - RETRYING_AFTER_ACTION_FAILURE: Retrying after action failure
- * - AWAITING_SESSION_CLOSURE: Waiting 5s before closing session (AUTOMATION only)
+ * - AWAITING_SESSION_CLOSURE: Waiting 5s before closing session (ROUTINE_RUN only)
  * - CLOSED: Session finished
  */
 enum class Phase {
@@ -35,7 +35,7 @@ enum class Phase {
     /** Parsing AI response JSON into AIMessage */
     PARSING_AI_RESPONSE,
 
-    /** Preparing guidance message before continuing autonomous execution (AUTOMATION only) */
+    /** Preparing guidance message before continuing autonomous execution (ROUTINE_RUN only) */
     PREPARING_CONTINUATION,
 
     /** Waiting for user validation of actions (CHAT only) */
@@ -53,9 +53,9 @@ enum class Phase {
     /** Executing action commands (tool_data.create, zones.update, etc.) */
     EXECUTING_ACTIONS,
 
-    /** Waiting for system auto-confirmation of completion (AUTOMATION only) */
+    /** Waiting for system auto-confirmation of completion (ROUTINE_RUN only) */
 
-    /** Waiting before network retry (30s delay, infinite for AUTOMATION) */
+    /** Waiting before network retry (30s delay, infinite for ROUTINE_RUN) */
     WAITING_NETWORK_RETRY,
 
     /** Retrying after AI format/parse error */
@@ -70,7 +70,7 @@ enum class Phase {
      */
     INTERRUPTED,
 
-    /** Waiting 5s before closing completed AUTOMATION session*/
+    /** Waiting 5s before closing completed ROUTINE_RUN session*/
     AWAITING_SESSION_CLOSURE,
 
     /** Session closed - ready for cleanup */

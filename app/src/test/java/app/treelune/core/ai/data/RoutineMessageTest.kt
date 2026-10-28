@@ -14,7 +14,7 @@ import org.junit.Test
 class RoutineMessageTest {
 
     private fun text(key: String) = when (key) {
-        "automation_message_block_unreadable", "automation_message_block_type" -> "$key %1\$d %2\$s"
+        "routine_message_block_unreadable", "routine_message_block_type" -> "$key %1\$d %2\$s"
         else -> key
     }
 
@@ -41,7 +41,7 @@ class RoutineMessageTest {
     fun aBlockOfAnotherTypeIsRefusedWithItsPlace() {
         val image = JSONArray().put(textBlock("Look: ")).put(JSONObject().put("type", "image").put("image_id", "i1"))
         val refused = assertThrows(IllegalArgumentException::class.java) { RoutineMessage.fromBlocks(image, ::text) }
-        assertEquals("automation_message_block_type 1 image", refused.message)
+        assertEquals("routine_message_block_type 1 image", refused.message)
     }
 
     @Test

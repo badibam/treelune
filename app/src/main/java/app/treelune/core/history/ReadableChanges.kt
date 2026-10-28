@@ -126,7 +126,7 @@ internal class ReadableChanges(private val context: Context, private val databas
                 Describe { column, key -> if (column == "settings" && key != null) nodes.describe(key) else null }
             }
             // A routine's setting stored as JSON lives in its column x_json
-            CoveredTable.AUTOMATIONS -> RoutineSettings.nodes(context).let { nodes ->
+            CoveredTable.ROUTINES -> RoutineSettings.nodes(context).let { nodes ->
                 Describe { column, key -> if (key == null) nodes.describe(column.removeSuffix("_json")) else null }
             }
             // A Task's as a routine's; its steps, which no setting describes, as a whole

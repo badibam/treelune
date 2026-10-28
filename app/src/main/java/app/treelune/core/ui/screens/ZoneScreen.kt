@@ -102,12 +102,12 @@ fun ZoneScreen(zone: Zone) {
     }
     val loadRoutines: suspend () -> Unit = {
         coordinator.executeWithLoading(
-            operation = "automations.list",
+            operation = "routines.list",
             params = mapOf("zone_id" to zone.id),
             onLoading = { isLoadingRoutines = it },
             onError = { error -> errorMessage = error }
         )?.let { result ->
-            val routinesList = result.data?.get("automations") as? List<*> ?: emptyList<Any>()
+            val routinesList = result.data?.get("routines") as? List<*> ?: emptyList<Any>()
             routines = routinesList.map { app.treelune.core.ai.data.Routine.fromResult(it as Map<*, *>) }
         }
     }
@@ -332,7 +332,7 @@ fun ZoneScreen(zone: Zone) {
                 // The operation, the source's parameter, and what is said once it is done
                 val (operation, idKey, done) = when (type) {
                     app.treelune.core.ui.selectors.DuplicateType.TOOL -> Triple("tools.duplicate", "tool_instance_id", s.shared("duplicate_success_tool"))
-                    app.treelune.core.ui.selectors.DuplicateType.AUTOMATION -> Triple("automations.duplicate", "automation_id", s.shared("duplicate_success_automation"))
+                    app.treelune.core.ui.selectors.DuplicateType.ROUTINE -> Triple("routines.duplicate", "routine_id", s.shared("duplicate_success_routine"))
                     app.treelune.core.ui.selectors.DuplicateType.TASK -> Triple("tasks.duplicate", "task_id", s.shared("duplicate_success_task"))
                 }
                 coroutineScope.launch {
@@ -400,12 +400,12 @@ private fun AddMenu(
     } + listOf(
         s.shared("add_section_link") to listOf(
             AddChoice("variable", "variable", s.shared("variable_display_name"), onCreateVariable),
-            AddChoice("automation", "calendar-clock", s.shared("automation_display_name"), onCreateRoutine),
+            AddChoice("routine", "calendar-clock", s.shared("routine_display_name"), onCreateRoutine),
             AddChoice("task", app.treelune.core.tasks.TaskSettings.DEFAULT_ICON, s.shared("task_display_name"), onCreateTask)
         ),
         s.shared("add_section_copy") to listOf(
             AddChoice("copy_tool", "copy", s.shared("add_copy_tool")) { onDuplicate(app.treelune.core.ui.selectors.DuplicateType.TOOL) },
-            AddChoice("copy_automation", "copy", s.shared("add_copy_automation")) { onDuplicate(app.treelune.core.ui.selectors.DuplicateType.AUTOMATION) },
+            AddChoice("copy_routine", "copy", s.shared("add_copy_routine")) { onDuplicate(app.treelune.core.ui.selectors.DuplicateType.ROUTINE) },
             AddChoice("copy_task", "copy", s.shared("add_copy_task")) { onDuplicate(app.treelune.core.ui.selectors.DuplicateType.TASK) }
         )
     )
@@ -542,7 +542,7 @@ private fun UngroupedSection(
     val sectionLabel = if (hasConfiguredGroups) {
         s.shared("label_ungrouped")
     } else {
-        s.shared("label_tools_and_automations")
+        s.shared("label_tools_and_routines")
     }
 
     // Section header: its title over a divider (SECTION_HEADER)

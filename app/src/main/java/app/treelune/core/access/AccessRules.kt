@@ -71,7 +71,7 @@ object AccessRules {
         fun toolAt(level: AccessLevel) = tool?.let { Reach.Tool(it, level) } ?: Reach.Unknown("$resource.$operation")
         fun zoneAt(key: String, level: AccessLevel) = text(key)?.let { Reach.Zone(it, level) } ?: Reach.Unknown("$resource.$operation")
         fun variableAt(level: AccessLevel) = text("variable_id")?.let { Reach.Variable(it, false, level) } ?: Reach.Unknown("$resource.$operation")
-        fun routineAt(level: AccessLevel) = text("automation_id")?.let { Reach.Routine(it, level) } ?: Reach.Unknown("$resource.$operation")
+        fun routineAt(level: AccessLevel) = text("routine_id")?.let { Reach.Routine(it, level) } ?: Reach.Unknown("$resource.$operation")
         return when (resource) {
             "tool_data" -> when (operation) {
                 in TOOL_DATA_READS -> listOf(toolAt(AccessLevel.READ))
@@ -103,7 +103,7 @@ object AccessRules {
                 else -> listOf(Reach.Unknown("$resource.$operation"))
             }
             // A zone's routines are written by who reaches the zone in full, as its own settings are
-            "automations" -> when (operation) {
+            "routines" -> when (operation) {
                 "list", "list_all", "waiting" -> listOf(Reach.Free)
                 "get", "config", "next_execution" -> listOf(routineAt(AccessLevel.READ))
                 // Run now, as a Task is: a use of its zone
@@ -146,7 +146,7 @@ object AccessRules {
             }
             // A routine's runs, read as the routine is; every other session is the screens'
             "ai_sessions" -> when (operation) {
-                "list_sessions_for_automation" -> listOf(routineAt(AccessLevel.READ))
+                "list_sessions_for_routine" -> listOf(routineAt(AccessLevel.READ))
                 "run_history" -> listOf(text("session_id")?.let { Reach.Run(it, AccessLevel.READ) } ?: Reach.Unknown("$resource.$operation"))
                 else -> listOf(Reach.Unknown("$resource.$operation"))
             }

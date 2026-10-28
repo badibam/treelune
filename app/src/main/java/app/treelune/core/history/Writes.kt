@@ -80,7 +80,7 @@ class Writes(private val context: Context) {
     suspend fun updateVariable(variable: VariableEntity) = write(CoveredTable.VARIABLES, variable.id) { database.variableDao().update(variable) }
 
     suspend fun moveRoutine(id: String, gridX: Int, gridY: Int) =
-        write(CoveredTable.AUTOMATIONS, id) { database.aiDao().updateRoutinePosition(id, gridX, gridY) }
+        write(CoveredTable.ROUTINES, id) { database.aiDao().updateRoutinePosition(id, gridX, gridY) }
 
     suspend fun moveVariable(id: String, gridX: Int, gridY: Int) =
         write(CoveredTable.VARIABLES, id) { database.variableDao().updatePosition(id, gridX, gridY) }
@@ -98,15 +98,15 @@ class Writes(private val context: Context) {
     // ── Routines ──
 
     suspend fun insertRoutine(routine: RoutineEntity) =
-        write(CoveredTable.AUTOMATIONS, routine.id) { database.aiDao().insertRoutine(routine) }
+        write(CoveredTable.ROUTINES, routine.id) { database.aiDao().insertRoutine(routine) }
 
     suspend fun updateRoutine(routine: RoutineEntity) =
-        write(CoveredTable.AUTOMATIONS, routine.id) { database.aiDao().updateRoutine(routine) }
+        write(CoveredTable.ROUTINES, routine.id) { database.aiDao().updateRoutine(routine) }
 
     suspend fun setRoutineEnabled(id: String, enabled: Boolean, updatedAt: Long) =
-        write(CoveredTable.AUTOMATIONS, id) { database.aiDao().setRoutineEnabled(id, enabled, updatedAt) }
+        write(CoveredTable.ROUTINES, id) { database.aiDao().setRoutineEnabled(id, enabled, updatedAt) }
 
-    suspend fun deleteRoutine(id: String) = delete(CoveredTable.AUTOMATIONS, id) { database.aiDao().deleteRoutineById(id) }
+    suspend fun deleteRoutine(id: String) = delete(CoveredTable.ROUTINES, id) { database.aiDao().deleteRoutineById(id) }
 
     // ── Tasks: their runs stay out (CoveredTable.CHILDREN_LEFT_OUT) ──
 
@@ -325,7 +325,7 @@ class Writes(private val context: Context) {
         CoveredTable.ZONES -> Place(null, row.getString("id"))
         CoveredTable.TOOL_INSTANCES -> Place(row.getString("id"), row.getString("zone_id"))
         CoveredTable.TOOL_DATA -> toolPlace(row.getString("tool_instance_id"))
-        CoveredTable.VARIABLES, CoveredTable.AUTOMATIONS, CoveredTable.EVENTS, CoveredTable.TASKS -> Place(null, row.getString("zone_id"))
+        CoveredTable.VARIABLES, CoveredTable.ROUTINES, CoveredTable.EVENTS, CoveredTable.TASKS -> Place(null, row.getString("zone_id"))
         CoveredTable.AI_SESSIONS -> sessionPlace(row.getString("id"))
         CoveredTable.SESSION_MESSAGES -> sessionPlace(row.getString("session_id"))
         CoveredTable.FILES -> when {
@@ -341,7 +341,7 @@ class Writes(private val context: Context) {
 
     /** A routine's message concerns the routine's zone. */
     private suspend fun sessionPlace(sessionId: String): Place? =
-        Rows.read(database, CoveredTable.AUTOMATIONS, "seed_session_id", sessionId).firstOrNull()?.let { Place(null, it.getString("zone_id")) }
+        Rows.read(database, CoveredTable.ROUTINES, "seed_session_id", sessionId).firstOrNull()?.let { Place(null, it.getString("zone_id")) }
 
     private companion object {
         /** SessionType.SEED's name: a routine's message, kept as a session */

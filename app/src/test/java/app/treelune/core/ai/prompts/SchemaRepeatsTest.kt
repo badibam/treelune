@@ -40,7 +40,7 @@ class SchemaRepeatsTest {
         }
         put("zone_config", ZoneSettings.nodes(context))
         AppSettings.CATEGORIES.forEach { put("app_config_$it", AppSettings.nodes(it, context)) }
-        put("automation_config", RoutineSettings.nodes(context))
+        put("routine_config", RoutineSettings.nodes(context))
         put("communication_module", CommunicationModules.declarationNodes(text))
         put("field_definitions", FieldTypeSettings.definitionNodes(text))
     }

@@ -105,9 +105,9 @@ object RunEnd {
         if (result.data?.get("waits") != true) return
 
         val s = app.treelune.core.strings.Strings.`for`(context = context)
-        val place = app.treelune.core.navigation.Place.Execution(sessionId, result.data["automation_id"] as String, result.data["zone_id"] as String)
+        val place = app.treelune.core.navigation.Place.Execution(sessionId, result.data["routine_id"] as String, result.data["zone_id"] as String)
         val sent = coordinator.processUserAction("notifications.send", mapOf(
-            "title" to result.data["automation_name"] as String,
+            "title" to result.data["routine_name"] as String,
             "content" to (summary ?: cause(messages, endReason) ?: line(facts, s)),
             "priority" to "default",
             "place" to place.address

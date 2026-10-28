@@ -10,7 +10,7 @@ import org.junit.Test
  * DataQueriesExecuted, which brings a query round back to the provider, and SchemaRequired,
  * which sends writes back to it for want of their schema.
  *
- * The routing is a priority list: the completed flag first (AUTOMATION only), then a
+ * The routing is a priority list: the completed flag first (ROUTINE_RUN only), then a
  * question for the user (CHAT only), then queries, then actions, then an answer that is
  * only text. Each test here pins one branch and, where the branch differs by session type,
  * both sides of it.
@@ -122,7 +122,7 @@ class AIStateMachineResponseRoutingTest {
     }
 
     /**
-     * The flag is an AUTOMATION affair. A CHAT that sets it is routed on what else the
+     * The flag is a ROUTINE_RUN affair. A CHAT that sets it is routed on what else the
      * answer holds -- here nothing, so back to waiting for the user.
      */
     @Test
@@ -144,7 +144,7 @@ class AIStateMachineResponseRoutingTest {
     }
 
     /**
-     * An AUTOMATION has nobody to ask. The question is ignored and the answer is routed on
+     * A ROUTINE_RUN has nobody to ask. The question is ignored and the answer is routed on
      * what else it holds -- here nothing, so the AI is guided to produce commands.
      */
     @Test
@@ -155,7 +155,7 @@ class AIStateMachineResponseRoutingTest {
         )
 
         assertEquals(Phase.PREPARING_CONTINUATION, state.phase)
-        assertEquals(ContinuationReason.AUTOMATION_NO_COMMANDS, state.continuationReason)
+        assertEquals(ContinuationReason.ROUTINE_NO_COMMANDS, state.continuationReason)
     }
 
     // ==================== Priority 2: queries ====================
@@ -198,7 +198,7 @@ class AIStateMachineResponseRoutingTest {
         assertEquals(Phase.WAITING_VALIDATION, state.phase)
     }
 
-    /** An AUTOMATION has nobody to ask, so its actions run straight away. */
+    /** A ROUTINE_RUN has nobody to ask, so its actions run straight away. */
     @Test
     fun routineActions_runWithoutValidation() {
         val state = parsed(
@@ -220,7 +220,7 @@ class AIStateMachineResponseRoutingTest {
     }
 
     /**
-     * An AUTOMATION answering in words has done nothing. It is sent back with guidance
+     * A ROUTINE_RUN answering in words has done nothing. It is sent back with guidance
      * saying so, rather than being left to stall.
      */
     @Test
@@ -228,7 +228,7 @@ class AIStateMachineResponseRoutingTest {
         val state = parsed(routineAt(Phase.PARSING_AI_RESPONSE), aiMessage())
 
         assertEquals(Phase.PREPARING_CONTINUATION, state.phase)
-        assertEquals(ContinuationReason.AUTOMATION_NO_COMMANDS, state.continuationReason)
+        assertEquals(ContinuationReason.ROUTINE_NO_COMMANDS, state.continuationReason)
     }
 
     /** Parsing an answer is not a roundtrip: the counter moves when a call goes out. */

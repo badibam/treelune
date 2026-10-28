@@ -94,9 +94,9 @@ fun RoutineConfigScreen(place: Place.RoutineConfig, onDone: () -> Unit, onDelete
         @Suppress("UNCHECKED_CAST")
         providers = (listed.data?.get("providers") as? List<Map<String, Any>>).orEmpty()
         if (place.routineId != null) {
-            val result = coordinator.processUserAction("automations.config", mapOf("automation_id" to place.routineId))
+            val result = coordinator.processUserAction("routines.config", mapOf("routine_id" to place.routineId))
             if (result.status != CommandStatus.SUCCESS) {
-                UI.Toast(result.error ?: s.shared("error_automation_not_found"), Duration.LONG)
+                UI.Toast(result.error ?: s.shared("error_routine_not_found"), Duration.LONG)
                 onDone()
                 return@LaunchedEffect
             }
@@ -131,7 +131,7 @@ fun RoutineConfigScreen(place: Place.RoutineConfig, onDone: () -> Unit, onDelete
     fun save() = scope.launch {
         // An empty message would leave the AI to make up what to do
         if (RichMessage(segments).isEmpty) {
-            UI.Toast(s.shared("automation_message_empty"), Duration.LONG)
+            UI.Toast(s.shared("routine_message_empty"), Duration.LONG)
             return@launch
         }
         val provider = settings.optString(RoutineSettings.PROVIDER_ID).ifEmpty { null }
@@ -149,13 +149,13 @@ fun RoutineConfigScreen(place: Place.RoutineConfig, onDone: () -> Unit, onDelete
             "access" to JsonUtils.toList(JSONArray(accessText))
         )
         val result = if (place.routineId == null) {
-            coordinator.processUserAction("automations.create", params + mapOf("zone_id" to zoneId) + (if (provider == null) mapOf("is_enabled" to false) else emptyMap()))
+            coordinator.processUserAction("routines.create", params + mapOf("zone_id" to zoneId) + (if (provider == null) mapOf("is_enabled" to false) else emptyMap()))
         } else {
             // A setting the form took out is given null, for the service to remove it
             val stored = JSONObject(asLoaded!!).getJSONObject("settings")
             val removed = stored.keys().asSequence().filter { !settings.has(it) }.associateWith { null }
-            coordinator.processUserAction("automations.update", params + removed + buildMap {
-                put("automation_id", place.routineId)
+            coordinator.processUserAction("routines.update", params + removed + buildMap {
+                put("routine_id", place.routineId)
                 if (zoneId != place.zoneId) put("zone_id", zoneId)
             })
         }
@@ -166,7 +166,7 @@ fun RoutineConfigScreen(place: Place.RoutineConfig, onDone: () -> Unit, onDelete
                 app.treelune.core.navigation.Place.Routine(place.routineId, place.zoneId), app.treelune.core.navigation.Place.Routine(place.routineId, zoneId))
             onDone()
         }
-        else UI.Toast(result.error ?: s.shared("automation_save_failed"), Duration.LONG)
+        else UI.Toast(result.error ?: s.shared("routine_save_failed"), Duration.LONG)
     }
 
     val scroll = rememberScrollState()
@@ -179,8 +179,8 @@ fun RoutineConfigScreen(place: Place.RoutineConfig, onDone: () -> Unit, onDelete
     ) {
         UI.PageHeader(
             // The routine's name as saved, not as being typed; a new routine has none yet
-            title = asLoaded?.let { JSONObject(it).getJSONObject("settings").optString("name") }?.takeIf { it.isNotBlank() } ?: s.shared("automation_new_name"),
-            subtitle = s.shared("automation_display_name"),
+            title = asLoaded?.let { JSONObject(it).getJSONObject("settings").optString("name") }?.takeIf { it.isNotBlank() } ?: s.shared("routine_new_name"),
+            subtitle = s.shared("routine_display_name"),
             leftButton = ButtonAction.BACK,
             onLeftClick = { leave() }
         )
@@ -212,13 +212,13 @@ fun RoutineConfigScreen(place: Place.RoutineConfig, onDone: () -> Unit, onDelete
         if (!headPages.atRoot) return@Column
 
         if (sectionPages.atRoot) {
-            UI.Text(s.shared("automation_message"), TextType.HEADING)
+            UI.Text(s.shared("routine_message"), TextType.HEADING)
             // The message, a seed session's template, written with its pointers; its periods stored as relative
             UI.RichComposer(
                 segments = segments,
                 onSegmentsChange = { next: List<MessageSegment> -> messageText = RoutineMessage.toBlocks(RichMessage(next)).toString() },
                 onSend = { },
-                placeholder = s.shared("automation_message_placeholder"),
+                placeholder = s.shared("routine_message_placeholder"),
                 showEnrichmentButtons = true,
                 showSendButton = false,
                 sessionType = SessionType.SEED,
@@ -231,7 +231,7 @@ fun RoutineConfigScreen(place: Place.RoutineConfig, onDone: () -> Unit, onDelete
         // The actions on the root pages alone: under one, the back arrow goes up (SettingsPages)
         if (!sectionPages.atRoot) return@Column
 
-        app.treelune.core.access.ui.AccessCard(s.shared("automation_access_title"), s.shared("automation_access_help"), access) { accessText = it.toJson().toString() }
+        app.treelune.core.access.ui.AccessCard(s.shared("routine_access_title"), s.shared("routine_access_help"), access) { accessText = it.toJson().toString() }
 
         UI.ToolConfigActions(
             isEditing = isEditing,
@@ -241,8 +241,8 @@ fun RoutineConfigScreen(place: Place.RoutineConfig, onDone: () -> Unit, onDelete
             onDelete = place.routineId?.let { routineId ->
                 {
                     scope.launch {
-                        val result = coordinator.processUserAction("automations.delete", mapOf("automation_id" to routineId))
-                        if (result.status == CommandStatus.SUCCESS) onDeleted() else UI.Toast(result.error ?: s.shared("error_automation_delete_failed"), Duration.LONG)
+                        val result = coordinator.processUserAction("routines.delete", mapOf("routine_id" to routineId))
+                        if (result.status == CommandStatus.SUCCESS) onDeleted() else UI.Toast(result.error ?: s.shared("error_routine_delete_failed"), Duration.LONG)
                     }
                 }
             },
@@ -266,7 +266,7 @@ private fun providerEditors(
         override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
             when {
                 providers == null -> UI.Text(s.shared("message_loading"), TextType.CAPTION)
-                providers.isEmpty() -> UI.Text(s.shared("automation_no_provider_yet"), TextType.CAPTION)
+                providers.isEmpty() -> UI.Text(s.shared("routine_no_provider_yet"), TextType.CAPTION)
                 else -> {
                     val names = providers.associate { app.treelune.core.ai.ui.screens.providerLabel(it) to (it["id"] as String) }
                     UI.FormSelection(

@@ -563,13 +563,13 @@ class CommandExecutor(private val context: Context) {
             "variables.list" -> line("variables_of", zone ?: "")
             "variables.list_all" -> line("variables")
             "readings.read" -> line("reading", params["variable"] as? String ?: "")
-            "automations.config" -> line("routine", resolveRoutineName(params["automation_id"] as? String))
-            "automations.list" -> line("routines_of", zone ?: "")
-            "automations.list_all" -> line("routines")
+            "routines.config" -> line("routine", resolveRoutineName(params["routine_id"] as? String))
+            "routines.list" -> line("routines_of", zone ?: "")
+            "routines.list_all" -> line("routines")
             "tasks.get" -> line("task", ((data["task"] as? Map<*, *>)?.get("settings") as? Map<*, *>)?.get("name") as? String ?: "")
             "tasks.list" -> line("tasks_of", zone ?: "")
             "tasks.list_all" -> line("tasks")
-            "ai_sessions.list_sessions_for_automation" -> line("runs_of", resolveRoutineName(params["automation_id"] as? String))
+            "ai_sessions.list_sessions_for_routine" -> line("runs_of", resolveRoutineName(params["routine_id"] as? String))
             "ai_sessions.run_history" -> line("run")
             "files.read" -> line("file")
             "files.show_images" -> line("images", (data["images"] as? List<*>)?.size ?: 0)
@@ -697,8 +697,8 @@ class CommandExecutor(private val context: Context) {
                     else -> ""
                 }
             }
-            "automations" -> when (command.operation) {
-                "config" -> "Configuration for routine '${resolveRoutineName(command.params["automation_id"] as? String)}'"
+            "routines" -> when (command.operation) {
+                "config" -> "Configuration for routine '${resolveRoutineName(command.params["routine_id"] as? String)}'"
                 "list" -> "Routines in zone '${resolveZoneName(command.params["zone_id"] as String)}'"
                 else -> "All routines"
             }
@@ -709,7 +709,7 @@ class CommandExecutor(private val context: Context) {
                 else -> "All Tasks"
             }
             "ai_sessions" -> when (command.operation) {
-                "list_sessions_for_automation" -> "Runs of routine '${resolveRoutineName(command.params["automation_id"] as? String)}'"
+                "list_sessions_for_routine" -> "Runs of routine '${resolveRoutineName(command.params["routine_id"] as? String)}'"
                 else -> "Run ${command.params["session_id"]}, its messages as its AI received them"
             }
             "files" -> when (command.operation) {
@@ -751,11 +751,11 @@ class CommandExecutor(private val context: Context) {
 
     /** The name of routine [routineId], read by routines.get. */
     private suspend fun resolveRoutineName(routineId: String?): String {
-        routineId ?: throw IllegalStateException("A routine command succeeded without an automation_id")
-        val result = coordinator.processUserAction("automations.get", mapOf("automation_id" to routineId))
+        routineId ?: throw IllegalStateException("A routine command succeeded without a routine_id")
+        val result = coordinator.processUserAction("routines.get", mapOf("routine_id" to routineId))
         check(result.isSuccess) { "Cannot read the name of routine $routineId: ${result.error}" }
-        return (result.data?.get("automation") as? Map<*, *>)?.get("name") as? String
-            ?: throw IllegalStateException("automations.get result for $routineId without automation.name")
+        return (result.data?.get("routine") as? Map<*, *>)?.get("name") as? String
+            ?: throw IllegalStateException("routines.get result for $routineId without routine.name")
     }
 
     /** The name of zone [zoneId], read by zones.get. */
@@ -845,12 +845,12 @@ class CommandExecutor(private val context: Context) {
             }
             // A routine's config, in the form the model writes it back (RoutineSchemas); the
             // routines of a list each in a line: what they are, never their message
-            "automations" -> {
+            "routines" -> {
                 if (command.operation == "config") {
                     val schema = JSONObject(RoutineSchemas.config(context).content)
                     return JSONObject(ModelValues.toModel(data, schema, timezone) as Map<*, *>).toString(2)
                 }
-                (data["automations"] as? List<*>)?.let { list -> reordered["automations"] = list.map { RoutineSchemas.listed(it as Map<*, *>, s) } }
+                (data["routines"] as? List<*>)?.let { list -> reordered["routines"] = list.map { RoutineSchemas.listed(it as Map<*, *>, s) } }
                 data["zone_id"]?.let { reordered["zone_id"] = it }
                 return JSONObject(reordered as Map<*, *>).toString(2)
             }

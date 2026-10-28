@@ -299,7 +299,7 @@ fun ChatMessageBubble(
 
 /**
  * AI loading spinner (just the spinner, no buttons)
- * Can be used in both CHAT and AUTOMATION contexts
+ * Can be used in both CHAT and ROUTINE_RUN contexts
  */
 @Composable
 fun AILoadingSpinner() {
@@ -314,7 +314,7 @@ fun AILoadingSpinner() {
 /**
  * Chat interrupt button with state management
  * Shows "Interrupting..." message after user clicks interrupt
- * CHAT only - not for AUTOMATION
+ * CHAT only - not for ROUTINE_RUN
  */
 @Composable
 fun ChatInterruptButton() {

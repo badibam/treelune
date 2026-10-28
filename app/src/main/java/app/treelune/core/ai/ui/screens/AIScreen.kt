@@ -31,11 +31,11 @@ import app.treelune.core.utils.LogManager
 import kotlinx.coroutines.launch
 
 /**
- * AI Screen - The interface of the sessions one reads (CHAT, AUTOMATION)
+ * AI Screen - The interface of the sessions one reads (CHAT, ROUTINE_RUN)
  *
  * Architecture:
  * - CHAT: Interactive conversation with user, message sending, validation toggles
- * - AUTOMATION: Read-only viewer for routine executions with interrupt capability
+ * - ROUTINE_RUN: Read-only viewer for routine executions with interrupt capability
  * A SEED session holds a routine's message, written in the routine's config
  * (RoutineConfigScreen): it is never shown here.
  *
@@ -82,7 +82,7 @@ fun AIScreen(
                             validation = SessionValidation.fromMap(sessionData),
                             reasoning = SessionReasoning.fromMap(sessionData[SessionReasoning.KEY] as? Map<*, *>),
                             waitingStateJson = sessionData["waiting_state_json"] as? String,
-                            routineId = sessionData["automation_id"] as? String,
+                            routineId = sessionData["routine_id"] as? String,
                             scheduledExecutionTime = (sessionData["scheduled_execution_time"] as? Number)?.toLong(),
                             providerId = sessionData["provider_id"] as String?,
                             providerSessionId = sessionData["provider_session_id"] as String,
@@ -125,7 +125,7 @@ fun AIScreen(
                 LogManager.aiUI("AIScreen using active session type from aiState: ${aiState.sessionType}")
                 // Its name and its routine, which the headers show, read once it is routed
                 val stored = coordinator.processUserAction("ai_sessions.get_session", mapOf("session_id" to sessionId)).data?.get("session") as? Map<*, *>
-                if (stored != null) session = session?.copy(name = stored["name"] as String, routineId = stored["automation_id"] as? String)
+                if (stored != null) session = session?.copy(name = stored["name"] as String, routineId = stored["routine_id"] as? String)
             }
         }
     }
@@ -178,7 +178,7 @@ fun AIScreen(
             )
         }
         SessionType.SEED -> throw IllegalStateException("Seed session ${session!!.id} opened as a conversation: a routine's message is written in its config")
-        SessionType.AUTOMATION -> {
+        SessionType.ROUTINE_RUN -> {
             RoutineMode(
                 session = session!!,
                 onClose = onClose,
@@ -387,7 +387,7 @@ private fun ChatMode(
 }
 
 /**
- * AUTOMATION mode - Execution viewer (read-only)
+ * ROUTINE_RUN mode - Execution viewer (read-only)
  */
 @Composable
 private fun RoutineMode(
@@ -789,14 +789,14 @@ private fun RoutineHeader(
     var title by remember(session.id) { mutableStateOf(session.name) }
     LaunchedEffect(session.routineId) {
         val id = session.routineId ?: return@LaunchedEffect
-        val result = app.treelune.core.coordinator.Coordinator(context).processUserAction("automations.get", mapOf("automation_id" to id))
-        ((result.data?.get("automation") as? Map<*, *>)?.get("name") as? String)?.let { title = it }
+        val result = app.treelune.core.coordinator.Coordinator(context).processUserAction("routines.get", mapOf("routine_id" to id))
+        ((result.data?.get("routine") as? Map<*, *>)?.get("name") as? String)?.let { title = it }
     }
 
     TitledHeaderBar(title, onRename = session.routineId?.let { id ->
         { name: String ->
             scope.launch {
-                val result = app.treelune.core.coordinator.Coordinator(context).processUserAction("automations.update", mapOf("automation_id" to id, "name" to name))
+                val result = app.treelune.core.coordinator.Coordinator(context).processUserAction("routines.update", mapOf("routine_id" to id, "name" to name))
                 if (result.status == CommandStatus.SUCCESS) title = name
                 else UI.Toast(result.error ?: s.shared("error_rename_failed"), Duration.LONG)
             }
@@ -845,7 +845,7 @@ private fun RoutineHeader(
 // ================================================================================================
 
 /**
- * Message list - shared by CHAT and AUTOMATION modes
+ * Message list - shared by CHAT and ROUTINE_RUN modes
  * Made public for use in AIFloatingChat routine view
  */
 @Composable

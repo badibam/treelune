@@ -10,7 +10,7 @@ import app.treelune.core.ai.data.RoutineSettings
  * Stored in common AppDatabase alongside AI sessions and provider configs
  */
 @Entity(
-    tableName = "automations",
+    tableName = "routines",
     indices = [
         Index(value = ["zone_id"]),
         Index(value = ["is_enabled"]),

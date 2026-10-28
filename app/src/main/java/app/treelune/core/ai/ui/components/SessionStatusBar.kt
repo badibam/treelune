@@ -26,7 +26,7 @@ import app.treelune.core.ui.UI
  * Architecture: Event-Driven State Machine (V2)
  * - Observes phase from AIState
  * - Translates technical phase to user-friendly label
- * - Different labels for CHAT vs AUTOMATION when relevant
+ * - Different labels for CHAT vs ROUTINE_RUN when relevant
  */
 @Composable
 fun SessionStatusBar(
@@ -71,11 +71,11 @@ private fun getStatusText(
 ): String {
     return when (phase) {
         Phase.IDLE -> {
-            // Different label for CHAT vs AUTOMATION
+            // Different label for CHAT vs ROUTINE_RUN
             if (sessionType == SessionType.CHAT) {
                 s.shared("ai_phase_idle_chat") // "En attente"
             } else {
-                s.shared("ai_phase_idle_automation") // "Prêt"
+                s.shared("ai_phase_idle_routine") // "Prêt"
             }
         }
 
@@ -115,7 +115,7 @@ private fun getStatusText(
             if (sessionType == SessionType.CHAT) {
                 s.shared("ai_phase_idle_chat")
             } else {
-                s.shared("ai_phase_idle_automation")
+                s.shared("ai_phase_idle_routine")
             }
         }
 

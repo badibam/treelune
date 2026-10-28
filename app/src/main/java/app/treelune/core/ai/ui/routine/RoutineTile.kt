@@ -41,8 +41,8 @@ class RoutineActions(
     private val s = Strings.`for`(context = context)
 
     fun run(routine: Routine) = scope.launch {
-        val result = coordinator.processUserAction("automations.execute_manual", mapOf("automation_id" to routine.id))
-        onMessage(if (result.status == CommandStatus.SUCCESS) s.shared("automation_execution_triggered") else result.error ?: s.shared("error_operation_failed"))
+        val result = coordinator.processUserAction("routines.execute_manual", mapOf("routine_id" to routine.id))
+        onMessage(if (result.status == CommandStatus.SUCCESS) s.shared("routine_execution_triggered") else result.error ?: s.shared("error_operation_failed"))
     }
 
     fun cancel(sessionId: String) = scope.launch { AIOrchestrator.cancelQueuedSession(sessionId) }
@@ -58,7 +58,7 @@ class RoutineActions(
     fun history(routine: Routine) = Navigator.push(Place.Routine(routine.id, routine.zoneId))
 
     fun toggle(routine: Routine, enabled: Boolean) = scope.launch {
-        val result = coordinator.processUserAction(if (enabled) "automations.enable" else "automations.disable", mapOf("automation_id" to routine.id))
+        val result = coordinator.processUserAction(if (enabled) "routines.enable" else "routines.disable", mapOf("routine_id" to routine.id))
         if (result.status != CommandStatus.SUCCESS) onMessage(result.error ?: s.shared("error_operation_failed"))
     }
 }
@@ -96,24 +96,24 @@ fun rememberRoutineState(routine: Routine): RoutineState {
     var queued by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(queuedSessions, routine.id) {
         val coordinator = Coordinator(context)
-        queued = queuedSessions.filter { it.sessionType == SessionType.AUTOMATION }.firstOrNull { session ->
+        queued = queuedSessions.filter { it.sessionType == SessionType.ROUTINE_RUN }.firstOrNull { session ->
             val result = coordinator.processUserAction("ai_sessions.get", mapOf("id" to session.sessionId))
-            result.status == CommandStatus.SUCCESS && result.data?.get("automation_id") == routine.id
+            result.status == CommandStatus.SUCCESS && result.data?.get("routine_id") == routine.id
         }?.sessionId
     }
 
     // What starts it: by hand alone, its schedule, its triggers
     val starts = when {
-        routine.schedule == null && (routine.triggers == 0) -> s.shared("automation_status_manual")
+        routine.schedule == null && (routine.triggers == 0) -> s.shared("routine_status_manual")
         routine.schedule != null && (routine.triggers > 0) ->
-            "${scheduleSummary(routine.schedule, s)} + ${s.shared("automation_triggers_count").format(routine.triggers)}"
+            "${scheduleSummary(routine.schedule, s)} + ${s.shared("routine_triggers_count").format(routine.triggers)}"
         routine.schedule != null -> scheduleSummary(routine.schedule, s)
-        else -> s.shared("automation_triggers_count").format(routine.triggers)
+        else -> s.shared("routine_triggers_count").format(routine.triggers)
     }
     // Neither on nor run until it has one
-    val problem = if (routine.providerId == null) s.shared("automation_status_no_provider") else null
+    val problem = if (routine.providerId == null) s.shared("routine_status_no_provider") else null
     val line = when {
-        queued != null -> s.shared("ai_automation_queued_badge").format(queuedSessions.indexOfFirst { it.sessionId == queued } + 1)
+        queued != null -> s.shared("ai_routine_queued_badge").format(queuedSessions.indexOfFirst { it.sessionId == queued } + 1)
         // Off for want of a provider, not by choice: what it would do once given one
         problem != null -> starts
         !routine.isEnabled -> s.shared("label_disabled")
@@ -154,7 +154,7 @@ fun RoutineButtons(routine: Routine, state: RoutineState, actions: RoutineAction
         val queued = state.queuedSessionId
         if (queued != null) {
             UI.Button(type = ButtonType.DANGER, size = Size.S, onClick = { actions.cancel(queued) }) {
-                UI.Text(s.shared("ai_automation_cancel_execution"), TextType.LABEL)
+                UI.Text(s.shared("ai_routine_cancel_execution"), TextType.LABEL)
             }
         } else {
             UI.ActionButton(action = ButtonAction.START, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.run(routine) })
@@ -178,7 +178,7 @@ fun RoutineTile(routine: Routine, actions: RoutineActions) {
     val state = rememberRoutineState(routine)
     UI.LookCard(
         look = routine.look,
-        subtitle = s.shared("automation_display_name"),
+        subtitle = s.shared("routine_display_name"),
         seed = routine.id,
         waiting = LocalWaiting.current.routine(routine.id),
         running = LocalRunning.current.routine(routine.id),
@@ -201,8 +201,8 @@ private fun LastRuns(routine: Routine) {
     val context = LocalContext.current
     var runs by remember { mutableStateOf<List<Map<*, *>>>(emptyList()) }
     LaunchedEffect(routine.id, routine.lastExecutionId) {
-        val result = Coordinator(context).processUserAction("ai_sessions.list_sessions_for_automation",
-            mapOf("automation_id" to routine.id, "limit" to 3, "page" to 1))
+        val result = Coordinator(context).processUserAction("ai_sessions.list_sessions_for_routine",
+            mapOf("routine_id" to routine.id, "limit" to 3, "page" to 1))
         runs = (result.data?.get("sessions") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>()
     }
     runs.forEach { run ->
@@ -225,8 +225,8 @@ private fun LastRuns(routine: Routine) {
  */
 internal suspend fun nextExecutionLine(context: android.content.Context, routineId: String): String? {
     val s = Strings.`for`(context = context)
-    val result = Coordinator(context).processUserAction("automations.next_execution", mapOf("automation_id" to routineId))
-    if (result.status != CommandStatus.SUCCESS) return result.error ?: s.shared("error_automation_load_failed")
+    val result = Coordinator(context).processUserAction("routines.next_execution", mapOf("routine_id" to routineId))
+    if (result.status != CommandStatus.SUCCESS) return result.error ?: s.shared("error_routine_load_failed")
     val at = result.data?.get("next_execution_at") as? Long ?: return null
-    return s.shared("automation_next_execution").format(app.treelune.core.utils.FormatUtils.formatRelativeTime(at, context))
+    return s.shared("routine_next_execution").format(app.treelune.core.utils.FormatUtils.formatRelativeTime(at, context))
 }

@@ -59,9 +59,9 @@ fun ExecutionDetailScreen(
         }
         end = (session["end_reason"] as String?)?.let { app.treelune.core.ai.data.SessionEndReason.valueOf(it) } to session["summary"] as String?
         // The routine it is a run of, named for the breadcrumb
-        (session["automation_id"] as? String)?.let { routineId ->
-            val routine = coordinator.processUserAction("automations.get", mapOf("automation_id" to routineId))
-            ((routine.data?.get("automation") as? Map<*, *>)?.get("name") as? String)?.let(onRoutineName)
+        (session["routine_id"] as? String)?.let { routineId ->
+            val routine = coordinator.processUserAction("routines.get", mapOf("routine_id" to routineId))
+            ((routine.data?.get("routine") as? Map<*, *>)?.get("name") as? String)?.let(onRoutineName)
                 ?: app.treelune.core.utils.LogManager.aiUI("ExecutionDetailScreen: routine $routineId of run $sessionId not read: ${routine.error}", "WARN")
         }
         val seen = coordinator.processUserAction("ai_sessions.seen", mapOf("session_id" to sessionId))
@@ -89,7 +89,7 @@ fun ExecutionDetailScreen(
     ) {
         // Header
         UI.PageHeader(
-            title = s.shared("automation_execution_detail_title"),
+            title = s.shared("routine_execution_detail_title"),
             leftButton = ButtonAction.BACK,
             onLeftClick = onNavigateBack
         )

@@ -250,8 +250,8 @@ object TaskRunner {
                 ?: throw StepFailed(Strings.`for`(context = context).shared("task_error_tool").format("", step.getString(TaskSteps.TOOL_INSTANCE_ID)))
             "${tool.tooltype}.${step.getString(TaskSteps.OPERATION)}" to (resolved + ("tool_instance_id" to tool.id))
         }
-        TaskSteps.RUN_ROUTINE -> "automations.execute_manual" to buildMap {
-            put("automation_id", step.getString(TaskSteps.ROUTINE_ID))
+        TaskSteps.RUN_ROUTINE -> "routines.execute_manual" to buildMap {
+            put("routine_id", step.getString(TaskSteps.ROUTINE_ID))
             resolved[TaskSteps.DATA]?.let { put("data", it.toString()) }
         }
         TaskSteps.EMIT_EVENT -> "events.emit" to mapOf("event_id" to step.getString(TaskSteps.EVENT_ID), "values" to resolved)

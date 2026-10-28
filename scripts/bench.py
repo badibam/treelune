@@ -3,7 +3,7 @@
 
 The app plays each scenario itself on the emulator (app/src/androidTest/.../BenchScenario.kt):
 the base emptied, the OpenAI-compatible provider set to OpenRouter and the model, the demo
-installed, the message sent or the automation run. It leaves a copy of the base before and
+installed, the message sent or the routine run. It leaves a copy of the base before and
 after, and how the session ended; this script fetches them and judges them
 (scripts/bench_checks.py).
 
@@ -120,7 +120,7 @@ def play(model, name, key, into, forcing=FORCING):
     if scenario["kind"] == "chat":
         args += ["-e", "message_b64", base64.b64encode(scenario["message"].encode("utf-8")).decode("ascii")]
     else:
-        args += ["-e", "automation_id", scenario["automation_id"]]
+        args += ["-e", "routine_id", scenario["routine_id"]]
     ran = adb("shell", "am", "instrument", "-w", *args, RUNNER, check=False)
 
     if into.exists():

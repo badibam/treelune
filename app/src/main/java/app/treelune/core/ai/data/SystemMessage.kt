@@ -142,7 +142,7 @@ enum class SystemMessageType {
     ALWAYS_SEND_ACCEPTED,    // That choice, sent: they go with every call of the session (out of the prompt; read by PromptManager.alwaysSendChoice)
     ALWAYS_SEND_REFUSED,     // That choice, not sent: the AI gets their list (out of the prompt; read by PromptManager.alwaysSendChoice)
     APP_ERROR,               // An error of the app stopped the round, its cause in formattedData (out of the prompt: the app failed, not the AI)
-    AUTOMATION_NO_COMMANDS   // A routine's AI answered with no command: the reminder it is sent, in formattedData
+    ROUTINE_NO_COMMANDS   // A routine's AI answered with no command: the reminder it is sent, in formattedData
 }
 
 /**

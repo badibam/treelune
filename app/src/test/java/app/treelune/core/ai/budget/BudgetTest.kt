@@ -74,7 +74,7 @@ class BudgetTest {
                 systemMessageJson = null, executionMetadataJson = null, outputTokens = tokens, modelId = "m", outputPrice = price, usageUnknown = unknown))
         }
         val chat = session(SessionType.CHAT)
-        val run = session(SessionType.AUTOMATION)
+        val run = session(SessionType.ROUTINE_RUN)
         call(chat, 1_000, 1_000, 0.001)
         call(run, 2_000, 500, 0.001)
         call(run, 2_500, 100, null)

@@ -43,7 +43,7 @@ class AISessionScheduler(
 
         // Priority 2: MANUAL routine from queue
         val manualSession = queue.find {
-            it.sessionType == SessionType.AUTOMATION && it.trigger == ExecutionTrigger.MANUAL
+            it.sessionType == SessionType.ROUTINE_RUN && it.trigger == ExecutionTrigger.MANUAL
         }
         if (manualSession != null) {
             return SessionToActivate(
@@ -65,7 +65,7 @@ class AISessionScheduler(
                     sessionId = nextSession.sessionId,
                     routineId = null,
                     scheduledFor = null,
-                    sessionType = SessionType.AUTOMATION,
+                    sessionType = SessionType.ROUTINE_RUN,
                     trigger = ExecutionTrigger.SCHEDULED, // Was scheduled, resume it
                     removeFromQueue = false // Not in queue
                 )
@@ -76,7 +76,7 @@ class AISessionScheduler(
                     sessionId = null,
                     routineId = nextSession.routineId,
                     scheduledFor = nextSession.scheduledFor,
-                    sessionType = SessionType.AUTOMATION,
+                    sessionType = SessionType.ROUTINE_RUN,
                     trigger = ExecutionTrigger.SCHEDULED,
                     removeFromQueue = false // Not in queue
                 )
@@ -116,7 +116,7 @@ data class SessionToActivate(
     init {
         // Exactly one of sessionId or routineId must be set
         require((sessionId != null) xor (routineId != null)) {
-            "SessionToActivate must have either sessionId or automationId set, not both or neither"
+            "SessionToActivate must have either sessionId or routineId set, not both or neither"
         }
     }
 

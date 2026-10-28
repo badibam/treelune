@@ -12,7 +12,7 @@ import org.junit.Test
  */
 class AILimitsAtV34Test {
 
-    /** Settings from v33 get both thresholds, and read back as a complete config once at v64. */
+    /** Settings from v33 get both thresholds, and read back as a complete config once at v107. */
     @Test
     fun v33Settings_getBothThresholds() {
         val v33 = JSONObject().put("chat_max_autonomous_roundtrips", 10).put("automation_max_autonomous_roundtrips", 20)
@@ -21,7 +21,7 @@ class AILimitsAtV34Test {
 
         assertEquals(15_000, rewritten.getInt("chat_max_data_chars"))
         assertEquals(100_000, rewritten.getInt("automation_max_data_chars"))
-        assertEquals(10, AILimitsConfig.fromSettingsJson(AILimitsAtV98.rewrite(AILimitsAtV64.rewrite(rewritten))).chatMaxAutonomousRoundtrips)
+        assertEquals(10, AILimitsConfig.fromSettingsJson(JSONObject(JsonTransformers.transformAppConfig(AILimitsAtV98.rewrite(AILimitsAtV64.rewrite(rewritten)).toString(), "ai_limits", 98, 107))).chatMaxAutonomousRoundtrips)
         assertFalse(v33.has("chat_max_data_chars"))
     }
 
@@ -38,12 +38,12 @@ class AILimitsAtV34Test {
         assertEquals(100_000, rewritten.getInt("automation_max_data_chars"))
     }
 
-    /** From v31, the chain gives the v32 limits, the v34 thresholds, the v64 one and the v98 cap, which read back whole. */
+    /** From v31, the chain gives the v32 limits, the v34 thresholds, the v64 one, the v98 cap and the v107 names, which read back whole. */
     @Test
     fun v31Settings_reachACompleteConfig() {
         val v31 = """{ "chat_max_action_retries": 3, "automation_max_autonomous_roundtrips": 30 }"""
 
-        val current = JSONObject(JsonTransformers.transformAppConfig(v31, "ai_limits", 31, 98))
+        val current = JSONObject(JsonTransformers.transformAppConfig(v31, "ai_limits", 31, 107))
 
         val config = AILimitsConfig.fromSettingsJson(current)
         assertEquals(30, config.routineMaxAutonomousRoundtrips)

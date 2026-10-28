@@ -116,7 +116,7 @@ class UndoTest {
     @Test
     fun `a zone deleted takes its routines and variables, and an undo brings them back with the message`() = runBlocking {
         val zoneId = zone("Garden")
-        val routine = coordinator.processUserAction("automations.create", mapOf(
+        val routine = coordinator.processUserAction("routines.create", mapOf(
             "zone_id" to zoneId,
             "name" to "Weekly review",
             "identity_id" to null,
@@ -125,7 +125,7 @@ class UndoTest {
             "message" to listOf(mapOf("type" to app.treelune.core.ai.data.RoutineMessage.TEXT, "text" to "How did the week go?"))
         ))
         assertTrue(routine.error, routine.isSuccess)
-        val routineId = routine.data!!["automation_id"] as String
+        val routineId = routine.data!!["routine_id"] as String
         val seedSessionId = routine.data["seed_session_id"] as String
         val variable = coordinator.processUserAction("variables.create", mapOf(
             "zone_id" to zoneId,

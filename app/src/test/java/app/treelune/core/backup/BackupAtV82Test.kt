@@ -92,7 +92,7 @@ class BackupAtV82Test {
 
         // The routines' recurrences, and the pointers of their messages
         val routines = database.aiDao().getAllRoutines()
-        assertEquals(rows(data, "automations").size, routines.size)
+        assertEquals(rows(data, "automations").size, routines.size)  // the key v0.8.1 wrote
         val scheduled = routines.mapNotNull { it.scheduleJson }
         assertTrue(scheduled.isNotEmpty())
         scheduled.forEach { assertTrue(it, StoredSchedule.of(JSONObject().put("schedule", JSONObject(it))) is StoredSchedule.Readable) }

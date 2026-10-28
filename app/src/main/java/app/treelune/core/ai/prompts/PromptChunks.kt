@@ -62,7 +62,7 @@ object PromptChunks {
         Chunk("environment", 1, shared = true) { ctx, _ -> buildChunk("environment", ctx) },
         Chunk("vocabulary", 1, shared = true) { ctx, _ -> buildVocabulary(ctx) },
         Chunk("session_types", 1) { ctx, sessionType -> buildSessionTypes(ctx, sessionType) },
-        Chunk("automation_completion", 1) { ctx, sessionType -> buildRoutineCompletion(ctx, sessionType) },
+        Chunk("routine_completion", 1) { ctx, sessionType -> buildRoutineCompletion(ctx, sessionType) },
 
         // PARTIE B : FORMAT DE RÉPONSE IA
         Chunk("response_structure", 1) { ctx, _ -> buildChunk("response_structure", ctx) },
@@ -265,12 +265,12 @@ object PromptChunks {
 
     /**
      * Build session types explanation chunk
-     * Explains the distinction between CHAT and AUTOMATION sessions
+     * Explains the distinction between CHAT and ROUTINE_RUN sessions
      */
     private fun buildSessionTypes(context: Context, sessionType: SessionType): String {
         val currentMode = when (sessionType) {
             SessionType.CHAT -> "CHAT"
-            SessionType.AUTOMATION -> "AUTOMATION"
+            SessionType.ROUTINE_RUN -> "ROUTINE_RUN"
             SessionType.SEED -> throw IllegalStateException("Cannot build session types for SEED session type")
         }
 
@@ -350,7 +350,7 @@ object PromptChunks {
 
     /** The app's notions, by the key of the text that names them on screen. */
     private val VOCABULARY = listOf(
-        "label_zone", "label_tool", "reference_kind_entry", "variable_display_name", "automation_display_name", "label_identity",
+        "label_zone", "label_tool", "reference_kind_entry", "variable_display_name", "routine_display_name", "label_identity",
         "label_group", "label_zone_group", "label_tool_group", "nav_home", "nav_chat", "guide_title", "custom_fields_section_title"
     )
 
@@ -361,17 +361,17 @@ object PromptChunks {
     )
 
     /**
-     * Build routine completion instructions (AUTOMATION sessions only)
+     * Build routine completion instructions (ROUTINE_RUN sessions only)
      * Explains how to signal work completion using the completed flag
      * CRITICAL: Must be very explicit about when to use completed flag
      */
     private fun buildRoutineCompletion(context: Context, sessionType: SessionType): String {
-        // Only include for AUTOMATION sessions
-        if (sessionType != SessionType.AUTOMATION) {
+        // Only include for ROUTINE_RUN sessions
+        if (sessionType != SessionType.ROUTINE_RUN) {
             return ""
         }
 
         val s = Strings.`for`(context = context)
-        return s.shared("ai_chunk_automation_completion")
+        return s.shared("ai_chunk_routine_completion")
     }
 }

@@ -53,7 +53,7 @@ fun rememberWaiting(zoneId: String?): Waiting {
         val params = zoneId?.let { mapOf("zone_id" to it) } ?: emptyMap()
         val coordinator = Coordinator(context)
         val tools = coordinator.processUserAction("tools.waiting", params)
-        val runs = coordinator.processUserAction("automations.waiting", params)
+        val runs = coordinator.processUserAction("routines.waiting", params)
         if (!tools.isSuccess || !runs.isSuccess) {
             LogManager.ui("rememberWaiting: not read: ${tools.error ?: runs.error}", "ERROR")
             return@LaunchedEffect
@@ -63,7 +63,7 @@ fun rememberWaiting(zoneId: String?): Waiting {
         val oldest = (tools.data?.get("oldest") as? Map<*, *>)?.entries?.associate { it.key.toString() to it.value.toString() } ?: emptyMap()
         val zones = (counts(tools, "zones").keys + counts(runs, "zones").keys)
             .associateWith { (counts(tools, "zones")[it] ?: 0) + (counts(runs, "zones")[it] ?: 0) }
-        waiting = Waiting(counts(tools, "tools"), zones, oldest, counts(runs, "automations"))
+        waiting = Waiting(counts(tools, "tools"), zones, oldest, counts(runs, "routines"))
     }
     return waiting
 }

@@ -62,6 +62,6 @@ object EventTriggers {
             )
             app.treelune.core.ai.data.MessageSegment.EnrichmentBlock(app.treelune.core.ai.data.EnrichmentType.POINTER, pointer.toJson().toString())
         }
-        return listOf(app.treelune.core.ai.data.MessageSegment.Text(s.shared("automation_run_event").format(event.name, said))) + pointers
+        return listOf(app.treelune.core.ai.data.MessageSegment.Text(s.shared("routine_run_event").format(event.name, said))) + pointers
     }
 }

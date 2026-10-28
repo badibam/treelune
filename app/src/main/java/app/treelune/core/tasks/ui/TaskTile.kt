@@ -67,10 +67,10 @@ internal fun TaskStateLine(task: Task, last: RunLine?, onToggle: (Boolean) -> Un
     val line = when {
         last != null && !last.state.ended -> stateLabel(last.state, s)
         !task.isEnabled -> s.shared("label_disabled")
-        next != null -> s.shared("automation_next_execution").format(FormatUtils.formatRelativeTime(next!!, context))
+        next != null -> s.shared("routine_next_execution").format(FormatUtils.formatRelativeTime(next!!, context))
         // Without a schedule, what starts it besides a hand: its triggers, as a routine's tile says them
-        triggers > 0 -> s.shared("automation_triggers_count").format(triggers)
-        else -> s.shared("automation_status_manual")
+        triggers > 0 -> s.shared("routine_triggers_count").format(triggers)
+        else -> s.shared("routine_status_manual")
     }
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(UI.Space.S), verticalAlignment = Alignment.CenterVertically) {
         Box(modifier = Modifier.weight(1f)) { UI.Text(line, TextType.CAPTION, maxLines = 2) }

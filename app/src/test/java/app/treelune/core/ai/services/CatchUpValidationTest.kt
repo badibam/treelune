@@ -49,7 +49,7 @@ class CatchUpValidationTest {
         )
         if (schedule != null) params["schedule"] = schedule
         if (catchUp != null) params["catch_up"] = catchUp
-        return coordinator.processUserAction("automations.create", params)
+        return coordinator.processUserAction("routines.create", params)
     }
 
     @Test

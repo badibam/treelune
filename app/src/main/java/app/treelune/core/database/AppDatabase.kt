@@ -114,7 +114,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 106
+        const val VERSION = 107
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2340,6 +2340,44 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** The routines' stored names say routine where they said automation: see RoutinesAtV107. Internal: RoutinesAtV107MigrationTest runs it. */
+        internal val MIGRATION_106_107 = object : ConnectionMigration(106, 107) {
+            override fun migrate(database: MigrationDatabase) {
+                val v = app.treelune.core.versioning.RoutinesAtV107
+                // The table and the sessions' column renamed, their indices under the names Room gives them
+                database.execSQL("ALTER TABLE ${v.OLD_TABLE} RENAME TO ${v.NEW_TABLE}")
+                database.execSQL("ALTER TABLE ai_sessions RENAME COLUMN automation_id TO routine_id")
+                for ((old, create) in v.INDICES) {
+                    database.execSQL("DROP INDEX IF EXISTS `$old`")
+                    database.execSQL(create)
+                }
+                database.execSQL("UPDATE ai_sessions SET type = ? WHERE type = ?", arrayOf<Any?>(v.NEW_SESSION_TYPE, v.OLD_SESSION_TYPE))
+                // The JSON columns that name a routine, a row that cannot be read staying as it was and logged
+                var rewritten = 0
+                fun rewriteColumn(table: String, key: String, column: String, rewrite: (String, String) -> String?) {
+                    database.query("SELECT $key, $column FROM $table WHERE $column IS NOT NULL AND $column != ''").use { cursor ->
+                        while (cursor.moveToNext()) {
+                            val id = cursor.getString(0)
+                            try {
+                                rewrite(id, cursor.getString(1))?.let { database.execSQL("UPDATE $table SET $column = ? WHERE $key = ?", arrayOf<Any?>(it, id)); rewritten++ }
+                            } catch (e: Exception) {
+                                LogManager.database("MIGRATION 106->107: $table $id left as it was: ${e.message}", "ERROR", e)
+                            }
+                        }
+                    }
+                }
+                rewriteColumn("session_messages", "id", "system_message_json") { _, json -> v.systemMessage(json) }
+                rewriteColumn("tasks", "id", "steps_json") { _, json -> v.steps(json) }
+                rewriteColumn("app_settings_categories", "category", "settings") { category, json -> v.settings(category, json) }
+                // The history's copies, the routines' under their table's new name
+                database.execSQL("UPDATE history_rows SET table_name = ? WHERE table_name = ?", arrayOf<Any?>(v.NEW_TABLE, v.OLD_TABLE))
+                for (table in listOf("ai_sessions", "session_messages", "tasks", "app_settings_categories")) {
+                    app.treelune.core.versioning.HistoryCopies.rewrite(database, table) { v.historyCopy(table, it) }
+                }
+                LogManager.database("MIGRATION 106->107: the routines' names renamed, $rewritten JSON value(s) rewritten", "INFO")
+            }
+        }
+
         /** The connector gains its own data threshold: see ExternalAccessDataAtV84. */
         private val MIGRATION_83_84 = object : ConnectionMigration(83, 84) {
             override fun migrate(database: MigrationDatabase) {
@@ -3393,7 +3431,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_102_103,
                     MIGRATION_103_104,
                     MIGRATION_104_105,
-                    MIGRATION_105_106
+                    MIGRATION_105_106,
+                    MIGRATION_106_107
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

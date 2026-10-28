@@ -5,7 +5,7 @@ import app.treelune.core.utils.ScheduleConfig
 /**
  * Routine configuration defining when and how AI should act automatically
  *
- * A routine is a template that creates AUTOMATION sessions when triggered.
+ * A routine is a template that creates ROUTINE_RUN sessions when triggered.
  * It references a SEED session containing the initial user message/prompt.
  */
 data class Routine(

@@ -100,8 +100,8 @@ class PartImportTest {
         val data = document.getJSONObject("data")
         fun rows(table: String) = data.getJSONArray(table).let { a -> (0 until a.length()).map { a.getJSONObject(it) } }.filter { it.getString("id").startsWith(OWN) || (table == "apis" && it.getString("id").startsWith(DemoContent.PREFIX)) }
         fun ids(table: String) = rows(table).map { it.getString("id") }
-        val spoken = (rows("zones") + rows("automations")).mapNotNull { BackupPart.identityOf(it) }.toSet()
-        return PartSelection(ids("zones").toSet(), ids("tool_instances").associateWith { true }, ids("variables").toSet(), ids("automations").toSet(), spoken,
+        val spoken = (rows("zones") + rows("routines")).mapNotNull { BackupPart.identityOf(it) }.toSet()
+        return PartSelection(ids("zones").toSet(), ids("tool_instances").associateWith { true }, ids("variables").toSet(), ids("routines").toSet(), spoken,
             ids("tasks").toSet(), ids("apis").toSet())
     }
 

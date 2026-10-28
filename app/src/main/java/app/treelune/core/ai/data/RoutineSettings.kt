@@ -37,7 +37,7 @@ object RoutineSettings {
     const val NOTIFY_ON_PROBLEM = "on_problem"
     const val NOTIFY_NEVER = "never"
 
-    const val SCHEMA_ID = "automation_settings"
+    const val SCHEMA_ID = "routine_settings"
 
     const val DEFAULT_ICON = "bot"
     const val DEFAULT_MODE = "EXTENDED"
@@ -53,7 +53,7 @@ object RoutineSettings {
     val LOOK = app.treelune.core.look.LookSpec(
         nameKey = "name",
         nameLabel = "label_name",
-        schemaPrefix = "automation_schema_",
+        schemaPrefix = "routine_schema_",
         modes = listOf(app.treelune.core.ui.DisplayMode.ICON, app.treelune.core.ui.DisplayMode.MINIMAL, app.treelune.core.ui.DisplayMode.LINE,
             app.treelune.core.ui.DisplayMode.CONDENSED, app.treelune.core.ui.DisplayMode.EXTENDED, app.treelune.core.ui.DisplayMode.SQUARE),
         defaultMode = app.treelune.core.ui.DisplayMode.valueOf(DEFAULT_MODE),
@@ -80,19 +80,19 @@ object RoutineSettings {
         val limits = listOf(LIMITED, UNLIMITED)
         return listOf(
             SettingNode.Variant(
-                selector = SettingNode.Field(FieldDefinition("limit", s.shared("automation_catch_up_window"), s.shared("automation_schema_catch_up_limit"), FieldType.CHOICE, false,
+                selector = SettingNode.Field(FieldDefinition("limit", s.shared("routine_catch_up_window"), s.shared("routine_schema_catch_up_limit"), FieldType.CHOICE, false,
                     mapOf("options" to ChoiceSettings.storedOptions(limits, mapOf(
-                        LIMITED to s.shared("automation_catch_up_limited"),
-                        UNLIMITED to s.shared("automation_catch_up_unlimited"))))), required = true),
+                        LIMITED to s.shared("routine_catch_up_limited"),
+                        UNLIMITED to s.shared("routine_catch_up_unlimited"))))), required = true),
                 cases = mapOf(
-                    LIMITED to listOf(SettingNode.Field(FieldDefinition("window", s.shared("automation_catch_up_delay"), s.shared("automation_schema_catch_up_window"), FieldType.DURATION, false,
+                    LIMITED to listOf(SettingNode.Field(FieldDefinition("window", s.shared("routine_catch_up_delay"), s.shared("routine_schema_catch_up_window"), FieldType.DURATION, false,
                         app.treelune.core.fields.DurationUnits.DAY_HOUR_MINUTE.config()), required = true)),
                     UNLIMITED to emptyList()
                 ),
-                descriptions = mapOf(LIMITED to s.shared("automation_schema_catch_up_limited"), UNLIMITED to s.shared("automation_schema_catch_up_unlimited"))
+                descriptions = mapOf(LIMITED to s.shared("routine_schema_catch_up_limited"), UNLIMITED to s.shared("routine_schema_catch_up_unlimited"))
             ),
-            SettingNode.Field(FieldDefinition("dismiss_older_instances", s.shared("automation_catch_up_run_every"), s.shared("automation_schema_dismiss_older"), FieldType.BOOLEAN, false,
-                mapOf("true_label" to s.shared("automation_catch_up_latest_only"), "false_label" to s.shared("automation_catch_up_every_occurrence"))),
+            SettingNode.Field(FieldDefinition("dismiss_older_instances", s.shared("routine_catch_up_run_every"), s.shared("routine_schema_dismiss_older"), FieldType.BOOLEAN, false,
+                mapOf("true_label" to s.shared("routine_catch_up_latest_only"), "false_label" to s.shared("routine_catch_up_every_occurrence"))),
                 default = false)
         )
     }
@@ -104,7 +104,7 @@ object RoutineSettings {
         val s = Strings.`for`(context = context)
         return app.treelune.core.look.Looks.nodes(LOOK, s::shared) +
             // One of the tool groups of the routine's zone
-            SettingNode.Field(FieldDefinition("group", s.shared("label_group"), s.shared("automation_schema_group"), FieldType.TEXT, false,
+            SettingNode.Field(FieldDefinition("group", s.shared("label_group"), s.shared("routine_schema_group"), FieldType.TEXT, false,
                 mapOf("length" to TextLength.SHORT.name)))
     }
 
@@ -122,9 +122,9 @@ object RoutineSettings {
         val s = Strings.`for`(context = context)
         return listOf(
             // Absent: the routine runs on demand only
-            ScheduleSettings.group(s.shared("automation_schedule"), s::shared),
+            ScheduleSettings.group(s.shared("routine_schedule"), s::shared),
             // Present with the schedule, and only with it (RoutineService)
-            SettingNode.Group("catch_up", s.shared("automation_catch_up_title"), catchUpNodes(context), description = s.shared("automation_schema_catch_up")),
+            SettingNode.Group("catch_up", s.shared("routine_catch_up_title"), catchUpNodes(context), description = s.shared("routine_schema_catch_up")),
             // What starts it beside its schedule: an entry written
             app.treelune.core.triggers.Triggers.node(s::shared)
         )
@@ -134,11 +134,11 @@ object RoutineSettings {
         val s = Strings.`for`(context = context)
         return listOf(
             // A new routine's runs all wait: one wants to see what a routine just made does
-            SettingNode.Field(FieldDefinition("notify_end", s.shared("automation_notify_end"), s.shared("automation_schema_notify_end"), FieldType.CHOICE, false,
+            SettingNode.Field(FieldDefinition("notify_end", s.shared("routine_notify_end"), s.shared("routine_schema_notify_end"), FieldType.CHOICE, false,
                 mapOf("options" to ChoiceSettings.storedOptions(listOf(NOTIFY_ALWAYS, NOTIFY_ON_PROBLEM, NOTIFY_NEVER), mapOf(
-                    NOTIFY_ALWAYS to s.shared("automation_notify_end_always"),
-                    NOTIFY_ON_PROBLEM to s.shared("automation_notify_end_on_problem"),
-                    NOTIFY_NEVER to s.shared("automation_notify_end_never"))))), default = NOTIFY_ALWAYS),
+                    NOTIFY_ALWAYS to s.shared("routine_notify_end_always"),
+                    NOTIFY_ON_PROBLEM to s.shared("routine_notify_end_on_problem"),
+                    NOTIFY_NEVER to s.shared("routine_notify_end_never"))))), default = NOTIFY_ALWAYS),
             // What a run that ends well emits
             app.treelune.core.events.EventPoints.node(s::shared)
         )
@@ -149,12 +149,12 @@ object RoutineSettings {
         return listOf(
             // One of the providers the user created, absent for none: the routine is then neither
             // on nor run; checked to exist by the service, as the identity
-            SettingNode.Field(FieldDefinition(PROVIDER_ID, s.shared("label_ai_provider"), s.shared("automation_schema_provider_id"), FieldType.TEXT, false,
+            SettingNode.Field(FieldDefinition(PROVIDER_ID, s.shared("label_ai_provider"), s.shared("routine_schema_provider_id"), FieldType.TEXT, false,
                 mapOf("length" to TextLength.SHORT.name))),
             // The identity its runs speak as, absent for the app's own AI; checked to exist by the service
-            SettingNode.Field(FieldDefinition(IDENTITY_ID, s.shared("label_identity"), s.shared("automation_schema_identity_id"), FieldType.TEXT, false,
+            SettingNode.Field(FieldDefinition(IDENTITY_ID, s.shared("label_identity"), s.shared("routine_schema_identity_id"), FieldType.TEXT, false,
                 mapOf("length" to TextLength.SHORT.name))),
-            SettingNode.Field(FieldDefinition("is_enabled", s.shared("automation_is_enabled"), s.shared("automation_schema_is_enabled"), FieldType.BOOLEAN, false, null), default = true)
+            SettingNode.Field(FieldDefinition("is_enabled", s.shared("routine_is_enabled"), s.shared("routine_schema_is_enabled"), FieldType.BOOLEAN, false, null), default = true)
         )
     }
 
@@ -162,9 +162,9 @@ object RoutineSettings {
         val s = Strings.`for`(context = context)
         return Schema(
             id = SCHEMA_ID,
-            displayName = s.shared("automation_display_name"),
+            displayName = s.shared("routine_display_name"),
             description = "",
-            category = SchemaCategory.AUTOMATION_CONFIG,
+            category = SchemaCategory.ROUTINE_CONFIG,
             content = SettingsSchemaGenerator.generate(nodes(context), s::shared).toString()
         )
     }

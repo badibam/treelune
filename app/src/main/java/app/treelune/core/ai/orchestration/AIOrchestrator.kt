@@ -164,7 +164,7 @@ object AIOrchestrator {
         currentQueue.sortBy {
             when (it.sessionType) {
                 SessionType.CHAT -> 1
-                SessionType.AUTOMATION -> if (it.trigger == ExecutionTrigger.MANUAL) 2 else 3
+                SessionType.ROUTINE_RUN -> if (it.trigger == ExecutionTrigger.MANUAL) 2 else 3
                 else -> 999
             }
         }
@@ -449,7 +449,7 @@ object AIOrchestrator {
      * Start a new CHAT session, evicting any currently active session.
      *
      * Behavior:
-     * - AUTOMATION active: Suspended (can resume later)
+     * - ROUTINE_RUN active: Suspended (can resume later)
      * - CHAT active: Cancelled (permanently replaced)
      * - IDLE: Creates new chat directly
      *
@@ -466,7 +466,7 @@ object AIOrchestrator {
      * @param prefill What the composer of the new chat holds, sent by the user when they choose:
      *   its draft, text and pointers alike
      *
-     * Note: AUTOMATION sessions will be resumed automatically by the scheduler
+     * Note: ROUTINE_RUN sessions will be resumed automatically by the scheduler
      * when the slot becomes free again (after CHAT ends or becomes inactive).
      */
     suspend fun startNewChatSession(prefill: List<MessageSegment> = emptyList(), identityId: String? = null) {
@@ -502,13 +502,13 @@ object AIOrchestrator {
                 LogManager.aiSession("startNewChatSession: Current session evicted, new CHAT enqueued (will auto-activate)", "INFO")
             }
             is app.treelune.core.ai.scheduling.ActivationResult.Enqueue -> {
-                // AUTOMATION active - enqueue and auto-suspend: a chat asked for now takes the slot
+                // ROUTINE_RUN active - enqueue and auto-suspend: a chat asked for now takes the slot
                 enqueueSession(sessionId, SessionType.CHAT, ExecutionTrigger.MANUAL, activationResult.priority)
 
-                // Auto-suspend AUTOMATION (specific behavior for routine button chat)
-                if (currentState.sessionType == SessionType.AUTOMATION) {
+                // Auto-suspend ROUTINE_RUN (specific behavior for routine button chat)
+                if (currentState.sessionType == SessionType.ROUTINE_RUN) {
                     eventProcessor.emit(AIEvent.SessionCompleted(SessionEndReason.SUSPENDED))
-                    LogManager.aiSession("startNewChatSession: AUTOMATION auto-suspended, new CHAT enqueued", "INFO")
+                    LogManager.aiSession("startNewChatSession: ROUTINE_RUN auto-suspended, new CHAT enqueued", "INFO")
                 }
             }
             is app.treelune.core.ai.scheduling.ActivationResult.Skip -> {
@@ -522,7 +522,7 @@ object AIOrchestrator {
      *
      * Behavior:
      * - Validates session exists and is CHAT type
-     * - Same eviction logic as startNewChatSession (suspend AUTOMATION, cancel CHAT)
+     * - Same eviction logic as startNewChatSession (suspend ROUTINE_RUN, cancel CHAT)
      * - Reactivates the session by clearing endReason and requesting activation
      *
      * Flow:
@@ -581,13 +581,13 @@ object AIOrchestrator {
                 LogManager.aiSession("resumeChatSession: Current session evicted, CHAT enqueued for resume", "INFO")
             }
             is app.treelune.core.ai.scheduling.ActivationResult.Enqueue -> {
-                // AUTOMATION active - enqueue and auto-suspend
+                // ROUTINE_RUN active - enqueue and auto-suspend
                 enqueueSession(sessionId, SessionType.CHAT, ExecutionTrigger.MANUAL, activationResult.priority)
 
-                // Auto-suspend AUTOMATION (same behavior as startNewChatSession)
-                if (currentState.sessionType == SessionType.AUTOMATION) {
+                // Auto-suspend ROUTINE_RUN (same behavior as startNewChatSession)
+                if (currentState.sessionType == SessionType.ROUTINE_RUN) {
                     eventProcessor.emit(AIEvent.SessionCompleted(SessionEndReason.SUSPENDED))
-                    LogManager.aiSession("resumeChatSession: AUTOMATION auto-suspended, CHAT enqueued for resume", "INFO")
+                    LogManager.aiSession("resumeChatSession: ROUTINE_RUN auto-suspended, CHAT enqueued for resume", "INFO")
                 }
             }
             is app.treelune.core.ai.scheduling.ActivationResult.Skip -> {
@@ -678,7 +678,7 @@ object AIOrchestrator {
      * Flow:
      * 1. Load routine configuration
      * 2. Load SEED session messages
-     * 3. Create new AUTOMATION session
+     * 3. Create new ROUTINE_RUN session
      * 4. Copy USER messages from SEED
      * 5. Emit SessionActivationRequested event
      *
@@ -701,20 +701,20 @@ object AIOrchestrator {
      */
     suspend fun executeRoutine(routineId: String, scheduledFor: Long, trigger: ExecutionTrigger, data: String? = null, chainId: String? = null,
                                   attached: List<app.treelune.core.ai.data.MessageSegment> = emptyList()) {
-        LogManager.aiSession("executeAutomation called: $routineId", "INFO")
+        LogManager.aiSession("executeRoutine called: $routineId", "INFO")
 
         try {
             // Load routine
             val routine = aiDao.getRoutineById(routineId)
             if (routine == null) {
-                LogManager.aiSession("Automation not found: $routineId", "ERROR")
+                LogManager.aiSession("Routine not found: $routineId", "ERROR")
                 return
             }
 
             val seedSessionId = routine.seedSessionId
             // Refused when it is switched on and when it is started: none here is a routine changed since
             val providerId = routine.providerId ?: run {
-                LogManager.aiSession("Automation $routineId not run: it has no provider", "ERROR")
+                LogManager.aiSession("Routine $routineId not run: it has no provider", "ERROR")
                 return
             }
 
@@ -728,18 +728,18 @@ object AIOrchestrator {
             }
             // An empty message would leave the AI to make up what to do: not run
             if (isSeedEmpty(userMessages)) {
-                LogManager.aiSession("Automation $routineId not run: its message is empty", "WARN")
+                LogManager.aiSession("Routine $routineId not run: its message is empty", "WARN")
                 return
             }
 
-            // Create new AUTOMATION session
+            // Create new ROUTINE_RUN session
             val newSessionId = java.util.UUID.randomUUID().toString()
             val now = System.currentTimeMillis()
 
             val session = AISessionEntity(
                 id = newSessionId,
                 name = "Execution ${routine.name}",
-                type = SessionType.AUTOMATION,
+                type = SessionType.ROUTINE_RUN,
                 phase = "IDLE",
                 totalRoundtrips = 0,
                 lastEventTime = now,
@@ -759,11 +759,11 @@ object AIOrchestrator {
             )
 
             aiDao.insertSession(session)
-            LogManager.aiSession("Created AUTOMATION session: $newSessionId", "INFO")
+            LogManager.aiSession("Created ROUTINE_RUN session: $newSessionId", "INFO")
 
             // Copy USER messages from SEED to new session, the data given joined to the last
             val joined = listOfNotNull(data?.let {
-                app.treelune.core.ai.data.MessageSegment.Text(app.treelune.core.strings.Strings.`for`(context = context).shared("automation_run_data").format(it))
+                app.treelune.core.ai.data.MessageSegment.Text(app.treelune.core.strings.Strings.`for`(context = context).shared("routine_run_data").format(it))
             }) + attached
             userMessages.forEachIndexed { index, userMsg ->
                 val content = if (joined.isNotEmpty() && index == userMessages.lastIndex) userMsg.richContentJson?.let { json ->
@@ -785,7 +785,7 @@ object AIOrchestrator {
             val currentState = stateRepository.state.value
             val activationResult = SessionSlotPolicy.requestSession(
                 sessionId = newSessionId,
-                sessionType = SessionType.AUTOMATION,
+                sessionType = SessionType.ROUTINE_RUN,
                 trigger = ExecutionTrigger.MANUAL,
                 currentState = currentState,
                 currentTime = System.currentTimeMillis()
@@ -794,24 +794,24 @@ object AIOrchestrator {
             // Handle result
             when (activationResult) {
                 is app.treelune.core.ai.scheduling.ActivationResult.ActivateImmediate -> {
-                    eventProcessor.emit(AIEvent.SessionActivationRequested(newSessionId, SessionType.AUTOMATION))
+                    eventProcessor.emit(AIEvent.SessionActivationRequested(newSessionId, SessionType.ROUTINE_RUN))
                 }
                 is app.treelune.core.ai.scheduling.ActivationResult.EvictAndActivate -> {
                     // Evict current session
                     eventProcessor.emit(AIEvent.SessionCompleted(activationResult.evictionReason))
                     // Then activate new session
-                    eventProcessor.emit(AIEvent.SessionActivationRequested(newSessionId, SessionType.AUTOMATION))
+                    eventProcessor.emit(AIEvent.SessionActivationRequested(newSessionId, SessionType.ROUTINE_RUN))
                 }
                 is app.treelune.core.ai.scheduling.ActivationResult.Enqueue -> {
-                    enqueueSession(newSessionId, SessionType.AUTOMATION, ExecutionTrigger.MANUAL, activationResult.priority)
+                    enqueueSession(newSessionId, SessionType.ROUTINE_RUN, ExecutionTrigger.MANUAL, activationResult.priority)
                 }
                 is app.treelune.core.ai.scheduling.ActivationResult.Skip -> {
-                    LogManager.aiSession("Automation activation skipped: ${activationResult.reason}", "INFO")
+                    LogManager.aiSession("Routine activation skipped: ${activationResult.reason}", "INFO")
                 }
             }
 
         } catch (e: Exception) {
-            LogManager.aiSession("executeAutomation failed: ${e.message}", "ERROR", e)
+            LogManager.aiSession("executeRoutine failed: ${e.message}", "ERROR", e)
         }
     }
 

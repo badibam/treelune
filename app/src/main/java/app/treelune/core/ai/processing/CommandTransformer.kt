@@ -94,13 +94,13 @@ object CommandTransformer {
                         params = command.params.filterKeys { it == "zone_id" }.mapValues { it.value!! }
                     )
                     "ROUTINES" -> ExecutableCommand(
-                        resource = "automations",
+                        resource = "routines",
                         operation = if (command.params["zone_id"] is String) "list" else "list_all",
                         params = command.params.filterKeys { it == "zone_id" }.mapValues { it.value!! }
                     )
                     // A null, an id missing, is said by the loop as invalid params
                     "ROUTINE_CONFIG" -> (command.params["id"] as? String)?.let { id ->
-                        ExecutableCommand(resource = "automations", operation = "config", params = mapOf("automation_id" to id))
+                        ExecutableCommand(resource = "routines", operation = "config", params = mapOf("routine_id" to id))
                     }
                     "ROUTINE_RUNS" -> transformRoutineRunsCommand(command, s, reference)
                     "HISTORY" -> transformHistoryCommand(command, s, reference)
@@ -176,7 +176,7 @@ object CommandTransformer {
      * Use include_config parameter to include full configuration.
      */
     private fun transformAppStateCommand(command: DataCommand): List<ExecutableCommand> {
-        LogManager.aiPrompt("transformAppStateCommand() - generating zones.list + tools.list_all + variables.list_all + automations.list_all", "VERBOSE")
+        LogManager.aiPrompt("transformAppStateCommand() - generating zones.list + tools.list_all + variables.list_all + routines.list_all", "VERBOSE")
 
         // Read include_config parameter (default false for minimal snapshot)
         val includeConfig = command.params["include_config"] as? Boolean ?: false
@@ -198,7 +198,7 @@ object CommandTransformer {
                 params = emptyMap()
             ),
             ExecutableCommand(
-                resource = "automations",
+                resource = "routines",
                 operation = "list_all",
                 params = emptyMap()
             )
@@ -228,12 +228,12 @@ object CommandTransformer {
      * (bounds in ISO 8601 or relative to [reference]), `limit`, 10 when left out.
      */
     private fun transformRoutineRunsCommand(command: DataCommand, s: StringsContext, reference: Long): ExecutableCommand? {
-        val routineId = command.params["automation_id"] as? String ?: return null
+        val routineId = command.params["routine_id"] as? String ?: return null
         val resolver = TimeResolver.at(reference)
         @Suppress("UNCHECKED_CAST")
         val period = (command.params["period"] as? Map<String, Any?>)?.let { EntryPeriod.fromJson(JsonUtils.toJSONObject(it)) { key -> s.shared(key) } }
-        return ExecutableCommand(resource = "ai_sessions", operation = "list_sessions_for_automation", params = buildMap {
-            put("automation_id", routineId)
+        return ExecutableCommand(resource = "ai_sessions", operation = "list_sessions_for_routine", params = buildMap {
+            put("routine_id", routineId)
             (command.params["limit"] as? Number)?.let { put("limit", it.toInt()) }
             period?.start?.let { put("start_time", resolver.instant(it)) }
             period?.end?.let { put("end_time", resolver.instant(it)) }

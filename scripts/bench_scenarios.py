@@ -1,6 +1,6 @@
 """The bench's scenarios (docs/AI.md, « Free models and the bench »), on the demo in French.
 
-A chat scenario is the message the user sends; an automation scenario is a demo automation run
+A chat scenario is the message the user sends; a routine scenario is a demo routine run
 now. What each must leave is checked by scripts/bench_checks.py, under the same name; "expects"
 says it in words, for the reviewer that reads a play (scripts/bench_review.py).
 """
@@ -31,11 +31,11 @@ SCENARIOS = {
     "read_kcal_yesterday": {"kind": "chat", "message": "Combien de calories j'ai mangé hier ?",
                     "expects": "Rien d'écrit ; la réponse donne la somme quantité × kcal ÷ 100 des repas d'hier."},
     # Automation
-    "auto_morning": {"kind": "automation", "automation_id": "demo-auto-morning",
+    "auto_morning": {"kind": "routine", "routine_id": "demo-auto-morning",
                     "expects": "Rien d'écrit ; la réponse cite la tâche « Relancer la Librairie » ; la session finit par completed."},
-    "auto_menu": {"kind": "automation", "automation_id": "demo-auto-weekly-menu",
+    "auto_menu": {"kind": "routine", "routine_id": "demo-auto-weekly-menu",
                     "expects": "Au moins 3 articles ajoutés à Courses, aucun en double d'un article présent non coché ; la session finit par completed."},
-    "auto_review": {"kind": "automation", "automation_id": "demo-auto-weekly-review",
+    "auto_review": {"kind": "routine", "routine_id": "demo-auto-weekly-review",
                     "expects": "Une entrée au Carnet d'entraînement portant les km de la semaine passée ; la session finit par completed."},
     # Configuration
     "config_km_target": {"kind": "chat", "message": "Monte mon objectif kilométrique à 25",

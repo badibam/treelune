@@ -7,7 +7,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
- * Covers where the autonomous roundtrip limit stops an AUTOMATION session.
+ * Covers where the autonomous roundtrip limit stops a ROUTINE_RUN session.
  *
  * Seven transitions increment AIState.totalRoundtrips, and the limit is read once, on the
  * way out of transition(), at the moment a call would go out. Each loop that can reach the
@@ -260,7 +260,7 @@ class AIStateMachineRoundtripLimitTest {
     @Test
     fun continuationReady_clearsTheReasonItWasGuidedFor() {
         val guided = routineAt(Phase.PREPARING_CONTINUATION)
-            .copy(continuationReason = ContinuationReason.AUTOMATION_NO_COMMANDS)
+            .copy(continuationReason = ContinuationReason.ROUTINE_NO_COMMANDS)
 
         val state = AIStateMachine.transition(
             state = guided,

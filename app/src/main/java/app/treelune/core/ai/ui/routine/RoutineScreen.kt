@@ -102,7 +102,7 @@ fun RoutineScreen(
     suspend fun loadRoutineMetadata() {
         // Load routine
         val result = withContext(Dispatchers.IO) {
-            coordinator.processUserAction("automations.get", mapOf("automation_id" to routineId))
+            coordinator.processUserAction("routines.get", mapOf("routine_id" to routineId))
         }
 
         // Update states (automatically on Main thread from LaunchedEffect)
@@ -111,7 +111,7 @@ fun RoutineScreen(
             if (data != null) {
                 // Service returns data under "routine" key
                 @Suppress("UNCHECKED_CAST")
-                val found = data["automation"] as? Map<String, Any>
+                val found = data["routine"] as? Map<String, Any>
                 if (found != null) {
                     routineName = found["name"] as? String
                     // The routine's place named by it, for the breadcrumb
@@ -119,13 +119,13 @@ fun RoutineScreen(
                     routine = app.treelune.core.ai.data.Routine.fromResult(found)
                     routineMap = found
                 } else {
-                    errorMessage = s.shared("error_automation_load_failed")
+                    errorMessage = s.shared("error_routine_load_failed")
                 }
             } else {
-                errorMessage = s.shared("error_automation_load_failed")
+                errorMessage = s.shared("error_routine_load_failed")
             }
         } else {
-            errorMessage = result.error ?: s.shared("error_automation_load_failed")
+            errorMessage = result.error ?: s.shared("error_routine_load_failed")
         }
     }
 
@@ -146,7 +146,7 @@ fun RoutineScreen(
 
             // Build params
             val params = mutableMapOf<String, Any>(
-                "automation_id" to routineId,
+                "routine_id" to routineId,
                 "limit" to entriesLimit,
                 "page" to currentPage
             )
@@ -154,7 +154,7 @@ fun RoutineScreen(
             if (endTime != null) params["end_time"] = endTime
 
             // Call service
-            val result = coordinator.processUserAction("ai_sessions.list_sessions_for_automation", params)
+            val result = coordinator.processUserAction("ai_sessions.list_sessions_for_routine", params)
 
             if (result.status == CommandStatus.SUCCESS) {
                 val data = result.data
@@ -278,7 +278,7 @@ fun RoutineScreen(
         // Its config behind the gear, once the routine is read
         UI.PageHeader(
             title = routineName ?: s.shared("tools_loading"),
-            subtitle = s.shared("automation_display_name"),
+            subtitle = s.shared("routine_display_name"),
             leftButton = ButtonAction.BACK,
             rightButton = if (routine != null) ButtonAction.CONFIGURE else null,
             onLeftClick = onNavigateBack,
@@ -409,7 +409,7 @@ fun RoutineScreen(
                 modifier = Modifier.fillMaxWidth().padding(UI.Space.L),
                 contentAlignment = Alignment.Center
             ) {
-                UI.CenteredText(s.shared("automation_no_executions"), TextType.BODY)
+                UI.CenteredText(s.shared("routine_no_executions"), TextType.BODY)
             }
         }
 
@@ -421,7 +421,7 @@ fun RoutineScreen(
             ) {
                 sessions.forEach { session ->
                     // Check if this session is currently active
-                    val isActive = aiState.sessionType == SessionType.AUTOMATION &&
+                    val isActive = aiState.sessionType == SessionType.ROUTINE_RUN &&
                                    aiState.sessionId == session.sessionId
 
                     // If active, use live phase from aiState for real-time updates

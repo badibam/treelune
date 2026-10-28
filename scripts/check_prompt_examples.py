@@ -17,7 +17,7 @@ This reads the prompt's JSON examples and asks six questions of them:
      copy from an example is a name the app accepts;
   6. does every key of a response exist in the response schema -- a model forced to that
      schema (OutputForcing.SCHEMA) cannot write a key it lacks, whatever the prompt asks:
-     `completed`, which ends an automation, was missing;
+     `completed`, which ends a routine's run, was missing;
   7. does every command an example sends exist in the catalog of the AI's commands
      (AICommands.kt) -- a command renamed there and left under its old name in an example
      teaches the model a command the app refuses. It reads every `"type": "...", "params"`

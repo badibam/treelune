@@ -50,7 +50,7 @@ class InUseTest {
     }
 
     private suspend fun routine(zoneId: String, name: String, providerId: String) {
-        val created = coordinator.processUserAction("automations.create", mapOf(
+        val created = coordinator.processUserAction("routines.create", mapOf(
             "zone_id" to zoneId,
             "name" to name,
             "identity_id" to null,
@@ -101,7 +101,7 @@ class InUseTest {
         val zoned = coordinator.processUserAction("zones.create", mapOf("name" to "Art", "identity_id" to identityId))
         assertTrue(zoned.error, zoned.isSuccess)
         val zoneId = zoned.data!!["zone_id"] as String
-        val routine = coordinator.processUserAction("automations.create", mapOf(
+        val routine = coordinator.processUserAction("routines.create", mapOf(
             "zone_id" to zoneId,
             "name" to "Studio",
             "identity_id" to identityId,

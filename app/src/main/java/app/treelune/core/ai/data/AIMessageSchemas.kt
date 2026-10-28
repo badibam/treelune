@@ -48,7 +48,7 @@ object AIMessageSchemas {
      * - Mutual exclusivity between dataCommands, actionCommands, communicationModule
      * - validationRequest only valid with actionCommands
      * - postText shown after the actions succeed, or at once without actions
-     * - completed, the end of an AUTOMATION, present for every session type: a model forced to
+     * - completed, the end of a ROUTINE_RUN, present for every session type: a model forced to
      *   this schema could not end one otherwise (AIStateMachine ignores it in a CHAT); summary,
      *   which comes with the completed that confirms it (RunEnd keeps it), the same way
      */

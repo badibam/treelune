@@ -10,7 +10,7 @@ import org.junit.Test
  * ProviderErrorOccurred, NetworkErrorOccurred, NetworkRetryScheduled, NetworkAvailable.
  *
  * The split runs through all of it. A CHAT has someone sitting in front of it, so it hands
- * control back and lets them decide. An AUTOMATION has nobody, so it either retries by
+ * control back and lets them decide. A ROUTINE_RUN has nobody, so it either retries by
  * itself or gives up and closes.
  */
 class AIStateMachineErrorHandlingTest {
@@ -19,7 +19,7 @@ class AIStateMachineErrorHandlingTest {
 
     /**
      * A provider error is one that repeating the call will not fix -- bad configuration, a
-     * rate limit, exhausted credit. An AUTOMATION cannot act on any of those, so it closes.
+     * rate limit, exhausted credit. A ROUTINE_RUN cannot act on any of those, so it closes.
      */
     @Test
     fun providerError_closesAnRoutine() {
@@ -53,7 +53,7 @@ class AIStateMachineErrorHandlingTest {
 
     // ==================== The network dropped ====================
 
-    /** An AUTOMATION waits the network out rather than failing on it. */
+    /** A ROUTINE_RUN waits the network out rather than failing on it. */
     @Test
     fun networkError_sendsAnRoutineToWait() {
         val state = AIStateMachine.transition(
@@ -150,7 +150,7 @@ class AIStateMachineErrorHandlingTest {
     }
 
     /**
-     * An AUTOMATION stops waiting once its outages add up to the limit, and closes resumable:
+     * A ROUTINE_RUN stops waiting once its outages add up to the limit, and closes resumable:
      * kept going, it would hold the phone awake for as long as the network stays away.
      */
     @Test

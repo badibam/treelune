@@ -68,7 +68,7 @@ class RoutineService(private val context: Context) : ExecutableService {
     ): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
 
-        LogManager.service("AutomationService.execute - operation: $operation", "DEBUG")
+        LogManager.service("RoutineService.execute - operation: $operation", "DEBUG")
 
         val result = try {
             when (operation) {
@@ -92,18 +92,18 @@ class RoutineService(private val context: Context) : ExecutableService {
             // The screen that asked left: a cancellation goes on up, no error
             throw e
         } catch (e: Exception) {
-            LogManager.service("AutomationService.execute - Error: ${e.message}", "ERROR", e)
-            OperationResult.error(s.shared("service_error_automation").format(e.message ?: ""))
+            LogManager.service("RoutineService.execute - Error: ${e.message}", "ERROR", e)
+            OperationResult.error(s.shared("service_error_routine").format(e.message ?: ""))
         }
 
         // Trigger tick() after CRUD operations that affect scheduling (if successful)
         if (result.success && operation in listOf("create", "update", "enable", "disable")) {
-            LogManager.service("AutomationService: Triggering tick() after $operation", "DEBUG")
+            LogManager.service("RoutineService: Triggering tick() after $operation", "DEBUG")
             scope.launch {
                 try {
                     AIOrchestrator.tick()
                 } catch (e: Exception) {
-                    LogManager.service("AutomationService: Error calling tick(): ${e.message}", "ERROR", e)
+                    LogManager.service("RoutineService: Error calling tick(): ${e.message}", "ERROR", e)
                 }
             }
         }
@@ -169,13 +169,13 @@ class RoutineService(private val context: Context) : ExecutableService {
         app.treelune.core.triggers.Triggers.refusal(settingsGiven(params, null), RoutineSettings.nodes(context), context, s)?.let { return OperationResult.error(it) }
         app.treelune.core.events.EventPoints.refusal(settingsGiven(params, null), null, context, s)?.let { return OperationResult.error(it) }
         // Given, null for the app's own AI: never taken from the zone without the caller saying so
-        if (!params.has(RoutineSettings.IDENTITY_ID)) return OperationResult.error(s.shared("automation_identity_required"))
+        if (!params.has(RoutineSettings.IDENTITY_ID)) return OperationResult.error(s.shared("routine_identity_required"))
         identityRefusal(entity.identityId)?.let { return OperationResult.error(it) }
         // Given too, null for none: never the default without the caller saying so
-        if (!params.has(RoutineSettings.PROVIDER_ID)) return OperationResult.error(s.shared("automation_provider_required"))
+        if (!params.has(RoutineSettings.PROVIDER_ID)) return OperationResult.error(s.shared("routine_provider_required"))
         providerRefusal(entity)?.let { return OperationResult.error(it) }
 
-        LogManager.service("Creating automation: name=${entity.name}, zoneId=$zoneId", "DEBUG")
+        LogManager.service("Creating routine: name=${entity.name}, zoneId=$zoneId", "DEBUG")
         database.transaction {
             // A seed session is never run nor active: it holds the message each run starts from
             writes.insertSession(AISessionEntity(
@@ -199,10 +199,10 @@ class RoutineService(private val context: Context) : ExecutableService {
 
         // A zone shown reads its routines again, whoever created this one
         app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
-        LogManager.service("Successfully created automation: $routineId", "INFO")
+        LogManager.service("Successfully created routine: $routineId", "INFO")
 
         return OperationResult.success(mapOf(
-            "automation_id" to routineId,
+            "routine_id" to routineId,
             "name" to entity.name,
             "zone_id" to zoneId,
             "seed_session_id" to seedSessionId,
@@ -240,11 +240,11 @@ class RoutineService(private val context: Context) : ExecutableService {
     private fun messageGiven(params: JSONObject): MessageGiven {
         if (!params.has("message")) return MessageGiven.None
         val blocks = params.optJSONArray("message")
-            ?: return MessageGiven.Refused(s.shared("automation_message_unreadable").format(params.opt("message")))
+            ?: return MessageGiven.Refused(s.shared("routine_message_unreadable").format(params.opt("message")))
         return try {
             MessageGiven.Read(RoutineMessage.fromBlocks(blocks, s::shared))
         } catch (e: IllegalArgumentException) {
-            MessageGiven.Refused(e.message ?: s.shared("automation_message_unreadable").format(blocks))
+            MessageGiven.Refused(e.message ?: s.shared("routine_message_unreadable").format(blocks))
         }
     }
 
@@ -256,13 +256,13 @@ class RoutineService(private val context: Context) : ExecutableService {
     private suspend fun updateRoutine(params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
 
-        val routineId = params.optString("automation_id").takeIf { it.isNotEmpty() }
-            ?: return OperationResult.error(s.shared("error_param_automation_id_required"))
+        val routineId = params.optString("routine_id").takeIf { it.isNotEmpty() }
+            ?: return OperationResult.error(s.shared("error_param_routine_id_required"))
 
-        LogManager.service("Updating automation: $routineId", "DEBUG")
+        LogManager.service("Updating routine: $routineId", "DEBUG")
 
         val entity = dao.getRoutineById(routineId)
-            ?: return OperationResult.error(s.shared("error_automation_not_found"))
+            ?: return OperationResult.error(s.shared("error_routine_not_found"))
 
         val newZoneId = params.optString("zone_id").takeIf { it.isNotBlank() }
 
@@ -296,7 +296,7 @@ class RoutineService(private val context: Context) : ExecutableService {
         // The message replaces the one of its seed session, with the settings or not at all
         val seed = message?.let {
             dao.getMessagesForSession(entity.seedSessionId).firstOrNull { it.sender == MessageSender.USER }
-                ?: return OperationResult.error(s.shared("automation_seed_missing").format(entity.name))
+                ?: return OperationResult.error(s.shared("routine_seed_missing").format(entity.name))
         }
         database.transaction {
             if (message != null && seed != null) writes.updateMessage(seed.copy(richContentJson = message.toJson()))
@@ -309,10 +309,10 @@ class RoutineService(private val context: Context) : ExecutableService {
         // A zone shown reads its routines again: their name, their state, their place
         app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
 
-        LogManager.service("Successfully updated automation: $routineId", "INFO")
+        LogManager.service("Successfully updated routine: $routineId", "INFO")
 
         return OperationResult.success(mapOf(
-            "automation_id" to routineId,
+            "routine_id" to routineId,
             "name" to updatedEntity.name,
             "zone_id" to updatedEntity.zoneId,
             "updated" to true
@@ -333,11 +333,11 @@ class RoutineService(private val context: Context) : ExecutableService {
      */
     private suspend fun accessGiven(params: JSONObject, stored: String): Given {
         val mask = if (!params.has("access")) app.treelune.core.access.AccessMask.fromJson(stored) else {
-            val given = params.optJSONArray("access") ?: return Given.Refused(s.shared("automation_access_unreadable").format(params.opt("access")))
+            val given = params.optJSONArray("access") ?: return Given.Refused(s.shared("routine_access_unreadable").format(params.opt("access")))
             try {
                 app.treelune.core.access.AccessMask.fromJson(given.toString())
             } catch (e: Exception) {
-                return Given.Refused(s.shared("automation_access_unreadable").format(e.message ?: ""))
+                return Given.Refused(s.shared("routine_access_unreadable").format(e.message ?: ""))
             }
         }
         kotlin.coroutines.coroutineContext[app.treelune.core.access.AccessScope]?.let { scope ->
@@ -352,7 +352,7 @@ class RoutineService(private val context: Context) : ExecutableService {
      * it could not run without.
      */
     private suspend fun providerRefusal(entity: RoutineEntity): String? = when {
-        entity.providerId == null -> if (entity.isEnabled) s.shared("automation_provider_none_enabled") else null
+        entity.providerId == null -> if (entity.isEnabled) s.shared("routine_provider_none_enabled") else null
         dao.getProviderConfig(entity.providerId) == null -> s.shared("ai_error_provider_not_found").format(entity.providerId)
         else -> null
     }
@@ -405,8 +405,8 @@ class RoutineService(private val context: Context) : ExecutableService {
         if (!checked.isValid) return Result.failure(IllegalArgumentException(checked.errorMessage))
         val schedule = settings.optJSONObject("schedule")
         val catchUp = settings.optJSONObject("catch_up")
-        if (schedule != null && catchUp == null) return Result.failure(IllegalArgumentException(s.shared("automation_catch_up_required")))
-        if (schedule == null && catchUp != null) return Result.failure(IllegalArgumentException(s.shared("automation_catch_up_without_schedule")))
+        if (schedule != null && catchUp == null) return Result.failure(IllegalArgumentException(s.shared("routine_catch_up_required")))
+        if (schedule == null && catchUp != null) return Result.failure(IllegalArgumentException(s.shared("routine_catch_up_without_schedule")))
 
         // A schedule the scheduler cannot read is refused here rather than failing each tick
         val scheduleJson = schedule?.toString()?.also {
@@ -445,13 +445,13 @@ class RoutineService(private val context: Context) : ExecutableService {
     private suspend fun deleteRoutine(params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
 
-        val routineId = params.optString("automation_id").takeIf { it.isNotEmpty() }
-            ?: return OperationResult.error(s.shared("error_param_automation_id_required"))
+        val routineId = params.optString("routine_id").takeIf { it.isNotEmpty() }
+            ?: return OperationResult.error(s.shared("error_param_routine_id_required"))
 
-        LogManager.service("Deleting automation: $routineId", "DEBUG")
+        LogManager.service("Deleting routine: $routineId", "DEBUG")
 
         val entity = dao.getRoutineById(routineId)
-            ?: return OperationResult.error(s.shared("error_automation_not_found"))
+            ?: return OperationResult.error(s.shared("error_routine_not_found"))
 
         database.transaction {
             sections.leave(SectionItem.of(entity), database.zoneDao().getZoneById(entity.zoneId)?.tool_groups)
@@ -459,10 +459,10 @@ class RoutineService(private val context: Context) : ExecutableService {
         }
         app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
 
-        LogManager.service("Successfully deleted automation: $routineId", "INFO")
+        LogManager.service("Successfully deleted routine: $routineId", "INFO")
 
         return OperationResult.success(mapOf(
-            "automation_id" to routineId,
+            "routine_id" to routineId,
             "deleted" to true
         ))
     }
@@ -479,18 +479,18 @@ class RoutineService(private val context: Context) : ExecutableService {
     private suspend fun duplicateRoutine(params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
 
-        val routineId = params.optString("automation_id").takeIf { it.isNotEmpty() }
-            ?: return OperationResult.error(s.shared("error_param_automation_id_required"))
+        val routineId = params.optString("routine_id").takeIf { it.isNotEmpty() }
+            ?: return OperationResult.error(s.shared("error_param_routine_id_required"))
         val targetZoneId = params.optString("target_zone_id").takeIf { it.isNotBlank() }
             ?: return OperationResult.error(s.shared("error_param_zone_id_required"))
         val targetGroup = params.optString("target_group").takeIf { it.isNotBlank() }
 
-        LogManager.service("Duplicating automation: $routineId to zone $targetZoneId", "DEBUG")
+        LogManager.service("Duplicating routine: $routineId to zone $targetZoneId", "DEBUG")
         groupRefusal(targetGroup, targetZoneId)?.let { return OperationResult.error(it) }
 
         // Load source routine
         val sourceEntity = dao.getRoutineById(routineId)
-            ?: return OperationResult.error(s.shared("error_automation_not_found"))
+            ?: return OperationResult.error(s.shared("error_routine_not_found"))
 
         if (token.isCancelled) return OperationResult.cancelled()
 
@@ -572,13 +572,13 @@ class RoutineService(private val context: Context) : ExecutableService {
         // Notify UI
         app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
 
-        LogManager.service("Successfully duplicated automation $routineId to $newRoutineId", "INFO")
+        LogManager.service("Successfully duplicated routine $routineId to $newRoutineId", "INFO")
 
         // Convert timestamp to ISO 8601 for output
         val timezone = AppConfigManager.getDateTimeConfig().getZoneId()
         return OperationResult.success(mapOf(
-            "automation_id" to newRoutineId,
-            "source_automation_id" to routineId,
+            "routine_id" to newRoutineId,
+            "source_routine_id" to routineId,
             "name" to newName,
             "zone_id" to newRoutine.zoneId,
             "seed_session_id" to newSeedSessionId,
@@ -592,16 +592,16 @@ class RoutineService(private val context: Context) : ExecutableService {
     private suspend fun getRoutine(params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
 
-        val routineId = params.optString("automation_id").takeIf { it.isNotEmpty() }
-            ?: return OperationResult.error(s.shared("error_param_automation_id_required"))
+        val routineId = params.optString("routine_id").takeIf { it.isNotEmpty() }
+            ?: return OperationResult.error(s.shared("error_param_routine_id_required"))
 
-        LogManager.service("Getting automation: $routineId", "DEBUG")
+        LogManager.service("Getting routine: $routineId", "DEBUG")
 
         val entity = dao.getRoutineById(routineId)
-            ?: return OperationResult.error(s.shared("error_automation_not_found"))
+            ?: return OperationResult.error(s.shared("error_routine_not_found"))
 
         return OperationResult.success(mapOf(
-            "automation" to routineToMap(entity) + ("condition_judgements" to
+            "routine" to routineToMap(entity) + ("condition_judgements" to
                 app.treelune.core.triggers.ConditionTriggers.judgements(context, app.treelune.core.triggers.ConditionTriggers.ROUTINE, entity.id, entity.triggersJson))
         ))
     }
@@ -613,17 +613,17 @@ class RoutineService(private val context: Context) : ExecutableService {
     private suspend fun getConfig(params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
 
-        val routineId = params.optString("automation_id").takeIf { it.isNotEmpty() }
-            ?: return OperationResult.error(s.shared("error_param_automation_id_required"))
+        val routineId = params.optString("routine_id").takeIf { it.isNotEmpty() }
+            ?: return OperationResult.error(s.shared("error_param_routine_id_required"))
         val entity = dao.getRoutineById(routineId)
-            ?: return OperationResult.error(s.shared("error_automation_not_found"))
+            ?: return OperationResult.error(s.shared("error_routine_not_found"))
         val seed = dao.getMessagesForSession(entity.seedSessionId).firstOrNull { it.sender == MessageSender.USER }
-            ?: return OperationResult.error(s.shared("automation_seed_missing").format(entity.name))
+            ?: return OperationResult.error(s.shared("routine_seed_missing").format(entity.name))
         val message = seed.richContentJson?.let { RichMessage.fromJson(it) }
-            ?: return OperationResult.error(s.shared("automation_seed_missing").format(entity.name))
+            ?: return OperationResult.error(s.shared("routine_seed_missing").format(entity.name))
 
         return OperationResult.success(mapOf(
-            "automation_id" to entity.id,
+            "routine_id" to entity.id,
             "zone_id" to entity.zoneId,
             "settings" to app.treelune.core.utils.JsonUtils.toMap(RoutineSettings.of(entity)),
             "access" to app.treelune.core.utils.JsonUtils.toList(entity.accessJson),
@@ -641,13 +641,13 @@ class RoutineService(private val context: Context) : ExecutableService {
         val seedSessionId = params.optString("seed_session_id").takeIf { it.isNotEmpty() }
             ?: return OperationResult.error(s.shared("error_param_seed_session_required"))
 
-        LogManager.service("Getting automation by seed session: $seedSessionId", "DEBUG")
+        LogManager.service("Getting routine by seed session: $seedSessionId", "DEBUG")
 
         val entity = dao.getRoutineBySeedSession(seedSessionId)
-            ?: return OperationResult.error(s.shared("error_automation_not_found"))
+            ?: return OperationResult.error(s.shared("error_routine_not_found"))
 
         return OperationResult.success(mapOf(
-            "automation" to routineToMap(entity)
+            "routine" to routineToMap(entity)
         ))
     }
 
@@ -660,11 +660,11 @@ class RoutineService(private val context: Context) : ExecutableService {
         val zoneId = params.optString("zone_id").takeIf { it.isNotEmpty() }
             ?: return OperationResult.error(s.shared("error_param_zone_id_required"))
 
-        LogManager.service("Listing automations for zone: $zoneId", "DEBUG")
+        LogManager.service("Listing routines for zone: $zoneId", "DEBUG")
 
         val entities = dao.getRoutinesByZone(zoneId)
         return OperationResult.success(mapOf(
-            "automations" to entities.map { routineToMap(it) },
+            "routines" to entities.map { routineToMap(it) },
             "count" to entities.size,
             "zone_id" to zoneId
         ))
@@ -676,11 +676,11 @@ class RoutineService(private val context: Context) : ExecutableService {
     private suspend fun listAllRoutines(token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
 
-        LogManager.service("Listing all automations", "DEBUG")
+        LogManager.service("Listing all routines", "DEBUG")
 
         val entities = dao.getAllRoutines()
         return OperationResult.success(mapOf(
-            "automations" to entities.map { routineToMap(it) },
+            "routines" to entities.map { routineToMap(it) },
             "count" to entities.size
         ))
     }
@@ -692,12 +692,12 @@ class RoutineService(private val context: Context) : ExecutableService {
     private suspend fun nextExecution(params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
 
-        val routineId = params.optString("automation_id").takeIf { it.isNotEmpty() }
-            ?: return OperationResult.error(s.shared("error_param_automation_id_required"))
-        dao.getRoutineById(routineId) ?: return OperationResult.error(s.shared("error_automation_not_found"))
+        val routineId = params.optString("routine_id").takeIf { it.isNotEmpty() }
+            ?: return OperationResult.error(s.shared("error_param_routine_id_required"))
+        dao.getRoutineById(routineId) ?: return OperationResult.error(s.shared("error_routine_not_found"))
 
         val at = app.treelune.core.ai.scheduling.RoutineScheduler(context).nextExecutionAt(routineId)
-        return OperationResult.success(mapOf("automation_id" to routineId) + (at?.let { mapOf("next_execution_at" to it) } ?: emptyMap()))
+        return OperationResult.success(mapOf("routine_id" to routineId) + (at?.let { mapOf("next_execution_at" to it) } ?: emptyMap()))
     }
 
     /**
@@ -710,25 +710,25 @@ class RoutineService(private val context: Context) : ExecutableService {
     ): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
 
-        val routineId = params.optString("automation_id").takeIf { it.isNotEmpty() }
-            ?: return OperationResult.error(s.shared("error_param_automation_id_required"))
+        val routineId = params.optString("routine_id").takeIf { it.isNotEmpty() }
+            ?: return OperationResult.error(s.shared("error_param_routine_id_required"))
 
-        LogManager.service("Setting automation $routineId enabled=$enabled", "DEBUG")
+        LogManager.service("Setting routine $routineId enabled=$enabled", "DEBUG")
 
         val entity = dao.getRoutineById(routineId)
-            ?: return OperationResult.error(s.shared("error_automation_not_found"))
+            ?: return OperationResult.error(s.shared("error_routine_not_found"))
         // Without a provider it could not run
-        if (enabled && entity.providerId == null) return OperationResult.error(s.shared("automation_provider_none_enabled"))
+        if (enabled && entity.providerId == null) return OperationResult.error(s.shared("routine_provider_none_enabled"))
 
         writes.setRoutineEnabled(routineId, enabled, System.currentTimeMillis())
 
         // Notify UI of routine change
         app.treelune.core.utils.DataChangeNotifier.notifyZonesChanged()
 
-        LogManager.service("Successfully set automation $routineId enabled=$enabled", "INFO")
+        LogManager.service("Successfully set routine $routineId enabled=$enabled", "INFO")
 
         return OperationResult.success(mapOf(
-            "automation_id" to routineId,
+            "routine_id" to routineId,
             "is_enabled" to enabled
         ))
     }
@@ -741,16 +741,16 @@ class RoutineService(private val context: Context) : ExecutableService {
     private suspend fun executeManual(params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
 
-        val routineId = params.optString("automation_id").takeIf { it.isNotEmpty() }
-            ?: return OperationResult.error(s.shared("error_param_automation_id_required"))
+        val routineId = params.optString("routine_id").takeIf { it.isNotEmpty() }
+            ?: return OperationResult.error(s.shared("error_param_routine_id_required"))
 
-        LogManager.service("Manual execution requested for automation: $routineId", "INFO")
+        LogManager.service("Manual execution requested for routine: $routineId", "INFO")
 
         // Verify routine exists
         val entity = dao.getRoutineById(routineId)
-            ?: return OperationResult.error(s.shared("error_automation_not_found"))
-        if (AIOrchestrator.isSeedEmpty(entity.seedSessionId)) return OperationResult.error(s.shared("automation_message_empty_run"))
-        if (entity.providerId == null) return OperationResult.error(s.shared("automation_provider_none"))
+            ?: return OperationResult.error(s.shared("error_routine_not_found"))
+        if (AIOrchestrator.isSeedEmpty(entity.seedSessionId)) return OperationResult.error(s.shared("routine_message_empty_run"))
+        if (entity.providerId == null) return OperationResult.error(s.shared("routine_provider_none"))
 
         // Delegate to AIOrchestrator V2
         // V2 handles session creation, trigger, and scheduling internally
@@ -767,15 +767,15 @@ class RoutineService(private val context: Context) : ExecutableService {
             }
             AIOrchestrator.executeRoutine(routineId, scheduledFor = clickTime, trigger = app.treelune.core.ai.data.ExecutionTrigger.MANUAL, data = data, chainId = chainId)
 
-            LogManager.service("Successfully triggered automation: $routineId", "INFO")
+            LogManager.service("Successfully triggered routine: $routineId", "INFO")
 
             return OperationResult.success(mapOf(
-                "automation_id" to routineId,
+                "routine_id" to routineId,
                 "status" to "triggered"
             ))
         } catch (e: Exception) {
-            LogManager.service("Failed to execute automation: ${e.message}", "ERROR", e)
-            return OperationResult.error("Failed to execute automation: ${e.message}")
+            LogManager.service("Failed to execute routine: ${e.message}", "ERROR", e)
+            return OperationResult.error("Failed to execute routine: ${e.message}")
         }
     }
 
@@ -789,7 +789,7 @@ class RoutineService(private val context: Context) : ExecutableService {
         val routines = (if (zoneId != null) dao.getRoutinesByZone(zoneId) else dao.getAllRoutines()).associateBy { it.id }
         val counts = dao.getWaitingRuns().mapNotNull { it.routineId?.takeIf { id -> id in routines } }.groupingBy { it }.eachCount()
         return OperationResult.success(mapOf(
-            "automations" to counts,
+            "routines" to counts,
             "zones" to counts.entries.groupBy { routines.getValue(it.key).zoneId }.mapValues { (_, inZone) -> inZone.sumOf { it.value } }
         ))
     }
@@ -815,20 +815,20 @@ class RoutineService(private val context: Context) : ExecutableService {
     override suspend fun verbalize(operation: String, params: JSONObject, context: Context): String {
         val s = Strings.`for`(context = context)
         val name = params.optString("name").ifEmpty { null }
-            ?: params.optString("automation_id").takeIf { it.isNotEmpty() }?.let { dao.getRoutineById(it)?.name ?: it }
+            ?: params.optString("routine_id").takeIf { it.isNotEmpty() }?.let { dao.getRoutineById(it)?.name ?: it }
             ?: ""
         return when (operation) {
-            "create" -> s.shared("action_verbalize_automations_create").format(name)
-            "update" -> s.shared("action_verbalize_automations_update").format(name)
-            "delete" -> s.shared("action_verbalize_automations_delete").format(name)
-            "config", "get", "get_by_seed_session" -> s.shared("action_verbalize_automations_config").format(name)
-            "duplicate" -> s.shared("action_verbalize_automations_duplicate").format(name)
-            "enable" -> s.shared("action_verbalize_automations_enable").format(name)
-            "disable" -> s.shared("action_verbalize_automations_disable").format(name)
-            "execute_manual" -> s.shared("action_verbalize_automations_execute_manual").format(name)
-            "next_execution" -> s.shared("action_verbalize_automations_next_execution").format(name)
-            "list", "list_all" -> s.shared("action_verbalize_automations_list")
-            "waiting" -> s.shared("action_verbalize_automations_waiting")
+            "create" -> s.shared("action_verbalize_routines_create").format(name)
+            "update" -> s.shared("action_verbalize_routines_update").format(name)
+            "delete" -> s.shared("action_verbalize_routines_delete").format(name)
+            "config", "get", "get_by_seed_session" -> s.shared("action_verbalize_routines_config").format(name)
+            "duplicate" -> s.shared("action_verbalize_routines_duplicate").format(name)
+            "enable" -> s.shared("action_verbalize_routines_enable").format(name)
+            "disable" -> s.shared("action_verbalize_routines_disable").format(name)
+            "execute_manual" -> s.shared("action_verbalize_routines_execute_manual").format(name)
+            "next_execution" -> s.shared("action_verbalize_routines_next_execution").format(name)
+            "list", "list_all" -> s.shared("action_verbalize_routines_list")
+            "waiting" -> s.shared("action_verbalize_routines_waiting")
             else -> s.shared("action_verbalize_unknown")
         }
     }

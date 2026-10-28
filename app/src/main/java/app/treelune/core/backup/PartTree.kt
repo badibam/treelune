@@ -114,7 +114,7 @@ data class PartTree(val zones: List<Zone>, val links: Set<PartLink>, val apis: L
             val entries = rows(data, "tool_data").groupingBy { it.getString("tool_instance_id") }.eachCount()
             val tools = rows(data, "tool_instances").groupBy { it.getString("zone_id") }
             val variables = rows(data, "variables").groupBy { it.getString("zone_id") }
-            val routines = rows(data, "automations").groupBy { it.getString("zone_id") }
+            val routines = rows(data, "routines").groupBy { it.getString("zone_id") }
             val tasks = rows(data, "tasks").groupBy { it.getString("zone_id") }
             val identities = rows(data, "identities").associateBy { it.getString("id") }
 

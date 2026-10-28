@@ -21,7 +21,7 @@ object DemoRemoval {
     val OUTSIDE_HISTORY = listOf(
         """DELETE FROM condition_judgements WHERE owner_id LIKE 'demo-%'
             OR owner_id IN (SELECT id FROM tasks WHERE zone_id LIKE 'demo-%')
-            OR owner_id IN (SELECT id FROM automations WHERE zone_id LIKE 'demo-%')"""
+            OR owner_id IN (SELECT id FROM routines WHERE zone_id LIKE 'demo-%')"""
     )
 
     val SELECTIONS = listOf(
@@ -33,12 +33,12 @@ object DemoRemoval {
             (SELECT id FROM tool_instances WHERE id LIKE 'demo-%' OR zone_id LIKE 'demo-%')""",
         "tool_instances" to "SELECT id FROM tool_instances WHERE id LIKE 'demo-%' OR zone_id LIKE 'demo-%'",
         "variables" to "SELECT id FROM variables WHERE id LIKE 'demo-%' OR zone_id LIKE 'demo-%'",
-        "ai_sessions" to """SELECT id FROM ai_sessions WHERE id LIKE 'demo-%' OR automation_id IN
-            (SELECT id FROM automations WHERE id LIKE 'demo-%' OR zone_id LIKE 'demo-%')""",
-        "automations" to "SELECT id FROM automations WHERE id LIKE 'demo-%' OR zone_id LIKE 'demo-%'",
+        "ai_sessions" to """SELECT id FROM ai_sessions WHERE id LIKE 'demo-%' OR routine_id IN
+            (SELECT id FROM routines WHERE id LIKE 'demo-%' OR zone_id LIKE 'demo-%')""",
+        "routines" to "SELECT id FROM routines WHERE id LIKE 'demo-%' OR zone_id LIKE 'demo-%'",
         "zones" to "SELECT id FROM zones WHERE id LIKE 'demo-%'",
         "identities" to """SELECT id FROM identities WHERE id LIKE 'demo-%'
             AND id NOT IN (SELECT identity_id FROM zones WHERE identity_id IS NOT NULL)
-            AND id NOT IN (SELECT identity_id FROM automations WHERE identity_id IS NOT NULL)"""
+            AND id NOT IN (SELECT identity_id FROM routines WHERE identity_id IS NOT NULL)"""
     )
 }

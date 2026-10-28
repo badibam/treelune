@@ -10,7 +10,7 @@ J'ai quelques idées en vrac, j'aimerais qu'on brainstorm sur diverses options, 
 1) pourquoi pas imposer à l'IA la liste exhaustive des champs demandés
 2) pourquoi pas même demander à l'IA de justifier sa demande pour chaque champ (en quelques mots). ça pourrait l'inciter à réfléchir avant de faire la requete, et aussi documenter son processus au bénéfice du user ?
 3) documenter dans le schéma de data l'utilisation souhaitée pour chaque champ
-4) alternativement, empêcher l'IA de faire des requetes de data sans validation du user. (peut-etre mécanisme de cochage des data à envoyer par exemple ?) mais c'est contraignant et ça peut éventuellement rendre impossible certaines automations dans lesquelles on ne peut pas savoir à l'avance les data à utiliser.
+4) alternativement, empêcher l'IA de faire des requetes de data sans validation du user. (peut-etre mécanisme de cochage des data à envoyer par exemple ?) mais c'est contraignant et ça peut éventuellement rendre impossible certaines routines dans lesquelles on ne peut pas savoir à l'avance les data à utiliser.
 5) avoir des requêtes en 2 temps : Lors de requête, le système envoie automatiquement à l'IA la liste des champs avec leur utilisation recommandée (infos extraites du schéma, présentées de manière concise), suite à quoi l'IA peut choisir les champs.
 6) Dual mode : browse vs fetch : Browse = overview, Fetch = détails avec justif
 

@@ -269,7 +269,7 @@ class BackupService(private val context: Context) : ExecutableService {
         }
 
         val data = built.json.getJSONObject("data")
-        val elements = listOf("tool_instances", "variables", "automations", "identities", "tasks", "apis").sumOf { data.optJSONArray(it)?.length() ?: 0 }
+        val elements = listOf("tool_instances", "variables", "routines", "identities", "tasks", "apis").sumOf { data.optJSONArray(it)?.length() ?: 0 }
         val entries = data.optJSONArray("tool_data")?.length() ?: 0
         LogManager.service("Backup: ${written.second} written, $elements elements, $entries entries, ${built.files.size} files, ${built.missing} without their file")
         return OperationResult.success(mapOf(
@@ -527,7 +527,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("total_roundtrips", session.totalRoundtrips)
                                 put("last_event_time", session.lastEventTime)
                                 put("last_user_interaction_time", session.lastUserInteractionTime)
-                                put("automation_id", session.routineId)
+                                put("routine_id", session.routineId)
                                 put("scheduled_execution_time", session.scheduledExecutionTime)
                                 put("provider_id", session.providerId ?: JSONObject.NULL)
                                 put("provider_session_id", session.providerSessionId)
@@ -592,7 +592,7 @@ class BackupService(private val context: Context) : ExecutableService {
                     })
 
                     // Routines
-                    put("automations", JSONArray().apply {
+                    put("routines", JSONArray().apply {
                         routines.forEach { routine ->
                             put(JSONObject().apply {
                                 put("id", routine.id)
@@ -1215,7 +1215,7 @@ class BackupService(private val context: Context) : ExecutableService {
                         totalRoundtrips = item.getInt("total_roundtrips"),
                         lastEventTime = item.getLong("last_event_time"),
                         lastUserInteractionTime = item.getLong("last_user_interaction_time"),
-                        routineId = item.optString("automation_id", null),
+                        routineId = item.optString("routine_id", null),
                         scheduledExecutionTime = item.optLong("scheduled_execution_time", 0).let { if (it == 0L) null else it },
                         providerId = if (item.isNull("provider_id")) null else item.getString("provider_id"),
                         providerSessionId = item.getString("provider_session_id"),
@@ -1231,7 +1231,7 @@ class BackupService(private val context: Context) : ExecutableService {
                         identityId = item.nullableString("identity_id"),
                         // Absent from a backup made before version 90: a run taken as planned, as the migration does
                         triggeredBy = if (item.has("triggered_by")) item.nullableString("triggered_by")
-                            else if (item.getString("type") == SessionType.AUTOMATION.name) app.treelune.core.ai.data.ExecutionTrigger.SCHEDULED.name else null,
+                            else if (item.getString("type") == SessionType.ROUTINE_RUN.name) app.treelune.core.ai.data.ExecutionTrigger.SCHEDULED.name else null,
                         appStateSnapshot = item.optString("app_state_snapshot", null)
                     )
                 )
@@ -1272,7 +1272,7 @@ class BackupService(private val context: Context) : ExecutableService {
         }
 
         // Routines
-        data.optJSONArray("automations")?.let { array ->
+        data.optJSONArray("routines")?.let { array ->
             for (i in 0 until array.length()) {
                 val item = array.getJSONObject(i)
                 database.aiDao().insertRoutine(routineOf(item))
@@ -1527,6 +1527,9 @@ class BackupService(private val context: Context) : ExecutableService {
             if (fromVersion < 106 && toVersion >= 106) {
                 app.treelune.core.versioning.MonthlyDaysAtV106.backup(data)
             }
+            if (fromVersion < 107 && toVersion >= 107) {
+                app.treelune.core.versioning.RoutinesAtV107.backup(data)
+            }
 
             // Transform app settings
             data.optJSONArray("app_settings_categories")?.let { array ->
@@ -1559,7 +1562,7 @@ class BackupService(private val context: Context) : ExecutableService {
             }
 
             // Transform routine schedules (fix SchedulePattern types for v10 → v11)
-            data.optJSONArray("automations")?.let { array ->
+            data.optJSONArray("routines")?.let { array ->
                 for (i in 0 until array.length()) {
                     val routine = array.getJSONObject(i)
                     val scheduleJson = routine.optString("schedule_json", null)
