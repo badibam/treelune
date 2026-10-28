@@ -15,7 +15,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs du téléphone
 
-- Une durée de la config d'une Séance écrite par le connecteur (`timer_duration`, la `duration` d'une étape) : le schéma la dit en ISO 8601 (« PT15M »), l'écriture la refuse (« string trouvé, integer attendu ») et ne prend que des millisecondes (vu le 2026-10-27, en créant un Minuteur et des étapes minutées) ; la convertir comme les autres durées de la Partie E, ou dire des millisecondes dans le schéma.
 - Le filtre d'une Lecture de variable accepte `=` sur un champ Choix (`state.status` d'une Séance, vu le 2026-10-27 par le connecteur), que le filtre d'un déclencheur refuse (« = ne compare pas État (CHOICE). Il prend : in, absent, present ») : la même vérification des opérateurs pour les deux, à l'écriture de la variable.
 - L'IA, par le connecteur, ne peut pas écrire une Tâche qui appelle une API déclarée : aucune commande ne liste les API (`apis.list` existe, sans commande de l'IA), ni `APP_CONTEXT` ni le schéma `task_config` ne les nomment, et `CREATE_TASK` refuse le nom (« aucune API hypnogen », vu le 2026-10-27) ; dire leurs ids, noms, entrées et valeurs à l'IA (une commande `APIS`, ou une section du contexte).
 

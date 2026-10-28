@@ -130,4 +130,26 @@ class ModelValuesTest {
 
         assertEquals("2025-03-15T14:30:00", out.get("elsewhere"))
     }
+
+    /**
+     * A config of two variants (an API's key place, then its response): its schema branches
+     * twice, and a duration inside the second is found both ways.
+     */
+    @Test
+    fun aDurationBehindTwoVariantsIsFound() {
+        fun choice(name: String, options: List<String>) = app.treelune.core.fields.settings.SettingNode.Field(
+            FieldDefinition(name, name, null, FieldType.CHOICE, false,
+                mapOf("options" to app.treelune.core.fields.ChoiceSettings.storedOptions(options, options.associateWith { it }))),
+            required = true, default = options.first())
+        val wait = app.treelune.core.fields.settings.SettingNode.Field(field("wait", FieldType.DURATION), required = true)
+        val nodes = listOf(
+            app.treelune.core.fields.settings.SettingNode.Variant(choice("place", listOf("none", "header")), mapOf("none" to emptyList(), "header" to emptyList())),
+            app.treelune.core.fields.settings.SettingNode.Variant(choice("response", listOf("immediate", "deferred")), mapOf("immediate" to emptyList(), "deferred" to listOf(wait)))
+        )
+        val config = app.treelune.core.fields.settings.SettingsSchemaGenerator.generate(nodes) { it }
+
+        val stored = ModelValues.fromModel(JSONObject().put("place", "header").put("response", "deferred").put("wait", "PT1H25M"), config, paris) as JSONObject
+        assertEquals(duration, stored.get("wait"))
+        assertEquals("PT1H25M", (ModelValues.toModel(stored, config, paris) as JSONObject).get("wait"))
+    }
 }
