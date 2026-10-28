@@ -69,6 +69,12 @@ android {
             applicationIdSuffix = ".debug"
             isDebuggable = true
             isMinifyEnabled = false
+            // x86_64 as well, for the bench's emulator: arm64 alone runs there through translation,
+            // SQLite included, two hours for the demo's install. Without the Tailscale library
+            // there, which FunnelNative.available reports; the release stays arm64 alone
+            ndk {
+                abiFilters += "x86_64"
+            }
         }
 
         release {
