@@ -120,7 +120,7 @@ object PromptManager {
     }
 
     /**
-     * A routine's run [sessionId] as its AI received it (AUTOMATION_RUN), one message after the
+     * A routine's run [sessionId] as its AI received it (ROUTINE_RUN), one message after the
      * other, each under who sent it: the routine's message as the prompt writes it, the AI's
      * answers in the JSON it wrote, the app's results. The data the starting message's pointers
      * attached is not repeated: they name what they designate, which may be read again.

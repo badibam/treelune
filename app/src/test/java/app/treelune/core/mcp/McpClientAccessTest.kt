@@ -98,17 +98,17 @@ class McpClientAccessTest {
 
     @Test
     fun `the routines' reads answer, and a routine is not created outside the access`() {
-        val routines = call("automations", JSONObject().put("zone_id", healthId))
+        val routines = call("routines", JSONObject().put("zone_id", healthId))
         assertFalse(routines.text, routines.isError)
         assertTrue(routines.text, routines.text.contains("Weekly"))
 
-        val config = call("automation_config", JSONObject().put("id", routineId))
+        val config = call("routine_config", JSONObject().put("id", routineId))
         assertFalse(config.text, config.isError)
         assertTrue(config.text, config.text.contains("Weekly"))
 
         val settings = JSONObject().put("name", "Elsewhere").put("is_enabled", false)
         val message = JSONArray().put(JSONObject().put("type", AutomationMessage.TEXT).put("text", "hi"))
-        val outside = call("create_automation", JSONObject().put("zone_id", gardenId).put("settings", settings).put("message", message))
+        val outside = call("create_routine", JSONObject().put("zone_id", gardenId).put("settings", settings).put("message", message))
         assertTrue(outside.text, outside.isError)
         assertTrue(outside.text, outside.text.contains("Claude"))
     }

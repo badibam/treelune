@@ -339,21 +339,21 @@ Returns `values`, one per instant in the same order: `{ "at", "value" }`, or `{ 
 ```json
 { "type": "READING", "params": { "variable": "kcal", "at": [{ "relative": "NOW" }, { "relative": { "unit": "DAY", "offset": -1, "edge": "END" } }] } }
 ```]]></string>
-    <string name="ai_command_automations"><![CDATA[### AUTOMATIONS
+    <string name="ai_command_routines"><![CDATA[### ROUTINES
 
 Lists the routines: each with its id, name, zone, group, whether it is on, and its schedule in a sentence, never its message. APP_STATE gives the same list; this one also shows a routine created during the session.
 
 **Parameters**:
 
 - `zone_id` (string, optional): the routines of that zone alone]]></string>
-    <string name="ai_command_automation_config"><![CDATA[### AUTOMATION_CONFIG
+    <string name="ai_command_routine_config"><![CDATA[### ROUTINE_CONFIG
 
-Retrieves a routine whole, in the form CREATE_AUTOMATION and UPDATE_AUTOMATION write it: `zone_id`, `settings` (name, provider, group, on or off, schedule, what is done of missed runs), `access` (what its AI may reach) and `message` (the text it starts each run with, in blocks). Its schema: `SCHEMA` with `id` `automation_config`.
+Retrieves a routine whole, in the form CREATE_ROUTINE and UPDATE_ROUTINE write it: `zone_id`, `settings` (name, provider, group, on or off, schedule, what is done of missed runs), `access` (what its AI may reach) and `message` (the text it starts each run with, in blocks). Its schema: `SCHEMA` with `id` `automation_config`.
 
 **Parameters**:
 
 - `id` (string, **required**): the automation_id]]></string>
-    <string name="ai_command_automation_runs"><![CDATA[### AUTOMATION_RUNS
+    <string name="ai_command_routine_runs"><![CDATA[### ROUTINE_RUNS
 
 Lists the runs of a routine, the most recent first: `id`, `scheduled_execution_time` (the time it was due), `created_at` (the time it started), `end_reason` (`COMPLETED`, `LIMIT_REACHED`, `TIMEOUT`, `ERROR`, `CANCELLED`, `NETWORK_ERROR`, `SUSPENDED`; none while it runs or after the app stopped), `total_roundtrips`, `total_cost` in dollars (a lower bound when `cost_is_lower_bound`). Its schema: `SCHEMA` with `id` `automation_runs`.
 
@@ -362,13 +362,13 @@ Lists the runs of a routine, the most recent first: `id`, `scheduled_execution_t
 - `automation_id` (string, **required**)
 - `period` (object, optional): on when the runs started, as in TOOL_DATA
 - `limit` (integer, optional): how many, 10 by default]]></string>
-    <string name="ai_command_automation_run"><![CDATA[### AUTOMATION_RUN
+    <string name="ai_command_routine_run"><![CDATA[### ROUTINE_RUN
 
 Retrieves one run as its AI received it, message after message: the routine\'s message, the answers of its AI in their JSON, the app\'s results. The data the message\'s pointers attached at the start is not repeated: read again what they name if you need it. Use it to see why a run failed before changing the routine.
 
 **Parameters**:
 
-- `id` (string, **required**): the run\'s id, from AUTOMATION_RUNS
+- `id` (string, **required**): the run\'s id, from ROUTINE_RUNS
 - `messages` (string, optional): `all` (the default), or `errors`: only the app\'s messages telling a failure, each after the answer that led to it]]></string>
     <string name="ai_command_tasks"><![CDATA[### TASKS
 
@@ -689,9 +689,9 @@ Deletes a variable. A formula naming it no longer computes.
 **Parameters**:
 
 - `variable_id` (string, **required**)]]></string>
-    <string name="ai_command_create_automation"><![CDATA[### CREATE_AUTOMATION
+    <string name="ai_command_create_routine"><![CDATA[### CREATE_ROUTINE
 
-Creates a routine in a zone: a message for the AI, prepared once. An AI works on it alone when the user starts it, on a schedule, on a trigger, or with RUN_AUTOMATION; the user also opens a conversation from it with the button on its tile.
+Creates a routine in a zone: a message for the AI, prepared once. An AI works on it alone when the user starts it, on a schedule, on a trigger, or with RUN_ROUTINE; the user also opens a conversation from it with the button on its tile.
 
 **Parameters**:
 
@@ -704,7 +704,7 @@ The whole shape: `SCHEMA` with `id` `automation_config`.
 
 ```json
 {
-  "type": "CREATE_AUTOMATION",
+  "type": "CREATE_ROUTINE",
   "params": {
     "zone_id": "zone_food",
     "settings": {
@@ -722,7 +722,7 @@ The whole shape: `SCHEMA` with `id` `automation_config`.
   }
 }
 ```]]></string>
-    <string name="ai_command_update_automation"><![CDATA[### UPDATE_AUTOMATION
+    <string name="ai_command_update_routine"><![CDATA[### UPDATE_ROUTINE
 
 Changes a routine, turns it on or off (`settings`, `{"is_enabled": false}`), or moves it to another zone. Only what you give changes: in `settings`, each setting given replaces its value and `null` removes it (a schedule removed takes `catch_up` with it); `message` and `access` given replace the whole of theirs.
 
@@ -731,11 +731,11 @@ Changes a routine, turns it on or off (`settings`, `{"is_enabled": false}`), or 
 - `automation_id` (string, **required**)
 - `zone_id` (string, optional): the zone to move it to; its group stays behind unless `settings` names one of the new zone\'s
 - `settings` (object, optional)
-- `message` (array, optional): the **whole** message, read first with AUTOMATION_CONFIG
-- `access` (array, optional): the **whole** access, held to your own as in CREATE_AUTOMATION. When your own access is listed, a routine reaching more than you cannot be changed by you at all
+- `message` (array, optional): the **whole** message, read first with ROUTINE_CONFIG
+- `access` (array, optional): the **whole** access, held to your own as in CREATE_ROUTINE. When your own access is listed, a routine reaching more than you cannot be changed by you at all
 
 A routine that changes its own message or schedule does it with no one to read it: do so only when its message asks for it.]]></string>
-    <string name="ai_command_delete_automation"><![CDATA[### DELETE_AUTOMATION
+    <string name="ai_command_delete_routine"><![CDATA[### DELETE_ROUTINE
 
 Deletes a routine.
 
@@ -800,9 +800,9 @@ Runs a Task now, as its own button does: its steps run one after another, in the
 **Parameters**:
 
 - `task_id` (string, **required**)]]></string>
-    <string name="ai_command_run_automation"><![CDATA[### RUN_AUTOMATION
+    <string name="ai_command_run_routine"><![CDATA[### RUN_ROUTINE
 
-Starts a routine now, as its own button does: its AI runs in the background with the routine\'s message, `data` joined to its end. Starting it takes using its zone. The answer says it started, not its outcome: read it later with AUTOMATION_RUNS. Started by a routine\'s run, it counts in that run\'s chain: a chain stops past the cap of runs the AI limits set.
+Starts a routine now, as its own button does: its AI runs in the background with the routine\'s message, `data` joined to its end. Starting it takes using its zone. The answer says it started, not its outcome: read it later with ROUTINE_RUNS. Started by a routine\'s run, it counts in that run\'s chain: a chain stops past the cap of runs the AI limits set.
 
 **Parameters**:
 
@@ -1602,7 +1602,7 @@ Every tool type can also take custom fields, be filled in by the AI, and be read
     <!-- MCP SERVER: what an AI outside the app reads (docs/EXTERNAL_ACCESS.md) -->
     <!-- ================================================================ -->
 
-    <!-- A routine's run read back (AUTOMATION_RUN): who sent each message, and what it leaves out -->
+    <!-- A routine's run read back (ROUTINE_RUN): who sent each message, and what it leaves out -->
     <string name="ai_run_sender_user">[routine message]</string>
     <string name="ai_run_sender_ai">[its AI]</string>
     <string name="ai_run_sender_system">[app]</string>

@@ -246,8 +246,8 @@ class AICommandProcessor(private val context: Context) {
                 isActionCommand = true
             )
 
-            // Routine actions: its config written as AUTOMATION_CONFIG reads it, in the stored form
-            "CREATE_AUTOMATION", "UPDATE_AUTOMATION", "DELETE_AUTOMATION" -> automationCommand(command, stored = true)
+            // Routine actions: its config written as ROUTINE_CONFIG reads it, in the stored form
+            "CREATE_ROUTINE", "UPDATE_ROUTINE", "DELETE_ROUTINE" -> automationCommand(command, stored = true)
             // A Task's config written as TASK_CONFIG reads it, in the stored form
             "CREATE_TASK", "UPDATE_TASK", "DELETE_TASK" -> taskCommand(command, stored = true)
 
@@ -265,7 +265,7 @@ class AICommandProcessor(private val context: Context) {
             // A Task run now: its steps run as the Task's, held to its access (TaskService)
             "RUN_TASK" -> ExecutableCommand(resource = "tasks", operation = "run", params = command.params, isActionCommand = true)
             // A routine run now, as its own button does, what is given joined to its message
-            "RUN_AUTOMATION" -> ExecutableCommand(resource = "automations", operation = "execute_manual", params = command.params, isActionCommand = true)
+            "RUN_ROUTINE" -> ExecutableCommand(resource = "automations", operation = "execute_manual", params = command.params, isActionCommand = true)
             // An event emitted, with the values it declares: what listens to it starts (EventTriggers)
             "EMIT_EVENT" -> ExecutableCommand(resource = "events", operation = "emit", params = command.params, isActionCommand = true)
             // An event of a zone, written as EVENTS reads it
@@ -369,7 +369,7 @@ class AICommandProcessor(private val context: Context) {
                 isActionCommand = true
             )
 
-            "CREATE_AUTOMATION", "UPDATE_AUTOMATION", "DELETE_AUTOMATION" -> automationCommand(command, stored = false)
+            "CREATE_ROUTINE", "UPDATE_ROUTINE", "DELETE_ROUTINE" -> automationCommand(command, stored = false)
             "CREATE_TASK", "UPDATE_TASK", "DELETE_TASK" -> taskCommand(command, stored = false)
             "IMPORT_DATA" -> importCommand(command)
             "EXPORT_DATA" -> exportCommand(command)
@@ -384,7 +384,7 @@ class AICommandProcessor(private val context: Context) {
             // A Task run now: its steps run as the Task's, held to its access (TaskService)
             "RUN_TASK" -> ExecutableCommand(resource = "tasks", operation = "run", params = command.params, isActionCommand = true)
             // A routine run now, as its own button does, what is given joined to its message
-            "RUN_AUTOMATION" -> ExecutableCommand(resource = "automations", operation = "execute_manual", params = command.params, isActionCommand = true)
+            "RUN_ROUTINE" -> ExecutableCommand(resource = "automations", operation = "execute_manual", params = command.params, isActionCommand = true)
             // An event emitted, with the values it declares: what listens to it starts (EventTriggers)
             "EMIT_EVENT" -> ExecutableCommand(resource = "events", operation = "emit", params = command.params, isActionCommand = true)
             // An event of a zone, written as EVENTS reads it

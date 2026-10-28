@@ -14,8 +14,8 @@ import org.json.JSONObject
 
 /**
  * What the AI reads and writes of a routine (docs/AI.md), each described by a
- * schema: its config, read by AUTOMATION_CONFIG and written by CREATE_AUTOMATION and
- * UPDATE_AUTOMATION in the same shape, and its runs, read by AUTOMATION_RUNS. Their instants and
+ * schema: its config, read by ROUTINE_CONFIG and written by CREATE_ROUTINE and
+ * UPDATE_ROUTINE in the same shape, and its runs, read by ROUTINE_RUNS. Their instants and
  * durations are marked (FieldValueSchema), and so reach the AI in ISO 8601 and come back in
  * milliseconds, by ModelValues as everything else's.
  */
@@ -132,9 +132,9 @@ object AutomationSchemas {
     }
 
     /**
-     * A routine of a list as the AI reads it, in the app's state and in AUTOMATIONS: its id, name,
+     * A routine of a list as the AI reads it, in the app's state and in ROUTINES: its id, name,
      * zone and group, whether it is on, and its schedule in a sentence, the one its card shows.
-     * Never its message, read with AUTOMATION_CONFIG.
+     * Never its message, read with ROUTINE_CONFIG.
      */
     fun listed(row: Map<*, *>, s: app.treelune.core.strings.StringsContext): Map<String, Any?> = linkedMapOf(
         "id" to row["id"],

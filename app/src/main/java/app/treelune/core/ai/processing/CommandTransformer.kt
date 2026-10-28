@@ -93,18 +93,18 @@ object CommandTransformer {
                         operation = if (command.params["zone_id"] is String) "list" else "list_all",
                         params = command.params.filterKeys { it == "zone_id" }.mapValues { it.value!! }
                     )
-                    "AUTOMATIONS" -> ExecutableCommand(
+                    "ROUTINES" -> ExecutableCommand(
                         resource = "automations",
                         operation = if (command.params["zone_id"] is String) "list" else "list_all",
                         params = command.params.filterKeys { it == "zone_id" }.mapValues { it.value!! }
                     )
                     // A null, an id missing, is said by the loop as invalid params
-                    "AUTOMATION_CONFIG" -> (command.params["id"] as? String)?.let { id ->
+                    "ROUTINE_CONFIG" -> (command.params["id"] as? String)?.let { id ->
                         ExecutableCommand(resource = "automations", operation = "config", params = mapOf("automation_id" to id))
                     }
-                    "AUTOMATION_RUNS" -> transformAutomationRunsCommand(command, s, reference)
+                    "ROUTINE_RUNS" -> transformAutomationRunsCommand(command, s, reference)
                     "HISTORY" -> transformHistoryCommand(command, s, reference)
-                    "AUTOMATION_RUN" -> (command.params["id"] as? String)?.let { id ->
+                    "ROUTINE_RUN" -> (command.params["id"] as? String)?.let { id ->
                         ExecutableCommand(resource = "ai_sessions", operation = "run_history", params = buildMap {
                             put("session_id", id)
                             (command.params["messages"] as? String)?.let { put("messages", it) }
