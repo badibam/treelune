@@ -1117,7 +1117,12 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
                 JSONObject().put("type", "array").put("items", JSONObject(app.treelune.core.fields.settings.FieldTypeSchemas.anyDefinition(context))))).toString()
         )
         val checked = SchemaValidator.validate(schema, mapOf("extra_fields" to JsonUtils.toValue(fields)), context)
-        return if (checked.isValid) null else checked.errorMessage ?: s.shared("message_validation_error_simple")
+        if (!checked.isValid) return checked.errorMessage ?: s.shared("message_validation_error_simple")
+        // What the schema cannot say: a setting's rule that depends on another beside it
+        val definitions = (fields as? org.json.JSONArray)?.toFieldDefinitions().orEmpty()
+        return definitions.firstNotNullOfOrNull { field ->
+            app.treelune.core.fields.FieldConfigValidator.configRefusal(field, context)?.let { "Validation custom field '${field.displayName}': $it" }
+        }
     }
 
     /**

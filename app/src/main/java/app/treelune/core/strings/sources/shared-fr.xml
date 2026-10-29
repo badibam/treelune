@@ -1818,7 +1818,7 @@
     <string name="field_validation_scale_step">L\'incrément doit être supérieur à 0</string>
     <string name="field_validation_scale_bounds_off_step">Le minimum et le maximum doivent être des multiples de l\'incrément (1 s\'il n\'est pas précisé)</string>
     <string name="field_validation_choice_options_required">Le type CHOICE nécessite une liste d\'options</string>
-    <string name="field_validation_choice_options_min">Le type CHOICE nécessite au moins 2 options</string>
+    <string name="field_validation_choice_options_min">Un choix fermé demande au moins une option ; un choix ouvert peut commencer sans</string>
     <string name="field_validation_choice_options_duplicate">Les options ne peuvent pas contenir de doublons</string>
     <string name="field_validation_choice_flag_type">Le réglage %1$s doit être un booléen</string>
     <string name="field_validation_choice_ordered_exclusive">Un classement ne peut être ni multiple ni ouvert</string>

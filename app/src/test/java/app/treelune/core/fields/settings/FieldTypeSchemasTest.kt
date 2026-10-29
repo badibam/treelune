@@ -44,7 +44,8 @@ class FieldTypeSchemasTest {
             "config": { "options": ["work", "home"] } }"""))
         assertFalse("a color outside the palette", accepts("""{ "display_name": "Context", "type": "CHOICE",
             "config": { "options": [{ "value": "work", "color": "BEIGE" }, { "value": "home" }] } }"""))
-        assertFalse("a single option", accepts("""{ "display_name": "Context", "type": "CHOICE",
+        // How many options it needs depends on « open »: the field's validation says it (ChoiceOptionsCountTest)
+        assertTrue("a single option", accepts("""{ "display_name": "Context", "type": "CHOICE",
             "config": { "options": [{ "value": "work" }] } }"""))
     }
 

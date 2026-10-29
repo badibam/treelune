@@ -147,8 +147,7 @@ object FieldTypeSettings {
                             colors = TagColor.entries.associateBy { it.name }))
                 ), description = text("field_type_option_description")),
                 description = text("field_type_options_description"),
-                required = true,
-                minItems = 2,
+                // How many it needs depends on « open » beside it: FieldConfigValidator says it
                 distinct = true,
                 summary = listOf("value", "label", "color")
             ),
