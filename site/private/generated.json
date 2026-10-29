@@ -45,8 +45,8 @@
         "fr": "Messages"
       },
       "tagline": {
-        "en": "Reminders and notifications, once or on a schedule",
-        "fr": "Des rappels et des notifications, une fois ou selon un planning"
+        "en": "Reminders and notifications that come back on a schedule",
+        "fr": "Des rappels et des notifications qui reviennent selon un planning"
       }
     },
     {
@@ -350,7 +350,7 @@
     "images/basil.jpg": "091e7e45824aa1b84d2253f5b3a64f773369ca8969d93f4f601629e8161ef12e",
     "images/chilli.jpg": "f01c34ab00673b6c500e68c9f99b18fa6ef39e2d878cb488591c19f22c0463b2",
     "images/tomato.jpg": "7d7da0da4f450f7a085de6f5d1de80c5fac2b1da6ad3f2815041a0fca0fc65c6",
-    "structure.json": "43265f2d90758f9160a6a3610089fb20972be2037b080227a8209d0d25be18da",
+    "structure.json": "cf28dfa4c96aeae4b87d180bbd38f87bfc0a808364ad53cdc4154b5637b9c1e9",
     "texts-en.json": "000356183b9f8d66b3c66b4b59f0d0602813ef51cc857973e54b6311b1a5b606",
     "texts-fr.json": "dc04d6f97f38d20759c045582f242775991c4cb71818ef334e34b584eef37237"
   }

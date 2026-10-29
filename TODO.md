@@ -51,7 +51,6 @@ Codé, jamais vu sur l'appareil.
 
 ## Décidé, à coder
 
-- Un rappel ponctuel, pour l'IA : un élément de Liste avec échéance (une chose à faire) ou un rendez-vous d'Agenda, jamais Messages, réservé à ce qui revient à un rythme. L'usage de Messages commence par « une fois ou à un rythme régulier » (le retirer, ajouter le rappel ponctuel à son « Pas fait pour »), et l'exemple de `CREATE_DATA` envoie un verre d'eau ponctuel par Messages (vu le 2026-10-29, l'IA a proposé Messages pour un rappel unique).
 - Le regroupement d'une Lecture (« 2 par jour », « 30 min par jour »), la version complète : `docs/design/reading-groups.md`.
 - Un filtre qui compare un champ à une variable ou une lecture (« kcal > objectif_calorique ») : le terme lu une fois à la référence du contexte (`TermReader`, `docs/BRICKS.md`), puis le filtre SQL comme aujourd'hui ; `EntryFilters.parse` et `ConditionPicker` le prennent.
 

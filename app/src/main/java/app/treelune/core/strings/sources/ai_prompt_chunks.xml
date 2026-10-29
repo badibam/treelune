@@ -483,10 +483,10 @@ Creates entries in one tool.
   - `state`: only where the tool\'s data schema asks for a status at creation (a message, a questionnaire): `{ "status": … }` alone, one of the statuses it lists; the app writes the rest of the state. An entry without it is refused. Where the schema says entries are not created, the tool makes them itself (a goal\'s attempts): do what it says instead
   - A field you leave out stays empty: the app never fills in a value you did not give. The result names the extra fields left empty, under `extra_left_empty`
 
-A message to send at 14:30, which the app sends at its time:
+A reminder that comes once: an item of a list with due dates, notified at its due date (one that comes back at a rhythm is a Messages schedule, set in its config):
 
 ```json
-{ "type": "CREATE_DATA", "params": { "tool_instance_id": "messages_water_123", "entries": [ { "name": "Water", "timestamp": "2025-03-15T14:30:00+01:00", "data": { "title": "Drink a glass of water" }, "state": { "status": "pending" } } ] } }
+{ "type": "CREATE_DATA", "params": { "tool_instance_id": "list_todo_123", "entries": [ { "name": "Call the plumber", "data": { "due_at": "2025-03-15T14:30:00+01:00" } } ] } }
 ```]]></string>
     <string name="ai_command_update_data"><![CDATA[### UPDATE_DATA
 

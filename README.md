@@ -35,7 +35,7 @@ Each part of your life becomes a **zone**: training, a project, a vegetable patc
 - **Tracking** — Numbers, ratings, choices or timed durations, noted as they come, such as weight, sleep, mood or glasses of water
 - **Notes** — Notes, each with its title, kept where they belong
 - **Journal** — A dated diary, for writing about your days
-- **Messages** — Reminders and notifications, once or on a schedule
+- **Messages** — Reminders and notifications that come back on a schedule
 - **List** — What is left to do, checked off as it is done, with due dates if you want
 - **Records** — The fields you choose, each record found by its name, for foods, books, plants or anything else
 - **Goal** — A goal judged each day, week or month by the criteria you set, read from your entries

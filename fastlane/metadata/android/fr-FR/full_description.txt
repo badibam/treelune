@@ -24,7 +24,7 @@ Les outils :
 - Suivi — Des chiffres, des notes sur une échelle, des choix ou des durées chronométrées, notés au fil des jours, comme le poids, le sommeil, l'humeur ou les verres d'eau
 - Notes — Des notes, chacune avec son titre, rangées là où elles servent
 - Journal — Un carnet daté, pour raconter ses journées
-- Messages — Des rappels et des notifications, une fois ou selon un planning
+- Messages — Des rappels et des notifications qui reviennent selon un planning
 - Liste — Ce qui reste à faire, coché au fur et à mesure, avec des échéances si tu veux
 - Fiches — Les champs que tu choisis, chaque fiche retrouvée par son nom, pour des aliments, des livres, des plantes ou autre chose
 - Objectif — Un objectif jugé chaque jour, semaine ou mois sur les critères que tu fixes, lus dans tes entrées
