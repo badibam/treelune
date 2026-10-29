@@ -2972,4 +2972,42 @@
     <!-- The AI writes Tasks -->
     <string name="ai_read_user_task">« %1$s » : Tâche lue</string>
     <string name="task_schema_steps">Ses étapes, lancées l\'une après l\'autre : chacune un objet qui nomme son genre (call_api, create_entry, update_entry, tool_operation, run_routine), ses entrées des termes ou ce qu\'une étape précédente a donné</string>
+    <!-- The app's pieces (Pieces): what each is for and what the user does with it on screen, read by the AI -->
+    <string name="piece_button">- Le bouton « %1$s » :</string>
+    <string name="piece_zone_name">Zone</string>
+    <string name="piece_zone_usage">Un sujet de ta vie (Santé, Travail), qui tient ses outils, ses variables, ses routines et ses Tâches, rangés en sections.</string>
+    <string name="piece_zone_screen">- Sa tuile à l\'accueil l\'ouvre ; un appui long ouvre sa config\n- {plus} Sur une section de la zone : y crée un outil, une variable, une routine ou une Tâche\n- En haut, son identité quand elle en a une : son bouton ouvre une conversation avec elle</string>
+    <string name="piece_tool_name">Outil</string>
+    <string name="piece_tool_usage">Note les entrées d\'un type d\'outil et les montre ; son type dit à quoi il sert et ce que font ses boutons.</string>
+    <string name="piece_tool_screen">- Sa tuile dans la section de sa zone, d\'Icône à Plein selon son affichage : les plus grandes portent les boutons de son type\n- Un toucher ouvre son écran ; un appui long ouvre sa config</string>
+    <string name="piece_routine_name">Routine</string>
+    <string name="piece_routine_usage">Un message pour l\'IA, préparé une fois et réutilisé à volonté. Une IA le traite seule (quand tu la lances, selon un planning, sur un déclencheur) et tu lis le résultat plus tard ; ou tu ouvres une conversation qui part de lui, pour réfléchir ensemble à un sujet qui revient, comme le point de la semaine.</string>
+    <string name="piece_routine_screen">- {play} La lance maintenant, l\'IA seule\n- {message-circle} Ouvre une conversation avec son message, envoyé tel quel ou modifié avant\n- {eye} Sa page : chaque exécution, ce que l\'IA a lu, fait et répondu\n- Un interrupteur allume ou éteint son planning et ses déclencheurs\n- Une notification à la fin d\'une exécution, si sa config le demande</string>
+    <string name="piece_task_name">Tâche</string>
+    <string name="piece_task_usage">Des étapes écrites à l\'avance que l\'app fait seule, sans IA, toujours les mêmes et gratuites : appeler une API, créer ou modifier une entrée, faire une opération d\'un outil, lancer une routine. Elle part à la main, selon un planning ou sur un déclencheur (une entrée écrite, un événement émis, une condition devenue vraie), et peut émettre un événement à la fin.</string>
+    <string name="piece_task_screen">- {play} La lance maintenant\n- {eye} Sa page : ses exécutions, ce qu\'a donné chaque étape, et si ses conditions sont vraies\n- Une notification à la fin, si sa config le demande</string>
+    <string name="piece_variable_name">Variable</string>
+    <string name="piece_variable_usage">Une valeur nommée, fixe ou calculée par une formule à partir de lectures d\'entrées et d\'autres variables, lue partout : un graphique, un objectif, une condition, une autre variable, l\'IA.</string>
+    <string name="piece_variable_screen">- Sa tuile dans la section de sa zone montre sa valeur, à côté de son libellé ou dessous\n- Un toucher l\'ouvre : sa valeur maintenant et sa définition</string>
+    <string name="piece_alert_name">Alerte sur une condition</string>
+    <string name="piece_alert_usage">Une condition sur une valeur (« la dernière pesée > 75 », « les heures de la semaine > 45 ») qui fait partir quelque chose quand elle devient vraie. L\'alerte la plus simple est une Tâche sans étape, déclenchée par la condition, qui prévient à la fin : rien de plus à construire.</string>
+    <string name="piece_alert_screen">- Rien à toucher : la notification arrive d\'elle-même quand la condition devient vraie\n- La page de la Tâche dit si sa condition est vraie maintenant</string>
+    <string name="piece_event_name">Événement</string>
+    <string name="piece_event_usage">Un signal nommé qui relie des pièces, même d\'une zone à l\'autre : une Tâche, le rappel d\'un outil ou la fin d\'une routine l\'émet, et les Tâches et routines qui l\'écoutent partent, avec les valeurs qu\'il porte.</string>
+    <string name="piece_event_screen">- Rien à toucher : les événements sont listés sur l\'écran de leur zone\n- Ce qui en émet un et ce qui l\'écoute se règlent dans leur config</string>
+    <string name="piece_api_name">API</string>
+    <string name="piece_api_usage">Un service du web que l\'app appelle, déclaré une fois (son adresse, ses entrées, ce qu\'il faut lire dans sa réponse) ; une étape de Tâche l\'appelle, et les étapes suivantes peuvent écrire sa réponse dans un outil.</string>
+    <string name="piece_api_screen">- Déclarée dans Réglages › API, où un bouton l\'essaie</string>
+    <string name="piece_pointer_name">Pointeur</string>
+    <string name="piece_pointer_usage">Un bloc d\'un message qui montre à l\'IA exactement de quoi il s\'agit : une zone, un outil, ses entrées sur une période, une variable ; leur config ou leurs entrées peuvent partir avec. Dans le message d\'une routine, il est relu à chaque exécution, sa période comptée depuis celle-ci.</string>
+    <string name="piece_pointer_screen">- {crosshair} Sous un message : ajoute un pointeur\n- Config et Entrées, cochées : leurs données partent avec le message</string>
+    <string name="piece_identity_name">Identité</string>
+    <string name="piece_identity_usage">Un personnage que l\'IA incarne, avec une voix, un esprit et un portrait : le travail dans les outils reste le même, seuls les mots qu\'elle t\'adresse changent.</string>
+    <string name="piece_identity_screen">- En haut d\'une zone qui en a une : son bouton ouvre une conversation avec elle\n- Dans une conversation, avant le premier message : le bouton à côté du message choisit qui parle</string>
+    <string name="piece_conversation_name">Conversation</string>
+    <string name="piece_conversation_usage">Toi qui parles avec l\'IA, laquelle lit et écrit les données de l\'app comme tu le ferais, en demandant ton accord là où tu protèges.</string>
+    <string name="piece_conversation_screen">- {message-circle} La bulle flottante l\'ouvre, depuis les lieux qu\'on consulte\n- {rotate-ccw-clock} Rouvre une conversation passée\n- {settings} Ses réglages : l\'accord demandé sur plus de choses, sa réflexion</string>
+    <string name="piece_notification_name">Notification</string>
+    <string name="piece_notification_usage">Ce qui t\'arrive sans que tu ouvres l\'app : la fin d\'une routine ou d\'une Tâche quand leur config le demande, une alerte sur une condition, et certains outils, dont le type le dit.</string>
+    <string name="piece_notification_screen">- Un toucher ouvre ce dont elle parle</string>
 </resources>

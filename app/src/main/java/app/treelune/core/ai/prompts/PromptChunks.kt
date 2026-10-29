@@ -60,6 +60,7 @@ object PromptChunks {
         // PARTIE A : INTRODUCTION & CONFIGURATION
         Chunk("intro_role", 1) { ctx, _ -> buildIntroRole(ctx) },
         Chunk("environment", 1, shared = true) { ctx, _ -> buildChunk("environment", ctx) },
+        Chunk("pieces", 1, shared = true) { ctx, _ -> buildPieces(ctx) },
         Chunk("vocabulary", 1, shared = true) { ctx, _ -> buildVocabulary(ctx) },
         Chunk("session_types", 1) { ctx, sessionType -> buildSessionTypes(ctx, sessionType) },
         Chunk("routine_completion", 1) { ctx, sessionType -> buildRoutineCompletion(ctx, sessionType) },
@@ -299,6 +300,25 @@ object PromptChunks {
     }
 
     /**
+     * The app's pieces beyond the tool types (Pieces), each with what it is for and what the user
+     * does with it on screen, its icons in words: the AI proposes what the screen offers, and says
+     * what the user will touch. In English whatever the app's language, as the rest of the prompt.
+     */
+    private fun buildPieces(context: Context): String {
+        val s = Strings.`for`(context = AiLanguage.english(context))
+        val sb = StringBuilder()
+        sb.appendLine(s.shared("ai_chunk_pieces_header"))
+        sb.appendLine()
+        for (piece in app.treelune.core.guide.Pieces.ALL) {
+            sb.appendLine("### ${s.shared(piece.nameKey)}")
+            sb.appendLine(s.shared(piece.usageKey))
+            sb.appendLine(app.treelune.core.guide.Pieces.withoutIcons(s.shared(piece.screenKey), s))
+            sb.appendLine()
+        }
+        return sb.toString()
+    }
+
+    /**
      * The tool types, each with its usage and what only the AI needs besides. Read in English
      * whatever the app's language, as the rest of the prompt: the usages are translated for the
      * Guide, which shows them to the user.
@@ -306,6 +326,7 @@ object PromptChunks {
     private fun buildTooltypesList(context: Context): String {
         val s = Strings.`for`(context = context)
         val english = AiLanguage.english(context)
+        val englishStrings = Strings.`for`(context = english)
         val sb = StringBuilder()
 
         sb.appendLine(s.shared("ai_chunk_tooltypes_header"))
@@ -317,6 +338,11 @@ object PromptChunks {
             // The usage's subtitles go under the type's own heading
             sb.appendLine(toolType.getUsage(english).replace(Regex("(?m)^## "), "#### "))
             toolType.getAIDetail(english)?.let { sb.appendLine(it) }
+            // What the user touches on its screen and its tile, as the Guide shows it, its icons in words
+            toolType.getGuideScreen(english)?.let { screen ->
+                sb.appendLine("#### ${englishStrings.shared("ai_chunk_on_screen")}")
+                sb.appendLine(app.treelune.core.guide.Pieces.withoutIcons(screen, englishStrings).replace(Regex("(?m)^## "), "##### "))
+            }
             sb.appendLine()
         }
 

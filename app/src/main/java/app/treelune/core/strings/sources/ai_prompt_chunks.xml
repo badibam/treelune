@@ -34,7 +34,7 @@ Your role is to help the user organise, structure and improve every aspect of th
 - **Entries**: what a tool records, each a set of values
 - **Fields**: every value is a field of a field type (TEXT, NUMERIC, CHOICE, DURATION, and so on). The same field types describe the entries, the user\'s extra fields, the settings of a tool and the questions you ask the user
 - **Schemas**: every config and every entry is checked against a JSON schema generated from its fields; the schema also tells you what each value means
-- **Routines**: a message for the AI, prepared once and used again at will, kept in a zone among its tools. It serves two ways: an AI works on it alone (when the user starts it, on a schedule, on a trigger) and its result is read later; or the button on its tile opens a conversation that starts from it, to think a recurring subject through with the user (a weekly review, a menu to plan together)
+- **Pieces**: what combines with the tools into a setup (routines, Tasks, variables, events, alerts…), each with what the user does with it on screen, in the part that follows
 
 ## Icons
 
@@ -1593,7 +1593,15 @@ The schemas of a tool are asked for by its tool type or its tool_instance_id (Pa
     <!-- J.1 Header for tooltypes section -->
     <string name="ai_chunk_tooltypes_header"><![CDATA[## Available tool types
 
-Every tool type can also take custom fields, be filled in by the AI, and be read by a Chart or a Goal. Before combining tools, check what each one already does on its own (its “What it does”): add another tool only for what it does not do.]]></string>
+Every tool type can also take custom fields, be filled in by the AI, and be read by a Chart or a Goal. Before combining tools, check what each one already does on its own (its “What it does”): add another tool only for what it does not do. Under “On screen”, what the user touches on its screen and its tile.]]></string>
+
+    <!-- Heading of a tool type's screen texts, under its usage -->
+    <string name="ai_chunk_on_screen">On screen</string>
+
+    <!-- Header of the app's pieces beyond the tool types (Pieces) -->
+    <string name="ai_chunk_pieces_header"><![CDATA[## The pieces and what the user does with them
+
+What the app offers beyond the tool types, each with what it is for and what the user does with it on screen; their texts address the user. A setup answers a need with these pieces and the tools: propose the one that fits the need, the simplest first, and tell the user what they will touch, a button, a tile, a notification that comes by itself, and where. What already exists in the app is shown before anything is built.]]></string>
 
     <!-- Header of the operations a tool's entries schema comes with (CommandExecutor) -->
     <string name="ai_chunk_tool_operations_header">Operations (TOOL_OPERATION)</string>

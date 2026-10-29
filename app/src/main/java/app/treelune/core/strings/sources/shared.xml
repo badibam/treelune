@@ -2972,4 +2972,42 @@
     <!-- The AI writes Tasks -->
     <string name="ai_read_user_task">\'%1$s\': Task read</string>
     <string name="task_schema_steps">Its steps, run one after another: each an object naming its kind (call_api, create_entry, update_entry, tool_operation, run_routine), its inputs terms or what an earlier step gave</string>
+    <!-- The app's pieces (Pieces): what each is for and what the user does with it on screen, read by the AI -->
+    <string name="piece_button">- The “%1$s” button:</string>
+    <string name="piece_zone_name">Zone</string>
+    <string name="piece_zone_usage">A subject of your life (Health, Work), holding its tools, variables, routines and Tasks, sorted in sections.</string>
+    <string name="piece_zone_screen">- Its tile on the home screen opens it; a long touch opens its config\n- {plus} On a section of the zone: creates a tool, a variable, a routine or a Task in it\n- At its top, its identity when it has one: its button opens a conversation with it</string>
+    <string name="piece_tool_name">Tool</string>
+    <string name="piece_tool_usage">Records the entries of one tool type and shows them; its type says what it is for and what its buttons do.</string>
+    <string name="piece_tool_screen">- Its tile in its zone\'s section, from Icon to Full by its display mode: the larger ones carry its type\'s buttons\n- A touch opens its screen; a long touch opens its config</string>
+    <string name="piece_routine_name">Routine</string>
+    <string name="piece_routine_usage">A message for the AI, prepared once and used again at will. An AI works on it alone (when you start it, on a schedule, on a trigger) and you read its result later; or you open a conversation that starts from it, to think a recurring subject through together, such as a weekly review.</string>
+    <string name="piece_routine_screen">- {play} Runs it now, the AI alone\n- {message-circle} Opens a conversation with its message, sent as it is or changed first\n- {eye} Its page: each run, what the AI read, did and answered\n- A switch turns its schedule and triggers on or off\n- A notification when a run ends, if its config asks for it</string>
+    <string name="piece_task_name">Task</string>
+    <string name="piece_task_usage">Steps written in advance that the app carries out alone, without an AI, always the same and free: call an API, create or change an entry, carry out a tool\'s operation, run a routine. It starts by hand, on a schedule, or on a trigger (an entry written, an event emitted, a condition become true), and may emit an event when it ends.</string>
+    <string name="piece_task_screen">- {play} Runs it now\n- {eye} Its page: its runs, what each step gave, and whether its conditions are true\n- A notification when it ends, if its config asks for it</string>
+    <string name="piece_variable_name">Variable</string>
+    <string name="piece_variable_usage">A named value, fixed or computed by a formula from readings of entries and other variables, read anywhere: a chart, a goal, a condition, another variable, the AI.</string>
+    <string name="piece_variable_screen">- Its tile in its zone\'s section shows its current value, beside its label or under it\n- A touch opens it: its value now and its definition</string>
+    <string name="piece_alert_name">Alert on a condition</string>
+    <string name="piece_alert_usage">A condition on a value (“the last weight > 75”, “the week\'s hours > 45”) that starts something when it becomes true. The simplest alert is a Task without steps whose trigger is the condition and which notifies when it ends: nothing more to build.</string>
+    <string name="piece_alert_screen">- Nothing to touch: the notification comes by itself when the condition becomes true\n- The Task\'s page says whether its condition is true now</string>
+    <string name="piece_event_name">Event</string>
+    <string name="piece_event_usage">A named signal that connects pieces, even from one zone to another: a Task, a tool\'s reminder or a routine\'s end emits it, and the Tasks and routines that listen to it start, receiving the values it carries.</string>
+    <string name="piece_event_screen">- Nothing to touch: the events are listed on their zone\'s screen\n- What emits one and what listens to it are set in their configs</string>
+    <string name="piece_api_name">API</string>
+    <string name="piece_api_usage">A web service the app calls, declared once (its address, its inputs, what to read in its answer); a Task\'s step calls it, and the next steps can write its answer into a tool.</string>
+    <string name="piece_api_screen">- Declared in Settings › APIs, where a button tries it</string>
+    <string name="piece_pointer_name">Pointer</string>
+    <string name="piece_pointer_usage">A block of a message that shows the AI exactly what it is about: a zone, a tool, its entries over a period, a variable; their config or entries may go with it. In a routine\'s message, it is read again at each run, its period counted from that run.</string>
+    <string name="piece_pointer_screen">- {crosshair} Under a message: adds a pointer\n- Config and Entries, ticked: their data go with the message</string>
+    <string name="piece_identity_name">Identity</string>
+    <string name="piece_identity_usage">A character the AI speaks as, with a voice, a mind and a portrait: the work in the tools stays the same, only the words it addresses to you change.</string>
+    <string name="piece_identity_screen">- At the top of a zone that has one: its button opens a conversation with it\n- In a conversation, before the first message: the button beside the message chooses who speaks</string>
+    <string name="piece_conversation_name">Conversation</string>
+    <string name="piece_conversation_usage">You talking with the AI, which reads and writes the app\'s data as you would, asking for your approval where you protect it.</string>
+    <string name="piece_conversation_screen">- {message-circle} The floating bubble opens it, from the places one looks at\n- {rotate-ccw-clock} Opens a past conversation again\n- {settings} Its settings: approval asked on more, its reasoning</string>
+    <string name="piece_notification_name">Notification</string>
+    <string name="piece_notification_usage">What reaches you without opening the app: a routine\'s or a Task\'s end when their config asks for it, an alert on a condition, and some tools, whose type says so.</string>
+    <string name="piece_notification_screen">- A touch opens what it is about</string>
 </resources>
