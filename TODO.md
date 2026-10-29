@@ -15,6 +15,8 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs
 
+- Une date (`timestamp`) donnée par l'IA à une entrée de Fiches, qui n'en a pas : refusée par un message Java brut (« Value … of type java.lang.String cannot be converted to long », vu le 2026-10-28 dans une routine) au lieu d'une phrase qui dit que l'outil n'a pas de date.
+- Une Tâche qui passe l'entrée reçue à une routine (`run_routine`, `data` ← `{"received": {}}`) ne lui donne que son id (vu le 2026-10-28) : la routine doit la relire. La joindre en entier, comme le fait un déclencheur qui lance une routine directement (`docs/CORE.md`, « Triggers »).
 - `GoalRecurringTest` échoue le jour du passage à l'heure d'hiver (vu le 2026-10-25, déjà avant la partie A) : il vieillit une tentative de 24 h exactes, alors que ce jour-là en dure 25 ; vieillir d'un jour du calendrier de l'app, pas d'une durée.
 
 ## À passer sur le téléphone
