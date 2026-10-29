@@ -24,6 +24,9 @@ import app.treelune.core.utils.LogManager
  * variable), in a zone the group it sits in, null outside the zone's groups, and for a zone or a
  * tool the icon it is shown by, in its colour.
  */
+/** A zone of the flat choice of an event: its section's title (null without titles) and its events. */
+private data class FlatZone(val zone: Named, val section: String?, val events: List<Place>)
+
 private data class Place(
     val path: ThingPath,
     val detail: String? = null,
@@ -60,7 +63,10 @@ fun ThingBrowser(path: ThingPath, onPath: (ThingPath) -> Unit, target: Reference
     val entryFields = rememberToolFields(path.tool?.id?.takeIf { fieldNotch })
     // Nothing is listed below a place when nothing deeper is taken (a tool, for the pointer)
     val deeper = target.kinds.any { it in path.kind.below } || fieldNotch
-    val creatingEvent = ReferenceKind.EVENT in target.kinds && path.kind == ReferenceKind.ZONE
+    // An event alone is chosen flat, from the app: each zone that has events, its events under it
+    val eventsFlat = target.kinds == setOf(ReferenceKind.EVENT) && path.kind == ReferenceKind.APP
+    var flat by remember { mutableStateOf<List<FlatZone>>(emptyList()) }
+    val creatingEvent = ReferenceKind.EVENT in target.kinds && (path.kind == ReferenceKind.ZONE || eventsFlat)
 
     LaunchedEffect(path.zone?.id, path.tool?.id, path.variable?.id, path.entry?.id, query) {
         places = null
@@ -87,7 +93,22 @@ fun ThingBrowser(path: ThingPath, onPath: (ThingPath) -> Unit, target: Reference
             Named(row["id"] as String, row["name"] as? String ?: "", if (tooltype) row["tooltype"] as? String else null)
         fun icon(row: Map<*, *>) = row["icon_name"] as? String
         fun iconColor(row: Map<*, *>) = app.treelune.core.themes.IconColor.of(row[app.treelune.core.themes.IconColor.KEY] as? String)
-        places = rows("zones").map { Place(ThingPath(named(it)), icon = icon(it), iconColor = iconColor(it)) } +
+        // The zones as the home screen shows them: in its order, under its groups
+        val zoneRows = rows("zones").associateBy { it["id"] as String }
+        val ordered = ZoneOrder.sorted(zoneRows.values.map { row ->
+            ZoneOrder.Zone(row["id"] as String, row["name"] as? String ?: "", row["group"] as? String, (row["grid_y"] as Number).toInt(), (row["grid_x"] as Number).toInt())
+        }, groups, s.shared("label_ungrouped"))
+        if (path.kind == ReferenceKind.APP) groups = groups.filter { group -> ordered.any { it.first.group == group } }
+        if (eventsFlat) {
+            val events = rows("events").groupBy { it["zone_id"] as String }
+            flat = ordered.mapNotNull { (zone, title) ->
+                val zoneNamed = Named(zone.id, zone.name)
+                events[zone.id]?.let { list -> FlatZone(zoneNamed, title, list.map { Place(ThingPath(zoneNamed, event = named(it)), icon = "zap") }) }
+            }
+            places = emptyList()
+            return@LaunchedEffect
+        }
+        places = ordered.map { (zone, _) -> zoneRows.getValue(zone.id).let { Place(ThingPath(named(it)), group = zone.group, icon = icon(it), iconColor = iconColor(it)) } } +
             rows("tool_instances").map { row ->
                 // A tool listed at the app, without its zone reached first, says which it is in
                 val zone = path.zone ?: Named(row["zone_id"] as String, row["zone_name"] as? String ?: "")
@@ -95,14 +116,15 @@ fun ThingBrowser(path: ThingPath, onPath: (ThingPath) -> Unit, target: Reference
                     icon(row), iconColor(row))
             } +
             rows("variables").map { row -> Place(ThingPath(path.zone, variable = named(row)), s.shared("reference_kind_variable"), row["group"] as? String) } +
-            rows("events").map { row -> Place(ThingPath(path.zone, event = named(row)), s.shared("reference_kind_event"), icon = "zap") } +
+            rows("events").takeIf { path.zone != null }.orEmpty().map { row -> Place(ThingPath(path.zone, event = named(row)), s.shared("reference_kind_event"), icon = "zap") } +
             rows("entries").map { Place(path.copy(entry = named(it))) }
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
         Trail(path, s.shared("pointer_level_app")) { onPath(path.upTo(it)) }
-        // An event is made where it is chosen, without leaving: its name now, its values in its zone's card
-        if (creatingEvent) NewEvent(path.zone!!) { onPath(ThingPath(path.zone, event = it)) }
+        // An event is made where it is chosen, without leaving: its name now, its values in its zone's
+        // card; from the app, its zone chosen first, any zone, one without events included
+        if (creatingEvent) NewEvent(path.zone) { zone, event -> onPath(ThingPath(zone, event = event)) }
         if (searching) {
             UI.FormField(label = s.shared("field_reference_search"), value = query, onChange = { query = it }, required = false)
         }
@@ -111,6 +133,14 @@ fun ThingBrowser(path: ThingPath, onPath: (ThingPath) -> Unit, target: Reference
             failed -> UI.Text(text = s.shared("error_loading_options"), type = TextType.ERROR)
             !deeper -> Unit
             current == null -> UI.LoadingIndicator()
+            eventsFlat -> if (flat.isEmpty()) UI.Text(text = s.shared("scope_no_options"), type = TextType.BODY) else {
+                // Each section of the home screen titled once, each zone over its events
+                flat.forEachIndexed { i, zone ->
+                    if (zone.section != null && zone.section != flat.getOrNull(i - 1)?.section) UI.Text(text = zone.section, type = TextType.HEADING)
+                    UI.Text(text = zone.zone.name, type = TextType.SUBTITLE)
+                    zone.events.forEach { PlaceRow(it, onPath) }
+                }
+            }
             current.isEmpty() && !creatingEvent -> UI.Text(text = s.shared("scope_no_options"), type = TextType.BODY)
             // Without groups, one list; with them, a title over each group holding something
             groups.isEmpty() -> current.forEach { PlaceRow(it, onPath) }
@@ -148,25 +178,34 @@ private fun PlaceRow(place: Place, onPath: (ThingPath) -> Unit) {
     }
 }
 
-/** « New event… » in [zone]: a name, the event created (events.create), then [onCreated] with it. */
+/**
+ * « New event… »: in [zone], or with no zone given in the zone chosen first, any of them; a name,
+ * the event created (events.create), then [onCreated] with its zone and itself.
+ */
 @Composable
-private fun NewEvent(zone: Named, onCreated: (Named) -> Unit) {
+private fun NewEvent(zone: Named?, onCreated: (Named, Named) -> Unit) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     var naming by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf("") }
+    var chosen by remember { mutableStateOf(zone?.id) }
     UI.Button(type = app.treelune.core.ui.ButtonType.SECONDARY, onClick = { naming = true }) { UI.Text(s.shared("event_new"), TextType.BODY) }
-    if (naming) app.treelune.core.ui.UI.Dialog(type = app.treelune.core.ui.DialogType.CREATE, onConfirm = {
+    if (naming) app.treelune.core.ui.UI.Dialog(type = app.treelune.core.ui.DialogType.CREATE, confirmEnabled = chosen != null, onConfirm = {
+        val zoneId = chosen!!
         scope.launch {
-            val result = Coordinator(context).processUserAction("events.create", mapOf("zone_id" to zone.id, "name" to name))
+            val result = Coordinator(context).processUserAction("events.create", mapOf("zone_id" to zoneId, "name" to name))
             if (result.isSuccess) {
                 naming = false
-                onCreated(Named(result.data!!["event_id"] as String, name.trim()))
+                val zoneNamed = zone ?: Named(zoneId, (Coordinator(context).processUserAction("zones.get", mapOf("zone_id" to zoneId)).data?.get("zone") as? Map<*, *>)?.get("name") as? String ?: "")
+                onCreated(zoneNamed, Named(result.data!!["event_id"] as String, name.trim()))
             } else UI.Toast(result.error ?: s.shared("error_unknown"))
         }
     }, onCancel = { naming = false }) {
-        UI.FormField(label = s.shared("label_name"), value = name, onChange = { name = it }, required = true)
+        Column(verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
+            if (zone == null) ZoneChoice(s.shared("event_new_zone"), chosen, { chosen = it })
+            UI.FormField(label = s.shared("label_name"), value = name, onChange = { name = it }, required = true)
+        }
     }
 }
 

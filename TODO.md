@@ -17,7 +17,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 (titre à laisser en place, même une fois la section vidée - section ciblée par le script d'import depuis l'appareil :)
 ## En provenance du tel
 
-- Navigateur d'événemns : 1) grouoer les zobes par grouoe. Odre = celui d l'ui. 2) mettre tout à plat (pas de navigation dans zones 3 ne montrer que les zones qui contiennent des evenements — UI — Amélioration
 - Sur un tel android 10 : pas d'espace avant une paenthèse — UI — Bug
 
 ## Bugs

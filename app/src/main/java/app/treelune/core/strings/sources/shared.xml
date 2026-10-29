@@ -2906,6 +2906,7 @@
     <string name="event_display_name">Event</string>
     <string name="event_card_title">Events</string>
     <string name="event_new">New event…</string>
+    <string name="event_new_zone">Its zone</string>
     <string name="event_point">Also emit the event</string>
     <string name="event_point_schema">An event emitted at that moment beside what the app tells, {"kind": "EVENT", "id"}: one that carries nothing, or a single value, an entry of this tool (the one concerned); for a routine or a Task, at the end of a run that went well, one that carries nothing</string>
     <string name="event_point_error">“%1$s” cannot be emitted here: it must carry nothing, or a single value, an entry of this tool</string>

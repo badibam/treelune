@@ -36,8 +36,8 @@ class PlaceStackTest {
     }
 
     @Test
-    fun aGroupNameWithASlashStaysOneParameter() {
-        assertEquals(Place.CreateZone("Vie / perso"), Place.of(Place.CreateZone("Vie / perso").address))
+    fun aParameterWithASlashStaysOne() {
+        assertEquals(Place.ToolConfig("z / 1", "notes", null), Place.of(Place.ToolConfig("z / 1", "notes", null).address))
     }
 
     @Test

@@ -119,14 +119,31 @@ class ReferenceService(private val context: Context) : ExecutableService {
             }
             // Only the entries of some tools taken: those tools, wherever they are
             kinds == setOf(ReferenceKind.ENTRY) && restricted.isNotEmpty() -> mapOf("tool_instances" to toolRows(tools.filter { it.id in restricted }))
-            else -> mapOf("zones" to zones
-                .filter { zone -> ReferenceKind.ZONE in kinds || tools.any { it.zone_id == zone.id && leads(it) } || variables.any { it.zoneId == zone.id } ||
-                    ReferenceKind.EVENT in kinds }
-                .map { mapOf("id" to it.id, "name" to it.name, "icon_name" to it.icon_name, IconColor.KEY to it.icon_color) })
+            // The zones that lead somewhere, with the home screen's groups and their places on it,
+            // which the browser shows them by; an event's zone only when it has one, its events with it
+            else -> {
+                val homeGroups = homeGroups()
+                mapOf(
+                    "groups" to homeGroups,
+                    "zones" to zones
+                        .filter { zone -> ReferenceKind.ZONE in kinds || tools.any { it.zone_id == zone.id && leads(it) } || variables.any { it.zoneId == zone.id } ||
+                            events.any { it.zoneId == zone.id } }
+                        .map { mapOf("id" to it.id, "name" to it.name, "icon_name" to it.icon_name, IconColor.KEY to it.icon_color,
+                            "group" to app.treelune.core.grid.ZonePositions.section(it.group, homeGroups), "grid_x" to it.grid_x, "grid_y" to it.grid_y) },
+                    "events" to events.map { mapOf("id" to it.id, "name" to it.name, "zone_id" to it.zoneId) }
+                )
+            }
         })
     }
 
     private fun toolName(tool: ToolInstance): String = JSONObject(tool.config_json).optString("name")
+
+    /** The home screen's zone groups, in its order. */
+    private suspend fun homeGroups(): List<String> {
+        val read = app.treelune.core.coordinator.Coordinator(context).processUserAction("app_config.get",
+            mapOf("category" to app.treelune.core.database.entities.AppSettingCategories.MAIN_SCREEN))
+        return ((read.data?.get("settings") as? Map<*, *>)?.get("zone_groups") as? List<*>).orEmpty().filterIsInstance<String>()
+    }
 
     /** An entry as a reference shows it: its name, or when it has none, when it was recorded. */
     private fun entryLabel(entry: ToolDataEntity): String = entry.name?.takeIf { it.isNotBlank() }
