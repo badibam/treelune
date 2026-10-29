@@ -64,12 +64,11 @@ fun TaskConfigScreen(place: Place.TaskConfig, onDone: () -> Unit, onDeleted: () 
     val head = remember { TaskSettings.head(context) }
     val sections = remember { TaskSettings.sections(context) }
 
-    // A new Task starts from its declared defaults, in the group it was asked for; what it does
+    // A new Task starts from its declared defaults, its group chosen in its form; what it does
     // about missed runs goes with a schedule only, which it does not have yet
     var settings by rememberSaveable(stateSaver = JsonObjectSaver) {
         mutableStateOf(SettingDefaults.of(TaskSettings.nodes(context)).apply {
             remove("catch_up")
-            place.group?.let { put("group", it) }
         })
     }
     var stepsText by rememberSaveable { mutableStateOf("[]") }

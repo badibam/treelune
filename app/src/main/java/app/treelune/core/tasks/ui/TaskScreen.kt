@@ -76,7 +76,7 @@ fun TaskScreen(place: Place.Task, onName: (String) -> Unit, onBack: () -> Unit) 
             leftButton = ButtonAction.BACK,
             rightButton = ButtonAction.CONFIGURE,
             onLeftClick = onBack,
-            onRightClick = { Navigator.push(Place.TaskConfig(shown.zoneId, shown.id, null)) }
+            onRightClick = { Navigator.push(Place.TaskConfig(shown.zoneId, shown.id)) }
         )
 
         val runs = rememberRuns(shown.id, 20)

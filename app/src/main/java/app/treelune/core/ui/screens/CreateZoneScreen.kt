@@ -31,7 +31,6 @@ import org.json.JSONObject
 @Composable
 fun CreateZoneScreen(
     existingZone: Zone? = null,
-    preSelectedGroup: String? = null,
     onCancel: () -> Unit,
     onCreate: (() -> Unit)? = null,
     onUpdate: (() -> Unit)? = null,
@@ -63,7 +62,7 @@ fun CreateZoneScreen(
                 put("validate", zone.validate)
                 zone.identity_id?.let { put("identity_id", it) }
             }
-            (existingZone?.group ?: preSelectedGroup)?.let { put("group", it) }
+            existingZone?.group?.let { put("group", it) }
         })
     }
 

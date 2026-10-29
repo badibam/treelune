@@ -62,12 +62,11 @@ fun RoutineConfigScreen(place: Place.RoutineConfig, onDone: () -> Unit, onDelete
     val sections = remember { RoutineSettings.sections(context) }
     val isEditing = place.routineId != null
 
-    // A new routine starts from its declared defaults, in the group it was asked for; what it
+    // A new routine starts from its declared defaults, its group chosen in its form; what it
     // does about missed runs goes with a schedule only, which it does not have yet
     var settings by rememberSaveable(stateSaver = JsonObjectSaver) {
         mutableStateOf(SettingDefaults.of(RoutineSettings.nodes(context)).apply {
             remove("catch_up")
-            place.group?.let { put("group", it) }
         })
     }
     // The message in blocks (RoutineMessage) and the access, kept as text across a rotation

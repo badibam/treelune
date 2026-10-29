@@ -150,7 +150,7 @@ fun TaskTile(task: Task) {
         waiting = runs.any { it.waits },
         running = last != null && !last.state.ended,
         onClick = open,
-        onLongClick = { Navigator.push(Place.TaskConfig(task.zoneId, task.id, null)) },
+        onLongClick = { Navigator.push(Place.TaskConfig(task.zoneId, task.id)) },
         summary = { TaskStateLine(task, last) { actions.toggle(task, it) } },
         glance = { TaskStateLine(task, last) { actions.toggle(task, it) } },
         body = { rows ->

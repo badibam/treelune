@@ -54,6 +54,7 @@ Codé, jamais vu sur l'appareil.
 
 ## À concevoir
 
+- Le mode disposition d'une page (l'accueil, une zone) : faire glisser une tuile d'une section à l'autre, ce qui change son groupe ; aujourd'hui le groupe se choisit dans la config de la chose, et une tuile ne bouge que dans sa section.
 - Un déclencheur « une entrée devient conforme au filtre » (`entry_written`), comme « une condition devient vraie » pour une Condition : les filtres jugés sur la copie d'avant l'écriture et sur celle d'après (l'historique des écritures les garde), le départ seulement au passage de non conforme à conforme. Une séance terminée qu'on corrige, un questionnaire rempli qu'on retouche relancent aujourd'hui leurs Tâches (vu le 2026-10-29 : un doublon dans Décrochage) ; une routine s'en garde par un champ Référence qu'elle relit (« Préparer la séance »).
 - Des montages types pour l'IA (une discussion qui revient, une alerte sur un seuil, un bilan fait seul…) : un catalogue lu à la demande par une commande, le texte de départ n'en gardant qu'une ligne par montage (besoin → nom) ; chaque montage dit le besoin, les pièces et leur liaison, ses noms (commandes, réglages, types d'étape) vérifiés par un script comme le Guide ; la matière tirée du montage réel de l'utilisateur, l'effet mesuré au banc par des scénarios de conception.
 

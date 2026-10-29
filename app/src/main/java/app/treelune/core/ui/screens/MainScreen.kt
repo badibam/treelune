@@ -283,7 +283,7 @@ private fun PlaceScreen(place: Place, zones: ZonesState, demoInstalled: Boolean)
             )
             is Place.CreateZone -> {
                 name(s.shared("nav_new_zone"))
-                CreateZoneScreen(preSelectedGroup = place.group, onCancel = back, onCreate = back)
+                CreateZoneScreen(onCancel = back, onCreate = back)
             }
             is Place.Zone -> {
                 name(zone!!.name)
@@ -307,14 +307,13 @@ private fun PlaceScreen(place: Place, zones: ZonesState, demoInstalled: Boolean)
                     tooltype = place.tooltype,
                     zoneId = place.zoneId,
                     existingToolId = place.toolId,
-                    initialGroup = place.group,
                     onDone = back,
                     onCancel = back
                 )
             }
             is Place.Variable -> {
                 name(s.shared(if (place.variableId == null) "nav_new_variable" else "nav_variable"))
-                app.treelune.core.ui.variables.VariableScreen(zoneId = place.zoneId, variableId = place.variableId, group = place.group, onDone = back)
+                app.treelune.core.ui.variables.VariableScreen(zoneId = place.zoneId, variableId = place.variableId, onDone = back)
             }
             is Place.Routine -> {
                 app.treelune.core.ai.ui.routine.RoutineScreen(
@@ -419,7 +418,7 @@ private fun ToolPlace(place: Place.Tool, zoneName: String) {
                 configJson = config.toString(),
                 zoneName = zoneName,
                 onNavigateBack = { Navigator.pop() },
-                onLongClick = { Navigator.push(Place.ToolConfig(place.zoneId, tooltype, place.id, null)) },
+                onLongClick = { Navigator.push(Place.ToolConfig(place.zoneId, tooltype, place.id)) },
                 openEntry = opening
             )
         }
@@ -541,6 +540,8 @@ private fun HomeScreen(zones: ZonesState) {
                     textAlign = TextAlign.Center
                 )
             } else {
+                // Organising and adding, once for the whole page: a zone created chooses its group in its form
+                app.treelune.core.ui.components.GridPageButtons(zones.list.isNotEmpty(), gridEditor) { Navigator.push(Place.CreateZone) }
                 // For each defined group, display its section (always shown, even if empty)
                 zoneGroups.forEach { groupName ->
                     ZoneGroupSection(
@@ -550,7 +551,6 @@ private fun HomeScreen(zones: ZonesState) {
                         editor = gridEditor,
                         onZoneClick = { zone -> Navigator.push(Place.Zone(zone.id)) },
                         onZoneLongClick = { zone -> Navigator.push(Place.ZoneConfig(zone.id)) },
-                        onAddZone = { Navigator.push(Place.CreateZone(groupName)) },
                         context = context
                     )
                 }
@@ -565,7 +565,6 @@ private fun HomeScreen(zones: ZonesState) {
                     editor = gridEditor,
                     onZoneClick = { zone -> Navigator.push(Place.Zone(zone.id)) },
                     onZoneLongClick = { zone -> Navigator.push(Place.ZoneConfig(zone.id)) },
-                    onAddZone = { Navigator.push(Place.CreateZone(null)) },
                     context = context
                 )
             }
@@ -586,7 +585,7 @@ private fun HomeScreen(zones: ZonesState) {
 /**
  * Zone group section component
  * Displays zones belonging to a specific group (or ungrouped zones if groupName is null)
- * with a header and an add button
+ * under its title; adding and organising are the page's (GridPageButtons)
  */
 @Composable
 private fun ZoneGroupSection(
@@ -597,7 +596,6 @@ private fun ZoneGroupSection(
     editor: app.treelune.core.ui.components.GridEditor,
     onZoneClick: (Zone) -> Unit,
     onZoneLongClick: (Zone) -> Unit,
-    onAddZone: () -> Unit,
     context: android.content.Context
 ) {
     val s = remember { Strings.`for`(context = context) }
@@ -613,21 +611,18 @@ private fun ZoneGroupSection(
         else -> s.shared("label_zones")
     }
 
-    // Section header with its buttons: its title over a divider (SECTION_HEADER)
+    // Section header: its title over a divider (SECTION_HEADER)
     UI.Card(type = CardType.SECTION_HEADER) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(UI.Space.M),
-            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             UI.Text(
                 text = sectionLabel,
                 type = TextType.HEADING
             )
-
-            app.treelune.core.ui.components.GridSectionButtons(key, groupZones.isNotEmpty(), editor, onAddZone)
         }
     }
 
@@ -653,15 +648,13 @@ private fun ZoneGroupSection(
             }
         }
     } else {
-        // The zones on their grid, in edit mode when it is this section's, faded while another's is
-        app.treelune.core.ui.components.Faded(editor.anyEditing && !editor.isEditing(key)) {
-            app.treelune.core.ui.components.GridLayout(groupZones, groupZones.map { app.treelune.core.grid.ZonePositions.tile(it) }, groupZones.map { false }, editor.gridEdit(key)) { zone ->
-                UI.ZoneCard(
-                    zone = zone,
-                    onClick = { onZoneClick(zone) },
-                    onLongClick = { onZoneLongClick(zone) }
-                )
-            }
+        // The zones on their grid, in edit mode while the page is
+        app.treelune.core.ui.components.GridLayout(groupZones, groupZones.map { app.treelune.core.grid.ZonePositions.tile(it) }, groupZones.map { false }, editor.gridEdit(key)) { zone ->
+            UI.ZoneCard(
+                zone = zone,
+                onClick = { onZoneClick(zone) },
+                onLongClick = { onZoneLongClick(zone) }
+            )
         }
     }
 }

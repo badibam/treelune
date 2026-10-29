@@ -42,7 +42,7 @@ import org.json.JSONObject
 /**
  * The events of a zone (docs/CORE.md, « Events »), under its identity: one concise card naming
  * them all, and one button opening their editor. Nothing while the zone has none: an event is
- * then made where it is chosen (« New event… » of the browser).
+ * then made from the « + » of its page, or where it is chosen (« New event… » of the browser).
  */
 @Composable
 fun EventsCard(zoneId: String) {
@@ -106,29 +106,43 @@ private fun EventsEditor(zoneId: String, events: List<Map<*, *>>, s: StringsCont
                 }
             }
             Box {
-                UI.Button(type = ButtonType.SECONDARY, onClick = { open = null to JSONObject().put(EventValues.VALUES, JSONArray()) }) {
+                UI.Button(type = ButtonType.SECONDARY, onClick = { open = null to newEvent() }) {
                     UI.Text(s.shared("event_new"), TextType.BODY)
                 }
             }
         }
     }
-    open?.let { (id, held) ->
-        var draft by remember(id) { mutableStateOf(held) }
-        UI.Dialog(type = if (id == null) DialogType.CREATE else DialogType.EDIT, onConfirm = {
-            scope.launch {
-                // A description the form emptied is sent as null, which removes it
-                val params = JsonUtils.toMap(draft) + (if (id == null) mapOf("zone_id" to zoneId) else mapOf("event_id" to id)) +
-                    (if (id != null && !draft.has(EventValues.DESCRIPTION)) mapOf(EventValues.DESCRIPTION to null) else emptyMap())
-                val result = Coordinator(context).processUserAction(if (id == null) "events.create" else "events.update", params)
-                if (result.isSuccess) open = null else UI.Toast(result.error ?: s.shared("error_unknown"))
-            }
-        }, onCancel = { open = null }) {
-            Column(modifier = Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(UI.Space.L)) {
-                SettingsForm(remember { EventValues.nodes(s::shared) }, draft, { draft = it }, context)
-            }
+    open?.let { (id, held) -> EventForm(zoneId, id, held) { open = null } }
+}
+
+/**
+ * The form of one event of [zoneId], [id] null for a new one, [held] what it holds: written by
+ * its confirmation, then [onClose]; cancelled, [onClose] alone. Opened from the zone's events, and
+ * from the « + » of its page for a new one.
+ */
+@Composable
+fun EventForm(zoneId: String, id: String?, held: JSONObject, onClose: () -> Unit) {
+    val context = LocalContext.current
+    val s = remember { Strings.`for`(context = context) }
+    val scope = rememberCoroutineScope()
+    var draft by remember(id) { mutableStateOf(held) }
+    UI.Dialog(type = if (id == null) DialogType.CREATE else DialogType.EDIT, onConfirm = {
+        scope.launch {
+            // A description the form emptied is sent as null, which removes it
+            val params = JsonUtils.toMap(draft) + (if (id == null) mapOf("zone_id" to zoneId) else mapOf("event_id" to id)) +
+                (if (id != null && !draft.has(EventValues.DESCRIPTION)) mapOf(EventValues.DESCRIPTION to null) else emptyMap())
+            val result = Coordinator(context).processUserAction(if (id == null) "events.create" else "events.update", params)
+            if (result.isSuccess) onClose() else UI.Toast(result.error ?: s.shared("error_unknown"))
+        }
+    }, onCancel = onClose) {
+        Column(modifier = Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(UI.Space.L)) {
+            SettingsForm(remember { EventValues.nodes(s::shared) }, draft, { draft = it }, context)
         }
     }
 }
+
+/** A new event's form, holding nothing yet. */
+fun newEvent(): JSONObject = JSONObject().put(EventValues.VALUES, JSONArray())
 
 /** What an event carries, said in a line: each value's name and type, or that it carries nothing. */
 private fun summary(values: List<*>?, s: StringsContext): String = values.orEmpty().filterIsInstance<Map<*, *>>()

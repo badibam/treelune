@@ -52,11 +52,11 @@ import org.json.JSONObject
  *
  * The draft is the definition the service takes, written with names, kept as JSON across a rotation.
  *
- * @param variableId The variable changed; null to create one in [zoneId], in [group]
+ * @param variableId The variable changed; null to create one in [zoneId]
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun VariableScreen(zoneId: String, variableId: String?, group: String?, onDone: () -> Unit) {
+fun VariableScreen(zoneId: String, variableId: String?, onDone: () -> Unit) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     val coordinator = remember { Coordinator(context) }
@@ -73,8 +73,13 @@ fun VariableScreen(zoneId: String, variableId: String?, group: String?, onDone: 
     var current by remember { mutableStateOf<String?>(null) }
     var others by remember { mutableStateOf<List<VariableRow>>(emptyList()) }
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
+    // Its group among the zone's, none for the ungrouped section
+    var group by rememberSaveable { mutableStateOf<String?>(null) }
+    var groups by remember { mutableStateOf<List<String>>(emptyList()) }
 
     LaunchedEffect(variableId) {
+        groups = ((coordinator.processUserAction("zones.get", mapOf("zone_id" to zoneId)).data?.get("zone") as? Map<*, *>)?.get("tool_groups") as? List<*>)
+            .orEmpty().filterIsInstance<String>()
         val all = coordinator.processUserAction("variables.list_all", emptyMap())
         others = (all.data?.get("variables") as? List<*> ?: emptyList<Any>()).filterIsInstance<Map<*, *>>().map { VariableRow.of(it) }.filter { it.id != variableId }
         if (variableId != null && !loaded) {
@@ -82,6 +87,7 @@ fun VariableScreen(zoneId: String, variableId: String?, group: String?, onDone: 
             val variable = result.data?.get("variable") as? Map<*, *>
             if (variable != null) {
                 name = variable["name"] as String
+                group = (variable["group"] as? String)?.takeIf { it.isNotEmpty() }
                 look = JSONObject().apply {
                     app.treelune.core.look.Looks.keys(app.treelune.core.variables.VariableLook.SPEC).forEach { key -> variable[key]?.let { put(key, it) } }
                 }
@@ -138,6 +144,7 @@ fun VariableScreen(zoneId: String, variableId: String?, group: String?, onDone: 
             app.treelune.core.look.ui.lookEditors(app.treelune.core.variables.VariableLook.SPEC, look, s) { look = it }, pages = pages)
         // A page of the look open, the rest waits for its return
         if (!pages.atRoot) return@Column
+        if (groups.isNotEmpty()) app.treelune.core.ui.components.GroupSelector(groups, group, { group = it }, s.shared("label_group"))
 
         val kinds = listOf("FORMULA" to s.shared("variable_kind_formula"), "CONSTANT" to s.shared("variable_kind_constant"))
         UI.FormSelection(
@@ -194,7 +201,7 @@ fun VariableScreen(zoneId: String, variableId: String?, group: String?, onDone: 
                     app.treelune.core.look.Looks.keys(app.treelune.core.variables.VariableLook.SPEC).forEach { key -> params[key] = look.opt(key) ?: JSONObject.NULL }
                     val result = if (variableId == null) {
                         coordinator.processUserAction("variables.create", params + ("zone_id" to zoneId) + (group?.let { mapOf("group" to it) } ?: emptyMap()))
-                    } else coordinator.processUserAction("variables.update", params + ("variable_id" to variableId))
+                    } else coordinator.processUserAction("variables.update", params + ("variable_id" to variableId) + ("group" to (group ?: JSONObject.NULL)))
                     if (result.isSuccess) onDone() else error = result.error
                 }
             }) { UI.Text(text = s.shared("action_save"), type = TextType.LABEL) }
