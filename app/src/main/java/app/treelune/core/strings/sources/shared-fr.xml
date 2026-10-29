@@ -1491,6 +1491,7 @@
     <string name="reading_group_units_day">jours</string>
     <string name="reading_group_units_week">semaines</string>
     <string name="reading_group_units_month">mois</string>
+    <string name="reading_group_phrase">par %1$s</string>
     <string name="reading_error_group_field">Un regroupement nomme le champ par lequel il regroupe : group.field.</string>
     <string name="reading_error_group_type">%1$s (%2$s) ne regroupe pas les entrées. Les types qui le font : %3$s.</string>
     <string name="reading_error_group_unit_type">%1$s (%2$s) n\'est pas une date : une unité n\'arrondit qu\'une date ou un instant.</string>
