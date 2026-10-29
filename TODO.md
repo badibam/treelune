@@ -13,6 +13,11 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 - Les cartes Tâches, API et Événements du site, commitées avant leur release : `./run site-deploy` avec la version qui les porte, pas avant, la 0.9.2 téléchargée ne les ayant pas. Les captures françaises, si elles partent avant, partent d'un arbre sans ces cartes.
 - `www.treelune.app` : son entrée du Multisite OVH (racine `treelune/public_html`), puis le certificat régénéré ; le 2026-10-22, le certificat ne couvre que `treelune.app` et `www` pointe sur la page de parking.
 
+## En provenance du tel
+
+- Navigateur d'événemns : 1) grouoer les zobes par grouoe. Odre = celui d l'ui. 2) mettre tout à plat (pas de navigation dans zones 3 ne montrer que les zones qui contiennent des evenements — UI — Amélioration
+- Sur un tel android 10 : pas d'espace avant une paenthèse — UI — Bug
+
 ## Bugs
 
 - `TASK_CONFIG` refuse de rendre la Tâche « Météo du matin » de la démo : « Le résultat n'a pas pu être mis dans la forme que tu lis : NUMERIC field 'latitude' declares no decimals » (vu au banc le 2026-10-28) ; un champ numérique d'une entrée d'API sans `decimals` doit se lire comme un nombre, ou se déclarer avec.
