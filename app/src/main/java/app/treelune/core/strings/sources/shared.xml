@@ -2838,6 +2838,11 @@
     <string name="task_error_step">Step %1$s is not an object</string>
     <string name="task_error_input">The input %1$s does not read</string>
     <string name="task_error_input_unknown">Step %1$s has no input “%2$s”; its inputs: %3$s</string>
+    <string name="task_error_block">Step %1$s, block %2$s does not read: %3$s</string>
+    <string name="task_error_block_entry">Step %1$s, block %2$s: an entry block takes an entry — the one received, one an event carried, the one a step created, or one chosen</string>
+    <string name="task_error_block_value">Step %1$s, block %2$s: a value block takes a value; an entry goes in an entry block, joined or mentioned</string>
+    <string name="task_error_block_deleted">Block %1$s: the entry was deleted, there is nothing left to join</string>
+    <string name="task_error_block_no_entry">Block %1$s gives no entry</string>
     <string name="task_error_result_step">Step %1$s reads step %2$s, which does not come before it</string>
     <string name="task_error_result_value">Step %1$s reads “%3$s” from step %2$s, which does not give it</string>
     <string name="task_output_entry">the entry created</string>
@@ -2993,11 +2998,19 @@
     <string name="task_run_entry_created">Entry created</string>
 
     <!-- A routine run with data (Tasks) -->
-    <string name="routine_run_data">What the Task passes this run:\n%1$s</string>
+    <string name="routine_run_joined">Joined when this run was started:</string>
     <string name="routine_run_entry_created">This run was started by an entry created in “%1$s”, attached here:</string>
     <string name="routine_run_entry_updated">This run was started by an entry changed in “%1$s”, attached here as it is now:</string>
     <string name="routine_run_entry_deleted">This run was started by an entry deleted from “%1$s”, which can no longer be read; as it was: %2$s</string>
-    <string name="task_step_data">Data passed</string>
+    <string name="task_step_blocks">Joined to its message</string>
+    <string name="task_step_blocks_help">Added after the routine\'s message, in this order: a text, a pointer to something chosen, an entry this run gives, a value it reads.</string>
+    <string name="task_block_text">Text</string>
+    <string name="task_block_pointer">Pointer</string>
+    <string name="task_block_entry">Entry</string>
+    <string name="task_block_value">Value</string>
+    <string name="task_block_attach">The entry goes</string>
+    <string name="task_block_attached">Whole, joined to the message</string>
+    <string name="task_block_mentioned">Mentioned, the AI reads what it needs</string>
 
     <!-- The AI's reads of Tasks -->
     <string name="ai_read_user_tasks">All Tasks read</string>

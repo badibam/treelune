@@ -45,7 +45,7 @@ import java.util.*
  * - list (by zone), list_all
  * - next_execution: when it runs next
  * - enable, disable
- * - execute_manual (triggers manual execution via AIOrchestrator), with `data` a Task passes it, joined to its message
+ * - execute_manual (triggers manual execution via AIOrchestrator), with `joined`, blocks of a routine's message (RoutineMessage) a Task's step or the AI passes it, joined to its end
  */
 class RoutineService(private val context: Context) : ExecutableService {
 
@@ -757,15 +757,22 @@ class RoutineService(private val context: Context) : ExecutableService {
         // For MANUAL: scheduledFor = click time
         try {
             val clickTime = System.currentTimeMillis()
-            // What a Task passes it, joined to its message
-            val data = params.opt("data")?.takeIf { it != JSONObject.NULL }?.toString()
+            // What a Task's step or the AI passes it, joined to its message after a line saying so
+            val joined = params.optJSONArray("joined")?.takeIf { it.length() > 0 }?.let { blocks ->
+                val segments = try {
+                    app.treelune.core.ai.data.RoutineMessage.fromBlocks(blocks) { s.shared(it) }.segments
+                } catch (e: IllegalArgumentException) {
+                    return OperationResult.error(e.message ?: s.shared("error_unknown"))
+                }
+                listOf(app.treelune.core.ai.data.MessageSegment.Text(s.shared("routine_run_joined"))) + segments
+            }.orEmpty()
             // Asked by a Task's step, it continues that run's chain, refused past its cap
             val chainId = when (val admission = app.treelune.core.coordinator.Chains.admit(context, entity.name)) {
                 is app.treelune.core.coordinator.Chains.Admission.Capped -> return OperationResult.error(admission.message)
                 is app.treelune.core.coordinator.Chains.Admission.Continues -> admission.chainId
                 app.treelune.core.coordinator.Chains.Admission.Starts -> null
             }
-            AIOrchestrator.executeRoutine(routineId, scheduledFor = clickTime, trigger = app.treelune.core.ai.data.ExecutionTrigger.MANUAL, data = data, chainId = chainId)
+            AIOrchestrator.executeRoutine(routineId, scheduledFor = clickTime, trigger = app.treelune.core.ai.data.ExecutionTrigger.MANUAL, chainId = chainId, attached = joined)
 
             LogManager.service("Successfully triggered routine: $routineId", "INFO")
 

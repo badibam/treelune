@@ -233,6 +233,9 @@ object TaskRunner {
         ))
     }
 
+    /** Where a `run_routine` step's blocks go, resolved, in the params of routines.execute_manual. */
+    private const val JOINED = "joined"
+
     /** What [step] does, said in words: its service's verbalization of it. */
     private suspend fun summary(context: Context, step: JSONObject): String {
         val (action, params) = actionOf(step, emptyMap(), context)
@@ -252,7 +255,7 @@ object TaskRunner {
         }
         TaskSteps.RUN_ROUTINE -> "routines.execute_manual" to buildMap {
             put("routine_id", step.getString(TaskSteps.ROUTINE_ID))
-            resolved[TaskSteps.DATA]?.let { put("data", it.toString()) }
+            resolved[JOINED]?.let { put(JOINED, it) }
         }
         TaskSteps.EMIT_EVENT -> "events.emit" to mapOf("event_id" to step.getString(TaskSteps.EVENT_ID), "values" to resolved)
         else -> throw StepFailed(step.getString(TaskSteps.KIND))
@@ -279,7 +282,7 @@ object TaskRunner {
         val fields = if (kind == TaskSteps.CREATE_ENTRY || kind == TaskSteps.UPDATE_ENTRY)
             TaskSteps.writableFields(step.getString(TaskSteps.TOOL_INSTANCE_ID), context, s) else emptyMap()
         val holder = when (kind) {
-            TaskSteps.CALL_API, TaskSteps.RUN_ROUTINE, TaskSteps.EMIT_EVENT -> step.optJSONObject(TaskSteps.INPUTS)
+            TaskSteps.CALL_API, TaskSteps.EMIT_EVENT -> step.optJSONObject(TaskSteps.INPUTS)
             TaskSteps.CREATE_ENTRY, TaskSteps.UPDATE_ENTRY -> step.optJSONObject(TaskSteps.VALUES)
             TaskSteps.TOOL_OPERATION -> step.optJSONObject(TaskSteps.PARAMS)
             else -> null
@@ -303,6 +306,7 @@ object TaskRunner {
                 })
             }
             if (kind == TaskSteps.UPDATE_ENTRY) put(TaskSteps.ENTRY, idOf(resolve(context, TaskSteps.input(step.getJSONObject(TaskSteps.ENTRY), TaskSteps.ENTRY) { s.shared(it) }, results, at, received)))
+            if (kind == TaskSteps.RUN_ROUTINE) put(JOINED, joined(context, step, results, at, received))
         }
         val (action, params) = actionOf(step, resolved, context)
         val summary = summary(context, step)
@@ -333,6 +337,51 @@ object TaskRunner {
     private fun apiOf(input: TaskSteps.Input, steps: org.json.JSONArray): String? =
         (input as? TaskSteps.Input.Result)?.let { steps.optJSONObject(it.step) }
             ?.takeIf { it.optString(TaskSteps.KIND) == TaskSteps.CALL_API }?.optString(TaskSteps.API_ID)?.ifEmpty { null }
+
+    /**
+     * The blocks of the `run_routine` [step] (StepBlocks) as its routine's (RoutineMessage), which
+     * join the end of its message: a text and a pointer as written; an entry the run gives as a
+     * pointer to it, the entry attached or only mentioned; a value as a text, none when it has none.
+     */
+    private suspend fun joined(context: Context, step: JSONObject, results: List<TaskRun.StepResult>, at: Long, received: TaskRun.Received?): List<Map<String, Any?>> {
+        val s = Strings.`for`(context = context)
+        val blocks = try {
+            StepBlocks.of(step)
+        } catch (e: IllegalArgumentException) {
+            // Its blocks were checked when stored: one that does not read now is said as it is
+            throw StepFailed(s.shared("task_error_block").format("-", e.message ?: "", step.optJSONArray(StepBlocks.BLOCKS)?.toString() ?: "-"))
+        }
+        return blocks.mapIndexedNotNull { index, block ->
+            when (block) {
+                is StepBlocks.Block.Fixed -> block.json
+                is StepBlocks.Block.Entry -> {
+                    val input = TaskSteps.input(block.input, TaskSteps.ENTRY) { s.shared(it) }
+                    // The entry a trigger gave, deleted: nothing is left to point at
+                    if (input is TaskSteps.Input.Received && input.value == null && (received as? TaskRun.Received.Entry)?.write == app.treelune.core.triggers.Triggers.Write.DELETED) {
+                        throw StepFailed(s.shared("task_error_block_deleted").format(index + 1))
+                    }
+                    val id = idOf(resolve(context, input, results, at, received)) as? String
+                        ?: throw StepFailed(s.shared("task_error_block_no_entry").format(index + 1))
+                    AppDatabase.getDatabase(context).toolDataDao().getById(id) ?: throw StepFailed(s.shared("task_error_block_deleted").format(index + 1))
+                    val pointer = app.treelune.core.ai.enrichments.PointerConfig(
+                        app.treelune.core.selection.EntrySelection(target = app.treelune.core.selection.Reference(app.treelune.core.selection.ReferenceKind.ENTRY, id)),
+                        entries = block.attach
+                    )
+                    JSONObject().put(StepBlocks.TYPE, StepBlocks.POINTER).put(StepBlocks.POINTER, pointer.toJson())
+                }
+                is StepBlocks.Block.Value -> resolve(context, TaskSteps.input(block.input, TaskSteps.VALUE) { s.shared(it) }, results, at, received)?.let { value ->
+                    JSONObject().put(StepBlocks.TYPE, StepBlocks.TEXT).put(StepBlocks.TEXT, said(value))
+                }
+            }
+        }.map { JsonUtils.toMap(it) }
+    }
+
+    /** [value] as a text: an object or a list in JSON, anything else as it writes. */
+    private fun said(value: Any): String = when (value) {
+        is Map<*, *> -> JSONObject(value).toString()
+        is List<*> -> JsonUtils.toJSONArray(value).toString()
+        else -> value.toString()
+    }
 
     /** An entry's id, from its id or a Reference designating it. */
     private fun idOf(value: Any?): Any? = (value as? Map<*, *>)?.get("id") ?: value

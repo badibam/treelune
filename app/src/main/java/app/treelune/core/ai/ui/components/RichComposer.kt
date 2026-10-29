@@ -484,12 +484,12 @@ private data class EnrichmentDialogState(
 )
 
 /**
- * The frame every block shares, whatever its type: a band across its top, the grip it is dragged
+ * The frame every block shares, whatever its type, a Task step's blocks too: a band across its top, the grip it is dragged
  * by with its delete button at the end ([bar], given that button), then its content across the
  * whole width; highlighted when active, activated when touched.
  */
 @Composable
-private fun BlockCard(
+internal fun BlockCard(
     isActive: Boolean,
     onActivate: () -> Unit,
     onDelete: () -> Unit,
@@ -585,7 +585,7 @@ private fun ImageBlockContent(imageId: String, readsImages: Boolean?) {
  * button keeps its room.
  */
 @Composable
-private fun EnrichmentBlockContent(
+internal fun EnrichmentBlockContent(
     block: MessageSegment.EnrichmentBlock,
     onEdit: () -> Unit
 ) {

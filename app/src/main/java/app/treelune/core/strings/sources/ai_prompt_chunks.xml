@@ -756,7 +756,7 @@ Creates a Task in a zone: steps the app runs itself, one after another, without 
 - `create_entry`: `tool_instance_id`, `values` by the entry's path (`name`, `timestamp`, `data.<field>`, `extra.<field>`)
 - `update_entry`: `tool_instance_id`, `entry` (the entry), `values` as above, only what changes
 - `tool_operation`: `tool_instance_id`, `operation` (one of its type\'s, read in its entries schema), `params` by name
-- `run_routine`: `routine_id`, `inputs` with `data` (what joins its run\'s message)
+- `run_routine`: `routine_id`, `blocks` joined to the end of its run\'s message, in order: `{"type": "text", "text"}` and `{"type": "pointer", "pointer"}` as in CREATE_ROUTINE\'s `message`; `{"type": "entry", "entry": <an input giving an entry>, "attach": true}`, the entry joined whole, or with `false` only mentioned, its AI reading what it needs of it; `{"type": "value", "value": <an input>}`, joined as a text
 - `emit_event`: `event_id` (one of EVENTS), `inputs` by the event\'s value names, every one given
 
 Each input is a term — `{"constant": value}` (a date or a duration in ISO 8601, an entry `{"kind": "ENTRY", "id"}`), `{"variable": "<id>"}`, `{"reading": {"selection", "field", "reduction", "group"?}}` read when the step runs — or what an earlier step gave: `{"result": {"step": 0, "value": "<name>"}}` for a value an API answered, `{"result": {"step": 0}}` for the entry a step created; steps count from 0. A run its triggers started also reads what it received: `{"received": {}}` the entry written, `{"received": {"field": "data.<field>"}}` one of its fields, `{"received": {"value": "<name>"}}` a value the event carried. Every step you write must be one you could make yourself: what it writes and reads stays within your access.
@@ -808,12 +808,12 @@ Runs a Task now, as its own button does: its steps run one after another, in the
 - `task_id` (string, **required**)]]></string>
     <string name="ai_command_run_routine"><![CDATA[### RUN_ROUTINE
 
-Starts a routine now, as its own button does: its AI runs in the background with the routine\'s message, `data` joined to its end. Starting it takes using its zone. The answer says it started, not its outcome: read it later with ROUTINE_RUNS. Started by a routine\'s run, it counts in that run\'s chain: a chain stops past the cap of runs the AI limits set.
+Starts a routine now, as its own button does: its AI runs in the background with the routine\'s message, `joined` added to its end. Starting it takes using its zone. The answer says it started, not its outcome: read it later with ROUTINE_RUNS. Started by a routine\'s run, it counts in that run\'s chain: a chain stops past the cap of runs the AI limits set.
 
 **Parameters**:
 
 - `routine_id` (string, **required**)
-- `data` (string, optional): what joins the end of its message]]></string>
+- `joined` (array, optional): blocks added to the end of its message, in order, as CREATE_ROUTINE\'s `message` holds them, text and pointers; what a pointer names must be one you may read]]></string>
     <string name="ai_command_emit_event"><![CDATA[### EMIT_EVENT
 
 Emits an event of EVENTS: every Task and routine whose triggers listen to it starts, each receiving the values. Say what happened, not who should react: the user wired what listens. Emitting takes using its zone; an `entry` value must be one you may read. Emitted by a routine\'s run, what it starts counts in that run\'s chain.

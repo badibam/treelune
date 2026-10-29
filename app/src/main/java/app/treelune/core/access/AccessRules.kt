@@ -64,6 +64,25 @@ object AccessRules {
     private val TOOL_DATA_READS = setOf("get", "values", "get_single", "writable")
     private val TOOL_DATA_WRITES = setOf("create", "update", "delete", "batch_create", "batch_update", "batch_delete", "start_duration", "stop_duration", "delete_all")
 
+    /**
+     * What the pointers among [blocks] (a routine's message blocks, RoutineMessage) name, read:
+     * a zone, a tool, an entry, a variable, an event; the app as a whole, which a mask never reaches.
+     */
+    private fun pointed(blocks: Any?): List<Reach> = (blocks as? List<*>).orEmpty().mapNotNull { block ->
+        val target = (((block as? Map<*, *>)?.get("pointer") as? Map<*, *>)?.get("selection") as? Map<*, *>)?.get("target") as? Map<*, *>
+            ?: return@mapNotNull null
+        val id = target["id"] as? String
+        when (target["kind"]) {
+            "APP" -> Reach.App
+            "ZONE" -> id?.let { Reach.Zone(it, AccessLevel.READ) }
+            "TOOL_INSTANCE" -> id?.let { Reach.Tool(it, AccessLevel.READ) }
+            "ENTRY" -> id?.let { Reach.Entry(it, AccessLevel.READ) }
+            "VARIABLE" -> id?.let { Reach.Variable(it, false, AccessLevel.READ) }
+            "EVENT" -> id?.let { Reach.Event(it, AccessLevel.READ) }
+            else -> null
+        } ?: Reach.Unknown("routines.execute_manual")
+    }
+
     /** What [resource].[operation] reaches with [params]. */
     fun reach(resource: String, operation: String, params: Map<String, Any?>, isToolType: (String) -> Boolean): List<Reach> {
         fun text(key: String) = params[key] as? String
@@ -106,8 +125,8 @@ object AccessRules {
             "routines" -> when (operation) {
                 "list", "list_all", "waiting" -> listOf(Reach.Free)
                 "get", "config", "next_execution" -> listOf(routineAt(AccessLevel.READ))
-                // Run now, as a Task is: a use of its zone
-                "execute_manual" -> listOf(routineAt(AccessLevel.USE))
+                // Run now, as a Task is: a use of its zone; what its joined pointers name, read
+                "execute_manual" -> listOf(routineAt(AccessLevel.USE)) + pointed(params["joined"])
                 "create" -> listOf(zoneAt("zone_id", AccessLevel.FULL))
                 // A routine moved goes into the zone it is moved to
                 "update" -> listOfNotNull(routineAt(AccessLevel.FULL), text("zone_id")?.let { Reach.Zone(it, AccessLevel.FULL) })
