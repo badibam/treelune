@@ -20,13 +20,13 @@ class PlaceStackTest {
     private val everyPlace = listOf(
         Place.Home, Place.HomeConfig, Place.Settings, Place.SettingsPage("ai_providers"), Place.Identity("i1"),
         Place.Export, Place.Import("content://com.android.providers/document/primary%3ADownload%2FCuisine.zip"), Place.AIProviderKind, Place.AIProvider("p-1", null, null), Place.AIProvider(null, "openai", "p-1"),
-        Place.CreateZone(null), Place.CreateZone("Vie / perso"), course, Place.ZoneConfig("z-course"), runs,
-        Place.ToolConfig("z-course", "tracking", "t-runs", null), Place.ToolConfig("z-course", "chart", null, "Analyse"),
-        Place.Variable("z-course", null, "Corps"), Place.Variable("z-course", "v-1", null),
+        Place.CreateZone, course, Place.ZoneConfig("z-course"), runs,
+        Place.ToolConfig("z-course", "tracking", "t-runs"), Place.ToolConfig("z-course", "chart", null),
+        Place.Variable("z-course", null), Place.Variable("z-course", "v-1"),
         Place.Routine("a-1", "z-course"), Place.Execution("s-1", "a-1", "z-course"),
-        Place.RoutineConfig("z-course", "a-1", null), Place.RoutineConfig("z-course", null, "Analyse"),
+        Place.RoutineConfig("z-course", "a-1"), Place.RoutineConfig("z-course", null),
         Place.Task("k-1", "z-course"), Place.TaskRun("r-1", "k-1", "z-course"),
-        Place.TaskConfig("z-course", "k-1", null), Place.TaskConfig("z-course", null, "Analyse"),
+        Place.TaskConfig("z-course", "k-1"), Place.TaskConfig("z-course", null),
         Place.Guide, Place.Chapter("first_steps"), Place.Chat
     )
 
@@ -36,8 +36,8 @@ class PlaceStackTest {
     }
 
     @Test
-    fun aGroupNameWithASlashStaysOneParameter() {
-        assertEquals(Place.CreateZone("Vie / perso"), Place.of(Place.CreateZone("Vie / perso").address))
+    fun aParameterWithASlashStaysOne() {
+        assertEquals(Place.ToolConfig("z / 1", "notes", null), Place.of(Place.ToolConfig("z / 1", "notes", null).address))
     }
 
     @Test
@@ -65,7 +65,7 @@ class PlaceStackTest {
 
     @Test
     fun theBreadcrumbGoesBackToAnyPlaceUnder() {
-        assertEquals(listOf(home, course), PlaceStack.popTo(listOf(home, course, runs, Place.ToolConfig("z-course", "tracking", "t-runs", null)), 1))
+        assertEquals(listOf(home, course), PlaceStack.popTo(listOf(home, course, runs, Place.ToolConfig("z-course", "tracking", "t-runs")), 1))
     }
 
     @Test
@@ -84,7 +84,7 @@ class PlaceStackTest {
         assertEquals("Course", onRuns.parent)
 
         // Further on, the place stacked alone carries its parent in the line
-        val config = Place.ToolConfig("z-course", "tracking", "t-runs", null)
+        val config = Place.ToolConfig("z-course", "tracking", "t-runs")
         val onConfig = PlaceStack.breadcrumb(stack + config, 4) { names[it] }
         assertEquals("Course", onConfig.crumbs[3].parent)
         assertNull(onConfig.parent)
@@ -99,7 +99,7 @@ class PlaceStackTest {
 
     @Test
     fun aDeletedZoneTakesItsPlacesWithIt() {
-        val stack = listOf(home, kitchen, Place.Chat, course, runs, Place.ToolConfig("z-course", "tracking", "t-runs", null))
+        val stack = listOf(home, kitchen, Place.Chat, course, runs, Place.ToolConfig("z-course", "tracking", "t-runs"))
         assertEquals(listOf(home, kitchen, Place.Chat), PlaceStack.dropZone(stack, "z-course"))
     }
 
@@ -123,7 +123,7 @@ class PlaceStackTest {
 
     @Test
     fun `a thing moved to another zone stands in it, what is over it kept`() {
-        val config = Place.RoutineConfig("old", "r", null)
+        val config = Place.RoutineConfig("old", "r")
         val stack = listOf(Place.Home, Place.Zone("old"), Place.Routine("r", "old"), config)
         assertEquals(listOf(Place.Home, Place.Zone("new"), Place.Routine("r", "new"), config),
             PlaceStack.moved(stack, Place.Routine("r", "old"), Place.Routine("r", "new")))

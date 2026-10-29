@@ -249,7 +249,8 @@ class VariableService(private val context: Context) : ExecutableService {
 
         // No variable reading itself through others
         val reads = (stored.variableIds() + definition.terms.values.filterIsInstance<Term.Variable>().map { it.id } +
-            definition.terms.values.filterIsInstance<Term.Reading>().flatMap { it.keepTerms() }.filterIsInstance<Term.Variable>().map { it.id }).distinct()
+            definition.terms.values.filterIsInstance<Term.Reading>().flatMap { it.keepTerms() }.filterIsInstance<Term.Variable>().map { it.id } +
+            definition.terms.values.filterIsInstance<Term.Reading>().flatMap { app.treelune.core.fields.FilterTerms.variablesRead(it.selection.filters) }).distinct()
         loop(id, reads, others)?.let { path -> throw Refused(s.shared("variable_error_loop").format((listOf(name) + path.map { p -> others.first { it.id == p }.name } + name).joinToString(" → "))) }
 
         val field = if (json.has("field")) definition.field else deduce(stored, definition.terms, others, name)
@@ -311,7 +312,8 @@ class VariableService(private val context: Context) : ExecutableService {
         val formula = (Formula.parse(json.optString("formula")) as? Formula.Parsed.Read)?.formula
         val terms = json.optJSONObject("terms")?.let { t -> t.keys().asSequence().map { t.getJSONObject(it) }.toList() } ?: emptyList()
         val variables = terms.mapNotNull { it.optString("variable").takeIf { v -> v.isNotEmpty() } } +
-            terms.flatMap { keepTerms(it) }.filterIsInstance<Term.Variable>().map { it.id }
+            terms.flatMap { keepTerms(it) }.filterIsInstance<Term.Variable>().map { it.id } +
+            terms.flatMap { app.treelune.core.fields.FilterTerms.variablesRead(it.optJSONObject("reading")?.optJSONObject("selection")?.optJSONArray("filters")) }
         return (formula?.variableIds() ?: emptyList()) + variables
     }
 
@@ -461,7 +463,9 @@ class VariableService(private val context: Context) : ExecutableService {
             val fields = ToolFields.filterable(toolId, context, s)
             val result = coordinator.processUserAction("tool_data.get", mapOf(
                 "tool_instance_id" to toolId,
-                "filters" to JsonUtils.toList(selection.storedFilters(fields, TimeResolver.at(at)) { s.shared(it) })
+                "filters" to JsonUtils.toList(selection.storedFilters(fields, TimeResolver.at(at)) { s.shared(it) }),
+                // A filter's variable or reading read at the same instant (FilterTerms)
+                "reference" to at
             ))
             if (!result.isSuccess) throw IllegalStateException(result.error ?: "tool_data.get")
             @Suppress("UNCHECKED_CAST")

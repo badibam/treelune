@@ -59,22 +59,21 @@ fun ZoneScreen(zone: Zone) {
         if (!isLoading && !isLoadingRoutines) loadedOnce = true
     }
     
-    // State for showing/hiding available tools list - persiste orientation changes
-    var showAvailableToolsForGroup by rememberSaveable { mutableStateOf<String?>(null) } // null = hidden, "" = ungrouped, "group_name" = specific group
+    // The page's add menu open, under its « + »: what is made there chooses its group in its own form
+    var adding by rememberSaveable { mutableStateOf(false) }
+    // A new event's form open, from the add menu
+    var creatingEvent by rememberSaveable { mutableStateOf(false) }
 
     val waiting = app.treelune.core.ui.LocalWaiting.current
     // A tool opened on top of the zone, on the oldest entry that waits when its tile was touched with one
     val openTool = { toolId: String, entry: app.treelune.core.tools.EntryToOpen? -> Navigator.push(Place.Tool(toolId, zone.id), entry) }
-    val configureTool = { tool: ToolInstance -> Navigator.push(Place.ToolConfig(zone.id, tool.tooltype, tool.id, null)) }
+    val configureTool = { tool: ToolInstance -> Navigator.push(Place.ToolConfig(zone.id, tool.tooltype, tool.id)) }
     // What a routine's tile does (RoutineActions), its long touch opening its config
     val routineActions = app.treelune.core.ai.ui.routine.rememberRoutineActions { errorMessage = it }
-    // A routine's config opened for a new one in a section: nothing is made before it is saved
-    val createRoutine = { group: String? -> Navigator.push(Place.RoutineConfig(zone.id, null, group)) }
+    // A routine's config opened for a new one: nothing is made before it is saved
+    val createRoutine = { Navigator.push(Place.RoutineConfig(zone.id, null)) }
 
-    // The section a variable or a copy is asked for
-    var preSelectedGroup by rememberSaveable { mutableStateOf<String?>(null) }
-
-    // What is being copied into the section of preSelectedGroup, its picker open
+    // What is being copied into the zone, its picker open
     var duplicating by rememberSaveable { mutableStateOf<app.treelune.core.ui.selectors.DuplicateType?>(null) }
 
     // The zone's tools, variables and routines, read through the dispatcher
@@ -117,11 +116,8 @@ fun ZoneScreen(zone: Zone) {
         if (result.status == CommandStatus.SUCCESS) tasks = (result.data?.get("tasks") as List<*>).map { app.treelune.core.tasks.Task.fromResult(it as Map<*, *>) }
         else errorMessage = result.error
     }
-    // A Task's config opened for a new one in a section: nothing is made before it is saved
-    val createTask = { group: String? ->
-        Navigator.push(Place.TaskConfig(zone.id, null, group))
-        showAvailableToolsForGroup = null
-    }
+    // A Task's config opened for a new one: nothing is made before it is saved
+    val createTask = { Navigator.push(Place.TaskConfig(zone.id, null)) }
 
     // Tools, variables and routines share their section's grid (SectionGrid): a write to one
     // can move the others' tiles there (a size changed, a tile placed, one leaving), so a change to
@@ -143,8 +139,8 @@ fun ZoneScreen(zone: Zone) {
             }
         }
     }
-    // A variable opened on top of the zone: its id, "" for a new one, in the group chosen for it
-    val openVariable = { id: String -> Navigator.push(Place.Variable(zone.id, id.ifEmpty { null }, preSelectedGroup)) }
+    // A variable opened on top of the zone: its id, "" for a new one
+    val openVariable = { id: String -> Navigator.push(Place.Variable(zone.id, id.ifEmpty { null })) }
 
     // Parse zone tool_groups from config
     val zoneToolGroups = remember(zone.tool_groups) {
@@ -207,7 +203,13 @@ fun ZoneScreen(zone: Zone) {
             leftButton = ButtonAction.BACK,
             rightButton = ButtonAction.CONFIGURE,
             onLeftClick = leave,
-            onRightClick = { Navigator.push(Place.ZoneConfig(zone.id)) }
+            onRightClick = { Navigator.push(Place.ZoneConfig(zone.id)) },
+            // Organising and adding, once for the whole page, before its gear
+            beforeRight = {
+                app.treelune.core.ui.components.GridHeaderButtons(
+                    toolInstances.isNotEmpty() || variables.isNotEmpty() || routines.isNotEmpty() || tasks.isNotEmpty(), gridEditor
+                ) { adding = !adding }
+            }
         )
 
         // The identity its tile opens a conversation with, under its header
@@ -225,37 +227,30 @@ fun ZoneScreen(zone: Zone) {
                 textAlign = TextAlign.Center
             )
         } else {
+            // The add menu, under the header's +
+            if (adding && !gridEditor.anyEditing) {
+                AddMenu(
+                    zoneName = zone.name,
+                    onSelectToolType = { toolTypeId -> adding = false; Navigator.push(Place.ToolConfig(zone.id, toolTypeId, null)) },
+                    onCreateVariable = { adding = false; openVariable("") },
+                    onCreateRoutine = { adding = false; createRoutine() },
+                    onCreateTask = { adding = false; createTask() },
+                    onCreateEvent = { adding = false; creatingEvent = true },
+                    onDuplicate = { type -> adding = false; duplicating = type },
+                    context = context
+                )
+            }
+
             // For each defined group, display its section (always shown, even if empty)
             zoneToolGroups.forEach { groupName ->
                 GroupSection(
                     groupName = groupName,
                     zoneToolGroups = zoneToolGroups,
                     variables = variables.filter { it.group == groupName },
-                    onOpenVariable = { preSelectedGroup = null; openVariable(it) },
-                    onCreateVariable = {
-                        preSelectedGroup = groupName
-                        openVariable("")
-                        showAvailableToolsForGroup = null
-                    },
+                    onOpenVariable = openVariable,
                     toolInstances = toolInstances,
                     routines = routines,
                     tasks = tasks.filter { it.group == groupName },
-                    onCreateTask = { createTask(groupName) },
-                    showAvailableToolsForGroup = showAvailableToolsForGroup,
-                    onToggleToolsList = { showAvailableToolsForGroup = if (showAvailableToolsForGroup == groupName) null else groupName },
-                    onSelectToolType = { toolTypeId ->
-                        Navigator.push(Place.ToolConfig(zone.id, toolTypeId, null, groupName))
-                        showAvailableToolsForGroup = null
-                    },
-                    onCreateRoutine = {
-                        createRoutine(groupName)
-                        showAvailableToolsForGroup = null
-                    },
-                    onDuplicate = { type ->
-                        preSelectedGroup = groupName
-                        duplicating = type
-                        showAvailableToolsForGroup = null
-                    },
                     onToolClick = { toolId -> openTool(toolId, waiting.oldest[toolId]?.let { app.treelune.core.tools.EntryToOpen.Existing(it) }) },
                     onOpenEntry = { tool, entry -> openTool(tool.id, entry) },
                     editor = gridEditor,
@@ -269,35 +264,14 @@ fun ZoneScreen(zone: Zone) {
             val ungroupedTools = toolInstances.filter { ToolPositions.section(it, zoneToolGroups) == null }
             val ungroupedRoutines = routines.filter { ToolPositions.section(it.group, zoneToolGroups) == null }
 
-            // Always show ungrouped section (even if empty) to allow adding tools/routines
+            // Always shown, even if empty: what is made without a group lands there
             UngroupedSection(
                     toolInstances = ungroupedTools,
                     variables = variables.filter { it.group == null || it.group !in zoneToolGroups },
-                    onOpenVariable = { preSelectedGroup = null; openVariable(it) },
-                    onCreateVariable = {
-                        preSelectedGroup = null
-                        openVariable("")
-                        showAvailableToolsForGroup = null
-                    },
+                    onOpenVariable = openVariable,
                     routines = ungroupedRoutines,
                     tasks = tasks.filter { ToolPositions.section(it.group, zoneToolGroups) == null },
-                    onCreateTask = { createTask(null) },
                     hasConfiguredGroups = zoneToolGroups.isNotEmpty(),
-                    showAvailableToolsForGroup = showAvailableToolsForGroup,
-                    onToggleToolsList = { showAvailableToolsForGroup = if (showAvailableToolsForGroup == "") null else "" },
-                    onSelectToolType = { toolTypeId ->
-                        Navigator.push(Place.ToolConfig(zone.id, toolTypeId, null, null))
-                        showAvailableToolsForGroup = null
-                    },
-                    onCreateRoutine = {
-                        createRoutine(null)
-                        showAvailableToolsForGroup = null
-                    },
-                    onDuplicate = { type ->
-                        preSelectedGroup = null
-                        duplicating = type
-                        showAvailableToolsForGroup = null
-                    },
                     onToolClick = { toolId -> openTool(toolId, waiting.oldest[toolId]?.let { app.treelune.core.tools.EntryToOpen.Existing(it) }) },
                     onOpenEntry = { tool, entry -> openTool(tool.id, entry) },
                     editor = gridEditor,
@@ -323,7 +297,10 @@ fun ZoneScreen(zone: Zone) {
         }
     }
 
-    // A tool, a routine or a Task copied from any zone into the section it was asked from
+    // A new event of the zone, its form opened from the add menu
+    if (creatingEvent) app.treelune.core.events.ui.EventForm(zone.id, null, app.treelune.core.events.ui.newEvent()) { creatingEvent = false }
+
+    // A tool, a routine or a Task copied from any zone, without a group
     duplicating?.let { type ->
         app.treelune.core.ui.selectors.DuplicateSelector(
             type = type,
@@ -341,7 +318,7 @@ fun ZoneScreen(zone: Zone) {
                         val result = coordinator.processUserAction(operation, mapOf(
                             idKey to sourceId,
                             "target_zone_id" to zone.id,
-                            "target_group" to (preSelectedGroup ?: "")
+                            "target_group" to ""
                         ))
                         if (result.status == CommandStatus.SUCCESS) {
                             UI.Toast(done)
@@ -376,18 +353,19 @@ fun ZoneScreen(zone: Zone) {
 private class AddChoice(val id: String, val icon: String, val label: String, val onClick: () -> Unit)
 
 /**
- * What can be added to section [groupName], titled by it: the tool types by family (ToolFamily,
- * each type saying its own, in the order the app finds them within it), then a variable and a
- * routine and a Task, then a copy of a tool, a routine or a Task. Each a tile of the settings' kind, an icon and a
- * name two cells wide, two a row, one under the other in one column.
+ * What can be added to the zone [zoneName], titled by it: the tool types by family (ToolFamily,
+ * each type saying its own, in the order the app finds them within it), then a variable, a
+ * routine, a Task and an event, then a copy of a tool, a routine or a Task. Each a tile of the
+ * settings' kind, an icon and a name two cells wide, two a row, one under the other in one column.
  */
 @Composable
 private fun AddMenu(
-    groupName: String,
+    zoneName: String,
     onSelectToolType: (String) -> Unit,
     onCreateVariable: () -> Unit,
     onCreateRoutine: () -> Unit,
     onCreateTask: () -> Unit,
+    onCreateEvent: () -> Unit,
     onDuplicate: (app.treelune.core.ui.selectors.DuplicateType) -> Unit,
     context: android.content.Context
 ) {
@@ -401,7 +379,8 @@ private fun AddMenu(
         s.shared("add_section_link") to listOf(
             AddChoice("variable", "variable", s.shared("variable_display_name"), onCreateVariable),
             AddChoice("routine", "calendar-clock", s.shared("routine_display_name"), onCreateRoutine),
-            AddChoice("task", app.treelune.core.tasks.TaskSettings.DEFAULT_ICON, s.shared("task_display_name"), onCreateTask)
+            AddChoice("task", app.treelune.core.tasks.TaskSettings.DEFAULT_ICON, s.shared("task_display_name"), onCreateTask),
+            AddChoice("event", "zap", s.shared("event_display_name"), onCreateEvent)
         ),
         s.shared("add_section_copy") to listOf(
             AddChoice("copy_tool", "copy", s.shared("add_copy_tool")) { onDuplicate(app.treelune.core.ui.selectors.DuplicateType.TOOL) },
@@ -410,7 +389,7 @@ private fun AddMenu(
         )
     )
     Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
-        UI.Text(s.shared("add_title").format(groupName), TextType.SUBTITLE, fillMaxWidth = true)
+        UI.Text(s.shared("add_title").format(zoneName), TextType.SUBTITLE, fillMaxWidth = true)
         sections.filter { it.second.isNotEmpty() }.forEach { (title, choices) ->
             UI.Text(title, TextType.CAPTION, fillMaxWidth = true)
             // Two tiles a row, each two cells wide and one high, as the settings' tiles
@@ -428,25 +407,16 @@ private fun AddMenu(
     }
 }
 
-/**
- * Display a group section with its tools and routines
- */
+/** A group's section: its title, then its tools, variables, routines and Tasks on their grid. */
 @Composable
 private fun GroupSection(
     groupName: String,
     zoneToolGroups: List<String>,
     variables: List<app.treelune.core.ui.variables.VariableRow>,
     onOpenVariable: (String) -> Unit,
-    onCreateVariable: () -> Unit,
     toolInstances: List<ToolInstance>,
     routines: List<app.treelune.core.ai.data.Routine>,
     tasks: List<app.treelune.core.tasks.Task>,
-    onCreateTask: () -> Unit,
-    showAvailableToolsForGroup: String?,
-    onToggleToolsList: () -> Unit,
-    onSelectToolType: (String) -> Unit,
-    onCreateRoutine: () -> Unit,
-    onDuplicate: (app.treelune.core.ui.selectors.DuplicateType) -> Unit,
     onToolClick: (String) -> Unit,
     onOpenEntry: (ToolInstance, app.treelune.core.tools.EntryToOpen) -> Unit,
     editor: app.treelune.core.ui.components.GridEditor,
@@ -454,81 +424,21 @@ private fun GroupSection(
     routineActions: app.treelune.core.ai.ui.routine.RoutineActions,
     context: android.content.Context
 ) {
-    val s = remember { Strings.`for`(context = context) }
-    // Filter tools and routines for this group
     val groupTools = toolInstances.filter { ToolPositions.section(it, zoneToolGroups) == groupName }
     val groupRoutines = routines.filter { it.group == groupName }
-
-    // Section header: its title over a divider (SECTION_HEADER)
-    UI.Card(type = CardType.SECTION_HEADER) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(UI.Space.M),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // The title takes what the buttons leave, wrapping rather than squeezing them
-            Box(modifier = Modifier.weight(1f)) {
-                UI.Text(
-                    text = groupName,
-                    type = TextType.HEADING
-                )
-            }
-
-            app.treelune.core.ui.components.GridSectionButtons(groupName, groupTools.isNotEmpty() || variables.isNotEmpty() || groupRoutines.isNotEmpty() || tasks.isNotEmpty(), editor, onToggleToolsList)
-        }
-    }
-
-    // What can be added to the section, under its + (AddMenu)
-    if (showAvailableToolsForGroup == groupName && !editor.anyEditing) {
-        AddMenu(
-            groupName = groupName,
-            onSelectToolType = onSelectToolType,
-            onCreateVariable = onCreateVariable,
-            onCreateRoutine = onCreateRoutine,
-            onCreateTask = onCreateTask,
-            onDuplicate = onDuplicate,
-            context = context
-        )
-    }
-
-    // The group's tools, variables and routines on their grid
-    SectionGrid(groupName, groupTools, variables, groupRoutines, tasks, editor, onToolClick, onToolLongClick, onOpenEntry, onOpenVariable, routineActions)
-
-
-    // Empty state if no tools/routines in this group (only when list is not showing)
-    if (groupTools.isEmpty() && variables.isEmpty() && groupRoutines.isEmpty() && tasks.isEmpty() && showAvailableToolsForGroup != groupName) {
-        UI.Text(
-            text = s.shared("message_no_items_in_group"),
-            type = TextType.CAPTION,
-            fillMaxWidth = true,
-            textAlign = TextAlign.Center
-        )
-    }
-
-    // Spacer after each group
+    Section(groupName, groupName, groupTools, variables, groupRoutines, tasks, editor, onToolClick, onToolLongClick, onOpenEntry, onOpenVariable, routineActions, context)
     Spacer(modifier = Modifier.height(UI.Space.XL))
 }
 
-/**
- * Display the ungrouped section with tools and routines without a group
- */
+/** The ungrouped section: titled « Ungrouped » beside groups, « Tools and routines » without any. */
 @Composable
 private fun UngroupedSection(
     toolInstances: List<ToolInstance>,
     variables: List<app.treelune.core.ui.variables.VariableRow>,
     onOpenVariable: (String) -> Unit,
-    onCreateVariable: () -> Unit,
     routines: List<app.treelune.core.ai.data.Routine>,
     tasks: List<app.treelune.core.tasks.Task>,
-    onCreateTask: () -> Unit,
     hasConfiguredGroups: Boolean,
-    showAvailableToolsForGroup: String?,
-    onToggleToolsList: () -> Unit,
-    onSelectToolType: (String) -> Unit,
-    onCreateRoutine: () -> Unit,
-    onDuplicate: (app.treelune.core.ui.selectors.DuplicateType) -> Unit,
     onToolClick: (String) -> Unit,
     onOpenEntry: (ToolInstance, app.treelune.core.tools.EntryToOpen) -> Unit,
     editor: app.treelune.core.ui.components.GridEditor,
@@ -537,54 +447,35 @@ private fun UngroupedSection(
     context: android.content.Context
 ) {
     val s = remember { Strings.`for`(context = context) }
+    val title = s.shared(if (hasConfiguredGroups) "label_ungrouped" else "label_tools_and_routines")
+    Section("", title, toolInstances, variables, routines, tasks, editor, onToolClick, onToolLongClick, onOpenEntry, onOpenVariable, routineActions, context)
+}
 
-    // Determine section label
-    val sectionLabel = if (hasConfiguredGroups) {
-        s.shared("label_ungrouped")
-    } else {
-        s.shared("label_tools_and_routines")
-    }
-
-    // Section header: its title over a divider (SECTION_HEADER)
+/** A section [key] titled [title] over a divider, its grid, or the line saying it is empty. */
+@Composable
+private fun Section(
+    key: String,
+    title: String,
+    tools: List<ToolInstance>,
+    variables: List<app.treelune.core.ui.variables.VariableRow>,
+    routines: List<app.treelune.core.ai.data.Routine>,
+    tasks: List<app.treelune.core.tasks.Task>,
+    editor: app.treelune.core.ui.components.GridEditor,
+    onToolClick: (String) -> Unit,
+    onToolLongClick: (ToolInstance) -> Unit,
+    onOpenEntry: (ToolInstance, app.treelune.core.tools.EntryToOpen) -> Unit,
+    onOpenVariable: (String) -> Unit,
+    routineActions: app.treelune.core.ai.ui.routine.RoutineActions,
+    context: android.content.Context
+) {
+    val s = remember { Strings.`for`(context = context) }
     UI.Card(type = CardType.SECTION_HEADER) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(UI.Space.M),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // The title takes what the buttons leave, wrapping rather than squeezing them
-            Box(modifier = Modifier.weight(1f)) {
-                UI.Text(
-                    text = sectionLabel,
-                    type = TextType.HEADING
-                )
-            }
-
-            app.treelune.core.ui.components.GridSectionButtons("", toolInstances.isNotEmpty() || variables.isNotEmpty() || routines.isNotEmpty() || tasks.isNotEmpty(), editor, onToggleToolsList)
+        Box(modifier = Modifier.fillMaxWidth().padding(UI.Space.M)) {
+            UI.Text(text = title, type = TextType.HEADING)
         }
     }
-
-    // What can be added to the section, under its + (AddMenu)
-    if (showAvailableToolsForGroup == "" && !editor.anyEditing) {
-        AddMenu(
-            groupName = sectionLabel,
-            onSelectToolType = onSelectToolType,
-            onCreateVariable = onCreateVariable,
-            onCreateRoutine = onCreateRoutine,
-            onCreateTask = onCreateTask,
-            onDuplicate = onDuplicate,
-            context = context
-        )
-    }
-
-    // The ungrouped tools, variables and routines on their grid
-    SectionGrid("", toolInstances, variables, routines, tasks, editor, onToolClick, onToolLongClick, onOpenEntry, onOpenVariable, routineActions)
-
-
-    // Empty state (only when list is not showing)
-    if (toolInstances.isEmpty() && variables.isEmpty() && routines.isEmpty() && tasks.isEmpty() && showAvailableToolsForGroup != "") {
+    SectionGrid(key, tools, variables, routines, tasks, editor, onToolClick, onToolLongClick, onOpenEntry, onOpenVariable, routineActions)
+    if (tools.isEmpty() && variables.isEmpty() && routines.isEmpty() && tasks.isEmpty()) {
         UI.Text(
             text = s.shared("message_no_items_in_group"),
             type = TextType.CAPTION,
@@ -607,7 +498,7 @@ private fun toolInstanceOf(map: Map<String, Any?>) = ToolInstance(
     updated_at = (map["updated_at"] as Number).toLong()
 )
 
-/** A section's grid, its tools, variables, routines and Tasks: in edit mode when it is the section edited, faded while another is. */
+/** A section's grid, its tools, variables, routines and Tasks: in edit mode while the page is. */
 @Composable
 private fun SectionGrid(
     key: String,
@@ -626,8 +517,6 @@ private fun SectionGrid(
         variables.map { app.treelune.core.ui.components.SectionTile.Variable(it) } +
         routines.map { app.treelune.core.ui.components.SectionTile.Routine(it) } +
         tasks.map { app.treelune.core.ui.components.SectionTile.TaskTile(it) }
-    app.treelune.core.ui.components.Faded(editor.anyEditing && !editor.isEditing(key)) {
-        app.treelune.core.ui.components.SectionTiles(tiles, { onToolClick(it.id) }, onToolLongClick, onOpenEntry, onOpenVariable,
-            routineActions, editor.gridEdit(key))
-    }
+    app.treelune.core.ui.components.SectionTiles(tiles, { onToolClick(it.id) }, onToolLongClick, onOpenEntry, onOpenVariable,
+        routineActions, editor.gridEdit(key))
 }

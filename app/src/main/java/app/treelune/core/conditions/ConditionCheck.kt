@@ -100,6 +100,8 @@ class ConditionCheck(private val sources: ConfigConditions.Sources, private val 
                 index == 0 -> (side as? Condition.Side.Field)?.let { namedField(found, it.path) }
                     ?: throw IllegalArgumentException(text("condition_error_left_field").format(label))
                 side is Condition.Side.Of && side.term is Term.Constant -> null
+                // A variable or a reading, read once where the entries are read (FilterTerms)
+                side is Condition.Side.Of -> termField(side.term, label)
                 else -> throw IllegalArgumentException(text("service_error_filter_not_written").format(label, raw(side)))
             }
             ConfigConditions.Kind.ON_ROW -> when {

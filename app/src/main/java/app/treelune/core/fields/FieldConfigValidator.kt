@@ -81,6 +81,14 @@ object FieldConfigValidator {
         return ValidationResult(isValid = true)
     }
 
+    /**
+     * Why [fieldDef]'s config does not hold for its type (a closed choice without options), as
+     * [validate] says it; null when it holds. A rule a schema cannot say, the settings beside it
+     * deciding, is checked here when a tool is created too.
+     */
+    fun configRefusal(fieldDef: FieldDefinition, context: Context): String? =
+        validateTypeConfig(fieldDef.type, fieldDef.config, Strings.`for`(context = context)).takeIf { !it.isValid }?.errorMessage
+
     /** The key a default value is checked under, alone in its object. */
     private const val DEFAULT_KEY = "default_value"
 
@@ -297,7 +305,8 @@ object FieldConfigValidator {
 
     /**
      * Validates CHOICE field config.
-     * Config: {options (required, min 2, each {value, color?}), multiple?, ordered?, open?}
+     * Config: {options (each {value, color?}: one at least when closed, none needed when open, the
+     * options then coming with the writes), multiple?, ordered?, open?}
      */
     private fun validateChoiceConfig(config: Map<String, Any>?, s: app.treelune.core.strings.StringsContext): ValidationResult {
         // Config is required for CHOICE
@@ -308,9 +317,10 @@ object FieldConfigValidator {
             )
         }
 
-        // options array is required, each option a group with a value
-        val stored = config["options"] as? List<*>
-        if (stored == null || stored.any { (it as? Map<*, *>)?.get("value") !is String }) {
+        // Each option a group with a value; none given, none there
+        val stored = config["options"]?.let { it as? List<*> ?: return ValidationResult(isValid = false, errorMessage = s.shared("field_validation_choice_options_required")) }
+            ?: emptyList<Any?>()
+        if (stored.any { (it as? Map<*, *>)?.get("value") !is String }) {
             return ValidationResult(
                 isValid = false,
                 errorMessage = s.shared("field_validation_choice_options_required")
@@ -318,8 +328,8 @@ object FieldConfigValidator {
         }
         val options = stored.map { (it as Map<*, *>)["value"] as String }
 
-        // Minimum 2 options
-        if (options.size < 2) {
+        // A closed choice offers one option at least; an open one may start with none
+        if (options.isEmpty() && config["open"] != true) {
             return ValidationResult(
                 isValid = false,
                 errorMessage = s.shared("field_validation_choice_options_min")

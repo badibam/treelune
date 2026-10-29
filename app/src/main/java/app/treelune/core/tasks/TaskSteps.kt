@@ -20,7 +20,7 @@ import org.json.JSONObject
  * - `create_entry`: `tool_instance_id`, `values` (by the field's path: `name`, `timestamp`, `data.x`, `extra.x`)
  * - `update_entry`: `tool_instance_id`, `entry` (an input giving an entry), `values` as above
  * - `tool_operation`: `tool_instance_id`, `operation` (one the tool type declares), `params` (by name)
- * - `run_routine`: `routine_id`, `inputs` (`data`, what its run's message is joined)
+ * - `run_routine`: `routine_id`, `blocks` (what joins its run's message: StepBlocks)
  * - `emit_event`: `event_id`, `inputs` (by the value's name the event declares, every one given)
  *
  * An input is a Term (`{"constant"}`, `{"variable"}`, `{"reading"}`), or what an earlier step gave:
@@ -52,8 +52,6 @@ object TaskSteps {
     const val PARAMS = "params"
     const val ROUTINE_ID = "routine_id"
     const val EVENT_ID = "event_id"
-    /** The one input of a routine run: what joins its message. */
-    const val DATA = "data"
 
     const val RESULT = "result"
     const val STEP = "step"
@@ -184,13 +182,23 @@ object TaskSteps {
         val own = when (step.optString(KIND)) {
             CREATE_ENTRY, UPDATE_ENTRY -> reach("tool_data.create", mapOf("tool_instance_id" to tool))
             TOOL_OPERATION -> reach("${tooltypeOf(tool) ?: "?"}.${step.optString(OPERATION)}", mapOf("tool_instance_id" to tool))
-            RUN_ROUTINE -> reach("routines.execute_manual", mapOf("routine_id" to step.optString(ROUTINE_ID)))
+            // The things its pointers name are read with its message
+            RUN_ROUTINE -> reach("routines.execute_manual", mapOf("routine_id" to step.optString(ROUTINE_ID),
+                "joined" to blocksOf(step).let { blocks -> StepBlocks.fixedPointers(blocks).map { JSONObject().put(StepBlocks.TYPE, StepBlocks.POINTER).put(StepBlocks.POINTER, it) } }
+                    .map { app.treelune.core.utils.JsonUtils.toMap(it) }))
             EMIT_EVENT -> reach("events.emit", mapOf("event_id" to step.optString(EVENT_ID)))
             else -> emptyList()
         }
         val reads = listOf(INPUTS, VALUES, PARAMS).mapNotNull { step.optJSONObject(it) }
             .flatMap { holder -> holder.keys().asSequence().mapNotNull { holder.optJSONObject(it) }.toList() } +
-            listOfNotNull(step.optJSONObject(ENTRY))
+            listOfNotNull(step.optJSONObject(ENTRY)) +
+            blocksOf(step).mapNotNull { block ->
+                when (block) {
+                    is StepBlocks.Block.Entry -> block.input
+                    is StepBlocks.Block.Value -> block.input
+                    is StepBlocks.Block.Fixed -> null
+                }
+            }
         return own + reads.flatMap { input ->
             when {
                 input.has(Term.Kind.READING.key) -> reach("readings.read", mapOf("selection" to
@@ -207,6 +215,13 @@ object TaskSteps {
                 else -> emptyList()
             }
         }
+    }
+
+    /** The blocks of [step], none when they do not read: the step's refusal says so (refusal). */
+    private fun blocksOf(step: JSONObject): List<StepBlocks.Block> = try {
+        StepBlocks.of(step)
+    } catch (e: IllegalArgumentException) {
+        emptyList()
     }
 
     /**
@@ -288,7 +303,7 @@ object TaskSteps {
                 RUN_ROUTINE -> {
                     database.aiDao().getRoutineById(step.optString(ROUTINE_ID))
                         ?: return s.shared("task_error_routine").format(number, step.optString(ROUTINE_ID))
-                    inputs(step.optJSONObject(INPUTS), setOf(DATA))?.let { return it }
+                    blocksRefusal(step, number, s, received, values, ::inputs)?.let { return it }
                 }
                 EMIT_EVENT -> {
                     val event = database.eventDao().get(step.optString(EVENT_ID))
@@ -300,6 +315,51 @@ object TaskSteps {
                 else -> return s.shared("task_error_kind").format(number, step.optString(KIND), KINDS.joinToString(", "))
             }
             given += outputs(step, context)
+        }
+        return null
+    }
+
+    /**
+     * Why the blocks of the `run_routine` [step] (number [number]) cannot be stored; null when they
+     * can. A text or a pointer reads as a routine's block does (RoutineMessage); an entry's input
+     * gives an entry — the one a trigger gave, one an event carried, the one a step created, one
+     * designated —, a value's gives anything else; each checked as any input ([inputs]).
+     */
+    private fun blocksRefusal(step: JSONObject, number: Int, s: StringsContext, received: Map<String, FieldDefinition>?, values: Map<String, FieldDefinition>?,
+                              inputs: (JSONObject?, Set<String>?) -> String?): String? {
+        if (step.has(INPUTS)) return s.shared("task_error_input_unknown").format(number, INPUTS, StepBlocks.BLOCKS)
+        val stored = step.optJSONArray(StepBlocks.BLOCKS) ?: JSONArray()
+        for (i in 0 until stored.length()) {
+            fun refused(why: String) = s.shared("task_error_block").format(number, i + 1, why)
+            val block = try {
+                StepBlocks.read(JSONArray().put(stored.opt(i))).single()
+            } catch (e: IllegalArgumentException) {
+                return refused(stored.opt(i).toString())
+            }
+            when (block) {
+                is StepBlocks.Block.Fixed -> when (block.json.optString(StepBlocks.TYPE)) {
+                    StepBlocks.TEXT -> if (!block.json.has(StepBlocks.TEXT)) return refused(block.json.toString())
+                    else -> {
+                        val pointer = try {
+                            app.treelune.core.ai.enrichments.PointerConfig.fromJson(block.json.optJSONObject(StepBlocks.POINTER) ?: return refused(block.json.toString())) { s.shared(it) }
+                        } catch (e: Exception) {
+                            return refused(e.message ?: block.json.toString())
+                        }
+                        pointer.selection.problem { s.shared(it) }?.let { return refused(it) }
+                    }
+                }
+                is StepBlocks.Block.Entry, is StepBlocks.Block.Value -> {
+                    val json = if (block is StepBlocks.Block.Entry) block.input else (block as StepBlocks.Block.Value).input
+                    // Named by its place among the blocks, the step's number put before by inputs
+                    inputs(JSONObject().put("${i + 1}", json), null)?.let { return it }
+                    val input = input(json, "$number › ${i + 1}") { s.shared(it) }
+                    // An event's value is an entry when the event declares it so
+                    val entry = StepBlocks.designatesEntry(input) || (input is Input.Received && input.value != null &&
+                        values?.get(input.value)?.type == app.treelune.core.fields.FieldType.REFERENCE)
+                    if (block is StepBlocks.Block.Entry && !entry) return s.shared("task_error_block_entry").format(number, i + 1)
+                    if (block is StepBlocks.Block.Value && entry) return s.shared("task_error_block_value").format(number, i + 1)
+                }
+            }
         }
         return null
     }

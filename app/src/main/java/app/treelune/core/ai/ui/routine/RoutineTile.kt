@@ -53,7 +53,7 @@ class RoutineActions(
         app.treelune.core.ai.orchestration.ChatRequests.open(prefill)
     }
 
-    fun configure(routine: Routine) = Navigator.push(Place.RoutineConfig(routine.zoneId, routine.id, null))
+    fun configure(routine: Routine) = Navigator.push(Place.RoutineConfig(routine.zoneId, routine.id))
 
     fun history(routine: Routine) = Navigator.push(Place.Routine(routine.id, routine.zoneId))
 

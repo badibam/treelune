@@ -73,14 +73,16 @@ data class EntrySelection(
     }
 
     /**
-     * Whether a filter compares with a relative date: its entries then change with the instant
-     * they are read at, beyond the period.
+     * Whether a filter compares with a relative date, or with a variable or a reading read at
+     * each instant (FilterTerms): its entries then change with the instant they are read at,
+     * beyond the period.
      */
     val filtersMove: Boolean get() = (0 until filters.length()).any { i ->
         when (val right = Conditions.right(filters.getJSONObject(i))) {
             is Conditions.Right.Written -> (right.value as? JSONArray)?.let { pair -> (0 until pair.length()).any { TimePoint.isRelative(pair.opt(it)) } }
                 ?: TimePoint.isRelative(right.value)
-            else -> false
+            is Conditions.Right.NotWritten -> true
+            Conditions.Right.None -> false
         }
     }
 

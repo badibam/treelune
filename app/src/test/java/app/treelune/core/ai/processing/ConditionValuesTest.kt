@@ -87,4 +87,17 @@ class ConditionValuesTest {
         assertEquals("2025-09-15T08:00:00+02:00", filterValue(forModel(filter("sleep", "timestamp", ">=", 1_757_916_000_000L))))
         assertEquals(2100, filterValue(forModel(filter("meals", "data.kcal", ">", 2100))))
     }
+
+    /** Days slept at least half an hour: the keep of a reading's groups faces the value of a group, a sum of durations. */
+    private val sleptDays = JSONObject("""{"reading": {"selection": {"target": {"kind": "TOOL_INSTANCE", "id": "sleep"}}, "field": "data.duration", "reduction": "SUM",
+        "group": {"field": "timestamp", "unit": "DAY", "keep": {"op": ">=", "right": {"constant": "PT30M"}}, "reduction": "COUNT"}}}""")
+    private fun keepOf(config: JSONObject) = config.getJSONArray("criteria").getJSONObject(0).getJSONObject("condition").getJSONObject("left")
+        .getJSONObject("reading").getJSONObject("group").getJSONObject("keep").getJSONObject("right").get("constant")
+
+    @Test
+    fun theKeepOfAReadingsGroups_passesFromIsoToMilliseconds_andBack() {
+        val stored = stored(criterion(sleptDays, 5))
+        assertEquals(1_800_000L, (keepOf(stored) as Number).toLong())
+        assertEquals("PT30M", keepOf(forModel(stored)))
+    }
 }

@@ -134,6 +134,25 @@ class AccessTest {
         assertNull(refusal(used, "routines", "execute_manual", mapOf("routine_id" to "weekly")))
         assertNotNull(refusal(read, "routines", "execute_manual", mapOf("routine_id" to "weekly")))
         assertNotNull(refusal(full, "routines", "execute_manual", mapOf("routine_id" to "watering")))
+        // What its joined pointers name is read: an entry of its zone, not one of the garden's
+        fun pointing(kind: String, id: String) = listOf(mapOf("type" to "pointer", "pointer" to mapOf("selection" to mapOf("target" to mapOf("kind" to kind, "id" to id)))))
+        assertNull(refusal(used, "routines", "execute_manual", mapOf("routine_id" to "weekly", "joined" to pointing("ENTRY", "w1"))))
+        assertNotNull(refusal(used, "routines", "execute_manual", mapOf("routine_id" to "weekly", "joined" to pointing("ENTRY", "s1"))))
+        assertNotNull(refusal(used, "routines", "execute_manual", mapOf("routine_id" to "weekly", "joined" to pointing("ZONE", "garden"))))
+        assertNull(refusal(used, "routines", "execute_manual", mapOf("routine_id" to "weekly", "joined" to listOf(mapOf("type" to "text", "text" to "Hello")))))
+    }
+
+    @Test
+    fun aFilterComparedWithAVariable_readsIt() {
+        val read = AccessMask(listOf(zone("health", AccessLevel.READ)))
+        fun over(variable: String) = listOf(mapOf("left" to mapOf("field" to "data.value"), "op" to ">", "right" to mapOf("variable" to variable)))
+        // A variable of its zone, not one of the garden's
+        assertNull(refusal(read, "tool_data", "get", mapOf("tool_instance_id" to "weight", "filters" to over("kcal"))))
+        assertNotNull(refusal(read, "tool_data", "get", mapOf("tool_instance_id" to "weight", "filters" to over("sowing"))))
+        // A reading's filters too, a reading opposite reaching its own target
+        assertNotNull(refusal(read, "readings", "read", mapOf("selection" to mapOf("target" to mapOf("kind" to "TOOL_INSTANCE", "id" to "weight"), "filters" to over("sowing")))))
+        val seeds = listOf(mapOf("left" to mapOf("field" to "data.value"), "op" to ">", "right" to mapOf("reading" to mapOf("selection" to mapOf("target" to mapOf("kind" to "TOOL_INSTANCE", "id" to "seeds"))))))
+        assertNotNull(refusal(read, "tool_data", "get", mapOf("tool_instance_id" to "weight", "filters" to seeds)))
     }
 
     private fun widening(given: AccessMask, holder: AccessMask) = runBlocking { AccessRules.widening(given, holder, "Weekly", lookups, ::text) }

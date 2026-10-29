@@ -27,7 +27,8 @@ import org.robolectric.annotation.Config
 /**
  * A goal recurring every day (GoalScheduler): one attempt a day; its period over, it is to be
  * validated, told once by a notification, and the day's opens beside it; left past the delay, it
- * expires; the goal stopped, none opens. A day passing is the attempts moved a day back.
+ * expires; the goal stopped, none opens. A day passing is the attempts moved a day of the
+ * calendar back, the same hour the day before: a day changing the clock lasts 23 or 25 hours.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -69,11 +70,17 @@ class GoalRecurringTest {
     private fun shown() = shadowOf(context.getSystemService(NotificationManager::class.java)).allNotifications
         .count { it.extras.getString(android.app.Notification.EXTRA_TITLE) == "Run daily" }
 
-    /** [entry] as if [by] had passed: its start and its period's end that much earlier. */
-    private suspend fun aged(entry: ToolDataEntity, by: Long) {
+    /** [entry] as if time had passed: its start and its period's end moved by [back]. */
+    private suspend fun aged(entry: ToolDataEntity, back: (Long) -> Long) {
         val state = JSONObject(entry.state!!)
-        state.optLong(GoalToolType.PERIOD_END).takeIf { state.has(GoalToolType.PERIOD_END) }?.let { state.put(GoalToolType.PERIOD_END, it - by) }
-        database.toolDataDao().update(entry.copy(timestamp = entry.timestamp!! - by, state = state.toString()))
+        state.optLong(GoalToolType.PERIOD_END).takeIf { state.has(GoalToolType.PERIOD_END) }?.let { state.put(GoalToolType.PERIOD_END, back(it)) }
+        database.toolDataDao().update(entry.copy(timestamp = back(entry.timestamp!!), state = state.toString()))
+    }
+
+    /** [at] the same hour the day before, in the app's time zone. */
+    private fun dayBefore(at: Long): Long {
+        val zone = app.treelune.core.utils.AppConfigManager.getDateTimeConfig().getZoneId()
+        return java.time.Instant.ofEpochMilli(at).atZone(zone).minusDays(1).toInstant().toEpochMilli()
     }
 
     @Test
@@ -117,7 +124,7 @@ class GoalRecurringTest {
         assertEquals(GoalToolType.Status.ACTIVE, status(first))
 
         // A day later: the one over to validate, the day's opened beside it, one notification
-        aged(first, day)
+        aged(first, ::dayBefore)
         tickUntil { attempts().size == 2 }
         val (over, today) = attempts().also { assertEquals(2, it.size) }
         assertEquals(first.id, over.id)
@@ -127,8 +134,8 @@ class GoalRecurringTest {
         tick()
         assertEquals("told once", 1, shown())
 
-        // Left past the delay: expired
-        aged(database.toolDataDao().getById(over.id)!!, day)
+        // Left past the delay, a duration: expired
+        aged(database.toolDataDao().getById(over.id)!!) { it - day }
         tickUntil { status(database.toolDataDao().getById(over.id)!!) != GoalToolType.Status.TO_VALIDATE }
         assertEquals(GoalToolType.Status.EXPIRED, status(database.toolDataDao().getById(over.id)!!))
 
@@ -136,7 +143,7 @@ class GoalRecurringTest {
         val stopped = coordinator.processUserAction("tools.update", mapOf("tool_instance_id" to goalId, "config" to app.treelune.core.utils.JsonUtils.toMap(
                 JSONObject(database.toolInstanceDao().getToolInstanceById(goalId)!!.config_json).put("enabled", false))))
         assertTrue(stopped.error, stopped.isSuccess)
-        aged(database.toolDataDao().getById(today.id)!!, day)
+        aged(database.toolDataDao().getById(today.id)!!, ::dayBefore)
         tick()
         assertEquals(2, attempts().size)
         }

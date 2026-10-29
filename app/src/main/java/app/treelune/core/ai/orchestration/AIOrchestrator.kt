@@ -694,12 +694,12 @@ object AIOrchestrator {
         userMessages.all { message -> message.richContentJson?.let { app.treelune.core.ai.data.RichMessage.fromJson(it) }?.isEmpty != false }
 
     /**
-     * A run of routine [routineId] created from its seed's message and asked for. [data], what
-     * a Task passes it (docs/CORE.md, « Tasks »), joins the end of its message as a text of its own.
-     * [chainId], the chain it continues (Chains); null, it starts its own. [attached], what a
-     * trigger gives it (the entry written, EntryTriggers), joins the end of its message after it.
+     * A run of routine [routineId] created from its seed's message and asked for. [chainId], the
+     * chain it continues (Chains); null, it starts its own. [attached], what a trigger gives it
+     * (the entry written, EntryTriggers) or a Task's step or the AI passes it (routines.execute_manual),
+     * joins the end of its message.
      */
-    suspend fun executeRoutine(routineId: String, scheduledFor: Long, trigger: ExecutionTrigger, data: String? = null, chainId: String? = null,
+    suspend fun executeRoutine(routineId: String, scheduledFor: Long, trigger: ExecutionTrigger, chainId: String? = null,
                                   attached: List<app.treelune.core.ai.data.MessageSegment> = emptyList()) {
         LogManager.aiSession("executeRoutine called: $routineId", "INFO")
 
@@ -761,10 +761,8 @@ object AIOrchestrator {
             aiDao.insertSession(session)
             LogManager.aiSession("Created ROUTINE_RUN session: $newSessionId", "INFO")
 
-            // Copy USER messages from SEED to new session, the data given joined to the last
-            val joined = listOfNotNull(data?.let {
-                app.treelune.core.ai.data.MessageSegment.Text(app.treelune.core.strings.Strings.`for`(context = context).shared("routine_run_data").format(it))
-            }) + attached
+            // Copy USER messages from SEED to new session, what is given joined to the last
+            val joined = attached
             userMessages.forEachIndexed { index, userMsg ->
                 val content = if (joined.isNotEmpty() && index == userMessages.lastIndex) userMsg.richContentJson?.let { json ->
                     app.treelune.core.ai.data.RichMessage.fromJson(json)?.let { message ->

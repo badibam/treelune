@@ -55,7 +55,7 @@ class ToolDataService(private val context: Context) : ExecutableService {
 
     companion object {
         /** The parameters of tool_data.get. */
-        private val GET_PARAMS = setOf("tool_instance_id", "fields", "filters", "sort", "limit", "page", "running")
+        private val GET_PARAMS = setOf("tool_instance_id", "fields", "filters", "sort", "limit", "page", "running", "reference")
         private val VALUES_PARAMS = setOf("tool_instance_id", "field", "limit")
         /** How many values a text field offers at most, the most frequent. */
         private const val VALUES_LIMIT = 20
@@ -553,7 +553,15 @@ class ToolDataService(private val context: Context) : ExecutableService {
             val declared = ToolTypeManager.getToolType(target.tool.tooltype)?.getEntryFields(target.config, context)
                 ?: return OperationResult.error(s.shared("service_error_data_schema_not_found").format("", target.tool.tooltype))
             val fields = EntryFilters.filterableFields(declared, userFields(target)) { s.shared(it) }
-            val filters = when (val parsed = EntryFilters.parse(params.optJSONArray("filters") ?: JSONArray(), fields) { s.shared(it) }) {
+            // A filter compared with a variable or a reading reads it once, at the reference the
+            // caller gives (the instant a reading or a variable is read at), now otherwise
+            val given = try {
+                app.treelune.core.fields.FilterTerms.resolved(params.optJSONArray("filters") ?: JSONArray(),
+                    params.optLong("reference").takeIf { params.has("reference") } ?: System.currentTimeMillis(), context) { s.shared(it) }
+            } catch (e: IllegalStateException) {
+                return OperationResult.error(e.message ?: s.shared("error_unknown"))
+            }
+            val filters = when (val parsed = EntryFilters.parse(given, fields) { s.shared(it) }) {
                 is EntryFilters.Parsed.Refused -> return OperationResult.error(parsed.error)
                 is EntryFilters.Parsed.Ready -> parsed.filters
             }

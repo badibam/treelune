@@ -212,7 +212,9 @@
     <string name="service_error_page_without_limit">Page %1$d demandée sans \'limit\' : sans limite par page, tout tient sur la page 1. Précise \'limit\' pour paginer.</string>
     <string name="service_error_param_unknown">Paramètre \'%1$s\' inconnu. Paramètres : %2$s</string>
     <string name="service_error_filter_unreadable">Filtre illisible : %1$s. Un filtre s\'écrit {\"left\": {\"field\": \"data.value\"}, \"op\": \"&lt;\", \"right\": {\"constant\": 10}}.</string>
-    <string name="service_error_filter_not_written">Le filtre sur %1$s compare à %2$s : un filtre prend des valeurs écrites, {\"constant\": …} ; lire d\'abord une variable ou une lecture.</string>
+    <string name="service_error_filter_not_written">Le filtre sur %1$s compare à %2$s, qui ne se lit pas : une valeur écrite {\"constant\": …}, une variable {\"variable\"} ou une lecture {\"reading\"}.</string>
+    <string name="filter_term_unread">Le filtre sur %1$s se compare à une valeur qui n\'a pas pu être lue : %2$s</string>
+    <string name="filter_term_no_value">Le filtre sur %1$s se compare à une valeur qui n\'en a pas en ce moment</string>
     <string name="condition_error_side">La condition de %1$s a un côté illisible : %2$s. Un côté est {\"field\": …}, {\"constant\": …}, {\"variable\": …} ou {\"reading\": …}.</string>
     <string name="condition_error_op">La condition de %1$s a un opérateur inconnu : %2$s.</string>
     <string name="condition_error_right">La condition de %1$s avec %2$s prend %3$d côté(s) à droite.</string>
@@ -1818,7 +1820,7 @@
     <string name="field_validation_scale_step">L\'incrément doit être supérieur à 0</string>
     <string name="field_validation_scale_bounds_off_step">Le minimum et le maximum doivent être des multiples de l\'incrément (1 s\'il n\'est pas précisé)</string>
     <string name="field_validation_choice_options_required">Le type CHOICE nécessite une liste d\'options</string>
-    <string name="field_validation_choice_options_min">Le type CHOICE nécessite au moins 2 options</string>
+    <string name="field_validation_choice_options_min">Un choix fermé demande au moins une option ; un choix ouvert peut commencer sans</string>
     <string name="field_validation_choice_options_duplicate">Les options ne peuvent pas contenir de doublons</string>
     <string name="field_validation_choice_flag_type">Le réglage %1$s doit être un booléen</string>
     <string name="field_validation_choice_ordered_exclusive">Un classement ne peut être ni multiple ni ouvert</string>
@@ -2838,6 +2840,11 @@
     <string name="task_error_step">L\'étape %1$s n\'est pas un objet</string>
     <string name="task_error_input">L\'entrée %1$s ne se lit pas</string>
     <string name="task_error_input_unknown">L\'étape %1$s n\'a pas d\'entrée « %2$s » ; ses entrées : %3$s</string>
+    <string name="task_error_block">Étape %1$s, le bloc %2$s ne se lit pas : %3$s</string>
+    <string name="task_error_block_entry">Étape %1$s, bloc %2$s : un bloc d\'entrée prend une entrée — celle reçue, une qu\'un événement porte, celle qu\'une étape a créée, ou une choisie</string>
+    <string name="task_error_block_value">Étape %1$s, bloc %2$s : un bloc de valeur prend une valeur ; une entrée va dans un bloc d\'entrée, jointe ou mentionnée</string>
+    <string name="task_error_block_deleted">Bloc %1$s : l\'entrée a été supprimée, il n\'y a plus rien à joindre</string>
+    <string name="task_error_block_no_entry">Le bloc %1$s ne donne aucune entrée</string>
     <string name="task_error_result_step">L\'étape %1$s lit l\'étape %2$s, qui ne vient pas avant elle</string>
     <string name="task_error_result_value">L\'étape %1$s lit « %3$s » de l\'étape %2$s, qui ne le donne pas</string>
     <string name="task_output_entry">l\'entrée créée</string>
@@ -2899,6 +2906,7 @@
     <string name="event_display_name">Événement</string>
     <string name="event_card_title">Événements</string>
     <string name="event_new">Nouvel événement…</string>
+    <string name="event_new_zone">Sa zone</string>
     <string name="event_point">Émettre aussi l\'événement</string>
     <string name="event_point_schema">Un événement émis à ce moment à côté de ce que l\'app dit, {"kind": "EVENT", "id"} : un qui ne porte rien, ou une seule valeur, une entrée de cet outil (celle concernée) ; pour une routine ou une Tâche, à la fin d\'une exécution qui s\'est bien passée, un qui ne porte rien</string>
     <string name="event_point_error">« %1$s » ne peut pas être émis ici : il doit ne rien porter, ou une seule valeur, une entrée de cet outil</string>
@@ -2993,11 +3001,19 @@
     <string name="task_run_entry_created">Entrée créée</string>
 
     <!-- A routine run with data (Tasks) -->
-    <string name="routine_run_data">Ce que la Tâche passe à cette exécution :\n%1$s</string>
+    <string name="routine_run_joined">Joint au lancement de cette exécution :</string>
     <string name="routine_run_entry_created">Cette exécution est partie d\'une entrée créée dans « %1$s », jointe ici :</string>
     <string name="routine_run_entry_updated">Cette exécution est partie d\'une entrée modifiée dans « %1$s », jointe ici telle qu\'elle est maintenant :</string>
     <string name="routine_run_entry_deleted">Cette exécution est partie d\'une entrée supprimée de « %1$s », qu\'on ne peut plus lire ; telle qu\'elle était : %2$s</string>
-    <string name="task_step_data">Donnée passée</string>
+    <string name="task_step_blocks">Joint à son message</string>
+    <string name="task_step_blocks_help">Ajouté après le message de la routine, dans cet ordre : un texte, un pointeur vers une chose choisie, une entrée que cette exécution donne, une valeur qu\'elle lit.</string>
+    <string name="task_block_text">Texte</string>
+    <string name="task_block_pointer">Pointeur</string>
+    <string name="task_block_entry">Entrée</string>
+    <string name="task_block_value">Valeur</string>
+    <string name="task_block_attach">L\'entrée part</string>
+    <string name="task_block_attached">Entière, jointe au message</string>
+    <string name="task_block_mentioned">Mentionnée, l\'IA lit ce qu\'il lui faut</string>
 
     <!-- The AI's reads of Tasks -->
     <string name="ai_read_user_tasks">Toutes les Tâches lues</string>

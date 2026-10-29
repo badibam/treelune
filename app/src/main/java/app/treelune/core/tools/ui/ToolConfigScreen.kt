@@ -49,7 +49,6 @@ import app.treelune.core.ui.ButtonType
  * again with the agreement.
  *
  * @param existingToolId The tool being edited; null to create one in [zoneId]
- * @param initialGroup The group a new tool starts in
  * @param onDone Called once the tool is saved or deleted
  */
 @Composable
@@ -58,7 +57,6 @@ fun ToolConfigScreen(
     tooltype: String,
     zoneId: String,
     existingToolId: String?,
-    initialGroup: String?,
     onDone: () -> Unit,
     onCancel: () -> Unit
 ) {
@@ -71,7 +69,7 @@ fun ToolConfigScreen(
 
     // A new tool starts from its declared defaults, in the group it was asked for
     var config by rememberSaveable(stateSaver = JsonObjectSaver) {
-        mutableStateOf(ToolConfigSettings.defaults(toolType, context).apply { initialGroup?.let { put("group", it) } })
+        mutableStateOf(ToolConfigSettings.defaults(toolType, context))
     }
     var currentZoneId by rememberSaveable { mutableStateOf(zoneId) }
     var isSaving by remember { mutableStateOf(false) }

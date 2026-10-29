@@ -789,6 +789,8 @@ object UI {
         onRightClick: (() -> Unit)? = null,
         /** More buttons after the left one: the Guide's book on the home screen. */
         afterLeft: (@Composable () -> Unit)? = null,
+        /** More buttons before the right one: a page's organising and adding (GridHeaderButtons). */
+        beforeRight: (@Composable () -> Unit)? = null,
         /** The app's mark beside the title, the home screen's (ThemeContract.PageHeader). */
         appMark: Boolean = false,
         /** The left button marked (WaitingMark): something to look at behind it, the settings of the home screen. */
@@ -805,7 +807,7 @@ object UI {
         // One bar over the title: the left button and those after it, the places before this one
         // in a place of the stack, the right button at the end. The title takes the whole width.
         val breadcrumb = app.treelune.core.navigation.LocalBreadcrumb.current
-        if (leftButton != null || rightButton != null || afterLeft != null || breadcrumb != null) {
+        if (leftButton != null || rightButton != null || afterLeft != null || beforeRight != null || breadcrumb != null) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(Space.XS),
@@ -819,6 +821,7 @@ object UI {
                 }
                 afterLeft?.invoke()
                 Box(modifier = Modifier.weight(1f)) { breadcrumb?.let { app.treelune.core.navigation.BreadcrumbLine(it) } }
+                beforeRight?.invoke()
                 rightButton?.let { ActionButton(action = it, display = ButtonDisplay.ICON, onClick = onRightClick ?: {}) }
             }
         }

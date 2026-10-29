@@ -17,13 +17,9 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 (titre à laisser en place, même une fois la section vidée - section ciblée par le script d'import depuis l'appareil :)
 ## En provenance du tel
 
-- Navigateur d'événemns : 1) grouoer les zobes par grouoe. Odre = celui d l'ui. 2) mettre tout à plat (pas de navigation dans zones 3 ne montrer que les zones qui contiennent des evenements — UI — Amélioration
-- Sur un tel android 10 : pas d'espace avant une paenthèse — UI — Bug
 
 ## Bugs
 
-- Une Tâche qui passe l'entrée reçue à une routine (`run_routine`, `data` ← `{"received": {}}`) ne lui donne que son id (vu le 2026-10-28) : la routine doit la relire. La joindre en entier, comme le fait un déclencheur qui lance une routine directement (`docs/CORE.md`, « Triggers »).
-- `GoalRecurringTest` échoue le jour du passage à l'heure d'hiver (vu le 2026-10-25, déjà avant la partie A) : il vieillit une tentative de 24 h exactes, alors que ce jour-là en dure 25 ; vieillir d'un jour du calendrier de l'app, pas d'une durée.
 
 ## À passer sur le téléphone
 
@@ -53,12 +49,10 @@ Codé, jamais vu sur l'appareil.
 
 ## Décidé, à coder
 
-- Un rappel ponctuel, pour l'IA : un élément de Liste avec échéance (une chose à faire) ou un rendez-vous d'Agenda, jamais Messages, réservé à ce qui revient à un rythme. L'usage de Messages commence par « une fois ou à un rythme régulier » (le retirer, ajouter le rappel ponctuel à son « Pas fait pour »), et l'exemple de `CREATE_DATA` envoie un verre d'eau ponctuel par Messages (vu le 2026-10-29, l'IA a proposé Messages pour un rappel unique).
-- Le regroupement d'une Lecture (« 2 par jour », « 30 min par jour »), la version complète : `docs/design/reading-groups.md`.
-- Un filtre qui compare un champ à une variable ou une lecture (« kcal > objectif_calorique ») : le terme lu une fois à la référence du contexte (`TermReader`, `docs/BRICKS.md`), puis le filtre SQL comme aujourd'hui ; `EntryFilters.parse` et `ConditionPicker` le prennent.
 
 ## À concevoir
 
+- Le mode disposition d'une page (l'accueil, une zone) : faire glisser une tuile d'une section à l'autre, ce qui change son groupe ; aujourd'hui le groupe se choisit dans la config de la chose, et une tuile ne bouge que dans sa section.
 - Un déclencheur « une entrée devient conforme au filtre » (`entry_written`), comme « une condition devient vraie » pour une Condition : les filtres jugés sur la copie d'avant l'écriture et sur celle d'après (l'historique des écritures les garde), le départ seulement au passage de non conforme à conforme. Une séance terminée qu'on corrige, un questionnaire rempli qu'on retouche relancent aujourd'hui leurs Tâches (vu le 2026-10-29 : un doublon dans Décrochage) ; une routine s'en garde par un champ Référence qu'elle relit (« Préparer la séance »).
 - Des montages types pour l'IA (une discussion qui revient, une alerte sur un seuil, un bilan fait seul…) : un catalogue lu à la demande par une commande, le texte de départ n'en gardant qu'une ligne par montage (besoin → nom) ; chaque montage dit le besoin, les pièces et leur liaison, ses noms (commandes, réglages, types d'étape) vérifiés par un script comme le Guide ; la matière tirée du montage réel de l'utilisateur, l'effet mesuré au banc par des scénarios de conception.
 

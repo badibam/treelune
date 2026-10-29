@@ -212,7 +212,9 @@
     <string name="service_error_page_without_limit">Page %1$d requested without \'limit\': with no limit per page, everything fits on page 1. Give \'limit\' to paginate.</string>
     <string name="service_error_param_unknown">Unknown parameter \'%1$s\'. Parameters: %2$s</string>
     <string name="service_error_filter_unreadable">Unreadable filter: %1$s. A filter is {\"left\": {\"field\": \"data.value\"}, \"op\": \"&lt;\", \"right\": {\"constant\": 10}}.</string>
-    <string name="service_error_filter_not_written">The filter on %1$s compares with %2$s: a filter takes written values, {\"constant\": …}; read a variable or a reading first.</string>
+    <string name="service_error_filter_not_written">The filter on %1$s compares with %2$s, which does not read: a written value {\"constant\": …}, a variable {\"variable\"} or a reading {\"reading\"}.</string>
+    <string name="filter_term_unread">The filter on %1$s compares with a value that could not be read: %2$s</string>
+    <string name="filter_term_no_value">The filter on %1$s compares with a value that has none now</string>
     <string name="condition_error_side">The condition of %1$s has a side that does not read: %2$s. A side is {\"field\": …}, {\"constant\": …}, {\"variable\": …} or {\"reading\": …}.</string>
     <string name="condition_error_op">The condition of %1$s has an unknown operator: %2$s.</string>
     <string name="condition_error_right">The condition of %1$s with %2$s takes %3$d side(s) on the right.</string>
@@ -1818,7 +1820,7 @@
     <string name="field_validation_scale_step">The step must be greater than 0</string>
     <string name="field_validation_scale_bounds_off_step">The minimum and the maximum must be multiples of the step (1 when none is set)</string>
     <string name="field_validation_choice_options_required">The CHOICE type needs a list of options</string>
-    <string name="field_validation_choice_options_min">The CHOICE type needs at least 2 options</string>
+    <string name="field_validation_choice_options_min">A closed choice needs at least one option; an open one may start with none</string>
     <string name="field_validation_choice_options_duplicate">The options cannot contain duplicates</string>
     <string name="field_validation_choice_flag_type">The %1$s setting must be a boolean</string>
     <string name="field_validation_choice_ordered_exclusive">A ranking can be neither multiple nor open</string>
@@ -2838,6 +2840,11 @@
     <string name="task_error_step">Step %1$s is not an object</string>
     <string name="task_error_input">The input %1$s does not read</string>
     <string name="task_error_input_unknown">Step %1$s has no input “%2$s”; its inputs: %3$s</string>
+    <string name="task_error_block">Step %1$s, block %2$s does not read: %3$s</string>
+    <string name="task_error_block_entry">Step %1$s, block %2$s: an entry block takes an entry — the one received, one an event carried, the one a step created, or one chosen</string>
+    <string name="task_error_block_value">Step %1$s, block %2$s: a value block takes a value; an entry goes in an entry block, joined or mentioned</string>
+    <string name="task_error_block_deleted">Block %1$s: the entry was deleted, there is nothing left to join</string>
+    <string name="task_error_block_no_entry">Block %1$s gives no entry</string>
     <string name="task_error_result_step">Step %1$s reads step %2$s, which does not come before it</string>
     <string name="task_error_result_value">Step %1$s reads “%3$s” from step %2$s, which does not give it</string>
     <string name="task_output_entry">the entry created</string>
@@ -2899,6 +2906,7 @@
     <string name="event_display_name">Event</string>
     <string name="event_card_title">Events</string>
     <string name="event_new">New event…</string>
+    <string name="event_new_zone">Its zone</string>
     <string name="event_point">Also emit the event</string>
     <string name="event_point_schema">An event emitted at that moment beside what the app tells, {"kind": "EVENT", "id"}: one that carries nothing, or a single value, an entry of this tool (the one concerned); for a routine or a Task, at the end of a run that went well, one that carries nothing</string>
     <string name="event_point_error">“%1$s” cannot be emitted here: it must carry nothing, or a single value, an entry of this tool</string>
@@ -2993,11 +3001,19 @@
     <string name="task_run_entry_created">Entry created</string>
 
     <!-- A routine run with data (Tasks) -->
-    <string name="routine_run_data">What the Task passes this run:\n%1$s</string>
+    <string name="routine_run_joined">Joined when this run was started:</string>
     <string name="routine_run_entry_created">This run was started by an entry created in “%1$s”, attached here:</string>
     <string name="routine_run_entry_updated">This run was started by an entry changed in “%1$s”, attached here as it is now:</string>
     <string name="routine_run_entry_deleted">This run was started by an entry deleted from “%1$s”, which can no longer be read; as it was: %2$s</string>
-    <string name="task_step_data">Data passed</string>
+    <string name="task_step_blocks">Joined to its message</string>
+    <string name="task_step_blocks_help">Added after the routine\'s message, in this order: a text, a pointer to something chosen, an entry this run gives, a value it reads.</string>
+    <string name="task_block_text">Text</string>
+    <string name="task_block_pointer">Pointer</string>
+    <string name="task_block_entry">Entry</string>
+    <string name="task_block_value">Value</string>
+    <string name="task_block_attach">The entry goes</string>
+    <string name="task_block_attached">Whole, joined to the message</string>
+    <string name="task_block_mentioned">Mentioned, the AI reads what it needs</string>
 
     <!-- The AI's reads of Tasks -->
     <string name="ai_read_user_tasks">All Tasks read</string>

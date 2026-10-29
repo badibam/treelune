@@ -45,13 +45,20 @@ object EntryWrites {
     /**
      * Whether [write]'s entry passes [filters], judged on its copy as SQL judges the tool's
      * entries (EntryFilters): the copy stands for the table, so a deleted entry is judged as it
-     * was. Filters that no longer read (a field removed since) pass nothing.
+     * was. A filter compared with a variable or a reading reads it now (FilterTerms). Filters that
+     * no longer read (a field removed since, a term without a value) pass nothing.
      */
     suspend fun passes(context: Context, write: EntryWrite, filters: JSONArray): Boolean {
         if (filters.length() == 0) return true
         val s = Strings.`for`(context = context)
         val fields = ToolFields.filterable(write.toolInstanceId, context, s)
-        val parsed = EntryFilters.parse(filters, fields) { s.shared(it) } as? EntryFilters.Parsed.Ready ?: return false
+        val given = try {
+            app.treelune.core.fields.FilterTerms.resolved(filters, System.currentTimeMillis(), context) { s.shared(it) }
+        } catch (e: IllegalStateException) {
+            app.treelune.core.utils.LogManager.service("Trigger filters on ${write.toolInstanceId} not read: ${e.message}", "WARN")
+            return false
+        }
+        val parsed = EntryFilters.parse(given, fields) { s.shared(it) } as? EntryFilters.Parsed.Ready ?: return false
         val count = EntryFilters.count(write.toolInstanceId, parsed.filters, fields)
         val columns = write.row.keys().asSequence().toList()
         // The copy, under the table's name, which the query reads in its place

@@ -2,6 +2,7 @@ package app.treelune.core.tasks.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -19,9 +20,11 @@ import app.treelune.core.fields.TextLength
 import app.treelune.core.selection.ReferenceKind
 import app.treelune.core.strings.Strings
 import app.treelune.core.strings.StringsContext
+import app.treelune.core.tasks.StepBlocks
 import app.treelune.core.tasks.TaskSteps
 import app.treelune.core.terms.Term
 import app.treelune.core.tools.ToolTypeManager
+import app.treelune.core.ui.ButtonType
 import app.treelune.core.ui.TextType
 import app.treelune.core.ui.UI
 import app.treelune.core.ui.selectors.ReadingContext
@@ -166,10 +169,106 @@ private fun RunRoutine(step: JSONObject, earlier: Earlier, s: StringsContext, wi
     Choice(s.shared("task_step_routine"), routines.map { it["id"] as String to it["name"] as String }, step.optString(TaskSteps.ROUTINE_ID).ifEmpty { null }) { id ->
         with { put(TaskSteps.ROUTINE_ID, id) }
     }
-    // What its run's message is joined: a text, often what an earlier step gave
-    val data = remember { FieldDefinition(TaskSteps.DATA, s.shared("task_step_data"), null, FieldType.TEXT, false, mapOf("length" to TextLength.UNLIMITED.name)) }
-    Inputs(step.optJSONObject(TaskSteps.INPUTS) ?: JSONObject(), listOf(data), earlier, s) { with { put(TaskSteps.INPUTS, it) } }
+    UI.Text(s.shared("task_step_blocks"), TextType.LABEL)
+    UI.Text(s.shared("task_step_blocks_help"), TextType.CAPTION)
+    StepBlocksEditor(step, earlier, s) { blocks -> with { put(StepBlocks.BLOCKS, StepBlocks.toJson(blocks)) } }
 }
+
+/**
+ * What a `run_routine` step joins to its routine's message (StepBlocks), in the frame of a
+ * routine's own blocks (BlockCard), reordered by their handle: a text, a pointer to a thing
+ * chosen, an entry the run gives — joined whole or only mentioned —, a value it reads.
+ */
+@Composable
+private fun StepBlocksEditor(step: JSONObject, earlier: Earlier, s: StringsContext, onChange: (List<StepBlocks.Block>) -> Unit) {
+    // Each block with an id of the screen's alone, for the reorder to follow it
+    var items by remember {
+        mutableStateOf(try { StepBlocks.of(step) } catch (e: IllegalArgumentException) { emptyList() }.map { java.util.UUID.randomUUID().toString() to it })
+    }
+    fun update(next: List<Pair<String, StepBlocks.Block>>) {
+        items = next
+        onChange(next.map { it.second })
+    }
+    fun replace(id: String, block: StepBlocks.Block) = update(items.map { if (it.first == id) id to block else it })
+    var pointing by remember { mutableStateOf(false) }
+    val received = LocalReceived.current
+
+    UI.ReorderableColumn(
+        items = items,
+        key = { it.first },
+        spacing = UI.Space.S,
+        onMove = { from, to -> update(items.toMutableList().apply { add(to, removeAt(from)) }) }
+    ) { _, (id, block) ->
+        app.treelune.core.ai.ui.components.BlockCard(
+            isActive = false,
+            onActivate = {},
+            onDelete = { update(items.filter { it.first != id }) },
+            bar = { end -> DragBar(end) }
+        ) {
+            when (block) {
+                is StepBlocks.Block.Fixed -> if (block.json.optString(StepBlocks.TYPE) == StepBlocks.TEXT) {
+                    UI.FormField(required = false, label = "", labelAbove = false, value = block.json.optString(StepBlocks.TEXT),
+                        onChange = { text -> replace(id, StepBlocks.Block.Fixed(JSONObject().put(StepBlocks.TYPE, StepBlocks.TEXT).put(StepBlocks.TEXT, text))) },
+                        fieldType = app.treelune.core.ui.FieldType.TEXT_UNLIMITED)
+                } else {
+                    // A pointer is chosen anew to be changed, as in a routine's message
+                    app.treelune.core.ai.ui.components.EnrichmentBlockContent(
+                        app.treelune.core.ai.data.MessageSegment.EnrichmentBlock(app.treelune.core.ai.data.EnrichmentType.POINTER,
+                            block.json.optJSONObject(StepBlocks.POINTER)?.toString() ?: "{}"),
+                        onEdit = { pointing = true }
+                    )
+                }
+                is StepBlocks.Block.Entry -> Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+                    StepInput(block.input.takeIf { it.length() > 0 }, blockEntryField(s), earlier, s, optional = false) { input ->
+                        replace(id, block.copy(input = input ?: JSONObject()))
+                    }
+                    Choice(s.shared("task_block_attach"), listOf(ATTACHED to s.shared("task_block_attached"), MENTIONED to s.shared("task_block_mentioned")),
+                        if (block.attach) ATTACHED else MENTIONED) { chosen -> replace(id, block.copy(attach = chosen == ATTACHED)) }
+                }
+                is StepBlocks.Block.Value -> StepInput(block.input.takeIf { it.length() > 0 }, blockValueField(s), earlier, s, optional = false) { input ->
+                    replace(id, StepBlocks.Block.Value(input ?: JSONObject()))
+                }
+            }
+        }
+    }
+
+    // What a block can be, each added at the end
+    Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+        UI.Button(type = ButtonType.DEFAULT, onClick = {
+            update(items + (java.util.UUID.randomUUID().toString() to StepBlocks.Block.Fixed(JSONObject().put(StepBlocks.TYPE, StepBlocks.TEXT).put(StepBlocks.TEXT, ""))))
+        }) { UI.Text(s.shared("task_block_text"), TextType.LABEL) }
+        UI.Button(type = ButtonType.DEFAULT, onClick = { pointing = true }) { UI.Text(s.shared("task_block_pointer"), TextType.LABEL) }
+        UI.Button(type = ButtonType.DEFAULT, onClick = {
+            // The entry a trigger gives, when one does
+            val input = if (received.entry != null) JSONObject().put(TaskSteps.RECEIVED, JSONObject()) else JSONObject()
+            update(items + (java.util.UUID.randomUUID().toString() to StepBlocks.Block.Entry(input, attach = true)))
+        }) { UI.Text(s.shared("task_block_entry"), TextType.LABEL) }
+        UI.Button(type = ButtonType.DEFAULT, onClick = {
+            update(items + (java.util.UUID.randomUUID().toString() to StepBlocks.Block.Value(JSONObject())))
+        }) { UI.Text(s.shared("task_block_value"), TextType.LABEL) }
+    }
+
+    if (pointing) app.treelune.core.ui.selectors.PointerSelector(
+        reference = s.shared("task_reference_run"),
+        onDismiss = { pointing = false },
+        onConfirm = { config ->
+            pointing = false
+            update(items + (java.util.UUID.randomUUID().toString() to StepBlocks.Block.Fixed(
+                JSONObject().put(StepBlocks.TYPE, StepBlocks.POINTER).put(StepBlocks.POINTER, JSONObject(config)))))
+        }
+    )
+}
+
+/** The field an entry block's input fills: an entry, of any tool. */
+private fun blockEntryField(s: StringsContext) = FieldDefinition(StepBlocks.ENTRY, s.shared("task_block_entry"), null, FieldType.REFERENCE, false,
+    mapOf(ReferenceTarget.TARGET to mapOf(ReferenceTarget.KINDS to listOf(ReferenceKind.ENTRY.name))))
+
+/** The field a value block's input fills: a text, as long as it is. */
+private fun blockValueField(s: StringsContext) = FieldDefinition(StepBlocks.VALUE, s.shared("task_block_value"), null, FieldType.TEXT, false,
+    mapOf("length" to TextLength.UNLIMITED.name))
+
+private const val ATTACHED = "attached"
+private const val MENTIONED = "mentioned"
 
 /**
  * The event a step emits, chosen through the app's browser, in its zone — two events of one name

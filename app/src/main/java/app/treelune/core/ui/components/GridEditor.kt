@@ -30,9 +30,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 /**
- * The edit mode of a screen's grids: the tools of a zone, the zones of the home screen. One group
- * section at a time, named by its key (its group, "" for the ungrouped one), and in it the tile
- * being moved, at the places of the move in progress.
+ * The edit mode of a screen's grids: the tools of a zone, the zones of the home screen. On for the
+ * whole page, every group section at once; the tile being moved stays in its own section, named
+ * by its key (its group, "" for the ungrouped one), at the places of the move in progress.
  *
  * A move is written when it is validated, when another tile is touched or when the edit mode is
  * closed, in one write ([placeOperation], given [placeParams], the section's group and its
@@ -46,38 +46,36 @@ class GridEditor internal constructor(
     private val scope: CoroutineScope,
     private val sectionTiles: (String) -> List<Grid.Tile>,
     private val onError: (String) -> Unit,
+    private val on: MutableState<Boolean>,
     private val section: MutableState<String?>,
     private val selected: MutableState<String?>,
     private val draft: MutableState<String?>,
     private val original: MutableState<String?>
 ) {
-    /** The key of the section in edit mode, or null. */
-    val editing: String? get() = section.value
     val selectedId: String? get() = selected.value
-    val anyEditing: Boolean get() = section.value != null
-    fun isEditing(key: String): Boolean = section.value == key
+    /** Whether the page is in edit mode. */
+    val anyEditing: Boolean get() = on.value
 
     /** Whether the tile touched has moved since. */
     val moving: Boolean get() = draft.value != null && draft.value != original.value
 
-    /** The places of the section [key] while one of its tools is moved, else null (the stored ones). */
+    /** The places of the section [key] while one of its tiles is moved, else null (the stored ones). */
     fun places(key: String): List<Grid.Tile>? =
-        if (isEditing(key)) draft.value?.let { decode(it, sectionTiles(key)) } else null
+        if (on.value && section.value == key) draft.value?.let { decode(it, sectionTiles(key)) } else null
 
     /** What the grid of section [key] shows in edit mode, or null outside it. */
     fun gridEdit(key: String): GridEdit? =
-        if (!isEditing(key)) null
-        else GridEdit(places(key) ?: sectionTiles(key), selected.value) { id -> select(key, id) }
+        if (!on.value) null
+        else GridEdit(places(key) ?: sectionTiles(key), selected.value.takeIf { section.value == key }) { id -> select(key, id) }
 
-    /** The edit button of section [key]: opens its edit mode, closing another's; closes its own. */
-    fun toggle(key: String) = afterCommit {
-        section.value = if (section.value == key) null else key
-    }
+    /** The page's edit button: opens its edit mode, or closes it, the move in progress written. */
+    fun toggle() = afterCommit { on.value = !on.value }
 
     private fun select(key: String, id: String) {
         if (selected.value == id) return
         afterCommit {
             val tiles = encode(sectionTiles(key))
+            section.value = key
             selected.value = id
             original.value = tiles
             draft.value = tiles
@@ -101,7 +99,7 @@ class GridEditor internal constructor(
     }
 
     /** The edit mode closed, the move in progress written. */
-    fun close() = afterCommit { section.value = null }
+    fun close() = afterCommit { on.value = false }
 
     /** The move written, the tile unselected; the edit mode stays. */
     fun validate() = afterCommit {}
@@ -157,11 +155,12 @@ fun rememberGridEditor(placeOperation: String, placeParams: Map<String, Any>, se
     val context = LocalContext.current
     val coordinator = remember { Coordinator(context) }
     val scope = rememberCoroutineScope()
+    val on = rememberSaveable { mutableStateOf(false) }
     val section = rememberSaveable { mutableStateOf<String?>(null) }
     val selected = rememberSaveable { mutableStateOf<String?>(null) }
     val draft = rememberSaveable { mutableStateOf<String?>(null) }
     val original = rememberSaveable { mutableStateOf<String?>(null) }
-    return GridEditor(placeOperation, placeParams, coordinator, scope, sectionTiles, onError, section, selected, draft, original)
+    return GridEditor(placeOperation, placeParams, coordinator, scope, sectionTiles, onError, on, section, selected, draft, original)
 }
 
 /**
@@ -214,39 +213,22 @@ fun GridEditBar(editor: GridEditor) {
 }
 
 /**
- * [content] set aside and deaf while [faded]: the rest of the screen while a section is in edit
- * mode, drawn by the theme as a tile aside (ThemeContract.GridTile). Scrolling still goes through.
+ * The buttons of a page of grids (a zone, the home screen), once for the whole page, in its header
+ * before its gear (PageHeader's beforeRight): its edit mode, on while it lasts (shown when it has
+ * tiles), and adding, off while it is in edit mode.
  */
 @Composable
-fun Faded(faded: Boolean, content: @Composable () -> Unit) {
-    Box {
-        app.treelune.core.themes.CurrentTheme.current.GridTile(if (faded) app.treelune.core.ui.GridTileState.ASIDE else app.treelune.core.ui.GridTileState.PLAIN) { content() }
-        if (faded) {
-            Box(modifier = Modifier.matchParentSize().clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {})
-        }
-    }
-}
-
-/**
- * The buttons of a section's title line: its edit mode, on while it lasts (shown when it has
- * tiles), and adding, off while any section is in edit mode.
- */
-@Composable
-fun GridSectionButtons(key: String, hasTiles: Boolean, editor: GridEditor, onAdd: () -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.S), verticalAlignment = Alignment.CenterVertically) {
-        if (hasTiles) UI.ActionButton(
-            action = ButtonAction.ARRANGE,
-            display = ButtonDisplay.ICON,
-            size = Size.M,
-            active = editor.isEditing(key),
-            onClick = { editor.toggle(key) }
-        )
-        UI.ActionButton(
-            action = ButtonAction.ADD,
-            display = ButtonDisplay.ICON,
-            size = Size.M,
-            enabled = !editor.anyEditing,
-            onClick = onAdd
-        )
-    }
+fun GridHeaderButtons(hasTiles: Boolean, editor: GridEditor, onAdd: () -> Unit) {
+    if (hasTiles) UI.ActionButton(
+        action = ButtonAction.ARRANGE,
+        display = ButtonDisplay.ICON,
+        active = editor.anyEditing,
+        onClick = { editor.toggle() }
+    )
+    UI.ActionButton(
+        action = ButtonAction.ADD,
+        display = ButtonDisplay.ICON,
+        enabled = !editor.anyEditing,
+        onClick = onAdd
+    )
 }

@@ -111,10 +111,9 @@ sealed class Place {
         override fun parent() = SettingsPage("identities")
     }
 
-    /** A zone to create, in a group of the home screen or none. */
-    data class CreateZone(val group: String?) : Place() {
+    /** A zone to create, its group chosen in its form. */
+    object CreateZone : Place() {
         override val kind = "zone_new"
-        override val parameters get() = listOf(group)
         override fun parent() = Home
     }
 
@@ -141,16 +140,16 @@ sealed class Place {
     }
 
     /** A tool's configuration: an existing tool's when [toolId] is set, a new one's of [tooltype] otherwise. */
-    data class ToolConfig(override val zoneId: String, val tooltype: String, val toolId: String?, val group: String?) : Place() {
+    data class ToolConfig(override val zoneId: String, val tooltype: String, val toolId: String?) : Place() {
         override val kind = "tool_config"
-        override val parameters get() = listOf(zoneId, tooltype, toolId, group)
+        override val parameters get() = listOf(zoneId, tooltype, toolId)
         override fun parent() = toolId?.let { Tool(it, zoneId) } ?: Zone(zoneId)
     }
 
     /** A zone's variable: an existing one when [variableId] is set, a new one otherwise. */
-    data class Variable(override val zoneId: String, val variableId: String?, val group: String?) : Place() {
+    data class Variable(override val zoneId: String, val variableId: String?) : Place() {
         override val kind = "variable"
-        override val parameters get() = listOf(zoneId, variableId, group)
+        override val parameters get() = listOf(zoneId, variableId)
         override fun parent() = Zone(zoneId)
     }
 
@@ -179,9 +178,9 @@ sealed class Place {
     }
 
     /** A Task's configuration, its steps included: an existing Task's when [taskId] is set, a new one's otherwise. */
-    data class TaskConfig(override val zoneId: String, val taskId: String?, val group: String?) : Place() {
+    data class TaskConfig(override val zoneId: String, val taskId: String?) : Place() {
         override val kind = "task_config"
-        override val parameters get() = listOf(zoneId, taskId, group)
+        override val parameters get() = listOf(zoneId, taskId)
         override fun parent() = taskId?.let { Task(it, zoneId) } ?: Zone(zoneId)
     }
 
@@ -194,9 +193,9 @@ sealed class Place {
     }
 
     /** A routine's configuration, its message included: an existing one's when [routineId] is set, a new one's otherwise. */
-    data class RoutineConfig(override val zoneId: String, val routineId: String?, val group: String?) : Place() {
+    data class RoutineConfig(override val zoneId: String, val routineId: String?) : Place() {
         override val kind = "routine_config"
-        override val parameters get() = listOf(zoneId, routineId, group)
+        override val parameters get() = listOf(zoneId, routineId)
         override fun parent() = routineId?.let { Routine(it, zoneId) } ?: Zone(zoneId)
     }
 
@@ -238,17 +237,17 @@ sealed class Place {
                 "ai_provider_kind" -> AIProviderKind
                 "ai_provider" -> AIProvider(p(1), p(2), p(3))
                 "api" -> Api(p(1), p(2))
-                "zone_new" -> CreateZone(p(1))
+                "zone_new" -> CreateZone
                 "zone" -> Zone(r(1))
                 "zone_config" -> ZoneConfig(r(1))
                 "tool" -> Tool(r(1), r(2))
-                "tool_config" -> ToolConfig(r(1), r(2), p(3), p(4))
-                "variable" -> Variable(r(1), p(2), p(3))
+                "tool_config" -> ToolConfig(r(1), r(2), p(3))
+                "variable" -> Variable(r(1), p(2))
                 "routine" -> Routine(r(1), r(2))
                 "execution" -> Execution(r(1), r(2), r(3))
-                "routine_config" -> RoutineConfig(r(1), p(2), p(3))
+                "routine_config" -> RoutineConfig(r(1), p(2))
                 "task" -> Task(r(1), r(2))
-                "task_config" -> TaskConfig(r(1), p(2), p(3))
+                "task_config" -> TaskConfig(r(1), p(2))
                 "task_run" -> TaskRun(r(1), r(2), r(3))
                 "guide" -> Guide
                 "chapter" -> Chapter(r(1))
