@@ -9,6 +9,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import app.treelune.core.fields.ReferenceTarget
+import app.treelune.core.reading.FieldReading
+import app.treelune.core.reading.ReadingGroup
 import app.treelune.core.reading.Reduction
 import app.treelune.core.selection.EntrySelection
 import app.treelune.core.selection.ReferenceKind
@@ -42,13 +44,18 @@ data class ReadingContext(val reference: String, val emptyPeriod: String? = null
 /**
  * The Lecture brick's selector (docs/BRICKS.md): a selection of a tool's entries (SelectionPicker),
  * its period relative to the instant the reading is made, then what is reduced (a field, a formula
- * per entry, or the entries counted) and how (ReductionPicker). [reading] is its stored form,
- * `{"selection", "field" | "per_entry", "reduction"}`.
+ * per entry, or the entries counted) and how (ReductionPicker), then its grouping
+ * (ReadingGroupPicker). [reading] is its stored form, `{"selection", "field" | "per_entry",
+ * "reduction", "group"?}`.
  */
 @Composable
 fun ReadingPicker(reading: JSONObject, s: StringsContext, where: ReadingContext, onChange: (JSONObject) -> Unit) {
     val context = LocalContext.current
     fun edit(change: JSONObject.() -> Unit) = onChange(JSONObject(reading.toString()).apply(change))
+    /** What each group is worth changes: its keep and the reduction of the groups start over. */
+    fun JSONObject.regroup() {
+        optJSONObject("group")?.apply { remove(ReadingGroup.KEEP); put(ReadingGroup.REDUCTION, Reduction.COUNT.name) }
+    }
 
     // The stored selection, its tool and zone named as they are now; a tool deleted since starts over
     var draft by rememberSaveable(stateSaver = DraftSaver) { mutableStateOf<SelectionDraft?>(null) }
@@ -82,6 +89,7 @@ fun ReadingPicker(reading: JSONObject, s: StringsContext, where: ReadingContext,
         onSelect = { pick ->
             edit {
                 remove("field"); remove("per_entry")
+                regroup()
                 when (pick) {
                     FieldPick.Other(COUNT) -> put("reduction", Reduction.COUNT.name)
                     FieldPick.Other(PER_ENTRY) -> { put("per_entry", ""); put("reduction", Reduction.SUM.name) }
@@ -110,7 +118,15 @@ fun ReadingPicker(reading: JSONObject, s: StringsContext, where: ReadingContext,
         label = s.shared("variable_reading_reduction"),
         reductions = reductions,
         selected = reductions.firstOrNull { it.name == reading.optString("reduction") },
-        onSelect = { reduction -> edit { put("reduction", reduction.name) } },
+        onSelect = { reduction -> edit { put("reduction", reduction.name); regroup() } },
         s = s
     )
+
+    // Grouped: each group reduced as above, then the groups; a formula per entry is not grouped
+    val value = if (reading.has("field")) readField?.takeIf { reading.optString("reduction") != Reduction.COUNT.name } else FieldReading.COUNT_FIELD
+    if (!perEntry && value != null) {
+        ReadingGroupPicker(reading.optJSONObject("group"), fields, value, current.period, s, where) { group ->
+            edit { if (group == null) remove("group") else put("group", group) }
+        }
+    }
 }

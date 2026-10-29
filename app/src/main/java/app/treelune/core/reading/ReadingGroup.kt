@@ -192,16 +192,36 @@ object GroupedReading {
         var at = unitStart(start, unit, calendar)
         while (at <= end) {
             units.add(at)
-            // A step on the calendar, not a duration: a day of a change of hour lasts 23 or 25 hours
-            val date = Instant.ofEpochMilli(at).atZone(calendar.zone)
-            val next = when (unit) {
-                PeriodType.WEEK -> date.plusWeeks(1)
-                PeriodType.MONTH -> date.plusMonths(1)
-                else -> date.plusDays(1)
-            }
-            at = unitStart(next.toInstant().toEpochMilli(), unit, calendar)
+            at = nextStart(at, unit, calendar)
         }
         return units
+    }
+
+    /**
+     * What the units of [start] to [end] are at [calendar]'s reference, which a picker says so a
+     * period's traps show: how many, how many have not begun, how many the period cuts (its first
+     * one begun before it, its last one ending after it, the unit in progress when it ends now).
+     */
+    data class Span(val units: Int, val toCome: Int, val cut: Int)
+
+    fun span(start: Long, end: Long, unit: PeriodType, calendar: TimeResolver): Span {
+        val units = units(start, end, unit, calendar)
+        if (units.isEmpty()) return Span(0, 0, 0)
+        val cutFirst = units.first() < start
+        val cutLast = end < nextStart(units.last(), unit, calendar) - 1
+        val cut = if (units.size == 1) (if (cutFirst || cutLast) 1 else 0) else listOf(cutFirst, cutLast).count { it }
+        return Span(units.size, units.count { it > calendar.reference }, cut)
+    }
+
+    /** The start of the unit after the one starting at [at]: a step on the calendar, a day of a change of hour lasting 23 or 25 hours. */
+    private fun nextStart(at: Long, unit: PeriodType, calendar: TimeResolver): Long {
+        val date = Instant.ofEpochMilli(at).atZone(calendar.zone)
+        val next = when (unit) {
+            PeriodType.WEEK -> date.plusWeeks(1)
+            PeriodType.MONTH -> date.plusMonths(1)
+            else -> date.plusDays(1)
+        }
+        return unitStart(next.toInstant().toEpochMilli(), unit, calendar)
     }
 
     private fun unitStart(millis: Long, unit: PeriodType, calendar: TimeResolver): Long =
