@@ -908,8 +908,11 @@ class CommandExecutor(private val context: Context) {
         else DateTimeConverter.timestampsToISO(json, timezone).toString(2)
     }
 
-    /** A variable as the model reads it: the fixed bounds of its terms' periods in ISO 8601. */
-    private fun variableForModel(variable: Any?, timezone: java.time.ZoneId): Any? {
+    /**
+     * A variable as the model reads it: the fixed bounds of its terms' periods in ISO 8601, the
+     * written values of their readings' conditions as the model writes them (ConditionValues).
+     */
+    private suspend fun variableForModel(variable: Any?, timezone: java.time.ZoneId): Any? {
         val row = variable as? Map<*, *> ?: return variable
         val definition = row["definition"] as? Map<*, *> ?: return variable
         val terms = definition["terms"] as? Map<*, *> ?: return variable
@@ -918,9 +921,17 @@ class CommandExecutor(private val context: Context) {
             val reading = (term as? Map<*, *>)?.get("reading") as? Map<*, *>
             val selection = reading?.get("selection") as? Map<*, *>
             val period = selection?.get("period") as? Map<*, *>
-            name to if (period == null) term else mapOf("reading" to reading + ("selection" to selection + ("period" to period.mapValues { iso(it.value) })))
+            name.toString() to if (period == null) term else mapOf("reading" to reading + ("selection" to selection + ("period" to period.mapValues { iso(it.value) })))
         }
-        return row + ("definition" to definition + ("terms" to converted))
+        val nodes = converted.keys.map { name -> app.treelune.core.fields.settings.SettingNode.Term(name, name, setOf(app.treelune.core.terms.Term.Kind.READING), reference = "", emptyPeriod = null) }
+        val shown = try {
+            app.treelune.core.utils.JsonUtils.toMap(app.treelune.core.ai.processing.ConditionValues(app.treelune.core.conditions.AppConditionSources(context, null), timezone) { s.shared(it) }
+                .toModel(nodes, app.treelune.core.utils.JsonUtils.toJSONObject(converted)))
+        } catch (e: IllegalArgumentException) {
+            // A tool gone since: its terms shown as stored, which reading them says
+            converted
+        }
+        return row + ("definition" to definition + ("terms" to shown))
     }
 
     /**

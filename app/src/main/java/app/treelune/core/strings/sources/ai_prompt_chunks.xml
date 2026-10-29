@@ -628,6 +628,7 @@ A formula uses `+ - * /`, parentheses, numbers, `hours()`, `minutes()`, `seconds
 
 - a reading: `{ "reading": { "selection": { "target": { "kind": "TOOL_INSTANCE", "id": "..." }, "period"?: ..., "filters"?: [...] }, "field": "data.kcal", "reduction": "SUM" } }`; the period is relative to the instant the variable is read at. Reductions: LAST, SUM, AVERAGE, MIN, MAX (a number, a duration), EARLIEST, LATEST (a date), COUNT (no field)
 - a reading computed in each entry: `"per_entry": "quantity * food.kcal_100g / 100"` instead of `field`, where a name is a field of the entry and `ref.field` reads through its REFERENCE
+- a reading grouped (“days with ≥ 2”, “average per day”): `"group": { "field": "timestamp", "unit": "DAY", "keep"?: { "op": ">=", "right": { "constant": 2 } }, "reduction": "COUNT" }` beside its `field` and `reduction`, which reduce each group; every day of the period is a group, an empty one counting 0, so end the period at `NOW` and start it at a day\'s `START` (a shift of 7 days cuts 8 days); a multiple field puts its entry in each of its groups
 - a constant: `{ "constant": 100 }`; another variable: `{ "variable": "variable_id" }`
 
 `field` (NUMERIC, SCALE or DURATION) is deduced from what the formula reads when you leave it out; give it to add a unit. The app refuses an unknown name, an unreadable term, a variable that would read itself.
@@ -758,7 +759,7 @@ Creates a Task in a zone: steps the app runs itself, one after another, without 
 - `run_routine`: `routine_id`, `inputs` with `data` (what joins its run\'s message)
 - `emit_event`: `event_id` (one of EVENTS), `inputs` by the event\'s value names, every one given
 
-Each input is a term — `{"constant": value}` (a date or a duration in ISO 8601, an entry `{"kind": "ENTRY", "id"}`), `{"variable": "<id>"}`, `{"reading": {"selection", "field", "reduction"}}` read when the step runs — or what an earlier step gave: `{"result": {"step": 0, "value": "<name>"}}` for a value an API answered, `{"result": {"step": 0}}` for the entry a step created; steps count from 0. A run its triggers started also reads what it received: `{"received": {}}` the entry written, `{"received": {"field": "data.<field>"}}` one of its fields, `{"received": {"value": "<name>"}}` a value the event carried. Every step you write must be one you could make yourself: what it writes and reads stays within your access.
+Each input is a term — `{"constant": value}` (a date or a duration in ISO 8601, an entry `{"kind": "ENTRY", "id"}`), `{"variable": "<id>"}`, `{"reading": {"selection", "field", "reduction", "group"?}}` read when the step runs — or what an earlier step gave: `{"result": {"step": 0, "value": "<name>"}}` for a value an API answered, `{"result": {"step": 0}}` for the entry a step created; steps count from 0. A run its triggers started also reads what it received: `{"received": {}}` the entry written, `{"received": {"field": "data.<field>"}}` one of its fields, `{"received": {"value": "<name>"}}` a value the event carried. Every step you write must be one you could make yourself: what it writes and reads stays within your access.
 
 **Parameters**:
 
