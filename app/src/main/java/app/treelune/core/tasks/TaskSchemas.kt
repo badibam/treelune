@@ -4,7 +4,6 @@ import android.content.Context
 import app.treelune.core.ai.prompts.ModelValues
 import app.treelune.core.apis.ApiSettings
 import app.treelune.core.fields.FieldDefinition
-import app.treelune.core.fields.FieldType
 import app.treelune.core.fields.FieldValueSchema
 import app.treelune.core.fields.settings.SettingsSchemaGenerator
 import app.treelune.core.strings.Strings
@@ -100,11 +99,8 @@ object TaskSchemas {
             ?.let { TaskSteps.writableFields(it, context, s) }.orEmpty()
         TaskSteps.TOOL_OPERATION -> TaskSteps.operationParams(step.optString(TaskSteps.TOOL_INSTANCE_ID), step.optString(TaskSteps.OPERATION), context)
             ?.associateBy { it.name }.orEmpty()
-        TaskSteps.CALL_API -> app.treelune.core.database.AppDatabase.getDatabase(context).apiDao().get(step.optString(TaskSteps.API_ID))?.let { api ->
-            JSONObject(api.configJson).optJSONArray(ApiSettings.INPUTS)?.let { list -> (0 until list.length()).map { list.getJSONObject(it) } }.orEmpty()
-                .associate { input -> input.getString(ApiSettings.NAME) to FieldDefinition(input.getString(ApiSettings.NAME), input.getString(ApiSettings.NAME), null,
-                    if (input.optString(ApiSettings.TYPE) == ApiSettings.NUMBER) FieldType.NUMERIC else FieldType.TEXT, false, null) }
-        }.orEmpty()
+        TaskSteps.CALL_API -> app.treelune.core.database.AppDatabase.getDatabase(context).apiDao().get(step.optString(TaskSteps.API_ID))
+            ?.let { api -> ApiSettings.inputFields(JSONObject(api.configJson)).associateBy { it.name } }.orEmpty()
         else -> emptyMap()
     }
 }

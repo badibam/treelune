@@ -53,6 +53,26 @@ object ApiSettings {
     const val NUMBER = "number"
     const val BOOLEAN = "boolean"
 
+    /**
+     * The decimals of a number input: it is never written to an entry, so never rounded; they only
+     * let a decimal number be typed, and 6 holds a GPS coordinate to some 10 cm.
+     */
+    private const val NUMBER_DECIMALS = 6
+
+    /** The field an input fills, by its name and type: in a Task's step on screen, and in the schema the AI reads. */
+    fun inputField(input: JSONObject): FieldDefinition {
+        val name = input.getString(NAME)
+        return when (input.optString(TYPE)) {
+            NUMBER -> FieldDefinition(name, name, null, FieldType.NUMERIC, false, mapOf("decimals" to NUMBER_DECIMALS))
+            BOOLEAN -> FieldDefinition(name, name, null, FieldType.BOOLEAN, false, null)
+            else -> FieldDefinition(name, name, null, FieldType.TEXT, false, mapOf("length" to TextLength.UNLIMITED.name))
+        }
+    }
+
+    /** The fields of the inputs of an API's [config]. */
+    fun inputFields(config: JSONObject): List<FieldDefinition> =
+        config.optJSONArray(INPUTS)?.let { list -> (0 until list.length()).map { inputField(list.getJSONObject(it)) } }.orEmpty()
+
     /** A value's type beside those: a file, its path the address to download it from. */
     const val FILE = "file"
 

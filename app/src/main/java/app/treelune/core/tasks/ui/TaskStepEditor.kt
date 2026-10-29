@@ -85,14 +85,7 @@ private fun CallApi(step: JSONObject, earlier: Earlier, s: StringsContext, with:
     LaunchedEffect(apiId) {
         @Suppress("UNCHECKED_CAST")
         val config = (Coordinator(context).processUserAction("apis.get", mapOf("api_id" to apiId)).data?.get("config") as? Map<String, Any?>)?.let { JsonUtils.toJSONObject(it) }
-        inputs = config?.optJSONArray(ApiSettings.INPUTS)?.let { list -> (0 until list.length()).map { list.getJSONObject(it) } }.orEmpty().map { input ->
-            val name = input.getString(ApiSettings.NAME)
-            FieldDefinition(name, name, null, when (input.optString(ApiSettings.TYPE)) {
-                ApiSettings.NUMBER -> FieldType.NUMERIC
-                ApiSettings.BOOLEAN -> FieldType.BOOLEAN
-                else -> FieldType.TEXT
-            }, false, if (input.optString(ApiSettings.TYPE) == ApiSettings.NUMBER) null else mapOf("length" to TextLength.UNLIMITED.name).takeIf { input.optString(ApiSettings.TYPE) != ApiSettings.BOOLEAN })
-        }
+        inputs = config?.let { ApiSettings.inputFields(it) }.orEmpty()
     }
     Inputs(step.optJSONObject(TaskSteps.INPUTS) ?: JSONObject(), inputs, earlier, s) { with { put(TaskSteps.INPUTS, it) } }
 }

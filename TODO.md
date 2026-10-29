@@ -13,6 +13,8 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 - Les cartes Tâches, API et Événements du site, commitées avant leur release : `./run site-deploy` avec la version qui les porte, pas avant, la 0.9.2 téléchargée ne les ayant pas. Les captures françaises, si elles partent avant, partent d'un arbre sans ces cartes.
 - `www.treelune.app` : son entrée du Multisite OVH (racine `treelune/public_html`), puis le certificat régénéré ; le 2026-10-22, le certificat ne couvre que `treelune.app` et `www` pointe sur la page de parking.
 
+
+(titre à laisser en place, même une fois la section vidée - section ciblée par le script d'import depuis l'appareil :)
 ## En provenance du tel
 
 - Navigateur d'événemns : 1) grouoer les zobes par grouoe. Odre = celui d l'ui. 2) mettre tout à plat (pas de navigation dans zones 3 ne montrer que les zones qui contiennent des evenements — UI — Amélioration
@@ -20,7 +22,6 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs
 
-- `TASK_CONFIG` refuse de rendre la Tâche « Météo du matin » de la démo : « Le résultat n'a pas pu être mis dans la forme que tu lis : NUMERIC field 'latitude' declares no decimals » (vu au banc le 2026-10-28) ; un champ numérique d'une entrée d'API sans `decimals` doit se lire comme un nombre, ou se déclarer avec.
 - Une date (`timestamp`) donnée par l'IA à une entrée de Fiches, qui n'en a pas : refusée par un message Java brut (« Value … of type java.lang.String cannot be converted to long », vu le 2026-10-28 dans une routine) au lieu d'une phrase qui dit que l'outil n'a pas de date.
 - Une Tâche qui passe l'entrée reçue à une routine (`run_routine`, `data` ← `{"received": {}}`) ne lui donne que son id (vu le 2026-10-28) : la routine doit la relire. La joindre en entier, comme le fait un déclencheur qui lance une routine directement (`docs/CORE.md`, « Triggers »).
 - `GoalRecurringTest` échoue le jour du passage à l'heure d'hiver (vu le 2026-10-25, déjà avant la partie A) : il vieillit une tentative de 24 h exactes, alors que ce jour-là en dure 25 ; vieillir d'un jour du calendrier de l'app, pas d'une durée.
