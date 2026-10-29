@@ -7,7 +7,12 @@ import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.fields.ToolFields
 import app.treelune.core.fields.toJson
 import app.treelune.core.reading.FailureReason
+import app.treelune.core.conditions.Condition
+import app.treelune.core.conditions.ConditionJudge
 import app.treelune.core.reading.FieldReading
+import app.treelune.core.reading.GroupedReading
+import app.treelune.core.reading.ReadingGroup
+import app.treelune.core.terms.TermReader
 import app.treelune.core.reading.ReadingResult
 import app.treelune.core.reading.Reduction
 import app.treelune.core.selection.EntryPeriod
@@ -35,6 +40,10 @@ import org.json.JSONObject
  *   range at (a chart's grid, a step each); `field` once, and `values`, a value or a failure per
  *   instant in the same order, `{"at", "value" | "failure"}`. One read of the entries serves them
  *   all when the filters say no relative date: only the period then moves with the instant.
+ * - grouped, `group` beside (ReadingGroup): each group of entries reduced by `field` and
+ *   `reduction`, the groups kept, their values reduced again; the units of a period are its
+ *   groups even without entries, counted from its start (required) to its end, or to the instant
+ *   read without one; the value the groups are compared with is read once at that instant.
  */
 class ReadingService(private val context: Context) : ExecutableService {
 
@@ -105,12 +114,43 @@ class ReadingService(private val context: Context) : ExecutableService {
             return OperationResult.error(s.shared("service_error_reading_reduction_type").format(
                 reduction.name, field?.type?.name ?: "-", Reduction.forField(field).joinToString(", ") { it.name }))
         }
+        val group = try {
+            params.optJSONObject("group")?.let { ReadingGroup.fromJson(it) { key -> s.shared(key) } }
+        } catch (e: IllegalArgumentException) {
+            return OperationResult.error(e.message ?: "")
+        }
+        val value = field.takeIf { reduction != Reduction.COUNT } ?: FieldReading.COUNT_FIELD
+        group?.problem(fields, value) { s.shared(it) }?.let { return OperationResult.error(it) }
+        if (group != null && GroupedReading.needsStart(group) && selection.period.start == null) {
+            return OperationResult.error(s.shared("reading_error_group_start"))
+        }
+        val keep = group?.keepCondition()?.let { Condition.fromJson(it, "", { key -> s.shared(key) }) }
+
+        /** The entries of one instant's period reduced: grouped, or all at once. */
+        suspend fun reduced(rows: List<Map<String, Any?>>, at: Long): ReadingResult {
+            group ?: return FieldReading.reduce(rows, path, field, reduction, at)
+            val calendar = TimeResolver.at(at)
+            val (start, end) = selection.period.instants(calendar)
+            val right = keep?.right?.map { side ->
+                when (val read = TermReader(context).read((side as Condition.Side.Of).term, at, null)) {
+                    is TermReader.Read.Value -> read.value
+                    is TermReader.Read.Failed -> throw IllegalStateException(s.shared("reading_error_group_keep").format(read.message))
+                }
+            }
+            return GroupedReading.reduce(rows, path, field, reduction, group, fields.getValue(group.field),
+                GroupedReading.listed(group, fields.getValue(group.field), start, end ?: at, calendar), calendar,
+                { v -> ConditionJudge.holds(value, keep!!.op, v, right!!, calendar) { s.shared(it) } == true }, at)
+        }
 
         if (instants == null) {
             val rows = try { entries(toolInstanceId, selection.storedFilters(fields, TimeResolver.at(reference!!)) { s.shared(it) }) }
                 catch (e: IllegalArgumentException) { return OperationResult.error(e.message ?: "") }
                 catch (e: IllegalStateException) { return OperationResult.error(e.message ?: "") }
-            return OperationResult.success(result(FieldReading.reduce(rows, path, field, reduction, reference)))
+            return try {
+                OperationResult.success(result(reduced(rows, reference)))
+            } catch (e: IllegalStateException) {
+                OperationResult.error(e.message ?: "")
+            }
         }
 
         // Several instants: the filters on values are the same at each when none holds a relative
@@ -118,7 +158,7 @@ class ReadingService(private val context: Context) : ExecutableService {
         // its own period takes. Otherwise each instant reads its own
         val values = try {
             if (selection.filtersMove) {
-                instants.map { at -> at to FieldReading.reduce(entries(toolInstanceId, selection.storedFilters(fields, TimeResolver.at(at)) { s.shared(it) }), path, field, reduction, at) }
+                instants.map { at -> at to reduced(entries(toolInstanceId, selection.storedFilters(fields, TimeResolver.at(at)) { s.shared(it) }), at) }
             } else {
                 val ranges = instants.map { at -> at to selection.period.instants(TimeResolver.at(at)) }
                 // Every period at once: from the earliest start to the latest end, a side without
@@ -130,10 +170,10 @@ class ReadingService(private val context: Context) : ExecutableService {
                 val rows = entries(toolInstanceId, selection.copy(period = union).storedFilters(fields, TimeResolver.at(instants.first())) { s.shared(it) })
                 ranges.map { (at, range) ->
                     val (start, end) = range
-                    at to FieldReading.reduce(rows.filter { row ->
+                    at to reduced(rows.filter { row ->
                         val timestamp = (row["timestamp"] as? Number)?.toLong() ?: return@filter false
                         (start == null || timestamp >= start) && (end == null || timestamp <= end)
-                    }, path, field, reduction, at)
+                    }, at)
                 }
             }
         } catch (e: IllegalArgumentException) {
@@ -142,7 +182,7 @@ class ReadingService(private val context: Context) : ExecutableService {
             return OperationResult.error(e.message ?: "")
         }
         return OperationResult.success(mapOf(
-            "field" to JsonUtils.toMap((field ?: FieldReading.COUNT_FIELD).toJson()),
+            "field" to JsonUtils.toMap((group?.let { ReadingGroup.resultField(value, it.reduction) } ?: value).toJson()),
             "values" to values.map { (at, result) -> mapOf("at" to at) + result(result).filterKeys { it != "field" } }
         ))
     }

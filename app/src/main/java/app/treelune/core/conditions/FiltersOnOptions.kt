@@ -32,7 +32,7 @@ object FiltersOnOptions {
      */
     suspend fun holds(nodes: List<app.treelune.core.fields.settings.SettingNode>, config: JSONObject, tool: String, removed: Map<String, Set<String>>): Boolean {
         var found = false
-        ConfigConditions(unread).each(nodes, config) { condition ->
+        ConfigConditions(unread) { it }.each(nodes, config) { condition ->
             if (condition.kind == ConfigConditions.Kind.ON_ENTRY && condition.tool == tool && aims(condition.condition, removed)) found = true
         }
         return found

@@ -548,7 +548,7 @@ class AICommandProcessor(private val context: Context) {
      *
      * @throws IllegalArgumentException on a date or a duration that does not read
      */
-    private fun variableToStoredForm(params: Map<String, Any?>): Map<String, Any?> {
+    private suspend fun variableToStoredForm(params: Map<String, Any?>): Map<String, Any?> {
         val definition = params["definition"] as? Map<*, *> ?: return params
         val zone = app.treelune.core.utils.AppConfigManager.getDateTimeConfig().getZoneId()
         val stored = definition.entries.associate { (key, value) -> key.toString() to value }.toMutableMap()
@@ -566,6 +566,12 @@ class AICommandProcessor(private val context: Context) {
                     mapOf("reading" to reading.entries.associate { (k, v) -> k.toString() to (if (k == "selection") selection else v) })
                 }
             }
+            // The written values of its readings' conditions (filters, the keep of their groups), by the type each faces (ConditionValues)
+            @Suppress("UNCHECKED_CAST")
+            val written = stored["terms"] as Map<String, Any?>
+            val nodes = written.keys.map { name -> app.treelune.core.fields.settings.SettingNode.Term(name, name, setOf(app.treelune.core.terms.Term.Kind.READING), reference = "", emptyPeriod = null) }
+            stored["terms"] = JsonUtils.toMap(ConditionValues(app.treelune.core.conditions.AppConditionSources(context, null), zone) { s.shared(it) }
+                .toStored(nodes, JsonUtils.toJSONObject(written)))
         }
         return params + ("definition" to stored)
     }

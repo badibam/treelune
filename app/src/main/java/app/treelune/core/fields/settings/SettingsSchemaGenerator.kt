@@ -169,7 +169,7 @@ object SettingsSchemaGenerator {
             node.onRow -> "condition_schema_row_description"
             node.enteredField != null -> "condition_schema_entered_description"
             else -> "condition_schema_description"
-        }))
+        }) + (if (node.onRow) "" else " " + text("reading_group_schema")))
         .put("properties", JSONObject()
             .put("left", JSONObject().put("type", "object"))
             .put("op", JSONObject().put("type", "string").put("enum", JSONArray(app.treelune.core.fields.FilterOperator.entries.map { it.key })))
@@ -197,7 +197,8 @@ object SettingsSchemaGenerator {
         return JSONObject()
             .put("type", "object")
             .put("title", node.label)
-            .put("description", text("term_schema_description").format(forms.joinToString(" ; ")))
+            .put("description", text("term_schema_description").format(forms.joinToString(" ; ")) +
+                if (app.treelune.core.terms.Term.Kind.READING in node.kinds && node.value?.type != app.treelune.core.fields.FieldType.FILE) " " + text("reading_group_schema") else "")
             .put("properties", properties)
             .put("additionalProperties", false)
     }

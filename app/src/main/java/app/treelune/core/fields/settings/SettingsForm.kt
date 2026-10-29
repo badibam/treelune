@@ -520,6 +520,17 @@ private suspend fun brickPhrase(brick: JSONObject, context: Context): String {
             val reading = brick.optJSONObject("reading") ?: unreadable()
             val parts = selection(reading.optJSONObject("selection") ?: JSONObject(), reading.optString("field").takeIf { it.isNotEmpty() }).toMutableList()
             reading.optString("reduction").takeIf { it.isNotEmpty() }?.let { parts.add(minOf(1, parts.size), s.shared("reduction_${it.lowercase()}")) }
+            // Grouped: by what, the groups kept ("its value ≥ 30 min"), and how they are reduced
+            reading.optJSONObject("group")?.let { group ->
+                val by = group.optString("unit").takeIf { it.isNotEmpty() }?.let { s.shared("period_type_${it.lowercase()}").lowercase() }
+                    ?: group.optString("field").let { path ->
+                        val toolId = reading.optJSONObject("selection")?.optJSONObject("target")?.optString("id")?.takeIf { it.isNotEmpty() }
+                        toolId?.let { app.treelune.core.fields.ToolFields.filterable(it, context, s)[path]?.displayName } ?: path
+                    }
+                parts.add(s.shared("reading_group_phrase").format(by))
+                group.optJSONObject("keep")?.let { keep -> parts.add(brickPhrase(JSONObject().put("condition", keep).put("entered", s.shared("reading_group_value")), context)) }
+                group.optString("reduction").takeIf { it.isNotEmpty() }?.let { parts.add(s.shared("reduction_${it.lowercase()}")) }
+            }
             parts.joinToString(separator)
         }
         brick.has("selection") -> selection(brick.optJSONObject("selection") ?: unreadable(), null).joinToString(separator)

@@ -240,10 +240,14 @@ object ConditionTriggers {
         return tools
     }
 
-    /** The terms on the sides of [condition]; none when it does not read, which the judging says. */
+    /**
+     * The terms on the sides of [condition], and those a grouped reading's groups are compared
+     * with; none when it does not read, which the judging says.
+     */
     private fun terms(condition: JSONObject): List<Term> = try {
         val read = Condition.fromJson(condition, "", { it })
-        (listOf(read.left) + read.right).mapNotNull { (it as? Condition.Side.Of)?.term }
+        val sides = (listOf(read.left) + read.right).mapNotNull { (it as? Condition.Side.Of)?.term }
+        sides + sides.filterIsInstance<Term.Reading>().flatMap { it.keepTerms() }
     } catch (e: IllegalArgumentException) {
         emptyList()
     }

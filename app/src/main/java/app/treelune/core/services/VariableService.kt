@@ -248,7 +248,8 @@ class VariableService(private val context: Context) : ExecutableService {
         definition.terms.forEach { (termName, term) -> checkTerm(termName, term, others) }
 
         // No variable reading itself through others
-        val reads = (stored.variableIds() + definition.terms.values.filterIsInstance<Term.Variable>().map { it.id }).distinct()
+        val reads = (stored.variableIds() + definition.terms.values.filterIsInstance<Term.Variable>().map { it.id } +
+            definition.terms.values.filterIsInstance<Term.Reading>().flatMap { it.keepTerms() }.filterIsInstance<Term.Variable>().map { it.id }).distinct()
         loop(id, reads, others)?.let { path -> throw Refused(s.shared("variable_error_loop").format((listOf(name) + path.map { p -> others.first { it.id == p }.name } + name).joinToString(" → "))) }
 
         val field = if (json.has("field")) definition.field else deduce(stored, definition.terms, others, name)
@@ -308,8 +309,17 @@ class VariableService(private val context: Context) : ExecutableService {
     private fun readsOf(variable: VariableEntity): List<String> {
         val json = JSONObject(variable.definitionJson)
         val formula = (Formula.parse(json.optString("formula")) as? Formula.Parsed.Read)?.formula
-        val terms = json.optJSONObject("terms")?.let { t -> t.keys().asSequence().mapNotNull { t.getJSONObject(it).optString("variable").takeIf { v -> v.isNotEmpty() } }.toList() } ?: emptyList()
-        return (formula?.variableIds() ?: emptyList()) + terms
+        val terms = json.optJSONObject("terms")?.let { t -> t.keys().asSequence().map { t.getJSONObject(it) }.toList() } ?: emptyList()
+        val variables = terms.mapNotNull { it.optString("variable").takeIf { v -> v.isNotEmpty() } } +
+            terms.flatMap { keepTerms(it) }.filterIsInstance<Term.Variable>().map { it.id }
+        return (formula?.variableIds() ?: emptyList()) + variables
+    }
+
+    /** The terms the groups of the reading [term] stands for are compared with; none for anything else. */
+    private fun keepTerms(term: JSONObject): List<Term> = try {
+        (Term.fromJson(term, "", { it }) as? Term.Reading)?.keepTerms() ?: emptyList()
+    } catch (e: IllegalArgumentException) {
+        emptyList()
     }
 
     /** The field a formula's value takes, from what it reads. */
@@ -349,6 +359,8 @@ class VariableService(private val context: Context) : ExecutableService {
             val reading = terms.getJSONObject(key).optJSONObject("reading") ?: continue
             val tool = reading.optJSONObject("selection")?.optJSONObject("target")?.optString("id")?.takeIf { it.isNotEmpty() } ?: continue
             direct.add(tool)
+            // What its groups are compared with is read too
+            keepTerms(terms.getJSONObject(key)).filterIsInstance<Term.Reading>().mapNotNullTo(direct) { it.selection.target.id }
             if (reading.optString("per_entry").isEmpty()) continue
             val config = AppDatabase.getDatabase(context).toolInstanceDao().getToolInstanceById(tool)?.config_json?.let { JSONObject(it) } ?: continue
             config.optJSONArray("extra_fields")?.toFieldDefinitions()?.filter { it.type == app.treelune.core.fields.FieldType.REFERENCE }?.forEach { field ->
@@ -433,12 +445,7 @@ class VariableService(private val context: Context) : ExecutableService {
         override suspend fun variable(id: String): StoredVariable? = dao.getById(id)?.let { stored(it) }
 
         override suspend fun read(term: Term.Reading, at: Long): Outcome {
-            val result = coordinator.processUserAction("readings.read", mapOf(
-                "selection" to JsonUtils.toMap(term.selection.toJson()),
-                "field" to term.field,
-                "reduction" to term.reduction.name,
-                "reference" to at
-            ).filterValues { it != null }.mapValues { it.value!! })
+            val result = coordinator.processUserAction("readings.read", term.params() + ("reference" to at))
             if (!result.isSuccess) throw IllegalStateException(result.error ?: "readings.read")
             (result.data?.get("failure") as? Map<*, *>)?.let { f ->
                 return Outcome.Failed(listOf(Cause(f["reason"] as String, field = f["field"] as? String,

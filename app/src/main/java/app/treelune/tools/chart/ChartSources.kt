@@ -86,9 +86,11 @@ class ChartSources(private val context: Context) {
                     (declared?.get("config") as? Map<*, *>)?.entries?.mapNotNull { (k, v) -> v?.let { k.toString() to it } }?.toMap())
             }
             is Term.Reading -> {
-                if (term.reduction == Reduction.COUNT || term.field == null) FieldReading.COUNT_FIELD
-                else ToolFields.filterable(term.selection.target.id ?: error("a reading's tool"), context, s)[term.field]
-                    ?: throw IllegalStateException(s.tool("error_reading_field").format(column.name, term.field))
+                val value = if (term.reduction == Reduction.COUNT || term.field == null) FieldReading.COUNT_FIELD
+                    else ToolFields.filterable(term.selection.target.id ?: error("a reading's tool"), context, s)[term.field]
+                        ?: throw IllegalStateException(s.tool("error_reading_field").format(column.name, term.field))
+                // Grouped, the groups' values reduced
+                term.group?.let { app.treelune.core.reading.ReadingGroup.resultField(value, it.reduction) } ?: value
             }
             is Term.Constant -> throw IllegalStateException(s.tool("error_column_term").format(column.name))
         }
@@ -169,12 +171,7 @@ class ChartSources(private val context: Context) {
                 // Without a period of its own, a reading reads its step: the step's unit around the instant read
                 val selection = if (term.selection.period.isEmpty) term.selection.copy(period = EntryPeriod(
                     TimePoint.Relative(source.step, 0, Edge.START), TimePoint.Relative(source.step, 0, Edge.END))) else term.selection
-                coordinator.processUserAction("readings.read", buildMap {
-                    put("selection", JsonUtils.toMap(selection.toJson()))
-                    term.field?.let { put("field", it) }
-                    put("reduction", term.reduction.name)
-                    put("at", instants)
-                })
+                coordinator.processUserAction("readings.read", term.copy(selection = selection).params() + ("at" to instants))
             }
             is Term.Constant -> throw IllegalStateException(s.tool("error_column_term").format(column.name))
         }

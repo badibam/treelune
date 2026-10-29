@@ -164,6 +164,13 @@ object TaskSteps {
         return ToolOperations.find(type, operation, context)?.params?.filterIsInstance<SettingNode.Field>()?.map { it.definition }
     }
 
+    /** The terms the groups of the reading [input] stands for are compared with; none for anything else. */
+    private fun keepTerms(input: JSONObject): List<Term> = try {
+        (Term.fromJson(input, "", { it }) as? Term.Reading)?.keepTerms() ?: emptyList()
+    } catch (e: IllegalArgumentException) {
+        emptyList()
+    }
+
     /**
      * What [step] reaches, as the operations it runs and the reads its inputs make
      * (AccessRules.reach): an entry written or an operation, its tool used; a routine run, its zone
@@ -187,7 +194,15 @@ object TaskSteps {
         return own + reads.flatMap { input ->
             when {
                 input.has(Term.Kind.READING.key) -> reach("readings.read", mapOf("selection" to
-                    app.treelune.core.utils.JsonUtils.toMap(input.getJSONObject(Term.Kind.READING.key).optJSONObject("selection") ?: JSONObject())))
+                    app.treelune.core.utils.JsonUtils.toMap(input.getJSONObject(Term.Kind.READING.key).optJSONObject("selection") ?: JSONObject()))) +
+                    // What its groups are compared with is read too
+                    keepTerms(input).flatMap { term ->
+                        when (term) {
+                            is Term.Reading -> reach("readings.read", mapOf("selection" to app.treelune.core.utils.JsonUtils.toMap(term.selection.toJson())))
+                            is Term.Variable -> reach("variables.evaluate", mapOf("variable_id" to term.id))
+                            is Term.Constant -> emptyList()
+                        }
+                    }
                 input.has(Term.Kind.VARIABLE.key) -> reach("variables.evaluate", mapOf("variable_id" to input.getString(Term.Kind.VARIABLE.key)))
                 else -> emptyList()
             }

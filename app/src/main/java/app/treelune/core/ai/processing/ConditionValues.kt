@@ -36,7 +36,7 @@ class ConditionValues(private val sources: ConfigConditions.Sources, private val
      */
     suspend fun toStored(nodes: List<SettingNode>, config: JSONObject): JSONObject {
         val check = ConditionCheck(sources, text)
-        return ConfigConditions(sources).map(nodes, config) { found ->
+        return ConfigConditions(sources, text).map(nodes, config) { found ->
             val field = check.compared(found)?.takeIf { it.type == FieldType.DURATION || it.type == FieldType.DATETIME }
                 ?: return@map found.condition
             val stored = Conditions.withValues(found.condition) { stored(found.label, field, JsonUtils.toValue(it)) }
@@ -55,7 +55,7 @@ class ConditionValues(private val sources: ConfigConditions.Sources, private val
      */
     suspend fun toModel(nodes: List<SettingNode>, config: JSONObject): JSONObject {
         val check = ConditionCheck(sources, text)
-        return ConfigConditions(sources).map(nodes, config) { found ->
+        return ConfigConditions(sources, text).map(nodes, config) { found ->
             val field = check.compared(found)?.takeIf { it.type == FieldType.DURATION || it.type == FieldType.DATETIME }
                 ?: return@map found.condition
             val shown = Conditions.withValues(found.condition) { forModel(field, JsonUtils.toValue(it)) }

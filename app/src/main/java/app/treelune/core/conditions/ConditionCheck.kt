@@ -31,7 +31,7 @@ class ConditionCheck(private val sources: ConfigConditions.Sources, private val 
     suspend fun refuse(nodes: List<SettingNode>, config: JSONObject): String? {
         var refusal: String? = null
         try {
-            ConfigConditions(sources).each(nodes, config) { found ->
+            ConfigConditions(sources, text).each(nodes, config) { found ->
                 if (refusal == null) refusal = refuse(found)
             }
         } catch (e: IllegalArgumentException) {
