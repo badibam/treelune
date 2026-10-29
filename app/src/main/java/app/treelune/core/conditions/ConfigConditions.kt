@@ -4,6 +4,9 @@ import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldType
 import app.treelune.core.fields.settings.SettingNode
 import app.treelune.core.fields.toFieldConfig
+import app.treelune.core.reading.FieldReading
+import app.treelune.core.reading.ReadingGroup
+import app.treelune.core.reading.Reduction
 import app.treelune.core.selection.ReferenceKind
 import org.json.JSONArray
 import org.json.JSONObject
@@ -15,11 +18,13 @@ import org.json.JSONObject
  *
  * Found: a condition setting (SettingNode.Condition), judged once or put on each row; the filters
  * of a selection (SettingNode.Selection), of a term's reading (SettingNode.Term), and of a
- * reading standing on a side of a condition judged once.
+ * reading standing on a side of a condition judged once; the keep of a grouped reading
+ * (ReadingGroup), judged once with the group's value on its left.
  *
  * @param sources Where the fields its sides may name are read
+ * @param text The shared string of a key, for the labels
  */
-class ConfigConditions(private val sources: Sources) {
+class ConfigConditions(private val sources: Sources, private val text: (String) -> String) {
 
     /** Where the walk and the check read the fields of what a condition names, from declarations only. */
     interface Sources {
@@ -147,9 +152,31 @@ class ConfigConditions(private val sources: Sources) {
         }
     }
 
-    /** The filters of the reading [term] stands for, if it is one. */
+    /**
+     * The filters of the reading [term] stands for, if it is one, then the keep of its groups and
+     * the readings on its sides.
+     */
     private suspend fun reading(term: JSONObject, label: String, visit: suspend (Found) -> JSONObject) {
-        term.optJSONObject("reading")?.optJSONObject("selection")?.let { selection(it, label, visit) }
+        val reading = term.optJSONObject("reading") ?: return
+        reading.optJSONObject("selection")?.let { selection(it, label, visit) }
+        val group = reading.optJSONObject("group") ?: return
+        val keep = group.optJSONObject(ReadingGroup.KEEP) ?: return
+        // A group's value whose field does not read leaves the keep to the reading's own check, which names it
+        val value = groupValue(reading) ?: return
+        val here = under(label, text("reading_group_keep"))
+        val turned = visit(Found(here, ReadingGroup.keepCondition(keep), Kind.ONCE, entered = value))
+        turned.remove(Conditions.LEFT)
+        group.put(ReadingGroup.KEEP, turned)
+        sidesOf(turned).forEach { side -> reading(side, here, visit) }
+    }
+
+    /** The field each group of [reading] has a value of: its own field reduced, or a count; null when it does not read. */
+    private suspend fun groupValue(reading: JSONObject): FieldDefinition? {
+        val reduction = Reduction.entries.firstOrNull { it.name == reading.optString("reduction") } ?: return null
+        if (reduction == Reduction.COUNT) return FieldReading.COUNT_FIELD
+        val target = reading.optJSONObject("selection")?.optJSONObject("target")?.let { app.treelune.core.selection.Reference.fromJson(it) } ?: return null
+        val fields = try { sources.targetFields(target) } catch (e: IllegalStateException) { return null } catch (e: IllegalArgumentException) { return null }
+        return fields[reading.optString("field")]
     }
 
     /** The filters of [selection], each put on an entry of its tool and naming its fields. */

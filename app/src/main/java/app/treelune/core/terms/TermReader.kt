@@ -4,7 +4,6 @@ import android.content.Context
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.fields.FieldDefinition
-import app.treelune.core.fields.FieldType
 import app.treelune.core.fields.toFieldDefinition
 import app.treelune.core.selection.EntryPeriod
 import app.treelune.core.utils.JsonUtils
@@ -51,17 +50,12 @@ class TermReader(private val context: Context) {
         is Term.Reading -> {
             if (term.perEntry != null) throw IllegalStateException("a formula per entry is read in a variable")
             val selection = if (term.selection.period.isEmpty && period != null) term.selection.copy(period = period) else term.selection
-            val result = Coordinator(context).processUserAction("readings.read", buildMap {
-                put("selection", JsonUtils.toMap(selection.toJson()))
-                term.field?.let { put("field", it) }
-                put("reduction", term.reduction.name)
-                put("reference", at)
-            })
+            val result = Coordinator(context).processUserAction("readings.read", term.copy(selection = selection).params() + ("reference" to at))
             if (!result.isSuccess) throw IllegalStateException(result.error ?: "")
             (result.data?.get("failure") as? Map<*, *>)?.let { Read.Failed(it["message"] as? String ?: "", it["reason"]?.toString().let { reason -> reason != null && reason !in DATA_REASONS }) }
                 // A count has no field: it is a number
                 ?: Read.Value(result.data?.get("value"), (result.data?.get("field") as? Map<*, *>)?.let { fieldOf(it, term.field ?: "") }
-                    ?: FieldDefinition("count", "count", null, FieldType.NUMERIC, false, mapOf("decimals" to 0)))
+                    ?: app.treelune.core.reading.FieldReading.COUNT_FIELD)
         }
     }
 

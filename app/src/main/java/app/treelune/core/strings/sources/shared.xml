@@ -1475,6 +1475,16 @@
     <string name="service_error_reading_source_unread">The tool read could not be read; nothing says it was deleted.</string>
     <string name="service_error_reading_reduction">Unknown reduction: %1$s. Accepted: %2$s.</string>
     <string name="service_error_reading_reduction_type">%1$s does not reduce a field of type %2$s. It takes: %3$s.</string>
+    <string name="reading_group_keep">Groups kept</string>
+    <string name="reading_error_group_field">A grouping names the field it groups by: group.field.</string>
+    <string name="reading_error_group_type">%1$s (%2$s) does not group entries. The types that do: %3$s.</string>
+    <string name="reading_error_group_unit_type">%1$s (%2$s) is not a date: a unit rounds only a date or an instant.</string>
+    <string name="reading_error_group_unit">Unknown unit: %1$s. Accepted: %2$s.</string>
+    <string name="reading_error_group_unit_needed">%1$s is an instant: group it by a unit (%2$s).</string>
+    <string name="reading_error_group_reduction">%1$s does not reduce groups. It takes: %2$s.</string>
+    <string name="reading_error_group_start">Grouped by day, week or month, a reading needs the start of its period: its units are counted from there.</string>
+    <string name="reading_error_group_keep">The value the groups are compared with could not be read: %1$s</string>
+    <string name="reading_error_group_per_entry">A formula per entry is not grouped.</string>
     <string name="reading_failure_no_entry">%1$s: no entry in the period</string>
     <string name="reading_failure_missing_value">%1$d entr(ies) without an answer to %2$s</string>
     <string name="reading_failure_source_not_found">what is read no longer exists</string>

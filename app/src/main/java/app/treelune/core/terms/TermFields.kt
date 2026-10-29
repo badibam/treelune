@@ -2,6 +2,7 @@ package app.treelune.core.terms
 
 import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.reading.FieldReading
+import app.treelune.core.reading.ReadingGroup
 import app.treelune.core.reading.Reduction
 import app.treelune.core.selection.ReferenceKind
 
@@ -50,12 +51,18 @@ object TermFields {
         } catch (e: IllegalStateException) {
             throw IllegalArgumentException(text("variable_error_term").format(name) + " " + (e.message ?: ""))
         }
-        if (term.perEntry != null) return null
+        if (term.perEntry != null) {
+            if (term.group != null) throw IllegalArgumentException(text("reading_error_group_per_entry"))
+            return null
+        }
         val field = term.field?.let { fields[it] ?: throw IllegalArgumentException(text("service_error_filter_unknown_field").format(it, fields.keys.joinToString(", "))) }
         if (term.reduction !in Reduction.forField(field)) {
             throw IllegalArgumentException(text("service_error_reading_reduction_type").format(term.reduction.name, field?.type?.name ?: "-",
                 Reduction.forField(field).joinToString(", ") { it.name }))
         }
-        return if (term.reduction == Reduction.COUNT) FieldReading.COUNT_FIELD else field
+        val value = if (term.reduction == Reduction.COUNT) FieldReading.COUNT_FIELD else field!!
+        val group = term.group ?: return value
+        group.problem(fields, value, text)?.let { throw IllegalArgumentException(text("variable_error_term").format(name) + " " + it) }
+        return ReadingGroup.resultField(value, group.reduction)
     }
 }

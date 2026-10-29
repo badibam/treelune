@@ -1475,6 +1475,16 @@
     <string name="service_error_reading_source_unread">L\'outil lu n\'a pas pu être lu ; rien ne dit qu\'il a été supprimé.</string>
     <string name="service_error_reading_reduction">Réduction inconnue : %1$s. Acceptées : %2$s.</string>
     <string name="service_error_reading_reduction_type">%1$s ne réduit pas un champ de type %2$s. Il accepte : %3$s.</string>
+    <string name="reading_group_keep">Groupes gardés</string>
+    <string name="reading_error_group_field">Un regroupement nomme le champ par lequel il regroupe : group.field.</string>
+    <string name="reading_error_group_type">%1$s (%2$s) ne regroupe pas les entrées. Les types qui le font : %3$s.</string>
+    <string name="reading_error_group_unit_type">%1$s (%2$s) n\'est pas une date : une unité n\'arrondit qu\'une date ou un instant.</string>
+    <string name="reading_error_group_unit">Unité inconnue : %1$s. Acceptées : %2$s.</string>
+    <string name="reading_error_group_unit_needed">%1$s est un instant : regroupe-le par une unité (%2$s).</string>
+    <string name="reading_error_group_reduction">%1$s ne réduit pas des groupes. Acceptées : %2$s.</string>
+    <string name="reading_error_group_start">Regroupée par jour, semaine ou mois, une lecture a besoin du début de sa période : ses unités se comptent à partir de là.</string>
+    <string name="reading_error_group_keep">La valeur à laquelle les groupes se comparent n\'a pas pu être lue : %1$s</string>
+    <string name="reading_error_group_per_entry">Une formule dans chaque entrée ne se regroupe pas.</string>
     <string name="reading_failure_no_entry">%1$s : aucune entrée dans la période</string>
     <string name="reading_failure_missing_value">%1$d entrée(s) sans réponse à %2$s</string>
     <string name="reading_failure_source_not_found">ce qui est lu n\'existe plus</string>
