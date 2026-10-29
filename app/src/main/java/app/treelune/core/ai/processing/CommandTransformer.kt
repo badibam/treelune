@@ -88,6 +88,8 @@ object CommandTransformer {
                         operation = "list",
                         params = command.params.filterKeys { it == "zone_id" }.mapValues { it.value!! }
                     )
+                    // Each API's config but its key (ApiService.configs)
+                    "APIS" -> ExecutableCommand(resource = "apis", operation = "configs", params = emptyMap())
                     "TASKS" -> ExecutableCommand(
                         resource = "tasks",
                         operation = if (command.params["zone_id"] is String) "list" else "list_all",
