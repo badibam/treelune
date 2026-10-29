@@ -213,25 +213,22 @@ fun GridEditBar(editor: GridEditor) {
 }
 
 /**
- * The buttons of a page of grids (a zone, the home screen), once for the whole page: its edit
- * mode, on while it lasts (shown when it has tiles), and adding, off while it is in edit mode.
+ * The buttons of a page of grids (a zone, the home screen), once for the whole page, in its header
+ * before its gear (PageHeader's beforeRight): its edit mode, on while it lasts (shown when it has
+ * tiles), and adding, off while it is in edit mode.
  */
 @Composable
-fun GridPageButtons(hasTiles: Boolean, editor: GridEditor, onAdd: () -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(UI.Space.S, Alignment.End), verticalAlignment = Alignment.CenterVertically) {
-        if (hasTiles) UI.ActionButton(
-            action = ButtonAction.ARRANGE,
-            display = ButtonDisplay.ICON,
-            size = Size.M,
-            active = editor.anyEditing,
-            onClick = { editor.toggle() }
-        )
-        UI.ActionButton(
-            action = ButtonAction.ADD,
-            display = ButtonDisplay.ICON,
-            size = Size.M,
-            enabled = !editor.anyEditing,
-            onClick = onAdd
-        )
-    }
+fun GridHeaderButtons(hasTiles: Boolean, editor: GridEditor, onAdd: () -> Unit) {
+    if (hasTiles) UI.ActionButton(
+        action = ButtonAction.ARRANGE,
+        display = ButtonDisplay.ICON,
+        active = editor.anyEditing,
+        onClick = { editor.toggle() }
+    )
+    UI.ActionButton(
+        action = ButtonAction.ADD,
+        display = ButtonDisplay.ICON,
+        enabled = !editor.anyEditing,
+        onClick = onAdd
+    )
 }

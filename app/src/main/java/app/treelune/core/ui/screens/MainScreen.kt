@@ -523,6 +523,8 @@ private fun HomeScreen(zones: ZonesState) {
                 rightButton = ButtonAction.CONFIGURE,
                 onLeftClick = { Navigator.push(Place.Settings) },
                 onRightClick = { Navigator.push(Place.HomeConfig) },
+                // Organising and adding, once for the whole page, before its gear: a zone created chooses its group in its form
+                beforeRight = { app.treelune.core.ui.components.GridHeaderButtons(zones.list.isNotEmpty(), gridEditor) { Navigator.push(Place.CreateZone) } },
                 // The Guide's book after the settings, marked while a tutorial waits
                 afterLeft = {
                     Box {
@@ -540,8 +542,6 @@ private fun HomeScreen(zones: ZonesState) {
                     textAlign = TextAlign.Center
                 )
             } else {
-                // Organising and adding, once for the whole page: a zone created chooses its group in its form
-                app.treelune.core.ui.components.GridPageButtons(zones.list.isNotEmpty(), gridEditor) { Navigator.push(Place.CreateZone) }
                 // For each defined group, display its section (always shown, even if empty)
                 zoneGroups.forEach { groupName ->
                     ZoneGroupSection(
@@ -585,7 +585,7 @@ private fun HomeScreen(zones: ZonesState) {
 /**
  * Zone group section component
  * Displays zones belonging to a specific group (or ungrouped zones if groupName is null)
- * under its title; adding and organising are the page's (GridPageButtons)
+ * under its title; adding and organising are the page header's (GridHeaderButtons)
  */
 @Composable
 private fun ZoneGroupSection(

@@ -203,7 +203,13 @@ fun ZoneScreen(zone: Zone) {
             leftButton = ButtonAction.BACK,
             rightButton = ButtonAction.CONFIGURE,
             onLeftClick = leave,
-            onRightClick = { Navigator.push(Place.ZoneConfig(zone.id)) }
+            onRightClick = { Navigator.push(Place.ZoneConfig(zone.id)) },
+            // Organising and adding, once for the whole page, before its gear
+            beforeRight = {
+                app.treelune.core.ui.components.GridHeaderButtons(
+                    toolInstances.isNotEmpty() || variables.isNotEmpty() || routines.isNotEmpty() || tasks.isNotEmpty(), gridEditor
+                ) { adding = !adding }
+            }
         )
 
         // The identity its tile opens a conversation with, under its header
@@ -221,10 +227,7 @@ fun ZoneScreen(zone: Zone) {
                 textAlign = TextAlign.Center
             )
         } else {
-            // Organising and adding, once for the whole page
-            app.treelune.core.ui.components.GridPageButtons(
-                toolInstances.isNotEmpty() || variables.isNotEmpty() || routines.isNotEmpty() || tasks.isNotEmpty(), gridEditor
-            ) { adding = !adding }
+            // The add menu, under the header's +
             if (adding && !gridEditor.anyEditing) {
                 AddMenu(
                     zoneName = zone.name,
