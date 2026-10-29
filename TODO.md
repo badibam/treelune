@@ -54,6 +54,7 @@ Codé, jamais vu sur l'appareil.
 
 ## À concevoir
 
+- Un déclencheur « une entrée devient conforme au filtre » (`entry_written`), comme « une condition devient vraie » pour une Condition : les filtres jugés sur la copie d'avant l'écriture et sur celle d'après (l'historique des écritures les garde), le départ seulement au passage de non conforme à conforme. Une séance terminée qu'on corrige, un questionnaire rempli qu'on retouche relancent aujourd'hui leurs Tâches (vu le 2026-10-29 : un doublon dans Décrochage) ; une routine s'en garde par un champ Référence qu'elle relit (« Préparer la séance »).
 - Des montages types pour l'IA (une discussion qui revient, une alerte sur un seuil, un bilan fait seul…) : un catalogue lu à la demande par une commande, le texte de départ n'en gardant qu'une ligne par montage (besoin → nom) ; chaque montage dit le besoin, les pièces et leur liaison, ses noms (commandes, réglages, types d'étape) vérifiés par un script comme le Guide ; la matière tirée du montage réel de l'utilisateur, l'effet mesuré au banc par des scénarios de conception.
 
 - Les zones d'une partie importée : chacune arrive seule sur sa ligne, en colonne 0 (`Grid.arrive`, comme toute tuile nouvelle), deux zones côte à côte dans le fichier empilées avec un vide à droite ; garder leur disposition entre elles.
