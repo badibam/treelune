@@ -120,8 +120,9 @@ class ConditionCheckTest {
     }
 
     @Test
-    fun aFilter_takesWrittenValuesOnItsRight() {
-        assertEquals("service_error_filter_not_written", refuse(filters(condition("""{"field": "data.kcal"}""", "<", """{"variable": "kcal_goal"}"""))))
+    fun aFilter_takesAWrittenValueOrAVariableOfItsTypeOnItsRight() {
+        // A variable, read once where the entries are (FilterTerms), of the field's type
+        assertEquals(null, refuse(filters(condition("""{"field": "data.kcal"}""", "<", """{"variable": "kcal_goal"}"""))))
         assertEquals("condition_error_field", refuse(filters(condition("""{"field": "data.protein"}""", "<", """{"constant": 1}"""))))
     }
 }
