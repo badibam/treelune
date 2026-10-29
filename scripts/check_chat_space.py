@@ -2,7 +2,7 @@
 """Check that every screen the chat's button floats over leaves room for it at its end.
 
 The chat's button floats at the bottom right of the places one reads (Place.chatButton): the
-home screen, a zone, a tool, the Guide, an automation. A screen of such a place puts
+home screen, a zone, a tool, the Guide, a routine. A screen of such a place puts
 `.chatButtonSpace()` after its `verticalScroll`, or `chatButtonEnd()` in a lazy list's bottom
 content padding; without it, its last line hides under the button, and only a phone shows it.
 
@@ -33,8 +33,8 @@ SCREENS = {
     "zone": [APP / "core" / "ui" / "screens" / "ZoneScreen.kt"],
     "guide": [APP / "core" / "guide" / "ui" / "GuideScreens.kt"],
     "chapter": [APP / "core" / "guide" / "ui" / "GuideScreens.kt"],
-    "automation": [APP / "core" / "ai" / "ui" / "automation" / "AutomationScreen.kt"],
-    "execution": [APP / "core" / "ai" / "ui" / "automation" / "ExecutionDetailScreen.kt"],
+    "routine": [APP / "core" / "ai" / "ui" / "routine" / "RoutineScreen.kt"],
+    "execution": [APP / "core" / "ai" / "ui" / "routine" / "ExecutionDetailScreen.kt"],
     "task": [APP / "core" / "tasks" / "ui" / "TaskScreen.kt"],
     "task_run": [APP / "core" / "tasks" / "ui" / "TaskRunScreen.kt"],
 }

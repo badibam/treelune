@@ -21,7 +21,7 @@ import app.treelune.core.ai.data.SessionType
         Index(value = ["is_active"]),
         Index(value = ["type"]),
         Index(value = ["last_activity"]),
-        Index(value = ["automation_id"]),
+        Index(value = ["routine_id"]),
         Index(value = ["phase"]),
         Index(value = ["end_reason"]),
         Index(value = ["chain_id"])
@@ -60,8 +60,8 @@ data class AISessionEntity(
 
     // ==================== Session Metadata ====================
 
-    @ColumnInfo(name = "automation_id") val automationId: String?,              // null for CHAT/SEED, automation ID for AUTOMATION
-    @ColumnInfo(name = "scheduled_execution_time") val scheduledExecutionTime: Long?,      // For AUTOMATION: scheduled time (not actual execution time)
+    @ColumnInfo(name = "routine_id") val routineId: String?,              // null for CHAT/SEED, routine ID for ROUTINE_RUN
+    @ColumnInfo(name = "scheduled_execution_time") val scheduledExecutionTime: Long?,      // For ROUTINE_RUN: scheduled time (not actual execution time)
     // The provider it calls (AIProviderConfigEntity.id): a conversation takes the default at its
     // first call and keeps it unless changed; a run its routine's. Null before, and for a seed
     @ColumnInfo(name = "provider_id") val providerId: String?,
@@ -127,7 +127,7 @@ class AITypeConverters {
 
 /** Whether this is a routine's run that waits for the user: the rule of AIDao.getWaitingRuns, for one run. */
 fun AISessionEntity.runWaits(): Boolean =
-    type == SessionType.AUTOMATION && seenAt == null && !isActive &&
+    type == SessionType.ROUTINE_RUN && seenAt == null && !isActive &&
         endReason != null && app.treelune.core.ai.data.SessionEndReason.valueOf(endReason) !in app.treelune.core.ai.data.SessionEndReason.resumable
 
 /** The reasoning this session asks of its model, or null when it follows its provider's config. */

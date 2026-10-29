@@ -43,7 +43,7 @@ internal class OpenAIProviderCore(
         // Its name in the providers' facts (ProviderFacts)
         const val FACTS_PROVIDER = "openai"
         // Failing to connect means nothing was sent: the sooner it is known, the sooner an
-        // automation waits for the network, at no cost
+        // routine waits for the network, at no cost
         private const val CONNECT_TIMEOUT_SECONDS = 15L
         // No streaming: nothing arrives until the whole answer is generated, so this covers
         // the full generation of a long answer

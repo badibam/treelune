@@ -15,7 +15,7 @@ sealed class Reach {
     /** A variable, by its id or by its name, held by its zone */
     data class Variable(val idOrName: String, val byName: Boolean, val level: AccessLevel) : Reach()
     /** A routine, held by its zone */
-    data class Automation(val id: String, val level: AccessLevel) : Reach()
+    data class Routine(val id: String, val level: AccessLevel) : Reach()
     /** A Task, held by its zone */
     data class Task(val id: String, val level: AccessLevel) : Reach()
     /** An event, held by its zone (docs/CORE.md, « Events ») */
@@ -40,11 +40,11 @@ sealed interface FileHolder {
 interface AccessLookups {
     suspend fun toolZone(toolId: String): String?
     suspend fun variableZone(idOrName: String, byName: Boolean): String?
-    suspend fun automationZone(automationId: String): String?
+    suspend fun routineZone(routineId: String): String?
     suspend fun taskZone(taskId: String): String?
     suspend fun eventZone(eventId: String): String?
     /** The routine run [runId] belongs to. */
-    suspend fun runAutomation(runId: String): String?
+    suspend fun runRoutine(runId: String): String?
     /** The tool entry [entryId] belongs to, null when there is no such entry. */
     suspend fun entryTool(entryId: String): String?
     /** Who holds the kept file [fileId], null when there is no such file. */
@@ -71,7 +71,7 @@ object AccessRules {
         fun toolAt(level: AccessLevel) = tool?.let { Reach.Tool(it, level) } ?: Reach.Unknown("$resource.$operation")
         fun zoneAt(key: String, level: AccessLevel) = text(key)?.let { Reach.Zone(it, level) } ?: Reach.Unknown("$resource.$operation")
         fun variableAt(level: AccessLevel) = text("variable_id")?.let { Reach.Variable(it, false, level) } ?: Reach.Unknown("$resource.$operation")
-        fun automationAt(level: AccessLevel) = text("automation_id")?.let { Reach.Automation(it, level) } ?: Reach.Unknown("$resource.$operation")
+        fun routineAt(level: AccessLevel) = text("routine_id")?.let { Reach.Routine(it, level) } ?: Reach.Unknown("$resource.$operation")
         return when (resource) {
             "tool_data" -> when (operation) {
                 in TOOL_DATA_READS -> listOf(toolAt(AccessLevel.READ))
@@ -103,15 +103,15 @@ object AccessRules {
                 else -> listOf(Reach.Unknown("$resource.$operation"))
             }
             // A zone's routines are written by who reaches the zone in full, as its own settings are
-            "automations" -> when (operation) {
+            "routines" -> when (operation) {
                 "list", "list_all", "waiting" -> listOf(Reach.Free)
-                "get", "config", "next_execution" -> listOf(automationAt(AccessLevel.READ))
+                "get", "config", "next_execution" -> listOf(routineAt(AccessLevel.READ))
                 // Run now, as a Task is: a use of its zone
-                "execute_manual" -> listOf(automationAt(AccessLevel.USE))
+                "execute_manual" -> listOf(routineAt(AccessLevel.USE))
                 "create" -> listOf(zoneAt("zone_id", AccessLevel.FULL))
                 // A routine moved goes into the zone it is moved to
-                "update" -> listOfNotNull(automationAt(AccessLevel.FULL), text("zone_id")?.let { Reach.Zone(it, AccessLevel.FULL) })
-                "delete" -> listOf(automationAt(AccessLevel.FULL))
+                "update" -> listOfNotNull(routineAt(AccessLevel.FULL), text("zone_id")?.let { Reach.Zone(it, AccessLevel.FULL) })
+                "delete" -> listOf(routineAt(AccessLevel.FULL))
                 else -> listOf(Reach.Unknown("$resource.$operation"))
             }
             // A zone's Tasks, as its routines: read with the zone, run as a use of it, written in full;
@@ -146,7 +146,7 @@ object AccessRules {
             }
             // A routine's runs, read as the routine is; every other session is the screens'
             "ai_sessions" -> when (operation) {
-                "list_sessions_for_automation" -> listOf(automationAt(AccessLevel.READ))
+                "list_sessions_for_routine" -> listOf(routineAt(AccessLevel.READ))
                 "run_history" -> listOf(text("session_id")?.let { Reach.Run(it, AccessLevel.READ) } ?: Reach.Unknown("$resource.$operation"))
                 else -> listOf(Reach.Unknown("$resource.$operation"))
             }
@@ -200,9 +200,9 @@ object AccessRules {
         fun refused(what: String, level: AccessLevel?) =
             if (level == null) text("access_refused_unknown").format(holder, what)
             else text("access_refused").format(holder, what, level(level))
-        // A routine, or a run by [what], held by the zone of [automationId]
-        suspend fun automationRefusal(what: String, automationId: String?, level: AccessLevel): String? {
-            val zoneId = automationId?.let { lookups.automationZone(it) } ?: return refused(what, level)
+        // A routine, or a run by [what], held by the zone of [routineId]
+        suspend fun routineRefusal(what: String, routineId: String?, level: AccessLevel): String? {
+            val zoneId = routineId?.let { lookups.routineZone(it) } ?: return refused(what, level)
             val held = mask.zone(zoneId)
             return if (held == null || held < level) refused(zone(zoneId, lookups, text), level) else null
         }
@@ -229,7 +229,7 @@ object AccessRules {
                     if ((mask.tool(toolId, zoneId) ?: return refused(tool(toolId, lookups, text), reach.level)) < reach.level)
                         return refused(tool(toolId, lookups, text), reach.level)
                 }
-                is Reach.Automation -> automationRefusal(reach.id, reach.id, reach.level)?.let { return it }
+                is Reach.Routine -> routineRefusal(reach.id, reach.id, reach.level)?.let { return it }
                 is Reach.Event -> {
                     val zoneId = lookups.eventZone(reach.id) ?: return refused(reach.id, reach.level)
                     val held = mask.zone(zoneId)
@@ -240,7 +240,7 @@ object AccessRules {
                     val held = mask.zone(zoneId)
                     if (held == null || held < reach.level) return refused(zone(zoneId, lookups, text), reach.level)
                 }
-                is Reach.Run -> automationRefusal(reach.id, lookups.runAutomation(reach.id), reach.level)?.let { return it }
+                is Reach.Run -> routineRefusal(reach.id, lookups.runRoutine(reach.id), reach.level)?.let { return it }
                 is Reach.File -> when (val holder = lookups.fileHolder(reach.id)) {
                     // An unknown id is the service's to refuse, naming it
                     null, FileHolder.Conversation -> Unit
@@ -295,12 +295,12 @@ class DatabaseAccessLookups(context: Context) : AccessLookups {
         if (byName) database.variableDao().getAll().firstOrNull { it.name == idOrName }?.zoneId
         else database.variableDao().getById(idOrName)?.zoneId
 
-    override suspend fun automationZone(automationId: String) = database.aiDao().getAutomationById(automationId)?.zoneId
+    override suspend fun routineZone(routineId: String) = database.aiDao().getRoutineById(routineId)?.zoneId
 
     override suspend fun taskZone(taskId: String) = database.taskDao().get(taskId)?.zoneId
     override suspend fun eventZone(eventId: String) = database.eventDao().get(eventId)?.zoneId
 
-    override suspend fun runAutomation(runId: String) = database.aiDao().getSession(runId)?.automationId
+    override suspend fun runRoutine(runId: String) = database.aiDao().getSession(runId)?.routineId
 
     override suspend fun entryTool(entryId: String) = database.toolDataDao().getById(entryId)?.toolInstanceId
 

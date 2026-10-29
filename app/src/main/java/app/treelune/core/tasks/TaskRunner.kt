@@ -2,7 +2,7 @@ package app.treelune.core.tasks
 
 import android.content.Context
 import android.net.Uri
-import app.treelune.core.ai.data.AutomationSettings
+import app.treelune.core.ai.data.RoutineSettings
 import app.treelune.core.apis.ApiService
 import app.treelune.core.apis.ApiSettings
 import app.treelune.core.coordinator.ChainLink
@@ -207,8 +207,8 @@ object TaskRunner {
         val now = System.currentTimeMillis()
         val problem = state != TaskRun.State.DONE
         val waits = when (task.notifyEnd) {
-            AutomationSettings.NOTIFY_ALWAYS -> state != TaskRun.State.CANCELLED
-            AutomationSettings.NOTIFY_ON_PROBLEM -> problem && state != TaskRun.State.CANCELLED
+            RoutineSettings.NOTIFY_ALWAYS -> state != TaskRun.State.CANCELLED
+            RoutineSettings.NOTIFY_ON_PROBLEM -> problem && state != TaskRun.State.CANCELLED
             else -> false
         }
         AppDatabase.getDatabase(context).taskDao().updateRun(run.copy(state = state.key, endedAt = now, waitJson = null, seenAt = if (waits) null else now))
@@ -250,8 +250,8 @@ object TaskRunner {
                 ?: throw StepFailed(Strings.`for`(context = context).shared("task_error_tool").format("", step.getString(TaskSteps.TOOL_INSTANCE_ID)))
             "${tool.tooltype}.${step.getString(TaskSteps.OPERATION)}" to (resolved + ("tool_instance_id" to tool.id))
         }
-        TaskSteps.RUN_ROUTINE -> "automations.execute_manual" to buildMap {
-            put("automation_id", step.getString(TaskSteps.AUTOMATION_ID))
+        TaskSteps.RUN_ROUTINE -> "routines.execute_manual" to buildMap {
+            put("routine_id", step.getString(TaskSteps.ROUTINE_ID))
             resolved[TaskSteps.DATA]?.let { put("data", it.toString()) }
         }
         TaskSteps.EMIT_EVENT -> "events.emit" to mapOf("event_id" to step.getString(TaskSteps.EVENT_ID), "values" to resolved)

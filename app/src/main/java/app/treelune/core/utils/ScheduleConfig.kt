@@ -13,7 +13,7 @@ import java.time.temporal.ChronoUnit
  *
  * Note: Timezone is resolved from AppConfig (user-configured global timezone)
  *
- * A schedule carries no on/off switch: what it drives has one. An automation is paused by its
+ * A schedule carries no on/off switch: what it drives has one. A routine is paused by its
  * is_enabled column, a Messages tool by the "enabled" at the root of its config.
  */
 @Serializable

@@ -20,7 +20,7 @@ data class SectionItem(
     val row: Int,
     val size: Grid.Size
 ) {
-    enum class Kind { TOOL, VARIABLE, AUTOMATION, TASK }
+    enum class Kind { TOOL, VARIABLE, ROUTINE, TASK }
 
     val tile: Grid.Tile get() = Grid.Tile(id, column, row, size.width, size.height)
 
@@ -34,8 +34,8 @@ data class SectionItem(
         fun of(variable: VariableEntity): SectionItem = SectionItem(variable.id, Kind.VARIABLE, variable.zoneId, variable.group,
             variable.gridX, variable.gridY, Grid.size(DisplayMode.valueOf(variable.displayMode)))
 
-        fun of(automation: app.treelune.core.ai.database.AutomationEntity): SectionItem = SectionItem(automation.id, Kind.AUTOMATION, automation.zoneId,
-            automation.group, automation.gridX, automation.gridY, Grid.size(DisplayMode.valueOf(automation.displayMode)))
+        fun of(routine: app.treelune.core.ai.database.RoutineEntity): SectionItem = SectionItem(routine.id, Kind.ROUTINE, routine.zoneId,
+            routine.group, routine.gridX, routine.gridY, Grid.size(DisplayMode.valueOf(routine.displayMode)))
 
         fun of(task: app.treelune.core.tasks.TaskEntity): SectionItem = SectionItem(task.id, Kind.TASK, task.zoneId,
             task.group, task.gridX, task.gridY, Grid.size(DisplayMode.valueOf(task.displayMode)))
@@ -81,7 +81,7 @@ class SectionGrid(context: Context) {
     suspend fun items(zoneId: String): List<SectionItem> =
         database.toolInstanceDao().getToolInstancesByZone(zoneId).map { SectionItem.of(it) } +
             database.variableDao().getByZone(zoneId).map { SectionItem.of(it) } +
-            database.aiDao().getAutomationsByZone(zoneId).map { SectionItem.of(it) } +
+            database.aiDao().getRoutinesByZone(zoneId).map { SectionItem.of(it) } +
             database.taskDao().getByZone(zoneId).map { SectionItem.of(it) }
 
     /** The tiles of [items] shown in [section] of a zone whose groups are [zoneGroups]. */
@@ -148,7 +148,7 @@ class SectionGrid(context: Context) {
         when (item.kind) {
             SectionItem.Kind.TOOL -> writes.moveTool(item.id, item.column, item.row)
             SectionItem.Kind.VARIABLE -> writes.moveVariable(item.id, item.column, item.row)
-            SectionItem.Kind.AUTOMATION -> writes.moveAutomation(item.id, item.column, item.row)
+            SectionItem.Kind.ROUTINE -> writes.moveRoutine(item.id, item.column, item.row)
             SectionItem.Kind.TASK -> writes.moveTask(item.id, item.column, item.row)
         }
         item.id

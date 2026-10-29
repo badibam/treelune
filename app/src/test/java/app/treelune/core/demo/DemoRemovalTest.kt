@@ -25,8 +25,8 @@ class DemoRemovalTest {
             "CREATE TABLE tool_instances (id TEXT, zone_id TEXT)",
             "CREATE TABLE tool_data (id TEXT, tool_instance_id TEXT)",
             "CREATE TABLE variables (id TEXT, zone_id TEXT)",
-            "CREATE TABLE automations (id TEXT, zone_id TEXT, identity_id TEXT)",
-            "CREATE TABLE ai_sessions (id TEXT, automation_id TEXT)",
+            "CREATE TABLE routines (id TEXT, zone_id TEXT, identity_id TEXT)",
+            "CREATE TABLE ai_sessions (id TEXT, routine_id TEXT)",
             "CREATE TABLE identities (id TEXT)",
             "CREATE TABLE tasks (id TEXT, zone_id TEXT, steps_json TEXT)",
             "CREATE TABLE apis (id TEXT)",
@@ -38,8 +38,8 @@ class DemoRemovalTest {
         insert("tool_instances", "tool", "zone")
         insert("tool_data", "entry", "tool")
         insert("variables", "variable", "zone")
-        insert("automations", "automation", "zone")
-        insert("ai_sessions", "session", "automation")
+        insert("routines", "routine", "zone")
+        insert("ai_sessions", "session", "routine")
         insert("ai_sessions", "chat", null)
 
         // The demo's own
@@ -47,22 +47,22 @@ class DemoRemovalTest {
         insert("tool_instances", "demo-tool", "demo-zone")
         insert("tool_data", "demo-entry", "demo-tool")
         insert("variables", "demo-variable", "demo-zone")
-        insert("automations", "demo-automation", "demo-zone")
-        insert("ai_sessions", "demo-session", "demo-automation")
+        insert("routines", "demo-routine", "demo-zone")
+        insert("ai_sessions", "demo-session", "demo-routine")
 
         // What the user put in the demo
         insert("tool_data", "typed", "demo-tool")
         insert("tool_instances", "added", "demo-zone")
         insert("tool_data", "typed-in-added", "added")
         insert("variables", "added-variable", "demo-zone")
-        insert("automations", "added-automation", "demo-zone")
-        insert("ai_sessions", "added-session", "added-automation")
+        insert("routines", "added-routine", "demo-zone")
+        insert("ai_sessions", "added-session", "added-routine")
 
         // The demo's identities: one its zone alone names, one a zone of the user's names, one a routine of the user's names
         listOf("identity", "demo-identity", "demo-identity-zone", "demo-identity-routine").forEach { insert("identities", it) }
         db.createStatement().execute("UPDATE zones SET identity_id = 'demo-identity' WHERE id = 'demo-zone'")
         db.createStatement().execute("UPDATE zones SET identity_id = 'demo-identity-zone' WHERE id = 'zone'")
-        db.createStatement().execute("UPDATE automations SET identity_id = 'demo-identity-routine' WHERE id = 'automation'")
+        db.createStatement().execute("UPDATE routines SET identity_id = 'demo-identity-routine' WHERE id = 'routine'")
 
         // The Tasks and the APIs: the user's, the demo's, one put in the demo; the demo's second API called by a Task of the user's
         listOf("api", "demo-api", "demo-api-kept").forEach { db.createStatement().execute("INSERT INTO apis VALUES ('$it')") }
@@ -73,7 +73,7 @@ class DemoRemovalTest {
         ).forEach { (id, zone, steps) ->
             db.prepareStatement("INSERT INTO tasks VALUES (?, ?, ?)").apply { setString(1, id); setString(2, zone); setString(3, steps); execute() }
         }
-        listOf("task", "demo-task", "added-task", "automation", "added-automation").forEach { db.createStatement().execute("INSERT INTO condition_judgements VALUES ('$it')") }
+        listOf("task", "demo-task", "added-task", "routine", "added-routine").forEach { db.createStatement().execute("INSERT INTO condition_judgements VALUES ('$it')") }
     }
 
     @After
@@ -83,7 +83,7 @@ class DemoRemovalTest {
         val sql = when (table) {
             "zones" -> "INSERT INTO zones (id) VALUES (?)"
             "identities" -> "INSERT INTO identities VALUES (?)"
-            "automations" -> "INSERT INTO automations (id, zone_id) VALUES (?, ?)"
+            "routines" -> "INSERT INTO routines (id, zone_id) VALUES (?, ?)"
             else -> "INSERT INTO $table VALUES (?, ?)"
         }
         db.prepareStatement(sql).apply {
@@ -109,12 +109,12 @@ class DemoRemovalTest {
         assertEquals(setOf("tool"), ids("tool_instances"))
         assertEquals(setOf("entry"), ids("tool_data"))
         assertEquals(setOf("variable"), ids("variables"))
-        assertEquals(setOf("automation"), ids("automations"))
+        assertEquals(setOf("routine"), ids("routines"))
         assertEquals(setOf("session", "chat"), ids("ai_sessions"))
         assertEquals(setOf("identity", "demo-identity-zone", "demo-identity-routine"), ids("identities"))
         assertEquals(setOf("task"), ids("tasks"))
         assertEquals(setOf("api", "demo-api-kept"), ids("apis"))
-        assertEquals(setOf("task", "automation"), db.createStatement().executeQuery("SELECT owner_id FROM condition_judgements").use { rows ->
+        assertEquals(setOf("task", "routine"), db.createStatement().executeQuery("SELECT owner_id FROM condition_judgements").use { rows ->
             buildSet { while (rows.next()) add(rows.getString(1)) }
         })
     }

@@ -28,7 +28,7 @@ data class Zone(
     /**
      * Tool groups defined at zone level (JSON array of group names)
      * Example: ["Santé", "Productivité", "Loisirs"]
-     * Tool instances and automations can be assigned to these groups
+     * Tool instances and routines can be assigned to these groups
      */
     val tool_groups: String? = null,
 
@@ -41,7 +41,7 @@ data class Zone(
 
     /**
      * Whether the zone's content is protected (docs/AI.md, « Levels »): the AI asks before it
-     * creates, changes or deletes a tool of it, its tool groups, its automations or its variables.
+     * creates, changes or deletes a tool of it, its tool groups, its routines or its variables.
      * Changed by a person alone (Protections).
      */
     val validate: Boolean = false,

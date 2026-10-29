@@ -15,6 +15,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs
 
+- `TASK_CONFIG` refuse de rendre la Tâche « Météo du matin » de la démo : « Le résultat n'a pas pu être mis dans la forme que tu lis : NUMERIC field 'latitude' declares no decimals » (vu au banc le 2026-10-28) ; un champ numérique d'une entrée d'API sans `decimals` doit se lire comme un nombre, ou se déclarer avec.
 - Une date (`timestamp`) donnée par l'IA à une entrée de Fiches, qui n'en a pas : refusée par un message Java brut (« Value … of type java.lang.String cannot be converted to long », vu le 2026-10-28 dans une routine) au lieu d'une phrase qui dit que l'outil n'a pas de date.
 - Une Tâche qui passe l'entrée reçue à une routine (`run_routine`, `data` ← `{"received": {}}`) ne lui donne que son id (vu le 2026-10-28) : la routine doit la relire. La joindre en entier, comme le fait un déclencheur qui lance une routine directement (`docs/CORE.md`, « Triggers »).
 - `GoalRecurringTest` échoue le jour du passage à l'heure d'hiver (vu le 2026-10-25, déjà avant la partie A) : il vieillit une tentative de 24 h exactes, alors que ce jour-là en dure 25 ; vieillir d'un jour du calendrier de l'app, pas d'une durée.
@@ -50,6 +51,8 @@ Codé, jamais vu sur l'appareil.
 - Un filtre qui compare un champ à une variable ou une lecture (« kcal > objectif_calorique ») : le terme lu une fois à la référence du contexte (`TermReader`, `docs/BRICKS.md`), puis le filtre SQL comme aujourd'hui ; `EntryFilters.parse` et `ConditionPicker` le prennent.
 
 ## À concevoir
+
+- Des montages types pour l'IA (une discussion qui revient, une alerte sur un seuil, un bilan fait seul…) : un catalogue lu à la demande par une commande, le texte de départ n'en gardant qu'une ligne par montage (besoin → nom) ; chaque montage dit le besoin, les pièces et leur liaison, ses noms (commandes, réglages, types d'étape) vérifiés par un script comme le Guide ; la matière tirée du montage réel de l'utilisateur, l'effet mesuré au banc par des scénarios de conception.
 
 - Les zones d'une partie importée : chacune arrive seule sur sa ligne, en colonne 0 (`Grid.arrive`, comme toute tuile nouvelle), deux zones côte à côte dans le fichier empilées avec un vide à droite ; garder leur disposition entre elles.
 - Une Lecture qui rend plusieurs valeurs (les trois derniers retours, joints) pour l'entrée d'une API : une Lecture réduit aujourd'hui à une seule valeur.

@@ -120,23 +120,23 @@ class DemoContentTest {
     }
 
     @Test
-    fun `the automations are off, each with its instruction, a catch-up with a schedule only, in a group its zone has`() {
+    fun `the routines are off, each with its instruction, a catch-up with a schedule only, in a group its zone has`() {
         for (language in languages) {
             val content = read(language)
-            assertEquals(5, content.automations.size)
+            assertEquals(5, content.routines.size)
             val groups = content.zones.associate { it.getString("id") to it.getJSONArray("tool_groups").strings() }
-            content.automations.forEach { automation ->
-                assertFalse(automation.getBoolean("is_enabled"))
-                assertTrue(automation.getString("seed").isNotBlank())
+            content.routines.forEach { routine ->
+                assertFalse(routine.getBoolean("is_enabled"))
+                assertTrue(routine.getString("seed").isNotBlank())
                 // Its pointers read as the routine's screen reads one
-                automation.optJSONArray("pointers")?.let { pointers ->
+                routine.optJSONArray("pointers")?.let { pointers ->
                     (0 until pointers.length()).forEach {
                         val pointer = app.treelune.core.ai.enrichments.PointerConfig.fromJson(pointers.getJSONObject(it)) { key -> key }
                         assertEquals(null, pointer.selection.problem { key -> key })
                     }
                 }
-                assertEquals(automation.has("schedule"), automation.has("catch_up"))
-                automation.optString("group").takeIf { it.isNotEmpty() }?.let { assertTrue(it in groups.getValue(automation.getString("zone_id"))) }
+                assertEquals(routine.has("schedule"), routine.has("catch_up"))
+                routine.optString("group").takeIf { it.isNotEmpty() }?.let { assertTrue(it in groups.getValue(routine.getString("zone_id"))) }
             }
         }
     }
@@ -184,10 +184,10 @@ class DemoContentTest {
         val identities = content.identities.map { it.getString("id") }.toSet()
         assertTrue(identities.isNotEmpty())
         assertTrue(content.zones.any { it.optString("identity_id") in identities })
-        assertTrue(content.automations.any { it.optString("identity_id") in identities })
+        assertTrue(content.routines.any { it.optString("identity_id") in identities })
         // Routines held to an access, each end told as its routine says
-        assertTrue(content.automations.all { it.has("access") })
-        assertTrue(content.automations.map { it.optString("notify_end") }.toSet().containsAll(setOf("always", "on_problem")))
+        assertTrue(content.routines.all { it.has("access") })
+        assertTrue(content.routines.map { it.optString("notify_end") }.toSet().containsAll(setOf("always", "on_problem")))
     }
 
     @Test
@@ -271,7 +271,7 @@ class DemoContentTest {
                 check(tool.getString("id"), config.getString("description"), medium)
                 config.optJSONArray("extra_fields")?.let { f -> (0 until f.length()).forEach { check(tool.getString("id"), f.getJSONObject(it).getString("display_name"), short) } }
             }
-            content.automations.forEach { check(it.getString("id"), it.getString("name"), short) }
+            content.routines.forEach { check(it.getString("id"), it.getString("name"), short) }
         }
     }
 

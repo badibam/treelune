@@ -12,7 +12,7 @@ import java.util.TimeZone
 /**
  * Covers turning "yesterday" or "last week" into the two timestamps a query runs between.
  *
- * This is what a command means by a period, and the recent work on automations turns on it:
+ * This is what a command means by a period, and the recent work on routines turns on it:
  * a run catching up on a past day has to resolve against the moment it was scheduled for,
  * not against the clock, or every late run reads today. TODO.md still sends that to the
  * device; these cases take the arithmetic half of it.
@@ -151,7 +151,7 @@ class PeriodResolutionTest {
 
     /**
      * The reference is what "yesterday" is counted from, which is the point of it being
-     * a parameter: an automation catching up on a day long past reads that day.
+     * a parameter: a routine catching up on a day long past reads that day.
      */
     @Test
     fun theReferenceDecidesWhichDayYesterdayIs() {
@@ -193,7 +193,7 @@ class PeriodResolutionTest {
      * Late evening in Paris is already the next morning in Tokyo, so the same instant belongs
      * to a different day depending on the zone it is read in. The app's zone decides it;
      * moving the machine changes nothing. This is what keeps the days on screen, in the
-     * history and in an automation's "yesterday" in step with the dates shown beside them
+     * history and in a routine's "yesterday" in step with the dates shown beside them
      * when the user sets a timezone override.
      */
     @Test

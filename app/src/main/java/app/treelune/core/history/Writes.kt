@@ -3,7 +3,7 @@ package app.treelune.core.history
 import android.content.Context
 import androidx.room.useWriterConnection
 import app.treelune.core.ai.database.AISessionEntity
-import app.treelune.core.ai.database.AutomationEntity
+import app.treelune.core.ai.database.RoutineEntity
 import app.treelune.core.ai.database.SessionMessageEntity
 import app.treelune.core.database.AppDatabase
 import app.treelune.core.database.entities.AppSettingsCategory
@@ -79,8 +79,8 @@ class Writes(private val context: Context) {
 
     suspend fun updateVariable(variable: VariableEntity) = write(CoveredTable.VARIABLES, variable.id) { database.variableDao().update(variable) }
 
-    suspend fun moveAutomation(id: String, gridX: Int, gridY: Int) =
-        write(CoveredTable.AUTOMATIONS, id) { database.aiDao().updateAutomationPosition(id, gridX, gridY) }
+    suspend fun moveRoutine(id: String, gridX: Int, gridY: Int) =
+        write(CoveredTable.ROUTINES, id) { database.aiDao().updateRoutinePosition(id, gridX, gridY) }
 
     suspend fun moveVariable(id: String, gridX: Int, gridY: Int) =
         write(CoveredTable.VARIABLES, id) { database.variableDao().updatePosition(id, gridX, gridY) }
@@ -95,18 +95,18 @@ class Writes(private val context: Context) {
 
     suspend fun deleteEvent(id: String) = delete(CoveredTable.EVENTS, id) { database.eventDao().deleteById(id) }
 
-    // ── Automations ──
+    // ── Routines ──
 
-    suspend fun insertAutomation(automation: AutomationEntity) =
-        write(CoveredTable.AUTOMATIONS, automation.id) { database.aiDao().insertAutomation(automation) }
+    suspend fun insertRoutine(routine: RoutineEntity) =
+        write(CoveredTable.ROUTINES, routine.id) { database.aiDao().insertRoutine(routine) }
 
-    suspend fun updateAutomation(automation: AutomationEntity) =
-        write(CoveredTable.AUTOMATIONS, automation.id) { database.aiDao().updateAutomation(automation) }
+    suspend fun updateRoutine(routine: RoutineEntity) =
+        write(CoveredTable.ROUTINES, routine.id) { database.aiDao().updateRoutine(routine) }
 
-    suspend fun setAutomationEnabled(id: String, enabled: Boolean, updatedAt: Long) =
-        write(CoveredTable.AUTOMATIONS, id) { database.aiDao().setAutomationEnabled(id, enabled, updatedAt) }
+    suspend fun setRoutineEnabled(id: String, enabled: Boolean, updatedAt: Long) =
+        write(CoveredTable.ROUTINES, id) { database.aiDao().setRoutineEnabled(id, enabled, updatedAt) }
 
-    suspend fun deleteAutomation(id: String) = delete(CoveredTable.AUTOMATIONS, id) { database.aiDao().deleteAutomationById(id) }
+    suspend fun deleteRoutine(id: String) = delete(CoveredTable.ROUTINES, id) { database.aiDao().deleteRoutineById(id) }
 
     // ── Tasks: their runs stay out (CoveredTable.CHILDREN_LEFT_OUT) ──
 
@@ -325,7 +325,7 @@ class Writes(private val context: Context) {
         CoveredTable.ZONES -> Place(null, row.getString("id"))
         CoveredTable.TOOL_INSTANCES -> Place(row.getString("id"), row.getString("zone_id"))
         CoveredTable.TOOL_DATA -> toolPlace(row.getString("tool_instance_id"))
-        CoveredTable.VARIABLES, CoveredTable.AUTOMATIONS, CoveredTable.EVENTS, CoveredTable.TASKS -> Place(null, row.getString("zone_id"))
+        CoveredTable.VARIABLES, CoveredTable.ROUTINES, CoveredTable.EVENTS, CoveredTable.TASKS -> Place(null, row.getString("zone_id"))
         CoveredTable.AI_SESSIONS -> sessionPlace(row.getString("id"))
         CoveredTable.SESSION_MESSAGES -> sessionPlace(row.getString("session_id"))
         CoveredTable.FILES -> when {
@@ -341,7 +341,7 @@ class Writes(private val context: Context) {
 
     /** A routine's message concerns the routine's zone. */
     private suspend fun sessionPlace(sessionId: String): Place? =
-        Rows.read(database, CoveredTable.AUTOMATIONS, "seed_session_id", sessionId).firstOrNull()?.let { Place(null, it.getString("zone_id")) }
+        Rows.read(database, CoveredTable.ROUTINES, "seed_session_id", sessionId).firstOrNull()?.let { Place(null, it.getString("zone_id")) }
 
     private companion object {
         /** SessionType.SEED's name: a routine's message, kept as a session */

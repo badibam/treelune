@@ -8,13 +8,13 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * A routine's message in blocks (AutomationMessage): read back in the form it was written, its
+ * A routine's message in blocks (RoutineMessage): read back in the form it was written, its
  * pointers read as the screen's are, and what a routine's message cannot hold refused.
  */
-class AutomationMessageTest {
+class RoutineMessageTest {
 
     private fun text(key: String) = when (key) {
-        "automation_message_block_unreadable", "automation_message_block_type" -> "$key %1\$d %2\$s"
+        "routine_message_block_unreadable", "routine_message_block_type" -> "$key %1\$d %2\$s"
         else -> key
     }
 
@@ -29,10 +29,10 @@ class AutomationMessageTest {
     @Test
     fun aMessageReadsBackInTheFormItWasWritten() {
         val blocks = JSONArray().put(textBlock("Sum up the week of ")).put(pointerBlock("TOOL_INSTANCE", "meals")).put(textBlock(" in two lines."))
-        val message = AutomationMessage.fromBlocks(blocks, ::text)
+        val message = RoutineMessage.fromBlocks(blocks, ::text)
         assertEquals(3, message.segments.size)
         assertTrue(message.segments[1] is MessageSegment.EnrichmentBlock)
-        assertEquals(blocks.toString(), AutomationMessage.toBlocks(message).toString())
+        assertEquals(blocks.toString(), RoutineMessage.toBlocks(message).toString())
         // As the screen stores it, and so as a run reads it
         assertEquals(message, RichMessage.fromJson(message.toJson()))
     }
@@ -40,21 +40,21 @@ class AutomationMessageTest {
     @Test
     fun aBlockOfAnotherTypeIsRefusedWithItsPlace() {
         val image = JSONArray().put(textBlock("Look: ")).put(JSONObject().put("type", "image").put("image_id", "i1"))
-        val refused = assertThrows(IllegalArgumentException::class.java) { AutomationMessage.fromBlocks(image, ::text) }
-        assertEquals("automation_message_block_type 1 image", refused.message)
+        val refused = assertThrows(IllegalArgumentException::class.java) { RoutineMessage.fromBlocks(image, ::text) }
+        assertEquals("routine_message_block_type 1 image", refused.message)
     }
 
     @Test
     fun aPointerThatDoesNotFitItsTargetIsRefused() {
-        assertThrows(IllegalArgumentException::class.java) { AutomationMessage.fromBlocks(JSONArray().put(pointerBlock("VARIABLE", "kcal")), ::text) }
+        assertThrows(IllegalArgumentException::class.java) { RoutineMessage.fromBlocks(JSONArray().put(pointerBlock("VARIABLE", "kcal")), ::text) }
         val noSelection = JSONObject().put("type", "pointer").put("pointer", JSONObject().put("attach", JSONObject()))
-        assertThrows(IllegalArgumentException::class.java) { AutomationMessage.fromBlocks(JSONArray().put(noSelection), ::text) }
-        assertThrows(IllegalArgumentException::class.java) { AutomationMessage.fromBlocks(JSONArray().put(JSONObject().put("type", "text")), ::text) }
+        assertThrows(IllegalArgumentException::class.java) { RoutineMessage.fromBlocks(JSONArray().put(noSelection), ::text) }
+        assertThrows(IllegalArgumentException::class.java) { RoutineMessage.fromBlocks(JSONArray().put(JSONObject().put("type", "text")), ::text) }
     }
 
     @Test
     fun aFileJoinedToAMessageIsNoRoutinesMessage() {
         val file = RichMessage(listOf(MessageSegment.EnrichmentBlock(EnrichmentType.FILE, "{}")))
-        assertThrows(IllegalStateException::class.java) { AutomationMessage.toBlocks(file) }
+        assertThrows(IllegalStateException::class.java) { RoutineMessage.toBlocks(file) }
     }
 }

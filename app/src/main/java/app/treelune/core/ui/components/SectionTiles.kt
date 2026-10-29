@@ -27,10 +27,10 @@ sealed interface SectionTile {
         override val mode get() = variable.look.displayMode
     }
 
-    data class Routine(val automation: app.treelune.core.ai.data.Automation) : SectionTile {
-        override val id get() = automation.id
-        override val tile get() = automation.tile
-        override val mode get() = automation.look.displayMode
+    data class Routine(val routine: app.treelune.core.ai.data.Routine) : SectionTile {
+        override val id get() = routine.id
+        override val tile get() = routine.tile
+        override val mode get() = routine.look.displayMode
     }
 
     data class TaskTile(val task: app.treelune.core.tasks.Task) : SectionTile {
@@ -54,7 +54,7 @@ fun SectionTiles(
     onToolLongClick: (ToolInstance) -> Unit,
     onOpenEntry: (ToolInstance, app.treelune.core.tools.EntryToOpen) -> Unit,
     onOpenVariable: (String) -> Unit,
-    automationActions: app.treelune.core.ai.ui.automation.AutomationActions,
+    routineActions: app.treelune.core.ai.ui.routine.RoutineActions,
     edit: GridEdit? = null
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -70,7 +70,7 @@ fun SectionTiles(
             )
             // A long touch opens it too: its settings are on its page
             is SectionTile.Variable -> VariableCard(tile.variable, onOpen = { onOpenVariable(tile.variable.id) }, onLongClick = { onOpenVariable(tile.variable.id) })
-            is SectionTile.Routine -> app.treelune.core.ai.ui.automation.AutomationTile(tile.automation, automationActions)
+            is SectionTile.Routine -> app.treelune.core.ai.ui.routine.RoutineTile(tile.routine, routineActions)
             is SectionTile.TaskTile -> app.treelune.core.tasks.ui.TaskTile(tile.task)
         }
     }

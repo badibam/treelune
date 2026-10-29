@@ -14,28 +14,28 @@ import org.json.JSONObject
 
 /**
  * What the AI reads and writes of a routine (docs/AI.md), each described by a
- * schema: its config, read by AUTOMATION_CONFIG and written by CREATE_AUTOMATION and
- * UPDATE_AUTOMATION in the same shape, and its runs, read by AUTOMATION_RUNS. Their instants and
+ * schema: its config, read by ROUTINE_CONFIG and written by CREATE_ROUTINE and
+ * UPDATE_ROUTINE in the same shape, and its runs, read by ROUTINE_RUNS. Their instants and
  * durations are marked (FieldValueSchema), and so reach the AI in ISO 8601 and come back in
  * milliseconds, by ModelValues as everything else's.
  */
-object AutomationSchemas {
+object RoutineSchemas {
 
-    const val CONFIG_ID = "automation_config"
-    const val RUNS_ID = "automation_runs"
+    const val CONFIG_ID = "routine_config"
+    const val RUNS_ID = "routine_runs"
 
-    /** A routine's config: its zone, its settings (AutomationSettings), its access (AccessMask) and its message (AutomationMessage). */
+    /** A routine's config: its zone, its settings (RoutineSettings), its access (AccessMask) and its message (RoutineMessage). */
     fun config(context: Context): Schema {
         val s = Strings.`for`(context = context)
         val content = JSONObject()
             .put("type", "object")
             .put("properties", JSONObject()
                 .put("zone_id", JSONObject().put("type", "string"))
-                .put("settings", SettingsSchemaGenerator.generate(AutomationSettings.nodes(context), s::shared))
+                .put("settings", SettingsSchemaGenerator.generate(RoutineSettings.nodes(context), s::shared))
                 .put("access", access())
                 .put("message", message(s::shared)))
             .put("additionalProperties", false)
-        return Schema(CONFIG_ID, s.shared("automation_display_name"), "", SchemaCategory.AUTOMATION_CONFIG, content.toString())
+        return Schema(CONFIG_ID, s.shared("routine_display_name"), "", SchemaCategory.ROUTINE_CONFIG, content.toString())
     }
 
     /** A list of `{"target": {"kind", "id"}, "level"}`, empty for everything. */
@@ -65,14 +65,14 @@ object AutomationSchemas {
         val text = JSONObject()
             .put("type", "object")
             .put("properties", JSONObject()
-                .put("type", JSONObject().put("const", AutomationMessage.TEXT))
+                .put("type", JSONObject().put("const", RoutineMessage.TEXT))
                 .put("text", JSONObject().put("type", "string")))
             .put("required", JSONArray().put("type").put("text"))
             .put("additionalProperties", false)
         val pointer = JSONObject()
             .put("type", "object")
             .put("properties", JSONObject()
-                .put("type", JSONObject().put("const", AutomationMessage.POINTER))
+                .put("type", JSONObject().put("const", RoutineMessage.POINTER))
                 .put("pointer", JSONObject()
                     .put("type", "object")
                     .put("properties", JSONObject()
@@ -99,7 +99,7 @@ object AutomationSchemas {
         return JSONObject().put("type", "array").put("items", JSONObject().put("oneOf", JSONArray().put(text).put(pointer)))
     }
 
-    /** The keys of a run kept for the AI, as the sessions service names them (list_sessions_for_automation). */
+    /** The keys of a run kept for the AI, as the sessions service names them (list_sessions_for_routine). */
     val RUN_KEYS = listOf("id", "scheduled_execution_time", "created_at", "end_reason", "total_roundtrips", "total_cost", "cost_is_lower_bound")
 
     /**
@@ -109,7 +109,7 @@ object AutomationSchemas {
      */
     fun runs(context: Context): Schema {
         val s = Strings.`for`(context = context)
-        return Schema(RUNS_ID, s.shared("automation_runs_display_name"), "", SchemaCategory.AUTOMATION_CONFIG, runsContent().toString())
+        return Schema(RUNS_ID, s.shared("routine_runs_display_name"), "", SchemaCategory.ROUTINE_CONFIG, runsContent().toString())
     }
 
     /** The content of the runs' schema, which needs no context. */
@@ -132,9 +132,9 @@ object AutomationSchemas {
     }
 
     /**
-     * A routine of a list as the AI reads it, in the app's state and in AUTOMATIONS: its id, name,
+     * A routine of a list as the AI reads it, in the app's state and in ROUTINES: its id, name,
      * zone and group, whether it is on, and its schedule in a sentence, the one its card shows.
-     * Never its message, read with AUTOMATION_CONFIG.
+     * Never its message, read with ROUTINE_CONFIG.
      */
     fun listed(row: Map<*, *>, s: app.treelune.core.strings.StringsContext): Map<String, Any?> = linkedMapOf(
         "id" to row["id"],

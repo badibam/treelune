@@ -22,7 +22,7 @@ data class AIMessage(
     val postText: String?,                            // Optional, only if actions
     val keepControl: Boolean?,                        // Optional - true to keep control after successful actions
     val communicationModule: CommunicationModule?,    // Optional, always last
-    val completed: Boolean?,                          // Optional - true when AI indicates work is done (AUTOMATION sessions)
+    val completed: Boolean?,                          // Optional - true when AI indicates work is done (ROUTINE_RUN sessions)
     /** What a routine's AI says of its run for the user, with the completed that confirms it (RunEnd) */
     val summary: String? = null
 ) {

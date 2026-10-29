@@ -98,7 +98,7 @@ fun CreateZoneScreen(
     )
 
     // The names the zone's tool groups came with: a group renamed here is renamed in its tools,
-    // automations and variables
+    // routines and variables
     val origins = remember(existingZone) { app.treelune.core.fields.settings.ListOrigins() }
 
     fun save() {

@@ -26,7 +26,7 @@ import org.json.JSONObject
  * - Validate security constraints for AI-generated commands
  * - Enforce data access limits and token management
  * - Process both dataCommands (queries) and actionCommands (actions)
- * - Apply automation-specific resolution for relative parameters
+ * - Apply routine-specific resolution for relative parameters
  * - Manage execution permissions and safety checks
  * - Implement cascade failure logic for action commands (stop on first action failure)
  */
@@ -43,7 +43,7 @@ class AICommandProcessor(private val context: Context) {
      * - AI doesn't need to handle timestamps, timezones, or calendar calculations
      *
      * @param commands List of DataCommands from AI for data retrieval
-     * @param reference Instant relative periods resolve against: an automation's scheduled time,
+     * @param reference Instant relative periods resolve against: a routine's scheduled time,
      *   so a run catching up on a past day reads that day; the clock for a chat.
      * @return TransformationResult with executable commands and transformation errors
      */
@@ -246,8 +246,8 @@ class AICommandProcessor(private val context: Context) {
                 isActionCommand = true
             )
 
-            // Routine actions: its config written as AUTOMATION_CONFIG reads it, in the stored form
-            "CREATE_AUTOMATION", "UPDATE_AUTOMATION", "DELETE_AUTOMATION" -> automationCommand(command, stored = true)
+            // Routine actions: its config written as ROUTINE_CONFIG reads it, in the stored form
+            "CREATE_ROUTINE", "UPDATE_ROUTINE", "DELETE_ROUTINE" -> routineCommand(command, stored = true)
             // A Task's config written as TASK_CONFIG reads it, in the stored form
             "CREATE_TASK", "UPDATE_TASK", "DELETE_TASK" -> taskCommand(command, stored = true)
 
@@ -265,7 +265,7 @@ class AICommandProcessor(private val context: Context) {
             // A Task run now: its steps run as the Task's, held to its access (TaskService)
             "RUN_TASK" -> ExecutableCommand(resource = "tasks", operation = "run", params = command.params, isActionCommand = true)
             // A routine run now, as its own button does, what is given joined to its message
-            "RUN_AUTOMATION" -> ExecutableCommand(resource = "automations", operation = "execute_manual", params = command.params, isActionCommand = true)
+            "RUN_ROUTINE" -> ExecutableCommand(resource = "routines", operation = "execute_manual", params = command.params, isActionCommand = true)
             // An event emitted, with the values it declares: what listens to it starts (EventTriggers)
             "EMIT_EVENT" -> ExecutableCommand(resource = "events", operation = "emit", params = command.params, isActionCommand = true)
             // An event of a zone, written as EVENTS reads it
@@ -370,7 +370,7 @@ class AICommandProcessor(private val context: Context) {
                 isActionCommand = true
             )
 
-            "CREATE_AUTOMATION", "UPDATE_AUTOMATION", "DELETE_AUTOMATION" -> automationCommand(command, stored = false)
+            "CREATE_ROUTINE", "UPDATE_ROUTINE", "DELETE_ROUTINE" -> routineCommand(command, stored = false)
             "CREATE_TASK", "UPDATE_TASK", "DELETE_TASK" -> taskCommand(command, stored = false)
             "IMPORT_DATA" -> importCommand(command)
             "EXPORT_DATA" -> exportCommand(command)
@@ -385,7 +385,7 @@ class AICommandProcessor(private val context: Context) {
             // A Task run now: its steps run as the Task's, held to its access (TaskService)
             "RUN_TASK" -> ExecutableCommand(resource = "tasks", operation = "run", params = command.params, isActionCommand = true)
             // A routine run now, as its own button does, what is given joined to its message
-            "RUN_AUTOMATION" -> ExecutableCommand(resource = "automations", operation = "execute_manual", params = command.params, isActionCommand = true)
+            "RUN_ROUTINE" -> ExecutableCommand(resource = "routines", operation = "execute_manual", params = command.params, isActionCommand = true)
             // An event emitted, with the values it declares: what listens to it starts (EventTriggers)
             "EMIT_EVENT" -> ExecutableCommand(resource = "events", operation = "emit", params = command.params, isActionCommand = true)
             // An event of a zone, written as EVENTS reads it
@@ -413,10 +413,10 @@ class AICommandProcessor(private val context: Context) {
     )
 
     /**
-     * A routine action as the automations service takes it: its settings among its params, beside
-     * the zone, the access and the message (AutomationService). With [stored], the instants and
+     * A routine action as the routines service takes it: its settings among its params, beside
+     * the zone, the access and the message (RoutineService). With [stored], the instants and
      * durations the model writes in ISO 8601 turned into milliseconds, by the routine's config
-     * schema (AutomationSchemas) -- a schedule's dates, a pointer's fixed period bounds.
+     * schema (RoutineSchemas) -- a schedule's dates, a pointer's fixed period bounds.
      *
      * @throws IllegalArgumentException on a date or a duration that does not read, or settings that are not an object
      */
@@ -447,9 +447,9 @@ class AICommandProcessor(private val context: Context) {
         )
     }
 
-    private fun automationCommand(command: DataCommand, stored: Boolean): ExecutableCommand {
+    private fun routineCommand(command: DataCommand, stored: Boolean): ExecutableCommand {
         val config = command.params.filterKeys { it in setOf("zone_id", "settings", "message", "access") }
-        val schema = JSONObject(app.treelune.core.ai.data.AutomationSchemas.config(context).content)
+        val schema = JSONObject(app.treelune.core.ai.data.RoutineSchemas.config(context).content)
         @Suppress("UNCHECKED_CAST")
         val written = if (!stored) config else ModelValues.fromModel(config, schema, AppConfigManager.getDateTimeConfig().getZoneId()) as Map<String, Any?>
         val settings = when (val given = written["settings"]) {
@@ -462,10 +462,10 @@ class AICommandProcessor(private val context: Context) {
         val known = schema.getJSONObject("properties").getJSONObject("settings").getJSONObject("properties").keys().asSequence().toList()
         (settings.keys - known.toSet()).firstOrNull()?.let { throw IllegalArgumentException(s.shared("service_error_param_unknown").format(it, known.joinToString(", "))) }
         return ExecutableCommand(
-            resource = "automations",
+            resource = "routines",
             operation = command.type.substringBefore('_').lowercase(),
             params = settings + written.filterKeys { it != "settings" } +
-                listOfNotNull(command.params["automation_id"]?.let { "automation_id" to it }),
+                listOfNotNull(command.params["routine_id"]?.let { "routine_id" to it }),
             isActionCommand = true
         )
     }

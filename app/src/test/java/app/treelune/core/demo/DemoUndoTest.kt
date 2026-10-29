@@ -42,17 +42,17 @@ class DemoUndoTest {
 
     @Test
     fun `the demo removed is undone whole, its routines and their messages with it`() = runBlocking {
-        val routine = database.aiDao().getAllAutomations().first { it.id.startsWith(DemoContent.PREFIX) }
+        val routine = database.aiDao().getAllRoutines().first { it.id.startsWith(DemoContent.PREFIX) }
         val seedId = routine.seedSessionId
         assertTrue(database.aiDao().getMessagesForSession(seedId).isNotEmpty())
 
         assertTrue(coordinator.processUserAction("demo.remove", emptyMap()).isSuccess)
         assertTrue(database.zoneDao().getAllZones().none { it.id.startsWith(DemoContent.PREFIX) })
-        assertNull(database.aiDao().getAutomationById(routine.id))
+        assertNull(database.aiDao().getRoutineById(routine.id))
 
         assertTrue(coordinator.processUserAction("history.undo", mapOf("id" to lastStep())).isSuccess)
         assertTrue(database.zoneDao().getAllZones().any { it.id.startsWith(DemoContent.PREFIX) })
-        assertTrue(database.aiDao().getAutomationById(routine.id) != null)
+        assertTrue(database.aiDao().getRoutineById(routine.id) != null)
         assertTrue(database.aiDao().getMessagesForSession(seedId).isNotEmpty())
     }
 

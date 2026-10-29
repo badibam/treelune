@@ -116,16 +116,16 @@ class UndoTest {
     @Test
     fun `a zone deleted takes its routines and variables, and an undo brings them back with the message`() = runBlocking {
         val zoneId = zone("Garden")
-        val routine = coordinator.processUserAction("automations.create", mapOf(
+        val routine = coordinator.processUserAction("routines.create", mapOf(
             "zone_id" to zoneId,
             "name" to "Weekly review",
             "identity_id" to null,
             "provider_id" to null,
             "is_enabled" to false,
-            "message" to listOf(mapOf("type" to app.treelune.core.ai.data.AutomationMessage.TEXT, "text" to "How did the week go?"))
+            "message" to listOf(mapOf("type" to app.treelune.core.ai.data.RoutineMessage.TEXT, "text" to "How did the week go?"))
         ))
         assertTrue(routine.error, routine.isSuccess)
-        val routineId = routine.data!!["automation_id"] as String
+        val routineId = routine.data!!["routine_id"] as String
         val seedSessionId = routine.data["seed_session_id"] as String
         val variable = coordinator.processUserAction("variables.create", mapOf(
             "zone_id" to zoneId,
@@ -137,11 +137,11 @@ class UndoTest {
         val variableId = variable.data!!["variable_id"] as String
 
         assertTrue(coordinator.processUserAction("zones.delete", mapOf("zone_id" to zoneId)).isSuccess)
-        assertNull("no routine left behind", database.aiDao().getAutomationById(routineId))
+        assertNull("no routine left behind", database.aiDao().getRoutineById(routineId))
         assertNull("no variable left behind", database.variableDao().getById(variableId))
 
         assertTrue(coordinator.processUserAction("history.undo", mapOf("id" to lastStep())).isSuccess)
-        assertEquals(zoneId, database.aiDao().getAutomationById(routineId)!!.zoneId)
+        assertEquals(zoneId, database.aiDao().getRoutineById(routineId)!!.zoneId)
         assertEquals(zoneId, database.variableDao().getById(variableId)!!.zoneId)
         assertTrue("the message comes back with it", database.aiDao().getMessagesForSession(seedSessionId).single().richContentJson!!.contains("How did the week go?"))
     }

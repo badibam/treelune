@@ -35,7 +35,7 @@ class GuideTest {
 
     @Test
     fun everyPlaceOfTheJourneyReads() {
-        val kept = mapOf("zone" to "z", "tool" to "t", "automation" to "a", "run" to "r")
+        val kept = mapOf("zone" to "z", "tool" to "t", "routine" to "a", "run" to "r")
         chapters.flatMap { it.steps }.mapNotNull { it.target }.forEach { Place.of(Guide.fill(it, kept)!!) }
     }
 

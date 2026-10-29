@@ -37,7 +37,7 @@ Tout peut être nœud: Zone, ToolInstance, Entry, Field. éventuellement data sp
 ## Gestion et exploitation
 
 **Aucune logique hardcodée**
-- Automations AI (pas APP) consultent/modifient le graphe
+- Routines AI (pas APP) consultent/modifient le graphe
 - Meta-Graph = donnée passive
 - Accès via commandes IA standard: dataCommands (queries) et actionCommands (actions)
 - L'IA décide elle-même comment interpréter et exploiter le graphe
@@ -49,4 +49,4 @@ Deux modes: liste + visualisation graphe
 ## Insights
 
 Pas d'objet dédié
-= Actions sur data existantes via automations AI basées sur Meta-Graph
+= Actions sur data existantes via routines AI basées sur Meta-Graph

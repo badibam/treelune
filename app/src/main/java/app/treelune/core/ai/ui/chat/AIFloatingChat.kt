@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
  * States (simplified from V1):
  * - IDLE: No active session → "Start Chat" button
  * - CHAT: Chat active → Normal chat interface (AIScreen)
- * - AUTOMATION: Automation active → Read-only view with interrupt/stop buttons
+ * - ROUTINE_RUN: Routine active → Read-only view with interrupt/stop buttons
  *
  * V2 Simplifications:
  * - No queue management (handled internally by scheduler)
@@ -58,7 +58,7 @@ fun AIFloatingChat(
                     onResumeSession = { showHistory = false }
                 )
             }
-            // CHAT or AUTOMATION: Session active → Use AIScreen
+            // CHAT or ROUTINE_RUN: Session active → Use AIScreen
             aiState.sessionId != null -> {
                 AIScreen(
                     sessionId = aiState.sessionId!!,

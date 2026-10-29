@@ -8,7 +8,7 @@ import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 
 /**
- * What a relative date resolves against: the reference its context gives (an automation's
+ * What a relative date resolves against: the reference its context gives (a routine's
  * scheduled time, the end of a goal's attempt, the instant a variable is read at, the clock where
  * there is none), and the user's calendar (timezone, the hour a day starts, the first day of a
  * week).

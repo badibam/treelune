@@ -171,16 +171,16 @@ class EntryTriggersTest {
 
     @Test
     fun aRoutinesTriggers_areStored_andReadBack() = runBlocking {
-        val created = ok("automations.create", mapOf(
+        val created = ok("routines.create", mapOf(
             "zone_id" to zoneId, "name" to "Coach", "identity_id" to null, "provider_id" to null, "is_enabled" to false,
             "message" to listOf(mapOf("type" to "text", "text" to "Look at this weighing")),
             "triggers" to listOf(onWeight(listOf("created"), listOf(above80)))
         ))
-        val read = ok("automations.get", mapOf("automation_id" to created["automation_id"]))["automation"] as Map<*, *>
+        val read = ok("routines.get", mapOf("routine_id" to created["routine_id"]))["routine"] as Map<*, *>
         val trigger = (read["triggers"] as List<*>).single() as Map<*, *>
 
         assertEquals(listOf("created"), trigger["writes"])
-        assertEquals(1, app.treelune.core.ai.data.Automation.fromResult(read).triggers)
+        assertEquals(1, app.treelune.core.ai.data.Routine.fromResult(read).triggers)
     }
 
     @Test

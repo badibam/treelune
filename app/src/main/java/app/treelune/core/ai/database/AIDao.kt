@@ -68,7 +68,7 @@ interface AIDao {
      */
     @Query("""
         SELECT * FROM ai_sessions
-        WHERE type = 'AUTOMATION' AND seen_at IS NULL AND is_active = 0
+        WHERE type = 'ROUTINE_RUN' AND seen_at IS NULL AND is_active = 0
           AND end_reason IS NOT NULL AND end_reason NOT IN ${SessionEndReason.RESUMABLE_SQL}
     """)
     suspend fun getWaitingRuns(): List<AISessionEntity>
@@ -128,7 +128,7 @@ interface AIDao {
     suspend fun getSessionCountByType(type: String): Int
 
     /** The routine runs of the chain [chainId] (Chains): the run it is named after, and those that continue it. */
-    @Query("SELECT COUNT(*) FROM ai_sessions WHERE type = 'AUTOMATION' AND (id = :chainId OR chain_id = :chainId)")
+    @Query("SELECT COUNT(*) FROM ai_sessions WHERE type = 'ROUTINE_RUN' AND (id = :chainId OR chain_id = :chainId)")
     suspend fun countInChain(chainId: String): Int
 
     @Query("SELECT COUNT(*) FROM session_messages WHERE session_id = :sessionId")
@@ -158,37 +158,37 @@ interface AIDao {
     @Query("DELETE FROM ai_provider_configs WHERE id = :id")
     suspend fun deleteProviderConfigById(id: String)
 
-    // === Automations ===
+    // === Routines ===
 
-    @Query("SELECT * FROM automations WHERE id = :id")
-    suspend fun getAutomationById(id: String): AutomationEntity?
+    @Query("SELECT * FROM routines WHERE id = :id")
+    suspend fun getRoutineById(id: String): RoutineEntity?
 
-    @Query("SELECT * FROM automations WHERE zone_id = :zoneId ORDER BY created_at DESC")
-    suspend fun getAutomationsByZone(zoneId: String): List<AutomationEntity>
+    @Query("SELECT * FROM routines WHERE zone_id = :zoneId ORDER BY created_at DESC")
+    suspend fun getRoutinesByZone(zoneId: String): List<RoutineEntity>
 
-    @Query("SELECT * FROM automations WHERE seed_session_id = :seedSessionId")
-    suspend fun getAutomationBySeedSession(seedSessionId: String): AutomationEntity?
+    @Query("SELECT * FROM routines WHERE seed_session_id = :seedSessionId")
+    suspend fun getRoutineBySeedSession(seedSessionId: String): RoutineEntity?
 
-    @Query("SELECT * FROM automations ORDER BY created_at DESC")
-    suspend fun getAllAutomations(): List<AutomationEntity>
+    @Query("SELECT * FROM routines ORDER BY created_at DESC")
+    suspend fun getAllRoutines(): List<RoutineEntity>
 
-    @Query("SELECT * FROM automations WHERE is_enabled = 1")
-    suspend fun getAllEnabledAutomations(): List<AutomationEntity>
+    @Query("SELECT * FROM routines WHERE is_enabled = 1")
+    suspend fun getAllEnabledRoutines(): List<RoutineEntity>
 
-    @Query("UPDATE automations SET grid_x = :gridX, grid_y = :gridY WHERE id = :id")
-    suspend fun updateAutomationPosition(id: String, gridX: Int, gridY: Int)
+    @Query("UPDATE routines SET grid_x = :gridX, grid_y = :gridY WHERE id = :id")
+    suspend fun updateRoutinePosition(id: String, gridX: Int, gridY: Int)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAutomation(automation: AutomationEntity)
+    suspend fun insertRoutine(routine: RoutineEntity)
 
     @Update
-    suspend fun updateAutomation(automation: AutomationEntity)
+    suspend fun updateRoutine(routine: RoutineEntity)
 
-    @Query("DELETE FROM automations WHERE id = :id")
-    suspend fun deleteAutomationById(id: String)
+    @Query("DELETE FROM routines WHERE id = :id")
+    suspend fun deleteRoutineById(id: String)
 
-    @Query("UPDATE automations SET is_enabled = :enabled, updated_at = :updatedAt WHERE id = :id")
-    suspend fun setAutomationEnabled(id: String, enabled: Boolean, updatedAt: Long)
+    @Query("UPDATE routines SET is_enabled = :enabled, updated_at = :updatedAt WHERE id = :id")
+    suspend fun setRoutineEnabled(id: String, enabled: Boolean, updatedAt: Long)
 
 
     // === History Queries ===
@@ -269,71 +269,71 @@ interface AIDao {
     @Query("DELETE FROM ai_sessions WHERE id = :sessionId")
     suspend fun deleteSessionById(sessionId: String)
 
-    // === Automation Scheduling Queries ===
+    // === Routine Scheduling Queries ===
 
     /**
-     * Get ALL incomplete automation sessions (for any automation, enabled or disabled)
+     * Get ALL incomplete routine sessions (for any routine, enabled or disabled)
      * Returns the sessions not active, with no end reason or a resumable one (SessionEndReason.resumable)
      * Used by scheduler to detect all sessions to resume (crash, network timeout, suspended by CHAT)
      * Ordered by scheduledExecutionTime ASC (oldest first)
      */
     @Query("""
         SELECT * FROM ai_sessions
-        WHERE type = 'AUTOMATION'
+        WHERE type = 'ROUTINE_RUN'
           AND (end_reason IS NULL OR end_reason IN ${SessionEndReason.RESUMABLE_SQL})
           AND is_active = 0
         ORDER BY scheduled_execution_time ASC
     """)
-    suspend fun getAllIncompleteAutomationSessions(): List<AISessionEntity>
+    suspend fun getAllIncompleteRoutineSessions(): List<AISessionEntity>
 
     /**
-     * Get incomplete automation session for a specific automation
+     * Get incomplete routine session for a specific routine
      * Returns the sessions not active, with no end reason or a resumable one (SessionEndReason.resumable)
      * Used by scheduler to detect sessions to resume (crash, network timeout)
      */
     @Query("""
         SELECT * FROM ai_sessions
-        WHERE automation_id = :automationId
-          AND type = 'AUTOMATION'
+        WHERE routine_id = :routineId
+          AND type = 'ROUTINE_RUN'
           AND (end_reason IS NULL OR end_reason IN ${SessionEndReason.RESUMABLE_SQL})
           AND is_active = 0
         ORDER BY scheduled_execution_time DESC
         LIMIT 1
     """)
-    suspend fun getIncompleteAutomationSession(automationId: String): AISessionEntity?
+    suspend fun getIncompleteRoutineSession(routineId: String): AISessionEntity?
 
     /**
-     * Get last completed automation session for a specific automation: one with an end reason
+     * Get last completed routine session for a specific routine: one with an end reason
      * that is not resumable, the exact opposite of the incomplete ones, so that no reason falls
      * between the two (an occurrence run again, or never taken up)
      * Used by scheduler to calculate next expected execution time
      */
     @Query("""
         SELECT * FROM ai_sessions
-        WHERE automation_id = :automationId
-          AND type = 'AUTOMATION'
+        WHERE routine_id = :routineId
+          AND type = 'ROUTINE_RUN'
           AND end_reason IS NOT NULL AND end_reason NOT IN ${SessionEndReason.RESUMABLE_SQL}
         ORDER BY scheduled_execution_time DESC
         LIMIT 1
     """)
-    suspend fun getLastCompletedAutomationSession(automationId: String): AISessionEntity?
+    suspend fun getLastCompletedRoutineSession(routineId: String): AISessionEntity?
 
     /**
-     * Get sessions for automation with pagination and optional time filtering
+     * Get sessions for routine with pagination and optional time filtering
      * Returns sessions ordered by scheduledExecutionTime DESC (most recent first)
-     * Used by AutomationScreen to display execution history
+     * Used by RoutineScreen to display execution history
      */
     @Query("""
         SELECT * FROM ai_sessions
-        WHERE automation_id = :automationId
-          AND type = 'AUTOMATION'
+        WHERE routine_id = :routineId
+          AND type = 'ROUTINE_RUN'
           AND (:startTime IS NULL OR created_at >= :startTime)
           AND (:endTime IS NULL OR created_at <= :endTime)
         ORDER BY scheduled_execution_time DESC
         LIMIT :limit OFFSET :offset
     """)
-    suspend fun getSessionsForAutomationPaginated(
-        automationId: String,
+    suspend fun getSessionsForRoutinePaginated(
+        routineId: String,
         limit: Int,
         offset: Int,
         startTime: Long?,
@@ -341,18 +341,18 @@ interface AIDao {
     ): List<AISessionEntity>
 
     /**
-     * Count sessions for automation with optional time filtering
-     * Used by AutomationScreen for pagination calculation
+     * Count sessions for routine with optional time filtering
+     * Used by RoutineScreen for pagination calculation
      */
     @Query("""
         SELECT COUNT(*) FROM ai_sessions
-        WHERE automation_id = :automationId
-          AND type = 'AUTOMATION'
+        WHERE routine_id = :routineId
+          AND type = 'ROUTINE_RUN'
           AND (:startTime IS NULL OR created_at >= :startTime)
           AND (:endTime IS NULL OR created_at <= :endTime)
     """)
-    suspend fun countSessionsForAutomation(
-        automationId: String,
+    suspend fun countSessionsForRoutine(
+        routineId: String,
         startTime: Long?,
         endTime: Long?
     ): Int

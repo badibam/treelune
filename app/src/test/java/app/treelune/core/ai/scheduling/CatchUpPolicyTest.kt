@@ -10,7 +10,7 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 
 /**
- * Covers what an automation catches up on after the phone was off or the app closed.
+ * Covers what a routine catches up on after the phone was off or the app closed.
  *
  * This is the logic the device checks have been waiting on: it decides whether a run that should
  * have happened yesterday still happens, and which one when several were missed. Every value it
@@ -36,7 +36,7 @@ class CatchUpPolicyTest {
 
         val start = CatchUpPolicy.searchStart(
             lastExecutionTime = lastRun,
-            automationUpdatedAt = at(2025, 3, 1, 12, 0),
+            routineUpdatedAt = at(2025, 3, 1, 12, 0),
             catchUpWindow = null,
             now = at(2025, 3, 15, 10, 0)
         )
@@ -45,7 +45,7 @@ class CatchUpPolicyTest {
     }
 
     /**
-     * An automation edited after its last run resumes from the edit, not from the run: a schedule
+     * A routine edited after its last run resumes from the edit, not from the run: a schedule
      * changed on Thursday must not be walked back through Monday's occurrences.
      */
     @Test
@@ -54,7 +54,7 @@ class CatchUpPolicyTest {
 
         val start = CatchUpPolicy.searchStart(
             lastExecutionTime = at(2025, 3, 10, 9, 0),
-            automationUpdatedAt = edited,
+            routineUpdatedAt = edited,
             catchUpWindow = null,
             now = at(2025, 3, 15, 10, 0)
         )
@@ -69,7 +69,7 @@ class CatchUpPolicyTest {
 
         val start = CatchUpPolicy.searchStart(
             lastExecutionTime = 0L,
-            automationUpdatedAt = 0L,
+            routineUpdatedAt = 0L,
             catchUpWindow = null,
             now = now
         )
@@ -90,7 +90,7 @@ class CatchUpPolicyTest {
 
         val start = CatchUpPolicy.searchStart(
             lastExecutionTime = longAgo,
-            automationUpdatedAt = 0L,
+            routineUpdatedAt = 0L,
             catchUpWindow = 60 * minute,
             now = now
         )
@@ -109,7 +109,7 @@ class CatchUpPolicyTest {
 
         val start = CatchUpPolicy.searchStart(
             lastExecutionTime = lastRun,
-            automationUpdatedAt = 0L,
+            routineUpdatedAt = 0L,
             catchUpWindow = 120 * minute,
             now = now
         )
@@ -138,7 +138,7 @@ class CatchUpPolicyTest {
     // ==================== Which missed occurrence runs ====================
 
     /**
-     * Four days off, a daily schedule, and an automation set to run only the latest missed
+     * Four days off, a daily schedule, and a routine set to run only the latest missed
      * occurrence: it runs the most recent one, not the oldest.
      */
     @Test

@@ -300,7 +300,7 @@ private fun app.treelune.core.ai.data.SystemMessage.toJson(): String {
 
 /**
  * Extension function to serialize ExecutionMetadata to JSON.
- * TODO: Implement ExecutionMetadata class and serialization for AUTOMATION sessions.
+ * TODO: Implement ExecutionMetadata class and serialization for ROUTINE_RUN sessions.
  */
 private fun app.treelune.core.ai.data.ExecutionMetadata.toJson(): String {
     return "{}" // Placeholder until ExecutionMetadata is implemented

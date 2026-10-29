@@ -203,7 +203,7 @@
     <string name="ai_error_validation_multiple_action_types">Plusieurs types de commandes présents: %1$s. Un seul type autorisé par réponse.</string>
     <string name="ai_error_validation_request_without_actions">validation_request présent sans action_commands. validation_request n\'est autorisé qu\'avec action_commands.</string>
     <string name="ai_error_post_text_without_actions">post_text présent sans action_commands. post_text n\'est autorisé qu\'avec action_commands : sans actions, mets tout ton texte dans pre_text.</string>
-    <string name="ai_error_communication_module_in_automation">communication_module dans une routine : personne ne répond pendant une exécution. Décide d\'après ce que tu peux lire, continue, et dis dans ton résumé ce que tu as supposé.</string>
+    <string name="ai_error_communication_module_in_routine">communication_module dans une routine : personne ne répond pendant une exécution. Décide d\'après ce que tu peux lire, continue, et dis dans ton résumé ce que tu as supposé.</string>
 
     <!-- Custom fields - Technical name -->
     <string name="error_field_name_unknown">Nom technique inconnu : %1$s. Un nom technique est attribué par l\'app et ne se choisit pas : omets \'name\' pour créer un champ, reprends-le tel quel pour désigner un champ existant. Le renommer détruirait les valeurs déjà enregistrées ; c\'est \'display_name\' qui se modifie librement.</string>
@@ -257,23 +257,23 @@
     <string name="filter_value_time">une heure, HH:MM</string>
     <string name="filter_value_boolean">true ou false</string>
 
-    <!-- Automations - Catch-up settings -->
-    <string name="automation_catch_up_title">Si l\'app n\'a pas tourné à l\'heure prévue</string>
-    <string name="automation_catch_up_window">Rattraper jusqu\'à</string>
-    <string name="automation_catch_up_unlimited">Sans limite</string>
-    <string name="automation_catch_up_run_every">Exécutions manquées</string>
-    <string name="automation_catch_up_every_occurrence">Chacune</string>
-    <string name="automation_catch_up_latest_only">La plus récente</string>
-    <string name="automation_catch_up_required">Indique jusqu\'où rattraper une exécution manquée avant d\'enregistrer.</string>
-    <string name="automation_catch_up_without_schedule">Une routine sans planification n\'a rien à rattraper : ses réglages de rattrapage vont avec une planification.</string>
-    <string name="automation_catch_up_limited">Jusqu\'à un délai</string>
-    <string name="automation_catch_up_delay">Délai</string>
-    <string name="automation_is_enabled">Activée</string>
-    <string name="automation_notify_end">Me signaler la fin</string>
-    <string name="automation_notify_end_always">Toujours</string>
-    <string name="automation_notify_end_on_problem">En cas de problème</string>
-    <string name="automation_notify_end_never">Jamais</string>
-    <string name="automation_schedule">Planification</string>
+    <!-- Routines - Catch-up settings -->
+    <string name="routine_catch_up_title">Si l\'app n\'a pas tourné à l\'heure prévue</string>
+    <string name="routine_catch_up_window">Rattraper jusqu\'à</string>
+    <string name="routine_catch_up_unlimited">Sans limite</string>
+    <string name="routine_catch_up_run_every">Exécutions manquées</string>
+    <string name="routine_catch_up_every_occurrence">Chacune</string>
+    <string name="routine_catch_up_latest_only">La plus récente</string>
+    <string name="routine_catch_up_required">Indique jusqu\'où rattraper une exécution manquée avant d\'enregistrer.</string>
+    <string name="routine_catch_up_without_schedule">Une routine sans planification n\'a rien à rattraper : ses réglages de rattrapage vont avec une planification.</string>
+    <string name="routine_catch_up_limited">Jusqu\'à un délai</string>
+    <string name="routine_catch_up_delay">Délai</string>
+    <string name="routine_is_enabled">Activée</string>
+    <string name="routine_notify_end">Me signaler la fin</string>
+    <string name="routine_notify_end_always">Toujours</string>
+    <string name="routine_notify_end_on_problem">En cas de problème</string>
+    <string name="routine_notify_end_never">Jamais</string>
+    <string name="routine_schedule">Planification</string>
 
     <!-- AI Errors - Command transformation -->
     <string name="ai_command_not_run">Commande non exécutée</string>
@@ -282,13 +282,13 @@
     <string name="ai_schema_required_for_actions_shown">Les actions de l\'IA n\'ont pas été faites : elle reçoit d\'abord le format de ce qu\'elles visent, puis les renverra.</string>
     <string name="ai_schema_always_send_shown">L\'IA reçoit le format des outils toujours envoyés.</string>
     <string name="ai_system_data_refused_by_user_shown">Données non envoyées à l\'IA : tu as refusé ses %1$d caractères. Elle peut demander moins, ou te demander ce qu\'il faut.</string>
-    <string name="ai_system_data_too_large_automation_shown">Données non envoyées à l\'IA : %1$d caractères, au-delà du seuil des routines (%2$d). Elle peut demander moins.</string>
+    <string name="ai_system_data_too_large_routine_shown">Données non envoyées à l\'IA : %1$d caractères, au-delà du seuil des routines (%2$d). Elle peut demander moins.</string>
     <string name="ai_completion_confirmation_shown">L\'IA dit avoir terminé : l\'app lui demande de le confirmer, avec son résumé de l\'exécution.</string>
     <string name="run_facts_writes">Écritures faites : %1$d · refusées ou échouées : %2$d</string>
     <string name="run_facts_with_end">%1$s · %2$s</string>
     <string name="run_summary_none">L\'IA n\'a pas donné de résumé de cette exécution.</string>
     <string name="ai_summary_required_shown">L\'IA a confirmé sans résumé : l\'app le lui redemande une fois.</string>
-    <string name="ai_automation_no_commands_shown">L\'IA a répondu sans rien lire ni faire : l\'app lui rappelle qu\'une routine doit agir, ou dire qu\'elle a fini.</string>
+    <string name="ai_routine_no_commands_shown">L\'IA a répondu sans rien lire ni faire : l\'app lui rappelle qu\'une routine doit agir, ou dire qu\'elle a fini.</string>
     <string name="ai_failure_config_shown">Le fournisseur d\'IA refuse la demande telle qu\'elle est réglée (clé, modèle ou compte) : à revoir dans Réglages › Fournisseurs IA.</string>
     <string name="ai_failure_refused_shown">Le fournisseur d\'IA refuse la demande pour l\'instant (trop de demandes, surcharge ou crédit épuisé) : réessaie plus tard.</string>
     <string name="ai_failure_network_shown">Pas de réseau : la demande partira quand il reviendra.</string>
@@ -368,7 +368,7 @@
     <string name="ai_error_param_provider_id_required">Paramètre obligatoire: providerId</string>
     <string name="ai_error_param_session_id_required">Paramètre obligatoire: sessionId</string>
     <string name="ai_error_param_sender_required">Paramètre obligatoire: sender</string>
-    <string name="ai_error_param_automation_id_required">Paramètre obligatoire: automationId</string>
+    <string name="ai_error_param_routine_id_required">Paramètre obligatoire: routineId</string>
     <string name="ai_error_invalid_sender">Expéditeur invalide: %1$s</string>
 
     <!-- AI Errors - Messages -->
@@ -407,13 +407,13 @@
     <string name="action_verbalize_zones_place">Déplacement de zones dans leur groupe</string>
     <string name="action_verbalize_zones_place_section">Déplacement d\'outils et de variables dans leur groupe</string>
     <string name="action_verbalize_tools_waiting">Compte de ce qui attend dans les outils</string>
-    <string name="action_verbalize_automations_waiting">Compte des exécutions de routines pas encore lues</string>
+    <string name="action_verbalize_routines_waiting">Compte des exécutions de routines pas encore lues</string>
 
     <!-- AI Errors - Network and System -->
     <string name="ai_error_network_unavailable">Réseau indisponible</string>
     <string name="ai_error_network_timeout_retries">Timeout réseau après %1$d tentatives: %2$s</string>
     <string name="ai_error_response_lost">Requête envoyée, réponse perdue : son coût est inconnu</string>
-    <string name="ai_error_session_timeout_automation">Durée maximale de session routine dépassée (%1$d min), arrêt forcé</string>
+    <string name="ai_error_session_timeout_routine">Durée maximale de session routine dépassée (%1$d min), arrêt forcé</string>
     <string name="ai_error_timeout">Délai dépassé</string>
     <string name="ai_error_limit_reached">Limite atteinte</string>
     <string name="ai_error_missing_required_field">Champ obligatoire manquant: %1$s</string>
@@ -429,7 +429,7 @@
     <string name="ai_phase_waiting_validation">Validation requise</string>
     <string name="ai_phase_waiting_communication">En attente de réponse</string>
     <string name="ai_phase_waiting_data_confirmation">En attente de ta décision sur les données</string>
-    <string name="ai_system_data_too_large_automation">Données non envoyées : %1$d caractères, au-delà du seuil des routines de %2$d. Resserre la requête (moins de champs, une période plus courte) ou découpe ce qui est vraiment nécessaire.</string>
+    <string name="ai_system_data_too_large_routine">Données non envoyées : %1$d caractères, au-delà du seuil des routines de %2$d. Resserre la requête (moins de champs, une période plus courte) ou découpe ce qui est vraiment nécessaire.</string>
     <string name="ai_system_data_refused_by_user">Données non envoyées : l\'utilisateur a refusé %1$d caractères de données. Resserre la requête (moins de champs, une période plus courte) ou demande-lui ce qui est nécessaire.</string>
     <string name="ai_system_result_cut">[… %1$s caractères non envoyés]</string>
     <string name="ai_posttext_not_shown">Ton post_text n\'a pas été montré : les actions n\'ont pas toutes réussi.</string>
@@ -445,7 +445,7 @@
 
     <!-- AI Session Phase Labels (for SessionStatusBar bottom display) -->
     <string name="ai_phase_idle_chat">En attente</string>
-    <string name="ai_phase_idle_automation">Prêt</string>
+    <string name="ai_phase_idle_routine">Prêt</string>
     <string name="ai_phase_executing">Traitement...</string>
     <string name="ai_phase_preparing_continuation">Préparation continuation...</string>
     <string name="ai_phase_awaiting_closure">Fermeture dans 5s...</string>
@@ -617,7 +617,7 @@
     <string name="add_section_link">Relier et automatiser</string>
     <string name="add_section_copy">Copier</string>
     <string name="add_copy_tool">Un outil</string>
-    <string name="add_copy_automation">Une routine</string>
+    <string name="add_copy_routine">Une routine</string>
     <string name="add_copy_task">Une Tâche</string>
     <string name="message_no_tools_in_zone">Aucun outil dans cette zone</string>
     <string name="message_no_items_in_group">Aucun élément dans ce groupe</string>
@@ -632,10 +632,10 @@
     <string name="text_selection_bold">Gras</string>
     <string name="text_selection_italic">Italique</string>
     <string name="duplicate_success_tool">Outil dupliqué avec succès</string>
-    <string name="duplicate_success_automation">Routine copiée, éteinte jusqu\'à ce que tu l\'allumes</string>
+    <string name="duplicate_success_routine">Routine copiée, éteinte jusqu\'à ce que tu l\'allumes</string>
     <string name="duplicate_success_task">Tâche copiée, éteinte jusqu\'à ce que tu l\'allumes</string>
     <string name="duplicate_no_tools">Aucun outil disponible à dupliquer</string>
-    <string name="duplicate_no_automations">Aucune routine disponible à dupliquer</string>
+    <string name="duplicate_no_routines">Aucune routine disponible à dupliquer</string>
     <string name="duplicate_no_tasks">Aucune Tâche disponible à dupliquer</string>
     <string name="duplicate_error">Erreur lors de la duplication: %1$s</string>
 
@@ -948,7 +948,7 @@
 
     <!-- DUPLICATE SELECTOR - Duplication navigation -->
     <string name="duplicate_selector_title_tool">Sélectionner l\'outil à dupliquer</string>
-    <string name="duplicate_selector_title_automation">Sélectionner la routine à dupliquer</string>
+    <string name="duplicate_selector_title_routine">Sélectionner la routine à dupliquer</string>
     <string name="duplicate_selector_title_task">Sélectionner la Tâche à dupliquer</string>
     <string name="duplicate_select_zone">Sélectionner la zone</string>
     <string name="duplicate_select_instance">Sélectionner l\'instance</string>
@@ -1029,14 +1029,14 @@
     <string name="ai_always_send_awaiting">Les outils toujours envoyés pèsent %1$s caractères à eux tous (seuil : %2$s) : %3$s. Ton choix vaut pour toute cette session : envoyés avec chaque message, ou plus du tout, l\'IA pouvant les lire au besoin. Une nouvelle session te le redemandera.</string>
     <string name="ai_always_send_accepted">Outils toujours envoyés : envoyés avec chaque message de cette session (%1$s caractères)</string>
     <string name="ai_always_send_refused">Outils toujours envoyés : non envoyés dans cette session (%1$s caractères), l\'IA peut les lire au besoin</string>
-    <string name="ai_always_send_automation_refused">Outils toujours envoyés : %1$s caractères, au-delà du seuil de %2$s, non envoyés ; l\'IA en a reçu la liste</string>
+    <string name="ai_always_send_routine_refused">Outils toujours envoyés : %1$s caractères, au-delà du seuil de %2$s, non envoyés ; l\'IA en a reçu la liste</string>
     <string name="ai_prompt_level3_title">Snapshot de l\'état de l\'application</string>
     <string name="ai_prompt_level3_snapshot_time">Snapshot pris au début de la session : **%1$s**</string>
     <string name="ai_prompt_level3_snapshot_note">Note : Il s\'agit d\'un snapshot qui a pu évoluer depuis le début de la session.</string>
     <string name="ai_prompt_level3_zone_groups_title">Groupes de zones de l\'accueil</string>
     <string name="ai_prompt_level3_zones_title">Zones</string>
     <string name="ai_prompt_level3_tools_title">Instances d\'outils</string>
-    <string name="ai_prompt_level3_automations_title">Routines</string>
+    <string name="ai_prompt_level3_routines_title">Routines</string>
     <string name="ai_prompt_current_datetime">Message système, pas de l\'utilisateur. Date et heure actuelles : %1$s</string>
     <string name="ai_prompt_scheduled_datetime">Date prévue pour cette exécution : %1$s. Les données relatives (hier, cette semaine) sont résolues sur cette date, pas sur l\'heure actuelle. Ce que tu fais ou dis reste au présent. Si tu écris une donnée qui appartient à la date prévue plutôt qu\'à aujourd\'hui, passe son timestamp explicitement : sans timestamp, l\'entrée est datée du moment où cette exécution tourne.</string>
 
@@ -1069,13 +1069,13 @@
     <string name="settings_ai_limits">Limites IA</string>
     <string name="settings_ai_limits_description">Configurer les limites des boucles autonomes de l\'IA</string>
     <string name="app_config_ai_limits_chat">Appels IA d\'affilée, chat</string>
-    <string name="app_config_ai_limits_automation">Appels IA par routine</string>
+    <string name="app_config_ai_limits_routine">Appels IA par routine</string>
     <string name="settings_ai_limits_chat_help">Compté depuis ton dernier message : au-delà, l\'IA s\'arrête et te rend la main.</string>
-    <string name="settings_ai_limits_automation_help">Compté sur toute la session, puisque personne n\'intervient : au-delà, la routine se termine.</string>
+    <string name="settings_ai_limits_routine_help">Compté sur toute la session, puisque personne n\'intervient : au-delà, la routine se termine.</string>
     <string name="app_config_ai_data_chat">Taille des données avant confirmation, chat (caractères)</string>
-    <string name="app_config_ai_data_automation">Taille des données admise, routine (caractères)</string>
+    <string name="app_config_ai_data_routine">Taille des données admise, routine (caractères)</string>
     <string name="settings_ai_data_chat_help">Au-delà, les données demandées, par tes pointeurs ou par l\'IA, attendent que tu les envoies ou les refuses.</string>
-    <string name="settings_ai_data_automation_help">Au-delà, les données ne partent pas : l\'IA est invitée à resserrer sa demande. Visible dans l\'historique d\'exécution.</string>
+    <string name="settings_ai_data_routine_help">Au-delà, les données ne partent pas : l\'IA est invitée à resserrer sa demande. Visible dans l\'historique d\'exécution.</string>
     <string name="app_config_ai_always_send">Taille des outils toujours envoyés avant confirmation (caractères)</string>
     <string name="settings_ai_always_send_help">Les outils marqués « toujours envoyer » partent avec chaque message à l\'IA. Au-delà de cette taille à eux tous, un chat te demande une fois par session s\'il faut les envoyer ; une routine, ou une IA extérieure à l\'app, n\'en reçoit que la liste et peut les lire au besoin.</string>
     <string name="app_config_chain_max_runs">Exécutions à la suite (Tâches et routines)</string>
@@ -1225,11 +1225,11 @@
     <string name="ai_error_provider_name_too_long">Le nom d\'un fournisseur fait au plus %1$d caractères</string>
     <string name="ai_error_provider_name_taken">Un fournisseur s\'appelle déjà %1$s : choisis un autre nom</string>
     <string name="ai_error_session_provider_chat_only">Seule une conversation choisit son fournisseur : l\'exécution d\'une routine prend celui de sa routine</string>
-    <string name="automation_provider_none">Cette routine n\'a pas de fournisseur d\'IA : choisis-en un dans ses réglages</string>
-    <string name="automation_provider_required">Dis quel fournisseur d\'IA la routine utilise, ou null pour aucun</string>
-    <string name="automation_provider_none_enabled">Une routine sans fournisseur d\'IA ne peut pas être activée : choisis d\'abord un fournisseur</string>
-    <string name="automation_status_no_provider">Sans fournisseur d\'IA</string>
-    <string name="automation_no_provider_yet">Aucun fournisseur d\'IA pour l\'instant : la routine est créée éteinte. Ajoute un fournisseur dans Réglages › Fournisseurs IA, puis choisis-le ici.</string>
+    <string name="routine_provider_none">Cette routine n\'a pas de fournisseur d\'IA : choisis-en un dans ses réglages</string>
+    <string name="routine_provider_required">Dis quel fournisseur d\'IA la routine utilise, ou null pour aucun</string>
+    <string name="routine_provider_none_enabled">Une routine sans fournisseur d\'IA ne peut pas être activée : choisis d\'abord un fournisseur</string>
+    <string name="routine_status_no_provider">Sans fournisseur d\'IA</string>
+    <string name="routine_no_provider_yet">Aucun fournisseur d\'IA pour l\'instant : la routine est créée éteinte. Ajoute un fournisseur dans Réglages › Fournisseurs IA, puis choisis-le ici.</string>
     <string name="session_provider_title">Fournisseur d\'IA</string>
     <string name="session_provider_help">Le fournisseur que cette conversation appelle, à partir de son prochain message. Si tu le changes, la conversation suit la réflexion du nouveau fournisseur.</string>
     <string name="ai_providers_empty">Un fournisseur, c\'est l\'IA que l\'app appelle : un service comme Claude, OpenAI ou DeepSeek avec ta clé, ou un serveur à toi. Ajoutes-en un pour parler à l\'IA.</string>
@@ -1289,7 +1289,7 @@
     <string name="ai_chat_interrupt_and_chat_button">Interrompre et chatter</string>
     <string name="ai_chat_creating_session">Création de la session...</string>
 
-    <!-- Chat options dialog (during automation) -->
+    <!-- Chat options dialog (during routine) -->
     <string name="ai_chat_options_dialog_title">Que souhaites-tu faire ?</string>
     <string name="ai_chat_options_dialog_description">La routine est toujours en cours. Choisis ton action :</string>
     <string name="ai_chat_option_interrupt_title">Interrompre et discuter</string>
@@ -1297,9 +1297,9 @@
     <string name="ai_chat_option_after_title">Discuter après</string>
     <string name="ai_chat_option_after_description">La routine continue, chat accessible après</string>
 
-    <!-- Automation Queue Status -->
-    <string name="ai_automation_queued_badge">En attente dans la file (position %1$d)</string>
-    <string name="ai_automation_cancel_execution">Annuler l\'exécution</string>
+    <!-- Routine Queue Status -->
+    <string name="ai_routine_queued_badge">En attente dans la file (position %1$d)</string>
+    <string name="ai_routine_cancel_execution">Annuler l\'exécution</string>
 
     <!-- Round control -->
     <string name="action_interrupt_round">Interrompre</string>
@@ -1310,8 +1310,8 @@
     <string name="ai_limit_action_retries_reached">Limite de tentatives d'actions atteinte</string>
     <string name="ai_limit_total_roundtrips_reached">L\'IA s\'arrête : elle a enchaîné sans toi autant d\'échanges que le permet Réglages › Limites IA. Envoie un message pour qu\'elle continue.</string>
 
-    <!-- AI AUTOMATION - Messages for autonomous executions -->
-    <string name="ai_automation_continue_reminder">Continue jusqu'à ce que la tâche demandée soit complétée. Lorsque tu as terminé, utilise le flag \"completed\": true dans ta réponse.</string>
+    <!-- AI ROUTINE_RUN - Messages for autonomous executions -->
+    <string name="ai_routine_continue_reminder">Continue jusqu'à ce que la tâche demandée soit complétée. Lorsque tu as terminé, utilise le flag \"completed\": true dans ta réponse.</string>
 
     <!-- AI SCHEMAS - Schemas metadata and field descriptions -->
     <!-- ai_message_response schema -->
@@ -1526,16 +1526,16 @@
     <string name="action_verbalize_variables_delete">Suppression de la variable %1$s</string>
     <string name="action_verbalize_variables_evaluate">Lecture de la variable %1$s</string>
     <string name="action_verbalize_variables_read">Lecture des variables</string>
-    <string name="action_verbalize_automations_create">Création de la routine %1$s</string>
-    <string name="action_verbalize_automations_update">Modification de la routine %1$s</string>
-    <string name="action_verbalize_automations_delete">Suppression de la routine %1$s</string>
-    <string name="action_verbalize_automations_config">Lecture de la routine %1$s</string>
-    <string name="action_verbalize_automations_next_execution">Prochaine exécution de la routine %1$s</string>
-    <string name="action_verbalize_automations_list">Lecture des routines</string>
-    <string name="action_verbalize_automations_duplicate">Copie de la routine %1$s</string>
-    <string name="action_verbalize_automations_enable">Activation de la routine %1$s</string>
-    <string name="action_verbalize_automations_disable">Désactivation de la routine %1$s</string>
-    <string name="action_verbalize_automations_execute_manual">Lancement de la routine %1$s</string>
+    <string name="action_verbalize_routines_create">Création de la routine %1$s</string>
+    <string name="action_verbalize_routines_update">Modification de la routine %1$s</string>
+    <string name="action_verbalize_routines_delete">Suppression de la routine %1$s</string>
+    <string name="action_verbalize_routines_config">Lecture de la routine %1$s</string>
+    <string name="action_verbalize_routines_next_execution">Prochaine exécution de la routine %1$s</string>
+    <string name="action_verbalize_routines_list">Lecture des routines</string>
+    <string name="action_verbalize_routines_duplicate">Copie de la routine %1$s</string>
+    <string name="action_verbalize_routines_enable">Activation de la routine %1$s</string>
+    <string name="action_verbalize_routines_disable">Désactivation de la routine %1$s</string>
+    <string name="action_verbalize_routines_execute_manual">Lancement de la routine %1$s</string>
     <string name="action_verbalize_runs_list">Lecture des exécutions de la routine %1$s</string>
     <string name="action_verbalize_run_history">Lecture d\'une exécution de la routine %1$s</string>
     <string name="import_error_file">Le fichier ne se lit pas : %1$s</string>
@@ -1841,49 +1841,49 @@
     <string name="label_default_value">Valeur par défaut</string>
     <string name="label_config">Configuration</string>
 
-    <!-- AUTOMATIONS - General -->
-    <string name="automation_schema_name">Nom de la routine, montré sur sa tuile</string>
-    <string name="automation_schema_description">Description facultative de ce que fait la routine</string>
-    <string name="automation_schema_icon_name">Nom de l\'icône de la routine (un nom d\'icône Lucide) ; bot si absent</string>
-    <string name="automation_schema_icon_color">Couleur de l\'icône de la routine, parmi RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, PURPLE, PINK ; null ou absent pour une icône neutre. Chaque thème la dessine à sa façon</string>
-    <string name="automation_schema_texture">Motif posé sur la tuile de la routine, parmi LINES, DIAGONALS, GRID, ZIGZAG, WAVES, DOTS, CROSSES, STARS, RINGS, DIAMONDS, CONFETTI, CHECKER, BRICKS, SCALES, ICON (ICON répète l\'icône de la routine) ; null ou absent pour aucun. Une affaire de goût : à poser quand la personne le demande</string>
-    <string name="automation_schema_display_mode">Comment la tuile de la routine s\'affiche parmi les outils de sa section : ICON (son icône), MINIMAL (icône et nom), LINE et CONDENSED (son état et son interrupteur à côté ou dessous), EXTENDED (avec ses boutons, par défaut), SQUARE (avec ses dernières exécutions)</string>
-    <string name="automation_display_name">Routine</string>
-    <string name="automation_runs_display_name">Exécutions d\'une routine</string>
-    <string name="automation_message_placeholder">Message de démarrage de la routine...</string>
-    <string name="automation_message">Message</string>
-    <string name="automation_new_name">Nouvelle routine</string>
-    <string name="automation_none_configured">Aucune routine configurée</string>
-    <string name="automation_triggers_count">%1$d déclencheur(s)</string>
+    <!-- ROUTINES - General -->
+    <string name="routine_schema_name">Nom de la routine, montré sur sa tuile</string>
+    <string name="routine_schema_description">Description facultative de ce que fait la routine</string>
+    <string name="routine_schema_icon_name">Nom de l\'icône de la routine (un nom d\'icône Lucide) ; bot si absent</string>
+    <string name="routine_schema_icon_color">Couleur de l\'icône de la routine, parmi RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, PURPLE, PINK ; null ou absent pour une icône neutre. Chaque thème la dessine à sa façon</string>
+    <string name="routine_schema_texture">Motif posé sur la tuile de la routine, parmi LINES, DIAGONALS, GRID, ZIGZAG, WAVES, DOTS, CROSSES, STARS, RINGS, DIAMONDS, CONFETTI, CHECKER, BRICKS, SCALES, ICON (ICON répète l\'icône de la routine) ; null ou absent pour aucun. Une affaire de goût : à poser quand la personne le demande</string>
+    <string name="routine_schema_display_mode">Comment la tuile de la routine s\'affiche parmi les outils de sa section : ICON (son icône), MINIMAL (icône et nom), LINE et CONDENSED (son état et son interrupteur à côté ou dessous), EXTENDED (avec ses boutons, par défaut), SQUARE (avec ses dernières exécutions)</string>
+    <string name="routine_display_name">Routine</string>
+    <string name="routine_runs_display_name">Exécutions d\'une routine</string>
+    <string name="routine_message_placeholder">Message de démarrage de la routine...</string>
+    <string name="routine_message">Message</string>
+    <string name="routine_new_name">Nouvelle routine</string>
+    <string name="routine_none_configured">Aucune routine configurée</string>
+    <string name="routine_triggers_count">%1$d déclencheur(s)</string>
 
-    <!-- AUTOMATIONS - Actions -->
-    <string name="automation_execute_now">Déclencher maintenant</string>
-    <string name="automation_execution_triggered">Exécution déclenchée</string>
-    <string name="automation_save_failed">Échec de la sauvegarde</string>
+    <!-- ROUTINES - Actions -->
+    <string name="routine_execute_now">Déclencher maintenant</string>
+    <string name="routine_execution_triggered">Exécution déclenchée</string>
+    <string name="routine_save_failed">Échec de la sauvegarde</string>
 
-    <!-- AUTOMATIONS - Status -->
-    <string name="automation_status_running">En cours</string>
-    <string name="automation_status_manual">Manuel</string>
-    <string name="automation_status_triggered">Selon déclencheurs</string>
-    <string name="automation_next_execution">Prochain : %1$s</string>
+    <!-- ROUTINES - Status -->
+    <string name="routine_status_running">En cours</string>
+    <string name="routine_status_manual">Manuel</string>
+    <string name="routine_status_triggered">Selon déclencheurs</string>
+    <string name="routine_next_execution">Prochain : %1$s</string>
     <string name="ai_status_completed">Terminé</string>
 
-    <!-- AUTOMATIONS - Execution card labels -->
-    <string name="automation_scheduled_label">Prévue : %1$s</string>
-    <string name="automation_manual_execution">Exécution manuelle</string>
-    <string name="automation_entry_execution">Partie sur une entrée écrite</string>
-    <string name="automation_event_execution">Partie sur un événement</string>
-    <string name="automation_condition_execution">Partie sur une condition</string>
-    <string name="automation_started_label">Lancée : %1$s</string>
-    <string name="automation_duration_label">Durée : %1$s</string>
-    <string name="automation_roundtrips_label">%1$d échanges</string>
-    <string name="automation_roundtrips_one">1 échange</string>
-    <string name="automation_tokens_label">tokens</string>
-    <string name="automation_next_execution_title">Prochaine exécution</string>
-    <string name="automation_no_executions">Aucune exécution trouvée</string>
-    <string name="automation_execution_detail_title">Détail de l\'exécution</string>
+    <!-- ROUTINES - Execution card labels -->
+    <string name="routine_scheduled_label">Prévue : %1$s</string>
+    <string name="routine_manual_execution">Exécution manuelle</string>
+    <string name="routine_entry_execution">Partie sur une entrée écrite</string>
+    <string name="routine_event_execution">Partie sur un événement</string>
+    <string name="routine_condition_execution">Partie sur une condition</string>
+    <string name="routine_started_label">Lancée : %1$s</string>
+    <string name="routine_duration_label">Durée : %1$s</string>
+    <string name="routine_roundtrips_label">%1$d échanges</string>
+    <string name="routine_roundtrips_one">1 échange</string>
+    <string name="routine_tokens_label">tokens</string>
+    <string name="routine_next_execution_title">Prochaine exécution</string>
+    <string name="routine_no_executions">Aucune exécution trouvée</string>
+    <string name="routine_execution_detail_title">Détail de l\'exécution</string>
 
-    <!-- AUTOMATIONS - Schedule patterns (short labels for buttons) -->
+    <!-- ROUTINES - Schedule patterns (short labels for buttons) -->
     <string name="schedule_summary_daily">Quotidien %1$s</string>
     <string name="schedule_summary_weekly">%1$s %2$s</string>
     <string name="schedule_summary_monthly">Le %1$s de %2$s %3$s</string>
@@ -1900,16 +1900,16 @@
     <string name="action_configure_schedule">Configurer la récurrence</string>
     <string name="schedule_unreadable">Récurrence enregistrée illisible (%1$s). Refais-la : sinon l\'enregistrement sera refusé, et elle restera telle quelle.</string>
 
-    <!-- AUTOMATIONS - Errors -->
-    <string name="error_automation_not_found">Routine introuvable</string>
-    <string name="error_automation_load_failed">Échec du chargement de la routine</string>
-    <string name="error_param_automation_id_required">ID routine requis</string>
-    <string name="error_automation_delete_failed">Échec de la suppression de la routine</string>
+    <!-- ROUTINES - Errors -->
+    <string name="error_routine_not_found">Routine introuvable</string>
+    <string name="error_routine_load_failed">Échec du chargement de la routine</string>
+    <string name="error_param_routine_id_required">ID routine requis</string>
+    <string name="error_routine_delete_failed">Échec de la suppression de la routine</string>
     <string name="error_param_seed_session_required">ID session SEED requis</string>
     <string name="error_param_zone_id_required">ID zone requis</string>
     <string name="error_param_icon_required">Icône requise</string>
     <string name="error_param_provider_id_required">ID fournisseur IA requis</string>
-    <string name="service_error_automation">Erreur AutomationService: %1$s</string>
+    <string name="service_error_routine">Erreur RoutineService: %1$s</string>
 
     <!-- SCHEDULE CONFIG - Main labels -->
     <string name="schedule_config_title">Configuration horaire</string>
@@ -2016,7 +2016,7 @@
     <string name="month_short_12">Déc</string>
 
     <!-- AI Guidance Messages (for PREPARING_CONTINUATION phase) -->
-    <string name="ai_automation_no_commands_guidance">Tu es en mode routine, tes réponses doivent contenir des requêtes de données ou des actions. Si tu as terminé, utilise le flag \'completed\'.</string>
+    <string name="ai_routine_no_commands_guidance">Tu es en mode routine, tes réponses doivent contenir des requêtes de données ou des actions. Si tu as terminé, utilise le flag \'completed\'.</string>
     <string name="ai_completion_confirmation_required">Le flag \'completed\' signifie que TOUTE la demande initiale est terminée, pas juste une étape. Si c\'était bien ton intention, renvoie un message avec \'completed: true\' et \'summary\' : pour l\'utilisateur, en quelques phrases, ce que tu as fait pendant cette exécution et pourquoi, en signalant ce qui mérite son attention. Sinon, continue ton travail.</string>
     <string name="ai_summary_required">Ta confirmation n\'a pas de \'summary\'. Renvoie \'completed: true\' avec \'summary\' : pour l\'utilisateur, en quelques phrases, ce que tu as fait pendant cette exécution et pourquoi, en signalant ce qui mérite son attention.</string>
 
@@ -2047,8 +2047,8 @@
     <string name="background_restricted_text">Android peut arrêter Treelune quand elle est fermée. Ce qui est planifié peut alors ne pas partir : routines planifiées, messages, échéances des listes, invitations des questionnaires et des séances, fins de période des objectifs. Autorise-la en arrière-plan pour en être sûr.</string>
     <string name="background_restricted_open">Autoriser en arrière-plan</string>
     <string name="background_restricted_later">Plus tard</string>
-    <string name="automation_message_empty">Écris le message que l\'IA recevra à chaque exécution</string>
-    <string name="automation_message_empty_run">Cette routine n\'a pas encore de message : écris d\'abord celui que l\'IA recevra à chaque exécution</string>
+    <string name="routine_message_empty">Écris le message que l\'IA recevra à chaque exécution</string>
+    <string name="routine_message_empty_run">Cette routine n\'a pas encore de message : écris d\'abord celui que l\'IA recevra à chaque exécution</string>
     <string name="bug_report_purpose">Un rapport sur ce qui n\'a pas marché, relu avant de partir, envoyé par e-mail au développeur ou par l\'app de ton choix</string>
     <string name="bug_report_description">Ce qui s\'est passé (facultatif)</string>
     <string name="bug_report_cleaning">Ci-dessous, exactement ce qui sera envoyé. Les identifiants et les textes cités sont remplacés ; le reste peut encore nommer quelque chose de toi : relis avant d\'envoyer.</string>
@@ -2139,15 +2139,15 @@
     <string name="message_zone_groups_description">Organise tes zones en groupes pour faciliter la navigation sur l\'accueil</string>
     <string name="label_ungrouped">Hors groupe</string>
     <string name="label_zones">Zones</string>
-    <string name="label_tools_and_automations">Outils et routines</string>
+    <string name="label_tools_and_routines">Outils et routines</string>
     <string name="dialog_edit_group">Modifier le groupe</string>
     <string name="dialog_create_group">Créer un groupe</string>
     <string name="message_no_zone_groups">Aucun groupe de zones défini</string>
     <string name="message_no_zones_in_group">Aucune zone dans ce groupe</string>
     <string name="message_no_ungrouped_zones">Aucune zone hors groupe</string>
-    <string name="dialog_add_tool_or_automation_title">Que veux-tu ajouter ?</string>
+    <string name="dialog_add_tool_or_routine_title">Que veux-tu ajouter ?</string>
     <string name="action_add_tool">Créer un outil</string>
-    <string name="action_add_automation">Créer une routine</string>
+    <string name="action_add_routine">Créer une routine</string>
 
     <!-- Groups - Schemas descriptions -->
     <string name="tools_base_schema_config_group">Groupe d\'organisation de l\'outil</string>
@@ -2218,9 +2218,9 @@
     <string name="service_error_icons_param_not_list">\'%1$s\' est une liste de chaînes</string>
     <string name="service_error_icons_unknown_category">Catégorie d\'icônes inconnue : \'%1$s\'. ICONS sans paramètre liste les catégories</string>
     <string name="service_error_icon_unknown">Icône inconnue : \'%1$s\'. La commande ICONS cherche les icônes par mot et par catégorie</string>
-    <string name="automation_unknown">Une routine qui n\'existe plus</string>
-    <string name="automation_access_title">Accès de cette routine</string>
-    <string name="automation_access_help">Vide : elle peut tout faire. Sinon, elle ne touche qu\'à ce qui est listé.</string>
+    <string name="routine_unknown">Une routine qui n\'existe plus</string>
+    <string name="routine_access_title">Accès de cette routine</string>
+    <string name="routine_access_help">Vide : elle peut tout faire. Sinon, elle ne touche qu\'à ce qui est listé.</string>
     <string name="access_always_sent">Les outils marqués « Toujours envoyer à l\'IA » qui ne sont pas présents dans la liste des autorisations lui parviennent quand même, en lecture.</string>
     <string name="access_add">Ajouter une zone ou un outil</string>
     <string name="access_level">Accès</string>
@@ -2228,11 +2228,11 @@
     <string name="access_choice_use">Utilisation</string>
     <string name="access_choice_full">Complète</string>
     <string name="access_levels">Lecture : lire. Utilisation : écrire ses entrées ; dans une zone, créer et changer ses outils et variables. Complète : et ses propres réglages.</string>
-    <string name="automation_access_unreadable">L\'accès ne se lit pas : %1$s</string>
-    <string name="automation_message_unreadable">Le message ne se lit pas : une liste de blocs est attendue, pas %1$s</string>
-    <string name="automation_message_block_unreadable">Le bloc %1$d du message ne se lit pas : %2$s</string>
-    <string name="automation_message_block_type">Le bloc %1$d du message est de type « %2$s » : le message d\'une routine ne tient que du texte et des pointeurs</string>
-    <string name="automation_seed_missing">Le message de la routine « %1$s » est introuvable</string>
+    <string name="routine_access_unreadable">L\'accès ne se lit pas : %1$s</string>
+    <string name="routine_message_unreadable">Le message ne se lit pas : une liste de blocs est attendue, pas %1$s</string>
+    <string name="routine_message_block_unreadable">Le bloc %1$d du message ne se lit pas : %2$s</string>
+    <string name="routine_message_block_type">Le bloc %1$d du message est de type « %2$s » : le message d\'une routine ne tient que du texte et des pointeurs</string>
+    <string name="routine_seed_missing">Le message de la routine « %1$s » est introuvable</string>
     <string name="ai_error_seed_with_routine">La session du message d\'une routine se crée avec la routine elle-même</string>
     <string name="access_level_read">lecture</string>
     <string name="access_level_use">utilisation</string>
@@ -2298,7 +2298,7 @@
     <string name="demo_phase_tools">Outils : %1$s / %2$s</string>
     <string name="demo_phase_entries">Entrées : %1$s / %2$s</string>
     <string name="demo_phase_goals">Objectifs</string>
-    <string name="demo_phase_automations">Routines</string>
+    <string name="demo_phase_routines">Routines</string>
     <string name="demo_error_refused">La démo n\'a pas pu être construite : %1$s</string>
     <string name="service_error_id_not_given">Un identifiant est attribué par l\'app, il ne peut pas être donné : %1$s</string>
     <string name="copy_name">%1$s (copie)</string>
@@ -2434,10 +2434,10 @@
     <string name="nav_new_variable">Nouvelle variable</string>
     <string name="nav_execution">Exécution</string>
     <string name="nav_chat">Conversation</string>
-    <string name="automation_run_channel">Routines en cours</string>
-    <string name="automation_run_notification_text">Routine en cours</string>
-    <string name="ai_schema_field_completed_desc">AUTOMATION seulement : true une fois tout le travail terminé, jamais après une étape intermédiaire. Sans usage dans un CHAT.</string>
-    <string name="ai_schema_field_summary_desc">AUTOMATION seulement, avec completed quand l\'app te demande de confirmer : pour l\'utilisateur, ce que tu as fait pendant cette exécution et pourquoi, en quelques phrases.</string>
+    <string name="routine_run_channel">Routines en cours</string>
+    <string name="routine_run_notification_text">Routine en cours</string>
+    <string name="ai_schema_field_completed_desc">ROUTINE_RUN seulement : true une fois tout le travail terminé, jamais après une étape intermédiaire. Sans usage dans un CHAT.</string>
+    <string name="ai_schema_field_summary_desc">ROUTINE_RUN seulement, avec completed quand l\'app te demande de confirmer : pour l\'utilisateur, ce que tu as fait pendant cette exécution et pourquoi, en quelques phrases.</string>
     <string name="service_error_schema_tool_not_found">Aucun outil n\'a l\'id \'%1$s\'.</string>
     <string name="session_reasoning_title">Réflexion</string>
     <string name="session_reasoning_follow_provider">Comme réglée pour le fournisseur d\'IA</string>
@@ -2474,7 +2474,7 @@
     <string name="label_zone_identity">Identité</string>
     <string name="zone_schema_identity_id">L'identité avec laquelle sa tuile ouvre une conversation : son id (IDENTITIES)</string>
     <string name="label_identity">Identité</string>
-    <string name="automation_identity_required">Une nouvelle routine dit en tant que quelle identité elle parle : identity_id, null pour l'IA de l'app</string>
+    <string name="routine_identity_required">Une nouvelle routine dit en tant que quelle identité elle parle : identity_id, null pour l'IA de l'app</string>
     <string name="identity_session_not_chat">Seule une conversation choisit son identité : l'exécution d'une routine parle comme sa routine</string>
     <string name="identity_session_fixed">Qui parle est fixé au premier message : ouvre une autre conversation pour parler à quelqu'un d'autre</string>
     <string name="ai_identity_already_read">Déjà lu dans cette session : c'est dans les messages plus haut</string>
@@ -2572,7 +2572,7 @@
     <string name="history_table_tool_instances">Outil</string>
     <string name="history_table_tool_data">Entrée</string>
     <string name="history_table_variables">Variable</string>
-    <string name="history_table_automations">Routine</string>
+    <string name="history_table_routines">Routine</string>
     <string name="history_table_ai_sessions">Message de routine</string>
     <string name="history_table_session_messages">Message de routine</string>
     <string name="history_table_images">Image</string>
@@ -2662,17 +2662,17 @@
     <string name="guide_schema_kept_value">Son identifiant</string>
     <string name="settings_data_schema_folder">Le dossier du téléphone choisi une fois, où l\'app écrit sans demander ; absent tant qu\'il n\'est pas choisi</string>
     <string name="settings_data_schema_seen">L\'état de la copie automatique vu la dernière fois dans Réglages › Gestion des données</string>
-    <string name="automation_schema_provider_id">L\'identifiant d\'un des fournisseurs d\'IA de l\'utilisateur ; sans lui la routine n\'est pas active et ne tourne pas</string>
-    <string name="automation_schema_identity_id">L\'identifiant de l\'identité au nom de laquelle ses exécutions parlent ; l\'IA de l\'app quand il manque</string>
-    <string name="automation_schema_group">Un des groupes d\'outils de sa zone, où se tient sa tuile</string>
-    <string name="automation_schema_is_enabled">Si son planning la lance</string>
-    <string name="automation_schema_notify_end">Quand la fin d\'une exécution est notifiée : toujours, sur un problème seulement, ou jamais</string>
-    <string name="automation_schema_catch_up">Ce qu\'elle fait des exécutions manquées, téléphone éteint ou app arrêtée ; présent avec un planning seulement</string>
-    <string name="automation_schema_catch_up_limit">Jusqu\'où les exécutions manquées sont rattrapées</string>
-    <string name="automation_schema_catch_up_limited">Seulement celles dans le délai</string>
-    <string name="automation_schema_catch_up_unlimited">Toutes</string>
-    <string name="automation_schema_catch_up_window">Combien de temps après son heure une exécution manquée est encore rattrapée</string>
-    <string name="automation_schema_dismiss_older">Si seule la dernière exécution manquée est rattrapée, plutôt que chacune</string>
+    <string name="routine_schema_provider_id">L\'identifiant d\'un des fournisseurs d\'IA de l\'utilisateur ; sans lui la routine n\'est pas active et ne tourne pas</string>
+    <string name="routine_schema_identity_id">L\'identifiant de l\'identité au nom de laquelle ses exécutions parlent ; l\'IA de l\'app quand il manque</string>
+    <string name="routine_schema_group">Un des groupes d\'outils de sa zone, où se tient sa tuile</string>
+    <string name="routine_schema_is_enabled">Si son planning la lance</string>
+    <string name="routine_schema_notify_end">Quand la fin d\'une exécution est notifiée : toujours, sur un problème seulement, ou jamais</string>
+    <string name="routine_schema_catch_up">Ce qu\'elle fait des exécutions manquées, téléphone éteint ou app arrêtée ; présent avec un planning seulement</string>
+    <string name="routine_schema_catch_up_limit">Jusqu\'où les exécutions manquées sont rattrapées</string>
+    <string name="routine_schema_catch_up_limited">Seulement celles dans le délai</string>
+    <string name="routine_schema_catch_up_unlimited">Toutes</string>
+    <string name="routine_schema_catch_up_window">Combien de temps après son heure une exécution manquée est encore rattrapée</string>
+    <string name="routine_schema_dismiss_older">Si seule la dernière exécution manquée est rattrapée, plutôt que chacune</string>
 
     <!-- APIs (core/apis) -->
     <string name="settings_apis">API</string>
@@ -2918,7 +2918,7 @@
     <string name="task_error_received_value">L\'étape %1$s lit « %2$s » dans les valeurs reçues, que les déclencheurs ne donnent pas tous : %3$s</string>
     <string name="task_error_event">Étape %1$s : aucun événement %2$s</string>
     <string name="task_error_event_value">L\'étape %1$s ne donne pas « %2$s », que « %3$s » porte</string>
-    <string name="automation_run_event">Cette exécution est partie de l\'événement « %1$s », qui portait : %2$s</string>
+    <string name="routine_run_event">Cette exécution est partie de l\'événement « %1$s », qui portait : %2$s</string>
     <string name="trigger_list">Part aussi quand…</string>
     <string name="trigger_kind">Ce qui la fait partir</string>
     <string name="trigger_schema_kind">Ce qui la fait partir : entry_written, une entrée écrite dans un outil ; event, un événement émis ; condition, une condition devenue vraie</string>
@@ -2951,7 +2951,7 @@
     <string name="trigger_condition_judged_at">jugée %1$s</string>
     <string name="task_run_end_condition">Partie parce que %1$s</string>
     <string name="task_trigger_condition">par une condition</string>
-    <string name="automation_run_condition">Cette exécution est partie de sa condition devenue vraie : %1$s</string>
+    <string name="routine_run_condition">Cette exécution est partie de sa condition devenue vraie : %1$s</string>
     <string name="task_error_received_none">Cette exécution n\'est pas partie d\'une entrée écrite : elle n\'a pas d\'entrée reçue</string>
     <string name="task_error_received_gone">L\'entrée reçue a été supprimée depuis</string>
     <string name="task_error_received_untriggered">L\'étape %1$s lit l\'entrée reçue, mais aucun déclencheur de la Tâche n\'en donne</string>
@@ -2966,10 +2966,10 @@
     <string name="task_run_entry_created">Entrée créée</string>
 
     <!-- A routine run with data (Tasks) -->
-    <string name="automation_run_data">Ce que la Tâche passe à cette exécution :\n%1$s</string>
-    <string name="automation_run_entry_created">Cette exécution est partie d\'une entrée créée dans « %1$s », jointe ici :</string>
-    <string name="automation_run_entry_updated">Cette exécution est partie d\'une entrée modifiée dans « %1$s », jointe ici telle qu\'elle est maintenant :</string>
-    <string name="automation_run_entry_deleted">Cette exécution est partie d\'une entrée supprimée de « %1$s », qu\'on ne peut plus lire ; telle qu\'elle était : %2$s</string>
+    <string name="routine_run_data">Ce que la Tâche passe à cette exécution :\n%1$s</string>
+    <string name="routine_run_entry_created">Cette exécution est partie d\'une entrée créée dans « %1$s », jointe ici :</string>
+    <string name="routine_run_entry_updated">Cette exécution est partie d\'une entrée modifiée dans « %1$s », jointe ici telle qu\'elle est maintenant :</string>
+    <string name="routine_run_entry_deleted">Cette exécution est partie d\'une entrée supprimée de « %1$s », qu\'on ne peut plus lire ; telle qu\'elle était : %2$s</string>
     <string name="task_step_data">Donnée passée</string>
 
     <!-- The AI's reads of Tasks -->
@@ -2979,4 +2979,42 @@
     <!-- The AI writes Tasks -->
     <string name="ai_read_user_task">« %1$s » : Tâche lue</string>
     <string name="task_schema_steps">Ses étapes, lancées l\'une après l\'autre : chacune un objet qui nomme son genre (call_api, create_entry, update_entry, tool_operation, run_routine), ses entrées des termes ou ce qu\'une étape précédente a donné</string>
+    <!-- The app's pieces (Pieces): what each is for and what the user does with it on screen, read by the AI -->
+    <string name="piece_button">- Le bouton « %1$s » :</string>
+    <string name="piece_zone_name">Zone</string>
+    <string name="piece_zone_usage">Un sujet de ta vie (Santé, Travail), qui tient ses outils, ses variables, ses routines et ses Tâches, rangés en sections.</string>
+    <string name="piece_zone_screen">- Sa tuile à l\'accueil l\'ouvre ; un appui long ouvre sa config\n- {plus} Sur une section de la zone : y crée un outil, une variable, une routine ou une Tâche\n- En haut, son identité quand elle en a une : son bouton ouvre une conversation avec elle</string>
+    <string name="piece_tool_name">Outil</string>
+    <string name="piece_tool_usage">Note les entrées d\'un type d\'outil et les montre ; son type dit à quoi il sert et ce que font ses boutons.</string>
+    <string name="piece_tool_screen">- Sa tuile dans la section de sa zone, d\'Icône à Plein selon son affichage : les plus grandes portent les boutons de son type\n- Un toucher ouvre son écran ; un appui long ouvre sa config</string>
+    <string name="piece_routine_name">Routine</string>
+    <string name="piece_routine_usage">Un message pour l\'IA, préparé une fois et réutilisé à volonté. Une IA le traite seule (quand tu la lances, selon un planning, ou sur un déclencheur : une entrée écrite dans un outil, un événement émis, une condition devenue vraie) et tu lis le résultat plus tard ; ou tu ouvres une conversation qui part de lui, pour réfléchir ensemble à un sujet qui revient, comme le point de la semaine.</string>
+    <string name="piece_routine_screen">- {play} La lance maintenant, l\'IA seule\n- {message-circle} Ouvre une conversation avec son message, envoyé tel quel ou modifié avant\n- {eye} Sa page : chaque exécution, ce que l\'IA a lu, fait et répondu\n- Un interrupteur allume ou éteint son planning et ses déclencheurs\n- Une notification à la fin d\'une exécution, si sa config le demande</string>
+    <string name="piece_task_name">Tâche</string>
+    <string name="piece_task_usage">Des étapes écrites à l\'avance que l\'app fait seule, sans IA, toujours les mêmes et gratuites : appeler une API, créer ou modifier une entrée, faire une opération d\'un outil, lancer une routine. Elle part à la main, selon un planning ou sur un déclencheur (une entrée écrite, un événement émis, une condition devenue vraie), et peut émettre un événement à la fin.</string>
+    <string name="piece_task_screen">- {play} La lance maintenant\n- {eye} Sa page : ses exécutions, ce qu\'a donné chaque étape, et si ses conditions sont vraies\n- Une notification à la fin, si sa config le demande</string>
+    <string name="piece_variable_name">Variable</string>
+    <string name="piece_variable_usage">Une valeur nommée, fixe ou calculée par une formule à partir de lectures d\'entrées et d\'autres variables, lue partout : un graphique, un objectif, une condition, une autre variable, l\'IA.</string>
+    <string name="piece_variable_screen">- Sa tuile dans la section de sa zone montre sa valeur, à côté de son libellé ou dessous\n- Un toucher l\'ouvre : sa valeur maintenant et sa définition</string>
+    <string name="piece_alert_name">Alerte sur une condition</string>
+    <string name="piece_alert_usage">Une condition sur une valeur (« la dernière pesée > 75 », « les heures de la semaine > 45 ») qui fait partir quelque chose quand elle devient vraie. L\'alerte la plus simple est une Tâche sans étape, déclenchée par la condition, qui prévient à la fin : rien de plus à construire.</string>
+    <string name="piece_alert_screen">- Rien à toucher : la notification arrive d\'elle-même quand la condition devient vraie\n- La page de la Tâche dit si sa condition est vraie maintenant</string>
+    <string name="piece_event_name">Événement</string>
+    <string name="piece_event_usage">Un signal nommé qui relie des pièces, même d\'une zone à l\'autre : une Tâche, le rappel d\'un outil ou la fin d\'une routine l\'émet, et les Tâches et routines qui l\'écoutent partent, avec les valeurs qu\'il porte.</string>
+    <string name="piece_event_screen">- Rien à toucher : les événements sont listés sur l\'écran de leur zone\n- Ce qui en émet un et ce qui l\'écoute se règlent dans leur config</string>
+    <string name="piece_api_name">API</string>
+    <string name="piece_api_usage">Un service du web que l\'app appelle, déclaré une fois (son adresse, ses entrées, ce qu\'il faut lire dans sa réponse) ; une étape de Tâche l\'appelle, et les étapes suivantes peuvent écrire sa réponse dans un outil.</string>
+    <string name="piece_api_screen">- Déclarée dans Réglages › API, où un bouton l\'essaie</string>
+    <string name="piece_pointer_name">Pointeur</string>
+    <string name="piece_pointer_usage">Un bloc d\'un message qui montre à l\'IA exactement de quoi il s\'agit : une zone, un outil, ses entrées sur une période, une variable ; leur config ou leurs entrées peuvent partir avec. Dans le message d\'une routine, il est relu à chaque exécution, sa période comptée depuis celle-ci.</string>
+    <string name="piece_pointer_screen">- {crosshair} Sous un message : ajoute un pointeur\n- Config et Entrées, cochées : leurs données partent avec le message</string>
+    <string name="piece_identity_name">Identité</string>
+    <string name="piece_identity_usage">Un personnage que l\'IA incarne, avec une voix, un esprit et un portrait : le travail dans les outils reste le même, seuls les mots qu\'elle t\'adresse changent.</string>
+    <string name="piece_identity_screen">- En haut d\'une zone qui en a une : son bouton ouvre une conversation avec elle\n- Dans une conversation, avant le premier message : le bouton à côté du message choisit qui parle</string>
+    <string name="piece_conversation_name">Conversation</string>
+    <string name="piece_conversation_usage">Toi qui parles avec l\'IA, laquelle lit et écrit les données de l\'app comme tu le ferais, en demandant ton accord là où tu protèges.</string>
+    <string name="piece_conversation_screen">- {message-circle} La bulle flottante l\'ouvre, depuis les lieux qu\'on consulte\n- {rotate-ccw-clock} Rouvre une conversation passée\n- {settings} Ses réglages : l\'accord demandé sur plus de choses, sa réflexion</string>
+    <string name="piece_notification_name">Notification</string>
+    <string name="piece_notification_usage">Ce qui t\'arrive sans que tu ouvres l\'app : la fin d\'une routine ou d\'une Tâche quand leur config le demande, une alerte sur une condition, et certains outils, dont le type le dit.</string>
+    <string name="piece_notification_screen">- Un toucher ouvre ce dont elle parle</string>
 </resources>

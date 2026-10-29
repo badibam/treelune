@@ -36,13 +36,13 @@ object EventTriggers {
             TaskRunner.start(context, task, TaskRun.Trigger.EVENT, System.currentTimeMillis(), awaited = false, chainId = chain,
                 received = TaskRun.Received.Event(event.id, carried))
         }
-        for (routine in database.aiDao().getAllAutomations().filter { it.isEnabled && listens(it.triggersJson, "Routine ${it.id}") }) {
+        for (routine in database.aiDao().getAllRoutines().filter { it.isEnabled && listens(it.triggersJson, "Routine ${it.id}") }) {
             val chain = when (val admission = Chains.admit(context, routine.name)) {
                 is Chains.Admission.Capped -> continue
                 is Chains.Admission.Continues -> admission.chainId
                 Chains.Admission.Starts -> null
             }
-            app.treelune.core.ai.orchestration.AIOrchestrator.executeAutomation(routine.id, scheduledFor = System.currentTimeMillis(),
+            app.treelune.core.ai.orchestration.AIOrchestrator.executeRoutine(routine.id, scheduledFor = System.currentTimeMillis(),
                 trigger = app.treelune.core.ai.data.ExecutionTrigger.EVENT, chainId = chain, attached = attached(context, event, values))
         }
     }
@@ -62,6 +62,6 @@ object EventTriggers {
             )
             app.treelune.core.ai.data.MessageSegment.EnrichmentBlock(app.treelune.core.ai.data.EnrichmentType.POINTER, pointer.toJson().toString())
         }
-        return listOf(app.treelune.core.ai.data.MessageSegment.Text(s.shared("automation_run_event").format(event.name, said))) + pointers
+        return listOf(app.treelune.core.ai.data.MessageSegment.Text(s.shared("routine_run_event").format(event.name, said))) + pointers
     }
 }

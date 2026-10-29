@@ -18,7 +18,7 @@ class AlwaysSendOutcomeTest {
     @Test
     fun `within the threshold they go, whatever the session`() {
         assertEquals(AlwaysSendOutcome.SEND, outcome(15_000, SessionType.CHAT))
-        assertEquals(AlwaysSendOutcome.SEND, outcome(800, SessionType.AUTOMATION))
+        assertEquals(AlwaysSendOutcome.SEND, outcome(800, SessionType.ROUTINE_RUN))
         assertEquals(AlwaysSendOutcome.SEND, outcome(800, null))
     }
 
@@ -34,8 +34,8 @@ class AlwaysSendOutcomeTest {
     }
 
     @Test
-    fun `above it an automation and an outside AI get the list`() {
-        assertEquals(AlwaysSendOutcome.LIST, outcome(40_000, SessionType.AUTOMATION))
+    fun `above it a routine and an outside AI get the list`() {
+        assertEquals(AlwaysSendOutcome.LIST, outcome(40_000, SessionType.ROUTINE_RUN))
         assertEquals(AlwaysSendOutcome.LIST, outcome(40_000, null))
     }
 }

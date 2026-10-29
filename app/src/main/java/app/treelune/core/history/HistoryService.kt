@@ -104,7 +104,7 @@ class HistoryService(private val context: Context) : ExecutableService {
         }
         if (CoveredTable.IDENTITIES.tableName in tables) DataChangeNotifier.notifyIdentitiesChanged()
         if (CoveredTable.VARIABLES.tableName in tables) DataChangeNotifier.notifyVariablesChanged()
-        if (CoveredTable.AUTOMATIONS.tableName in tables || CoveredTable.AI_SESSIONS.tableName in tables) DataChangeNotifier.notifyAISessionsChanged()
+        if (CoveredTable.ROUTINES.tableName in tables || CoveredTable.AI_SESSIONS.tableName in tables) DataChangeNotifier.notifyAISessionsChanged()
         places.mapNotNull { p -> p.zoneId?.let { zone -> p.toolInstanceId?.let { it to zone } } }.toSet()
             .forEach { (tool, zone) -> DataChangeNotifier.notifyToolDataChanged(tool, zone) }
         places.mapNotNull { it.zoneId }.toSet().forEach { DataChangeNotifier.notifyToolsChanged(it) }

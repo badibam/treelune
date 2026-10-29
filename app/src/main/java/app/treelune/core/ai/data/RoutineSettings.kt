@@ -1,7 +1,7 @@
 package app.treelune.core.ai.data
 
 import android.content.Context
-import app.treelune.core.ai.database.AutomationEntity
+import app.treelune.core.ai.database.RoutineEntity
 import app.treelune.core.fields.ChoiceSettings
 import app.treelune.core.fields.FieldDefinition
 import app.treelune.core.fields.FieldType
@@ -15,14 +15,14 @@ import app.treelune.core.validation.SchemaCategory
 import org.json.JSONObject
 
 /**
- * An automation's settings, declared with the fields (docs/DATA.md): its look (its name, a
+ * A routine's settings, declared with the fields (docs/DATA.md): its look (its name, a
  * description, an icon, a colour, a texture, a display mode; Looks), the provider it runs with, its group, whether it is on, which of its runs wait for the user,
  * its schedule, and what it does about the runs it missed. Not its zone (its place), its seed session (its message) nor its history.
  *
- * AutomationService checks every write against the schema generated from here, on the settings
+ * RoutineService checks every write against the schema generated from here, on the settings
  * as they are about to be stored.
  */
-object AutomationSettings {
+object RoutineSettings {
 
     /** Catch-up choices: missed runs are caught up to a delay, or whatever their delay. */
     const val LIMITED = "limited"
@@ -37,7 +37,7 @@ object AutomationSettings {
     const val NOTIFY_ON_PROBLEM = "on_problem"
     const val NOTIFY_NEVER = "never"
 
-    const val SCHEMA_ID = "automation_settings"
+    const val SCHEMA_ID = "routine_settings"
 
     const val DEFAULT_ICON = "bot"
     const val DEFAULT_MODE = "EXTENDED"
@@ -48,12 +48,12 @@ object AutomationSettings {
     /**
      * A routine's look (Looks): an icon always, `bot` until one is chosen; its tile among its
      * section's tools from ICON to SQUARE, its state, its switch and its buttons from LINE on,
-     * its last runs in SQUARE (AutomationTile).
+     * its last runs in SQUARE (RoutineTile).
      */
     val LOOK = app.treelune.core.look.LookSpec(
         nameKey = "name",
         nameLabel = "label_name",
-        schemaPrefix = "automation_schema_",
+        schemaPrefix = "routine_schema_",
         modes = listOf(app.treelune.core.ui.DisplayMode.ICON, app.treelune.core.ui.DisplayMode.MINIMAL, app.treelune.core.ui.DisplayMode.LINE,
             app.treelune.core.ui.DisplayMode.CONDENSED, app.treelune.core.ui.DisplayMode.EXTENDED, app.treelune.core.ui.DisplayMode.SQUARE),
         defaultMode = app.treelune.core.ui.DisplayMode.valueOf(DEFAULT_MODE),
@@ -71,7 +71,7 @@ object AutomationSettings {
     const val IDENTITY_ID = "identity_id"
 
     /**
-     * What a scheduled automation does about the runs it missed, stored under "catch_up": the
+     * What a scheduled routine does about the runs it missed, stored under "catch_up": the
      * choice is required, with no default -- an hour and several weeks are equally common --, and a
      * limited catch-up says its delay.
      */
@@ -80,31 +80,31 @@ object AutomationSettings {
         val limits = listOf(LIMITED, UNLIMITED)
         return listOf(
             SettingNode.Variant(
-                selector = SettingNode.Field(FieldDefinition("limit", s.shared("automation_catch_up_window"), s.shared("automation_schema_catch_up_limit"), FieldType.CHOICE, false,
+                selector = SettingNode.Field(FieldDefinition("limit", s.shared("routine_catch_up_window"), s.shared("routine_schema_catch_up_limit"), FieldType.CHOICE, false,
                     mapOf("options" to ChoiceSettings.storedOptions(limits, mapOf(
-                        LIMITED to s.shared("automation_catch_up_limited"),
-                        UNLIMITED to s.shared("automation_catch_up_unlimited"))))), required = true),
+                        LIMITED to s.shared("routine_catch_up_limited"),
+                        UNLIMITED to s.shared("routine_catch_up_unlimited"))))), required = true),
                 cases = mapOf(
-                    LIMITED to listOf(SettingNode.Field(FieldDefinition("window", s.shared("automation_catch_up_delay"), s.shared("automation_schema_catch_up_window"), FieldType.DURATION, false,
+                    LIMITED to listOf(SettingNode.Field(FieldDefinition("window", s.shared("routine_catch_up_delay"), s.shared("routine_schema_catch_up_window"), FieldType.DURATION, false,
                         app.treelune.core.fields.DurationUnits.DAY_HOUR_MINUTE.config()), required = true)),
                     UNLIMITED to emptyList()
                 ),
-                descriptions = mapOf(LIMITED to s.shared("automation_schema_catch_up_limited"), UNLIMITED to s.shared("automation_schema_catch_up_unlimited"))
+                descriptions = mapOf(LIMITED to s.shared("routine_schema_catch_up_limited"), UNLIMITED to s.shared("routine_schema_catch_up_unlimited"))
             ),
-            SettingNode.Field(FieldDefinition("dismiss_older_instances", s.shared("automation_catch_up_run_every"), s.shared("automation_schema_dismiss_older"), FieldType.BOOLEAN, false,
-                mapOf("true_label" to s.shared("automation_catch_up_latest_only"), "false_label" to s.shared("automation_catch_up_every_occurrence"))),
+            SettingNode.Field(FieldDefinition("dismiss_older_instances", s.shared("routine_catch_up_run_every"), s.shared("routine_schema_dismiss_older"), FieldType.BOOLEAN, false,
+                mapOf("true_label" to s.shared("routine_catch_up_latest_only"), "false_label" to s.shared("routine_catch_up_every_occurrence"))),
                 default = false)
         )
     }
 
     fun nodes(context: Context): List<SettingNode> = head(context) + whenNodes(context) + endNodes(context) + advancedNodes(context)
 
-    /** Its look and its group: the config's first part, above its message (AutomationConfigScreen). */
+    /** Its look and its group: the config's first part, above its message (RoutineConfigScreen). */
     fun head(context: Context): List<SettingNode> {
         val s = Strings.`for`(context = context)
         return app.treelune.core.look.Looks.nodes(LOOK, s::shared) +
-            // One of the tool groups of the automation's zone
-            SettingNode.Field(FieldDefinition("group", s.shared("label_group"), s.shared("automation_schema_group"), FieldType.TEXT, false,
+            // One of the tool groups of the routine's zone
+            SettingNode.Field(FieldDefinition("group", s.shared("label_group"), s.shared("routine_schema_group"), FieldType.TEXT, false,
                 mapOf("length" to TextLength.SHORT.name)))
     }
 
@@ -121,10 +121,10 @@ object AutomationSettings {
     private fun whenNodes(context: Context): List<SettingNode> {
         val s = Strings.`for`(context = context)
         return listOf(
-            // Absent: the automation runs on demand only
-            ScheduleSettings.group(s.shared("automation_schedule"), s::shared),
-            // Present with the schedule, and only with it (AutomationService)
-            SettingNode.Group("catch_up", s.shared("automation_catch_up_title"), catchUpNodes(context), description = s.shared("automation_schema_catch_up")),
+            // Absent: the routine runs on demand only
+            ScheduleSettings.group(s.shared("routine_schedule"), s::shared),
+            // Present with the schedule, and only with it (RoutineService)
+            SettingNode.Group("catch_up", s.shared("routine_catch_up_title"), catchUpNodes(context), description = s.shared("routine_schema_catch_up")),
             // What starts it beside its schedule: an entry written
             app.treelune.core.triggers.Triggers.node(s::shared)
         )
@@ -134,11 +134,11 @@ object AutomationSettings {
         val s = Strings.`for`(context = context)
         return listOf(
             // A new routine's runs all wait: one wants to see what a routine just made does
-            SettingNode.Field(FieldDefinition("notify_end", s.shared("automation_notify_end"), s.shared("automation_schema_notify_end"), FieldType.CHOICE, false,
+            SettingNode.Field(FieldDefinition("notify_end", s.shared("routine_notify_end"), s.shared("routine_schema_notify_end"), FieldType.CHOICE, false,
                 mapOf("options" to ChoiceSettings.storedOptions(listOf(NOTIFY_ALWAYS, NOTIFY_ON_PROBLEM, NOTIFY_NEVER), mapOf(
-                    NOTIFY_ALWAYS to s.shared("automation_notify_end_always"),
-                    NOTIFY_ON_PROBLEM to s.shared("automation_notify_end_on_problem"),
-                    NOTIFY_NEVER to s.shared("automation_notify_end_never"))))), default = NOTIFY_ALWAYS),
+                    NOTIFY_ALWAYS to s.shared("routine_notify_end_always"),
+                    NOTIFY_ON_PROBLEM to s.shared("routine_notify_end_on_problem"),
+                    NOTIFY_NEVER to s.shared("routine_notify_end_never"))))), default = NOTIFY_ALWAYS),
             // What a run that ends well emits
             app.treelune.core.events.EventPoints.node(s::shared)
         )
@@ -149,12 +149,12 @@ object AutomationSettings {
         return listOf(
             // One of the providers the user created, absent for none: the routine is then neither
             // on nor run; checked to exist by the service, as the identity
-            SettingNode.Field(FieldDefinition(PROVIDER_ID, s.shared("label_ai_provider"), s.shared("automation_schema_provider_id"), FieldType.TEXT, false,
+            SettingNode.Field(FieldDefinition(PROVIDER_ID, s.shared("label_ai_provider"), s.shared("routine_schema_provider_id"), FieldType.TEXT, false,
                 mapOf("length" to TextLength.SHORT.name))),
             // The identity its runs speak as, absent for the app's own AI; checked to exist by the service
-            SettingNode.Field(FieldDefinition(IDENTITY_ID, s.shared("label_identity"), s.shared("automation_schema_identity_id"), FieldType.TEXT, false,
+            SettingNode.Field(FieldDefinition(IDENTITY_ID, s.shared("label_identity"), s.shared("routine_schema_identity_id"), FieldType.TEXT, false,
                 mapOf("length" to TextLength.SHORT.name))),
-            SettingNode.Field(FieldDefinition("is_enabled", s.shared("automation_is_enabled"), s.shared("automation_schema_is_enabled"), FieldType.BOOLEAN, false, null), default = true)
+            SettingNode.Field(FieldDefinition("is_enabled", s.shared("routine_is_enabled"), s.shared("routine_schema_is_enabled"), FieldType.BOOLEAN, false, null), default = true)
         )
     }
 
@@ -162,15 +162,15 @@ object AutomationSettings {
         val s = Strings.`for`(context = context)
         return Schema(
             id = SCHEMA_ID,
-            displayName = s.shared("automation_display_name"),
+            displayName = s.shared("routine_display_name"),
             description = "",
-            category = SchemaCategory.AUTOMATION_CONFIG,
+            category = SchemaCategory.ROUTINE_CONFIG,
             content = SettingsSchemaGenerator.generate(nodes(context), s::shared).toString()
         )
     }
 
     /** The settings [entity] stores, as their declaration describes them: the form create and update take. */
-    fun of(entity: AutomationEntity): JSONObject = JSONObject().apply {
+    fun of(entity: RoutineEntity): JSONObject = JSONObject().apply {
         put("name", entity.name)
         entity.description?.let { put(app.treelune.core.look.Looks.DESCRIPTION, it) }
         put(app.treelune.core.look.Looks.ICON, entity.iconName)

@@ -4,7 +4,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** An automation's message that says nothing is not saved nor run (AIScreen, AIOrchestrator.isSeedEmpty). */
+/** A routine's message that says nothing is not saved nor run (AIScreen, AIOrchestrator.isSeedEmpty). */
 class RichMessageEmptyTest {
 
     @Test

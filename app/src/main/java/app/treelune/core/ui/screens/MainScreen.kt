@@ -316,9 +316,9 @@ private fun PlaceScreen(place: Place, zones: ZonesState, demoInstalled: Boolean)
                 name(s.shared(if (place.variableId == null) "nav_new_variable" else "nav_variable"))
                 app.treelune.core.ui.variables.VariableScreen(zoneId = place.zoneId, variableId = place.variableId, group = place.group, onDone = back)
             }
-            is Place.Automation -> {
-                app.treelune.core.ai.ui.automation.AutomationScreen(
-                    automationId = place.id,
+            is Place.Routine -> {
+                app.treelune.core.ai.ui.routine.RoutineScreen(
+                    routineId = place.id,
                     onName = { Navigator.name(place, it) },
                     onNavigateBack = back,
                     onNavigateToExecution = { sessionId -> Navigator.push(Place.Execution(sessionId, place.id, place.zoneId)) }
@@ -328,7 +328,7 @@ private fun PlaceScreen(place: Place, zones: ZonesState, demoInstalled: Boolean)
                 name(s.shared("nav_execution"))
                 // Its routine named too: opened from a notification, the run is stacked alone and the
                 // breadcrumb names the routine it belongs to
-                app.treelune.core.ai.ui.automation.ExecutionDetailScreen(sessionId = place.sessionId, onRoutineName = { Navigator.name(place.parent(), it) }, onNavigateBack = back)
+                app.treelune.core.ai.ui.routine.ExecutionDetailScreen(sessionId = place.sessionId, onRoutineName = { Navigator.name(place.parent(), it) }, onNavigateBack = back)
             }
             is Place.Task -> app.treelune.core.tasks.ui.TaskScreen(place, onName = { Navigator.name(place, it) }, onBack = back)
             is Place.TaskConfig -> {
@@ -343,11 +343,11 @@ private fun PlaceScreen(place: Place, zones: ZonesState, demoInstalled: Boolean)
                 name(s.shared("nav_execution"))
                 app.treelune.core.tasks.ui.TaskRunScreen(place, onTaskName = { Navigator.name(place.parent(), it) }, onBack = back)
             }
-            is Place.AutomationConfig -> {
-                name(s.shared(if (place.automationId == null) "automation_new_name" else "nav_configuration"))
+            is Place.RoutineConfig -> {
+                name(s.shared(if (place.routineId == null) "routine_new_name" else "nav_configuration"))
                 // Deleted, its page under the config goes with it
-                app.treelune.core.ai.ui.automation.AutomationConfigScreen(place, onDone = back, onDeleted = {
-                    place.automationId?.let { Navigator.drop(Place.Automation(it, place.zoneId)) }
+                app.treelune.core.ai.ui.routine.RoutineConfigScreen(place, onDone = back, onDeleted = {
+                    place.routineId?.let { Navigator.drop(Place.Routine(it, place.zoneId)) }
                     back()
                 })
             }

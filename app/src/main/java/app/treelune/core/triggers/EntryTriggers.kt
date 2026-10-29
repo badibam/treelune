@@ -24,7 +24,7 @@ object EntryTriggers {
     suspend fun dispatch(context: Context, written: suspend () -> List<EntryWrites.EntryWrite>) {
         val database = AppDatabase.getDatabase(context)
         val tasks = database.taskDao().getAll().filter { it.isEnabled && it.triggersJson != null }
-        val routines = database.aiDao().getAllAutomations().filter { it.isEnabled && it.triggersJson != "[]" }
+        val routines = database.aiDao().getAllRoutines().filter { it.isEnabled && it.triggersJson != "[]" }
         val conditions = (tasks.map { it.triggersJson } + routines.map { it.triggersJson }).any { json ->
             try {
                 Triggers.read(json).any { it is Triggers.Trigger.ConditionBecameTrue }
@@ -45,7 +45,7 @@ object EntryTriggers {
         for (routine in routines) {
             for (write in heard(context, "Routine ${routine.id}", routine.triggersJson, writes)) {
                 val chainId = chainOf(context, routine.name) ?: continue
-                app.treelune.core.ai.orchestration.AIOrchestrator.executeAutomation(routine.id, scheduledFor = System.currentTimeMillis(),
+                app.treelune.core.ai.orchestration.AIOrchestrator.executeRoutine(routine.id, scheduledFor = System.currentTimeMillis(),
                     trigger = app.treelune.core.ai.data.ExecutionTrigger.ENTRY, chainId = chainId.id, attached = attached(context, write))
             }
         }
@@ -86,14 +86,14 @@ object EntryTriggers {
         if (write.write == Triggers.Write.DELETED) {
             val copy = org.json.JSONObject()
             listOf("name", "timestamp", "data", "extra").forEach { key -> write.row.opt(key)?.takeIf { it != org.json.JSONObject.NULL }?.let { copy.put(key, it) } }
-            return listOf(app.treelune.core.ai.data.MessageSegment.Text(s.shared("automation_run_entry_deleted").format(toolName, copy.toString())))
+            return listOf(app.treelune.core.ai.data.MessageSegment.Text(s.shared("routine_run_entry_deleted").format(toolName, copy.toString())))
         }
         val pointer = app.treelune.core.ai.enrichments.PointerConfig(
             selection = app.treelune.core.selection.EntrySelection(target = app.treelune.core.selection.Reference(app.treelune.core.selection.ReferenceKind.ENTRY, write.entryId)),
             entries = true
         )
         return listOf(
-            app.treelune.core.ai.data.MessageSegment.Text(s.shared("automation_run_entry_${write.write.key}").format(toolName)),
+            app.treelune.core.ai.data.MessageSegment.Text(s.shared("routine_run_entry_${write.write.key}").format(toolName)),
             app.treelune.core.ai.data.MessageSegment.EnrichmentBlock(app.treelune.core.ai.data.EnrichmentType.POINTER, pointer.toJson().toString())
         )
     }

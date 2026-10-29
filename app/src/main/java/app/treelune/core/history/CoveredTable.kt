@@ -25,7 +25,7 @@ enum class CoveredTable(
     TOOL_DATA("tool_data", children = listOf("files" to "entry_id")),
     VARIABLES("variables"),
     EVENTS("events"),
-    AUTOMATIONS("automations"),
+    ROUTINES("routines"),
     // A Task hangs from its zone by its column alone: zones.delete takes it out row by row
     TASKS("tasks"),
     AI_SESSIONS("ai_sessions", children = listOf("session_messages" to "session_id", "files" to "session_id")),

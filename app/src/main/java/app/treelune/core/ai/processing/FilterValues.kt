@@ -16,7 +16,7 @@ import app.treelune.core.utils.JsonUtils
  *
  * On a DATETIME field (timestamp included) or a DATE field, a value can be:
  * - a relative date, `{"relative": {"unit": "DAY", "offset": -1, "edge": "START"}}` or
- *   `{"relative": "NOW"}`, resolved against the reference instant (an automation's scheduled
+ *   `{"relative": "NOW"}`, resolved against the reference instant (a routine's scheduled
  *   time, the clock for a chat) with the user's day start hour and first day of the week: a
  *   point, the edge it says, whatever the condition;
  * - ISO 8601 for a DATETIME ("2026-09-15T08:00:00+02:00"), a day for a DATE ("2026-09-15");

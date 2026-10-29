@@ -48,7 +48,7 @@ object PartLinks {
         tools.forEach { targets[it.getString("id")] = PartElement(PartElement.Kind.TOOL, it.getString("id")) }
         entries.forEach { targets[it.getString("id")] = PartElement(PartElement.Kind.ENTRIES, it.getString("tool_instance_id")) }
         rows(data, "variables").forEach { targets[it.getString("id")] = PartElement(PartElement.Kind.VARIABLE, it.getString("id")) }
-        rows(data, "automations").forEach { targets[it.getString("id")] = PartElement(PartElement.Kind.ROUTINE, it.getString("id")) }
+        rows(data, "routines").forEach { targets[it.getString("id")] = PartElement(PartElement.Kind.ROUTINE, it.getString("id")) }
         rows(data, "apis").forEach { targets[it.getString("id")] = PartElement(PartElement.Kind.API, it.getString("id")) }
         rows(data, "events").forEach { targets[it.getString("id")] = PartElement(PartElement.Kind.EVENT, it.getString("id")) }
 
@@ -70,12 +70,12 @@ object PartLinks {
 
         // A routine: its row, and the message each of its runs starts from
         val messages = rows(data, "session_messages").groupBy { it.getString("session_id") }
-        rows(data, "automations").forEach { automation ->
-            val routine = PartElement(PartElement.Kind.ROUTINE, automation.getString("id"))
-            scan(routine, automation)
-            messages[automation.getString("seed_session_id")].orEmpty().forEach { scan(routine, it) }
-            if (!automation.isNull("provider_id")) links += PartLink(routine, PartElement(PartElement.Kind.PROVIDER, automation.getString("provider_id")))
-            BackupPart.identityOf(automation)?.let { links += PartLink(routine, PartElement(PartElement.Kind.IDENTITY, it)) }
+        rows(data, "routines").forEach { row ->
+            val routine = PartElement(PartElement.Kind.ROUTINE, row.getString("id"))
+            scan(routine, row)
+            messages[row.getString("seed_session_id")].orEmpty().forEach { scan(routine, it) }
+            if (!row.isNull("provider_id")) links += PartLink(routine, PartElement(PartElement.Kind.PROVIDER, row.getString("provider_id")))
+            BackupPart.identityOf(row)?.let { links += PartLink(routine, PartElement(PartElement.Kind.IDENTITY, it)) }
         }
         rows(data, "tasks").forEach { scan(PartElement(PartElement.Kind.TASK, it.getString("id")), it) }
         // An event: the tools its values are; its own zone does not hold it back, it arrives
@@ -113,7 +113,7 @@ object PartLinks {
         PartElement.Kind.TOOL -> element.id in selection.tools
         PartElement.Kind.ENTRIES -> selection.tools[element.id] == true
         PartElement.Kind.VARIABLE -> element.id in selection.variables
-        PartElement.Kind.ROUTINE -> element.id in selection.automations
+        PartElement.Kind.ROUTINE -> element.id in selection.routines
         PartElement.Kind.IDENTITY -> element.id in selection.identities
         PartElement.Kind.TASK -> element.id in selection.tasks
         PartElement.Kind.API -> element.id in selection.apis
@@ -156,7 +156,7 @@ object PartLinks {
             PartElement.Kind.ZONE -> find("zones").getString("name")
             PartElement.Kind.TOOL, PartElement.Kind.ENTRIES -> JSONObject(find("tool_instances").getString("config_json")).getString("name")
             PartElement.Kind.VARIABLE -> find("variables").getString("name")
-            PartElement.Kind.ROUTINE -> find("automations").getString("name")
+            PartElement.Kind.ROUTINE -> find("routines").getString("name")
             PartElement.Kind.IDENTITY -> find("identities").getString("name")
             PartElement.Kind.TASK -> find("tasks").getString("name")
             PartElement.Kind.API -> find("apis").getString("name")

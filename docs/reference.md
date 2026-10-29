@@ -44,7 +44,7 @@ A native Android application (Kotlin + Jetpack Compose, Room persistence): a per
 - `docs/WRITING.md` — writing for the user: the rules of the sentence and of address, for every text they read.
 - `docs/BRICKS.md` — the bricks (instant, period, thing, field, reduction, condition, filter, entry selection, reading, term): what each chooses, its stored form, its model, its selector, its state; who assembles them.
 - `docs/TOOLS.md` — architecture of the tools (tooltypes), extension without touching the core.
-- `docs/AI.md` — AI system: state machine, sessions, prompts, automations, providers.
+- `docs/AI.md` — AI system: state machine, sessions, prompts, routines, providers.
 - `docs/EXTERNAL_ACCESS.md` — the external access: the two ways in (an embedded Tailscale node, a relay), the relay's contract, the OAuth, what an outside client sees, the Tailscale node and what Android asks of it.
 - `docs/IDENTITY_FILE.md` — the identity file, a public format any producer writes for the app to import (in English, for these producers), and its JSON schema `docs/schemas/identity-file.schema.json`, which `IdentityFileTest` checks.
 - `docs/GUIDE.md` — the user's journey: the README, the first launch, the tutorial band and the Guide (`core/guide`, its chapters in `assets/guide/chapters.json`, its texts in `guide.xml` and `guide-fr.xml`, its progress in the settings category `guide`).

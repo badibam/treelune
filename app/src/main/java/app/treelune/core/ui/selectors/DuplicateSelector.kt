@@ -29,7 +29,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * Duplicate Selector - Simplified selector for duplicating tools, automations or Tasks
+ * Duplicate Selector - Simplified selector for duplicating tools, routines or Tasks
  *
  * Navigation flow:
  * 1. Zone selection
@@ -101,7 +101,7 @@ fun DuplicateSelector(
                             InstanceItem(map["id"] as String, map["name"] as String, map["tooltype"] as? String, settings.string("icon_name"),
                                 app.treelune.core.themes.IconColor.of(settings.string(app.treelune.core.themes.IconColor.KEY)))
                         }
-                        DuplicateType.AUTOMATION -> InstanceItem(map["id"] as String, map["name"] as String, null, null, null)
+                        DuplicateType.ROUTINE -> InstanceItem(map["id"] as String, map["name"] as String, null, null, null)
                         // A Task's name and look are among its settings
                         DuplicateType.TASK -> {
                             val task = app.treelune.core.tasks.Task.fromResult(map)
@@ -326,20 +326,20 @@ private fun InstanceList(
 /** What is copied: the operation that lists a zone's, and the key of its list in the result. */
 enum class DuplicateType(val listOperation: String, val listKey: String) {
     TOOL("tools.list", "tool_instances"),
-    AUTOMATION("automations.list", "automations"),
+    ROUTINE("routines.list", "routines"),
     TASK("tasks.list", "tasks");
 
     /** The picker's title; the keys written whole, for check_string_keys.py to read them. */
     fun title(s: app.treelune.core.strings.StringsContext): String = when (this) {
         TOOL -> s.shared("duplicate_selector_title_tool")
-        AUTOMATION -> s.shared("duplicate_selector_title_automation")
+        ROUTINE -> s.shared("duplicate_selector_title_routine")
         TASK -> s.shared("duplicate_selector_title_task")
     }
 
     /** What the picker says of a zone without any. */
     fun empty(s: app.treelune.core.strings.StringsContext): String = when (this) {
         TOOL -> s.shared("duplicate_no_tools")
-        AUTOMATION -> s.shared("duplicate_no_automations")
+        ROUTINE -> s.shared("duplicate_no_routines")
         TASK -> s.shared("duplicate_no_tasks")
     }
 }
@@ -363,7 +363,7 @@ private data class ZoneItem(
     val iconColor: app.treelune.core.themes.TagColor? = null
 )
 
-/** A tool or an automation; a tool with its icon in its colour, an automation having none. */
+/** A tool or a routine; a tool with its icon in its colour, a routine having none. */
 private data class InstanceItem(
     val id: String,
     val name: String,

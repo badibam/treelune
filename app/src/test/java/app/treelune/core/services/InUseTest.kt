@@ -2,7 +2,7 @@ package app.treelune.core.services
 
 import android.content.Context
 import app.treelune.core.ai.database.AIProviderConfigEntity
-import app.treelune.core.ai.data.AutomationMessage
+import app.treelune.core.ai.data.RoutineMessage
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.AppDatabase
@@ -50,13 +50,13 @@ class InUseTest {
     }
 
     private suspend fun routine(zoneId: String, name: String, providerId: String) {
-        val created = coordinator.processUserAction("automations.create", mapOf(
+        val created = coordinator.processUserAction("routines.create", mapOf(
             "zone_id" to zoneId,
             "name" to name,
             "identity_id" to null,
             "provider_id" to providerId,
             "is_enabled" to false,
-            "message" to listOf(mapOf("type" to AutomationMessage.TEXT, "text" to "Hi"))
+            "message" to listOf(mapOf("type" to RoutineMessage.TEXT, "text" to "Hi"))
         ))
         assertTrue(created.error, created.isSuccess)
     }
@@ -101,13 +101,13 @@ class InUseTest {
         val zoned = coordinator.processUserAction("zones.create", mapOf("name" to "Art", "identity_id" to identityId))
         assertTrue(zoned.error, zoned.isSuccess)
         val zoneId = zoned.data!!["zone_id"] as String
-        val routine = coordinator.processUserAction("automations.create", mapOf(
+        val routine = coordinator.processUserAction("routines.create", mapOf(
             "zone_id" to zoneId,
             "name" to "Studio",
             "identity_id" to identityId,
             "provider_id" to null,
             "is_enabled" to false,
-            "message" to listOf(mapOf("type" to AutomationMessage.TEXT, "text" to "Hi"))
+            "message" to listOf(mapOf("type" to RoutineMessage.TEXT, "text" to "Hi"))
         ))
         assertTrue(routine.error, routine.isSuccess)
 

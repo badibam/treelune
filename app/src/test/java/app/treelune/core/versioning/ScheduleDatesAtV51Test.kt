@@ -61,9 +61,9 @@ class ScheduleDatesAtV51Test {
 
         ScheduleDatesAtV51.backup(data)
 
-        val automations = data.getJSONArray("automations")
-        assertFalse(JSONObject(automations.getJSONObject(0).getString("schedule_json")).has("start_date"))
-        assertTrue(automations.getJSONObject(1).isNull("schedule_json"))
+        val routines = data.getJSONArray("automations")
+        assertFalse(JSONObject(routines.getJSONObject(0).getString("schedule_json")).has("start_date"))
+        assertTrue(routines.getJSONObject(1).isNull("schedule_json"))
         val config = JSONObject(data.getJSONArray("tool_instances").getJSONObject(0).getString("config_json"))
         assertFalse(config.getJSONObject("schedule").has("start_date"))
     }

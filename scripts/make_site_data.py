@@ -124,7 +124,7 @@ def zone():
     if not found:
         raise SystemExit(f"make_site_data: the demo has no zone {ZONE}")
     named = lambda value: {lang: demo_text(t, value) for lang, t in texts.items()}
-    routines = [a for a in structure["automations"] if a["zone_id"] == ZONE]
+    routines = [a for a in structure["routines"] if a["zone_id"] == ZONE]
     if len(routines) != 1:
         raise SystemExit(f"make_site_data: the zone {ZONE} has {len(routines)} routines, the site shows one")
     routine = routines[0]

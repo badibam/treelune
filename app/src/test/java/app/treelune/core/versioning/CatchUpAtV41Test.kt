@@ -15,7 +15,7 @@ class CatchUpAtV41Test {
 
     /** A scheduled automation with no window had chosen "no limit": the screen refused anything else. */
     @Test
-    fun aScheduledAutomationWithoutWindowIsUnlimited() {
+    fun aScheduledRoutineWithoutWindowIsUnlimited() {
         assertEquals("unlimited" to null, CatchUpAtV41.of(scheduled = true, windowMinutes = null))
     }
 
@@ -26,30 +26,30 @@ class CatchUpAtV41Test {
 
     /** Nothing to catch up without a schedule, whatever an old row carries. */
     @Test
-    fun anAutomationWithoutScheduleHasNoCatchUp() {
+    fun anRoutineWithoutScheduleHasNoCatchUp() {
         assertEquals(null to null, CatchUpAtV41.of(scheduled = false, windowMinutes = 60))
     }
 
     /** A backup older than the catch-up settings is read as LegacyCatchUp: no limit, latest run only. */
     @Test
     fun aBackupWithoutWindowTakesTheLegacyReading() {
-        val automation = JSONObject().put("schedule_json", "{}").put("dismiss_older_instances", false)
-        val data = JSONObject().put("automations", JSONArray().put(automation))
+        val routine = JSONObject().put("schedule_json", "{}").put("dismiss_older_instances", false)
+        val data = JSONObject().put("automations", JSONArray().put(routine))
 
         CatchUpAtV41.backup(data)
 
-        assertEquals("unlimited", automation.getString("catch_up"))
-        assertFalse(automation.has("catch_up_window"))
-        assertEquals(true, automation.getBoolean("dismiss_older_instances"))
+        assertEquals("unlimited", routine.getString("catch_up"))
+        assertFalse(routine.has("catch_up_window"))
+        assertEquals(true, routine.getBoolean("dismiss_older_instances"))
     }
 
     @Test
     fun aBackupWindowIsConvertedAndItsOldKeyLeaves() {
-        val automation = JSONObject().put("schedule_json", "{}").put("catch_up_window_minutes", 30).put("dismiss_older_instances", false)
-        CatchUpAtV41.backup(JSONObject().put("automations", JSONArray().put(automation)))
+        val routine = JSONObject().put("schedule_json", "{}").put("catch_up_window_minutes", 30).put("dismiss_older_instances", false)
+        CatchUpAtV41.backup(JSONObject().put("automations", JSONArray().put(routine)))
 
-        assertEquals(1_800_000L, automation.getLong("catch_up_window"))
-        assertFalse(automation.has("catch_up_window_minutes"))
-        assertEquals(false, automation.getBoolean("dismiss_older_instances"))
+        assertEquals(1_800_000L, routine.getLong("catch_up_window"))
+        assertFalse(routine.has("catch_up_window_minutes"))
+        assertEquals(false, routine.getBoolean("dismiss_older_instances"))
     }
 }

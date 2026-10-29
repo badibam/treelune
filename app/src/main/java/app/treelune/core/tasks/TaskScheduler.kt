@@ -62,7 +62,7 @@ object TaskScheduler {
     /** Where the next occurrence is searched from: the last scheduled run's, or the Task's last change, the window pulling it forward. */
     private suspend fun searchStart(context: Context, task: TaskEntity, now: Long): Long = CatchUpPolicy.searchStart(
         lastExecutionTime = AppDatabase.getDatabase(context).taskDao().getLastScheduledRun(task.id)?.scheduledAt ?: 0L,
-        automationUpdatedAt = task.updatedAt,
+        routineUpdatedAt = task.updatedAt,
         catchUpWindow = task.catchUpWindow,
         now = now
     )

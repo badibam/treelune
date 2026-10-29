@@ -87,7 +87,7 @@ class BackupService(private val context: Context) : ExecutableService {
         private const val FORMER_IMAGES_DIR = "images/"
 
         /** A routine as a backup's [item] holds it, in the form of the current schema. */
-        fun automationOf(item: JSONObject): AutomationEntity = AutomationEntity(
+        fun routineOf(item: JSONObject): RoutineEntity = RoutineEntity(
             id = item.getString("id"),
             name = item.getString("name"),
             zoneId = item.getString("zone_id"),
@@ -108,13 +108,13 @@ class BackupService(private val context: Context) : ExecutableService {
             lastExecutionId = item.optString("last_execution_id", null),
             executionHistoryJson = item.optString("execution_history_json", "[]"),
             group = item.optString("group", null),
-            // Absent from a backup made before version 70: an automation reaching everything
+            // Absent from a backup made before version 70: a routine reaching everything
             accessJson = item.optString("access_json", "[]"),
             // Absent from a backup made before version 76: every run signalled, as the migration does
-            notifyEnd = item.optString("notify_end", app.treelune.core.ai.data.AutomationSettings.NOTIFY_ALWAYS),
+            notifyEnd = item.optString("notify_end", app.treelune.core.ai.data.RoutineSettings.NOTIFY_ALWAYS),
             // Absent from a backup made before version 77: the app's own AI, as the migration does
             identityId = item.nullableString("identity_id"),
-            // A backup older than v89 is brought to this form first (AutomationsAtV89)
+            // A backup older than v89 is brought to this form first (RoutinesAtV89)
             description = item.nullableString("description"),
             iconName = item.getString("icon_name"),
             iconColor = item.nullableString("icon_color"),
@@ -269,7 +269,7 @@ class BackupService(private val context: Context) : ExecutableService {
         }
 
         val data = built.json.getJSONObject("data")
-        val elements = listOf("tool_instances", "variables", "automations", "identities", "tasks", "apis").sumOf { data.optJSONArray(it)?.length() ?: 0 }
+        val elements = listOf("tool_instances", "variables", "routines", "identities", "tasks", "apis").sumOf { data.optJSONArray(it)?.length() ?: 0 }
         val entries = data.optJSONArray("tool_data")?.length() ?: 0
         LogManager.service("Backup: ${written.second} written, $elements elements, $entries entries, ${built.files.size} files, ${built.missing} without their file")
         return OperationResult.success(mapOf(
@@ -407,7 +407,7 @@ class BackupService(private val context: Context) : ExecutableService {
             }
 
             val aiProviderConfigs = database.aiDao().getAllProviderConfigs()
-            val automations = database.aiDao().getAllAutomations()
+            val routines = database.aiDao().getAllRoutines()
             val variables = database.variableDao().getAll()
             val identities = database.identityDao().getAll()
             val apis = database.apiDao().getAll()
@@ -527,7 +527,7 @@ class BackupService(private val context: Context) : ExecutableService {
                                 put("total_roundtrips", session.totalRoundtrips)
                                 put("last_event_time", session.lastEventTime)
                                 put("last_user_interaction_time", session.lastUserInteractionTime)
-                                put("automation_id", session.automationId)
+                                put("routine_id", session.routineId)
                                 put("scheduled_execution_time", session.scheduledExecutionTime)
                                 put("provider_id", session.providerId ?: JSONObject.NULL)
                                 put("provider_session_id", session.providerSessionId)
@@ -591,38 +591,38 @@ class BackupService(private val context: Context) : ExecutableService {
                         }
                     })
 
-                    // Automations
-                    put("automations", JSONArray().apply {
-                        automations.forEach { automation ->
+                    // Routines
+                    put("routines", JSONArray().apply {
+                        routines.forEach { routine ->
                             put(JSONObject().apply {
-                                put("id", automation.id)
-                                put("name", automation.name)
-                                put("zone_id", automation.zoneId)
-                                put("seed_session_id", automation.seedSessionId)
-                                put("schedule_json", automation.scheduleJson)
-                                put("triggers_json", automation.triggersJson)
-                                automation.emitEvent?.let { put("emit_event", it) }
-                                automation.catchUp?.let { put("catch_up", it) }
-                                automation.catchUpWindow?.let { put("catch_up_window", it) }
-                                put("dismiss_older_instances", automation.dismissOlderInstances)
-                                put("provider_id", automation.providerId ?: JSONObject.NULL)
-                                put("is_enabled", automation.isEnabled)
-                                put("created_at", automation.createdAt)
-                                put("updated_at", automation.updatedAt)
-                                put("last_execution_id", automation.lastExecutionId)
-                                put("execution_history_json", automation.executionHistoryJson)
-                                put("access_json", automation.accessJson)
-                                put("notify_end", automation.notifyEnd)
-                                put("identity_id", automation.identityId ?: JSONObject.NULL)
-                                automation.description?.let { put("description", it) }
-                                put("icon_name", automation.iconName)
-                                automation.iconColor?.let { put("icon_color", it) }
-                                automation.texture?.let { put("texture", it) }
-                                put("display_mode", automation.displayMode)
-                                put("grid_x", automation.gridX)
-                                put("grid_y", automation.gridY)
-                                if (automation.group != null) {
-                                    put("group", automation.group)
+                                put("id", routine.id)
+                                put("name", routine.name)
+                                put("zone_id", routine.zoneId)
+                                put("seed_session_id", routine.seedSessionId)
+                                put("schedule_json", routine.scheduleJson)
+                                put("triggers_json", routine.triggersJson)
+                                routine.emitEvent?.let { put("emit_event", it) }
+                                routine.catchUp?.let { put("catch_up", it) }
+                                routine.catchUpWindow?.let { put("catch_up_window", it) }
+                                put("dismiss_older_instances", routine.dismissOlderInstances)
+                                put("provider_id", routine.providerId ?: JSONObject.NULL)
+                                put("is_enabled", routine.isEnabled)
+                                put("created_at", routine.createdAt)
+                                put("updated_at", routine.updatedAt)
+                                put("last_execution_id", routine.lastExecutionId)
+                                put("execution_history_json", routine.executionHistoryJson)
+                                put("access_json", routine.accessJson)
+                                put("notify_end", routine.notifyEnd)
+                                put("identity_id", routine.identityId ?: JSONObject.NULL)
+                                routine.description?.let { put("description", it) }
+                                put("icon_name", routine.iconName)
+                                routine.iconColor?.let { put("icon_color", it) }
+                                routine.texture?.let { put("texture", it) }
+                                put("display_mode", routine.displayMode)
+                                put("grid_x", routine.gridX)
+                                put("grid_y", routine.gridY)
+                                if (routine.group != null) {
+                                    put("group", routine.group)
                                 }
                             })
                         }
@@ -1215,7 +1215,7 @@ class BackupService(private val context: Context) : ExecutableService {
                         totalRoundtrips = item.getInt("total_roundtrips"),
                         lastEventTime = item.getLong("last_event_time"),
                         lastUserInteractionTime = item.getLong("last_user_interaction_time"),
-                        automationId = item.optString("automation_id", null),
+                        routineId = item.optString("routine_id", null),
                         scheduledExecutionTime = item.optLong("scheduled_execution_time", 0).let { if (it == 0L) null else it },
                         providerId = if (item.isNull("provider_id")) null else item.getString("provider_id"),
                         providerSessionId = item.getString("provider_session_id"),
@@ -1231,7 +1231,7 @@ class BackupService(private val context: Context) : ExecutableService {
                         identityId = item.nullableString("identity_id"),
                         // Absent from a backup made before version 90: a run taken as planned, as the migration does
                         triggeredBy = if (item.has("triggered_by")) item.nullableString("triggered_by")
-                            else if (item.getString("type") == SessionType.AUTOMATION.name) app.treelune.core.ai.data.ExecutionTrigger.SCHEDULED.name else null,
+                            else if (item.getString("type") == SessionType.ROUTINE_RUN.name) app.treelune.core.ai.data.ExecutionTrigger.SCHEDULED.name else null,
                         appStateSnapshot = item.optString("app_state_snapshot", null)
                     )
                 )
@@ -1271,11 +1271,11 @@ class BackupService(private val context: Context) : ExecutableService {
             }
         }
 
-        // Automations
-        data.optJSONArray("automations")?.let { array ->
+        // Routines
+        data.optJSONArray("routines")?.let { array ->
             for (i in 0 until array.length()) {
                 val item = array.getJSONObject(i)
-                database.aiDao().insertAutomation(automationOf(item))
+                database.aiDao().insertRoutine(routineOf(item))
             }
         }
 
@@ -1504,7 +1504,7 @@ class BackupService(private val context: Context) : ExecutableService {
                 app.treelune.core.versioning.VariablesAtV88.backup(data)
             }
             if (fromVersion < 89 && toVersion >= 89) {
-                app.treelune.core.versioning.AutomationsAtV89.backup(data)
+                app.treelune.core.versioning.RoutinesAtV89.backup(data)
             }
             if (fromVersion < 91 && toVersion >= 91) {
                 app.treelune.core.versioning.NumericStepAtV91.backup(data)
@@ -1526,6 +1526,9 @@ class BackupService(private val context: Context) : ExecutableService {
             }
             if (fromVersion < 106 && toVersion >= 106) {
                 app.treelune.core.versioning.MonthlyDaysAtV106.backup(data)
+            }
+            if (fromVersion < 107 && toVersion >= 107) {
+                app.treelune.core.versioning.RoutinesAtV107.backup(data)
             }
 
             // Transform app settings
@@ -1558,15 +1561,15 @@ class BackupService(private val context: Context) : ExecutableService {
                 app.treelune.core.versioning.ProvidersAtV80.backup(data)
             }
 
-            // Transform automation schedules (fix SchedulePattern types for v10 → v11)
-            data.optJSONArray("automations")?.let { array ->
+            // Transform routine schedules (fix SchedulePattern types for v10 → v11)
+            data.optJSONArray("routines")?.let { array ->
                 for (i in 0 until array.length()) {
-                    val automation = array.getJSONObject(i)
-                    val scheduleJson = automation.optString("schedule_json", null)
+                    val routine = array.getJSONObject(i)
+                    val scheduleJson = routine.optString("schedule_json", null)
                     if (scheduleJson != null) {
                         // Apply SchedulePattern type fix transformation
                         val transformedSchedule = JsonTransformers.fixSchedulePatternTypes(scheduleJson)
-                        automation.put("schedule_json", transformedSchedule)
+                        routine.put("schedule_json", transformedSchedule)
                     }
                 }
             }

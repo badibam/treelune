@@ -643,7 +643,7 @@ object UI {
 
     /**
      * A state that always is one or the other: never marked, never emptied. It reads "On" and
-     * "Off" and is compact, to sit beside what it switches (an automation on or off); named, it
+     * "Off" and is compact, to sit beside what it switches (a routine on or off); named, it
      * is a choice between two modes and takes the whole width.
      */
     @Composable

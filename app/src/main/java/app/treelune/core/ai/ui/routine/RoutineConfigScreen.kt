@@ -1,4 +1,4 @@
-package app.treelune.core.ai.ui.automation
+package app.treelune.core.ai.ui.routine
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,8 +17,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import app.treelune.core.access.AccessMask
-import app.treelune.core.ai.data.AutomationMessage
-import app.treelune.core.ai.data.AutomationSettings
+import app.treelune.core.ai.data.RoutineMessage
+import app.treelune.core.ai.data.RoutineSettings
 import app.treelune.core.ai.data.MessageSegment
 import app.treelune.core.ai.data.RichMessage
 import app.treelune.core.ai.data.SessionType
@@ -42,9 +42,9 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * A routine's config (Place.AutomationConfig), as a tool's and a Task's: its look and its group,
+ * A routine's config (Place.RoutineConfig), as a tool's and a Task's: its look and its group,
  * then its message, written in blocks with its pointers, then the rest of its settings in their
- * sections (AutomationSettings.sections), the last ending with what its AI may reach. Its zone,
+ * sections (RoutineSettings.sections), the last ending with what its AI may reach. Its zone,
  * once it exists. Nothing exists before Save, which writes the settings, the access and the
  * message together, creating the routine when it has no id yet; leaving with changes not saved
  * asks first.
@@ -53,26 +53,26 @@ import org.json.JSONObject
  * @param onDeleted Called once the routine is deleted, its page gone with it
  */
 @Composable
-fun AutomationConfigScreen(place: Place.AutomationConfig, onDone: () -> Unit, onDeleted: () -> Unit) {
+fun RoutineConfigScreen(place: Place.RoutineConfig, onDone: () -> Unit, onDeleted: () -> Unit) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     val coordinator = remember { Coordinator(context) }
     val scope = rememberCoroutineScope()
-    val head = remember { AutomationSettings.head(context) }
-    val sections = remember { AutomationSettings.sections(context) }
-    val isEditing = place.automationId != null
+    val head = remember { RoutineSettings.head(context) }
+    val sections = remember { RoutineSettings.sections(context) }
+    val isEditing = place.routineId != null
 
     // A new routine starts from its declared defaults, in the group it was asked for; what it
     // does about missed runs goes with a schedule only, which it does not have yet
     var settings by rememberSaveable(stateSaver = JsonObjectSaver) {
-        mutableStateOf(SettingDefaults.of(AutomationSettings.nodes(context)).apply {
+        mutableStateOf(SettingDefaults.of(RoutineSettings.nodes(context)).apply {
             remove("catch_up")
             place.group?.let { put("group", it) }
         })
     }
-    // The message in blocks (AutomationMessage) and the access, kept as text across a rotation
+    // The message in blocks (RoutineMessage) and the access, kept as text across a rotation
     var messageText by rememberSaveable { mutableStateOf("[]") }
-    val segments = remember(messageText) { AutomationMessage.fromBlocks(JSONArray(messageText), s::shared).segments }
+    val segments = remember(messageText) { RoutineMessage.fromBlocks(JSONArray(messageText), s::shared).segments }
     var accessText by rememberSaveable { mutableStateOf(AccessMask().toJson().toString()) }
     val access = remember(accessText) { AccessMask.fromJson(accessText) }
     var zoneId by rememberSaveable { mutableStateOf(place.zoneId) }
@@ -88,15 +88,15 @@ fun AutomationConfigScreen(place: Place.AutomationConfig, onDone: () -> Unit, on
     var providers by remember { mutableStateOf<List<Map<String, Any>>?>(null) }
     val identities = app.treelune.core.identities.ui.rememberIdentities()
 
-    LaunchedEffect(place.automationId) {
+    LaunchedEffect(place.routineId) {
         if (asLoaded != null) return@LaunchedEffect
         val listed = coordinator.processUserAction("ai_provider_config.list", emptyMap())
         @Suppress("UNCHECKED_CAST")
         providers = (listed.data?.get("providers") as? List<Map<String, Any>>).orEmpty()
-        if (place.automationId != null) {
-            val result = coordinator.processUserAction("automations.config", mapOf("automation_id" to place.automationId))
+        if (place.routineId != null) {
+            val result = coordinator.processUserAction("routines.config", mapOf("routine_id" to place.routineId))
             if (result.status != CommandStatus.SUCCESS) {
-                UI.Toast(result.error ?: s.shared("error_automation_not_found"), Duration.LONG)
+                UI.Toast(result.error ?: s.shared("error_routine_not_found"), Duration.LONG)
                 onDone()
                 return@LaunchedEffect
             }
@@ -108,8 +108,8 @@ fun AutomationConfigScreen(place: Place.AutomationConfig, onDone: () -> Unit, on
             // A new routine starts with the default provider and its zone's identity, shown chosen
             val zone = coordinator.processUserAction("zones.get", mapOf("zone_id" to place.zoneId)).data?.get("zone") as? Map<*, *>
             settings = JSONObject(settings.toString()).apply {
-                providers?.firstOrNull { it["is_default"] as? Boolean ?: false }?.let { put(AutomationSettings.PROVIDER_ID, it["id"] as String) }
-                (zone?.get("identity_id") as? String)?.let { put(AutomationSettings.IDENTITY_ID, it) }
+                providers?.firstOrNull { it["is_default"] as? Boolean ?: false }?.let { put(RoutineSettings.PROVIDER_ID, it["id"] as String) }
+                (zone?.get("identity_id") as? String)?.let { put(RoutineSettings.IDENTITY_ID, it) }
             }
         }
         asLoaded = snapshot()
@@ -131,10 +131,10 @@ fun AutomationConfigScreen(place: Place.AutomationConfig, onDone: () -> Unit, on
     fun save() = scope.launch {
         // An empty message would leave the AI to make up what to do
         if (RichMessage(segments).isEmpty) {
-            UI.Toast(s.shared("automation_message_empty"), Duration.LONG)
+            UI.Toast(s.shared("routine_message_empty"), Duration.LONG)
             return@launch
         }
-        val provider = settings.optString(AutomationSettings.PROVIDER_ID).ifEmpty { null }
+        val provider = settings.optString(RoutineSettings.PROVIDER_ID).ifEmpty { null }
         // Without any provider, the routine is made off, to be given one later
         if (provider == null && !providers.isNullOrEmpty()) {
             UI.Toast(s.shared("error_param_provider_id_required"), Duration.LONG)
@@ -143,30 +143,30 @@ fun AutomationConfigScreen(place: Place.AutomationConfig, onDone: () -> Unit, on
         saving = true
         // Its provider and its identity always said, null for none: the service never takes a default
         val params = JsonUtils.toMap(settings) + mapOf(
-            AutomationSettings.PROVIDER_ID to provider,
-            AutomationSettings.IDENTITY_ID to settings.optString(AutomationSettings.IDENTITY_ID).ifEmpty { null },
+            RoutineSettings.PROVIDER_ID to provider,
+            RoutineSettings.IDENTITY_ID to settings.optString(RoutineSettings.IDENTITY_ID).ifEmpty { null },
             "message" to JsonUtils.toList(JSONArray(messageText)),
             "access" to JsonUtils.toList(JSONArray(accessText))
         )
-        val result = if (place.automationId == null) {
-            coordinator.processUserAction("automations.create", params + mapOf("zone_id" to zoneId) + (if (provider == null) mapOf("is_enabled" to false) else emptyMap()))
+        val result = if (place.routineId == null) {
+            coordinator.processUserAction("routines.create", params + mapOf("zone_id" to zoneId) + (if (provider == null) mapOf("is_enabled" to false) else emptyMap()))
         } else {
             // A setting the form took out is given null, for the service to remove it
             val stored = JSONObject(asLoaded!!).getJSONObject("settings")
             val removed = stored.keys().asSequence().filter { !settings.has(it) }.associateWith { null }
-            coordinator.processUserAction("automations.update", params + removed + buildMap {
-                put("automation_id", place.automationId)
+            coordinator.processUserAction("routines.update", params + removed + buildMap {
+                put("routine_id", place.routineId)
                 if (zoneId != place.zoneId) put("zone_id", zoneId)
             })
         }
         saving = false
         if (result.status == CommandStatus.SUCCESS) {
             // Moved: its page and what leads to it now stand in its new zone
-            if (place.automationId != null && zoneId != place.zoneId) app.treelune.core.navigation.Navigator.moved(
-                app.treelune.core.navigation.Place.Automation(place.automationId, place.zoneId), app.treelune.core.navigation.Place.Automation(place.automationId, zoneId))
+            if (place.routineId != null && zoneId != place.zoneId) app.treelune.core.navigation.Navigator.moved(
+                app.treelune.core.navigation.Place.Routine(place.routineId, place.zoneId), app.treelune.core.navigation.Place.Routine(place.routineId, zoneId))
             onDone()
         }
-        else UI.Toast(result.error ?: s.shared("automation_save_failed"), Duration.LONG)
+        else UI.Toast(result.error ?: s.shared("routine_save_failed"), Duration.LONG)
     }
 
     val scroll = rememberScrollState()
@@ -179,8 +179,8 @@ fun AutomationConfigScreen(place: Place.AutomationConfig, onDone: () -> Unit, on
     ) {
         UI.PageHeader(
             // The routine's name as saved, not as being typed; a new routine has none yet
-            title = asLoaded?.let { JSONObject(it).getJSONObject("settings").optString("name") }?.takeIf { it.isNotBlank() } ?: s.shared("automation_new_name"),
-            subtitle = s.shared("automation_display_name"),
+            title = asLoaded?.let { JSONObject(it).getJSONObject("settings").optString("name") }?.takeIf { it.isNotBlank() } ?: s.shared("routine_new_name"),
+            subtitle = s.shared("routine_display_name"),
             leftButton = ButtonAction.BACK,
             onLeftClick = { leave() }
         )
@@ -190,7 +190,7 @@ fun AutomationConfigScreen(place: Place.AutomationConfig, onDone: () -> Unit, on
         }
 
         if (sectionPages.atRoot) {
-            val editors = app.treelune.core.look.ui.lookEditors(AutomationSettings.LOOK, settings, s) { settings = it } + mapOf(
+            val editors = app.treelune.core.look.ui.lookEditors(RoutineSettings.LOOK, settings, s) { settings = it } + mapOf(
                 "group" to app.treelune.core.tools.ui.groupEditor(groups, s.shared("label_group"))
             )
             SettingsForm(head, settings, { settings = it }, context, editors, scroll = scroll, pages = headPages) {
@@ -212,13 +212,13 @@ fun AutomationConfigScreen(place: Place.AutomationConfig, onDone: () -> Unit, on
         if (!headPages.atRoot) return@Column
 
         if (sectionPages.atRoot) {
-            UI.Text(s.shared("automation_message"), TextType.HEADING)
+            UI.Text(s.shared("routine_message"), TextType.HEADING)
             // The message, a seed session's template, written with its pointers; its periods stored as relative
             UI.RichComposer(
                 segments = segments,
-                onSegmentsChange = { next: List<MessageSegment> -> messageText = AutomationMessage.toBlocks(RichMessage(next)).toString() },
+                onSegmentsChange = { next: List<MessageSegment> -> messageText = RoutineMessage.toBlocks(RichMessage(next)).toString() },
                 onSend = { },
-                placeholder = s.shared("automation_message_placeholder"),
+                placeholder = s.shared("routine_message_placeholder"),
                 showEnrichmentButtons = true,
                 showSendButton = false,
                 sessionType = SessionType.SEED,
@@ -231,18 +231,18 @@ fun AutomationConfigScreen(place: Place.AutomationConfig, onDone: () -> Unit, on
         // The actions on the root pages alone: under one, the back arrow goes up (SettingsPages)
         if (!sectionPages.atRoot) return@Column
 
-        app.treelune.core.access.ui.AccessCard(s.shared("automation_access_title"), s.shared("automation_access_help"), access) { accessText = it.toJson().toString() }
+        app.treelune.core.access.ui.AccessCard(s.shared("routine_access_title"), s.shared("routine_access_help"), access) { accessText = it.toJson().toString() }
 
         UI.ToolConfigActions(
             isEditing = isEditing,
             onSave = { save() },
             onCancel = { leave() },
             // The button asks for confirmation itself
-            onDelete = place.automationId?.let { automationId ->
+            onDelete = place.routineId?.let { routineId ->
                 {
                     scope.launch {
-                        val result = coordinator.processUserAction("automations.delete", mapOf("automation_id" to automationId))
-                        if (result.status == CommandStatus.SUCCESS) onDeleted() else UI.Toast(result.error ?: s.shared("error_automation_delete_failed"), Duration.LONG)
+                        val result = coordinator.processUserAction("routines.delete", mapOf("routine_id" to routineId))
+                        if (result.status == CommandStatus.SUCCESS) onDeleted() else UI.Toast(result.error ?: s.shared("error_routine_delete_failed"), Duration.LONG)
                     }
                 }
             },
@@ -261,12 +261,12 @@ private fun providerEditors(
     identities: List<app.treelune.core.identities.ui.IdentityChoice>?,
     s: app.treelune.core.strings.StringsContext
 ): Map<String, SettingEditor> = mapOf(
-    AutomationSettings.PROVIDER_ID to object : SettingEditor {
+    RoutineSettings.PROVIDER_ID to object : SettingEditor {
         @Composable
         override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
             when {
                 providers == null -> UI.Text(s.shared("message_loading"), TextType.CAPTION)
-                providers.isEmpty() -> UI.Text(s.shared("automation_no_provider_yet"), TextType.CAPTION)
+                providers.isEmpty() -> UI.Text(s.shared("routine_no_provider_yet"), TextType.CAPTION)
                 else -> {
                     val names = providers.associate { app.treelune.core.ai.ui.screens.providerLabel(it) to (it["id"] as String) }
                     UI.FormSelection(
@@ -280,7 +280,7 @@ private fun providerEditors(
             }
         }
     },
-    AutomationSettings.IDENTITY_ID to object : SettingEditor {
+    RoutineSettings.IDENTITY_ID to object : SettingEditor {
         @Composable
         override fun Edit(value: Any?, onChange: (Any?) -> Unit) {
             app.treelune.core.identities.ui.IdentitySelector(identities = identities.orEmpty(), selected = value as? String,

@@ -45,7 +45,7 @@ class PartTreeTest {
                 .put(JSONObject().put("id", "e1").put("tool_instance_id", "meals"))
                 .put(JSONObject().put("id", "e2").put("tool_instance_id", "meals")))
             .put("variables", JSONArray().put(JSONObject().put("id", "v1").put("zone_id", "cuisine").put("name", "objectif").put("label", "Objectif").put("group", "Analyse").put("grid_x", 0).put("grid_y", 0)))
-            .put("automations", JSONArray().put(JSONObject().put("id", "a1").put("zone_id", "cuisine").put("name", "Bilan").put("seed_session_id", "seed")
+            .put("routines", JSONArray().put(JSONObject().put("id", "a1").put("zone_id", "cuisine").put("name", "Bilan").put("seed_session_id", "seed")
                 .put("provider_id", JSONObject.NULL).put("identity_id", JSONObject.NULL))))
 
     @Test
@@ -73,7 +73,7 @@ class PartTreeTest {
         assertEquals(setOf("cuisine"), all.zones)
         assertEquals(mapOf("meals" to false, "foods" to false, "chart" to false), all.tools)
         assertEquals(setOf("v1"), all.variables)
-        assertEquals(setOf("a1"), all.automations)
+        assertEquals(setOf("a1"), all.routines)
         assertEquals(nothing, Ticks.zone(all, tree, cuisine, false))
     }
 
@@ -84,7 +84,7 @@ class PartTreeTest {
         val zones = data.getJSONArray("zones")
         zones.getJSONObject(1).put("identity_id", "coach")
         zones.getJSONObject(2).put("identity_id", "coach")
-        data.getJSONArray("automations").getJSONObject(0).put("identity_id", "sage")
+        data.getJSONArray("routines").getJSONObject(0).put("identity_id", "sage")
         data.put("identities", JSONArray().put(JSONObject().put("id", "sage").put("name", "Sage")).put(JSONObject().put("id", "coach").put("name", "Coach")))
         return PartTree.of(document)
     }

@@ -39,7 +39,7 @@ class ChainsTest {
     private suspend fun session(type: SessionType, chainId: String? = null): String {
         val id = UUID.randomUUID().toString()
         database.aiDao().insertSession(AISessionEntity(
-            id = id, name = "Run", type = type, automationId = if (type == SessionType.AUTOMATION) "routine" else null,
+            id = id, name = "Run", type = type, routineId = if (type == SessionType.ROUTINE_RUN) "routine" else null,
             scheduledExecutionTime = 0, providerId = null, providerSessionId = id, createdAt = 0, lastActivity = 0,
             isActive = false, chainId = chainId
         ))
@@ -48,15 +48,15 @@ class ChainsTest {
 
     /** A routine's run that started its chain, and [more] runs continuing it: the first's id. */
     private suspend fun chainOf(more: Int): String {
-        val first = session(SessionType.AUTOMATION)
-        repeat(more) { session(SessionType.AUTOMATION, first) }
+        val first = session(SessionType.ROUTINE_RUN)
+        repeat(more) { session(SessionType.ROUTINE_RUN, first) }
         return first
     }
 
     @Test
     fun aRoutinesAI_continuesItsRunsChain_belowTheCap() = runBlocking {
         val first = chainOf(10)
-        val last = session(SessionType.AUTOMATION, first)
+        val last = session(SessionType.ROUTINE_RUN, first)
 
         val admission = withContext(StepSession(last)) { Chains.admit(context, "Weekly") }
 

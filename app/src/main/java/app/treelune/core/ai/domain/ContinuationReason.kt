@@ -9,14 +9,14 @@ package app.treelune.core.ai.domain
  * Architecture: Event-Driven State Machine (V2)
  * - Used by AIState.continuationReason field
  * - Determines which guidance message to send to AI
- * - Specific to AUTOMATION sessions
+ * - Specific to ROUTINE_RUN sessions
  */
 enum class ContinuationReason {
     /**
-     * AUTOMATION responded without any commands (no data queries, no actions).
+     * ROUTINE_RUN responded without any commands (no data queries, no actions).
      * Need to guide AI to either provide commands or mark as completed.
      */
-    AUTOMATION_NO_COMMANDS,
+    ROUTINE_NO_COMMANDS,
 
     /**
      * AI sent completed=true flag for the first time.

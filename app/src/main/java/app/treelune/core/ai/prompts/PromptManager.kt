@@ -73,9 +73,9 @@ object PromptManager {
             identity = identity
         )
 
-        // 3. Build Level 2 (USER DATA - always_send tools), with what an automation's AI may
+        // 3. Build Level 2 (USER DATA - always_send tools), with what a routine's AI may
         //    reach, so that it does not try what would be refused
-        val access = if (sessionType == SessionType.AUTOMATION) automationAccessText(context, sessionData["automation_id"] as? String) else null
+        val access = if (sessionType == SessionType.ROUTINE_RUN) routineAccessText(context, sessionData["routine_id"] as? String) else null
         val level2Content = buildLevel2Content(context, sessionId, sessionType) + (access?.let { "\n\n$it" } ?: "")
 
         // 4. Build/Load Level 3 (APP_STATE snapshot)
@@ -111,7 +111,7 @@ object PromptManager {
             level2Content = level2Content,
             level3Content = level3Content,
             sessionMessages = promptMessages,
-            scheduledExecutionTime = if (sessionType == SessionType.AUTOMATION) {
+            scheduledExecutionTime = if (sessionType == SessionType.ROUTINE_RUN) {
                 sessionData["scheduled_execution_time"] as? Long
             } else {
                 null
@@ -120,7 +120,7 @@ object PromptManager {
     }
 
     /**
-     * A routine's run [sessionId] as its AI received it (AUTOMATION_RUN), one message after the
+     * A routine's run [sessionId] as its AI received it (ROUTINE_RUN), one message after the
      * other, each under who sent it: the routine's message as the prompt writes it, the AI's
      * answers in the JSON it wrote, the app's results. The data the starting message's pointers
      * attached is not repeated: they name what they designate, which may be read again.
@@ -134,7 +134,7 @@ object PromptManager {
         val result = Coordinator(context).processUserAction("ai_sessions.get_session", mapOf("session_id" to sessionId))
         val session = result.data?.get("session") as? Map<*, *>
             ?: throw IllegalArgumentException(result.error ?: s.shared("ai_error_session_not_found").format(sessionId))
-        if (session["type"] != SessionType.AUTOMATION.name) throw IllegalArgumentException(s.shared("ai_error_not_a_run").format(sessionId))
+        if (session["type"] != SessionType.ROUTINE_RUN.name) throw IllegalArgumentException(s.shared("ai_error_not_a_run").format(sessionId))
         val all = parseSessionMessages(result.data?.get("messages") as? List<*> ?: emptyList<Any>())
 
         // What a user message's pointers attached: the data that comes right after it
@@ -288,7 +288,7 @@ object PromptManager {
                 aiMessage = aiMessage,
                 aiMessageJson = msg["ai_message_json"] as? String,
                 systemMessage = systemMessage,
-                executionMetadata = null, // TODO: Parse when implementing automation
+                executionMetadata = null, // TODO: Parse when implementing routine
                 excludeFromPrompt = msg["exclude_from_prompt"] as? Boolean ?: false
             )
         }
@@ -367,7 +367,7 @@ object PromptManager {
     /**
      * The tools sent always, [chars] of them against [threshold]: sent within it; above it, sent
      * in a CHAT whose user accepted, asked in a CHAT not asked yet, listed otherwise (refused, an
-     * AUTOMATION, an outside AI with no [sessionType]).
+     * ROUTINE_RUN, an outside AI with no [sessionType]).
      */
     fun alwaysSendOutcome(chars: Int, threshold: Int, sessionType: SessionType?, choice: AlwaysSendChoice?): AlwaysSendOutcome = when {
         chars <= threshold -> AlwaysSendOutcome.SEND
@@ -446,7 +446,7 @@ object PromptManager {
     /**
      * Level 2: the data of the tools marked always_send, read now (docs/AI.md, « 2 levels of context »).
      * Above their threshold they go only in a CHAT whose user accepted them; otherwise (refused,
-     * an AUTOMATION, an outside AI, or not asked yet) the AI is given their list to read them.
+     * a ROUTINE_RUN, an outside AI, or not asked yet) the AI is given their list to read them.
      *
      * @param sessionId The session, null outside one (an outside AI's context, given the schemas too)
      * @param sessionType The session's type, null outside a session
@@ -468,12 +468,12 @@ object PromptManager {
     }
 
     /**
-     * What the AI of automation [automationId] may reach (accessText); null when it reaches
-     * everything. An automation that cannot be read reaches nothing, and is said so.
+     * What the AI of routine [routineId] may reach (accessText); null when it reaches
+     * everything. A routine that cannot be read reaches nothing, and is said so.
      */
-    private suspend fun automationAccessText(context: Context, automationId: String?): String? {
-        val automation = automationId?.let { app.treelune.core.database.AppDatabase.getDatabase(context).aiDao().getAutomationById(it) }
-        val mask = automation?.let {
+    private suspend fun routineAccessText(context: Context, routineId: String?): String? {
+        val routine = routineId?.let { app.treelune.core.database.AppDatabase.getDatabase(context).aiDao().getRoutineById(it) }
+        val mask = routine?.let {
             try {
                 app.treelune.core.access.AccessMask.fromJson(it.accessJson)
             } catch (e: Exception) {
@@ -484,7 +484,7 @@ object PromptManager {
     }
 
     /**
-     * What an AI acting without the user may reach under [mask] (an automation's, a connector
+     * What an AI acting without the user may reach under [mask] (a routine's, a connector
      * client's), each zone and tool by its name, id and level; null when it reaches everything.
      */
     suspend fun accessText(context: Context, mask: app.treelune.core.access.AccessMask): String? {
@@ -557,12 +557,12 @@ object PromptManager {
             }
         }
 
-        // The routines, each in a line (AutomationSchemas.listed)
+        // The routines, each in a line (RoutineSchemas.listed)
         val s = Strings.`for`(context = context)
         val result3 = coordinator.processUserAction(executable[3].resource + "." + executable[3].operation, executable[3].params)
-        val automationsArray = org.json.JSONArray()
-        (result3.data?.get("automations") as? List<*> ?: emptyList<Any>()).forEach { automation ->
-            automationsArray.put(JSONObject(AutomationSchemas.listed(automation as Map<*, *>, s)))
+        val routinesArray = org.json.JSONArray()
+        (result3.data?.get("routines") as? List<*> ?: emptyList<Any>()).forEach { routine ->
+            routinesArray.put(JSONObject(RoutineSchemas.listed(routine as Map<*, *>, s)))
         }
 
         // The groups a zone may hold, in their order on the home screen
@@ -588,7 +588,7 @@ object PromptManager {
             put("zone_groups", zoneGroups)
             put("zones", zonesArray)
             put("tool_instances", toolInstancesArray)
-            put("automations", automationsArray)
+            put("routines", routinesArray)
             put("identities", identities)
             put("ai_providers", providers)
         }
@@ -641,12 +641,12 @@ object PromptManager {
         sb.appendLine(toolInstances.toString(2))
         sb.appendLine("```")
         // A snapshot stored before the routines were part of it has none to show
-        snapshotObj.optJSONArray("automations")?.let { automations ->
+        snapshotObj.optJSONArray("routines")?.let { routines ->
             sb.appendLine()
-            sb.appendLine("### ${s.shared("ai_prompt_level3_automations_title")}")
+            sb.appendLine("### ${s.shared("ai_prompt_level3_routines_title")}")
             sb.appendLine()
             sb.appendLine("```json")
-            sb.appendLine(automations.toString(2))
+            sb.appendLine(routines.toString(2))
             sb.appendLine("```")
         }
         // A snapshot stored before the identities were part of it has none to show

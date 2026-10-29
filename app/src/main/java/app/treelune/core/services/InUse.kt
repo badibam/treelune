@@ -15,13 +15,13 @@ object InUse {
     /** The zones and the routines naming identity [identityId], by name. */
     suspend fun identity(database: AppDatabase, identityId: String): Users = Users(
         zones = database.zoneDao().getAllZones().filter { it.identity_id == identityId }.map { it.name },
-        routines = database.aiDao().getAllAutomations().filter { it.identityId == identityId }.map { it.name }
+        routines = database.aiDao().getAllRoutines().filter { it.identityId == identityId }.map { it.name }
     )
 
     /** The routines running on provider [providerId], by name; a zone has no provider. */
     suspend fun provider(database: AppDatabase, providerId: String): Users = Users(
         zones = emptyList(),
-        routines = database.aiDao().getAllAutomations().filter { it.providerId == providerId }.map { it.name }
+        routines = database.aiDao().getAllRoutines().filter { it.providerId == providerId }.map { it.name }
     )
 
     /** The Tasks one of whose steps calls API [apiId], by name. */

@@ -335,19 +335,19 @@ class ZoneService(private val context: Context) : ExecutableService {
 
         checkZone(updatedZone)?.let { return OperationResult.error(it) }
 
-        // The zone's tool groups are held by its tools, automations and variables: a group
+        // The zone's tool groups are held by its tools, routines and variables: a group
         // renamed is renamed in them, a group removed while one holds it is refused
         val toolDao = database.toolInstanceDao()
-        val automationDao = database.aiDao()
+        val routineDao = database.aiDao()
         val variableDao = database.variableDao()
         val change = Groups.Change(ToolPositions.zoneGroups(existingZone.tool_groups), ToolPositions.zoneGroups(updatedZone.tool_groups), Groups.renames(params, "tool_groups"))
         val tools = toolDao.getToolInstancesByZone(zoneId)
-        val automations = automationDao.getAutomationsByZone(zoneId)
+        val routines = routineDao.getRoutinesByZone(zoneId)
         val variables = variableDao.getByZone(zoneId)
         val tasks = database.taskDao().getByZone(zoneId)
         Groups.changeRefusal(change,
             tools.map { JSONObject(it.config_json).optString("name") to Groups.held(JSONObject(it.config_json)) } +
-                automations.map { it.name to it.group } + variables.map { it.name to it.group } + tasks.map { it.name to it.group },
+                routines.map { it.name to it.group } + variables.map { it.name to it.group } + tasks.map { it.name to it.group },
             s
         )?.let { return OperationResult.error(it) }
 
@@ -360,7 +360,7 @@ class ZoneService(private val context: Context) : ExecutableService {
                 if (group == Groups.held(config)) tool
                 else tool.copy(config_json = config.put("group", group).toString()).also { writes.updateTool(it) }
             }
-            automations.filter { change.held(it.group) != it.group }.forEach { writes.updateAutomation(it.copy(group = change.held(it.group))) }
+            routines.filter { change.held(it.group) != it.group }.forEach { writes.updateRoutine(it.copy(group = change.held(it.group))) }
             tasks.filter { change.held(it.group) != it.group }.forEach { writes.updateTask(it.copy(group = change.held(it.group))) }
             val renamedVariables = variables.map { variable ->
                 if (change.held(variable.group) == variable.group) variable
@@ -406,7 +406,7 @@ class ZoneService(private val context: Context) : ExecutableService {
             val groups = zoneGroups()
             val zones = zoneDao.getAllZones()
             write(ZonePositions.moved(zones, Grid.leave(ZonePositions.tiles(zones, groups, ZonePositions.section(existingZone.group, groups)), zoneId)))
-            database.aiDao().getAutomationsByZone(zoneId).forEach { writes.deleteAutomation(it.id) }
+            database.aiDao().getRoutinesByZone(zoneId).forEach { writes.deleteRoutine(it.id) }
             // A Task hangs from its zone by its column alone: deleted row by row, its runs going with it by cascade
             database.taskDao().getByZone(zoneId).forEach { writes.deleteTask(it.id) }
             writes.deleteZone(zoneId)

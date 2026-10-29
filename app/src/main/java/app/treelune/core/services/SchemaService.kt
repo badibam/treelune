@@ -158,8 +158,8 @@ class SchemaService(private val context: Context) : ExecutableService {
                 AIMessageSchemas.getAIMessageResponseSchema(context)
             }
             schemaId == CommunicationModules.SCHEMA_ID -> CommunicationModules.schema(context)
-            schemaId == app.treelune.core.ai.data.AutomationSchemas.CONFIG_ID -> app.treelune.core.ai.data.AutomationSchemas.config(context)
-            schemaId == app.treelune.core.ai.data.AutomationSchemas.RUNS_ID -> app.treelune.core.ai.data.AutomationSchemas.runs(context)
+            schemaId == app.treelune.core.ai.data.RoutineSchemas.CONFIG_ID -> app.treelune.core.ai.data.RoutineSchemas.config(context)
+            schemaId == app.treelune.core.ai.data.RoutineSchemas.RUNS_ID -> app.treelune.core.ai.data.RoutineSchemas.runs(context)
             schemaId == app.treelune.core.tasks.TaskSchemas.CONFIG_ID -> app.treelune.core.tasks.TaskSchemas.config(context)
             schemaId == app.treelune.core.apis.ApiSettings.SCHEMA_ID -> app.treelune.core.apis.ApiSettings.schema(context)
             else -> null
@@ -192,8 +192,8 @@ class SchemaService(private val context: Context) : ExecutableService {
             "ai_message_response",
             CommunicationModules.SCHEMA_ID,
             // A routine's config and its runs
-            app.treelune.core.ai.data.AutomationSchemas.CONFIG_ID,
-            app.treelune.core.ai.data.AutomationSchemas.RUNS_ID,
+            app.treelune.core.ai.data.RoutineSchemas.CONFIG_ID,
+            app.treelune.core.ai.data.RoutineSchemas.RUNS_ID,
             // A Task's config
             app.treelune.core.tasks.TaskSchemas.CONFIG_ID,
             // An API's config

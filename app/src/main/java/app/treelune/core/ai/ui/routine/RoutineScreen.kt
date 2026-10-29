@@ -1,4 +1,4 @@
-package app.treelune.core.ai.ui.automation
+package app.treelune.core.ai.ui.routine
 
 import app.treelune.core.selection.PeriodType
 import app.treelune.core.selection.Period
@@ -30,11 +30,11 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
 /**
- * AutomationScreen - A routine's page: what its tile does, then its execution history
+ * RoutineScreen - A routine's page: what its tile does, then its execution history
  *
  * Shows:
- * - Automation name in header
- * - Its state, its switch and its buttons, whatever its tile's mode shows of them (AutomationTile):
+ * - Routine name in header
+ * - Its state, its switch and its buttons, whatever its tile's mode shows of them (RoutineTile):
  *   run it (cancel while queued), a conversation with its message, its settings, its message to edit
  * - Filters: period type + limit + refresh
  * - Period selector (if not ALL)
@@ -48,8 +48,8 @@ import org.json.JSONObject
  * Usage: opened by a routine's tile, or its history button
  */
 @Composable
-fun AutomationScreen(
-    automationId: String,
+fun RoutineScreen(
+    routineId: String,
     onName: (String) -> Unit,
     onNavigateBack: () -> Unit,
     onNavigateToExecution: (sessionId: String) -> Unit
@@ -63,12 +63,12 @@ fun AutomationScreen(
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    // Automation metadata (simple data, not full Automation object)
-    var automationName by remember { mutableStateOf<String?>(null) }
+    // Routine metadata (simple data, not full Routine object)
+    var routineName by remember { mutableStateOf<String?>(null) }
     // The routine itself, for what its tile does, and as the service gives it, for its conditions' judgements
-    var automation by remember { mutableStateOf<app.treelune.core.ai.data.Automation?>(null) }
-    var automationMap by remember { mutableStateOf<Map<String, Any>?>(null) }
-    val actions = rememberAutomationActions { errorMessage = it }
+    var routine by remember { mutableStateOf<app.treelune.core.ai.data.Routine?>(null) }
+    var routineMap by remember { mutableStateOf<Map<String, Any>?>(null) }
+    val actions = rememberRoutineActions { errorMessage = it }
 
     // Execution list
     var sessions by remember { mutableStateOf<List<ExecutionSummary>>(emptyList()) }
@@ -98,34 +98,34 @@ fun AutomationScreen(
         if (currentPeriod == null) currentPeriod = createCurrentPeriod(PeriodType.DAY)
     }
 
-    // Load automation metadata and next execution
-    suspend fun loadAutomationMetadata() {
-        // Load automation
+    // Load routine metadata and next execution
+    suspend fun loadRoutineMetadata() {
+        // Load routine
         val result = withContext(Dispatchers.IO) {
-            coordinator.processUserAction("automations.get", mapOf("automation_id" to automationId))
+            coordinator.processUserAction("routines.get", mapOf("routine_id" to routineId))
         }
 
         // Update states (automatically on Main thread from LaunchedEffect)
         if (result.status == CommandStatus.SUCCESS) {
             val data = result.data
             if (data != null) {
-                // Service returns data under "automation" key
+                // Service returns data under "routine" key
                 @Suppress("UNCHECKED_CAST")
-                val found = data["automation"] as? Map<String, Any>
+                val found = data["routine"] as? Map<String, Any>
                 if (found != null) {
-                    automationName = found["name"] as? String
+                    routineName = found["name"] as? String
                     // The routine's place named by it, for the breadcrumb
-                    automationName?.let(onName)
-                    automation = app.treelune.core.ai.data.Automation.fromResult(found)
-                    automationMap = found
+                    routineName?.let(onName)
+                    routine = app.treelune.core.ai.data.Routine.fromResult(found)
+                    routineMap = found
                 } else {
-                    errorMessage = s.shared("error_automation_load_failed")
+                    errorMessage = s.shared("error_routine_load_failed")
                 }
             } else {
-                errorMessage = s.shared("error_automation_load_failed")
+                errorMessage = s.shared("error_routine_load_failed")
             }
         } else {
-            errorMessage = result.error ?: s.shared("error_automation_load_failed")
+            errorMessage = result.error ?: s.shared("error_routine_load_failed")
         }
     }
 
@@ -146,7 +146,7 @@ fun AutomationScreen(
 
             // Build params
             val params = mutableMapOf<String, Any>(
-                "automation_id" to automationId,
+                "routine_id" to routineId,
                 "limit" to entriesLimit,
                 "page" to currentPage
             )
@@ -154,7 +154,7 @@ fun AutomationScreen(
             if (endTime != null) params["end_time"] = endTime
 
             // Call service
-            val result = coordinator.processUserAction("ai_sessions.list_sessions_for_automation", params)
+            val result = coordinator.processUserAction("ai_sessions.list_sessions_for_routine", params)
 
             if (result.status == CommandStatus.SUCCESS) {
                 val data = result.data
@@ -227,25 +227,25 @@ fun AutomationScreen(
     // Back to the first page when a filter changes
     OnChangedEffect("$periodFilter|$currentPeriod|$entriesLimit") { currentPage = 1 }
 
-    // Load automation metadata on first load, and again when a routine changes (switched, renamed)
-    LaunchedEffect(automationId) {
-        loadAutomationMetadata()
-        DataChangeNotifier.changes.collect { event -> if (event is DataChangeEvent.ZonesChanged) loadAutomationMetadata() }
+    // Load routine metadata on first load, and again when a routine changes (switched, renamed)
+    LaunchedEffect(routineId) {
+        loadRoutineMetadata()
+        DataChangeNotifier.changes.collect { event -> if (event is DataChangeEvent.ZonesChanged) loadRoutineMetadata() }
     }
 
     // Load sessions when filters/pagination change
-    LaunchedEffect(automationId, periodFilter, currentPeriod, entriesLimit, currentPage, refreshTrigger) {
+    LaunchedEffect(routineId, periodFilter, currentPeriod, entriesLimit, currentPage, refreshTrigger) {
         if (currentPeriod != null || periodFilter == PeriodFilterType.ALL) {
             loadSessions()
         }
     }
 
     // Real-time updates - Listen to DataChangeNotifier for session changes
-    LaunchedEffect(automationId) {
+    LaunchedEffect(routineId) {
         DataChangeNotifier.changes.collect { event ->
             when (event) {
                 is DataChangeEvent.AISessionsChanged -> {
-                    if (event.automationId == null || event.automationId == automationId) {
+                    if (event.routineId == null || event.routineId == routineId) {
                         refreshTrigger++
                     }
                 }
@@ -277,23 +277,23 @@ fun AutomationScreen(
         // Header
         // Its config behind the gear, once the routine is read
         UI.PageHeader(
-            title = automationName ?: s.shared("tools_loading"),
-            subtitle = s.shared("automation_display_name"),
+            title = routineName ?: s.shared("tools_loading"),
+            subtitle = s.shared("routine_display_name"),
             leftButton = ButtonAction.BACK,
-            rightButton = if (automation != null) ButtonAction.CONFIGURE else null,
+            rightButton = if (routine != null) ButtonAction.CONFIGURE else null,
             onLeftClick = onNavigateBack,
-            onRightClick = { automation?.let { actions.configure(it) } }
+            onRightClick = { routine?.let { actions.configure(it) } }
         )
 
         // What its tile does, all of it whatever its tile's mode: its state and switch, its
         // buttons but the one to this page, which is its history
-        automation?.let { routine ->
-            val state = rememberAutomationState(routine)
+        routine?.let { routine ->
+            val state = rememberRoutineState(routine)
             UI.Card(type = CardType.DEFAULT) {
                 Column(modifier = Modifier.fillMaxWidth().padding(UI.Space.M), verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
-                    AutomationStateLine(routine, state, actions, withProblem = true)
-                    app.treelune.core.triggers.ui.ConditionJudgementLines(app.treelune.core.triggers.ui.ConditionJudgementLine.list(automationMap?.get("condition_judgements")))
-                    AutomationButtons(routine, state, actions, toPage = false)
+                    RoutineStateLine(routine, state, actions, withProblem = true)
+                    app.treelune.core.triggers.ui.ConditionJudgementLines(app.treelune.core.triggers.ui.ConditionJudgementLine.list(routineMap?.get("condition_judgements")))
+                    RoutineButtons(routine, state, actions, toPage = false)
                 }
             }
         }
@@ -409,7 +409,7 @@ fun AutomationScreen(
                 modifier = Modifier.fillMaxWidth().padding(UI.Space.L),
                 contentAlignment = Alignment.Center
             ) {
-                UI.CenteredText(s.shared("automation_no_executions"), TextType.BODY)
+                UI.CenteredText(s.shared("routine_no_executions"), TextType.BODY)
             }
         }
 
@@ -421,7 +421,7 @@ fun AutomationScreen(
             ) {
                 sessions.forEach { session ->
                     // Check if this session is currently active
-                    val isActive = aiState.sessionType == SessionType.AUTOMATION &&
+                    val isActive = aiState.sessionType == SessionType.ROUTINE_RUN &&
                                    aiState.sessionId == session.sessionId
 
                     // If active, use live phase from aiState for real-time updates

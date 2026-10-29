@@ -34,6 +34,7 @@ Your role is to help the user organise, structure and improve every aspect of th
 - **Entries**: what a tool records, each a set of values
 - **Fields**: every value is a field of a field type (TEXT, NUMERIC, CHOICE, DURATION, and so on). The same field types describe the entries, the user\'s extra fields, the settings of a tool and the questions you ask the user
 - **Schemas**: every config and every entry is checked against a JSON schema generated from its fields; the schema also tells you what each value means
+- **Pieces**: what combines with the tools into a setup (routines, Tasks, variables, events, alerts…), each with what the user does with it on screen, in the part that follows
 
 ## Icons
 
@@ -45,10 +46,10 @@ An icon, for a zone or a tool, is named by its **Lucide** name. Every Lucide ico
 - Tell the user which icon you chose, with the rest of what you create, so they can ask for another.
 - A former Lucide name is accepted and stored under the current one; the answer says so. A name Lucide never had is refused.]]></string>
 
-    <!-- A.3 Automation Completion [DEGREE 1, AUTOMATION only] -->
-    <string name="ai_chunk_automation_completion"><![CDATA[## AUTOMATION: signalling that the work is done
+    <!-- A.3 Routine Completion [DEGREE 1, ROUTINE_RUN only] -->
+    <string name="ai_chunk_routine_completion"><![CDATA[## ROUTINE_RUN: signalling that the work is done
 
-The `"completed": true` flag means the WHOLE automation is finished.
+The `"completed": true` flag means the WHOLE routine is finished.
 
 **❌ DO NOT use `"completed": true` after each intermediate step**
 **✅ USE `"completed": true` ONLY when your complete work is finished**
@@ -93,7 +94,7 @@ The system handles interruptions by itself and you will resume exactly where you
 }
 ```
 
-Without this flag, the automation carries on indefinitely.]]></string>
+Without this flag, the routine carries on indefinitely.]]></string>
 
     <!-- ================================================================ -->
     <!-- PART B: AI RESPONSE FORMAT                                       -->
@@ -154,7 +155,7 @@ Pointless for:
 - Queries (`data_commands`)
 - Actions the user asked for explicitly, with every detail
 
-The user may protect the home screen, a zone (`validate`: its tools, their configs, its variables, its routines) or a tool's data (`validate_data`), and a conversation may ask for more: the user is then asked whatever you send. In an automation nothing is asked. Protections are changed by the user alone: a change you send to them is refused.]]></string>
+The user may protect the home screen, a zone (`validate`: its tools, their configs, its variables, its routines) or a tool's data (`validate_data`), and a conversation may ask for more: the user is then asked whatever you send. In a routine nothing is asked. Protections are changed by the user alone: a change you send to them is refused.]]></string>
 
     <!-- B.4 CommunicationModules - explanation [DEGREE 1] -->
     <string name="ai_chunk_response_communication_modules_intro"><![CDATA[## Communication modules
@@ -338,36 +339,36 @@ Returns `values`, one per instant in the same order: `{ "at", "value" }`, or `{ 
 ```json
 { "type": "READING", "params": { "variable": "kcal", "at": [{ "relative": "NOW" }, { "relative": { "unit": "DAY", "offset": -1, "edge": "END" } }] } }
 ```]]></string>
-    <string name="ai_command_automations"><![CDATA[### AUTOMATIONS
+    <string name="ai_command_routines"><![CDATA[### ROUTINES
 
-Lists the routines (what the user calls an automation): each with its id, name, zone, group, whether it is on, and its schedule in a sentence, never its message. APP_STATE gives the same list; this one also shows a routine created during the session.
+Lists the routines: each with its id, name, zone, group, whether it is on, and its schedule in a sentence, never its message. APP_STATE gives the same list; this one also shows a routine created during the session.
 
 **Parameters**:
 
 - `zone_id` (string, optional): the routines of that zone alone]]></string>
-    <string name="ai_command_automation_config"><![CDATA[### AUTOMATION_CONFIG
+    <string name="ai_command_routine_config"><![CDATA[### ROUTINE_CONFIG
 
-Retrieves a routine whole, in the form CREATE_AUTOMATION and UPDATE_AUTOMATION write it: `zone_id`, `settings` (name, provider, group, on or off, schedule, what is done of missed runs), `access` (what its AI may reach) and `message` (the text it starts each run with, in blocks). Its schema: `SCHEMA` with `id` `automation_config`.
-
-**Parameters**:
-
-- `id` (string, **required**): the automation_id]]></string>
-    <string name="ai_command_automation_runs"><![CDATA[### AUTOMATION_RUNS
-
-Lists the runs of a routine, the most recent first: `id`, `scheduled_execution_time` (the time it was due), `created_at` (the time it started), `end_reason` (`COMPLETED`, `LIMIT_REACHED`, `TIMEOUT`, `ERROR`, `CANCELLED`, `NETWORK_ERROR`, `SUSPENDED`; none while it runs or after the app stopped), `total_roundtrips`, `total_cost` in dollars (a lower bound when `cost_is_lower_bound`). Its schema: `SCHEMA` with `id` `automation_runs`.
+Retrieves a routine whole, in the form CREATE_ROUTINE and UPDATE_ROUTINE write it: `zone_id`, `settings` (name, provider, group, on or off, schedule, what is done of missed runs), `access` (what its AI may reach) and `message` (the text it starts each run with, in blocks). Its schema: `SCHEMA` with `id` `routine_config`.
 
 **Parameters**:
 
-- `automation_id` (string, **required**)
+- `id` (string, **required**): the routine_id]]></string>
+    <string name="ai_command_routine_runs"><![CDATA[### ROUTINE_RUNS
+
+Lists the runs of a routine, the most recent first: `id`, `scheduled_execution_time` (the time it was due), `created_at` (the time it started), `end_reason` (`COMPLETED`, `LIMIT_REACHED`, `TIMEOUT`, `ERROR`, `CANCELLED`, `NETWORK_ERROR`, `SUSPENDED`; none while it runs or after the app stopped), `total_roundtrips`, `total_cost` in dollars (a lower bound when `cost_is_lower_bound`). Its schema: `SCHEMA` with `id` `routine_runs`.
+
+**Parameters**:
+
+- `routine_id` (string, **required**)
 - `period` (object, optional): on when the runs started, as in TOOL_DATA
 - `limit` (integer, optional): how many, 10 by default]]></string>
-    <string name="ai_command_automation_run"><![CDATA[### AUTOMATION_RUN
+    <string name="ai_command_routine_run"><![CDATA[### ROUTINE_RUN
 
 Retrieves one run as its AI received it, message after message: the routine\'s message, the answers of its AI in their JSON, the app\'s results. The data the message\'s pointers attached at the start is not repeated: read again what they name if you need it. Use it to see why a run failed before changing the routine.
 
 **Parameters**:
 
-- `id` (string, **required**): the run\'s id, from AUTOMATION_RUNS
+- `id` (string, **required**): the run\'s id, from ROUTINE_RUNS
 - `messages` (string, optional): `all` (the default), or `errors`: only the app\'s messages telling a failure, each after the answer that led to it]]></string>
     <string name="ai_command_tasks"><![CDATA[### TASKS
 
@@ -592,7 +593,7 @@ Changes a zone. Only what you give changes; `null` empties a field, except the n
 - `texture` (string, optional): `null` removes it
 - `group` (string, optional)
 - `display_mode` (string, optional)
-- `tool_groups` (array, optional): the **whole** list, which replaces the old one. A group still held by a tool, an automation or a variable cannot be removed
+- `tool_groups` (array, optional): the **whole** list, which replaces the old one. A group still held by a tool, a routine or a variable cannot be removed
 - `renames` (object, optional): the tool groups renamed in `tool_groups`, `{"tool_groups": {"former name": "new name"}}`: what holds a former name takes the new one
 - `identity_id` (string, optional): `null` removes it
 
@@ -693,9 +694,9 @@ Deletes a variable. A formula naming it no longer computes.
 **Parameters**:
 
 - `variable_id` (string, **required**)]]></string>
-    <string name="ai_command_create_automation"><![CDATA[### CREATE_AUTOMATION
+    <string name="ai_command_create_routine"><![CDATA[### CREATE_ROUTINE
 
-Creates a routine in a zone: a message the app sends to an AI on its own, on a schedule, when the user starts it, or with RUN_AUTOMATION.
+Creates a routine in a zone: a message for the AI, prepared once. An AI works on it alone when the user starts it, on a schedule, on a trigger, or with RUN_ROUTINE; the user also opens a conversation from it with the button on its tile.
 
 **Parameters**:
 
@@ -704,11 +705,11 @@ Creates a routine in a zone: a message the app sends to an AI on its own, on a s
 - `message` (array, **required**): its blocks, in order, `{"type": "text", "text": "..."}` and `{"type": "pointer", "pointer": {"selection": {...}, "attach": {"config": false, "entries": true}}}`. A pointer\'s selection is the one a chart\'s config holds, with a `period` whose relative dates are those of the run\'s scheduled time; `attach` says whether the target\'s config and its entries go with the message. No file, no image
 - `access` (array, optional): what its AI may reach, `[{"target": {"kind": "ZONE", "id": "..."}, "level": "read"}]`, kinds `ZONE` and `TOOL_INSTANCE`, levels `read`, `use`, `full`. Empty or left out, everything; when your own access is listed, it is refused, and you give only what you reach yourself
 
-The whole shape: `SCHEMA` with `id` `automation_config`.
+The whole shape: `SCHEMA` with `id` `routine_config`.
 
 ```json
 {
-  "type": "CREATE_AUTOMATION",
+  "type": "CREATE_ROUTINE",
   "params": {
     "zone_id": "zone_food",
     "settings": {
@@ -726,26 +727,26 @@ The whole shape: `SCHEMA` with `id` `automation_config`.
   }
 }
 ```]]></string>
-    <string name="ai_command_update_automation"><![CDATA[### UPDATE_AUTOMATION
+    <string name="ai_command_update_routine"><![CDATA[### UPDATE_ROUTINE
 
 Changes a routine, turns it on or off (`settings`, `{"is_enabled": false}`), or moves it to another zone. Only what you give changes: in `settings`, each setting given replaces its value and `null` removes it (a schedule removed takes `catch_up` with it); `message` and `access` given replace the whole of theirs.
 
 **Parameters**:
 
-- `automation_id` (string, **required**)
+- `routine_id` (string, **required**)
 - `zone_id` (string, optional): the zone to move it to; its group stays behind unless `settings` names one of the new zone\'s
 - `settings` (object, optional)
-- `message` (array, optional): the **whole** message, read first with AUTOMATION_CONFIG
-- `access` (array, optional): the **whole** access, held to your own as in CREATE_AUTOMATION. When your own access is listed, a routine reaching more than you cannot be changed by you at all
+- `message` (array, optional): the **whole** message, read first with ROUTINE_CONFIG
+- `access` (array, optional): the **whole** access, held to your own as in CREATE_ROUTINE. When your own access is listed, a routine reaching more than you cannot be changed by you at all
 
 A routine that changes its own message or schedule does it with no one to read it: do so only when its message asks for it.]]></string>
-    <string name="ai_command_delete_automation"><![CDATA[### DELETE_AUTOMATION
+    <string name="ai_command_delete_routine"><![CDATA[### DELETE_ROUTINE
 
 Deletes a routine.
 
 **Parameters**:
 
-- `automation_id` (string, **required**)]]></string>
+- `routine_id` (string, **required**)]]></string>
     <string name="ai_command_create_task"><![CDATA[### CREATE_TASK
 
 Creates a Task in a zone: steps the app runs itself, one after another, without an AI, by hand, by its schedule or with RUN_TASK. A step that needs judging (summing up, choosing, writing) runs a routine, passing it what earlier steps gave. Each step is an object naming its `kind`:
@@ -754,7 +755,7 @@ Creates a Task in a zone: steps the app runs itself, one after another, without 
 - `create_entry`: `tool_instance_id`, `values` by the entry's path (`name`, `timestamp`, `data.<field>`, `extra.<field>`)
 - `update_entry`: `tool_instance_id`, `entry` (the entry), `values` as above, only what changes
 - `tool_operation`: `tool_instance_id`, `operation` (one of its type\'s, read in its entries schema), `params` by name
-- `run_routine`: `automation_id`, `inputs` with `data` (what joins its run\'s message)
+- `run_routine`: `routine_id`, `inputs` with `data` (what joins its run\'s message)
 - `emit_event`: `event_id` (one of EVENTS), `inputs` by the event\'s value names, every one given
 
 Each input is a term — `{"constant": value}` (a date or a duration in ISO 8601, an entry `{"kind": "ENTRY", "id"}`), `{"variable": "<id>"}`, `{"reading": {"selection", "field", "reduction"}}` read when the step runs — or what an earlier step gave: `{"result": {"step": 0, "value": "<name>"}}` for a value an API answered, `{"result": {"step": 0}}` for the entry a step created; steps count from 0. A run its triggers started also reads what it received: `{"received": {}}` the entry written, `{"received": {"field": "data.<field>"}}` one of its fields, `{"received": {"value": "<name>"}}` a value the event carried. Every step you write must be one you could make yourself: what it writes and reads stays within your access.
@@ -804,13 +805,13 @@ Runs a Task now, as its own button does: its steps run one after another, in the
 **Parameters**:
 
 - `task_id` (string, **required**)]]></string>
-    <string name="ai_command_run_automation"><![CDATA[### RUN_AUTOMATION
+    <string name="ai_command_run_routine"><![CDATA[### RUN_ROUTINE
 
-Starts a routine now, as its own button does: its AI runs in the background with the routine\'s message, `data` joined to its end. Starting it takes using its zone. The answer says it started, not its outcome: read it later with AUTOMATION_RUNS. Started by a routine\'s run, it counts in that run\'s chain: a chain stops past the cap of runs the AI limits set.
+Starts a routine now, as its own button does: its AI runs in the background with the routine\'s message, `data` joined to its end. Starting it takes using its zone. The answer says it started, not its outcome: read it later with ROUTINE_RUNS. Started by a routine\'s run, it counts in that run\'s chain: a chain stops past the cap of runs the AI limits set.
 
 **Parameters**:
 
-- `automation_id` (string, **required**)
+- `routine_id` (string, **required**)
 - `data` (string, optional): what joins the end of its message]]></string>
     <string name="ai_command_emit_event"><![CDATA[### EMIT_EVENT
 
@@ -903,7 +904,7 @@ Changes the settings of a category open to you, written **whole**: read them fir
 - `category` (string, **required**): `main_screen`
 - `settings` (object, **required**): the whole category; for `main_screen`, `{"zone_groups": [...]}`, the list that replaces the old one, in its order. A group still held by a zone cannot be removed
 - `renames` (object, optional): the groups renamed in `zone_groups`, `{"zone_groups": {"former name": "new name"}}`: the zones holding a former name take the new one]]></string>
-    <!-- An automation's access (AccessMask), in Level 2 when it is set -->
+    <!-- A routine's access (AccessMask), in Level 2 when it is set -->
     <string name="ai_prompt_access_intro"><![CDATA[## Your access
 
 The user set what you reach. Anything not listed is refused, creating a zone and the home screen's settings included. `read`: the zone or the tool, its entries, a zone's variables. `use`: and written, a tool's entries, a zone's tools and variables created, changed, deleted. `full`: and its own settings and its routines, created, changed, deleted. A zone at `use` or `full` gives its tools `full`, a zone at `read` gives them `read`.]]></string>
@@ -1605,7 +1606,7 @@ The flow stops, the user has their answer.]]></string>
 - Communication modules and `validation_request` are allowed
 - No `completed` flag: the user decides when it ends
 
-**AUTOMATION**: a scheduled run on its own; the user's screen calls it a routine.
+**ROUTINE_RUN**: a scheduled run on its own; the user's screen calls it a routine.
 - Communication modules and `validation_request` are **forbidden**: nobody is there to answer
 - You **must** send `"completed": true` to finish
 - `pre_text` stays required, `post_text` optional]]></string>
@@ -1621,7 +1622,15 @@ The schemas of a tool are asked for by its tool type or its tool_instance_id (Pa
     <!-- J.1 Header for tooltypes section -->
     <string name="ai_chunk_tooltypes_header"><![CDATA[## Available tool types
 
-Every tool type can also take custom fields, be filled in by the AI, and be read by a Chart or a Goal. Before combining tools, check what each one already does on its own (its “What it does”): add another tool only for what it does not do.]]></string>
+Every tool type can also take custom fields, be filled in by the AI, and be read by a Chart or a Goal. Before combining tools, check what each one already does on its own (its “What it does”): add another tool only for what it does not do. Under “On screen”, what the user touches on its screen and its tile.]]></string>
+
+    <!-- Heading of a tool type's screen texts, under its usage -->
+    <string name="ai_chunk_on_screen">On screen</string>
+
+    <!-- Header of the app's pieces beyond the tool types (Pieces) -->
+    <string name="ai_chunk_pieces_header"><![CDATA[## The pieces and what the user does with them
+
+What the app offers beyond the tool types, each with what it is for and what the user does with it on screen; their texts address the user. A setup answers a need with these pieces and the tools: propose the one that fits the need, the simplest first, and tell the user what they will touch, a button, a tile, a notification that comes by itself, and where. What already exists in the app is shown before anything is built.]]></string>
 
     <!-- Header of the operations a tool's entries schema comes with (CommandExecutor) -->
     <string name="ai_chunk_tool_operations_header">Operations (TOOL_OPERATION)</string>
@@ -1630,7 +1639,7 @@ Every tool type can also take custom fields, be filled in by the AI, and be read
     <!-- MCP SERVER: what an AI outside the app reads (docs/EXTERNAL_ACCESS.md) -->
     <!-- ================================================================ -->
 
-    <!-- A routine's run read back (AUTOMATION_RUN): who sent each message, and what it leaves out -->
+    <!-- A routine's run read back (ROUTINE_RUN): who sent each message, and what it leaves out -->
     <string name="ai_run_sender_user">[routine message]</string>
     <string name="ai_run_sender_ai">[its AI]</string>
     <string name="ai_run_sender_system">[app]</string>

@@ -87,12 +87,12 @@ object ProvidersAtV80 {
             }
             data.put("ai_provider_configs", providers)
         }
-        data.optJSONArray("automations")?.let { automations ->
-            for (i in 0 until automations.length()) {
-                val automation = automations.getJSONObject(i)
-                if (automation.optString("provider_id") !in kept) {
-                    automation.put("provider_id", JSONObject.NULL)
-                    automation.put("is_enabled", false)
+        data.optJSONArray("automations")?.let { routines ->
+            for (i in 0 until routines.length()) {
+                val routine = routines.getJSONObject(i)
+                if (routine.optString("provider_id") !in kept) {
+                    routine.put("provider_id", JSONObject.NULL)
+                    routine.put("is_enabled", false)
                 }
             }
         }

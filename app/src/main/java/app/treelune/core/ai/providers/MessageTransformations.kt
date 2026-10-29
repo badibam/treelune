@@ -45,7 +45,7 @@ fun transformSystemMessagesToUser(messages: List<SessionMessage>): List<SessionM
 /**
  * Build the dated closing message every provider appends to the history.
  *
- * It always carries the current time. An AUTOMATION run also carries the time it was scheduled
+ * It always carries the current time. A ROUTINE_RUN run also carries the time it was scheduled
  * for, which is what its relative periods resolved against: catching up on a missed day, the two
  * are days apart, and the AI needs both to tell the data it reads (scheduled time) from what it
  * does now (current time). The two lines are the whole of that separation, so they travel

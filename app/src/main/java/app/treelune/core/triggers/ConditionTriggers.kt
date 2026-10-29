@@ -89,7 +89,7 @@ object ConditionTriggers {
             emptyMap()
         }
         val tasks = database.taskDao().getAll().filter { it.isEnabled }.map { Listener(TASK, it.id, it.name, conditions(it.triggersJson, "Task ${it.id}")) }
-        val routines = database.aiDao().getAllAutomations().filter { it.isEnabled }.map { Listener(ROUTINE, it.id, it.name, conditions(it.triggersJson, "Routine ${it.id}")) }
+        val routines = database.aiDao().getAllRoutines().filter { it.isEnabled }.map { Listener(ROUTINE, it.id, it.name, conditions(it.triggersJson, "Routine ${it.id}")) }
         return (tasks + routines).filter { it.conditions.isNotEmpty() }
     }
 
@@ -286,9 +286,9 @@ object ConditionTriggers {
             }
             ROUTINE -> {
                 val s = Strings.`for`(context = context)
-                app.treelune.core.ai.orchestration.AIOrchestrator.executeAutomation(listener.id, scheduledFor = System.currentTimeMillis(),
+                app.treelune.core.ai.orchestration.AIOrchestrator.executeRoutine(listener.id, scheduledFor = System.currentTimeMillis(),
                     trigger = app.treelune.core.ai.data.ExecutionTrigger.CONDITION, chainId = chain,
-                    attached = listOf(app.treelune.core.ai.data.MessageSegment.Text(s.shared("automation_run_condition").format(passage.answer.said))))
+                    attached = listOf(app.treelune.core.ai.data.MessageSegment.Text(s.shared("routine_run_condition").format(passage.answer.said))))
             }
         }
     }

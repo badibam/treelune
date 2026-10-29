@@ -165,6 +165,7 @@ object JsonTransformers {
                     82 -> HistoryAtV83.dataSettings(category, transformed)
                     83 -> ExternalAccessDataAtV84.rewrite(category, transformed)
                     97 -> if (category == AppSettingCategories.AI_LIMITS) AILimitsAtV98.rewrite(transformed) else transformed
+                    106 -> RoutinesAtV107.settings(category, transformed.toString())?.let { JSONObject(it) } ?: transformed
                     // Example future migration:
                     // 10 -> migrateAppConfigFrom10To11(transformed)
                     else -> transformed // No migrations
@@ -440,7 +441,7 @@ object JsonTransformers {
      * New: "type":"SpecificDates"
      *
      * Used by:
-     * - Automation schedules (AutomationEntity.schedule column)
+     * - Automation schedules (RoutineEntity.schedule column)
      * - Messages tool data (ToolDataEntity.data column with schedule field)
      * - Any JSON containing ScheduleConfig
      *

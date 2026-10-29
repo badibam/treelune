@@ -1,6 +1,6 @@
 package app.treelune.core.versioning
 
-import app.treelune.core.ai.data.AutomationSettings
+import app.treelune.core.ai.data.RoutineSettings
 import app.treelune.core.ai.data.LegacyCatchUp
 import org.json.JSONObject
 
@@ -20,8 +20,8 @@ object CatchUpAtV41 {
     /** The catch-up choice and window of an automation, scheduled or not, whose window was [windowMinutes]. */
     fun of(scheduled: Boolean, windowMinutes: Long?): Pair<String?, Long?> = when {
         !scheduled -> null to null
-        windowMinutes == null -> AutomationSettings.UNLIMITED to null
-        else -> AutomationSettings.LIMITED to windowMinutes * MILLIS_PER_MINUTE
+        windowMinutes == null -> RoutineSettings.UNLIMITED to null
+        else -> RoutineSettings.LIMITED to windowMinutes * MILLIS_PER_MINUTE
     }
 
     /**
@@ -29,16 +29,16 @@ object CatchUpAtV41 {
      * settings existed carries no window, and is read by LegacyCatchUp, as the v23 migration did.
      */
     fun backup(data: JSONObject) {
-        val automations = data.optJSONArray("automations") ?: return
-        for (i in 0 until automations.length()) {
-            val automation = automations.getJSONObject(i)
-            val hasWindow = automation.has("catch_up_window_minutes") && !automation.isNull("catch_up_window_minutes")
-            val scheduled = !automation.isNull("schedule_json") && automation.optString("schedule_json").isNotEmpty()
-            val (choice, window) = of(scheduled, if (hasWindow) automation.getLong("catch_up_window_minutes") else LegacyCatchUp.WINDOW_MINUTES)
-            if (!hasWindow) automation.put("dismiss_older_instances", LegacyCatchUp.DISMISS_OLDER)
-            automation.remove("catch_up_window_minutes")
-            choice?.let { automation.put("catch_up", it) }
-            window?.let { automation.put("catch_up_window", it) }
+        val routines = data.optJSONArray("automations") ?: return
+        for (i in 0 until routines.length()) {
+            val routine = routines.getJSONObject(i)
+            val hasWindow = routine.has("catch_up_window_minutes") && !routine.isNull("catch_up_window_minutes")
+            val scheduled = !routine.isNull("schedule_json") && routine.optString("schedule_json").isNotEmpty()
+            val (choice, window) = of(scheduled, if (hasWindow) routine.getLong("catch_up_window_minutes") else LegacyCatchUp.WINDOW_MINUTES)
+            if (!hasWindow) routine.put("dismiss_older_instances", LegacyCatchUp.DISMISS_OLDER)
+            routine.remove("catch_up_window_minutes")
+            choice?.let { routine.put("catch_up", it) }
+            window?.let { routine.put("catch_up_window", it) }
         }
     }
 }

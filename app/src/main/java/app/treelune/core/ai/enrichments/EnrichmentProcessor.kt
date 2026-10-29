@@ -132,7 +132,7 @@ class EnrichmentProcessor(
      * config is attached, its entries and their schema when they are. A mention sends none.
      *
      * The entries are read with the selection's period, filters and fields; a relative date
-     * among them is resolved by the command transformer, at each send, so an automation's
+     * among them is resolved by the command transformer, at each send, so a routine's
      * pointer reads its own period at every run.
      */
     private suspend fun generatePointerQueries(

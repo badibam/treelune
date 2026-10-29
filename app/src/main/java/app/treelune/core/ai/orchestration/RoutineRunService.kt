@@ -33,14 +33,14 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 /**
- * A routine (an AUTOMATION session) running: a foreground service and a partial wake lock, so
+ * A routine (a ROUTINE_RUN session) running: a foreground service and a partial wake lock, so
  * Android lets its round finish with no screen open. The scheduler's alarm keeps the app awake
  * for its tick alone (SchedulerAlarm, 50 s at most), and a round can last minutes. Its
  * notification names the routine.
  *
- * Started and stopped by [AutomationRun.follow], never by hand.
+ * Started and stopped by [RoutineRun.follow], never by hand.
  */
-class AutomationRunService : Service() {
+class RoutineRunService : Service() {
 
     private var wakeLock: PowerManager.WakeLock? = null
 
@@ -74,13 +74,13 @@ class AutomationRunService : Service() {
         val s = Strings.`for`(context = this)
         val manager = getSystemService(NotificationManager::class.java)
         if (manager.getNotificationChannel(CHANNEL) == null) {
-            manager.createNotificationChannel(NotificationChannel(CHANNEL, s.shared("automation_run_channel"), NotificationManager.IMPORTANCE_LOW))
+            manager.createNotificationChannel(NotificationChannel(CHANNEL, s.shared("routine_run_channel"), NotificationManager.IMPORTANCE_LOW))
         }
         val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
         return NotificationCompat.Builder(this, CHANNEL)
             .setSmallIcon(Icons.lucideDrawable(this, NotificationService.APP_ICON) ?: android.R.drawable.ic_dialog_info)
-            .setContentTitle(routineName ?: s.shared("automation_run_notification_text"))
-            .setContentText(routineName?.let { s.shared("automation_run_notification_text") })
+            .setContentTitle(routineName ?: s.shared("routine_run_notification_text"))
+            .setContentText(routineName?.let { s.shared("routine_run_notification_text") })
             .setContentIntent(open)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
@@ -91,24 +91,24 @@ class AutomationRunService : Service() {
         const val EXTRA_ROUTINE_NAME = "routine_name"
         const val CHANNEL = "treelune_automation_run"
         private const val NOTIFICATION_ID = 0x4152 // "AR"
-        private const val WAKE_LOCK_TAG = "treelune:automation_run"
+        private const val WAKE_LOCK_TAG = "treelune:routine_run"
 
         /**
          * The longest the phone is kept awake for one routine: its working time
-         * (SessionSlotPolicy.AUTOMATION_GLOBAL_TIMEOUT), its wait for the network, and room for
+         * (SessionSlotPolicy.ROUTINE_GLOBAL_TIMEOUT), its wait for the network, and room for
          * the watchdog, which only sees the overrun at a heartbeat.
          */
-        private const val WAKE_LOCK_LIMIT = SessionSlotPolicy.AUTOMATION_GLOBAL_TIMEOUT + AIStateMachine.AUTOMATION_NETWORK_WAIT_LIMIT + 3 * 60_000L
+        private const val WAKE_LOCK_LIMIT = SessionSlotPolicy.ROUTINE_GLOBAL_TIMEOUT + AIStateMachine.ROUTINE_NETWORK_WAIT_LIMIT + 3 * 60_000L
     }
 }
 
 /**
- * Runs [AutomationRunService] while a routine runs, read off the AI's state: on from the moment
- * an AUTOMATION session is active to the moment the slot is free again. A routine never waits
+ * Runs [RoutineRunService] while a routine runs, read off the AI's state: on from the moment
+ * a ROUTINE_RUN session is active to the moment the slot is free again. A routine never waits
  * for the user (no validation, no question, no data confirmation: AI.md), so it has nothing to
  * do only once closed.
  */
-object AutomationRun {
+object RoutineRun {
 
     /**
      * How long the service outlives a routine: the next one starts at once after the closing
@@ -119,7 +119,7 @@ object AutomationRun {
 
     /** The routine's session running, or null. */
     private fun runningRoutine(state: AIState): String? =
-        state.sessionId?.takeIf { state.sessionType == SessionType.AUTOMATION && state.phase != Phase.IDLE && state.phase != Phase.CLOSED }
+        state.sessionId?.takeIf { state.sessionType == SessionType.ROUTINE_RUN && state.phase != Phase.IDLE && state.phase != Phase.CLOSED }
 
     /** Follows [state] on [scope] for as long as the process lives. */
     fun follow(context: Context, state: StateFlow<AIState>, aiDao: AIDao, scope: CoroutineScope) {
@@ -130,27 +130,27 @@ object AutomationRun {
                     start(appContext, routineName(aiDao, sessionId))
                 } else {
                     delay(STOP_DELAY)
-                    appContext.stopService(Intent(appContext, AutomationRunService::class.java))
+                    appContext.stopService(Intent(appContext, RoutineRunService::class.java))
                 }
             }
         }
     }
 
     private suspend fun routineName(aiDao: AIDao, sessionId: String): String? {
-        val automationId = aiDao.getSession(sessionId)?.automationId
-        val name = automationId?.let { aiDao.getAutomationById(it)?.name }
-        if (name == null) LogManager.aiSession("AutomationRun: no routine found for session $sessionId (automation $automationId)", "ERROR")
+        val routineId = aiDao.getSession(sessionId)?.routineId
+        val name = routineId?.let { aiDao.getRoutineById(it)?.name }
+        if (name == null) LogManager.aiSession("RoutineRun: no routine found for session $sessionId (routine $routineId)", "ERROR")
         return name
     }
 
     private fun start(context: Context, routineName: String?) {
         try {
-            ContextCompat.startForegroundService(context, Intent(context, AutomationRunService::class.java).putExtra(AutomationRunService.EXTRA_ROUTINE_NAME, routineName))
+            ContextCompat.startForegroundService(context, Intent(context, RoutineRunService::class.java).putExtra(RoutineRunService.EXTRA_ROUTINE_NAME, routineName))
         } catch (e: Exception) {
             // Android refuses a foreground service started from the background, outside the
             // alarm's moment: a routine started by the in-app heartbeat once the app is left.
             // The round runs on unprotected, as long as Android lets the process live.
-            LogManager.aiSession("AutomationRun: the service could not start, the routine may be cut: ${e.message}", "ERROR", e)
+            LogManager.aiSession("RoutineRun: the service could not start, the routine may be cut: ${e.message}", "ERROR", e)
         }
     }
 }

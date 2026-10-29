@@ -6,7 +6,7 @@ package app.treelune.core.coordinator
 enum class Source {
     /** A person, from a screen */
     USER,
-    /** The AI, in a chat or an automation */
+    /** The AI, in a chat or a routine */
     AI,
     /** An AI outside the app, a client of its MCP server */
     EXTERNAL,

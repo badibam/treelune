@@ -57,9 +57,9 @@ object ProviderVerifier {
                     defaultId
                 }
                 // Its routine had none at its launch, which refuses it: not run
-                SessionType.AUTOMATION -> {
-                    LogManager.aiService("verifyProvider: AUTOMATION session has no provider", "ERROR")
-                    return VerificationResult(false, s.shared("automation_provider_none"))
+                SessionType.ROUTINE_RUN -> {
+                    LogManager.aiService("verifyProvider: ROUTINE_RUN session has no provider", "ERROR")
+                    return VerificationResult(false, s.shared("routine_provider_none"))
                 }
                 SessionType.SEED, null -> {
                     LogManager.aiService("verifyProvider: session of type ${state.sessionType} cannot call a provider", "ERROR")

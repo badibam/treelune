@@ -1,4 +1,4 @@
-package app.treelune.core.ai.ui.automation
+package app.treelune.core.ai.ui.routine
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
@@ -17,7 +17,7 @@ import app.treelune.core.ui.*
 import app.treelune.core.utils.DateUtils
 
 /**
- * ExecutionCard - Display automation execution summary
+ * ExecutionCard - Display routine execution summary
  *
  * Shows:
  * - Scheduled execution time
@@ -33,7 +33,7 @@ import app.treelune.core.utils.DateUtils
  *
  * Layout: 2 columns with data rows, VIEW button at bottom
  *
- * Usage: In AutomationScreen execution list
+ * Usage: In RoutineScreen execution list
  */
 @Composable
 fun ExecutionCard(
@@ -86,11 +86,11 @@ fun ExecutionCard(
                     UI.Text(
                         // Planned, it says when; otherwise what started it: by hand, an entry, an event, a condition
                         text = when {
-                            scheduledExecutionTime != null -> s.shared("automation_scheduled_label").format(app.treelune.core.utils.DateTimeFormatter.formatForDisplay(scheduledExecutionTime, context))
-                            trigger == app.treelune.core.ai.data.ExecutionTrigger.ENTRY -> s.shared("automation_entry_execution")
-                            trigger == app.treelune.core.ai.data.ExecutionTrigger.EVENT -> s.shared("automation_event_execution")
-                            trigger == app.treelune.core.ai.data.ExecutionTrigger.CONDITION -> s.shared("automation_condition_execution")
-                            else -> s.shared("automation_manual_execution")
+                            scheduledExecutionTime != null -> s.shared("routine_scheduled_label").format(app.treelune.core.utils.DateTimeFormatter.formatForDisplay(scheduledExecutionTime, context))
+                            trigger == app.treelune.core.ai.data.ExecutionTrigger.ENTRY -> s.shared("routine_entry_execution")
+                            trigger == app.treelune.core.ai.data.ExecutionTrigger.EVENT -> s.shared("routine_event_execution")
+                            trigger == app.treelune.core.ai.data.ExecutionTrigger.CONDITION -> s.shared("routine_condition_execution")
+                            else -> s.shared("routine_manual_execution")
                         },
                         type = TextType.CAPTION
                     )
@@ -122,7 +122,7 @@ fun ExecutionCard(
                 // Left column: Started time
                 Box(modifier = Modifier.weight(1f)) {
                     UI.Text(
-                        text = s.shared("automation_started_label").format(app.treelune.core.utils.DateTimeFormatter.formatForDisplay(createdAt, context)),
+                        text = s.shared("routine_started_label").format(app.treelune.core.utils.DateTimeFormatter.formatForDisplay(createdAt, context)),
                         type = TextType.CAPTION
                     )
                 }
@@ -142,7 +142,7 @@ fun ExecutionCard(
                 // Left column: Duration
                 Box(modifier = Modifier.weight(1f)) {
                     UI.Text(
-                        text = s.shared("automation_duration_label").format(app.treelune.core.fields.Durations.format(duration, app.treelune.core.fields.DurationUnits.HOUR_MINUTE_SECOND.units, s)),
+                        text = s.shared("routine_duration_label").format(app.treelune.core.fields.Durations.format(duration, app.treelune.core.fields.DurationUnits.HOUR_MINUTE_SECOND.units, s)),
                         type = TextType.CAPTION
                     )
                 }
@@ -150,7 +150,7 @@ fun ExecutionCard(
                 // Right column: Roundtrips
                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
                     UI.Text(
-                        text = if (totalRoundtrips == 1) s.shared("automation_roundtrips_one") else s.shared("automation_roundtrips_label").format(totalRoundtrips),
+                        text = if (totalRoundtrips == 1) s.shared("routine_roundtrips_one") else s.shared("routine_roundtrips_label").format(totalRoundtrips),
                         type = TextType.CAPTION
                     )
                 }
@@ -165,7 +165,7 @@ fun ExecutionCard(
                 // Left column: Tokens
                 Box(modifier = Modifier.weight(1f)) {
                     UI.Text(
-                        text = "${AIFormatUtils.formatTokenCount(totalTokens)} ${s.shared("automation_tokens_label")}",
+                        text = "${AIFormatUtils.formatTokenCount(totalTokens)} ${s.shared("routine_tokens_label")}",
                         type = TextType.CAPTION
                     )
                 }

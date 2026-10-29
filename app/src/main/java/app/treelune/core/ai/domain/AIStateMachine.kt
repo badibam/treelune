@@ -18,8 +18,8 @@ import app.treelune.core.utils.LogManager
  */
 object AIStateMachine {
 
-    /** How long an AUTOMATION waits for the network, outages added up, before it closes to be resumed later */
-    const val AUTOMATION_NETWORK_WAIT_LIMIT = 120_000L
+    /** How long a ROUTINE_RUN waits for the network, outages added up, before it closes to be resumed later */
+    const val ROUTINE_NETWORK_WAIT_LIMIT = 120_000L
 
     /**
      * Process an event and return the new state.
@@ -55,7 +55,7 @@ object AIStateMachine {
             is AIEvent.SessionActivationRequested -> {
                 // Activate session and set sessionId + sessionType
                 // CHAT sessions stay IDLE waiting for first user message
-                // AUTOMATION sessions transition to EXECUTING_ENRICHMENTS immediately
+                // ROUTINE_RUN sessions transition to EXECUTING_ENRICHMENTS immediately
                 // The slot must be free, not just idle: an activated CHAT nobody has spoken
                 // to yet is IDLE with a session id, and activating over it would drop it.
                 // Evicting the occupant is SessionSlotPolicy's call, made before this event.
@@ -71,7 +71,7 @@ object AIStateMachine {
                         // otherwise for their message
                         if (event.awaitingAnswer) Phase.WAITING_COMMUNICATION_RESPONSE else Phase.IDLE
                     } else {
-                        Phase.EXECUTING_ENRICHMENTS // AUTOMATION starts immediately
+                        Phase.EXECUTING_ENRICHMENTS // ROUTINE_RUN starts immediately
                     }
 
                     state.copy(
@@ -155,7 +155,7 @@ object AIStateMachine {
                     )
                 } else {
                     // User rejected - CHAT returns to IDLE (session stays active)
-                    // AUTOMATION should not reach this path (no validation for AUTOMATION)
+                    // ROUTINE_RUN should not reach this path (no validation for ROUTINE_RUN)
                     state.copy(
                         phase = Phase.IDLE,
                         waitingContext = null,
@@ -270,9 +270,9 @@ object AIStateMachine {
                 // The provider was reached and the call will not succeed by being repeated:
                 // bad config, or a refusal for now (rate limit, overload, exhausted credit).
                 // CHAT: return to IDLE (session stays active, user can configure provider)
-                // AUTOMATION: close session with ERROR reason
-                if (state.sessionType == SessionType.AUTOMATION) {
-                    // AUTOMATION - close session with ERROR
+                // ROUTINE_RUN: close session with ERROR reason
+                if (state.sessionType == SessionType.ROUTINE_RUN) {
+                    // ROUTINE_RUN - close session with ERROR
                     state.copy(
                         phase = Phase.CLOSED,
                         endReason = SessionEndReason.ERROR,
@@ -289,8 +289,8 @@ object AIStateMachine {
 
             is AIEvent.NetworkErrorOccurred -> {
                 // CHAT: return to IDLE (session stays active, user must retry manually)
-                // AUTOMATION: transition to WAITING_NETWORK_RETRY (automatic retry)
-                if (state.sessionType == SessionType.AUTOMATION) {
+                // ROUTINE_RUN: transition to WAITING_NETWORK_RETRY (automatic retry)
+                if (state.sessionType == SessionType.ROUTINE_RUN) {
                     state.copy(
                         phase = Phase.WAITING_NETWORK_RETRY,
                         // An outage already under way keeps its own start, so a retry that fails
@@ -329,12 +329,12 @@ object AIStateMachine {
             is AIEvent.NetworkRetryScheduled -> {
                 // Transition from WAITING_NETWORK_RETRY to CALLING_AI
                 // (network retry scheduled, will check again after delay).
-                // An AUTOMATION that has waited AUTOMATION_NETWORK_WAIT_LIMIT in all closes
+                // A ROUTINE_RUN that has waited ROUTINE_NETWORK_WAIT_LIMIT in all closes
                 // instead, resumable: kept running, it would keep the phone awake for as long
                 // as the network stays away; the scheduler takes it up
                 // again after SessionSlotPolicy.NETWORK_RESUME_PAUSE.
                 val downTime = state.networkDownTime + state.currentOutage(currentTime)
-                if (state.sessionType == SessionType.AUTOMATION && downTime >= AUTOMATION_NETWORK_WAIT_LIMIT) {
+                if (state.sessionType == SessionType.ROUTINE_RUN && downTime >= ROUTINE_NETWORK_WAIT_LIMIT) {
                     state.copy(
                         phase = Phase.CLOSED,
                         endReason = SessionEndReason.NETWORK_ERROR,
@@ -448,8 +448,8 @@ object AIStateMachine {
         val hasActions = !message.actionCommands.isNullOrEmpty()
         val hasDataCommands = !message.dataCommands.isNullOrEmpty()
 
-        // Priority 0: COMPLETED flag (AUTOMATION only) - with special handling
-        if (message.completed == true && state.sessionType == SessionType.AUTOMATION) {
+        // Priority 0: COMPLETED flag (ROUTINE_RUN only) - with special handling
+        if (message.completed == true && state.sessionType == SessionType.ROUTINE_RUN) {
             // If actions present: execute first, completed will be handled after
             if (hasActions) {
                 return state.copy(
@@ -504,7 +504,7 @@ object AIStateMachine {
             }
         }
 
-        // Priority 1: Communication module (CHAT only: an AUTOMATION's is refused as a format error)
+        // Priority 1: Communication module (CHAT only: a ROUTINE_RUN's is refused as a format error)
         if (message.communicationModule != null && state.sessionType == SessionType.CHAT) {
             return state.copy(
                 phase = Phase.WAITING_COMMUNICATION_RESPONSE,
@@ -525,7 +525,7 @@ object AIStateMachine {
 
         // Priority 3: Action commands
         // CHAT: Go through WAITING_VALIDATION first - ValidationResolver decides if validation needed
-        // AUTOMATION: Execute directly without validation (no user interaction)
+        // ROUTINE_RUN: Execute directly without validation (no user interaction)
         // Reset awaitingCompletionConfirmation since AI is continuing work
         if (!message.actionCommands.isNullOrEmpty()) {
             val nextPhase = if (state.sessionType == SessionType.CHAT) {
@@ -543,7 +543,7 @@ object AIStateMachine {
 
         // No commands - behavior depends on session type
         // CHAT: preText only → return to IDLE (ready for next user message)
-        // AUTOMATION: no commands → guidance needed via PREPARING_CONTINUATION phase
+        // ROUTINE_RUN: no commands → guidance needed via PREPARING_CONTINUATION phase
         // Also reset awaitingCompletionConfirmation since AI is continuing work
         return if (state.sessionType == SessionType.CHAT) {
             state.copy(
@@ -552,10 +552,10 @@ object AIStateMachine {
                 lastEventTime = currentTime
             )
         } else {
-            // AUTOMATION without commands - need to guide AI to provide commands or mark as completed
+            // ROUTINE_RUN without commands - need to guide AI to provide commands or mark as completed
             state.copy(
                 phase = Phase.PREPARING_CONTINUATION,
-                continuationReason = ContinuationReason.AUTOMATION_NO_COMMANDS,
+                continuationReason = ContinuationReason.ROUTINE_NO_COMMANDS,
                 awaitingCompletionConfirmation = false, // Reset since AI is continuing work
                 lastEventTime = currentTime
             )
@@ -566,7 +566,7 @@ object AIStateMachine {
      * Transition to session completion based on session type.
      *
      * - CHAT: Returns to IDLE (session remains active, waiting for next user message)
-     * - AUTOMATION: Transitions to AWAITING_SESSION_CLOSURE (5s countdown before CLOSED)
+     * - ROUTINE_RUN: Transitions to AWAITING_SESSION_CLOSURE (5s countdown before CLOSED)
      */
     private fun transitionToCompletion(
         state: AIState,
@@ -581,8 +581,8 @@ object AIStateMachine {
                     lastEventTime = currentTime
                 )
             }
-            SessionType.AUTOMATION -> {
-                // AUTOMATION: 5s countdown before closure
+            SessionType.ROUTINE_RUN -> {
+                // ROUTINE_RUN: 5s countdown before closure
                 state.copy(
                     phase = Phase.AWAITING_SESSION_CLOSURE,
                     endReason = endReason,
@@ -626,7 +626,7 @@ object AIStateMachine {
             }
 
             // Normal flow: no completed flag
-            val shouldContinue = event.keepControl == true || state.sessionType == SessionType.AUTOMATION
+            val shouldContinue = event.keepControl == true || state.sessionType == SessionType.ROUTINE_RUN
 
             return if (shouldContinue) {
                 // Continue autonomous execution

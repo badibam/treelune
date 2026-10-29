@@ -22,26 +22,26 @@ import app.treelune.core.utils.LogManager
  *
  * Acting on the answers belongs elsewhere: AIOrchestrator activates and evicts,
  * AIEventProcessor closes a session the watchdog has found timed out, and AISessionScheduler
- * keeps getNextSession, which reads the queue and the scheduled automations from the
+ * keeps getNextSession, which reads the queue and the scheduled routines from the
  * database and so cannot live here.
  */
 object SessionSlotPolicy {
 
-    /** Chat session inactivity timeout (5 minutes) - only when automation waiting */
+    /** Chat session inactivity timeout (5 minutes) - only when routine waiting */
     const val CHAT_INACTIVITY_TIMEOUT = 300_000L
 
-    /** Automation session inactivity timeout (2 minutes) */
+    /** Routine session inactivity timeout (2 minutes) */
     const val AUTO_INACTIVITY_TIMEOUT = 120_000L
 
-    /** Automation session global timeout (10 minutes) - excludes network downtime */
-    const val AUTOMATION_GLOBAL_TIMEOUT = 600_000L
+    /** Routine session global timeout (10 minutes) - excludes network downtime */
+    const val ROUTINE_GLOBAL_TIMEOUT = 600_000L
 
     /**
-     * How long an automation closed for the network (AIStateMachine.AUTOMATION_NETWORK_WAIT_LIMIT)
+     * How long a routine closed for the network (AIStateMachine.ROUTINE_NETWORK_WAIT_LIMIT)
      * stays closed before it is resumed. Taken up at once, it would wait and close again in a
      * loop. Half the interval of the scheduler's alarm (SchedulerAlarm.INTERVAL), which rings at
      * any moment of the session's life: the full interval would let the first ring after the
-     * closing fall short of it, and the automation wait for the next one.
+     * closing fall short of it, and the routine wait for the next one.
      */
     const val NETWORK_RESUME_PAUSE = app.treelune.core.scheduling.SchedulerAlarm.INTERVAL / 2
 
@@ -52,8 +52,8 @@ object SessionSlotPolicy {
      * holds it and on what is asking.
      *
      * @param sessionId Session ID to activate
-     * @param sessionType Session type (CHAT or AUTOMATION)
-     * @param trigger Execution trigger (for automations only)
+     * @param sessionType Session type (CHAT or ROUTINE_RUN)
+     * @param trigger Execution trigger (for routines only)
      * @param currentState Current AI state
      * @param currentTime Current timestamp, for the inactivity of whoever holds the slot
      * @return Activation result with decision
@@ -92,12 +92,12 @@ object SessionSlotPolicy {
                             evictionReason = SessionEndReason.CANCELLED
                         )
                     }
-                    SessionType.AUTOMATION -> {
-                        // CHAT requesting during AUTOMATION: always enqueue
+                    SessionType.ROUTINE_RUN -> {
+                        // CHAT requesting during ROUTINE_RUN: always enqueue
                         // User will be prompted with dialog (interrupt immediately OR wait for completion)
                         // Dialog is shown in UI layer, not here in the policy
                         LogManager.aiSession(
-                            "CHAT requested during AUTOMATION: enqueuing CHAT (user will choose via dialog)",
+                            "CHAT requested during ROUTINE_RUN: enqueuing CHAT (user will choose via dialog)",
                             "INFO"
                         )
                         ActivationResult.Enqueue(sessionId, priority = 1)
@@ -106,9 +106,9 @@ object SessionSlotPolicy {
                 }
             }
 
-            // AUTOMATION requests (MANUAL or SCHEDULED)
-            sessionType == SessionType.AUTOMATION -> {
-                checkEvictionForAutomation(
+            // ROUTINE_RUN requests (MANUAL or SCHEDULED)
+            sessionType == SessionType.ROUTINE_RUN -> {
+                checkEvictionForRoutine(
                     sessionId = sessionId,
                     trigger = trigger,
                     currentState = currentState,
@@ -122,10 +122,10 @@ object SessionSlotPolicy {
     }
 
     /**
-     * Check eviction logic for AUTOMATION requests (both MANUAL and SCHEDULED).
+     * Check eviction logic for ROUTINE_RUN requests (both MANUAL and SCHEDULED).
      *
-     * Only handles AUTOMATION → CHAT eviction logic.
-     * AUTOMATION → AUTOMATION doesn't need explicit eviction - automations timeout
+     * Only handles ROUTINE_RUN → CHAT eviction logic.
+     * ROUTINE_RUN → ROUTINE_RUN doesn't need explicit eviction - routines timeout
      * automatically via shouldTimeout() (watchdog) when they exceed limits.
      *
      * Logic:
@@ -133,11 +133,11 @@ object SessionSlotPolicy {
      * - CHAT active with inactivity < 5 min:
      *   - MANUAL: Enqueue (will activate when slot free)
      *   - SCHEDULED: Skip (will retry at next tick)
-     * - AUTOMATION active: Wait for watchdog to timeout the automation
+     * - ROUTINE_RUN active: Wait for watchdog to timeout the routine
      *   - MANUAL: Enqueue
      *   - SCHEDULED: Skip
      */
-    private fun checkEvictionForAutomation(
+    private fun checkEvictionForRoutine(
         sessionId: String,
         trigger: ExecutionTrigger,
         currentState: AIState,
@@ -150,14 +150,14 @@ object SessionSlotPolicy {
             SessionType.CHAT -> {
                 // Check CHAT inactivity with CHAT timeout
                 LogManager.aiSession(
-                    "AUTOMATION $triggerLabel requesting activation: CHAT active, inactivity=${inactivity}ms, threshold=${CHAT_INACTIVITY_TIMEOUT}ms",
+                    "ROUTINE_RUN $triggerLabel requesting activation: CHAT active, inactivity=${inactivity}ms, threshold=${CHAT_INACTIVITY_TIMEOUT}ms",
                     "INFO"
                 )
 
                 if (inactivity > CHAT_INACTIVITY_TIMEOUT) {
                     // Evict inactive CHAT
                     LogManager.aiSession(
-                        "AUTOMATION $triggerLabel evicting inactive CHAT (inactivity > ${CHAT_INACTIVITY_TIMEOUT}ms)",
+                        "ROUTINE_RUN $triggerLabel evicting inactive CHAT (inactivity > ${CHAT_INACTIVITY_TIMEOUT}ms)",
                         "INFO"
                     )
                     ActivationResult.EvictAndActivate(
@@ -169,39 +169,39 @@ object SessionSlotPolicy {
                     // CHAT still active
                     if (trigger == ExecutionTrigger.MANUAL) {
                         LogManager.aiSession(
-                            "AUTOMATION MANUAL enqueued: CHAT still active (inactivity=${inactivity}ms < ${CHAT_INACTIVITY_TIMEOUT}ms)",
+                            "ROUTINE_RUN MANUAL enqueued: CHAT still active (inactivity=${inactivity}ms < ${CHAT_INACTIVITY_TIMEOUT}ms)",
                             "INFO"
                         )
                         ActivationResult.Enqueue(sessionId, priority = 2)
                     } else {
                         LogManager.aiSession(
-                            "AUTOMATION SCHEDULED skipped: CHAT still active (inactivity=${inactivity}ms < ${CHAT_INACTIVITY_TIMEOUT}ms)",
+                            "ROUTINE_RUN SCHEDULED skipped: CHAT still active (inactivity=${inactivity}ms < ${CHAT_INACTIVITY_TIMEOUT}ms)",
                             "INFO"
                         )
                         ActivationResult.Skip("CHAT active")
                     }
                 }
             }
-            SessionType.AUTOMATION -> {
-                // AUTOMATION active: cannot evict explicitly
-                // Wait for watchdog to timeout the automation if it exceeds limits
+            SessionType.ROUTINE_RUN -> {
+                // ROUTINE_RUN active: cannot evict explicitly
+                // Wait for watchdog to timeout the routine if it exceeds limits
                 LogManager.aiSession(
-                    "AUTOMATION $triggerLabel requesting activation: AUTOMATION active, waiting for watchdog timeout or completion",
+                    "ROUTINE_RUN $triggerLabel requesting activation: ROUTINE_RUN active, waiting for watchdog timeout or completion",
                     "INFO"
                 )
 
                 if (trigger == ExecutionTrigger.MANUAL) {
                     LogManager.aiSession(
-                        "AUTOMATION MANUAL enqueued: will activate when current AUTOMATION completes or times out",
+                        "ROUTINE_RUN MANUAL enqueued: will activate when current ROUTINE_RUN completes or times out",
                         "INFO"
                     )
                     ActivationResult.Enqueue(sessionId, priority = 2)
                 } else {
                     LogManager.aiSession(
-                        "AUTOMATION SCHEDULED skipped: will retry at next tick",
+                        "ROUTINE_RUN SCHEDULED skipped: will retry at next tick",
                         "INFO"
                     )
-                    ActivationResult.Skip("AUTOMATION active")
+                    ActivationResult.Skip("ROUTINE_RUN active")
                 }
             }
             else -> ActivationResult.ActivateImmediate(sessionId)
@@ -211,23 +211,23 @@ object SessionSlotPolicy {
     /**
      * Check if the session holding the slot should be timed out.
      *
-     * CHAT: Timeout only if automation waiting + inactivity > 5 min
-     * AUTOMATION: Timeout if (global > 10 min OR inactivity > 2 min) AND not waiting for network
+     * CHAT: Timeout only if routine waiting + inactivity > 5 min
+     * ROUTINE_RUN: Timeout if (global > 10 min OR inactivity > 2 min) AND not waiting for network
      *
      * @param currentState Current AI state
-     * @param hasWaitingAutomations True if queue or scheduled automation exists (CHAT only)
+     * @param hasWaitingRoutines True if queue or scheduled routine exists (CHAT only)
      * @param currentTime Current timestamp
      * @return true if session should timeout
      */
-    fun shouldTimeout(currentState: AIState, hasWaitingAutomations: Boolean, currentTime: Long): Boolean {
+    fun shouldTimeout(currentState: AIState, hasWaitingRoutines: Boolean, currentTime: Long): Boolean {
         if (currentState.sessionType == null) {
             return false // No active session
         }
 
         when (currentState.sessionType) {
             SessionType.CHAT -> {
-                // CHAT timeouts only if automation waiting
-                if (!hasWaitingAutomations) {
+                // CHAT timeouts only if routine waiting
+                if (!hasWaitingRoutines) {
                     return false
                 }
 
@@ -236,7 +236,7 @@ object SessionSlotPolicy {
 
                 if (shouldTimeout) {
                     LogManager.aiSession(
-                        "CHAT timeout: automation waiting, inactivity=${inactivity}ms > ${CHAT_INACTIVITY_TIMEOUT}ms",
+                        "CHAT timeout: routine waiting, inactivity=${inactivity}ms > ${CHAT_INACTIVITY_TIMEOUT}ms",
                         "INFO"
                     )
                 }
@@ -244,7 +244,7 @@ object SessionSlotPolicy {
                 return shouldTimeout
             }
 
-            SessionType.AUTOMATION -> {
+            SessionType.ROUTINE_RUN -> {
                 // Skip timeout if waiting for network (actively retrying)
                 if (currentState.phase == Phase.WAITING_NETWORK_RETRY) {
                     return false
@@ -252,9 +252,9 @@ object SessionSlotPolicy {
 
                 // Check global timeout (excluding network downtime)
                 val activeTime = calculateActiveTime(currentState, currentTime)
-                if (activeTime > AUTOMATION_GLOBAL_TIMEOUT) {
+                if (activeTime > ROUTINE_GLOBAL_TIMEOUT) {
                     LogManager.aiSession(
-                        "AUTOMATION timeout: global time exceeded, activeTime=${activeTime}ms > ${AUTOMATION_GLOBAL_TIMEOUT}ms",
+                        "ROUTINE_RUN timeout: global time exceeded, activeTime=${activeTime}ms > ${ROUTINE_GLOBAL_TIMEOUT}ms",
                         "INFO"
                     )
                     return true
@@ -264,7 +264,7 @@ object SessionSlotPolicy {
                 val inactivity = currentState.calculateInactivity(currentTime)
                 if (inactivity > AUTO_INACTIVITY_TIMEOUT) {
                     LogManager.aiSession(
-                        "AUTOMATION timeout: inactivity=${inactivity}ms > ${AUTO_INACTIVITY_TIMEOUT}ms",
+                        "ROUTINE_RUN timeout: inactivity=${inactivity}ms > ${AUTO_INACTIVITY_TIMEOUT}ms",
                         "INFO"
                     )
                     return true
@@ -278,7 +278,7 @@ object SessionSlotPolicy {
     }
 
     /**
-     * Calculate active time for automation (excluding network downtime).
+     * Calculate active time for routine (excluding network downtime).
      *
      * @param state Current AI state
      * @param currentTime Current timestamp
@@ -290,14 +290,14 @@ object SessionSlotPolicy {
         // The outages already waited out, plus the one under way if there is one. Reading it off
         // the current phase was the bug: the only phase that carried a downtime to subtract was
         // the one shouldTimeout returns on a few lines above, so the subtraction never ran and
-        // an automation that had spent eight minutes offline was stopped two minutes later.
+        // a routine that had spent eight minutes offline was stopped two minutes later.
         val downTime = state.networkDownTime + state.currentOutage(currentTime)
 
         return totalTime - downTime
     }
 
     /**
-     * Whether an incomplete automation session can be resumed now: always, except one closed for
+     * Whether an incomplete routine session can be resumed now: always, except one closed for
      * the network less than [NETWORK_RESUME_PAUSE] ago.
      *
      * @param endReason The session's end reason, null when it was cut without one

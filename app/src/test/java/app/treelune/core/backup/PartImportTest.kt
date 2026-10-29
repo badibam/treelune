@@ -100,8 +100,8 @@ class PartImportTest {
         val data = document.getJSONObject("data")
         fun rows(table: String) = data.getJSONArray(table).let { a -> (0 until a.length()).map { a.getJSONObject(it) } }.filter { it.getString("id").startsWith(OWN) || (table == "apis" && it.getString("id").startsWith(DemoContent.PREFIX)) }
         fun ids(table: String) = rows(table).map { it.getString("id") }
-        val spoken = (rows("zones") + rows("automations")).mapNotNull { BackupPart.identityOf(it) }.toSet()
-        return PartSelection(ids("zones").toSet(), ids("tool_instances").associateWith { true }, ids("variables").toSet(), ids("automations").toSet(), spoken,
+        val spoken = (rows("zones") + rows("routines")).mapNotNull { BackupPart.identityOf(it) }.toSet()
+        return PartSelection(ids("zones").toSet(), ids("tool_instances").associateWith { true }, ids("variables").toSet(), ids("routines").toSet(), spoken,
             ids("tasks").toSet(), ids("apis").toSet())
     }
 
@@ -188,7 +188,7 @@ class PartImportTest {
 
         // What the import's window counts: the zones created, the elements, the entries
         assertEquals(selection.zones.size, imported.data!!["zones"])
-        assertEquals(selection.tools.size + selection.variables.size + selection.automations.size + selection.tasks.size, imported.data!!["elements"])
+        assertEquals(selection.tools.size + selection.variables.size + selection.routines.size + selection.tasks.size, imported.data!!["elements"])
         assertEquals(entriesBefore, imported.data!!["entries"])
 
         // Each Task a second time, off, under a new id; the APIs, held already, kept as they are;
@@ -202,7 +202,7 @@ class PartImportTest {
         assertTrue(database.eventDao().getAll().size > eventsBefore)
 
         // What arrived names nothing of the demo: each link followed its thing to its new id
-        val demoIds = (selection.zones + selection.tools.keys + selection.variables + selection.automations + selection.tasks +
+        val demoIds = (selection.zones + selection.tools.keys + selection.variables + selection.routines + selection.tasks +
             database.eventDao().getAll().filter { it.id.startsWith(DemoContent.PREFIX) }.map { it.id } +
             database.toolDataDao().getAllEntries().filter { it.id.startsWith(DemoContent.PREFIX) }.map { it.id }).toSet()
         tasks.forEach { task -> assertFalse(task.stepsJson, IdWords.words(task.stepsJson).any { it in demoIds }) }
@@ -217,9 +217,9 @@ class PartImportTest {
         }
 
         // A routine arrives off, without provider, speaking as its identity; a zone as its own
-        val demoRoutines = database.aiDao().getAllAutomations().filter { it.id.startsWith(DemoContent.PREFIX) }
-        val routines = database.aiDao().getAllAutomations().filter { !it.id.startsWith(DemoContent.PREFIX) }
-        assertEquals(selection.automations.size, routines.size)
+        val demoRoutines = database.aiDao().getAllRoutines().filter { it.id.startsWith(DemoContent.PREFIX) }
+        val routines = database.aiDao().getAllRoutines().filter { !it.id.startsWith(DemoContent.PREFIX) }
+        assertEquals(selection.routines.size, routines.size)
         routines.forEach { routine ->
             assertFalse(routine.isEnabled)
             assertNull(routine.providerId)

@@ -1,7 +1,7 @@
 package app.treelune.core.ai.services
 
 import android.content.Context
-import app.treelune.core.ai.data.AutomationMessage
+import app.treelune.core.ai.data.RoutineMessage
 import app.treelune.core.coordinator.Coordinator
 import app.treelune.core.coordinator.isSuccess
 import kotlinx.coroutines.runBlocking
@@ -15,8 +15,8 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 /**
- * A scheduled automation's catch-up (AutomationSettings): given with the schedule and only with it,
- * a limited one saying its delay (AutomationService.withSettings). The editor's rules hold at the
+ * A scheduled routine's catch-up (RoutineSettings): given with the schedule and only with it,
+ * a limited one saying its delay (RoutineService.withSettings). The editor's rules hold at the
  * write, whatever the screen that sent them.
  */
 @RunWith(RobolectricTestRunner::class)
@@ -45,11 +45,11 @@ class CatchUpValidationTest {
             "identity_id" to null,
             "provider_id" to null,
             "is_enabled" to false,
-            "message" to listOf(mapOf("type" to AutomationMessage.TEXT, "text" to "hi"))
+            "message" to listOf(mapOf("type" to RoutineMessage.TEXT, "text" to "hi"))
         )
         if (schedule != null) params["schedule"] = schedule
         if (catchUp != null) params["catch_up"] = catchUp
-        return coordinator.processUserAction("automations.create", params)
+        return coordinator.processUserAction("routines.create", params)
     }
 
     @Test

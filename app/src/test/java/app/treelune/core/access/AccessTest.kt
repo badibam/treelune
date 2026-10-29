@@ -9,7 +9,7 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 /**
- * An automation's access mask (docs/AI.md, « Levels »): what each level gives, what a zone
+ * A routine's access mask (docs/AI.md, « Levels »): what each level gives, what a zone
  * gives its tools, what each operation needs, and the refusal of what goes beyond.
  */
 class AccessTest {
@@ -25,10 +25,10 @@ class AccessTest {
     private val lookups = object : AccessLookups {
         override suspend fun toolZone(toolId: String) = mapOf("weight" to "health", "meals" to "health", "seeds" to "garden")[toolId]
         override suspend fun variableZone(idOrName: String, byName: Boolean) = if (idOrName in setOf("kcal", "v-kcal")) "health" else "garden"
-        override suspend fun automationZone(automationId: String) = mapOf("weekly" to "health", "watering" to "garden")[automationId]
+        override suspend fun routineZone(routineId: String) = mapOf("weekly" to "health", "watering" to "garden")[routineId]
         override suspend fun taskZone(taskId: String) = mapOf("nightly" to "health")[taskId]
         override suspend fun eventZone(eventId: String) = mapOf("ready" to "health")[eventId]
-        override suspend fun runAutomation(runId: String) = mapOf("r1" to "weekly")[runId]
+        override suspend fun runRoutine(runId: String) = mapOf("r1" to "weekly")[runId]
         override suspend fun entryTool(entryId: String) = mapOf("w1" to "weight", "s1" to "seeds")[entryId]
         override suspend fun fileHolder(fileId: String) = mapOf("scan" to FileHolder.Tool("weight"), "plot" to FileHolder.Tool("seeds"), "joined" to FileHolder.Conversation)[fileId]
         override suspend fun zoneName(zoneId: String) = zoneId
@@ -102,7 +102,7 @@ class AccessTest {
         val mask = AccessMask(listOf(zone("health", AccessLevel.FULL)))
         assertNotNull(refusal(mask, "zones", "create", mapOf("name" to "New")))
         assertNotNull(refusal(mask, "app_config", "set", mapOf("category" to "main_screen")))
-        assertNotNull(refusal(mask, "automations", "create", emptyMap()))
+        assertNotNull(refusal(mask, "routines", "create", emptyMap()))
         // The lists, the schemas and the date stay free
         assertNull(refusal(mask, "zones", "list", emptyMap()))
         assertNull(refusal(mask, "schemas", "get", mapOf("id" to "x")))
@@ -112,28 +112,28 @@ class AccessTest {
     @Test
     fun aZoneReadGivesItsRoutinesAndTheirRunsToReadAndAZoneFullGivesThemToWrite() {
         val read = AccessMask(listOf(zone("health", AccessLevel.READ)))
-        assertNull(refusal(read, "automations", "get", mapOf("automation_id" to "weekly")))
-        assertNull(refusal(read, "automations", "config", mapOf("automation_id" to "weekly")))
-        assertNotNull(refusal(read, "automations", "config", mapOf("automation_id" to "watering")))
+        assertNull(refusal(read, "routines", "get", mapOf("routine_id" to "weekly")))
+        assertNull(refusal(read, "routines", "config", mapOf("routine_id" to "weekly")))
+        assertNotNull(refusal(read, "routines", "config", mapOf("routine_id" to "watering")))
         assertNull(refusal(read, "ai_sessions", "run_history", mapOf("session_id" to "r1")))
-        assertNull(refusal(read, "automations", "list_all", emptyMap()))
-        assertNotNull(refusal(read, "ai_sessions", "list_sessions_for_automation", mapOf("automation_id" to "watering")))
+        assertNull(refusal(read, "routines", "list_all", emptyMap()))
+        assertNotNull(refusal(read, "ai_sessions", "list_sessions_for_routine", mapOf("routine_id" to "watering")))
         // Any other session
         assertNotNull(refusal(read, "ai_sessions", "get_session", mapOf("session_id" to "r1")))
         // A zone used writes its tools, not its routines
         val used = AccessMask(listOf(zone("health", AccessLevel.USE)))
-        assertNotNull(refusal(used, "automations", "create", mapOf("zone_id" to "health")))
-        assertNotNull(refusal(used, "automations", "update", mapOf("automation_id" to "weekly")))
+        assertNotNull(refusal(used, "routines", "create", mapOf("zone_id" to "health")))
+        assertNotNull(refusal(used, "routines", "update", mapOf("routine_id" to "weekly")))
         val full = AccessMask(listOf(zone("health", AccessLevel.FULL)))
-        assertNull(refusal(full, "automations", "create", mapOf("zone_id" to "health")))
-        assertNull(refusal(full, "automations", "delete", mapOf("automation_id" to "weekly")))
+        assertNull(refusal(full, "routines", "create", mapOf("zone_id" to "health")))
+        assertNull(refusal(full, "routines", "delete", mapOf("routine_id" to "weekly")))
         // A routine moved into a zone out of reach, a run of an unknown routine
-        assertNotNull(refusal(full, "automations", "update", mapOf("automation_id" to "weekly", "zone_id" to "garden")))
+        assertNotNull(refusal(full, "routines", "update", mapOf("routine_id" to "weekly", "zone_id" to "garden")))
         assertNotNull(refusal(full, "ai_sessions", "run_history", mapOf("session_id" to "r9")))
         // A routine run now, as a Task: a use of its zone
-        assertNull(refusal(used, "automations", "execute_manual", mapOf("automation_id" to "weekly")))
-        assertNotNull(refusal(read, "automations", "execute_manual", mapOf("automation_id" to "weekly")))
-        assertNotNull(refusal(full, "automations", "execute_manual", mapOf("automation_id" to "watering")))
+        assertNull(refusal(used, "routines", "execute_manual", mapOf("routine_id" to "weekly")))
+        assertNotNull(refusal(read, "routines", "execute_manual", mapOf("routine_id" to "weekly")))
+        assertNotNull(refusal(full, "routines", "execute_manual", mapOf("routine_id" to "watering")))
     }
 
     private fun widening(given: AccessMask, holder: AccessMask) = runBlocking { AccessRules.widening(given, holder, "Weekly", lookups, ::text) }

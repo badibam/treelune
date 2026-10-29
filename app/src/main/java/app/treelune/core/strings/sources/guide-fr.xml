@@ -51,14 +51,14 @@
     <string name="guide_path_tool_new">touche + à côté d\'une section, puis un type d\'outil</string>
     <string name="guide_path_tool_config">appuie longuement sur le titre de l\'outil</string>
     <string name="guide_path_variable">touche la variable</string>
-    <string name="guide_path_automation">touche la routine</string>
+    <string name="guide_path_routine">touche la routine</string>
     <string name="guide_path_task">touche la Tâche « %1$s »</string>
     <string name="guide_path_task_run">touche l\'exécution</string>
     <string name="guide_path_task_config">touche l\'engrenage en haut à droite</string>
     <string name="guide_path_task_new">touche + à côté d\'une section, puis Tâche</string>
     <string name="guide_path_execution">touche une exécution</string>
-    <string name="guide_path_automation_config">touche l\'engrenage en haut à droite</string>
-    <string name="guide_path_automation_new">touche + à côté d\'une section, puis Routine</string>
+    <string name="guide_path_routine_config">touche l\'engrenage en haut à droite</string>
+    <string name="guide_path_routine_new">touche + à côté d\'une section, puis Routine</string>
     <string name="guide_path_home_config">touche l\'engrenage en haut à droite</string>
     <string name="guide_path_settings">touche les curseurs en haut à gauche</string>
     <string name="guide_path_settings_page">touche %1$s</string>
