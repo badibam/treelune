@@ -39,7 +39,9 @@ import org.json.JSONObject
  * field on the left (FieldPicker), the operators its type takes (EntryFilters.operatorsFor), and
  * the value entered with the field's own input. A date field is given a period instead, with the
  * period picker: its start and its end, relative to [reference] when the context has one. A text
- * field also offers the values its entries hold, the most frequent first.
+ * field also offers the values its entries hold, the most frequent first. A number or a duration
+ * compared may be compared with a variable or a reading instead (TermPicker), read once where the
+ * entries are read (FilterTerms).
  *
  * [draft] is the condition being written, in its stored form (Conditions), or for a period
  * `{"left": {"field"}, "period"}`; [conditions] turns it into the conditions it stands for.
@@ -99,6 +101,10 @@ fun ConditionPicker(
         key(path) {
             PeriodPicker(period, { next -> onDraft(JSONObject(draft.toString()).put(PERIOD, next.toJson())) }, field.type, reference)
         }
+    } else if (op != null && readsTerm(field, op)) {
+        // A value written, a variable or a reading
+        TermPicker(draft.optJSONObject(Conditions.RIGHT) ?: JSONObject(), field,
+            { term -> onDraft(JSONObject(draft.toString()).put(Conditions.RIGHT, term)) }, s, ReadingContext(reference ?: "", perEntry = false))
     } else if (op != null) {
         fun setValue(next: Any?) = onDraft(Conditions.onField(path, op.key, next))
         ValueInput(field, op, value, ::setValue)
@@ -117,10 +123,31 @@ fun conditions(draft: JSONObject, fields: Map<String, FieldDefinition>, text: (S
     draft.optJSONObject(PERIOD)?.let { json ->
         return periodConditions(path, EntryPeriod.fromJson(json, text)).takeIf { it.length() > 0 }
     }
-    if (FilterOperator.of(draft.optString(Conditions.OP)) == null) return null
+    val op = FilterOperator.of(draft.optString(Conditions.OP)) ?: return null
     val single = JSONArray().put(draft)
+    // A variable or a reading is read where the entries are: whole once it reads as a term
+    val right = draft.optJSONObject(Conditions.RIGHT)
+    if (right != null && !right.has(Conditions.CONSTANT)) {
+        val field = fields[path] ?: return null
+        if (!readsTerm(field, op)) return null
+        return single.takeIf {
+            try {
+                val term = app.treelune.core.terms.Term.fromJson(right, path, text)
+                term !is app.treelune.core.terms.Term.Reading || term.selection.target.id != null
+            } catch (e: IllegalArgumentException) {
+                false
+            }
+        }
+    }
     return single.takeIf { EntryFilters.parse(it, fields, text) is EntryFilters.Parsed.Ready }
 }
+
+/** The comparisons a variable or a reading may stand in: of one value, on a number or a duration. */
+private val TERM_OPERATORS = setOf(FilterOperator.LESS, FilterOperator.LESS_OR_EQUAL, FilterOperator.EQUAL, FilterOperator.GREATER_OR_EQUAL, FilterOperator.GREATER)
+
+/** Whether [field] compared by [op] may be compared with a variable or a reading. */
+private fun readsTerm(field: FieldDefinition, op: FilterOperator): Boolean =
+    op in TERM_OPERATORS && field.type in setOf(FieldType.NUMERIC, FieldType.SCALE, FieldType.DURATION)
 
 /** The key of a date field's period in the condition being written. */
 private const val PERIOD = "period"

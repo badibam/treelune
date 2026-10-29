@@ -71,8 +71,13 @@ object AccessRules {
     private fun pointed(blocks: Any?): List<Reach> = (blocks as? List<*>).orEmpty().mapNotNull { block ->
         val target = (((block as? Map<*, *>)?.get("pointer") as? Map<*, *>)?.get("selection") as? Map<*, *>)?.get("target") as? Map<*, *>
             ?: return@mapNotNull null
+        targetRead(target, "routines.execute_manual")
+    }
+
+    /** The thing [target] (a Reference as a map) names, read; [action] says what asks, for one that does not read. */
+    private fun targetRead(target: Map<*, *>, action: String): Reach {
         val id = target["id"] as? String
-        when (target["kind"]) {
+        return when (target["kind"]) {
             "APP" -> Reach.App
             "ZONE" -> id?.let { Reach.Zone(it, AccessLevel.READ) }
             "TOOL_INSTANCE" -> id?.let { Reach.Tool(it, AccessLevel.READ) }
@@ -80,7 +85,18 @@ object AccessRules {
             "VARIABLE" -> id?.let { Reach.Variable(it, false, AccessLevel.READ) }
             "EVENT" -> id?.let { Reach.Event(it, AccessLevel.READ) }
             else -> null
-        } ?: Reach.Unknown("routines.execute_manual")
+        } ?: Reach.Unknown(action)
+    }
+
+    /**
+     * What the right sides of [filters] read (FilterTerms): a variable, or a reading's target and
+     * what its own filters read.
+     */
+    private fun filterTerms(filters: Any?, action: String): List<Reach> = (filters as? List<*>).orEmpty().flatMap { filter ->
+        val right = (filter as? Map<*, *>)?.get("right") as? Map<*, *> ?: return@flatMap emptyList()
+        (right["variable"] as? String)?.let { return@flatMap listOf(Reach.Variable(it, false, AccessLevel.READ)) }
+        val selection = (right["reading"] as? Map<*, *>)?.get("selection") as? Map<*, *> ?: return@flatMap emptyList()
+        listOfNotNull((selection["target"] as? Map<*, *>)?.let { targetRead(it, action) }) + filterTerms(selection["filters"], action)
     }
 
     /** What [resource].[operation] reaches with [params]. */
@@ -93,7 +109,7 @@ object AccessRules {
         fun routineAt(level: AccessLevel) = text("routine_id")?.let { Reach.Routine(it, level) } ?: Reach.Unknown("$resource.$operation")
         return when (resource) {
             "tool_data" -> when (operation) {
-                in TOOL_DATA_READS -> listOf(toolAt(AccessLevel.READ))
+                in TOOL_DATA_READS -> listOf(toolAt(AccessLevel.READ)) + filterTerms(params["filters"], "$resource.$operation")
                 in TOOL_DATA_WRITES -> listOf(toolAt(AccessLevel.USE))
                 else -> listOf(Reach.Unknown("$resource.$operation"))
             }
@@ -180,7 +196,9 @@ object AccessRules {
                         else -> null
                     }
                 }
-                ?: Reach.Unknown("$resource.$operation"))
+                ?: Reach.Unknown("$resource.$operation")) +
+                // What its filters compare with, read too
+                filterTerms((params["selection"] as? Map<*, *>)?.get("filters"), "$resource.$operation")
             "app_config" -> if (operation == "get_current_datetime") listOf(Reach.Free) else listOf(Reach.App)
             "imports" -> when (operation) {
                 "detect" -> listOf(toolAt(AccessLevel.READ))

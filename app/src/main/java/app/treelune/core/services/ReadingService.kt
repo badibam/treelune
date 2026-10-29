@@ -103,8 +103,8 @@ class ReadingService(private val context: Context) : ExecutableService {
                 ?: return OperationResult.error(s.shared("service_error_entry_not_found").format(selection.target.id))
         } else null
         val toolInstanceId = entry?.get("tool_instance_id") as? String ?: selection.target.id!!
-        suspend fun entries(toolInstanceId: String, filters: org.json.JSONArray): List<Map<String, Any?>> =
-            if (entry != null) listOf(entry) else readEntries(toolInstanceId, filters)
+        suspend fun entries(toolInstanceId: String, filters: org.json.JSONArray, at: Long): List<Map<String, Any?>> =
+            if (entry != null) listOf(entry) else readEntries(toolInstanceId, filters, at)
 
         val fields = ToolFields.filterable(toolInstanceId, context, s)
         val path = params.optString("field").takeIf { it.isNotEmpty() }
@@ -143,7 +143,7 @@ class ReadingService(private val context: Context) : ExecutableService {
         }
 
         if (instants == null) {
-            val rows = try { entries(toolInstanceId, selection.storedFilters(fields, TimeResolver.at(reference!!)) { s.shared(it) }) }
+            val rows = try { entries(toolInstanceId, selection.storedFilters(fields, TimeResolver.at(reference!!)) { s.shared(it) }, reference) }
                 catch (e: IllegalArgumentException) { return OperationResult.error(e.message ?: "") }
                 catch (e: IllegalStateException) { return OperationResult.error(e.message ?: "") }
             return try {
@@ -158,7 +158,7 @@ class ReadingService(private val context: Context) : ExecutableService {
         // its own period takes. Otherwise each instant reads its own
         val values = try {
             if (selection.filtersMove) {
-                instants.map { at -> at to reduced(entries(toolInstanceId, selection.storedFilters(fields, TimeResolver.at(at)) { s.shared(it) }), at) }
+                instants.map { at -> at to reduced(entries(toolInstanceId, selection.storedFilters(fields, TimeResolver.at(at)) { s.shared(it) }, at), at) }
             } else {
                 val ranges = instants.map { at -> at to selection.period.instants(TimeResolver.at(at)) }
                 // Every period at once: from the earliest start to the latest end, a side without
@@ -167,7 +167,7 @@ class ReadingService(private val context: Context) : ExecutableService {
                     start = ranges.map { it.second.first }.takeIf { starts -> starts.none { it == null } }?.minOfOrNull { it!! }?.let { TimePoint.Fixed(it) },
                     end = ranges.map { it.second.second }.takeIf { ends -> ends.none { it == null } }?.maxOfOrNull { it!! }?.let { TimePoint.Fixed(it) }
                 )
-                val rows = entries(toolInstanceId, selection.copy(period = union).storedFilters(fields, TimeResolver.at(instants.first())) { s.shared(it) })
+                val rows = entries(toolInstanceId, selection.copy(period = union).storedFilters(fields, TimeResolver.at(instants.first())) { s.shared(it) }, instants.first())
                 ranges.map { (at, range) ->
                     val (start, end) = range
                     at to reduced(rows.filter { row ->
@@ -192,10 +192,12 @@ class ReadingService(private val context: Context) : ExecutableService {
      *
      * @throws IllegalStateException when they cannot be read
      */
-    private suspend fun readEntries(toolInstanceId: String, filters: org.json.JSONArray): List<Map<String, Any?>> {
+    /** The entries of [toolInstanceId] [filters] keep, a filter's variable or reading read at [at] (FilterTerms). */
+    private suspend fun readEntries(toolInstanceId: String, filters: org.json.JSONArray, at: Long): List<Map<String, Any?>> {
         val entries = Coordinator(context).processUserAction("tool_data.get", mapOf(
             "tool_instance_id" to toolInstanceId,
-            "filters" to JsonUtils.toList(filters)
+            "filters" to JsonUtils.toList(filters),
+            "reference" to at
         ))
         if (!entries.isSuccess) throw IllegalStateException(entries.error ?: "")
         return (entries.data?.get("entries") as? List<*> ?: emptyList<Any>()).filterIsInstance<Map<String, Any?>>()

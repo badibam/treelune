@@ -212,7 +212,9 @@
     <string name="service_error_page_without_limit">Page %1$d requested without \'limit\': with no limit per page, everything fits on page 1. Give \'limit\' to paginate.</string>
     <string name="service_error_param_unknown">Unknown parameter \'%1$s\'. Parameters: %2$s</string>
     <string name="service_error_filter_unreadable">Unreadable filter: %1$s. A filter is {\"left\": {\"field\": \"data.value\"}, \"op\": \"&lt;\", \"right\": {\"constant\": 10}}.</string>
-    <string name="service_error_filter_not_written">The filter on %1$s compares with %2$s: a filter takes written values, {\"constant\": …}; read a variable or a reading first.</string>
+    <string name="service_error_filter_not_written">The filter on %1$s compares with %2$s, which does not read: a written value {\"constant\": …}, a variable {\"variable\"} or a reading {\"reading\"}.</string>
+    <string name="filter_term_unread">The filter on %1$s compares with a value that could not be read: %2$s</string>
+    <string name="filter_term_no_value">The filter on %1$s compares with a value that has none now</string>
     <string name="condition_error_side">The condition of %1$s has a side that does not read: %2$s. A side is {\"field\": …}, {\"constant\": …}, {\"variable\": …} or {\"reading\": …}.</string>
     <string name="condition_error_op">The condition of %1$s has an unknown operator: %2$s.</string>
     <string name="condition_error_right">The condition of %1$s with %2$s takes %3$d side(s) on the right.</string>

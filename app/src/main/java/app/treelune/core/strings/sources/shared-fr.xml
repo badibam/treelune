@@ -212,7 +212,9 @@
     <string name="service_error_page_without_limit">Page %1$d demandée sans \'limit\' : sans limite par page, tout tient sur la page 1. Précise \'limit\' pour paginer.</string>
     <string name="service_error_param_unknown">Paramètre \'%1$s\' inconnu. Paramètres : %2$s</string>
     <string name="service_error_filter_unreadable">Filtre illisible : %1$s. Un filtre s\'écrit {\"left\": {\"field\": \"data.value\"}, \"op\": \"&lt;\", \"right\": {\"constant\": 10}}.</string>
-    <string name="service_error_filter_not_written">Le filtre sur %1$s compare à %2$s : un filtre prend des valeurs écrites, {\"constant\": …} ; lire d\'abord une variable ou une lecture.</string>
+    <string name="service_error_filter_not_written">Le filtre sur %1$s compare à %2$s, qui ne se lit pas : une valeur écrite {\"constant\": …}, une variable {\"variable\"} ou une lecture {\"reading\"}.</string>
+    <string name="filter_term_unread">Le filtre sur %1$s se compare à une valeur qui n\'a pas pu être lue : %2$s</string>
+    <string name="filter_term_no_value">Le filtre sur %1$s se compare à une valeur qui n\'en a pas en ce moment</string>
     <string name="condition_error_side">La condition de %1$s a un côté illisible : %2$s. Un côté est {\"field\": …}, {\"constant\": …}, {\"variable\": …} ou {\"reading\": …}.</string>
     <string name="condition_error_op">La condition de %1$s a un opérateur inconnu : %2$s.</string>
     <string name="condition_error_right">La condition de %1$s avec %2$s prend %3$d côté(s) à droite.</string>
