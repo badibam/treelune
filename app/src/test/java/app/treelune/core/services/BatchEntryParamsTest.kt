@@ -38,6 +38,18 @@ class BatchEntryParamsTest {
     }
 
     /**
+     * A date as the AI wrote it, left a text where the tool has none to convert it to, goes on as
+     * given: the single operation refuses it in a sentence, where the copy threw Java's own.
+     */
+    @Test
+    fun aDateLeftAText_goesOnAsGiven() {
+        val dated = JSONObject(entry.toString()).put("timestamp", "2026-10-28T09:00:00+01:00")
+
+        assertEquals("2026-10-28T09:00:00+01:00", BatchEntryParams.forCreate(dated, "tool-1").get("timestamp"))
+        assertEquals("2026-10-28T09:00:00+01:00", BatchEntryParams.forUpdate(dated, "entry-1").get("timestamp"))
+    }
+
+    /**
      * The tool instance comes from the command, named once for every entry. A tooltype or a
      * schema_id an entry carries is not passed on: the service reads both from the tool.
      */

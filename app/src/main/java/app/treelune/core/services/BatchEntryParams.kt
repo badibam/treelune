@@ -25,7 +25,8 @@ internal object BatchEntryParams {
             put("data", entry.optJSONObject("data") ?: JSONObject())
             if (entry.has("extra")) put("extra", entry.getJSONObject("extra"))
             if (entry.has("state")) put("state", entry.getJSONObject("state"))
-            if (entry.has("timestamp")) put("timestamp", entry.getLong("timestamp"))
+            // As given: the single operation says what it refuses, a date not in milliseconds or on a tool without one
+            if (entry.has("timestamp")) put("timestamp", entry.get("timestamp"))
             if (entry.has("name")) put("name", entry.getString("name"))
         }
 
@@ -36,7 +37,8 @@ internal object BatchEntryParams {
             if (entry.has("data")) put("data", entry.getJSONObject("data"))
             if (entry.has("extra")) put("extra", entry.getJSONObject("extra"))
             if (entry.has("state")) put("state", entry.getJSONObject("state"))
-            if (entry.has("timestamp")) put("timestamp", entry.getLong("timestamp"))
+            // As given: the single operation says what it refuses, a date not in milliseconds or on a tool without one
+            if (entry.has("timestamp")) put("timestamp", entry.get("timestamp"))
             if (entry.has("name")) put("name", entry.getString("name"))
         }
 }

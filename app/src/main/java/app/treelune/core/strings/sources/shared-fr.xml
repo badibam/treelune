@@ -2309,6 +2309,7 @@
     <string name="error_resume_session">Impossible de reprendre la conversation</string>
     <string name="error_unknown">Erreur inconnue</string>
     <string name="service_error_invalid_timestamp_format">Horodatage illisible : %1$s</string>
+    <string name="service_error_timestamp_absent">Les entrées de cet outil n'ont pas de date : n'en envoie pas.</string>
     <string name="service_error_duration_running">La durée %1$s est déjà en cours</string>
     <string name="service_error_duration_not_running">La durée %1$s n\'est pas en cours</string>
     <string name="service_error_duration_unknown">Aucun champ de durée %3$s dans %2$s de l\'entrée %1$s</string>

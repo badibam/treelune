@@ -136,8 +136,9 @@ class ToolDataService(private val context: Context) : ExecutableService {
         // included, since JSON decides the width on its own. Anything else is refused.
         val timestampAbsent = target.entryFields?.timestamp == CoreFieldUsage.ABSENT
         val timestamp = when {
-            // A tool type whose entries have no date gets none; one sent is refused by the schema
+            // A tool type whose entries have no date gets none, and one sent is refused
             !params.has("timestamp") && timestampAbsent -> null
+            timestampAbsent -> return OperationResult.error(s.shared("service_error_timestamp_absent"))
             !params.has("timestamp") -> System.currentTimeMillis()
             params.opt("timestamp") is Number -> (params.opt("timestamp") as Number).toLong()
             else -> return OperationResult.error(s.shared("service_error_invalid_timestamp_format").format(params.opt("timestamp").toString()))
@@ -393,9 +394,11 @@ class ToolDataService(private val context: Context) : ExecutableService {
         }
 
         // Milliseconds are the contract. An absent timestamp leaves the recorded one alone;
-        // any number is taken as milliseconds. Anything else is refused.
+        // any number is taken as milliseconds. Anything else is refused, and any date on a tool
+        // type whose entries have none.
         val timestamp = when {
             !params.has("timestamp") -> null
+            target.entryFields?.timestamp == CoreFieldUsage.ABSENT -> return OperationResult.error(s.shared("service_error_timestamp_absent"))
             params.opt("timestamp") is Number -> (params.opt("timestamp") as Number).toLong()
             else -> return OperationResult.error(s.shared("service_error_invalid_timestamp_format").format(params.opt("timestamp").toString()))
         }
