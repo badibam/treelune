@@ -65,6 +65,7 @@ Codé, jamais vu sur l'appareil.
 
 ## Dette de code
 
+- Une annulation attrapée comme une erreur : sur 114 fichiers qui ont un `catch (e: Exception)`, 18 laissent passer `CancellationException` ; les autres, sur un écran fermé ou une tâche arrêtée, l'écrivent en ERROR, rendent un échec et laissent le code continuer. Une passe, ou un contrôle de `./run test` qui exige la ligne qui la laisse passer avant un `catch (e: Exception)` dans une fonction `suspend`.
 - Une étape de Tâche déplacée garde les numéros d'étape que lisent les suivantes, l'enregistrement refusant alors en le disant.
 - Des écrans encore ouverts à l'intérieur d'un lieu, hors de la pile (`Place`, `docs/UI.md`) : la config d'un fournisseur d'IA, les pages d'un formulaire de config, les écrans internes d'un outil (fiche, historique), l'historique des conversations — à passer en lieux, au plus tard quand un tutoriel, une notification ou un pointeur doit les viser.
 
