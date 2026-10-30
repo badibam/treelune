@@ -60,7 +60,8 @@ class ApiCall(private val config: JSONObject, private val values: SettingValues)
      */
     fun fileRequest(address: String): Request {
         val url = address.toHttpUrlOrNull() ?: throw Failure("api_error_url", address)
-        val own = listOfNotNull(values.string(ApiSettings.URL), values.string(ApiSettings.STATUS_URL)?.takeIf { deferred })
+        // An API answering at once declares no status address: it is read only for one answering later
+        val own = listOfNotNull(values.string(ApiSettings.URL), if (deferred) values.string(ApiSettings.STATUS_URL) else null)
         if (!sameServer(url, own)) return Request.Builder().url(url).get().build()
         return Request.Builder().url(address(address, emptyMap())).withKey().get().build()
     }
