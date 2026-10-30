@@ -64,6 +64,16 @@ enum class FileFormat(val kind: FileKind, val extension: String, val mediaTypes:
          * type first, its name's extension when the type says nothing precise; null when neither
          * is one of these formats.
          */
+        /**
+         * The name a file downloaded as [name] goes by: its own when it says a sound or a video,
+         * otherwise the extension of the type its server announced, [mediaType]
+         * (`audio.php` served as `audio/mpeg` is `audio.mp3`); as it is when neither says one.
+         */
+        fun nameFor(name: String, mediaType: String?): String {
+            if (ofMedia(null, name) != null) return name
+            return ofMedia(mediaType, null)?.fileName(name.substringBeforeLast('.')) ?: name
+        }
+
         fun ofMedia(mediaType: String?, name: String?): FileFormat? {
             val media = entries.filter { it.kind == FileKind.AUDIO || it.kind == FileKind.VIDEO }
             mediaType?.lowercase()?.let { type -> media.firstOrNull { type in it.mediaTypes }?.let { return it } }

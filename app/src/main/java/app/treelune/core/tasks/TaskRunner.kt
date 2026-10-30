@@ -615,12 +615,15 @@ object TaskRunner {
             throw StepFailed(s.shared("task_error_download").format(address, e.message ?: ""))
         }
         try {
-            DOWNLOADS.newCall(request).execute().use { response ->
+            // The type the server says, for an address whose name does not say it (`audio.php?element=…`)
+            val announced = DOWNLOADS.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) throw StepFailed(s.shared("task_error_download").format(address, response.code.toString()))
                 response.body?.byteStream()?.use { input -> file.outputStream().use { input.copyTo(it) } }
                     ?: throw StepFailed(s.shared("task_error_download").format(address, "-"))
+                response.header("Content-Type")?.substringBefore(';')?.trim()
             }
-            when (val prepared = FilePreparation.prepare(context, Uri.fromFile(file), kinds, name = name) { s.shared(it) }) {
+            val named = app.treelune.core.files.FileFormat.nameFor(name, announced)
+            when (val prepared = FilePreparation.prepare(context, Uri.fromFile(file), kinds, name = named) { s.shared(it) }) {
                 is FilePreparation.Result.Done -> prepared.id
                 is FilePreparation.Result.Refused -> throw StepFailed(prepared.message)
             }
