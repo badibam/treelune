@@ -398,7 +398,7 @@ object TaskRunner {
                 val field = fields[key]
                 put(key, when {
                     // A file an API gives comes down into the field, with that API's key on its server
-                    field?.type == FieldType.FILE && value is String -> listOf(download(context, value, FileField.kinds(field.config), apiOf(input, steps)))
+                    field?.type == FieldType.FILE && value is String -> listOf(download(context, value, FileField.kinds(field.config), apiOf(input, step, steps)))
                     // The entry a step created, designated in a field that holds a Reference; a
                     // multiple one holds it as a list of one
                     field?.type == FieldType.REFERENCE && value is String -> mapOf("kind" to "ENTRY", "id" to value)
@@ -501,10 +501,13 @@ object TaskRunner {
         }
     }
 
-    /** The API whose answer [input] reads, when it is a value an earlier step's call gave. */
-    private fun apiOf(input: TaskSteps.Input, steps: org.json.JSONArray): String? =
-        (input as? TaskSteps.Input.Result)?.let { steps.optJSONObject(it.step) }
-            ?.takeIf { it.optString(TaskSteps.KIND) == TaskSteps.CALL_API }?.optString(TaskSteps.API_ID)?.ifEmpty { null }
+    /** The API whose answer [input] reads: a value an earlier step's call gave, or a field of an element of the list it answered. */
+    private fun apiOf(input: TaskSteps.Input, step: JSONObject, steps: org.json.JSONArray): String? = when (input) {
+        is TaskSteps.Input.Result -> steps.optJSONObject(input.step)
+        // A field of an element comes from the API that answered the list the step repeats over
+        is TaskSteps.Input.Item -> step.optJSONObject(TaskSteps.FOR_EACH)?.optJSONObject(TaskSteps.RESULT)?.let { steps.optJSONObject(it.optInt(TaskSteps.STEP, -1)) }
+        else -> null
+    }?.takeIf { it.optString(TaskSteps.KIND) == TaskSteps.CALL_API }?.optString(TaskSteps.API_ID)?.ifEmpty { null }
 
     /**
      * The blocks of the `run_routine` [step] (StepBlocks) as its routine's (RoutineMessage), which
