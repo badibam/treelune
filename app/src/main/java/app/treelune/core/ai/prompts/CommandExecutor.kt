@@ -203,7 +203,7 @@ class CommandExecutor(private val context: Context) {
                     LogManager.aiPrompt("Command ${index + 1} succeeded", "DEBUG")
                 } else {
                     failedCount++
-                    LogManager.aiPrompt("Command ${index + 1} failed: ${result.commandResult.details}", "WARN")
+                    LogManager.aiPrompt("Command ${index + 1} failed: ${result.commandResult.error}", "WARN")
                 }
             } else {
                 failedCount++

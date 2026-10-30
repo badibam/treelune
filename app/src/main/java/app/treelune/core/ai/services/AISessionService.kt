@@ -17,6 +17,7 @@ import app.treelune.core.services.ExecutableService
 import app.treelune.core.services.OperationResult
 import app.treelune.core.strings.Strings
 import app.treelune.core.utils.LogManager
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -95,6 +96,8 @@ class AISessionService(private val context: Context) : ExecutableService {
 
                 else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("AISessionService.execute - Error: ${e.message}", "ERROR", e)
             OperationResult.error(s.shared("service_error_ai_session").format(e.message ?: ""))
@@ -176,6 +179,8 @@ class AISessionService(private val context: Context) : ExecutableService {
                 "type" to type,
                 "created_at" to now
             ) + (providerId?.let { mapOf("provider_id" to it) } ?: emptyMap()))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("Failed to create session: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("ai_error_create_session").format(e.message ?: ""))
@@ -242,6 +247,8 @@ class AISessionService(private val context: Context) : ExecutableService {
                     )
                 }
             ))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("Failed to get session: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("ai_error_load_session").format(e.message ?: ""))
@@ -275,6 +282,8 @@ class AISessionService(private val context: Context) : ExecutableService {
                 "sessions" to sessions,
                 "count" to sessions.size
             ))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("Failed to list sessions: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("ai_error_list_sessions").format(e.message ?: ""))
@@ -379,6 +388,8 @@ class AISessionService(private val context: Context) : ExecutableService {
                     "total_entries" to totalEntries
                 )
             ))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("Failed to list sessions for routine: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("ai_error_list_sessions").format(e.message ?: ""))
@@ -420,6 +431,8 @@ class AISessionService(private val context: Context) : ExecutableService {
                 "name" to updatedEntity.name,
                 "updated_at" to now
             ))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("Failed to update session: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("ai_error_update_session").format(e.message ?: ""))
@@ -459,6 +472,8 @@ class AISessionService(private val context: Context) : ExecutableService {
                 "session_id" to sessionId,
                 "deleted" to true
             ))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("Failed to delete session: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("ai_error_delete_session").format(e.message ?: ""))
@@ -496,6 +511,8 @@ class AISessionService(private val context: Context) : ExecutableService {
                 "session_id" to sessionId,
                 "is_active" to true
             ))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("Failed to set active session: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("ai_error_set_active_session").format(e.message ?: ""))
@@ -554,6 +571,8 @@ class AISessionService(private val context: Context) : ExecutableService {
                 }
             ))
 
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("Failed to get active session: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("ai_error_get_active_session").format(e.message ?: ""))
@@ -577,6 +596,8 @@ class AISessionService(private val context: Context) : ExecutableService {
                 "sessions_deactivated" to true
             ))
 
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("Failed to stop active session: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("ai_error_stop_session"))
@@ -596,6 +617,8 @@ class AISessionService(private val context: Context) : ExecutableService {
         // Parse sender enum
         val sender = try {
             MessageSender.valueOf(senderString)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             return OperationResult.error(s.shared("ai_error_invalid_sender").format(senderString))
         }
@@ -664,6 +687,8 @@ class AISessionService(private val context: Context) : ExecutableService {
                 "sender" to sender.name
             ))
 
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("Failed to create message: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("ai_error_create_message").format(e.message ?: ""))
@@ -699,6 +724,8 @@ class AISessionService(private val context: Context) : ExecutableService {
                     "system_message_json" to messageEntity.systemMessageJson
                 )
             ))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("Failed to get message: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("ai_error_get_message").format(e.message ?: ""))
@@ -736,6 +763,8 @@ class AISessionService(private val context: Context) : ExecutableService {
                 "count" to messages.size,
                 "session_id" to sessionId
             ))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("Failed to list messages: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("ai_error_list_messages").format(e.message ?: ""))
@@ -778,6 +807,8 @@ class AISessionService(private val context: Context) : ExecutableService {
                 "message_id" to messageId,
                 "updated" to true
             ))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("Failed to update message: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("ai_error_update_message").format(e.message ?: ""))
@@ -809,6 +840,8 @@ class AISessionService(private val context: Context) : ExecutableService {
                 "message_id" to messageId,
                 "deleted" to true
             ))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("Failed to delete message: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("ai_error_delete_message").format(e.message ?: ""))
@@ -869,6 +902,8 @@ class AISessionService(private val context: Context) : ExecutableService {
             // Absent before a call's usage came back
             ) + (lastSent?.let { mapOf("last_sent_tokens" to it) } ?: emptyMap()))
 
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("Failed to get session stats: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("error_cost_calculation_failed"))
@@ -908,6 +943,8 @@ class AISessionService(private val context: Context) : ExecutableService {
             LogManager.aiSession("Validation of session $sessionId now $validation", "INFO")
 
             return OperationResult.success(mapOf("session_id" to sessionId) + validation.toMap())
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("Failed to toggle validation for session $sessionId: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("ai_error_toggle_validation"))
@@ -1050,6 +1087,8 @@ class AISessionService(private val context: Context) : ExecutableService {
                 "session_id" to sessionId,
                 "end_reason" to endReasonString
             ))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("Failed to update session end reason for $sessionId: ${e.message}", "ERROR", e)
             return OperationResult.error("Failed to update session end reason")
@@ -1143,6 +1182,8 @@ class AISessionService(private val context: Context) : ExecutableService {
                     "total_entries" to total
                 )
             ))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("Failed to list CHAT sessions: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("ai_error_list_sessions").format(e.message ?: ""))
@@ -1187,6 +1228,8 @@ class AISessionService(private val context: Context) : ExecutableService {
                 "session_id" to sessionId,
                 "name" to name
             ))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("Failed to rename session: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("ai_error_update_session").format(e.message ?: ""))
@@ -1234,6 +1277,8 @@ class AISessionService(private val context: Context) : ExecutableService {
                 "session_id" to sessionId,
                 "deleted" to true
             ))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             LogManager.aiSession("Failed to delete CHAT session: ${e.message}", "ERROR", e)
             return OperationResult.error(s.shared("ai_error_delete_session").format(e.message ?: ""))

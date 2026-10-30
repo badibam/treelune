@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import app.treelune.core.ui.sound.UISoundsLoader
 import app.treelune.core.ui.ToastLayer
 import app.treelune.core.ui.Toasts
 import androidx.compose.foundation.layout.fillMaxSize
@@ -93,6 +94,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme(colorScheme = CurrentTheme.getCurrentColorScheme()) {
                 UI.FullScreen {
+                    // The theme's sounds loaded, which the notice's buttons play
+                    UISoundsLoader()
                     app.treelune.core.ui.screens.settings.CrashNoticeScreen(crash.timestamp, onContinue = {
                         app.treelune.core.bugreport.CrashFile.markSeen(this@MainActivity)
                         startApp()
@@ -172,8 +175,6 @@ class MainActivity : ComponentActivity() {
                         app.treelune.core.ui.LocalWaiting provides app.treelune.core.ui.rememberWaiting(null),
                         app.treelune.core.ui.LocalRunning provides app.treelune.core.ui.rememberRunning()
                     ) {
-                        // The theme's sounds loaded
-                        app.treelune.core.ui.sound.UISoundsLoader()
                         // A long operation running shows over every screen; one whose caller
                         // left (its screen closed) says once here how it ended
                         androidx.compose.runtime.LaunchedEffect(Unit) {
@@ -201,6 +202,8 @@ class MainActivity : ComponentActivity() {
                 colorScheme = CurrentTheme.getCurrentColorScheme()
             ) {
                 UI.FullScreen {
+                    // The theme's sounds loaded, from the first screen on, the demo's included
+                    UISoundsLoader()
                     app()
                     // The app's messages over the page (Toasts); a window open above it shows them itself
                     ToastLayer()
