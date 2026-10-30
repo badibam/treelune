@@ -71,6 +71,8 @@ object StepBlocks {
     fun designatesEntry(input: TaskSteps.Input): Boolean = when (input) {
         is TaskSteps.Input.Received -> input.field == null && input.value == null
         is TaskSteps.Input.Result -> input.value == null
+        // An element's field is a value, an entry's id one may hold included
+        is TaskSteps.Input.Item -> false
         is TaskSteps.Input.Of -> (input.term as? app.treelune.core.terms.Term.Constant)?.value
             ?.let { app.treelune.core.fields.ReferenceTarget.referenceOf(it)?.kind == app.treelune.core.selection.ReferenceKind.ENTRY } == true
     }

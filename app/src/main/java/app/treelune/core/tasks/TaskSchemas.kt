@@ -103,7 +103,7 @@ object TaskSchemas {
                 }
             }
             out.put(step)
-            given += TaskSteps.outputs(step, context)
+            given += if (TaskSteps.repeats(step)) emptyList() else TaskSteps.outputs(step, context)
         }
         return out
     }
@@ -126,7 +126,7 @@ object TaskSchemas {
                     else -> emptyList()
                 }
             val field = try {
-                sides.firstNotNullOfOrNull { StepConditions.fieldOf(TaskSteps.input(it, label) { key -> s.shared(key) }, given, received, values, context, s, label) }
+                sides.firstNotNullOfOrNull { StepConditions.fieldOf(TaskSteps.input(it, label) { key -> s.shared(key) }, given, received, values, TaskSteps.itemFields(step, given, s), context, s, label) }
             } catch (e: IllegalArgumentException) {
                 null
             } ?: continue

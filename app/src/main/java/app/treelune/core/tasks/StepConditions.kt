@@ -19,7 +19,8 @@ import org.json.JSONObject
  * A step's conditions (docs/CORE.md, « Tasks »), under `when`: a list of Conditions
  * (`{"left", "op", "right"}`, right a pair for between, none for absent and present) whose sides
  * are inputs of the step (TaskSteps.Input) — a term, what an earlier step gave, what a trigger
- * gave. Judged once when the step runs, all of them holding, the step runs; otherwise it is
+ * gave, a field of the element a repeated step stands at. Judged once when the step runs — for
+ * each element, on a repeated step —, all of them holding, the step runs; otherwise it is
  * skipped and the run goes on. A value missing where the operator needs one (a question left
  * unanswered facing "= 3") is not knowing, and skips the step as a condition that does not hold.
  * A step reading what a skipped step gave is skipped too.
@@ -66,12 +67,14 @@ object StepConditions {
     /**
      * The field the value [input] gives is a value of: a field of the entry or a value a trigger
      * gives ([received], [values]), the type of a value an earlier step gave ([given], by step),
-     * an entry, a term's field; null for a constant, which is read in the other side's type.
+     * an entry, a field of the element a repeated step stands at ([items]), a term's field; null
+     * for a constant, which is read in the other side's type.
      *
      * @throws IllegalArgumentException when a term does not read, or reads in each entry
      */
     suspend fun fieldOf(input: TaskSteps.Input, given: List<List<TaskSteps.Output>>, received: Map<String, FieldDefinition>?, values: Map<String, FieldDefinition>?,
-                        context: Context, s: StringsContext, label: String): FieldDefinition? = when (input) {
+                        items: Map<String, FieldDefinition>?, context: Context, s: StringsContext, label: String): FieldDefinition? = when (input) {
+        is TaskSteps.Input.Item -> items?.get(input.field)
         is TaskSteps.Input.Of -> when (val term = input.term) {
             is Term.Constant -> null
             else -> {
@@ -95,7 +98,7 @@ object StepConditions {
      * trigger does), then the types it compares (ConditionCheck.refuseTyped).
      */
     suspend fun refusal(step: JSONObject, number: Int, given: List<List<TaskSteps.Output>>, received: Map<String, FieldDefinition>?, values: Map<String, FieldDefinition>?,
-                        context: Context, s: StringsContext, inputs: (JSONObject?, Set<String>?) -> String?): String? {
+                        items: Map<String, FieldDefinition>?, context: Context, s: StringsContext, inputs: (JSONObject?, Set<String>?) -> String?): String? {
         val conditions = try {
             of(step, number, s)
         } catch (e: IllegalArgumentException) {
@@ -112,7 +115,7 @@ object StepConditions {
                 return e.message
             }
             val fields = try {
-                read.map { fieldOf(it, given, received, values, context, s, label) }
+                read.map { fieldOf(it, given, received, values, items, context, s, label) }
             } catch (e: IllegalArgumentException) {
                 return e.message
             }

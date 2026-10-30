@@ -17,12 +17,7 @@ Codé : `StepConditions`, `docs/CORE.md` (« Tasks »), ses garanties dans `Step
 
 ## 2. « Pour chaque élément » d'une liste
 
-- Toute étape peut se répéter pour chaque élément d'une liste ; une liste vide la fait zéro fois, sans erreur. C'est un réglage de l'étape, pas un bloc d'étapes emboîtées : aucun cas réel ne demande le bloc aujourd'hui.
-- La liste vient d'une valeur rendue par une API. Une API apprend à déclarer une valeur de type **liste** (son chemin dans la réponse, `new_elements`), et les champs de chaque élément (nom, type, chemin dans l'élément : `pt`, `theme`). Pas de liste dans une liste.
-- Dans l'étape répétée, une entrée peut lire un champ de l'élément en cours ; sa condition « seulement si » aussi, jugée pour chaque élément.
-- Le résultat d'une étape répétée **ne se lit pas** : une étape qui le lit est refusée à l'écriture de la Tâche, en le disant (« l'étape 3 lit le résultat de l'étape 2, qui se répète »).
-- **Tout ou rien** : une étape répétée compte pour un seul pas de l'historique ; un élément refusé retire ce que les précédents ont écrit, l'exécution échoue en nommant l'élément et pourquoi. Annuler retire tous ses éléments d'un coup. À vérifier en codant : qu'un pas de l'historique sait tenir plusieurs écritures (une importation le fait peut-être déjà).
-- Formes proposées : `"for_each": {"result": {"step": 0, "value": "new_elements"}}` sur l'étape ; `{"item": {"field": "pt"}}` pour lire l'élément en cours.
+Codé : `for_each` et `{"item": {"field"}}` (`TaskSteps`, `TaskRunner.repeated`), une valeur de type liste d'une API (`ApiSettings.LIST`), `docs/CORE.md` ; ses garanties dans `StepForEachTest`. Un champ qu'un élément n'a pas est vide (la `correction` d'un tour de bica, présente ou non) ; une API différée ne se répète pas.
 
 ## 3. Ne pas recréer ce qui existe
 

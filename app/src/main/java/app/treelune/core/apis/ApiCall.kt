@@ -95,7 +95,27 @@ class ApiCall(private val config: JSONObject, private val values: SettingValues)
             val name = value.getString(ApiSettings.NAME)
             val path = value.getString(ApiSettings.PATH)
             val found = at(json, path) ?: throw Failure("api_error_value_absent", name, path)
-            name to typed(name, found, value.optString(ApiSettings.TYPE, ApiSettings.TEXT))
+            name to valueOf(value, found)
+        }
+    }
+
+    /**
+     * What [found] is as the value [value] declares it: a list read element by element, each of
+     * its fields at its path, one an element does not hold being null (an optional part: a
+     * correction given or not); anything else as [typed] reads it.
+     */
+    private fun valueOf(value: JSONObject, found: Any): Any {
+        val name = value.getString(ApiSettings.NAME)
+        val type = value.optString(ApiSettings.TYPE, ApiSettings.TEXT)
+        if (type != ApiSettings.LIST) return typed(name, found, type)
+        val array = found as? JSONArray ?: throw Failure("api_error_value_type", name, type)
+        val items = value.optJSONArray(ApiSettings.ITEMS)?.let { list -> (0 until list.length()).map { list.getJSONObject(it) } }.orEmpty()
+        return (0 until array.length()).map { index ->
+            val element = array.opt(index)
+            items.associate { item ->
+                val field = item.getString(ApiSettings.NAME)
+                field to element?.let { at(it, item.getString(ApiSettings.PATH)) }?.let { typed("$name › $field", it, item.optString(ApiSettings.TYPE, ApiSettings.TEXT)) }
+            }
         }
     }
 
@@ -108,7 +128,7 @@ class ApiCall(private val config: JSONObject, private val values: SettingValues)
         return list(ApiSettings.VALUES).map { value ->
             val name = value.getString(ApiSettings.NAME)
             name to json.mapCatching { at(it, value.getString(ApiSettings.PATH)) ?: throw Failure("api_error_value_absent", name, value.getString(ApiSettings.PATH)) }
-                .mapCatching { typed(name, it, value.optString(ApiSettings.TYPE, ApiSettings.TEXT)) }
+                .mapCatching { valueOf(value, it) }
         }
     }
 

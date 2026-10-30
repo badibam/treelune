@@ -118,7 +118,8 @@ object TaskRunner {
             val outcome = try {
                 val received = run.receivedJson?.let { TaskRun.Received.of(it) }
                 Outcome.Done(skipped(context, task, steps, run.step, results, run.scheduledAt, received)
-                    ?: runStep(context, step, steps, results, run.scheduledAt, received))
+                    ?: if (TaskSteps.repeats(step)) repeated(context, task, steps, run.step, results, run.scheduledAt, received)
+                    else runStep(context, step, steps, results, run.scheduledAt, received))
             } catch (e: StepFailed) {
                 Outcome.Failed(e.message ?: "", e.raw)
             } catch (e: Waits) {
@@ -287,6 +288,19 @@ object TaskRunner {
         StepConditions.resultsRead(step).sorted().firstOrNull { results.getOrNull(it)?.skipped != null }?.let { earlier ->
             return TaskRun.StepResult(summary(context, step), skipped = s.shared("task_run_skipped_step").format(earlier + 1), at = System.currentTimeMillis())
         }
+        // A repeated step's conditions are judged for each element
+        if (TaskSteps.repeats(step)) return null
+        return unmet(context, task, steps, index, results, at, received, null)?.let { TaskRun.StepResult(summary(context, step), skipped = it, at = System.currentTimeMillis()) }
+    }
+
+    /**
+     * Why step [index] of [steps] does not run, one of its conditions not holding or not known,
+     * judged at [at] on the element [item] it stands at when repeated; null when it runs.
+     */
+    private suspend fun unmet(context: Context, task: TaskEntity, steps: org.json.JSONArray, index: Int, results: List<TaskRun.StepResult>, at: Long,
+                              received: TaskRun.Received?, item: Map<String, Any?>?): String? {
+        val s = Strings.`for`(context = context)
+        val step = steps.getJSONObject(index)
         val conditions = try {
             StepConditions.of(step, index + 1, s)
         } catch (e: IllegalArgumentException) {
@@ -297,24 +311,75 @@ object TaskRunner {
         val triggers = app.treelune.core.triggers.Triggers.read(task.triggersJson)
         val fields = TaskSteps.receivedFields(triggers, context, s)
         val values = TaskSteps.receivedValues(triggers, context)
-        val given = (0 until index).map { TaskSteps.outputs(steps.getJSONObject(it), context) }
+        val given = (0 until index).map { steps.getJSONObject(it).let { earlier -> if (TaskSteps.repeats(earlier)) emptyList() else TaskSteps.outputs(earlier, context) } }
+        val items = TaskSteps.itemFields(step, given, s)
         conditions.forEachIndexed { i, condition ->
             val label = StepConditions.label(index + 1, i, s)
             val inputs = (listOf(condition.left) + condition.right).map { TaskSteps.input(it, label) { key -> s.shared(key) } }
             // Compared as the first side that has a type, a written value read in it
-            val field = inputs.firstNotNullOfOrNull { StepConditions.fieldOf(it, given, fields, values, context, s, label) }
+            val field = inputs.firstNotNullOfOrNull { StepConditions.fieldOf(it, given, fields, values, items, context, s, label) }
                 ?: throw StepFailed(s.shared("condition_error_untyped").format(label))
-            val read = inputs.map { resolve(context, it, results, at, received) }
+            val read = inputs.map { resolve(context, it, results, at, received, item) }
             val holds = app.treelune.core.conditions.ConditionJudge.holds(field, condition.op, read.first(), read.drop(1),
                 app.treelune.core.selection.TimeResolver.at(at)) { key -> s.shared(key) }
-            if (holds != true) return TaskRun.StepResult(summary(context, step),
-                skipped = s.shared(if (holds == null) "task_run_skipped_unknown" else "task_run_skipped_false").format(i + 1), at = System.currentTimeMillis())
+            if (holds != true) return s.shared(if (holds == null) "task_run_skipped_unknown" else "task_run_skipped_false").format(i + 1)
         }
         return null
     }
 
+    /**
+     * Step [index] of [steps] made once per element of the list it names (`for_each`), each
+     * element whose conditions hold: all its writes one step of the history, opened here and
+     * closed once every element is made — what it writes then starts what listens, as one
+     * operation's writes do. An element that fails undoes what the ones before wrote, the step of
+     * the history gone with them, and fails the step naming it: an API called or a routine run
+     * stays done, the history going back on the database only.
+     */
+    private suspend fun repeated(context: Context, task: TaskEntity, steps: org.json.JSONArray, index: Int, results: List<TaskRun.StepResult>, at: Long, received: TaskRun.Received?): TaskRun.StepResult {
+        val s = Strings.`for`(context = context)
+        val step = steps.getJSONObject(index)
+        val source = TaskSteps.input(step.getJSONObject(TaskSteps.FOR_EACH), TaskSteps.FOR_EACH) { s.shared(it) }
+        val list = resolve(context, source, results, at, received) as? List<*> ?: throw StepFailed(s.shared("task_error_for_each").format(index + 1))
+        val history = app.treelune.core.history.Step(app.treelune.core.coordinator.Source.SCHEDULER, isStep = true, sessionId = null)
+        var made = 0
+        try {
+            withContext(history) {
+                list.forEachIndexed { i, element ->
+                    val item = (element as? Map<*, *>)?.entries?.associate { it.key.toString() to it.value }.orEmpty()
+                    if (unmet(context, task, steps, index, results, at, received, item) != null) return@forEachIndexed
+                    try {
+                        runStep(context, step, steps, results, at, received, item)
+                    } catch (e: StepFailed) {
+                        throw StepFailed(s.shared("task_error_element").format(i + 1, e.message ?: ""), e.raw)
+                    }
+                    made++
+                }
+            }
+        } catch (e: Exception) {
+            // What the elements before wrote goes: the step is made whole or not at all
+            when (val undone = app.treelune.core.history.Undo(context).undo(history.id, app.treelune.core.coordinator.Source.SCHEDULER)) {
+                is app.treelune.core.history.Undo.Outcome.Done -> AppDatabase.getDatabase(context).historyDao().deleteSteps(listOf(history.id))
+                // Nothing written leaves no step to undo
+                is app.treelune.core.history.Undo.Outcome.Refused -> if (AppDatabase.getDatabase(context).historyDao().getStep(history.id) != null)
+                    LogManager.service("Task ${task.id}: step ${index + 1}'s writes not undone: ${undone.reason}", "ERROR")
+            }
+            throw e
+        }
+        val summary = summary(context, step)
+        app.treelune.core.history.Steps.close(context, history) { summary }
+        try {
+            app.treelune.core.triggers.EntryTriggers.dispatch(context) { app.treelune.core.triggers.EntryWrites.ofStep(context, history.id) }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            LogManager.service("Task ${task.id}: triggers of step ${index + 1} not run: ${e.message}", "ERROR", e)
+        }
+        return TaskRun.StepResult(summary, repeated = made, at = System.currentTimeMillis())
+    }
+
     /** [step] run: its inputs read, its operation through the dispatcher, what it gave. */
-    private suspend fun runStep(context: Context, step: JSONObject, steps: org.json.JSONArray, results: List<TaskRun.StepResult>, at: Long, received: TaskRun.Received?): TaskRun.StepResult {
+    private suspend fun runStep(context: Context, step: JSONObject, steps: org.json.JSONArray, results: List<TaskRun.StepResult>, at: Long, received: TaskRun.Received?,
+                                item: Map<String, Any?>? = null): TaskRun.StepResult {
         val s = Strings.`for`(context = context)
         val kind = step.getString(TaskSteps.KIND)
         // The fields an entry's values go to, for a file to come down into one
@@ -329,7 +394,7 @@ object TaskRunner {
         val resolved = buildMap<String, Any?> {
             holder?.keys()?.forEach { key ->
                 val input = TaskSteps.input(holder.getJSONObject(key), key) { s.shared(it) }
-                val value = resolve(context, input, results, at, received)
+                val value = resolve(context, input, results, at, received, item)
                 val field = fields[key]
                 put(key, when {
                     // A file an API gives comes down into the field, with that API's key on its server
@@ -344,8 +409,8 @@ object TaskRunner {
                     else -> value
                 })
             }
-            if (kind == TaskSteps.UPDATE_ENTRY) put(TaskSteps.ENTRY, idOf(resolve(context, TaskSteps.input(step.getJSONObject(TaskSteps.ENTRY), TaskSteps.ENTRY) { s.shared(it) }, results, at, received)))
-            if (kind == TaskSteps.RUN_ROUTINE) put(JOINED, joined(context, step, results, at, received))
+            if (kind == TaskSteps.UPDATE_ENTRY) put(TaskSteps.ENTRY, idOf(resolve(context, TaskSteps.input(step.getJSONObject(TaskSteps.ENTRY), TaskSteps.ENTRY) { s.shared(it) }, results, at, received, item)))
+            if (kind == TaskSteps.RUN_ROUTINE) put(JOINED, joined(context, step, results, at, received, item))
         }
         val (action, params) = actionOf(step, resolved, context)
         val summary = summary(context, step)
@@ -382,7 +447,7 @@ object TaskRunner {
      * join the end of its message: a text and a pointer as written; an entry the run gives as a
      * pointer to it, the entry attached or only mentioned; a value as a text, none when it has none.
      */
-    private suspend fun joined(context: Context, step: JSONObject, results: List<TaskRun.StepResult>, at: Long, received: TaskRun.Received?): List<Map<String, Any?>> {
+    private suspend fun joined(context: Context, step: JSONObject, results: List<TaskRun.StepResult>, at: Long, received: TaskRun.Received?, item: Map<String, Any?>?): List<Map<String, Any?>> {
         val s = Strings.`for`(context = context)
         val blocks = try {
             StepBlocks.of(step)
@@ -399,7 +464,7 @@ object TaskRunner {
                     if (input is TaskSteps.Input.Received && input.value == null && (received as? TaskRun.Received.Entry)?.write == app.treelune.core.triggers.Triggers.Write.DELETED) {
                         throw StepFailed(s.shared("task_error_block_deleted").format(index + 1))
                     }
-                    val id = idOf(resolve(context, input, results, at, received)) as? String
+                    val id = idOf(resolve(context, input, results, at, received, item)) as? String
                         ?: throw StepFailed(s.shared("task_error_block_no_entry").format(index + 1))
                     AppDatabase.getDatabase(context).toolDataDao().getById(id) ?: throw StepFailed(s.shared("task_error_block_deleted").format(index + 1))
                     val pointer = app.treelune.core.ai.enrichments.PointerConfig(
@@ -408,7 +473,7 @@ object TaskRunner {
                     )
                     JSONObject().put(StepBlocks.TYPE, StepBlocks.POINTER).put(StepBlocks.POINTER, pointer.toJson())
                 }
-                is StepBlocks.Block.Value -> resolve(context, TaskSteps.input(block.input, TaskSteps.VALUE) { s.shared(it) }, results, at, received)?.let { value ->
+                is StepBlocks.Block.Value -> resolve(context, TaskSteps.input(block.input, TaskSteps.VALUE) { s.shared(it) }, results, at, received, item)?.let { value ->
                     JSONObject().put(StepBlocks.TYPE, StepBlocks.TEXT).put(StepBlocks.TEXT, said(value))
                 }
             }
@@ -425,10 +490,14 @@ object TaskRunner {
     /** An entry's id, from its id or a Reference designating it. */
     private fun idOf(value: Any?): Any? = (value as? Map<*, *>)?.get("id") ?: value
 
-    /** What [input] gives: a term read at [at], what an earlier step gave, the entry [received] as it is now. */
-    private suspend fun resolve(context: Context, input: TaskSteps.Input, results: List<TaskRun.StepResult>, at: Long, received: TaskRun.Received?): Any? {
+    /**
+     * What [input] gives: a term read at [at], what an earlier step gave, the entry [received] as
+     * it is now, a field of the element [item] a repeated step stands at.
+     */
+    private suspend fun resolve(context: Context, input: TaskSteps.Input, results: List<TaskRun.StepResult>, at: Long, received: TaskRun.Received?, item: Map<String, Any?>? = null): Any? {
         val s = Strings.`for`(context = context)
         return when (input) {
+            is TaskSteps.Input.Item -> (item ?: throw StepFailed(s.shared("task_error_item_unrepeated").format(""))) [input.field]
             is TaskSteps.Input.Received -> when {
                 input.value != null -> when (received) {
                     is TaskRun.Received.Event -> received.values[input.value]

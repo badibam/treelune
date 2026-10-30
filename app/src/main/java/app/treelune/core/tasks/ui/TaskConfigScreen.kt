@@ -118,7 +118,10 @@ fun TaskConfigScreen(place: Place.TaskConfig, onDone: () -> Unit, onDeleted: () 
     LaunchedEffect(stepsText) {
         val result = coordinator.processUserAction("tasks.outputs", mapOf("steps" to JsonUtils.toList(steps)))
         outputs = (result.data?.get("outputs") as? List<*>).orEmpty().map { list ->
-            (list as List<*>).map { it as Map<*, *> }.map { TaskSteps.Output(it["value"] as String?, it["type"] as String) }
+            (list as List<*>).map { it as Map<*, *> }.map { output ->
+                TaskSteps.Output(output["value"] as String?, output["type"] as String,
+                    (output["items"] as? List<*>).orEmpty().map { it as Map<*, *> }.map { TaskSteps.Output(it["value"] as String?, it["type"] as String) })
+            }
         }
     }
 

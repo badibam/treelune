@@ -76,6 +76,13 @@ object ApiSettings {
     /** A value's type beside those: a file, its path the address to download it from. */
     const val FILE = "file"
 
+    /**
+     * A value's type beside those: a list, its path a JSON array, each element an object whose
+     * [ITEMS] are read at their paths in it — what a Task's step repeats over (`for_each`).
+     */
+    const val LIST = "list"
+    const val ITEMS = "items"
+
     /** Whether the answer is the result, or an id to follow until the result is ready. */
     const val RESPONSE = "response"
     const val IMMEDIATE = "immediate"
@@ -126,8 +133,13 @@ object ApiSettings {
             )), summary = listOf(NAME, TYPE), description = s.shared("api_schema_$INPUTS")),
             SettingNode.ListOf(VALUES, s.shared("api_$VALUES"), SettingNode.Item.Of(listOf(
                 text(NAME, required = true, length = TextLength.SHORT),
-                choice(TYPE, listOf(TEXT, NUMBER, BOOLEAN, FILE), TEXT),
-                text(PATH, required = true)
+                choice(TYPE, listOf(TEXT, NUMBER, BOOLEAN, FILE, LIST), TEXT),
+                text(PATH, required = true),
+                SettingNode.ListOf(ITEMS, s.shared("api_$ITEMS"), SettingNode.Item.Of(listOf(
+                    text(NAME, required = true, length = TextLength.SHORT),
+                    choice(TYPE, listOf(TEXT, NUMBER, BOOLEAN, FILE), TEXT),
+                    text(PATH, required = true)
+                )), summary = listOf(NAME, PATH), shownWith = SettingNode.ShownWith(TYPE, LIST), description = s.shared("api_schema_$ITEMS"))
             )), summary = listOf(NAME, PATH), description = s.shared("api_schema_$VALUES")),
             SettingNode.Variant(
                 choice(RESPONSE, listOf(IMMEDIATE, DEFERRED), IMMEDIATE),
@@ -174,6 +186,14 @@ object ApiSettings {
             names.groupBy { it }.filter { it.value.size > 1 }.keys.firstOrNull()?.let { return s.shared("api_error_name_twice").format(it) }
             names.firstOrNull { !NAME_FORM.matches(it) }?.let { return s.shared("api_error_name_form").format(it) }
         }
+        // A list's elements are read by their fields: at least one, each named once
+        config.optJSONArray(VALUES)?.let { array -> (0 until array.length()).map { array.getJSONObject(it) } }.orEmpty()
+            .filter { it.optString(TYPE) == LIST }.forEach { list ->
+                val names = list.optJSONArray(ITEMS)?.let { items -> (0 until items.length()).map { items.getJSONObject(it).optString(NAME) } }.orEmpty()
+                if (names.isEmpty()) return s.shared("api_error_list_items").format(list.optString(NAME))
+                names.groupBy { it }.filter { it.value.size > 1 }.keys.firstOrNull()?.let { return s.shared("api_error_name_twice").format(it) }
+                names.firstOrNull { !NAME_FORM.matches(it) }?.let { return s.shared("api_error_name_form").format(it) }
+            }
         if (config.optString(RESPONSE) == DEFERRED) {
             if (!config.optString(STATUS_URL).contains(ID_MARK)) return s.shared("api_error_status_url").format(ID_MARK)
             if (config.optString(FAILED_PATH).isBlank() != config.optString(FAILED_VALUE).isBlank()) return s.shared("api_error_failed_half")

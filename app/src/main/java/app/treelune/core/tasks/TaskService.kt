@@ -212,7 +212,12 @@ class TaskService(private val context: Context) : ExecutableService {
     private suspend fun outputs(params: JSONObject): OperationResult {
         val steps = params.optJSONArray("steps") ?: JSONArray()
         return OperationResult.success(mapOf("outputs" to (0 until steps.length()).map { index ->
-            TaskSteps.outputs(steps.getJSONObject(index), context).map { mapOf("value" to it.value, "type" to it.type) }
+            // What a repeated step gives is read by no step after it
+            val step = steps.getJSONObject(index)
+            if (TaskSteps.repeats(step)) emptyList()
+            else TaskSteps.outputs(step, context).map { output ->
+                mapOf("value" to output.value, "type" to output.type, "items" to output.items.map { mapOf("value" to it.value, "type" to it.type) })
+            }
         }))
     }
 

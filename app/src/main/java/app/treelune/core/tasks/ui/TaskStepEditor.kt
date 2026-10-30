@@ -45,6 +45,9 @@ internal data class Receivable(val entry: Map<String, FieldDefinition>?, val val
 
 internal val LocalReceived = androidx.compose.runtime.staticCompositionLocalOf { Receivable(null, null) }
 
+/** The fields of the element a repeated step stands at, by name (TaskSteps.itemFields); null when it is not repeated. */
+private val LocalItems = androidx.compose.runtime.staticCompositionLocalOf<Map<String, FieldDefinition>?> { null }
+
 /**
  * The form of one step, [step] in its stored form (TaskSteps), its kind already chosen: what it
  * names (an API, a tool, an operation, a routine), then each of its inputs (StepInput).
@@ -54,15 +57,39 @@ internal fun StepEditor(step: JSONObject, earlier: Earlier, onChange: (JSONObjec
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     fun with(change: JSONObject.() -> Unit) = onChange(JSONObject(step.toString()).apply(change))
+    val items = TaskSteps.itemFields(step, earlier.map { it.second }, s)
     Column(verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
-        when (step.optString(TaskSteps.KIND)) {
-            TaskSteps.CALL_API -> CallApi(step, earlier, s, ::with)
-            TaskSteps.CREATE_ENTRY, TaskSteps.UPDATE_ENTRY -> WriteEntry(step, earlier, s, ::with)
-            TaskSteps.TOOL_OPERATION -> ToolOperation(step, earlier, s, ::with)
-            TaskSteps.RUN_ROUTINE -> RunRoutine(step, earlier, s, ::with)
-            TaskSteps.EMIT_EVENT -> EmitEvent(step, earlier, s, ::with)
+        ForEach(step, earlier, s, ::with)
+        androidx.compose.runtime.CompositionLocalProvider(LocalItems provides items) {
+            when (step.optString(TaskSteps.KIND)) {
+                TaskSteps.CALL_API -> CallApi(step, earlier, s, ::with)
+                TaskSteps.CREATE_ENTRY, TaskSteps.UPDATE_ENTRY -> WriteEntry(step, earlier, s, ::with)
+                TaskSteps.TOOL_OPERATION -> ToolOperation(step, earlier, s, ::with)
+                TaskSteps.RUN_ROUTINE -> RunRoutine(step, earlier, s, ::with)
+                TaskSteps.EMIT_EVENT -> EmitEvent(step, earlier, s, ::with)
+            }
+            if (step.optString(TaskSteps.KIND).isNotEmpty()) StepWhen(step, earlier, s, ::with)
         }
-        if (step.optString(TaskSteps.KIND).isNotEmpty()) StepWhen(step, earlier, s, ::with)
+    }
+}
+
+/**
+ * Whether the step is made once, or once per element of a list an earlier step's API answers
+ * (`for_each`); offered when one does. Another list leaves the fields read of the element as
+ * they are: the check names one the new list's elements do not have.
+ */
+@Composable
+private fun ForEach(step: JSONObject, earlier: Earlier, s: StringsContext, with: (JSONObject.() -> Unit) -> Unit) {
+    val lists = earlier.flatMap { (index, outputs) ->
+        outputs.filter { it.type == ApiSettings.LIST }.map { output ->
+            JSONObject().put(TaskSteps.RESULT, JSONObject().put(TaskSteps.STEP, index).put(TaskSteps.VALUE, output.value)).toString() to
+                s.shared("task_input_result").format(index + 1, output.value)
+        }
+    }
+    if (lists.isEmpty() && !TaskSteps.repeats(step)) return
+    Choice(s.shared("task_for_each"), listOf(ONCE to s.shared("task_for_each_once")) + lists,
+        step.optJSONObject(TaskSteps.FOR_EACH)?.toString() ?: ONCE) { key ->
+        with { if (key == ONCE) remove(TaskSteps.FOR_EACH) else put(TaskSteps.FOR_EACH, JSONObject(key)) }
     }
 }
 
@@ -322,7 +349,8 @@ private fun Inputs(inputs: JSONObject, fields: List<FieldDefinition>, earlier: E
 @Composable
 private fun StepInput(input: JSONObject?, field: FieldDefinition, earlier: Earlier, s: StringsContext, optional: Boolean, onChange: (JSONObject?) -> Unit) {
     val results = earlier.flatMap { (index, outputs) ->
-        outputs.filter { (it.value == null) == (field.type == FieldType.REFERENCE) }.map { output ->
+        // A list is what a step repeats over, never a value
+        outputs.filter { (it.value == null) == (field.type == FieldType.REFERENCE) && it.type != ApiSettings.LIST }.map { output ->
             JSONObject().put(TaskSteps.RESULT, JSONObject().put(TaskSteps.STEP, index).apply { output.value?.let { put(TaskSteps.VALUE, it) } }) to
                 s.shared("task_input_result").format(index + 1, output.value ?: s.shared("task_output_entry"))
         }
@@ -338,8 +366,13 @@ private fun StepInput(input: JSONObject?, field: FieldDefinition, earlier: Earli
     } + given.values.orEmpty().filterValues { it.type == field.type }.map { (name, _) ->
         JSONObject().put(TaskSteps.RECEIVED, JSONObject().put(TaskSteps.VALUE, name)) to s.shared("task_input_received_value").format(name)
     }
+    // The fields of the element a repeated step stands at, of the same type
+    val items = LocalItems.current.orEmpty().filterValues { it.type == field.type }.map { (name, _) ->
+        JSONObject().put(TaskSteps.ITEM, JSONObject().put(TaskSteps.FIELD, name)) to s.shared("task_input_item_field").format(name)
+    }
     val sources = listOfNotNull(
         (NONE to s.shared("task_input_none")).takeIf { optional },
+        (ITEM to s.shared("task_input_item")).takeIf { items.isNotEmpty() },
         TERM to s.shared(if (field.type == FieldType.REFERENCE) "task_input_entry" else "task_input_term"),
         (RESULT to s.shared("task_input_from_step")).takeIf { results.isNotEmpty() },
         (RECEIVED to s.shared("task_input_received")).takeIf { receivable.isNotEmpty() }
@@ -348,6 +381,7 @@ private fun StepInput(input: JSONObject?, field: FieldDefinition, earlier: Earli
         input == null -> if (optional) NONE else TERM
         input.has(TaskSteps.RESULT) -> RESULT
         input.has(TaskSteps.RECEIVED) -> RECEIVED
+        input.has(TaskSteps.ITEM) -> ITEM
         else -> TERM
     }
     UI.Text(field.displayName, TextType.LABEL)
@@ -356,12 +390,14 @@ private fun StepInput(input: JSONObject?, field: FieldDefinition, earlier: Earli
             NONE -> null
             RESULT -> results.first().first
             RECEIVED -> receivable.first().first
+            ITEM -> items.first().first
             else -> JSONObject()
         })
     }
     when (source) {
         RESULT -> Choice(s.shared("task_input_from_step"), results.map { it.first.toString() to it.second }, input.toString()) { onChange(JSONObject(it)) }
         RECEIVED -> Choice(s.shared("task_input_received"), receivable.map { it.first.toString() to it.second }, input.toString()) { onChange(JSONObject(it)) }
+        ITEM -> Choice(s.shared("task_input_item"), items.map { it.first.toString() to it.second }, input.toString()) { onChange(JSONObject(it)) }
         TERM -> if (field.type == FieldType.REFERENCE) {
             // An entry designated: stored as a constant, read as its id when the step runs
             val context = LocalContext.current
@@ -375,6 +411,8 @@ private const val NONE = "none"
 private const val TERM = "term"
 private const val RESULT = "result"
 private const val RECEIVED = "received"
+private const val ITEM = "item"
+private const val ONCE = "once"
 
 /**
  * The conditions of [step] (StepConditions), « Only if »: each what the step reads on the left —
@@ -417,8 +455,10 @@ private fun StepCondition(condition: JSONObject, earlier: Earlier, s: StringsCon
             Triple(JSONObject().put(TaskSteps.RECEIVED, JSONObject().put(TaskSteps.FIELD, path)), s.shared("task_input_received_field").format(field.displayName), field)
         } + given.values.orEmpty().map { (name, field) ->
             Triple(JSONObject().put(TaskSteps.RECEIVED, JSONObject().put(TaskSteps.VALUE, name)), s.shared("task_input_received_value").format(name), field)
+        } + LocalItems.current.orEmpty().map { (name, field) ->
+            Triple(JSONObject().put(TaskSteps.ITEM, JSONObject().put(TaskSteps.FIELD, name)), s.shared("task_input_item_field").format(name), field)
         } + earlier.flatMap { (index, outputs) ->
-            outputs.map { output ->
+            outputs.filter { it.type != ApiSettings.LIST }.map { output ->
                 Triple(JSONObject().put(TaskSteps.RESULT, JSONObject().put(TaskSteps.STEP, index).apply { output.value?.let { put(TaskSteps.VALUE, it) } }),
                     s.shared("task_input_result").format(index + 1, output.value ?: s.shared("task_output_entry")),
                     if (output.value == null) StepConditions.entryField(s) else StepConditions.outputField(output, s))

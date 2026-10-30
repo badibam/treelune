@@ -23,7 +23,11 @@ import org.json.JSONObject
  * - `run_routine`: `routine_id`, `blocks` (what joins its run's message: StepBlocks)
  * - `emit_event`: `event_id`, `inputs` (by the value's name the event declares, every one given)
  *
- * Any of them may hold `when`, conditions on its inputs that all hold for it to run (StepConditions).
+ * Any of them may hold `when`, conditions on its inputs that all hold for it to run (StepConditions),
+ * and `for_each`, an input giving a list an earlier API answered (`{"result": {"step", "value"}}`):
+ * the step is then made once per element, its inputs and conditions reading the element's fields
+ * as `{"item": {"field": "pt"}}`, all its writes one step of the history, undone whole when one
+ * element fails; what it gives is read by no step after it.
  *
  * An input is a Term (`{"constant"}`, `{"variable"}`, `{"reading"}`), or what an earlier step gave:
  * `{"result": {"step": 0, "value": "temperature"}}` for a value of an API's answer,
@@ -60,6 +64,8 @@ object TaskSteps {
     const val VALUE = "value"
     const val RECEIVED = "received"
     const val FIELD = "field"
+    const val FOR_EACH = "for_each"
+    const val ITEM = "item"
 
     /** The paths of an entry a step writes, beside its fields under data and extra. */
     private val WRITTEN_TOP = setOf("name", "timestamp")
@@ -77,6 +83,8 @@ object TaskSteps {
          * an event carried by name
          */
         data class Received(val field: String?, val value: String? = null) : Input
+        /** The [field] of the element a step repeated for each element of a list stands at (`for_each`) */
+        data class Item(val field: String) : Input
     }
 
     /**
@@ -86,6 +94,9 @@ object TaskSteps {
      */
     fun input(json: JSONObject, name: String, text: (String) -> String): Input {
         json.optJSONObject(RECEIVED)?.let { return Input.Received(it.optString(FIELD).ifEmpty { null }, it.optString(VALUE).ifEmpty { null }) }
+        json.optJSONObject(ITEM)?.let { item ->
+            return Input.Item(item.optString(FIELD).ifEmpty { throw IllegalArgumentException(text("task_error_input").format(name)) })
+        }
         json.optJSONObject(RESULT)?.let { result ->
             if (!result.has(STEP)) throw IllegalArgumentException(text("task_error_input").format(name))
             return Input.Result(result.getInt(STEP), result.optString(VALUE).ifEmpty { null })
@@ -93,14 +104,35 @@ object TaskSteps {
         return Input.Of(Term.fromJson(json, name, text))
     }
 
-    /** One value a step gives the ones after it: its name (null for an entry created), its type for the screen. */
-    data class Output(val value: String?, val type: String)
+    /**
+     * One value a step gives the ones after it: its name (null for an entry created), its type for
+     * the screen; a list's, the fields of its elements, [items].
+     */
+    data class Output(val value: String?, val type: String, val items: List<Output> = emptyList())
+
+    /** Whether [step] is made once per element of a list (`for_each`). */
+    fun repeats(step: JSONObject?): Boolean = step?.optJSONObject(FOR_EACH) != null
+
+    /**
+     * The fields of the element the repeated [step] stands at, by name, from what the steps
+     * before it give ([given], by step); null when it is not repeated, or its list does not read,
+     * which refusal names.
+     */
+    fun itemFields(step: JSONObject, given: List<List<Output>>, s: StringsContext): Map<String, FieldDefinition>? {
+        val source = step.optJSONObject(FOR_EACH)?.optJSONObject(RESULT) ?: return null
+        val list = given.getOrNull(source.optInt(STEP, -1))?.firstOrNull { it.value == source.optString(VALUE) && it.type == ApiSettings.LIST } ?: return null
+        return list.items.mapNotNull { item -> StepConditions.outputField(item, s)?.let { item.value!! to it } }.toMap()
+    }
 
     /** What step [step] gives the steps after it, read without running it. */
     suspend fun outputs(step: JSONObject, context: Context): List<Output> = when (step.optString(KIND)) {
         CALL_API -> AppDatabase.getDatabase(context).apiDao().get(step.optString(API_ID))?.let { api ->
             JSONObject(api.configJson).optJSONArray(ApiSettings.VALUES)?.let { values ->
-                (0 until values.length()).map { values.getJSONObject(it) }.map { Output(it.getString(ApiSettings.NAME), it.optString(ApiSettings.TYPE, ApiSettings.TEXT)) }
+                (0 until values.length()).map { values.getJSONObject(it) }.map { value ->
+                    Output(value.getString(ApiSettings.NAME), value.optString(ApiSettings.TYPE, ApiSettings.TEXT),
+                        value.optJSONArray(ApiSettings.ITEMS)?.let { items -> (0 until items.length()).map { items.getJSONObject(it) } }.orEmpty()
+                            .map { Output(it.getString(ApiSettings.NAME), it.optString(ApiSettings.TYPE, ApiSettings.TEXT)) })
+                }
             }
         }.orEmpty()
         CREATE_ENTRY -> listOf(Output(null, ENTRY))
@@ -262,6 +294,17 @@ object TaskSteps {
         for (index in 0 until steps.length()) {
             val step = steps.optJSONObject(index) ?: return s.shared("task_error_step").format(index + 1)
             val number = index + 1
+            // The fields of the element a repeated step stands at, by name; null when it is not repeated
+            val items: Map<String, FieldDefinition>? = if (!repeats(step)) null else {
+                val source = try {
+                    input(step.getJSONObject(FOR_EACH), "$number › $FOR_EACH") { s.shared(it) }
+                } catch (e: IllegalArgumentException) {
+                    return e.message
+                }
+                val list = (source as? Input.Result)?.let { result -> given.getOrNull(result.step)?.firstOrNull { it.value == result.value && it.type == ApiSettings.LIST } }
+                    ?: return s.shared("task_error_for_each").format(number)
+                list.items.mapNotNull { item -> StepConditions.outputField(item, s)?.let { item.value!! to it } }.toMap()
+            }
             fun inputs(holder: JSONObject?, allowed: Set<String>?): String? {
                 holder ?: return null
                 for (key in holder.keys()) {
@@ -279,6 +322,14 @@ object TaskSteps {
                         received ?: return s.shared("task_error_received_untriggered").format(number)
                         if (input.field != null && input.field !in received) return s.shared("task_error_received_field").format(number, input.field, received.keys.joinToString(", "))
                     }
+                    if (input is Input.Item) {
+                        items ?: return s.shared("task_error_item_unrepeated").format(number)
+                        if (input.field !in items) return s.shared("task_error_item_field").format(number, input.field, items.keys.joinToString(", "))
+                    }
+                    // What a repeated step gave is many things: none is read
+                    if (input is Input.Result && input.step < index && repeats(steps.optJSONObject(input.step))) {
+                        return s.shared("task_error_result_repeated").format(number, input.step + 1)
+                    }
                     if (input is Input.Result) {
                         val earlier = given.getOrNull(input.step) ?: return s.shared("task_error_result_step").format(number, input.step + 1)
                         if (earlier.none { it.value == input.value }) return s.shared("task_error_result_value").format(number, input.step + 1, input.value ?: s.shared("task_output_entry"))
@@ -289,6 +340,10 @@ object TaskSteps {
             when (step.optString(KIND)) {
                 CALL_API -> {
                     val api = database.apiDao().get(step.optString(API_ID)) ?: return s.shared("task_error_api").format(number, step.optString(API_ID))
+                    // A deferred call waits on its one job: repeated, it would wait on several
+                    if (repeats(step) && JSONObject(api.configJson).optString(ApiSettings.RESPONSE) == ApiSettings.DEFERRED) {
+                        return s.shared("task_error_for_each_deferred").format(number)
+                    }
                     val declared = JSONObject(api.configJson).optJSONArray(ApiSettings.INPUTS)?.let { list -> (0 until list.length()).map { list.getJSONObject(it).getString(ApiSettings.NAME) } }.orEmpty()
                     inputs(step.optJSONObject(INPUTS), declared.toSet())?.let { return it }
                 }
@@ -327,8 +382,8 @@ object TaskSteps {
                 }
                 else -> return s.shared("task_error_kind").format(number, step.optString(KIND), KINDS.joinToString(", "))
             }
-            StepConditions.refusal(step, number, given, received, values, context, s, ::inputs)?.let { return it }
-            given += outputs(step, context)
+            StepConditions.refusal(step, number, given, received, values, items, context, s, ::inputs)?.let { return it }
+            given += if (repeats(step)) emptyList() else outputs(step, context)
         }
         return null
     }
