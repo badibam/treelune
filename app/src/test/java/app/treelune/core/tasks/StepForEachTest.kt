@@ -300,4 +300,21 @@ class StepForEachTest {
         val sheet = (entries(sheetsId).single()["extra"] as Map<*, *>)["sheet"] as List<*>
         assertEquals(1, sheet.size)
     }
+
+    @Test
+    fun anEmptyFieldInAnElement_isNone() = runBlocking {
+        val sheetsId = ok("tools.create", mapOf("zone_id" to zoneId, "tooltype" to "notes", "config" to mapOf("name" to "Sheets",
+            "extra_fields" to listOf(mapOf("display_name" to "Sheet", "type" to "FILE", "always_visible" to false, "config" to mapOf("kinds" to listOf("TEXT"), "max" to 1))))))["tool_instance_id"] as String
+        // An empty address is no file: the element is stored without one, the call not refused
+        answer = """{"words": [{"pt": "sim", "sheet": ""}]}"""
+        val taskId = task(listOf(
+            mapOf("kind" to TaskSteps.CALL_API, "api_id" to api("pt" to "text", "sheet" to "file")),
+            mapOf("kind" to TaskSteps.CREATE_ENTRY, "tool_instance_id" to sheetsId, "for_each" to words,
+                "values" to mapOf("data.content" to item("pt"), "extra.sheet" to item("sheet")))
+        ))
+
+        val run = run(taskId)
+        assertEquals(run.resultsJson, TaskRun.State.DONE.key, run.state)
+        assertEquals("sim", (entries(sheetsId).single()["data"] as Map<*, *>)["content"])
+    }
 }

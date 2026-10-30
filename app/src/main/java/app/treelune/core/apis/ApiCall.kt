@@ -106,8 +106,8 @@ class ApiCall(private val config: JSONObject, private val values: SettingValues)
 
     /**
      * What [found] is as the value [value] declares it: a list read element by element, each of
-     * its fields at its path, one an element does not hold being null (an optional part: a
-     * correction given or not); anything else as [typed] reads it.
+     * its fields at its path, one an element does not hold, or holds empty, being null (an
+     * optional part: a correction given or not, a sound or none); anything else as [typed] reads it.
      */
     private fun valueOf(value: JSONObject, found: Any): Any {
         val name = value.getString(ApiSettings.NAME)
@@ -119,7 +119,8 @@ class ApiCall(private val config: JSONObject, private val values: SettingValues)
             val element = array.opt(index)
             items.associate { item ->
                 val field = item.getString(ApiSettings.NAME)
-                field to element?.let { at(it, item.getString(ApiSettings.PATH)) }?.let { typed("$name › $field", it, item.optString(ApiSettings.TYPE, ApiSettings.TEXT)) }
+                field to element?.let { at(it, item.getString(ApiSettings.PATH)) }?.takeIf { it != "" }
+                    ?.let { typed("$name › $field", it, item.optString(ApiSettings.TYPE, ApiSettings.TEXT)) }
             }
         }
     }
