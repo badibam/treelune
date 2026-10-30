@@ -20,6 +20,7 @@ Travail ouvert, une ligne par item ; un item fait sort, le commit en est le regi
 
 ## Bugs
 
+- `tool_data` par le connecteur, une période à borne fixe en ISO 8601 (`{"start": "2026-10-30T18:11:00+01:00"}`) refusée : « a fixed instant is milliseconds », quand la consigne de l'IA (Part E) dit d'écrire ainsi une date fixe ; une borne relative passe. Vu le 2026-10-30.
 
 ## À passer sur le téléphone
 
