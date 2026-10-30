@@ -154,4 +154,44 @@ class StepForEachTest {
         )))
         assertFalse(result.isSuccess)
     }
+
+    /** Weighings named after the words of the answer, at [kg], an entry already holding a name [then] (skip or update). */
+    private suspend fun storing(then: String, kg: Int): String {
+        answer = """{"words": [{"pt": "sim"}, {"pt": "galão"}]}"""
+        return task(listOf(
+            mapOf("kind" to TaskSteps.CALL_API, "api_id" to api("pt" to "text")),
+            mapOf("kind" to TaskSteps.CREATE_ENTRY, "tool_instance_id" to weightId, "for_each" to words,
+                "values" to mapOf("name" to item("pt"), "data.value" to mapOf("constant" to kg), "data.unit" to mapOf("constant" to "kg")),
+                "existing" to mapOf("field" to "name", "then" to then))
+        ))
+    }
+
+    private suspend fun weighings(): Map<Any?, Number> = entries(weightId).associate { it["name"] to (it["data"] as Map<*, *>)["value"] as Number }
+
+    @Test
+    fun anEntryAlreadyThere_isLeftAsItIs_notCreatedTwice() = runBlocking {
+        ok("tool_data.create", mapOf("tool_instance_id" to weightId, "name" to "sim", "data" to mapOf("value" to 70, "unit" to "kg")))
+        val run = run(storing("skip", 5))
+
+        assertEquals(TaskRun.State.DONE.key, run.state)
+        assertEquals(mapOf("sim" to 70.0, "galão" to 5.0), weighings().mapValues { it.value.toDouble() })
+    }
+
+    @Test
+    fun anEntryAlreadyThere_isChanged_whenSaidSo() = runBlocking {
+        ok("tool_data.create", mapOf("tool_instance_id" to weightId, "name" to "sim", "data" to mapOf("value" to 70, "unit" to "kg")))
+        run(storing("update", 5))
+
+        assertEquals(mapOf("sim" to 5.0, "galão" to 5.0), weighings().mapValues { it.value.toDouble() })
+        assertEquals(2, entries(weightId).size)
+    }
+
+    @Test
+    fun anEntryAlreadyThere_isFoundByAFieldTheStepWrites() = runBlocking {
+        val result = coordinator.processUserAction("tasks.create", mapOf("zone_id" to zoneId, "name" to "Store", "steps" to listOf(
+            mapOf("kind" to TaskSteps.CREATE_ENTRY, "tool_instance_id" to notesId, "values" to mapOf("data.content" to mapOf("constant" to "sim")),
+                "existing" to mapOf("field" to "name", "then" to "skip"))
+        )))
+        assertFalse(result.isSuccess)
+    }
 }

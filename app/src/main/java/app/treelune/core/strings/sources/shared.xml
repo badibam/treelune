@@ -3022,6 +3022,13 @@
     <string name="task_for_each_once">No list: made once</string>
     <string name="task_input_item">The element it stands at</string>
     <string name="task_input_item_field">Element › %1$s</string>
+    <string name="task_existing">If an entry already has the same value in</string>
+    <string name="task_existing_none">No field: always create one</string>
+    <string name="task_existing_then">Then</string>
+    <string name="task_existing_skip">Leave it as it is</string>
+    <string name="task_existing_update">Change it with these values</string>
+    <string name="task_error_existing_field">Step %1$s looks for an entry already there by the field “%2$s”, which it does not write; it writes: %3$s</string>
+    <string name="task_error_existing_then">Step %1$s does “%2$s” with an entry already there; it takes: %3$s</string>
     <string name="task_run_skipped_step">Skipped: step %1$d was</string>
     <string name="task_run_skipped_false">Skipped: its condition %1$d does not hold</string>
     <string name="task_run_skipped_unknown">Skipped: a value is missing to judge its condition %1$d</string>

@@ -412,8 +412,13 @@ object TaskRunner {
             if (kind == TaskSteps.UPDATE_ENTRY) put(TaskSteps.ENTRY, idOf(resolve(context, TaskSteps.input(step.getJSONObject(TaskSteps.ENTRY), TaskSteps.ENTRY) { s.shared(it) }, results, at, received, item)))
             if (kind == TaskSteps.RUN_ROUTINE) put(JOINED, joined(context, step, results, at, received, item))
         }
-        val (action, params) = actionOf(step, resolved, context)
         val summary = summary(context, step)
+        // An entry already holding the value the step writes in its field: left as it is, or changed
+        val existing = step.optJSONObject(TaskSteps.EXISTING)?.takeIf { kind == TaskSteps.CREATE_ENTRY }
+        val found = existing?.let { found(context, step.getString(TaskSteps.TOOL_INSTANCE_ID), it.getString(TaskSteps.FIELD), resolved[it.getString(TaskSteps.FIELD)]) }
+        if (found != null && existing.optString(TaskSteps.THEN) == TaskSteps.SKIP) return TaskRun.StepResult(summary, entryId = found, at = System.currentTimeMillis())
+        val (action, params) = if (found != null) "tool_data.update" to entryParams(step.getString(TaskSteps.TOOL_INSTANCE_ID), resolved) + ("id" to found)
+            else actionOf(step, resolved, context)
         val done = Coordinator(context).processTaskStep(action, params)
         val raw = done.data?.get("raw") as? String
         if (!done.isSuccess) throw StepFailed(done.error ?: s.shared("error_unknown"), raw)
@@ -432,9 +437,21 @@ object TaskRunner {
                 @Suppress("UNCHECKED_CAST")
                 TaskRun.StepResult(summary, values = done.data?.get("values") as Map<String, Any?>, types = types, raw = raw, at = now)
             }
-            TaskSteps.CREATE_ENTRY -> TaskRun.StepResult(summary, entryId = done.data?.get("id") as? String, at = now)
+            TaskSteps.CREATE_ENTRY -> TaskRun.StepResult(summary, entryId = found ?: done.data?.get("id") as? String, at = now)
             else -> TaskRun.StepResult(summary, at = now)
         }
+    }
+
+    /**
+     * The most recent entry of [toolId] holding [value] in [field], as a filter compares it; null
+     * when none does, or for no value: nothing is found by an empty one.
+     */
+    private suspend fun found(context: Context, toolId: String, field: String, value: Any?): String? {
+        if (value == null || value == "") return null
+        val read = Coordinator(context).processTaskStep("tool_data.get", mapOf("tool_instance_id" to toolId,
+            "filters" to listOf(JsonUtils.toMap(app.treelune.core.conditions.Conditions.onField(field, "=", value))), "limit" to 1))
+        if (!read.isSuccess) throw StepFailed(read.error ?: Strings.`for`(context = context).shared("error_unknown"))
+        return ((read.data?.get("entries") as? List<*>)?.firstOrNull() as? Map<*, *>)?.get("id") as? String
     }
 
     /** The API whose answer [input] reads, when it is a value an earlier step's call gave. */

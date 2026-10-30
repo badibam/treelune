@@ -17,7 +17,10 @@ import org.json.JSONObject
  * A Task's steps (docs/CORE.md, « Tasks »), stored as a list, each an object naming its kind:
  *
  * - `call_api`: `api_id`, `inputs` (by the API's input name, an input each)
- * - `create_entry`: `tool_instance_id`, `values` (by the field's path: `name`, `timestamp`, `data.x`, `extra.x`)
+ * - `create_entry`: `tool_instance_id`, `values` (by the field's path: `name`, `timestamp`, `data.x`, `extra.x`);
+ *   `existing`, `{"field", "then"}`: when an entry of the tool already holds, in that field (one
+ *   of the values), the value the step writes there, `skip` leaves it as it is and `update`
+ *   changes it with the values; the step gives that entry. Without it, an entry is always created.
  * - `update_entry`: `tool_instance_id`, `entry` (an input giving an entry), `values` as above
  * - `tool_operation`: `tool_instance_id`, `operation` (one the tool type declares), `params` (by name)
  * - `run_routine`: `routine_id`, `blocks` (what joins its run's message: StepBlocks)
@@ -65,6 +68,10 @@ object TaskSteps {
     const val RECEIVED = "received"
     const val FIELD = "field"
     const val FOR_EACH = "for_each"
+    const val EXISTING = "existing"
+    const val THEN = "then"
+    const val SKIP = "skip"
+    const val UPDATE = "update"
     const val ITEM = "item"
 
     /** The paths of an entry a step writes, beside its fields under data and extra. */
@@ -356,6 +363,15 @@ object TaskSteps {
                         return s.shared("task_error_tool").format(number, toolId)
                     }
                     inputs(step.optJSONObject(VALUES), fields.keys)?.let { return it }
+                    // The entry already there is found by a value the step writes
+                    step.optJSONObject(EXISTING)?.let { existing ->
+                        if (step.optString(KIND) != CREATE_ENTRY) return s.shared("task_error_input_unknown").format(number, EXISTING, VALUES)
+                        val field = existing.optString(FIELD)
+                        if (step.optJSONObject(VALUES)?.has(field) != true) {
+                            return s.shared("task_error_existing_field").format(number, field, step.optJSONObject(VALUES)?.keys()?.asSequence()?.joinToString(", ").orEmpty().ifEmpty { "-" })
+                        }
+                        if (existing.optString(THEN) !in setOf(SKIP, UPDATE)) return s.shared("task_error_existing_then").format(number, existing.optString(THEN), "$SKIP, $UPDATE")
+                    }
                     if (step.optString(KIND) == UPDATE_ENTRY) {
                         val entry = step.optJSONObject(ENTRY) ?: return s.shared("task_error_entry").format(number)
                         inputs(JSONObject().put(ENTRY, entry), null)?.let { return it }

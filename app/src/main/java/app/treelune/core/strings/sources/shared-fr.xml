@@ -3022,6 +3022,13 @@
     <string name="task_for_each_once">Aucune liste : faite une fois</string>
     <string name="task_input_item">L\'élément en cours</string>
     <string name="task_input_item_field">Élément › %1$s</string>
+    <string name="task_existing">Si une entrée a déjà la même valeur dans</string>
+    <string name="task_existing_none">Aucun champ : toujours en créer une</string>
+    <string name="task_existing_then">Alors</string>
+    <string name="task_existing_skip">La laisser telle quelle</string>
+    <string name="task_existing_update">La modifier avec ces valeurs</string>
+    <string name="task_error_existing_field">L\'étape %1$s cherche une entrée déjà là par le champ « %2$s », qu\'elle n\'écrit pas ; elle écrit : %3$s</string>
+    <string name="task_error_existing_then">L\'étape %1$s fait « %2$s » d\'une entrée déjà là ; elle prend : %3$s</string>
     <string name="task_run_skipped_step">Sautée : l\'étape %1$d l\'a été</string>
     <string name="task_run_skipped_false">Sautée : sa condition %1$d n\'est pas vraie</string>
     <string name="task_run_skipped_unknown">Sautée : il manque une valeur pour juger sa condition %1$d</string>

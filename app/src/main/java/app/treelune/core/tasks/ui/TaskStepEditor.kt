@@ -159,7 +159,33 @@ private fun WriteEntry(step: JSONObject, earlier: Earlier, s: StringsContext, wi
         }
     }
     Inputs(step.optJSONObject(TaskSteps.VALUES) ?: JSONObject(), fields, earlier, s) { with { put(TaskSteps.VALUES, it) } }
+    if (step.optString(TaskSteps.KIND) == TaskSteps.CREATE_ENTRY) Existing(step, fields, s, with)
 }
+
+/**
+ * What a `create_entry` step does when an entry of its tool already holds, in a field it writes,
+ * the value it writes there (`existing`): nothing chosen, it always creates one; otherwise it
+ * leaves that entry as it is, or changes it.
+ */
+@Composable
+private fun Existing(step: JSONObject, fields: List<FieldDefinition>, s: StringsContext, with: (JSONObject.() -> Unit) -> Unit) {
+    val given = step.optJSONObject(TaskSteps.VALUES) ?: JSONObject()
+    val offered = fields.filter { given.has(it.name) }
+    val existing = step.optJSONObject(TaskSteps.EXISTING)
+    if (offered.isEmpty() && existing == null) return
+    Choice(s.shared("task_existing"), listOf(ALWAYS to s.shared("task_existing_none")) + offered.map { it.name to it.displayName },
+        existing?.optString(TaskSteps.FIELD) ?: ALWAYS) { key ->
+        with {
+            if (key == ALWAYS) remove(TaskSteps.EXISTING)
+            else put(TaskSteps.EXISTING, JSONObject().put(TaskSteps.FIELD, key).put(TaskSteps.THEN, existing?.optString(TaskSteps.THEN)?.ifEmpty { null } ?: TaskSteps.SKIP))
+        }
+    }
+    if (existing == null) return
+    Choice(s.shared("task_existing_then"), listOf(TaskSteps.SKIP to s.shared("task_existing_skip"), TaskSteps.UPDATE to s.shared("task_existing_update")),
+        existing.optString(TaskSteps.THEN)) { then -> with { put(TaskSteps.EXISTING, JSONObject(existing.toString()).put(TaskSteps.THEN, then)) } }
+}
+
+private const val ALWAYS = "always"
 
 @Composable
 private fun ToolOperation(step: JSONObject, earlier: Earlier, s: StringsContext, with: (JSONObject.() -> Unit) -> Unit) {

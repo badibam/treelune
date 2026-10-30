@@ -21,10 +21,7 @@ Codé : `for_each` et `{"item": {"field"}}` (`TaskSteps`, `TaskRunner.repeated`)
 
 ## 3. Ne pas recréer ce qui existe
 
-- L'étape « créer une entrée » gagne un réglage : **si une entrée de l'outil a déjà la même valeur dans [un champ choisi]** : créer quand même (aujourd'hui, et par défaut), ne rien faire, ou la modifier avec les valeurs de l'étape.
-- La valeur comparée est celle que l'étape écrit dans ce champ.
-- Exemples : une fiche de portugais reconnue à son `element` (ne rien faire, un épisode rejoué) ; une personne à son `person` (ne rien faire) ; un épisode à son `episode` dans un outil « Épisodes » à une entrée par épisode, dont le statut passe de « à refaire » à « validé » (la modifier).
-- Forme proposée : `"existing": {"field": "extra.element", "then": "create" | "skip" | "update"}`.
+Codé : `existing` de `create_entry` (`{"field", "then": "skip" | "update"}`, absent : toujours créer), `docs/CORE.md` ; ses garanties dans `StepForEachTest`. L'entrée trouvée est la plus récente qui tient la valeur ; l'étape la donne comme son résultat.
 
 ## 4. « Ajouter à la ligne » dans un champ de texte
 
