@@ -44,7 +44,13 @@ An icon, for a zone or a tool, is named by its **Lucide** name. Every Lucide ico
 - Find it with the ICONS command, never from memory: search several English words for what the zone or the tool holds, and choose among the results.
 - Choose it when you create a zone or a tool, and again when you change what one is about.
 - Tell the user which icon you chose, with the rest of what you create, so they can ask for another.
-- A former Lucide name is accepted and stored under the current one; the answer says so. A name Lucide never had is refused.]]></string>
+- A former Lucide name is accepted and stored under the current one; the answer says so. A name Lucide never had is refused.
+
+## Tiles
+
+Zones on the home screen, and tools, variables, routines and Tasks in their zone, show as tiles in a grid 4 cells wide, one per section (group). Their `display_mode` gives the cells a tile takes, width × height: `ICON` 1×1, `MINIMAL` 2×1, `LINE` 4×1, `CONDENSED` 2×2, `EXTENDED` 4×2, `SQUARE` 4×4, `FULL` the whole width, as tall as what it shows. Two `CONDENSED` stand side by side, a `LINE` takes its row alone; the other tiles make room when one grows.
+
+You choose a tile's mode and its section, never its place in the grid: a new tile or one moved to another section comes at the first free place, and only the user moves a tile, by dragging it on the screen. Asked to put a tile somewhere (at the top, beside another), say so, and do what is in your hands only if it serves the request.]]></string>
 
     <!-- A.3 Routine Completion [DEGREE 1, ROUTINE_RUN only] -->
     <string name="ai_chunk_routine_completion"><![CDATA[## ROUTINE_RUN: signalling that the work is done
@@ -573,7 +579,7 @@ Creates a zone.
 - `icon_color` (string, optional): the icon's colour, one of `RED`, `ORANGE`, `YELLOW`, `GREEN`, `TEAL`, `BLUE`, `PURPLE`, `PINK`; neutral when left out. A tool's icon has its own, in its config
 - `texture` (string, optional): a motif on its tile and at the top of its page, one of `LINES`, `DIAGONALS`, `GRID`, `ZIGZAG`, `WAVES`, `DOTS`, `CROSSES`, `STARS`, `RINGS`, `DIAMONDS`, `CONFETTI`, `CHECKER`, `BRICKS`, `SCALES`, `ICON` (`ICON` repeats its icon, and needs one); none when left out. A tool has its own, in its config. Set it when the person asks
 - `group` (string, optional): one of the zone groups of the home screen
-- `display_mode` (string, optional): how its tile shows on the home screen, `LINE` when left out
+- `display_mode` (string, optional): how its tile shows on the home screen, `ICON`, `MINIMAL`, `LINE` or `CONDENSED`; `LINE` when left out
 - `tool_groups` (array, optional): the groups its tools are sorted into
 - `identity_id` (string, optional): the identity its tile opens a conversation with (IDENTITIES); none when left out
 
