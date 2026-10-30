@@ -18,7 +18,8 @@ import org.json.JSONObject
  *
  * - `call_api`: `api_id`, `inputs` (by the API's input name, an input each); an input of type list
  *   is filled by entries, `{"selection": {"target", "period", "filters", "fields"}}` (an Entry
- *   selection of a tool, its fields kept, `id` the entry's own): read in the order they happened,
+ *   selection of a tool, its fields kept, `id` the entry's own): read in the order they happened
+ *   (their date, or their creation for a tool whose entries have none),
  *   one field kept gives its values, several give an object per entry, each by the last part of
  *   its path (`extra.element` as `element`), an entry designated by its id.
  * - `create_entry`: `tool_instance_id`, `values` (by the field's path: `name`, `timestamp`, `data.x`, `extra.x`);

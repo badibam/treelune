@@ -262,4 +262,24 @@ class StepForEachTest {
             "inputs" to listOf(mapOf("name" to "known", "type" to "list")))))
         assertFalse(result.isSuccess)
     }
+
+    @Test
+    fun entries_goInTheOrderOfTheirDate_orOfTheirCreationInATable() = runBlocking {
+        // Created out of the order of their dates: they go by their dates
+        ok("tool_data.create", mapOf("tool_instance_id" to notesId, "timestamp" to 2_000L, "data" to mapOf("content" to "later")))
+        ok("tool_data.create", mapOf("tool_instance_id" to notesId, "timestamp" to 1_000L, "data" to mapOf("content" to "earlier")))
+        val apiId = posting()
+        run(task(listOf(mapOf("kind" to TaskSteps.CALL_API, "api_id" to apiId, "inputs" to mapOf("known" to known("data.content"))))))
+        assertEquals("""["earlier","later"]""", org.json.JSONObject(sent).getJSONArray("known").toString())
+
+        // A table's rows have no date: they go as they were created
+        val tableId = ok("tools.create", mapOf("zone_id" to zoneId, "tooltype" to "structured",
+            "config" to mapOf("name" to "Episodes", "table_columns" to 0, "extra_fields" to emptyList<Any>())))["tool_instance_id"] as String
+        ok("tool_data.create", mapOf("tool_instance_id" to tableId, "name" to "aire-1"))
+        ok("tool_data.create", mapOf("tool_instance_id" to tableId, "name" to "pastelaria-1"))
+        val rows = mapOf("selection" to mapOf("target" to mapOf("kind" to "TOOL_INSTANCE", "id" to tableId), "fields" to listOf("name")))
+        val run = run(task(listOf(mapOf("kind" to TaskSteps.CALL_API, "api_id" to apiId, "inputs" to mapOf("known" to rows)))))
+        assertEquals(run.resultsJson, TaskRun.State.DONE.key, run.state)
+        assertEquals("""["aire-1","pastelaria-1"]""", org.json.JSONObject(sent).getJSONArray("known").toString())
+    }
 }
