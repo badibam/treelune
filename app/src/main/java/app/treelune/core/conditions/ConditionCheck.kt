@@ -54,20 +54,25 @@ class ConditionCheck(private val sources: ConfigConditions.Sources, private val 
         } catch (e: IllegalArgumentException) {
             return e.message
         }
+        return refuseTyped(label, condition.op, fields, sides.mapNotNull { ((it as? Condition.Side.Of)?.term as? Term.Constant)?.value })
+    }
 
+    /**
+     * Why condition [label] cannot be stored, its sides being values of [fields] in order (null
+     * for a written value), [written] its written values, compared with [op]; null when it can.
+     * Rules 1 to 4, whatever its sides are: a Task step's are its inputs (StepConditions).
+     */
+    fun refuseTyped(label: String, op: FilterOperator, fields: List<FieldDefinition?>, written: List<Any>): String? {
         // The type compared is the first side's that has one
         val compared = fields.firstNotNullOfOrNull { it } ?: return text("condition_error_untyped").format(label)
         val operators = EntryFilters.operatorsFor(compared)
-        if (condition.op !in operators) {
-            return text("condition_error_operator").format(label, condition.op.key, compared.displayName, compared.type.name, operators.joinToString(", ") { it.key })
+        if (op !in operators) {
+            return text("condition_error_operator").format(label, op.key, compared.displayName, compared.type.name, operators.joinToString(", ") { it.key })
         }
         fields.filterNotNull().firstOrNull { !comparable(it, compared) }?.let { other ->
             return text("condition_error_types").format(label, compared.displayName, compared.type.name, other.displayName, other.type.name)
         }
-        sides.forEach { side ->
-            val value = ((side as? Condition.Side.Of)?.term as? Term.Constant)?.value ?: return@forEach
-            refuseValue(label, compared, condition.op, value)?.let { return it }
-        }
+        written.forEach { value -> refuseValue(label, compared, op, value)?.let { return it } }
         return null
     }
 

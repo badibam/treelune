@@ -26,5 +26,7 @@ class TaskRunTest {
     fun aStepResult_readsBackAsWritten() {
         val result = TaskRun.StepResult("Call", values = mapOf("script" to "Hello"), types = mapOf("script" to "text"), raw = "{}", at = 5)
         assertEquals(result, TaskRun.StepResult.of(result.toJson()))
+        val skipped = TaskRun.StepResult("Call", skipped = "Skipped: step 1 was", at = 5)
+        assertEquals(skipped, TaskRun.StepResult.of(skipped.toJson()))
     }
 }

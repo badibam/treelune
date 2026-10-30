@@ -2999,6 +2999,17 @@
     <string name="task_run_next_poll">Asked again %1$s</string>
     <string name="task_run_cancel">Cancel the run</string>
     <string name="task_run_entry_created">Entry created</string>
+    <string name="task_error_when">Step %1$d: its conditions (when) are a list</string>
+    <string name="task_when_label">step %1$d (“only if” %2$d)</string>
+    <string name="task_when">Only if</string>
+    <string name="task_when_help">The step runs when all its conditions hold; otherwise it is skipped, and so is any step reading what it gives.</string>
+    <string name="task_when_line">Condition %1$d</string>
+    <string name="task_when_add">Add a condition</string>
+    <string name="task_when_left">What is compared</string>
+    <string name="task_when_term">A variable or a reading</string>
+    <string name="task_run_skipped_step">Skipped: step %1$d was</string>
+    <string name="task_run_skipped_false">Skipped: its condition %1$d does not hold</string>
+    <string name="task_run_skipped_unknown">Skipped: a value is missing to judge its condition %1$d</string>
 
     <!-- A routine run with data (Tasks) -->
     <string name="routine_run_joined">Joined when this run was started:</string>

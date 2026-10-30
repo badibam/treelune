@@ -39,11 +39,16 @@ object TaskSchemas {
         return Schema(CONFIG_ID, s.shared("task_display_name"), "", SchemaCategory.TASK_CONFIG, content.toString())
     }
 
-    /** [steps] as the AI wrote them, their constants in their stored form. */
-    suspend fun stepsToStored(steps: JSONArray, context: Context): JSONArray = convert(steps, context) { value, field -> ModelValues.fromModel(value, field, zone()) }
+    /**
+     * [steps] as the AI wrote them, their constants in their stored form; [triggers], those of the
+     * Task's settings, say what a condition on what a trigger gives compares.
+     */
+    suspend fun stepsToStored(steps: JSONArray, triggers: List<app.treelune.core.triggers.Triggers.Trigger>, context: Context): JSONArray =
+        convert(steps, triggers, context) { value, field -> ModelValues.fromModel(value, field, zone()) }
 
     /** [steps] as stored, their constants as the AI writes them. */
-    suspend fun stepsToModel(steps: JSONArray, context: Context): JSONArray = convert(steps, context) { value, field -> ModelValues.toModel(value, field, zone()) }
+    suspend fun stepsToModel(steps: JSONArray, triggers: List<app.treelune.core.triggers.Triggers.Trigger>, context: Context): JSONArray =
+        convert(steps, triggers, context) { value, field -> ModelValues.toModel(value, field, zone()) }
 
     /** [task], a Task as tasks.get gives it, in the form the AI writes it back. */
     @Suppress("UNCHECKED_CAST")
@@ -54,22 +59,31 @@ object TaskSchemas {
             "id" to task["id"],
             "zone_id" to task["zone_id"],
             "settings" to settings,
-            "steps" to JsonUtils.toList(stepsToModel(JsonUtils.toJSONArray(task["steps"] as List<*>), context))
+            "steps" to JsonUtils.toList(stepsToModel(JsonUtils.toJSONArray(task["steps"] as List<*>),
+                app.treelune.core.triggers.Triggers.read(app.treelune.core.triggers.Triggers.of(JsonUtils.toJSONObject(task["settings"] as Map<String, Any?>))), context))
         )
     }
 
     private fun zone() = AppConfigManager.getDateTimeConfig().getZoneId()
 
-    /** [steps] with each constant of an input converted by [convert], given the schema of the field it fills. */
-    private suspend fun convert(steps: JSONArray, context: Context, convert: (Any?, JSONObject) -> Any?): JSONArray {
+    /**
+     * [steps] with each constant of an input converted by [convert], given the schema of the field
+     * it fills; a constant of a condition (StepConditions) as the field it is compared with.
+     */
+    private suspend fun convert(steps: JSONArray, triggers: List<app.treelune.core.triggers.Triggers.Trigger>, context: Context, convert: (Any?, JSONObject) -> Any?): JSONArray {
         val s = Strings.`for`(context = context)
+        val received = TaskSteps.receivedFields(triggers, context, s)
+        val values = TaskSteps.receivedValues(triggers, context)
+        val given = mutableListOf<List<TaskSteps.Output>>()
         val out = JSONArray()
         for (index in 0 until steps.length()) {
             val step = steps.optJSONObject(index)?.let { JSONObject(it.toString()) }
             if (step == null) {
                 out.put(steps.opt(index))
+                given += emptyList<TaskSteps.Output>()
                 continue
             }
+            whenConstants(step, index, given, received, values, context, s, convert)
             val fields = try {
                 fieldsOf(step, context, s)
             } catch (e: IllegalStateException) {
@@ -89,8 +103,38 @@ object TaskSchemas {
                 }
             }
             out.put(step)
+            given += TaskSteps.outputs(step, context)
         }
         return out
+    }
+
+    /**
+     * The constants of the conditions of [step] (StepConditions) converted by [convert], in place,
+     * as the first side that has a type; a condition that does not read is left as it is, for the
+     * service to refuse it, naming it.
+     */
+    private suspend fun whenConstants(step: JSONObject, index: Int, given: List<List<TaskSteps.Output>>, received: Map<String, FieldDefinition>?, values: Map<String, FieldDefinition>?,
+                                      context: Context, s: app.treelune.core.strings.StringsContext, convert: (Any?, JSONObject) -> Any?) {
+        val list = step.optJSONArray(StepConditions.WHEN) ?: return
+        for (i in 0 until list.length()) {
+            val condition = list.optJSONObject(i) ?: continue
+            val label = StepConditions.label(index + 1, i, s)
+            val sides = listOfNotNull(condition.optJSONObject(app.treelune.core.conditions.Conditions.LEFT)) +
+                when (val right = condition.opt(app.treelune.core.conditions.Conditions.RIGHT)) {
+                    is JSONObject -> listOf(right)
+                    is JSONArray -> (0 until right.length()).mapNotNull { right.optJSONObject(it) }
+                    else -> emptyList()
+                }
+            val field = try {
+                sides.firstNotNullOfOrNull { StepConditions.fieldOf(TaskSteps.input(it, label) { key -> s.shared(key) }, given, received, values, context, s, label) }
+            } catch (e: IllegalArgumentException) {
+                null
+            } ?: continue
+            sides.filter { it.has(Term.Kind.CONSTANT.key) && !it.isNull(Term.Kind.CONSTANT.key) }.forEach { side ->
+                val converted = convert(JsonUtils.toValue(side.get(Term.Kind.CONSTANT.key)), FieldValueSchema.of(field))
+                side.put(Term.Kind.CONSTANT.key, if (converted is Map<*, *> || converted is List<*>) JsonUtils.toJSONObject(mapOf("v" to converted)).get("v") else converted)
+            }
+        }
     }
 
     /** The fields a step's inputs fill, by input name: a tool's entry fields, an operation's params, an API's inputs. */

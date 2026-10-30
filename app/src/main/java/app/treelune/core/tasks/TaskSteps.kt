@@ -23,6 +23,8 @@ import org.json.JSONObject
  * - `run_routine`: `routine_id`, `blocks` (what joins its run's message: StepBlocks)
  * - `emit_event`: `event_id`, `inputs` (by the value's name the event declares, every one given)
  *
+ * Any of them may hold `when`, conditions on its inputs that all hold for it to run (StepConditions).
+ *
  * An input is a Term (`{"constant"}`, `{"variable"}`, `{"reading"}`), or what an earlier step gave:
  * `{"result": {"step": 0, "value": "temperature"}}` for a value of an API's answer,
  * `{"result": {"step": 1}}` for the entry a step created; or what a trigger gave the run
@@ -198,6 +200,17 @@ object TaskSteps {
                     is StepBlocks.Block.Value -> block.input
                     is StepBlocks.Block.Fixed -> null
                 }
+            } +
+            // Its conditions' sides are read as its inputs are
+            step.optJSONArray(StepConditions.WHEN).let { list ->
+                (0 until (list?.length() ?: 0)).mapNotNull { list!!.optJSONObject(it) }.flatMap { condition ->
+                    listOfNotNull(condition.optJSONObject(app.treelune.core.conditions.Conditions.LEFT)) +
+                        when (val right = condition.opt(app.treelune.core.conditions.Conditions.RIGHT)) {
+                            is JSONObject -> listOf(right)
+                            is JSONArray -> (0 until right.length()).mapNotNull { right.optJSONObject(it) }
+                            else -> emptyList()
+                        }
+                }
             }
         return own + reads.flatMap { input ->
             when {
@@ -314,6 +327,7 @@ object TaskSteps {
                 }
                 else -> return s.shared("task_error_kind").format(number, step.optString(KIND), KINDS.joinToString(", "))
             }
+            StepConditions.refusal(step, number, given, received, values, context, s, ::inputs)?.let { return it }
             given += outputs(step, context)
         }
         return null

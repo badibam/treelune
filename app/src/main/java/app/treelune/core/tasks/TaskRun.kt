@@ -45,7 +45,8 @@ object TaskRun {
 
     /**
      * What one step gave: [summary], what it did said in words; the API's [values] by name and
-     * their [types]; the [entryId] it created; the [raw] answer's start; why it failed, [error].
+     * their [types]; the [entryId] it created; the [raw] answer's start; why it failed, [error];
+     * why it did not run, [skipped] (StepConditions), said in words.
      */
     data class StepResult(
         val summary: String,
@@ -54,6 +55,7 @@ object TaskRun {
         val entryId: String? = null,
         val raw: String? = null,
         val error: String? = null,
+        val skipped: String? = null,
         val at: Long
     ) {
         fun toJson(): JSONObject = JSONObject().apply {
@@ -63,6 +65,7 @@ object TaskRun {
             entryId?.let { put("entry_id", it) }
             raw?.let { put("raw", it) }
             error?.let { put("error", it) }
+            skipped?.let { put("skipped", it) }
             put("at", at)
         }
 
@@ -74,6 +77,7 @@ object TaskRun {
                 entryId = json.optString("entry_id").ifEmpty { null },
                 raw = json.optString("raw").ifEmpty { null },
                 error = json.optString("error").ifEmpty { null },
+                skipped = json.optString("skipped").ifEmpty { null },
                 at = json.getLong("at")
             )
         }

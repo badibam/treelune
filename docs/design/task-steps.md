@@ -13,11 +13,7 @@ Pas de code propre à bica, pas de routine : l'app devient plus souple, et le mo
 
 ## 1. « Seulement si » sur une étape
 
-- Toute étape peut porter une liste de conditions ; **toutes vraies**, elle se fait, sinon elle est **sautée** et la Tâche passe à la suivante. Pas de « ou » : deux étapes le font.
-- Une condition est la brique Condition (`{"left", "op", "right"}`), jugée une fois au moment où l'étape s'exécute ; ses côtés sont tout ce qu'une étape sait lire : un Term (constante, variable, Lecture), une valeur rendue par une étape précédente (`result`), l'entrée ou la valeur reçue du déclencheur (`received`), et, sur une étape répétée, l'élément en cours (point 2).
-- Une étape qui lit le résultat d'une étape **sautée** est sautée aussi, sans erreur. Son écran d'exécution dit « sautée », et pourquoi (sa condition fausse, ou l'étape N sautée).
-- Forme proposée : `"when": [ {condition}, … ]` sur l'étape.
-- Exemple : une Tâche « Matin », déclenchée par le questionnaire rempli ; une étape par destination, chacune « seulement si » sa question a une réponse (`{"left": {"received": {"field": "extra.etat_au_reveil"}}, "op": "present"}`).
+Codé : `StepConditions`, `docs/CORE.md` (« Tasks »), ses garanties dans `StepConditionsTest`.
 
 ## 2. « Pour chaque élément » d'une liste
 

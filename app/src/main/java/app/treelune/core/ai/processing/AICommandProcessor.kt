@@ -437,7 +437,18 @@ class AICommandProcessor(private val context: Context) {
         val known = settingsSchema.getJSONObject("properties").keys().asSequence().toList()
         (settings.keys - known.toSet()).firstOrNull()?.let { throw IllegalArgumentException(s.shared("service_error_param_unknown").format(it, known.joinToString(", "))) }
         val steps = (command.params["steps"] as? List<*>)?.let { given ->
-            if (!stored) given else JsonUtils.toList(app.treelune.core.tasks.TaskSchemas.stepsToStored(JsonUtils.toJSONArray(given), context))
+            if (!stored) given else {
+                // What its triggers give, for a condition on it to be read: those written now, or the Task's
+                val triggersJson = if (settings.containsKey(app.treelune.core.triggers.Triggers.KEY)) JsonUtils.toJSONObject(settings).let { app.treelune.core.triggers.Triggers.of(it)?.toString() }
+                    else (command.params["task_id"] as? String)?.let { app.treelune.core.database.AppDatabase.getDatabase(context).taskDao().get(it)?.triggersJson }
+                val triggers = try {
+                    app.treelune.core.triggers.Triggers.read(triggersJson)
+                } catch (e: Exception) {
+                    // Triggers that do not read are refused by the service, naming them
+                    emptyList()
+                }
+                JsonUtils.toList(app.treelune.core.tasks.TaskSchemas.stepsToStored(JsonUtils.toJSONArray(given), triggers, context))
+            }
         }
         return ExecutableCommand(
             resource = "tasks",

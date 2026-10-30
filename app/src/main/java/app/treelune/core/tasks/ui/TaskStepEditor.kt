@@ -21,6 +21,7 @@ import app.treelune.core.selection.ReferenceKind
 import app.treelune.core.strings.Strings
 import app.treelune.core.strings.StringsContext
 import app.treelune.core.tasks.StepBlocks
+import app.treelune.core.tasks.StepConditions
 import app.treelune.core.tasks.TaskSteps
 import app.treelune.core.terms.Term
 import app.treelune.core.tools.ToolTypeManager
@@ -61,6 +62,7 @@ internal fun StepEditor(step: JSONObject, earlier: Earlier, onChange: (JSONObjec
             TaskSteps.RUN_ROUTINE -> RunRoutine(step, earlier, s, ::with)
             TaskSteps.EMIT_EVENT -> EmitEvent(step, earlier, s, ::with)
         }
+        if (step.optString(TaskSteps.KIND).isNotEmpty()) StepWhen(step, earlier, s, ::with)
     }
 }
 
@@ -373,3 +375,99 @@ private const val NONE = "none"
 private const val TERM = "term"
 private const val RESULT = "result"
 private const val RECEIVED = "received"
+
+/**
+ * The conditions of [step] (StepConditions), « Only if »: each what the step reads on the left —
+ * a field of the entry or a value a trigger gives, a value an earlier step gave, a variable or a
+ * reading —, the operators its type takes, then the side or two on the right, an input of that
+ * type (StepInput). All holding, the step runs; added by +, removed by its bin.
+ */
+@Composable
+private fun StepWhen(step: JSONObject, earlier: Earlier, s: StringsContext, with: (JSONObject.() -> Unit) -> Unit) {
+    val list = step.optJSONArray(StepConditions.WHEN) ?: org.json.JSONArray()
+    fun put(next: org.json.JSONArray) = with { if (next.length() == 0) remove(StepConditions.WHEN) else put(StepConditions.WHEN, next) }
+    UI.Text(s.shared("task_when"), TextType.LABEL)
+    UI.Text(s.shared("task_when_help"), TextType.CAPTION)
+    for (index in 0 until list.length()) {
+        val condition = list.optJSONObject(index) ?: JSONObject()
+        Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                androidx.compose.foundation.layout.Box(modifier = androidx.compose.ui.Modifier.weight(1f)) {
+                    UI.Text(s.shared("task_when_line").format(index + 1), TextType.STRONG)
+                }
+                UI.ActionButton(action = app.treelune.core.ui.ButtonAction.DELETE, display = app.treelune.core.ui.ButtonDisplay.ICON, size = app.treelune.core.ui.Size.S, onClick = {
+                    put(org.json.JSONArray().apply { for (i in 0 until list.length()) if (i != index) put(list.get(i)) })
+                })
+            }
+            StepCondition(condition, earlier, s) { next -> put(org.json.JSONArray(list.toString()).put(index, next)) }
+        }
+    }
+    UI.Button(type = ButtonType.DEFAULT, onClick = { put(org.json.JSONArray(list.toString()).put(JSONObject())) }) {
+        UI.Text(s.shared("task_when_add"), TextType.LABEL)
+    }
+}
+
+/** One condition of a step: its left side chosen among what the step reads, its operator, its right side. */
+@Composable
+private fun StepCondition(condition: JSONObject, earlier: Earlier, s: StringsContext, onChange: (JSONObject) -> Unit) {
+    val given = LocalReceived.current
+    // What the left side may be, each with the field it is a value of
+    val read: List<Triple<JSONObject, String, FieldDefinition?>> =
+        given.entry.orEmpty().map { (path, field) ->
+            Triple(JSONObject().put(TaskSteps.RECEIVED, JSONObject().put(TaskSteps.FIELD, path)), s.shared("task_input_received_field").format(field.displayName), field)
+        } + given.values.orEmpty().map { (name, field) ->
+            Triple(JSONObject().put(TaskSteps.RECEIVED, JSONObject().put(TaskSteps.VALUE, name)), s.shared("task_input_received_value").format(name), field)
+        } + earlier.flatMap { (index, outputs) ->
+            outputs.map { output ->
+                Triple(JSONObject().put(TaskSteps.RESULT, JSONObject().put(TaskSteps.STEP, index).apply { output.value?.let { put(TaskSteps.VALUE, it) } }),
+                    s.shared("task_input_result").format(index + 1, output.value ?: s.shared("task_output_entry")),
+                    if (output.value == null) StepConditions.entryField(s) else StepConditions.outputField(output, s))
+            }
+        }
+    val left = condition.optJSONObject(app.treelune.core.conditions.Conditions.LEFT)
+    val chosen = read.firstOrNull { left != null && it.first.toString() == left.toString() }
+    val isTerm = left != null && chosen == null
+    val options = read.map { it.first.toString() to it.second } + (TERM to s.shared("task_when_term"))
+    // Another left side is another type: its operator and right side start over
+    Choice(s.shared("task_when_left"), options, if (isTerm) TERM else chosen?.first?.toString()) { key ->
+        onChange(JSONObject().put(app.treelune.core.conditions.Conditions.LEFT,
+            if (key == TERM) JSONObject().put("reading", JSONObject().put("selection", JSONObject()).put("reduction", app.treelune.core.reading.Reduction.COUNT.name)) else JSONObject(key)))
+    }
+    if (left == null) return
+    val termField = if (isTerm) {
+        TermPicker(left, remember { FieldDefinition("left", s.shared("task_when_left"), null, FieldType.NUMERIC, false, null) }, { term ->
+            onChange(JSONObject().put(app.treelune.core.conditions.Conditions.LEFT, term))
+        }, s, ReadingContext(s.shared("task_reference_run")), kinds = setOf(Term.Kind.READING, Term.Kind.VARIABLE))
+        app.treelune.core.ui.selectors.rememberTermField(left)
+    } else null
+    val field = chosen?.third ?: termField ?: return
+
+    val ops = app.treelune.core.fields.EntryFilters.operatorsFor(field).toList()
+    val op = app.treelune.core.fields.FilterOperator.of(condition.optString(app.treelune.core.conditions.Conditions.OP))?.takeIf { it in ops }
+    fun with(change: JSONObject.() -> Unit) = onChange(JSONObject(condition.toString()).apply(change))
+    Choice(s.shared("pointer_filter_condition"), ops.map { it.key to app.treelune.core.ui.selectors.PointerDescription.operator(it, s) }, op?.key) { key ->
+        val next = ops.first { it.key == key }
+        with {
+            put(app.treelune.core.conditions.Conditions.OP, next.key)
+            // The right side keeps its shape when the new operator takes the same
+            when (next) {
+                app.treelune.core.fields.FilterOperator.ABSENT, app.treelune.core.fields.FilterOperator.PRESENT -> remove(app.treelune.core.conditions.Conditions.RIGHT)
+                app.treelune.core.fields.FilterOperator.BETWEEN -> if (opt(app.treelune.core.conditions.Conditions.RIGHT) !is org.json.JSONArray)
+                    put(app.treelune.core.conditions.Conditions.RIGHT, org.json.JSONArray().put(JSONObject()).put(JSONObject()))
+                else -> if (opt(app.treelune.core.conditions.Conditions.RIGHT) !is JSONObject) put(app.treelune.core.conditions.Conditions.RIGHT, JSONObject())
+            }
+        }
+    }
+    val sideField = field.copy(displayName = s.shared("variable_value"))
+    when (val right = condition.opt(app.treelune.core.conditions.Conditions.RIGHT)) {
+        is JSONObject -> StepInput(right.takeIf { it.length() > 0 }, sideField, earlier, s, optional = false) { input ->
+            with { put(app.treelune.core.conditions.Conditions.RIGHT, input ?: JSONObject()) }
+        }
+        is org.json.JSONArray -> (0 until right.length()).forEach { i ->
+            StepInput(right.optJSONObject(i)?.takeIf { it.length() > 0 }, field.copy(displayName = s.shared(if (i == 0) "filter_low" else "filter_high")), earlier, s, optional = false) { input ->
+                with { put(app.treelune.core.conditions.Conditions.RIGHT, org.json.JSONArray(right.toString()).put(i, input ?: JSONObject())) }
+            }
+        }
+        else -> Unit
+    }
+}

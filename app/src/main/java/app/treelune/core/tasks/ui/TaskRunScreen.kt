@@ -97,6 +97,7 @@ fun TaskRunScreen(place: Place.TaskRun, onTaskName: (String) -> Unit, onBack: ()
                     UI.Text(s.shared("task_step_line").format(index + 1, result["summary"]), TextType.STRONG)
                     (result["values"] as? Map<*, *>)?.forEach { (name, value) -> UI.Text(s.shared("label_value").format(name, value), TextType.BODY) }
                     (result["entry_id"] as? String)?.let { UI.Text(s.shared("task_run_entry_created"), TextType.CAPTION) }
+                    (result["skipped"] as? String)?.let { UI.Text(it, TextType.CAPTION) }
                     (result["error"] as? String)?.let { UI.Text(it, TextType.ERROR) }
                     (result["raw"] as? String)?.let { raw ->
                         UI.Text(s.shared("api_try_raw"), TextType.LABEL)

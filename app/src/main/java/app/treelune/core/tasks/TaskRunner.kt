@@ -116,7 +116,9 @@ object TaskRunner {
             val step = steps.getJSONObject(run.step)
             val results = TaskRun.results(run.resultsJson)
             val outcome = try {
-                Outcome.Done(runStep(context, step, steps, results, run.scheduledAt, run.receivedJson?.let { TaskRun.Received.of(it) }))
+                val received = run.receivedJson?.let { TaskRun.Received.of(it) }
+                Outcome.Done(skipped(context, task, steps, run.step, results, run.scheduledAt, received)
+                    ?: runStep(context, step, steps, results, run.scheduledAt, received))
             } catch (e: StepFailed) {
                 Outcome.Failed(e.message ?: "", e.raw)
             } catch (e: Waits) {
@@ -272,6 +274,43 @@ object TaskRunner {
             if (data.isNotEmpty()) put("data", data)
             if (extra.isNotEmpty()) put("extra", extra)
         }
+    }
+
+    /**
+     * Step [index] of [steps] skipped, said why (StepConditions): it reads what a skipped step
+     * gave, or one of its conditions does not hold — or cannot be known, a value it needs missing;
+     * null when it runs. Its conditions read as its inputs do, at [at].
+     */
+    private suspend fun skipped(context: Context, task: TaskEntity, steps: org.json.JSONArray, index: Int, results: List<TaskRun.StepResult>, at: Long, received: TaskRun.Received?): TaskRun.StepResult? {
+        val s = Strings.`for`(context = context)
+        val step = steps.getJSONObject(index)
+        StepConditions.resultsRead(step).sorted().firstOrNull { results.getOrNull(it)?.skipped != null }?.let { earlier ->
+            return TaskRun.StepResult(summary(context, step), skipped = s.shared("task_run_skipped_step").format(earlier + 1), at = System.currentTimeMillis())
+        }
+        val conditions = try {
+            StepConditions.of(step, index + 1, s)
+        } catch (e: IllegalArgumentException) {
+            // Checked when stored: one that does not read now is said as it is
+            throw StepFailed(e.message ?: "")
+        }
+        if (conditions.isEmpty()) return null
+        val triggers = app.treelune.core.triggers.Triggers.read(task.triggersJson)
+        val fields = TaskSteps.receivedFields(triggers, context, s)
+        val values = TaskSteps.receivedValues(triggers, context)
+        val given = (0 until index).map { TaskSteps.outputs(steps.getJSONObject(it), context) }
+        conditions.forEachIndexed { i, condition ->
+            val label = StepConditions.label(index + 1, i, s)
+            val inputs = (listOf(condition.left) + condition.right).map { TaskSteps.input(it, label) { key -> s.shared(key) } }
+            // Compared as the first side that has a type, a written value read in it
+            val field = inputs.firstNotNullOfOrNull { StepConditions.fieldOf(it, given, fields, values, context, s, label) }
+                ?: throw StepFailed(s.shared("condition_error_untyped").format(label))
+            val read = inputs.map { resolve(context, it, results, at, received) }
+            val holds = app.treelune.core.conditions.ConditionJudge.holds(field, condition.op, read.first(), read.drop(1),
+                app.treelune.core.selection.TimeResolver.at(at)) { key -> s.shared(key) }
+            if (holds != true) return TaskRun.StepResult(summary(context, step),
+                skipped = s.shared(if (holds == null) "task_run_skipped_unknown" else "task_run_skipped_false").format(i + 1), at = System.currentTimeMillis())
+        }
+        return null
     }
 
     /** [step] run: its inputs read, its operation through the dispatcher, what it gave. */
