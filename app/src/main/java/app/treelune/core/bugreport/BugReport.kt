@@ -129,7 +129,7 @@ object BugReport {
         android = Build.VERSION.RELEASE,
         sdk = Build.VERSION.SDK_INT,
         language = context.resources.configuration.locales[0].toLanguageTag(),
-        theme = app.treelune.core.themes.CurrentTheme.current.javaClass.simpleName
+        theme = app.treelune.core.themes.CurrentTheme.themeId
     )
 
     /** What a report is made of, read once; its text follows the free text as it is written. */

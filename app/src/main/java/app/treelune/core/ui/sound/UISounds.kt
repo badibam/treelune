@@ -18,6 +18,10 @@ import app.treelune.core.utils.LogManager
  * One track only: a sound cuts the one still playing, so that quick touches never pile up.
  * The theme's sounds are loaded ahead (UISoundsLoader, at the app's root), as one loaded at its
  * first touch would play nothing then.
+ *
+ * A sound that stays silent is logged with what explains it (never loaded, refused by the
+ * decoder, played before its decoding ended, refused by the pool): SoundPool says none of it on
+ * its own, and a bug report from another phone has only the log to tell it.
  */
 object UISounds {
 
@@ -29,15 +33,42 @@ object UISounds {
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                 .build())
             .build()
+            .apply {
+                // Decoding happens in the background: a sound is playable only once it ends well
+                setOnLoadCompleteListener { _, sample, status ->
+                    if (status == 0) ready.add(sample)
+                    else LogManager.ui("UISounds: ${names[sample]} could not be decoded (status $status)", "ERROR")
+                }
+            }
     }
 
     /** The sounds loaded, by the theme's raw resource. */
     private val loaded = mutableMapOf<Int, Int>()
 
+    /** The pool's samples whose decoding ended well; written by the pool's callback thread. */
+    private val ready = java.util.concurrent.ConcurrentHashMap.newKeySet<Int>()
+
+    /** Each sample's resource name, for the log. */
+    private val names = java.util.concurrent.ConcurrentHashMap<Int, String>()
+
+    /** The themes whose sounds were loaded, in order, for the log of a sound never loaded. */
+    private val themesLoaded = mutableListOf<String>()
+
     /** Loads every sound of the current theme not loaded yet. */
     fun load(context: Context) {
+        val app = context.applicationContext
+        themesLoaded.add(CurrentTheme.themeId)
         UISignal.entries.mapNotNull { CurrentTheme.current.sound(it) }.distinct().filter { it !in loaded }
-            .forEach { loaded[it] = pool.load(context.applicationContext, it, 1) }
+            .forEach { resource ->
+                val name = app.resources.getResourceEntryName(resource)
+                val sample = pool.load(app, resource, 1)
+                if (sample == 0) {
+                    LogManager.ui("UISounds: $name could not be loaded", "ERROR")
+                    return@forEach
+                }
+                names[sample] = name
+                loaded[resource] = sample
+            }
     }
 
     /** Plays the current theme's sound for [signal], if it has one and sounds are on. */
@@ -46,10 +77,14 @@ object UISounds {
         val resource = CurrentTheme.current.sound(signal) ?: return
         val sound = loaded[resource]
         if (sound == null) {
-            LogManager.ui("UISounds: the sound for $signal was never loaded", "ERROR")
+            LogManager.ui("UISounds: the sound for $signal of the theme ${CurrentTheme.themeId} was never loaded (themes loaded: ${themesLoaded.joinToString().ifEmpty { "none" }})", "ERROR")
             return
         }
-        pool.play(sound, 1f, 1f, 1, 0, 1f)
+        if (sound !in ready) {
+            LogManager.ui("UISounds: ${names[sound]} played before its decoding ended", "WARN")
+            return
+        }
+        if (pool.play(sound, 1f, 1f, 1, 0, 1f) == 0) LogManager.ui("UISounds: ${names[sound]} refused by the player", "WARN")
     }
 }
 
