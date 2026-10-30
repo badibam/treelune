@@ -3029,6 +3029,9 @@
     <string name="task_existing_update">Change it with these values</string>
     <string name="task_error_existing_field">Step %1$s looks for an entry already there by the field “%2$s”, which it does not write; it writes: %3$s</string>
     <string name="task_error_existing_then">Step %1$s does “%2$s” with an entry already there; it takes: %3$s</string>
+    <string name="task_append">Add on a line after what it holds, rather than replace</string>
+    <string name="task_error_append_create">Step %1$s adds to a text field, but it changes no entry: it creates one, unless it changes the one already there</string>
+    <string name="task_error_append_field">Step %1$s adds to “%2$s”, which is not a text field among its values</string>
     <string name="task_run_skipped_step">Skipped: step %1$d was</string>
     <string name="task_run_skipped_false">Skipped: its condition %1$d does not hold</string>
     <string name="task_run_skipped_unknown">Skipped: a value is missing to judge its condition %1$d</string>

@@ -3029,6 +3029,9 @@
     <string name="task_existing_update">La modifier avec ces valeurs</string>
     <string name="task_error_existing_field">L\'étape %1$s cherche une entrée déjà là par le champ « %2$s », qu\'elle n\'écrit pas ; elle écrit : %3$s</string>
     <string name="task_error_existing_then">L\'étape %1$s fait « %2$s » d\'une entrée déjà là ; elle prend : %3$s</string>
+    <string name="task_append">Ajouter à la ligne, après ce que le champ contient, plutôt que remplacer</string>
+    <string name="task_error_append_create">L\'étape %1$s ajoute à un champ de texte, mais elle ne modifie aucune entrée : elle en crée une, sauf si elle modifie celle déjà là</string>
+    <string name="task_error_append_field">L\'étape %1$s ajoute à « %2$s », qui n\'est pas un champ de texte parmi ses valeurs</string>
     <string name="task_run_skipped_step">Sautée : l\'étape %1$d l\'a été</string>
     <string name="task_run_skipped_false">Sautée : sa condition %1$d n\'est pas vraie</string>
     <string name="task_run_skipped_unknown">Sautée : il manque une valeur pour juger sa condition %1$d</string>

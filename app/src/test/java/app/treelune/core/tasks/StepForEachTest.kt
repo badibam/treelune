@@ -194,4 +194,31 @@ class StepForEachTest {
         )))
         assertFalse(result.isSuccess)
     }
+
+    @Test
+    fun aTextField_isAddedTo_lineAfterLine() = runBlocking {
+        val peopleId = ok("tools.create", mapOf("zone_id" to zoneId, "tooltype" to "notes", "config" to mapOf("name" to "People",
+            "extra_fields" to listOf(mapOf("display_name" to "Told", "type" to "TEXT", "always_visible" to false, "config" to mapOf("length" to "UNLIMITED"))))))["tool_instance_id"] as String
+        ok("tool_data.create", mapOf("tool_instance_id" to peopleId, "data" to mapOf("content" to "fernando"), "extra" to mapOf("told" to "Has a café.")))
+        answer = """{"words": [{"person": "fernando", "fact": "Has two daughters."}, {"person": "fernando", "fact": "Was born in Porto."}]}"""
+        val taskId = task(listOf(
+            mapOf("kind" to TaskSteps.CALL_API, "api_id" to api("person" to "text", "fact" to "text")),
+            mapOf("kind" to TaskSteps.CREATE_ENTRY, "tool_instance_id" to peopleId, "for_each" to words,
+                "values" to mapOf("data.content" to item("person"), "extra.told" to item("fact")),
+                "existing" to mapOf("field" to "data.content", "then" to "update"), "append" to listOf("extra.told"))
+        ))
+
+        assertEquals(TaskRun.State.DONE.key, run(taskId).state)
+        val person = entries(peopleId).single()
+        assertEquals("Has a café.\nHas two daughters.\nWas born in Porto.", (person["extra"] as Map<*, *>)["told"])
+    }
+
+    @Test
+    fun addingTo_onAStepThatCreates_isRefused() = runBlocking {
+        val result = coordinator.processUserAction("tasks.create", mapOf("zone_id" to zoneId, "name" to "Store", "steps" to listOf(
+            mapOf("kind" to TaskSteps.CREATE_ENTRY, "tool_instance_id" to notesId, "values" to mapOf("data.content" to mapOf("constant" to "sim")),
+                "append" to listOf("data.content"))
+        )))
+        assertFalse(result.isSuccess)
+    }
 }

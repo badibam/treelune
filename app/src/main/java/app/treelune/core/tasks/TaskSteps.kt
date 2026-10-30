@@ -21,6 +21,9 @@ import org.json.JSONObject
  *   `existing`, `{"field", "then"}`: when an entry of the tool already holds, in that field (one
  *   of the values), the value the step writes there, `skip` leaves it as it is and `update`
  *   changes it with the values; the step gives that entry. Without it, an entry is always created.
+ * - `update_entry`, and `create_entry` changing an entry already there: `append`, the paths of
+ *   text fields among the values whose value is added on a line of its own after what the field
+ *   holds, rather than put in its place.
  * - `update_entry`: `tool_instance_id`, `entry` (an input giving an entry), `values` as above
  * - `tool_operation`: `tool_instance_id`, `operation` (one the tool type declares), `params` (by name)
  * - `run_routine`: `routine_id`, `blocks` (what joins its run's message: StepBlocks)
@@ -72,6 +75,7 @@ object TaskSteps {
     const val THEN = "then"
     const val SKIP = "skip"
     const val UPDATE = "update"
+    const val APPEND = "append"
     const val ITEM = "item"
 
     /** The paths of an entry a step writes, beside its fields under data and extra. */
@@ -371,6 +375,13 @@ object TaskSteps {
                             return s.shared("task_error_existing_field").format(number, field, step.optJSONObject(VALUES)?.keys()?.asSequence()?.joinToString(", ").orEmpty().ifEmpty { "-" })
                         }
                         if (existing.optString(THEN) !in setOf(SKIP, UPDATE)) return s.shared("task_error_existing_then").format(number, existing.optString(THEN), "$SKIP, $UPDATE")
+                    }
+                    // Added after what a text field holds, on a change alone
+                    step.optJSONArray(APPEND)?.let { append ->
+                        if (step.optString(KIND) == CREATE_ENTRY && step.optJSONObject(EXISTING)?.optString(THEN) != UPDATE) return s.shared("task_error_append_create").format(number)
+                        (0 until append.length()).map { append.optString(it) }.forEach { path ->
+                            if (step.optJSONObject(VALUES)?.has(path) != true || fields[path]?.type != app.treelune.core.fields.FieldType.TEXT) return s.shared("task_error_append_field").format(number, path)
+                        }
                     }
                     if (step.optString(KIND) == UPDATE_ENTRY) {
                         val entry = step.optJSONObject(ENTRY) ?: return s.shared("task_error_entry").format(number)

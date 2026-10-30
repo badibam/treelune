@@ -417,8 +417,10 @@ object TaskRunner {
         val existing = step.optJSONObject(TaskSteps.EXISTING)?.takeIf { kind == TaskSteps.CREATE_ENTRY }
         val found = existing?.let { found(context, step.getString(TaskSteps.TOOL_INSTANCE_ID), it.getString(TaskSteps.FIELD), resolved[it.getString(TaskSteps.FIELD)]) }
         if (found != null && existing.optString(TaskSteps.THEN) == TaskSteps.SKIP) return TaskRun.StepResult(summary, entryId = found, at = System.currentTimeMillis())
-        val (action, params) = if (found != null) "tool_data.update" to entryParams(step.getString(TaskSteps.TOOL_INSTANCE_ID), resolved) + ("id" to found)
-            else actionOf(step, resolved, context)
+        // What it changes adds to what its text fields hold, where it says so
+        val written = appended(context, step, resolved, if (kind == TaskSteps.UPDATE_ENTRY) idOf(resolved[TaskSteps.ENTRY]) as? String else found)
+        val (action, params) = if (found != null) "tool_data.update" to entryParams(step.getString(TaskSteps.TOOL_INSTANCE_ID), written) + ("id" to found)
+            else actionOf(step, written, context)
         val done = Coordinator(context).processTaskStep(action, params)
         val raw = done.data?.get("raw") as? String
         if (!done.isSuccess) throw StepFailed(done.error ?: s.shared("error_unknown"), raw)
@@ -452,6 +454,22 @@ object TaskRunner {
             "filters" to listOf(JsonUtils.toMap(app.treelune.core.conditions.Conditions.onField(field, "=", value))), "limit" to 1))
         if (!read.isSuccess) throw StepFailed(read.error ?: Strings.`for`(context = context).shared("error_unknown"))
         return ((read.data?.get("entries") as? List<*>)?.firstOrNull() as? Map<*, *>)?.get("id") as? String
+    }
+
+    /**
+     * [resolved] with the value of each text field [step] adds to (`append`) put on a line of its
+     * own after what the entry [entryId] holds there; as they are when it changes none, or the
+     * field holds nothing yet, or the value is empty.
+     */
+    private suspend fun appended(context: Context, step: JSONObject, resolved: Map<String, Any?>, entryId: String?): Map<String, Any?> {
+        val paths = step.optJSONArray(TaskSteps.APPEND)?.let { list -> (0 until list.length()).map { list.optString(it) }.toSet() }.orEmpty()
+        if (paths.isEmpty() || entryId == null) return resolved
+        val row = AppDatabase.getDatabase(context).toolDataDao().getById(entryId) ?: return resolved
+        val entry = TaskSteps.entryMap(row)
+        return resolved.mapValues { (path, value) ->
+            if (path !in paths || value == null || value == "") value
+            else (app.treelune.core.reading.FieldReading.valueAt(entry, path) as? String)?.takeIf { it.isNotBlank() }?.let { "$it\n$value" } ?: value
+        }
     }
 
     /** The API whose answer [input] reads, when it is a value an earlier step's call gave. */

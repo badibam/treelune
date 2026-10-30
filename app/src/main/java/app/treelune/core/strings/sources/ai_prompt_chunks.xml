@@ -754,7 +754,7 @@ Creates a Task in a zone: steps the app runs itself, one after another, without 
 
 - `call_api`: `api_id` (one of APIS), `inputs` by the API\'s input names
 - `create_entry`: `tool_instance_id`, `values` by the entry's path (`name`, `timestamp`, `data.<field>`, `extra.<field>`); `existing` `{"field": "<a path among its values>", "then": "skip"}` leaves as it is an entry already holding that value there, or with `"update"` changes it with the values, the step giving that entry; without it, an entry is always created
-- `update_entry`: `tool_instance_id`, `entry` (the entry), `values` as above, only what changes
+- `update_entry`: `tool_instance_id`, `entry` (the entry), `values` as above, only what changes; `append`, paths of text fields among them whose value goes on a line after what the field holds instead of replacing it (also on a `create_entry` whose `existing` updates)
 - `tool_operation`: `tool_instance_id`, `operation` (one of its type\'s, read in its entries schema), `params` by name
 - `run_routine`: `routine_id`, `blocks` joined to the end of its run\'s message, in order: `{"type": "text", "text"}` and `{"type": "pointer", "pointer"}` as in CREATE_ROUTINE\'s `message`; `{"type": "entry", "entry": <an input giving an entry>, "attach": true}`, the entry joined whole, or with `false` only mentioned, its AI reading what it needs of it; `{"type": "value", "value": <an input>}`, joined as a text
 - `emit_event`: `event_id` (one of EVENTS), `inputs` by the event\'s value names, every one given

@@ -25,9 +25,7 @@ Codé : `existing` de `create_entry` (`{"field", "then": "skip" | "update"}`, ab
 
 ## 4. « Ajouter à la ligne » dans un champ de texte
 
-- Une étape qui modifie un champ de texte (« modifier une entrée », ou « la modifier » du point 3) choisit pour chaque valeur : **remplacer** (aujourd'hui, et par défaut) ou **ajouter à la ligne**, à la suite de ce que le champ tient.
-- Exemple : le champ « ce qu'elle a raconté » d'une fiche Personne, qui grandit d'une ligne par fait que bica rend ; il vit sur la fiche parce qu'une face de Flashcards ne se compose que des champs de sa ligne. Ailleurs : tenir un journal dans une seule note.
-- Forme proposée : `"append": ["extra.raconte", …]` sur l'étape, les chemins dont la valeur s'ajoute.
+Codé : `append` d'une étape qui modifie une entrée (`update_entry`, ou `create_entry` qui modifie celle déjà là), refusé sur une étape qui crée ; `docs/CORE.md` ; ses garanties dans `StepForEachTest`.
 
 ## 5. Une liste en entrée d'API
 

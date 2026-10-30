@@ -160,6 +160,31 @@ private fun WriteEntry(step: JSONObject, earlier: Earlier, s: StringsContext, wi
     }
     Inputs(step.optJSONObject(TaskSteps.VALUES) ?: JSONObject(), fields, earlier, s) { with { put(TaskSteps.VALUES, it) } }
     if (step.optString(TaskSteps.KIND) == TaskSteps.CREATE_ENTRY) Existing(step, fields, s, with)
+    Append(step, fields, s, with)
+}
+
+/**
+ * The text fields whose value is added on a line after what they hold (`append`), rather than
+ * put in its place: on a step that changes an entry, `update_entry` or `create_entry` changing
+ * one already there.
+ */
+@Composable
+private fun Append(step: JSONObject, fields: List<FieldDefinition>, s: StringsContext, with: (JSONObject.() -> Unit) -> Unit) {
+    val changes = step.optString(TaskSteps.KIND) == TaskSteps.UPDATE_ENTRY || step.optJSONObject(TaskSteps.EXISTING)?.optString(TaskSteps.THEN) == TaskSteps.UPDATE
+    val given = step.optJSONObject(TaskSteps.VALUES) ?: JSONObject()
+    val texts = fields.filter { it.type == FieldType.TEXT && given.has(it.name) }
+    val append = step.optJSONArray(TaskSteps.APPEND)?.let { list -> (0 until list.length()).map { list.optString(it) } }.orEmpty()
+    // Nothing changed, nothing added to
+    LaunchedEffect(changes) { if (!changes && append.isNotEmpty()) with { remove(TaskSteps.APPEND) } }
+    if (!changes) return
+    if (texts.isEmpty()) return
+    UI.Text(s.shared("task_append"), TextType.LABEL)
+    texts.forEach { field ->
+        UI.Checkbox(checked = field.name in append, onCheckedChange = { on ->
+            val next = if (on) append + field.name else append - field.name
+            with { if (next.isEmpty()) remove(TaskSteps.APPEND) else put(TaskSteps.APPEND, org.json.JSONArray(next)) }
+        }, label = field.displayName)
+    }
 }
 
 /**
