@@ -35,7 +35,11 @@ class ApiCall(private val config: JSONObject, private val values: SettingValues)
     suspend fun start(inputs: Map<String, Any?>): Reply {
         val declared = list(ApiSettings.INPUTS).associate { it.getString(ApiSettings.NAME) to it.optString(ApiSettings.TYPE, ApiSettings.TEXT) }
         (inputs.keys - declared.keys).firstOrNull()?.let { throw Failure("api_error_input_unknown", it, declared.keys.joinToString(", ").ifEmpty { "-" }) }
-        val given = inputs.filterValues { it != null }.mapValues { (name, value) -> typed(name, value!!, declared.getValue(name)) }
+        val given = inputs.filterValues { it != null }.mapValues { (name, value) ->
+            // A list goes as it is, a JSON array of values or of objects
+            if (declared.getValue(name) == ApiSettings.LIST) value as? List<*> ?: throw Failure("api_error_value_type", name, ApiSettings.LIST)
+            else typed(name, value!!, declared.getValue(name))
+        }
         val post = values.string(ApiSettings.METHOD) == ApiSettings.POST
         val url = address(values.string(ApiSettings.URL)!!, if (post) emptyMap() else given)
         val request = Request.Builder().url(url).withKey()

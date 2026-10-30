@@ -38,10 +38,14 @@ class StepForEachTest {
     /** What the service answers, set by each test. */
     private var answer = "{}"
 
+    /** What the service was last sent. */
+    private var sent = ""
+
     @Before
     fun setUp() = runBlocking {
         server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0).apply {
             createContext("/") { exchange ->
+                sent = exchange.requestBody.readBytes().toString(Charsets.UTF_8)
                 val body = answer.toByteArray()
                 exchange.responseHeaders.add("Content-Type", "application/json")
                 exchange.sendResponseHeaders(200, body.size.toLong())
@@ -219,6 +223,43 @@ class StepForEachTest {
             mapOf("kind" to TaskSteps.CREATE_ENTRY, "tool_instance_id" to notesId, "values" to mapOf("data.content" to mapOf("constant" to "sim")),
                 "append" to listOf("data.content"))
         )))
+        assertFalse(result.isSuccess)
+    }
+
+    /** An API taking the list `known` by POST. */
+    private suspend fun posting(): String = ok("apis.create", mapOf("name" to "Session ${java.util.UUID.randomUUID()}", "config" to mapOf(
+        "url" to "http://127.0.0.1:${server.address.port}/", "method" to "POST", "key_in" to "none", "response" to "immediate",
+        "inputs" to listOf(mapOf("name" to "known", "type" to "list"))
+    )))["api_id"] as String
+
+    private fun known(vararg fields: String) = mapOf("selection" to mapOf("target" to mapOf("kind" to "TOOL_INSTANCE", "id" to notesId), "fields" to fields.toList()))
+
+    @Test
+    fun entries_goToAnApi_asAList_inTheOrderTheyHappened() = runBlocking {
+        val first = ok("tool_data.create", mapOf("tool_instance_id" to notesId, "timestamp" to 1_000L, "data" to mapOf("content" to "bom dia")))["id"]
+        val second = ok("tool_data.create", mapOf("tool_instance_id" to notesId, "timestamp" to 2_000L, "data" to mapOf("content" to "sim")))["id"]
+        val apiId = posting()
+
+        assertEquals(TaskRun.State.DONE.key, run(task(listOf(mapOf("kind" to TaskSteps.CALL_API, "api_id" to apiId, "inputs" to mapOf("known" to known("data.content")))))).state)
+        assertEquals("""["bom dia","sim"]""", org.json.JSONObject(sent).getJSONArray("known").toString())
+
+        assertEquals(TaskRun.State.DONE.key, run(task(listOf(mapOf("kind" to TaskSteps.CALL_API, "api_id" to apiId, "inputs" to mapOf("known" to known("data.content", "id")))))).state)
+        val objects = org.json.JSONObject(sent).getJSONArray("known")
+        assertEquals(listOf(first to "bom dia", second to "sim"), (0 until objects.length()).map { objects.getJSONObject(it).let { o -> o.getString("id") to o.getString("content") } })
+    }
+
+    @Test
+    fun aListInput_isFilledByEntriesAlone() = runBlocking {
+        val result = coordinator.processUserAction("tasks.create", mapOf("zone_id" to zoneId, "name" to "Send", "steps" to listOf(
+            mapOf("kind" to TaskSteps.CALL_API, "api_id" to posting(), "inputs" to mapOf("known" to mapOf("constant" to "sim"))))))
+        assertFalse(result.isSuccess)
+    }
+
+    @Test
+    fun aListInput_goesByPostAlone() = runBlocking {
+        val result = coordinator.processUserAction("apis.create", mapOf("name" to "Get list", "config" to mapOf(
+            "url" to "http://127.0.0.1/", "method" to "GET", "key_in" to "none", "response" to "immediate",
+            "inputs" to listOf(mapOf("name" to "known", "type" to "list")))))
         assertFalse(result.isSuccess)
     }
 }

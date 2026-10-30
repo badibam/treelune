@@ -75,6 +75,8 @@ object StepConditions {
     suspend fun fieldOf(input: TaskSteps.Input, given: List<List<TaskSteps.Output>>, received: Map<String, FieldDefinition>?, values: Map<String, FieldDefinition>?,
                         items: Map<String, FieldDefinition>?, context: Context, s: StringsContext, label: String): FieldDefinition? = when (input) {
         is TaskSteps.Input.Item -> items?.get(input.field)
+        // Entries read as a list fill an API's input, and are compared with nothing
+        is TaskSteps.Input.Selection -> throw IllegalArgumentException(s.shared("task_error_list_input").format(label, TaskSteps.SELECTION))
         is TaskSteps.Input.Of -> when (val term = input.term) {
             is Term.Constant -> null
             else -> {

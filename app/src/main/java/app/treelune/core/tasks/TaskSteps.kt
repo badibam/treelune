@@ -16,7 +16,11 @@ import org.json.JSONObject
 /**
  * A Task's steps (docs/CORE.md, « Tasks »), stored as a list, each an object naming its kind:
  *
- * - `call_api`: `api_id`, `inputs` (by the API's input name, an input each)
+ * - `call_api`: `api_id`, `inputs` (by the API's input name, an input each); an input of type list
+ *   is filled by entries, `{"selection": {"target", "period", "filters", "fields"}}` (an Entry
+ *   selection of a tool, its fields kept, `id` the entry's own): read in the order they happened,
+ *   one field kept gives its values, several give an object per entry, each by the last part of
+ *   its path (`extra.element` as `element`), an entry designated by its id.
  * - `create_entry`: `tool_instance_id`, `values` (by the field's path: `name`, `timestamp`, `data.x`, `extra.x`);
  *   `existing`, `{"field", "then"}`: when an entry of the tool already holds, in that field (one
  *   of the values), the value the step writes there, `skip` leaves it as it is and `update`
@@ -76,6 +80,13 @@ object TaskSteps {
     const val SKIP = "skip"
     const val UPDATE = "update"
     const val APPEND = "append"
+    const val SELECTION = "selection"
+
+    /** The id of an entry, a field a selection read as a list keeps beside the tool's. */
+    const val ENTRY_ID = "id"
+
+    /** The key a field kept by a selection read as a list goes under: the last part of its path. */
+    fun keyOf(path: String): String = path.substringAfterLast('.')
     const val ITEM = "item"
 
     /** The paths of an entry a step writes, beside its fields under data and extra. */
@@ -96,6 +107,8 @@ object TaskSteps {
         data class Received(val field: String?, val value: String? = null) : Input
         /** The [field] of the element a step repeated for each element of a list stands at (`for_each`) */
         data class Item(val field: String) : Input
+        /** Entries, read as a list for an API's input that takes one */
+        data class Selection(val selection: app.treelune.core.selection.EntrySelection) : Input
     }
 
     /**
@@ -105,6 +118,7 @@ object TaskSteps {
      */
     fun input(json: JSONObject, name: String, text: (String) -> String): Input {
         json.optJSONObject(RECEIVED)?.let { return Input.Received(it.optString(FIELD).ifEmpty { null }, it.optString(VALUE).ifEmpty { null }) }
+        json.optJSONObject(SELECTION)?.let { return Input.Selection(app.treelune.core.selection.EntrySelection.fromJson(it, text)) }
         json.optJSONObject(ITEM)?.let { item ->
             return Input.Item(item.optString(FIELD).ifEmpty { throw IllegalArgumentException(text("task_error_input").format(name)) })
         }
@@ -268,6 +282,8 @@ object TaskSteps {
                         }
                     }
                 input.has(Term.Kind.VARIABLE.key) -> reach("variables.evaluate", mapOf("variable_id" to input.getString(Term.Kind.VARIABLE.key)))
+                // Entries sent as a list are read
+                input.has(SELECTION) -> reach("readings.read", mapOf("selection" to app.treelune.core.utils.JsonUtils.toMap(input.getJSONObject(SELECTION))))
                 else -> emptyList()
             }
         }
@@ -333,6 +349,7 @@ object TaskSteps {
                         received ?: return s.shared("task_error_received_untriggered").format(number)
                         if (input.field != null && input.field !in received) return s.shared("task_error_received_field").format(number, input.field, received.keys.joinToString(", "))
                     }
+                    if (input is Input.Selection && step.optString(KIND) != CALL_API) return s.shared("task_error_list_input").format(number, key)
                     if (input is Input.Item) {
                         items ?: return s.shared("task_error_item_unrepeated").format(number)
                         if (input.field !in items) return s.shared("task_error_item_field").format(number, input.field, items.keys.joinToString(", "))
@@ -357,6 +374,15 @@ object TaskSteps {
                     }
                     val declared = JSONObject(api.configJson).optJSONArray(ApiSettings.INPUTS)?.let { list -> (0 until list.length()).map { list.getJSONObject(it).getString(ApiSettings.NAME) } }.orEmpty()
                     inputs(step.optJSONObject(INPUTS), declared.toSet())?.let { return it }
+                    // A list is filled by entries, and entries fill a list alone
+                    val lists = ApiSettings.listInputs(JSONObject(api.configJson))
+                    step.optJSONObject(INPUTS)?.let { given ->
+                        for (name in given.keys()) {
+                            val selection = given.optJSONObject(name)?.optJSONObject(SELECTION)
+                            if ((name in lists) != (selection != null)) return s.shared("task_error_list_input").format(number, name)
+                            if (selection != null) selectionRefusal(selection, "$number › $name", context, s)?.let { return it }
+                        }
+                    }
                 }
                 CREATE_ENTRY, UPDATE_ENTRY -> {
                     val toolId = step.optString(TOOL_INSTANCE_ID)
@@ -412,6 +438,29 @@ object TaskSteps {
             StepConditions.refusal(step, number, given, received, values, items, context, s, ::inputs)?.let { return it }
             given += if (repeats(step)) emptyList() else outputs(step, context)
         }
+        return null
+    }
+
+    /**
+     * Why the entries [json] gives an API's list input ([name] says which) cannot be read; null
+     * when they can: a tool's, its fields kept being the tool's or the entry's id, one at least.
+     */
+    private suspend fun selectionRefusal(json: JSONObject, name: String, context: Context, s: StringsContext): String? {
+        val selection = try {
+            app.treelune.core.selection.EntrySelection.fromJson(json) { s.shared(it) }
+        } catch (e: IllegalArgumentException) {
+            return e.message
+        }
+        val toolId = selection.target.id
+        if (selection.target.kind != app.treelune.core.selection.ReferenceKind.TOOL_INSTANCE || toolId == null) return s.shared("task_error_list_selection").format(name)
+        val fields = try {
+            ToolFields.filterable(toolId, context, s)
+        } catch (e: IllegalStateException) {
+            return s.shared("task_error_tool").format(name, toolId)
+        }
+        val kept = selection.fields.orEmpty()
+        if (kept.isEmpty()) return s.shared("task_error_list_fields").format(name)
+        kept.firstOrNull { it != ENTRY_ID && it !in fields }?.let { return s.shared("condition_error_field").format(name, it, fields.keys.joinToString(", ")) }
         return null
     }
 

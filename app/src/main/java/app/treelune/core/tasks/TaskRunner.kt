@@ -472,6 +472,34 @@ object TaskRunner {
         }
     }
 
+    /**
+     * The entries of [selection] read at [at] as a list, in the order they happened: the values
+     * of its one field kept, or an object per entry of its fields, each by the last part of its
+     * path (TaskSteps.keyOf), the entry's own id as `id`; an entry designated by its id.
+     */
+    private suspend fun listed(context: Context, selection: app.treelune.core.selection.EntrySelection, at: Long): List<Any?> {
+        val s = Strings.`for`(context = context)
+        val toolId = selection.target.id ?: throw StepFailed(s.shared("task_error_list_selection").format(""))
+        val fields = try {
+            app.treelune.core.fields.ToolFields.filterable(toolId, context, s)
+        } catch (e: IllegalStateException) {
+            throw StepFailed(s.shared("task_error_tool").format("", toolId))
+        }
+        val read = Coordinator(context).processTaskStep("tool_data.get", mapOf("tool_instance_id" to toolId,
+            "filters" to JsonUtils.toList(selection.storedFilters(fields, app.treelune.core.selection.TimeResolver.at(at)) { s.shared(it) }),
+            "sort" to listOf(mapOf("field" to "timestamp", "direction" to app.treelune.core.fields.EntrySort.ASC))))
+        if (!read.isSuccess) throw StepFailed(read.error ?: s.shared("error_unknown"))
+        val kept = selection.fields.orEmpty()
+        return (read.data?.get("entries") as? List<*>).orEmpty().map { it as Map<*, *> }.map { entry ->
+            @Suppress("UNCHECKED_CAST")
+            val values = kept.map { path ->
+                val value = app.treelune.core.reading.FieldReading.valueAt(entry as Map<String, Any?>, path)
+                TaskSteps.keyOf(path) to ((value as? Map<*, *>)?.takeIf { fields[path]?.type == FieldType.REFERENCE }?.get("id") ?: value)
+            }
+            if (values.size == 1) values.single().second else values.toMap()
+        }
+    }
+
     /** The API whose answer [input] reads, when it is a value an earlier step's call gave. */
     private fun apiOf(input: TaskSteps.Input, steps: org.json.JSONArray): String? =
         (input as? TaskSteps.Input.Result)?.let { steps.optJSONObject(it.step) }
@@ -533,6 +561,7 @@ object TaskRunner {
         val s = Strings.`for`(context = context)
         return when (input) {
             is TaskSteps.Input.Item -> (item ?: throw StepFailed(s.shared("task_error_item_unrepeated").format(""))) [input.field]
+            is TaskSteps.Input.Selection -> listed(context, input.selection, at)
             is TaskSteps.Input.Received -> when {
                 input.value != null -> when (received) {
                     is TaskRun.Received.Event -> received.values[input.value]

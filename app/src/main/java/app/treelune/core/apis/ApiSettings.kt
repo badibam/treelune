@@ -69,6 +69,13 @@ object ApiSettings {
         }
     }
 
+    /** The inputs of an API's [config], as stored. */
+    fun inputs(config: JSONObject): List<JSONObject> =
+        config.optJSONArray(INPUTS)?.let { list -> (0 until list.length()).map { list.getJSONObject(it) } }.orEmpty()
+
+    /** The names of the inputs of [config] that take a list: a Task's step fills each with entries (`selection`). */
+    fun listInputs(config: JSONObject): Set<String> = inputs(config).filter { it.optString(TYPE) == LIST }.map { it.getString(NAME) }.toSet()
+
     /** The fields of the inputs of an API's [config]. */
     fun inputFields(config: JSONObject): List<FieldDefinition> =
         config.optJSONArray(INPUTS)?.let { list -> (0 until list.length()).map { inputField(list.getJSONObject(it)) } }.orEmpty()
@@ -129,7 +136,7 @@ object ApiSettings {
             ),
             SettingNode.ListOf(INPUTS, s.shared("api_$INPUTS"), SettingNode.Item.Of(listOf(
                 text(NAME, required = true, length = TextLength.SHORT),
-                choice(TYPE, listOf(TEXT, NUMBER, BOOLEAN), TEXT)
+                choice(TYPE, listOf(TEXT, NUMBER, BOOLEAN, LIST), TEXT)
             )), summary = listOf(NAME, TYPE), description = s.shared("api_schema_$INPUTS")),
             SettingNode.ListOf(VALUES, s.shared("api_$VALUES"), SettingNode.Item.Of(listOf(
                 text(NAME, required = true, length = TextLength.SHORT),
@@ -194,6 +201,8 @@ object ApiSettings {
                 names.groupBy { it }.filter { it.value.size > 1 }.keys.firstOrNull()?.let { return s.shared("api_error_name_twice").format(it) }
                 names.firstOrNull { !NAME_FORM.matches(it) }?.let { return s.shared("api_error_name_form").format(it) }
             }
+        // A list goes in a JSON body, never in an address
+        if (config.optString(METHOD) != POST) inputs(config).firstOrNull { it.optString(TYPE) == LIST }?.let { return s.shared("api_error_list_get").format(it.optString(NAME)) }
         if (config.optString(RESPONSE) == DEFERRED) {
             if (!config.optString(STATUS_URL).contains(ID_MARK)) return s.shared("api_error_status_url").format(ID_MARK)
             if (config.optString(FAILED_PATH).isBlank() != config.optString(FAILED_VALUE).isBlank()) return s.shared("api_error_failed_half")

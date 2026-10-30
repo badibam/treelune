@@ -3032,6 +3032,11 @@
     <string name="task_append">Ajouter à la ligne, après ce que le champ contient, plutôt que remplacer</string>
     <string name="task_error_append_create">L\'étape %1$s ajoute à un champ de texte, mais elle ne modifie aucune entrée : elle en crée une, sauf si elle modifie celle déjà là</string>
     <string name="task_error_append_field">L\'étape %1$s ajoute à « %2$s », qui n\'est pas un champ de texte parmi ses valeurs</string>
+    <string name="task_error_list_input">Étape %1$s : l\'entrée « %2$s » prend une liste exactement quand l\'API la déclare de type liste, et une liste ne se remplit que d\'entrées</string>
+    <string name="task_error_list_selection">Les entrées de %1$s sont celles d\'un outil</string>
+    <string name="task_error_list_fields">Les entrées de %1$s ne gardent aucun champ : dis lesquels partent</string>
+    <string name="api_error_list_get">L\'entrée « %1$s » est une liste : elle part dans un corps JSON, donc l\'API s\'appelle en POST</string>
+    <string name="task_list_with_id">Avec l\'identifiant de chaque entrée</string>
     <string name="task_run_skipped_step">Sautée : l\'étape %1$d l\'a été</string>
     <string name="task_run_skipped_false">Sautée : sa condition %1$d n\'est pas vraie</string>
     <string name="task_run_skipped_unknown">Sautée : il manque une valeur pour juger sa condition %1$d</string>

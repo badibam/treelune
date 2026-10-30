@@ -29,10 +29,7 @@ Codé : `append` d'une étape qui modifie une entrée (`update_entry`, ou `creat
 
 ## 5. Une liste en entrée d'API
 
-- Une entrée d'API peut être de type **liste**, remplie par une **Sélection d'entrées** (la brique : un outil, une période, des filtres, les champs gardés) : un seul champ gardé donne une liste de valeurs, plusieurs une liste d'objets à un niveau, nommés par leurs champs. Elle part dans le corps JSON en tableau.
-- La Lecture reste à une valeur : variables, conditions, Graphiques et Objectifs en dépendent partout. « Toutes les valeurs » en réduction aurait été proposée, puis refusée, à chacun de ces endroits.
-- Exemples pour bica : `cards`, les fiches de portugais filtrées « element présent », champs `id` et `element` ; `done`, les Épisodes filtrés « statut = validé », champ `episode` ; `reviewed_today`, les révisions des Flashcards de la période « aujourd'hui » (au calendrier de l'utilisateur), champs `data.source_entry` et `state.stability`. Le lien entre une révision et l'`element` de sa fiche, bica le fait.
-- L'item de `TODO.md` « une Lecture qui rend plusieurs valeurs » (les trois derniers retours d'un outil, pour une API) est couvert par ce point.
+Codé : une entrée d'API de type liste (POST seul), remplie par une Sélection d'entrées (`{"selection"}`, `TaskSteps.Input.Selection`), sa période comprise ; les entrées dans l'ordre où elles ont eu lieu, un champ gardé donnant ses valeurs, plusieurs un objet par entrée sous la dernière partie de chaque chemin, l'`id` de l'entrée en option ; `docs/CORE.md` ; ses garanties dans `StepForEachTest`. Pour bica : `cards` sous `{"id", "element"}`, `reviewed_today` sous `{"source_entry", "stability"}`.
 
 ## Écarté
 

@@ -112,14 +112,45 @@ private fun CallApi(step: JSONObject, earlier: Earlier, s: StringsContext, with:
         with { put(TaskSteps.API_ID, id); put(TaskSteps.INPUTS, JSONObject()) }
     }
     if (apiId == null) return
-    // The API's inputs, each of its type
+    // The API's inputs, each of its type; a list's filled by entries
     var inputs by remember(apiId) { mutableStateOf<List<FieldDefinition>>(emptyList()) }
+    var lists by remember(apiId) { mutableStateOf<Set<String>>(emptySet()) }
     LaunchedEffect(apiId) {
         @Suppress("UNCHECKED_CAST")
         val config = (Coordinator(context).processUserAction("apis.get", mapOf("api_id" to apiId)).data?.get("config") as? Map<String, Any?>)?.let { JsonUtils.toJSONObject(it) }
         inputs = config?.let { ApiSettings.inputFields(it) }.orEmpty()
+        lists = config?.let { ApiSettings.listInputs(it) }.orEmpty()
     }
-    Inputs(step.optJSONObject(TaskSteps.INPUTS) ?: JSONObject(), inputs, earlier, s) { with { put(TaskSteps.INPUTS, it) } }
+    val given = step.optJSONObject(TaskSteps.INPUTS) ?: JSONObject()
+    Inputs(given, inputs.filter { it.name !in lists }, earlier, s) { next ->
+        // The lists stay as they are beside the others
+        with { put(TaskSteps.INPUTS, JSONObject(next.toString()).apply { lists.forEach { name -> given.optJSONObject(name)?.let { put(name, it) } } }) }
+    }
+    lists.forEach { name ->
+        ListInput(name, given.optJSONObject(name)?.optJSONObject(TaskSteps.SELECTION), s) { selection ->
+            with { put(TaskSteps.INPUTS, JSONObject(given.toString()).apply { if (selection == null) remove(name) else put(name, JSONObject().put(TaskSteps.SELECTION, selection)) }) }
+        }
+    }
+}
+
+/**
+ * An API's input [name] that takes a list (`selection`): a tool's entries, their period and
+ * filters, the fields of each sent, and whether each goes with its id.
+ */
+@Composable
+private fun ListInput(name: String, selection: JSONObject?, s: StringsContext, onChange: (JSONObject?) -> Unit) {
+    val fields = selection?.optJSONArray("fields")?.let { list -> (0 until list.length()).map { list.optString(it) } }.orEmpty()
+    val withId = TaskSteps.ENTRY_ID in fields
+    app.treelune.core.ui.selectors.SelectionSetting(name, selection?.let { JSONObject(it.toString()).apply {
+        // The picker knows the tool's fields: the entry's id is chosen beside it
+        put("fields", org.json.JSONArray(fields - TaskSteps.ENTRY_ID))
+    } }, s.shared("task_reference_run"), { picked ->
+        onChange(picked?.apply { if (withId) put("fields", (optJSONArray("fields") ?: org.json.JSONArray()).put(TaskSteps.ENTRY_ID)) })
+    }, offerPeriod = true)
+    if (selection != null) UI.Checkbox(checked = withId, onCheckedChange = { on ->
+        val next = if (on) fields + TaskSteps.ENTRY_ID else fields - TaskSteps.ENTRY_ID
+        onChange(JSONObject(selection.toString()).put("fields", org.json.JSONArray(next)))
+    }, label = s.shared("task_list_with_id"))
 }
 
 /** A tool, chosen through the browser among the app's. */
