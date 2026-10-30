@@ -124,20 +124,27 @@ fun rememberRoutineState(routine: Routine): RoutineState {
 }
 
 /**
- * A routine's state and its switch, on one line: the state takes what the switch leaves. When
+ * A routine's state and its switch, on one line: the state takes what the switch leaves; with
+ * [buttons] (a tile in LINE or CONDENSED, which shows nothing else) its buttons to run it now (to
+ * take back its run while it waits in the queue) and to open its page, instead of the switch. When
  * something keeps it from running, its page says it in full under a warning icon
  * ([withProblem]); a tile, too narrow to lose an icon's width beside its switch (« Toutes /
  * s les… »), writes its state in the warning's colour instead, the problem its description.
  */
 @Composable
-fun RoutineStateLine(routine: Routine, state: RoutineState, actions: RoutineActions, withProblem: Boolean = false) {
+fun RoutineStateLine(routine: Routine, state: RoutineState, actions: RoutineActions, withProblem: Boolean = false, buttons: Boolean = false) {
     if (withProblem && state.problem != null) UI.Text(state.problem, TextType.CAPTION)
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(UI.Space.S), verticalAlignment = Alignment.CenterVertically) {
         if (withProblem && state.problem != null) UI.Icon(iconName = "triangle-alert", size = 16.dp, contentDescription = state.problem, tint = UI.statusColor(app.treelune.core.ui.StatusColor.WARNING))
         Box(modifier = Modifier.weight(1f).then(if (state.problem != null) Modifier.semantics { contentDescription = state.problem } else Modifier)) {
             UI.Text(state.line, if (!withProblem && state.problem != null) TextType.WARNING else TextType.CAPTION, maxLines = 2)
         }
-        UI.BooleanField(label = "", value = routine.isEnabled, onValueChange = { actions.toggle(routine, it) })
+        if (buttons) {
+            val queued = state.queuedSessionId
+            if (queued != null) UI.ActionButton(action = ButtonAction.CANCEL, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.cancel(queued) })
+            else UI.ActionButton(action = ButtonAction.START, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.run(routine) })
+            UI.ActionButton(action = ButtonAction.VIEW, display = ButtonDisplay.ICON, size = Size.S, onClick = { actions.history(routine) })
+        } else UI.BooleanField(label = "", value = routine.isEnabled, onValueChange = { actions.toggle(routine, it) })
     }
 }
 
@@ -166,7 +173,8 @@ fun RoutineButtons(routine: Routine, state: RoutineState, actions: RoutineAction
 
 /**
  * A routine's tile among its section's tools (UI.LookCard), « Routine » under its name: its
- * state and its switch beside its header (LINE, EXTENDED, SQUARE) or under it (CONDENSED); its
+ * state with its buttons to run it and open it beside its header (LINE) or under it (CONDENSED),
+ * its state and its switch beside its header (EXTENDED, SQUARE); its
  * buttons on a line of their own (EXTENDED, SQUARE); its last three runs under them (SQUARE), each
  * opening. A touch opens its page, its history; a long touch its config, as a tool's. A run of it
  * that waits to be read is marked on its icon, and its run going on now (LocalRunning).
@@ -185,7 +193,7 @@ fun RoutineTile(routine: Routine, actions: RoutineActions) {
         onClick = { actions.history(routine) },
         onLongClick = { actions.configure(routine) },
         summary = { RoutineStateLine(routine, state, actions) },
-        glance = { RoutineStateLine(routine, state, actions) },
+        glance = { RoutineStateLine(routine, state, actions, buttons = true) },
         body = { rows ->
             Column(verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
                 RoutineButtons(routine, state, actions)

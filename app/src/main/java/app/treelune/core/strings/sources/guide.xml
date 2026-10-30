@@ -142,7 +142,7 @@
     <string name="guide_automate_2_goal">Create a routine in a zone</string>
     <string name="guide_automate_2_text">A routine belongs to a zone, like a tool. In the zone, touch the + at the top and choose “Routine”: its config opens. Give it a name, then write its message, what the AI should do, for example “sum up my week”. To have it run on its own, add a schedule under When, such as every Sunday at 6 pm. Under At the end, Tell me when it ends chooses when a notification tells you it is done. Save.</string>
     <string name="guide_automate_3_goal">Change it</string>
-    <string name="guide_automate_3_text">Its tile sits in the section among the tools, in Extended by default: its state and its switch at the top, its buttons under them. A long touch on its tile opens its config again: change a word of its message, or its look, and save.\n\nShown smaller, its tile has no room for its buttons: touch it, its page has them all, and its gear opens its config too.</string>
+    <string name="guide_automate_3_text">Its tile sits in the section among the tools, in Extended by default: its state and its switch at the top, its buttons under them. A long touch on its tile opens its config again: change a word of its message, or its look, and save.\n\nShown as a Line or Condensed, its tile keeps two buttons in place of its switch: run it now, and open its page, which has all the others and the switch; its gear opens its config too.</string>
     <string name="guide_automate_4_goal">Run it once</string>
     <string name="guide_automate_4_text">To see what it does without waiting for its schedule, touch the play button on its tile, or on its page.</string>
     <string name="guide_automate_5_goal">See what it did</string>

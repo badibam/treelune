@@ -52,10 +52,11 @@ internal fun stateLabel(state: TaskRun.State, s: StringsContext) = s.shared("tas
 
 /**
  * Where a Task stands, in one line: its last run going on or waiting, off, its next run, its
- * triggers, run on demand alone; and its switch.
+ * triggers, run on demand alone; and its switch, or with [onRun] and [onOpen] (a tile in LINE or
+ * CONDENSED, which shows nothing else) its buttons to run it now and open its page instead.
  */
 @Composable
-internal fun TaskStateLine(task: Task, last: RunLine?, onToggle: (Boolean) -> Unit) {
+internal fun TaskStateLine(task: Task, last: RunLine?, onRun: (() -> Unit)? = null, onOpen: (() -> Unit)? = null, onToggle: (Boolean) -> Unit) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
     var next by remember { mutableStateOf<Long?>(null) }
@@ -74,7 +75,10 @@ internal fun TaskStateLine(task: Task, last: RunLine?, onToggle: (Boolean) -> Un
     }
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(UI.Space.S), verticalAlignment = Alignment.CenterVertically) {
         Box(modifier = Modifier.weight(1f)) { UI.Text(line, TextType.CAPTION, maxLines = 2) }
-        UI.BooleanField(label = "", value = task.isEnabled, onValueChange = onToggle)
+        if (onRun != null && onOpen != null) {
+            UI.ActionButton(action = ButtonAction.START, display = ButtonDisplay.ICON, size = Size.S, onClick = onRun)
+            UI.ActionButton(action = ButtonAction.VIEW, display = ButtonDisplay.ICON, size = Size.S, onClick = onOpen)
+        } else UI.BooleanField(label = "", value = task.isEnabled, onValueChange = onToggle)
     }
 }
 
@@ -131,8 +135,9 @@ internal fun RunRow(run: RunLine, task: Task) {
 }
 
 /**
- * A Task's tile among its section's tools (UI.LookCard), « Task » under its name: its state and
- * its switch from LINE on, its button to run it from EXTENDED, its last three runs in SQUARE. A
+ * A Task's tile among its section's tools (UI.LookCard), « Task » under its name: its state with
+ * its buttons to run it and open it (LINE, CONDENSED), or with its switch and those buttons under
+ * it (EXTENDED on), its last three runs in SQUARE. A
  * touch opens its page, a long one its config, as a tool's.
  */
 @Composable
@@ -152,7 +157,7 @@ fun TaskTile(task: Task) {
         onClick = open,
         onLongClick = { Navigator.push(Place.TaskConfig(task.zoneId, task.id)) },
         summary = { TaskStateLine(task, last) { actions.toggle(task, it) } },
-        glance = { TaskStateLine(task, last) { actions.toggle(task, it) } },
+        glance = { TaskStateLine(task, last, onRun = { actions.run(task) }, onOpen = open) { actions.toggle(task, it) } },
         body = { rows ->
             Column(verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
