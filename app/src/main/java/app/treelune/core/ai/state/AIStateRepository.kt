@@ -33,12 +33,13 @@ import kotlinx.coroutines.flow.asStateFlow
  */
 class AIStateRepository(
     private val context: Context,
-    private val aiDao: AIDao
-) {
+    private val aiDao: AIDao,
     /**
-     * In-memory state (source of truth during execution)
+     * In-memory state (source of truth during execution), given by AIOrchestrator, which shows it
+     * before this repository exists
      */
-    private val _state = MutableStateFlow(AIState.idle())
+    private val _state: MutableStateFlow<AIState>
+) {
 
     /**
      * Observable state flow for UI and components

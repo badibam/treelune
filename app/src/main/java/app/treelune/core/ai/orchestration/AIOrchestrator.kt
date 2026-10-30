@@ -21,7 +21,9 @@ import app.treelune.core.database.AppDatabase
 import app.treelune.core.utils.LogManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -82,10 +84,16 @@ object AIOrchestrator {
     // ========================================================================================
 
     /**
+     * The AI state, held here and written by AIStateRepository once initialized. It exists before
+     * initialize(): a screen composed first (an activity restored in a new process) reads it idle,
+     * and sees the session the database holds as soon as initialize() has read it.
+     */
+    private val state = MutableStateFlow(AIState.idle())
+
+    /**
      * Current AI state (observable)
      */
-    val currentState: StateFlow<AIState>
-        get() = stateRepository.state
+    val currentState: StateFlow<AIState> = state.asStateFlow()
 
     /**
      * Queued sessions waiting for activation (observable)
@@ -222,7 +230,7 @@ object AIOrchestrator {
         this.aiDao = appDatabase.aiDao()
 
         // Initialize components
-        stateRepository = AIStateRepository(this.context, aiDao)
+        stateRepository = AIStateRepository(this.context, aiDao, state)
         messageRepository = AIMessageRepository(aiDao)
         validationResolver = ValidationResolver(this.context)
         // promptManager is a singleton object, no initialization needed
