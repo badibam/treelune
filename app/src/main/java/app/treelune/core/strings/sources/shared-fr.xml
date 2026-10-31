@@ -2982,8 +2982,7 @@
     <string name="trigger_schema_list">Ce qui la fait partir à côté de son planning : chaque exécution reçoit alors l\'entrée écrite, les valeurs de l\'événement ou celles de la condition</string>
     <string name="trigger_error_tool">Un déclencheur écoute l\'outil %1$s, qui n\'existe pas</string>
     <string name="trigger_only_entering">Seulement quand elle se met à passer les filtres</string>
-    <string name="trigger_schema_only_entering">true : entendue seulement quand l\'entrée se met à passer entries.filters avec cette écriture — elle ne les passait pas avant, ou n\'existait pas —, jamais quand on retouche une entrée qui les passait déjà (un questionnaire rempli range ses réponses une fois ; corrigé, rien ne repart). false ou absent : chaque écriture qui les passe. Une entrée supprimée ne se met à rien passer : pas avec deleted dans writes.</string>
-    <string name="trigger_error_entering_deleted">Un déclencheur entendu seulement quand une entrée se met à passer ses filtres ne peut pas écouter les suppressions : une entrée supprimée ne se met à rien passer.</string>
+    <string name="trigger_schema_only_entering">true ou absent : une entrée créée ou modifiée n\'est entendue que quand elle se met à passer entries.filters avec cette écriture — elle ne les passait pas avant, ou n\'existait pas —, jamais quand on retouche une entrée qui les passait déjà (un questionnaire rempli range ses réponses une fois ; corrigé, rien ne repart). false : chaque écriture qui les passe, pour suivre les corrections. Une suppression est entendue dans les deux cas.</string>
     <string name="trigger_kind_condition">Une condition devient vraie</string>
     <string name="trigger_condition">Quelle condition</string>
     <string name="trigger_condition_reference">le moment où elle est jugée</string>

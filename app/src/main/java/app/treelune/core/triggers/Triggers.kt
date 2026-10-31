@@ -15,10 +15,12 @@ import org.json.JSONObject
  * (`{"kind": "condition", "condition": {"left", "op", "right"}}`, ConditionTriggers).
  *
  * Stored under `triggers`: `[{"kind": "entry_written", "writes": ["created", "updated"],
- * "entries": {"target": {"kind": "TOOL_INSTANCE", "id"}, "filters": [...]}, "only_entering": true}]`;
- * `only_entering` heard only an entry that starts to pass its filters with the write (it did not
- * before, or did not exist), not one retouched that already passed them: a questionnaire filled
- * files its answers once, corrected it files nothing again. Declared with the settings
+ * "entries": {"target": {"kind": "TOOL_INSTANCE", "id"}, "filters": [...]}, "only_entering": false}]`;
+ * `only_entering`, true when absent, hears an entry created or changed only when it starts to pass
+ * its filters with the write (it did not before, or did not exist), not one retouched that already
+ * passed them: a questionnaire filled files its answers once, corrected it files nothing again.
+ * False, every write that passes them (a routine that follows corrections). A deletion is heard
+ * as it is either way: a deleted entry is judged as it was. Declared with the settings
  * nodes ([nodes]): its form, its schema and the check of its filters come from there.
  */
 object Triggers {
@@ -45,9 +47,10 @@ object Triggers {
     sealed interface Trigger {
         /**
          * An entry of [toolInstanceId] written in one of [writes], passing [filters] (Conditions put
-         * on the entry); with [onlyEntering], only when it did not pass them before the write.
+         * on the entry); with [onlyEntering], an entry created or changed only when it did not pass
+         * them before the write.
          */
-        data class EntryWritten(val toolInstanceId: String, val writes: Set<Write>, val filters: JSONArray, val onlyEntering: Boolean = false) : Trigger
+        data class EntryWritten(val toolInstanceId: String, val writes: Set<Write>, val filters: JSONArray, val onlyEntering: Boolean = true) : Trigger
         /** The event [eventId] emitted (docs/CORE.md, « Events ») */
         data class EventEmitted(val eventId: String) : Trigger
         /**
@@ -75,8 +78,8 @@ object Triggers {
                     SettingNode.Field(FieldDefinition(WRITES, text("trigger_writes"), text("trigger_schema_writes"), FieldType.CHOICE, true,
                         mapOf("options" to ChoiceSettings.storedOptions(Write.entries.map { it.key }, Write.entries.associate { it.key to text("trigger_write_${it.key}") })) + ("multiple" to true))),
                     SettingNode.Selection(ENTRIES, text("trigger_entries"), text("trigger_reference"), required = true),
-                    // Absent is false, as every trigger stored before it was: heard at each write
-                    SettingNode.Field(FieldDefinition(ONLY_ENTERING, text("trigger_only_entering"), text("trigger_schema_only_entering"), FieldType.BOOLEAN, false, null, defaultValue = false))
+                    // Absent is true: filing or making something once is what a write mostly starts
+                    SettingNode.Field(FieldDefinition(ONLY_ENTERING, text("trigger_only_entering"), text("trigger_schema_only_entering"), FieldType.BOOLEAN, false, null, defaultValue = true))
                 ), CONDITION to listOf(
                     // Judged at the moment of judging; a reading without a period reads its whole history
                     SettingNode.Condition(CONDITION, text("trigger_condition"), reference = text("trigger_condition_reference"), emptyPeriod = null, required = true)
@@ -107,7 +110,7 @@ object Triggers {
                     toolInstanceId = target.optString("id").ifEmpty { throw IllegalArgumentException("A trigger's entries name no tool") },
                     writes = (0 until writes.length()).map { Write.of(writes.getString(it)) }.toSet(),
                     filters = entries.optJSONArray("filters") ?: JSONArray(),
-                    onlyEntering = trigger.optBoolean(ONLY_ENTERING, false)
+                    onlyEntering = trigger.optBoolean(ONLY_ENTERING, true)
                 )
             }
             EVENT -> Trigger.EventEmitted(app.treelune.core.fields.ReferenceTarget.referenceOf(trigger.opt(EVENT))?.takeIf { it.kind == app.treelune.core.selection.ReferenceKind.EVENT }?.id
@@ -120,7 +123,8 @@ object Triggers {
     /**
      * Whether a write [passedBefore] / [passesAfter] the filters is heard by a trigger that hears
      * only an entry entering them ([onlyEntering]), or every write that passes them; [passedBefore]
-     * is null for an entry created by the write, which passed nothing before.
+     * is null for an entry created by the write, which passed nothing before, and for a deletion,
+     * heard as it was whatever the setting.
      */
     fun heard(onlyEntering: Boolean, passedBefore: Boolean?, passesAfter: Boolean): Boolean =
         passesAfter && (!onlyEntering || passedBefore != true)
@@ -141,8 +145,6 @@ object Triggers {
             return e.message ?: s.shared("message_validation_error_simple")
         }
         val heard = read.filterIsInstance<Trigger.EntryWritten>()
-        // A deleted entry starts to pass nothing
-        if (heard.any { it.onlyEntering && Write.DELETED in it.writes }) return s.shared("trigger_error_entering_deleted")
         val tools = app.treelune.core.database.AppDatabase.getDatabase(context).toolInstanceDao()
         heard.forEach { trigger -> tools.getToolInstanceById(trigger.toolInstanceId) ?: return s.shared("trigger_error_tool").format(trigger.toolInstanceId) }
         val events = app.treelune.core.database.AppDatabase.getDatabase(context).eventDao()
