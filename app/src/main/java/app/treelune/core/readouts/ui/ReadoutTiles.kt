@@ -152,8 +152,8 @@ fun ReadoutCard(readout: ReadoutRow) {
         look = readout.look,
         subtitle = s.shared("readout_display_name"),
         seed = readout.id,
-        // Its signal marks its icon, as something waiting marks a tool's
-        waiting = shown?.signal == true,
+        // Never the mark of an entry waiting: its colour says it, where its sentence shows
+        waiting = false,
         running = false,
         onClick = { openTarget(readout) },
         onLongClick = { configure(readout) },
