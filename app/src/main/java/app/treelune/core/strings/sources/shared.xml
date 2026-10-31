@@ -1534,6 +1534,7 @@
     <string name="variable_error_not_an_instant">“%1$s” reads a day or a time of day, which a formula does not compute on: read a date and time instead.</string>
     <string name="variable_error_instant_result">This formula gives an instant, and a variable holds a number or a duration: subtract another instant from it.</string>
     <string name="variable_error_field">The variable %1$s needs its "field": its type (NUMERIC, SCALE, DURATION) and settings.</string>
+    <string name="variable_error_series_unit">Unknown unit of a series: %1$s. Accepted: %2$s.</string>
     <string name="variable_error_kind">Unknown kind of variable: %1$s. Accepted: CONSTANT, FORMULA.</string>
     <string name="variable_error_type">A variable is not of type %1$s. Accepted: %2$s.</string>
     <string name="formula_problem_empty">it is empty</string>
@@ -1579,7 +1580,9 @@
     <string name="import_error_declaration">The import declaration is incomplete: %1$s</string>
     <string name="selection_problem_filters">Filters and fields narrow the entries of a tool instance, not of a %1$s.</string>
     <string name="selection_problem_period">A period narrows the entries of a tool instance or a zone, not of a %1$s.</string>
-    <string name="selection_problem_variable">A variable has no entries to select: it is read, as a term or with READING.</string>
+    <string name="variable_error_no_series">%1$s has no series (a value per hour, day…): it is read as a term, not selected.</string>
+    <string name="reading_error_series_start">A variable's series is read over a period with a start: it has no first entry.</string>
+    <string name="selection_problem_variable">A variable is selected only in a reading, and only when it has a series (a value per hour, day…); elsewhere it is read as a term.</string>
     <string name="selection_problem_field">A selection takes a thing, without a field: the field read is said beside it.</string>
     <string name="import_missing_column">column "%1$s": not declared</string>
     <string name="import_missing_in_file">column "%1$s": not in the file</string>

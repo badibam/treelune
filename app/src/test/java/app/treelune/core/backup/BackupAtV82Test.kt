@@ -105,7 +105,7 @@ class BackupAtV82Test {
         assertEquals(2, pointers.size)
         pointers.forEach { segment ->
             val pointer = PointerConfig.fromJson(segment.getString("config"), text)
-            assertNull(segment.getString("config"), pointer.selection.problem(text))
+            assertNull(segment.getString("config"), pointer.selection.problem(text = text))
         }
     }
 }

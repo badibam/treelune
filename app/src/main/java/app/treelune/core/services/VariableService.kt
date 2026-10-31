@@ -251,7 +251,9 @@ class VariableService(private val context: Context) : ExecutableService {
         // No variable reading itself through others
         val reads = (stored.variableIds() + definition.terms.values.filterIsInstance<Term.Variable>().map { it.id } +
             definition.terms.values.filterIsInstance<Term.Reading>().flatMap { it.keepTerms() }.filterIsInstance<Term.Variable>().map { it.id } +
-            definition.terms.values.filterIsInstance<Term.Reading>().flatMap { app.treelune.core.fields.FilterTerms.variablesRead(it.selection.filters) }).distinct()
+            definition.terms.values.filterIsInstance<Term.Reading>().flatMap { app.treelune.core.fields.FilterTerms.variablesRead(it.selection.filters) } +
+            // A term reading a variable's series reads that variable
+            definition.terms.values.filterIsInstance<Term.Reading>().mapNotNull { it.selection.target.takeIf { t -> t.kind == app.treelune.core.selection.ReferenceKind.VARIABLE }?.id }).distinct()
         loop(id, reads, others)?.let { path -> throw Refused(s.shared("variable_error_loop").format((listOf(name) + path.map { p -> others.first { it.id == p }.name } + name).joinToString(" → "))) }
 
         // Its instants held to a difference between two, whatever field is given
@@ -265,7 +267,7 @@ class VariableService(private val context: Context) : ExecutableService {
                 term.copy(perEntry = (Formula.parse(term.perEntry, aliases) as Formula.Parsed.Read).formula.text({ it }))
             } else term
         }
-        return VariableDefinition.Computed(stored.text({ "{var:$it}" }), terms, field)
+        return VariableDefinition.Computed(stored.text({ "{var:$it}" }), terms, field, definition.series)
     }
 
     /** The functions under their names in the app's language, which a formula written on screen uses. */
@@ -318,7 +320,10 @@ class VariableService(private val context: Context) : ExecutableService {
         val terms = json.optJSONObject("terms")?.let { t -> t.keys().asSequence().map { t.getJSONObject(it) }.toList() } ?: emptyList()
         val variables = terms.mapNotNull { it.optString("variable").takeIf { v -> v.isNotEmpty() } } +
             terms.flatMap { keepTerms(it) }.filterIsInstance<Term.Variable>().map { it.id } +
-            terms.flatMap { app.treelune.core.fields.FilterTerms.variablesRead(it.optJSONObject("reading")?.optJSONObject("selection")?.optJSONArray("filters")) }
+            terms.flatMap { app.treelune.core.fields.FilterTerms.variablesRead(it.optJSONObject("reading")?.optJSONObject("selection")?.optJSONArray("filters")) } +
+            // A term reading a variable's series reads that variable
+            terms.mapNotNull { it.optJSONObject("reading")?.optJSONObject("selection")?.optJSONObject("target")
+                ?.takeIf { t -> t.optString("kind") == app.treelune.core.selection.ReferenceKind.VARIABLE.name }?.optString("id")?.takeIf { v -> v.isNotEmpty() } }
         return (formula?.variableIds() ?: emptyList()) + variables
     }
 
@@ -374,7 +379,10 @@ class VariableService(private val context: Context) : ExecutableService {
         val direct = mutableSetOf<String>()
         for (key in terms.keys()) {
             val reading = terms.getJSONObject(key).optJSONObject("reading") ?: continue
-            val tool = reading.optJSONObject("selection")?.optJSONObject("target")?.optString("id")?.takeIf { it.isNotEmpty() } ?: continue
+            val target = reading.optJSONObject("selection")?.optJSONObject("target")
+            val tool = target?.optString("id")?.takeIf { it.isNotEmpty() } ?: continue
+            // A variable's series reads what that variable reads, which readsOf follows
+            if (target.optString("kind") == app.treelune.core.selection.ReferenceKind.VARIABLE.name) continue
             direct.add(tool)
             // What its groups are compared with is read too
             keepTerms(terms.getJSONObject(key)).filterIsInstance<Term.Reading>().mapNotNullTo(direct) { it.selection.target.id }

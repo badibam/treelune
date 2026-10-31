@@ -87,7 +87,7 @@ class ChartSources(private val context: Context) {
             }
             is Term.Reading -> {
                 val value = if (term.reduction == Reduction.COUNT || term.field == null) FieldReading.COUNT_FIELD
-                    else ToolFields.filterable(term.selection.target.id ?: error("a reading's tool"), context, s)[term.field]
+                    else ToolFields.ofTarget(term.selection.target, context, s)[term.field]
                         ?: throw IllegalStateException(s.tool("error_reading_field").format(column.name, term.field))
                 // Grouped, the groups' values reduced
                 term.group?.let { app.treelune.core.reading.ReadingGroup.resultField(value, it.reduction) } ?: value

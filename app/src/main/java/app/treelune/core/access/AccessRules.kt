@@ -203,16 +203,11 @@ object AccessRules {
                 "run_history" -> listOf(text("session_id")?.let { Reach.Run(it, AccessLevel.READ) } ?: Reach.Unknown("$resource.$operation"))
                 else -> listOf(Reach.Unknown("$resource.$operation"))
             }
-            // A reading of a variable by its name, or of a selection's target: a tool, a zone, one entry
+            // A reading of a variable by its name, or of a selection's target: a tool, a zone, one
+            // entry, a variable's series (read as the variable is, what it reads with it)
             "readings" -> listOf(text("variable")?.let { Reach.Variable(it, true, AccessLevel.READ) }
                 ?: ((params["selection"] as? Map<*, *>)?.get("target") as? Map<*, *>)?.let { target ->
-                    val id = target["id"] as? String
-                    when (target["kind"]) {
-                        "TOOL_INSTANCE" -> id?.let { Reach.Tool(it, AccessLevel.READ) }
-                        "ZONE" -> id?.let { Reach.Zone(it, AccessLevel.READ) }
-                        "ENTRY" -> id?.let { Reach.Entry(it, AccessLevel.READ) }
-                        else -> null
-                    }
+                    if (target["kind"] in setOf("TOOL_INSTANCE", "ZONE", "ENTRY", "VARIABLE")) targetRead(target, "$resource.$operation") else null
                 }
                 ?: Reach.Unknown("$resource.$operation")) +
                 // What its filters compare with, read too

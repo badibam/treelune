@@ -53,7 +53,7 @@ object RoutineMessage {
                 } catch (e: Exception) {
                     throw IllegalArgumentException(text("routine_message_block_unreadable").format(i, e.message ?: stored))
                 }
-                pointer.selection.problem(text)?.let { throw IllegalArgumentException(text("routine_message_block_unreadable").format(i, it)) }
+                pointer.selection.problem(text = text)?.let { throw IllegalArgumentException(text("routine_message_block_unreadable").format(i, it)) }
                 MessageSegment.EnrichmentBlock(EnrichmentType.POINTER, pointer.toJson().toString())
             }
             else -> throw IllegalArgumentException(text("routine_message_block_type").format(i, type))

@@ -223,21 +223,26 @@ object ConditionTriggers {
                 is Term.Constant -> Unit
                 is Term.Reading -> {
                     val target = term.selection.target
-                    tools.add(when (target.kind) {
-                        ReferenceKind.TOOL_INSTANCE -> target.id ?: return null
-                        ReferenceKind.ENTRY -> target.id?.let { AppDatabase.getDatabase(context).toolDataDao().getById(it) }?.toolInstanceId ?: return null
+                    when (target.kind) {
+                        ReferenceKind.TOOL_INSTANCE -> tools.add(target.id ?: return null)
+                        ReferenceKind.ENTRY -> tools.add(target.id?.let { AppDatabase.getDatabase(context).toolDataDao().getById(it) }?.toolInstanceId ?: return null)
+                        // A variable's series reads what its variable reads
+                        ReferenceKind.VARIABLE -> tools.addAll(variableTools(context, target.id ?: return null) ?: return null)
                         else -> return null
-                    })
+                    }
                 }
-                is Term.Variable -> {
-                    val result = Coordinator(context).processUserAction("variables.get", mapOf("variable_id" to term.id))
-                    if (result.status != app.treelune.core.commands.CommandStatus.SUCCESS) return null
-                    val variable = result.data?.get("variable") as? Map<*, *> ?: return null
-                    (variable["tools_read"] as? List<*>)?.forEach { tools.add(it.toString()) }
-                }
+                is Term.Variable -> tools.addAll(variableTools(context, term.id) ?: return null)
             }
         }
         return tools
+    }
+
+    /** The tools the variable [id] reads (`tools_read`); null when it cannot be read. */
+    private suspend fun variableTools(context: Context, id: String): List<String>? {
+        val result = Coordinator(context).processUserAction("variables.get", mapOf("variable_id" to id))
+        if (result.status != app.treelune.core.commands.CommandStatus.SUCCESS) return null
+        val variable = result.data?.get("variable") as? Map<*, *> ?: return null
+        return (variable["tools_read"] as? List<*>)?.map { it.toString() } ?: emptyList()
     }
 
     /**

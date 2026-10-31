@@ -60,13 +60,19 @@ data class EntrySelection(
     val fields: List<String>? = null
 ) {
 
-    /** What the target does not take, in words ([text], the shared strings); null when it all fits. */
-    fun problem(text: (String) -> String): String? = when {
+    /**
+     * What the target does not take, in words ([text], the shared strings); null when it all fits.
+     *
+     * @param series Whether a variable may be the target: a Reading's selection, a variable's
+     * series standing for a tool's entries (VariableSeries), whose having one is checked where it
+     * is read; a pointer and an API's list select no variable
+     */
+    fun problem(series: Boolean = false, text: (String) -> String): String? = when {
         // The field read is the reading's own, beside its selection
         target.field != null -> text("selection_problem_field")
         target.kind == ReferenceKind.TOOL_INSTANCE -> null
-        // A variable has no entries: it is read, never selected from
-        target.kind == ReferenceKind.VARIABLE -> text("selection_problem_variable")
+        // A variable has entries only through its series, which a reading alone selects
+        target.kind == ReferenceKind.VARIABLE -> if (series && fields == null) null else text("selection_problem_variable")
         filters.length() > 0 || fields != null -> text("selection_problem_filters").format(target.kind.name)
         !period.isEmpty && target.kind != ReferenceKind.ZONE -> text("selection_problem_period").format(target.kind.name)
         else -> null

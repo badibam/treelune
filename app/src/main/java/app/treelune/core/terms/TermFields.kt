@@ -15,6 +15,9 @@ import app.treelune.core.selection.ReferenceKind
  */
 object TermFields {
 
+    /** What a reading reads from: a tool's entries, one entry, a variable's series. */
+    val SOURCES = setOf(ReferenceKind.TOOL_INSTANCE, ReferenceKind.ENTRY, ReferenceKind.VARIABLE)
+
     /**
      * The field [term] gives values of; null for a constant, and for a reading computing a
      * formula in each entry, whose type only its variable deduces.
@@ -22,7 +25,7 @@ object TermFields {
      * @param name What the term is called where it is used, for the errors
      * @param text The shared string of a key, for the errors
      * @param targetFields The fields of the entries a reading's target holds, a tool instance's or
-     *   one entry's tool's, by path (ToolFields.ofTarget), throwing IllegalStateException when they
+     *   one entry's tool's, a variable's series', by path (ToolFields.ofTarget), throwing IllegalStateException when they
      *   cannot be read
      * @param variableField The field of the variable of an id; null when there is no such variable
      * @throws IllegalArgumentException naming what does not read: a variable that does not
@@ -42,9 +45,14 @@ object TermFields {
     }
 
     private suspend fun reading(term: Term.Reading, name: String, text: (String) -> String, targetFields: suspend (app.treelune.core.selection.Reference) -> Map<String, FieldDefinition>): FieldDefinition? {
-        term.selection.problem(text)?.let { throw IllegalArgumentException(text("variable_error_term").format(name) + " " + it) }
-        if (term.selection.target.kind != ReferenceKind.TOOL_INSTANCE && term.selection.target.kind != ReferenceKind.ENTRY) {
+        // A variable's series reads as a tool's entries (VariableSeries), its fields given by targetFields
+        term.selection.problem(series = true, text = text)?.let { throw IllegalArgumentException(text("variable_error_term").format(name) + " " + it) }
+        if (term.selection.target.kind !in SOURCES) {
             throw IllegalArgumentException(text("service_error_reading_source").format(term.selection.target.kind.name))
+        }
+        // A formula in each entry reads an entry's fields, which a step of a series has not
+        if (term.perEntry != null && term.selection.target.kind == ReferenceKind.VARIABLE) {
+            throw IllegalArgumentException(text("variable_error_term").format(name) + " " + text("selection_problem_variable"))
         }
         val fields = try {
             targetFields(term.selection.target)

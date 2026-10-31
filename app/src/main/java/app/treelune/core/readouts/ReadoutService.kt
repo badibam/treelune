@@ -250,8 +250,11 @@ class ReadoutService(private val context: Context) : ExecutableService {
         val tools = mutableSetOf<String>()
         for (index in 0 until values.length()) {
             val term = values.optJSONObject(index)?.optJSONObject(ReadoutSettings.VALUE) ?: continue
-            term.optJSONObject("reading")?.optJSONObject("selection")?.optJSONObject("target")?.optString("id")?.takeIf { it.isNotEmpty() }?.let { tools += it }
-            term.optString("variable").takeIf { it.isNotEmpty() }?.let { id ->
+            val target = term.optJSONObject("reading")?.optJSONObject("selection")?.optJSONObject("target")
+            // A variable's series reads what its variable reads
+            val seriesOf = target?.takeIf { it.optString("kind") == app.treelune.core.selection.ReferenceKind.VARIABLE.name }?.optString("id")
+            if (seriesOf == null) target?.optString("id")?.takeIf { it.isNotEmpty() }?.let { tools += it }
+            (seriesOf ?: term.optString("variable")).takeIf { it.isNotEmpty() }?.let { id ->
                 val result = Coordinator(context).processUserAction("variables.get", mapOf("variable_id" to id))
                 ((result.data?.get("variable") as? Map<*, *>)?.get("tools_read") as? List<*>)?.mapTo(tools) { it.toString() }
             }

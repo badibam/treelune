@@ -1534,6 +1534,7 @@
     <string name="variable_error_not_an_instant">« %1$s » lit un jour ou une heure, sur lesquels une formule ne calcule pas : lis plutôt une date et heure.</string>
     <string name="variable_error_instant_result">Cette formule donne un instant, et une variable vaut un nombre ou une durée : soustrais-lui un autre instant.</string>
     <string name="variable_error_field">La variable %1$s demande son "field" : son type (NUMERIC, SCALE, DURATION) et ses réglages.</string>
+    <string name="variable_error_series_unit">Unité de série inconnue : %1$s. Acceptées : %2$s.</string>
     <string name="variable_error_kind">Sorte de variable inconnue : %1$s. Acceptées : CONSTANT, FORMULA.</string>
     <string name="variable_error_type">Une variable n\'est pas de type %1$s. Acceptés : %2$s.</string>
     <string name="formula_problem_empty">elle est vide</string>
@@ -1579,7 +1580,9 @@
     <string name="import_error_declaration">La déclaration de l\'import est incomplète : %1$s</string>
     <string name="selection_problem_filters">Filtres et champs restreignent les entrées d\'une instance d\'outil, pas d\'un %1$s.</string>
     <string name="selection_problem_period">Une période restreint les entrées d\'une instance d\'outil ou d\'une zone, pas d\'un %1$s.</string>
-    <string name="selection_problem_variable">Une variable n\'a pas d\'entrées à sélectionner : elle se lit, comme terme ou par READING.</string>
+    <string name="variable_error_no_series">%1$s n\'a pas de série (une valeur par heure, par jour…) : elle se lit comme terme, elle ne se sélectionne pas.</string>
+    <string name="reading_error_series_start">La série d\'une variable se lit sur une période qui a un début : elle n\'a pas de première entrée.</string>
+    <string name="selection_problem_variable">Une variable ne se sélectionne que dans une lecture, et seulement si elle a une série (une valeur par heure, par jour…) ; ailleurs, elle se lit comme terme.</string>
     <string name="selection_problem_field">Une sélection prend une chose, sans champ : le champ lu se dit à côté.</string>
     <string name="import_missing_column">colonne « %1$s » : non déclarée</string>
     <string name="import_missing_in_file">colonne « %1$s » : absente du fichier</string>
