@@ -2981,6 +2981,9 @@
     <string name="trigger_schema_item">One thing that starts it</string>
     <string name="trigger_schema_list">What starts it besides its schedule: each run then receives the entry written, the event\'s values or the condition\'s</string>
     <string name="trigger_error_tool">A trigger listens to the tool %1$s, which does not exist</string>
+    <string name="trigger_only_entering">Only when it starts to pass the filters</string>
+    <string name="trigger_schema_only_entering">true: heard only when the entry starts to pass entries.filters with this write — it did not before, or did not exist —, never when one that already passed them is retouched (a questionnaire filled files its answers once; corrected, nothing starts again). false or absent: every write that passes them. A deleted entry starts to pass nothing: not with deleted in writes.</string>
+    <string name="trigger_error_entering_deleted">A trigger heard only when an entry starts to pass its filters cannot listen to deletions: a deleted entry starts to pass nothing.</string>
     <string name="trigger_kind_condition">A condition becomes true</string>
     <string name="trigger_condition">Which condition</string>
     <string name="trigger_condition_reference">the moment it is judged</string>

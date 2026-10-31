@@ -780,7 +780,7 @@ Each input is a term — `{"constant": value}` (a date or a duration in ISO 8601
 **Parameters**:
 
 - `zone_id` (string, **required**)
-- `settings` (object, **required**): `name` at least; `schedule` with `catch_up` to run it by itself; `triggers` to run it when an entry is written (`{"kind": "entry_written", "writes": ["created"], "entries": {"target": {"kind": "TOOL_INSTANCE", "id"}, "filters": []}}`) or an event emitted (`{"kind": "event", "event": {"kind": "EVENT", "id"}}`); `emit_event` (`{"kind": "EVENT", "id"}`), an event carrying nothing emitted when a run ends well
+- `settings` (object, **required**): `name` at least; `schedule` with `catch_up` to run it by itself; `triggers` to run it when an entry is written (`{"kind": "entry_written", "writes": ["created"], "entries": {"target": {"kind": "TOOL_INSTANCE", "id"}, "filters": []}}`; `"only_entering": true` hears it only when it starts to pass the filters, not when one that already passed them is retouched: set it on a Task that files or makes something once, leave it out on one that must follow corrections) or an event emitted (`{"kind": "event", "event": {"kind": "EVENT", "id"}}`); `emit_event` (`{"kind": "EVENT", "id"}`), an event carrying nothing emitted when a run ends well
 - `steps` (array, **required**)
 
 **Example**: the weather every morning in a tracking.
@@ -1700,13 +1700,13 @@ How to answer a need with the app\'s pieces. The principles come first: they say
 3. Each piece has one job. A tool keeps facts. A variable computes. A readout shows: what is left to do, a criterion met or not. A Task acts, always the same way, free, without an AI. A routine acts with judgement: writes, sorts, sums up.
 4. In a chain, the Task wires, the routine writes, the API makes: let each keep its job.
 5. A routine remembers nothing from one run to the next. What it must know, it reads again through the pointers of its message; what it learns, it writes in a tool that the next run reads.
-6. A Task that listens to writes says which ones, by the filters of its trigger: a questionnaire filled (`state.status` in `filled`), a session `done`, a field `present`. A corrected entry is written again and starts it again: a Task that files something must allow for it (a step that finds the entry already there with `existing`, a routine that checks before writing).
+6. A Task that listens to writes says which ones, by the filters of its trigger: a questionnaire filled (`state.status` in `filled`), a session `done`, a field `present`. A retouched entry is written again: a Task that files or makes something once sets `only_entering` on its trigger, so that only the entry starting to pass the filters starts it; one that must follow corrections leaves it out. An answer filed is corrected in the tool it was filed in, where it is read, not in the questionnaire.
 7. The simplest first: a tool alone, then a variable or a readout, then a Task, then a routine. Show what already exists before building.
 8. A zone is a subject of life; a group in it, a question or a rhythm: today, this week, the horizon and the reviews.
 
 ## Setups
 
-- **Filing a questionnaire.** A Task triggered by `entry_written` on the questionnaire, filtered on `state.status` in `filled`; one `create_entry` step per answer into the tool of its subject, each with `when` the answer is `present`, its date the one received.
+- **Filing a questionnaire.** A Task triggered by `entry_written` on the questionnaire, filtered on `state.status` in `filled`, `only_entering`; one `create_entry` step per answer into the tool of its subject, each with `when` the answer is `present`, its date the one received.
 - **One practice counted in two places.** A session `done`, or a journal entry of one kind (a filter on its choice field), starts a Task whose `create_entry` step writes an entry in a tracking that gathers these practices, at the date received.
 - **Being told when a threshold is crossed.** A Task without steps, its trigger a `condition` (“the week\'s hours > 45”), its end notified (`notify_end`).
 - **A reminder only if…** A Task whose `tool_operation` step calls `messages.execute` (send now) of a Messages tool, the step carrying `when` its condition holds. `when` exists on every step of a Task.

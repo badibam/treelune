@@ -61,7 +61,15 @@ object EntryTriggers {
             return emptyList()
         }
         return writes.filter { write ->
-            triggers.any { it.toolInstanceId == write.toolInstanceId && write.write in it.writes && EntryWrites.passes(context, write, it.filters) }
+            triggers.any { trigger ->
+                trigger.toolInstanceId == write.toolInstanceId && write.write in trigger.writes &&
+                    Triggers.heard(
+                        trigger.onlyEntering,
+                        // The copy before the write judged only when it decides: a trigger hearing only an entry that enters its filters
+                        passedBefore = if (trigger.onlyEntering) write.before?.let { EntryWrites.passes(context, write.toolInstanceId, it, trigger.filters) } else null,
+                        passesAfter = EntryWrites.passes(context, write, trigger.filters)
+                    )
+            }
         }
     }
 

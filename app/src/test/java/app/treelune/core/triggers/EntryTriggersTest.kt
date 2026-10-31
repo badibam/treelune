@@ -103,6 +103,35 @@ class EntryTriggersTest {
     }
 
     @Test
+    fun onlyEntering_hearsAnEntryStartingToPassTheFilters_notOneRetouchedThatAlreadyDid() = runBlocking {
+        val taskId = task(listOf(onWeight(listOf("created", "updated"), listOf(above80)) + (Triggers.ONLY_ENTERING to true)))
+        val light = weigh(79)
+        val heavy = weigh(82)
+        // Retouched, it already passed: nothing again
+        ok("tool_data.update", mapOf("id" to heavy, "data" to mapOf("value" to 83, "unit" to "kg")))
+        // Starting to pass with a change: heard
+        ok("tool_data.update", mapOf("id" to light, "data" to mapOf("value" to 81, "unit" to "kg")))
+
+        assertEquals(listOf(heavy, light), ended(taskId).sortedBy { it.startedAt }.map { (TaskRun.Received.of(it.receivedJson!!) as TaskRun.Received.Entry).entryId })
+    }
+
+    @Test
+    fun withoutOnlyEntering_aRetouchThatStillPasses_isHeardAgain() = runBlocking {
+        val taskId = task(listOf(onWeight(listOf("created", "updated"), listOf(above80))))
+        val heavy = weigh(82)
+        ok("tool_data.update", mapOf("id" to heavy, "data" to mapOf("value" to 83, "unit" to "kg")))
+
+        assertEquals(2, ended(taskId).size)
+    }
+
+    @Test
+    fun onlyEntering_besideDeletions_isRefused() = runBlocking {
+        val result = coordinator.processUserAction("tasks.create", mapOf("zone_id" to zoneId, "name" to "Listener",
+            "triggers" to listOf(onWeight(listOf("deleted")) + (Triggers.ONLY_ENTERING to true)), "steps" to emptyList<Any>()))
+        assertTrue(!result.isSuccess)
+    }
+
+    @Test
     fun aDeletedEntry_isJudgedAsItWas() = runBlocking {
         val light = weigh(70)
         val heavy = weigh(90)

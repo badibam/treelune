@@ -19,9 +19,10 @@ object EntryWrites {
 
     /**
      * An entry written: [row], its copy as written, or as it was for a deletion; [write], what
-     * became of it over the whole step — created then changed is created.
+     * became of it over the whole step — created then changed is created; [before], its copy as
+     * it was before the step, null when the step created it.
      */
-    data class EntryWrite(val entryId: String, val toolInstanceId: String, val write: Triggers.Write, val row: JSONObject)
+    data class EntryWrite(val entryId: String, val toolInstanceId: String, val write: Triggers.Write, val row: JSONObject, val before: JSONObject? = null)
 
     /**
      * What the step [stepId] wrote of the entries, one per entry, in the order they were first
@@ -37,7 +38,7 @@ object EntryWrites {
                 before == null && after == null -> null
                 before == null -> EntryWrite(id, after!!.getString("tool_instance_id"), Triggers.Write.CREATED, after)
                 after == null -> EntryWrite(id, before.getString("tool_instance_id"), Triggers.Write.DELETED, before)
-                else -> EntryWrite(id, after.getString("tool_instance_id"), Triggers.Write.UPDATED, after)
+                else -> EntryWrite(id, after.getString("tool_instance_id"), Triggers.Write.UPDATED, after, before)
             }
         }
     }
@@ -48,22 +49,25 @@ object EntryWrites {
      * was. A filter compared with a variable or a reading reads it now (FilterTerms). Filters that
      * no longer read (a field removed since, a term without a value) pass nothing.
      */
-    suspend fun passes(context: Context, write: EntryWrite, filters: JSONArray): Boolean {
+    suspend fun passes(context: Context, write: EntryWrite, filters: JSONArray): Boolean = passes(context, write.toolInstanceId, write.row, filters)
+
+    /** Whether [row], a copy of an entry of [toolInstanceId], passes [filters], judged as [passes] judges a write. */
+    suspend fun passes(context: Context, toolInstanceId: String, row: JSONObject, filters: JSONArray): Boolean {
         if (filters.length() == 0) return true
         val s = Strings.`for`(context = context)
-        val fields = ToolFields.filterable(write.toolInstanceId, context, s)
+        val fields = ToolFields.filterable(toolInstanceId, context, s)
         val given = try {
             app.treelune.core.fields.FilterTerms.resolved(filters, System.currentTimeMillis(), context) { s.shared(it) }
         } catch (e: IllegalStateException) {
-            app.treelune.core.utils.LogManager.service("Trigger filters on ${write.toolInstanceId} not read: ${e.message}", "WARN")
+            app.treelune.core.utils.LogManager.service("Trigger filters on ${toolInstanceId} not read: ${e.message}", "WARN")
             return false
         }
         val parsed = EntryFilters.parse(given, fields) { s.shared(it) } as? EntryFilters.Parsed.Ready ?: return false
-        val count = EntryFilters.count(write.toolInstanceId, parsed.filters, fields)
-        val columns = write.row.keys().asSequence().toList()
+        val count = EntryFilters.count(toolInstanceId, parsed.filters, fields)
+        val columns = row.keys().asSequence().toList()
         // The copy, under the table's name, which the query reads in its place
         val copy = "WITH tool_data AS (SELECT ${columns.joinToString { "? AS `$it`" }}) "
-        val args = columns.map { write.row.opt(it).takeUnless { value -> value == JSONObject.NULL } } + count.args
+        val args = columns.map { row.opt(it).takeUnless { value -> value == JSONObject.NULL } } + count.args
         return AppDatabase.getDatabase(context).toolDataDao().countFiltered(SimpleSQLiteQuery(copy + count.clause, args.toTypedArray())) > 0
     }
 }
