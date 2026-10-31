@@ -48,7 +48,14 @@ class ImportService(private val context: Context) : ExecutableService {
     /** Writing a file's lines: never with another import, the demo or a backup. */
     override val longOperations = setOf("apply")
 
-    override suspend fun execute(operation: String, params: JSONObject, token: CancellationToken): OperationResult {
+    /**
+     * Off the main thread: a file of thousands of lines is read cell by cell, which on the screen's
+     * thread freezes it until Android closes the app.
+     */
+    override suspend fun execute(operation: String, params: JSONObject, token: CancellationToken): OperationResult =
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { run(operation, params, token) }
+
+    private suspend fun run(operation: String, params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
         val toolInstanceId = params.optString("tool_instance_id").takeIf { it.isNotEmpty() }
             ?: return OperationResult.error(s.shared("service_error_missing_tool_instance_id"))

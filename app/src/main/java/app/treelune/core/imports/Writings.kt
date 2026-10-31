@@ -75,13 +75,15 @@ enum class Writing(val type: FieldType) {
         private val COMPACT = Regex("^(\\d{1,3})h(\\d{0,2})(?:min)?$")
         private val MINUTES = Regex("^(\\d{1,5})\\s*min$")
         private val DAY = Regex("^(\\d{1,2})[/.\\-](\\d{1,2})[/.\\-](\\d{4})$")
+        /** Compiled once: a file of thousands of lines reads it at every cell. */
+        private val NUMBER = Regex("^-?\\d+(\\.\\d+)?$")
         private val DAY_TIME = Regex("^(\\d{1,2})[/.\\-](\\d{1,2})[/.\\-](\\d{4})[ T](\\d{1,2}):(\\d{2})(?::(\\d{2}))?$")
 
         private fun number(c: String, decimal: Char): Double? {
             val other = if (decimal == '.') ',' else '.'
             if (other in c) return null
             val plain = c.replace(" ", "").replace(' '.toString(), "").replace(decimal, '.')
-            return if (Regex("^-?\\d+(\\.\\d+)?$").matches(plain)) plain.toDouble() else null
+            return if (NUMBER.matches(plain)) plain.toDouble() else null
         }
 
         private fun day(c: String, dayFirst: Boolean): LocalDate? = DAY.matchEntire(c)?.destructured?.let { (a, b, y) ->

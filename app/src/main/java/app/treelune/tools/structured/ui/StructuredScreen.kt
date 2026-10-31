@@ -254,9 +254,7 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
 
         if (openId == null) {
             val empty = loadedSheets.isEmpty() && search.isBlank() && JSONArray(filters).length() == 0
-            sheetsTable(shown, columns, sortKey, ascending, empty, s, context,
-                onSort = { key -> if (key == sortKey) ascending = !ascending else { sortKey = key; ascending = true } },
-                onOpen = { open(it) })
+            // Above the table: a table of thousands of lines would put them out of reach at its end
             item { app.treelune.core.ui.components.ButtonRow {
                 UI.ActionButton(action = ButtonAction.ADD, onClick = { open(null) })
                 // Always there; put forward while the table is empty, a new table being most often filled from a file
@@ -264,6 +262,9 @@ fun StructuredScreen(toolInstanceId: String, onNavigateBack: () -> Unit, onConfi
                     UI.Text(s.shared("import_action"), TextType.LABEL)
                 }
             } }
+            sheetsTable(shown, columns, sortKey, ascending, empty, s, context,
+                onSort = { key -> if (key == sortKey) ascending = !ascending else { sortKey = key; ascending = true } },
+                onOpen = { open(it) })
         } else if (editing) { item { Column(verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
             UI.FormField(label = s.shared("label_name"), value = draftName, onChange = { draftName = it }, fieldType = FieldType.TEXT, required = true)
             CustomFieldsInput(customFieldsMetadata = fields, values = draftExtra, onValuesChange = { draftExtra = it }, context = context, newEntry = openId == "")
