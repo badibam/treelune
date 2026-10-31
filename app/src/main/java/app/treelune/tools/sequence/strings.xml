@@ -215,6 +215,7 @@
     <string name="launch_timer">How long?</string>
     <string name="launch_media">What to play?</string>
     <string name="launch_media_none">No entry to choose from holds a sound or a video</string>
-    <string name="launch_media_last">Played last</string>
+    <string name="launch_media_last">Played last, on %1$s</string>
+    <string name="launch_media_played">Played on %1$s</string>
     <string name="timer_proposed">Timer · %1$s proposed</string>
 </resources>

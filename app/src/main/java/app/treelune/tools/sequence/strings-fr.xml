@@ -215,6 +215,7 @@
     <string name="launch_timer">Combien de temps ?</string>
     <string name="launch_media">Que jouer ?</string>
     <string name="launch_media_none">Aucune entrée où choisir n\'a de son ni de vidéo</string>
-    <string name="launch_media_last">Jouée en dernier</string>
+    <string name="launch_media_last">Jouée en dernier, le %1$s</string>
+    <string name="launch_media_played">Jouée le %1$s</string>
     <string name="timer_proposed">Minuteur · %1$s proposé</string>
 </resources>

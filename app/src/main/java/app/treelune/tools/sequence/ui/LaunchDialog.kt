@@ -59,8 +59,9 @@ private fun TimerDialog(config: JSONObject, s: StringsContext, onAnswer: (Map<St
 }
 
 /**
- * Which entry: those of the selection that hold a file in the field, in the sort's order; the one
- * this tool played last marked, and the list opened at it. A touch answers.
+ * Which entry: those of the selection that hold a file in the field, in the sort's order, each
+ * with when this tool last played it; the one it played last marked so, and the list opened at it.
+ * A touch answers.
  */
 @Composable
 private fun MediaDialog(config: JSONObject, history: List<SequenceEntry>, s: StringsContext, onAnswer: (Map<String, Any?>) -> Unit, onCancel: () -> Unit) {
@@ -76,10 +77,14 @@ private fun MediaDialog(config: JSONObject, history: List<SequenceEntry>, s: Str
             emptyList()
         }
     }
-    // The latest session that read an entry's file, among the history newest first
-    val lastPlayed = remember(history) {
-        history.sortedByDescending { it.timestamp }.firstNotNullOfOrNull { entry -> entry.steps?.firstNotNullOfOrNull { it.sourceEntry?.id } }
+    // When each entry was played last, by its id: the latest session that read its file
+    val playedAt = remember(history) {
+        history.sortedByDescending { it.timestamp }.flatMap { session ->
+            session.steps.orEmpty().mapNotNull { it.sourceEntry?.id }.distinct().map { it to session.timestamp }
+        }.distinctBy { it.first }.toMap()
     }
+    // The entry played last of all
+    val lastPlayed = remember(playedAt) { playedAt.maxByOrNull { it.value }?.key }
 
     UI.Dialog(type = DialogType.SELECTION, onConfirm = {}, onCancel = onCancel) {
         Column(verticalArrangement = Arrangement.spacedBy(UI.Space.S)) {
@@ -96,7 +101,10 @@ private fun MediaDialog(config: JSONObject, history: List<SequenceEntry>, s: Str
                         // An entry without a name says its date
                         UI.Text((entry["name"] as? String)?.takeIf { it.isNotBlank() }
                             ?: DateTimeFormatter.formatForDisplay((entry["timestamp"] as Number).toLong(), context), TextType.BODY)
-                        if (id == lastPlayed) UI.Text(s.tool("launch_media_last"), TextType.CAPTION)
+                        playedAt[id]?.let { at ->
+                            val played = DateTimeFormatter.formatForDisplay(at, context)
+                            UI.Text(s.tool(if (id == lastPlayed) "launch_media_last" else "launch_media_played").format(played), TextType.CAPTION)
+                        }
                     }
                 }
             }
