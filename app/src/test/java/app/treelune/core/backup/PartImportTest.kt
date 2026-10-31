@@ -186,9 +186,13 @@ class PartImportTest {
             imported.data!!["renamed"] as Map<String, String>
         )
 
+        // The readouts, which go with their zone when what they read goes too, a second time
+        val readouts = database.readoutDao().getAll().filter { !it.id.startsWith(DemoContent.PREFIX) }
+        assertEquals(database.readoutDao().getAll().count { it.id.startsWith(DemoContent.PREFIX) }, readouts.size)
+
         // What the import's window counts: the zones created, the elements, the entries
         assertEquals(selection.zones.size, imported.data!!["zones"])
-        assertEquals(selection.tools.size + selection.variables.size + selection.routines.size + selection.tasks.size, imported.data!!["elements"])
+        assertEquals(selection.tools.size + selection.variables.size + selection.routines.size + selection.tasks.size + readouts.size, imported.data!!["elements"])
         assertEquals(entriesBefore, imported.data!!["entries"])
 
         // Each Task a second time, off, under a new id; the APIs, held already, kept as they are;
