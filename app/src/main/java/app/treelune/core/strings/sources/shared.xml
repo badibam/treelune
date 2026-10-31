@@ -3154,4 +3154,12 @@
     <string name="readout_verbalize_delete">Deletion of the readout “%1$s”</string>
     <string name="readout_verbalize_read">Reading of readouts</string>
     <string name="readout_new_name">New readout</string>
+    <string name="piece_readout_name">Readout</string>
+    <string name="piece_readout_usage">A sentence whose values are read each time it shows (“Water: {done} / {expected}”), coloured by the first of its conditions that holds, to see at a glance what is left to do without remembering it. Besides its own tile, it rises to the places its config ticks: the head of its group or of its zone, its zone\'s tile on the home screen (a dot there when it signals and the tile holds no line), the head of its zone\'s group, the head of the home screen.</string>
+    <string name="piece_readout_screen">- A touch opens what it leads to: a tool, a zone, the home screen
+- A long touch opens its config
+- To keep only where it rises, set its own tile to Icon</string>
+    <string name="ai_read_user_readouts">All readouts read</string>
+    <string name="ai_read_user_readouts_of">\'%1$s\': readouts read</string>
+    <string name="ai_read_user_readout">A readout read</string>
 </resources>

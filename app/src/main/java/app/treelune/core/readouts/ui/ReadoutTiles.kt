@@ -203,7 +203,7 @@ fun ReadoutDots(readouts: List<ReadoutRow>) {
     val shown = readouts.map { readout -> androidx.compose.runtime.key(readout.id) { rememberReadoutShown(readout) } }
     val signalling = shown.filterNotNull().filter { it.signal }.take(MAX_DOTS)
     if (signalling.isEmpty()) return
-    Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+    Row(horizontalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
         signalling.forEach { UI.ItemIcon("circle", it.color, 8.dp) }
     }
 }

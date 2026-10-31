@@ -3154,4 +3154,12 @@
     <string name="readout_verbalize_delete">Suppression du Repère « %1$s »</string>
     <string name="readout_verbalize_read">Lecture des Repères</string>
     <string name="readout_new_name">Nouveau Repère</string>
+    <string name="piece_readout_name">Repère</string>
+    <string name="piece_readout_usage">Une phrase dont les valeurs sont lues chaque fois qu\'elle s\'affiche (« Eau : {fait} / {attendu} »), colorée par la première de ses conditions qui est vraie, pour voir d\'un coup d\'œil ce qui reste à faire sans avoir à s\'en souvenir. En plus de sa tuile propre, il remonte aux endroits que sa config coche : la tête de son groupe ou de sa zone, la tuile de sa zone à l\'accueil (un point quand il signale et que la tuile n\'a pas la place d\'une ligne), la tête du groupe de sa zone, la tête de l\'accueil.</string>
+    <string name="piece_readout_screen">- Un toucher ouvre ce vers quoi il mène : un outil, une zone, l\'accueil
+- Un appui long ouvre sa config
+- Pour ne le garder que là où il remonte, mets sa tuile propre en Icône</string>
+    <string name="ai_read_user_readouts">Tous les Repères lus</string>
+    <string name="ai_read_user_readouts_of">« %1$s » : Repères lus</string>
+    <string name="ai_read_user_readout">Un Repère lu</string>
 </resources>
