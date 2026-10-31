@@ -2123,8 +2123,6 @@
     <string name="ai_read_user_schema">Schema read</string>
     <string name="ai_read_user_schema_of">'%1$s': schema read</string>
     <string name="ai_read_user_tool_config">'%1$s': configuration read</string>
-    <string name="ai_read_user_tools">All tools read</string>
-    <string name="ai_read_user_tools_of">'%1$s': tools read</string>
     <string name="ai_read_user_zone_config">Zone '%1$s': configuration read</string>
     <string name="ai_read_user_zones">Zones read</string>
     <string name="ai_read_user_variables">Variables read</string>
@@ -3183,4 +3181,6 @@
     <string name="grid_mode_title">Arranging</string>
     <string name="grid_mode_hint">Touch a tile to move it</string>
     <string name="grid_mode_done">Done</string>
+    <string name="ai_read_user_contents">Contents of the zones read</string>
+    <string name="ai_read_user_contents_of">\'%1$s\': contents read</string>
 </resources>

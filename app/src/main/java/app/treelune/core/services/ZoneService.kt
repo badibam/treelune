@@ -50,6 +50,10 @@ class ZoneService(private val context: Context) : ExecutableService {
                 "delete" -> handleDelete(params, token)
                 "get" -> handleGet(params, token)
                 "list" -> handleList(params, token)
+                "contents" -> OperationResult.success(mapOf(
+                    "zone_groups" to zoneGroups(),
+                    "zones" to app.treelune.core.grid.ZoneContents(context).read(zoneGroups(), params.optString("zone_id").ifEmpty { null })
+                ))
                 "place" -> handlePlace(params)
                 "place_section" -> handlePlaceSection(params)
                 else -> OperationResult.error(s.shared("service_error_unknown_operation").format(operation))
@@ -477,7 +481,8 @@ class ZoneService(private val context: Context) : ExecutableService {
     private suspend fun handleList(params: JSONObject, token: CancellationToken): OperationResult {
         if (token.isCancelled) return OperationResult.cancelled()
         
-        val zones = zoneDao.getAllZones()
+        // In the home screen's order: its groups', the ungrouped last, each in reading order
+        val zones = app.treelune.core.grid.ZoneContents.ordered(zoneDao.getAllZones(), zoneGroups())
         if (token.isCancelled) return OperationResult.cancelled()
 
         val zoneData = zones.map { zone ->

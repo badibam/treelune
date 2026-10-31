@@ -556,10 +556,9 @@ class CommandExecutor(private val context: Context) {
         return when ("${command.resource}.${command.operation}") {
             "schemas.get" -> tool?.let { line("schema_of", it) } ?: line("schema")
             "tools.get" -> line("tool_config", tool ?: throw IllegalStateException("tools.get without a tool_instance_id"))
-            "tools.list" -> zone?.let { line("tools_of", it) } ?: line("tools")
-            "tools.list_all" -> line("tools")
             "zones.get" -> line("zone_config", zone ?: throw IllegalStateException("zones.get without a zone_id"))
             "zones.list" -> line("zones")
+            "zones.contents" -> zone?.let { line("contents_of", it) } ?: line("contents")
             "variables.list" -> line("variables_of", zone ?: "")
             "variables.list_all" -> line("variables")
             "readings.read" -> line("reading", params["variable"] as? String ?: "")
@@ -675,16 +674,6 @@ class CommandExecutor(private val context: Context) {
                             ?: throw IllegalStateException("tools.get result without tool_instance.name")
                         "Configuration for tool '$toolName'"
                     }
-                    "list" -> {
-                        val zoneId = command.params["zone_id"] as? String
-                        if (zoneId != null) {
-                            val zoneName = resolveZoneName(zoneId)
-                            "Tool instances in zone '$zoneName'"
-                        } else {
-                            "All tool instances"
-                        }
-                    }
-                    "list_all" -> "All tool instances"
                     else -> ""
                 }
             }
@@ -698,6 +687,7 @@ class CommandExecutor(private val context: Context) {
                         "Configuration for zone '$zoneName'"
                     }
                     "list" -> "All zones"
+                    "contents" -> (command.params["zone_id"] as? String)?.let { "Contents of zone '${resolveZoneName(it)}'" } ?: "Contents of every zone"
                     else -> ""
                 }
             }

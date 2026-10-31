@@ -298,13 +298,13 @@ Retrieves the configuration of a tool.
 **Parameters**:
 
 - `id` (string, **required**): the tool_instance_id]]></string>
-    <string name="ai_command_tool_instances"><![CDATA[### TOOL_INSTANCES
+    <string name="ai_command_zone_contents"><![CDATA[### ZONE_CONTENTS
 
-Lists the tools.
+What a zone holds, to understand its organisation before changing it or adding to it: its sections in the zone\'s order, the ungrouped one last, each with every tile of its grid in reading order (row by row, left to right) — tools, variables, routines, Tasks, readouts —, each with its `kind`, `id`, `name`, `display_mode`, `icon_name`, `icon_color` and `texture`; a tool also with its `tooltype`, its description and its extra fields (name, label, type), a variable with the name formulas write; then the zone\'s events. Without `zone_id`, every zone, in the home screen\'s order. A tile\'s whole definition is read with its own command (TOOL_CONFIG, VARIABLES, ROUTINE_CONFIG, TASK_CONFIG, READOUTS).
 
 **Parameters**:
 
-- `zone_id` (string, optional): the tools of that zone alone]]></string>
+- `zone_id` (string, optional): that zone alone]]></string>
     <string name="ai_command_zone_config"><![CDATA[### ZONE_CONFIG
 
 Retrieves the configuration of a zone.
@@ -314,16 +314,9 @@ Retrieves the configuration of a zone.
 - `id` (string, **required**): the zone_id]]></string>
     <string name="ai_command_zones"><![CDATA[### ZONES
 
-Lists every zone.
+Lists every zone, in the home screen\'s order: its groups\', the ungrouped last, each in reading order.
 
 **Parameters**: none]]></string>
-    <string name="ai_command_app_state"><![CDATA[### APP_STATE
-
-Retrieves the whole structure of the application: the zones, the tools of each, the variables and the routines.
-
-**Parameters**: none
-
-Use it to learn which zones exist and which tools, variables and routines they hold. For the complete configuration of one tool, use TOOL_CONFIG.]]></string>
     <string name="ai_command_variables"><![CDATA[### VARIABLES
 
 Lists the variables: named values the app computes from the entries each time they are read (a daily calorie total, a balance, a goal written once). Each comes with its zone, its formula written with the names it reads, its terms and its `field` (type and settings of its value), never its value.
@@ -347,7 +340,7 @@ Returns `values`, one per instant in the same order: `{ "at", "value" }`, or `{ 
 ```]]></string>
     <string name="ai_command_routines"><![CDATA[### ROUTINES
 
-Lists the routines: each with its id, name, zone, group, whether it is on, and its schedule in a sentence, never its message. APP_STATE gives the same list; this one also shows a routine created during the session.
+Lists the routines: each with its id, name, zone, group, whether it is on, and its schedule in a sentence, never its message. The app\'s overview at the start gives the same list; this one also shows a routine created during the session.
 
 **Parameters**:
 

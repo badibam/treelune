@@ -2123,8 +2123,6 @@
     <string name="ai_read_user_schema">Schéma lu</string>
     <string name="ai_read_user_schema_of">« %1$s » : schéma lu</string>
     <string name="ai_read_user_tool_config">« %1$s » : configuration lue</string>
-    <string name="ai_read_user_tools">Tous les outils lus</string>
-    <string name="ai_read_user_tools_of">« %1$s » : outils lus</string>
     <string name="ai_read_user_zone_config">Zone « %1$s » : configuration lue</string>
     <string name="ai_read_user_zones">Zones lues</string>
     <string name="ai_read_user_variables">Variables lues</string>
@@ -3183,4 +3181,6 @@
     <string name="grid_mode_title">Organisation</string>
     <string name="grid_mode_hint">Touche une tuile pour la déplacer</string>
     <string name="grid_mode_done">Terminer</string>
+    <string name="ai_read_user_contents">Contenu des zones lu</string>
+    <string name="ai_read_user_contents_of">« %1$s » : contenu lu</string>
 </resources>

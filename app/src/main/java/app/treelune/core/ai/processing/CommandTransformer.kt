@@ -58,20 +58,18 @@ object CommandTransformer {
 
         for ((index, command) in commands.withIndex()) {
             try {
-                // APP_STATE is special: generates multiple executable commands
-                if (command.type == "APP_STATE") {
-                    val appStateCommands = transformAppStateCommand(command)
-                    executableCommands.addAll(appStateCommands)
-                    continue
-                }
-
                 val executableCommand = when (command.type) {
                     "SCHEMA" -> transformSchemaCommand(command)
                     "TOOL_CONFIG" -> transformToolConfigCommand(command)
                     "TOOL_DATA" -> transformToolDataCommand(command, context, s, reference)
                     "ZONE_CONFIG" -> transformZoneConfigCommand(command)
                     "ZONES" -> transformZonesCommand(command)
-                    "TOOL_INSTANCES" -> transformToolInstancesCommand(command)
+                    // What a zone holds, or every zone: its sections, each tile, its events
+                    "ZONE_CONTENTS" -> ExecutableCommand(
+                        resource = "zones",
+                        operation = "contents",
+                        params = command.params.filterKeys { it == "zone_id" }.mapValues { it.value!! }
+                    )
                     "CURRENT_DATETIME" -> transformCurrentDatetimeCommand(command)
                     // The design guide (ai_design_guide), the same text for every caller
                     "DESIGN_GUIDE" -> ExecutableCommand(resource = "app_config", operation = "design_guide", params = emptyMap())
@@ -158,7 +156,7 @@ object CommandTransformer {
                     }
                 }
 
-                if (executableCommand == null && command.type != "APP_STATE") {
+                if (executableCommand == null) {
                     // Command returned null (validation failed inside transform function)
                     // Error already logged by the specific transform function
                     errors.add(s.shared("ai_error_command_prefix").format(index, command.type, s.shared("ai_error_command_invalid_params")))
@@ -180,43 +178,6 @@ object CommandTransformer {
     // ========================================================================================
     // Transformation Methods
     // ========================================================================================
-
-    /**
-     * Transform APP_STATE command to multiple executable commands
-     * Returns zones + tool instances for complete application structure
-     *
-     * By default, returns minimal tool instance data (without config_json) to save tokens.
-     * Use include_config parameter to include full configuration.
-     */
-    private fun transformAppStateCommand(command: DataCommand): List<ExecutableCommand> {
-        LogManager.aiPrompt("transformAppStateCommand() - generating zones.list + tools.list_all + variables.list_all + routines.list_all", "VERBOSE")
-
-        // Read include_config parameter (default false for minimal snapshot)
-        val includeConfig = command.params["include_config"] as? Boolean ?: false
-
-        return listOf(
-            ExecutableCommand(
-                resource = "zones",
-                operation = "list",
-                params = emptyMap()
-            ),
-            ExecutableCommand(
-                resource = "tools",
-                operation = "list_all",
-                params = mapOf("include_config" to includeConfig)
-            ),
-            ExecutableCommand(
-                resource = "variables",
-                operation = "list_all",
-                params = emptyMap()
-            ),
-            ExecutableCommand(
-                resource = "routines",
-                operation = "list_all",
-                params = emptyMap()
-            )
-        )
-    }
 
     /**
      * A variable read at instants: `variable` (its name) and `at`, required, each an ISO 8601
@@ -389,27 +350,6 @@ object CommandTransformer {
         )
     }
 
-    private fun transformToolInstancesCommand(command: DataCommand): ExecutableCommand? {
-        LogManager.aiPrompt("transformToolInstancesCommand() - routing to tools service", "VERBOSE")
-
-        // If zone_id present: filter by zone (tools.list)
-        // If no zone_id: return all tool instances (tools.list_all)
-        val zoneId = command.params["zone_id"] as? String
-
-        return if (!zoneId.isNullOrEmpty()) {
-            ExecutableCommand(
-                resource = "tools",
-                operation = "list",
-                params = mapOf("zone_id" to zoneId)
-            )
-        } else {
-            ExecutableCommand(
-                resource = "tools",
-                operation = "list_all",
-                params = emptyMap()
-            )
-        }
-    }
 
     /**
      * ICONS with neither categories nor query is the overview; with either, a search. The

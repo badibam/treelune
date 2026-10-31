@@ -128,6 +128,8 @@ object AccessRules {
             "zones" -> when (operation) {
                 "list" -> listOf(Reach.Free)
                 "get" -> listOf(zoneAt("zone_id", AccessLevel.READ))
+                // A zone's contents read with it; every zone's, free, as the lists of tools and variables
+                "contents" -> listOf(if (text("zone_id").isNullOrEmpty()) Reach.Free else zoneAt("zone_id", AccessLevel.READ))
                 "create" -> listOf(Reach.App)
                 "update", "delete" -> listOf(zoneAt("zone_id", AccessLevel.FULL))
                 else -> listOf(Reach.Unknown("$resource.$operation"))

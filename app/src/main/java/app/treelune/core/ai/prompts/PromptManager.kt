@@ -507,13 +507,14 @@ object PromptManager {
         return s.shared("ai_prompt_access_intro") + "\n" + lines.joinToString("\n") + "\n\n" + s.shared("ai_prompt_access_always_sent")
     }
 
-    /** Level 3 as it stands now: the zones and the tools, for an outside AI's context. */
+    /** Level 3 as it stands now: the zones and their contents, for an outside AI's context. */
     suspend fun buildAppStateContent(context: Context): String =
         formatSnapshotContent(generateAppStateSnapshot(context), context)
 
     /**
-     * Generate APP_STATE snapshot (zones + tool instances + routines)
-     * Called once on first message to capture initial state
+     * The snapshot of the app taken at a conversation's first message: the home screen's groups,
+     * every zone with its contents (ZoneContents: its sections, every tile of each, its events),
+     * the routines each in a line, the identities and the AI providers.
      *
      * @return JSON string containing snapshot with timestamp
      */
@@ -521,45 +522,17 @@ object PromptManager {
         val coordinator = Coordinator(context)
         val timestamp = System.currentTimeMillis()
 
-        // Execute APP_STATE command (uses include_config: false by default)
-        val appStateCommand = DataCommand(
-            id = "app_state_snapshot",
-            type = "APP_STATE",
-            params = mapOf("include_config" to false),
-            isRelative = false
-        )
-
-        val userCommandProcessor = UserCommandProcessor(context)
-        // APP_STATE carries no period, so the reference never applies
-        val executable = userCommandProcessor.processCommands(listOf(appStateCommand), System.currentTimeMillis())
-
-        // Execute commands to get zones + tool instances
-        val result = coordinator.processUserAction(executable[0].resource + "." + executable[0].operation, executable[0].params)
-        val zonesData = result.data?.get("zones") as? List<*> ?: emptyList<Any>()
-
-        val result2 = coordinator.processUserAction(executable[1].resource + "." + executable[1].operation, executable[1].params)
-        val toolInstancesData = result2.data?.get("tool_instances") as? List<*> ?: emptyList<Any>()
-
-        // Build snapshot JSON - convert Kotlin collections to JSONArray manually
+        // Every zone with what it holds, in the home screen's order
+        val contents = coordinator.processUserAction("zones.contents", emptyMap())
         val zonesArray = org.json.JSONArray()
-        zonesData.forEach { zone ->
-            if (zone is Map<*, *>) {
-                @Suppress("UNCHECKED_CAST")
-                zonesArray.put(app.treelune.core.utils.JsonUtils.toJSONObject(zone as Map<String, Any?>))
-            }
-        }
-
-        val toolInstancesArray = org.json.JSONArray()
-        toolInstancesData.forEach { toolInstance ->
-            if (toolInstance is Map<*, *>) {
-                @Suppress("UNCHECKED_CAST")
-                toolInstancesArray.put(app.treelune.core.utils.JsonUtils.toJSONObject(toolInstance as Map<String, Any?>))
-            }
+        (contents.data?.get("zones") as? List<*> ?: emptyList<Any>()).forEach { zone ->
+            @Suppress("UNCHECKED_CAST")
+            zonesArray.put(app.treelune.core.utils.JsonUtils.toJSONObject(zone as Map<String, Any?>))
         }
 
         // The routines, each in a line (RoutineSchemas.listed)
         val s = Strings.`for`(context = context)
-        val result3 = coordinator.processUserAction(executable[3].resource + "." + executable[3].operation, executable[3].params)
+        val result3 = coordinator.processUserAction("routines.list_all", emptyMap())
         val routinesArray = org.json.JSONArray()
         (result3.data?.get("routines") as? List<*> ?: emptyList<Any>()).forEach { routine ->
             routinesArray.put(JSONObject(RoutineSchemas.listed(routine as Map<*, *>, s)))
@@ -587,7 +560,6 @@ object PromptManager {
             put("timestamp", timestamp)
             put("zone_groups", zoneGroups)
             put("zones", zonesArray)
-            put("tool_instances", toolInstancesArray)
             put("routines", routinesArray)
             put("identities", identities)
             put("ai_providers", providers)
@@ -607,7 +579,6 @@ object PromptManager {
         val snapshotObj = org.json.JSONObject(snapshot)
         val timestamp = snapshotObj.getLong("timestamp")
         val zones = snapshotObj.getJSONArray("zones")
-        val toolInstances = snapshotObj.getJSONArray("tool_instances")
 
         // ISO 8601 with its offset, in the app's timezone, like every date the AI reads
         val dateStr = app.treelune.core.utils.DateTimeConverter.timestampToISO(
@@ -635,11 +606,14 @@ object PromptManager {
         sb.appendLine(zones.toString(2))
         sb.appendLine("```")
         sb.appendLine()
-        sb.appendLine("### ${s.shared("ai_prompt_level3_tools_title")}")
-        sb.appendLine()
-        sb.appendLine("```json")
-        sb.appendLine(toolInstances.toString(2))
-        sb.appendLine("```")
+        // A snapshot stored before the zones held their contents lists the tools apart
+        snapshotObj.optJSONArray("tool_instances")?.let { toolInstances ->
+            sb.appendLine("### ${s.shared("ai_prompt_level3_tools_title")}")
+            sb.appendLine()
+            sb.appendLine("```json")
+            sb.appendLine(toolInstances.toString(2))
+            sb.appendLine("```")
+        }
         // A snapshot stored before the routines were part of it has none to show
         snapshotObj.optJSONArray("routines")?.let { routines ->
             sb.appendLine()
