@@ -339,7 +339,8 @@ private fun ReceivedCard(
                 app.treelune.core.ui.components.ButtonRow {
                     UI.Button(type = ButtonType.DEFAULT, size = Size.S, onClick = onToggleRead) {
                         UI.Text(
-                            if (occurrence.read) s.tool("action_mark_unread") else s.tool("action_mark_read"),
+                            // Unread, the message waits to be taken into account: "OK" says it is
+                            if (occurrence.read) s.tool("action_mark_unread") else s.shared("action_ok"),
                             TextType.LABEL
                         )
                     }

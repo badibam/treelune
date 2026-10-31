@@ -107,7 +107,6 @@
     <string name="verbalize_execute">Immediate sending of the message</string>
 
     <!-- ACTIONS - Specific actions -->
-    <string name="action_mark_read">Mark as read</string>
     <string name="action_mark_unread">Mark as unread</string>
     <string name="action_archive">Archive</string>
     <string name="action_unarchive">Unarchive</string>
