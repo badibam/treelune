@@ -3095,7 +3095,8 @@
     <string name="piece_alert_screen">- Nothing to touch: the notification comes by itself when the condition becomes true\n- The Task\'s page says whether its condition is true now</string>
     <string name="piece_event_name">Event</string>
     <string name="piece_event_usage">A named signal that connects pieces, even from one zone to another: a Task, a tool\'s reminder or a routine\'s end emits it, and the Tasks and routines that listen to it start, receiving the values it carries.</string>
-    <string name="piece_event_screen">- Nothing to touch: the events are listed on their zone\'s screen\n- What emits one and what listens to it are set in their configs</string>
+    <string name="piece_event_screen">- Set in their zone\'s config, under Events
+- What emits one and what listens to it are set in their configs</string>
     <string name="piece_api_name">API</string>
     <string name="piece_api_usage">A web service the app calls, declared once (its address, its inputs, what to read in its answer); a Task\'s step calls it, and the next steps can write its answer into a tool.</string>
     <string name="piece_api_screen">- Declared in Settings › APIs, where a button tries it</string>
@@ -3171,4 +3172,5 @@
     <string name="readout_core">Core</string>
     <string name="readout_schema_core">The short form, shown where room is short (a zone\'s tile, its own tile beside its name), each of its values written {name}: \"{done} / {expected}\"</string>
     <string name="readout_error_core_place">The core is the short form itself: {} places it in the sentence, not in itself</string>
+    <string name="event_none">None yet: an event is made here, or where a Task or a routine chooses one (« New event… »).</string>
 </resources>

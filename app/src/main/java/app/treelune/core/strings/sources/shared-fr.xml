@@ -3095,7 +3095,8 @@
     <string name="piece_alert_screen">- Rien à toucher : la notification arrive d\'elle-même quand la condition devient vraie\n- La page de la Tâche dit si sa condition est vraie maintenant</string>
     <string name="piece_event_name">Événement</string>
     <string name="piece_event_usage">Un signal nommé qui relie des pièces, même d\'une zone à l\'autre : une Tâche, le rappel d\'un outil ou la fin d\'une routine l\'émet, et les Tâches et routines qui l\'écoutent partent, avec les valeurs qu\'il porte.</string>
-    <string name="piece_event_screen">- Rien à toucher : les événements sont listés sur l\'écran de leur zone\n- Ce qui en émet un et ce qui l\'écoute se règlent dans leur config</string>
+    <string name="piece_event_screen">- Se règlent dans la config de leur zone, sous Événements
+- Ce qui en émet un et ce qui l\'écoute se règlent dans leur config</string>
     <string name="piece_api_name">API</string>
     <string name="piece_api_usage">Un service du web que l\'app appelle, déclaré une fois (son adresse, ses entrées, ce qu\'il faut lire dans sa réponse) ; une étape de Tâche l\'appelle, et les étapes suivantes peuvent écrire sa réponse dans un outil.</string>
     <string name="piece_api_screen">- Déclarée dans Réglages › API, où un bouton l\'essaie</string>
@@ -3171,4 +3172,5 @@
     <string name="readout_core">Cœur</string>
     <string name="readout_schema_core">La forme courte, montrée là où la place manque (la tuile d\'une zone, sa tuile propre à côté de son nom), chacune de ses valeurs écrite {nom} : « {fait} / {attendu} »</string>
     <string name="readout_error_core_place">Le cœur est lui-même la forme courte : {} le place dans la phrase, pas en lui-même</string>
+    <string name="event_none">Aucun pour l\'instant : un événement se crée ici, ou là où une Tâche ou une routine en choisit un (« Nouvel événement… »).</string>
 </resources>

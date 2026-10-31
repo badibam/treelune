@@ -137,6 +137,9 @@ fun CreateZoneScreen(
 
         SettingsForm(nodes, settings, { settings = it }, context, editors, origins = origins, pages = pages)
 
+        // Its events, wiring set up with its settings, each written at once; a zone being created has none yet
+        if (pages.atRoot && existingZone != null) app.treelune.core.events.ui.EventsSection(existingZone.id)
+
         // The actions on the root page alone: under it, the back arrow goes up (SettingsPages)
         if (pages.atRoot) UI.FormActions {
             UI.ActionButton(

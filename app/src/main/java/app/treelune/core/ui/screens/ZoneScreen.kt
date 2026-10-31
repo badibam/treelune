@@ -63,8 +63,6 @@ fun ZoneScreen(zone: Zone) {
     
     // The page's add menu open, under its « + »: what is made there chooses its group in its own form
     var adding by rememberSaveable { mutableStateOf(false) }
-    // A new event's form open, from the add menu
-    var creatingEvent by rememberSaveable { mutableStateOf(false) }
 
     val waiting = app.treelune.core.ui.LocalWaiting.current
     // A tool opened on top of the zone, on the oldest entry that waits when its tile was touched with one
@@ -225,8 +223,6 @@ fun ZoneScreen(zone: Zone) {
         // The identity its tile opens a conversation with, under its header
         val identities = app.treelune.core.identities.ui.rememberIdentities()
         identities?.firstOrNull { it.id == zone.identity_id }?.let { app.treelune.core.identities.ui.IdentityTile(it) }
-        // Its events, one card naming them, under its identity
-        app.treelune.core.events.ui.EventsCard(zone.id)
         // The readouts raised to its head, in the order of its groups
         if (loadedOnce) app.treelune.core.readouts.ui.ReadoutLines(
             app.treelune.core.readouts.ui.risingTo(readouts, app.treelune.core.readouts.ReadoutSettings.Place.ZONE_HEAD, listOf(zone.id)) { zoneToolGroups })
@@ -249,7 +245,6 @@ fun ZoneScreen(zone: Zone) {
                     onCreateRoutine = { adding = false; createRoutine() },
                     onCreateTask = { adding = false; createTask() },
                     onCreateReadout = { adding = false; Navigator.push(Place.ReadoutConfig(zone.id, null)) },
-                    onCreateEvent = { adding = false; creatingEvent = true },
                     onDuplicate = { type -> adding = false; duplicating = type },
                     context = context
                 )
@@ -313,8 +308,6 @@ fun ZoneScreen(zone: Zone) {
         }
     }
 
-    // A new event of the zone, its form opened from the add menu
-    if (creatingEvent) app.treelune.core.events.ui.EventForm(zone.id, null, app.treelune.core.events.ui.newEvent()) { creatingEvent = false }
 
     // A tool, a routine or a Task copied from any zone, without a group
     duplicating?.let { type ->
@@ -371,7 +364,7 @@ private class AddChoice(val id: String, val icon: String, val label: String, val
 /**
  * What can be added to the zone [zoneName], titled by it: the tool types by family (ToolFamily,
  * each type saying its own, in the order the app finds them within it), then a variable, a
- * routine, a Task, a readout and an event, then a copy of a tool, a routine or a Task. Each a tile of the
+ * routine, a Task and a readout, then a copy of a tool, a routine or a Task. Each a tile of the
  * settings' kind, an icon and a name two cells wide, two a row, one under the other in one column.
  */
 @Composable
@@ -382,7 +375,6 @@ private fun AddMenu(
     onCreateRoutine: () -> Unit,
     onCreateTask: () -> Unit,
     onCreateReadout: () -> Unit,
-    onCreateEvent: () -> Unit,
     onDuplicate: (app.treelune.core.ui.selectors.DuplicateType) -> Unit,
     context: android.content.Context
 ) {
@@ -397,8 +389,7 @@ private fun AddMenu(
             AddChoice("variable", "variable", s.shared("variable_display_name"), onCreateVariable),
             AddChoice("routine", "calendar-clock", s.shared("routine_display_name"), onCreateRoutine),
             AddChoice("task", app.treelune.core.tasks.TaskSettings.DEFAULT_ICON, s.shared("task_display_name"), onCreateTask),
-            AddChoice("readout", app.treelune.core.readouts.ReadoutSettings.DEFAULT_ICON, s.shared("readout_display_name"), onCreateReadout),
-            AddChoice("event", "zap", s.shared("event_display_name"), onCreateEvent)
+            AddChoice("readout", app.treelune.core.readouts.ReadoutSettings.DEFAULT_ICON, s.shared("readout_display_name"), onCreateReadout)
         ),
         s.shared("add_section_copy") to listOf(
             AddChoice("copy_tool", "copy", s.shared("add_copy_tool")) { onDuplicate(app.treelune.core.ui.selectors.DuplicateType.TOOL) },

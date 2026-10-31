@@ -27,7 +27,6 @@ import app.treelune.core.strings.StringsContext
 import app.treelune.core.ui.ButtonAction
 import app.treelune.core.ui.ButtonDisplay
 import app.treelune.core.ui.ButtonType
-import app.treelune.core.ui.CardType
 import app.treelune.core.ui.DialogType
 import app.treelune.core.ui.Size
 import app.treelune.core.ui.TextType
@@ -40,16 +39,18 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * The events of a zone (docs/CORE.md, « Events »), under its identity: one concise card naming
- * them all, and one button opening their editor. Nothing while the zone has none: an event is
- * then made from the « + » of its page, or where it is chosen (« New event… » of the browser).
+ * The events of a zone (docs/CORE.md, « Events »), a section of its config: wiring, set up once,
+ * not looked at day to day on its page. Each named with its description and its values, opened
+ * to change it or deleted, and a new one; each written at once, apart from the zone's settings.
  */
 @Composable
-fun EventsCard(zoneId: String) {
+fun EventsSection(zoneId: String) {
     val context = LocalContext.current
     val s = remember { Strings.`for`(context = context) }
+    val scope = rememberCoroutineScope()
     var events by remember { mutableStateOf<List<Map<*, *>>>(emptyList()) }
-    var editing by remember { mutableStateOf(false) }
+    // The event a form is open on: its id (null for a new one) and what it holds
+    var open by remember { mutableStateOf<Pair<String?, JSONObject>?>(null) }
     suspend fun load() {
         val result = Coordinator(context).processUserAction("events.list", mapOf("zone_id" to zoneId))
         events = (result.data?.get("events") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>()
@@ -58,57 +59,31 @@ fun EventsCard(zoneId: String) {
         load()
         DataChangeNotifier.changes.collect { if (it is DataChangeEvent.ZonesChanged) load() }
     }
-    if (events.isEmpty()) return
-    UI.Card(type = CardType.DEFAULT) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(UI.Space.M),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(UI.Space.M)
-        ) {
-            UI.ItemIcon("zap", null)
-            Column(modifier = Modifier.weight(1f)) {
-                UI.Text(text = s.shared("event_card_title"), type = TextType.LABEL)
-                UI.Text(text = events.joinToString(" · ") { it["name"] as String }, type = TextType.BODY)
-            }
-            UI.ActionButton(action = ButtonAction.EDIT, display = ButtonDisplay.ICON, onClick = { editing = true })
-        }
-    }
-    if (editing) EventsEditor(zoneId, events, s) { editing = false }
-}
-
-/** The events of [zoneId], each opened to change it or deleted, and a new one: closed by [onClose]. */
-@Composable
-private fun EventsEditor(zoneId: String, events: List<Map<*, *>>, s: StringsContext, onClose: () -> Unit) {
-    // The event a form is open on: its id (null for a new one) and what it holds
-    var open by remember { mutableStateOf<Pair<String?, JSONObject>?>(null) }
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    UI.Dialog(type = DialogType.INFO, onConfirm = onClose, onCancel = onClose) {
-        Column(modifier = Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
-            UI.Text(text = s.shared("event_card_title"), type = TextType.TITLE)
-            events.forEach { event ->
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        UI.Text(text = event["name"] as String, type = TextType.BODY)
-                        (event[EventValues.DESCRIPTION] as? String)?.let { UI.Text(text = it, type = TextType.CAPTION) }
-                        UI.Text(text = summary(event["values"] as? List<*>, s), type = TextType.CAPTION)
+    Column(verticalArrangement = Arrangement.spacedBy(UI.Space.M)) {
+        UI.Text(text = s.shared("event_card_title"), type = TextType.HEADING)
+        if (events.isEmpty()) UI.Text(text = s.shared("event_none"), type = TextType.CAPTION)
+        events.forEach { event ->
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(UI.Space.S)) {
+                Column(modifier = Modifier.weight(1f)) {
+                    UI.Text(text = event["name"] as String, type = TextType.BODY)
+                    (event[EventValues.DESCRIPTION] as? String)?.let { UI.Text(text = it, type = TextType.CAPTION) }
+                    UI.Text(text = summary(event["values"] as? List<*>, s), type = TextType.CAPTION)
+                }
+                UI.ActionButton(action = ButtonAction.EDIT, display = ButtonDisplay.ICON, size = Size.S, onClick = {
+                    open = event["id"] as String to JSONObject().put(EventValues.NAME, event["name"]).put(EventValues.VALUES, JsonUtils.toJSONArray(event["values"] as? List<*> ?: emptyList<Any>()))
+                        .apply { (event[EventValues.DESCRIPTION] as? String)?.let { put(EventValues.DESCRIPTION, it) } }
+                })
+                UI.ActionButton(action = ButtonAction.DELETE, display = ButtonDisplay.ICON, size = Size.S, requireConfirmation = true, onClick = {
+                    scope.launch {
+                        val result = Coordinator(context).processUserAction("events.delete", mapOf("event_id" to event["id"]))
+                        if (!result.isSuccess) UI.Toast(result.error ?: s.shared("error_unknown"))
                     }
-                    UI.ActionButton(action = ButtonAction.EDIT, display = ButtonDisplay.ICON, size = Size.S, onClick = {
-                        open = event["id"] as String to JSONObject().put(EventValues.NAME, event["name"]).put(EventValues.VALUES, JsonUtils.toJSONArray(event["values"] as? List<*> ?: emptyList<Any>()))
-                            .apply { (event[EventValues.DESCRIPTION] as? String)?.let { put(EventValues.DESCRIPTION, it) } }
-                    })
-                    UI.ActionButton(action = ButtonAction.DELETE, display = ButtonDisplay.ICON, size = Size.S, requireConfirmation = true, onClick = {
-                        scope.launch {
-                            val result = Coordinator(context).processUserAction("events.delete", mapOf("event_id" to event["id"]))
-                            if (!result.isSuccess) UI.Toast(result.error ?: s.shared("error_unknown"))
-                        }
-                    })
-                }
+                })
             }
-            Box {
-                UI.Button(type = ButtonType.SECONDARY, onClick = { open = null to newEvent() }) {
-                    UI.Text(s.shared("event_new"), TextType.BODY)
-                }
+        }
+        Box {
+            UI.Button(type = ButtonType.SECONDARY, onClick = { open = null to newEvent() }) {
+                UI.Text(s.shared("event_new"), TextType.BODY)
             }
         }
     }
@@ -117,8 +92,8 @@ private fun EventsEditor(zoneId: String, events: List<Map<*, *>>, s: StringsCont
 
 /**
  * The form of one event of [zoneId], [id] null for a new one, [held] what it holds: written by
- * its confirmation, then [onClose]; cancelled, [onClose] alone. Opened from the zone's events, and
- * from the « + » of its page for a new one.
+ * its confirmation, then [onClose]; cancelled, [onClose] alone. Opened from the zone's events, in
+ * its config.
  */
 @Composable
 fun EventForm(zoneId: String, id: String?, held: JSONObject, onClose: () -> Unit) {
