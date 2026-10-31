@@ -14,7 +14,8 @@ import org.junit.Test
 class FormulaTest {
 
     /** The French names of the functions, as the screen gives them in French. */
-    private val french = mapOf("heures" to Formula.Function.HOURS, "minutes" to Formula.Function.MINUTES, "secondes" to Formula.Function.SECONDS)
+    private val french = mapOf("heures" to Formula.Function.HOURS, "minutes" to Formula.Function.MINUTES, "secondes" to Formula.Function.SECONDS,
+        "maintenant" to Formula.Function.NOW)
 
     private fun read(text: String): Formula = (Formula.parse(text, french) as Formula.Parsed.Read).formula
 
@@ -101,5 +102,38 @@ class FormulaTest {
         assertEquals(FormulaType.BARE, deduce("km / heures(temps)", mapOf("km" to km, "temps" to duration)))
         assertEquals(FormulaType.BARE, deduce("km + mange", mapOf("km" to km, "mange" to kcal)))
         assertTrue(deduce("3 + 4", emptyMap()) == FormulaType.BARE)
+    }
+
+    private val instant = FieldDefinition("repas", "repas", null, FieldType.DATETIME, false, null)
+    private val day = FieldDefinition("jour", "jour", null, FieldType.DATE, false, null)
+
+    private fun problem(text: String) = FormulaType.problem(read(text)) { leaf ->
+        mapOf("repas" to instant, "coucher" to instant, "jour" to day, "temps" to duration)[(leaf as Formula.Name).name]
+    }
+
+    @Test
+    fun `now() reads in either language, takes nothing, and is written back under its English name`() {
+        assertEquals(Formula.Binary(Formula.Operator.MINUS, Formula.Now, Formula.Name("repas")), read("maintenant() - repas"))
+        assertEquals("now() - repas", read("maintenant() - repas").text({ it }))
+        assertEquals(Formula.Problem.MISSING_CLOSING, unreadable("now(3)").problem)
+    }
+
+    @Test
+    fun `an instant minus an instant is a duration, the time between them`() {
+        assertEquals(null, problem("now() - repas"))
+        assertEquals(FormulaType.Deduced(FieldType.DURATION, null), deduce("now() - repas", mapOf("repas" to instant)))
+        assertEquals(null, problem("heures(repas - coucher) / 2"))
+        assertEquals(FormulaType.Deduced(FieldType.DURATION, null), deduce("(now() - repas) / 2", mapOf("repas" to instant)))
+    }
+
+    @Test
+    fun `anything else done with an instant is refused, naming the part`() {
+        listOf("now() + repas", "repas - 3", "repas * 2", "heures(repas)", "-repas", "now() - temps").forEach { text ->
+            assertTrue(text, problem(text) is FormulaType.Problem.InstantMisused)
+        }
+        assertEquals(FormulaType.Problem.InstantMisused(read("repas * 2")), problem("(repas * 2) - now()"))
+        assertEquals(FormulaType.Problem.InstantResult, problem("now()"))
+        assertEquals(FormulaType.Problem.InstantResult, problem("repas"))
+        assertEquals(FormulaType.Problem.NotAnInstant(Formula.Name("jour")), problem("now() - jour"))
     }
 }

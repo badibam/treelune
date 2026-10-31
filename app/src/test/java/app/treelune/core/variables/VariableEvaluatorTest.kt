@@ -63,6 +63,14 @@ class VariableEvaluatorTest {
     }
 
     @Test
+    fun `now() is the instant the variable is read at, not the clock`() {
+        readings["meals"] = Outcome.Value(600.0)
+        val fast = formula("jeune", "now() - dernier", mapOf("dernier" to Term.Reading(meals, "timestamp", Reduction.LATEST)), FieldType.DURATION)
+        assertEquals(400L, value(fast, at = 1000L))
+        assertEquals(1400L, value(fast, at = 2000L))
+    }
+
+    @Test
     fun `another variable is read at the same instant, by its id`() {
         readings["meals"] = Outcome.Value(1800.0)
         variables["mange"] = formula("mange", "total", mapOf("total" to Term.Reading(meals, "data.kcal", Reduction.SUM)))

@@ -7,6 +7,7 @@ import app.treelune.core.coordinator.isSuccess
 import app.treelune.core.database.AppDatabase
 import app.treelune.core.database.entities.VariableEntity
 import app.treelune.core.fields.FieldDefinition
+import app.treelune.core.fields.FieldType
 import app.treelune.core.fields.ToolFields
 import app.treelune.core.fields.toFieldDefinition
 import app.treelune.core.fields.toFieldDefinitions
@@ -253,7 +254,11 @@ class VariableService(private val context: Context) : ExecutableService {
             definition.terms.values.filterIsInstance<Term.Reading>().flatMap { app.treelune.core.fields.FilterTerms.variablesRead(it.selection.filters) }).distinct()
         loop(id, reads, others)?.let { path -> throw Refused(s.shared("variable_error_loop").format((listOf(name) + path.map { p -> others.first { it.id == p }.name } + name).joinToString(" → "))) }
 
-        val field = if (json.has("field")) definition.field else deduce(stored, definition.terms, others, name)
+        // Its instants held to a difference between two, whatever field is given
+        val leaves = leafFields(stored, definition.terms, others)
+        val leaf = { node: Formula -> leaves[node]?.takeIf { f -> f.type in FORMULA_LEAF_TYPES } }
+        FormulaType.problem(stored, leaf)?.let { throw Refused(problemText(it, stored)) }
+        val field = if (json.has("field")) definition.field else FormulaType.deduce(stored, leaf).let { FieldDefinition(name, name, null, it.type, false, it.config) }
         // Stored with each function under its English name, a formula per entry too
         val terms = definition.terms.mapValues { (_, term) ->
             if (term is Term.Reading && term.perEntry != null) {
@@ -324,8 +329,19 @@ class VariableService(private val context: Context) : ExecutableService {
         emptyList()
     }
 
-    /** The field a formula's value takes, from what it reads. */
-    private suspend fun deduce(formula: Formula, terms: Map<String, Term>, others: List<VariableEntity>, name: String): FieldDefinition {
+    /** What [problem] says, its part of the formula written as the user reads it, a variable under its name. */
+    private suspend fun problemText(problem: FormulaType.Problem, formula: Formula): String {
+        val names = dao.getAll().associate { it.id to it.name }
+        fun written(part: Formula) = part.text({ names[it] ?: it }, { f -> s.shared("formula_function_${f.canonical}") })
+        return when (problem) {
+            is FormulaType.Problem.InstantMisused -> s.shared("variable_error_instant_misused").format(written(problem.part))
+            is FormulaType.Problem.NotAnInstant -> s.shared("variable_error_not_an_instant").format(written(problem.part))
+            FormulaType.Problem.InstantResult -> s.shared("variable_error_instant_result")
+        }
+    }
+
+    /** The field each name and variable of [formula] reads, null when unknown. */
+    private suspend fun leafFields(formula: Formula, terms: Map<String, Term>, others: List<VariableEntity>): Map<Formula, FieldDefinition?> {
         val leaves = mutableMapOf<Formula, FieldDefinition?>()
         suspend fun fieldOf(leaf: Formula): FieldDefinition? = when (leaf) {
             is Formula.VariableRef -> others.firstOrNull { it.id == leaf.id }?.let { stored(it).definition.field }
@@ -337,8 +353,7 @@ class VariableService(private val context: Context) : ExecutableService {
             else -> null
         }
         (formula.names().map { Formula.Name(it) } + formula.variableIds().map { Formula.VariableRef(it) }).forEach { leaves[it] = fieldOf(it) }
-        val deduced = FormulaType.deduce(formula) { leaves[it]?.takeIf { f -> f.type in VariableDefinition.VALUE_TYPES } }
-        return FieldDefinition(name, name, null, deduced.type, false, deduced.config)
+        return leaves
     }
 
     // ========================================================================================
@@ -513,6 +528,12 @@ class VariableService(private val context: Context) : ExecutableService {
     companion object {
         /** In the tools a variable reads, any tool: a reference it reads through may lead to any entry. */
         const val ANY_TOOL = "*"
+
+        /**
+         * The fields a formula's name can read: a variable's types, and the instants it subtracts,
+         * a day and a time of day kept for FormulaType to refuse.
+         */
+        private val FORMULA_LEAF_TYPES = VariableDefinition.VALUE_TYPES + setOf(FieldType.DATETIME, FieldType.DATE, FieldType.TIME)
 
         /** A name a formula can write: a letter or `_`, then letters, digits, `_`. */
         val NAME = Regex("^[\\p{L}_][\\p{L}\\p{N}_]*$")

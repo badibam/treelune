@@ -630,7 +630,7 @@ Creates a variable in a zone. Its name is unique in the app and can be written i
   - a constant: `{ "kind": "CONSTANT", "value": 2100, "field": { "type": "NUMERIC", "config": { "decimals": 0, "unit": "kcal" } } }`
   - a formula: `{ "kind": "FORMULA", "formula": "...", "terms": { ... }, "field"?: ... }`
 
-A formula uses `+ - * /`, parentheses, numbers, `hours()`, `minutes()`, `seconds()` (a duration as a number), the names of its terms, and other variables by their name. Each term is:
+A formula uses `+ - * /`, parentheses, numbers, `hours()`, `minutes()`, `seconds()` (a duration as a number), `now()` (the instant the variable is read at), the names of its terms, and other variables by their name. An instant (`now()`, a term reading a date with EARLIEST, LATEST or LAST) is only subtracted from another, which gives a duration: `now() - last_meal`, the time since the latest meal. Each term is:
 
 - a reading: `{ "reading": { "selection": { "target": { "kind": "TOOL_INSTANCE", "id": "..." }, "period"?: ..., "filters"?: [...] }, "field": "data.kcal", "reduction": "SUM" } }`; the period is relative to the instant the variable is read at. Reductions: LAST, SUM, AVERAGE, MIN, MAX (a number, a duration), EARLIEST, LATEST (a date), COUNT (no field)
 - a reading computed in each entry: `"per_entry": "quantity * food.kcal_100g / 100"` instead of `field`, where a name is a field of the entry and `ref.field` reads through its REFERENCE

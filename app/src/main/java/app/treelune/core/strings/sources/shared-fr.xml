@@ -1527,6 +1527,9 @@
     <string name="variable_error_term">Le terme %1$s ne peut pas être lu.</string>
     <string name="variable_error_constant_value">Une constante demande une "value" numérique.</string>
     <string name="variable_error_constant_not_number">La constante %1$s n\'est pas un nombre (%2$s) : une formule calcule sur des nombres.</string>
+    <string name="variable_error_instant_misused">Dans « %1$s », un instant ne se soustrait qu\'à un autre instant, ce qui donne le temps entre les deux : maintenant() - dernier_repas.</string>
+    <string name="variable_error_not_an_instant">« %1$s » lit un jour ou une heure, sur lesquels une formule ne calcule pas : lis plutôt une date et heure.</string>
+    <string name="variable_error_instant_result">Cette formule donne un instant, et une variable vaut un nombre ou une durée : soustrais-lui un autre instant.</string>
     <string name="variable_error_field">La variable %1$s demande son "field" : son type (NUMERIC, SCALE, DURATION) et ses réglages.</string>
     <string name="variable_error_kind">Sorte de variable inconnue : %1$s. Acceptées : CONSTANT, FORMULA.</string>
     <string name="variable_error_type">Une variable n\'est pas de type %1$s. Acceptés : %2$s.</string>
@@ -1539,6 +1542,7 @@
     <string name="formula_function_hours">heures</string>
     <string name="formula_function_minutes">minutes</string>
     <string name="formula_function_seconds">secondes</string>
+    <string name="formula_function_now">maintenant</string>
     <string name="variable_cause_no_entry">aucune entrée dans la période</string>
     <string name="variable_cause_missing_value">%2$d entrée(s) sans %1$s</string>
     <string name="variable_cause_source_not_found">l\'outil lu n\'existe plus</string>

@@ -245,7 +245,7 @@ private fun FormulaEditor(formula: String, terms: List<String>, variables: List<
     }
     problem?.let { UI.Text(text = it, type = TextType.ERROR) }
     FlowRow(horizontalArrangement = Arrangement.spacedBy(UI.Space.XS), verticalArrangement = Arrangement.spacedBy(UI.Space.XS)) {
-        (terms + variables + listOf("+", "-", "×", "÷", "(", ")") + Formula.Function.entries.map { s.shared("formula_function_${it.canonical}") + "(" }).forEach { token ->
+        (terms + variables + listOf("+", "-", "×", "÷", "(", ")") + Formula.Function.entries.map { s.shared("formula_function_${it.canonical}") + if (it == Formula.Function.NOW) "()" else "(" }).forEach { token ->
             UI.Button(type = ButtonType.SECONDARY, onClick = {
                 val (text, cursor) = insertToken(shown.text, shown.selection.min, shown.selection.max, token)
                 field = TextFieldValue(text, TextRange(cursor))

@@ -71,6 +71,8 @@ class VariableEvaluator(private val sources: VariableSources) {
                     is Term.Reading -> if (term.perEntry != null) perEntry(term, leaf.name, at) else named(sources.read(term, at), leaf.name)
                 }
                 is Formula.VariableRef -> other(leaf.id, at, visiting, null)
+                // The instant the variable is read at, not the clock: read yesterday, it is yesterday
+                is Formula.Now -> Outcome.Value(at.toDouble())
                 else -> error("not a leaf")
             }
         }
@@ -78,7 +80,7 @@ class VariableEvaluator(private val sources: VariableSources) {
     }
 
     private fun leavesOf(formula: Formula): Set<Formula> = when (formula) {
-        is Formula.Name, is Formula.VariableRef -> setOf(formula)
+        is Formula.Name, is Formula.VariableRef, is Formula.Now -> setOf(formula)
         is Formula.Number -> emptySet()
         is Formula.Negate -> leavesOf(formula.operand)
         is Formula.Binary -> leavesOf(formula.left) + leavesOf(formula.right)
@@ -115,7 +117,7 @@ class VariableEvaluator(private val sources: VariableSources) {
         for (entry in entries) {
             val id = entry["id"] as String
             val leaves = mutableMapOf<Formula, Outcome>()
-            for (leaf in leavesOf(formula)) leaves[leaf] = entryValue(entry, id, leaf, name)
+            for (leaf in leavesOf(formula)) leaves[leaf] = if (leaf is Formula.Now) Outcome.Value(at.toDouble()) else entryValue(entry, id, leaf, name)
             when (val outcome = formula.evaluate { leaves.getValue(it) }) {
                 is Outcome.Value -> numbers.add(outcome.number)
                 is Outcome.Failed -> causes.addAll(outcome.causes)

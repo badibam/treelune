@@ -19,14 +19,19 @@ sealed interface Formula {
     data class Binary(val op: Operator, val left: Formula, val right: Formula) : Formula
     data class Call(val function: Function, val argument: Formula) : Formula
 
+    /** `now()`: the instant the formula is computed at, in milliseconds, an instant like a date read. */
+    data object Now : Formula
+
     enum class Operator(val symbol: String) { PLUS("+"), MINUS("-"), TIMES("×"), DIVIDE("÷") }
 
     /**
      * A function, added for a real case only: the first ones turn a duration into a number of
-     * units. [canonical] is its name as stored and as the AI writes it.
+     * units; [NOW] takes no argument and gives the instant computed at (the time since a meal).
+     * [canonical] is its name as stored and as the AI writes it.
      */
-    enum class Function(val canonical: String, val millis: Double) {
-        HOURS("hours", 3_600_000.0), MINUTES("minutes", 60_000.0), SECONDS("seconds", 1_000.0);
+    enum class Function(val canonical: String, val millis: Double?) {
+        HOURS("hours", 3_600_000.0), MINUTES("minutes", 60_000.0), SECONDS("seconds", 1_000.0),
+        NOW("now", null);
 
         companion object {
             /** Each function under its name in the app's language ([text], the shared strings), for the screen. */
@@ -41,9 +46,9 @@ sealed interface Formula {
      */
     fun evaluate(leaf: (Formula) -> Outcome): Outcome = when (this) {
         is Number -> Outcome.Value(value)
-        is Name, is VariableRef -> leaf(this)
+        is Name, is VariableRef, is Now -> leaf(this)
         is Negate -> when (val o = operand.evaluate(leaf)) { is Outcome.Value -> Outcome.Value(-o.number); is Outcome.Failed -> o }
-        is Call -> when (val o = argument.evaluate(leaf)) { is Outcome.Value -> Outcome.Value(o.number / function.millis); is Outcome.Failed -> o }
+        is Call -> when (val o = argument.evaluate(leaf)) { is Outcome.Value -> Outcome.Value(o.number / function.millis!!); is Outcome.Failed -> o }
         is Binary -> {
             val l = left.evaluate(leaf)
             val r = right.evaluate(leaf)
@@ -66,7 +71,7 @@ sealed interface Formula {
 
     /** Every name the formula reads, in order of appearance. */
     fun names(): List<String> = when (this) {
-        is Number, is VariableRef -> emptyList()
+        is Number, is VariableRef, is Now -> emptyList()
         is Name -> listOf(name)
         is Negate -> operand.names()
         is Binary -> left.names() + right.names()
@@ -75,7 +80,7 @@ sealed interface Formula {
 
     /** Every variable the formula reads by id. */
     fun variableIds(): List<String> = when (this) {
-        is Number, is Name -> emptyList()
+        is Number, is Name, is Now -> emptyList()
         is VariableRef -> listOf(id)
         is Negate -> operand.variableIds()
         is Binary -> left.variableIds() + right.variableIds()
@@ -84,7 +89,7 @@ sealed interface Formula {
 
     /** The tree with each name [replace] gives a node for replaced by it: a variable's name by its id. */
     fun mapNames(replace: (String) -> Formula?): Formula = when (this) {
-        is Number, is VariableRef -> this
+        is Number, is VariableRef, is Now -> this
         is Name -> replace(name) ?: this
         is Negate -> Negate(operand.mapNames(replace))
         is Binary -> Binary(op, left.mapNames(replace), right.mapNames(replace))
@@ -104,6 +109,7 @@ sealed interface Formula {
             is VariableRef -> variableName(node.id)
             is Negate -> "-" + write(node.operand, variableName, functionName, 3)
             is Call -> functionName(node.function) + "(" + write(node.argument, variableName, functionName, 0) + ")"
+            is Now -> functionName(Function.NOW) + "()"
             is Binary -> {
                 val level = if (node.op == Operator.PLUS || node.op == Operator.MINUS) 1 else 2
                 // The right side of - and ÷ keeps its parentheses at the same level: a - (b - c)
@@ -199,6 +205,12 @@ private class Parser(private val text: String, private val aliases: Map<String, 
             ?: throw Stop(start, Formula.Problem.UNKNOWN_FUNCTION, name)
         val open = at
         at++
+        // now() takes nothing between its parentheses
+        if (function == Formula.Function.NOW) {
+            if (peek() != ')') throw Stop(open, Formula.Problem.MISSING_CLOSING)
+            at++
+            return Formula.Now
+        }
         val argument = sum()
         if (peek() != ')') throw Stop(open, Formula.Problem.MISSING_CLOSING)
         at++
