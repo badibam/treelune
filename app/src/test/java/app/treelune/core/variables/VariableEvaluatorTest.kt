@@ -50,6 +50,24 @@ class VariableEvaluatorTest {
         (runBlocking { evaluator.evaluate(variable, 1000L) } as VariableValue.Failed).causes
 
     @Test
+    fun `a variable read by several others is computed once per instant, its entries read once`() {
+        readings["meals"] = Outcome.Value(400.0)
+        readings["sport"] = Outcome.Value(100.0)
+        variables["eaten"] = formula("eaten", "m", mapOf("m" to Term.Reading(meals, "data.kcal", Reduction.SUM)))
+        variables["spent"] = formula("spent", "s", mapOf("s" to Term.Reading(sport, "data.kcal", Reduction.SUM)))
+        // Two shares of one total, as a chart's columns read them
+        val eatenShare = formula("eaten_share", "{var:eaten} / ({var:eaten} + {var:spent}) * 100", emptyMap())
+        val spentShare = formula("spent_share", "{var:spent} / ({var:eaten} + {var:spent}) * 100", emptyMap())
+        assertEquals(80.0, value(eatenShare))
+        assertEquals(20.0, value(spentShare))
+        // Each reading once at that instant, however many formulas name its variable
+        assertEquals(listOf(1000L, 1000L), readAt)
+        // Another instant is computed again
+        value(eatenShare, at = 2000L)
+        assertEquals(listOf(1000L, 1000L, 2000L, 2000L), readAt)
+    }
+
+    @Test
     fun `a constant is its value, a formula its terms read at the instant`() {
         assertEquals(2100.0, value(StoredVariable("goal", "goal", "z", VariableDefinition.Constant(2100.0, field(FieldType.NUMERIC)))))
         readings["meals"] = Outcome.Value(1800.0)

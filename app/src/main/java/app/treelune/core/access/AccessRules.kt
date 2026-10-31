@@ -136,7 +136,9 @@ object AccessRules {
             }
             "variables" -> when (operation) {
                 "list", "list_all" -> listOf(Reach.Free)
-                "get", "evaluate" -> listOf(variableAt(AccessLevel.READ))
+                // Several evaluated at once (a chart's columns): each read as if asked alone
+                "get", "evaluate" -> (params["variable_ids"] as? List<*>)?.map { Reach.Variable(it.toString(), false, AccessLevel.READ) }
+                    ?: listOf(variableAt(AccessLevel.READ))
                 "create" -> listOf(zoneAt("zone_id", AccessLevel.USE))
                 "update" -> listOfNotNull(variableAt(AccessLevel.USE), text("zone_id")?.let { Reach.Zone(it, AccessLevel.USE) })
                 "delete" -> listOf(variableAt(AccessLevel.USE))

@@ -41,9 +41,19 @@ interface VariableSources {
  */
 class VariableEvaluator(private val sources: VariableSources) {
 
+    /**
+     * Each variable computed once per instant, for this evaluator's life alone (one call, one
+     * read of a chart): a share read beside the totals it divides reuses them rather than reading
+     * the same entries again. Nothing outlives the evaluator.
+     */
+    private val computed = mutableMapOf<Pair<String, Long>, VariableValue>()
+
     suspend fun evaluate(variable: StoredVariable, at: Long): VariableValue = evaluate(variable, at, emptySet())
 
-    private suspend fun evaluate(variable: StoredVariable, at: Long, visiting: Set<String>): VariableValue {
+    private suspend fun evaluate(variable: StoredVariable, at: Long, visiting: Set<String>): VariableValue =
+        computed[variable.id to at] ?: compute(variable, at, visiting).also { computed[variable.id to at] = it }
+
+    private suspend fun compute(variable: StoredVariable, at: Long, visiting: Set<String>): VariableValue {
         val definition = variable.definition
         val outcome = when (definition) {
             is VariableDefinition.Constant -> Outcome.Value(definition.value)

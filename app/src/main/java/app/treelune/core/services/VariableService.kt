@@ -421,21 +421,41 @@ class VariableService(private val context: Context) : ExecutableService {
         )
     }
 
+    /**
+     * One variable at each instant of `at`; or, with `variable_ids`, several, computed by one
+     * evaluator: what they share (a total the shares divide by) is computed once per instant, and
+     * their results come under `variables`, in the order asked (a chart's columns). A read that
+     * fails is the operation's error, never a value's cause.
+     */
     private suspend fun evaluate(params: JSONObject): OperationResult {
-        val entity = params.optString("variable_id").takeIf { it.isNotEmpty() }?.let { dao.getById(it) }
-            ?: params.optString("name").takeIf { it.isNotEmpty() }?.let { n -> dao.getAll().firstOrNull { it.name == n } }
-            ?: throw Refused(s.shared("variable_error_not_found").format(params.optString("variable_id").ifEmpty { params.optString("name") }))
         val at = params.optJSONArray("at")?.let { a -> (0 until a.length()).map { (a.get(it) as? Number)?.toLong() ?: throw Refused(s.shared("variable_error_param").format("at")) } }
             ?: throw Refused(s.shared("variable_error_param").format("at"))
-        val variable = try { stored(entity) } catch (e: IllegalArgumentException) { throw Refused(e.message ?: "") }
         val evaluator = VariableEvaluator(Sources())
-        // A read that fails is the operation's error, never a value's cause
-        val values = try {
-            at.map { instant -> instant to evaluator.evaluate(variable, instant) }
+        return try {
+            params.optJSONArray("variable_ids")?.let { ids ->
+                OperationResult.success(mapOf("variables" to (0 until ids.length()).map { i ->
+                    evaluated(dao.getById(ids.getString(i)) ?: throw Refused(s.shared("variable_error_not_found").format(ids.getString(i))), at, evaluator)
+                }))
+            } ?: run {
+                val entity = params.optString("variable_id").takeIf { it.isNotEmpty() }?.let { dao.getById(it) }
+                    ?: params.optString("name").takeIf { it.isNotEmpty() }?.let { n -> dao.getAll().firstOrNull { it.name == n } }
+                    ?: throw Refused(s.shared("variable_error_not_found").format(params.optString("variable_id").ifEmpty { params.optString("name") }))
+                OperationResult.success(evaluated(entity, at, evaluator))
+            }
         } catch (e: IllegalStateException) {
-            return OperationResult.error(e.message ?: "")
+            OperationResult.error(e.message ?: "")
         }
-        return OperationResult.success(mapOf(
+    }
+
+    /**
+     * [entity] at each of [at] by [evaluator], as `evaluate` answers it.
+     *
+     * @throws IllegalStateException when a read fails
+     */
+    private suspend fun evaluated(entity: VariableEntity, at: List<Long>, evaluator: VariableEvaluator): Map<String, Any> {
+        val variable = try { stored(entity) } catch (e: IllegalArgumentException) { throw Refused(e.message ?: "") }
+        val values = at.map { instant -> instant to evaluator.evaluate(variable, instant) }
+        return mapOf(
             "variable_id" to entity.id,
             "name" to entity.name,
             "field" to JsonUtils.toMap(VariableDefinition.fieldJson(variable.definition.field)),
@@ -445,7 +465,7 @@ class VariableService(private val context: Context) : ExecutableService {
                     is VariableValue.Failed -> mapOf("at" to instant, "failure" to failure(value.causes))
                 }
             }
-        ))
+        )
     }
 
     /** Causes as data, with their words for whoever shows them. */

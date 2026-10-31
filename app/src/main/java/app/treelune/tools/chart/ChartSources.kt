@@ -104,6 +104,7 @@ class ChartSources(private val context: Context) {
     suspend fun tables(spec: ChartSpec, now: Long): List<ChartTable> {
         val resolver = TimeResolver.at(now)
         val (start, end) = spec.period.instants(resolver)
+        prefetchVariables(spec, start, end ?: now, now, resolver)
         return spec.layers.map { layer ->
             val table = when (val source = layer.source) {
                 is Source.Entries -> entries(source, spec.period, now)
@@ -141,8 +142,36 @@ class ChartSources(private val context: Context) {
         return ChartTable(columns, rows)
     }
 
+    /**
+     * The variables every grid layer's columns read, computed together in one call per step's
+     * instants (variables.evaluate with `variable_ids`): one evaluator for them all, so what they
+     * share — the totals the shares divide — is read once per step rather than once per column.
+     */
+    private val variableCells = mutableMapOf<Pair<List<Long>, String>, List<Cell>>()
+
+    private suspend fun prefetchVariables(spec: ChartSpec, start: Long?, end: Long, now: Long, resolver: TimeResolver) {
+        variableCells.clear()
+        start ?: return
+        spec.layers.mapNotNull { it.source as? Source.Grid }
+            .groupBy { source -> gridSteps(source, start, end, now, resolver).map { minOf(it.second, now) } }
+            .forEach { (instants, sources) ->
+                val ids = sources.flatMap { it.columns }.mapNotNull { (it.term as? Term.Variable)?.id }.distinct()
+                if (instants.isEmpty() || ids.isEmpty()) return@forEach
+                val result = coordinator.processUserAction("variables.evaluate", mapOf("variable_ids" to ids, "at" to instants))
+                // Named by the columns that read them, as one column's own read would be
+                if (!result.isSuccess) throw IllegalStateException(s.tool("error_column_read").format(
+                    sources.flatMap { it.columns }.filter { it.term is Term.Variable }.joinToString(", ") { it.name }, result.error ?: ""))
+                (result.data?.get("variables") as? List<*>).orEmpty().filterIsInstance<Map<*, *>>().forEach { variable ->
+                    variableCells[instants to variable["variable_id"] as String] = cellsOf(variable["values"] as? List<*>)
+                }
+            }
+    }
+
+    private fun gridSteps(source: Source.Grid, start: Long, end: Long, now: Long, resolver: TimeResolver) =
+        GridSteps.of(source.step, start, end, now, AppConfigManager.getDayStartHour(), AppConfigManager.getWeekStartDay(), resolver.zone)
+
     private suspend fun grid(source: Source.Grid, start: Long, end: Long, now: Long, resolver: TimeResolver): ChartTable {
-        val steps = GridSteps.of(source.step, start, end, now, AppConfigManager.getDayStartHour(), AppConfigManager.getWeekStartDay(), resolver.zone)
+        val steps = gridSteps(source, start, end, now, resolver)
         // Each step is read at its end, the one running at now
         val instants = steps.map { minOf(it.second, now) }
         val columns = gridColumns() + source.columns.associate { it.name to columnField(it) }
@@ -165,6 +194,7 @@ class ChartSources(private val context: Context) {
     /** A column read at every instant: a value or a failure each. */
     private suspend fun readColumn(column: GridColumn, source: Source.Grid, instants: List<Long>): List<Cell> {
         if (instants.isEmpty()) return emptyList()
+        (column.term as? Term.Variable)?.let { term -> variableCells[instants to term.id]?.let { return it } }
         val result = when (val term = column.term) {
             is Term.Variable -> coordinator.processUserAction("variables.evaluate", mapOf("variable_id" to term.id, "at" to instants))
             is Term.Reading -> {
@@ -176,7 +206,12 @@ class ChartSources(private val context: Context) {
             is Term.Constant -> throw IllegalStateException(s.tool("error_column_term").format(column.name))
         }
         if (!result.isSuccess) throw IllegalStateException(s.tool("error_column_read").format(column.name, result.error ?: ""))
-        return (result.data?.get("values") as? List<*>).orEmpty().map { row ->
+        return cellsOf(result.data?.get("values") as? List<*>)
+    }
+
+    /** A column's values as cells: a value, or a failure with its words and the entries to correct. */
+    private fun cellsOf(values: List<*>?): List<Cell> {
+        return values.orEmpty().map { row ->
             val value = row as? Map<*, *> ?: return@map Cell.Value(null)
             (value["failure"] as? Map<*, *>)?.let { failure ->
                 val entries = ((failure["entries"] as? List<*>).orEmpty() +
