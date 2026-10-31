@@ -145,4 +145,11 @@ class ReadoutsTest {
         ok("readouts.delete", mapOf("readout_id" to id))
         assertTrue((ok("readouts.list", mapOf("zone_id" to zoneId))["readouts"] as List<*>).isEmpty())
     }
+
+    @Test
+    fun aPart_namesWhatItsValuesReadAndWhatItOpens() {
+        val settings = org.json.JSONObject(app.treelune.core.utils.JsonUtils.toJSONObject(water() - "zone_id").toString())
+            .put("values", org.json.JSONArray().put(org.json.JSONObject().put("name", "goal").put("value", org.json.JSONObject().put("variable", "var-1"))))
+        assertEquals(setOf(waterId, "var-1"), app.treelune.core.backup.BackupPart.readoutNames(settings))
+    }
 }
