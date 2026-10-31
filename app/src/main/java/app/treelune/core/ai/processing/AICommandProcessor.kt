@@ -558,7 +558,7 @@ class AICommandProcessor(private val context: Context) {
         val resolver = app.treelune.core.selection.TimeResolver.at(System.currentTimeMillis())
         @Suppress("UNCHECKED_CAST")
         val period = (command.params["period"] as? Map<String, Any?>)
-            ?.let { app.treelune.core.selection.EntryPeriod.fromJson(app.treelune.core.utils.JsonUtils.toJSONObject(it)) { key -> s.shared(key) }.timestampFilters(resolver) }
+            ?.let { ModelPeriod.read(it, app.treelune.core.utils.AppConfigManager.getDateTimeConfig().getZoneId()) { key -> s.shared(key) }.timestampFilters(resolver) }
             ?: emptyList()
         val filters = (command.params["filters"] as? List<*>)?.let { written ->
             FilterValues.toStored(written, app.treelune.core.fields.ToolFields.filterable(toolInstanceId, context, s), resolver) { s.shared(it) }
@@ -601,9 +601,7 @@ class AICommandProcessor(private val context: Context) {
                 val reading = (term as? Map<*, *>)?.get("reading") as? Map<*, *>
                 val period = (reading?.get("selection") as? Map<*, *>)?.get("period") as? Map<*, *>
                 name.toString() to if (period == null) term else {
-                    val bounds = period.entries.associate { (edge, bound) ->
-                        edge.toString() to ((bound as? String)?.let { app.treelune.core.utils.DateTimeConverter.isoToTimestamp(it, zone) } ?: bound)
-                    }
+                    val bounds = ModelPeriod.stored(period, zone)
                     val selection = (reading["selection"] as Map<*, *>).entries.associate { (k, v) -> k.toString() to (if (k == "period") bounds else v) }
                     mapOf("reading" to reading.entries.associate { (k, v) -> k.toString() to (if (k == "selection") selection else v) })
                 }

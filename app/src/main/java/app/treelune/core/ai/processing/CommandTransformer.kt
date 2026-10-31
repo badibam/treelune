@@ -244,7 +244,7 @@ object CommandTransformer {
         val routineId = command.params["routine_id"] as? String ?: return null
         val resolver = TimeResolver.at(reference)
         @Suppress("UNCHECKED_CAST")
-        val period = (command.params["period"] as? Map<String, Any?>)?.let { EntryPeriod.fromJson(JsonUtils.toJSONObject(it)) { key -> s.shared(key) } }
+        val period = (command.params["period"] as? Map<String, Any?>)?.let { ModelPeriod.read(it, app.treelune.core.utils.AppConfigManager.getDateTimeConfig().getZoneId()) { key -> s.shared(key) } }
         return ExecutableCommand(resource = "ai_sessions", operation = "list_sessions_for_routine", params = buildMap {
             put("routine_id", routineId)
             (command.params["limit"] as? Number)?.let { put("limit", it.toInt()) }
@@ -257,7 +257,7 @@ object CommandTransformer {
     private fun transformHistoryCommand(command: DataCommand, s: StringsContext, reference: Long): ExecutableCommand {
         val resolver = TimeResolver.at(reference)
         @Suppress("UNCHECKED_CAST")
-        val period = (command.params["period"] as? Map<String, Any?>)?.let { EntryPeriod.fromJson(JsonUtils.toJSONObject(it)) { key -> s.shared(key) } }
+        val period = (command.params["period"] as? Map<String, Any?>)?.let { ModelPeriod.read(it, app.treelune.core.utils.AppConfigManager.getDateTimeConfig().getZoneId()) { key -> s.shared(key) } }
         return ExecutableCommand(resource = "history", operation = "list", params = buildMap {
             (command.params["tool_instance_id"] as? String)?.let { put("tool_instance_id", it) }
             (command.params["zone_id"] as? String)?.let { put("zone_id", it) }
@@ -337,7 +337,7 @@ object CommandTransformer {
         val resolver = TimeResolver.at(reference)
         @Suppress("UNCHECKED_CAST")
         val periodFilters = (command.params["period"] as? Map<String, Any?>)
-            ?.let { EntryPeriod.fromJson(JsonUtils.toJSONObject(it)) { key -> s.shared(key) }.timestampFilters(resolver) }
+            ?.let { ModelPeriod.read(it, app.treelune.core.utils.AppConfigManager.getDateTimeConfig().getZoneId()) { key -> s.shared(key) }.timestampFilters(resolver) }
             ?: emptyList()
         val valueFilters = (command.params["filters"] as? List<*>)?.let { filters ->
             FilterValues.toStored(filters, ToolFields.filterable(toolInstanceId, context, s), resolver) { s.shared(it) }
