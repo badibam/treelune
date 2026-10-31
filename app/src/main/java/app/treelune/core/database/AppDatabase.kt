@@ -81,7 +81,8 @@ import app.treelune.core.ai.data.LegacyCatchUp
         app.treelune.core.tasks.TaskEntity::class,
         app.treelune.core.tasks.TaskRunEntity::class,
         app.treelune.core.events.EventEntity::class,
-        app.treelune.core.triggers.ConditionJudgementEntity::class
+        app.treelune.core.triggers.ConditionJudgementEntity::class,
+        app.treelune.core.readouts.ReadoutEntity::class
         // Note: Tool entities will be added dynamically
         // via build system and ToolTypeRegistry
     ],
@@ -107,6 +108,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun apiDao(): app.treelune.core.apis.ApiDao
     abstract fun taskDao(): app.treelune.core.tasks.TaskDao
     abstract fun eventDao(): app.treelune.core.events.EventDao
+    abstract fun readoutDao(): app.treelune.core.readouts.ReadoutDao
     abstract fun conditionJudgementDao(): app.treelune.core.triggers.ConditionJudgementDao
 
     companion object {
@@ -114,7 +116,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Database schema version, which the @Database annotation above reads. Backups record
          * it, and an import transforms its data from the version it records.
          */
-        const val VERSION = 108
+        const val VERSION = 109
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -2340,6 +2342,15 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** The readouts of the zones (docs/design/readouts.md), none so far. */
+        private val MIGRATION_108_109 = object : ConnectionMigration(108, 109) {
+            override fun migrate(database: MigrationDatabase) {
+                database.execSQL("CREATE TABLE IF NOT EXISTS `readouts` (`id` TEXT NOT NULL, `zone_id` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT, `icon_name` TEXT NOT NULL, `icon_color` TEXT, `texture` TEXT, `display_mode` TEXT NOT NULL, `group` TEXT, `grid_x` INTEGER NOT NULL, `grid_y` INTEGER NOT NULL, `settings_json` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`zone_id`) REFERENCES `zones`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )")
+                database.execSQL("CREATE INDEX IF NOT EXISTS `index_readouts_zone_id` ON `readouts` (`zone_id`)")
+                LogManager.database("MIGRATION 108->109: readouts added, none", "INFO")
+            }
+        }
+
         /** What a Task's step joins to a routine's message is a list of blocks: see RunRoutineBlocksAtV108. Internal: RunRoutineBlocksAtV108MigrationTest runs it. */
         internal val MIGRATION_107_108 = object : ConnectionMigration(107, 108) {
             override fun migrate(database: MigrationDatabase) {
@@ -3454,7 +3465,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_104_105,
                     MIGRATION_105_106,
                     MIGRATION_106_107,
-                    MIGRATION_107_108
+                    MIGRATION_107_108,
+                    MIGRATION_108_109
                     // Add future migrations here (minimum supported version: 9)
                 )
                 // The app's own SQLite, the same on every phone: a phone's own may lack what the

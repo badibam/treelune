@@ -20,7 +20,7 @@ data class SectionItem(
     val row: Int,
     val size: Grid.Size
 ) {
-    enum class Kind { TOOL, VARIABLE, ROUTINE, TASK }
+    enum class Kind { TOOL, VARIABLE, ROUTINE, TASK, READOUT }
 
     val tile: Grid.Tile get() = Grid.Tile(id, column, row, size.width, size.height)
 
@@ -39,6 +39,9 @@ data class SectionItem(
 
         fun of(task: app.treelune.core.tasks.TaskEntity): SectionItem = SectionItem(task.id, Kind.TASK, task.zoneId,
             task.group, task.gridX, task.gridY, Grid.size(DisplayMode.valueOf(task.displayMode)))
+
+        fun of(readout: app.treelune.core.readouts.ReadoutEntity): SectionItem = SectionItem(readout.id, Kind.READOUT, readout.zoneId,
+            readout.group, readout.gridX, readout.gridY, Grid.size(DisplayMode.valueOf(readout.displayMode)))
     }
 }
 
@@ -77,12 +80,13 @@ class SectionGrid(context: Context) {
     private val database = AppDatabase.getDatabase(context)
     private val writes = app.treelune.core.history.Writes(context)
 
-    /** Every tile of zone [zoneId], tools, variables, routines and Tasks. */
+    /** Every tile of zone [zoneId], tools, variables, routines, Tasks and readouts. */
     suspend fun items(zoneId: String): List<SectionItem> =
         database.toolInstanceDao().getToolInstancesByZone(zoneId).map { SectionItem.of(it) } +
             database.variableDao().getByZone(zoneId).map { SectionItem.of(it) } +
             database.aiDao().getRoutinesByZone(zoneId).map { SectionItem.of(it) } +
-            database.taskDao().getByZone(zoneId).map { SectionItem.of(it) }
+            database.taskDao().getByZone(zoneId).map { SectionItem.of(it) } +
+            database.readoutDao().getByZone(zoneId).map { SectionItem.of(it) }
 
     /** The tiles of [items] shown in [section] of a zone whose groups are [zoneGroups]. */
     fun tiles(items: List<SectionItem>, zoneGroups: List<String>, section: String?): List<Grid.Tile> =
@@ -150,6 +154,7 @@ class SectionGrid(context: Context) {
             SectionItem.Kind.VARIABLE -> writes.moveVariable(item.id, item.column, item.row)
             SectionItem.Kind.ROUTINE -> writes.moveRoutine(item.id, item.column, item.row)
             SectionItem.Kind.TASK -> writes.moveTask(item.id, item.column, item.row)
+            SectionItem.Kind.READOUT -> writes.moveReadout(item.id, item.column, item.row)
         }
         item.id
     }

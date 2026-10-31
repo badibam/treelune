@@ -22,6 +22,7 @@ import app.treelune.core.ai.services.RoutineService
 import app.treelune.core.apis.ApiService
 import app.treelune.core.tasks.TaskService
 import app.treelune.core.events.EventService
+import app.treelune.core.readouts.ReadoutService
 import app.treelune.core.notifications.NotificationService
 import app.treelune.core.demo.DemoService
 import app.treelune.core.history.HistoryService
@@ -57,6 +58,7 @@ class ServiceRegistry(private val context: Context) {
         "apis" to ::ApiService,
         "tasks" to ::TaskService,
         "events" to ::EventService,
+        "readouts" to ::ReadoutService,
         "notifications" to ::NotificationService,
         "demo" to ::DemoService,
         "mcp_clients" to ::McpClientService,
