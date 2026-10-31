@@ -57,6 +57,7 @@ Codé, jamais vu sur l'appareil.
 
 ## Décidé, à coder
 
+- Démarrer et arrêter le chronomètre d'un Suivi depuis une Tâche : le Suivi ne déclare aucune opération (`getOperations`), quand `ToolDataService` sait déjà `start_duration` et `stop_duration` ; un premier repas noté qui arrête un jeûne. Avec, une condition qui dit si un chronomètre tourne (`state.running`), non vérifiée : le toucher du coucher qui prévient quand le jeûne ne tourne pas.
 
 ## À concevoir
 
