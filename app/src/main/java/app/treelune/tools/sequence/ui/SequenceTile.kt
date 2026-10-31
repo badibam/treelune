@@ -31,13 +31,17 @@ import app.treelune.core.utils.ScheduleCalculator
 import app.treelune.core.utils.StoredSchedule
 import app.treelune.tools.sequence.SequenceToolType
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import app.treelune.tools.sequence.SequenceVariants
 import org.json.JSONObject
 
 /**
  * A session's tile (docs/TOOLS.md, « Session (Sequence) »). During a session, the summary is
  * its step and its clock; a session over waiting to be finished; otherwise the planned session waiting and since when, or the next one
- * planned, or the last one done. The body lists the last sessions, one per line: when, state,
- * length, how far.
+ * planned, or the last one done. Its first button starts a session, asking first what the
+ * variant asks as the page does (LaunchDialog), then opens the page on it; during a session or
+ * one waiting to be finished, it opens the page instead. The body lists the last sessions, one
+ * per line: when, state, length, how far.
  */
 @Composable
 fun rememberSequenceTile(tool: ToolInstance): ToolTile {
@@ -48,6 +52,15 @@ fun rememberSequenceTile(tool: ToolInstance): ToolTile {
 
     var entries by remember { mutableStateOf<List<SequenceEntry>?>(null) }
     var version by remember { mutableIntStateOf(0) }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    // The launch's question open, from the tile's button
+    var asking by remember { mutableStateOf(false) }
+    val open = { app.treelune.core.navigation.Navigator.push(app.treelune.core.navigation.Place.Tool(tool.id, tool.zone_id)) }
+    /** A session started with what the question answered, then its page opened on it. */
+    fun start(answer: Map<String, Any?>) = scope.launch {
+        val result = coordinator.processUserAction("sequence.${app.treelune.tools.sequence.SequenceService.START}", mapOf("tool_instance_id" to tool.id) + answer)
+        if (result.isSuccess) open() else UI.Toast(result.error ?: s.shared("message_error_simple"), app.treelune.core.ui.Duration.LONG)
+    }
 
     LaunchedEffect(tool.id, version) {
         val result = coordinator.processUserAction("tool_data.get", mapOf("tool_instance_id" to tool.id))
@@ -87,10 +100,22 @@ fun rememberSequenceTile(tool: ToolInstance): ToolTile {
                         }
                     }
                 }
-                Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceEvenly) {
-                    UI.Text(first, TextType.BODY, maxLines = 1)
-                    if (second.isNotEmpty()) UI.Text(second, TextType.CAPTION, maxLines = 1)
+                androidx.compose.foundation.layout.Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(UI.Space.S),
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                    // Its button first: a session started, or the one going on, or waiting to be finished, opened
+                    if (running != null || toFinish != null) UI.ActionButton(action = app.treelune.core.ui.ButtonAction.VIEW,
+                        display = app.treelune.core.ui.ButtonDisplay.ICON, size = app.treelune.core.ui.Size.S, onClick = open)
+                    else UI.ActionButton(action = app.treelune.core.ui.ButtonAction.START, display = app.treelune.core.ui.ButtonDisplay.ICON,
+                        size = app.treelune.core.ui.Size.S, onClick = {
+                            if (SequenceVariants.of(config) == SequenceVariants.STEPS) start(emptyMap()) else asking = true
+                        })
+                    Column(modifier = Modifier.weight(1f).fillMaxSize(), verticalArrangement = Arrangement.SpaceEvenly) {
+                        UI.Text(first, TextType.BODY, maxLines = 1)
+                        if (second.isNotEmpty()) UI.Text(second, TextType.CAPTION, maxLines = 1)
+                    }
                 }
+                if (asking) LaunchDialog(config, loaded.filter { it.status != SequenceToolType.Status.PLANNED && it.status != SequenceToolType.Status.TO_FINISH }, s,
+                    onAnswer = { answer -> asking = false; start(answer) }, onCancel = { asking = false })
             }
 
             @Composable
