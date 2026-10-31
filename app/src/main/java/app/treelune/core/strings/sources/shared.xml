@@ -3172,7 +3172,7 @@
     <string name="readout_core">Core</string>
     <string name="readout_schema_core">The short form, shown where room is short (a zone\'s tile, its own tile beside its name), each of its values written {name}: \"{done} / {expected}\"</string>
     <string name="readout_error_core_place">The core is the short form itself: {} places it in the sentence, not in itself</string>
-    <string name="event_none">None yet: an event is made here, or where a Task or a routine chooses one (« New event… »).</string>
+    <string name="event_none">None yet: an event is made here, or where a Task or a routine chooses one (“New event…”).</string>
     <string name="grid_mode_title">Arranging</string>
     <string name="grid_mode_hint">Touch a tile to move it</string>
     <string name="grid_mode_done">Done</string>
