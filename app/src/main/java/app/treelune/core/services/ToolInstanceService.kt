@@ -220,6 +220,16 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
 
         if (token.isCancelled) return OperationResult.cancelled()
 
+        // Its look alone, merged into the config it has: its place and its appearance changed
+        // without the rest of its config sent back; a key given null is taken out
+        params.optJSONObject(LOOK)?.let { look ->
+            if (configJson.isNotBlank()) return OperationResult.error(s.shared("service_error_tool_look_and_config"))
+            look.keys().asSequence().firstOrNull { it !in LOOK_KEYS }?.let { return OperationResult.error(s.shared("service_error_tool_look_key").format(it, LOOK_KEYS.joinToString(", "))) }
+            val merged = org.json.JSONObject(existingTool.config_json)
+            look.keys().forEach { key -> if (look.isNull(key)) merged.remove(key) else merged.put(key, look.get(key)) }
+            configJson = merged.toString()
+        }
+
         // Process custom fields if config is being updated
         if (configJson.isNotBlank()) {
             val processResult = processCustomFields(
@@ -1252,5 +1262,13 @@ class ToolInstanceService(private val context: Context) : ExecutableService {
             val zone = result.data?.get("zone") as? Map<*, *>
             zone?.get("name") as? String
         } else null
+    }
+
+    companion object {
+        /** An update's look alone (`look`), merged into the tool's config. */
+        const val LOOK = "look"
+
+        /** What a look alone may change: the tool's group, its tile's size, its icon, the icon's colour, its texture. */
+        val LOOK_KEYS = listOf("group", "display_mode", "icon_name", app.treelune.core.themes.IconColor.KEY, app.treelune.core.themes.Texture.KEY)
     }
 }

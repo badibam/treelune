@@ -553,7 +553,8 @@ Changes the configuration of a tool, or moves it to another zone.
 
 - `tool_instance_id` (string, **required**)
 - `config` (object, optional): the **whole** new configuration, which replaces the old one: read it with TOOL_CONFIG, change what you mean to, send it all back
-- `zone_id` (string, optional): the zone to move the tool to; its group stays behind, unless `config` names one of the new zone's tool groups
+- `look` (object, optional), in place of `config`: only its place and appearance, merged into its configuration, the rest left as it is: any of `group`, `display_mode`, `icon_name`, `icon_color`, `texture`, `null` taking one out; to rearrange or recolour tools without reading their configuration
+- `zone_id` (string, optional): the zone to move the tool to; its group stays behind, unless `config` or `look` names one of the new zone's tool groups
 - `confirm_migration` (boolean, optional): `true` to agree to what the change does to the recorded entries; needed only while the protection of recorded data is off
 - `fill_values` (object, optional): the values to give the entries a change leaves without a required value, `{"data": {"value": 3}}`
 

@@ -132,7 +132,7 @@ object AICommands {
             writesEntries = true),
         action("CREATE_TOOL", p("zone_id", "string", true), p("tooltype", "string", true), p("config", "object", true)),
         action("UPDATE_TOOL",
-            p("tool_instance_id", "string", true), p("config", "object"), p("zone_id", "string"),
+            p("tool_instance_id", "string", true), p("config", "object"), p("look", "object"), p("zone_id", "string"),
             p("confirm_migration", "boolean"), p("fill_values", "object")),
         action("DELETE_TOOL", p("tool_instance_id", "string", true)),
         action("CREATE_ZONE",

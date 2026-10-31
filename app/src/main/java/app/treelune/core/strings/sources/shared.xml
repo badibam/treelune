@@ -3183,4 +3183,6 @@
     <string name="grid_mode_done">Done</string>
     <string name="ai_read_user_contents">Contents of the zones read</string>
     <string name="ai_read_user_contents_of">\'%1$s\': contents read</string>
+    <string name="service_error_tool_look_and_config">Give the whole config or the look alone, not both</string>
+    <string name="service_error_tool_look_key">“%1$s” is not part of a tool\'s look: %2$s</string>
 </resources>

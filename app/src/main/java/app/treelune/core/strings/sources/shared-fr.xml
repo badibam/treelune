@@ -3183,4 +3183,6 @@
     <string name="grid_mode_done">Terminer</string>
     <string name="ai_read_user_contents">Contenu des zones lu</string>
     <string name="ai_read_user_contents_of">« %1$s » : contenu lu</string>
+    <string name="service_error_tool_look_and_config">Donne la config entière ou l\'apparence seule, pas les deux</string>
+    <string name="service_error_tool_look_key">« %1$s » ne fait pas partie de l\'apparence d\'un outil : %2$s</string>
 </resources>

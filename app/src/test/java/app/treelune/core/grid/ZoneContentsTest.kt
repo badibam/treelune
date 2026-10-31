@@ -73,4 +73,21 @@ class ZoneContentsTest {
         assertEquals(listOf("First one", "Second one", "Loose"), names)
         assertEquals(names, (ok("zones.list", emptyMap())["zones"] as List<*>).map { (it as Map<*, *>)["name"] }.filter { it in made })
     }
+
+    @Test
+    fun aToolsLookAlone_changesItsPlaceAndAppearance_andKeepsTheRestOfItsConfig() = runBlocking {
+        val zone = ok("zones.create", mapOf("name" to "Look", "tool_groups" to listOf("A", "B")))["zone_id"] as String
+        val tool = ok("tools.create", mapOf("zone_id" to zone, "tooltype" to "notes", "config" to mapOf(
+            "name" to "Shelf", "description" to "Kept", "group" to "A", "icon_name" to "book", "icon_color" to "BLUE", "texture" to "DOTS")))["tool_instance_id"] as String
+        ok("tools.update", mapOf("tool_instance_id" to tool, "look" to mapOf("group" to "B", "icon_color" to "PINK", "texture" to null)))
+        val config = (ok("tools.get", mapOf("tool_instance_id" to tool))["tool_instance"] as Map<*, *>)["config"] as Map<*, *>
+        assertEquals("B", config["group"])
+        assertEquals("PINK", config["icon_color"])
+        assertEquals(null, config["texture"])
+        assertEquals("Kept", config["description"])
+        assertEquals("book", config["icon_name"])
+        // Anything else than its look is refused, naming what a look holds
+        val refused = coordinator.processUserAction("tools.update", mapOf("tool_instance_id" to tool, "look" to mapOf("name" to "Other")))
+        assertTrue(!refused.isSuccess)
+    }
 }
