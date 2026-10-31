@@ -144,6 +144,29 @@ class VariableSeriesServiceTest {
     }
 
     @Test
+    fun `a goal's criterion counting the days of a series, filtered on its value, is saved`() = runBlocking {
+        val (meals, variable) = fast()
+        val zone = ok("tools.get", mapOf("tool_instance_id" to meals)).let { ((it["tool_instance"] as Map<*, *>)["zone_id"]) as String }
+        val goal = coordinator.processUserAction("tools.create", mapOf("zone_id" to zone, "tooltype" to "goal", "config" to mapOf(
+            "name" to "Week",
+            "criteria" to listOf(mapOf(
+                "key" to "c_fast", "name" to "Fast of 16 h",
+                "condition" to mapOf(
+                    "left" to mapOf("reading" to mapOf(
+                        "selection" to mapOf(
+                            "target" to mapOf("kind" to "VARIABLE", "id" to variable),
+                            "filters" to listOf(mapOf("left" to mapOf("field" to "data.value"), "op" to ">=", "right" to mapOf("constant" to 16 * hour)))
+                        ),
+                        "reduction" to "COUNT"
+                    )),
+                    "op" to ">=", "right" to mapOf("constant" to 7)
+                )
+            ))
+        )))
+        assertTrue(goal.error, goal.isSuccess)
+    }
+
+    @Test
     fun `the series is kept in the variable's definition`() = runBlocking {
         val (_, variable) = fast()
         val read = ok("variables.get", mapOf("variable_id" to variable))

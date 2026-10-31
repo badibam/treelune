@@ -183,11 +183,13 @@ class ConfigConditions(private val sources: Sources, private val text: (String) 
     private suspend fun selection(selection: JSONObject, label: String, visit: suspend (Found) -> JSONObject) {
         val filters = selection.optJSONArray("filters")?.takeIf { it.length() > 0 } ?: return
         val target = selection.optJSONObject("target")
-        val id = target?.optString("id")?.takeIf { target.optString("kind") == ReferenceKind.TOOL_INSTANCE.name && it.isNotEmpty() }
-        // Filters on anything else than a tool name no field it has: each is refused as such
+        // A tool's entries, or a variable's series (VariableSeries), whose steps' fields its filters name
+        val kind = target?.optString("kind")?.takeIf { it == ReferenceKind.TOOL_INSTANCE.name || it == ReferenceKind.VARIABLE.name }
+        val id = target?.optString("id")?.takeIf { kind != null && it.isNotEmpty() }
+        // Filters on anything else name no field it has: each is refused as such
         val fields = id?.let {
             try {
-                sources.toolFields(it)
+                sources.targetFields(app.treelune.core.selection.Reference(ReferenceKind.valueOf(kind!!), it))
             } catch (e: IllegalStateException) {
                 throw IllegalArgumentException("$label : ${e.message}")
             }
