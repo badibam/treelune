@@ -20,6 +20,8 @@ sealed class Reach {
     data class Task(val id: String, val level: AccessLevel) : Reach()
     /** An event, held by its zone (docs/CORE.md, « Events ») */
     data class Event(val id: String, val level: AccessLevel) : Reach()
+    /** A readout, held by its zone (docs/design/readouts.md) */
+    data class Readout(val id: String, val level: AccessLevel) : Reach()
     /** A routine's run, held by the zone of its routine */
     data class Run(val id: String, val level: AccessLevel) : Reach()
     /** An entry, held as its tool */
@@ -43,6 +45,7 @@ interface AccessLookups {
     suspend fun routineZone(routineId: String): String?
     suspend fun taskZone(taskId: String): String?
     suspend fun eventZone(eventId: String): String?
+    suspend fun readoutZone(readoutId: String): String?
     /** The routine run [runId] belongs to. */
     suspend fun runRoutine(runId: String): String?
     /** The tool entry [entryId] belongs to, null when there is no such entry. */
@@ -162,6 +165,19 @@ object AccessRules {
                     else -> listOf(Reach.Unknown("$resource.$operation"))
                 }
             }
+            // A readout, as a variable: read with its zone, made and changed by who may use it; what
+            // its values read is read under the mask each time it is read
+            "readouts" -> {
+                fun readoutAt(level: AccessLevel) = text("readout_id")?.let { Reach.Readout(it, level) } ?: Reach.Unknown("$resource.$operation")
+                when (operation) {
+                    "list", "list_all" -> listOf(Reach.Free)
+                    "get", "read" -> listOf(readoutAt(AccessLevel.READ))
+                    "create" -> listOf(zoneAt("zone_id", AccessLevel.USE))
+                    "update" -> listOfNotNull(readoutAt(AccessLevel.USE), text("zone_id")?.let { Reach.Zone(it, AccessLevel.USE) })
+                    "delete" -> listOf(readoutAt(AccessLevel.USE))
+                    else -> listOf(Reach.Unknown("$resource.$operation"))
+                }
+            }
             "tasks" -> {
                 fun taskAt(level: AccessLevel) = text("task_id")?.let { Reach.Task(it, level) } ?: Reach.Unknown("$resource.$operation")
                 when (operation) {
@@ -277,6 +293,11 @@ object AccessRules {
                     val held = mask.zone(zoneId)
                     if (held == null || held < reach.level) return refused(zone(zoneId, lookups, text), reach.level)
                 }
+                is Reach.Readout -> {
+                    val zoneId = lookups.readoutZone(reach.id) ?: return refused(reach.id, reach.level)
+                    val held = mask.zone(zoneId)
+                    if (held == null || held < reach.level) return refused(zone(zoneId, lookups, text), reach.level)
+                }
                 is Reach.Run -> routineRefusal(reach.id, lookups.runRoutine(reach.id), reach.level)?.let { return it }
                 is Reach.File -> when (val holder = lookups.fileHolder(reach.id)) {
                     // An unknown id is the service's to refuse, naming it
@@ -336,6 +357,7 @@ class DatabaseAccessLookups(context: Context) : AccessLookups {
 
     override suspend fun taskZone(taskId: String) = database.taskDao().get(taskId)?.zoneId
     override suspend fun eventZone(eventId: String) = database.eventDao().get(eventId)?.zoneId
+    override suspend fun readoutZone(readoutId: String) = database.readoutDao().get(readoutId)?.zoneId
 
     override suspend fun runRoutine(runId: String) = database.aiDao().getSession(runId)?.routineId
 

@@ -85,6 +85,15 @@ object CommandTransformer {
                     "TASK_CONFIG" -> (command.params["id"] as? String)?.let { id ->
                         ExecutableCommand(resource = "tasks", operation = "get", params = mapOf("task_id" to id))
                     }
+                    "READOUTS" -> ExecutableCommand(
+                        resource = "readouts",
+                        operation = if (command.params["zone_id"] is String) "list" else "list_all",
+                        params = command.params.filterKeys { it == "zone_id" }.mapValues { it.value!! }
+                    )
+                    // What a readout says now: its sentence, its colour, whether it signals
+                    "READOUT" -> (command.params["id"] as? String)?.let { id ->
+                        ExecutableCommand(resource = "readouts", operation = "read", params = mapOf("readout_id" to id))
+                    }
                     "EVENTS" -> ExecutableCommand(
                         resource = "events",
                         operation = "list",

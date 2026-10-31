@@ -66,6 +66,9 @@ enum class SchemaCategory {
     /** Task settings schemas */
     TASK_CONFIG,
 
+    /** Readout settings schemas */
+    READOUT_CONFIG,
+
     /** Custom field type definition schemas */
     FIELD_TYPE,
 

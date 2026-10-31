@@ -864,6 +864,44 @@ Deletes an event; refused, naming them, while a trigger listens to it or somethi
 **Parameters**:
 
 - `event_id` (string, **required**)]]></string>
+    <string name="ai_command_readouts"><![CDATA[### READOUTS
+
+Lists the readouts: sentences whose values are read each time they show, coloured by the first of their conditions that holds, which the user glances at to see what is left to do. Each with its id, zone, place among its section\'s tools, the tools it reads (`tools_read`), and its `settings` in the form CREATE_READOUT and UPDATE_READOUT write them. Their schema: `SCHEMA` with `id` `readout_settings`. What one says now: READOUT.
+
+**Parameters**:
+
+- `zone_id` (string, optional): the readouts of that zone alone]]></string>
+    <string name="ai_command_readout"><![CDATA[### READOUT
+
+Reads what a readout says now: its sentence with each value written in (`text`), the colour of the first condition that holds (`color`, absent when none does), whether that one signals (`signal`), and the values that gave nothing, each with why (`failures`).
+
+**Parameters**:
+
+- `id` (string, **required**): the readout\'s id]]></string>
+    <string name="ai_command_create_readout"><![CDATA[### CREATE_READOUT
+
+Creates a readout in a zone, its own tile in a group of it. Its `settings`, described by SCHEMA with `id` `readout_settings`: its look (`name`, `icon_name`, `display_mode`…) and `group`; `text`, the sentence, each value written `{name}`; `values`, each `{"name", "value"}`, `value` a term (`{"constant"}`, `{"variable"}`, `{"reading"}` over a period relative to the moment it shows); `target`, what a touch opens (`{"kind": "APP"}`, a ZONE or a TOOL_INSTANCE by its id), required; `colors`, in order, each `{"when", "color", "signal"}`, `when` a condition whose sides are its values by name (`{"field": "done"}`) or written values, the first that holds giving its colour; `signal` true only where the user should look; `places`, among `group_head`, `zone_head`, `zone_tile`, `zone_group_head`, `home_head`. A value that computes a formula in each entry is a variable\'s: make one, and read it.
+
+**Parameters**:
+
+- `zone_id` (string, **required**)
+- `settings` (object, **required**)]]></string>
+    <string name="ai_command_update_readout"><![CDATA[### UPDATE_READOUT
+
+Changes a readout: each setting given replaces its value, one given `null` is removed, those left out are kept. `zone_id` moves it to another zone, leaving its group behind unless one is given.
+
+**Parameters**:
+
+- `readout_id` (string, **required**)
+- `zone_id` (string, optional)
+- `settings` (object, optional): as CREATE_READOUT]]></string>
+    <string name="ai_command_delete_readout"><![CDATA[### DELETE_READOUT
+
+Deletes a readout, its own tile and the lines it raises.
+
+**Parameters**:
+
+- `readout_id` (string, **required**)]]></string>
     <string name="ai_command_create_api"><![CDATA[### CREATE_API
 
 Declares an API, a web service a Task\'s `call_api` step calls. Its config is described by SCHEMA with `id` `api_config`. You never handle a key: `key` is refused. For a service that takes one, say where it goes (`key_in`, with `key_header` and `key_prefix`, or `key_param`) and tell the user to enter it in Settings › APIs: until then, a call is refused before it leaves. For a service that takes none, `key_in` `none`. You cannot try an API: the user does, from its screen, and can give you what it answered for you to correct a path.

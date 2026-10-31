@@ -162,6 +162,7 @@ class SchemaService(private val context: Context) : ExecutableService {
             schemaId == app.treelune.core.ai.data.RoutineSchemas.RUNS_ID -> app.treelune.core.ai.data.RoutineSchemas.runs(context)
             schemaId == app.treelune.core.tasks.TaskSchemas.CONFIG_ID -> app.treelune.core.tasks.TaskSchemas.config(context)
             schemaId == app.treelune.core.apis.ApiSettings.SCHEMA_ID -> app.treelune.core.apis.ApiSettings.schema(context)
+            schemaId == app.treelune.core.readouts.ReadoutSettings.SCHEMA_ID -> app.treelune.core.readouts.ReadoutSettings.schema(context)
             else -> null
         }
     }
@@ -197,7 +198,9 @@ class SchemaService(private val context: Context) : ExecutableService {
             // A Task's config
             app.treelune.core.tasks.TaskSchemas.CONFIG_ID,
             // An API's config
-            app.treelune.core.apis.ApiSettings.SCHEMA_ID
+            app.treelune.core.apis.ApiSettings.SCHEMA_ID,
+            // A readout's settings
+            app.treelune.core.readouts.ReadoutSettings.SCHEMA_ID
         )
         // One schema per category of the app's settings, by the name getSystemSchema serves
         schemaIds.addAll(app.treelune.core.config.AppSettings.CATEGORIES.map { "app_config_$it" })

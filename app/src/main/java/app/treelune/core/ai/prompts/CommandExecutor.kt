@@ -569,6 +569,9 @@ class CommandExecutor(private val context: Context) {
             "tasks.get" -> line("task", ((data["task"] as? Map<*, *>)?.get("settings") as? Map<*, *>)?.get("name") as? String ?: "")
             "tasks.list" -> line("tasks_of", zone ?: "")
             "tasks.list_all" -> line("tasks")
+            "readouts.list" -> line("readouts_of", zone ?: "")
+            "readouts.list_all" -> line("readouts")
+            "readouts.read" -> line("readout")
             "ai_sessions.list_sessions_for_routine" -> line("runs_of", resolveRoutineName(params["routine_id"] as? String))
             "ai_sessions.run_history" -> line("run")
             "files.read" -> line("file")
@@ -704,6 +707,11 @@ class CommandExecutor(private val context: Context) {
                 else -> "All routines"
             }
             "events" -> (command.params["zone_id"] as? String)?.let { "Events in zone '${resolveZoneName(it)}'" } ?: "All events"
+            "readouts" -> when (command.operation) {
+                "read" -> "What readout ${command.params["readout_id"]} says now"
+                "list" -> "Readouts in zone '${resolveZoneName(command.params["zone_id"] as String)}'"
+                else -> "All readouts"
+            }
             "apis" -> "All APIs"
             "tasks" -> when (command.operation) {
                 "get" -> "Configuration for Task '${((data["task"] as? Map<*, *>)?.get("settings") as? Map<*, *>)?.get("name")}'"
@@ -866,6 +874,20 @@ class CommandExecutor(private val context: Context) {
                 if (command.operation == "get") return JSONObject(app.treelune.core.tasks.TaskSchemas.forModel(data["task"] as Map<*, *>, context) as Map<*, *>).toString(2)
                 (data["tasks"] as? List<*>)?.let { list -> reordered["tasks"] = list.map { app.treelune.core.tasks.Task.listed(it as Map<*, *>) } }
                 return JSONObject(reordered as Map<*, *>).toString(2)
+            }
+            // The readouts' settings in the form CREATE_READOUT and UPDATE_READOUT write them
+            "readouts" -> {
+                (data["readouts"] as? List<*>)?.let { list ->
+                    val schema = JSONObject(app.treelune.core.readouts.ReadoutSettings.schema(context).content)
+                    val conditions = app.treelune.core.ai.processing.ConditionValues(app.treelune.core.conditions.AppConditionSources(context, app.treelune.core.readouts.ReadoutRows), timezone) { s.shared(it) }
+                    val nodes = app.treelune.core.readouts.ReadoutSettings.nodes(context)
+                    reordered["readouts"] = list.map { readout ->
+                        (readout as Map<*, *>).entries.filter { it.key != "target_zone_id" }.associate { (key, value) ->
+                            key.toString() to if (key == "settings") JsonUtils.toMap(conditions.toModel(nodes, JsonUtils.toJSONObject((ModelValues.toModel(value, schema, timezone) as Map<*, *>).entries.associate { it.key.toString() to it.value }))) else value
+                        }
+                    }
+                    return JSONObject(reordered as Map<*, *>).toString(2)
+                }
             }
             // The APIs' configs in the form CREATE_API and UPDATE_API write them: a wait limit in ISO 8601
             "apis" -> data["apis"]?.let { apis ->

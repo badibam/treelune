@@ -65,7 +65,8 @@ data class PartSelection(
  * its runs starts from, and nothing of its runs. An identity goes when ticked, a zone and a routine
  * keeping it then, and speaking through the app's own AI otherwise. A Task goes switched off; an
  * API without its secret settings, its key; an event when what goes names it, in the zone it
- * arrives in (PartTree.eventArrivals).
+ * arrives in (PartTree.eventArrivals). A readout goes with its zone when what it reads and what it
+ * opens go too: without them it would arrive broken.
  */
 object BackupPart {
 
@@ -115,9 +116,15 @@ object BackupPart {
         // What a zone or a routine kept speaks as: its identity when kept, the app's own AI otherwise
         fun spokenAs(row: JSONObject): Any = identityOf(row)?.takeIf { it in selection.identities } ?: JSONObject.NULL
 
+        // A readout goes with its zone when every tool, variable and zone it names goes too
+        val keptIds = selection.zones + selection.tools.keys + selection.variables
+        val keptReadouts = rows(data, "readouts").filter { readout ->
+            readout.getString("zone_id") in selection.zones && readoutNames(JSONObject(readout.getString("settings_json"))).all { it in keptIds }
+        }
+
         // A zone keeps the tool groups its kept elements hold, in its order
         val heldGroups = keptTools.mapNotNull { tool -> Groups.held(JSONObject(tool.getString("config_json")))?.let { tool.getString("zone_id") to it } } +
-            (keptVariables + keptRoutineRows + keptTasks).mapNotNull { element -> Groups.held(element)?.let { element.getString("zone_id") to it } }
+            (keptVariables + keptRoutineRows + keptTasks + keptReadouts).mapNotNull { element -> Groups.held(element)?.let { element.getString("zone_id") to it } }
         val keptZones = zones.filter { it.getString("id") in selection.zones }.map { zone ->
             val id = zone.getString("id")
             val groups = ToolPositions.zoneGroups(zone.optString("tool_groups").takeIf { it.isNotEmpty() }).filter { (id to it) in heldGroups }
@@ -170,11 +177,30 @@ object BackupPart {
                 .put("tasks", JSONArray(keptTaskRows))
                 .put("apis", JSONArray(keptApis))
                 .put("events", JSONArray(keptEvents))
+                .put("readouts", JSONArray(keptReadouts))
                 .put("identities", JSONArray(identities.filter { it.getString("id") in selection.identities }))
                 .put("ai_sessions", JSONArray(sessions))
                 .put("session_messages", JSONArray(messages))
                 .put("files", JSONArray(files))
                 .put("missing_files", JSONArray(missing)))
+    }
+
+    /** The ids of the tools, variables and zones a readout's [settings] names: what its values read, what it opens. */
+    fun readoutNames(settings: JSONObject): Set<String> {
+        val names = mutableSetOf<String>()
+        fun walk(value: Any?) {
+            when (value) {
+                is JSONObject -> {
+                    // A thing designated: a reading's target, a target to open
+                    if (value.has("kind") && value.optString("kind") in setOf("TOOL_INSTANCE", "ZONE", "VARIABLE")) value.optString("id").takeIf { it.isNotEmpty() }?.let { names += it }
+                    value.optString("variable").takeIf { it.isNotEmpty() && value.length() == 1 }?.let { names += it }
+                    value.keys().forEach { walk(value.get(it)) }
+                }
+                is JSONArray -> (0 until value.length()).forEach { walk(value.get(it)) }
+            }
+        }
+        walk(settings)
+        return names
     }
 
     /** The ids of the files [part] holds, which go beside it. */

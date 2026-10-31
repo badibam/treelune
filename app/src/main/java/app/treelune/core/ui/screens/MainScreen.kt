@@ -338,6 +338,10 @@ private fun PlaceScreen(place: Place, zones: ZonesState, demoInstalled: Boolean)
                     back()
                 })
             }
+            is Place.ReadoutConfig -> {
+                name(s.shared(if (place.readoutId == null) "readout_new_name" else "nav_configuration"))
+                app.treelune.core.readouts.ui.ReadoutConfigScreen(place, onDone = back)
+            }
             is Place.TaskRun -> {
                 name(s.shared("nav_execution"))
                 app.treelune.core.tasks.ui.TaskRunScreen(place, onTaskName = { Navigator.name(place.parent(), it) }, onBack = back)
@@ -490,6 +494,21 @@ private fun HomeScreen(zones: ZonesState) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val zoneGroups = zones.groups
 
+    // Every readout, for those raised to the home screen: its head, a group's head, a zone's tile
+    val coordinator = remember { app.treelune.core.coordinator.Coordinator(context) }
+    var readouts by remember { mutableStateOf<List<app.treelune.core.readouts.ui.ReadoutRow>>(emptyList()) }
+    LaunchedEffect(Unit) {
+        suspend fun read() = app.treelune.core.readouts.ui.ReadoutRow.all(coordinator).onSuccess { readouts = it }.onFailure { errorMessage = it.message }
+        read()
+        DataChangeNotifier.changes.collect { if (it is DataChangeEvent.ZonesChanged) read() }
+    }
+    // The order of the tree: the zones as the home screen shows them, each zone's groups as its screen does
+    val zoneOrder = (zoneGroups.map { it as String? } + null).flatMap { group ->
+        zones.list.filter { app.treelune.core.grid.ZonePositions.section(it.group, zoneGroups) == group }.sortedWith(compareBy({ it.grid_y }, { it.grid_x })).map { it.id }
+    }
+    val groupsOf = { zoneId: String -> app.treelune.core.grid.ToolPositions.zoneGroups(zones.list.firstOrNull { it.id == zoneId }?.tool_groups) }
+    fun rising(place: app.treelune.core.readouts.ReadoutSettings.Place) = app.treelune.core.readouts.ui.risingTo(readouts, place, zoneOrder, groupsOf)
+
     // The edit mode of the zone groups' grids, a section named by its group, "" for the ungrouped one
     val gridEditor = app.treelune.core.ui.components.rememberGridEditor(
         placeOperation = "zones.place",
@@ -542,11 +561,15 @@ private fun HomeScreen(zones: ZonesState) {
                     textAlign = TextAlign.Center
                 )
             } else {
+                // The readouts raised to the head of the home screen
+                app.treelune.core.readouts.ui.ReadoutLines(rising(app.treelune.core.readouts.ReadoutSettings.Place.HOME_HEAD))
                 // For each defined group, display its section (always shown, even if empty)
                 zoneGroups.forEach { groupName ->
                     ZoneGroupSection(
                         groupName = groupName,
                         zones = zones.list,
+                        groupHead = rising(app.treelune.core.readouts.ReadoutSettings.Place.ZONE_GROUP_HEAD),
+                        onTile = rising(app.treelune.core.readouts.ReadoutSettings.Place.ZONE_TILE),
                         configuredGroups = zoneGroups,
                         editor = gridEditor,
                         onZoneClick = { zone -> Navigator.push(Place.Zone(zone.id)) },
@@ -560,6 +583,8 @@ private fun HomeScreen(zones: ZonesState) {
                 ZoneGroupSection(
                     groupName = null, // null = ungrouped
                     zones = zones.list,
+                    groupHead = rising(app.treelune.core.readouts.ReadoutSettings.Place.ZONE_GROUP_HEAD),
+                    onTile = rising(app.treelune.core.readouts.ReadoutSettings.Place.ZONE_TILE),
                     hasConfiguredGroups = zoneGroups.isNotEmpty(),
                     configuredGroups = zoneGroups, // Pass list to filter orphaned zones
                     editor = gridEditor,
@@ -591,6 +616,8 @@ private fun HomeScreen(zones: ZonesState) {
 private fun ZoneGroupSection(
     groupName: String?,
     zones: List<Zone>,
+    groupHead: List<app.treelune.core.readouts.ui.ReadoutRow>,
+    onTile: List<app.treelune.core.readouts.ui.ReadoutRow>,
     hasConfiguredGroups: Boolean = true,
     configuredGroups: List<String>,
     editor: app.treelune.core.ui.components.GridEditor,
@@ -626,6 +653,9 @@ private fun ZoneGroupSection(
         }
     }
 
+    // The readouts of its zones raised to its head
+    app.treelune.core.readouts.ui.ReadoutLines(groupHead.filter { readout -> groupZones.any { it.id == readout.zoneId } })
+
     // Display zones or empty message
     if (groupZones.isEmpty()) {
         UI.Card(type = CardType.DEFAULT) {
@@ -652,6 +682,7 @@ private fun ZoneGroupSection(
         app.treelune.core.ui.components.GridLayout(groupZones, groupZones.map { app.treelune.core.grid.ZonePositions.tile(it) }, groupZones.map { false }, editor.gridEdit(key)) { zone ->
             UI.ZoneCard(
                 zone = zone,
+                readouts = onTile.filter { it.zoneId == zone.id },
                 onClick = { onZoneClick(zone) },
                 onLongClick = { onZoneLongClick(zone) }
             )

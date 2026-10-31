@@ -22,6 +22,7 @@ object Pieces {
         Piece("piece_routine_name", "piece_routine_usage", "piece_routine_screen"),
         Piece("piece_task_name", "piece_task_usage", "piece_task_screen"),
         Piece("piece_variable_name", "piece_variable_usage", "piece_variable_screen"),
+        Piece("piece_readout_name", "piece_readout_usage", "piece_readout_screen"),
         Piece("piece_alert_name", "piece_alert_usage", "piece_alert_screen"),
         Piece("piece_event_name", "piece_event_usage", "piece_event_screen"),
         Piece("piece_api_name", "piece_api_usage", "piece_api_screen"),
